@@ -148,9 +148,7 @@ public abstract class AbstractDiscordSRV<C extends MainConfig, CC extends Connec
 
     @Override
     public void setStatus(Status status) {
-        synchronized (this.status) {
-            this.status.set(status);
-        }
+        this.status.set(status);
     }
 
     protected CompletableFuture<Void> invoke(CheckedRunnable runnable, String message, boolean enable) {
