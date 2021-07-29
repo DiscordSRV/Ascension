@@ -18,6 +18,8 @@
 
 package com.discordsrv.common.function;
 
+import org.jetbrains.annotations.Nullable;
+
 import java.util.function.Function;
 
 public class OrDefault<T> {
@@ -30,6 +32,12 @@ public class OrDefault<T> {
         this.secondary = secondary;
     }
 
+    public <R> R get(Function<T, R> function, R otherwise) {
+        R value = get(function);
+        return value != null ? value : otherwise;
+    }
+
+    @Nullable
     public <R> R get(Function<T, R> function) {
         if (primary != null) {
             R primaryValue = function.apply(primary);
@@ -39,5 +47,17 @@ public class OrDefault<T> {
         }
 
         return function.apply(secondary);
+    }
+
+    public <R> OrDefault<R> map(Function<T, R> mappingFunction) {
+        R primaryValue = null;
+        R secondaryValue = null;
+        if (primary != null) {
+            primaryValue = mappingFunction.apply(primary);
+        }
+        if (secondary != null) {
+            secondaryValue = mappingFunction.apply(secondary);
+        }
+        return new OrDefault<>(primaryValue, secondaryValue);
     }
 }

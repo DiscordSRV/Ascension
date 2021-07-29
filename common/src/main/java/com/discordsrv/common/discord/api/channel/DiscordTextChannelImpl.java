@@ -42,11 +42,6 @@ public class DiscordTextChannelImpl implements DiscordTextChannel {
     }
 
     @Override
-    public long getIdLong() {
-        return textChannel.getIdLong();
-    }
-
-    @Override
     public String getName() {
         return textChannel.getName();
     }

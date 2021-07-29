@@ -37,12 +37,14 @@ import net.dv8tion.jda.api.events.StatusChangeEvent;
 import net.dv8tion.jda.api.requests.CloseCode;
 import net.dv8tion.jda.api.requests.GatewayIntent;
 import net.dv8tion.jda.api.requests.RestAction;
+import net.dv8tion.jda.api.utils.AllowedMentions;
 import net.dv8tion.jda.api.utils.MemberCachePolicy;
 import net.dv8tion.jda.internal.hooks.EventManagerProxy;
 import net.dv8tion.jda.internal.utils.IOUtil;
 import okhttp3.OkHttpClient;
 
 import javax.security.auth.login.LoginException;
+import java.util.Collections;
 import java.util.Set;
 import java.util.concurrent.*;
 
@@ -67,6 +69,7 @@ public class JDAConnectionManager implements DiscordConnectionManager {
                 new CountingThreadFactory(Scheduler.THREAD_NAME_PREFIX + "JDA RateLimit #%s")
         );
         RestAction.setDefaultFailure(t -> discordSRV.logger().error("Callback failed", t));
+        AllowedMentions.setDefaultMentions(Collections.emptyList());
         discordSRV.eventBus().subscribe(this);
     }
 
@@ -132,7 +135,9 @@ public class JDAConnectionManager implements DiscordConnectionManager {
     }
 
     private boolean checkCode(CloseCode closeCode) {
-        if (closeCode == CloseCode.DISALLOWED_INTENTS) {
+        if (closeCode == null) {
+            return false;
+        } else if (closeCode == CloseCode.DISALLOWED_INTENTS) {
             // TODO
             return true;
         } else if (closeCode.isReconnect()) {

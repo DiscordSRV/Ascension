@@ -31,7 +31,6 @@ import java.util.concurrent.CompletableFuture;
 public interface DiscordTextChannel {
 
     String getId();
-    long getIdLong();
 
     String getName();
     String getTopic();

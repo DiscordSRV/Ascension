@@ -43,7 +43,6 @@ import net.kyori.adventure.text.serializer.plain.PlainTextComponentSerializer;
 
 import java.util.Collections;
 import java.util.List;
-import java.util.Optional;
 
 public class DefaultChatListener extends AbstractListener {
 
@@ -63,22 +62,12 @@ public class DefaultChatListener extends AbstractListener {
 
         OrDefault<BaseChannelConfig> channelConfig = discordSRV.channelConfig().orDefault(gameChannel);
 
-        Component discordMessage = EnhancedLegacyText.get().buildComponent(
-                channelConfig.get(cfg ->
-                        Optional.ofNullable(cfg.minecraftToDiscord)
-                                .map(config -> config.messageFormat)
-                                .orElse(null)
-                ))
+        Component discordMessage = EnhancedLegacyText.get().buildComponent(channelConfig.map(cfg -> cfg.minecraftToDiscord).get(cfg -> cfg.messageFormat))
                 .replace("%message%", message)
                 .replace("%player_display_name%", displayName)
                 .build();
 
-        String username = new Placeholders(
-                channelConfig.get(cfg ->
-                        Optional.ofNullable(cfg.minecraftToDiscord)
-                                .map(config -> config.usernameFormat)
-                                .orElse(null)
-                ))
+        String username = new Placeholders(channelConfig.map(cfg -> cfg.minecraftToDiscord).get(cfg -> cfg.usernameFormat))
                 .replace("%player_display_name%", () -> PlainTextComponentSerializer.plainText().serialize(displayName))
                 .get();
 

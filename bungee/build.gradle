@@ -34,4 +34,5 @@ shadowJar {
     ].each {
         relocate it, 'com.discordsrv.dependencies.' + it
     }
+    // More relocations in buildscript/relocations.gradle
 }

@@ -63,12 +63,12 @@ public class ChannelConfig {
         return orDefault(gameChannel.getOwnerName(), gameChannel.getChannelName());
     }
 
-    public OrDefault<BaseChannelConfig> orDefault(String pluginName, String channelName) {
+    public OrDefault<BaseChannelConfig> orDefault(String ownerName, String channelName) {
         ChannelConfigHolder defaultConfig = channels().computeIfAbsent(
                 "default", key -> new ChannelConfigHolder(new BaseChannelConfig()));
 
         return new OrDefault<>(
-                get(pluginName, channelName),
+                get(ownerName, channelName),
                 defaultConfig.get()
         );
     }
@@ -77,10 +77,19 @@ public class ChannelConfig {
         return get(gameChannel.getOwnerName(), gameChannel.getChannelName());
     }
 
-    public BaseChannelConfig get(String pluginName, String channelName) {
-        if (pluginName != null) {
-            ChannelConfigHolder config = channels().get(pluginName + ":" + channelName);
-            return config != null ? config.get() : null;
+    public BaseChannelConfig get(String ownerName, String channelName) {
+        if (ownerName != null) {
+            ChannelConfigHolder config = channels().get(ownerName + ":" + channelName);
+            if (config != null) {
+                return config.get();
+            }
+
+            GameChannel gameChannel = CHANNELS.get(channelName);
+            if (gameChannel != null && gameChannel.getOwnerName().equals(ownerName)) {
+                config = channels().get(channelName);
+                return config != null ? config.get() : null;
+            }
+            return null;
         }
 
         GameChannel gameChannel = CHANNELS.get(channelName);

@@ -46,7 +46,7 @@ dependencies {
     runtimeDownloadApi 'dev.vankka:mcdiscordreserializer:4.2.4-SNAPSHOT'
     runtimeDownloadApi 'dev.vankka:enhancedlegacytext:1.0.0-SNAPSHOT'
 
-    // Database Drivers & SLF4J
+    // Database Drivers
     h2Driver 'com.h2database:h2:1.4.200'
     mysqlDriver 'mysql:mysql-connector-java:8.0.25'
 

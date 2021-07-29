@@ -23,23 +23,31 @@
 
 package com.discordsrv.api.discord.api.message.impl;
 
+import com.discordsrv.api.discord.api.message.AllowedMention;
 import com.discordsrv.api.discord.api.message.DiscordMessageEmbed;
 import com.discordsrv.api.discord.api.message.SendableDiscordMessage;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 public class SendableDiscordMessageImpl implements SendableDiscordMessage {
 
     private final String content;
     private final List<DiscordMessageEmbed> embeds;
+    private final Set<AllowedMention> allowedMentions;
     private final String webhookUsername;
     private final String webhookAvatarUrl;
 
-    public SendableDiscordMessageImpl(String content, List<DiscordMessageEmbed> embeds,
-                                      String webhookUsername, String webhookAvatarUrl) {
+    public SendableDiscordMessageImpl(String content,
+                                      List<DiscordMessageEmbed> embeds,
+                                      Set<AllowedMention> allowedMentions,
+                                      String webhookUsername,
+                                      String webhookAvatarUrl) {
         this.content = content;
         this.embeds = embeds;
+        this.allowedMentions = allowedMentions;
         this.webhookUsername = webhookUsername;
         this.webhookAvatarUrl = webhookAvatarUrl;
     }
@@ -52,6 +60,11 @@ public class SendableDiscordMessageImpl implements SendableDiscordMessage {
     @Override
     public List<DiscordMessageEmbed> getEmbeds() {
         return embeds;
+    }
+
+    @Override
+    public Set<AllowedMention> getAllowedMentions() {
+        return allowedMentions;
     }
 
     @Override
@@ -68,6 +81,7 @@ public class SendableDiscordMessageImpl implements SendableDiscordMessage {
 
         private String content;
         private final List<DiscordMessageEmbed> embeds = new ArrayList<>();
+        private final Set<AllowedMention> allowedMentions = new HashSet<>();
         private String webhookUsername;
         private String webhookAvatarUrl;
 
@@ -100,6 +114,23 @@ public class SendableDiscordMessageImpl implements SendableDiscordMessage {
         }
 
         @Override
+        public Set<AllowedMention> getAllowedMentions() {
+            return allowedMentions;
+        }
+
+        @Override
+        public Builder addAllowedMention(AllowedMention allowedMention) {
+            this.allowedMentions.add(allowedMention);
+            return this;
+        }
+
+        @Override
+        public Builder removeAllowedMention(AllowedMention allowedMention) {
+            this.allowedMentions.remove(allowedMention);
+            return this;
+        }
+
+        @Override
         public String getWebhookUsername() {
             return webhookUsername;
         }
@@ -123,7 +154,7 @@ public class SendableDiscordMessageImpl implements SendableDiscordMessage {
 
         @Override
         public SendableDiscordMessage build() {
-            return new SendableDiscordMessageImpl(content, embeds, webhookUsername, webhookAvatarUrl);
+            return new SendableDiscordMessageImpl(content, embeds, allowedMentions, webhookUsername, webhookAvatarUrl);
         }
     }
 }

@@ -26,6 +26,7 @@ package com.discordsrv.api.discord.api.message;
 import com.discordsrv.api.discord.api.message.impl.SendableDiscordMessageImpl;
 
 import java.util.List;
+import java.util.Set;
 
 @SuppressWarnings("unused") // API
 public interface SendableDiscordMessage {
@@ -45,6 +46,12 @@ public interface SendableDiscordMessage {
      * @return the unmodifiable list of embeds in this message
      */
     List<DiscordMessageEmbed> getEmbeds();
+
+    /**
+     * Gets the allowed mentions of the message.
+     * @return the allowed mentions in this message
+     */
+    Set<AllowedMention> getAllowedMentions();
 
     /**
      * Gets the webhook username.
@@ -100,6 +107,26 @@ public interface SendableDiscordMessage {
          * @return the builder, useful for chaining
          */
         Builder removeEmbed(DiscordMessageEmbed embed);
+
+        /**
+         * Gets the allowed mentions in this builder.
+         * @return the builder's current allowed mentions
+         */
+        Set<AllowedMention> getAllowedMentions();
+
+        /**
+         * Adds an allowed mention to this builder.
+         * @param allowedMention the allowed mention to add
+         * @return the builder, useful for chaining
+         */
+        Builder addAllowedMention(AllowedMention allowedMention);
+
+        /**
+         * Removes an allowed mention from this builder.
+         * @param allowedMention the allowed mention to remove
+         * @return the builder, useful for chaining
+         */
+        Builder removeAllowedMention(AllowedMention allowedMention);
 
         /**
          * Gets the webhook username for this builder or {@code null} if webhooks are not being used.

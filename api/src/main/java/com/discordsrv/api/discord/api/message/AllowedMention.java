@@ -58,6 +58,7 @@ public interface AllowedMention {
     }
 
     class Snowflake implements AllowedMention {
+
         private final String id;
         private final boolean user;
 

@@ -28,6 +28,8 @@ jar {
 
 shadowJar {
     archiveBaseName = 'DiscordSRV-Velocity'
+
+    // Relocations in buildscript/relocations.gradle
 }
 
 blossom {

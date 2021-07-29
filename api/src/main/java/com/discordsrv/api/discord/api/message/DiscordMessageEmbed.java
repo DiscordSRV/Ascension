@@ -23,6 +23,7 @@
 
 package com.discordsrv.api.discord.api.message;
 
+import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.entities.MessageEmbed;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -145,22 +146,40 @@ public class DiscordMessageEmbed {
         return footerImageUrl;
     }
 
+    public MessageEmbed toJDA() {
+        EmbedBuilder embedBuilder = new EmbedBuilder();
+        embedBuilder.setColor(color);
+        embedBuilder.setAuthor(authorName, authorUrl, authorImageUrl);
+        embedBuilder.setTitle(title, titleUrl);
+        embedBuilder.setDescription(description);
+        for (Field field : fields) {
+            embedBuilder.addField(new MessageEmbed.Field(field.getTitle(), field.getValue(), field.isInline(), false));
+        }
+        embedBuilder.setThumbnail(thumbnailUrl);
+        embedBuilder.setImage(imageUrl);
+        embedBuilder.setTimestamp(timestamp);
+        embedBuilder.setFooter(footer, footerImageUrl);
+        return embedBuilder.build();
+    }
+
     public static class Field {
 
         private final String title;
         private final String value;
         private final boolean inline;
 
-        public Field(String title, String value, boolean inline) {
-            this.title = title;
-            this.value = value;
+        public Field(@Nullable CharSequence title, @Nullable CharSequence value, boolean inline) {
+            this.title = title != null ? title.toString() : null;
+            this.value = value != null ? value.toString() : null;
             this.inline = inline;
         }
 
+        @Nullable
         public String getTitle() {
             return title;
         }
 
+        @Nullable
         public String getValue() {
             return value;
         }
@@ -217,14 +236,14 @@ public class DiscordMessageEmbed {
             return this;
         }
 
-        public Builder setAuthor(@Nullable String authorName, @Nullable String authorUrl) {
+        public Builder setAuthor(@Nullable CharSequence authorName, @Nullable CharSequence authorUrl) {
             return setAuthor(authorName, authorUrl, null);
         }
 
-        public Builder setAuthor(@Nullable String authorName, @Nullable String authorUrl, @Nullable String authorImageUrl) {
-            this.authorName = authorName;
-            this.authorUrl = authorUrl;
-            this.authorImageUrl = authorImageUrl;
+        public Builder setAuthor(@Nullable CharSequence authorName, @Nullable CharSequence authorUrl, @Nullable CharSequence authorImageUrl) {
+            this.authorName = authorName != null ? authorName.toString() : null;
+            this.authorUrl = authorUrl != null ? authorUrl.toString() : null;
+            this.authorImageUrl = authorImageUrl != null ? authorImageUrl.toString() : null;
             return this;
         }
 
@@ -232,8 +251,8 @@ public class DiscordMessageEmbed {
             return authorName;
         }
 
-        public Builder setAuthorName(@Nullable String authorName) {
-            this.authorName = authorName;
+        public Builder setAuthorName(@Nullable CharSequence authorName) {
+            this.authorName = authorName != null ? authorName.toString() : null;
             return this;
         }
 
@@ -241,8 +260,8 @@ public class DiscordMessageEmbed {
             return authorUrl;
         }
 
-        public Builder setAuthorUrl(@Nullable String authorUrl) {
-            this.authorUrl = authorUrl;
+        public Builder setAuthorUrl(@Nullable CharSequence authorUrl) {
+            this.authorUrl = authorUrl != null ? authorUrl.toString() : null;
             return this;
         }
 
@@ -250,14 +269,14 @@ public class DiscordMessageEmbed {
             return authorImageUrl;
         }
 
-        public Builder setAuthorImageUrl(String authorImageUrl) {
-            this.authorImageUrl = authorImageUrl;
+        public Builder setAuthorImageUrl(@Nullable CharSequence authorImageUrl) {
+            this.authorImageUrl = authorImageUrl != null ? authorImageUrl.toString() : null;
             return this;
         }
 
-        public Builder setTitle(@Nullable String title, @Nullable String titleUrl) {
-            this.title = title;
-            this.titleUrl = titleUrl;
+        public Builder setTitle(@Nullable CharSequence title, @Nullable CharSequence titleUrl) {
+            this.title = title != null ? title.toString() : null;
+            this.titleUrl = titleUrl != null ? titleUrl.toString() : null;
             return this;
         }
 
@@ -265,8 +284,8 @@ public class DiscordMessageEmbed {
             return title;
         }
 
-        public Builder setTitle(@Nullable String title) {
-            this.title = title;
+        public Builder setTitle(@Nullable CharSequence title) {
+            this.title = title != null ? title.toString() : null;
             return this;
         }
 
@@ -274,8 +293,8 @@ public class DiscordMessageEmbed {
             return titleUrl;
         }
 
-        public Builder setTitleUrl(@Nullable String titleUrl) {
-            this.titleUrl = titleUrl;
+        public Builder setTitleUrl(@Nullable CharSequence titleUrl) {
+            this.titleUrl = titleUrl != null ? titleUrl.toString() : null;
             return this;
         }
 
@@ -283,8 +302,8 @@ public class DiscordMessageEmbed {
             return description;
         }
 
-        public Builder setDescription(@Nullable String description) {
-            this.description = description;
+        public Builder setDescription(@Nullable CharSequence description) {
+            this.description = description != null ? description.toString() : null;
             return this;
         }
 
@@ -292,7 +311,7 @@ public class DiscordMessageEmbed {
             return fields;
         }
 
-        public Builder addField(@NotNull String title, @NotNull String value, boolean inline) {
+        public Builder addField(@NotNull CharSequence title, @NotNull CharSequence value, boolean inline) {
             return addField(new Field(title, value, inline));
         }
 
@@ -310,8 +329,8 @@ public class DiscordMessageEmbed {
             return thumbnailUrl;
         }
 
-        public Builder setThumbnailUrl(@Nullable String thumbnailUrl) {
-            this.thumbnailUrl = thumbnailUrl;
+        public Builder setThumbnailUrl(@Nullable CharSequence thumbnailUrl) {
+            this.thumbnailUrl = thumbnailUrl != null ? thumbnailUrl.toString() : null;
             return this;
         }
 
@@ -319,8 +338,8 @@ public class DiscordMessageEmbed {
             return imageUrl;
         }
 
-        public Builder setImageUrl(@Nullable String imageUrl) {
-            this.imageUrl = imageUrl;
+        public Builder setImageUrl(@Nullable CharSequence imageUrl) {
+            this.imageUrl = imageUrl != null ? imageUrl.toString() : null;
             return this;
         }
 
@@ -333,9 +352,9 @@ public class DiscordMessageEmbed {
             return this;
         }
 
-        public Builder setFooter(@Nullable String footer, @Nullable String footerImageUrl) {
-            this.footer = footer;
-            this.footerImageUrl = footerImageUrl;
+        public Builder setFooter(@Nullable CharSequence footer, @Nullable CharSequence footerImageUrl) {
+            this.footer = footer != null ? footer.toString() : null;
+            this.footerImageUrl = footerImageUrl != null ? footerImageUrl.toString() : null;
             return this;
         }
 
@@ -343,8 +362,8 @@ public class DiscordMessageEmbed {
             return footer;
         }
 
-        public Builder setFooter(@Nullable String footer) {
-            this.footer = footer;
+        public Builder setFooter(@Nullable CharSequence footer) {
+            this.footer = footer != null ? footer.toString() : null;
             return this;
         }
 
@@ -352,8 +371,8 @@ public class DiscordMessageEmbed {
             return footerImageUrl;
         }
 
-        public Builder setFooterImageUrl(@Nullable String footerImageUrl) {
-            this.footerImageUrl = footerImageUrl;
+        public Builder setFooterImageUrl(@Nullable CharSequence footerImageUrl) {
+            this.footerImageUrl = footerImageUrl != null ? footerImageUrl.toString() : null;
             return this;
         }
 

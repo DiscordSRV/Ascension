@@ -21,12 +21,13 @@ package com.discordsrv.common.discord.api.message.util;
 import club.minnced.discord.webhook.send.WebhookMessage;
 import club.minnced.discord.webhook.send.WebhookMessageBuilder;
 import com.discordsrv.api.discord.api.message.AllowedMention;
+import com.discordsrv.api.discord.api.message.DiscordMessageEmbed;
 import com.discordsrv.api.discord.api.message.SendableDiscordMessage;
 import net.dv8tion.jda.api.MessageBuilder;
 import net.dv8tion.jda.api.entities.Message;
+import net.dv8tion.jda.api.entities.MessageEmbed;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 
 public final class SendableDiscordMessageUtil {
@@ -38,7 +39,7 @@ public final class SendableDiscordMessageUtil {
         List<String> allowedUsers = new ArrayList<>();
         List<String> allowedRoles = new ArrayList<>();
 
-        for (AllowedMention allowedMention : Collections.singletonList(AllowedMention.ALL_USERS)) { // TODO
+        for (AllowedMention allowedMention : message.getAllowedMentions()) {
             if (allowedMention instanceof AllowedMention.Snowflake) {
                 String id = ((AllowedMention.Snowflake) allowedMention).getId();
                 if (((AllowedMention.Snowflake) allowedMention).isUser()) {
@@ -51,18 +52,18 @@ public final class SendableDiscordMessageUtil {
             }
         }
 
-        // Always allow these
-        allowedTypes.add(Message.MentionType.EMOTE);
-        allowedTypes.add(Message.MentionType.CHANNEL);
+        List<MessageEmbed> embeds = new ArrayList<>();
+        for (DiscordMessageEmbed embed : message.getEmbeds()) {
+            embeds.add(embed.toJDA());
+        }
 
-        MessageBuilder messageBuilder = new MessageBuilder()
+        return new MessageBuilder()
                 .setContent(message.getContent())
-                //.setEmbeds() // TODO
+                .setEmbeds(embeds)
                 .setAllowedMentions(allowedTypes)
                 .mentionUsers(allowedUsers.toArray(new String[0]))
-                .mentionRoles(allowedRoles.toArray(new String[0]));
-
-        return messageBuilder.build();
+                .mentionRoles(allowedRoles.toArray(new String[0]))
+                .build();
     }
 
     public static WebhookMessage toWebhook(SendableDiscordMessage message) {

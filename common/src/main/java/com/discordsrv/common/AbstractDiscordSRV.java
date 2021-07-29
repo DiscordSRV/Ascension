@@ -18,7 +18,6 @@
 
 package com.discordsrv.common;
 
-import com.discordsrv.api.discord.api.DiscordAPI;
 import com.discordsrv.api.discord.connection.DiscordConnectionDetails;
 import com.discordsrv.api.event.bus.EventBus;
 import com.discordsrv.api.event.events.lifecycle.DiscordSRVShuttingDownEvent;
@@ -55,7 +54,7 @@ public abstract class AbstractDiscordSRV<C extends MainConfig, CC extends Connec
     // DiscordSRVApi
     private final EventBus eventBus;
     private final ComponentFactory componentFactory;
-    private final DiscordAPI discordAPI;
+    private final DiscordAPIImpl discordAPI;
     private final DiscordConnectionDetails discordConnectionDetails;
 
     // DiscordSRV
@@ -92,7 +91,7 @@ public abstract class AbstractDiscordSRV<C extends MainConfig, CC extends Connec
     }
 
     @Override
-    public @NotNull DiscordAPI discordAPI() {
+    public @NotNull DiscordAPIImpl discordAPI() {
         return discordAPI;
     }
 

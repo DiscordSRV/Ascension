@@ -27,4 +27,6 @@ dependencies {
 
 shadowJar {
     archiveFileName = 'sponge.jarinjar'
+
+    // Relocations in buildscript/relocations.gradle
 }

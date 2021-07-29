@@ -24,6 +24,7 @@
 package com.discordsrv.api.channel;
 
 import com.discordsrv.api.component.MinecraftComponent;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * An in-game channel for sending Minecraft messages.
@@ -34,12 +35,14 @@ public interface GameChannel {
      * Gets the name of the plugin/mod/extension that 'owns' this game channel.
      * @return the name of the owner of this game channel
      */
+    @NotNull
     String getOwnerName();
 
     /**
      * Gets the name of this channel.
      * @return the channel name
      */
+    @NotNull
     String getChannelName();
 
     /**
@@ -52,5 +55,5 @@ public interface GameChannel {
      * Send a message to this {@link GameChannel}'s participants.
      * @param component the message
      */
-    void sendMessage(MinecraftComponent component);
+    void sendMessage(@NotNull MinecraftComponent component);
 }

@@ -27,6 +27,7 @@ import com.discordsrv.common.config.main.MainConfig;
 import com.discordsrv.common.config.manager.ConnectionConfigManager;
 import com.discordsrv.common.config.manager.MainConfigManager;
 import com.discordsrv.common.console.Console;
+import com.discordsrv.common.discord.api.DiscordAPIImpl;
 import com.discordsrv.common.discord.connection.DiscordConnectionManager;
 import com.discordsrv.common.logging.logger.Logger;
 import com.discordsrv.common.player.provider.AbstractPlayerProvider;
@@ -54,6 +55,10 @@ public interface DiscordSRV extends DiscordSRVApi {
     @Override
     @NotNull
     ComponentFactory componentFactory();
+
+    @Override
+    @NotNull
+    DiscordAPIImpl discordAPI();
 
     // Config
     ConnectionConfigManager<? extends ConnectionConfig> connectionConfigManager();

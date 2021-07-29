@@ -19,6 +19,7 @@
 package com.discordsrv.common.discord.api.message;
 
 import com.discordsrv.api.discord.api.channel.DiscordTextChannel;
+import com.discordsrv.api.discord.api.message.AllowedMention;
 import com.discordsrv.api.discord.api.message.DiscordMessageEmbed;
 import com.discordsrv.api.discord.api.message.ReceivedDiscordMessage;
 import com.discordsrv.api.discord.api.message.SendableDiscordMessage;
@@ -26,9 +27,13 @@ import com.discordsrv.api.discord.api.message.impl.SendableDiscordMessageImpl;
 import com.discordsrv.common.DiscordSRV;
 import net.dv8tion.jda.api.entities.Message;
 import net.dv8tion.jda.api.entities.MessageEmbed;
+import net.dv8tion.jda.api.entities.Role;
+import net.dv8tion.jda.api.entities.User;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 
 public class ReceivedDiscordMessageImpl extends SendableDiscordMessageImpl implements ReceivedDiscordMessage {
@@ -41,7 +46,21 @@ public class ReceivedDiscordMessageImpl extends SendableDiscordMessageImpl imple
         return mappedEmbeds;
     }
 
-    private static String getWebhookUsername(Message message) {
+    private static Set<AllowedMention> allowedMentions(Message message) {
+        Set<AllowedMention> allowedMentions = new HashSet<>();
+        if (message.mentionsEveryone()) {
+            allowedMentions.add(AllowedMention.EVERYONE);
+        }
+        for (User user : message.getMentionedUsers()) {
+            allowedMentions.add(AllowedMention.user(user.getId()));
+        }
+        for (Role role : message.getMentionedRoles()) {
+            allowedMentions.add(AllowedMention.role(role.getId()));
+        }
+        return allowedMentions;
+    }
+
+    private static String webhookUsername(Message message) {
         if (!message.isWebhookMessage()) {
             return null;
         }
@@ -49,7 +68,7 @@ public class ReceivedDiscordMessageImpl extends SendableDiscordMessageImpl imple
         return message.getAuthor().getName();
     }
 
-    private static String getWebhookAvatarUrl(Message message) {
+    private static String webhookAvatarUrl(Message message) {
         if (!message.isWebhookMessage()) {
             return null;
         }
@@ -64,8 +83,9 @@ public class ReceivedDiscordMessageImpl extends SendableDiscordMessageImpl imple
         super(
                 message.getContentRaw(),
                 mapEmbeds(message.getEmbeds()),
-                getWebhookUsername(message),
-                getWebhookAvatarUrl(message)
+                allowedMentions(message),
+                webhookUsername(message),
+                webhookAvatarUrl(message)
         );
         this.discordSRV = discordSRV;
         this.message = message;
