@@ -21,34 +21,35 @@
  * SOFTWARE.
  */
 
-package com.discordsrv.api.discord.api.message;
+package com.discordsrv.api.discord.api.entity.message;
+
+import com.discordsrv.api.discord.api.entity.Snowflake;
+import com.discordsrv.api.discord.api.entity.channel.DiscordTextChannel;
+import com.discordsrv.api.discord.api.entity.guild.DiscordGuild;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.concurrent.CompletableFuture;
 
-public interface ReceivedDiscordMessage extends SendableDiscordMessage {
+/**
+ * A message received from Discord.
+ */
+public interface ReceivedDiscordMessage extends SendableDiscordMessage, Snowflake {
 
     /**
-     * Gets the ID for this message.
-     * @return the id from Discord for this message
+     * Gets the channel that the message was sent in.
+     * @return the channel the message was sent in
      */
-    String getId();
-
-    // TODO: Author
-
-    @Override
-    String getContent();
+    @NotNull
+    DiscordTextChannel getChannel();
 
     /**
-     * Gets the content displayed on Discord, without markdown or other formatting.
-     * @return the displayed content of the message
+     * Gets the Discord server the message was posted in.
+     * @return the Discord server the message was posted in
      */
-    String getDisplayedContent();
-
-    /**
-     * Gets the raw content with markdown characters stripped from it.
-     * @return the stripped content of the message
-     */
-    String getStrippedContent();
+    @NotNull
+    default DiscordGuild getGuild() {
+        return getChannel().getGuild();
+    }
 
     /**
      * Edits this message to the provided message, the webhook username and avatar url will be ignored.
@@ -56,5 +57,6 @@ public interface ReceivedDiscordMessage extends SendableDiscordMessage {
      * @param message the new message
      * @return the future for the message edit
      */
+    @NotNull
     CompletableFuture<ReceivedDiscordMessage> edit(SendableDiscordMessage message);
 }

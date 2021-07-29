@@ -21,22 +21,47 @@
  * SOFTWARE.
  */
 
-package com.discordsrv.api.discord.api.message;
+package com.discordsrv.api.discord.api.entity.message;
 
 import net.dv8tion.jda.api.entities.Message;
 
+/**
+ * An allowed mention that can be used with {@link com.discordsrv.api.discord.api.entity.message.SendableDiscordMessage.Builder#addAllowedMention(AllowedMention)}.
+ */
+@SuppressWarnings("unused") // API
 public interface AllowedMention {
 
+    /**
+     * Permits the @everyone and @here mentions.
+     */
     AllowedMention EVERYONE = Standard.EVERYONE;
+
+    /**
+     * Permits all role mentions, unless at least one specific role is specified.
+     */
     AllowedMention ALL_ROLES = Standard.ROLE;
+
+    /**
+     * Permits all user mentions, unless at least one specific user is specified.
+     */
     AllowedMention ALL_USERS = Standard.USER;
 
-    static AllowedMention user(String id) {
-        return new Snowflake(id, true);
-    }
-
+    /**
+     * Permits the role identified by the id to be mentioned.
+     * @param id the id of the role
+     * @return a {@link AllowedMention} object
+     */
     static AllowedMention role(String id) {
         return new Snowflake(id, false);
+    }
+
+    /**
+     * Permits the user identified by the id to be mentioned.
+     * @param id the id of the user
+     * @return a {@link AllowedMention} object
+     */
+    static AllowedMention user(String id) {
+        return new Snowflake(id, true);
     }
 
     enum Standard implements AllowedMention {

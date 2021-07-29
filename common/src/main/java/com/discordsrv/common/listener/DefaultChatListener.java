@@ -18,10 +18,8 @@
 
 package com.discordsrv.common.listener;
 
-import club.minnced.discord.webhook.WebhookClientBuilder;
-import club.minnced.discord.webhook.send.WebhookMessage;
-import club.minnced.discord.webhook.send.WebhookMessageBuilder;
 import com.discordsrv.api.channel.GameChannel;
+import com.discordsrv.api.discord.api.entity.message.SendableDiscordMessage;
 import com.discordsrv.api.event.bus.EventPriority;
 import com.discordsrv.api.event.bus.Subscribe;
 import com.discordsrv.api.event.events.message.receive.game.ChatMessageReceiveEvent;
@@ -35,9 +33,6 @@ import com.discordsrv.common.player.util.PlayerUtil;
 import com.discordsrv.common.string.util.Placeholders;
 import dev.vankka.enhancedlegacytext.EnhancedLegacyText;
 import dev.vankka.mcdiscordreserializer.discord.DiscordSerializer;
-import net.dv8tion.jda.api.JDA;
-import net.dv8tion.jda.api.entities.TextChannel;
-import net.dv8tion.jda.api.entities.Webhook;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.serializer.plain.PlainTextComponentSerializer;
 
@@ -82,12 +77,7 @@ public class DefaultChatListener extends AbstractListener {
 
     @Subscribe(priority = EventPriority.LAST)
     public void onChatSend(ChatMessageSendEvent event) {
-        if (checkProcessor(event) || checkCancellation(event)) {
-            return;
-        }
-
-        JDA jda = discordSRV.jda();
-        if (jda == null) {
+        if (checkProcessor(event) || checkCancellation(event) || !discordSRV.isReady()) {
             return;
         }
 
@@ -99,19 +89,14 @@ public class DefaultChatListener extends AbstractListener {
         }
 
         for (String channelId : channelIds) {
-            TextChannel textChannel = jda.getTextChannelById(channelId);
-            if (textChannel == null) {
-                continue;
-            }
-
-            textChannel.retrieveWebhooks().queue(webhooks -> {
-                Webhook webhook = webhooks.get(0);
-                WebhookMessage webhookMessage = new WebhookMessageBuilder()
-                        .setUsername(event.getDiscordUsername())
-                        .setContent(event.getDiscordMessage())
-                        .build();
-                WebhookClientBuilder.fromJDA(webhook).buildJDA().send(webhookMessage);
-            });
+            discordSRV.discordAPI().getTextChannelById(channelId).ifPresent(textChannel ->
+                    textChannel.sendMessage(
+                            SendableDiscordMessage.builder()
+                                    .setWebhookUsername(event.getDiscordUsername())
+                                    .setContent(event.getDiscordMessage())
+                                    .build()
+                    )
+            );
         }
     }
 }

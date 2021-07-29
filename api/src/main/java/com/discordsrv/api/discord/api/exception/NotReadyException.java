@@ -21,22 +21,6 @@
  * SOFTWARE.
  */
 
-package com.discordsrv.api.discord.api.channel;
+package com.discordsrv.api.discord.api.exception;
 
-import com.discordsrv.api.discord.api.message.ReceivedDiscordMessage;
-import com.discordsrv.api.discord.api.message.SendableDiscordMessage;
-
-import java.util.concurrent.CompletableFuture;
-
-public interface DiscordTextChannel {
-
-    String getId();
-
-    String getName();
-    String getTopic();
-
-    CompletableFuture<ReceivedDiscordMessage> sendMessage(SendableDiscordMessage message);
-
-    CompletableFuture<ReceivedDiscordMessage> editMessageById(String id, SendableDiscordMessage message);
-
-}
+public class NotReadyException extends RuntimeException {}

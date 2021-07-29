@@ -21,16 +21,26 @@
  * SOFTWARE.
  */
 
-package com.discordsrv.api.discord.api.message;
+package com.discordsrv.api.discord.api.entity.message;
 
-import com.discordsrv.api.discord.api.message.impl.SendableDiscordMessageImpl;
+import com.discordsrv.api.discord.api.entity.message.impl.SendableDiscordMessageImpl;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
 import java.util.Set;
 
+/**
+ * A message that can be sent to Discord.
+ */
 @SuppressWarnings("unused") // API
 public interface SendableDiscordMessage {
 
+    /**
+     * Creates a new builder for {@link SendableDiscordMessage}.
+     * @return a new builder
+     */
+    @NotNull
     static Builder builder() {
         return new SendableDiscordMessageImpl.BuilderImpl();
     }
@@ -39,30 +49,35 @@ public interface SendableDiscordMessage {
      * The raw content of the message.
      * @return the unmodified content of the message
      */
+    @Nullable
     String getContent();
 
     /**
      * Gets the embeds of the message.
      * @return the unmodifiable list of embeds in this message
      */
+    @NotNull
     List<DiscordMessageEmbed> getEmbeds();
 
     /**
      * Gets the allowed mentions of the message.
      * @return the allowed mentions in this message
      */
+    @Nullable
     Set<AllowedMention> getAllowedMentions();
 
     /**
      * Gets the webhook username.
      * @return the webhook username or {@code null} if this isn't a webhook message
      */
+    @Nullable
     String getWebhookUsername();
 
     /**
      * Gets the webhook avatar url.
      * @return the webhook avatar url or {@code null} if no webhook avatar url is specified
      */
+    @Nullable
     String getWebhookAvatarUrl();
 
     /**
@@ -79,6 +94,7 @@ public interface SendableDiscordMessage {
          * Gets the current content of this message in this builder.
          * @return the content
          */
+        @Nullable
         String getContent();
 
         /**
@@ -86,12 +102,14 @@ public interface SendableDiscordMessage {
          * @param content the new content
          * @return the builder, useful for chaining
          */
+        @NotNull
         Builder setContent(String content);
 
         /**
          * Gets the embeds that are currently in this builder.
          * @return this builder's current embeds
          */
+        @NotNull
         List<DiscordMessageEmbed> getEmbeds();
 
         /**
@@ -99,6 +117,7 @@ public interface SendableDiscordMessage {
          * @param embed the embed to add
          * @return the builder, useful for chaining
          */
+        @NotNull
         Builder addEmbed(DiscordMessageEmbed embed);
 
         /**
@@ -106,12 +125,14 @@ public interface SendableDiscordMessage {
          * @param embed the embed to remove
          * @return the builder, useful for chaining
          */
+        @NotNull
         Builder removeEmbed(DiscordMessageEmbed embed);
 
         /**
          * Gets the allowed mentions in this builder.
          * @return the builder's current allowed mentions
          */
+        @Nullable
         Set<AllowedMention> getAllowedMentions();
 
         /**
@@ -119,6 +140,7 @@ public interface SendableDiscordMessage {
          * @param allowedMention the allowed mention to add
          * @return the builder, useful for chaining
          */
+        @NotNull
         Builder addAllowedMention(AllowedMention allowedMention);
 
         /**
@@ -126,12 +148,14 @@ public interface SendableDiscordMessage {
          * @param allowedMention the allowed mention to remove
          * @return the builder, useful for chaining
          */
+        @NotNull
         Builder removeAllowedMention(AllowedMention allowedMention);
 
         /**
          * Gets the webhook username for this builder or {@code null} if webhooks are not being used.
          * @return the webhook username
          */
+        @Nullable
         String getWebhookUsername();
 
         /**
@@ -139,12 +163,14 @@ public interface SendableDiscordMessage {
          * @param webhookUsername the new webhook username
          * @return the builder, useful for chaining
          */
+        @NotNull
         Builder setWebhookUsername(String webhookUsername);
 
         /**
          * Gets the webhook avatar url for this builder.
          * @return the webhook avatar url
          */
+        @Nullable
         String getWebhookAvatarUrl();
 
         /**
@@ -153,12 +179,14 @@ public interface SendableDiscordMessage {
          * @throws IllegalStateException if there is no webhook username set
          * @return the builder, useful for chaining
          */
+        @NotNull
         Builder setWebhookAvatarUrl(String webhookAvatarUrl);
 
         /**
          * Builds a {@link SendableDiscordMessage} from this builder.
          * @return the new {@link SendableDiscordMessage}
          */
+        @NotNull
         SendableDiscordMessage build();
     }
 

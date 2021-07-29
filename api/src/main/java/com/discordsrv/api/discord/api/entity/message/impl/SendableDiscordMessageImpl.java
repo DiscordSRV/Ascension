@@ -21,11 +21,12 @@
  * SOFTWARE.
  */
 
-package com.discordsrv.api.discord.api.message.impl;
+package com.discordsrv.api.discord.api.entity.message.impl;
 
-import com.discordsrv.api.discord.api.message.AllowedMention;
-import com.discordsrv.api.discord.api.message.DiscordMessageEmbed;
-import com.discordsrv.api.discord.api.message.SendableDiscordMessage;
+import com.discordsrv.api.discord.api.entity.message.AllowedMention;
+import com.discordsrv.api.discord.api.entity.message.DiscordMessageEmbed;
+import com.discordsrv.api.discord.api.entity.message.SendableDiscordMessage;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -40,7 +41,7 @@ public class SendableDiscordMessageImpl implements SendableDiscordMessage {
     private final String webhookUsername;
     private final String webhookAvatarUrl;
 
-    public SendableDiscordMessageImpl(String content,
+    protected SendableDiscordMessageImpl(String content,
                                       List<DiscordMessageEmbed> embeds,
                                       Set<AllowedMention> allowedMentions,
                                       String webhookUsername,
@@ -58,7 +59,7 @@ public class SendableDiscordMessageImpl implements SendableDiscordMessage {
     }
 
     @Override
-    public List<DiscordMessageEmbed> getEmbeds() {
+    public @NotNull List<DiscordMessageEmbed> getEmbeds() {
         return embeds;
     }
 
@@ -91,24 +92,24 @@ public class SendableDiscordMessageImpl implements SendableDiscordMessage {
         }
 
         @Override
-        public BuilderImpl setContent(String content) {
+        public @NotNull BuilderImpl setContent(String content) {
             this.content = content;
             return this;
         }
 
         @Override
-        public List<DiscordMessageEmbed> getEmbeds() {
+        public @NotNull List<DiscordMessageEmbed> getEmbeds() {
             return embeds;
         }
 
         @Override
-        public Builder addEmbed(DiscordMessageEmbed embed) {
+        public @NotNull Builder addEmbed(DiscordMessageEmbed embed) {
             this.embeds.add(embed);
             return this;
         }
 
         @Override
-        public Builder removeEmbed(DiscordMessageEmbed embed) {
+        public @NotNull Builder removeEmbed(DiscordMessageEmbed embed) {
             this.embeds.remove(embed);
             return this;
         }
@@ -119,13 +120,13 @@ public class SendableDiscordMessageImpl implements SendableDiscordMessage {
         }
 
         @Override
-        public Builder addAllowedMention(AllowedMention allowedMention) {
+        public @NotNull Builder addAllowedMention(AllowedMention allowedMention) {
             this.allowedMentions.add(allowedMention);
             return this;
         }
 
         @Override
-        public Builder removeAllowedMention(AllowedMention allowedMention) {
+        public @NotNull Builder removeAllowedMention(AllowedMention allowedMention) {
             this.allowedMentions.remove(allowedMention);
             return this;
         }
@@ -136,7 +137,7 @@ public class SendableDiscordMessageImpl implements SendableDiscordMessage {
         }
 
         @Override
-        public BuilderImpl setWebhookUsername(String webhookUsername) {
+        public @NotNull BuilderImpl setWebhookUsername(String webhookUsername) {
             this.webhookUsername = webhookUsername;
             return this;
         }
@@ -147,13 +148,13 @@ public class SendableDiscordMessageImpl implements SendableDiscordMessage {
         }
 
         @Override
-        public BuilderImpl setWebhookAvatarUrl(String webhookAvatarUrl) {
+        public @NotNull BuilderImpl setWebhookAvatarUrl(String webhookAvatarUrl) {
             this.webhookAvatarUrl = webhookAvatarUrl;
             return this;
         }
 
         @Override
-        public SendableDiscordMessage build() {
+        public @NotNull SendableDiscordMessage build() {
             return new SendableDiscordMessageImpl(content, embeds, allowedMentions, webhookUsername, webhookAvatarUrl);
         }
     }

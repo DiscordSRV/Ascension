@@ -21,7 +21,7 @@
  * SOFTWARE.
  */
 
-package com.discordsrv.api.discord.api.message;
+package com.discordsrv.api.discord.api.entity.message;
 
 import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.entities.MessageEmbed;
@@ -33,9 +33,16 @@ import java.time.OffsetDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * A Discord embed.
+ */
 @SuppressWarnings("unused") // API
 public class DiscordMessageEmbed {
 
+    /**
+     * Create a new builder for {@link DiscordMessageEmbed}s.
+     * @return a new builder
+     */
     public static Builder builder() {
         return new Builder();
     }

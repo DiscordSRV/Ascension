@@ -21,38 +21,12 @@
  * SOFTWARE.
  */
 
-package com.discordsrv.api.discord.api;
+package com.discordsrv.api.discord.api.exception;
 
-import com.discordsrv.api.discord.api.entity.channel.DiscordTextChannel;
-import com.discordsrv.api.discord.api.entity.guild.DiscordGuild;
-import com.discordsrv.api.discord.api.entity.user.DiscordUser;
-import org.jetbrains.annotations.NotNull;
+public class UnknownMessageException extends RuntimeException {
 
-import java.util.Optional;
+    public UnknownMessageException(Throwable cause) {
+        super(cause);
+    }
 
-/**
- * A basic Discord API wrapper for a limited amount of functions, with a minimal amount of breaking changes.
- */
-public interface DiscordAPI {
-
-    /**
-     * Gets a Discord text channel by id.
-     * @param id the id for the text channel
-     * @return the text channel
-     */
-    Optional<DiscordTextChannel> getTextChannelById(@NotNull String id);
-
-    /**
-     * Gets a Discord server by id.
-     * @param id the id for the Discord server
-     * @return the Discord server
-     */
-    Optional<DiscordGuild> getGuildById(@NotNull String id);
-
-    /**
-     * Gets a Discord user by id.
-     * @param id the id for the Discord user
-     * @return the Discord user
-     */
-    Optional<DiscordUser> getUserById(@NotNull String id);
 }

@@ -18,97 +18,147 @@
 
 package com.discordsrv.common.discord.api.message;
 
-import com.discordsrv.api.discord.api.channel.DiscordTextChannel;
-import com.discordsrv.api.discord.api.message.AllowedMention;
-import com.discordsrv.api.discord.api.message.DiscordMessageEmbed;
-import com.discordsrv.api.discord.api.message.ReceivedDiscordMessage;
-import com.discordsrv.api.discord.api.message.SendableDiscordMessage;
-import com.discordsrv.api.discord.api.message.impl.SendableDiscordMessageImpl;
+import club.minnced.discord.webhook.receive.ReadonlyEmbed;
+import club.minnced.discord.webhook.receive.ReadonlyMessage;
+import club.minnced.discord.webhook.receive.ReadonlyUser;
+import club.minnced.discord.webhook.send.WebhookEmbed;
+import com.discordsrv.api.discord.api.entity.channel.DiscordTextChannel;
+import com.discordsrv.api.discord.api.exception.UnknownChannelException;
+import com.discordsrv.api.discord.api.entity.message.DiscordMessageEmbed;
+import com.discordsrv.api.discord.api.entity.message.ReceivedDiscordMessage;
+import com.discordsrv.api.discord.api.entity.message.SendableDiscordMessage;
+import com.discordsrv.api.discord.api.entity.message.impl.SendableDiscordMessageImpl;
 import com.discordsrv.common.DiscordSRV;
 import net.dv8tion.jda.api.entities.Message;
 import net.dv8tion.jda.api.entities.MessageEmbed;
 import net.dv8tion.jda.api.entities.Role;
 import net.dv8tion.jda.api.entities.User;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 
 public class ReceivedDiscordMessageImpl extends SendableDiscordMessageImpl implements ReceivedDiscordMessage {
 
-    private static List<DiscordMessageEmbed> mapEmbeds(List<MessageEmbed> embeds) {
+    public static ReceivedDiscordMessage fromJDA(DiscordSRV discordSRV, Message message) {
         List<DiscordMessageEmbed> mappedEmbeds = new ArrayList<>();
-        for (MessageEmbed embed : embeds) {
+        for (MessageEmbed embed : message.getEmbeds()) {
             mappedEmbeds.add(new DiscordMessageEmbed(embed));
         }
-        return mappedEmbeds;
+
+        boolean webhookMessage = message.isWebhookMessage();
+        String webhookUsername = webhookMessage ? message.getAuthor().getName() : null;
+        String webhookAvatarUrl = webhookMessage ? message.getAuthor().getEffectiveAvatarUrl() : null;
+
+        DiscordTextChannel textChannel = discordSRV.discordAPI().getTextChannelById(message.getChannel().getId())
+                .orElse(null);
+        return new ReceivedDiscordMessageImpl(
+                discordSRV,
+                textChannel,
+                message.getChannel().getId(),
+                message.getId(),
+                message.getContentRaw(),
+                mappedEmbeds,
+                webhookUsername,
+                webhookAvatarUrl
+        );
     }
 
-    private static Set<AllowedMention> allowedMentions(Message message) {
-        Set<AllowedMention> allowedMentions = new HashSet<>();
-        if (message.mentionsEveryone()) {
-            allowedMentions.add(AllowedMention.EVERYONE);
-        }
-        for (User user : message.getMentionedUsers()) {
-            allowedMentions.add(AllowedMention.user(user.getId()));
-        }
-        for (Role role : message.getMentionedRoles()) {
-            allowedMentions.add(AllowedMention.role(role.getId()));
-        }
-        return allowedMentions;
-    }
+    public static ReceivedDiscordMessage fromWebhook(DiscordSRV discordSRV, ReadonlyMessage webhookMessage) {
+        List<DiscordMessageEmbed> mappedEmbeds = new ArrayList<>();
+        for (ReadonlyEmbed embed : webhookMessage.getEmbeds()) {
+            List<DiscordMessageEmbed.Field> fields = new ArrayList<>();
+            for (WebhookEmbed.EmbedField field : embed.getFields()) {
+                fields.add(new DiscordMessageEmbed.Field(field.getName(), field.getValue(), field.isInline()));
+            }
 
-    private static String webhookUsername(Message message) {
-        if (!message.isWebhookMessage()) {
-            return null;
+            Integer color = embed.getColor();
+            WebhookEmbed.EmbedAuthor author = embed.getAuthor();
+            WebhookEmbed.EmbedTitle title = embed.getTitle();
+            ReadonlyEmbed.EmbedImage thumbnail = embed.getThumbnail();
+            ReadonlyEmbed.EmbedImage image = embed.getImage();
+            WebhookEmbed.EmbedFooter footer = embed.getFooter();
+
+            mappedEmbeds.add(new DiscordMessageEmbed(
+                    color != null ? color : Role.DEFAULT_COLOR_RAW,
+                    author != null ? author.getName() : null,
+                    author != null ? author.getUrl() : null,
+                    author != null ? author.getIconUrl() : null,
+                    title != null ? title.getText() : null,
+                    title != null ? title.getUrl() : null,
+                    embed.getDescription(),
+                    fields,
+                    thumbnail != null ? thumbnail.getUrl() : null,
+                    image != null ? image.getUrl() : null,
+                    embed.getTimestamp(),
+                    footer != null ? footer.getText() : null,
+                    footer != null ? footer.getIconUrl() : null
+            ));
         }
 
-        return message.getAuthor().getName();
-    }
+        ReadonlyUser author = webhookMessage.getAuthor();
+        String authorId = Long.toUnsignedString(author.getId());
+        String avatarId = author.getAvatarId();
+        String avatarUrl = avatarId != null
+                ? String.format(User.AVATAR_URL, authorId, avatarId, avatarId.startsWith("a_") ? "gif" : "png")
+                : String.format(User.DEFAULT_AVATAR_URL, Integer.parseInt(author.getDiscriminator()) % 5);
 
-    private static String webhookAvatarUrl(Message message) {
-        if (!message.isWebhookMessage()) {
-            return null;
-        }
-
-        return message.getAuthor().getEffectiveAvatarUrl();
+        DiscordTextChannel textChannel = discordSRV.discordAPI().getTextChannelById(
+                Long.toUnsignedString(webhookMessage.getChannelId())).orElse(null);
+        return new ReceivedDiscordMessageImpl(
+                discordSRV,
+                textChannel,
+                Long.toUnsignedString(webhookMessage.getChannelId()),
+                Long.toUnsignedString(webhookMessage.getId()),
+                webhookMessage.getContent(),
+                mappedEmbeds,
+                author.getName(),
+                avatarUrl
+        );
     }
 
     private final DiscordSRV discordSRV;
-    private final Message message;
+    private final DiscordTextChannel textChannel;
+    private final String channelId;
+    private final String id;
 
-    public ReceivedDiscordMessageImpl(DiscordSRV discordSRV, Message message) {
-        super(
-                message.getContentRaw(),
-                mapEmbeds(message.getEmbeds()),
-                allowedMentions(message),
-                webhookUsername(message),
-                webhookAvatarUrl(message)
-        );
+    private ReceivedDiscordMessageImpl(
+            DiscordSRV discordSRV,
+            DiscordTextChannel textChannel,
+            String channelId,
+            String id,
+            String content,
+            List<DiscordMessageEmbed> embeds,
+            String webhookUsername,
+            String webhookAvatarUrl
+    ) {
+        super(content, embeds, null, webhookUsername, webhookAvatarUrl);
         this.discordSRV = discordSRV;
-        this.message = message;
+        this.textChannel = textChannel;
+        this.channelId = channelId;
+        this.id = id;
     }
 
     @Override
-    public String getId() {
-        return message.getId();
+    public @NotNull String getId() {
+        return id;
     }
 
     @Override
-    public String getDisplayedContent() {
-        return message.getContentDisplay();
+    public @NotNull DiscordTextChannel getChannel() {
+        return textChannel;
     }
 
     @Override
-    public String getStrippedContent() {
-        return message.getContentStripped();
-    }
+    public @NotNull CompletableFuture<ReceivedDiscordMessage> edit(SendableDiscordMessage message) {
+        DiscordTextChannel textChannel = discordSRV.discordAPI().getTextChannelById(channelId).orElse(null);
+        if (textChannel == null) {
+            CompletableFuture<ReceivedDiscordMessage> future = new CompletableFuture<>();
+            future.completeExceptionally(new UnknownChannelException(null));
+            return future;
+        }
 
-    @Override
-    public CompletableFuture<ReceivedDiscordMessage> edit(SendableDiscordMessage message) {
-        DiscordTextChannel textChannel = discordSRV.discordAPI().getTextChannelById(this.message.getChannel().getId());
         return textChannel.editMessageById(textChannel.getId(), message);
     }
 }

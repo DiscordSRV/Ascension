@@ -20,35 +20,40 @@ package com.discordsrv.common.discord.api.message.util;
 
 import club.minnced.discord.webhook.send.WebhookMessage;
 import club.minnced.discord.webhook.send.WebhookMessageBuilder;
-import com.discordsrv.api.discord.api.message.AllowedMention;
-import com.discordsrv.api.discord.api.message.DiscordMessageEmbed;
-import com.discordsrv.api.discord.api.message.SendableDiscordMessage;
+import com.discordsrv.api.discord.api.entity.message.AllowedMention;
+import com.discordsrv.api.discord.api.entity.message.DiscordMessageEmbed;
+import com.discordsrv.api.discord.api.entity.message.SendableDiscordMessage;
 import net.dv8tion.jda.api.MessageBuilder;
 import net.dv8tion.jda.api.entities.Message;
 import net.dv8tion.jda.api.entities.MessageEmbed;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 
 public final class SendableDiscordMessageUtil {
 
     private SendableDiscordMessageUtil() {}
 
-    public static Message toJDA(SendableDiscordMessage message) {
+    public static Message toJDA(@NotNull SendableDiscordMessage message) {
         List<Message.MentionType> allowedTypes = new ArrayList<>();
         List<String> allowedUsers = new ArrayList<>();
         List<String> allowedRoles = new ArrayList<>();
 
-        for (AllowedMention allowedMention : message.getAllowedMentions()) {
-            if (allowedMention instanceof AllowedMention.Snowflake) {
-                String id = ((AllowedMention.Snowflake) allowedMention).getId();
-                if (((AllowedMention.Snowflake) allowedMention).isUser()) {
-                    allowedUsers.add(id);
-                } else {
-                    allowedRoles.add(id);
+        Set<AllowedMention> allowedMentions = message.getAllowedMentions();
+        if (allowedMentions != null) {
+            for (AllowedMention allowedMention : allowedMentions) {
+                if (allowedMention instanceof AllowedMention.Snowflake) {
+                    String id = ((AllowedMention.Snowflake) allowedMention).getId();
+                    if (((AllowedMention.Snowflake) allowedMention).isUser()) {
+                        allowedUsers.add(id);
+                    } else {
+                        allowedRoles.add(id);
+                    }
+                } else if (allowedMention instanceof AllowedMention.Standard) {
+                    allowedTypes.add(((AllowedMention.Standard) allowedMention).getMentionType());
                 }
-            } else if (allowedMention instanceof AllowedMention.Standard) {
-                allowedTypes.add(((AllowedMention.Standard) allowedMention).getMentionType());
             }
         }
 
@@ -66,7 +71,7 @@ public final class SendableDiscordMessageUtil {
                 .build();
     }
 
-    public static WebhookMessage toWebhook(SendableDiscordMessage message) {
+    public static WebhookMessage toWebhook(@NotNull SendableDiscordMessage message) {
         return WebhookMessageBuilder.fromJDA(toJDA(message))
                 .setUsername(message.getWebhookUsername())
                 .setAvatarUrl(message.getWebhookAvatarUrl())
