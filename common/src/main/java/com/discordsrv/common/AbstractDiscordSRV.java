@@ -78,9 +78,7 @@ public abstract class AbstractDiscordSRV<C extends MainConfig, CC extends Connec
 
     @Override
     public @NotNull Status status() {
-        synchronized (status) {
-            return status.get();
-        }
+        return status.get();
     }
 
     @Override
@@ -155,13 +153,15 @@ public abstract class AbstractDiscordSRV<C extends MainConfig, CC extends Connec
         }
     }
 
-    private CompletableFuture<Void> invoke(CheckedRunnable runnable, String message) {
+    protected CompletableFuture<Void> invoke(CheckedRunnable runnable, String message, boolean enable) {
         return CompletableFuture.runAsync(() -> {
             try {
                 runnable.run();
             } catch (Throwable t) {
-                setStatus(Status.FAILED_TO_START);
-                disable();
+                if (enable) {
+                    setStatus(Status.FAILED_TO_START);
+                    disable();
+                }
                 logger().error(message, t);
             }
         }, scheduler().executor());
@@ -169,17 +169,17 @@ public abstract class AbstractDiscordSRV<C extends MainConfig, CC extends Connec
 
     @Override
     public final CompletableFuture<Void> invokeEnable() {
-        return invoke(this::enable, "Failed to enable");
+        return invoke(this::enable, "Failed to enable", true);
     }
 
     @Override
     public final CompletableFuture<Void> invokeDisable() {
-        return invoke(this::disable, "Failed to disable");
+        return invoke(this::disable, "Failed to disable", false);
     }
 
     @Override
     public final CompletableFuture<Void> invokeReload() {
-        return invoke(this::reload, "Failed to reload");
+        return invoke(this::reload, "Failed to reload", false);
     }
 
     @OverridingMethodsMustInvokeSuper
@@ -214,16 +214,12 @@ public abstract class AbstractDiscordSRV<C extends MainConfig, CC extends Connec
 
     @OverridingMethodsMustInvokeSuper
     protected void disable() {
-        synchronized (this.status) {
-            Status status = this.status.get();
-            if (status.isShutdown()) {
-                // Already shutting down/shutdown
-                return;
-            }
-            if (status != Status.FAILED_TO_START) {
-                this.status.set(Status.SHUTTING_DOWN);
-            }
+        Status status = this.status.get();
+        if (status.isShutdown()) {
+            // Already shutting down/shutdown
+            return;
         }
+        this.status.set(Status.SHUTTING_DOWN);
         eventBus().publish(new DiscordSRVShuttingDownEvent());
 
         // Logging

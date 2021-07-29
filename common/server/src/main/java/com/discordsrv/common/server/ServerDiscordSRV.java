@@ -37,13 +37,7 @@ public abstract class ServerDiscordSRV<C extends MainConfig, CC extends Connecti
     public abstract @NotNull ServerPlayerProvider<?> playerProvider();
 
     public final CompletableFuture<Void> invokeServerStarted() {
-        return CompletableFuture.runAsync(() -> {
-            try {
-                serverStarted();
-            } catch (Throwable t) {
-                logger().error("Failed to enable", t);
-            }
-        }, scheduler().executor());
+        return invoke(this::serverStarted, "Failed to enable", true);
     }
 
     @OverridingMethodsMustInvokeSuper
