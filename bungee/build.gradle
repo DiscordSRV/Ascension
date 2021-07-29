@@ -1,0 +1,37 @@
+apply from: rootProject.file('buildscript/runtime.gradle')
+
+allprojects {
+    repositories {
+        maven { url 'https://oss.sonatype.org/content/repositories/snapshots' }
+    }
+
+    dependencies {
+        // API
+        annotationProcessor project(':api')
+
+        // Platform
+        compileOnly 'net.md-5:bungeecord-api:1.17-R0.1-SNAPSHOT'
+    }
+}
+
+dependencies {
+    // Common
+    implementation project(':common:common-proxy')
+
+    // DependencyDownload
+    implementation 'dev.vankka.minecraftdependencydownload:bungee:' + rootProject.mddVersion
+
+    // Adventure
+    runtimeDownloadApi 'net.kyori:adventure-platform-bungeecord:' + rootProject.adventurePlatformVersion
+    runtimeDownloadApi 'net.kyori:adventure-text-serializer-bungeecord:' + rootProject.adventurePlatformVersion
+}
+
+shadowJar {
+    archiveFileName = 'bungee.jarinjar'
+
+    [
+            'net.kyori.adventure'
+    ].each {
+        relocate it, 'com.discordsrv.dependencies.' + it
+    }
+}

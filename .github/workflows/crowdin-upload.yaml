@@ -1,0 +1,35 @@
+name: Crowdin translation upload
+
+on:
+  push:
+    branches: [dev]
+
+jobs:
+  synchronize-with-crowdin:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+      - name: Java
+        uses: actions/setup-java@v2
+        with:
+          distribution: "adopt"
+          java-version: "11"
+      - name: Make gradlew execuable
+        run: "sudo chmod +x gradlew"
+      - name: Build i18n application
+        run: "./gradlew i18n:build"
+      - name: Generate translation source
+        run: "java -jar i18n/build/libs/i18n-all.jar"
+      - name: Upload translations to Crowdin
+        uses: crowdin/github-action@1.1.0
+        with:
+          upload_translations: true
+          download_translations: false
+          localization_branch_name: i18n
+          source: "source.yml"
+          translation: "/%original_path%/src/main/resources/translations/%three_letters_code%.yml"
+          project_id: ${{ secrets.CROWDIN_PROJECT_ID }}
+          token: ${{ secrets.CROWDIN_PERSONAL_TOKEN }}
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

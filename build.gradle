@@ -1,0 +1,131 @@
+import dev.vankka.dependencydownload.task.GenerateDependencyDownloadResourceTask
+
+plugins {
+    id 'com.github.johnrengelman.shadow' version '7.0.0' apply false
+    id 'org.cadixdev.licenser' version '0.6.0' apply false
+    id 'io.freefair.lombok' version '5.3.3.3' apply false
+    id 'net.kyori.blossom' version '1.2.0' apply false
+    id 'dev.vankka.dependencydownload.plugin' version '1.0.3-SNAPSHOT' apply false
+}
+
+version '2.0.0-SNAPSHOT'
+
+ext {
+    // DependencyDownload (change plugin version above)
+    ddVersion = '1.0.3-SNAPSHOT'
+    // MinecraftDependencyDownload
+    mddVersion = '1.0.0-SNAPSHOT'
+    // JDA
+    jdaVersion = '4.3.0_278'
+    // Configurate
+    configurateVersion = '4.1.1'
+    // Adventure & Adventure Platform
+    adventureVersion = '4.8.1'
+    adventurePlatformVersion = '4.0.0-SNAPSHOT'
+}
+
+allprojects {
+    apply plugin: 'java'
+    apply plugin: 'java-library'
+    apply plugin: 'com.github.johnrengelman.shadow'
+    apply plugin: 'org.cadixdev.licenser'
+    apply plugin: 'dev.vankka.dependencydownload.plugin'
+    apply plugin: 'io.freefair.lombok'
+
+    group 'com.discordsrv'
+    version = rootProject.version
+
+    generateLombokConfig.enabled = false
+
+    java {
+        sourceCompatibility = JavaVersion.VERSION_1_8
+        targetCompatibility = JavaVersion.VERSION_1_8
+    }
+
+    configurations {
+        runtimeDownloadApi
+        compileOnlyApi.extendsFrom runtimeDownloadApi
+    }
+
+    ext {
+        dependenciesDirectory = new File(sourceSets.main.output.resourcesDir, 'dependencies')
+    }
+
+    task generateResourceForRuntimeDownloadApi(type: GenerateDependencyDownloadResourceTask) {
+        configuration = configurations.runtimeDownloadApi
+        fileLocation = new File(dependenciesDirectory, 'runtimeDownloadApi-' + project.name + '.txt')
+    }
+    generateRuntimeDownloadResourceForRuntimeDownload {
+        fileLocation = new File(dependenciesDirectory, 'runtimeDownload-' + project.name + '.txt')
+    }
+    generateRuntimeDownloadResourceForRuntimeDownloadOnly {
+        fileLocation = new File(dependenciesDirectory, 'runtimeDownloadOnly-' + project.name + '.txt')
+    }
+
+    repositories {
+        // Snapshot repositories
+        maven { url 'https://oss.sonatype.org/content/repositories/snapshots/' }
+        maven { url 'https://s01.oss.sonatype.org/content/repositories/snapshots/' }
+
+        mavenLocal()
+
+        mavenCentral()
+        maven { url 'https://nexus.scarsz.me/content/groups/public/' }
+        maven { url 'https://m2.dv8tion.net/releases/' }
+    }
+
+    dependencies {
+        // Test dependencies
+        testImplementation 'org.junit.jupiter:junit-jupiter-api:5.7.0'
+        testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine:5.7.0'
+    }
+
+    test {
+        useJUnitPlatform()
+    }
+
+    task deleteJarsDir(type: Delete) {
+        delete rootProject.file('jars')
+    }
+    clean.dependsOn deleteJarsDir
+
+    jar {
+        duplicatesStrategy = DuplicatesStrategy.INCLUDE
+
+        // If CI then check that licenses are correct, otherwise automatically apply licenses on build
+        dependsOn (System.getenv('CI') === 'true' ? licenseCheck : licenseFormat)
+        // Always run shadowJar
+        finalizedBy shadowJar
+    }
+
+    shadowJar {
+        // Exclude signatures, maven/ and proguard/ from META-INF
+        exclude 'META-INF/*.SF'
+        exclude 'META-INF/*.DSA'
+        exclude 'META-INF/*.RSA'
+        exclude 'META-INF/maven/**'
+        exclude 'META-INF/proguard/**'
+    }
+
+    gradle.projectsEvaluated {
+        tasks.withType(JavaCompile) {
+            // Enable compiler warnings for unchecked & deprecation
+            options.compilerArgs << "-Xlint:unchecked" << "-Xlint:deprecation"
+        }
+    }
+
+    processResources {
+        duplicatesStrategy = DuplicatesStrategy.EXCLUDE
+    }
+
+    license {
+        header = rootProject.file('buildscript/license/LICENSE_HEADER')
+        properties {
+            var inception = '2016'
+            var currentYear = String.valueOf(Calendar.getInstance().get(Calendar.YEAR))
+
+            year = inception == currentYear ? currentYear : inception + '-' + currentYear
+        }
+        include '**/*.java' // only java files
+    }
+}

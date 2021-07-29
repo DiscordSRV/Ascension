@@ -1,0 +1,203 @@
+/*
+ * This file is part of the DiscordSRV API, licensed under the MIT License
+ * Copyright (c) 2016-2021 Austin "Scarsz" Shapiro, Henri "Vankka" Schubin and DiscordSRV contributors
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in all
+ * copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+ * SOFTWARE.
+ */
+
+package com.discordsrv.api;
+
+import com.discordsrv.api.component.MinecraftComponentFactory;
+import com.discordsrv.api.discord.api.DiscordAPI;
+import com.discordsrv.api.discord.connection.DiscordConnectionDetails;
+import com.discordsrv.api.event.bus.EventBus;
+import com.discordsrv.api.player.DiscordSRVPlayer;
+import com.discordsrv.api.player.IPlayerProvider;
+import net.dv8tion.jda.api.JDA;
+import org.jetbrains.annotations.ApiStatus;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+
+/**
+ * The DiscordSRV API.
+ *
+ * Use your platform's service provider or {@link DiscordSRVApiProvider} to get the instance.
+ */
+@SuppressWarnings("unused") // API
+public interface DiscordSRVApi {
+
+    /**
+     * The status of this DiscordSRV instance.
+     * @return the current status of this DiscordSRV instance
+     */
+    @NotNull
+    Status status();
+
+    /**
+     * The event bus, can be used for listening to DiscordSRV and JDA events.
+     * @return the event bus
+     */
+    @NotNull
+    EventBus eventBus();
+
+    /**
+     * A provider for {@link com.discordsrv.api.component.MinecraftComponent}s.
+     * @return the {@link com.discordsrv.api.component.MinecraftComponentFactory} instance.
+     */
+    @NotNull
+    MinecraftComponentFactory componentFactory();
+
+    /**
+     * A provider for {@link DiscordSRVPlayer} instances.
+     * @return the {@link IPlayerProvider} instance
+     */
+    @NotNull
+    IPlayerProvider playerProvider();
+
+    /**
+     * Gets DiscordSRV's first party API wrapper for Discord. This contains limited methods but is less likely to break compared to {@link #jda()}.
+     * @return the {@link DiscordAPI} instance
+     * @see #isReady()
+     */
+    @NotNull
+    DiscordAPI discordAPI();
+
+    /**
+     * Access to {@link JDA}, the Discord library used by DiscordSRV.
+     * @return the JDA instance, if available
+     *
+     * <p>
+     * JDA is an external API, using DiscordSRV's APIs where possible is recommended. Please see <a href="https://github.com/DV8FromTheWorld/JDA#deprecation-policy">JDA's deprecation policy</a>.
+     * @see #isReady()
+     * @see #discordConnectionDetails()
+     */
+    @Nullable
+    JDA jda();
+
+    /**
+     * Discord connection detail manager, specify {@link net.dv8tion.jda.api.requests.GatewayIntent}s and {@link net.dv8tion.jda.api.utils.cache.CacheFlag}s you need here.
+     * @return the {@link DiscordConnectionDetails} instance
+     */
+    @NotNull
+    DiscordConnectionDetails discordConnectionDetails();
+
+    /**
+     * {@link #status()} = {@link Status#CONNECTED}.
+     * @return if DiscordSRV is ready
+     */
+    @ApiStatus.NonExtendable
+    default boolean isReady() {
+        return status().isReady();
+    }
+
+    /**
+     * {@link #status()} = {@link Status#SHUTTING_DOWN} or {@link Status#SHUTDOWN}.
+     * @return if DiscordSRV is shutting down or has shutdown
+     */
+    @ApiStatus.NonExtendable
+    default boolean isShutdown() {
+        return status().isShutdown();
+    }
+
+    enum Status {
+
+        /**
+         * DiscordSRV has not yet started.
+         */
+        INITIALIZED,
+
+        /**
+         * DiscordSRV failed to load its configuration.
+         * @see #isError()
+         * @see #isStartupError()
+         */
+        FAILED_TO_LOAD_CONFIG(true),
+
+        /**
+         * DiscordSRV failed to start, unless the configuration failed to load, in that case the status will be {@link #FAILED_TO_LOAD_CONFIG}.
+         * @see #isError()
+         * @see #isStartupError()
+         */
+        FAILED_TO_START(true),
+
+        /**
+         * DiscordSRV is attempting to connect to Discord.
+         */
+        ATTEMPTING_TO_CONNECT,
+
+        /**
+         * DiscordSRV failed to connect to Discord.
+         * @see #isError()
+         */
+        FAILED_TO_CONNECT(true),
+
+        /**
+         * DiscordSRV is connected to Discord & is ready.
+         * @see #isReady()
+         */
+        CONNECTED,
+
+        /**
+         * DiscordSRV is shutting down.
+         * @see #isShutdown()
+         */
+        SHUTTING_DOWN(false, true),
+
+        /**
+         * DiscordSRV has shutdown.
+         * @see #isShutdown()
+         */
+        SHUTDOWN(false, true),
+
+        ;
+
+        private final boolean error;
+        private final boolean shutdown;
+
+        Status() {
+            this(false);
+        }
+
+        Status(boolean error) {
+            this(error, false);
+        }
+
+        Status(boolean error, boolean shutdown) {
+            this.error = error;
+            this.shutdown = shutdown;
+        }
+
+        public boolean isError() {
+            return error;
+        }
+
+        public boolean isShutdown() {
+            return shutdown;
+        }
+
+        public boolean isStartupError() {
+            return this == FAILED_TO_START || this == FAILED_TO_LOAD_CONFIG;
+        }
+
+        public boolean isReady() {
+            return this == CONNECTED;
+        }
+
+    }
+}

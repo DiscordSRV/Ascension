@@ -1,0 +1,48 @@
+import org.spongepowered.gradle.plugin.config.PluginLoaders
+import org.spongepowered.plugin.metadata.PluginDependency
+
+plugins {
+    id 'org.spongepowered.gradle.plugin' version '1.1.1'
+}
+
+apply from: rootProject.file('buildscript/loader.gradle')
+
+dependencies {
+    // API
+    implementation project(':api')
+
+    // DependencyDownload
+    implementation 'dev.vankka.minecraftdependencydownload:jarinjar-loader:' + rootProject.mddVersion
+}
+
+shadowJar {
+    archiveBaseName = 'DiscordSRV-Sponge'
+}
+
+// buildscript/loader.gradle includes the jarinjar in the jar
+
+sponge {
+    apiVersion('8.0.0')
+    plugin('discordsrv') {
+        loader(PluginLoaders.JAVA_PLAIN)
+        displayName('DiscordSRV')
+        version(project.version)
+        mainClass('com.discordsrv.sponge.loader.DiscordSRVSpongeLoader')
+        description('')
+        links {
+            homepage('https://discordsrv.com')
+            source('https://github.com/DiscordSRV/DiscordSRV')
+            issues('https://github.com/DiscordSRV/DiscordSRV/issues')
+        }
+        contributor('Scarsz') {
+            description('Developer')
+        }
+        contributor('Vankka') {
+            description('Developer')
+        }
+        dependency('spongeapi') {
+            loadOrder(PluginDependency.LoadOrder.AFTER)
+            optional(false)
+        }
+    }
+}

@@ -1,0 +1,36 @@
+apply from: rootProject.file('buildscript/standalone.gradle')
+apply plugin: 'net.kyori.blossom'
+
+repositories {
+    maven { url 'https://nexus.velocitypowered.com/repository/maven-public/' }
+}
+
+var velocityVersion = '3.0.0'
+dependencies {
+    // API
+    annotationProcessor project(':api')
+    implementation project(':api')
+
+    // Common
+    implementation project(':common:common-proxy')
+
+    // Platform
+    annotationProcessor 'com.velocitypowered:velocity-api:' + velocityVersion
+    compileOnly 'com.velocitypowered:velocity-api:' + velocityVersion
+
+    // DependencyDownload
+    implementation 'dev.vankka.minecraftdependencydownload:velocity:' + rootProject.mddVersion
+}
+
+jar {
+    dependsOn blossomSourceReplacementJava
+}
+
+shadowJar {
+    archiveBaseName = 'DiscordSRV-Velocity'
+}
+
+blossom {
+    var mainClass = 'src/main/java/com/discordsrv/velocity/DiscordSRVVelocityBootstrap.java'
+    replaceToken('@VERSION@', project.version, mainClass)
+}

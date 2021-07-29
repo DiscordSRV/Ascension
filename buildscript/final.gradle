@@ -1,0 +1,18 @@
+// Buildscript for loaders & standalone platforms
+
+task copyOutput(type: Copy) {
+    from(this.shadowJar)
+    into rootProject.file('jars')
+}
+
+shadowJar {
+    // Don't add -all to the end of the jar name
+    archiveClassifier = ''
+
+    // Include the license in the jar
+    from(rootProject.file('licenses/GPLv3.txt')) {
+        rename { fileName -> 'LICENSE.txt' }
+    }
+
+    finalizedBy copyOutput
+}

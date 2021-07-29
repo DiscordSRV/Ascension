@@ -1,0 +1,105 @@
+/*
+ * This file is part of the DiscordSRV API, licensed under the MIT License
+ * Copyright (c) 2016-2021 Austin "Scarsz" Shapiro, Henri "Vankka" Schubin and DiscordSRV contributors
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in all
+ * copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+ * SOFTWARE.
+ */
+
+package com.discordsrv.api.event.events.channel;
+
+import com.discordsrv.api.channel.GameChannel;
+import com.discordsrv.api.event.events.Processable;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+
+import java.util.Objects;
+
+/**
+ *
+ */
+public class GameChannelLookupEvent implements Processable {
+
+    private final String pluginName;
+    private final String channelName;
+
+    private boolean processed;
+    private GameChannel channel;
+
+    public GameChannelLookupEvent(@Nullable String pluginName, @NotNull String channelName) {
+        this.pluginName = pluginName;
+        this.channelName = channelName;
+    }
+
+    /**
+     * The channel name being looked up, this should be case insensitive wherever possible.
+     * @return the channel name
+     */
+    @NotNull
+    public String getChannelName() {
+        return channelName;
+    }
+
+    /**
+     * Returns the channel from a {@link #process(GameChannel)} matching required criteria.
+     * @return the game channel provided by a listener
+     * @throws IllegalStateException if {@link #isProcessed()} doesn't return true
+     */
+    @NotNull
+    public GameChannel getChannelFromProcessing() {
+        if (!processed) {
+            throw new IllegalStateException("This event has not been successfully processed yet, no channel is available");
+        }
+        return channel;
+    }
+
+    @Override
+    public boolean isProcessed() {
+        return processed;
+    }
+
+    /**
+     * Provides a {@link GameChannel} for the provided channel name ({@link #getChannelName()}).
+     * @param channel the channel
+     */
+    public void process(GameChannel channel) {
+        Objects.requireNonNull(channel, "channel");
+        if (pluginName != null && !pluginName.equalsIgnoreCase(channel.getOwnerName())) {
+            // Not the plugin we're looking for, ignore
+            return;
+        }
+
+        String channelName = channel.getChannelName();
+        if (!channelName.equalsIgnoreCase(this.channelName)) {
+            throw new IllegalArgumentException("The provided channel is named "
+                    + channelName + " when it should've been: " + this.channelName);
+        }
+
+        this.channel = channel;
+        this.processed = true;
+    }
+
+    /**
+     * @deprecated Use {@link #process(GameChannel)}.
+     */
+    @Override
+    @Deprecated
+    public void markAsProcessed() {
+        throw new RuntimeException("Please use process(GameChannel) instead");
+    }
+}

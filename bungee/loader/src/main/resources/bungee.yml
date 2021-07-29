@@ -1,0 +1,5 @@
+name: DiscordSRV
+main: com.discordsrv.bungee.loader.DiscordSRVBungeeLoader
+version: @VERSION@
+description: ""
+author: "Scarsz, Vankka"

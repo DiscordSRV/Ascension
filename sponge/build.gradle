@@ -1,0 +1,30 @@
+apply from: rootProject.file('buildscript/runtime.gradle')
+
+var spongeVersion = '8.0.0-SNAPSHOT'
+allprojects {
+    repositories {
+        maven { url 'https://repo.spongepowered.org/maven/' }
+    }
+
+    dependencies {
+        // API
+        annotationProcessor project(':api')
+
+        // Platform
+        annotationProcessor 'org.spongepowered:spongeapi:' + spongeVersion
+        compileOnly 'org.spongepowered:spongeapi:' + spongeVersion
+    }
+}
+
+dependencies {
+    // Common
+    implementation project(':common:common-server')
+
+    // Dependency Download
+    implementation 'dev.vankka.minecraftdependencydownload:jarinjar-bootstrap:' + rootProject.mddVersion
+    compileOnlyApi project(':sponge:sponge-loader')
+}
+
+shadowJar {
+    archiveFileName = 'sponge.jarinjar'
+}

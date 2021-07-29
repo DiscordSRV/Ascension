@@ -1,0 +1,22 @@
+pluginManagement {
+    repositories {
+        mavenLocal()
+        maven { url 'https://s01.oss.sonatype.org/content/repositories/snapshots/' }
+        gradlePluginPortal()
+    }
+}
+
+rootProject.name = 'DiscordSRV2'
+
+[
+        'common', 'common:server', 'common:proxy',
+        'i18n',
+        'api',
+        'bukkit', 'bukkit:loader',
+        'bungee', 'bungee:loader',
+        'sponge', 'sponge:loader',
+        'velocity'
+].each {
+    include it
+    findProject(':' + it).name = String.join('-', it.split(':'))
+}

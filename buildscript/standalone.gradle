@@ -1,0 +1,3 @@
+// Common buildscript for standalone platforms
+apply from: rootProject.file('buildscript/runtime.gradle')
+apply from: rootProject.file('buildscript/final.gradle')

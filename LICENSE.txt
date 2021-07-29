@@ -1,0 +1,7 @@
+DiscordSRV is dual licensed
+
+The `api`-module is licensed under the MIT License.
+
+Everything else is licensed under GPLv3 or later, unless otherwise noted.
+
+You may view these licenses in the `licenses` directory.

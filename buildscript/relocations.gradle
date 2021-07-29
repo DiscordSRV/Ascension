@@ -1,0 +1,25 @@
+// Relocations
+
+shadowJar {
+    [
+            // JDA
+            'net.dv8tion.jda',
+            'gnu.trove',
+            'com.neovisionaries.ws',
+            'com.iwebpp',
+            'okhttp3',
+            'okio',
+            // DependencyDownload
+            'dev.vankka.dependencydownload',
+            'dev.vankka.mcdependencydownload',
+            'me.lucko.jarrelocator',
+            'org.objectweb.asm',
+            // Other
+            'org.apache.commons',
+            'org.spongepowered.configurate',
+            'org.yaml.snakeyaml',
+            'net.kyori'
+    ].each {
+        relocate it, 'com.discordsrv.dependencies.' + it
+    }
+}

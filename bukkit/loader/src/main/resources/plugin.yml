@@ -1,0 +1,7 @@
+name: DiscordSRV
+main: com.discordsrv.bukkit.loader.DiscordSRVBukkitLoader
+version: @VERSION@
+description: ""
+authors: [Scarsz, Vankka]
+load: STARTUP
+api-version: 1.13

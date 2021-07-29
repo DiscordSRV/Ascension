@@ -1,0 +1,36 @@
+apply from: rootProject.file('buildscript/relocations.gradle')
+
+dependencies {
+    // Annotations
+    compileOnlyApi 'org.jetbrains:annotations:21.0.1'
+    compileOnlyApi 'com.google.code.findbugs:jsr305:3.0.2'
+
+    // JDA
+    api('net.dv8tion:JDA:' + rootProject.jdaVersion) {
+        // Annotations are suppose to be compile time only
+        exclude group: 'org.jetbrains', module: 'annotations'
+        exclude group: 'com.google.code.findbugs', module: 'jsr305'
+
+        // We don't use audio
+        exclude module: 'opus-java'
+    }
+}
+
+// Relocations are in buildscript/api.gradle
+
+sourceSets {
+    ap {
+        java {
+            compileClasspath += sourceSets.main.compileClasspath + sourceSets.main.output
+        }
+    }
+}
+
+jar {
+    from sourceSets.ap.output
+}
+
+license {
+    // Overwrite the default
+    header = rootProject.file('buildscript/license/API_LICENSE_HEADER')
+}

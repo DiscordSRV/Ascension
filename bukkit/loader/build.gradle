@@ -1,0 +1,21 @@
+import org.apache.tools.ant.filters.ReplaceTokens
+
+apply from: rootProject.file('buildscript/loader.gradle')
+
+dependencies {
+    // API
+    implementation project(':api')
+
+    // DependencyDownload
+    implementation 'dev.vankka.minecraftdependencydownload:bukkit-loader:' + rootProject.mddVersion
+}
+
+processResources {
+    filter(ReplaceTokens, tokens: ['VERSION': project.version])
+}
+
+shadowJar {
+    archiveBaseName = 'DiscordSRV-Bukkit'
+}
+
+// buildscript/loader.gradle includes the jarinjar in the jar

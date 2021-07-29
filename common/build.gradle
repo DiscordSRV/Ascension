@@ -1,0 +1,67 @@
+import dev.vankka.dependencydownload.task.GenerateDependencyDownloadResourceTask
+
+configurations {
+    h2Driver
+    mysqlDriver
+}
+
+task generateResourceForH2Driver(type: GenerateDependencyDownloadResourceTask) {
+    var conf = configurations.h2Driver
+    configuration = conf
+    fileLocation = new File(dependenciesDirectory, conf.name + '.txt')
+}
+task generateResourceForMySQLDriver(type: GenerateDependencyDownloadResourceTask) {
+    var conf = configurations.mysqlDriver
+    configuration = conf
+    fileLocation = new File(dependenciesDirectory, conf.name + '.txt')
+}
+
+dependencies {
+    // API
+    annotationProcessor project(':api')
+    compileOnlyApi project(':api')
+
+    // DependencyDownload
+    api 'dev.vankka.dependencydownload:runtime:' + rootProject.ddVersion
+
+    // Discord Webhooks
+    runtimeDownloadApi 'club.minnced:discord-webhooks:0.5.7'
+
+    // Apache Commons
+    runtimeDownloadApi 'org.apache.commons:commons-lang3:3.12.0'
+    runtimeDownloadApi 'commons-io:commons-io:2.10.0'
+
+    // Caffeine
+    runtimeDownloadApi 'com.github.ben-manes.caffeine:caffeine:2.9.2'
+
+    // Config
+    runtimeDownloadApi 'org.spongepowered:configurate-yaml:' + rootProject.configurateVersion
+    runtimeDownloadApi 'org.spongepowered:configurate-hocon:' + rootProject.configurateVersion
+
+    // Adventure, MCDiscordReserializer, EnhancedLegacyText
+    runtimeDownloadApi 'net.kyori:adventure-api:' + rootProject.adventureVersion
+    runtimeDownloadApi 'net.kyori:adventure-text-serializer-plain:' + rootProject.adventureVersion
+    runtimeDownloadApi 'net.kyori:adventure-text-serializer-legacy:' + rootProject.adventureVersion
+    runtimeDownloadApi 'net.kyori:adventure-text-serializer-gson:' + rootProject.adventureVersion
+    runtimeDownloadApi 'dev.vankka:mcdiscordreserializer:4.2.4-SNAPSHOT'
+    runtimeDownloadApi 'dev.vankka:enhancedlegacytext:1.0.0-SNAPSHOT'
+
+    // Database Drivers & SLF4J
+    h2Driver 'com.h2database:h2:1.4.200'
+    mysqlDriver 'mysql:mysql-connector-java:8.0.25'
+
+    // Logging (provided by platforms)
+    compileOnlyApi 'org.apache.logging.log4j:log4j-core:2.0-beta9'
+    compileOnlyApi 'org.slf4j:slf4j-api:1.7.32'
+}
+
+jar {
+    dependsOn(
+            generateRuntimeDownloadResourceForRuntimeDownloadOnly,
+            generateResourceForRuntimeDownloadApi,
+            generateResourceForH2Driver,
+            generateResourceForMySQLDriver
+    )
+}
+
+// Relocations in buildscript/relocations.gradle

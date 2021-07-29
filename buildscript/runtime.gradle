@@ -1,0 +1,13 @@
+// Common build script for bootstraps & standalone platforms
+apply from: rootProject.file('buildscript/relocations.gradle')
+
+jar {
+    dependsOn generateResourceForRuntimeDownloadApi
+}
+
+shadowJar {
+    from {
+        // Include translations
+        findProject(':i18n').sourceSets.main.resources
+    }
+}
