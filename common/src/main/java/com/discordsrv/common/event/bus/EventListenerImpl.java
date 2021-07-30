@@ -21,6 +21,7 @@ package com.discordsrv.common.event.bus;
 import com.discordsrv.api.event.bus.EventListener;
 import com.discordsrv.api.event.bus.EventPriority;
 import com.discordsrv.api.event.bus.Subscribe;
+import org.jetbrains.annotations.NotNull;
 
 import java.lang.reflect.Method;
 
@@ -55,12 +56,12 @@ public class EventListenerImpl implements EventListener {
     }
 
     @Override
-    public String className() {
+    public @NotNull String className() {
         return listenerClass.getName();
     }
 
     @Override
-    public String methodName() {
+    public @NotNull String methodName() {
         return method.getName();
     }
 

@@ -23,6 +23,7 @@ import com.discordsrv.common.player.IOfflinePlayer;
 import net.kyori.adventure.identity.Identity;
 import org.bukkit.OfflinePlayer;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 public class BukkitOfflinePlayer implements IOfflinePlayer {
 
@@ -30,14 +31,14 @@ public class BukkitOfflinePlayer implements IOfflinePlayer {
     private final OfflinePlayer offlinePlayer;
     private final Identity identity;
 
-    public BukkitOfflinePlayer(BukkitDiscordSRV discordSRV, OfflinePlayer offlinePlayer) {
+    public BukkitOfflinePlayer(BukkitDiscordSRV discordSRV, @NotNull OfflinePlayer offlinePlayer) {
         this.discordSRV = discordSRV;
         this.offlinePlayer = offlinePlayer;
         this.identity = Identity.identity(offlinePlayer.getUniqueId());
     }
 
     @Override
-    public String getUsername() {
+    public @Nullable String getUsername() {
         return offlinePlayer.getName();
     }
 

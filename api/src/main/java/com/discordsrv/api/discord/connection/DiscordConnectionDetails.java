@@ -26,6 +26,7 @@ package com.discordsrv.api.discord.connection;
 import com.discordsrv.api.DiscordSRVApi;
 import net.dv8tion.jda.api.requests.GatewayIntent;
 import net.dv8tion.jda.api.utils.cache.CacheFlag;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.Set;
 
@@ -46,6 +47,7 @@ public interface DiscordConnectionDetails {
      * The current gateway intents.
      * @return the current set of gateway intents
      */
+    @NotNull
     Set<GatewayIntent> getGatewayIntents();
 
     /**
@@ -56,12 +58,13 @@ public interface DiscordConnectionDetails {
      * @throws IllegalStateException if DiscordSRV is already connecting/connected to Discord
      * @see #readyToTakeDetails()
      */
-    void requestGatewayIntent(GatewayIntent gatewayIntent, GatewayIntent... gatewayIntents);
+    void requestGatewayIntent(@NotNull GatewayIntent gatewayIntent, @NotNull GatewayIntent... gatewayIntents);
 
     /**
      * The current cache flags.
      * @return the current set of cache flags
      */
+    @NotNull
     Set<CacheFlag> getCacheFlags();
 
     /**
@@ -73,6 +76,6 @@ public interface DiscordConnectionDetails {
      * @throws IllegalArgumentException if one of the requested {@link CacheFlag}s requires a {@link GatewayIntent} that hasn't been requested
      * @see #readyToTakeDetails()
      */
-    void requestCacheFlag(CacheFlag cacheFlag, CacheFlag... cacheFlags);
+    void requestCacheFlag(@NotNull CacheFlag cacheFlag, @NotNull CacheFlag... cacheFlags);
 
 }

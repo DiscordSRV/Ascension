@@ -32,7 +32,8 @@ import com.discordsrv.api.player.IPlayerProvider;
 import net.dv8tion.jda.api.JDA;
 import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
+
+import java.util.Optional;
 
 /**
  * The DiscordSRV API.
@@ -87,8 +88,8 @@ public interface DiscordSRVApi {
      * @see #isReady()
      * @see #discordConnectionDetails()
      */
-    @Nullable
-    JDA jda();
+    @NotNull
+    Optional<JDA> jda();
 
     /**
      * Discord connection detail manager, specify {@link net.dv8tion.jda.api.requests.GatewayIntent}s and {@link net.dv8tion.jda.api.utils.cache.CacheFlag}s you need here.

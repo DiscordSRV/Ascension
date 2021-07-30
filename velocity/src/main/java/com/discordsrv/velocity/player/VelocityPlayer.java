@@ -51,7 +51,7 @@ public class VelocityPlayer implements IPlayer {
     }
 
     @Override
-    public String getUsername() {
+    public @NotNull String getUsername() {
         return player.getUsername();
     }
 

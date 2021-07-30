@@ -24,6 +24,7 @@
 package com.discordsrv.api;
 
 import org.jetbrains.annotations.ApiStatus;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.Optional;
@@ -66,6 +67,7 @@ public final class DiscordSRVApiProvider {
      * @return the DiscordSRV api in an optional
      * @see #isAvailable()
      */
+    @NotNull
     public static Optional<DiscordSRVApi> optional() {
         return Optional.ofNullable(API);
     }

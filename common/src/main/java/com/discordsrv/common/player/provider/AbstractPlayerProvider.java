@@ -45,12 +45,12 @@ public abstract class AbstractPlayerProvider<T extends IPlayer> implements Playe
     }
 
     @Override
-    public final Optional<T> player(@NotNull UUID uuid) {
+    public final @NotNull Optional<T> player(@NotNull UUID uuid) {
         return Optional.ofNullable(players.get(uuid));
     }
 
     @Override
-    public final Optional<T> player(@NotNull String username) {
+    public final @NotNull Optional<T> player(@NotNull String username) {
         for (T value : allPlayers) {
             if (value.getUsername().equalsIgnoreCase(username)) {
                 return Optional.of(value);

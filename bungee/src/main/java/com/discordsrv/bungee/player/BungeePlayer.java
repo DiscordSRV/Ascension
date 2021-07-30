@@ -57,7 +57,7 @@ public class BungeePlayer implements IPlayer {
     }
 
     @Override
-    public String getUsername() {
+    public @NotNull String getUsername() {
         return player.getName();
     }
 

@@ -44,6 +44,7 @@ import org.jetbrains.annotations.NotNull;
 
 import javax.annotation.OverridingMethodsMustInvokeSuper;
 import java.util.Locale;
+import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.atomic.AtomicReference;
 
@@ -96,8 +97,9 @@ public abstract class AbstractDiscordSRV<C extends MainConfig, CC extends Connec
     }
 
     @Override
-    public JDA jda() {
-        return discordConnectionManager != null ? discordConnectionManager.instance() : null;
+    public @NotNull Optional<JDA> jda() {
+        return Optional.ofNullable(discordConnectionManager)
+                .map(DiscordConnectionManager::instance);
     }
 
     @Override

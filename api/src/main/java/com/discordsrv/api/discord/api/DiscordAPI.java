@@ -23,6 +23,8 @@
 
 package com.discordsrv.api.discord.api;
 
+import com.discordsrv.api.discord.api.entity.channel.DiscordDMChannel;
+import com.discordsrv.api.discord.api.entity.channel.DiscordMessageChannel;
 import com.discordsrv.api.discord.api.entity.channel.DiscordTextChannel;
 import com.discordsrv.api.discord.api.entity.guild.DiscordGuild;
 import com.discordsrv.api.discord.api.entity.user.DiscordUser;
@@ -36,23 +38,42 @@ import java.util.Optional;
 public interface DiscordAPI {
 
     /**
-     * Gets a Discord text channel by id.
+     * Gets a Discord message channel by id, the provided entity can be cached and will not update if it changes on Discord.
+     * @param id the id for the message channel
+     * @return the message channel
+     */
+    @NotNull
+    Optional<? extends DiscordMessageChannel> getMessageChannelById(@NotNull String id);
+
+    /**
+     * Gets a Discord direct message channel by id, the provided entity can be cached and will not update if it changes on Discord.
+     * @param id the id for the direct message channel
+     * @return the direct message channel
+     */
+    @NotNull
+    Optional<DiscordDMChannel> getDirectMessageChannelById(@NotNull String id);
+
+    /**
+     * Gets a Discord text channel by id, the provided entity can be cached and will not update if it changes on Discord.
      * @param id the id for the text channel
      * @return the text channel
      */
+    @NotNull
     Optional<DiscordTextChannel> getTextChannelById(@NotNull String id);
 
     /**
-     * Gets a Discord server by id.
+     * Gets a Discord server by id, the provided entity can be cached and will not update if it changes on Discord.
      * @param id the id for the Discord server
      * @return the Discord server
      */
+    @NotNull
     Optional<DiscordGuild> getGuildById(@NotNull String id);
 
     /**
-     * Gets a Discord user by id.
+     * Gets a Discord user by id, the provided entity can be cached and will not update if it changes on Discord.
      * @param id the id for the Discord user
      * @return the Discord user
      */
+    @NotNull
     Optional<DiscordUser> getUserById(@NotNull String id);
 }

@@ -16,23 +16,29 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package com.discordsrv.common.player;
+package com.discordsrv.common.discord.api.guild;
 
-import net.kyori.adventure.identity.Identified;
-import org.jetbrains.annotations.ApiStatus;
+import com.discordsrv.api.discord.api.entity.guild.DiscordRole;
+import net.dv8tion.jda.api.entities.Role;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
-import java.util.UUID;
+public class DiscordRoleImpl implements DiscordRole {
 
-public interface IOfflinePlayer extends Identified {
+    private final String id;
+    private final String name;
 
-    @Nullable
-    String getUsername();
+    public DiscordRoleImpl(Role role) {
+        this.id = role.getId();
+        this.name = role.getName();
+    }
 
-    @ApiStatus.NonExtendable
-    @NotNull
-    default UUID uuid() {
-        return identity().uuid();
+    @Override
+    public @NotNull String getId() {
+        return id;
+    }
+
+    @Override
+    public @NotNull String getName() {
+        return name;
     }
 }

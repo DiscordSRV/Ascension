@@ -24,6 +24,7 @@
 package com.discordsrv.api.component;
 
 import com.discordsrv.api.DiscordSRVApi;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * A factory for creating {@link MinecraftComponent}s.
@@ -36,5 +37,6 @@ public interface MinecraftComponentFactory {
      *
      * @return a new {@link MinecraftComponent}
      */
+    @NotNull
     MinecraftComponent empty();
 }

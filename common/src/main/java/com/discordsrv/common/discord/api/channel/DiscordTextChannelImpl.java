@@ -22,13 +22,11 @@ import club.minnced.discord.webhook.WebhookClient;
 import club.minnced.discord.webhook.receive.ReadonlyMessage;
 import club.minnced.discord.webhook.send.WebhookMessage;
 import com.discordsrv.api.discord.api.entity.channel.DiscordTextChannel;
-import com.discordsrv.api.discord.api.exception.NotReadyException;
-import com.discordsrv.api.discord.api.exception.RestErrorResponseException;
-import com.discordsrv.api.discord.api.exception.UnknownChannelException;
-import com.discordsrv.api.discord.api.exception.UnknownMessageException;
 import com.discordsrv.api.discord.api.entity.guild.DiscordGuild;
 import com.discordsrv.api.discord.api.entity.message.ReceivedDiscordMessage;
 import com.discordsrv.api.discord.api.entity.message.SendableDiscordMessage;
+import com.discordsrv.api.discord.api.exception.NotReadyException;
+import com.discordsrv.api.discord.api.exception.UnknownChannelException;
 import com.discordsrv.common.DiscordSRV;
 import com.discordsrv.common.discord.api.guild.DiscordGuildImpl;
 import com.discordsrv.common.discord.api.message.ReceivedDiscordMessageImpl;
@@ -37,8 +35,6 @@ import net.dv8tion.jda.api.JDA;
 import net.dv8tion.jda.api.entities.Message;
 import net.dv8tion.jda.api.entities.MessageChannel;
 import net.dv8tion.jda.api.entities.TextChannel;
-import net.dv8tion.jda.api.exceptions.ErrorResponseException;
-import net.dv8tion.jda.api.requests.ErrorResponse;
 import net.dv8tion.jda.api.requests.restaction.MessageAction;
 import net.dv8tion.jda.api.utils.MiscUtil;
 import org.jetbrains.annotations.NotNull;
@@ -46,7 +42,7 @@ import org.jetbrains.annotations.NotNull;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.BiFunction;
 
-public class DiscordTextChannelImpl implements DiscordTextChannel {
+public class DiscordTextChannelImpl extends DiscordMessageChannelImpl implements DiscordTextChannel {
 
     private final DiscordSRV discordSRV;
     private final String id;
@@ -107,7 +103,7 @@ public class DiscordTextChannelImpl implements DiscordTextChannel {
                             client, SendableDiscordMessageUtil.toWebhook(message)))
                     .thenApply(msg -> ReceivedDiscordMessageImpl.fromWebhook(discordSRV, msg));
         } else {
-            JDA jda = discordSRV.jda();
+            JDA jda = discordSRV.jda().orElse(null);
             if (jda == null) {
                 throw new NotReadyException();
             }
@@ -115,7 +111,7 @@ public class DiscordTextChannelImpl implements DiscordTextChannel {
             TextChannel textChannel = jda.getTextChannelById(getId());
             if (textChannel == null) {
                 future = new CompletableFuture<>();
-                future.completeExceptionally(new UnknownChannelException(null));
+                future.completeExceptionally(new UnknownChannelException());
                 return future;
             }
 
@@ -125,21 +121,6 @@ public class DiscordTextChannelImpl implements DiscordTextChannel {
                     .thenApply(msg -> ReceivedDiscordMessageImpl.fromJDA(discordSRV, msg));
         }
 
-        return future.handle((msg, t) -> {
-            if (t instanceof ErrorResponseException) {
-                ErrorResponse errorResponse = ((ErrorResponseException) t).getErrorResponse();
-                if (errorResponse != null) {
-                    if (errorResponse == ErrorResponse.UNKNOWN_MESSAGE) {
-                        throw new UnknownMessageException(t);
-                    } else if (errorResponse == ErrorResponse.UNKNOWN_CHANNEL) {
-                        throw new UnknownChannelException(t);
-                    }
-                }
-                throw new RestErrorResponseException(((ErrorResponseException) t).getErrorCode(), t);
-            } else if (t != null) {
-                throw (RuntimeException) t;
-            }
-            return msg;
-        });
+        return mapExceptions(future);
     }
 }

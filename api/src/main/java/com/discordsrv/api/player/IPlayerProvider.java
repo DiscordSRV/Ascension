@@ -38,6 +38,7 @@ public interface IPlayerProvider {
      * @param player the uuid for the player
      * @return the {@link DiscordSRVPlayer} instance for the player, if available
      */
+    @NotNull
     Optional<? extends DiscordSRVPlayer> player(@NotNull UUID player);
 
     /**
@@ -45,6 +46,7 @@ public interface IPlayerProvider {
      * @param username case-insensitive username for the player
      * @return the {@link DiscordSRVPlayer} instance for the player, if available
      */
+    @NotNull
     Optional<? extends DiscordSRVPlayer> player(@NotNull String username);
 
 }

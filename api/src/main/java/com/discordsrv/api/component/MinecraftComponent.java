@@ -58,6 +58,7 @@ public interface MinecraftComponent {
      * Use for reference only, <b>this is not a substitute for legacy</b>.
      * @return the plain message
      */
+    @NotNull
     String asPlainString();
 
     /**
@@ -103,6 +104,7 @@ public interface MinecraftComponent {
          * Returns the Adventure Component returned by the gson serializer of this adapter.
          * @return the {@code net.kyori.adventure.text.Component} (or relocated), cast this to your end class
          */
+        @NotNull
         Object getComponent();
 
         /**
@@ -110,7 +112,7 @@ public interface MinecraftComponent {
          * @param adventureComponent the component
          * @throws IllegalArgumentException if the provided component cannot be processed by the gson serializer of this apdater
          */
-        void setComponent(Object adventureComponent);
+        void setComponent(@NotNull Object adventureComponent);
     }
 
 }

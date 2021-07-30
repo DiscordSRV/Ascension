@@ -27,11 +27,19 @@ public class RestErrorResponseException extends RuntimeException {
 
     private final int errorCode;
 
+    public RestErrorResponseException(int errorCode) {
+        this.errorCode = errorCode;
+    }
+
     public RestErrorResponseException(int errorCode, Throwable cause) {
         super(cause);
         this.errorCode = errorCode;
     }
 
+    /**
+     * The error code if available, otherwise {@code -1}.
+     * @return the Discord error code or {@code -1}
+     */
     public int getErrorCode() {
         return errorCode;
     }

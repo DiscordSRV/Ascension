@@ -23,6 +23,7 @@ import com.discordsrv.common.DiscordSRV;
 import com.discordsrv.common.exception.util.ExceptionUtil;
 import net.dv8tion.jda.api.requests.GatewayIntent;
 import net.dv8tion.jda.api.utils.cache.CacheFlag;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.*;
 
@@ -49,12 +50,12 @@ public class DiscordConnectionDetailsImpl implements DiscordConnectionDetails {
     }
 
     @Override
-    public Set<GatewayIntent> getGatewayIntents() {
+    public @NotNull Set<GatewayIntent> getGatewayIntents() {
         return gatewayIntents;
     }
 
     @Override
-    public void requestGatewayIntent(GatewayIntent gatewayIntent, GatewayIntent... gatewayIntents) {
+    public void requestGatewayIntent(@NotNull GatewayIntent gatewayIntent, GatewayIntent... gatewayIntents) {
         check();
 
         List<GatewayIntent> intents = new ArrayList<>(Collections.singleton(gatewayIntent));
@@ -64,12 +65,12 @@ public class DiscordConnectionDetailsImpl implements DiscordConnectionDetails {
     }
 
     @Override
-    public Set<CacheFlag> getCacheFlags() {
+    public @NotNull Set<CacheFlag> getCacheFlags() {
         return cacheFlags;
     }
 
     @Override
-    public void requestCacheFlag(CacheFlag cacheFlag, CacheFlag... cacheFlags) {
+    public void requestCacheFlag(@NotNull CacheFlag cacheFlag, CacheFlag... cacheFlags) {
         check();
 
         List<CacheFlag> flags = new ArrayList<>(Collections.singleton(cacheFlag));

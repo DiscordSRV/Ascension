@@ -23,10 +23,16 @@
 
 package com.discordsrv.api.discord.api.exception;
 
-public class UnknownMessageException extends RuntimeException {
+import net.dv8tion.jda.api.requests.ErrorResponse;
+
+public class UnknownMessageException extends RestErrorResponseException {
+
+    public UnknownMessageException() {
+        super(-1);
+    }
 
     public UnknownMessageException(Throwable cause) {
-        super(cause);
+        super(ErrorResponse.UNKNOWN_MESSAGE.getCode(), cause);
     }
 
 }

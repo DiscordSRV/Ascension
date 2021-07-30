@@ -62,7 +62,7 @@ public class MinecraftComponentImpl implements MinecraftComponent {
     }
 
     @Override
-    public String asPlainString() {
+    public @NotNull String asPlainString() {
         return PlainTextComponentSerializer.plainText().serialize(component);
     }
 
@@ -98,7 +98,7 @@ public class MinecraftComponentImpl implements MinecraftComponent {
         }
 
         @Override
-        public Object getComponent() {
+        public @NotNull Object getComponent() {
             try {
                 return adapter.deserialize()
                         .invoke(
@@ -111,7 +111,7 @@ public class MinecraftComponentImpl implements MinecraftComponent {
         }
 
         @Override
-        public void setComponent(Object adventureComponent) {
+        public void setComponent(@NotNull Object adventureComponent) {
             try {
                 json = (String) adapter.serialize()
                         .invoke(

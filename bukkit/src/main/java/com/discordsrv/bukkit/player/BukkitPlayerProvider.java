@@ -32,6 +32,7 @@ import org.bukkit.event.player.PlayerQuitEvent;
 import java.util.Optional;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
+import java.util.function.Supplier;
 
 public class BukkitPlayerProvider extends ServerPlayerProvider<BukkitPlayer> implements Listener {
 
@@ -73,26 +74,31 @@ public class BukkitPlayerProvider extends ServerPlayerProvider<BukkitPlayer> imp
 
     // IOfflinePlayer
 
-    private Optional<IOfflinePlayer> convert(OfflinePlayer offlinePlayer) {
-        if (offlinePlayer == null) {
-            return Optional.empty();
+    private CompletableFuture<Optional<IOfflinePlayer>> getFuture(Supplier<OfflinePlayer> provider) {
+        CompletableFuture<Optional<IOfflinePlayer>> future = new CompletableFuture<>();
+        try {
+            OfflinePlayer offlinePlayer = provider.get();
+            if (offlinePlayer == null) {
+                future.complete(Optional.empty());
+                return future;
+            }
+
+            future.complete(Optional.of(new BukkitOfflinePlayer(discordSRV, offlinePlayer)));
+        } catch (Throwable t) {
+            future.completeExceptionally(t);
         }
-        return Optional.of(new BukkitOfflinePlayer(discordSRV, offlinePlayer));
+        return future;
     }
 
     @Override
     public CompletableFuture<Optional<IOfflinePlayer>> offlinePlayer(UUID uuid) {
-        CompletableFuture<Optional<IOfflinePlayer>> future = new CompletableFuture<>();
-        future.complete(convert(discordSRV.server().getOfflinePlayer(uuid)));
-        return future;
+        return getFuture(() -> discordSRV.server().getOfflinePlayer(uuid));
     }
 
     @SuppressWarnings("deprecation") // Shut up, I know
     @Override
     public CompletableFuture<Optional<IOfflinePlayer>> offlinePlayer(String username) {
-        CompletableFuture<Optional<IOfflinePlayer>> future = new CompletableFuture<>();
-        future.complete(convert(discordSRV.server().getOfflinePlayer(username)));
-        return future;
+        return getFuture(() -> discordSRV.server().getOfflinePlayer(username));
     }
 
     public IOfflinePlayer offlinePlayer(OfflinePlayer offlinePlayer) {

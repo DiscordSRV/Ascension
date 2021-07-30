@@ -25,6 +25,7 @@ package com.discordsrv.api.event.bus.internal;
 
 import com.discordsrv.api.event.bus.EventListener;
 import org.jetbrains.annotations.ApiStatus;
+import org.jetbrains.annotations.NotNull;
 
 @ApiStatus.Internal
 public final class EventStateHolder {
@@ -37,12 +38,12 @@ public final class EventStateHolder {
     private static class FakeListener implements EventListener {
 
         @Override
-        public String className() {
+        public @NotNull String className() {
             return null;
         }
 
         @Override
-        public String methodName() {
+        public @NotNull String methodName() {
             return null;
         }
     }

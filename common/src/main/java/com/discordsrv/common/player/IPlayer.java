@@ -22,6 +22,7 @@ import com.discordsrv.api.player.DiscordSRVPlayer;
 import com.discordsrv.common.command.game.sender.ICommandSender;
 import net.kyori.adventure.text.Component;
 import org.jetbrains.annotations.ApiStatus;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.UUID;
 
@@ -29,7 +30,7 @@ public interface IPlayer extends DiscordSRVPlayer, IOfflinePlayer, ICommandSende
 
     @Override
     @ApiStatus.NonExtendable
-    default UUID uuid() {
+    default @NotNull UUID uuid() {
         return identity().uuid();
     }
 

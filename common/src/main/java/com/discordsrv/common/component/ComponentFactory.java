@@ -20,11 +20,12 @@ package com.discordsrv.common.component;
 
 import com.discordsrv.api.component.MinecraftComponent;
 import com.discordsrv.api.component.MinecraftComponentFactory;
+import org.jetbrains.annotations.NotNull;
 
 public class ComponentFactory implements MinecraftComponentFactory {
 
     @Override
-    public MinecraftComponent empty() {
+    public @NotNull MinecraftComponent empty() {
         return MinecraftComponentImpl.empty();
     }
 }

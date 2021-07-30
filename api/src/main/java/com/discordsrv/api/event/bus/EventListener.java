@@ -23,6 +23,8 @@
 
 package com.discordsrv.api.event.bus;
 
+import org.jetbrains.annotations.NotNull;
+
 import java.lang.reflect.Method;
 
 /**
@@ -36,6 +38,7 @@ public interface EventListener {
      * @return the event listener class name
      * @see Class#getName()
      */
+    @NotNull
     String className();
 
     /**
@@ -43,6 +46,7 @@ public interface EventListener {
      * @return the method name for this event listener
      * @see Method#getName()
      */
+    @NotNull
     String methodName();
 
 }

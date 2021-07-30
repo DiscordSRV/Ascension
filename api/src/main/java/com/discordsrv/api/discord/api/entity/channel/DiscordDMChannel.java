@@ -21,18 +21,19 @@
  * SOFTWARE.
  */
 
-package com.discordsrv.api.discord.api.exception;
+package com.discordsrv.api.discord.api.entity.channel;
 
-import net.dv8tion.jda.api.requests.ErrorResponse;
+import com.discordsrv.api.discord.api.entity.user.DiscordUser;
 
-public class UnknownChannelException extends RestErrorResponseException {
+/**
+ * A Discord direct message channel.
+ */
+public interface DiscordDMChannel extends DiscordMessageChannel {
 
-    public UnknownChannelException() {
-        super(-1);
-    }
-
-    public UnknownChannelException(Throwable cause) {
-        super(ErrorResponse.UNKNOWN_CHANNEL.getCode(), cause);
-    }
+    /**
+     * Gets the {@link DiscordUser} that is associated with this direct message channel.
+     * @return the user this direct message is with
+     */
+    DiscordUser getUser();
 
 }
