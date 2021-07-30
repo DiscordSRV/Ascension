@@ -28,6 +28,11 @@ import java.util.UUID;
 
 public interface IPlayer extends DiscordSRVPlayer, IOfflinePlayer, ICommandSender {
 
+    @SuppressWarnings("NullableProblems") // IOfflinePlayer != IPlayer
+    @Override
+    @NotNull
+    String getUsername();
+
     @Override
     @ApiStatus.NonExtendable
     default @NotNull UUID uuid() {
