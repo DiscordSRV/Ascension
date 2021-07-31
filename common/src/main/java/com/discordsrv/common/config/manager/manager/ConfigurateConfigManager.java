@@ -44,6 +44,8 @@ public abstract class ConfigurateConfigManager<T, LT extends AbstractConfigurati
     protected final DiscordSRV discordSRV;
     private final Path filePath;
     private final LT loader;
+    private final ObjectMapper.Factory configObjectMapper;
+    private final ObjectMapper.Factory defaultObjectMapper;
 
     protected T configuration;
 
@@ -51,6 +53,8 @@ public abstract class ConfigurateConfigManager<T, LT extends AbstractConfigurati
         this.discordSRV = discordSRV;
         this.filePath = new File(discordSRV.dataDirectory().toFile(), fileName()).toPath();
         this.loader = createLoader(filePath, configNodeOptions());
+        this.configObjectMapper = configObjectMapperBuilder().build();
+        this.defaultObjectMapper = defaultObjectMapperBuilder().build();
     }
 
     public Path filePath() {
@@ -73,7 +77,7 @@ public abstract class ConfigurateConfigManager<T, LT extends AbstractConfigurati
                 .shouldCopyDefaults(false);
     }
 
-    public ObjectMapper.Factory.Builder objectMapper() {
+    protected ObjectMapper.Factory.Builder objectMapperBuilder() {
         return ObjectMapper.factoryBuilder();
     }
 
@@ -81,16 +85,20 @@ public abstract class ConfigurateConfigManager<T, LT extends AbstractConfigurati
         return defaultOptions();
     }
 
-    public ObjectMapper.Factory.Builder configObjectMapper() {
-        return objectMapper();
+    protected ObjectMapper.Factory.Builder configObjectMapperBuilder() {
+        return objectMapperBuilder();
+    }
+
+    public ObjectMapper.Factory configObjectMapper() {
+        return configObjectMapper;
     }
 
     public ConfigurationOptions defaultNodeOptions() {
         return defaultOptions();
     }
 
-    public ObjectMapper.Factory.Builder defaultObjectMapper() {
-        return configObjectMapper()
+    protected ObjectMapper.Factory.Builder defaultObjectMapperBuilder() {
+        return configObjectMapperBuilder()
                 .addProcessor(DefaultOnly.class, (data, value) -> (value1, destination) -> {
                     String[] children = data.value();
                     boolean whitelist = data.whitelist();
@@ -124,9 +132,13 @@ public abstract class ConfigurateConfigManager<T, LT extends AbstractConfigurati
                 });
     }
 
+    public ObjectMapper.Factory defaultObjectMapper() {
+        return defaultObjectMapper;
+    }
+
     private CommentedConfigurationNode getDefault(T defaultConfig, boolean cleanMapper) throws SerializationException {
         CommentedConfigurationNode node = CommentedConfigurationNode.root(defaultNodeOptions());
-        (cleanMapper ? defaultObjectMapper() : configObjectMapper()).build()
+        (cleanMapper ? defaultObjectMapper() : configObjectMapper())
                 .get(defaultConfig.getClass()).load(node);
         return node;
     }
@@ -164,7 +176,7 @@ public abstract class ConfigurateConfigManager<T, LT extends AbstractConfigurati
                 node = getDefault(defaultConfig, false);
             }
 
-            this.configuration = configObjectMapper().build()
+            this.configuration = configObjectMapper()
                     .get((Class<T>) defaultConfig.getClass())
                     .load(node);
         } catch (ConfigurateException e) {

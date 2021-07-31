@@ -153,6 +153,10 @@ public class DiscordMessageEmbed {
         return footerImageUrl;
     }
 
+    public Builder toBuilder() {
+        return new Builder(this);
+    }
+
     public MessageEmbed toJDA() {
         EmbedBuilder embedBuilder = new EmbedBuilder();
         embedBuilder.setColor(color);
@@ -208,11 +212,11 @@ public class DiscordMessageEmbed {
         private OffsetDateTime timestamp;
         private String footer, footerImageUrl;
 
-        public Builder() {
+        protected Builder() {
             this.fields = new ArrayList<>();
         }
 
-        public Builder(int color, String authorName, String authorUrl, String authorImageUrl, String title,
+        protected Builder(int color, String authorName, String authorUrl, String authorImageUrl, String title,
                        String titleUrl, String description, List<Field> fields, String thumbnailUrl, String imageUrl,
                        OffsetDateTime timestamp, String footer, String footerImageUrl) {
             this.color = color;
@@ -228,6 +232,22 @@ public class DiscordMessageEmbed {
             this.timestamp = timestamp;
             this.footer = footer;
             this.footerImageUrl = footerImageUrl;
+        }
+
+        protected Builder(DiscordMessageEmbed embed) {
+            this.color = embed.getColor();
+            this.authorName = embed.getAuthorName();
+            this.authorUrl = embed.getAuthorUrl();
+            this.authorImageUrl = embed.getAuthorImageUrl();
+            this.title = embed.getTitle();
+            this.titleUrl = embed.getTitleUrl();
+            this.description = embed.getDescription();
+            this.fields = embed.getFields();
+            this.thumbnailUrl = embed.getThumbnailUrl();
+            this.imageUrl = embed.getImageUrl();
+            this.timestamp = embed.getTimestamp();
+            this.footer = embed.getFooter();
+            this.footerImageUrl = embed.getFooterImageUrl();
         }
 
         public int getColor() {
@@ -390,7 +410,7 @@ public class DiscordMessageEmbed {
 
         @SuppressWarnings({"MethodDoesntCallSuperMethod", "CloneDoesntDeclareCloneNotSupportedException"})
         @Override
-        protected Builder clone() {
+        public Builder clone() {
             return new Builder(color, authorName, authorUrl, authorImageUrl, title, titleUrl, description,
                     fields, thumbnailUrl, imageUrl, timestamp, footer, footerImageUrl);
         }

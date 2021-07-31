@@ -84,7 +84,11 @@ public interface DiscordSRVApi {
      * @return the JDA instance, if available
      *
      * <p>
-     * JDA is an external API, using DiscordSRV's APIs where possible is recommended. Please see <a href="https://github.com/DV8FromTheWorld/JDA#deprecation-policy">JDA's deprecation policy</a>.
+     * JDA is an external API, using DiscordSRV's APIs where possible is recommended.
+     * Please see <a href="https://github.com/DV8FromTheWorld/JDA#deprecation-policy">JDA's deprecation policy</a>,
+     * additionally DiscordSRV may update the major version of JDA, which will have breaking changes.
+     *
+     * @see #discordAPI()
      * @see #isReady()
      * @see #discordConnectionDetails()
      */
