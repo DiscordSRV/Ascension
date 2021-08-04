@@ -54,17 +54,18 @@ public class DiscordAPIImpl implements DiscordAPI {
 
     private final DiscordSRV discordSRV;
 
-    private final AsyncLoadingCache<String, WebhookClient> cachedClients = Caffeine.newBuilder()
-            .removalListener((RemovalListener<String, WebhookClient>) (id, client, cause) -> {
-                if (client != null) {
-                    client.close();
-                }
-            })
-            .expireAfter(new WebhookCacheExpiry())
-            .buildAsync(new WebhookCacheLoader());
+    private final AsyncLoadingCache<String, WebhookClient> cachedClients;
 
     public DiscordAPIImpl(DiscordSRV discordSRV) {
         this.discordSRV = discordSRV;
+        this.cachedClients = discordSRV.caffeineBuilder()
+                .removalListener((RemovalListener<String, WebhookClient>) (id, client, cause) -> {
+                    if (client != null) {
+                        client.close();
+                    }
+                })
+                .expireAfter(new WebhookCacheExpiry())
+                .buildAsync(new WebhookCacheLoader());
     }
 
     public CompletableFuture<WebhookClient> queryWebhookClient(String channelId) {

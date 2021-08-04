@@ -18,9 +18,11 @@
 
 package com.discordsrv.common.player;
 
+import com.discordsrv.api.placeholder.Placeholder;
 import com.discordsrv.api.player.DiscordSRVPlayer;
 import com.discordsrv.common.command.game.sender.ICommandSender;
 import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.serializer.plain.PlainTextComponentSerializer;
 import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
 
@@ -28,7 +30,6 @@ import java.util.UUID;
 
 public interface IPlayer extends DiscordSRVPlayer, IOfflinePlayer, ICommandSender {
 
-    @SuppressWarnings("NullableProblems") // IOfflinePlayer != IPlayer
     @Override
     @NotNull
     String getUsername();
@@ -40,4 +41,11 @@ public interface IPlayer extends DiscordSRVPlayer, IOfflinePlayer, ICommandSende
     }
 
     Component displayName();
+
+    @ApiStatus.NonExtendable
+    @Placeholder("player_display_name")
+    default String plainDisplayName() {
+        return PlainTextComponentSerializer.plainText()
+                .serialize(displayName());
+    }
 }

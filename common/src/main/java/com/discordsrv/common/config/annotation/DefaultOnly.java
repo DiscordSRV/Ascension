@@ -26,7 +26,7 @@ import java.lang.annotation.Target;
 /**
  * Prevents the annotated options from being (partially) merged into existing configs (only being added to new configs).
  */
-@Retention(value = RetentionPolicy.RUNTIME)
+@Retention(RetentionPolicy.RUNTIME)
 @Target(ElementType.FIELD)
 public @interface DefaultOnly {
 

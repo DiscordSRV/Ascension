@@ -31,6 +31,9 @@ import java.util.concurrent.ForkJoinPool;
 
 /**
  * TODO: revamp
+ * - run DiscordSRV#load() after DiscordSRV is initialized
+ * - catch exceptions, so they don't go missing
+ * - make the whenComplete stuff less janky
  */
 public class InitialDependencyLoader {
 

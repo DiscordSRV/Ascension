@@ -25,7 +25,6 @@ import com.discordsrv.common.config.main.channels.BaseChannelConfig;
 import com.discordsrv.common.config.main.channels.ChannelConfigHolder;
 import com.discordsrv.common.function.OrDefault;
 import com.github.benmanes.caffeine.cache.CacheLoader;
-import com.github.benmanes.caffeine.cache.Caffeine;
 import com.github.benmanes.caffeine.cache.LoadingCache;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.checkerframework.checker.nullness.qual.Nullable;
@@ -36,23 +35,24 @@ import java.util.concurrent.TimeUnit;
 public class ChannelConfig {
 
     private final DiscordSRV discordSRV;
-    private final LoadingCache<String, GameChannel> CHANNELS = Caffeine.newBuilder()
-            .expireAfterWrite(30, TimeUnit.SECONDS)
-            .build(new CacheLoader<String, GameChannel>() {
-                @Override
-                public @Nullable GameChannel load(@NonNull String channelName) {
-                    GameChannelLookupEvent event = new GameChannelLookupEvent(null, channelName);
-                    discordSRV.eventBus().publish(event);
-                    if (!event.isProcessed()) {
-                        return null;
-                    }
-
-                    return event.getChannelFromProcessing();
-                }
-            });
+    private final LoadingCache<String, GameChannel> channels;
 
     public ChannelConfig(DiscordSRV discordSRV) {
         this.discordSRV = discordSRV;
+        this.channels = discordSRV.caffeineBuilder()
+                .expireAfterWrite(30, TimeUnit.SECONDS)
+                .build(new CacheLoader<String, GameChannel>() {
+                    @Override
+                    public @Nullable GameChannel load(@NonNull String channelName) {
+                        GameChannelLookupEvent event = new GameChannelLookupEvent(null, channelName);
+                        discordSRV.eventBus().publish(event);
+                        if (!event.isProcessed()) {
+                            return null;
+                        }
+
+                        return event.getChannelFromProcessing();
+                    }
+                });
     }
 
     private Map<String, ChannelConfigHolder> channels() {
@@ -84,7 +84,7 @@ public class ChannelConfig {
                 return config.get();
             }
 
-            GameChannel gameChannel = CHANNELS.get(channelName);
+            GameChannel gameChannel = channels.get(channelName);
             if (gameChannel != null && gameChannel.getOwnerName().equals(ownerName)) {
                 config = channels().get(channelName);
                 return config != null ? config.get() : null;
@@ -92,7 +92,7 @@ public class ChannelConfig {
             return null;
         }
 
-        GameChannel gameChannel = CHANNELS.get(channelName);
+        GameChannel gameChannel = channels.get(channelName);
         return gameChannel != null ? get(gameChannel) : null;
     }
 }

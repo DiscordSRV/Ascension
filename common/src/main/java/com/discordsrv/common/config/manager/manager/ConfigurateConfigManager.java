@@ -43,18 +43,18 @@ public abstract class ConfigurateConfigManager<T, LT extends AbstractConfigurati
 
     protected final DiscordSRV discordSRV;
     private final Path filePath;
-    private final LT loader;
     private final ObjectMapper.Factory configObjectMapper;
     private final ObjectMapper.Factory defaultObjectMapper;
+    private final LT loader;
 
     protected T configuration;
 
     public ConfigurateConfigManager(DiscordSRV discordSRV) {
         this.discordSRV = discordSRV;
         this.filePath = new File(discordSRV.dataDirectory().toFile(), fileName()).toPath();
-        this.loader = createLoader(filePath, configNodeOptions());
         this.configObjectMapper = configObjectMapperBuilder().build();
         this.defaultObjectMapper = defaultObjectMapperBuilder().build();
+        this.loader = createLoader(filePath, configNodeOptions());
     }
 
     public Path filePath() {

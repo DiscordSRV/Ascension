@@ -16,26 +16,19 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package com.discordsrv.common.player;
+package com.discordsrv.common.placeholder.provider;
 
-import com.discordsrv.api.placeholder.Placeholder;
-import net.kyori.adventure.identity.Identified;
-import org.jetbrains.annotations.ApiStatus;
+import com.discordsrv.api.placeholder.PlaceholderLookupResult;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
-import java.util.UUID;
+import java.util.Set;
 
-public interface IOfflinePlayer extends Identified {
+/**
+ * A placeholder provider used internally by DiscordSRV for {@link com.discordsrv.api.placeholder.Placeholder}.
+ * API users should use the {@link com.discordsrv.api.event.events.placeholder.PlaceholderLookupEvent} instead.
+ */
+public interface PlaceholderProvider {
 
-    @Placeholder("player_name")
-    @Nullable
-    String getUsername();
-
-    @ApiStatus.NonExtendable
-    @Placeholder("player_uuid")
     @NotNull
-    default UUID uuid() {
-        return identity().uuid();
-    }
+    PlaceholderLookupResult lookup(@NotNull String placeholder, @NotNull Set<Object> context);
 }

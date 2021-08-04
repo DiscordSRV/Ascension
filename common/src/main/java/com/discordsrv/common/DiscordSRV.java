@@ -32,6 +32,8 @@ import com.discordsrv.common.discord.connection.DiscordConnectionManager;
 import com.discordsrv.common.logging.logger.Logger;
 import com.discordsrv.common.player.provider.AbstractPlayerProvider;
 import com.discordsrv.common.scheduler.Scheduler;
+import com.github.benmanes.caffeine.cache.Caffeine;
+import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
 
 import java.nio.file.Path;
@@ -50,11 +52,11 @@ public interface DiscordSRV extends DiscordSRVApi {
     // DiscordSRVApi
     @Override
     @NotNull
-    AbstractPlayerProvider<?> playerProvider();
+    ComponentFactory componentFactory();
 
     @Override
     @NotNull
-    ComponentFactory componentFactory();
+    AbstractPlayerProvider<?> playerProvider();
 
     @Override
     @NotNull
@@ -73,6 +75,13 @@ public interface DiscordSRV extends DiscordSRVApi {
 
     Locale locale();
     void setStatus(Status status);
+
+    @SuppressWarnings("unchecked")
+    @ApiStatus.NonExtendable
+    default <K, V> Caffeine<K, V> caffeineBuilder() {
+        return (Caffeine<K, V>) Caffeine.newBuilder()
+                .executor(scheduler().forkExecutor());
+    }
 
     // Lifecycle
     CompletableFuture<Void> invokeEnable();

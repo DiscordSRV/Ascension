@@ -21,6 +21,7 @@ package com.discordsrv.common;
 import com.discordsrv.api.discord.connection.DiscordConnectionDetails;
 import com.discordsrv.api.event.bus.EventBus;
 import com.discordsrv.api.event.events.lifecycle.DiscordSRVShuttingDownEvent;
+import com.discordsrv.api.placeholder.PlaceholderService;
 import com.discordsrv.common.api.util.ApiInstanceUtil;
 import com.discordsrv.common.channel.ChannelConfig;
 import com.discordsrv.common.channel.DefaultGlobalChannel;
@@ -39,6 +40,7 @@ import com.discordsrv.common.listener.DefaultChannelLookupListener;
 import com.discordsrv.common.listener.DefaultChatListener;
 import com.discordsrv.common.logging.DependencyLoggingFilter;
 import com.discordsrv.common.logging.logger.backend.LoggingBackend;
+import com.discordsrv.common.placeholder.PlaceholderServiceImpl;
 import net.dv8tion.jda.api.JDA;
 import org.jetbrains.annotations.NotNull;
 
@@ -54,8 +56,9 @@ public abstract class AbstractDiscordSRV<C extends MainConfig, CC extends Connec
 
     // DiscordSRVApi
     private final EventBus eventBus;
+    private PlaceholderService placeholderService;
     private final ComponentFactory componentFactory;
-    private final DiscordAPIImpl discordAPI;
+    private DiscordAPIImpl discordAPI;
     private final DiscordConnectionDetails discordConnectionDetails;
 
     // DiscordSRV
@@ -70,7 +73,6 @@ public abstract class AbstractDiscordSRV<C extends MainConfig, CC extends Connec
         ApiInstanceUtil.setInstance(this);
         this.eventBus = new EventBusImpl(this);
         this.componentFactory = new ComponentFactory();
-        this.discordAPI = new DiscordAPIImpl(this);
         this.discordConnectionDetails = new DiscordConnectionDetailsImpl(this);
     }
 
@@ -84,6 +86,11 @@ public abstract class AbstractDiscordSRV<C extends MainConfig, CC extends Connec
     @Override
     public @NotNull EventBus eventBus() {
         return eventBus;
+    }
+
+    @Override
+    public @NotNull PlaceholderService placeholderService() {
+        return placeholderService;
     }
 
     @Override
@@ -183,6 +190,10 @@ public abstract class AbstractDiscordSRV<C extends MainConfig, CC extends Connec
 
     @OverridingMethodsMustInvokeSuper
     protected void enable() throws Throwable {
+        // API Stuff
+        this.placeholderService = new PlaceholderServiceImpl(this);
+        this.discordAPI = new DiscordAPIImpl(this);
+
         // Config
         try {
             connectionConfigManager().load();

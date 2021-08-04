@@ -1,3 +1,21 @@
+/*
+ * This file is part of DiscordSRV, licensed under the GPLv3 License
+ * Copyright (c) 2016-2021 Austin "Scarsz" Shapiro, Henri "Vankka" Schubin and DiscordSRV contributors
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <https://www.gnu.org/licenses/>.
+ */
+
 package com.discordsrv.common.config.serializer;
 
 import com.discordsrv.api.discord.api.entity.message.DiscordMessageEmbed;
@@ -9,13 +27,14 @@ import org.spongepowered.configurate.serialize.TypeSerializer;
 
 import java.lang.reflect.Type;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
-import java.util.Optional;
 
 public class SendableDiscordMessageSerializer implements TypeSerializer<SendableDiscordMessage.Builder> {
 
     @Override
-    public SendableDiscordMessage.Builder deserialize(Type type, ConfigurationNode node) throws SerializationException {
+    public SendableDiscordMessage.Builder deserialize(Type type, ConfigurationNode node)
+            throws SerializationException {
         String contentOnly = node.getString();
         if (contentOnly != null) {
             return SendableDiscordMessage.builder()
@@ -25,16 +44,21 @@ public class SendableDiscordMessageSerializer implements TypeSerializer<Sendable
         SendableDiscordMessage.Builder builder = SendableDiscordMessage.builder();
 
         ConfigurationNode webhook = node.node("Webhook");
-        if (webhook.node("Enabled").getBoolean(false)) {
-            builder.setWebhookUsername(webhook.node("Username").getString());
+        String webhookUsername = webhook.node("Username").getString();
+        if (webhook.node("Enabled").getBoolean(webhook.node("Enable").getBoolean(webhookUsername != null))) {
+            builder.setWebhookUsername(webhookUsername);
             builder.setWebhookAvatarUrl(webhook.node("AvatarUrl").getString());
         }
 
-        List<DiscordMessageEmbed.Builder> embeds = node.node("Embeds").getList(DiscordMessageEmbed.Builder.class);
-        if (embeds != null) {
-            for (DiscordMessageEmbed.Builder embed : embeds) {
-                builder.addEmbed(embed.build());
-            }
+        // v1 compat
+        DiscordMessageEmbed.Builder singleEmbed = node.node("Embed").get(
+                DiscordMessageEmbed.Builder.class);
+        List<DiscordMessageEmbed.Builder> embedList = singleEmbed != null
+                ? Collections.singletonList(singleEmbed) : Collections.emptyList();
+
+        for (DiscordMessageEmbed.Builder embed : node.node("Embeds")
+                .getList(DiscordMessageEmbed.Builder.class, embedList)) {
+            builder.addEmbed(embed.build());
         }
 
         builder.setContent(node.node("Content").getString());
@@ -42,7 +66,8 @@ public class SendableDiscordMessageSerializer implements TypeSerializer<Sendable
     }
 
     @Override
-    public void serialize(Type type, SendableDiscordMessage.@Nullable Builder obj, ConfigurationNode node) throws SerializationException {
+    public void serialize(Type type, SendableDiscordMessage.@Nullable Builder obj, ConfigurationNode node)
+            throws SerializationException {
         if (obj == null) {
             node.set(null);
             return;
@@ -52,7 +77,7 @@ public class SendableDiscordMessageSerializer implements TypeSerializer<Sendable
         if (webhookUsername != null) {
             ConfigurationNode webhook = node.node("Webhook");
             webhook.node("Username").set(webhookUsername);
-            webhook.node("AvatarUrl").set(Optional.ofNullable(obj.getWebhookAvatarUrl()).orElse(""));
+            webhook.node("AvatarUrl").set(obj.getWebhookAvatarUrl());
         }
 
         List<DiscordMessageEmbed.Builder> embedBuilders = new ArrayList<>();

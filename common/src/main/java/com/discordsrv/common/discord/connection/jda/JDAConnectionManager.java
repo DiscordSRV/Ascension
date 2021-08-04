@@ -22,8 +22,17 @@ import com.discordsrv.api.discord.connection.DiscordConnectionDetails;
 import com.discordsrv.api.event.bus.EventPriority;
 import com.discordsrv.api.event.bus.Subscribe;
 import com.discordsrv.api.event.events.lifecycle.DiscordSRVShuttingDownEvent;
+import com.discordsrv.api.event.events.placeholder.PlaceholderLookupEvent;
+import com.discordsrv.api.placeholder.PlaceholderLookupResult;
 import com.discordsrv.common.DiscordSRV;
 import com.discordsrv.common.config.connection.ConnectionConfig;
+import com.discordsrv.common.discord.api.channel.DiscordDMChannelImpl;
+import com.discordsrv.common.discord.api.channel.DiscordTextChannelImpl;
+import com.discordsrv.common.discord.api.guild.DiscordGuildImpl;
+import com.discordsrv.common.discord.api.guild.DiscordGuildMemberImpl;
+import com.discordsrv.common.discord.api.guild.DiscordRoleImpl;
+import com.discordsrv.common.discord.api.message.ReceivedDiscordMessageImpl;
+import com.discordsrv.common.discord.api.user.DiscordUserImpl;
 import com.discordsrv.common.discord.connection.DiscordConnectionManager;
 import com.discordsrv.common.scheduler.Scheduler;
 import com.discordsrv.common.scheduler.threadfactory.CountingThreadFactory;
@@ -31,6 +40,7 @@ import com.neovisionaries.ws.client.WebSocketFactory;
 import com.neovisionaries.ws.client.WebSocketFrame;
 import net.dv8tion.jda.api.JDA;
 import net.dv8tion.jda.api.JDABuilder;
+import net.dv8tion.jda.api.entities.*;
 import net.dv8tion.jda.api.events.DisconnectEvent;
 import net.dv8tion.jda.api.events.ShutdownEvent;
 import net.dv8tion.jda.api.events.StatusChangeEvent;
@@ -39,12 +49,14 @@ import net.dv8tion.jda.api.requests.GatewayIntent;
 import net.dv8tion.jda.api.requests.RestAction;
 import net.dv8tion.jda.api.utils.AllowedMentions;
 import net.dv8tion.jda.api.utils.MemberCachePolicy;
+import net.dv8tion.jda.internal.entities.ReceivedMessage;
 import net.dv8tion.jda.internal.hooks.EventManagerProxy;
 import net.dv8tion.jda.internal.utils.IOUtil;
 import okhttp3.OkHttpClient;
 
 import javax.security.auth.login.LoginException;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.Set;
 import java.util.concurrent.*;
 
@@ -77,6 +89,33 @@ public class JDAConnectionManager implements DiscordConnectionManager {
     public void onDSRVShuttingDown(DiscordSRVShuttingDownEvent event) {
         // This has a timeout
         shutdown().join();
+    }
+
+    @Subscribe(priority = EventPriority.EARLIEST)
+    public void onPlaceholderLookup(PlaceholderLookupEvent event) {
+        Set<Object> newContext = new HashSet<>();
+        for (Object o : event.getContext()) {
+            Object converted;
+            if (o instanceof PrivateChannel) {
+                converted = new DiscordDMChannelImpl(discordSRV, (PrivateChannel) o);
+            } else if (o instanceof TextChannel) {
+                converted = new DiscordTextChannelImpl(discordSRV, (TextChannel) o);
+            } else if (o instanceof Guild) {
+                converted = new DiscordGuildImpl(discordSRV, (Guild) o);
+            } else if (o instanceof Member) {
+                converted = new DiscordGuildMemberImpl((Member) o);
+            } else if (o instanceof Role) {
+                converted = new DiscordRoleImpl((Role) o);
+            } else if (o instanceof ReceivedMessage) {
+                converted = ReceivedDiscordMessageImpl.fromJDA(discordSRV, (Message) o);
+            } else if (o instanceof User) {
+                converted = new DiscordUserImpl((User) o);
+            } else {
+                converted = o;
+            }
+            newContext.add(converted);
+        }
+        event.process(PlaceholderLookupResult.newLookup(event.getPlaceholder(), newContext));
     }
 
     @Subscribe

@@ -23,7 +23,6 @@ import com.discordsrv.common.player.IOfflinePlayer;
 import net.kyori.adventure.identity.Identity;
 import org.bukkit.OfflinePlayer;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 public class BukkitOfflinePlayer implements IOfflinePlayer {
 
@@ -37,8 +36,9 @@ public class BukkitOfflinePlayer implements IOfflinePlayer {
         this.identity = Identity.identity(offlinePlayer.getUniqueId());
     }
 
+    @SuppressWarnings("NullabilityProblems")
     @Override
-    public @Nullable String getUsername() {
+    public String getUsername() {
         return offlinePlayer.getName();
     }
 

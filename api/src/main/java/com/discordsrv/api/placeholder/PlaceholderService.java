@@ -21,32 +21,26 @@
  * SOFTWARE.
  */
 
-package com.discordsrv.api.player;
+package com.discordsrv.api.placeholder;
 
-import com.discordsrv.api.placeholder.Placeholder;
-import org.jetbrains.annotations.NotNull;
+import java.util.Set;
+import java.util.regex.Pattern;
 
-import java.util.UUID;
-
-/**
- * A DiscordSRV player.
- */
-public interface DiscordSRVPlayer {
+public interface PlaceholderService {
 
     /**
-     * The username of the player.
-     * @return the player's username
+     * The primary pattern used by DiscordSRV to find placeholders.
      */
-    @Placeholder("player_name")
-    @NotNull
-    String getUsername();
+    Pattern PATTERN = Pattern.compile("(%)([^%]+)(%)");
 
     /**
-     * The {@link UUID} of the player.
-     * @return the player's unique id
+     * The pattern DiscordSRV uses to find recursive placeholders.
      */
-    @Placeholder("player_uuid")
-    @NotNull
-    UUID uuid();
+    Pattern RECURSIVE_PATTERN = Pattern.compile("(\\{)(.+)(})");
 
+    PlaceholderLookupResult lookupPlaceholder(String placeholder, Set<Object> context);
+    PlaceholderLookupResult lookupPlaceholder(String placeholder, Object... context);
+
+    String replacePlaceholders(String placeholder, Set<Object> context);
+    String replacePlaceholders(String placeholder, Object... context);
 }

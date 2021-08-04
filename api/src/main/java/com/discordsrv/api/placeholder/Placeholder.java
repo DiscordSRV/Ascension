@@ -21,32 +21,23 @@
  * SOFTWARE.
  */
 
-package com.discordsrv.api.player;
+package com.discordsrv.api.placeholder;
 
-import com.discordsrv.api.placeholder.Placeholder;
-import org.jetbrains.annotations.NotNull;
-
-import java.util.UUID;
+import java.lang.annotation.ElementType;
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
+import java.lang.annotation.Target;
 
 /**
- * A DiscordSRV player.
+ * Indicates a Placeholder for DiscordSRV's {@link PlaceholderService}.
  */
-public interface DiscordSRVPlayer {
+@Retention(RetentionPolicy.RUNTIME)
+@Target({ElementType.FIELD, ElementType.METHOD})
+public @interface Placeholder {
 
     /**
-     * The username of the player.
-     * @return the player's username
+     * The name of the Placeholder.
+     * @return the placeholder's name, may contain any character besides {@code %}.
      */
-    @Placeholder("player_name")
-    @NotNull
-    String getUsername();
-
-    /**
-     * The {@link UUID} of the player.
-     * @return the player's unique id
-     */
-    @Placeholder("player_uuid")
-    @NotNull
-    UUID uuid();
-
+    String value();
 }

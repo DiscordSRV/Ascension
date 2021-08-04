@@ -30,11 +30,7 @@ import com.discordsrv.common.config.main.channels.BaseChannelConfig;
 import com.discordsrv.common.config.main.channels.ChannelConfig;
 import com.discordsrv.common.function.OrDefault;
 import com.discordsrv.common.player.util.PlayerUtil;
-import com.discordsrv.common.string.util.Placeholders;
-import dev.vankka.enhancedlegacytext.EnhancedLegacyText;
-import dev.vankka.mcdiscordreserializer.discord.DiscordSerializer;
 import net.kyori.adventure.text.Component;
-import net.kyori.adventure.text.serializer.plain.PlainTextComponentSerializer;
 
 import java.util.Collections;
 import java.util.List;
@@ -57,19 +53,19 @@ public class DefaultChatListener extends AbstractListener {
 
         OrDefault<BaseChannelConfig> channelConfig = discordSRV.channelConfig().orDefault(gameChannel);
 
-        Component discordMessage = EnhancedLegacyText.get().buildComponent(channelConfig.map(cfg -> cfg.minecraftToDiscord).get(cfg -> cfg.messageFormat))
-                .replace("%message%", message)
-                .replace("%player_display_name%", displayName)
-                .build();
-
-        String username = new Placeholders(channelConfig.map(cfg -> cfg.minecraftToDiscord).get(cfg -> cfg.usernameFormat))
-                .replace("%player_display_name%", () -> PlainTextComponentSerializer.plainText().serialize(displayName))
-                .get();
+//        Component discordMessage = EnhancedLegacyText.get().buildComponent(channelConfig.map(cfg -> cfg.minecraftToDiscord).get(cfg -> cfg.messageFormat))
+//                .replace("%message%", message)
+//                .replace("%player_display_name%", displayName)
+//                .build();
+//
+//        String username = new Placeholders(channelConfig.map(cfg -> cfg.minecraftToDiscord).get(cfg -> cfg.usernameFormat))
+//                .replace("%player_display_name%", () -> PlainTextComponentSerializer.plainText().serialize(displayName))
+//                .get();
 
         discordSRV.eventBus().publish(
                 new ChatMessageSendEvent(
-                        DiscordSerializer.INSTANCE.serialize(discordMessage),
-                        username,
+                        null,
+                        null,
                         gameChannel
                 )
         );

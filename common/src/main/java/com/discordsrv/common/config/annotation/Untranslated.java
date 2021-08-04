@@ -26,7 +26,7 @@ import java.lang.annotation.Target;
 /**
  * Specifies that the given option will be partially or completely undocumented.
  */
-@Retention(value = RetentionPolicy.RUNTIME)
+@Retention(RetentionPolicy.RUNTIME)
 @Target(ElementType.FIELD)
 public @interface Untranslated {
 
