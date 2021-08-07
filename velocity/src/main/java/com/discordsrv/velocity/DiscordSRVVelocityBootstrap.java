@@ -19,6 +19,8 @@
 package com.discordsrv.velocity;
 
 import com.discordsrv.common.dependency.InitialDependencyLoader;
+import com.discordsrv.common.logging.logger.Logger;
+import com.discordsrv.common.logging.logger.impl.SLF4JLoggerImpl;
 import com.google.inject.Inject;
 import com.velocitypowered.api.event.Subscribe;
 import com.velocitypowered.api.event.proxy.ProxyInitializeEvent;
@@ -29,7 +31,6 @@ import com.velocitypowered.api.plugin.PluginContainer;
 import com.velocitypowered.api.plugin.annotation.DataDirectory;
 import com.velocitypowered.api.proxy.ProxyServer;
 import dev.vankka.mcdependencydownload.velocity.classpath.VelocityClasspathAppender;
-import org.slf4j.Logger;
 
 import java.io.IOException;
 import java.nio.file.Path;
@@ -44,32 +45,44 @@ import java.nio.file.Path;
 )
 public class DiscordSRVVelocityBootstrap {
 
+    private final Logger logger;
     private final InitialDependencyLoader dependencies;
+    private final ProxyServer proxyServer;
+    private final PluginContainer pluginContainer;
+    private final Path dataDirectory;
     private VelocityDiscordSRV discordSRV;
 
     @Inject
-    public DiscordSRVVelocityBootstrap(Logger logger, ProxyServer proxyServer, PluginContainer pluginContainer, @DataDirectory Path dataDirectory) throws IOException {
+    public DiscordSRVVelocityBootstrap(org.slf4j.Logger logger, ProxyServer proxyServer, PluginContainer pluginContainer, @DataDirectory Path dataDirectory) throws IOException {
+        this.logger = new SLF4JLoggerImpl(logger);
         this.dependencies = new InitialDependencyLoader(
+                this.logger,
                 dataDirectory,
                 new String[] {"dependencies/runtimeDownloadApi-velocity.txt"},
                 new VelocityClasspathAppender(this, proxyServer)
         );
-        dependencies.whenComplete(() -> this.discordSRV = new VelocityDiscordSRV(this, pluginContainer, proxyServer, logger, dataDirectory));
+        this.proxyServer = proxyServer;
+        this.pluginContainer = pluginContainer;
+        this.dataDirectory = dataDirectory;
     }
 
     @Subscribe
     public void onProxyInitialize(ProxyInitializeEvent event) {
-        dependencies.whenComplete(discordSRV::invokeEnable);
+        // Wait until dependencies ready, then initialize DiscordSRV
+        dependencies.join();
+        this.discordSRV = new VelocityDiscordSRV(this, logger, proxyServer, pluginContainer, dataDirectory);
+
+        dependencies.runWhenComplete(discordSRV::invokeEnable);
     }
 
     @Subscribe
     public void onProxyReload(ProxyReloadEvent event) {
-        dependencies.whenComplete(discordSRV::invokeReload);
+        dependencies.runWhenComplete(discordSRV::invokeReload);
     }
 
     @Subscribe
     public void onProxyShutdown(ProxyShutdownEvent event) {
-        dependencies.whenComplete(discordSRV::invokeDisable);
+        dependencies.runWhenComplete(discordSRV::invokeDisable);
     }
 
 }

@@ -18,6 +18,7 @@
 
 package com.discordsrv.common.dependency;
 
+import com.discordsrv.common.logging.logger.Logger;
 import com.discordsrv.common.scheduler.threadfactory.CountingForkJoinWorkerThreadFactory;
 import dev.vankka.dependencydownload.classpath.ClasspathAppender;
 
@@ -27,25 +28,27 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.ForkJoinPool;
 
-/**
- * TODO: revamp
- * - run DiscordSRV#load() after DiscordSRV is initialized
- * - catch exceptions, so they don't go missing
- * - make the whenComplete stuff less janky
- */
 public class InitialDependencyLoader {
 
-    private CompletableFuture<?> completableFuture;
-    protected ForkJoinPool taskPool;
+    private final ForkJoinPool taskPool;
+    private final CompletableFuture<?> completableFuture;
+    private final List<Runnable> tasks = new CopyOnWriteArrayList<>();
 
     public InitialDependencyLoader(
+            Logger logger,
             Path dataDirectory,
             String[] dependencyResources,
             ClasspathAppender classpathAppender
     ) throws IOException {
-        this.taskPool = new ForkJoinPool(Runtime.getRuntime().availableProcessors(), new CountingForkJoinWorkerThreadFactory("DiscordSRV initial dependency download #%s"), null, false);
+        this.taskPool = new ForkJoinPool(
+                Runtime.getRuntime().availableProcessors(),
+                new CountingForkJoinWorkerThreadFactory("DiscordSRV Initialization #%s"),
+                null,
+                false
+        );
 
         List<String> resourcePaths = new ArrayList<>(Arrays.asList(
                 "dependencies/runtimeDownloadOnly-common.txt",
@@ -58,11 +61,42 @@ public class InitialDependencyLoader {
                 taskPool,
                 resourcePaths.toArray(new String[0])
         );
+
         this.completableFuture = dependencyLoader.process(classpathAppender);
-        whenComplete(() -> taskPool.shutdown());
+        completableFuture.whenComplete((v, t) -> {
+            if (t != null) {
+                logger.error("Error loading dependencies", t);
+                return;
+            }
+
+            for (Runnable task : tasks) {
+                try {
+                    task.run();
+                } catch (Throwable throwable) {
+                    logger.error("Callback failed", throwable);
+                }
+            }
+
+            taskPool.shutdown();
+        });
     }
 
-    public CompletableFuture<?> whenComplete(Runnable runnable) {
-        return this.completableFuture = completableFuture.whenComplete((v, t) -> runnable.run());
+    /**
+     * Joins the dependency download.
+     */
+    public void join() {
+        completableFuture.join();
+    }
+
+    /**
+     * This will run on the current thread if dependencies are already downloaded, otherwise will be added to a list.
+     */
+    public void runWhenComplete(Runnable runnable) {
+        if (completableFuture.isDone()) {
+            runnable.run();
+            return;
+        }
+
+        tasks.add(runnable);
     }
 }

@@ -32,7 +32,6 @@ import org.spongepowered.configurate.objectmapping.ConfigSerializable;
 import org.spongepowered.configurate.objectmapping.ObjectMapper;
 import org.spongepowered.configurate.serialize.SerializationException;
 
-import java.io.File;
 import java.nio.file.Path;
 import java.util.Arrays;
 import java.util.List;
@@ -51,7 +50,7 @@ public abstract class ConfigurateConfigManager<T, LT extends AbstractConfigurati
 
     public ConfigurateConfigManager(DiscordSRV discordSRV) {
         this.discordSRV = discordSRV;
-        this.filePath = new File(discordSRV.dataDirectory().toFile(), fileName()).toPath();
+        this.filePath = discordSRV.dataDirectory().resolve(fileName());
         this.configObjectMapper = configObjectMapperBuilder().build();
         this.defaultObjectMapper = defaultObjectMapperBuilder().build();
         this.loader = createLoader(filePath, configNodeOptions());

@@ -49,17 +49,24 @@ import java.util.Locale;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.atomic.AtomicReference;
+import java.util.concurrent.locks.ReentrantLock;
 
+/**
+ * DiscordSRV's implementation's common code.
+ * Implementations of this class must call {@link #load()} at the end of their constructors.
+ * @param <C> the config type
+ * @param <CC> the connections config type
+ */
 public abstract class AbstractDiscordSRV<C extends MainConfig, CC extends ConnectionConfig> implements DiscordSRV {
 
     private final AtomicReference<Status> status = new AtomicReference<>(Status.INITIALIZED);
 
     // DiscordSRVApi
-    private final EventBus eventBus;
+    private EventBus eventBus;
     private PlaceholderService placeholderService;
-    private final ComponentFactory componentFactory;
+    private ComponentFactory componentFactory;
     private DiscordAPIImpl discordAPI;
-    private final DiscordConnectionDetails discordConnectionDetails;
+    private DiscordConnectionDetails discordConnectionDetails;
 
     // DiscordSRV
     private final DefaultGlobalChannel defaultGlobalChannel = new DefaultGlobalChannel(this);
@@ -67,12 +74,18 @@ public abstract class AbstractDiscordSRV<C extends MainConfig, CC extends Connec
     private DiscordConnectionManager discordConnectionManager;
 
     // Internal
+    private final ReentrantLock lifecycleLock = new ReentrantLock();
     private final DependencyLoggingFilter dependencyLoggingFilter = new DependencyLoggingFilter(this);
 
     public AbstractDiscordSRV() {
         ApiInstanceUtil.setInstance(this);
+    }
+
+    protected final void load() {
         this.eventBus = new EventBusImpl(this);
+        this.placeholderService = new PlaceholderServiceImpl(this);
         this.componentFactory = new ComponentFactory();
+        this.discordAPI = new DiscordAPIImpl(this);
         this.discordConnectionDetails = new DiscordConnectionDetailsImpl(this);
     }
 
@@ -159,6 +172,17 @@ public abstract class AbstractDiscordSRV<C extends MainConfig, CC extends Connec
         this.status.set(status);
     }
 
+    protected CompletableFuture<Void> invokeLifecycle(CheckedRunnable runnable, String message, boolean enable) {
+        return invoke(() -> {
+            try {
+                lifecycleLock.lock();
+                runnable.run();
+            } finally {
+                lifecycleLock.unlock();
+            }
+        }, message, enable);
+    }
+
     protected CompletableFuture<Void> invoke(CheckedRunnable runnable, String message, boolean enable) {
         return CompletableFuture.runAsync(() -> {
             try {
@@ -175,12 +199,12 @@ public abstract class AbstractDiscordSRV<C extends MainConfig, CC extends Connec
 
     @Override
     public final CompletableFuture<Void> invokeEnable() {
-        return invoke(this::enable, "Failed to enable", true);
+        return invokeLifecycle(this::enable, "Failed to enable", true);
     }
 
     @Override
     public final CompletableFuture<Void> invokeDisable() {
-        return invoke(this::disable, "Failed to disable", false);
+        return invokeLifecycle(this::disable, "Failed to disable", false);
     }
 
     @Override
@@ -190,9 +214,11 @@ public abstract class AbstractDiscordSRV<C extends MainConfig, CC extends Connec
 
     @OverridingMethodsMustInvokeSuper
     protected void enable() throws Throwable {
-        // API Stuff
-        this.placeholderService = new PlaceholderServiceImpl(this);
-        this.discordAPI = new DiscordAPIImpl(this);
+        if (eventBus == null) {
+            // Error that should only occur with new platforms
+            throw new IllegalStateException("AbstractDiscordSRV#load was not called from the end of "
+                    + getClass().getName() + " constructor");
+        }
 
         // Config
         try {
@@ -225,8 +251,8 @@ public abstract class AbstractDiscordSRV<C extends MainConfig, CC extends Connec
     @OverridingMethodsMustInvokeSuper
     protected void disable() {
         Status status = this.status.get();
-        if (status.isShutdown()) {
-            // Already shutting down/shutdown
+        if (status == Status.INITIALIZED || status.isShutdown()) {
+            // Hasn't started or already shutting down/shutdown
             return;
         }
         this.status.set(Status.SHUTTING_DOWN);

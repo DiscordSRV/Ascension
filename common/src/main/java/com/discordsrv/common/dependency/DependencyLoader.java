@@ -23,7 +23,6 @@ import dev.vankka.dependencydownload.DependencyManager;
 import dev.vankka.dependencydownload.classpath.ClasspathAppender;
 import dev.vankka.dependencydownload.repository.StandardRepository;
 
-import java.io.File;
 import java.io.IOException;
 import java.nio.file.Path;
 import java.util.Arrays;
@@ -58,7 +57,7 @@ public class DependencyLoader {
             Executor executor,
             String[] dependencyResources
     ) {
-        this.cacheDirectory = new File(dataDirectory.toFile(), "cache").toPath();
+        this.cacheDirectory = dataDirectory.resolve("cache");
         this.executor = executor;
         this.dependencyResources = dependencyResources;
     }

@@ -30,7 +30,6 @@ import com.discordsrv.bukkit.scheduler.BukkitScheduler;
 import com.discordsrv.common.config.manager.ConnectionConfigManager;
 import com.discordsrv.common.config.manager.MainConfigManager;
 import com.discordsrv.common.logging.logger.Logger;
-import com.discordsrv.common.logging.logger.impl.JavaLoggerImpl;
 import com.discordsrv.common.server.ServerDiscordSRV;
 import net.kyori.adventure.platform.bukkit.BukkitAudiences;
 import org.bukkit.Server;
@@ -54,10 +53,10 @@ public class BukkitDiscordSRV extends ServerDiscordSRV<BukkitConfig, BukkitConne
     private final BukkitConnectionConfigManager connectionConfigManager;
     private final BukkitConfigManager configManager;
 
-    public BukkitDiscordSRV(DiscordSRVBukkitBootstrap bootstrap) {
+    public BukkitDiscordSRV(DiscordSRVBukkitBootstrap bootstrap, Logger logger) {
         this.bootstrap = bootstrap;
+        this.logger = logger;
 
-        this.logger = new JavaLoggerImpl(bootstrap.getPlugin().getLogger());
         this.dataDirectory = bootstrap.getPlugin().getDataFolder().toPath();
         this.scheduler = new BukkitScheduler(this);
         this.console = new BukkitConsole(this);
@@ -66,6 +65,8 @@ public class BukkitDiscordSRV extends ServerDiscordSRV<BukkitConfig, BukkitConne
         // Config
         this.connectionConfigManager = new BukkitConnectionConfigManager(this);
         this.configManager = new BukkitConfigManager(this);
+
+        load();
     }
 
     public JavaPlugin plugin() {

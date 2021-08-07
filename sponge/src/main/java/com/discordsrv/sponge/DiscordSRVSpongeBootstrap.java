@@ -19,6 +19,8 @@
 package com.discordsrv.sponge;
 
 import com.discordsrv.common.dependency.InitialDependencyLoader;
+import com.discordsrv.common.logging.logger.Logger;
+import com.discordsrv.common.logging.logger.impl.Log4JLoggerImpl;
 import com.discordsrv.sponge.bootstrap.ISpongeBootstrap;
 import dev.vankka.mcdependencydownload.bootstrap.AbstractBootstrap;
 import dev.vankka.mcdependencydownload.bootstrap.classpath.JarInJarClasspathAppender;
@@ -32,44 +34,52 @@ import java.nio.file.Path;
 @SuppressWarnings("unused") // Reflection
 public class DiscordSRVSpongeBootstrap extends AbstractBootstrap implements ISpongeBootstrap {
 
+    private final Logger logger;
     private final InitialDependencyLoader dependencies;
     private SpongeDiscordSRV discordSRV;
+
+    private final PluginContainer pluginContainer;
+    private final Game game;
+    private final JarInJarClassLoader classLoader;
+    private final Path dataDirectory;
 
     public DiscordSRVSpongeBootstrap(PluginContainer pluginContainer, Game game, JarInJarClassLoader classLoader, Path dataDirectory) throws IOException {
         // Don't change these parameters
         super(classLoader);
+        this.logger = new Log4JLoggerImpl(pluginContainer.logger());
         this.dependencies = new InitialDependencyLoader(
+                logger,
                 dataDirectory,
                 new String[] {"dependencies/runtimeDownloadApi-sponge.txt"},
                 new JarInJarClasspathAppender(classLoader)
         );
-        dependencies.whenComplete(() ->
-                this.discordSRV = new SpongeDiscordSRV(
-                        pluginContainer,
-                        game,
-                        classLoader,
-                        dataDirectory
-                )
-        );
+        this.pluginContainer = pluginContainer;
+        this.game = game;
+        this.classLoader = classLoader;
+        this.dataDirectory = dataDirectory;
     }
 
     @Override
     public void onConstruct() {
-        dependencies.whenComplete(discordSRV::invokeEnable);
+        // Wait until dependencies ready, then initialize DiscordSRV
+        dependencies.join();
+        this.discordSRV = new SpongeDiscordSRV(logger, pluginContainer, game, classLoader, dataDirectory);
+
+        dependencies.runWhenComplete(discordSRV::invokeEnable);
     }
 
     @Override
     public void onStarted() {
-        dependencies.whenComplete(discordSRV::invokeServerStarted);
+        dependencies.runWhenComplete(discordSRV::invokeServerStarted);
     }
 
     @Override
     public void onRefresh() {
-        dependencies.whenComplete(discordSRV::invokeReload);
+        dependencies.runWhenComplete(discordSRV::invokeReload);
     }
 
     @Override
     public void onStopping() {
-        dependencies.whenComplete(discordSRV::invokeDisable);
+        dependencies.runWhenComplete(discordSRV::invokeDisable);
     }
 }

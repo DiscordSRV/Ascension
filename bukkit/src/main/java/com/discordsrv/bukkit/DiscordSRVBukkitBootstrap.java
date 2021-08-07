@@ -19,6 +19,8 @@
 package com.discordsrv.bukkit;
 
 import com.discordsrv.common.dependency.InitialDependencyLoader;
+import com.discordsrv.common.logging.logger.Logger;
+import com.discordsrv.common.logging.logger.impl.JavaLoggerImpl;
 import dev.vankka.mcdependencydownload.bukkit.bootstrap.BukkitBootstrap;
 import dev.vankka.mcdependencydownload.classloader.JarInJarClassLoader;
 import org.bukkit.plugin.java.JavaPlugin;
@@ -27,29 +29,35 @@ import java.io.IOException;
 
 public class DiscordSRVBukkitBootstrap extends BukkitBootstrap {
 
+    private final Logger logger;
     private final InitialDependencyLoader dependencies;
     private BukkitDiscordSRV discordSRV;
 
     public DiscordSRVBukkitBootstrap(JarInJarClassLoader classLoader, JavaPlugin plugin) throws IOException {
         // Don't change these parameters
         super(classLoader, plugin);
+        this.logger = new JavaLoggerImpl(plugin.getLogger());
         this.dependencies = new InitialDependencyLoader(
+                logger,
                 plugin.getDataFolder().toPath(),
                 new String[] {"dependencies/runtimeDownloadApi-bukkit.txt"},
                 getClasspathAppender()
         );
-        dependencies.whenComplete(() -> this.discordSRV = new BukkitDiscordSRV(this));
     }
 
     @Override
     public void onEnable() {
-        dependencies.whenComplete(() -> discordSRV.invokeEnable());
+        // Wait until dependencies ready, then initialize DiscordSRV
+        dependencies.join();
+        this.discordSRV = new BukkitDiscordSRV(this, logger);
+
+        dependencies.runWhenComplete(() -> discordSRV.invokeEnable());
         getPlugin().getServer().getScheduler().runTaskLater(getPlugin(),
-                () -> dependencies.whenComplete(() -> discordSRV.invokeServerStarted()), 1L);
+                () -> dependencies.runWhenComplete(() -> discordSRV.invokeServerStarted()), 1L);
     }
 
     @Override
     public void onDisable() {
-        dependencies.whenComplete(() -> discordSRV.invokeDisable());
+        dependencies.runWhenComplete(() -> discordSRV.invokeDisable());
     }
 }

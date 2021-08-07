@@ -23,7 +23,6 @@ import com.discordsrv.common.config.main.MainConfig;
 import com.discordsrv.common.config.manager.ConnectionConfigManager;
 import com.discordsrv.common.config.manager.MainConfigManager;
 import com.discordsrv.common.logging.logger.Logger;
-import com.discordsrv.common.logging.logger.impl.SLF4JLoggerImpl;
 import com.discordsrv.common.proxy.ProxyDiscordSRV;
 import com.discordsrv.common.scheduler.StandardScheduler;
 import com.discordsrv.velocity.console.VelocityConsole;
@@ -37,8 +36,8 @@ import java.nio.file.Path;
 public class VelocityDiscordSRV extends ProxyDiscordSRV<MainConfig, ConnectionConfig> {
 
     private final Object plugin;
-    private final PluginContainer pluginContainer;
     private final ProxyServer proxyServer;
+    private final PluginContainer pluginContainer;
 
     private final Logger logger;
     private final Path dataDirectory;
@@ -46,16 +45,18 @@ public class VelocityDiscordSRV extends ProxyDiscordSRV<MainConfig, ConnectionCo
     private final VelocityConsole console;
     private final VelocityPlayerProvider playerProvider;
 
-    public VelocityDiscordSRV(Object plugin, PluginContainer pluginContainer, ProxyServer proxyServer, org.slf4j.Logger logger, Path dataDirectory) {
+    public VelocityDiscordSRV(Object plugin, Logger logger, ProxyServer proxyServer, PluginContainer pluginContainer, Path dataDirectory) {
         this.plugin = plugin;
-        this.pluginContainer = pluginContainer;
         this.proxyServer = proxyServer;
-
-        this.logger = new SLF4JLoggerImpl(logger);
+        this.pluginContainer = pluginContainer;
+        this.logger = logger;
         this.dataDirectory = dataDirectory;
+
         this.scheduler = new StandardScheduler(this);
         this.console = new VelocityConsole(this);
         this.playerProvider = new VelocityPlayerProvider(this);
+
+        load();
     }
 
     public Object plugin() {

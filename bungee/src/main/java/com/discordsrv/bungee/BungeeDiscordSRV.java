@@ -25,7 +25,6 @@ import com.discordsrv.common.config.main.MainConfig;
 import com.discordsrv.common.config.manager.ConnectionConfigManager;
 import com.discordsrv.common.config.manager.MainConfigManager;
 import com.discordsrv.common.logging.logger.Logger;
-import com.discordsrv.common.logging.logger.impl.JavaLoggerImpl;
 import com.discordsrv.common.proxy.ProxyDiscordSRV;
 import com.discordsrv.common.scheduler.StandardScheduler;
 import net.kyori.adventure.platform.bungeecord.BungeeAudiences;
@@ -46,14 +45,16 @@ public class BungeeDiscordSRV extends ProxyDiscordSRV<MainConfig, ConnectionConf
     private final BungeeConsole console;
     private final BungeePlayerProvider playerProvider;
 
-    public BungeeDiscordSRV(DiscordSRVBungeeBootstrap bootstrap) {
+    public BungeeDiscordSRV(DiscordSRVBungeeBootstrap bootstrap, Logger logger) {
         this.bootstrap = bootstrap;
+        this.logger = logger;
 
-        this.logger = new JavaLoggerImpl(bootstrap.getPlugin().getLogger());
         this.dataDirectory = bootstrap.getPlugin().getDataFolder().toPath();
         this.scheduler = new StandardScheduler(this);
         this.console = new BungeeConsole(this);
         this.playerProvider = new BungeePlayerProvider(this);
+
+        load();
     }
 
     public Plugin plugin() {

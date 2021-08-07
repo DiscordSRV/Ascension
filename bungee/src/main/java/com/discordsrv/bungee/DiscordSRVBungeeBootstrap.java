@@ -19,6 +19,8 @@
 package com.discordsrv.bungee;
 
 import com.discordsrv.common.dependency.InitialDependencyLoader;
+import com.discordsrv.common.logging.logger.Logger;
+import com.discordsrv.common.logging.logger.impl.JavaLoggerImpl;
 import dev.vankka.mcdependencydownload.bungee.bootstrap.BungeeBootstrap;
 import dev.vankka.mcdependencydownload.classloader.JarInJarClassLoader;
 import net.md_5.bungee.api.plugin.Plugin;
@@ -27,27 +29,33 @@ import java.io.IOException;
 
 public class DiscordSRVBungeeBootstrap extends BungeeBootstrap {
 
+    private final Logger logger;
     private final InitialDependencyLoader dependencies;
     private BungeeDiscordSRV discordSRV;
 
     public DiscordSRVBungeeBootstrap(JarInJarClassLoader classLoader, Plugin plugin) throws IOException {
         // Don't change these parameters
         super(classLoader, plugin);
+        this.logger = new JavaLoggerImpl(plugin.getLogger());
         this.dependencies = new InitialDependencyLoader(
+                logger,
                 plugin.getDataFolder().toPath(),
                 new String[] {"dependencies/runtimeDownloadApi-bungee.txt"},
                 getClasspathAppender()
         );
-        dependencies.whenComplete(() -> this.discordSRV = new BungeeDiscordSRV(this));
     }
 
     @Override
     public void onEnable() {
-        dependencies.whenComplete(discordSRV::invokeEnable);
+        // Wait until dependencies ready, then initialize DiscordSRV
+        dependencies.join();
+        this.discordSRV = new BungeeDiscordSRV(this, logger);
+
+        dependencies.runWhenComplete(discordSRV::invokeEnable);
     }
 
     @Override
     public void onDisable() {
-        dependencies.whenComplete(discordSRV::invokeDisable);
+        dependencies.runWhenComplete(discordSRV::invokeDisable);
     }
 }

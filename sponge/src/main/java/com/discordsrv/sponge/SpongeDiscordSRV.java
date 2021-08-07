@@ -24,7 +24,6 @@ import com.discordsrv.common.config.main.MainConfig;
 import com.discordsrv.common.config.manager.ConnectionConfigManager;
 import com.discordsrv.common.config.manager.MainConfigManager;
 import com.discordsrv.common.logging.logger.Logger;
-import com.discordsrv.common.logging.logger.impl.Log4JLoggerImpl;
 import com.discordsrv.common.server.ServerDiscordSRV;
 import com.discordsrv.sponge.console.SpongeConsole;
 import com.discordsrv.sponge.player.SpongePlayerProvider;
@@ -49,15 +48,17 @@ public class SpongeDiscordSRV extends ServerDiscordSRV<MainConfig, ConnectionCon
     private final SpongeConsole console;
     private final SpongePlayerProvider playerProvider;
 
-    public SpongeDiscordSRV(PluginContainer pluginContainer, Game game, JarInJarClassLoader classLoader, Path dataDirectory) {
+    public SpongeDiscordSRV(Logger logger, PluginContainer pluginContainer, Game game, JarInJarClassLoader classLoader, Path dataDirectory) {
         this.pluginContainer = pluginContainer;
         this.game = game;
-
-        this.logger = new Log4JLoggerImpl(pluginContainer.logger());
+        this.logger = logger;
         this.dataDirectory = dataDirectory;
+
         this.scheduler = new SpongeScheduler(this);
         this.console = new SpongeConsole(this);
         this.playerProvider = new SpongePlayerProvider(this);
+
+        load();
     }
 
     public PluginContainer container() {
