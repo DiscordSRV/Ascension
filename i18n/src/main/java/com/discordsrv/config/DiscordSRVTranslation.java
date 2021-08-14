@@ -22,7 +22,7 @@ import com.discordsrv.bukkit.config.connection.BukkitConnectionConfig;
 import com.discordsrv.bukkit.config.main.BukkitConfig;
 import com.discordsrv.common.config.Config;
 import com.discordsrv.common.config.annotation.Untranslated;
-import com.discordsrv.common.config.main.channels.ChannelConfigHolder;
+import com.discordsrv.common.config.main.channels.BaseChannelConfig;
 import org.spongepowered.configurate.CommentedConfigurationNode;
 import org.spongepowered.configurate.ConfigurateException;
 import org.spongepowered.configurate.ConfigurationNode;
@@ -75,9 +75,9 @@ public final class DiscordSRVTranslation {
                 .build();
 
 
-        ChannelConfigHolder.Serializer channelSerializer = new ChannelConfigHolder.Serializer(objectMapper);
+        BaseChannelConfig.Serializer channelSerializer = new BaseChannelConfig.Serializer(objectMapper);
         CommentedConfigurationNode node = CommentedConfigurationNode.root(ConfigurationOptions.defaults()
-                .serializers(builder -> builder.register(ChannelConfigHolder.class, channelSerializer)));
+                .serializers(builder -> builder.register(BaseChannelConfig.class, channelSerializer)));
         for (Config config : CONFIG_INSTANCES) {
             ConfigurationNode section = node.node(config.getFileName());
             ConfigurationNode configSection = section.copy();

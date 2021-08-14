@@ -22,6 +22,7 @@ import com.discordsrv.common.player.IPlayer;
 import com.discordsrv.sponge.SpongeDiscordSRV;
 import net.kyori.adventure.identity.Identity;
 import net.kyori.adventure.text.Component;
+import org.jetbrains.annotations.NotNull;
 import org.spongepowered.api.command.exception.CommandException;
 import org.spongepowered.api.entity.living.player.server.ServerPlayer;
 
@@ -54,7 +55,7 @@ public class SpongePlayer extends SpongeOfflinePlayer implements IPlayer {
     }
 
     @Override
-    public Component displayName() {
+    public @NotNull Component displayName() {
         return player.displayName().get();
     }
 }

@@ -22,7 +22,6 @@ import com.discordsrv.api.placeholder.Placeholder;
 import com.discordsrv.api.player.DiscordSRVPlayer;
 import com.discordsrv.common.command.game.sender.ICommandSender;
 import net.kyori.adventure.text.Component;
-import net.kyori.adventure.text.serializer.plain.PlainTextComponentSerializer;
 import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
 
@@ -40,12 +39,8 @@ public interface IPlayer extends DiscordSRVPlayer, IOfflinePlayer, ICommandSende
         return identity().uuid();
     }
 
+    @NotNull
+    @Placeholder("player_display_name")
     Component displayName();
 
-    @ApiStatus.NonExtendable
-    @Placeholder("player_display_name")
-    default String plainDisplayName() {
-        return PlainTextComponentSerializer.plainText()
-                .serialize(displayName());
-    }
 }

@@ -24,12 +24,12 @@
 package com.discordsrv.api.event.events.message.send.game;
 
 import com.discordsrv.api.channel.GameChannel;
+import com.discordsrv.api.discord.api.entity.message.SendableDiscordMessage;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 public class ChatMessageSendEvent extends AbstractGameMessageSendEvent {
 
-    public ChatMessageSendEvent(@NotNull String discordMessage, @Nullable String discordUsername, @NotNull GameChannel targetChannel) {
-        super(discordMessage, discordUsername, targetChannel);
+    public ChatMessageSendEvent(@NotNull SendableDiscordMessage discordMessage, @NotNull GameChannel targetChannel) {
+        super(discordMessage, targetChannel);
     }
 }

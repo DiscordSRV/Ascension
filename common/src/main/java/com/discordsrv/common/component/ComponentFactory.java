@@ -18,14 +18,27 @@
 
 package com.discordsrv.common.component;
 
+import com.discordsrv.api.component.EnhancedTextBuilder;
 import com.discordsrv.api.component.MinecraftComponent;
 import com.discordsrv.api.component.MinecraftComponentFactory;
+import com.discordsrv.common.DiscordSRV;
 import org.jetbrains.annotations.NotNull;
 
 public class ComponentFactory implements MinecraftComponentFactory {
 
+    private final DiscordSRV discordSRV;
+
+    public ComponentFactory(DiscordSRV discordSRV) {
+        this.discordSRV = discordSRV;
+    }
+
     @Override
     public @NotNull MinecraftComponent empty() {
         return MinecraftComponentImpl.empty();
+    }
+
+    @Override
+    public EnhancedTextBuilder enhancedBuilder(String content) {
+        return new EnhancedTextBuilderImpl(discordSRV, content);
     }
 }

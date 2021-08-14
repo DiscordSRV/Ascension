@@ -28,8 +28,6 @@ public class MinecraftToDiscordChatConfig {
     @Setting("Format")
     public SendableDiscordMessage.Builder messageFormat = SendableDiscordMessage.builder()
             .setWebhookUsername("%player_display_name%")
-            .setContent("%player_message%");// TODO
-
-    @Setting("UseWebhooks")
-    public boolean useWebhooks = false;
+            .setContent("%message%");// TODO
+    
 }

@@ -20,7 +20,6 @@ package com.discordsrv.common.config.main.channels;
 
 import org.spongepowered.configurate.objectmapping.ConfigSerializable;
 import org.spongepowered.configurate.objectmapping.meta.Comment;
-import org.spongepowered.configurate.objectmapping.meta.Setting;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
@@ -30,8 +29,6 @@ import java.util.List;
 
 @ConfigSerializable
 public class ChannelConfig extends BaseChannelConfig {
-
-    protected static final String CHANNEL_IDS_OPTION_NAME = "ChannelIds";
 
     public ChannelConfig() {
         // Clear everything besides channelIds by default (these will be filled back in by Configurate if they are in the config itself)
@@ -50,7 +47,6 @@ public class ChannelConfig extends BaseChannelConfig {
         }
     }
 
-    @Setting(CHANNEL_IDS_OPTION_NAME)
     @Comment("The channels this in-game channel will forward to in Discord")
     public List<String> channelIds = new ArrayList<>(Collections.singletonList("channel-id-here"));
 

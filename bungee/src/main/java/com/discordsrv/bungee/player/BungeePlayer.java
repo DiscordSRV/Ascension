@@ -67,7 +67,7 @@ public class BungeePlayer implements IPlayer {
     }
 
     @Override
-    public Component displayName() {
+    public @NotNull Component displayName() {
         return BungeeComponentUtil.fromLegacy(player.getDisplayName());
     }
 }

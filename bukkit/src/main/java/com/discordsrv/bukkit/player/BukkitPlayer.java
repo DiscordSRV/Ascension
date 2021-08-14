@@ -26,9 +26,11 @@ import net.kyori.adventure.identity.Identity;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.serializer.craftbukkit.BukkitComponentSerializer;
 import org.bukkit.entity.Player;
+import org.jetbrains.annotations.NotNull;
 
 import java.lang.reflect.Method;
 
+@SuppressWarnings("NullableProblems") // BukkitOfflinePlayer nullability
 public class BukkitPlayer extends BukkitOfflinePlayer implements IPlayer {
 
     private static final Method DISPLAY_NAME_METHOD; // Paper 1.16+
@@ -72,12 +74,13 @@ public class BukkitPlayer extends BukkitOfflinePlayer implements IPlayer {
 
     @SuppressWarnings("deprecation") // Paper
     @Override
-    public Component displayName() {
+    public @NotNull Component displayName() {
         if (DISPLAY_NAME_METHOD != null) {
             try {
                 return ComponentUtil.fromUnrelocated(DISPLAY_NAME_METHOD.invoke(player));
             } catch (Throwable ignored) {}
         }
+
         // Use the legacy method
         return BukkitComponentSerializer.legacy().deserialize(player.getDisplayName());
     }

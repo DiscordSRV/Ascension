@@ -31,7 +31,8 @@ import org.spongepowered.configurate.yaml.YamlConfigurationLoader;
 
 import java.net.URL;
 
-public abstract class TranslatedConfigManager<T extends Config, LT extends AbstractConfigurationLoader<CommentedConfigurationNode>> extends ConfigurateConfigManager<T, LT> {
+public abstract class TranslatedConfigManager<T extends Config, LT extends AbstractConfigurationLoader<CommentedConfigurationNode>>
+        extends ConfigurateConfigManager<T, LT> {
 
     public TranslatedConfigManager(DiscordSRV discordSRV) {
         super(discordSRV);
@@ -55,6 +56,7 @@ public abstract class TranslatedConfigManager<T extends Config, LT extends Abstr
         return translation;
     }
 
+    @SuppressWarnings("unchecked")
     public void translate() throws ConfigException {
         T config = config();
         if (config == null) {
@@ -70,7 +72,8 @@ public abstract class TranslatedConfigManager<T extends Config, LT extends Abstr
             translation = translation.node(config.getFileName());
 
             CommentedConfigurationNode node = loader().createNode();
-            node.set(config);
+            save(config, (Class<T>) config.getClass(), node);
+            //node.set(config);
             translateNode(node, translation, translation.node("_comments"));
         } catch (ConfigurateException e) {
             throw new ConfigException(e);

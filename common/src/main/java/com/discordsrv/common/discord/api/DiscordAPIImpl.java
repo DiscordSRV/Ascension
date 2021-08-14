@@ -25,18 +25,22 @@ import com.discordsrv.api.discord.api.entity.channel.DiscordDMChannel;
 import com.discordsrv.api.discord.api.entity.channel.DiscordMessageChannel;
 import com.discordsrv.api.discord.api.entity.channel.DiscordTextChannel;
 import com.discordsrv.api.discord.api.entity.guild.DiscordGuild;
+import com.discordsrv.api.discord.api.entity.message.SendableDiscordMessage;
 import com.discordsrv.api.discord.api.entity.user.DiscordUser;
 import com.discordsrv.api.discord.api.exception.NotReadyException;
 import com.discordsrv.api.discord.api.exception.UnknownChannelException;
 import com.discordsrv.common.DiscordSRV;
 import com.discordsrv.common.config.main.channels.BaseChannelConfig;
 import com.discordsrv.common.config.main.channels.ChannelConfig;
-import com.discordsrv.common.config.main.channels.ChannelConfigHolder;
 import com.discordsrv.common.discord.api.channel.DiscordDMChannelImpl;
 import com.discordsrv.common.discord.api.channel.DiscordTextChannelImpl;
 import com.discordsrv.common.discord.api.guild.DiscordGuildImpl;
+import com.discordsrv.common.discord.api.message.SendableDiscordMessageFormatterImpl;
 import com.discordsrv.common.discord.api.user.DiscordUserImpl;
-import com.github.benmanes.caffeine.cache.*;
+import com.github.benmanes.caffeine.cache.AsyncCacheLoader;
+import com.github.benmanes.caffeine.cache.AsyncLoadingCache;
+import com.github.benmanes.caffeine.cache.Expiry;
+import com.github.benmanes.caffeine.cache.RemovalListener;
 import net.dv8tion.jda.api.JDA;
 import net.dv8tion.jda.api.entities.TextChannel;
 import net.dv8tion.jda.api.entities.User;
@@ -70,6 +74,11 @@ public class DiscordAPIImpl implements DiscordAPI {
 
     public CompletableFuture<WebhookClient> queryWebhookClient(String channelId) {
         return cachedClients.get(channelId);
+    }
+
+    @Override
+    public SendableDiscordMessage.Formatter format(SendableDiscordMessage.Builder message) {
+        return new SendableDiscordMessageFormatterImpl(discordSRV, message);
     }
 
     @Override
@@ -163,8 +172,7 @@ public class DiscordAPIImpl implements DiscordAPI {
     private class WebhookCacheExpiry implements Expiry<String, WebhookClient> {
 
         private boolean isConfiguredChannel(String channelId) {
-            for (ChannelConfigHolder value : discordSRV.config().channels.values()) {
-                BaseChannelConfig config = value.get();
+            for (BaseChannelConfig config : discordSRV.config().channels.values()) {
                 if (config instanceof ChannelConfig
                         && ((ChannelConfig) config).channelIds.contains(channelId)) {
                     return true;

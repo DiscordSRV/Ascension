@@ -24,41 +24,30 @@
 package com.discordsrv.api.event.events.message.send.game;
 
 import com.discordsrv.api.channel.GameChannel;
+import com.discordsrv.api.discord.api.entity.message.SendableDiscordMessage;
 import com.discordsrv.api.event.events.Cancellable;
 import com.discordsrv.api.event.events.Processable;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 public abstract class AbstractGameMessageSendEvent implements Cancellable, Processable {
 
-    private String discordMessage;
-    private String discordUsername;
+    private SendableDiscordMessage discordMessage;
     private GameChannel targetChannel;
     private boolean cancelled;
     private boolean processed;
 
-    public AbstractGameMessageSendEvent(@NotNull String discordMessage, @Nullable String discordUsername, @NotNull GameChannel targetChannel) {
+    public AbstractGameMessageSendEvent(@NotNull SendableDiscordMessage discordMessage, @NotNull GameChannel targetChannel) {
         this.discordMessage = discordMessage;
-        this.discordUsername = discordUsername;
         this.targetChannel = targetChannel;
     }
 
     @NotNull
-    public String getDiscordMessage() {
+    public SendableDiscordMessage getDiscordMessage() {
         return discordMessage;
     }
 
-    public void setDiscordMessage(@NotNull String discordMessage) {
+    public void setDiscordMessage(@NotNull SendableDiscordMessage discordMessage) {
         this.discordMessage = discordMessage;
-    }
-
-    @Nullable
-    public String getDiscordUsername() {
-        return discordUsername;
-    }
-
-    public void setDiscordUsername(@Nullable String discordUsername) {
-        this.discordUsername = discordUsername;
     }
 
     @NotNull

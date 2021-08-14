@@ -32,7 +32,7 @@ public class PlaceholderLookupResult {
     public static final PlaceholderLookupResult UNKNOWN_PLACEHOLDER = new PlaceholderLookupResult(Type.UNKNOWN_PLACEHOLDER);
 
     public static PlaceholderLookupResult success(Object result) {
-        return new PlaceholderLookupResult(String.valueOf(result));
+        return new PlaceholderLookupResult(result);
     }
 
     public static PlaceholderLookupResult newLookup(String placeholder, Set<Object> extras) {
@@ -40,7 +40,7 @@ public class PlaceholderLookupResult {
     }
 
     private final Type type;
-    private final String value;
+    private final Object value;
     private final Set<Object> extras;
 
     protected PlaceholderLookupResult(Type type) {
@@ -49,7 +49,7 @@ public class PlaceholderLookupResult {
         this.extras = null;
     }
 
-    protected PlaceholderLookupResult(String value) {
+    protected PlaceholderLookupResult(Object value) {
         this.type = Type.SUCCESS;
         this.value = value;
         this.extras = null;
@@ -65,7 +65,7 @@ public class PlaceholderLookupResult {
         return type;
     }
 
-    public String getValue() {
+    public Object getValue() {
         return value;
     }
 

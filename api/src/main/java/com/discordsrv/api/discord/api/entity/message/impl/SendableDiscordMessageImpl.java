@@ -42,10 +42,10 @@ public class SendableDiscordMessageImpl implements SendableDiscordMessage {
     private final String webhookAvatarUrl;
 
     protected SendableDiscordMessageImpl(String content,
-                                      List<DiscordMessageEmbed> embeds,
-                                      Set<AllowedMention> allowedMentions,
-                                      String webhookUsername,
-                                      String webhookAvatarUrl) {
+                                         List<DiscordMessageEmbed> embeds,
+                                         Set<AllowedMention> allowedMentions,
+                                         String webhookUsername,
+                                         String webhookAvatarUrl) {
         this.content = content;
         this.embeds = embeds;
         this.allowedMentions = allowedMentions;
@@ -78,7 +78,7 @@ public class SendableDiscordMessageImpl implements SendableDiscordMessage {
         return webhookAvatarUrl;
     }
 
-    public static class BuilderImpl implements Builder {
+    public static class BuilderImpl implements SendableDiscordMessage.Builder {
 
         private String content;
         private final List<DiscordMessageEmbed> embeds = new ArrayList<>();

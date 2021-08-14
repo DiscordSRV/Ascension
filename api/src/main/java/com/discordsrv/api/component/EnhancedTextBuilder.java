@@ -23,22 +23,36 @@
 
 package com.discordsrv.api.component;
 
-import com.discordsrv.api.DiscordSRVApi;
-import org.jetbrains.annotations.NotNull;
+import java.util.function.Function;
+import java.util.function.Supplier;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
-/**
- * A factory for creating {@link MinecraftComponent}s.
- * @see DiscordSRVApi#componentFactory()
- */
-public interface MinecraftComponentFactory {
+public interface EnhancedTextBuilder {
 
-    /**
-     * Creates an empty {@link MinecraftComponent}.
-     *
-     * @return a new {@link MinecraftComponent}
-     */
-    @NotNull
-    MinecraftComponent empty();
+    EnhancedTextBuilder addContext(Object... context);
 
-    EnhancedTextBuilder enhancedBuilder(String content);
+    default EnhancedTextBuilder addReplacement(String target, Object replacement) {
+        return addReplacement(Pattern.compile(target, Pattern.LITERAL), replacement);
+    }
+
+    default EnhancedTextBuilder addReplacement(Pattern target, Object replacement) {
+        return addReplacement(target, matcher -> replacement);
+    }
+
+    default EnhancedTextBuilder addReplacement(String target, Supplier<Object> replacement) {
+        return addReplacement(Pattern.compile(target, Pattern.LITERAL), replacement);
+    }
+
+    default EnhancedTextBuilder addReplacement(Pattern target, Supplier<Object> replacement) {
+        return addReplacement(target, matcher -> replacement.get());
+    }
+
+    default EnhancedTextBuilder addReplacement(String target, Function<Matcher, Object> replacement) {
+        return addReplacement(Pattern.compile(target, Pattern.LITERAL), replacement);
+    }
+
+    EnhancedTextBuilder addReplacement(Pattern target, Function<Matcher, Object> replacement);
+
+    MinecraftComponent build();
 }

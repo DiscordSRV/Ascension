@@ -29,6 +29,10 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
 import java.util.Set;
+import java.util.function.Function;
+import java.util.function.Supplier;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 /**
  * A message that can be sent to Discord.
@@ -190,5 +194,33 @@ public interface SendableDiscordMessage {
         SendableDiscordMessage build();
     }
 
+    interface Formatter {
+
+        Formatter addContext(Object... context);
+
+        default Formatter addReplacement(String target, Object replacement) {
+            return addReplacement(Pattern.compile(target, Pattern.LITERAL), replacement);
+        }
+
+        default Formatter addReplacement(Pattern target, Object replacement) {
+            return addReplacement(target, matcher -> replacement);
+        }
+
+        default Formatter addReplacement(String target, Supplier<Object> replacement) {
+            return addReplacement(Pattern.compile(target, Pattern.LITERAL), replacement);
+        }
+
+        default Formatter addReplacement(Pattern target, Supplier<Object> replacement) {
+            return addReplacement(target, matcher -> replacement.get());
+        }
+
+        default Formatter addReplacement(String target, Function<Matcher, Object> replacement) {
+            return addReplacement(Pattern.compile(target, Pattern.LITERAL), replacement);
+        }
+
+        Formatter addReplacement(Pattern target, Function<Matcher, Object> replacement);
+
+        SendableDiscordMessage build();
+    }
 
 }

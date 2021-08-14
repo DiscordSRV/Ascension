@@ -66,7 +66,7 @@ public interface MinecraftComponent {
      *
      * @param gsonSerializerClass the gson serializer class
      * @return a adapter that will convert to/from relocated or unrelocated adventure classes to/from json
-     * @throws IllegalArgumentException if the provided class is not a Adventure GsonComponentSerializer
+     * @throws IllegalArgumentException if the provided class is not an Adventure GsonComponentSerializer
      */
     @NotNull
     Adapter adventureAdapter(@NotNull Class<?> gsonSerializerClass);
@@ -96,7 +96,7 @@ public interface MinecraftComponent {
     }
 
     /**
-     * A Adventure adapter, converts from/to given adventure components from/to json.
+     * An Adventure adapter, converts from/to given adventure components from/to json.
      */
     interface Adapter {
 

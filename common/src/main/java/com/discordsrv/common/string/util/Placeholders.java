@@ -18,9 +18,9 @@
 
 package com.discordsrv.common.string.util;
 
-import javax.annotation.CheckReturnValue;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.function.Function;
 import java.util.function.Supplier;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -28,54 +28,55 @@ import java.util.regex.Pattern;
 public class Placeholders {
 
     private final String inputText;
-    private final Map<Pattern, Supplier<String>> replacements = new HashMap<>();
+    private final Map<Pattern, Function<Matcher, Object>> replacements = new HashMap<>();
 
     public Placeholders(String inputText) {
         this.inputText = inputText;
     }
 
-    @CheckReturnValue
-    public Placeholders replace(String replace, String replacement) {
-        return replace(replace, () -> replacement);
+    public Placeholders addAll(Map<Pattern, Function<Matcher, Object>> replacements) {
+        replacements.forEach(this.replacements::put);
+        return this;
     }
 
-    @CheckReturnValue
-    public Placeholders replaceAll(String regex, String replacement) {
-        return replaceAll(regex, () -> replacement);
+    public Placeholders replace(String target, Object replacement) {
+        return replace(target, matcher -> replacement);
     }
 
-    @CheckReturnValue
-    public Placeholders replaceAll(Pattern pattern, String replacement) {
-        return replaceAll(pattern, () -> replacement);
+    public Placeholders replaceAll(Pattern pattern, Object replacement) {
+        return replaceAll(pattern, matcher -> replacement);
     }
 
-    @CheckReturnValue
-    public Placeholders replace(String replace, Supplier<String> replacement) {
-        return replaceAll(Pattern.compile(replace, Pattern.LITERAL), replacement);
+    public Placeholders replace(String target, Supplier<Object> replacement) {
+        return replaceAll(Pattern.compile(target, Pattern.LITERAL), matcher -> replacement);
     }
 
-    @CheckReturnValue
-    public Placeholders replaceAll(String regex, Supplier<String> replacement) {
-        return replaceAll(Pattern.compile(regex), replacement);
+    public Placeholders replaceAll(Pattern pattern, Supplier<Object> replacement) {
+        return replaceAll(pattern, matcher -> replacement);
     }
 
-    @CheckReturnValue
-    public Placeholders replaceAll(Pattern pattern, Supplier<String> replacement) {
-        replacements.put(pattern, replacement);
+    public Placeholders replace(String target, Function<Matcher, Object> replacement) {
+        return replaceAll(Pattern.compile(target, Pattern.LITERAL), replacement);
+    }
+
+    public Placeholders replaceAll(Pattern pattern, Function<Matcher, Object> replacement) {
+        this.replacements.put(pattern, replacement);
         return this;
     }
 
     public String get() {
         String input = inputText;
-        for (Map.Entry<Pattern, Supplier<String>> entry : replacements.entrySet()) {
+        for (Map.Entry<Pattern, Function<Matcher, Object>> entry : replacements.entrySet()) {
             Pattern pattern = entry.getKey();
             Matcher matcher = pattern.matcher(input);
             if (!matcher.find()) {
                 continue;
             }
 
-            Supplier<String> replacement = entry.getValue();
-            input = matcher.replaceAll(replacement.get());
+            Function<Matcher, Object> replacement = entry.getValue();
+            Object value = replacement.apply(matcher);
+
+            input = matcher.replaceAll(String.valueOf(value));
         }
         return input;
     }

@@ -22,7 +22,6 @@ import com.discordsrv.common.config.Config;
 import com.discordsrv.common.config.annotation.DefaultOnly;
 import com.discordsrv.common.config.main.channels.BaseChannelConfig;
 import com.discordsrv.common.config.main.channels.ChannelConfig;
-import com.discordsrv.common.config.main.channels.ChannelConfigHolder;
 import org.spongepowered.configurate.objectmapping.ConfigSerializable;
 
 import java.util.HashMap;
@@ -32,13 +31,15 @@ import java.util.Map;
 public class MainConfig implements Config {
 
     public static final String FILE_NAME = "config.yaml";
+
+    @Override
     public final String getFileName() {
         return FILE_NAME;
     }
 
     @DefaultOnly("default")
-    public Map<String, ChannelConfigHolder> channels = new HashMap<String, ChannelConfigHolder>() {{
-        put("default", new ChannelConfigHolder(new BaseChannelConfig()));
-        put("global", new ChannelConfigHolder(new ChannelConfig()));
+    public Map<String, BaseChannelConfig> channels = new HashMap<String, BaseChannelConfig>() {{
+        put("default", new BaseChannelConfig());
+        put("global", new ChannelConfig());
     }};
 }

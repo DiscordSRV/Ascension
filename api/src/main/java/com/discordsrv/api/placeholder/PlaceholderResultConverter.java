@@ -21,24 +21,17 @@
  * SOFTWARE.
  */
 
-package com.discordsrv.api.component;
+package com.discordsrv.api.placeholder;
 
-import com.discordsrv.api.DiscordSRVApi;
 import org.jetbrains.annotations.NotNull;
 
-/**
- * A factory for creating {@link MinecraftComponent}s.
- * @see DiscordSRVApi#componentFactory()
- */
-public interface MinecraftComponentFactory {
+@FunctionalInterface
+public interface PlaceholderResultConverter {
 
     /**
-     * Creates an empty {@link MinecraftComponent}.
-     *
-     * @return a new {@link MinecraftComponent}
+     * Converts a successful placeholder lookup result into a {@link String}.
+     * @param result the result
+     * @return the result in {@link String} form
      */
-    @NotNull
-    MinecraftComponent empty();
-
-    EnhancedTextBuilder enhancedBuilder(String content);
+    String convertPlaceholderResult(@NotNull Object result);
 }

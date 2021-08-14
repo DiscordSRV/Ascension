@@ -61,7 +61,7 @@ public class VelocityPlayer implements IPlayer {
     }
 
     @Override
-    public Component displayName() {
+    public @NotNull Component displayName() {
         // Use Adventure's Pointer, otherwise username
         return player.getOrDefaultFrom(
                 Identity.DISPLAY_NAME,

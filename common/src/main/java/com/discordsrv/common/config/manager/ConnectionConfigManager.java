@@ -24,7 +24,9 @@ import com.discordsrv.common.config.manager.loader.YamlConfigLoaderProvider;
 import com.discordsrv.common.config.manager.manager.TranslatedConfigManager;
 import org.spongepowered.configurate.yaml.YamlConfigurationLoader;
 
-public abstract class ConnectionConfigManager<C extends ConnectionConfig> extends TranslatedConfigManager<C, YamlConfigurationLoader> implements YamlConfigLoaderProvider {
+public abstract class ConnectionConfigManager<C extends ConnectionConfig>
+        extends TranslatedConfigManager<C, YamlConfigurationLoader>
+        implements YamlConfigLoaderProvider {
 
     public ConnectionConfigManager(DiscordSRV discordSRV) {
         super(discordSRV);

@@ -45,7 +45,9 @@ public class SendableDiscordMessageSerializer implements TypeSerializer<Sendable
 
         ConfigurationNode webhook = node.node("Webhook");
         String webhookUsername = webhook.node("Username").getString();
-        if (webhook.node("Enabled").getBoolean(webhook.node("Enable").getBoolean(webhookUsername != null))) {
+        if (webhook.node("Enabled").getBoolean(
+                webhook.node("Enable").getBoolean(
+                        webhookUsername != null))) {
             builder.setWebhookUsername(webhookUsername);
             builder.setWebhookAvatarUrl(webhook.node("AvatarUrl").getString());
         }
@@ -82,7 +84,9 @@ public class SendableDiscordMessageSerializer implements TypeSerializer<Sendable
 
         List<DiscordMessageEmbed.Builder> embedBuilders = new ArrayList<>();
         obj.getEmbeds().forEach(embed -> embedBuilders.add(embed.toBuilder()));
-        node.setList(DiscordMessageEmbed.Builder.class, embedBuilders);
+        if (!embedBuilders.isEmpty()) {
+            node.node("Embeds").setList(DiscordMessageEmbed.Builder.class, embedBuilders);
+        }
 
         node.node("Content").set(obj.getContent());
     }

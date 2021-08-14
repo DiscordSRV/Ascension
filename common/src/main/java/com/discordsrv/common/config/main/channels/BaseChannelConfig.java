@@ -19,10 +19,50 @@
 package com.discordsrv.common.config.main.channels;
 
 import com.discordsrv.common.config.main.channels.minecraftodiscord.MinecraftToDiscordChatConfig;
+import org.checkerframework.checker.nullness.qual.Nullable;
+import org.spongepowered.configurate.ConfigurationNode;
 import org.spongepowered.configurate.objectmapping.ConfigSerializable;
+import org.spongepowered.configurate.objectmapping.ObjectMapper;
+import org.spongepowered.configurate.serialize.SerializationException;
+import org.spongepowered.configurate.serialize.TypeSerializer;
+
+import java.lang.reflect.Type;
 
 @ConfigSerializable
 public class BaseChannelConfig {
 
     public MinecraftToDiscordChatConfig minecraftToDiscord = new MinecraftToDiscordChatConfig();
+
+
+    public static class Serializer implements TypeSerializer<BaseChannelConfig> {
+
+        private final ObjectMapper.Factory mapperFactory;
+
+        public Serializer(ObjectMapper.Factory mapperFactory) {
+            this.mapperFactory = mapperFactory;
+        }
+
+        @Override
+        public BaseChannelConfig deserialize(Type type, ConfigurationNode node) throws SerializationException {
+            return (BaseChannelConfig) mapperFactory.asTypeSerializer()
+                    .deserialize(
+                            "default".equals(node.key()) ? BaseChannelConfig.class : ChannelConfig.class,
+                            node
+                    );
+        }
+
+        @Override
+        public void serialize(Type type, @Nullable BaseChannelConfig obj, ConfigurationNode node) throws SerializationException {
+            if (obj == null) {
+                node.set(null);
+                return;
+            }
+
+            mapperFactory.asTypeSerializer().serialize(
+                    "default".equals(node.key()) ? BaseChannelConfig.class : ChannelConfig.class,
+                    obj,
+                    node
+            );
+        }
+    }
 }

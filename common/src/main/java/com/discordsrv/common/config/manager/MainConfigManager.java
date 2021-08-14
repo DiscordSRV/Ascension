@@ -18,21 +18,11 @@
 
 package com.discordsrv.common.config.manager;
 
-import com.discordsrv.api.discord.api.entity.message.DiscordMessageEmbed;
-import com.discordsrv.api.discord.api.entity.message.SendableDiscordMessage;
 import com.discordsrv.common.DiscordSRV;
 import com.discordsrv.common.config.main.MainConfig;
-import com.discordsrv.common.config.main.channels.ChannelConfigHolder;
 import com.discordsrv.common.config.manager.loader.YamlConfigLoaderProvider;
 import com.discordsrv.common.config.manager.manager.TranslatedConfigManager;
-import com.discordsrv.common.config.serializer.ColorSerializer;
-import com.discordsrv.common.config.serializer.DiscordMessageEmbedSerializer;
-import com.discordsrv.common.config.serializer.SendableDiscordMessageSerializer;
-import org.spongepowered.configurate.ConfigurationOptions;
-import org.spongepowered.configurate.objectmapping.ObjectMapper;
 import org.spongepowered.configurate.yaml.YamlConfigurationLoader;
-
-import java.awt.Color;
 
 public abstract class MainConfigManager<C extends MainConfig>
         extends TranslatedConfigManager<C, YamlConfigurationLoader>
@@ -45,18 +35,5 @@ public abstract class MainConfigManager<C extends MainConfig>
     @Override
     protected String fileName() {
         return MainConfig.FILE_NAME;
-    }
-
-    @Override
-    public ConfigurationOptions defaultOptions() {
-        return super.defaultOptions()
-                .serializers(builder -> {
-                    ObjectMapper.Factory objectMapper = defaultObjectMapper();
-                    builder.register(Color.class, new ColorSerializer());
-                    builder.register(ChannelConfigHolder.class, new ChannelConfigHolder.Serializer(objectMapper));
-                    builder.register(DiscordMessageEmbed.Builder.class, new DiscordMessageEmbedSerializer());
-                    builder.register(DiscordMessageEmbed.Field.class, new DiscordMessageEmbedSerializer.FieldSerializer());
-                    builder.register(SendableDiscordMessage.Builder.class, new SendableDiscordMessageSerializer());
-                });
     }
 }

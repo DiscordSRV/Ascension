@@ -22,7 +22,6 @@ import com.discordsrv.api.channel.GameChannel;
 import com.discordsrv.api.event.events.channel.GameChannelLookupEvent;
 import com.discordsrv.common.DiscordSRV;
 import com.discordsrv.common.config.main.channels.BaseChannelConfig;
-import com.discordsrv.common.config.main.channels.ChannelConfigHolder;
 import com.discordsrv.common.function.OrDefault;
 import com.github.benmanes.caffeine.cache.CacheLoader;
 import com.github.benmanes.caffeine.cache.LoadingCache;
@@ -55,7 +54,7 @@ public class ChannelConfig {
                 });
     }
 
-    private Map<String, ChannelConfigHolder> channels() {
+    private Map<String, BaseChannelConfig> channels() {
         return discordSRV.config().channels;
     }
 
@@ -64,12 +63,12 @@ public class ChannelConfig {
     }
 
     public OrDefault<BaseChannelConfig> orDefault(String ownerName, String channelName) {
-        ChannelConfigHolder defaultConfig = channels().computeIfAbsent(
-                "default", key -> new ChannelConfigHolder(new BaseChannelConfig()));
+        BaseChannelConfig defaultConfig = channels().computeIfAbsent(
+                "default", key -> new BaseChannelConfig());
 
         return new OrDefault<>(
                 get(ownerName, channelName),
-                defaultConfig.get()
+                defaultConfig
         );
     }
 
@@ -79,15 +78,15 @@ public class ChannelConfig {
 
     public BaseChannelConfig get(String ownerName, String channelName) {
         if (ownerName != null) {
-            ChannelConfigHolder config = channels().get(ownerName + ":" + channelName);
+            BaseChannelConfig config = channels().get(ownerName + ":" + channelName);
             if (config != null) {
-                return config.get();
+                return config;
             }
 
             GameChannel gameChannel = channels.get(channelName);
             if (gameChannel != null && gameChannel.getOwnerName().equals(ownerName)) {
                 config = channels().get(channelName);
-                return config != null ? config.get() : null;
+                return config;
             }
             return null;
         }

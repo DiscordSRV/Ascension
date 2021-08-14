@@ -28,8 +28,9 @@ import com.discordsrv.common.DiscordSRV;
 import com.discordsrv.common.component.util.ComponentUtil;
 import com.discordsrv.common.config.main.channels.BaseChannelConfig;
 import com.discordsrv.common.config.main.channels.ChannelConfig;
+import com.discordsrv.common.config.main.channels.minecraftodiscord.MinecraftToDiscordChatConfig;
 import com.discordsrv.common.function.OrDefault;
-import com.discordsrv.common.player.util.PlayerUtil;
+import dev.vankka.mcdiscordreserializer.discord.DiscordSerializer;
 import net.kyori.adventure.text.Component;
 
 import java.util.Collections;
@@ -49,23 +50,23 @@ public class DefaultChatListener extends AbstractListener {
 
         GameChannel gameChannel = event.getGameChannel();
         Component message = ComponentUtil.fromAPI(event.message());
-        Component displayName = PlayerUtil.displayName(event.getPlayer());
 
         OrDefault<BaseChannelConfig> channelConfig = discordSRV.channelConfig().orDefault(gameChannel);
+        OrDefault<MinecraftToDiscordChatConfig> chatConfig = channelConfig.map(cfg -> cfg.minecraftToDiscord);
 
-//        Component discordMessage = EnhancedLegacyText.get().buildComponent(channelConfig.map(cfg -> cfg.minecraftToDiscord).get(cfg -> cfg.messageFormat))
-//                .replace("%message%", message)
-//                .replace("%player_display_name%", displayName)
-//                .build();
-//
-//        String username = new Placeholders(channelConfig.map(cfg -> cfg.minecraftToDiscord).get(cfg -> cfg.usernameFormat))
-//                .replace("%player_display_name%", () -> PlainTextComponentSerializer.plainText().serialize(displayName))
-//                .get();
+        SendableDiscordMessage.Builder builder = chatConfig.get(cfg -> cfg.messageFormat);
+        if (builder == null) {
+            return;
+        }
+
+        SendableDiscordMessage discordMessage = discordSRV.discordAPI().format(builder)
+                .addContext(event.getPlayer())
+                .addReplacement("%message%", DiscordSerializer.INSTANCE.serialize(message))
+                .build();
 
         discordSRV.eventBus().publish(
                 new ChatMessageSendEvent(
-                        null,
-                        null,
+                        discordMessage,
                         gameChannel
                 )
         );
@@ -86,13 +87,7 @@ public class DefaultChatListener extends AbstractListener {
 
         for (String channelId : channelIds) {
             discordSRV.discordAPI().getTextChannelById(channelId).ifPresent(textChannel ->
-                    textChannel.sendMessage(
-                            SendableDiscordMessage.builder()
-                                    .setWebhookUsername(event.getDiscordUsername())
-                                    .setContent(event.getDiscordMessage())
-                                    .build()
-                    )
-            );
+                    textChannel.sendMessage(event.getDiscordMessage()));
         }
     }
 }

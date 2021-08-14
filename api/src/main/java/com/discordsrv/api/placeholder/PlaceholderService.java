@@ -23,7 +23,10 @@
 
 package com.discordsrv.api.placeholder;
 
+import org.jetbrains.annotations.NotNull;
+
 import java.util.Set;
+import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 public interface PlaceholderService {
@@ -38,9 +41,16 @@ public interface PlaceholderService {
      */
     Pattern RECURSIVE_PATTERN = Pattern.compile("(\\{)(.+)(})");
 
-    PlaceholderLookupResult lookupPlaceholder(String placeholder, Set<Object> context);
-    PlaceholderLookupResult lookupPlaceholder(String placeholder, Object... context);
+    void addResultConverter(@NotNull PlaceholderResultConverter resultConverter);
+    void removeResultConverter(@NotNull PlaceholderResultConverter resultConverter);
 
-    String replacePlaceholders(String placeholder, Set<Object> context);
-    String replacePlaceholders(String placeholder, Object... context);
+    String replacePlaceholders(@NotNull String placeholder, @NotNull Set<Object> context);
+    String replacePlaceholders(@NotNull String placeholder, @NotNull Object... context);
+
+    PlaceholderLookupResult lookupPlaceholder(@NotNull String placeholder, @NotNull Set<Object> context);
+    PlaceholderLookupResult lookupPlaceholder(@NotNull String placeholder, @NotNull Object... context);
+
+    Object getResult(@NotNull Matcher matcher, @NotNull Set<Object> context);
+    String getResultAsString(@NotNull Matcher matcher, @NotNull Set<Object> context);
+
 }

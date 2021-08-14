@@ -18,9 +18,15 @@
 
 package com.discordsrv.common.config.manager.manager;
 
+import com.discordsrv.api.discord.api.entity.message.DiscordMessageEmbed;
+import com.discordsrv.api.discord.api.entity.message.SendableDiscordMessage;
 import com.discordsrv.common.DiscordSRV;
 import com.discordsrv.common.config.annotation.DefaultOnly;
+import com.discordsrv.common.config.main.channels.BaseChannelConfig;
 import com.discordsrv.common.config.manager.loader.ConfigLoaderProvider;
+import com.discordsrv.common.config.serializer.ColorSerializer;
+import com.discordsrv.common.config.serializer.DiscordMessageEmbedSerializer;
+import com.discordsrv.common.config.serializer.SendableDiscordMessageSerializer;
 import com.discordsrv.common.exception.ConfigException;
 import org.jetbrains.annotations.Nullable;
 import org.spongepowered.configurate.CommentedConfigurationNode;
@@ -31,7 +37,9 @@ import org.spongepowered.configurate.loader.AbstractConfigurationLoader;
 import org.spongepowered.configurate.objectmapping.ConfigSerializable;
 import org.spongepowered.configurate.objectmapping.ObjectMapper;
 import org.spongepowered.configurate.serialize.SerializationException;
+import org.spongepowered.configurate.util.NamingSchemes;
 
+import java.awt.Color;
 import java.nio.file.Path;
 import java.util.Arrays;
 import java.util.List;
@@ -73,31 +81,40 @@ public abstract class ConfigurateConfigManager<T, LT extends AbstractConfigurati
 
     public ConfigurationOptions defaultOptions() {
         return ConfigurationOptions.defaults()
-                .shouldCopyDefaults(false);
-    }
-
-    protected ObjectMapper.Factory.Builder objectMapperBuilder() {
-        return ObjectMapper.factoryBuilder();
+                .shouldCopyDefaults(false)
+                .implicitInitialization(false)
+                .serializers(builder -> {
+                    ObjectMapper.Factory objectMapper = configObjectMapper();
+                    builder.register(Color.class, new ColorSerializer());
+                    builder.register(BaseChannelConfig.class, new BaseChannelConfig.Serializer(objectMapper));
+                    builder.register(DiscordMessageEmbed.Builder.class, new DiscordMessageEmbedSerializer());
+                    builder.register(DiscordMessageEmbed.Field.class, new DiscordMessageEmbedSerializer.FieldSerializer());
+                    builder.register(SendableDiscordMessage.Builder.class, new SendableDiscordMessageSerializer());
+                });
     }
 
     public ConfigurationOptions configNodeOptions() {
         return defaultOptions();
     }
 
-    protected ObjectMapper.Factory.Builder configObjectMapperBuilder() {
-        return objectMapperBuilder();
-    }
-
-    public ObjectMapper.Factory configObjectMapper() {
-        return configObjectMapper;
-    }
-
     public ConfigurationOptions defaultNodeOptions() {
         return defaultOptions();
     }
 
+    protected ObjectMapper.Factory.Builder objectMapperBuilder() {
+        return ObjectMapper.factoryBuilder()
+                .defaultNamingScheme(input -> {
+                    String camelCase = NamingSchemes.CAMEL_CASE.coerce(input); // Gets rid of underscores and dashes
+                    return Character.toUpperCase(camelCase.charAt(0)) + camelCase.substring(1);
+                });
+    }
+
+    protected ObjectMapper.Factory.Builder configObjectMapperBuilder() {
+        return objectMapperBuilder();
+    }
+
     protected ObjectMapper.Factory.Builder defaultObjectMapperBuilder() {
-        return configObjectMapperBuilder()
+        return objectMapperBuilder()
                 .addProcessor(DefaultOnly.class, (data, value) -> (value1, destination) -> {
                     String[] children = data.value();
                     boolean whitelist = data.whitelist();
@@ -129,6 +146,10 @@ public abstract class ConfigurateConfigManager<T, LT extends AbstractConfigurati
                         }
                     }
                 });
+    }
+
+    public ObjectMapper.Factory configObjectMapper() {
+        return configObjectMapper;
     }
 
     public ObjectMapper.Factory defaultObjectMapper() {
@@ -190,14 +211,19 @@ public abstract class ConfigurateConfigManager<T, LT extends AbstractConfigurati
         }
     }
 
+    @SuppressWarnings("unchecked")
     @Override
     public void save() throws ConfigException {
         try {
             CommentedConfigurationNode node = loader.createNode();
-            node.set(configuration);
+            save(configuration, (Class<T>) configuration.getClass(), node);
             loader.save(node);
         } catch (ConfigurateException e) {
             throw new ConfigException("Failed to load configuration", e);
         }
+    }
+
+    protected void save(T config, Class<T> clazz, CommentedConfigurationNode node) throws SerializationException {
+        configObjectMapper().get(clazz).save(config, node);
     }
 }

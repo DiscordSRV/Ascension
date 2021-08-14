@@ -26,6 +26,8 @@ import org.spongepowered.configurate.objectmapping.meta.Comment;
 public class ConnectionConfig implements Config {
 
     public static final String FILE_NAME = "connections.yaml";
+
+    @Override
     public final String getFileName() {
         return FILE_NAME;
     }
@@ -37,5 +39,6 @@ public class ConnectionConfig implements Config {
 
         @Comment("Don't know what this is? Neither do I")
         public String token = "Token here";
+
     }
 }

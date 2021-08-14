@@ -41,6 +41,7 @@ import com.discordsrv.common.listener.DefaultChatListener;
 import com.discordsrv.common.logging.DependencyLoggingFilter;
 import com.discordsrv.common.logging.logger.backend.LoggingBackend;
 import com.discordsrv.common.placeholder.PlaceholderServiceImpl;
+import com.discordsrv.common.placeholder.converter.ComponentResultConverter;
 import net.dv8tion.jda.api.JDA;
 import org.jetbrains.annotations.NotNull;
 
@@ -84,7 +85,7 @@ public abstract class AbstractDiscordSRV<C extends MainConfig, CC extends Connec
     protected final void load() {
         this.eventBus = new EventBusImpl(this);
         this.placeholderService = new PlaceholderServiceImpl(this);
-        this.componentFactory = new ComponentFactory();
+        this.componentFactory = new ComponentFactory(this);
         this.discordAPI = new DiscordAPIImpl(this);
         this.discordConnectionDetails = new DiscordConnectionDetailsImpl(this);
     }
@@ -238,6 +239,9 @@ public abstract class AbstractDiscordSRV<C extends MainConfig, CC extends Connec
 
         discordConnectionManager = new JDAConnectionManager(this);
         discordConnectionManager.connect().join();
+
+        // Placeholder result converters
+        placeholderService().addResultConverter(new ComponentResultConverter());
 
         // Register PlayerProvider listeners
         playerProvider().subscribe();
