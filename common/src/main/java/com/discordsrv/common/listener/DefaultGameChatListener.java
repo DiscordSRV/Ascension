@@ -19,32 +19,35 @@
 package com.discordsrv.common.listener;
 
 import com.discordsrv.api.channel.GameChannel;
+import com.discordsrv.api.discord.api.entity.message.ReceivedDiscordMessage;
 import com.discordsrv.api.discord.api.entity.message.SendableDiscordMessage;
 import com.discordsrv.api.event.bus.EventPriority;
 import com.discordsrv.api.event.bus.Subscribe;
 import com.discordsrv.api.event.events.message.receive.game.ChatMessageReceiveEvent;
-import com.discordsrv.api.event.events.message.send.game.ChatMessageSendEvent;
+import com.discordsrv.api.event.events.message.send.game.ChatMessageSentEvent;
 import com.discordsrv.common.DiscordSRV;
 import com.discordsrv.common.component.util.ComponentUtil;
 import com.discordsrv.common.config.main.channels.BaseChannelConfig;
 import com.discordsrv.common.config.main.channels.ChannelConfig;
 import com.discordsrv.common.config.main.channels.minecraftodiscord.MinecraftToDiscordChatConfig;
+import com.discordsrv.common.discord.api.message.ReceivedDiscordMessageClusterImpl;
 import com.discordsrv.common.function.OrDefault;
 import dev.vankka.mcdiscordreserializer.discord.DiscordSerializer;
 import net.kyori.adventure.text.Component;
 
-import java.util.Collections;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.CompletableFuture;
 
-public class DefaultChatListener extends AbstractListener {
+public class DefaultGameChatListener extends AbstractListener {
 
-    public DefaultChatListener(DiscordSRV discordSRV) {
+    public DefaultGameChatListener(DiscordSRV discordSRV) {
         super(discordSRV);
     }
 
     @Subscribe(priority = EventPriority.LAST)
     public void onChatReceive(ChatMessageReceiveEvent event) {
-        if (checkProcessor(event) || checkCancellation(event)) {
+        if (checkProcessor(event) || checkCancellation(event) || !discordSRV.isReady()) {
             return;
         }
 
@@ -64,30 +67,33 @@ public class DefaultChatListener extends AbstractListener {
                 .addReplacement("%message%", DiscordSerializer.INSTANCE.serialize(message))
                 .build();
 
-        discordSRV.eventBus().publish(
-                new ChatMessageSendEvent(
-                        discordMessage,
-                        gameChannel
-                )
-        );
-    }
-
-    @Subscribe(priority = EventPriority.LAST)
-    public void onChatSend(ChatMessageSendEvent event) {
-        if (checkProcessor(event) || checkCancellation(event) || !discordSRV.isReady()) {
+        List<String> channelIds = channelConfig.get(cfg -> cfg instanceof ChannelConfig ? ((ChannelConfig) cfg).channelIds : null);
+        if (channelIds == null || channelIds.isEmpty()) {
             return;
         }
 
-        GameChannel channel = event.getTargetChannel();
-        BaseChannelConfig channelConfig = discordSRV.channelConfig().get(channel);
-        List<String> channelIds = channelConfig instanceof ChannelConfig ? ((ChannelConfig) channelConfig).channelIds : Collections.emptyList();
-        if (channelIds.isEmpty()) {
-            return;
-        }
-
+        List<CompletableFuture<ReceivedDiscordMessage>> futures = new ArrayList<>();
         for (String channelId : channelIds) {
             discordSRV.discordAPI().getTextChannelById(channelId).ifPresent(textChannel ->
-                    textChannel.sendMessage(event.getDiscordMessage()));
+                    futures.add(textChannel.sendMessage(discordMessage)));
         }
+
+        CompletableFuture.allOf(futures.toArray(new CompletableFuture[0]))
+                .whenComplete((v, t) -> {
+                    if (t != null) {
+                        discordSRV.logger().error("Failed to deliver message to Discord", t);
+                        return;
+                    }
+
+                    List<ReceivedDiscordMessage> messages = new ArrayList<>();
+                    for (CompletableFuture<ReceivedDiscordMessage> future : futures) {
+                        messages.add(future.join());
+                    }
+
+                    discordSRV.eventBus().publish(
+                            new ChatMessageSentEvent(
+                                    new ReceivedDiscordMessageClusterImpl(messages)));
+                });
     }
+
 }

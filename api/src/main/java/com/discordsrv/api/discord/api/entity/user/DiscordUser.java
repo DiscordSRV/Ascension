@@ -45,4 +45,11 @@ public interface DiscordUser extends Snowflake {
     @NotNull
     String getDiscriminator();
 
+    /**
+     * Gets the Discord user's username followed by a {@code #} and their discriminator.
+     * @return the Discord user's username & discriminator in the following format {@code Username#1234}
+     */
+    default String getAsTag() {
+        return getUsername() + "#" + getDiscriminator();
+    }
 }

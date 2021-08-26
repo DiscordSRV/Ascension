@@ -57,7 +57,7 @@ public interface Processable extends Event {
         EventListener listener = EventStateHolder.PROCESSED.get();
         if (listener == null) {
             throw new IllegalStateException("Event has not been processed");
-        } else if (listener == EventStateHolder.FAKE_LISTENER) {
+        } else if (listener == EventStateHolder.UNKNOWN_LISTENER) {
             return null;
         }
 

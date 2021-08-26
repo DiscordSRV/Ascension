@@ -28,5 +28,9 @@ public interface Console extends ICommandSender {
         return true;
     }
 
+    /**
+     * Gets the logging backend for the server/proxy.
+     * @return the {@link LoggingBackend}
+     */
     LoggingBackend loggingBackend();
 }

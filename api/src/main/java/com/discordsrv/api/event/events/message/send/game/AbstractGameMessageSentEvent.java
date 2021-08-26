@@ -23,59 +23,24 @@
 
 package com.discordsrv.api.event.events.message.send.game;
 
-import com.discordsrv.api.channel.GameChannel;
-import com.discordsrv.api.discord.api.entity.message.SendableDiscordMessage;
-import com.discordsrv.api.event.events.Cancellable;
-import com.discordsrv.api.event.events.Processable;
+import com.discordsrv.api.discord.api.entity.message.ReceivedDiscordMessageCluster;
+import com.discordsrv.api.event.events.Event;
 import org.jetbrains.annotations.NotNull;
 
-public abstract class AbstractGameMessageSendEvent implements Cancellable, Processable {
+public abstract class AbstractGameMessageSentEvent implements Event {
 
-    private SendableDiscordMessage discordMessage;
-    private GameChannel targetChannel;
-    private boolean cancelled;
-    private boolean processed;
+    private final ReceivedDiscordMessageCluster discordMessage;
 
-    public AbstractGameMessageSendEvent(@NotNull SendableDiscordMessage discordMessage, @NotNull GameChannel targetChannel) {
+    public AbstractGameMessageSentEvent(@NotNull ReceivedDiscordMessageCluster discordMessage) {
         this.discordMessage = discordMessage;
-        this.targetChannel = targetChannel;
     }
 
-    @NotNull
-    public SendableDiscordMessage getDiscordMessage() {
+    /**
+     * Gets the {@link ReceivedDiscordMessageCluster} containing the sent message(s).
+     * @return the message cluster
+     */
+    public ReceivedDiscordMessageCluster getDiscordMessage() {
         return discordMessage;
     }
 
-    public void setDiscordMessage(@NotNull SendableDiscordMessage discordMessage) {
-        this.discordMessage = discordMessage;
-    }
-
-    @NotNull
-    public GameChannel getTargetChannel() {
-        return targetChannel;
-    }
-
-    public void setTargetChannel(@NotNull GameChannel targetChannel) {
-        this.targetChannel = targetChannel;
-    }
-
-    @Override
-    public boolean isCancelled() {
-        return cancelled;
-    }
-
-    @Override
-    public void setCancelled(boolean cancelled) {
-        this.cancelled = cancelled;
-    }
-
-    @Override
-    public boolean isProcessed() {
-        return processed;
-    }
-
-    @Override
-    public void markAsProcessed() {
-        this.processed = true;
-    }
 }

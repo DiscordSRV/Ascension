@@ -52,10 +52,19 @@ public interface ReceivedDiscordMessage extends SendableDiscordMessage, Snowflak
     }
 
     /**
-     * Edits this message to the provided message, the webhook username and avatar url will be ignored.
+     * Deletes this message.
+     *
+     * @return a future that will fail if the request fails
+     */
+    CompletableFuture<Void> delete();
+
+    /**
+     * Edits this message to the provided message.
      *
      * @param message the new message
-     * @return the future for the message edit
+     * @return a future that will fail if the request fails, otherwise the new message provided by the request response
+     * @throws IllegalArgumentException if the message is not a webhook message,
+     * but the provided {@link SendableDiscordMessage} specifies a webhook username.
      */
     @NotNull
     CompletableFuture<ReceivedDiscordMessage> edit(SendableDiscordMessage message);

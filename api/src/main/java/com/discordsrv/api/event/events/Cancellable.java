@@ -61,7 +61,7 @@ public interface Cancellable extends Event {
         EventListener listener = EventStateHolder.CANCELLED.get();
         if (listener == null) {
             throw new IllegalStateException("Event is not cancelled");
-        } else if (listener == EventStateHolder.FAKE_LISTENER) {
+        } else if (listener == EventStateHolder.UNKNOWN_LISTENER) {
             return null;
         }
 

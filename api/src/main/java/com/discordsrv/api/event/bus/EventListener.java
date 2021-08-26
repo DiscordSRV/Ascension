@@ -42,7 +42,7 @@ public interface EventListener {
     String className();
 
     /**
-     * The name of the method for this event listener
+     * The name of the method for this event listener.
      * @return the method name for this event listener
      * @see Method#getName()
      */

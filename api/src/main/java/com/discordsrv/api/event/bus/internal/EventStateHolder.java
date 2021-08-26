@@ -33,8 +33,12 @@ public final class EventStateHolder {
     public static final ThreadLocal<EventListener> CANCELLED = new ThreadLocal<>();
     public static final ThreadLocal<EventListener> PROCESSED = new ThreadLocal<>();
 
-    public static final EventListener FAKE_LISTENER = new FakeListener();
+    /**
+     * Used to indicate an unknown event listener.
+     */
+    public static final EventListener UNKNOWN_LISTENER = new FakeListener();
 
+    @SuppressWarnings("ConstantConditions")
     private static class FakeListener implements EventListener {
 
         @Override

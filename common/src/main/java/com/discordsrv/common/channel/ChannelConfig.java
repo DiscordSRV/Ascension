@@ -39,8 +39,11 @@ public class ChannelConfig {
     public ChannelConfig(DiscordSRV discordSRV) {
         this.discordSRV = discordSRV;
         this.channels = discordSRV.caffeineBuilder()
-                .expireAfterWrite(30, TimeUnit.SECONDS)
+                .expireAfterWrite(60, TimeUnit.SECONDS)
+                .expireAfterAccess(30, TimeUnit.SECONDS)
+                .refreshAfterWrite(10, TimeUnit.SECONDS)
                 .build(new CacheLoader<String, GameChannel>() {
+
                     @Override
                     public @Nullable GameChannel load(@NonNull String channelName) {
                         GameChannelLookupEvent event = new GameChannelLookupEvent(null, channelName);

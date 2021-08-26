@@ -37,7 +37,7 @@ import com.discordsrv.common.discord.details.DiscordConnectionDetailsImpl;
 import com.discordsrv.common.event.bus.EventBusImpl;
 import com.discordsrv.common.function.CheckedRunnable;
 import com.discordsrv.common.listener.DefaultChannelLookupListener;
-import com.discordsrv.common.listener.DefaultChatListener;
+import com.discordsrv.common.listener.DefaultGameChatListener;
 import com.discordsrv.common.logging.DependencyLoggingFilter;
 import com.discordsrv.common.logging.logger.backend.LoggingBackend;
 import com.discordsrv.common.placeholder.PlaceholderServiceImpl;
@@ -249,7 +249,7 @@ public abstract class AbstractDiscordSRV<C extends MainConfig, CC extends Connec
         // Register listeners
         // Chat
         eventBus().subscribe(new DefaultChannelLookupListener(this));
-        eventBus().subscribe(new DefaultChatListener(this));
+        eventBus().subscribe(new DefaultGameChatListener(this));
     }
 
     @OverridingMethodsMustInvokeSuper

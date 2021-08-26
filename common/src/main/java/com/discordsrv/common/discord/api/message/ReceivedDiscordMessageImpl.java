@@ -151,6 +151,18 @@ public class ReceivedDiscordMessageImpl extends SendableDiscordMessageImpl imple
     }
 
     @Override
+    public CompletableFuture<Void> delete() {
+        DiscordTextChannel textChannel = discordSRV.discordAPI().getTextChannelById(channelId).orElse(null);
+        if (textChannel == null) {
+            CompletableFuture<Void> future = new CompletableFuture<>();
+            future.completeExceptionally(new UnknownChannelException());
+            return future;
+        }
+
+        return textChannel.deleteMessageById(getId());
+    }
+
+    @Override
     public @NotNull CompletableFuture<ReceivedDiscordMessage> edit(SendableDiscordMessage message) {
         if (!isWebhookMessage() && message.isWebhookMessage()) {
             throw new IllegalArgumentException("Cannot edit a non-webhook message into a webhook message");
@@ -163,6 +175,6 @@ public class ReceivedDiscordMessageImpl extends SendableDiscordMessageImpl imple
             return future;
         }
 
-        return textChannel.editMessageById(textChannel.getId(), message);
+        return textChannel.editMessageById(getId(), message);
     }
 }

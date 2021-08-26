@@ -18,6 +18,7 @@
 
 package com.discordsrv.common.discord.connection.jda;
 
+import com.discordsrv.api.discord.api.entity.user.DiscordUser;
 import com.discordsrv.api.discord.connection.DiscordConnectionDetails;
 import com.discordsrv.api.event.bus.EventPriority;
 import com.discordsrv.api.event.bus.Subscribe;
@@ -44,7 +45,9 @@ import net.dv8tion.jda.api.entities.*;
 import net.dv8tion.jda.api.events.DisconnectEvent;
 import net.dv8tion.jda.api.events.ShutdownEvent;
 import net.dv8tion.jda.api.events.StatusChangeEvent;
+import net.dv8tion.jda.api.exceptions.ErrorResponseException;
 import net.dv8tion.jda.api.requests.CloseCode;
+import net.dv8tion.jda.api.requests.ErrorResponse;
 import net.dv8tion.jda.api.requests.GatewayIntent;
 import net.dv8tion.jda.api.requests.RestAction;
 import net.dv8tion.jda.api.utils.AllowedMentions;
@@ -55,12 +58,19 @@ import net.dv8tion.jda.internal.utils.IOUtil;
 import okhttp3.OkHttpClient;
 
 import javax.security.auth.login.LoginException;
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.Set;
+import java.util.*;
 import java.util.concurrent.*;
+import java.util.concurrent.atomic.AtomicReference;
+import java.util.function.Consumer;
 
 public class JDAConnectionManager implements DiscordConnectionManager {
+
+    private static final Map<GatewayIntent, String> PRIVILEGED_INTENTS = new HashMap<>();
+
+    static {
+        PRIVILEGED_INTENTS.put(GatewayIntent.GUILD_MEMBERS, "Server Members Intent");
+        PRIVILEGED_INTENTS.put(GatewayIntent.GUILD_PRESENCES, "Presence Intent");
+    }
 
     private final DiscordSRV discordSRV;
     private final ScheduledExecutorService gatewayPool;
@@ -69,6 +79,10 @@ public class JDAConnectionManager implements DiscordConnectionManager {
     private CompletableFuture<Void> connectionFuture;
     private JDA instance;
     private boolean detailsAccepted = true;
+
+    // Bot owner details
+    private final AtomicReference<CompletableFuture<DiscordUser>> botOwnerRequest = new AtomicReference<>();
+    private long botOwnerRetrievalTime;
 
     public JDAConnectionManager(DiscordSRV discordSRV) {
         this.discordSRV = discordSRV;
@@ -80,9 +94,56 @@ public class JDAConnectionManager implements DiscordConnectionManager {
                 5,
                 new CountingThreadFactory(Scheduler.THREAD_NAME_PREFIX + "JDA RateLimit #%s")
         );
-        RestAction.setDefaultFailure(t -> discordSRV.logger().error("Callback failed", t));
+
+        // Set default failure handling
+        RestAction.setDefaultFailure(t -> {
+            if (t instanceof ErrorResponseException) {
+                ErrorResponse response = ((ErrorResponseException) t).getErrorResponse();
+                if (response == ErrorResponse.MFA_NOT_ENABLED) {
+                    withBotOwner(user -> {
+                        discordSRV.logger().error("+----------------------------------------------->");
+                        discordSRV.logger().error("| Failed to complete a request:");
+                        discordSRV.logger().error("|");
+                        discordSRV.logger().error("| The Discord bot's owner needs to enable 2FA");
+                        discordSRV.logger().error("| on their Discord account due to a Discord");
+                        discordSRV.logger().error("| server requiring 2FA for moderation actions");
+                        if (user != null) {
+                            discordSRV.logger().error("|");
+                            discordSRV.logger().error("| The Discord bot's owner is " + user.getAsTag());
+                        }
+                        discordSRV.logger().error("|");
+                        discordSRV.logger().error("| You can view instructions for enabling 2FA here:");
+                        discordSRV.logger().error("| https://support.discord.com/hc/en-us/articles/219576828-Setting-up-Two-Factor-Authentication");
+                        discordSRV.logger().error("+----------------------------------------------->");
+                    });
+                }
+            }
+            discordSRV.logger().error("Callback failed", t);
+        });
+
+        // Disable all mentions by default for safety
         AllowedMentions.setDefaultMentions(Collections.emptyList());
+
         discordSRV.eventBus().subscribe(this);
+    }
+
+    private void withBotOwner(Consumer<DiscordUser> botOwnerConsumer) {
+        long currentTime = System.currentTimeMillis();
+
+        CompletableFuture<DiscordUser> request = botOwnerRequest.get();
+        if (request != null && botOwnerRetrievalTime + TimeUnit.MINUTES.toMillis(5) < currentTime) {
+            request.whenComplete((user, t) -> botOwnerConsumer.accept(t != null ? null : user));
+            return;
+        }
+
+        botOwnerRetrievalTime = currentTime;
+        CompletableFuture<DiscordUser> future = instance.retrieveApplicationInfo()
+                .timeout(10, TimeUnit.SECONDS)
+                .map(applicationInfo -> (DiscordUser) new DiscordUserImpl(applicationInfo.getOwner()))
+                .submit();
+
+        botOwnerRequest.set(future);
+        future.whenComplete((user, t) -> botOwnerConsumer.accept(t != null ? null : user));
     }
 
     @Subscribe(priority = EventPriority.LATE)
@@ -93,6 +154,10 @@ public class JDAConnectionManager implements DiscordConnectionManager {
 
     @Subscribe(priority = EventPriority.EARLIEST)
     public void onPlaceholderLookup(PlaceholderLookupEvent event) {
+        if (event.isProcessed()) {
+            return;
+        }
+
         Set<Object> newContext = new HashSet<>();
         for (Object o : event.getContext()) {
             Object converted;
@@ -142,7 +207,8 @@ public class JDAConnectionManager implements DiscordConnectionManager {
 
     @Subscribe
     public void onDisconnect(DisconnectEvent event) {
-        if (checkCode(event.getCloseCode())) {
+        CloseCode closeCode = event.getCloseCode();
+        if (checkCode(closeCode)) {
             return;
         }
 
@@ -152,19 +218,25 @@ public class JDAConnectionManager implements DiscordConnectionManager {
             throw new IllegalStateException("Could not get the close frame for a disconnect");
         }
 
+        String message;
         if (closedByServer) {
-            CloseCode closeCode = event.getCloseCode();
             String closeReason = frame.getCloseReason();
 
-            discordSRV.logger().debug("[JDA] [Server] Disconnected due to "
+            message = "[JDA] [Server] Disconnected due to "
                     + frame.getCloseCode() + ": "
                     + (closeCode != null
                         ? closeCode.getMeaning()
-                        : (closeReason != null ? closeReason : "(Unknown close reason)")));
+                        : (closeReason != null ? closeReason : "(Unknown close reason)"));
         } else {
-            discordSRV.logger().debug("[JDA] [Client] Disconnected due to "
+            message = "[JDA] [Client] Disconnected due to "
                     + frame.getCloseCode() + ": "
-                    + frame.getCloseReason());
+                    + frame.getCloseReason();
+        }
+
+        if (closeCode != null && !closeCode.isReconnect()) {
+            discordSRV.logger().error(message);
+        } else {
+            discordSRV.logger().debug(message);
         }
     }
 
@@ -177,10 +249,32 @@ public class JDAConnectionManager implements DiscordConnectionManager {
         if (closeCode == null) {
             return false;
         } else if (closeCode == CloseCode.DISALLOWED_INTENTS) {
-            // TODO
+            Set<GatewayIntent> intents = discordSRV.discordConnectionDetails().getGatewayIntents();
+            discordSRV.logger().error("+-------------------------------------->");
+            discordSRV.logger().error("| Failed to connect to Discord:");
+            discordSRV.logger().error("|");
+            discordSRV.logger().error("| The Discord bot is lacking one or more");
+            discordSRV.logger().error("| privileged intents listed below");
+            discordSRV.logger().error("|");
+            for (GatewayIntent intent : intents) {
+                String displayName = PRIVILEGED_INTENTS.get(intent);
+                if (displayName != null) {
+                    discordSRV.logger().error("| " + displayName);
+                }
+            }
+            discordSRV.logger().error("|");
+            discordSRV.logger().error("| Instructions for enabling privileged gateway intents:");
+            discordSRV.logger().error("| 1. Go to https://discord.com/developers/applications");
+            discordSRV.logger().error("| 2. Choose the bot you are using for DiscordSRV");
+            discordSRV.logger().error("|     - Keep in mind it will only be visible to the ");
+            discordSRV.logger().error("|       Discord user who created the bot");
+            discordSRV.logger().error("| 3. Go to the \"Bot\" tab");
+            discordSRV.logger().error("| 4. Make sure the intents listed above are all enabled");
+            discordSRV.logger().error("| 5. "); // TODO
+            discordSRV.logger().error("+-------------------------------------->");
             return true;
-        } else if (closeCode.isReconnect()) {
-            // TODO
+        } else if (closeCode == CloseCode.AUTHENTICATION_FAILED) {
+            invalidToken();
             return true;
         }
         return false;
@@ -245,12 +339,7 @@ public class JDAConnectionManager implements DiscordConnectionManager {
                 instance = jdaBuilder.build();
                 break;
             } catch (LoginException ignored) {
-                discordSRV.logger().error("+-------------------------------+");
-                discordSRV.logger().error("| Failed to connect to Discord: |");
-                discordSRV.logger().error("|                               |");
-                discordSRV.logger().error("| The token provided in the     |");
-                discordSRV.logger().error("| " + ConnectionConfig.FILE_NAME + " is invalid   |");
-                discordSRV.logger().error("+-------------------------------+");
+                invalidToken();
                 break;
             } catch (Throwable t) {
                 discordSRV.logger().error(t);
@@ -265,6 +354,20 @@ public class JDAConnectionManager implements DiscordConnectionManager {
                 break;
             }
         }
+    }
+
+    private void invalidToken() {
+        discordSRV.logger().error("+------------------------------>");
+        discordSRV.logger().error("| Failed to connect to Discord:");
+        discordSRV.logger().error("|");
+        discordSRV.logger().error("| The token provided in the");
+        discordSRV.logger().error("| " + ConnectionConfig.FILE_NAME + " is invalid");
+        discordSRV.logger().error("|");
+        discordSRV.logger().error("| You can get the token for your bot from:");
+        discordSRV.logger().error("| https://discord.com/developers/applications");
+        discordSRV.logger().error("| - Keep in mind the bot is only visible to");
+        discordSRV.logger().error("|   the Discord user that created the bot");
+        discordSRV.logger().error("+------------------------------>");
     }
 
     @Override

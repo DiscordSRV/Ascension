@@ -23,13 +23,12 @@
 
 package com.discordsrv.api.event.events.message.send.game;
 
-import com.discordsrv.api.channel.GameChannel;
-import com.discordsrv.api.discord.api.entity.message.SendableDiscordMessage;
+import com.discordsrv.api.discord.api.entity.message.ReceivedDiscordMessageCluster;
 import org.jetbrains.annotations.NotNull;
 
-public class ChatMessageSendEvent extends AbstractGameMessageSendEvent {
+public class ChatMessageSentEvent extends AbstractGameMessageSentEvent {
 
-    public ChatMessageSendEvent(@NotNull SendableDiscordMessage discordMessage, @NotNull GameChannel targetChannel) {
-        super(discordMessage, targetChannel);
+    public ChatMessageSentEvent(@NotNull ReceivedDiscordMessageCluster discordMessage) {
+        super(discordMessage);
     }
 }

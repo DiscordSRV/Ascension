@@ -166,8 +166,9 @@ public class EventBusImpl implements EventBus {
         List<Boolean> states = new ArrayList<>(STATES.size());
         for (Pair<Function<Object, Boolean>, ThreadLocal<EventListener>> entry : STATES) {
             if (entry.getKey().apply(event)) {
+                // If the state is already set before listeners, we mark it as being changed by a 'unknown' event listener
                 states.add(true);
-                entry.getValue().set(EventStateHolder.FAKE_LISTENER);
+                entry.getValue().set(EventStateHolder.UNKNOWN_LISTENER);
                 continue;
             }
             states.add(false);
