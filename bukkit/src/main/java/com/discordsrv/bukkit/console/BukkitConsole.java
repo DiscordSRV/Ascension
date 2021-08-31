@@ -25,6 +25,7 @@ import com.discordsrv.common.logging.logger.impl.JavaLoggerImpl;
 import com.discordsrv.common.logging.logger.impl.Log4JLoggerImpl;
 import net.kyori.adventure.identity.Identity;
 import net.kyori.adventure.text.Component;
+import org.jetbrains.annotations.NotNull;
 
 public class BukkitConsole implements Console {
 
@@ -49,7 +50,7 @@ public class BukkitConsole implements Console {
     }
 
     @Override
-    public void sendMessage(Identity identity, Component message) {
+    public void sendMessage(Identity identity, @NotNull Component message) {
         discordSRV.audiences().console().sendMessage(identity, message);
     }
 

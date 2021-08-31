@@ -21,26 +21,14 @@
  * SOFTWARE.
  */
 
-package com.discordsrv.api.event.events.message.send.game;
+package com.discordsrv.api.event.events.message.forward.game;
 
 import com.discordsrv.api.discord.api.entity.message.ReceivedDiscordMessageCluster;
-import com.discordsrv.api.event.events.Event;
 import org.jetbrains.annotations.NotNull;
 
-public abstract class AbstractGameMessageSentEvent implements Event {
+public class ChatMessageForwardedEvent extends AbstractGameMessageForwardedEvent {
 
-    private final ReceivedDiscordMessageCluster discordMessage;
-
-    public AbstractGameMessageSentEvent(@NotNull ReceivedDiscordMessageCluster discordMessage) {
-        this.discordMessage = discordMessage;
+    public ChatMessageForwardedEvent(@NotNull ReceivedDiscordMessageCluster discordMessage) {
+        super(discordMessage);
     }
-
-    /**
-     * Gets the {@link ReceivedDiscordMessageCluster} containing the sent message(s).
-     * @return the message cluster
-     */
-    public ReceivedDiscordMessageCluster getDiscordMessage() {
-        return discordMessage;
-    }
-
 }

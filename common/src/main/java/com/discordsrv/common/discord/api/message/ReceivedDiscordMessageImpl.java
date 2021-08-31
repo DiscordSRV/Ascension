@@ -27,8 +27,11 @@ import com.discordsrv.api.discord.api.entity.message.DiscordMessageEmbed;
 import com.discordsrv.api.discord.api.entity.message.ReceivedDiscordMessage;
 import com.discordsrv.api.discord.api.entity.message.SendableDiscordMessage;
 import com.discordsrv.api.discord.api.entity.message.impl.SendableDiscordMessageImpl;
+import com.discordsrv.api.discord.api.entity.user.DiscordUser;
 import com.discordsrv.api.discord.api.exception.UnknownChannelException;
 import com.discordsrv.common.DiscordSRV;
+import com.discordsrv.common.discord.api.channel.DiscordTextChannelImpl;
+import com.discordsrv.common.discord.api.user.DiscordUserImpl;
 import net.dv8tion.jda.api.entities.Message;
 import net.dv8tion.jda.api.entities.MessageEmbed;
 import net.dv8tion.jda.api.entities.Role;
@@ -51,11 +54,12 @@ public class ReceivedDiscordMessageImpl extends SendableDiscordMessageImpl imple
         String webhookUsername = webhookMessage ? message.getAuthor().getName() : null;
         String webhookAvatarUrl = webhookMessage ? message.getAuthor().getEffectiveAvatarUrl() : null;
 
-        DiscordTextChannel textChannel = discordSRV.discordAPI().getTextChannelById(message.getChannel().getId())
-                .orElse(null);
+        DiscordTextChannel textChannel = new DiscordTextChannelImpl(discordSRV, message.getTextChannel());
+        DiscordUser user = new DiscordUserImpl(message.getAuthor());
         return new ReceivedDiscordMessageImpl(
                 discordSRV,
                 textChannel,
+                user,
                 message.getChannel().getId(),
                 message.getId(),
                 message.getContentRaw(),
@@ -106,9 +110,12 @@ public class ReceivedDiscordMessageImpl extends SendableDiscordMessageImpl imple
 
         DiscordTextChannel textChannel = discordSRV.discordAPI().getTextChannelById(
                 Long.toUnsignedString(webhookMessage.getChannelId())).orElse(null);
+        DiscordUser user = discordSRV.discordAPI().getUserById(
+                Long.toUnsignedString(webhookMessage.getAuthor().getId())).orElse(null);
         return new ReceivedDiscordMessageImpl(
                 discordSRV,
                 textChannel,
+                user,
                 Long.toUnsignedString(webhookMessage.getChannelId()),
                 Long.toUnsignedString(webhookMessage.getId()),
                 webhookMessage.getContent(),
@@ -120,12 +127,14 @@ public class ReceivedDiscordMessageImpl extends SendableDiscordMessageImpl imple
 
     private final DiscordSRV discordSRV;
     private final DiscordTextChannel textChannel;
+    private final DiscordUser author;
     private final String channelId;
     private final String id;
 
     private ReceivedDiscordMessageImpl(
             DiscordSRV discordSRV,
             DiscordTextChannel textChannel,
+            DiscordUser author,
             String channelId,
             String id,
             String content,
@@ -136,6 +145,7 @@ public class ReceivedDiscordMessageImpl extends SendableDiscordMessageImpl imple
         super(content, embeds, null, webhookUsername, webhookAvatarUrl);
         this.discordSRV = discordSRV;
         this.textChannel = textChannel;
+        this.author = author;
         this.channelId = channelId;
         this.id = id;
     }
@@ -148,6 +158,11 @@ public class ReceivedDiscordMessageImpl extends SendableDiscordMessageImpl imple
     @Override
     public @NotNull DiscordTextChannel getChannel() {
         return textChannel;
+    }
+
+    @Override
+    public @NotNull DiscordUser getAuthor() {
+        return author;
     }
 
     @Override

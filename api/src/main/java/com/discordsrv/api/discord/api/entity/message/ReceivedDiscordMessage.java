@@ -26,6 +26,7 @@ package com.discordsrv.api.discord.api.entity.message;
 import com.discordsrv.api.discord.api.entity.Snowflake;
 import com.discordsrv.api.discord.api.entity.channel.DiscordTextChannel;
 import com.discordsrv.api.discord.api.entity.guild.DiscordGuild;
+import com.discordsrv.api.discord.api.entity.user.DiscordUser;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.concurrent.CompletableFuture;
@@ -41,6 +42,13 @@ public interface ReceivedDiscordMessage extends SendableDiscordMessage, Snowflak
      */
     @NotNull
     DiscordTextChannel getChannel();
+
+    /**
+     * Gets the user that sent the message.
+     * @return the user that sent the message
+     */
+    @NotNull
+    DiscordUser getAuthor();
 
     /**
      * Gets the Discord server the message was posted in.

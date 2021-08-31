@@ -19,26 +19,34 @@
 package com.discordsrv.common.channel;
 
 import com.discordsrv.api.channel.GameChannel;
+import com.discordsrv.api.discord.api.entity.channel.DiscordTextChannel;
+import com.discordsrv.api.event.bus.Subscribe;
 import com.discordsrv.api.event.events.channel.GameChannelLookupEvent;
+import com.discordsrv.api.event.events.lifecycle.DiscordSRVReloadEvent;
 import com.discordsrv.common.DiscordSRV;
 import com.discordsrv.common.config.main.channels.BaseChannelConfig;
+import com.discordsrv.common.config.main.channels.ChannelConfig;
 import com.discordsrv.common.function.OrDefault;
 import com.github.benmanes.caffeine.cache.CacheLoader;
 import com.github.benmanes.caffeine.cache.LoadingCache;
+import org.apache.commons.lang3.tuple.Pair;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.checkerframework.checker.nullness.qual.Nullable;
 
+import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.TimeUnit;
 
-public class ChannelConfig {
+public class ChannelConfigHelper {
 
     private final DiscordSRV discordSRV;
-    private final LoadingCache<String, GameChannel> channels;
+    private final LoadingCache<String, GameChannel> nameToChannelCache;
+    private final Map<String, Pair<String, ChannelConfig>> discordToConfigMap;
 
-    public ChannelConfig(DiscordSRV discordSRV) {
+    public ChannelConfigHelper(DiscordSRV discordSRV) {
         this.discordSRV = discordSRV;
-        this.channels = discordSRV.caffeineBuilder()
+        this.nameToChannelCache = discordSRV.caffeineBuilder()
                 .expireAfterWrite(60, TimeUnit.SECONDS)
                 .expireAfterAccess(30, TimeUnit.SECONDS)
                 .refreshAfterWrite(10, TimeUnit.SECONDS)
@@ -55,6 +63,35 @@ public class ChannelConfig {
                         return event.getChannelFromProcessing();
                     }
                 });
+        this.discordToConfigMap = new ConcurrentHashMap<>();
+
+        discordSRV.eventBus().subscribe(this);
+    }
+
+    @Subscribe
+    public void onReload(DiscordSRVReloadEvent event) {
+        if (!event.isConfig()) {
+            return;
+        }
+
+        Map<String, Pair<String, ChannelConfig>> newMap = new HashMap<>();
+        for (Map.Entry<String, BaseChannelConfig> entry : channels().entrySet()) {
+            String channelName = entry.getKey();
+            BaseChannelConfig value = entry.getValue();
+            if (value instanceof ChannelConfig) {
+                ChannelConfig channelConfig = (ChannelConfig) value;
+                for (String channelId : channelConfig.channelIds) {
+                    newMap.put(channelId, Pair.of(channelName, channelConfig));
+                }
+            }
+        }
+
+        synchronized (discordToConfigMap) {
+            discordToConfigMap.clear();
+            for (Map.Entry<String, Pair<String, ChannelConfig>> entry : newMap.entrySet()) {
+                discordToConfigMap.put(entry.getKey(), entry.getValue());
+            }
+        }
     }
 
     private Map<String, BaseChannelConfig> channels() {
@@ -65,9 +102,20 @@ public class ChannelConfig {
         return orDefault(gameChannel.getOwnerName(), gameChannel.getChannelName());
     }
 
-    public OrDefault<BaseChannelConfig> orDefault(String ownerName, String channelName) {
-        BaseChannelConfig defaultConfig = channels().computeIfAbsent(
+    public OrDefault<Pair<GameChannel, BaseChannelConfig>> orDefault(DiscordTextChannel discordTextChannel) {
+        return new OrDefault<>(
+                getDiscordResolved(discordTextChannel),
+                Pair.of(null, getDefault())
+        );
+    }
+
+    private BaseChannelConfig getDefault() {
+        return channels().computeIfAbsent(
                 "default", key -> new BaseChannelConfig());
+    }
+
+    public OrDefault<BaseChannelConfig> orDefault(String ownerName, String channelName) {
+        BaseChannelConfig defaultConfig = getDefault();
 
         return new OrDefault<>(
                 get(ownerName, channelName),
@@ -86,7 +134,7 @@ public class ChannelConfig {
                 return config;
             }
 
-            GameChannel gameChannel = channels.get(channelName);
+            GameChannel gameChannel = nameToChannelCache.get(channelName);
             if (gameChannel != null && gameChannel.getOwnerName().equals(ownerName)) {
                 config = channels().get(channelName);
                 return config;
@@ -94,7 +142,27 @@ public class ChannelConfig {
             return null;
         }
 
-        GameChannel gameChannel = channels.get(channelName);
+        GameChannel gameChannel = nameToChannelCache.get(channelName);
         return gameChannel != null ? get(gameChannel) : null;
+    }
+
+    public Pair<GameChannel, BaseChannelConfig> getDiscordResolved(DiscordTextChannel channel) {
+        Pair<String, ? extends BaseChannelConfig> pair = getDiscord(channel);
+        if (pair == null) {
+            return null;
+        }
+
+        GameChannel gameChannel = nameToChannelCache.get(pair.getKey());
+        if (gameChannel == null) {
+            return null;
+        }
+
+        return Pair.of(gameChannel, pair.getValue());
+    }
+
+    public Pair<String, ? extends BaseChannelConfig> getDiscord(DiscordTextChannel channel) {
+        synchronized (discordToConfigMap) {
+            return discordToConfigMap.get(channel.getId());
+        }
     }
 }

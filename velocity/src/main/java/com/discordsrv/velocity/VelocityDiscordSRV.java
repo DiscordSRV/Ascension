@@ -113,9 +113,6 @@ public class VelocityDiscordSRV extends ProxyDiscordSRV<MainConfig, ConnectionCo
 
     @Override
     protected void enable() throws Throwable {
-        // Player related
-        playerProvider().subscribe();
-
         super.enable();
     }
 }

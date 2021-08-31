@@ -36,8 +36,10 @@ public class VelocityPlayer implements IPlayer {
     }
 
     @Override
-    public void sendMessage(Identity identity, Component message) {
-        player.sendMessage(identity, message);
+    public void sendMessage(Identity identity, @NotNull Component message) {
+        player.sendMessage(
+                identity != null ? identity : Identity.nil(),
+                message);
     }
 
     @Override

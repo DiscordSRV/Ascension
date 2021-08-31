@@ -84,6 +84,11 @@ public class DiscordTextChannelImpl extends DiscordMessageChannelImpl implements
     }
 
     @Override
+    public CompletableFuture<Void> deleteMessageById(String id) {
+        return null; // TODO
+    }
+
+    @Override
     public @NotNull CompletableFuture<ReceivedDiscordMessage> editMessageById(String id, SendableDiscordMessage message) {
         return message(
                 message,

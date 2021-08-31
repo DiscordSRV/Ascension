@@ -24,6 +24,7 @@ import com.discordsrv.common.logging.logger.impl.Log4JLoggerImpl;
 import com.discordsrv.sponge.SpongeDiscordSRV;
 import net.kyori.adventure.identity.Identity;
 import net.kyori.adventure.text.Component;
+import org.jetbrains.annotations.NotNull;
 import org.spongepowered.api.command.exception.CommandException;
 
 public class SpongeConsole implements Console {
@@ -37,7 +38,7 @@ public class SpongeConsole implements Console {
     }
 
     @Override
-    public void sendMessage(Identity identity, Component message) {
+    public void sendMessage(Identity identity, @NotNull Component message) {
         discordSRV.game().systemSubject().sendMessage(identity, message);
     }
 

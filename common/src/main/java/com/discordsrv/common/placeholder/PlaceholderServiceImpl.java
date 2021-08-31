@@ -69,6 +69,10 @@ public class PlaceholderServiceImpl implements PlaceholderService {
     @Override
     public PlaceholderLookupResult lookupPlaceholder(@NotNull String placeholder, @NotNull Set<Object> context) {
         for (Object o : context) {
+            if (o == null) {
+                continue;
+            }
+
             if (o instanceof PlaceholderProvider) {
                 PlaceholderLookupResult result = ((PlaceholderProvider) o).lookup(placeholder, context);
                 if (result.getType() != PlaceholderLookupResult.Type.UNKNOWN_PLACEHOLDER) {

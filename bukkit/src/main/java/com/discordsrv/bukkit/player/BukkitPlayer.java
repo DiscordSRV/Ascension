@@ -53,9 +53,11 @@ public class BukkitPlayer extends BukkitOfflinePlayer implements IPlayer {
     }
 
     @Override
-    public void sendMessage(Identity identity, Component message) {
+    public void sendMessage(Identity identity, @NotNull Component message) {
         if (audience != null) {
-            audience.sendMessage(identity, message);
+            audience.sendMessage(
+                    identity != null ? identity : Identity.nil(),
+                    message);
         } else {
             player.sendMessage(BukkitComponentSerializer.legacy().serialize(message));
         }

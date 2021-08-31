@@ -42,8 +42,10 @@ public class BungeePlayer implements IPlayer {
     }
 
     @Override
-    public void sendMessage(Identity identity, Component message) {
-        audience.sendMessage(identity, message);
+    public void sendMessage(Identity identity, @NotNull Component message) {
+        audience.sendMessage(
+                identity != null ? identity : Identity.nil(),
+                message);
     }
 
     @Override

@@ -109,7 +109,7 @@ public class JDAConnectionManager implements DiscordConnectionManager {
                         discordSRV.logger().error("| server requiring 2FA for moderation actions");
                         if (user != null) {
                             discordSRV.logger().error("|");
-                            discordSRV.logger().error("| The Discord bot's owner is " + user.getAsTag());
+                            discordSRV.logger().error("| The Discord bot's owner is " + user.getAsTag() + " (" + user.getId() + ")");
                         }
                         discordSRV.logger().error("|");
                         discordSRV.logger().error("| You can view instructions for enabling 2FA here:");
@@ -159,8 +159,10 @@ public class JDAConnectionManager implements DiscordConnectionManager {
         }
 
         Set<Object> newContext = new HashSet<>();
+        boolean anyConverted = false;
         for (Object o : event.getContext()) {
             Object converted;
+            boolean isConversion = true;
             if (o instanceof PrivateChannel) {
                 converted = new DiscordDMChannelImpl(discordSRV, (PrivateChannel) o);
             } else if (o instanceof TextChannel) {
@@ -177,10 +179,16 @@ public class JDAConnectionManager implements DiscordConnectionManager {
                 converted = new DiscordUserImpl((User) o);
             } else {
                 converted = o;
+                isConversion = false;
+            }
+            if (isConversion) {
+                anyConverted = true;
             }
             newContext.add(converted);
         }
-        event.process(PlaceholderLookupResult.newLookup(event.getPlaceholder(), newContext));
+        if (anyConverted) {
+            event.process(PlaceholderLookupResult.newLookup(event.getPlaceholder(), newContext));
+        }
     }
 
     @Subscribe
@@ -305,6 +313,7 @@ public class JDAConnectionManager implements DiscordConnectionManager {
 
     @SuppressWarnings("BusyWait")
     private void connectInternal() {
+        discordSRV.discordConnectionDetails().requestGatewayIntent(GatewayIntent.GUILD_MESSAGES); // TODO: figure out how DiscordSRV required intents are going to work
         detailsAccepted = false;
 
         ConnectionConfig.Bot botConfig = discordSRV.connectionConfig().bot;

@@ -30,6 +30,8 @@ import java.util.List;
 @ConfigSerializable
 public class ChannelConfig extends BaseChannelConfig {
 
+    public static final String DEFAULT_KEY = "default";
+
     public ChannelConfig() {
         // Clear everything besides channelIds by default (these will be filled back in by Configurate if they are in the config itself)
         for (Field field : getClass().getFields()) {

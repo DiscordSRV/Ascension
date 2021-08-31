@@ -16,25 +16,12 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package com.discordsrv.common.listener;
+package com.discordsrv.common.config.main.channels.discordtominecraft;
 
-import com.discordsrv.api.event.bus.EventPriority;
-import com.discordsrv.api.event.bus.Subscribe;
-import com.discordsrv.api.event.events.channel.GameChannelLookupEvent;
-import com.discordsrv.common.DiscordSRV;
+import org.spongepowered.configurate.objectmapping.ConfigSerializable;
 
-public class DefaultChannelLookupListener extends AbstractListener {
+@ConfigSerializable
+public class DiscordToMinecraftChatConfig {
 
-    public DefaultChannelLookupListener(DiscordSRV discordSRV) {
-        super(discordSRV);
-    }
-
-    @Subscribe(priority = EventPriority.LAST)
-    public void onGameChannelLookup(GameChannelLookupEvent event) {
-        if (!event.getChannelName().equalsIgnoreCase("global") || checkProcessor(event)) {
-            return;
-        }
-
-        event.process(discordSRV.defaultGlobalChannel());
-    }
+    public String format = "%user_name%: %message%";
 }

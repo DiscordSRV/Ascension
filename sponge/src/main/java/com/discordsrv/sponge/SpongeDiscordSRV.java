@@ -114,9 +114,6 @@ public class SpongeDiscordSRV extends ServerDiscordSRV<MainConfig, ConnectionCon
         // Service provider
         game().eventManager().registerListeners(pluginContainer, this);
 
-        // Player related
-        playerProvider().subscribe();
-
         super.enable();
     }
 

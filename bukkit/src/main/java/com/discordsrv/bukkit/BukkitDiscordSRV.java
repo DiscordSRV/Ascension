@@ -128,7 +128,6 @@ public class BukkitDiscordSRV extends ServerDiscordSRV<BukkitConfig, BukkitConne
 
         // Player related
         this.audiences = BukkitAudiences.create(bootstrap.getPlugin());
-        playerProvider().subscribe();
 
         super.enable();
 

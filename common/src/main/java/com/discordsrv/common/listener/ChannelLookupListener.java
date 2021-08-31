@@ -16,23 +16,25 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package com.discordsrv.common.command.game.sender;
+package com.discordsrv.common.listener;
 
-import net.kyori.adventure.identity.Identity;
-import net.kyori.adventure.text.Component;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
+import com.discordsrv.api.event.bus.EventPriority;
+import com.discordsrv.api.event.bus.Subscribe;
+import com.discordsrv.api.event.events.channel.GameChannelLookupEvent;
+import com.discordsrv.common.DiscordSRV;
 
-public interface ICommandSender {
+public class ChannelLookupListener extends AbstractListener {
 
-    default void sendMessage(@NotNull Component message) {
-        // Identity is converted to Identity.nil() later
-        sendMessage(null, message);
+    public ChannelLookupListener(DiscordSRV discordSRV) {
+        super(discordSRV);
     }
 
-    void sendMessage(@Nullable Identity identity, @NotNull Component message);
+    @Subscribe(priority = EventPriority.LAST)
+    public void onGameChannelLookup(GameChannelLookupEvent event) {
+        if (!event.getChannelName().equalsIgnoreCase("global") || checkProcessor(event)) {
+            return;
+        }
 
-    boolean hasPermission(String permission);
-    void runCommand(String command);
-
+        event.process(discordSRV.defaultGlobalChannel());
+    }
 }

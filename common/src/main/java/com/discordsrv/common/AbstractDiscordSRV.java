@@ -20,10 +20,11 @@ package com.discordsrv.common;
 
 import com.discordsrv.api.discord.connection.DiscordConnectionDetails;
 import com.discordsrv.api.event.bus.EventBus;
+import com.discordsrv.api.event.events.lifecycle.DiscordSRVReloadEvent;
 import com.discordsrv.api.event.events.lifecycle.DiscordSRVShuttingDownEvent;
 import com.discordsrv.api.placeholder.PlaceholderService;
 import com.discordsrv.common.api.util.ApiInstanceUtil;
-import com.discordsrv.common.channel.ChannelConfig;
+import com.discordsrv.common.channel.ChannelConfigHelper;
 import com.discordsrv.common.channel.DefaultGlobalChannel;
 import com.discordsrv.common.component.ComponentFactory;
 import com.discordsrv.common.config.connection.ConnectionConfig;
@@ -36,8 +37,9 @@ import com.discordsrv.common.discord.connection.jda.JDAConnectionManager;
 import com.discordsrv.common.discord.details.DiscordConnectionDetailsImpl;
 import com.discordsrv.common.event.bus.EventBusImpl;
 import com.discordsrv.common.function.CheckedRunnable;
-import com.discordsrv.common.listener.DefaultChannelLookupListener;
-import com.discordsrv.common.listener.DefaultGameChatListener;
+import com.discordsrv.common.listener.ChannelLookupListener;
+import com.discordsrv.common.listener.DiscordChatListener;
+import com.discordsrv.common.listener.GameChatListener;
 import com.discordsrv.common.logging.DependencyLoggingFilter;
 import com.discordsrv.common.logging.logger.backend.LoggingBackend;
 import com.discordsrv.common.placeholder.PlaceholderServiceImpl;
@@ -71,7 +73,7 @@ public abstract class AbstractDiscordSRV<C extends MainConfig, CC extends Connec
 
     // DiscordSRV
     private final DefaultGlobalChannel defaultGlobalChannel = new DefaultGlobalChannel(this);
-    private ChannelConfig channelConfig;
+    private ChannelConfigHelper channelConfig;
     private DiscordConnectionManager discordConnectionManager;
 
     // Internal
@@ -136,7 +138,7 @@ public abstract class AbstractDiscordSRV<C extends MainConfig, CC extends Connec
     }
 
     @Override
-    public ChannelConfig channelConfig() {
+    public ChannelConfigHelper channelConfig() {
         return channelConfig;
     }
 
@@ -227,7 +229,9 @@ public abstract class AbstractDiscordSRV<C extends MainConfig, CC extends Connec
             configManager().load();
 
             // Utility
-            channelConfig = new ChannelConfig(this);
+            channelConfig = new ChannelConfigHelper(this);
+
+            eventBus().publish(new DiscordSRVReloadEvent(true));
         } catch (Throwable t) {
             setStatus(Status.FAILED_TO_LOAD_CONFIG);
             throw t;
@@ -248,8 +252,9 @@ public abstract class AbstractDiscordSRV<C extends MainConfig, CC extends Connec
 
         // Register listeners
         // Chat
-        eventBus().subscribe(new DefaultChannelLookupListener(this));
-        eventBus().subscribe(new DefaultGameChatListener(this));
+        eventBus().subscribe(new ChannelLookupListener(this));
+        eventBus().subscribe(new GameChatListener(this));
+        eventBus().subscribe(new DiscordChatListener(this));
     }
 
     @OverridingMethodsMustInvokeSuper

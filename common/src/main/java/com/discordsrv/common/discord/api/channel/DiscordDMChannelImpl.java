@@ -84,6 +84,14 @@ public class DiscordDMChannelImpl extends DiscordMessageChannelImpl implements D
     }
 
     @Override
+    public CompletableFuture<Void> deleteMessageById(String id) {
+        CompletableFuture<Void> future = privateChannel()
+                .deleteMessageById(id)
+                .submit();
+        return mapExceptions(future);
+    }
+
+    @Override
     public @NotNull CompletableFuture<ReceivedDiscordMessage> editMessageById(String id, SendableDiscordMessage message) {
         if (message.isWebhookMessage()) {
             throw new IllegalArgumentException("Cannot send webhook messages to DMChannels");

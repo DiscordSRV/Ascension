@@ -21,39 +21,28 @@
  * SOFTWARE.
  */
 
-package com.discordsrv.api.discord.api.entity.user;
+package com.discordsrv.api.event.events.message.forward.discord;
 
-import com.discordsrv.api.discord.api.entity.Snowflake;
-import com.discordsrv.api.placeholder.Placeholder;
+import com.discordsrv.api.channel.GameChannel;
+import com.discordsrv.api.component.MinecraftComponent;
+import com.discordsrv.api.event.events.Event;
 import org.jetbrains.annotations.NotNull;
 
-/**
- * A Discord user.
- */
-public interface DiscordUser extends Snowflake {
+public class DiscordMessageForwardedEvent implements Event {
 
-    /**
-     * Gets the username of the Discord user.
-     * @return the user's username
-     */
-    @Placeholder("user_name")
-    @NotNull
-    String getUsername();
+    private final MinecraftComponent message;
+    private final GameChannel channel;
 
-    /**
-     * Gets the Discord user's discriminator.
-     * @return the user's discriminator
-     */
-    @Placeholder("user_discriminator")
-    @NotNull
-    String getDiscriminator();
+    public DiscordMessageForwardedEvent(@NotNull MinecraftComponent message, @NotNull GameChannel channel) {
+        this.message = message;
+        this.channel = channel;
+    }
 
-    /**
-     * Gets the Discord user's username followed by a {@code #} and their discriminator.
-     * @return the Discord user's username & discriminator in the following format {@code Username#1234}
-     */
-    @Placeholder("user_tag")
-    default String getAsTag() {
-        return getUsername() + "#" + getDiscriminator();
+    public MinecraftComponent getMessage() {
+        return message;
+    }
+
+    public GameChannel getChannel() {
+        return channel;
     }
 }

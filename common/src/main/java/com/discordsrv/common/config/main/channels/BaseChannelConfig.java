@@ -18,6 +18,7 @@
 
 package com.discordsrv.common.config.main.channels;
 
+import com.discordsrv.common.config.main.channels.discordtominecraft.DiscordToMinecraftChatConfig;
 import com.discordsrv.common.config.main.channels.minecraftodiscord.MinecraftToDiscordChatConfig;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.spongepowered.configurate.ConfigurationNode;
@@ -32,7 +33,7 @@ import java.lang.reflect.Type;
 public class BaseChannelConfig {
 
     public MinecraftToDiscordChatConfig minecraftToDiscord = new MinecraftToDiscordChatConfig();
-
+    public DiscordToMinecraftChatConfig discordToMinecraft = new DiscordToMinecraftChatConfig();
 
     public static class Serializer implements TypeSerializer<BaseChannelConfig> {
 
@@ -46,7 +47,7 @@ public class BaseChannelConfig {
         public BaseChannelConfig deserialize(Type type, ConfigurationNode node) throws SerializationException {
             return (BaseChannelConfig) mapperFactory.asTypeSerializer()
                     .deserialize(
-                            "default".equals(node.key()) ? BaseChannelConfig.class : ChannelConfig.class,
+                            ChannelConfig.DEFAULT_KEY.equals(node.key()) ? BaseChannelConfig.class : ChannelConfig.class,
                             node
                     );
         }
@@ -59,7 +60,7 @@ public class BaseChannelConfig {
             }
 
             mapperFactory.asTypeSerializer().serialize(
-                    "default".equals(node.key()) ? BaseChannelConfig.class : ChannelConfig.class,
+                    ChannelConfig.DEFAULT_KEY.equals(node.key()) ? BaseChannelConfig.class : ChannelConfig.class,
                     obj,
                     node
             );

@@ -21,14 +21,4 @@
  * SOFTWARE.
  */
 
-package com.discordsrv.api.event.events.message.send.game;
-
-import com.discordsrv.api.discord.api.entity.message.ReceivedDiscordMessageCluster;
-import org.jetbrains.annotations.NotNull;
-
-public class ChatMessageSentEvent extends AbstractGameMessageSentEvent {
-
-    public ChatMessageSentEvent(@NotNull ReceivedDiscordMessageCluster discordMessage) {
-        super(discordMessage);
-    }
-}
+package com.discordsrv.api.event.events.message.forward;

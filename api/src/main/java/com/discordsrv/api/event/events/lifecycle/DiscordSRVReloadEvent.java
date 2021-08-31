@@ -21,39 +21,19 @@
  * SOFTWARE.
  */
 
-package com.discordsrv.api.discord.api.entity.user;
+package com.discordsrv.api.event.events.lifecycle;
 
-import com.discordsrv.api.discord.api.entity.Snowflake;
-import com.discordsrv.api.placeholder.Placeholder;
-import org.jetbrains.annotations.NotNull;
+import com.discordsrv.api.event.events.Event;
 
-/**
- * A Discord user.
- */
-public interface DiscordUser extends Snowflake {
+public class DiscordSRVReloadEvent implements Event {
 
-    /**
-     * Gets the username of the Discord user.
-     * @return the user's username
-     */
-    @Placeholder("user_name")
-    @NotNull
-    String getUsername();
+    private final boolean config;
 
-    /**
-     * Gets the Discord user's discriminator.
-     * @return the user's discriminator
-     */
-    @Placeholder("user_discriminator")
-    @NotNull
-    String getDiscriminator();
+    public DiscordSRVReloadEvent(boolean config) {
+        this.config = config;
+    }
 
-    /**
-     * Gets the Discord user's username followed by a {@code #} and their discriminator.
-     * @return the Discord user's username & discriminator in the following format {@code Username#1234}
-     */
-    @Placeholder("user_tag")
-    default String getAsTag() {
-        return getUsername() + "#" + getDiscriminator();
+    public boolean isConfig() {
+        return config;
     }
 }

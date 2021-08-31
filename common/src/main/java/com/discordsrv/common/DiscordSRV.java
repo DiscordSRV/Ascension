@@ -19,7 +19,7 @@
 package com.discordsrv.common;
 
 import com.discordsrv.api.DiscordSRVApi;
-import com.discordsrv.common.channel.ChannelConfig;
+import com.discordsrv.common.channel.ChannelConfigHelper;
 import com.discordsrv.common.channel.DefaultGlobalChannel;
 import com.discordsrv.common.component.ComponentFactory;
 import com.discordsrv.common.config.connection.ConnectionConfig;
@@ -70,7 +70,7 @@ public interface DiscordSRV extends DiscordSRVApi {
 
     // Internal
     DefaultGlobalChannel defaultGlobalChannel();
-    ChannelConfig channelConfig();
+    ChannelConfigHelper channelConfig();
     DiscordConnectionManager discordConnectionManager();
 
     Locale locale();

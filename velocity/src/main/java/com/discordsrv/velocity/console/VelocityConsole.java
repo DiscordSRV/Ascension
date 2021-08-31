@@ -24,6 +24,7 @@ import com.discordsrv.common.logging.logger.impl.Log4JLoggerImpl;
 import com.discordsrv.velocity.VelocityDiscordSRV;
 import net.kyori.adventure.identity.Identity;
 import net.kyori.adventure.text.Component;
+import org.jetbrains.annotations.NotNull;
 
 public class VelocityConsole implements Console {
 
@@ -36,7 +37,7 @@ public class VelocityConsole implements Console {
     }
 
     @Override
-    public void sendMessage(Identity identity, Component message) {
+    public void sendMessage(Identity identity, @NotNull Component message) {
         discordSRV.proxy().getConsoleCommandSource().sendMessage(identity, message);
     }
 

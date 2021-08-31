@@ -24,7 +24,7 @@ import com.discordsrv.api.discord.api.entity.message.SendableDiscordMessage;
 import com.discordsrv.api.event.bus.EventPriority;
 import com.discordsrv.api.event.bus.Subscribe;
 import com.discordsrv.api.event.events.message.receive.game.ChatMessageReceiveEvent;
-import com.discordsrv.api.event.events.message.send.game.ChatMessageSentEvent;
+import com.discordsrv.api.event.events.message.forward.game.ChatMessageForwardedEvent;
 import com.discordsrv.common.DiscordSRV;
 import com.discordsrv.common.component.util.ComponentUtil;
 import com.discordsrv.common.config.main.channels.BaseChannelConfig;
@@ -39,9 +39,9 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 
-public class DefaultGameChatListener extends AbstractListener {
+public class GameChatListener extends AbstractListener {
 
-    public DefaultGameChatListener(DiscordSRV discordSRV) {
+    public GameChatListener(DiscordSRV discordSRV) {
         super(discordSRV);
     }
 
@@ -91,7 +91,7 @@ public class DefaultGameChatListener extends AbstractListener {
                     }
 
                     discordSRV.eventBus().publish(
-                            new ChatMessageSentEvent(
+                            new ChatMessageForwardedEvent(
                                     new ReceivedDiscordMessageClusterImpl(messages)));
                 });
     }

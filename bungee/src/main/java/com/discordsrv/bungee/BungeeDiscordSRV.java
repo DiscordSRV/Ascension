@@ -113,7 +113,6 @@ public class BungeeDiscordSRV extends ProxyDiscordSRV<MainConfig, ConnectionConf
     protected void enable() throws Throwable {
         // Player related
         this.audiences = BungeeAudiences.create(bootstrap.getPlugin());
-        playerProvider().subscribe();
 
         super.enable();
     }
