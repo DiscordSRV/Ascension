@@ -29,6 +29,7 @@ import com.discordsrv.sponge.console.SpongeConsole;
 import com.discordsrv.sponge.player.SpongePlayerProvider;
 import com.discordsrv.sponge.scheduler.SpongeScheduler;
 import dev.vankka.mcdependencydownload.classloader.JarInJarClassLoader;
+import org.apache.maven.artifact.versioning.ArtifactVersion;
 import org.jetbrains.annotations.NotNull;
 import org.spongepowered.api.Game;
 import org.spongepowered.api.event.Listener;
@@ -96,7 +97,11 @@ public class SpongeDiscordSRV extends ServerDiscordSRV<MainConfig, ConnectionCon
 
     @Override
     public String version() {
-        return pluginContainer.metadata().version();
+        ArtifactVersion version = pluginContainer.metadata().version();
+        return String.format("%s.%s.%s",
+                version.getMajorVersion(),
+                version.getMinorVersion(),
+                version.getIncrementalVersion());
     }
 
     @Override
