@@ -42,7 +42,7 @@ public class ChannelConfigHelper {
 
     private final DiscordSRV discordSRV;
     private final LoadingCache<String, GameChannel> nameToChannelCache;
-    private final Map<String, Pair<String, ChannelConfig>> discordToConfigMap;
+    private final Map<Long, Pair<String, ChannelConfig>> discordToConfigMap;
 
     public ChannelConfigHelper(DiscordSRV discordSRV) {
         this.discordSRV = discordSRV;
@@ -74,13 +74,13 @@ public class ChannelConfigHelper {
             return;
         }
 
-        Map<String, Pair<String, ChannelConfig>> newMap = new HashMap<>();
+        Map<Long, Pair<String, ChannelConfig>> newMap = new HashMap<>();
         for (Map.Entry<String, BaseChannelConfig> entry : channels().entrySet()) {
             String channelName = entry.getKey();
             BaseChannelConfig value = entry.getValue();
             if (value instanceof ChannelConfig) {
                 ChannelConfig channelConfig = (ChannelConfig) value;
-                for (String channelId : channelConfig.channelIds) {
+                for (long channelId : channelConfig.channelIds) {
                     newMap.put(channelId, Pair.of(channelName, channelConfig));
                 }
             }
@@ -88,7 +88,7 @@ public class ChannelConfigHelper {
 
         synchronized (discordToConfigMap) {
             discordToConfigMap.clear();
-            for (Map.Entry<String, Pair<String, ChannelConfig>> entry : newMap.entrySet()) {
+            for (Map.Entry<Long, Pair<String, ChannelConfig>> entry : newMap.entrySet()) {
                 discordToConfigMap.put(entry.getKey(), entry.getValue());
             }
         }

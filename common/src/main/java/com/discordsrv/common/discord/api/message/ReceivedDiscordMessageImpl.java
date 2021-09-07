@@ -60,8 +60,8 @@ public class ReceivedDiscordMessageImpl extends SendableDiscordMessageImpl imple
                 discordSRV,
                 textChannel,
                 user,
-                message.getChannel().getId(),
-                message.getId(),
+                message.getChannel().getIdLong(),
+                message.getIdLong(),
                 message.getContentRaw(),
                 mappedEmbeds,
                 webhookUsername,
@@ -109,15 +109,15 @@ public class ReceivedDiscordMessageImpl extends SendableDiscordMessageImpl imple
                 : String.format(User.DEFAULT_AVATAR_URL, Integer.parseInt(author.getDiscriminator()) % 5);
 
         DiscordTextChannel textChannel = discordSRV.discordAPI().getTextChannelById(
-                Long.toUnsignedString(webhookMessage.getChannelId())).orElse(null);
+                webhookMessage.getChannelId()).orElse(null);
         DiscordUser user = discordSRV.discordAPI().getUserById(
-                Long.toUnsignedString(webhookMessage.getAuthor().getId())).orElse(null);
+                webhookMessage.getAuthor().getId()).orElse(null);
         return new ReceivedDiscordMessageImpl(
                 discordSRV,
                 textChannel,
                 user,
-                Long.toUnsignedString(webhookMessage.getChannelId()),
-                Long.toUnsignedString(webhookMessage.getId()),
+                webhookMessage.getChannelId(),
+                webhookMessage.getId(),
                 webhookMessage.getContent(),
                 mappedEmbeds,
                 author.getName(),
@@ -128,15 +128,15 @@ public class ReceivedDiscordMessageImpl extends SendableDiscordMessageImpl imple
     private final DiscordSRV discordSRV;
     private final DiscordTextChannel textChannel;
     private final DiscordUser author;
-    private final String channelId;
-    private final String id;
+    private final long channelId;
+    private final long id;
 
     private ReceivedDiscordMessageImpl(
             DiscordSRV discordSRV,
             DiscordTextChannel textChannel,
             DiscordUser author,
-            String channelId,
-            String id,
+            long channelId,
+            long id,
             String content,
             List<DiscordMessageEmbed> embeds,
             String webhookUsername,
@@ -151,7 +151,7 @@ public class ReceivedDiscordMessageImpl extends SendableDiscordMessageImpl imple
     }
 
     @Override
-    public @NotNull String getId() {
+    public long getId() {
         return id;
     }
 

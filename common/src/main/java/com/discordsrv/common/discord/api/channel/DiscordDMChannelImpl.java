@@ -37,12 +37,12 @@ import java.util.concurrent.CompletableFuture;
 public class DiscordDMChannelImpl extends DiscordMessageChannelImpl implements DiscordDMChannel {
 
     private final DiscordSRV discordSRV;
-    private final String id;
+    private final long id;
     private final DiscordUser user;
 
     public DiscordDMChannelImpl(DiscordSRV discordSRV, PrivateChannel privateChannel) {
         this.discordSRV = discordSRV;
-        this.id = privateChannel.getId();
+        this.id = privateChannel.getIdLong();
         this.user = new DiscordUserImpl(privateChannel.getUser());
     }
 
@@ -61,7 +61,7 @@ public class DiscordDMChannelImpl extends DiscordMessageChannelImpl implements D
     }
 
     @Override
-    public @NotNull String getId() {
+    public long getId() {
         return id;
     }
 
@@ -84,7 +84,7 @@ public class DiscordDMChannelImpl extends DiscordMessageChannelImpl implements D
     }
 
     @Override
-    public CompletableFuture<Void> deleteMessageById(String id) {
+    public CompletableFuture<Void> deleteMessageById(long id) {
         CompletableFuture<Void> future = privateChannel()
                 .deleteMessageById(id)
                 .submit();
@@ -92,7 +92,7 @@ public class DiscordDMChannelImpl extends DiscordMessageChannelImpl implements D
     }
 
     @Override
-    public @NotNull CompletableFuture<ReceivedDiscordMessage> editMessageById(String id, SendableDiscordMessage message) {
+    public @NotNull CompletableFuture<ReceivedDiscordMessage> editMessageById(long id, SendableDiscordMessage message) {
         if (message.isWebhookMessage()) {
             throw new IllegalArgumentException("Cannot send webhook messages to DMChannels");
         }

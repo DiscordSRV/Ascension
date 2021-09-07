@@ -51,7 +51,7 @@ public interface AllowedMention {
      * @param id the id of the role
      * @return a {@link AllowedMention} object
      */
-    static AllowedMention role(String id) {
+    static AllowedMention role(long id) {
         return new Snowflake(id, false);
     }
 
@@ -60,7 +60,7 @@ public interface AllowedMention {
      * @param id the id of the user
      * @return a {@link AllowedMention} object
      */
-    static AllowedMention user(String id) {
+    static AllowedMention user(long id) {
         return new Snowflake(id, true);
     }
 
@@ -84,15 +84,15 @@ public interface AllowedMention {
 
     class Snowflake implements AllowedMention {
 
-        private final String id;
+        private final long id;
         private final boolean user;
 
-        public Snowflake(String id, boolean user) {
+        public Snowflake(long id, boolean user) {
             this.id = id;
             this.user = user;
         }
 
-        public String getId() {
+        public long getId() {
             return id;
         }
 

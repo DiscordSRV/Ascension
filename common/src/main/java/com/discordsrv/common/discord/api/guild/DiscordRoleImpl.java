@@ -24,16 +24,16 @@ import org.jetbrains.annotations.NotNull;
 
 public class DiscordRoleImpl implements DiscordRole {
 
-    private final String id;
+    private final long id;
     private final String name;
 
     public DiscordRoleImpl(Role role) {
-        this.id = role.getId();
+        this.id = role.getIdLong();
         this.name = role.getName();
     }
 
     @Override
-    public @NotNull String getId() {
+    public long getId() {
         return id;
     }
 

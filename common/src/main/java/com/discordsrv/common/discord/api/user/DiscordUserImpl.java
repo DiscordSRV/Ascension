@@ -24,18 +24,18 @@ import org.jetbrains.annotations.NotNull;
 
 public class DiscordUserImpl implements DiscordUser {
 
-    private final String id;
+    private final long id;
     private final String username;
     private final String discriminator;
 
     public DiscordUserImpl(User user) {
-        this.id = user.getId();
+        this.id = user.getIdLong();
         this.username = user.getName();
         this.discriminator = user.getDiscriminator();
     }
 
     @Override
-    public @NotNull String getId() {
+    public long getId() {
         return id;
     }
 

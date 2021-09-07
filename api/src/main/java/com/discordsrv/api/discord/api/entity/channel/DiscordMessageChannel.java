@@ -51,7 +51,7 @@ public interface DiscordMessageChannel extends Snowflake {
      * @param id the id of the message to delete
      * @return a future that will fail if the request fails
      */
-    CompletableFuture<Void> deleteMessageById(String id);
+    CompletableFuture<Void> deleteMessageById(long id);
 
     /**
      * Edits the message identified by the id.
@@ -62,6 +62,6 @@ public interface DiscordMessageChannel extends Snowflake {
      * @throws com.discordsrv.api.discord.api.exception.NotReadyException if DiscordSRV is not ready, {@link com.discordsrv.api.DiscordSRVApi#isReady()}
      */
     @NotNull
-    CompletableFuture<ReceivedDiscordMessage> editMessageById(String id, SendableDiscordMessage message);
+    CompletableFuture<ReceivedDiscordMessage> editMessageById(long id, SendableDiscordMessage message);
 
 }

@@ -46,7 +46,7 @@ public interface DiscordAPI {
      * @return the message channel
      */
     @NotNull
-    Optional<? extends DiscordMessageChannel> getMessageChannelById(@NotNull String id);
+    Optional<? extends DiscordMessageChannel> getMessageChannelById(long id);
 
     /**
      * Gets a Discord direct message channel by id, the provided entity can be cached and will not update if it changes on Discord.
@@ -54,7 +54,7 @@ public interface DiscordAPI {
      * @return the direct message channel
      */
     @NotNull
-    Optional<DiscordDMChannel> getDirectMessageChannelById(@NotNull String id);
+    Optional<DiscordDMChannel> getDirectMessageChannelById(long id);
 
     /**
      * Gets a Discord text channel by id, the provided entity can be cached and will not update if it changes on Discord.
@@ -62,7 +62,7 @@ public interface DiscordAPI {
      * @return the text channel
      */
     @NotNull
-    Optional<DiscordTextChannel> getTextChannelById(@NotNull String id);
+    Optional<DiscordTextChannel> getTextChannelById(long id);
 
     /**
      * Gets a Discord server by id, the provided entity can be cached and will not update if it changes on Discord.
@@ -70,7 +70,7 @@ public interface DiscordAPI {
      * @return the Discord server
      */
     @NotNull
-    Optional<DiscordGuild> getGuildById(@NotNull String id);
+    Optional<DiscordGuild> getGuildById(long id);
 
     /**
      * Gets a Discord user by id, the provided entity can be cached and will not update if it changes on Discord.
@@ -78,5 +78,5 @@ public interface DiscordAPI {
      * @return the Discord user
      */
     @NotNull
-    Optional<DiscordUser> getUserById(@NotNull String id);
+    Optional<DiscordUser> getUserById(long id);
 }

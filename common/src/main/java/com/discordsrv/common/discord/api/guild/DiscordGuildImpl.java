@@ -54,14 +54,14 @@ public class DiscordGuildImpl implements DiscordGuild {
     }
 
     @Override
-    public Optional<DiscordGuildMember> getMemberById(String id) {
+    public Optional<DiscordGuildMember> getMemberById(long id) {
         return guild()
                 .map(guild -> guild.getMemberById(id))
                 .map(DiscordGuildMemberImpl::new);
     }
 
     @Override
-    public Optional<DiscordRole> getRoleById(String id) {
+    public Optional<DiscordRole> getRoleById(long id) {
         return guild()
                 .map(guild -> guild.getRoleById(id))
                 .map(DiscordRoleImpl::new);

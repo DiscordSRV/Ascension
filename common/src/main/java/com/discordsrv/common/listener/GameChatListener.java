@@ -67,13 +67,13 @@ public class GameChatListener extends AbstractListener {
                 .addReplacement("%message%", DiscordSerializer.INSTANCE.serialize(message))
                 .build();
 
-        List<String> channelIds = channelConfig.get(cfg -> cfg instanceof ChannelConfig ? ((ChannelConfig) cfg).channelIds : null);
+        List<Long> channelIds = channelConfig.get(cfg -> cfg instanceof ChannelConfig ? ((ChannelConfig) cfg).channelIds : null);
         if (channelIds == null || channelIds.isEmpty()) {
             return;
         }
 
         List<CompletableFuture<ReceivedDiscordMessage>> futures = new ArrayList<>();
-        for (String channelId : channelIds) {
+        for (Long channelId : channelIds) {
             discordSRV.discordAPI().getTextChannelById(channelId).ifPresent(textChannel ->
                     futures.add(textChannel.sendMessage(discordMessage)));
         }

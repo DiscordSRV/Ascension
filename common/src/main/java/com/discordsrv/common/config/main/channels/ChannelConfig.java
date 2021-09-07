@@ -50,6 +50,6 @@ public class ChannelConfig extends BaseChannelConfig {
     }
 
     @Comment("The channels this in-game channel will forward to in Discord")
-    public List<String> channelIds = new ArrayList<>(Collections.singletonList("channel-id-here"));
+    public List<Long> channelIds = new ArrayList<>(Collections.singletonList(0L));
 
 }

@@ -36,7 +36,6 @@ import net.dv8tion.jda.api.entities.Message;
 import net.dv8tion.jda.api.entities.MessageChannel;
 import net.dv8tion.jda.api.entities.TextChannel;
 import net.dv8tion.jda.api.requests.restaction.MessageAction;
-import net.dv8tion.jda.api.utils.MiscUtil;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.concurrent.CompletableFuture;
@@ -45,21 +44,21 @@ import java.util.function.BiFunction;
 public class DiscordTextChannelImpl extends DiscordMessageChannelImpl implements DiscordTextChannel {
 
     private final DiscordSRV discordSRV;
-    private final String id;
+    private final long id;
     private final String name;
     private final String topic;
     private final DiscordGuild guild;
 
     public DiscordTextChannelImpl(DiscordSRV discordSRV, TextChannel textChannel) {
         this.discordSRV = discordSRV;
-        this.id = textChannel.getId();
+        this.id = textChannel.getIdLong();
         this.name = textChannel.getName();
         this.topic = textChannel.getTopic();
         this.guild = new DiscordGuildImpl(discordSRV, textChannel.getGuild());
     }
 
     @Override
-    public @NotNull String getId() {
+    public long getId() {
         return id;
     }
 
@@ -84,15 +83,15 @@ public class DiscordTextChannelImpl extends DiscordMessageChannelImpl implements
     }
 
     @Override
-    public CompletableFuture<Void> deleteMessageById(String id) {
+    public CompletableFuture<Void> deleteMessageById(long id) {
         return null; // TODO
     }
 
     @Override
-    public @NotNull CompletableFuture<ReceivedDiscordMessage> editMessageById(String id, SendableDiscordMessage message) {
+    public @NotNull CompletableFuture<ReceivedDiscordMessage> editMessageById(long id, SendableDiscordMessage message) {
         return message(
                 message,
-                (client, msg) -> client.edit(MiscUtil.parseLong(id), msg),
+                (client, msg) -> client.edit(id, msg),
                 (textChannel, msg) -> textChannel.editMessageById(id, msg)
         );
     }

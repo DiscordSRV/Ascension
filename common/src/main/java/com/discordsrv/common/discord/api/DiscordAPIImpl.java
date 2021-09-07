@@ -58,12 +58,12 @@ public class DiscordAPIImpl implements DiscordAPI {
 
     private final DiscordSRV discordSRV;
 
-    private final AsyncLoadingCache<String, WebhookClient> cachedClients;
+    private final AsyncLoadingCache<Long, WebhookClient> cachedClients;
 
     public DiscordAPIImpl(DiscordSRV discordSRV) {
         this.discordSRV = discordSRV;
         this.cachedClients = discordSRV.caffeineBuilder()
-                .removalListener((RemovalListener<String, WebhookClient>) (id, client, cause) -> {
+                .removalListener((RemovalListener<Long, WebhookClient>) (id, client, cause) -> {
                     if (client != null) {
                         client.close();
                     }
@@ -72,7 +72,7 @@ public class DiscordAPIImpl implements DiscordAPI {
                 .buildAsync(new WebhookCacheLoader());
     }
 
-    public CompletableFuture<WebhookClient> queryWebhookClient(String channelId) {
+    public CompletableFuture<WebhookClient> queryWebhookClient(long channelId) {
         return cachedClients.get(channelId);
     }
 
@@ -82,7 +82,7 @@ public class DiscordAPIImpl implements DiscordAPI {
     }
 
     @Override
-    public @NotNull Optional<? extends DiscordMessageChannel> getMessageChannelById(@NotNull String id) {
+    public @NotNull Optional<? extends DiscordMessageChannel> getMessageChannelById(long id) {
         Optional<DiscordTextChannel> textChannel = getTextChannelById(id);
         if (textChannel.isPresent()) {
             return textChannel;
@@ -92,37 +92,37 @@ public class DiscordAPIImpl implements DiscordAPI {
     }
 
     @Override
-    public @NotNull Optional<DiscordDMChannel> getDirectMessageChannelById(@NotNull String id) {
+    public @NotNull Optional<DiscordDMChannel> getDirectMessageChannelById(long id) {
         return discordSRV.jda()
                 .map(jda -> jda.getPrivateChannelById(id))
                 .map(privateChannel -> new DiscordDMChannelImpl(discordSRV, privateChannel));
     }
 
     @Override
-    public @NotNull Optional<DiscordTextChannel> getTextChannelById(@NotNull String id) {
+    public @NotNull Optional<DiscordTextChannel> getTextChannelById(long id) {
         return discordSRV.jda()
                 .map(jda -> jda.getTextChannelById(id))
                 .map(textChannel -> new DiscordTextChannelImpl(discordSRV, textChannel));
     }
 
     @Override
-    public @NotNull Optional<DiscordGuild> getGuildById(@NotNull String id) {
+    public @NotNull Optional<DiscordGuild> getGuildById(long id) {
         return discordSRV.jda()
                 .map(jda -> jda.getGuildById(id))
                 .map(guild -> new DiscordGuildImpl(discordSRV, guild));
     }
 
     @Override
-    public @NotNull Optional<DiscordUser> getUserById(@NotNull String id) {
+    public @NotNull Optional<DiscordUser> getUserById(long id) {
         return discordSRV.jda()
                 .map(jda -> jda.getUserById(id))
                 .map(DiscordUserImpl::new);
     }
 
-    private class WebhookCacheLoader implements AsyncCacheLoader<String, WebhookClient> {
+    private class WebhookCacheLoader implements AsyncCacheLoader<Long, WebhookClient> {
 
         @Override
-        public @NonNull CompletableFuture<WebhookClient> asyncLoad(@NonNull String channelId, @NonNull Executor executor) {
+        public @NonNull CompletableFuture<WebhookClient> asyncLoad(@NonNull Long channelId, @NonNull Executor executor) {
             CompletableFuture<WebhookClient> future = new CompletableFuture<>();
 
             JDA jda = discordSRV.jda().orElse(null);
@@ -169,9 +169,9 @@ public class DiscordAPIImpl implements DiscordAPI {
         }
     }
 
-    private class WebhookCacheExpiry implements Expiry<String, WebhookClient> {
+    private class WebhookCacheExpiry implements Expiry<Long, WebhookClient> {
 
-        private boolean isConfiguredChannel(String channelId) {
+        private boolean isConfiguredChannel(Long channelId) {
             for (BaseChannelConfig config : discordSRV.config().channels.values()) {
                 if (config instanceof ChannelConfig
                         && ((ChannelConfig) config).channelIds.contains(channelId)) {
@@ -181,22 +181,22 @@ public class DiscordAPIImpl implements DiscordAPI {
             return false;
         }
 
-        private long expireAfterWrite(String channelId) {
+        private long expireAfterWrite(Long channelId) {
             return isConfiguredChannel(channelId) ? Long.MAX_VALUE : TimeUnit.MINUTES.toNanos(15);
         }
 
         @Override
-        public long expireAfterCreate(@NonNull String channelId, @NonNull WebhookClient webhookClient, long currentTime) {
+        public long expireAfterCreate(@NonNull Long channelId, @NonNull WebhookClient webhookClient, long currentTime) {
             return expireAfterWrite(channelId);
         }
 
         @Override
-        public long expireAfterUpdate(@NonNull String channelId, @NonNull WebhookClient webhookClient, long currentTime, @NonNegative long currentDuration) {
+        public long expireAfterUpdate(@NonNull Long channelId, @NonNull WebhookClient webhookClient, long currentTime, @NonNegative long currentDuration) {
             return expireAfterWrite(channelId);
         }
 
         @Override
-        public long expireAfterRead(@NonNull String channelId, @NonNull WebhookClient webhookClient, long currentTime, @NonNegative long currentDuration) {
+        public long expireAfterRead(@NonNull Long channelId, @NonNull WebhookClient webhookClient, long currentTime, @NonNegative long currentDuration) {
             return isConfiguredChannel(channelId) ? Long.MAX_VALUE : TimeUnit.MINUTES.toNanos(10);
         }
     }

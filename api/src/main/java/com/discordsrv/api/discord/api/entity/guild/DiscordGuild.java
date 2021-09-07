@@ -47,13 +47,13 @@ public interface DiscordGuild {
      * @param id the id for the Discord guild member
      * @return the Discord guild member from the cache
      */
-    Optional<DiscordGuildMember> getMemberById(String id);
+    Optional<DiscordGuildMember> getMemberById(long id);
 
     /**
      * Gets a Discord role by id from the cache, the provided entity can be cached and will not update if it changes on Discord.
      * @param id the id for the Discord role
      * @return the Discord role from the cache
      */
-    Optional<DiscordRole> getRoleById(String id);
+    Optional<DiscordRole> getRoleById(long id);
 
 }

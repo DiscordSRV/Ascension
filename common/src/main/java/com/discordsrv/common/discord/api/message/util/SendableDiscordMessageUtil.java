@@ -38,14 +38,14 @@ public final class SendableDiscordMessageUtil {
 
     public static Message toJDA(@NotNull SendableDiscordMessage message) {
         List<Message.MentionType> allowedTypes = new ArrayList<>();
-        List<String> allowedUsers = new ArrayList<>();
-        List<String> allowedRoles = new ArrayList<>();
+        List<Long> allowedUsers = new ArrayList<>();
+        List<Long> allowedRoles = new ArrayList<>();
 
         Set<AllowedMention> allowedMentions = message.getAllowedMentions();
         if (allowedMentions != null) {
             for (AllowedMention allowedMention : allowedMentions) {
                 if (allowedMention instanceof AllowedMention.Snowflake) {
-                    String id = ((AllowedMention.Snowflake) allowedMention).getId();
+                    long id = ((AllowedMention.Snowflake) allowedMention).getId();
                     if (((AllowedMention.Snowflake) allowedMention).isUser()) {
                         allowedUsers.add(id);
                     } else {
@@ -66,8 +66,8 @@ public final class SendableDiscordMessageUtil {
                 .setContent(message.getContent())
                 .setEmbeds(embeds)
                 .setAllowedMentions(allowedTypes)
-                .mentionUsers(allowedUsers.toArray(new String[0]))
-                .mentionRoles(allowedRoles.toArray(new String[0]))
+                .mentionUsers(allowedUsers.stream().mapToLong(l -> l).toArray())
+                .mentionRoles(allowedRoles.stream().mapToLong(l -> l).toArray())
                 .build();
     }
 
