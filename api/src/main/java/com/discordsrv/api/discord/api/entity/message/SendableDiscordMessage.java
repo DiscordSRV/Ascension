@@ -192,8 +192,17 @@ public interface SendableDiscordMessage {
          */
         @NotNull
         SendableDiscordMessage build();
+
+        /**
+         * Creates a copy of this {@link Builder}.
+         * @return a copy of this builder
+         */
+        Builder clone();
     }
 
+    /**
+     * Discord equivalent for {@link com.discordsrv.api.component.EnhancedTextBuilder}.
+     */
     interface Formatter {
 
         Formatter addContext(Object... context);

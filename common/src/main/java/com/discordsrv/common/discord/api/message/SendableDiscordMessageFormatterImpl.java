@@ -18,7 +18,10 @@
 
 package com.discordsrv.common.discord.api.message;
 
+import com.discordsrv.api.discord.api.entity.message.DiscordMessageEmbed;
 import com.discordsrv.api.discord.api.entity.message.SendableDiscordMessage;
+import com.discordsrv.api.discord.api.util.DiscordFormattingUtil;
+import com.discordsrv.api.placeholder.FormattedText;
 import com.discordsrv.api.placeholder.PlaceholderService;
 import com.discordsrv.common.DiscordSRV;
 import com.discordsrv.common.placeholder.converter.ComponentResultConverter;
@@ -39,7 +42,7 @@ public class SendableDiscordMessageFormatterImpl implements SendableDiscordMessa
 
     public SendableDiscordMessageFormatterImpl(DiscordSRV discordSRV, SendableDiscordMessage.Builder builder) {
         this.discordSRV = discordSRV;
-        this.builder = builder;
+        this.builder = builder.clone();
     }
 
     @Override
@@ -50,7 +53,7 @@ public class SendableDiscordMessageFormatterImpl implements SendableDiscordMessa
 
     @Override
     public SendableDiscordMessage.Formatter addReplacement(Pattern target, Function<Matcher, Object> replacement) {
-        this.replacements.put(target, replacement);
+        this.replacements.put(target, wrapFunction(replacement));
         return this;
     }
 
@@ -64,16 +67,90 @@ public class SendableDiscordMessageFormatterImpl implements SendableDiscordMessa
             return new Placeholders(input)
                     .addAll(replacements)
                     .replaceAll(PlaceholderService.PATTERN,
-                            matcher -> discordSRV.placeholderService().getResultAsString(matcher, context))
+                            wrapFunction(
+                                    matcher -> discordSRV.placeholderService().getResultAsString(matcher, context)))
                     .get();
         };
-
-        ComponentResultConverter.plain(() ->
-                builder.setWebhookUsername(placeholders.apply(builder.getWebhookUsername())));
         builder.setContent(placeholders.apply(builder.getContent()));
 
-        // TODO: rest of the content, escaping unwanted characters
+        List<DiscordMessageEmbed> embeds = new ArrayList<>(builder.getEmbeds());
+        builder.getEmbeds().clear();
+
+        for (DiscordMessageEmbed embed : embeds) {
+            DiscordMessageEmbed.Builder embedBuilder = embed.toBuilder();
+
+            // TODO: check which parts allow formatting more thoroughly
+            ComponentResultConverter.plainComponents(() -> {
+                embedBuilder.setAuthor(
+                        placeholders.apply(
+                                embedBuilder.getAuthorName()),
+                        placeholders.apply(
+                                embedBuilder.getAuthorUrl()),
+                        placeholders.apply(
+                                embedBuilder.getAuthorImageUrl()));
+
+                embedBuilder.setTitle(
+                        placeholders.apply(
+                                embedBuilder.getTitle()),
+                        placeholders.apply(
+                                embedBuilder.getTitleUrl()));
+
+                embedBuilder.setThumbnailUrl(
+                        placeholders.apply(
+                                embedBuilder.getThumbnailUrl()));
+
+                embedBuilder.setImageUrl(
+                        placeholders.apply(
+                                embedBuilder.getImageUrl()));
+
+                embedBuilder.setFooter(
+                        placeholders.apply(
+                                embedBuilder.getFooter()),
+                        placeholders.apply(
+                                embedBuilder.getFooterImageUrl()));
+            });
+
+            embedBuilder.setDescription(
+                    placeholders.apply(
+                            embedBuilder.getDescription())
+            );
+
+            List<DiscordMessageEmbed.Field> fields = new ArrayList<>(embedBuilder.getFields());
+            embedBuilder.getFields().clear();
+
+            fields.forEach(field -> embedBuilder.addField(
+                    placeholders.apply(
+                            field.getTitle()),
+                    placeholders.apply(
+                            field.getValue()),
+                    field.isInline()
+            ));
+
+            builder.addEmbed(embedBuilder.build());
+        }
+
+        ComponentResultConverter.plainComponents(() -> {
+            builder.setWebhookUsername(placeholders.apply(builder.getWebhookUsername()));
+            builder.setWebhookAvatarUrl(placeholders.apply(builder.getWebhookAvatarUrl()));
+        });
 
         return builder.build();
+    }
+
+    private Function<Matcher, Object> wrapFunction(Function<Matcher, Object> function) {
+        return matcher -> {
+            Object result = function.apply(matcher);
+            if (result instanceof FormattedText) {
+                // Process as regular text
+                return result.toString();
+            } else if (result instanceof CharSequence) {
+                // Escape content
+                return DiscordFormattingUtil.escapeContent(
+                        result.toString());
+            }
+
+            // Use default behaviour for everything else
+            return result;
+        };
     }
 }

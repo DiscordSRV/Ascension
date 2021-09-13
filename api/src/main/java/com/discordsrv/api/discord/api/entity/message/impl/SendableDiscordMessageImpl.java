@@ -157,5 +157,17 @@ public class SendableDiscordMessageImpl implements SendableDiscordMessage {
         public @NotNull SendableDiscordMessage build() {
             return new SendableDiscordMessageImpl(content, embeds, allowedMentions, webhookUsername, webhookAvatarUrl);
         }
+
+        @SuppressWarnings("MethodDoesntCallSuperMethod")
+        @Override
+        public Builder clone() {
+            BuilderImpl clone = new BuilderImpl();
+            clone.setContent(content);
+            embeds.forEach(clone::addEmbed);
+            allowedMentions.forEach(clone::addAllowedMention);
+            clone.setWebhookUsername(webhookUsername);
+            clone.setWebhookAvatarUrl(webhookAvatarUrl);
+            return clone;
+        }
     }
 }

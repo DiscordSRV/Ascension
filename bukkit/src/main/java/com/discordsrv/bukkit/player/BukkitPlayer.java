@@ -23,8 +23,8 @@ import com.discordsrv.common.component.util.ComponentUtil;
 import com.discordsrv.common.player.IPlayer;
 import net.kyori.adventure.audience.Audience;
 import net.kyori.adventure.identity.Identity;
+import net.kyori.adventure.platform.bukkit.BukkitComponentSerializer;
 import net.kyori.adventure.text.Component;
-import net.kyori.adventure.text.serializer.craftbukkit.BukkitComponentSerializer;
 import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
 

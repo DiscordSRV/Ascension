@@ -21,37 +21,36 @@
  * SOFTWARE.
  */
 
-package com.discordsrv.api.player;
-
-import com.discordsrv.api.placeholder.Placeholder;
-import org.jetbrains.annotations.NotNull;
-
-import java.util.UUID;
+package com.discordsrv.api.placeholder;
 
 /**
- * A DiscordSRV player.
+ * Represents content that doesn't need to be processed for the purposes of DiscordSRV's processing.
  */
-public interface DiscordSRVPlayer {
+public class FormattedText implements CharSequence {
 
-    /**
-     * The username of the player.
-     * @return the player's username
-     */
-    @Placeholder("player_name")
-    @NotNull
-    String getUsername();
+    private final CharSequence text;
 
-    /**
-     * The {@link UUID} of the player.
-     * @return the player's unique id
-     */
-    @Placeholder("player_uuid")
-    @NotNull
-    UUID uuid();
+    public FormattedText(CharSequence text) {
+        this.text = text;
+    }
 
+    @Override
+    public int length() {
+        return text.length();
+    }
 
-    @Placeholder("totally_my_username") // TODO: remove
-    default String totallyMyUsername() {
-        return "*hi";
+    @Override
+    public char charAt(int index) {
+        return text.charAt(index);
+    }
+
+    @Override
+    public CharSequence subSequence(int start, int end) {
+        return text.subSequence(start, end);
+    }
+
+    @Override
+    public String toString() {
+        return text.toString();
     }
 }

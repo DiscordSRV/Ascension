@@ -24,7 +24,7 @@ import com.discordsrv.bukkit.BukkitDiscordSRV;
 import com.discordsrv.common.channel.DefaultGlobalChannel;
 import com.discordsrv.common.component.util.ComponentUtil;
 import io.papermc.paper.event.player.AsyncChatEvent;
-import net.kyori.adventure.text.serializer.craftbukkit.BukkitComponentSerializer;
+import net.kyori.adventure.platform.bukkit.BukkitComponentSerializer;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;

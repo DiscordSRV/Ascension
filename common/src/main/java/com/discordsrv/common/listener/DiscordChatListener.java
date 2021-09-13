@@ -56,7 +56,6 @@ public class DiscordChatListener extends AbstractListener {
         }
 
         DiscordTextChannel channel = event.getChannel();
-        Component message = MinecraftSerializer.INSTANCE.serialize(event.getMessageContent());
 
         OrDefault<Pair<GameChannel, BaseChannelConfig>> channelPair = discordSRV.channelConfig().orDefault(channel);
         GameChannel gameChannel = channelPair.get(Pair::getKey);
@@ -73,6 +72,8 @@ public class DiscordChatListener extends AbstractListener {
         }
 
         DiscordUser user = event.getDiscordMessage().getAuthor();
+        Component message = MinecraftSerializer.INSTANCE.serialize(event.getMessageContent());
+
         MinecraftComponent component = discordSRV.componentFactory()
                 .enhancedBuilder(format)
                 .addContext(event.getDiscordMessage(), user)

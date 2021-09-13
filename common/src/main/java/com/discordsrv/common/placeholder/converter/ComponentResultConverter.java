@@ -30,7 +30,7 @@ public class ComponentResultConverter implements PlaceholderResultConverter {
 
     private static final ThreadLocal<Boolean> PLAIN_CONTEXT = new ThreadLocal<>();
 
-    public static void plain(Runnable runnable) {
+    public static void plainComponents(Runnable runnable) {
         PLAIN_CONTEXT.set(true);
         runnable.run();
         PLAIN_CONTEXT.set(false);

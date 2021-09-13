@@ -76,7 +76,9 @@ public class Placeholders {
             Function<Matcher, Object> replacement = entry.getValue();
             Object value = replacement.apply(matcher);
 
-            input = matcher.replaceAll(String.valueOf(value));
+            input = matcher.replaceAll(
+                    Matcher.quoteReplacement(
+                            String.valueOf(value)));
         }
         return input;
     }

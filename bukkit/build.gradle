@@ -23,7 +23,6 @@ dependencies {
 
     // Adventure
     runtimeDownloadApi 'net.kyori:adventure-platform-bukkit:' + rootProject.adventurePlatformVersion
-    runtimeDownloadApi 'net.kyori:adventure-text-serializer-craftbukkit:' + rootProject.adventurePlatformVersion
 }
 
 shadowJar {

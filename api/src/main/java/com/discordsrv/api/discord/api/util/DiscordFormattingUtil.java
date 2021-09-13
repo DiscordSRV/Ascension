@@ -21,37 +21,23 @@
  * SOFTWARE.
  */
 
-package com.discordsrv.api.player;
+package com.discordsrv.api.discord.api.util;
 
-import com.discordsrv.api.placeholder.Placeholder;
-import org.jetbrains.annotations.NotNull;
+public final class DiscordFormattingUtil {
 
-import java.util.UUID;
+    private DiscordFormattingUtil() {}
 
-/**
- * A DiscordSRV player.
- */
-public interface DiscordSRVPlayer {
+    public static String escapeContent(String content) {
+        content = escapeChars(content, '*', '_', '|', '`', '~', '>');
+        return content;
+    }
 
-    /**
-     * The username of the player.
-     * @return the player's username
-     */
-    @Placeholder("player_name")
-    @NotNull
-    String getUsername();
-
-    /**
-     * The {@link UUID} of the player.
-     * @return the player's unique id
-     */
-    @Placeholder("player_uuid")
-    @NotNull
-    UUID uuid();
-
-
-    @Placeholder("totally_my_username") // TODO: remove
-    default String totallyMyUsername() {
-        return "*hi";
+    private static String escapeChars(String input, char... characters) {
+        for (char character : characters) {
+            input = input.replace(
+                    String.valueOf(character),
+                    "\\" + character);
+        }
+        return input;
     }
 }

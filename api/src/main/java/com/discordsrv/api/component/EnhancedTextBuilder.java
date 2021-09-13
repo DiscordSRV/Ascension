@@ -28,6 +28,9 @@ import java.util.function.Supplier;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+/**
+ * Minecraft equivalent for {@link com.discordsrv.api.discord.api.entity.message.SendableDiscordMessage.Formatter}.
+ */
 public interface EnhancedTextBuilder {
 
     EnhancedTextBuilder addContext(Object... context);

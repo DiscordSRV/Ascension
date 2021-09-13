@@ -52,7 +52,6 @@ public class GameChatListener extends AbstractListener {
         }
 
         GameChannel gameChannel = event.getGameChannel();
-        Component message = ComponentUtil.fromAPI(event.message());
 
         OrDefault<BaseChannelConfig> channelConfig = discordSRV.channelConfig().orDefault(gameChannel);
         OrDefault<MinecraftToDiscordChatConfig> chatConfig = channelConfig.map(cfg -> cfg.minecraftToDiscord);
@@ -62,9 +61,12 @@ public class GameChatListener extends AbstractListener {
             return;
         }
 
+        Component message = ComponentUtil.fromAPI(event.message());
+        String serializedMessage = DiscordSerializer.INSTANCE.serialize(message);
+
         SendableDiscordMessage discordMessage = discordSRV.discordAPI().format(builder)
                 .addContext(event.getPlayer())
-                .addReplacement("%message%", DiscordSerializer.INSTANCE.serialize(message))
+                .addReplacement("%message%", serializedMessage)
                 .build();
 
         List<Long> channelIds = channelConfig.get(cfg -> cfg instanceof ChannelConfig ? ((ChannelConfig) cfg).channelIds : null);
