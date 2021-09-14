@@ -18,17 +18,32 @@
 
 package com.discordsrv.common.discord.api.channel;
 
+import com.discordsrv.api.discord.api.entity.channel.DiscordMessageChannel;
 import com.discordsrv.api.discord.api.exception.RestErrorResponseException;
 import com.discordsrv.api.discord.api.exception.UnknownChannelException;
 import com.discordsrv.api.discord.api.exception.UnknownMessageException;
+import com.discordsrv.common.DiscordSRV;
 import lombok.SneakyThrows;
+import net.dv8tion.jda.api.entities.MessageChannel;
+import net.dv8tion.jda.api.entities.PrivateChannel;
+import net.dv8tion.jda.api.entities.TextChannel;
 import net.dv8tion.jda.api.exceptions.ErrorResponseException;
 import net.dv8tion.jda.api.requests.ErrorResponse;
 
 import java.util.concurrent.CompletableFuture;
 import java.util.function.BiFunction;
 
-public abstract class DiscordMessageChannelImpl {
+public abstract class DiscordMessageChannelImpl implements DiscordMessageChannel {
+
+    public static DiscordMessageChannelImpl get(DiscordSRV discordSRV, MessageChannel messageChannel) {
+        if (messageChannel instanceof TextChannel) {
+            return new DiscordTextChannelImpl(discordSRV, (TextChannel) messageChannel);
+        } else if (messageChannel instanceof PrivateChannel) {
+            return new DiscordDMChannelImpl(discordSRV, (PrivateChannel) messageChannel);
+        } else {
+            throw new IllegalArgumentException("Unknown MessageChannel type");
+        }
+    }
 
     @SuppressWarnings("Convert2Lambda") // SneakyThrows
     protected final <T> CompletableFuture<T> mapExceptions(CompletableFuture<T> future) {

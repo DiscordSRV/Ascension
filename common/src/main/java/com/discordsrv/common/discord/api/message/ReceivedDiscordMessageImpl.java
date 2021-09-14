@@ -18,6 +18,7 @@
 
 package com.discordsrv.common.discord.api.message;
 
+import club.minnced.discord.webhook.WebhookClient;
 import club.minnced.discord.webhook.receive.ReadonlyEmbed;
 import club.minnced.discord.webhook.receive.ReadonlyMessage;
 import club.minnced.discord.webhook.receive.ReadonlyUser;
@@ -56,8 +57,24 @@ public class ReceivedDiscordMessageImpl extends SendableDiscordMessageImpl imple
 
         DiscordTextChannel textChannel = new DiscordTextChannelImpl(discordSRV, message.getTextChannel());
         DiscordUser user = new DiscordUserImpl(message.getAuthor());
+
+        boolean self = false;
+        if (webhookMessage) {
+            CompletableFuture<WebhookClient> clientFuture = discordSRV.discordAPI()
+                    .getCachedClients()
+                    .getIfPresent(message.getChannel().getIdLong());
+
+            if (clientFuture != null) {
+                long clientId = clientFuture.join().getId();
+                self = clientId == user.getId();
+            }
+        } else {
+            self = user.isSelf();
+        }
+
         return new ReceivedDiscordMessageImpl(
                 discordSRV,
+                self,
                 textChannel,
                 user,
                 message.getChannel().getIdLong(),
@@ -114,6 +131,8 @@ public class ReceivedDiscordMessageImpl extends SendableDiscordMessageImpl imple
                 webhookMessage.getAuthor().getId()).orElse(null);
         return new ReceivedDiscordMessageImpl(
                 discordSRV,
+                // These are always from rest responses
+                true,
                 textChannel,
                 user,
                 webhookMessage.getChannelId(),
@@ -126,6 +145,7 @@ public class ReceivedDiscordMessageImpl extends SendableDiscordMessageImpl imple
     }
 
     private final DiscordSRV discordSRV;
+    private final boolean fromSelf;
     private final DiscordTextChannel textChannel;
     private final DiscordUser author;
     private final long channelId;
@@ -133,6 +153,7 @@ public class ReceivedDiscordMessageImpl extends SendableDiscordMessageImpl imple
 
     private ReceivedDiscordMessageImpl(
             DiscordSRV discordSRV,
+            boolean fromSelf,
             DiscordTextChannel textChannel,
             DiscordUser author,
             long channelId,
@@ -144,6 +165,7 @@ public class ReceivedDiscordMessageImpl extends SendableDiscordMessageImpl imple
     ) {
         super(content, embeds, null, webhookUsername, webhookAvatarUrl);
         this.discordSRV = discordSRV;
+        this.fromSelf = fromSelf;
         this.textChannel = textChannel;
         this.author = author;
         this.channelId = channelId;
@@ -153,6 +175,11 @@ public class ReceivedDiscordMessageImpl extends SendableDiscordMessageImpl imple
     @Override
     public long getId() {
         return id;
+    }
+
+    @Override
+    public boolean isFromSelf() {
+        return fromSelf;
     }
 
     @Override

@@ -29,7 +29,7 @@ import com.discordsrv.api.event.events.Cancellable;
 import com.discordsrv.api.event.events.Processable;
 import org.jetbrains.annotations.NotNull;
 
-public class DiscordMessageReceiveEvent implements Cancellable, Processable {
+public class DiscordMessageProcessingEvent implements Cancellable, Processable {
 
     private final ReceivedDiscordMessage discordMessage;
     private String messageContent;
@@ -37,7 +37,7 @@ public class DiscordMessageReceiveEvent implements Cancellable, Processable {
     private boolean cancelled;
     private boolean processed;
 
-    public DiscordMessageReceiveEvent(@NotNull ReceivedDiscordMessage discordMessage, @NotNull DiscordTextChannel channel) {
+    public DiscordMessageProcessingEvent(@NotNull ReceivedDiscordMessage discordMessage, @NotNull DiscordTextChannel channel) {
         this.discordMessage = discordMessage;
         this.messageContent = discordMessage.getContent();
         this.channel = channel;

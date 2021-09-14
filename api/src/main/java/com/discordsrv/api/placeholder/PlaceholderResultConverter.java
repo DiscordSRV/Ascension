@@ -23,10 +23,29 @@
 
 package com.discordsrv.api.placeholder;
 
+import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
 
 @FunctionalInterface
 public interface PlaceholderResultConverter {
+
+    /**
+     * @see #plainComponents(Runnable)
+     */
+    @ApiStatus.Internal
+    ThreadLocal<Boolean> PLAIN_COMPONENT_CONTEXT = new ThreadLocal<>();
+
+    /**
+     * Utility method to run the provided {@link Runnable} where {@link PlaceholderService}s
+     * will replace {@link com.discordsrv.api.component.MinecraftComponent}s
+     * as plain without formatting (instead of converting to Discord formatting).
+     * @param runnable a task that will be executed immediately
+     */
+    static void plainComponents(Runnable runnable) {
+        PLAIN_COMPONENT_CONTEXT.set(true);
+        runnable.run();
+        PLAIN_COMPONENT_CONTEXT.set(false);
+    }
 
     /**
      * Converts a successful placeholder lookup result into a {@link String}.
@@ -34,4 +53,5 @@ public interface PlaceholderResultConverter {
      * @return the result in {@link String} form
      */
     String convertPlaceholderResult(@NotNull Object result);
+
 }

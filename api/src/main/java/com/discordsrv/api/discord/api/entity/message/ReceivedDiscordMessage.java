@@ -37,6 +37,13 @@ import java.util.concurrent.CompletableFuture;
 public interface ReceivedDiscordMessage extends SendableDiscordMessage, Snowflake {
 
     /**
+     * Determines if this message was sent by this DiscordSRV instance's Discord bot,
+     * or a webhook being used by this DiscordSRV instance.
+     * @return true if this message was sent by this DiscordSRV instance
+     */
+    boolean isFromSelf();
+
+    /**
      * Gets the channel that the message was sent in.
      * @return the channel the message was sent in
      */

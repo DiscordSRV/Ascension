@@ -28,11 +28,11 @@ import com.discordsrv.api.component.MinecraftComponent;
 import com.discordsrv.api.event.events.PlayerEvent;
 import com.discordsrv.api.player.DiscordSRVPlayer;
 
-public class ChatMessageReceiveEvent extends AbstractGameMessageReceiveEvent implements PlayerEvent {
+public class ChatMessageProcessingEvent extends AbstractGameMessageReceiveEvent implements PlayerEvent {
 
     private final DiscordSRVPlayer player;
 
-    public ChatMessageReceiveEvent(DiscordSRVPlayer player, MinecraftComponent message, GameChannel gameChannel, boolean cancelled) {
+    public ChatMessageProcessingEvent(DiscordSRVPlayer player, MinecraftComponent message, GameChannel gameChannel, boolean cancelled) {
         super(message, gameChannel, cancelled);
         this.player = player;
     }

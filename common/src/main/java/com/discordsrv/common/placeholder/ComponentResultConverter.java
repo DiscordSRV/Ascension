@@ -16,7 +16,7 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package com.discordsrv.common.placeholder.converter;
+package com.discordsrv.common.placeholder;
 
 import com.discordsrv.api.component.MinecraftComponent;
 import com.discordsrv.api.placeholder.PlaceholderResultConverter;
@@ -28,14 +28,6 @@ import org.jetbrains.annotations.NotNull;
 
 public class ComponentResultConverter implements PlaceholderResultConverter {
 
-    private static final ThreadLocal<Boolean> PLAIN_CONTEXT = new ThreadLocal<>();
-
-    public static void plainComponents(Runnable runnable) {
-        PLAIN_CONTEXT.set(true);
-        runnable.run();
-        PLAIN_CONTEXT.set(false);
-    }
-
     @Override
     public String convertPlaceholderResult(@NotNull Object result) {
         if (result instanceof MinecraftComponent) {
@@ -43,7 +35,7 @@ public class ComponentResultConverter implements PlaceholderResultConverter {
         }
         if (result instanceof Component) {
             Component component = (Component) result;
-            if (PLAIN_CONTEXT.get()) {
+            if (PLAIN_COMPONENT_CONTEXT.get()) {
                 return PlainTextComponentSerializer.plainText()
                         .serialize(component);
             } else {

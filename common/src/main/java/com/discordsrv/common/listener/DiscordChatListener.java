@@ -23,15 +23,13 @@ import com.discordsrv.api.component.MinecraftComponent;
 import com.discordsrv.api.discord.api.entity.channel.DiscordTextChannel;
 import com.discordsrv.api.discord.api.entity.user.DiscordUser;
 import com.discordsrv.api.event.bus.Subscribe;
-import com.discordsrv.api.event.events.message.receive.discord.DiscordMessageReceiveEvent;
+import com.discordsrv.api.event.events.discord.DiscordMessageReceivedEvent;
+import com.discordsrv.api.event.events.message.receive.discord.DiscordMessageProcessingEvent;
 import com.discordsrv.common.DiscordSRV;
 import com.discordsrv.common.config.main.channels.BaseChannelConfig;
 import com.discordsrv.common.config.main.channels.discordtominecraft.DiscordToMinecraftChatConfig;
-import com.discordsrv.common.discord.api.channel.DiscordTextChannelImpl;
-import com.discordsrv.common.discord.api.message.ReceivedDiscordMessageImpl;
 import com.discordsrv.common.function.OrDefault;
 import dev.vankka.mcdiscordreserializer.minecraft.MinecraftSerializer;
-import net.dv8tion.jda.api.events.message.guild.GuildMessageReceivedEvent;
 import net.kyori.adventure.text.Component;
 import org.apache.commons.lang3.tuple.Pair;
 
@@ -42,16 +40,21 @@ public class DiscordChatListener extends AbstractListener {
     }
 
     @Subscribe
-    public void onGuildMessageReceived(GuildMessageReceivedEvent event) {
+    public void onGuildMessageReceived(DiscordMessageReceivedEvent event) {
+        DiscordTextChannel channel = event.getTextChannel();
+        if (channel == null || !discordSRV.isReady() || event.getMessage().isFromSelf()) {
+            return;
+        }
+
         discordSRV.eventBus().publish(
-                new DiscordMessageReceiveEvent(
-                        ReceivedDiscordMessageImpl.fromJDA(discordSRV, event.getMessage()),
-                        new DiscordTextChannelImpl(discordSRV, event.getChannel())));
+                new DiscordMessageProcessingEvent(
+                        event.getMessage(),
+                        channel));
     }
 
     @Subscribe
-    public void onDiscordMessageReceive(DiscordMessageReceiveEvent event) {
-        if (checkCancellation(event) || checkProcessor(event) || !discordSRV.isReady()) {
+    public void onDiscordMessageReceive(DiscordMessageProcessingEvent event) {
+        if (checkCancellation(event) || checkProcessor(event)) {
             return;
         }
 

@@ -194,6 +194,12 @@ public interface SendableDiscordMessage {
         SendableDiscordMessage build();
 
         /**
+         * Creates a new formatter with a clone of this {@link Builder}.
+         * @return the new {@link Formatter}
+         */
+        Formatter toFormatter();
+
+        /**
          * Creates a copy of this {@link Builder}.
          * @return a copy of this builder
          */
@@ -205,6 +211,11 @@ public interface SendableDiscordMessage {
      */
     interface Formatter {
 
+        /**
+         * Adds context for replacing placeholders via DiscordSRV's {@link com.discordsrv.api.placeholder.PlaceholderService}.
+         * @param context the context to add
+         * @return the formatted, useful for chaining
+         */
         Formatter addContext(Object... context);
 
         default Formatter addReplacement(String target, Object replacement) {

@@ -19,7 +19,7 @@
 package com.discordsrv.bukkit.listener;
 
 import com.discordsrv.api.component.MinecraftComponent;
-import com.discordsrv.api.event.events.message.receive.game.ChatMessageReceiveEvent;
+import com.discordsrv.api.event.events.message.receive.game.ChatMessageProcessingEvent;
 import com.discordsrv.bukkit.BukkitDiscordSRV;
 import com.discordsrv.common.channel.DefaultGlobalChannel;
 import com.discordsrv.common.component.util.ComponentUtil;
@@ -57,7 +57,7 @@ public abstract class BukkitChatListener implements Listener {
 
     protected void publishEvent(Player player, MinecraftComponent component, boolean cancelled) {
         discordSRV.eventBus().publish(
-                new ChatMessageReceiveEvent(
+                new ChatMessageProcessingEvent(
                         discordSRV.playerProvider().player(player),
                         component,
                         new DefaultGlobalChannel(discordSRV),

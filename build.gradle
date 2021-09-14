@@ -21,7 +21,7 @@ ext {
     configurateVersion = '4.1.1'
     // Adventure & Adventure Platform
     adventureVersion = '4.9.1'
-    adventurePlatformVersion = '4.0.0-SNAPSHOT'
+    adventurePlatformVersion = '4.0.0'
 }
 
 allprojects {

@@ -38,12 +38,13 @@ import com.discordsrv.common.discord.details.DiscordConnectionDetailsImpl;
 import com.discordsrv.common.event.bus.EventBusImpl;
 import com.discordsrv.common.function.CheckedRunnable;
 import com.discordsrv.common.listener.ChannelLookupListener;
+import com.discordsrv.common.listener.DiscordAPIListener;
 import com.discordsrv.common.listener.DiscordChatListener;
 import com.discordsrv.common.listener.GameChatListener;
 import com.discordsrv.common.logging.DependencyLoggingFilter;
 import com.discordsrv.common.logging.logger.backend.LoggingBackend;
 import com.discordsrv.common.placeholder.PlaceholderServiceImpl;
-import com.discordsrv.common.placeholder.converter.ComponentResultConverter;
+import com.discordsrv.common.placeholder.ComponentResultConverter;
 import net.dv8tion.jda.api.JDA;
 import org.jetbrains.annotations.NotNull;
 
@@ -251,6 +252,8 @@ public abstract class AbstractDiscordSRV<C extends MainConfig, CC extends Connec
         playerProvider().subscribe();
 
         // Register listeners
+        // DiscordAPI
+        eventBus().subscribe(new DiscordAPIListener(this));
         // Chat
         eventBus().subscribe(new ChannelLookupListener(this));
         eventBus().subscribe(new GameChatListener(this));

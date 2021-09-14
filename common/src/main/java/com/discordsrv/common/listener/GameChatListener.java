@@ -23,7 +23,7 @@ import com.discordsrv.api.discord.api.entity.message.ReceivedDiscordMessage;
 import com.discordsrv.api.discord.api.entity.message.SendableDiscordMessage;
 import com.discordsrv.api.event.bus.EventPriority;
 import com.discordsrv.api.event.bus.Subscribe;
-import com.discordsrv.api.event.events.message.receive.game.ChatMessageReceiveEvent;
+import com.discordsrv.api.event.events.message.receive.game.ChatMessageProcessingEvent;
 import com.discordsrv.api.event.events.message.forward.game.ChatMessageForwardedEvent;
 import com.discordsrv.common.DiscordSRV;
 import com.discordsrv.common.component.util.ComponentUtil;
@@ -46,7 +46,7 @@ public class GameChatListener extends AbstractListener {
     }
 
     @Subscribe(priority = EventPriority.LAST)
-    public void onChatReceive(ChatMessageReceiveEvent event) {
+    public void onChatReceive(ChatMessageProcessingEvent event) {
         if (checkProcessor(event) || checkCancellation(event) || !discordSRV.isReady()) {
             return;
         }
@@ -64,7 +64,7 @@ public class GameChatListener extends AbstractListener {
         Component message = ComponentUtil.fromAPI(event.message());
         String serializedMessage = DiscordSerializer.INSTANCE.serialize(message);
 
-        SendableDiscordMessage discordMessage = discordSRV.discordAPI().format(builder)
+        SendableDiscordMessage discordMessage = builder.toFormatter()
                 .addContext(event.getPlayer())
                 .addReplacement("%message%", serializedMessage)
                 .build();

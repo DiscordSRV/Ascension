@@ -27,7 +27,6 @@ import com.discordsrv.api.discord.api.entity.channel.DiscordDMChannel;
 import com.discordsrv.api.discord.api.entity.channel.DiscordMessageChannel;
 import com.discordsrv.api.discord.api.entity.channel.DiscordTextChannel;
 import com.discordsrv.api.discord.api.entity.guild.DiscordGuild;
-import com.discordsrv.api.discord.api.entity.message.SendableDiscordMessage;
 import com.discordsrv.api.discord.api.entity.user.DiscordUser;
 import org.jetbrains.annotations.NotNull;
 
@@ -37,8 +36,6 @@ import java.util.Optional;
  * A basic Discord API wrapper for a limited amount of functions, with a minimal amount of breaking changes.
  */
 public interface DiscordAPI {
-
-    SendableDiscordMessage.Formatter format(SendableDiscordMessage.Builder message);
 
     /**
      * Gets a Discord message channel by id, the provided entity can be cached and will not update if it changes on Discord.

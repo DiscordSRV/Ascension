@@ -25,11 +25,13 @@ import org.jetbrains.annotations.NotNull;
 public class DiscordUserImpl implements DiscordUser {
 
     private final long id;
+    private final boolean self;
     private final String username;
     private final String discriminator;
 
     public DiscordUserImpl(User user) {
         this.id = user.getIdLong();
+        this.self = user.getIdLong() == user.getJDA().getSelfUser().getIdLong();
         this.username = user.getName();
         this.discriminator = user.getDiscriminator();
     }
@@ -37,6 +39,11 @@ public class DiscordUserImpl implements DiscordUser {
     @Override
     public long getId() {
         return id;
+    }
+
+    @Override
+    public boolean isSelf() {
+        return self;
     }
 
     @Override

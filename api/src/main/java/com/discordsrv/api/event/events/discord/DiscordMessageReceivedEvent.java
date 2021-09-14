@@ -21,45 +21,46 @@
  * SOFTWARE.
  */
 
-package com.discordsrv.api.discord.api.entity.user;
+package com.discordsrv.api.event.events.discord;
 
-import com.discordsrv.api.discord.api.entity.Snowflake;
-import com.discordsrv.api.placeholder.Placeholder;
+import com.discordsrv.api.discord.api.entity.channel.DiscordDMChannel;
+import com.discordsrv.api.discord.api.entity.channel.DiscordMessageChannel;
+import com.discordsrv.api.discord.api.entity.channel.DiscordTextChannel;
+import com.discordsrv.api.discord.api.entity.message.ReceivedDiscordMessage;
+import com.discordsrv.api.event.events.Event;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
-/**
- * A Discord user.
- */
-public interface DiscordUser extends Snowflake {
+public class DiscordMessageReceivedEvent implements Event {
 
-    /**
-     * Gets if this user is the bot this DiscordSRV instance is connected.
-     * @return true if the bot is the bot connected to this DiscordSRV instance
-     */
-    boolean isSelf();
+    private final ReceivedDiscordMessage message;
+    private final DiscordMessageChannel channel;
 
-    /**
-     * Gets the username of the Discord user.
-     * @return the user's username
-     */
-    @Placeholder("user_name")
+    public DiscordMessageReceivedEvent(ReceivedDiscordMessage message, DiscordMessageChannel channel) {
+        this.message = message;
+        this.channel = channel;
+    }
+
+    public boolean isGuildMessage() {
+        return getTextChannel() != null;
+    }
+
+    @Nullable
+    public DiscordTextChannel getTextChannel() {
+        return channel instanceof DiscordTextChannel ? (DiscordTextChannel) channel : null;
+    }
+
+    @Nullable
+    public DiscordDMChannel getDMChannel() {
+        return channel instanceof DiscordDMChannel ? (DiscordDMChannel) channel : null;
+    }
+
     @NotNull
-    String getUsername();
+    public DiscordMessageChannel getChannel() {
+        return channel ;
+    }
 
-    /**
-     * Gets the Discord user's discriminator.
-     * @return the user's discriminator
-     */
-    @Placeholder("user_discriminator")
-    @NotNull
-    String getDiscriminator();
-
-    /**
-     * Gets the Discord user's username followed by a {@code #} and their discriminator.
-     * @return the Discord user's username & discriminator in the following format {@code Username#1234}
-     */
-    @Placeholder("user_tag")
-    default String getAsTag() {
-        return getUsername() + "#" + getDiscriminator();
+    public ReceivedDiscordMessage getMessage() {
+        return message;
     }
 }
