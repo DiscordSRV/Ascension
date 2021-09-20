@@ -42,7 +42,7 @@ public class StandardScheduler implements Scheduler {
                         new CountingThreadFactory(Scheduler.THREAD_NAME_PREFIX + "Executor #%s")
                 ),
                 new ForkJoinPool(
-                        Math.min(1, Runtime.getRuntime().availableProcessors() - 1), /* Parallelism - not core pool size */
+                        Math.max(1, Runtime.getRuntime().availableProcessors() - 1), /* Parallelism - not core pool size */
                         new CountingForkJoinWorkerThreadFactory(Scheduler.THREAD_NAME_PREFIX + "ForkJoinPool Worker #%s"),
                         null,
                         false /* FIFO */
