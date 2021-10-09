@@ -31,7 +31,7 @@ public class SpongeScheduler extends StandardScheduler implements ServerSchedule
 
     public SpongeScheduler(SpongeDiscordSRV discordSRV) {
         super(discordSRV);
-        this.service = discordSRV.game().server().scheduler().createExecutor(discordSRV.container());
+        this.service = discordSRV.game().server().scheduler().executor(discordSRV.container());
     }
 
     @Override

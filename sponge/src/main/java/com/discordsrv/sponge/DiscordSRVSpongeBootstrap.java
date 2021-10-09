@@ -63,13 +63,13 @@ public class DiscordSRVSpongeBootstrap extends AbstractBootstrap implements ISpo
     public void onConstruct() {
         // Wait until dependencies ready, then initialize DiscordSRV
         dependencies.join();
-        this.discordSRV = new SpongeDiscordSRV(logger, pluginContainer, game, classLoader, dataDirectory);
-
-        dependencies.runWhenComplete(discordSRV::invokeEnable);
     }
 
     @Override
     public void onStarted() {
+        this.discordSRV = new SpongeDiscordSRV(logger, pluginContainer, game, classLoader, dataDirectory);
+
+        dependencies.runWhenComplete(discordSRV::invokeEnable);
         dependencies.runWhenComplete(discordSRV::invokeServerStarted);
     }
 
