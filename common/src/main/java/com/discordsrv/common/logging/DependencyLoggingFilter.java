@@ -28,15 +28,20 @@ import java.util.*;
 
 public class DependencyLoggingFilter implements LogFilter {
 
-    private static final List<String> BLACKLISTED_MESSAGES = Arrays.asList(
-            // We have our own more informative log messages for this
-            "WebSocket connection was closed and cannot be recovered due to identification issues"
-    );
+    private static final Map<String, List<String>> BLACKLISTED_MESSAGES = new HashMap<>();
     private static final Map<String, String> LOGGER_MAPPINGS = new HashMap<>();
 
     static {
-        // Will get relocated, which is fine
+        // Class names here will get relocated, which is fine
         LOGGER_MAPPINGS.put("net.dv8tion.jda", "JDA");
+
+        BLACKLISTED_MESSAGES.put("net.dv8tion.jda", Arrays.asList(
+                // We have our own more informative log messages for this
+                "WebSocket connection was closed and cannot be recovered due to identification issues",
+                // Failed JDA requests (handled with RestAction default failure)
+                "There was an I/O error while executing a REST request: ",
+                "There was an unexpected error while executing a REST request"
+        ));
     }
 
     private final DiscordSRV discordSRV;
@@ -51,19 +56,30 @@ public class DependencyLoggingFilter implements LogFilter {
             return Result.IGNORE;
         }
 
+        if (message != null) {
+            List<String> blacklistedMessages = new ArrayList<>();
+
+            // Get blacklisted messages for the logger
+            for (Map.Entry<String, List<String>> entry : BLACKLISTED_MESSAGES.entrySet()) {
+                if (loggerName.startsWith(entry.getKey())) {
+                    blacklistedMessages.addAll(entry.getValue());
+                }
+            }
+
+            // Go through the blacklisted messages we gathered
+            for (String blacklistedMessage : blacklistedMessages) {
+                if (message.contains(blacklistedMessage)) {
+                    return Result.BLOCK;
+                }
+            }
+        }
+
+        // Prettify logger name, if possible
         String name = loggerName;
         for (Map.Entry<String, String> entry : LOGGER_MAPPINGS.entrySet()) {
             if (name.startsWith(entry.getKey())) {
                 name = entry.getValue();
                 break;
-            }
-        }
-
-        if (message != null) {
-            for (String blacklistedMessage : BLACKLISTED_MESSAGES) {
-                if (message.contains(blacklistedMessage)) {
-                    return Result.BLOCK;
-                }
             }
         }
 
