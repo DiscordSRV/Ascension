@@ -41,8 +41,8 @@ public interface PlaceholderService {
      */
     Pattern RECURSIVE_PATTERN = Pattern.compile("(\\{)(.+)(})");
 
-    void addResultConverter(@NotNull PlaceholderResultConverter resultConverter);
-    void removeResultConverter(@NotNull PlaceholderResultConverter resultConverter);
+    void addResultStringifier(@NotNull PlaceholderResultStringifier resultConverter);
+    void removeResultStringifier(@NotNull PlaceholderResultStringifier resultConverter);
 
     String replacePlaceholders(@NotNull String placeholder, @NotNull Set<Object> context);
     String replacePlaceholders(@NotNull String placeholder, @NotNull Object... context);

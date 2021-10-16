@@ -18,7 +18,7 @@
 
 package com.discordsrv.common.discord.connection.jda;
 
-import com.discordsrv.api.discord.api.entity.user.DiscordUser;
+import com.discordsrv.api.discord.api.entity.DiscordUser;
 import com.discordsrv.api.discord.connection.DiscordConnectionDetails;
 import com.discordsrv.api.event.bus.EventPriority;
 import com.discordsrv.api.event.bus.Subscribe;
@@ -181,7 +181,7 @@ public class JDAConnectionManager implements DiscordConnectionManager {
             } else if (o instanceof Guild) {
                 converted = new DiscordGuildImpl(discordSRV, (Guild) o);
             } else if (o instanceof Member) {
-                converted = new DiscordGuildMemberImpl((Member) o);
+                converted = new DiscordGuildMemberImpl(discordSRV, (Member) o);
             } else if (o instanceof Role) {
                 converted = new DiscordRoleImpl((Role) o);
             } else if (o instanceof ReceivedMessage) {

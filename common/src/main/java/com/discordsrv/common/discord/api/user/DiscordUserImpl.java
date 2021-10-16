@@ -18,7 +18,7 @@
 
 package com.discordsrv.common.discord.api.user;
 
-import com.discordsrv.api.discord.api.entity.user.DiscordUser;
+import com.discordsrv.api.discord.api.entity.DiscordUser;
 import net.dv8tion.jda.api.entities.User;
 import org.jetbrains.annotations.NotNull;
 

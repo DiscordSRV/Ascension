@@ -19,9 +19,9 @@
 package com.discordsrv.common.listener;
 
 import com.discordsrv.api.channel.GameChannel;
-import com.discordsrv.api.component.MinecraftComponent;
+import com.discordsrv.api.component.EnhancedTextBuilder;
 import com.discordsrv.api.discord.api.entity.channel.DiscordTextChannel;
-import com.discordsrv.api.discord.api.entity.user.DiscordUser;
+import com.discordsrv.api.discord.api.entity.message.ReceivedDiscordMessage;
 import com.discordsrv.api.event.bus.Subscribe;
 import com.discordsrv.api.event.events.discord.DiscordMessageReceivedEvent;
 import com.discordsrv.api.event.events.message.receive.discord.DiscordMessageProcessingEvent;
@@ -41,7 +41,7 @@ public class DiscordChatListener extends AbstractListener {
 
     @Subscribe
     public void onGuildMessageReceived(DiscordMessageReceivedEvent event) {
-        DiscordTextChannel channel = event.getTextChannel();
+        DiscordTextChannel channel = event.getTextChannel().orElse(null);
         if (channel == null || !discordSRV.isReady() || event.getMessage().isFromSelf()) {
             return;
         }
@@ -74,15 +74,15 @@ public class DiscordChatListener extends AbstractListener {
             return;
         }
 
-        DiscordUser user = event.getDiscordMessage().getAuthor();
+        ReceivedDiscordMessage discordMessage = event.getDiscordMessage();
         Component message = MinecraftSerializer.INSTANCE.serialize(event.getMessageContent());
 
-        MinecraftComponent component = discordSRV.componentFactory()
+        EnhancedTextBuilder componentBuilder = discordSRV.componentFactory()
                 .enhancedBuilder(format)
-                .addContext(event.getDiscordMessage(), user)
-                .addReplacement("%message%", message)
-                .build();
+                .addContext(discordMessage, discordMessage.getAuthor())
+                .addReplacement("%message%", message);
+        discordMessage.getMember().ifPresent(componentBuilder::addContext);
 
-        gameChannel.sendMessage(component);
+        gameChannel.sendMessage(componentBuilder.build());
     }
 }

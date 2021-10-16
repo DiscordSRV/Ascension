@@ -28,6 +28,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 import java.util.function.Function;
 import java.util.function.Supplier;
@@ -53,8 +54,8 @@ public interface SendableDiscordMessage {
      * The raw content of the message.
      * @return the unmodified content of the message
      */
-    @Nullable
-    String getContent();
+    @NotNull
+    Optional<String> getContent();
 
     /**
      * Gets the embeds of the message.
@@ -67,31 +68,32 @@ public interface SendableDiscordMessage {
      * Gets the allowed mentions of the message.
      * @return the allowed mentions in this message
      */
-    @Nullable
+    @NotNull
     Set<AllowedMention> getAllowedMentions();
 
     /**
      * Gets the webhook username.
      * @return the webhook username or {@code null} if this isn't a webhook message
      */
-    @Nullable
-    String getWebhookUsername();
+    @NotNull
+    Optional<String> getWebhookUsername();
 
     /**
      * Gets the webhook avatar url.
      * @return the webhook avatar url or {@code null} if no webhook avatar url is specified
      */
-    @Nullable
-    String getWebhookAvatarUrl();
+    @NotNull
+    Optional<String> getWebhookAvatarUrl();
 
     /**
      * Returns true if the {@link #getWebhookUsername() webhook username} is specified.
      * @return true if this is a webhook message
      */
     default boolean isWebhookMessage() {
-        return getWebhookUsername() != null;
+        return getWebhookUsername().isPresent();
     }
 
+    @SuppressWarnings("UnusedReturnValue") // API
     interface Builder {
 
         /**

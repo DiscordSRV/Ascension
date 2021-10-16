@@ -40,4 +40,11 @@ public @interface Placeholder {
      * @return the placeholder's name, may contain any character besides {@code %}.
      */
     String value();
+
+    /**
+     * Creates a new lookup with {@link #value()} replaced with this.
+     * The object returned by the {@link Placeholder} method/field will be added as context.
+     * @return the prefix used for the next lookup
+     */
+    String relookup() default "";
 }

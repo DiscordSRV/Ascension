@@ -42,18 +42,16 @@ public final class SendableDiscordMessageUtil {
         List<Long> allowedRoles = new ArrayList<>();
 
         Set<AllowedMention> allowedMentions = message.getAllowedMentions();
-        if (allowedMentions != null) {
-            for (AllowedMention allowedMention : allowedMentions) {
-                if (allowedMention instanceof AllowedMention.Snowflake) {
-                    long id = ((AllowedMention.Snowflake) allowedMention).getId();
-                    if (((AllowedMention.Snowflake) allowedMention).isUser()) {
-                        allowedUsers.add(id);
-                    } else {
-                        allowedRoles.add(id);
-                    }
-                } else if (allowedMention instanceof AllowedMention.Standard) {
-                    allowedTypes.add(((AllowedMention.Standard) allowedMention).getMentionType());
+        for (AllowedMention allowedMention : allowedMentions) {
+            if (allowedMention instanceof AllowedMention.Snowflake) {
+                long id = ((AllowedMention.Snowflake) allowedMention).getId();
+                if (((AllowedMention.Snowflake) allowedMention).isUser()) {
+                    allowedUsers.add(id);
+                } else {
+                    allowedRoles.add(id);
                 }
+            } else if (allowedMention instanceof AllowedMention.Standard) {
+                allowedTypes.add(((AllowedMention.Standard) allowedMention).getMentionType());
             }
         }
 
@@ -63,7 +61,7 @@ public final class SendableDiscordMessageUtil {
         }
 
         return new MessageBuilder()
-                .setContent(message.getContent())
+                .setContent(message.getContent().orElse(null))
                 .setEmbeds(embeds)
                 .setAllowedMentions(allowedTypes)
                 .mentionUsers(allowedUsers.stream().mapToLong(l -> l).toArray())
@@ -73,8 +71,8 @@ public final class SendableDiscordMessageUtil {
 
     public static WebhookMessage toWebhook(@NotNull SendableDiscordMessage message) {
         return WebhookMessageBuilder.fromJDA(toJDA(message))
-                .setUsername(message.getWebhookUsername())
-                .setAvatarUrl(message.getWebhookAvatarUrl())
+                .setUsername(message.getWebhookUsername().orElse(null))
+                .setAvatarUrl(message.getWebhookAvatarUrl().orElse(null))
                 .build();
     }
 }

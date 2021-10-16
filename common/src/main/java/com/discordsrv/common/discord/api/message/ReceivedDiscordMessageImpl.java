@@ -23,24 +23,31 @@ import club.minnced.discord.webhook.receive.ReadonlyEmbed;
 import club.minnced.discord.webhook.receive.ReadonlyMessage;
 import club.minnced.discord.webhook.receive.ReadonlyUser;
 import club.minnced.discord.webhook.send.WebhookEmbed;
+import com.discordsrv.api.color.Color;
+import com.discordsrv.api.discord.api.entity.DiscordUser;
+import com.discordsrv.api.discord.api.entity.channel.DiscordDMChannel;
+import com.discordsrv.api.discord.api.entity.channel.DiscordMessageChannel;
 import com.discordsrv.api.discord.api.entity.channel.DiscordTextChannel;
+import com.discordsrv.api.discord.api.entity.guild.DiscordGuildMember;
 import com.discordsrv.api.discord.api.entity.message.DiscordMessageEmbed;
 import com.discordsrv.api.discord.api.entity.message.ReceivedDiscordMessage;
 import com.discordsrv.api.discord.api.entity.message.SendableDiscordMessage;
 import com.discordsrv.api.discord.api.entity.message.impl.SendableDiscordMessageImpl;
-import com.discordsrv.api.discord.api.entity.user.DiscordUser;
 import com.discordsrv.api.discord.api.exception.UnknownChannelException;
 import com.discordsrv.common.DiscordSRV;
-import com.discordsrv.common.discord.api.channel.DiscordTextChannelImpl;
+import com.discordsrv.common.discord.api.channel.DiscordMessageChannelImpl;
+import com.discordsrv.common.discord.api.guild.DiscordGuildMemberImpl;
 import com.discordsrv.common.discord.api.user.DiscordUserImpl;
+import net.dv8tion.jda.api.entities.Member;
 import net.dv8tion.jda.api.entities.Message;
 import net.dv8tion.jda.api.entities.MessageEmbed;
-import net.dv8tion.jda.api.entities.Role;
 import net.dv8tion.jda.api.entities.User;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
+import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 
 public class ReceivedDiscordMessageImpl extends SendableDiscordMessageImpl implements ReceivedDiscordMessage {
@@ -55,8 +62,11 @@ public class ReceivedDiscordMessageImpl extends SendableDiscordMessageImpl imple
         String webhookUsername = webhookMessage ? message.getAuthor().getName() : null;
         String webhookAvatarUrl = webhookMessage ? message.getAuthor().getEffectiveAvatarUrl() : null;
 
-        DiscordTextChannel textChannel = new DiscordTextChannelImpl(discordSRV, message.getTextChannel());
+        DiscordMessageChannel channel = DiscordMessageChannelImpl.get(discordSRV, message.getChannel());
         DiscordUser user = new DiscordUserImpl(message.getAuthor());
+
+        Member member = message.getMember();
+        DiscordGuildMember apiMember = member != null ? new DiscordGuildMemberImpl(discordSRV, member) : null;
 
         boolean self = false;
         if (webhookMessage) {
@@ -75,7 +85,8 @@ public class ReceivedDiscordMessageImpl extends SendableDiscordMessageImpl imple
         return new ReceivedDiscordMessageImpl(
                 discordSRV,
                 self,
-                textChannel,
+                channel,
+                apiMember,
                 user,
                 message.getChannel().getIdLong(),
                 message.getIdLong(),
@@ -102,7 +113,7 @@ public class ReceivedDiscordMessageImpl extends SendableDiscordMessageImpl imple
             WebhookEmbed.EmbedFooter footer = embed.getFooter();
 
             mappedEmbeds.add(new DiscordMessageEmbed(
-                    color != null ? color : Role.DEFAULT_COLOR_RAW,
+                    color != null ? new Color(color) : null,
                     author != null ? author.getName() : null,
                     author != null ? author.getUrl() : null,
                     author != null ? author.getIconUrl() : null,
@@ -125,15 +136,18 @@ public class ReceivedDiscordMessageImpl extends SendableDiscordMessageImpl imple
                 ? String.format(User.AVATAR_URL, authorId, avatarId, avatarId.startsWith("a_") ? "gif" : "png")
                 : String.format(User.DEFAULT_AVATAR_URL, Integer.parseInt(author.getDiscriminator()) % 5);
 
-        DiscordTextChannel textChannel = discordSRV.discordAPI().getTextChannelById(
+        DiscordMessageChannel channel = discordSRV.discordAPI().getMessageChannelById(
                 webhookMessage.getChannelId()).orElse(null);
         DiscordUser user = discordSRV.discordAPI().getUserById(
                 webhookMessage.getAuthor().getId()).orElse(null);
+        DiscordGuildMember member = channel instanceof DiscordTextChannel && user != null
+                ? ((DiscordTextChannel) channel).getGuild().getMemberById(user.getId()).orElse(null) : null;
         return new ReceivedDiscordMessageImpl(
                 discordSRV,
                 // These are always from rest responses
                 true,
-                textChannel,
+                channel,
+                member,
                 user,
                 webhookMessage.getChannelId(),
                 webhookMessage.getId(),
@@ -146,7 +160,8 @@ public class ReceivedDiscordMessageImpl extends SendableDiscordMessageImpl imple
 
     private final DiscordSRV discordSRV;
     private final boolean fromSelf;
-    private final DiscordTextChannel textChannel;
+    private final DiscordMessageChannel channel;
+    private final DiscordGuildMember member;
     private final DiscordUser author;
     private final long channelId;
     private final long id;
@@ -154,7 +169,8 @@ public class ReceivedDiscordMessageImpl extends SendableDiscordMessageImpl imple
     private ReceivedDiscordMessageImpl(
             DiscordSRV discordSRV,
             boolean fromSelf,
-            DiscordTextChannel textChannel,
+            DiscordMessageChannel channel,
+            DiscordGuildMember member,
             DiscordUser author,
             long channelId,
             long id,
@@ -163,10 +179,11 @@ public class ReceivedDiscordMessageImpl extends SendableDiscordMessageImpl imple
             String webhookUsername,
             String webhookAvatarUrl
     ) {
-        super(content, embeds, null, webhookUsername, webhookAvatarUrl);
+        super(content, embeds, Collections.emptySet(), webhookUsername, webhookAvatarUrl);
         this.discordSRV = discordSRV;
         this.fromSelf = fromSelf;
-        this.textChannel = textChannel;
+        this.channel = channel;
+        this.member = member;
         this.author = author;
         this.channelId = channelId;
         this.id = id;
@@ -183,8 +200,22 @@ public class ReceivedDiscordMessageImpl extends SendableDiscordMessageImpl imple
     }
 
     @Override
-    public @NotNull DiscordTextChannel getChannel() {
-        return textChannel;
+    public @NotNull Optional<DiscordTextChannel> getTextChannel() {
+        return channel instanceof DiscordTextChannel
+                ? Optional.of((DiscordTextChannel) channel)
+                : Optional.empty();
+    }
+
+    @Override
+    public @NotNull Optional<DiscordDMChannel> getDMChannel() {
+        return channel instanceof DiscordDMChannel
+                ? Optional.of((DiscordDMChannel) channel)
+                : Optional.empty();
+    }
+
+    @Override
+    public @NotNull Optional<DiscordGuildMember> getMember() {
+        return Optional.ofNullable(member);
     }
 
     @Override
@@ -193,7 +224,12 @@ public class ReceivedDiscordMessageImpl extends SendableDiscordMessageImpl imple
     }
 
     @Override
-    public CompletableFuture<Void> delete() {
+    public DiscordMessageChannel getChannel() {
+        return channel;
+    }
+
+    @Override
+    public @NotNull CompletableFuture<Void> delete() {
         DiscordTextChannel textChannel = discordSRV.discordAPI().getTextChannelById(channelId).orElse(null);
         if (textChannel == null) {
             CompletableFuture<Void> future = new CompletableFuture<>();

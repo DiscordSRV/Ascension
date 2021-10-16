@@ -23,7 +23,9 @@
 
 package com.discordsrv.api.discord.api.entity.guild;
 
+import com.discordsrv.api.color.Color;
 import com.discordsrv.api.discord.api.entity.Snowflake;
+import com.discordsrv.api.placeholder.Placeholder;
 import org.jetbrains.annotations.NotNull;
 
 /**
@@ -32,9 +34,37 @@ import org.jetbrains.annotations.NotNull;
 public interface DiscordRole extends Snowflake {
 
     /**
+     * The default {@link DiscordRole} color.
+     */
+    Color DEFAULT_COLOR = new Color(0xFFFFFF);
+
+    /**
      * Gets the name of the Discord role.
      * @return the role name
      */
     @NotNull
+    @Placeholder("role_name")
     String getName();
+
+    /**
+     * Does this role have a color.
+     * @return true if this role has a set color
+     */
+    default boolean hasColor() {
+        return !DEFAULT_COLOR.equals(getColor());
+    }
+
+    /**
+     * The color of this rule.
+     * @return the color of this role, or {@link #DEFAULT_COLOR} if there is no color set
+     * @see #hasColor()
+     */
+    @Placeholder("role_color")
+    Color getColor();
+
+    /**
+     * Is this role hoisted.
+     * @return true if this role is displayed separately in the member list
+     */
+    boolean isHoisted();
 }

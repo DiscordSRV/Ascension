@@ -23,12 +23,16 @@
 
 package com.discordsrv.api.discord.api.entity.message;
 
+import com.discordsrv.api.discord.api.entity.DiscordUser;
 import com.discordsrv.api.discord.api.entity.Snowflake;
+import com.discordsrv.api.discord.api.entity.channel.DiscordDMChannel;
+import com.discordsrv.api.discord.api.entity.channel.DiscordMessageChannel;
 import com.discordsrv.api.discord.api.entity.channel.DiscordTextChannel;
 import com.discordsrv.api.discord.api.entity.guild.DiscordGuild;
-import com.discordsrv.api.discord.api.entity.user.DiscordUser;
+import com.discordsrv.api.discord.api.entity.guild.DiscordGuildMember;
 import org.jetbrains.annotations.NotNull;
 
+import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 
 /**
@@ -44,13 +48,6 @@ public interface ReceivedDiscordMessage extends SendableDiscordMessage, Snowflak
     boolean isFromSelf();
 
     /**
-     * Gets the channel that the message was sent in.
-     * @return the channel the message was sent in
-     */
-    @NotNull
-    DiscordTextChannel getChannel();
-
-    /**
      * Gets the user that sent the message.
      * @return the user that sent the message
      */
@@ -58,12 +55,40 @@ public interface ReceivedDiscordMessage extends SendableDiscordMessage, Snowflak
     DiscordUser getAuthor();
 
     /**
-     * Gets the Discord server the message was posted in.
-     * @return the Discord server the message was posted in
+     * Gets the channel the message was sent in.
+     * @return the channel the message was sent in
+     */
+    DiscordMessageChannel getChannel();
+
+    /**
+     * Gets the text channel the message was sent in. Not present if this message is a dm.
+     * @return a optional potentially containing the text channel the message was sent in
      */
     @NotNull
-    default DiscordGuild getGuild() {
-        return getChannel().getGuild();
+    Optional<DiscordTextChannel> getTextChannel();
+
+    /**
+     * Gets the dm channel the message was sent in. Not present if this message was sent in a server.
+     * @return a optional potentially containing the dm channel the message was sent in
+     */
+    @NotNull
+    Optional<DiscordDMChannel> getDMChannel();
+
+    /**
+     * Gets the Discord server member that sent this message.
+     * This is not present if the message was sent by a webhook.
+     * @return a optional potentially containing the Discord server member that sent this message
+     */
+    @NotNull
+    Optional<DiscordGuildMember> getMember();
+
+    /**
+     * Gets the Discord server the message was posted in. This is not present if the message was a dm.
+     * @return a optional potentially containing the Discord server the message was posted in
+     */
+    @NotNull
+    default Optional<DiscordGuild> getGuild() {
+        return getTextChannel().map(DiscordTextChannel::getGuild);
     }
 
     /**
@@ -71,6 +96,7 @@ public interface ReceivedDiscordMessage extends SendableDiscordMessage, Snowflak
      *
      * @return a future that will fail if the request fails
      */
+    @NotNull
     CompletableFuture<Void> delete();
 
     /**

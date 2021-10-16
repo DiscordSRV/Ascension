@@ -19,14 +19,14 @@
 package com.discordsrv.common.placeholder;
 
 import com.discordsrv.api.component.MinecraftComponent;
-import com.discordsrv.api.placeholder.PlaceholderResultConverter;
+import com.discordsrv.api.placeholder.PlaceholderResultStringifier;
 import com.discordsrv.common.component.util.ComponentUtil;
 import dev.vankka.mcdiscordreserializer.discord.DiscordSerializer;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.serializer.plain.PlainTextComponentSerializer;
 import org.jetbrains.annotations.NotNull;
 
-public class ComponentResultConverter implements PlaceholderResultConverter {
+public class ComponentResultStringifier implements PlaceholderResultStringifier {
 
     @Override
     public String convertPlaceholderResult(@NotNull Object result) {

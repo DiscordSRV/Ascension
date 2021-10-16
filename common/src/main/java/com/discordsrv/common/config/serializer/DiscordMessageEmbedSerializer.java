@@ -18,6 +18,7 @@
 
 package com.discordsrv.common.config.serializer;
 
+import com.discordsrv.api.color.Color;
 import com.discordsrv.api.discord.api.entity.message.DiscordMessageEmbed;
 import net.dv8tion.jda.api.entities.Role;
 import org.checkerframework.checker.nullness.qual.Nullable;
@@ -25,7 +26,6 @@ import org.spongepowered.configurate.ConfigurationNode;
 import org.spongepowered.configurate.serialize.SerializationException;
 import org.spongepowered.configurate.serialize.TypeSerializer;
 
-import java.awt.Color;
 import java.lang.reflect.Type;
 import java.util.Collections;
 
@@ -40,7 +40,7 @@ public class DiscordMessageEmbedSerializer implements TypeSerializer<DiscordMess
         DiscordMessageEmbed.Builder builder = DiscordMessageEmbed.builder();
 
         Color color = node.node("Color").get(Color.class);
-        builder.setColor(color != null ? color.getRGB() : Role.DEFAULT_COLOR_RAW);
+        builder.setColor(color != null ? color.rgb() : Role.DEFAULT_COLOR_RAW);
 
         ConfigurationNode author = node.node("Author");
         builder.setAuthor(
@@ -79,7 +79,7 @@ public class DiscordMessageEmbedSerializer implements TypeSerializer<DiscordMess
             return;
         }
 
-        node.node("Color").set(new Color(obj.getColor()));
+        node.node("Color").set(obj.getColor());
 
         ConfigurationNode author = node.node("Author");
         author.node("Name").set(obj.getAuthorName());

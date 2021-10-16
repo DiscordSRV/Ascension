@@ -23,7 +23,7 @@
 
 package com.discordsrv.api.discord.api.entity.channel;
 
-import com.discordsrv.api.discord.api.entity.user.DiscordUser;
+import com.discordsrv.api.discord.api.entity.DiscordUser;
 
 /**
  * A Discord direct message channel.

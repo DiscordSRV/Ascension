@@ -24,8 +24,6 @@ import com.discordsrv.common.component.MinecraftComponentImpl;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.serializer.gson.GsonComponentSerializer;
 
-import java.util.Objects;
-
 /**
  * A util class for {@link Component}s and {@link MinecraftComponent}s.
  */
@@ -53,7 +51,8 @@ public final class ComponentUtil {
 
     public static Component fromUnrelocated(Object unrelocatedAdventure) {
         MinecraftComponentImpl component = MinecraftComponentImpl.empty();
-        Objects.requireNonNull(component.unrelocatedAdapter(), "Could not get unrelocated adventure gson serializer")
+        component.unrelocatedAdapter()
+                .orElseThrow(() -> new IllegalStateException("Could not get unrelocated adventure gson serializer"))
                 .setComponent(unrelocatedAdventure);
         return fromAPI(component);
     }

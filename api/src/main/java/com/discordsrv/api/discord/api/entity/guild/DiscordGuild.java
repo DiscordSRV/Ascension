@@ -23,23 +23,28 @@
 
 package com.discordsrv.api.discord.api.entity.guild;
 
+import com.discordsrv.api.discord.api.entity.Snowflake;
+import com.discordsrv.api.placeholder.Placeholder;
+
 import java.util.Optional;
 
 /**
  * A Discord server.
  */
-public interface DiscordGuild {
+public interface DiscordGuild extends Snowflake {
 
     /**
-     * Gets the id of this Discord guild.
-     * @return the guild's id
+     * Gets the name of this Discord guild.
+     * @return the guild's name
      */
-    String getId();
+    @Placeholder("server_name")
+    String getName();
 
     /**
      * Gets the member count of the guild.
      * @return the guild's member count
      */
+    @Placeholder("server_member_count")
     int getMemberCount();
 
     /**

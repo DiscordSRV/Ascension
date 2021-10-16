@@ -110,7 +110,7 @@ public abstract class BukkitChatListener implements Listener {
                 return;
             }
 
-            MinecraftComponent.Adapter adapter = component.unrelocatedAdapter();
+            MinecraftComponent.Adapter adapter = component.unrelocatedAdapter().orElse(null);
             if (adapter == null) {
                 discordSRV.logger().error("Failed to get unrelocated adventure adapter for Paper AsyncChatEvent listener");
                 return;

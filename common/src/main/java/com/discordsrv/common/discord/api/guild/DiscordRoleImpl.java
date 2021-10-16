@@ -18,6 +18,7 @@
 
 package com.discordsrv.common.discord.api.guild;
 
+import com.discordsrv.api.color.Color;
 import com.discordsrv.api.discord.api.entity.guild.DiscordRole;
 import net.dv8tion.jda.api.entities.Role;
 import org.jetbrains.annotations.NotNull;
@@ -26,10 +27,14 @@ public class DiscordRoleImpl implements DiscordRole {
 
     private final long id;
     private final String name;
+    private final Color color;
+    private final boolean hoisted;
 
     public DiscordRoleImpl(Role role) {
         this.id = role.getIdLong();
         this.name = role.getName();
+        this.color = new Color(role.getColorRaw());
+        this.hoisted = role.isHoisted();
     }
 
     @Override
@@ -40,5 +45,15 @@ public class DiscordRoleImpl implements DiscordRole {
     @Override
     public @NotNull String getName() {
         return name;
+    }
+
+    @Override
+    public Color getColor() {
+        return color;
+    }
+
+    @Override
+    public boolean isHoisted() {
+        return hoisted;
     }
 }

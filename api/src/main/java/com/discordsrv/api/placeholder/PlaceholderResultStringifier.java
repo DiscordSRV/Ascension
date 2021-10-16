@@ -27,7 +27,7 @@ import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
 
 @FunctionalInterface
-public interface PlaceholderResultConverter {
+public interface PlaceholderResultStringifier {
 
     /**
      * @see #plainComponents(Runnable)

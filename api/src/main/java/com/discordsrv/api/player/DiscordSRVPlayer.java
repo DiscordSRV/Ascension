@@ -49,9 +49,4 @@ public interface DiscordSRVPlayer {
     @NotNull
     UUID uuid();
 
-
-    @Placeholder("totally_my_username") // TODO: remove
-    default String totallyMyUsername() {
-        return "*hi";
-    }
 }

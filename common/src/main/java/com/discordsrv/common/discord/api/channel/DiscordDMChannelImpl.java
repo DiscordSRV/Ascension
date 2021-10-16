@@ -21,7 +21,7 @@ package com.discordsrv.common.discord.api.channel;
 import com.discordsrv.api.discord.api.entity.channel.DiscordDMChannel;
 import com.discordsrv.api.discord.api.entity.message.ReceivedDiscordMessage;
 import com.discordsrv.api.discord.api.entity.message.SendableDiscordMessage;
-import com.discordsrv.api.discord.api.entity.user.DiscordUser;
+import com.discordsrv.api.discord.api.entity.DiscordUser;
 import com.discordsrv.api.discord.api.exception.NotReadyException;
 import com.discordsrv.api.discord.api.exception.UnknownChannelException;
 import com.discordsrv.common.DiscordSRV;

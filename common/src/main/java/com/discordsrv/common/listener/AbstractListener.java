@@ -23,8 +23,6 @@ import com.discordsrv.api.event.events.Cancellable;
 import com.discordsrv.api.event.events.Processable;
 import com.discordsrv.common.DiscordSRV;
 
-import java.util.Optional;
-
 public abstract class AbstractListener {
 
     protected final DiscordSRV discordSRV;
@@ -38,7 +36,7 @@ public abstract class AbstractListener {
             return false;
         }
 
-        String whoProcessed = Optional.ofNullable(event.whoProcessed())
+        String whoProcessed = event.whoProcessed()
                 .map(EventListener::className)
                 .orElse("Unknown");
         if (!whoProcessed.startsWith("com.discordsrv")) {
@@ -52,7 +50,7 @@ public abstract class AbstractListener {
             return false;
         }
 
-        String whoCancelled = Optional.ofNullable(event.whoCancelled())
+        String whoCancelled = event.whoCancelled()
                 .map(EventListener::className)
                 .orElse("Unknown");
         discordSRV.logger().debug(event + " was cancelled by " + whoCancelled);

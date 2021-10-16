@@ -18,8 +18,12 @@
 
 package com.discordsrv.common.discord.api.guild;
 
+import com.discordsrv.api.color.Color;
+import com.discordsrv.api.discord.api.entity.guild.DiscordGuild;
 import com.discordsrv.api.discord.api.entity.guild.DiscordGuildMember;
 import com.discordsrv.api.discord.api.entity.guild.DiscordRole;
+import com.discordsrv.api.placeholder.Placeholder;
+import com.discordsrv.common.DiscordSRV;
 import com.discordsrv.common.discord.api.user.DiscordUserImpl;
 import net.dv8tion.jda.api.entities.Member;
 import net.dv8tion.jda.api.entities.Role;
@@ -31,11 +35,14 @@ import java.util.Optional;
 
 public class DiscordGuildMemberImpl extends DiscordUserImpl implements DiscordGuildMember {
 
+    private final DiscordGuild guild;
     private final String nickname;
     private final List<DiscordRole> roles;
+    private final Color color;
 
-    public DiscordGuildMemberImpl(Member member) {
+    public DiscordGuildMemberImpl(DiscordSRV discordSRV, Member member) {
         super(member.getUser());
+        this.guild = new DiscordGuildImpl(discordSRV, member.getGuild());
         this.nickname = member.getNickname();
 
         List<DiscordRole> roles = new ArrayList<>();
@@ -43,6 +50,12 @@ public class DiscordGuildMemberImpl extends DiscordUserImpl implements DiscordGu
             roles.add(new DiscordRoleImpl(role));
         }
         this.roles = roles;
+        this.color = new Color(member.getColorRaw());
+    }
+
+    @Override
+    public DiscordGuild getGuild() {
+        return guild;
     }
 
     @Override
@@ -53,5 +66,25 @@ public class DiscordGuildMemberImpl extends DiscordUserImpl implements DiscordGu
     @Override
     public List<DiscordRole> getRoles() {
         return roles;
+    }
+
+    @Override
+    public Color getColor() {
+        return color;
+    }
+
+    @Placeholder(value = "user_highest_role", relookup = "role")
+    public DiscordRole highestRole() {
+        return !roles.isEmpty() ? roles.get(0) : null;
+    }
+
+    @Placeholder(value = "user_hoisted_role", relookup = "role")
+    public DiscordRole hoistedRole() {
+        for (DiscordRole role : roles) {
+            if (role.isHoisted()) {
+                return role;
+            }
+        }
+        return null;
     }
 }

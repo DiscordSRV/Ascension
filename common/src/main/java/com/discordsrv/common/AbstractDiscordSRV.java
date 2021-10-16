@@ -44,7 +44,7 @@ import com.discordsrv.common.listener.GameChatListener;
 import com.discordsrv.common.logging.DependencyLoggingFilter;
 import com.discordsrv.common.logging.logger.backend.LoggingBackend;
 import com.discordsrv.common.placeholder.PlaceholderServiceImpl;
-import com.discordsrv.common.placeholder.ComponentResultConverter;
+import com.discordsrv.common.placeholder.ComponentResultStringifier;
 import net.dv8tion.jda.api.JDA;
 import org.jetbrains.annotations.NotNull;
 
@@ -245,8 +245,8 @@ public abstract class AbstractDiscordSRV<C extends MainConfig, CC extends Connec
         discordConnectionManager = new JDAConnectionManager(this);
         discordConnectionManager.connect().join();
 
-        // Placeholder result converters
-        placeholderService().addResultConverter(new ComponentResultConverter());
+        // Placeholder result stringifiers
+        placeholderService().addResultStringifier(new ComponentResultStringifier());
 
         // Register PlayerProvider listeners
         playerProvider().subscribe();

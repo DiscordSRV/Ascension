@@ -18,8 +18,6 @@
 
 package com.discordsrv.common.placeholder.provider.util;
 
-import com.discordsrv.api.placeholder.PlaceholderLookupResult;
-
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.Set;
@@ -28,7 +26,7 @@ public final class PlaceholderMethodUtil {
 
     private PlaceholderMethodUtil() {}
 
-    public static PlaceholderLookupResult lookup(Method method, Object instance, Set<Object> context)
+    public static Object lookup(Method method, Object instance, Set<Object> context)
             throws InvocationTargetException, IllegalAccessException {
         Class<?>[] parameterTypes = method.getParameterTypes();
         Object[] parameters = new Object[parameterTypes.length];
@@ -49,12 +47,10 @@ public final class PlaceholderMethodUtil {
         }
         for (Class<?> parameterType : parameterTypes) {
             if (parameterType != null) {
-                return PlaceholderLookupResult.UNKNOWN_PLACEHOLDER;
+                return null;
             }
         }
 
-        return PlaceholderLookupResult.success(
-                method.invoke(instance, parameters)
-        );
+        return method.invoke(instance, parameters);
     }
 }

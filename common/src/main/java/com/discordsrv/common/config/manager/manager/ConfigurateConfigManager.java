@@ -18,6 +18,7 @@
 
 package com.discordsrv.common.config.manager.manager;
 
+import com.discordsrv.api.color.Color;
 import com.discordsrv.api.discord.api.entity.message.DiscordMessageEmbed;
 import com.discordsrv.api.discord.api.entity.message.SendableDiscordMessage;
 import com.discordsrv.common.DiscordSRV;
@@ -39,7 +40,6 @@ import org.spongepowered.configurate.objectmapping.ObjectMapper;
 import org.spongepowered.configurate.serialize.SerializationException;
 import org.spongepowered.configurate.util.NamingSchemes;
 
-import java.awt.Color;
 import java.nio.file.Path;
 import java.util.Arrays;
 import java.util.List;

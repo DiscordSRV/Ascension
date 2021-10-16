@@ -30,7 +30,7 @@ import com.discordsrv.api.discord.api.entity.message.DiscordMessageEmbed;
 import com.discordsrv.api.discord.api.entity.message.SendableDiscordMessage;
 import com.discordsrv.api.discord.api.util.DiscordFormattingUtil;
 import com.discordsrv.api.placeholder.FormattedText;
-import com.discordsrv.api.placeholder.PlaceholderResultConverter;
+import com.discordsrv.api.placeholder.PlaceholderResultStringifier;
 import com.discordsrv.api.placeholder.PlaceholderService;
 import com.discordsrv.api.placeholder.util.Placeholders;
 import org.jetbrains.annotations.NotNull;
@@ -61,8 +61,8 @@ public class SendableDiscordMessageImpl implements SendableDiscordMessage {
     }
 
     @Override
-    public String getContent() {
-        return content;
+    public @NotNull Optional<String> getContent() {
+        return Optional.ofNullable(content);
     }
 
     @Override
@@ -71,18 +71,18 @@ public class SendableDiscordMessageImpl implements SendableDiscordMessage {
     }
 
     @Override
-    public Set<AllowedMention> getAllowedMentions() {
+    public @NotNull Set<AllowedMention> getAllowedMentions() {
         return allowedMentions;
     }
 
     @Override
-    public String getWebhookUsername() {
-        return webhookUsername;
+    public @NotNull Optional<String> getWebhookUsername() {
+        return Optional.ofNullable(webhookUsername);
     }
 
     @Override
-    public String getWebhookAvatarUrl() {
-        return webhookAvatarUrl;
+    public @NotNull Optional<String> getWebhookAvatarUrl() {
+        return Optional.of(webhookAvatarUrl);
     }
 
     public static class BuilderImpl implements SendableDiscordMessage.Builder {
@@ -236,7 +236,7 @@ public class SendableDiscordMessageImpl implements SendableDiscordMessage {
                 DiscordMessageEmbed.Builder embedBuilder = embed.toBuilder();
 
                 // TODO: check which parts allow formatting more thoroughly
-                PlaceholderResultConverter.plainComponents(() -> {
+                PlaceholderResultStringifier.plainComponents(() -> {
                     embedBuilder.setAuthor(
                             placeholders.apply(
                                     embedBuilder.getAuthorName()),
@@ -285,7 +285,7 @@ public class SendableDiscordMessageImpl implements SendableDiscordMessage {
                 builder.addEmbed(embedBuilder.build());
             }
 
-            PlaceholderResultConverter.plainComponents(() -> {
+            PlaceholderResultStringifier.plainComponents(() -> {
                 builder.setWebhookUsername(placeholders.apply(builder.getWebhookUsername()));
                 builder.setWebhookAvatarUrl(placeholders.apply(builder.getWebhookAvatarUrl()));
             });

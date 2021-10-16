@@ -21,9 +21,8 @@
  * SOFTWARE.
  */
 
-package com.discordsrv.api.discord.api.entity.user;
+package com.discordsrv.api.discord.api.entity;
 
-import com.discordsrv.api.discord.api.entity.Snowflake;
 import com.discordsrv.api.placeholder.Placeholder;
 import org.jetbrains.annotations.NotNull;
 

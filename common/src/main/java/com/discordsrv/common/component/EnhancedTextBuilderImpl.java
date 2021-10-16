@@ -18,6 +18,7 @@
 
 package com.discordsrv.common.component;
 
+import com.discordsrv.api.color.Color;
 import com.discordsrv.api.component.EnhancedTextBuilder;
 import com.discordsrv.api.component.MinecraftComponent;
 import com.discordsrv.api.placeholder.PlaceholderService;
@@ -26,6 +27,7 @@ import com.discordsrv.common.component.util.ComponentUtil;
 import dev.vankka.enhancedlegacytext.EnhancedComponentBuilder;
 import dev.vankka.enhancedlegacytext.EnhancedLegacyText;
 import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.format.TextColor;
 
 import java.util.*;
 import java.util.function.Function;
@@ -63,8 +65,16 @@ public class EnhancedTextBuilderImpl implements EnhancedTextBuilder {
                 .buildComponent(enhancedFormat);
 
         replacements.forEach(builder::replaceAll);
-        builder.replaceAll(PlaceholderService.PATTERN,
-                matcher -> discordSRV.placeholderService().getResult(matcher, context));
+
+        // PlaceholderService
+        builder.replaceAll(PlaceholderService.PATTERN, matcher -> {
+            Object result = discordSRV.placeholderService().getResult(matcher, context);
+            if (result instanceof Color) {
+                // Convert Color to something it'll understand
+                return TextColor.color(((Color) result).rgb());
+            }
+            return result;
+        });
 
         Component component = builder.build();
         return ComponentUtil.toAPI(component);

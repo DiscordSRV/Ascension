@@ -26,7 +26,8 @@ package com.discordsrv.api.component;
 import com.discordsrv.api.DiscordSRVApi;
 import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
+
+import java.util.Optional;
 
 /**
  * A Minecraft json text component. Use {@link DiscordSRVApi#componentFactory()} to get an instance.<br/>
@@ -74,7 +75,7 @@ public interface MinecraftComponent {
     /**
      * Creates an Adventure adapter from a {@link MinecraftComponentAdapter} for convenience.
      *
-     * @param adapter the premade {@link MinecraftComponentAdapter}
+     * @param adapter the pre-made {@link MinecraftComponentAdapter}
      * @return a {@link Adapter} for this component using the given {@link MinecraftComponentAdapter}
      */
     @NotNull
@@ -85,14 +86,14 @@ public interface MinecraftComponent {
      *
      * @return a {@link Adapter} for this component using the unrelocated adventure, {@code null} if not available
      */
-    @Nullable
+    @NotNull
     @ApiStatus.NonExtendable
-    default Adapter unrelocatedAdapter() {
+    default Optional<Adapter> unrelocatedAdapter() {
         MinecraftComponentAdapter adapter = MinecraftComponentAdapter.UNRELOCATED;
         if (adapter == null) {
-            return null;
+            return Optional.empty();
         }
-        return adventureAdapter(adapter);
+        return Optional.of(adventureAdapter(adapter));
     }
 
     /**
@@ -110,7 +111,7 @@ public interface MinecraftComponent {
         /**
          * Sets the component to the component that can be serialized by the gson serializer for this class.
          * @param adventureComponent the component
-         * @throws IllegalArgumentException if the provided component cannot be processed by the gson serializer of this apdater
+         * @throws IllegalArgumentException if the provided component cannot be processed by the gson serializer of this adapter
          */
         void setComponent(@NotNull Object adventureComponent);
     }

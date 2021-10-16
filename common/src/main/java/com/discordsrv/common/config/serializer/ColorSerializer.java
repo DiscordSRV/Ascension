@@ -18,12 +18,12 @@
 
 package com.discordsrv.common.config.serializer;
 
+import com.discordsrv.api.color.Color;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.spongepowered.configurate.ConfigurationNode;
 import org.spongepowered.configurate.serialize.SerializationException;
 import org.spongepowered.configurate.serialize.TypeSerializer;
 
-import java.awt.Color;
 import java.lang.reflect.Type;
 
 public class ColorSerializer implements TypeSerializer<Color> {
@@ -38,11 +38,7 @@ public class ColorSerializer implements TypeSerializer<Color> {
             }
 
             try {
-                int r = Integer.parseInt(hexColor.substring(0, 2), 16);
-                int g = Integer.parseInt(hexColor.substring(2, 4), 16);
-                int b = Integer.parseInt(hexColor.substring(4, 6), 16);
-
-                return new Color(r, g, b);
+                return new Color(hexColor);
             } catch (NumberFormatException ignored) {}
         } else {
             int intColor = node.getInt(Integer.MIN_VALUE);
@@ -58,6 +54,6 @@ public class ColorSerializer implements TypeSerializer<Color> {
         if (obj == null) {
             return;
         }
-        node.set(String.format("#%02x%02x%02x", obj.getRed(), obj.getGreen(), obj.getBlue()));
+        node.set(obj.hex());
     }
 }

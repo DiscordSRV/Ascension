@@ -24,10 +24,12 @@
 package com.discordsrv.api.event.events;
 
 import com.discordsrv.api.event.bus.EventListener;
-import com.discordsrv.api.event.bus.internal.EventStateHolder;
 import com.discordsrv.api.event.bus.Subscribe;
+import com.discordsrv.api.event.bus.internal.EventStateHolder;
 import org.jetbrains.annotations.ApiStatus;
-import org.jetbrains.annotations.Nullable;
+import org.jetbrains.annotations.NotNull;
+
+import java.util.Optional;
 
 /**
  * A {@link Event} that can be cancelled.
@@ -52,19 +54,19 @@ public interface Cancellable extends Event {
      * Returns the {@link EventListener} that cancelled this event.
      * This is changed every time the event goes from not being cancelled to being cancelled.
      *
-     * @return the event listener that cancelled this event or {@code null} if it was cancelled before being passed to the {@link com.discordsrv.api.event.bus.EventBus}
+     * @return the event listener that cancelled this event or an empty optional if it was cancelled before being passed to the {@link com.discordsrv.api.event.bus.EventBus}
      * @throws IllegalStateException if the event isn't cancelled
      */
     @ApiStatus.NonExtendable
-    @Nullable
-    default EventListener whoCancelled() {
+    @NotNull
+    default Optional<EventListener> whoCancelled() {
         EventListener listener = EventStateHolder.CANCELLED.get();
         if (listener == null) {
             throw new IllegalStateException("Event is not cancelled");
         } else if (listener == EventStateHolder.UNKNOWN_LISTENER) {
-            return null;
+            return Optional.empty();
         }
 
-        return listener;
+        return Optional.of(listener);
     }
 }

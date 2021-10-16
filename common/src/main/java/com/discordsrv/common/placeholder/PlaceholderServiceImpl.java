@@ -21,7 +21,7 @@ package com.discordsrv.common.placeholder;
 import com.discordsrv.api.event.events.placeholder.PlaceholderLookupEvent;
 import com.discordsrv.api.placeholder.Placeholder;
 import com.discordsrv.api.placeholder.PlaceholderLookupResult;
-import com.discordsrv.api.placeholder.PlaceholderResultConverter;
+import com.discordsrv.api.placeholder.PlaceholderResultStringifier;
 import com.discordsrv.api.placeholder.PlaceholderService;
 import com.discordsrv.common.DiscordSRV;
 import com.discordsrv.common.placeholder.provider.AnnotationPlaceholderProvider;
@@ -45,7 +45,7 @@ public class PlaceholderServiceImpl implements PlaceholderService {
 
     private final DiscordSRV discordSRV;
     private final LoadingCache<Class<?>, Set<PlaceholderProvider>> classProviders;
-    private final Set<PlaceholderResultConverter> converters = new CopyOnWriteArraySet<>();
+    private final Set<PlaceholderResultStringifier> stringifiers = new CopyOnWriteArraySet<>();
 
     public PlaceholderServiceImpl(DiscordSRV discordSRV) {
         this.discordSRV = discordSRV;
@@ -108,13 +108,13 @@ public class PlaceholderServiceImpl implements PlaceholderService {
     }
 
     @Override
-    public void addResultConverter(@NotNull PlaceholderResultConverter resultConverter) {
-        converters.add(resultConverter);
+    public void addResultStringifier(@NotNull PlaceholderResultStringifier resultStringifier) {
+        stringifiers.add(resultStringifier);
     }
 
     @Override
-    public void removeResultConverter(@NotNull PlaceholderResultConverter resultConverter) {
-        converters.remove(resultConverter);
+    public void removeResultStringifier(@NotNull PlaceholderResultStringifier resultStringifier) {
+        stringifiers.remove(resultStringifier);
     }
 
     @Override
@@ -137,7 +137,7 @@ public class PlaceholderServiceImpl implements PlaceholderService {
     @Override
     public Object getResult(@NotNull Matcher matcher, @NotNull Set<Object> context) {
         if (matcher.groupCount() < 3) {
-            throw new IllegalStateException("Matcher must have atleast 3 groups");
+            throw new IllegalStateException("Matcher must have at least 3 groups");
         }
         String placeholder = matcher.group(2);
         PlaceholderLookupResult result = resolve(matcher, context);
@@ -158,8 +158,8 @@ public class PlaceholderServiceImpl implements PlaceholderService {
         }
 
         String output = null;
-        for (PlaceholderResultConverter converter : converters) {
-            output = converter.convertPlaceholderResult(result);
+        for (PlaceholderResultStringifier stringifier : stringifiers) {
+            output = stringifier.convertPlaceholderResult(result);
             if (output != null) {
                 break;
             }
@@ -186,8 +186,8 @@ public class PlaceholderServiceImpl implements PlaceholderService {
         Object representation = getResultRepresentation(result, placeholder, matcher);
 
         String output = getResultAsString(representation);
-        for (PlaceholderResultConverter converter : converters) {
-            output = converter.convertPlaceholderResult(representation);
+        for (PlaceholderResultStringifier stringifier : stringifiers) {
+            output = stringifier.convertPlaceholderResult(representation);
             if (output != null) {
                 break;
             }

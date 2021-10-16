@@ -29,7 +29,8 @@ import com.discordsrv.api.discord.api.entity.channel.DiscordTextChannel;
 import com.discordsrv.api.discord.api.entity.message.ReceivedDiscordMessage;
 import com.discordsrv.api.event.events.Event;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
+
+import java.util.Optional;
 
 public class DiscordMessageReceivedEvent implements Event {
 
@@ -42,17 +43,21 @@ public class DiscordMessageReceivedEvent implements Event {
     }
 
     public boolean isGuildMessage() {
-        return getTextChannel() != null;
+        return getTextChannel().isPresent();
     }
 
-    @Nullable
-    public DiscordTextChannel getTextChannel() {
-        return channel instanceof DiscordTextChannel ? (DiscordTextChannel) channel : null;
+    @NotNull
+    public Optional<DiscordTextChannel> getTextChannel() {
+        return channel instanceof DiscordTextChannel
+                ? Optional.of((DiscordTextChannel) channel)
+                : Optional.empty();
     }
 
-    @Nullable
-    public DiscordDMChannel getDMChannel() {
-        return channel instanceof DiscordDMChannel ? (DiscordDMChannel) channel : null;
+    @NotNull
+    public Optional<DiscordDMChannel> getDMChannel() {
+        return channel instanceof DiscordDMChannel
+                ? Optional.of((DiscordDMChannel) channel)
+                : Optional.empty();
     }
 
     @NotNull

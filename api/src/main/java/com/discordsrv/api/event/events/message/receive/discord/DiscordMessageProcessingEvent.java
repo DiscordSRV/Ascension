@@ -39,7 +39,7 @@ public class DiscordMessageProcessingEvent implements Cancellable, Processable {
 
     public DiscordMessageProcessingEvent(@NotNull ReceivedDiscordMessage discordMessage, @NotNull DiscordTextChannel channel) {
         this.discordMessage = discordMessage;
-        this.messageContent = discordMessage.getContent();
+        this.messageContent = discordMessage.getContent().orElse(null);
         this.channel = channel;
     }
 

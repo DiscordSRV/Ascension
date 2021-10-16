@@ -29,18 +29,25 @@ import java.util.Optional;
 public class DiscordGuildImpl implements DiscordGuild {
 
     private final DiscordSRV discordSRV;
-    private final String id;
+    private final long id;
+    private final String name;
     private final int memberCount;
 
     public DiscordGuildImpl(DiscordSRV discordSRV, Guild guild) {
         this.discordSRV = discordSRV;
-        this.id = guild.getId();
+        this.id = guild.getIdLong();
+        this.name = guild.getName();
         this.memberCount = guild.getMemberCount();
     }
 
     @Override
-    public String getId() {
+    public long getId() {
         return id;
+    }
+
+    @Override
+    public String getName() {
+        return name;
     }
 
     @Override
@@ -57,7 +64,7 @@ public class DiscordGuildImpl implements DiscordGuild {
     public Optional<DiscordGuildMember> getMemberById(long id) {
         return guild()
                 .map(guild -> guild.getMemberById(id))
-                .map(DiscordGuildMemberImpl::new);
+                .map(member -> new DiscordGuildMemberImpl(discordSRV, member));
     }
 
     @Override

@@ -27,7 +27,7 @@ import java.util.concurrent.TimeUnit;
 public interface DiscordConnectionManager {
 
     /**
-     * The default amount of milliseconds to wait for shutdown before ending without completing ratelimited requests.
+     * The default amount of milliseconds to wait for shutdown before ending without completing rate limited requests.
      */
     long DEFAULT_SHUTDOWN_TIMEOUT = TimeUnit.SECONDS.toMillis(10);
 

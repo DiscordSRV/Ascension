@@ -24,8 +24,8 @@ import com.discordsrv.common.placeholder.provider.util.PlaceholderMethodUtil;
 import org.jetbrains.annotations.NotNull;
 
 import java.lang.reflect.Field;
-import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import java.util.HashSet;
 import java.util.Set;
 
 public class AnnotationPlaceholderProvider implements PlaceholderProvider {
@@ -52,7 +52,10 @@ public class AnnotationPlaceholderProvider implements PlaceholderProvider {
 
     @Override
     public @NotNull PlaceholderLookupResult lookup(@NotNull String placeholder, @NotNull Set<Object> context) {
-        if (!annotation.value().equals(placeholder) || (type != null && context.isEmpty())) {
+        String annotationPlaceholder = annotation.value();
+        if (annotationPlaceholder.isEmpty()
+                || !placeholder.startsWith(annotationPlaceholder)
+                || (type != null && context.isEmpty())) {
             return PlaceholderLookupResult.UNKNOWN_PLACEHOLDER;
         }
 
@@ -68,21 +71,31 @@ public class AnnotationPlaceholderProvider implements PlaceholderProvider {
             }
         }
 
-        if (field != null) {
-            try {
-                return PlaceholderLookupResult.success(field.get(instance));
-            } catch (IllegalAccessException e) {
-                e.printStackTrace(); // TODO
-                return PlaceholderLookupResult.LOOKUP_FAILED;
-            }
-        } else {
-            try {
+        Object result;
+        try {
+            if (field != null) {
+                result = field.get(instance);
+            } else {
                 assert method != null;
-                return PlaceholderMethodUtil.lookup(method, instance, context);
-            } catch (IllegalAccessException | InvocationTargetException e) {
-                e.printStackTrace(); // TODO
-                return PlaceholderLookupResult.LOOKUP_FAILED;
+                result = PlaceholderMethodUtil.lookup(method, instance, context);
             }
+        } catch (Throwable e) {
+            e.printStackTrace();
+            return PlaceholderLookupResult.LOOKUP_FAILED;
         }
+
+        String reLookup = annotation.relookup();
+        if (!reLookup.isEmpty()) {
+            if (result == null) {
+                return PlaceholderLookupResult.success("");
+            }
+
+            Set<Object> newContext = new HashSet<>(context);
+            newContext.add(result);
+            String newPlaceholder = placeholder.replace(annotationPlaceholder, reLookup);
+            return PlaceholderLookupResult.newLookup(newPlaceholder, newContext);
+        }
+
+        return PlaceholderLookupResult.success(result);
     }
 }
