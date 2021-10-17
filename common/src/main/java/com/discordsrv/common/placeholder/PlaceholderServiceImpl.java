@@ -19,7 +19,7 @@
 package com.discordsrv.common.placeholder;
 
 import com.discordsrv.api.event.events.placeholder.PlaceholderLookupEvent;
-import com.discordsrv.api.placeholder.Placeholder;
+import com.discordsrv.api.placeholder.annotation.Placeholder;
 import com.discordsrv.api.placeholder.PlaceholderLookupResult;
 import com.discordsrv.api.placeholder.PlaceholderResultStringifier;
 import com.discordsrv.api.placeholder.PlaceholderService;

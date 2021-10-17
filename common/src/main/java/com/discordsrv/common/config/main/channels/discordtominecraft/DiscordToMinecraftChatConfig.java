@@ -23,5 +23,5 @@ import org.spongepowered.configurate.objectmapping.ConfigSerializable;
 @ConfigSerializable
 public class DiscordToMinecraftChatConfig {
 
-    public String format = "%user_name%: %message%";
+    public String format = "[&#5865F2Discord&r] [hover:show_text:Tag: %user_tag%&r\nRoles: %user_roles_, %]%user_color%%user_effective_name%&r » %message%";
 }

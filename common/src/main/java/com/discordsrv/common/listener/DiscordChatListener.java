@@ -26,10 +26,10 @@ import com.discordsrv.api.event.bus.Subscribe;
 import com.discordsrv.api.event.events.discord.DiscordMessageReceivedEvent;
 import com.discordsrv.api.event.events.message.receive.discord.DiscordMessageProcessingEvent;
 import com.discordsrv.common.DiscordSRV;
+import com.discordsrv.common.component.renderer.DiscordSRVMinecraftRenderer;
 import com.discordsrv.common.config.main.channels.BaseChannelConfig;
 import com.discordsrv.common.config.main.channels.discordtominecraft.DiscordToMinecraftChatConfig;
 import com.discordsrv.common.function.OrDefault;
-import dev.vankka.mcdiscordreserializer.minecraft.MinecraftSerializer;
 import net.kyori.adventure.text.Component;
 import org.apache.commons.lang3.tuple.Pair;
 
@@ -69,20 +69,22 @@ public class DiscordChatListener extends AbstractListener {
         OrDefault<? extends BaseChannelConfig> channelConfig = channelPair.map(Pair::getValue);
         OrDefault<DiscordToMinecraftChatConfig> chatConfig = channelConfig.map(cfg -> cfg.discordToMinecraft);
 
-        String format = chatConfig.get(cfg -> cfg.format);
+        String format = chatConfig.get(cfg -> cfg.format.replace("\\n", "\n"));
         if (format == null) {
             return;
         }
 
         ReceivedDiscordMessage discordMessage = event.getDiscordMessage();
-        Component message = MinecraftSerializer.INSTANCE.serialize(event.getMessageContent());
+        DiscordSRVMinecraftRenderer.inGuildContext(channel.getGuild().getId(), () -> {
+            Component message = discordSRV.componentFactory().minecraftSerializer().serialize(event.getMessageContent());
 
-        EnhancedTextBuilder componentBuilder = discordSRV.componentFactory()
-                .enhancedBuilder(format)
-                .addContext(discordMessage, discordMessage.getAuthor())
-                .addReplacement("%message%", message);
-        discordMessage.getMember().ifPresent(componentBuilder::addContext);
+            EnhancedTextBuilder componentBuilder = discordSRV.componentFactory()
+                    .enhancedBuilder(format)
+                    .addContext(discordMessage, discordMessage.getAuthor())
+                    .addReplacement("%message%", message);
+            discordMessage.getMember().ifPresent(componentBuilder::addContext);
 
-        gameChannel.sendMessage(componentBuilder.build());
+            gameChannel.sendMessage(componentBuilder.build());
+        });
     }
 }

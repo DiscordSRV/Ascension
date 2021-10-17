@@ -48,7 +48,7 @@ public class DiscordRoleImpl implements DiscordRole {
     }
 
     @Override
-    public Color getColor() {
+    public @NotNull Color getColor() {
         return color;
     }
 

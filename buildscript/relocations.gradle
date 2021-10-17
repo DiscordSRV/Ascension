@@ -18,7 +18,8 @@ shadowJar {
             'org.apache.commons',
             'org.spongepowered.configurate',
             'org.yaml.snakeyaml',
-            'net.kyori'
+            'net.kyori',
+            'dev.vankka.enhancedlegacytext',
     ].each {
         relocate it, 'com.discordsrv.dependencies.' + it
     }

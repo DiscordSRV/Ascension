@@ -18,7 +18,7 @@
 
 package com.discordsrv.common.placeholder.provider;
 
-import com.discordsrv.api.placeholder.Placeholder;
+import com.discordsrv.api.placeholder.annotation.Placeholder;
 import com.discordsrv.api.placeholder.PlaceholderLookupResult;
 import com.discordsrv.common.placeholder.provider.util.PlaceholderMethodUtil;
 import org.jetbrains.annotations.NotNull;
@@ -71,13 +71,15 @@ public class AnnotationPlaceholderProvider implements PlaceholderProvider {
             }
         }
 
+        String remainder = placeholder.replace(annotationPlaceholder, "");
+
         Object result;
         try {
             if (field != null) {
                 result = field.get(instance);
             } else {
                 assert method != null;
-                result = PlaceholderMethodUtil.lookup(method, instance, context);
+                result = PlaceholderMethodUtil.lookup(method, instance, context, remainder);
             }
         } catch (Throwable e) {
             e.printStackTrace();
@@ -92,7 +94,7 @@ public class AnnotationPlaceholderProvider implements PlaceholderProvider {
 
             Set<Object> newContext = new HashSet<>(context);
             newContext.add(result);
-            String newPlaceholder = placeholder.replace(annotationPlaceholder, reLookup);
+            String newPlaceholder = reLookup + remainder;
             return PlaceholderLookupResult.newLookup(newPlaceholder, newContext);
         }
 

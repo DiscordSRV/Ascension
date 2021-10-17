@@ -25,7 +25,7 @@ package com.discordsrv.api.discord.api.entity.guild;
 
 import com.discordsrv.api.color.Color;
 import com.discordsrv.api.discord.api.entity.DiscordUser;
-import com.discordsrv.api.placeholder.Placeholder;
+import com.discordsrv.api.placeholder.annotation.Placeholder;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.List;

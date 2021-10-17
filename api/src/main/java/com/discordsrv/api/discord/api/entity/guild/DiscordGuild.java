@@ -24,7 +24,7 @@
 package com.discordsrv.api.discord.api.entity.guild;
 
 import com.discordsrv.api.discord.api.entity.Snowflake;
-import com.discordsrv.api.placeholder.Placeholder;
+import com.discordsrv.api.placeholder.annotation.Placeholder;
 
 import java.util.Optional;
 

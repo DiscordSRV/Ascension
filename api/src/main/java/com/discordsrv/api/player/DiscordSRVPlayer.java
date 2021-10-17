@@ -23,7 +23,7 @@
 
 package com.discordsrv.api.player;
 
-import com.discordsrv.api.placeholder.Placeholder;
+import com.discordsrv.api.placeholder.annotation.Placeholder;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.UUID;

@@ -18,7 +18,7 @@
 
 package com.discordsrv.common.player;
 
-import com.discordsrv.api.placeholder.Placeholder;
+import com.discordsrv.api.placeholder.annotation.Placeholder;
 import net.kyori.adventure.identity.Identified;
 import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;

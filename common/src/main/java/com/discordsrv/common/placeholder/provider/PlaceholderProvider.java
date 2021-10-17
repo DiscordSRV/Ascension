@@ -19,12 +19,13 @@
 package com.discordsrv.common.placeholder.provider;
 
 import com.discordsrv.api.placeholder.PlaceholderLookupResult;
+import com.discordsrv.api.placeholder.annotation.Placeholder;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Set;
 
 /**
- * A placeholder provider used internally by DiscordSRV for {@link com.discordsrv.api.placeholder.Placeholder}.
+ * A placeholder provider used internally by DiscordSRV for {@link Placeholder}.
  * API users should use the {@link com.discordsrv.api.event.events.placeholder.PlaceholderLookupEvent} instead.
  */
 public interface PlaceholderProvider {

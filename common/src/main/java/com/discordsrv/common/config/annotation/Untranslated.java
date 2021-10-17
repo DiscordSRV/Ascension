@@ -38,7 +38,7 @@ public @interface Untranslated {
 
     enum Type {
         /**
-         * The option's value and it's comment will be undocumented.
+         * The option's value, and it's comment will be undocumented.
          */
         FULL(true, true),
 

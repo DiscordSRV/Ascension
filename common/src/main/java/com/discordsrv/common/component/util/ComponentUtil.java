@@ -25,7 +25,7 @@ import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.serializer.gson.GsonComponentSerializer;
 
 /**
- * A util class for {@link Component}s and {@link MinecraftComponent}s.
+ * An util class for {@link Component}s and {@link MinecraftComponent}s.
  */
 public final class ComponentUtil {
 

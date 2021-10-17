@@ -21,51 +21,32 @@
  * SOFTWARE.
  */
 
-package com.discordsrv.api.discord.api.entity.guild;
+package com.discordsrv.api.placeholder.annotation;
 
-import com.discordsrv.api.color.Color;
-import com.discordsrv.api.discord.api.entity.Snowflake;
-import com.discordsrv.api.placeholder.annotation.Placeholder;
-import org.jetbrains.annotations.NotNull;
+import com.discordsrv.api.placeholder.PlaceholderService;
+
+import java.lang.annotation.ElementType;
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
+import java.lang.annotation.Target;
 
 /**
- * A Discord server role.
+ * Indicates a Placeholder for DiscordSRV's {@link PlaceholderService}.
  */
-public interface DiscordRole extends Snowflake {
+@Retention(RetentionPolicy.RUNTIME)
+@Target({ElementType.FIELD, ElementType.METHOD})
+public @interface Placeholder {
 
     /**
-     * The default {@link DiscordRole} color.
+     * The name of the Placeholder.
+     * @return the placeholder's name, may contain any character besides {@code %}.
      */
-    Color DEFAULT_COLOR = new Color(0xFFFFFF);
+    String value();
 
     /**
-     * Gets the name of the Discord role.
-     * @return the role name
+     * Creates a new lookup with {@link #value()} replaced with this.
+     * The object returned by the {@link Placeholder} method/field will be added as context.
+     * @return the prefix used for the next lookup
      */
-    @NotNull
-    @Placeholder("role_name")
-    String getName();
-
-    /**
-     * Does this role have a color.
-     * @return true if this role has a set color
-     */
-    default boolean hasColor() {
-        return !DEFAULT_COLOR.equals(getColor());
-    }
-
-    /**
-     * The color of this rule.
-     * @return the color of this role, or {@link #DEFAULT_COLOR} if there is no color set
-     * @see #hasColor()
-     */
-    @NotNull
-    @Placeholder("role_color")
-    Color getColor();
-
-    /**
-     * Is this role hoisted.
-     * @return true if this role is displayed separately in the member list
-     */
-    boolean isHoisted();
+    String relookup() default "";
 }

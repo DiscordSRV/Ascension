@@ -23,7 +23,7 @@
 
 package com.discordsrv.api.discord.api.entity;
 
-import com.discordsrv.api.placeholder.Placeholder;
+import com.discordsrv.api.placeholder.annotation.Placeholder;
 import org.jetbrains.annotations.NotNull;
 
 /**

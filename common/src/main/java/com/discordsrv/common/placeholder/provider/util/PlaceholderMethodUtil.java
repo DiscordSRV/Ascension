@@ -18,39 +18,59 @@
 
 package com.discordsrv.common.placeholder.provider.util;
 
+import com.discordsrv.api.placeholder.annotation.PlaceholderRemainder;
+
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import java.lang.reflect.Parameter;
 import java.util.Set;
+import java.util.function.BiConsumer;
 
 public final class PlaceholderMethodUtil {
 
     private PlaceholderMethodUtil() {}
 
-    public static Object lookup(Method method, Object instance, Set<Object> context)
+    public static Object lookup(Method method, Object instance, Set<Object> context, String remainder)
             throws InvocationTargetException, IllegalAccessException {
-        Class<?>[] parameterTypes = method.getParameterTypes();
-        Object[] parameters = new Object[parameterTypes.length];
+        Parameter[] parameters = method.getParameters();
+        Object[] parameterValues = new Object[parameters.length];
 
-        for (Object o : context) {
-            Class<?> objectType = o.getClass();
-            for (int i = 0; i < parameterTypes.length; i++) {
-                Class<?> parameterType = parameterTypes[i];
-                if (parameterType == null) {
-                    continue;
-                }
-
-                if (parameterType.isAssignableFrom(objectType)) {
-                    parameters[i] = o;
-                    parameterTypes[i] = null;
+        apply(parameters, (parameter, i) -> {
+            PlaceholderRemainder annotation = parameter.getAnnotation(PlaceholderRemainder.class);
+            if (annotation != null) {
+                parameters[i] = null;
+                if (parameter.getType().isAssignableFrom(String.class)) {
+                    parameterValues[i] = remainder;
+                } else {
+                    parameterValues[i] = null;
                 }
             }
+        });
+        for (Object o : context) {
+            Class<?> objectType = o.getClass();
+            apply(parameters, (parameter, i) -> {
+                if (parameter.getType().isAssignableFrom(objectType)) {
+                    parameters[i] = null;
+                    parameterValues[i] = o;
+                }
+            });
         }
-        for (Class<?> parameterType : parameterTypes) {
-            if (parameterType != null) {
+        for (Object parameter : parameters) {
+            if (parameter != null) {
                 return null;
             }
         }
 
-        return method.invoke(instance, parameters);
+        return method.invoke(instance, parameterValues);
+    }
+
+    private static void apply(Parameter[] parameters, BiConsumer<Parameter, Integer> parameterProcessor) {
+        for (int i = 0; i < parameters.length; i++) {
+            Parameter parameter = parameters[i];
+            if (parameter == null) {
+                continue;
+            }
+            parameterProcessor.accept(parameter, i);
+        }
     }
 }

@@ -21,30 +21,14 @@
  * SOFTWARE.
  */
 
-package com.discordsrv.api.placeholder;
+package com.discordsrv.api.placeholder.annotation;
 
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
-/**
- * Indicates a Placeholder for DiscordSRV's {@link PlaceholderService}.
- */
 @Retention(RetentionPolicy.RUNTIME)
-@Target({ElementType.FIELD, ElementType.METHOD})
-public @interface Placeholder {
-
-    /**
-     * The name of the Placeholder.
-     * @return the placeholder's name, may contain any character besides {@code %}.
-     */
-    String value();
-
-    /**
-     * Creates a new lookup with {@link #value()} replaced with this.
-     * The object returned by the {@link Placeholder} method/field will be added as context.
-     * @return the prefix used for the next lookup
-     */
-    String relookup() default "";
+@Target(ElementType.PARAMETER)
+public @interface PlaceholderRemainder {
 }

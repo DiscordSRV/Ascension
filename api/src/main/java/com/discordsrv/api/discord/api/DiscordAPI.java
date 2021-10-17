@@ -28,6 +28,7 @@ import com.discordsrv.api.discord.api.entity.channel.DiscordMessageChannel;
 import com.discordsrv.api.discord.api.entity.channel.DiscordTextChannel;
 import com.discordsrv.api.discord.api.entity.guild.DiscordGuild;
 import com.discordsrv.api.discord.api.entity.DiscordUser;
+import com.discordsrv.api.discord.api.entity.guild.DiscordRole;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Optional;
@@ -76,4 +77,12 @@ public interface DiscordAPI {
      */
     @NotNull
     Optional<DiscordUser> getUserById(long id);
+
+    /**
+     * Gets a Discord role by id, the provided entity can be cached and will not update if it changes on Discord.
+     * @param id the id for the Discord role
+     * @return the Discord role
+     */
+    @NotNull
+    Optional<DiscordRole> getRoleById(long id);
 }

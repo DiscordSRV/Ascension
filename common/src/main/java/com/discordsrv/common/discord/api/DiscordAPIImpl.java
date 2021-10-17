@@ -26,6 +26,7 @@ import com.discordsrv.api.discord.api.entity.channel.DiscordDMChannel;
 import com.discordsrv.api.discord.api.entity.channel.DiscordMessageChannel;
 import com.discordsrv.api.discord.api.entity.channel.DiscordTextChannel;
 import com.discordsrv.api.discord.api.entity.guild.DiscordGuild;
+import com.discordsrv.api.discord.api.entity.guild.DiscordRole;
 import com.discordsrv.api.discord.api.exception.NotReadyException;
 import com.discordsrv.api.discord.api.exception.UnknownChannelException;
 import com.discordsrv.common.DiscordSRV;
@@ -34,6 +35,7 @@ import com.discordsrv.common.config.main.channels.ChannelConfig;
 import com.discordsrv.common.discord.api.channel.DiscordDMChannelImpl;
 import com.discordsrv.common.discord.api.channel.DiscordTextChannelImpl;
 import com.discordsrv.common.discord.api.guild.DiscordGuildImpl;
+import com.discordsrv.common.discord.api.guild.DiscordRoleImpl;
 import com.discordsrv.common.discord.api.user.DiscordUserImpl;
 import com.github.benmanes.caffeine.cache.AsyncCacheLoader;
 import com.github.benmanes.caffeine.cache.AsyncLoadingCache;
@@ -114,6 +116,13 @@ public class DiscordAPIImpl implements DiscordAPI {
         return discordSRV.jda()
                 .map(jda -> jda.getUserById(id))
                 .map(DiscordUserImpl::new);
+    }
+
+    @Override
+    public @NotNull Optional<DiscordRole> getRoleById(long id) {
+        return discordSRV.jda()
+                .map(jda -> jda.getRoleById(id))
+                .map(DiscordRoleImpl::new);
     }
 
     private class WebhookCacheLoader implements AsyncCacheLoader<Long, WebhookClient> {

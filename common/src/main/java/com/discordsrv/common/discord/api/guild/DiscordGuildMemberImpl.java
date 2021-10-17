@@ -22,11 +22,15 @@ import com.discordsrv.api.color.Color;
 import com.discordsrv.api.discord.api.entity.guild.DiscordGuild;
 import com.discordsrv.api.discord.api.entity.guild.DiscordGuildMember;
 import com.discordsrv.api.discord.api.entity.guild.DiscordRole;
-import com.discordsrv.api.placeholder.Placeholder;
+import com.discordsrv.api.placeholder.annotation.Placeholder;
+import com.discordsrv.api.placeholder.annotation.PlaceholderRemainder;
 import com.discordsrv.common.DiscordSRV;
 import com.discordsrv.common.discord.api.user.DiscordUserImpl;
 import net.dv8tion.jda.api.entities.Member;
 import net.dv8tion.jda.api.entities.Role;
+import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.TextComponent;
+import net.kyori.adventure.text.format.TextColor;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
@@ -74,17 +78,40 @@ public class DiscordGuildMemberImpl extends DiscordUserImpl implements DiscordGu
     }
 
     @Placeholder(value = "user_highest_role", relookup = "role")
-    public DiscordRole highestRole() {
+    public DiscordRole _highestRole() {
         return !roles.isEmpty() ? roles.get(0) : null;
     }
 
     @Placeholder(value = "user_hoisted_role", relookup = "role")
-    public DiscordRole hoistedRole() {
+    public DiscordRole _hoistedRole() {
         for (DiscordRole role : roles) {
             if (role.isHoisted()) {
                 return role;
             }
         }
         return null;
+    }
+
+    @Placeholder(value = "user_roles")
+    public Component _allRoles(@PlaceholderRemainder String suffix) {
+        if (suffix.startsWith("_")) {
+            suffix = suffix.substring(1);
+        } else {
+            return null;
+        }
+
+        List<Component> components = new ArrayList<>();
+        for (DiscordRole role : getRoles()) {
+            components.add(Component.text(role.getName()).color(TextColor.color(role.getColor().rgb())));
+        }
+
+        TextComponent.Builder builder = Component.text();
+        for (int i = 0; i < components.size(); i++) {
+            builder.append(components.get(i));
+            if (i < components.size() - 1) {
+                builder.append(Component.text(suffix));
+            }
+        }
+        return builder.build();
     }
 }

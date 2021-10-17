@@ -22,14 +22,26 @@ import com.discordsrv.api.component.EnhancedTextBuilder;
 import com.discordsrv.api.component.MinecraftComponent;
 import com.discordsrv.api.component.MinecraftComponentFactory;
 import com.discordsrv.common.DiscordSRV;
+import com.discordsrv.common.component.renderer.DiscordSRVMinecraftRenderer;
+import dev.vankka.mcdiscordreserializer.discord.DiscordSerializer;
+import dev.vankka.mcdiscordreserializer.discord.DiscordSerializerOptions;
+import dev.vankka.mcdiscordreserializer.minecraft.MinecraftSerializer;
+import dev.vankka.mcdiscordreserializer.minecraft.MinecraftSerializerOptions;
 import org.jetbrains.annotations.NotNull;
 
 public class ComponentFactory implements MinecraftComponentFactory {
 
     private final DiscordSRV discordSRV;
+    private final MinecraftSerializer minecraftSerializer;
+    private final DiscordSerializer discordSerializer;
 
     public ComponentFactory(DiscordSRV discordSRV) {
         this.discordSRV = discordSRV;
+        this.minecraftSerializer = new MinecraftSerializer(
+                MinecraftSerializerOptions.defaults().addRenderer(new DiscordSRVMinecraftRenderer(discordSRV)),
+                MinecraftSerializerOptions.escapeDefaults()
+        );
+        this.discordSerializer = new DiscordSerializer(DiscordSerializerOptions.defaults());
     }
 
     @Override
@@ -40,5 +52,13 @@ public class ComponentFactory implements MinecraftComponentFactory {
     @Override
     public EnhancedTextBuilder enhancedBuilder(String content) {
         return new EnhancedTextBuilderImpl(discordSRV, content);
+    }
+
+    public MinecraftSerializer minecraftSerializer() {
+        return minecraftSerializer;
+    }
+
+    public DiscordSerializer discordSerializer() {
+        return discordSerializer;
     }
 }

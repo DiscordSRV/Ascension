@@ -50,6 +50,7 @@ import net.dv8tion.jda.api.exceptions.ErrorResponseException;
 import net.dv8tion.jda.api.exceptions.RateLimitedException;
 import net.dv8tion.jda.api.requests.*;
 import net.dv8tion.jda.api.utils.AllowedMentions;
+import net.dv8tion.jda.api.utils.ChunkingFilter;
 import net.dv8tion.jda.api.utils.MemberCachePolicy;
 import net.dv8tion.jda.internal.entities.ReceivedMessage;
 import net.dv8tion.jda.internal.hooks.EventManagerProxy;
@@ -224,6 +225,7 @@ public class JDAConnectionManager implements DiscordConnectionManager {
     @SuppressWarnings("BusyWait")
     private void connectInternal() {
         discordSRV.discordConnectionDetails().requestGatewayIntent(GatewayIntent.GUILD_MESSAGES); // TODO: figure out how DiscordSRV required intents are going to work
+        discordSRV.discordConnectionDetails().requestGatewayIntent(GatewayIntent.GUILD_MEMBERS); // TODO: figure out how DiscordSRV required intents are going to work
         detailsAccepted = false;
 
         ConnectionConfig.Bot botConfig = discordSRV.connectionConfig().bot;
@@ -235,6 +237,7 @@ public class JDAConnectionManager implements DiscordConnectionManager {
         JDABuilder jdaBuilder = JDABuilder.createLight(botConfig.token, intents);
         jdaBuilder.enableCache(connectionDetails.getCacheFlags());
         jdaBuilder.setMemberCachePolicy(membersIntent ? MemberCachePolicy.ALL : MemberCachePolicy.OWNER);
+        jdaBuilder.setChunkingFilter(membersIntent ? ChunkingFilter.ALL : ChunkingFilter.NONE);
 
         jdaBuilder.setEventManager(new EventManagerProxy(new JDAEventManager(discordSRV), discordSRV.scheduler().forkExecutor()));
 

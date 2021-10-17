@@ -23,8 +23,8 @@ import com.discordsrv.api.discord.api.entity.message.ReceivedDiscordMessage;
 import com.discordsrv.api.discord.api.entity.message.SendableDiscordMessage;
 import com.discordsrv.api.event.bus.EventPriority;
 import com.discordsrv.api.event.bus.Subscribe;
-import com.discordsrv.api.event.events.message.receive.game.ChatMessageProcessingEvent;
 import com.discordsrv.api.event.events.message.forward.game.ChatMessageForwardedEvent;
+import com.discordsrv.api.event.events.message.receive.game.ChatMessageProcessingEvent;
 import com.discordsrv.common.DiscordSRV;
 import com.discordsrv.common.component.util.ComponentUtil;
 import com.discordsrv.common.config.main.channels.BaseChannelConfig;
@@ -32,7 +32,6 @@ import com.discordsrv.common.config.main.channels.ChannelConfig;
 import com.discordsrv.common.config.main.channels.minecraftodiscord.MinecraftToDiscordChatConfig;
 import com.discordsrv.common.discord.api.message.ReceivedDiscordMessageClusterImpl;
 import com.discordsrv.common.function.OrDefault;
-import dev.vankka.mcdiscordreserializer.discord.DiscordSerializer;
 import net.kyori.adventure.text.Component;
 
 import java.util.ArrayList;
@@ -62,7 +61,7 @@ public class GameChatListener extends AbstractListener {
         }
 
         Component message = ComponentUtil.fromAPI(event.message());
-        String serializedMessage = DiscordSerializer.INSTANCE.serialize(message);
+        String serializedMessage = discordSRV.componentFactory().discordSerializer().serialize(message);
 
         SendableDiscordMessage discordMessage = builder.toFormatter()
                 .addContext(event.getPlayer())

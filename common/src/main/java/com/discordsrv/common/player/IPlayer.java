@@ -18,7 +18,7 @@
 
 package com.discordsrv.common.player;
 
-import com.discordsrv.api.placeholder.Placeholder;
+import com.discordsrv.api.placeholder.annotation.Placeholder;
 import com.discordsrv.api.player.DiscordSRVPlayer;
 import com.discordsrv.common.command.game.sender.ICommandSender;
 import net.kyori.adventure.text.Component;
