@@ -60,6 +60,9 @@ public final class SendableDiscordMessageUtil {
             embeds.add(embed.toJDA());
         }
 
+        MessageBuilder builder = new MessageBuilder();
+        message.getContent().ifPresent(builder::setContent);
+
         return new MessageBuilder()
                 .setContent(message.getContent().orElse(null))
                 .setEmbeds(embeds)

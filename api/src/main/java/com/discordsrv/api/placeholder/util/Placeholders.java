@@ -40,7 +40,7 @@ public class Placeholders {
     }
 
     public Placeholders addAll(Map<Pattern, Function<Matcher, Object>> replacements) {
-        replacements.forEach(this.replacements::put);
+        this.replacements.putAll(replacements);
         return this;
     }
 

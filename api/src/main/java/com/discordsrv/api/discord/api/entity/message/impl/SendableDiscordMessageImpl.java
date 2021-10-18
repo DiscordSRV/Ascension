@@ -82,7 +82,7 @@ public class SendableDiscordMessageImpl implements SendableDiscordMessage {
 
     @Override
     public @NotNull Optional<String> getWebhookAvatarUrl() {
-        return Optional.of(webhookAvatarUrl);
+        return Optional.ofNullable(webhookAvatarUrl);
     }
 
     public static class BuilderImpl implements SendableDiscordMessage.Builder {

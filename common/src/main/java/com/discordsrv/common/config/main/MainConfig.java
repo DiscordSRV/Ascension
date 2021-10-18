@@ -24,7 +24,7 @@ import com.discordsrv.common.config.main.channels.BaseChannelConfig;
 import com.discordsrv.common.config.main.channels.ChannelConfig;
 import org.spongepowered.configurate.objectmapping.ConfigSerializable;
 
-import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.Map;
 
 @ConfigSerializable
@@ -38,8 +38,8 @@ public class MainConfig implements Config {
     }
 
     @DefaultOnly("default")
-    public Map<String, BaseChannelConfig> channels = new HashMap<String, BaseChannelConfig>() {{
-        put("default", new BaseChannelConfig());
+    public Map<String, BaseChannelConfig> channels = new LinkedHashMap<String, BaseChannelConfig>() {{
         put("global", new ChannelConfig());
+        put("default", new BaseChannelConfig());
     }};
 }

@@ -20,7 +20,9 @@ package com.discordsrv.common.listener;
 
 import com.discordsrv.api.channel.GameChannel;
 import com.discordsrv.api.component.EnhancedTextBuilder;
+import com.discordsrv.api.discord.api.entity.DiscordUser;
 import com.discordsrv.api.discord.api.entity.channel.DiscordTextChannel;
+import com.discordsrv.api.discord.api.entity.guild.DiscordGuildMember;
 import com.discordsrv.api.discord.api.entity.message.ReceivedDiscordMessage;
 import com.discordsrv.api.event.bus.Subscribe;
 import com.discordsrv.api.event.events.discord.DiscordMessageReceivedEvent;
@@ -32,6 +34,9 @@ import com.discordsrv.common.config.main.channels.discordtominecraft.DiscordToMi
 import com.discordsrv.common.function.OrDefault;
 import net.kyori.adventure.text.Component;
 import org.apache.commons.lang3.tuple.Pair;
+
+import java.util.List;
+import java.util.Optional;
 
 public class DiscordChatListener extends AbstractListener {
 
@@ -59,6 +64,9 @@ public class DiscordChatListener extends AbstractListener {
         }
 
         DiscordTextChannel channel = event.getChannel();
+        ReceivedDiscordMessage discordMessage = event.getDiscordMessage();
+        DiscordUser author = discordMessage.getAuthor();
+        Optional<DiscordGuildMember> member = discordMessage.getMember();
 
         OrDefault<Pair<GameChannel, BaseChannelConfig>> channelPair = discordSRV.channelConfig().orDefault(channel);
         GameChannel gameChannel = channelPair.get(Pair::getKey);
@@ -69,20 +77,44 @@ public class DiscordChatListener extends AbstractListener {
         OrDefault<? extends BaseChannelConfig> channelConfig = channelPair.map(Pair::getValue);
         OrDefault<DiscordToMinecraftChatConfig> chatConfig = channelConfig.map(cfg -> cfg.discordToMinecraft);
 
+        DiscordToMinecraftChatConfig.Ignores ignores = chatConfig.get(cfg -> cfg.ignores);
+        if (ignores != null) {
+            boolean webhookMessage = discordMessage.isWebhookMessage();
+            if (ignores.webhooks && webhookMessage) {
+                return;
+            } else if (ignores.bots && (author.isBot() && !webhookMessage)) {
+                return;
+            }
+
+            List<Long> users = ignores.usersAndWebhookIds;
+            if (users != null && users.contains(author.getId())) {
+                return;
+            }
+
+            List<Long> roles = ignores.roleIds;
+            boolean anyMatch = roles != null
+                    ? member
+                        .map(m -> m.getRoles().stream().anyMatch(role -> roles.contains(role.getId())))
+                        .orElse(false)
+                    : false;
+            if (anyMatch) {
+                return;
+            }
+        }
+
         String format = chatConfig.get(cfg -> cfg.format.replace("\\n", "\n"));
         if (format == null) {
             return;
         }
 
-        ReceivedDiscordMessage discordMessage = event.getDiscordMessage();
         DiscordSRVMinecraftRenderer.inGuildContext(channel.getGuild().getId(), () -> {
             Component message = discordSRV.componentFactory().minecraftSerializer().serialize(event.getMessageContent());
 
             EnhancedTextBuilder componentBuilder = discordSRV.componentFactory()
                     .enhancedBuilder(format)
-                    .addContext(discordMessage, discordMessage.getAuthor())
+                    .addContext(discordMessage, author)
                     .addReplacement("%message%", message);
-            discordMessage.getMember().ifPresent(componentBuilder::addContext);
+            member.ifPresent(componentBuilder::addContext);
 
             gameChannel.sendMessage(componentBuilder.build());
         });

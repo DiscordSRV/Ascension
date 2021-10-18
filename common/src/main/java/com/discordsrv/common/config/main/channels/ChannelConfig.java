@@ -24,7 +24,6 @@ import org.spongepowered.configurate.objectmapping.meta.Comment;
 import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 
 @ConfigSerializable
@@ -50,6 +49,6 @@ public class ChannelConfig extends BaseChannelConfig {
     }
 
     @Comment("The channels this in-game channel will forward to in Discord")
-    public List<Long> channelIds = new ArrayList<>(Collections.singletonList(0L));
+    public List<Long> channelIds = new ArrayList<>();
 
 }

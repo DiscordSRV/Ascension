@@ -35,7 +35,7 @@ public interface IOfflinePlayer extends Identified {
     @ApiStatus.NonExtendable
     @Placeholder("player_uuid")
     @NotNull
-    default UUID uuid() {
+    default UUID getUniqueId() {
         return identity().uuid();
     }
 }

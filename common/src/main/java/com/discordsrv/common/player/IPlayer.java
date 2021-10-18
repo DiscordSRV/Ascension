@@ -18,16 +18,22 @@
 
 package com.discordsrv.common.player;
 
+import com.discordsrv.api.channel.GameChannel;
 import com.discordsrv.api.placeholder.annotation.Placeholder;
+import com.discordsrv.api.placeholder.util.Placeholders;
 import com.discordsrv.api.player.DiscordSRVPlayer;
+import com.discordsrv.common.DiscordSRV;
 import com.discordsrv.common.command.game.sender.ICommandSender;
 import net.kyori.adventure.text.Component;
 import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.UUID;
 
 public interface IPlayer extends DiscordSRVPlayer, IOfflinePlayer, ICommandSender {
+
+    DiscordSRV discordSRV();
 
     @Override
     @NotNull
@@ -35,12 +41,28 @@ public interface IPlayer extends DiscordSRVPlayer, IOfflinePlayer, ICommandSende
 
     @Override
     @ApiStatus.NonExtendable
-    default @NotNull UUID uuid() {
+    default @NotNull UUID getUniqueId() {
         return identity().uuid();
     }
 
     @NotNull
     @Placeholder("player_display_name")
-    Component displayName();
+    Component getDisplayName();
+
+    @Nullable
+    @Placeholder("player_avatar_url")
+    default String getAvatarUrl(GameChannel gameChannel) {
+        String avatarUrl = discordSRV().channelConfig().orDefault(gameChannel)
+                .get(cfg -> cfg.avatarUrlProvider);
+        if (avatarUrl == null) {
+            return null;
+        }
+
+        return new Placeholders(avatarUrl)
+                .replace("%uuid%", getUniqueId().toString())
+                .replace("%username%", getUsername())
+                .replace("%texture%", "") // TODO
+                .get();
+    }
 
 }

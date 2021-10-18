@@ -19,9 +19,36 @@
 package com.discordsrv.common.config.main.channels.discordtominecraft;
 
 import org.spongepowered.configurate.objectmapping.ConfigSerializable;
+import org.spongepowered.configurate.objectmapping.meta.Comment;
+
+import java.util.ArrayList;
+import java.util.List;
 
 @ConfigSerializable
 public class DiscordToMinecraftChatConfig {
 
-    public String format = "[&#5865F2Discord&r] [hover:show_text:Tag: %user_tag%&r\nRoles: %user_roles_, %]%user_color%%user_effective_name%&r » %message%";
+    @Comment("The Discord to Minecraft message format for regular users")
+    public String format = "[&#5865F2Discord&r] [hover:show_text:Tag: %user_tag%&r\\nRoles: %user_roles_, %]%user_color%%user_effective_name%&r » %message%";
+
+    @Comment("The Discord to Minecraft message format for webhook messages (if enabled)")
+    public String webhookFormat = "[&#5865F2Discord&r] [hover:show_text:Webhook message]%user_name% » %message%";
+
+    @Comment("Users, bots and webhooks to ignore")
+    public Ignores ignores = new Ignores();
+
+    @ConfigSerializable
+    public static class Ignores {
+        @Comment("User and Webhook ids to ignore")
+        public List<Long> usersAndWebhookIds = new ArrayList<>();
+
+        @Comment("Role IDs for users/bots to ignore")
+        public List<Long> roleIds = new ArrayList<>();
+
+        @Comment("If bots (webhooks not included) should be ignored")
+        public boolean bots = false;
+
+        @Comment("If webhooks should be ignored")
+        public boolean webhooks = false;
+    }
+
 }

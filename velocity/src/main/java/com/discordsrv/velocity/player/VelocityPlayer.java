@@ -18,6 +18,7 @@
 
 package com.discordsrv.velocity.player;
 
+import com.discordsrv.common.DiscordSRV;
 import com.discordsrv.common.player.IPlayer;
 import com.discordsrv.velocity.VelocityDiscordSRV;
 import com.velocitypowered.api.proxy.Player;
@@ -53,6 +54,11 @@ public class VelocityPlayer implements IPlayer {
     }
 
     @Override
+    public DiscordSRV discordSRV() {
+        return discordSRV;
+    }
+
+    @Override
     public @NotNull String getUsername() {
         return player.getUsername();
     }
@@ -63,7 +69,7 @@ public class VelocityPlayer implements IPlayer {
     }
 
     @Override
-    public @NotNull Component displayName() {
+    public @NotNull Component getDisplayName() {
         // Use Adventure's Pointer, otherwise username
         return player.getOrDefaultFrom(
                 Identity.DISPLAY_NAME,

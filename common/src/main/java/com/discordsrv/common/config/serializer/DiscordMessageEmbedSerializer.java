@@ -25,48 +25,59 @@ import org.checkerframework.checker.nullness.qual.Nullable;
 import org.spongepowered.configurate.ConfigurationNode;
 import org.spongepowered.configurate.serialize.SerializationException;
 import org.spongepowered.configurate.serialize.TypeSerializer;
+import org.spongepowered.configurate.util.NamingScheme;
 
 import java.lang.reflect.Type;
 import java.util.Collections;
 
 public class DiscordMessageEmbedSerializer implements TypeSerializer<DiscordMessageEmbed.Builder> {
 
+    private final NamingScheme namingScheme;
+
+    public DiscordMessageEmbedSerializer(NamingScheme namingScheme) {
+        this.namingScheme = namingScheme;
+    }
+
+    private String map(String option) {
+        return namingScheme.coerce(option);
+    }
+
     @Override
     public DiscordMessageEmbed.Builder deserialize(Type type, ConfigurationNode node) throws SerializationException {
-        if (!node.node("Enabled").getBoolean(node.node("Enable").getBoolean(true))) {
+        if (!node.node(map("Enabled")).getBoolean(node.node(map("Enable")).getBoolean(true))) {
             return null;
         }
 
         DiscordMessageEmbed.Builder builder = DiscordMessageEmbed.builder();
 
-        Color color = node.node("Color").get(Color.class);
+        Color color = node.node(map("Color")).get(Color.class);
         builder.setColor(color != null ? color.rgb() : Role.DEFAULT_COLOR_RAW);
 
         ConfigurationNode author = node.node("Author");
         builder.setAuthor(
-                author.node("Name").getString(),
-                author.node("Url").getString(),
-                author.node("ImageUrl").getString());
+                author.node(map("Name")).getString(),
+                author.node(map("Url")).getString(),
+                author.node(map("ImageUrl")).getString());
 
-        ConfigurationNode title = node.node("Title");
+        ConfigurationNode title = node.node(map("Title"));
         builder.setTitle(
-                title.node("Text").getString(),
-                title.node("Url").getString());
+                title.node(map("Text")).getString(),
+                title.node(map("Url")).getString());
 
-        builder.setDescription(node.node("Description").getString());
+        builder.setDescription(node.node(map("Description")).getString());
         for (DiscordMessageEmbed.Field field : node.getList(DiscordMessageEmbed.Field.class, Collections.emptyList())) {
             builder.addField(field);
         }
 
-        builder.setThumbnailUrl(node.node("ThumbnailUrl").getString());
-        builder.setImageUrl(node.node("ImageUrl").getString());
+        builder.setThumbnailUrl(node.node(map("ThumbnailUrl")).getString());
+        builder.setImageUrl(node.node(map("ImageUrl")).getString());
 
         // TODO: timestamp
 
-        ConfigurationNode footer = node.node("Footer");
+        ConfigurationNode footer = node.node(map("Footer"));
         builder.setFooter(
-                footer.node("Text").getString(),
-                footer.node("ImageUrl").getString(footer.node("IconUrl").getString()));
+                footer.node(map("Text")).getString(),
+                footer.node(map("ImageUrl")).getString(footer.node(map("IconUrl")).getString()));
 
         return builder;
     }
@@ -79,29 +90,39 @@ public class DiscordMessageEmbedSerializer implements TypeSerializer<DiscordMess
             return;
         }
 
-        node.node("Color").set(obj.getColor());
+        node.node(map("Color")).set(obj.getColor());
 
-        ConfigurationNode author = node.node("Author");
-        author.node("Name").set(obj.getAuthorName());
-        author.node("Url").set(obj.getAuthorUrl());
-        author.node("ImageUrl").set(obj.getAuthorImageUrl());
+        ConfigurationNode author = node.node(map("Author"));
+        author.node(map("Name")).set(obj.getAuthorName());
+        author.node(map("Url")).set(obj.getAuthorUrl());
+        author.node(map("ImageUrl")).set(obj.getAuthorImageUrl());
 
-        ConfigurationNode title = node.node("Title");
-        title.node("Text").set(obj.getTitle());
-        title.node("Url").set(obj.getTitleUrl());
+        ConfigurationNode title = node.node(map("Title"));
+        title.node(map("Text")).set(obj.getTitle());
+        title.node(map("Url")).set(obj.getTitleUrl());
 
-        node.node("Description").set(obj.getDescription());
-        node.node("Fields").setList(DiscordMessageEmbed.Field.class, obj.getFields());
+        node.node(map("Description")).set(obj.getDescription());
+        node.node(map("Fields")).setList(DiscordMessageEmbed.Field.class, obj.getFields());
 
-        node.node("ThumbnailUrl").set(obj.getThumbnailUrl());
-        node.node("ImageUrl").set(obj.getImageUrl());
+        node.node(map("ThumbnailUrl")).set(obj.getThumbnailUrl());
+        node.node(map("ImageUrl")).set(obj.getImageUrl());
 
-        ConfigurationNode footer = node.node("Footer");
-        footer.node("Text").set(obj.getFooter());
-        footer.node("ImageUrl").set(obj.getFooterImageUrl());
+        ConfigurationNode footer = node.node(map("Footer"));
+        footer.node(map("Text")).set(obj.getFooter());
+        footer.node(map("ImageUrl")).set(obj.getFooterImageUrl());
     }
 
     public static class FieldSerializer implements TypeSerializer<DiscordMessageEmbed.Field> {
+
+        private final NamingScheme namingScheme;
+
+        public FieldSerializer(NamingScheme namingScheme) {
+            this.namingScheme = namingScheme;
+        }
+
+        private String map(String option) {
+            return namingScheme.coerce(option);
+        }
 
         @Override
         public DiscordMessageEmbed.Field deserialize(Type type, ConfigurationNode node) {
@@ -123,9 +144,9 @@ public class DiscordMessageEmbedSerializer implements TypeSerializer<DiscordMess
             }
 
             return new DiscordMessageEmbed.Field(
-                    node.node("Title").getString(),
-                    node.node("Value").getString(),
-                    node.node("Inline").getBoolean()
+                    node.node(map("Title")).getString(),
+                    node.node(map("Value")).getString(),
+                    node.node(map("Inline")).getBoolean()
             );
         }
 
@@ -137,9 +158,9 @@ public class DiscordMessageEmbedSerializer implements TypeSerializer<DiscordMess
                 return;
             }
 
-            node.node("Title").set(obj.getTitle());
-            node.node("Value").set(obj.getValue());
-            node.node("Inline").set(obj.isInline());
+            node.node(map("Title")).set(obj.getTitle());
+            node.node(map("Value")).set(obj.getValue());
+            node.node(map("Inline")).set(obj.isInline());
         }
 
     }

@@ -19,6 +19,7 @@
 package com.discordsrv.bukkit.player;
 
 import com.discordsrv.bukkit.BukkitDiscordSRV;
+import com.discordsrv.common.DiscordSRV;
 import com.discordsrv.common.component.util.ComponentUtil;
 import com.discordsrv.common.player.IPlayer;
 import net.kyori.adventure.audience.Audience;
@@ -74,9 +75,14 @@ public class BukkitPlayer extends BukkitOfflinePlayer implements IPlayer {
                 discordSRV.server().dispatchCommand(player, command));
     }
 
+    @Override
+    public DiscordSRV discordSRV() {
+        return discordSRV;
+    }
+
     @SuppressWarnings("deprecation") // Paper
     @Override
-    public @NotNull Component displayName() {
+    public @NotNull Component getDisplayName() {
         if (DISPLAY_NAME_METHOD != null) {
             try {
                 return ComponentUtil.fromUnrelocated(DISPLAY_NAME_METHOD.invoke(player));

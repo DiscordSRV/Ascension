@@ -38,6 +38,7 @@ import org.spongepowered.configurate.loader.AbstractConfigurationLoader;
 import org.spongepowered.configurate.objectmapping.ConfigSerializable;
 import org.spongepowered.configurate.objectmapping.ObjectMapper;
 import org.spongepowered.configurate.serialize.SerializationException;
+import org.spongepowered.configurate.util.NamingScheme;
 import org.spongepowered.configurate.util.NamingSchemes;
 
 import java.nio.file.Path;
@@ -47,6 +48,12 @@ import java.util.Map;
 
 public abstract class ConfigurateConfigManager<T, LT extends AbstractConfigurationLoader<CommentedConfigurationNode>>
         implements ConfigManager<T>, ConfigLoaderProvider<LT> {
+
+    public static NamingScheme NAMING_SCHEME = in -> {
+        in = Character.toLowerCase(in.charAt(0)) + in.substring(1);
+        in = NamingSchemes.LOWER_CASE_DASHED.coerce(in);
+        return in;
+    };
 
     protected final DiscordSRV discordSRV;
     private final Path filePath;
@@ -87,9 +94,9 @@ public abstract class ConfigurateConfigManager<T, LT extends AbstractConfigurati
                     ObjectMapper.Factory objectMapper = configObjectMapper();
                     builder.register(Color.class, new ColorSerializer());
                     builder.register(BaseChannelConfig.class, new BaseChannelConfig.Serializer(objectMapper));
-                    builder.register(DiscordMessageEmbed.Builder.class, new DiscordMessageEmbedSerializer());
-                    builder.register(DiscordMessageEmbed.Field.class, new DiscordMessageEmbedSerializer.FieldSerializer());
-                    builder.register(SendableDiscordMessage.Builder.class, new SendableDiscordMessageSerializer());
+                    builder.register(DiscordMessageEmbed.Builder.class, new DiscordMessageEmbedSerializer(NAMING_SCHEME));
+                    builder.register(DiscordMessageEmbed.Field.class, new DiscordMessageEmbedSerializer.FieldSerializer(NAMING_SCHEME));
+                    builder.register(SendableDiscordMessage.Builder.class, new SendableDiscordMessageSerializer(NAMING_SCHEME));
                 });
     }
 
@@ -103,10 +110,7 @@ public abstract class ConfigurateConfigManager<T, LT extends AbstractConfigurati
 
     protected ObjectMapper.Factory.Builder objectMapperBuilder() {
         return ObjectMapper.factoryBuilder()
-                .defaultNamingScheme(input -> {
-                    String camelCase = NamingSchemes.CAMEL_CASE.coerce(input); // Gets rid of underscores and dashes
-                    return Character.toUpperCase(camelCase.charAt(0)) + camelCase.substring(1);
-                });
+                .defaultNamingScheme(NAMING_SCHEME);
     }
 
     protected ObjectMapper.Factory.Builder configObjectMapperBuilder() {

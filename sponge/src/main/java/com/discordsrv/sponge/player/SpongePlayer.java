@@ -18,6 +18,7 @@
 
 package com.discordsrv.sponge.player;
 
+import com.discordsrv.common.DiscordSRV;
 import com.discordsrv.common.player.IPlayer;
 import com.discordsrv.sponge.SpongeDiscordSRV;
 import net.kyori.adventure.identity.Identity;
@@ -57,7 +58,12 @@ public class SpongePlayer extends SpongeOfflinePlayer implements IPlayer {
     }
 
     @Override
-    public @NotNull Component displayName() {
+    public DiscordSRV discordSRV() {
+        return discordSRV;
+    }
+
+    @Override
+    public @NotNull Component getDisplayName() {
         return player.displayName().get();
     }
 }

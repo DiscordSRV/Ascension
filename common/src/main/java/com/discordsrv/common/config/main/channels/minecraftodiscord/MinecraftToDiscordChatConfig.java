@@ -20,14 +20,13 @@ package com.discordsrv.common.config.main.channels.minecraftodiscord;
 
 import com.discordsrv.api.discord.api.entity.message.SendableDiscordMessage;
 import org.spongepowered.configurate.objectmapping.ConfigSerializable;
-import org.spongepowered.configurate.objectmapping.meta.Setting;
 
 @ConfigSerializable
 public class MinecraftToDiscordChatConfig {
 
-    @Setting("Format")
-    public SendableDiscordMessage.Builder messageFormat = SendableDiscordMessage.builder()
+    public SendableDiscordMessage.Builder format = SendableDiscordMessage.builder()
             .setWebhookUsername("%player_display_name%")
+            .setWebhookAvatarUrl("%player_avatar_url%")
             .setContent("%message%");// TODO
     
 }

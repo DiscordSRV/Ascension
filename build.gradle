@@ -16,9 +16,9 @@ ext {
     // MinecraftDependencyDownload
     mddVersion = '1.0.0-SNAPSHOT'
     // JDA
-    jdaVersion = '4.3.0_278'
+    jdaVersion = '4.3.0_334'
     // Configurate
-    configurateVersion = '4.1.1'
+    configurateVersion = '4.1.2'
     // Adventure & Adventure Platform
     adventureVersion = '4.9.1'
     adventurePlatformVersion = '4.0.0'

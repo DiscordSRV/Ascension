@@ -26,12 +26,14 @@ public class DiscordUserImpl implements DiscordUser {
 
     private final long id;
     private final boolean self;
+    private final boolean bot;
     private final String username;
     private final String discriminator;
 
     public DiscordUserImpl(User user) {
         this.id = user.getIdLong();
         this.self = user.getIdLong() == user.getJDA().getSelfUser().getIdLong();
+        this.bot = user.isBot();
         this.username = user.getName();
         this.discriminator = user.getDiscriminator();
     }
@@ -44,6 +46,11 @@ public class DiscordUserImpl implements DiscordUser {
     @Override
     public boolean isSelf() {
         return self;
+    }
+
+    @Override
+    public boolean isBot() {
+        return bot;
     }
 
     @Override

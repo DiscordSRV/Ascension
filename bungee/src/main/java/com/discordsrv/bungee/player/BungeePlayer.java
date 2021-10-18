@@ -20,6 +20,7 @@ package com.discordsrv.bungee.player;
 
 import com.discordsrv.bungee.BungeeDiscordSRV;
 import com.discordsrv.bungee.component.util.BungeeComponentUtil;
+import com.discordsrv.common.DiscordSRV;
 import com.discordsrv.common.player.IPlayer;
 import net.kyori.adventure.audience.Audience;
 import net.kyori.adventure.identity.Identity;
@@ -59,6 +60,11 @@ public class BungeePlayer implements IPlayer {
     }
 
     @Override
+    public DiscordSRV discordSRV() {
+        return discordSRV;
+    }
+
+    @Override
     public @NotNull String getUsername() {
         return player.getName();
     }
@@ -69,7 +75,7 @@ public class BungeePlayer implements IPlayer {
     }
 
     @Override
-    public @NotNull Component displayName() {
+    public @NotNull Component getDisplayName() {
         return BungeeComponentUtil.fromLegacy(player.getDisplayName());
     }
 }

@@ -35,6 +35,8 @@ public class BaseChannelConfig {
     public MinecraftToDiscordChatConfig minecraftToDiscord = new MinecraftToDiscordChatConfig();
     public DiscordToMinecraftChatConfig discordToMinecraft = new DiscordToMinecraftChatConfig();
 
+    public String avatarUrlProvider = "https://heads.discordsrv.com/head.png?texture=%texture%&uuid=%uuid%&name=%username%&overlay";
+
     public static class Serializer implements TypeSerializer<BaseChannelConfig> {
 
         private final ObjectMapper.Factory mapperFactory;

@@ -24,6 +24,7 @@ import org.checkerframework.checker.nullness.qual.Nullable;
 import org.spongepowered.configurate.ConfigurationNode;
 import org.spongepowered.configurate.serialize.SerializationException;
 import org.spongepowered.configurate.serialize.TypeSerializer;
+import org.spongepowered.configurate.util.NamingScheme;
 
 import java.lang.reflect.Type;
 import java.util.ArrayList;
@@ -31,6 +32,16 @@ import java.util.Collections;
 import java.util.List;
 
 public class SendableDiscordMessageSerializer implements TypeSerializer<SendableDiscordMessage.Builder> {
+
+    private final NamingScheme namingScheme;
+
+    public SendableDiscordMessageSerializer(NamingScheme namingScheme) {
+        this.namingScheme = namingScheme;
+    }
+
+    private String map(String option) {
+        return namingScheme.coerce(option);
+    }
 
     @Override
     public SendableDiscordMessage.Builder deserialize(Type type, ConfigurationNode node)
@@ -43,27 +54,27 @@ public class SendableDiscordMessageSerializer implements TypeSerializer<Sendable
 
         SendableDiscordMessage.Builder builder = SendableDiscordMessage.builder();
 
-        ConfigurationNode webhook = node.node("Webhook");
-        String webhookUsername = webhook.node("Username").getString();
-        if (webhook.node("Enabled").getBoolean(
-                webhook.node("Enable").getBoolean(
+        ConfigurationNode webhook = node.node(map("Webhook"));
+        String webhookUsername = webhook.node(map("Username")).getString();
+        if (webhook.node(map("Enabled")).getBoolean(
+                webhook.node(map("Enable")).getBoolean(
                         webhookUsername != null))) {
             builder.setWebhookUsername(webhookUsername);
-            builder.setWebhookAvatarUrl(webhook.node("AvatarUrl").getString());
+            builder.setWebhookAvatarUrl(webhook.node(map("AvatarUrl")).getString());
         }
 
         // v1 compat
-        DiscordMessageEmbed.Builder singleEmbed = node.node("Embed").get(
+        DiscordMessageEmbed.Builder singleEmbed = node.node(map("Embed")).get(
                 DiscordMessageEmbed.Builder.class);
         List<DiscordMessageEmbed.Builder> embedList = singleEmbed != null
                 ? Collections.singletonList(singleEmbed) : Collections.emptyList();
 
-        for (DiscordMessageEmbed.Builder embed : node.node("Embeds")
+        for (DiscordMessageEmbed.Builder embed : node.node(map("Embeds"))
                 .getList(DiscordMessageEmbed.Builder.class, embedList)) {
             builder.addEmbed(embed.build());
         }
 
-        builder.setContent(node.node("Content").getString());
+        builder.setContent(node.node(map("Content")).getString());
         return builder;
     }
 
@@ -77,17 +88,17 @@ public class SendableDiscordMessageSerializer implements TypeSerializer<Sendable
 
         String webhookUsername = obj.getWebhookUsername();
         if (webhookUsername != null) {
-            ConfigurationNode webhook = node.node("Webhook");
-            webhook.node("Username").set(webhookUsername);
-            webhook.node("AvatarUrl").set(obj.getWebhookAvatarUrl());
+            ConfigurationNode webhook = node.node(map("Webhook"));
+            webhook.node(map("Username")).set(webhookUsername);
+            webhook.node(map("AvatarUrl")).set(obj.getWebhookAvatarUrl());
         }
 
         List<DiscordMessageEmbed.Builder> embedBuilders = new ArrayList<>();
         obj.getEmbeds().forEach(embed -> embedBuilders.add(embed.toBuilder()));
         if (!embedBuilders.isEmpty()) {
-            node.node("Embeds").setList(DiscordMessageEmbed.Builder.class, embedBuilders);
+            node.node(map("Embeds")).setList(DiscordMessageEmbed.Builder.class, embedBuilders);
         }
 
-        node.node("Content").set(obj.getContent());
+        node.node(map("Content")).set(obj.getContent());
     }
 }

@@ -47,6 +47,6 @@ public interface DiscordSRVPlayer {
      */
     @Placeholder("player_uuid")
     @NotNull
-    UUID uuid();
+    UUID getUniqueId();
 
 }

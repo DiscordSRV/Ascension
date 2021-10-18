@@ -33,9 +33,15 @@ public interface DiscordUser extends Snowflake {
 
     /**
      * Gets if this user is the bot this DiscordSRV instance is connected.
-     * @return true if the bot is the bot connected to this DiscordSRV instance
+     * @return true if this user is the bot connected to this DiscordSRV instance
      */
     boolean isSelf();
+
+    /**
+     * Gets if this user is a bot (or webhook).
+     * @return true if this user is a bot or webhook
+     */
+    boolean isBot();
 
     /**
      * Gets the username of the Discord user.
