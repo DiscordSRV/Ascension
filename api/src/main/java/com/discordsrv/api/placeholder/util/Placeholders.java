@@ -78,8 +78,9 @@ public class Placeholders {
         return this;
     }
 
+    @Override
     @NotNull
-    public String get() {
+    public String toString() {
         String input = inputText;
         for (Map.Entry<Pattern, Function<Matcher, Object>> entry : replacements.entrySet()) {
             Pattern pattern = entry.getKey();

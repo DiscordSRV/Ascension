@@ -62,7 +62,7 @@ public interface IPlayer extends DiscordSRVPlayer, IOfflinePlayer, ICommandSende
                 .replace("%uuid%", getUniqueId().toString())
                 .replace("%username%", getUsername())
                 .replace("%texture%", "") // TODO
-                .get();
+                .toString();
     }
 
 }

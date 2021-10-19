@@ -247,7 +247,7 @@ public class SendableDiscordMessageImpl implements SendableDiscordMessage {
                         .addAll(replacements);
 
                 // Empty string -> null
-                String output = placeholderUtil.get();
+                String output = placeholderUtil.toString();
                 return output.isEmpty() ? null : output;
             };
             builder.setContent(placeholders.apply(builder.getContent()));

@@ -115,7 +115,7 @@ public class DiscordChatListener extends AbstractListener {
             chatConfig.opt(cfg -> cfg.contentRegexFilters)
                     .ifPresent(filters -> filters.forEach(message::replaceAll));
 
-            Component messageComponent = discordSRV.componentFactory().minecraftSerializer().serialize(message.get());
+            Component messageComponent = discordSRV.componentFactory().minecraftSerializer().serialize(message.toString());
 
             EnhancedTextBuilder componentBuilder = discordSRV.componentFactory()
                     .enhancedBuilder(format)

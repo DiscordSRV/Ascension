@@ -34,18 +34,21 @@ public class AnnotationPlaceholderProvider implements PlaceholderProvider {
 
     private final Class<?> type;
     private final Method method;
+    private final boolean startsWith;
     private final Field field;
 
-    public AnnotationPlaceholderProvider(Placeholder annotation, Class<?> type, Method method) {
+    public AnnotationPlaceholderProvider(Placeholder annotation, Class<?> type, boolean startsWith, Method method) {
         this.annotation = annotation;
         this.type = type;
+        this.startsWith = startsWith;
         this.method = method;
         this.field = null;
     }
 
-    public AnnotationPlaceholderProvider(Placeholder annotation, Class<?> type, Field field) {
+    public AnnotationPlaceholderProvider(Placeholder annotation, Class<?> type, boolean startsWith, Field field) {
         this.annotation = annotation;
         this.type = type;
+        this.startsWith = startsWith;
         this.method = null;
         this.field = field;
     }
@@ -54,7 +57,7 @@ public class AnnotationPlaceholderProvider implements PlaceholderProvider {
     public @NotNull PlaceholderLookupResult lookup(@NotNull String placeholder, @NotNull Set<Object> context) {
         String annotationPlaceholder = annotation.value();
         if (annotationPlaceholder.isEmpty()
-                || !placeholder.startsWith(annotationPlaceholder)
+                || !(startsWith ? placeholder.startsWith(annotationPlaceholder) : placeholder.equals(annotationPlaceholder))
                 || (type != null && context.isEmpty())) {
             return PlaceholderLookupResult.UNKNOWN_PLACEHOLDER;
         }

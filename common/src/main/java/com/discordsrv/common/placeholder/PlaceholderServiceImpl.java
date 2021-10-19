@@ -23,6 +23,7 @@ import com.discordsrv.api.placeholder.annotation.Placeholder;
 import com.discordsrv.api.placeholder.PlaceholderLookupResult;
 import com.discordsrv.api.placeholder.PlaceholderResultStringifier;
 import com.discordsrv.api.placeholder.PlaceholderService;
+import com.discordsrv.api.placeholder.annotation.PlaceholderRemainder;
 import com.discordsrv.common.DiscordSRV;
 import com.discordsrv.common.placeholder.provider.AnnotationPlaceholderProvider;
 import com.discordsrv.common.placeholder.provider.PlaceholderProvider;
@@ -35,6 +36,7 @@ import org.jetbrains.annotations.NotNull;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
+import java.lang.reflect.Parameter;
 import java.util.*;
 import java.util.concurrent.CopyOnWriteArraySet;
 import java.util.concurrent.TimeUnit;
@@ -80,7 +82,7 @@ public class PlaceholderServiceImpl implements PlaceholderService {
                 }
             }
 
-            Set<PlaceholderProvider> providers = classProviders.get(o.getClass());
+            Set<PlaceholderProvider> providers = classProviders.get(o instanceof Class ? (Class<?>) o : o.getClass());
             if (providers == null) {
                 continue;
             }
@@ -256,8 +258,18 @@ public class PlaceholderServiceImpl implements PlaceholderService {
                             continue;
                         }
 
+                        boolean startsWith = !annotation.relookup().isEmpty();
+                        if (!startsWith) {
+                            for (Parameter parameter : method.getParameters()) {
+                                if (parameter.getAnnotation(PlaceholderRemainder.class) != null) {
+                                    startsWith = true;
+                                    break;
+                                }
+                            }
+                        }
+
                         boolean isStatic = Modifier.isStatic(method.getModifiers());
-                        providers.add(new AnnotationPlaceholderProvider(annotation, isStatic ? null : clazz, method));
+                        providers.add(new AnnotationPlaceholderProvider(annotation, isStatic ? null : clazz, startsWith, method));
                     }
                     for (Field field : clazz.getFields()) {
                         Placeholder annotation = field.getAnnotation(Placeholder.class);
@@ -266,7 +278,7 @@ public class PlaceholderServiceImpl implements PlaceholderService {
                         }
 
                         boolean isStatic = Modifier.isStatic(field.getModifiers());
-                        providers.add(new AnnotationPlaceholderProvider(annotation, isStatic ? null : clazz, field));
+                        providers.add(new AnnotationPlaceholderProvider(annotation, isStatic ? null : clazz, !annotation.relookup().isEmpty(), field));
                     }
                 }
 

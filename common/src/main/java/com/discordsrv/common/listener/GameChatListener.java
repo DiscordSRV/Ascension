@@ -69,7 +69,7 @@ public class GameChatListener extends AbstractListener {
 
         SendableDiscordMessage.Formatter formatter = builder.toFormatter()
                 .addContext(event.getPlayer(), gameChannel)
-                .addReplacement("%message%", serializedMessage.get());
+                .addReplacement("%message%", serializedMessage.toString());
 
         formatter.applyPlaceholderService();
 
