@@ -218,30 +218,41 @@ public interface SendableDiscordMessage {
          * @param context the context to add
          * @return the formatted, useful for chaining
          */
+        @NotNull
         Formatter addContext(Object... context);
 
+        @NotNull
         default Formatter addReplacement(String target, Object replacement) {
             return addReplacement(Pattern.compile(target, Pattern.LITERAL), replacement);
         }
 
+        @NotNull
         default Formatter addReplacement(Pattern target, Object replacement) {
             return addReplacement(target, matcher -> replacement);
         }
 
+        @NotNull
         default Formatter addReplacement(String target, Supplier<Object> replacement) {
             return addReplacement(Pattern.compile(target, Pattern.LITERAL), replacement);
         }
 
+        @NotNull
         default Formatter addReplacement(Pattern target, Supplier<Object> replacement) {
             return addReplacement(target, matcher -> replacement.get());
         }
 
+        @NotNull
         default Formatter addReplacement(String target, Function<Matcher, Object> replacement) {
             return addReplacement(Pattern.compile(target, Pattern.LITERAL), replacement);
         }
 
+        @NotNull
         Formatter addReplacement(Pattern target, Function<Matcher, Object> replacement);
 
+        @NotNull
+        Formatter applyPlaceholderService();
+
+        @NotNull
         SendableDiscordMessage build();
     }
 

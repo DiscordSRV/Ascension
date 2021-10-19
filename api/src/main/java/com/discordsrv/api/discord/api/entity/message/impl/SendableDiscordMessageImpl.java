@@ -187,7 +187,7 @@ public class SendableDiscordMessageImpl implements SendableDiscordMessage {
     public static class FormatterImpl implements Formatter {
 
         private final Set<Object> context = new HashSet<>();
-        private final Map<Pattern, Function<Matcher, Object>> replacements = new HashMap<>();
+        private final Map<Pattern, Function<Matcher, Object>> replacements = new LinkedHashMap<>();
 
         private final SendableDiscordMessage.Builder builder;
 
@@ -196,21 +196,48 @@ public class SendableDiscordMessageImpl implements SendableDiscordMessage {
         }
 
         @Override
-        public SendableDiscordMessage.Formatter addContext(Object... context) {
+        public SendableDiscordMessage.@NotNull Formatter addContext(Object... context) {
             this.context.addAll(Arrays.asList(context));
             return this;
         }
 
         @Override
-        public SendableDiscordMessage.Formatter addReplacement(Pattern target, Function<Matcher, Object> replacement) {
+        public SendableDiscordMessage.@NotNull Formatter addReplacement(Pattern target, Function<Matcher, Object> replacement) {
             this.replacements.put(target, wrapFunction(replacement));
             return this;
         }
 
         @Override
-        public SendableDiscordMessage build() {
+        public @NotNull Formatter applyPlaceholderService() {
             DiscordSRVApi api = DiscordSRVApiProvider.optional().orElse(null);
+            if (api == null) {
+                throw new IllegalStateException("DiscordSRVApi not available");
+            }
+            this.replacements.put(PlaceholderService.PATTERN,
+                    wrapFunction(matcher ->
+                            api.placeholderService().getResultAsString(matcher, context)));
+            return this;
+        }
 
+        private Function<Matcher, Object> wrapFunction(Function<Matcher, Object> function) {
+            return matcher -> {
+                Object result = function.apply(matcher);
+                if (result instanceof FormattedText) {
+                    // Process as regular text
+                    return result.toString();
+                } else if (result instanceof CharSequence) {
+                    // Escape content
+                    return DiscordFormattingUtil.escapeContent(
+                            result.toString());
+                }
+
+                // Use default behaviour for everything else
+                return result;
+            };
+        }
+
+        @Override
+        public @NotNull SendableDiscordMessage build() {
             Function<String, String> placeholders = input -> {
                 if (input == null) {
                     return null;
@@ -219,13 +246,9 @@ public class SendableDiscordMessageImpl implements SendableDiscordMessage {
                 Placeholders placeholderUtil = new Placeholders(input)
                         .addAll(replacements);
 
-                if (api != null) {
-                    placeholderUtil = placeholderUtil.replaceAll(PlaceholderService.PATTERN,
-                            wrapFunction(matcher ->
-                                    api.placeholderService().getResultAsString(matcher, context)));
-                }
-
-                return placeholderUtil.get();
+                // Empty string -> null
+                String output = placeholderUtil.get();
+                return output.isEmpty() ? null : output;
             };
             builder.setContent(placeholders.apply(builder.getContent()));
 
@@ -291,23 +314,6 @@ public class SendableDiscordMessageImpl implements SendableDiscordMessage {
             });
 
             return builder.build();
-        }
-
-        private Function<Matcher, Object> wrapFunction(Function<Matcher, Object> function) {
-            return matcher -> {
-                Object result = function.apply(matcher);
-                if (result instanceof FormattedText) {
-                    // Process as regular text
-                    return result.toString();
-                } else if (result instanceof CharSequence) {
-                    // Escape content
-                    return DiscordFormattingUtil.escapeContent(
-                            result.toString());
-                }
-
-                // Use default behaviour for everything else
-                return result;
-            };
         }
     }
 }

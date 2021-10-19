@@ -20,6 +20,11 @@ package com.discordsrv.common.config.main.channels.minecraftodiscord;
 
 import com.discordsrv.api.discord.api.entity.message.SendableDiscordMessage;
 import org.spongepowered.configurate.objectmapping.ConfigSerializable;
+import org.spongepowered.configurate.objectmapping.meta.Comment;
+
+import java.util.LinkedHashMap;
+import java.util.Map;
+import java.util.regex.Pattern;
 
 @ConfigSerializable
 public class MinecraftToDiscordChatConfig {
@@ -28,5 +33,9 @@ public class MinecraftToDiscordChatConfig {
             .setWebhookUsername("%player_display_name%")
             .setWebhookAvatarUrl("%player_avatar_url%")
             .setContent("%message%");// TODO
+
+    // TODO: more info on regex pairs (String#replaceAll)
+    @Comment("Regex filters for Minecraft message contents (this is the %message% part of the \"format\" option)")
+    public Map<Pattern, String> contentRegexFilters = new LinkedHashMap<>();
     
 }

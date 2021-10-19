@@ -25,6 +25,7 @@ import com.discordsrv.api.event.bus.EventPriority;
 import com.discordsrv.api.event.bus.Subscribe;
 import com.discordsrv.api.event.events.message.forward.game.ChatMessageForwardedEvent;
 import com.discordsrv.api.event.events.message.receive.game.ChatMessageProcessingEvent;
+import com.discordsrv.api.placeholder.util.Placeholders;
 import com.discordsrv.common.DiscordSRV;
 import com.discordsrv.common.component.util.ComponentUtil;
 import com.discordsrv.common.config.main.channels.BaseChannelConfig;
@@ -61,12 +62,18 @@ public class GameChatListener extends AbstractListener {
         }
 
         Component message = ComponentUtil.fromAPI(event.message());
-        String serializedMessage = discordSRV.componentFactory().discordSerializer().serialize(message);
+        Placeholders serializedMessage = new Placeholders(discordSRV.componentFactory().discordSerializer().serialize(message));
 
-        SendableDiscordMessage discordMessage = builder.toFormatter()
+        chatConfig.opt(cfg -> cfg.contentRegexFilters)
+                .ifPresent(patterns -> patterns.forEach(serializedMessage::replaceAll));
+
+        SendableDiscordMessage.Formatter formatter = builder.toFormatter()
                 .addContext(event.getPlayer(), gameChannel)
-                .addReplacement("%message%", serializedMessage)
-                .build();
+                .addReplacement("%message%", serializedMessage.get());
+
+        formatter.applyPlaceholderService();
+
+        SendableDiscordMessage discordMessage = formatter.build();
 
         List<Long> channelIds = channelConfig.get(cfg -> cfg instanceof ChannelConfig ? ((ChannelConfig) cfg).channelIds : null);
         if (channelIds == null || channelIds.isEmpty()) {

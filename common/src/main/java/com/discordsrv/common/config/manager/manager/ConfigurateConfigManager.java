@@ -27,6 +27,7 @@ import com.discordsrv.common.config.main.channels.BaseChannelConfig;
 import com.discordsrv.common.config.manager.loader.ConfigLoaderProvider;
 import com.discordsrv.common.config.serializer.ColorSerializer;
 import com.discordsrv.common.config.serializer.DiscordMessageEmbedSerializer;
+import com.discordsrv.common.config.serializer.PatternSerializer;
 import com.discordsrv.common.config.serializer.SendableDiscordMessageSerializer;
 import com.discordsrv.common.exception.ConfigException;
 import org.jetbrains.annotations.Nullable;
@@ -45,6 +46,7 @@ import java.nio.file.Path;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
+import java.util.regex.Pattern;
 
 public abstract class ConfigurateConfigManager<T, LT extends AbstractConfigurationLoader<CommentedConfigurationNode>>
         implements ConfigManager<T>, ConfigLoaderProvider<LT> {
@@ -93,6 +95,7 @@ public abstract class ConfigurateConfigManager<T, LT extends AbstractConfigurati
                 .serializers(builder -> {
                     ObjectMapper.Factory objectMapper = configObjectMapper();
                     builder.register(Color.class, new ColorSerializer());
+                    builder.register(Pattern.class, new PatternSerializer());
                     builder.register(BaseChannelConfig.class, new BaseChannelConfig.Serializer(objectMapper));
                     builder.register(DiscordMessageEmbed.Builder.class, new DiscordMessageEmbedSerializer(NAMING_SCHEME));
                     builder.register(DiscordMessageEmbed.Field.class, new DiscordMessageEmbedSerializer.FieldSerializer(NAMING_SCHEME));

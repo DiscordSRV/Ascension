@@ -23,6 +23,8 @@
 
 package com.discordsrv.api.component;
 
+import org.jetbrains.annotations.NotNull;
+
 import java.util.function.Function;
 import java.util.function.Supplier;
 import java.util.regex.Matcher;
@@ -33,29 +35,40 @@ import java.util.regex.Pattern;
  */
 public interface EnhancedTextBuilder {
 
+    @NotNull
     EnhancedTextBuilder addContext(Object... context);
 
+    @NotNull
     default EnhancedTextBuilder addReplacement(String target, Object replacement) {
         return addReplacement(Pattern.compile(target, Pattern.LITERAL), replacement);
     }
 
+    @NotNull
     default EnhancedTextBuilder addReplacement(Pattern target, Object replacement) {
         return addReplacement(target, matcher -> replacement);
     }
 
+    @NotNull
     default EnhancedTextBuilder addReplacement(String target, Supplier<Object> replacement) {
         return addReplacement(Pattern.compile(target, Pattern.LITERAL), replacement);
     }
 
+    @NotNull
     default EnhancedTextBuilder addReplacement(Pattern target, Supplier<Object> replacement) {
         return addReplacement(target, matcher -> replacement.get());
     }
 
+    @NotNull
     default EnhancedTextBuilder addReplacement(String target, Function<Matcher, Object> replacement) {
         return addReplacement(Pattern.compile(target, Pattern.LITERAL), replacement);
     }
 
+    @NotNull
     EnhancedTextBuilder addReplacement(Pattern target, Function<Matcher, Object> replacement);
 
+    @NotNull
+    EnhancedTextBuilder applyPlaceholderService();
+
+    @NotNull
     MinecraftComponent build();
 }

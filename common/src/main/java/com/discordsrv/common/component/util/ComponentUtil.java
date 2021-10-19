@@ -23,6 +23,7 @@ import com.discordsrv.api.component.MinecraftComponentAdapter;
 import com.discordsrv.common.component.MinecraftComponentImpl;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.serializer.gson.GsonComponentSerializer;
+import net.kyori.adventure.text.serializer.plain.PlainTextComponentSerializer;
 
 /**
  * An util class for {@link Component}s and {@link MinecraftComponent}s.
@@ -32,6 +33,14 @@ public final class ComponentUtil {
     public static final MinecraftComponentAdapter ADAPTER = MinecraftComponentAdapter.create(GsonComponentSerializer.class);
 
     private ComponentUtil() {}
+
+    public static boolean isEmpty(Component component) {
+        return PlainTextComponentSerializer.plainText().serialize(component).isEmpty();
+    }
+
+    public static boolean isEmpty(MinecraftComponent component) {
+        return isEmpty(fromAPI(component));
+    }
 
     public static MinecraftComponent toAPI(Component component) {
         return new MinecraftComponentImpl(component);

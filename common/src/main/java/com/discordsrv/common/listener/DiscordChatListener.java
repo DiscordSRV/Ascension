@@ -20,6 +20,7 @@ package com.discordsrv.common.listener;
 
 import com.discordsrv.api.channel.GameChannel;
 import com.discordsrv.api.component.EnhancedTextBuilder;
+import com.discordsrv.api.component.MinecraftComponent;
 import com.discordsrv.api.discord.api.entity.DiscordUser;
 import com.discordsrv.api.discord.api.entity.channel.DiscordTextChannel;
 import com.discordsrv.api.discord.api.entity.guild.DiscordGuildMember;
@@ -27,8 +28,10 @@ import com.discordsrv.api.discord.api.entity.message.ReceivedDiscordMessage;
 import com.discordsrv.api.event.bus.Subscribe;
 import com.discordsrv.api.event.events.discord.DiscordMessageReceivedEvent;
 import com.discordsrv.api.event.events.message.receive.discord.DiscordMessageProcessingEvent;
+import com.discordsrv.api.placeholder.util.Placeholders;
 import com.discordsrv.common.DiscordSRV;
 import com.discordsrv.common.component.renderer.DiscordSRVMinecraftRenderer;
+import com.discordsrv.common.component.util.ComponentUtil;
 import com.discordsrv.common.config.main.channels.BaseChannelConfig;
 import com.discordsrv.common.config.main.channels.discordtominecraft.DiscordToMinecraftChatConfig;
 import com.discordsrv.common.function.OrDefault;
@@ -108,15 +111,27 @@ public class DiscordChatListener extends AbstractListener {
         }
 
         DiscordSRVMinecraftRenderer.inGuildContext(channel.getGuild().getId(), () -> {
-            Component message = discordSRV.componentFactory().minecraftSerializer().serialize(event.getMessageContent());
+            Placeholders message = new Placeholders(event.getMessageContent());
+            chatConfig.opt(cfg -> cfg.contentRegexFilters)
+                    .ifPresent(filters -> filters.forEach(message::replaceAll));
+
+            Component messageComponent = discordSRV.componentFactory().minecraftSerializer().serialize(message.get());
 
             EnhancedTextBuilder componentBuilder = discordSRV.componentFactory()
                     .enhancedBuilder(format)
                     .addContext(discordMessage, author)
-                    .addReplacement("%message%", message);
+                    .addReplacement("%message%", messageComponent);
             member.ifPresent(componentBuilder::addContext);
 
-            gameChannel.sendMessage(componentBuilder.build());
+            componentBuilder.applyPlaceholderService();
+
+            MinecraftComponent component = componentBuilder.build();
+            if (ComponentUtil.isEmpty(component)) {
+                // Empty
+                return;
+            }
+
+            gameChannel.sendMessage(component);
         });
     }
 }

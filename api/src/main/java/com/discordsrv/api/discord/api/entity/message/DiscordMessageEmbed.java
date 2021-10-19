@@ -275,7 +275,7 @@ public class DiscordMessageEmbed {
         }
 
         @NotNull
-        public Builder setColor(Color color) {
+        public Builder setColor(@Nullable Color color) {
             this.color = color;
             return this;
         }

@@ -22,7 +22,10 @@ import org.spongepowered.configurate.objectmapping.ConfigSerializable;
 import org.spongepowered.configurate.objectmapping.meta.Comment;
 
 import java.util.ArrayList;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.regex.Pattern;
 
 @ConfigSerializable
 public class DiscordToMinecraftChatConfig {
@@ -35,6 +38,10 @@ public class DiscordToMinecraftChatConfig {
 
     @Comment("Users, bots and webhooks to ignore")
     public Ignores ignores = new Ignores();
+
+    // TODO: more info on regex pairs (String#replaceAll)
+    @Comment("Regex filters for Discord message contents (this is the %message% part of the \"format\" option)")
+    public Map<Pattern, String> contentRegexFilters = new LinkedHashMap<>();
 
     @ConfigSerializable
     public static class Ignores {

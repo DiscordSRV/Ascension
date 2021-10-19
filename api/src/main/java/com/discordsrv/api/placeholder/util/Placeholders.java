@@ -23,7 +23,9 @@
 
 package com.discordsrv.api.placeholder.util;
 
-import java.util.HashMap;
+import org.jetbrains.annotations.NotNull;
+
+import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.function.Function;
 import java.util.function.Supplier;
@@ -33,42 +35,50 @@ import java.util.regex.Pattern;
 public class Placeholders {
 
     private final String inputText;
-    private final Map<Pattern, Function<Matcher, Object>> replacements = new HashMap<>();
+    private final Map<Pattern, Function<Matcher, Object>> replacements = new LinkedHashMap<>();
 
     public Placeholders(String inputText) {
         this.inputText = inputText;
     }
 
+    @NotNull
     public Placeholders addAll(Map<Pattern, Function<Matcher, Object>> replacements) {
         this.replacements.putAll(replacements);
         return this;
     }
 
+    @NotNull
     public Placeholders replace(String target, Object replacement) {
         return replace(target, matcher -> replacement);
     }
 
+    @NotNull
     public Placeholders replaceAll(Pattern pattern, Object replacement) {
         return replaceAll(pattern, matcher -> replacement);
     }
 
+    @NotNull
     public Placeholders replace(String target, Supplier<Object> replacement) {
         return replaceAll(Pattern.compile(target, Pattern.LITERAL), matcher -> replacement);
     }
 
+    @NotNull
     public Placeholders replaceAll(Pattern pattern, Supplier<Object> replacement) {
         return replaceAll(pattern, matcher -> replacement);
     }
 
+    @NotNull
     public Placeholders replace(String target, Function<Matcher, Object> replacement) {
         return replaceAll(Pattern.compile(target, Pattern.LITERAL), replacement);
     }
 
+    @NotNull
     public Placeholders replaceAll(Pattern pattern, Function<Matcher, Object> replacement) {
         this.replacements.put(pattern, replacement);
         return this;
     }
 
+    @NotNull
     public String get() {
         String input = inputText;
         for (Map.Entry<Pattern, Function<Matcher, Object>> entry : replacements.entrySet()) {

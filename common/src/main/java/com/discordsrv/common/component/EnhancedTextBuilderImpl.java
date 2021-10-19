@@ -28,6 +28,7 @@ import dev.vankka.enhancedlegacytext.EnhancedComponentBuilder;
 import dev.vankka.enhancedlegacytext.EnhancedLegacyText;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.TextColor;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.*;
 import java.util.function.Function;
@@ -37,7 +38,7 @@ import java.util.regex.Pattern;
 public class EnhancedTextBuilderImpl implements EnhancedTextBuilder {
 
     private final Set<Object> context = new HashSet<>();
-    private final Map<Pattern, Function<Matcher, Object>> replacements = new HashMap<>();
+    private final Map<Pattern, Function<Matcher, Object>> replacements = new LinkedHashMap<>();
 
     private final DiscordSRV discordSRV;
     private final String enhancedFormat;
@@ -48,26 +49,20 @@ public class EnhancedTextBuilderImpl implements EnhancedTextBuilder {
     }
 
     @Override
-    public EnhancedTextBuilder addContext(Object... context) {
+    public @NotNull EnhancedTextBuilder addContext(Object... context) {
         this.context.addAll(Arrays.asList(context));
         return this;
     }
 
     @Override
-    public EnhancedTextBuilder addReplacement(Pattern target, Function<Matcher, Object> replacement) {
+    public @NotNull EnhancedTextBuilder addReplacement(Pattern target, Function<Matcher, Object> replacement) {
         this.replacements.put(target, replacement);
         return this;
     }
 
     @Override
-    public MinecraftComponent build() {
-        EnhancedComponentBuilder builder = EnhancedLegacyText.get()
-                .buildComponent(enhancedFormat);
-
-        replacements.forEach(builder::replaceAll);
-
-        // PlaceholderService
-        builder.replaceAll(PlaceholderService.PATTERN, matcher -> {
+    public @NotNull EnhancedTextBuilder applyPlaceholderService() {
+        this.replacements.put(PlaceholderService.PATTERN, matcher -> {
             Object result = discordSRV.placeholderService().getResult(matcher, context);
             if (result instanceof Color) {
                 // Convert Color to something it'll understand
@@ -75,6 +70,15 @@ public class EnhancedTextBuilderImpl implements EnhancedTextBuilder {
             }
             return result;
         });
+        return this;
+    }
+
+    @Override
+    public @NotNull MinecraftComponent build() {
+        EnhancedComponentBuilder builder = EnhancedLegacyText.get()
+                .buildComponent(enhancedFormat);
+
+        replacements.forEach(builder::replaceAll);
 
         Component component = builder.build();
         return ComponentUtil.toAPI(component);

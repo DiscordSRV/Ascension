@@ -18,8 +18,11 @@
 
 package com.discordsrv.common.function;
 
+import org.jetbrains.annotations.Contract;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.Optional;
 import java.util.function.Function;
 
 public class OrDefault<T> {
@@ -32,24 +35,34 @@ public class OrDefault<T> {
         this.secondary = secondary;
     }
 
-    public <R> R get(Function<T, R> function, R otherwise) {
-        R value = get(function);
+    @Contract("_, !null -> !null")
+    public <R> R get(@NotNull Function<T, R> mappingFunction, @Nullable R otherwise) {
+        R value = get(mappingFunction);
         return value != null ? value : otherwise;
     }
 
+    @NotNull
+    public <R> Optional<R> opt(@NotNull Function<T, R> mappingFunction, @Nullable R otherwise) {
+        return Optional.ofNullable(get(mappingFunction, otherwise));
+    }
+
     @Nullable
-    public <R> R get(Function<T, R> function) {
+    public <R> R get(@NotNull Function<T, R> mappingFunction) {
         if (primary != null) {
-            R primaryValue = function.apply(primary);
+            R primaryValue = mappingFunction.apply(primary);
             if (primaryValue != null) {
                 return primaryValue;
             }
         }
 
-        return function.apply(secondary);
+        return mappingFunction.apply(secondary);
     }
 
-    public <R> OrDefault<R> map(Function<T, R> mappingFunction) {
+    public <R> Optional<R> opt(@NotNull Function<T, R> mappingFunction) {
+        return Optional.ofNullable(get(mappingFunction));
+    }
+
+    public <R> OrDefault<R> map(@NotNull Function<T, R> mappingFunction) {
         R primaryValue = null;
         R secondaryValue = null;
         if (primary != null) {
