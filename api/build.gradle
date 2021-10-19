@@ -2,14 +2,13 @@ apply from: rootProject.file('buildscript/relocations.gradle')
 
 dependencies {
     // Annotations
-    compileOnlyApi 'org.jetbrains:annotations:21.0.1'
-    compileOnlyApi 'com.google.code.findbugs:jsr305:3.0.2'
+    compileOnlyApi 'org.jetbrains:annotations:22.0.0'
+    api 'com.google.code.findbugs:jsr305:3.0.2'
 
     // JDA
     api('net.dv8tion:JDA:' + rootProject.jdaVersion) {
         // Annotations are suppose to be compile time only
         exclude group: 'org.jetbrains', module: 'annotations'
-        exclude group: 'com.google.code.findbugs', module: 'jsr305'
 
         // We don't use audio
         exclude module: 'opus-java'

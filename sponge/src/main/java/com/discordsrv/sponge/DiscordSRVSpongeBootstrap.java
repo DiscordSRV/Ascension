@@ -50,7 +50,7 @@ public class DiscordSRVSpongeBootstrap extends AbstractBootstrap implements ISpo
         this.dependencies = new InitialDependencyLoader(
                 logger,
                 dataDirectory,
-                new String[] {"dependencies/runtimeDownloadApi-sponge.txt"},
+                new String[] {"dependencies/runtimeDownload-sponge.txt"},
                 new JarInJarClasspathAppender(classLoader)
         );
         this.pluginContainer = pluginContainer;

@@ -40,7 +40,7 @@ public class DiscordSRVBungeeBootstrap extends BungeeBootstrap {
         this.dependencies = new InitialDependencyLoader(
                 logger,
                 plugin.getDataFolder().toPath(),
-                new String[] {"dependencies/runtimeDownloadApi-bungee.txt"},
+                new String[] {"dependencies/runtimeDownload-bungee.txt"},
                 getClasspathAppender()
         );
     }

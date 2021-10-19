@@ -40,7 +40,7 @@ public class DiscordSRVBukkitBootstrap extends BukkitBootstrap {
         this.dependencies = new InitialDependencyLoader(
                 logger,
                 plugin.getDataFolder().toPath(),
-                new String[] {"dependencies/runtimeDownloadApi-bukkit.txt"},
+                new String[] {"dependencies/runtimeDownload-bukkit.txt"},
                 getClasspathAppender()
         );
     }

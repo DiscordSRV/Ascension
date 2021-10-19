@@ -58,7 +58,7 @@ public class DiscordSRVVelocityBootstrap {
         this.dependencies = new InitialDependencyLoader(
                 this.logger,
                 dataDirectory,
-                new String[] {"dependencies/runtimeDownloadApi-velocity.txt"},
+                new String[] {"dependencies/runtimeDownload-velocity.txt"},
                 new VelocityClasspathAppender(this, proxyServer)
         );
         this.proxyServer = proxyServer;

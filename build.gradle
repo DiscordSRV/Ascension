@@ -1,5 +1,3 @@
-import dev.vankka.dependencydownload.task.GenerateDependencyDownloadResourceTask
-
 plugins {
     id 'com.github.johnrengelman.shadow' version '7.0.0' apply false
     id 'org.cadixdev.licenser' version '0.6.0' apply false
@@ -45,21 +43,15 @@ allprojects {
     configurations {
         runtimeDownloadApi
         compileOnlyApi.extendsFrom runtimeDownloadApi
+        runtimeDownloadOnly.extendsFrom runtimeDownloadApi
     }
 
     ext {
         dependenciesDirectory = new File(sourceSets.main.output.resourcesDir, 'dependencies')
     }
 
-    task generateResourceForRuntimeDownloadApi(type: GenerateDependencyDownloadResourceTask) {
-        configuration = configurations.runtimeDownloadApi
-        fileLocation = new File(dependenciesDirectory, 'runtimeDownloadApi-' + project.name + '.txt')
-    }
-    generateRuntimeDownloadResourceForRuntimeDownload {
-        fileLocation = new File(dependenciesDirectory, 'runtimeDownload-' + project.name + '.txt')
-    }
     generateRuntimeDownloadResourceForRuntimeDownloadOnly {
-        fileLocation = new File(dependenciesDirectory, 'runtimeDownloadOnly-' + project.name + '.txt')
+        fileLocation = new File(dependenciesDirectory, 'runtimeDownload-' + project.name + '.txt')
     }
 
     repositories {
@@ -76,8 +68,8 @@ allprojects {
 
     dependencies {
         // Test dependencies
-        testImplementation 'org.junit.jupiter:junit-jupiter-api:5.7.0'
-        testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine:5.7.0'
+        testImplementation 'org.junit.jupiter:junit-jupiter-api:5.8.1'
+        testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine:5.8.1'
     }
 
     test {
@@ -99,6 +91,9 @@ allprojects {
     }
 
     shadowJar {
+        // Merge META-INF/services files where needed
+        mergeServiceFiles()
+
         // Exclude signatures, maven/ and proguard/ from META-INF
         exclude 'META-INF/*.SF'
         exclude 'META-INF/*.DSA'
@@ -110,7 +105,7 @@ allprojects {
     gradle.projectsEvaluated {
         tasks.withType(JavaCompile) {
             // Enable compiler warnings for unchecked & deprecation
-            options.compilerArgs << "-Xlint:unchecked" << "-Xlint:deprecation"
+            options.compilerArgs << '-Xlint:unchecked' << '-Xlint:deprecation'
         }
     }
 

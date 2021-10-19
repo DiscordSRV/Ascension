@@ -58,7 +58,6 @@ dependencies {
 jar {
     dependsOn(
             generateRuntimeDownloadResourceForRuntimeDownloadOnly,
-            generateResourceForRuntimeDownloadApi,
             generateResourceForH2Driver,
             generateResourceForMySQLDriver
     )

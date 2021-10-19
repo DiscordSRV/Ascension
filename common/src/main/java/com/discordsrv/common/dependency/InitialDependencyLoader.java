@@ -26,6 +26,7 @@ import java.io.IOException;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CopyOnWriteArrayList;
@@ -50,9 +51,8 @@ public class InitialDependencyLoader {
                 false
         );
 
-        List<String> resourcePaths = new ArrayList<>(Arrays.asList(
-                "dependencies/runtimeDownloadOnly-common.txt",
-                "dependencies/runtimeDownloadApi-common.txt"
+        List<String> resourcePaths = new ArrayList<>(Collections.singletonList(
+                "dependencies/runtimeDownload-common.txt"
         ));
         resourcePaths.addAll(Arrays.asList(dependencyResources));
 

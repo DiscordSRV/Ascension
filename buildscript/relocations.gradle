@@ -2,24 +2,47 @@
 
 shadowJar {
     [
-            // JDA
+            // JDA, Trove, WS, okhttp
             'net.dv8tion.jda',
+            'com.iwebpp',
             'gnu.trove',
             'com.neovisionaries.ws',
-            'com.iwebpp',
             'okhttp3',
             'okio',
+
             // DependencyDownload
             'dev.vankka.dependencydownload',
             'dev.vankka.mcdependencydownload',
             'me.lucko.jarrelocator',
             'org.objectweb.asm',
-            // Other
-            'org.apache.commons',
+
+            // Configurate, geantyref, yaml
             'org.spongepowered.configurate',
+            'io.leangen.geantyref',
             'org.yaml.snakeyaml',
+
+            // Adventure, EnhancedLegacyText, MCDiscordReserializer
             'net.kyori',
             'dev.vankka.enhancedlegacytext',
+            'dev.vankka.mcdiscordreserializer',
+            'dev.vankka.simpleast',
+
+            // Caffeine
+            'com.github.benmanes.caffeine',
+
+            // Commons
+            'org.apache.commons',
+
+            // Checker Framework
+            'org.checkerframework',
+
+            // Gson, Google error prone annotations
+            'com.google.gson',
+            'com.google.errorprone.annotations',
+
+            // Webhooks
+            'club.minnced',
+            'org.json',
     ].each {
         relocate it, 'com.discordsrv.dependencies.' + it
     }
