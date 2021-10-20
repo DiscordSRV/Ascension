@@ -70,6 +70,7 @@ public class DiscordChatListener extends AbstractListener {
         ReceivedDiscordMessage discordMessage = event.getDiscordMessage();
         DiscordUser author = discordMessage.getAuthor();
         Optional<DiscordGuildMember> member = discordMessage.getMember();
+        boolean webhookMessage = discordMessage.isWebhookMessage();
 
         OrDefault<Pair<GameChannel, BaseChannelConfig>> channelPair = discordSRV.channelConfig().orDefault(channel);
         GameChannel gameChannel = channelPair.get(Pair::getKey);
@@ -82,7 +83,6 @@ public class DiscordChatListener extends AbstractListener {
 
         DiscordToMinecraftChatConfig.Ignores ignores = chatConfig.get(cfg -> cfg.ignores);
         if (ignores != null) {
-            boolean webhookMessage = discordMessage.isWebhookMessage();
             if (ignores.webhooks && webhookMessage) {
                 return;
             } else if (ignores.bots && (author.isBot() && !webhookMessage)) {
@@ -105,7 +105,9 @@ public class DiscordChatListener extends AbstractListener {
             }
         }
 
-        String format = chatConfig.get(cfg -> cfg.format.replace("\\n", "\n"));
+        String format = chatConfig.opt(cfg -> webhookMessage ? cfg.format : cfg.webhookFormat)
+                .map(option -> option.replace("\\n", "\n"))
+                .orElse(null);
         if (format == null) {
             return;
         }

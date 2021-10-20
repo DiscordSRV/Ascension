@@ -21,37 +21,18 @@
  * SOFTWARE.
  */
 
-package com.discordsrv.api.placeholder;
+package com.discordsrv.api.placeholder.mapper;
 
-import com.discordsrv.api.placeholder.mapper.PlaceholderResultMapper;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.Set;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
-
-public interface PlaceholderService {
+@FunctionalInterface
+public interface PlaceholderResultMapper {
 
     /**
-     * The primary pattern used by DiscordSRV to find placeholders.
+     * Converts a successful placeholder lookup result into a {@link String}.
+     * @param result the result
+     * @return the result in {@link String} form or {@code null} if this stringifier doesn't know what to do with this result
      */
-    Pattern PATTERN = Pattern.compile("(%)((?:[^%]|(?<=\\\\)%)+)(%)");
-
-    /**
-     * The pattern DiscordSRV uses to find recursive placeholders.
-     */
-    Pattern RECURSIVE_PATTERN = Pattern.compile("(\\{)((?:[^{}]|(?<=\\\\)[{}])+)(})");
-
-    void addResultMapper(@NotNull PlaceholderResultMapper resultMapper);
-    void removeResultMapper(@NotNull PlaceholderResultMapper resultMapper);
-
-    String replacePlaceholders(@NotNull String placeholder, @NotNull Set<Object> context);
-    String replacePlaceholders(@NotNull String placeholder, @NotNull Object... context);
-
-    PlaceholderLookupResult lookupPlaceholder(@NotNull String placeholder, @NotNull Set<Object> context);
-    PlaceholderLookupResult lookupPlaceholder(@NotNull String placeholder, @NotNull Object... context);
-
-    Object getResult(@NotNull Matcher matcher, @NotNull Set<Object> context);
-    String getResultAsString(@NotNull Matcher matcher, @NotNull Set<Object> context);
+    Object convertResult(@NotNull Object result);
 
 }

@@ -172,7 +172,7 @@ public class JDAConnectionManager implements DiscordConnectionManager {
         // Map JDA objects to 1st party API objects
         Set<Object> newContext = new HashSet<>();
         boolean anyConverted = false;
-        for (Object o : event.getContext()) {
+        for (Object o : event.getContexts()) {
             Object converted;
             boolean isConversion = true;
             if (o instanceof PrivateChannel) {

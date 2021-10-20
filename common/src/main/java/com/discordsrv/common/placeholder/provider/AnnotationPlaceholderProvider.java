@@ -92,7 +92,7 @@ public class AnnotationPlaceholderProvider implements PlaceholderProvider {
         String reLookup = annotation.relookup();
         if (!reLookup.isEmpty()) {
             if (result == null) {
-                return PlaceholderLookupResult.success("");
+                return PlaceholderLookupResult.success(null);
             }
 
             Set<Object> newContext = new HashSet<>(context);
@@ -101,6 +101,8 @@ public class AnnotationPlaceholderProvider implements PlaceholderProvider {
             return PlaceholderLookupResult.newLookup(newPlaceholder, newContext);
         }
 
-        return PlaceholderLookupResult.success(result);
+        return result instanceof PlaceholderLookupResult
+               ? (PlaceholderLookupResult) result
+               : PlaceholderLookupResult.success(result);
     }
 }

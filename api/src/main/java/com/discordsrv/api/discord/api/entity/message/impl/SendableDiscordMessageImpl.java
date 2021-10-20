@@ -30,8 +30,8 @@ import com.discordsrv.api.discord.api.entity.message.DiscordMessageEmbed;
 import com.discordsrv.api.discord.api.entity.message.SendableDiscordMessage;
 import com.discordsrv.api.discord.api.util.DiscordFormattingUtil;
 import com.discordsrv.api.placeholder.FormattedText;
-import com.discordsrv.api.placeholder.PlaceholderResultStringifier;
 import com.discordsrv.api.placeholder.PlaceholderService;
+import com.discordsrv.api.placeholder.mapper.ResultMappers;
 import com.discordsrv.api.placeholder.util.Placeholders;
 import org.jetbrains.annotations.NotNull;
 
@@ -259,7 +259,7 @@ public class SendableDiscordMessageImpl implements SendableDiscordMessage {
                 DiscordMessageEmbed.Builder embedBuilder = embed.toBuilder();
 
                 // TODO: check which parts allow formatting more thoroughly
-                PlaceholderResultStringifier.plainComponents(() -> {
+                ResultMappers.runInPlainComponentContext(() -> {
                     embedBuilder.setAuthor(
                             placeholders.apply(
                                     embedBuilder.getAuthorName()),
@@ -308,7 +308,7 @@ public class SendableDiscordMessageImpl implements SendableDiscordMessage {
                 builder.addEmbed(embedBuilder.build());
             }
 
-            PlaceholderResultStringifier.plainComponents(() -> {
+            ResultMappers.runInPlainComponentContext(() -> {
                 builder.setWebhookUsername(placeholders.apply(builder.getWebhookUsername()));
                 builder.setWebhookAvatarUrl(placeholders.apply(builder.getWebhookAvatarUrl()));
             });

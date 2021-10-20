@@ -246,7 +246,7 @@ public abstract class AbstractDiscordSRV<C extends MainConfig, CC extends Connec
         discordConnectionManager.connect().join();
 
         // Placeholder result stringifiers
-        placeholderService().addResultStringifier(new ComponentResultStringifier(this));
+        placeholderService().addResultMapper(new ComponentResultStringifier(this));
 
         // Register PlayerProvider listeners
         playerProvider().subscribe();

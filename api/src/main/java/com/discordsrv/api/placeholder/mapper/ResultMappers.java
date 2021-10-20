@@ -21,19 +21,21 @@
  * SOFTWARE.
  */
 
-package com.discordsrv.api.placeholder;
+package com.discordsrv.api.placeholder.mapper;
 
-import org.jetbrains.annotations.ApiStatus;
-import org.jetbrains.annotations.NotNull;
+import com.discordsrv.api.placeholder.PlaceholderService;
 
-@FunctionalInterface
-public interface PlaceholderResultStringifier {
+import java.util.function.Supplier;
 
-    /**
-     * @see #plainComponents(Runnable)
-     */
-    @ApiStatus.Internal
-    ThreadLocal<Boolean> PLAIN_COMPONENT_CONTEXT = new ThreadLocal<>();
+public final class ResultMappers {
+
+    private static final ThreadLocal<Boolean> PLAIN_COMPONENTS = new ThreadLocal<>();
+
+    private ResultMappers() {}
+
+    public static boolean isPlainComponentContext() {
+        return PLAIN_COMPONENTS.get();
+    }
 
     /**
      * Utility method to run the provided {@link Runnable} where {@link PlaceholderService}s
@@ -41,17 +43,24 @@ public interface PlaceholderResultStringifier {
      * as plain without formatting (instead of converting to Discord formatting).
      * @param runnable a task that will be executed immediately
      */
-    static void plainComponents(Runnable runnable) {
-        PLAIN_COMPONENT_CONTEXT.set(true);
-        runnable.run();
-        PLAIN_COMPONENT_CONTEXT.set(false);
+    public static void runInPlainComponentContext(Runnable runnable) {
+        getInPlainComponentContext(() -> {
+            runnable.run();
+            return null;
+        });
     }
 
     /**
-     * Converts a successful placeholder lookup result into a {@link String}.
-     * @param result the result
-     * @return the result in {@link String} form
+     * Utility method to run the provided {@link Runnable} where {@link PlaceholderService}s
+     * will replace {@link com.discordsrv.api.component.MinecraftComponent}s
+     * as plain without formatting (instead of converting to Discord formatting).
+     * @param supplier a supplier that will be executed immediately
+     * @return the output of the supplier provided as parameter
      */
-    String convertPlaceholderResult(@NotNull Object result);
-
+    public static <T> T getInPlainComponentContext(Supplier<T> supplier) {
+        PLAIN_COMPONENTS.set(true);
+        T output = supplier.get();
+        PLAIN_COMPONENTS.set(false);
+        return output;
+    }
 }

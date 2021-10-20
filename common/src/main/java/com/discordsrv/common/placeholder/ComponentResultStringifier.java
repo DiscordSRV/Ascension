@@ -19,14 +19,15 @@
 package com.discordsrv.common.placeholder;
 
 import com.discordsrv.api.component.MinecraftComponent;
-import com.discordsrv.api.placeholder.PlaceholderResultStringifier;
+import com.discordsrv.api.placeholder.mapper.PlaceholderResultMapper;
+import com.discordsrv.api.placeholder.mapper.ResultMappers;
 import com.discordsrv.common.DiscordSRV;
 import com.discordsrv.common.component.util.ComponentUtil;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.serializer.plain.PlainTextComponentSerializer;
 import org.jetbrains.annotations.NotNull;
 
-public class ComponentResultStringifier implements PlaceholderResultStringifier {
+public class ComponentResultStringifier implements PlaceholderResultMapper {
 
     private final DiscordSRV discordSRV;
 
@@ -35,13 +36,13 @@ public class ComponentResultStringifier implements PlaceholderResultStringifier 
     }
 
     @Override
-    public String convertPlaceholderResult(@NotNull Object result) {
+    public String convertResult(@NotNull Object result) {
         if (result instanceof MinecraftComponent) {
             result = ComponentUtil.fromAPI((MinecraftComponent) result);
         }
         if (result instanceof Component) {
             Component component = (Component) result;
-            if (PLAIN_COMPONENT_CONTEXT.get()) {
+            if (ResultMappers.isPlainComponentContext()) {
                 return PlainTextComponentSerializer.plainText().serialize(component);
             } else {
                 return discordSRV.componentFactory().discordSerializer().serialize(component);

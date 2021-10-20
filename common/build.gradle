@@ -3,23 +3,25 @@ import dev.vankka.dependencydownload.task.GenerateDependencyDownloadResourceTask
 configurations {
     h2Driver
     mysqlDriver
+    testRuntimeOnly.extendsFrom runtimeDownloadOnly
 }
 
 task generateResourceForH2Driver(type: GenerateDependencyDownloadResourceTask) {
     var conf = configurations.h2Driver
     configuration = conf
-    fileLocation = new File(dependenciesDirectory, conf.name + '.txt')
+    file = conf.name + '.txt'
 }
 task generateResourceForMySQLDriver(type: GenerateDependencyDownloadResourceTask) {
     var conf = configurations.mysqlDriver
     configuration = conf
-    fileLocation = new File(dependenciesDirectory, conf.name + '.txt')
+    file = conf.name + '.txt'
 }
 
 dependencies {
     // API
     annotationProcessor project(':api')
     compileOnlyApi project(':api')
+    testImplementation project(':api')
 
     // DependencyDownload
     api 'dev.vankka.dependencydownload:runtime:' + rootProject.ddVersion
@@ -55,7 +57,7 @@ dependencies {
     compileOnlyApi 'org.slf4j:slf4j-api:1.7.32'
 }
 
-jar {
+processResources {
     dependsOn(
             generateRuntimeDownloadResourceForRuntimeDownloadOnly,
             generateResourceForH2Driver,

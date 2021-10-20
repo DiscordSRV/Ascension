@@ -28,27 +28,37 @@ import com.discordsrv.api.event.events.Processable;
 import com.discordsrv.api.placeholder.PlaceholderLookupResult;
 import org.jetbrains.annotations.NotNull;
 
+import java.util.Optional;
 import java.util.Set;
 
 public class PlaceholderLookupEvent implements Event, Processable {
 
     private final String placeholder;
-    private final Set<Object> context;
+    private final Set<Object> contexts;
 
     private boolean processed;
     private PlaceholderLookupResult result;
 
-    public PlaceholderLookupEvent(String placeholder, Set<Object> context) {
+    public PlaceholderLookupEvent(String placeholder, Set<Object> contexts) {
         this.placeholder = placeholder;
-        this.context = context;
+        this.contexts = contexts;
     }
 
     public String getPlaceholder() {
         return placeholder;
     }
 
-    public Set<Object> getContext() {
-        return context;
+    public Set<Object> getContexts() {
+        return contexts;
+    }
+
+    public Optional<Object> getContext(Class<?> type) {
+        for (Object o : contexts) {
+            if (type.isAssignableFrom(o.getClass())) {
+                return Optional.of(o);
+            }
+        }
+        return Optional.empty();
     }
 
     @Override
@@ -70,7 +80,7 @@ public class PlaceholderLookupEvent implements Event, Processable {
     }
 
     /**
-     * Provides a {@link PlaceholderLookupResult} for the provided {@link #getPlaceholder()} and {@link #getContext()}.
+     * Provides a {@link PlaceholderLookupResult} for the provided {@link #getPlaceholder()} and {@link #getContexts()}.
      * @param result the result
      * @throws IllegalStateException if the event is already processed
      */

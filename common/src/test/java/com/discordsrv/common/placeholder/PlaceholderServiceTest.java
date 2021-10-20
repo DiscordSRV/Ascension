@@ -1,3 +1,21 @@
+/*
+ * This file is part of DiscordSRV, licensed under the GPLv3 License
+ * Copyright (c) 2016-2021 Austin "Scarsz" Shapiro, Henri "Vankka" Schubin and DiscordSRV contributors
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <https://www.gnu.org/licenses/>.
+ */
+
 package com.discordsrv.common.placeholder;
 
 import com.discordsrv.api.placeholder.PlaceholderService;
@@ -9,7 +27,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 
 public class PlaceholderServiceTest {
 
-    private PlaceholderService service = MockDiscordSRV.INSTANCE.placeholderService();
+    private final PlaceholderService service = MockDiscordSRV.INSTANCE.placeholderService();
 
     @Test
     public void staticFieldTest() {
@@ -36,6 +54,21 @@ public class PlaceholderServiceTest {
         assertEquals("e", service.replacePlaceholders("%static_method_with_context%", PlaceholderContext.class, "e"));
     }
 
+    @Test
+    public void orPrimaryTest() {
+        assertEquals("a", service.replacePlaceholders("%static_field|static_method%", PlaceholderContext.class));
+    }
+
+    @Test
+    public void orSecondaryTest() {
+        assertEquals("b", service.replacePlaceholders("%invalid|static_method%", PlaceholderContext.class));
+    }
+
+    @Test
+    public void orEmptyTest() {
+        assertEquals("b", service.replacePlaceholders("%empty|static_method%", PlaceholderContext.class));
+    }
+
     public static class PlaceholderContext {
 
         @Placeholder("static_field")
@@ -45,6 +78,9 @@ public class PlaceholderServiceTest {
         public static String staticMethod() {
             return "b";
         }
+
+        @Placeholder("empty")
+        public static String EMPTY = "";
 
         @Placeholder("object_field")
         public String localField = "c";
