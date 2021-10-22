@@ -9,12 +9,12 @@ configurations {
 task generateResourceForH2Driver(type: GenerateDependencyDownloadResourceTask) {
     var conf = configurations.h2Driver
     configuration = conf
-    file = conf.name + '.txt'
+    file = 'dependencies/' + conf.name + '.txt'
 }
 task generateResourceForMySQLDriver(type: GenerateDependencyDownloadResourceTask) {
     var conf = configurations.mysqlDriver
     configuration = conf
-    file = conf.name + '.txt'
+    file = 'dependencies/' + conf.name + '.txt'
 }
 
 dependencies {

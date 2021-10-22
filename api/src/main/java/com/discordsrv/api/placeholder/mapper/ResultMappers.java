@@ -29,7 +29,7 @@ import java.util.function.Supplier;
 
 public final class ResultMappers {
 
-    private static final ThreadLocal<Boolean> PLAIN_COMPONENTS = new ThreadLocal<>();
+    private static final ThreadLocal<Boolean> PLAIN_COMPONENTS = ThreadLocal.withInitial(() -> false);
 
     private ResultMappers() {}
 

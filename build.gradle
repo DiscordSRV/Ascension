@@ -47,7 +47,7 @@ allprojects {
     }
 
     generateRuntimeDownloadResourceForRuntimeDownloadOnly {
-        file = 'runtimeDownload-' + project.name + '.txt'
+        file = 'dependencies/runtimeDownload-' + project.name + '.txt'
     }
 
     repositories {

@@ -29,20 +29,29 @@ import net.kyori.adventure.text.Component;
 import org.checkerframework.checker.nullness.qual.Nullable;
 
 import java.util.Optional;
+import java.util.function.Supplier;
 
 public class DiscordSRVMinecraftRenderer extends DefaultMinecraftRenderer {
 
-    private static final ThreadLocal<Long> GUILD_CONTEXT = new ThreadLocal<>();
+    private static final ThreadLocal<Long> GUILD_CONTEXT = ThreadLocal.withInitial(() -> 0L);
     private final DiscordSRV discordSRV;
 
     public DiscordSRVMinecraftRenderer(DiscordSRV discordSRV) {
         this.discordSRV = discordSRV;
     }
 
-    public static void inGuildContext(long guildId, Runnable runnable) {
+    public static void runInGuildContext(long guildId, Runnable runnable) {
+        getWithGuildContext(guildId, () -> {
+            runnable.run();
+            return null;
+        });
+    }
+
+    public static <T> T getWithGuildContext(long guildId, Supplier<T> supplier) {
         GUILD_CONTEXT.set(guildId);
-        runnable.run();
+        T output = supplier.get();
         GUILD_CONTEXT.set(0L);
+        return output;
     }
 
     @Override

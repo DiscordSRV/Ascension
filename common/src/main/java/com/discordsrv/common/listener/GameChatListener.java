@@ -30,7 +30,7 @@ import com.discordsrv.common.DiscordSRV;
 import com.discordsrv.common.component.util.ComponentUtil;
 import com.discordsrv.common.config.main.channels.BaseChannelConfig;
 import com.discordsrv.common.config.main.channels.ChannelConfig;
-import com.discordsrv.common.config.main.channels.minecraftodiscord.MinecraftToDiscordChatConfig;
+import com.discordsrv.common.config.main.channels.MinecraftToDiscordChatConfig;
 import com.discordsrv.common.discord.api.message.ReceivedDiscordMessageClusterImpl;
 import com.discordsrv.common.function.OrDefault;
 import net.kyori.adventure.text.Component;

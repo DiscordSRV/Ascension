@@ -22,7 +22,6 @@ import com.discordsrv.api.discord.connection.DiscordConnectionDetails;
 import com.discordsrv.api.event.bus.EventBus;
 import com.discordsrv.api.event.events.lifecycle.DiscordSRVReloadEvent;
 import com.discordsrv.api.event.events.lifecycle.DiscordSRVShuttingDownEvent;
-import com.discordsrv.api.placeholder.PlaceholderService;
 import com.discordsrv.common.api.util.ApiInstanceUtil;
 import com.discordsrv.common.channel.ChannelConfigHelper;
 import com.discordsrv.common.channel.DefaultGlobalChannel;
@@ -43,8 +42,9 @@ import com.discordsrv.common.listener.DiscordChatListener;
 import com.discordsrv.common.listener.GameChatListener;
 import com.discordsrv.common.logging.DependencyLoggingFilter;
 import com.discordsrv.common.logging.logger.backend.LoggingBackend;
-import com.discordsrv.common.placeholder.PlaceholderServiceImpl;
 import com.discordsrv.common.placeholder.ComponentResultStringifier;
+import com.discordsrv.common.placeholder.PlaceholderServiceImpl;
+import com.discordsrv.common.placeholder.context.GlobalTextHandlingContext;
 import net.dv8tion.jda.api.JDA;
 import org.jetbrains.annotations.NotNull;
 
@@ -67,7 +67,7 @@ public abstract class AbstractDiscordSRV<C extends MainConfig, CC extends Connec
 
     // DiscordSRVApi
     private EventBus eventBus;
-    private PlaceholderService placeholderService;
+    private PlaceholderServiceImpl placeholderService;
     private ComponentFactory componentFactory;
     private DiscordAPIImpl discordAPI;
     private DiscordConnectionDetails discordConnectionDetails;
@@ -106,7 +106,7 @@ public abstract class AbstractDiscordSRV<C extends MainConfig, CC extends Connec
     }
 
     @Override
-    public @NotNull PlaceholderService placeholderService() {
+    public @NotNull PlaceholderServiceImpl placeholderService() {
         return placeholderService;
     }
 
@@ -245,8 +245,9 @@ public abstract class AbstractDiscordSRV<C extends MainConfig, CC extends Connec
         discordConnectionManager = new JDAConnectionManager(this);
         discordConnectionManager.connect().join();
 
-        // Placeholder result stringifiers
+        // Placeholder result stringifiers & global contexts
         placeholderService().addResultMapper(new ComponentResultStringifier(this));
+        placeholderService().addGlobalContext(new GlobalTextHandlingContext(this));
 
         // Register PlayerProvider listeners
         playerProvider().subscribe();

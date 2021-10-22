@@ -16,7 +16,7 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package com.discordsrv.common.config.main.channels.discordtominecraft;
+package com.discordsrv.common.config.main.channels;
 
 import org.spongepowered.configurate.objectmapping.ConfigSerializable;
 import org.spongepowered.configurate.objectmapping.meta.Comment;
@@ -31,10 +31,10 @@ import java.util.regex.Pattern;
 public class DiscordToMinecraftChatConfig {
 
     @Comment("The Discord to Minecraft message format for regular users")
-    public String format = "[&#5865F2Discord&r] [hover:show_text:Tag: %user_tag%&r\\nRoles: %user_roles_, %]%user_color%%user_effective_name%&r » %message%";
+    public String format = "[&#5865F2Discord&r] [hover:show_text:Tag: %user_tag%&r\\nRoles: %user_roles_, |text_&7&oNone%%]%user_color%%user_effective_name%&r » %message%";
 
     @Comment("The Discord to Minecraft message format for webhook messages (if enabled)")
-    public String webhookFormat = "[&#5865F2Discord&r] [hover:show_text:Webhook message]%user_name% » %message%";
+    public String webhookFormat = "[&#5865F2Discord&r] [hover:show_text:Webhook message]%user_name%&r » %message%";
 
     @Comment("Users, bots and webhooks to ignore")
     public Ignores ignores = new Ignores();

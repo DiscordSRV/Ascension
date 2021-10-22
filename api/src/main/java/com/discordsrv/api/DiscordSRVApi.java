@@ -62,6 +62,7 @@ public interface DiscordSRVApi {
      * DiscordSRV's own placeholder service.
      * @return the {@link PlaceholderService} instance.
      */
+    @NotNull
     PlaceholderService placeholderService();
 
     /**

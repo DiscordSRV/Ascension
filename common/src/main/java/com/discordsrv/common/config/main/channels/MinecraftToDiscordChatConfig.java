@@ -16,7 +16,7 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package com.discordsrv.common.config.main.channels.minecraftodiscord;
+package com.discordsrv.common.config.main.channels;
 
 import com.discordsrv.api.discord.api.entity.message.SendableDiscordMessage;
 import org.spongepowered.configurate.objectmapping.ConfigSerializable;

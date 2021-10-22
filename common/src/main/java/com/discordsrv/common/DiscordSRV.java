@@ -30,6 +30,7 @@ import com.discordsrv.common.console.Console;
 import com.discordsrv.common.discord.api.DiscordAPIImpl;
 import com.discordsrv.common.discord.connection.DiscordConnectionManager;
 import com.discordsrv.common.logging.logger.Logger;
+import com.discordsrv.common.placeholder.PlaceholderServiceImpl;
 import com.discordsrv.common.player.provider.AbstractPlayerProvider;
 import com.discordsrv.common.scheduler.Scheduler;
 import com.github.benmanes.caffeine.cache.Caffeine;
@@ -53,6 +54,10 @@ public interface DiscordSRV extends DiscordSRVApi {
     @Override
     @NotNull
     ComponentFactory componentFactory();
+
+    @Override
+    @NotNull
+    PlaceholderServiceImpl placeholderService();
 
     @Override
     @NotNull

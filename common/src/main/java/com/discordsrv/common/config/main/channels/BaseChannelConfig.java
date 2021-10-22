@@ -18,8 +18,6 @@
 
 package com.discordsrv.common.config.main.channels;
 
-import com.discordsrv.common.config.main.channels.discordtominecraft.DiscordToMinecraftChatConfig;
-import com.discordsrv.common.config.main.channels.minecraftodiscord.MinecraftToDiscordChatConfig;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.spongepowered.configurate.ConfigurationNode;
 import org.spongepowered.configurate.objectmapping.ConfigSerializable;

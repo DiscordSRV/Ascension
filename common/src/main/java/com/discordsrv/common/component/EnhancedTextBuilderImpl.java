@@ -56,21 +56,29 @@ public class EnhancedTextBuilderImpl implements EnhancedTextBuilder {
 
     @Override
     public @NotNull EnhancedTextBuilder addReplacement(Pattern target, Function<Matcher, Object> replacement) {
-        this.replacements.put(target, replacement);
+        this.replacements.put(target, wrapFunction(replacement));
         return this;
     }
 
     @Override
     public @NotNull EnhancedTextBuilder applyPlaceholderService() {
-        this.replacements.put(PlaceholderService.PATTERN, matcher -> {
-            Object result = discordSRV.placeholderService().getResult(matcher, context);
+        this.replacements.put(PlaceholderService.PATTERN, wrapFunction(
+                matcher -> discordSRV.placeholderService().getResult(matcher, context)));
+        return this;
+    }
+
+    private Function<Matcher, Object> wrapFunction(Function<Matcher, Object> function) {
+        return matcher -> {
+            Object result = function.apply(matcher);
             if (result instanceof Color) {
                 // Convert Color to something it'll understand
                 return TextColor.color(((Color) result).rgb());
+            } else if (result instanceof MinecraftComponent) {
+                // Convert to adventure component from API
+                return ComponentUtil.fromAPI((MinecraftComponent) result);
             }
             return result;
-        });
-        return this;
+        };
     }
 
     @Override

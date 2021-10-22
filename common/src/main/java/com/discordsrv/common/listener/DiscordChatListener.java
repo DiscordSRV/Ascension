@@ -33,7 +33,7 @@ import com.discordsrv.common.DiscordSRV;
 import com.discordsrv.common.component.renderer.DiscordSRVMinecraftRenderer;
 import com.discordsrv.common.component.util.ComponentUtil;
 import com.discordsrv.common.config.main.channels.BaseChannelConfig;
-import com.discordsrv.common.config.main.channels.discordtominecraft.DiscordToMinecraftChatConfig;
+import com.discordsrv.common.config.main.channels.DiscordToMinecraftChatConfig;
 import com.discordsrv.common.function.OrDefault;
 import net.kyori.adventure.text.Component;
 import org.apache.commons.lang3.tuple.Pair;
@@ -105,35 +105,34 @@ public class DiscordChatListener extends AbstractListener {
             }
         }
 
-        String format = chatConfig.opt(cfg -> webhookMessage ? cfg.format : cfg.webhookFormat)
+        String format = chatConfig.opt(cfg -> webhookMessage ? cfg.webhookFormat : cfg.format)
                 .map(option -> option.replace("\\n", "\n"))
                 .orElse(null);
         if (format == null) {
             return;
         }
 
-        DiscordSRVMinecraftRenderer.inGuildContext(channel.getGuild().getId(), () -> {
-            Placeholders message = new Placeholders(event.getMessageContent());
-            chatConfig.opt(cfg -> cfg.contentRegexFilters)
-                    .ifPresent(filters -> filters.forEach(message::replaceAll));
+        Placeholders message = new Placeholders(event.getMessageContent());
+        chatConfig.opt(cfg -> cfg.contentRegexFilters)
+                .ifPresent(filters -> filters.forEach(message::replaceAll));
 
-            Component messageComponent = discordSRV.componentFactory().minecraftSerializer().serialize(message.toString());
+        Component messageComponent = DiscordSRVMinecraftRenderer.getWithGuildContext(channel.getGuild().getId(), () ->
+                discordSRV.componentFactory().minecraftSerializer().serialize(message.toString()));
 
-            EnhancedTextBuilder componentBuilder = discordSRV.componentFactory()
-                    .enhancedBuilder(format)
-                    .addContext(discordMessage, author)
-                    .addReplacement("%message%", messageComponent);
-            member.ifPresent(componentBuilder::addContext);
+        EnhancedTextBuilder componentBuilder = discordSRV.componentFactory()
+                .enhancedBuilder(format)
+                .addContext(discordMessage, author)
+                .addReplacement("%message%", messageComponent);
+        member.ifPresent(componentBuilder::addContext);
 
-            componentBuilder.applyPlaceholderService();
+        componentBuilder.applyPlaceholderService();
 
-            MinecraftComponent component = componentBuilder.build();
-            if (ComponentUtil.isEmpty(component)) {
-                // Empty
-                return;
-            }
+        MinecraftComponent component = componentBuilder.build();
+        if (ComponentUtil.isEmpty(component)) {
+            // Empty
+            return;
+        }
 
-            gameChannel.sendMessage(component);
-        });
+        gameChannel.sendMessage(component);
     }
 }
