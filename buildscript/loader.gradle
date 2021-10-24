@@ -5,7 +5,4 @@ apply from: rootProject.file('buildscript/final.gradle')
 shadowJar {
     // Include the bootstrap
     from parent.tasks.shadowJar.archiveFile
-
-    // Relocate the dependency
-    relocate 'dev.vankka.mcdependencydownload', 'com.discordsrv.dependencies.dev.vankka.mcdependencydownload'
 }

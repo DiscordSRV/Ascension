@@ -16,10 +16,10 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package com.discordsrv.common.logging.logger.impl;
+package com.discordsrv.logging.impl;
 
-import com.discordsrv.common.logging.logger.LogLevel;
-import com.discordsrv.common.logging.logger.Logger;
+import com.discordsrv.logging.LogLevel;
+import com.discordsrv.logging.Logger;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 

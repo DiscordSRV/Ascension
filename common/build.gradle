@@ -20,8 +20,8 @@ task generateResourceForMySQLDriver(type: GenerateDependencyDownloadResourceTask
 dependencies {
     // API
     annotationProcessor project(':api')
-    compileOnlyApi project(':api')
-    testImplementation project(':api')
+    compileOnlyApi project(':common:common-api')
+    testImplementation project(':common:common-api')
 
     // DependencyDownload
     api 'dev.vankka.dependencydownload:runtime:' + rootProject.ddVersion
@@ -51,10 +51,6 @@ dependencies {
     // Database Drivers
     h2Driver 'com.h2database:h2:1.4.200'
     mysqlDriver 'mysql:mysql-connector-java:8.0.25'
-
-    // Logging (provided by platforms)
-    compileOnlyApi 'org.apache.logging.log4j:log4j-core:2.0-beta9'
-    compileOnlyApi 'org.slf4j:slf4j-api:1.7.32'
 }
 
 processResources {

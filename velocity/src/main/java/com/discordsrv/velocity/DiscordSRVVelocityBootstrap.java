@@ -19,8 +19,8 @@
 package com.discordsrv.velocity;
 
 import com.discordsrv.common.dependency.InitialDependencyLoader;
-import com.discordsrv.common.logging.logger.Logger;
-import com.discordsrv.common.logging.logger.impl.SLF4JLoggerImpl;
+import com.discordsrv.logging.Logger;
+import com.discordsrv.logging.impl.SLF4JLoggerImpl;
 import com.google.inject.Inject;
 import com.velocitypowered.api.event.Subscribe;
 import com.velocitypowered.api.event.proxy.ProxyInitializeEvent;

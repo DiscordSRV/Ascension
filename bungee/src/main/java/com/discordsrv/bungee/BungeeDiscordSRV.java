@@ -24,7 +24,7 @@ import com.discordsrv.common.config.connection.ConnectionConfig;
 import com.discordsrv.common.config.main.MainConfig;
 import com.discordsrv.common.config.manager.ConnectionConfigManager;
 import com.discordsrv.common.config.manager.MainConfigManager;
-import com.discordsrv.common.logging.logger.Logger;
+import com.discordsrv.logging.Logger;
 import com.discordsrv.common.proxy.ProxyDiscordSRV;
 import com.discordsrv.common.scheduler.StandardScheduler;
 import net.kyori.adventure.platform.bungeecord.BungeeAudiences;

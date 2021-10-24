@@ -16,14 +16,22 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package com.discordsrv.common.logging.logger.backend;
+package org.slf4j.impl;
 
-import com.discordsrv.common.logging.logger.LogLevel;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
+import com.discordsrv.logging.adapter.DependencyLoggerAdapter;
+import org.slf4j.ILoggerFactory;
+import org.slf4j.Logger;
 
-@FunctionalInterface
-public interface LogAppender {
+import java.util.Locale;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
 
-    void append(@Nullable String loggerName, @NotNull LogLevel logLevel, @Nullable String message, @Nullable Throwable throwable);
+public class DiscordSRVLoggerFactory implements ILoggerFactory {
+
+    private final ConcurrentMap<String, DependencyLoggerAdapter> loggerMap = new ConcurrentHashMap<>();
+
+    @Override
+    public Logger getLogger(String s) {
+        return loggerMap.computeIfAbsent(s.toLowerCase(Locale.ROOT), DependencyLoggerAdapter::new);
+    }
 }

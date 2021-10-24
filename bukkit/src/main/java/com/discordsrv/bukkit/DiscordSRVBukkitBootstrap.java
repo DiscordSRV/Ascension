@@ -19,8 +19,8 @@
 package com.discordsrv.bukkit;
 
 import com.discordsrv.common.dependency.InitialDependencyLoader;
-import com.discordsrv.common.logging.logger.Logger;
-import com.discordsrv.common.logging.logger.impl.JavaLoggerImpl;
+import com.discordsrv.logging.Logger;
+import com.discordsrv.logging.impl.JavaLoggerImpl;
 import dev.vankka.mcdependencydownload.bukkit.bootstrap.BukkitBootstrap;
 import dev.vankka.mcdependencydownload.classloader.JarInJarClassLoader;
 import org.bukkit.plugin.java.JavaPlugin;

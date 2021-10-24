@@ -9,7 +9,7 @@ var velocityVersion = '3.0.0'
 dependencies {
     // API
     annotationProcessor project(':api')
-    implementation project(':api')
+    implementation project(':common:common-api')
 
     // Common
     implementation project(':common:common-proxy')

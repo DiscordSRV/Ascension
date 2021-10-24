@@ -16,7 +16,8 @@ allprojects {
 
 dependencies {
     // Common
-    implementation project(':common:common-server')
+    compileOnly project(':common:common-server')
+    implementation project(path: ':common:common-server', configuration: 'runtimeElements')
 
     // DependencyDownload
     implementation 'dev.vankka.minecraftdependencydownload:bukkit:' + rootProject.mddVersion

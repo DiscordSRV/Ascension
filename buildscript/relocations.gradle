@@ -2,11 +2,18 @@
 
 shadowJar {
     [
-            // JDA, Trove, WS, okhttp
+            // JDA, WS
             'net.dv8tion.jda',
             'com.iwebpp',
-            'gnu.trove',
             'com.neovisionaries.ws',
+
+            // Trove
+            'gnu.trove',
+
+            // Jackson
+            'com.fasterxml.jackson',
+
+            // okhttp
             'okhttp3',
             'okio',
 
@@ -45,5 +52,12 @@ shadowJar {
             'org.json',
     ].each {
         relocate it, 'com.discordsrv.dependencies.' + it
+    }
+
+    // SLF4J
+    relocate('org.slf4j', 'com.discordsrv.dependencies.org.slf4j') {
+        include('*')
+        exclude('com.discordsrv.logging.impl.SLF4JLoggerImpl')
+        exclude('com.discordsrv.velocity.DiscordSRVVelocityBootstrap')
     }
 }

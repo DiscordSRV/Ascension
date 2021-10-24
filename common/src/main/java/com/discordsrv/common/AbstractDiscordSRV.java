@@ -40,11 +40,11 @@ import com.discordsrv.common.listener.ChannelLookupListener;
 import com.discordsrv.common.listener.DiscordAPIListener;
 import com.discordsrv.common.listener.DiscordChatListener;
 import com.discordsrv.common.listener.GameChatListener;
-import com.discordsrv.common.logging.DependencyLoggingFilter;
-import com.discordsrv.common.logging.logger.backend.LoggingBackend;
+import com.discordsrv.common.logging.DependencyLoggingHandler;
 import com.discordsrv.common.placeholder.ComponentResultStringifier;
 import com.discordsrv.common.placeholder.PlaceholderServiceImpl;
 import com.discordsrv.common.placeholder.context.GlobalTextHandlingContext;
+import com.discordsrv.logging.adapter.DependencyLoggerAdapter;
 import net.dv8tion.jda.api.JDA;
 import org.jetbrains.annotations.NotNull;
 
@@ -79,7 +79,6 @@ public abstract class AbstractDiscordSRV<C extends MainConfig, CC extends Connec
 
     // Internal
     private final ReentrantLock lifecycleLock = new ReentrantLock();
-    private final DependencyLoggingFilter dependencyLoggingFilter = new DependencyLoggingFilter(this);
 
     public AbstractDiscordSRV() {
         ApiInstanceUtil.setInstance(this);
@@ -224,6 +223,9 @@ public abstract class AbstractDiscordSRV<C extends MainConfig, CC extends Connec
                     + getClass().getName() + " constructor");
         }
 
+        // Logging
+        DependencyLoggerAdapter.setAppender(new DependencyLoggingHandler(this));
+
         // Config
         try {
             connectionConfigManager().load();
@@ -237,10 +239,6 @@ public abstract class AbstractDiscordSRV<C extends MainConfig, CC extends Connec
             setStatus(Status.FAILED_TO_LOAD_CONFIG);
             throw t;
         }
-
-        // Logging
-        LoggingBackend backend = console().loggingBackend();
-        backend.addFilter(dependencyLoggingFilter);
 
         discordConnectionManager = new JDAConnectionManager(this);
         discordConnectionManager.connect().join();
@@ -270,10 +268,6 @@ public abstract class AbstractDiscordSRV<C extends MainConfig, CC extends Connec
         }
         this.status.set(Status.SHUTTING_DOWN);
         eventBus().publish(new DiscordSRVShuttingDownEvent());
-
-        // Logging
-        LoggingBackend backend = console().loggingBackend();
-        backend.removeFilter(dependencyLoggingFilter);
     }
 
     @OverridingMethodsMustInvokeSuper

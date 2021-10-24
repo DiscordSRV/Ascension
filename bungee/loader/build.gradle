@@ -4,7 +4,7 @@ apply from: rootProject.file('buildscript/loader.gradle')
 
 dependencies {
     // API
-    implementation project(':api')
+    implementation project(':common:common-api')
 
     // DependencyDownload
     implementation 'dev.vankka.minecraftdependencydownload:bungee-loader:' + rootProject.mddVersion

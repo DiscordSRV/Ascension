@@ -16,21 +16,31 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package com.discordsrv.common.console;
+package org.slf4j.impl;
 
-import com.discordsrv.common.command.game.sender.ICommandSender;
-import com.discordsrv.logging.backend.LoggingBackend;
+import org.slf4j.IMarkerFactory;
+import org.slf4j.helpers.BasicMarkerFactory;
+import org.slf4j.spi.MarkerFactoryBinder;
 
-public interface Console extends ICommandSender {
+@SuppressWarnings("unused")
+public class StaticMarkerBinder implements MarkerFactoryBinder {
 
-    @Override
-    default boolean hasPermission(String permission) {
-        return true;
+    public static final StaticMarkerBinder SINGLETON = new StaticMarkerBinder();
+
+    final IMarkerFactory markerFactory = new BasicMarkerFactory();
+
+    private StaticMarkerBinder() {}
+
+    public static StaticMarkerBinder getSingleton() {
+        return SINGLETON;
     }
 
-    /**
-     * Gets the logging backend for the server/proxy.
-     * @return the {@link LoggingBackend}
-     */
-    LoggingBackend loggingBackend();
+    public IMarkerFactory getMarkerFactory() {
+        return markerFactory;
+    }
+
+    public String getMarkerFactoryClassStr() {
+        return BasicMarkerFactory.class.getName();
+    }
+
 }

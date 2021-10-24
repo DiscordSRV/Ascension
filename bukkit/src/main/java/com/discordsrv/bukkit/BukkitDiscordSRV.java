@@ -29,7 +29,7 @@ import com.discordsrv.bukkit.player.BukkitPlayerProvider;
 import com.discordsrv.bukkit.scheduler.BukkitScheduler;
 import com.discordsrv.common.config.manager.ConnectionConfigManager;
 import com.discordsrv.common.config.manager.MainConfigManager;
-import com.discordsrv.common.logging.logger.Logger;
+import com.discordsrv.logging.Logger;
 import com.discordsrv.common.server.ServerDiscordSRV;
 import net.kyori.adventure.platform.bukkit.BukkitAudiences;
 import org.bukkit.Server;

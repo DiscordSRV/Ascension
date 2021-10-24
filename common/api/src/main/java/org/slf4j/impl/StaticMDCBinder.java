@@ -16,13 +16,27 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package com.discordsrv.common.logging.logger.backend;
+package org.slf4j.impl;
 
-public interface LoggingBackend {
+import org.slf4j.helpers.BasicMDCAdapter;
+import org.slf4j.spi.MDCAdapter;
 
-    boolean addFilter(LogFilter filter);
-    boolean removeFilter(LogFilter filter);
+@SuppressWarnings("unused")
+public class StaticMDCBinder {
 
-    boolean addAppender(LogAppender appender);
-    boolean removeAppender(LogAppender appender);
+    public static final StaticMDCBinder SINGLETON = new StaticMDCBinder();
+
+    private StaticMDCBinder() {}
+
+    public static StaticMDCBinder getSingleton() {
+        return SINGLETON;
+    }
+
+    public MDCAdapter getMDCA() {
+        return new BasicMDCAdapter();
+    }
+
+    public String getMDCAdapterClassStr() {
+        return BasicMDCAdapter.class.getName();
+    }
 }

@@ -16,7 +16,7 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package com.discordsrv.common.logging.logger;
+package com.discordsrv.logging;
 
 public interface LogLevel {
 

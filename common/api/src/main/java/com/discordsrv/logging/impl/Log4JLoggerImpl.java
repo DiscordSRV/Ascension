@@ -16,13 +16,13 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package com.discordsrv.common.logging.logger.impl;
+package com.discordsrv.logging.impl;
 
-import com.discordsrv.common.logging.logger.LogLevel;
-import com.discordsrv.common.logging.logger.backend.LogAppender;
-import com.discordsrv.common.logging.logger.backend.LogFilter;
-import com.discordsrv.common.logging.logger.backend.LoggingBackend;
-import com.discordsrv.common.logging.logger.Logger;
+import com.discordsrv.logging.LogLevel;
+import com.discordsrv.logging.backend.LogAppender;
+import com.discordsrv.logging.backend.LogFilter;
+import com.discordsrv.logging.backend.LoggingBackend;
+import com.discordsrv.logging.Logger;
 import org.apache.commons.collections4.bidimap.DualHashBidiMap;
 import org.apache.logging.log4j.Level;
 import org.apache.logging.log4j.LogManager;

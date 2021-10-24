@@ -18,7 +18,7 @@
 
 package com.discordsrv.common.dependency;
 
-import com.discordsrv.common.logging.logger.Logger;
+import com.discordsrv.logging.Logger;
 import com.discordsrv.common.scheduler.threadfactory.CountingForkJoinWorkerThreadFactory;
 import dev.vankka.dependencydownload.classpath.ClasspathAppender;
 

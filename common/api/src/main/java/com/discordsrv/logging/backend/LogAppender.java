@@ -16,21 +16,14 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package com.discordsrv.common.console;
+package com.discordsrv.logging.backend;
 
-import com.discordsrv.common.command.game.sender.ICommandSender;
-import com.discordsrv.logging.backend.LoggingBackend;
+import com.discordsrv.logging.LogLevel;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
-public interface Console extends ICommandSender {
+@FunctionalInterface
+public interface LogAppender {
 
-    @Override
-    default boolean hasPermission(String permission) {
-        return true;
-    }
-
-    /**
-     * Gets the logging backend for the server/proxy.
-     * @return the {@link LoggingBackend}
-     */
-    LoggingBackend loggingBackend();
+    void append(@Nullable String loggerName, @NotNull LogLevel logLevel, @Nullable String message, @Nullable Throwable throwable);
 }

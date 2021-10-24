@@ -19,14 +19,14 @@
 package com.discordsrv.common.logging;
 
 import com.discordsrv.common.DiscordSRV;
-import com.discordsrv.common.logging.logger.LogLevel;
-import com.discordsrv.common.logging.logger.backend.LogFilter;
+import com.discordsrv.logging.LogLevel;
+import com.discordsrv.logging.backend.LogAppender;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
 
-public class DependencyLoggingFilter implements LogFilter {
+public class DependencyLoggingHandler implements LogAppender {
 
     private static final Map<String, List<String>> BLACKLISTED_MESSAGES = new HashMap<>();
     private static final Map<String, String> LOGGER_MAPPINGS = new HashMap<>();
@@ -46,14 +46,15 @@ public class DependencyLoggingFilter implements LogFilter {
 
     private final DiscordSRV discordSRV;
 
-    public DependencyLoggingFilter(DiscordSRV discordSRV) {
+    public DependencyLoggingHandler(DiscordSRV discordSRV) {
         this.discordSRV = discordSRV;
     }
 
     @Override
-    public Result filter(@Nullable String loggerName, @NotNull LogLevel logLevel, @Nullable String message, @Nullable Throwable throwable) {
+    public void append(@Nullable String loggerName, @NotNull LogLevel logLevel, @Nullable String message,
+                       @Nullable Throwable throwable) {
         if (loggerName == null || !loggerName.startsWith("com.discordsrv.dependencies")) {
-            return Result.IGNORE;
+            return;
         }
 
         if (message != null) {
@@ -69,7 +70,7 @@ public class DependencyLoggingFilter implements LogFilter {
             // Go through the blacklisted messages we gathered
             for (String blacklistedMessage : blacklistedMessages) {
                 if (message.contains(blacklistedMessage)) {
-                    return Result.BLOCK;
+                    return;
                 }
             }
         }
@@ -84,6 +85,5 @@ public class DependencyLoggingFilter implements LogFilter {
         }
 
         discordSRV.logger().log(logLevel, "[" + name + "]" + (message != null ? " " + message : ""), throwable);
-        return Result.BLOCK;
     }
 }

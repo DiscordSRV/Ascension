@@ -16,7 +16,7 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package com.discordsrv.common.logging.logger;
+package com.discordsrv.logging;
 
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -67,6 +67,6 @@ public interface Logger {
         log(LogLevel.TRACE, message, throwable);
     }
     
-    void log(@NotNull LogLevel LogLevel, @Nullable String message, @Nullable Throwable throwable);
+    void log(@NotNull LogLevel logLevel, @Nullable String message, @Nullable Throwable throwable);
 
 }

@@ -16,21 +16,13 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package com.discordsrv.common.logging.logger.backend;
+package com.discordsrv.logging.backend;
 
-import com.discordsrv.common.logging.logger.LogLevel;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
+public interface LoggingBackend {
 
-@FunctionalInterface
-public interface LogFilter {
+    boolean addFilter(LogFilter filter);
+    boolean removeFilter(LogFilter filter);
 
-    Result filter(@Nullable String loggerName, @NotNull LogLevel logLevel, @Nullable String message, @Nullable Throwable throwable);
-
-    enum Result {
-
-        ACCEPT,
-        BLOCK,
-        IGNORE
-    }
+    boolean addAppender(LogAppender appender);
+    boolean removeAppender(LogAppender appender);
 }

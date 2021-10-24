@@ -29,7 +29,7 @@ import com.discordsrv.common.config.manager.MainConfigManager;
 import com.discordsrv.common.console.Console;
 import com.discordsrv.common.discord.api.DiscordAPIImpl;
 import com.discordsrv.common.discord.connection.DiscordConnectionManager;
-import com.discordsrv.common.logging.logger.Logger;
+import com.discordsrv.logging.Logger;
 import com.discordsrv.common.placeholder.PlaceholderServiceImpl;
 import com.discordsrv.common.player.provider.AbstractPlayerProvider;
 import com.discordsrv.common.scheduler.Scheduler;

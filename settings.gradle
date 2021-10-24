@@ -9,7 +9,7 @@ pluginManagement {
 rootProject.name = 'DiscordSRV2'
 
 [
-        'common', 'common:server', 'common:proxy',
+        'common', 'common:api', 'common:server', 'common:proxy',
         'i18n',
         'api',
         'bukkit', 'bukkit:loader',
