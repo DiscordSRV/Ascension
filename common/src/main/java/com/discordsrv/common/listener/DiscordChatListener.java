@@ -38,7 +38,6 @@ import com.discordsrv.common.function.OrDefault;
 import net.kyori.adventure.text.Component;
 import org.apache.commons.lang3.tuple.Pair;
 
-import java.util.List;
 import java.util.Optional;
 
 public class DiscordChatListener extends AbstractListener {
@@ -89,18 +88,16 @@ public class DiscordChatListener extends AbstractListener {
                 return;
             }
 
-            List<Long> users = ignores.usersAndWebhookIds;
-            if (users != null && users.contains(author.getId())) {
+            DiscordToMinecraftChatConfig.Ignores.IDs users = ignores.usersAndWebhookIds;
+            if (users != null && users.ids.contains(author.getId()) != users.whitelist) {
                 return;
             }
 
-            List<Long> roles = ignores.roleIds;
-            boolean anyMatch = roles != null
-                    ? member
-                        .map(m -> m.getRoles().stream().anyMatch(role -> roles.contains(role.getId())))
-                        .orElse(false)
-                    : false;
-            if (anyMatch) {
+            DiscordToMinecraftChatConfig.Ignores.IDs roles = ignores.roleIds;
+            if (roles != null && member
+                    .map(m -> m.getRoles().stream().anyMatch(role -> roles.ids.contains(role.getId())))
+                    .map(hasRole -> hasRole != roles.whitelist)
+                    .orElse(false)) {
                 return;
             }
         }

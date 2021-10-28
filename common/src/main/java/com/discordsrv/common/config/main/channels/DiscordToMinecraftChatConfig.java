@@ -45,17 +45,26 @@ public class DiscordToMinecraftChatConfig {
 
     @ConfigSerializable
     public static class Ignores {
-        @Comment("User and Webhook ids to ignore")
-        public List<Long> usersAndWebhookIds = new ArrayList<>();
+        @Comment("User, bot and webhook ids to ignore")
+        public IDs usersAndWebhookIds = new IDs();
 
-        @Comment("Role IDs for users/bots to ignore")
-        public List<Long> roleIds = new ArrayList<>();
+        @Comment("Role ids for users/bots to ignore")
+        public IDs roleIds = new IDs();
 
         @Comment("If bots (webhooks not included) should be ignored")
         public boolean bots = false;
 
         @Comment("If webhooks should be ignored")
         public boolean webhooks = false;
+
+        @ConfigSerializable
+        public static class IDs {
+
+            public List<Long> ids = new ArrayList<>();
+
+            @Comment("true for whitelisting the provided ids, false for blacklisting them")
+            public boolean whitelist = false;
+        }
     }
 
 }
