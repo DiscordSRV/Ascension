@@ -19,19 +19,10 @@
 package com.discordsrv.common.discord.api.channel;
 
 import com.discordsrv.api.discord.api.entity.channel.DiscordMessageChannel;
-import com.discordsrv.api.discord.api.exception.RestErrorResponseException;
-import com.discordsrv.api.discord.api.exception.UnknownChannelException;
-import com.discordsrv.api.discord.api.exception.UnknownMessageException;
 import com.discordsrv.common.DiscordSRV;
-import lombok.SneakyThrows;
 import net.dv8tion.jda.api.entities.MessageChannel;
 import net.dv8tion.jda.api.entities.PrivateChannel;
 import net.dv8tion.jda.api.entities.TextChannel;
-import net.dv8tion.jda.api.exceptions.ErrorResponseException;
-import net.dv8tion.jda.api.requests.ErrorResponse;
-
-import java.util.concurrent.CompletableFuture;
-import java.util.function.BiFunction;
 
 public abstract class DiscordMessageChannelImpl implements DiscordMessageChannel {
 
@@ -43,30 +34,5 @@ public abstract class DiscordMessageChannelImpl implements DiscordMessageChannel
         } else {
             throw new IllegalArgumentException("Unknown MessageChannel type");
         }
-    }
-
-    @SuppressWarnings("Convert2Lambda") // SneakyThrows
-    protected final <T> CompletableFuture<T> mapExceptions(CompletableFuture<T> future) {
-        return future.handle(new BiFunction<T, Throwable, T>() {
-
-            @SneakyThrows
-            @Override
-            public T apply(T msg, Throwable t) {
-                if (t instanceof ErrorResponseException) {
-                    ErrorResponse errorResponse = ((ErrorResponseException) t).getErrorResponse();
-                    if (errorResponse != null) {
-                        if (errorResponse == ErrorResponse.UNKNOWN_MESSAGE) {
-                            throw new UnknownMessageException(t);
-                        } else if (errorResponse == ErrorResponse.UNKNOWN_CHANNEL) {
-                            throw new UnknownChannelException(t);
-                        }
-                    }
-                    throw new RestErrorResponseException(((ErrorResponseException) t).getErrorCode(), t);
-                } else if (t != null) {
-                    throw t;
-                }
-                return msg;
-            }
-        });
     }
 }

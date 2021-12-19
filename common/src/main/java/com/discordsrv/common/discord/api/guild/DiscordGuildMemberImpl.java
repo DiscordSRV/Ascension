@@ -25,9 +25,10 @@ import com.discordsrv.api.discord.api.entity.guild.DiscordRole;
 import com.discordsrv.api.placeholder.annotation.Placeholder;
 import com.discordsrv.api.placeholder.annotation.PlaceholderRemainder;
 import com.discordsrv.common.DiscordSRV;
-import com.discordsrv.common.discord.api.user.DiscordUserImpl;
+import com.discordsrv.common.discord.api.DiscordUserImpl;
 import net.dv8tion.jda.api.entities.Member;
 import net.dv8tion.jda.api.entities.Role;
+import net.dv8tion.jda.api.entities.User;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.TextComponent;
 import net.kyori.adventure.text.format.TextColor;
@@ -39,15 +40,15 @@ import java.util.Optional;
 
 public class DiscordGuildMemberImpl extends DiscordUserImpl implements DiscordGuildMember {
 
+    private final Member member;
     private final DiscordGuild guild;
-    private final String nickname;
     private final List<DiscordRole> roles;
     private final Color color;
 
     public DiscordGuildMemberImpl(DiscordSRV discordSRV, Member member) {
-        super(member.getUser());
+        super(discordSRV, member.getUser());
+        this.member = member;
         this.guild = new DiscordGuildImpl(discordSRV, member.getGuild());
-        this.nickname = member.getNickname();
 
         List<DiscordRole> roles = new ArrayList<>();
         for (Role role : member.getRoles()) {
@@ -64,7 +65,7 @@ public class DiscordGuildMemberImpl extends DiscordUserImpl implements DiscordGu
 
     @Override
     public @NotNull Optional<String> getNickname() {
-        return Optional.ofNullable(nickname);
+        return Optional.ofNullable(member.getNickname());
     }
 
     @Override
@@ -76,6 +77,20 @@ public class DiscordGuildMemberImpl extends DiscordUserImpl implements DiscordGu
     public Color getColor() {
         return color;
     }
+
+    @Override
+    public Member getAsJDAMember() {
+        return member;
+    }
+
+    @Override
+    public User getAsJDAUser() {
+        return member.getUser();
+    }
+
+    //
+    // Placeholders
+    //
 
     @Placeholder(value = "user_highest_role", relookup = "role")
     public DiscordRole _highestRole() {
@@ -92,14 +107,8 @@ public class DiscordGuildMemberImpl extends DiscordUserImpl implements DiscordGu
         return null;
     }
 
-    @Placeholder(value = "user_roles")
+    @Placeholder("user_roles_")
     public Component _allRoles(@PlaceholderRemainder String suffix) {
-        if (suffix.startsWith("_")) {
-            suffix = suffix.substring(1);
-        } else {
-            return null;
-        }
-
         List<Component> components = new ArrayList<>();
         for (DiscordRole role : getRoles()) {
             components.add(Component.text(role.getName()).color(TextColor.color(role.getColor().rgb())));

@@ -14,7 +14,7 @@ ext {
     // MinecraftDependencyDownload
     mddVersion = '1.0.0-SNAPSHOT'
     // JDA
-    jdaVersion = '4.3.0_334'
+    jdaVersion = '5.0.0-alpha.2'
     // Configurate
     configurateVersion = '4.1.2'
     // Adventure & Adventure Platform
@@ -59,7 +59,7 @@ allprojects {
 
         mavenCentral()
         maven { url 'https://nexus.scarsz.me/content/groups/public/' }
-        maven { url 'https://m2.dv8tion.net/releases/' }
+        //maven { url 'https://m2.dv8tion.net/releases/' }
     }
 
     dependencies {

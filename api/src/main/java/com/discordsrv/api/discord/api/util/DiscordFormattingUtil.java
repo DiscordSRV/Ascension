@@ -23,12 +23,16 @@
 
 package com.discordsrv.api.discord.api.util;
 
+import java.util.regex.Matcher;
+
 public final class DiscordFormattingUtil {
 
     private DiscordFormattingUtil() {}
 
     public static String escapeContent(String content) {
-        content = escapeChars(content, '*', '_', '|', '`', '~', '>');
+        content = escapeChars(content, '*', '_', '|', '`', '~');
+        content = escapeQuote(content);
+        content = escapeMentions(content);
         return content;
     }
 
@@ -39,5 +43,13 @@ public final class DiscordFormattingUtil {
                     "\\" + character);
         }
         return input;
+    }
+
+    private static String escapeQuote(String input) {
+        return input.replaceAll("^>", Matcher.quoteReplacement("\\>"));
+    }
+
+    private static String escapeMentions(String input) {
+        return input.replaceAll("<([@#])", Matcher.quoteReplacement("\\<") + "$1");
     }
 }

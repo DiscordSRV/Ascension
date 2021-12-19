@@ -23,13 +23,17 @@
 
 package com.discordsrv.api.discord.api.entity.channel;
 
+import com.discordsrv.api.DiscordSRVApi;
+import com.discordsrv.api.discord.api.entity.Mentionable;
 import com.discordsrv.api.discord.api.entity.guild.DiscordGuild;
+import net.dv8tion.jda.api.entities.TextChannel;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * A Discord text channel.
  */
-public interface DiscordTextChannel extends DiscordMessageChannel {
+public interface DiscordTextChannel extends DiscordMessageChannel, Mentionable {
 
     /**
      * Gets the name of the text channel.
@@ -42,7 +46,7 @@ public interface DiscordTextChannel extends DiscordMessageChannel {
      * Gets the topic of the text channel.
      * @return the topic of the channel
      */
-    @NotNull
+    @Nullable
     String getTopic();
 
     /**
@@ -52,5 +56,11 @@ public interface DiscordTextChannel extends DiscordMessageChannel {
     @NotNull
     DiscordGuild getGuild();
 
+    /**
+     * Returns the JDA representation of this object. This should not be used if it can be avoided.
+     * @return the JDA representation of this object
+     * @see DiscordSRVApi#jda()
+     */
+    TextChannel getAsJDATextChannel();
 
 }

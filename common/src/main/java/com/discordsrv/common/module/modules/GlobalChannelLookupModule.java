@@ -16,25 +16,33 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package com.discordsrv.common.listener;
+package com.discordsrv.common.module.modules;
 
 import com.discordsrv.api.event.bus.EventPriority;
 import com.discordsrv.api.event.bus.Subscribe;
 import com.discordsrv.api.event.events.channel.GameChannelLookupEvent;
 import com.discordsrv.common.DiscordSRV;
+import com.discordsrv.common.channel.DefaultGlobalChannel;
+import com.discordsrv.common.event.util.EventUtil;
+import com.discordsrv.common.module.Module;
 
-public class ChannelLookupListener extends AbstractListener {
+public class GlobalChannelLookupModule extends Module {
 
-    public ChannelLookupListener(DiscordSRV discordSRV) {
+    private final DefaultGlobalChannel defaultGlobalChannel;
+
+    public GlobalChannelLookupModule(DiscordSRV discordSRV) {
         super(discordSRV);
+        defaultGlobalChannel = new DefaultGlobalChannel(discordSRV);
     }
 
-    @Subscribe(priority = EventPriority.LAST)
+    @Subscribe(priority = EventPriority.LATE)
     public void onGameChannelLookup(GameChannelLookupEvent event) {
-        if (!event.getChannelName().equalsIgnoreCase("global") || checkProcessor(event)) {
+        if (EventUtil.checkProcessor(discordSRV, event)) {
             return;
         }
 
-        event.process(discordSRV.defaultGlobalChannel());
+        if (event.getChannelName().equalsIgnoreCase("global")) {
+            event.process(defaultGlobalChannel);
+        }
     }
 }

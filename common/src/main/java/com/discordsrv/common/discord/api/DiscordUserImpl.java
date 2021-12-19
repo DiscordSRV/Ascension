@@ -16,31 +16,33 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package com.discordsrv.common.discord.api.user;
+package com.discordsrv.common.discord.api;
 
 import com.discordsrv.api.discord.api.entity.DiscordUser;
+import com.discordsrv.api.discord.api.entity.channel.DiscordDMChannel;
+import com.discordsrv.common.DiscordSRV;
+import com.discordsrv.common.discord.api.channel.DiscordDMChannelImpl;
+import net.dv8tion.jda.api.JDA;
 import net.dv8tion.jda.api.entities.User;
 import org.jetbrains.annotations.NotNull;
 
+import java.util.concurrent.CompletableFuture;
+
 public class DiscordUserImpl implements DiscordUser {
 
-    private final long id;
+    private final DiscordSRV discordSRV;
+    private final User user;
     private final boolean self;
-    private final boolean bot;
-    private final String username;
-    private final String discriminator;
 
-    public DiscordUserImpl(User user) {
-        this.id = user.getIdLong();
+    public DiscordUserImpl(DiscordSRV discordSRV, User user) {
+        this.discordSRV = discordSRV;
+        this.user = user;
         this.self = user.getIdLong() == user.getJDA().getSelfUser().getIdLong();
-        this.bot = user.isBot();
-        this.username = user.getName();
-        this.discriminator = user.getDiscriminator();
     }
 
     @Override
     public long getId() {
-        return id;
+        return user.getIdLong();
     }
 
     @Override
@@ -50,16 +52,39 @@ public class DiscordUserImpl implements DiscordUser {
 
     @Override
     public boolean isBot() {
-        return bot;
+        return user.isBot();
     }
 
     @Override
     public @NotNull String getUsername() {
-        return username;
+        return user.getName();
     }
 
     @Override
     public @NotNull String getDiscriminator() {
-        return discriminator;
+        return user.getDiscriminator();
+    }
+
+    @Override
+    public CompletableFuture<DiscordDMChannel> openPrivateChannel() {
+        JDA jda = discordSRV.jda().orElse(null);
+        if (jda == null) {
+            return discordSRV.discordAPI().notReady();
+        }
+
+        return jda.retrieveUserById(getId())
+                .submit()
+                .thenCompose(user -> user.openPrivateChannel().submit())
+                .thenApply(privateChannel ->  new DiscordDMChannelImpl(discordSRV, privateChannel));
+    }
+
+    @Override
+    public User getAsJDAUser() {
+        return user;
+    }
+
+    @Override
+    public String getAsMention() {
+        return user.getAsMention();
     }
 }

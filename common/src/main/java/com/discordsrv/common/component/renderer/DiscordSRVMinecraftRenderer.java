@@ -18,79 +18,143 @@
 
 package com.discordsrv.common.component.renderer;
 
+import com.discordsrv.api.component.EnhancedTextBuilder;
+import com.discordsrv.api.discord.api.entity.DiscordUser;
 import com.discordsrv.api.discord.api.entity.guild.DiscordGuild;
+import com.discordsrv.api.discord.api.entity.guild.DiscordGuildMember;
 import com.discordsrv.api.discord.api.entity.guild.DiscordRole;
+import com.discordsrv.api.event.events.message.receive.discord.DiscordMessageProcessingEvent;
 import com.discordsrv.common.DiscordSRV;
+import com.discordsrv.common.component.util.ComponentUtil;
+import com.discordsrv.common.config.main.channels.DiscordToMinecraftChatConfig;
+import com.discordsrv.common.function.OrDefault;
 import dev.vankka.mcdiscordreserializer.renderer.implementation.DefaultMinecraftRenderer;
 import lombok.NonNull;
-import net.dv8tion.jda.api.entities.AbstractChannel;
+import net.dv8tion.jda.api.entities.GuildChannel;
 import net.dv8tion.jda.api.utils.MiscUtil;
 import net.kyori.adventure.text.Component;
-import org.checkerframework.checker.nullness.qual.Nullable;
+import org.jetbrains.annotations.NotNull;
 
-import java.util.Optional;
 import java.util.function.Supplier;
 
 public class DiscordSRVMinecraftRenderer extends DefaultMinecraftRenderer {
 
-    private static final ThreadLocal<Long> GUILD_CONTEXT = ThreadLocal.withInitial(() -> 0L);
+    private static final ThreadLocal<Context> CONTEXT = new ThreadLocal<>();
     private final DiscordSRV discordSRV;
 
     public DiscordSRVMinecraftRenderer(DiscordSRV discordSRV) {
         this.discordSRV = discordSRV;
     }
 
-    public static void runInGuildContext(long guildId, Runnable runnable) {
-        getWithGuildContext(guildId, () -> {
+    public static void runInContext(
+            DiscordMessageProcessingEvent event,
+            OrDefault<DiscordToMinecraftChatConfig> config,
+            Runnable runnable
+    ) {
+        getWithContext(event, config, () -> {
             runnable.run();
             return null;
         });
     }
 
-    public static <T> T getWithGuildContext(long guildId, Supplier<T> supplier) {
-        GUILD_CONTEXT.set(guildId);
+    public static <T> T getWithContext(
+            DiscordMessageProcessingEvent event,
+            OrDefault<DiscordToMinecraftChatConfig> config,
+            Supplier<T> supplier
+    ) {
+        CONTEXT.set(new Context(event, config));
         T output = supplier.get();
-        GUILD_CONTEXT.set(0L);
+        CONTEXT.remove();
         return output;
     }
 
     @Override
-    public @Nullable Component appendChannelMention(@NonNull Component component, @NonNull String id) {
-        return component.append(Component.text(
-                discordSRV.jda()
-                        .map(jda -> jda.getGuildChannelById(id))
-                        .map(AbstractChannel::getName)
-                        .map(name -> "#" + name)
-                        .orElse("<#" + id + ">")
+    public @NotNull Component appendChannelMention(@NonNull Component component, @NonNull String id) {
+        Context context = CONTEXT.get();
+        DiscordToMinecraftChatConfig.Mentions.Format format =
+                context != null ? context.config.map(cfg -> cfg.mentions).get(cfg -> cfg.channel) : null;
+        if (format == null) {
+            return component.append(Component.text("<#" + id + ">"));
+        }
+
+        GuildChannel guildChannel = discordSRV.jda()
+                .map(jda -> jda.getGuildChannelById(id))
+                .orElse(null);
+
+        return component.append(ComponentUtil.fromAPI(
+                discordSRV.componentFactory()
+                        .enhancedBuilder(guildChannel != null ? format.format : format.unknownFormat)
+                        .addReplacement("%channel_name%", guildChannel != null ? guildChannel.getName() : null)
+                        .applyPlaceholderService()
+                        .build()
         ));
     }
 
     @Override
-    public @Nullable Component appendUserMention(@NonNull Component component, @NonNull String id) {
-        long guildId = GUILD_CONTEXT.get();
-        Optional<DiscordGuild> guild = guildId > 0
-                ? discordSRV.discordAPI().getGuildById(guildId)
-                : Optional.empty();
+    public @NotNull Component appendUserMention(@NonNull Component component, @NonNull String id) {
+        Context context = CONTEXT.get();
+        DiscordToMinecraftChatConfig.Mentions.Format format =
+                context != null ? context.config.map(cfg -> cfg.mentions).get(cfg -> cfg.user) : null;
+        DiscordGuild guild = context != null
+                             ? discordSRV.discordAPI()
+                                     .getGuildById(context.event.getGuild().getId())
+                                     .orElse(null)
+                             : null;
+        if (format == null || guild == null) {
+            return component.append(Component.text("<@" + id + ">"));
+        }
 
         long userId = MiscUtil.parseLong(id);
-        return component.append(Component.text(
-                guild.flatMap(g -> g.getMemberById(userId))
-                        .map(member -> "@" + member.getEffectiveName())
-                        .orElseGet(() -> discordSRV.discordAPI()
-                                .getUserById(userId)
-                                .map(user -> "@" + user.getUsername())
-                                .orElse("<@" + id + ">"))
+        DiscordUser user = discordSRV.discordAPI().getUserById(userId).orElse(null);
+        DiscordGuildMember member = guild.getMemberById(userId).orElse(null);
+
+        EnhancedTextBuilder builder = discordSRV.componentFactory()
+                .enhancedBuilder(user != null ? format.format : format.unknownFormat);
+
+        if (user != null) {
+            builder.addContext(user);
+        }
+        if (member != null) {
+            builder.addContext(member);
+        }
+
+        return component.append(ComponentUtil.fromAPI(
+                builder.applyPlaceholderService().build()
         ));
     }
 
     @Override
-    public @Nullable Component appendRoleMention(@NonNull Component component, @NonNull String id) {
-        return component.append(Component.text(
-                discordSRV.discordAPI()
-                        .getRoleById(MiscUtil.parseLong(id))
-                        .map(DiscordRole::getName)
-                        .map(name -> "@" + name)
-                        .orElse("<@" + id + ">")
+    public @NotNull Component appendRoleMention(@NonNull Component component, @NonNull String id) {
+        Context context = CONTEXT.get();
+        DiscordToMinecraftChatConfig.Mentions.Format format =
+                context != null ? context.config.map(cfg -> cfg.mentions).get(cfg -> cfg.role) : null;
+        if (format == null) {
+            return component.append(Component.text("<#" + id + ">"));
+        }
+
+        long roleId = MiscUtil.parseLong(id);
+        DiscordRole role = discordSRV.discordAPI().getRoleById(roleId).orElse(null);
+
+        EnhancedTextBuilder builder = discordSRV.componentFactory()
+                .enhancedBuilder(role != null ? format.format : format.unknownFormat);
+
+        if (role != null) {
+            builder.addContext(role);
+        }
+
+        return component.append(ComponentUtil.fromAPI(
+                builder.applyPlaceholderService().build()
         ));
+    }
+
+    private static class Context {
+
+        private final DiscordMessageProcessingEvent event;
+        private final OrDefault<DiscordToMinecraftChatConfig> config;
+
+        public Context(DiscordMessageProcessingEvent event, OrDefault<DiscordToMinecraftChatConfig> config) {
+            this.event = event;
+            this.config = config;
+        }
     }
 }

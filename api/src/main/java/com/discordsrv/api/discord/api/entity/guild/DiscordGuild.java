@@ -23,10 +23,14 @@
 
 package com.discordsrv.api.discord.api.entity.guild;
 
+import com.discordsrv.api.DiscordSRVApi;
 import com.discordsrv.api.discord.api.entity.Snowflake;
 import com.discordsrv.api.placeholder.annotation.Placeholder;
+import net.dv8tion.jda.api.entities.Guild;
 
+import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 
 /**
  * A Discord server.
@@ -55,10 +59,28 @@ public interface DiscordGuild extends Snowflake {
     Optional<DiscordGuildMember> getMemberById(long id);
 
     /**
+     * Gets the members of this server that are in the cache.
+     * @return the Discord server members that are currently cached
+     */
+    Set<DiscordGuildMember> getCachedMembers();
+
+    /**
      * Gets a Discord role by id from the cache, the provided entity can be cached and will not update if it changes on Discord.
      * @param id the id for the Discord role
      * @return the Discord role from the cache
      */
     Optional<DiscordRole> getRoleById(long id);
 
+    /**
+     * Gets the roles in this Discord server.
+     * @return an ordered list of the roles in this Discord server
+     */
+    List<DiscordRole> getRoles();
+
+    /**
+     * Returns the JDA representation of this object. This should not be used if it can be avoided.
+     * @return the JDA representation of this object
+     * @see DiscordSRVApi#jda()
+     */
+    Guild getAsJDAGuild();
 }

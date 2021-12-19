@@ -24,6 +24,7 @@
 package com.discordsrv.api.event.events.message.receive.discord;
 
 import com.discordsrv.api.discord.api.entity.channel.DiscordTextChannel;
+import com.discordsrv.api.discord.api.entity.guild.DiscordGuild;
 import com.discordsrv.api.discord.api.entity.message.ReceivedDiscordMessage;
 import com.discordsrv.api.event.events.Cancellable;
 import com.discordsrv.api.event.events.Processable;
@@ -33,7 +34,7 @@ public class DiscordMessageProcessingEvent implements Cancellable, Processable {
 
     private final ReceivedDiscordMessage discordMessage;
     private String messageContent;
-    private DiscordTextChannel channel;
+    private final DiscordTextChannel channel;
     private boolean cancelled;
     private boolean processed;
 
@@ -59,8 +60,8 @@ public class DiscordMessageProcessingEvent implements Cancellable, Processable {
         return channel;
     }
 
-    public void setChannel(DiscordTextChannel channel) {
-        this.channel = channel;
+    public DiscordGuild getGuild() {
+        return channel.getGuild();
     }
 
     @Override

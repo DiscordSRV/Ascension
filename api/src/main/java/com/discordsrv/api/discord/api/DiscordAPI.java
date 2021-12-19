@@ -23,15 +23,16 @@
 
 package com.discordsrv.api.discord.api;
 
+import com.discordsrv.api.discord.api.entity.DiscordUser;
 import com.discordsrv.api.discord.api.entity.channel.DiscordDMChannel;
 import com.discordsrv.api.discord.api.entity.channel.DiscordMessageChannel;
 import com.discordsrv.api.discord.api.entity.channel.DiscordTextChannel;
 import com.discordsrv.api.discord.api.entity.guild.DiscordGuild;
-import com.discordsrv.api.discord.api.entity.DiscordUser;
 import com.discordsrv.api.discord.api.entity.guild.DiscordRole;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Optional;
+import java.util.concurrent.CompletableFuture;
 
 /**
  * A basic Discord API wrapper for a limited amount of functions, with a minimal amount of breaking changes.
@@ -39,7 +40,7 @@ import java.util.Optional;
 public interface DiscordAPI {
 
     /**
-     * Gets a Discord message channel by id, the provided entity can be cached and will not update if it changes on Discord.
+     * Gets a Discord message channel by id, the provided entity should not be cached.
      * @param id the id for the message channel
      * @return the message channel
      */
@@ -47,7 +48,7 @@ public interface DiscordAPI {
     Optional<? extends DiscordMessageChannel> getMessageChannelById(long id);
 
     /**
-     * Gets a Discord direct message channel by id, the provided entity can be cached and will not update if it changes on Discord.
+     * Gets a Discord direct message channel by id, the provided entity should not be cached.
      * @param id the id for the direct message channel
      * @return the direct message channel
      */
@@ -55,7 +56,7 @@ public interface DiscordAPI {
     Optional<DiscordDMChannel> getDirectMessageChannelById(long id);
 
     /**
-     * Gets a Discord text channel by id, the provided entity can be cached and will not update if it changes on Discord.
+     * Gets a Discord text channel by id, the provided entity should not be cached.
      * @param id the id for the text channel
      * @return the text channel
      */
@@ -63,7 +64,7 @@ public interface DiscordAPI {
     Optional<DiscordTextChannel> getTextChannelById(long id);
 
     /**
-     * Gets a Discord server by id, the provided entity can be cached and will not update if it changes on Discord.
+     * Gets a Discord server by id, the provided entity should not be cached.
      * @param id the id for the Discord server
      * @return the Discord server
      */
@@ -71,15 +72,30 @@ public interface DiscordAPI {
     Optional<DiscordGuild> getGuildById(long id);
 
     /**
-     * Gets a Discord user by id, the provided entity can be cached and will not update if it changes on Discord.
+     * Gets a Discord user by id, the provided entity should not be cached.
+     * This will always return an empty optional if {@link #isUserCachingEnabled()} returns {@code false}.
      * @param id the id for the Discord user
      * @return the Discord user
+     * @see #isUserCachingEnabled()
      */
     @NotNull
     Optional<DiscordUser> getUserById(long id);
 
     /**
-     * Gets a Discord role by id, the provided entity can be cached and will not update if it changes on Discord.
+     * Looks up a Discord user by id from Discord, the provided entity can be cached but will not be updated if the entity changes on Discord.
+     * @param id the id for the Discord user
+     * @return a future that will result in a {@link DiscordUser} for the id or throw a
+     */
+    CompletableFuture<DiscordUser> retrieveUserById(long id);
+
+    /**
+     * Gets if user caching is enabled.
+     * @return {@code true} if user caching is enabled.
+     */
+    boolean isUserCachingEnabled();
+
+    /**
+     * Gets a Discord role by id, the provided entity should not be cached.
      * @param id the id for the Discord role
      * @return the Discord role
      */

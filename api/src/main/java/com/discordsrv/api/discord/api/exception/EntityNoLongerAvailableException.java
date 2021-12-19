@@ -23,16 +23,4 @@
 
 package com.discordsrv.api.discord.api.exception;
 
-import net.dv8tion.jda.api.requests.ErrorResponse;
-
-public class UnknownChannelException extends RestErrorResponseException {
-
-    public UnknownChannelException() {
-        super(-1);
-    }
-
-    public UnknownChannelException(Throwable cause) {
-        super(ErrorResponse.UNKNOWN_CHANNEL.getCode(), cause);
-    }
-
-}
+public class EntityNoLongerAvailableException extends Exception {}

@@ -23,16 +23,18 @@
 
 package com.discordsrv.api.discord.api.exception;
 
+import net.dv8tion.jda.api.requests.ErrorResponse;
+
 public class RestErrorResponseException extends RuntimeException {
 
     private final int errorCode;
 
-    public RestErrorResponseException(int errorCode) {
-        this.errorCode = errorCode;
+    public RestErrorResponseException(ErrorResponse response) {
+        this(response.getCode(), response.getMeaning(), new EntityNoLongerAvailableException());
     }
 
-    public RestErrorResponseException(int errorCode, Throwable cause) {
-        super(cause);
+    public RestErrorResponseException(int errorCode, String message, Throwable cause) {
+        super(message + " (" + errorCode + ")", cause);
         this.errorCode = errorCode;
     }
 

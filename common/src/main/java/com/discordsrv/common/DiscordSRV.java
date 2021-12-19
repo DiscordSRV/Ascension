@@ -20,7 +20,6 @@ package com.discordsrv.common;
 
 import com.discordsrv.api.DiscordSRVApi;
 import com.discordsrv.common.channel.ChannelConfigHelper;
-import com.discordsrv.common.channel.DefaultGlobalChannel;
 import com.discordsrv.common.component.ComponentFactory;
 import com.discordsrv.common.config.connection.ConnectionConfig;
 import com.discordsrv.common.config.main.MainConfig;
@@ -29,10 +28,11 @@ import com.discordsrv.common.config.manager.MainConfigManager;
 import com.discordsrv.common.console.Console;
 import com.discordsrv.common.discord.api.DiscordAPIImpl;
 import com.discordsrv.common.discord.connection.DiscordConnectionManager;
-import com.discordsrv.logging.Logger;
+import com.discordsrv.common.module.Module;
 import com.discordsrv.common.placeholder.PlaceholderServiceImpl;
 import com.discordsrv.common.player.provider.AbstractPlayerProvider;
 import com.discordsrv.common.scheduler.Scheduler;
+import com.discordsrv.logging.Logger;
 import com.github.benmanes.caffeine.cache.Caffeine;
 import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
@@ -72,11 +72,16 @@ public interface DiscordSRV extends DiscordSRVApi {
     ConnectionConfig connectionConfig();
     MainConfigManager<? extends MainConfig> configManager();
     MainConfig config();
+    // Config helper
+    ChannelConfigHelper channelConfig();
 
     // Internal
-    DefaultGlobalChannel defaultGlobalChannel();
-    ChannelConfigHelper channelConfig();
     DiscordConnectionManager discordConnectionManager();
+
+    // Modules
+    <T extends Module> T getModule(Class<T> moduleType);
+    void registerModule(Module module);
+    void unregisterModule(Module module);
 
     Locale locale();
     void setStatus(Status status);

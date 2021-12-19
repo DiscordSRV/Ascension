@@ -25,26 +25,22 @@ import org.jetbrains.annotations.NotNull;
 
 public class DiscordRoleImpl implements DiscordRole {
 
-    private final long id;
-    private final String name;
+    private final Role role;
     private final Color color;
-    private final boolean hoisted;
 
     public DiscordRoleImpl(Role role) {
-        this.id = role.getIdLong();
-        this.name = role.getName();
+        this.role = role;
         this.color = new Color(role.getColorRaw());
-        this.hoisted = role.isHoisted();
     }
 
     @Override
     public long getId() {
-        return id;
+        return role.getIdLong();
     }
 
     @Override
     public @NotNull String getName() {
-        return name;
+        return role.getName();
     }
 
     @Override
@@ -54,6 +50,16 @@ public class DiscordRoleImpl implements DiscordRole {
 
     @Override
     public boolean isHoisted() {
-        return hoisted;
+        return role.isHoisted();
+    }
+
+    @Override
+    public Role getAsJDARole() {
+        return role;
+    }
+
+    @Override
+    public String getAsMention() {
+        return role.getAsMention();
     }
 }

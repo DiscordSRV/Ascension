@@ -37,5 +37,17 @@ public class MinecraftToDiscordChatConfig {
     // TODO: more info on regex pairs (String#replaceAll)
     @Comment("Regex filters for Minecraft message contents (this is the %message% part of the \"format\" option)")
     public Map<Pattern, String> contentRegexFilters = new LinkedHashMap<>();
+
+    @Comment("What mentions should be translated from chat messages to mentions (this does not effect if they will cause a notification or not)")
+    public Mentions mentions = new Mentions();
+
+    @ConfigSerializable
+    public static class Mentions {
+
+        public boolean roles = true;
+        public boolean users = true;
+        public boolean channels = true;
+
+    }
     
 }

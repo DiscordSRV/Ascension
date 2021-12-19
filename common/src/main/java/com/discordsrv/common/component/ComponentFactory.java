@@ -38,8 +38,8 @@ public class ComponentFactory implements MinecraftComponentFactory {
     public ComponentFactory(DiscordSRV discordSRV) {
         this.discordSRV = discordSRV;
         this.minecraftSerializer = new MinecraftSerializer(
-                MinecraftSerializerOptions.defaults().addRenderer(new DiscordSRVMinecraftRenderer(discordSRV)),
-                MinecraftSerializerOptions.escapeDefaults()
+                MinecraftSerializerOptions.defaults()
+                        .addRenderer(new DiscordSRVMinecraftRenderer(discordSRV))
         );
         this.discordSerializer = new DiscordSerializer(DiscordSerializerOptions.defaults());
     }

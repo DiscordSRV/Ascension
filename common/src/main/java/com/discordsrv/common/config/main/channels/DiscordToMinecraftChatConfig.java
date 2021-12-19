@@ -31,20 +31,21 @@ import java.util.regex.Pattern;
 public class DiscordToMinecraftChatConfig {
 
     @Comment("The Discord to Minecraft message format for regular users")
-    public String format = "[&#5865F2Discord&r] [hover:show_text:Tag: %user_tag%&r\\nRoles: %user_roles_, |text_&7&oNone%%]%user_color%%user_effective_name%&r » %message%";
+    public String format = "[&#5865F2Discord&r] [hover:show_text:Tag: %user_tag%&r\nRoles: %user_roles_, |text_&7&oNone%]%user_color%%user_effective_name%&r » %message% %message_attachments%";
 
     @Comment("The Discord to Minecraft message format for webhook messages (if enabled)")
-    public String webhookFormat = "[&#5865F2Discord&r] [hover:show_text:Webhook message]%user_name%&r » %message%";
-
-    @Comment("Users, bots and webhooks to ignore")
-    public Ignores ignores = new Ignores();
+    public String webhookFormat = "[&#5865F2Discord&r] [hover:show_text:Webhook message]%user_name%&r » %message% %message_attachments%";
 
     // TODO: more info on regex pairs (String#replaceAll)
     @Comment("Regex filters for Discord message contents (this is the %message% part of the \"format\" option)")
     public Map<Pattern, String> contentRegexFilters = new LinkedHashMap<>();
 
+    @Comment("Users, bots and webhooks to ignore")
+    public Ignores ignores = new Ignores();
+
     @ConfigSerializable
     public static class Ignores {
+
         @Comment("User, bot and webhook ids to ignore")
         public IDs usersAndWebhookIds = new IDs();
 
@@ -65,6 +66,35 @@ public class DiscordToMinecraftChatConfig {
             @Comment("true for whitelisting the provided ids, false for blacklisting them")
             public boolean whitelist = false;
         }
+    }
+
+    @Comment("The representations of Discord mentions in-game")
+    public Mentions mentions = new Mentions();
+
+    @ConfigSerializable
+    public static class Mentions {
+
+        public Format role = new Format("&#5865f2@%role_name%", "&#5865f2@deleted-role");
+        public Format channel = new Format("&#5865f2#%channel_name%", "&#5865f2#deleted-channel");
+        public Format user = new Format("[hover:show_text:Tag: %user_tag%&r\nRoles: %user_roles_, |text_&7&oNone%]&#5865f2@%user_effective_name|user_name%", "&#5865f2@Unknown user");
+
+        @ConfigSerializable
+        public static class Format {
+
+            @Comment("The format shown in-game")
+            public String format = "";
+
+            @Comment("The format when the entity is deleted or can't be looked up")
+            public String unknownFormat = "";
+
+            public Format() {}
+
+            public Format(String format, String unknownFormat) {
+                this.format = format;
+                this.unknownFormat = unknownFormat;
+            }
+        }
+
     }
 
 }

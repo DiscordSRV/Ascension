@@ -35,7 +35,7 @@ public interface EventBus {
 
     /**
      * Subscribes the provided event listener to this {@link EventBus}.
-     * @param eventListener a event listener with at least one valid {@link Subscribe} method.
+     * @param eventListener an event listener with at least one valid {@link Subscribe} method.
      *
      * @throws IllegalArgumentException if the given listener does not contain any valid listeners
      */
@@ -43,7 +43,7 @@ public interface EventBus {
 
     /**
      * Unsubscribes a listener that was registered before.
-     * @param eventListener a listener that was subscribed with {@link #subscribe(Object)} before
+     * @param eventListener an event listener that was subscribed with {@link #subscribe(Object)} before
      */
     void unsubscribe(@NotNull Object eventListener);
 

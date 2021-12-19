@@ -23,54 +23,89 @@ import com.discordsrv.api.discord.api.entity.guild.DiscordGuildMember;
 import com.discordsrv.api.discord.api.entity.guild.DiscordRole;
 import com.discordsrv.common.DiscordSRV;
 import net.dv8tion.jda.api.entities.Guild;
+import net.dv8tion.jda.api.entities.Member;
+import net.dv8tion.jda.api.entities.Role;
 
-import java.util.Optional;
+import java.util.*;
 
 public class DiscordGuildImpl implements DiscordGuild {
 
     private final DiscordSRV discordSRV;
-    private final long id;
-    private final String name;
-    private final int memberCount;
+    private final Guild guild;
 
     public DiscordGuildImpl(DiscordSRV discordSRV, Guild guild) {
         this.discordSRV = discordSRV;
-        this.id = guild.getIdLong();
-        this.name = guild.getName();
-        this.memberCount = guild.getMemberCount();
+        this.guild = guild;
     }
 
     @Override
     public long getId() {
-        return id;
+        return guild.getIdLong();
     }
 
     @Override
     public String getName() {
-        return name;
+        return guild.getName();
     }
 
     @Override
     public int getMemberCount() {
-        return memberCount;
-    }
-
-    private Optional<Guild> guild() {
-        return discordSRV.jda()
-                .map(jda -> jda.getGuildById(id));
+        return guild.getMemberCount();
     }
 
     @Override
     public Optional<DiscordGuildMember> getMemberById(long id) {
-        return guild()
-                .map(guild -> guild.getMemberById(id))
-                .map(member -> new DiscordGuildMemberImpl(discordSRV, member));
+        Member member = guild.getMemberById(id);
+        if (member == null) {
+            return Optional.empty();
+        }
+
+        return Optional.of(new DiscordGuildMemberImpl(discordSRV, member));
+    }
+
+    @Override
+    public Set<DiscordGuildMember> getCachedMembers() {
+        Set<DiscordGuildMember> members = new HashSet<>();
+        for (Member member : guild.getMembers()) {
+            members.add(new DiscordGuildMemberImpl(discordSRV, member));
+        }
+        return members;
     }
 
     @Override
     public Optional<DiscordRole> getRoleById(long id) {
-        return guild()
-                .map(guild -> guild.getRoleById(id))
-                .map(DiscordRoleImpl::new);
+        Role role = guild.getRoleById(id);
+        if (role == null) {
+            return Optional.empty();
+        }
+
+        return Optional.of(new DiscordRoleImpl(role));
+    }
+
+    @Override
+    public List<DiscordRole> getRoles() {
+        List<DiscordRole> roles = new ArrayList<>();
+        for (Role role : guild.getRoles()) {
+            roles.add(new DiscordRoleImpl(role));
+        }
+        return roles;
+    }
+
+    @Override
+    public Guild getAsJDAGuild() {
+        return guild;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        DiscordGuildImpl that = (DiscordGuildImpl) o;
+        return getId() == that.getId();
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(getId());
     }
 }

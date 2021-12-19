@@ -28,7 +28,7 @@ import com.discordsrv.api.discord.api.entity.channel.DiscordTextChannel;
 import com.discordsrv.api.discord.api.entity.guild.DiscordGuild;
 import com.discordsrv.api.discord.api.entity.guild.DiscordRole;
 import com.discordsrv.api.discord.api.exception.NotReadyException;
-import com.discordsrv.api.discord.api.exception.UnknownChannelException;
+import com.discordsrv.api.discord.api.exception.RestErrorResponseException;
 import com.discordsrv.common.DiscordSRV;
 import com.discordsrv.common.config.main.channels.BaseChannelConfig;
 import com.discordsrv.common.config.main.channels.ChannelConfig;
@@ -36,7 +36,6 @@ import com.discordsrv.common.discord.api.channel.DiscordDMChannelImpl;
 import com.discordsrv.common.discord.api.channel.DiscordTextChannelImpl;
 import com.discordsrv.common.discord.api.guild.DiscordGuildImpl;
 import com.discordsrv.common.discord.api.guild.DiscordRoleImpl;
-import com.discordsrv.common.discord.api.user.DiscordUserImpl;
 import com.github.benmanes.caffeine.cache.AsyncCacheLoader;
 import com.github.benmanes.caffeine.cache.AsyncLoadingCache;
 import com.github.benmanes.caffeine.cache.Expiry;
@@ -45,6 +44,9 @@ import net.dv8tion.jda.api.JDA;
 import net.dv8tion.jda.api.entities.TextChannel;
 import net.dv8tion.jda.api.entities.User;
 import net.dv8tion.jda.api.entities.Webhook;
+import net.dv8tion.jda.api.exceptions.ErrorResponseException;
+import net.dv8tion.jda.api.requests.ErrorResponse;
+import net.dv8tion.jda.api.requests.GatewayIntent;
 import org.checkerframework.checker.index.qual.NonNegative;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.jetbrains.annotations.NotNull;
@@ -78,6 +80,26 @@ public class DiscordAPIImpl implements DiscordAPI {
 
     public AsyncLoadingCache<Long, WebhookClient> getCachedClients() {
         return cachedClients;
+    }
+
+    public <T> CompletableFuture<T> mapExceptions(CompletableFuture<T> future) {
+        return future.handle((msg, t) -> {
+            if (t instanceof ErrorResponseException) {
+                ErrorResponseException exception = (ErrorResponseException) t;
+                int code = exception.getErrorCode();
+                ErrorResponse response = exception.getErrorResponse();
+                throw new RestErrorResponseException(code, response != null ? response.getMeaning() : "Unknown", t);
+            } else if (t != null) {
+                throw (RuntimeException) t;
+            }
+            return msg;
+        });
+    }
+
+    public <T> CompletableFuture<T> notReady() {
+        CompletableFuture<T> future = new CompletableFuture<>();
+        future.completeExceptionally(new NotReadyException());
+        return future;
     }
 
     @Override
@@ -115,7 +137,26 @@ public class DiscordAPIImpl implements DiscordAPI {
     public @NotNull Optional<DiscordUser> getUserById(long id) {
         return discordSRV.jda()
                 .map(jda -> jda.getUserById(id))
-                .map(DiscordUserImpl::new);
+                .map(user -> new DiscordUserImpl(discordSRV, user));
+    }
+
+    @Override
+    public CompletableFuture<DiscordUser> retrieveUserById(long id) {
+        JDA jda = discordSRV.jda().orElse(null);
+        if (jda == null) {
+            return notReady();
+        }
+
+        return jda.retrieveUserById(id)
+                .submit()
+                .thenApply(user -> new DiscordUserImpl(discordSRV, user));
+    }
+
+    @Override
+    public boolean isUserCachingEnabled() {
+        return discordSRV.discordConnectionDetails()
+                .getGatewayIntents()
+                .contains(GatewayIntent.GUILD_MEMBERS);
     }
 
     @Override
@@ -129,17 +170,15 @@ public class DiscordAPIImpl implements DiscordAPI {
 
         @Override
         public @NonNull CompletableFuture<WebhookClient> asyncLoad(@NonNull Long channelId, @NonNull Executor executor) {
-            CompletableFuture<WebhookClient> future = new CompletableFuture<>();
-
             JDA jda = discordSRV.jda().orElse(null);
             if (jda == null) {
-                future.completeExceptionally(new NotReadyException());
-                return future;
+                return discordSRV.discordAPI().notReady();
             }
 
+            CompletableFuture<WebhookClient> future = new CompletableFuture<>();
             TextChannel textChannel = jda.getTextChannelById(channelId);
             if (textChannel == null) {
-                future.completeExceptionally(new UnknownChannelException());
+                future.completeExceptionally(new IllegalArgumentException("Channel could not be found"));
                 return future;
             }
 

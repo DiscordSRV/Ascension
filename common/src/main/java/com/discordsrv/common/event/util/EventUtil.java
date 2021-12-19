@@ -16,22 +16,18 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package com.discordsrv.common.listener;
+package com.discordsrv.common.event.util;
 
 import com.discordsrv.api.event.bus.EventListener;
 import com.discordsrv.api.event.events.Cancellable;
 import com.discordsrv.api.event.events.Processable;
 import com.discordsrv.common.DiscordSRV;
 
-public abstract class AbstractListener {
+public final class EventUtil {
 
-    protected final DiscordSRV discordSRV;
+    private EventUtil() {}
 
-    public AbstractListener(DiscordSRV discordSRV) {
-        this.discordSRV = discordSRV;
-    }
-
-    public boolean checkProcessor(Processable event) {
+    public static boolean checkProcessor(DiscordSRV discordSRV,Processable event) {
         if (!event.isProcessed()) {
             return false;
         }
@@ -45,7 +41,7 @@ public abstract class AbstractListener {
         return true;
     }
 
-    public boolean checkCancellation(Cancellable event) {
+    public static boolean checkCancellation(DiscordSRV discordSRV, Cancellable event) {
         if (!event.isCancelled()) {
             return false;
         }

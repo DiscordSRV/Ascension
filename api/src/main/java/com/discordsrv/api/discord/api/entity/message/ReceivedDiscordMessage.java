@@ -32,6 +32,7 @@ import com.discordsrv.api.discord.api.entity.guild.DiscordGuild;
 import com.discordsrv.api.discord.api.entity.guild.DiscordGuildMember;
 import org.jetbrains.annotations.NotNull;
 
+import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 
@@ -39,6 +40,12 @@ import java.util.concurrent.CompletableFuture;
  * A message received from Discord.
  */
 public interface ReceivedDiscordMessage extends SendableDiscordMessage, Snowflake {
+
+    /**
+     * Gets the attachments of this message.
+     * @return this message's attachments
+     */
+    List<Attachment> getAttachments();
 
     /**
      * Determines if this message was sent by this DiscordSRV instance's Discord bot,
@@ -62,14 +69,14 @@ public interface ReceivedDiscordMessage extends SendableDiscordMessage, Snowflak
 
     /**
      * Gets the text channel the message was sent in. Not present if this message is a dm.
-     * @return a optional potentially containing the text channel the message was sent in
+     * @return an optional potentially containing the text channel the message was sent in
      */
     @NotNull
     Optional<DiscordTextChannel> getTextChannel();
 
     /**
      * Gets the dm channel the message was sent in. Not present if this message was sent in a server.
-     * @return a optional potentially containing the dm channel the message was sent in
+     * @return an optional potentially containing the dm channel the message was sent in
      */
     @NotNull
     Optional<DiscordDMChannel> getDMChannel();
@@ -77,14 +84,14 @@ public interface ReceivedDiscordMessage extends SendableDiscordMessage, Snowflak
     /**
      * Gets the Discord server member that sent this message.
      * This is not present if the message was sent by a webhook.
-     * @return a optional potentially containing the Discord server member that sent this message
+     * @return an optional potentially containing the Discord server member that sent this message
      */
     @NotNull
     Optional<DiscordGuildMember> getMember();
 
     /**
      * Gets the Discord server the message was posted in. This is not present if the message was a dm.
-     * @return a optional potentially containing the Discord server the message was posted in
+     * @return an optional potentially containing the Discord server the message was posted in
      */
     @NotNull
     default Optional<DiscordGuild> getGuild() {
@@ -109,4 +116,23 @@ public interface ReceivedDiscordMessage extends SendableDiscordMessage, Snowflak
      */
     @NotNull
     CompletableFuture<ReceivedDiscordMessage> edit(SendableDiscordMessage message);
+
+    class Attachment {
+
+        private final String fileName;
+        private final String url;
+
+        public Attachment(String fileName, String url) {
+            this.fileName = fileName;
+            this.url = url;
+        }
+
+        public String fileName() {
+            return fileName;
+        }
+
+        public String url() {
+            return url;
+        }
+    }
 }

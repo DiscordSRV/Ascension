@@ -18,17 +18,15 @@
 
 package com.discordsrv.common.discord.api.channel;
 
+import com.discordsrv.api.discord.api.entity.DiscordUser;
 import com.discordsrv.api.discord.api.entity.channel.DiscordDMChannel;
 import com.discordsrv.api.discord.api.entity.message.ReceivedDiscordMessage;
 import com.discordsrv.api.discord.api.entity.message.SendableDiscordMessage;
-import com.discordsrv.api.discord.api.entity.DiscordUser;
-import com.discordsrv.api.discord.api.exception.NotReadyException;
-import com.discordsrv.api.discord.api.exception.UnknownChannelException;
 import com.discordsrv.common.DiscordSRV;
+import com.discordsrv.common.discord.api.DiscordUserImpl;
 import com.discordsrv.common.discord.api.message.ReceivedDiscordMessageImpl;
 import com.discordsrv.common.discord.api.message.util.SendableDiscordMessageUtil;
-import com.discordsrv.common.discord.api.user.DiscordUserImpl;
-import net.dv8tion.jda.api.JDA;
+import net.dv8tion.jda.api.entities.MessageChannel;
 import net.dv8tion.jda.api.entities.PrivateChannel;
 import org.jetbrains.annotations.NotNull;
 
@@ -37,32 +35,18 @@ import java.util.concurrent.CompletableFuture;
 public class DiscordDMChannelImpl extends DiscordMessageChannelImpl implements DiscordDMChannel {
 
     private final DiscordSRV discordSRV;
-    private final long id;
+    private final PrivateChannel privateChannel;
     private final DiscordUser user;
 
     public DiscordDMChannelImpl(DiscordSRV discordSRV, PrivateChannel privateChannel) {
         this.discordSRV = discordSRV;
-        this.id = privateChannel.getIdLong();
-        this.user = new DiscordUserImpl(privateChannel.getUser());
-    }
-
-    private PrivateChannel privateChannel() {
-        JDA jda = discordSRV.jda().orElse(null);
-        if (jda == null) {
-            throw new NotReadyException();
-        }
-
-        PrivateChannel privateChannel = jda.getPrivateChannelById(id);
-        if (privateChannel == null) {
-            throw new UnknownChannelException();
-        }
-
-        return privateChannel;
+        this.privateChannel = privateChannel;
+        this.user = new DiscordUserImpl(discordSRV, privateChannel.getUser());
     }
 
     @Override
     public long getId() {
-        return id;
+        return privateChannel.getIdLong();
     }
 
     @Override
@@ -71,24 +55,27 @@ public class DiscordDMChannelImpl extends DiscordMessageChannelImpl implements D
     }
 
     @Override
+    public PrivateChannel getAsJDAPrivateChannel() {
+        return privateChannel;
+    }
+
+    @Override
     public @NotNull CompletableFuture<ReceivedDiscordMessage> sendMessage(SendableDiscordMessage message) {
         if (message.isWebhookMessage()) {
             throw new IllegalArgumentException("Cannot send webhook messages to DMChannels");
         }
 
-        CompletableFuture<ReceivedDiscordMessage> future = privateChannel()
+        CompletableFuture<ReceivedDiscordMessage> future = privateChannel
                 .sendMessage(SendableDiscordMessageUtil.toJDA(message))
                 .submit()
                 .thenApply(msg -> ReceivedDiscordMessageImpl.fromJDA(discordSRV, msg));
-        return mapExceptions(future);
+
+        return discordSRV.discordAPI().mapExceptions(future);
     }
 
     @Override
     public CompletableFuture<Void> deleteMessageById(long id) {
-        CompletableFuture<Void> future = privateChannel()
-                .deleteMessageById(id)
-                .submit();
-        return mapExceptions(future);
+        return discordSRV.discordAPI().mapExceptions(privateChannel.deleteMessageById(id).submit());
     }
 
     @Override
@@ -97,10 +84,16 @@ public class DiscordDMChannelImpl extends DiscordMessageChannelImpl implements D
             throw new IllegalArgumentException("Cannot send webhook messages to DMChannels");
         }
 
-        CompletableFuture<ReceivedDiscordMessage> future = privateChannel()
+        CompletableFuture<ReceivedDiscordMessage> future = privateChannel
                 .editMessageById(id, SendableDiscordMessageUtil.toJDA(message))
                 .submit()
                 .thenApply(msg -> ReceivedDiscordMessageImpl.fromJDA(discordSRV, msg));
-        return mapExceptions(future);
+
+        return discordSRV.discordAPI().mapExceptions(future);
+    }
+
+    @Override
+    public MessageChannel getAsJDAMessageChannel() {
+        return privateChannel;
     }
 }

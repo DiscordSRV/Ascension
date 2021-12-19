@@ -23,9 +23,12 @@
 
 package com.discordsrv.api.discord.api.entity.guild;
 
+import com.discordsrv.api.DiscordSRVApi;
 import com.discordsrv.api.color.Color;
 import com.discordsrv.api.discord.api.entity.DiscordUser;
+import com.discordsrv.api.discord.api.entity.Mentionable;
 import com.discordsrv.api.placeholder.annotation.Placeholder;
+import net.dv8tion.jda.api.entities.Member;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.List;
@@ -34,7 +37,7 @@ import java.util.Optional;
 /**
  * A Discord server member.
  */
-public interface DiscordGuildMember extends DiscordUser {
+public interface DiscordGuildMember extends DiscordUser, Mentionable {
 
     /**
      * Gets the Discord server this member is from.
@@ -70,5 +73,12 @@ public interface DiscordGuildMember extends DiscordUser {
      */
     @Placeholder("user_color")
     Color getColor();
+
+    /**
+     * Returns the JDA representation of this object. This should not be used if it can be avoided.
+     * @return the JDA representation of this object
+     * @see DiscordSRVApi#jda()
+     */
+    Member getAsJDAMember();
 
 }

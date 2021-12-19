@@ -23,15 +23,18 @@
 
 package com.discordsrv.api.discord.api.entity.guild;
 
+import com.discordsrv.api.DiscordSRVApi;
 import com.discordsrv.api.color.Color;
+import com.discordsrv.api.discord.api.entity.Mentionable;
 import com.discordsrv.api.discord.api.entity.Snowflake;
 import com.discordsrv.api.placeholder.annotation.Placeholder;
+import net.dv8tion.jda.api.entities.Role;
 import org.jetbrains.annotations.NotNull;
 
 /**
  * A Discord server role.
  */
-public interface DiscordRole extends Snowflake {
+public interface DiscordRole extends Snowflake, Mentionable {
 
     /**
      * The default {@link DiscordRole} color.
@@ -68,4 +71,11 @@ public interface DiscordRole extends Snowflake {
      * @return true if this role is displayed separately in the member list
      */
     boolean isHoisted();
+
+    /**
+     * Returns the JDA representation of this object. This should not be used if it can be avoided.
+     * @return the JDA representation of this object
+     * @see DiscordSRVApi#jda()
+     */
+    Role getAsJDARole();
 }

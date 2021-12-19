@@ -88,9 +88,7 @@ public class ChannelConfigHelper {
 
         synchronized (discordToConfigMap) {
             discordToConfigMap.clear();
-            for (Map.Entry<Long, Pair<String, ChannelConfig>> entry : newMap.entrySet()) {
-                discordToConfigMap.put(entry.getKey(), entry.getValue());
-            }
+            discordToConfigMap.putAll(newMap);
         }
     }
 

@@ -66,7 +66,7 @@ public class StandardScheduler implements Scheduler {
             try {
                 runnable.run();
             } catch (Throwable t) {
-                discordSRV.logger().error(Thread.currentThread().getName() + " caught a exception", t);
+                discordSRV.logger().error(Thread.currentThread().getName() + " ran into an exception", t);
             }
         };
     }

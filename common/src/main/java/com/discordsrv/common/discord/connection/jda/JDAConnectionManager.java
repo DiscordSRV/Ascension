@@ -33,7 +33,7 @@ import com.discordsrv.common.discord.api.guild.DiscordGuildImpl;
 import com.discordsrv.common.discord.api.guild.DiscordGuildMemberImpl;
 import com.discordsrv.common.discord.api.guild.DiscordRoleImpl;
 import com.discordsrv.common.discord.api.message.ReceivedDiscordMessageImpl;
-import com.discordsrv.common.discord.api.user.DiscordUserImpl;
+import com.discordsrv.common.discord.api.DiscordUserImpl;
 import com.discordsrv.common.discord.connection.DiscordConnectionManager;
 import com.discordsrv.common.scheduler.Scheduler;
 import com.discordsrv.common.scheduler.threadfactory.CountingThreadFactory;
@@ -156,7 +156,7 @@ public class JDAConnectionManager implements DiscordConnectionManager {
 
         CompletableFuture<DiscordUser> future = instance.retrieveApplicationInfo()
                 .timeout(10, TimeUnit.SECONDS)
-                .map(applicationInfo -> (DiscordUser) new DiscordUserImpl(applicationInfo.getOwner()))
+                .map(applicationInfo -> (DiscordUser) new DiscordUserImpl(discordSRV, applicationInfo.getOwner()))
                 .submit();
 
         botOwnerRequest.set(future);
@@ -188,7 +188,7 @@ public class JDAConnectionManager implements DiscordConnectionManager {
             } else if (o instanceof ReceivedMessage) {
                 converted = ReceivedDiscordMessageImpl.fromJDA(discordSRV, (Message) o);
             } else if (o instanceof User) {
-                converted = new DiscordUserImpl((User) o);
+                converted = new DiscordUserImpl(discordSRV, (User) o);
             } else {
                 converted = o;
                 isConversion = false;

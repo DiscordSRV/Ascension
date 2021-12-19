@@ -16,27 +16,27 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package com.discordsrv.common.listener;
+package com.discordsrv.common.module.modules;
 
 import com.discordsrv.api.event.bus.Subscribe;
 import com.discordsrv.api.event.events.discord.DiscordMessageReceivedEvent;
 import com.discordsrv.common.DiscordSRV;
 import com.discordsrv.common.discord.api.channel.DiscordMessageChannelImpl;
 import com.discordsrv.common.discord.api.message.ReceivedDiscordMessageImpl;
+import com.discordsrv.common.module.Module;
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
 
-public class DiscordAPIListener {
+public class DiscordAPIEventModule extends Module {
 
-    private final DiscordSRV discordSRV;
-
-    public DiscordAPIListener(DiscordSRV discordSRV) {
-        this.discordSRV = discordSRV;
+    public DiscordAPIEventModule(DiscordSRV discordSRV) {
+        super(discordSRV);
     }
 
     @Subscribe
     public void onMessageReceivedEvent(MessageReceivedEvent event) {
         discordSRV.eventBus().publish(new DiscordMessageReceivedEvent(
                 ReceivedDiscordMessageImpl.fromJDA(discordSRV, event.getMessage()),
-                DiscordMessageChannelImpl.get(discordSRV, event.getChannel())));
+                DiscordMessageChannelImpl.get(discordSRV, event.getChannel()))
+        );
     }
 }

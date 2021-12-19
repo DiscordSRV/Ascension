@@ -19,6 +19,7 @@
 package com.discordsrv.common.discord.api.message;
 
 import club.minnced.discord.webhook.WebhookClient;
+import club.minnced.discord.webhook.receive.ReadonlyAttachment;
 import club.minnced.discord.webhook.receive.ReadonlyEmbed;
 import club.minnced.discord.webhook.receive.ReadonlyMessage;
 import club.minnced.discord.webhook.receive.ReadonlyUser;
@@ -33,15 +34,20 @@ import com.discordsrv.api.discord.api.entity.message.DiscordMessageEmbed;
 import com.discordsrv.api.discord.api.entity.message.ReceivedDiscordMessage;
 import com.discordsrv.api.discord.api.entity.message.SendableDiscordMessage;
 import com.discordsrv.api.discord.api.entity.message.impl.SendableDiscordMessageImpl;
-import com.discordsrv.api.discord.api.exception.UnknownChannelException;
+import com.discordsrv.api.discord.api.exception.RestErrorResponseException;
+import com.discordsrv.api.placeholder.annotation.Placeholder;
 import com.discordsrv.common.DiscordSRV;
+import com.discordsrv.common.discord.api.DiscordUserImpl;
 import com.discordsrv.common.discord.api.channel.DiscordMessageChannelImpl;
 import com.discordsrv.common.discord.api.guild.DiscordGuildMemberImpl;
-import com.discordsrv.common.discord.api.user.DiscordUserImpl;
 import net.dv8tion.jda.api.entities.Member;
 import net.dv8tion.jda.api.entities.Message;
 import net.dv8tion.jda.api.entities.MessageEmbed;
 import net.dv8tion.jda.api.entities.User;
+import net.dv8tion.jda.api.requests.ErrorResponse;
+import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.TextComponent;
+import net.kyori.adventure.text.event.ClickEvent;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
@@ -63,7 +69,7 @@ public class ReceivedDiscordMessageImpl extends SendableDiscordMessageImpl imple
         String webhookAvatarUrl = webhookMessage ? message.getAuthor().getEffectiveAvatarUrl() : null;
 
         DiscordMessageChannel channel = DiscordMessageChannelImpl.get(discordSRV, message.getChannel());
-        DiscordUser user = new DiscordUserImpl(message.getAuthor());
+        DiscordUser user = new DiscordUserImpl(discordSRV, message.getAuthor());
 
         Member member = message.getMember();
         DiscordGuildMember apiMember = member != null ? new DiscordGuildMemberImpl(discordSRV, member) : null;
@@ -82,8 +88,14 @@ public class ReceivedDiscordMessageImpl extends SendableDiscordMessageImpl imple
             self = user.isSelf();
         }
 
+        List<Attachment> attachments = new ArrayList<>();
+        for (Message.Attachment attachment : message.getAttachments()) {
+            attachments.add(new Attachment(attachment.getFileName(), attachment.getUrl()));
+        }
+
         return new ReceivedDiscordMessageImpl(
                 discordSRV,
+                attachments,
                 self,
                 channel,
                 apiMember,
@@ -142,10 +154,16 @@ public class ReceivedDiscordMessageImpl extends SendableDiscordMessageImpl imple
                 webhookMessage.getAuthor().getId()).orElse(null);
         DiscordGuildMember member = channel instanceof DiscordTextChannel && user != null
                 ? ((DiscordTextChannel) channel).getGuild().getMemberById(user.getId()).orElse(null) : null;
+
+        List<Attachment> attachments = new ArrayList<>();
+        for (ReadonlyAttachment attachment : webhookMessage.getAttachments()) {
+            attachments.add(new Attachment(attachment.getFileName(), attachment.getUrl()));
+        }
+
         return new ReceivedDiscordMessageImpl(
                 discordSRV,
-                // These are always from rest responses
-                true,
+                attachments,
+                true, // These are always from rest responses
                 channel,
                 member,
                 user,
@@ -159,6 +177,7 @@ public class ReceivedDiscordMessageImpl extends SendableDiscordMessageImpl imple
     }
 
     private final DiscordSRV discordSRV;
+    private final List<Attachment> attachments;
     private final boolean fromSelf;
     private final DiscordMessageChannel channel;
     private final DiscordGuildMember member;
@@ -168,6 +187,7 @@ public class ReceivedDiscordMessageImpl extends SendableDiscordMessageImpl imple
 
     private ReceivedDiscordMessageImpl(
             DiscordSRV discordSRV,
+            List<Attachment> attachments,
             boolean fromSelf,
             DiscordMessageChannel channel,
             DiscordGuildMember member,
@@ -181,6 +201,7 @@ public class ReceivedDiscordMessageImpl extends SendableDiscordMessageImpl imple
     ) {
         super(content, embeds, Collections.emptySet(), webhookUsername, webhookAvatarUrl);
         this.discordSRV = discordSRV;
+        this.attachments = attachments;
         this.fromSelf = fromSelf;
         this.channel = channel;
         this.member = member;
@@ -192,6 +213,11 @@ public class ReceivedDiscordMessageImpl extends SendableDiscordMessageImpl imple
     @Override
     public long getId() {
         return id;
+    }
+
+    @Override
+    public List<Attachment> getAttachments() {
+        return attachments;
     }
 
     @Override
@@ -233,7 +259,7 @@ public class ReceivedDiscordMessageImpl extends SendableDiscordMessageImpl imple
         DiscordTextChannel textChannel = discordSRV.discordAPI().getTextChannelById(channelId).orElse(null);
         if (textChannel == null) {
             CompletableFuture<Void> future = new CompletableFuture<>();
-            future.completeExceptionally(new UnknownChannelException());
+            future.completeExceptionally(new RestErrorResponseException(ErrorResponse.UNKNOWN_CHANNEL));
             return future;
         }
 
@@ -249,10 +275,30 @@ public class ReceivedDiscordMessageImpl extends SendableDiscordMessageImpl imple
         DiscordTextChannel textChannel = discordSRV.discordAPI().getTextChannelById(channelId).orElse(null);
         if (textChannel == null) {
             CompletableFuture<ReceivedDiscordMessage> future = new CompletableFuture<>();
-            future.completeExceptionally(new UnknownChannelException());
+            future.completeExceptionally(new RestErrorResponseException(ErrorResponse.UNKNOWN_CHANNEL));
             return future;
         }
 
         return textChannel.editMessageById(getId(), message);
+    }
+
+    //
+    // Placeholders
+    //
+
+    @Placeholder("message_attachments")
+    public Component _attachments() {
+        // TODO: customizable
+
+        TextComponent.Builder builder = Component.text();
+        for (Attachment attachment : attachments) {
+            builder.append(
+                    Component.text()
+                            .content("[" + attachment.fileName() + "]")
+                            .clickEvent(ClickEvent.openUrl(attachment.url()))
+                    )
+                    .append(Component.text(" "));
+        }
+        return builder.build();
     }
 }

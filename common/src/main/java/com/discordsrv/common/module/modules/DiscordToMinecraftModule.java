@@ -16,7 +16,7 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package com.discordsrv.common.listener;
+package com.discordsrv.common.module.modules;
 
 import com.discordsrv.api.channel.GameChannel;
 import com.discordsrv.api.component.EnhancedTextBuilder;
@@ -35,14 +35,15 @@ import com.discordsrv.common.component.util.ComponentUtil;
 import com.discordsrv.common.config.main.channels.BaseChannelConfig;
 import com.discordsrv.common.config.main.channels.DiscordToMinecraftChatConfig;
 import com.discordsrv.common.function.OrDefault;
+import com.discordsrv.common.module.Module;
 import net.kyori.adventure.text.Component;
 import org.apache.commons.lang3.tuple.Pair;
 
 import java.util.Optional;
 
-public class DiscordChatListener extends AbstractListener {
+public class DiscordToMinecraftModule extends Module {
 
-    public DiscordChatListener(DiscordSRV discordSRV) {
+    public DiscordToMinecraftModule(DiscordSRV discordSRV) {
         super(discordSRV);
     }
 
@@ -53,10 +54,7 @@ public class DiscordChatListener extends AbstractListener {
             return;
         }
 
-        discordSRV.eventBus().publish(
-                new DiscordMessageProcessingEvent(
-                        event.getMessage(),
-                        channel));
+        discordSRV.eventBus().publish(new DiscordMessageProcessingEvent(event.getMessage(), channel));
     }
 
     @Subscribe
@@ -113,7 +111,7 @@ public class DiscordChatListener extends AbstractListener {
         chatConfig.opt(cfg -> cfg.contentRegexFilters)
                 .ifPresent(filters -> filters.forEach(message::replaceAll));
 
-        Component messageComponent = DiscordSRVMinecraftRenderer.getWithGuildContext(channel.getGuild().getId(), () ->
+        Component messageComponent = DiscordSRVMinecraftRenderer.getWithContext(event, chatConfig, () ->
                 discordSRV.componentFactory().minecraftSerializer().serialize(message.toString()));
 
         EnhancedTextBuilder componentBuilder = discordSRV.componentFactory()

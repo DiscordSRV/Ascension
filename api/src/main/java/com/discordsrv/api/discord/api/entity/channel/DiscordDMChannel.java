@@ -23,7 +23,9 @@
 
 package com.discordsrv.api.discord.api.entity.channel;
 
+import com.discordsrv.api.DiscordSRVApi;
 import com.discordsrv.api.discord.api.entity.DiscordUser;
+import net.dv8tion.jda.api.entities.PrivateChannel;
 
 /**
  * A Discord direct message channel.
@@ -35,5 +37,12 @@ public interface DiscordDMChannel extends DiscordMessageChannel {
      * @return the user this direct message is with
      */
     DiscordUser getUser();
+
+    /**
+     * Returns the JDA representation of this object. This should not be used if it can be avoided.
+     * @return the JDA representation of this object
+     * @see DiscordSRVApi#jda()
+     */
+    PrivateChannel getAsJDAPrivateChannel();
 
 }

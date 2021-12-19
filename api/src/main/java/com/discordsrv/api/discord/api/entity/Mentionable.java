@@ -21,18 +21,9 @@
  * SOFTWARE.
  */
 
-package com.discordsrv.api.discord.api.exception;
+package com.discordsrv.api.discord.api.entity;
 
-import net.dv8tion.jda.api.requests.ErrorResponse;
+public interface Mentionable {
 
-public class UnknownMessageException extends RestErrorResponseException {
-
-    public UnknownMessageException() {
-        super(-1);
-    }
-
-    public UnknownMessageException(Throwable cause) {
-        super(ErrorResponse.UNKNOWN_MESSAGE.getCode(), cause);
-    }
-
+    String getAsMention();
 }

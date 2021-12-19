@@ -24,7 +24,6 @@ import com.discordsrv.api.event.events.lifecycle.DiscordSRVReloadEvent;
 import com.discordsrv.api.event.events.lifecycle.DiscordSRVShuttingDownEvent;
 import com.discordsrv.common.api.util.ApiInstanceUtil;
 import com.discordsrv.common.channel.ChannelConfigHelper;
-import com.discordsrv.common.channel.DefaultGlobalChannel;
 import com.discordsrv.common.component.ComponentFactory;
 import com.discordsrv.common.config.connection.ConnectionConfig;
 import com.discordsrv.common.config.main.MainConfig;
@@ -36,11 +35,13 @@ import com.discordsrv.common.discord.connection.jda.JDAConnectionManager;
 import com.discordsrv.common.discord.details.DiscordConnectionDetailsImpl;
 import com.discordsrv.common.event.bus.EventBusImpl;
 import com.discordsrv.common.function.CheckedRunnable;
-import com.discordsrv.common.listener.ChannelLookupListener;
-import com.discordsrv.common.listener.DiscordAPIListener;
-import com.discordsrv.common.listener.DiscordChatListener;
-import com.discordsrv.common.listener.GameChatListener;
 import com.discordsrv.common.logging.DependencyLoggingHandler;
+import com.discordsrv.common.module.Module;
+import com.discordsrv.common.module.ModuleManager;
+import com.discordsrv.common.module.modules.DiscordAPIEventModule;
+import com.discordsrv.common.module.modules.DiscordToMinecraftModule;
+import com.discordsrv.common.module.modules.GlobalChannelLookupModule;
+import com.discordsrv.common.module.modules.MinecraftToDiscordModule;
 import com.discordsrv.common.placeholder.ComponentResultStringifier;
 import com.discordsrv.common.placeholder.PlaceholderServiceImpl;
 import com.discordsrv.common.placeholder.context.GlobalTextHandlingContext;
@@ -49,6 +50,7 @@ import net.dv8tion.jda.api.JDA;
 import org.jetbrains.annotations.NotNull;
 
 import javax.annotation.OverridingMethodsMustInvokeSuper;
+import java.util.Arrays;
 import java.util.Locale;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
@@ -73,8 +75,8 @@ public abstract class AbstractDiscordSRV<C extends MainConfig, CC extends Connec
     private DiscordConnectionDetails discordConnectionDetails;
 
     // DiscordSRV
-    private final DefaultGlobalChannel defaultGlobalChannel = new DefaultGlobalChannel(this);
     private ChannelConfigHelper channelConfig;
+    private ModuleManager moduleManager;
     private DiscordConnectionManager discordConnectionManager;
 
     // Internal
@@ -133,11 +135,6 @@ public abstract class AbstractDiscordSRV<C extends MainConfig, CC extends Connec
     // DiscordSRV
 
     @Override
-    public DefaultGlobalChannel defaultGlobalChannel() {
-        return defaultGlobalChannel;
-    }
-
-    @Override
     public ChannelConfigHelper channelConfig() {
         return channelConfig;
     }
@@ -162,6 +159,21 @@ public abstract class AbstractDiscordSRV<C extends MainConfig, CC extends Connec
     @Override
     public C config() {
         return configManager().config();
+    }
+
+    @Override
+    public <T extends Module> T getModule(Class<T> moduleType) {
+        return moduleManager.getModule(moduleType);
+    }
+
+    @Override
+    public void registerModule(Module module) {
+        moduleManager.register(module);
+    }
+
+    @Override
+    public void unregisterModule(Module module) {
+        moduleManager.unregister(module);
     }
 
     @Override
@@ -250,13 +262,16 @@ public abstract class AbstractDiscordSRV<C extends MainConfig, CC extends Connec
         // Register PlayerProvider listeners
         playerProvider().subscribe();
 
-        // Register listeners
-        // DiscordAPI
-        eventBus().subscribe(new DiscordAPIListener(this));
-        // Chat
-        eventBus().subscribe(new ChannelLookupListener(this));
-        eventBus().subscribe(new GameChatListener(this));
-        eventBus().subscribe(new DiscordChatListener(this));
+        // Register modules
+        moduleManager = new ModuleManager(this);
+        for (Module module : Arrays.asList(
+                new DiscordAPIEventModule(this),
+                new DiscordToMinecraftModule(this),
+                new GlobalChannelLookupModule(this),
+                new MinecraftToDiscordModule(this)
+        )) {
+            registerModule(module);
+        }
     }
 
     @OverridingMethodsMustInvokeSuper
