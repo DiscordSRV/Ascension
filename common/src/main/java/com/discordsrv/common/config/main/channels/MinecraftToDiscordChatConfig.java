@@ -19,6 +19,7 @@
 package com.discordsrv.common.config.main.channels;
 
 import com.discordsrv.api.discord.api.entity.message.SendableDiscordMessage;
+import com.discordsrv.common.config.annotation.Untranslated;
 import org.spongepowered.configurate.objectmapping.ConfigSerializable;
 import org.spongepowered.configurate.objectmapping.meta.Comment;
 
@@ -29,10 +30,14 @@ import java.util.regex.Pattern;
 @ConfigSerializable
 public class MinecraftToDiscordChatConfig {
 
+    @Comment("Is Minecraft to Discord chat forwarding enabled")
+    public boolean enabled = true;
+
+    @Untranslated(Untranslated.Type.VALUE)
     public SendableDiscordMessage.Builder format = SendableDiscordMessage.builder()
             .setWebhookUsername("%player_display_name%")
             .setWebhookAvatarUrl("%player_avatar_url%")
-            .setContent("%message%");// TODO
+            .setContent("%message%");
 
     // TODO: more info on regex pairs (String#replaceAll)
     @Comment("Regex filters for Minecraft message contents (this is the %message% part of the \"format\" option)")

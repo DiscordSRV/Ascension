@@ -19,16 +19,11 @@
 package com.discordsrv.common.config.manager.loader;
 
 import org.jetbrains.annotations.ApiStatus;
-import org.spongepowered.configurate.ConfigurationOptions;
 import org.spongepowered.configurate.loader.AbstractConfigurationLoader;
 import org.spongepowered.configurate.yaml.NodeStyle;
 import org.spongepowered.configurate.yaml.YamlConfigurationLoader;
 
 public interface YamlConfigLoaderProvider extends ConfigLoaderProvider<YamlConfigurationLoader> {
-
-    default ConfigurationOptions defaultOptions() {
-        return ConfigurationOptions.defaults();
-    }
 
     default NodeStyle nodeStyle() {
         return NodeStyle.BLOCK;

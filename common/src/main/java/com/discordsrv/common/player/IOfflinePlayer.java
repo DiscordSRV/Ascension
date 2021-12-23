@@ -30,12 +30,12 @@ public interface IOfflinePlayer extends Identified {
 
     @Placeholder("player_name")
     @Nullable
-    String getUsername();
+    String username();
 
     @ApiStatus.NonExtendable
     @Placeholder("player_uuid")
     @NotNull
-    default UUID getUniqueId() {
+    default UUID uniqueId() {
         return identity().uuid();
     }
 }

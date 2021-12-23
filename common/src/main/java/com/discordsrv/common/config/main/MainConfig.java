@@ -20,12 +20,11 @@ package com.discordsrv.common.config.main;
 
 import com.discordsrv.common.config.Config;
 import com.discordsrv.common.config.annotation.DefaultOnly;
-import com.discordsrv.common.config.main.channels.BaseChannelConfig;
-import com.discordsrv.common.config.main.channels.ChannelConfig;
+import com.discordsrv.common.config.main.channels.base.BaseChannelConfig;
+import com.discordsrv.common.config.main.channels.base.ChannelConfig;
 import org.spongepowered.configurate.objectmapping.ConfigSerializable;
 
-import java.util.LinkedHashMap;
-import java.util.Map;
+import java.util.*;
 
 @ConfigSerializable
 public class MainConfig implements Config {
@@ -40,6 +39,8 @@ public class MainConfig implements Config {
     @DefaultOnly("default")
     public Map<String, BaseChannelConfig> channels = new LinkedHashMap<String, BaseChannelConfig>() {{
         put("global", new ChannelConfig());
-        put("default", new BaseChannelConfig());
+        put(ChannelConfig.DEFAULT_KEY, new BaseChannelConfig());
     }};
+
+    public List<ChannelUpdaterConfig> channelUpdaters = new ArrayList<>(Collections.singletonList(new ChannelUpdaterConfig()));
 }

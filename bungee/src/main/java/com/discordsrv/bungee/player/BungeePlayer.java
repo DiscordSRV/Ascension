@@ -65,7 +65,7 @@ public class BungeePlayer implements IPlayer {
     }
 
     @Override
-    public @NotNull String getUsername() {
+    public @NotNull String username() {
         return player.getName();
     }
 
@@ -75,7 +75,7 @@ public class BungeePlayer implements IPlayer {
     }
 
     @Override
-    public @NotNull Component getDisplayName() {
+    public @NotNull Component displayName() {
         return BungeeComponentUtil.fromLegacy(player.getDisplayName());
     }
 }

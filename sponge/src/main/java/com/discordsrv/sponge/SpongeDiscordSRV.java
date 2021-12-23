@@ -23,7 +23,7 @@ import com.discordsrv.common.config.connection.ConnectionConfig;
 import com.discordsrv.common.config.main.MainConfig;
 import com.discordsrv.common.config.manager.ConnectionConfigManager;
 import com.discordsrv.common.config.manager.MainConfigManager;
-import com.discordsrv.logging.Logger;
+import com.discordsrv.common.logging.Logger;
 import com.discordsrv.common.server.ServerDiscordSRV;
 import com.discordsrv.sponge.console.SpongeConsole;
 import com.discordsrv.sponge.player.SpongePlayerProvider;

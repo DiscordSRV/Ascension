@@ -18,12 +18,13 @@
 
 package com.discordsrv.common.player;
 
-import com.discordsrv.api.channel.GameChannel;
 import com.discordsrv.api.placeholder.annotation.Placeholder;
 import com.discordsrv.api.placeholder.util.Placeholders;
 import com.discordsrv.api.player.DiscordSRVPlayer;
 import com.discordsrv.common.DiscordSRV;
 import com.discordsrv.common.command.game.sender.ICommandSender;
+import com.discordsrv.common.config.main.channels.base.BaseChannelConfig;
+import com.discordsrv.common.function.OrDefault;
 import net.kyori.adventure.text.Component;
 import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
@@ -37,30 +38,29 @@ public interface IPlayer extends DiscordSRVPlayer, IOfflinePlayer, ICommandSende
 
     @Override
     @NotNull
-    String getUsername();
+    String username();
 
     @Override
     @ApiStatus.NonExtendable
-    default @NotNull UUID getUniqueId() {
+    default @NotNull UUID uniqueId() {
         return identity().uuid();
     }
 
     @NotNull
     @Placeholder("player_display_name")
-    Component getDisplayName();
+    Component displayName();
 
     @Nullable
     @Placeholder("player_avatar_url")
-    default String getAvatarUrl(GameChannel gameChannel) {
-        String avatarUrl = discordSRV().channelConfig().orDefault(gameChannel)
-                .get(cfg -> cfg.avatarUrlProvider);
-        if (avatarUrl == null) {
+    default String getAvatarUrl(OrDefault<BaseChannelConfig> config) {
+        String avatarUrlProvider = config.get(cfg -> cfg.avatarUrlProvider);
+        if (avatarUrlProvider == null) {
             return null;
         }
 
-        return new Placeholders(avatarUrl)
-                .replace("%uuid%", getUniqueId().toString())
-                .replace("%username%", getUsername())
+        return new Placeholders(avatarUrlProvider)
+                .replace("%uuid%", uniqueId().toString())
+                .replace("%username%", username())
                 .replace("%texture%", "") // TODO
                 .toString();
     }

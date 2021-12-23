@@ -63,7 +63,7 @@ public class SpongePlayer extends SpongeOfflinePlayer implements IPlayer {
     }
 
     @Override
-    public @NotNull Component getDisplayName() {
+    public @NotNull Component displayName() {
         return player.displayName().get();
     }
 }

@@ -23,7 +23,7 @@ import com.discordsrv.api.discord.api.entity.DiscordUser;
 import com.discordsrv.api.discord.api.entity.guild.DiscordGuild;
 import com.discordsrv.api.discord.api.entity.guild.DiscordGuildMember;
 import com.discordsrv.api.discord.api.entity.guild.DiscordRole;
-import com.discordsrv.api.event.events.message.receive.discord.DiscordMessageProcessingEvent;
+import com.discordsrv.api.event.events.message.receive.discord.DiscordChatMessageProcessingEvent;
 import com.discordsrv.common.DiscordSRV;
 import com.discordsrv.common.component.util.ComponentUtil;
 import com.discordsrv.common.config.main.channels.DiscordToMinecraftChatConfig;
@@ -47,7 +47,7 @@ public class DiscordSRVMinecraftRenderer extends DefaultMinecraftRenderer {
     }
 
     public static void runInContext(
-            DiscordMessageProcessingEvent event,
+            DiscordChatMessageProcessingEvent event,
             OrDefault<DiscordToMinecraftChatConfig> config,
             Runnable runnable
     ) {
@@ -58,7 +58,7 @@ public class DiscordSRVMinecraftRenderer extends DefaultMinecraftRenderer {
     }
 
     public static <T> T getWithContext(
-            DiscordMessageProcessingEvent event,
+            DiscordChatMessageProcessingEvent event,
             OrDefault<DiscordToMinecraftChatConfig> config,
             Supplier<T> supplier
     ) {
@@ -149,10 +149,10 @@ public class DiscordSRVMinecraftRenderer extends DefaultMinecraftRenderer {
 
     private static class Context {
 
-        private final DiscordMessageProcessingEvent event;
+        private final DiscordChatMessageProcessingEvent event;
         private final OrDefault<DiscordToMinecraftChatConfig> config;
 
-        public Context(DiscordMessageProcessingEvent event, OrDefault<DiscordToMinecraftChatConfig> config) {
+        public Context(DiscordChatMessageProcessingEvent event, OrDefault<DiscordToMinecraftChatConfig> config) {
             this.event = event;
             this.config = config;
         }

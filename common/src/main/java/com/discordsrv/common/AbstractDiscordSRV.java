@@ -35,22 +35,26 @@ import com.discordsrv.common.discord.connection.jda.JDAConnectionManager;
 import com.discordsrv.common.discord.details.DiscordConnectionDetailsImpl;
 import com.discordsrv.common.event.bus.EventBusImpl;
 import com.discordsrv.common.function.CheckedRunnable;
-import com.discordsrv.common.logging.DependencyLoggingHandler;
-import com.discordsrv.common.module.Module;
+import com.discordsrv.common.logging.dependency.DependencyLoggingHandler;
+import com.discordsrv.common.module.modules.message.JoinMessageModule;
+import com.discordsrv.common.module.modules.message.LeaveMessageModule;
+import com.discordsrv.common.module.type.AbstractModule;
+import com.discordsrv.common.module.type.Module;
+import com.discordsrv.common.module.ModuleInitializationFunction;
 import com.discordsrv.common.module.ModuleManager;
 import com.discordsrv.common.module.modules.DiscordAPIEventModule;
-import com.discordsrv.common.module.modules.DiscordToMinecraftModule;
+import com.discordsrv.common.module.modules.message.DiscordToMinecraftChatModule;
 import com.discordsrv.common.module.modules.GlobalChannelLookupModule;
-import com.discordsrv.common.module.modules.MinecraftToDiscordModule;
+import com.discordsrv.common.module.modules.message.MinecraftToDiscordChatModule;
+import com.discordsrv.common.module.modules.integration.LuckPermsIntegration;
 import com.discordsrv.common.placeholder.ComponentResultStringifier;
 import com.discordsrv.common.placeholder.PlaceholderServiceImpl;
 import com.discordsrv.common.placeholder.context.GlobalTextHandlingContext;
-import com.discordsrv.logging.adapter.DependencyLoggerAdapter;
+import com.discordsrv.common.logging.adapter.DependencyLoggerAdapter;
 import net.dv8tion.jda.api.JDA;
 import org.jetbrains.annotations.NotNull;
 
 import javax.annotation.OverridingMethodsMustInvokeSuper;
-import java.util.Arrays;
 import java.util.Locale;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
@@ -167,12 +171,12 @@ public abstract class AbstractDiscordSRV<C extends MainConfig, CC extends Connec
     }
 
     @Override
-    public void registerModule(Module module) {
+    public void registerModule(AbstractModule module) {
         moduleManager.register(module);
     }
 
     @Override
-    public void unregisterModule(Module module) {
+    public void unregisterModule(AbstractModule module) {
         moduleManager.unregister(module);
     }
 
@@ -264,13 +268,19 @@ public abstract class AbstractDiscordSRV<C extends MainConfig, CC extends Connec
 
         // Register modules
         moduleManager = new ModuleManager(this);
-        for (Module module : Arrays.asList(
-                new DiscordAPIEventModule(this),
-                new DiscordToMinecraftModule(this),
-                new GlobalChannelLookupModule(this),
-                new MinecraftToDiscordModule(this)
-        )) {
-            registerModule(module);
+        for (ModuleInitializationFunction function : new ModuleInitializationFunction[]{
+                LuckPermsIntegration::new,
+
+                DiscordToMinecraftChatModule::new,
+                JoinMessageModule::new,
+                LeaveMessageModule::new,
+                MinecraftToDiscordChatModule::new,
+                DiscordAPIEventModule::new,
+                GlobalChannelLookupModule::new
+        }) {
+            try {
+                registerModule(function.initialize(this));
+            } catch (Throwable ignored) {}
         }
     }
 

@@ -39,7 +39,7 @@ public interface DiscordSRVPlayer {
      */
     @Placeholder("player_name")
     @NotNull
-    String getUsername();
+    String username();
 
     /**
      * The {@link UUID} of the player.
@@ -47,6 +47,6 @@ public interface DiscordSRVPlayer {
      */
     @Placeholder("player_uuid")
     @NotNull
-    UUID getUniqueId();
+    UUID uniqueId();
 
 }

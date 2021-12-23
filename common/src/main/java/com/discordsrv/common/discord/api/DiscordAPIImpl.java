@@ -30,8 +30,8 @@ import com.discordsrv.api.discord.api.entity.guild.DiscordRole;
 import com.discordsrv.api.discord.api.exception.NotReadyException;
 import com.discordsrv.api.discord.api.exception.RestErrorResponseException;
 import com.discordsrv.common.DiscordSRV;
-import com.discordsrv.common.config.main.channels.BaseChannelConfig;
-import com.discordsrv.common.config.main.channels.ChannelConfig;
+import com.discordsrv.common.config.main.channels.base.BaseChannelConfig;
+import com.discordsrv.common.config.main.channels.base.IChannelConfig;
 import com.discordsrv.common.discord.api.channel.DiscordDMChannelImpl;
 import com.discordsrv.common.discord.api.channel.DiscordTextChannelImpl;
 import com.discordsrv.common.discord.api.guild.DiscordGuildImpl;
@@ -208,7 +208,7 @@ public class DiscordAPIImpl implements DiscordAPI {
             }).thenApply(webhook ->
                     WebhookClientBuilder.fromJDA(webhook)
                             .setHttpClient(jda.getHttpClient())
-                            .setExecutorService(discordSRV.scheduler().executor())
+                            .setExecutorService(discordSRV.scheduler().scheduledExecutor())
                             .build()
             );
         }
@@ -218,8 +218,8 @@ public class DiscordAPIImpl implements DiscordAPI {
 
         private boolean isConfiguredChannel(Long channelId) {
             for (BaseChannelConfig config : discordSRV.config().channels.values()) {
-                if (config instanceof ChannelConfig
-                        && ((ChannelConfig) config).channelIds.contains(channelId)) {
+                if (config instanceof IChannelConfig
+                        && ((IChannelConfig) config).ids().contains(channelId)) {
                     return true;
                 }
             }

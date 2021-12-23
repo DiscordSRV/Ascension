@@ -25,6 +25,7 @@ package com.discordsrv.api.event.bus;
 
 import com.discordsrv.api.event.events.Event;
 import net.dv8tion.jda.api.events.GenericEvent;
+import org.jetbrains.annotations.Blocking;
 import org.jetbrains.annotations.NotNull;
 
 /**
@@ -52,6 +53,7 @@ public interface EventBus {
      *
      * @param event the event
      */
+    @Blocking
     void publish(@NotNull Event event);
 
     /**
@@ -59,6 +61,7 @@ public interface EventBus {
      *
      * @param event the event
      */
+    @Blocking
     void publish(@NotNull GenericEvent event);
 
 }

@@ -18,16 +18,18 @@
 
 package com.discordsrv.config;
 
-import com.discordsrv.bukkit.config.connection.BukkitConnectionConfig;
-import com.discordsrv.bukkit.config.main.BukkitConfig;
+import com.discordsrv.bukkit.config.manager.BukkitConfigManager;
+import com.discordsrv.bukkit.config.manager.BukkitConnectionConfigManager;
+import com.discordsrv.common.DiscordSRV;
 import com.discordsrv.common.config.Config;
 import com.discordsrv.common.config.annotation.Untranslated;
-import com.discordsrv.common.config.main.channels.BaseChannelConfig;
+import com.discordsrv.common.config.manager.manager.ConfigurateConfigManager;
+import com.discordsrv.common.config.manager.manager.TranslatedConfigManager;
 import org.spongepowered.configurate.CommentedConfigurationNode;
 import org.spongepowered.configurate.ConfigurateException;
 import org.spongepowered.configurate.ConfigurationNode;
-import org.spongepowered.configurate.ConfigurationOptions;
 import org.spongepowered.configurate.objectmapping.ObjectMapper;
+import org.spongepowered.configurate.objectmapping.meta.Processor;
 import org.spongepowered.configurate.serialize.SerializationException;
 import org.spongepowered.configurate.yaml.YamlConfigurationLoader;
 
@@ -35,15 +37,17 @@ import java.io.File;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
 
 /**
  * A java application to generate a translation file that has comments as options.
  */
 public final class DiscordSRVTranslation {
 
-    public static final List<Config> CONFIG_INSTANCES = Arrays.asList(
-            new BukkitConfig(),
-            new BukkitConnectionConfig()
+    private static final DiscordSRV discordSRV = new MockDiscordSRV();
+    private static final List<TranslatedConfigManager<? extends Config, ?>> CONFIGS = Arrays.asList(
+            new BukkitConfigManager(discordSRV),
+            new BukkitConnectionConfigManager(discordSRV)
     );
 
     public static void main(String[] args) throws ConfigurateException {
@@ -52,58 +56,83 @@ public final class DiscordSRVTranslation {
 
     private DiscordSRVTranslation() {}
 
-    @SuppressWarnings("unchecked")
     public void run() throws ConfigurateException {
-        ObjectMapper.Factory objectMapper = ObjectMapper.factoryBuilder()
-                .addProcessor(Untranslated.class, (data, value) -> (value1, destination) -> {
-                    try {
-                        Untranslated.Type type = data.value();
-                        if (type.isValue()) {
-                            if (type.isComment()) {
-                                destination.set(null);
-                            } else {
-                                destination.set("");
-                            }
-                        } else if (type.isComment() && destination instanceof CommentedConfigurationNode) {
-                            ((CommentedConfigurationNode) destination).comment(null);
-                        }
-                    } catch (SerializationException e) {
-                        e.printStackTrace();
-                        System.exit(1);
+        Processor.Factory<Untranslated, Object> untranslatedProcessorFactory = (data, v1) -> (v2, destination) -> {
+            try {
+                Untranslated.Type type = data.value();
+                if (type.isValue()) {
+                    Object value = destination.get(Object.class);
+                    if (type.isComment()/* || !(value instanceof String)*/) {
+                        destination.set(null);
+                    } else {
+                        destination.set("");
                     }
-                })
-                .build();
+                } else if (type.isComment() && destination instanceof CommentedConfigurationNode) {
+                    ((CommentedConfigurationNode) destination).comment(null);
+                }
+            } catch (SerializationException e) {
+                e.printStackTrace();
+                System.exit(1);
+            }
+        };
 
+        CommentedConfigurationNode node = CommentedConfigurationNode.root();
+        for (ConfigurateConfigManager<?, ?> configManager : CONFIGS) {
+            Config config = (Config) configManager.createConfiguration();
+            String fileIdentifier = config.getFileName();
+            ConfigurationNode commentSection = node.node(fileIdentifier + "_comments");
 
-        BaseChannelConfig.Serializer channelSerializer = new BaseChannelConfig.Serializer(objectMapper);
-        CommentedConfigurationNode node = CommentedConfigurationNode.root(ConfigurationOptions.defaults()
-                .serializers(builder -> builder.register(BaseChannelConfig.class, channelSerializer)));
-        for (Config config : CONFIG_INSTANCES) {
-            ConfigurationNode section = node.node(config.getFileName());
-            ConfigurationNode configSection = section.copy();
+            ObjectMapper.Factory mapperFactory = configManager.configObjectMapperBuilder()
+                    .addProcessor(Untranslated.class, untranslatedProcessorFactory)
+                    .build();
 
-            ObjectMapper<Config> mapper = objectMapper.get((Class<Config>) config.getClass());
-            mapper.save(config, configSection);
-            convertCommentsToOptions(configSection, configSection);
+            TranslationConfigManagerProxy<?> configManagerProxy = new TranslationConfigManagerProxy<>(discordSRV, mapperFactory, configManager);
+            CommentedConfigurationNode configurationNode = configManagerProxy.getDefaultNode(mapperFactory);
 
+            convertCommentsToOptions(configurationNode, commentSection);
+
+            processUnwantedValues(configurationNode);
+            ConfigurationNode section = node.node(fileIdentifier);
+            ConfigurationNode configSection = section.set(configurationNode);
             section.set(configSection);
         }
 
         YamlConfigurationLoader.builder()
-                .file(new File("i18n", "source.yml"))
+                .file(new File("i18n", "source.yaml"))
                 .build()
                 .save(node);
     }
 
-    public void convertCommentsToOptions(ConfigurationNode node, ConfigurationNode parent) throws SerializationException {
+    public void processUnwantedValues(ConfigurationNode node) throws SerializationException {
+        Map<Object, ? extends ConfigurationNode> children = node.childrenMap();
+        Object value;
+        if (children.isEmpty() && (!((value = node.get(Object.class)) instanceof String) || ((String) value).isEmpty())) {
+            node.set(null);
+            return;
+        }
+
+        boolean allChildrenEmpty = true;
+        for (ConfigurationNode child : children.values()) {
+            processUnwantedValues(child);
+
+            if (child.virtual() || child.isNull() || child.empty()) {
+                allChildrenEmpty = false;
+                break;
+            }
+        }
+        if (!allChildrenEmpty) {
+            node.set(null);
+        }
+    }
+
+    public void convertCommentsToOptions(ConfigurationNode node, ConfigurationNode commentParent) throws SerializationException {
         if (node instanceof CommentedConfigurationNode) {
             CommentedConfigurationNode commentedNode = (CommentedConfigurationNode) node;
             String comment = commentedNode.comment();
             if (comment != null) {
-                List<Object> arr = new ArrayList<>();
-                arr.add("_comments");
-                arr.addAll(Arrays.asList(commentedNode.path().array()));
-                parent.node(arr).set(comment);
+                List<Object> path = new ArrayList<>(Arrays.asList(commentedNode.path().array()));
+                path.add("_comment");
+                commentParent.node(path).set(comment);
             }
         }
         if (node.empty()) {
@@ -111,7 +140,7 @@ public final class DiscordSRVTranslation {
             return;
         }
         for (ConfigurationNode value : node.childrenMap().values()) {
-            convertCommentsToOptions(value, parent);
+            convertCommentsToOptions(value, commentParent);
         }
     }
 }

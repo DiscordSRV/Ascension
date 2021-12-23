@@ -429,7 +429,7 @@ public class DiscordMessageEmbed {
         @NotNull
         public Builder setFooter(@Nullable CharSequence footer, @Nullable CharSequence footerImageUrl) {
             this.footer = footer != null ? footer.toString() : null;
-            this.footerImageUrl = footerImageUrl != null ? footerImageUrl.toString() : null;
+            this.footerImageUrl = footerImageUrl != null && footerImageUrl.length() != 0 ? footerImageUrl.toString() : null;
             return this;
         }
 

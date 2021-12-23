@@ -19,8 +19,8 @@
 package com.discordsrv.velocity;
 
 import com.discordsrv.common.dependency.InitialDependencyLoader;
-import com.discordsrv.logging.Logger;
-import com.discordsrv.logging.impl.SLF4JLoggerImpl;
+import com.discordsrv.common.logging.Logger;
+import com.discordsrv.common.logging.impl.SLF4JLoggerImpl;
 import com.google.inject.Inject;
 import com.velocitypowered.api.event.Subscribe;
 import com.velocitypowered.api.event.proxy.ProxyInitializeEvent;
@@ -53,7 +53,7 @@ public class DiscordSRVVelocityBootstrap {
     private VelocityDiscordSRV discordSRV;
 
     @Inject
-    public DiscordSRVVelocityBootstrap(org.slf4j.Logger logger, ProxyServer proxyServer, PluginContainer pluginContainer, @DataDirectory Path dataDirectory) throws IOException {
+    public DiscordSRVVelocityBootstrap(com.discordsrv.x.slf4j.Logger logger, ProxyServer proxyServer, PluginContainer pluginContainer, @DataDirectory Path dataDirectory) throws IOException {
         this.logger = new SLF4JLoggerImpl(logger);
         this.dependencies = new InitialDependencyLoader(
                 this.logger,

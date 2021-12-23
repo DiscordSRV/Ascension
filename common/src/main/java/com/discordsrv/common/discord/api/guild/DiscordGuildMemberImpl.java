@@ -25,12 +25,12 @@ import com.discordsrv.api.discord.api.entity.guild.DiscordRole;
 import com.discordsrv.api.placeholder.annotation.Placeholder;
 import com.discordsrv.api.placeholder.annotation.PlaceholderRemainder;
 import com.discordsrv.common.DiscordSRV;
+import com.discordsrv.common.component.util.ComponentUtil;
 import com.discordsrv.common.discord.api.DiscordUserImpl;
 import net.dv8tion.jda.api.entities.Member;
 import net.dv8tion.jda.api.entities.Role;
 import net.dv8tion.jda.api.entities.User;
 import net.kyori.adventure.text.Component;
-import net.kyori.adventure.text.TextComponent;
 import net.kyori.adventure.text.format.TextColor;
 import org.jetbrains.annotations.NotNull;
 
@@ -107,20 +107,19 @@ public class DiscordGuildMemberImpl extends DiscordUserImpl implements DiscordGu
         return null;
     }
 
-    @Placeholder("user_roles_")
+    @Placeholder("user_roles")
     public Component _allRoles(@PlaceholderRemainder String suffix) {
+        if (suffix.startsWith("_")) {
+            suffix = suffix.substring(1);
+        } else if (!suffix.isEmpty()) {
+            return null;
+        }
+
         List<Component> components = new ArrayList<>();
         for (DiscordRole role : getRoles()) {
             components.add(Component.text(role.getName()).color(TextColor.color(role.getColor().rgb())));
         }
 
-        TextComponent.Builder builder = Component.text();
-        for (int i = 0; i < components.size(); i++) {
-            builder.append(components.get(i));
-            if (i < components.size() - 1) {
-                builder.append(Component.text(suffix));
-            }
-        }
-        return builder.build();
+        return ComponentUtil.join(Component.text(suffix), components);
     }
 }

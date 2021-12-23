@@ -22,8 +22,12 @@ import com.discordsrv.api.component.MinecraftComponent;
 import com.discordsrv.api.component.MinecraftComponentAdapter;
 import com.discordsrv.common.component.MinecraftComponentImpl;
 import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.ComponentLike;
+import net.kyori.adventure.text.TextComponent;
 import net.kyori.adventure.text.serializer.gson.GsonComponentSerializer;
 import net.kyori.adventure.text.serializer.plain.PlainTextComponentSerializer;
+
+import java.util.Collection;
 
 /**
  * An util class for {@link Component}s and {@link MinecraftComponent}s.
@@ -64,5 +68,20 @@ public final class ComponentUtil {
                 .orElseThrow(() -> new IllegalStateException("Could not get unrelocated adventure gson serializer"))
                 .setComponent(unrelocatedAdventure);
         return fromAPI(component);
+    }
+
+    public static Component join(Component delimiter, Collection<? extends ComponentLike> components) {
+        return join(delimiter, components.toArray(new ComponentLike[0]));
+    }
+
+    public static Component join(Component delimiter, ComponentLike[] components) {
+        TextComponent.Builder builder = Component.text();
+        for (int i = 0; i < components.length; i++) {
+            builder.append(components[i]);
+            if (i < components.length - 1) {
+                builder.append(delimiter);
+            }
+        }
+        return builder.build();
     }
 }

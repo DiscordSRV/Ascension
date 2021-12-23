@@ -20,9 +20,9 @@ package com.discordsrv.bukkit.config.manager;
 
 import com.discordsrv.bukkit.config.main.BukkitConfig;
 import com.discordsrv.common.DiscordSRV;
-import com.discordsrv.common.config.manager.MainConfigManager;
+import com.discordsrv.common.server.config.manager.ServerConfigManager;
 
-public class BukkitConfigManager extends MainConfigManager<BukkitConfig> {
+public class BukkitConfigManager extends ServerConfigManager<BukkitConfig> {
 
     public BukkitConfigManager(DiscordSRV discordSRV) {
         super(discordSRV);

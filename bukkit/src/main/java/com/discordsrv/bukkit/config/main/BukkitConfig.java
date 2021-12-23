@@ -19,8 +19,17 @@
 package com.discordsrv.bukkit.config.main;
 
 import com.discordsrv.common.config.main.MainConfig;
+import com.discordsrv.common.config.main.channels.base.ChannelConfig;
+import com.discordsrv.common.server.config.channels.base.ServerBaseChannelConfig;
+import com.discordsrv.common.server.config.channels.base.ServerChannelConfig;
 import org.spongepowered.configurate.objectmapping.ConfigSerializable;
 
 @ConfigSerializable
 public class BukkitConfig extends MainConfig {
+
+    public BukkitConfig() {
+        channels.clear();
+        channels.put("global", new ServerChannelConfig());
+        channels.put(ChannelConfig.DEFAULT_KEY, new ServerBaseChannelConfig());
+    }
 }

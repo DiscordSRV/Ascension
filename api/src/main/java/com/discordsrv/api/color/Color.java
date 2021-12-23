@@ -67,7 +67,7 @@ public class Color {
     }
 
     public String hex() {
-        return Integer.toHexString(rgb);
+        return Integer.toHexString(0xF000000 | rgb).substring(1);
     }
 
     public int red() {

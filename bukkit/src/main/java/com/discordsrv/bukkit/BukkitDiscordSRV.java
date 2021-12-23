@@ -25,11 +25,13 @@ import com.discordsrv.bukkit.config.manager.BukkitConfigManager;
 import com.discordsrv.bukkit.config.manager.BukkitConnectionConfigManager;
 import com.discordsrv.bukkit.console.BukkitConsole;
 import com.discordsrv.bukkit.listener.BukkitChatListener;
+import com.discordsrv.bukkit.listener.BukkitDeathListener;
+import com.discordsrv.bukkit.listener.BukkitStatusMessageListener;
 import com.discordsrv.bukkit.player.BukkitPlayerProvider;
 import com.discordsrv.bukkit.scheduler.BukkitScheduler;
 import com.discordsrv.common.config.manager.ConnectionConfigManager;
 import com.discordsrv.common.config.manager.MainConfigManager;
-import com.discordsrv.logging.Logger;
+import com.discordsrv.common.logging.Logger;
 import com.discordsrv.common.server.ServerDiscordSRV;
 import net.kyori.adventure.platform.bukkit.BukkitAudiences;
 import org.bukkit.Server;
@@ -133,5 +135,7 @@ public class BukkitDiscordSRV extends ServerDiscordSRV<BukkitConfig, BukkitConne
 
         // Register listeners
         server().getPluginManager().registerEvents(BukkitChatListener.get(this), plugin());
+        server().getPluginManager().registerEvents(new BukkitDeathListener(this), plugin());
+        server().getPluginManager().registerEvents(new BukkitStatusMessageListener(this), plugin());
     }
 }

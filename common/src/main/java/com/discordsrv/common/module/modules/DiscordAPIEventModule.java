@@ -19,14 +19,14 @@
 package com.discordsrv.common.module.modules;
 
 import com.discordsrv.api.event.bus.Subscribe;
-import com.discordsrv.api.event.events.discord.DiscordMessageReceivedEvent;
+import com.discordsrv.api.discord.events.DiscordMessageReceivedEvent;
 import com.discordsrv.common.DiscordSRV;
 import com.discordsrv.common.discord.api.channel.DiscordMessageChannelImpl;
 import com.discordsrv.common.discord.api.message.ReceivedDiscordMessageImpl;
-import com.discordsrv.common.module.Module;
+import com.discordsrv.common.module.type.AbstractModule;
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
 
-public class DiscordAPIEventModule extends Module {
+public class DiscordAPIEventModule extends AbstractModule {
 
     public DiscordAPIEventModule(DiscordSRV discordSRV) {
         super(discordSRV);

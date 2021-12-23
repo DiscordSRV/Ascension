@@ -23,10 +23,9 @@ import com.discordsrv.api.event.bus.Subscribe;
 import com.discordsrv.api.event.events.channel.GameChannelLookupEvent;
 import com.discordsrv.common.DiscordSRV;
 import com.discordsrv.common.channel.DefaultGlobalChannel;
-import com.discordsrv.common.event.util.EventUtil;
-import com.discordsrv.common.module.Module;
+import com.discordsrv.common.module.type.AbstractModule;
 
-public class GlobalChannelLookupModule extends Module {
+public class GlobalChannelLookupModule extends AbstractModule {
 
     private final DefaultGlobalChannel defaultGlobalChannel;
 
@@ -37,7 +36,7 @@ public class GlobalChannelLookupModule extends Module {
 
     @Subscribe(priority = EventPriority.LATE)
     public void onGameChannelLookup(GameChannelLookupEvent event) {
-        if (EventUtil.checkProcessor(discordSRV, event)) {
+        if (checkProcessor(event)) {
             return;
         }
 

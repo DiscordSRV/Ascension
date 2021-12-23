@@ -27,8 +27,8 @@ jobs:
           upload_translations: true
           download_translations: false
           localization_branch_name: i18n
-          source: "source.yml"
-          translation: "/%original_path%/src/main/resources/translations/%three_letters_code%.yml"
+          source: "source.yaml"
+          translation: "/%original_path%/src/main/resources/translations/%three_letters_code%.yaml"
           project_id: ${{ secrets.CROWDIN_PROJECT_ID }}
           token: ${{ secrets.CROWDIN_PERSONAL_TOKEN }}
         env:

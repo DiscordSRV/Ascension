@@ -29,6 +29,7 @@ import org.spongepowered.configurate.util.NamingScheme;
 
 import java.lang.reflect.Type;
 import java.util.Collections;
+import java.util.List;
 
 public class DiscordMessageEmbedSerializer implements TypeSerializer<DiscordMessageEmbed.Builder> {
 
@@ -53,7 +54,7 @@ public class DiscordMessageEmbedSerializer implements TypeSerializer<DiscordMess
         Color color = node.node(map("Color")).get(Color.class);
         builder.setColor(color != null ? color.rgb() : Role.DEFAULT_COLOR_RAW);
 
-        ConfigurationNode author = node.node("Author");
+        ConfigurationNode author = node.node(map("Author"));
         builder.setAuthor(
                 author.node(map("Name")).getString(),
                 author.node(map("Url")).getString(),
@@ -65,7 +66,7 @@ public class DiscordMessageEmbedSerializer implements TypeSerializer<DiscordMess
                 title.node(map("Url")).getString());
 
         builder.setDescription(node.node(map("Description")).getString());
-        for (DiscordMessageEmbed.Field field : node.getList(DiscordMessageEmbed.Field.class, Collections.emptyList())) {
+        for (DiscordMessageEmbed.Field field : node.node(map("Fields")).getList(DiscordMessageEmbed.Field.class, Collections.emptyList())) {
             builder.addField(field);
         }
 
@@ -77,7 +78,7 @@ public class DiscordMessageEmbedSerializer implements TypeSerializer<DiscordMess
         ConfigurationNode footer = node.node(map("Footer"));
         builder.setFooter(
                 footer.node(map("Text")).getString(),
-                footer.node(map("ImageUrl")).getString(footer.node(map("IconUrl")).getString()));
+                footer.node(map("ImageUrl")).getString(footer.node(map("IconUrl")).getString("")));
 
         return builder;
     }
@@ -102,7 +103,10 @@ public class DiscordMessageEmbedSerializer implements TypeSerializer<DiscordMess
         title.node(map("Url")).set(obj.getTitleUrl());
 
         node.node(map("Description")).set(obj.getDescription());
-        node.node(map("Fields")).setList(DiscordMessageEmbed.Field.class, obj.getFields());
+
+        List<DiscordMessageEmbed.Field> fields = obj.getFields();
+        ConfigurationNode fieldsNode = node.node(map("Fields"));
+        fieldsNode.setList(DiscordMessageEmbed.Field.class, fields.isEmpty() ? null : obj.getFields());
 
         node.node(map("ThumbnailUrl")).set(obj.getThumbnailUrl());
         node.node(map("ImageUrl")).set(obj.getImageUrl());

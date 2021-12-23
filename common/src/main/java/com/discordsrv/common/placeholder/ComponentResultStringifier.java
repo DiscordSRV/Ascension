@@ -42,7 +42,7 @@ public class ComponentResultStringifier implements PlaceholderResultMapper {
         }
         if (result instanceof Component) {
             Component component = (Component) result;
-            if (ResultMappers.isPlainComponentContext()) {
+            if (ResultMappers.isPlainContext()) {
                 return PlainTextComponentSerializer.plainText().serialize(component);
             } else {
                 return discordSRV.componentFactory().discordSerializer().serialize(component);

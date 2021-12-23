@@ -19,7 +19,7 @@
 package com.discordsrv.common.console;
 
 import com.discordsrv.common.command.game.sender.ICommandSender;
-import com.discordsrv.logging.backend.LoggingBackend;
+import com.discordsrv.common.logging.backend.LoggingBackend;
 
 public interface Console extends ICommandSender {
 

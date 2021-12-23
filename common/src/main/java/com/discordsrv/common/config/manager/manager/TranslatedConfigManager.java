@@ -30,6 +30,9 @@ import org.spongepowered.configurate.serialize.SerializationException;
 import org.spongepowered.configurate.yaml.YamlConfigurationLoader;
 
 import java.net.URL;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 
 public abstract class TranslatedConfigManager<T extends Config, LT extends AbstractConfigurationLoader<CommentedConfigurationNode>>
         extends ConfigurateConfigManager<T, LT> {
@@ -64,17 +67,18 @@ public abstract class TranslatedConfigManager<T extends Config, LT extends Abstr
         }
 
         try {
-            ConfigurationNode translation = getTranslationRoot();
-            if (translation == null) {
+            ConfigurationNode translationRoot = getTranslationRoot();
+            if (translationRoot == null) {
                 return;
             }
 
-            translation = translation.node(config.getFileName());
+            String fileIdentifier = config.getFileName();
+            ConfigurationNode translation = translationRoot.node(fileIdentifier);
+            ConfigurationNode comments = translationRoot.node(fileIdentifier + "_comments");
 
             CommentedConfigurationNode node = loader().createNode();
             save(config, (Class<T>) config.getClass(), node);
-            //node.set(config);
-            translateNode(node, translation, translation.node("_comments"));
+            translateNode(node, translation, comments);
         } catch (ConfigurateException e) {
             throw new ConfigException(e);
         }
@@ -96,13 +100,14 @@ public abstract class TranslatedConfigManager<T extends Config, LT extends Abstr
             ConfigurationNode translations,
             ConfigurationNode commentTranslations
     ) throws SerializationException {
-        Object[] path = node.path().array();
+        List<Object> path = new ArrayList<>(Arrays.asList(node.path().array()));
 
         String translation = translations.node(path).getString();
         if (translation != null) {
             node.set(translation);
         }
 
+        path.add("_comment");
         String commentTranslation = commentTranslations.node(path).getString();
         if (commentTranslation != null) {
             node.comment(commentTranslation);

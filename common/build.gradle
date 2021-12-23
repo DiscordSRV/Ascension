@@ -40,6 +40,10 @@ dependencies {
     runtimeDownloadApi 'org.spongepowered:configurate-yaml:' + rootProject.configurateVersion
     runtimeDownloadApi 'org.spongepowered:configurate-hocon:' + rootProject.configurateVersion
 
+    // Logging
+    compileOnlyApi project(':common:common-slf4j-hack')
+    compileOnly 'org.apache.logging.log4j:log4j-core:2.0-beta9'
+
     // Adventure, MCDiscordReserializer, EnhancedLegacyText
     runtimeDownloadApi 'net.kyori:adventure-api:' + rootProject.adventureVersion
     runtimeDownloadApi 'net.kyori:adventure-text-serializer-plain:' + rootProject.adventureVersion
@@ -51,6 +55,9 @@ dependencies {
     // Database Drivers
     h2Driver 'com.h2database:h2:1.4.200'
     mysqlDriver 'mysql:mysql-connector-java:8.0.25'
+
+    // Integrations
+    compileOnlyApi 'net.luckperms:api:5.3'
 }
 
 processResources {

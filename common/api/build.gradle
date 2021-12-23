@@ -3,6 +3,5 @@ dependencies {
     api project(':api')
 
     // Logging
-    api 'org.slf4j:slf4j-api:1.6.99'
-    compileOnly 'org.apache.logging.log4j:log4j-core:2.0-beta9'
+    api 'org.slf4j:slf4j-api:1.7.32'
 }

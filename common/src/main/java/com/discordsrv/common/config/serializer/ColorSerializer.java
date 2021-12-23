@@ -54,6 +54,6 @@ public class ColorSerializer implements TypeSerializer<Color> {
         if (obj == null) {
             return;
         }
-        node.set(obj.hex());
+        node.set("#" + obj.hex());
     }
 }

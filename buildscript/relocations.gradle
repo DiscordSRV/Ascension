@@ -40,6 +40,9 @@ shadowJar {
             // Commons
             'org.apache.commons',
 
+            // SLF4J
+            'org.slf4j',
+
             // Checker Framework
             'org.checkerframework',
 
@@ -54,10 +57,6 @@ shadowJar {
         relocate it, 'com.discordsrv.dependencies.' + it
     }
 
-    // SLF4J
-    relocate('org.slf4j', 'com.discordsrv.dependencies.org.slf4j') {
-        include('*')
-        exclude('com.discordsrv.logging.impl.SLF4JLoggerImpl')
-        exclude('com.discordsrv.velocity.DiscordSRVVelocityBootstrap')
-    }
+    // SLF4J hack
+    relocate('com.discordsrv.x.slf4j', 'org.slf4j')
 }

@@ -19,8 +19,8 @@
 package com.discordsrv.sponge;
 
 import com.discordsrv.common.dependency.InitialDependencyLoader;
-import com.discordsrv.logging.Logger;
-import com.discordsrv.logging.impl.Log4JLoggerImpl;
+import com.discordsrv.common.logging.Logger;
+import com.discordsrv.common.logging.impl.Log4JLoggerImpl;
 import com.discordsrv.sponge.bootstrap.ISpongeBootstrap;
 import dev.vankka.mcdependencydownload.bootstrap.AbstractBootstrap;
 import dev.vankka.mcdependencydownload.bootstrap.classpath.JarInJarClasspathAppender;

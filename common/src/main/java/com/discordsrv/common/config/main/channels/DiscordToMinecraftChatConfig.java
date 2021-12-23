@@ -18,6 +18,7 @@
 
 package com.discordsrv.common.config.main.channels;
 
+import com.discordsrv.common.config.annotation.Untranslated;
 import org.spongepowered.configurate.objectmapping.ConfigSerializable;
 import org.spongepowered.configurate.objectmapping.meta.Comment;
 
@@ -30,14 +31,24 @@ import java.util.regex.Pattern;
 @ConfigSerializable
 public class DiscordToMinecraftChatConfig {
 
-    @Comment("The Discord to Minecraft message format for regular users")
-    public String format = "[&#5865F2Discord&r] [hover:show_text:Tag: %user_tag%&r\nRoles: %user_roles_, |text_&7&oNone%]%user_color%%user_effective_name%&r » %message% %message_attachments%";
+    @Comment("Is Discord to Minecraft chat forwarding enabled")
+    public boolean enabled = true;
+
+    @Comment("The Discord to Minecraft message format for regular users and bots")
+    @Untranslated(Untranslated.Type.VALUE)
+    public String format = "[&#5865F2Discord&r] [hover:show_text:Tag: %user_tag%&r\nRoles: %user_roles_, |text_&7&oNone%]%user_color%%user_effective_name%&r » %message%%message_attachments%";
 
     @Comment("The Discord to Minecraft message format for webhook messages (if enabled)")
-    public String webhookFormat = "[&#5865F2Discord&r] [hover:show_text:Webhook message]%user_name%&r » %message% %message_attachments%";
+    @Untranslated(Untranslated.Type.VALUE)
+    public String webhookFormat = "[&#5865F2Discord&r] [hover:show_text:Webhook message]%user_name%&r » %message%%message_attachments_ %";
+
+    @Comment("Attachment format")
+    @Untranslated(Untranslated.Type.VALUE)
+    public String attachmentFormat = "[hover:show_text:Open %file_name% in browser][click:open_url:%file_url%]&a[&f%file_name%&a]&r";
 
     // TODO: more info on regex pairs (String#replaceAll)
     @Comment("Regex filters for Discord message contents (this is the %message% part of the \"format\" option)")
+    @Untranslated(Untranslated.Type.VALUE)
     public Map<Pattern, String> contentRegexFilters = new LinkedHashMap<>();
 
     @Comment("Users, bots and webhooks to ignore")
@@ -56,7 +67,7 @@ public class DiscordToMinecraftChatConfig {
         public boolean bots = false;
 
         @Comment("If webhooks should be ignored")
-        public boolean webhooks = false;
+        public boolean webhooks = true;
 
         @ConfigSerializable
         public static class IDs {
@@ -82,11 +93,14 @@ public class DiscordToMinecraftChatConfig {
         public static class Format {
 
             @Comment("The format shown in-game")
+            @Untranslated(Untranslated.Type.VALUE)
             public String format = "";
 
             @Comment("The format when the entity is deleted or can't be looked up")
+            @Untranslated(Untranslated.Type.VALUE)
             public String unknownFormat = "";
 
+            @SuppressWarnings("unused") // Configurate
             public Format() {}
 
             public Format(String format, String unknownFormat) {

@@ -32,10 +32,16 @@ public interface Scheduler {
     String THREAD_NAME_PREFIX = "DiscordSRV Async ";
 
     /**
+     * Returns the {@link ExecutorService} being used.
+     * @return the {@link ExecutorService}
+     */
+    ExecutorService executor();
+
+    /**
      * Returns the {@link ScheduledExecutorService} being used.
      * @return the {@link ScheduledExecutorService}
      */
-    ScheduledExecutorService executor();
+    ScheduledExecutorService scheduledExecutor();
 
     /**
      * Returns the {@link ForkJoinPool} being used.

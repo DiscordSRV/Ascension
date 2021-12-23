@@ -32,7 +32,7 @@ public class SpongeOfflinePlayer implements IOfflinePlayer {
     }
 
     @Override
-    public @NotNull String getUsername() {
+    public @NotNull String username() {
         return user.name();
     }
 

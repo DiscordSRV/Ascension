@@ -59,7 +59,7 @@ public class VelocityPlayer implements IPlayer {
     }
 
     @Override
-    public @NotNull String getUsername() {
+    public @NotNull String username() {
         return player.getUsername();
     }
 
@@ -69,7 +69,7 @@ public class VelocityPlayer implements IPlayer {
     }
 
     @Override
-    public @NotNull Component getDisplayName() {
+    public @NotNull Component displayName() {
         // Use Adventure's Pointer, otherwise username
         return player.getOrDefaultFrom(
                 Identity.DISPLAY_NAME,

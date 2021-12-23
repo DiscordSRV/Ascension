@@ -23,7 +23,10 @@ import com.discordsrv.api.discord.api.entity.message.DiscordMessageEmbed;
 import com.discordsrv.api.discord.api.entity.message.SendableDiscordMessage;
 import com.discordsrv.common.DiscordSRV;
 import com.discordsrv.common.config.annotation.DefaultOnly;
-import com.discordsrv.common.config.main.channels.BaseChannelConfig;
+import com.discordsrv.common.config.annotation.Order;
+import com.discordsrv.common.config.fielddiscoverer.OrderedFieldDiscovererProxy;
+import com.discordsrv.common.config.main.channels.base.BaseChannelConfig;
+import com.discordsrv.common.config.main.channels.base.ChannelConfig;
 import com.discordsrv.common.config.manager.loader.ConfigLoaderProvider;
 import com.discordsrv.common.config.serializer.ColorSerializer;
 import com.discordsrv.common.config.serializer.DiscordMessageEmbedSerializer;
@@ -37,6 +40,7 @@ import org.spongepowered.configurate.ConfigurationNode;
 import org.spongepowered.configurate.ConfigurationOptions;
 import org.spongepowered.configurate.loader.AbstractConfigurationLoader;
 import org.spongepowered.configurate.objectmapping.ConfigSerializable;
+import org.spongepowered.configurate.objectmapping.FieldDiscoverer;
 import org.spongepowered.configurate.objectmapping.ObjectMapper;
 import org.spongepowered.configurate.serialize.SerializationException;
 import org.spongepowered.configurate.util.NamingScheme;
@@ -44,6 +48,7 @@ import org.spongepowered.configurate.util.NamingSchemes;
 
 import java.nio.file.Path;
 import java.util.Arrays;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 import java.util.regex.Pattern;
@@ -88,18 +93,30 @@ public abstract class ConfigurateConfigManager<T, LT extends AbstractConfigurati
 
     protected abstract String fileName();
 
+    public ChannelConfig.Serializer getChannelConfigSerializer( ObjectMapper.Factory mapperFactory) {
+        return new ChannelConfig.Serializer(mapperFactory, BaseChannelConfig.class, ChannelConfig.class);
+    }
+
     public ConfigurationOptions defaultOptions() {
         return ConfigurationOptions.defaults()
                 .shouldCopyDefaults(false)
                 .implicitInitialization(false)
                 .serializers(builder -> {
                     ObjectMapper.Factory objectMapper = configObjectMapper();
+                    builder.register(BaseChannelConfig.class, getChannelConfigSerializer(objectMapper));
                     builder.register(Color.class, new ColorSerializer());
                     builder.register(Pattern.class, new PatternSerializer());
-                    builder.register(BaseChannelConfig.class, new BaseChannelConfig.Serializer(objectMapper));
                     builder.register(DiscordMessageEmbed.Builder.class, new DiscordMessageEmbedSerializer(NAMING_SCHEME));
                     builder.register(DiscordMessageEmbed.Field.class, new DiscordMessageEmbedSerializer.FieldSerializer(NAMING_SCHEME));
                     builder.register(SendableDiscordMessage.Builder.class, new SendableDiscordMessageSerializer(NAMING_SCHEME));
+
+                    // give Configurate' serializers the ObjectMapper mapper
+                    builder.register(type -> {
+                        String typeName = type.getTypeName();
+                        return typeName.startsWith("com.discordsrv")
+                                && !typeName.startsWith("com.discordsrv.dependencies")
+                                && !typeName.contains(".serializer");
+                    }, objectMapper.asTypeSerializer());
                 });
     }
 
@@ -111,12 +128,20 @@ public abstract class ConfigurateConfigManager<T, LT extends AbstractConfigurati
         return defaultOptions();
     }
 
-    protected ObjectMapper.Factory.Builder objectMapperBuilder() {
+    @SuppressWarnings("unchecked")
+    public ObjectMapper.Factory.Builder objectMapperBuilder() {
+        Comparator<OrderedFieldDiscovererProxy.FieldCollectorData<Object, ?>> fieldOrder = Comparator.comparingInt(data -> {
+            Order order = data.annotations().getAnnotation(Order.class);
+            return order != null ? order.value() : 0;
+        });
+
         return ObjectMapper.factoryBuilder()
-                .defaultNamingScheme(NAMING_SCHEME);
+                .defaultNamingScheme(NAMING_SCHEME)
+                .addDiscoverer(new OrderedFieldDiscovererProxy<>((FieldDiscoverer<Object>) FieldDiscoverer.emptyConstructorObject(), fieldOrder))
+                .addDiscoverer(new OrderedFieldDiscovererProxy<>((FieldDiscoverer<Object>) FieldDiscoverer.record(), fieldOrder));
     }
 
-    protected ObjectMapper.Factory.Builder configObjectMapperBuilder() {
+    public ObjectMapper.Factory.Builder configObjectMapperBuilder() {
         return objectMapperBuilder();
     }
 
@@ -164,15 +189,23 @@ public abstract class ConfigurateConfigManager<T, LT extends AbstractConfigurati
     }
 
     private CommentedConfigurationNode getDefault(T defaultConfig, boolean cleanMapper) throws SerializationException {
+        return getDefault(defaultConfig, cleanMapper ? defaultObjectMapper() : configObjectMapper());
+    }
+
+    @SuppressWarnings("unchecked")
+    private CommentedConfigurationNode getDefault(T defaultConfig, ObjectMapper.Factory mapperFactory) throws SerializationException {
         CommentedConfigurationNode node = CommentedConfigurationNode.root(defaultNodeOptions());
-        (cleanMapper ? defaultObjectMapper() : configObjectMapper())
-                .get(defaultConfig.getClass()).load(node);
+        mapperFactory.get((Class<T>) defaultConfig.getClass()).save(defaultConfig, node);
         return node;
     }
 
     @Nullable
     protected ConfigurationNode getTranslation() throws ConfigurateException {
         return null;
+    }
+
+    public CommentedConfigurationNode getDefaultNode(ObjectMapper.Factory mapperFactory) throws ConfigurateException {
+        return getDefault(createConfiguration(), mapperFactory);
     }
 
     @Override

@@ -18,11 +18,10 @@
 
 package org.slf4j.impl;
 
-import com.discordsrv.logging.adapter.DependencyLoggerAdapter;
+import com.discordsrv.common.logging.adapter.DependencyLoggerAdapter;
 import org.slf4j.ILoggerFactory;
 import org.slf4j.Logger;
 
-import java.util.Locale;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 
@@ -32,6 +31,6 @@ public class DiscordSRVLoggerFactory implements ILoggerFactory {
 
     @Override
     public Logger getLogger(String s) {
-        return loggerMap.computeIfAbsent(s.toLowerCase(Locale.ROOT), DependencyLoggerAdapter::new);
+        return loggerMap.computeIfAbsent(s, DependencyLoggerAdapter::new);
     }
 }

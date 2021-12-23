@@ -28,11 +28,12 @@ import com.discordsrv.common.config.manager.MainConfigManager;
 import com.discordsrv.common.console.Console;
 import com.discordsrv.common.discord.api.DiscordAPIImpl;
 import com.discordsrv.common.discord.connection.DiscordConnectionManager;
-import com.discordsrv.common.module.Module;
+import com.discordsrv.common.module.type.AbstractModule;
+import com.discordsrv.common.module.type.Module;
 import com.discordsrv.common.placeholder.PlaceholderServiceImpl;
 import com.discordsrv.common.player.provider.AbstractPlayerProvider;
 import com.discordsrv.common.scheduler.Scheduler;
-import com.discordsrv.logging.Logger;
+import com.discordsrv.common.logging.Logger;
 import com.github.benmanes.caffeine.cache.Caffeine;
 import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
@@ -80,8 +81,8 @@ public interface DiscordSRV extends DiscordSRVApi {
 
     // Modules
     <T extends Module> T getModule(Class<T> moduleType);
-    void registerModule(Module module);
-    void unregisterModule(Module module);
+    void registerModule(AbstractModule module);
+    void unregisterModule(AbstractModule module);
 
     Locale locale();
     void setStatus(Status status);

@@ -11,15 +11,18 @@ repositories {
 version = null
 
 dependencies {
-    implementation(project(':common'))
+    implementation(project(':common:common-api'))
+    implementation(project(':common:common-server'))
+    implementation(project(':common:common-proxy'))
 
     // Depend on all platforms for configs
     implementation(project(':bukkit')) { transitive = false }
-    implementation(project(':bungee')) { transitive = false }
-    implementation(project(':sponge')) { transitive = false }
-    implementation(project(':velocity')) { transitive = false }
+    //implementation(project(':bungee')) { transitive = false }
+    //implementation(project(':sponge')) { transitive = false }
+    //implementation(project(':velocity')) { transitive = false }
 
     api 'org.spongepowered:configurate-yaml:' + rootProject.configurateVersion
+    api 'org.spongepowered:configurate-hocon:' + rootProject.configurateVersion
 }
 
 application {

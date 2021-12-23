@@ -36,18 +36,20 @@ import com.discordsrv.api.discord.api.entity.message.SendableDiscordMessage;
 import com.discordsrv.api.discord.api.entity.message.impl.SendableDiscordMessageImpl;
 import com.discordsrv.api.discord.api.exception.RestErrorResponseException;
 import com.discordsrv.api.placeholder.annotation.Placeholder;
+import com.discordsrv.api.placeholder.annotation.PlaceholderRemainder;
 import com.discordsrv.common.DiscordSRV;
+import com.discordsrv.common.component.util.ComponentUtil;
+import com.discordsrv.common.config.main.channels.base.BaseChannelConfig;
 import com.discordsrv.common.discord.api.DiscordUserImpl;
 import com.discordsrv.common.discord.api.channel.DiscordMessageChannelImpl;
 import com.discordsrv.common.discord.api.guild.DiscordGuildMemberImpl;
+import com.discordsrv.common.function.OrDefault;
 import net.dv8tion.jda.api.entities.Member;
 import net.dv8tion.jda.api.entities.Message;
 import net.dv8tion.jda.api.entities.MessageEmbed;
 import net.dv8tion.jda.api.entities.User;
 import net.dv8tion.jda.api.requests.ErrorResponse;
 import net.kyori.adventure.text.Component;
-import net.kyori.adventure.text.TextComponent;
-import net.kyori.adventure.text.event.ClickEvent;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
@@ -287,18 +289,24 @@ public class ReceivedDiscordMessageImpl extends SendableDiscordMessageImpl imple
     //
 
     @Placeholder("message_attachments")
-    public Component _attachments() {
-        // TODO: customizable
-
-        TextComponent.Builder builder = Component.text();
-        for (Attachment attachment : attachments) {
-            builder.append(
-                    Component.text()
-                            .content("[" + attachment.fileName() + "]")
-                            .clickEvent(ClickEvent.openUrl(attachment.url()))
-                    )
-                    .append(Component.text(" "));
+    public Component _attachments(OrDefault<BaseChannelConfig> config, @PlaceholderRemainder String suffix) {
+        if (suffix.startsWith("_")) {
+            suffix = suffix.substring(1);
+        } else if (!suffix.isEmpty()) {
+            return null;
         }
-        return builder.build();
+
+        String attachmentFormat = config.map(cfg -> cfg.discordToMinecraft).get(cfg -> cfg.attachmentFormat);
+        List<Component> components = new ArrayList<>();
+        for (Attachment attachment : attachments) {
+            components.add(ComponentUtil.fromAPI(
+                    discordSRV.componentFactory().enhancedBuilder(attachmentFormat)
+                            .addReplacement("%file_name%", attachment.fileName())
+                            .addReplacement("%file_url%", attachment.url())
+                            .build()
+            ));
+        }
+
+        return ComponentUtil.join(Component.text(suffix), components);
     }
 }

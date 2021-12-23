@@ -38,7 +38,7 @@ public class BukkitOfflinePlayer implements IOfflinePlayer {
 
     @SuppressWarnings("NullabilityProblems")
     @Override
-    public String getUsername() {
+    public String username() {
         return offlinePlayer.getName();
     }
 

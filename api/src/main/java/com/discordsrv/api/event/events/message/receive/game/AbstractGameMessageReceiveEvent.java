@@ -23,7 +23,6 @@
 
 package com.discordsrv.api.event.events.message.receive.game;
 
-import com.discordsrv.api.channel.GameChannel;
 import com.discordsrv.api.component.MinecraftComponent;
 import com.discordsrv.api.event.events.Cancellable;
 import com.discordsrv.api.event.events.Processable;
@@ -32,28 +31,20 @@ import org.jetbrains.annotations.NotNull;
 public abstract class AbstractGameMessageReceiveEvent implements Processable, Cancellable {
 
     private final MinecraftComponent message;
-    private GameChannel gameChannel;
     private boolean cancelled;
     private boolean processed;
 
-    public AbstractGameMessageReceiveEvent(@NotNull MinecraftComponent message, @NotNull GameChannel gameChannel, boolean cancelled) {
+    public AbstractGameMessageReceiveEvent(
+            @NotNull MinecraftComponent message,
+            boolean cancelled
+    ) {
         this.message = message;
-        this.gameChannel = gameChannel;
         this.cancelled = cancelled;
     }
 
     @NotNull
-    public MinecraftComponent message() {
+    public MinecraftComponent getMessage() {
         return message;
-    }
-
-    @NotNull
-    public GameChannel getGameChannel() {
-        return gameChannel;
-    }
-
-    public void setGameChannel(@NotNull GameChannel gameChannel) {
-        this.gameChannel = gameChannel;
     }
 
     @Override
@@ -73,6 +64,9 @@ public abstract class AbstractGameMessageReceiveEvent implements Processable, Ca
 
     @Override
     public void markAsProcessed() {
+        if (isCancelled()) {
+            throw new IllegalStateException("Cannot process cancelled event");
+        }
         this.processed = true;
     }
 }

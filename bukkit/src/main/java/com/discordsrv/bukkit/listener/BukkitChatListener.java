@@ -19,8 +19,9 @@
 package com.discordsrv.bukkit.listener;
 
 import com.discordsrv.api.component.MinecraftComponent;
-import com.discordsrv.api.event.events.message.receive.game.ChatMessageProcessingEvent;
+import com.discordsrv.api.event.events.message.receive.game.GameChatMessageReceiveEvent;
 import com.discordsrv.bukkit.BukkitDiscordSRV;
+import com.discordsrv.bukkit.component.util.PaperComponentUtil;
 import com.discordsrv.common.channel.DefaultGlobalChannel;
 import com.discordsrv.common.component.util.ComponentUtil;
 import io.papermc.paper.event.player.AsyncChatEvent;
@@ -30,20 +31,13 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 
-import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
-
 public abstract class BukkitChatListener implements Listener {
 
     public static BukkitChatListener get(BukkitDiscordSRV discordSRV) {
-
         // TODO: config option
-        //noinspection ConstantConditions
-        if (1 == 2) {
-            try {
-                Class.forName("io.papermc.paper.event.player.AsyncChatEvent");
-                return new Paper(discordSRV);
-            } catch (ClassNotFoundException ignored) {}
+        //noinspection ConstantConditions,PointlessBooleanExpression
+        if (1 == 2 && PaperComponentUtil.IS_PAPER_ADVENTURE) {
+            return new Paper(discordSRV);
         }
 
         return new Bukkit(discordSRV);
@@ -56,14 +50,14 @@ public abstract class BukkitChatListener implements Listener {
     }
 
     protected void publishEvent(Player player, MinecraftComponent component, boolean cancelled) {
-        discordSRV.eventBus().publish(
-                new ChatMessageProcessingEvent(
+        discordSRV.scheduler().run(() -> discordSRV.eventBus().publish(
+                new GameChatMessageReceiveEvent(
                         discordSRV.playerProvider().player(player),
-                        component,
                         new DefaultGlobalChannel(discordSRV),
+                        component,
                         cancelled
                 )
-        );
+        ));
     }
 
     static class Bukkit extends BukkitChatListener {
@@ -84,39 +78,13 @@ public abstract class BukkitChatListener implements Listener {
 
     static class Paper extends BukkitChatListener {
 
-        private static final Method MESSAGE_METHOD;
-
-        static {
-            try {
-                MESSAGE_METHOD = AsyncChatEvent.class.getMethod("message");
-            } catch (NoSuchMethodException e) {
-                throw new ExceptionInInitializerError(e);
-            }
-        }
-
         public Paper(BukkitDiscordSRV discordSRV) {
             super(discordSRV);
         }
 
         @EventHandler(priority = EventPriority.MONITOR)
         public void onAsyncChat(AsyncChatEvent event) {
-            MinecraftComponent component = discordSRV.componentFactory().empty();
-
-            Object unrelocated;
-            try {
-                unrelocated = MESSAGE_METHOD.invoke(event);
-            } catch (IllegalAccessException | InvocationTargetException e) {
-                discordSRV.logger().error("Failed to get message from Paper AsyncChatEvent", e);
-                return;
-            }
-
-            MinecraftComponent.Adapter adapter = component.unrelocatedAdapter().orElse(null);
-            if (adapter == null) {
-                discordSRV.logger().error("Failed to get unrelocated adventure adapter for Paper AsyncChatEvent listener");
-                return;
-            }
-
-            adapter.setComponent(unrelocated);
+            MinecraftComponent component = PaperComponentUtil.getComponent(discordSRV, event, "message");
             publishEvent(
                     event.getPlayer(),
                     component,

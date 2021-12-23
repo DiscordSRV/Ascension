@@ -31,15 +31,23 @@ import java.util.concurrent.*;
 public class StandardScheduler implements Scheduler {
 
     private final DiscordSRV discordSRV;
-    private final ScheduledThreadPoolExecutor executorService;
+    private final ThreadPoolExecutor executor;
+    private final ScheduledThreadPoolExecutor scheduledExecutor;
     private final ForkJoinPool forkJoinPool;
 
     public StandardScheduler(DiscordSRV discordSRV) {
         this(
                 discordSRV,
+                new ThreadPoolExecutor(
+                        4, /* Core pool size */
+                        16, /* Max pool size */
+                        60, TimeUnit.SECONDS, /* Timeout */
+                        new SynchronousQueue<>(),
+                        new CountingThreadFactory(Scheduler.THREAD_NAME_PREFIX + "Scheduled Executor #%s")
+                ),
                 new ScheduledThreadPoolExecutor(
-                        8, /* Core pool size */
-                        new CountingThreadFactory(Scheduler.THREAD_NAME_PREFIX + "Executor #%s")
+                        2, /* Core pool size */
+                        new CountingThreadFactory(Scheduler.THREAD_NAME_PREFIX + "Scheduled Executor #%s")
                 ),
                 new ForkJoinPool(
                         Math.max(1, Runtime.getRuntime().availableProcessors() - 1), /* Parallelism - not core pool size */
@@ -50,15 +58,23 @@ public class StandardScheduler implements Scheduler {
         );
     }
 
-    private StandardScheduler(DiscordSRV discordSRV, ScheduledThreadPoolExecutor executorService, ForkJoinPool forkJoinPool) {
+    private StandardScheduler(
+            DiscordSRV discordSRV,
+            ThreadPoolExecutor executor,
+            ScheduledThreadPoolExecutor scheduledExecutor,
+            ForkJoinPool forkJoinPool
+    ) {
         this.discordSRV = discordSRV;
-        this.executorService = executorService;
+        this.executor = executor;
+        this.scheduledExecutor = scheduledExecutor;
         this.forkJoinPool = forkJoinPool;
     }
 
     @Subscribe(priority = EventPriority.LAST)
     public void onShuttingDown(DiscordSRVShuttingDownEvent event) {
-        executorService.shutdownNow();
+        executor.shutdownNow();
+        scheduledExecutor.shutdownNow();
+        forkJoinPool.shutdownNow();
     }
 
     private Runnable wrap(Runnable runnable) {
@@ -72,8 +88,13 @@ public class StandardScheduler implements Scheduler {
     }
 
     @Override
-    public ScheduledExecutorService executor() {
-        return executorService;
+    public ExecutorService executor() {
+        return executor;
+    }
+
+    @Override
+    public ScheduledExecutorService scheduledExecutor() {
+        return scheduledExecutor;
     }
 
     @Override
@@ -83,7 +104,7 @@ public class StandardScheduler implements Scheduler {
 
     @Override
     public Future<?> run(@NotNull Runnable task) {
-        return executorService.submit(wrap(task));
+        return executor.submit(wrap(task));
     }
 
     @Override
@@ -93,12 +114,12 @@ public class StandardScheduler implements Scheduler {
 
     @Override
     public ScheduledFuture<?> runLater(Runnable task, long timeMillis) {
-        return executorService.schedule(wrap(task), timeMillis, TimeUnit.MILLISECONDS);
+        return scheduledExecutor.schedule(wrap(task), timeMillis, TimeUnit.MILLISECONDS);
     }
 
     @Override
     public ScheduledFuture<?> runAtFixedRate(@NotNull Runnable task, long initialDelayMillis, long rateMillis) {
-        return executorService.scheduleAtFixedRate(wrap(task), initialDelayMillis, rateMillis, TimeUnit.MILLISECONDS);
+        return scheduledExecutor.scheduleAtFixedRate(wrap(task), initialDelayMillis, rateMillis, TimeUnit.MILLISECONDS);
     }
 
 }

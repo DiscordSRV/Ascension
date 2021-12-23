@@ -29,22 +29,21 @@ import java.util.function.Supplier;
 
 public final class ResultMappers {
 
-    private static final ThreadLocal<Boolean> PLAIN_COMPONENTS = ThreadLocal.withInitial(() -> false);
+    private static final ThreadLocal<Boolean> PLAIN = ThreadLocal.withInitial(() -> false);
 
     private ResultMappers() {}
 
-    public static boolean isPlainComponentContext() {
-        return PLAIN_COMPONENTS.get();
+    public static boolean isPlainContext() {
+        return PLAIN.get();
     }
 
     /**
      * Utility method to run the provided {@link Runnable} where {@link PlaceholderService}s
-     * will replace {@link com.discordsrv.api.component.MinecraftComponent}s
-     * as plain without formatting (instead of converting to Discord formatting).
+     * will use plain text without Discord formatting (instead of converting to Discord formatting).
      * @param runnable a task that will be executed immediately
      */
-    public static void runInPlainComponentContext(Runnable runnable) {
-        getInPlainComponentContext(() -> {
+    public static void runInPlainContext(Runnable runnable) {
+        getInPlainContext(() -> {
             runnable.run();
             return null;
         });
@@ -52,15 +51,14 @@ public final class ResultMappers {
 
     /**
      * Utility method to run the provided {@link Runnable} where {@link PlaceholderService}s
-     * will replace {@link com.discordsrv.api.component.MinecraftComponent}s
-     * as plain without formatting (instead of converting to Discord formatting).
+     * will use plain text without Discord formatting (instead of converting to Discord formatting).
      * @param supplier a supplier that will be executed immediately
      * @return the output of the supplier provided as parameter
      */
-    public static <T> T getInPlainComponentContext(Supplier<T> supplier) {
-        PLAIN_COMPONENTS.set(true);
+    public static <T> T getInPlainContext(Supplier<T> supplier) {
+        PLAIN.set(true);
         T output = supplier.get();
-        PLAIN_COMPONENTS.set(false);
+        PLAIN.set(false);
         return output;
     }
 }

@@ -49,6 +49,7 @@ public final class PlaceholderMethodUtil {
         for (Object o : context) {
             Class<?> objectType = o.getClass();
             apply(parameters, (parameter, i) -> {
+                Class<?> type = parameter.getType();
                 if (parameter.getType().isAssignableFrom(objectType)) {
                     parameters[i] = null;
                     parameterValues[i] = o;

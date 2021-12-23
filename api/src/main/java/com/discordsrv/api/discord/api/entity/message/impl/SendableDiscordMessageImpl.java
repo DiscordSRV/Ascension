@@ -209,7 +209,7 @@ public class SendableDiscordMessageImpl implements SendableDiscordMessage {
 
         @Override
         public @NotNull Formatter applyPlaceholderService() {
-            DiscordSRVApi api = DiscordSRVApiProvider.optional().orElse(null);
+            DiscordSRVApi api = DiscordSRVApiProvider.get();
             if (api == null) {
                 throw new IllegalStateException("DiscordSRVApi not available");
             }
@@ -221,7 +221,7 @@ public class SendableDiscordMessageImpl implements SendableDiscordMessage {
         private Function<Matcher, Object> wrapFunction(Function<Matcher, Object> function) {
             return matcher -> {
                 Object result = function.apply(matcher);
-                if (result instanceof FormattedText) {
+                if (result instanceof FormattedText || ResultMappers.isPlainContext()) {
                     // Process as regular text
                     return result.toString();
                 } else if (result instanceof CharSequence) {
@@ -258,7 +258,7 @@ public class SendableDiscordMessageImpl implements SendableDiscordMessage {
                 DiscordMessageEmbed.Builder embedBuilder = embed.toBuilder();
 
                 // TODO: check which parts allow formatting more thoroughly
-                ResultMappers.runInPlainComponentContext(() -> {
+                ResultMappers.runInPlainContext(() -> {
                     embedBuilder.setAuthor(
                             placeholders.apply(
                                     embedBuilder.getAuthorName()),
@@ -307,7 +307,7 @@ public class SendableDiscordMessageImpl implements SendableDiscordMessage {
                 builder.addEmbed(embedBuilder.build());
             }
 
-            ResultMappers.runInPlainComponentContext(() -> {
+            ResultMappers.runInPlainContext(() -> {
                 builder.setWebhookUsername(placeholders.apply(builder.getWebhookUsername()));
                 builder.setWebhookAvatarUrl(placeholders.apply(builder.getWebhookAvatarUrl()));
             });

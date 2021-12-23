@@ -82,7 +82,7 @@ public class BukkitPlayer extends BukkitOfflinePlayer implements IPlayer {
 
     @SuppressWarnings("deprecation") // Paper
     @Override
-    public @NotNull Component getDisplayName() {
+    public @NotNull Component displayName() {
         if (DISPLAY_NAME_METHOD != null) {
             try {
                 return ComponentUtil.fromUnrelocated(DISPLAY_NAME_METHOD.invoke(player));

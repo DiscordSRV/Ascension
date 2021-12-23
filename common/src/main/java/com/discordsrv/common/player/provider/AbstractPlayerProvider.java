@@ -52,7 +52,7 @@ public abstract class AbstractPlayerProvider<T extends IPlayer> implements Playe
     @Override
     public final @NotNull Optional<T> player(@NotNull String username) {
         for (T value : allPlayers) {
-            if (value.getUsername().equalsIgnoreCase(username)) {
+            if (value.username().equalsIgnoreCase(username)) {
                 return Optional.of(value);
             }
         }
