@@ -47,7 +47,7 @@ public class DependencyLoader {
     public DependencyLoader(DiscordSRV discordSRV, String[] dependencyResources) {
         this(
                 discordSRV.dataDirectory(),
-                discordSRV.scheduler().forkExecutor(),
+                discordSRV.scheduler().forkJoinPool(),
                 dependencyResources
         );
     }

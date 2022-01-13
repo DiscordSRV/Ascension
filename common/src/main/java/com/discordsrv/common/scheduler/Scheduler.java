@@ -32,22 +32,28 @@ public interface Scheduler {
     String THREAD_NAME_PREFIX = "DiscordSRV Async ";
 
     /**
+     * An executor that will actually catch exceptions.
+     * @return the {@link Executor}
+     */
+    Executor executor();
+
+    /**
      * Returns the {@link ExecutorService} being used.
      * @return the {@link ExecutorService}
      */
-    ExecutorService executor();
+    ExecutorService executorService();
 
     /**
      * Returns the {@link ScheduledExecutorService} being used.
      * @return the {@link ScheduledExecutorService}
      */
-    ScheduledExecutorService scheduledExecutor();
+    ScheduledExecutorService scheduledExecutorService();
 
     /**
      * Returns the {@link ForkJoinPool} being used.
      * @return the {@link ForkJoinPool}
      */
-    ForkJoinPool forkExecutor();
+    ForkJoinPool forkJoinPool();
 
     /**
      * Runs the provided task as soon as possible.

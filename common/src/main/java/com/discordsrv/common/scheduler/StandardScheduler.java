@@ -31,9 +31,10 @@ import java.util.concurrent.*;
 public class StandardScheduler implements Scheduler {
 
     private final DiscordSRV discordSRV;
-    private final ThreadPoolExecutor executor;
-    private final ScheduledThreadPoolExecutor scheduledExecutor;
+    private final ThreadPoolExecutor executorService;
+    private final ScheduledThreadPoolExecutor scheduledExecutorService;
     private final ForkJoinPool forkJoinPool;
+    private final ExceptionHandlingExecutor executor = new ExceptionHandlingExecutor();
 
     public StandardScheduler(DiscordSRV discordSRV) {
         this(
@@ -43,7 +44,7 @@ public class StandardScheduler implements Scheduler {
                         16, /* Max pool size */
                         60, TimeUnit.SECONDS, /* Timeout */
                         new SynchronousQueue<>(),
-                        new CountingThreadFactory(Scheduler.THREAD_NAME_PREFIX + "Scheduled Executor #%s")
+                        new CountingThreadFactory(Scheduler.THREAD_NAME_PREFIX + "Executor #%s")
                 ),
                 new ScheduledThreadPoolExecutor(
                         2, /* Core pool size */
@@ -60,20 +61,20 @@ public class StandardScheduler implements Scheduler {
 
     private StandardScheduler(
             DiscordSRV discordSRV,
-            ThreadPoolExecutor executor,
-            ScheduledThreadPoolExecutor scheduledExecutor,
+            ThreadPoolExecutor executorService,
+            ScheduledThreadPoolExecutor scheduledExecutorService,
             ForkJoinPool forkJoinPool
     ) {
         this.discordSRV = discordSRV;
-        this.executor = executor;
-        this.scheduledExecutor = scheduledExecutor;
+        this.executorService = executorService;
+        this.scheduledExecutorService = scheduledExecutorService;
         this.forkJoinPool = forkJoinPool;
     }
 
     @Subscribe(priority = EventPriority.LAST)
     public void onShuttingDown(DiscordSRVShuttingDownEvent event) {
-        executor.shutdownNow();
-        scheduledExecutor.shutdownNow();
+        executorService.shutdownNow();
+        scheduledExecutorService.shutdownNow();
         forkJoinPool.shutdownNow();
     }
 
@@ -88,23 +89,28 @@ public class StandardScheduler implements Scheduler {
     }
 
     @Override
-    public ExecutorService executor() {
+    public Executor executor() {
         return executor;
     }
 
     @Override
-    public ScheduledExecutorService scheduledExecutor() {
-        return scheduledExecutor;
+    public ExecutorService executorService() {
+        return executorService;
     }
 
     @Override
-    public ForkJoinPool forkExecutor() {
+    public ScheduledExecutorService scheduledExecutorService() {
+        return scheduledExecutorService;
+    }
+
+    @Override
+    public ForkJoinPool forkJoinPool() {
         return forkJoinPool;
     }
 
     @Override
     public Future<?> run(@NotNull Runnable task) {
-        return executor.submit(wrap(task));
+        return executorService.submit(wrap(task));
     }
 
     @Override
@@ -114,12 +120,19 @@ public class StandardScheduler implements Scheduler {
 
     @Override
     public ScheduledFuture<?> runLater(Runnable task, long timeMillis) {
-        return scheduledExecutor.schedule(wrap(task), timeMillis, TimeUnit.MILLISECONDS);
+        return scheduledExecutorService.schedule(wrap(task), timeMillis, TimeUnit.MILLISECONDS);
     }
 
     @Override
     public ScheduledFuture<?> runAtFixedRate(@NotNull Runnable task, long initialDelayMillis, long rateMillis) {
-        return scheduledExecutor.scheduleAtFixedRate(wrap(task), initialDelayMillis, rateMillis, TimeUnit.MILLISECONDS);
+        return scheduledExecutorService.scheduleAtFixedRate(wrap(task), initialDelayMillis, rateMillis, TimeUnit.MILLISECONDS);
     }
 
+    public class ExceptionHandlingExecutor implements Executor {
+
+        @Override
+        public void execute(@NotNull Runnable command) {
+            runFork(command);
+        }
+    }
 }
