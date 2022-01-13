@@ -45,15 +45,16 @@ public interface DiscordMessageChannel extends Snowflake {
      * @throws com.discordsrv.api.discord.api.exception.NotReadyException if DiscordSRV is not ready, {@link com.discordsrv.api.DiscordSRVApi#isReady()}
      */
     @NotNull
-    CompletableFuture<ReceivedDiscordMessage> sendMessage(SendableDiscordMessage message);
+    CompletableFuture<ReceivedDiscordMessage> sendMessage(@NotNull SendableDiscordMessage message);
 
     /**
      * Deletes the message identified by the id.
      *
      * @param id the id of the message to delete
+     * @param webhookMessage if the message is a webhook message or not
      * @return a future that will fail if the request fails
      */
-    CompletableFuture<Void> deleteMessageById(long id);
+    CompletableFuture<Void> deleteMessageById(long id, boolean webhookMessage);
 
     /**
      * Edits the message identified by the id.
@@ -64,7 +65,7 @@ public interface DiscordMessageChannel extends Snowflake {
      * @throws com.discordsrv.api.discord.api.exception.NotReadyException if DiscordSRV is not ready, {@link com.discordsrv.api.DiscordSRVApi#isReady()}
      */
     @NotNull
-    CompletableFuture<ReceivedDiscordMessage> editMessageById(long id, SendableDiscordMessage message);
+    CompletableFuture<ReceivedDiscordMessage> editMessageById(long id, @NotNull SendableDiscordMessage message);
 
     /**
      * Returns the JDA representation of this object. This should not be used if it can be avoided.

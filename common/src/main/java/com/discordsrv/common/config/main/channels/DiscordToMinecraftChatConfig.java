@@ -19,12 +19,11 @@
 package com.discordsrv.common.config.main.channels;
 
 import com.discordsrv.common.config.annotation.Untranslated;
+import com.discordsrv.common.config.main.DiscordIgnores;
 import org.spongepowered.configurate.objectmapping.ConfigSerializable;
 import org.spongepowered.configurate.objectmapping.meta.Comment;
 
-import java.util.ArrayList;
 import java.util.LinkedHashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.regex.Pattern;
 
@@ -44,7 +43,7 @@ public class DiscordToMinecraftChatConfig {
 
     @Comment("Attachment format")
     @Untranslated(Untranslated.Type.VALUE)
-    public String attachmentFormat = "[hover:show_text:Open %file_name% in browser][click:open_url:%file_url%]&a[&f%file_name%&a]&r";
+    public String attachmentFormat = " [hover:show_text:Open %file_name% in browser][click:open_url:%file_url%]&a[&f%file_name%&a]&r";
 
     // TODO: more info on regex pairs (String#replaceAll)
     @Comment("Regex filters for Discord message contents (this is the %message% part of the \"format\" option)")
@@ -52,32 +51,7 @@ public class DiscordToMinecraftChatConfig {
     public Map<Pattern, String> contentRegexFilters = new LinkedHashMap<>();
 
     @Comment("Users, bots and webhooks to ignore")
-    public Ignores ignores = new Ignores();
-
-    @ConfigSerializable
-    public static class Ignores {
-
-        @Comment("User, bot and webhook ids to ignore")
-        public IDs usersAndWebhookIds = new IDs();
-
-        @Comment("Role ids for users/bots to ignore")
-        public IDs roleIds = new IDs();
-
-        @Comment("If bots (webhooks not included) should be ignored")
-        public boolean bots = false;
-
-        @Comment("If webhooks should be ignored")
-        public boolean webhooks = true;
-
-        @ConfigSerializable
-        public static class IDs {
-
-            public List<Long> ids = new ArrayList<>();
-
-            @Comment("true for whitelisting the provided ids, false for blacklisting them")
-            public boolean whitelist = false;
-        }
-    }
+    public DiscordIgnores ignores = new DiscordIgnores();
 
     @Comment("The representations of Discord mentions in-game")
     public Mentions mentions = new Mentions();

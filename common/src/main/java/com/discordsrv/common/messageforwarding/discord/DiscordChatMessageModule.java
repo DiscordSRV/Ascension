@@ -16,49 +16,49 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package com.discordsrv.common.module.modules.message;
+package com.discordsrv.common.messageforwarding.discord;
 
 import com.discordsrv.api.channel.GameChannel;
 import com.discordsrv.api.component.EnhancedTextBuilder;
 import com.discordsrv.api.component.MinecraftComponent;
 import com.discordsrv.api.discord.api.entity.DiscordUser;
-import com.discordsrv.api.discord.api.entity.channel.DiscordTextChannel;
+import com.discordsrv.api.discord.api.entity.channel.DiscordMessageChannel;
 import com.discordsrv.api.discord.api.entity.guild.DiscordGuildMember;
 import com.discordsrv.api.discord.api.entity.message.ReceivedDiscordMessage;
-import com.discordsrv.api.discord.events.DiscordMessageReceivedEvent;
+import com.discordsrv.api.discord.events.DiscordMessageReceiveEvent;
 import com.discordsrv.api.event.bus.Subscribe;
 import com.discordsrv.api.event.events.message.receive.discord.DiscordChatMessageProcessingEvent;
 import com.discordsrv.api.placeholder.util.Placeholders;
 import com.discordsrv.common.DiscordSRV;
 import com.discordsrv.common.component.renderer.DiscordSRVMinecraftRenderer;
 import com.discordsrv.common.component.util.ComponentUtil;
-import com.discordsrv.common.config.main.channels.base.BaseChannelConfig;
+import com.discordsrv.common.config.main.DiscordIgnores;
 import com.discordsrv.common.config.main.channels.DiscordToMinecraftChatConfig;
+import com.discordsrv.common.config.main.channels.base.BaseChannelConfig;
 import com.discordsrv.common.function.OrDefault;
 import com.discordsrv.common.module.type.AbstractModule;
 import net.kyori.adventure.text.Component;
 
 import java.util.Map;
-import java.util.Optional;
 
-public class DiscordToMinecraftChatModule extends AbstractModule {
+public class DiscordChatMessageModule extends AbstractModule {
 
-    public DiscordToMinecraftChatModule(DiscordSRV discordSRV) {
+    public DiscordChatMessageModule(DiscordSRV discordSRV) {
         super(discordSRV);
     }
 
     @Subscribe
-    public void onGuildMessageReceived(DiscordMessageReceivedEvent event) {
-        DiscordTextChannel channel = event.getTextChannel().orElse(null);
-        if (channel == null || !discordSRV.isReady() || event.getMessage().isFromSelf()) {
+    public void onDiscordMessageReceived(DiscordMessageReceiveEvent event) {
+        if (!discordSRV.isReady() || event.getMessage().isFromSelf()
+                || !(event.getTextChannel().isPresent() || event.getThreadChannel().isPresent())) {
             return;
         }
 
-        discordSRV.eventBus().publish(new DiscordChatMessageProcessingEvent(event.getMessage(), channel));
+        discordSRV.eventBus().publish(new DiscordChatMessageProcessingEvent(event.getMessage(), event.getChannel()));
     }
 
     @Subscribe
-    public void onDiscordMessageReceive(DiscordChatMessageProcessingEvent event) {
+    public void onDiscordChatMessageProcessing(DiscordChatMessageProcessingEvent event) {
         if (checkCancellation(event) || checkProcessor(event)) {
             return;
         }
@@ -80,32 +80,16 @@ public class DiscordToMinecraftChatModule extends AbstractModule {
             return;
         }
 
-        DiscordTextChannel channel = event.getChannel();
+        DiscordMessageChannel channel = event.getChannel();
         ReceivedDiscordMessage discordMessage = event.getDiscordMessage();
         DiscordUser author = discordMessage.getAuthor();
-        Optional<DiscordGuildMember> member = discordMessage.getMember();
+        DiscordGuildMember member = discordMessage.getMember().orElse(null);
         boolean webhookMessage = discordMessage.isWebhookMessage();
 
-        DiscordToMinecraftChatConfig.Ignores ignores = chatConfig.get(cfg -> cfg.ignores);
-        if (ignores != null) {
-            if (ignores.webhooks && webhookMessage) {
-                return;
-            } else if (ignores.bots && (author.isBot() && !webhookMessage)) {
-                return;
-            }
-
-            DiscordToMinecraftChatConfig.Ignores.IDs users = ignores.usersAndWebhookIds;
-            if (users != null && users.ids.contains(author.getId()) != users.whitelist) {
-                return;
-            }
-
-            DiscordToMinecraftChatConfig.Ignores.IDs roles = ignores.roleIds;
-            if (roles != null && member
-                    .map(m -> m.getRoles().stream().anyMatch(role -> roles.ids.contains(role.getId())))
-                    .map(hasRole -> hasRole != roles.whitelist)
-                    .orElse(false)) {
-                return;
-            }
+        DiscordIgnores ignores = chatConfig.get(cfg -> cfg.ignores);
+        if (ignores != null && ignores.shouldBeIgnored(webhookMessage, author, member)) {
+            // TODO: response for humans
+            return;
         }
 
         String format = chatConfig.opt(cfg -> webhookMessage ? cfg.webhookFormat : cfg.format)
@@ -126,7 +110,9 @@ public class DiscordToMinecraftChatModule extends AbstractModule {
                 .enhancedBuilder(format)
                 .addContext(discordMessage, author, channel, channelConfig)
                 .addReplacement("%message%", messageComponent);
-        member.ifPresent(componentBuilder::addContext);
+        if (member != null) {
+            componentBuilder.addContext(member);
+        }
 
         componentBuilder.applyPlaceholderService();
 

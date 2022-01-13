@@ -23,49 +23,20 @@
 
 package com.discordsrv.api.discord.events;
 
-import com.discordsrv.api.discord.api.entity.channel.DiscordDMChannel;
 import com.discordsrv.api.discord.api.entity.channel.DiscordMessageChannel;
-import com.discordsrv.api.discord.api.entity.channel.DiscordTextChannel;
 import com.discordsrv.api.discord.api.entity.message.ReceivedDiscordMessage;
-import com.discordsrv.api.event.events.Event;
-import org.jetbrains.annotations.NotNull;
 
-import java.util.Optional;
-
-public class DiscordMessageReceivedEvent implements Event {
+public class DiscordMessageUpdateEvent extends AbstractDiscordMessageEvent {
 
     private final ReceivedDiscordMessage message;
-    private final DiscordMessageChannel channel;
 
-    public DiscordMessageReceivedEvent(ReceivedDiscordMessage message, DiscordMessageChannel channel) {
+    public DiscordMessageUpdateEvent(DiscordMessageChannel channel, ReceivedDiscordMessage message) {
+        super(channel);
         this.message = message;
-        this.channel = channel;
-    }
-
-    public boolean isGuildMessage() {
-        return getTextChannel().isPresent();
-    }
-
-    @NotNull
-    public Optional<DiscordTextChannel> getTextChannel() {
-        return channel instanceof DiscordTextChannel
-                ? Optional.of((DiscordTextChannel) channel)
-                : Optional.empty();
-    }
-
-    @NotNull
-    public Optional<DiscordDMChannel> getDMChannel() {
-        return channel instanceof DiscordDMChannel
-                ? Optional.of((DiscordDMChannel) channel)
-                : Optional.empty();
-    }
-
-    @NotNull
-    public DiscordMessageChannel getChannel() {
-        return channel ;
     }
 
     public ReceivedDiscordMessage getMessage() {
         return message;
     }
 }
+

@@ -23,7 +23,9 @@
 
 package com.discordsrv.api.event.events.message.receive.discord;
 
+import com.discordsrv.api.discord.api.entity.channel.DiscordMessageChannel;
 import com.discordsrv.api.discord.api.entity.channel.DiscordTextChannel;
+import com.discordsrv.api.discord.api.entity.channel.DiscordThreadChannel;
 import com.discordsrv.api.discord.api.entity.guild.DiscordGuild;
 import com.discordsrv.api.discord.api.entity.message.ReceivedDiscordMessage;
 import com.discordsrv.api.event.events.Cancellable;
@@ -34,14 +36,17 @@ public class DiscordChatMessageProcessingEvent implements Cancellable, Processab
 
     private final ReceivedDiscordMessage discordMessage;
     private String messageContent;
-    private final DiscordTextChannel channel;
+    private final DiscordMessageChannel channel;
     private boolean cancelled;
     private boolean processed;
 
-    public DiscordChatMessageProcessingEvent(@NotNull ReceivedDiscordMessage discordMessage, @NotNull DiscordTextChannel channel) {
+    public DiscordChatMessageProcessingEvent(@NotNull ReceivedDiscordMessage discordMessage, @NotNull DiscordMessageChannel channel) {
         this.discordMessage = discordMessage;
         this.messageContent = discordMessage.getContent().orElse(null);
         this.channel = channel;
+        if (!(channel instanceof DiscordTextChannel) && !(channel instanceof DiscordThreadChannel)) {
+            throw new IllegalStateException("Cannot process messages that aren't from a text channel or thread");
+        }
     }
 
     public ReceivedDiscordMessage getDiscordMessage() {
@@ -56,12 +61,18 @@ public class DiscordChatMessageProcessingEvent implements Cancellable, Processab
         this.messageContent = messageContent;
     }
 
-    public DiscordTextChannel getChannel() {
+    public DiscordMessageChannel getChannel() {
         return channel;
     }
 
     public DiscordGuild getGuild() {
-        return channel.getGuild();
+        if (channel instanceof DiscordTextChannel) {
+            return ((DiscordTextChannel) channel).getGuild();
+        } else if (channel instanceof DiscordThreadChannel) {
+            return ((DiscordThreadChannel) channel).getParentChannel().getGuild();
+        } else {
+            throw new IllegalStateException("Message isn't from a text channel or thread");
+        }
     }
 
     @Override
