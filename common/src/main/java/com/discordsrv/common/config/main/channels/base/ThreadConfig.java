@@ -16,4 +16,18 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package com.discordsrv.common.command.game;
+package com.discordsrv.common.config.main.channels.base;
+
+import org.spongepowered.configurate.objectmapping.ConfigSerializable;
+
+@ConfigSerializable
+public class ThreadConfig {
+
+    public Long channelId = 0L;
+
+    public String threadName = "Minecraft Server chat bridge";
+    public boolean privateThread = false;
+
+    public boolean archiveOnShutdown = true;
+    public boolean unarchive = true;
+}
