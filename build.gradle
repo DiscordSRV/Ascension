@@ -109,7 +109,7 @@ allprojects {
         header = rootProject.file('buildscript/license/LICENSE_HEADER')
         properties {
             var inception = '2016'
-            var currentYear = String.valueOf(Calendar.getInstance().get(Calendar.YEAR)-1)
+            var currentYear = String.valueOf(Calendar.getInstance().get(Calendar.YEAR))
 
             year = inception == currentYear ? currentYear : inception + '-' + currentYear
         }
