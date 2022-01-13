@@ -218,7 +218,7 @@ public class ReceivedDiscordMessageImpl extends SendableDiscordMessageImpl imple
     }
 
     @Override
-    public List<Attachment> getAttachments() {
+    public @NotNull List<Attachment> getAttachments() {
         return attachments;
     }
 
@@ -252,7 +252,7 @@ public class ReceivedDiscordMessageImpl extends SendableDiscordMessageImpl imple
     }
 
     @Override
-    public DiscordMessageChannel getChannel() {
+    public @NotNull DiscordMessageChannel getChannel() {
         return channel;
     }
 

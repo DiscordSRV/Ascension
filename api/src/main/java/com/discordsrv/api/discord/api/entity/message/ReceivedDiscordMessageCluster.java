@@ -23,6 +23,8 @@
 
 package com.discordsrv.api.discord.api.entity.message;
 
+import org.jetbrains.annotations.NotNull;
+
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 
@@ -35,12 +37,14 @@ public interface ReceivedDiscordMessageCluster {
      * Gets the messages in this cluster.
      * @return the messages in this cluster
      */
+    @NotNull
     List<? extends ReceivedDiscordMessage> getMessages();
 
     /**
      * Deletes all the messages from this cluster, one request per message.
      * @return a future that fails if any of the requests fail.
      */
+    @NotNull
     CompletableFuture<Void> deleteAll();
 
     /**
@@ -48,6 +52,7 @@ public interface ReceivedDiscordMessageCluster {
      * @param newMessage the new content of the messages
      * @return a future that fails if any of the requests fail.
      */
+    @NotNull
     CompletableFuture<ReceivedDiscordMessageCluster> editAll(SendableDiscordMessage newMessage);
 
 }

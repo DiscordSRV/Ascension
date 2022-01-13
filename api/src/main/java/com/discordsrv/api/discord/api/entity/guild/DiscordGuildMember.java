@@ -43,6 +43,7 @@ public interface DiscordGuildMember extends DiscordUser, Mentionable {
      * Gets the Discord server this member is from.
      * @return the Discord server this member is from.
      */
+    @NotNull
     DiscordGuild getGuild();
 
     /**
@@ -56,6 +57,7 @@ public interface DiscordGuildMember extends DiscordUser, Mentionable {
      * Gets the roles of this Discord server member.
      * @return the server member's roles in order from highest to lowest, this does not include the "@everyone" role
      */
+    @NotNull
     List<DiscordRole> getRoles();
 
     /**
@@ -63,6 +65,7 @@ public interface DiscordGuildMember extends DiscordUser, Mentionable {
      * @return the Discord server member's effective name
      */
     @Placeholder("user_effective_name")
+    @NotNull
     default String getEffectiveName() {
         return getNickname().orElseGet(this::getUsername);
     }
@@ -72,6 +75,7 @@ public interface DiscordGuildMember extends DiscordUser, Mentionable {
      * @return the user's avatar url in this server
      */
     @Placeholder("user_effective_avatar_url")
+    @NotNull
     String getEffectiveServerAvatarUrl();
 
     /**

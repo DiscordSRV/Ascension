@@ -21,6 +21,7 @@ package com.discordsrv.common.discord.api.entity.message;
 import com.discordsrv.api.discord.api.entity.message.ReceivedDiscordMessage;
 import com.discordsrv.api.discord.api.entity.message.ReceivedDiscordMessageCluster;
 import com.discordsrv.api.discord.api.entity.message.SendableDiscordMessage;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -35,13 +36,13 @@ public class ReceivedDiscordMessageClusterImpl implements ReceivedDiscordMessage
     }
 
     @Override
-    public List<ReceivedDiscordMessage> getMessages() {
+    public @NotNull List<ReceivedDiscordMessage> getMessages() {
         return messages;
     }
 
     @SuppressWarnings("unchecked")
     @Override
-    public CompletableFuture<Void> deleteAll() {
+    public @NotNull CompletableFuture<Void> deleteAll() {
         CompletableFuture<Void>[] futures = new CompletableFuture[messages.size()];
         for (int i = 0; i < messages.size(); i++) {
             futures[i] = messages.get(i).delete();
@@ -52,7 +53,7 @@ public class ReceivedDiscordMessageClusterImpl implements ReceivedDiscordMessage
 
     @SuppressWarnings("unchecked")
     @Override
-    public CompletableFuture<ReceivedDiscordMessageCluster> editAll(SendableDiscordMessage newMessage) {
+    public @NotNull CompletableFuture<ReceivedDiscordMessageCluster> editAll(SendableDiscordMessage newMessage) {
         CompletableFuture<ReceivedDiscordMessage>[] futures = new CompletableFuture[messages.size()];
         for (int i = 0; i < messages.size(); i++) {
             futures[i] = messages.get(i).edit(newMessage);

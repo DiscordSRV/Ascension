@@ -371,7 +371,7 @@ public class DiscordAPIImpl implements DiscordAPI {
     }
 
     @Override
-    public CompletableFuture<DiscordUser> retrieveUserById(long id) {
+    public @NotNull CompletableFuture<DiscordUser> retrieveUserById(long id) {
         JDA jda = discordSRV.jda().orElse(null);
         if (jda == null) {
             return notReady();

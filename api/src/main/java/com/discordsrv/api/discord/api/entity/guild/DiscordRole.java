@@ -45,8 +45,8 @@ public interface DiscordRole extends Snowflake, Mentionable {
      * Gets the name of the Discord role.
      * @return the role name
      */
-    @NotNull
     @Placeholder("role_name")
+    @NotNull
     String getName();
 
     /**
@@ -62,8 +62,8 @@ public interface DiscordRole extends Snowflake, Mentionable {
      * @return the color of this role, or {@link #DEFAULT_COLOR} if there is no color set
      * @see #hasColor()
      */
-    @NotNull
     @Placeholder("role_color")
+    @NotNull
     Color getColor();
 
     /**

@@ -45,6 +45,7 @@ public interface ReceivedDiscordMessage extends SendableDiscordMessage, Snowflak
      * Gets the attachments of this message.
      * @return this message's attachments
      */
+    @NotNull
     List<Attachment> getAttachments();
 
     /**
@@ -65,6 +66,7 @@ public interface ReceivedDiscordMessage extends SendableDiscordMessage, Snowflak
      * Gets the channel the message was sent in.
      * @return the channel the message was sent in
      */
+    @NotNull
     DiscordMessageChannel getChannel();
 
     /**

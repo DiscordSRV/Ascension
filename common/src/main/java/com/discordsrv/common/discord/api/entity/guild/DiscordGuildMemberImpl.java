@@ -59,7 +59,7 @@ public class DiscordGuildMemberImpl extends DiscordUserImpl implements DiscordGu
     }
 
     @Override
-    public DiscordGuild getGuild() {
+    public @NotNull DiscordGuild getGuild() {
         return guild;
     }
 
@@ -69,12 +69,12 @@ public class DiscordGuildMemberImpl extends DiscordUserImpl implements DiscordGu
     }
 
     @Override
-    public List<DiscordRole> getRoles() {
+    public @NotNull List<DiscordRole> getRoles() {
         return roles;
     }
 
     @Override
-    public String getEffectiveServerAvatarUrl() {
+    public @NotNull String getEffectiveServerAvatarUrl() {
         return member.getEffectiveAvatarUrl();
     }
 

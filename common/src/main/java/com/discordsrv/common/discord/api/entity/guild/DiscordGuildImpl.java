@@ -25,6 +25,7 @@ import com.discordsrv.common.DiscordSRV;
 import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.entities.Member;
 import net.dv8tion.jda.api.entities.Role;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.*;
 
@@ -44,7 +45,7 @@ public class DiscordGuildImpl implements DiscordGuild {
     }
 
     @Override
-    public String getName() {
+    public @NotNull String getName() {
         return guild.getName();
     }
 
@@ -54,7 +55,7 @@ public class DiscordGuildImpl implements DiscordGuild {
     }
 
     @Override
-    public Optional<DiscordGuildMember> getMemberById(long id) {
+    public @NotNull Optional<DiscordGuildMember> getMemberById(long id) {
         Member member = guild.getMemberById(id);
         if (member == null) {
             return Optional.empty();
@@ -64,7 +65,7 @@ public class DiscordGuildImpl implements DiscordGuild {
     }
 
     @Override
-    public Set<DiscordGuildMember> getCachedMembers() {
+    public @NotNull Set<DiscordGuildMember> getCachedMembers() {
         Set<DiscordGuildMember> members = new HashSet<>();
         for (Member member : guild.getMembers()) {
             members.add(new DiscordGuildMemberImpl(discordSRV, member));
@@ -73,7 +74,7 @@ public class DiscordGuildImpl implements DiscordGuild {
     }
 
     @Override
-    public Optional<DiscordRole> getRoleById(long id) {
+    public @NotNull Optional<DiscordRole> getRoleById(long id) {
         Role role = guild.getRoleById(id);
         if (role == null) {
             return Optional.empty();
@@ -83,7 +84,7 @@ public class DiscordGuildImpl implements DiscordGuild {
     }
 
     @Override
-    public List<DiscordRole> getRoles() {
+    public @NotNull List<DiscordRole> getRoles() {
         List<DiscordRole> roles = new ArrayList<>();
         for (Role role : guild.getRoles()) {
             roles.add(new DiscordRoleImpl(role));

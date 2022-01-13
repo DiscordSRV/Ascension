@@ -27,6 +27,7 @@ import com.discordsrv.api.DiscordSRVApi;
 import com.discordsrv.api.discord.api.entity.Snowflake;
 import com.discordsrv.api.placeholder.annotation.Placeholder;
 import net.dv8tion.jda.api.entities.Guild;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.List;
 import java.util.Optional;
@@ -42,6 +43,7 @@ public interface DiscordGuild extends Snowflake {
      * @return the guild's name
      */
     @Placeholder("server_name")
+    @NotNull
     String getName();
 
     /**
@@ -56,12 +58,14 @@ public interface DiscordGuild extends Snowflake {
      * @param id the id for the Discord guild member
      * @return the Discord guild member from the cache
      */
+    @NotNull
     Optional<DiscordGuildMember> getMemberById(long id);
 
     /**
      * Gets the members of this server that are in the cache.
      * @return the Discord server members that are currently cached
      */
+    @NotNull
     Set<DiscordGuildMember> getCachedMembers();
 
     /**
@@ -69,12 +73,14 @@ public interface DiscordGuild extends Snowflake {
      * @param id the id for the Discord role
      * @return the Discord role from the cache
      */
+    @NotNull
     Optional<DiscordRole> getRoleById(long id);
 
     /**
      * Gets the roles in this Discord server.
      * @return an ordered list of the roles in this Discord server
      */
+    @NotNull
     List<DiscordRole> getRoles();
 
     /**

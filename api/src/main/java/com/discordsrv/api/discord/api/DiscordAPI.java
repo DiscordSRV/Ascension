@@ -86,6 +86,7 @@ public interface DiscordAPI {
      * @param id the id for the Discord user
      * @return a future that will result in a {@link DiscordUser} for the id or throw a
      */
+    @NotNull
     CompletableFuture<DiscordUser> retrieveUserById(long id);
 
     /**
