@@ -68,6 +68,13 @@ public interface DiscordGuildMember extends DiscordUser, Mentionable {
     }
 
     /**
+     * Gets the avatar url that is active for this user in this server.
+     * @return the user's avatar url in this server
+     */
+    @Placeholder("user_effective_avatar_url")
+    String getEffectiveServerAvatarUrl();
+
+    /**
      * Gets the color of this user's highest role that has a color.
      * @return the color that will be used for this user
      */

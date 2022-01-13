@@ -28,6 +28,7 @@ import com.discordsrv.api.discord.api.entity.channel.DiscordDMChannel;
 import com.discordsrv.api.placeholder.annotation.Placeholder;
 import net.dv8tion.jda.api.entities.User;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.concurrent.CompletableFuture;
 
@@ -63,6 +64,23 @@ public interface DiscordUser extends Snowflake, Mentionable {
     @Placeholder("user_discriminator")
     @NotNull
     String getDiscriminator();
+
+    /**
+     * Gets the Discord user's avatar url, if an avatar is set.
+     * @return the user's avatar url or {@code null}
+     */
+    @Placeholder("user_avatar_url")
+    @Nullable
+    String getAvatarUrl();
+
+    /**
+     * Gets the Discord user's avatar that is currently active,
+     * if an avatar isn't set it'll be the url to the default avatar provided by Discord.
+     * @return the user's avatar url
+     */
+    @Placeholder("user_effective_avatar_url")
+    @NotNull
+    String getEffectiveAvatarUrl();
 
     /**
      * Gets the Discord user's username followed by a {@code #} and their discriminator.

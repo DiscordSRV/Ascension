@@ -16,23 +16,27 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package com.discordsrv.common.discord.api.channel;
+package com.discordsrv.common.discord.api.entity.channel;
 
-import com.discordsrv.api.discord.api.entity.channel.DiscordMessageChannel;
+import com.discordsrv.api.discord.api.entity.channel.DiscordTextChannel;
 import com.discordsrv.common.DiscordSRV;
-import net.dv8tion.jda.api.entities.MessageChannel;
-import net.dv8tion.jda.api.entities.PrivateChannel;
 import net.dv8tion.jda.api.entities.TextChannel;
+import org.jetbrains.annotations.Nullable;
 
-public abstract class DiscordMessageChannelImpl implements DiscordMessageChannel {
+public class DiscordTextChannelImpl extends DiscordGuildMessageChannelImpl<TextChannel> implements DiscordTextChannel {
 
-    public static DiscordMessageChannelImpl get(DiscordSRV discordSRV, MessageChannel messageChannel) {
-        if (messageChannel instanceof TextChannel) {
-            return new DiscordTextChannelImpl(discordSRV, (TextChannel) messageChannel);
-        } else if (messageChannel instanceof PrivateChannel) {
-            return new DiscordDMChannelImpl(discordSRV, (PrivateChannel) messageChannel);
-        } else {
-            throw new IllegalArgumentException("Unknown MessageChannel type");
-        }
+    public DiscordTextChannelImpl(DiscordSRV discordSRV, TextChannel textChannel) {
+        super(discordSRV, textChannel);
     }
+
+    @Override
+    public @Nullable String getTopic() {
+        return channel.getTopic();
+    }
+
+    @Override
+    public TextChannel getAsJDATextChannel() {
+        return channel;
+    }
+
 }

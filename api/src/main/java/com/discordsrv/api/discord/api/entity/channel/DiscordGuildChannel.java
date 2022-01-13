@@ -23,27 +23,22 @@
 
 package com.discordsrv.api.discord.api.entity.channel;
 
-import com.discordsrv.api.DiscordSRVApi;
-import net.dv8tion.jda.api.entities.TextChannel;
-import org.jetbrains.annotations.Nullable;
+import com.discordsrv.api.discord.api.entity.guild.DiscordGuild;
+import org.jetbrains.annotations.NotNull;
 
-/**
- * A Discord text channel.
- */
-public interface DiscordTextChannel extends DiscordGuildMessageChannel {
+public interface DiscordGuildChannel {
 
     /**
-     * Gets the topic of the text channel.
-     * @return the topic of the channel
+     * Gets the name of the channel.
+     * @return the name of the channel
      */
-    @Nullable
-    String getTopic();
+    @NotNull
+    String getName();
 
     /**
-     * Returns the JDA representation of this object. This should not be used if it can be avoided.
-     * @return the JDA representation of this object
-     * @see DiscordSRVApi#jda()
+     * Gets the Discord server that this channel is in.
+     * @return the Discord server that contains this channel
      */
-    TextChannel getAsJDATextChannel();
-
+    @NotNull
+    DiscordGuild getGuild();
 }

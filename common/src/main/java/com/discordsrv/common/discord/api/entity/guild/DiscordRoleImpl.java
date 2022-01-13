@@ -16,7 +16,7 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package com.discordsrv.common.discord.api.guild;
+package com.discordsrv.common.discord.api.entity.guild;
 
 import com.discordsrv.api.color.Color;
 import com.discordsrv.api.discord.api.entity.guild.DiscordRole;

@@ -16,15 +16,16 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package com.discordsrv.common.discord.api;
+package com.discordsrv.common.discord.api.entity;
 
 import com.discordsrv.api.discord.api.entity.DiscordUser;
 import com.discordsrv.api.discord.api.entity.channel.DiscordDMChannel;
 import com.discordsrv.common.DiscordSRV;
-import com.discordsrv.common.discord.api.channel.DiscordDMChannelImpl;
+import com.discordsrv.common.discord.api.entity.channel.DiscordDMChannelImpl;
 import net.dv8tion.jda.api.JDA;
 import net.dv8tion.jda.api.entities.User;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.concurrent.CompletableFuture;
 
@@ -63,6 +64,16 @@ public class DiscordUserImpl implements DiscordUser {
     @Override
     public @NotNull String getDiscriminator() {
         return user.getDiscriminator();
+    }
+
+    @Override
+    public @Nullable String getAvatarUrl() {
+        return user.getAvatarUrl();
+    }
+
+    @Override
+    public @NotNull String getEffectiveAvatarUrl() {
+        return user.getEffectiveAvatarUrl();
     }
 
     @Override

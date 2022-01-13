@@ -16,7 +16,7 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package com.discordsrv.common.discord.api.message;
+package com.discordsrv.common.discord.api.entity.message;
 
 import club.minnced.discord.webhook.WebhookClient;
 import club.minnced.discord.webhook.receive.ReadonlyAttachment;
@@ -40,9 +40,9 @@ import com.discordsrv.api.placeholder.annotation.PlaceholderRemainder;
 import com.discordsrv.common.DiscordSRV;
 import com.discordsrv.common.component.util.ComponentUtil;
 import com.discordsrv.common.config.main.channels.base.BaseChannelConfig;
-import com.discordsrv.common.discord.api.DiscordUserImpl;
-import com.discordsrv.common.discord.api.channel.DiscordMessageChannelImpl;
-import com.discordsrv.common.discord.api.guild.DiscordGuildMemberImpl;
+import com.discordsrv.common.discord.api.entity.DiscordUserImpl;
+import com.discordsrv.common.discord.api.entity.channel.DiscordMessageChannelImpl;
+import com.discordsrv.common.discord.api.entity.guild.DiscordGuildMemberImpl;
 import com.discordsrv.common.function.OrDefault;
 import net.dv8tion.jda.api.entities.Member;
 import net.dv8tion.jda.api.entities.Message;
@@ -265,7 +265,7 @@ public class ReceivedDiscordMessageImpl extends SendableDiscordMessageImpl imple
             return future;
         }
 
-        return textChannel.deleteMessageById(getId());
+        return textChannel.deleteMessageById(getId(), fromSelf && getWebhookUsername().isPresent());
     }
 
     @Override

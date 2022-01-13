@@ -21,10 +21,12 @@ package com.discordsrv.common.discord.api;
 import club.minnced.discord.webhook.WebhookClient;
 import club.minnced.discord.webhook.WebhookClientBuilder;
 import com.discordsrv.api.discord.api.DiscordAPI;
+import com.discordsrv.api.discord.api.ThreadChannelLookup;
 import com.discordsrv.api.discord.api.entity.DiscordUser;
 import com.discordsrv.api.discord.api.entity.channel.DiscordDMChannel;
 import com.discordsrv.api.discord.api.entity.channel.DiscordMessageChannel;
 import com.discordsrv.api.discord.api.entity.channel.DiscordTextChannel;
+import com.discordsrv.api.discord.api.entity.channel.DiscordThreadChannel;
 import com.discordsrv.api.discord.api.entity.guild.DiscordGuild;
 import com.discordsrv.api.discord.api.entity.guild.DiscordRole;
 import com.discordsrv.api.discord.api.exception.NotReadyException;
@@ -32,35 +34,43 @@ import com.discordsrv.api.discord.api.exception.RestErrorResponseException;
 import com.discordsrv.common.DiscordSRV;
 import com.discordsrv.common.config.main.channels.base.BaseChannelConfig;
 import com.discordsrv.common.config.main.channels.base.IChannelConfig;
-import com.discordsrv.common.discord.api.channel.DiscordDMChannelImpl;
-import com.discordsrv.common.discord.api.channel.DiscordTextChannelImpl;
-import com.discordsrv.common.discord.api.guild.DiscordGuildImpl;
-import com.discordsrv.common.discord.api.guild.DiscordRoleImpl;
+import com.discordsrv.common.config.main.channels.base.ThreadConfig;
+import com.discordsrv.common.discord.api.entity.DiscordUserImpl;
+import com.discordsrv.common.discord.api.entity.channel.DiscordDMChannelImpl;
+import com.discordsrv.common.discord.api.entity.channel.DiscordTextChannelImpl;
+import com.discordsrv.common.discord.api.entity.guild.DiscordGuildImpl;
+import com.discordsrv.common.discord.api.entity.guild.DiscordRoleImpl;
+import com.discordsrv.common.function.CheckedSupplier;
 import com.github.benmanes.caffeine.cache.AsyncCacheLoader;
 import com.github.benmanes.caffeine.cache.AsyncLoadingCache;
 import com.github.benmanes.caffeine.cache.Expiry;
 import com.github.benmanes.caffeine.cache.RemovalListener;
 import net.dv8tion.jda.api.JDA;
 import net.dv8tion.jda.api.entities.TextChannel;
+import net.dv8tion.jda.api.entities.ThreadChannel;
 import net.dv8tion.jda.api.entities.User;
 import net.dv8tion.jda.api.entities.Webhook;
 import net.dv8tion.jda.api.exceptions.ErrorResponseException;
+import net.dv8tion.jda.api.exceptions.InsufficientPermissionException;
 import net.dv8tion.jda.api.requests.ErrorResponse;
 import net.dv8tion.jda.api.requests.GatewayIntent;
 import org.checkerframework.checker.index.qual.NonNegative;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Optional;
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.Executor;
-import java.util.concurrent.TimeUnit;
+import java.util.concurrent.*;
+import java.util.function.BiConsumer;
+import java.util.function.Consumer;
 
 public class DiscordAPIImpl implements DiscordAPI {
 
     private final DiscordSRV discordSRV;
-
     private final AsyncLoadingCache<Long, WebhookClient> cachedClients;
+    private final List<ThreadChannelLookup> threadLookups = new CopyOnWriteArrayList<>();
 
     public DiscordAPIImpl(DiscordSRV discordSRV) {
         this.discordSRV = discordSRV;
@@ -80,6 +90,226 @@ public class DiscordAPIImpl implements DiscordAPI {
 
     public AsyncLoadingCache<Long, WebhookClient> getCachedClients() {
         return cachedClients;
+    }
+
+    /**
+     * Finds active threads based for the provided {@link IChannelConfig}.
+     * @param config the config that specified the threads
+     * @return the list of active threads
+     */
+    public List<DiscordThreadChannel> findThreads(IChannelConfig config) {
+        List<DiscordThreadChannel> channels = new ArrayList<>();
+        findOrCreateThreads(config, channels::add, null);
+        return channels;
+    }
+
+    /**
+     * Finds or potentially unarchives or creates threads based on the provided {@link IChannelConfig}.
+     * @param config the config
+     * @param channelConsumer the consumer that will take the channels as they are gathered
+     * @param futures a possibly null list of {@link CompletableFuture} for tasks that need to be completed to get all threads
+     */
+    public void findOrCreateThreads(
+            IChannelConfig config,
+            Consumer<DiscordThreadChannel> channelConsumer,
+            @Nullable List<CompletableFuture<DiscordThreadChannel>> futures
+    ) {
+        List<ThreadConfig> threads = config.threads();
+        if (threads == null) {
+            return;
+        }
+
+        for (ThreadConfig threadConfig : threads) {
+            long channelId = threadConfig.channelId;
+            DiscordTextChannel channel = getTextChannelById(channelId).orElse(null);
+            if (channel == null) {
+                if (channelId > 0) {
+                    discordSRV.logger().error("Unable to find channel with ID "
+                                                      + Long.toUnsignedString(channelId)
+                                                      + ", unable to forward message to Discord");
+                }
+                continue;
+            }
+
+            // Check if a thread by the same name is still active
+            DiscordThreadChannel thread = findThread(threadConfig, channel.getActiveThreads());
+            if (thread != null) {
+                ThreadChannel jdaChannel = thread.getAsJDAThreadChannel();
+                if (!jdaChannel.isLocked() && !jdaChannel.isArchived()) {
+                    channelConsumer.accept(thread);
+                    continue;
+                }
+            }
+
+            if (futures == null) {
+                // Futures not specified, don't try to unarchive or create threads
+                continue;
+            }
+
+            CompletableFuture<DiscordThreadChannel> future;
+            if (thread != null) {
+                // Unarchive the thread
+                future = new CompletableFuture<>();
+                unarchiveOrCreateThread(threadConfig, channel, thread, future);
+            } else {
+                // Find or create the thread
+                future = findOrCreateThread(threadConfig, channel);
+            }
+
+            futures.add(future.handle((threadChannel, t) -> {
+                if (t instanceof InsufficientPermissionException) {
+                    discordSRV.logger().error(
+                            "Unable to send message to channel " + channel
+                                    + " because the bot is lacking the "
+                                    + ((InsufficientPermissionException) t).getPermission().getName()
+                                    + " permission");
+                    throw new RuntimeException();
+                } else if (t != null) {
+                    discordSRV.logger().error("Failed to find thread in channel " + channel, t);
+                    throw new RuntimeException();
+                }
+
+                if (threadChannel != null) {
+                    channelConsumer.accept(threadChannel);
+                }
+                return threadChannel;
+            }));
+        }
+    }
+
+    private DiscordThreadChannel findThread(ThreadConfig config, List<DiscordThreadChannel> threads) {
+        for (DiscordThreadChannel thread : threads) {
+            if (thread.getName().equals(config.threadName)) {
+                return thread;
+            }
+        }
+        return null;
+    }
+
+    private CompletableFuture<DiscordThreadChannel> findOrCreateThread(ThreadConfig config, DiscordTextChannel textChannel) {
+        if (!config.unarchive) {
+            return textChannel.createThread(config.threadName, config.privateThread);
+        }
+
+        CompletableFuture<DiscordThreadChannel> completableFuture = new CompletableFuture<>();
+        lookupThreads(
+                textChannel,
+                config.privateThread,
+                lookup -> findOrCreateThread(config, textChannel, lookup, completableFuture),
+                (thread, throwable) -> {
+                    if (throwable != null) {
+                        completableFuture.completeExceptionally(throwable);
+                    } else {
+                        completableFuture.complete(thread);
+                    }
+                });
+        return completableFuture;
+    }
+
+    private void findOrCreateThread(
+            ThreadConfig config,
+            DiscordTextChannel textChannel,
+            ThreadChannelLookup lookup,
+            CompletableFuture<DiscordThreadChannel> completableFuture
+    ) {
+        completableFuture.whenComplete((threadChannel, throwable) -> {
+            CompletableFuture<DiscordThreadChannel> future = lookup.getChannelFuture();
+            if (throwable != null) {
+                future.completeExceptionally(throwable);
+            } else {
+                future.complete(threadChannel);
+            }
+        });
+        lookup.getFuture().whenComplete((channels, throwable) -> {
+            if (throwable != null) {
+                completableFuture.completeExceptionally(throwable);
+                return;
+            }
+
+            DiscordThreadChannel thread = findThread(config, channels);
+            unarchiveOrCreateThread(config, textChannel, thread, completableFuture);
+        }).exceptionally(t -> {
+            if (t instanceof CompletionException) {
+                completableFuture.completeExceptionally(t.getCause());
+                return null;
+            }
+            completableFuture.completeExceptionally(t);
+            return null;
+        });
+    }
+
+    private void unarchiveOrCreateThread(
+            ThreadConfig config,
+            DiscordTextChannel textChannel,
+            DiscordThreadChannel thread,
+            CompletableFuture<DiscordThreadChannel> future
+    ) {
+        if (thread != null) {
+            ThreadChannel channel = thread.getAsJDAThreadChannel();
+            if (channel.isLocked() || channel.isArchived()) {
+                try {
+                    channel.getManager().setArchived(false).queue(
+                            v -> future.complete(thread),
+                            future::completeExceptionally
+                    );
+                } catch (Throwable t) {
+                    future.completeExceptionally(t);
+                }
+            } else {
+                future.complete(thread);
+            }
+            return;
+        }
+
+        textChannel.createThread(config.threadName, config.privateThread).whenComplete(((threadChannel, t) -> {
+            if (t != null) {
+                future.completeExceptionally(t);
+            } else {
+                future.complete(threadChannel);
+            }
+        }));
+    }
+
+    public void lookupThreads(
+            DiscordTextChannel textChannel,
+            boolean privateThreads,
+            Consumer<ThreadChannelLookup> lookupConsumer,
+            BiConsumer<DiscordThreadChannel, Throwable> channelConsumer
+    ) {
+        ThreadChannelLookup lookup;
+        synchronized (threadLookups) {
+            for (ThreadChannelLookup threadLookup : threadLookups) {
+                if (threadLookup.isPrivateThreads() != privateThreads
+                        || threadLookup.getChannelId() != textChannel.getId()) {
+                    continue;
+                }
+
+                threadLookup.getChannelFuture().whenComplete(channelConsumer);
+                return;
+            }
+
+            lookup = new ThreadChannelLookup(
+                    textChannel.getId(), privateThreads,
+                    privateThreads
+                        ? textChannel.retrieveArchivedPrivateThreads()
+                        : textChannel.retrieveArchivedPublicThreads()
+            );
+            threadLookups.add(lookup);
+        }
+
+        lookup.getChannelFuture().whenComplete(channelConsumer);
+        lookupConsumer.accept(lookup);
+        lookup.getFuture().whenComplete((channel, t) -> threadLookups.remove(lookup));
+    }
+
+    public <T> CompletableFuture<T> mapExceptions(CheckedSupplier<CompletableFuture<T>> futureSupplier) {
+        try {
+            return mapExceptions(futureSupplier.get());
+        } catch (Throwable t) {
+            CompletableFuture<T> future = new CompletableFuture<>();
+            future.completeExceptionally(t);
+            return future;
+        }
     }
 
     public <T> CompletableFuture<T> mapExceptions(CompletableFuture<T> future) {
@@ -172,7 +402,7 @@ public class DiscordAPIImpl implements DiscordAPI {
         public @NonNull CompletableFuture<WebhookClient> asyncLoad(@NonNull Long channelId, @NonNull Executor executor) {
             JDA jda = discordSRV.jda().orElse(null);
             if (jda == null) {
-                return discordSRV.discordAPI().notReady();
+                return notReady();
             }
 
             CompletableFuture<WebhookClient> future = new CompletableFuture<>();
@@ -208,7 +438,7 @@ public class DiscordAPIImpl implements DiscordAPI {
             }).thenApply(webhook ->
                     WebhookClientBuilder.fromJDA(webhook)
                             .setHttpClient(jda.getHttpClient())
-                            .setExecutorService(discordSRV.scheduler().scheduledExecutor())
+                            .setExecutorService(discordSRV.scheduler().scheduledExecutorService())
                             .build()
             );
         }
@@ -219,7 +449,7 @@ public class DiscordAPIImpl implements DiscordAPI {
         private boolean isConfiguredChannel(Long channelId) {
             for (BaseChannelConfig config : discordSRV.config().channels.values()) {
                 if (config instanceof IChannelConfig
-                        && ((IChannelConfig) config).ids().contains(channelId)) {
+                        && ((IChannelConfig) config).channelIds().contains(channelId)) {
                     return true;
                 }
             }

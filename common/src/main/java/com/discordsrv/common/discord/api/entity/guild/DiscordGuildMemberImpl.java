@@ -16,7 +16,7 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package com.discordsrv.common.discord.api.guild;
+package com.discordsrv.common.discord.api.entity.guild;
 
 import com.discordsrv.api.color.Color;
 import com.discordsrv.api.discord.api.entity.guild.DiscordGuild;
@@ -26,7 +26,7 @@ import com.discordsrv.api.placeholder.annotation.Placeholder;
 import com.discordsrv.api.placeholder.annotation.PlaceholderRemainder;
 import com.discordsrv.common.DiscordSRV;
 import com.discordsrv.common.component.util.ComponentUtil;
-import com.discordsrv.common.discord.api.DiscordUserImpl;
+import com.discordsrv.common.discord.api.entity.DiscordUserImpl;
 import net.dv8tion.jda.api.entities.Member;
 import net.dv8tion.jda.api.entities.Role;
 import net.dv8tion.jda.api.entities.User;
@@ -71,6 +71,11 @@ public class DiscordGuildMemberImpl extends DiscordUserImpl implements DiscordGu
     @Override
     public List<DiscordRole> getRoles() {
         return roles;
+    }
+
+    @Override
+    public String getEffectiveServerAvatarUrl() {
+        return member.getEffectiveAvatarUrl();
     }
 
     @Override

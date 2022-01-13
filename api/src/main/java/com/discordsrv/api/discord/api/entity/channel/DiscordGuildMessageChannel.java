@@ -23,27 +23,25 @@
 
 package com.discordsrv.api.discord.api.entity.channel;
 
-import com.discordsrv.api.DiscordSRVApi;
-import net.dv8tion.jda.api.entities.TextChannel;
-import org.jetbrains.annotations.Nullable;
+import com.discordsrv.api.discord.api.entity.Mentionable;
+import org.jetbrains.annotations.NotNull;
+
+import java.util.List;
+import java.util.concurrent.CompletableFuture;
 
 /**
- * A Discord text channel.
+ * A regular Discord channel that messages can be sent to (threads not included).
  */
-public interface DiscordTextChannel extends DiscordGuildMessageChannel {
+public interface DiscordGuildMessageChannel extends DiscordMessageChannel, DiscordGuildChannel, Mentionable {
 
-    /**
-     * Gets the topic of the text channel.
-     * @return the topic of the channel
-     */
-    @Nullable
-    String getTopic();
+    @NotNull
+    List<DiscordThreadChannel> getActiveThreads();
 
-    /**
-     * Returns the JDA representation of this object. This should not be used if it can be avoided.
-     * @return the JDA representation of this object
-     * @see DiscordSRVApi#jda()
-     */
-    TextChannel getAsJDATextChannel();
+    CompletableFuture<List<DiscordThreadChannel>> retrieveArchivedPrivateThreads();
+    CompletableFuture<List<DiscordThreadChannel>> retrieveArchivedJoinedPrivateThreads();
+    CompletableFuture<List<DiscordThreadChannel>> retrieveArchivedPublicThreads();
+
+    CompletableFuture<DiscordThreadChannel> createThread(String name, boolean privateThread);
+    CompletableFuture<DiscordThreadChannel> createThread(String name, long messageId);
 
 }
