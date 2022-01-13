@@ -60,6 +60,7 @@ import javax.annotation.OverridingMethodsMustInvokeSuper;
 import java.util.Locale;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.concurrent.locks.ReentrantLock;
 
@@ -190,7 +191,29 @@ public abstract class AbstractDiscordSRV<C extends MainConfig, CC extends Connec
 
     @Override
     public void setStatus(Status status) {
-        this.status.set(status);
+        synchronized (this.status) {
+            this.status.set(status);
+            this.status.notifyAll();
+        }
+    }
+
+    @Override
+    public void waitForStatus(Status statusToWaitFor, long time, TimeUnit unit) throws InterruptedException {
+        long deadline = time > 0 ? System.currentTimeMillis() + unit.toMillis(time) : Long.MAX_VALUE;
+        while (status().ordinal() < statusToWaitFor.ordinal()) {
+            long currentTime = System.currentTimeMillis();
+            if (currentTime > deadline) {
+                break;
+            }
+
+            synchronized (this.status) {
+                if (time > 0) {
+                    this.status.wait(deadline - currentTime);
+                } else {
+                    this.status.wait();
+                }
+            }
+        }
     }
 
     protected CompletableFuture<Void> invokeLifecycle(CheckedRunnable runnable, String message, boolean enable) {

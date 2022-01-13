@@ -44,6 +44,7 @@ import java.nio.file.Paths;
 import java.util.Locale;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.TimeUnit;
 
 public class MockDiscordSRV implements DiscordSRV {
 
@@ -164,6 +165,11 @@ public class MockDiscordSRV implements DiscordSRV {
 
     @Override
     public void setStatus(Status status) {
+
+    }
+
+    @Override
+    public void waitForStatus(Status status, long time, TimeUnit unit) throws InterruptedException {
 
     }
 

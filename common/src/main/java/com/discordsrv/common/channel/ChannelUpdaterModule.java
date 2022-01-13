@@ -23,6 +23,7 @@ import com.discordsrv.common.config.main.ChannelUpdaterConfig;
 import com.discordsrv.common.module.type.AbstractModule;
 import net.dv8tion.jda.api.JDA;
 import net.dv8tion.jda.api.entities.GuildChannel;
+import net.dv8tion.jda.api.entities.TextChannel;
 import net.dv8tion.jda.api.managers.channel.ChannelManager;
 import net.dv8tion.jda.api.managers.channel.concrete.TextChannelManager;
 import org.apache.commons.lang3.StringUtils;
@@ -36,6 +37,7 @@ import java.util.concurrent.TimeUnit;
 public class ChannelUpdaterModule extends AbstractModule {
 
     private final Set<ScheduledFuture<?>> futures = new LinkedHashSet<>();
+    private boolean firstReload = true;
 
     public ChannelUpdaterModule(DiscordSRV discordSRV) {
         super(discordSRV);
@@ -55,13 +57,22 @@ public class ChannelUpdaterModule extends AbstractModule {
         }
 
         for (ChannelUpdaterConfig config : discordSRV.config().channelUpdaters) {
-            futures.add(
-                    discordSRV.scheduler().runAtFixedRate(() -> update(config), config.timeMinutes, TimeUnit.MINUTES)
-            );
+            futures.add(discordSRV.scheduler().runAtFixedRate(
+                    () -> update(config),
+                    firstReload ? 0 : config.timeMinutes,
+                    config.timeMinutes,
+                    TimeUnit.MINUTES
+            ));
         }
+        firstReload = false;
     }
 
     public void update(ChannelUpdaterConfig config) {
+        try {
+            // Wait a moment in case we're (re)connecting at the time
+            discordSRV.waitForStatus(DiscordSRV.Status.CONNECTED, 15, TimeUnit.SECONDS);
+        } catch (InterruptedException ignored) {}
+
         JDA jda = discordSRV.jda().orElse(null);
         if (jda == null) {
             return;
@@ -84,11 +95,20 @@ public class ChannelUpdaterModule extends AbstractModule {
             }
 
             ChannelManager<?, ?> manager = channel.getManager();
-            if (manager instanceof TextChannelManager && StringUtils.isNotEmpty(topicFormat)) {
+            boolean anythingChanged = false;
+            if (manager instanceof TextChannelManager && channel instanceof TextChannel
+                    && StringUtils.isNotEmpty(topicFormat)
+                    && !topicFormat.equals(((TextChannel) channel).getTopic())) {
+                anythingChanged = true;
                 manager = ((TextChannelManager) manager).setTopic(topicFormat);
             }
-            if (StringUtils.isNotEmpty(nameFormat)) {
+            if (StringUtils.isNotEmpty(nameFormat) && !nameFormat.equals(channel.getName())) {
+                anythingChanged = true;
                 manager = manager.setName(nameFormat);
+            }
+
+            if (!anythingChanged) {
+                continue;
             }
 
             manager.timeout(30, TimeUnit.SECONDS).queue();

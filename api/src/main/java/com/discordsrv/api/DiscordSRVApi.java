@@ -136,6 +136,17 @@ public interface DiscordSRVApi {
         INITIALIZED,
 
         /**
+         * DiscordSRV is attempting to connect to Discord.
+         */
+        ATTEMPTING_TO_CONNECT,
+
+        /**
+         * DiscordSRV is connected to Discord & is ready.
+         * @see #isReady()
+         */
+        CONNECTED,
+
+        /**
          * DiscordSRV failed to load its configuration.
          * @see #isError()
          * @see #isStartupError()
@@ -150,21 +161,10 @@ public interface DiscordSRVApi {
         FAILED_TO_START(true),
 
         /**
-         * DiscordSRV is attempting to connect to Discord.
-         */
-        ATTEMPTING_TO_CONNECT,
-
-        /**
          * DiscordSRV failed to connect to Discord.
          * @see #isError()
          */
         FAILED_TO_CONNECT(true),
-
-        /**
-         * DiscordSRV is connected to Discord & is ready.
-         * @see #isReady()
-         */
-        CONNECTED,
 
         /**
          * DiscordSRV is shutting down.

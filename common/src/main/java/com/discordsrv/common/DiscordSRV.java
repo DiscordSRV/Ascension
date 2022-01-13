@@ -41,6 +41,7 @@ import org.jetbrains.annotations.NotNull;
 import java.nio.file.Path;
 import java.util.Locale;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.TimeUnit;
 
 public interface DiscordSRV extends DiscordSRVApi {
 
@@ -85,7 +86,13 @@ public interface DiscordSRV extends DiscordSRVApi {
     void unregisterModule(AbstractModule module);
 
     Locale locale();
+
+    // Status
     void setStatus(Status status);
+    default void waitForStatus(Status status) throws InterruptedException {
+        waitForStatus(status, -1, TimeUnit.MILLISECONDS);
+    }
+    void waitForStatus(Status status, long time, TimeUnit unit) throws InterruptedException;
 
     @SuppressWarnings("unchecked")
     @ApiStatus.NonExtendable

@@ -27,7 +27,9 @@ import java.util.List;
 @ConfigSerializable
 public class ChannelUpdaterConfig {
 
-    @Comment("The channel IDs")
+    @Comment("The channel IDs.\n"
+            + "The bot will need the \"View Channel\" and \"Manage Channels\" permissions, "
+            + "additionally \"Connect\" is required for voice channels")
     public List<Long> channelIds = new ArrayList<>();
 
     @Comment("If this is blank, the name will not be updated")
