@@ -18,16 +18,10 @@
 
 package com.discordsrv.common.config.main.channels.base;
 
-import org.checkerframework.checker.nullness.qual.Nullable;
-import org.spongepowered.configurate.ConfigurationNode;
 import org.spongepowered.configurate.objectmapping.ConfigSerializable;
-import org.spongepowered.configurate.objectmapping.ObjectMapper;
 import org.spongepowered.configurate.objectmapping.meta.Comment;
-import org.spongepowered.configurate.serialize.SerializationException;
-import org.spongepowered.configurate.serialize.TypeSerializer;
+import org.spongepowered.configurate.objectmapping.meta.Setting;
 
-import java.lang.reflect.Type;
-import java.util.ArrayList;
 import java.util.List;
 
 @ConfigSerializable
@@ -37,47 +31,22 @@ public class ChannelConfig extends BaseChannelConfig implements IChannelConfig {
         initialize();
     }
 
+    @Setting(CHANNEL_IDS_OPTION_NAME)
     @Comment(CHANNEL_IDS_COMMENT)
-    public List<Long> channelIds = new ArrayList<>();
+    public List<Long> channelIds = CHANNEL_IDS_VALUE;
 
     @Override
-    public List<Long> ids() {
+    public List<Long> channelIds() {
         return channelIds;
     }
 
-    public static class Serializer implements TypeSerializer<BaseChannelConfig> {
+    @Setting(THREADS_OPTION_NAME)
+    @Comment(THREADS_COMMENT)
+    public List<ThreadConfig> threads = THREADS_VALUE;
 
-        private final ObjectMapper.Factory mapperFactory;
-        private final Class<?> baseConfigClass;
-        private final Class<?> configClass;
-
-        public Serializer(ObjectMapper.Factory mapperFactory, Class<?> baseConfigClass, Class<?> configClass) {
-            this.mapperFactory = mapperFactory;
-            this.baseConfigClass = baseConfigClass;
-            this.configClass = configClass;
-        }
-
-        @Override
-        public BaseChannelConfig deserialize(Type type, ConfigurationNode node) throws SerializationException {
-            return (BaseChannelConfig) mapperFactory.asTypeSerializer()
-                    .deserialize(
-                            ChannelConfig.DEFAULT_KEY.equals(node.key()) ? baseConfigClass : configClass,
-                            node
-                    );
-        }
-
-        @Override
-        public void serialize(Type type, @Nullable BaseChannelConfig obj, ConfigurationNode node) throws SerializationException {
-            if (obj == null) {
-                node.set(null);
-                return;
-            }
-
-            mapperFactory.asTypeSerializer().serialize(
-                    ChannelConfig.DEFAULT_KEY.equals(node.key()) ? baseConfigClass : configClass,
-                    obj,
-                    node
-            );
-        }
+    @Override
+    public List<ThreadConfig> threads() {
+        return threads;
     }
+
 }

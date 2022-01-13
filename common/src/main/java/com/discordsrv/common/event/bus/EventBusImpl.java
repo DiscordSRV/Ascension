@@ -195,7 +195,7 @@ public class EventBusImpl implements EventBus {
                     } catch (IllegalAccessException e) {
                         discordSRV.logger().error("Failed to access API listener method: " + eventListener.methodName(), e);
                     } catch (InvocationTargetException e) {
-                        discordSRV.logger().error("Failed to pass " + event.getClass().getSimpleName() + " to " + eventListener, e);
+                        discordSRV.logger().error("Failed to pass " + event.getClass().getSimpleName() + " to " + eventListener, e.getCause());
                     }
                     long timeTaken = System.currentTimeMillis() - startTime;
                     discordSRV.logger().trace(eventListener + " took " + timeTaken + "ms to execute");

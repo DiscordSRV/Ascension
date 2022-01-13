@@ -22,7 +22,6 @@ import com.discordsrv.api.component.MinecraftComponent;
 import com.discordsrv.common.DiscordSRV;
 import com.discordsrv.common.component.util.ComponentUtil;
 import net.kyori.adventure.platform.bukkit.BukkitComponentSerializer;
-import org.bukkit.event.Event;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
@@ -43,7 +42,7 @@ public final class PaperComponentUtil {
 
     private PaperComponentUtil() {}
 
-    public static <T extends Event> MinecraftComponent getComponent(
+    public static <T> MinecraftComponent getComponent(
             DiscordSRV discordSRV, T source, String methodName, Function<T, String> legacy) {
         if (!IS_PAPER_ADVENTURE) {
             return getLegacy(legacy.apply(source));

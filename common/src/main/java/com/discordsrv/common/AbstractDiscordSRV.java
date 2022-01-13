@@ -22,8 +22,11 @@ import com.discordsrv.api.discord.connection.DiscordConnectionDetails;
 import com.discordsrv.api.event.bus.EventBus;
 import com.discordsrv.api.event.events.lifecycle.DiscordSRVReloadEvent;
 import com.discordsrv.api.event.events.lifecycle.DiscordSRVShuttingDownEvent;
+import com.discordsrv.common.discord.api.DiscordAPIEventModule;
 import com.discordsrv.common.api.util.ApiInstanceUtil;
 import com.discordsrv.common.channel.ChannelConfigHelper;
+import com.discordsrv.common.channel.ChannelUpdaterModule;
+import com.discordsrv.common.channel.GlobalChannelLookupModule;
 import com.discordsrv.common.component.ComponentFactory;
 import com.discordsrv.common.config.connection.ConnectionConfig;
 import com.discordsrv.common.config.main.MainConfig;
@@ -35,22 +38,21 @@ import com.discordsrv.common.discord.connection.jda.JDAConnectionManager;
 import com.discordsrv.common.discord.details.DiscordConnectionDetailsImpl;
 import com.discordsrv.common.event.bus.EventBusImpl;
 import com.discordsrv.common.function.CheckedRunnable;
+import com.discordsrv.common.integration.LuckPermsIntegration;
+import com.discordsrv.common.logging.adapter.DependencyLoggerAdapter;
 import com.discordsrv.common.logging.dependency.DependencyLoggingHandler;
-import com.discordsrv.common.module.modules.message.JoinMessageModule;
-import com.discordsrv.common.module.modules.message.LeaveMessageModule;
-import com.discordsrv.common.module.type.AbstractModule;
-import com.discordsrv.common.module.type.Module;
+import com.discordsrv.common.messageforwarding.discord.DiscordChatMessageModule;
+import com.discordsrv.common.messageforwarding.discord.DiscordMessageMirroringModule;
+import com.discordsrv.common.messageforwarding.game.JoinMessageModule;
+import com.discordsrv.common.messageforwarding.game.LeaveMessageModule;
+import com.discordsrv.common.messageforwarding.game.MinecraftToDiscordChatModule;
 import com.discordsrv.common.module.ModuleInitializationFunction;
 import com.discordsrv.common.module.ModuleManager;
-import com.discordsrv.common.module.modules.DiscordAPIEventModule;
-import com.discordsrv.common.module.modules.message.DiscordToMinecraftChatModule;
-import com.discordsrv.common.module.modules.GlobalChannelLookupModule;
-import com.discordsrv.common.module.modules.message.MinecraftToDiscordChatModule;
-import com.discordsrv.common.module.modules.integration.LuckPermsIntegration;
+import com.discordsrv.common.module.type.AbstractModule;
+import com.discordsrv.common.module.type.Module;
 import com.discordsrv.common.placeholder.ComponentResultStringifier;
 import com.discordsrv.common.placeholder.PlaceholderServiceImpl;
 import com.discordsrv.common.placeholder.context.GlobalTextHandlingContext;
-import com.discordsrv.common.logging.adapter.DependencyLoggerAdapter;
 import net.dv8tion.jda.api.JDA;
 import org.jetbrains.annotations.NotNull;
 
@@ -269,14 +271,19 @@ public abstract class AbstractDiscordSRV<C extends MainConfig, CC extends Connec
         // Register modules
         moduleManager = new ModuleManager(this);
         for (ModuleInitializationFunction function : new ModuleInitializationFunction[]{
+                ChannelUpdaterModule::new,
+                GlobalChannelLookupModule::new,
+
+                DiscordAPIEventModule::new,
+
                 LuckPermsIntegration::new,
 
-                DiscordToMinecraftChatModule::new,
+                DiscordChatMessageModule::new,
+                DiscordMessageMirroringModule::new,
+
                 JoinMessageModule::new,
                 LeaveMessageModule::new,
                 MinecraftToDiscordChatModule::new,
-                DiscordAPIEventModule::new,
-                GlobalChannelLookupModule::new
         }) {
             try {
                 registerModule(function.initialize(this));

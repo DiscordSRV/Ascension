@@ -16,10 +16,12 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package com.discordsrv.common.module.modules.message;
+package com.discordsrv.common.messageforwarding.game;
 
 import com.discordsrv.api.channel.GameChannel;
+import com.discordsrv.api.discord.api.entity.channel.DiscordMessageChannel;
 import com.discordsrv.api.discord.api.entity.channel.DiscordTextChannel;
+import com.discordsrv.api.discord.api.entity.channel.DiscordThreadChannel;
 import com.discordsrv.api.discord.api.entity.guild.DiscordGuild;
 import com.discordsrv.api.discord.api.entity.message.ReceivedDiscordMessage;
 import com.discordsrv.api.discord.api.entity.message.ReceivedDiscordMessageCluster;
@@ -116,23 +118,30 @@ public class MinecraftToDiscordChatModule extends AbstractGameMessageModule<Mine
     public List<CompletableFuture<ReceivedDiscordMessage>> sendMessageToChannels(
             OrDefault<MinecraftToDiscordChatConfig> config,
             SendableDiscordMessage.Builder format,
-            List<Long> channelIds,
+            List<DiscordMessageChannel> channels,
             String message,
             Object... context
     ) {
-        Map<DiscordGuild, Set<DiscordTextChannel>> channels = new LinkedHashMap<>();
-        for (Long channelId : channelIds) {
-            discordSRV.discordAPI().getTextChannelById(channelId)
-                    .ifPresent(textChannel -> channels
-                            .computeIfAbsent(textChannel.getGuild(), key -> new LinkedHashSet<>())
-                            .add(textChannel));
+        Map<DiscordGuild, Set<DiscordMessageChannel>> channelMap = new LinkedHashMap<>();
+        for (DiscordMessageChannel channel : channels) {
+            DiscordGuild guild;
+            if (channel instanceof DiscordTextChannel) {
+                guild = ((DiscordTextChannel) channel).getGuild();
+            } else if (channel instanceof DiscordThreadChannel) {
+                guild = ((DiscordThreadChannel) channel).getParentChannel().getGuild();
+            } else {
+                continue;
+            }
+
+            channelMap.computeIfAbsent(guild, key -> new LinkedHashSet<>())
+                    .add(channel);
         }
 
         List<CompletableFuture<ReceivedDiscordMessage>> futures = new ArrayList<>();
 
         OrDefault<MinecraftToDiscordChatConfig.Mentions> mentionConfig = config.map(cfg -> cfg.mentions);
         // Format messages per-Guild
-        for (Map.Entry<DiscordGuild, Set<DiscordTextChannel>> entry : channels.entrySet()) {
+        for (Map.Entry<DiscordGuild, Set<DiscordMessageChannel>> entry : channelMap.entrySet()) {
             Guild guild = entry.getKey().getAsJDAGuild();
 
             Placeholders channelMessagePlaceholders = new Placeholders(message);
@@ -152,14 +161,32 @@ public class MinecraftToDiscordChatModule extends AbstractGameMessageModule<Mine
                     .sorted(Comparator.comparingInt(mention -> ((CachedMention) mention).searchLength).reversed())
                     .forEachOrdered(mention -> channelMessagePlaceholders.replaceAll(mention.search, mention.mention));
 
-            SendableDiscordMessage discordMessage = format.toFormatter()
+            SendableDiscordMessage.Formatter discordMessage = format.toFormatter()
                     .addContext(context)
                     .addReplacement("%message%", new FormattedText(channelMessagePlaceholders.toString()))
-                    .applyPlaceholderService()
-                    .build();
+                    .applyPlaceholderService();
 
-            for (DiscordTextChannel textChannel : entry.getValue()) {
-                futures.add(textChannel.sendMessage(discordMessage));
+            List<DiscordMessageChannel> text = new ArrayList<>();
+            List<DiscordMessageChannel> thread = new ArrayList<>();
+            for (DiscordMessageChannel channel : entry.getValue()) {
+                if (channel instanceof DiscordTextChannel) {
+                    text.add(channel);
+                } else if (channel instanceof DiscordThreadChannel) {
+                    thread.add(channel);
+                }
+            }
+
+            if (!text.isEmpty()) {
+                SendableDiscordMessage finalMessage = discordMessage.build();
+                for (DiscordMessageChannel channel : text) {
+                    futures.add(channel.sendMessage(finalMessage));
+                }
+            }
+            if (!thread.isEmpty()) {
+                SendableDiscordMessage finalMessage = discordMessage.convertToNonWebhook().build();
+                for (DiscordMessageChannel channel : thread) {
+                    futures.add(channel.sendMessage(finalMessage));
+                }
             }
         }
 

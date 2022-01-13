@@ -16,7 +16,7 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package com.discordsrv.common.module.modules.message;
+package com.discordsrv.common.messageforwarding.game;
 
 import com.discordsrv.api.discord.api.entity.message.ReceivedDiscordMessageCluster;
 import com.discordsrv.api.discord.api.entity.message.SendableDiscordMessage;

@@ -21,14 +21,21 @@
  * SOFTWARE.
  */
 
-package com.discordsrv.api.event.events.message.forward.game;
+package com.discordsrv.api.discord.events;
 
-import com.discordsrv.api.discord.api.entity.message.ReceivedDiscordMessageCluster;
-import org.jetbrains.annotations.NotNull;
+import com.discordsrv.api.discord.api.entity.channel.DiscordMessageChannel;
+import com.discordsrv.api.discord.api.entity.message.ReceivedDiscordMessage;
 
-public class ServerSwitchMessageForwardedEvent extends AbstractGameMessageForwardedEvent {
+public class DiscordMessageReceiveEvent extends AbstractDiscordMessageEvent {
 
-    public ServerSwitchMessageForwardedEvent(@NotNull ReceivedDiscordMessageCluster discordMessage) {
-        super(discordMessage);
+    private final ReceivedDiscordMessage message;
+
+    public DiscordMessageReceiveEvent(DiscordMessageChannel channel, ReceivedDiscordMessage message) {
+        super(channel);
+        this.message = message;
+    }
+
+    public ReceivedDiscordMessage getMessage() {
+        return message;
     }
 }

@@ -27,13 +27,13 @@ import com.discordsrv.api.event.events.placeholder.PlaceholderLookupEvent;
 import com.discordsrv.api.placeholder.PlaceholderLookupResult;
 import com.discordsrv.common.DiscordSRV;
 import com.discordsrv.common.config.connection.ConnectionConfig;
-import com.discordsrv.common.discord.api.channel.DiscordDMChannelImpl;
-import com.discordsrv.common.discord.api.channel.DiscordTextChannelImpl;
-import com.discordsrv.common.discord.api.guild.DiscordGuildImpl;
-import com.discordsrv.common.discord.api.guild.DiscordGuildMemberImpl;
-import com.discordsrv.common.discord.api.guild.DiscordRoleImpl;
-import com.discordsrv.common.discord.api.message.ReceivedDiscordMessageImpl;
-import com.discordsrv.common.discord.api.DiscordUserImpl;
+import com.discordsrv.common.discord.api.entity.channel.DiscordDMChannelImpl;
+import com.discordsrv.common.discord.api.entity.channel.DiscordTextChannelImpl;
+import com.discordsrv.common.discord.api.entity.guild.DiscordGuildImpl;
+import com.discordsrv.common.discord.api.entity.guild.DiscordGuildMemberImpl;
+import com.discordsrv.common.discord.api.entity.guild.DiscordRoleImpl;
+import com.discordsrv.common.discord.api.entity.message.ReceivedDiscordMessageImpl;
+import com.discordsrv.common.discord.api.entity.DiscordUserImpl;
 import com.discordsrv.common.discord.connection.DiscordConnectionManager;
 import com.discordsrv.common.scheduler.Scheduler;
 import com.discordsrv.common.scheduler.threadfactory.CountingThreadFactory;
@@ -239,9 +239,9 @@ public class JDAConnectionManager implements DiscordConnectionManager {
         jdaBuilder.setMemberCachePolicy(membersIntent ? MemberCachePolicy.ALL : MemberCachePolicy.OWNER);
         jdaBuilder.setChunkingFilter(membersIntent ? ChunkingFilter.ALL : ChunkingFilter.NONE);
 
-        jdaBuilder.setEventManager(new EventManagerProxy(new JDAEventManager(discordSRV), discordSRV.scheduler().forkExecutor()));
+        jdaBuilder.setEventManager(new EventManagerProxy(new JDAEventManager(discordSRV), discordSRV.scheduler().forkJoinPool()));
 
-        jdaBuilder.setCallbackPool(discordSRV.scheduler().forkExecutor());
+        jdaBuilder.setCallbackPool(discordSRV.scheduler().forkJoinPool());
         jdaBuilder.setGatewayPool(gatewayPool);
         jdaBuilder.setRateLimitPool(rateLimitPool);
 

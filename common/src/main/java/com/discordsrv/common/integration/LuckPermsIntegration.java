@@ -16,7 +16,7 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package com.discordsrv.common.module.modules.integration;
+package com.discordsrv.common.integration;
 
 import com.discordsrv.common.DiscordSRV;
 import com.discordsrv.common.module.type.PermissionDataProvider;

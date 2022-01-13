@@ -19,10 +19,11 @@
 package com.discordsrv.common.server.config.channels.base;
 
 import com.discordsrv.common.config.main.channels.base.IChannelConfig;
+import com.discordsrv.common.config.main.channels.base.ThreadConfig;
 import org.spongepowered.configurate.objectmapping.ConfigSerializable;
 import org.spongepowered.configurate.objectmapping.meta.Comment;
+import org.spongepowered.configurate.objectmapping.meta.Setting;
 
-import java.util.ArrayList;
 import java.util.List;
 
 @ConfigSerializable
@@ -32,11 +33,21 @@ public class ServerChannelConfig extends ServerBaseChannelConfig implements ICha
         initialize();
     }
 
+    @Setting(CHANNEL_IDS_OPTION_NAME)
     @Comment(CHANNEL_IDS_COMMENT)
-    public List<Long> channelIds = new ArrayList<>();
+    public List<Long> channelIds = CHANNEL_IDS_VALUE;
 
     @Override
-    public List<Long> ids() {
+    public List<Long> channelIds() {
         return channelIds;
+    }
+
+    @Setting(THREADS_OPTION_NAME)
+    @Comment(THREADS_COMMENT)
+    public List<ThreadConfig> threads = THREADS_VALUE;
+
+    @Override
+    public List<ThreadConfig> threads() {
+        return threads;
     }
 }

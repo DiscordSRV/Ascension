@@ -19,6 +19,7 @@
 package com.discordsrv.bukkit.player;
 
 import com.discordsrv.bukkit.BukkitDiscordSRV;
+import com.discordsrv.bukkit.component.util.PaperComponentUtil;
 import com.discordsrv.common.DiscordSRV;
 import com.discordsrv.common.component.util.ComponentUtil;
 import com.discordsrv.common.player.IPlayer;
@@ -29,20 +30,8 @@ import net.kyori.adventure.text.Component;
 import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
 
-import java.lang.reflect.Method;
-
 @SuppressWarnings("NullableProblems") // BukkitOfflinePlayer nullability
 public class BukkitPlayer extends BukkitOfflinePlayer implements IPlayer {
-
-    private static final Method DISPLAY_NAME_METHOD; // Paper 1.16+
-
-    static {
-        Method displayNameMethod = null;
-        try {
-            displayNameMethod = Player.class.getMethod("displayName");
-        } catch (Throwable ignored) {}
-        DISPLAY_NAME_METHOD = displayNameMethod;
-    }
 
     private final Player player;
     private final Audience audience;
@@ -83,13 +72,8 @@ public class BukkitPlayer extends BukkitOfflinePlayer implements IPlayer {
     @SuppressWarnings("deprecation") // Paper
     @Override
     public @NotNull Component displayName() {
-        if (DISPLAY_NAME_METHOD != null) {
-            try {
-                return ComponentUtil.fromUnrelocated(DISPLAY_NAME_METHOD.invoke(player));
-            } catch (Throwable ignored) {}
-        }
-
-        // Use the legacy method
-        return BukkitComponentSerializer.legacy().deserialize(player.getDisplayName());
+        return ComponentUtil.fromAPI(
+                PaperComponentUtil.getComponent(discordSRV, player, "displayName", Player::getDisplayName)
+        );
     }
 }

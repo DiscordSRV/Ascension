@@ -188,6 +188,9 @@ public interface SendableDiscordMessage {
         @NotNull
         Builder setWebhookAvatarUrl(String webhookAvatarUrl);
 
+        @NotNull
+        Builder convertToNonWebhook();
+
         /**
          * Builds a {@link SendableDiscordMessage} from this builder.
          * @return the new {@link SendableDiscordMessage}
@@ -251,6 +254,9 @@ public interface SendableDiscordMessage {
 
         @NotNull
         Formatter applyPlaceholderService();
+
+        @NotNull
+        Formatter convertToNonWebhook();
 
         @NotNull
         SendableDiscordMessage build();

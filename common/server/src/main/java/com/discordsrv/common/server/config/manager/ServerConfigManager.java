@@ -20,7 +20,7 @@ package com.discordsrv.common.server.config.manager;
 
 import com.discordsrv.common.DiscordSRV;
 import com.discordsrv.common.config.main.MainConfig;
-import com.discordsrv.common.config.main.channels.base.ChannelConfig;
+import com.discordsrv.common.config.main.channels.base.IChannelConfig;
 import com.discordsrv.common.config.manager.MainConfigManager;
 import com.discordsrv.common.server.config.channels.base.ServerBaseChannelConfig;
 import com.discordsrv.common.server.config.channels.base.ServerChannelConfig;
@@ -33,7 +33,7 @@ public abstract class ServerConfigManager<T extends MainConfig> extends MainConf
     }
 
     @Override
-    public ChannelConfig.Serializer getChannelConfigSerializer(ObjectMapper.Factory mapperFactory) {
-        return new ChannelConfig.Serializer(mapperFactory, ServerBaseChannelConfig.class, ServerChannelConfig.class);
+    public IChannelConfig.Serializer getChannelConfigSerializer(ObjectMapper.Factory mapperFactory) {
+        return new IChannelConfig.Serializer(mapperFactory, ServerBaseChannelConfig.class, ServerChannelConfig.class);
     }
 }

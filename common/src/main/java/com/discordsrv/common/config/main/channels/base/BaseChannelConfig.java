@@ -20,11 +20,9 @@ package com.discordsrv.common.config.main.channels.base;
 
 import com.discordsrv.common.config.annotation.Order;
 import com.discordsrv.common.config.annotation.Untranslated;
-import com.discordsrv.common.config.main.channels.DiscordToMinecraftChatConfig;
-import com.discordsrv.common.config.main.channels.JoinMessageConfig;
-import com.discordsrv.common.config.main.channels.LeaveMessageConfig;
-import com.discordsrv.common.config.main.channels.MinecraftToDiscordChatConfig;
+import com.discordsrv.common.config.main.channels.*;
 import org.spongepowered.configurate.objectmapping.ConfigSerializable;
+import org.spongepowered.configurate.objectmapping.meta.Comment;
 
 @ConfigSerializable
 public class BaseChannelConfig {
@@ -34,7 +32,11 @@ public class BaseChannelConfig {
     public JoinMessageConfig joinMessages = new JoinMessageConfig();
     public LeaveMessageConfig leaveMessages = new LeaveMessageConfig();
 
+    @Order(10)
+    @Comment("Settings for synchronizing messages between the defined Discord channels and threads")
+    public MirroringConfig mirroring = new MirroringConfig();
+
     @Untranslated(Untranslated.Type.VALUE)
-    @Order(5)
+    @Order(50)
     public String avatarUrlProvider = "https://heads.discordsrv.com/head.png?texture=%texture%&uuid=%uuid%&name=%username%&overlay";
 }

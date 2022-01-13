@@ -16,4 +16,10 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package com.discordsrv.proxy.config;
+package com.discordsrv.common.function;
+
+@FunctionalInterface
+public interface CheckedSupplier<O> {
+
+    O get() throws Throwable;
+}

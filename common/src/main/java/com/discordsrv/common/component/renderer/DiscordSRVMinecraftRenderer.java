@@ -29,7 +29,6 @@ import com.discordsrv.common.component.util.ComponentUtil;
 import com.discordsrv.common.config.main.channels.DiscordToMinecraftChatConfig;
 import com.discordsrv.common.function.OrDefault;
 import dev.vankka.mcdiscordreserializer.renderer.implementation.DefaultMinecraftRenderer;
-import lombok.NonNull;
 import net.dv8tion.jda.api.entities.GuildChannel;
 import net.dv8tion.jda.api.utils.MiscUtil;
 import net.kyori.adventure.text.Component;
@@ -62,14 +61,15 @@ public class DiscordSRVMinecraftRenderer extends DefaultMinecraftRenderer {
             OrDefault<DiscordToMinecraftChatConfig> config,
             Supplier<T> supplier
     ) {
+        Context oldValue = CONTEXT.get();
         CONTEXT.set(new Context(event, config));
         T output = supplier.get();
-        CONTEXT.remove();
+        CONTEXT.set(oldValue);
         return output;
     }
 
     @Override
-    public @NotNull Component appendChannelMention(@NonNull Component component, @NonNull String id) {
+    public @NotNull Component appendChannelMention(@NotNull Component component, @NotNull String id) {
         Context context = CONTEXT.get();
         DiscordToMinecraftChatConfig.Mentions.Format format =
                 context != null ? context.config.map(cfg -> cfg.mentions).get(cfg -> cfg.channel) : null;
@@ -91,7 +91,7 @@ public class DiscordSRVMinecraftRenderer extends DefaultMinecraftRenderer {
     }
 
     @Override
-    public @NotNull Component appendUserMention(@NonNull Component component, @NonNull String id) {
+    public @NotNull Component appendUserMention(@NotNull Component component, @NotNull String id) {
         Context context = CONTEXT.get();
         DiscordToMinecraftChatConfig.Mentions.Format format =
                 context != null ? context.config.map(cfg -> cfg.mentions).get(cfg -> cfg.user) : null;
@@ -124,7 +124,7 @@ public class DiscordSRVMinecraftRenderer extends DefaultMinecraftRenderer {
     }
 
     @Override
-    public @NotNull Component appendRoleMention(@NonNull Component component, @NonNull String id) {
+    public @NotNull Component appendRoleMention(@NotNull Component component, @NotNull String id) {
         Context context = CONTEXT.get();
         DiscordToMinecraftChatConfig.Mentions.Format format =
                 context != null ? context.config.map(cfg -> cfg.mentions).get(cfg -> cfg.role) : null;

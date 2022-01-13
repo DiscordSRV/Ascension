@@ -16,13 +16,12 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package com.discordsrv.common.module.modules;
+package com.discordsrv.common.channel;
 
 import com.discordsrv.api.event.bus.EventPriority;
 import com.discordsrv.api.event.bus.Subscribe;
 import com.discordsrv.api.event.events.channel.GameChannelLookupEvent;
 import com.discordsrv.common.DiscordSRV;
-import com.discordsrv.common.channel.DefaultGlobalChannel;
 import com.discordsrv.common.module.type.AbstractModule;
 
 public class GlobalChannelLookupModule extends AbstractModule {

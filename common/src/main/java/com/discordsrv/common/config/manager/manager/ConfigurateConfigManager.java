@@ -27,6 +27,7 @@ import com.discordsrv.common.config.annotation.Order;
 import com.discordsrv.common.config.fielddiscoverer.OrderedFieldDiscovererProxy;
 import com.discordsrv.common.config.main.channels.base.BaseChannelConfig;
 import com.discordsrv.common.config.main.channels.base.ChannelConfig;
+import com.discordsrv.common.config.main.channels.base.IChannelConfig;
 import com.discordsrv.common.config.manager.loader.ConfigLoaderProvider;
 import com.discordsrv.common.config.serializer.ColorSerializer;
 import com.discordsrv.common.config.serializer.DiscordMessageEmbedSerializer;
@@ -93,8 +94,8 @@ public abstract class ConfigurateConfigManager<T, LT extends AbstractConfigurati
 
     protected abstract String fileName();
 
-    public ChannelConfig.Serializer getChannelConfigSerializer( ObjectMapper.Factory mapperFactory) {
-        return new ChannelConfig.Serializer(mapperFactory, BaseChannelConfig.class, ChannelConfig.class);
+    public IChannelConfig.Serializer getChannelConfigSerializer(ObjectMapper.Factory mapperFactory) {
+        return new IChannelConfig.Serializer(mapperFactory, BaseChannelConfig.class, ChannelConfig.class);
     }
 
     public ConfigurationOptions defaultOptions() {
