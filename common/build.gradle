@@ -53,7 +53,7 @@ dependencies {
     runtimeDownloadApi 'dev.vankka:enhancedlegacytext:1.0.0-SNAPSHOT'
 
     // Database Drivers
-    h2Driver 'com.h2database:h2:1.4.200'
+    h2Driver 'com.h2database:h2:2.0.204'
     mysqlDriver 'mysql:mysql-connector-java:8.0.25'
 
     // Integrations

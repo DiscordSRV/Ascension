@@ -1,7 +1,6 @@
 plugins {
     id 'com.github.johnrengelman.shadow' version '7.1.1' apply false
     id 'org.cadixdev.licenser' version '0.6.0' apply false
-    id 'io.freefair.lombok' version '5.3.3.3' apply false
     id 'net.kyori.blossom' version '1.2.0' apply false
     id 'dev.vankka.dependencydownload.plugin' version '1.0.3-SNAPSHOT' apply false
 }
@@ -28,12 +27,9 @@ allprojects {
     apply plugin: 'com.github.johnrengelman.shadow'
     apply plugin: 'org.cadixdev.licenser'
     apply plugin: 'dev.vankka.dependencydownload.plugin'
-    apply plugin: 'io.freefair.lombok'
 
     group 'com.discordsrv'
     version = rootProject.version
-
-    generateLombokConfig.enabled = false
 
     java {
         sourceCompatibility = JavaVersion.VERSION_1_8
@@ -59,13 +55,12 @@ allprojects {
 
         mavenCentral()
         maven { url 'https://nexus.scarsz.me/content/groups/public/' }
-        //maven { url 'https://m2.dv8tion.net/releases/' }
     }
 
     dependencies {
         // Test dependencies
-        testImplementation 'org.junit.jupiter:junit-jupiter-api:5.8.1'
-        testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine:5.8.1'
+        testImplementation 'org.junit.jupiter:junit-jupiter-api:5.8.2'
+        testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine:5.8.2'
     }
 
     test {
@@ -77,6 +72,7 @@ allprojects {
     }
     clean.dependsOn deleteJarsDir
 
+    defaultTasks 'build'
     jar {
         duplicatesStrategy = DuplicatesStrategy.INCLUDE
 
@@ -113,7 +109,7 @@ allprojects {
         header = rootProject.file('buildscript/license/LICENSE_HEADER')
         properties {
             var inception = '2016'
-            var currentYear = String.valueOf(Calendar.getInstance().get(Calendar.YEAR))
+            var currentYear = String.valueOf(Calendar.getInstance().get(Calendar.YEAR)-1)
 
             year = inception == currentYear ? currentYear : inception + '-' + currentYear
         }

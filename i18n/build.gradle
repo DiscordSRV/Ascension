@@ -17,9 +17,9 @@ dependencies {
 
     // Depend on all platforms for configs
     implementation(project(':bukkit')) { transitive = false }
-    //implementation(project(':bungee')) { transitive = false }
-    //implementation(project(':sponge')) { transitive = false }
-    //implementation(project(':velocity')) { transitive = false }
+    implementation(project(':bungee')) { transitive = false }
+    implementation(project(':sponge')) { transitive = false }
+    implementation(project(':velocity')) { transitive = false }
 
     api 'org.spongepowered:configurate-yaml:' + rootProject.configurateVersion
     api 'org.spongepowered:configurate-hocon:' + rootProject.configurateVersion
