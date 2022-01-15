@@ -22,6 +22,7 @@ import com.discordsrv.common.logging.LogAppender;
 import com.discordsrv.common.logging.LogLevel;
 import org.slf4j.Marker;
 import org.slf4j.helpers.MarkerIgnoringBase;
+import org.slf4j.helpers.MessageFormatter;
 import org.slf4j.spi.LocationAwareLogger;
 
 public class DependencyLoggerAdapter extends MarkerIgnoringBase implements LocationAwareLogger {
@@ -38,13 +39,25 @@ public class DependencyLoggerAdapter extends MarkerIgnoringBase implements Locat
         this.name = name;
     }
 
+    private String format(String message, Object arg1) {
+        return MessageFormatter.format(message, arg1).getMessage();
+    }
+
+    private String format(String message, Object arg1, Object arg2) {
+        return MessageFormatter.format(message, arg1, arg2).getMessage();
+    }
+
+    private String format(String message, Object[] arguments) {
+        return MessageFormatter.arrayFormat(message, arguments).getMessage();
+    }
+
     @Override
     public void log(Marker marker, String fqcn, int level, String message, Object[] argArray, Throwable t) {
         if (APPENDER == null) {
             // Adapter isn't set, do nothing
             return;
         }
-        APPENDER.append(name, getLevel(level), String.format(message, argArray), t);
+        APPENDER.append(name, getLevel(level), format(message, argArray), t);
     }
 
     private LogLevel getLevel(int level) {
@@ -72,22 +85,21 @@ public class DependencyLoggerAdapter extends MarkerIgnoringBase implements Locat
     @Override
     public void trace(String msg) {
         trace(msg, (Throwable) null);
-
     }
 
     @Override
     public void trace(String format, Object arg) {
-        trace(String.format(format, arg));
+        trace(format(format, arg));
     }
 
     @Override
     public void trace(String format, Object arg1, Object arg2) {
-        trace(String.format(format, arg1, arg2));
+        trace(format(format, arg1, arg2));
     }
 
     @Override
     public void trace(String format, Object... arguments) {
-        trace(String.format(format, arguments));
+        trace(format(format, arguments));
     }
 
     @Override
@@ -107,17 +119,17 @@ public class DependencyLoggerAdapter extends MarkerIgnoringBase implements Locat
 
     @Override
     public void debug(String format, Object arg) {
-        debug(String.format(format, arg));
+        debug(format(format, arg));
     }
 
     @Override
     public void debug(String format, Object arg1, Object arg2) {
-        debug(String.format(format, arg1, arg2));
+        debug(format(format, arg1, arg2));
     }
 
     @Override
     public void debug(String format, Object... arguments) {
-        debug(String.format(format, arguments));
+        debug(format(format, arguments));
     }
 
     @Override
@@ -137,17 +149,17 @@ public class DependencyLoggerAdapter extends MarkerIgnoringBase implements Locat
 
     @Override
     public void info(String format, Object arg) {
-        info(String.format(format, arg));
+        info(format(format, arg));
     }
 
     @Override
     public void info(String format, Object arg1, Object arg2) {
-        info(String.format(format, arg1, arg2));
+        info(format(format, arg1, arg2));
     }
 
     @Override
     public void info(String format, Object... arguments) {
-        info(String.format(format, arguments));
+        info(format(format, arguments));
     }
 
     @Override
@@ -167,17 +179,17 @@ public class DependencyLoggerAdapter extends MarkerIgnoringBase implements Locat
 
     @Override
     public void warn(String format, Object arg) {
-        warn(String.format(format, arg));
+        warn(format(format, arg));
     }
 
     @Override
     public void warn(String format, Object... arguments) {
-        warn(String.format(format, arguments));
+        warn(format(format, arguments));
     }
 
     @Override
     public void warn(String format, Object arg1, Object arg2) {
-        warn(String.format(format, arg1, arg2));
+        warn(format(format, arg1, arg2));
     }
 
     @Override
@@ -197,17 +209,17 @@ public class DependencyLoggerAdapter extends MarkerIgnoringBase implements Locat
 
     @Override
     public void error(String format, Object arg) {
-        error(String.format(format, arg));
+        error(format(format, arg));
     }
 
     @Override
     public void error(String format, Object arg1, Object arg2) {
-        error(String.format(format, arg1, arg2));
+        error(format(format, arg1, arg2));
     }
 
     @Override
     public void error(String format, Object... arguments) {
-        error(String.format(format, arguments));
+        error(format(format, arguments));
     }
 
     @Override
