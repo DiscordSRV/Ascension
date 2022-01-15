@@ -22,6 +22,8 @@ import com.discordsrv.api.discord.api.entity.channel.DiscordMessageChannel;
 import com.discordsrv.common.DiscordSRV;
 import net.dv8tion.jda.api.entities.*;
 
+import java.util.Objects;
+
 public abstract class DiscordMessageChannelImpl<T extends MessageChannel>
         implements DiscordMessageChannel {
 
@@ -55,5 +57,18 @@ public abstract class DiscordMessageChannelImpl<T extends MessageChannel>
     @Override
     public MessageChannel getAsJDAMessageChannel() {
         return channel;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        DiscordGuildMessageChannelImpl<?> that = (DiscordGuildMessageChannelImpl<?>) o;
+        return Objects.equals(getId(), that.getId());
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(getId());
     }
 }

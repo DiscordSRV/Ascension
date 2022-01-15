@@ -29,6 +29,7 @@ import com.discordsrv.common.discord.api.entity.message.util.SendableDiscordMess
 import net.dv8tion.jda.api.entities.PrivateChannel;
 import org.jetbrains.annotations.NotNull;
 
+import java.util.Objects;
 import java.util.concurrent.CompletableFuture;
 
 public class DiscordDMChannelImpl extends DiscordMessageChannelImpl<PrivateChannel> implements DiscordDMChannel {
@@ -84,5 +85,23 @@ public class DiscordDMChannelImpl extends DiscordMessageChannelImpl<PrivateChann
     @Override
     public PrivateChannel getAsJDAPrivateChannel() {
         return channel;
+    }
+
+    @Override
+    public String toString() {
+        return "DMChannel:" + user + "(" + Long.toUnsignedString(getId()) + ")";
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        DiscordDMChannelImpl that = (DiscordDMChannelImpl) o;
+        return Objects.equals(user.getId(), that.user.getId());
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(user.getId());
     }
 }

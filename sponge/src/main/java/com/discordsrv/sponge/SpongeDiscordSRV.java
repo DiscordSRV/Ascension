@@ -71,7 +71,7 @@ public class SpongeDiscordSRV extends ServerDiscordSRV<MainConfig, ConnectionCon
     }
 
     @Override
-    public Logger logger() {
+    public Logger platformLogger() {
         return logger;
     }
 

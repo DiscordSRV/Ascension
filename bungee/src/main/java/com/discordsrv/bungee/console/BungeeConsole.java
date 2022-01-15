@@ -21,7 +21,7 @@ package com.discordsrv.bungee.console;
 import com.discordsrv.bungee.BungeeDiscordSRV;
 import com.discordsrv.common.console.Console;
 import com.discordsrv.common.logging.backend.LoggingBackend;
-import com.discordsrv.common.logging.impl.JavaLoggerImpl;
+import com.discordsrv.common.logging.backend.impl.JavaLoggerImpl;
 import net.kyori.adventure.identity.Identity;
 import net.kyori.adventure.text.Component;
 import org.jetbrains.annotations.NotNull;

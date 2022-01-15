@@ -51,7 +51,6 @@ import net.dv8tion.jda.api.entities.ThreadChannel;
 import net.dv8tion.jda.api.entities.User;
 import net.dv8tion.jda.api.entities.Webhook;
 import net.dv8tion.jda.api.exceptions.ErrorResponseException;
-import net.dv8tion.jda.api.exceptions.InsufficientPermissionException;
 import net.dv8tion.jda.api.requests.ErrorResponse;
 import net.dv8tion.jda.api.requests.GatewayIntent;
 import org.checkerframework.checker.index.qual.NonNegative;
@@ -157,16 +156,10 @@ public class DiscordAPIImpl implements DiscordAPI {
             }
 
             futures.add(future.handle((threadChannel, t) -> {
-                if (t instanceof InsufficientPermissionException) {
-                    discordSRV.logger().error(
-                            "Unable to send message to channel " + channel
-                                    + " because the bot is lacking the "
-                                    + ((InsufficientPermissionException) t).getPermission().getName()
-                                    + " permission");
-                    throw new RuntimeException();
-                } else if (t != null) {
-                    discordSRV.logger().error("Failed to find thread in channel " + channel, t);
-                    throw new RuntimeException();
+                if (t != null) {
+                    discordSRV.logger().error("Failed to deliver message to thread \""
+                                                      + threadConfig.threadName + "\" in channel " + channel, t);
+                    throw new RuntimeException(); // Just here to fail the future
                 }
 
                 if (threadChannel != null) {

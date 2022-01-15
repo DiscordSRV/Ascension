@@ -39,4 +39,8 @@ public class DiscordTextChannelImpl extends DiscordGuildMessageChannelImpl<TextC
         return channel;
     }
 
+    @Override
+    public String toString() {
+        return "TextChannel:" + getName() + "(" + Long.toUnsignedString(getId()) + ")";
+    }
 }

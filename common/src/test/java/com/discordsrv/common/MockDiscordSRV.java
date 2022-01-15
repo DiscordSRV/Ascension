@@ -24,7 +24,7 @@ import com.discordsrv.common.config.manager.ConnectionConfigManager;
 import com.discordsrv.common.config.manager.MainConfigManager;
 import com.discordsrv.common.console.Console;
 import com.discordsrv.common.logging.Logger;
-import com.discordsrv.common.logging.impl.JavaLoggerImpl;
+import com.discordsrv.common.logging.backend.impl.JavaLoggerImpl;
 import com.discordsrv.common.player.provider.AbstractPlayerProvider;
 import com.discordsrv.common.scheduler.Scheduler;
 import com.discordsrv.common.scheduler.StandardScheduler;
@@ -44,7 +44,7 @@ public class MockDiscordSRV extends AbstractDiscordSRV<MainConfig, ConnectionCon
     }
 
     @Override
-    public Logger logger() {
+    public Logger platformLogger() {
         return logger;
     }
 

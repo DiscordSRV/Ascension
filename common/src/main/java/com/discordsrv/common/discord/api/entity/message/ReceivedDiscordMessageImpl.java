@@ -309,4 +309,9 @@ public class ReceivedDiscordMessageImpl extends SendableDiscordMessageImpl imple
 
         return ComponentUtil.join(Component.text(suffix), components);
     }
+
+    @Override
+    public String toString() {
+        return "ReceivedMessage:" + Long.toUnsignedString(getId()) + "/" + getChannel();
+    }
 }

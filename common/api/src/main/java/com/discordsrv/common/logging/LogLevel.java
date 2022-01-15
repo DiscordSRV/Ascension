@@ -18,6 +18,8 @@
 
 package com.discordsrv.common.logging;
 
+import java.util.Locale;
+
 public interface LogLevel {
 
     LogLevel INFO = StandardLogLevel.INFO;
@@ -28,7 +30,7 @@ public interface LogLevel {
 
     static LogLevel of(String name) {
         try {
-            return StandardLogLevel.valueOf(name);
+            return StandardLogLevel.valueOf(name.toUpperCase(Locale.ROOT));
         } catch (IllegalArgumentException ignored) {
             return new CustomLogLevel(name);
         }

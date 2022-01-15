@@ -115,7 +115,7 @@ public class MinecraftToDiscordChatModule extends AbstractGameMessageModule<Mine
     }
 
     @Override
-    public List<CompletableFuture<ReceivedDiscordMessage>> sendMessageToChannels(
+    public Map<CompletableFuture<ReceivedDiscordMessage>, DiscordMessageChannel> sendMessageToChannels(
             OrDefault<MinecraftToDiscordChatConfig> config,
             SendableDiscordMessage.Builder format,
             List<DiscordMessageChannel> channels,
@@ -137,7 +137,7 @@ public class MinecraftToDiscordChatModule extends AbstractGameMessageModule<Mine
                     .add(channel);
         }
 
-        List<CompletableFuture<ReceivedDiscordMessage>> futures = new ArrayList<>();
+        Map<CompletableFuture<ReceivedDiscordMessage>, DiscordMessageChannel> futures = new LinkedHashMap<>();
 
         OrDefault<MinecraftToDiscordChatConfig.Mentions> mentionConfig = config.map(cfg -> cfg.mentions);
         // Format messages per-Guild
@@ -179,13 +179,13 @@ public class MinecraftToDiscordChatModule extends AbstractGameMessageModule<Mine
             if (!text.isEmpty()) {
                 SendableDiscordMessage finalMessage = discordMessage.build();
                 for (DiscordMessageChannel channel : text) {
-                    futures.add(channel.sendMessage(finalMessage));
+                    futures.put(channel.sendMessage(finalMessage), channel);
                 }
             }
             if (!thread.isEmpty()) {
                 SendableDiscordMessage finalMessage = discordMessage.convertToNonWebhook().build();
                 for (DiscordMessageChannel channel : thread) {
-                    futures.add(channel.sendMessage(finalMessage));
+                    futures.put(channel.sendMessage(finalMessage), channel);
                 }
             }
         }

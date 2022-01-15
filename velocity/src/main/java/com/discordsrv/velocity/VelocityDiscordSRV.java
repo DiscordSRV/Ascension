@@ -72,7 +72,7 @@ public class VelocityDiscordSRV extends ProxyDiscordSRV<MainConfig, ConnectionCo
     }
 
     @Override
-    public Logger logger() {
+    public Logger platformLogger() {
         return logger;
     }
 

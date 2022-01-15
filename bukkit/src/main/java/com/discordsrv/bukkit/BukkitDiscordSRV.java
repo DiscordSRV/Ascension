@@ -84,7 +84,7 @@ public class BukkitDiscordSRV extends ServerDiscordSRV<BukkitConfig, BukkitConne
     }
 
     @Override
-    public Logger logger() {
+    public Logger platformLogger() {
         return logger;
     }
 

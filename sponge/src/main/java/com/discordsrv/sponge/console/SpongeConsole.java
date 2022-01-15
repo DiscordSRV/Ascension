@@ -20,7 +20,7 @@ package com.discordsrv.sponge.console;
 
 import com.discordsrv.common.console.Console;
 import com.discordsrv.common.logging.backend.LoggingBackend;
-import com.discordsrv.common.logging.impl.Log4JLoggerImpl;
+import com.discordsrv.common.logging.backend.impl.Log4JLoggerImpl;
 import com.discordsrv.sponge.SpongeDiscordSRV;
 import net.kyori.adventure.identity.Identity;
 import net.kyori.adventure.text.Component;

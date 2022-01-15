@@ -16,7 +16,7 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package com.discordsrv.common.logging.impl;
+package com.discordsrv.common.logging.backend.impl;
 
 import com.discordsrv.common.logging.LogLevel;
 import com.discordsrv.common.logging.Logger;

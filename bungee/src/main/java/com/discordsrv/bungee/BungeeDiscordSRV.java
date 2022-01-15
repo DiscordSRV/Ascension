@@ -70,7 +70,7 @@ public class BungeeDiscordSRV extends ProxyDiscordSRV<MainConfig, ConnectionConf
     }
 
     @Override
-    public Logger logger() {
+    public Logger platformLogger() {
         return logger;
     }
 

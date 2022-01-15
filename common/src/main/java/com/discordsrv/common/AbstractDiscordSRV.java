@@ -39,8 +39,10 @@ import com.discordsrv.common.discord.details.DiscordConnectionDetailsImpl;
 import com.discordsrv.common.event.bus.EventBusImpl;
 import com.discordsrv.common.function.CheckedRunnable;
 import com.discordsrv.common.integration.LuckPermsIntegration;
+import com.discordsrv.common.logging.impl.DiscordSRVLogger;
+import com.discordsrv.common.logging.Logger;
 import com.discordsrv.common.logging.adapter.DependencyLoggerAdapter;
-import com.discordsrv.common.logging.dependency.DependencyLoggingHandler;
+import com.discordsrv.common.logging.impl.DependencyLoggingHandler;
 import com.discordsrv.common.messageforwarding.discord.DiscordChatMessageModule;
 import com.discordsrv.common.messageforwarding.discord.DiscordMessageMirroringModule;
 import com.discordsrv.common.messageforwarding.game.JoinMessageModule;
@@ -82,6 +84,7 @@ public abstract class AbstractDiscordSRV<C extends MainConfig, CC extends Connec
     private DiscordConnectionDetails discordConnectionDetails;
 
     // DiscordSRV
+    private final DiscordSRVLogger logger;
     private ChannelConfigHelper channelConfig;
     private ModuleManager moduleManager;
     private DiscordConnectionManager discordConnectionManager;
@@ -91,6 +94,7 @@ public abstract class AbstractDiscordSRV<C extends MainConfig, CC extends Connec
 
     public AbstractDiscordSRV() {
         ApiInstanceUtil.setInstance(this);
+        this.logger = new DiscordSRVLogger(this);
     }
 
     protected final void load() {
@@ -140,6 +144,11 @@ public abstract class AbstractDiscordSRV<C extends MainConfig, CC extends Connec
     }
 
     // DiscordSRV
+
+    @Override
+    public Logger logger() {
+        return logger;
+    }
 
     @Override
     public ChannelConfigHelper channelConfig() {

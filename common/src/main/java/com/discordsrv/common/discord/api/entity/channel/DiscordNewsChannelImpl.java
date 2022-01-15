@@ -34,4 +34,9 @@ public class DiscordNewsChannelImpl
     public NewsChannel getAsJDANewsChannel() {
         return channel;
     }
+
+    @Override
+    public String toString() {
+        return "NewsChannel:" + getName() + "(" + Long.toUnsignedString(getId()) + ")";
+    }
 }

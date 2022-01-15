@@ -105,4 +105,9 @@ public class DiscordThreadChannelImpl extends DiscordMessageChannelImpl<ThreadCh
     public ThreadChannel getAsJDAThreadChannel() {
         return channel;
     }
+
+    @Override
+    public String toString() {
+        return "Thread:" + getName() + "(" + Long.toUnsignedString(getId()) + " in " + textChannel + ")";
+    }
 }

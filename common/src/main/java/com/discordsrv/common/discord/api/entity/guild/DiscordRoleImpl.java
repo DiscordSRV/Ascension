@@ -62,4 +62,9 @@ public class DiscordRoleImpl implements DiscordRole {
     public String getAsMention() {
         return role.getAsMention();
     }
+
+    @Override
+    public String toString() {
+        return "ServerRole:" + getName() + "(" + Long.toUnsignedString(getId()) + ")";
+    }
 }

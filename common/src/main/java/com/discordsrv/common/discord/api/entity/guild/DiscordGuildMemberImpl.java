@@ -127,4 +127,9 @@ public class DiscordGuildMemberImpl extends DiscordUserImpl implements DiscordGu
 
         return ComponentUtil.join(Component.text(suffix), components);
     }
+
+    @Override
+    public String toString() {
+        return "ServerMember:" + super.toString() + "/" + getGuild();
+    }
 }

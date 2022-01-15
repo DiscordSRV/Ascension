@@ -109,4 +109,9 @@ public class DiscordGuildImpl implements DiscordGuild {
     public int hashCode() {
         return Objects.hash(getId());
     }
+
+    @Override
+    public String toString() {
+        return "Guild:" + getName() + "(" + Long.toUnsignedString(getId()) + ")";
+    }
 }

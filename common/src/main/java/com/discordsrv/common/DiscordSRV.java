@@ -46,7 +46,7 @@ import java.util.concurrent.TimeUnit;
 public interface DiscordSRV extends DiscordSRVApi {
 
     // Platform
-    Logger logger();
+    Logger platformLogger();
     Path dataDirectory();
     Scheduler scheduler();
     Console console();
@@ -68,6 +68,9 @@ public interface DiscordSRV extends DiscordSRVApi {
     @Override
     @NotNull
     DiscordAPIImpl discordAPI();
+
+    // Logger
+    Logger logger();
 
     // Config
     ConnectionConfigManager<? extends ConnectionConfig> connectionConfigManager();

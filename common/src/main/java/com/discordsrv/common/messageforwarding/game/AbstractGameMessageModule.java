@@ -36,13 +36,14 @@ import com.discordsrv.common.config.main.channels.base.IChannelConfig;
 import com.discordsrv.common.discord.api.entity.message.ReceivedDiscordMessageClusterImpl;
 import com.discordsrv.common.function.OrDefault;
 import com.discordsrv.common.module.type.AbstractModule;
-import net.dv8tion.jda.api.exceptions.InsufficientPermissionException;
 import net.kyori.adventure.text.Component;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionException;
 import java.util.concurrent.CopyOnWriteArrayList;
@@ -116,28 +117,21 @@ public abstract class AbstractGameMessageModule<T> extends AbstractModule {
             }
 
             String message = convertMessage(config, ComponentUtil.fromAPI(event.getMessage()));
-            List<CompletableFuture<ReceivedDiscordMessage>> messageFutures;
+            Map<CompletableFuture<ReceivedDiscordMessage>, DiscordMessageChannel> messageFutures;
             messageFutures = sendMessageToChannels(
                     config, format, messageChannels, message,
                     // Context
                     channelConfig, player
             );
 
-            CompletableFuture.allOf(messageFutures.toArray(new CompletableFuture[0]))
+            CompletableFuture.allOf(messageFutures.keySet().toArray(new CompletableFuture[0]))
                     .whenComplete((vo, t2) -> {
                         List<ReceivedDiscordMessage> messages = new ArrayList<>();
-                        for (CompletableFuture<ReceivedDiscordMessage> future : messageFutures) {
+                        for (Map.Entry<CompletableFuture<ReceivedDiscordMessage>, DiscordMessageChannel> entry : messageFutures.entrySet()) {
+                            CompletableFuture<ReceivedDiscordMessage> future = entry.getKey();
                             if (future.isCompletedExceptionally()) {
                                 future.exceptionally(t -> {
-                                    if (t instanceof InsufficientPermissionException) {
-                                        discordSRV.logger().error(
-                                                "Unable to send message to a Discord channel"
-                                                        + " because the bot is lacking the "
-                                                        + ((InsufficientPermissionException) t).getPermission().getName()
-                                                        + " permission");
-                                    } else {
-                                        discordSRV.logger().error("Failed to deliver a message to Discord", t);
-                                    }
+                                    discordSRV.logger().error("Failed to deliver a message to the " + entry.getValue() + " channel", t);
                                     return null;
                                 });
                                 // Ignore ones that failed
@@ -171,7 +165,7 @@ public abstract class AbstractGameMessageModule<T> extends AbstractModule {
         );
     }
 
-    public List<CompletableFuture<ReceivedDiscordMessage>> sendMessageToChannels(
+    public Map<CompletableFuture<ReceivedDiscordMessage>, DiscordMessageChannel> sendMessageToChannels(
             OrDefault<T> config,
             SendableDiscordMessage.Builder format,
             List<DiscordMessageChannel> channels,
@@ -184,9 +178,9 @@ public abstract class AbstractGameMessageModule<T> extends AbstractModule {
                 .applyPlaceholderService()
                 .build();
 
-        List<CompletableFuture<ReceivedDiscordMessage>> futures = new ArrayList<>();
+        Map<CompletableFuture<ReceivedDiscordMessage>, DiscordMessageChannel> futures = new LinkedHashMap<>();
         for (DiscordMessageChannel channel : channels) {
-            futures.add(channel.sendMessage(discordMessage));
+            futures.put(channel.sendMessage(discordMessage), channel);
         }
 
         return futures;

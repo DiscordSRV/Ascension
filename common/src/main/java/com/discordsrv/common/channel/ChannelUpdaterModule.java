@@ -94,24 +94,32 @@ public class ChannelUpdaterModule extends AbstractModule {
                 continue;
             }
 
-            ChannelManager<?, ?> manager = channel.getManager();
-            boolean anythingChanged = false;
-            if (manager instanceof TextChannelManager && channel instanceof TextChannel
-                    && StringUtils.isNotEmpty(topicFormat)
-                    && !topicFormat.equals(((TextChannel) channel).getTopic())) {
-                anythingChanged = true;
-                manager = ((TextChannelManager) manager).setTopic(topicFormat);
-            }
-            if (StringUtils.isNotEmpty(nameFormat) && !nameFormat.equals(channel.getName())) {
-                anythingChanged = true;
-                manager = manager.setName(nameFormat);
-            }
+            try {
+                ChannelManager<?, ?> manager = channel.getManager();
+                boolean anythingChanged = false;
+                if (manager instanceof TextChannelManager && channel instanceof TextChannel
+                        && StringUtils.isNotEmpty(topicFormat)
+                        && !topicFormat.equals(((TextChannel) channel).getTopic())) {
+                    anythingChanged = true;
+                    manager = ((TextChannelManager) manager).setTopic(topicFormat);
+                }
+                if (StringUtils.isNotEmpty(nameFormat) && !nameFormat.equals(channel.getName())) {
+                    anythingChanged = true;
+                    manager = manager.setName(nameFormat);
+                }
 
-            if (!anythingChanged) {
-                continue;
-            }
+                if (!anythingChanged) {
+                    discordSRV.logger().debug("Skipping updating channel " + channel + ": nothing changed");
+                    continue;
+                }
 
-            manager.timeout(30, TimeUnit.SECONDS).queue();
+                manager.timeout(30, TimeUnit.SECONDS).queue(
+                        null,
+                        t -> discordSRV.logger().error("Failed to update channel " + channel, t)
+                );
+            } catch (Throwable t) {
+                discordSRV.logger().error("Failed to update channel " + channel, t);
+            }
         }
     }
 

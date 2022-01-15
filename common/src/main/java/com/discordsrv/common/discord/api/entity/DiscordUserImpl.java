@@ -98,4 +98,9 @@ public class DiscordUserImpl implements DiscordUser {
     public String getAsMention() {
         return user.getAsMention();
     }
+
+    @Override
+    public String toString() {
+        return "User:" + getUsername() + "(" + Long.toUnsignedString(getId()) + ")";
+    }
 }
