@@ -2,14 +2,14 @@ plugins {
     id 'com.github.johnrengelman.shadow' version '7.1.1' apply false
     id 'org.cadixdev.licenser' version '0.6.0' apply false
     id 'net.kyori.blossom' version '1.2.0' apply false
-    id 'dev.vankka.dependencydownload.plugin' version '1.0.3-SNAPSHOT' apply false
+    id 'dev.vankka.dependencydownload.plugin' version '1.1.5-SNAPSHOT' apply false
 }
 
 version '2.0.0-SNAPSHOT'
 
 ext {
     // DependencyDownload (change plugin version above)
-    ddVersion = '1.0.3-SNAPSHOT'
+    ddVersion = '1.1.5-SNAPSHOT'
     // MinecraftDependencyDownload
     mddVersion = '1.0.0-SNAPSHOT'
     // JDA
