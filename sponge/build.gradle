@@ -1,6 +1,6 @@
 apply from: rootProject.file('buildscript/runtime.gradle')
 
-var spongeVersion = '8.0.0-SNAPSHOT'
+var spongeVersion = '8.0.0'
 allprojects {
     repositories {
         maven { url 'https://repo.spongepowered.org/maven/' }
