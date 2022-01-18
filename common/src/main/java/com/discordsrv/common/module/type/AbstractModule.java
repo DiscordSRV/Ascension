@@ -23,12 +23,12 @@ import com.discordsrv.api.event.events.Processable;
 import com.discordsrv.common.DiscordSRV;
 import com.discordsrv.common.event.util.EventUtil;
 
-public abstract class AbstractModule implements Module {
+public abstract class AbstractModule<DT extends DiscordSRV> implements Module {
 
-    protected final DiscordSRV discordSRV;
+    protected final DT discordSRV;
     private boolean hasBeenEnabled = false;
 
-    public AbstractModule(DiscordSRV discordSRV) {
+    public AbstractModule(DT discordSRV) {
         this.discordSRV = discordSRV;
     }
 

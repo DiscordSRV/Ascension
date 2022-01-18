@@ -22,8 +22,8 @@ import com.discordsrv.common.DiscordSRV;
 import com.discordsrv.common.module.type.AbstractModule;
 
 @FunctionalInterface
-public interface ModuleInitializationFunction {
+public interface ModuleInitializationFunction<DT extends DiscordSRV> {
 
-    AbstractModule initialize(DiscordSRV discordSRV) throws Throwable;
+    AbstractModule<DT> initialize(DT discordSRV) throws Throwable;
 
 }

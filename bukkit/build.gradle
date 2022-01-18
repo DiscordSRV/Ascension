@@ -24,6 +24,9 @@ dependencies {
 
     // Adventure
     runtimeDownloadApi 'net.kyori:adventure-platform-bukkit:' + rootProject.adventurePlatformVersion
+
+    // Integrations
+    compileOnly "com.github.MilkBowl:VaultAPI:1.7"
 }
 
 shadowJar {

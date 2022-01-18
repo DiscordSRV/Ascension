@@ -19,10 +19,21 @@
 package com.discordsrv.common.module.type;
 
 import java.util.UUID;
+import java.util.concurrent.CompletableFuture;
 
 public interface PermissionDataProvider extends Module {
 
-    boolean hasGroup(UUID player, String groupName);
-    void addGroup(UUID player, String groupName);
-    void removeGroup(UUID player, String groupName);
+    boolean supportsOffline();
+
+    CompletableFuture<Boolean> hasGroup(UUID player, String groupName);
+    CompletableFuture<Void> addGroup(UUID player, String groupName);
+    CompletableFuture<Void> removeGroup(UUID player, String groupName);
+
+    CompletableFuture<Boolean> hasPermission(UUID player, String permission);
+
+    CompletableFuture<String> getPrefix(UUID player);
+    CompletableFuture<String> getSuffix(UUID player);
+
+    CompletableFuture<String> getMeta(UUID player, String key) throws UnsupportedOperationException;
+
 }

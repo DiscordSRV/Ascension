@@ -85,8 +85,8 @@ public interface DiscordSRV extends DiscordSRVApi {
 
     // Modules
     <T extends Module> T getModule(Class<T> moduleType);
-    void registerModule(AbstractModule module);
-    void unregisterModule(AbstractModule module);
+    void registerModule(AbstractModule<?> module);
+    void unregisterModule(AbstractModule<?> module);
 
     Locale locale();
 

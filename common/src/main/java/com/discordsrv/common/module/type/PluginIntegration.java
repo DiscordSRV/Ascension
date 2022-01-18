@@ -20,9 +20,17 @@ package com.discordsrv.common.module.type;
 
 import com.discordsrv.common.DiscordSRV;
 
-public abstract class PluginIntegration extends AbstractModule {
+import javax.annotation.OverridingMethodsMustInvokeSuper;
 
-    public PluginIntegration(DiscordSRV discordSRV) {
+public abstract class PluginIntegration<DT extends DiscordSRV> extends AbstractModule<DT> {
+
+    public PluginIntegration(DT discordSRV) {
         super(discordSRV);
+    }
+
+    @Override
+    @OverridingMethodsMustInvokeSuper
+    public boolean isEnabled() {
+        return super.isEnabled();
     }
 }

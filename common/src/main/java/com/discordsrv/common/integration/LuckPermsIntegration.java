@@ -23,14 +23,19 @@ import com.discordsrv.common.module.type.PermissionDataProvider;
 import com.discordsrv.common.module.type.PluginIntegration;
 import net.luckperms.api.LuckPerms;
 import net.luckperms.api.LuckPermsProvider;
+import net.luckperms.api.model.data.DataMutateResult;
+import net.luckperms.api.model.data.NodeMap;
 import net.luckperms.api.model.group.Group;
 import net.luckperms.api.model.user.User;
+import net.luckperms.api.node.Node;
+import net.luckperms.api.node.types.InheritanceNode;
 import net.luckperms.api.query.QueryOptions;
 
-import java.util.Collection;
 import java.util.UUID;
+import java.util.concurrent.CompletableFuture;
+import java.util.function.BiFunction;
 
-public class LuckPermsIntegration extends PluginIntegration implements PermissionDataProvider {
+public class LuckPermsIntegration extends PluginIntegration<DiscordSRV> implements PermissionDataProvider {
 
     private LuckPerms luckPerms;
 
@@ -46,7 +51,7 @@ public class LuckPermsIntegration extends PluginIntegration implements Permissio
             return false;
         }
 
-        return true;
+        return super.isEnabled();
     }
 
     @Override
@@ -59,24 +64,72 @@ public class LuckPermsIntegration extends PluginIntegration implements Permissio
         luckPerms = null;
     }
 
+    private CompletableFuture<User> user(UUID player) {
+        return luckPerms.getUserManager().loadUser(player);
+    }
+
     @Override
-    public boolean hasGroup(UUID player, String groupName) {
-        User user = luckPerms.getUserManager().getUser(player);
-        if (user == null) {
+    public boolean supportsOffline() {
+        return true;
+    }
+
+    @Override
+    public CompletableFuture<Boolean> hasGroup(UUID player, String groupName) {
+        return user(player).thenApply(user -> {
+            for (Group inheritedGroup : user.getInheritedGroups(QueryOptions.defaultContextualOptions())) {
+                if (inheritedGroup.getName().equalsIgnoreCase(groupName)) {
+                    return true;
+                }
+            }
             return false;
+        });
+    }
+
+    @Override
+    public CompletableFuture<Void> addGroup(UUID player, String groupName) {
+        return groupMutate(player, groupName, NodeMap::add);
+    }
+
+    @Override
+    public CompletableFuture<Void> removeGroup(UUID player, String groupName) {
+        return groupMutate(player, groupName, NodeMap::remove);
+    }
+
+    private CompletableFuture<Void> groupMutate(UUID player, String groupName, BiFunction<NodeMap, Node, DataMutateResult> function) {
+        Group group = luckPerms.getGroupManager().getGroup(groupName);
+        if (group == null) {
+            CompletableFuture<Void> future = new CompletableFuture<>();
+            future.completeExceptionally(new RuntimeException("Group does not exist"));
+            return future;
         }
 
-        Collection<Group> groups = user.getInheritedGroups(QueryOptions.defaultContextualOptions());
-        return groups.stream().anyMatch(group -> group.getName().equalsIgnoreCase(groupName));
+        return user(player).thenApply(user -> {
+            DataMutateResult result = function.apply(user.data(), InheritanceNode.builder(group).build());
+            if (result != DataMutateResult.SUCCESS) {
+                throw new RuntimeException(result.name());
+            }
+            return null;
+        });
     }
 
     @Override
-    public void addGroup(UUID player, String groupName) {
-
+    public CompletableFuture<Boolean> hasPermission(UUID player, String permission) {
+        return user(player).thenApply(
+                user -> user.getCachedData().getPermissionData().checkPermission(permission).asBoolean());
     }
 
     @Override
-    public void removeGroup(UUID player, String groupName) {
+    public CompletableFuture<String> getPrefix(UUID player) {
+        return user(player).thenApply(user -> user.getCachedData().getMetaData().getPrefix());
+    }
 
+    @Override
+    public CompletableFuture<String> getSuffix(UUID player) {
+        return user(player).thenApply(user -> user.getCachedData().getMetaData().getSuffix());
+    }
+
+    @Override
+    public CompletableFuture<String> getMeta(UUID player, String key) throws UnsupportedOperationException {
+        return user(player).thenApply(user -> user.getCachedData().getMetaData().getMetaValue(key));
     }
 }

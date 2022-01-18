@@ -42,7 +42,7 @@ public abstract class ServerDiscordSRV<C extends MainConfig, CC extends Connecti
     protected void enable() throws Throwable {
         super.enable();
 
-        for (ModuleInitializationFunction function : new ModuleInitializationFunction[]{
+        for (ModuleFunction function : new ModuleFunction[]{
                 DeathMessageModule::new
         }) {
             try {
@@ -50,6 +50,8 @@ public abstract class ServerDiscordSRV<C extends MainConfig, CC extends Connecti
             } catch (Throwable ignored) {}
         }
     }
+
+    private interface ModuleFunction extends ModuleInitializationFunction<ServerDiscordSRV<?, ?>> {}
 
     public final CompletableFuture<Void> invokeServerStarted() {
         return invokeLifecycle(this::serverStarted, "Failed to enable", true);

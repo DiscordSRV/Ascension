@@ -183,12 +183,12 @@ public abstract class AbstractDiscordSRV<C extends MainConfig, CC extends Connec
     }
 
     @Override
-    public void registerModule(AbstractModule module) {
+    public void registerModule(AbstractModule<?> module) {
         moduleManager.register(module);
     }
 
     @Override
-    public void unregisterModule(AbstractModule module) {
+    public void unregisterModule(AbstractModule<?> module) {
         moduleManager.unregister(module);
     }
 
@@ -302,7 +302,7 @@ public abstract class AbstractDiscordSRV<C extends MainConfig, CC extends Connec
 
         // Register modules
         moduleManager = new ModuleManager(this);
-        for (ModuleInitializationFunction function : new ModuleInitializationFunction[]{
+        for (ModuleFunction function : new ModuleFunction[]{
                 ChannelUpdaterModule::new,
                 GlobalChannelLookupModule::new,
 
@@ -322,6 +322,8 @@ public abstract class AbstractDiscordSRV<C extends MainConfig, CC extends Connec
             } catch (Throwable ignored) {}
         }
     }
+
+    private interface ModuleFunction extends ModuleInitializationFunction<DiscordSRV> {}
 
     @OverridingMethodsMustInvokeSuper
     protected void disable() {
