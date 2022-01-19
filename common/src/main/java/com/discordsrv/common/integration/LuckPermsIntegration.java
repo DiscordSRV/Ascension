@@ -35,7 +35,7 @@ import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.BiFunction;
 
-public class LuckPermsIntegration extends PluginIntegration<DiscordSRV> implements PermissionDataProvider {
+public class LuckPermsIntegration extends PluginIntegration<DiscordSRV> implements PermissionDataProvider.All {
 
     private LuckPerms luckPerms;
 

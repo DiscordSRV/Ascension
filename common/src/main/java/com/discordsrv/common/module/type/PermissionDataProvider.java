@@ -25,15 +25,25 @@ public interface PermissionDataProvider extends Module {
 
     boolean supportsOffline();
 
-    CompletableFuture<Boolean> hasGroup(UUID player, String groupName);
-    CompletableFuture<Void> addGroup(UUID player, String groupName);
-    CompletableFuture<Void> removeGroup(UUID player, String groupName);
+    interface All extends Groups, Permissions, PrefixAndSuffix, Meta {}
 
-    CompletableFuture<Boolean> hasPermission(UUID player, String permission);
+    interface Groups extends PermissionDataProvider {
+        CompletableFuture<Boolean> hasGroup(UUID player, String groupName);
+        CompletableFuture<Void> addGroup(UUID player, String groupName);
+        CompletableFuture<Void> removeGroup(UUID player, String groupName);
+    }
 
-    CompletableFuture<String> getPrefix(UUID player);
-    CompletableFuture<String> getSuffix(UUID player);
+    interface Permissions extends PermissionDataProvider {
+        CompletableFuture<Boolean> hasPermission(UUID player, String permission);
+    }
 
-    CompletableFuture<String> getMeta(UUID player, String key) throws UnsupportedOperationException;
+    interface PrefixAndSuffix extends PermissionDataProvider {
+        CompletableFuture<String> getPrefix(UUID player);
+        CompletableFuture<String> getSuffix(UUID player);
+    }
+
+    interface Meta extends PermissionDataProvider {
+        CompletableFuture<String> getMeta(UUID player, String key);
+    }
 
 }

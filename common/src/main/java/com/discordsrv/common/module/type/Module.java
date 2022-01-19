@@ -24,7 +24,13 @@ public interface Module {
         return true;
     }
 
-    default int priority() {
+    /**
+     * Returns the priority of this Module given the lookup type.
+     * @param type the type being looked up this could be an interface
+     * @return the priority of this module, higher is more important. Default is 0
+     */
+    @SuppressWarnings("unused") // API
+    default int priority(Class<?> type) {
         return 0;
     }
 

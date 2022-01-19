@@ -33,8 +33,8 @@ import java.util.concurrent.CopyOnWriteArraySet;
 
 public class ModuleManager {
 
-    private final Set<AbstractModule> modules = new CopyOnWriteArraySet<>();
-    private final Map<String, AbstractModule> moduleLookupTable = new ConcurrentHashMap<>();
+    private final Set<AbstractModule<?>> modules = new CopyOnWriteArraySet<>();
+    private final Map<String, AbstractModule<?>> moduleLookupTable = new ConcurrentHashMap<>();
     private final DiscordSRV discordSRV;
 
     public ModuleManager(DiscordSRV discordSRV) {
@@ -44,25 +44,27 @@ public class ModuleManager {
     @SuppressWarnings("unchecked")
     public <T extends Module> T getModule(Class<T> moduleType) {
         return (T) moduleLookupTable.computeIfAbsent(moduleType.getName(), key -> {
-            AbstractModule bestCandidate = null;
-            for (AbstractModule module : modules) {
-                if (moduleType.isAssignableFrom(module.getClass())
-                        && (bestCandidate == null || module.priority() > bestCandidate.priority())) {
+            AbstractModule<?> bestCandidate = null;
+            int bestCandidatePriority = Integer.MIN_VALUE;
+            for (AbstractModule<?> module : modules) {
+                int priority;
+                if (moduleType.isAssignableFrom(module.getClass()) && ((priority = module.priority(moduleType)) > bestCandidatePriority)) {
                     bestCandidate = module;
+                    bestCandidatePriority = priority;
                 }
             }
             return bestCandidate;
         });
     }
 
-    public void register(AbstractModule module) {
+    public void register(AbstractModule<?> module) {
         this.modules.add(module);
         this.moduleLookupTable.put(module.getClass().getName(), module);
 
         enable(module);
     }
 
-    private void enable(AbstractModule module) {
+    private void enable(AbstractModule<?> module) {
         try {
             module.enableModule();
         } catch (Throwable t) {
@@ -70,14 +72,14 @@ public class ModuleManager {
         }
     }
 
-    public void unregister(AbstractModule module) {
+    public void unregister(AbstractModule<?> module) {
         this.modules.remove(module);
         this.moduleLookupTable.values().removeIf(mod -> mod == module);
 
         disable(module);
     }
 
-    private void disable(AbstractModule module) {
+    private void disable(AbstractModule<?> module) {
         try {
             module.disable();
         } catch (Throwable t) {
@@ -87,14 +89,14 @@ public class ModuleManager {
 
     @Subscribe(priority = EventPriority.EARLY)
     public void onShuttingDown(DiscordSRVShuttingDownEvent event) {
-        for (AbstractModule module : modules) {
+        for (AbstractModule<?> module : modules) {
             unregister(module);
         }
     }
 
     @Subscribe(priority = EventPriority.EARLY)
     public void onReload(DiscordSRVReloadEvent event) {
-        for (AbstractModule module : modules) {
+        for (AbstractModule<?> module : modules) {
             // Check if the module needs to be enabled due to reload
             enable(module);
 

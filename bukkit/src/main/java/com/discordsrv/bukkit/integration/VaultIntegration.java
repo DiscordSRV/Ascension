@@ -31,7 +31,10 @@ import org.bukkit.plugin.ServicesManager;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 
-public class VaultIntegration extends PluginIntegration<BukkitDiscordSRV> implements PermissionDataProvider {
+public class VaultIntegration extends PluginIntegration<BukkitDiscordSRV>
+        implements PermissionDataProvider.Permissions,
+                   PermissionDataProvider.Groups,
+                   PermissionDataProvider.PrefixAndSuffix {
 
     private Permission permission;
     private Chat chat;
@@ -41,7 +44,7 @@ public class VaultIntegration extends PluginIntegration<BukkitDiscordSRV> implem
     }
 
     @Override
-    public int priority() {
+    public int priority(Class<?> type) {
         // Lower priority than default
         return -1;
     }
@@ -178,11 +181,5 @@ public class VaultIntegration extends PluginIntegration<BukkitDiscordSRV> implem
             OfflinePlayer offlinePlayer = offlinePlayer(player);
             return chat.getPlayerSuffix(null, offlinePlayer);
         });
-    }
-
-    @Override
-    public CompletableFuture<String> getMeta(UUID player, String key) throws UnsupportedOperationException {
-        // :(
-        throw new UnsupportedOperationException("Vault does not support this operation");
     }
 }
