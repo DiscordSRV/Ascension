@@ -38,6 +38,8 @@ public class VaultIntegration extends PluginIntegration<BukkitDiscordSRV>
 
     private Permission permission;
     private Chat chat;
+    private boolean permissionAsync;
+    private boolean chatAsync;
 
     public VaultIntegration(BukkitDiscordSRV discordSRV) {
         super(discordSRV);
@@ -67,12 +69,21 @@ public class VaultIntegration extends PluginIntegration<BukkitDiscordSRV>
         RegisteredServiceProvider<Permission> permissionRSP = servicesManager.getRegistration(Permission.class);
         if (permissionRSP != null) {
             permission = permissionRSP.getProvider();
+            permissionAsync = isAsync(permission);
         }
 
         RegisteredServiceProvider<Chat> chatRSP = servicesManager.getRegistration(Chat.class);
         if (chatRSP != null) {
             chat = chatRSP.getProvider();
+            chatAsync = isAsync(chat);
         }
+    }
+
+    private boolean isAsync(Object vault) {
+        if (vault == null) {
+            return false;
+        }
+        return vault.getClass().getSimpleName().startsWith("LuckPerms");
     }
 
     @Override
@@ -93,15 +104,20 @@ public class VaultIntegration extends PluginIntegration<BukkitDiscordSRV>
         return future;
     }
 
-    private <T> CompletableFuture<T> supply(CheckedSupplier<T> supplier) {
+    private <T> CompletableFuture<T> supply(CheckedSupplier<T> supplier, boolean async) {
         CompletableFuture<T> future = new CompletableFuture<>();
-        discordSRV.scheduler().runFork(() -> {
+        Runnable runnable = () -> {
             try {
                 future.complete(supplier.get());
             } catch (Throwable e) {
                 future.completeExceptionally(e);
             }
-        });
+        };
+        if (async) {
+            discordSRV.scheduler().runFork(runnable);
+        } else {
+            discordSRV.scheduler().runOnMainThread(runnable);
+        }
         return future;
     }
 
@@ -118,7 +134,7 @@ public class VaultIntegration extends PluginIntegration<BukkitDiscordSRV>
         return supply(() -> {
             OfflinePlayer offlinePlayer = offlinePlayer(player);
             return permission.playerInGroup(null, offlinePlayer, groupName);
-        });
+        }, permissionAsync);
     }
 
     @Override
@@ -131,7 +147,7 @@ public class VaultIntegration extends PluginIntegration<BukkitDiscordSRV>
             OfflinePlayer offlinePlayer = offlinePlayer(player);
             permission.playerAddGroup(null, offlinePlayer, groupName);
             return null;
-        });
+        }, permissionAsync);
     }
 
     @Override
@@ -144,7 +160,7 @@ public class VaultIntegration extends PluginIntegration<BukkitDiscordSRV>
             OfflinePlayer offlinePlayer = offlinePlayer(player);
             permission.playerRemoveGroup(null, offlinePlayer, groupName);
             return null;
-        });
+        }, permissionAsync);
     }
 
     @Override
@@ -156,7 +172,7 @@ public class VaultIntegration extends PluginIntegration<BukkitDiscordSRV>
         return supply(() -> {
             OfflinePlayer offlinePlayer = offlinePlayer(player);
             return permission.playerHas(null, offlinePlayer, permissionNode);
-        });
+        }, permissionAsync);
     }
 
     @Override
@@ -168,7 +184,7 @@ public class VaultIntegration extends PluginIntegration<BukkitDiscordSRV>
         return supply(() -> {
             OfflinePlayer offlinePlayer = offlinePlayer(player);
             return chat.getPlayerPrefix(null, offlinePlayer);
-        });
+        }, chatAsync);
     }
 
     @Override
@@ -180,6 +196,6 @@ public class VaultIntegration extends PluginIntegration<BukkitDiscordSRV>
         return supply(() -> {
             OfflinePlayer offlinePlayer = offlinePlayer(player);
             return chat.getPlayerSuffix(null, offlinePlayer);
-        });
+        }, chatAsync);
     }
 }
