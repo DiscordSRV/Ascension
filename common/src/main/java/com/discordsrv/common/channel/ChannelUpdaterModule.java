@@ -34,7 +34,7 @@ import java.util.Set;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
 
-public class ChannelUpdaterModule extends AbstractModule {
+public class ChannelUpdaterModule extends AbstractModule<DiscordSRV> {
 
     private final Set<ScheduledFuture<?>> futures = new LinkedHashSet<>();
     private boolean firstReload = true;

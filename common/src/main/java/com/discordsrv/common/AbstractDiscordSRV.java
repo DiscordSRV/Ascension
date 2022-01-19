@@ -22,7 +22,6 @@ import com.discordsrv.api.discord.connection.DiscordConnectionDetails;
 import com.discordsrv.api.event.bus.EventBus;
 import com.discordsrv.api.event.events.lifecycle.DiscordSRVReloadEvent;
 import com.discordsrv.api.event.events.lifecycle.DiscordSRVShuttingDownEvent;
-import com.discordsrv.common.discord.api.DiscordAPIEventModule;
 import com.discordsrv.common.api.util.ApiInstanceUtil;
 import com.discordsrv.common.channel.ChannelConfigHelper;
 import com.discordsrv.common.channel.ChannelUpdaterModule;
@@ -32,23 +31,23 @@ import com.discordsrv.common.config.connection.ConnectionConfig;
 import com.discordsrv.common.config.main.MainConfig;
 import com.discordsrv.common.config.manager.ConnectionConfigManager;
 import com.discordsrv.common.config.manager.MainConfigManager;
+import com.discordsrv.common.discord.api.DiscordAPIEventModule;
 import com.discordsrv.common.discord.api.DiscordAPIImpl;
 import com.discordsrv.common.discord.connection.DiscordConnectionManager;
 import com.discordsrv.common.discord.connection.jda.JDAConnectionManager;
 import com.discordsrv.common.discord.details.DiscordConnectionDetailsImpl;
 import com.discordsrv.common.event.bus.EventBusImpl;
+import com.discordsrv.common.function.CheckedFunction;
 import com.discordsrv.common.function.CheckedRunnable;
 import com.discordsrv.common.integration.LuckPermsIntegration;
-import com.discordsrv.common.logging.impl.DiscordSRVLogger;
 import com.discordsrv.common.logging.Logger;
 import com.discordsrv.common.logging.adapter.DependencyLoggerAdapter;
 import com.discordsrv.common.logging.impl.DependencyLoggingHandler;
+import com.discordsrv.common.logging.impl.DiscordSRVLogger;
 import com.discordsrv.common.messageforwarding.discord.DiscordChatMessageModule;
 import com.discordsrv.common.messageforwarding.discord.DiscordMessageMirroringModule;
 import com.discordsrv.common.messageforwarding.game.JoinMessageModule;
 import com.discordsrv.common.messageforwarding.game.LeaveMessageModule;
-import com.discordsrv.common.messageforwarding.game.MinecraftToDiscordChatModule;
-import com.discordsrv.common.module.ModuleInitializationFunction;
 import com.discordsrv.common.module.ModuleManager;
 import com.discordsrv.common.module.type.AbstractModule;
 import com.discordsrv.common.module.type.Module;
@@ -187,6 +186,13 @@ public abstract class AbstractDiscordSRV<C extends MainConfig, CC extends Connec
         moduleManager.register(module);
     }
 
+    @SuppressWarnings("unchecked")
+    protected <T extends DiscordSRV> void registerModule(CheckedFunction<T, AbstractModule<?>> function) {
+        try {
+            registerModule(function.apply((T) this));
+        } catch (Throwable ignored) {}
+    }
+
     @Override
     public void unregisterModule(AbstractModule<?> module) {
         moduleManager.unregister(module);
@@ -302,28 +308,16 @@ public abstract class AbstractDiscordSRV<C extends MainConfig, CC extends Connec
 
         // Register modules
         moduleManager = new ModuleManager(this);
-        for (ModuleFunction function : new ModuleFunction[]{
-                ChannelUpdaterModule::new,
-                GlobalChannelLookupModule::new,
 
-                DiscordAPIEventModule::new,
-
-                LuckPermsIntegration::new,
-
-                DiscordChatMessageModule::new,
-                DiscordMessageMirroringModule::new,
-
-                JoinMessageModule::new,
-                LeaveMessageModule::new,
-                MinecraftToDiscordChatModule::new,
-        }) {
-            try {
-                registerModule(function.initialize(this));
-            } catch (Throwable ignored) {}
-        }
+        registerModule(ChannelUpdaterModule::new);
+        registerModule(GlobalChannelLookupModule::new);
+        registerModule(DiscordAPIEventModule::new);
+        registerModule(LuckPermsIntegration::new);
+        registerModule(DiscordChatMessageModule::new);
+        registerModule(DiscordMessageMirroringModule::new);
+        registerModule(JoinMessageModule::new);
+        registerModule(LeaveMessageModule::new);
     }
-
-    private interface ModuleFunction extends ModuleInitializationFunction<DiscordSRV> {}
 
     @OverridingMethodsMustInvokeSuper
     protected void disable() {

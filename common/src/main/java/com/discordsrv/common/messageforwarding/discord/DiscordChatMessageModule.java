@@ -41,7 +41,7 @@ import net.kyori.adventure.text.Component;
 
 import java.util.Map;
 
-public class DiscordChatMessageModule extends AbstractModule {
+public class DiscordChatMessageModule extends AbstractModule<DiscordSRV> {
 
     public DiscordChatMessageModule(DiscordSRV discordSRV) {
         super(discordSRV);

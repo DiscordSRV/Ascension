@@ -21,7 +21,6 @@ package com.discordsrv.common.server;
 import com.discordsrv.common.AbstractDiscordSRV;
 import com.discordsrv.common.config.connection.ConnectionConfig;
 import com.discordsrv.common.config.main.MainConfig;
-import com.discordsrv.common.module.ModuleInitializationFunction;
 import com.discordsrv.common.server.modules.DeathMessageModule;
 import com.discordsrv.common.server.player.ServerPlayerProvider;
 import com.discordsrv.common.server.scheduler.ServerScheduler;
@@ -42,16 +41,8 @@ public abstract class ServerDiscordSRV<C extends MainConfig, CC extends Connecti
     protected void enable() throws Throwable {
         super.enable();
 
-        for (ModuleFunction function : new ModuleFunction[]{
-                DeathMessageModule::new
-        }) {
-            try {
-                registerModule(function.initialize(this));
-            } catch (Throwable ignored) {}
-        }
+        registerModule(DeathMessageModule::new);
     }
-
-    private interface ModuleFunction extends ModuleInitializationFunction<ServerDiscordSRV<?, ?>> {}
 
     public final CompletableFuture<Void> invokeServerStarted() {
         return invokeLifecycle(this::serverStarted, "Failed to enable", true);

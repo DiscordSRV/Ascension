@@ -44,7 +44,7 @@ import java.util.*;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
 
-public class DiscordMessageMirroringModule extends AbstractModule {
+public class DiscordMessageMirroringModule extends AbstractModule<DiscordSRV> {
 
     private final Cache<MessageReference, Set<MessageReference>> mapping;
 

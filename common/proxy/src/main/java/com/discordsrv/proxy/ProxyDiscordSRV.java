@@ -21,7 +21,6 @@ package com.discordsrv.proxy;
 import com.discordsrv.common.AbstractDiscordSRV;
 import com.discordsrv.common.config.connection.ConnectionConfig;
 import com.discordsrv.common.config.main.MainConfig;
-import com.discordsrv.common.module.ModuleInitializationFunction;
 import com.discordsrv.proxy.modules.ServerSwitchMessageModule;
 
 public abstract class ProxyDiscordSRV<C extends MainConfig, CC extends ConnectionConfig> extends AbstractDiscordSRV<C, CC> {
@@ -30,12 +29,6 @@ public abstract class ProxyDiscordSRV<C extends MainConfig, CC extends Connectio
     protected void enable() throws Throwable {
         super.enable();
 
-        for (ModuleInitializationFunction function : new ModuleInitializationFunction[]{
-                ServerSwitchMessageModule::new
-        }) {
-            try {
-                registerModule(function.initialize(this));
-            } catch (Throwable ignored) {}
-        }
+        registerModule(ServerSwitchMessageModule::new);
     }
 }

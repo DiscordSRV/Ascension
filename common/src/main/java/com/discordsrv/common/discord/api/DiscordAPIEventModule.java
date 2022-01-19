@@ -30,7 +30,7 @@ import net.dv8tion.jda.api.events.message.MessageDeleteEvent;
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
 import net.dv8tion.jda.api.events.message.MessageUpdateEvent;
 
-public class DiscordAPIEventModule extends AbstractModule {
+public class DiscordAPIEventModule extends AbstractModule<DiscordSRV> {
 
     public DiscordAPIEventModule(DiscordSRV discordSRV) {
         super(discordSRV);

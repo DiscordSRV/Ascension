@@ -24,7 +24,7 @@ import com.discordsrv.api.event.events.channel.GameChannelLookupEvent;
 import com.discordsrv.common.DiscordSRV;
 import com.discordsrv.common.module.type.AbstractModule;
 
-public class GlobalChannelLookupModule extends AbstractModule {
+public class GlobalChannelLookupModule extends AbstractModule<DiscordSRV> {
 
     private final DefaultGlobalChannel defaultGlobalChannel;
 

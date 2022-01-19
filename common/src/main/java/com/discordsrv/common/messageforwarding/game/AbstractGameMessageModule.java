@@ -48,7 +48,7 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionException;
 import java.util.concurrent.CopyOnWriteArrayList;
 
-public abstract class AbstractGameMessageModule<T> extends AbstractModule {
+public abstract class AbstractGameMessageModule<T> extends AbstractModule<DiscordSRV> {
 
     public AbstractGameMessageModule(DiscordSRV discordSRV) {
         super(discordSRV);
