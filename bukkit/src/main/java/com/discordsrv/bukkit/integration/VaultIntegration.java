@@ -27,6 +27,7 @@ import net.milkbowl.vault.permission.Permission;
 import org.bukkit.OfflinePlayer;
 import org.bukkit.plugin.RegisteredServiceProvider;
 import org.bukkit.plugin.ServicesManager;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
@@ -98,9 +99,13 @@ public class VaultIntegration extends PluginIntegration<BukkitDiscordSRV>
         return true;
     }
 
-    private <T> CompletableFuture<T> unsupported() {
+    private <T> CompletableFuture<T> unsupported(@Nullable Object vault) {
         CompletableFuture<T> future = new CompletableFuture<>();
-        future.completeExceptionally(new RuntimeException("Vault backend unavailable"));
+        future.completeExceptionally(new RuntimeException(
+                vault != null
+                    ? "Vault backend " + vault.getClass().getName() + " unable to complete request"
+                    : "No vault backend available"
+        ));
         return future;
     }
 
@@ -127,8 +132,8 @@ public class VaultIntegration extends PluginIntegration<BukkitDiscordSRV>
 
     @Override
     public CompletableFuture<Boolean> hasGroup(UUID player, String groupName) {
-        if (permission == null) {
-            return unsupported();
+        if (permission == null || !permission.isEnabled() || !permission.hasGroupSupport()) {
+            return unsupported(permission);
         }
 
         return supply(() -> {
@@ -139,8 +144,8 @@ public class VaultIntegration extends PluginIntegration<BukkitDiscordSRV>
 
     @Override
     public CompletableFuture<Void> addGroup(UUID player, String groupName) {
-        if (permission == null) {
-            return unsupported();
+        if (permission == null || !permission.isEnabled() || !permission.hasGroupSupport()) {
+            return unsupported(permission);
         }
 
         return supply(() -> {
@@ -152,8 +157,8 @@ public class VaultIntegration extends PluginIntegration<BukkitDiscordSRV>
 
     @Override
     public CompletableFuture<Void> removeGroup(UUID player, String groupName) {
-        if (permission == null) {
-            return unsupported();
+        if (permission == null || !permission.isEnabled() || !permission.hasGroupSupport()) {
+            return unsupported(permission);
         }
 
         return supply(() -> {
@@ -165,8 +170,8 @@ public class VaultIntegration extends PluginIntegration<BukkitDiscordSRV>
 
     @Override
     public CompletableFuture<Boolean> hasPermission(UUID player, String permissionNode) {
-        if (permission == null) {
-            return unsupported();
+        if (permission == null || !permission.isEnabled()) {
+            return unsupported(permission);
         }
 
         return supply(() -> {
@@ -177,8 +182,8 @@ public class VaultIntegration extends PluginIntegration<BukkitDiscordSRV>
 
     @Override
     public CompletableFuture<String> getPrefix(UUID player) {
-        if (chat == null) {
-            return unsupported();
+        if (chat == null || !chat.isEnabled()) {
+            return unsupported(chat);
         }
 
         return supply(() -> {
@@ -189,8 +194,8 @@ public class VaultIntegration extends PluginIntegration<BukkitDiscordSRV>
 
     @Override
     public CompletableFuture<String> getSuffix(UUID player) {
-        if (chat == null) {
-            return unsupported();
+        if (chat == null || !chat.isEnabled()) {
+            return unsupported(chat);
         }
 
         return supply(() -> {
