@@ -28,7 +28,6 @@ import net.dv8tion.jda.api.managers.channel.ChannelManager;
 import net.dv8tion.jda.api.managers.channel.concrete.TextChannelManager;
 import org.apache.commons.lang3.StringUtils;
 
-import java.util.Iterator;
 import java.util.LinkedHashSet;
 import java.util.Set;
 import java.util.concurrent.ScheduledFuture;
@@ -50,11 +49,8 @@ public class ChannelUpdaterModule extends AbstractModule<DiscordSRV> {
 
     @Override
     public void reload() {
-        Iterator<ScheduledFuture<?>> iterator = futures.iterator();
-        while (iterator.hasNext()) {
-            iterator.next().cancel(false);
-            iterator.remove();
-        }
+        futures.forEach(future -> future.cancel(false));
+        futures.clear();
 
         for (ChannelUpdaterConfig config : discordSRV.config().channelUpdaters) {
             futures.add(discordSRV.scheduler().runAtFixedRate(
