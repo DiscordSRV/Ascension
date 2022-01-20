@@ -34,7 +34,10 @@ public interface Module {
         return 0;
     }
 
-    default void enable() {}
+    default void enable() {
+        reload();
+    }
+
     default void disable() {}
     default void reload() {}
 }
