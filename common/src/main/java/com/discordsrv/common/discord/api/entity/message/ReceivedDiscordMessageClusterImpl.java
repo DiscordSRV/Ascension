@@ -21,54 +21,44 @@ package com.discordsrv.common.discord.api.entity.message;
 import com.discordsrv.api.discord.api.entity.message.ReceivedDiscordMessage;
 import com.discordsrv.api.discord.api.entity.message.ReceivedDiscordMessageCluster;
 import com.discordsrv.api.discord.api.entity.message.SendableDiscordMessage;
+import com.discordsrv.common.future.util.CompletableFutureUtil;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 
 public class ReceivedDiscordMessageClusterImpl implements ReceivedDiscordMessageCluster {
 
-    private final List<ReceivedDiscordMessage> messages;
+    private final Set<ReceivedDiscordMessage> messages;
 
-    public ReceivedDiscordMessageClusterImpl(List<ReceivedDiscordMessage> messages) {
+    public ReceivedDiscordMessageClusterImpl(Set<ReceivedDiscordMessage> messages) {
         this.messages = messages;
     }
 
     @Override
-    public @NotNull List<ReceivedDiscordMessage> getMessages() {
+    public @NotNull Set<ReceivedDiscordMessage> getMessages() {
         return messages;
     }
 
-    @SuppressWarnings("unchecked")
     @Override
     public @NotNull CompletableFuture<Void> deleteAll() {
-        CompletableFuture<Void>[] futures = new CompletableFuture[messages.size()];
-        for (int i = 0; i < messages.size(); i++) {
-            futures[i] = messages.get(i).delete();
+        List<CompletableFuture<Void>> futures = new ArrayList<>(messages.size());
+        for (ReceivedDiscordMessage message : messages) {
+            futures.add(message.delete());
         }
 
-        return CompletableFuture.allOf(futures);
+        return CompletableFutureUtil.combine(futures).thenApply(v -> null);
     }
 
-    @SuppressWarnings("unchecked")
     @Override
     public @NotNull CompletableFuture<ReceivedDiscordMessageCluster> editAll(SendableDiscordMessage newMessage) {
-        CompletableFuture<ReceivedDiscordMessage>[] futures = new CompletableFuture[messages.size()];
-        for (int i = 0; i < messages.size(); i++) {
-            futures[i] = messages.get(i).edit(newMessage);
+        List<CompletableFuture<ReceivedDiscordMessage>> futures = new ArrayList<>(messages.size());
+        for (ReceivedDiscordMessage message : messages) {
+            futures.add(message.edit(newMessage));
         }
 
-        return CompletableFuture.allOf(futures)
-                .thenApply(v -> {
-                    List<ReceivedDiscordMessage> messages = new ArrayList<>();
-                    for (CompletableFuture<ReceivedDiscordMessage> future : futures) {
-                        // All the futures are done, so we're just going to get the results from all of them
-                        messages.add(
-                                future.join());
-                    }
-
-                    return new ReceivedDiscordMessageClusterImpl(messages);
-                });
+        return CompletableFutureUtil.combine(futures).thenApply(ReceivedDiscordMessageClusterImpl::new);
     }
 }

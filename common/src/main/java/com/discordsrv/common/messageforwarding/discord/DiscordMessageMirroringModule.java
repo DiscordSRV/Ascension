@@ -37,6 +37,7 @@ import com.discordsrv.common.config.main.channels.MirroringConfig;
 import com.discordsrv.common.config.main.channels.base.BaseChannelConfig;
 import com.discordsrv.common.config.main.channels.base.IChannelConfig;
 import com.discordsrv.common.function.OrDefault;
+import com.discordsrv.common.future.util.CompletableFutureUtil;
 import com.discordsrv.common.module.type.AbstractModule;
 import com.github.benmanes.caffeine.cache.Cache;
 
@@ -134,17 +135,12 @@ public class DiscordMessageMirroringModule extends AbstractModule<DiscordSRV> {
                 }
             }
 
-            CompletableFuture.allOf(messageFutures.toArray(new CompletableFuture[0])).whenComplete((v2, t2) -> {
-                Set<MessageReference> messages = new HashSet<>();
-                for (CompletableFuture<ReceivedDiscordMessage> messageFuture : messageFutures) {
-                    if (messageFuture.isCompletedExceptionally()) {
-                        continue;
-                    }
-
-                    messages.add(getReference(messageFuture.join()));
+            CompletableFutureUtil.combine(messageFutures).whenComplete((messages, t2) -> {
+                Set<MessageReference> references = new HashSet<>();
+                for (ReceivedDiscordMessage msg : messages) {
+                    references.add(getReference(msg));
                 }
-
-                mapping.put(getReference(message), messages);
+                mapping.put(getReference(message), references);
             });
         });
     }

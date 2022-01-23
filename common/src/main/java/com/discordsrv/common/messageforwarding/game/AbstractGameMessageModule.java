@@ -40,10 +40,7 @@ import net.kyori.adventure.text.Component;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.ArrayList;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionException;
 import java.util.concurrent.CopyOnWriteArrayList;
@@ -126,7 +123,7 @@ public abstract class AbstractGameMessageModule<T> extends AbstractModule<Discor
 
             CompletableFuture.allOf(messageFutures.keySet().toArray(new CompletableFuture[0]))
                     .whenComplete((vo, t2) -> {
-                        List<ReceivedDiscordMessage> messages = new ArrayList<>();
+                        Set<ReceivedDiscordMessage> messages = new LinkedHashSet<>();
                         for (Map.Entry<CompletableFuture<ReceivedDiscordMessage>, DiscordMessageChannel> entry : messageFutures.entrySet()) {
                             CompletableFuture<ReceivedDiscordMessage> future = entry.getKey();
                             if (future.isCompletedExceptionally()) {

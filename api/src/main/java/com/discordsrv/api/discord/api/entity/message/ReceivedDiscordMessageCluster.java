@@ -25,7 +25,7 @@ package com.discordsrv.api.discord.api.entity.message;
 
 import org.jetbrains.annotations.NotNull;
 
-import java.util.List;
+import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 
 /**
@@ -38,7 +38,7 @@ public interface ReceivedDiscordMessageCluster {
      * @return the messages in this cluster
      */
     @NotNull
-    List<? extends ReceivedDiscordMessage> getMessages();
+    Set<? extends ReceivedDiscordMessage> getMessages();
 
     /**
      * Deletes all the messages from this cluster, one request per message.

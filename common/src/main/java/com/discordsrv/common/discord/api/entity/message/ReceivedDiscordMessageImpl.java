@@ -44,6 +44,7 @@ import com.discordsrv.common.discord.api.entity.DiscordUserImpl;
 import com.discordsrv.common.discord.api.entity.channel.DiscordMessageChannelImpl;
 import com.discordsrv.common.discord.api.entity.guild.DiscordGuildMemberImpl;
 import com.discordsrv.common.function.OrDefault;
+import com.discordsrv.common.future.util.CompletableFutureUtil;
 import net.dv8tion.jda.api.entities.Member;
 import net.dv8tion.jda.api.entities.Message;
 import net.dv8tion.jda.api.entities.MessageEmbed;
@@ -260,9 +261,7 @@ public class ReceivedDiscordMessageImpl extends SendableDiscordMessageImpl imple
     public @NotNull CompletableFuture<Void> delete() {
         DiscordTextChannel textChannel = discordSRV.discordAPI().getTextChannelById(channelId).orElse(null);
         if (textChannel == null) {
-            CompletableFuture<Void> future = new CompletableFuture<>();
-            future.completeExceptionally(new RestErrorResponseException(ErrorResponse.UNKNOWN_CHANNEL));
-            return future;
+            return CompletableFutureUtil.failed(new RestErrorResponseException(ErrorResponse.UNKNOWN_CHANNEL));
         }
 
         return textChannel.deleteMessageById(getId(), fromSelf && getWebhookUsername().isPresent());
@@ -276,9 +275,7 @@ public class ReceivedDiscordMessageImpl extends SendableDiscordMessageImpl imple
 
         DiscordTextChannel textChannel = discordSRV.discordAPI().getTextChannelById(channelId).orElse(null);
         if (textChannel == null) {
-            CompletableFuture<ReceivedDiscordMessage> future = new CompletableFuture<>();
-            future.completeExceptionally(new RestErrorResponseException(ErrorResponse.UNKNOWN_CHANNEL));
-            return future;
+            return CompletableFutureUtil.failed(new RestErrorResponseException(ErrorResponse.UNKNOWN_CHANNEL));
         }
 
         return textChannel.editMessageById(getId(), message);

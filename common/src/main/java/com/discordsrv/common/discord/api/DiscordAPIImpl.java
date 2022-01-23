@@ -41,6 +41,7 @@ import com.discordsrv.common.discord.api.entity.channel.DiscordTextChannelImpl;
 import com.discordsrv.common.discord.api.entity.guild.DiscordGuildImpl;
 import com.discordsrv.common.discord.api.entity.guild.DiscordRoleImpl;
 import com.discordsrv.common.function.CheckedSupplier;
+import com.discordsrv.common.future.util.CompletableFutureUtil;
 import com.github.benmanes.caffeine.cache.AsyncCacheLoader;
 import com.github.benmanes.caffeine.cache.AsyncLoadingCache;
 import com.github.benmanes.caffeine.cache.Expiry;
@@ -320,9 +321,7 @@ public class DiscordAPIImpl implements DiscordAPI {
     }
 
     public <T> CompletableFuture<T> notReady() {
-        CompletableFuture<T> future = new CompletableFuture<>();
-        future.completeExceptionally(new NotReadyException());
-        return future;
+        return CompletableFutureUtil.failed(new NotReadyException());
     }
 
     @Override
@@ -398,11 +397,9 @@ public class DiscordAPIImpl implements DiscordAPI {
                 return notReady();
             }
 
-            CompletableFuture<WebhookClient> future = new CompletableFuture<>();
             TextChannel textChannel = jda.getTextChannelById(channelId);
             if (textChannel == null) {
-                future.completeExceptionally(new IllegalArgumentException("Channel could not be found"));
-                return future;
+                return CompletableFutureUtil.failed(new IllegalArgumentException("Channel could not be found"));
             }
 
             return textChannel.retrieveWebhooks().submit().thenApply(webhooks -> {
@@ -422,9 +419,7 @@ public class DiscordAPIImpl implements DiscordAPI {
                 return hook;
             }).thenCompose(webhook -> {
                 if (webhook != null) {
-                    CompletableFuture<Webhook> completableFuture = new CompletableFuture<>();
-                    completableFuture.complete(webhook);
-                    return completableFuture;
+                    return CompletableFuture.completedFuture(webhook);
                 }
 
                 return textChannel.createWebhook("DiscordSRV").submit();
