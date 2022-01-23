@@ -18,6 +18,10 @@
 
 package com.discordsrv.common.module.type;
 
+import com.discordsrv.api.module.type.Module;
+import org.jetbrains.annotations.Nullable;
+
+import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 
@@ -25,10 +29,11 @@ public interface PermissionDataProvider extends Module {
 
     boolean supportsOffline();
 
-    interface All extends Groups, Permissions, PrefixAndSuffix, Meta {}
+    interface Basic extends Groups, Permissions, PrefixAndSuffix {}
+    interface All extends Basic, Meta, GroupsContext {}
 
     interface Groups extends PermissionDataProvider {
-        CompletableFuture<Boolean> hasGroup(UUID player, String groupName);
+        CompletableFuture<Boolean> hasGroup(UUID player, String groupName, boolean includeInherited);
         CompletableFuture<Void> addGroup(UUID player, String groupName);
         CompletableFuture<Void> removeGroup(UUID player, String groupName);
     }
@@ -44,6 +49,29 @@ public interface PermissionDataProvider extends Module {
 
     interface Meta extends PermissionDataProvider {
         CompletableFuture<String> getMeta(UUID player, String key);
+    }
+
+    interface GroupsContext extends Groups {
+
+        Set<String> getDefaultServerContext();
+        CompletableFuture<Boolean> hasGroup(UUID player, String groupName, boolean includeInherited, @Nullable String serverContext);
+        CompletableFuture<Void> addGroup(UUID player, String groupName, @Nullable String serverContext);
+        CompletableFuture<Void> removeGroup(UUID player, String groupName, @Nullable String serverContext);
+
+        @Override
+        default CompletableFuture<Boolean> hasGroup(UUID player, String groupName, boolean includeInherited) {
+            return hasGroup(player, groupName, includeInherited,  null);
+        }
+
+        @Override
+        default CompletableFuture<Void> addGroup(UUID player, String groupName) {
+            return addGroup(player, groupName, null);
+        }
+
+        @Override
+        default CompletableFuture<Void> removeGroup(UUID player, String groupName) {
+            return removeGroup(player, groupName, null);
+        }
     }
 
 }

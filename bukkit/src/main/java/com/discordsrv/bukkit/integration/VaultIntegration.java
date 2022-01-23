@@ -19,7 +19,9 @@
 package com.discordsrv.bukkit.integration;
 
 import com.discordsrv.bukkit.BukkitDiscordSRV;
+import com.discordsrv.common.exception.MessageException;
 import com.discordsrv.common.function.CheckedSupplier;
+import com.discordsrv.common.future.util.CompletableFutureUtil;
 import com.discordsrv.common.module.type.PermissionDataProvider;
 import com.discordsrv.common.module.type.PluginIntegration;
 import net.milkbowl.vault.chat.Chat;
@@ -32,10 +34,7 @@ import org.jetbrains.annotations.Nullable;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 
-public class VaultIntegration extends PluginIntegration<BukkitDiscordSRV>
-        implements PermissionDataProvider.Permissions,
-                   PermissionDataProvider.Groups,
-                   PermissionDataProvider.PrefixAndSuffix {
+public class VaultIntegration extends PluginIntegration<BukkitDiscordSRV> implements PermissionDataProvider.Basic {
 
     private Permission permission;
     private Chat chat;
@@ -100,13 +99,11 @@ public class VaultIntegration extends PluginIntegration<BukkitDiscordSRV>
     }
 
     private <T> CompletableFuture<T> unsupported(@Nullable Object vault) {
-        CompletableFuture<T> future = new CompletableFuture<>();
-        future.completeExceptionally(new RuntimeException(
+        return CompletableFutureUtil.failed(new MessageException(
                 vault != null
-                    ? "Vault backend " + vault.getClass().getName() + " unable to complete request"
-                    : "No vault backend available"
+                ? "Vault backend " + vault.getClass().getName() + " unable to complete request"
+                : "No vault backend available"
         ));
-        return future;
     }
 
     private <T> CompletableFuture<T> supply(CheckedSupplier<T> supplier, boolean async) {
@@ -131,7 +128,7 @@ public class VaultIntegration extends PluginIntegration<BukkitDiscordSRV>
     }
 
     @Override
-    public CompletableFuture<Boolean> hasGroup(UUID player, String groupName) {
+    public CompletableFuture<Boolean> hasGroup(UUID player, String groupName, boolean includeInherited) {
         if (permission == null || !permission.isEnabled() || !permission.hasGroupSupport()) {
             return unsupported(permission);
         }

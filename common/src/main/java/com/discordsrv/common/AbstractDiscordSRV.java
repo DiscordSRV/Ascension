@@ -22,6 +22,7 @@ import com.discordsrv.api.discord.connection.DiscordConnectionDetails;
 import com.discordsrv.api.event.bus.EventBus;
 import com.discordsrv.api.event.events.lifecycle.DiscordSRVReloadEvent;
 import com.discordsrv.api.event.events.lifecycle.DiscordSRVShuttingDownEvent;
+import com.discordsrv.api.linking.LinkingBackend;
 import com.discordsrv.common.api.util.ApiInstanceUtil;
 import com.discordsrv.common.channel.ChannelConfigHelper;
 import com.discordsrv.common.channel.ChannelUpdaterModule;
@@ -39,6 +40,7 @@ import com.discordsrv.common.discord.details.DiscordConnectionDetailsImpl;
 import com.discordsrv.common.event.bus.EventBusImpl;
 import com.discordsrv.common.function.CheckedFunction;
 import com.discordsrv.common.function.CheckedRunnable;
+import com.discordsrv.common.groupsync.GroupSyncModule;
 import com.discordsrv.common.integration.LuckPermsIntegration;
 import com.discordsrv.common.logging.Logger;
 import com.discordsrv.common.logging.adapter.DependencyLoggerAdapter;
@@ -50,7 +52,7 @@ import com.discordsrv.common.messageforwarding.game.JoinMessageModule;
 import com.discordsrv.common.messageforwarding.game.LeaveMessageModule;
 import com.discordsrv.common.module.ModuleManager;
 import com.discordsrv.common.module.type.AbstractModule;
-import com.discordsrv.common.module.type.Module;
+import com.discordsrv.api.module.type.Module;
 import com.discordsrv.common.placeholder.ComponentResultStringifier;
 import com.discordsrv.common.placeholder.PlaceholderServiceImpl;
 import com.discordsrv.common.placeholder.context.GlobalTextHandlingContext;
@@ -84,8 +86,8 @@ public abstract class AbstractDiscordSRV<C extends MainConfig, CC extends Connec
 
     // DiscordSRV
     private final DiscordSRVLogger logger;
+    private final ModuleManager moduleManager;
     private ChannelConfigHelper channelConfig;
-    private ModuleManager moduleManager;
     private DiscordConnectionManager discordConnectionManager;
 
     // Internal
@@ -94,6 +96,7 @@ public abstract class AbstractDiscordSRV<C extends MainConfig, CC extends Connec
     public AbstractDiscordSRV() {
         ApiInstanceUtil.setInstance(this);
         this.logger = new DiscordSRVLogger(this);
+        this.moduleManager = new ModuleManager(this);
     }
 
     protected final void load() {
@@ -114,6 +117,11 @@ public abstract class AbstractDiscordSRV<C extends MainConfig, CC extends Connec
     @Override
     public @NotNull EventBus eventBus() {
         return eventBus;
+    }
+
+    @Override
+    public LinkingBackend linkingBackend() {
+        return getModule(LinkingBackend.class);
     }
 
     @Override
@@ -306,12 +314,10 @@ public abstract class AbstractDiscordSRV<C extends MainConfig, CC extends Connec
         // Register PlayerProvider listeners
         playerProvider().subscribe();
 
-        // Register modules
-        moduleManager = new ModuleManager(this);
-
         registerModule(ChannelUpdaterModule::new);
         registerModule(GlobalChannelLookupModule::new);
         registerModule(DiscordAPIEventModule::new);
+        registerModule(GroupSyncModule::new);
         registerModule(LuckPermsIntegration::new);
         registerModule(DiscordChatMessageModule::new);
         registerModule(DiscordMessageMirroringModule::new);

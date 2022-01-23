@@ -80,14 +80,14 @@ public class DiscordGuildImpl implements DiscordGuild {
             return Optional.empty();
         }
 
-        return Optional.of(new DiscordRoleImpl(role));
+        return Optional.of(new DiscordRoleImpl(discordSRV, role));
     }
 
     @Override
     public @NotNull List<DiscordRole> getRoles() {
         List<DiscordRole> roles = new ArrayList<>();
         for (Role role : guild.getRoles()) {
-            roles.add(new DiscordRoleImpl(role));
+            roles.add(new DiscordRoleImpl(discordSRV, role));
         }
         return roles;
     }

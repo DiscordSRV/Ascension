@@ -33,6 +33,7 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.concurrent.CompletableFuture;
 
 /**
  * A Discord server member.
@@ -59,6 +60,27 @@ public interface DiscordGuildMember extends DiscordUser, Mentionable {
      */
     @NotNull
     List<DiscordRole> getRoles();
+
+    /**
+     * Checks if the member has the given role.
+     * @param role the role to check for
+     * @return {@code true} if the member has the role
+     */
+    boolean hasRole(@NotNull DiscordRole role);
+
+    /**
+     * Gives the given role to this member.
+     * @param role the role to give
+     * @return a future
+     */
+    CompletableFuture<Void> addRole(@NotNull DiscordRole role);
+
+    /**
+     * Takes the given role from this member.
+     * @param role the role to take
+     * @return a future
+     */
+    CompletableFuture<Void> removeRole(@NotNull DiscordRole role);
 
     /**
      * Gets the effective name of this Discord server member.

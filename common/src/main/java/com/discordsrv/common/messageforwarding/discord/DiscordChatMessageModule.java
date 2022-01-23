@@ -25,7 +25,7 @@ import com.discordsrv.api.discord.api.entity.DiscordUser;
 import com.discordsrv.api.discord.api.entity.channel.DiscordMessageChannel;
 import com.discordsrv.api.discord.api.entity.guild.DiscordGuildMember;
 import com.discordsrv.api.discord.api.entity.message.ReceivedDiscordMessage;
-import com.discordsrv.api.discord.events.DiscordMessageReceiveEvent;
+import com.discordsrv.api.discord.events.message.DiscordMessageReceiveEvent;
 import com.discordsrv.api.event.bus.Subscribe;
 import com.discordsrv.api.event.events.message.receive.discord.DiscordChatMessageProcessingEvent;
 import com.discordsrv.api.placeholder.util.Placeholders;

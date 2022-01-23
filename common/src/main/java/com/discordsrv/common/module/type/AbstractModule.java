@@ -20,6 +20,7 @@ package com.discordsrv.common.module.type;
 
 import com.discordsrv.api.event.events.Cancellable;
 import com.discordsrv.api.event.events.Processable;
+import com.discordsrv.api.module.type.Module;
 import com.discordsrv.common.DiscordSRV;
 import com.discordsrv.common.event.util.EventUtil;
 

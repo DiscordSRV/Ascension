@@ -18,17 +18,25 @@
 
 package com.discordsrv.common.discord.api;
 
-import com.discordsrv.api.discord.events.DiscordMessageDeleteEvent;
-import com.discordsrv.api.discord.events.DiscordMessageReceiveEvent;
-import com.discordsrv.api.discord.events.DiscordMessageUpdateEvent;
+import com.discordsrv.api.discord.events.member.role.DiscordMemberRoleAddEvent;
+import com.discordsrv.api.discord.events.member.role.DiscordMemberRoleRemoveEvent;
+import com.discordsrv.api.discord.events.message.DiscordMessageDeleteEvent;
+import com.discordsrv.api.discord.events.message.DiscordMessageReceiveEvent;
+import com.discordsrv.api.discord.events.message.DiscordMessageUpdateEvent;
 import com.discordsrv.api.event.bus.Subscribe;
 import com.discordsrv.common.DiscordSRV;
 import com.discordsrv.common.discord.api.entity.channel.DiscordMessageChannelImpl;
+import com.discordsrv.common.discord.api.entity.guild.DiscordGuildMemberImpl;
+import com.discordsrv.common.discord.api.entity.guild.DiscordRoleImpl;
 import com.discordsrv.common.discord.api.entity.message.ReceivedDiscordMessageImpl;
 import com.discordsrv.common.module.type.AbstractModule;
+import net.dv8tion.jda.api.events.guild.member.GuildMemberRoleAddEvent;
+import net.dv8tion.jda.api.events.guild.member.GuildMemberRoleRemoveEvent;
 import net.dv8tion.jda.api.events.message.MessageDeleteEvent;
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
 import net.dv8tion.jda.api.events.message.MessageUpdateEvent;
+
+import java.util.stream.Collectors;
 
 public class DiscordAPIEventModule extends AbstractModule<DiscordSRV> {
 
@@ -57,6 +65,22 @@ public class DiscordAPIEventModule extends AbstractModule<DiscordSRV> {
         discordSRV.eventBus().publish(new DiscordMessageDeleteEvent(
                 DiscordMessageChannelImpl.get(discordSRV, event.getChannel()),
                 event.getMessageIdLong()
+        ));
+    }
+
+    @Subscribe
+    public void onGuildMemberRoleAdd(GuildMemberRoleAddEvent event) {
+        discordSRV.eventBus().publish(new DiscordMemberRoleAddEvent(
+                new DiscordGuildMemberImpl(discordSRV, event.getMember()),
+                event.getRoles().stream().map(role -> new DiscordRoleImpl(discordSRV, role)).collect(Collectors.toList())
+        ));
+    }
+
+    @Subscribe
+    public void onGuildMemberRoleRemove(GuildMemberRoleRemoveEvent event) {
+        discordSRV.eventBus().publish(new DiscordMemberRoleRemoveEvent(
+                new DiscordGuildMemberImpl(discordSRV, event.getMember()),
+                event.getRoles().stream().map(role -> new DiscordRoleImpl(discordSRV, role)).collect(Collectors.toList())
         ));
     }
 }

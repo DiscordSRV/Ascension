@@ -23,6 +23,7 @@ import com.discordsrv.common.config.annotation.DefaultOnly;
 import com.discordsrv.common.config.main.channels.base.BaseChannelConfig;
 import com.discordsrv.common.config.main.channels.base.ChannelConfig;
 import org.spongepowered.configurate.objectmapping.ConfigSerializable;
+import org.spongepowered.configurate.objectmapping.meta.Comment;
 
 import java.util.*;
 
@@ -43,4 +44,7 @@ public class MainConfig implements Config {
     }};
 
     public List<ChannelUpdaterConfig> channelUpdaters = new ArrayList<>(Collections.singletonList(new ChannelUpdaterConfig()));
+
+    @Comment("Configuration options for group-role synchronization")
+    public GroupSyncConfig groupSync = new GroupSyncConfig();
 }

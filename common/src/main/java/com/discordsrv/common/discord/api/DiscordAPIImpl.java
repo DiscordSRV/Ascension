@@ -386,7 +386,7 @@ public class DiscordAPIImpl implements DiscordAPI {
     public @NotNull Optional<DiscordRole> getRoleById(long id) {
         return discordSRV.jda()
                 .map(jda -> jda.getRoleById(id))
-                .map(DiscordRoleImpl::new);
+                .map(role -> new DiscordRoleImpl(discordSRV, role));
     }
 
     private class WebhookCacheLoader implements AsyncCacheLoader<Long, WebhookClient> {

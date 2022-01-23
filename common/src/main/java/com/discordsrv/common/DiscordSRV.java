@@ -29,7 +29,7 @@ import com.discordsrv.common.console.Console;
 import com.discordsrv.common.discord.api.DiscordAPIImpl;
 import com.discordsrv.common.discord.connection.DiscordConnectionManager;
 import com.discordsrv.common.module.type.AbstractModule;
-import com.discordsrv.common.module.type.Module;
+import com.discordsrv.api.module.type.Module;
 import com.discordsrv.common.placeholder.PlaceholderServiceImpl;
 import com.discordsrv.common.player.provider.AbstractPlayerProvider;
 import com.discordsrv.common.scheduler.Scheduler;
@@ -37,6 +37,7 @@ import com.discordsrv.common.logging.Logger;
 import com.github.benmanes.caffeine.cache.Caffeine;
 import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.nio.file.Path;
 import java.util.Locale;
@@ -84,6 +85,7 @@ public interface DiscordSRV extends DiscordSRVApi {
     DiscordConnectionManager discordConnectionManager();
 
     // Modules
+    @Nullable
     <T extends Module> T getModule(Class<T> moduleType);
     void registerModule(AbstractModule<?> module);
     void unregisterModule(AbstractModule<?> module);

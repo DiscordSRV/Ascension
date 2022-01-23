@@ -184,7 +184,7 @@ public class JDAConnectionManager implements DiscordConnectionManager {
             } else if (o instanceof Member) {
                 converted = new DiscordGuildMemberImpl(discordSRV, (Member) o);
             } else if (o instanceof Role) {
-                converted = new DiscordRoleImpl((Role) o);
+                converted = new DiscordRoleImpl(discordSRV, (Role) o);
             } else if (o instanceof ReceivedMessage) {
                 converted = ReceivedDiscordMessageImpl.fromJDA(discordSRV, (Message) o);
             } else if (o instanceof User) {

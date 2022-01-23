@@ -31,9 +31,9 @@ import java.util.concurrent.CompletableFuture;
 
 public class DiscordUserImpl implements DiscordUser {
 
-    private final DiscordSRV discordSRV;
-    private final User user;
-    private final boolean self;
+    protected final DiscordSRV discordSRV;
+    protected final User user;
+    protected final boolean self;
 
     public DiscordUserImpl(DiscordSRV discordSRV, User user) {
         this.discordSRV = discordSRV;

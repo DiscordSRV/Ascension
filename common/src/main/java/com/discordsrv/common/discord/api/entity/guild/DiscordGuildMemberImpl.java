@@ -37,6 +37,7 @@ import org.jetbrains.annotations.NotNull;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.concurrent.CompletableFuture;
 
 public class DiscordGuildMemberImpl extends DiscordUserImpl implements DiscordGuildMember {
 
@@ -52,7 +53,7 @@ public class DiscordGuildMemberImpl extends DiscordUserImpl implements DiscordGu
 
         List<DiscordRole> roles = new ArrayList<>();
         for (Role role : member.getRoles()) {
-            roles.add(new DiscordRoleImpl(role));
+            roles.add(new DiscordRoleImpl(discordSRV, role));
         }
         this.roles = roles;
         this.color = new Color(member.getColorRaw());
@@ -71,6 +72,25 @@ public class DiscordGuildMemberImpl extends DiscordUserImpl implements DiscordGu
     @Override
     public @NotNull List<DiscordRole> getRoles() {
         return roles;
+    }
+
+    @Override
+    public boolean hasRole(@NotNull DiscordRole role) {
+        return roles.stream().anyMatch(role::equals);
+    }
+
+    @Override
+    public CompletableFuture<Void> addRole(@NotNull DiscordRole role) {
+        return discordSRV.discordAPI().mapExceptions(() ->
+                guild.getAsJDAGuild().addRoleToMember(member, role.getAsJDARole()).submit()
+        );
+    }
+
+    @Override
+    public CompletableFuture<Void> removeRole(@NotNull DiscordRole role) {
+        return discordSRV.discordAPI().mapExceptions(() ->
+                guild.getAsJDAGuild().removeRoleFromMember(member, role.getAsJDARole()).submit()
+        );
     }
 
     @Override

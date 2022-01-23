@@ -21,20 +21,28 @@
  * SOFTWARE.
  */
 
-package com.discordsrv.api.discord.events;
+package com.discordsrv.api.module.type;
 
-import com.discordsrv.api.discord.api.entity.channel.DiscordMessageChannel;
+public interface Module {
 
-public class DiscordMessageDeleteEvent extends AbstractDiscordMessageEvent {
-
-    private final long messageId;
-
-    public DiscordMessageDeleteEvent(DiscordMessageChannel channel, long messageId) {
-        super(channel);
-        this.messageId = messageId;
+    default boolean isEnabled() {
+        return true;
     }
 
-    public long getMessageId() {
-        return messageId;
+    /**
+     * Returns the priority of this Module given the lookup type.
+     * @param type the type being looked up this could be an interface
+     * @return the priority of this module, higher is more important. Default is 0
+     */
+    @SuppressWarnings("unused") // API
+    default int priority(Class<?> type) {
+        return 0;
     }
+
+    default void enable() {
+        reload();
+    }
+
+    default void disable() {}
+    default void reload() {}
 }

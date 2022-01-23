@@ -21,21 +21,24 @@
  * SOFTWARE.
  */
 
-package com.discordsrv.api.discord.events;
+package com.discordsrv.api.discord.events.member.role;
 
-import com.discordsrv.api.discord.api.entity.channel.DiscordMessageChannel;
-import com.discordsrv.api.discord.api.entity.message.ReceivedDiscordMessage;
+import com.discordsrv.api.discord.api.entity.guild.DiscordGuildMember;
+import com.discordsrv.api.discord.api.entity.guild.DiscordRole;
+import com.discordsrv.api.discord.events.member.AbstractDiscordMemberEvent;
 
-public class DiscordMessageReceiveEvent extends AbstractDiscordMessageEvent {
+import java.util.List;
 
-    private final ReceivedDiscordMessage message;
+public abstract class AbstractDiscordMemberRoleChangeEvent extends AbstractDiscordMemberEvent {
 
-    public DiscordMessageReceiveEvent(DiscordMessageChannel channel, ReceivedDiscordMessage message) {
-        super(channel);
-        this.message = message;
+    private final List<DiscordRole> roles;
+
+    public AbstractDiscordMemberRoleChangeEvent(DiscordGuildMember member, List<DiscordRole> roles) {
+        super(member);
+        this.roles = roles;
     }
 
-    public ReceivedDiscordMessage getMessage() {
-        return message;
+    public List<DiscordRole> getRoles() {
+        return roles;
     }
 }

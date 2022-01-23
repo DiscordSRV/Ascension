@@ -21,16 +21,16 @@
  * SOFTWARE.
  */
 
-package com.discordsrv.api.discord.events;
+package com.discordsrv.api.discord.events.message;
 
 import com.discordsrv.api.discord.api.entity.channel.DiscordMessageChannel;
 import com.discordsrv.api.discord.api.entity.message.ReceivedDiscordMessage;
 
-public class DiscordMessageUpdateEvent extends AbstractDiscordMessageEvent {
+public class DiscordMessageReceiveEvent extends AbstractDiscordMessageEvent {
 
     private final ReceivedDiscordMessage message;
 
-    public DiscordMessageUpdateEvent(DiscordMessageChannel channel, ReceivedDiscordMessage message) {
+    public DiscordMessageReceiveEvent(DiscordMessageChannel channel, ReceivedDiscordMessage message) {
         super(channel);
         this.message = message;
     }
@@ -39,4 +39,3 @@ public class DiscordMessageUpdateEvent extends AbstractDiscordMessageEvent {
         return message;
     }
 }
-

@@ -42,6 +42,13 @@ public interface DiscordRole extends Snowflake, Mentionable {
     Color DEFAULT_COLOR = new Color(0xFFFFFF);
 
     /**
+     * The Discord server this role is from.
+     * @return the Discord server
+     */
+    @NotNull
+    DiscordGuild getGuild();
+
+    /**
      * Gets the name of the Discord role.
      * @return the role name
      */

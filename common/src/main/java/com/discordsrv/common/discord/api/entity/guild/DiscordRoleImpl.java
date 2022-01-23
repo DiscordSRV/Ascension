@@ -19,23 +19,34 @@
 package com.discordsrv.common.discord.api.entity.guild;
 
 import com.discordsrv.api.color.Color;
+import com.discordsrv.api.discord.api.entity.guild.DiscordGuild;
 import com.discordsrv.api.discord.api.entity.guild.DiscordRole;
+import com.discordsrv.common.DiscordSRV;
 import net.dv8tion.jda.api.entities.Role;
 import org.jetbrains.annotations.NotNull;
+
+import java.util.Objects;
 
 public class DiscordRoleImpl implements DiscordRole {
 
     private final Role role;
+    private final DiscordGuild guild;
     private final Color color;
 
-    public DiscordRoleImpl(Role role) {
+    public DiscordRoleImpl(DiscordSRV discordSRV, Role role) {
         this.role = role;
+        this.guild = new DiscordGuildImpl(discordSRV, role.getGuild());
         this.color = new Color(role.getColorRaw());
     }
 
     @Override
     public long getId() {
         return role.getIdLong();
+    }
+
+    @Override
+    public @NotNull DiscordGuild getGuild() {
+        return guild;
     }
 
     @Override
@@ -66,5 +77,18 @@ public class DiscordRoleImpl implements DiscordRole {
     @Override
     public String toString() {
         return "ServerRole:" + getName() + "(" + Long.toUnsignedString(getId()) + ")";
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        DiscordRoleImpl that = (DiscordRoleImpl) o;
+        return Objects.equals(role.getId(), that.role.getId());
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(role.getId());
     }
 }

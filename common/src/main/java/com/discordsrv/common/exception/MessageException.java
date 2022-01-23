@@ -16,28 +16,15 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package com.discordsrv.common.module.type;
+package com.discordsrv.common.exception;
 
-public interface Module {
+import com.discordsrv.common.exception.util.ExceptionUtil;
 
-    default boolean isEnabled() {
-        return true;
+public class MessageException extends RuntimeException {
+
+    @SuppressWarnings("ThrowableNotThrown")
+    public MessageException(String message) {
+        super(message);
+        ExceptionUtil.minifyException(this);
     }
-
-    /**
-     * Returns the priority of this Module given the lookup type.
-     * @param type the type being looked up this could be an interface
-     * @return the priority of this module, higher is more important. Default is 0
-     */
-    @SuppressWarnings("unused") // API
-    default int priority(Class<?> type) {
-        return 0;
-    }
-
-    default void enable() {
-        reload();
-    }
-
-    default void disable() {}
-    default void reload() {}
 }

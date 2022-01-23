@@ -24,7 +24,7 @@ import com.discordsrv.api.event.events.lifecycle.DiscordSRVReloadEvent;
 import com.discordsrv.api.event.events.lifecycle.DiscordSRVShuttingDownEvent;
 import com.discordsrv.common.DiscordSRV;
 import com.discordsrv.common.module.type.AbstractModule;
-import com.discordsrv.common.module.type.Module;
+import com.discordsrv.api.module.type.Module;
 
 import java.util.Map;
 import java.util.Set;
