@@ -82,7 +82,7 @@ public class EventBusImpl implements EventBus {
         }
 
         listeners.put(eventListener, methods);
-        discordSRV.logger().debug("API Listener " + eventListener.getClass().getName() + " subscribed");
+        discordSRV.logger().debug("Listener " + eventListener.getClass().getName() + " subscribed");
     }
 
     private void checkMethod(Class<?> listenerClass, Method method,
@@ -149,7 +149,7 @@ public class EventBusImpl implements EventBus {
     @Override
     public void unsubscribe(@NotNull Object eventListener) {
         listeners.remove(eventListener);
-        discordSRV.logger().debug("API Listener " + eventListener.getClass().getName() + " unsubscribed");
+        discordSRV.logger().debug("Listener " + eventListener.getClass().getName() + " unsubscribed");
     }
 
     @Override
@@ -193,7 +193,7 @@ public class EventBusImpl implements EventBus {
                     try {
                         eventListener.method().invoke(listener, event);
                     } catch (IllegalAccessException e) {
-                        discordSRV.logger().error("Failed to access API listener method: " + eventListener.methodName(), e);
+                        discordSRV.logger().error("Failed to access listener method: " + eventListener.methodName(), e);
                     } catch (InvocationTargetException e) {
                         discordSRV.logger().error("Failed to pass " + event.getClass().getSimpleName() + " to " + eventListener, e.getCause());
                     }
