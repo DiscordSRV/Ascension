@@ -72,7 +72,7 @@ public class DiscordSRVLogger implements Logger {
             List<Path> logs = new ArrayList<>(amount);
             for (int i = amount; i > 0; i--) {
                 Path log = logsDirectory.resolve(String.format(LOG_FILE_NAME_FORMAT, label, i));
-                logs.add(log);
+                logs.add(0, log);
                 if (!Files.exists(log)) {
                     continue;
                 }
