@@ -24,7 +24,7 @@ import org.jetbrains.annotations.Nullable;
 public interface Logger {
 
     default void info(String message) {
-        log(LogLevel.INFO, message, null);
+        log(null, LogLevel.INFO, message, null);
     }
 
     default void warning(String message) {
@@ -34,7 +34,7 @@ public interface Logger {
         warning(null, throwable);
     }
     default void warning(String message, Throwable throwable) {
-        log(LogLevel.WARNING, message, throwable);
+        log(null, LogLevel.WARNING, message, throwable);
     }
 
     default void error(String message) {
@@ -44,7 +44,7 @@ public interface Logger {
         error(null, throwable);
     }
     default void error(String message, Throwable throwable) {
-        log(LogLevel.ERROR, message, throwable);
+        log(null, LogLevel.ERROR, message, throwable);
     }
 
     default void debug(String message) {
@@ -54,7 +54,7 @@ public interface Logger {
         debug(null, throwable);
     }
     default void debug(String message, Throwable throwable) {
-        log(LogLevel.DEBUG, message, throwable);
+        log(null, LogLevel.DEBUG, message, throwable);
     }
 
     default void trace(String message) {
@@ -64,9 +64,9 @@ public interface Logger {
         trace(null, throwable);
     }
     default void trace(String message, Throwable throwable) {
-        log(LogLevel.TRACE, message, throwable);
+        log(null, LogLevel.TRACE, message, throwable);
     }
     
-    void log(@NotNull LogLevel logLevel, @Nullable String message, @Nullable Throwable throwable);
+    void log(@Nullable String loggerName, @NotNull LogLevel logLevel, @Nullable String message, @Nullable Throwable throwable);
 
 }

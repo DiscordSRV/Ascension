@@ -47,15 +47,11 @@ public class DiscordSRVBungeeBootstrap extends BungeeBootstrap {
 
     @Override
     public void onEnable() {
-        // Wait until dependencies ready, then initialize DiscordSRV
-        dependencies.join();
-        this.discordSRV = new BungeeDiscordSRV(this, logger);
-
-        dependencies.runWhenComplete(discordSRV::invokeEnable);
+        dependencies.loadAndEnable(() -> this.discordSRV = new BungeeDiscordSRV(this, logger));
     }
 
     @Override
     public void onDisable() {
-        dependencies.runWhenComplete(discordSRV::invokeDisable);
+        dependencies.disable(discordSRV);
     }
 }

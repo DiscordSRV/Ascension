@@ -16,31 +16,24 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package com.discordsrv.common.channel;
+package com.discordsrv.common.logging;
 
-import com.discordsrv.api.event.bus.EventPriority;
-import com.discordsrv.api.event.bus.Subscribe;
-import com.discordsrv.api.event.events.channel.GameChannelLookupEvent;
 import com.discordsrv.common.DiscordSRV;
-import com.discordsrv.common.module.type.AbstractModule;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
-public class GlobalChannelLookupModule extends AbstractModule<DiscordSRV> {
+public class NamedLogger implements Logger {
 
-    private final DefaultGlobalChannel defaultGlobalChannel;
+    private final DiscordSRV discordSRV;
+    private final String name;
 
-    public GlobalChannelLookupModule(DiscordSRV discordSRV) {
-        super(discordSRV);
-        defaultGlobalChannel = new DefaultGlobalChannel(discordSRV);
+    public NamedLogger(DiscordSRV discordSRV, String name) {
+        this.discordSRV = discordSRV;
+        this.name = name;
     }
 
-    @Subscribe(priority = EventPriority.LATE)
-    public void onGameChannelLookup(GameChannelLookupEvent event) {
-        if (event.getChannelName().equalsIgnoreCase("global")) {
-            if (checkProcessor(event)) {
-                return;
-            }
-
-            event.process(defaultGlobalChannel);
-        }
+    @Override
+    public void log(@Nullable String loggerName, @NotNull LogLevel logLevel, @Nullable String message, @Nullable Throwable throwable) {
+        discordSRV.logger().log(name, logLevel, message, throwable);
     }
 }

@@ -28,11 +28,12 @@ import com.discordsrv.common.DiscordSRV;
 import com.discordsrv.common.config.main.channels.JoinMessageConfig;
 import com.discordsrv.common.config.main.channels.base.BaseChannelConfig;
 import com.discordsrv.common.function.OrDefault;
+import com.discordsrv.common.logging.NamedLogger;
 
 public class JoinMessageModule extends AbstractGameMessageModule<JoinMessageConfig> {
 
     public JoinMessageModule(DiscordSRV discordSRV) {
-        super(discordSRV);
+        super(discordSRV, new NamedLogger(discordSRV, "JOIN_MESSAGES"));
     }
 
     @Override

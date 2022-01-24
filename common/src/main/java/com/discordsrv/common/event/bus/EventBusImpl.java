@@ -18,14 +18,18 @@
 
 package com.discordsrv.common.event.bus;
 
+import com.discordsrv.api.event.bus.EventBus;
 import com.discordsrv.api.event.bus.EventListener;
-import com.discordsrv.api.event.bus.*;
+import com.discordsrv.api.event.bus.EventPriority;
+import com.discordsrv.api.event.bus.Subscribe;
 import com.discordsrv.api.event.bus.internal.EventStateHolder;
 import com.discordsrv.api.event.events.Cancellable;
 import com.discordsrv.api.event.events.Event;
 import com.discordsrv.api.event.events.Processable;
 import com.discordsrv.common.DiscordSRV;
 import com.discordsrv.common.exception.InvalidListenerMethodException;
+import com.discordsrv.common.logging.Logger;
+import com.discordsrv.common.logging.NamedLogger;
 import net.dv8tion.jda.api.events.GenericEvent;
 import org.apache.commons.lang3.tuple.Pair;
 import org.jetbrains.annotations.NotNull;
@@ -35,7 +39,7 @@ import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.CopyOnWriteArraySet;
+import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
@@ -48,11 +52,13 @@ public class EventBusImpl implements EventBus {
             Pair.of(event -> event instanceof Processable && ((Processable) event).isProcessed(), EventStateHolder.PROCESSED)
     );
 
-    private final Map<Object, Set<EventListenerImpl>> listeners = new ConcurrentHashMap<>();
+    private final Map<Object, List<EventListenerImpl>> listeners = new ConcurrentHashMap<>();
     private final DiscordSRV discordSRV;
+    private final Logger logger;
 
     public EventBusImpl(DiscordSRV discordSRV) {
         this.discordSRV = discordSRV;
+        this.logger = new NamedLogger(discordSRV, "EVENT_BUS");
     }
 
     @Override
@@ -64,8 +70,8 @@ public class EventBusImpl implements EventBus {
         Class<?> listenerClass = eventListener.getClass();
 
         List<Throwable> suppressedMethods = new ArrayList<>();
-        Set<EventListenerImpl> methods = new HashSet<>();
-        EnumMap<EventPriority, Set<EventListenerImpl>> methodsByPriority = new EnumMap<>(EventPriority.class);
+        List<EventListenerImpl> methods = new ArrayList<>();
+        EnumMap<EventPriority, List<EventListenerImpl>> methodsByPriority = new EnumMap<>(EventPriority.class);
 
         Class<?> currentClass = listenerClass;
         do {
@@ -82,12 +88,12 @@ public class EventBusImpl implements EventBus {
         }
 
         listeners.put(eventListener, methods);
-        discordSRV.logger().debug("Listener " + eventListener.getClass().getName() + " subscribed");
+        logger.debug("Listener " + eventListener.getClass().getName() + " subscribed");
     }
 
     private void checkMethod(Class<?> listenerClass, Method method,
-                             List<Throwable> suppressedMethods, Set<EventListenerImpl> methods,
-                             EnumMap<EventPriority, Set<EventListenerImpl>> methodsByPriority) {
+                             List<Throwable> suppressedMethods, List<EventListenerImpl> methods,
+                             EnumMap<EventPriority, List<EventListenerImpl>> methodsByPriority) {
         Subscribe annotation = method.getAnnotation(Subscribe.class);
         if (annotation == null) {
             return;
@@ -137,7 +143,7 @@ public class EventBusImpl implements EventBus {
         EventListenerImpl listener = new EventListenerImpl(listenerClass, annotation, firstParameter, method);
 
         methods.add(listener);
-        methodsByPriority.computeIfAbsent(eventPriority, key -> new CopyOnWriteArraySet<>())
+        methodsByPriority.computeIfAbsent(eventPriority, key -> new CopyOnWriteArrayList<>())
                 .add(listener);
     }
 
@@ -149,7 +155,7 @@ public class EventBusImpl implements EventBus {
     @Override
     public void unsubscribe(@NotNull Object eventListener) {
         listeners.remove(eventListener);
-        discordSRV.logger().debug("Listener " + eventListener.getClass().getName() + " unsubscribed");
+        logger.debug("Listener " + eventListener.getClass().getName() + " unsubscribed");
     }
 
     @Override
@@ -176,7 +182,7 @@ public class EventBusImpl implements EventBus {
 
         Class<?> eventClass = event.getClass();
         for (EventPriority priority : EventPriority.values()) {
-            for (Map.Entry<Object, Set<EventListenerImpl>> entry : listeners.entrySet()) {
+            for (Map.Entry<Object, List<EventListenerImpl>> entry : listeners.entrySet()) {
                 Object listener = entry.getKey();
                 for (EventListenerImpl eventListener : entry.getValue()) {
                     if (eventListener.isIgnoringCancelled() && event instanceof Cancellable && ((Cancellable) event).isCancelled()) {
@@ -198,7 +204,7 @@ public class EventBusImpl implements EventBus {
                         discordSRV.logger().error("Failed to pass " + event.getClass().getSimpleName() + " to " + eventListener, e.getCause());
                     }
                     long timeTaken = System.currentTimeMillis() - startTime;
-                    discordSRV.logger().trace(eventListener + " took " + timeTaken + "ms to execute");
+                    logger.trace(eventListener + " took " + timeTaken + "ms to execute");
 
                     for (int index = 0; index < STATES.size(); index++) {
                         Pair<Function<Object, Boolean>, ThreadLocal<EventListener>> state = STATES.get(index);

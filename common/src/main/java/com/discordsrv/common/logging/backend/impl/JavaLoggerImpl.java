@@ -59,7 +59,7 @@ public class JavaLoggerImpl implements Logger, LoggingBackend {
     }
 
     @Override
-    public void log(@NotNull LogLevel level, @Nullable String message, @Nullable Throwable throwable) {
+    public void log(@Nullable String loggerName, @NotNull LogLevel level, @Nullable String message, @Nullable Throwable throwable) {
         Level logLevel = LEVELS.getKey(level);
         if (logLevel != null) {
             logger.log(logLevel, message, throwable);

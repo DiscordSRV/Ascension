@@ -28,11 +28,12 @@ import com.discordsrv.common.DiscordSRV;
 import com.discordsrv.common.config.main.channels.LeaveMessageConfig;
 import com.discordsrv.common.config.main.channels.base.BaseChannelConfig;
 import com.discordsrv.common.function.OrDefault;
+import com.discordsrv.common.logging.NamedLogger;
 
 public class LeaveMessageModule extends AbstractGameMessageModule<LeaveMessageConfig> {
 
     public LeaveMessageModule(DiscordSRV discordSRV) {
-        super(discordSRV);
+        super(discordSRV, new NamedLogger(discordSRV, "LEAVE_MESSAGES"));
     }
 
     @Override

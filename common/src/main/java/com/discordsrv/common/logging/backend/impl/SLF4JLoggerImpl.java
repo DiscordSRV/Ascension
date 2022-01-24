@@ -32,7 +32,7 @@ public class SLF4JLoggerImpl implements Logger {
     }
 
     @Override
-    public void log(@NotNull LogLevel level, @Nullable String message, @Nullable Throwable throwable) {
+    public void log(@Nullable String loggerName, @NotNull LogLevel level, @Nullable String message, @Nullable Throwable throwable) {
         if (!(level instanceof LogLevel.StandardLogLevel)) {
             return;
         }

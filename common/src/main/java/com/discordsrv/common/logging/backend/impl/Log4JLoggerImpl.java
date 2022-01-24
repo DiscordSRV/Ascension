@@ -64,7 +64,7 @@ public class Log4JLoggerImpl implements Logger, LoggingBackend {
     }
 
     @Override
-    public void log(@NotNull LogLevel level, @Nullable String message, @Nullable Throwable throwable) {
+    public void log(@Nullable String loggerName, @NotNull LogLevel level, @Nullable String message, @Nullable Throwable throwable) {
         Level logLevel = LEVELS.getKey(level);
         logger.log(logLevel, message, throwable);
     }

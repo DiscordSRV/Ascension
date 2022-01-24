@@ -30,6 +30,7 @@ import com.discordsrv.common.groupsync.enums.GroupSyncCause;
 import com.discordsrv.common.groupsync.enums.GroupSyncDirection;
 import com.discordsrv.common.groupsync.enums.GroupSyncResult;
 import com.discordsrv.common.groupsync.enums.GroupSyncSide;
+import com.discordsrv.common.logging.NamedLogger;
 import com.discordsrv.common.module.type.AbstractModule;
 import com.discordsrv.common.module.type.PermissionDataProvider;
 import com.discordsrv.common.player.IPlayer;
@@ -53,7 +54,7 @@ public class GroupSyncModule extends AbstractModule<DiscordSRV> {
     private final Cache<UUID, Map<String, Boolean>> expectedMinecraftChanges;
 
     public GroupSyncModule(DiscordSRV discordSRV) {
-        super(discordSRV);
+        super(discordSRV, new NamedLogger(discordSRV, "GROUP_SYNC"));
         this.expectedDiscordChanges = discordSRV.caffeineBuilder()
                 .expireAfterWrite(30, TimeUnit.SECONDS)
                 .build();
@@ -124,7 +125,7 @@ public class GroupSyncModule extends AbstractModule<DiscordSRV> {
             for (Map.Entry<GroupSyncConfig.PairConfig, CompletableFuture<GroupSyncResult>> entry : pairs.entrySet()) {
                 summary.add(entry.getKey(), entry.getValue().join());
             }
-            discordSRV.logger().debug(summary.toString());
+            logger().debug(summary.toString());
         });
     }
 
@@ -224,9 +225,9 @@ public class GroupSyncModule extends AbstractModule<DiscordSRV> {
                 continue;
             }
 
-            resyncPair(pair, uuid, userId)
-                    .whenComplete((result, t) -> discordSRV.logger().debug(
-                            new SynchronizationSummary(uuid, cause, pair, result).toString()));
+            resyncPair(pair, uuid, userId).whenComplete((result, t) -> logger().debug(
+                    new SynchronizationSummary(uuid, cause, pair, result).toString()
+            ));
         }
     }
 

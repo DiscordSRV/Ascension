@@ -20,6 +20,7 @@ package com.discordsrv.bukkit.console;
 
 import com.discordsrv.bukkit.BukkitDiscordSRV;
 import com.discordsrv.common.console.Console;
+import com.discordsrv.common.logging.NamedLogger;
 import com.discordsrv.common.logging.backend.LoggingBackend;
 import com.discordsrv.common.logging.backend.impl.JavaLoggerImpl;
 import com.discordsrv.common.logging.backend.impl.Log4JLoggerImpl;
@@ -43,7 +44,7 @@ public class BukkitConsole implements Console {
         } catch (ClassNotFoundException ignored) {
             // Log4j with Filter has been in the vanilla server since Minecraft 1.7,
             // this is mostly for Bukkit servers that don't use the vanilla server software
-            discordSRV.logger().debug("Not using Log4j for advanced console features");
+            new NamedLogger(discordSRV, "CONSOLE").debug("Not using Log4j for advanced console features");
             logging = JavaLoggerImpl.getRoot();
         }
         this.loggingBackend = logging;

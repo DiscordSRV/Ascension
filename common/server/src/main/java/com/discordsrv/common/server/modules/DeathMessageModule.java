@@ -26,15 +26,16 @@ import com.discordsrv.api.event.events.message.forward.game.DeathMessageForwarde
 import com.discordsrv.api.event.events.message.receive.game.DeathMessageReceiveEvent;
 import com.discordsrv.common.DiscordSRV;
 import com.discordsrv.common.config.main.channels.base.BaseChannelConfig;
-import com.discordsrv.common.server.config.channels.DeathMessageConfig;
 import com.discordsrv.common.function.OrDefault;
+import com.discordsrv.common.logging.NamedLogger;
 import com.discordsrv.common.messageforwarding.game.AbstractGameMessageModule;
+import com.discordsrv.common.server.config.channels.DeathMessageConfig;
 import com.discordsrv.common.server.config.channels.base.ServerBaseChannelConfig;
 
 public class DeathMessageModule extends AbstractGameMessageModule<DeathMessageConfig> {
 
     public DeathMessageModule(DiscordSRV discordSRV) {
-        super(discordSRV);
+        super(discordSRV, new NamedLogger(discordSRV, "DEATH"));
     }
 
     @Subscribe(priority = EventPriority.LAST)

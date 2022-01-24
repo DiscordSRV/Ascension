@@ -68,21 +68,17 @@ public class DiscordSRVVelocityBootstrap {
 
     @Subscribe
     public void onProxyInitialize(ProxyInitializeEvent event) {
-        // Wait until dependencies ready, then initialize DiscordSRV
-        dependencies.join();
-        this.discordSRV = new VelocityDiscordSRV(this, logger, proxyServer, pluginContainer, dataDirectory);
-
-        dependencies.runWhenComplete(discordSRV::invokeEnable);
+        dependencies.loadAndEnable(() -> this.discordSRV = new VelocityDiscordSRV(this, logger, proxyServer, pluginContainer, dataDirectory));
     }
 
     @Subscribe
     public void onProxyReload(ProxyReloadEvent event) {
-        dependencies.runWhenComplete(discordSRV::invokeReload);
+        dependencies.reload(discordSRV);
     }
 
     @Subscribe
     public void onProxyShutdown(ProxyShutdownEvent event) {
-        dependencies.runWhenComplete(discordSRV::invokeDisable);
+        dependencies.disable(discordSRV);
     }
 
 }

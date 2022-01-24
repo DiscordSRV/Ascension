@@ -27,14 +27,16 @@ import com.discordsrv.api.event.events.placeholder.PlaceholderLookupEvent;
 import com.discordsrv.api.placeholder.PlaceholderLookupResult;
 import com.discordsrv.common.DiscordSRV;
 import com.discordsrv.common.config.connection.ConnectionConfig;
+import com.discordsrv.common.discord.api.entity.DiscordUserImpl;
 import com.discordsrv.common.discord.api.entity.channel.DiscordDMChannelImpl;
 import com.discordsrv.common.discord.api.entity.channel.DiscordTextChannelImpl;
 import com.discordsrv.common.discord.api.entity.guild.DiscordGuildImpl;
 import com.discordsrv.common.discord.api.entity.guild.DiscordGuildMemberImpl;
 import com.discordsrv.common.discord.api.entity.guild.DiscordRoleImpl;
 import com.discordsrv.common.discord.api.entity.message.ReceivedDiscordMessageImpl;
-import com.discordsrv.common.discord.api.entity.DiscordUserImpl;
 import com.discordsrv.common.discord.connection.DiscordConnectionManager;
+import com.discordsrv.common.logging.Logger;
+import com.discordsrv.common.logging.NamedLogger;
 import com.discordsrv.common.scheduler.Scheduler;
 import com.discordsrv.common.scheduler.threadfactory.CountingThreadFactory;
 import com.discordsrv.common.time.util.Timeout;
@@ -102,7 +104,7 @@ public class JDAConnectionManager implements DiscordConnectionManager {
         );
 
         // Set default failure handling
-        RestAction.setDefaultFailure(new DefaultFailureCallback());
+        RestAction.setDefaultFailure(new DefaultFailureCallback(new NamedLogger(discordSRV, "DISCORD_REQUESTS")));
 
         // Disable all mentions by default for safety
         AllowedMentions.setDefaultMentions(Collections.emptyList());
@@ -437,6 +439,12 @@ public class JDAConnectionManager implements DiscordConnectionManager {
 
     private class DefaultFailureCallback implements Consumer<Throwable> {
 
+        private final Logger logger;
+
+        protected DefaultFailureCallback(Logger logger) {
+            this.logger = logger;
+        }
+
         @Override
         public void accept(Throwable t) {
             if ((t instanceof InterruptedIOException || t instanceof InterruptedException)
@@ -448,13 +456,13 @@ public class JDAConnectionManager implements DiscordConnectionManager {
             boolean cancelled;
             if ((cancelled = t instanceof CancellationException) || t instanceof TimeoutException) {
                 // Cancelling/timing out requests is always intentional
-                discordSRV.logger().debug("A request " + (cancelled ? "was cancelled" : "timed out"), t.getCause());
+                logger.debug("A request " + (cancelled ? "was cancelled" : "timed out"), t.getCause());
             } else if (t instanceof RateLimitedException) {
                 // Log route & retry after on warn & context on debug
                 RateLimitedException exception = ((RateLimitedException) t);
                 discordSRV.logger().warning("A request on route " + exception.getRateLimitedRoute()
                         + " was rate-limited for " + exception.getRetryAfter() + "ms");
-                discordSRV.logger().debug(exception.getCause());
+                logger.debug(exception.getCause());
             } else if (t instanceof ErrorResponseException) {
                 ErrorResponseException exception = (ErrorResponseException) t;
                 if (exception.getErrorCode() == Response.ERROR_CODE) {
@@ -464,7 +472,7 @@ public class JDAConnectionManager implements DiscordConnectionManager {
                         // Run the cause through this method again
                         accept(cause);
                     } else {
-                        discordSRV.logger().error("Failed to complete request for a unknown reason", exception);
+                        logger.error("Failed to complete request for a unknown reason", exception);
                     }
                     return;
                 }
@@ -504,17 +512,17 @@ public class JDAConnectionManager implements DiscordConnectionManager {
                             discordSRV.logger().error("+--------------------------------------------------------------->");
                         } else {
                             // Log as debug as to not spam out the server console/log
-                            discordSRV.logger().debug("Failed to complete a request, Discord returned a server error (HTTP 500)");
+                            logger.debug("Failed to complete a request, Discord returned a server error (HTTP 500)");
                         }
                         // Log context to find what made the request
-                        discordSRV.logger().debug(exception.getCause());
+                        logger.debug(exception.getCause());
                         return;
                     }
                     default: break;
                 }
 
-                discordSRV.logger().error("Failed to complete a request: " + response.getMeaning());
-                discordSRV.logger().debug(exception);
+                logger.error("Failed to complete a request: " + response.getMeaning());
+                logger.debug(exception);
             }
         }
     }

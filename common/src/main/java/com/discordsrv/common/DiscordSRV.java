@@ -28,6 +28,7 @@ import com.discordsrv.common.config.manager.MainConfigManager;
 import com.discordsrv.common.console.Console;
 import com.discordsrv.common.discord.api.DiscordAPIImpl;
 import com.discordsrv.common.discord.connection.DiscordConnectionManager;
+import com.discordsrv.common.logging.impl.DiscordSRVLogger;
 import com.discordsrv.common.module.type.AbstractModule;
 import com.discordsrv.api.module.type.Module;
 import com.discordsrv.common.placeholder.PlaceholderServiceImpl;
@@ -71,7 +72,7 @@ public interface DiscordSRV extends DiscordSRVApi {
     DiscordAPIImpl discordAPI();
 
     // Logger
-    Logger logger();
+    DiscordSRVLogger logger();
 
     // Config
     ConnectionConfigManager<? extends ConnectionConfig> connectionConfigManager();

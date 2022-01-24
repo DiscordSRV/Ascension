@@ -20,6 +20,7 @@ package com.discordsrv.common.channel;
 
 import com.discordsrv.common.DiscordSRV;
 import com.discordsrv.common.config.main.ChannelUpdaterConfig;
+import com.discordsrv.common.logging.NamedLogger;
 import com.discordsrv.common.module.type.AbstractModule;
 import net.dv8tion.jda.api.JDA;
 import net.dv8tion.jda.api.entities.GuildChannel;
@@ -39,7 +40,7 @@ public class ChannelUpdaterModule extends AbstractModule<DiscordSRV> {
     private boolean firstReload = true;
 
     public ChannelUpdaterModule(DiscordSRV discordSRV) {
-        super(discordSRV);
+        super(discordSRV, new NamedLogger(discordSRV, "CHANNEL_UPDATER"));
     }
 
     @Override
@@ -100,7 +101,7 @@ public class ChannelUpdaterModule extends AbstractModule<DiscordSRV> {
                 }
 
                 if (!anythingChanged) {
-                    discordSRV.logger().debug("Skipping updating channel " + channel + ": nothing changed");
+                    logger().debug("Skipping updating channel " + channel + ": nothing changed");
                     continue;
                 }
 

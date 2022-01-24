@@ -23,24 +23,77 @@ import com.discordsrv.common.logging.LogLevel;
 import com.discordsrv.common.logging.Logger;
 import net.dv8tion.jda.api.Permission;
 import net.dv8tion.jda.api.exceptions.InsufficientPermissionException;
+import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.io.IOException;
+import java.io.UncheckedIOException;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.StandardOpenOption;
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
+import java.util.ArrayList;
+import java.util.List;
+
 public class DiscordSRVLogger implements Logger {
 
+    private static final DateFormat DATE_TIME_FORMATTER = new SimpleDateFormat("EEE HH:mm:ss z");
+    private static final String LOG_LINE_FORMAT = "[%s] [%s] %s";
+    private static final String LOG_FILE_NAME_FORMAT = "%s-%s.log";
+
     private final DiscordSRV discordSRV;
+    private final Path logsDirectory;
+    private final List<Path> debugLogs;
 
     public DiscordSRVLogger(DiscordSRV discordSRV) {
         this.discordSRV = discordSRV;
+        this.logsDirectory = discordSRV.dataDirectory().resolve("logs");
+        if (!Files.exists(logsDirectory)) {
+            try {
+                Files.createDirectory(logsDirectory);
+            } catch (IOException e) {
+                throw new UncheckedIOException(e);
+            }
+        }
+
+        this.debugLogs = rotateLog("debug", 3);
+    }
+
+    public List<Path> getDebugLogs() {
+        return debugLogs;
+    }
+
+    @SuppressWarnings("SameParameterValue")
+    private List<Path> rotateLog(String label, int amount) {
+        try {
+            List<Path> logs = new ArrayList<>(amount);
+            for (int i = amount; i > 0; i--) {
+                Path log = logsDirectory.resolve(String.format(LOG_FILE_NAME_FORMAT, label, i));
+                logs.add(log);
+                if (!Files.exists(log)) {
+                    continue;
+                }
+
+                if (i == amount) {
+                    Files.delete(log);
+                    continue;
+                }
+
+                Path to = logsDirectory.resolve(String.format(LOG_FILE_NAME_FORMAT, label, i + 1));
+                Files.move(log, to);
+            }
+            return logs;
+        } catch (IOException e) {
+            e.printStackTrace();
+            return null;
+        }
     }
 
     @Override
-    public void log(@NotNull LogLevel logLevel, @Nullable String message, @Nullable Throwable throwable) {
-        if (logLevel == LogLevel.DEBUG || logLevel == LogLevel.TRACE || logLevel instanceof LogLevel.CustomLogLevel) {
-            // TODO: handle debug/trace
-            return;
-        }
-
+    public void log(@Nullable String loggerName, @NotNull LogLevel logLevel, @Nullable String message, @Nullable Throwable throwable) {
         if (throwable instanceof InsufficientPermissionException) {
             Permission permission = ((InsufficientPermissionException) throwable).getPermission();
             String msg = "The bot is missing the \"" + permission.getName() + "\" permission";
@@ -49,11 +102,55 @@ public class DiscordSRVLogger implements Logger {
             } else {
                 message += ": " + msg;
             }
-            discordSRV.platformLogger().log(logLevel, message, null);
-            discordSRV.logger().debug(throwable);
+            doLog(loggerName, logLevel, message, null);
+            doLog(loggerName, LogLevel.DEBUG, null, throwable);
             return;
         }
 
-        discordSRV.platformLogger().log(logLevel, message, throwable);
+        doLog(loggerName, logLevel, message, throwable);
+    }
+
+    private void doLog(String loggerName, LogLevel logLevel, String message, Throwable throwable) {
+        if (logLevel != LogLevel.DEBUG && logLevel != LogLevel.TRACE) {
+            discordSRV.platformLogger().log(null, logLevel, message, throwable);
+        }
+
+        // TODO: handle trace
+        Path debugLog = debugLogs.isEmpty() ? null : debugLogs.get(0);
+        if (debugLog == null || logLevel == LogLevel.TRACE) {
+            return;
+        }
+        long time = System.currentTimeMillis();
+        discordSRV.scheduler().runFork(() -> writeToFile(loggerName, debugLog, time, logLevel, message, throwable));
+    }
+
+    private void writeToFile(String loggerName, Path path, long time, LogLevel logLevel, String message, Throwable throwable) {
+        try {
+            Path parent = path.getParent();
+            if (!Files.exists(parent)) {
+                Files.createDirectories(parent);
+            }
+            if (!Files.exists(path)) {
+                Files.createFile(path);
+            }
+
+            if (message == null) {
+                message = "";
+            }
+            if (loggerName != null) {
+                message = "[" + loggerName + "] " + message;
+            }
+
+            String timestamp = DATE_TIME_FORMATTER.format(time);
+            String line = String.format(LOG_LINE_FORMAT, timestamp, logLevel.name(), message) + "\n";
+            if (throwable != null) {
+                line += ExceptionUtils.getStackTrace(throwable) + "\n";
+            }
+
+            Files.write(path, line.getBytes(StandardCharsets.UTF_8), StandardOpenOption.APPEND);
+        } catch (Throwable e) {
+            // Prevent infinite loop
+            discordSRV.platformLogger().error("Failed to write to debug log", e);
+        }
     }
 }

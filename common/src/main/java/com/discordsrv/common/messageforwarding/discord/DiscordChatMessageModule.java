@@ -36,6 +36,7 @@ import com.discordsrv.common.config.main.DiscordIgnores;
 import com.discordsrv.common.config.main.channels.DiscordToMinecraftChatConfig;
 import com.discordsrv.common.config.main.channels.base.BaseChannelConfig;
 import com.discordsrv.common.function.OrDefault;
+import com.discordsrv.common.logging.NamedLogger;
 import com.discordsrv.common.module.type.AbstractModule;
 import net.kyori.adventure.text.Component;
 
@@ -44,7 +45,7 @@ import java.util.Map;
 public class DiscordChatMessageModule extends AbstractModule<DiscordSRV> {
 
     public DiscordChatMessageModule(DiscordSRV discordSRV) {
-        super(discordSRV);
+        super(discordSRV, new NamedLogger(discordSRV, "DISCORD_TO_MINECRAFT"));
     }
 
     @Subscribe

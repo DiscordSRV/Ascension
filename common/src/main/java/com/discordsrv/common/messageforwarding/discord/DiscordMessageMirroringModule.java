@@ -38,6 +38,7 @@ import com.discordsrv.common.config.main.channels.base.BaseChannelConfig;
 import com.discordsrv.common.config.main.channels.base.IChannelConfig;
 import com.discordsrv.common.function.OrDefault;
 import com.discordsrv.common.future.util.CompletableFutureUtil;
+import com.discordsrv.common.logging.NamedLogger;
 import com.discordsrv.common.module.type.AbstractModule;
 import com.github.benmanes.caffeine.cache.Cache;
 
@@ -50,7 +51,7 @@ public class DiscordMessageMirroringModule extends AbstractModule<DiscordSRV> {
     private final Cache<MessageReference, Set<MessageReference>> mapping;
 
     public DiscordMessageMirroringModule(DiscordSRV discordSRV) {
-        super(discordSRV);
+        super(discordSRV, new NamedLogger(discordSRV, "DISCORD_MIRRORING"));
         this.mapping = discordSRV.caffeineBuilder()
                 .expireAfterWrite(30, TimeUnit.MINUTES)
                 .expireAfterAccess(10, TimeUnit.MINUTES)

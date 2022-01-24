@@ -31,6 +31,7 @@ import com.discordsrv.common.scheduler.StandardScheduler;
 import org.jetbrains.annotations.NotNull;
 
 import java.nio.file.Path;
+import java.nio.file.Paths;
 
 public class MockDiscordSRV extends AbstractDiscordSRV<MainConfig, ConnectionConfig> {
 
@@ -50,7 +51,7 @@ public class MockDiscordSRV extends AbstractDiscordSRV<MainConfig, ConnectionCon
 
     @Override
     public Path dataDirectory() {
-        return null;
+        return Paths.get("");
     }
 
     @Override

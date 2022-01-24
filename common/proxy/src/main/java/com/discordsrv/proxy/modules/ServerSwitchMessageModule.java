@@ -27,6 +27,7 @@ import com.discordsrv.api.event.events.message.receive.game.ServerSwitchMessageR
 import com.discordsrv.common.DiscordSRV;
 import com.discordsrv.common.config.main.channels.base.BaseChannelConfig;
 import com.discordsrv.common.function.OrDefault;
+import com.discordsrv.common.logging.NamedLogger;
 import com.discordsrv.common.messageforwarding.game.AbstractGameMessageModule;
 import com.discordsrv.proxy.config.channels.ServerSwitchMessageConfig;
 import com.discordsrv.proxy.config.channels.base.ProxyBaseChannelConfig;
@@ -34,7 +35,7 @@ import com.discordsrv.proxy.config.channels.base.ProxyBaseChannelConfig;
 public class ServerSwitchMessageModule extends AbstractGameMessageModule<ServerSwitchMessageConfig> {
 
     public ServerSwitchMessageModule(DiscordSRV discordSRV) {
-        super(discordSRV);
+        super(discordSRV, new NamedLogger(discordSRV, "SERVER_SWITCH"));
     }
 
     @Subscribe(priority = EventPriority.LAST)

@@ -35,6 +35,7 @@ import com.discordsrv.common.config.main.channels.base.BaseChannelConfig;
 import com.discordsrv.common.config.main.channels.base.IChannelConfig;
 import com.discordsrv.common.discord.api.entity.message.ReceivedDiscordMessageClusterImpl;
 import com.discordsrv.common.function.OrDefault;
+import com.discordsrv.common.logging.Logger;
 import com.discordsrv.common.module.type.AbstractModule;
 import net.kyori.adventure.text.Component;
 import org.jetbrains.annotations.NotNull;
@@ -47,8 +48,8 @@ import java.util.concurrent.CopyOnWriteArrayList;
 
 public abstract class AbstractGameMessageModule<T> extends AbstractModule<DiscordSRV> {
 
-    public AbstractGameMessageModule(DiscordSRV discordSRV) {
-        super(discordSRV);
+    public AbstractGameMessageModule(DiscordSRV discordSRV, Logger logger) {
+        super(discordSRV, logger);
     }
 
     public abstract OrDefault<T> mapConfig(OrDefault<BaseChannelConfig> channelConfig);

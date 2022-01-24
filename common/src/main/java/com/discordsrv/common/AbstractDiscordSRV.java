@@ -23,6 +23,7 @@ import com.discordsrv.api.event.bus.EventBus;
 import com.discordsrv.api.event.events.lifecycle.DiscordSRVReloadEvent;
 import com.discordsrv.api.event.events.lifecycle.DiscordSRVShuttingDownEvent;
 import com.discordsrv.api.linking.LinkingBackend;
+import com.discordsrv.api.module.type.Module;
 import com.discordsrv.common.api.util.ApiInstanceUtil;
 import com.discordsrv.common.channel.ChannelConfigHelper;
 import com.discordsrv.common.channel.ChannelUpdaterModule;
@@ -42,7 +43,6 @@ import com.discordsrv.common.function.CheckedFunction;
 import com.discordsrv.common.function.CheckedRunnable;
 import com.discordsrv.common.groupsync.GroupSyncModule;
 import com.discordsrv.common.integration.LuckPermsIntegration;
-import com.discordsrv.common.logging.Logger;
 import com.discordsrv.common.logging.adapter.DependencyLoggerAdapter;
 import com.discordsrv.common.logging.impl.DependencyLoggingHandler;
 import com.discordsrv.common.logging.impl.DiscordSRVLogger;
@@ -52,7 +52,6 @@ import com.discordsrv.common.messageforwarding.game.JoinMessageModule;
 import com.discordsrv.common.messageforwarding.game.LeaveMessageModule;
 import com.discordsrv.common.module.ModuleManager;
 import com.discordsrv.common.module.type.AbstractModule;
-import com.discordsrv.api.module.type.Module;
 import com.discordsrv.common.placeholder.ComponentResultStringifier;
 import com.discordsrv.common.placeholder.PlaceholderServiceImpl;
 import com.discordsrv.common.placeholder.context.GlobalTextHandlingContext;
@@ -85,8 +84,8 @@ public abstract class AbstractDiscordSRV<C extends MainConfig, CC extends Connec
     private DiscordConnectionDetails discordConnectionDetails;
 
     // DiscordSRV
-    private final DiscordSRVLogger logger;
-    private final ModuleManager moduleManager;
+    private DiscordSRVLogger logger;
+    private ModuleManager moduleManager;
     private ChannelConfigHelper channelConfig;
     private DiscordConnectionManager discordConnectionManager;
 
@@ -95,11 +94,14 @@ public abstract class AbstractDiscordSRV<C extends MainConfig, CC extends Connec
 
     public AbstractDiscordSRV() {
         ApiInstanceUtil.setInstance(this);
-        this.logger = new DiscordSRVLogger(this);
-        this.moduleManager = new ModuleManager(this);
     }
 
+    /**
+     * Method that should be called at the end of implementors constructors.
+     */
     protected final void load() {
+        this.logger = new DiscordSRVLogger(this);
+        this.moduleManager = new ModuleManager(this);
         this.eventBus = new EventBusImpl(this);
         this.placeholderService = new PlaceholderServiceImpl(this);
         this.componentFactory = new ComponentFactory(this);
@@ -153,7 +155,7 @@ public abstract class AbstractDiscordSRV<C extends MainConfig, CC extends Connec
     // DiscordSRV
 
     @Override
-    public Logger logger() {
+    public DiscordSRVLogger logger() {
         return logger;
     }
 
@@ -184,6 +186,8 @@ public abstract class AbstractDiscordSRV<C extends MainConfig, CC extends Connec
         return configManager().config();
     }
 
+    // Module
+
     @Override
     public <T extends Module> T getModule(Class<T> moduleType) {
         return moduleManager.getModule(moduleType);
@@ -212,6 +216,8 @@ public abstract class AbstractDiscordSRV<C extends MainConfig, CC extends Connec
         return Locale.getDefault();
     }
 
+    // Status
+
     @Override
     public void setStatus(Status status) {
         synchronized (this.status) {
@@ -238,6 +244,8 @@ public abstract class AbstractDiscordSRV<C extends MainConfig, CC extends Connec
             }
         }
     }
+
+    // Lifecycle
 
     protected CompletableFuture<Void> invokeLifecycle(CheckedRunnable runnable, String message, boolean enable) {
         return invoke(() -> {

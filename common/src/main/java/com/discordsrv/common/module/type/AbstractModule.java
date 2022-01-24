@@ -23,14 +23,25 @@ import com.discordsrv.api.event.events.Processable;
 import com.discordsrv.api.module.type.Module;
 import com.discordsrv.common.DiscordSRV;
 import com.discordsrv.common.event.util.EventUtil;
+import com.discordsrv.common.logging.Logger;
 
 public abstract class AbstractModule<DT extends DiscordSRV> implements Module {
 
     protected final DT discordSRV;
+    private final Logger logger;
     private boolean hasBeenEnabled = false;
 
     public AbstractModule(DT discordSRV) {
+        this(discordSRV, discordSRV.logger());
+    }
+
+    public AbstractModule(DT discordSRV, Logger logger) {
         this.discordSRV = discordSRV;
+        this.logger = logger;
+    }
+
+    public final Logger logger() {
+        return logger;
     }
 
     public final void enableModule() {
@@ -49,10 +60,10 @@ public abstract class AbstractModule<DT extends DiscordSRV> implements Module {
 
     // Utility
     protected final boolean checkProcessor(Processable event) {
-        return EventUtil.checkProcessor(discordSRV, event);
+        return EventUtil.checkProcessor(discordSRV, event, logger());
     }
 
     protected final boolean checkCancellation(Cancellable event) {
-        return EventUtil.checkCancellation(discordSRV, event);
+        return EventUtil.checkCancellation(discordSRV, event, logger());
     }
 }

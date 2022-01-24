@@ -47,17 +47,12 @@ public class DiscordSRVBukkitBootstrap extends BukkitBootstrap {
 
     @Override
     public void onEnable() {
-        // Wait until dependencies ready, then initialize DiscordSRV
-        dependencies.join();
-        this.discordSRV = new BukkitDiscordSRV(this, logger);
-
-        dependencies.runWhenComplete(() -> discordSRV.invokeEnable());
-        getPlugin().getServer().getScheduler().runTaskLater(getPlugin(),
-                () -> dependencies.runWhenComplete(() -> discordSRV.invokeServerStarted()), 1L);
+        dependencies.loadAndEnable(() -> this.discordSRV = new BukkitDiscordSRV(this, logger));
+        getPlugin().getServer().getScheduler().runTaskLater(getPlugin(), () -> discordSRV.invokeServerStarted(), 1L);
     }
 
     @Override
     public void onDisable() {
-        dependencies.runWhenComplete(() -> discordSRV.invokeDisable());
+        dependencies.disable(discordSRV);
     }
 }

@@ -22,12 +22,13 @@ import com.discordsrv.api.event.bus.EventListener;
 import com.discordsrv.api.event.events.Cancellable;
 import com.discordsrv.api.event.events.Processable;
 import com.discordsrv.common.DiscordSRV;
+import com.discordsrv.common.logging.Logger;
 
 public final class EventUtil {
 
     private EventUtil() {}
 
-    public static boolean checkProcessor(DiscordSRV discordSRV,Processable event) {
+    public static boolean checkProcessor(DiscordSRV discordSRV, Processable event, Logger logger) {
         if (!event.isProcessed()) {
             return false;
         }
@@ -36,12 +37,12 @@ public final class EventUtil {
                 .map(EventListener::className)
                 .orElse("Unknown");
         if (!whoProcessed.startsWith("com.discordsrv")) {
-            discordSRV.logger().debug(event + " was handled by non-DiscordSRV handler: " + whoProcessed);
+            logger.debug(event + " was handled by non-DiscordSRV handler: " + whoProcessed);
         }
         return true;
     }
 
-    public static boolean checkCancellation(DiscordSRV discordSRV, Cancellable event) {
+    public static boolean checkCancellation(DiscordSRV discordSRV, Cancellable event, Logger logger) {
         if (!event.isCancelled()) {
             return false;
         }
@@ -49,7 +50,7 @@ public final class EventUtil {
         String whoCancelled = event.whoCancelled()
                 .map(EventListener::className)
                 .orElse("Unknown");
-        discordSRV.logger().debug(event + " was cancelled by " + whoCancelled);
+        logger.debug(event + " was cancelled by " + whoCancelled);
         return true;
     }
 }
