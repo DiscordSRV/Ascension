@@ -25,6 +25,8 @@ import com.discordsrv.api.discord.events.member.role.DiscordMemberRoleRemoveEven
 import com.discordsrv.api.event.bus.Subscribe;
 import com.discordsrv.common.DiscordSRV;
 import com.discordsrv.common.config.main.GroupSyncConfig;
+import com.discordsrv.common.debug.DebugGenerateEvent;
+import com.discordsrv.common.debug.file.TextDebugFile;
 import com.discordsrv.common.future.util.CompletableFutureUtil;
 import com.discordsrv.common.groupsync.enums.GroupSyncCause;
 import com.discordsrv.common.groupsync.enums.GroupSyncDirection;
@@ -115,6 +117,36 @@ public class GroupSyncModule extends AbstractModule<DiscordSRV> {
         }
     }
 
+    // Debug
+
+    @Subscribe
+    public void onDebugGenerate(DebugGenerateEvent event) {
+        StringBuilder builder = new StringBuilder("Active pairs:");
+
+        for (Map.Entry<GroupSyncConfig.PairConfig, Future<?>> entry : pairs.entrySet()) {
+            GroupSyncConfig.PairConfig pair = entry.getKey();
+            builder.append("\n- ").append(pair)
+                    .append(" (tie-breaker: ").append(pair.tieBreaker())
+                    .append(", direction: ").append(pair.direction())
+                    .append(", server context: ").append(pair.serverContext).append(")");
+            if (entry.getValue() != null) {
+                builder.append(" [Timed]");
+            }
+        }
+
+        PermissionDataProvider.Groups groups = getPermissionProvider();
+        if (groups != null) {
+            builder.append("\n\nAvailable groups (").append(groups.getClass().getName()).append("):");
+
+            for (String group : groups.getGroups()) {
+                builder.append("\n- ").append(group);
+            }
+        } else {
+            builder.append("\n\nNo permission provider available");
+        }
+        event.addFile(new TextDebugFile("group-sync.txt", builder));
+    }
+
     private void logSummary(
             UUID player,
             GroupSyncCause cause,
@@ -144,6 +176,15 @@ public class GroupSyncModule extends AbstractModule<DiscordSRV> {
     private PermissionDataProvider.Groups getPermissionProvider() {
         PermissionDataProvider.GroupsContext groupsContext = discordSRV.getModule(PermissionDataProvider.GroupsContext.class);
         return groupsContext == null ? discordSRV.getModule(PermissionDataProvider.Groups.class) : groupsContext;
+    }
+
+    private boolean noPermissionProvider() {
+        PermissionDataProvider.Groups groups = getPermissionProvider();
+        return groups == null || !groups.isEnabled();
+    }
+
+    private boolean supportsOffline() {
+        return getPermissionProvider().supportsOffline();
     }
 
     private CompletableFuture<Boolean> hasGroup(
@@ -209,6 +250,10 @@ public class GroupSyncModule extends AbstractModule<DiscordSRV> {
     }
 
     public void resync(UUID player, long userId, GroupSyncCause cause) {
+        if (noPermissionProvider() || (!discordSRV.playerProvider().player(player).isPresent() && !supportsOffline())) {
+            return;
+        }
+
         Map<GroupSyncConfig.PairConfig, CompletableFuture<GroupSyncResult>> futures = new LinkedHashMap<>();
         for (GroupSyncConfig.PairConfig pair : pairs.keySet()) {
             futures.put(pair, resyncPair(pair, player, userId));
@@ -218,6 +263,10 @@ public class GroupSyncModule extends AbstractModule<DiscordSRV> {
     }
 
     private void resyncPair(GroupSyncConfig.PairConfig pair, GroupSyncCause cause) {
+        if (noPermissionProvider()) {
+            return;
+        }
+
         for (IPlayer player : discordSRV.playerProvider().allPlayers()) {
             UUID uuid = player.uniqueId();
             Long userId = getLinkedAccount(uuid);
@@ -352,6 +401,10 @@ public class GroupSyncModule extends AbstractModule<DiscordSRV> {
     }
 
     private void roleChanged(long userId, long roleId, boolean remove) {
+        if (noPermissionProvider()) {
+            return;
+        }
+
         if (checkExpectation(expectedDiscordChanges, userId, roleId, remove)) {
             return;
         }
@@ -405,6 +458,10 @@ public class GroupSyncModule extends AbstractModule<DiscordSRV> {
     }
 
     private void groupChanged(UUID player, String groupName, @Nullable Set<String> serverContext, GroupSyncCause cause, boolean remove) {
+        if (noPermissionProvider()) {
+            return;
+        }
+
         if (cause.isDiscordSRVCanCause() && checkExpectation(expectedMinecraftChanges, player, groupName, remove)) {
             return;
         }

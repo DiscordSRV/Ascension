@@ -27,6 +27,8 @@ import com.discordsrv.api.event.events.Cancellable;
 import com.discordsrv.api.event.events.Event;
 import com.discordsrv.api.event.events.Processable;
 import com.discordsrv.common.DiscordSRV;
+import com.discordsrv.common.debug.DebugGenerateEvent;
+import com.discordsrv.common.debug.file.TextDebugFile;
 import com.discordsrv.common.exception.InvalidListenerMethodException;
 import com.discordsrv.common.logging.Logger;
 import com.discordsrv.common.logging.NamedLogger;
@@ -60,6 +62,7 @@ public class EventBusImpl implements EventBus {
     public EventBusImpl(DiscordSRV discordSRV) {
         this.discordSRV = discordSRV;
         this.logger = new NamedLogger(discordSRV, "EVENT_BUS");
+        subscribe(this);
     }
 
     @Override
@@ -233,5 +236,33 @@ public class EventBusImpl implements EventBus {
         for (Pair<Function<Object, Boolean>, ThreadLocal<EventListener>> state : STATES) {
             state.getValue().remove();
         }
+    }
+
+    @Subscribe
+    public void onDebugGenerate(DebugGenerateEvent event) {
+        StringBuilder builder = new StringBuilder("Registered listeners (" + listeners.size() + "/" + allListeners.size() + "):\n");
+
+        for (Map.Entry<Object, List<EventListenerImpl>> entry : listeners.entrySet()) {
+            Object listener = entry.getKey();
+            List<EventListenerImpl> eventListeners = entry.getValue();
+            builder.append('\n')
+                    .append(listener)
+                    .append(" (")
+                    .append(listener.getClass().getName())
+                    .append(") [")
+                    .append(eventListeners.size())
+                    .append("]\n");
+            for (EventListenerImpl eventListener : eventListeners) {
+                builder.append(" - ")
+                        .append(eventListener.eventClass().getName())
+                        .append(": ")
+                        .append(eventListener.methodName())
+                        .append(" @ ")
+                        .append(eventListener.priority().name())
+                        .append('\n');
+            }
+        }
+
+        event.addFile(new TextDebugFile("event-bus.txt", builder));
     }
 }

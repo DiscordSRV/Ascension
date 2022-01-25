@@ -21,6 +21,7 @@ package com.discordsrv.common.module.type;
 import com.discordsrv.api.module.type.Module;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.List;
 import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
@@ -33,6 +34,7 @@ public interface PermissionDataProvider extends Module {
     interface All extends Basic, Meta, GroupsContext {}
 
     interface Groups extends PermissionDataProvider {
+        List<String> getGroups();
         CompletableFuture<Boolean> hasGroup(UUID player, String groupName, boolean includeInherited);
         CompletableFuture<Void> addGroup(UUID player, String groupName);
         CompletableFuture<Void> removeGroup(UUID player, String groupName);

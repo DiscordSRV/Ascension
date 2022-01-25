@@ -22,10 +22,14 @@ import com.discordsrv.api.event.bus.EventPriority;
 import com.discordsrv.api.event.bus.Subscribe;
 import com.discordsrv.api.event.events.lifecycle.DiscordSRVReloadEvent;
 import com.discordsrv.api.event.events.lifecycle.DiscordSRVShuttingDownEvent;
-import com.discordsrv.common.DiscordSRV;
-import com.discordsrv.common.module.type.AbstractModule;
 import com.discordsrv.api.module.type.Module;
+import com.discordsrv.common.DiscordSRV;
+import com.discordsrv.common.debug.DebugGenerateEvent;
+import com.discordsrv.common.debug.file.TextDebugFile;
+import com.discordsrv.common.module.type.AbstractModule;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
@@ -33,20 +37,21 @@ import java.util.concurrent.CopyOnWriteArraySet;
 
 public class ModuleManager {
 
-    private final Set<AbstractModule<?>> modules = new CopyOnWriteArraySet<>();
-    private final Map<String, AbstractModule<?>> moduleLookupTable = new ConcurrentHashMap<>();
+    private final Set<Module> modules = new CopyOnWriteArraySet<>();
+    private final Map<String, Module> moduleLookupTable = new ConcurrentHashMap<>();
     private final DiscordSRV discordSRV;
 
     public ModuleManager(DiscordSRV discordSRV) {
         this.discordSRV = discordSRV;
+        discordSRV.eventBus().subscribe(this);
     }
 
     @SuppressWarnings("unchecked")
     public <T extends Module> T getModule(Class<T> moduleType) {
         return (T) moduleLookupTable.computeIfAbsent(moduleType.getName(), key -> {
-            AbstractModule<?> bestCandidate = null;
+            Module bestCandidate = null;
             int bestCandidatePriority = Integer.MIN_VALUE;
-            for (AbstractModule<?> module : modules) {
+            for (Module module : modules) {
                 int priority;
                 if (moduleType.isAssignableFrom(module.getClass()) && ((priority = module.priority(moduleType)) > bestCandidatePriority)) {
                     bestCandidate = module;
@@ -61,25 +66,29 @@ public class ModuleManager {
         this.modules.add(module);
         this.moduleLookupTable.put(module.getClass().getName(), module);
 
-        enable(module);
+        enable(module, true);
     }
 
-    private void enable(AbstractModule<?> module) {
+    private void enable(Module module, boolean enableNonAbstract) {
         try {
-            module.enableModule();
+            if (module instanceof AbstractModule) {
+                ((AbstractModule<?>) module).enableModule();
+            } else if (enableNonAbstract) {
+                module.enable();
+            }
         } catch (Throwable t) {
             discordSRV.logger().error("Failed to enable " + module.getClass().getSimpleName(), t);
         }
     }
 
-    public void unregister(AbstractModule<?> module) {
+    public void unregister(Module module) {
         this.modules.remove(module);
         this.moduleLookupTable.values().removeIf(mod -> mod == module);
 
         disable(module);
     }
 
-    private void disable(AbstractModule<?> module) {
+    private void disable(Module module) {
         try {
             module.disable();
         } catch (Throwable t) {
@@ -89,16 +98,16 @@ public class ModuleManager {
 
     @Subscribe(priority = EventPriority.EARLY)
     public void onShuttingDown(DiscordSRVShuttingDownEvent event) {
-        for (AbstractModule<?> module : modules) {
+        for (Module module : modules) {
             unregister(module);
         }
     }
 
     @Subscribe(priority = EventPriority.EARLY)
     public void onReload(DiscordSRVReloadEvent event) {
-        for (AbstractModule<?> module : modules) {
+        for (Module module : modules) {
             // Check if the module needs to be enabled due to reload
-            enable(module);
+            enable(module, false);
 
             try {
                 module.reload();
@@ -106,5 +115,31 @@ public class ModuleManager {
                 discordSRV.logger().error("Failed to reload " + module.getClass().getSimpleName(), t);
             }
         }
+    }
+
+    @Subscribe
+    public void onDebugGenerate(DebugGenerateEvent event) {
+        StringBuilder builder = new StringBuilder();
+
+        builder.append("Enabled modules:");
+        List<Module> disabled = new ArrayList<>();
+        for (Module module : modules) {
+            if (!module.isEnabled()) {
+                disabled.add(module);
+                continue;
+            }
+            appendModule(builder, module);
+        }
+
+        builder.append("\n\nDisabled modules:");
+        for (Module module : disabled) {
+            appendModule(builder, module);
+        }
+
+        event.addFile(new TextDebugFile("modules.txt", builder));
+    }
+
+    private void appendModule(StringBuilder builder, Module module) {
+        builder.append('\n').append(module.getClass().getName());
     }
 }

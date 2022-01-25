@@ -52,6 +52,7 @@ import java.util.*;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.BiFunction;
 import java.util.function.Consumer;
+import java.util.stream.Collectors;
 
 public class LuckPermsIntegration extends PluginIntegration<DiscordSRV> implements PermissionDataProvider.All {
 
@@ -241,4 +242,10 @@ public class LuckPermsIntegration extends PluginIntegration<DiscordSRV> implemen
         }
     }
 
+    @Override
+    public List<String> getGroups() {
+        return luckPerms.getGroupManager().getLoadedGroups().stream()
+                .map(Group::getName)
+                .collect(Collectors.toList());
+    }
 }

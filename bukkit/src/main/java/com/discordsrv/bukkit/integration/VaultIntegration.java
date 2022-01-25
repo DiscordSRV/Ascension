@@ -31,6 +31,9 @@ import org.bukkit.plugin.RegisteredServiceProvider;
 import org.bukkit.plugin.ServicesManager;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 
@@ -125,6 +128,12 @@ public class VaultIntegration extends PluginIntegration<BukkitDiscordSRV> implem
 
     private OfflinePlayer offlinePlayer(UUID player) {
         return discordSRV.plugin().getServer().getOfflinePlayer(player);
+    }
+
+    @Override
+    public List<String> getGroups() {
+        String[] groups = permission.getGroups();
+        return groups != null ? Arrays.asList(groups) : Collections.emptyList();
     }
 
     @Override

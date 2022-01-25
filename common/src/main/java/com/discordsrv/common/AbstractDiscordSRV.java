@@ -101,8 +101,8 @@ public abstract class AbstractDiscordSRV<C extends MainConfig, CC extends Connec
      */
     protected final void load() {
         this.logger = new DiscordSRVLogger(this);
-        this.moduleManager = new ModuleManager(this);
         this.eventBus = new EventBusImpl(this);
+        this.moduleManager = new ModuleManager(this);
         this.placeholderService = new PlaceholderServiceImpl(this);
         this.componentFactory = new ComponentFactory(this);
         this.discordAPI = new DiscordAPIImpl(this);
