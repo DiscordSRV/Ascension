@@ -53,6 +53,7 @@ public class EventBusImpl implements EventBus {
     );
 
     private final Map<Object, List<EventListenerImpl>> listeners = new ConcurrentHashMap<>();
+    private final List<EventListenerImpl> allListeners = new CopyOnWriteArrayList<>();
     private final DiscordSRV discordSRV;
     private final Logger logger;
 
@@ -76,7 +77,7 @@ public class EventBusImpl implements EventBus {
         Class<?> currentClass = listenerClass;
         do {
             for (Method method : currentClass.getDeclaredMethods()) {
-                checkMethod(listenerClass, method, suppressedMethods, methods, methodsByPriority);
+                checkMethod(eventListener, listenerClass, method, suppressedMethods, methods, methodsByPriority);
             }
         } while ((currentClass = currentClass.getSuperclass()) != null);
 
@@ -88,10 +89,11 @@ public class EventBusImpl implements EventBus {
         }
 
         listeners.put(eventListener, methods);
+        allListeners.addAll(methods);
         logger.debug("Listener " + eventListener.getClass().getName() + " subscribed");
     }
 
-    private void checkMethod(Class<?> listenerClass, Method method,
+    private void checkMethod(Object eventListener, Class<?> listenerClass, Method method,
                              List<Throwable> suppressedMethods, List<EventListenerImpl> methods,
                              EnumMap<EventPriority, List<EventListenerImpl>> methodsByPriority) {
         Subscribe annotation = method.getAnnotation(Subscribe.class);
@@ -140,7 +142,7 @@ public class EventBusImpl implements EventBus {
         }
 
         EventPriority eventPriority = annotation.priority();
-        EventListenerImpl listener = new EventListenerImpl(listenerClass, annotation, firstParameter, method);
+        EventListenerImpl listener = new EventListenerImpl(eventListener, listenerClass, annotation, firstParameter, method);
 
         methods.add(listener);
         methodsByPriority.computeIfAbsent(eventPriority, key -> new CopyOnWriteArrayList<>())
@@ -154,8 +156,11 @@ public class EventBusImpl implements EventBus {
 
     @Override
     public void unsubscribe(@NotNull Object eventListener) {
-        listeners.remove(eventListener);
-        logger.debug("Listener " + eventListener.getClass().getName() + " unsubscribed");
+        List<EventListenerImpl> removed = listeners.remove(eventListener);
+        if (removed != null) {
+            allListeners.removeAll(removed);
+            logger.debug("Listener " + eventListener.getClass().getName() + " unsubscribed");
+        }
     }
 
     @Override
@@ -182,44 +187,42 @@ public class EventBusImpl implements EventBus {
 
         Class<?> eventClass = event.getClass();
         for (EventPriority priority : EventPriority.values()) {
-            for (Map.Entry<Object, List<EventListenerImpl>> entry : listeners.entrySet()) {
-                Object listener = entry.getKey();
-                for (EventListenerImpl eventListener : entry.getValue()) {
-                    if (eventListener.isIgnoringCancelled() && event instanceof Cancellable && ((Cancellable) event).isCancelled()) {
-                        continue;
-                    }
-                    if (eventListener.priority() != priority) {
-                        continue;
-                    }
-                    if (!eventListener.eventClass().isAssignableFrom(eventClass)) {
-                        continue;
-                    }
+            for (EventListenerImpl eventListener : allListeners) {
+                if (eventListener.isIgnoringCancelled() && event instanceof Cancellable && ((Cancellable) event).isCancelled()) {
+                    continue;
+                }
+                if (eventListener.priority() != priority) {
+                    continue;
+                }
+                if (!eventListener.eventClass().isAssignableFrom(eventClass)) {
+                    continue;
+                }
 
-                    long startTime = System.currentTimeMillis();
-                    try {
-                        eventListener.method().invoke(listener, event);
-                    } catch (IllegalAccessException e) {
-                        discordSRV.logger().error("Failed to access listener method: " + eventListener.methodName(), e);
-                    } catch (InvocationTargetException e) {
-                        discordSRV.logger().error("Failed to pass " + event.getClass().getSimpleName() + " to " + eventListener, e.getCause());
-                    }
-                    long timeTaken = System.currentTimeMillis() - startTime;
-                    logger.trace(eventListener + " took " + timeTaken + "ms to execute");
+                long startTime = System.currentTimeMillis();
+                try {
+                    Object listener = eventListener.listener();
+                    eventListener.method().invoke(listener, event);
+                } catch (IllegalAccessException e) {
+                    discordSRV.logger().error("Failed to access listener method: " + eventListener.methodName(), e);
+                } catch (InvocationTargetException e) {
+                    discordSRV.logger().error("Failed to pass " + event.getClass().getSimpleName() + " to " + eventListener, e.getCause());
+                }
+                long timeTaken = System.currentTimeMillis() - startTime;
+                logger.trace(eventListener + " took " + timeTaken + "ms to execute");
 
-                    for (int index = 0; index < STATES.size(); index++) {
-                        Pair<Function<Object, Boolean>, ThreadLocal<EventListener>> state = STATES.get(index);
+                for (int index = 0; index < STATES.size(); index++) {
+                    Pair<Function<Object, Boolean>, ThreadLocal<EventListener>> state = STATES.get(index);
 
-                        boolean current = states.get(index);
-                        boolean updated = state.getKey().apply(event);
-                        states.set(index, updated);
+                    boolean current = states.get(index);
+                    boolean updated = state.getKey().apply(event);
+                    states.set(index, updated);
 
-                        ThreadLocal<EventListener> stateHolder = state.getValue();
-                        if (current != updated) {
-                            if (updated) {
-                                stateHolder.set(eventListener);
-                            } else {
-                                stateHolder.remove();
-                            }
+                    ThreadLocal<EventListener> stateHolder = state.getValue();
+                    if (current != updated) {
+                        if (updated) {
+                            stateHolder.set(eventListener);
+                        } else {
+                            stateHolder.remove();
                         }
                     }
                 }

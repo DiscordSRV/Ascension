@@ -27,12 +27,14 @@ import java.lang.reflect.Method;
 
 public class EventListenerImpl implements EventListener {
 
+    private final Object listener;
     private final Class<?> listenerClass;
     private final Subscribe annotation;
     private final Class<?> eventClass;
     private final Method method;
 
-    public EventListenerImpl(Class<?> listenerClass, Subscribe annotation, Class<?> eventClass, Method method) {
+    public EventListenerImpl(Object listener, Class<?> listenerClass, Subscribe annotation, Class<?> eventClass, Method method) {
+        this.listener = listener;
         this.listenerClass = listenerClass;
         this.annotation = annotation;
         this.eventClass = eventClass;
@@ -45,6 +47,10 @@ public class EventListenerImpl implements EventListener {
 
     public EventPriority priority() {
         return annotation.priority();
+    }
+
+    public Object listener() {
+        return listener;
     }
 
     public Class<?> eventClass() {
