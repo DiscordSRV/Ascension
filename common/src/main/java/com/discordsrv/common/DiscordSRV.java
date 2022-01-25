@@ -26,6 +26,7 @@ import com.discordsrv.common.config.main.MainConfig;
 import com.discordsrv.common.config.manager.ConnectionConfigManager;
 import com.discordsrv.common.config.manager.MainConfigManager;
 import com.discordsrv.common.console.Console;
+import com.discordsrv.common.debug.data.OnlineMode;
 import com.discordsrv.common.discord.api.DiscordAPIImpl;
 import com.discordsrv.common.discord.connection.DiscordConnectionManager;
 import com.discordsrv.common.logging.impl.DiscordSRVLogger;
@@ -33,6 +34,7 @@ import com.discordsrv.common.module.type.AbstractModule;
 import com.discordsrv.api.module.type.Module;
 import com.discordsrv.common.placeholder.PlaceholderServiceImpl;
 import com.discordsrv.common.player.provider.AbstractPlayerProvider;
+import com.discordsrv.common.plugin.PluginManager;
 import com.discordsrv.common.scheduler.Scheduler;
 import com.discordsrv.common.logging.Logger;
 import com.github.benmanes.caffeine.cache.Caffeine;
@@ -53,6 +55,8 @@ public interface DiscordSRV extends DiscordSRVApi {
     Scheduler scheduler();
     Console console();
     String version();
+    PluginManager pluginManager();
+    OnlineMode onlineMode();
 
     // DiscordSRVApi
     @Override

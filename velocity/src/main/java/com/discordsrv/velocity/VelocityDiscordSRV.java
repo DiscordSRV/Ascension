@@ -22,11 +22,14 @@ import com.discordsrv.common.config.connection.ConnectionConfig;
 import com.discordsrv.common.config.main.MainConfig;
 import com.discordsrv.common.config.manager.ConnectionConfigManager;
 import com.discordsrv.common.config.manager.MainConfigManager;
+import com.discordsrv.common.debug.data.OnlineMode;
 import com.discordsrv.common.logging.Logger;
+import com.discordsrv.common.plugin.PluginManager;
 import com.discordsrv.common.scheduler.StandardScheduler;
 import com.discordsrv.proxy.ProxyDiscordSRV;
 import com.discordsrv.velocity.console.VelocityConsole;
 import com.discordsrv.velocity.player.VelocityPlayerProvider;
+import com.discordsrv.velocity.plugin.VelocityPluginManager;
 import com.velocitypowered.api.plugin.PluginContainer;
 import com.velocitypowered.api.proxy.ProxyServer;
 import org.jetbrains.annotations.NotNull;
@@ -44,6 +47,7 @@ public class VelocityDiscordSRV extends ProxyDiscordSRV<MainConfig, ConnectionCo
     private final StandardScheduler scheduler;
     private final VelocityConsole console;
     private final VelocityPlayerProvider playerProvider;
+    private final VelocityPluginManager pluginManager;
 
     public VelocityDiscordSRV(Object plugin, Logger logger, ProxyServer proxyServer, PluginContainer pluginContainer, Path dataDirectory) {
         this.plugin = plugin;
@@ -55,6 +59,7 @@ public class VelocityDiscordSRV extends ProxyDiscordSRV<MainConfig, ConnectionCo
         this.scheduler = new StandardScheduler(this);
         this.console = new VelocityConsole(this);
         this.playerProvider = new VelocityPlayerProvider(this);
+        this.pluginManager = new VelocityPluginManager(this);
 
         load();
     }
@@ -98,7 +103,17 @@ public class VelocityDiscordSRV extends ProxyDiscordSRV<MainConfig, ConnectionCo
 
     @Override
     public String version() {
-        return pluginContainer.getDescription().getVersion().orElseThrow(() -> new IllegalStateException("No version"));
+        return container().getDescription().getVersion().orElseThrow(() -> new IllegalStateException("No version"));
+    }
+
+    @Override
+    public PluginManager pluginManager() {
+        return pluginManager;
+    }
+
+    @Override
+    public OnlineMode onlineMode() {
+        return OnlineMode.of(proxy().getConfiguration().isOnlineMode());
     }
 
     @Override

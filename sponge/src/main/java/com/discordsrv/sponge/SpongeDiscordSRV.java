@@ -23,13 +23,15 @@ import com.discordsrv.common.config.connection.ConnectionConfig;
 import com.discordsrv.common.config.main.MainConfig;
 import com.discordsrv.common.config.manager.ConnectionConfigManager;
 import com.discordsrv.common.config.manager.MainConfigManager;
+import com.discordsrv.common.debug.data.OnlineMode;
 import com.discordsrv.common.logging.Logger;
+import com.discordsrv.common.plugin.PluginManager;
 import com.discordsrv.common.server.ServerDiscordSRV;
 import com.discordsrv.sponge.console.SpongeConsole;
 import com.discordsrv.sponge.player.SpongePlayerProvider;
+import com.discordsrv.sponge.plugin.SpongePluginManager;
 import com.discordsrv.sponge.scheduler.SpongeScheduler;
 import dev.vankka.mcdependencydownload.classloader.JarInJarClassLoader;
-import org.apache.maven.artifact.versioning.ArtifactVersion;
 import org.jetbrains.annotations.NotNull;
 import org.spongepowered.api.Game;
 import org.spongepowered.api.event.Listener;
@@ -48,6 +50,7 @@ public class SpongeDiscordSRV extends ServerDiscordSRV<MainConfig, ConnectionCon
     private final SpongeScheduler scheduler;
     private final SpongeConsole console;
     private final SpongePlayerProvider playerProvider;
+    private final SpongePluginManager pluginManager;
 
     public SpongeDiscordSRV(Logger logger, PluginContainer pluginContainer, Game game, JarInJarClassLoader classLoader, Path dataDirectory) {
         this.pluginContainer = pluginContainer;
@@ -58,6 +61,7 @@ public class SpongeDiscordSRV extends ServerDiscordSRV<MainConfig, ConnectionCon
         this.scheduler = new SpongeScheduler(this);
         this.console = new SpongeConsole(this);
         this.playerProvider = new SpongePlayerProvider(this);
+        this.pluginManager = new SpongePluginManager(this);
 
         load();
     }
@@ -97,11 +101,19 @@ public class SpongeDiscordSRV extends ServerDiscordSRV<MainConfig, ConnectionCon
 
     @Override
     public String version() {
-        ArtifactVersion version = pluginContainer.metadata().version();
-        return String.format("%s.%s.%s",
-                version.getMajorVersion(),
-                version.getMinorVersion(),
-                version.getIncrementalVersion());
+        return pluginContainer.metadata().version().toString();
+    }
+
+    @Override
+    public PluginManager pluginManager() {
+        return pluginManager;
+    }
+
+    @Override
+    public OnlineMode onlineMode() {
+        // TODO: velocity / bungee
+
+        return OnlineMode.of(game.server().isOnlineModeEnabled());
     }
 
     @Override

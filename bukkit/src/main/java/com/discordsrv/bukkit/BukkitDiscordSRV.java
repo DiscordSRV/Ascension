@@ -29,11 +29,14 @@ import com.discordsrv.bukkit.listener.BukkitChatListener;
 import com.discordsrv.bukkit.listener.BukkitDeathListener;
 import com.discordsrv.bukkit.listener.BukkitStatusMessageListener;
 import com.discordsrv.bukkit.player.BukkitPlayerProvider;
+import com.discordsrv.bukkit.plugin.BukkitPluginManager;
 import com.discordsrv.bukkit.scheduler.BukkitScheduler;
 import com.discordsrv.common.config.manager.ConnectionConfigManager;
 import com.discordsrv.common.config.manager.MainConfigManager;
+import com.discordsrv.common.debug.data.OnlineMode;
 import com.discordsrv.common.logging.Logger;
 import com.discordsrv.common.messageforwarding.game.MinecraftToDiscordChatModule;
+import com.discordsrv.common.plugin.PluginManager;
 import com.discordsrv.common.server.ServerDiscordSRV;
 import net.kyori.adventure.platform.bukkit.BukkitAudiences;
 import org.bukkit.Server;
@@ -41,6 +44,7 @@ import org.bukkit.plugin.ServicePriority;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.jetbrains.annotations.NotNull;
 
+import java.lang.reflect.Field;
 import java.nio.file.Path;
 
 public class BukkitDiscordSRV extends ServerDiscordSRV<BukkitConfig, BukkitConnectionConfig> {
@@ -53,6 +57,7 @@ public class BukkitDiscordSRV extends ServerDiscordSRV<BukkitConfig, BukkitConne
     private final BukkitScheduler scheduler;
     private final BukkitConsole console;
     private final BukkitPlayerProvider playerProvider;
+    private final BukkitPluginManager pluginManager;
 
     private final BukkitConnectionConfigManager connectionConfigManager;
     private final BukkitConfigManager configManager;
@@ -65,6 +70,7 @@ public class BukkitDiscordSRV extends ServerDiscordSRV<BukkitConfig, BukkitConne
         this.scheduler = new BukkitScheduler(this);
         this.console = new BukkitConsole(this);
         this.playerProvider = new BukkitPlayerProvider(this);
+        this.pluginManager = new BukkitPluginManager(this);
 
         // Config
         this.connectionConfigManager = new BukkitConnectionConfigManager(this);
@@ -113,6 +119,35 @@ public class BukkitDiscordSRV extends ServerDiscordSRV<BukkitConfig, BukkitConne
     @Override
     public String version() {
         return bootstrap.getPlugin().getDescription().getVersion();
+    }
+
+    @Override
+    public PluginManager pluginManager() {
+        return pluginManager;
+    }
+
+    @Override
+    public OnlineMode onlineMode() {
+        try {
+            Class<?> paperConfig = Class.forName("com.destroystokyo.paper.PaperConfig");
+            Field velocitySupport = paperConfig.getField("velocitySupport");
+            Field velocityOnlineMode = paperConfig.getField("velocityOnlineMode");
+
+            if (velocitySupport.getBoolean(null) && velocityOnlineMode.getBoolean(null)) {
+                return OnlineMode.VELOCITY;
+            }
+        } catch (Throwable ignored) {}
+
+        try {
+            Class<?> spigotConfig = Class.forName("org.spigotmc.SpigotConfig");
+            Field bungee = spigotConfig.getField("bungee");
+
+            if (bungee.getBoolean(null)) {
+                return OnlineMode.BUNGEE;
+            }
+        } catch (Throwable ignored) {}
+
+        return OnlineMode.of(server().getOnlineMode());
     }
 
     @Override

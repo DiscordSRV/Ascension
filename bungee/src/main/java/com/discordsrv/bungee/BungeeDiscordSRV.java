@@ -20,11 +20,14 @@ package com.discordsrv.bungee;
 
 import com.discordsrv.bungee.console.BungeeConsole;
 import com.discordsrv.bungee.player.BungeePlayerProvider;
+import com.discordsrv.bungee.plugin.BungeePluginManager;
 import com.discordsrv.common.config.connection.ConnectionConfig;
 import com.discordsrv.common.config.main.MainConfig;
 import com.discordsrv.common.config.manager.ConnectionConfigManager;
 import com.discordsrv.common.config.manager.MainConfigManager;
+import com.discordsrv.common.debug.data.OnlineMode;
 import com.discordsrv.common.logging.Logger;
+import com.discordsrv.common.plugin.PluginManager;
 import com.discordsrv.common.scheduler.StandardScheduler;
 import com.discordsrv.proxy.ProxyDiscordSRV;
 import net.kyori.adventure.platform.bungeecord.BungeeAudiences;
@@ -44,6 +47,7 @@ public class BungeeDiscordSRV extends ProxyDiscordSRV<MainConfig, ConnectionConf
     private final StandardScheduler scheduler;
     private final BungeeConsole console;
     private final BungeePlayerProvider playerProvider;
+    private final BungeePluginManager pluginManager;
 
     public BungeeDiscordSRV(DiscordSRVBungeeBootstrap bootstrap, Logger logger) {
         this.bootstrap = bootstrap;
@@ -53,6 +57,7 @@ public class BungeeDiscordSRV extends ProxyDiscordSRV<MainConfig, ConnectionConf
         this.scheduler = new StandardScheduler(this);
         this.console = new BungeeConsole(this);
         this.playerProvider = new BungeePlayerProvider(this);
+        this.pluginManager = new BungeePluginManager(this);
 
         load();
     }
@@ -97,6 +102,16 @@ public class BungeeDiscordSRV extends ProxyDiscordSRV<MainConfig, ConnectionConf
     @Override
     public String version() {
         return bootstrap.getPlugin().getDescription().getVersion();
+    }
+
+    @Override
+    public PluginManager pluginManager() {
+        return pluginManager;
+    }
+
+    @Override
+    public OnlineMode onlineMode() {
+        return OnlineMode.of(proxy().getConfig().isOnlineMode());
     }
 
     @Override

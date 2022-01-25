@@ -23,9 +23,11 @@ import com.discordsrv.common.config.main.MainConfig;
 import com.discordsrv.common.config.manager.ConnectionConfigManager;
 import com.discordsrv.common.config.manager.MainConfigManager;
 import com.discordsrv.common.console.Console;
+import com.discordsrv.common.debug.data.OnlineMode;
 import com.discordsrv.common.logging.Logger;
 import com.discordsrv.common.logging.backend.impl.JavaLoggerImpl;
 import com.discordsrv.common.player.provider.AbstractPlayerProvider;
+import com.discordsrv.common.plugin.PluginManager;
 import com.discordsrv.common.scheduler.Scheduler;
 import com.discordsrv.common.scheduler.StandardScheduler;
 import org.jetbrains.annotations.NotNull;
@@ -66,6 +68,16 @@ public class MockDiscordSRV extends AbstractDiscordSRV<MainConfig, ConnectionCon
 
     @Override
     public String version() {
+        return null;
+    }
+
+    @Override
+    public PluginManager pluginManager() {
+        return null;
+    }
+
+    @Override
+    public OnlineMode onlineMode() {
         return null;
     }
 
