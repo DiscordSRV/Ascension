@@ -43,16 +43,14 @@ public class MockDiscordSRV extends AbstractDiscordSRV<MainConfig, ConnectionCon
 
     private final Scheduler scheduler = new StandardScheduler(this);
     private final Logger logger = JavaLoggerImpl.getRoot();
-    private final Path path;
+    private Path path;
+
+    public static void main(String[] args) {
+        new MockDiscordSRV();
+    }
 
     public MockDiscordSRV() {
         load();
-
-        Path path = Paths.get("/tmp/discordsrv-test");
-        try {
-            path = Files.createTempDirectory("discordsrv-test");
-        } catch (IOException ignored) {}
-        this.path = path;
     }
 
     @Override
@@ -62,6 +60,14 @@ public class MockDiscordSRV extends AbstractDiscordSRV<MainConfig, ConnectionCon
 
     @Override
     public Path dataDirectory() {
+        if (this.path == null) {
+            Path path = Paths.get("/tmp/discordsrv-test");
+            try {
+                path = Files.createTempDirectory("discordsrv-test");
+            } catch (IOException ignored) {}
+            this.path = path;
+        }
+
         return path;
     }
 
