@@ -32,6 +32,8 @@ import com.discordsrv.common.scheduler.Scheduler;
 import com.discordsrv.common.scheduler.StandardScheduler;
 import org.jetbrains.annotations.NotNull;
 
+import java.io.IOException;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 
@@ -41,9 +43,16 @@ public class MockDiscordSRV extends AbstractDiscordSRV<MainConfig, ConnectionCon
 
     private final Scheduler scheduler = new StandardScheduler(this);
     private final Logger logger = JavaLoggerImpl.getRoot();
+    private final Path path;
 
     public MockDiscordSRV() {
         load();
+
+        Path path = Paths.get("/tmp/discordsrv-test");
+        try {
+            path = Files.createTempDirectory("discordsrv-test");
+        } catch (IOException ignored) {}
+        this.path = path;
     }
 
     @Override
@@ -53,7 +62,7 @@ public class MockDiscordSRV extends AbstractDiscordSRV<MainConfig, ConnectionCon
 
     @Override
     public Path dataDirectory() {
-        return Paths.get("");
+        return path;
     }
 
     @Override
