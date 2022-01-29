@@ -16,16 +16,30 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package com.discordsrv.common.console;
+package com.discordsrv.common.player.event;
 
-import com.discordsrv.common.command.game.sender.ICommandSender;
-import com.discordsrv.common.logging.backend.LoggingBackend;
+import com.discordsrv.api.event.events.Event;
+import com.discordsrv.common.player.IPlayer;
 
-public interface Console extends ICommandSender {
+public class PlayerConnectedEvent implements Event {
+
+    private final IPlayer player;
+    private final boolean joinedBeforeInitialization;
+
+    public PlayerConnectedEvent(IPlayer player, boolean joinedBeforeInitialization) {
+        this.player = player;
+        this.joinedBeforeInitialization = joinedBeforeInitialization;
+    }
+
+    public IPlayer player() {
+        return player;
+    }
 
     /**
-     * Gets the logging backend for the server/proxy.
-     * @return the {@link LoggingBackend}
+     * If this player joined before DiscordSRV initialized.
+     * @return {@code true} if the player joined before DiscordSRV enabled
      */
-    LoggingBackend loggingBackend();
+    public boolean joinedBeforeInitialization() {
+        return joinedBeforeInitialization;
+    }
 }

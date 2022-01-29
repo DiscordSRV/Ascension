@@ -24,8 +24,7 @@ import com.discordsrv.common.logging.NamedLogger;
 import com.discordsrv.common.logging.backend.LoggingBackend;
 import com.discordsrv.common.logging.backend.impl.JavaLoggerImpl;
 import com.discordsrv.common.logging.backend.impl.Log4JLoggerImpl;
-import net.kyori.adventure.identity.Identity;
-import net.kyori.adventure.text.Component;
+import net.kyori.adventure.audience.Audience;
 import org.jetbrains.annotations.NotNull;
 
 public class BukkitConsole implements Console {
@@ -51,8 +50,8 @@ public class BukkitConsole implements Console {
     }
 
     @Override
-    public void sendMessage(Identity identity, @NotNull Component message) {
-        discordSRV.audiences().console().sendMessage(identity, message);
+    public boolean hasPermission(String permission) {
+        return discordSRV.server().getConsoleSender().hasPermission(permission);
     }
 
     @Override
@@ -65,5 +64,10 @@ public class BukkitConsole implements Console {
     @Override
     public LoggingBackend loggingBackend() {
         return loggingBackend;
+    }
+
+    @Override
+    public @NotNull Audience audience() {
+        return discordSRV.audiences().console();
     }
 }

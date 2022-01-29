@@ -22,8 +22,7 @@ import com.discordsrv.common.console.Console;
 import com.discordsrv.common.logging.backend.LoggingBackend;
 import com.discordsrv.common.logging.backend.impl.Log4JLoggerImpl;
 import com.discordsrv.velocity.VelocityDiscordSRV;
-import net.kyori.adventure.identity.Identity;
-import net.kyori.adventure.text.Component;
+import net.kyori.adventure.audience.Audience;
 import org.jetbrains.annotations.NotNull;
 
 public class VelocityConsole implements Console {
@@ -37,8 +36,8 @@ public class VelocityConsole implements Console {
     }
 
     @Override
-    public void sendMessage(Identity identity, @NotNull Component message) {
-        discordSRV.proxy().getConsoleCommandSource().sendMessage(identity, message);
+    public boolean hasPermission(String permission) {
+        return discordSRV.proxy().getConsoleCommandSource().hasPermission(permission);
     }
 
     @Override
@@ -50,5 +49,10 @@ public class VelocityConsole implements Console {
     @Override
     public LoggingBackend loggingBackend() {
         return loggingBackend;
+    }
+
+    @Override
+    public @NotNull Audience audience() {
+        return discordSRV.proxy().getConsoleCommandSource();
     }
 }

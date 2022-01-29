@@ -19,7 +19,6 @@
 package com.discordsrv.velocity.player;
 
 import com.discordsrv.common.player.provider.AbstractPlayerProvider;
-import com.discordsrv.common.player.provider.PlayerProvider;
 import com.discordsrv.velocity.VelocityDiscordSRV;
 import com.velocitypowered.api.event.PostOrder;
 import com.velocitypowered.api.event.Subscribe;
@@ -27,12 +26,10 @@ import com.velocitypowered.api.event.connection.DisconnectEvent;
 import com.velocitypowered.api.event.connection.PostLoginEvent;
 import com.velocitypowered.api.proxy.Player;
 
-public class VelocityPlayerProvider extends AbstractPlayerProvider<VelocityPlayer> implements PlayerProvider<VelocityPlayer> {
-
-    private final VelocityDiscordSRV discordSRV;
+public class VelocityPlayerProvider extends AbstractPlayerProvider<VelocityPlayer, VelocityDiscordSRV> {
 
     public VelocityPlayerProvider(VelocityDiscordSRV discordSRV) {
-        this.discordSRV = discordSRV;
+        super(discordSRV);
     }
 
     @Override
@@ -41,17 +38,17 @@ public class VelocityPlayerProvider extends AbstractPlayerProvider<VelocityPlaye
 
         // Add players that are already connected
         for (Player player : discordSRV.proxy().getAllPlayers()) {
-            addPlayer(player);
+            addPlayer(player, true);
         }
     }
 
     @Subscribe(order = PostOrder.FIRST)
     public void onPostLogin(PostLoginEvent event) {
-        addPlayer(event.getPlayer());
+        addPlayer(event.getPlayer(), false);
     }
 
-    private void addPlayer(Player player) {
-        addPlayer(player.getUniqueId(), new VelocityPlayer(discordSRV, player));
+    private void addPlayer(Player player, boolean initial) {
+        addPlayer(player.getUniqueId(), new VelocityPlayer(discordSRV, player), initial);
     }
 
     @Subscribe(order = PostOrder.LAST)

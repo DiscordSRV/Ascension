@@ -18,29 +18,39 @@
 
 package com.discordsrv.common.player.provider;
 
+import com.discordsrv.common.DiscordSRV;
 import com.discordsrv.common.player.IPlayer;
+import com.discordsrv.common.player.event.PlayerConnectedEvent;
+import com.discordsrv.common.player.event.PlayerDisconnectedEvent;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.CopyOnWriteArraySet;
+import java.util.concurrent.CopyOnWriteArrayList;
 
-public abstract class AbstractPlayerProvider<T extends IPlayer> implements PlayerProvider<T> {
+public abstract class AbstractPlayerProvider<T extends IPlayer, DT extends DiscordSRV> implements PlayerProvider<T> {
 
     private final Map<UUID, T> players = new ConcurrentHashMap<>();
-    private final Set<T> allPlayers = new CopyOnWriteArraySet<>();
+    private final List<T> allPlayers = new CopyOnWriteArrayList<>();
+    protected final DT discordSRV;
+
+    public AbstractPlayerProvider(DT discordSRV) {
+        this.discordSRV = discordSRV;
+    }
 
     public abstract void subscribe();
 
-    protected void addPlayer(UUID uuid, T player) {
+    protected void addPlayer(UUID uuid, T player, boolean initial) {
         this.players.put(uuid, player);
         this.allPlayers.add(player);
+        discordSRV.scheduler().runFork(() -> discordSRV.eventBus().publish(new PlayerConnectedEvent(player, initial)));
     }
 
     protected void removePlayer(UUID uuid) {
         T player = this.players.remove(uuid);
         if (player != null) {
             allPlayers.remove(player);
+            discordSRV.scheduler().runFork(() -> discordSRV.eventBus().publish(new PlayerDisconnectedEvent(player)));
         }
     }
 
@@ -60,7 +70,7 @@ public abstract class AbstractPlayerProvider<T extends IPlayer> implements Playe
     }
 
     @Override
-    public Collection<T> allPlayers() {
+    public @NotNull Collection<T> allPlayers() {
         return allPlayers;
     }
 }

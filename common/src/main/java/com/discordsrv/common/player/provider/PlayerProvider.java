@@ -32,17 +32,20 @@ public interface PlayerProvider<T extends IPlayer> extends IPlayerProvider {
      * Gets an online player by {@link UUID}.
      * @param uuid the uuid of the Player
      */
-    @NotNull Optional<T> player(@NotNull UUID uuid);
+    @NotNull
+    Optional<T> player(@NotNull UUID uuid);
 
     /**
      * Gets an online player by username.
      * @param username case-insensitive username for the player
      */
-    @NotNull Optional<T> player(@NotNull String username);
+    @NotNull
+    Optional<T> player(@NotNull String username);
 
     /**
      * Gets all online players.
      * @return all players that are currently online
      */
+    @NotNull
     Collection<T> allPlayers();
 }

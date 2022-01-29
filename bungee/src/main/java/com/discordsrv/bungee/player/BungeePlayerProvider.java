@@ -20,19 +20,16 @@ package com.discordsrv.bungee.player;
 
 import com.discordsrv.bungee.BungeeDiscordSRV;
 import com.discordsrv.common.player.provider.AbstractPlayerProvider;
-import com.discordsrv.common.player.provider.PlayerProvider;
 import net.md_5.bungee.api.connection.ProxiedPlayer;
 import net.md_5.bungee.api.event.PlayerDisconnectEvent;
 import net.md_5.bungee.api.event.PostLoginEvent;
 import net.md_5.bungee.api.plugin.Listener;
 import net.md_5.bungee.event.EventHandler;
 
-public class BungeePlayerProvider extends AbstractPlayerProvider<BungeePlayer> implements PlayerProvider<BungeePlayer>, Listener {
-
-    private final BungeeDiscordSRV discordSRV;
+public class BungeePlayerProvider extends AbstractPlayerProvider<BungeePlayer, BungeeDiscordSRV> implements Listener {
 
     public BungeePlayerProvider(BungeeDiscordSRV discordSRV) {
-        this.discordSRV = discordSRV;
+        super(discordSRV);
     }
 
     @Override
@@ -41,17 +38,17 @@ public class BungeePlayerProvider extends AbstractPlayerProvider<BungeePlayer> i
 
         // Add players that are already connected
         for (ProxiedPlayer player : discordSRV.proxy().getPlayers()) {
-            addPlayer(player);
+            addPlayer(player, true);
         }
     }
 
     @EventHandler(priority = Byte.MIN_VALUE) // Runs first
     public void onPostLogin(PostLoginEvent event) {
-        addPlayer(event.getPlayer());
+        addPlayer(event.getPlayer(), false);
     }
 
-    private void addPlayer(ProxiedPlayer player) {
-        addPlayer(player.getUniqueId(), new BungeePlayer(discordSRV, player));
+    private void addPlayer(ProxiedPlayer player, boolean initial) {
+        addPlayer(player.getUniqueId(), new BungeePlayer(discordSRV, player), initial);
     }
 
     @EventHandler(priority = Byte.MAX_VALUE) // Runs last

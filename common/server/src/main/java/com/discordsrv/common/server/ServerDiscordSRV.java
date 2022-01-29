@@ -35,7 +35,7 @@ public abstract class ServerDiscordSRV<C extends MainConfig, CC extends Connecti
     public abstract ServerScheduler scheduler();
 
     @Override
-    public abstract @NotNull ServerPlayerProvider<?> playerProvider();
+    public abstract @NotNull ServerPlayerProvider<?, ?> playerProvider();
 
     @Override
     protected void enable() throws Throwable {

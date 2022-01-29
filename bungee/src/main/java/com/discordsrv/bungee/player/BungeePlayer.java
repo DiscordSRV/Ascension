@@ -43,13 +43,6 @@ public class BungeePlayer implements IPlayer {
     }
 
     @Override
-    public void sendMessage(Identity identity, @NotNull Component message) {
-        audience.sendMessage(
-                identity != null ? identity : Identity.nil(),
-                message);
-    }
-
-    @Override
     public boolean hasPermission(String permission) {
         return player.hasPermission(permission);
     }
@@ -77,5 +70,10 @@ public class BungeePlayer implements IPlayer {
     @Override
     public @NotNull Component displayName() {
         return BungeeComponentUtil.fromLegacy(player.getDisplayName());
+    }
+
+    @Override
+    public @NotNull Audience audience() {
+        return audience;
     }
 }

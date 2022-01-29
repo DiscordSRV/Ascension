@@ -24,8 +24,6 @@ import com.discordsrv.common.DiscordSRV;
 import com.discordsrv.common.component.util.ComponentUtil;
 import com.discordsrv.common.player.IPlayer;
 import net.kyori.adventure.audience.Audience;
-import net.kyori.adventure.identity.Identity;
-import net.kyori.adventure.platform.bukkit.BukkitComponentSerializer;
 import net.kyori.adventure.text.Component;
 import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
@@ -40,17 +38,6 @@ public class BukkitPlayer extends BukkitOfflinePlayer implements IPlayer {
         super(discordSRV, player);
         this.player = player;
         this.audience = discordSRV.audiences().player(player);
-    }
-
-    @Override
-    public void sendMessage(Identity identity, @NotNull Component message) {
-        if (audience != null) {
-            audience.sendMessage(
-                    identity != null ? identity : Identity.nil(),
-                    message);
-        } else {
-            player.sendMessage(BukkitComponentSerializer.legacy().serialize(message));
-        }
     }
 
     @Override
@@ -75,5 +62,10 @@ public class BukkitPlayer extends BukkitOfflinePlayer implements IPlayer {
         return ComponentUtil.fromAPI(
                 PaperComponentUtil.getComponent(discordSRV, player, "displayName", Player::getDisplayName)
         );
+    }
+
+    @Override
+    public @NotNull Audience audience() {
+        return audience;
     }
 }

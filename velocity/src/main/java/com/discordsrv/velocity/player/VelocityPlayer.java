@@ -22,6 +22,7 @@ import com.discordsrv.common.DiscordSRV;
 import com.discordsrv.common.player.IPlayer;
 import com.discordsrv.velocity.VelocityDiscordSRV;
 import com.velocitypowered.api.proxy.Player;
+import net.kyori.adventure.audience.Audience;
 import net.kyori.adventure.identity.Identity;
 import net.kyori.adventure.text.Component;
 import org.jetbrains.annotations.NotNull;
@@ -34,13 +35,6 @@ public class VelocityPlayer implements IPlayer {
     public VelocityPlayer(VelocityDiscordSRV discordSRV, Player player) {
         this.discordSRV = discordSRV;
         this.player = player;
-    }
-
-    @Override
-    public void sendMessage(Identity identity, @NotNull Component message) {
-        player.sendMessage(
-                identity != null ? identity : Identity.nil(),
-                message);
     }
 
     @Override
@@ -75,5 +69,10 @@ public class VelocityPlayer implements IPlayer {
                 Identity.DISPLAY_NAME,
                 () -> Component.text(player.getUsername())
         );
+    }
+
+    @Override
+    public @NotNull Audience audience() {
+        return player;
     }
 }

@@ -18,19 +18,30 @@
 
 package com.discordsrv.common.command.game.sender;
 
+import net.kyori.adventure.audience.ForwardingAudience;
+import net.kyori.adventure.audience.MessageType;
 import net.kyori.adventure.identity.Identity;
 import net.kyori.adventure.text.Component;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
-public interface ICommandSender {
+public interface ICommandSender extends ForwardingAudience.Single {
 
+    /**
+     * Sends a message to this {@link ICommandSender} with {@link Identity#nil()}.
+     * @param message the message to send
+     */
     default void sendMessage(@NotNull Component message) {
-        // Identity is converted to Identity.nil() later
-        sendMessage(null, message);
+        sendMessage(Identity.nil(), message, MessageType.CHAT);
     }
 
-    void sendMessage(@Nullable Identity identity, @NotNull Component message);
+    /**
+     * Sends a message to this {@link ICommandSender} with {@link Identity#nil()}.
+     * @param message the message to send
+     * @param messageType the {@link MessageType}
+     */
+    default void sendMessage(@NotNull Component message, @NotNull MessageType messageType) {
+        sendMessage(Identity.nil(), message, messageType);
+    }
 
     boolean hasPermission(String permission);
     void runCommand(String command);

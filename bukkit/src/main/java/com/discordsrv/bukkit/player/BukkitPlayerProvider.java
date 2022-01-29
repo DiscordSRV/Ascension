@@ -34,12 +34,10 @@ import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.Supplier;
 
-public class BukkitPlayerProvider extends ServerPlayerProvider<BukkitPlayer> implements Listener {
-
-    private final BukkitDiscordSRV discordSRV;
+public class BukkitPlayerProvider extends ServerPlayerProvider<BukkitPlayer, BukkitDiscordSRV> implements Listener {
 
     public BukkitPlayerProvider(BukkitDiscordSRV discordSRV) {
-        this.discordSRV = discordSRV;
+        super(discordSRV);
     }
 
     // IPlayer
@@ -50,17 +48,17 @@ public class BukkitPlayerProvider extends ServerPlayerProvider<BukkitPlayer> imp
 
         // Add players that are already connected
         for (Player player : discordSRV.server().getOnlinePlayers()) {
-            addPlayer(player);
+            addPlayer(player, true);
         }
     }
 
     @EventHandler(priority = EventPriority.LOWEST)
     public void onPlayerLogin(PlayerJoinEvent event) {
-        addPlayer(event.getPlayer());
+        addPlayer(event.getPlayer(), false);
     }
 
-    private void addPlayer(Player player) {
-        addPlayer(player.getUniqueId(), new BukkitPlayer(discordSRV, player));
+    private void addPlayer(Player player, boolean initial) {
+        addPlayer(player.getUniqueId(), new BukkitPlayer(discordSRV, player), initial);
     }
 
     @EventHandler(priority = EventPriority.MONITOR)
@@ -75,19 +73,14 @@ public class BukkitPlayerProvider extends ServerPlayerProvider<BukkitPlayer> imp
     // IOfflinePlayer
 
     private CompletableFuture<Optional<IOfflinePlayer>> getFuture(Supplier<OfflinePlayer> provider) {
-        CompletableFuture<Optional<IOfflinePlayer>> future = new CompletableFuture<>();
-        try {
+        return CompletableFuture.supplyAsync(() -> {
             OfflinePlayer offlinePlayer = provider.get();
             if (offlinePlayer == null) {
-                future.complete(Optional.empty());
-                return future;
+                return Optional.empty();
             }
 
-            future.complete(Optional.of(new BukkitOfflinePlayer(discordSRV, offlinePlayer)));
-        } catch (Throwable t) {
-            future.completeExceptionally(t);
-        }
-        return future;
+            return Optional.of(new BukkitOfflinePlayer(discordSRV, offlinePlayer));
+        }, discordSRV.scheduler().executor());
     }
 
     @Override

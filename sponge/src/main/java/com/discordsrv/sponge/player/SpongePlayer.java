@@ -21,7 +21,7 @@ package com.discordsrv.sponge.player;
 import com.discordsrv.common.DiscordSRV;
 import com.discordsrv.common.player.IPlayer;
 import com.discordsrv.sponge.SpongeDiscordSRV;
-import net.kyori.adventure.identity.Identity;
+import net.kyori.adventure.audience.Audience;
 import net.kyori.adventure.text.Component;
 import org.jetbrains.annotations.NotNull;
 import org.spongepowered.api.command.exception.CommandException;
@@ -36,13 +36,6 @@ public class SpongePlayer extends SpongeOfflinePlayer implements IPlayer {
         super(player.user());
         this.discordSRV = discordSRV;
         this.player = player;
-    }
-
-    @Override
-    public void sendMessage(Identity identity, @NotNull Component message) {
-        player.sendMessage(
-                identity != null ? identity : Identity.nil(),
-                message);
     }
 
     @Override
@@ -65,5 +58,10 @@ public class SpongePlayer extends SpongeOfflinePlayer implements IPlayer {
     @Override
     public @NotNull Component displayName() {
         return player.displayName().get();
+    }
+
+    @Override
+    public @NotNull Audience audience() {
+        return player;
     }
 }

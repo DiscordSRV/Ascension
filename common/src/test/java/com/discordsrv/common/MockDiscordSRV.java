@@ -82,7 +82,7 @@ public class MockDiscordSRV extends AbstractDiscordSRV<MainConfig, ConnectionCon
     }
 
     @Override
-    public @NotNull AbstractPlayerProvider<?> playerProvider() {
+    public @NotNull AbstractPlayerProvider<?, ?> playerProvider() {
         return null;
     }
 

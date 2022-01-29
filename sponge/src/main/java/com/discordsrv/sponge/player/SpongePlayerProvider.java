@@ -32,13 +32,13 @@ import java.util.Optional;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 
-public class SpongePlayerProvider extends ServerPlayerProvider<SpongePlayer> {
-
-    private final SpongeDiscordSRV discordSRV;
+public class SpongePlayerProvider extends ServerPlayerProvider<SpongePlayer, SpongeDiscordSRV> {
 
     public SpongePlayerProvider(SpongeDiscordSRV discordSRV) {
-        this.discordSRV = discordSRV;
+        super(discordSRV);
     }
+
+    // IPlayer
 
     @Override
     public void subscribe() {
@@ -46,19 +46,17 @@ public class SpongePlayerProvider extends ServerPlayerProvider<SpongePlayer> {
 
         // Add players that are already connected
         for (ServerPlayer player : discordSRV.game().server().onlinePlayers()) {
-            addPlayer(player);
+            addPlayer(player, true);
         }
     }
 
-    // IPlayer
-
     @Listener(order = Order.PRE)
     public void onPlayerJoin(ServerSideConnectionEvent.Join event) {
-        addPlayer(event.player());
+        addPlayer(event.player(), false);
     }
 
-    private void addPlayer(ServerPlayer player) {
-        addPlayer(player.uniqueId(), new SpongePlayer(discordSRV, player));
+    private void addPlayer(ServerPlayer player, boolean initial) {
+        addPlayer(player.uniqueId(), new SpongePlayer(discordSRV, player), initial);
     }
 
     @Listener(order = Order.POST)

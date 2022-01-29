@@ -16,16 +16,20 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package com.discordsrv.common.console;
+package com.discordsrv.common.player.event;
 
-import com.discordsrv.common.command.game.sender.ICommandSender;
-import com.discordsrv.common.logging.backend.LoggingBackend;
+import com.discordsrv.api.event.events.Event;
+import com.discordsrv.common.player.IPlayer;
 
-public interface Console extends ICommandSender {
+public class PlayerDisconnectedEvent implements Event {
 
-    /**
-     * Gets the logging backend for the server/proxy.
-     * @return the {@link LoggingBackend}
-     */
-    LoggingBackend loggingBackend();
+    private final IPlayer player;
+
+    public PlayerDisconnectedEvent(IPlayer player) {
+        this.player = player;
+    }
+
+    public IPlayer player() {
+        return player;
+    }
 }

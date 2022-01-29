@@ -69,7 +69,7 @@ public interface DiscordSRV extends DiscordSRVApi {
 
     @Override
     @NotNull
-    AbstractPlayerProvider<?> playerProvider();
+    AbstractPlayerProvider<?, ?> playerProvider();
 
     @Override
     @NotNull
