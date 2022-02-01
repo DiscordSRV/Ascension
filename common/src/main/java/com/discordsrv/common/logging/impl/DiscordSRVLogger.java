@@ -37,6 +37,7 @@ import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.locks.ReentrantLock;
 
 public class DiscordSRVLogger implements Logger {
 
@@ -47,6 +48,7 @@ public class DiscordSRVLogger implements Logger {
     private final DiscordSRV discordSRV;
     private final Path logsDirectory;
     private final List<Path> debugLogs;
+    private final ReentrantLock debugLogLock = new ReentrantLock();
 
     public DiscordSRVLogger(DiscordSRV discordSRV) {
         this.discordSRV = discordSRV;
@@ -126,14 +128,6 @@ public class DiscordSRVLogger implements Logger {
 
     private void writeToFile(String loggerName, Path path, long time, LogLevel logLevel, String message, Throwable throwable) {
         try {
-            Path parent = path.getParent();
-            if (!Files.exists(parent)) {
-                Files.createDirectories(parent);
-            }
-            if (!Files.exists(path)) {
-                Files.createFile(path);
-            }
-
             if (message == null) {
                 message = "";
             }
@@ -147,7 +141,22 @@ public class DiscordSRVLogger implements Logger {
                 line += ExceptionUtils.getStackTrace(throwable) + "\n";
             }
 
-            Files.write(path, line.getBytes(StandardCharsets.UTF_8), StandardOpenOption.APPEND);
+            synchronized (debugLogLock) {
+                try {
+                    debugLogLock.lock();
+                    Path parent = path.getParent();
+                    if (!Files.exists(parent)) {
+                        Files.createDirectories(parent);
+                    }
+                    if (!Files.exists(path)) {
+                        Files.createFile(path);
+                    }
+
+                    Files.write(path, line.getBytes(StandardCharsets.UTF_8), StandardOpenOption.APPEND);
+                } finally {
+                    debugLogLock.unlock();
+                }
+            }
         } catch (Throwable e) {
             // Prevent infinite loop
             discordSRV.platformLogger().error("Failed to write to debug log", e);
