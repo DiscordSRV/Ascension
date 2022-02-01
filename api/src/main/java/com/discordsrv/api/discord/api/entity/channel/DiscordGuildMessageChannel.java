@@ -24,24 +24,8 @@
 package com.discordsrv.api.discord.api.entity.channel;
 
 import com.discordsrv.api.discord.api.entity.Mentionable;
-import org.jetbrains.annotations.NotNull;
-
-import java.util.List;
-import java.util.concurrent.CompletableFuture;
 
 /**
- * A regular Discord channel that messages can be sent to (threads not included).
+ * A regular Discord channel that messages can be sent to.
  */
-public interface DiscordGuildMessageChannel extends DiscordMessageChannel, DiscordGuildChannel, Mentionable {
-
-    @NotNull
-    List<DiscordThreadChannel> getActiveThreads();
-
-    CompletableFuture<List<DiscordThreadChannel>> retrieveArchivedPrivateThreads();
-    CompletableFuture<List<DiscordThreadChannel>> retrieveArchivedJoinedPrivateThreads();
-    CompletableFuture<List<DiscordThreadChannel>> retrieveArchivedPublicThreads();
-
-    CompletableFuture<DiscordThreadChannel> createThread(String name, boolean privateThread);
-    CompletableFuture<DiscordThreadChannel> createThread(String name, long messageId);
-
-}
+public interface DiscordGuildMessageChannel extends DiscordMessageChannel, DiscordGuildChannel, Mentionable {}

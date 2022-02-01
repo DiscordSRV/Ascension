@@ -23,7 +23,8 @@ import com.discordsrv.common.DiscordSRV;
 import net.dv8tion.jda.api.entities.TextChannel;
 import org.jetbrains.annotations.Nullable;
 
-public class DiscordTextChannelImpl extends DiscordGuildMessageChannelImpl<TextChannel> implements DiscordTextChannel {
+public class DiscordTextChannelImpl extends AbstractDiscordThreadedGuildMessageChannel<TextChannel>
+        implements DiscordTextChannel {
 
     public DiscordTextChannelImpl(DiscordSRV discordSRV, TextChannel textChannel) {
         super(discordSRV, textChannel);

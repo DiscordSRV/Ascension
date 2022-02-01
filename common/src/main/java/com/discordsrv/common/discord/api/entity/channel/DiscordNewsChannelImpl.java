@@ -23,7 +23,7 @@ import com.discordsrv.common.DiscordSRV;
 import net.dv8tion.jda.api.entities.NewsChannel;
 
 public class DiscordNewsChannelImpl
-        extends DiscordGuildMessageChannelImpl<NewsChannel>
+        extends AbstractDiscordThreadedGuildMessageChannel<NewsChannel>
         implements DiscordNewsChannel {
 
     public DiscordNewsChannelImpl(DiscordSRV discordSRV, NewsChannel channel) {

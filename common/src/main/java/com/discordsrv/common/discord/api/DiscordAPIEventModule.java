@@ -25,7 +25,7 @@ import com.discordsrv.api.discord.events.message.DiscordMessageReceiveEvent;
 import com.discordsrv.api.discord.events.message.DiscordMessageUpdateEvent;
 import com.discordsrv.api.event.bus.Subscribe;
 import com.discordsrv.common.DiscordSRV;
-import com.discordsrv.common.discord.api.entity.channel.DiscordMessageChannelImpl;
+import com.discordsrv.common.discord.api.entity.channel.AbstractDiscordMessageChannel;
 import com.discordsrv.common.discord.api.entity.guild.DiscordGuildMemberImpl;
 import com.discordsrv.common.discord.api.entity.guild.DiscordRoleImpl;
 import com.discordsrv.common.discord.api.entity.message.ReceivedDiscordMessageImpl;
@@ -47,7 +47,7 @@ public class DiscordAPIEventModule extends AbstractModule<DiscordSRV> {
     @Subscribe
     public void onMessageReceived(MessageReceivedEvent event) {
         discordSRV.eventBus().publish(new DiscordMessageReceiveEvent(
-                DiscordMessageChannelImpl.get(discordSRV, event.getChannel()),
+                AbstractDiscordMessageChannel.get(discordSRV, event.getChannel()),
                 ReceivedDiscordMessageImpl.fromJDA(discordSRV, event.getMessage())
         ));
     }
@@ -55,7 +55,7 @@ public class DiscordAPIEventModule extends AbstractModule<DiscordSRV> {
     @Subscribe
     public void onMessageUpdate(MessageUpdateEvent event) {
         discordSRV.eventBus().publish(new DiscordMessageUpdateEvent(
-                DiscordMessageChannelImpl.get(discordSRV, event.getChannel()),
+                AbstractDiscordMessageChannel.get(discordSRV, event.getChannel()),
                 ReceivedDiscordMessageImpl.fromJDA(discordSRV, event.getMessage())
         ));
     }
@@ -63,7 +63,7 @@ public class DiscordAPIEventModule extends AbstractModule<DiscordSRV> {
     @Subscribe
     public void onMessageDelete(MessageDeleteEvent event) {
         discordSRV.eventBus().publish(new DiscordMessageDeleteEvent(
-                DiscordMessageChannelImpl.get(discordSRV, event.getChannel()),
+                AbstractDiscordMessageChannel.get(discordSRV, event.getChannel()),
                 event.getMessageIdLong()
         ));
     }

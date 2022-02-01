@@ -27,7 +27,7 @@ dependencies {
     api 'dev.vankka.dependencydownload:runtime:' + rootProject.ddVersion
 
     // Discord Webhooks
-    runtimeDownloadApi 'club.minnced:discord-webhooks:0.5.7'
+    runtimeDownloadApi 'club.minnced:discord-webhooks:0.7.5'
 
     // Apache Commons
     runtimeDownloadApi 'org.apache.commons:commons-lang3:3.12.0'
