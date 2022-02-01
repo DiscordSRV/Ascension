@@ -27,10 +27,10 @@ import com.discordsrv.api.component.MinecraftComponentFactory;
 import com.discordsrv.api.discord.api.DiscordAPI;
 import com.discordsrv.api.discord.connection.DiscordConnectionDetails;
 import com.discordsrv.api.event.bus.EventBus;
-import com.discordsrv.api.linking.LinkingBackend;
 import com.discordsrv.api.placeholder.PlaceholderService;
 import com.discordsrv.api.player.DiscordSRVPlayer;
 import com.discordsrv.api.player.IPlayerProvider;
+import com.discordsrv.api.profile.IProfileManager;
 import net.dv8tion.jda.api.JDA;
 import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
@@ -59,7 +59,11 @@ public interface DiscordSRVApi {
     @NotNull
     EventBus eventBus();
 
-    LinkingBackend linkingBackend();
+    /**
+     * The profile manager, access the profiles of players and/or users.
+     * @return the instance of {@link IProfileManager}
+     */
+    IProfileManager profileManager();
 
     /**
      * DiscordSRV's own placeholder service.

@@ -21,19 +21,19 @@
  * SOFTWARE.
  */
 
-package com.discordsrv.api.linking;
+package com.discordsrv.api.profile;
 
-import com.discordsrv.api.module.type.Module;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
+import java.util.Optional;
 import java.util.UUID;
+import java.util.concurrent.CompletableFuture;
 
-public interface LinkingBackend extends Module {
+public interface IProfileManager {
 
-    @Nullable
-    UUID getLinkedAccount(long userId);
+    CompletableFuture<Optional<IProfile>> lookupProfile(UUID playerUUID);
 
-    @Nullable
-    Long getLinkedAccount(@NotNull UUID player);
+    Optional<IProfile> getProfile(UUID playerUUID);
+
+    CompletableFuture<Optional<IProfile>> lookupProfile(long userId);
+
+    Optional<IProfile> getProfile(long userId);
 }

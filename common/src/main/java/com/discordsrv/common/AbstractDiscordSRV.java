@@ -22,8 +22,8 @@ import com.discordsrv.api.discord.connection.DiscordConnectionDetails;
 import com.discordsrv.api.event.bus.EventBus;
 import com.discordsrv.api.event.events.lifecycle.DiscordSRVReloadEvent;
 import com.discordsrv.api.event.events.lifecycle.DiscordSRVShuttingDownEvent;
-import com.discordsrv.api.linking.LinkingBackend;
 import com.discordsrv.api.module.type.Module;
+import com.discordsrv.api.profile.IProfileManager;
 import com.discordsrv.common.api.util.ApiInstanceUtil;
 import com.discordsrv.common.channel.ChannelConfigHelper;
 import com.discordsrv.common.channel.ChannelUpdaterModule;
@@ -43,6 +43,9 @@ import com.discordsrv.common.function.CheckedFunction;
 import com.discordsrv.common.function.CheckedRunnable;
 import com.discordsrv.common.groupsync.GroupSyncModule;
 import com.discordsrv.common.integration.LuckPermsIntegration;
+import com.discordsrv.common.linking.LinkProvider;
+import com.discordsrv.common.linking.LinkStore;
+import com.discordsrv.common.linking.impl.MemoryLinker;
 import com.discordsrv.common.logging.adapter.DependencyLoggerAdapter;
 import com.discordsrv.common.logging.impl.DependencyLoggingHandler;
 import com.discordsrv.common.logging.impl.DiscordSRVLogger;
@@ -55,12 +58,15 @@ import com.discordsrv.common.module.type.AbstractModule;
 import com.discordsrv.common.placeholder.ComponentResultStringifier;
 import com.discordsrv.common.placeholder.PlaceholderServiceImpl;
 import com.discordsrv.common.placeholder.context.GlobalTextHandlingContext;
+import com.discordsrv.common.profile.ProfileManager;
+import com.discordsrv.common.storage.Storage;
 import net.dv8tion.jda.api.JDA;
 import org.jetbrains.annotations.NotNull;
 
 import javax.annotation.OverridingMethodsMustInvokeSuper;
 import java.util.Locale;
 import java.util.Optional;
+import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
@@ -78,6 +84,7 @@ public abstract class AbstractDiscordSRV<C extends MainConfig, CC extends Connec
 
     // DiscordSRVApi
     private EventBus eventBus;
+    private ProfileManager profileManager;
     private PlaceholderServiceImpl placeholderService;
     private ComponentFactory componentFactory;
     private DiscordAPIImpl discordAPI;
@@ -86,6 +93,9 @@ public abstract class AbstractDiscordSRV<C extends MainConfig, CC extends Connec
     // DiscordSRV
     private DiscordSRVLogger logger;
     private ModuleManager moduleManager;
+
+    private Storage storage;
+    private LinkProvider linkProvider;
     private ChannelConfigHelper channelConfig;
     private DiscordConnectionManager discordConnectionManager;
 
@@ -103,6 +113,7 @@ public abstract class AbstractDiscordSRV<C extends MainConfig, CC extends Connec
         this.logger = new DiscordSRVLogger(this);
         this.eventBus = new EventBusImpl(this);
         this.moduleManager = new ModuleManager(this);
+        this.profileManager = new ProfileManager(this);
         this.placeholderService = new PlaceholderServiceImpl(this);
         this.componentFactory = new ComponentFactory(this);
         this.discordAPI = new DiscordAPIImpl(this);
@@ -122,8 +133,8 @@ public abstract class AbstractDiscordSRV<C extends MainConfig, CC extends Connec
     }
 
     @Override
-    public LinkingBackend linkingBackend() {
-        return getModule(LinkingBackend.class);
+    public IProfileManager profileManager() {
+        return profileManager;
     }
 
     @Override
@@ -157,6 +168,16 @@ public abstract class AbstractDiscordSRV<C extends MainConfig, CC extends Connec
     @Override
     public DiscordSRVLogger logger() {
         return logger;
+    }
+
+    @Override
+    public Storage storage() {
+        return storage;
+    }
+
+    @Override
+    public LinkProvider linkProvider() {
+        return linkProvider;
     }
 
     @Override
@@ -314,6 +335,9 @@ public abstract class AbstractDiscordSRV<C extends MainConfig, CC extends Connec
 
         discordConnectionManager = new JDAConnectionManager(this);
         discordConnectionManager.connect().join();
+
+        linkProvider = new MemoryLinker();
+        ((LinkStore) linkProvider).link(UUID.fromString("6c983d46-0631-48b8-9baf-5e33eb5ffec4"), 185828288466255874L);
 
         // Placeholder result stringifiers & global contexts
         placeholderService().addResultMapper(new ComponentResultStringifier(this));

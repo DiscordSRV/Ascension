@@ -23,6 +23,7 @@ import com.discordsrv.api.discord.api.entity.guild.DiscordRole;
 import com.discordsrv.api.discord.events.member.role.DiscordMemberRoleAddEvent;
 import com.discordsrv.api.discord.events.member.role.DiscordMemberRoleRemoveEvent;
 import com.discordsrv.api.event.bus.Subscribe;
+import com.discordsrv.api.profile.IProfile;
 import com.discordsrv.common.DiscordSRV;
 import com.discordsrv.common.config.main.GroupSyncConfig;
 import com.discordsrv.common.debug.DebugGenerateEvent;
@@ -163,12 +164,14 @@ public class GroupSyncModule extends AbstractModule<DiscordSRV> {
 
     // Linked account helper methods
 
-    private Long getLinkedAccount(UUID player) {
-        return discordSRV.linkingBackend().getLinkedAccount(player);
+    private CompletableFuture<Long> lookupLinkedAccount(UUID player) {
+        return discordSRV.profileManager().lookupProfile(player)
+                .thenApply(profile -> profile.map(IProfile::userId).orElse(null));
     }
 
-    private UUID getLinkedAccount(long userId) {
-        return discordSRV.linkingBackend().getLinkedAccount(userId);
+    private CompletableFuture<UUID> lookupLinkedAccount(long userId) {
+        return discordSRV.profileManager().lookupProfile(userId)
+                .thenApply(profile -> profile.map(IProfile::uniqueId).orElse(null));
     }
 
     // Permission data helper methods
@@ -232,21 +235,23 @@ public class GroupSyncModule extends AbstractModule<DiscordSRV> {
     // Resync user
 
     public void resync(UUID player, GroupSyncCause cause) {
-        Long userId = getLinkedAccount(player);
-        if (userId == null) {
-            return;
-        }
+        lookupLinkedAccount(player).whenComplete((userId, t) -> {
+            if (userId == null) {
+                return;
+            }
 
-        resync(player, userId, cause);
+            resync(player, userId, cause);
+        });
     }
 
     public void resync(long userId, GroupSyncCause cause) {
-        UUID player = getLinkedAccount(userId);
-        if (player == null) {
-            return;
-        }
+        lookupLinkedAccount(userId).whenComplete((player, t) -> {
+            if (player == null) {
+                return;
+            }
 
-        resync(player, userId, cause);
+            resync(player, userId, cause);
+        });
     }
 
     public void resync(UUID player, long userId, GroupSyncCause cause) {
@@ -269,14 +274,15 @@ public class GroupSyncModule extends AbstractModule<DiscordSRV> {
 
         for (IPlayer player : discordSRV.playerProvider().allPlayers()) {
             UUID uuid = player.uniqueId();
-            Long userId = getLinkedAccount(uuid);
-            if (userId == null) {
-                continue;
-            }
+            lookupLinkedAccount(uuid).whenComplete((userId, t) -> {
+                if (userId == null) {
+                    return;
+                }
 
-            resyncPair(pair, uuid, userId).whenComplete((result, t) -> logger().debug(
-                    new SynchronizationSummary(uuid, cause, pair, result).toString()
-            ));
+                resyncPair(pair, uuid, userId).whenComplete((result, t2) -> logger().debug(
+                        new SynchronizationSummary(uuid, cause, pair, result).toString()
+                ));
+            });
         }
     }
 
@@ -409,6 +415,16 @@ public class GroupSyncModule extends AbstractModule<DiscordSRV> {
             return;
         }
 
+        lookupLinkedAccount(userId).whenComplete((player, t) -> {
+            if (player == null) {
+                return;
+            }
+
+            roleChanged(userId, player, roleId, remove);
+        });
+    }
+
+    private void roleChanged(long userId, UUID player, long roleId, boolean remove) {
         List<GroupSyncConfig.PairConfig> pairs = rolesToPairs.get(roleId);
         if (pairs == null) {
             return;
@@ -417,11 +433,6 @@ public class GroupSyncModule extends AbstractModule<DiscordSRV> {
         PermissionDataProvider.Groups permissionProvider = getPermissionProvider();
         if (permissionProvider == null) {
             discordSRV.logger().warning("No supported permission plugin available to perform group sync");
-            return;
-        }
-
-        UUID player = getLinkedAccount(userId);
-        if (player == null) {
             return;
         }
 
@@ -457,7 +468,13 @@ public class GroupSyncModule extends AbstractModule<DiscordSRV> {
         logSummary(player, GroupSyncCause.DISCORD_ROLE_CHANGE, futures);
     }
 
-    private void groupChanged(UUID player, String groupName, @Nullable Set<String> serverContext, GroupSyncCause cause, boolean remove) {
+    private void groupChanged(
+            UUID player,
+            String groupName,
+            @Nullable Set<String> serverContext,
+            GroupSyncCause cause,
+            boolean remove
+    ) {
         if (noPermissionProvider()) {
             return;
         }
@@ -466,13 +483,25 @@ public class GroupSyncModule extends AbstractModule<DiscordSRV> {
             return;
         }
 
+        lookupLinkedAccount(player).whenComplete((userId, t) -> {
+            if (userId == null) {
+                return;
+            }
+
+            groupChanged(player, userId, groupName, serverContext, cause, remove);
+        });
+    }
+
+    private void groupChanged(
+            UUID player,
+            long userId,
+            String groupName,
+            @Nullable Set<String> serverContext,
+            GroupSyncCause cause,
+            boolean remove
+    ) {
         List<GroupSyncConfig.PairConfig> pairs = groupsToPairs.get(groupName);
         if (pairs == null) {
-            return;
-        }
-
-        Long userId = getLinkedAccount(player);
-        if (userId == null) {
             return;
         }
 

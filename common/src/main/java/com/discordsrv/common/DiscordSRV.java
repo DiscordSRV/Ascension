@@ -19,6 +19,7 @@
 package com.discordsrv.common;
 
 import com.discordsrv.api.DiscordSRVApi;
+import com.discordsrv.api.module.type.Module;
 import com.discordsrv.common.channel.ChannelConfigHelper;
 import com.discordsrv.common.component.ComponentFactory;
 import com.discordsrv.common.config.connection.ConnectionConfig;
@@ -29,14 +30,15 @@ import com.discordsrv.common.console.Console;
 import com.discordsrv.common.debug.data.OnlineMode;
 import com.discordsrv.common.discord.api.DiscordAPIImpl;
 import com.discordsrv.common.discord.connection.DiscordConnectionManager;
+import com.discordsrv.common.linking.LinkProvider;
+import com.discordsrv.common.logging.Logger;
 import com.discordsrv.common.logging.impl.DiscordSRVLogger;
 import com.discordsrv.common.module.type.AbstractModule;
-import com.discordsrv.api.module.type.Module;
 import com.discordsrv.common.placeholder.PlaceholderServiceImpl;
 import com.discordsrv.common.player.provider.AbstractPlayerProvider;
 import com.discordsrv.common.plugin.PluginManager;
 import com.discordsrv.common.scheduler.Scheduler;
-import com.discordsrv.common.logging.Logger;
+import com.discordsrv.common.storage.Storage;
 import com.github.benmanes.caffeine.cache.Caffeine;
 import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
@@ -77,6 +79,12 @@ public interface DiscordSRV extends DiscordSRVApi {
 
     // Logger
     DiscordSRVLogger logger();
+
+    // Storage
+    Storage storage();
+
+    // Link Provider
+    LinkProvider linkProvider();
 
     // Config
     ConnectionConfigManager<? extends ConnectionConfig> connectionConfigManager();

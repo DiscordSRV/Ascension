@@ -1,11 +1,19 @@
 import dev.vankka.dependencydownload.task.GenerateDependencyDownloadResourceTask
 
 configurations {
+    hikari
     h2Driver
     mysqlDriver
+    compileOnly.extendsFrom hikari
     testRuntimeOnly.extendsFrom runtimeDownloadOnly
 }
 
+task generateResourceForHikari(type: GenerateDependencyDownloadResourceTask) {
+    var conf = configurations.hikari
+    configuration = conf
+    file = 'dependencies/' + conf.name + '.txt'
+    relocate 'com.zaxxer.hikari', 'com.discordsrv.dependencies.com.zaxxer.hikari'
+}
 task generateResourceForH2Driver(type: GenerateDependencyDownloadResourceTask) {
     var conf = configurations.h2Driver
     configuration = conf
@@ -55,8 +63,9 @@ dependencies {
     runtimeDownloadApi 'dev.vankka:mcdiscordreserializer:4.2.4-SNAPSHOT'
     runtimeDownloadApi 'dev.vankka:enhancedlegacytext:1.0.0-SNAPSHOT'
 
-    // Database Drivers
-    h2Driver 'com.h2database:h2:2.0.204'
+    // Database
+    hikari('com.zaxxer:HikariCP:4.0.3') { exclude group: 'org.slf4j' }
+    h2Driver 'com.h2database:h2:2.1.210'
     mysqlDriver 'mysql:mysql-connector-java:8.0.25'
 
     // Integrations
@@ -66,6 +75,7 @@ dependencies {
 processResources {
     dependsOn(
             generateRuntimeDownloadResourceForRuntimeDownloadOnly,
+            generateResourceForHikari,
             generateResourceForH2Driver,
             generateResourceForMySQLDriver
     )
