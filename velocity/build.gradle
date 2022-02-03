@@ -2,7 +2,14 @@ apply from: rootProject.file('buildscript/standalone.gradle')
 apply plugin: 'net.kyori.blossom'
 
 repositories {
-    maven { url 'https://nexus.velocitypowered.com/repository/maven-public/' }
+    exclusiveContent {
+        forRepository {
+            maven { url 'https://nexus.velocitypowered.com/repository/maven-public/' }
+        }
+        filter {
+            includeGroup 'com.velocitypowered'
+        }
+    }
 }
 
 var velocityVersion = '3.0.0'

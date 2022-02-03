@@ -3,13 +3,17 @@ apply from: rootProject.file('buildscript/runtime.gradle')
 var spongeVersion = '8.0.0'
 allprojects {
     repositories {
-        maven { url 'https://repo.spongepowered.org/maven/' }
+        exclusiveContent {
+            forRepository {
+                maven { url 'https://repo.spongepowered.org/maven/' }
+            }
+            filter {
+                includeGroup 'org.spongepowered'
+            }
+        }
     }
 
     dependencies {
-        // API
-        annotationProcessor project(':api')
-
         // Platform
         annotationProcessor 'org.spongepowered:spongeapi:' + spongeVersion
         compileOnly 'org.spongepowered:spongeapi:' + spongeVersion
@@ -17,6 +21,9 @@ allprojects {
 }
 
 dependencies {
+    // API
+    annotationProcessor project(':api')
+
     // Common
     implementation project(':common:common-server')
 
