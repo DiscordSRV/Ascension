@@ -162,32 +162,14 @@ public class MinecraftToDiscordChatModule extends AbstractGameMessageModule<Mine
                     .sorted(Comparator.comparingInt(mention -> ((CachedMention) mention).searchLength).reversed())
                     .forEachOrdered(mention -> channelMessagePlaceholders.replaceAll(mention.search, mention.mention));
 
-            SendableDiscordMessage.Formatter discordMessage = format.toFormatter()
+            SendableDiscordMessage discordMessage = format.toFormatter()
                     .addContext(context)
                     .addReplacement("%message%", new FormattedText(channelMessagePlaceholders.toString()))
-                    .applyPlaceholderService();
+                    .applyPlaceholderService()
+                    .build();
 
-            List<DiscordMessageChannel> text = new ArrayList<>();
-            List<DiscordMessageChannel> thread = new ArrayList<>();
             for (DiscordMessageChannel channel : entry.getValue()) {
-                if (channel instanceof DiscordTextChannel) {
-                    text.add(channel);
-                } else if (channel instanceof DiscordThreadChannel) {
-                    thread.add(channel);
-                }
-            }
-
-            if (!text.isEmpty()) {
-                SendableDiscordMessage finalMessage = discordMessage.build();
-                for (DiscordMessageChannel channel : text) {
-                    futures.put(channel.sendMessage(finalMessage), channel);
-                }
-            }
-            if (!thread.isEmpty()) {
-                SendableDiscordMessage finalMessage = discordMessage.convertToNonWebhook().build();
-                for (DiscordMessageChannel channel : thread) {
-                    futures.put(channel.sendMessage(finalMessage), channel);
-                }
+                futures.put(channel.sendMessage(discordMessage), channel);
             }
         }
 

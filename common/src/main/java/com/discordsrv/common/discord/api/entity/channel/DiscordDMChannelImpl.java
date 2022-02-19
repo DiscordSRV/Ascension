@@ -32,7 +32,7 @@ import org.jetbrains.annotations.NotNull;
 import java.util.Objects;
 import java.util.concurrent.CompletableFuture;
 
-public class DiscordDMChannelImpl extends DiscordMessageChannelImpl<PrivateChannel> implements DiscordDMChannel {
+public class DiscordDMChannelImpl extends AbstractDiscordMessageChannel<PrivateChannel> implements DiscordDMChannel {
 
     private final DiscordUser user;
 

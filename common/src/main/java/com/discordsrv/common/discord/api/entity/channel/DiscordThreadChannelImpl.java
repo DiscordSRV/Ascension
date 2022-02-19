@@ -18,15 +18,12 @@
 
 package com.discordsrv.common.discord.api.entity.channel;
 
+import club.minnced.discord.webhook.WebhookClient;
 import com.discordsrv.api.discord.api.entity.channel.DiscordTextChannel;
 import com.discordsrv.api.discord.api.entity.channel.DiscordThreadChannel;
 import com.discordsrv.api.discord.api.entity.guild.DiscordGuild;
-import com.discordsrv.api.discord.api.entity.message.ReceivedDiscordMessage;
-import com.discordsrv.api.discord.api.entity.message.SendableDiscordMessage;
 import com.discordsrv.common.DiscordSRV;
 import com.discordsrv.common.discord.api.entity.guild.DiscordGuildImpl;
-import com.discordsrv.common.discord.api.entity.message.ReceivedDiscordMessageImpl;
-import com.discordsrv.common.discord.api.entity.message.util.SendableDiscordMessageUtil;
 import net.dv8tion.jda.api.entities.IThreadContainer;
 import net.dv8tion.jda.api.entities.TextChannel;
 import net.dv8tion.jda.api.entities.ThreadChannel;
@@ -34,7 +31,8 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.concurrent.CompletableFuture;
 
-public class DiscordThreadChannelImpl extends DiscordMessageChannelImpl<ThreadChannel> implements DiscordThreadChannel {
+public class DiscordThreadChannelImpl extends AbstractDiscordGuildMessageChannel<ThreadChannel>
+        implements DiscordThreadChannel {
 
     private final DiscordTextChannel textChannel;
     private final DiscordGuild guild;
@@ -50,40 +48,10 @@ public class DiscordThreadChannelImpl extends DiscordMessageChannelImpl<ThreadCh
     }
 
     @Override
-    public @NotNull CompletableFuture<ReceivedDiscordMessage> sendMessage(@NotNull SendableDiscordMessage message) {
-        if (message.isWebhookMessage()) {
-            throw new IllegalArgumentException("Cannot send webhook messages to ThreadChannels");
-        }
-
-        return discordSRV.discordAPI().mapExceptions(
-                channel.sendMessage(SendableDiscordMessageUtil.toJDA(message))
-                        .submit()
-                        .thenApply(msg -> ReceivedDiscordMessageImpl.fromJDA(discordSRV, msg))
-        );
-    }
-
-    @Override
-    public CompletableFuture<Void> deleteMessageById(long id, boolean webhookMessage) {
-        if (webhookMessage) {
-            throw new IllegalArgumentException("ThreadChannels do not contain webhook messages");
-        }
-
-        return discordSRV.discordAPI().mapExceptions(
-                channel.deleteMessageById(id).submit()
-        );
-    }
-
-    @Override
-    public @NotNull CompletableFuture<ReceivedDiscordMessage> editMessageById(long id, @NotNull SendableDiscordMessage message) {
-        if (message.isWebhookMessage()) {
-            throw new IllegalArgumentException("Cannot send webhook messages to ThreadChannels");
-        }
-
-        return discordSRV.discordAPI().mapExceptions(
-                channel.editMessageById(id, SendableDiscordMessageUtil.toJDA(message))
-                        .submit()
-                        .thenApply(msg -> ReceivedDiscordMessageImpl.fromJDA(discordSRV, msg))
-        );
+    public CompletableFuture<WebhookClient> queryWebhookClient() {
+        return discordSRV.discordAPI()
+                .queryWebhookClient(getParentChannel().getId())
+                .thenApply(client -> client.onThread(getId()));
     }
 
     @Override

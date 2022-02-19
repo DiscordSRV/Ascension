@@ -23,15 +23,23 @@
 
 package com.discordsrv.api.discord.api.entity.channel;
 
-import com.discordsrv.api.DiscordSRVApi;
-import net.dv8tion.jda.api.entities.NewsChannel;
+import org.jetbrains.annotations.NotNull;
 
-public interface DiscordNewsChannel extends DiscordGuildMessageChannel, DiscordThreadContainer {
+import java.util.List;
+import java.util.concurrent.CompletableFuture;
 
-    /**
-     * Returns the JDA representation of this object. This should not be used if it can be avoided.
-     * @return the JDA representation of this object
-     * @see DiscordSRVApi#jda()
-     */
-    NewsChannel getAsJDANewsChannel();
+/**
+ * A Discord channel that contains threads.
+ */
+public interface DiscordThreadContainer extends DiscordGuildChannel {
+
+    @NotNull
+    List<DiscordThreadChannel> getActiveThreads();
+
+    CompletableFuture<List<DiscordThreadChannel>> retrieveArchivedPrivateThreads();
+    CompletableFuture<List<DiscordThreadChannel>> retrieveArchivedJoinedPrivateThreads();
+    CompletableFuture<List<DiscordThreadChannel>> retrieveArchivedPublicThreads();
+
+    CompletableFuture<DiscordThreadChannel> createThread(String name, boolean privateThread);
+    CompletableFuture<DiscordThreadChannel> createThread(String name, long messageId);
 }

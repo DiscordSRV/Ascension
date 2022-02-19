@@ -7,7 +7,7 @@ dependencies {
     implementation project(':common:common-api')
 
     // DependencyDownload
-    implementation 'dev.vankka.minecraftdependencydownload:bukkit-loader:' + rootProject.mddVersion
+    implementation 'dev.vankka:minecraftdependencydownload-bukkit-loader:' + rootProject.mddVersion
 }
 
 processResources {

@@ -24,10 +24,10 @@ import net.dv8tion.jda.api.entities.*;
 
 import java.util.Objects;
 
-public abstract class DiscordMessageChannelImpl<T extends MessageChannel>
+public abstract class AbstractDiscordMessageChannel<T extends MessageChannel>
         implements DiscordMessageChannel {
 
-    public static DiscordMessageChannelImpl<?> get(DiscordSRV discordSRV, MessageChannel messageChannel) {
+    public static AbstractDiscordMessageChannel<?> get(DiscordSRV discordSRV, MessageChannel messageChannel) {
         if (messageChannel instanceof TextChannel) {
             return new DiscordTextChannelImpl(discordSRV, (TextChannel) messageChannel);
         } else if (messageChannel instanceof ThreadChannel) {
@@ -44,7 +44,7 @@ public abstract class DiscordMessageChannelImpl<T extends MessageChannel>
     protected final DiscordSRV discordSRV;
     protected final T channel;
 
-    public DiscordMessageChannelImpl(DiscordSRV discordSRV, T channel) {
+    public AbstractDiscordMessageChannel(DiscordSRV discordSRV, T channel) {
         this.discordSRV = discordSRV;
         this.channel = channel;
     }
@@ -63,7 +63,7 @@ public abstract class DiscordMessageChannelImpl<T extends MessageChannel>
     public boolean equals(Object o) {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
-        DiscordGuildMessageChannelImpl<?> that = (DiscordGuildMessageChannelImpl<?>) o;
+        AbstractDiscordGuildMessageChannel<?> that = (AbstractDiscordGuildMessageChannel<?>) o;
         return Objects.equals(getId(), that.getId());
     }
 

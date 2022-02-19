@@ -30,7 +30,7 @@ import org.jetbrains.annotations.Nullable;
 /**
  * A Discord text channel.
  */
-public interface DiscordTextChannel extends DiscordGuildMessageChannel {
+public interface DiscordTextChannel extends DiscordGuildMessageChannel, DiscordThreadContainer {
 
     /**
      * Gets the topic of the text channel.

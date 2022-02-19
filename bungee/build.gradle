@@ -2,24 +2,31 @@ apply from: rootProject.file('buildscript/runtime.gradle')
 
 allprojects {
     repositories {
-        maven { url 'https://oss.sonatype.org/content/repositories/snapshots' }
+        exclusiveContent {
+            forRepository {
+                maven { url 'https://oss.sonatype.org/content/repositories/snapshots/' }
+            }
+            filter {
+                includeGroup 'net.md-5'
+            }
+        }
     }
 
     dependencies {
-        // API
-        annotationProcessor project(':api')
-
         // Platform
         compileOnly 'net.md-5:bungeecord-api:1.17-R0.1-SNAPSHOT'
     }
 }
 
 dependencies {
+    // API
+    annotationProcessor project(':api')
+
     // Common
     implementation project(':common:common-proxy')
 
     // DependencyDownload
-    implementation 'dev.vankka.minecraftdependencydownload:bungee:' + rootProject.mddVersion
+    implementation 'dev.vankka:minecraftdependencydownload-bungee:' + rootProject.mddVersion
 
     // Adventure
     runtimeDownloadApi 'net.kyori:adventure-platform-bungeecord:' + rootProject.adventurePlatformVersion

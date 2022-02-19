@@ -22,7 +22,6 @@ import club.minnced.discord.webhook.WebhookClient;
 import club.minnced.discord.webhook.receive.ReadonlyMessage;
 import club.minnced.discord.webhook.send.WebhookMessage;
 import com.discordsrv.api.discord.api.entity.channel.DiscordGuildMessageChannel;
-import com.discordsrv.api.discord.api.entity.channel.DiscordThreadChannel;
 import com.discordsrv.api.discord.api.entity.guild.DiscordGuild;
 import com.discordsrv.api.discord.api.entity.message.ReceivedDiscordMessage;
 import com.discordsrv.api.discord.api.entity.message.SendableDiscordMessage;
@@ -30,28 +29,28 @@ import com.discordsrv.common.DiscordSRV;
 import com.discordsrv.common.discord.api.entity.guild.DiscordGuildImpl;
 import com.discordsrv.common.discord.api.entity.message.ReceivedDiscordMessageImpl;
 import com.discordsrv.common.discord.api.entity.message.util.SendableDiscordMessageUtil;
-import net.dv8tion.jda.api.entities.*;
+import net.dv8tion.jda.api.entities.GuildMessageChannel;
+import net.dv8tion.jda.api.entities.Message;
+import net.dv8tion.jda.api.entities.MessageChannel;
 import net.dv8tion.jda.api.requests.restaction.MessageAction;
-import net.dv8tion.jda.api.requests.restaction.ThreadChannelAction;
-import net.dv8tion.jda.api.requests.restaction.pagination.ThreadChannelPaginationAction;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.ArrayList;
-import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.BiFunction;
-import java.util.function.Function;
-import java.util.stream.Collectors;
 
-public abstract class DiscordGuildMessageChannelImpl<T extends GuildMessageChannel & IThreadContainer>
-        extends DiscordMessageChannelImpl<T>
+public abstract class AbstractDiscordGuildMessageChannel<T extends GuildMessageChannel>
+        extends AbstractDiscordMessageChannel<T>
         implements DiscordGuildMessageChannel {
 
     private final DiscordGuild guild;
 
-    public DiscordGuildMessageChannelImpl(DiscordSRV discordSRV, T channel) {
+    public AbstractDiscordGuildMessageChannel(DiscordSRV discordSRV, T channel) {
         super(discordSRV, channel);
         this.guild = new DiscordGuildImpl(discordSRV, channel.getGuild());
+    }
+
+    public CompletableFuture<WebhookClient> queryWebhookClient() {
+        return discordSRV.discordAPI().queryWebhookClient(getId());
     }
 
     @Override
@@ -67,60 +66,6 @@ public abstract class DiscordGuildMessageChannelImpl<T extends GuildMessageChann
     @Override
     public @NotNull DiscordGuild getGuild() {
         return guild;
-    }
-
-    @Override
-    public @NotNull List<DiscordThreadChannel> getActiveThreads() {
-        List<ThreadChannel> threads = channel.getThreadChannels();
-        List<DiscordThreadChannel> threadChannels = new ArrayList<>(threads.size());
-        for (ThreadChannel thread : threads) {
-            threadChannels.add(new DiscordThreadChannelImpl(discordSRV, thread));
-        }
-        return threadChannels;
-    }
-
-    @Override
-    public CompletableFuture<List<DiscordThreadChannel>> retrieveArchivedPrivateThreads() {
-        return threads(IThreadContainer::retrieveArchivedPrivateThreadChannels);
-    }
-
-    @Override
-    public CompletableFuture<List<DiscordThreadChannel>> retrieveArchivedJoinedPrivateThreads() {
-        return threads(IThreadContainer::retrieveArchivedPrivateJoinedThreadChannels);
-    }
-
-    @Override
-    public CompletableFuture<List<DiscordThreadChannel>> retrieveArchivedPublicThreads() {
-        return threads(IThreadContainer::retrieveArchivedPublicThreadChannels);
-    }
-
-    private CompletableFuture<List<DiscordThreadChannel>> threads(Function<IThreadContainer, ThreadChannelPaginationAction> action) {
-        return discordSRV.discordAPI().mapExceptions(() ->
-             action.apply(channel)
-                     .submit()
-                     .thenApply(channels -> channels.stream()
-                             .map(channel -> new DiscordThreadChannelImpl(discordSRV, channel))
-                             .collect(Collectors.toList())
-                     )
-        );
-    }
-
-    @Override
-    public CompletableFuture<DiscordThreadChannel> createThread(String name, boolean privateThread) {
-        return thread(channel -> channel.createThreadChannel(name, privateThread));
-    }
-
-    @Override
-    public CompletableFuture<DiscordThreadChannel> createThread(String name, long messageId) {
-        return thread(channel -> channel.createThreadChannel(name, messageId));
-    }
-
-    private CompletableFuture<DiscordThreadChannel> thread(Function<T, ThreadChannelAction> action) {
-        return discordSRV.discordAPI().mapExceptions(() ->
-             action.apply(channel)
-                     .submit()
-                     .thenApply(channel -> new DiscordThreadChannelImpl(discordSRV, channel))
-        );
     }
 
     @Override
@@ -144,7 +89,7 @@ public abstract class DiscordGuildMessageChannelImpl<T extends GuildMessageChann
         return discordSRV.discordAPI().mapExceptions(() -> {
             CompletableFuture<ReceivedDiscordMessage> future;
             if (message.isWebhookMessage()) {
-                future = discordSRV.discordAPI().queryWebhookClient(getId())
+                future = queryWebhookClient()
                         .thenCompose(client -> webhookFunction.apply(
                                 client, SendableDiscordMessageUtil.toWebhook(message)))
                         .thenApply(msg -> ReceivedDiscordMessageImpl.fromWebhook(discordSRV, msg));

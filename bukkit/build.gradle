@@ -2,31 +2,47 @@ apply from: rootProject.file('buildscript/runtime.gradle')
 
 allprojects {
     repositories {
-        maven { url 'https://papermc.io/repo/repository/maven-public/' }
+        exclusiveContent {
+            forRepository {
+                maven { url 'https://papermc.io/repo/repository/maven-public/' }
+            }
+            filter {
+                includeGroup 'com.destroystokyo.paper'
+            }
+        }
+
+        exclusiveContent {
+            forRepository {
+                maven { url 'https://nexus.scarsz.me/content/groups/public/' }
+            }
+            filter {
+                includeGroup 'net.milkbowl.vault'
+            }
+        }
     }
 
     dependencies {
-        // API
-        annotationProcessor project(':api')
-
         // Platform
         compileOnly 'com.destroystokyo.paper:paper-api:1.16.5-R0.1-SNAPSHOT'
     }
 }
 
 dependencies {
+    // API
+    annotationProcessor project(':api')
+
     // Common
     compileOnly project(':common:common-server')
     implementation project(path: ':common:common-server', configuration: 'runtimeElements')
 
     // DependencyDownload
-    implementation 'dev.vankka.minecraftdependencydownload:bukkit:' + rootProject.mddVersion
+    implementation 'dev.vankka:minecraftdependencydownload-bukkit:' + rootProject.mddVersion
 
     // Adventure
     runtimeDownloadApi 'net.kyori:adventure-platform-bukkit:' + rootProject.adventurePlatformVersion
 
     // Integrations
-    compileOnly "com.github.MilkBowl:VaultAPI:1.7"
+    compileOnly 'net.milkbowl.vault:VaultAPI:1.7'
 }
 
 shadowJar {

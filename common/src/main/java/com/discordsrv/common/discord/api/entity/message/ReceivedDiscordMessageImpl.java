@@ -41,7 +41,7 @@ import com.discordsrv.common.DiscordSRV;
 import com.discordsrv.common.component.util.ComponentUtil;
 import com.discordsrv.common.config.main.channels.base.BaseChannelConfig;
 import com.discordsrv.common.discord.api.entity.DiscordUserImpl;
-import com.discordsrv.common.discord.api.entity.channel.DiscordMessageChannelImpl;
+import com.discordsrv.common.discord.api.entity.channel.AbstractDiscordMessageChannel;
 import com.discordsrv.common.discord.api.entity.guild.DiscordGuildMemberImpl;
 import com.discordsrv.common.function.OrDefault;
 import com.discordsrv.common.future.util.CompletableFutureUtil;
@@ -71,7 +71,7 @@ public class ReceivedDiscordMessageImpl extends SendableDiscordMessageImpl imple
         String webhookUsername = webhookMessage ? message.getAuthor().getName() : null;
         String webhookAvatarUrl = webhookMessage ? message.getAuthor().getEffectiveAvatarUrl() : null;
 
-        DiscordMessageChannel channel = DiscordMessageChannelImpl.get(discordSRV, message.getChannel());
+        DiscordMessageChannel channel = AbstractDiscordMessageChannel.get(discordSRV, message.getChannel());
         DiscordUser user = new DiscordUserImpl(discordSRV, message.getAuthor());
 
         Member member = message.getMember();
