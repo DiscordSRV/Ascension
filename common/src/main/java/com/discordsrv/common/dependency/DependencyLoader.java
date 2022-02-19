@@ -33,6 +33,10 @@ import java.util.concurrent.Executor;
 
 public class DependencyLoader {
 
+    public static DependencyLoader hikari(DiscordSRV discordSRV) {
+        return new DependencyLoader(discordSRV, new String[] {"dependencies/hikari.txt"});
+    }
+
     public static DependencyLoader h2(DiscordSRV discordSRV) {
         return new DependencyLoader(discordSRV, new String[] {"dependencies/h2Driver.txt"});
     }

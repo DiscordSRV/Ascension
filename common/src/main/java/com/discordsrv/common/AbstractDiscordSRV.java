@@ -33,12 +33,14 @@ import com.discordsrv.common.config.connection.ConnectionConfig;
 import com.discordsrv.common.config.main.MainConfig;
 import com.discordsrv.common.config.manager.ConnectionConfigManager;
 import com.discordsrv.common.config.manager.MainConfigManager;
+import com.discordsrv.common.dependency.DependencyLoader;
 import com.discordsrv.common.discord.api.DiscordAPIEventModule;
 import com.discordsrv.common.discord.api.DiscordAPIImpl;
 import com.discordsrv.common.discord.connection.DiscordConnectionManager;
 import com.discordsrv.common.discord.connection.jda.JDAConnectionManager;
 import com.discordsrv.common.discord.details.DiscordConnectionDetailsImpl;
 import com.discordsrv.common.event.bus.EventBusImpl;
+import com.discordsrv.common.exception.StorageException;
 import com.discordsrv.common.function.CheckedFunction;
 import com.discordsrv.common.function.CheckedRunnable;
 import com.discordsrv.common.groupsync.GroupSyncModule;
@@ -60,6 +62,7 @@ import com.discordsrv.common.placeholder.PlaceholderServiceImpl;
 import com.discordsrv.common.placeholder.context.GlobalTextHandlingContext;
 import com.discordsrv.common.profile.ProfileManager;
 import com.discordsrv.common.storage.Storage;
+import com.discordsrv.common.storage.StorageType;
 import net.dv8tion.jda.api.JDA;
 import org.jetbrains.annotations.NotNull;
 
@@ -68,6 +71,7 @@ import java.util.Locale;
 import java.util.Optional;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.concurrent.locks.ReentrantLock;
@@ -333,6 +337,29 @@ public abstract class AbstractDiscordSRV<C extends MainConfig, CC extends Connec
             throw t;
         }
 
+        // Storage
+        try {
+            try {
+                StorageType storageType = getStorageType();
+                if (storageType.hikari()) {
+                    DependencyLoader.hikari(this).process(classpathAppender()).get();
+                }
+                storage = storageType.storageFunction().apply(this);
+                storage.initialize();
+            } catch (ExecutionException e) {
+                throw new StorageException(e.getCause());
+            } catch (StorageException e) {
+                throw e;
+            } catch (Throwable t) {
+                throw new StorageException(t);
+            }
+        } catch (StorageException e) {
+            e.log(this);
+            logger().error("Startup cancelled because of storage connection failure");
+            setStatus(Status.FAILED_TO_START);
+            return;
+        }
+
         discordConnectionManager = new JDAConnectionManager(this);
         discordConnectionManager.connect().join();
 
@@ -355,6 +382,15 @@ public abstract class AbstractDiscordSRV<C extends MainConfig, CC extends Connec
         registerModule(DiscordMessageMirroringModule::new);
         registerModule(JoinMessageModule::new);
         registerModule(LeaveMessageModule::new);
+    }
+
+    private StorageType getStorageType() {
+        String backend = connectionConfig().storage.backend;
+        switch (backend.toLowerCase(Locale.ROOT)) {
+            case "h2": return StorageType.H2;
+            case "mysql": return StorageType.MYSQL;
+        }
+        throw new StorageException("Unknown storage backend \"" + backend + "\"");
     }
 
     @OverridingMethodsMustInvokeSuper

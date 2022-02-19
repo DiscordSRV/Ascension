@@ -22,6 +22,7 @@ import com.discordsrv.common.dependency.InitialDependencyLoader;
 import com.discordsrv.common.logging.Logger;
 import com.discordsrv.common.logging.backend.impl.Log4JLoggerImpl;
 import com.discordsrv.sponge.bootstrap.ISpongeBootstrap;
+import dev.vankka.dependencydownload.classpath.ClasspathAppender;
 import dev.vankka.mcdependencydownload.bootstrap.AbstractBootstrap;
 import dev.vankka.mcdependencydownload.bootstrap.classpath.JarInJarClasspathAppender;
 import dev.vankka.mcdependencydownload.classloader.JarInJarClassLoader;
@@ -35,27 +36,27 @@ import java.nio.file.Path;
 public class DiscordSRVSpongeBootstrap extends AbstractBootstrap implements ISpongeBootstrap {
 
     private final Logger logger;
+    private final ClasspathAppender classpathAppender;
     private final InitialDependencyLoader dependencies;
     private SpongeDiscordSRV discordSRV;
 
     private final PluginContainer pluginContainer;
     private final Game game;
-    private final JarInJarClassLoader classLoader;
     private final Path dataDirectory;
 
     public DiscordSRVSpongeBootstrap(PluginContainer pluginContainer, Game game, JarInJarClassLoader classLoader, Path dataDirectory) throws IOException {
         // Don't change these parameters
         super(classLoader);
         this.logger = new Log4JLoggerImpl(pluginContainer.logger());
+        this.classpathAppender = new JarInJarClasspathAppender(classLoader);
         this.dependencies = new InitialDependencyLoader(
                 logger,
                 dataDirectory,
                 new String[] {"dependencies/runtimeDownload-sponge.txt"},
-                new JarInJarClasspathAppender(classLoader)
+                classpathAppender
         );
         this.pluginContainer = pluginContainer;
         this.game = game;
-        this.classLoader = classLoader;
         this.dataDirectory = dataDirectory;
     }
 
@@ -66,7 +67,7 @@ public class DiscordSRVSpongeBootstrap extends AbstractBootstrap implements ISpo
 
     @Override
     public void onStarted() {
-        dependencies.enable(() -> this.discordSRV = new SpongeDiscordSRV(logger, pluginContainer, game, classLoader, dataDirectory));
+        dependencies.enable(() -> this.discordSRV = new SpongeDiscordSRV(logger, classpathAppender, dataDirectory, pluginContainer, game));
         if (discordSRV != null) {
             discordSRV.invokeServerStarted();
         }

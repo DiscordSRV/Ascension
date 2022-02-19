@@ -34,6 +34,7 @@ public class DependencyLoggingHandler implements LogAppender {
     static {
         // Class names here will get relocated, which is fine
         LOGGER_MAPPINGS.put("net.dv8tion.jda", "JDA");
+        LOGGER_MAPPINGS.put("com.zaxxer.hikari", "Hikari");
 
         BLACKLISTED_MESSAGES.put("net.dv8tion.jda", Arrays.asList(
                 // We have our own more informative log messages for this
@@ -41,6 +42,10 @@ public class DependencyLoggingHandler implements LogAppender {
                 // Failed JDA requests (handled with RestAction default failure)
                 "There was an I/O error while executing a REST request: ",
                 "There was an unexpected error while executing a REST request"
+        ));
+        BLACKLISTED_MESSAGES.put("com.zaxxer.hikari", Collections.singletonList(
+                // This is fine, we don't need a warning about it
+                "was not found, trying direct instantiation." // "Registered driver with driverClassName={} was not found, trying direct instantiation."
         ));
     }
 

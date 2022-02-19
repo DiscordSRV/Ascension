@@ -30,6 +30,7 @@ import com.velocitypowered.api.plugin.Plugin;
 import com.velocitypowered.api.plugin.PluginContainer;
 import com.velocitypowered.api.plugin.annotation.DataDirectory;
 import com.velocitypowered.api.proxy.ProxyServer;
+import dev.vankka.dependencydownload.classpath.ClasspathAppender;
 import dev.vankka.mcdependencydownload.velocity.classpath.VelocityClasspathAppender;
 
 import java.io.IOException;
@@ -46,6 +47,7 @@ import java.nio.file.Path;
 public class DiscordSRVVelocityBootstrap {
 
     private final Logger logger;
+    private final ClasspathAppender classpathAppender;
     private final InitialDependencyLoader dependencies;
     private final ProxyServer proxyServer;
     private final PluginContainer pluginContainer;
@@ -55,11 +57,12 @@ public class DiscordSRVVelocityBootstrap {
     @Inject
     public DiscordSRVVelocityBootstrap(com.discordsrv.x.slf4j.Logger logger, ProxyServer proxyServer, PluginContainer pluginContainer, @DataDirectory Path dataDirectory) throws IOException {
         this.logger = new SLF4JLoggerImpl(logger);
+        this.classpathAppender = new VelocityClasspathAppender(this, proxyServer);
         this.dependencies = new InitialDependencyLoader(
                 this.logger,
                 dataDirectory,
                 new String[] {"dependencies/runtimeDownload-velocity.txt"},
-                new VelocityClasspathAppender(this, proxyServer)
+                classpathAppender
         );
         this.proxyServer = proxyServer;
         this.pluginContainer = pluginContainer;
@@ -68,7 +71,7 @@ public class DiscordSRVVelocityBootstrap {
 
     @Subscribe
     public void onProxyInitialize(ProxyInitializeEvent event) {
-        dependencies.loadAndEnable(() -> this.discordSRV = new VelocityDiscordSRV(this, logger, proxyServer, pluginContainer, dataDirectory));
+        dependencies.loadAndEnable(() -> this.discordSRV = new VelocityDiscordSRV(this, logger, classpathAppender, proxyServer, pluginContainer, dataDirectory));
     }
 
     @Subscribe

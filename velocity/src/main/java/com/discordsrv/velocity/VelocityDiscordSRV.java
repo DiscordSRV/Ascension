@@ -32,6 +32,7 @@ import com.discordsrv.velocity.player.VelocityPlayerProvider;
 import com.discordsrv.velocity.plugin.VelocityPluginManager;
 import com.velocitypowered.api.plugin.PluginContainer;
 import com.velocitypowered.api.proxy.ProxyServer;
+import dev.vankka.dependencydownload.classpath.ClasspathAppender;
 import org.jetbrains.annotations.NotNull;
 
 import java.nio.file.Path;
@@ -43,17 +44,19 @@ public class VelocityDiscordSRV extends ProxyDiscordSRV<MainConfig, ConnectionCo
     private final PluginContainer pluginContainer;
 
     private final Logger logger;
+    private final ClasspathAppender classpathAppender;
     private final Path dataDirectory;
     private final StandardScheduler scheduler;
     private final VelocityConsole console;
     private final VelocityPlayerProvider playerProvider;
     private final VelocityPluginManager pluginManager;
 
-    public VelocityDiscordSRV(Object plugin, Logger logger, ProxyServer proxyServer, PluginContainer pluginContainer, Path dataDirectory) {
+    public VelocityDiscordSRV(Object plugin, Logger logger, ClasspathAppender classpathAppender, ProxyServer proxyServer, PluginContainer pluginContainer, Path dataDirectory) {
         this.plugin = plugin;
+        this.logger = logger;
+        this.classpathAppender = classpathAppender;
         this.proxyServer = proxyServer;
         this.pluginContainer = pluginContainer;
-        this.logger = logger;
         this.dataDirectory = dataDirectory;
 
         this.scheduler = new StandardScheduler(this);
@@ -114,6 +117,11 @@ public class VelocityDiscordSRV extends ProxyDiscordSRV<MainConfig, ConnectionCo
     @Override
     public OnlineMode onlineMode() {
         return OnlineMode.of(proxy().getConfiguration().isOnlineMode());
+    }
+
+    @Override
+    public ClasspathAppender classpathAppender() {
+        return classpathAppender;
     }
 
     @Override

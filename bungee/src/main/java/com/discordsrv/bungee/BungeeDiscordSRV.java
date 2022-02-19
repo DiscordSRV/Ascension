@@ -30,6 +30,7 @@ import com.discordsrv.common.logging.Logger;
 import com.discordsrv.common.plugin.PluginManager;
 import com.discordsrv.common.scheduler.StandardScheduler;
 import com.discordsrv.proxy.ProxyDiscordSRV;
+import dev.vankka.dependencydownload.classpath.ClasspathAppender;
 import net.kyori.adventure.platform.bungeecord.BungeeAudiences;
 import net.md_5.bungee.api.ProxyServer;
 import net.md_5.bungee.api.plugin.Plugin;
@@ -112,6 +113,11 @@ public class BungeeDiscordSRV extends ProxyDiscordSRV<MainConfig, ConnectionConf
     @Override
     public OnlineMode onlineMode() {
         return OnlineMode.of(proxy().getConfig().isOnlineMode());
+    }
+
+    @Override
+    public ClasspathAppender classpathAppender() {
+        return bootstrap.getClasspathAppender();
     }
 
     @Override

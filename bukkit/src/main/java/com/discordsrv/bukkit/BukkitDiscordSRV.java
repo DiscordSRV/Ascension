@@ -38,6 +38,7 @@ import com.discordsrv.common.logging.Logger;
 import com.discordsrv.common.messageforwarding.game.MinecraftToDiscordChatModule;
 import com.discordsrv.common.plugin.PluginManager;
 import com.discordsrv.common.server.ServerDiscordSRV;
+import dev.vankka.dependencydownload.classpath.ClasspathAppender;
 import net.kyori.adventure.platform.bukkit.BukkitAudiences;
 import org.bukkit.Server;
 import org.bukkit.plugin.ServicePriority;
@@ -148,6 +149,11 @@ public class BukkitDiscordSRV extends ServerDiscordSRV<BukkitConfig, BukkitConne
         } catch (Throwable ignored) {}
 
         return OnlineMode.of(server().getOnlineMode());
+    }
+
+    @Override
+    public ClasspathAppender classpathAppender() {
+        return bootstrap.getClasspathAppender();
     }
 
     @Override

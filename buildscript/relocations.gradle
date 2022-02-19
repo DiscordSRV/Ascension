@@ -28,6 +28,9 @@ shadowJar {
             'io.leangen.geantyref',
             'org.yaml.snakeyaml',
 
+            // HikariCP
+            'com.zaxxer.hikari',
+
             // Adventure, EnhancedLegacyText, MCDiscordReserializer
             'net.kyori',
             'dev.vankka.enhancedlegacytext',

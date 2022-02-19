@@ -31,7 +31,7 @@ import com.discordsrv.sponge.console.SpongeConsole;
 import com.discordsrv.sponge.player.SpongePlayerProvider;
 import com.discordsrv.sponge.plugin.SpongePluginManager;
 import com.discordsrv.sponge.scheduler.SpongeScheduler;
-import dev.vankka.mcdependencydownload.classloader.JarInJarClassLoader;
+import dev.vankka.dependencydownload.classpath.ClasspathAppender;
 import org.jetbrains.annotations.NotNull;
 import org.spongepowered.api.Game;
 import org.spongepowered.api.event.Listener;
@@ -46,17 +46,19 @@ public class SpongeDiscordSRV extends ServerDiscordSRV<MainConfig, ConnectionCon
     private final Game game;
 
     private final Logger logger;
+    private final ClasspathAppender classpathAppender;
     private final Path dataDirectory;
     private final SpongeScheduler scheduler;
     private final SpongeConsole console;
     private final SpongePlayerProvider playerProvider;
     private final SpongePluginManager pluginManager;
 
-    public SpongeDiscordSRV(Logger logger, PluginContainer pluginContainer, Game game, JarInJarClassLoader classLoader, Path dataDirectory) {
+    public SpongeDiscordSRV(Logger logger, ClasspathAppender classpathAppender, Path dataDirectory, PluginContainer pluginContainer, Game game) {
+        this.logger = logger;
+        this.classpathAppender = classpathAppender;
+        this.dataDirectory = dataDirectory;
         this.pluginContainer = pluginContainer;
         this.game = game;
-        this.logger = logger;
-        this.dataDirectory = dataDirectory;
 
         this.scheduler = new SpongeScheduler(this);
         this.console = new SpongeConsole(this);
@@ -114,6 +116,11 @@ public class SpongeDiscordSRV extends ServerDiscordSRV<MainConfig, ConnectionCon
         // TODO: velocity / bungee
 
         return OnlineMode.of(game.server().isOnlineModeEnabled());
+    }
+
+    @Override
+    public ClasspathAppender classpathAppender() {
+        return classpathAppender;
     }
 
     @Override

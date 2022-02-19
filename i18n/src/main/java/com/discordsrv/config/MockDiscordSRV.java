@@ -29,6 +29,7 @@ import com.discordsrv.common.logging.Logger;
 import com.discordsrv.common.player.provider.AbstractPlayerProvider;
 import com.discordsrv.common.plugin.PluginManager;
 import com.discordsrv.common.scheduler.Scheduler;
+import dev.vankka.dependencydownload.classpath.ClasspathAppender;
 import org.jetbrains.annotations.NotNull;
 
 import java.nio.file.Path;
@@ -68,6 +69,11 @@ public class MockDiscordSRV extends AbstractDiscordSRV<MainConfig, ConnectionCon
 
     @Override
     public OnlineMode onlineMode() {
+        return null;
+    }
+
+    @Override
+    public ClasspathAppender classpathAppender() {
         return null;
     }
 

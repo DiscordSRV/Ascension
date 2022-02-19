@@ -16,4 +16,32 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package com.discordsrv.common.storage.impl;
+package com.discordsrv.common.storage;
+
+import com.discordsrv.common.DiscordSRV;
+import com.discordsrv.common.storage.impl.sql.file.H2Storage;
+import com.discordsrv.common.storage.impl.sql.hikari.MySQLStorage;
+
+import java.util.function.Function;
+
+public enum StorageType {
+
+    H2(H2Storage::new, false),
+    MYSQL(MySQLStorage::new, true);
+
+    private final Function<DiscordSRV, Storage> storageFunction;
+    private final boolean hikari;
+
+    StorageType(Function<DiscordSRV, Storage> storageFunction, boolean hikari) {
+        this.storageFunction = storageFunction;
+        this.hikari = hikari;
+    }
+
+    public Function<DiscordSRV, Storage> storageFunction() {
+        return storageFunction;
+    }
+
+    public boolean hikari() {
+        return hikari;
+    }
+}

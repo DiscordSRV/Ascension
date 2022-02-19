@@ -40,6 +40,7 @@ import com.discordsrv.common.plugin.PluginManager;
 import com.discordsrv.common.scheduler.Scheduler;
 import com.discordsrv.common.storage.Storage;
 import com.github.benmanes.caffeine.cache.Caffeine;
+import dev.vankka.dependencydownload.classpath.ClasspathAppender;
 import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -59,6 +60,7 @@ public interface DiscordSRV extends DiscordSRVApi {
     String version();
     PluginManager pluginManager();
     OnlineMode onlineMode();
+    ClasspathAppender classpathAppender();
 
     // DiscordSRVApi
     @Override
