@@ -25,6 +25,9 @@ import org.slf4j.helpers.MarkerIgnoringBase;
 import org.slf4j.helpers.MessageFormatter;
 import org.slf4j.spi.LocationAwareLogger;
 
+import java.util.ArrayList;
+import java.util.List;
+
 public class DependencyLoggerAdapter extends MarkerIgnoringBase implements LocationAwareLogger {
 
     private static LogAppender APPENDER;
@@ -39,25 +42,8 @@ public class DependencyLoggerAdapter extends MarkerIgnoringBase implements Locat
         this.name = name;
     }
 
-    private String format(String message, Object arg1) {
-        return MessageFormatter.format(message, arg1).getMessage();
-    }
-
-    private String format(String message, Object arg1, Object arg2) {
-        return MessageFormatter.format(message, arg1, arg2).getMessage();
-    }
-
     private String format(String message, Object[] arguments) {
         return MessageFormatter.arrayFormat(message, arguments).getMessage();
-    }
-
-    @Override
-    public void log(Marker marker, String fqcn, int level, String message, Object[] argArray, Throwable t) {
-        if (APPENDER == null) {
-            // Adapter isn't set, do nothing
-            return;
-        }
-        APPENDER.append(name, getLevel(level), format(message, argArray), t);
     }
 
     private LogLevel getLevel(int level) {
@@ -77,6 +63,32 @@ public class DependencyLoggerAdapter extends MarkerIgnoringBase implements Locat
         }
     }
 
+    private void doLog(LogLevel logLevel, String message, Object[] args) {
+        List<Object> arguments = new ArrayList<>(args.length);
+        Throwable throwable = null;
+        for (Object arg : args) {
+            if (arg instanceof Throwable) {
+                throwable = (Throwable) arg;
+                continue;
+            }
+            arguments.add(arg);
+        }
+        doLog(logLevel, format(message, arguments.toArray(new Object[0])), throwable);
+    }
+
+    private void doLog(LogLevel logLevel, String message, Throwable throwable) {
+        if (APPENDER == null) {
+            // Adapter isn't set, do nothing
+            return;
+        }
+        APPENDER.append(name, logLevel, message, throwable);
+    }
+
+    @Override
+    public void log(Marker marker, String fqcn, int level, String message, Object[] argArray, Throwable t) {
+        doLog(getLevel(level), format(message, argArray), t);
+    }
+
     @Override
     public boolean isTraceEnabled() {
         return true;
@@ -89,22 +101,22 @@ public class DependencyLoggerAdapter extends MarkerIgnoringBase implements Locat
 
     @Override
     public void trace(String format, Object arg) {
-        trace(format(format, arg));
+        doLog(LogLevel.TRACE, format, new Object[] {arg});
     }
 
     @Override
     public void trace(String format, Object arg1, Object arg2) {
-        trace(format(format, arg1, arg2));
+        doLog(LogLevel.TRACE, format, new Object[] {arg1, arg2});
     }
 
     @Override
     public void trace(String format, Object... arguments) {
-        trace(format(format, arguments));
+        doLog(LogLevel.TRACE, format, arguments);
     }
 
     @Override
     public void trace(String msg, Throwable t) {
-        APPENDER.append(name, LogLevel.TRACE, msg, t);
+        doLog(LogLevel.TRACE, msg, t);
     }
 
     @Override
@@ -119,22 +131,22 @@ public class DependencyLoggerAdapter extends MarkerIgnoringBase implements Locat
 
     @Override
     public void debug(String format, Object arg) {
-        debug(format(format, arg));
+        doLog(LogLevel.DEBUG, format, new Object[] {arg});
     }
 
     @Override
     public void debug(String format, Object arg1, Object arg2) {
-        debug(format(format, arg1, arg2));
+        doLog(LogLevel.DEBUG, format, new Object[] {arg1, arg2});
     }
 
     @Override
     public void debug(String format, Object... arguments) {
-        debug(format(format, arguments));
+        doLog(LogLevel.DEBUG, format, arguments);
     }
 
     @Override
     public void debug(String msg, Throwable t) {
-        APPENDER.append(name, LogLevel.DEBUG, msg, t);
+        doLog(LogLevel.DEBUG, msg, t);
     }
 
     @Override
@@ -149,22 +161,22 @@ public class DependencyLoggerAdapter extends MarkerIgnoringBase implements Locat
 
     @Override
     public void info(String format, Object arg) {
-        info(format(format, arg));
+        doLog(LogLevel.INFO, format, new Object[] {arg});
     }
 
     @Override
     public void info(String format, Object arg1, Object arg2) {
-        info(format(format, arg1, arg2));
+        doLog(LogLevel.INFO, format, new Object[] {arg1, arg2});
     }
 
     @Override
     public void info(String format, Object... arguments) {
-        info(format(format, arguments));
+        doLog(LogLevel.INFO, format, arguments);
     }
 
     @Override
     public void info(String msg, Throwable t) {
-        APPENDER.append(name, LogLevel.INFO, msg, t);
+        doLog(LogLevel.INFO, msg, t);
     }
 
     @Override
@@ -179,22 +191,22 @@ public class DependencyLoggerAdapter extends MarkerIgnoringBase implements Locat
 
     @Override
     public void warn(String format, Object arg) {
-        warn(format(format, arg));
+        doLog(LogLevel.WARNING, format, new Object[] {arg});
     }
 
     @Override
     public void warn(String format, Object... arguments) {
-        warn(format(format, arguments));
+        doLog(LogLevel.WARNING, format, arguments);
     }
 
     @Override
     public void warn(String format, Object arg1, Object arg2) {
-        warn(format(format, arg1, arg2));
+        doLog(LogLevel.WARNING, format, new Object[] {arg1, arg2});
     }
 
     @Override
     public void warn(String msg, Throwable t) {
-        APPENDER.append(name, LogLevel.WARNING, msg, t);
+        doLog(LogLevel.WARNING, msg, t);
     }
 
     @Override
@@ -209,21 +221,21 @@ public class DependencyLoggerAdapter extends MarkerIgnoringBase implements Locat
 
     @Override
     public void error(String format, Object arg) {
-        error(format(format, arg));
+        doLog(LogLevel.ERROR, format, new Object[] {arg});
     }
 
     @Override
     public void error(String format, Object arg1, Object arg2) {
-        error(format(format, arg1, arg2));
+        doLog(LogLevel.ERROR, format, new Object[] {arg1, arg2});
     }
 
     @Override
     public void error(String format, Object... arguments) {
-        error(format(format, arguments));
+        doLog(LogLevel.ERROR, format, arguments);
     }
 
     @Override
     public void error(String msg, Throwable t) {
-        APPENDER.append(name, LogLevel.ERROR, msg, t);
+        doLog(LogLevel.ERROR, msg, t);
     }
 }
