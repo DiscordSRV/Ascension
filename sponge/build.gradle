@@ -28,7 +28,7 @@ dependencies {
     implementation project(':common:common-server')
 
     // Dependency Download
-    implementation 'dev.vankka.minecraftdependencydownload:jarinjar-bootstrap:' + rootProject.mddVersion
+    implementation 'dev.vankka:dependencydownload-jarinjar-bootstrap:' + rootProject.ddVersion
     compileOnlyApi project(':sponge:sponge-loader')
 }
 

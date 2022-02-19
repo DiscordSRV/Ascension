@@ -12,7 +12,7 @@ dependencies {
     implementation project(':common:common-api')
 
     // DependencyDownload
-    implementation 'dev.vankka.minecraftdependencydownload:jarinjar-loader:' + rootProject.mddVersion
+    implementation 'dev.vankka:dependencydownload-jarinjar-loader:' + rootProject.ddVersion
 }
 
 shadowJar {

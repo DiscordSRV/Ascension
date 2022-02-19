@@ -7,7 +7,7 @@ dependencies {
     implementation project(':common:common-api')
 
     // DependencyDownload
-    implementation 'dev.vankka.minecraftdependencydownload:bungee-loader:' + rootProject.mddVersion
+    implementation 'dev.vankka:minecraftdependencydownload-bungee-loader:' + rootProject.mddVersion
 }
 
 processResources {

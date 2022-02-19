@@ -9,7 +9,7 @@ version '2.0.0-SNAPSHOT'
 
 ext {
     // DependencyDownload (change plugin version above)
-    ddVersion = '1.1.5-SNAPSHOT'
+    ddVersion = '1.2.2-SNAPSHOT'
     // MinecraftDependencyDownload
     mddVersion = '1.0.0-SNAPSHOT'
     // JDA

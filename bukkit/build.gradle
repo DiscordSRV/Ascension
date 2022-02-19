@@ -36,7 +36,7 @@ dependencies {
     implementation project(path: ':common:common-server', configuration: 'runtimeElements')
 
     // DependencyDownload
-    implementation 'dev.vankka.minecraftdependencydownload:bukkit:' + rootProject.mddVersion
+    implementation 'dev.vankka:minecraftdependencydownload-bukkit:' + rootProject.mddVersion
 
     // Adventure
     runtimeDownloadApi 'net.kyori:adventure-platform-bukkit:' + rootProject.adventurePlatformVersion

@@ -26,7 +26,7 @@ dependencies {
     implementation project(':common:common-proxy')
 
     // DependencyDownload
-    implementation 'dev.vankka.minecraftdependencydownload:bungee:' + rootProject.mddVersion
+    implementation 'dev.vankka:minecraftdependencydownload-bungee:' + rootProject.mddVersion
 
     // Adventure
     runtimeDownloadApi 'net.kyori:adventure-platform-bungeecord:' + rootProject.adventurePlatformVersion

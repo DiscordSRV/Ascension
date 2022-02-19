@@ -24,7 +24,7 @@ dependencies {
     testImplementation project(':common:common-api')
 
     // DependencyDownload
-    api 'dev.vankka.dependencydownload:runtime:' + rootProject.ddVersion
+    api 'dev.vankka:dependencydownload-runtime:' + rootProject.ddVersion
 
     // Discord Webhooks
     runtimeDownloadApi 'club.minnced:discord-webhooks:0.7.5'
