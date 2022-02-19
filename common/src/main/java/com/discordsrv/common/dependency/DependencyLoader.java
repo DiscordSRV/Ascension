@@ -20,6 +20,7 @@ package com.discordsrv.common.dependency;
 
 import com.discordsrv.common.DiscordSRV;
 import dev.vankka.dependencydownload.DependencyManager;
+import dev.vankka.dependencydownload.classloader.IsolatedClassLoader;
 import dev.vankka.dependencydownload.classpath.ClasspathAppender;
 import dev.vankka.dependencydownload.repository.StandardRepository;
 
@@ -68,6 +69,12 @@ public class DependencyLoader {
             dependencyManager.loadFromResource(getClass().getClassLoader().getResource(dependencyResource));
         }
         return download(dependencyManager, classpathAppender);
+    }
+
+    public IsolatedClassLoader loadIntoIsolated() throws IOException {
+        IsolatedClassLoader classLoader = new IsolatedClassLoader();
+        process(classLoader).join();
+        return classLoader;
     }
 
     private CompletableFuture<Void> download(DependencyManager manager,

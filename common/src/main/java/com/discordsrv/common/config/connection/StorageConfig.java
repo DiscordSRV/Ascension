@@ -1,0 +1,80 @@
+package com.discordsrv.common.config.connection;
+
+import org.spongepowered.configurate.objectmapping.ConfigSerializable;
+import org.spongepowered.configurate.objectmapping.meta.Comment;
+
+import java.util.LinkedHashMap;
+import java.util.Map;
+import java.util.Properties;
+
+@ConfigSerializable
+public class StorageConfig {
+
+    @Comment("The storage backend to use.\n\n"
+            + "- H2\n"
+            + "- MySQL\n")
+    public String backend = "h2";
+
+    @Comment("Connection options for remote databases (MySQL)")
+    public Remote remote = new Remote();
+
+    @Comment("Extra connection properties for database drivers")
+    public Map<String, String> driverProperties = new LinkedHashMap<String, String>() {{
+        put("useSSL", "false");
+    }};
+
+    public Properties getDriverProperties() {
+        Properties properties = new Properties();
+        for (Map.Entry<String, String> property : driverProperties.entrySet()) {
+            String key = property.getKey();
+            String value = property.getValue();
+            if (value.equals("true")) {
+                properties.put(key, true);
+            } else if (value.equals("false")) {
+                properties.put(key, false);
+            } else {
+                properties.put(key, value);
+            }
+        }
+        return properties;
+    }
+
+    public static class Remote {
+
+        @Comment("The database address.\n"
+                + "Uses the default port (MySQL: 3306)\n"
+                + "for the database if a port isn't specified in the \"address:port\" format")
+        public String databaseAddress = "localhost";
+
+        @Comment("The name of the database")
+        public String databaseName = "minecraft";
+
+        @Comment("The database username and password")
+        public String username = "root";
+        public String password = "";
+
+        @Comment("Connection pool options. Don't touch these unless you know what you're doing")
+        public Pool poolOptions = new Pool();
+
+    }
+
+    public static class Pool {
+
+        @Comment("The maximum amount of concurrent connections to keep to the database")
+        public int maximumPoolSize = 5;
+
+        @Comment("The minimum amount of concurrent connections to keep to the database")
+        public int minimumPoolSize = 2;
+
+        @Comment("How frequently to attempt to keep connections alive, in order to prevent being timed out by the database or network infrastructure.\n"
+                + "The time is specified in milliseconds. Use 0 to disable keepalive."
+                + "The default is 0 (disabled)")
+        public long keepaliveTime = 0;
+
+        @Comment("The maximum time a connection will be kept open in milliseconds.\n"
+                + "The time is specified in milliseconds. Must be at least 30000ms (30 seconds)"
+                + "The default is 1800000ms (30 minutes)")
+        public long maximumLifetime = 1800000;
+
+    }
+}

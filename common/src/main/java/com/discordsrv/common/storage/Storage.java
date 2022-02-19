@@ -27,6 +27,9 @@ import java.util.UUID;
 @Blocking
 public interface Storage {
 
+    void initialize();
+    void close();
+
     @Nullable
     Long getUserId(@NotNull UUID player);
 

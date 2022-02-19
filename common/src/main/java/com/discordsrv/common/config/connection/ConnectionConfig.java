@@ -34,6 +34,8 @@ public class ConnectionConfig implements Config {
 
     public Bot bot = new Bot();
 
+    public StorageConfig storage = new StorageConfig();
+
     @ConfigSerializable
     public static class Bot {
 
