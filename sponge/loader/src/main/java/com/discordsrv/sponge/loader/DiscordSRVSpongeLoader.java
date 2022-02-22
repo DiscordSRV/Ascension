@@ -24,6 +24,7 @@ import dev.vankka.mcdependencydownload.classloader.JarInJarClassLoader;
 import dev.vankka.mcdependencydownload.loader.ILoader;
 import dev.vankka.mcdependencydownload.loader.exception.LoadingException;
 import org.apache.logging.log4j.Logger;
+import org.jetbrains.annotations.NotNull;
 import org.spongepowered.api.Game;
 import org.spongepowered.api.config.ConfigDir;
 import org.spongepowered.api.event.Listener;
@@ -34,10 +35,11 @@ import org.spongepowered.api.event.lifecycle.StoppingEngineEvent;
 import org.spongepowered.plugin.PluginContainer;
 import org.spongepowered.plugin.builtin.jvm.Plugin;
 
+import java.io.IOException;
 import java.lang.reflect.Constructor;
-import java.lang.reflect.InvocationTargetException;
 import java.net.URL;
 import java.nio.file.Path;
+import java.util.Objects;
 import java.util.Optional;
 
 @Plugin("discordsrv")
@@ -46,6 +48,7 @@ public class DiscordSRVSpongeLoader implements ILoader {
     private final PluginContainer pluginContainer;
     private final Game game;
     private final Path dataDirectory;
+    private final JarInJarClassLoader classLoader;
     private ISpongeBootstrap bootstrap;
 
     @Inject
@@ -60,10 +63,11 @@ public class DiscordSRVSpongeLoader implements ILoader {
             logger.error("| DiscordSRV does not run on clients          |");
             logger.error("| DiscordSRV can only be installed on servers |");
             logger.error("+---------------------------------------------+");
+            this.classLoader = null;
             return;
         }
 
-        initialize();
+        this.classLoader = initialize();
     }
 
     private Optional<ISpongeBootstrap> bootstrap() {
@@ -71,14 +75,12 @@ public class DiscordSRVSpongeLoader implements ILoader {
     }
 
     @Override
-    public String getBootstrapClassName() {
+    public @NotNull String getBootstrapClassName() {
         return "com.discordsrv.sponge.DiscordSRVSpongeBootstrap";
     }
 
     @Override
-    public void initiateBootstrap(Class<?> bootstrapClass, JarInJarClassLoader classLoader)
-            throws NoSuchMethodException, InvocationTargetException, InstantiationException, IllegalAccessException {
-
+    public void initiateBootstrap(Class<?> bootstrapClass, @NotNull JarInJarClassLoader classLoader) throws ReflectiveOperationException {
         Constructor<?> constructor = bootstrapClass.getConstructor(PluginContainer.class, Game.class, JarInJarClassLoader.class, Path.class);
         bootstrap = (ISpongeBootstrap) constructor.newInstance(pluginContainer, game, classLoader, dataDirectory);
     }
@@ -89,18 +91,18 @@ public class DiscordSRVSpongeLoader implements ILoader {
     }
 
     @Override
-    public String getName() {
+    public @NotNull String getName() {
         return "DiscordSRV";
     }
 
     @Override
-    public ClassLoader getParentClassLoader() {
+    public @NotNull ClassLoader getParentClassLoader() {
         return getClass().getClassLoader();
     }
 
     @Override
-    public URL getJarInJarResource() {
-        return getParentClassLoader().getResource("sponge.jarinjar");
+    public @NotNull URL getJarInJarResource() {
+        return Objects.requireNonNull(getParentClassLoader().getResource("sponge.jarinjar"));
     }
 
     @Listener
@@ -121,5 +123,10 @@ public class DiscordSRVSpongeLoader implements ILoader {
     @Listener
     public void onStoppingEngine(StoppingEngineEvent<?> event) {
         bootstrap().ifPresent(ISpongeBootstrap::onStopping);
+        try {
+            classLoader.close();
+        } catch (IOException e) {
+            pluginContainer.logger().error("Failed to close JarInJarClassLoader", e);
+        }
     }
 }
