@@ -31,6 +31,7 @@ public class StorageLinker extends CachedLinkProvider implements LinkProvider, L
 
     public StorageLinker(DiscordSRV discordSRV) {
         super(discordSRV);
+        discordSRV.logger().info("Using storage for linked accounts");
     }
 
     @Override
@@ -50,9 +51,9 @@ public class StorageLinker extends CachedLinkProvider implements LinkProvider, L
     }
 
     @Override
-    public CompletableFuture<Void> link(@NotNull UUID playerUUID, long userId) {
+    public CompletableFuture<Void> createLink(@NotNull UUID playerUUID, long userId) {
         return CompletableFuture.runAsync(
-                () -> discordSRV.storage().link(playerUUID, userId),
+                () -> discordSRV.storage().createLink(playerUUID, userId),
                 discordSRV.scheduler().executor()
         );
     }

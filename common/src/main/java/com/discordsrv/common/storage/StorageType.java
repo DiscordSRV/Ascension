@@ -26,19 +26,25 @@ import java.util.function.Function;
 
 public enum StorageType {
 
-    H2(H2Storage::new, false),
-    MYSQL(MySQLStorage::new, true);
+    H2(H2Storage::new, "H2", false),
+    MYSQL(MySQLStorage::new, "MySQL", true);
 
     private final Function<DiscordSRV, Storage> storageFunction;
+    private final String prettyName;
     private final boolean hikari;
 
-    StorageType(Function<DiscordSRV, Storage> storageFunction, boolean hikari) {
+    StorageType(Function<DiscordSRV, Storage> storageFunction, String prettyName, boolean hikari) {
         this.storageFunction = storageFunction;
+        this.prettyName = prettyName;
         this.hikari = hikari;
     }
 
     public Function<DiscordSRV, Storage> storageFunction() {
         return storageFunction;
+    }
+
+    public String prettyName() {
+        return prettyName;
     }
 
     public boolean hikari() {

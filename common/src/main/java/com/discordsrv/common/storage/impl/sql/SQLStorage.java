@@ -18,9 +18,11 @@
 
 package com.discordsrv.common.storage.impl.sql;
 
+import com.discordsrv.common.DiscordSRV;
 import com.discordsrv.common.exception.StorageException;
 import com.discordsrv.common.function.CheckedConsumer;
 import com.discordsrv.common.function.CheckedFunction;
+import com.discordsrv.common.linking.impl.StorageLinker;
 import com.discordsrv.common.storage.Storage;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -30,9 +32,15 @@ import java.util.UUID;
 
 public abstract class SQLStorage implements Storage {
 
+    protected final DiscordSRV discordSRV;
+
+    public SQLStorage(DiscordSRV discordSRV) {
+        this.discordSRV = discordSRV;
+    }
+
     public abstract Connection getConnection();
     public abstract boolean isAutoCloseConnections();
-    public abstract void createTables(Connection connection) throws SQLException;
+    public abstract void createTables(Connection connection, boolean linkedAccounts) throws SQLException;
 
     private void useConnection(CheckedConsumer<Connection> connectionConsumer) throws StorageException {
         useConnection(connection -> {
@@ -63,7 +71,7 @@ public abstract class SQLStorage implements Storage {
 
     @Override
     public void initialize() {
-        useConnection(this::createTables);
+        useConnection((CheckedConsumer<Connection>) connection -> createTables(connection, discordSRV.linkProvider() instanceof StorageLinker));
     }
 
     @Override
@@ -97,7 +105,7 @@ public abstract class SQLStorage implements Storage {
     }
 
     @Override
-    public void link(@NotNull UUID player, long userId) {
+    public void createLink(@NotNull UUID player, long userId) {
         useConnection(connection -> {
             try (PreparedStatement statement = connection.prepareStatement("insert into LINKED_ACCOUNTS (PLAYER_UUID, USER_ID) values (?, ?);")) {
                 statement.setObject(1, player);

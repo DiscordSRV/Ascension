@@ -29,12 +29,10 @@ import org.spongepowered.api.entity.living.player.server.ServerPlayer;
 
 public class SpongePlayer extends SpongeOfflinePlayer implements IPlayer {
 
-    private final SpongeDiscordSRV discordSRV;
     private final ServerPlayer player;
 
     public SpongePlayer(SpongeDiscordSRV discordSRV, ServerPlayer player) {
-        super(player.user());
-        this.discordSRV = discordSRV;
+        super(discordSRV, player.user());
         this.player = player;
     }
 

@@ -23,13 +23,13 @@ import com.discordsrv.api.event.bus.EventBus;
 import com.discordsrv.api.event.events.lifecycle.DiscordSRVReloadEvent;
 import com.discordsrv.api.event.events.lifecycle.DiscordSRVShuttingDownEvent;
 import com.discordsrv.api.module.type.Module;
-import com.discordsrv.api.profile.IProfileManager;
 import com.discordsrv.common.api.util.ApiInstanceUtil;
 import com.discordsrv.common.channel.ChannelConfigHelper;
 import com.discordsrv.common.channel.ChannelUpdaterModule;
 import com.discordsrv.common.channel.GlobalChannelLookupModule;
 import com.discordsrv.common.component.ComponentFactory;
 import com.discordsrv.common.config.connection.ConnectionConfig;
+import com.discordsrv.common.config.main.LinkedAccountConfig;
 import com.discordsrv.common.config.main.MainConfig;
 import com.discordsrv.common.config.manager.ConnectionConfigManager;
 import com.discordsrv.common.config.manager.MainConfigManager;
@@ -46,8 +46,8 @@ import com.discordsrv.common.function.CheckedRunnable;
 import com.discordsrv.common.groupsync.GroupSyncModule;
 import com.discordsrv.common.integration.LuckPermsIntegration;
 import com.discordsrv.common.linking.LinkProvider;
-import com.discordsrv.common.linking.LinkStore;
 import com.discordsrv.common.linking.impl.MemoryLinker;
+import com.discordsrv.common.linking.impl.StorageLinker;
 import com.discordsrv.common.logging.adapter.DependencyLoggerAdapter;
 import com.discordsrv.common.logging.impl.DependencyLoggingHandler;
 import com.discordsrv.common.logging.impl.DiscordSRVLogger;
@@ -69,7 +69,6 @@ import org.jetbrains.annotations.NotNull;
 import javax.annotation.OverridingMethodsMustInvokeSuper;
 import java.util.Locale;
 import java.util.Optional;
-import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
@@ -97,10 +96,10 @@ public abstract class AbstractDiscordSRV<C extends MainConfig, CC extends Connec
     // DiscordSRV
     private DiscordSRVLogger logger;
     private ModuleManager moduleManager;
+    private ChannelConfigHelper channelConfig;
 
     private Storage storage;
     private LinkProvider linkProvider;
-    private ChannelConfigHelper channelConfig;
     private DiscordConnectionManager discordConnectionManager;
 
     // Internal
@@ -122,6 +121,7 @@ public abstract class AbstractDiscordSRV<C extends MainConfig, CC extends Connec
         this.componentFactory = new ComponentFactory(this);
         this.discordAPI = new DiscordAPIImpl(this);
         this.discordConnectionDetails = new DiscordConnectionDetailsImpl(this);
+        this.channelConfig = new ChannelConfigHelper(this);
     }
 
     // DiscordSRVApi
@@ -137,7 +137,7 @@ public abstract class AbstractDiscordSRV<C extends MainConfig, CC extends Connec
     }
 
     @Override
-    public IProfileManager profileManager() {
+    public @NotNull ProfileManager profileManager() {
         return profileManager;
     }
 
@@ -327,25 +327,47 @@ public abstract class AbstractDiscordSRV<C extends MainConfig, CC extends Connec
         try {
             connectionConfigManager().load();
             configManager().load();
-
-            // Utility
-            channelConfig = new ChannelConfigHelper(this);
-
             eventBus().publish(new DiscordSRVReloadEvent(true));
         } catch (Throwable t) {
             setStatus(Status.FAILED_TO_LOAD_CONFIG);
             throw t;
         }
 
+        // Link provider
+        LinkedAccountConfig linkedAccountConfig = config().linkedAccounts;
+        if (linkedAccountConfig != null && linkedAccountConfig.enabled) {
+            String provider = linkedAccountConfig.provider;
+            switch (provider) {
+                case "auto":
+                case "storage":
+                    linkProvider = new StorageLinker(this);
+                    break;
+                case "memory": {
+                    linkProvider = new MemoryLinker();
+                    logger().warning("Using memory for linked accounts");
+                    logger().warning("Linked accounts will be lost upon restart");
+                    break;
+                }
+                default: {
+                    logger().error("Unknown linked account provider: \"" + provider + "\", linked accounts will not be used");
+                    break;
+                }
+            }
+        } else {
+            logger().info("Linked accounts are disabled");
+        }
+
         // Storage
         try {
             try {
                 StorageType storageType = getStorageType();
+                logger().info("Using " + storageType.prettyName() + " as storage");
                 if (storageType.hikari()) {
                     DependencyLoader.hikari(this).process(classpathAppender()).get();
                 }
                 storage = storageType.storageFunction().apply(this);
                 storage.initialize();
+                logger().info("Storage connection successfully established");
             } catch (ExecutionException e) {
                 throw new StorageException(e.getCause());
             } catch (StorageException e) {
@@ -355,16 +377,13 @@ public abstract class AbstractDiscordSRV<C extends MainConfig, CC extends Connec
             }
         } catch (StorageException e) {
             e.log(this);
-            logger().error("Startup cancelled because of storage connection failure");
+            logger().error("Failed to connect to storage");
             setStatus(Status.FAILED_TO_START);
             return;
         }
 
         discordConnectionManager = new JDAConnectionManager(this);
         discordConnectionManager.connect().join();
-
-        linkProvider = new MemoryLinker();
-        ((LinkStore) linkProvider).link(UUID.fromString("6c983d46-0631-48b8-9baf-5e33eb5ffec4"), 185828288466255874L);
 
         // Placeholder result stringifiers & global contexts
         placeholderService().addResultMapper(new ComponentResultStringifier(this));

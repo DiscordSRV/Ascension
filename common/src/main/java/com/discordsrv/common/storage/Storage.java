@@ -36,7 +36,7 @@ public interface Storage {
     @Nullable
     UUID getPlayerUUID(long userId);
 
-    void link(@NotNull UUID player, long userId);
+    void createLink(@NotNull UUID player, long userId);
 
     int getLinkedAccountCount();
 

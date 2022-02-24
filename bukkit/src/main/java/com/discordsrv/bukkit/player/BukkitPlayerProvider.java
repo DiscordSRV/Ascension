@@ -53,7 +53,7 @@ public class BukkitPlayerProvider extends ServerPlayerProvider<BukkitPlayer, Buk
     }
 
     @EventHandler(priority = EventPriority.LOWEST)
-    public void onPlayerLogin(PlayerJoinEvent event) {
+    public void onPlayerJoin(PlayerJoinEvent event) {
         addPlayer(event.getPlayer(), false);
     }
 

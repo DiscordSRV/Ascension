@@ -43,6 +43,8 @@ public class MainConfig implements Config {
         put(ChannelConfig.DEFAULT_KEY, new BaseChannelConfig());
     }};
 
+    public LinkedAccountConfig linkedAccounts = new LinkedAccountConfig();
+
     public List<ChannelUpdaterConfig> channelUpdaters = new ArrayList<>(Collections.singletonList(new ChannelUpdaterConfig()));
 
     @Comment("Configuration options for group-role synchronization")

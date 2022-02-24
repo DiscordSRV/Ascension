@@ -36,7 +36,6 @@ public interface IPlayer extends DiscordSRVPlayer, IOfflinePlayer, ICommandSende
 
     DiscordSRV discordSRV();
 
-    @Override
     @NotNull
     String username();
 

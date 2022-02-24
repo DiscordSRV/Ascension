@@ -29,11 +29,11 @@ import java.util.concurrent.CompletableFuture;
 
 public interface IProfileManager {
 
-    CompletableFuture<Optional<IProfile>> lookupProfile(UUID playerUUID);
+    CompletableFuture<? extends IProfile> lookupProfile(UUID playerUUID);
 
-    Optional<IProfile> getProfile(UUID playerUUID);
+    Optional<? extends IProfile> getProfile(UUID playerUUID);
 
-    CompletableFuture<Optional<IProfile>> lookupProfile(long userId);
+    CompletableFuture<? extends IProfile> lookupProfile(long userId);
 
-    Optional<IProfile> getProfile(long userId);
+    Optional<? extends IProfile> getProfile(long userId);
 }

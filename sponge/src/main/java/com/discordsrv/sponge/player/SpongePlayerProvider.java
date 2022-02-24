@@ -71,7 +71,7 @@ public class SpongePlayerProvider extends ServerPlayerProvider<SpongePlayer, Spo
     // IOfflinePlayer
 
     private IOfflinePlayer convert(User user) {
-        return new SpongeOfflinePlayer(user);
+        return new SpongeOfflinePlayer(discordSRV, user);
     }
 
     @Override
@@ -89,6 +89,6 @@ public class SpongePlayerProvider extends ServerPlayerProvider<SpongePlayer, Spo
     }
 
     public IOfflinePlayer offlinePlayer(User user) {
-        return new SpongeOfflinePlayer(user);
+        return convert(user);
     }
 }

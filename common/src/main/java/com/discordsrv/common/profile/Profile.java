@@ -19,27 +19,28 @@
 package com.discordsrv.common.profile;
 
 import com.discordsrv.api.profile.IProfile;
-import org.jetbrains.annotations.Nullable;
+import org.jetbrains.annotations.NotNull;
 
+import java.util.Optional;
 import java.util.UUID;
 
 public class Profile implements IProfile {
 
-    private final UUID uuid;
+    private final UUID playerUUID;
     private final Long userId;
 
-    public Profile(UUID uuid, Long userId) {
-        this.uuid = uuid;
+    public Profile(UUID playerUUID, Long userId) {
+        this.playerUUID = playerUUID;
         this.userId = userId;
     }
 
     @Override
-    public @Nullable UUID uniqueId() {
-        return uuid;
+    public @NotNull Optional<UUID> playerUUID() {
+        return Optional.ofNullable(playerUUID);
     }
 
     @Override
-    public @Nullable Long userId() {
-        return userId;
+    public @NotNull Optional<Long> userId() {
+        return Optional.ofNullable(userId);
     }
 }

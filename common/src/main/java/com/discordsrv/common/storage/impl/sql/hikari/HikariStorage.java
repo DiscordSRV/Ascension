@@ -31,11 +31,10 @@ import java.sql.SQLException;
 
 public abstract class HikariStorage extends SQLStorage {
 
-    protected final DiscordSRV discordSRV;
     private HikariDataSource hikariDataSource;
 
     public HikariStorage(DiscordSRV discordSRV) {
-        this.discordSRV = discordSRV;
+        super(discordSRV);
     }
 
     protected abstract void applyConfiguration(HikariConfig config, StorageConfig storageConfig);

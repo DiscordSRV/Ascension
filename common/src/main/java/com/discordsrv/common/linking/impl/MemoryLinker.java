@@ -43,7 +43,7 @@ public class MemoryLinker implements LinkProvider, LinkStore {
     }
 
     @Override
-    public CompletableFuture<Void> link(@NotNull UUID playerUUID, long userId) {
+    public CompletableFuture<Void> createLink(@NotNull UUID playerUUID, long userId) {
         map.put(playerUUID, userId);
         return CompletableFuture.completedFuture(null);
     }

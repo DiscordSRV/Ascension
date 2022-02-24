@@ -37,6 +37,7 @@ import com.discordsrv.common.module.type.AbstractModule;
 import com.discordsrv.common.placeholder.PlaceholderServiceImpl;
 import com.discordsrv.common.player.provider.AbstractPlayerProvider;
 import com.discordsrv.common.plugin.PluginManager;
+import com.discordsrv.common.profile.ProfileManager;
 import com.discordsrv.common.scheduler.Scheduler;
 import com.discordsrv.common.storage.Storage;
 import com.github.benmanes.caffeine.cache.Caffeine;
@@ -61,6 +62,7 @@ public interface DiscordSRV extends DiscordSRVApi {
     PluginManager pluginManager();
     OnlineMode onlineMode();
     ClasspathAppender classpathAppender();
+    @NotNull AbstractPlayerProvider<?, ?> playerProvider();
 
     // DiscordSRVApi
     @Override
@@ -69,11 +71,11 @@ public interface DiscordSRV extends DiscordSRVApi {
 
     @Override
     @NotNull
-    PlaceholderServiceImpl placeholderService();
+    ProfileManager profileManager();
 
     @Override
     @NotNull
-    AbstractPlayerProvider<?, ?> playerProvider();
+    PlaceholderServiceImpl placeholderService();
 
     @Override
     @NotNull

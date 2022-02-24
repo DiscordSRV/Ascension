@@ -26,6 +26,7 @@ import com.discordsrv.bukkit.config.manager.BukkitConnectionConfigManager;
 import com.discordsrv.bukkit.console.BukkitConsole;
 import com.discordsrv.bukkit.integration.VaultIntegration;
 import com.discordsrv.bukkit.listener.BukkitChatListener;
+import com.discordsrv.bukkit.listener.BukkitConnectionListener;
 import com.discordsrv.bukkit.listener.BukkitDeathListener;
 import com.discordsrv.bukkit.listener.BukkitStatusMessageListener;
 import com.discordsrv.bukkit.player.BukkitPlayerProvider;
@@ -178,6 +179,7 @@ public class BukkitDiscordSRV extends ServerDiscordSRV<BukkitConfig, BukkitConne
 
         // Register listeners
         server().getPluginManager().registerEvents(BukkitChatListener.get(this), plugin());
+        server().getPluginManager().registerEvents(new BukkitConnectionListener(this), plugin());
         server().getPluginManager().registerEvents(new BukkitDeathListener(this), plugin());
         server().getPluginManager().registerEvents(new BukkitStatusMessageListener(this), plugin());
 

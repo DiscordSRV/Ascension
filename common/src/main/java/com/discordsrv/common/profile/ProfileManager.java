@@ -19,40 +19,64 @@
 package com.discordsrv.common.profile;
 
 import com.discordsrv.api.profile.IProfileManager;
-import com.discordsrv.api.profile.IProfile;
 import com.discordsrv.common.DiscordSRV;
+import org.jetbrains.annotations.Blocking;
 
+import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ConcurrentHashMap;
 
 public class ProfileManager implements IProfileManager {
 
     private final DiscordSRV discordSRV;
+    private final Map<UUID, Profile> profiles = new ConcurrentHashMap<>();
+    private final Map<Long, Profile> discordUserMap = new ConcurrentHashMap<>();
 
     public ProfileManager(DiscordSRV discordSRV) {
         this.discordSRV = discordSRV;
     }
 
+    @Blocking
+    public void loadProfile(UUID playerUUID) {
+        Profile profile = lookupProfile(playerUUID).join();
+        profiles.put(playerUUID, profile);
+        if (profile.isLinked()) {
+            discordUserMap.put(profile.userId().orElseThrow(AssertionError::new), profile);
+        }
+    }
+
+    public void unloadProfile(UUID playerUUID) {
+        Profile profile = profiles.remove(playerUUID);
+        if (profile == null) {
+            return;
+        }
+
+        if (profile.isLinked()) {
+            discordUserMap.remove(profile.userId().orElseThrow(AssertionError::new));
+        }
+    }
+
     @Override
-    public CompletableFuture<Optional<IProfile>> lookupProfile(UUID playerUUID) {
+    public CompletableFuture<Profile> lookupProfile(UUID playerUUID) {
         return discordSRV.linkProvider().getUserId(playerUUID)
-                .thenApply(opt -> Optional.of(new Profile(playerUUID, opt.orElse(null))));
+                .thenApply(opt -> new Profile(playerUUID, opt.orElse(null)));
     }
 
     @Override
-    public Optional<IProfile> getProfile(UUID playerUUID) {
-        return Optional.empty();
+    public Optional<Profile> getProfile(UUID playerUUID) {
+        return Optional.ofNullable(profiles.get(playerUUID));
     }
 
     @Override
-    public CompletableFuture<Optional<IProfile>> lookupProfile(long userId) {
+    public CompletableFuture<Profile> lookupProfile(long userId) {
         return discordSRV.linkProvider().getPlayerUUID(userId)
-                .thenApply(opt -> Optional.of(new Profile(opt.orElse(null), userId)));
+                .thenApply(opt -> new Profile(opt.orElse(null), userId));
     }
 
     @Override
-    public Optional<IProfile> getProfile(long userId) {
-        return Optional.empty();
+    public Optional<Profile> getProfile(long userId) {
+        return Optional.ofNullable(discordUserMap.get(userId));
     }
 }

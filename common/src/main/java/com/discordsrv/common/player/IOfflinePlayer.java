@@ -19,6 +19,7 @@
 package com.discordsrv.common.player;
 
 import com.discordsrv.api.placeholder.annotation.Placeholder;
+import com.discordsrv.common.profile.Profile;
 import net.kyori.adventure.identity.Identified;
 import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
@@ -38,4 +39,6 @@ public interface IOfflinePlayer extends Identified {
     default UUID uniqueId() {
         return identity().uuid();
     }
+
+    Profile profile();
 }

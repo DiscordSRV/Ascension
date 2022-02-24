@@ -85,11 +85,7 @@ public abstract class BukkitChatListener implements Listener {
         @EventHandler(priority = EventPriority.MONITOR)
         public void onAsyncChat(AsyncChatEvent event) {
             MinecraftComponent component = PaperComponentUtil.getComponent(discordSRV, event, "message");
-            publishEvent(
-                    event.getPlayer(),
-                    component,
-                    event.isCancelled()
-            );
+            publishEvent(event.getPlayer(), component, event.isCancelled());
         }
     }
 

@@ -63,6 +63,7 @@ public interface DiscordSRVApi {
      * The profile manager, access the profiles of players and/or users.
      * @return the instance of {@link IProfileManager}
      */
+    @NotNull
     IProfileManager profileManager();
 
     /**
@@ -177,30 +178,24 @@ public interface DiscordSRVApi {
          * DiscordSRV is shutting down.
          * @see #isShutdown()
          */
-        SHUTTING_DOWN(false, true),
+        SHUTTING_DOWN,
 
         /**
          * DiscordSRV has shutdown.
          * @see #isShutdown()
          */
-        SHUTDOWN(false, true),
+        SHUTDOWN,
 
         ;
 
         private final boolean error;
-        private final boolean shutdown;
 
         Status() {
             this(false);
         }
 
         Status(boolean error) {
-            this(error, false);
-        }
-
-        Status(boolean error, boolean shutdown) {
             this.error = error;
-            this.shutdown = shutdown;
         }
 
         public boolean isError() {
@@ -208,7 +203,7 @@ public interface DiscordSRVApi {
         }
 
         public boolean isShutdown() {
-            return shutdown;
+            return this == SHUTDOWN || this == SHUTTING_DOWN;
         }
 
         public boolean isStartupError() {

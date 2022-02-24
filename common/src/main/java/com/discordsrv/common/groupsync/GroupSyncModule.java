@@ -23,7 +23,6 @@ import com.discordsrv.api.discord.api.entity.guild.DiscordRole;
 import com.discordsrv.api.discord.events.member.role.DiscordMemberRoleAddEvent;
 import com.discordsrv.api.discord.events.member.role.DiscordMemberRoleRemoveEvent;
 import com.discordsrv.api.event.bus.Subscribe;
-import com.discordsrv.api.profile.IProfile;
 import com.discordsrv.common.DiscordSRV;
 import com.discordsrv.common.config.main.GroupSyncConfig;
 import com.discordsrv.common.debug.DebugGenerateEvent;
@@ -166,12 +165,12 @@ public class GroupSyncModule extends AbstractModule<DiscordSRV> {
 
     private CompletableFuture<Long> lookupLinkedAccount(UUID player) {
         return discordSRV.profileManager().lookupProfile(player)
-                .thenApply(profile -> profile.map(IProfile::userId).orElse(null));
+                .thenApply(profile -> profile.userId().orElse(null));
     }
 
     private CompletableFuture<UUID> lookupLinkedAccount(long userId) {
         return discordSRV.profileManager().lookupProfile(userId)
-                .thenApply(profile -> profile.map(IProfile::uniqueId).orElse(null));
+                .thenApply(profile -> profile.playerUUID().orElse(null));
     }
 
     // Permission data helper methods

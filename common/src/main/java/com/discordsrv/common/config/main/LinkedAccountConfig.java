@@ -16,16 +16,20 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package com.discordsrv.common.linking;
+package com.discordsrv.common.config.main;
 
-import org.jetbrains.annotations.NotNull;
+import org.spongepowered.configurate.objectmapping.ConfigSerializable;
+import org.spongepowered.configurate.objectmapping.meta.Comment;
 
-import java.util.UUID;
-import java.util.concurrent.CompletableFuture;
+@ConfigSerializable
+public class LinkedAccountConfig {
 
-public interface LinkStore {
+    @Comment("Should linked accounts be enabled?")
+    public boolean enabled = true;
 
-    CompletableFuture<Void> createLink(@NotNull UUID playerUUID, long userId);
-
-    CompletableFuture<Integer> getLinkedAccountCount();
+    @Comment("The linked account provider\n"
+            + "\n"
+            + " - auto: Automatically chooses the most suitable linked accounts storage\n"
+            + " - storage: Store linked accounts from the configured databased")
+    public String provider = "auto";
 }

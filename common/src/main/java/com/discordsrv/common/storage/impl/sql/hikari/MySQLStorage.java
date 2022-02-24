@@ -52,15 +52,17 @@ public class MySQLStorage extends HikariStorage {
     }
 
     @Override
-    public void createTables(Connection connection) throws SQLException {
-        try (Statement statement = connection.createStatement()) {
-            statement.execute(
-                    "create table if not exists LINKED_ACCOUNTS "
-                            + "(ID int not null auto_increment, "
-                            + "PLAYER_UUID varchar(36), "
-                            + "USER_ID bigint, "
-                            + "constraint LINKED_ACCOUNTS_PK primary key (ID)"
-                            + ")");
+    public void createTables(Connection connection, boolean linkedAccounts) throws SQLException {
+        if (linkedAccounts) {
+            try (Statement statement = connection.createStatement()) {
+                statement.execute(
+                        "create table if not exists LINKED_ACCOUNTS "
+                                + "(ID int not null auto_increment, "
+                                + "PLAYER_UUID varchar(36), "
+                                + "USER_ID bigint, "
+                                + "constraint LINKED_ACCOUNTS_PK primary key (ID)"
+                                + ")");
+            }
         }
     }
 

@@ -20,6 +20,7 @@ package com.discordsrv.velocity.player;
 
 import com.discordsrv.common.DiscordSRV;
 import com.discordsrv.common.player.IPlayer;
+import com.discordsrv.common.profile.Profile;
 import com.discordsrv.velocity.VelocityDiscordSRV;
 import com.velocitypowered.api.proxy.Player;
 import net.kyori.adventure.audience.Audience;
@@ -55,6 +56,11 @@ public class VelocityPlayer implements IPlayer {
     @Override
     public @NotNull String username() {
         return player.getUsername();
+    }
+
+    @Override
+    public Profile profile() {
+        return discordSRV.profileManager().getProfile(uniqueId()).orElseThrow(IllegalStateException::new);
     }
 
     @Override

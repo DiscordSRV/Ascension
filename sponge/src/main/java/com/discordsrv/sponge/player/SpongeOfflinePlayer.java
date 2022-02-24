@@ -19,21 +19,30 @@
 package com.discordsrv.sponge.player;
 
 import com.discordsrv.common.player.IOfflinePlayer;
+import com.discordsrv.common.profile.Profile;
+import com.discordsrv.sponge.SpongeDiscordSRV;
 import net.kyori.adventure.identity.Identity;
 import org.jetbrains.annotations.NotNull;
 import org.spongepowered.api.entity.living.player.User;
 
 public class SpongeOfflinePlayer implements IOfflinePlayer {
 
+    protected final SpongeDiscordSRV discordSRV;
     private final User user;
 
-    public SpongeOfflinePlayer(User user) {
+    public SpongeOfflinePlayer(SpongeDiscordSRV discordSRV, User user) {
+        this.discordSRV = discordSRV;
         this.user = user;
     }
 
     @Override
     public @NotNull String username() {
         return user.name();
+    }
+
+    @Override
+    public Profile profile() {
+        return discordSRV.profileManager().getProfile(uniqueId()).orElseThrow(IllegalStateException::new);
     }
 
     @Override
