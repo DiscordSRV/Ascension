@@ -70,12 +70,10 @@ public final class PaperComponentUtil {
         }
 
         MinecraftComponent component = discordSRV.componentFactory().empty();
-        MinecraftComponent.Adapter adapter = component.unrelocatedAdapter().orElse(null);
-        if (adapter == null) {
-            throw new IllegalStateException("Unrelocated adventure unavailable");
-        }
+        component.unrelocatedAdapter()
+                .orElseThrow(() -> new IllegalStateException("Unrelocated adventure unavailable"))
+                .setComponent(unrelocated);
 
-        adapter.setComponent(unrelocated);
         return component;
     }
 }

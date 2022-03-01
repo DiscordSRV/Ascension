@@ -34,7 +34,11 @@ import java.util.Collection;
  */
 public final class ComponentUtil {
 
-    public static final MinecraftComponentAdapter ADAPTER = MinecraftComponentAdapter.create(GsonComponentSerializer.class);
+    private static MinecraftComponentAdapter<Component> ADAPTER;
+
+    private static MinecraftComponentAdapter<Component> getAdapter() {
+        return ADAPTER != null ? ADAPTER : (ADAPTER = MinecraftComponentAdapter.create(GsonComponentSerializer.class, Component.class));
+    }
 
     private ComponentUtil() {}
 
@@ -43,7 +47,7 @@ public final class ComponentUtil {
     }
 
     public static boolean isEmpty(MinecraftComponent component) {
-        return isEmpty(fromAPI(component));
+        return component.asPlainString().isEmpty();
     }
 
     public static MinecraftComponent toAPI(Component component) {
@@ -54,12 +58,16 @@ public final class ComponentUtil {
         if (component instanceof MinecraftComponentImpl) {
             return ((MinecraftComponentImpl) component).getComponent();
         } else {
-            return (Component) component.adventureAdapter(ADAPTER).getComponent();
+            return component.adventureAdapter(getAdapter()).getComponent();
         }
     }
 
     public static void set(MinecraftComponent minecraftComponent, Component component) {
-        minecraftComponent.adventureAdapter(ADAPTER).setComponent(component);
+        if (component instanceof MinecraftComponentImpl) {
+            ((MinecraftComponentImpl) component).setComponent(component);
+        } else {
+            minecraftComponent.adventureAdapter(getAdapter()).setComponent(component);
+        }
     }
 
     public static Component fromUnrelocated(Object unrelocatedAdventure) {

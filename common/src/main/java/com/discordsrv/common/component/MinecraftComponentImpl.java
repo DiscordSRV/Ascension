@@ -44,6 +44,15 @@ public class MinecraftComponentImpl implements MinecraftComponent {
         setComponent(component);
     }
 
+    public Component getComponent() {
+        return component;
+    }
+
+    public void setComponent(Component component) {
+        this.component = component;
+        this.json = GsonComponentSerializer.gson().serialize(component);
+    }
+
     @Override
     public @NotNull String asJson() {
         return json;
@@ -66,43 +75,37 @@ public class MinecraftComponentImpl implements MinecraftComponent {
         return PlainTextComponentSerializer.plainText().serialize(component);
     }
 
-    public Component getComponent() {
-        return component;
-    }
-
-    public void setComponent(Component component) {
-        this.component = component;
-        this.json = GsonComponentSerializer.gson().serialize(component);
+    @Override
+    public <T> MinecraftComponent.@NotNull Adapter<T> adventureAdapter(
+            @NotNull Class<?> gsonSerializerClass, @NotNull Class<T> componentClass
+    ) {
+        return new Adapter<>(gsonSerializerClass, componentClass);
     }
 
     @Override
-    public @NotNull MinecraftComponent.Adapter adventureAdapter(@NotNull Class<?> gsonSerializerClass) {
-        return new Adapter(gsonSerializerClass);
+    public <T> MinecraftComponent.@NotNull Adapter<T> adventureAdapter(@NotNull MinecraftComponentAdapter<T> adapter) {
+        return new Adapter<>(adapter);
     }
 
-    @Override
-    public @NotNull MinecraftComponent.Adapter adventureAdapter(@NotNull MinecraftComponentAdapter adapter) {
-        return new Adapter(adapter);
-    }
+    @SuppressWarnings("unchecked")
+    public class Adapter<T> implements MinecraftComponent.Adapter<T> {
 
-    public class Adapter implements MinecraftComponent.Adapter {
+        private final MinecraftComponentAdapter<T> adapter;
 
-        private final MinecraftComponentAdapter adapter;
-
-        private Adapter(Class<?> gsonSerializerClass) {
-            this(MinecraftComponentAdapter.create(gsonSerializerClass));
+        private Adapter(Class<?> gsonSerializerClass, Class<T> componentClass) {
+            this(MinecraftComponentAdapter.create(gsonSerializerClass, componentClass));
         }
 
-        private Adapter(MinecraftComponentAdapter adapter) {
+        private Adapter(MinecraftComponentAdapter<T> adapter) {
             this.adapter = adapter;
         }
 
         @Override
-        public @NotNull Object getComponent() {
+        public @NotNull T getComponent() {
             try {
-                return adapter.deserialize()
+                return (T) adapter.deserializeMethod()
                         .invoke(
-                                adapter.instance(),
+                                adapter.serializerInstance(),
                                 json
                         );
             } catch (IllegalAccessException | InvocationTargetException e) {
@@ -113,13 +116,15 @@ public class MinecraftComponentImpl implements MinecraftComponent {
         @Override
         public void setComponent(@NotNull Object adventureComponent) {
             try {
-                json = (String) adapter.serialize()
-                        .invoke(
-                                adapter.instance(),
-                                adventureComponent
-                        );
+                setJson(
+                        (String) adapter.serializeMethod()
+                                .invoke(
+                                        adapter.serializerInstance(),
+                                        adventureComponent
+                                )
+                );
             } catch (InvocationTargetException e) {
-                throw new IllegalArgumentException("The provided class is not a Component for the GsonComponentSerializer " + adapter.gsonSerializerClass().getName(), e);
+                throw new IllegalArgumentException("The provided class is not a Component for the GsonComponentSerializer " + adapter.serializerClass().getName(), e);
             } catch (IllegalAccessException e) {
                 throw new RuntimeException("Failed to convert from adventure component", e);
             }

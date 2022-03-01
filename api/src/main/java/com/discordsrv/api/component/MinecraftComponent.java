@@ -32,7 +32,7 @@ import java.util.Optional;
 /**
  * A Minecraft json text component. Use {@link DiscordSRVApi#componentFactory()} to get an instance.<br/>
  * <br/>
- * This is designed to work with Adventure, see {@link #adventureAdapter(Class)} & {@link #adventureAdapter(MinecraftComponentAdapter)}
+ * This is designed to work with Adventure, see {@link #adventureAdapter(Class, Class)} & {@link #adventureAdapter(MinecraftComponentAdapter)}
  * but is compatible with anything able to handle Minecraft's json format.
  * Legacy is <b>not supported</b>.
  */
@@ -66,11 +66,26 @@ public interface MinecraftComponent {
      * Creates an Adventure adapter for convenience.
      *
      * @param gsonSerializerClass the gson serializer class
-     * @return a adapter that will convert to/from relocated or unrelocated adventure classes to/from json
+     * @return an adapter that will convert to/from relocated or unrelocated adventure classes to/from json
      * @throws IllegalArgumentException if the provided class is not an Adventure GsonComponentSerializer
+     * @see #adventureAdapter(Class, Class)
      */
     @NotNull
-    Adapter adventureAdapter(@NotNull Class<?> gsonSerializerClass);
+    default Adapter<Object> adventureAdapter(@NotNull Class<?> gsonSerializerClass) {
+        return adventureAdapter(gsonSerializerClass, null);
+    }
+
+    /**
+     * Creates an Adventure adapter for convenience.
+     *
+     * @param gsonSerializerClass the {@code GsonComponentSerializer} class
+     * @param componentClass the {@code Component} class that's returned by the given gson component serializer
+     * @return an adapter that will convert to/from relocated or unrelocated adventure classes to/from json
+     * @throws IllegalArgumentException if the provided class is not an Adventure {@code GsonComponentSerializer}
+     * or if the provided {@code Component} class isn't the one returned by the serializer
+     */
+    @NotNull
+    <T> Adapter<T> adventureAdapter(@NotNull Class<?> gsonSerializerClass, Class<T> componentClass);
 
     /**
      * Creates an Adventure adapter from a {@link MinecraftComponentAdapter} for convenience.
@@ -79,7 +94,7 @@ public interface MinecraftComponent {
      * @return a {@link Adapter} for this component using the given {@link MinecraftComponentAdapter}
      */
     @NotNull
-    Adapter adventureAdapter(@NotNull MinecraftComponentAdapter adapter);
+    <T> Adapter<T> adventureAdapter(@NotNull MinecraftComponentAdapter<T> adapter);
 
     /**
      * Creates an Adventure adapter for the unrelocated adventure.
@@ -88,8 +103,8 @@ public interface MinecraftComponent {
      */
     @NotNull
     @ApiStatus.NonExtendable
-    default Optional<Adapter> unrelocatedAdapter() {
-        MinecraftComponentAdapter adapter = MinecraftComponentAdapter.UNRELOCATED;
+    default Optional<Adapter<Object>> unrelocatedAdapter() {
+        MinecraftComponentAdapter<Object> adapter = MinecraftComponentAdapter.UNRELOCATED;
         if (adapter == null) {
             return Optional.empty();
         }
@@ -99,21 +114,21 @@ public interface MinecraftComponent {
     /**
      * An Adventure adapter, converts from/to given adventure components from/to json.
      */
-    interface Adapter {
+    interface Adapter<Component> {
 
         /**
          * Returns the Adventure Component returned by the gson serializer of this adapter.
          * @return the {@code net.kyori.adventure.text.Component} (or relocated), cast this to your end class
          */
         @NotNull
-        Object getComponent();
+        Component getComponent();
 
         /**
          * Sets the component to the component that can be serialized by the gson serializer for this class.
          * @param adventureComponent the component
          * @throws IllegalArgumentException if the provided component cannot be processed by the gson serializer of this adapter
          */
-        void setComponent(@NotNull Object adventureComponent);
+        void setComponent(@NotNull Component adventureComponent);
     }
 
 }

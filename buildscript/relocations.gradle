@@ -31,8 +31,11 @@ shadowJar {
             // HikariCP
             'com.zaxxer.hikari',
 
-            // Adventure, EnhancedLegacyText, MCDiscordReserializer
-            'net.kyori',
+            // Adventure (API isn't relocated always)
+            'net.kyori.adventure.platform',
+            'net.kyori.adventure.text.serializer',
+
+            // EnhancedLegacyText, MCDiscordReserializer
             'dev.vankka.enhancedlegacytext',
             'dev.vankka.mcdiscordreserializer',
             'dev.vankka.simpleast',

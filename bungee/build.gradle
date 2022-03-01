@@ -36,5 +36,6 @@ dependencies {
 shadowJar {
     archiveFileName = 'bungee.jarinjar'
 
-    // Relocations in buildscript/relocations.gradle
+    relocate 'net.kyori', 'com.discordsrv.dependencies.net.kyori'
+    // More relocations in buildscript/relocations.gradle
 }
