@@ -28,8 +28,11 @@ shadowJar {
             'io.leangen.geantyref',
             'org.yaml.snakeyaml',
 
-            // Adventure, EnhancedLegacyText, MCDiscordReserializer
-            'net.kyori',
+            // Adventure (API isn't relocated always)
+            'net.kyori.adventure.platform',
+            'net.kyori.adventure.text.serializer',
+
+            // EnhancedLegacyText, MCDiscordReserializer
             'dev.vankka.enhancedlegacytext',
             'dev.vankka.mcdiscordreserializer',
             'dev.vankka.simpleast',
