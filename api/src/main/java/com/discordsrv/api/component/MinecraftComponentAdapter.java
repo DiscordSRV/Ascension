@@ -30,12 +30,12 @@ import java.lang.reflect.Method;
  * A persistent Adventure adapter for {@link MinecraftComponent}s, this is more efficient than using {@link MinecraftComponent#adventureAdapter(Class)}.
  * @see MinecraftComponent#adventureAdapter(MinecraftComponentAdapter)
  */
-public class MinecraftComponentAdapter {
+public class MinecraftComponentAdapter<Component> {
 
-    public static final MinecraftComponentAdapter UNRELOCATED;
+    public static final MinecraftComponentAdapter<Object> UNRELOCATED;
 
     static {
-        MinecraftComponentAdapter unrelocated = null;
+        MinecraftComponentAdapter<Object> unrelocated = null;
         try {
             unrelocated = MinecraftComponentAdapter.create(
                     Class.forName("net.ky".concat("ori.adventure.text.serializer.gson.GsonComponentSerializer"))
@@ -45,14 +45,26 @@ public class MinecraftComponentAdapter {
     }
 
     /**
-     * Creates a {@link MinecraftComponentAdapter} that can be used with {@link MinecraftComponent}s.
+     * Creates a new {@link MinecraftComponentAdapter} that can be used with {@link MinecraftComponent}s.
      *
      * @param gsonSerializerClass a GsonComponentSerializer class
      * @return a new {@link MinecraftComponentAdapter} with the provided GsonComponentSerializer
      * @throws IllegalArgumentException if the provided argument is not a GsonComponentSerialize class
      */
-    public static MinecraftComponentAdapter create(Class<?> gsonSerializerClass) {
-        return new MinecraftComponentAdapter(gsonSerializerClass);
+    public static MinecraftComponentAdapter<Object> create(Class<?> gsonSerializerClass) {
+        return new MinecraftComponentAdapter<>(gsonSerializerClass, null);
+    }
+
+    /**
+     * Creates a new {@link MinecraftComponentAdapter} that can be used with {@link MinecraftComponent}s.
+     *
+     * @param gsonSerializerClass a GsonComponentSerializer class
+     * @param componentClass the Component class returned by the GsonComponentSerializer
+     * @return a new {@link MinecraftComponentAdapter} with the provided GsonComponentSerializer
+     * @throws IllegalArgumentException if the provided argument is not a GsonComponentSerialize class
+     */
+    public static <Component> MinecraftComponentAdapter<Component> create(Class<?> gsonSerializerClass, Class<Component> componentClass) {
+        return new MinecraftComponentAdapter<>(gsonSerializerClass, componentClass);
     }
 
     private final Class<?> gsonSerializerClass;
@@ -60,31 +72,48 @@ public class MinecraftComponentAdapter {
     private final Method deserialize;
     private final Method serialize;
 
-    private MinecraftComponentAdapter(Class<?> gsonSerializerClass) {
+    private MinecraftComponentAdapter(Class<?> gsonSerializerClass, Class<Component> providedComponentClass) {
         try {
             this.gsonSerializerClass = gsonSerializerClass;
             this.instance = gsonSerializerClass.getDeclaredMethod("gson").invoke(null);
             this.deserialize = gsonSerializerClass.getMethod("deserialize", Object.class);
             Class<?> componentClass = deserialize.getReturnType();
+            checkComponentClass(providedComponentClass, componentClass);
             this.serialize = gsonSerializerClass.getMethod("serialize", componentClass);
         } catch (InvocationTargetException | IllegalAccessException | NoSuchMethodException e) {
             throw new IllegalArgumentException("The provided class is not a GsonComponentSerializer", e);
         }
     }
 
-    public Class<?> gsonSerializerClass() {
+    private static void checkComponentClass(Class<?> provided, Class<?> actual) {
+        if (provided == null) {
+            // Ignore null
+            return;
+        }
+
+        String providedName = provided.getName();
+        String actualName = actual.getName();
+        if (!providedName.equals(actualName)) {
+            throw new IllegalArgumentException(
+                    "The provided Component class (" + providedName
+                            + ") does not match the one returned by the serializer: " + actualName
+            );
+        }
+    }
+
+    public Class<?> serializerClass() {
         return gsonSerializerClass;
     }
 
-    public Object instance() {
+    public Object serializerInstance() {
         return instance;
     }
 
-    public Method deserialize() {
+    public Method deserializeMethod() {
         return deserialize;
     }
 
-    public Method serialize() {
+    public Method serializeMethod() {
         return serialize;
     }
 }
