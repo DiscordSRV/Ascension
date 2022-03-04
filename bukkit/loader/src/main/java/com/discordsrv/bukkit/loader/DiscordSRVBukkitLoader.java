@@ -20,22 +20,26 @@ package com.discordsrv.bukkit.loader;
 
 import dev.vankka.mcdependencydownload.bukkit.loader.BukkitLoader;
 import dev.vankka.mcdependencydownload.loader.exception.LoadingException;
+import org.jetbrains.annotations.NotNull;
 
 import java.net.URL;
 import java.util.logging.Level;
-import java.util.logging.Logger;
 
 @SuppressWarnings("unused") // Used by Bukkit
 public class DiscordSRVBukkitLoader extends BukkitLoader {
 
     @Override
-    public String getBootstrapClassName() {
+    public @NotNull String getBootstrapClassName() {
         return "com.discordsrv.bukkit.DiscordSRVBukkitBootstrap";
     }
 
     @Override
-    public URL getJarInJarResource() {
-        return getClassLoader().getResource("bukkit.jarinjar");
+    public @NotNull URL getJarInJarResource() {
+        URL resource = getClassLoader().getResource("bukkit.jarinjar");
+        if (resource == null) {
+            throw new IllegalStateException("Jar does not contain jarinjar");
+        }
+        return resource;
     }
 
     @Override

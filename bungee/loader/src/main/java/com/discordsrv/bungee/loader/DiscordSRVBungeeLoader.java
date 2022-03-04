@@ -20,6 +20,7 @@ package com.discordsrv.bungee.loader;
 
 import dev.vankka.mcdependencydownload.bungee.loader.BungeeLoader;
 import dev.vankka.mcdependencydownload.loader.exception.LoadingException;
+import org.jetbrains.annotations.NotNull;
 
 import java.net.URL;
 import java.util.logging.Level;
@@ -28,13 +29,17 @@ import java.util.logging.Level;
 public class DiscordSRVBungeeLoader extends BungeeLoader {
 
     @Override
-    public String getBootstrapClassName() {
+    public @NotNull String getBootstrapClassName() {
         return "com.discordsrv.bungee.DiscordSRVBungeeBootstrap";
     }
 
     @Override
-    public URL getJarInJarResource() {
-        return getClass().getClassLoader().getResource("bungee.jarinjar");
+    public @NotNull URL getJarInJarResource() {
+        URL resource = getClass().getClassLoader().getResource("bungee.jarinjar");
+        if (resource == null) {
+            throw new IllegalStateException("Jar does not contain jarinjar");
+        }
+        return resource;
     }
 
     @Override
