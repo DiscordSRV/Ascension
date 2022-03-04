@@ -421,6 +421,7 @@ public abstract class AbstractDiscordSRV<C extends MainConfig, CC extends Connec
         }
         this.status.set(Status.SHUTTING_DOWN);
         eventBus().publish(new DiscordSRVShuttingDownEvent());
+        this.status.set(Status.SHUTDOWN);
     }
 
     @OverridingMethodsMustInvokeSuper
