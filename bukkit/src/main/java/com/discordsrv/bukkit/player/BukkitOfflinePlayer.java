@@ -19,8 +19,8 @@
 package com.discordsrv.bukkit.player;
 
 import com.discordsrv.bukkit.BukkitDiscordSRV;
+import com.discordsrv.common.DiscordSRV;
 import com.discordsrv.common.player.IOfflinePlayer;
-import com.discordsrv.common.profile.Profile;
 import net.kyori.adventure.identity.Identity;
 import org.bukkit.OfflinePlayer;
 import org.jetbrains.annotations.NotNull;
@@ -37,15 +37,15 @@ public class BukkitOfflinePlayer implements IOfflinePlayer {
         this.identity = Identity.identity(offlinePlayer.getUniqueId());
     }
 
+    @Override
+    public DiscordSRV discordSRV() {
+        return discordSRV;
+    }
+
     @SuppressWarnings("NullabilityProblems")
     @Override
     public String username() {
         return offlinePlayer.getName();
-    }
-
-    @Override
-    public Profile profile() {
-        return discordSRV.profileManager().getProfile(uniqueId()).orElseThrow(IllegalStateException::new);
     }
 
     @Override

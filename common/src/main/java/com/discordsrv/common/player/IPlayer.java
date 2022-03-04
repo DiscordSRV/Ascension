@@ -25,6 +25,7 @@ import com.discordsrv.common.DiscordSRV;
 import com.discordsrv.common.command.game.sender.ICommandSender;
 import com.discordsrv.common.config.main.channels.base.BaseChannelConfig;
 import com.discordsrv.common.function.OrDefault;
+import com.discordsrv.common.profile.Profile;
 import net.kyori.adventure.text.Component;
 import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
@@ -35,6 +36,11 @@ import java.util.UUID;
 public interface IPlayer extends DiscordSRVPlayer, IOfflinePlayer, ICommandSender {
 
     DiscordSRV discordSRV();
+
+    @ApiStatus.NonExtendable
+    default Profile profile() {
+        return discordSRV().profileManager().getProfile(uniqueId()).orElseThrow(IllegalStateException::new);
+    }
 
     @NotNull
     String username();

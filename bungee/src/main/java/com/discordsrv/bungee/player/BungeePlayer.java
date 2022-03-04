@@ -22,7 +22,6 @@ import com.discordsrv.bungee.BungeeDiscordSRV;
 import com.discordsrv.bungee.component.util.BungeeComponentUtil;
 import com.discordsrv.common.DiscordSRV;
 import com.discordsrv.common.player.IPlayer;
-import com.discordsrv.common.profile.Profile;
 import net.kyori.adventure.audience.Audience;
 import net.kyori.adventure.identity.Identity;
 import net.kyori.adventure.text.Component;
@@ -61,11 +60,6 @@ public class BungeePlayer implements IPlayer {
     @Override
     public @NotNull String username() {
         return player.getName();
-    }
-
-    @Override
-    public Profile profile() {
-        return discordSRV.profileManager().getProfile(uniqueId()).orElseThrow(IllegalStateException::new);
     }
 
     @Override
