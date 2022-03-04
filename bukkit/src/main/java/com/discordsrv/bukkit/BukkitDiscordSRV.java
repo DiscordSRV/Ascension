@@ -172,14 +172,14 @@ public class BukkitDiscordSRV extends ServerDiscordSRV<BukkitConfig, BukkitConne
         // Service provider
         server().getServicesManager().register(DiscordSRVApi.class, this, plugin(), ServicePriority.Normal);
 
-        // Player related
+        // Adventure audiences, connection listener
         this.audiences = BukkitAudiences.create(bootstrap.getPlugin());
+        server().getPluginManager().registerEvents(new BukkitConnectionListener(this), plugin());
 
         super.enable();
 
         // Register listeners
         server().getPluginManager().registerEvents(BukkitChatListener.get(this), plugin());
-        server().getPluginManager().registerEvents(new BukkitConnectionListener(this), plugin());
         server().getPluginManager().registerEvents(new BukkitDeathListener(this), plugin());
         server().getPluginManager().registerEvents(new BukkitStatusMessageListener(this), plugin());
 
