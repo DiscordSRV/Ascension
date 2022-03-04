@@ -39,7 +39,6 @@ import java.io.IOException;
 import java.lang.reflect.Constructor;
 import java.net.URL;
 import java.nio.file.Path;
-import java.util.Objects;
 import java.util.Optional;
 
 @Plugin("discordsrv")
@@ -102,7 +101,11 @@ public class DiscordSRVSpongeLoader implements ILoader {
 
     @Override
     public @NotNull URL getJarInJarResource() {
-        return Objects.requireNonNull(getParentClassLoader().getResource("sponge.jarinjar"));
+        URL resource = getParentClassLoader().getResource("sponge.jarinjar");
+        if (resource == null) {
+            throw new IllegalStateException("Jar does not contain jarinjar");
+        }
+        return resource;
     }
 
     @Listener
