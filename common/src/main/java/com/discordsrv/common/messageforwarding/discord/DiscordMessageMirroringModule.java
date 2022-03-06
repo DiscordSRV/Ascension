@@ -49,7 +49,7 @@ import java.util.concurrent.TimeUnit;
 
 public class DiscordMessageMirroringModule extends AbstractModule<DiscordSRV> {
 
-    private final Cache<MessageReference, Set<MessageReference>> mapping;
+    private final Cache<String, Set<MessageReference>> mapping;
 
     public DiscordMessageMirroringModule(DiscordSRV discordSRV) {
         super(discordSRV, new NamedLogger(discordSRV, "DISCORD_MIRRORING"));
@@ -133,7 +133,7 @@ public class DiscordMessageMirroringModule extends AbstractModule<DiscordSRV> {
                 for (Pair<ReceivedDiscordMessage, OrDefault<MirroringConfig>> pair : messages) {
                     references.add(getReference(pair.getKey(), pair.getValue()));
                 }
-                mapping.put(getReference(message, null), references);
+                mapping.put(getCacheKey(message), references);
             });
         });
     }
@@ -141,7 +141,7 @@ public class DiscordMessageMirroringModule extends AbstractModule<DiscordSRV> {
     @Subscribe
     public void onDiscordMessageUpdate(DiscordMessageUpdateEvent event) {
         ReceivedDiscordMessage message = event.getMessage();
-        Set<MessageReference> references = mapping.get(getReference(message, null), k -> null);
+        Set<MessageReference> references = mapping.get(getCacheKey(message), k -> null);
         if (references == null) {
             return;
         }
@@ -163,7 +163,7 @@ public class DiscordMessageMirroringModule extends AbstractModule<DiscordSRV> {
 
     @Subscribe
     public void onDiscordMessageDelete(DiscordMessageDeleteEvent event) {
-        Set<MessageReference> references = mapping.get(getReference(event.getChannel(), event.getMessageId(), false, null), k -> null);
+        Set<MessageReference> references = mapping.get(getCacheKey(event.getChannel(), event.getMessageId()), k -> null);
         if (references == null) {
             return;
         }
@@ -230,6 +230,26 @@ public class DiscordMessageMirroringModule extends AbstractModule<DiscordSRV> {
         throw new IllegalStateException("Unexpected channel type: " + channel.getClass().getName());
     }
 
+    private static String getCacheKey(ReceivedDiscordMessage message) {
+        return getCacheKey(message.getChannel(), message.getId());
+    }
+
+    private static String getCacheKey(DiscordMessageChannel channel, long messageId) {
+        if (channel instanceof DiscordTextChannel) {
+            return getCacheKey(channel.getId(), 0L, messageId);
+        } else if (channel instanceof DiscordThreadChannel) {
+            long parentId = ((DiscordThreadChannel) channel).getParentChannel().getId();
+            return getCacheKey(channel.getId(), parentId, messageId);
+        }
+        throw new IllegalStateException("Unexpected channel type: " + channel.getClass().getName());
+    }
+
+    private static String getCacheKey(long channelId, long threadId, long messageId) {
+        return Long.toUnsignedString(channelId)
+                + (threadId > 0 ? ":" + Long.toUnsignedString(threadId) : "")
+                + ":" + Long.toUnsignedString(messageId);
+    }
+
     public static class MessageReference {
 
         private final long channelId;
@@ -284,21 +304,6 @@ public class DiscordMessageMirroringModule extends AbstractModule<DiscordSRV> {
                 }
             }
             return null;
-        }
-
-        @Override
-        public boolean equals(Object o) {
-            if (this == o) return true;
-            if (o == null || getClass() != o.getClass()) return false;
-            MessageReference that = (MessageReference) o;
-            // Intentionally ignores webhookMessage
-            return channelId == that.channelId && threadId == that.threadId && messageId == that.messageId;
-        }
-
-        @Override
-        public int hashCode() {
-            // Intentionally ignores webhookMessage
-            return Objects.hash(channelId, threadId, messageId);
         }
     }
 }
