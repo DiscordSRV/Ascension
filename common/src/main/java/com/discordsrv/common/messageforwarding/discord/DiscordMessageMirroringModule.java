@@ -111,7 +111,7 @@ public class DiscordMessageMirroringModule extends AbstractModule<DiscordSRV> {
             }, futures);
         }
 
-        CompletableFuture.allOf(futures.toArray(new CompletableFuture[0])).whenComplete((v, t) -> {
+        CompletableFutureUtil.combine(futures).whenComplete((v, t) -> {
             List<CompletableFuture<Pair<ReceivedDiscordMessage, OrDefault<MirroringConfig>>>> messageFutures = new ArrayList<>();
             for (Pair<DiscordMessageChannel, OrDefault<MirroringConfig>> pair : mirrorChannels) {
                 DiscordMessageChannel mirrorChannel = pair.getKey();
@@ -239,7 +239,7 @@ public class DiscordMessageMirroringModule extends AbstractModule<DiscordSRV> {
             return getCacheKey(channel.getId(), 0L, messageId);
         } else if (channel instanceof DiscordThreadChannel) {
             long parentId = ((DiscordThreadChannel) channel).getParentChannel().getId();
-            return getCacheKey(channel.getId(), parentId, messageId);
+            return getCacheKey(parentId, channel.getId(), messageId);
         }
         throw new IllegalStateException("Unexpected channel type: " + channel.getClass().getName());
     }

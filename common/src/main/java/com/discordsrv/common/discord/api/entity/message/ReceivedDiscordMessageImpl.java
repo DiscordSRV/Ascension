@@ -29,6 +29,7 @@ import com.discordsrv.api.discord.api.entity.DiscordUser;
 import com.discordsrv.api.discord.api.entity.channel.DiscordDMChannel;
 import com.discordsrv.api.discord.api.entity.channel.DiscordMessageChannel;
 import com.discordsrv.api.discord.api.entity.channel.DiscordTextChannel;
+import com.discordsrv.api.discord.api.entity.channel.DiscordThreadChannel;
 import com.discordsrv.api.discord.api.entity.guild.DiscordGuildMember;
 import com.discordsrv.api.discord.api.entity.message.DiscordMessageEmbed;
 import com.discordsrv.api.discord.api.entity.message.ReceivedDiscordMessage;
@@ -81,7 +82,10 @@ public class ReceivedDiscordMessageImpl extends SendableDiscordMessageImpl imple
         if (webhookMessage) {
             CompletableFuture<WebhookClient> clientFuture = discordSRV.discordAPI()
                     .getCachedClients()
-                    .getIfPresent(message.getChannel().getIdLong());
+                    .getIfPresent(channel instanceof DiscordThreadChannel
+                                  ? ((DiscordThreadChannel) channel).getParentChannel().getId()
+                                  : channel.getId()
+                    );
 
             if (clientFuture != null) {
                 long clientId = clientFuture.join().getId();

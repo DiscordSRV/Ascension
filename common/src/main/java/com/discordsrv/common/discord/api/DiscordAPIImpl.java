@@ -38,6 +38,7 @@ import com.discordsrv.common.config.main.channels.base.ThreadConfig;
 import com.discordsrv.common.discord.api.entity.DiscordUserImpl;
 import com.discordsrv.common.discord.api.entity.channel.DiscordDMChannelImpl;
 import com.discordsrv.common.discord.api.entity.channel.DiscordTextChannelImpl;
+import com.discordsrv.common.discord.api.entity.channel.DiscordThreadChannelImpl;
 import com.discordsrv.common.discord.api.entity.guild.DiscordGuildImpl;
 import com.discordsrv.common.discord.api.entity.guild.DiscordRoleImpl;
 import com.discordsrv.common.function.CheckedSupplier;
@@ -331,6 +332,11 @@ public class DiscordAPIImpl implements DiscordAPI {
             return textChannel;
         }
 
+        Optional<DiscordThreadChannel> threadChannel = getCachedThreadChannelById(id);
+        if (threadChannel.isPresent()) {
+            return threadChannel;
+        }
+
         return getDirectMessageChannelById(id);
     }
 
@@ -346,6 +352,13 @@ public class DiscordAPIImpl implements DiscordAPI {
         return discordSRV.jda()
                 .map(jda -> jda.getTextChannelById(id))
                 .map(textChannel -> new DiscordTextChannelImpl(discordSRV, textChannel));
+    }
+
+    @Override
+    public @NotNull Optional<DiscordThreadChannel> getCachedThreadChannelById(long id) {
+        return discordSRV.jda()
+                .map(jda -> jda.getThreadChannelById(id))
+                .map(threadChannel -> new DiscordThreadChannelImpl(discordSRV, threadChannel));
     }
 
     @Override
