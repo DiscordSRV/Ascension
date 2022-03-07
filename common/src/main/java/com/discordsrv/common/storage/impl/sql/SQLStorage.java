@@ -40,7 +40,7 @@ public abstract class SQLStorage implements Storage {
 
     public abstract Connection getConnection();
     public abstract boolean isAutoCloseConnections();
-    public abstract void createTables(Connection connection, boolean linkedAccounts) throws SQLException;
+    public abstract void createTables(Connection connection, String tablePrefix, boolean linkedAccounts) throws SQLException;
 
     private void useConnection(CheckedConsumer<Connection> connectionConsumer) throws StorageException {
         useConnection(connection -> {
@@ -71,14 +71,18 @@ public abstract class SQLStorage implements Storage {
 
     @Override
     public void initialize() {
-        useConnection((CheckedConsumer<Connection>) connection -> createTables(connection, discordSRV.linkProvider() instanceof StorageLinker));
+        useConnection((CheckedConsumer<Connection>) connection -> createTables(
+                connection,
+                discordSRV.connectionConfig().storage.sqlTablePrefix,
+                discordSRV.linkProvider() instanceof StorageLinker)
+        );
     }
 
     @Override
     public @Nullable Long getUserId(@NotNull UUID player) {
         return useConnection(connection -> {
             try (PreparedStatement statement = connection.prepareStatement("select USER_ID from LINKED_ACCOUNTS where PLAYER_UUID = ?;")) {
-                statement.setObject(1, player);
+                statement.setString(1, player.toString());
                 try (ResultSet resultSet = statement.executeQuery()) {
                     if (resultSet.next()) {
                         return resultSet.getLong("USER_ID");
@@ -96,7 +100,11 @@ public abstract class SQLStorage implements Storage {
                 statement.setLong(1, userId);
                 try (ResultSet resultSet = statement.executeQuery()) {
                     if (resultSet.next()) {
-                        return resultSet.getObject("PLAYER_UUID", UUID.class);
+                        String value = resultSet.getString("PLAYER_UUID");
+                        if (value == null) {
+                            return null;
+                        }
+                        return UUID.fromString(value);
                     }
                 }
             }
@@ -108,7 +116,7 @@ public abstract class SQLStorage implements Storage {
     public void createLink(@NotNull UUID player, long userId) {
         useConnection(connection -> {
             try (PreparedStatement statement = connection.prepareStatement("insert into LINKED_ACCOUNTS (PLAYER_UUID, USER_ID) values (?, ?);")) {
-                statement.setObject(1, player);
+                statement.setString(1, player.toString());
                 statement.setLong(2, userId);
 
                 exceptEffectedRows(statement.executeUpdate(), 1);

@@ -33,6 +33,9 @@ public class StorageConfig {
             + "- MySQL\n")
     public String backend = "h2";
 
+    @Comment("SQL table prefix")
+    public String sqlTablePrefix = "discordsrv_";
+
     @Comment("Connection options for remote databases (MySQL)")
     public Remote remote = new Remote();
 
