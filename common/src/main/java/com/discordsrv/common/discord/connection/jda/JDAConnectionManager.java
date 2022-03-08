@@ -77,8 +77,8 @@ public class JDAConnectionManager implements DiscordConnectionManager {
     }
 
     private final DiscordSRV discordSRV;
-    private final ScheduledExecutorService gatewayPool;
-    private final ScheduledExecutorService rateLimitPool;
+    private ScheduledExecutorService gatewayPool;
+    private ScheduledExecutorService rateLimitPool;
 
     private CompletableFuture<Void> connectionFuture;
     private JDA instance;
@@ -94,14 +94,6 @@ public class JDAConnectionManager implements DiscordConnectionManager {
 
     public JDAConnectionManager(DiscordSRV discordSRV) {
         this.discordSRV = discordSRV;
-        this.gatewayPool = new ScheduledThreadPoolExecutor(
-                1,
-                r -> new Thread(r, Scheduler.THREAD_NAME_PREFIX + "JDA Gateway")
-        );
-        this.rateLimitPool = new ScheduledThreadPoolExecutor(
-                5,
-                new CountingThreadFactory(Scheduler.THREAD_NAME_PREFIX + "JDA RateLimit #%s")
-        );
 
         // Set default failure handling
         RestAction.setDefaultFailure(new DefaultFailureCallback(new NamedLogger(discordSRV, "DISCORD_REQUESTS")));
@@ -224,11 +216,19 @@ public class JDAConnectionManager implements DiscordConnectionManager {
         return future;
     }
 
-    @SuppressWarnings("BusyWait")
     private void connectInternal() {
         discordSRV.discordConnectionDetails().requestGatewayIntent(GatewayIntent.GUILD_MESSAGES); // TODO: figure out how DiscordSRV required intents are going to work
         discordSRV.discordConnectionDetails().requestGatewayIntent(GatewayIntent.GUILD_MEMBERS); // TODO: figure out how DiscordSRV required intents are going to work
         detailsAccepted = false;
+
+        this.gatewayPool = new ScheduledThreadPoolExecutor(
+                1,
+                r -> new Thread(r, Scheduler.THREAD_NAME_PREFIX + "JDA Gateway")
+        );
+        this.rateLimitPool = new ScheduledThreadPoolExecutor(
+                5,
+                new CountingThreadFactory(Scheduler.THREAD_NAME_PREFIX + "JDA RateLimit #%s")
+        );
 
         ConnectionConfig.Bot botConfig = discordSRV.connectionConfig().bot;
         DiscordConnectionDetails connectionDetails = discordSRV.discordConnectionDetails();
@@ -241,8 +241,16 @@ public class JDAConnectionManager implements DiscordConnectionManager {
         jdaBuilder.setMemberCachePolicy(membersIntent ? MemberCachePolicy.ALL : MemberCachePolicy.OWNER);
         jdaBuilder.setChunkingFilter(membersIntent ? ChunkingFilter.ALL : ChunkingFilter.NONE);
 
+        // We shut down JDA ourselves. Doing it at the JVM's shutdown may cause errors due to classloading
+        jdaBuilder.setEnableShutdownHook(false);
+
+        // We don't use MDC
+        jdaBuilder.setContextEnabled(false);
+
+        // Custom event manager to forward to the DiscordSRV event bus & block using JDA's event listeners
         jdaBuilder.setEventManager(new EventManagerProxy(new JDAEventManager(discordSRV), discordSRV.scheduler().forkJoinPool()));
 
+        // Our own (named) threads
         jdaBuilder.setCallbackPool(discordSRV.scheduler().forkJoinPool());
         jdaBuilder.setGatewayPool(gatewayPool);
         jdaBuilder.setRateLimitPool(rateLimitPool);
@@ -257,26 +265,12 @@ public class JDAConnectionManager implements DiscordConnectionManager {
         WebSocketFactory webSocketFactory = new WebSocketFactory();
         jdaBuilder.setWebsocketFactory(webSocketFactory);
 
-        int timeoutSeconds = 0;
-        while (true) {
-            try {
-                instance = jdaBuilder.build();
-                break;
-            } catch (LoginException ignored) {
-                invalidToken();
-                break;
-            } catch (Throwable t) {
-                discordSRV.logger().error(t);
-                // TODO
-            }
-
-            try {
-                // Doubles the seconds. Min 2s, max 300s (5 minutes)
-                timeoutSeconds = Math.min(Math.max(1, timeoutSeconds) * 2, 300);
-                Thread.sleep(timeoutSeconds);
-            } catch (InterruptedException e) {
-                break;
-            }
+        try {
+            instance = jdaBuilder.build();
+        } catch (LoginException ignored) {
+            invalidToken();
+        } catch (Throwable t) {
+            discordSRV.logger().error("Could not create JDA instance due to an unknown error", t);
         }
     }
 
@@ -301,6 +295,7 @@ public class JDAConnectionManager implements DiscordConnectionManager {
 
     @SuppressWarnings("BusyWait")
     private void shutdownInternal(long timeoutMillis) {
+        detailsAccepted = true;
         if (instance == null) {
             shutdownExecutors();
             return;
