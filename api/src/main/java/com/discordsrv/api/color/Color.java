@@ -30,6 +30,11 @@ import java.util.Objects;
  */
 public class Color {
 
+    /**
+     * Discord's blurple color (<a href="https://discord.com/branding">Discord branding</a>).
+     */
+    public static final Color BLURPLE = new Color(0x5865F2);
+
     private final int rgb;
 
     /**
