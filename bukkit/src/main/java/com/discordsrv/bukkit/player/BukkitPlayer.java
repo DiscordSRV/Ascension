@@ -19,41 +19,35 @@
 package com.discordsrv.bukkit.player;
 
 import com.discordsrv.bukkit.BukkitDiscordSRV;
+import com.discordsrv.bukkit.command.game.sender.BukkitCommandSender;
 import com.discordsrv.bukkit.component.util.PaperComponentUtil;
 import com.discordsrv.common.DiscordSRV;
 import com.discordsrv.common.component.util.ComponentUtil;
 import com.discordsrv.common.player.IPlayer;
-import net.kyori.adventure.audience.Audience;
+import net.kyori.adventure.identity.Identity;
 import net.kyori.adventure.text.Component;
 import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
 
-@SuppressWarnings("NullableProblems") // BukkitOfflinePlayer nullability
-public class BukkitPlayer extends BukkitOfflinePlayer implements IPlayer {
+public class BukkitPlayer extends BukkitCommandSender implements IPlayer {
 
     private final Player player;
-    private final Audience audience;
+    private final Identity identity;
 
     public BukkitPlayer(BukkitDiscordSRV discordSRV, Player player) {
-        super(discordSRV, player);
+        super(discordSRV, player, () -> discordSRV.audiences().player(player));
         this.player = player;
-        this.audience = discordSRV.audiences().player(player);
-    }
-
-    @Override
-    public boolean hasPermission(String permission) {
-        return player.hasPermission(permission);
-    }
-
-    @Override
-    public void runCommand(String command) {
-        discordSRV.scheduler().runOnMainThread(() ->
-                discordSRV.server().dispatchCommand(player, command));
+        this.identity = Identity.identity(player.getUniqueId());
     }
 
     @Override
     public DiscordSRV discordSRV() {
         return discordSRV;
+    }
+
+    @Override
+    public @NotNull String username() {
+        return player.getName();
     }
 
     @SuppressWarnings("deprecation") // Paper
@@ -65,7 +59,7 @@ public class BukkitPlayer extends BukkitOfflinePlayer implements IPlayer {
     }
 
     @Override
-    public @NotNull Audience audience() {
-        return audience;
+    public @NotNull Identity identity() {
+        return identity;
     }
 }

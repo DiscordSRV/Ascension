@@ -18,6 +18,7 @@
 
 package com.discordsrv.velocity;
 
+import com.discordsrv.common.command.game.handler.ICommandHandler;
 import com.discordsrv.common.config.connection.ConnectionConfig;
 import com.discordsrv.common.config.main.MainConfig;
 import com.discordsrv.common.config.manager.ConnectionConfigManager;
@@ -27,6 +28,7 @@ import com.discordsrv.common.logging.Logger;
 import com.discordsrv.common.plugin.PluginManager;
 import com.discordsrv.common.scheduler.StandardScheduler;
 import com.discordsrv.proxy.ProxyDiscordSRV;
+import com.discordsrv.velocity.command.game.handler.VelocityCommandHandler;
 import com.discordsrv.velocity.console.VelocityConsole;
 import com.discordsrv.velocity.player.VelocityPlayerProvider;
 import com.discordsrv.velocity.plugin.VelocityPluginManager;
@@ -50,6 +52,7 @@ public class VelocityDiscordSRV extends ProxyDiscordSRV<MainConfig, ConnectionCo
     private final VelocityConsole console;
     private final VelocityPlayerProvider playerProvider;
     private final VelocityPluginManager pluginManager;
+    private final VelocityCommandHandler commandHandler;
 
     public VelocityDiscordSRV(Object plugin, Logger logger, ClasspathAppender classpathAppender, ProxyServer proxyServer, PluginContainer pluginContainer, Path dataDirectory) {
         this.plugin = plugin;
@@ -63,6 +66,7 @@ public class VelocityDiscordSRV extends ProxyDiscordSRV<MainConfig, ConnectionCo
         this.console = new VelocityConsole(this);
         this.playerProvider = new VelocityPlayerProvider(this);
         this.pluginManager = new VelocityPluginManager(this);
+        this.commandHandler = new VelocityCommandHandler(this);
 
         load();
     }
@@ -122,6 +126,11 @@ public class VelocityDiscordSRV extends ProxyDiscordSRV<MainConfig, ConnectionCo
     @Override
     public ClasspathAppender classpathAppender() {
         return classpathAppender;
+    }
+
+    @Override
+    public ICommandHandler commandHandler() {
+        return commandHandler;
     }
 
     @Override

@@ -19,40 +19,22 @@
 package com.discordsrv.bungee.console;
 
 import com.discordsrv.bungee.BungeeDiscordSRV;
+import com.discordsrv.bungee.command.game.sender.BungeeCommandSender;
 import com.discordsrv.common.console.Console;
 import com.discordsrv.common.logging.backend.LoggingBackend;
 import com.discordsrv.common.logging.backend.impl.JavaLoggerImpl;
-import net.kyori.adventure.audience.Audience;
-import org.jetbrains.annotations.NotNull;
 
-public class BungeeConsole implements Console {
+public class BungeeConsole extends BungeeCommandSender implements Console {
 
-    private final BungeeDiscordSRV discordSRV;
     private final LoggingBackend loggingBackend;
 
     public BungeeConsole(BungeeDiscordSRV discordSRV) {
-        this.discordSRV = discordSRV;
+        super(discordSRV, discordSRV.proxy().getConsole(), () -> discordSRV.audiences().console());
         this.loggingBackend = JavaLoggerImpl.getRoot();
-    }
-
-    @Override
-    public boolean hasPermission(String permission) {
-        return discordSRV.proxy().getConsole().hasPermission(permission);
-    }
-
-    @Override
-    public void runCommand(String command) {
-        discordSRV.proxy().getPluginManager().dispatchCommand(
-                discordSRV.proxy().getConsole(), command);
     }
 
     @Override
     public LoggingBackend loggingBackend() {
         return loggingBackend;
-    }
-
-    @Override
-    public @NotNull Audience audience() {
-        return discordSRV.audiences().console();
     }
 }

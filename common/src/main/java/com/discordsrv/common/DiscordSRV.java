@@ -21,6 +21,7 @@ package com.discordsrv.common;
 import com.discordsrv.api.DiscordSRVApi;
 import com.discordsrv.api.module.type.Module;
 import com.discordsrv.common.channel.ChannelConfigHelper;
+import com.discordsrv.common.command.game.handler.ICommandHandler;
 import com.discordsrv.common.component.ComponentFactory;
 import com.discordsrv.common.config.connection.ConnectionConfig;
 import com.discordsrv.common.config.main.MainConfig;
@@ -47,7 +48,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.nio.file.Path;
-import java.util.Locale;
+import java.util.*;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
 
@@ -62,6 +63,7 @@ public interface DiscordSRV extends DiscordSRVApi {
     PluginManager pluginManager();
     OnlineMode onlineMode();
     ClasspathAppender classpathAppender();
+    ICommandHandler commandHandler();
     @NotNull AbstractPlayerProvider<?, ?> playerProvider();
 
     // DiscordSRVApi
@@ -126,6 +128,6 @@ public interface DiscordSRV extends DiscordSRVApi {
     // Lifecycle
     CompletableFuture<Void> invokeEnable();
     CompletableFuture<Void> invokeDisable();
-    CompletableFuture<Void> invokeReload();
+    CompletableFuture<Void> invokeReload(Set<ReloadFlag> flags, boolean silent);
 
 }

@@ -35,7 +35,7 @@ import net.dv8tion.jda.api.JDA;
 import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.Optional;
+import java.util.*;
 
 /**
  * The DiscordSRV API.
@@ -214,5 +214,28 @@ public interface DiscordSRVApi {
             return this == CONNECTED;
         }
 
+    }
+
+    enum ReloadFlag {
+        CONFIG(false),
+        LINKED_ACCOUNT_PROVIDER(false),
+        STORAGE(true),
+        DISCORD_CONNECTION(true),
+        MODULES(false),
+
+        ;
+
+        public static final Set<ReloadFlag> ALL = Collections.unmodifiableSet(new LinkedHashSet<>(Arrays.asList(values())));
+        public static final Set<ReloadFlag> DEFAULT_FLAGS = Collections.unmodifiableSet(new LinkedHashSet<>(Arrays.asList(CONFIG, MODULES)));
+
+        private final boolean requiresConfirm;
+
+        ReloadFlag(boolean requiresConfirm) {
+            this.requiresConfirm = requiresConfirm;
+        }
+
+        public boolean requiresConfirm() {
+            return requiresConfirm;
+        }
     }
 }

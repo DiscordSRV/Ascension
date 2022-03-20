@@ -1,6 +1,6 @@
 plugins {
     id 'com.github.johnrengelman.shadow' version '7.1.1' apply false
-    id 'org.cadixdev.licenser' version '0.6.0' apply false
+    id 'org.cadixdev.licenser' version '0.6.1' apply false
     id 'net.kyori.blossom' version '1.2.0' apply false
     id 'dev.vankka.dependencydownload.plugin' version '1.1.5-SNAPSHOT' apply false
 }
@@ -17,8 +17,8 @@ ext {
     // Configurate
     configurateVersion = '4.1.2'
     // Adventure & Adventure Platform
-    adventureVersion = '4.9.1'
-    adventurePlatformVersion = '4.0.0'
+    adventureVersion = '4.10.0'
+    adventurePlatformVersion = '4.1.0'
 }
 
 allprojects {
@@ -57,6 +57,12 @@ allprojects {
             content {
                 includeGroup 'github.scarsz'
                 includeGroup 'me.scarsz'
+            }
+        }
+        maven {
+            url 'https://libraries.minecraft.net'
+            content {
+                includeGroup 'com.mojang'
             }
         }
 

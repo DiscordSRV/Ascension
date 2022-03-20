@@ -1,4 +1,29 @@
+import dev.vankka.dependencydownload.task.GenerateDependencyDownloadResourceTask
+
 apply from: rootProject.file('buildscript/runtime.gradle')
+
+configurations {
+    commodore
+    compileOnly.extendsFrom commodore
+}
+
+task generateResourceForCommodore(type: GenerateDependencyDownloadResourceTask) {
+    var conf = configurations.commodore
+    configuration = conf
+    file = 'dependencies/' + conf.name + '.txt'
+}
+
+shadowJar {
+    archiveFileName = 'bukkit.jarinjar'
+
+    [
+            'net.kyori',
+            'me.lucko.commodore'
+    ].each {
+        relocate it, 'com.discordsrv.dependencies.' + it
+    }
+    // More relocations in buildscript/relocations.gradle
+}
 
 allprojects {
     repositories {
@@ -41,13 +66,18 @@ dependencies {
     // Adventure
     runtimeDownloadApi 'net.kyori:adventure-platform-bukkit:' + rootProject.adventurePlatformVersion
 
+    // Commodore
+    commodore('me.lucko:commodore:1.10') {
+        // We only use commodore when it's included in the server, so we don't want to download it
+        exclude module: 'brigadier'
+        // We don't use the commodore file format
+        exclude module: 'commodore-file'
+    }
+
     // Integrations
     compileOnly 'net.milkbowl.vault:VaultAPI:1.7'
 }
 
-shadowJar {
-    archiveFileName = 'bukkit.jarinjar'
-
-    relocate 'net.kyori', 'com.discordsrv.dependencies.net.kyori'
-    // More relocations in buildscript/relocations.gradle
+processResources {
+    dependsOn(generateResourceForCommodore)
 }

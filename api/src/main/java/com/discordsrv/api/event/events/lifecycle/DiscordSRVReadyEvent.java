@@ -26,8 +26,7 @@ package com.discordsrv.api.event.events.lifecycle;
 import com.discordsrv.api.event.events.Event;
 
 /**
- * Indicates that DiscordSRV's systems (including Discord connection) are ready.
+ * Indicates that DiscordSRV is ready (including Discord connection), this only runs once when DiscordSRV enables.
  */
 public class DiscordSRVReadyEvent implements Event {
-
 }

@@ -1,6 +1,12 @@
 apply from: rootProject.file('buildscript/standalone.gradle')
 apply plugin: 'net.kyori.blossom'
 
+shadowJar {
+    archiveBaseName = 'DiscordSRV-Velocity'
+
+    // Relocations in buildscript/relocations.gradle
+}
+
 repositories {
     exclusiveContent {
         forRepository {
@@ -31,12 +37,6 @@ dependencies {
 
 jar {
     dependsOn blossomSourceReplacementJava
-}
-
-shadowJar {
-    archiveBaseName = 'DiscordSRV-Velocity'
-
-    // Relocations in buildscript/relocations.gradle
 }
 
 blossom {

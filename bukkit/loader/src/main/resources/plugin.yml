@@ -5,3 +5,14 @@ description: ""
 authors: [Scarsz, Vankka]
 load: STARTUP
 api-version: 1.13
+
+softdepend: [
+  # Permission + group providers
+  Vault, LuckPerms,
+  # Adventure
+  ViaVersion
+]
+
+commands:
+  discordsrv:
+    description: "DiscordSRV's primary command"

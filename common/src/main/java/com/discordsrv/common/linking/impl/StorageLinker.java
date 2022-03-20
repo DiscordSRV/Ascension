@@ -31,7 +31,6 @@ public class StorageLinker extends CachedLinkProvider implements LinkProvider, L
 
     public StorageLinker(DiscordSRV discordSRV) {
         super(discordSRV);
-        discordSRV.logger().info("Using storage for linked accounts");
     }
 
     @Override

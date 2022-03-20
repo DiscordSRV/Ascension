@@ -1,5 +1,11 @@
 apply from: rootProject.file('buildscript/runtime.gradle')
 
+shadowJar {
+    archiveFileName = 'sponge.jarinjar'
+
+    // Relocations in buildscript/relocations.gradle
+}
+
 var spongeVersion = '8.0.0'
 allprojects {
     repositories {
@@ -30,10 +36,4 @@ dependencies {
     // Dependency Download
     implementation 'dev.vankka:dependencydownload-jarinjar-bootstrap:' + rootProject.ddVersion
     compileOnlyApi project(':sponge:sponge-loader')
-}
-
-shadowJar {
-    archiveFileName = 'sponge.jarinjar'
-
-    // Relocations in buildscript/relocations.gradle
 }

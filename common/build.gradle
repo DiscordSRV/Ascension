@@ -64,6 +64,9 @@ dependencies {
     runtimeDownloadApi 'dev.vankka:mcdiscordreserializer:4.2.4-SNAPSHOT'
     runtimeDownloadApi 'dev.vankka:enhancedlegacytext:1.0.0-SNAPSHOT'
 
+    // Brigadier
+    compileOnlyApi 'com.mojang:brigadier:1.0.18'
+
     // Database
     hikari('com.zaxxer:HikariCP:4.0.3') { exclude group: 'org.slf4j' }
     h2Driver 'com.h2database:h2:2.1.210'

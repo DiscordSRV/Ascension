@@ -18,9 +18,11 @@
 
 package com.discordsrv.bungee;
 
+import com.discordsrv.bungee.command.game.handler.BungeeCommandHandler;
 import com.discordsrv.bungee.console.BungeeConsole;
 import com.discordsrv.bungee.player.BungeePlayerProvider;
 import com.discordsrv.bungee.plugin.BungeePluginManager;
+import com.discordsrv.common.command.game.handler.ICommandHandler;
 import com.discordsrv.common.config.connection.ConnectionConfig;
 import com.discordsrv.common.config.main.MainConfig;
 import com.discordsrv.common.config.manager.ConnectionConfigManager;
@@ -49,6 +51,7 @@ public class BungeeDiscordSRV extends ProxyDiscordSRV<MainConfig, ConnectionConf
     private final BungeeConsole console;
     private final BungeePlayerProvider playerProvider;
     private final BungeePluginManager pluginManager;
+    private BungeeCommandHandler commandHandler;
 
     public BungeeDiscordSRV(DiscordSRVBungeeBootstrap bootstrap, Logger logger) {
         this.bootstrap = bootstrap;
@@ -121,6 +124,11 @@ public class BungeeDiscordSRV extends ProxyDiscordSRV<MainConfig, ConnectionConf
     }
 
     @Override
+    public ICommandHandler commandHandler() {
+        return commandHandler;
+    }
+
+    @Override
     public ConnectionConfigManager<ConnectionConfig> connectionConfigManager() {
         return null;
     }
@@ -134,6 +142,8 @@ public class BungeeDiscordSRV extends ProxyDiscordSRV<MainConfig, ConnectionConf
     protected void enable() throws Throwable {
         // Player related
         this.audiences = BungeeAudiences.create(bootstrap.getPlugin());
+
+        this.commandHandler = new BungeeCommandHandler(this);
 
         super.enable();
     }

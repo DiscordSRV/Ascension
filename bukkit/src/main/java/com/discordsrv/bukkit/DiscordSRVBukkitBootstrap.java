@@ -26,6 +26,8 @@ import dev.vankka.mcdependencydownload.classloader.JarInJarClassLoader;
 import org.bukkit.plugin.java.JavaPlugin;
 
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
 
 public class DiscordSRVBukkitBootstrap extends BukkitBootstrap {
 
@@ -40,9 +42,23 @@ public class DiscordSRVBukkitBootstrap extends BukkitBootstrap {
         this.dependencies = new InitialDependencyLoader(
                 logger,
                 plugin.getDataFolder().toPath(),
-                new String[] {"dependencies/runtimeDownload-bukkit.txt"},
+                getDependencyResources(),
                 getClasspathAppender()
         );
+    }
+
+    private static String[] getDependencyResources() {
+        List<String> resources = new ArrayList<>();
+        resources.add("dependencies/runtimeDownload-bukkit.txt");
+
+        try {
+            Class.forName("com.mojang.brigadier.CommandDispatcher");
+            resources.add("dependencies/commodore.txt");
+        } catch (ClassNotFoundException ignored) {
+            // CommandDispatches not present, don't need to bother downloading commodore
+        }
+
+        return resources.toArray(new String[0]);
     }
 
     @Override

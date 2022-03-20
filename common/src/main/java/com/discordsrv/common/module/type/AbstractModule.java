@@ -44,9 +44,9 @@ public abstract class AbstractModule<DT extends DiscordSRV> implements Module {
         return logger;
     }
 
-    public final void enableModule() {
+    public final boolean enableModule() {
         if (hasBeenEnabled || !isEnabled()) {
-            return;
+            return false;
         }
 
         hasBeenEnabled = true;
@@ -56,6 +56,12 @@ public abstract class AbstractModule<DT extends DiscordSRV> implements Module {
             discordSRV.eventBus().subscribe(this);
             // Ignore not having listener methods exception
         } catch (IllegalArgumentException ignored) {}
+        return true;
+    }
+
+    @Override
+    public String toString() {
+        return getClass().getName() + "{enabled=" + isEnabled() + "}";
     }
 
     // Utility

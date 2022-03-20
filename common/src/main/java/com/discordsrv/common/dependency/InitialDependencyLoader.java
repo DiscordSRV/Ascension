@@ -18,6 +18,7 @@
 
 package com.discordsrv.common.dependency;
 
+import com.discordsrv.api.DiscordSRVApi;
 import com.discordsrv.common.DiscordSRV;
 import com.discordsrv.common.logging.Logger;
 import com.discordsrv.common.scheduler.threadfactory.CountingForkJoinWorkerThreadFactory;
@@ -91,7 +92,7 @@ public class InitialDependencyLoader {
         if (discordSRV == null) {
             return;
         }
-        discordSRV.invokeReload();
+        discordSRV.invokeReload(DiscordSRVApi.ReloadFlag.DEFAULT_FLAGS, false);
     }
 
     public void disable(DiscordSRV discordSRV) {

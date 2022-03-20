@@ -22,37 +22,19 @@ import com.discordsrv.common.console.Console;
 import com.discordsrv.common.logging.backend.LoggingBackend;
 import com.discordsrv.common.logging.backend.impl.Log4JLoggerImpl;
 import com.discordsrv.velocity.VelocityDiscordSRV;
-import net.kyori.adventure.audience.Audience;
-import org.jetbrains.annotations.NotNull;
+import com.discordsrv.velocity.command.game.sender.VelocityCommandSender;
 
-public class VelocityConsole implements Console {
+public class VelocityConsole extends VelocityCommandSender implements Console {
 
-    private final VelocityDiscordSRV discordSRV;
     private final LoggingBackend loggingBackend;
 
     public VelocityConsole(VelocityDiscordSRV discordSRV) {
-        this.discordSRV = discordSRV;
+        super(discordSRV, discordSRV.proxy().getConsoleCommandSource());
         this.loggingBackend = Log4JLoggerImpl.getRoot();
-    }
-
-    @Override
-    public boolean hasPermission(String permission) {
-        return discordSRV.proxy().getConsoleCommandSource().hasPermission(permission);
-    }
-
-    @Override
-    public void runCommand(String command) {
-        discordSRV.proxy().getCommandManager().executeAsync(
-                discordSRV.proxy().getConsoleCommandSource(), command);
     }
 
     @Override
     public LoggingBackend loggingBackend() {
         return loggingBackend;
-    }
-
-    @Override
-    public @NotNull Audience audience() {
-        return discordSRV.proxy().getConsoleCommandSource();
     }
 }

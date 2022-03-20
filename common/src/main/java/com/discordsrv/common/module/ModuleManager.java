@@ -20,13 +20,16 @@ package com.discordsrv.common.module;
 
 import com.discordsrv.api.event.bus.EventPriority;
 import com.discordsrv.api.event.bus.Subscribe;
-import com.discordsrv.api.event.events.lifecycle.DiscordSRVReloadEvent;
 import com.discordsrv.api.event.events.lifecycle.DiscordSRVShuttingDownEvent;
 import com.discordsrv.api.module.type.Module;
 import com.discordsrv.common.DiscordSRV;
 import com.discordsrv.common.debug.DebugGenerateEvent;
 import com.discordsrv.common.debug.file.TextDebugFile;
+import com.discordsrv.common.function.CheckedFunction;
+import com.discordsrv.common.logging.Logger;
+import com.discordsrv.common.logging.NamedLogger;
 import com.discordsrv.common.module.type.AbstractModule;
+import com.discordsrv.common.module.type.ModuleDelegate;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -39,11 +42,18 @@ public class ModuleManager {
 
     private final Set<Module> modules = new CopyOnWriteArraySet<>();
     private final Map<String, Module> moduleLookupTable = new ConcurrentHashMap<>();
+    private final Map<Module, AbstractModule<?>> delegates = new ConcurrentHashMap<>();
     private final DiscordSRV discordSRV;
+    private final Logger logger;
 
     public ModuleManager(DiscordSRV discordSRV) {
         this.discordSRV = discordSRV;
+        this.logger = new NamedLogger(discordSRV, "MODULE_MANAGER");
         discordSRV.eventBus().subscribe(this);
+    }
+
+    public Logger logger() {
+        return logger;
     }
 
     @SuppressWarnings("unchecked")
@@ -62,37 +72,66 @@ public class ModuleManager {
         });
     }
 
-    public void register(AbstractModule<?> module) {
+    private AbstractModule<?> getAbstract(Module module) {
+        return module instanceof AbstractModule
+            ? (AbstractModule<?>) module
+            : delegates.computeIfAbsent(module, mod -> new ModuleDelegate(discordSRV, mod));
+    }
+
+    public <DT extends DiscordSRV> void registerModule(DT discordSRV, CheckedFunction<DT, AbstractModule<?>> function) {
+        try {
+            register(function.apply(discordSRV));
+        } catch (Throwable t) {
+            logger.debug("Module initialization failed", t);
+        }
+    }
+
+    public void register(Module module) {
+        if (module instanceof ModuleDelegate) {
+            throw new IllegalArgumentException("Cannot register a delegate");
+        }
+
+        AbstractModule<?> abstractModule = getAbstract(module);
+
+        logger.debug(module + " registered");
         this.modules.add(module);
         this.moduleLookupTable.put(module.getClass().getName(), module);
 
-        enable(module, true);
+        if (discordSRV.config() != null) {
+            // Check if config is ready, if it is already we'll enable the module
+            enable(abstractModule);
+        }
     }
 
-    private void enable(Module module, boolean enableNonAbstract) {
+    private void enable(AbstractModule<?> module) {
         try {
-            if (module instanceof AbstractModule) {
-                ((AbstractModule<?>) module).enableModule();
-            } else if (enableNonAbstract) {
-                module.enable();
+            if (module.enableModule()) {
+                logger.debug(module + " enabled");
             }
         } catch (Throwable t) {
-            discordSRV.logger().error("Failed to enable " + module.getClass().getSimpleName(), t);
+            discordSRV.logger().error("Failed to enable " + module.toString(), t);
         }
     }
 
     public void unregister(Module module) {
-        this.modules.remove(module);
-        this.moduleLookupTable.values().removeIf(mod -> mod == module);
+        if (module instanceof ModuleDelegate) {
+            throw new IllegalArgumentException("Cannot unregister a delegate");
+        }
 
         disable(module);
+
+        this.modules.remove(module);
+        this.moduleLookupTable.values().removeIf(mod -> mod == module);
+        this.delegates.remove(module);
     }
 
     private void disable(Module module) {
+        AbstractModule<?> abstractModule = getAbstract(module);
         try {
-            module.disable();
+            logger.debug(module + " disabling");
+            abstractModule.disable();
         } catch (Throwable t) {
-            discordSRV.logger().error("Failed to disable " + module.getClass().getSimpleName(), t);
+            discordSRV.logger().error("Failed to disable " + abstractModule.toString(), t);
         }
     }
 
@@ -103,14 +142,15 @@ public class ModuleManager {
         }
     }
 
-    @Subscribe(priority = EventPriority.EARLY)
-    public void onReload(DiscordSRVReloadEvent event) {
+    public void reload() {
         for (Module module : modules) {
+            AbstractModule<?> abstractModule = getAbstract(module);
+
             // Check if the module needs to be enabled due to reload
-            enable(module, false);
+            enable(abstractModule);
 
             try {
-                module.reload();
+                abstractModule.reload();
             } catch (Throwable t) {
                 discordSRV.logger().error("Failed to reload " + module.getClass().getSimpleName(), t);
             }
@@ -124,11 +164,13 @@ public class ModuleManager {
         builder.append("Enabled modules:");
         List<Module> disabled = new ArrayList<>();
         for (Module module : modules) {
-            if (!module.isEnabled()) {
-                disabled.add(module);
+            AbstractModule<?> abstractModule = getAbstract(module);
+
+            if (!abstractModule.isEnabled()) {
+                disabled.add(abstractModule);
                 continue;
             }
-            appendModule(builder, module);
+            appendModule(builder, abstractModule);
         }
 
         builder.append("\n\nDisabled modules:");

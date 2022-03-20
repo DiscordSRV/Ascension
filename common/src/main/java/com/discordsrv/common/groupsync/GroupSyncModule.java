@@ -69,7 +69,11 @@ public class GroupSyncModule extends AbstractModule<DiscordSRV> {
     @Override
     public void reload() {
         synchronized (pairs) {
-            pairs.values().forEach(future -> future.cancel(false));
+            pairs.values().forEach(future -> {
+                if (future != null) {
+                    future.cancel(false);
+                }
+            });
             pairs.clear();
             groupsToPairs.clear();
             rolesToPairs.clear();

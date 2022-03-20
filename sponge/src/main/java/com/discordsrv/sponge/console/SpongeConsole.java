@@ -22,40 +22,19 @@ import com.discordsrv.common.console.Console;
 import com.discordsrv.common.logging.backend.LoggingBackend;
 import com.discordsrv.common.logging.backend.impl.Log4JLoggerImpl;
 import com.discordsrv.sponge.SpongeDiscordSRV;
-import net.kyori.adventure.audience.Audience;
-import org.jetbrains.annotations.NotNull;
-import org.spongepowered.api.command.exception.CommandException;
+import com.discordsrv.sponge.command.game.sender.SpongeCommandSender;
 
-public class SpongeConsole implements Console {
+public class SpongeConsole extends SpongeCommandSender implements Console {
 
-    private final SpongeDiscordSRV discordSRV;
     private final LoggingBackend loggingBackend;
 
     public SpongeConsole(SpongeDiscordSRV discordSRV) {
-        this.discordSRV = discordSRV;
+        super(discordSRV, () -> discordSRV.game().systemSubject(), () -> discordSRV.game().systemSubject());
         this.loggingBackend = Log4JLoggerImpl.getRoot();
-    }
-
-    @Override
-    public boolean hasPermission(String permission) {
-        return discordSRV.game().systemSubject().hasPermission(permission);
-    }
-
-    @Override
-    public void runCommand(String command) {
-        try {
-            discordSRV.game().server().commandManager().process(
-                    discordSRV.game().systemSubject(), command);
-        } catch (CommandException ignored) {}
     }
 
     @Override
     public LoggingBackend loggingBackend() {
         return loggingBackend;
-    }
-
-    @Override
-    public @NotNull Audience audience() {
-        return discordSRV.game().systemSubject();
     }
 }

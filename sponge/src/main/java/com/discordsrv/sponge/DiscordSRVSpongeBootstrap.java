@@ -22,6 +22,7 @@ import com.discordsrv.common.dependency.InitialDependencyLoader;
 import com.discordsrv.common.logging.Logger;
 import com.discordsrv.common.logging.backend.impl.Log4JLoggerImpl;
 import com.discordsrv.sponge.bootstrap.ISpongeBootstrap;
+import com.discordsrv.sponge.command.game.handler.SpongeCommandHandler;
 import dev.vankka.dependencydownload.classpath.ClasspathAppender;
 import dev.vankka.mcdependencydownload.bootstrap.AbstractBootstrap;
 import dev.vankka.mcdependencydownload.bootstrap.classpath.JarInJarClasspathAppender;
@@ -39,6 +40,7 @@ public class DiscordSRVSpongeBootstrap extends AbstractBootstrap implements ISpo
     private final ClasspathAppender classpathAppender;
     private final InitialDependencyLoader dependencies;
     private SpongeDiscordSRV discordSRV;
+    private SpongeCommandHandler commandHandler;
 
     private final PluginContainer pluginContainer;
     private final Game game;
@@ -63,11 +65,14 @@ public class DiscordSRVSpongeBootstrap extends AbstractBootstrap implements ISpo
     @Override
     public void onConstruct() {
         dependencies.load();
+
+        this.commandHandler = new SpongeCommandHandler(() -> discordSRV, pluginContainer);
+        game.eventManager().registerListeners(pluginContainer, commandHandler);
     }
 
     @Override
     public void onStarted() {
-        dependencies.enable(() -> this.discordSRV = new SpongeDiscordSRV(logger, classpathAppender, dataDirectory, pluginContainer, game));
+        dependencies.enable(() -> this.discordSRV = new SpongeDiscordSRV(logger, classpathAppender, dataDirectory, pluginContainer, game, commandHandler));
         if (discordSRV != null) {
             discordSRV.invokeServerStarted();
         }

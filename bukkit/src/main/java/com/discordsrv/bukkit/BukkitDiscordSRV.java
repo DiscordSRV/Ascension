@@ -19,6 +19,7 @@
 package com.discordsrv.bukkit;
 
 import com.discordsrv.api.DiscordSRVApi;
+import com.discordsrv.bukkit.command.game.handler.AbstractBukkitCommandHandler;
 import com.discordsrv.bukkit.config.connection.BukkitConnectionConfig;
 import com.discordsrv.bukkit.config.main.BukkitConfig;
 import com.discordsrv.bukkit.config.manager.BukkitConfigManager;
@@ -32,6 +33,7 @@ import com.discordsrv.bukkit.listener.BukkitStatusMessageListener;
 import com.discordsrv.bukkit.player.BukkitPlayerProvider;
 import com.discordsrv.bukkit.plugin.BukkitPluginManager;
 import com.discordsrv.bukkit.scheduler.BukkitScheduler;
+import com.discordsrv.common.command.game.handler.ICommandHandler;
 import com.discordsrv.common.config.manager.ConnectionConfigManager;
 import com.discordsrv.common.config.manager.MainConfigManager;
 import com.discordsrv.common.debug.data.OnlineMode;
@@ -60,6 +62,7 @@ public class BukkitDiscordSRV extends ServerDiscordSRV<BukkitConfig, BukkitConne
     private final BukkitConsole console;
     private final BukkitPlayerProvider playerProvider;
     private final BukkitPluginManager pluginManager;
+    private AbstractBukkitCommandHandler commandHandler;
 
     private final BukkitConnectionConfigManager connectionConfigManager;
     private final BukkitConfigManager configManager;
@@ -158,6 +161,11 @@ public class BukkitDiscordSRV extends ServerDiscordSRV<BukkitConfig, BukkitConne
     }
 
     @Override
+    public ICommandHandler commandHandler() {
+        return commandHandler;
+    }
+
+    @Override
     public ConnectionConfigManager<BukkitConnectionConfig> connectionConfigManager() {
         return connectionConfigManager;
     }
@@ -176,15 +184,19 @@ public class BukkitDiscordSRV extends ServerDiscordSRV<BukkitConfig, BukkitConne
         this.audiences = BukkitAudiences.create(bootstrap.getPlugin());
         server().getPluginManager().registerEvents(new BukkitConnectionListener(this), plugin());
 
-        super.enable();
+        // Command handler
+        commandHandler = AbstractBukkitCommandHandler.get(this);
 
         // Register listeners
         server().getPluginManager().registerEvents(BukkitChatListener.get(this), plugin());
         server().getPluginManager().registerEvents(new BukkitDeathListener(this), plugin());
         server().getPluginManager().registerEvents(new BukkitStatusMessageListener(this), plugin());
 
+        // Modules
         registerModule(VaultIntegration::new);
         registerModule(MinecraftToDiscordChatModule::new);
+
+        super.enable();
     }
 
 }

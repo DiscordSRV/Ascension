@@ -22,9 +22,7 @@ import com.discordsrv.api.channel.GameChannel;
 import com.discordsrv.api.discord.api.entity.channel.DiscordMessageChannel;
 import com.discordsrv.api.discord.api.entity.channel.DiscordTextChannel;
 import com.discordsrv.api.discord.api.entity.channel.DiscordThreadChannel;
-import com.discordsrv.api.event.bus.Subscribe;
 import com.discordsrv.api.event.events.channel.GameChannelLookupEvent;
-import com.discordsrv.api.event.events.lifecycle.DiscordSRVReloadEvent;
 import com.discordsrv.common.DiscordSRV;
 import com.discordsrv.common.config.main.channels.base.BaseChannelConfig;
 import com.discordsrv.common.config.main.channels.base.ChannelConfig;
@@ -94,16 +92,9 @@ public class ChannelConfigHelper {
                     }
                     return map;
                 });
-
-        discordSRV.eventBus().subscribe(this);
     }
 
-    @Subscribe
-    public void onReload(DiscordSRVReloadEvent event) {
-        if (!event.isConfig()) {
-            return;
-        }
-
+    public void reload() {
         Map<Long, Map<String, BaseChannelConfig>> newMap = new HashMap<>();
         for (Map.Entry<String, BaseChannelConfig> entry : channels().entrySet()) {
             String channelName = entry.getKey();

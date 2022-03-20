@@ -20,13 +20,16 @@ package com.discordsrv.common;
 
 import com.discordsrv.api.discord.connection.DiscordConnectionDetails;
 import com.discordsrv.api.event.bus.EventBus;
-import com.discordsrv.api.event.events.lifecycle.DiscordSRVReloadEvent;
+import com.discordsrv.api.event.events.lifecycle.DiscordSRVConnectedEvent;
+import com.discordsrv.api.event.events.lifecycle.DiscordSRVReadyEvent;
+import com.discordsrv.api.event.events.lifecycle.DiscordSRVReloadedEvent;
 import com.discordsrv.api.event.events.lifecycle.DiscordSRVShuttingDownEvent;
 import com.discordsrv.api.module.type.Module;
 import com.discordsrv.common.api.util.ApiInstanceUtil;
 import com.discordsrv.common.channel.ChannelConfigHelper;
 import com.discordsrv.common.channel.ChannelUpdaterModule;
 import com.discordsrv.common.channel.GlobalChannelLookupModule;
+import com.discordsrv.common.command.game.GameCommandModule;
 import com.discordsrv.common.component.ComponentFactory;
 import com.discordsrv.common.config.connection.ConnectionConfig;
 import com.discordsrv.common.config.main.LinkedAccountConfig;
@@ -45,6 +48,7 @@ import com.discordsrv.common.function.CheckedFunction;
 import com.discordsrv.common.function.CheckedRunnable;
 import com.discordsrv.common.groupsync.GroupSyncModule;
 import com.discordsrv.common.integration.LuckPermsIntegration;
+import com.discordsrv.common.invite.DiscordInviteModule;
 import com.discordsrv.common.linking.LinkProvider;
 import com.discordsrv.common.linking.impl.MemoryLinker;
 import com.discordsrv.common.linking.impl.StorageLinker;
@@ -69,6 +73,7 @@ import org.jetbrains.annotations.NotNull;
 import javax.annotation.OverridingMethodsMustInvokeSuper;
 import java.util.Locale;
 import java.util.Optional;
+import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
@@ -96,11 +101,12 @@ public abstract class AbstractDiscordSRV<C extends MainConfig, CC extends Connec
     // DiscordSRV
     private DiscordSRVLogger logger;
     private ModuleManager moduleManager;
+    private JDAConnectionManager discordConnectionManager;
     private ChannelConfigHelper channelConfig;
 
     private Storage storage;
+    private boolean hikariLoaded = false;
     private LinkProvider linkProvider;
-    private DiscordConnectionManager discordConnectionManager;
 
     // Internal
     private final ReentrantLock lifecycleLock = new ReentrantLock();
@@ -121,6 +127,7 @@ public abstract class AbstractDiscordSRV<C extends MainConfig, CC extends Connec
         this.componentFactory = new ComponentFactory(this);
         this.discordAPI = new DiscordAPIImpl(this);
         this.discordConnectionDetails = new DiscordConnectionDetailsImpl(this);
+        this.discordConnectionManager = new JDAConnectionManager(this);
         this.channelConfig = new ChannelConfigHelper(this);
     }
 
@@ -225,9 +232,7 @@ public abstract class AbstractDiscordSRV<C extends MainConfig, CC extends Connec
 
     @SuppressWarnings("unchecked")
     protected <T extends DiscordSRV> void registerModule(CheckedFunction<T, AbstractModule<?>> function) {
-        try {
-            registerModule(function.apply((T) this));
-        } catch (Throwable ignored) {}
+        moduleManager.registerModule((T) this, function);
     }
 
     @Override
@@ -248,6 +253,9 @@ public abstract class AbstractDiscordSRV<C extends MainConfig, CC extends Connec
         synchronized (this.status) {
             this.status.set(status);
             this.status.notifyAll();
+        }
+        if (status == Status.CONNECTED) {
+            eventBus().publish(new DiscordSRVConnectedEvent());
         }
     }
 
@@ -299,7 +307,11 @@ public abstract class AbstractDiscordSRV<C extends MainConfig, CC extends Connec
 
     @Override
     public final CompletableFuture<Void> invokeEnable() {
-        return invokeLifecycle(this::enable, "Failed to enable", true);
+        return invokeLifecycle(() -> {
+            this.enable();
+            waitForStatus(Status.CONNECTED);
+            eventBus().publish(new DiscordSRVReadyEvent());
+        }, "Failed to enable", true);
     }
 
     @Override
@@ -308,8 +320,8 @@ public abstract class AbstractDiscordSRV<C extends MainConfig, CC extends Connec
     }
 
     @Override
-    public final CompletableFuture<Void> invokeReload() {
-        return invoke(this::reload, "Failed to reload", false);
+    public final CompletableFuture<Void> invokeReload(Set<ReloadFlag> flags, boolean silent) {
+        return invoke(() -> reload(flags, silent), "Failed to reload", false);
     }
 
     @OverridingMethodsMustInvokeSuper
@@ -323,76 +335,16 @@ public abstract class AbstractDiscordSRV<C extends MainConfig, CC extends Connec
         // Logging
         DependencyLoggerAdapter.setAppender(new DependencyLoggingHandler(this));
 
-        // Config
-        try {
-            connectionConfigManager().load();
-            configManager().load();
-            eventBus().publish(new DiscordSRVReloadEvent(true));
-        } catch (Throwable t) {
-            setStatus(Status.FAILED_TO_LOAD_CONFIG);
-            throw t;
-        }
-
-        // Link provider
-        LinkedAccountConfig linkedAccountConfig = config().linkedAccounts;
-        if (linkedAccountConfig != null && linkedAccountConfig.enabled) {
-            String provider = linkedAccountConfig.provider;
-            switch (provider) {
-                case "auto":
-                case "storage":
-                    linkProvider = new StorageLinker(this);
-                    break;
-                case "memory": {
-                    linkProvider = new MemoryLinker();
-                    logger().warning("Using memory for linked accounts");
-                    logger().warning("Linked accounts will be lost upon restart");
-                    break;
-                }
-                default: {
-                    logger().error("Unknown linked account provider: \"" + provider + "\", linked accounts will not be used");
-                    break;
-                }
-            }
-        } else {
-            logger().info("Linked accounts are disabled");
-        }
-
-        // Storage
-        try {
-            try {
-                StorageType storageType = getStorageType();
-                logger().info("Using " + storageType.prettyName() + " as storage");
-                if (storageType.hikari()) {
-                    DependencyLoader.hikari(this).process(classpathAppender()).get();
-                }
-                storage = storageType.storageFunction().apply(this);
-                storage.initialize();
-                logger().info("Storage connection successfully established");
-            } catch (ExecutionException e) {
-                throw new StorageException(e.getCause());
-            } catch (StorageException e) {
-                throw e;
-            } catch (Throwable t) {
-                throw new StorageException(t);
-            }
-        } catch (StorageException e) {
-            e.log(this);
-            logger().error("Failed to connect to storage");
-            setStatus(Status.FAILED_TO_START);
-            return;
-        }
-
-        discordConnectionManager = new JDAConnectionManager(this);
-        discordConnectionManager.connect().join();
+        // Register PlayerProvider listeners
+        playerProvider().subscribe();
 
         // Placeholder result stringifiers & global contexts
         placeholderService().addResultMapper(new ComponentResultStringifier(this));
         placeholderService().addGlobalContext(new GlobalTextHandlingContext(this));
 
-        // Register PlayerProvider listeners
-        playerProvider().subscribe();
-
+        // Modules
         registerModule(ChannelUpdaterModule::new);
+        registerModule(GameCommandModule::new);
         registerModule(GlobalChannelLookupModule::new);
         registerModule(DiscordAPIEventModule::new);
         registerModule(GroupSyncModule::new);
@@ -401,6 +353,14 @@ public abstract class AbstractDiscordSRV<C extends MainConfig, CC extends Connec
         registerModule(DiscordMessageMirroringModule::new);
         registerModule(JoinMessageModule::new);
         registerModule(LeaveMessageModule::new);
+        registerModule(DiscordInviteModule::new);
+
+        // Initial load
+        try {
+            invokeReload(ReloadFlag.ALL, true).get();
+        } catch (ExecutionException e) {
+            throw e.getCause();
+        }
     }
 
     private StorageType getStorageType() {
@@ -425,7 +385,102 @@ public abstract class AbstractDiscordSRV<C extends MainConfig, CC extends Connec
     }
 
     @OverridingMethodsMustInvokeSuper
-    protected void reload() {
+    protected void reload(Set<ReloadFlag> flags, boolean initial) throws Throwable {
+        if (!initial) {
+            logger().info("Reloading DiscordSRV...");
+        }
 
+        if (flags.contains(ReloadFlag.CONFIG)) {
+            try {
+                connectionConfigManager().load();
+                configManager().load();
+            } catch (Throwable t) {
+                setStatus(Status.FAILED_TO_LOAD_CONFIG);
+                throw t;
+            }
+
+            channelConfig().reload();
+        }
+
+        if (flags.contains(ReloadFlag.LINKED_ACCOUNT_PROVIDER)) {
+            LinkedAccountConfig linkedAccountConfig = config().linkedAccounts;
+            if (linkedAccountConfig != null && linkedAccountConfig.enabled) {
+                String provider = linkedAccountConfig.provider;
+                switch (provider) {
+                    case "auto":
+                    case "storage":
+                        linkProvider = new StorageLinker(this);
+                        logger().info("Using storage for linked accounts");
+                        break;
+                    case "memory": {
+                        linkProvider = new MemoryLinker();
+                        logger().warning("Using memory for linked accounts");
+                        logger().warning("Linked accounts will be lost upon restart");
+                        break;
+                    }
+                    default: {
+                        linkProvider = null;
+                        logger().error("Unknown linked account provider: \"" + provider + "\", linked accounts will not be used");
+                        break;
+                    }
+                }
+            } else {
+                linkProvider = null;
+                logger().info("Linked accounts are disabled");
+            }
+        }
+
+        if (flags.contains(ReloadFlag.STORAGE)) {
+            if (storage != null) {
+                storage.close();
+            }
+
+            try {
+                try {
+                    StorageType storageType = getStorageType();
+                    logger().info("Using " + storageType.prettyName() + " as storage");
+                    if (storageType.hikari() && !hikariLoaded) {
+                        hikariLoaded = true;
+                        DependencyLoader.hikari(this).process(classpathAppender()).get();
+                    }
+                    storage = storageType.storageFunction().apply(this);
+                    storage.initialize();
+                    logger().info("Storage connection successfully established");
+                } catch (ExecutionException e) {
+                    throw new StorageException(e.getCause());
+                } catch (StorageException e) {
+                    throw e;
+                } catch (Throwable t) {
+                    throw new StorageException(t);
+                }
+            } catch (StorageException e) {
+                e.log(this);
+                logger().error("Failed to connect to storage");
+                setStatus(Status.FAILED_TO_START);
+                return;
+            }
+        }
+
+        if (flags.contains(ReloadFlag.DISCORD_CONNECTION)) {
+            try {
+                if (discordConnectionManager.instance() != null) {
+                    discordConnectionManager.reconnect().get();
+                } else {
+                    discordConnectionManager.connect().get();
+                }
+                waitForStatus(Status.CONNECTED, 20, TimeUnit.SECONDS);
+            } catch (ExecutionException e) {
+                throw e.getCause();
+            }
+        }
+
+        if (flags.contains(ReloadFlag.MODULES)) {
+            moduleManager.reload();
+        }
+
+        if (!initial) {
+            eventBus().publish(new DiscordSRVReloadedEvent(flags));
+            logger().info("Reload complete.");
+        }
     }
 }

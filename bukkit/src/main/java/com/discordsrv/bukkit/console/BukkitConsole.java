@@ -19,21 +19,19 @@
 package com.discordsrv.bukkit.console;
 
 import com.discordsrv.bukkit.BukkitDiscordSRV;
+import com.discordsrv.bukkit.command.game.sender.BukkitCommandSender;
 import com.discordsrv.common.console.Console;
 import com.discordsrv.common.logging.NamedLogger;
 import com.discordsrv.common.logging.backend.LoggingBackend;
 import com.discordsrv.common.logging.backend.impl.JavaLoggerImpl;
 import com.discordsrv.common.logging.backend.impl.Log4JLoggerImpl;
-import net.kyori.adventure.audience.Audience;
-import org.jetbrains.annotations.NotNull;
 
-public class BukkitConsole implements Console {
+public class BukkitConsole extends BukkitCommandSender implements Console {
 
-    private final BukkitDiscordSRV discordSRV;
     private final LoggingBackend loggingBackend;
 
     public BukkitConsole(BukkitDiscordSRV discordSRV) {
-        this.discordSRV = discordSRV;
+        super(discordSRV, discordSRV.server().getConsoleSender(), () -> discordSRV.audiences().console());
 
         LoggingBackend logging;
         try {
@@ -50,24 +48,7 @@ public class BukkitConsole implements Console {
     }
 
     @Override
-    public boolean hasPermission(String permission) {
-        return discordSRV.server().getConsoleSender().hasPermission(permission);
-    }
-
-    @Override
-    public void runCommand(String command) {
-        discordSRV.scheduler().runOnMainThread(() ->
-                discordSRV.server().dispatchCommand(
-                        discordSRV.server().getConsoleSender(), command));
-    }
-
-    @Override
     public LoggingBackend loggingBackend() {
         return loggingBackend;
-    }
-
-    @Override
-    public @NotNull Audience audience() {
-        return discordSRV.audiences().console();
     }
 }

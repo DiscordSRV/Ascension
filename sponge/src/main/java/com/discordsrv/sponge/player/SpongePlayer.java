@@ -21,31 +21,21 @@ package com.discordsrv.sponge.player;
 import com.discordsrv.common.DiscordSRV;
 import com.discordsrv.common.player.IPlayer;
 import com.discordsrv.sponge.SpongeDiscordSRV;
-import net.kyori.adventure.audience.Audience;
+import com.discordsrv.sponge.command.game.sender.SpongeCommandSender;
+import net.kyori.adventure.identity.Identity;
 import net.kyori.adventure.text.Component;
 import org.jetbrains.annotations.NotNull;
-import org.spongepowered.api.command.exception.CommandException;
 import org.spongepowered.api.entity.living.player.server.ServerPlayer;
 
-public class SpongePlayer extends SpongeOfflinePlayer implements IPlayer {
+public class SpongePlayer extends SpongeCommandSender implements IPlayer {
 
     private final ServerPlayer player;
+    private final Identity identity;
 
     public SpongePlayer(SpongeDiscordSRV discordSRV, ServerPlayer player) {
-        super(discordSRV, player.user());
+        super(discordSRV, () -> player, () -> player);
         this.player = player;
-    }
-
-    @Override
-    public boolean hasPermission(String permission) {
-        return player.hasPermission(permission);
-    }
-
-    @Override
-    public void runCommand(String command) {
-        try {
-            discordSRV.game().server().commandManager().process(player, command);
-        } catch (CommandException ignored) {}
+        this.identity = Identity.identity(player.uniqueId());
     }
 
     @Override
@@ -54,12 +44,17 @@ public class SpongePlayer extends SpongeOfflinePlayer implements IPlayer {
     }
 
     @Override
+    public @NotNull String username() {
+        return player.name();
+    }
+
+    @Override
     public @NotNull Component displayName() {
         return player.displayName().get();
     }
 
     @Override
-    public @NotNull Audience audience() {
-        return player;
+    public @NotNull Identity identity() {
+        return identity;
     }
 }

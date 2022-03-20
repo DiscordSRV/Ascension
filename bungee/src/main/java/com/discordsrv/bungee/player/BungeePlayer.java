@@ -19,37 +19,24 @@
 package com.discordsrv.bungee.player;
 
 import com.discordsrv.bungee.BungeeDiscordSRV;
+import com.discordsrv.bungee.command.game.sender.BungeeCommandSender;
 import com.discordsrv.bungee.component.util.BungeeComponentUtil;
 import com.discordsrv.common.DiscordSRV;
 import com.discordsrv.common.player.IPlayer;
-import net.kyori.adventure.audience.Audience;
 import net.kyori.adventure.identity.Identity;
 import net.kyori.adventure.text.Component;
 import net.md_5.bungee.api.connection.ProxiedPlayer;
 import org.jetbrains.annotations.NotNull;
 
-public class BungeePlayer implements IPlayer {
+public class BungeePlayer extends BungeeCommandSender implements IPlayer {
 
-    private final BungeeDiscordSRV discordSRV;
     private final ProxiedPlayer player;
     private final Identity identity;
-    private final Audience audience;
 
     public BungeePlayer(BungeeDiscordSRV discordSRV, ProxiedPlayer player) {
-        this.discordSRV = discordSRV;
+        super(discordSRV, player, () -> discordSRV.audiences().player(player));
         this.player = player;
         this.identity = Identity.identity(player.getUniqueId());
-        this.audience = discordSRV.audiences().player(player);
-    }
-
-    @Override
-    public boolean hasPermission(String permission) {
-        return player.hasPermission(permission);
-    }
-
-    @Override
-    public void runCommand(String command) {
-        discordSRV.proxy().getPluginManager().dispatchCommand(player, command);
     }
 
     @Override
@@ -59,7 +46,7 @@ public class BungeePlayer implements IPlayer {
 
     @Override
     public @NotNull String username() {
-        return player.getName();
+        return commandSender.getName();
     }
 
     @Override
@@ -72,8 +59,4 @@ public class BungeePlayer implements IPlayer {
         return BungeeComponentUtil.fromLegacy(player.getDisplayName());
     }
 
-    @Override
-    public @NotNull Audience audience() {
-        return audience;
-    }
 }

@@ -21,7 +21,6 @@ package com.discordsrv.sponge.player;
 import com.discordsrv.common.player.IOfflinePlayer;
 import com.discordsrv.common.server.player.ServerPlayerProvider;
 import com.discordsrv.sponge.SpongeDiscordSRV;
-import org.spongepowered.api.entity.living.player.Player;
 import org.spongepowered.api.entity.living.player.User;
 import org.spongepowered.api.entity.living.player.server.ServerPlayer;
 import org.spongepowered.api.event.Listener;
@@ -64,7 +63,7 @@ public class SpongePlayerProvider extends ServerPlayerProvider<SpongePlayer, Spo
         removePlayer(event.player().uniqueId());
     }
 
-    public SpongePlayer player(Player player) {
+    public SpongePlayer player(ServerPlayer player) {
         return player(player.uniqueId()).orElseThrow(() -> new IllegalStateException("Player not available"));
     }
 

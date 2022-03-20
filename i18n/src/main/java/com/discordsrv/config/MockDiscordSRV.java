@@ -19,6 +19,7 @@
 package com.discordsrv.config;
 
 import com.discordsrv.common.AbstractDiscordSRV;
+import com.discordsrv.common.command.game.handler.ICommandHandler;
 import com.discordsrv.common.config.connection.ConnectionConfig;
 import com.discordsrv.common.config.main.MainConfig;
 import com.discordsrv.common.config.manager.ConnectionConfigManager;
@@ -35,6 +36,7 @@ import org.jetbrains.annotations.NotNull;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 
+@SuppressWarnings("ConstantConditions")
 public class MockDiscordSRV extends AbstractDiscordSRV<MainConfig, ConnectionConfig> {
 
     @Override
@@ -74,6 +76,11 @@ public class MockDiscordSRV extends AbstractDiscordSRV<MainConfig, ConnectionCon
 
     @Override
     public ClasspathAppender classpathAppender() {
+        return null;
+    }
+
+    @Override
+    public ICommandHandler commandHandler() {
         return null;
     }
 

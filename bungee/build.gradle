@@ -1,5 +1,16 @@
 apply from: rootProject.file('buildscript/runtime.gradle')
 
+shadowJar {
+    archiveFileName = 'bungee.jarinjar'
+
+    [
+            'net.kyori'
+    ].each {
+        relocate it, 'com.discordsrv.dependencies.' + it
+    }
+    // More relocations in buildscript/relocations.gradle
+}
+
 allprojects {
     repositories {
         exclusiveContent {
@@ -31,11 +42,4 @@ dependencies {
     // Adventure
     runtimeDownloadApi 'net.kyori:adventure-platform-bungeecord:' + rootProject.adventurePlatformVersion
     runtimeDownloadApi 'net.kyori:adventure-text-serializer-bungeecord:' + rootProject.adventurePlatformVersion
-}
-
-shadowJar {
-    archiveFileName = 'bungee.jarinjar'
-
-    relocate 'net.kyori', 'com.discordsrv.dependencies.net.kyori'
-    // More relocations in buildscript/relocations.gradle
 }

@@ -19,6 +19,7 @@
 package com.discordsrv.sponge;
 
 import com.discordsrv.api.DiscordSRVApi;
+import com.discordsrv.common.command.game.handler.ICommandHandler;
 import com.discordsrv.common.config.connection.ConnectionConfig;
 import com.discordsrv.common.config.main.MainConfig;
 import com.discordsrv.common.config.manager.ConnectionConfigManager;
@@ -27,6 +28,7 @@ import com.discordsrv.common.debug.data.OnlineMode;
 import com.discordsrv.common.logging.Logger;
 import com.discordsrv.common.plugin.PluginManager;
 import com.discordsrv.common.server.ServerDiscordSRV;
+import com.discordsrv.sponge.command.game.handler.SpongeCommandHandler;
 import com.discordsrv.sponge.console.SpongeConsole;
 import com.discordsrv.sponge.player.SpongePlayerProvider;
 import com.discordsrv.sponge.plugin.SpongePluginManager;
@@ -52,8 +54,16 @@ public class SpongeDiscordSRV extends ServerDiscordSRV<MainConfig, ConnectionCon
     private final SpongeConsole console;
     private final SpongePlayerProvider playerProvider;
     private final SpongePluginManager pluginManager;
+    private final SpongeCommandHandler commandHandler;
 
-    public SpongeDiscordSRV(Logger logger, ClasspathAppender classpathAppender, Path dataDirectory, PluginContainer pluginContainer, Game game) {
+    public SpongeDiscordSRV(
+            Logger logger,
+            ClasspathAppender classpathAppender,
+            Path dataDirectory,
+            PluginContainer pluginContainer,
+            Game game,
+            SpongeCommandHandler commandHandler
+    ) {
         this.logger = logger;
         this.classpathAppender = classpathAppender;
         this.dataDirectory = dataDirectory;
@@ -64,6 +74,7 @@ public class SpongeDiscordSRV extends ServerDiscordSRV<MainConfig, ConnectionCon
         this.console = new SpongeConsole(this);
         this.playerProvider = new SpongePlayerProvider(this);
         this.pluginManager = new SpongePluginManager(this);
+        this.commandHandler = commandHandler;
 
         load();
     }
@@ -121,6 +132,11 @@ public class SpongeDiscordSRV extends ServerDiscordSRV<MainConfig, ConnectionCon
     @Override
     public ClasspathAppender classpathAppender() {
         return classpathAppender;
+    }
+
+    @Override
+    public ICommandHandler commandHandler() {
+        return commandHandler;
     }
 
     @Override

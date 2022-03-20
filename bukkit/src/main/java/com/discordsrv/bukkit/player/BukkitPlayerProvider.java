@@ -26,7 +26,7 @@ import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
-import org.bukkit.event.player.PlayerJoinEvent;
+import org.bukkit.event.player.PlayerLoginEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
 
 import java.util.Optional;
@@ -52,8 +52,8 @@ public class BukkitPlayerProvider extends ServerPlayerProvider<BukkitPlayer, Buk
         }
     }
 
-    @EventHandler(priority = EventPriority.LOWEST)
-    public void onPlayerJoin(PlayerJoinEvent event) {
+    @EventHandler(priority = EventPriority.MONITOR)
+    public void onPlayerLogin(PlayerLoginEvent event) {
         addPlayer(event.getPlayer(), false);
     }
 

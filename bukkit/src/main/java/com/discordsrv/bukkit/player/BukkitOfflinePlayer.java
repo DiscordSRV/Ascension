@@ -42,7 +42,6 @@ public class BukkitOfflinePlayer implements IOfflinePlayer {
         return discordSRV;
     }
 
-    @SuppressWarnings("NullabilityProblems")
     @Override
     public String username() {
         return offlinePlayer.getName();

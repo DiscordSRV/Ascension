@@ -115,5 +115,4 @@ public class ChannelUpdaterModule extends AbstractModule<DiscordSRV> {
         }
     }
 
-
 }

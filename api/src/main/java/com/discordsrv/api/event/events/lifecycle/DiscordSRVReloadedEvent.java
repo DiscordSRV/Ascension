@@ -23,17 +23,27 @@
 
 package com.discordsrv.api.event.events.lifecycle;
 
+import com.discordsrv.api.DiscordSRVApi;
 import com.discordsrv.api.event.events.Event;
 
-public class DiscordSRVReloadEvent implements Event {
+import java.util.Set;
 
-    private final boolean config;
+/**
+ * An event for when DiscordSRV successfully reloads partially or completely.
+ */
+public class DiscordSRVReloadedEvent implements Event {
 
-    public DiscordSRVReloadEvent(boolean config) {
-        this.config = config;
+    private final Set<DiscordSRVApi.ReloadFlag> flags;
+
+    public DiscordSRVReloadedEvent(Set<DiscordSRVApi.ReloadFlag> flags) {
+        this.flags = flags;
     }
 
-    public boolean isConfig() {
-        return config;
+    /**
+     * Set of DiscordSRV systems that were reloaded.
+     * @return an unmodifiable set of {@link com.discordsrv.api.DiscordSRVApi.ReloadFlag}s
+     */
+    public Set<DiscordSRVApi.ReloadFlag> flags() {
+        return flags;
     }
 }

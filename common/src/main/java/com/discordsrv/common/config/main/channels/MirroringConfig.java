@@ -33,5 +33,5 @@ public class MirroringConfig {
     @Comment("The format of the username of mirrored messages\n"
             + "It's recommended to include some special character if in-game messages use webhooks,\n"
             + "in order to prevent Discord users and in-game players being grouped together")
-    public String usernameFormat = "%user_effective_name% [M]";
+    public String usernameFormat = "%user_effective_name% \uD83D\uDD03";
 }

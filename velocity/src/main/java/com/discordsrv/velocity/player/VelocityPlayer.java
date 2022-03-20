@@ -21,30 +21,19 @@ package com.discordsrv.velocity.player;
 import com.discordsrv.common.DiscordSRV;
 import com.discordsrv.common.player.IPlayer;
 import com.discordsrv.velocity.VelocityDiscordSRV;
+import com.discordsrv.velocity.command.game.sender.VelocityCommandSender;
 import com.velocitypowered.api.proxy.Player;
-import net.kyori.adventure.audience.Audience;
 import net.kyori.adventure.identity.Identity;
 import net.kyori.adventure.text.Component;
 import org.jetbrains.annotations.NotNull;
 
-public class VelocityPlayer implements IPlayer {
+public class VelocityPlayer extends VelocityCommandSender implements IPlayer {
 
-    private final VelocityDiscordSRV discordSRV;
     private final Player player;
 
     public VelocityPlayer(VelocityDiscordSRV discordSRV, Player player) {
-        this.discordSRV = discordSRV;
+        super(discordSRV, player);
         this.player = player;
-    }
-
-    @Override
-    public boolean hasPermission(String permission) {
-        return player.hasPermission(permission);
-    }
-
-    @Override
-    public void runCommand(String command) {
-        discordSRV.proxy().getCommandManager().executeAsync(player, command);
     }
 
     @Override
@@ -69,10 +58,5 @@ public class VelocityPlayer implements IPlayer {
                 Identity.DISPLAY_NAME,
                 () -> Component.text(player.getUsername())
         );
-    }
-
-    @Override
-    public @NotNull Audience audience() {
-        return player;
     }
 }

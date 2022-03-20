@@ -49,4 +49,10 @@ public class MainConfig implements Config {
 
     @Comment("Configuration options for group-role synchronization")
     public GroupSyncConfig groupSync = new GroupSyncConfig();
+
+    @Comment("Command configuration")
+    public CommandConfig command = new CommandConfig();
+
+    @Comment("The %discord_invite% placeholder configuration. The below options will be attempted in the order they are in")
+    public DiscordInviteConfig invite = new DiscordInviteConfig();
 }
