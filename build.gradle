@@ -96,6 +96,18 @@ allprojects {
         // Always run shadowJar
         finalizedBy shadowJar
 
+        manifest.attributes(
+                "Specification-Title": "DiscordSRV",
+                "Specification-Vendor": "DiscordSRV",
+                "Specification-Version": project.version
+        )
+        if (project.name != "api") {
+            manifest.attributes(
+                    "Implementation-Title": "DiscordSRV",
+                    "Implementation-Vendor": "DiscordSRV",
+                    "Implementation-Version": project.version
+            )
+        }
         if (indraGit.isPresent()) {
             indraGit.applyVcsInformationToManifest(manifest)
         }
