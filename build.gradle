@@ -2,6 +2,7 @@ plugins {
     id 'com.github.johnrengelman.shadow' version '7.1.1' apply false
     id 'org.cadixdev.licenser' version '0.6.1' apply false
     id 'net.kyori.blossom' version '1.2.0' apply false
+    id 'net.kyori.indra.git' version '2.1.1' apply false
     id 'dev.vankka.dependencydownload.plugin' version '1.1.5-SNAPSHOT' apply false
 }
 
@@ -26,6 +27,7 @@ allprojects {
     apply plugin: 'java-library'
     apply plugin: 'com.github.johnrengelman.shadow'
     apply plugin: 'org.cadixdev.licenser'
+    apply plugin: 'net.kyori.indra.git'
     apply plugin: 'dev.vankka.dependencydownload.plugin'
 
     group 'com.discordsrv'
@@ -93,6 +95,10 @@ allprojects {
         dependsOn (System.getenv('CI') === 'true' ? licenseCheck : licenseFormat)
         // Always run shadowJar
         finalizedBy shadowJar
+
+        if (indraGit.isPresent()) {
+            indraGit.applyVcsInformationToManifest(manifest)
+        }
     }
 
     shadowJar {
