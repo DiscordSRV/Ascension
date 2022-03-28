@@ -34,16 +34,45 @@ import com.discordsrv.api.profile.IProfileManager;
 import net.dv8tion.jda.api.JDA;
 import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
 
 /**
  * The DiscordSRV API.
  *
- * Use your platform's service provider or {@link DiscordSRVApiProvider} to get the instance.
+ * Use your platform's service provider or {@link #get()} / {@link #optional()} to get the instance.
  */
 @SuppressWarnings("unused") // API
 public interface DiscordSRVApi {
+
+    /**
+     * Gets the instance of {@link DiscordSRVApi}.
+     * @return the DiscordSRV api, or {@code null} if not available
+     * @see #isAvailable()
+     */
+    @Nullable
+    static DiscordSRVApi get() {
+        return ApiInstanceHolder.API;
+    }
+
+    /**
+     * Returns a {@link Optional} of {@link DiscordSRVApi}.
+     * @return the DiscordSRV api in an optional
+     * @see #isAvailable()
+     */
+    @NotNull
+    static Optional<DiscordSRVApi> optional() {
+        return Optional.ofNullable(ApiInstanceHolder.API);
+    }
+
+    /**
+     * Checks if the API instance is available.
+     * @return true if {@link #get()} and {@link #optional()} will return the API instance
+     */
+    static boolean isAvailable() {
+        return ApiInstanceHolder.API != null;
+    }
 
     /**
      * The status of this DiscordSRV instance.

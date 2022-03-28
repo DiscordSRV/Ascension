@@ -35,7 +35,7 @@ public final class ApiInstanceUtil {
     public static void setInstance(@NotNull DiscordSRV discordSRV) {
         // Avoids illegal access
         try {
-            Class<?> apiProviderClass = Class.forName("com.discordsrv.api.DiscordSRVApiProvider");
+            Class<?> apiProviderClass = Class.forName("com.discordsrv.api.InstanceHolder");
             Method provideMethod = apiProviderClass.getDeclaredMethod("provide", DiscordSRVApi.class);
             provideMethod.setAccessible(true);
             provideMethod.invoke(null, discordSRV);

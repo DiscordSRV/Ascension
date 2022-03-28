@@ -24,7 +24,6 @@
 package com.discordsrv.api.discord.api.entity.message.impl;
 
 import com.discordsrv.api.DiscordSRVApi;
-import com.discordsrv.api.DiscordSRVApiProvider;
 import com.discordsrv.api.discord.api.entity.message.AllowedMention;
 import com.discordsrv.api.discord.api.entity.message.DiscordMessageEmbed;
 import com.discordsrv.api.discord.api.entity.message.SendableDiscordMessage;
@@ -222,7 +221,7 @@ public class SendableDiscordMessageImpl implements SendableDiscordMessage {
 
         @Override
         public @NotNull Formatter applyPlaceholderService() {
-            DiscordSRVApi api = DiscordSRVApiProvider.get();
+            DiscordSRVApi api = DiscordSRVApi.get();
             if (api == null) {
                 throw new IllegalStateException("DiscordSRVApi not available");
             }

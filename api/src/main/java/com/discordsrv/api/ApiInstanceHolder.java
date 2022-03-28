@@ -24,51 +24,17 @@
 package com.discordsrv.api;
 
 import org.jetbrains.annotations.ApiStatus;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
-import java.util.Optional;
-
-/**
- * The {@link DiscordSRVApi} provider.
- */
 @SuppressWarnings("unused") // API, Reflection
-public final class DiscordSRVApiProvider {
+@ApiStatus.Internal
+final class ApiInstanceHolder {
 
-    private static DiscordSRVApi API;
+    static DiscordSRVApi API;
 
-    private DiscordSRVApiProvider() {}
+    private ApiInstanceHolder() {}
 
-    @ApiStatus.Internal
     private static void provide(DiscordSRVApi api) {
-        DiscordSRVApiProvider.API = api;
+        ApiInstanceHolder.API = api;
     }
 
-    /**
-     * Checks if the API instance is available.
-     * @return true if {@link #get()} and {@link #optional()} will return the API instance
-     */
-    public static boolean isAvailable() {
-        return API != null;
-    }
-
-    /**
-     * Gets the instance of {@link DiscordSRVApi}.
-     * @return the DiscordSRV api, or {@code null} if not available
-     * @see #isAvailable()
-     */
-    @Nullable
-    public static DiscordSRVApi get() {
-        return API;
-    }
-
-    /**
-     * Returns a {@link Optional} of {@link DiscordSRVApi}.
-     * @return the DiscordSRV api in an optional
-     * @see #isAvailable()
-     */
-    @NotNull
-    public static Optional<DiscordSRVApi> optional() {
-        return Optional.ofNullable(API);
-    }
 }
