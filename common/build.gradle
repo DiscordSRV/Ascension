@@ -43,7 +43,9 @@ dependencies {
     runtimeDownloadApi 'commons-io:commons-io:2.10.0'
 
     // Caffeine
-    runtimeDownloadApi 'com.github.ben-manes.caffeine:caffeine:2.9.2'
+    runtimeDownloadApi('com.github.ben-manes.caffeine:caffeine:2.9.2') {
+        exclude group: 'com.google.errorprone', module: 'error_prone_annotations'
+    }
 
     // Config
     runtimeDownloadApi 'org.spongepowered:configurate-yaml:' + rootProject.configurateVersion

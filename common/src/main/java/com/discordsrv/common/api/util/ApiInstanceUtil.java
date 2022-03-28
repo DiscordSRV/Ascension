@@ -35,11 +35,12 @@ public final class ApiInstanceUtil {
     public static void setInstance(@NotNull DiscordSRV discordSRV) {
         // Avoids illegal access
         try {
-            Class<?> apiProviderClass = Class.forName("com.discordsrv.api.InstanceHolder");
+            Class<?> apiProviderClass = Class.forName("com.discordsrv.api.ApiInstanceHolder");
             Method provideMethod = apiProviderClass.getDeclaredMethod("provide", DiscordSRVApi.class);
             provideMethod.setAccessible(true);
             provideMethod.invoke(null, discordSRV);
         } catch (ClassNotFoundException | IllegalAccessException | NoSuchMethodException | InvocationTargetException e) {
+            e.printStackTrace();
             discordSRV.logger().error("Failed to set API instance", e);
         }
     }

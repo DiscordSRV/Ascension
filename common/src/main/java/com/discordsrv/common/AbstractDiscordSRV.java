@@ -47,7 +47,6 @@ import com.discordsrv.common.exception.StorageException;
 import com.discordsrv.common.function.CheckedFunction;
 import com.discordsrv.common.function.CheckedRunnable;
 import com.discordsrv.common.groupsync.GroupSyncModule;
-import com.discordsrv.common.integration.LuckPermsIntegration;
 import com.discordsrv.common.invite.DiscordInviteModule;
 import com.discordsrv.common.linking.LinkProvider;
 import com.discordsrv.common.linking.impl.MemoryLinker;
@@ -453,7 +452,6 @@ public abstract class AbstractDiscordSRV<C extends MainConfig, CC extends Connec
         registerModule(GlobalChannelLookupModule::new);
         registerModule(DiscordAPIEventModule::new);
         registerModule(GroupSyncModule::new);
-        registerModule(LuckPermsIntegration::new);
         registerModule(DiscordChatMessageModule::new);
         registerModule(DiscordMessageMirroringModule::new);
         registerModule(JoinMessageModule::new);
