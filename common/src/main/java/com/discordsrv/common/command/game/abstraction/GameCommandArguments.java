@@ -23,6 +23,10 @@ public interface GameCommandArguments {
 
     <T> T get(String label, Class<T> type);
 
+    default String getString(String label) {
+        return get(label, String.class);
+    }
+
     default Integer getInt(String label) {
         return get(label, Integer.class);
     }

@@ -23,6 +23,7 @@ import com.discordsrv.common.DiscordSRV;
 import com.discordsrv.common.command.game.abstraction.GameCommand;
 import com.discordsrv.common.command.game.abstraction.GameCommandArguments;
 import com.discordsrv.common.command.game.abstraction.GameCommandExecutor;
+import com.discordsrv.common.command.game.command.subcommand.DebugCommand;
 import com.discordsrv.common.command.game.command.subcommand.LinkCommand;
 import com.discordsrv.common.command.game.command.subcommand.ReloadCommand;
 import com.discordsrv.common.command.game.command.subcommand.VersionCommand;
@@ -38,6 +39,7 @@ public class DiscordSRVCommand implements GameCommandExecutor {
             INSTANCE = GameCommand.literal("discordsrv")
                     .requiredPermission("discordsrv.player.command")
                     .executor(new DiscordSRVCommand(discordSRV))
+                    .then(DebugCommand.get(discordSRV))
                     .then(LinkCommand.get(discordSRV))
                     .then(ReloadCommand.get(discordSRV))
                     .then(VersionCommand.get(discordSRV));
