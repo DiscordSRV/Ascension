@@ -69,13 +69,16 @@ import com.discordsrv.common.storage.Storage;
 import com.discordsrv.common.storage.StorageType;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import net.dv8tion.jda.api.JDA;
-import okhttp3.*;
+import okhttp3.OkHttpClient;
+import okhttp3.Request;
+import org.intellij.lang.annotations.Language;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.annotation.OverridingMethodsMustInvokeSuper;
 import java.io.IOException;
 import java.io.InputStream;
+import java.lang.reflect.Constructor;
 import java.net.URL;
 import java.util.Locale;
 import java.util.Optional;
@@ -306,8 +309,25 @@ public abstract class AbstractDiscordSRV<C extends MainConfig, CC extends Connec
     }
 
     @SuppressWarnings("unchecked")
-    protected <T extends DiscordSRV> void registerModule(CheckedFunction<T, AbstractModule<?>> function) {
+    protected final <T extends DiscordSRV> void registerModule(CheckedFunction<T, AbstractModule<?>> function) {
         moduleManager.registerModule((T) this, function);
+    }
+
+    /**
+     * @param className a class which has a constructor with {@link DiscordSRV} (or implementation specific) as the only parameter.
+     */
+    protected final void registerIntegration(
+            @Language(value = "JAVA", prefix = "class X{static{Class.forName(\"", suffix = "\");}}") String className
+    ) {
+        Object module;
+        try {
+            Class<?> clazz = Class.forName(className);
+            Constructor<?> constructor = clazz.getConstructor(getClass());
+            module = constructor.newInstance(this);
+        } catch (Throwable ignored) {
+            return;
+        }
+        moduleManager.registerModule(this, d -> (AbstractModule<?>) module);
     }
 
     @Override
@@ -439,6 +459,9 @@ public abstract class AbstractDiscordSRV<C extends MainConfig, CC extends Connec
         registerModule(JoinMessageModule::new);
         registerModule(LeaveMessageModule::new);
         registerModule(DiscordInviteModule::new);
+
+        // Integrations
+        registerIntegration("com.discordsrv.common.integration.LuckPermsIntegration");
 
         // Initial load
         try {
