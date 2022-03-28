@@ -122,11 +122,6 @@ public class BukkitDiscordSRV extends ServerDiscordSRV<BukkitConfig, BukkitConne
     }
 
     @Override
-    public String version() {
-        return bootstrap.getPlugin().getDescription().getVersion();
-    }
-
-    @Override
     public PluginManager pluginManager() {
         return pluginManager;
     }

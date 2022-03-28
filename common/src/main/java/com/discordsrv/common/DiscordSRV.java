@@ -41,8 +41,10 @@ import com.discordsrv.common.plugin.PluginManager;
 import com.discordsrv.common.profile.ProfileManager;
 import com.discordsrv.common.scheduler.Scheduler;
 import com.discordsrv.common.storage.Storage;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.benmanes.caffeine.cache.Caffeine;
 import dev.vankka.dependencydownload.classpath.ClasspathAppender;
+import okhttp3.OkHttpClient;
 import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -59,7 +61,6 @@ public interface DiscordSRV extends DiscordSRVApi {
     Path dataDirectory();
     Scheduler scheduler();
     Console console();
-    String version();
     PluginManager pluginManager();
     OnlineMode onlineMode();
     ClasspathAppender classpathAppender();
@@ -91,6 +92,14 @@ public interface DiscordSRV extends DiscordSRVApi {
 
     // Link Provider
     LinkProvider linkProvider();
+
+    // Version
+    @NotNull
+    String version();
+    @Nullable
+    String gitRevision();
+    @Nullable
+    String gitBranch();
 
     // Config
     ConnectionConfigManager<? extends ConnectionConfig> connectionConfigManager();
@@ -124,6 +133,8 @@ public interface DiscordSRV extends DiscordSRVApi {
         return (Caffeine<K, V>) Caffeine.newBuilder()
                 .executor(scheduler().forkJoinPool());
     }
+    OkHttpClient httpClient();
+    ObjectMapper json();
 
     // Lifecycle
     CompletableFuture<Void> invokeEnable();

@@ -37,7 +37,10 @@ import com.velocitypowered.api.proxy.ProxyServer;
 import dev.vankka.dependencydownload.classpath.ClasspathAppender;
 import org.jetbrains.annotations.NotNull;
 
+import java.net.URL;
+import java.net.URLClassLoader;
 import java.nio.file.Path;
+import java.util.jar.JarFile;
 
 public class VelocityDiscordSRV extends ProxyDiscordSRV<MainConfig, ConnectionConfig> {
 
@@ -69,6 +72,16 @@ public class VelocityDiscordSRV extends ProxyDiscordSRV<MainConfig, ConnectionCo
         this.commandHandler = new VelocityCommandHandler(this);
 
         load();
+    }
+
+    @Override
+    protected URL getManifest() {
+        ClassLoader classLoader = getClass().getClassLoader();
+        if (classLoader instanceof URLClassLoader) {
+            return ((URLClassLoader) classLoader).findResource(JarFile.MANIFEST_NAME);
+        } else {
+            throw new IllegalStateException("Class not loaded by a URLClassLoader, unable to get manifest");
+        }
     }
 
     public Object plugin() {
@@ -106,11 +119,6 @@ public class VelocityDiscordSRV extends ProxyDiscordSRV<MainConfig, ConnectionCo
     @Override
     public @NotNull VelocityPlayerProvider playerProvider() {
         return playerProvider;
-    }
-
-    @Override
-    public String version() {
-        return container().getDescription().getVersion().orElseThrow(() -> new IllegalStateException("No version"));
     }
 
     @Override

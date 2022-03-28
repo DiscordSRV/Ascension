@@ -113,11 +113,6 @@ public class SpongeDiscordSRV extends ServerDiscordSRV<MainConfig, ConnectionCon
     }
 
     @Override
-    public String version() {
-        return pluginContainer.metadata().version().toString();
-    }
-
-    @Override
     public PluginManager pluginManager() {
         return pluginManager;
     }

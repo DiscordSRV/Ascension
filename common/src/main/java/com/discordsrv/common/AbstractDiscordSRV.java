@@ -67,10 +67,16 @@ import com.discordsrv.common.placeholder.context.GlobalTextHandlingContext;
 import com.discordsrv.common.profile.ProfileManager;
 import com.discordsrv.common.storage.Storage;
 import com.discordsrv.common.storage.StorageType;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import net.dv8tion.jda.api.JDA;
+import okhttp3.*;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import javax.annotation.OverridingMethodsMustInvokeSuper;
+import java.io.IOException;
+import java.io.InputStream;
+import java.net.URL;
 import java.util.Locale;
 import java.util.Optional;
 import java.util.Set;
@@ -79,6 +85,9 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.concurrent.locks.ReentrantLock;
+import java.util.jar.Attributes;
+import java.util.jar.JarFile;
+import java.util.jar.Manifest;
 
 /**
  * DiscordSRV's implementation's common code.
@@ -108,6 +117,25 @@ public abstract class AbstractDiscordSRV<C extends MainConfig, CC extends Connec
     private boolean hikariLoaded = false;
     private LinkProvider linkProvider;
 
+    // Version
+    private String version;
+    private String gitRevision;
+    private String gitBranch;
+
+    private final OkHttpClient httpClient = new OkHttpClient.Builder()
+            .addInterceptor(chain -> {
+                Request original = chain.request();
+                return chain.proceed(
+                        original.newBuilder()
+                                .removeHeader("User-Agent")
+                                .addHeader("User-Agent", "DiscordSRV/" + version())
+                                .build()
+                );
+            })
+            .callTimeout(1, TimeUnit.MINUTES)
+            .build();
+    private final ObjectMapper objectMapper = new ObjectMapper();
+
     // Internal
     private final ReentrantLock lifecycleLock = new ReentrantLock();
 
@@ -129,6 +157,38 @@ public abstract class AbstractDiscordSRV<C extends MainConfig, CC extends Connec
         this.discordConnectionDetails = new DiscordConnectionDetailsImpl(this);
         this.discordConnectionManager = new JDAConnectionManager(this);
         this.channelConfig = new ChannelConfigHelper(this);
+        readManifest();
+    }
+
+    protected URL getManifest() {
+        return getClass().getClassLoader().getResource(JarFile.MANIFEST_NAME);
+    }
+
+    private void readManifest() {
+        try {
+            URL url = getManifest();
+            if (url == null) {
+                logger().error("Could not find manifest");
+                return;
+            }
+            try (InputStream inputStream = url.openStream()) {
+                Manifest manifest = new Manifest(inputStream);
+                Attributes attributes = manifest.getMainAttributes();
+
+                version = readAttribute(attributes, "Implementation-Version");
+                if (version == null) {
+                    logger().error("Failed to get version from manifest");
+                }
+                gitRevision = readAttribute(attributes, "Git-Commit");
+                gitBranch = readAttribute(attributes, "Git-Branch");
+            }
+        } catch (IOException e) {
+            logger().error("Failed to read manifest", e);
+        }
+    }
+
+    private String readAttribute(Attributes attributes, String key) {
+        return attributes.getValue(key);
     }
 
     // DiscordSRVApi
@@ -189,6 +249,21 @@ public abstract class AbstractDiscordSRV<C extends MainConfig, CC extends Connec
     @Override
     public LinkProvider linkProvider() {
         return linkProvider;
+    }
+
+    @Override
+    public @NotNull String version() {
+        return version;
+    }
+
+    @Override
+    public @Nullable String gitRevision() {
+        return gitRevision;
+    }
+
+    @Override
+    public @Nullable String gitBranch() {
+        return gitBranch;
     }
 
     @Override
@@ -276,6 +351,16 @@ public abstract class AbstractDiscordSRV<C extends MainConfig, CC extends Connec
                 }
             }
         }
+    }
+
+    @Override
+    public OkHttpClient httpClient() {
+        return httpClient;
+    }
+
+    @Override
+    public ObjectMapper json() {
+        return objectMapper;
     }
 
     // Lifecycle

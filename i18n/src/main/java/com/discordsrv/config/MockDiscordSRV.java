@@ -60,7 +60,7 @@ public class MockDiscordSRV extends AbstractDiscordSRV<MainConfig, ConnectionCon
     }
 
     @Override
-    public String version() {
+    public @NotNull String version() {
         return null;
     }
 

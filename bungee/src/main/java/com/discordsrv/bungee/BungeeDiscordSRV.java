@@ -104,11 +104,6 @@ public class BungeeDiscordSRV extends ProxyDiscordSRV<MainConfig, ConnectionConf
     }
 
     @Override
-    public String version() {
-        return bootstrap.getPlugin().getDescription().getVersion();
-    }
-
-    @Override
     public PluginManager pluginManager() {
         return pluginManager;
     }
