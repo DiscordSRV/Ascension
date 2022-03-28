@@ -40,7 +40,6 @@ public final class ApiInstanceUtil {
             provideMethod.setAccessible(true);
             provideMethod.invoke(null, discordSRV);
         } catch (ClassNotFoundException | IllegalAccessException | NoSuchMethodException | InvocationTargetException e) {
-            e.printStackTrace();
             discordSRV.logger().error("Failed to set API instance", e);
         }
     }
