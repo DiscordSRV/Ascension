@@ -37,7 +37,9 @@ import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.locks.ReentrantLock;
+import java.util.Queue;
+import java.util.concurrent.ConcurrentLinkedQueue;
+import java.util.concurrent.TimeUnit;
 
 public class DiscordSRVLogger implements Logger {
 
@@ -45,10 +47,11 @@ public class DiscordSRVLogger implements Logger {
     private static final String LOG_LINE_FORMAT = "[%s] [%s] %s";
     private static final String LOG_FILE_NAME_FORMAT = "%s-%s.log";
 
+    private final Queue<LogEntry> linesToAdd = new ConcurrentLinkedQueue<>();
+
     private final DiscordSRV discordSRV;
     private final Path logsDirectory;
     private final List<Path> debugLogs;
-    private final ReentrantLock debugLogLock = new ReentrantLock();
 
     public DiscordSRVLogger(DiscordSRV discordSRV) {
         this.discordSRV = discordSRV;
@@ -62,6 +65,7 @@ public class DiscordSRVLogger implements Logger {
         }
 
         this.debugLogs = rotateLog("debug", 3);
+        discordSRV.scheduler().runAtFixedRate(this::processLines, 0, 2, TimeUnit.SECONDS);
     }
 
     public List<Path> getDebugLogs() {
@@ -117,16 +121,23 @@ public class DiscordSRVLogger implements Logger {
             discordSRV.platformLogger().log(null, logLevel, message, throwable);
         }
 
-        // TODO: handle trace
+        // TODO: handle trace & hikari
         Path debugLog = debugLogs.isEmpty() ? null : debugLogs.get(0);
-        if (debugLog == null || logLevel == LogLevel.TRACE) {
+        if (debugLog == null || logLevel == LogLevel.TRACE/* || loggerName.equals("Hikari")*/) {
             return;
         }
         long time = System.currentTimeMillis();
-        discordSRV.scheduler().runFork(() -> writeToFile(loggerName, debugLog, time, logLevel, message, throwable));
+        linesToAdd.add(new LogEntry(debugLog, loggerName, time, logLevel, message, throwable));
     }
 
-    private void writeToFile(String loggerName, Path path, long time, LogLevel logLevel, String message, Throwable throwable) {
+    private void processLines() {
+        LogEntry entry;
+        while ((entry = linesToAdd.poll()) != null) {
+            writeToFile(entry.log(), entry.loggerName(), entry.time(), entry.logLevel(), entry.message(), entry.throwable());
+        }
+    }
+
+    private void writeToFile(Path path, String loggerName, long time, LogLevel logLevel, String message, Throwable throwable) {
         try {
             if (message == null) {
                 message = "";
@@ -141,25 +152,61 @@ public class DiscordSRVLogger implements Logger {
                 line += ExceptionUtils.getStackTrace(throwable) + "\n";
             }
 
-            synchronized (debugLogLock) {
-                try {
-                    debugLogLock.lock();
-                    Path parent = path.getParent();
-                    if (!Files.exists(parent)) {
-                        Files.createDirectories(parent);
-                    }
-                    if (!Files.exists(path)) {
-                        Files.createFile(path);
-                    }
-
-                    Files.write(path, line.getBytes(StandardCharsets.UTF_8), StandardOpenOption.APPEND);
-                } finally {
-                    debugLogLock.unlock();
-                }
+            Path parent = path.getParent();
+            if (!Files.exists(parent)) {
+                Files.createDirectories(parent);
             }
+            if (!Files.exists(path)) {
+                Files.createFile(path);
+            }
+
+            Files.write(path, line.getBytes(StandardCharsets.UTF_8), StandardOpenOption.APPEND);
         } catch (Throwable e) {
             // Prevent infinite loop
             discordSRV.platformLogger().error("Failed to write to debug log", e);
+        }
+    }
+
+    private static class LogEntry {
+
+        private final Path log;
+        private final String loggerName;
+        private final long time;
+        private final LogLevel logLevel;
+        private final String message;
+        private final Throwable throwable;
+
+        public LogEntry(Path log, String loggerName, long time, LogLevel logLevel, String message, Throwable throwable) {
+            this.log = log;
+            this.loggerName = loggerName;
+            this.time = time;
+            this.logLevel = logLevel;
+            this.message = message;
+            this.throwable = throwable;
+        }
+
+        public Path log() {
+            return log;
+        }
+
+        public String loggerName() {
+            return loggerName;
+        }
+
+        public long time() {
+            return time;
+        }
+
+        public LogLevel logLevel() {
+            return logLevel;
+        }
+
+        public String message() {
+            return message;
+        }
+
+        public Throwable throwable() {
+            return throwable;
         }
     }
 }
