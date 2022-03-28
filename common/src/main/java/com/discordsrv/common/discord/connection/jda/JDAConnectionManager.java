@@ -335,8 +335,12 @@ public class JDAConnectionManager implements DiscordConnectionManager {
     }
 
     private void shutdownExecutors() {
-        gatewayPool.shutdownNow();
-        rateLimitPool.shutdownNow();
+        if (gatewayPool != null) {
+            gatewayPool.shutdownNow();
+        }
+        if (rateLimitPool != null) {
+            rateLimitPool.shutdownNow();
+        }
     }
 
     //
