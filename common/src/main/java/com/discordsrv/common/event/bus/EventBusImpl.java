@@ -75,12 +75,11 @@ public class EventBusImpl implements EventBus {
 
         List<Throwable> suppressedMethods = new ArrayList<>();
         List<EventListenerImpl> methods = new ArrayList<>();
-        EnumMap<EventPriority, List<EventListenerImpl>> methodsByPriority = new EnumMap<>(EventPriority.class);
 
         Class<?> currentClass = listenerClass;
         do {
             for (Method method : currentClass.getDeclaredMethods()) {
-                checkMethod(eventListener, listenerClass, method, suppressedMethods, methods, methodsByPriority);
+                checkMethod(eventListener, listenerClass, method, suppressedMethods, methods);
             }
         } while ((currentClass = currentClass.getSuperclass()) != null);
 
@@ -97,8 +96,7 @@ public class EventBusImpl implements EventBus {
     }
 
     private void checkMethod(Object eventListener, Class<?> listenerClass, Method method,
-                             List<Throwable> suppressedMethods, List<EventListenerImpl> methods,
-                             EnumMap<EventPriority, List<EventListenerImpl>> methodsByPriority) {
+                             List<Throwable> suppressedMethods, List<EventListenerImpl> methods) {
         Subscribe annotation = method.getAnnotation(Subscribe.class);
         if (annotation == null) {
             return;
@@ -144,12 +142,8 @@ public class EventBusImpl implements EventBus {
             return;
         }
 
-        EventPriority eventPriority = annotation.priority();
         EventListenerImpl listener = new EventListenerImpl(eventListener, listenerClass, annotation, firstParameter, method);
-
         methods.add(listener);
-        methodsByPriority.computeIfAbsent(eventPriority, key -> new CopyOnWriteArrayList<>())
-                .add(listener);
     }
 
     private Throwable createReasonException(String message) {
