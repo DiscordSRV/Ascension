@@ -19,7 +19,6 @@
 package com.discordsrv.common.server.modules;
 
 import com.discordsrv.api.discord.api.entity.message.ReceivedDiscordMessageCluster;
-import com.discordsrv.api.discord.api.entity.message.SendableDiscordMessage;
 import com.discordsrv.api.event.bus.EventPriority;
 import com.discordsrv.api.event.bus.Subscribe;
 import com.discordsrv.api.event.events.message.forward.game.DeathMessageForwardedEvent;
@@ -27,7 +26,6 @@ import com.discordsrv.api.event.events.message.receive.game.DeathMessageReceiveE
 import com.discordsrv.common.DiscordSRV;
 import com.discordsrv.common.config.main.channels.base.BaseChannelConfig;
 import com.discordsrv.common.function.OrDefault;
-import com.discordsrv.common.logging.NamedLogger;
 import com.discordsrv.common.messageforwarding.game.AbstractGameMessageModule;
 import com.discordsrv.common.server.config.channels.DeathMessageConfig;
 import com.discordsrv.common.server.config.channels.base.ServerBaseChannelConfig;
@@ -35,7 +33,7 @@ import com.discordsrv.common.server.config.channels.base.ServerBaseChannelConfig
 public class DeathMessageModule extends AbstractGameMessageModule<DeathMessageConfig> {
 
     public DeathMessageModule(DiscordSRV discordSRV) {
-        super(discordSRV, new NamedLogger(discordSRV, "DEATH"));
+        super(discordSRV, "DEATH_MESSAGES");
     }
 
     @Subscribe(priority = EventPriority.LAST)
@@ -51,16 +49,6 @@ public class DeathMessageModule extends AbstractGameMessageModule<DeathMessageCo
     @Override
     public OrDefault<DeathMessageConfig> mapConfig(OrDefault<BaseChannelConfig> channelConfig) {
         return channelConfig.map(cfg -> ((ServerBaseChannelConfig) cfg).deathMessages);
-    }
-
-    @Override
-    public boolean isEnabled(OrDefault<DeathMessageConfig> config) {
-        return config.get(cfg -> cfg.enabled, true);
-    }
-
-    @Override
-    public SendableDiscordMessage.Builder getFormat(OrDefault<DeathMessageConfig> config) {
-        return config.get(cfg -> cfg.format);
     }
 
     @Override

@@ -45,11 +45,16 @@ public abstract class ServerDiscordSRV<C extends MainConfig, CC extends Connecti
     }
 
     public final CompletableFuture<Void> invokeServerStarted() {
-        return invokeLifecycle(this::serverStarted, "Failed to enable", true);
+        return invokeLifecycle(() -> {
+            if (status().isShutdown()) {
+                return;
+            }
+            this.serverStarted();
+        });
     }
 
     @OverridingMethodsMustInvokeSuper
     protected void serverStarted() {
-
+        startedMessage();
     }
 }

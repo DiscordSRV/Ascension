@@ -159,8 +159,9 @@ public class DiscordAPIImpl implements DiscordAPI {
 
             futures.add(future.handle((threadChannel, t) -> {
                 if (t != null) {
-                    discordSRV.logger().error("Failed to deliver message to thread \""
-                                                      + threadConfig.threadName + "\" in channel " + channel, t);
+                    discordSRV.discordConnectionManager().handleRequestFailure(
+                            "Failed to deliver message to thread \""
+                                    + threadConfig.threadName + "\" in channel " + channel, t);
                     throw new RuntimeException(); // Just here to fail the future
                 }
 

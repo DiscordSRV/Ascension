@@ -37,7 +37,6 @@ import com.discordsrv.common.DiscordSRV;
 import com.discordsrv.common.config.main.channels.MinecraftToDiscordChatConfig;
 import com.discordsrv.common.config.main.channels.base.BaseChannelConfig;
 import com.discordsrv.common.function.OrDefault;
-import com.discordsrv.common.logging.NamedLogger;
 import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.entities.GuildChannel;
 import net.dv8tion.jda.api.entities.Member;
@@ -66,7 +65,7 @@ public class MinecraftToDiscordChatModule extends AbstractGameMessageModule<Mine
     private final Map<Long, Map<Long, CachedMention>> channelMentions = new ConcurrentHashMap<>();
 
     public MinecraftToDiscordChatModule(DiscordSRV discordSRV) {
-        super(discordSRV, new NamedLogger(discordSRV, "MINECRAFT_TO_DISCORD"));
+        super(discordSRV, "MINECRAFT_TO_DISCORD");
     }
 
     @Override
@@ -89,16 +88,6 @@ public class MinecraftToDiscordChatModule extends AbstractGameMessageModule<Mine
     @Override
     public OrDefault<MinecraftToDiscordChatConfig> mapConfig(OrDefault<BaseChannelConfig> channelConfig) {
         return channelConfig.map(cfg -> cfg.minecraftToDiscord);
-    }
-
-    @Override
-    public boolean isEnabled(OrDefault<MinecraftToDiscordChatConfig> config) {
-        return config.get(cfg -> cfg.enabled, true);
-    }
-
-    @Override
-    public SendableDiscordMessage.Builder getFormat(OrDefault<MinecraftToDiscordChatConfig> config) {
-        return config.get(cfg -> cfg.format);
     }
 
     @Override

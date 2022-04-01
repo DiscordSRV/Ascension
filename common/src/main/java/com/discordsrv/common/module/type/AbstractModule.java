@@ -44,6 +44,10 @@ public abstract class AbstractModule<DT extends DiscordSRV> implements Module {
         return logger;
     }
 
+    public boolean isHasBeenEnabled() {
+        return hasBeenEnabled;
+    }
+
     public final boolean enableModule() {
         if (hasBeenEnabled || !isEnabled()) {
             return false;

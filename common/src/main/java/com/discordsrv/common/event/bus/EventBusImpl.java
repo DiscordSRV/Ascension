@@ -39,7 +39,10 @@ import org.jetbrains.annotations.NotNull;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.function.Function;
@@ -63,6 +66,11 @@ public class EventBusImpl implements EventBus {
         this.discordSRV = discordSRV;
         this.logger = new NamedLogger(discordSRV, "EVENT_BUS");
         subscribe(this);
+    }
+
+    public void shutdown() {
+        listeners.clear();
+        allListeners.clear();
     }
 
     @Override

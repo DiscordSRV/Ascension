@@ -77,6 +77,7 @@ public class JDAConnectionManager implements DiscordConnectionManager {
     }
 
     private final DiscordSRV discordSRV;
+    private final DefaultFailureCallback defaultFailureCallback;
     private ScheduledExecutorService gatewayPool;
     private ScheduledExecutorService rateLimitPool;
 
@@ -94,9 +95,10 @@ public class JDAConnectionManager implements DiscordConnectionManager {
 
     public JDAConnectionManager(DiscordSRV discordSRV) {
         this.discordSRV = discordSRV;
+        this.defaultFailureCallback = new DefaultFailureCallback(new NamedLogger(discordSRV, "DISCORD_REQUESTS"));
 
         // Set default failure handling
-        RestAction.setDefaultFailure(new DefaultFailureCallback(new NamedLogger(discordSRV, "DISCORD_REQUESTS")));
+        RestAction.setDefaultFailure(defaultFailureCallback);
 
         // Disable all mentions by default for safety
         AllowedMentions.setDefaultMentions(Collections.emptyList());
@@ -211,9 +213,7 @@ public class JDAConnectionManager implements DiscordConnectionManager {
             throw new IllegalStateException("Cannot reconnect, still active");
         }
 
-        CompletableFuture<Void> future = CompletableFuture.runAsync(this::connectInternal, discordSRV.scheduler().executor());
-        connectionFuture = future;
-        return future;
+        return connectionFuture = CompletableFuture.runAsync(this::connectInternal, discordSRV.scheduler().executor());
     }
 
     private void connectInternal() {
@@ -306,7 +306,7 @@ public class JDAConnectionManager implements DiscordConnectionManager {
         try {
             discordSRV.scheduler().run(() -> {
                 try {
-                    while (instance.getStatus() != JDA.Status.SHUTDOWN) {
+                    while (instance != null && instance.getStatus() != JDA.Status.SHUTDOWN) {
                         Thread.sleep(50);
                     }
                 } catch (InterruptedException ignored) {}
@@ -436,6 +436,10 @@ public class JDAConnectionManager implements DiscordConnectionManager {
         discordSRV.logger().error("+------------------------------>");
     }
 
+    public void handleRequestFailure(String context, Throwable cause) {
+        defaultFailureCallback.accept(context, cause);
+    }
+
     private class DefaultFailureCallback implements Consumer<Throwable> {
 
         private final Logger logger;
@@ -446,6 +450,10 @@ public class JDAConnectionManager implements DiscordConnectionManager {
 
         @Override
         public void accept(Throwable t) {
+            accept(null, t);
+        }
+
+        public void accept(String context, Throwable t) {
             if ((t instanceof InterruptedIOException || t instanceof InterruptedException)
                     && discordSRV.status().isShutdown()) {
                 // Ignore interrupted exceptions when DiscordSRV is shutting down or shutdown
@@ -460,7 +468,7 @@ public class JDAConnectionManager implements DiscordConnectionManager {
                 // Log route & retry after on warn & context on debug
                 RateLimitedException exception = ((RateLimitedException) t);
                 discordSRV.logger().warning("A request on route " + exception.getRateLimitedRoute()
-                        + " was rate-limited for " + exception.getRetryAfter() + "ms");
+                                                    + " was rate-limited for " + exception.getRetryAfter() + "ms");
                 logger.debug(exception.getCause());
             } else if (t instanceof ErrorResponseException) {
                 ErrorResponseException exception = (ErrorResponseException) t;
@@ -471,7 +479,7 @@ public class JDAConnectionManager implements DiscordConnectionManager {
                         // Run the cause through this method again
                         accept(cause);
                     } else {
-                        logger.error("Failed to complete request for a unknown reason", exception);
+                        logger.error((context != null ? context + ": " : "") + "Failed to complete request for a unknown reason", exception);
                     }
                     return;
                 }
@@ -520,8 +528,10 @@ public class JDAConnectionManager implements DiscordConnectionManager {
                     default: break;
                 }
 
-                logger.error("Failed to complete a request: " + response.getMeaning());
+                logger.error((context != null ? context : "Failed to complete a request") + ": " + response.getMeaning());
                 logger.debug(exception);
+            } else {
+                logger.error(context != null ? context : "Failed to complete a request due to unknown error", t);
             }
         }
     }

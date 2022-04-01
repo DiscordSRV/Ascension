@@ -21,10 +21,11 @@ package com.discordsrv.proxy.config.channels;
 import com.discordsrv.api.discord.api.entity.message.DiscordMessageEmbed;
 import com.discordsrv.api.discord.api.entity.message.SendableDiscordMessage;
 import com.discordsrv.common.config.annotation.Untranslated;
+import com.discordsrv.common.config.main.channels.IMessageConfig;
 import org.spongepowered.configurate.objectmapping.ConfigSerializable;
 
 @ConfigSerializable
-public class ServerSwitchMessageConfig {
+public class ServerSwitchMessageConfig implements IMessageConfig {
 
     public boolean enabled = true;
 
@@ -40,4 +41,14 @@ public class ServerSwitchMessageConfig {
                             .setColor(0x5555FF)
                             .build()
             );
+
+    @Override
+    public boolean enabled() {
+        return enabled;
+    }
+
+    @Override
+    public SendableDiscordMessage.Builder format() {
+        return format;
+    }
 }

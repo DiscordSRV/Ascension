@@ -24,7 +24,7 @@ import com.discordsrv.common.config.annotation.Untranslated;
 import org.spongepowered.configurate.objectmapping.ConfigSerializable;
 
 @ConfigSerializable
-public class JoinMessageConfig {
+public class JoinMessageConfig implements IMessageConfig {
 
     public boolean enabled = true;
 
@@ -36,4 +36,14 @@ public class JoinMessageConfig {
                             .setColor(0x55FF55)
                             .build()
             );
+
+    @Override
+    public boolean enabled() {
+        return enabled;
+    }
+
+    @Override
+    public SendableDiscordMessage.Builder format() {
+        return format;
+    }
 }

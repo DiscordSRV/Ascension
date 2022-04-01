@@ -19,7 +19,6 @@
 package com.discordsrv.common;
 
 import com.discordsrv.api.discord.connection.DiscordConnectionDetails;
-import com.discordsrv.api.event.bus.EventBus;
 import com.discordsrv.api.event.events.lifecycle.DiscordSRVConnectedEvent;
 import com.discordsrv.api.event.events.lifecycle.DiscordSRVReadyEvent;
 import com.discordsrv.api.event.events.lifecycle.DiscordSRVReloadedEvent;
@@ -58,6 +57,8 @@ import com.discordsrv.common.messageforwarding.discord.DiscordChatMessageModule;
 import com.discordsrv.common.messageforwarding.discord.DiscordMessageMirroringModule;
 import com.discordsrv.common.messageforwarding.game.JoinMessageModule;
 import com.discordsrv.common.messageforwarding.game.LeaveMessageModule;
+import com.discordsrv.common.messageforwarding.game.StartMessageModule;
+import com.discordsrv.common.messageforwarding.game.StopMessageModule;
 import com.discordsrv.common.module.ModuleManager;
 import com.discordsrv.common.module.type.AbstractModule;
 import com.discordsrv.common.placeholder.ComponentResultStringifier;
@@ -100,9 +101,10 @@ import java.util.jar.Manifest;
 public abstract class AbstractDiscordSRV<C extends MainConfig, CC extends ConnectionConfig> implements DiscordSRV {
 
     private final AtomicReference<Status> status = new AtomicReference<>(Status.INITIALIZED);
+    private CompletableFuture<Void> enableFuture;
 
     // DiscordSRVApi
-    private EventBus eventBus;
+    private EventBusImpl eventBus;
     private ProfileManager profileManager;
     private PlaceholderServiceImpl placeholderService;
     private ComponentFactory componentFactory;
@@ -201,7 +203,7 @@ public abstract class AbstractDiscordSRV<C extends MainConfig, CC extends Connec
     }
 
     @Override
-    public @NotNull EventBus eventBus() {
+    public @NotNull EventBusImpl eventBus() {
         return eventBus;
     }
 
@@ -274,7 +276,7 @@ public abstract class AbstractDiscordSRV<C extends MainConfig, CC extends Connec
     }
 
     @Override
-    public DiscordConnectionManager discordConnectionManager() {
+    public JDAConnectionManager discordConnectionManager() {
         return discordConnectionManager;
     }
 
@@ -384,7 +386,7 @@ public abstract class AbstractDiscordSRV<C extends MainConfig, CC extends Connec
 
     // Lifecycle
 
-    protected CompletableFuture<Void> invokeLifecycle(CheckedRunnable runnable, String message, boolean enable) {
+    protected CompletableFuture<Void> invokeLifecycle(CheckedRunnable runnable) {
         return invoke(() -> {
             try {
                 lifecycleLock.lock();
@@ -392,7 +394,7 @@ public abstract class AbstractDiscordSRV<C extends MainConfig, CC extends Connec
             } finally {
                 lifecycleLock.unlock();
             }
-        }, message, enable);
+        }, "Failed to enable", true);
     }
 
     protected CompletableFuture<Void> invoke(CheckedRunnable runnable, String message, boolean enable) {
@@ -406,21 +408,24 @@ public abstract class AbstractDiscordSRV<C extends MainConfig, CC extends Connec
                 }
                 logger().error(message, t);
             }
-        }, scheduler().executor());
+        }, scheduler().executorService());
     }
 
     @Override
     public final CompletableFuture<Void> invokeEnable() {
-        return invokeLifecycle(() -> {
+        return enableFuture = invokeLifecycle(() -> {
             this.enable();
             waitForStatus(Status.CONNECTED);
             eventBus().publish(new DiscordSRVReadyEvent());
-        }, "Failed to enable", true);
+        });
     }
 
     @Override
     public final CompletableFuture<Void> invokeDisable() {
-        return invokeLifecycle(this::disable, "Failed to disable", false);
+        if (enableFuture != null && !enableFuture.isDone()) {
+            enableFuture.cancel(true);
+        }
+        return CompletableFuture.runAsync(this::disable, scheduler().executorService());
     }
 
     @Override
@@ -469,6 +474,11 @@ public abstract class AbstractDiscordSRV<C extends MainConfig, CC extends Connec
         }
     }
 
+    protected final void startedMessage() {
+        registerModule(StartMessageModule::new);
+        registerModule(StopMessageModule::new);
+    }
+
     private StorageType getStorageType() {
         String backend = connectionConfig().storage.backend;
         switch (backend.toLowerCase(Locale.ROOT)) {
@@ -487,6 +497,7 @@ public abstract class AbstractDiscordSRV<C extends MainConfig, CC extends Connec
         }
         this.status.set(Status.SHUTTING_DOWN);
         eventBus().publish(new DiscordSRVShuttingDownEvent());
+        eventBus().shutdown();
         this.status.set(Status.SHUTDOWN);
     }
 
@@ -574,7 +585,9 @@ public abstract class AbstractDiscordSRV<C extends MainConfig, CC extends Connec
                 } else {
                     discordConnectionManager.connect().get();
                 }
-                waitForStatus(Status.CONNECTED, 20, TimeUnit.SECONDS);
+                if (!initial) {
+                    waitForStatus(Status.CONNECTED, 20, TimeUnit.SECONDS);
+                }
             } catch (ExecutionException e) {
                 throw e.getCause();
             }

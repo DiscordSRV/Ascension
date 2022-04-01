@@ -21,11 +21,12 @@ package com.discordsrv.common.server.config.channels;
 import com.discordsrv.api.discord.api.entity.message.DiscordMessageEmbed;
 import com.discordsrv.api.discord.api.entity.message.SendableDiscordMessage;
 import com.discordsrv.common.config.annotation.Untranslated;
+import com.discordsrv.common.config.main.channels.IMessageConfig;
 import org.spongepowered.configurate.objectmapping.ConfigSerializable;
 import org.spongepowered.configurate.objectmapping.meta.Comment;
 
 @ConfigSerializable
-public class DeathMessageConfig {
+public class DeathMessageConfig implements IMessageConfig {
 
     @Comment("Enable death message forwarding")
     public boolean enabled = true;
@@ -38,4 +39,14 @@ public class DeathMessageConfig {
                             .setColor(1)
                             .build()
             );
+
+    @Override
+    public boolean enabled() {
+        return enabled;
+    }
+
+    @Override
+    public SendableDiscordMessage.Builder format() {
+        return format;
+    }
 }

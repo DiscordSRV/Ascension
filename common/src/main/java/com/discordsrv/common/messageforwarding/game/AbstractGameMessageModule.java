@@ -31,11 +31,13 @@ import com.discordsrv.api.placeholder.FormattedText;
 import com.discordsrv.api.player.DiscordSRVPlayer;
 import com.discordsrv.common.DiscordSRV;
 import com.discordsrv.common.component.util.ComponentUtil;
+import com.discordsrv.common.config.main.channels.IMessageConfig;
 import com.discordsrv.common.config.main.channels.base.BaseChannelConfig;
 import com.discordsrv.common.config.main.channels.base.IChannelConfig;
 import com.discordsrv.common.discord.api.entity.message.ReceivedDiscordMessageClusterImpl;
 import com.discordsrv.common.function.OrDefault;
-import com.discordsrv.common.logging.Logger;
+import com.discordsrv.common.future.util.CompletableFutureUtil;
+import com.discordsrv.common.logging.NamedLogger;
 import com.discordsrv.common.module.type.AbstractModule;
 import net.kyori.adventure.text.Component;
 import org.jetbrains.annotations.NotNull;
@@ -46,47 +48,46 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionException;
 import java.util.concurrent.CopyOnWriteArrayList;
 
-public abstract class AbstractGameMessageModule<T> extends AbstractModule<DiscordSRV> {
+public abstract class AbstractGameMessageModule<T extends IMessageConfig> extends AbstractModule<DiscordSRV> {
 
-    public AbstractGameMessageModule(DiscordSRV discordSRV, Logger logger) {
-        super(discordSRV, logger);
+    public AbstractGameMessageModule(DiscordSRV discordSRV, String loggerName) {
+        super(discordSRV, new NamedLogger(discordSRV, loggerName));
     }
 
     public abstract OrDefault<T> mapConfig(OrDefault<BaseChannelConfig> channelConfig);
-    public abstract boolean isEnabled(OrDefault<T> config);
-    public abstract SendableDiscordMessage.Builder getFormat(OrDefault<T> config);
     public abstract void postClusterToEventBus(ReceivedDiscordMessageCluster cluster);
 
-    public final void process(
-            @NotNull AbstractGameMessageReceiveEvent event,
-            @NotNull DiscordSRVPlayer player,
+    public final CompletableFuture<?> process(
+            @Nullable AbstractGameMessageReceiveEvent event,
+            @Nullable DiscordSRVPlayer player,
             @Nullable GameChannel channel
     ) {
         if (channel == null) {
             // Send to all channels due to lack of specified channel
+            List<CompletableFuture<Void>> futures = new ArrayList<>();
             for (OrDefault<BaseChannelConfig> channelConfig : discordSRV.channelConfig().getAllChannels()) {
-                forwardToChannel(event, player, channelConfig);
+                futures.add(forwardToChannel(event, player, channelConfig));
             }
-            return;
+            return CompletableFutureUtil.combine(futures);
         }
 
         OrDefault<BaseChannelConfig> channelConfig = discordSRV.channelConfig().orDefault(channel);
-        forwardToChannel(event, player, channelConfig);
+        return forwardToChannel(event, player, channelConfig);
     }
 
-    private void forwardToChannel(
-            @NotNull AbstractGameMessageReceiveEvent event,
-            @NotNull DiscordSRVPlayer player,
+    private CompletableFuture<Void> forwardToChannel(
+            @Nullable AbstractGameMessageReceiveEvent event,
+            @Nullable DiscordSRVPlayer player,
             @NotNull OrDefault<BaseChannelConfig> channelConfig
     ) {
         OrDefault<T> config = mapConfig(channelConfig);
-        if (!isEnabled(config)) {
-            return;
+        if (!config.get(IMessageConfig::enabled, true)) {
+            return null;
         }
 
         IChannelConfig iChannelConfig = channelConfig.get(cfg -> cfg instanceof IChannelConfig ? (IChannelConfig) cfg : null);
         if (iChannelConfig == null) {
-            return;
+            return null;
         }
 
         List<DiscordMessageChannel> messageChannels = new CopyOnWriteArrayList<>();
@@ -108,13 +109,14 @@ public abstract class AbstractGameMessageModule<T> extends AbstractModule<Discor
 
         discordSRV.discordAPI().findOrCreateThreads(iChannelConfig, messageChannels::add, futures);
 
-        CompletableFuture.allOf(futures.toArray(new CompletableFuture[0])).whenComplete((v, t1) -> {
-            SendableDiscordMessage.Builder format = getFormat(config);
+        return CompletableFuture.allOf(futures.toArray(new CompletableFuture[0])).whenComplete((v, t1) -> {
+            SendableDiscordMessage.Builder format = config.get(IMessageConfig::format);
             if (format == null) {
                 return;
             }
 
-            String message = convertMessage(config, ComponentUtil.fromAPI(event.getMessage()));
+            Component component = event != null ? ComponentUtil.fromAPI(event.getMessage()) : null;
+            String message = component != null ? convertMessage(config, component) : null;
             Map<CompletableFuture<ReceivedDiscordMessage>, DiscordMessageChannel> messageFutures;
             messageFutures = sendMessageToChannels(
                     config, format, messageChannels, message,
@@ -129,7 +131,11 @@ public abstract class AbstractGameMessageModule<T> extends AbstractModule<Discor
                             CompletableFuture<ReceivedDiscordMessage> future = entry.getKey();
                             if (future.isCompletedExceptionally()) {
                                 future.exceptionally(t -> {
-                                    discordSRV.logger().error("Failed to deliver a message to the " + entry.getValue() + " channel", t);
+                                    if (t instanceof CompletionException) {
+                                        t = t.getCause();
+                                    }
+                                    discordSRV.discordConnectionManager().handleRequestFailure(
+                                            "Failed to deliver a message to " + entry.getValue(), t);
                                     return null;
                                 });
                                 // Ignore ones that failed
@@ -140,7 +146,7 @@ public abstract class AbstractGameMessageModule<T> extends AbstractModule<Discor
                             messages.add(future.join());
                         }
 
-                        if (message.isEmpty()) {
+                        if (messages.isEmpty()) {
                             // Nothing was delivered
                             return;
                         }

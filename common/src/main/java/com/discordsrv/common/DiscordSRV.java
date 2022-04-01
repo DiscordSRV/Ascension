@@ -30,7 +30,7 @@ import com.discordsrv.common.config.manager.MainConfigManager;
 import com.discordsrv.common.console.Console;
 import com.discordsrv.common.debug.data.OnlineMode;
 import com.discordsrv.common.discord.api.DiscordAPIImpl;
-import com.discordsrv.common.discord.connection.DiscordConnectionManager;
+import com.discordsrv.common.discord.connection.jda.JDAConnectionManager;
 import com.discordsrv.common.linking.LinkProvider;
 import com.discordsrv.common.logging.Logger;
 import com.discordsrv.common.logging.impl.DiscordSRVLogger;
@@ -50,7 +50,8 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.nio.file.Path;
-import java.util.*;
+import java.util.Locale;
+import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
 
@@ -110,7 +111,7 @@ public interface DiscordSRV extends DiscordSRVApi {
     ChannelConfigHelper channelConfig();
 
     // Internal
-    DiscordConnectionManager discordConnectionManager();
+    JDAConnectionManager discordConnectionManager();
 
     // Modules
     @Nullable

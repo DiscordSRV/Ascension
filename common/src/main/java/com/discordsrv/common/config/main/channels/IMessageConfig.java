@@ -18,32 +18,10 @@
 
 package com.discordsrv.common.config.main.channels;
 
-import com.discordsrv.api.discord.api.entity.message.DiscordMessageEmbed;
 import com.discordsrv.api.discord.api.entity.message.SendableDiscordMessage;
-import com.discordsrv.common.config.annotation.Untranslated;
-import org.spongepowered.configurate.objectmapping.ConfigSerializable;
 
-@ConfigSerializable
-public class LeaveMessageConfig implements IMessageConfig {
+public interface IMessageConfig {
 
-    public boolean enabled = true;
-
-    @Untranslated(Untranslated.Type.VALUE)
-    public SendableDiscordMessage.Builder format = SendableDiscordMessage.builder()
-            .addEmbed(
-                    DiscordMessageEmbed.builder()
-                            .setAuthor("%player_display_name% left", null, "%player_avatar_url%")
-                            .setColor(0xFF5555)
-                            .build()
-            );
-
-    @Override
-    public boolean enabled() {
-        return enabled;
-    }
-
-    @Override
-    public SendableDiscordMessage.Builder format() {
-        return format;
-    }
+    boolean enabled();
+    SendableDiscordMessage.Builder format();
 }

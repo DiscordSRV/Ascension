@@ -19,7 +19,6 @@
 package com.discordsrv.common.messageforwarding.game;
 
 import com.discordsrv.api.discord.api.entity.message.ReceivedDiscordMessageCluster;
-import com.discordsrv.api.discord.api.entity.message.SendableDiscordMessage;
 import com.discordsrv.api.event.bus.EventPriority;
 import com.discordsrv.api.event.bus.Subscribe;
 import com.discordsrv.api.event.events.message.forward.game.JoinMessageForwardedEvent;
@@ -28,27 +27,16 @@ import com.discordsrv.common.DiscordSRV;
 import com.discordsrv.common.config.main.channels.JoinMessageConfig;
 import com.discordsrv.common.config.main.channels.base.BaseChannelConfig;
 import com.discordsrv.common.function.OrDefault;
-import com.discordsrv.common.logging.NamedLogger;
 
 public class JoinMessageModule extends AbstractGameMessageModule<JoinMessageConfig> {
 
     public JoinMessageModule(DiscordSRV discordSRV) {
-        super(discordSRV, new NamedLogger(discordSRV, "JOIN_MESSAGES"));
+        super(discordSRV, "JOIN_MESSAGES");
     }
 
     @Override
     public OrDefault<JoinMessageConfig> mapConfig(OrDefault<BaseChannelConfig> channelConfig) {
         return channelConfig.map(cfg -> cfg.joinMessages);
-    }
-
-    @Override
-    public boolean isEnabled(OrDefault<JoinMessageConfig> config) {
-        return config.get(cfg -> cfg.enabled, true);
-    }
-
-    @Override
-    public SendableDiscordMessage.Builder getFormat(OrDefault<JoinMessageConfig> config) {
-        return config.get(cfg -> cfg.format);
     }
 
     @Override

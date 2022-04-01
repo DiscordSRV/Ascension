@@ -19,37 +19,35 @@
 package com.discordsrv.common.messageforwarding.game;
 
 import com.discordsrv.api.discord.api.entity.message.ReceivedDiscordMessageCluster;
-import com.discordsrv.api.event.bus.EventPriority;
-import com.discordsrv.api.event.bus.Subscribe;
-import com.discordsrv.api.event.events.message.forward.game.LeaveMessageForwardedEvent;
-import com.discordsrv.api.event.events.message.receive.game.LeaveMessageReceiveEvent;
 import com.discordsrv.common.DiscordSRV;
-import com.discordsrv.common.config.main.channels.LeaveMessageConfig;
+import com.discordsrv.common.config.main.channels.StopMessageConfig;
 import com.discordsrv.common.config.main.channels.base.BaseChannelConfig;
 import com.discordsrv.common.function.OrDefault;
 
-public class LeaveMessageModule extends AbstractGameMessageModule<LeaveMessageConfig> {
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 
-    public LeaveMessageModule(DiscordSRV discordSRV) {
-        super(discordSRV, "LEAVE_MESSAGES");
+public class StopMessageModule extends AbstractGameMessageModule<StopMessageConfig> {
+
+    public StopMessageModule(DiscordSRV discordSRV) {
+        super(discordSRV, "START_MESSAGE");
     }
 
     @Override
-    public OrDefault<LeaveMessageConfig> mapConfig(OrDefault<BaseChannelConfig> channelConfig) {
-        return channelConfig.map(cfg -> cfg.leaveMessages);
+    public OrDefault<StopMessageConfig> mapConfig(OrDefault<BaseChannelConfig> channelConfig) {
+        return channelConfig.map(cfg -> cfg.stopMessage);
     }
 
     @Override
-    public void postClusterToEventBus(ReceivedDiscordMessageCluster cluster) {
-        discordSRV.eventBus().publish(new LeaveMessageForwardedEvent(cluster));
-    }
+    public void postClusterToEventBus(ReceivedDiscordMessageCluster cluster) {}
 
-    @Subscribe(priority = EventPriority.LAST)
-    public void onStatusMessageReceive(LeaveMessageReceiveEvent event) {
-        if (checkCancellation(event) || checkProcessor(event)) {
-            return;
-        }
-
-        process(event, event.getPlayer(), event.getGameChannel());
+    @Override
+    public void disable() {
+        try {
+            process(null, null, null).get(5, TimeUnit.SECONDS);
+        } catch (TimeoutException e) {
+            logger().error("Failed to queue stop message to be sent within 5 seconds.");
+        } catch (InterruptedException | ExecutionException ignored) {}
     }
 }

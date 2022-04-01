@@ -31,6 +31,8 @@ public class BaseChannelConfig {
     public DiscordToMinecraftChatConfig discordToMinecraft = new DiscordToMinecraftChatConfig();
     public JoinMessageConfig joinMessages = new JoinMessageConfig();
     public LeaveMessageConfig leaveMessages = new LeaveMessageConfig();
+    public StartMessageConfig startMessage = new StartMessageConfig();
+    public StopMessageConfig stopMessage = new StopMessageConfig();
 
     @Order(10)
     @Comment("Settings for synchronizing messages between the defined Discord channels and threads")

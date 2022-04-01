@@ -30,5 +30,7 @@ public abstract class ProxyDiscordSRV<C extends MainConfig, CC extends Connectio
         super.enable();
 
         registerModule(ServerSwitchMessageModule::new);
+
+        startedMessage();
     }
 }

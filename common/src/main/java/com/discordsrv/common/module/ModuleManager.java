@@ -118,7 +118,9 @@ public class ModuleManager {
             throw new IllegalArgumentException("Cannot unregister a delegate");
         }
 
-        disable(module);
+        if (getAbstract(module).isHasBeenEnabled()) {
+            disable(module);
+        }
 
         this.modules.remove(module);
         this.moduleLookupTable.values().removeIf(mod -> mod == module);

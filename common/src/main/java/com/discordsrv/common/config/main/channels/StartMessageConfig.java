@@ -21,30 +21,15 @@ package com.discordsrv.common.config.main.channels;
 import com.discordsrv.api.discord.api.entity.message.SendableDiscordMessage;
 import com.discordsrv.common.config.annotation.Untranslated;
 import org.spongepowered.configurate.objectmapping.ConfigSerializable;
-import org.spongepowered.configurate.objectmapping.meta.Comment;
-
-import java.util.LinkedHashMap;
-import java.util.Map;
-import java.util.regex.Pattern;
 
 @ConfigSerializable
-public class MinecraftToDiscordChatConfig implements IMessageConfig {
+public class StartMessageConfig implements IMessageConfig {
 
-    @Comment("Is Minecraft to Discord chat forwarding enabled")
     public boolean enabled = true;
 
     @Untranslated(Untranslated.Type.VALUE)
     public SendableDiscordMessage.Builder format = SendableDiscordMessage.builder()
-            .setWebhookUsername("%player_display_name%")
-            .setWebhookAvatarUrl("%player_avatar_url%")
-            .setContent("%message%");
-
-    // TODO: more info on regex pairs (String#replaceAll)
-    @Comment("Regex filters for Minecraft message contents (this is the %message% part of the \"format\" option)")
-    public Map<Pattern, String> contentRegexFilters = new LinkedHashMap<>();
-
-    @Comment("What mentions should be translated from chat messages to mentions (this does not effect if they will cause a notification or not)")
-    public Mentions mentions = new Mentions();
+            .setContent(":arrow_forward: **The server has started**");
 
     @Override
     public boolean enabled() {
@@ -55,14 +40,4 @@ public class MinecraftToDiscordChatConfig implements IMessageConfig {
     public SendableDiscordMessage.Builder format() {
         return format;
     }
-
-    @ConfigSerializable
-    public static class Mentions {
-
-        public boolean roles = true;
-        public boolean users = true;
-        public boolean channels = true;
-
-    }
-    
 }
