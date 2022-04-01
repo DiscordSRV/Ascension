@@ -19,6 +19,7 @@
 package com.discordsrv.common.module.type;
 
 import com.discordsrv.api.module.type.Module;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
@@ -35,43 +36,43 @@ public interface PermissionDataProvider extends Module {
 
     interface Groups extends PermissionDataProvider {
         List<String> getGroups();
-        CompletableFuture<Boolean> hasGroup(UUID player, String groupName, boolean includeInherited);
-        CompletableFuture<Void> addGroup(UUID player, String groupName);
-        CompletableFuture<Void> removeGroup(UUID player, String groupName);
+        CompletableFuture<Boolean> hasGroup(@NotNull UUID player, @NotNull String groupName, boolean includeInherited);
+        CompletableFuture<Void> addGroup(@NotNull UUID player, @NotNull String groupName);
+        CompletableFuture<Void> removeGroup(@NotNull UUID player, @NotNull String groupName);
     }
 
     interface Permissions extends PermissionDataProvider {
-        CompletableFuture<Boolean> hasPermission(UUID player, String permission);
+        CompletableFuture<Boolean> hasPermission(@NotNull UUID player, @NotNull String permission);
     }
 
     interface PrefixAndSuffix extends PermissionDataProvider {
-        CompletableFuture<String> getPrefix(UUID player);
-        CompletableFuture<String> getSuffix(UUID player);
+        CompletableFuture<String> getPrefix(@NotNull UUID player);
+        CompletableFuture<String> getSuffix(@NotNull UUID player);
     }
 
     interface Meta extends PermissionDataProvider {
-        CompletableFuture<String> getMeta(UUID player, String key);
+        CompletableFuture<String> getMeta(@NotNull UUID player, @NotNull String key);
     }
 
     interface GroupsContext extends Groups {
 
         Set<String> getDefaultServerContext();
-        CompletableFuture<Boolean> hasGroup(UUID player, String groupName, boolean includeInherited, @Nullable String serverContext);
-        CompletableFuture<Void> addGroup(UUID player, String groupName, @Nullable String serverContext);
-        CompletableFuture<Void> removeGroup(UUID player, String groupName, @Nullable String serverContext);
+        CompletableFuture<Boolean> hasGroup(@NotNull UUID player, @NotNull String groupName, boolean includeInherited, @Nullable Set<String> serverContext);
+        CompletableFuture<Void> addGroup(@NotNull UUID player, @NotNull String groupName, @Nullable Set<String> serverContext);
+        CompletableFuture<Void> removeGroup(@NotNull UUID player, @NotNull String groupName, @Nullable Set<String> serverContext);
 
         @Override
-        default CompletableFuture<Boolean> hasGroup(UUID player, String groupName, boolean includeInherited) {
-            return hasGroup(player, groupName, includeInherited,  null);
+        default CompletableFuture<Boolean> hasGroup(@NotNull UUID player, @NotNull String groupName, boolean includeInherited) {
+            return hasGroup(player, groupName, includeInherited, null);
         }
 
         @Override
-        default CompletableFuture<Void> addGroup(UUID player, String groupName) {
+        default CompletableFuture<Void> addGroup(@NotNull UUID player, @NotNull String groupName) {
             return addGroup(player, groupName, null);
         }
 
         @Override
-        default CompletableFuture<Void> removeGroup(UUID player, String groupName) {
+        default CompletableFuture<Void> removeGroup(@NotNull UUID player, @NotNull String groupName) {
             return removeGroup(player, groupName, null);
         }
     }

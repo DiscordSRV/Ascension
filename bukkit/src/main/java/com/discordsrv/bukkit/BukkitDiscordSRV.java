@@ -174,9 +174,8 @@ public class BukkitDiscordSRV extends ServerDiscordSRV<BukkitConfig, BukkitConne
         // Service provider
         server().getServicesManager().register(DiscordSRVApi.class, this, plugin(), ServicePriority.Normal);
 
-        // Adventure audiences, connection listener
+        // Adventure audiences
         this.audiences = BukkitAudiences.create(bootstrap.getPlugin());
-        server().getPluginManager().registerEvents(new BukkitConnectionListener(this), plugin());
 
         // Command handler
         commandHandler = AbstractBukkitCommandHandler.get(this);
@@ -193,6 +192,9 @@ public class BukkitDiscordSRV extends ServerDiscordSRV<BukkitConfig, BukkitConne
         registerIntegration("com.discordsrv.bukkit.integration.VaultIntegration");
 
         super.enable();
+
+        // Connection listener
+        server().getPluginManager().registerEvents(new BukkitConnectionListener(this), plugin());
     }
 
 }

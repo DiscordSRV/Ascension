@@ -62,6 +62,9 @@ public class ModuleManager {
             Module bestCandidate = null;
             int bestCandidatePriority = Integer.MIN_VALUE;
             for (Module module : modules) {
+                if (!module.isEnabled()) {
+                    continue;
+                }
                 int priority;
                 if (moduleType.isAssignableFrom(module.getClass()) && ((priority = module.priority(moduleType)) > bestCandidatePriority)) {
                     bestCandidate = module;

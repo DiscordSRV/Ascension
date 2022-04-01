@@ -201,7 +201,7 @@ public class GroupSyncModule extends AbstractModule<DiscordSRV> {
         PermissionDataProvider.Groups permissionProvider = getPermissionProvider();
         if (permissionProvider instanceof PermissionDataProvider.GroupsContext) {
             return ((PermissionDataProvider.GroupsContext) permissionProvider)
-                    .hasGroup(player, groupName, false, serverContext);
+                    .hasGroup(player, groupName, false, serverContext != null ? Collections.singleton(serverContext) : null);
         } else {
             return permissionProvider.hasGroup(player, groupName, false);
         }
@@ -215,7 +215,7 @@ public class GroupSyncModule extends AbstractModule<DiscordSRV> {
         PermissionDataProvider.Groups permissionProvider = getPermissionProvider();
         if (permissionProvider instanceof PermissionDataProvider.GroupsContext) {
             return ((PermissionDataProvider.GroupsContext) permissionProvider)
-                    .addGroup(player, groupName, serverContext);
+                    .addGroup(player, groupName, Collections.singleton(serverContext));
         } else {
             return permissionProvider.addGroup(player, groupName);
         }
@@ -229,7 +229,7 @@ public class GroupSyncModule extends AbstractModule<DiscordSRV> {
         PermissionDataProvider.Groups permissionProvider = getPermissionProvider();
         if (permissionProvider instanceof PermissionDataProvider.GroupsContext) {
             return ((PermissionDataProvider.GroupsContext) permissionProvider)
-                    .removeGroup(player, groupName, serverContext);
+                    .removeGroup(player, groupName, Collections.singleton(serverContext));
         } else {
             return permissionProvider.removeGroup(player, groupName);
         }

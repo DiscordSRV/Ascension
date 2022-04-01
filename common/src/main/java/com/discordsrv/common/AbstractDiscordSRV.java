@@ -323,9 +323,10 @@ public abstract class AbstractDiscordSRV<C extends MainConfig, CC extends Connec
         Object module;
         try {
             Class<?> clazz = Class.forName(className);
-            Constructor<?> constructor = clazz.getConstructor(getClass());
+            Constructor<?> constructor = clazz.getConstructors()[0];
             module = constructor.newInstance(this);
-        } catch (Throwable ignored) {
+        } catch (Throwable e) {
+            moduleManager.logger().debug("Failed to load integration: " + className, e);
             return;
         }
         moduleManager.registerModule(this, d -> (AbstractModule<?>) module);

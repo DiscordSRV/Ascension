@@ -47,6 +47,8 @@ import net.luckperms.api.node.NodeType;
 import net.luckperms.api.node.types.InheritanceNode;
 import net.luckperms.api.query.QueryMode;
 import net.luckperms.api.query.QueryOptions;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
@@ -109,13 +111,15 @@ public class LuckPermsIntegration extends PluginIntegration<DiscordSRV> implemen
     }
 
     @Override
-    public CompletableFuture<Boolean> hasGroup(UUID player, String groupName, boolean includeInherited, String serverContext) {
+    public CompletableFuture<Boolean> hasGroup(@NotNull UUID player, @NotNull String groupName, boolean includeInherited, @Nullable Set<String> serverContext) {
         return user(player).thenApply(user -> {
             MutableContextSet context = luckPerms.getContextManager().getStaticContext().mutableCopy();
             if (serverContext != null) {
                 context.removeAll(DefaultContextKeys.SERVER_KEY);
-                if (!serverContext.equals("global")) {
-                    context.add(DefaultContextKeys.SERVER_KEY, serverContext);
+                if (isNotGlobalOnly(serverContext)) {
+                    for (String ctx : serverContext) {
+                        context.add(DefaultContextKeys.SERVER_KEY, ctx);
+                    }
                 }
             }
 
@@ -126,23 +130,23 @@ public class LuckPermsIntegration extends PluginIntegration<DiscordSRV> implemen
                         .map(Group::getName)
                     : user.getNodes(NodeType.INHERITANCE)
                         .stream()
-                        .filter(node -> node.getContexts().isSatisfiedBy(context))
+                        .filter(node -> context.isSatisfiedBy(node.getContexts()))
                         .map(InheritanceNode::getGroupName)
             ).anyMatch(name -> name.equalsIgnoreCase(groupName));
         });
     }
 
     @Override
-    public CompletableFuture<Void> addGroup(UUID player, String groupName, String serverContext) {
+    public CompletableFuture<Void> addGroup(@NotNull UUID player, @NotNull String groupName, @Nullable Set<String> serverContext) {
         return groupMutate(player, groupName, serverContext, NodeMap::add);
     }
 
     @Override
-    public CompletableFuture<Void> removeGroup(UUID player, String groupName, String serverContext) {
+    public CompletableFuture<Void> removeGroup(@NotNull UUID player, @NotNull String groupName, @Nullable Set<String> serverContext) {
         return groupMutate(player, groupName, serverContext, NodeMap::remove);
     }
 
-    private CompletableFuture<Void> groupMutate(UUID player, String groupName, String serverContext, BiFunction<NodeMap, Node, DataMutateResult> function) {
+    private CompletableFuture<Void> groupMutate(UUID player, String groupName, Set<String> serverContext, BiFunction<NodeMap, Node, DataMutateResult> function) {
         Group group = luckPerms.getGroupManager().getGroup(groupName);
         if (group == null) {
             return CompletableFutureUtil.failed(new MessageException("Group does not exist"));
@@ -150,8 +154,12 @@ public class LuckPermsIntegration extends PluginIntegration<DiscordSRV> implemen
         return user(player).thenCompose(user -> {
             ContextSet contexts;
             if (serverContext != null) {
-                if (!serverContext.equals("global")) {
-                    contexts = ImmutableContextSet.of(DefaultContextKeys.SERVER_KEY, serverContext);
+                if (isNotGlobalOnly(serverContext)) {
+                    ImmutableContextSet.Builder builder = ImmutableContextSet.builder();
+                    for (String ctx : serverContext) {
+                        builder.add(DefaultContextKeys.SERVER_KEY, ctx);
+                    }
+                    contexts = builder.build();
                 } else {
                     contexts = ImmutableContextSet.empty();
                 }
@@ -173,24 +181,28 @@ public class LuckPermsIntegration extends PluginIntegration<DiscordSRV> implemen
         });
     }
 
+    private boolean isNotGlobalOnly(Set<String> context) {
+        return context.size() != 1 || !context.iterator().next().equals("global");
+    }
+
     @Override
-    public CompletableFuture<Boolean> hasPermission(UUID player, String permission) {
+    public CompletableFuture<Boolean> hasPermission(@NotNull UUID player, @NotNull String permission) {
         return user(player).thenApply(
                 user -> user.getCachedData().getPermissionData().checkPermission(permission).asBoolean());
     }
 
     @Override
-    public CompletableFuture<String> getPrefix(UUID player) {
+    public CompletableFuture<String> getPrefix(@NotNull UUID player) {
         return user(player).thenApply(user -> user.getCachedData().getMetaData().getPrefix());
     }
 
     @Override
-    public CompletableFuture<String> getSuffix(UUID player) {
+    public CompletableFuture<String> getSuffix(@NotNull UUID player) {
         return user(player).thenApply(user -> user.getCachedData().getMetaData().getSuffix());
     }
 
     @Override
-    public CompletableFuture<String> getMeta(UUID player, String key) throws UnsupportedOperationException {
+    public CompletableFuture<String> getMeta(@NotNull UUID player, @NotNull String key) throws UnsupportedOperationException {
         return user(player).thenApply(user -> user.getCachedData().getMetaData().getMetaValue(key));
     }
 
