@@ -29,7 +29,7 @@ public class StopMessageConfig implements IMessageConfig {
 
     @Untranslated(Untranslated.Type.VALUE)
     public SendableDiscordMessage.Builder format = SendableDiscordMessage.builder()
-            .setContent(":pause_button: **The server has stopped**");
+            .setContent(":stop_button: **The server has stopped**");
 
     @Override
     public boolean enabled() {
