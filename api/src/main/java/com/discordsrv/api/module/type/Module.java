@@ -39,6 +39,10 @@ public interface Module {
         return 0;
     }
 
+    default int shutdownOrder() {
+        return priority(getClass());
+    }
+
     default void enable() {
         reload();
     }

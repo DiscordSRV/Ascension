@@ -28,6 +28,4 @@ public class ThreadConfig {
     public String threadName = "Minecraft Server chat bridge";
     public boolean privateThread = false;
 
-    public boolean archiveOnShutdown = true;
-    public boolean unarchive = true;
 }

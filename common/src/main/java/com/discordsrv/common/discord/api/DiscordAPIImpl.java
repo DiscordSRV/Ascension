@@ -42,6 +42,7 @@ import com.discordsrv.common.discord.api.entity.channel.DiscordThreadChannelImpl
 import com.discordsrv.common.discord.api.entity.guild.DiscordGuildImpl;
 import com.discordsrv.common.discord.api.entity.guild.DiscordRoleImpl;
 import com.discordsrv.common.function.CheckedSupplier;
+import com.discordsrv.common.function.OrDefault;
 import com.discordsrv.common.future.util.CompletableFutureUtil;
 import com.github.benmanes.caffeine.cache.AsyncCacheLoader;
 import com.github.benmanes.caffeine.cache.AsyncLoadingCache;
@@ -98,9 +99,9 @@ public class DiscordAPIImpl implements DiscordAPI {
      * @param config the config that specified the threads
      * @return the list of active threads
      */
-    public List<DiscordThreadChannel> findThreads(IChannelConfig config) {
+    public List<DiscordThreadChannel> findThreads(OrDefault<BaseChannelConfig> config, IChannelConfig channelConfig) {
         List<DiscordThreadChannel> channels = new ArrayList<>();
-        findOrCreateThreads(config, channels::add, null);
+        findOrCreateThreads(config, channelConfig, channels::add, null, false);
         return channels;
     }
 
@@ -111,11 +112,13 @@ public class DiscordAPIImpl implements DiscordAPI {
      * @param futures a possibly null list of {@link CompletableFuture} for tasks that need to be completed to get all threads
      */
     public void findOrCreateThreads(
-            IChannelConfig config,
+            OrDefault<BaseChannelConfig> config,
+            IChannelConfig channelConfig,
             Consumer<DiscordThreadChannel> channelConsumer,
-            @Nullable List<CompletableFuture<DiscordThreadChannel>> futures
+            @Nullable List<CompletableFuture<DiscordThreadChannel>> futures,
+            boolean log
     ) {
-        List<ThreadConfig> threads = config.threads();
+        List<ThreadConfig> threads = channelConfig.threads();
         if (threads == null) {
             return;
         }
@@ -124,10 +127,8 @@ public class DiscordAPIImpl implements DiscordAPI {
             long channelId = threadConfig.channelId;
             DiscordTextChannel channel = getTextChannelById(channelId).orElse(null);
             if (channel == null) {
-                if (channelId > 0) {
-                    discordSRV.logger().error("Unable to find channel with ID "
-                                                      + Long.toUnsignedString(channelId)
-                                                      + ", unable to forward message to Discord");
+                if (channelId > 0 && log) {
+                    discordSRV.logger().error("Unable to find channel with ID " + Long.toUnsignedString(channelId));
                 }
                 continue;
             }
@@ -136,7 +137,7 @@ public class DiscordAPIImpl implements DiscordAPI {
             DiscordThreadChannel thread = findThread(threadConfig, channel.getActiveThreads());
             if (thread != null) {
                 ThreadChannel jdaChannel = thread.getAsJDAThreadChannel();
-                if (!jdaChannel.isLocked() && !jdaChannel.isArchived()) {
+                if (!jdaChannel.isArchived()) {
                     channelConsumer.accept(thread);
                     continue;
                 }
@@ -154,7 +155,7 @@ public class DiscordAPIImpl implements DiscordAPI {
                 unarchiveOrCreateThread(threadConfig, channel, thread, future);
             } else {
                 // Find or create the thread
-                future = findOrCreateThread(threadConfig, channel);
+                future = findOrCreateThread(config, threadConfig, channel);
             }
 
             futures.add(future.handle((threadChannel, t) -> {
@@ -182,16 +183,20 @@ public class DiscordAPIImpl implements DiscordAPI {
         return null;
     }
 
-    private CompletableFuture<DiscordThreadChannel> findOrCreateThread(ThreadConfig config, DiscordTextChannel textChannel) {
-        if (!config.unarchive) {
-            return textChannel.createThread(config.threadName, config.privateThread);
+    private CompletableFuture<DiscordThreadChannel> findOrCreateThread(
+            OrDefault<BaseChannelConfig> config,
+            ThreadConfig threadConfig,
+            DiscordTextChannel textChannel
+    ) {
+        if (!config.map(cfg -> cfg.shutdownBehaviour).map(cfg -> cfg.threads).get(cfg -> cfg.unarchive, true)) {
+            return textChannel.createThread(threadConfig.threadName, threadConfig.privateThread);
         }
 
         CompletableFuture<DiscordThreadChannel> completableFuture = new CompletableFuture<>();
         lookupThreads(
                 textChannel,
-                config.privateThread,
-                lookup -> findOrCreateThread(config, textChannel, lookup, completableFuture),
+                threadConfig.privateThread,
+                lookup -> findOrCreateThread(threadConfig, textChannel, lookup, completableFuture),
                 (thread, throwable) -> {
                     if (throwable != null) {
                         completableFuture.completeExceptionally(throwable);
@@ -244,10 +249,10 @@ public class DiscordAPIImpl implements DiscordAPI {
             ThreadChannel channel = thread.getAsJDAThreadChannel();
             if (channel.isLocked() || channel.isArchived()) {
                 try {
-                    channel.getManager().setArchived(false).queue(
-                            v -> future.complete(thread),
-                            future::completeExceptionally
-                    );
+                    channel.getManager()
+                            .setArchived(false)
+                            .reason("DiscordSRV Auto Unarchive")
+                            .queue(v -> future.complete(thread), future::completeExceptionally);
                 } catch (Throwable t) {
                     future.completeExceptionally(t);
                 }

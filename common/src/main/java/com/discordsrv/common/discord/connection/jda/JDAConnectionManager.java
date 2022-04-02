@@ -253,7 +253,7 @@ public class JDAConnectionManager implements DiscordConnectionManager {
         // Our own (named) threads
         jdaBuilder.setCallbackPool(discordSRV.scheduler().forkJoinPool());
         jdaBuilder.setGatewayPool(gatewayPool);
-        jdaBuilder.setRateLimitPool(rateLimitPool);
+        jdaBuilder.setRateLimitPool(rateLimitPool, true);
 
         OkHttpClient.Builder httpBuilder = IOUtil.newHttpClientBuilder();
         // These 3 are 10 seconds by default
@@ -304,17 +304,20 @@ public class JDAConnectionManager implements DiscordConnectionManager {
         instance.shutdown();
 
         try {
+            discordSRV.logger().info("Waiting up to " + TimeUnit.MILLISECONDS.toSeconds(timeoutMillis) + " seconds for JDA to shutdown...");
             discordSRV.scheduler().run(() -> {
                 try {
-                    while (instance != null && instance.getStatus() != JDA.Status.SHUTDOWN) {
+                    while (instance != null && !rateLimitPool.isShutdown()) {
                         Thread.sleep(50);
                     }
                 } catch (InterruptedException ignored) {}
             }).get(timeoutMillis, TimeUnit.MILLISECONDS);
             instance = null;
             shutdownExecutors();
+            discordSRV.logger().info("JDA shutdown completed.");
         } catch (TimeoutException | ExecutionException e) {
             try {
+                discordSRV.logger().info("JDA failed to shutdown within the timeout, cancelling any remaining requests");
                 shutdownNow();
             } catch (Throwable t) {
                 if (e instanceof ExecutionException) {
@@ -332,13 +335,14 @@ public class JDAConnectionManager implements DiscordConnectionManager {
             instance = null;
         }
         shutdownExecutors();
+        discordSRV.logger().info("JDA shutdown completed.");
     }
 
     private void shutdownExecutors() {
         if (gatewayPool != null) {
             gatewayPool.shutdownNow();
         }
-        if (rateLimitPool != null) {
+        if (rateLimitPool != null && !rateLimitPool.isShutdown()) {
             rateLimitPool.shutdownNow();
         }
     }

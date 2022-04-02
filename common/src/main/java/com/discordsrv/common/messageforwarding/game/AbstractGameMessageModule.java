@@ -78,24 +78,24 @@ public abstract class AbstractGameMessageModule<T extends IMessageConfig> extend
     private CompletableFuture<Void> forwardToChannel(
             @Nullable AbstractGameMessageReceiveEvent event,
             @Nullable DiscordSRVPlayer player,
-            @NotNull OrDefault<BaseChannelConfig> channelConfig
+            @NotNull OrDefault<BaseChannelConfig> config
     ) {
-        OrDefault<T> config = mapConfig(channelConfig);
-        if (!config.get(IMessageConfig::enabled, true)) {
+        OrDefault<T> moduleConfig = mapConfig(config);
+        if (!moduleConfig.get(IMessageConfig::enabled, true)) {
             return null;
         }
 
-        IChannelConfig iChannelConfig = channelConfig.get(cfg -> cfg instanceof IChannelConfig ? (IChannelConfig) cfg : null);
-        if (iChannelConfig == null) {
+        IChannelConfig channelConfig = config.get(c -> c instanceof IChannelConfig ? (IChannelConfig) c : null);
+        if (channelConfig == null) {
             return null;
         }
 
         List<DiscordMessageChannel> messageChannels = new CopyOnWriteArrayList<>();
         List<CompletableFuture<DiscordThreadChannel>> futures = new ArrayList<>();
 
-        List<Long> channelIds = iChannelConfig.channelIds();
+        List<Long> channelIds = channelConfig.channelIds();
         if (channelIds != null) {
-            for (Long channelId : iChannelConfig.channelIds()) {
+            for (Long channelId : channelConfig.channelIds()) {
                 DiscordTextChannel textChannel = discordSRV.discordAPI().getTextChannelById(channelId).orElse(null);
                 if (textChannel != null) {
                     messageChannels.add(textChannel);
@@ -107,24 +107,24 @@ public abstract class AbstractGameMessageModule<T extends IMessageConfig> extend
             }
         }
 
-        discordSRV.discordAPI().findOrCreateThreads(iChannelConfig, messageChannels::add, futures);
+        discordSRV.discordAPI().findOrCreateThreads(config, channelConfig, messageChannels::add, futures, true);
 
-        return CompletableFuture.allOf(futures.toArray(new CompletableFuture[0])).whenComplete((v, t1) -> {
-            SendableDiscordMessage.Builder format = config.get(IMessageConfig::format);
+        return CompletableFuture.allOf(futures.toArray(new CompletableFuture[0])).thenCompose((v) -> {
+            SendableDiscordMessage.Builder format = moduleConfig.get(IMessageConfig::format);
             if (format == null) {
-                return;
+                return CompletableFuture.completedFuture(null);
             }
 
             Component component = event != null ? ComponentUtil.fromAPI(event.getMessage()) : null;
-            String message = component != null ? convertMessage(config, component) : null;
+            String message = component != null ? convertMessage(moduleConfig, component) : null;
             Map<CompletableFuture<ReceivedDiscordMessage>, DiscordMessageChannel> messageFutures;
             messageFutures = sendMessageToChannels(
-                    config, format, messageChannels, message,
+                    moduleConfig, format, messageChannels, message,
                     // Context
                     channelConfig, player
             );
 
-            CompletableFuture.allOf(messageFutures.keySet().toArray(new CompletableFuture[0]))
+            return CompletableFuture.allOf(messageFutures.keySet().toArray(new CompletableFuture[0]))
                     .whenComplete((vo, t2) -> {
                         Set<ReceivedDiscordMessage> messages = new LinkedHashSet<>();
                         for (Map.Entry<CompletableFuture<ReceivedDiscordMessage>, DiscordMessageChannel> entry : messageFutures.entrySet()) {

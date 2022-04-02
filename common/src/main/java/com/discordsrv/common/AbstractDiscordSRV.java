@@ -26,6 +26,7 @@ import com.discordsrv.api.event.events.lifecycle.DiscordSRVShuttingDownEvent;
 import com.discordsrv.api.module.type.Module;
 import com.discordsrv.common.api.util.ApiInstanceUtil;
 import com.discordsrv.common.channel.ChannelConfigHelper;
+import com.discordsrv.common.channel.ChannelShutdownBehaviourModule;
 import com.discordsrv.common.channel.ChannelUpdaterModule;
 import com.discordsrv.common.channel.GlobalChannelLookupModule;
 import com.discordsrv.common.command.game.GameCommandModule;
@@ -388,7 +389,7 @@ public abstract class AbstractDiscordSRV<C extends MainConfig, CC extends Connec
     // Lifecycle
 
     protected CompletableFuture<Void> invokeLifecycle(CheckedRunnable runnable) {
-        return invoke(() -> {
+        return invokeLifecycle(() -> {
             try {
                 lifecycleLock.lock();
                 runnable.run();
@@ -398,11 +399,19 @@ public abstract class AbstractDiscordSRV<C extends MainConfig, CC extends Connec
         }, "Failed to enable", true);
     }
 
-    protected CompletableFuture<Void> invoke(CheckedRunnable runnable, String message, boolean enable) {
+    protected CompletableFuture<Void> invokeLifecycle(CheckedRunnable runnable, String message, boolean enable) {
         return CompletableFuture.runAsync(() -> {
+            if (status().isShutdown()) {
+                // Already shutdown/shutting down, don't bother
+                return;
+            }
             try {
                 runnable.run();
             } catch (Throwable t) {
+                if (status().isShutdown() && t instanceof NoClassDefFoundError) {
+                    // Already shutdown, ignore errors for classes that already got unloaded
+                    return;
+                }
                 if (enable) {
                     setStatus(Status.FAILED_TO_START);
                     disable();
@@ -424,6 +433,7 @@ public abstract class AbstractDiscordSRV<C extends MainConfig, CC extends Connec
     @Override
     public final CompletableFuture<Void> invokeDisable() {
         if (enableFuture != null && !enableFuture.isDone()) {
+            logger().warning("Start cancelled");
             enableFuture.cancel(true);
         }
         return CompletableFuture.runAsync(this::disable, scheduler().executorService());
@@ -431,7 +441,7 @@ public abstract class AbstractDiscordSRV<C extends MainConfig, CC extends Connec
 
     @Override
     public final CompletableFuture<Void> invokeReload(Set<ReloadFlag> flags, boolean silent) {
-        return invoke(() -> reload(flags, silent), "Failed to reload", false);
+        return invokeLifecycle(() -> reload(flags, silent), "Failed to reload", false);
     }
 
     @OverridingMethodsMustInvokeSuper
@@ -453,6 +463,7 @@ public abstract class AbstractDiscordSRV<C extends MainConfig, CC extends Connec
         placeholderService().addGlobalContext(new GlobalTextHandlingContext(this));
 
         // Modules
+        registerModule(ChannelShutdownBehaviourModule::new);
         registerModule(ChannelUpdaterModule::new);
         registerModule(GameCommandModule::new);
         registerModule(GlobalChannelLookupModule::new);
@@ -588,6 +599,16 @@ public abstract class AbstractDiscordSRV<C extends MainConfig, CC extends Connec
                 }
                 if (!initial) {
                     waitForStatus(Status.CONNECTED, 20, TimeUnit.SECONDS);
+                } else {
+                    JDA jda = jda().orElse(null);
+                    if (jda != null) {
+                        try {
+                            jda.awaitReady();
+                        } catch (IllegalStateException ignored) {
+                            // JDA shutdown -> don't continue
+                            return;
+                        }
+                    }
                 }
             } catch (ExecutionException e) {
                 throw e.getCause();

@@ -31,14 +31,20 @@ public class BaseChannelConfig {
     public DiscordToMinecraftChatConfig discordToMinecraft = new DiscordToMinecraftChatConfig();
     public JoinMessageConfig joinMessages = new JoinMessageConfig();
     public LeaveMessageConfig leaveMessages = new LeaveMessageConfig();
+
+    @Untranslated(Untranslated.Type.VALUE)
+    @Order(10)
+    public String avatarUrlProvider = "https://heads.discordsrv.com/head.png?texture=%texture%&uuid=%uuid%&name=%username%&overlay";
+
+    @Order(20)
     public StartMessageConfig startMessage = new StartMessageConfig();
+    @Order(20)
     public StopMessageConfig stopMessage = new StopMessageConfig();
 
-    @Order(10)
+    @Order(30)
     @Comment("Settings for synchronizing messages between the defined Discord channels and threads")
     public MirroringConfig mirroring = new MirroringConfig();
 
-    @Untranslated(Untranslated.Type.VALUE)
     @Order(50)
-    public String avatarUrlProvider = "https://heads.discordsrv.com/head.png?texture=%texture%&uuid=%uuid%&name=%username%&overlay";
+    public ShutdownBehaviourConfig shutdownBehaviour = new ShutdownBehaviourConfig();
 }

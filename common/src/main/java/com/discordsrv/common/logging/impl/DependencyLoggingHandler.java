@@ -19,12 +19,13 @@
 package com.discordsrv.common.logging.impl;
 
 import com.discordsrv.common.DiscordSRV;
-import com.discordsrv.common.logging.LogLevel;
 import com.discordsrv.common.logging.LogAppender;
+import com.discordsrv.common.logging.LogLevel;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
+import java.util.concurrent.RejectedExecutionException;
 
 public class DependencyLoggingHandler implements LogAppender {
 
@@ -87,6 +88,14 @@ public class DependencyLoggingHandler implements LogAppender {
                 name = entry.getValue();
                 break;
             }
+        }
+
+        if (name.equals("JDA") && message != null
+                && message.contains("Got an unexpected error. Please redirect the following message to the devs:")
+                && throwable instanceof RejectedExecutionException
+                && discordSRV.status().isShutdown()) {
+            // Might happen if the server shuts down while JDA is starting
+            return;
         }
 
         discordSRV.logger().log(null, logLevel, "[" + name + "]" + (message != null ? " " + message : ""), throwable);

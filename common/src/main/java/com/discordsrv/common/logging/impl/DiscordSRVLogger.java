@@ -162,8 +162,13 @@ public class DiscordSRVLogger implements Logger {
 
             Files.write(path, line.getBytes(StandardCharsets.UTF_8), StandardOpenOption.APPEND);
         } catch (Throwable e) {
-            // Prevent infinite loop
-            discordSRV.platformLogger().error("Failed to write to debug log", e);
+            try {
+                // Prevent infinite loop
+                if (discordSRV.status() == DiscordSRV.Status.SHUTDOWN) {
+                    return;
+                }
+                discordSRV.platformLogger().error("Failed to write to debug log", e);
+            } catch (Throwable ignored) {}
         }
     }
 

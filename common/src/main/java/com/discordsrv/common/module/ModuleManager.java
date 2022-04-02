@@ -142,9 +142,9 @@ public class ModuleManager {
 
     @Subscribe(priority = EventPriority.EARLY)
     public void onShuttingDown(DiscordSRVShuttingDownEvent event) {
-        for (Module module : modules) {
-            unregister(module);
-        }
+        modules.stream()
+                .sorted((m1, m2) -> Integer.compare(m2.shutdownOrder(), m1.shutdownOrder()))
+                .forEachOrdered(Module::disable);
     }
 
     public void reload() {

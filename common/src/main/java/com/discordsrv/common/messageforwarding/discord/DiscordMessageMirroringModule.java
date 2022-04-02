@@ -104,11 +104,11 @@ public class DiscordMessageMirroringModule extends AbstractModule<DiscordSRV> {
                 }
             }
 
-            discordSRV.discordAPI().findOrCreateThreads(iChannelConfig, threadChannel -> {
+            discordSRV.discordAPI().findOrCreateThreads(channelConfig, iChannelConfig, threadChannel -> {
                 if (threadChannel.getId() != channel.getId()) {
                     mirrorChannels.add(Pair.of(threadChannel, config));
                 }
-            }, futures);
+            }, futures, false);
         }
 
         CompletableFutureUtil.combine(futures).whenComplete((v, t) -> {
