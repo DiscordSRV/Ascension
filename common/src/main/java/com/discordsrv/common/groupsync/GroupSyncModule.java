@@ -34,7 +34,7 @@ import com.discordsrv.common.groupsync.enums.GroupSyncResult;
 import com.discordsrv.common.groupsync.enums.GroupSyncSide;
 import com.discordsrv.common.logging.NamedLogger;
 import com.discordsrv.common.module.type.AbstractModule;
-import com.discordsrv.common.module.type.PermissionDataProvider;
+import com.discordsrv.api.module.type.PermissionDataProvider;
 import com.discordsrv.common.player.IPlayer;
 import com.github.benmanes.caffeine.cache.Cache;
 import org.apache.commons.lang3.StringUtils;

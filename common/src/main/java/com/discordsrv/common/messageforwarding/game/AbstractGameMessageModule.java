@@ -121,7 +121,7 @@ public abstract class AbstractGameMessageModule<T extends IMessageConfig> extend
             messageFutures = sendMessageToChannels(
                     moduleConfig, format, messageChannels, message,
                     // Context
-                    channelConfig, player
+                    config, player
             );
 
             return CompletableFuture.allOf(messageFutures.keySet().toArray(new CompletableFuture[0]))

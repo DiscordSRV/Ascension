@@ -62,7 +62,7 @@ import com.discordsrv.common.messageforwarding.game.StartMessageModule;
 import com.discordsrv.common.messageforwarding.game.StopMessageModule;
 import com.discordsrv.common.module.ModuleManager;
 import com.discordsrv.common.module.type.AbstractModule;
-import com.discordsrv.common.placeholder.ComponentResultStringifier;
+import com.discordsrv.common.placeholder.result.ComponentResultStringifier;
 import com.discordsrv.common.placeholder.PlaceholderServiceImpl;
 import com.discordsrv.common.placeholder.context.GlobalTextHandlingContext;
 import com.discordsrv.common.profile.ProfileManager;

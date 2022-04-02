@@ -85,16 +85,20 @@ public class Placeholders {
         for (Map.Entry<Pattern, Function<Matcher, Object>> entry : replacements.entrySet()) {
             Pattern pattern = entry.getKey();
             Matcher matcher = pattern.matcher(input);
-            if (!matcher.find()) {
+            StringBuffer buffer = new StringBuffer();
+            int lastEnd = -1;
+            while (matcher.find()) {
+                lastEnd = matcher.end();
+                Function<Matcher, Object> replacement = entry.getValue();
+                Object value = replacement.apply(matcher);
+
+                matcher.appendReplacement(buffer, Matcher.quoteReplacement(String.valueOf(value)));
+            }
+            if (lastEnd == -1) {
                 continue;
             }
-
-            Function<Matcher, Object> replacement = entry.getValue();
-            Object value = replacement.apply(matcher);
-
-            input = matcher.replaceAll(
-                    Matcher.quoteReplacement(
-                            String.valueOf(value)));
+            buffer.append(input.substring(lastEnd));
+            input = buffer.toString();
         }
         return input;
     }

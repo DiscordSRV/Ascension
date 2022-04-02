@@ -19,11 +19,11 @@
 package com.discordsrv.common.placeholder;
 
 import com.discordsrv.api.event.events.placeholder.PlaceholderLookupEvent;
-import com.discordsrv.api.placeholder.annotation.Placeholder;
 import com.discordsrv.api.placeholder.PlaceholderLookupResult;
-import com.discordsrv.api.placeholder.mapper.PlaceholderResultMapper;
 import com.discordsrv.api.placeholder.PlaceholderService;
+import com.discordsrv.api.placeholder.annotation.Placeholder;
 import com.discordsrv.api.placeholder.annotation.PlaceholderRemainder;
+import com.discordsrv.api.placeholder.mapper.PlaceholderResultMapper;
 import com.discordsrv.common.DiscordSRV;
 import com.discordsrv.common.placeholder.provider.AnnotationPlaceholderProvider;
 import com.discordsrv.common.placeholder.provider.PlaceholderProvider;
@@ -182,14 +182,14 @@ public class PlaceholderServiceImpl implements PlaceholderService {
 
     private String getResultAsString(Object result) {
         if (result == null) {
-            return "null";
+            return "";
         } else if (result instanceof CharSequence) {
             return result.toString();
         }
 
         Object output = null;
-        for (PlaceholderResultMapper stringifier : mappers) {
-            output = stringifier.convertResult(result);
+        for (PlaceholderResultMapper mapper : mappers) {
+            output = mapper.convertResult(result);
             if (output != null) {
                 break;
             }
@@ -240,7 +240,10 @@ public class PlaceholderServiceImpl implements PlaceholderService {
                 switch (type) {
                     case SUCCESS:
                         replacement = result.getValue();
-                        if (replacement != null && StringUtils.isNotBlank(getResultAsString(replacement))) {
+                        if (replacement == null) {
+                            replacement = getResultAsString(null);
+                        }
+                        if (StringUtils.isNotBlank(getResultAsString(replacement))) {
                             return replacement;
                         }
                         break;

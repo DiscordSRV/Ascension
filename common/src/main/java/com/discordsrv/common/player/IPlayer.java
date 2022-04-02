@@ -25,6 +25,7 @@ import com.discordsrv.common.DiscordSRV;
 import com.discordsrv.common.command.game.sender.ICommandSender;
 import com.discordsrv.common.config.main.channels.base.BaseChannelConfig;
 import com.discordsrv.common.function.OrDefault;
+import com.discordsrv.common.permission.util.PermissionUtil;
 import com.discordsrv.common.profile.Profile;
 import net.kyori.adventure.text.Component;
 import org.jetbrains.annotations.ApiStatus;
@@ -35,6 +36,7 @@ import java.util.UUID;
 
 public interface IPlayer extends DiscordSRVPlayer, IOfflinePlayer, ICommandSender {
 
+    @Override
     DiscordSRV discordSRV();
 
     @ApiStatus.NonExtendable
@@ -47,6 +49,7 @@ public interface IPlayer extends DiscordSRVPlayer, IOfflinePlayer, ICommandSende
 
     @Override
     @ApiStatus.NonExtendable
+    @Placeholder("player_uuid")
     default @NotNull UUID uniqueId() {
         return identity().uuid();
     }
@@ -56,6 +59,7 @@ public interface IPlayer extends DiscordSRVPlayer, IOfflinePlayer, ICommandSende
     Component displayName();
 
     @Nullable
+    @ApiStatus.NonExtendable
     @Placeholder("player_avatar_url")
     default String getAvatarUrl(OrDefault<BaseChannelConfig> config) {
         String avatarUrlProvider = config.get(cfg -> cfg.avatarUrlProvider);
@@ -68,6 +72,34 @@ public interface IPlayer extends DiscordSRVPlayer, IOfflinePlayer, ICommandSende
                 .replace("%username%", username())
                 .replace("%texture%", "") // TODO
                 .toString();
+    }
+
+    @Nullable
+    @ApiStatus.NonExtendable
+    @Placeholder("player_meta_prefix")
+    default Component getMetaPrefix() {
+        return PermissionUtil.getMetaPrefix(discordSRV(), uniqueId());
+    }
+
+    @Nullable
+    @ApiStatus.NonExtendable
+    @Placeholder("player_meta_suffix")
+    default Component getMetaSuffix() {
+        return PermissionUtil.getMetaSuffix(discordSRV(), uniqueId());
+    }
+
+    @Nullable
+    @ApiStatus.NonExtendable
+    @Placeholder("player_prefix")
+    default Component getPrefix() {
+        return PermissionUtil.getPrefix(discordSRV(), uniqueId());
+    }
+
+    @Nullable
+    @ApiStatus.NonExtendable
+    @Placeholder("player_suffix")
+    default Component getSuffix() {
+        return PermissionUtil.getSuffix(discordSRV(), uniqueId());
     }
 
 }

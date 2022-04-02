@@ -22,7 +22,7 @@ import com.discordsrv.bukkit.BukkitDiscordSRV;
 import com.discordsrv.common.exception.MessageException;
 import com.discordsrv.common.function.CheckedSupplier;
 import com.discordsrv.common.future.util.CompletableFutureUtil;
-import com.discordsrv.common.module.type.PermissionDataProvider;
+import com.discordsrv.api.module.type.PermissionDataProvider;
 import com.discordsrv.common.module.type.PluginIntegration;
 import net.milkbowl.vault.chat.Chat;
 import net.milkbowl.vault.permission.Permission;

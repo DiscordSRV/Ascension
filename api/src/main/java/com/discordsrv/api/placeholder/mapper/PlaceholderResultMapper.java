@@ -29,9 +29,10 @@ import org.jetbrains.annotations.NotNull;
 public interface PlaceholderResultMapper {
 
     /**
-     * Converts a successful placeholder lookup result into a {@link String}.
+     * Converts a successful placeholder lookup result into an object that is better suited to be used in place of the result.
      * @param result the result
-     * @return the result in {@link String} form or {@code null} if this stringifier doesn't know what to do with this result
+     * @return the result in the form that should be used for converting to a {@link String} or used directly by placeholder service users
+     *          or {@code null} if this mapper doesn't know what to do with this result
      */
     Object convertResult(@NotNull Object result);
 

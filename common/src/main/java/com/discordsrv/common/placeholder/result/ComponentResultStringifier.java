@@ -16,7 +16,7 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package com.discordsrv.common.placeholder;
+package com.discordsrv.common.placeholder.result;
 
 import com.discordsrv.api.component.MinecraftComponent;
 import com.discordsrv.api.placeholder.mapper.PlaceholderResultMapper;

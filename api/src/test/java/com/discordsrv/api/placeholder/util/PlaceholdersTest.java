@@ -25,6 +25,8 @@ package com.discordsrv.api.placeholder.util;
 
 import org.junit.jupiter.api.Test;
 
+import java.util.concurrent.atomic.AtomicBoolean;
+
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 public class PlaceholdersTest {
@@ -37,5 +39,41 @@ public class PlaceholdersTest {
         placeholders.replace("a", "b");
 
         assertEquals("b", placeholders.toString());
+    }
+
+    @Test
+    public void uselessContentTest() {
+        Placeholders placeholders = new Placeholders("stuff a stuff");
+
+        placeholders.replace("a", "b");
+
+        assertEquals("stuff b stuff", placeholders.toString());
+    }
+
+    @Test
+    public void multipleTest() {
+        Placeholders placeholders = new Placeholders("a b");
+
+        placeholders.replace("a", "c");
+        placeholders.replace("b", "d");
+
+        assertEquals("c d", placeholders.toString());
+    }
+
+    @Test
+    public void multipleSamePatternTest() {
+        Placeholders placeholders = new Placeholders("a a");
+
+        AtomicBoolean used = new AtomicBoolean(false);
+        placeholders.replace("a", matcher -> {
+            if (used.get()) {
+                return "c";
+            } else {
+                used.set(true);
+                return "b";
+            }
+        });
+
+        assertEquals("b c", placeholders.toString());
     }
 }
