@@ -20,9 +20,9 @@ package com.discordsrv.sponge.loader;
 
 import com.discordsrv.sponge.bootstrap.ISpongeBootstrap;
 import com.google.inject.Inject;
-import dev.vankka.mcdependencydownload.classloader.JarInJarClassLoader;
-import dev.vankka.mcdependencydownload.loader.ILoader;
-import dev.vankka.mcdependencydownload.loader.exception.LoadingException;
+import dev.vankka.dependencydownload.jarinjar.classloader.JarInJarClassLoader;
+import dev.vankka.dependencydownload.jarinjar.loader.ILoader;
+import dev.vankka.dependencydownload.jarinjar.loader.exception.LoadingException;
 import org.apache.logging.log4j.Logger;
 import org.jetbrains.annotations.NotNull;
 import org.spongepowered.api.Game;

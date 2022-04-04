@@ -18,8 +18,8 @@
 
 package com.discordsrv.bukkit.loader;
 
+import dev.vankka.dependencydownload.jarinjar.loader.exception.LoadingException;
 import dev.vankka.mcdependencydownload.bukkit.loader.BukkitLoader;
-import dev.vankka.mcdependencydownload.loader.exception.LoadingException;
 import org.jetbrains.annotations.NotNull;
 
 import java.net.URL;

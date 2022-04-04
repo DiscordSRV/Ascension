@@ -21,8 +21,8 @@ package com.discordsrv.bungee;
 import com.discordsrv.common.dependency.InitialDependencyLoader;
 import com.discordsrv.common.logging.Logger;
 import com.discordsrv.common.logging.backend.impl.JavaLoggerImpl;
+import dev.vankka.dependencydownload.jarinjar.classloader.JarInJarClassLoader;
 import dev.vankka.mcdependencydownload.bungee.bootstrap.BungeeBootstrap;
-import dev.vankka.mcdependencydownload.classloader.JarInJarClassLoader;
 import net.md_5.bungee.api.plugin.Plugin;
 
 import java.io.IOException;

@@ -24,9 +24,9 @@ import com.discordsrv.common.logging.backend.impl.Log4JLoggerImpl;
 import com.discordsrv.sponge.bootstrap.ISpongeBootstrap;
 import com.discordsrv.sponge.command.game.handler.SpongeCommandHandler;
 import dev.vankka.dependencydownload.classpath.ClasspathAppender;
-import dev.vankka.mcdependencydownload.bootstrap.AbstractBootstrap;
-import dev.vankka.mcdependencydownload.bootstrap.classpath.JarInJarClasspathAppender;
-import dev.vankka.mcdependencydownload.classloader.JarInJarClassLoader;
+import dev.vankka.dependencydownload.jarinjar.bootstrap.AbstractBootstrap;
+import dev.vankka.dependencydownload.jarinjar.bootstrap.classpath.JarInJarClasspathAppender;
+import dev.vankka.dependencydownload.jarinjar.classloader.JarInJarClassLoader;
 import org.spongepowered.api.Game;
 import org.spongepowered.plugin.PluginContainer;
 
