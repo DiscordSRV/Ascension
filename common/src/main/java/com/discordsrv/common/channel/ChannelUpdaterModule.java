@@ -107,7 +107,7 @@ public class ChannelUpdaterModule extends AbstractModule<DiscordSRV> {
 
                 manager.timeout(30, TimeUnit.SECONDS).queue(
                         null,
-                        t -> discordSRV.logger().error("Failed to update channel " + channel, t)
+                        t -> discordSRV.discordConnectionManager().handleRequestFailure("Failed to update channel " + channel, t)
                 );
             } catch (Throwable t) {
                 discordSRV.logger().error("Failed to update channel " + channel, t);
