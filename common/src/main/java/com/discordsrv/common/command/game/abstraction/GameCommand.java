@@ -310,7 +310,7 @@ public class GameCommand {
             current = current.parent;
         }
 
-        String command = "/" + stringBuilder.substring(1);
+        String command = "/" + stringBuilder.substring(0, stringBuilder.length() - 1);
         return Component.text(command, NamedTextColor.AQUA);
     }
 
