@@ -3,7 +3,7 @@ plugins {
     id 'org.cadixdev.licenser' version '0.6.1' apply false
     id 'net.kyori.blossom' version '1.2.0' apply false
     id 'net.kyori.indra.git' version '2.1.1' apply false
-    id 'dev.vankka.dependencydownload.plugin' version '1.1.5-SNAPSHOT' apply false
+    id 'dev.vankka.dependencydownload.plugin' version '1.2.2-SNAPSHOT' apply false
 }
 
 version '2.0.0-SNAPSHOT'
