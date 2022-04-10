@@ -27,10 +27,7 @@ import com.discordsrv.common.function.OrDefault;
 import com.discordsrv.common.module.type.AbstractModule;
 import net.dv8tion.jda.api.JDA;
 import net.dv8tion.jda.api.Permission;
-import net.dv8tion.jda.api.entities.IPermissionHolder;
-import net.dv8tion.jda.api.entities.PermissionOverride;
-import net.dv8tion.jda.api.entities.Role;
-import net.dv8tion.jda.api.entities.TextChannel;
+import net.dv8tion.jda.api.entities.*;
 import net.dv8tion.jda.api.requests.restaction.PermissionOverrideAction;
 
 import java.util.ArrayList;
@@ -115,8 +112,14 @@ public class ChannelShutdownBehaviourModule extends AbstractModule<DiscordSRV> {
                 continue;
             }
 
+            Guild guild = channel.getGuild();
+            if (!guild.getSelfMember().hasPermission(channel, Permission.MANAGE_PERMISSIONS)) {
+                logger().error("Cannot change permissions of " + channel + ": lacking \"Manage Permissions\" permission");
+                continue;
+            }
+
             if (everyone) {
-                setPermission(channel, channel.getGuild().getPublicRole(), permissions, state);
+                setPermission(channel, guild.getPublicRole(), permissions, state);
             }
             for (Long roleId : roleIds) {
                 Role role = channel.getGuild().getRoleById(roleId);
