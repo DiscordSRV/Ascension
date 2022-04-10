@@ -19,6 +19,7 @@
 package com.discordsrv.common.placeholder.result;
 
 import com.discordsrv.api.component.MinecraftComponent;
+import com.discordsrv.api.placeholder.FormattedText;
 import com.discordsrv.api.placeholder.mapper.PlaceholderResultMapper;
 import com.discordsrv.api.placeholder.mapper.ResultMappers;
 import com.discordsrv.common.DiscordSRV;
@@ -36,7 +37,7 @@ public class ComponentResultStringifier implements PlaceholderResultMapper {
     }
 
     @Override
-    public String convertResult(@NotNull Object result) {
+    public CharSequence convertResult(@NotNull Object result) {
         if (result instanceof MinecraftComponent) {
             result = ComponentUtil.fromAPI((MinecraftComponent) result);
         }
@@ -45,7 +46,7 @@ public class ComponentResultStringifier implements PlaceholderResultMapper {
             if (ResultMappers.isPlainContext()) {
                 return PlainTextComponentSerializer.plainText().serialize(component);
             } else {
-                return discordSRV.componentFactory().discordSerializer().serialize(component);
+                return new FormattedText(discordSRV.componentFactory().discordSerializer().serialize(component));
             }
         }
         return null;

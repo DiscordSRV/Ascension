@@ -175,12 +175,12 @@ public class PlaceholderServiceImpl implements PlaceholderService {
     }
 
     @Override
-    public String getResultAsString(@NotNull Matcher matcher, @NotNull Set<Object> context) {
+    public CharSequence getResultAsString(@NotNull Matcher matcher, @NotNull Set<Object> context) {
         Object result = getResult(matcher, context);
         return getResultAsString(result);
     }
 
-    private String getResultAsString(Object result) {
+    private CharSequence getResultAsString(Object result) {
         if (result == null) {
             return "";
         } else if (result instanceof CharSequence) {
@@ -195,7 +195,7 @@ public class PlaceholderServiceImpl implements PlaceholderService {
             }
         }
 
-        return String.valueOf(output != null ? output : result);
+        return output instanceof CharSequence ? (CharSequence) output : String.valueOf(output != null ? output : result);
     }
 
     private List<PlaceholderLookupResult> resolve(String placeholder, Set<Object> context) {
@@ -213,7 +213,7 @@ public class PlaceholderServiceImpl implements PlaceholderService {
     private String updateContent(List<PlaceholderLookupResult> results, String placeholder, Matcher matcher, String input) {
         Object representation = getResultRepresentation(results, placeholder, matcher);
 
-        String output = getResultAsString(representation);
+        CharSequence output = getResultAsString(representation);
         if (output == null) {
             output = String.valueOf(representation);
         }
@@ -223,7 +223,7 @@ public class PlaceholderServiceImpl implements PlaceholderService {
                 Pattern.LITERAL
         )
                 .matcher(input)
-                .replaceFirst(output);
+                .replaceFirst(output instanceof String ? (String) output : output.toString());
     }
 
     private Object getResultRepresentation(List<PlaceholderLookupResult> results, String placeholder, Matcher matcher) {

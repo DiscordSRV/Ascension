@@ -37,6 +37,7 @@ import com.discordsrv.common.DiscordSRV;
 import com.discordsrv.common.config.main.channels.MinecraftToDiscordChatConfig;
 import com.discordsrv.common.config.main.channels.base.BaseChannelConfig;
 import com.discordsrv.common.function.OrDefault;
+import dev.vankka.mcdiscordreserializer.discord.DiscordSerializer;
 import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.entities.GuildChannel;
 import net.dv8tion.jda.api.entities.Member;
@@ -98,7 +99,10 @@ public class MinecraftToDiscordChatModule extends AbstractGameMessageModule<Mine
 
     @Override
     public String convertMessage(OrDefault<MinecraftToDiscordChatConfig> config, Component component) {
-        Placeholders messagePlaceholders = new Placeholders(discordSRV.componentFactory().discordSerializer().serialize(component));
+        DiscordSerializer discordSerializer = discordSRV.componentFactory().discordSerializer();
+        String content = discordSerializer.serialize(component, discordSerializer.getDefaultOptions().withEscapeMarkdown(false));
+
+        Placeholders messagePlaceholders = new Placeholders(content);
         config.opt(cfg -> cfg.contentRegexFilters)
                 .ifPresent(patterns -> patterns.forEach(messagePlaceholders::replaceAll));
 

@@ -63,7 +63,7 @@ dependencies {
     runtimeDownloadApi 'net.kyori:adventure-text-serializer-plain:' + rootProject.adventureVersion
     runtimeDownloadApi 'net.kyori:adventure-text-serializer-legacy:' + rootProject.adventureVersion
     runtimeDownloadApi 'net.kyori:adventure-text-serializer-gson:' + rootProject.adventureVersion
-    runtimeDownloadApi 'dev.vankka:mcdiscordreserializer:4.2.4-SNAPSHOT'
+    runtimeDownloadApi 'dev.vankka:mcdiscordreserializer:4.3.0'
     runtimeDownloadApi 'dev.vankka:enhancedlegacytext:1.0.0-SNAPSHOT'
 
     // Brigadier

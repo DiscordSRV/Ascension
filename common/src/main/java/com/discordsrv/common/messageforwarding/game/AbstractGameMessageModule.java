@@ -25,7 +25,6 @@ import com.discordsrv.api.discord.api.entity.channel.DiscordThreadChannel;
 import com.discordsrv.api.discord.api.entity.message.ReceivedDiscordMessage;
 import com.discordsrv.api.discord.api.entity.message.ReceivedDiscordMessageCluster;
 import com.discordsrv.api.discord.api.entity.message.SendableDiscordMessage;
-import com.discordsrv.api.discord.api.util.DiscordFormattingUtil;
 import com.discordsrv.api.event.events.message.receive.game.AbstractGameMessageReceiveEvent;
 import com.discordsrv.api.placeholder.FormattedText;
 import com.discordsrv.api.player.DiscordSRVPlayer;
@@ -168,9 +167,7 @@ public abstract class AbstractGameMessageModule<T extends IMessageConfig, E exte
     }
 
     public String convertMessage(OrDefault<T> config, Component component) {
-        return DiscordFormattingUtil.escapeContent(
-                discordSRV.componentFactory().discordSerializer().serialize(component)
-        );
+        return discordSRV.componentFactory().discordSerializer().serialize(component);
     }
 
     public Map<CompletableFuture<ReceivedDiscordMessage>, DiscordMessageChannel> sendMessageToChannels(
