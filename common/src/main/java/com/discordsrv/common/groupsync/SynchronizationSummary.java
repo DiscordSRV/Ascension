@@ -48,7 +48,7 @@ public class SynchronizationSummary {
     public String toString() {
         int count = pairs.size();
         StringBuilder message = new StringBuilder(
-                "Group synchronization (of " + count + " pairs) for " + player + " (" + cause + ")");
+                "Group synchronization (of " + count + " pair" + (count == 1 ? "" : "s") + ") for " + player + " (" + cause + ")");
 
         for (Map.Entry<GroupSyncResult, Set<GroupSyncConfig.PairConfig>> entry : pairs.entrySet()) {
             message.append(count == 1 ? ": " : "\n")

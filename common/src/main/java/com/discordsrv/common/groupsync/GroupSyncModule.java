@@ -23,6 +23,7 @@ import com.discordsrv.api.discord.api.entity.guild.DiscordRole;
 import com.discordsrv.api.discord.events.member.role.DiscordMemberRoleAddEvent;
 import com.discordsrv.api.discord.events.member.role.DiscordMemberRoleRemoveEvent;
 import com.discordsrv.api.event.bus.Subscribe;
+import com.discordsrv.api.module.type.PermissionDataProvider;
 import com.discordsrv.common.DiscordSRV;
 import com.discordsrv.common.config.main.GroupSyncConfig;
 import com.discordsrv.common.debug.DebugGenerateEvent;
@@ -34,8 +35,8 @@ import com.discordsrv.common.groupsync.enums.GroupSyncResult;
 import com.discordsrv.common.groupsync.enums.GroupSyncSide;
 import com.discordsrv.common.logging.NamedLogger;
 import com.discordsrv.common.module.type.AbstractModule;
-import com.discordsrv.api.module.type.PermissionDataProvider;
 import com.discordsrv.common.player.IPlayer;
+import com.discordsrv.common.player.event.PlayerConnectedEvent;
 import com.github.benmanes.caffeine.cache.Cache;
 import org.apache.commons.lang3.StringUtils;
 import org.jetbrains.annotations.Nullable;
@@ -237,29 +238,29 @@ public class GroupSyncModule extends AbstractModule<DiscordSRV> {
 
     // Resync user
 
-    public void resync(UUID player, GroupSyncCause cause) {
-        lookupLinkedAccount(player).whenComplete((userId, t) -> {
+    public CompletableFuture<Set<GroupSyncResult>> resync(UUID player, GroupSyncCause cause) {
+        return lookupLinkedAccount(player).thenCompose(userId -> {
             if (userId == null) {
-                return;
+                return CompletableFuture.completedFuture(Collections.emptySet());
             }
 
-            resync(player, userId, cause);
+            return CompletableFutureUtil.combine(resync(player, userId, cause));
         });
     }
 
-    public void resync(long userId, GroupSyncCause cause) {
-        lookupLinkedAccount(userId).whenComplete((player, t) -> {
+    public CompletableFuture<Set<GroupSyncResult>> resync(long userId, GroupSyncCause cause) {
+        return lookupLinkedAccount(userId).thenCompose(player -> {
             if (player == null) {
-                return;
+                return CompletableFuture.completedFuture(Collections.emptySet());
             }
 
-            resync(player, userId, cause);
+            return CompletableFutureUtil.combine(resync(player, userId, cause));
         });
     }
 
-    public void resync(UUID player, long userId, GroupSyncCause cause) {
+    public Collection<CompletableFuture<GroupSyncResult>> resync(UUID player, long userId, GroupSyncCause cause) {
         if (noPermissionProvider() || (!discordSRV.playerProvider().player(player).isPresent() && !supportsOffline())) {
-            return;
+            return Collections.emptyList();
         }
 
         Map<GroupSyncConfig.PairConfig, CompletableFuture<GroupSyncResult>> futures = new LinkedHashMap<>();
@@ -268,6 +269,7 @@ public class GroupSyncModule extends AbstractModule<DiscordSRV> {
         }
 
         logSummary(player, cause, futures);
+        return futures.values();
     }
 
     private void resyncPair(GroupSyncConfig.PairConfig pair, GroupSyncCause cause) {
@@ -377,6 +379,11 @@ public class GroupSyncModule extends AbstractModule<DiscordSRV> {
     }
 
     // Listeners & methods to indicate something changed
+
+    @Subscribe
+    public void onPlayerConnected(PlayerConnectedEvent event) {
+        resync(event.player().uniqueId(), GroupSyncCause.GAME_JOIN);
+    }
 
     @Subscribe
     public void onDiscordMemberRoleAdd(DiscordMemberRoleAddEvent event) {
