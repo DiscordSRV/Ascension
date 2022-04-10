@@ -112,7 +112,7 @@ public class ModuleManager {
                 logger.debug(module + " enabled");
             }
         } catch (Throwable t) {
-            discordSRV.logger().error("Failed to enable " + module.toString(), t);
+            discordSRV.logger().error("Failed to enable " + module.getClass().getSimpleName(), t);
         }
     }
 
