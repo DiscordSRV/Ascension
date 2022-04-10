@@ -106,8 +106,8 @@ public class InitialDependencyLoader {
         }
 
         try {
-            discordSRV.invokeDisable().get(15, TimeUnit.SECONDS);
-        } catch (InterruptedException | TimeoutException e) {
+            discordSRV.invokeDisable().get(/*15, TimeUnit.SECONDS*/);
+        } catch (InterruptedException/* | TimeoutException*/ e) {
             logger.warning("Timed out/interrupted shutting down DiscordSRV");
         } catch (ExecutionException ignored) {}
     }

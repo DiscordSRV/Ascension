@@ -30,7 +30,7 @@ import com.discordsrv.common.messageforwarding.game.AbstractGameMessageModule;
 import com.discordsrv.proxy.config.channels.ServerSwitchMessageConfig;
 import com.discordsrv.proxy.config.channels.base.ProxyBaseChannelConfig;
 
-public class ServerSwitchMessageModule extends AbstractGameMessageModule<ServerSwitchMessageConfig> {
+public class ServerSwitchMessageModule extends AbstractGameMessageModule<ServerSwitchMessageConfig, ServerSwitchMessageReceiveEvent> {
 
     public ServerSwitchMessageModule(DiscordSRV discordSRV) {
         super(discordSRV, "SERVER_SWITCH_MESSAGES");

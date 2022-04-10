@@ -58,7 +58,7 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.regex.Pattern;
 
-public class MinecraftToDiscordChatModule extends AbstractGameMessageModule<MinecraftToDiscordChatConfig> {
+public class MinecraftToDiscordChatModule extends AbstractGameMessageModule<MinecraftToDiscordChatConfig, GameChatMessageReceiveEvent> {
 
     private final Map<Long, Map<Long, CachedMention>> memberMentions = new ConcurrentHashMap<>();
     private final Map<Long, Map<Long, CachedMention>> roleMentions = new ConcurrentHashMap<>();
@@ -85,6 +85,7 @@ public class MinecraftToDiscordChatModule extends AbstractGameMessageModule<Mine
         process(event, event.getPlayer(), gameChannel);
         event.markAsProcessed();
     }
+
     @Override
     public OrDefault<MinecraftToDiscordChatConfig> mapConfig(OrDefault<BaseChannelConfig> channelConfig) {
         return channelConfig.map(cfg -> cfg.minecraftToDiscord);

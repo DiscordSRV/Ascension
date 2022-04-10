@@ -28,10 +28,19 @@ import com.discordsrv.common.config.main.channels.LeaveMessageConfig;
 import com.discordsrv.common.config.main.channels.base.BaseChannelConfig;
 import com.discordsrv.common.function.OrDefault;
 
-public class LeaveMessageModule extends AbstractGameMessageModule<LeaveMessageConfig> {
+public class LeaveMessageModule extends AbstractGameMessageModule<LeaveMessageConfig, LeaveMessageReceiveEvent> {
 
     public LeaveMessageModule(DiscordSRV discordSRV) {
         super(discordSRV, "LEAVE_MESSAGES");
+    }
+
+    @Subscribe(priority = EventPriority.LAST)
+    public void onStatusMessageReceive(LeaveMessageReceiveEvent event) {
+        if (checkCancellation(event) || checkProcessor(event)) {
+            return;
+        }
+
+        process(event, event.getPlayer(), event.getGameChannel());
     }
 
     @Override
@@ -42,14 +51,5 @@ public class LeaveMessageModule extends AbstractGameMessageModule<LeaveMessageCo
     @Override
     public void postClusterToEventBus(ReceivedDiscordMessageCluster cluster) {
         discordSRV.eventBus().publish(new LeaveMessageForwardedEvent(cluster));
-    }
-
-    @Subscribe(priority = EventPriority.LAST)
-    public void onStatusMessageReceive(LeaveMessageReceiveEvent event) {
-        if (checkCancellation(event) || checkProcessor(event)) {
-            return;
-        }
-
-        process(event, event.getPlayer(), event.getGameChannel());
     }
 }

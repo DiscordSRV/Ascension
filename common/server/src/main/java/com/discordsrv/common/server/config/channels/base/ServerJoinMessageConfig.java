@@ -16,25 +16,17 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package com.discordsrv.proxy.config.channels.base;
+package com.discordsrv.common.server.config.channels.base;
 
-import com.discordsrv.common.config.annotation.Order;
 import com.discordsrv.common.config.main.channels.JoinMessageConfig;
-import com.discordsrv.common.config.main.channels.base.BaseChannelConfig;
-import com.discordsrv.proxy.config.channels.ServerSwitchMessageConfig;
-import org.spongepowered.configurate.objectmapping.ConfigSerializable;
+import org.jetbrains.annotations.Nullable;
 
-@ConfigSerializable
-public class ProxyBaseChannelConfig extends BaseChannelConfig {
+public class ServerJoinMessageConfig extends JoinMessageConfig {
 
-    @Order(1)
-    public JoinMessageConfig joinMessages = new JoinMessageConfig();
-
-    @Order(3)
-    public ServerSwitchMessageConfig serverSwitchMessages = new ServerSwitchMessageConfig();
+    public FirstJoin firstJoin = new FirstJoin();
 
     @Override
-    public JoinMessageConfig joinMessages() {
-        return joinMessages;
+    public @Nullable FirstJoin firstJoin() {
+        return firstJoin;
     }
 }

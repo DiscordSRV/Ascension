@@ -48,17 +48,21 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionException;
 import java.util.concurrent.CopyOnWriteArrayList;
 
-public abstract class AbstractGameMessageModule<T extends IMessageConfig> extends AbstractModule<DiscordSRV> {
+public abstract class AbstractGameMessageModule<T extends IMessageConfig, E extends AbstractGameMessageReceiveEvent> extends AbstractModule<DiscordSRV> {
 
     public AbstractGameMessageModule(DiscordSRV discordSRV, String loggerName) {
         super(discordSRV, new NamedLogger(discordSRV, loggerName));
+    }
+
+    public OrDefault<T> mapConfig(E event, OrDefault<BaseChannelConfig> channelConfig) {
+        return mapConfig(channelConfig);
     }
 
     public abstract OrDefault<T> mapConfig(OrDefault<BaseChannelConfig> channelConfig);
     public abstract void postClusterToEventBus(ReceivedDiscordMessageCluster cluster);
 
     public final CompletableFuture<?> process(
-            @Nullable AbstractGameMessageReceiveEvent event,
+            @Nullable E event,
             @Nullable DiscordSRVPlayer player,
             @Nullable GameChannel channel
     ) {
@@ -76,11 +80,11 @@ public abstract class AbstractGameMessageModule<T extends IMessageConfig> extend
     }
 
     private CompletableFuture<Void> forwardToChannel(
-            @Nullable AbstractGameMessageReceiveEvent event,
+            @Nullable E event,
             @Nullable DiscordSRVPlayer player,
             @NotNull OrDefault<BaseChannelConfig> config
     ) {
-        OrDefault<T> moduleConfig = mapConfig(config);
+        OrDefault<T> moduleConfig = mapConfig(event, config);
         if (!moduleConfig.get(IMessageConfig::enabled, true)) {
             return null;
         }

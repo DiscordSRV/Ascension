@@ -30,7 +30,7 @@ import com.discordsrv.common.messageforwarding.game.AbstractGameMessageModule;
 import com.discordsrv.common.server.config.channels.DeathMessageConfig;
 import com.discordsrv.common.server.config.channels.base.ServerBaseChannelConfig;
 
-public class DeathMessageModule extends AbstractGameMessageModule<DeathMessageConfig> {
+public class DeathMessageModule extends AbstractGameMessageModule<DeathMessageConfig, DeathMessageReceiveEvent> {
 
     public DeathMessageModule(DiscordSRV discordSRV) {
         super(discordSRV, "DEATH_MESSAGES");

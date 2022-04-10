@@ -24,24 +24,14 @@ import com.discordsrv.api.event.bus.Subscribe;
 import com.discordsrv.api.event.events.message.forward.game.JoinMessageForwardedEvent;
 import com.discordsrv.api.event.events.message.receive.game.JoinMessageReceiveEvent;
 import com.discordsrv.common.DiscordSRV;
-import com.discordsrv.common.config.main.channels.JoinMessageConfig;
+import com.discordsrv.common.config.main.channels.IMessageConfig;
 import com.discordsrv.common.config.main.channels.base.BaseChannelConfig;
 import com.discordsrv.common.function.OrDefault;
 
-public class JoinMessageModule extends AbstractGameMessageModule<JoinMessageConfig> {
+public class JoinMessageModule extends AbstractGameMessageModule<IMessageConfig, JoinMessageReceiveEvent> {
 
     public JoinMessageModule(DiscordSRV discordSRV) {
         super(discordSRV, "JOIN_MESSAGES");
-    }
-
-    @Override
-    public OrDefault<JoinMessageConfig> mapConfig(OrDefault<BaseChannelConfig> channelConfig) {
-        return channelConfig.map(cfg -> cfg.joinMessages);
-    }
-
-    @Override
-    public void postClusterToEventBus(ReceivedDiscordMessageCluster cluster) {
-        discordSRV.eventBus().publish(new JoinMessageForwardedEvent(cluster));
     }
 
     @Subscribe(priority = EventPriority.LAST)
@@ -51,5 +41,22 @@ public class JoinMessageModule extends AbstractGameMessageModule<JoinMessageConf
         }
 
         process(event, event.getPlayer(), event.getGameChannel());
+    }
+
+    @Override
+    public OrDefault<IMessageConfig> mapConfig(JoinMessageReceiveEvent event, OrDefault<BaseChannelConfig> channelConfig) {
+        return channelConfig
+                .map(BaseChannelConfig::joinMessages)
+                .map(cfg -> cfg.getForEvent(event));
+    }
+
+    @Override
+    public OrDefault<IMessageConfig> mapConfig(OrDefault<BaseChannelConfig> channelConfig) {
+        return channelConfig.map(BaseChannelConfig::joinMessages);
+    }
+
+    @Override
+    public void postClusterToEventBus(ReceivedDiscordMessageCluster cluster) {
+        discordSRV.eventBus().publish(new JoinMessageForwardedEvent(cluster));
     }
 }

@@ -20,8 +20,11 @@ package com.discordsrv.common.config.main.channels;
 
 import com.discordsrv.api.discord.api.entity.message.DiscordMessageEmbed;
 import com.discordsrv.api.discord.api.entity.message.SendableDiscordMessage;
+import com.discordsrv.api.event.events.message.receive.game.JoinMessageReceiveEvent;
 import com.discordsrv.common.config.annotation.Untranslated;
+import org.jetbrains.annotations.Nullable;
 import org.spongepowered.configurate.objectmapping.ConfigSerializable;
+import org.spongepowered.configurate.objectmapping.meta.Comment;
 
 @ConfigSerializable
 public class JoinMessageConfig implements IMessageConfig {
@@ -45,5 +48,49 @@ public class JoinMessageConfig implements IMessageConfig {
     @Override
     public SendableDiscordMessage.Builder format() {
         return format;
+    }
+
+    @Nullable
+    public FirstJoin firstJoin() {
+        // Returns null if first join is unavailable
+        return null;
+    }
+
+    public final IMessageConfig getForEvent(JoinMessageReceiveEvent event) {
+        FirstJoin firstJoin;
+        if (event.isFirstJoin() && (firstJoin = firstJoin()) != null && !firstJoin.isRegular()) {
+            return firstJoin;
+        }
+        return this;
+    }
+
+    @ConfigSerializable
+    public static class FirstJoin implements IMessageConfig {
+
+        @Comment("How first join should behave:\n- enabled (uses the format below)\n- disabled (first join messages are disabled)\n- use_regular (uses the format above)")
+        public String firstJoinPreference = "enabled";
+
+        @Untranslated(Untranslated.Type.VALUE)
+        public SendableDiscordMessage.Builder format = SendableDiscordMessage.builder()
+                .addEmbed(
+                        DiscordMessageEmbed.builder()
+                                .setAuthor("%player_display_name% joined for the first time", null, "%player_avatar_url%")
+                                .setColor(0xFFAA00)
+                                .build()
+                );
+
+        public boolean isRegular() {
+            return "use_regular".equalsIgnoreCase(firstJoinPreference);
+        }
+
+        @Override
+        public boolean enabled() {
+            return "enabled".equalsIgnoreCase(firstJoinPreference);
+        }
+
+        @Override
+        public SendableDiscordMessage.Builder format() {
+            return format;
+        }
     }
 }

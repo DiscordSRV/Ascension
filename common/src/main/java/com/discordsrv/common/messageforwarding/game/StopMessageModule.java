@@ -19,6 +19,7 @@
 package com.discordsrv.common.messageforwarding.game;
 
 import com.discordsrv.api.discord.api.entity.message.ReceivedDiscordMessageCluster;
+import com.discordsrv.api.event.events.message.receive.game.AbstractGameMessageReceiveEvent;
 import com.discordsrv.common.DiscordSRV;
 import com.discordsrv.common.config.main.channels.StopMessageConfig;
 import com.discordsrv.common.config.main.channels.base.BaseChannelConfig;
@@ -28,7 +29,7 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 
-public class StopMessageModule extends AbstractGameMessageModule<StopMessageConfig> {
+public class StopMessageModule extends AbstractGameMessageModule<StopMessageConfig, AbstractGameMessageReceiveEvent> {
 
     public StopMessageModule(DiscordSRV discordSRV) {
         super(discordSRV, "START_MESSAGE");

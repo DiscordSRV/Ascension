@@ -19,12 +19,13 @@
 package com.discordsrv.common.messageforwarding.game;
 
 import com.discordsrv.api.discord.api.entity.message.ReceivedDiscordMessageCluster;
+import com.discordsrv.api.event.events.message.receive.game.AbstractGameMessageReceiveEvent;
 import com.discordsrv.common.DiscordSRV;
 import com.discordsrv.common.config.main.channels.StartMessageConfig;
 import com.discordsrv.common.config.main.channels.base.BaseChannelConfig;
 import com.discordsrv.common.function.OrDefault;
 
-public class StartMessageModule extends AbstractGameMessageModule<StartMessageConfig> {
+public class StartMessageModule extends AbstractGameMessageModule<StartMessageConfig, AbstractGameMessageReceiveEvent> {
 
     public StartMessageModule(DiscordSRV discordSRV) {
         super(discordSRV, "START_MESSAGE");

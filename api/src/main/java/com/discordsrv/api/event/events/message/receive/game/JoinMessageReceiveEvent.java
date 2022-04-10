@@ -33,15 +33,18 @@ public class JoinMessageReceiveEvent extends AbstractGameMessageReceiveEvent {
 
     private final DiscordSRVPlayer player;
     private GameChannel gameChannel;
+    private final boolean firstJoin;
 
     public JoinMessageReceiveEvent(
             @NotNull DiscordSRVPlayer player,
             @Nullable GameChannel gameChannel,
             @NotNull MinecraftComponent message,
+            boolean firstJoin,
             boolean cancelled) {
         super(message, cancelled);
         this.player = player;
         this.gameChannel = gameChannel;
+        this.firstJoin = firstJoin;
     }
 
     @NotNull
@@ -56,6 +59,10 @@ public class JoinMessageReceiveEvent extends AbstractGameMessageReceiveEvent {
 
     public void setGameChannel(@Nullable GameChannel gameChannel) {
         this.gameChannel = gameChannel;
+    }
+
+    public boolean isFirstJoin() {
+        return firstJoin;
     }
 
 }

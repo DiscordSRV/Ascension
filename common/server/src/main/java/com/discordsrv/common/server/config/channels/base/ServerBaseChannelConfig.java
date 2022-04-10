@@ -19,13 +19,21 @@
 package com.discordsrv.common.server.config.channels.base;
 
 import com.discordsrv.common.config.annotation.Order;
-import com.discordsrv.common.server.config.channels.DeathMessageConfig;
 import com.discordsrv.common.config.main.channels.base.BaseChannelConfig;
+import com.discordsrv.common.server.config.channels.DeathMessageConfig;
 import org.spongepowered.configurate.objectmapping.ConfigSerializable;
 
 @ConfigSerializable
 public class ServerBaseChannelConfig extends BaseChannelConfig {
 
     @Order(1)
+    public ServerJoinMessageConfig joinMessages = new ServerJoinMessageConfig();
+
+    @Order(3)
     public DeathMessageConfig deathMessages = new DeathMessageConfig();
+
+    @Override
+    public ServerJoinMessageConfig joinMessages() {
+        return joinMessages;
+    }
 }

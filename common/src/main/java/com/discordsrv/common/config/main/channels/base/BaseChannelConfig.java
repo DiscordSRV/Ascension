@@ -27,9 +27,16 @@ import org.spongepowered.configurate.objectmapping.meta.Comment;
 @ConfigSerializable
 public class BaseChannelConfig {
 
+    @Order(0)
     public MinecraftToDiscordChatConfig minecraftToDiscord = new MinecraftToDiscordChatConfig();
+    @Order(0)
     public DiscordToMinecraftChatConfig discordToMinecraft = new DiscordToMinecraftChatConfig();
-    public JoinMessageConfig joinMessages = new JoinMessageConfig();
+
+    public JoinMessageConfig joinMessages() {
+        return null;
+    }
+
+    @Order(2)
     public LeaveMessageConfig leaveMessages = new LeaveMessageConfig();
 
     @Untranslated(Untranslated.Type.VALUE)
