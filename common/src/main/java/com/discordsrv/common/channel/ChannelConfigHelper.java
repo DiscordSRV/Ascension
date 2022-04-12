@@ -183,19 +183,23 @@ public class ChannelConfigHelper {
     public BaseChannelConfig get(String ownerName, String channelName) {
         if (ownerName != null) {
             ownerName = ownerName.toLowerCase(Locale.ROOT);
+
+            // Check if there is a channel defined like this: "owner:channel"
             BaseChannelConfig config = findChannel(ownerName + ":" + channelName);
             if (config != null) {
                 return config;
             }
 
+            // Check if this owner has the highest priority for this channel name
             GameChannel gameChannel = nameToChannelCache.get(channelName);
-            if (gameChannel != null && gameChannel.getOwnerName().equals(ownerName)) {
+            if (gameChannel != null && gameChannel.getOwnerName().equalsIgnoreCase(ownerName)) {
                 config = findChannel(channelName);
                 return config;
             }
             return null;
         }
 
+        // Get the highest priority owner for this channel name and relookup
         GameChannel gameChannel = nameToChannelCache.get(channelName);
         return gameChannel != null ? get(gameChannel) : null;
     }
