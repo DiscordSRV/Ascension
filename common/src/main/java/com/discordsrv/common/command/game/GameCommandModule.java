@@ -39,8 +39,8 @@ public class GameCommandModule extends AbstractModule<DiscordSRV> {
 
     public GameCommandModule(DiscordSRV discordSRV) {
         super(discordSRV);
-        this.primaryCommand = DiscordSRVCommand.get(discordSRV);
-        this.discordAlias = GameCommand.literal("discord").redirect(primaryCommand);
+        this.primaryCommand = DiscordSRVCommand.get(discordSRV, "discordsrv");
+        this.discordAlias = DiscordSRVCommand.get(discordSRV, "discord");
         this.linkCommand = LinkCommand.get(discordSRV);
 
         registerCommand(primaryCommand);

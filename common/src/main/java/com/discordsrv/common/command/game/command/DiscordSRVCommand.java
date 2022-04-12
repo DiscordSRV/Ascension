@@ -27,25 +27,27 @@ import com.discordsrv.common.command.game.command.subcommand.*;
 import com.discordsrv.common.command.game.sender.ICommandSender;
 import com.discordsrv.common.component.util.ComponentUtil;
 
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
+
 public class DiscordSRVCommand implements GameCommandExecutor {
 
-    private static GameCommand INSTANCE;
+    private static Map<String, GameCommand> INSTANCES = new ConcurrentHashMap<>();
 
-    public static GameCommand get(DiscordSRV discordSRV) {
-        if (INSTANCE == null) {
-            INSTANCE = GameCommand.literal("discordsrv")
-                    .requiredPermission("discordsrv.player.command")
-                    .executor(new DiscordSRVCommand(discordSRV))
-                    .then(BroadcastCommand.discord(discordSRV))
-                    .then(BroadcastCommand.minecraft(discordSRV))
-                    .then(BroadcastCommand.json(discordSRV))
-                    .then(DebugCommand.get(discordSRV))
-                    .then(LinkCommand.get(discordSRV))
-                    .then(ReloadCommand.get(discordSRV))
-                    .then(ResyncCommand.get(discordSRV))
-                    .then(VersionCommand.get(discordSRV));
-        }
-        return INSTANCE;
+    public static GameCommand get(DiscordSRV discordSRV, String alias) {
+        return INSTANCES.computeIfAbsent(alias, key ->
+                GameCommand.literal(alias)
+                        .requiredPermission("discordsrv.player.command")
+                        .executor(new DiscordSRVCommand(discordSRV))
+                        .then(BroadcastCommand.discord(discordSRV))
+                        .then(BroadcastCommand.minecraft(discordSRV))
+                        .then(BroadcastCommand.json(discordSRV))
+                        .then(DebugCommand.get(discordSRV))
+                        .then(LinkCommand.get(discordSRV))
+                        .then(ReloadCommand.get(discordSRV))
+                        .then(ResyncCommand.get(discordSRV))
+                        .then(VersionCommand.get(discordSRV))
+        );
     }
 
     private final DiscordSRV discordSRV;
