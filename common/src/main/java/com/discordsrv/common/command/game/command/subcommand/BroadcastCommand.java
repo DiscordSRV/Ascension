@@ -33,6 +33,7 @@ import com.discordsrv.common.config.main.channels.base.IChannelConfig;
 import com.discordsrv.common.function.OrDefault;
 import com.discordsrv.common.future.util.CompletableFutureUtil;
 import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.format.NamedTextColor;
 import net.kyori.adventure.text.serializer.gson.GsonComponentSerializer;
 
 import java.util.ArrayList;
@@ -94,13 +95,14 @@ public abstract class BroadcastCommand implements GameCommandExecutor {
         String content = arguments.getString("content");
 
         List<DiscordMessageChannel> channels = new ArrayList<>();
+        List<CompletableFuture<DiscordThreadChannel>> futures = new ArrayList<>();
         try {
             long id = Long.parseUnsignedLong(channel);
             discordSRV.discordAPI().getMessageChannelById(id).ifPresent(channels::add);
         } catch (IllegalArgumentException ignored) {
             OrDefault<BaseChannelConfig> channelConfig = discordSRV.channelConfig().orDefault(null, channel);
             IChannelConfig config = channelConfig.get(cfg -> cfg instanceof IChannelConfig ? (IChannelConfig) cfg : null);
-            List<CompletableFuture<DiscordThreadChannel>> futures = new ArrayList<>();
+
             if (config != null) {
                 for (Long channelId : config.channelIds()) {
                     discordSRV.discordAPI().getTextChannelById(channelId).ifPresent(channels::add);
@@ -108,22 +110,32 @@ public abstract class BroadcastCommand implements GameCommandExecutor {
 
                 discordSRV.discordAPI().findOrCreateThreads(channelConfig, config, channels::add, futures, false);
             }
+        }
 
-            if (!futures.isEmpty()) {
-                CompletableFutureUtil.combine(futures).whenComplete((v, t) -> execute(sender, content, channels));
-            } else {
-                execute(sender, content, channels);
-            }
+        if (!futures.isEmpty()) {
+            CompletableFutureUtil.combine(futures).whenComplete((v, t) -> execute(sender, content, channel, channels));
+        } else {
+            execute(sender, content, channel, channels);
         }
     }
 
-    private void execute(ICommandSender sender, String content, List<DiscordMessageChannel> channels) {
+    private void execute(ICommandSender sender, String content, String channel, List<DiscordMessageChannel> channels) {
+        if (channels.isEmpty()) {
+            sender.sendMessage(
+                    Component.text()
+                            .append(Component.text("Channel ", NamedTextColor.RED))
+                            .append(Component.text(channel, NamedTextColor.GRAY))
+                            .append(Component.text(" not found", NamedTextColor.RED))
+            );
+            return;
+        }
+
         content = getContent(content);
 
-        for (DiscordMessageChannel channel : channels) {
-            channel.sendMessage(SendableDiscordMessage.builder().setContent(content).build());
+        for (DiscordMessageChannel messageChannel : channels) {
+            messageChannel.sendMessage(SendableDiscordMessage.builder().setContent(content).build());
         }
-        sender.sendMessage(Component.text("Broadcasted!"));
+        sender.sendMessage(Component.text("Broadcasted!", NamedTextColor.GRAY));
     }
 
     public abstract String getContent(String content);
