@@ -33,7 +33,7 @@ public class MinecraftComponentImpl implements MinecraftComponent {
     private Component component;
 
     public static MinecraftComponentImpl empty() {
-        return new MinecraftComponentImpl("{}");
+        return new MinecraftComponentImpl("{text:\"\"}");
     }
 
     public MinecraftComponentImpl(String json) {
