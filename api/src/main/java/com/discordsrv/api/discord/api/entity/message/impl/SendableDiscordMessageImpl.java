@@ -226,7 +226,7 @@ public class SendableDiscordMessageImpl implements SendableDiscordMessage {
                 throw new IllegalStateException("DiscordSRVApi not available");
             }
             this.replacements.put(PlaceholderService.PATTERN,
-                    wrapFunction(matcher -> api.placeholderService().getResultAsString(matcher, context)));
+                    wrapFunction(matcher -> api.placeholderService().getResultAsPlain(matcher, context)));
             return this;
         }
 

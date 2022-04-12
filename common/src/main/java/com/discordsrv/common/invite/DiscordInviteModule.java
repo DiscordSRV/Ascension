@@ -18,6 +18,7 @@
 
 package com.discordsrv.common.invite;
 
+import com.discordsrv.api.placeholder.FormattedText;
 import com.discordsrv.api.placeholder.annotation.Placeholder;
 import com.discordsrv.common.DiscordSRV;
 import com.discordsrv.common.config.main.DiscordInviteConfig;
@@ -92,7 +93,7 @@ public class DiscordInviteModule extends AbstractModule<DiscordSRV> {
     }
 
     @Placeholder("discord_invite")
-    public String getInvite() {
-        return invite != null ? invite : UNKNOWN_INVITE;
+    public CharSequence getInvite() {
+        return new FormattedText(invite != null ? invite : UNKNOWN_INVITE);
     }
 }

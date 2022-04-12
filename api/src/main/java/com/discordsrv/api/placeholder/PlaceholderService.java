@@ -52,6 +52,6 @@ public interface PlaceholderService {
     PlaceholderLookupResult lookupPlaceholder(@NotNull String placeholder, @NotNull Object... context);
 
     Object getResult(@NotNull Matcher matcher, @NotNull Set<Object> context);
-    CharSequence getResultAsString(@NotNull Matcher matcher, @NotNull Set<Object> context);
+    CharSequence getResultAsPlain(@NotNull Matcher matcher, @NotNull Set<Object> context);
 
 }
