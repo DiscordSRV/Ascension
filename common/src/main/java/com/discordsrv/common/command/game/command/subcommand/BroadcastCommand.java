@@ -26,6 +26,7 @@ import com.discordsrv.common.DiscordSRV;
 import com.discordsrv.common.command.game.abstraction.GameCommand;
 import com.discordsrv.common.command.game.abstraction.GameCommandArguments;
 import com.discordsrv.common.command.game.abstraction.GameCommandExecutor;
+import com.discordsrv.common.command.game.abstraction.GameCommandSuggester;
 import com.discordsrv.common.command.game.sender.ICommandSender;
 import com.discordsrv.common.component.util.ComponentUtil;
 import com.discordsrv.common.config.main.channels.base.BaseChannelConfig;
@@ -37,12 +38,15 @@ import net.kyori.adventure.text.format.NamedTextColor;
 import net.kyori.adventure.text.serializer.gson.GsonComponentSerializer;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
+import java.util.Locale;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
+import java.util.stream.Collectors;
 
-public abstract class BroadcastCommand implements GameCommandExecutor {
+public abstract class BroadcastCommand implements GameCommandExecutor, GameCommandSuggester {
 
     private static GameCommand DISCORD;
     private static GameCommand MINECRAFT;
@@ -62,19 +66,22 @@ public abstract class BroadcastCommand implements GameCommandExecutor {
 
     private static GameCommand make(
             String label,
-            Supplier<GameCommandExecutor> executor,
+            Supplier<? extends BroadcastCommand> executor,
             Supplier<GameCommand> supplier,
             Consumer<GameCommand> consumer
     ) {
         if (supplier.get() == null) {
+            BroadcastCommand command = executor.get();
             consumer.accept(
                     GameCommand.literal(label)
                             .requiredPermission("discordsrv.admin.broadcast")
                             .then(
-                                    GameCommand.stringWord("channel")
+                                    GameCommand.string("channel")
+                                            .suggester(command)
                                             .then(
                                                     GameCommand.stringGreedy("content")
-                                                            .executor(executor.get())
+                                                            .suggester(command)
+                                                            .executor(command)
                                             )
                             )
             );
@@ -117,6 +124,22 @@ public abstract class BroadcastCommand implements GameCommandExecutor {
         } else {
             execute(sender, content, channel, channels);
         }
+    }
+
+    @Override
+    public List<String> suggestValues(
+            ICommandSender sender,
+            GameCommandArguments previousArguments,
+            String currentInput
+    ) {
+        if (previousArguments.has("channel")) {
+            return Collections.emptyList();
+        }
+
+        String input = currentInput.toLowerCase(Locale.ROOT);
+        return discordSRV.channelConfig().getKeys().stream()
+                .filter(key -> key.toLowerCase(Locale.ROOT).startsWith(input))
+                .collect(Collectors.toList());
     }
 
     private void execute(ICommandSender sender, String content, String channel, List<DiscordMessageChannel> channels) {
