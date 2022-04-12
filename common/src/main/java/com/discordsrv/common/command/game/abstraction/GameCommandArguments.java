@@ -23,6 +23,14 @@ public interface GameCommandArguments {
 
     <T> T get(String label, Class<T> type);
 
+    default boolean has(String label) {
+        try {
+            return get(label, Object.class) != null;
+        } catch (Throwable ignored) {
+            return false;
+        }
+    }
+
     default String getString(String label) {
         return get(label, String.class);
     }
