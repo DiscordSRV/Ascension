@@ -142,6 +142,12 @@ public class ChannelConfigHelper {
         return channels().computeIfAbsent(ChannelConfig.DEFAULT_KEY, key -> new BaseChannelConfig());
     }
 
+    public Set<String> getKeys() {
+        Set<String> keys = new LinkedHashSet<>(channels().keySet());
+        keys.remove(ChannelConfig.DEFAULT_KEY);
+        return keys;
+    }
+
     public Set<OrDefault<BaseChannelConfig>> getAllChannels() {
         BaseChannelConfig defaultConfig = getDefault();
 
