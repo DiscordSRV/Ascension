@@ -32,13 +32,17 @@ import java.util.concurrent.ConcurrentHashMap;
 
 public class DiscordSRVCommand implements GameCommandExecutor {
 
-    private static Map<String, GameCommand> INSTANCES = new ConcurrentHashMap<>();
+    private static final Map<String, GameCommand> INSTANCES = new ConcurrentHashMap<>();
+    private static DiscordSRVCommand COMMAND;
 
     public static GameCommand get(DiscordSRV discordSRV, String alias) {
+        if (COMMAND == null) {
+            COMMAND = new DiscordSRVCommand(discordSRV);
+        }
         return INSTANCES.computeIfAbsent(alias, key ->
                 GameCommand.literal(alias)
                         .requiredPermission("discordsrv.player.command")
-                        .executor(new DiscordSRVCommand(discordSRV))
+                        .executor(COMMAND)
                         .then(BroadcastCommand.discord(discordSRV))
                         .then(BroadcastCommand.minecraft(discordSRV))
                         .then(BroadcastCommand.json(discordSRV))
