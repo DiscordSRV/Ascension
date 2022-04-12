@@ -67,7 +67,7 @@ dependencies {
     runtimeDownloadApi 'net.kyori:adventure-platform-bukkit:' + rootProject.adventurePlatformVersion
 
     // Commodore
-    commodore('me.lucko:commodore:1.10') {
+    commodore('me.lucko:commodore:1.13') {
         // We only use commodore when it's included in the server, so we don't want to download it
         exclude module: 'brigadier'
         // We don't use the commodore file format
