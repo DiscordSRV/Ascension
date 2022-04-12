@@ -123,6 +123,21 @@ public class ChannelConfigHelper {
         return discordSRV.config().channels;
     }
 
+    private BaseChannelConfig findChannel(String key) {
+        Map<String, BaseChannelConfig> channels = channels();
+        BaseChannelConfig byExact = channels.get(key);
+        if (byExact != null) {
+            return byExact;
+        }
+
+        for (Map.Entry<String, BaseChannelConfig> entry : channels().entrySet()) {
+            if (entry.getKey().equalsIgnoreCase(key)) {
+                return entry.getValue();
+            }
+        }
+        return null;
+    }
+
     private BaseChannelConfig getDefault() {
         return channels().computeIfAbsent(ChannelConfig.DEFAULT_KEY, key -> new BaseChannelConfig());
     }
@@ -147,6 +162,14 @@ public class ChannelConfigHelper {
     public OrDefault<BaseChannelConfig> orDefault(String ownerName, String channelName) {
         BaseChannelConfig defaultConfig = getDefault();
 
+        if (ownerName == null && channelName.contains(":")) {
+            String[] parts = channelName.split(":", 2);
+            if (parts.length == 2) {
+                ownerName = parts[0];
+                channelName = parts[1];
+            }
+        }
+
         return new OrDefault<>(
                 get(ownerName, channelName),
                 defaultConfig
@@ -159,14 +182,15 @@ public class ChannelConfigHelper {
 
     public BaseChannelConfig get(String ownerName, String channelName) {
         if (ownerName != null) {
-            BaseChannelConfig config = channels().get(ownerName + ":" + channelName);
+            ownerName = ownerName.toLowerCase(Locale.ROOT);
+            BaseChannelConfig config = findChannel(ownerName + ":" + channelName);
             if (config != null) {
                 return config;
             }
 
             GameChannel gameChannel = nameToChannelCache.get(channelName);
             if (gameChannel != null && gameChannel.getOwnerName().equals(ownerName)) {
-                config = channels().get(channelName);
+                config = findChannel(channelName);
                 return config;
             }
             return null;
