@@ -80,7 +80,7 @@ public abstract class BroadcastCommand implements GameCommandExecutor, GameComma
                                             .suggester(command)
                                             .then(
                                                     GameCommand.stringGreedy("content")
-                                                            .suggester(command)
+                                                            .suggester((__, ___, ____) -> Collections.emptyList())
                                                             .executor(command)
                                             )
                             )
@@ -132,10 +132,6 @@ public abstract class BroadcastCommand implements GameCommandExecutor, GameComma
             GameCommandArguments previousArguments,
             String currentInput
     ) {
-        if (previousArguments.has("channel")) {
-            return Collections.emptyList();
-        }
-
         String input = currentInput.toLowerCase(Locale.ROOT);
         return discordSRV.channelConfig().getKeys().stream()
                 .filter(key -> key.toLowerCase(Locale.ROOT).startsWith(input))
@@ -153,12 +149,17 @@ public abstract class BroadcastCommand implements GameCommandExecutor, GameComma
             return;
         }
 
-        content = getContent(content);
 
+        SendableDiscordMessage message = getDiscordContent(content);
         for (DiscordMessageChannel messageChannel : channels) {
-            messageChannel.sendMessage(SendableDiscordMessage.builder().setContent(content).build());
+            messageChannel.sendMessage(message);
         }
         sender.sendMessage(Component.text("Broadcasted!", NamedTextColor.GRAY));
+    }
+
+    public SendableDiscordMessage getDiscordContent(String content) {
+        content = getContent(content);
+        return SendableDiscordMessage.builder().setContent(content).build();
     }
 
     public abstract String getContent(String content);
@@ -170,9 +171,19 @@ public abstract class BroadcastCommand implements GameCommandExecutor, GameComma
         }
 
         @Override
+        public SendableDiscordMessage getDiscordContent(String content) {
+            return SendableDiscordMessage.builder()
+                    // Keep as is, allow newlines though
+                    .setContent(content.replace("\\n", "\n"))
+                    .toFormatter()
+                    .applyPlaceholderService()
+                    .build();
+        }
+
+        // See above
+        @Override
         public String getContent(String content) {
-            // Keep as is, allow newlines though
-            return content.replace("\\n", "\n");
+            return null;
         }
     }
 
