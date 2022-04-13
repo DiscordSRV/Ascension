@@ -32,6 +32,7 @@ import com.discordsrv.api.placeholder.FormattedText;
 import com.discordsrv.api.placeholder.PlaceholderService;
 import com.discordsrv.api.placeholder.mapper.ResultMappers;
 import com.discordsrv.api.placeholder.util.Placeholders;
+import net.dv8tion.jda.api.entities.MessageEmbed;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.*;
@@ -278,47 +279,57 @@ public class SendableDiscordMessageImpl implements SendableDiscordMessage {
                 // TODO: check which parts allow formatting more thoroughly
                 ResultMappers.runInPlainContext(() -> {
                     embedBuilder.setAuthor(
-                            placeholders.apply(
-                                    embedBuilder.getAuthorName()),
-                            placeholders.apply(
-                                    embedBuilder.getAuthorUrl()),
-                            placeholders.apply(
-                                    embedBuilder.getAuthorImageUrl()));
+                            cutToLength(
+                                    placeholders.apply(embedBuilder.getAuthorName()),
+                                    MessageEmbed.AUTHOR_MAX_LENGTH
+                            ),
+                            placeholders.apply(embedBuilder.getAuthorUrl()),
+                            placeholders.apply(embedBuilder.getAuthorImageUrl()));
 
                     embedBuilder.setTitle(
-                            placeholders.apply(
-                                    embedBuilder.getTitle()),
-                            placeholders.apply(
-                                    embedBuilder.getTitleUrl()));
+                            cutToLength(
+                                    placeholders.apply(embedBuilder.getTitle()),
+                                    MessageEmbed.TITLE_MAX_LENGTH
+                            ),
+                            placeholders.apply(embedBuilder.getTitleUrl())
+                    );
 
                     embedBuilder.setThumbnailUrl(
-                            placeholders.apply(
-                                    embedBuilder.getThumbnailUrl()));
+                            placeholders.apply(embedBuilder.getThumbnailUrl())
+                    );
 
                     embedBuilder.setImageUrl(
-                            placeholders.apply(
-                                    embedBuilder.getImageUrl()));
+                            placeholders.apply(embedBuilder.getImageUrl())
+                    );
 
                     embedBuilder.setFooter(
-                            placeholders.apply(
-                                    embedBuilder.getFooter()),
-                            placeholders.apply(
-                                    embedBuilder.getFooterImageUrl()));
+                            cutToLength(
+                                    placeholders.apply(embedBuilder.getFooter()),
+                                    MessageEmbed.TEXT_MAX_LENGTH
+                            ),
+                            placeholders.apply(embedBuilder.getFooterImageUrl())
+                    );
                 });
 
                 embedBuilder.setDescription(
-                        placeholders.apply(
-                                embedBuilder.getDescription())
+                        cutToLength(
+                                placeholders.apply(embedBuilder.getDescription()),
+                                MessageEmbed.DESCRIPTION_MAX_LENGTH
+                        )
                 );
 
                 List<DiscordMessageEmbed.Field> fields = new ArrayList<>(embedBuilder.getFields());
                 embedBuilder.getFields().clear();
 
                 fields.forEach(field -> embedBuilder.addField(
-                        placeholders.apply(
-                                field.getTitle()),
-                        placeholders.apply(
-                                field.getValue()),
+                        cutToLength(
+                                placeholders.apply(field.getTitle()),
+                                MessageEmbed.TITLE_MAX_LENGTH
+                        ),
+                        cutToLength(
+                                placeholders.apply(field.getValue()),
+                                MessageEmbed.VALUE_MAX_LENGTH
+                        ),
                         field.isInline()
                 ));
 
@@ -331,6 +342,16 @@ public class SendableDiscordMessageImpl implements SendableDiscordMessage {
             });
 
             return builder.build();
+        }
+
+        private String cutToLength(String input, int maxLength) {
+            if (input == null) {
+                return null;
+            }
+            if (input.length() > maxLength) {
+                return input.substring(0, maxLength);
+            }
+            return input;
         }
     }
 }
