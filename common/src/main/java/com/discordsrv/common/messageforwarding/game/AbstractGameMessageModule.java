@@ -163,6 +163,9 @@ public abstract class AbstractGameMessageModule<T extends IMessageConfig, E exte
                         discordSRV.logger().error("Failed to publish to event bus", t);
                         return null;
                     });
+        }).exceptionally(t -> {
+            discordSRV.logger().error("Error in sending message", t);
+            return null;
         });
     }
 
