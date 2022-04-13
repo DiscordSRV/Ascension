@@ -52,7 +52,7 @@ dependencies {
     runtimeDownloadApi 'org.spongepowered:configurate-hocon:' + rootProject.configurateVersion
 
     // Jackson (transitive in :api)
-    compileOnly 'com.fasterxml.jackson.core:jackson-databind:2.13.1'
+    compileOnlyApi 'com.fasterxml.jackson.core:jackson-databind:2.10.1'
 
     // Logging
     compileOnlyApi project(':common:common-slf4j-hack')

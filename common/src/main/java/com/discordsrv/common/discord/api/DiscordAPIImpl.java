@@ -307,6 +307,7 @@ public class DiscordAPIImpl implements DiscordAPI {
         try {
             return mapExceptions(futureSupplier.get());
         } catch (Throwable t) {
+            t.printStackTrace();
             CompletableFuture<T> future = new CompletableFuture<>();
             future.completeExceptionally(t);
             return future;
@@ -314,16 +315,16 @@ public class DiscordAPIImpl implements DiscordAPI {
     }
 
     public <T> CompletableFuture<T> mapExceptions(CompletableFuture<T> future) {
-        return future.handle((msg, t) -> {
+        return future.handle((response, t) -> {
             if (t instanceof ErrorResponseException) {
                 ErrorResponseException exception = (ErrorResponseException) t;
                 int code = exception.getErrorCode();
-                ErrorResponse response = exception.getErrorResponse();
-                throw new RestErrorResponseException(code, response != null ? response.getMeaning() : "Unknown", t);
+                ErrorResponse errorResponse = exception.getErrorResponse();
+                throw new RestErrorResponseException(code, errorResponse != null ? errorResponse.getMeaning() : "Unknown", t);
             } else if (t != null) {
                 throw (RuntimeException) t;
             }
-            return msg;
+            return response;
         });
     }
 
