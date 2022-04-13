@@ -134,6 +134,7 @@ public class ModuleManager {
         AbstractModule<?> abstractModule = getAbstract(module);
         try {
             logger.debug(module + " disabling");
+            discordSRV.eventBus().unsubscribe(abstractModule);
             abstractModule.disable();
         } catch (Throwable t) {
             discordSRV.logger().error("Failed to disable " + abstractModule.toString(), t);
