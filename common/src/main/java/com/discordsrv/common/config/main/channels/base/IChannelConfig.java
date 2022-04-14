@@ -37,7 +37,7 @@ public interface IChannelConfig {
 
     String DEFAULT_KEY = "default";
 
-    String CHANNEL_IDS_OPTION_NAME = "channelIds";
+    String CHANNEL_IDS_OPTION_NAME = "channel-ids";
     String CHANNEL_IDS_COMMENT = "The channels this in-game channel will forward to in Discord";
     List<Long> CHANNEL_IDS_VALUE = new ArrayList<>();
 
