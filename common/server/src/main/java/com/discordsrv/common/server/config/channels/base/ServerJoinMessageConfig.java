@@ -18,11 +18,13 @@
 
 package com.discordsrv.common.server.config.channels.base;
 
+import com.discordsrv.common.config.annotation.Order;
 import com.discordsrv.common.config.main.channels.JoinMessageConfig;
 import org.jetbrains.annotations.Nullable;
 
 public class ServerJoinMessageConfig extends JoinMessageConfig {
 
+    @Order(10)
     public FirstJoin firstJoin = new FirstJoin();
 
     @Override
