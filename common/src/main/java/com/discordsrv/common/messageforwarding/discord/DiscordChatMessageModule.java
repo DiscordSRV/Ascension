@@ -32,7 +32,7 @@ import com.discordsrv.api.placeholder.util.Placeholders;
 import com.discordsrv.common.DiscordSRV;
 import com.discordsrv.common.component.renderer.DiscordSRVMinecraftRenderer;
 import com.discordsrv.common.component.util.ComponentUtil;
-import com.discordsrv.common.config.main.DiscordIgnores;
+import com.discordsrv.common.config.main.DiscordIgnoresConfig;
 import com.discordsrv.common.config.main.channels.DiscordToMinecraftChatConfig;
 import com.discordsrv.common.config.main.channels.base.BaseChannelConfig;
 import com.discordsrv.common.function.OrDefault;
@@ -87,7 +87,7 @@ public class DiscordChatMessageModule extends AbstractModule<DiscordSRV> {
         DiscordGuildMember member = discordMessage.getMember().orElse(null);
         boolean webhookMessage = discordMessage.isWebhookMessage();
 
-        DiscordIgnores ignores = chatConfig.get(cfg -> cfg.ignores);
+        DiscordIgnoresConfig ignores = chatConfig.get(cfg -> cfg.ignores);
         if (ignores != null && ignores.shouldBeIgnored(webhookMessage, author, member)) {
             // TODO: response for humans
             return;

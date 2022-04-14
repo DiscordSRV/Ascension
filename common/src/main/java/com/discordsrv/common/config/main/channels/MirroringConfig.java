@@ -18,7 +18,7 @@
 
 package com.discordsrv.common.config.main.channels;
 
-import com.discordsrv.common.config.main.DiscordIgnores;
+import com.discordsrv.common.config.main.DiscordIgnoresConfig;
 import org.spongepowered.configurate.objectmapping.ConfigSerializable;
 import org.spongepowered.configurate.objectmapping.meta.Comment;
 
@@ -28,10 +28,10 @@ public class MirroringConfig {
     public boolean enabled = true;
 
     @Comment("Users, bots and webhooks to ignore when mirroring")
-    public DiscordIgnores ignores = new DiscordIgnores();
+    public DiscordIgnoresConfig ignores = new DiscordIgnoresConfig();
 
     @Comment("The format of the username of mirrored messages\n"
             + "It's recommended to include some special character if in-game messages use webhooks,\n"
-            + "in order to prevent Discord users and in-game players being grouped together")
+            + "in order to prevent Discord users and in-game players with the same name being grouped together")
     public String usernameFormat = "%user_effective_name% \uD83D\uDD03";
 }

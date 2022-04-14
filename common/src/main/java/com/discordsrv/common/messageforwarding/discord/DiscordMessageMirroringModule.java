@@ -32,7 +32,7 @@ import com.discordsrv.api.discord.events.message.DiscordMessageUpdateEvent;
 import com.discordsrv.api.event.bus.Subscribe;
 import com.discordsrv.api.event.events.message.receive.discord.DiscordChatMessageProcessingEvent;
 import com.discordsrv.common.DiscordSRV;
-import com.discordsrv.common.config.main.DiscordIgnores;
+import com.discordsrv.common.config.main.DiscordIgnoresConfig;
 import com.discordsrv.common.config.main.channels.MirroringConfig;
 import com.discordsrv.common.config.main.channels.base.BaseChannelConfig;
 import com.discordsrv.common.config.main.channels.base.IChannelConfig;
@@ -83,7 +83,7 @@ public class DiscordMessageMirroringModule extends AbstractModule<DiscordSRV> {
                 continue;
             }
 
-            DiscordIgnores ignores = config.get(cfg -> cfg.ignores);
+            DiscordIgnoresConfig ignores = config.get(cfg -> cfg.ignores);
             if (ignores != null && ignores.shouldBeIgnored(message.isWebhookMessage(), message.getAuthor(), message.getMember().orElse(null))) {
                 continue;
             }

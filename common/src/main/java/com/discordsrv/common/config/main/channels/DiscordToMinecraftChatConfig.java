@@ -19,7 +19,7 @@
 package com.discordsrv.common.config.main.channels;
 
 import com.discordsrv.common.config.annotation.Untranslated;
-import com.discordsrv.common.config.main.DiscordIgnores;
+import com.discordsrv.common.config.main.DiscordIgnoresConfig;
 import org.spongepowered.configurate.objectmapping.ConfigSerializable;
 import org.spongepowered.configurate.objectmapping.meta.Comment;
 
@@ -51,7 +51,7 @@ public class DiscordToMinecraftChatConfig {
     public Map<Pattern, String> contentRegexFilters = new LinkedHashMap<>();
 
     @Comment("Users, bots and webhooks to ignore")
-    public DiscordIgnores ignores = new DiscordIgnores();
+    public DiscordIgnoresConfig ignores = new DiscordIgnoresConfig();
 
     @Comment("The representations of Discord mentions in-game")
     public Mentions mentions = new Mentions();

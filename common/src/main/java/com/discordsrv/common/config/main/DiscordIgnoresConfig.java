@@ -28,7 +28,7 @@ import java.util.List;
 import java.util.Optional;
 
 @ConfigSerializable
-public class DiscordIgnores {
+public class DiscordIgnoresConfig {
 
     @Comment("User, bot and webhook ids to ignore")
     public IDs usersAndWebhookIds = new IDs();
@@ -39,7 +39,7 @@ public class DiscordIgnores {
     @Comment("If bots (webhooks not included) should be ignored")
     public boolean bots = false;
 
-    @Comment("If webhooks should be ignored")
+    @Comment("If webhooks should be ignored (webhook messages sent by this DiscordSRV instance will always be ignored)")
     public boolean webhooks = true;
 
     @ConfigSerializable
@@ -58,12 +58,12 @@ public class DiscordIgnores {
             return true;
         }
 
-        DiscordIgnores.IDs users = usersAndWebhookIds;
+        DiscordIgnoresConfig.IDs users = usersAndWebhookIds;
         if (users != null && users.ids.contains(author.getId()) != users.whitelist) {
             return true;
         }
 
-        DiscordIgnores.IDs roles = roleIds;
+        DiscordIgnoresConfig.IDs roles = roleIds;
         return roles != null && Optional.ofNullable(member)
                 .map(m -> m.getRoles().stream().anyMatch(role -> roles.ids.contains(role.getId())))
                 .map(hasRole -> hasRole != roles.whitelist)
