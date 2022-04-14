@@ -307,7 +307,6 @@ public class DiscordAPIImpl implements DiscordAPI {
         try {
             return mapExceptions(futureSupplier.get());
         } catch (Throwable t) {
-            t.printStackTrace();
             CompletableFuture<T> future = new CompletableFuture<>();
             future.completeExceptionally(t);
             return future;
