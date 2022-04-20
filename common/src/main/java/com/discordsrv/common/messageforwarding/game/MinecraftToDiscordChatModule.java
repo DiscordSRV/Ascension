@@ -283,7 +283,7 @@ public class MinecraftToDiscordChatModule extends AbstractGameMessageModule<Mine
         }
 
         GuildChannel channel = (GuildChannel) event.getChannel();
-        getMemberMentions(event.getGuild()).put(channel.getIdLong(), convertChannel(channel));
+        getChannelMentions(event.getGuild()).put(channel.getIdLong(), convertChannel(channel));
     }
 
     @Subscribe
@@ -293,7 +293,7 @@ public class MinecraftToDiscordChatModule extends AbstractGameMessageModule<Mine
         }
 
         GuildChannel channel = (GuildChannel) event.getChannel();
-        getMemberMentions(event.getGuild()).put(channel.getIdLong(), convertChannel(channel));
+        getChannelMentions(event.getGuild()).put(channel.getIdLong(), convertChannel(channel));
     }
 
     @Subscribe
@@ -303,7 +303,7 @@ public class MinecraftToDiscordChatModule extends AbstractGameMessageModule<Mine
         }
 
         GuildChannel channel = (GuildChannel) event.getChannel();
-        getMemberMentions(event.getGuild()).remove(channel.getIdLong());
+        getChannelMentions(event.getGuild()).remove(channel.getIdLong());
     }
 
     public static class CachedMention {
