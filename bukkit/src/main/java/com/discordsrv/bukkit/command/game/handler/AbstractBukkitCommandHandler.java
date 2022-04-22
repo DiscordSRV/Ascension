@@ -79,9 +79,7 @@ public abstract class AbstractBukkitCommandHandler implements ICommandHandler {
         PluginCommand command = null;
         try {
             Constructor<?> constructor = PluginCommand.class.getDeclaredConstructor(String.class, Plugin.class);
-            if (!constructor.isAccessible()) {
-                constructor.setAccessible(true);
-            }
+            constructor.setAccessible(true);
             command = (PluginCommand) constructor.newInstance(label, discordSRV.plugin());
             discordSRV.server().getCommandMap().register(label, discordSRV.plugin().getName().toLowerCase(Locale.ROOT), command);
         } catch (ReflectiveOperationException ignored) {}
