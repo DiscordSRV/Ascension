@@ -6,7 +6,6 @@ shadowJar {
     // Relocations in buildscript/relocations.gradle
 }
 
-var spongeVersion = '8.0.0'
 allprojects {
     repositories {
         exclusiveContent {
@@ -21,8 +20,8 @@ allprojects {
 
     dependencies {
         // Platform
-        annotationProcessor 'org.spongepowered:spongeapi:' + spongeVersion
-        compileOnly 'org.spongepowered:spongeapi:' + spongeVersion
+        annotationProcessor(libs.spongeapi)
+        compileOnly(libs.spongeapi)
     }
 }
 
@@ -34,6 +33,6 @@ dependencies {
     implementation project(':common:common-server')
 
     // Dependency Download
-    implementation 'dev.vankka:dependencydownload-jarinjar-bootstrap:' + rootProject.ddVersion
+    implementation(libs.dependencydownload.jarinjar.bootstrap)
     compileOnlyApi project(':sponge:sponge-loader')
 }

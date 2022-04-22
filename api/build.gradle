@@ -2,11 +2,11 @@ apply from: rootProject.file('buildscript/relocations.gradle')
 
 dependencies {
     // Annotations
-    compileOnlyApi 'org.jetbrains:annotations:22.0.0'
-    compileOnlyApi 'com.google.code.findbugs:jsr305:3.0.2'
+    compileOnlyApi(libs.jetbrains.annotations)
+    compileOnlyApi(libs.findbugs.annotations)
 
     // JDA
-    api('net.dv8tion:JDA:' + rootProject.jdaVersion) {
+    api(libs.jda) {
         // Annotations are suppose to be compile time only
         exclude group: 'org.jetbrains', module: 'annotations'
         exclude group: 'com.google.code.findbugs', module: 'jsr305'

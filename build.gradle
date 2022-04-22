@@ -1,26 +1,12 @@
 plugins {
-    id 'com.github.johnrengelman.shadow' version '7.1.1' apply false
-    id 'org.cadixdev.licenser' version '0.6.1' apply false
-    id 'net.kyori.blossom' version '1.2.0' apply false
-    id 'net.kyori.indra.git' version '2.1.1' apply false
-    id 'dev.vankka.dependencydownload.plugin' version '1.2.2-SNAPSHOT' apply false
+    alias(libs.plugins.shadow) apply false
+    alias(libs.plugins.licenser) apply false
+    alias(libs.plugins.blossom) apply false
+    alias(libs.plugins.indra.git) apply false
+    alias(libs.plugins.dependencydownload.plugin) apply false
 }
 
 version '2.0.0-SNAPSHOT'
-
-ext {
-    // DependencyDownload (change plugin version above)
-    ddVersion = '1.2.2-SNAPSHOT'
-    // MinecraftDependencyDownload
-    mddVersion = '1.0.0-SNAPSHOT'
-    // JDA
-    jdaVersion = '5.0.0-alpha.9'
-    // Configurate
-    configurateVersion = '4.1.2'
-    // Adventure & Adventure Platform
-    adventureVersion = '4.10.0'
-    adventurePlatformVersion = '4.1.0'
-}
 
 allprojects {
     apply plugin: 'java'
@@ -42,6 +28,10 @@ allprojects {
         runtimeDownloadApi
         compileOnlyApi.extendsFrom runtimeDownloadApi
         runtimeDownloadOnly.extendsFrom runtimeDownloadApi
+
+        all {
+            resolutionStrategy.failOnDynamicVersions()
+        }
     }
 
     generateRuntimeDownloadResourceForRuntimeDownloadOnly {
@@ -74,8 +64,8 @@ allprojects {
 
     dependencies {
         // Test dependencies
-        testImplementation 'org.junit.jupiter:junit-jupiter-api:5.8.2'
-        testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine:5.8.2'
+        testImplementation(libs.jupiter.api)
+        testRuntimeOnly(libs.jupiter.engine)
     }
 
     test {
@@ -97,15 +87,15 @@ allprojects {
         finalizedBy shadowJar
 
         manifest.attributes(
-                "Specification-Title": "DiscordSRV",
-                "Specification-Vendor": "DiscordSRV",
-                "Specification-Version": project.version
+                'Specification-Title': 'DiscordSRV',
+                'Specification-Vendor': 'DiscordSRV',
+                'Specification-Version': project.version
         )
         if (project.name != "api") {
             manifest.attributes(
-                    "Implementation-Title": "DiscordSRV",
-                    "Implementation-Vendor": "DiscordSRV",
-                    "Implementation-Version": project.version
+                    'Implementation-Title': 'DiscordSRV',
+                    'Implementation-Vendor': 'DiscordSRV',
+                    'Implementation-Version': project.version
             )
         }
         if (indraGit.isPresent()) {

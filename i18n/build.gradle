@@ -21,8 +21,8 @@ dependencies {
     implementation(project(':sponge')) { transitive = false }
     implementation(project(':velocity')) { transitive = false }
 
-    api 'org.spongepowered:configurate-yaml:' + rootProject.configurateVersion
-    api 'org.spongepowered:configurate-hocon:' + rootProject.configurateVersion
+    api(libs.configurate.yaml)
+    api(libs.configurate.hocon)
 }
 
 application {

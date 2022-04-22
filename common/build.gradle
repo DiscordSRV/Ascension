@@ -33,49 +33,49 @@ dependencies {
     testImplementation project(':common:common-api')
 
     // DependencyDownload
-    api 'dev.vankka:dependencydownload-runtime:' + rootProject.ddVersion
+    api(libs.dependencydownload.runtime)
 
     // Discord Webhooks
-    runtimeDownloadApi 'club.minnced:discord-webhooks:0.7.5'
+    runtimeDownloadApi(libs.webhooks)
 
     // Apache Commons
-    runtimeDownloadApi 'org.apache.commons:commons-lang3:3.12.0'
-    runtimeDownloadApi 'commons-io:commons-io:2.10.0'
+    runtimeDownloadApi(libs.commons.lang)
+    runtimeDownloadApi(libs.commons.io)
 
     // Caffeine
-    runtimeDownloadApi('com.github.ben-manes.caffeine:caffeine:2.9.2') {
+    runtimeDownloadApi(libs.caffeine) {
         exclude group: 'com.google.errorprone', module: 'error_prone_annotations'
     }
 
-    // Config
-    runtimeDownloadApi 'org.spongepowered:configurate-yaml:' + rootProject.configurateVersion
-    runtimeDownloadApi 'org.spongepowered:configurate-hocon:' + rootProject.configurateVersion
-
     // Jackson (transitive in :api)
-    compileOnlyApi 'com.fasterxml.jackson.core:jackson-databind:2.10.1'
+    compileOnlyApi(libs.jackson.databind)
+
+    // Config
+    runtimeDownloadApi(libs.configurate.yaml)
+    runtimeDownloadApi(libs.configurate.hocon)
 
     // Logging
     compileOnlyApi project(':common:common-slf4j-hack')
-    compileOnly 'org.apache.logging.log4j:log4j-core:2.0-beta9'
+    compileOnly(libs.log4j.core)
 
     // Adventure, MCDiscordReserializer, EnhancedLegacyText
-    runtimeDownloadApi 'net.kyori:adventure-api:' + rootProject.adventureVersion
-    runtimeDownloadApi 'net.kyori:adventure-text-serializer-plain:' + rootProject.adventureVersion
-    runtimeDownloadApi 'net.kyori:adventure-text-serializer-legacy:' + rootProject.adventureVersion
-    runtimeDownloadApi 'net.kyori:adventure-text-serializer-gson:' + rootProject.adventureVersion
-    runtimeDownloadApi 'dev.vankka:mcdiscordreserializer:4.3.0'
-    runtimeDownloadApi 'dev.vankka:enhancedlegacytext:1.0.0-SNAPSHOT'
-
-    // Brigadier
-    compileOnlyApi 'com.mojang:brigadier:1.0.18'
+    runtimeDownloadApi(libs.adventure.api)
+    runtimeDownloadApi(libs.adventure.serializer.plain)
+    runtimeDownloadApi(libs.adventure.serializer.legacy)
+    runtimeDownloadApi(libs.adventure.serializer.gson)
+    runtimeDownloadApi(libs.mcdiscordreserializer)
+    runtimeDownloadApi(libs.enhancedlegacytext)
 
     // Database
-    hikari('com.zaxxer:HikariCP:4.0.3') { exclude group: 'org.slf4j' }
-    h2Driver 'com.h2database:h2:2.1.210'
-    mysqlDriver 'mysql:mysql-connector-java:8.0.25'
+    hikari(libs.hikaricp) { exclude group: 'org.slf4j' }
+    h2Driver(libs.h2)
+    mysqlDriver(libs.mysql)
+
+    // Brigadier
+    compileOnlyApi(libs.brigadier)
 
     // Integrations
-    compileOnlyApi 'net.luckperms:api:5.3'
+    compileOnlyApi(libs.luckperms)
 }
 
 processResources {
@@ -85,6 +85,10 @@ processResources {
             generateResourceForH2Driver,
             generateResourceForMySQLDriver
     )
+}
+
+repositories {
+    mavenCentral()
 }
 
 // Relocations in buildscript/relocations.gradle

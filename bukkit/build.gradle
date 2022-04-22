@@ -33,6 +33,8 @@ allprojects {
             }
             filter {
                 includeGroup 'com.destroystokyo.paper'
+                includeGroup 'io.papermc'
+                includeGroup 'org.spigotmc'
             }
         }
 
@@ -48,7 +50,7 @@ allprojects {
 
     dependencies {
         // Platform
-        compileOnly 'com.destroystokyo.paper:paper-api:1.16.5-R0.1-SNAPSHOT'
+        compileOnly(libs.paperapi.old)
     }
 }
 
@@ -61,13 +63,14 @@ dependencies {
     implementation project(path: ':common:common-server', configuration: 'runtimeElements')
 
     // DependencyDownload
-    implementation 'dev.vankka:minecraftdependencydownload-bukkit:' + rootProject.mddVersion
+    implementation(libs.mcdependencydownload.bukkit.bootstrap)
 
     // Adventure
-    runtimeDownloadApi 'net.kyori:adventure-platform-bukkit:' + rootProject.adventurePlatformVersion
+    runtimeDownloadApi(libs.adventure.api)
+    runtimeDownloadApi(libs.adventure.platform.bukkit)
 
     // Commodore
-    commodore('me.lucko:commodore:1.13') {
+    commodore(libs.commodore) {
         // We only use commodore when it's included in the server, so we don't want to download it
         exclude module: 'brigadier'
         // We don't use the commodore file format
@@ -75,7 +78,7 @@ dependencies {
     }
 
     // Integrations
-    compileOnly 'net.milkbowl.vault:VaultAPI:1.7'
+    compileOnly(libs.vaultapi)
 }
 
 processResources {

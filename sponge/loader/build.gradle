@@ -2,7 +2,7 @@ import org.spongepowered.gradle.plugin.config.PluginLoaders
 import org.spongepowered.plugin.metadata.model.PluginDependency
 
 plugins {
-    id 'org.spongepowered.gradle.plugin' version '2.0.0'
+    alias(libs.plugins.spongeplugin)
 }
 
 apply from: rootProject.file('buildscript/loader.gradle')
@@ -12,7 +12,7 @@ dependencies {
     implementation project(':common:common-api')
 
     // DependencyDownload
-    implementation 'dev.vankka:dependencydownload-jarinjar-loader:' + rootProject.ddVersion
+    implementation(libs.dependencydownload.jarinjar.loader)
 }
 
 shadowJar {
@@ -22,7 +22,7 @@ shadowJar {
 // buildscript/loader.gradle includes the jarinjar in the jar
 
 sponge {
-    apiVersion('8.0.0-SNAPSHOT')
+    apiVersion(libs.versions.sponge.get())
     license('GPLv3')
     loader {
         name(PluginLoaders.JAVA_PLAIN)

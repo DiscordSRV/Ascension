@@ -25,7 +25,7 @@ allprojects {
 
     dependencies {
         // Platform
-        compileOnly 'net.md-5:bungeecord-api:1.17-R0.1-SNAPSHOT'
+        compileOnly(libs.bungee)
     }
 }
 
@@ -37,9 +37,9 @@ dependencies {
     implementation project(':common:common-proxy')
 
     // DependencyDownload
-    implementation 'dev.vankka:minecraftdependencydownload-bungee:' + rootProject.mddVersion
+    implementation(libs.mcdependencydownload.bungee.bootstrap)
 
     // Adventure
-    runtimeDownloadApi 'net.kyori:adventure-platform-bungeecord:' + rootProject.adventurePlatformVersion
-    runtimeDownloadApi 'net.kyori:adventure-text-serializer-bungeecord:' + rootProject.adventurePlatformVersion
+    runtimeDownloadApi(libs.adventure.platform.bungee)
+    runtimeDownloadApi(libs.adventure.serializer.bungee)
 }

@@ -18,7 +18,6 @@ repositories {
     }
 }
 
-var velocityVersion = '3.0.0'
 dependencies {
     // API
     annotationProcessor project(':api')
@@ -28,11 +27,11 @@ dependencies {
     implementation project(':common:common-proxy')
 
     // Platform
-    annotationProcessor 'com.velocitypowered:velocity-api:' + velocityVersion
-    compileOnly 'com.velocitypowered:velocity-api:' + velocityVersion
+    annotationProcessor(libs.velocity)
+    compileOnly(libs.velocity)
 
     // DependencyDownload
-    implementation 'dev.vankka.minecraftdependencydownload:velocity:' + rootProject.mddVersion
+    implementation(libs.mcdependencydownload.velocity)
 }
 
 jar {
