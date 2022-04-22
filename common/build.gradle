@@ -87,8 +87,4 @@ processResources {
     )
 }
 
-repositories {
-    mavenCentral()
-}
-
 // Relocations in buildscript/relocations.gradle
