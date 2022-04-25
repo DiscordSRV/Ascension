@@ -66,7 +66,10 @@ dependencyResolutionManagement {
             library('commons-io', 'commons-io', 'commons-io').version('2.10.0')
 
             // Caffeine
-            library('caffeine', 'com.github.ben-manes.caffeine', 'caffeine').version('2.9.2')
+            library('caffeine', 'com.github.ben-manes.caffeine', 'caffeine').version {
+                prefer '2.9.2'
+                reject '[3,)' // Java 11
+            }
 
             // Jackson
             library('jackson-databind', 'com.fasterxml.jackson.core', 'jackson-databind').version('2.10.1')
@@ -77,7 +80,10 @@ dependencyResolutionManagement {
             library('configurate-hocon', 'org.spongepowered', 'configurate-hocon').versionRef('configurate')
 
             // DB
-            library('hikaricp', 'com.zaxxer', 'HikariCP').version('4.0.3')
+            library('hikaricp', 'com.zaxxer', 'HikariCP').version {
+                prefer '4.0.3'
+                reject '[5,)' // Java 11
+            }
             library('h2', 'com.h2database', 'h2').version('2.1.210')
             library('mysql', 'mysql', 'mysql-connector-java').version('8.0.28')
 
