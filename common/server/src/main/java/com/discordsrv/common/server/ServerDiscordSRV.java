@@ -19,6 +19,7 @@
 package com.discordsrv.common.server;
 
 import com.discordsrv.common.AbstractDiscordSRV;
+import com.discordsrv.common.bootstrap.IBootstrap;
 import com.discordsrv.common.config.connection.ConnectionConfig;
 import com.discordsrv.common.config.main.MainConfig;
 import com.discordsrv.common.server.modules.DeathMessageModule;
@@ -29,7 +30,11 @@ import org.jetbrains.annotations.NotNull;
 import javax.annotation.OverridingMethodsMustInvokeSuper;
 import java.util.concurrent.CompletableFuture;
 
-public abstract class ServerDiscordSRV<C extends MainConfig, CC extends ConnectionConfig> extends AbstractDiscordSRV<C, CC> {
+public abstract class ServerDiscordSRV<B extends IBootstrap, C extends MainConfig, CC extends ConnectionConfig> extends AbstractDiscordSRV<B, C, CC> {
+
+    public ServerDiscordSRV(B bootstrap) {
+        super(bootstrap);
+    }
 
     @Override
     public abstract ServerScheduler scheduler();

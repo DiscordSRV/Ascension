@@ -18,6 +18,8 @@
 
 package com.discordsrv.common;
 
+import com.discordsrv.common.bootstrap.IBootstrap;
+import com.discordsrv.common.bootstrap.LifecycleManager;
 import com.discordsrv.common.command.game.handler.ICommandHandler;
 import com.discordsrv.common.config.connection.ConnectionConfig;
 import com.discordsrv.common.config.main.MainConfig;
@@ -40,12 +42,11 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 
 @SuppressWarnings("ConstantConditions")
-public class MockDiscordSRV extends AbstractDiscordSRV<MainConfig, ConnectionConfig> {
+public class MockDiscordSRV extends AbstractDiscordSRV<IBootstrap, MainConfig, ConnectionConfig> {
 
     public static final MockDiscordSRV INSTANCE = new MockDiscordSRV();
 
     private final Scheduler scheduler = new StandardScheduler(this);
-    private final Logger logger = JavaLoggerImpl.getRoot();
     private Path path;
 
     public static void main(String[] args) {
@@ -53,12 +54,28 @@ public class MockDiscordSRV extends AbstractDiscordSRV<MainConfig, ConnectionCon
     }
 
     public MockDiscordSRV() {
-        load();
-    }
+        super(new IBootstrap() {
+            @Override
+            public Logger logger() {
+                return JavaLoggerImpl.getRoot();
+            }
 
-    @Override
-    public Logger platformLogger() {
-        return logger;
+            @Override
+            public ClasspathAppender classpathAppender() {
+                return null;
+            }
+
+            @Override
+            public LifecycleManager lifecycleManager() {
+                return null;
+            }
+
+            @Override
+            public Path dataDirectory() {
+                return null;
+            }
+        });
+        load();
     }
 
     @Override
@@ -85,22 +102,12 @@ public class MockDiscordSRV extends AbstractDiscordSRV<MainConfig, ConnectionCon
     }
 
     @Override
-    public @NotNull String version() {
-        return null;
-    }
-
-    @Override
     public PluginManager pluginManager() {
         return null;
     }
 
     @Override
     public OnlineMode onlineMode() {
-        return null;
-    }
-
-    @Override
-    public ClasspathAppender classpathAppender() {
         return null;
     }
 
@@ -122,5 +129,10 @@ public class MockDiscordSRV extends AbstractDiscordSRV<MainConfig, ConnectionCon
     @Override
     public MainConfigManager<MainConfig> configManager() {
         return null;
+    }
+
+    @Override
+    public void waitForStatus(Status status) throws InterruptedException {
+        super.waitForStatus(status);
     }
 }

@@ -16,26 +16,18 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package com.discordsrv.proxy;
+package com.discordsrv.common.bootstrap;
 
-import com.discordsrv.common.AbstractDiscordSRV;
-import com.discordsrv.common.bootstrap.IBootstrap;
-import com.discordsrv.common.config.connection.ConnectionConfig;
-import com.discordsrv.common.config.main.MainConfig;
-import com.discordsrv.proxy.modules.ServerSwitchMessageModule;
+import com.discordsrv.common.logging.Logger;
+import dev.vankka.dependencydownload.classpath.ClasspathAppender;
 
-public abstract class ProxyDiscordSRV<B extends IBootstrap, C extends MainConfig, CC extends ConnectionConfig> extends AbstractDiscordSRV<B, C, CC> {
+import java.nio.file.Path;
 
-    public ProxyDiscordSRV(B bootstrap) {
-        super(bootstrap);
-    }
+public interface IBootstrap {
 
-    @Override
-    protected void enable() throws Throwable {
-        super.enable();
+    Logger logger();
+    ClasspathAppender classpathAppender();
+    LifecycleManager lifecycleManager();
+    Path dataDirectory();
 
-        registerModule(ServerSwitchMessageModule::new);
-
-        startedMessage();
-    }
 }

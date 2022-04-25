@@ -1,5 +1,3 @@
-apply from: rootProject.file('buildscript/runtime.gradle')
-
 shadowJar {
     archiveFileName = 'bungee.jarinjar'
 
@@ -10,6 +8,8 @@ shadowJar {
     }
     // More relocations in buildscript/relocations.gradle
 }
+
+apply from: rootProject.file('buildscript/runtime.gradle')
 
 allprojects {
     repositories {

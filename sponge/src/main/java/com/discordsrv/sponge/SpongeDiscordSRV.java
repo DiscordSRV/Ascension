@@ -25,76 +25,42 @@ import com.discordsrv.common.config.main.MainConfig;
 import com.discordsrv.common.config.manager.ConnectionConfigManager;
 import com.discordsrv.common.config.manager.MainConfigManager;
 import com.discordsrv.common.debug.data.OnlineMode;
-import com.discordsrv.common.logging.Logger;
 import com.discordsrv.common.plugin.PluginManager;
 import com.discordsrv.common.server.ServerDiscordSRV;
-import com.discordsrv.sponge.command.game.handler.SpongeCommandHandler;
 import com.discordsrv.sponge.console.SpongeConsole;
 import com.discordsrv.sponge.player.SpongePlayerProvider;
 import com.discordsrv.sponge.plugin.SpongePluginManager;
 import com.discordsrv.sponge.scheduler.SpongeScheduler;
-import dev.vankka.dependencydownload.classpath.ClasspathAppender;
 import org.jetbrains.annotations.NotNull;
 import org.spongepowered.api.Game;
 import org.spongepowered.api.event.Listener;
 import org.spongepowered.api.event.lifecycle.ProvideServiceEvent;
 import org.spongepowered.plugin.PluginContainer;
 
-import java.nio.file.Path;
+public class SpongeDiscordSRV extends ServerDiscordSRV<DiscordSRVSpongeBootstrap, MainConfig, ConnectionConfig> {
 
-public class SpongeDiscordSRV extends ServerDiscordSRV<MainConfig, ConnectionConfig> {
-
-    private final PluginContainer pluginContainer;
-    private final Game game;
-
-    private final Logger logger;
-    private final ClasspathAppender classpathAppender;
-    private final Path dataDirectory;
     private final SpongeScheduler scheduler;
     private final SpongeConsole console;
     private final SpongePlayerProvider playerProvider;
     private final SpongePluginManager pluginManager;
-    private final SpongeCommandHandler commandHandler;
 
-    public SpongeDiscordSRV(
-            Logger logger,
-            ClasspathAppender classpathAppender,
-            Path dataDirectory,
-            PluginContainer pluginContainer,
-            Game game,
-            SpongeCommandHandler commandHandler
-    ) {
-        this.logger = logger;
-        this.classpathAppender = classpathAppender;
-        this.dataDirectory = dataDirectory;
-        this.pluginContainer = pluginContainer;
-        this.game = game;
+    public SpongeDiscordSRV(DiscordSRVSpongeBootstrap bootstrap) {
+        super(bootstrap);
 
         this.scheduler = new SpongeScheduler(this);
         this.console = new SpongeConsole(this);
         this.playerProvider = new SpongePlayerProvider(this);
         this.pluginManager = new SpongePluginManager(this);
-        this.commandHandler = commandHandler;
 
         load();
     }
 
     public PluginContainer container() {
-        return pluginContainer;
+        return bootstrap.pluginContainer();
     }
 
     public Game game() {
-        return game;
-    }
-
-    @Override
-    public Logger platformLogger() {
-        return logger;
-    }
-
-    @Override
-    public Path dataDirectory() {
-        return dataDirectory;
+        return bootstrap.game();
     }
 
     @Override
@@ -121,17 +87,12 @@ public class SpongeDiscordSRV extends ServerDiscordSRV<MainConfig, ConnectionCon
     public OnlineMode onlineMode() {
         // TODO: velocity / bungee
 
-        return OnlineMode.of(game.server().isOnlineModeEnabled());
-    }
-
-    @Override
-    public ClasspathAppender classpathAppender() {
-        return classpathAppender;
+        return OnlineMode.of(game().server().isOnlineModeEnabled());
     }
 
     @Override
     public ICommandHandler commandHandler() {
-        return commandHandler;
+        return bootstrap.commandHandler();
     }
 
     @Override
@@ -147,7 +108,7 @@ public class SpongeDiscordSRV extends ServerDiscordSRV<MainConfig, ConnectionCon
     @Override
     protected void enable() throws Throwable {
         // Service provider
-        game().eventManager().registerListeners(pluginContainer, this);
+        game().eventManager().registerListeners(container(), this);
 
         super.enable();
     }

@@ -22,79 +22,88 @@ import com.discordsrv.common.DiscordSRV;
 import dev.vankka.dependencydownload.DependencyManager;
 import dev.vankka.dependencydownload.classloader.IsolatedClassLoader;
 import dev.vankka.dependencydownload.classpath.ClasspathAppender;
+import dev.vankka.dependencydownload.repository.Repository;
 import dev.vankka.dependencydownload.repository.StandardRepository;
 
 import java.io.IOException;
+import java.net.URL;
 import java.nio.file.Path;
 import java.util.Arrays;
+import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionException;
 import java.util.concurrent.Executor;
 
 public class DependencyLoader {
 
-    public static DependencyLoader hikari(DiscordSRV discordSRV) {
-        return new DependencyLoader(discordSRV, new String[] {"dependencies/hikari.txt"});
+    private static final List<Repository> REPOSITORIES = Arrays.asList(
+            // TODO
+            new StandardRepository("https://repo1.maven.org/maven2"),
+            new StandardRepository("https://oss.sonatype.org/content/repositories/snapshots"),
+            new StandardRepository("https://s01.oss.sonatype.org/content/repositories/snapshots")
+    );
+
+    public static Path resolvePath(Path dataDirectory) {
+        return dataDirectory.resolve("cache");
     }
 
-    public static DependencyLoader h2(DiscordSRV discordSRV) {
-        return new DependencyLoader(discordSRV, new String[] {"dependencies/h2Driver.txt"});
-    }
-
-    public static DependencyLoader mysql(DiscordSRV discordSRV) {
-        return new DependencyLoader(discordSRV, new String[] {"dependencies/mysqlDriver.txt"});
-    }
-
-    private final Path cacheDirectory;
-    private final Executor executor;
-    private final String[] dependencyResources;
-
-    public DependencyLoader(DiscordSRV discordSRV, String[] dependencyResources) {
-        this(
-                discordSRV.dataDirectory(),
-                discordSRV.scheduler().forkJoinPool(),
-                dependencyResources
-        );
-    }
-
-    public DependencyLoader(
-            Path dataDirectory,
-            Executor executor,
-            String[] dependencyResources
-    ) {
-        this.cacheDirectory = dataDirectory.resolve("cache");
-        this.executor = executor;
-        this.dependencyResources = dependencyResources;
-    }
-
-    public CompletableFuture<Void> process(ClasspathAppender classpathAppender) throws IOException {
-        DependencyManager dependencyManager = new DependencyManager(cacheDirectory);
-        for (String dependencyResource : dependencyResources) {
-            dependencyManager.loadFromResource(getClass().getClassLoader().getResource(dependencyResource));
+    public static DependencyManager fromPaths(Path dataDirectory, String[] resources) throws IOException {
+        DependencyManager dependencyManager = new DependencyManager(resolvePath(dataDirectory));
+        for (String dependencyResource : resources) {
+            URL resource = DependencyLoader.class.getClassLoader().getResource(dependencyResource);
+            if (resource == null) {
+                throw new IllegalArgumentException("Could not find resource with: " + dependencyResource);
+            }
+            dependencyManager.loadFromResource(resource);
         }
-        return download(dependencyManager, classpathAppender);
+
+        return dependencyManager;
+    }
+
+    private final DependencyManager dependencyManager;
+    private final Executor executor;
+    private final ClasspathAppender classpathAppender;
+
+
+    public DependencyLoader(DiscordSRV discordSRV, String[] paths) throws IOException {
+        this(discordSRV, fromPaths(discordSRV.dataDirectory(), paths));
+    }
+
+    public DependencyLoader(Path dataDirectory, Executor executor, ClasspathAppender classpathAppender, String[] paths) throws IOException {
+        this(executor, classpathAppender, fromPaths(dataDirectory, paths));
+    }
+
+    public DependencyLoader(DiscordSRV discordSRV, DependencyManager dependencyManager) {
+        this(discordSRV.scheduler().executor(), discordSRV.bootstrap().classpathAppender(), dependencyManager);
+    }
+
+    public DependencyLoader(Executor executor, ClasspathAppender classpathAppender, DependencyManager dependencyManager) {
+        this.dependencyManager = dependencyManager;
+        this.executor = executor;
+        this.classpathAppender = classpathAppender;
+    }
+
+    public DependencyManager getDependencyManager() {
+        return dependencyManager;
     }
 
     public IsolatedClassLoader loadIntoIsolated() throws IOException {
         IsolatedClassLoader classLoader = new IsolatedClassLoader();
-        process(classLoader).join();
+        download(classLoader).join();
         return classLoader;
     }
 
-    private CompletableFuture<Void> download(DependencyManager manager,
-                                             ClasspathAppender classpathAppender) {
+    public CompletableFuture<Void> download() {
+        return download(classpathAppender);
+    }
+
+    private CompletableFuture<Void> download(ClasspathAppender appender) {
         CompletableFuture<Void> future = new CompletableFuture<>();
         executor.execute(() -> {
             try {
-                manager.downloadAll(executor, Arrays.asList(
-                        // TODO
-                        new StandardRepository("https://repo1.maven.org/maven2"),
-                        new StandardRepository("https://m2.dv8tion.net/releases"),
-                        new StandardRepository("https://oss.sonatype.org/content/repositories/snapshots"),
-                        new StandardRepository("https://s01.oss.sonatype.org/content/repositories/snapshots")
-                )).join();
-                manager.relocateAll(executor).join();
-                manager.loadAll(executor, classpathAppender).join();
+                dependencyManager.downloadAll(executor, REPOSITORIES).join();
+                dependencyManager.relocateAll(executor).join();
+                dependencyManager.loadAll(executor, appender).join();
 
                 future.complete(null);
             } catch (CompletionException e) {

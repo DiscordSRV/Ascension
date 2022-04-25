@@ -25,6 +25,7 @@ import com.discordsrv.api.event.events.lifecycle.DiscordSRVReloadedEvent;
 import com.discordsrv.api.event.events.lifecycle.DiscordSRVShuttingDownEvent;
 import com.discordsrv.api.module.type.Module;
 import com.discordsrv.common.api.util.ApiInstanceUtil;
+import com.discordsrv.common.bootstrap.IBootstrap;
 import com.discordsrv.common.channel.ChannelConfigHelper;
 import com.discordsrv.common.channel.ChannelShutdownBehaviourModule;
 import com.discordsrv.common.channel.ChannelUpdaterModule;
@@ -36,7 +37,7 @@ import com.discordsrv.common.config.main.LinkedAccountConfig;
 import com.discordsrv.common.config.main.MainConfig;
 import com.discordsrv.common.config.manager.ConnectionConfigManager;
 import com.discordsrv.common.config.manager.MainConfigManager;
-import com.discordsrv.common.dependency.DependencyLoader;
+import com.discordsrv.common.dependency.DiscordSRVDependencyManager;
 import com.discordsrv.common.discord.api.DiscordAPIEventModule;
 import com.discordsrv.common.discord.api.DiscordAPIImpl;
 import com.discordsrv.common.discord.connection.DiscordConnectionManager;
@@ -51,6 +52,7 @@ import com.discordsrv.common.invite.DiscordInviteModule;
 import com.discordsrv.common.linking.LinkProvider;
 import com.discordsrv.common.linking.impl.MemoryLinker;
 import com.discordsrv.common.linking.impl.StorageLinker;
+import com.discordsrv.common.logging.Logger;
 import com.discordsrv.common.logging.adapter.DependencyLoggerAdapter;
 import com.discordsrv.common.logging.impl.DependencyLoggingHandler;
 import com.discordsrv.common.logging.impl.DiscordSRVLogger;
@@ -62,9 +64,9 @@ import com.discordsrv.common.messageforwarding.game.StartMessageModule;
 import com.discordsrv.common.messageforwarding.game.StopMessageModule;
 import com.discordsrv.common.module.ModuleManager;
 import com.discordsrv.common.module.type.AbstractModule;
-import com.discordsrv.common.placeholder.result.ComponentResultStringifier;
 import com.discordsrv.common.placeholder.PlaceholderServiceImpl;
 import com.discordsrv.common.placeholder.context.GlobalTextHandlingContext;
+import com.discordsrv.common.placeholder.result.ComponentResultStringifier;
 import com.discordsrv.common.profile.ProfileManager;
 import com.discordsrv.common.storage.Storage;
 import com.discordsrv.common.storage.StorageType;
@@ -81,6 +83,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.lang.reflect.Constructor;
 import java.net.URL;
+import java.nio.file.Path;
 import java.util.Locale;
 import java.util.Optional;
 import java.util.Set;
@@ -99,7 +102,7 @@ import java.util.jar.Manifest;
  * @param <C> the config type
  * @param <CC> the connections config type
  */
-public abstract class AbstractDiscordSRV<C extends MainConfig, CC extends ConnectionConfig> implements DiscordSRV {
+public abstract class AbstractDiscordSRV<B extends IBootstrap, C extends MainConfig, CC extends ConnectionConfig> implements DiscordSRV {
 
     private final AtomicReference<Status> status = new AtomicReference<>(Status.INITIALIZED);
     private CompletableFuture<Void> enableFuture;
@@ -113,13 +116,16 @@ public abstract class AbstractDiscordSRV<C extends MainConfig, CC extends Connec
     private DiscordConnectionDetails discordConnectionDetails;
 
     // DiscordSRV
+    protected final B bootstrap;
+    private final Logger platformLogger;
+    private final Path dataDirectory;
+    private DiscordSRVDependencyManager dependencyManager;
     private DiscordSRVLogger logger;
     private ModuleManager moduleManager;
     private JDAConnectionManager discordConnectionManager;
     private ChannelConfigHelper channelConfig;
 
     private Storage storage;
-    private boolean hikariLoaded = false;
     private LinkProvider linkProvider;
 
     // Version
@@ -144,14 +150,18 @@ public abstract class AbstractDiscordSRV<C extends MainConfig, CC extends Connec
     // Internal
     private final ReentrantLock lifecycleLock = new ReentrantLock();
 
-    public AbstractDiscordSRV() {
+    public AbstractDiscordSRV(B bootstrap) {
         ApiInstanceUtil.setInstance(this);
+        this.bootstrap = bootstrap;
+        this.platformLogger = bootstrap.logger();
+        this.dataDirectory = bootstrap.dataDirectory();
     }
 
     /**
      * Method that should be called at the end of implementors constructors.
      */
     protected final void load() {
+        this.dependencyManager = new DiscordSRVDependencyManager(this, bootstrap.lifecycleManager() != null ? bootstrap.lifecycleManager().getDependencyLoader() : null);
         this.logger = new DiscordSRVLogger(this);
         this.eventBus = new EventBusImpl(this);
         this.moduleManager = new ModuleManager(this);
@@ -199,85 +209,105 @@ public abstract class AbstractDiscordSRV<C extends MainConfig, CC extends Connec
     // DiscordSRVApi
 
     @Override
-    public @NotNull Status status() {
+    public final @NotNull Status status() {
         return status.get();
     }
 
     @Override
-    public @NotNull EventBusImpl eventBus() {
+    public final @NotNull EventBusImpl eventBus() {
         return eventBus;
     }
 
     @Override
-    public @NotNull ProfileManager profileManager() {
+    public final @NotNull ProfileManager profileManager() {
         return profileManager;
     }
 
     @Override
-    public @NotNull PlaceholderServiceImpl placeholderService() {
+    public final @NotNull PlaceholderServiceImpl placeholderService() {
         return placeholderService;
     }
 
     @Override
-    public @NotNull ComponentFactory componentFactory() {
+    public final @NotNull ComponentFactory componentFactory() {
         return componentFactory;
     }
 
     @Override
-    public @NotNull DiscordAPIImpl discordAPI() {
+    public final @NotNull DiscordAPIImpl discordAPI() {
         return discordAPI;
     }
 
     @Override
-    public @NotNull Optional<JDA> jda() {
+    public final @NotNull Optional<JDA> jda() {
         return Optional.ofNullable(discordConnectionManager)
                 .map(DiscordConnectionManager::instance);
     }
 
     @Override
-    public @NotNull DiscordConnectionDetails discordConnectionDetails() {
+    public final @NotNull DiscordConnectionDetails discordConnectionDetails() {
         return discordConnectionDetails;
     }
 
     // DiscordSRV
 
     @Override
-    public DiscordSRVLogger logger() {
+    public final IBootstrap bootstrap() {
+        return bootstrap;
+    }
+
+    @Override
+    public final Logger platformLogger() {
+        return platformLogger;
+    }
+
+    @Override
+    public final DiscordSRVDependencyManager dependencyManager() {
+        return dependencyManager;
+    }
+
+    @Override
+    public Path dataDirectory() {
+        return dataDirectory;
+    }
+
+    @Override
+    public final DiscordSRVLogger logger() {
         return logger;
     }
 
     @Override
-    public Storage storage() {
+    public final Storage storage() {
         return storage;
     }
 
     @Override
-    public LinkProvider linkProvider() {
+    public final LinkProvider linkProvider() {
         return linkProvider;
     }
 
     @Override
-    public @NotNull String version() {
+    public final @NotNull String version() {
         return version;
     }
 
     @Override
-    public @Nullable String gitRevision() {
+    public final @Nullable String gitRevision() {
         return gitRevision;
     }
 
     @Override
-    public @Nullable String gitBranch() {
+    public final @Nullable String gitBranch() {
         return gitBranch;
     }
 
     @Override
-    public ChannelConfigHelper channelConfig() {
+    public final ChannelConfigHelper channelConfig() {
         return channelConfig;
     }
 
     @Override
-    public JDAConnectionManager discordConnectionManager() {
+    public final JDAConnectionManager discordConnectionManager() {
         return discordConnectionManager;
     }
 
@@ -568,9 +598,8 @@ public abstract class AbstractDiscordSRV<C extends MainConfig, CC extends Connec
                 try {
                     StorageType storageType = getStorageType();
                     logger().info("Using " + storageType.prettyName() + " as storage");
-                    if (storageType.hikari() && !hikariLoaded) {
-                        hikariLoaded = true;
-                        DependencyLoader.hikari(this).process(classpathAppender()).get();
+                    if (storageType.hikari()) {
+                        dependencyManager().hikari().download().get();
                     }
                     storage = storageType.storageFunction().apply(this);
                     storage.initialize();

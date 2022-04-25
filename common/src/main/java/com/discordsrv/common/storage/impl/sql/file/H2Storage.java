@@ -20,7 +20,6 @@ package com.discordsrv.common.storage.impl.sql.file;
 
 import com.discordsrv.common.DiscordSRV;
 import com.discordsrv.common.config.connection.StorageConfig;
-import com.discordsrv.common.dependency.DependencyLoader;
 import com.discordsrv.common.exception.StorageException;
 import com.discordsrv.common.storage.impl.sql.SQLStorage;
 import dev.vankka.dependencydownload.classloader.IsolatedClassLoader;
@@ -44,7 +43,7 @@ public class H2Storage extends SQLStorage {
     @Override
     public void initialize() {
         try {
-            classLoader = DependencyLoader.h2(discordSRV).loadIntoIsolated();
+            classLoader = discordSRV.dependencyManager().h2().loadIntoIsolated();
         } catch (IOException e) {
             throw new StorageException(e);
         }

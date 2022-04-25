@@ -19,6 +19,8 @@
 package com.discordsrv.config;
 
 import com.discordsrv.common.AbstractDiscordSRV;
+import com.discordsrv.common.bootstrap.IBootstrap;
+import com.discordsrv.common.bootstrap.LifecycleManager;
 import com.discordsrv.common.command.game.handler.ICommandHandler;
 import com.discordsrv.common.config.connection.ConnectionConfig;
 import com.discordsrv.common.config.main.MainConfig;
@@ -27,6 +29,7 @@ import com.discordsrv.common.config.manager.MainConfigManager;
 import com.discordsrv.common.console.Console;
 import com.discordsrv.common.debug.data.OnlineMode;
 import com.discordsrv.common.logging.Logger;
+import com.discordsrv.common.logging.backend.impl.JavaLoggerImpl;
 import com.discordsrv.common.player.provider.AbstractPlayerProvider;
 import com.discordsrv.common.plugin.PluginManager;
 import com.discordsrv.common.scheduler.Scheduler;
@@ -37,11 +40,30 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 
 @SuppressWarnings("ConstantConditions")
-public class MockDiscordSRV extends AbstractDiscordSRV<MainConfig, ConnectionConfig> {
+public class MockDiscordSRV extends AbstractDiscordSRV<IBootstrap, MainConfig, ConnectionConfig> {
 
-    @Override
-    public Logger platformLogger() {
-        return null;
+    public MockDiscordSRV() {
+        super(new IBootstrap() {
+            @Override
+            public Logger logger() {
+                return JavaLoggerImpl.getRoot();
+            }
+
+            @Override
+            public ClasspathAppender classpathAppender() {
+                return null;
+            }
+
+            @Override
+            public LifecycleManager lifecycleManager() {
+                return null;
+            }
+
+            @Override
+            public Path dataDirectory() {
+                return null;
+            }
+        });
     }
 
     @Override
@@ -60,22 +82,12 @@ public class MockDiscordSRV extends AbstractDiscordSRV<MainConfig, ConnectionCon
     }
 
     @Override
-    public @NotNull String version() {
-        return null;
-    }
-
-    @Override
     public PluginManager pluginManager() {
         return null;
     }
 
     @Override
     public OnlineMode onlineMode() {
-        return null;
-    }
-
-    @Override
-    public ClasspathAppender classpathAppender() {
         return null;
     }
 

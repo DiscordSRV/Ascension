@@ -18,7 +18,8 @@
 
 package com.discordsrv.sponge;
 
-import com.discordsrv.common.dependency.InitialDependencyLoader;
+import com.discordsrv.common.bootstrap.IBootstrap;
+import com.discordsrv.common.bootstrap.LifecycleManager;
 import com.discordsrv.common.logging.Logger;
 import com.discordsrv.common.logging.backend.impl.Log4JLoggerImpl;
 import com.discordsrv.sponge.bootstrap.ISpongeBootstrap;
@@ -34,11 +35,11 @@ import java.io.IOException;
 import java.nio.file.Path;
 
 @SuppressWarnings("unused") // Reflection
-public class DiscordSRVSpongeBootstrap extends AbstractBootstrap implements ISpongeBootstrap {
+public class DiscordSRVSpongeBootstrap extends AbstractBootstrap implements ISpongeBootstrap, IBootstrap {
 
     private final Logger logger;
     private final ClasspathAppender classpathAppender;
-    private final InitialDependencyLoader dependencies;
+    private final LifecycleManager lifecycleManager;
     private SpongeDiscordSRV discordSRV;
     private SpongeCommandHandler commandHandler;
 
@@ -51,7 +52,7 @@ public class DiscordSRVSpongeBootstrap extends AbstractBootstrap implements ISpo
         super(classLoader);
         this.logger = new Log4JLoggerImpl(pluginContainer.logger());
         this.classpathAppender = new JarInJarClasspathAppender(classLoader);
-        this.dependencies = new InitialDependencyLoader(
+        this.lifecycleManager = new LifecycleManager(
                 logger,
                 dataDirectory,
                 new String[] {"dependencies/runtimeDownload-sponge.txt"},
@@ -64,7 +65,7 @@ public class DiscordSRVSpongeBootstrap extends AbstractBootstrap implements ISpo
 
     @Override
     public void onConstruct() {
-        dependencies.load();
+        lifecycleManager.load();
 
         this.commandHandler = new SpongeCommandHandler(() -> discordSRV, pluginContainer);
         game.eventManager().registerListeners(pluginContainer, commandHandler);
@@ -72,7 +73,7 @@ public class DiscordSRVSpongeBootstrap extends AbstractBootstrap implements ISpo
 
     @Override
     public void onStarted() {
-        dependencies.enable(() -> this.discordSRV = new SpongeDiscordSRV(logger, classpathAppender, dataDirectory, pluginContainer, game, commandHandler));
+        lifecycleManager.enable(() -> this.discordSRV = new SpongeDiscordSRV(this));
         if (discordSRV != null) {
             discordSRV.invokeServerStarted();
         }
@@ -80,11 +81,43 @@ public class DiscordSRVSpongeBootstrap extends AbstractBootstrap implements ISpo
 
     @Override
     public void onRefresh() {
-        dependencies.reload(discordSRV);
+        lifecycleManager.reload(discordSRV);
     }
 
     @Override
     public void onStopping() {
-        dependencies.disable(discordSRV);
+        lifecycleManager.disable(discordSRV);
+    }
+
+    @Override
+    public Logger logger() {
+        return logger;
+    }
+
+    @Override
+    public ClasspathAppender classpathAppender() {
+        return classpathAppender;
+    }
+
+    @Override
+    public LifecycleManager lifecycleManager() {
+        return lifecycleManager;
+    }
+
+    @Override
+    public Path dataDirectory() {
+        return dataDirectory;
+    }
+
+    public PluginContainer pluginContainer() {
+        return pluginContainer;
+    }
+
+    public Game game() {
+        return game;
+    }
+
+    public SpongeCommandHandler commandHandler() {
+        return commandHandler;
     }
 }

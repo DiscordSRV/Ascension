@@ -18,28 +18,31 @@
 
 package com.discordsrv.bukkit;
 
-import com.discordsrv.common.dependency.InitialDependencyLoader;
+import com.discordsrv.common.bootstrap.IBootstrap;
+import com.discordsrv.common.bootstrap.LifecycleManager;
 import com.discordsrv.common.logging.Logger;
 import com.discordsrv.common.logging.backend.impl.JavaLoggerImpl;
+import dev.vankka.dependencydownload.classpath.ClasspathAppender;
 import dev.vankka.dependencydownload.jarinjar.classloader.JarInJarClassLoader;
 import dev.vankka.mcdependencydownload.bukkit.bootstrap.BukkitBootstrap;
 import org.bukkit.plugin.java.JavaPlugin;
 
 import java.io.IOException;
+import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
 
-public class DiscordSRVBukkitBootstrap extends BukkitBootstrap {
+public class DiscordSRVBukkitBootstrap extends BukkitBootstrap implements IBootstrap {
 
     private final Logger logger;
-    private final InitialDependencyLoader dependencies;
+    private final LifecycleManager lifecycleManager;
     private BukkitDiscordSRV discordSRV;
 
     public DiscordSRVBukkitBootstrap(JarInJarClassLoader classLoader, JavaPlugin plugin) throws IOException {
         // Don't change these parameters
         super(classLoader, plugin);
         this.logger = new JavaLoggerImpl(plugin.getLogger());
-        this.dependencies = new InitialDependencyLoader(
+        this.lifecycleManager = new LifecycleManager(
                 logger,
                 plugin.getDataFolder().toPath(),
                 getDependencyResources(),
@@ -63,12 +66,32 @@ public class DiscordSRVBukkitBootstrap extends BukkitBootstrap {
 
     @Override
     public void onEnable() {
-        dependencies.loadAndEnable(() -> this.discordSRV = new BukkitDiscordSRV(this, logger));
+        lifecycleManager.loadAndEnable(() -> this.discordSRV = new BukkitDiscordSRV(this));
         getPlugin().getServer().getScheduler().runTaskLater(getPlugin(), () -> discordSRV.invokeServerStarted(), 1L);
     }
 
     @Override
     public void onDisable() {
-        dependencies.disable(discordSRV);
+        lifecycleManager.disable(discordSRV);
+    }
+
+    @Override
+    public Logger logger() {
+        return logger;
+    }
+
+    @Override
+    public ClasspathAppender classpathAppender() {
+        return getClasspathAppender();
+    }
+
+    @Override
+    public LifecycleManager lifecycleManager() {
+        return lifecycleManager;
+    }
+
+    @Override
+    public Path dataDirectory() {
+        return getPlugin().getDataFolder().toPath();
     }
 }

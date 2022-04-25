@@ -24,7 +24,6 @@ import com.discordsrv.common.config.main.MainConfig;
 import com.discordsrv.common.config.manager.ConnectionConfigManager;
 import com.discordsrv.common.config.manager.MainConfigManager;
 import com.discordsrv.common.debug.data.OnlineMode;
-import com.discordsrv.common.logging.Logger;
 import com.discordsrv.common.plugin.PluginManager;
 import com.discordsrv.common.scheduler.StandardScheduler;
 import com.discordsrv.proxy.ProxyDiscordSRV;
@@ -34,36 +33,22 @@ import com.discordsrv.velocity.player.VelocityPlayerProvider;
 import com.discordsrv.velocity.plugin.VelocityPluginManager;
 import com.velocitypowered.api.plugin.PluginContainer;
 import com.velocitypowered.api.proxy.ProxyServer;
-import dev.vankka.dependencydownload.classpath.ClasspathAppender;
 import org.jetbrains.annotations.NotNull;
 
 import java.net.URL;
 import java.net.URLClassLoader;
-import java.nio.file.Path;
 import java.util.jar.JarFile;
 
-public class VelocityDiscordSRV extends ProxyDiscordSRV<MainConfig, ConnectionConfig> {
+public class VelocityDiscordSRV extends ProxyDiscordSRV<DiscordSRVVelocityBootstrap, MainConfig, ConnectionConfig> {
 
-    private final Object plugin;
-    private final ProxyServer proxyServer;
-    private final PluginContainer pluginContainer;
-
-    private final Logger logger;
-    private final ClasspathAppender classpathAppender;
-    private final Path dataDirectory;
     private final StandardScheduler scheduler;
     private final VelocityConsole console;
     private final VelocityPlayerProvider playerProvider;
     private final VelocityPluginManager pluginManager;
     private final VelocityCommandHandler commandHandler;
 
-    public VelocityDiscordSRV(Object plugin, Logger logger, ClasspathAppender classpathAppender, ProxyServer proxyServer, PluginContainer pluginContainer, Path dataDirectory) {
-        this.plugin = plugin;
-        this.logger = logger;
-        this.classpathAppender = classpathAppender;
-        this.proxyServer = proxyServer;
-        this.pluginContainer = pluginContainer;
-        this.dataDirectory = dataDirectory;
+    public VelocityDiscordSRV(DiscordSRVVelocityBootstrap bootstrap) {
+        super(bootstrap);
 
         this.scheduler = new StandardScheduler(this);
         this.console = new VelocityConsole(this);
@@ -85,25 +70,15 @@ public class VelocityDiscordSRV extends ProxyDiscordSRV<MainConfig, ConnectionCo
     }
 
     public Object plugin() {
-        return plugin;
+        return bootstrap;
     }
 
     public PluginContainer container() {
-        return pluginContainer;
+        return bootstrap.pluginContainer();
     }
 
     public ProxyServer proxy() {
-        return proxyServer;
-    }
-
-    @Override
-    public Logger platformLogger() {
-        return logger;
-    }
-
-    @Override
-    public Path dataDirectory() {
-        return dataDirectory;
+        return bootstrap.proxyServer();
     }
 
     @Override
@@ -129,11 +104,6 @@ public class VelocityDiscordSRV extends ProxyDiscordSRV<MainConfig, ConnectionCo
     @Override
     public OnlineMode onlineMode() {
         return OnlineMode.of(proxy().getConfiguration().isOnlineMode());
-    }
-
-    @Override
-    public ClasspathAppender classpathAppender() {
-        return classpathAppender;
     }
 
     @Override

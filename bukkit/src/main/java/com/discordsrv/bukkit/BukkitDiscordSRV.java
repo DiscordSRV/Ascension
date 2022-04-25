@@ -37,12 +37,10 @@ import com.discordsrv.common.component.translation.Translation;
 import com.discordsrv.common.config.manager.ConnectionConfigManager;
 import com.discordsrv.common.config.manager.MainConfigManager;
 import com.discordsrv.common.debug.data.OnlineMode;
-import com.discordsrv.common.logging.Logger;
 import com.discordsrv.common.messageforwarding.game.MinecraftToDiscordChatModule;
 import com.discordsrv.common.plugin.PluginManager;
 import com.discordsrv.common.server.ServerDiscordSRV;
 import com.fasterxml.jackson.databind.JsonNode;
-import dev.vankka.dependencydownload.classpath.ClasspathAppender;
 import net.kyori.adventure.platform.bukkit.BukkitAudiences;
 import org.bukkit.Server;
 import org.bukkit.plugin.ServicePriority;
@@ -52,19 +50,15 @@ import org.jetbrains.annotations.NotNull;
 import java.io.InputStream;
 import java.lang.reflect.Field;
 import java.net.URL;
-import java.nio.file.Path;
 import java.util.HashMap;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Properties;
 
-public class BukkitDiscordSRV extends ServerDiscordSRV<BukkitConfig, BukkitConnectionConfig> {
+public class BukkitDiscordSRV extends ServerDiscordSRV<DiscordSRVBukkitBootstrap, BukkitConfig, BukkitConnectionConfig> {
 
-    private final DiscordSRVBukkitBootstrap bootstrap;
     private BukkitAudiences audiences;
 
-    private final Logger logger;
-    private final Path dataDirectory;
     private final BukkitScheduler scheduler;
     private final BukkitConsole console;
     private final BukkitPlayerProvider playerProvider;
@@ -74,11 +68,9 @@ public class BukkitDiscordSRV extends ServerDiscordSRV<BukkitConfig, BukkitConne
     private final BukkitConnectionConfigManager connectionConfigManager;
     private final BukkitConfigManager configManager;
 
-    public BukkitDiscordSRV(DiscordSRVBukkitBootstrap bootstrap, Logger logger) {
-        this.bootstrap = bootstrap;
-        this.logger = logger;
+    public BukkitDiscordSRV(DiscordSRVBukkitBootstrap bootstrap) {
+        super(bootstrap);
 
-        this.dataDirectory = bootstrap.getPlugin().getDataFolder().toPath();
         this.scheduler = new BukkitScheduler(this);
         this.console = new BukkitConsole(this);
         this.playerProvider = new BukkitPlayerProvider(this);
@@ -101,16 +93,6 @@ public class BukkitDiscordSRV extends ServerDiscordSRV<BukkitConfig, BukkitConne
 
     public BukkitAudiences audiences() {
         return audiences;
-    }
-
-    @Override
-    public Logger platformLogger() {
-        return logger;
-    }
-
-    @Override
-    public Path dataDirectory() {
-        return dataDirectory;
     }
 
     @Override
@@ -155,11 +137,6 @@ public class BukkitDiscordSRV extends ServerDiscordSRV<BukkitConfig, BukkitConne
         } catch (Throwable ignored) {}
 
         return OnlineMode.of(server().getOnlineMode());
-    }
-
-    @Override
-    public ClasspathAppender classpathAppender() {
-        return bootstrap.getClasspathAppender();
     }
 
     @Override

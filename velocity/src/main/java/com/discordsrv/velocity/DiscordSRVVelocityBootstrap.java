@@ -18,7 +18,8 @@
 
 package com.discordsrv.velocity;
 
-import com.discordsrv.common.dependency.InitialDependencyLoader;
+import com.discordsrv.common.bootstrap.IBootstrap;
+import com.discordsrv.common.bootstrap.LifecycleManager;
 import com.discordsrv.common.logging.Logger;
 import com.discordsrv.common.logging.backend.impl.SLF4JLoggerImpl;
 import com.google.inject.Inject;
@@ -44,11 +45,11 @@ import java.nio.file.Path;
         authors = {"Scarsz", "Vankka"},
         url = "https://discordsrv.com"
 )
-public class DiscordSRVVelocityBootstrap {
+public class DiscordSRVVelocityBootstrap implements IBootstrap {
 
     private final Logger logger;
     private final ClasspathAppender classpathAppender;
-    private final InitialDependencyLoader dependencies;
+    private final LifecycleManager lifecycleManager;
     private final ProxyServer proxyServer;
     private final PluginContainer pluginContainer;
     private final Path dataDirectory;
@@ -58,7 +59,7 @@ public class DiscordSRVVelocityBootstrap {
     public DiscordSRVVelocityBootstrap(com.discordsrv.x.slf4j.Logger logger, ProxyServer proxyServer, PluginContainer pluginContainer, @DataDirectory Path dataDirectory) throws IOException {
         this.logger = new SLF4JLoggerImpl(logger);
         this.classpathAppender = new VelocityClasspathAppender(this, proxyServer);
-        this.dependencies = new InitialDependencyLoader(
+        this.lifecycleManager = new LifecycleManager(
                 this.logger,
                 dataDirectory,
                 new String[] {"dependencies/runtimeDownload-velocity.txt"},
@@ -71,17 +72,44 @@ public class DiscordSRVVelocityBootstrap {
 
     @Subscribe
     public void onProxyInitialize(ProxyInitializeEvent event) {
-        dependencies.loadAndEnable(() -> this.discordSRV = new VelocityDiscordSRV(this, logger, classpathAppender, proxyServer, pluginContainer, dataDirectory));
+        lifecycleManager.loadAndEnable(() -> this.discordSRV = new VelocityDiscordSRV(this));
     }
 
     @Subscribe
     public void onProxyReload(ProxyReloadEvent event) {
-        dependencies.reload(discordSRV);
+        lifecycleManager.reload(discordSRV);
     }
 
     @Subscribe
     public void onProxyShutdown(ProxyShutdownEvent event) {
-        dependencies.disable(discordSRV);
+        lifecycleManager.disable(discordSRV);
     }
 
+    @Override
+    public Logger logger() {
+        return logger;
+    }
+
+    @Override
+    public ClasspathAppender classpathAppender() {
+        return classpathAppender;
+    }
+
+    @Override
+    public LifecycleManager lifecycleManager() {
+        return lifecycleManager;
+    }
+
+    @Override
+    public Path dataDirectory() {
+        return dataDirectory;
+    }
+
+    public ProxyServer proxyServer() {
+        return proxyServer;
+    }
+
+    public PluginContainer pluginContainer() {
+        return pluginContainer;
+    }
 }

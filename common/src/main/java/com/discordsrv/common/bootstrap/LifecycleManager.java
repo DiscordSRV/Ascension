@@ -16,10 +16,11 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package com.discordsrv.common.dependency;
+package com.discordsrv.common.bootstrap;
 
 import com.discordsrv.api.DiscordSRVApi;
 import com.discordsrv.common.DiscordSRV;
+import com.discordsrv.common.dependency.DependencyLoader;
 import com.discordsrv.common.logging.Logger;
 import com.discordsrv.common.scheduler.threadfactory.CountingForkJoinWorkerThreadFactory;
 import dev.vankka.dependencydownload.classpath.ClasspathAppender;
@@ -30,16 +31,19 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
-import java.util.concurrent.*;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.ForkJoinPool;
 import java.util.function.Supplier;
 
-public class InitialDependencyLoader {
+public class LifecycleManager {
 
     private final Logger logger;
     private final ForkJoinPool taskPool;
+    private final DependencyLoader dependencyLoader;
     private final CompletableFuture<?> completableFuture;
 
-    public InitialDependencyLoader(
+    public LifecycleManager(
             Logger logger,
             Path dataDirectory,
             String[] dependencyResources,
@@ -58,13 +62,14 @@ public class InitialDependencyLoader {
         ));
         resourcePaths.addAll(Arrays.asList(dependencyResources));
 
-        DependencyLoader dependencyLoader = new DependencyLoader(
+        this.dependencyLoader = new DependencyLoader(
                 dataDirectory,
                 taskPool,
+                classpathAppender,
                 resourcePaths.toArray(new String[0])
         );
 
-        this.completableFuture = dependencyLoader.process(classpathAppender);
+        this.completableFuture = dependencyLoader.download();
         completableFuture.whenComplete((v, t) -> taskPool.shutdown());
     }
 
@@ -112,4 +117,7 @@ public class InitialDependencyLoader {
         } catch (ExecutionException ignored) {}
     }
 
+    public DependencyLoader getDependencyLoader() {
+        return dependencyLoader;
+    }
 }

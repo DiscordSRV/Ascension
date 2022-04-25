@@ -42,9 +42,9 @@ dependencyResolutionManagement {
             // MinecraftDependencyDownload
             version('mcdependencydownload', '1.0.0-SNAPSHOT')
             library('mcdependencydownload-bukkit-bootstrap', 'dev.vankka', 'minecraftdependencydownload-bukkit').versionRef('mcdependencydownload')
-            library('mcdependencydownload-bukkit-loader', 'dev.vankka', 'minecraftdependencydownload-bukkit').versionRef('mcdependencydownload')
+            library('mcdependencydownload-bukkit-loader', 'dev.vankka', 'minecraftdependencydownload-bukkit-loader').versionRef('mcdependencydownload')
             library('mcdependencydownload-bungee-bootstrap', 'dev.vankka', 'minecraftdependencydownload-bungee').versionRef('mcdependencydownload')
-            library('mcdependencydownload-bungee-loader', 'dev.vankka', 'minecraftdependencydownload-bungee').versionRef('mcdependencydownload')
+            library('mcdependencydownload-bungee-loader', 'dev.vankka', 'minecraftdependencydownload-bungee-loader').versionRef('mcdependencydownload')
             library('mcdependencydownload-velocity', 'dev.vankka', 'minecraftdependencydownload-velocity').versionRef('mcdependencydownload')
 
             // Annotations

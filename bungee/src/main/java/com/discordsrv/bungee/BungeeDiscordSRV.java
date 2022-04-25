@@ -28,36 +28,27 @@ import com.discordsrv.common.config.main.MainConfig;
 import com.discordsrv.common.config.manager.ConnectionConfigManager;
 import com.discordsrv.common.config.manager.MainConfigManager;
 import com.discordsrv.common.debug.data.OnlineMode;
-import com.discordsrv.common.logging.Logger;
 import com.discordsrv.common.plugin.PluginManager;
 import com.discordsrv.common.scheduler.StandardScheduler;
 import com.discordsrv.proxy.ProxyDiscordSRV;
-import dev.vankka.dependencydownload.classpath.ClasspathAppender;
 import net.kyori.adventure.platform.bungeecord.BungeeAudiences;
 import net.md_5.bungee.api.ProxyServer;
 import net.md_5.bungee.api.plugin.Plugin;
 import org.jetbrains.annotations.NotNull;
 
-import java.nio.file.Path;
+public class BungeeDiscordSRV extends ProxyDiscordSRV<DiscordSRVBungeeBootstrap, MainConfig, ConnectionConfig> {
 
-public class BungeeDiscordSRV extends ProxyDiscordSRV<MainConfig, ConnectionConfig> {
-
-    private final DiscordSRVBungeeBootstrap bootstrap;
     private BungeeAudiences audiences;
 
-    private final Logger logger;
-    private final Path dataDirectory;
     private final StandardScheduler scheduler;
     private final BungeeConsole console;
     private final BungeePlayerProvider playerProvider;
     private final BungeePluginManager pluginManager;
     private BungeeCommandHandler commandHandler;
 
-    public BungeeDiscordSRV(DiscordSRVBungeeBootstrap bootstrap, Logger logger) {
-        this.bootstrap = bootstrap;
-        this.logger = logger;
+    public BungeeDiscordSRV(DiscordSRVBungeeBootstrap bootstrap) {
+        super(bootstrap);
 
-        this.dataDirectory = bootstrap.getPlugin().getDataFolder().toPath();
         this.scheduler = new StandardScheduler(this);
         this.console = new BungeeConsole(this);
         this.playerProvider = new BungeePlayerProvider(this);
@@ -76,16 +67,6 @@ public class BungeeDiscordSRV extends ProxyDiscordSRV<MainConfig, ConnectionConf
 
     public BungeeAudiences audiences() {
         return audiences;
-    }
-
-    @Override
-    public Logger platformLogger() {
-        return logger;
-    }
-
-    @Override
-    public Path dataDirectory() {
-        return dataDirectory;
     }
 
     @Override
@@ -111,11 +92,6 @@ public class BungeeDiscordSRV extends ProxyDiscordSRV<MainConfig, ConnectionConf
     @Override
     public OnlineMode onlineMode() {
         return OnlineMode.of(proxy().getConfig().isOnlineMode());
-    }
-
-    @Override
-    public ClasspathAppender classpathAppender() {
-        return bootstrap.getClasspathAppender();
     }
 
     @Override

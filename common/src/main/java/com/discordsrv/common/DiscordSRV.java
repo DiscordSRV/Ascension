@@ -20,6 +20,7 @@ package com.discordsrv.common;
 
 import com.discordsrv.api.DiscordSRVApi;
 import com.discordsrv.api.module.type.Module;
+import com.discordsrv.common.bootstrap.IBootstrap;
 import com.discordsrv.common.channel.ChannelConfigHelper;
 import com.discordsrv.common.command.game.handler.ICommandHandler;
 import com.discordsrv.common.component.ComponentFactory;
@@ -29,6 +30,7 @@ import com.discordsrv.common.config.manager.ConnectionConfigManager;
 import com.discordsrv.common.config.manager.MainConfigManager;
 import com.discordsrv.common.console.Console;
 import com.discordsrv.common.debug.data.OnlineMode;
+import com.discordsrv.common.dependency.DiscordSRVDependencyManager;
 import com.discordsrv.common.discord.api.DiscordAPIImpl;
 import com.discordsrv.common.discord.connection.jda.JDAConnectionManager;
 import com.discordsrv.common.linking.LinkProvider;
@@ -43,7 +45,6 @@ import com.discordsrv.common.scheduler.Scheduler;
 import com.discordsrv.common.storage.Storage;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.benmanes.caffeine.cache.Caffeine;
-import dev.vankka.dependencydownload.classpath.ClasspathAppender;
 import okhttp3.OkHttpClient;
 import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
@@ -58,13 +59,14 @@ import java.util.concurrent.TimeUnit;
 public interface DiscordSRV extends DiscordSRVApi {
 
     // Platform
+    IBootstrap bootstrap();
     Logger platformLogger();
     Path dataDirectory();
     Scheduler scheduler();
     Console console();
     PluginManager pluginManager();
     OnlineMode onlineMode();
-    ClasspathAppender classpathAppender();
+    DiscordSRVDependencyManager dependencyManager();
     ICommandHandler commandHandler();
     @NotNull AbstractPlayerProvider<?, ?> playerProvider();
 

@@ -18,26 +18,29 @@
 
 package com.discordsrv.bungee;
 
-import com.discordsrv.common.dependency.InitialDependencyLoader;
+import com.discordsrv.common.bootstrap.IBootstrap;
+import com.discordsrv.common.bootstrap.LifecycleManager;
 import com.discordsrv.common.logging.Logger;
 import com.discordsrv.common.logging.backend.impl.JavaLoggerImpl;
+import dev.vankka.dependencydownload.classpath.ClasspathAppender;
 import dev.vankka.dependencydownload.jarinjar.classloader.JarInJarClassLoader;
 import dev.vankka.mcdependencydownload.bungee.bootstrap.BungeeBootstrap;
 import net.md_5.bungee.api.plugin.Plugin;
 
 import java.io.IOException;
+import java.nio.file.Path;
 
-public class DiscordSRVBungeeBootstrap extends BungeeBootstrap {
+public class DiscordSRVBungeeBootstrap extends BungeeBootstrap implements IBootstrap {
 
     private final Logger logger;
-    private final InitialDependencyLoader dependencies;
+    private final LifecycleManager lifecycleManager;
     private BungeeDiscordSRV discordSRV;
 
     public DiscordSRVBungeeBootstrap(JarInJarClassLoader classLoader, Plugin plugin) throws IOException {
         // Don't change these parameters
         super(classLoader, plugin);
         this.logger = new JavaLoggerImpl(plugin.getLogger());
-        this.dependencies = new InitialDependencyLoader(
+        this.lifecycleManager = new LifecycleManager(
                 logger,
                 plugin.getDataFolder().toPath(),
                 new String[] {"dependencies/runtimeDownload-bungee.txt"},
@@ -47,11 +50,31 @@ public class DiscordSRVBungeeBootstrap extends BungeeBootstrap {
 
     @Override
     public void onEnable() {
-        dependencies.loadAndEnable(() -> this.discordSRV = new BungeeDiscordSRV(this, logger));
+        lifecycleManager.loadAndEnable(() -> this.discordSRV = new BungeeDiscordSRV(this));
     }
 
     @Override
     public void onDisable() {
-        dependencies.disable(discordSRV);
+        lifecycleManager.disable(discordSRV);
+    }
+
+    @Override
+    public Logger logger() {
+        return logger;
+    }
+
+    @Override
+    public ClasspathAppender classpathAppender() {
+        return getClasspathAppender();
+    }
+
+    @Override
+    public LifecycleManager lifecycleManager() {
+        return lifecycleManager;
+    }
+
+    @Override
+    public Path dataDirectory() {
+        return getPlugin().getDataFolder().toPath();
     }
 }

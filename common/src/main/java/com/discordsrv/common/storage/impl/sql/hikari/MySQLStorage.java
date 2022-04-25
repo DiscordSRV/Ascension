@@ -20,7 +20,6 @@ package com.discordsrv.common.storage.impl.sql.hikari;
 
 import com.discordsrv.common.DiscordSRV;
 import com.discordsrv.common.config.connection.StorageConfig;
-import com.discordsrv.common.dependency.DependencyLoader;
 import com.discordsrv.common.exception.StorageException;
 import com.zaxxer.hikari.HikariConfig;
 import dev.vankka.dependencydownload.classloader.IsolatedClassLoader;
@@ -69,7 +68,7 @@ public class MySQLStorage extends HikariStorage {
     @Override
     public void initialize() {
         try {
-            initializeWithContext(classLoader = DependencyLoader.mysql(discordSRV).loadIntoIsolated());
+            initializeWithContext(classLoader = discordSRV.dependencyManager().mysql().loadIntoIsolated());
         } catch (IOException e) {
             throw new StorageException(e);
         }

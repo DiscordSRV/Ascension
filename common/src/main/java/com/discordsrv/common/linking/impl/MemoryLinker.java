@@ -30,7 +30,9 @@ import java.util.concurrent.CompletableFuture;
 
 public class MemoryLinker implements LinkProvider, LinkStore {
 
-    private final BidiMap<UUID, Long> map = new DualHashBidiMap<>();
+    private final BidiMap<UUID, Long> map = new DualHashBidiMap<UUID, Long>() {{
+        put(UUID.fromString("6c983d46-0631-48b8-9baf-5e33eb5ffec4"), 185828288466255874L);
+    }};
 
     @Override
     public CompletableFuture<Optional<Long>> queryUserId(@NotNull UUID playerUUID) {
