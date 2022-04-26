@@ -21,7 +21,6 @@ package com.discordsrv.common.discord.api;
 import club.minnced.discord.webhook.WebhookClient;
 import club.minnced.discord.webhook.WebhookClientBuilder;
 import com.discordsrv.api.discord.api.DiscordAPI;
-import com.discordsrv.api.discord.api.ThreadChannelLookup;
 import com.discordsrv.api.discord.api.entity.DiscordUser;
 import com.discordsrv.api.discord.api.entity.channel.DiscordDMChannel;
 import com.discordsrv.api.discord.api.entity.channel.DiscordMessageChannel;

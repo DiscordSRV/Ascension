@@ -21,7 +21,7 @@
  * SOFTWARE.
  */
 
-package com.discordsrv.api.discord.api;
+package com.discordsrv.common.discord.api;
 
 import com.discordsrv.api.discord.api.entity.channel.DiscordThreadChannel;
 
