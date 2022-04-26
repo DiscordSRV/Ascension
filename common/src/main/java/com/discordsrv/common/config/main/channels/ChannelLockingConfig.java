@@ -25,7 +25,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 @ConfigSerializable
-public class ShutdownBehaviourConfig {
+public class ChannelLockingConfig {
 
     public Channels channels = new Channels();
     public Threads threads = new Threads();

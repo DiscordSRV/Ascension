@@ -27,7 +27,7 @@ import com.discordsrv.api.module.type.Module;
 import com.discordsrv.common.api.util.ApiInstanceUtil;
 import com.discordsrv.common.bootstrap.IBootstrap;
 import com.discordsrv.common.channel.ChannelConfigHelper;
-import com.discordsrv.common.channel.ChannelShutdownBehaviourModule;
+import com.discordsrv.common.channel.ChannelLockingModule;
 import com.discordsrv.common.channel.ChannelUpdaterModule;
 import com.discordsrv.common.channel.GlobalChannelLookupModule;
 import com.discordsrv.common.command.game.GameCommandModule;
@@ -493,7 +493,7 @@ public abstract class AbstractDiscordSRV<B extends IBootstrap, C extends MainCon
         placeholderService().addGlobalContext(new GlobalTextHandlingContext(this));
 
         // Modules
-        registerModule(ChannelShutdownBehaviourModule::new);
+        registerModule(ChannelLockingModule::new);
         registerModule(ChannelUpdaterModule::new);
         registerModule(GameCommandModule::new);
         registerModule(GlobalChannelLookupModule::new);

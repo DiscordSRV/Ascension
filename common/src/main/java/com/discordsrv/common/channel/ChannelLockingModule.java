@@ -20,7 +20,7 @@ package com.discordsrv.common.channel;
 
 import com.discordsrv.api.discord.api.entity.channel.DiscordThreadChannel;
 import com.discordsrv.common.DiscordSRV;
-import com.discordsrv.common.config.main.channels.ShutdownBehaviourConfig;
+import com.discordsrv.common.config.main.channels.ChannelLockingConfig;
 import com.discordsrv.common.config.main.channels.base.BaseChannelConfig;
 import com.discordsrv.common.config.main.channels.base.IChannelConfig;
 import com.discordsrv.common.function.OrDefault;
@@ -35,9 +35,9 @@ import java.util.Collections;
 import java.util.List;
 import java.util.function.BiConsumer;
 
-public class ChannelShutdownBehaviourModule extends AbstractModule<DiscordSRV> {
+public class ChannelLockingModule extends AbstractModule<DiscordSRV> {
 
-    public ChannelShutdownBehaviourModule(DiscordSRV discordSRV) {
+    public ChannelLockingModule(DiscordSRV discordSRV) {
         super(discordSRV);
     }
 
@@ -49,9 +49,9 @@ public class ChannelShutdownBehaviourModule extends AbstractModule<DiscordSRV> {
     @Override
     public void enable() {
         doForAllChannels((config, channelConfig) -> {
-            OrDefault<ShutdownBehaviourConfig> shutdownConfig = config.map(cfg -> cfg.shutdownBehaviour);
-            OrDefault<ShutdownBehaviourConfig.Channels> channels = shutdownConfig.map(cfg -> cfg.channels);
-            OrDefault<ShutdownBehaviourConfig.Threads> threads = shutdownConfig.map(cfg -> cfg.threads);
+            OrDefault<ChannelLockingConfig> shutdownConfig = config.map(cfg -> cfg.channelLocking);
+            OrDefault<ChannelLockingConfig.Channels> channels = shutdownConfig.map(cfg -> cfg.channels);
+            OrDefault<ChannelLockingConfig.Threads> threads = shutdownConfig.map(cfg -> cfg.threads);
 
             if (threads.get(cfg -> cfg.unarchive, true)) {
                 discordSRV.discordAPI().findOrCreateThreads(config, channelConfig, __ -> {}, new ArrayList<>(), false);
@@ -63,9 +63,9 @@ public class ChannelShutdownBehaviourModule extends AbstractModule<DiscordSRV> {
     @Override
     public void disable() {
         doForAllChannels((config, channelConfig) -> {
-            OrDefault<ShutdownBehaviourConfig> shutdownConfig = config.map(cfg -> cfg.shutdownBehaviour);
-            OrDefault<ShutdownBehaviourConfig.Channels> channels = shutdownConfig.map(cfg -> cfg.channels);
-            OrDefault<ShutdownBehaviourConfig.Threads> threads = shutdownConfig.map(cfg -> cfg.threads);
+            OrDefault<ChannelLockingConfig> shutdownConfig = config.map(cfg -> cfg.channelLocking);
+            OrDefault<ChannelLockingConfig.Channels> channels = shutdownConfig.map(cfg -> cfg.channels);
+            OrDefault<ChannelLockingConfig.Threads> threads = shutdownConfig.map(cfg -> cfg.threads);
 
             if (threads.get(cfg -> cfg.archive, true)) {
                 for (DiscordThreadChannel thread : discordSRV.discordAPI().findThreads(config, channelConfig)) {
@@ -81,7 +81,7 @@ public class ChannelShutdownBehaviourModule extends AbstractModule<DiscordSRV> {
 
     private void channelPermissions(
             IChannelConfig channelConfig,
-            OrDefault<ShutdownBehaviourConfig.Channels> shutdownConfig,
+            OrDefault<ChannelLockingConfig.Channels> shutdownConfig,
             boolean state
     ) {
         JDA jda = discordSRV.jda().orElse(null);

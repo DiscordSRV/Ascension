@@ -187,7 +187,7 @@ public class DiscordAPIImpl implements DiscordAPI {
             ThreadConfig threadConfig,
             DiscordTextChannel textChannel
     ) {
-        if (!config.map(cfg -> cfg.shutdownBehaviour).map(cfg -> cfg.threads).get(cfg -> cfg.unarchive, true)) {
+        if (!config.map(cfg -> cfg.channelLocking).map(cfg -> cfg.threads).get(cfg -> cfg.unarchive, true)) {
             return textChannel.createThread(threadConfig.threadName, threadConfig.privateThread);
         }
 

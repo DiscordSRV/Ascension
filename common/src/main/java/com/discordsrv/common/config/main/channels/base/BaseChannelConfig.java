@@ -53,5 +53,5 @@ public class BaseChannelConfig {
     public MirroringConfig mirroring = new MirroringConfig();
 
     @Order(50)
-    public ShutdownBehaviourConfig shutdownBehaviour = new ShutdownBehaviourConfig();
+    public ChannelLockingConfig channelLocking = new ChannelLockingConfig();
 }
