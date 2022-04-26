@@ -145,7 +145,7 @@ public class ModuleManager {
     public void onShuttingDown(DiscordSRVShuttingDownEvent event) {
         modules.stream()
                 .sorted((m1, m2) -> Integer.compare(m2.shutdownOrder(), m1.shutdownOrder()))
-                .forEachOrdered(Module::disable);
+                .forEachOrdered(this::disable);
     }
 
     public void reload() {
