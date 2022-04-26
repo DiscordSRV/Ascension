@@ -52,10 +52,11 @@ public class PlaceholderLookupEvent implements Event, Processable {
         return contexts;
     }
 
-    public Optional<Object> getContext(Class<?> type) {
+    @SuppressWarnings("unchecked")
+    public <T> Optional<T> getContext(Class<T> type) {
         for (Object o : contexts) {
             if (type.isAssignableFrom(o.getClass())) {
-                return Optional.of(o);
+                return Optional.of((T) o);
             }
         }
         return Optional.empty();

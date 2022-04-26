@@ -37,6 +37,7 @@ public class DiscordSRVBukkitBootstrap extends BukkitBootstrap implements IBoots
     private final Logger logger;
     private final LifecycleManager lifecycleManager;
     private BukkitDiscordSRV discordSRV;
+    private final List<Runnable> mainThreadTasksForDisable = new ArrayList<>();
 
     public DiscordSRVBukkitBootstrap(JarInJarClassLoader classLoader, JavaPlugin plugin) throws IOException {
         // Don't change these parameters
@@ -73,6 +74,11 @@ public class DiscordSRVBukkitBootstrap extends BukkitBootstrap implements IBoots
     @Override
     public void onDisable() {
         lifecycleManager.disable(discordSRV);
+
+        // Run tasks on the main thread (scheduler cannot be used when disabling)
+        for (Runnable runnable : mainThreadTasksForDisable) {
+            runnable.run();
+        }
     }
 
     @Override
@@ -93,5 +99,9 @@ public class DiscordSRVBukkitBootstrap extends BukkitBootstrap implements IBoots
     @Override
     public Path dataDirectory() {
         return getPlugin().getDataFolder().toPath();
+    }
+
+    public List<Runnable> mainThreadTasksForDisable() {
+        return mainThreadTasksForDisable;
     }
 }

@@ -25,6 +25,7 @@ package com.discordsrv.api.placeholder;
 
 import com.discordsrv.api.placeholder.mapper.PlaceholderResultMapper;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.Set;
 import java.util.regex.Matcher;
@@ -52,6 +53,9 @@ public interface PlaceholderService {
     PlaceholderLookupResult lookupPlaceholder(@NotNull String placeholder, @NotNull Object... context);
 
     Object getResult(@NotNull Matcher matcher, @NotNull Set<Object> context);
+    @NotNull
     CharSequence getResultAsPlain(@NotNull Matcher matcher, @NotNull Set<Object> context);
+    @NotNull
+    CharSequence getResultAsPlain(@Nullable Object result);
 
 }

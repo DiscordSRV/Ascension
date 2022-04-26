@@ -225,6 +225,7 @@ public class BukkitDiscordSRV extends ServerDiscordSRV<DiscordSRVBukkitBootstrap
 
         // Integrations
         registerIntegration("com.discordsrv.bukkit.integration.VaultIntegration");
+        registerIntegration("com.discordsrv.bukkit.integration.PlaceholderAPIIntegration");
 
         super.enable();
 

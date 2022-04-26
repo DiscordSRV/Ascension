@@ -44,6 +44,7 @@ allprojects {
             }
             filter {
                 includeGroup 'net.milkbowl.vault'
+                includeGroup 'me.clip'
             }
         }
     }
@@ -79,6 +80,7 @@ dependencies {
 
     // Integrations
     compileOnly(libs.vaultapi)
+    compileOnly(libs.placeholderapi.bukkit)
 }
 
 processResources {

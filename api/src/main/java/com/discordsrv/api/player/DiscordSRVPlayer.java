@@ -23,7 +23,6 @@
 
 package com.discordsrv.api.player;
 
-import com.discordsrv.api.placeholder.annotation.Placeholder;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.UUID;
@@ -37,7 +36,6 @@ public interface DiscordSRVPlayer {
      * The username of the player.
      * @return the player's username
      */
-    @Placeholder("player_name")
     @NotNull
     String username();
 
@@ -45,7 +43,6 @@ public interface DiscordSRVPlayer {
      * The {@link UUID} of the player.
      * @return the player's unique id
      */
-    @Placeholder("player_uuid")
     @NotNull
     UUID uniqueId();
 

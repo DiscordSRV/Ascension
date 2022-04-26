@@ -175,12 +175,13 @@ public class PlaceholderServiceImpl implements PlaceholderService {
     }
 
     @Override
-    public CharSequence getResultAsPlain(@NotNull Matcher matcher, @NotNull Set<Object> context) {
+    public @NotNull CharSequence getResultAsPlain(@NotNull Matcher matcher, @NotNull Set<Object> context) {
         Object result = getResult(matcher, context);
         return getResultAsPlain(result);
     }
 
-    private CharSequence getResultAsPlain(Object result) {
+    @Override
+    public @NotNull CharSequence getResultAsPlain(@Nullable Object result) {
         if (result == null) {
             return "";
         } else if (result instanceof CharSequence) {
@@ -214,10 +215,6 @@ public class PlaceholderServiceImpl implements PlaceholderService {
         Object representation = getResultRepresentation(results, placeholder, matcher);
 
         CharSequence output = getResultAsPlain(representation);
-        if (output == null) {
-            output = String.valueOf(representation);
-        }
-
         return Pattern.compile(
                 matcher.group(1) + placeholder + matcher.group(3),
                 Pattern.LITERAL
@@ -274,48 +271,57 @@ public class PlaceholderServiceImpl implements PlaceholderService {
 
     private static class ClassProviderLoader implements CacheLoader<Class<?>, Set<PlaceholderProvider>> {
 
+        private Set<Class<?>> getAll(Class<?> clazz) {
+            Set<Class<?>> classes = new LinkedHashSet<>();
+            classes.add(clazz);
+
+            for (Class<?> anInterface : clazz.getInterfaces()) {
+                classes.addAll(getAll(anInterface));
+            }
+
+            Class<?> superClass = clazz.getSuperclass();
+            if (superClass != null) {
+                classes.addAll(getAll(superClass));
+            }
+
+            return classes;
+        }
+
         @Override
         public @Nullable Set<PlaceholderProvider> load(@NonNull Class<?> key) {
             Set<PlaceholderProvider> providers = new HashSet<>();
 
-            Class<?> currentClass = key;
-            do {
-                List<Class<?>> classes = new ArrayList<>(Arrays.asList(currentClass.getInterfaces()));
-                classes.add(currentClass);
+            Set<Class<?>> classes = getAll(key);
+            for (Class<?> clazz : classes) {
+                for (Method method : clazz.getMethods()) {
+                    Placeholder annotation = method.getAnnotation(Placeholder.class);
+                    if (annotation == null) {
+                        continue;
+                    }
 
-                for (Class<?> clazz : classes) {
-                    for (Method method : clazz.getMethods()) {
-                        Placeholder annotation = method.getAnnotation(Placeholder.class);
-                        if (annotation == null) {
-                            continue;
-                        }
-
-                        boolean startsWith = !annotation.relookup().isEmpty();
-                        if (!startsWith) {
-                            for (Parameter parameter : method.getParameters()) {
-                                if (parameter.getAnnotation(PlaceholderRemainder.class) != null) {
-                                    startsWith = true;
-                                    break;
-                                }
+                    boolean startsWith = !annotation.relookup().isEmpty();
+                    if (!startsWith) {
+                        for (Parameter parameter : method.getParameters()) {
+                            if (parameter.getAnnotation(PlaceholderRemainder.class) != null) {
+                                startsWith = true;
+                                break;
                             }
                         }
-
-                        boolean isStatic = Modifier.isStatic(method.getModifiers());
-                        providers.add(new AnnotationPlaceholderProvider(annotation, isStatic ? null : clazz, startsWith, method));
                     }
-                    for (Field field : clazz.getFields()) {
-                        Placeholder annotation = field.getAnnotation(Placeholder.class);
-                        if (annotation == null) {
-                            continue;
-                        }
 
-                        boolean isStatic = Modifier.isStatic(field.getModifiers());
-                        providers.add(new AnnotationPlaceholderProvider(annotation, isStatic ? null : clazz, !annotation.relookup().isEmpty(), field));
-                    }
+                    boolean isStatic = Modifier.isStatic(method.getModifiers());
+                    providers.add(new AnnotationPlaceholderProvider(annotation, isStatic ? null : clazz, startsWith, method));
                 }
+                for (Field field : clazz.getFields()) {
+                    Placeholder annotation = field.getAnnotation(Placeholder.class);
+                    if (annotation == null) {
+                        continue;
+                    }
 
-                currentClass = currentClass.getSuperclass();
-            } while (currentClass != null);
+                    boolean isStatic = Modifier.isStatic(field.getModifiers());
+                    providers.add(new AnnotationPlaceholderProvider(annotation, isStatic ? null : clazz, !annotation.relookup().isEmpty(), field));
+                }
+            }
 
             return providers;
         }
