@@ -56,7 +56,7 @@ public class DiscordSRVVelocityBootstrap implements IBootstrap {
     private VelocityDiscordSRV discordSRV;
 
     @Inject
-    public DiscordSRVVelocityBootstrap(com.discordsrv.x.slf4j.Logger logger, ProxyServer proxyServer, PluginContainer pluginContainer, @DataDirectory Path dataDirectory) throws IOException {
+    public DiscordSRVVelocityBootstrap(com.discordsrv.unrelocate.org.slf4j.Logger logger, ProxyServer proxyServer, PluginContainer pluginContainer, @DataDirectory Path dataDirectory) throws IOException {
         this.logger = new SLF4JLoggerImpl(logger);
         this.classpathAppender = new VelocityClasspathAppender(this, proxyServer);
         this.lifecycleManager = new LifecycleManager(

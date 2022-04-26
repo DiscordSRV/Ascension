@@ -63,6 +63,6 @@ shadowJar {
         relocate it, 'com.discordsrv.dependencies.' + it
     }
 
-    // SLF4J hack
-    relocate('com.discordsrv.x.slf4j', 'org.slf4j')
+    // Unrelocate package, in case a platform uses something we normally relocate
+    relocate('com.discordsrv.unrelocate.', '')
 }

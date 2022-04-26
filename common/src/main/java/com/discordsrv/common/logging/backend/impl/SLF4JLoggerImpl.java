@@ -25,9 +25,9 @@ import org.jetbrains.annotations.Nullable;
 
 public class SLF4JLoggerImpl implements Logger {
 
-    private final com.discordsrv.x.slf4j.Logger logger;
+    private final com.discordsrv.unrelocate.org.slf4j.Logger logger;
 
-    public SLF4JLoggerImpl(com.discordsrv.x.slf4j.Logger logger) {
+    public SLF4JLoggerImpl(com.discordsrv.unrelocate.org.slf4j.Logger logger) {
         this.logger = logger;
     }
 

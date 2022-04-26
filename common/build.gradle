@@ -55,7 +55,7 @@ dependencies {
     runtimeDownloadApi(libs.configurate.hocon)
 
     // Logging
-    compileOnlyApi project(':common:common-slf4j-hack')
+    compileOnlyApi project(':common:common-unrelocate')
     compileOnly(libs.log4j.core)
 
     // Adventure, MCDiscordReserializer, EnhancedLegacyText

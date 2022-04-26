@@ -16,7 +16,7 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package com.discordsrv.x.slf4j;
+package com.discordsrv.unrelocate.org.slf4j;
 
 /**
  * A fake org.slf4j.Logger that is compileOnly scoped and relocated back to the real org.slf4j package.
