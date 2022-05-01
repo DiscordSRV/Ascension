@@ -18,6 +18,7 @@
 
 package com.discordsrv.common.invite;
 
+import com.discordsrv.api.discord.connection.jda.errorresponse.ErrorCallbackContext;
 import com.discordsrv.api.placeholder.FormattedText;
 import com.discordsrv.api.placeholder.annotation.Placeholder;
 import com.discordsrv.common.DiscordSRV;
@@ -88,7 +89,10 @@ public class DiscordInviteModule extends AbstractModule<DiscordSRV> {
                 return;
             }
 
-            channel.createInvite().setMaxAge(0).setUnique(true).queue(inv -> this.invite = inv.getUrl());
+            channel.createInvite().setMaxAge(0).setUnique(true).queue(
+                    inv -> this.invite = inv.getUrl(),
+                    ErrorCallbackContext.context("Failed to auto create invite")
+            );
         }
     }
 

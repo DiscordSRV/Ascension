@@ -30,6 +30,7 @@ import com.discordsrv.api.discord.api.entity.guild.DiscordGuild;
 import com.discordsrv.api.discord.api.entity.guild.DiscordRole;
 import com.discordsrv.api.discord.api.exception.NotReadyException;
 import com.discordsrv.api.discord.api.exception.RestErrorResponseException;
+import com.discordsrv.api.discord.connection.jda.errorresponse.ErrorCallbackContext;
 import com.discordsrv.common.DiscordSRV;
 import com.discordsrv.common.config.main.channels.base.BaseChannelConfig;
 import com.discordsrv.common.config.main.channels.base.IChannelConfig;
@@ -159,9 +160,10 @@ public class DiscordAPIImpl implements DiscordAPI {
 
             futures.add(future.handle((threadChannel, t) -> {
                 if (t != null) {
-                    discordSRV.discordConnectionManager().handleRequestFailure(
+                    ErrorCallbackContext.context(
                             "Failed to deliver message to thread \""
-                                    + threadConfig.threadName + "\" in channel " + channel, t);
+                                    + threadConfig.threadName + "\" in channel " + channel
+                    ).accept(t);
                     throw new RuntimeException(); // Just here to fail the future
                 }
 

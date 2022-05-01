@@ -18,6 +18,7 @@
 
 package com.discordsrv.common.channel;
 
+import com.discordsrv.api.discord.connection.jda.errorresponse.ErrorCallbackContext;
 import com.discordsrv.common.DiscordSRV;
 import com.discordsrv.common.config.main.ChannelUpdaterConfig;
 import com.discordsrv.common.logging.NamedLogger;
@@ -107,7 +108,7 @@ public class ChannelUpdaterModule extends AbstractModule<DiscordSRV> {
 
                 manager.timeout(30, TimeUnit.SECONDS).queue(
                         null,
-                        t -> discordSRV.discordConnectionManager().handleRequestFailure("Failed to update channel " + channel, t)
+                        ErrorCallbackContext.context("Failed to update channel " + channel)
                 );
             } catch (Throwable t) {
                 discordSRV.logger().error("Failed to update channel " + channel, t);

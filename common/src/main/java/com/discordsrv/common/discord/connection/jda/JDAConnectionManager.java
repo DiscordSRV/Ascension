@@ -20,6 +20,7 @@ package com.discordsrv.common.discord.connection.jda;
 
 import com.discordsrv.api.discord.api.entity.DiscordUser;
 import com.discordsrv.api.discord.connection.DiscordConnectionDetails;
+import com.discordsrv.api.discord.connection.jda.errorresponse.ErrorCallbackContext;
 import com.discordsrv.api.event.bus.EventPriority;
 import com.discordsrv.api.event.bus.Subscribe;
 import com.discordsrv.api.event.events.lifecycle.DiscordSRVShuttingDownEvent;
@@ -77,7 +78,8 @@ public class JDAConnectionManager implements DiscordConnectionManager {
     }
 
     private final DiscordSRV discordSRV;
-    private final DefaultFailureCallback defaultFailureCallback;
+    private final FailureCallback failureCallback;
+    private Future<?> failureCallbackFuture;
     private ScheduledExecutorService gatewayPool;
     private ScheduledExecutorService rateLimitPool;
 
@@ -95,10 +97,10 @@ public class JDAConnectionManager implements DiscordConnectionManager {
 
     public JDAConnectionManager(DiscordSRV discordSRV) {
         this.discordSRV = discordSRV;
-        this.defaultFailureCallback = new DefaultFailureCallback(new NamedLogger(discordSRV, "DISCORD_REQUESTS"));
+        this.failureCallback = new FailureCallback(new NamedLogger(discordSRV, "DISCORD_REQUESTS"));
 
-        // Set default failure handling
-        RestAction.setDefaultFailure(defaultFailureCallback);
+        // Default failure callback
+        RestAction.setDefaultFailure(failureCallback);
 
         // Disable all mentions by default for safety
         AllowedMentions.setDefaultMentions(Collections.emptyList());
@@ -114,6 +116,15 @@ public class JDAConnectionManager implements DiscordConnectionManager {
     @Override
     public boolean areDetailsAccepted() {
         return detailsAccepted;
+    }
+
+    private void checkDefaultFailureCallback() {
+        Consumer<? super Throwable> defaultFailure = RestAction.getDefaultFailure();
+        if (defaultFailure != failureCallback) {
+            discordSRV.logger().error("RestAction DefaultFailure was set to " + defaultFailure.getClass().getName() + " (" + defaultFailure + ")");
+            discordSRV.logger().error("This is unsupported, please specify your own error handling on individual requests instead.");
+            RestAction.setDefaultFailure(failureCallback);
+        }
     }
 
     @Subscribe
@@ -228,6 +239,12 @@ public class JDAConnectionManager implements DiscordConnectionManager {
         this.rateLimitPool = new ScheduledThreadPoolExecutor(
                 5,
                 new CountingThreadFactory(Scheduler.THREAD_NAME_PREFIX + "JDA RateLimit #%s")
+        );
+        this.failureCallbackFuture = discordSRV.scheduler().runAtFixedRate(
+                this::checkDefaultFailureCallback,
+                30,
+                120,
+                TimeUnit.SECONDS
         );
 
         ConnectionConfig.Bot botConfig = discordSRV.connectionConfig().bot;
@@ -345,6 +362,9 @@ public class JDAConnectionManager implements DiscordConnectionManager {
         if (rateLimitPool != null && !rateLimitPool.isShutdown()) {
             rateLimitPool.shutdownNow();
         }
+        if (failureCallbackFuture != null) {
+            failureCallbackFuture.cancel(false);
+        }
     }
 
     //
@@ -440,21 +460,21 @@ public class JDAConnectionManager implements DiscordConnectionManager {
         discordSRV.logger().error("+------------------------------>");
     }
 
-    public void handleRequestFailure(String context, Throwable cause) {
-        defaultFailureCallback.accept(context, cause);
-    }
-
-    private class DefaultFailureCallback implements Consumer<Throwable> {
+    private class FailureCallback implements Consumer<Throwable> {
 
         private final Logger logger;
 
-        protected DefaultFailureCallback(Logger logger) {
+        protected FailureCallback(Logger logger) {
             this.logger = logger;
         }
 
         @Override
         public void accept(Throwable t) {
-            accept(null, t);
+            if (t instanceof ErrorCallbackContext.Exception) {
+                accept(t.getMessage(), t.getCause());
+            } else {
+                accept(null, t);
+            }
         }
 
         public void accept(String context, Throwable t) {
@@ -481,7 +501,7 @@ public class JDAConnectionManager implements DiscordConnectionManager {
                     Throwable cause = exception.getCause();
                     if (cause != null) {
                         // Run the cause through this method again
-                        accept(cause);
+                        accept(context, cause);
                     } else {
                         logger.error((context != null ? context + ": " : "") + "Failed to complete request for a unknown reason", exception);
                     }

@@ -25,6 +25,7 @@ import com.discordsrv.api.discord.api.entity.channel.DiscordThreadChannel;
 import com.discordsrv.api.discord.api.entity.message.ReceivedDiscordMessage;
 import com.discordsrv.api.discord.api.entity.message.ReceivedDiscordMessageCluster;
 import com.discordsrv.api.discord.api.entity.message.SendableDiscordMessage;
+import com.discordsrv.api.discord.connection.jda.errorresponse.ErrorCallbackContext;
 import com.discordsrv.api.event.events.message.receive.game.AbstractGameMessageReceiveEvent;
 import com.discordsrv.api.placeholder.FormattedText;
 import com.discordsrv.api.player.DiscordSRVPlayer;
@@ -137,8 +138,7 @@ public abstract class AbstractGameMessageModule<T extends IMessageConfig, E exte
                                     if (t instanceof CompletionException) {
                                         t = t.getCause();
                                     }
-                                    discordSRV.discordConnectionManager().handleRequestFailure(
-                                            "Failed to deliver a message to " + entry.getValue(), t);
+                                    ErrorCallbackContext.context("Failed to deliver a message to " + entry.getValue()).accept(t);
                                     return null;
                                 });
                                 // Ignore ones that failed
