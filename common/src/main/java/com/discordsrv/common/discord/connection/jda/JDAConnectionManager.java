@@ -75,6 +75,7 @@ public class JDAConnectionManager implements DiscordConnectionManager {
     static {
         PRIVILEGED_INTENTS.put(GatewayIntent.GUILD_MEMBERS, "Server Members Intent");
         PRIVILEGED_INTENTS.put(GatewayIntent.GUILD_PRESENCES, "Presence Intent");
+        PRIVILEGED_INTENTS.put(GatewayIntent.GUILD_MESSAGES, "Message Content Intent");
     }
 
     private final DiscordSRV discordSRV;
