@@ -149,7 +149,8 @@ public class PlaceholderAPIIntegration extends PluginIntegration<BukkitDiscordSR
             }
 
             String placeholder = "%" + params + "%";
-            return discordSRV.placeholderService().replacePlaceholders(placeholder, context);
+            String result = discordSRV.placeholderService().replacePlaceholders(placeholder, context);
+            return placeholder.equals(result) ? null : result;
         }
     }
 }
