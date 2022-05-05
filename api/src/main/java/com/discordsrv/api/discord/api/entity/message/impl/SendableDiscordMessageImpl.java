@@ -89,7 +89,7 @@ public class SendableDiscordMessageImpl implements SendableDiscordMessage {
 
         private String content;
         private final List<DiscordMessageEmbed> embeds = new ArrayList<>();
-        private final Set<AllowedMention> allowedMentions = new HashSet<>();
+        private final Set<AllowedMention> allowedMentions = new LinkedHashSet<>();
         private String webhookUsername;
         private String webhookAvatarUrl;
 
@@ -122,8 +122,15 @@ public class SendableDiscordMessageImpl implements SendableDiscordMessage {
         }
 
         @Override
-        public Set<AllowedMention> getAllowedMentions() {
+        public @NotNull Set<AllowedMention> getAllowedMentions() {
             return allowedMentions;
+        }
+
+        @Override
+        public @NotNull Builder setAllowedMentions(@NotNull Collection<AllowedMention> allowedMentions) {
+            this.allowedMentions.clear();
+            this.allowedMentions.addAll(allowedMentions);
+            return this;
         }
 
         @Override

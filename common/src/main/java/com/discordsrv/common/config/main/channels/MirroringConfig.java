@@ -34,4 +34,7 @@ public class MirroringConfig {
             + "It's recommended to include some special character if in-game messages use webhooks,\n"
             + "in order to prevent Discord users and in-game players with the same name being grouped together")
     public String usernameFormat = "%user_effective_name% \uD83D\uDD03";
+
+    @Comment("Content to append to the beginning of a message if the message is replying to another")
+    public String replyFormat = "[In reply to %user_effective_name|user_name%](%message_jump_url%)\n";
 }

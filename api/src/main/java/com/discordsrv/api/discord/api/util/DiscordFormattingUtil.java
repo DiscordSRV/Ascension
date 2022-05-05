@@ -30,7 +30,7 @@ public final class DiscordFormattingUtil {
     private DiscordFormattingUtil() {}
 
     public static String escapeContent(String content) {
-        content = escapeChars(content, '*', '_', '|', '`', '~', ':');
+        content = escapeChars(content, '*', '_', '|', '`', '~', ':', '[');
         content = escapeQuote(content);
         content = escapeMentions(content);
         return content;

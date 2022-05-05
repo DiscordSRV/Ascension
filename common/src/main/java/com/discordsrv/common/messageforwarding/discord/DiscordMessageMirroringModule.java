@@ -20,6 +20,7 @@ package com.discordsrv.common.messageforwarding.discord;
 
 import com.discordsrv.api.channel.GameChannel;
 import com.discordsrv.api.discord.api.entity.DiscordUser;
+import com.discordsrv.api.discord.api.entity.channel.DiscordGuildMessageChannel;
 import com.discordsrv.api.discord.api.entity.channel.DiscordMessageChannel;
 import com.discordsrv.api.discord.api.entity.channel.DiscordTextChannel;
 import com.discordsrv.api.discord.api.entity.channel.DiscordThreadChannel;
@@ -41,6 +42,7 @@ import com.discordsrv.common.future.util.CompletableFutureUtil;
 import com.discordsrv.common.logging.NamedLogger;
 import com.discordsrv.common.module.type.AbstractModule;
 import com.github.benmanes.caffeine.cache.Cache;
+import net.dv8tion.jda.api.entities.Message;
 import org.apache.commons.lang3.tuple.Pair;
 
 import java.util.*;
@@ -49,7 +51,7 @@ import java.util.concurrent.TimeUnit;
 
 public class DiscordMessageMirroringModule extends AbstractModule<DiscordSRV> {
 
-    private final Cache<String, Set<MessageReference>> mapping;
+    private final Cache<String, Mirror> mapping;
 
     public DiscordMessageMirroringModule(DiscordSRV discordSRV) {
         super(discordSRV, new NamedLogger(discordSRV, "DISCORD_MIRRORING"));
@@ -73,7 +75,7 @@ public class DiscordMessageMirroringModule extends AbstractModule<DiscordSRV> {
         ReceivedDiscordMessage message = event.getDiscordMessage();
         DiscordMessageChannel channel = event.getChannel();
 
-        List<Pair<DiscordMessageChannel, OrDefault<MirroringConfig>>> mirrorChannels = new ArrayList<>();
+        List<Pair<DiscordGuildMessageChannel, OrDefault<MirroringConfig>>> mirrorChannels = new ArrayList<>();
         List<CompletableFuture<DiscordThreadChannel>> futures = new ArrayList<>();
 
         for (Map.Entry<GameChannel, OrDefault<BaseChannelConfig>> entry : channels.entrySet()) {
@@ -113,10 +115,10 @@ public class DiscordMessageMirroringModule extends AbstractModule<DiscordSRV> {
 
         CompletableFutureUtil.combine(futures).whenComplete((v, t) -> {
             List<CompletableFuture<Pair<ReceivedDiscordMessage, OrDefault<MirroringConfig>>>> messageFutures = new ArrayList<>();
-            for (Pair<DiscordMessageChannel, OrDefault<MirroringConfig>> pair : mirrorChannels) {
-                DiscordMessageChannel mirrorChannel = pair.getKey();
+            for (Pair<DiscordGuildMessageChannel, OrDefault<MirroringConfig>> pair : mirrorChannels) {
+                DiscordGuildMessageChannel mirrorChannel = pair.getKey();
                 OrDefault<MirroringConfig> config = pair.getValue();
-                SendableDiscordMessage sendableMessage = convert(event.getDiscordMessage(), config);
+                SendableDiscordMessage sendableMessage = convert(event.getDiscordMessage(), mirrorChannel, config);
 
                 CompletableFuture<Pair<ReceivedDiscordMessage, OrDefault<MirroringConfig>>> future =
                         mirrorChannel.sendMessage(sendableMessage).thenApply(msg -> Pair.of(msg, config));
@@ -129,11 +131,12 @@ public class DiscordMessageMirroringModule extends AbstractModule<DiscordSRV> {
             }
 
             CompletableFutureUtil.combine(messageFutures).whenComplete((messages, t2) -> {
-                Set<MessageReference> references = new HashSet<>();
+                Map<Long, MessageReference> references = new LinkedHashMap<>();
                 for (Pair<ReceivedDiscordMessage, OrDefault<MirroringConfig>> pair : messages) {
-                    references.add(getReference(pair.getKey(), pair.getValue()));
+                    ReceivedDiscordMessage msg = pair.getKey();
+                    references.put(msg.getChannel().getId(), getReference(msg, pair.getValue()));
                 }
-                mapping.put(getCacheKey(message), references);
+                mapping.put(getCacheKey(message), new Mirror(getReference(message, null), references));
             });
         });
     }
@@ -141,18 +144,18 @@ public class DiscordMessageMirroringModule extends AbstractModule<DiscordSRV> {
     @Subscribe
     public void onDiscordMessageUpdate(DiscordMessageUpdateEvent event) {
         ReceivedDiscordMessage message = event.getMessage();
-        Set<MessageReference> references = mapping.get(getCacheKey(message), k -> null);
-        if (references == null) {
+        Mirror mirror = mapping.get(getCacheKey(message), k -> null);
+        if (mirror == null) {
             return;
         }
 
-        for (MessageReference reference : references) {
-            DiscordMessageChannel channel = reference.getMessageChannel(discordSRV);
+        for (MessageReference reference : mirror.mirrors.values()) {
+            DiscordGuildMessageChannel channel = reference.getMessageChannel(discordSRV);
             if (channel == null) {
                 continue;
             }
 
-            SendableDiscordMessage sendableMessage = convert(message, reference.config);
+            SendableDiscordMessage sendableMessage = convert(message, channel, reference.config);
             channel.editMessageById(reference.messageId, sendableMessage).whenComplete((v, t) -> {
                 if (t != null) {
                     discordSRV.logger().error("Failed to update mirrored message in " + channel);
@@ -163,12 +166,12 @@ public class DiscordMessageMirroringModule extends AbstractModule<DiscordSRV> {
 
     @Subscribe
     public void onDiscordMessageDelete(DiscordMessageDeleteEvent event) {
-        Set<MessageReference> references = mapping.get(getCacheKey(event.getChannel(), event.getMessageId()), k -> null);
-        if (references == null) {
+        Mirror mirror = mapping.get(getCacheKey(event.getChannel(), event.getMessageId()), k -> null);
+        if (mirror == null) {
             return;
         }
 
-        for (MessageReference reference : references) {
+        for (MessageReference reference : mirror.mirrors.values()) {
             DiscordMessageChannel channel = reference.getMessageChannel(discordSRV);
             if (channel == null) {
                 continue;
@@ -185,7 +188,11 @@ public class DiscordMessageMirroringModule extends AbstractModule<DiscordSRV> {
     /**
      * Converts a given received message to a sendable message.
      */
-    private SendableDiscordMessage convert(ReceivedDiscordMessage message, OrDefault<MirroringConfig> config) {
+    private SendableDiscordMessage convert(
+            ReceivedDiscordMessage message,
+            DiscordGuildMessageChannel destinationChannel,
+            OrDefault<MirroringConfig> config
+    ) {
         DiscordGuildMember member = message.getMember().orElse(null);
         DiscordUser user = message.getAuthor();
         String username = discordSRV.placeholderService().replacePlaceholders(
@@ -196,14 +203,52 @@ public class DiscordMessageMirroringModule extends AbstractModule<DiscordSRV> {
             username = username.substring(0, 32);
         }
 
+        ReceivedDiscordMessage replyMessage = message.getReplyingTo().orElse(null);
+        String content = message.getContent()
+                .map(c -> c.replace("[", "\\[")) // Block markdown urls
+                .orElse("");
+
+        if (replyMessage != null) {
+            MessageReference matchingReference = null;
+            for (Mirror mirror : mapping.asMap().values()) {
+                if (!mirror.hasMessage(replyMessage)) {
+                    continue;
+                }
+
+                MessageReference ref = mirror.getForChannel(destinationChannel);
+                if (ref != null) {
+                    matchingReference = ref;
+                    break;
+                }
+            }
+
+            String jumpUrl = matchingReference != null ? String.format(
+                    Message.JUMP_URL,
+                    Long.toUnsignedString(destinationChannel.getGuild().getId()),
+                    Long.toUnsignedString(destinationChannel.getId()),
+                    Long.toUnsignedString(matchingReference.messageId)
+            ) : replyMessage.getJumpUrl();
+
+            String replyFormat = config.get(
+                    cfg -> cfg.replyFormat,
+                    "[In reply to %user_effective_name|user_name%](%message_jump_url%)\n"
+            );
+
+            content = discordSRV.placeholderService()
+                    .replacePlaceholders(replyFormat, replyMessage.getMember(), replyMessage.getAuthor())
+                    .replace("%message_jump_url%", jumpUrl) + content;
+        }
+
         SendableDiscordMessage.Builder builder = SendableDiscordMessage.builder()
-                .setContent(message.getContent().orElse(null))
-                .setWebhookUsername(username) // (member != null ? member.getEffectiveName() : user.getUsername()) + " [M]"
+                .setAllowedMentions(Collections.emptyList())
+                .setContent(content.substring(0, Math.min(content.length(), Message.MAX_CONTENT_LENGTH)))
+                .setWebhookUsername(username)
                 .setWebhookAvatarUrl(
                         member != null
                             ? member.getEffectiveServerAvatarUrl()
                             : user.getEffectiveAvatarUrl()
                 );
+        builder.getAllowedMentions().clear();
         for (DiscordMessageEmbed embed : message.getEmbeds()) {
             builder.addEmbed(embed);
         }
@@ -250,7 +295,7 @@ public class DiscordMessageMirroringModule extends AbstractModule<DiscordSRV> {
                 + ":" + Long.toUnsignedString(messageId);
     }
 
-    public static class MessageReference {
+    private static class MessageReference {
 
         private final long channelId;
         private final long threadId;
@@ -290,7 +335,7 @@ public class DiscordMessageMirroringModule extends AbstractModule<DiscordSRV> {
             this.config = config;
         }
 
-        public DiscordMessageChannel getMessageChannel(DiscordSRV discordSRV) {
+        public DiscordGuildMessageChannel getMessageChannel(DiscordSRV discordSRV) {
             DiscordTextChannel textChannel = discordSRV.discordAPI().getTextChannelById(channelId).orElse(null);
             if (textChannel == null) {
                 return null;
@@ -304,6 +349,46 @@ public class DiscordMessageMirroringModule extends AbstractModule<DiscordSRV> {
                 }
             }
             return null;
+        }
+
+        public boolean isMatching(ReceivedDiscordMessage message) {
+            return isMatching((DiscordGuildMessageChannel) message.getChannel())
+                    && message.getId() == messageId;
+        }
+
+        public boolean isMatching(DiscordGuildMessageChannel channel) {
+            return channel instanceof DiscordThreadChannel
+                    ? channel.getId() == threadId
+                            && ((DiscordThreadChannel) channel).getParentChannel().getId() == channelId
+                    : channel.getId() == channelId;
+        }
+    }
+
+    private static class Mirror {
+
+        private final MessageReference original;
+        private final Map<Long, MessageReference> mirrors; // thread/channel id -> reference
+
+        public Mirror(MessageReference original, Map<Long, MessageReference> mirrors) {
+            this.original = original;
+            this.mirrors = mirrors;
+        }
+
+        public boolean hasMessage(ReceivedDiscordMessage message) {
+            if (original.isMatching(message)) {
+                return true;
+            }
+            MessageReference reference = mirrors.get(message.getChannel().getId());
+            return reference != null && reference.isMatching(message);
+        }
+
+        public MessageReference getForChannel(DiscordGuildMessageChannel channel) {
+            long id = channel.getId();
+            if (original.isMatching(channel)) {
+                return original;
+            } else {
+                return mirrors.get(id);
+            }
         }
     }
 }

@@ -42,6 +42,13 @@ import java.util.concurrent.CompletableFuture;
 public interface ReceivedDiscordMessage extends SendableDiscordMessage, Snowflake {
 
     /**
+     * Gets the URL to jump to this message.
+     * @return the jump url
+     */
+    @NotNull
+    String getJumpUrl();
+
+    /**
      * Gets the attachments of this message.
      * @return this message's attachments
      */
@@ -68,6 +75,13 @@ public interface ReceivedDiscordMessage extends SendableDiscordMessage, Snowflak
      */
     @NotNull
     DiscordMessageChannel getChannel();
+
+    /**
+     * Gets the messages this message is replying to.
+     * @return the messages this message is replying to or a empty optional
+     */
+    @NotNull
+    Optional<ReceivedDiscordMessage> getReplyingTo();
 
     /**
      * Gets the text channel the message was sent in. Not present if this message is a dm.

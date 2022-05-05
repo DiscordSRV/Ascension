@@ -27,7 +27,7 @@ import com.discordsrv.api.DiscordSRVApi;
 import net.dv8tion.jda.api.entities.ThreadChannel;
 import org.jetbrains.annotations.NotNull;
 
-public interface DiscordThreadChannel extends DiscordMessageChannel, DiscordGuildChannel {
+public interface DiscordThreadChannel extends DiscordGuildMessageChannel {
 
     @NotNull
     DiscordTextChannel getParentChannel();

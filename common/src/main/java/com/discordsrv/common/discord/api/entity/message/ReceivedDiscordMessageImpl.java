@@ -100,11 +100,13 @@ public class ReceivedDiscordMessageImpl extends SendableDiscordMessageImpl imple
             attachments.add(new Attachment(attachment.getFileName(), attachment.getUrl()));
         }
 
+        Message referencedMessage = message.getReferencedMessage();
         return new ReceivedDiscordMessageImpl(
                 discordSRV,
                 attachments,
                 self,
                 channel,
+                referencedMessage != null ? fromJDA(discordSRV, referencedMessage) : null,
                 apiMember,
                 user,
                 message.getChannel().getIdLong(),
@@ -172,6 +174,7 @@ public class ReceivedDiscordMessageImpl extends SendableDiscordMessageImpl imple
                 attachments,
                 true, // These are always from rest responses
                 channel,
+                null,
                 member,
                 user,
                 webhookMessage.getChannelId(),
@@ -187,6 +190,7 @@ public class ReceivedDiscordMessageImpl extends SendableDiscordMessageImpl imple
     private final List<Attachment> attachments;
     private final boolean fromSelf;
     private final DiscordMessageChannel channel;
+    private final ReceivedDiscordMessage replyingTo;
     private final DiscordGuildMember member;
     private final DiscordUser author;
     private final long channelId;
@@ -197,6 +201,7 @@ public class ReceivedDiscordMessageImpl extends SendableDiscordMessageImpl imple
             List<Attachment> attachments,
             boolean fromSelf,
             DiscordMessageChannel channel,
+            ReceivedDiscordMessage replyingTo,
             DiscordGuildMember member,
             DiscordUser author,
             long channelId,
@@ -211,6 +216,7 @@ public class ReceivedDiscordMessageImpl extends SendableDiscordMessageImpl imple
         this.attachments = attachments;
         this.fromSelf = fromSelf;
         this.channel = channel;
+        this.replyingTo = replyingTo;
         this.member = member;
         this.author = author;
         this.channelId = channelId;
@@ -220,6 +226,16 @@ public class ReceivedDiscordMessageImpl extends SendableDiscordMessageImpl imple
     @Override
     public long getId() {
         return id;
+    }
+
+    @Override
+    public @NotNull String getJumpUrl() {
+        return String.format(
+                Message.JUMP_URL,
+                getGuild().map(guild -> Long.toUnsignedString(guild.getId())).orElse("@me"),
+                Long.toUnsignedString(getChannel().getId()),
+                Long.toUnsignedString(id)
+        );
     }
 
     @Override
@@ -259,6 +275,11 @@ public class ReceivedDiscordMessageImpl extends SendableDiscordMessageImpl imple
     @Override
     public @NotNull DiscordMessageChannel getChannel() {
         return channel;
+    }
+
+    @Override
+    public @NotNull Optional<ReceivedDiscordMessage> getReplyingTo() {
+        return Optional.ofNullable(replyingTo);
     }
 
     @Override

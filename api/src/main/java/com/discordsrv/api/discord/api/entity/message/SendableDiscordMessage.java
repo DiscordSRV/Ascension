@@ -27,6 +27,7 @@ import com.discordsrv.api.discord.api.entity.message.impl.SendableDiscordMessage
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
@@ -138,8 +139,17 @@ public interface SendableDiscordMessage {
          * Gets the allowed mentions in this builder.
          * @return the builder's current allowed mentions
          */
-        @Nullable
+        @NotNull
         Set<AllowedMention> getAllowedMentions();
+
+        /**
+         * Sets the allowed mentions in for this builder.
+         *
+         * @param allowedMentions the allowed mentions
+         * @return the builder, useful for chaining
+         */
+        @NotNull
+        Builder setAllowedMentions(@NotNull Collection<AllowedMention> allowedMentions);
 
         /**
          * Adds an allowed mention to this builder.
