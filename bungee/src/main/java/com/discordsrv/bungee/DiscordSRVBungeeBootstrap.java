@@ -36,8 +36,8 @@ public class DiscordSRVBungeeBootstrap extends BungeeBootstrap implements IBoots
     private final LifecycleManager lifecycleManager;
     private BungeeDiscordSRV discordSRV;
 
+    // Don't change these parameters
     public DiscordSRVBungeeBootstrap(JarInJarClassLoader classLoader, Plugin plugin) throws IOException {
-        // Don't change these parameters
         super(classLoader, plugin);
         this.logger = new JavaLoggerImpl(plugin.getLogger());
         this.lifecycleManager = new LifecycleManager(

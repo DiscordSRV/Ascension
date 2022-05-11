@@ -39,8 +39,8 @@ public class DiscordSRVBukkitBootstrap extends BukkitBootstrap implements IBoots
     private BukkitDiscordSRV discordSRV;
     private final List<Runnable> mainThreadTasksForDisable = new ArrayList<>();
 
+    // Don't change these parameters
     public DiscordSRVBukkitBootstrap(JarInJarClassLoader classLoader, JavaPlugin plugin) throws IOException {
-        // Don't change these parameters
         super(classLoader, plugin);
         this.logger = new JavaLoggerImpl(plugin.getLogger());
         this.lifecycleManager = new LifecycleManager(
@@ -59,7 +59,7 @@ public class DiscordSRVBukkitBootstrap extends BukkitBootstrap implements IBoots
             Class.forName("com.mojang.brigadier.CommandDispatcher");
             resources.add("dependencies/commodore.txt");
         } catch (ClassNotFoundException ignored) {
-            // CommandDispatches not present, don't need to bother downloading commodore
+            // CommandDispatcher not present, don't need to bother downloading commodore
         }
 
         return resources.toArray(new String[0]);
