@@ -29,7 +29,8 @@ public class LinkedAccountConfig {
 
     @Comment("The linked account provider\n"
             + "\n"
-            + " - auto: Automatically chooses the most suitable linked accounts storage\n"
+            + " - auto: Defaults to using \"minecraftauth\"\n"
+            + " - minecraftauth: Uses minecraftauth.me as the linked account provider\n"
             + " - storage: Store linked accounts from the configured databased")
     public String provider = "auto";
 }

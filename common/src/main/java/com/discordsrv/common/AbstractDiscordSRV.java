@@ -51,6 +51,7 @@ import com.discordsrv.common.groupsync.GroupSyncModule;
 import com.discordsrv.common.invite.DiscordInviteModule;
 import com.discordsrv.common.linking.LinkProvider;
 import com.discordsrv.common.linking.impl.MemoryLinker;
+import com.discordsrv.common.linking.impl.MinecraftAuthenticationLinker;
 import com.discordsrv.common.linking.impl.StorageLinker;
 import com.discordsrv.common.logging.Logger;
 import com.discordsrv.common.logging.adapter.DependencyLoggerAdapter;
@@ -567,6 +568,11 @@ public abstract class AbstractDiscordSRV<B extends IBootstrap, C extends MainCon
                 String provider = linkedAccountConfig.provider;
                 switch (provider) {
                     case "auto":
+                    case "minecraftauth":
+                        dependencyManager.mcAuthLib().download().get();
+                        linkProvider = new MinecraftAuthenticationLinker(this);
+                        logger().info("Using minecraftauth.me for linked accounts");
+                        break;
                     case "storage":
                         linkProvider = new StorageLinker(this);
                         logger().info("Using storage for linked accounts");

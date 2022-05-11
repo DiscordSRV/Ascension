@@ -4,7 +4,8 @@ configurations {
     hikari
     h2Driver
     mysqlDriver
-    compileOnly.extendsFrom hikari, h2Driver, mysqlDriver
+    mcAuthLib
+    compileOnly.extendsFrom hikari, h2Driver, mysqlDriver, mcAuthLib
     testRuntimeOnly.extendsFrom runtimeDownloadOnly
 }
 
@@ -22,6 +23,11 @@ task generateResourceForH2Driver(type: GenerateDependencyDownloadResourceTask) {
 }
 task generateResourceForMySQLDriver(type: GenerateDependencyDownloadResourceTask) {
     var conf = configurations.mysqlDriver
+    configuration = conf
+    file = 'dependencies/' + conf.name + '.txt'
+}
+task generateResourceForMCAuthLib(type: GenerateDependencyDownloadResourceTask) {
+    var conf = configurations.mcAuthLib
     configuration = conf
     file = 'dependencies/' + conf.name + '.txt'
 }
@@ -71,6 +77,9 @@ dependencies {
     h2Driver(libs.h2)
     mysqlDriver(libs.mysql)
 
+    // MinecraftAuthentication library
+    mcAuthLib(libs.minecraftauth.lib)
+
     // Brigadier
     compileOnlyApi(libs.brigadier)
 
@@ -83,7 +92,8 @@ processResources {
             generateRuntimeDownloadResourceForRuntimeDownloadOnly,
             generateResourceForHikari,
             generateResourceForH2Driver,
-            generateResourceForMySQLDriver
+            generateResourceForMySQLDriver,
+            generateResourceForMCAuthLib
     )
 }
 

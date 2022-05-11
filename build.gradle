@@ -49,6 +49,7 @@ allprojects {
             content {
                 includeGroup 'github.scarsz'
                 includeGroup 'me.scarsz'
+                includeGroup 'me.minecraftauth'
             }
         }
         maven {

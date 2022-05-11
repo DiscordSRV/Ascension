@@ -61,4 +61,8 @@ public class DiscordSRVDependencyManager {
         return loader(new String[] {"dependencies/mysqlDriver.txt"});
     }
 
+    public DependencyLoader mcAuthLib() throws IOException {
+        return loader(new String[] {"dependencies/mcAuthLib.txt"});
+    }
+
 }

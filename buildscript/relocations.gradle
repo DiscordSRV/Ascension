@@ -31,6 +31,13 @@ shadowJar {
             // HikariCP
             'com.zaxxer.hikari',
 
+            // MinecraftAuth lib (& it's dependencies)
+            'me.minecraftauth.lib',
+            'com.github.kevinsawicki.http',
+            'org.json.simple',
+            'org.hamcrest',
+            'alexh',
+
             // Adventure (API isn't relocated always)
             'net.kyori.adventure.platform',
             'net.kyori.adventure.text.serializer',

@@ -40,7 +40,8 @@ public class DependencyLoader {
             // TODO
             new StandardRepository("https://repo1.maven.org/maven2"),
             new StandardRepository("https://oss.sonatype.org/content/repositories/snapshots"),
-            new StandardRepository("https://s01.oss.sonatype.org/content/repositories/snapshots")
+            new StandardRepository("https://s01.oss.sonatype.org/content/repositories/snapshots"),
+            new StandardRepository("https://nexus.scarsz.me/content/groups/public")
     );
 
     public static Path resolvePath(Path dataDirectory) {
