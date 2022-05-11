@@ -35,7 +35,6 @@ shadowJar {
             'me.minecraftauth.lib',
             'com.github.kevinsawicki.http',
             'org.json.simple',
-            'org.hamcrest',
             'alexh',
 
             // Adventure (API isn't relocated always)

@@ -13,8 +13,6 @@ task generateResourceForHikari(type: GenerateDependencyDownloadResourceTask) {
     var conf = configurations.hikari
     configuration = conf
     file = 'dependencies/' + conf.name + '.txt'
-    relocate 'com.zaxxer.hikari', 'com.discordsrv.dependencies.com.zaxxer.hikari'
-    relocate 'org.slf4j', 'com.discordsrv.dependencies.org.slf4j'
 }
 task generateResourceForH2Driver(type: GenerateDependencyDownloadResourceTask) {
     var conf = configurations.h2Driver
@@ -73,12 +71,15 @@ dependencies {
     runtimeDownloadApi(libs.enhancedlegacytext)
 
     // Database
-    hikari(libs.hikaricp) { exclude group: 'org.slf4j' }
+    hikari(libs.hikaricp)
     h2Driver(libs.h2)
     mysqlDriver(libs.mysql)
 
     // MinecraftAuthentication library
-    mcAuthLib(libs.minecraftauth.lib)
+    mcAuthLib(libs.minecraftauth.lib) {
+        exclude group: 'junit', module: 'junit'
+        exclude group: 'org.jetbrains', module: 'annotations'
+    }
 
     // Brigadier
     compileOnlyApi(libs.brigadier)
