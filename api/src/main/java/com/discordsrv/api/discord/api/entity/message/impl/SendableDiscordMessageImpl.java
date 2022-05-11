@@ -48,11 +48,14 @@ public class SendableDiscordMessageImpl implements SendableDiscordMessage {
     private final String webhookUsername;
     private final String webhookAvatarUrl;
 
-    protected SendableDiscordMessageImpl(String content,
-                                         List<DiscordMessageEmbed> embeds,
-                                         Set<AllowedMention> allowedMentions,
-                                         String webhookUsername,
-                                         String webhookAvatarUrl) {
+
+    protected SendableDiscordMessageImpl(
+            String content,
+            List<DiscordMessageEmbed> embeds,
+            Set<AllowedMention> allowedMentions,
+            String webhookUsername,
+            String webhookAvatarUrl
+    ) {
         this.content = content;
         this.embeds = embeds;
         this.allowedMentions = allowedMentions;
@@ -168,20 +171,6 @@ public class SendableDiscordMessageImpl implements SendableDiscordMessage {
         }
 
         @Override
-        public @NotNull Builder convertToNonWebhook() {
-            String webhookUsername = this.webhookUsername;
-            if (webhookUsername == null) {
-                return this;
-            }
-
-            // TODO: configuration?
-            this.content = webhookUsername + " > " + content;
-            this.webhookUsername = null;
-            this.webhookAvatarUrl = null;
-            return this;
-        }
-
-        @Override
         public @NotNull SendableDiscordMessage build() {
             return new SendableDiscordMessageImpl(content, embeds, allowedMentions, webhookUsername, webhookAvatarUrl);
         }
@@ -235,12 +224,6 @@ public class SendableDiscordMessageImpl implements SendableDiscordMessage {
             }
             this.replacements.put(PlaceholderService.PATTERN,
                     wrapFunction(matcher -> api.placeholderService().getResultAsPlain(matcher, context)));
-            return this;
-        }
-
-        @Override
-        public @NotNull Formatter convertToNonWebhook() {
-            builder.convertToNonWebhook();
             return this;
         }
 

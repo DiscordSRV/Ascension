@@ -18,7 +18,6 @@
 
 package com.discordsrv.common.discord.api.entity.message.util;
 
-import club.minnced.discord.webhook.send.WebhookMessage;
 import club.minnced.discord.webhook.send.WebhookMessageBuilder;
 import com.discordsrv.api.discord.api.entity.message.AllowedMention;
 import com.discordsrv.api.discord.api.entity.message.DiscordMessageEmbed;
@@ -72,10 +71,9 @@ public final class SendableDiscordMessageUtil {
                 .build();
     }
 
-    public static WebhookMessage toWebhook(@NotNull SendableDiscordMessage message) {
+    public static WebhookMessageBuilder toWebhook(@NotNull SendableDiscordMessage message) {
         return WebhookMessageBuilder.fromJDA(toJDA(message))
                 .setUsername(message.getWebhookUsername().orElse(null))
-                .setAvatarUrl(message.getWebhookAvatarUrl().orElse(null))
-                .build();
+                .setAvatarUrl(message.getWebhookAvatarUrl().orElse(null));
     }
 }

@@ -26,6 +26,7 @@ package com.discordsrv.api.discord.api.entity.channel;
 import com.discordsrv.api.DiscordSRVApi;
 import com.discordsrv.api.discord.api.entity.DiscordUser;
 import net.dv8tion.jda.api.entities.PrivateChannel;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * A Discord direct message channel.
@@ -36,6 +37,7 @@ public interface DiscordDMChannel extends DiscordMessageChannel {
      * Gets the {@link DiscordUser} that is associated with this direct message channel.
      * @return the user this direct message is with
      */
+    @Nullable
     DiscordUser getUser();
 
     /**

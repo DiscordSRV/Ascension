@@ -27,8 +27,12 @@ import com.discordsrv.common.discord.api.entity.DiscordUserImpl;
 import com.discordsrv.common.discord.api.entity.message.ReceivedDiscordMessageImpl;
 import com.discordsrv.common.discord.api.entity.message.util.SendableDiscordMessageUtil;
 import net.dv8tion.jda.api.entities.PrivateChannel;
+import net.dv8tion.jda.api.entities.User;
+import net.dv8tion.jda.api.requests.restaction.MessageAction;
 import org.jetbrains.annotations.NotNull;
 
+import java.io.InputStream;
+import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.CompletableFuture;
 
@@ -38,7 +42,8 @@ public class DiscordDMChannelImpl extends AbstractDiscordMessageChannel<PrivateC
 
     public DiscordDMChannelImpl(DiscordSRV discordSRV, PrivateChannel privateChannel) {
         super(discordSRV, privateChannel);
-        this.user = new DiscordUserImpl(discordSRV, privateChannel.getUser());
+        User user = privateChannel.getUser();
+        this.user = user != null ? new DiscordUserImpl(discordSRV, user) : null;
     }
 
     @Override
@@ -47,14 +52,20 @@ public class DiscordDMChannelImpl extends AbstractDiscordMessageChannel<PrivateC
     }
 
     @Override
-    public @NotNull CompletableFuture<ReceivedDiscordMessage> sendMessage(@NotNull SendableDiscordMessage message) {
+    public CompletableFuture<ReceivedDiscordMessage> sendMessage(
+            @NotNull SendableDiscordMessage message,
+            @NotNull Map<String, InputStream> attachments
+    ) {
         if (message.isWebhookMessage()) {
             throw new IllegalArgumentException("Cannot send webhook messages to DMChannels");
         }
 
-        CompletableFuture<ReceivedDiscordMessage> future = channel
-                .sendMessage(SendableDiscordMessageUtil.toJDA(message))
-                .submit()
+        MessageAction action = channel.sendMessage(SendableDiscordMessageUtil.toJDA(message));
+        for (Map.Entry<String, InputStream> entry : attachments.entrySet()) {
+            action = action.addFile(entry.getValue(), entry.getKey());
+        }
+
+        CompletableFuture<ReceivedDiscordMessage> future = action.submit()
                 .thenApply(msg -> ReceivedDiscordMessageImpl.fromJDA(discordSRV, msg));
 
         return discordSRV.discordAPI().mapExceptions(future);

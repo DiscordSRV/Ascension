@@ -43,8 +43,14 @@ import com.discordsrv.common.logging.NamedLogger;
 import com.discordsrv.common.module.type.AbstractModule;
 import com.github.benmanes.caffeine.cache.Cache;
 import net.dv8tion.jda.api.entities.Message;
+import okhttp3.Request;
+import okhttp3.Response;
+import okhttp3.ResponseBody;
 import org.apache.commons.lang3.tuple.Pair;
 
+import java.io.ByteArrayInputStream;
+import java.io.IOException;
+import java.io.InputStream;
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
@@ -77,6 +83,8 @@ public class DiscordMessageMirroringModule extends AbstractModule<DiscordSRV> {
 
         List<Pair<DiscordGuildMessageChannel, OrDefault<MirroringConfig>>> mirrorChannels = new ArrayList<>();
         List<CompletableFuture<DiscordThreadChannel>> futures = new ArrayList<>();
+        Map<ReceivedDiscordMessage.Attachment, byte[]> attachments = new LinkedHashMap<>();
+        DiscordMessageEmbed.Builder attachmentEmbed = DiscordMessageEmbed.builder().setDescription("Attachments");
 
         for (Map.Entry<GameChannel, OrDefault<BaseChannelConfig>> entry : channels.entrySet()) {
             OrDefault<BaseChannelConfig> channelConfig = entry.getValue();
@@ -93,6 +101,43 @@ public class DiscordMessageMirroringModule extends AbstractModule<DiscordSRV> {
             IChannelConfig iChannelConfig = channelConfig.get(cfg -> cfg instanceof IChannelConfig ? (IChannelConfig) cfg : null);
             if (iChannelConfig == null) {
                 continue;
+            }
+
+            OrDefault<MirroringConfig.AttachmentConfig> attachmentConfig = config.map(cfg -> cfg.attachments);
+            int maxSize = attachmentConfig.get(cfg -> cfg.maximumSizeKb, -1);
+            boolean embedAttachments = attachmentConfig.get(cfg -> cfg.embedAttachments, true);
+            if (maxSize >= 0 || embedAttachments) {
+                for (ReceivedDiscordMessage.Attachment attachment : message.getAttachments()) {
+                    if (attachments.containsKey(attachment)) {
+                        continue;
+                    }
+
+                    if (maxSize == 0 || attachment.sizeBytes() <= (maxSize * 1000)) {
+                        Request request = new Request.Builder()
+                                .url(attachment.proxyUrl())
+                                .get()
+                                .build();
+
+                        byte[] bytes = null;
+                        try (Response response = discordSRV.httpClient().newCall(request).execute()) {
+                            ResponseBody body = response.body();
+                            if (body != null) {
+                                bytes = body.bytes();
+                            }
+                        } catch (IOException e) {
+                            discordSRV.logger().error("Failed to download attachment for mirroring", e);
+                        }
+                        attachments.put(attachment, bytes);
+                        continue;
+                    }
+
+                    if (!embedAttachments) {
+                        continue;
+                    }
+
+                    attachments.put(attachment, null);
+                    attachmentEmbed.addField(attachment.fileName(), "[link](" + attachment.url() + ")", true);
+                }
             }
 
             List<Long> channelIds = iChannelConfig.channelIds();
@@ -118,10 +163,29 @@ public class DiscordMessageMirroringModule extends AbstractModule<DiscordSRV> {
             for (Pair<DiscordGuildMessageChannel, OrDefault<MirroringConfig>> pair : mirrorChannels) {
                 DiscordGuildMessageChannel mirrorChannel = pair.getKey();
                 OrDefault<MirroringConfig> config = pair.getValue();
-                SendableDiscordMessage sendableMessage = convert(event.getDiscordMessage(), mirrorChannel, config);
+                OrDefault<MirroringConfig.AttachmentConfig> attachmentConfig = config.map(cfg -> cfg.attachments);
+
+                SendableDiscordMessage.Builder messageBuilder = convert(event.getDiscordMessage(), mirrorChannel, config);
+                if (!attachmentEmbed.getFields().isEmpty() && attachmentConfig.get(cfg -> cfg.embedAttachments, true)) {
+                    messageBuilder.addEmbed(attachmentEmbed.build());
+                }
+
+                int maxSize = attachmentConfig.get(cfg -> cfg.maximumSizeKb, -1);
+                Map<String, InputStream> currentAttachments;
+                if (!attachments.isEmpty() && maxSize > 0) {
+                    currentAttachments = new LinkedHashMap<>();
+                    attachments.forEach((attachment, bytes) -> {
+                        if (bytes != null && attachment.sizeBytes() <= maxSize) {
+                            currentAttachments.put(attachment.fileName(), new ByteArrayInputStream(bytes));
+                        }
+                    });
+                } else {
+                    currentAttachments = Collections.emptyMap();
+                }
 
                 CompletableFuture<Pair<ReceivedDiscordMessage, OrDefault<MirroringConfig>>> future =
-                        mirrorChannel.sendMessage(sendableMessage).thenApply(msg -> Pair.of(msg, config));
+                        mirrorChannel.sendMessage(messageBuilder.build(), currentAttachments)
+                                .thenApply(msg -> Pair.of(msg, config));
 
                 messageFutures.add(future);
                 future.exceptionally(t2 -> {
@@ -155,7 +219,7 @@ public class DiscordMessageMirroringModule extends AbstractModule<DiscordSRV> {
                 continue;
             }
 
-            SendableDiscordMessage sendableMessage = convert(message, channel, reference.config);
+            SendableDiscordMessage sendableMessage = convert(message, channel, reference.config).build();
             channel.editMessageById(reference.messageId, sendableMessage).whenComplete((v, t) -> {
                 if (t != null) {
                     discordSRV.logger().error("Failed to update mirrored message in " + channel);
@@ -188,7 +252,7 @@ public class DiscordMessageMirroringModule extends AbstractModule<DiscordSRV> {
     /**
      * Converts a given received message to a sendable message.
      */
-    private SendableDiscordMessage convert(
+    private SendableDiscordMessage.Builder convert(
             ReceivedDiscordMessage message,
             DiscordGuildMessageChannel destinationChannel,
             OrDefault<MirroringConfig> config
@@ -252,7 +316,7 @@ public class DiscordMessageMirroringModule extends AbstractModule<DiscordSRV> {
         for (DiscordMessageEmbed embed : message.getEmbeds()) {
             builder.addEmbed(embed);
         }
-        return builder.build();
+        return builder;
     }
 
     private MessageReference getReference(ReceivedDiscordMessage message, OrDefault<MirroringConfig> config) {

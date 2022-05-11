@@ -137,10 +137,14 @@ public interface ReceivedDiscordMessage extends SendableDiscordMessage, Snowflak
 
         private final String fileName;
         private final String url;
+        private final String proxyUrl;
+        private final int sizeBytes;
 
-        public Attachment(String fileName, String url) {
+        public Attachment(String fileName, String url, String proxyUrl, int sizeBytes) {
             this.fileName = fileName;
             this.url = url;
+            this.proxyUrl = proxyUrl;
+            this.sizeBytes = sizeBytes;
         }
 
         public String fileName() {
@@ -149,6 +153,14 @@ public interface ReceivedDiscordMessage extends SendableDiscordMessage, Snowflak
 
         public String url() {
             return url;
+        }
+
+        public String proxyUrl() {
+            return proxyUrl;
+        }
+
+        public int sizeBytes() {
+            return sizeBytes;
         }
     }
 }

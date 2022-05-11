@@ -30,6 +30,9 @@ import com.discordsrv.api.discord.api.entity.message.SendableDiscordMessage;
 import net.dv8tion.jda.api.entities.MessageChannel;
 import org.jetbrains.annotations.NotNull;
 
+import java.io.InputStream;
+import java.util.Collections;
+import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 
 /**
@@ -40,12 +43,25 @@ public interface DiscordMessageChannel extends Snowflake {
     /**
      * Sends the provided message to the channel.
      *
-     * @param message the channel to send to the channel
+     * @param message the message to send to the channel
      * @return a future returning the message after being sent
-     * @throws com.discordsrv.api.discord.api.exception.NotReadyException if DiscordSRV is not ready, {@link com.discordsrv.api.DiscordSRVApi#isReady()}
      */
     @NotNull
-    CompletableFuture<ReceivedDiscordMessage> sendMessage(@NotNull SendableDiscordMessage message);
+    default CompletableFuture<ReceivedDiscordMessage> sendMessage(@NotNull SendableDiscordMessage message) {
+        return sendMessage(message, Collections.emptyMap());
+    }
+
+    /**
+     * Sends the provided message to the channel with the provided attachments.
+     *
+     * @param message the message to send to the channel
+     * @param attachments the attachments (in a map of file name and input stream pairs) to include in the message, the streams will be closed upon execution
+     * @return a future returning the message after being sent
+     */
+    CompletableFuture<ReceivedDiscordMessage> sendMessage(
+            @NotNull SendableDiscordMessage message,
+            @NotNull Map<String, InputStream> attachments
+    );
 
     /**
      * Deletes the message identified by the id.
@@ -62,7 +78,6 @@ public interface DiscordMessageChannel extends Snowflake {
      * @param id the id of the message to edit
      * @param message the new message content
      * @return a future returning the message after being edited
-     * @throws com.discordsrv.api.discord.api.exception.NotReadyException if DiscordSRV is not ready, {@link com.discordsrv.api.DiscordSRVApi#isReady()}
      */
     @NotNull
     CompletableFuture<ReceivedDiscordMessage> editMessageById(long id, @NotNull SendableDiscordMessage message);

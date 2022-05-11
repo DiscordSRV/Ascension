@@ -20,7 +20,7 @@ package com.discordsrv.common.discord.api.entity.channel;
 
 import club.minnced.discord.webhook.WebhookClient;
 import club.minnced.discord.webhook.receive.ReadonlyMessage;
-import club.minnced.discord.webhook.send.WebhookMessage;
+import club.minnced.discord.webhook.send.WebhookMessageBuilder;
 import com.discordsrv.api.discord.api.entity.channel.DiscordGuildMessageChannel;
 import com.discordsrv.api.discord.api.entity.guild.DiscordGuild;
 import com.discordsrv.api.discord.api.entity.message.ReceivedDiscordMessage;
@@ -31,10 +31,11 @@ import com.discordsrv.common.discord.api.entity.message.ReceivedDiscordMessageIm
 import com.discordsrv.common.discord.api.entity.message.util.SendableDiscordMessageUtil;
 import net.dv8tion.jda.api.entities.GuildMessageChannel;
 import net.dv8tion.jda.api.entities.Message;
-import net.dv8tion.jda.api.entities.MessageChannel;
 import net.dv8tion.jda.api.requests.restaction.MessageAction;
 import org.jetbrains.annotations.NotNull;
 
+import java.io.InputStream;
+import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.BiFunction;
 
@@ -69,22 +70,35 @@ public abstract class AbstractDiscordGuildMessageChannel<T extends GuildMessageC
     }
 
     @Override
-    public @NotNull CompletableFuture<ReceivedDiscordMessage> sendMessage(@NotNull SendableDiscordMessage message) {
-        return message(message, WebhookClient::send, MessageChannel::sendMessage);
+    public CompletableFuture<ReceivedDiscordMessage> sendMessage(
+            @NotNull SendableDiscordMessage message, @NotNull Map<String, InputStream> attachments
+    ) {
+        return message(message, (webhookClient, webhookMessage) -> {
+            for (Map.Entry<String, InputStream> entry : attachments.entrySet()) {
+                webhookMessage.addFile(entry.getKey(), entry.getValue());
+            }
+            return webhookClient.send(webhookMessage.build());
+        }, (channel, msg) -> {
+            MessageAction action = channel.sendMessage(msg);
+            for (Map.Entry<String, InputStream> entry : attachments.entrySet()) {
+                action = action.addFile(entry.getValue(), entry.getKey());
+            }
+            return action;
+        });
     }
 
     @Override
     public @NotNull CompletableFuture<ReceivedDiscordMessage> editMessageById(long id, @NotNull SendableDiscordMessage message) {
         return message(
                 message,
-                (client, msg) -> client.edit(id, msg),
+                (client, msg) -> client.edit(id, msg.build()),
                 (textChannel, msg) -> textChannel.editMessageById(id, msg)
         );
     }
 
     private CompletableFuture<ReceivedDiscordMessage> message(
             SendableDiscordMessage message,
-            BiFunction<WebhookClient, WebhookMessage, CompletableFuture<ReadonlyMessage>> webhookFunction,
+            BiFunction<WebhookClient, WebhookMessageBuilder, CompletableFuture<ReadonlyMessage>> webhookFunction,
             BiFunction<T, Message, MessageAction> jdaFunction) {
         return discordSRV.discordAPI().mapExceptions(() -> {
             CompletableFuture<ReceivedDiscordMessage> future;

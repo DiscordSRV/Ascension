@@ -37,4 +37,21 @@ public class MirroringConfig {
 
     @Comment("Content to append to the beginning of a message if the message is replying to another")
     public String replyFormat = "[In reply to %user_effective_name|user_name%](%message_jump_url%)\n";
+
+    @Comment("Attachment related options")
+    public AttachmentConfig attachments = new AttachmentConfig();
+
+    @ConfigSerializable
+    public static class AttachmentConfig {
+
+        @Comment("Maximum size (in kB) to download and re-upload, set to 0 for unlimited or -1 to disable re-uploading.\n"
+                + "The default value is -1 (disabled)\n\n"
+                + "When this is enabled files smaller than the specified limit are downloaded and then re-uploaded to each mirror channel individually.\n"
+                + "Please consider limiting the users allowed to attach files if this is enabled,\n"
+                + "as spam of large files may result in a lot of downstream and upstream data usage")
+        public int maximumSizeKb = -1;
+
+        @Comment("If attachments should be placed into a embed in mirrored messages instead of re-uploading")
+        public boolean embedAttachments = true;
+    }
 }

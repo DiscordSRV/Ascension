@@ -97,7 +97,12 @@ public class ReceivedDiscordMessageImpl extends SendableDiscordMessageImpl imple
 
         List<Attachment> attachments = new ArrayList<>();
         for (Message.Attachment attachment : message.getAttachments()) {
-            attachments.add(new Attachment(attachment.getFileName(), attachment.getUrl()));
+            attachments.add(new Attachment(
+                    attachment.getFileName(),
+                    attachment.getUrl(),
+                    attachment.getProxyUrl(),
+                    attachment.getSize()
+            ));
         }
 
         Message referencedMessage = message.getReferencedMessage();
@@ -166,7 +171,12 @@ public class ReceivedDiscordMessageImpl extends SendableDiscordMessageImpl imple
 
         List<Attachment> attachments = new ArrayList<>();
         for (ReadonlyAttachment attachment : webhookMessage.getAttachments()) {
-            attachments.add(new Attachment(attachment.getFileName(), attachment.getUrl()));
+            attachments.add(new Attachment(
+                    attachment.getFileName(),
+                    attachment.getUrl(),
+                    attachment.getProxyUrl(),
+                    attachment.getSize()
+            ));
         }
 
         return new ReceivedDiscordMessageImpl(
