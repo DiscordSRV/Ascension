@@ -29,12 +29,10 @@ import java.util.Optional;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 
-public class MinecraftAuthenticationLinker implements LinkProvider {
-
-    private final DiscordSRV discordSRV;
+public class MinecraftAuthenticationLinker extends CachedLinkProvider implements LinkProvider {
 
     public MinecraftAuthenticationLinker(DiscordSRV discordSRV) {
-        this.discordSRV = discordSRV;
+        super(discordSRV);
     }
 
     @Override
