@@ -19,10 +19,10 @@
 package com.discordsrv.common.component.renderer;
 
 import com.discordsrv.api.component.EnhancedTextBuilder;
-import com.discordsrv.api.discord.api.entity.DiscordUser;
-import com.discordsrv.api.discord.api.entity.guild.DiscordGuild;
-import com.discordsrv.api.discord.api.entity.guild.DiscordGuildMember;
-import com.discordsrv.api.discord.api.entity.guild.DiscordRole;
+import com.discordsrv.api.discord.entity.DiscordUser;
+import com.discordsrv.api.discord.entity.guild.DiscordGuild;
+import com.discordsrv.api.discord.entity.guild.DiscordGuildMember;
+import com.discordsrv.api.discord.entity.guild.DiscordRole;
 import com.discordsrv.api.event.events.message.receive.discord.DiscordChatMessageProcessingEvent;
 import com.discordsrv.common.DiscordSRV;
 import com.discordsrv.common.component.util.ComponentUtil;

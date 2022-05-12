@@ -18,8 +18,8 @@
 
 package com.discordsrv.proxy.config.channels;
 
-import com.discordsrv.api.discord.api.entity.message.DiscordMessageEmbed;
-import com.discordsrv.api.discord.api.entity.message.SendableDiscordMessage;
+import com.discordsrv.api.discord.entity.message.DiscordMessageEmbed;
+import com.discordsrv.api.discord.entity.message.SendableDiscordMessage;
 import com.discordsrv.common.config.annotation.Untranslated;
 import com.discordsrv.common.config.main.channels.IMessageConfig;
 import org.spongepowered.configurate.objectmapping.ConfigSerializable;

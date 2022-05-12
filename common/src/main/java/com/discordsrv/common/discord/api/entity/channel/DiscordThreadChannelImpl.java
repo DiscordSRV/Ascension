@@ -19,9 +19,9 @@
 package com.discordsrv.common.discord.api.entity.channel;
 
 import club.minnced.discord.webhook.WebhookClient;
-import com.discordsrv.api.discord.api.entity.channel.DiscordTextChannel;
-import com.discordsrv.api.discord.api.entity.channel.DiscordThreadChannel;
-import com.discordsrv.api.discord.api.entity.guild.DiscordGuild;
+import com.discordsrv.api.discord.entity.channel.DiscordTextChannel;
+import com.discordsrv.api.discord.entity.channel.DiscordThreadChannel;
+import com.discordsrv.api.discord.entity.guild.DiscordGuild;
 import com.discordsrv.common.DiscordSRV;
 import com.discordsrv.common.discord.api.entity.guild.DiscordGuildImpl;
 import net.dv8tion.jda.api.entities.IThreadContainer;

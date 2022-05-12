@@ -18,7 +18,7 @@
 
 package com.discordsrv.common.channel;
 
-import com.discordsrv.api.discord.api.entity.channel.DiscordThreadChannel;
+import com.discordsrv.api.discord.entity.channel.DiscordThreadChannel;
 import com.discordsrv.common.DiscordSRV;
 import com.discordsrv.common.config.main.channels.ChannelLockingConfig;
 import com.discordsrv.common.config.main.channels.base.BaseChannelConfig;

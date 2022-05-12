@@ -18,9 +18,9 @@
 
 package com.discordsrv.common.discord.api.entity.guild;
 
-import com.discordsrv.api.discord.api.entity.guild.DiscordGuild;
-import com.discordsrv.api.discord.api.entity.guild.DiscordGuildMember;
-import com.discordsrv.api.discord.api.entity.guild.DiscordRole;
+import com.discordsrv.api.discord.entity.guild.DiscordGuild;
+import com.discordsrv.api.discord.entity.guild.DiscordGuildMember;
+import com.discordsrv.api.discord.entity.guild.DiscordRole;
 import com.discordsrv.common.DiscordSRV;
 import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.entities.Member;

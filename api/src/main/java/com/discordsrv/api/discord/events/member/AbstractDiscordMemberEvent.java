@@ -23,7 +23,7 @@
 
 package com.discordsrv.api.discord.events.member;
 
-import com.discordsrv.api.discord.api.entity.guild.DiscordGuildMember;
+import com.discordsrv.api.discord.entity.guild.DiscordGuildMember;
 import com.discordsrv.api.discord.events.DiscordEvent;
 
 public abstract class AbstractDiscordMemberEvent implements DiscordEvent {

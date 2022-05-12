@@ -23,8 +23,8 @@
 
 package com.discordsrv.api.discord.events.member.role;
 
-import com.discordsrv.api.discord.api.entity.guild.DiscordGuildMember;
-import com.discordsrv.api.discord.api.entity.guild.DiscordRole;
+import com.discordsrv.api.discord.entity.guild.DiscordGuildMember;
+import com.discordsrv.api.discord.entity.guild.DiscordRole;
 
 import java.util.List;
 

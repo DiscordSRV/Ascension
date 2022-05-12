@@ -19,9 +19,9 @@
 package com.discordsrv.common.discord.api.entity.message.util;
 
 import club.minnced.discord.webhook.send.WebhookMessageBuilder;
-import com.discordsrv.api.discord.api.entity.message.AllowedMention;
-import com.discordsrv.api.discord.api.entity.message.DiscordMessageEmbed;
-import com.discordsrv.api.discord.api.entity.message.SendableDiscordMessage;
+import com.discordsrv.api.discord.entity.message.AllowedMention;
+import com.discordsrv.api.discord.entity.message.DiscordMessageEmbed;
+import com.discordsrv.api.discord.entity.message.SendableDiscordMessage;
 import net.dv8tion.jda.api.MessageBuilder;
 import net.dv8tion.jda.api.entities.Message;
 import net.dv8tion.jda.api.entities.MessageEmbed;

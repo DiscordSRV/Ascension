@@ -18,8 +18,8 @@
 
 package com.discordsrv.common.config.serializer;
 
-import com.discordsrv.api.discord.api.entity.message.DiscordMessageEmbed;
-import com.discordsrv.api.discord.api.entity.message.SendableDiscordMessage;
+import com.discordsrv.api.discord.entity.message.DiscordMessageEmbed;
+import com.discordsrv.api.discord.entity.message.SendableDiscordMessage;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.spongepowered.configurate.ConfigurationNode;
 import org.spongepowered.configurate.serialize.SerializationException;

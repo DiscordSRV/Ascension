@@ -19,9 +19,9 @@
 package com.discordsrv.common.discord.api.entity.guild;
 
 import com.discordsrv.api.color.Color;
-import com.discordsrv.api.discord.api.entity.guild.DiscordGuild;
-import com.discordsrv.api.discord.api.entity.guild.DiscordGuildMember;
-import com.discordsrv.api.discord.api.entity.guild.DiscordRole;
+import com.discordsrv.api.discord.entity.guild.DiscordGuild;
+import com.discordsrv.api.discord.entity.guild.DiscordGuildMember;
+import com.discordsrv.api.discord.entity.guild.DiscordRole;
 import com.discordsrv.api.placeholder.annotation.Placeholder;
 import com.discordsrv.api.placeholder.annotation.PlaceholderRemainder;
 import com.discordsrv.common.DiscordSRV;

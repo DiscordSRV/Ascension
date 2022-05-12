@@ -23,11 +23,11 @@
 
 package com.discordsrv.api.event.events.message.receive.discord;
 
-import com.discordsrv.api.discord.api.entity.channel.DiscordMessageChannel;
-import com.discordsrv.api.discord.api.entity.channel.DiscordTextChannel;
-import com.discordsrv.api.discord.api.entity.channel.DiscordThreadChannel;
-import com.discordsrv.api.discord.api.entity.guild.DiscordGuild;
-import com.discordsrv.api.discord.api.entity.message.ReceivedDiscordMessage;
+import com.discordsrv.api.discord.entity.channel.DiscordMessageChannel;
+import com.discordsrv.api.discord.entity.channel.DiscordTextChannel;
+import com.discordsrv.api.discord.entity.channel.DiscordThreadChannel;
+import com.discordsrv.api.discord.entity.guild.DiscordGuild;
+import com.discordsrv.api.discord.entity.message.ReceivedDiscordMessage;
 import com.discordsrv.api.event.events.Cancellable;
 import com.discordsrv.api.event.events.Processable;
 import org.jetbrains.annotations.NotNull;

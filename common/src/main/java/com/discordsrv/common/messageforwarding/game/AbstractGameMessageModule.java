@@ -19,12 +19,12 @@
 package com.discordsrv.common.messageforwarding.game;
 
 import com.discordsrv.api.channel.GameChannel;
-import com.discordsrv.api.discord.api.entity.channel.DiscordMessageChannel;
-import com.discordsrv.api.discord.api.entity.channel.DiscordTextChannel;
-import com.discordsrv.api.discord.api.entity.channel.DiscordThreadChannel;
-import com.discordsrv.api.discord.api.entity.message.ReceivedDiscordMessage;
-import com.discordsrv.api.discord.api.entity.message.ReceivedDiscordMessageCluster;
-import com.discordsrv.api.discord.api.entity.message.SendableDiscordMessage;
+import com.discordsrv.api.discord.entity.channel.DiscordMessageChannel;
+import com.discordsrv.api.discord.entity.channel.DiscordTextChannel;
+import com.discordsrv.api.discord.entity.channel.DiscordThreadChannel;
+import com.discordsrv.api.discord.entity.message.ReceivedDiscordMessage;
+import com.discordsrv.api.discord.entity.message.ReceivedDiscordMessageCluster;
+import com.discordsrv.api.discord.entity.message.SendableDiscordMessage;
 import com.discordsrv.api.discord.connection.jda.errorresponse.ErrorCallbackContext;
 import com.discordsrv.api.event.events.message.receive.game.AbstractGameMessageReceiveEvent;
 import com.discordsrv.api.placeholder.FormattedText;

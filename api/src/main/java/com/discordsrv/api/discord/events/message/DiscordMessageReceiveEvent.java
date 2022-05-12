@@ -23,8 +23,8 @@
 
 package com.discordsrv.api.discord.events.message;
 
-import com.discordsrv.api.discord.api.entity.channel.DiscordMessageChannel;
-import com.discordsrv.api.discord.api.entity.message.ReceivedDiscordMessage;
+import com.discordsrv.api.discord.entity.channel.DiscordMessageChannel;
+import com.discordsrv.api.discord.entity.message.ReceivedDiscordMessage;
 
 public class DiscordMessageReceiveEvent extends AbstractDiscordMessageEvent {
 

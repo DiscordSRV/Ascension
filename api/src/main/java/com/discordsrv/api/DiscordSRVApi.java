@@ -24,8 +24,8 @@
 package com.discordsrv.api;
 
 import com.discordsrv.api.component.MinecraftComponentFactory;
-import com.discordsrv.api.discord.api.DiscordAPI;
-import com.discordsrv.api.discord.connection.DiscordConnectionDetails;
+import com.discordsrv.api.discord.DiscordAPI;
+import com.discordsrv.api.discord.connection.jda.DiscordConnectionDetails;
 import com.discordsrv.api.event.bus.EventBus;
 import com.discordsrv.api.placeholder.PlaceholderService;
 import com.discordsrv.api.player.DiscordSRVPlayer;

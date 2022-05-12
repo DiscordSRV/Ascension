@@ -18,7 +18,7 @@
 
 package com.discordsrv.common;
 
-import com.discordsrv.api.discord.connection.DiscordConnectionDetails;
+import com.discordsrv.api.discord.connection.jda.DiscordConnectionDetails;
 import com.discordsrv.api.event.events.lifecycle.DiscordSRVConnectedEvent;
 import com.discordsrv.api.event.events.lifecycle.DiscordSRVReadyEvent;
 import com.discordsrv.api.event.events.lifecycle.DiscordSRVReloadedEvent;

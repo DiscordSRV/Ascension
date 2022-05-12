@@ -18,7 +18,7 @@
 
 package com.discordsrv.common.discord.api.entity.channel;
 
-import com.discordsrv.api.discord.api.entity.channel.DiscordNewsChannel;
+import com.discordsrv.api.discord.entity.channel.DiscordNewsChannel;
 import com.discordsrv.common.DiscordSRV;
 import net.dv8tion.jda.api.entities.NewsChannel;
 

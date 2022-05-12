@@ -18,7 +18,7 @@
 
 package com.discordsrv.common.messageforwarding.game;
 
-import com.discordsrv.api.discord.api.entity.message.ReceivedDiscordMessageCluster;
+import com.discordsrv.api.discord.entity.message.ReceivedDiscordMessageCluster;
 import com.discordsrv.api.event.events.message.receive.game.AbstractGameMessageReceiveEvent;
 import com.discordsrv.common.DiscordSRV;
 import com.discordsrv.common.config.main.channels.StartMessageConfig;

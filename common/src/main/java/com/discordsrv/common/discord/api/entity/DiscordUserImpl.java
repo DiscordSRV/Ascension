@@ -18,8 +18,8 @@
 
 package com.discordsrv.common.discord.api.entity;
 
-import com.discordsrv.api.discord.api.entity.DiscordUser;
-import com.discordsrv.api.discord.api.entity.channel.DiscordDMChannel;
+import com.discordsrv.api.discord.entity.DiscordUser;
+import com.discordsrv.api.discord.entity.channel.DiscordDMChannel;
 import com.discordsrv.common.DiscordSRV;
 import com.discordsrv.common.discord.api.entity.channel.DiscordDMChannelImpl;
 import net.dv8tion.jda.api.JDA;

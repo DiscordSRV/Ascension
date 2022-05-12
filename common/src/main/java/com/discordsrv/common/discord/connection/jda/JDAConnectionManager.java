@@ -18,8 +18,8 @@
 
 package com.discordsrv.common.discord.connection.jda;
 
-import com.discordsrv.api.discord.api.entity.DiscordUser;
-import com.discordsrv.api.discord.connection.DiscordConnectionDetails;
+import com.discordsrv.api.discord.entity.DiscordUser;
+import com.discordsrv.api.discord.connection.jda.DiscordConnectionDetails;
 import com.discordsrv.api.discord.connection.jda.errorresponse.ErrorCallbackContext;
 import com.discordsrv.api.event.bus.EventPriority;
 import com.discordsrv.api.event.bus.Subscribe;

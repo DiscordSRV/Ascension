@@ -18,7 +18,7 @@
 
 package com.discordsrv.common.config.main.channels;
 
-import com.discordsrv.api.discord.api.entity.message.SendableDiscordMessage;
+import com.discordsrv.api.discord.entity.message.SendableDiscordMessage;
 
 public interface IMessageConfig {
 

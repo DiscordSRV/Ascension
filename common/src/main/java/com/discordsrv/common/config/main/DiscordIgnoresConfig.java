@@ -18,8 +18,8 @@
 
 package com.discordsrv.common.config.main;
 
-import com.discordsrv.api.discord.api.entity.DiscordUser;
-import com.discordsrv.api.discord.api.entity.guild.DiscordGuildMember;
+import com.discordsrv.api.discord.entity.DiscordUser;
+import com.discordsrv.api.discord.entity.guild.DiscordGuildMember;
 import org.spongepowered.configurate.objectmapping.ConfigSerializable;
 import org.spongepowered.configurate.objectmapping.meta.Comment;
 

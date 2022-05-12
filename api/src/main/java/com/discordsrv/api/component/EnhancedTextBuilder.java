@@ -31,7 +31,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 /**
- * Minecraft equivalent for {@link com.discordsrv.api.discord.api.entity.message.SendableDiscordMessage.Formatter}.
+ * Minecraft equivalent for {@link com.discordsrv.api.discord.entity.message.SendableDiscordMessage.Formatter}.
  */
 public interface EnhancedTextBuilder {
 

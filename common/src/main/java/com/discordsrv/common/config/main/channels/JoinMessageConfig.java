@@ -18,8 +18,8 @@
 
 package com.discordsrv.common.config.main.channels;
 
-import com.discordsrv.api.discord.api.entity.message.DiscordMessageEmbed;
-import com.discordsrv.api.discord.api.entity.message.SendableDiscordMessage;
+import com.discordsrv.api.discord.entity.message.DiscordMessageEmbed;
+import com.discordsrv.api.discord.entity.message.SendableDiscordMessage;
 import com.discordsrv.api.event.events.message.receive.game.JoinMessageReceiveEvent;
 import com.discordsrv.common.config.annotation.Untranslated;
 import org.jetbrains.annotations.Nullable;

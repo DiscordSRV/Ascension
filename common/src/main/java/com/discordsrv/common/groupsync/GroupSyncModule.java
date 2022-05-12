@@ -18,8 +18,8 @@
 
 package com.discordsrv.common.groupsync;
 
-import com.discordsrv.api.discord.api.entity.guild.DiscordGuildMember;
-import com.discordsrv.api.discord.api.entity.guild.DiscordRole;
+import com.discordsrv.api.discord.entity.guild.DiscordGuildMember;
+import com.discordsrv.api.discord.entity.guild.DiscordRole;
 import com.discordsrv.api.discord.events.member.role.DiscordMemberRoleAddEvent;
 import com.discordsrv.api.discord.events.member.role.DiscordMemberRoleRemoveEvent;
 import com.discordsrv.api.event.bus.Subscribe;

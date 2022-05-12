@@ -18,9 +18,9 @@
 
 package com.discordsrv.common.discord.api.entity.channel;
 
-import com.discordsrv.api.discord.api.entity.channel.DiscordGuildMessageChannel;
-import com.discordsrv.api.discord.api.entity.channel.DiscordThreadChannel;
-import com.discordsrv.api.discord.api.entity.channel.DiscordThreadContainer;
+import com.discordsrv.api.discord.entity.channel.DiscordGuildMessageChannel;
+import com.discordsrv.api.discord.entity.channel.DiscordThreadChannel;
+import com.discordsrv.api.discord.entity.channel.DiscordThreadContainer;
 import com.discordsrv.common.DiscordSRV;
 import net.dv8tion.jda.api.entities.GuildMessageChannel;
 import net.dv8tion.jda.api.entities.IThreadContainer;

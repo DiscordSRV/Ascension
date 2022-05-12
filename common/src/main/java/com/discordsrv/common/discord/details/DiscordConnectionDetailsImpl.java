@@ -18,7 +18,7 @@
 
 package com.discordsrv.common.discord.details;
 
-import com.discordsrv.api.discord.connection.DiscordConnectionDetails;
+import com.discordsrv.api.discord.connection.jda.DiscordConnectionDetails;
 import com.discordsrv.common.DiscordSRV;
 import com.discordsrv.common.exception.util.ExceptionUtil;
 import net.dv8tion.jda.api.requests.GatewayIntent;

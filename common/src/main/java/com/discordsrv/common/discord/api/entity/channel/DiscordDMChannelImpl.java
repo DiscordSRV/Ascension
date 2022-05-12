@@ -18,10 +18,10 @@
 
 package com.discordsrv.common.discord.api.entity.channel;
 
-import com.discordsrv.api.discord.api.entity.DiscordUser;
-import com.discordsrv.api.discord.api.entity.channel.DiscordDMChannel;
-import com.discordsrv.api.discord.api.entity.message.ReceivedDiscordMessage;
-import com.discordsrv.api.discord.api.entity.message.SendableDiscordMessage;
+import com.discordsrv.api.discord.entity.DiscordUser;
+import com.discordsrv.api.discord.entity.channel.DiscordDMChannel;
+import com.discordsrv.api.discord.entity.message.ReceivedDiscordMessage;
+import com.discordsrv.api.discord.entity.message.SendableDiscordMessage;
 import com.discordsrv.common.DiscordSRV;
 import com.discordsrv.common.discord.api.entity.DiscordUserImpl;
 import com.discordsrv.common.discord.api.entity.message.ReceivedDiscordMessageImpl;

@@ -23,7 +23,7 @@
 
 package com.discordsrv.api.event.events.message.forward.game;
 
-import com.discordsrv.api.discord.api.entity.message.ReceivedDiscordMessageCluster;
+import com.discordsrv.api.discord.entity.message.ReceivedDiscordMessageCluster;
 import org.jetbrains.annotations.NotNull;
 
 public class LeaveMessageForwardedEvent extends AbstractGameMessageForwardedEvent {

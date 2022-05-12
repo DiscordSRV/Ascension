@@ -18,7 +18,7 @@
 
 package com.discordsrv.common.discord.api;
 
-import com.discordsrv.api.discord.api.entity.channel.DiscordThreadChannel;
+import com.discordsrv.api.discord.entity.channel.DiscordThreadChannel;
 
 import java.util.List;
 import java.util.concurrent.CompletableFuture;

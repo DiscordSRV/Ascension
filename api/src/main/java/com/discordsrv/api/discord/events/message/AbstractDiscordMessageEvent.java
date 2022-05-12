@@ -23,10 +23,10 @@
 
 package com.discordsrv.api.discord.events.message;
 
-import com.discordsrv.api.discord.api.entity.channel.DiscordDMChannel;
-import com.discordsrv.api.discord.api.entity.channel.DiscordMessageChannel;
-import com.discordsrv.api.discord.api.entity.channel.DiscordTextChannel;
-import com.discordsrv.api.discord.api.entity.channel.DiscordThreadChannel;
+import com.discordsrv.api.discord.entity.channel.DiscordDMChannel;
+import com.discordsrv.api.discord.entity.channel.DiscordMessageChannel;
+import com.discordsrv.api.discord.entity.channel.DiscordTextChannel;
+import com.discordsrv.api.discord.entity.channel.DiscordThreadChannel;
 import com.discordsrv.api.discord.events.DiscordEvent;
 import org.jetbrains.annotations.NotNull;
 

@@ -19,8 +19,8 @@
 package com.discordsrv.common.config.manager.manager;
 
 import com.discordsrv.api.color.Color;
-import com.discordsrv.api.discord.api.entity.message.DiscordMessageEmbed;
-import com.discordsrv.api.discord.api.entity.message.SendableDiscordMessage;
+import com.discordsrv.api.discord.entity.message.DiscordMessageEmbed;
+import com.discordsrv.api.discord.entity.message.SendableDiscordMessage;
 import com.discordsrv.common.DiscordSRV;
 import com.discordsrv.common.config.annotation.DefaultOnly;
 import com.discordsrv.common.config.annotation.Order;
