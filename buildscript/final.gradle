@@ -10,7 +10,7 @@ shadowJar {
     archiveClassifier = ''
 
     // Include the license in the jar
-    from(rootProject.file('licenses/LICENSE')) {
+    from(rootProject.file('LICENSE')) {
         rename { fileName -> 'LICENSE.txt' }
     }
 
