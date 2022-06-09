@@ -3,11 +3,13 @@ import dev.vankka.dependencydownload.task.GenerateDependencyDownloadResourceTask
 shadowJar {
     archiveFileName = 'bukkit.jarinjar'
 
-    [
-            'net.kyori',
-            'me.lucko.commodore'
-    ].each {
-        relocate it, 'com.discordsrv.dependencies.' + it
+    configure {
+        [
+                'net.kyori',
+                'me.lucko.commodore'
+        ].each {
+            relocate it, 'com.discordsrv.dependencies.' + it
+        }
     }
     // More relocations in buildscript/relocations.gradle
 }

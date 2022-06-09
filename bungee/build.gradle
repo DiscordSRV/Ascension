@@ -1,10 +1,12 @@
 shadowJar {
     archiveFileName = 'bungee.jarinjar'
 
-    [
-            'net.kyori'
-    ].each {
-        relocate it, 'com.discordsrv.dependencies.' + it
+    configure {
+        [
+                'net.kyori'
+        ].each {
+            relocate it, 'com.discordsrv.dependencies.' + it
+        }
     }
     // More relocations in buildscript/relocations.gradle
 }
