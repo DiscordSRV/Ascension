@@ -21,7 +21,7 @@ package com.discordsrv.bukkit.listener;
 import com.discordsrv.api.component.MinecraftComponent;
 import com.discordsrv.api.event.events.message.receive.game.GameChatMessageReceiveEvent;
 import com.discordsrv.bukkit.BukkitDiscordSRV;
-import com.discordsrv.bukkit.component.util.PaperComponentUtil;
+import com.discordsrv.bukkit.component.PaperComponentHandle;
 import com.discordsrv.common.channel.DefaultGlobalChannel;
 import com.discordsrv.common.component.util.ComponentUtil;
 import io.papermc.paper.event.player.AsyncChatEvent;
@@ -36,7 +36,7 @@ public abstract class BukkitChatListener implements Listener {
     public static BukkitChatListener get(BukkitDiscordSRV discordSRV) {
         // TODO: config option
         //noinspection ConstantConditions,PointlessBooleanExpression
-        if (1 == 2 && PaperComponentUtil.IS_PAPER_ADVENTURE) {
+        if (1 == 2 && PaperComponentHandle.IS_PAPER_ADVENTURE) {
             return new Paper(discordSRV);
         }
 
@@ -78,13 +78,20 @@ public abstract class BukkitChatListener implements Listener {
 
     static class Paper extends BukkitChatListener {
 
+        private final PaperComponentHandle<AsyncChatEvent> componentHandle;
+
         public Paper(BukkitDiscordSRV discordSRV) {
             super(discordSRV);
+            this.componentHandle = new PaperComponentHandle<>(
+                    AsyncChatEvent.class,
+                    "message",
+                    null
+            );
         }
 
         @EventHandler(priority = EventPriority.MONITOR)
         public void onAsyncChat(AsyncChatEvent event) {
-            MinecraftComponent component = PaperComponentUtil.getComponent(discordSRV, event, "message");
+            MinecraftComponent component = componentHandle.getComponent(discordSRV, event);
             publishEvent(event.getPlayer(), component, event.isCancelled());
         }
     }

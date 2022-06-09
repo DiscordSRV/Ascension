@@ -20,7 +20,7 @@ package com.discordsrv.bukkit.player;
 
 import com.discordsrv.bukkit.BukkitDiscordSRV;
 import com.discordsrv.bukkit.command.game.sender.BukkitCommandSender;
-import com.discordsrv.bukkit.component.util.PaperComponentUtil;
+import com.discordsrv.bukkit.component.PaperComponentHandle;
 import com.discordsrv.common.DiscordSRV;
 import com.discordsrv.common.component.util.ComponentUtil;
 import com.discordsrv.common.player.IPlayer;
@@ -30,6 +30,17 @@ import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
 
 public class BukkitPlayer extends BukkitCommandSender implements IPlayer {
+
+    private static final PaperComponentHandle<Player> DISPLAY_NAME_HANDLE = makeDisplayNameHandle();
+
+    @SuppressWarnings("deprecation") // Paper
+    private static PaperComponentHandle<Player> makeDisplayNameHandle() {
+        return new PaperComponentHandle<>(
+                Player.class,
+                "displayName",
+                Player::getDisplayName
+        );
+    }
 
     private final Player player;
     private final Identity identity;
@@ -50,12 +61,9 @@ public class BukkitPlayer extends BukkitCommandSender implements IPlayer {
         return player.getName();
     }
 
-    @SuppressWarnings("deprecation") // Paper
     @Override
     public @NotNull Component displayName() {
-        return ComponentUtil.fromAPI(
-                PaperComponentUtil.getComponent(discordSRV, player, "displayName", Player::getDisplayName)
-        );
+        return ComponentUtil.fromAPI(DISPLAY_NAME_HANDLE.getComponent(discordSRV, player));
     }
 
     @Override

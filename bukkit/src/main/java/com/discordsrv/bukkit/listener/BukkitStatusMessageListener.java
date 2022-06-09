@@ -23,7 +23,7 @@ import com.discordsrv.api.event.events.message.receive.game.JoinMessageReceiveEv
 import com.discordsrv.api.event.events.message.receive.game.LeaveMessageReceiveEvent;
 import com.discordsrv.api.player.DiscordSRVPlayer;
 import com.discordsrv.bukkit.BukkitDiscordSRV;
-import com.discordsrv.bukkit.component.util.PaperComponentUtil;
+import com.discordsrv.bukkit.component.PaperComponentHandle;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
@@ -33,17 +33,28 @@ import org.bukkit.event.player.PlayerQuitEvent;
 public class BukkitStatusMessageListener implements Listener {
 
     private final BukkitDiscordSRV discordSRV;
-
-    public BukkitStatusMessageListener(BukkitDiscordSRV discordSRV) {
-        this.discordSRV = discordSRV;
-    }
+    private final PaperComponentHandle<PlayerJoinEvent> joinHandle;
+    private final PaperComponentHandle<PlayerQuitEvent> quitHandle;
 
     @SuppressWarnings("deprecation") // Paper
+    public BukkitStatusMessageListener(BukkitDiscordSRV discordSRV) {
+        this.discordSRV = discordSRV;
+        this.joinHandle = new PaperComponentHandle<>(
+                PlayerJoinEvent.class,
+                "joinMessage",
+                PlayerJoinEvent::getJoinMessage
+        );
+        this.quitHandle = new PaperComponentHandle<>(
+                PlayerQuitEvent.class,
+                "quitMessage",
+                PlayerQuitEvent::getQuitMessage
+        );
+    }
+
     @EventHandler(priority = EventPriority.MONITOR)
     public void onPlayerJoin(PlayerJoinEvent event) {
         DiscordSRVPlayer player = discordSRV.playerProvider().player(event.getPlayer());
-        MinecraftComponent component = PaperComponentUtil.getComponent(
-                discordSRV, event, "joinMessage", PlayerJoinEvent::getJoinMessage);
+        MinecraftComponent component = joinHandle.getComponent(discordSRV, event);
         boolean firstJoin = !event.getPlayer().hasPlayedBefore();
 
         discordSRV.scheduler().run(() -> discordSRV.eventBus().publish(
@@ -51,12 +62,10 @@ public class BukkitStatusMessageListener implements Listener {
         ));
     }
 
-    @SuppressWarnings("deprecation") // Paper
     @EventHandler(priority = EventPriority.HIGH)
     public void onPlayerQuit(PlayerQuitEvent event) {
         DiscordSRVPlayer player = discordSRV.playerProvider().player(event.getPlayer());
-        MinecraftComponent component = PaperComponentUtil.getComponent(
-                discordSRV, event, "quitMessage", PlayerQuitEvent::getQuitMessage);
+        MinecraftComponent component = quitHandle.getComponent(discordSRV, event);
 
         discordSRV.scheduler().run(() -> discordSRV.eventBus().publish(
                 new LeaveMessageReceiveEvent(player, null, component, false)

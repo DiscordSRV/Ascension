@@ -35,6 +35,16 @@ import java.util.Locale;
 
 public class ComponentFactory implements MinecraftComponentFactory {
 
+    public static final Class<?> UNRELOCATED_ADVENTURE_COMPONENT;
+
+    static {
+        Class<?> clazz = null;
+        try {
+            clazz = Class.forName("net.kyo".concat("ri.adventure.text.Component"));
+        } catch (ClassNotFoundException ignored) {}
+        UNRELOCATED_ADVENTURE_COMPONENT = clazz;
+    }
+
     private final DiscordSRV discordSRV;
     private final MinecraftSerializer minecraftSerializer;
     private final DiscordSerializer discordSerializer;

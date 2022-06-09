@@ -22,7 +22,7 @@ import com.discordsrv.api.component.MinecraftComponent;
 import com.discordsrv.api.event.events.message.receive.game.DeathMessageReceiveEvent;
 import com.discordsrv.api.player.DiscordSRVPlayer;
 import com.discordsrv.bukkit.BukkitDiscordSRV;
-import com.discordsrv.bukkit.component.util.PaperComponentUtil;
+import com.discordsrv.bukkit.component.PaperComponentHandle;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
@@ -31,16 +31,22 @@ import org.bukkit.event.entity.PlayerDeathEvent;
 public class BukkitDeathListener implements Listener {
 
     private final BukkitDiscordSRV discordSRV;
-
-    public BukkitDeathListener(BukkitDiscordSRV discordSRV) {
-        this.discordSRV = discordSRV;
-    }
+    private final PaperComponentHandle<PlayerDeathEvent> componentHandle;
 
     @SuppressWarnings("deprecation") // Paper
+    public BukkitDeathListener(BukkitDiscordSRV discordSRV) {
+        this.discordSRV = discordSRV;
+        this.componentHandle = new PaperComponentHandle<>(
+                PlayerDeathEvent.class,
+                "deathMessage",
+                PlayerDeathEvent::getDeathMessage
+        );
+    }
+
     @EventHandler(priority = EventPriority.MONITOR)
     public void onPlayerDeath(PlayerDeathEvent event) {
         DiscordSRVPlayer player = discordSRV.playerProvider().player(event.getEntity());
-        MinecraftComponent component = PaperComponentUtil.getComponent(discordSRV, event, "deathMessage", PlayerDeathEvent::getDeathMessage);
+        MinecraftComponent component = componentHandle.getComponent(discordSRV, event);
 
         discordSRV.scheduler().run(() -> discordSRV.eventBus().publish(
                 new DeathMessageReceiveEvent(player, null, component, event.isCancelled())));
