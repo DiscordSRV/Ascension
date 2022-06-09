@@ -19,6 +19,7 @@
 package com.discordsrv.common.discord.api.entity.guild;
 
 import com.discordsrv.api.color.Color;
+import com.discordsrv.api.discord.entity.DiscordUser;
 import com.discordsrv.api.discord.entity.guild.DiscordGuild;
 import com.discordsrv.api.discord.entity.guild.DiscordGuildMember;
 import com.discordsrv.api.discord.entity.guild.DiscordRole;
@@ -29,7 +30,6 @@ import com.discordsrv.common.component.util.ComponentUtil;
 import com.discordsrv.common.discord.api.entity.DiscordUserImpl;
 import net.dv8tion.jda.api.entities.Member;
 import net.dv8tion.jda.api.entities.Role;
-import net.dv8tion.jda.api.entities.User;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.TextColor;
 import org.jetbrains.annotations.NotNull;
@@ -39,16 +39,19 @@ import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 
-public class DiscordGuildMemberImpl extends DiscordUserImpl implements DiscordGuildMember {
+public class DiscordGuildMemberImpl implements DiscordGuildMember {
 
+    private final DiscordSRV discordSRV;
     private final Member member;
+    private final DiscordUser user;
     private final DiscordGuild guild;
     private final List<DiscordRole> roles;
     private final Color color;
 
     public DiscordGuildMemberImpl(DiscordSRV discordSRV, Member member) {
-        super(discordSRV, member.getUser());
+        this.discordSRV = discordSRV;
         this.member = member;
+        this.user = new DiscordUserImpl(discordSRV, member.getUser());
         this.guild = new DiscordGuildImpl(discordSRV, member.getGuild());
 
         List<DiscordRole> roles = new ArrayList<>();
@@ -57,6 +60,11 @@ public class DiscordGuildMemberImpl extends DiscordUserImpl implements DiscordGu
         }
         this.roles = roles;
         this.color = new Color(member.getColorRaw());
+    }
+
+    @Override
+    public @NotNull DiscordUser getUser() {
+        return user;
     }
 
     @Override
@@ -82,14 +90,14 @@ public class DiscordGuildMemberImpl extends DiscordUserImpl implements DiscordGu
     @Override
     public CompletableFuture<Void> addRole(@NotNull DiscordRole role) {
         return discordSRV.discordAPI().mapExceptions(() ->
-                guild.getAsJDAGuild().addRoleToMember(member, role.getAsJDARole()).submit()
+                guild.asJDA().addRoleToMember(member, role.asJDA()).submit()
         );
     }
 
     @Override
     public CompletableFuture<Void> removeRole(@NotNull DiscordRole role) {
         return discordSRV.discordAPI().mapExceptions(() ->
-                guild.getAsJDAGuild().removeRoleFromMember(member, role.getAsJDARole()).submit()
+                guild.asJDA().removeRoleFromMember(member, role.asJDA()).submit()
         );
     }
 
@@ -101,16 +109,6 @@ public class DiscordGuildMemberImpl extends DiscordUserImpl implements DiscordGu
     @Override
     public Color getColor() {
         return color;
-    }
-
-    @Override
-    public Member getAsJDAMember() {
-        return member;
-    }
-
-    @Override
-    public User getAsJDAUser() {
-        return member.getUser();
     }
 
     //
@@ -151,5 +149,15 @@ public class DiscordGuildMemberImpl extends DiscordUserImpl implements DiscordGu
     @Override
     public String toString() {
         return "ServerMember:" + super.toString() + "/" + getGuild();
+    }
+
+    @Override
+    public String getAsMention() {
+        return member.getAsMention();
+    }
+
+    @Override
+    public Member asJDA() {
+        return member;
     }
 }

@@ -21,9 +21,30 @@
  * SOFTWARE.
  */
 
-package com.discordsrv.api.discord.entity.channel;
+package com.discordsrv.api.discord.entity.component.actionrow;
 
-import com.discordsrv.api.discord.entity.JDAEntity;
-import net.dv8tion.jda.api.entities.NewsChannel;
+import com.discordsrv.api.discord.entity.component.MessageComponent;
 
-public interface DiscordNewsChannel extends DiscordGuildMessageChannel, DiscordThreadContainer, JDAEntity<NewsChannel> {}
+import java.util.Arrays;
+import java.util.List;
+
+public class MessageActionRow implements ActionRow<MessageComponent> {
+
+    public static MessageActionRow message(MessageComponent... components) {
+        if (components.length == 0) {
+            throw new IllegalArgumentException("Must include at least one component");
+        }
+        return new MessageActionRow(Arrays.asList(components));
+    }
+
+    private final List<MessageComponent> components;
+
+    private MessageActionRow(List<MessageComponent> components) {
+        this.components = components;
+    }
+
+    @Override
+    public List<MessageComponent> components() {
+        return components;
+    }
+}

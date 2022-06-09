@@ -22,16 +22,14 @@ import com.discordsrv.api.discord.entity.channel.DiscordNewsChannel;
 import com.discordsrv.common.DiscordSRV;
 import net.dv8tion.jda.api.entities.NewsChannel;
 
-public class DiscordNewsChannelImpl
-        extends AbstractDiscordThreadedGuildMessageChannel<NewsChannel>
-        implements DiscordNewsChannel {
+public class DiscordNewsChannelImpl extends AbstractDiscordThreadedGuildMessageChannel<NewsChannel> implements DiscordNewsChannel {
 
     public DiscordNewsChannelImpl(DiscordSRV discordSRV, NewsChannel channel) {
         super(discordSRV, channel);
     }
 
     @Override
-    public NewsChannel getAsJDANewsChannel() {
+    public NewsChannel asJDA() {
         return channel;
     }
 

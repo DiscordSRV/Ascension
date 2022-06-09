@@ -23,14 +23,14 @@
 
 package com.discordsrv.api.discord.entity.channel;
 
-import com.discordsrv.api.DiscordSRVApi;
+import com.discordsrv.api.discord.entity.JDAEntity;
 import net.dv8tion.jda.api.entities.TextChannel;
 import org.jetbrains.annotations.Nullable;
 
 /**
  * A Discord text channel.
  */
-public interface DiscordTextChannel extends DiscordGuildMessageChannel, DiscordThreadContainer {
+public interface DiscordTextChannel extends DiscordGuildMessageChannel, DiscordThreadContainer, JDAEntity<TextChannel> {
 
     /**
      * Gets the topic of the text channel.
@@ -38,12 +38,5 @@ public interface DiscordTextChannel extends DiscordGuildMessageChannel, DiscordT
      */
     @Nullable
     String getTopic();
-
-    /**
-     * Returns the JDA representation of this object. This should not be used if it can be avoided.
-     * @return the JDA representation of this object
-     * @see DiscordSRVApi#jda()
-     */
-    TextChannel getAsJDATextChannel();
 
 }

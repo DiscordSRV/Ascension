@@ -23,15 +23,15 @@
 
 package com.discordsrv.api.discord.entity.channel;
 
-import com.discordsrv.api.DiscordSRVApi;
 import com.discordsrv.api.discord.entity.DiscordUser;
+import com.discordsrv.api.discord.entity.JDAEntity;
 import net.dv8tion.jda.api.entities.PrivateChannel;
 import org.jetbrains.annotations.Nullable;
 
 /**
  * A Discord direct message channel.
  */
-public interface DiscordDMChannel extends DiscordMessageChannel {
+public interface DiscordDMChannel extends DiscordMessageChannel, JDAEntity<PrivateChannel> {
 
     /**
      * Gets the {@link DiscordUser} that is associated with this direct message channel.
@@ -39,12 +39,5 @@ public interface DiscordDMChannel extends DiscordMessageChannel {
      */
     @Nullable
     DiscordUser getUser();
-
-    /**
-     * Returns the JDA representation of this object. This should not be used if it can be avoided.
-     * @return the JDA representation of this object
-     * @see DiscordSRVApi#jda()
-     */
-    PrivateChannel getAsJDAPrivateChannel();
 
 }

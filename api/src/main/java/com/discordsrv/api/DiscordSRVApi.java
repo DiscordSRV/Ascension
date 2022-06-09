@@ -32,6 +32,7 @@ import com.discordsrv.api.player.DiscordSRVPlayer;
 import com.discordsrv.api.player.IPlayerProvider;
 import com.discordsrv.api.profile.IProfileManager;
 import net.dv8tion.jda.api.JDA;
+import net.dv8tion.jda.api.JDAInfo;
 import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -125,17 +126,28 @@ public interface DiscordSRVApi {
     DiscordAPI discordAPI();
 
     /**
+     * The current JDA version being used by DiscordSRV.
+     * @return the JDA version
+     * @see #jda()
+     */
+    @NotNull
+    default String jdaVersion() {
+        return JDAInfo.VERSION;
+    }
+
+    /**
      * Access to {@link JDA}, the Discord library used by DiscordSRV.
      * @return the JDA instance, if available
      *
      * <p>
-     * JDA is an external API, using DiscordSRV's APIs where possible is recommended.
-     * Please see <a href="https://github.com/DV8FromTheWorld/JDA#deprecation-policy">JDA's deprecation policy</a>,
-     * additionally DiscordSRV may update the major version of JDA, which will have breaking changes.
+     * JDA is an external library and comes with its own versioning and deprecation policies, using DiscordSRV's own APIs where possible is recommended.
+     * DiscordSRV will upgrade JDA as needed, including breaking changes and major version upgrades.
      *
-     * @see #discordAPI()
-     * @see #isReady()
-     * @see #discordConnectionDetails()
+     * <a href="https://github.com/DV8FromTheWorld/JDA#deprecation-policy">JDA's deprecation policy</a>
+     *
+     * @see #discordAPI() discordAPI() for the first party api
+     * @see #discordConnectionDetails() discordConnectionDetails() to use specific GatewayIntents and CacheFlags
+     * @see #jdaVersion() jdaVersion() to get the current jda version being used
      */
     @NotNull
     Optional<JDA> jda();
@@ -148,7 +160,7 @@ public interface DiscordSRVApi {
     DiscordConnectionDetails discordConnectionDetails();
 
     /**
-     * {@link #status()} = {@link Status#CONNECTED}.
+     * Checks if {@link #status()} is {@link Status#CONNECTED}.
      * @return if DiscordSRV is ready
      */
     @ApiStatus.NonExtendable
@@ -157,7 +169,7 @@ public interface DiscordSRVApi {
     }
 
     /**
-     * {@link #status()} = {@link Status#SHUTTING_DOWN} or {@link Status#SHUTDOWN}.
+     * Checks if {@link #status()} is {@link Status#SHUTTING_DOWN} or {@link Status#SHUTDOWN}.
      * @return if DiscordSRV is shutting down or has shutdown
      */
     @ApiStatus.NonExtendable

@@ -21,9 +21,25 @@
  * SOFTWARE.
  */
 
-package com.discordsrv.api.discord.entity.channel;
+package com.discordsrv.api.discord.entity;
 
-import com.discordsrv.api.discord.entity.JDAEntity;
-import net.dv8tion.jda.api.entities.NewsChannel;
+import com.discordsrv.api.DiscordSRVApi;
+import org.jetbrains.annotations.ApiStatus;
 
-public interface DiscordNewsChannel extends DiscordGuildMessageChannel, DiscordThreadContainer, JDAEntity<NewsChannel> {}
+/**
+ * An entity that wraps a JDA entity.
+ * @param <T> the JDA type
+ */
+public interface JDAEntity<T> {
+
+    /**
+     * Gets the JDA entity this API object wraps.
+     *
+     * <p>
+     * Please read {@link DiscordSRVApi#jda()} before using.
+     *
+     * @return the JDA representation of this object.
+     */
+    @ApiStatus.Experimental
+    T asJDA();
+}

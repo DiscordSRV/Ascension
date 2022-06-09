@@ -136,7 +136,7 @@ public class DiscordAPIImpl implements DiscordAPI {
             // Check if a thread by the same name is still active
             DiscordThreadChannel thread = findThread(threadConfig, channel.getActiveThreads());
             if (thread != null) {
-                ThreadChannel jdaChannel = thread.getAsJDAThreadChannel();
+                ThreadChannel jdaChannel = thread.asJDA();
                 if (!jdaChannel.isArchived()) {
                     channelConsumer.accept(thread);
                     continue;
@@ -247,7 +247,7 @@ public class DiscordAPIImpl implements DiscordAPI {
             CompletableFuture<DiscordThreadChannel> future
     ) {
         if (thread != null) {
-            ThreadChannel channel = thread.getAsJDAThreadChannel();
+            ThreadChannel channel = thread.asJDA();
             if (channel.isLocked() || channel.isArchived()) {
                 try {
                     channel.getManager()

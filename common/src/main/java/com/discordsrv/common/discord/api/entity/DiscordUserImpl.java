@@ -83,15 +83,12 @@ public class DiscordUserImpl implements DiscordUser {
             return discordSRV.discordAPI().notReady();
         }
 
-        return jda.retrieveUserById(getId())
-                .submit()
-                .thenCompose(user -> user.openPrivateChannel().submit())
-                .thenApply(privateChannel ->  new DiscordDMChannelImpl(discordSRV, privateChannel));
-    }
-
-    @Override
-    public User getAsJDAUser() {
-        return user;
+        return discordSRV.discordAPI().mapExceptions(
+                () -> jda.retrieveUserById(getId())
+                        .submit()
+                        .thenCompose(user -> user.openPrivateChannel().submit())
+                        .thenApply(privateChannel ->  new DiscordDMChannelImpl(discordSRV, privateChannel))
+        );
     }
 
     @Override
@@ -102,5 +99,10 @@ public class DiscordUserImpl implements DiscordUser {
     @Override
     public String toString() {
         return "User:" + getUsername() + "(" + Long.toUnsignedString(getId()) + ")";
+    }
+
+    @Override
+    public User asJDA() {
+        return user;
     }
 }

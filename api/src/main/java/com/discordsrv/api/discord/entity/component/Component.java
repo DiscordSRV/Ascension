@@ -21,9 +21,9 @@
  * SOFTWARE.
  */
 
-package com.discordsrv.api.discord.entity.channel;
+package com.discordsrv.api.discord.entity.component;
 
 import com.discordsrv.api.discord.entity.JDAEntity;
-import net.dv8tion.jda.api.entities.NewsChannel;
+import net.dv8tion.jda.api.interactions.components.ItemComponent;
 
-public interface DiscordNewsChannel extends DiscordGuildMessageChannel, DiscordThreadContainer, JDAEntity<NewsChannel> {}
+public interface Component<T extends ItemComponent> extends JDAEntity<T> {}

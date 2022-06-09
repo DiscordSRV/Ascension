@@ -21,9 +21,23 @@
  * SOFTWARE.
  */
 
-package com.discordsrv.api.discord.entity.channel;
+package com.discordsrv.api.discord.entity.component.actionrow;
 
 import com.discordsrv.api.discord.entity.JDAEntity;
-import net.dv8tion.jda.api.entities.NewsChannel;
+import com.discordsrv.api.discord.entity.component.Component;
+import net.dv8tion.jda.api.interactions.components.ItemComponent;
 
-public interface DiscordNewsChannel extends DiscordGuildMessageChannel, DiscordThreadContainer, JDAEntity<NewsChannel> {}
+import java.util.List;
+import java.util.stream.Collectors;
+
+public interface ActionRow<T extends Component<? extends ItemComponent>> extends JDAEntity<net.dv8tion.jda.api.interactions.components.ActionRow> {
+
+    List<T> components();
+
+    @Override
+    default net.dv8tion.jda.api.interactions.components.ActionRow asJDA() {
+        return net.dv8tion.jda.api.interactions.components.ActionRow.of(
+                components().stream().map(Component::asJDA).collect(Collectors.toList())
+        );
+    }
+}

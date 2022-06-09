@@ -69,7 +69,7 @@ public class ChannelLockingModule extends AbstractModule<DiscordSRV> {
 
             if (threads.get(cfg -> cfg.archive, true)) {
                 for (DiscordThreadChannel thread : discordSRV.discordAPI().findThreads(config, channelConfig)) {
-                    thread.getAsJDAThreadChannel().getManager()
+                    thread.asJDA().getManager()
                             .setArchived(true)
                             .reason("DiscordSRV shutdown behaviour")
                             .queue();
@@ -133,15 +133,11 @@ public class ChannelLockingModule extends AbstractModule<DiscordSRV> {
     }
 
     private void setPermission(TextChannel channel, IPermissionHolder holder, List<Permission> permissions, boolean state) {
-        PermissionOverride override = channel.getPermissionOverride(holder);
-        if (override != null && (state ? override.getAllowed() : override.getDenied()).containsAll(permissions)) {
+        PermissionOverrideAction action = channel.upsertPermissionOverride(holder);
+        if ((state ? action.getAllowedPermissions() : action.getDeniedPermissions()).containsAll(permissions)) {
             // Already correct
             return;
         }
-
-        PermissionOverrideAction action = override != null
-                                          ? override.getManager()
-                                          : channel.putPermissionOverride(holder);
 
         if (state) {
             action = action.grant(permissions);

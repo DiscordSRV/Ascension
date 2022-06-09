@@ -23,19 +23,13 @@
 
 package com.discordsrv.api.discord.entity.channel;
 
-import com.discordsrv.api.DiscordSRVApi;
+import com.discordsrv.api.discord.entity.JDAEntity;
 import net.dv8tion.jda.api.entities.ThreadChannel;
 import org.jetbrains.annotations.NotNull;
 
-public interface DiscordThreadChannel extends DiscordGuildMessageChannel {
+public interface DiscordThreadChannel extends DiscordGuildMessageChannel, JDAEntity<ThreadChannel> {
 
     @NotNull
     DiscordTextChannel getParentChannel();
 
-    /**
-     * Returns the JDA representation of this object. This should not be used if it can be avoided.
-     * @return the JDA representation of this object
-     * @see DiscordSRVApi#jda()
-     */
-    ThreadChannel getAsJDAThreadChannel();
 }

@@ -94,11 +94,6 @@ public class DiscordDMChannelImpl extends AbstractDiscordMessageChannel<PrivateC
     }
 
     @Override
-    public PrivateChannel getAsJDAPrivateChannel() {
-        return channel;
-    }
-
-    @Override
     public String toString() {
         return "DMChannel:" + user + "(" + Long.toUnsignedString(getId()) + ")";
     }
@@ -114,5 +109,10 @@ public class DiscordDMChannelImpl extends AbstractDiscordMessageChannel<PrivateC
     @Override
     public int hashCode() {
         return Objects.hash(user.getId());
+    }
+
+    @Override
+    public PrivateChannel asJDA() {
+        return channel;
     }
 }

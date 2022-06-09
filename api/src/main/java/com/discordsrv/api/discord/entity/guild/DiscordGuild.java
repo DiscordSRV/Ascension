@@ -23,7 +23,7 @@
 
 package com.discordsrv.api.discord.entity.guild;
 
-import com.discordsrv.api.DiscordSRVApi;
+import com.discordsrv.api.discord.entity.JDAEntity;
 import com.discordsrv.api.discord.entity.Snowflake;
 import com.discordsrv.api.placeholder.annotation.Placeholder;
 import net.dv8tion.jda.api.entities.Guild;
@@ -36,7 +36,7 @@ import java.util.Set;
 /**
  * A Discord server.
  */
-public interface DiscordGuild extends Snowflake {
+public interface DiscordGuild extends JDAEntity<Guild>, Snowflake {
 
     /**
      * Gets the name of this Discord guild.
@@ -83,10 +83,4 @@ public interface DiscordGuild extends Snowflake {
     @NotNull
     List<DiscordRole> getRoles();
 
-    /**
-     * Returns the JDA representation of this object. This should not be used if it can be avoided.
-     * @return the JDA representation of this object
-     * @see DiscordSRVApi#jda()
-     */
-    Guild getAsJDAGuild();
 }

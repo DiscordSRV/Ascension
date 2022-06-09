@@ -137,7 +137,7 @@ public class MinecraftToDiscordChatModule extends AbstractGameMessageModule<Mine
         OrDefault<MinecraftToDiscordChatConfig.Mentions> mentionConfig = config.map(cfg -> cfg.mentions);
         // Format messages per-Guild
         for (Map.Entry<DiscordGuild, Set<DiscordMessageChannel>> entry : channelMap.entrySet()) {
-            Guild guild = entry.getKey().getAsJDAGuild();
+            Guild guild = entry.getKey().asJDA();
 
             Placeholders channelMessagePlaceholders = new Placeholders(message);
             List<CachedMention> mentions = new ArrayList<>();

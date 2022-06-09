@@ -23,9 +23,9 @@
 
 package com.discordsrv.api.discord.entity.guild;
 
-import com.discordsrv.api.DiscordSRVApi;
 import com.discordsrv.api.color.Color;
 import com.discordsrv.api.discord.entity.DiscordUser;
+import com.discordsrv.api.discord.entity.JDAEntity;
 import com.discordsrv.api.discord.entity.Mentionable;
 import com.discordsrv.api.placeholder.annotation.Placeholder;
 import net.dv8tion.jda.api.entities.Member;
@@ -38,7 +38,14 @@ import java.util.concurrent.CompletableFuture;
 /**
  * A Discord server member.
  */
-public interface DiscordGuildMember extends DiscordUser, Mentionable {
+public interface DiscordGuildMember extends JDAEntity<Member>, Mentionable {
+
+    /**
+     * Gets the user for this member.
+     * @return the Discord user
+     */
+    @NotNull
+    DiscordUser getUser();
 
     /**
      * Gets the Discord server this member is from.
@@ -89,7 +96,7 @@ public interface DiscordGuildMember extends DiscordUser, Mentionable {
     @Placeholder("user_effective_name")
     @NotNull
     default String getEffectiveName() {
-        return getNickname().orElseGet(this::getUsername);
+        return getNickname().orElseGet(() -> getUser().getUsername());
     }
 
     /**
@@ -106,12 +113,5 @@ public interface DiscordGuildMember extends DiscordUser, Mentionable {
      */
     @Placeholder("user_color")
     Color getColor();
-
-    /**
-     * Returns the JDA representation of this object. This should not be used if it can be avoided.
-     * @return the JDA representation of this object
-     * @see DiscordSRVApi#jda()
-     */
-    Member getAsJDAMember();
 
 }

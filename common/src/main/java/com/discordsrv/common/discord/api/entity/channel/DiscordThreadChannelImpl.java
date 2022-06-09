@@ -31,8 +31,7 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.concurrent.CompletableFuture;
 
-public class DiscordThreadChannelImpl extends AbstractDiscordGuildMessageChannel<ThreadChannel>
-        implements DiscordThreadChannel {
+public class DiscordThreadChannelImpl extends AbstractDiscordGuildMessageChannel<ThreadChannel> implements DiscordThreadChannel {
 
     private final DiscordTextChannel textChannel;
     private final DiscordGuild guild;
@@ -70,12 +69,12 @@ public class DiscordThreadChannelImpl extends AbstractDiscordGuildMessageChannel
     }
 
     @Override
-    public ThreadChannel getAsJDAThreadChannel() {
-        return channel;
+    public String toString() {
+        return "Thread:" + getName() + "(" + Long.toUnsignedString(getId()) + " in " + textChannel + ")";
     }
 
     @Override
-    public String toString() {
-        return "Thread:" + getName() + "(" + Long.toUnsignedString(getId()) + " in " + textChannel + ")";
+    public ThreadChannel asJDA() {
+        return channel;
     }
 }

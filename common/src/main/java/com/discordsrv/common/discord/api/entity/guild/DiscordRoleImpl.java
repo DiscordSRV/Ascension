@@ -65,11 +65,6 @@ public class DiscordRoleImpl implements DiscordRole {
     }
 
     @Override
-    public Role getAsJDARole() {
-        return role;
-    }
-
-    @Override
     public String getAsMention() {
         return role.getAsMention();
     }
@@ -90,5 +85,10 @@ public class DiscordRoleImpl implements DiscordRole {
     @Override
     public int hashCode() {
         return Objects.hash(role.getId());
+    }
+
+    @Override
+    public Role asJDA() {
+        return role;
     }
 }

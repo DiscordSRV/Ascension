@@ -23,7 +23,6 @@
 
 package com.discordsrv.api.discord.entity;
 
-import com.discordsrv.api.DiscordSRVApi;
 import com.discordsrv.api.discord.entity.channel.DiscordDMChannel;
 import com.discordsrv.api.placeholder.annotation.Placeholder;
 import net.dv8tion.jda.api.entities.User;
@@ -35,7 +34,7 @@ import java.util.concurrent.CompletableFuture;
 /**
  * A Discord user.
  */
-public interface DiscordUser extends Snowflake, Mentionable {
+public interface DiscordUser extends JDAEntity<User>, Snowflake, Mentionable {
 
     /**
      * Gets if this user is the bot this DiscordSRV instance is connected.
@@ -97,10 +96,4 @@ public interface DiscordUser extends Snowflake, Mentionable {
      */
     CompletableFuture<DiscordDMChannel> openPrivateChannel();
 
-    /**
-     * Returns the JDA representation of this object. This should not be used if it can be avoided.
-     * @return the JDA representation of this object
-     * @see DiscordSRVApi#jda()
-     */
-    User getAsJDAUser();
 }

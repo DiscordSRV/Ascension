@@ -387,12 +387,12 @@ public class GroupSyncModule extends AbstractModule<DiscordSRV> {
 
     @Subscribe
     public void onDiscordMemberRoleAdd(DiscordMemberRoleAddEvent event) {
-        event.getRoles().forEach(role -> roleChanged(event.getMember().getId(), role.getId(), false));
+        event.getRoles().forEach(role -> roleChanged(event.getMember().getUser().getId(), role.getId(), false));
     }
 
     @Subscribe
     public void onDiscordMemberRoleRemove(DiscordMemberRoleRemoveEvent event) {
-        event.getRoles().forEach(role -> roleChanged(event.getMember().getId(), role.getId(), true));
+        event.getRoles().forEach(role -> roleChanged(event.getMember().getUser().getId(), role.getId(), true));
     }
 
     public void groupAdded(UUID player, String groupName, @Nullable Set<String> serverContext, GroupSyncCause cause) {

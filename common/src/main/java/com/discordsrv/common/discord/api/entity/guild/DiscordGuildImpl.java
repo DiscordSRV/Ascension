@@ -93,11 +93,6 @@ public class DiscordGuildImpl implements DiscordGuild {
     }
 
     @Override
-    public Guild getAsJDAGuild() {
-        return guild;
-    }
-
-    @Override
     public boolean equals(Object o) {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
@@ -113,5 +108,10 @@ public class DiscordGuildImpl implements DiscordGuild {
     @Override
     public String toString() {
         return "Guild:" + getName() + "(" + Long.toUnsignedString(getId()) + ")";
+    }
+
+    @Override
+    public Guild asJDA() {
+        return guild;
     }
 }
