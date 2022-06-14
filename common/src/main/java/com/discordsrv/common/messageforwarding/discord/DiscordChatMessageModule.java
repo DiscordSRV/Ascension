@@ -108,7 +108,7 @@ public class DiscordChatMessageModule extends AbstractModule<DiscordSRV> {
                 discordSRV.componentFactory().minecraftSerializer().serialize(message.toString()));
 
         GameTextBuilder componentBuilder = discordSRV.componentFactory()
-                .enhancedBuilder(format)
+                .textBuilder(format)
                 .addContext(discordMessage, author, channel, channelConfig)
                 .addReplacement("%message%", messageComponent);
         if (member != null) {

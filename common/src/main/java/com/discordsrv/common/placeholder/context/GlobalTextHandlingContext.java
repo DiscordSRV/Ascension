@@ -33,6 +33,6 @@ public class GlobalTextHandlingContext {
 
     @Placeholder("text_")
     public MinecraftComponent text(@PlaceholderRemainder String text) {
-        return discordSRV.componentFactory().enhancedBuilder(text).build();
+        return discordSRV.componentFactory().textBuilder(text).build();
     }
 }

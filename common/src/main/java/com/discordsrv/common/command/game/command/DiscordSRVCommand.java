@@ -63,7 +63,7 @@ public class DiscordSRVCommand implements GameCommandExecutor {
     @Override
     public void execute(ICommandSender sender, GameCommandArguments arguments) {
         MinecraftComponent component = discordSRV.componentFactory()
-                .enhancedBuilder(discordSRV.config().command.discordFormat)
+                .textBuilder(discordSRV.config().command.discordFormat)
                 .addContext(sender)
                 .applyPlaceholderService()
                 .build();

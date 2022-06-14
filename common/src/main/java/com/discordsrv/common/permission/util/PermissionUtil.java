@@ -73,6 +73,6 @@ public final class PermissionUtil {
     }
 
     private static Component translate(DiscordSRV discordSRV, String data) {
-        return data != null ? ComponentUtil.fromAPI(discordSRV.componentFactory().enhancedBuilder(data).build()) : null;
+        return data != null ? ComponentUtil.fromAPI(discordSRV.componentFactory().textBuilder(data).build()) : null;
     }
 }

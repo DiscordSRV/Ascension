@@ -332,7 +332,7 @@ public class ReceivedDiscordMessageImpl extends SendableDiscordMessageImpl imple
         List<Component> components = new ArrayList<>();
         for (Attachment attachment : attachments) {
             components.add(ComponentUtil.fromAPI(
-                    discordSRV.componentFactory().enhancedBuilder(attachmentFormat)
+                    discordSRV.componentFactory().textBuilder(attachmentFormat)
                             .addReplacement("%file_name%", attachment.fileName())
                             .addReplacement("%file_url%", attachment.url())
                             .build()

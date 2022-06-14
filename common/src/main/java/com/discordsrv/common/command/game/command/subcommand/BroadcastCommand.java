@@ -196,7 +196,7 @@ public abstract class BroadcastCommand implements GameCommandExecutor, GameComma
         @Override
         public String getContent(String content) {
             MinecraftComponent component = discordSRV.componentFactory()
-                    .enhancedBuilder(content)
+                    .textBuilder(content)
                     .applyPlaceholderService()
                     .build();
 

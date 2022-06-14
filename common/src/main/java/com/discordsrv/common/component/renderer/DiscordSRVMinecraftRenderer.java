@@ -83,7 +83,7 @@ public class DiscordSRVMinecraftRenderer extends DefaultMinecraftRenderer {
 
         return component.append(ComponentUtil.fromAPI(
                 discordSRV.componentFactory()
-                        .enhancedBuilder(guildChannel != null ? format.format : format.unknownFormat)
+                        .textBuilder(guildChannel != null ? format.format : format.unknownFormat)
                         .addReplacement("%channel_name%", guildChannel != null ? guildChannel.getName() : null)
                         .applyPlaceholderService()
                         .build()
@@ -109,7 +109,7 @@ public class DiscordSRVMinecraftRenderer extends DefaultMinecraftRenderer {
         DiscordGuildMember member = guild.getMemberById(userId).orElse(null);
 
         GameTextBuilder builder = discordSRV.componentFactory()
-                .enhancedBuilder(user != null ? format.format : format.unknownFormat);
+                .textBuilder(user != null ? format.format : format.unknownFormat);
 
         if (user != null) {
             builder.addContext(user);
@@ -136,7 +136,7 @@ public class DiscordSRVMinecraftRenderer extends DefaultMinecraftRenderer {
         DiscordRole role = discordSRV.discordAPI().getRoleById(roleId).orElse(null);
 
         GameTextBuilder builder = discordSRV.componentFactory()
-                .enhancedBuilder(role != null ? format.format : format.unknownFormat);
+                .textBuilder(role != null ? format.format : format.unknownFormat);
 
         if (role != null) {
             builder.addContext(role);
