@@ -84,7 +84,7 @@ public class ComponentFactory implements MinecraftComponentFactory {
     }
 
     @Override
-    public GameTextBuilder enhancedBuilder(String content) {
+    public GameTextBuilder textBuilder(String content) {
         return new EnhancedTextBuilderImpl(discordSRV, content);
     }
 
