@@ -18,7 +18,7 @@
 
 package com.discordsrv.common.component;
 
-import com.discordsrv.api.component.EnhancedTextBuilder;
+import com.discordsrv.api.component.GameTextBuilder;
 import com.discordsrv.api.component.MinecraftComponent;
 import com.discordsrv.api.component.MinecraftComponentFactory;
 import com.discordsrv.common.DiscordSRV;
@@ -84,7 +84,7 @@ public class ComponentFactory implements MinecraftComponentFactory {
     }
 
     @Override
-    public EnhancedTextBuilder enhancedBuilder(String content) {
+    public GameTextBuilder enhancedBuilder(String content) {
         return new EnhancedTextBuilderImpl(discordSRV, content);
     }
 

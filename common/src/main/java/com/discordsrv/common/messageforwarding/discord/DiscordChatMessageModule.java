@@ -19,7 +19,7 @@
 package com.discordsrv.common.messageforwarding.discord;
 
 import com.discordsrv.api.channel.GameChannel;
-import com.discordsrv.api.component.EnhancedTextBuilder;
+import com.discordsrv.api.component.GameTextBuilder;
 import com.discordsrv.api.component.MinecraftComponent;
 import com.discordsrv.api.discord.entity.DiscordUser;
 import com.discordsrv.api.discord.entity.channel.DiscordMessageChannel;
@@ -107,7 +107,7 @@ public class DiscordChatMessageModule extends AbstractModule<DiscordSRV> {
         Component messageComponent = DiscordSRVMinecraftRenderer.getWithContext(event, chatConfig, () ->
                 discordSRV.componentFactory().minecraftSerializer().serialize(message.toString()));
 
-        EnhancedTextBuilder componentBuilder = discordSRV.componentFactory()
+        GameTextBuilder componentBuilder = discordSRV.componentFactory()
                 .enhancedBuilder(format)
                 .addContext(discordMessage, author, channel, channelConfig)
                 .addReplacement("%message%", messageComponent);

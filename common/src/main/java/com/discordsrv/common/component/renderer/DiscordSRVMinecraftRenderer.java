@@ -18,7 +18,7 @@
 
 package com.discordsrv.common.component.renderer;
 
-import com.discordsrv.api.component.EnhancedTextBuilder;
+import com.discordsrv.api.component.GameTextBuilder;
 import com.discordsrv.api.discord.entity.DiscordUser;
 import com.discordsrv.api.discord.entity.guild.DiscordGuild;
 import com.discordsrv.api.discord.entity.guild.DiscordGuildMember;
@@ -108,7 +108,7 @@ public class DiscordSRVMinecraftRenderer extends DefaultMinecraftRenderer {
         DiscordUser user = discordSRV.discordAPI().getUserById(userId).orElse(null);
         DiscordGuildMember member = guild.getMemberById(userId).orElse(null);
 
-        EnhancedTextBuilder builder = discordSRV.componentFactory()
+        GameTextBuilder builder = discordSRV.componentFactory()
                 .enhancedBuilder(user != null ? format.format : format.unknownFormat);
 
         if (user != null) {
@@ -135,7 +135,7 @@ public class DiscordSRVMinecraftRenderer extends DefaultMinecraftRenderer {
         long roleId = MiscUtil.parseLong(id);
         DiscordRole role = discordSRV.discordAPI().getRoleById(roleId).orElse(null);
 
-        EnhancedTextBuilder builder = discordSRV.componentFactory()
+        GameTextBuilder builder = discordSRV.componentFactory()
                 .enhancedBuilder(role != null ? format.format : format.unknownFormat);
 
         if (role != null) {

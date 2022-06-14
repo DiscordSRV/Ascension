@@ -23,6 +23,7 @@
 
 package com.discordsrv.api.discord.entity.message;
 
+import com.discordsrv.api.component.GameTextBuilder;
 import com.discordsrv.api.discord.entity.message.impl.SendableDiscordMessageImpl;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -219,7 +220,7 @@ public interface SendableDiscordMessage {
     }
 
     /**
-     * Discord equivalent for {@link com.discordsrv.api.component.EnhancedTextBuilder}.
+     * Discord equivalent for {@link GameTextBuilder}.
      */
     interface Formatter {
 

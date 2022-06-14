@@ -33,41 +33,41 @@ import java.util.regex.Pattern;
 /**
  * Minecraft equivalent for {@link com.discordsrv.api.discord.entity.message.SendableDiscordMessage.Formatter}.
  */
-public interface EnhancedTextBuilder {
+public interface GameTextBuilder {
 
     @NotNull
-    EnhancedTextBuilder addContext(Object... context);
+    GameTextBuilder addContext(Object... context);
 
     @NotNull
-    default EnhancedTextBuilder addReplacement(String target, Object replacement) {
+    default GameTextBuilder addReplacement(String target, Object replacement) {
         return addReplacement(Pattern.compile(target, Pattern.LITERAL), replacement);
     }
 
     @NotNull
-    default EnhancedTextBuilder addReplacement(Pattern target, Object replacement) {
+    default GameTextBuilder addReplacement(Pattern target, Object replacement) {
         return addReplacement(target, matcher -> replacement);
     }
 
     @NotNull
-    default EnhancedTextBuilder addReplacement(String target, Supplier<Object> replacement) {
+    default GameTextBuilder addReplacement(String target, Supplier<Object> replacement) {
         return addReplacement(Pattern.compile(target, Pattern.LITERAL), replacement);
     }
 
     @NotNull
-    default EnhancedTextBuilder addReplacement(Pattern target, Supplier<Object> replacement) {
+    default GameTextBuilder addReplacement(Pattern target, Supplier<Object> replacement) {
         return addReplacement(target, matcher -> replacement.get());
     }
 
     @NotNull
-    default EnhancedTextBuilder addReplacement(String target, Function<Matcher, Object> replacement) {
+    default GameTextBuilder addReplacement(String target, Function<Matcher, Object> replacement) {
         return addReplacement(Pattern.compile(target, Pattern.LITERAL), replacement);
     }
 
     @NotNull
-    EnhancedTextBuilder addReplacement(Pattern target, Function<Matcher, Object> replacement);
+    GameTextBuilder addReplacement(Pattern target, Function<Matcher, Object> replacement);
 
     @NotNull
-    EnhancedTextBuilder applyPlaceholderService();
+    GameTextBuilder applyPlaceholderService();
 
     @NotNull
     MinecraftComponent build();

@@ -19,7 +19,7 @@
 package com.discordsrv.common.component;
 
 import com.discordsrv.api.color.Color;
-import com.discordsrv.api.component.EnhancedTextBuilder;
+import com.discordsrv.api.component.GameTextBuilder;
 import com.discordsrv.api.component.MinecraftComponent;
 import com.discordsrv.api.placeholder.PlaceholderService;
 import com.discordsrv.common.DiscordSRV;
@@ -35,7 +35,7 @@ import java.util.function.Function;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-public class EnhancedTextBuilderImpl implements EnhancedTextBuilder {
+public class EnhancedTextBuilderImpl implements GameTextBuilder {
 
     private final Set<Object> context = new HashSet<>();
     private final Map<Pattern, Function<Matcher, Object>> replacements = new LinkedHashMap<>();
@@ -49,19 +49,19 @@ public class EnhancedTextBuilderImpl implements EnhancedTextBuilder {
     }
 
     @Override
-    public @NotNull EnhancedTextBuilder addContext(Object... context) {
+    public @NotNull GameTextBuilder addContext(Object... context) {
         this.context.addAll(Arrays.asList(context));
         return this;
     }
 
     @Override
-    public @NotNull EnhancedTextBuilder addReplacement(Pattern target, Function<Matcher, Object> replacement) {
+    public @NotNull GameTextBuilder addReplacement(Pattern target, Function<Matcher, Object> replacement) {
         this.replacements.put(target, wrapFunction(replacement));
         return this;
     }
 
     @Override
-    public @NotNull EnhancedTextBuilder applyPlaceholderService() {
+    public @NotNull GameTextBuilder applyPlaceholderService() {
         this.replacements.put(PlaceholderService.PATTERN, wrapFunction(
                 matcher -> discordSRV.placeholderService().getResult(matcher, context)));
         return this;

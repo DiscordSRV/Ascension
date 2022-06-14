@@ -40,5 +40,5 @@ public interface MinecraftComponentFactory {
     @NotNull
     MinecraftComponent empty();
 
-    EnhancedTextBuilder enhancedBuilder(String content);
+    GameTextBuilder enhancedBuilder(String content);
 }
