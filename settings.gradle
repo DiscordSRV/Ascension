@@ -71,6 +71,9 @@ dependencyResolutionManagement {
                 reject '[3,)' // Java 11
             }
 
+            // DynamicProxy
+            library('dynamicproxy', 'dev.vankka', 'dynamicproxy').version('1.0.0-SNAPSHOT')
+
             // Jackson
             library('jackson-databind', 'com.fasterxml.jackson.core', 'jackson-databind').version('2.10.1')
 
@@ -131,7 +134,7 @@ dependencyResolutionManagement {
 rootProject.name = 'DiscordSRV2'
 
 [
-        'common', 'common:api', 'common:server', 'common:proxy', 'common:unrelocate',
+        'common', 'common:api', 'common:server', 'common:proxy', 'common:unrelocate', 'common:templates',
         'i18n',
         'api',
         'bukkit', 'bukkit:loader',

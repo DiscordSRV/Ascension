@@ -16,19 +16,9 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package com.discordsrv.common.console;
+package com.discordsrv.common.command.game.executor;
 
-import com.discordsrv.common.command.game.executor.CommandExecutorProvider;
-import com.discordsrv.common.command.game.sender.ICommandSender;
-import com.discordsrv.common.logging.backend.LoggingBackend;
+public interface CommandExecutor {
 
-public interface Console extends ICommandSender {
-
-    /**
-     * Gets the logging backend for the server/proxy.
-     * @return the {@link LoggingBackend}
-     */
-    LoggingBackend loggingBackend();
-
-    CommandExecutorProvider commandExecutorProvider();
+    void runCommand(String command);
 }

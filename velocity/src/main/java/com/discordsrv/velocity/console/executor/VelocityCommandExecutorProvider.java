@@ -16,19 +16,25 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package com.discordsrv.common.console;
+package com.discordsrv.velocity.console.executor;
 
+import com.discordsrv.common.command.game.executor.CommandExecutor;
 import com.discordsrv.common.command.game.executor.CommandExecutorProvider;
-import com.discordsrv.common.command.game.sender.ICommandSender;
-import com.discordsrv.common.logging.backend.LoggingBackend;
+import com.discordsrv.velocity.VelocityDiscordSRV;
+import net.kyori.adventure.text.Component;
 
-public interface Console extends ICommandSender {
+import java.util.function.Consumer;
 
-    /**
-     * Gets the logging backend for the server/proxy.
-     * @return the {@link LoggingBackend}
-     */
-    LoggingBackend loggingBackend();
+public class VelocityCommandExecutorProvider implements CommandExecutorProvider {
 
-    CommandExecutorProvider commandExecutorProvider();
+    private final VelocityDiscordSRV discordSRV;
+
+    public VelocityCommandExecutorProvider(VelocityDiscordSRV discordSRV) {
+        this.discordSRV = discordSRV;
+    }
+
+    @Override
+    public CommandExecutor getConsoleExecutor(Consumer<Component> componentConsumer) {
+        return new VelocityCommandExecutor(discordSRV, componentConsumer);
+    }
 }

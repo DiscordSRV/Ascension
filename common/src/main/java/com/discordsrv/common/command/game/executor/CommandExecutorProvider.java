@@ -16,19 +16,14 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package com.discordsrv.common.console;
+package com.discordsrv.common.command.game.executor;
 
-import com.discordsrv.common.command.game.executor.CommandExecutorProvider;
-import com.discordsrv.common.command.game.sender.ICommandSender;
-import com.discordsrv.common.logging.backend.LoggingBackend;
+import net.kyori.adventure.text.Component;
 
-public interface Console extends ICommandSender {
+import java.util.function.Consumer;
 
-    /**
-     * Gets the logging backend for the server/proxy.
-     * @return the {@link LoggingBackend}
-     */
-    LoggingBackend loggingBackend();
+@FunctionalInterface
+public interface CommandExecutorProvider {
 
-    CommandExecutorProvider commandExecutorProvider();
+    CommandExecutor getConsoleExecutor(Consumer<Component> componentConsumer);
 }

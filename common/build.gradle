@@ -51,6 +51,9 @@ dependencies {
         exclude group: 'com.google.errorprone', module: 'error_prone_annotations'
     }
 
+    // DynamicProxy
+    runtimeDownloadApi(libs.dynamicproxy)
+
     // Jackson (transitive in :api)
     compileOnlyApi(libs.jackson.databind)
 

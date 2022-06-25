@@ -83,7 +83,7 @@ public interface DiscordUser extends JDAEntity<User>, Snowflake, Mentionable {
 
     /**
      * Gets the Discord user's username followed by a {@code #} and their discriminator.
-     * @return the Discord user's username & discriminator in the following format {@code Username#1234}
+     * @return the Discord user's username and discriminator in the following format {@code Username#1234}
      */
     @Placeholder("user_tag")
     default String getAsTag() {

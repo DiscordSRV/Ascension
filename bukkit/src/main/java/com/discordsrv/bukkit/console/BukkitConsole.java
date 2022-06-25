@@ -20,6 +20,8 @@ package com.discordsrv.bukkit.console;
 
 import com.discordsrv.bukkit.BukkitDiscordSRV;
 import com.discordsrv.bukkit.command.game.sender.BukkitCommandSender;
+import com.discordsrv.bukkit.console.executor.BukkitCommandExecutorProvider;
+import com.discordsrv.common.command.game.executor.CommandExecutorProvider;
 import com.discordsrv.common.console.Console;
 import com.discordsrv.common.logging.NamedLogger;
 import com.discordsrv.common.logging.backend.LoggingBackend;
@@ -29,6 +31,7 @@ import com.discordsrv.common.logging.backend.impl.Log4JLoggerImpl;
 public class BukkitConsole extends BukkitCommandSender implements Console {
 
     private final LoggingBackend loggingBackend;
+    private final CommandExecutorProvider executorProvider;
 
     public BukkitConsole(BukkitDiscordSRV discordSRV) {
         super(discordSRV, discordSRV.server().getConsoleSender(), () -> discordSRV.audiences().console());
@@ -45,10 +48,16 @@ public class BukkitConsole extends BukkitCommandSender implements Console {
             logging = JavaLoggerImpl.getRoot();
         }
         this.loggingBackend = logging;
+        this.executorProvider = new BukkitCommandExecutorProvider(discordSRV);
     }
 
     @Override
     public LoggingBackend loggingBackend() {
         return loggingBackend;
+    }
+
+    @Override
+    public CommandExecutorProvider commandExecutorProvider() {
+        return executorProvider;
     }
 }

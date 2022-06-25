@@ -190,7 +190,7 @@ public interface DiscordSRVApi {
         ATTEMPTING_TO_CONNECT,
 
         /**
-         * DiscordSRV is connected to Discord & is ready.
+         * DiscordSRV is connected to Discord and is ready.
          * @see #isReady()
          */
         CONNECTED,

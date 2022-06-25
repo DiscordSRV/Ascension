@@ -8,7 +8,7 @@ plugins {
 
 version '2.0.0-SNAPSHOT'
 
-allprojects {
+subprojects {
     apply plugin: 'java'
     apply plugin: 'java-library'
     apply plugin: 'com.github.johnrengelman.shadow'
@@ -41,8 +41,8 @@ allprojects {
     repositories {
         // Snapshot repositories
         //maven { url 'https://oss.sonatype.org/content/repositories/snapshots/' }
+        mavenLocal()
         maven { url 'https://s01.oss.sonatype.org/content/repositories/snapshots/' }
-        //mavenLocal()
 
         maven {
             url 'https://nexus.scarsz.me/content/groups/public/'
@@ -63,10 +63,34 @@ allprojects {
         mavenCentral()
     }
 
+    // Add a 'template' source set to all projects
+    sourceSets {
+        template {
+            java {
+                compileClasspath += sourceSets.main.compileClasspath
+            }
+        }
+        main {
+            java {
+                srcDir sourceSets.template.output.generatedSourcesDirs.getSingleFile()
+            }
+        }
+    }
+
+    // Compile template source
+    compileJava { dependsOn compileTemplateJava }
+
+    // Fix template source set not being depended on/other tasks not depending on template source set
+    checkLicenseMain { dependsOn compileTemplateJava }
+    updateLicenseMain { dependsOn compileTemplateJava }
+
     dependencies {
         // Test dependencies
         testImplementation(libs.jupiter.api)
         testRuntimeOnly(libs.jupiter.engine)
+
+        // DynamicProxy
+        templateAnnotationProcessor(libs.dynamicproxy)
     }
 
     test {

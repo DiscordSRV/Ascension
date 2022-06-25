@@ -32,7 +32,7 @@ import java.util.Optional;
 /**
  * A Minecraft json text component. Use {@link DiscordSRVApi#componentFactory()} to get an instance.<br/>
  * <br/>
- * This is designed to work with Adventure, see {@link #adventureAdapter(Class, Class)} & {@link #adventureAdapter(MinecraftComponentAdapter)}
+ * This is designed to work with Adventure, see {@link #adventureAdapter(Class, Class)} and {@link #adventureAdapter(MinecraftComponentAdapter)}
  * but is compatible with anything able to handle Minecraft's json format.
  * Legacy is <b>not supported</b>.
  */

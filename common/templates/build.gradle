@@ -1,4 +1,3 @@
 dependencies {
     api project(':common')
-    api project(':common:common-templates')
 }

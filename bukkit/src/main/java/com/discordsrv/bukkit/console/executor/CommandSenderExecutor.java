@@ -16,19 +16,24 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package com.discordsrv.common.console;
+package com.discordsrv.bukkit.console.executor;
 
-import com.discordsrv.common.command.game.executor.CommandExecutorProvider;
-import com.discordsrv.common.command.game.sender.ICommandSender;
-import com.discordsrv.common.logging.backend.LoggingBackend;
+import com.discordsrv.bukkit.BukkitDiscordSRV;
+import com.discordsrv.common.command.game.executor.CommandExecutor;
+import org.bukkit.command.CommandSender;
 
-public interface Console extends ICommandSender {
+public class CommandSenderExecutor implements CommandExecutor {
 
-    /**
-     * Gets the logging backend for the server/proxy.
-     * @return the {@link LoggingBackend}
-     */
-    LoggingBackend loggingBackend();
+    private final BukkitDiscordSRV discordSRV;
+    private final CommandSender commandSender;
 
-    CommandExecutorProvider commandExecutorProvider();
+    public CommandSenderExecutor(BukkitDiscordSRV discordSRV, CommandSender commandSender) {
+        this.discordSRV = discordSRV;
+        this.commandSender = commandSender;
+    }
+
+    @Override
+    public void runCommand(String command) {
+        discordSRV.scheduler().runOnMainThread(() -> discordSRV.server().dispatchCommand(commandSender, command));
+    }
 }

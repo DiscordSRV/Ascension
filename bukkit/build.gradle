@@ -35,8 +35,9 @@ allprojects {
             }
             filter {
                 includeGroup 'com.destroystokyo.paper'
-                includeGroup 'io.papermc'
+                includeGroup 'io.papermc.paper'
                 includeGroup 'org.spigotmc'
+                includeGroup 'net.md-5'
             }
         }
 

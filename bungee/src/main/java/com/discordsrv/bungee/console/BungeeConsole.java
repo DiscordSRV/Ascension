@@ -20,6 +20,8 @@ package com.discordsrv.bungee.console;
 
 import com.discordsrv.bungee.BungeeDiscordSRV;
 import com.discordsrv.bungee.command.game.sender.BungeeCommandSender;
+import com.discordsrv.bungee.console.executor.BungeeCommandExecutorProvider;
+import com.discordsrv.common.command.game.executor.CommandExecutorProvider;
 import com.discordsrv.common.console.Console;
 import com.discordsrv.common.logging.backend.LoggingBackend;
 import com.discordsrv.common.logging.backend.impl.JavaLoggerImpl;
@@ -27,14 +29,21 @@ import com.discordsrv.common.logging.backend.impl.JavaLoggerImpl;
 public class BungeeConsole extends BungeeCommandSender implements Console {
 
     private final LoggingBackend loggingBackend;
+    private final BungeeCommandExecutorProvider executorProvider;
 
     public BungeeConsole(BungeeDiscordSRV discordSRV) {
         super(discordSRV, discordSRV.proxy().getConsole(), () -> discordSRV.audiences().console());
         this.loggingBackend = JavaLoggerImpl.getRoot();
+        this.executorProvider = new BungeeCommandExecutorProvider(discordSRV);
     }
 
     @Override
     public LoggingBackend loggingBackend() {
         return loggingBackend;
+    }
+
+    @Override
+    public CommandExecutorProvider commandExecutorProvider() {
+        return executorProvider;
     }
 }

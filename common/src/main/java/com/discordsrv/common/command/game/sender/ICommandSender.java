@@ -18,13 +18,14 @@
 
 package com.discordsrv.common.command.game.sender;
 
+import com.discordsrv.common.command.game.executor.CommandExecutor;
 import net.kyori.adventure.audience.ForwardingAudience;
 import net.kyori.adventure.audience.MessageType;
 import net.kyori.adventure.identity.Identity;
 import net.kyori.adventure.text.Component;
 import org.jetbrains.annotations.NotNull;
 
-public interface ICommandSender extends ForwardingAudience.Single {
+public interface ICommandSender extends ForwardingAudience.Single, CommandExecutor {
 
     /**
      * Sends a message to this {@link ICommandSender} with {@link Identity#nil()}.
@@ -44,6 +45,5 @@ public interface ICommandSender extends ForwardingAudience.Single {
     }
 
     boolean hasPermission(String permission);
-    void runCommand(String command);
 
 }

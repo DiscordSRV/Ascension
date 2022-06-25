@@ -16,19 +16,25 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package com.discordsrv.common.console;
+package com.discordsrv.bungee.console.executor;
 
+import com.discordsrv.bungee.BungeeDiscordSRV;
+import com.discordsrv.common.command.game.executor.CommandExecutor;
 import com.discordsrv.common.command.game.executor.CommandExecutorProvider;
-import com.discordsrv.common.command.game.sender.ICommandSender;
-import com.discordsrv.common.logging.backend.LoggingBackend;
+import net.kyori.adventure.text.Component;
 
-public interface Console extends ICommandSender {
+import java.util.function.Consumer;
 
-    /**
-     * Gets the logging backend for the server/proxy.
-     * @return the {@link LoggingBackend}
-     */
-    LoggingBackend loggingBackend();
+public class BungeeCommandExecutorProvider implements CommandExecutorProvider {
 
-    CommandExecutorProvider commandExecutorProvider();
+    private final BungeeDiscordSRV discordSRV;
+
+    public BungeeCommandExecutorProvider(BungeeDiscordSRV discordSRV) {
+        this.discordSRV = discordSRV;
+    }
+
+    @Override
+    public CommandExecutor getConsoleExecutor(Consumer<Component> componentConsumer) {
+        return new BungeeCommandExecutor(discordSRV, componentConsumer);
+    }
 }

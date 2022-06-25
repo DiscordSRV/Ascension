@@ -18,23 +18,32 @@
 
 package com.discordsrv.velocity.console;
 
+import com.discordsrv.common.command.game.executor.CommandExecutorProvider;
 import com.discordsrv.common.console.Console;
 import com.discordsrv.common.logging.backend.LoggingBackend;
 import com.discordsrv.common.logging.backend.impl.Log4JLoggerImpl;
 import com.discordsrv.velocity.VelocityDiscordSRV;
 import com.discordsrv.velocity.command.game.sender.VelocityCommandSender;
+import com.discordsrv.velocity.console.executor.VelocityCommandExecutorProvider;
 
 public class VelocityConsole extends VelocityCommandSender implements Console {
 
     private final LoggingBackend loggingBackend;
+    private final VelocityCommandExecutorProvider executorProvider;
 
     public VelocityConsole(VelocityDiscordSRV discordSRV) {
         super(discordSRV, discordSRV.proxy().getConsoleCommandSource());
         this.loggingBackend = Log4JLoggerImpl.getRoot();
+        this.executorProvider = new VelocityCommandExecutorProvider(discordSRV);
     }
 
     @Override
     public LoggingBackend loggingBackend() {
         return loggingBackend;
+    }
+
+    @Override
+    public CommandExecutorProvider commandExecutorProvider() {
+        return executorProvider;
     }
 }

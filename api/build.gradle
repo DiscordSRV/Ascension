@@ -36,6 +36,9 @@ java {
     withJavadocJar()
 }
 
+// Fix template source set not being depended on/other tasks not depending on template source set
+sourcesJar { dependsOn compileTemplateJava }
+
 jar {
     from sourceSets.ap.output
 }
