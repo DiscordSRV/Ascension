@@ -21,17 +21,19 @@
  * SOFTWARE.
  */
 
-package com.discordsrv.api.discord.entity.component;
+package com.discordsrv.api.discord.entity.component.impl;
 
+import com.discordsrv.api.discord.entity.component.ComponentIdentifier;
+import com.discordsrv.api.discord.entity.component.ModalComponent;
 import net.dv8tion.jda.api.interactions.components.ItemComponent;
 import net.dv8tion.jda.api.interactions.components.text.TextInputStyle;
-
-import java.util.UUID;
+import org.jetbrains.annotations.NotNull;
 
 public class TextInput implements ModalComponent {
 
-    public static Builder builder(String label, Style style) {
-        return new Builder(label, style);
+    @NotNull
+    public static Builder builder(@NotNull ComponentIdentifier id, @NotNull String label, @NotNull Style style) {
+        return new Builder(id.getDiscordIdentifier(), label, style);
     }
 
     private final String id;
@@ -43,8 +45,17 @@ public class TextInput implements ModalComponent {
     private final boolean required;
     private final String defaultValue;
 
-    public TextInput(String label, Style style, int minLength, int maxLength, String placeholder, boolean required, String defaultValue) {
-        this.id = UUID.randomUUID().toString();
+    public TextInput(
+            String id,
+            String label,
+            Style style,
+            int minLength,
+            int maxLength,
+            String placeholder,
+            boolean required,
+            String defaultValue
+    ) {
+        this.id = id;
         this.label = label;
         this.style = style;
         this.minLength = minLength;
@@ -97,6 +108,7 @@ public class TextInput implements ModalComponent {
 
     public static class Builder {
 
+        private final String id;
         private final String label;
         private final Style style;
         private int minLength = 0;
@@ -105,17 +117,10 @@ public class TextInput implements ModalComponent {
         private boolean required = true;
         private String defaultValue;
 
-        private Builder(String label, Style style) {
+        private Builder(String id, String label, Style style) {
+            this.id = id;
             this.label = label;
             this.style = style;
-        }
-
-        public String getLabel() {
-            return label;
-        }
-
-        public Style getStyle() {
-            return style;
         }
 
         public Builder setMinLength(int minLength) {
@@ -123,17 +128,9 @@ public class TextInput implements ModalComponent {
             return this;
         }
 
-        public int getMinLength() {
-            return minLength;
-        }
-
         public Builder setMaxLength(int maxLength) {
             this.maxLength = maxLength;
             return this;
-        }
-
-        public int getMaxLength() {
-            return maxLength;
         }
 
         public Builder setPlaceholder(String placeholder) {
@@ -141,25 +138,26 @@ public class TextInput implements ModalComponent {
             return this;
         }
 
-        public String getPlaceholder() {
-            return placeholder;
-        }
-
         public Builder setRequired(boolean required) {
             this.required = required;
             return this;
-        }
-
-        public boolean isRequired() {
-            return required;
         }
 
         public void setDefaultValue(String defaultValue) {
             this.defaultValue = defaultValue;
         }
 
-        public String getDefaultValue() {
-            return defaultValue;
+        public TextInput build() {
+            return new TextInput(
+                    id,
+                    label,
+                    style,
+                    minLength,
+                    maxLength,
+                    placeholder,
+                    required,
+                    defaultValue
+            );
         }
     }
 

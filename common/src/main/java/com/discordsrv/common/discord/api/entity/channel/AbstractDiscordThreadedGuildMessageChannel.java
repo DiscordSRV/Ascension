@@ -35,7 +35,7 @@ import java.util.concurrent.CompletableFuture;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
-public class AbstractDiscordThreadedGuildMessageChannel<T extends GuildMessageChannel & IThreadContainer>
+public abstract class AbstractDiscordThreadedGuildMessageChannel<T extends GuildMessageChannel & IThreadContainer>
         extends AbstractDiscordGuildMessageChannel<T>
         implements DiscordGuildMessageChannel, DiscordThreadContainer {
 

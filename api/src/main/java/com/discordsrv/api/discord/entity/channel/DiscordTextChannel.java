@@ -39,4 +39,8 @@ public interface DiscordTextChannel extends DiscordGuildMessageChannel, DiscordT
     @Nullable
     String getTopic();
 
+    @Override
+    default DiscordChannelType getType() {
+        return DiscordChannelType.TEXT;
+    }
 }

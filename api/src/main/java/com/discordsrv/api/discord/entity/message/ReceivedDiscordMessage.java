@@ -31,6 +31,7 @@ import com.discordsrv.api.discord.entity.channel.DiscordTextChannel;
 import com.discordsrv.api.discord.entity.guild.DiscordGuild;
 import com.discordsrv.api.discord.entity.guild.DiscordGuildMember;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Unmodifiable;
 
 import java.util.List;
 import java.util.Optional;
@@ -39,7 +40,28 @@ import java.util.concurrent.CompletableFuture;
 /**
  * A message received from Discord.
  */
-public interface ReceivedDiscordMessage extends SendableDiscordMessage, Snowflake {
+public interface ReceivedDiscordMessage extends Snowflake {
+
+    /**
+     * Gets the content of this message.
+     * @return the message content
+     */
+    @NotNull
+    String getContent();
+
+    /**
+     * Gets the embeds of this message.
+     * @return the message embeds
+     */
+    @NotNull
+    @Unmodifiable
+    List<DiscordMessageEmbed> getEmbeds();
+
+    /**
+     * Returns {@code true} if this is a webhook message, {@link #getAuthor()} to get webhook username or avatar url.
+     * @return {@code true} if this is a webhook message
+     */
+    boolean isWebhookMessage();
 
     /**
      * Gets the URL to jump to this message.

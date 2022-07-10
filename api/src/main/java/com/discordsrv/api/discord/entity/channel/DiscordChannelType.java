@@ -21,14 +21,36 @@
  * SOFTWARE.
  */
 
-package com.discordsrv.api.discord.entity.guild;
+package com.discordsrv.api.discord.entity.channel;
 
 import com.discordsrv.api.discord.entity.JDAEntity;
-import com.discordsrv.api.discord.entity.Snowflake;
-import net.dv8tion.jda.api.entities.Emote;
+import net.dv8tion.jda.api.entities.ChannelType;
 
-public interface DiscordEmote extends JDAEntity<Emote>, Snowflake {
+/**
+ * Represents a Discord channel type.
+ */
+public enum DiscordChannelType implements JDAEntity<ChannelType> {
 
-    String getName();
+    TEXT(ChannelType.TEXT),
+    PRIVATE(ChannelType.PRIVATE),
+    VOICE(ChannelType.VOICE),
+    GROUP(ChannelType.GROUP),
+    CATEGORY(ChannelType.CATEGORY),
+    NEWS(ChannelType.NEWS),
+    STAGE(ChannelType.STAGE),
+    GUILD_NEWS_THREAD(ChannelType.GUILD_NEWS_THREAD),
+    GUILD_PUBLIC_THREAD(ChannelType.GUILD_PUBLIC_THREAD),
+    GUILD_PRIVATE_THREAD(ChannelType.GUILD_PRIVATE_THREAD),
+    ;
 
+    private final ChannelType jda;
+
+    DiscordChannelType(ChannelType jda) {
+        this.jda = jda;
+    }
+
+    @Override
+    public ChannelType asJDA() {
+        return jda;
+    }
 }

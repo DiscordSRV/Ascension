@@ -21,10 +21,9 @@
  * SOFTWARE.
  */
 
-package com.discordsrv.api.discord.entity.component;
+package com.discordsrv.api.discord.entity;
 
-import com.discordsrv.api.discord.entity.DiscordUser;
-import com.discordsrv.api.discord.entity.JDAEntity;
+import com.discordsrv.api.discord.entity.component.impl.Modal;
 import com.discordsrv.api.discord.entity.message.ReceivedDiscordMessage;
 import com.discordsrv.api.discord.entity.message.SendableDiscordMessage;
 import net.dv8tion.jda.api.interactions.InteractionHook;

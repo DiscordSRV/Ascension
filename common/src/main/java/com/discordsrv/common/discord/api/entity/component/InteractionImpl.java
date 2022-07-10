@@ -19,8 +19,8 @@
 package com.discordsrv.common.discord.api.entity.component;
 
 import com.discordsrv.api.discord.entity.DiscordUser;
-import com.discordsrv.api.discord.entity.component.Interaction;
-import com.discordsrv.api.discord.entity.component.Modal;
+import com.discordsrv.api.discord.entity.Interaction;
+import com.discordsrv.api.discord.entity.component.impl.Modal;
 import com.discordsrv.api.discord.entity.message.ReceivedDiscordMessage;
 import com.discordsrv.api.discord.entity.message.SendableDiscordMessage;
 import com.discordsrv.common.DiscordSRV;

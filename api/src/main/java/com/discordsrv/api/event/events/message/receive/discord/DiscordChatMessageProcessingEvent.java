@@ -42,7 +42,7 @@ public class DiscordChatMessageProcessingEvent implements Cancellable, Processab
 
     public DiscordChatMessageProcessingEvent(@NotNull ReceivedDiscordMessage discordMessage, @NotNull DiscordMessageChannel channel) {
         this.discordMessage = discordMessage;
-        this.messageContent = discordMessage.getContent().orElse(null);
+        this.messageContent = discordMessage.getContent();
         this.channel = channel;
         if (!(channel instanceof DiscordTextChannel) && !(channel instanceof DiscordThreadChannel)) {
             throw new IllegalStateException("Cannot process messages that aren't from a text channel or thread");

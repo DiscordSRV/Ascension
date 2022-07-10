@@ -41,6 +41,12 @@ import java.util.concurrent.CompletableFuture;
 public interface DiscordMessageChannel extends Snowflake {
 
     /**
+     * Returns the type of channel this is.
+     * @return the type of the channel
+     */
+    DiscordChannelType getType();
+
+    /**
      * Sends the provided message to the channel.
      *
      * @param message the message to send to the channel

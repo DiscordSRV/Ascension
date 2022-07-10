@@ -21,20 +21,22 @@
  * SOFTWARE.
  */
 
-package com.discordsrv.api.discord.entity.component;
+package com.discordsrv.api.discord.entity.component.impl;
 
 import com.discordsrv.api.discord.entity.JDAEntity;
+import com.discordsrv.api.discord.entity.component.ComponentIdentifier;
 import com.discordsrv.api.discord.entity.component.actionrow.ActionRow;
 import com.discordsrv.api.discord.entity.component.actionrow.ModalActionRow;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Unmodifiable;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 import java.util.stream.Collectors;
 
 /**
  * A Discord modal.
- * @see #builder(String)
+ * @see #builder(ComponentIdentifier, String)
  */
 public class Modal implements JDAEntity<net.dv8tion.jda.api.interactions.components.Modal> {
 
@@ -43,16 +45,17 @@ public class Modal implements JDAEntity<net.dv8tion.jda.api.interactions.compone
      * @param title the title of the modal
      * @return a new modal builder
      */
-    public static Builder builder(String title) {
-        return new Builder(title);
+    @NotNull
+    public static Builder builder(@NotNull ComponentIdentifier id, @NotNull String title) {
+        return new Builder(id.getDiscordIdentifier(), title);
     }
 
     private final String id;
     private final String title;
     private final List<ModalActionRow> rows;
 
-    private Modal(String title, List<ModalActionRow> rows) {
-        this.id = UUID.randomUUID().toString();
+    private Modal(String id, String title, List<ModalActionRow> rows) {
+        this.id = id;
         this.title = title;
         this.rows = rows;
     }
@@ -79,10 +82,12 @@ public class Modal implements JDAEntity<net.dv8tion.jda.api.interactions.compone
 
     private static class Builder {
 
+        private final String id;
         private final String title;
         private final List<ModalActionRow> rows = new ArrayList<>();
 
-        public Builder(String title) {
+        public Builder(String id, String title) {
+            this.id = id;
             this.title = title;
         }
 
@@ -108,18 +113,12 @@ public class Modal implements JDAEntity<net.dv8tion.jda.api.interactions.compone
             return this;
         }
 
-        @NotNull
-        @Unmodifiable
-        public List<ModalActionRow> getRows() {
-            return Collections.unmodifiableList(rows);
-        }
-
         /**
          * Builds the modal.
          * @return a new modal
          */
         public Modal build() {
-            return new Modal(title, rows);
+            return new Modal(id, title, rows);
         }
     }
 }

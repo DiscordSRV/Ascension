@@ -40,4 +40,8 @@ public interface DiscordDMChannel extends DiscordMessageChannel, JDAEntity<Priva
     @Nullable
     DiscordUser getUser();
 
+    @Override
+    default DiscordChannelType getType() {
+        return DiscordChannelType.PRIVATE;
+    }
 }

@@ -22,7 +22,6 @@ import club.minnced.discord.webhook.WebhookClient;
 import club.minnced.discord.webhook.receive.ReadonlyAttachment;
 import club.minnced.discord.webhook.receive.ReadonlyEmbed;
 import club.minnced.discord.webhook.receive.ReadonlyMessage;
-import club.minnced.discord.webhook.receive.ReadonlyUser;
 import club.minnced.discord.webhook.send.WebhookEmbed;
 import com.discordsrv.api.color.Color;
 import com.discordsrv.api.discord.entity.DiscordUser;
@@ -34,7 +33,6 @@ import com.discordsrv.api.discord.entity.guild.DiscordGuildMember;
 import com.discordsrv.api.discord.entity.message.DiscordMessageEmbed;
 import com.discordsrv.api.discord.entity.message.ReceivedDiscordMessage;
 import com.discordsrv.api.discord.entity.message.SendableDiscordMessage;
-import com.discordsrv.api.discord.entity.message.impl.SendableDiscordMessageImpl;
 import com.discordsrv.api.discord.exception.RestErrorResponseException;
 import com.discordsrv.api.placeholder.annotation.Placeholder;
 import com.discordsrv.api.placeholder.annotation.PlaceholderRemainder;
@@ -49,18 +47,17 @@ import com.discordsrv.common.future.util.CompletableFutureUtil;
 import net.dv8tion.jda.api.entities.Member;
 import net.dv8tion.jda.api.entities.Message;
 import net.dv8tion.jda.api.entities.MessageEmbed;
-import net.dv8tion.jda.api.entities.User;
 import net.dv8tion.jda.api.requests.ErrorResponse;
 import net.kyori.adventure.text.Component;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Unmodifiable;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 
-public class ReceivedDiscordMessageImpl extends SendableDiscordMessageImpl implements ReceivedDiscordMessage {
+public class ReceivedDiscordMessageImpl implements ReceivedDiscordMessage {
 
     public static ReceivedDiscordMessage fromJDA(DiscordSRV discordSRV, Message message) {
         List<DiscordMessageEmbed> mappedEmbeds = new ArrayList<>();
@@ -69,9 +66,6 @@ public class ReceivedDiscordMessageImpl extends SendableDiscordMessageImpl imple
         }
 
         boolean webhookMessage = message.isWebhookMessage();
-        String webhookUsername = webhookMessage ? message.getAuthor().getName() : null;
-        String webhookAvatarUrl = webhookMessage ? message.getAuthor().getEffectiveAvatarUrl() : null;
-
         DiscordMessageChannel channel = AbstractDiscordMessageChannel.get(discordSRV, message.getChannel());
         DiscordUser user = new DiscordUserImpl(discordSRV, message.getAuthor());
 
@@ -118,8 +112,7 @@ public class ReceivedDiscordMessageImpl extends SendableDiscordMessageImpl imple
                 message.getIdLong(),
                 message.getContentRaw(),
                 mappedEmbeds,
-                webhookUsername,
-                webhookAvatarUrl
+                webhookMessage
         );
     }
 
@@ -155,13 +148,6 @@ public class ReceivedDiscordMessageImpl extends SendableDiscordMessageImpl imple
             ));
         }
 
-        ReadonlyUser author = webhookMessage.getAuthor();
-        String authorId = Long.toUnsignedString(author.getId());
-        String avatarId = author.getAvatarId();
-        String avatarUrl = avatarId != null
-                ? String.format(User.AVATAR_URL, authorId, avatarId, avatarId.startsWith("a_") ? "gif" : "png")
-                : String.format(User.DEFAULT_AVATAR_URL, Integer.parseInt(author.getDiscriminator()) % 5);
-
         DiscordMessageChannel channel = discordSRV.discordAPI().getMessageChannelById(
                 webhookMessage.getChannelId()).orElse(null);
         DiscordUser user = discordSRV.discordAPI().getUserById(
@@ -191,8 +177,7 @@ public class ReceivedDiscordMessageImpl extends SendableDiscordMessageImpl imple
                 webhookMessage.getId(),
                 webhookMessage.getContent(),
                 mappedEmbeds,
-                author.getName(),
-                avatarUrl
+                true
         );
     }
 
@@ -203,6 +188,9 @@ public class ReceivedDiscordMessageImpl extends SendableDiscordMessageImpl imple
     private final ReceivedDiscordMessage replyingTo;
     private final DiscordGuildMember member;
     private final DiscordUser author;
+    private final String content;
+    private final List<DiscordMessageEmbed> embeds;
+    private final boolean webhookMessage;
     private final long channelId;
     private final long id;
 
@@ -218,10 +206,8 @@ public class ReceivedDiscordMessageImpl extends SendableDiscordMessageImpl imple
             long id,
             String content,
             List<DiscordMessageEmbed> embeds,
-            String webhookUsername,
-            String webhookAvatarUrl
+            boolean webhookMessage
     ) {
-        super(content, embeds, Collections.emptySet(), webhookUsername, webhookAvatarUrl);
         this.discordSRV = discordSRV;
         this.attachments = attachments;
         this.fromSelf = fromSelf;
@@ -229,6 +215,9 @@ public class ReceivedDiscordMessageImpl extends SendableDiscordMessageImpl imple
         this.replyingTo = replyingTo;
         this.member = member;
         this.author = author;
+        this.content = content;
+        this.embeds = embeds;
+        this.webhookMessage = webhookMessage;
         this.channelId = channelId;
         this.id = id;
     }
@@ -236,6 +225,21 @@ public class ReceivedDiscordMessageImpl extends SendableDiscordMessageImpl imple
     @Override
     public long getId() {
         return id;
+    }
+
+    @Override
+    public @NotNull String getContent() {
+        return content;
+    }
+
+    @Override
+    public @NotNull @Unmodifiable List<DiscordMessageEmbed> getEmbeds() {
+        return embeds;
+    }
+
+    @Override
+    public boolean isWebhookMessage() {
+        return webhookMessage;
     }
 
     @Override
@@ -299,12 +303,12 @@ public class ReceivedDiscordMessageImpl extends SendableDiscordMessageImpl imple
             return CompletableFutureUtil.failed(new RestErrorResponseException(ErrorResponse.UNKNOWN_CHANNEL));
         }
 
-        return textChannel.deleteMessageById(getId(), fromSelf && getWebhookUsername().isPresent());
+        return textChannel.deleteMessageById(getId(), fromSelf && webhookMessage);
     }
 
     @Override
     public @NotNull CompletableFuture<ReceivedDiscordMessage> edit(SendableDiscordMessage message) {
-        if (!isWebhookMessage() && message.isWebhookMessage()) {
+        if (!webhookMessage && message.isWebhookMessage()) {
             throw new IllegalArgumentException("Cannot edit a non-webhook message into a webhook message");
         }
 

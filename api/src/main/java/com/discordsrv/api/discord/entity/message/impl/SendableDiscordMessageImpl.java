@@ -24,6 +24,7 @@
 package com.discordsrv.api.discord.entity.message.impl;
 
 import com.discordsrv.api.DiscordSRVApi;
+import com.discordsrv.api.discord.entity.component.actionrow.MessageActionRow;
 import com.discordsrv.api.discord.entity.message.AllowedMention;
 import com.discordsrv.api.discord.entity.message.DiscordMessageEmbed;
 import com.discordsrv.api.discord.entity.message.SendableDiscordMessage;
@@ -44,21 +45,23 @@ public class SendableDiscordMessageImpl implements SendableDiscordMessage {
 
     private final String content;
     private final List<DiscordMessageEmbed> embeds;
+    private final List<MessageActionRow> actionRows;
     private final Set<AllowedMention> allowedMentions;
     private final String webhookUsername;
     private final String webhookAvatarUrl;
 
-
     protected SendableDiscordMessageImpl(
             String content,
             List<DiscordMessageEmbed> embeds,
+            List<MessageActionRow> actionRows,
             Set<AllowedMention> allowedMentions,
             String webhookUsername,
             String webhookAvatarUrl
     ) {
         this.content = content;
-        this.embeds = embeds;
-        this.allowedMentions = allowedMentions;
+        this.embeds = Collections.unmodifiableList(embeds);
+        this.actionRows = Collections.unmodifiableList(actionRows);
+        this.allowedMentions = Collections.unmodifiableSet(allowedMentions);
         this.webhookUsername = webhookUsername;
         this.webhookAvatarUrl = webhookAvatarUrl;
     }
@@ -71,6 +74,12 @@ public class SendableDiscordMessageImpl implements SendableDiscordMessage {
     @Override
     public @NotNull List<DiscordMessageEmbed> getEmbeds() {
         return embeds;
+    }
+
+    @NotNull
+    @Override
+    public List<MessageActionRow> getActionRows() {
+        return actionRows;
     }
 
     @Override
@@ -92,6 +101,7 @@ public class SendableDiscordMessageImpl implements SendableDiscordMessage {
 
         private String content;
         private final List<DiscordMessageEmbed> embeds = new ArrayList<>();
+        private final List<MessageActionRow> actionRows = new ArrayList<>();
         private final Set<AllowedMention> allowedMentions = new LinkedHashSet<>();
         private String webhookUsername;
         private String webhookAvatarUrl;
@@ -109,7 +119,7 @@ public class SendableDiscordMessageImpl implements SendableDiscordMessage {
 
         @Override
         public @NotNull List<DiscordMessageEmbed> getEmbeds() {
-            return embeds;
+            return Collections.unmodifiableList(embeds);
         }
 
         @Override
@@ -121,6 +131,30 @@ public class SendableDiscordMessageImpl implements SendableDiscordMessage {
         @Override
         public @NotNull Builder removeEmbed(DiscordMessageEmbed embed) {
             this.embeds.remove(embed);
+            return this;
+        }
+
+        @Override
+        public List<MessageActionRow> getActionRows() {
+            return actionRows;
+        }
+
+        @Override
+        public Builder setActionRows(MessageActionRow... rows) {
+            this.actionRows.clear();
+            this.actionRows.addAll(Arrays.asList(rows));
+            return this;
+        }
+
+        @Override
+        public Builder addActionRow(MessageActionRow row) {
+            this.actionRows.add(row);
+            return this;
+        }
+
+        @Override
+        public Builder removeActionRow(MessageActionRow row) {
+            this.actionRows.remove(row);
             return this;
         }
 
@@ -172,7 +206,7 @@ public class SendableDiscordMessageImpl implements SendableDiscordMessage {
 
         @Override
         public @NotNull SendableDiscordMessage build() {
-            return new SendableDiscordMessageImpl(content, embeds, allowedMentions, webhookUsername, webhookAvatarUrl);
+            return new SendableDiscordMessageImpl(content, embeds, actionRows, allowedMentions, webhookUsername, webhookAvatarUrl);
         }
 
         @Override

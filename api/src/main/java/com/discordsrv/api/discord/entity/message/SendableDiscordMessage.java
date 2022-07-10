@@ -24,9 +24,11 @@
 package com.discordsrv.api.discord.entity.message;
 
 import com.discordsrv.api.component.GameTextBuilder;
+import com.discordsrv.api.discord.entity.component.actionrow.MessageActionRow;
 import com.discordsrv.api.discord.entity.message.impl.SendableDiscordMessageImpl;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.jetbrains.annotations.Unmodifiable;
 
 import java.util.Collection;
 import java.util.List;
@@ -64,13 +66,23 @@ public interface SendableDiscordMessage {
      * @return the unmodifiable list of embeds in this message
      */
     @NotNull
+    @Unmodifiable
     List<DiscordMessageEmbed> getEmbeds();
 
     /**
-     * Gets the allowed mentions of the message.
-     * @return the allowed mentions in this message
+     * Gets the action rows.
+     * @return an unmodifiable list of action rows in this message
      */
     @NotNull
+    @Unmodifiable
+    List<MessageActionRow> getActionRows();
+
+    /**
+     * Gets the allowed mentions of the message.
+     * @return the unmodifiable list of allowed mentions in this message
+     */
+    @NotNull
+    @Unmodifiable
     Set<AllowedMention> getAllowedMentions();
 
     /**
@@ -135,6 +147,33 @@ public interface SendableDiscordMessage {
          */
         @NotNull
         Builder removeEmbed(DiscordMessageEmbed embed);
+
+        /**
+         * Gets the action rows for this builder.
+         * @return the action rows
+         */
+        List<MessageActionRow> getActionRows();
+
+        /**
+         * Sets the action rows for this builder.
+         * @param rows the action rows
+         * @return the builder, useful for chaining
+         */
+        Builder setActionRows(MessageActionRow... rows);
+
+        /**
+         * Adds an action row to this builder.
+         * @param row the action row
+         * @return the builder, useful for chaining
+         */
+        Builder addActionRow(MessageActionRow row);
+
+        /**
+         * Removes an action row from this builder.
+         * @param row the action row
+         * @return the builder, useful for chaining
+         */
+        Builder removeActionRow(MessageActionRow row);
 
         /**
          * Gets the allowed mentions in this builder.

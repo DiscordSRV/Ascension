@@ -21,10 +21,12 @@
  * SOFTWARE.
  */
 
-package com.discordsrv.api.discord.entity.component;
+package com.discordsrv.api.discord.entity.component.impl;
 
-import com.discordsrv.api.discord.entity.guild.DiscordEmote;
-import net.dv8tion.jda.api.entities.Emoji;
+import com.discordsrv.api.discord.entity.component.ComponentIdentifier;
+import com.discordsrv.api.discord.entity.component.MessageComponent;
+import com.discordsrv.api.discord.entity.guild.DiscordCustomEmoji;
+import net.dv8tion.jda.api.entities.emoji.Emoji;
 import net.dv8tion.jda.api.interactions.components.ItemComponent;
 import net.dv8tion.jda.api.interactions.components.buttons.ButtonStyle;
 import org.jetbrains.annotations.NotNull;
@@ -35,7 +37,8 @@ import java.util.UUID;
 
 /**
  * A Discord button.
- * @see #builder(Style)
+ * @see #builder(ComponentIdentifier, Style)
+ * @see #urlBuilder(String)
  */
 public class Button implements MessageComponent {
 
@@ -44,8 +47,19 @@ public class Button implements MessageComponent {
      * @param style the style of the button
      * @return a new button builder
      */
-    public static Builder builder(@NotNull Button.Style style) {
-        return new Builder(style);
+    @NotNull
+    public static Builder builder(@NotNull ComponentIdentifier id, @NotNull Button.Style style) {
+        return new Builder(id.getDiscordIdentifier(), style);
+    }
+
+    /**
+     * Creates a new Link button builder.
+     * @param url the link the button leads to
+     * @return a new button builder
+     */
+    @NotNull
+    public static Builder urlBuilder(@NotNull String url) {
+        return new Builder(null, Style.LINK).setUrl(url);
     }
 
     private final Style buttonStyle;
@@ -53,22 +67,20 @@ public class Button implements MessageComponent {
     private final String label;
     private final Emoji emoji;
     private final boolean disabled;
-    private final ClickHandler clickHandler;
 
     private Button(
+            String id,
             Style buttonStyle,
             String url,
             String label,
             Emoji emoji,
-            boolean disabled,
-            ClickHandler clickHandler
+            boolean disabled
     ) {
         this.buttonStyle = buttonStyle;
-        this.idOrUrl = buttonStyle == Style.LINK ? url : UUID.randomUUID().toString();
+        this.idOrUrl = buttonStyle == Style.LINK ? url : id;
         this.label = label;
         this.emoji = emoji;
         this.disabled = disabled;
-        this.clickHandler = clickHandler;
     }
 
     @NotNull
@@ -95,10 +107,6 @@ public class Button implements MessageComponent {
         return disabled;
     }
 
-    public ClickHandler getClickHandler() {
-        return clickHandler;
-    }
-
     @Override
     public ItemComponent asJDA() {
         return net.dv8tion.jda.api.interactions.components.buttons.Button.of(
@@ -111,20 +119,16 @@ public class Button implements MessageComponent {
 
     private static class Builder {
 
+        private final String id;
         private final Style style;
         private String url;
         private String label;
         private Emoji emoji;
         private boolean disabled;
-        private ClickHandler clickHandler;
 
-        private Builder(Style style) {
+        private Builder(String id, Style style) {
+            this.id = id;
             this.style = style;
-        }
-
-        @NotNull
-        public Style getStyle() {
-            return style;
         }
 
         /**
@@ -142,10 +146,6 @@ public class Button implements MessageComponent {
             return this;
         }
 
-        public String getUrl() {
-            return url;
-        }
-
         /**
          * Sets the text shown on this button.
          * @param label the text
@@ -155,10 +155,6 @@ public class Button implements MessageComponent {
         public Builder setLabel(String label) {
             this.label = label;
             return this;
-        }
-
-        public String getLabel() {
-            return label;
         }
 
         /**
@@ -178,13 +174,9 @@ public class Button implements MessageComponent {
          * @return this builder, useful for chaining
          */
         @NotNull
-        public Builder setEmoji(DiscordEmote emote) {
-            this.emoji = Emoji.fromEmote(emote.asJDA());
+        public Builder setEmoji(DiscordCustomEmoji emote) {
+            this.emoji = Emoji.fromCustom(emote.asJDA());
             return this;
-        }
-
-        public Emoji getEmoji() {
-            return emoji;
         }
 
         /**
@@ -198,28 +190,6 @@ public class Button implements MessageComponent {
             return this;
         }
 
-        public boolean isDisabled() {
-            return disabled;
-        }
-
-        /**
-         * Sets the click handler for this button, does not work if the style is {@link Style#LINK}.
-         * @param clickHandler the click handler
-         * @return this builder, useful for chaining
-         */
-        @NotNull
-        public Builder setClickHandler(ClickHandler clickHandler) {
-            if (style == Style.LINK) {
-                throw new IllegalStateException("Cannot set click handler for LINK type button, use setUrl instead");
-            }
-            this.clickHandler = clickHandler;
-            return this;
-        }
-
-        public ClickHandler getClickHandler() {
-            return clickHandler;
-        }
-
         /**
          * Creates the button.
          * @return a new button
@@ -229,12 +199,12 @@ public class Button implements MessageComponent {
                 throw new IllegalStateException("No style set");
             }
             return new Button(
+                    id,
                     style,
                     style == Style.LINK ? url : UUID.randomUUID().toString(),
                     label,
                     emoji,
-                    disabled,
-                    clickHandler
+                    disabled
             );
         }
     }
@@ -255,12 +225,5 @@ public class Button implements MessageComponent {
         public ButtonStyle getJDA() {
             return style;
         }
-    }
-
-    @FunctionalInterface
-    public interface ClickHandler {
-
-        void onClick(Interaction interaction);
-
     }
 }

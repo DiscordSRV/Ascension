@@ -269,8 +269,7 @@ public class DiscordMessageMirroringModule extends AbstractModule<DiscordSRV> {
 
         ReceivedDiscordMessage replyMessage = message.getReplyingTo().orElse(null);
         String content = message.getContent()
-                .map(c -> c.replace("[", "\\[")) // Block markdown urls
-                .orElse("");
+                .replace("[", "\\["); // Block markdown urls
 
         if (replyMessage != null) {
             MessageReference matchingReference = null;

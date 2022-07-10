@@ -21,21 +21,22 @@
  * SOFTWARE.
  */
 
-package com.discordsrv.api.discord.entity.component;
+package com.discordsrv.api.discord.entity.component.impl;
 
-import com.discordsrv.api.discord.entity.guild.DiscordEmote;
-import net.dv8tion.jda.api.entities.Emoji;
+import com.discordsrv.api.discord.entity.component.ComponentIdentifier;
+import com.discordsrv.api.discord.entity.component.MessageComponent;
+import com.discordsrv.api.discord.entity.guild.DiscordCustomEmoji;
+import net.dv8tion.jda.api.entities.emoji.Emoji;
 import net.dv8tion.jda.api.interactions.components.ItemComponent;
 import net.dv8tion.jda.api.interactions.components.selections.SelectOption;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Unmodifiable;
 
 import javax.annotation.CheckReturnValue;
 import java.util.*;
 
 /**
  * A Discord selection menu.
- * @see #builder()
+ * @see #builder(ComponentIdentifier)
  */
 public class SelectMenu implements MessageComponent {
 
@@ -43,8 +44,8 @@ public class SelectMenu implements MessageComponent {
      * Creates a selection menu builder.
      * @return a new builder
      */
-    public static Builder builder() {
-        return new Builder();
+    public static Builder builder(@NotNull ComponentIdentifier id) {
+        return new Builder(id.getDiscordIdentifier());
     }
 
     private final String id;
@@ -53,16 +54,14 @@ public class SelectMenu implements MessageComponent {
     private final String placeholder;
     private final int minValues;
     private final int maxValues;
-    private final SelectHandler handler;
 
-    private SelectMenu(List<Option> options, boolean disabled, String placeholder, int minValues, int maxValues, SelectHandler handler) {
-        this.id = UUID.randomUUID().toString();
+    private SelectMenu(String id, List<Option> options, boolean disabled, String placeholder, int minValues, int maxValues) {
+        this.id = id;
         this.options = options;
         this.disabled = disabled;
         this.placeholder = placeholder;
         this.minValues = minValues;
         this.maxValues = maxValues;
-        this.handler = handler;
     }
 
     @Override
@@ -166,8 +165,8 @@ public class SelectMenu implements MessageComponent {
          * @return a new option
          */
         @CheckReturnValue
-        public Option withEmoji(DiscordEmote emote) {
-            return new Option(label, value, description, Emoji.fromEmote(emote.asJDA()), defaultSelected);
+        public Option withEmoji(DiscordCustomEmoji emote) {
+            return new Option(label, value, description, Emoji.fromCustom(emote.asJDA()), defaultSelected);
         }
 
         /**
@@ -183,12 +182,16 @@ public class SelectMenu implements MessageComponent {
 
     private static class Builder {
 
+        private final String id;
         private final List<Option> options = new ArrayList<>();
         private boolean disabled = false;
         private String placeholder;
         private int minValues = 0;
         private int maxValues = 1;
-        private SelectHandler handler;
+
+        public Builder(String id) {
+            this.id = id;
+        }
 
         /**
          * Adds an option to this selection menu.
@@ -213,12 +216,6 @@ public class SelectMenu implements MessageComponent {
             return this;
         }
 
-        @NotNull
-        @Unmodifiable
-        public List<Option> getOptions() {
-            return Collections.unmodifiableList(options);
-        }
-
         /**
          * Sets if this selection menu should be disabled. Default is {@code false}.
          * @param disabled if this selection menu should be disabled
@@ -228,10 +225,6 @@ public class SelectMenu implements MessageComponent {
         public Builder setDisabled(boolean disabled) {
             this.disabled = disabled;
             return this;
-        }
-
-        public boolean isDisabled() {
-            return disabled;
         }
 
         /**
@@ -244,10 +237,6 @@ public class SelectMenu implements MessageComponent {
             return this;
         }
 
-        public String getPlaceholder() {
-            return placeholder;
-        }
-
         /**
          * Sets the minimum amount of values to select. The default is {@code 0}.
          * @param minValues the minimum value amount
@@ -256,10 +245,6 @@ public class SelectMenu implements MessageComponent {
         public Builder setMinValues(int minValues) {
             this.minValues = minValues;
             return this;
-        }
-
-        public int getMinValues() {
-            return minValues;
         }
 
         /**
@@ -272,36 +257,12 @@ public class SelectMenu implements MessageComponent {
             return this;
         }
 
-        public int getMaxValues() {
-            return maxValues;
-        }
-
-        /**
-         * Sets the handler for selection changes.
-         * @param handler the handler
-         * @return this builder, useful for chaining
-         */
-        @NotNull
-        public Builder setHandler(SelectHandler handler) {
-            this.handler = handler;
-            return this;
-        }
-
-        public SelectHandler getHandler() {
-            return handler;
-        }
-
         /**
          * Builds the selection menu.
          * @return a new selection menu
          */
         public SelectMenu build() {
-            return new SelectMenu(options, disabled, placeholder, minValues, maxValues, handler);
+            return new SelectMenu(id, options, disabled, placeholder, minValues, maxValues);
         }
-    }
-
-    @FunctionalInterface
-    public interface SelectHandler {
-        void onSelect(Interaction interaction);
     }
 }

@@ -19,11 +19,13 @@
 package com.discordsrv.common.discord.api.entity.channel;
 
 import club.minnced.discord.webhook.WebhookClient;
+import com.discordsrv.api.discord.entity.channel.DiscordChannelType;
 import com.discordsrv.api.discord.entity.channel.DiscordTextChannel;
 import com.discordsrv.api.discord.entity.channel.DiscordThreadChannel;
 import com.discordsrv.api.discord.entity.guild.DiscordGuild;
 import com.discordsrv.common.DiscordSRV;
 import com.discordsrv.common.discord.api.entity.guild.DiscordGuildImpl;
+import net.dv8tion.jda.api.entities.ChannelType;
 import net.dv8tion.jda.api.entities.IThreadContainer;
 import net.dv8tion.jda.api.entities.TextChannel;
 import net.dv8tion.jda.api.entities.ThreadChannel;
@@ -76,5 +78,16 @@ public class DiscordThreadChannelImpl extends AbstractDiscordGuildMessageChannel
     @Override
     public ThreadChannel asJDA() {
         return channel;
+    }
+
+    @Override
+    public DiscordChannelType getType() {
+        ChannelType type = channel.getType();
+        for (DiscordChannelType value : DiscordChannelType.values()) {
+            if (value.asJDA() == type) {
+                return value;
+            }
+        }
+        throw new IllegalStateException("Unknown channel type");
     }
 }
