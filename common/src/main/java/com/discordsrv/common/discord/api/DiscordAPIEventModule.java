@@ -23,10 +23,10 @@ import com.discordsrv.api.discord.entity.channel.DiscordMessageChannel;
 import com.discordsrv.api.discord.entity.guild.DiscordGuildMember;
 import com.discordsrv.api.discord.entity.interaction.DiscordInteractionHook;
 import com.discordsrv.api.discord.events.interaction.DiscordModalInteractionEvent;
+import com.discordsrv.api.discord.events.interaction.command.DiscordChatInputInteractionEvent;
 import com.discordsrv.api.discord.events.interaction.command.DiscordCommandAutoCompleteInteractionEvent;
 import com.discordsrv.api.discord.events.interaction.command.DiscordMessageContextInteractionEvent;
 import com.discordsrv.api.discord.events.interaction.command.DiscordUserContextInteractionEvent;
-import com.discordsrv.api.discord.events.interaction.command.DiscordChatInputInteractionEvent;
 import com.discordsrv.api.discord.events.interaction.component.DiscordButtonInteractionEvent;
 import com.discordsrv.api.discord.events.interaction.component.DiscordSelectMenuInteractionEvent;
 import com.discordsrv.api.discord.events.member.role.DiscordMemberRoleAddEvent;
@@ -55,7 +55,11 @@ import net.dv8tion.jda.api.events.message.MessageDeleteEvent;
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
 import net.dv8tion.jda.api.events.message.MessageUpdateEvent;
 import net.dv8tion.jda.api.interactions.callbacks.IDeferrableCallback;
+import net.dv8tion.jda.api.interactions.commands.Command;
 
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 public class DiscordAPIEventModule extends AbstractModule<DiscordSRV> {
@@ -126,8 +130,22 @@ public class DiscordAPIEventModule extends AbstractModule<DiscordSRV> {
         DiscordGuildMember guildMember = member != null ? api().getGuildMember(member) : null;
         DiscordMessageChannel channel = api().getMessageChannel(event.getMessageChannel());
         if (event instanceof CommandAutoCompleteInteractionEvent) {
-            discordSRV.eventBus().publish(new DiscordCommandAutoCompleteInteractionEvent(
-                    (CommandAutoCompleteInteractionEvent) event, user, guildMember, channel));
+            DiscordCommandAutoCompleteInteractionEvent autoComplete = new DiscordCommandAutoCompleteInteractionEvent(
+                    (CommandAutoCompleteInteractionEvent) event, user, guildMember, channel);
+            discordSRV.eventBus().publish(autoComplete);
+            List<Command.Choice> choices = new ArrayList<>();
+            for (Map.Entry<String, Object> entry : autoComplete.getChoices().entrySet()) {
+                String key = entry.getKey();
+                Object value = entry.getValue();
+                if (value instanceof String) {
+                    choices.add(new Command.Choice(key, (String) value));
+                } else if (value instanceof Double || value instanceof Float) {
+                    choices.add(new Command.Choice(key, ((Number) value).doubleValue()));
+                } else {
+                    choices.add(new Command.Choice(key, ((Number) value).longValue()));
+                }
+            }
+            ((CommandAutoCompleteInteractionEvent) event).replyChoices(choices).queue();
             return;
         }
 

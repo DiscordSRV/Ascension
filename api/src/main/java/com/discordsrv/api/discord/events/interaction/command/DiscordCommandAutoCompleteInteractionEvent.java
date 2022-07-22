@@ -29,7 +29,12 @@ import com.discordsrv.api.discord.entity.guild.DiscordGuildMember;
 import com.discordsrv.api.discord.events.interaction.AbstractInteractionEvent;
 import net.dv8tion.jda.api.events.interaction.command.CommandAutoCompleteInteractionEvent;
 
+import java.util.LinkedHashMap;
+import java.util.Map;
+
 public class DiscordCommandAutoCompleteInteractionEvent extends AbstractInteractionEvent<CommandAutoCompleteInteractionEvent> {
+
+    private final Map<String, Object> choices = new LinkedHashMap<>();
 
     public DiscordCommandAutoCompleteInteractionEvent(
             CommandAutoCompleteInteractionEvent jdaEvent,
@@ -38,5 +43,21 @@ public class DiscordCommandAutoCompleteInteractionEvent extends AbstractInteract
             DiscordMessageChannel channel
     ) {
         super(jdaEvent, user, member, channel);
+    }
+
+    public void addChoice(String key, String value) {
+        this.choices.put(key, value);
+    }
+
+    public void addChoice(String key, double value) {
+        this.choices.put(key, value);
+    }
+
+    public void addChoice(String key, long value) {
+        this.choices.put(key, value);
+    }
+
+    public Map<String, Object> getChoices() {
+        return choices;
     }
 }
