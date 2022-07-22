@@ -23,7 +23,9 @@
 
 package com.discordsrv.api.discord.events;
 
+import com.discordsrv.api.discord.entity.JDAEntity;
 import com.discordsrv.api.event.events.Event;
+import net.dv8tion.jda.api.events.GenericEvent;
 
-public interface DiscordEvent extends Event {
+public interface DiscordEvent<T extends GenericEvent> extends Event, JDAEntity<T> {
 }

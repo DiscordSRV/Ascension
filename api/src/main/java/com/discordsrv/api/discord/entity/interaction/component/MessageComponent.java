@@ -21,22 +21,9 @@
  * SOFTWARE.
  */
 
-package com.discordsrv.api.discord.events.member;
+package com.discordsrv.api.discord.entity.interaction.component;
 
-import com.discordsrv.api.discord.entity.guild.DiscordGuildMember;
-import com.discordsrv.api.discord.events.AbstractDiscordEvent;
-import net.dv8tion.jda.api.events.guild.member.GenericGuildMemberEvent;
+import net.dv8tion.jda.api.interactions.components.ItemComponent;
 
-public abstract class AbstractDiscordMemberEvent<T extends GenericGuildMemberEvent> extends AbstractDiscordEvent<T> {
-
-    private final DiscordGuildMember member;
-
-    public AbstractDiscordMemberEvent(T jdaEvent, DiscordGuildMember member) {
-        super(jdaEvent);
-        this.member = member;
-    }
-
-    public DiscordGuildMember getMember() {
-        return member;
-    }
+public interface MessageComponent extends Component<ItemComponent> {
 }

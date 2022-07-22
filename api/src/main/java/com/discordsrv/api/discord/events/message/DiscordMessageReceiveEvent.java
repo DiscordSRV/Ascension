@@ -25,13 +25,14 @@ package com.discordsrv.api.discord.events.message;
 
 import com.discordsrv.api.discord.entity.channel.DiscordMessageChannel;
 import com.discordsrv.api.discord.entity.message.ReceivedDiscordMessage;
+import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
 
-public class DiscordMessageReceiveEvent extends AbstractDiscordMessageEvent {
+public class DiscordMessageReceiveEvent extends AbstractDiscordMessageEvent<MessageReceivedEvent> {
 
     private final ReceivedDiscordMessage message;
 
-    public DiscordMessageReceiveEvent(DiscordMessageChannel channel, ReceivedDiscordMessage message) {
-        super(channel);
+    public DiscordMessageReceiveEvent(MessageReceivedEvent jdaEvent, DiscordMessageChannel channel, ReceivedDiscordMessage message) {
+        super(jdaEvent, channel);
         this.message = message;
     }
 

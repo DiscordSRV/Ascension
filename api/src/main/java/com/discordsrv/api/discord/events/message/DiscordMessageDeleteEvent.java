@@ -24,13 +24,14 @@
 package com.discordsrv.api.discord.events.message;
 
 import com.discordsrv.api.discord.entity.channel.DiscordMessageChannel;
+import net.dv8tion.jda.api.events.message.MessageDeleteEvent;
 
-public class DiscordMessageDeleteEvent extends AbstractDiscordMessageEvent {
+public class DiscordMessageDeleteEvent extends AbstractDiscordMessageEvent<MessageDeleteEvent> {
 
     private final long messageId;
 
-    public DiscordMessageDeleteEvent(DiscordMessageChannel channel, long messageId) {
-        super(channel);
+    public DiscordMessageDeleteEvent(MessageDeleteEvent jdaEvent, DiscordMessageChannel channel, long messageId) {
+        super(jdaEvent, channel);
         this.messageId = messageId;
     }
 

@@ -27,16 +27,18 @@ import com.discordsrv.api.discord.entity.channel.DiscordDMChannel;
 import com.discordsrv.api.discord.entity.channel.DiscordMessageChannel;
 import com.discordsrv.api.discord.entity.channel.DiscordTextChannel;
 import com.discordsrv.api.discord.entity.channel.DiscordThreadChannel;
-import com.discordsrv.api.discord.events.DiscordEvent;
+import com.discordsrv.api.discord.events.AbstractDiscordEvent;
+import net.dv8tion.jda.api.events.message.GenericMessageEvent;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Optional;
 
-public abstract class AbstractDiscordMessageEvent implements DiscordEvent {
+public abstract class AbstractDiscordMessageEvent<T extends GenericMessageEvent> extends AbstractDiscordEvent<T> {
 
     private final DiscordMessageChannel channel;
 
-    public AbstractDiscordMessageEvent(DiscordMessageChannel channel) {
+    public AbstractDiscordMessageEvent(T jdaEvent, DiscordMessageChannel channel) {
+        super(jdaEvent);
         this.channel = channel;
     }
 

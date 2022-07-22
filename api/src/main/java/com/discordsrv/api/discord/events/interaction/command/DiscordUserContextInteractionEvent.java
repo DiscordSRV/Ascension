@@ -21,9 +21,24 @@
  * SOFTWARE.
  */
 
-package com.discordsrv.api.discord.entity.component;
+package com.discordsrv.api.discord.events.interaction.command;
 
-import com.discordsrv.api.discord.entity.JDAEntity;
-import net.dv8tion.jda.api.interactions.components.ItemComponent;
+import com.discordsrv.api.discord.entity.DiscordUser;
+import com.discordsrv.api.discord.entity.channel.DiscordMessageChannel;
+import com.discordsrv.api.discord.entity.guild.DiscordGuildMember;
+import com.discordsrv.api.discord.entity.interaction.DiscordInteractionHook;
+import com.discordsrv.api.discord.events.interaction.AbstractDeferrableInteractionEvent;
+import net.dv8tion.jda.api.events.interaction.command.UserContextInteractionEvent;
 
-public interface Component<T extends ItemComponent> extends JDAEntity<T> {}
+public class DiscordUserContextInteractionEvent extends AbstractDeferrableInteractionEvent<UserContextInteractionEvent> {
+
+    public DiscordUserContextInteractionEvent(
+            UserContextInteractionEvent jdaEvent,
+            DiscordUser user,
+            DiscordGuildMember member,
+            DiscordMessageChannel channel,
+            DiscordInteractionHook interaction
+    ) {
+        super(jdaEvent, user, member, channel, interaction);
+    }
+}

@@ -21,9 +21,10 @@
  * SOFTWARE.
  */
 
-package com.discordsrv.api.discord.entity.command;
+package com.discordsrv.api.discord.entity.interaction.command;
 
 import com.discordsrv.api.discord.entity.JDAEntity;
+import com.discordsrv.api.discord.entity.interaction.component.ComponentIdentifier;
 import net.dv8tion.jda.api.Permission;
 import net.dv8tion.jda.api.interactions.commands.DefaultMemberPermissions;
 import net.dv8tion.jda.api.interactions.commands.build.*;
@@ -33,39 +34,49 @@ import org.jetbrains.annotations.Unmodifiable;
 
 import java.util.*;
 
+/**
+ * A Discord command.
+ */
 public class Command implements JDAEntity<CommandData> {
 
     /**
      * Creates a chat input or slash command builder.
      *
+     * @param id a unique identifier for this interaction, used to check if a given event was for this interaction
      * @param name the name of the command
      * @param description the description of the command
      * @return a new chat input command builder
+     * @see com.discordsrv.api.discord.events.interaction.command.DiscordChatInputInteractionEvent
      */
-    public static ChatInputBuilder chatInput(String name, String description) {
-        return new ChatInputBuilder(name, description);
+    public static ChatInputBuilder chatInput(ComponentIdentifier id, String name, String description) {
+        return new ChatInputBuilder(id, name, description);
     }
 
     /**
      * Creates a new user context menu command.
      *
+     * @param id a unique identifier for this interaction, used to check if a given event was for this interaction
      * @param name the name of the command
      * @return a new command builder
+     * @see com.discordsrv.api.discord.events.interaction.command.DiscordUserContextInteractionEvent
      */
-    public static Builder user(String name) {
-        return new Builder(Type.USER, name);
+    public static Builder user(ComponentIdentifier id, String name) {
+        return new Builder(id, Type.USER, name);
     }
 
     /**
      * Creates a new message context menu command.
      *
+     * @param id a unique identifier for this interaction, used to check if a given event was for this interaction
      * @param name the name of the command
      * @return a new command builder
+     * @see com.discordsrv.api.discord.events.interaction.command.DiscordMessageContextInteractionEvent
      */
-    public static Builder message(String name) {
-        return new Builder(Type.MESSAGE, name);
+    public static Builder message(ComponentIdentifier id, String name) {
+        return new Builder(id, Type.MESSAGE, name);
     }
 
+    private final ComponentIdentifier id;
     private final Type type;
     private final Map<Locale, String> nameTranslations;
     private final Map<Locale, String> descriptionTranslations;
@@ -76,6 +87,7 @@ public class Command implements JDAEntity<CommandData> {
     private final DefaultPermission defaultPermission;
 
     private Command(
+            ComponentIdentifier id,
             Type type,
             Map<Locale, String> nameTranslations,
             Map<Locale, String> descriptionTranslations,
@@ -85,6 +97,7 @@ public class Command implements JDAEntity<CommandData> {
             boolean guildOnly,
             DefaultPermission defaultPermission
     ) {
+        this.id = id;
         this.type = type;
         this.nameTranslations = nameTranslations;
         this.descriptionTranslations = descriptionTranslations;
@@ -93,6 +106,11 @@ public class Command implements JDAEntity<CommandData> {
         this.options = options;
         this.guildOnly = guildOnly;
         this.defaultPermission = defaultPermission;
+    }
+
+    @NotNull
+    public ComponentIdentifier getId() {
+        return id;
     }
 
     @NotNull
@@ -183,8 +201,8 @@ public class Command implements JDAEntity<CommandData> {
         private final List<Command> subCommands = new ArrayList<>();
         private final List<CommandOption> options = new ArrayList<>();
 
-        private ChatInputBuilder(String name, String description) {
-            super(Type.CHAT_INPUT, name);
+        private ChatInputBuilder(ComponentIdentifier id, String name, String description) {
+            super(id, Type.CHAT_INPUT, name);
             this.descriptionTranslations.put(Locale.ROOT, description);
         }
 
@@ -243,6 +261,7 @@ public class Command implements JDAEntity<CommandData> {
         @Override
         public Command build() {
             return new Command(
+                    id,
                     type,
                     nameTranslations,
                     descriptionTranslations,
@@ -257,12 +276,14 @@ public class Command implements JDAEntity<CommandData> {
 
     public static class Builder {
 
+        protected final ComponentIdentifier id;
         protected final Type type;
         protected final Map<Locale, String> nameTranslations = new LinkedHashMap<>();
         protected boolean guildOnly = true;
         protected DefaultPermission defaultPermission = DefaultPermission.EVERYONE;
 
-        private Builder(Type type, String name) {
+        private Builder(ComponentIdentifier id, Type type, String name) {
+            this.id = id;
             this.type = type;
             this.nameTranslations.put(Locale.ROOT, name);
         }
@@ -302,6 +323,7 @@ public class Command implements JDAEntity<CommandData> {
 
         public Command build() {
             return new Command(
+                    id,
                     type,
                     nameTranslations,
                     Collections.emptyMap(),

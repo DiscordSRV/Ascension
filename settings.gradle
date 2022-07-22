@@ -59,7 +59,7 @@ dependencyResolutionManagement {
             }
 
             // Discord Webhooks
-            library('webhooks', 'club.minnced', 'discord-webhooks').version('0.8.0')
+            library('webhooks', 'club.minnced', 'discord-webhooks').version('0.8.2')
 
             // Apache commons
             library('commons-lang', 'org.apache.commons', 'commons-lang3').version('3.12.0')

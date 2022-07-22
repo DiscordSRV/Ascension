@@ -24,10 +24,7 @@
 package com.discordsrv.api.discord;
 
 import com.discordsrv.api.discord.entity.DiscordUser;
-import com.discordsrv.api.discord.entity.channel.DiscordDMChannel;
-import com.discordsrv.api.discord.entity.channel.DiscordMessageChannel;
-import com.discordsrv.api.discord.entity.channel.DiscordTextChannel;
-import com.discordsrv.api.discord.entity.channel.DiscordThreadChannel;
+import com.discordsrv.api.discord.entity.channel.*;
 import com.discordsrv.api.discord.entity.guild.DiscordGuild;
 import com.discordsrv.api.discord.entity.guild.DiscordRole;
 import org.jetbrains.annotations.NotNull;
@@ -55,6 +52,14 @@ public interface DiscordAPI {
      */
     @NotNull
     Optional<DiscordDMChannel> getDirectMessageChannelById(long id);
+
+    /**
+     * Gets a Discord news channel by id, the provided entity should not be stored for long periods of time.
+     * @param id the id for the news channel
+     * @return the news channel
+     */
+    @NotNull
+    Optional<DiscordNewsChannel> getNewsChannelById(long id);
 
     /**
      * Gets a Discord text channel by id, the provided entity should not be stored for long periods of time.

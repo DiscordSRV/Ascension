@@ -21,25 +21,21 @@ package com.discordsrv.common.discord.api;
 import club.minnced.discord.webhook.WebhookClient;
 import club.minnced.discord.webhook.WebhookClientBuilder;
 import com.discordsrv.api.discord.DiscordAPI;
+import com.discordsrv.api.discord.connection.jda.errorresponse.ErrorCallbackContext;
 import com.discordsrv.api.discord.entity.DiscordUser;
-import com.discordsrv.api.discord.entity.channel.DiscordDMChannel;
-import com.discordsrv.api.discord.entity.channel.DiscordMessageChannel;
-import com.discordsrv.api.discord.entity.channel.DiscordTextChannel;
-import com.discordsrv.api.discord.entity.channel.DiscordThreadChannel;
+import com.discordsrv.api.discord.entity.channel.*;
 import com.discordsrv.api.discord.entity.guild.DiscordGuild;
 import com.discordsrv.api.discord.entity.guild.DiscordRole;
 import com.discordsrv.api.discord.exception.NotReadyException;
 import com.discordsrv.api.discord.exception.RestErrorResponseException;
-import com.discordsrv.api.discord.connection.jda.errorresponse.ErrorCallbackContext;
 import com.discordsrv.common.DiscordSRV;
 import com.discordsrv.common.config.main.channels.base.BaseChannelConfig;
 import com.discordsrv.common.config.main.channels.base.IChannelConfig;
 import com.discordsrv.common.config.main.channels.base.ThreadConfig;
 import com.discordsrv.common.discord.api.entity.DiscordUserImpl;
-import com.discordsrv.common.discord.api.entity.channel.DiscordDMChannelImpl;
-import com.discordsrv.common.discord.api.entity.channel.DiscordTextChannelImpl;
-import com.discordsrv.common.discord.api.entity.channel.DiscordThreadChannelImpl;
+import com.discordsrv.common.discord.api.entity.channel.*;
 import com.discordsrv.common.discord.api.entity.guild.DiscordGuildImpl;
+import com.discordsrv.common.discord.api.entity.guild.DiscordGuildMemberImpl;
 import com.discordsrv.common.discord.api.entity.guild.DiscordRoleImpl;
 import com.discordsrv.common.function.CheckedSupplier;
 import com.discordsrv.common.function.OrDefault;
@@ -49,10 +45,7 @@ import com.github.benmanes.caffeine.cache.AsyncLoadingCache;
 import com.github.benmanes.caffeine.cache.Expiry;
 import com.github.benmanes.caffeine.cache.RemovalListener;
 import net.dv8tion.jda.api.JDA;
-import net.dv8tion.jda.api.entities.TextChannel;
-import net.dv8tion.jda.api.entities.ThreadChannel;
-import net.dv8tion.jda.api.entities.User;
-import net.dv8tion.jda.api.entities.Webhook;
+import net.dv8tion.jda.api.entities.*;
 import net.dv8tion.jda.api.exceptions.ErrorResponseException;
 import net.dv8tion.jda.api.requests.ErrorResponse;
 import net.dv8tion.jda.api.requests.GatewayIntent;
@@ -347,39 +340,86 @@ public class DiscordAPIImpl implements DiscordAPI {
         return getDirectMessageChannelById(id);
     }
 
+    public AbstractDiscordMessageChannel<?> getMessageChannel(MessageChannel jda) {
+        if (jda instanceof TextChannel) {
+            return getTextChannel((TextChannel) jda);
+        } else if (jda instanceof ThreadChannel) {
+            return getThreadChannel((ThreadChannel) jda);
+        } else if (jda instanceof PrivateChannel) {
+            return getDirectMessageChannel((PrivateChannel) jda);
+        } else if (jda instanceof NewsChannel) {
+            return getNewsChannel((NewsChannel) jda);
+        } else {
+            throw new IllegalArgumentException("Unmappable MessageChannel type: " + jda.getClass().getName());
+        }
+    }
+
     @Override
     public @NotNull Optional<DiscordDMChannel> getDirectMessageChannelById(long id) {
         return discordSRV.jda()
                 .map(jda -> jda.getPrivateChannelById(id))
-                .map(privateChannel -> new DiscordDMChannelImpl(discordSRV, privateChannel));
+                .map(this::getDirectMessageChannel);
+    }
+
+    public DiscordDMChannelImpl getDirectMessageChannel(PrivateChannel jda) {
+        return new DiscordDMChannelImpl(discordSRV, jda);
+    }
+
+    @Override
+    public @NotNull Optional<DiscordNewsChannel> getNewsChannelById(long id) {
+        return Optional.empty();
+    }
+
+    public DiscordNewsChannelImpl getNewsChannel(NewsChannel jda) {
+        return new DiscordNewsChannelImpl(discordSRV, jda);
     }
 
     @Override
     public @NotNull Optional<DiscordTextChannel> getTextChannelById(long id) {
         return discordSRV.jda()
                 .map(jda -> jda.getTextChannelById(id))
-                .map(textChannel -> new DiscordTextChannelImpl(discordSRV, textChannel));
+                .map(this::getTextChannel);
+    }
+
+    public DiscordTextChannelImpl getTextChannel(TextChannel jda) {
+        return new DiscordTextChannelImpl(discordSRV, jda);
     }
 
     @Override
     public @NotNull Optional<DiscordThreadChannel> getCachedThreadChannelById(long id) {
         return discordSRV.jda()
                 .map(jda -> jda.getThreadChannelById(id))
-                .map(threadChannel -> new DiscordThreadChannelImpl(discordSRV, threadChannel));
+                .map(this::getThreadChannel);
+    }
+
+    public DiscordThreadChannelImpl getThreadChannel(ThreadChannel jda) {
+        return new DiscordThreadChannelImpl(discordSRV, jda);
     }
 
     @Override
     public @NotNull Optional<DiscordGuild> getGuildById(long id) {
         return discordSRV.jda()
                 .map(jda -> jda.getGuildById(id))
-                .map(guild -> new DiscordGuildImpl(discordSRV, guild));
+                .map(this::getGuild);
+    }
+
+    public DiscordGuildImpl getGuild(Guild jda) {
+        return new DiscordGuildImpl(discordSRV, jda);
+    }
+
+    public DiscordGuildMemberImpl getGuildMember(Member jda) {
+        return new DiscordGuildMemberImpl(discordSRV, jda);
     }
 
     @Override
     public @NotNull Optional<DiscordUser> getUserById(long id) {
         return discordSRV.jda()
                 .map(jda -> jda.getUserById(id))
-                .map(user -> new DiscordUserImpl(discordSRV, user));
+                .map(this::getUser);
+    }
+
+    public DiscordUserImpl getUser(User jda) {
+        return new DiscordUserImpl(discordSRV, jda);
     }
 
     @Override
@@ -391,7 +431,7 @@ public class DiscordAPIImpl implements DiscordAPI {
 
         return jda.retrieveUserById(id)
                 .submit()
-                .thenApply(user -> new DiscordUserImpl(discordSRV, user));
+                .thenApply(this::getUser);
     }
 
     @Override
@@ -405,7 +445,11 @@ public class DiscordAPIImpl implements DiscordAPI {
     public @NotNull Optional<DiscordRole> getRoleById(long id) {
         return discordSRV.jda()
                 .map(jda -> jda.getRoleById(id))
-                .map(role -> new DiscordRoleImpl(discordSRV, role));
+                .map(this::getRole);
+    }
+
+    public DiscordRoleImpl getRole(Role jda) {
+        return new DiscordRoleImpl(discordSRV, jda);
     }
 
     private class WebhookCacheLoader implements AsyncCacheLoader<Long, WebhookClient> {

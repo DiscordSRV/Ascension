@@ -21,30 +21,24 @@
  * SOFTWARE.
  */
 
-package com.discordsrv.api.discord.entity.component.actionrow;
+package com.discordsrv.api.discord.events.interaction.component;
 
-import com.discordsrv.api.discord.entity.component.MessageComponent;
+import com.discordsrv.api.discord.entity.DiscordUser;
+import com.discordsrv.api.discord.entity.channel.DiscordMessageChannel;
+import com.discordsrv.api.discord.entity.guild.DiscordGuildMember;
+import com.discordsrv.api.discord.entity.interaction.DiscordInteractionHook;
+import com.discordsrv.api.discord.events.interaction.AbstractDeferrableInteractionEvent;
+import net.dv8tion.jda.api.events.interaction.component.SelectMenuInteractionEvent;
 
-import java.util.Arrays;
-import java.util.List;
+public class DiscordSelectMenuInteractionEvent extends AbstractDeferrableInteractionEvent<SelectMenuInteractionEvent> {
 
-public class MessageActionRow implements ActionRow<MessageComponent> {
-
-    public static MessageActionRow of(MessageComponent... components) {
-        if (components.length == 0) {
-            throw new IllegalArgumentException("Must include at least one component");
-        }
-        return new MessageActionRow(Arrays.asList(components));
-    }
-
-    private final List<MessageComponent> components;
-
-    private MessageActionRow(List<MessageComponent> components) {
-        this.components = components;
-    }
-
-    @Override
-    public List<MessageComponent> components() {
-        return components;
+    public DiscordSelectMenuInteractionEvent(
+            SelectMenuInteractionEvent jdaEvent,
+            DiscordUser user,
+            DiscordGuildMember member,
+            DiscordMessageChannel channel,
+            DiscordInteractionHook interaction
+    ) {
+        super(jdaEvent, user, member, channel, interaction);
     }
 }

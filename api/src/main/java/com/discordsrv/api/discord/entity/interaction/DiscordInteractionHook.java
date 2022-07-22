@@ -21,23 +21,26 @@
  * SOFTWARE.
  */
 
-package com.discordsrv.api.discord.entity.component.actionrow;
+package com.discordsrv.api.discord.entity.interaction;
 
 import com.discordsrv.api.discord.entity.JDAEntity;
-import com.discordsrv.api.discord.entity.component.Component;
-import net.dv8tion.jda.api.interactions.components.ItemComponent;
+import com.discordsrv.api.discord.entity.interaction.component.impl.Modal;
+import com.discordsrv.api.discord.entity.message.ReceivedDiscordMessage;
+import com.discordsrv.api.discord.entity.message.SendableDiscordMessage;
+import net.dv8tion.jda.api.interactions.InteractionHook;
 
-import java.util.List;
-import java.util.stream.Collectors;
+import java.util.concurrent.CompletableFuture;
 
-public interface ActionRow<T extends Component<? extends ItemComponent>> extends JDAEntity<net.dv8tion.jda.api.interactions.components.ActionRow> {
+public interface DiscordInteractionHook extends JDAEntity<InteractionHook> {
 
-    List<T> components();
+    long getExpiryTime();
+    boolean isExpired();
 
-    @Override
-    default net.dv8tion.jda.api.interactions.components.ActionRow asJDA() {
-        return net.dv8tion.jda.api.interactions.components.ActionRow.of(
-                components().stream().map(Component::asJDA).collect(Collectors.toList())
-        );
-    }
+    CompletableFuture<DiscordInteractionHook> replyLater(boolean ephemeral);
+
+    CompletableFuture<ReceivedDiscordMessage> editOriginal(SendableDiscordMessage message);
+    CompletableFuture<DiscordInteractionHook> reply(SendableDiscordMessage message);
+    CompletableFuture<DiscordInteractionHook> replyEphemeral(SendableDiscordMessage message);
+    CompletableFuture<Void> replyModal(Modal modal);
+
 }

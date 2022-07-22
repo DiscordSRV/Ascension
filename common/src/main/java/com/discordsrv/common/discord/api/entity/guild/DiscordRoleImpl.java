@@ -35,7 +35,7 @@ public class DiscordRoleImpl implements DiscordRole {
 
     public DiscordRoleImpl(DiscordSRV discordSRV, Role role) {
         this.role = role;
-        this.guild = new DiscordGuildImpl(discordSRV, role.getGuild());
+        this.guild = discordSRV.discordAPI().getGuild(role.getGuild());
         this.color = new Color(role.getColorRaw());
     }
 

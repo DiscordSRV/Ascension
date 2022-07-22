@@ -21,22 +21,30 @@
  * SOFTWARE.
  */
 
-package com.discordsrv.api.discord.events.member;
+package com.discordsrv.api.discord.entity.interaction.component.actionrow;
 
-import com.discordsrv.api.discord.entity.guild.DiscordGuildMember;
-import com.discordsrv.api.discord.events.AbstractDiscordEvent;
-import net.dv8tion.jda.api.events.guild.member.GenericGuildMemberEvent;
+import com.discordsrv.api.discord.entity.interaction.component.MessageComponent;
 
-public abstract class AbstractDiscordMemberEvent<T extends GenericGuildMemberEvent> extends AbstractDiscordEvent<T> {
+import java.util.Arrays;
+import java.util.List;
 
-    private final DiscordGuildMember member;
+public class MessageActionRow implements ActionRow<MessageComponent> {
 
-    public AbstractDiscordMemberEvent(T jdaEvent, DiscordGuildMember member) {
-        super(jdaEvent);
-        this.member = member;
+    public static MessageActionRow of(MessageComponent... components) {
+        if (components.length == 0) {
+            throw new IllegalArgumentException("Must include at least one component");
+        }
+        return new MessageActionRow(Arrays.asList(components));
     }
 
-    public DiscordGuildMember getMember() {
-        return member;
+    private final List<MessageComponent> components;
+
+    private MessageActionRow(List<MessageComponent> components) {
+        this.components = components;
+    }
+
+    @Override
+    public List<MessageComponent> components() {
+        return components;
     }
 }

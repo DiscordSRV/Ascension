@@ -26,15 +26,16 @@ package com.discordsrv.api.discord.events.member.role;
 import com.discordsrv.api.discord.entity.guild.DiscordGuildMember;
 import com.discordsrv.api.discord.entity.guild.DiscordRole;
 import com.discordsrv.api.discord.events.member.AbstractDiscordMemberEvent;
+import net.dv8tion.jda.api.events.guild.member.GenericGuildMemberEvent;
 
 import java.util.List;
 
-public abstract class AbstractDiscordMemberRoleChangeEvent extends AbstractDiscordMemberEvent {
+public abstract class AbstractDiscordMemberRoleChangeEvent<T extends GenericGuildMemberEvent> extends AbstractDiscordMemberEvent<T> {
 
     private final List<DiscordRole> roles;
 
-    public AbstractDiscordMemberRoleChangeEvent(DiscordGuildMember member, List<DiscordRole> roles) {
-        super(member);
+    public AbstractDiscordMemberRoleChangeEvent(T jdaEvent, DiscordGuildMember member, List<DiscordRole> roles) {
+        super(jdaEvent, member);
         this.roles = roles;
     }
 

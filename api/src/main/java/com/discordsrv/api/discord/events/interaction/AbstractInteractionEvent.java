@@ -21,22 +21,47 @@
  * SOFTWARE.
  */
 
-package com.discordsrv.api.discord.events.member;
+package com.discordsrv.api.discord.events.interaction;
 
+import com.discordsrv.api.discord.entity.DiscordUser;
+import com.discordsrv.api.discord.entity.channel.DiscordMessageChannel;
+import com.discordsrv.api.discord.entity.guild.DiscordGuild;
 import com.discordsrv.api.discord.entity.guild.DiscordGuildMember;
 import com.discordsrv.api.discord.events.AbstractDiscordEvent;
-import net.dv8tion.jda.api.events.guild.member.GenericGuildMemberEvent;
+import net.dv8tion.jda.api.events.interaction.GenericInteractionCreateEvent;
+import org.jetbrains.annotations.NotNull;
 
-public abstract class AbstractDiscordMemberEvent<T extends GenericGuildMemberEvent> extends AbstractDiscordEvent<T> {
+import java.util.Optional;
 
-    private final DiscordGuildMember member;
+public abstract class AbstractInteractionEvent<T extends GenericInteractionCreateEvent> extends AbstractDiscordEvent<T> {
 
-    public AbstractDiscordMemberEvent(T jdaEvent, DiscordGuildMember member) {
+    protected final DiscordUser user;
+    protected final DiscordGuildMember member;
+    protected final DiscordMessageChannel channel;
+
+    public AbstractInteractionEvent(T jdaEvent, DiscordUser user, DiscordGuildMember member, DiscordMessageChannel channel) {
         super(jdaEvent);
+        this.user = user;
         this.member = member;
+        this.channel = channel;
     }
 
-    public DiscordGuildMember getMember() {
-        return member;
+    @NotNull
+    public DiscordUser getUser() {
+        return user;
+    }
+
+    @NotNull
+    public Optional<DiscordGuildMember> getMember() {
+        return Optional.ofNullable(member);
+    }
+
+    public Optional<DiscordGuild> getGuild() {
+        return Optional.ofNullable(member).map(DiscordGuildMember::getGuild);
+    }
+
+    @NotNull
+    public DiscordMessageChannel getChannel() {
+        return channel;
     }
 }

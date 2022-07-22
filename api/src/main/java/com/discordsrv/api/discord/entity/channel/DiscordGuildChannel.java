@@ -23,10 +23,11 @@
 
 package com.discordsrv.api.discord.entity.channel;
 
+import com.discordsrv.api.discord.entity.Snowflake;
 import com.discordsrv.api.discord.entity.guild.DiscordGuild;
 import org.jetbrains.annotations.NotNull;
 
-public interface DiscordGuildChannel {
+public interface DiscordGuildChannel extends Snowflake {
 
     /**
      * Gets the name of the channel.

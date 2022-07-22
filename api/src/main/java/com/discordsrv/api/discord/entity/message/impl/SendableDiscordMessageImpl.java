@@ -24,7 +24,7 @@
 package com.discordsrv.api.discord.entity.message.impl;
 
 import com.discordsrv.api.DiscordSRVApi;
-import com.discordsrv.api.discord.entity.component.actionrow.MessageActionRow;
+import com.discordsrv.api.discord.entity.interaction.component.actionrow.MessageActionRow;
 import com.discordsrv.api.discord.entity.message.AllowedMention;
 import com.discordsrv.api.discord.entity.message.DiscordMessageEmbed;
 import com.discordsrv.api.discord.entity.message.SendableDiscordMessage;

@@ -21,10 +21,10 @@
  * SOFTWARE.
  */
 
-package com.discordsrv.api.discord.entity.component.impl;
+package com.discordsrv.api.discord.entity.interaction.component.impl;
 
-import com.discordsrv.api.discord.entity.component.ComponentIdentifier;
-import com.discordsrv.api.discord.entity.component.MessageComponent;
+import com.discordsrv.api.discord.entity.interaction.component.ComponentIdentifier;
+import com.discordsrv.api.discord.entity.interaction.component.MessageComponent;
 import com.discordsrv.api.discord.entity.guild.DiscordCustomEmoji;
 import net.dv8tion.jda.api.entities.emoji.Emoji;
 import net.dv8tion.jda.api.interactions.components.ItemComponent;
@@ -39,11 +39,14 @@ import java.util.UUID;
  * A Discord button.
  * @see #builder(ComponentIdentifier, Style)
  * @see #urlBuilder(String)
+ * @see com.discordsrv.api.discord.events.interaction.component.DiscordButtonInteractionEvent
  */
 public class Button implements MessageComponent {
 
     /**
      * Creates a new Button builder.
+     *
+     * @param id a unique identifier for this interaction, used to check if a given event was for this interaction
      * @param style the style of the button
      * @return a new button builder
      */
@@ -54,6 +57,7 @@ public class Button implements MessageComponent {
 
     /**
      * Creates a new Link button builder.
+     *
      * @param url the link the button leads to
      * @return a new button builder
      */

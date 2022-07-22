@@ -21,7 +21,7 @@
  * SOFTWARE.
  */
 
-package com.discordsrv.api.discord.entity.command;
+package com.discordsrv.api.discord.entity.interaction.command;
 
 import com.discordsrv.api.discord.entity.JDAEntity;
 import net.dv8tion.jda.api.interactions.commands.build.SubcommandData;

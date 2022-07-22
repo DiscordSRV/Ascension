@@ -19,12 +19,14 @@
 package com.discordsrv.common.discord.api.entity.message.util;
 
 import club.minnced.discord.webhook.send.WebhookMessageBuilder;
+import com.discordsrv.api.discord.entity.interaction.component.actionrow.MessageActionRow;
 import com.discordsrv.api.discord.entity.message.AllowedMention;
 import com.discordsrv.api.discord.entity.message.DiscordMessageEmbed;
 import com.discordsrv.api.discord.entity.message.SendableDiscordMessage;
 import net.dv8tion.jda.api.MessageBuilder;
 import net.dv8tion.jda.api.entities.Message;
 import net.dv8tion.jda.api.entities.MessageEmbed;
+import net.dv8tion.jda.api.interactions.components.ActionRow;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
@@ -59,8 +61,10 @@ public final class SendableDiscordMessageUtil {
             embeds.add(embed.toJDA());
         }
 
-        MessageBuilder builder = new MessageBuilder();
-        message.getContent().ifPresent(builder::setContent);
+        List<ActionRow> actionRows = new ArrayList<>();
+        for (MessageActionRow actionRow : message.getActionRows()) {
+            actionRows.add(actionRow.asJDA());
+        }
 
         return new MessageBuilder()
                 .setContent(message.getContent().orElse(null))
@@ -68,6 +72,7 @@ public final class SendableDiscordMessageUtil {
                 .setAllowedMentions(allowedTypes)
                 .mentionUsers(allowedUsers.stream().mapToLong(l -> l).toArray())
                 .mentionRoles(allowedRoles.stream().mapToLong(l -> l).toArray())
+                .setActionRows(actionRows)
                 .build();
     }
 

@@ -21,9 +21,30 @@
  * SOFTWARE.
  */
 
-package com.discordsrv.api.discord.entity.component;
+package com.discordsrv.api.discord.entity.interaction.component.actionrow;
 
-import net.dv8tion.jda.api.interactions.components.ItemComponent;
+import com.discordsrv.api.discord.entity.interaction.component.ModalComponent;
 
-public interface ModalComponent extends Component<ItemComponent> {
+import java.util.Arrays;
+import java.util.List;
+
+public class ModalActionRow implements ActionRow<ModalComponent> {
+
+    public static ModalActionRow of(ModalComponent... components) {
+        if (components.length == 0) {
+            throw new IllegalArgumentException("Must include at least one component");
+        }
+        return new ModalActionRow(Arrays.asList(components));
+    }
+
+    private final List<ModalComponent> components;
+
+    private ModalActionRow(List<ModalComponent> components) {
+        this.components = components;
+    }
+
+    @Override
+    public List<ModalComponent> components() {
+        return components;
+    }
 }

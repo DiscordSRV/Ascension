@@ -24,7 +24,7 @@
 package com.discordsrv.api.discord.entity.message;
 
 import com.discordsrv.api.component.GameTextBuilder;
-import com.discordsrv.api.discord.entity.component.actionrow.MessageActionRow;
+import com.discordsrv.api.discord.entity.interaction.component.actionrow.MessageActionRow;
 import com.discordsrv.api.discord.entity.message.impl.SendableDiscordMessageImpl;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;

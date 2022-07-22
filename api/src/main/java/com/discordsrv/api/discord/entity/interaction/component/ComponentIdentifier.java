@@ -21,7 +21,7 @@
  * SOFTWARE.
  */
 
-package com.discordsrv.api.discord.entity.component;
+package com.discordsrv.api.discord.entity.interaction.component;
 
 import org.intellij.lang.annotations.Pattern;
 import org.jetbrains.annotations.NotNull;
@@ -29,7 +29,7 @@ import org.jetbrains.annotations.NotNull;
 import java.util.Objects;
 
 /**
- * An identifier for components to match up with interaction events.
+ * An identifier for commands and components to match up with interaction events, and to avoid conflicts between extensions.
  */
 public class ComponentIdentifier {
 

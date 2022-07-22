@@ -21,22 +21,24 @@
  * SOFTWARE.
  */
 
-package com.discordsrv.api.discord.events.member;
+package com.discordsrv.api.discord.events.interaction.command;
 
+import com.discordsrv.api.discord.entity.DiscordUser;
+import com.discordsrv.api.discord.entity.channel.DiscordMessageChannel;
 import com.discordsrv.api.discord.entity.guild.DiscordGuildMember;
-import com.discordsrv.api.discord.events.AbstractDiscordEvent;
-import net.dv8tion.jda.api.events.guild.member.GenericGuildMemberEvent;
+import com.discordsrv.api.discord.entity.interaction.DiscordInteractionHook;
+import com.discordsrv.api.discord.events.interaction.AbstractDeferrableInteractionEvent;
+import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent;
 
-public abstract class AbstractDiscordMemberEvent<T extends GenericGuildMemberEvent> extends AbstractDiscordEvent<T> {
+public class DiscordChatInputInteractionEvent extends AbstractDeferrableInteractionEvent<SlashCommandInteractionEvent> {
 
-    private final DiscordGuildMember member;
-
-    public AbstractDiscordMemberEvent(T jdaEvent, DiscordGuildMember member) {
-        super(jdaEvent);
-        this.member = member;
-    }
-
-    public DiscordGuildMember getMember() {
-        return member;
+    public DiscordChatInputInteractionEvent(
+            SlashCommandInteractionEvent jdaEvent,
+            DiscordUser user,
+            DiscordGuildMember member,
+            DiscordMessageChannel channel,
+            DiscordInteractionHook interaction
+    ) {
+        super(jdaEvent, user, member, channel, interaction);
     }
 }

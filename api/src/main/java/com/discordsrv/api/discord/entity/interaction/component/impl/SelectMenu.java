@@ -21,10 +21,10 @@
  * SOFTWARE.
  */
 
-package com.discordsrv.api.discord.entity.component.impl;
+package com.discordsrv.api.discord.entity.interaction.component.impl;
 
-import com.discordsrv.api.discord.entity.component.ComponentIdentifier;
-import com.discordsrv.api.discord.entity.component.MessageComponent;
+import com.discordsrv.api.discord.entity.interaction.component.ComponentIdentifier;
+import com.discordsrv.api.discord.entity.interaction.component.MessageComponent;
 import com.discordsrv.api.discord.entity.guild.DiscordCustomEmoji;
 import net.dv8tion.jda.api.entities.emoji.Emoji;
 import net.dv8tion.jda.api.interactions.components.ItemComponent;
@@ -37,11 +37,14 @@ import java.util.*;
 /**
  * A Discord selection menu.
  * @see #builder(ComponentIdentifier)
+ * @see com.discordsrv.api.discord.events.interaction.component.DiscordSelectMenuInteractionEvent
  */
 public class SelectMenu implements MessageComponent {
 
     /**
      * Creates a selection menu builder.
+     *
+     * @param id a unique identifier for this interaction, used to check if a given event was for this interaction
      * @return a new builder
      */
     public static Builder builder(@NotNull ComponentIdentifier id) {

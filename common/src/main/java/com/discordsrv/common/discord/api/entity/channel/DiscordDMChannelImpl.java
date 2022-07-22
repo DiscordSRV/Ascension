@@ -23,7 +23,6 @@ import com.discordsrv.api.discord.entity.channel.DiscordDMChannel;
 import com.discordsrv.api.discord.entity.message.ReceivedDiscordMessage;
 import com.discordsrv.api.discord.entity.message.SendableDiscordMessage;
 import com.discordsrv.common.DiscordSRV;
-import com.discordsrv.common.discord.api.entity.DiscordUserImpl;
 import com.discordsrv.common.discord.api.entity.message.ReceivedDiscordMessageImpl;
 import com.discordsrv.common.discord.api.entity.message.util.SendableDiscordMessageUtil;
 import net.dv8tion.jda.api.entities.PrivateChannel;
@@ -43,7 +42,7 @@ public class DiscordDMChannelImpl extends AbstractDiscordMessageChannel<PrivateC
     public DiscordDMChannelImpl(DiscordSRV discordSRV, PrivateChannel privateChannel) {
         super(discordSRV, privateChannel);
         User user = privateChannel.getUser();
-        this.user = user != null ? new DiscordUserImpl(discordSRV, user) : null;
+        this.user = user != null ? discordSRV.discordAPI().getUser(user) : null;
     }
 
     @Override

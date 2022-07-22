@@ -27,7 +27,6 @@ import com.discordsrv.api.placeholder.annotation.Placeholder;
 import com.discordsrv.api.placeholder.annotation.PlaceholderRemainder;
 import com.discordsrv.common.DiscordSRV;
 import com.discordsrv.common.component.util.ComponentUtil;
-import com.discordsrv.common.discord.api.entity.DiscordUserImpl;
 import net.dv8tion.jda.api.entities.Member;
 import net.dv8tion.jda.api.entities.Role;
 import net.kyori.adventure.text.Component;
@@ -51,12 +50,12 @@ public class DiscordGuildMemberImpl implements DiscordGuildMember {
     public DiscordGuildMemberImpl(DiscordSRV discordSRV, Member member) {
         this.discordSRV = discordSRV;
         this.member = member;
-        this.user = new DiscordUserImpl(discordSRV, member.getUser());
-        this.guild = new DiscordGuildImpl(discordSRV, member.getGuild());
+        this.user = discordSRV.discordAPI().getUser(member.getUser());
+        this.guild = discordSRV.discordAPI().getGuild(member.getGuild());
 
         List<DiscordRole> roles = new ArrayList<>();
         for (Role role : member.getRoles()) {
-            roles.add(new DiscordRoleImpl(discordSRV, role));
+            roles.add(discordSRV.discordAPI().getRole(role));
         }
         this.roles = roles;
         this.color = new Color(member.getColorRaw());

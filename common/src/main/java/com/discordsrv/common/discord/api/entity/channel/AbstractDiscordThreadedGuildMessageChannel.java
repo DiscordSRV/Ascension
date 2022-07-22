@@ -48,7 +48,7 @@ public abstract class AbstractDiscordThreadedGuildMessageChannel<T extends Guild
         List<ThreadChannel> threads = channel.getThreadChannels();
         List<DiscordThreadChannel> threadChannels = new ArrayList<>(threads.size());
         for (ThreadChannel thread : threads) {
-            threadChannels.add(new DiscordThreadChannelImpl(discordSRV, thread));
+            threadChannels.add(discordSRV.discordAPI().getThreadChannel(thread));
         }
         return threadChannels;
     }
@@ -68,16 +68,17 @@ public abstract class AbstractDiscordThreadedGuildMessageChannel<T extends Guild
         return threads(IThreadContainer::retrieveArchivedPublicThreadChannels);
     }
 
+    @SuppressWarnings("CodeBlock2Expr")
     private CompletableFuture<List<DiscordThreadChannel>> threads(
             Function<IThreadContainer, ThreadChannelPaginationAction> action) {
-        return discordSRV.discordAPI().mapExceptions(() ->
-                                                             action.apply(channel)
-                                                                     .submit()
-                                                                     .thenApply(channels -> channels.stream()
-                                                                             .map(channel -> new DiscordThreadChannelImpl(discordSRV, channel))
-                                                                             .collect(Collectors.toList())
-                                                                     )
-        );
+        return discordSRV.discordAPI().mapExceptions(() -> {
+             return action.apply(channel)
+                     .submit()
+                     .thenApply(channels -> channels.stream()
+                             .map(channel -> discordSRV.discordAPI().getThreadChannel(channel))
+                             .collect(Collectors.toList())
+                     );
+        });
     }
 
     @Override
@@ -90,12 +91,13 @@ public abstract class AbstractDiscordThreadedGuildMessageChannel<T extends Guild
         return thread(channel -> channel.createThreadChannel(name, messageId));
     }
 
+    @SuppressWarnings("CodeBlock2Expr")
     private CompletableFuture<DiscordThreadChannel> thread(Function<T, ThreadChannelAction> action) {
-        return discordSRV.discordAPI().mapExceptions(() ->
-                                                             action.apply(channel)
-                                                                     .submit()
-                                                                     .thenApply(channel -> new DiscordThreadChannelImpl(discordSRV, channel))
-        );
+        return discordSRV.discordAPI().mapExceptions(() -> {
+            return action.apply(channel)
+                    .submit()
+                    .thenApply(channel -> discordSRV.discordAPI().getThreadChannel(channel));
+        });
     }
 
 }

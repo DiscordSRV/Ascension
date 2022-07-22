@@ -30,6 +30,6 @@ import org.jetbrains.annotations.NotNull;
 public interface DiscordThreadChannel extends DiscordGuildMessageChannel, JDAEntity<ThreadChannel> {
 
     @NotNull
-    DiscordTextChannel getParentChannel();
+    DiscordThreadContainer getParentChannel();
 
 }

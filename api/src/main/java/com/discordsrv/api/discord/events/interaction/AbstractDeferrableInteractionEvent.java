@@ -21,22 +21,32 @@
  * SOFTWARE.
  */
 
-package com.discordsrv.api.discord.events.member;
+package com.discordsrv.api.discord.events.interaction;
 
+import com.discordsrv.api.discord.entity.DiscordUser;
+import com.discordsrv.api.discord.entity.channel.DiscordMessageChannel;
 import com.discordsrv.api.discord.entity.guild.DiscordGuildMember;
-import com.discordsrv.api.discord.events.AbstractDiscordEvent;
-import net.dv8tion.jda.api.events.guild.member.GenericGuildMemberEvent;
+import com.discordsrv.api.discord.entity.interaction.DiscordInteractionHook;
+import net.dv8tion.jda.api.events.interaction.GenericInteractionCreateEvent;
+import org.jetbrains.annotations.NotNull;
 
-public abstract class AbstractDiscordMemberEvent<T extends GenericGuildMemberEvent> extends AbstractDiscordEvent<T> {
+public abstract class AbstractDeferrableInteractionEvent<T extends GenericInteractionCreateEvent> extends AbstractInteractionEvent<T> {
 
-    private final DiscordGuildMember member;
+    protected final DiscordInteractionHook hook;
 
-    public AbstractDiscordMemberEvent(T jdaEvent, DiscordGuildMember member) {
-        super(jdaEvent);
-        this.member = member;
+    public AbstractDeferrableInteractionEvent(
+            T jdaEvent,
+            DiscordUser user,
+            DiscordGuildMember member,
+            DiscordMessageChannel channel,
+            DiscordInteractionHook hook
+    ) {
+        super(jdaEvent, user, member, channel);
+        this.hook = hook;
     }
 
-    public DiscordGuildMember getMember() {
-        return member;
+    @NotNull
+    public DiscordInteractionHook hook() {
+        return hook;
     }
 }

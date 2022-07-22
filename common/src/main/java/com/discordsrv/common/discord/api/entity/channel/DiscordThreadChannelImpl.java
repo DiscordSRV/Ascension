@@ -20,14 +20,13 @@ package com.discordsrv.common.discord.api.entity.channel;
 
 import club.minnced.discord.webhook.WebhookClient;
 import com.discordsrv.api.discord.entity.channel.DiscordChannelType;
-import com.discordsrv.api.discord.entity.channel.DiscordTextChannel;
 import com.discordsrv.api.discord.entity.channel.DiscordThreadChannel;
+import com.discordsrv.api.discord.entity.channel.DiscordThreadContainer;
 import com.discordsrv.api.discord.entity.guild.DiscordGuild;
 import com.discordsrv.common.DiscordSRV;
-import com.discordsrv.common.discord.api.entity.guild.DiscordGuildImpl;
 import net.dv8tion.jda.api.entities.ChannelType;
 import net.dv8tion.jda.api.entities.IThreadContainer;
-import net.dv8tion.jda.api.entities.TextChannel;
+import net.dv8tion.jda.api.entities.MessageChannel;
 import net.dv8tion.jda.api.entities.ThreadChannel;
 import org.jetbrains.annotations.NotNull;
 
@@ -35,17 +34,17 @@ import java.util.concurrent.CompletableFuture;
 
 public class DiscordThreadChannelImpl extends AbstractDiscordGuildMessageChannel<ThreadChannel> implements DiscordThreadChannel {
 
-    private final DiscordTextChannel textChannel;
+    private final DiscordThreadContainer threadContainer;
     private final DiscordGuild guild;
 
     public DiscordThreadChannelImpl(DiscordSRV discordSRV, ThreadChannel thread) {
         super(discordSRV, thread);
 
         IThreadContainer container = thread.getParentChannel();
-        this.textChannel = container instanceof TextChannel
-                           ? new DiscordTextChannelImpl(discordSRV, (TextChannel) container)
+        this.threadContainer = container instanceof MessageChannel
+                           ? (DiscordThreadContainer) discordSRV.discordAPI().getMessageChannel((MessageChannel) container)
                            : null;
-        this.guild = new DiscordGuildImpl(discordSRV, thread.getGuild());
+        this.guild = discordSRV.discordAPI().getGuild(thread.getGuild());
     }
 
     @Override
@@ -66,13 +65,13 @@ public class DiscordThreadChannelImpl extends AbstractDiscordGuildMessageChannel
     }
 
     @Override
-    public @NotNull DiscordTextChannel getParentChannel() {
-        return textChannel;
+    public @NotNull DiscordThreadContainer getParentChannel() {
+        return threadContainer;
     }
 
     @Override
     public String toString() {
-        return "Thread:" + getName() + "(" + Long.toUnsignedString(getId()) + " in " + textChannel + ")";
+        return "Thread:" + getName() + "(" + Long.toUnsignedString(getId()) + " in " + threadContainer + ")";
     }
 
     @Override

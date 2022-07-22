@@ -61,14 +61,14 @@ public class DiscordGuildImpl implements DiscordGuild {
             return Optional.empty();
         }
 
-        return Optional.of(new DiscordGuildMemberImpl(discordSRV, member));
+        return Optional.of(discordSRV.discordAPI().getGuildMember(member));
     }
 
     @Override
     public @NotNull Set<DiscordGuildMember> getCachedMembers() {
         Set<DiscordGuildMember> members = new HashSet<>();
         for (Member member : guild.getMembers()) {
-            members.add(new DiscordGuildMemberImpl(discordSRV, member));
+            members.add(discordSRV.discordAPI().getGuildMember(member));
         }
         return members;
     }
@@ -80,14 +80,14 @@ public class DiscordGuildImpl implements DiscordGuild {
             return Optional.empty();
         }
 
-        return Optional.of(new DiscordRoleImpl(discordSRV, role));
+        return Optional.of(discordSRV.discordAPI().getRole(role));
     }
 
     @Override
     public @NotNull List<DiscordRole> getRoles() {
         List<DiscordRole> roles = new ArrayList<>();
         for (Role role : guild.getRoles()) {
-            roles.add(new DiscordRoleImpl(discordSRV, role));
+            roles.add(discordSRV.discordAPI().getRole(role));
         }
         return roles;
     }

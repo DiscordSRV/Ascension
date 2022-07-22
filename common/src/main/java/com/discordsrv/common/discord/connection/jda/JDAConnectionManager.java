@@ -18,9 +18,9 @@
 
 package com.discordsrv.common.discord.connection.jda;
 
-import com.discordsrv.api.discord.entity.DiscordUser;
 import com.discordsrv.api.discord.connection.jda.DiscordConnectionDetails;
 import com.discordsrv.api.discord.connection.jda.errorresponse.ErrorCallbackContext;
+import com.discordsrv.api.discord.entity.DiscordUser;
 import com.discordsrv.api.event.bus.EventPriority;
 import com.discordsrv.api.event.bus.Subscribe;
 import com.discordsrv.api.event.events.lifecycle.DiscordSRVShuttingDownEvent;
@@ -28,12 +28,7 @@ import com.discordsrv.api.event.events.placeholder.PlaceholderLookupEvent;
 import com.discordsrv.api.placeholder.PlaceholderLookupResult;
 import com.discordsrv.common.DiscordSRV;
 import com.discordsrv.common.config.connection.ConnectionConfig;
-import com.discordsrv.common.discord.api.entity.DiscordUserImpl;
-import com.discordsrv.common.discord.api.entity.channel.DiscordDMChannelImpl;
-import com.discordsrv.common.discord.api.entity.channel.DiscordTextChannelImpl;
-import com.discordsrv.common.discord.api.entity.guild.DiscordGuildImpl;
-import com.discordsrv.common.discord.api.entity.guild.DiscordGuildMemberImpl;
-import com.discordsrv.common.discord.api.entity.guild.DiscordRoleImpl;
+import com.discordsrv.common.discord.api.DiscordAPIImpl;
 import com.discordsrv.common.discord.api.entity.message.ReceivedDiscordMessageImpl;
 import com.discordsrv.common.discord.connection.DiscordConnectionManager;
 import com.discordsrv.common.logging.Logger;
@@ -164,11 +159,15 @@ public class JDAConnectionManager implements DiscordConnectionManager {
 
         CompletableFuture<DiscordUser> future = instance.retrieveApplicationInfo()
                 .timeout(10, TimeUnit.SECONDS)
-                .map(applicationInfo -> (DiscordUser) new DiscordUserImpl(discordSRV, applicationInfo.getOwner()))
+                .map(applicationInfo -> (DiscordUser) api().getUser(applicationInfo.getOwner()))
                 .submit();
 
         botOwnerRequest.set(future);
         future.whenComplete((user, t) -> botOwnerConsumer.accept(t != null ? null : user));
+    }
+
+    private DiscordAPIImpl api() {
+        return discordSRV.discordAPI();
     }
 
     @Subscribe(priority = EventPriority.EARLIEST)
@@ -184,19 +183,19 @@ public class JDAConnectionManager implements DiscordConnectionManager {
             Object converted;
             boolean isConversion = true;
             if (o instanceof PrivateChannel) {
-                converted = new DiscordDMChannelImpl(discordSRV, (PrivateChannel) o);
+                converted = api().getDirectMessageChannel((PrivateChannel) o);
             } else if (o instanceof TextChannel) {
-                converted = new DiscordTextChannelImpl(discordSRV, (TextChannel) o);
+                converted = api().getTextChannel((TextChannel) o);
             } else if (o instanceof Guild) {
-                converted = new DiscordGuildImpl(discordSRV, (Guild) o);
+                converted = api().getGuild((Guild) o);
             } else if (o instanceof Member) {
-                converted = new DiscordGuildMemberImpl(discordSRV, (Member) o);
+                converted = api().getGuildMember((Member) o);
             } else if (o instanceof Role) {
-                converted = new DiscordRoleImpl(discordSRV, (Role) o);
+                converted = api().getRole((Role) o);
             } else if (o instanceof ReceivedMessage) {
                 converted = ReceivedDiscordMessageImpl.fromJDA(discordSRV, (Message) o);
             } else if (o instanceof User) {
-                converted = new DiscordUserImpl(discordSRV, (User) o);
+                converted = api().getUser((User) o);
             } else {
                 converted = o;
                 isConversion = false;

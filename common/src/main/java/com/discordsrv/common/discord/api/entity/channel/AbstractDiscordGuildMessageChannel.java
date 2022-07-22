@@ -26,7 +26,6 @@ import com.discordsrv.api.discord.entity.guild.DiscordGuild;
 import com.discordsrv.api.discord.entity.message.ReceivedDiscordMessage;
 import com.discordsrv.api.discord.entity.message.SendableDiscordMessage;
 import com.discordsrv.common.DiscordSRV;
-import com.discordsrv.common.discord.api.entity.guild.DiscordGuildImpl;
 import com.discordsrv.common.discord.api.entity.message.ReceivedDiscordMessageImpl;
 import com.discordsrv.common.discord.api.entity.message.util.SendableDiscordMessageUtil;
 import net.dv8tion.jda.api.entities.GuildMessageChannel;
@@ -47,7 +46,7 @@ public abstract class AbstractDiscordGuildMessageChannel<T extends GuildMessageC
 
     public AbstractDiscordGuildMessageChannel(DiscordSRV discordSRV, T channel) {
         super(discordSRV, channel);
-        this.guild = new DiscordGuildImpl(discordSRV, channel.getGuild());
+        this.guild = discordSRV.discordAPI().getGuild(channel.getGuild());
     }
 
     public CompletableFuture<WebhookClient> queryWebhookClient() {

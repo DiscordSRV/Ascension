@@ -21,12 +21,12 @@
  * SOFTWARE.
  */
 
-package com.discordsrv.api.discord.entity.component.impl;
+package com.discordsrv.api.discord.entity.interaction.component.impl;
 
 import com.discordsrv.api.discord.entity.JDAEntity;
-import com.discordsrv.api.discord.entity.component.ComponentIdentifier;
-import com.discordsrv.api.discord.entity.component.actionrow.ActionRow;
-import com.discordsrv.api.discord.entity.component.actionrow.ModalActionRow;
+import com.discordsrv.api.discord.entity.interaction.component.ComponentIdentifier;
+import com.discordsrv.api.discord.entity.interaction.component.actionrow.ActionRow;
+import com.discordsrv.api.discord.entity.interaction.component.actionrow.ModalActionRow;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
@@ -37,11 +37,14 @@ import java.util.stream.Collectors;
 /**
  * A Discord modal.
  * @see #builder(ComponentIdentifier, String)
+ * @see com.discordsrv.api.discord.events.interaction.DiscordModalInteractionEvent
  */
 public class Modal implements JDAEntity<net.dv8tion.jda.api.interactions.components.Modal> {
 
     /**
      * Creates a new modal builder.
+     *
+     * @param id a unique identifier for this interaction, used to check if a given event was for this interaction
      * @param title the title of the modal
      * @return a new modal builder
      */

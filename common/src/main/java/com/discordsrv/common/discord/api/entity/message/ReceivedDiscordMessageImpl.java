@@ -39,9 +39,6 @@ import com.discordsrv.api.placeholder.annotation.PlaceholderRemainder;
 import com.discordsrv.common.DiscordSRV;
 import com.discordsrv.common.component.util.ComponentUtil;
 import com.discordsrv.common.config.main.channels.base.BaseChannelConfig;
-import com.discordsrv.common.discord.api.entity.DiscordUserImpl;
-import com.discordsrv.common.discord.api.entity.channel.AbstractDiscordMessageChannel;
-import com.discordsrv.common.discord.api.entity.guild.DiscordGuildMemberImpl;
 import com.discordsrv.common.function.OrDefault;
 import com.discordsrv.common.future.util.CompletableFutureUtil;
 import net.dv8tion.jda.api.entities.Member;
@@ -66,11 +63,11 @@ public class ReceivedDiscordMessageImpl implements ReceivedDiscordMessage {
         }
 
         boolean webhookMessage = message.isWebhookMessage();
-        DiscordMessageChannel channel = AbstractDiscordMessageChannel.get(discordSRV, message.getChannel());
-        DiscordUser user = new DiscordUserImpl(discordSRV, message.getAuthor());
+        DiscordMessageChannel channel = discordSRV.discordAPI().getMessageChannel(message.getChannel());
+        DiscordUser user = discordSRV.discordAPI().getUser(message.getAuthor());
 
         Member member = message.getMember();
-        DiscordGuildMember apiMember = member != null ? new DiscordGuildMemberImpl(discordSRV, member) : null;
+        DiscordGuildMember apiMember = member != null ? discordSRV.discordAPI().getGuildMember(member) : null;
 
         boolean self = false;
         if (webhookMessage) {

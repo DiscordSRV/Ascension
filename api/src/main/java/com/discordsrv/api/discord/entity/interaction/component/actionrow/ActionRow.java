@@ -21,27 +21,23 @@
  * SOFTWARE.
  */
 
-package com.discordsrv.api.discord.entity;
+package com.discordsrv.api.discord.entity.interaction.component.actionrow;
 
-import com.discordsrv.api.discord.entity.component.impl.Modal;
-import com.discordsrv.api.discord.entity.message.ReceivedDiscordMessage;
-import com.discordsrv.api.discord.entity.message.SendableDiscordMessage;
-import net.dv8tion.jda.api.interactions.InteractionHook;
+import com.discordsrv.api.discord.entity.JDAEntity;
+import com.discordsrv.api.discord.entity.interaction.component.Component;
+import net.dv8tion.jda.api.interactions.components.ItemComponent;
 
-import java.util.concurrent.CompletableFuture;
+import java.util.List;
+import java.util.stream.Collectors;
 
-public interface Interaction extends JDAEntity<InteractionHook> {
+public interface ActionRow<T extends Component<? extends ItemComponent>> extends JDAEntity<net.dv8tion.jda.api.interactions.components.ActionRow> {
 
-    long getExpiryTime();
-    boolean isExpired();
+    List<T> components();
 
-    DiscordUser getUser();
-
-    CompletableFuture<Interaction> replyLater(boolean ephemeral);
-
-    CompletableFuture<ReceivedDiscordMessage> editOriginal(SendableDiscordMessage message);
-    CompletableFuture<Interaction> reply(SendableDiscordMessage message);
-    CompletableFuture<Interaction> replyEphemeral(SendableDiscordMessage message);
-    CompletableFuture<Void> replyModal(Modal modal);
-
+    @Override
+    default net.dv8tion.jda.api.interactions.components.ActionRow asJDA() {
+        return net.dv8tion.jda.api.interactions.components.ActionRow.of(
+                components().stream().map(Component::asJDA).collect(Collectors.toList())
+        );
+    }
 }

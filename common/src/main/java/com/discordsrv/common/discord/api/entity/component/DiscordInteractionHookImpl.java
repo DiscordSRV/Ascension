@@ -18,9 +18,8 @@
 
 package com.discordsrv.common.discord.api.entity.component;
 
-import com.discordsrv.api.discord.entity.DiscordUser;
-import com.discordsrv.api.discord.entity.Interaction;
-import com.discordsrv.api.discord.entity.component.impl.Modal;
+import com.discordsrv.api.discord.entity.interaction.DiscordInteractionHook;
+import com.discordsrv.api.discord.entity.interaction.component.impl.Modal;
 import com.discordsrv.api.discord.entity.message.ReceivedDiscordMessage;
 import com.discordsrv.api.discord.entity.message.SendableDiscordMessage;
 import com.discordsrv.common.DiscordSRV;
@@ -32,16 +31,14 @@ import net.dv8tion.jda.api.interactions.callbacks.IReplyCallback;
 
 import java.util.concurrent.CompletableFuture;
 
-public class InteractionImpl implements Interaction {
+public class DiscordInteractionHookImpl implements DiscordInteractionHook {
 
     private final DiscordSRV discordSRV;
     private final InteractionHook hook;
-    private final DiscordUser user;
 
-    public InteractionImpl(DiscordSRV discordSRV, InteractionHook hook, DiscordUser user) {
+    public DiscordInteractionHookImpl(DiscordSRV discordSRV, InteractionHook hook) {
         this.discordSRV = discordSRV;
         this.hook = hook;
-        this.user = user;
     }
 
     @Override
@@ -60,17 +57,12 @@ public class InteractionImpl implements Interaction {
     }
 
     @Override
-    public DiscordUser getUser() {
-        return user;
-    }
-
-    @Override
-    public CompletableFuture<Interaction> replyLater(boolean ephemeral) {
+    public CompletableFuture<DiscordInteractionHook> replyLater(boolean ephemeral) {
         if (!(hook instanceof IReplyCallback)) {
             throw new IllegalStateException("This interaction cannot be replied to");
         }
         return ((IReplyCallback) hook).deferReply(ephemeral).submit()
-                .thenApply(hook -> new InteractionImpl(discordSRV, hook, user));
+                .thenApply(hook -> new DiscordInteractionHookImpl(discordSRV, hook));
     }
 
     @Override
@@ -80,21 +72,21 @@ public class InteractionImpl implements Interaction {
     }
 
     @Override
-    public CompletableFuture<Interaction> reply(SendableDiscordMessage message) {
+    public CompletableFuture<DiscordInteractionHook> reply(SendableDiscordMessage message) {
         if (!(hook instanceof IReplyCallback)) {
             throw new IllegalStateException("This interaction cannot be replied to");
         }
         return ((IReplyCallback) hook).reply(SendableDiscordMessageUtil.toJDA(message)).submit()
-                .thenApply(hook -> new InteractionImpl(discordSRV, hook, user));
+                .thenApply(hook -> new DiscordInteractionHookImpl(discordSRV, hook));
     }
 
     @Override
-    public CompletableFuture<Interaction> replyEphemeral(SendableDiscordMessage message) {
+    public CompletableFuture<DiscordInteractionHook> replyEphemeral(SendableDiscordMessage message) {
         if (!(hook instanceof IReplyCallback)) {
             throw new IllegalStateException("This interaction cannot be replied to");
         }
         return ((IReplyCallback) hook).reply(SendableDiscordMessageUtil.toJDA(message)).setEphemeral(true).submit()
-                .thenApply(hook -> new InteractionImpl(discordSRV, hook, user));
+                .thenApply(hook -> new DiscordInteractionHookImpl(discordSRV, hook));
     }
 
     @Override

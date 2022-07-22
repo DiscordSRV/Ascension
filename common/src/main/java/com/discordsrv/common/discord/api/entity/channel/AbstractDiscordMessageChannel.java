@@ -24,22 +24,7 @@ import net.dv8tion.jda.api.entities.*;
 
 import java.util.Objects;
 
-public abstract class AbstractDiscordMessageChannel<T extends MessageChannel>
-        implements DiscordMessageChannel {
-
-    public static AbstractDiscordMessageChannel<?> get(DiscordSRV discordSRV, MessageChannel messageChannel) {
-        if (messageChannel instanceof TextChannel) {
-            return new DiscordTextChannelImpl(discordSRV, (TextChannel) messageChannel);
-        } else if (messageChannel instanceof ThreadChannel) {
-            return new DiscordThreadChannelImpl(discordSRV, (ThreadChannel) messageChannel);
-        } else if (messageChannel instanceof PrivateChannel) {
-            return new DiscordDMChannelImpl(discordSRV, (PrivateChannel) messageChannel);
-        } else if (messageChannel instanceof NewsChannel) {
-            return new DiscordNewsChannelImpl(discordSRV, (NewsChannel) messageChannel);
-        } else {
-            throw new IllegalArgumentException("Unmappable MessageChannel type: " + messageChannel.getClass().getName());
-        }
-    }
+public abstract class AbstractDiscordMessageChannel<T extends MessageChannel> implements DiscordMessageChannel {
 
     protected final DiscordSRV discordSRV;
     protected final T channel;

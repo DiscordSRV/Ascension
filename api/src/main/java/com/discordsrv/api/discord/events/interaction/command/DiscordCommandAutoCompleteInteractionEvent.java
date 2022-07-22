@@ -21,22 +21,22 @@
  * SOFTWARE.
  */
 
-package com.discordsrv.api.discord.events.member;
+package com.discordsrv.api.discord.events.interaction.command;
 
+import com.discordsrv.api.discord.entity.DiscordUser;
+import com.discordsrv.api.discord.entity.channel.DiscordMessageChannel;
 import com.discordsrv.api.discord.entity.guild.DiscordGuildMember;
-import com.discordsrv.api.discord.events.AbstractDiscordEvent;
-import net.dv8tion.jda.api.events.guild.member.GenericGuildMemberEvent;
+import com.discordsrv.api.discord.events.interaction.AbstractInteractionEvent;
+import net.dv8tion.jda.api.events.interaction.command.CommandAutoCompleteInteractionEvent;
 
-public abstract class AbstractDiscordMemberEvent<T extends GenericGuildMemberEvent> extends AbstractDiscordEvent<T> {
+public class DiscordCommandAutoCompleteInteractionEvent extends AbstractInteractionEvent<CommandAutoCompleteInteractionEvent> {
 
-    private final DiscordGuildMember member;
-
-    public AbstractDiscordMemberEvent(T jdaEvent, DiscordGuildMember member) {
-        super(jdaEvent);
-        this.member = member;
-    }
-
-    public DiscordGuildMember getMember() {
-        return member;
+    public DiscordCommandAutoCompleteInteractionEvent(
+            CommandAutoCompleteInteractionEvent jdaEvent,
+            DiscordUser user,
+            DiscordGuildMember member,
+            DiscordMessageChannel channel
+    ) {
+        super(jdaEvent, user, member, channel);
     }
 }
