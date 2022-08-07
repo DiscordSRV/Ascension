@@ -477,6 +477,11 @@ public class Command implements JDAEntity<CommandData> {
         REGISTERED,
 
         /**
+         * Command is already registered, and was ignored.
+         */
+        ALREADY_REGISTERED,
+
+        /**
          * There was already a command with the same name,
          * therefor the command won't be registered unless other commands with the same name are unregistered.
          */

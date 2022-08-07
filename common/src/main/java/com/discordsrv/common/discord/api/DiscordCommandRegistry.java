@@ -3,6 +3,7 @@ package com.discordsrv.common.discord.api;
 import com.discordsrv.api.discord.entity.JDAEntity;
 import com.discordsrv.api.discord.entity.interaction.command.Command;
 import com.discordsrv.api.discord.entity.interaction.command.CommandType;
+import com.discordsrv.api.discord.events.interaction.command.CommandRegisterEvent;
 import com.discordsrv.common.DiscordSRV;
 import net.dv8tion.jda.api.JDA;
 import net.dv8tion.jda.api.entities.Guild;
@@ -13,6 +14,7 @@ import org.jetbrains.annotations.Nullable;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArrayList;
+import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
 public class DiscordCommandRegistry {
@@ -26,13 +28,28 @@ public class DiscordCommandRegistry {
         this.discordSRV = discordSRV;
     }
 
-    public Command.RegistrationResult register(Command command) {
+    public void registerCommandsFromEvent() {
+        CommandRegisterEvent event = new CommandRegisterEvent();
+        discordSRV.eventBus().publish(event);
+
+        List<Command> commands = event.getCommands();
+        for (Map<CommandType, Registry> registryMap : registries.values()) {
+            registryMap.values().forEach(registry -> registry.removeIf(reg -> reg.isTemporary() && !commands.contains(reg.getCommand())));
+        }
+
+        commands.forEach(cmd -> register(cmd, true));
+    }
+
+    public Command.RegistrationResult register(Command command, boolean temporary) {
         CommandType type = command.getType();
         Registry registry = registries
                 .computeIfAbsent(command.getGuildId().orElse(GLOBAL_ID), key -> new EnumMap<>(CommandType.class))
                 .computeIfAbsent(type, key -> new Registry());
+        if (registry.contains(command)) {
+            return Command.RegistrationResult.ALREADY_REGISTERED;
+        }
 
-        boolean first = registry.register(command);
+        boolean first = registry.register(command, temporary);
         if (!first) {
             return Command.RegistrationResult.NAME_ALREADY_IN_USE;
         }
@@ -124,10 +141,31 @@ public class DiscordCommandRegistry {
         private final Map<String, List<Registration>> registry = new ConcurrentHashMap<>();
         private final Map<String, Command> activeCommands = new HashMap<>();
 
-        public boolean register(@NotNull Command command) {
+        public void removeIf(Predicate<Registration> commandPredicate) {
+            List<String> removeKeys = new ArrayList<>();
+            for (Map.Entry<String, List<Registration>> entry : registry.entrySet()) {
+                List<Registration> registrations = entry.getValue();
+                registrations.removeIf(commandPredicate);
+                if (registrations.isEmpty()) {
+                    removeKeys.add(entry.getKey());
+                }
+            }
+            removeKeys.forEach(registry::remove);
+        }
+
+        public boolean contains(@NotNull Command command) {
+            List<Registration> commands = registry.get(command.getName());
+            if (commands == null) {
+                return false;
+            }
+
+            return commands.stream().anyMatch(reg -> reg.getCommand() == command);
+        }
+
+        public boolean register(@NotNull Command command, boolean temporary) {
             List<Registration> commands = registry.computeIfAbsent(command.getName(), key -> new CopyOnWriteArrayList<>());
             boolean empty = commands.isEmpty();
-            commands.add(new Registration(command));
+            commands.add(new Registration(command, temporary));
             return empty;
         }
 
@@ -175,10 +213,12 @@ public class DiscordCommandRegistry {
 
         private final Command command;
         private final long time;
+        private final boolean temporary;
 
-        public Registration(Command command) {
+        public Registration(Command command, boolean temporary) {
             this.command = command;
             this.time = System.currentTimeMillis();
+            this.temporary = temporary;
         }
 
         public Command getCommand() {
@@ -187,6 +227,10 @@ public class DiscordCommandRegistry {
 
         public long getTime() {
             return time;
+        }
+
+        public boolean isTemporary() {
+            return temporary;
         }
     }
 }
