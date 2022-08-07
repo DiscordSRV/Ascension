@@ -26,6 +26,8 @@ import com.discordsrv.api.discord.entity.DiscordUser;
 import com.discordsrv.api.discord.entity.channel.*;
 import com.discordsrv.api.discord.entity.guild.DiscordGuild;
 import com.discordsrv.api.discord.entity.guild.DiscordRole;
+import com.discordsrv.api.discord.entity.interaction.command.Command;
+import com.discordsrv.api.discord.entity.interaction.command.CommandType;
 import com.discordsrv.api.discord.exception.NotReadyException;
 import com.discordsrv.api.discord.exception.RestErrorResponseException;
 import com.discordsrv.common.DiscordSRV;
@@ -43,7 +45,6 @@ import com.discordsrv.common.future.util.CompletableFutureUtil;
 import com.github.benmanes.caffeine.cache.AsyncCacheLoader;
 import com.github.benmanes.caffeine.cache.AsyncLoadingCache;
 import com.github.benmanes.caffeine.cache.Expiry;
-import com.github.benmanes.caffeine.cache.RemovalListener;
 import net.dv8tion.jda.api.JDA;
 import net.dv8tion.jda.api.entities.*;
 import net.dv8tion.jda.api.exceptions.ErrorResponseException;
@@ -64,17 +65,14 @@ import java.util.function.Consumer;
 public class DiscordAPIImpl implements DiscordAPI {
 
     private final DiscordSRV discordSRV;
+    private final DiscordCommandRegistry commandRegistry;
     private final AsyncLoadingCache<Long, WebhookClient> cachedClients;
     private final List<ThreadChannelLookup> threadLookups = new CopyOnWriteArrayList<>();
 
     public DiscordAPIImpl(DiscordSRV discordSRV) {
         this.discordSRV = discordSRV;
+        this.commandRegistry = new DiscordCommandRegistry(discordSRV);
         this.cachedClients = discordSRV.caffeineBuilder()
-                .removalListener((RemovalListener<Long, WebhookClient>) (id, client, cause) -> {
-                    if (client != null) {
-                        client.close();
-                    }
-                })
                 .expireAfter(new WebhookCacheExpiry())
                 .buildAsync(new WebhookCacheLoader());
     }
@@ -301,9 +299,7 @@ public class DiscordAPIImpl implements DiscordAPI {
         try {
             return mapExceptions(futureSupplier.get());
         } catch (Throwable t) {
-            CompletableFuture<T> future = new CompletableFuture<>();
-            future.completeExceptionally(t);
-            return future;
+            return CompletableFutureUtil.failed(t);
         }
     }
 
@@ -450,6 +446,20 @@ public class DiscordAPIImpl implements DiscordAPI {
 
     public DiscordRoleImpl getRole(Role jda) {
         return new DiscordRoleImpl(discordSRV, jda);
+    }
+
+    @Override
+    public Command.RegistrationResult registerCommand(Command command) {
+        return commandRegistry.register(command);
+    }
+
+    @Override
+    public void unregisterCommand(Command command) {
+        commandRegistry.unregister(command);
+    }
+
+    public Optional<Command> getActiveCommand(@Nullable Guild guild, CommandType type, String name) {
+        return Optional.ofNullable(commandRegistry.getActive(guild != null ? guild.getIdLong() : null, type, name));
     }
 
     private class WebhookCacheLoader implements AsyncCacheLoader<Long, WebhookClient> {

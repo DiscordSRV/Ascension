@@ -27,6 +27,7 @@ import com.discordsrv.api.discord.entity.DiscordUser;
 import com.discordsrv.api.discord.entity.channel.DiscordMessageChannel;
 import com.discordsrv.api.discord.entity.guild.DiscordGuild;
 import com.discordsrv.api.discord.entity.guild.DiscordGuildMember;
+import com.discordsrv.api.discord.entity.interaction.component.ComponentIdentifier;
 import com.discordsrv.api.discord.events.AbstractDiscordEvent;
 import net.dv8tion.jda.api.events.interaction.GenericInteractionCreateEvent;
 import org.jetbrains.annotations.NotNull;
@@ -35,15 +36,27 @@ import java.util.Optional;
 
 public abstract class AbstractInteractionEvent<T extends GenericInteractionCreateEvent> extends AbstractDiscordEvent<T> {
 
+    protected final ComponentIdentifier identifier;
     protected final DiscordUser user;
     protected final DiscordGuildMember member;
     protected final DiscordMessageChannel channel;
 
-    public AbstractInteractionEvent(T jdaEvent, DiscordUser user, DiscordGuildMember member, DiscordMessageChannel channel) {
+    public AbstractInteractionEvent(
+            T jdaEvent,
+            ComponentIdentifier identifier,
+            DiscordUser user,
+            DiscordGuildMember member,
+            DiscordMessageChannel channel
+    ) {
         super(jdaEvent);
+        this.identifier = identifier;
         this.user = user;
         this.member = member;
         this.channel = channel;
+    }
+
+    public boolean isFor(ComponentIdentifier identifier) {
+        return this.identifier.equals(identifier);
     }
 
     @NotNull

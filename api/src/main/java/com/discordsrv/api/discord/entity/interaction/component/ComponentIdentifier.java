@@ -23,20 +23,23 @@
 
 package com.discordsrv.api.discord.entity.interaction.component;
 
-import org.intellij.lang.annotations.Pattern;
+import org.intellij.lang.annotations.Subst;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Objects;
+import java.util.Optional;
+import java.util.regex.Pattern;
 
 /**
  * An identifier for commands and components to match up with interaction events, and to avoid conflicts between extensions.
  */
 public class ComponentIdentifier {
 
-    public static final String ID_PREFIX = "DiscordSRV/";
+    private static final String ID_PREFIX = "DiscordSRV/";
+    private static final char PART_SEPARATOR = ':';
 
     private static final String REGEX = "[\\w\\d-_]{1,40}";
-    private static final java.util.regex.Pattern PATTERN = java.util.regex.Pattern.compile(REGEX);
+    private static final Pattern PATTERN = java.util.regex.Pattern.compile(REGEX);
 
     /**
      * Creates a new {@link ComponentIdentifier}.
@@ -48,8 +51,8 @@ public class ComponentIdentifier {
      */
     @NotNull
     public static ComponentIdentifier of(
-            @NotNull @Pattern(REGEX) String extensionName,
-            @NotNull @Pattern(REGEX) String identifier
+            @NotNull @org.intellij.lang.annotations.Pattern(REGEX) String extensionName,
+            @NotNull @org.intellij.lang.annotations.Pattern(REGEX) String identifier
     ) {
         if (!PATTERN.matcher(extensionName).matches()) {
             throw new IllegalArgumentException("Extension name does not match the required pattern");
@@ -57,6 +60,26 @@ public class ComponentIdentifier {
             throw new IllegalArgumentException("Identifier does not match the required pattern");
         }
         return new ComponentIdentifier(extensionName, identifier);
+    }
+
+    @NotNull
+    public static Optional<ComponentIdentifier> parseFromDiscord(@NotNull String discordIdentifier) {
+        if (!discordIdentifier.startsWith(ID_PREFIX)) {
+            return Optional.empty();
+        }
+        discordIdentifier = discordIdentifier.substring(ID_PREFIX.length());
+
+        @Subst("Example:Test")
+        String[] parts = discordIdentifier.split(Pattern.quote(ID_PREFIX));
+        if (parts.length != 2) {
+            return Optional.empty();
+        }
+
+        try {
+            return Optional.of(of(parts[0], parts[1]));
+        } catch (IllegalStateException ignored) {
+            return Optional.empty();
+        }
     }
 
     private final String extensionName;
@@ -76,7 +99,7 @@ public class ComponentIdentifier {
     }
 
     public String getDiscordIdentifier() {
-        return ID_PREFIX + getExtensionName() + ":" + getIdentifier();
+        return ID_PREFIX + getExtensionName() + PART_SEPARATOR + getIdentifier();
     }
 
     @Override

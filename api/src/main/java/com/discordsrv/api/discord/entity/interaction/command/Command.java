@@ -25,6 +25,7 @@ package com.discordsrv.api.discord.entity.interaction.command;
 
 import com.discordsrv.api.discord.entity.JDAEntity;
 import com.discordsrv.api.discord.entity.interaction.component.ComponentIdentifier;
+import com.discordsrv.api.discord.events.interaction.command.*;
 import net.dv8tion.jda.api.Permission;
 import net.dv8tion.jda.api.interactions.commands.DefaultMemberPermissions;
 import net.dv8tion.jda.api.interactions.commands.build.*;
@@ -33,22 +34,34 @@ import org.jetbrains.annotations.Nullable;
 import org.jetbrains.annotations.Unmodifiable;
 
 import java.util.*;
+import java.util.function.Consumer;
+import java.util.regex.Pattern;
 
 /**
  * A Discord command.
  */
 public class Command implements JDAEntity<CommandData> {
 
+    private static final String CHAT_INPUT_NAME_REGEX = "(?U)[\\w-]{1,32}";
+    public static final Pattern CHAT_INPUT_NAME_PATTERN = Pattern.compile(CHAT_INPUT_NAME_REGEX);
+
     /**
      * Creates a chat input or slash command builder.
      *
      * @param id a unique identifier for this interaction, used to check if a given event was for this interaction
-     * @param name the name of the command
+     * @param name the name of the command, 1-32 characters alphanumeric and dashes
      * @param description the description of the command
      * @return a new chat input command builder
      * @see com.discordsrv.api.discord.events.interaction.command.DiscordChatInputInteractionEvent
      */
-    public static ChatInputBuilder chatInput(ComponentIdentifier id, String name, String description) {
+    public static ChatInputBuilder chatInput(
+            ComponentIdentifier id,
+            @org.intellij.lang.annotations.Pattern(CHAT_INPUT_NAME_REGEX) String name,
+            String description
+    ) {
+        if (!CHAT_INPUT_NAME_PATTERN.matcher(name).matches()) {
+            throw new IllegalArgumentException("Name must be alphanumeric (dashes allowed), 1 and 32 characters");
+        }
         return new ChatInputBuilder(id, name, description);
     }
 
@@ -56,46 +69,58 @@ public class Command implements JDAEntity<CommandData> {
      * Creates a new user context menu command.
      *
      * @param id a unique identifier for this interaction, used to check if a given event was for this interaction
-     * @param name the name of the command
+     * @param name the name of the command, 1-32 characters
      * @return a new command builder
      * @see com.discordsrv.api.discord.events.interaction.command.DiscordUserContextInteractionEvent
      */
-    public static Builder user(ComponentIdentifier id, String name) {
-        return new Builder(id, Type.USER, name);
+    public static Builder<DiscordUserContextInteractionEvent> user(
+            ComponentIdentifier id,
+            @org.intellij.lang.annotations.Pattern(".{1,32}") String name
+    ) {
+        return new Builder<>(id, CommandType.USER, name);
     }
 
     /**
      * Creates a new message context menu command.
      *
      * @param id a unique identifier for this interaction, used to check if a given event was for this interaction
-     * @param name the name of the command
+     * @param name the name of the command, 1-32 characters
      * @return a new command builder
      * @see com.discordsrv.api.discord.events.interaction.command.DiscordMessageContextInteractionEvent
      */
-    public static Builder message(ComponentIdentifier id, String name) {
-        return new Builder(id, Type.MESSAGE, name);
+    public static Builder<DiscordMessageContextInteractionEvent> message(
+            ComponentIdentifier id,
+            @org.intellij.lang.annotations.Pattern(".{1,32}") String name
+    ) {
+        return new Builder<>(id, CommandType.MESSAGE, name);
     }
 
     private final ComponentIdentifier id;
-    private final Type type;
+    private final CommandType type;
     private final Map<Locale, String> nameTranslations;
     private final Map<Locale, String> descriptionTranslations;
     private final List<SubCommandGroup> subCommandGroups;
     private final List<Command> subCommands;
     private final List<CommandOption> options;
+    private final Long guildId;
     private final boolean guildOnly;
     private final DefaultPermission defaultPermission;
+    private final Consumer<? extends AbstractCommandInteractionEvent<?>> eventHandler;
+    private final Consumer<DiscordCommandAutoCompleteInteractionEvent> autoCompleteHandler;
 
     private Command(
             ComponentIdentifier id,
-            Type type,
+            CommandType type,
             Map<Locale, String> nameTranslations,
             Map<Locale, String> descriptionTranslations,
             List<SubCommandGroup> subCommandGroups,
             List<Command> subCommands,
             List<CommandOption> options,
+            Long guildId,
             boolean guildOnly,
-            DefaultPermission defaultPermission
+            DefaultPermission defaultPermission,
+            Consumer<? extends AbstractCommandInteractionEvent<?>> eventHandler,
+            Consumer<DiscordCommandAutoCompleteInteractionEvent> autoCompleteHandler
     ) {
         this.id = id;
         this.type = type;
@@ -104,8 +129,11 @@ public class Command implements JDAEntity<CommandData> {
         this.subCommandGroups = subCommandGroups;
         this.subCommands = subCommands;
         this.options = options;
+        this.guildId = guildId;
         this.guildOnly = guildOnly;
         this.defaultPermission = defaultPermission;
+        this.eventHandler = eventHandler;
+        this.autoCompleteHandler = autoCompleteHandler;
     }
 
     @NotNull
@@ -114,7 +142,12 @@ public class Command implements JDAEntity<CommandData> {
     }
 
     @NotNull
-    public Type getType() {
+    public Optional<Long> getGuildId() {
+        return Optional.ofNullable(guildId);
+    }
+
+    @NotNull
+    public CommandType getType() {
         return type;
     }
 
@@ -161,6 +194,21 @@ public class Command implements JDAEntity<CommandData> {
         return defaultPermission;
     }
 
+    @NotNull
+    @SuppressWarnings("unchecked")
+    public <T extends AbstractCommandInteractionEvent<?>> Optional<Consumer<T>> getEventHandler() {
+        if (eventHandler == null) {
+            return Optional.empty();
+        }
+
+        return Optional.of((Consumer<T>) eventHandler);
+    }
+
+    @NotNull
+    public Optional<Consumer<DiscordCommandAutoCompleteInteractionEvent>> getAutoCompleteHandler() {
+        return Optional.ofNullable(autoCompleteHandler);
+    }
+
     @Override
     public CommandData asJDA() {
         CommandData commandData;
@@ -194,15 +242,16 @@ public class Command implements JDAEntity<CommandData> {
         return data;
     }
 
-    public static class ChatInputBuilder extends Builder {
+    public static class ChatInputBuilder extends Builder<DiscordChatInputInteractionEvent> {
 
         private final Map<Locale, String> descriptionTranslations = new LinkedHashMap<>();
         private final List<SubCommandGroup> subCommandGroups = new ArrayList<>();
         private final List<Command> subCommands = new ArrayList<>();
         private final List<CommandOption> options = new ArrayList<>();
+        private Consumer<DiscordCommandAutoCompleteInteractionEvent> autoCompleteHandler;
 
         private ChatInputBuilder(ComponentIdentifier id, String name, String description) {
-            super(id, Type.CHAT_INPUT, name);
+            super(id, CommandType.CHAT_INPUT, name);
             this.descriptionTranslations.put(Locale.ROOT, description);
         }
 
@@ -211,11 +260,11 @@ public class Command implements JDAEntity<CommandData> {
          * @param locale the language
          * @param translation the translation
          * @return this builder, useful for chaining
-         * @throws IllegalStateException if this isn't a {@link Type#CHAT_INPUT} command
+         * @throws IllegalStateException if this isn't a {@link CommandType#CHAT_INPUT} command
          */
         @NotNull
         public ChatInputBuilder addDescriptionTranslation(@NotNull Locale locale, @NotNull String translation) {
-            if (type != Type.CHAT_INPUT) {
+            if (type != CommandType.CHAT_INPUT) {
                 throw new IllegalStateException("Descriptions are only available for CHAT_INPUT commands");
             }
             this.descriptionTranslations.put(locale, translation);
@@ -258,6 +307,17 @@ public class Command implements JDAEntity<CommandData> {
             return this;
         }
 
+        /**
+         * Sets the auto complete handler for this command, this can be used instead of listening to the {@link DiscordCommandAutoCompleteInteractionEvent}.
+         * @param autoCompleteHandler the auto complete handler, only receives events for this command
+         * @return this builder, useful for chaining
+         */
+        @NotNull
+        public ChatInputBuilder setAutoCompleteHandler(Consumer<DiscordCommandAutoCompleteInteractionEvent> autoCompleteHandler) {
+            this.autoCompleteHandler = autoCompleteHandler;
+            return this;
+        }
+
         @Override
         public Command build() {
             return new Command(
@@ -268,21 +328,26 @@ public class Command implements JDAEntity<CommandData> {
                     subCommandGroups,
                     subCommands,
                     options,
+                    guildId,
                     guildOnly,
-                    defaultPermission
+                    defaultPermission,
+                    eventHandler,
+                    autoCompleteHandler
             );
         }
     }
 
-    public static class Builder {
+    public static class Builder<E extends AbstractCommandInteractionEvent<?>> {
 
         protected final ComponentIdentifier id;
-        protected final Type type;
+        protected final CommandType type;
         protected final Map<Locale, String> nameTranslations = new LinkedHashMap<>();
+        protected Long guildId = null;
         protected boolean guildOnly = true;
         protected DefaultPermission defaultPermission = DefaultPermission.EVERYONE;
+        protected Consumer<? extends AbstractCommandInteractionEvent<?>> eventHandler;
 
-        private Builder(ComponentIdentifier id, Type type, String name) {
+        private Builder(ComponentIdentifier id, CommandType type, String name) {
             this.id = id;
             this.type = type;
             this.nameTranslations.put(Locale.ROOT, name);
@@ -295,8 +360,18 @@ public class Command implements JDAEntity<CommandData> {
          * @return this builder, useful for chaining
          */
         @NotNull
-        public Builder addNameTranslation(@NotNull Locale locale, @NotNull String translation) {
+        public Builder<E> addNameTranslation(@NotNull Locale locale, @NotNull String translation) {
             this.nameTranslations.put(locale, translation);
+            return this;
+        }
+
+        /**
+         * Sets the id of the guild this command should be registered to, or {@code null} to register the command globally.
+         * @param guildId the guild id
+         * @return this builder, useful for chaining
+         */
+        public Builder<E> setGuildId(Long guildId) {
+            this.guildId = guildId;
             return this;
         }
 
@@ -306,7 +381,7 @@ public class Command implements JDAEntity<CommandData> {
          * @return this builder, useful for chaining
          */
         @NotNull
-        public Builder setGuildOnly(boolean guildOnly) {
+        public Builder<E> setGuildOnly(boolean guildOnly) {
             this.guildOnly = guildOnly;
             return this;
         }
@@ -314,10 +389,22 @@ public class Command implements JDAEntity<CommandData> {
         /**
          * Sets the permission level required to use the command by default.
          * @param defaultPermission the permission level
+         * @return this builder, useful for chaining
          */
         @NotNull
-        public Builder setDefaultPermission(@NotNull DefaultPermission defaultPermission) {
+        public Builder<E> setDefaultPermission(@NotNull DefaultPermission defaultPermission) {
             this.defaultPermission = defaultPermission;
+            return this;
+        }
+
+        /**
+         * Sets the event handler for this command, this can be used instead of listening to the specific interaction event.
+         * @param eventHandler the event handler, only receives events for this command
+         * @return this builder, useful for chaining
+         */
+        @NotNull
+        public Builder<E> setEventHandler(Consumer<E> eventHandler) {
+            this.eventHandler = eventHandler;
             return this;
         }
 
@@ -330,8 +417,11 @@ public class Command implements JDAEntity<CommandData> {
                     Collections.emptyList(),
                     Collections.emptyList(),
                     Collections.emptyList(),
+                    guildId,
                     guildOnly,
-                    defaultPermission
+                    defaultPermission,
+                    eventHandler,
+                    null
             );
         }
     }
@@ -379,21 +469,24 @@ public class Command implements JDAEntity<CommandData> {
         }
     }
 
-    public enum Type implements JDAEntity<net.dv8tion.jda.api.interactions.commands.Command.Type> {
+    public enum RegistrationResult {
 
-        CHAT_INPUT(net.dv8tion.jda.api.interactions.commands.Command.Type.SLASH),
-        USER(net.dv8tion.jda.api.interactions.commands.Command.Type.USER),
-        MESSAGE(net.dv8tion.jda.api.interactions.commands.Command.Type.MESSAGE);
+        /**
+         * Indicates that the command was successfully added to the registry, and will be registered.
+         */
+        REGISTERED,
 
-        private final net.dv8tion.jda.api.interactions.commands.Command.Type jda;
+        /**
+         * There was already a command with the same name,
+         * therefor the command won't be registered unless other commands with the same name are unregistered.
+         */
+        NAME_ALREADY_IN_USE,
 
-        Type(net.dv8tion.jda.api.interactions.commands.Command.Type jda) {
-            this.jda = jda;
-        }
+        /**
+         * There are too many commands of the same type,
+         * therefore the command won't be registered unless other commands of the same type are unregistered.
+         */
+        TOO_MANY_COMMANDS
 
-        @Override
-        public net.dv8tion.jda.api.interactions.commands.Command.Type asJDA() {
-            return jda;
-        }
     }
 }

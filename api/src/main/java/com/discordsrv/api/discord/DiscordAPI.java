@@ -27,6 +27,7 @@ import com.discordsrv.api.discord.entity.DiscordUser;
 import com.discordsrv.api.discord.entity.channel.*;
 import com.discordsrv.api.discord.entity.guild.DiscordGuild;
 import com.discordsrv.api.discord.entity.guild.DiscordRole;
+import com.discordsrv.api.discord.entity.interaction.command.Command;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Optional;
@@ -116,4 +117,16 @@ public interface DiscordAPI {
      */
     @NotNull
     Optional<DiscordRole> getRoleById(long id);
+
+    /**
+     * Registers a Discord command.
+     * @param command the command to register
+     */
+    Command.RegistrationResult registerCommand(Command command);
+
+    /**
+     * Unregisters a Discord command.
+     * @param command the command to unregister
+     */
+    void unregisterCommand(Command command);
 }

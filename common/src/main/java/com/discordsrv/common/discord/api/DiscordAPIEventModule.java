@@ -22,11 +22,10 @@ import com.discordsrv.api.discord.entity.DiscordUser;
 import com.discordsrv.api.discord.entity.channel.DiscordMessageChannel;
 import com.discordsrv.api.discord.entity.guild.DiscordGuildMember;
 import com.discordsrv.api.discord.entity.interaction.DiscordInteractionHook;
+import com.discordsrv.api.discord.entity.interaction.command.CommandType;
+import com.discordsrv.api.discord.entity.interaction.component.ComponentIdentifier;
 import com.discordsrv.api.discord.events.interaction.DiscordModalInteractionEvent;
-import com.discordsrv.api.discord.events.interaction.command.DiscordChatInputInteractionEvent;
-import com.discordsrv.api.discord.events.interaction.command.DiscordCommandAutoCompleteInteractionEvent;
-import com.discordsrv.api.discord.events.interaction.command.DiscordMessageContextInteractionEvent;
-import com.discordsrv.api.discord.events.interaction.command.DiscordUserContextInteractionEvent;
+import com.discordsrv.api.discord.events.interaction.command.*;
 import com.discordsrv.api.discord.events.interaction.component.DiscordButtonInteractionEvent;
 import com.discordsrv.api.discord.events.interaction.component.DiscordSelectMenuInteractionEvent;
 import com.discordsrv.api.discord.events.member.role.DiscordMemberRoleAddEvent;
@@ -40,16 +39,15 @@ import com.discordsrv.common.DiscordSRV;
 import com.discordsrv.common.discord.api.entity.component.DiscordInteractionHookImpl;
 import com.discordsrv.common.discord.api.entity.message.ReceivedDiscordMessageImpl;
 import com.discordsrv.common.module.type.AbstractModule;
+import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.entities.Member;
 import net.dv8tion.jda.api.events.guild.member.GuildMemberRoleAddEvent;
 import net.dv8tion.jda.api.events.guild.member.GuildMemberRoleRemoveEvent;
 import net.dv8tion.jda.api.events.interaction.GenericInteractionCreateEvent;
 import net.dv8tion.jda.api.events.interaction.ModalInteractionEvent;
-import net.dv8tion.jda.api.events.interaction.command.CommandAutoCompleteInteractionEvent;
-import net.dv8tion.jda.api.events.interaction.command.MessageContextInteractionEvent;
-import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent;
-import net.dv8tion.jda.api.events.interaction.command.UserContextInteractionEvent;
+import net.dv8tion.jda.api.events.interaction.command.*;
 import net.dv8tion.jda.api.events.interaction.component.ButtonInteractionEvent;
+import net.dv8tion.jda.api.events.interaction.component.GenericComponentInteractionCreateEvent;
 import net.dv8tion.jda.api.events.interaction.component.SelectMenuInteractionEvent;
 import net.dv8tion.jda.api.events.message.MessageDeleteEvent;
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
@@ -130,9 +128,20 @@ public class DiscordAPIEventModule extends AbstractModule<DiscordSRV> {
         DiscordGuildMember guildMember = member != null ? api().getGuildMember(member) : null;
         DiscordMessageChannel channel = api().getMessageChannel(event.getMessageChannel());
         if (event instanceof CommandAutoCompleteInteractionEvent) {
+            com.discordsrv.api.discord.entity.interaction.command.Command command = discordSRV.discordAPI().getActiveCommand(
+                    ((CommandAutoCompleteInteractionEvent) event).isGuildCommand() ? event.getGuild() : null,
+                    CommandType.CHAT_INPUT,
+                    ((CommandAutoCompleteInteractionEvent) event).getName()
+            ).orElse(null);
+            if (command == null) {
+                return;
+            }
+
             DiscordCommandAutoCompleteInteractionEvent autoComplete = new DiscordCommandAutoCompleteInteractionEvent(
-                    (CommandAutoCompleteInteractionEvent) event, user, guildMember, channel);
+                    (CommandAutoCompleteInteractionEvent) event, command.getId(), user, guildMember, channel);
             discordSRV.eventBus().publish(autoComplete);
+            command.getAutoCompleteHandler().ifPresent(handler -> handler.accept(autoComplete));
+
             List<Command.Choice> choices = new ArrayList<>();
             for (Map.Entry<String, Object> entry : autoComplete.getChoices().entrySet()) {
                 String key = entry.getKey();
@@ -150,22 +159,90 @@ public class DiscordAPIEventModule extends AbstractModule<DiscordSRV> {
         }
 
         DiscordInteractionHook hook = new DiscordInteractionHookImpl(discordSRV, ((IDeferrableCallback) event).getHook());
-        Event newEvent;
-        if (event instanceof MessageContextInteractionEvent) {
-            newEvent = new DiscordMessageContextInteractionEvent((MessageContextInteractionEvent) event, user, guildMember, channel, hook);
-        } else if (event instanceof UserContextInteractionEvent) {
-            newEvent = new DiscordUserContextInteractionEvent((UserContextInteractionEvent) event, user, guildMember, channel, hook);
-        } else if (event instanceof SlashCommandInteractionEvent) {
-            newEvent = new DiscordChatInputInteractionEvent((SlashCommandInteractionEvent) event, user, guildMember, channel, hook);
-        } else if (event instanceof ButtonInteractionEvent) {
-            newEvent = new DiscordButtonInteractionEvent((ButtonInteractionEvent) event, user, guildMember, channel, hook);
-        } else if (event instanceof SelectMenuInteractionEvent) {
-            newEvent = new DiscordSelectMenuInteractionEvent((SelectMenuInteractionEvent) event, user, guildMember, channel, hook);
+        Event newEvent = null;
+        if (event instanceof GenericCommandInteractionEvent) {
+            Guild guild = ((GenericCommandInteractionEvent) event).isGuildCommand() ? event.getGuild() : null;
+            String name = ((GenericCommandInteractionEvent) event).getName();
+            if (event instanceof MessageContextInteractionEvent) {
+                com.discordsrv.api.discord.entity.interaction.command.Command command = discordSRV.discordAPI()
+                        .getActiveCommand(guild, CommandType.CHAT_INPUT, name).orElse(null);
+                if (command == null) {
+                    return;
+                }
+
+                DiscordMessageContextInteractionEvent interactionEvent = new DiscordMessageContextInteractionEvent(
+                        (MessageContextInteractionEvent) event,
+                        command.getId(),
+                        user,
+                        guildMember,
+                        channel,
+                        hook
+                );
+
+                newEvent = interactionEvent;
+                command.getEventHandler().ifPresent(handler -> handler.accept(interactionEvent));
+            } else if (event instanceof UserContextInteractionEvent) {
+                com.discordsrv.api.discord.entity.interaction.command.Command command = discordSRV.discordAPI()
+                        .getActiveCommand(guild, CommandType.MESSAGE, name).orElse(null);
+                if (command == null) {
+                    return;
+                }
+
+                DiscordUserContextInteractionEvent interactionEvent = new DiscordUserContextInteractionEvent(
+                        (UserContextInteractionEvent) event,
+                        command.getId(),
+                        user,
+                        guildMember,
+                        channel,
+                        hook
+                );
+
+                newEvent = interactionEvent;
+                command.getEventHandler().ifPresent(handler -> handler.accept(interactionEvent));
+            } else if (event instanceof SlashCommandInteractionEvent) {
+                com.discordsrv.api.discord.entity.interaction.command.Command command = discordSRV.discordAPI()
+                        .getActiveCommand(guild, CommandType.USER, name).orElse(null);
+                if (command == null) {
+                    return;
+                }
+
+                DiscordChatInputInteractionEvent interactionEvent = new DiscordChatInputInteractionEvent(
+                        (SlashCommandInteractionEvent) event,
+                        command.getId(),
+                        user,
+                        guildMember,
+                        channel,
+                        hook
+                );
+
+                newEvent = interactionEvent;
+                command.getEventHandler().ifPresent(handler -> handler.accept(interactionEvent));
+            }
+        } else if (event instanceof GenericComponentInteractionCreateEvent) {
+            ComponentIdentifier identifier = ComponentIdentifier.parseFromDiscord(
+                    ((GenericComponentInteractionCreateEvent) event).getComponentId()).orElse(null);
+            if (identifier == null) {
+                return;
+            }
+
+            if (event instanceof ButtonInteractionEvent) {
+                newEvent = new DiscordButtonInteractionEvent(
+                        (ButtonInteractionEvent) event, identifier, user, guildMember, channel, hook);
+            } else if (event instanceof SelectMenuInteractionEvent) {
+                newEvent = new DiscordSelectMenuInteractionEvent(
+                        (SelectMenuInteractionEvent) event, identifier, user, guildMember, channel, hook);
+            }
         } else if (event instanceof ModalInteractionEvent) {
-            newEvent = new DiscordModalInteractionEvent((ModalInteractionEvent) event, user, guildMember, channel, hook);
-        } else {
-            return;
+            ComponentIdentifier identifier = ComponentIdentifier.parseFromDiscord(
+                    ((ModalInteractionEvent) event).getModalId()).orElse(null);
+            if (identifier == null) {
+                return;
+            }
+
+            newEvent = new DiscordModalInteractionEvent((ModalInteractionEvent) event, identifier, user, guildMember, channel, hook);
         }
-        discordSRV.eventBus().publish(newEvent);
+        if (newEvent != null) {
+            discordSRV.eventBus().publish(newEvent);
+        }
     }
 }

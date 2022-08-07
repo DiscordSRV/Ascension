@@ -27,17 +27,19 @@ import com.discordsrv.api.discord.entity.DiscordUser;
 import com.discordsrv.api.discord.entity.channel.DiscordMessageChannel;
 import com.discordsrv.api.discord.entity.guild.DiscordGuildMember;
 import com.discordsrv.api.discord.entity.interaction.DiscordInteractionHook;
+import com.discordsrv.api.discord.entity.interaction.component.ComponentIdentifier;
 import net.dv8tion.jda.api.events.interaction.ModalInteractionEvent;
 
 public class DiscordModalInteractionEvent extends AbstractDeferrableInteractionEvent<ModalInteractionEvent> {
 
     public DiscordModalInteractionEvent(
             ModalInteractionEvent jdaEvent,
+            ComponentIdentifier identifier,
             DiscordUser user,
             DiscordGuildMember member,
             DiscordMessageChannel channel,
             DiscordInteractionHook hook
     ) {
-        super(jdaEvent, user, member, channel, hook);
+        super(jdaEvent, identifier, user, member, channel, hook);
     }
 }

@@ -27,6 +27,7 @@ import com.discordsrv.api.discord.entity.DiscordUser;
 import com.discordsrv.api.discord.entity.channel.DiscordMessageChannel;
 import com.discordsrv.api.discord.entity.guild.DiscordGuildMember;
 import com.discordsrv.api.discord.entity.interaction.DiscordInteractionHook;
+import com.discordsrv.api.discord.entity.interaction.component.ComponentIdentifier;
 import net.dv8tion.jda.api.events.interaction.GenericInteractionCreateEvent;
 import org.jetbrains.annotations.NotNull;
 
@@ -36,12 +37,13 @@ public abstract class AbstractDeferrableInteractionEvent<T extends GenericIntera
 
     public AbstractDeferrableInteractionEvent(
             T jdaEvent,
+            ComponentIdentifier identifier,
             DiscordUser user,
             DiscordGuildMember member,
             DiscordMessageChannel channel,
             DiscordInteractionHook hook
     ) {
-        super(jdaEvent, user, member, channel);
+        super(jdaEvent, identifier, user, member, channel);
         this.hook = hook;
     }
 
