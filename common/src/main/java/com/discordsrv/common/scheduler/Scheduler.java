@@ -63,15 +63,6 @@ public interface Scheduler {
     Future<?> run(@NotNull Runnable task);
 
     /**
-     * Runs the provided {@link Runnable} on a {@link ForkJoinPool} as soon as possible.
-     * Please view the docs of {@link ForkJoinPool} for benefits.
-     *
-     * @param task the task
-     */
-    @ApiStatus.NonExtendable
-    ForkJoinTask<?> runFork(@NotNull Runnable task);
-
-    /**
      * Schedules the given task to run after the provided time in the provided {@link TimeUnit}.
      *
      * @param task the task

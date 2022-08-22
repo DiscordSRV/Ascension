@@ -120,7 +120,7 @@ public class VaultIntegration extends PluginIntegration<BukkitDiscordSRV> implem
             }
         };
         if (async) {
-            discordSRV.scheduler().runFork(runnable);
+            discordSRV.scheduler().run(runnable);
         } else {
             discordSRV.scheduler().runOnMainThread(runnable);
         }

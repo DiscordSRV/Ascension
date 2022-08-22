@@ -134,7 +134,7 @@ public interface DiscordSRV extends DiscordSRVApi {
     @ApiStatus.NonExtendable
     default <K, V> Caffeine<K, V> caffeineBuilder() {
         return (Caffeine<K, V>) Caffeine.newBuilder()
-                .executor(scheduler().forkJoinPool());
+                .executor(scheduler().executorService());
     }
     OkHttpClient httpClient();
     ObjectMapper json();

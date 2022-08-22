@@ -73,6 +73,9 @@ import com.discordsrv.common.storage.Storage;
 import com.discordsrv.common.storage.StorageType;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import net.dv8tion.jda.api.JDA;
+import net.dv8tion.jda.api.JDAInfo;
+import okhttp3.ConnectionPool;
+import okhttp3.Dispatcher;
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
 import org.intellij.lang.annotations.Language;
@@ -134,18 +137,7 @@ public abstract class AbstractDiscordSRV<B extends IBootstrap, C extends MainCon
     private String gitRevision;
     private String gitBranch;
 
-    private final OkHttpClient httpClient = new OkHttpClient.Builder()
-            .addInterceptor(chain -> {
-                Request original = chain.request();
-                return chain.proceed(
-                        original.newBuilder()
-                                .removeHeader("User-Agent")
-                                .addHeader("User-Agent", "DiscordSRV/" + version())
-                                .build()
-                );
-            })
-            .callTimeout(1, TimeUnit.MINUTES)
-            .build();
+    private OkHttpClient httpClient;
     private final ObjectMapper objectMapper = new ObjectMapper();
 
     // Internal
@@ -174,6 +166,39 @@ public abstract class AbstractDiscordSRV<B extends IBootstrap, C extends MainCon
         this.discordConnectionManager = new JDAConnectionManager(this);
         this.channelConfig = new ChannelConfigHelper(this);
         readManifest();
+
+        Dispatcher dispatcher = new Dispatcher();
+        dispatcher.setMaxRequests(20); // Set maximum amount of requests at a time (to something more reasonable than 64)
+        dispatcher.setMaxRequestsPerHost(16); // Most requests are to discord.com
+
+        ConnectionPool connectionPool = new ConnectionPool(5, 10, TimeUnit.SECONDS);
+
+        this.httpClient = new OkHttpClient.Builder()
+                .dispatcher(dispatcher)
+                .connectionPool(connectionPool)
+                .addInterceptor(chain -> {
+                    Request original = chain.request();
+                    String host = original.url().host();
+                    boolean isDiscord = host.endsWith("discord.com")
+                            || host.endsWith("discordapp.com")
+                            || host.endsWith("discord.gg");
+
+                    String userAgent = isDiscord
+                                       ? "DiscordBot (https://github.com/DiscordSRV/DiscordSRV, " + version() + ")"
+                                               + " (" + JDAInfo.GITHUB + ", " + JDAInfo.VERSION + ")"
+                                       : "DiscordSRV/" + version();
+
+                    return chain.proceed(
+                            original.newBuilder()
+                                    .removeHeader("User-Agent")
+                                    .addHeader("User-Agent", userAgent)
+                                    .build()
+                    );
+                })
+                .connectTimeout(20, TimeUnit.SECONDS)
+                .readTimeout(20, TimeUnit.SECONDS)
+                .writeTimeout(20, TimeUnit.SECONDS)
+                .build();
     }
 
     protected URL getManifest() {

@@ -43,14 +43,14 @@ public abstract class AbstractPlayerProvider<T extends IPlayer, DT extends Disco
     protected void addPlayer(UUID uuid, T player, boolean initial) {
         this.players.put(uuid, player);
         this.allPlayers.add(player);
-        discordSRV.scheduler().runFork(() -> discordSRV.eventBus().publish(new PlayerConnectedEvent(player, initial)));
+        discordSRV.scheduler().run(() -> discordSRV.eventBus().publish(new PlayerConnectedEvent(player, initial)));
     }
 
     protected void removePlayer(UUID uuid) {
         T player = this.players.remove(uuid);
         if (player != null) {
             allPlayers.remove(player);
-            discordSRV.scheduler().runFork(() -> discordSRV.eventBus().publish(new PlayerDisconnectedEvent(player)));
+            discordSRV.scheduler().run(() -> discordSRV.eventBus().publish(new PlayerDisconnectedEvent(player)));
         }
     }
 

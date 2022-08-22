@@ -450,7 +450,7 @@ public class DiscordAPIImpl implements DiscordAPI {
 
     @Override
     public Command.RegistrationResult registerCommand(Command command) {
-        return commandRegistry.register(command);
+        return commandRegistry.register(command, false);
     }
 
     @Override

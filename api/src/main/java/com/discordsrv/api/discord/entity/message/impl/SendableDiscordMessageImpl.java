@@ -295,7 +295,7 @@ public class SendableDiscordMessageImpl implements SendableDiscordMessage {
             builder.setContent(placeholders.apply(builder.getContent()));
 
             List<DiscordMessageEmbed> embeds = new ArrayList<>(builder.getEmbeds());
-            builder.getEmbeds().clear();
+            builder.getEmbeds().forEach(builder::removeEmbed);
 
             for (DiscordMessageEmbed embed : embeds) {
                 DiscordMessageEmbed.Builder embedBuilder = embed.toBuilder();

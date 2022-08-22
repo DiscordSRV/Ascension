@@ -40,18 +40,24 @@ public class StandardScheduler implements Scheduler {
         this(
                 discordSRV,
                 new ThreadPoolExecutor(
-                        4, /* Core pool size */
-                        16, /* Max pool size */
+                        1, /* Core pool size */
+                        20, /* Max pool size */
                         60, TimeUnit.SECONDS, /* Timeout */
                         new SynchronousQueue<>(),
                         new CountingThreadFactory(Scheduler.THREAD_NAME_PREFIX + "Executor #%s")
                 ),
                 new ScheduledThreadPoolExecutor(
-                        2, /* Core pool size */
+                        0, /* Core pool size */
                         new CountingThreadFactory(Scheduler.THREAD_NAME_PREFIX + "Scheduled Executor #%s")
                 ),
                 new ForkJoinPool(
-                        Math.max(1, Runtime.getRuntime().availableProcessors() - 1), /* Parallelism - not core pool size */
+                        /* parallelism */
+                        Math.min(
+                                /* max of 10 */
+                                10,
+                                /* cpu cores - 1 or at least 1 */
+                                Math.max(1, Runtime.getRuntime().availableProcessors() - 1)
+                        ),
                         new CountingForkJoinWorkerThreadFactory(Scheduler.THREAD_NAME_PREFIX + "ForkJoinPool Worker #%s"),
                         null,
                         false /* FIFO */
@@ -114,11 +120,6 @@ public class StandardScheduler implements Scheduler {
     }
 
     @Override
-    public ForkJoinTask<?> runFork(@NotNull Runnable task) {
-        return forkJoinPool.submit(wrap(task));
-    }
-
-    @Override
     public ScheduledFuture<?> runLater(Runnable task, long timeMillis) {
         return scheduledExecutorService.schedule(wrap(task), timeMillis, TimeUnit.MILLISECONDS);
     }
@@ -132,7 +133,7 @@ public class StandardScheduler implements Scheduler {
 
         @Override
         public void execute(@NotNull Runnable command) {
-            runFork(command);
+            run(command);
         }
     }
 }

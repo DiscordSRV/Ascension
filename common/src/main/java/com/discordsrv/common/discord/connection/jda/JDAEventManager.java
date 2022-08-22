@@ -23,7 +23,6 @@ import net.dv8tion.jda.api.events.GenericEvent;
 import net.dv8tion.jda.api.hooks.IEventManager;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.Collections;
 import java.util.List;
 
 public class JDAEventManager implements IEventManager {
@@ -34,8 +33,10 @@ public class JDAEventManager implements IEventManager {
         this.discordSRV = discordSRV;
     }
 
-    private void illegalUse() {
-        throw new RuntimeException("The JDA event manager may not be used while using DiscordSRV. Please use DiscordSRV's own event bus to listen for JDA events");
+    @SuppressWarnings("UnusedReturnValue")
+    private <T> T illegalUse() {
+        throw new RuntimeException("The JDA event manager may not be used while using DiscordSRV. "
+                                           + "Please use DiscordSRV's own event bus to listen for JDA events");
     }
 
     @Override
@@ -56,6 +57,6 @@ public class JDAEventManager implements IEventManager {
     @NotNull
     @Override
     public List<Object> getRegisteredListeners() {
-        return Collections.emptyList();
+        return illegalUse();
     }
 }

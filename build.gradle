@@ -41,7 +41,7 @@ subprojects {
     repositories {
         // Snapshot repositories
         //maven { url 'https://oss.sonatype.org/content/repositories/snapshots/' }
-        mavenLocal()
+        //mavenLocal()
         maven { url 'https://s01.oss.sonatype.org/content/repositories/snapshots/' }
 
         maven {

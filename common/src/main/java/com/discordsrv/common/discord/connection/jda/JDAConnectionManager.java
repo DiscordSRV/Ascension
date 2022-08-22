@@ -52,8 +52,6 @@ import net.dv8tion.jda.api.utils.ChunkingFilter;
 import net.dv8tion.jda.api.utils.MemberCachePolicy;
 import net.dv8tion.jda.internal.entities.ReceivedMessage;
 import net.dv8tion.jda.internal.hooks.EventManagerProxy;
-import net.dv8tion.jda.internal.utils.IOUtil;
-import okhttp3.OkHttpClient;
 import org.jetbrains.annotations.NotNull;
 
 import javax.security.auth.login.LoginException;
@@ -271,13 +269,7 @@ public class JDAConnectionManager implements DiscordConnectionManager {
         jdaBuilder.setCallbackPool(discordSRV.scheduler().forkJoinPool());
         jdaBuilder.setGatewayPool(gatewayPool);
         jdaBuilder.setRateLimitPool(rateLimitPool, true);
-
-        OkHttpClient.Builder httpBuilder = IOUtil.newHttpClientBuilder();
-        // These 3 are 10 seconds by default
-        httpBuilder.connectTimeout(20, TimeUnit.SECONDS);
-        httpBuilder.readTimeout(20, TimeUnit.SECONDS);
-        httpBuilder.writeTimeout(20, TimeUnit.SECONDS);
-        jdaBuilder.setHttpClientBuilder(httpBuilder);
+        jdaBuilder.setHttpClient(discordSRV.httpClient());
 
         WebSocketFactory webSocketFactory = new WebSocketFactory();
         jdaBuilder.setWebsocketFactory(webSocketFactory);
