@@ -58,12 +58,14 @@ public abstract class BungeeCommandExecutorProxyTemplate implements CommandSende
     }
 
     @Override
+    @SuppressWarnings({"deprecation", "RedundantSuppression"})
     public void sendMessage(String message) {
         CallOriginal.call(message);
         forwardComponent(LegacyComponentSerializer.legacySection().deserialize(message));
     }
 
     @Override
+    @SuppressWarnings({"deprecation", "RedundantSuppression"})
     public void sendMessages(String... messages) {
         CallOriginal.call((Object) messages);
         forwardComponent(LegacyComponentSerializer.legacySection().deserialize(String.join("\n", messages)));
