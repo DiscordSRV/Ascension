@@ -27,7 +27,10 @@ import com.discordsrv.common.function.OrDefault;
 import com.discordsrv.common.module.type.AbstractModule;
 import net.dv8tion.jda.api.JDA;
 import net.dv8tion.jda.api.Permission;
-import net.dv8tion.jda.api.entities.*;
+import net.dv8tion.jda.api.entities.Guild;
+import net.dv8tion.jda.api.entities.IPermissionHolder;
+import net.dv8tion.jda.api.entities.Role;
+import net.dv8tion.jda.api.entities.channel.concrete.TextChannel;
 import net.dv8tion.jda.api.requests.restaction.PermissionOverrideAction;
 
 import java.util.ArrayList;
@@ -71,7 +74,7 @@ public class ChannelLockingModule extends AbstractModule<DiscordSRV> {
                 for (DiscordThreadChannel thread : discordSRV.discordAPI().findThreads(config, channelConfig)) {
                     thread.asJDA().getManager()
                             .setArchived(true)
-                            .reason("DiscordSRV shutdown behaviour")
+                            .reason("DiscordSRV channel locking")
                             .queue();
                 }
             }
@@ -144,7 +147,7 @@ public class ChannelLockingModule extends AbstractModule<DiscordSRV> {
         } else {
             action = action.deny(permissions);
         }
-        action.reason("DiscordSRV shutdown behaviour").queue();
+        action.reason("DiscordSRV channel locking").queue();
     }
 
     private void doForAllChannels(BiConsumer<OrDefault<BaseChannelConfig>, IChannelConfig> channelConsumer) {

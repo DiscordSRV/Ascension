@@ -41,20 +41,22 @@ import com.neovisionaries.ws.client.WebSocketFrame;
 import net.dv8tion.jda.api.JDA;
 import net.dv8tion.jda.api.JDABuilder;
 import net.dv8tion.jda.api.entities.*;
+import net.dv8tion.jda.api.entities.channel.concrete.PrivateChannel;
+import net.dv8tion.jda.api.entities.channel.concrete.TextChannel;
 import net.dv8tion.jda.api.events.DisconnectEvent;
 import net.dv8tion.jda.api.events.ShutdownEvent;
 import net.dv8tion.jda.api.events.StatusChangeEvent;
 import net.dv8tion.jda.api.exceptions.ErrorResponseException;
+import net.dv8tion.jda.api.exceptions.InvalidTokenException;
 import net.dv8tion.jda.api.exceptions.RateLimitedException;
 import net.dv8tion.jda.api.requests.*;
-import net.dv8tion.jda.api.utils.AllowedMentions;
 import net.dv8tion.jda.api.utils.ChunkingFilter;
 import net.dv8tion.jda.api.utils.MemberCachePolicy;
+import net.dv8tion.jda.api.utils.messages.MessageRequest;
 import net.dv8tion.jda.internal.entities.ReceivedMessage;
 import net.dv8tion.jda.internal.hooks.EventManagerProxy;
 import org.jetbrains.annotations.NotNull;
 
-import javax.security.auth.login.LoginException;
 import java.io.InterruptedIOException;
 import java.util.*;
 import java.util.concurrent.*;
@@ -68,7 +70,7 @@ public class JDAConnectionManager implements DiscordConnectionManager {
     static {
         PRIVILEGED_INTENTS.put(GatewayIntent.GUILD_MEMBERS, "Server Members Intent");
         PRIVILEGED_INTENTS.put(GatewayIntent.GUILD_PRESENCES, "Presence Intent");
-        PRIVILEGED_INTENTS.put(GatewayIntent.GUILD_MESSAGES, "Message Content Intent");
+        PRIVILEGED_INTENTS.put(GatewayIntent.MESSAGE_CONTENT, "Message Content Intent");
     }
 
     private final DiscordSRV discordSRV;
@@ -97,7 +99,7 @@ public class JDAConnectionManager implements DiscordConnectionManager {
         RestAction.setDefaultFailure(failureCallback);
 
         // Disable all mentions by default for safety
-        AllowedMentions.setDefaultMentions(Collections.emptyList());
+        MessageRequest.setDefaultMentions(Collections.emptyList());
 
         discordSRV.eventBus().subscribe(this);
     }
@@ -276,7 +278,7 @@ public class JDAConnectionManager implements DiscordConnectionManager {
 
         try {
             instance = jdaBuilder.build();
-        } catch (LoginException ignored) {
+        } catch (InvalidTokenException ignored) {
             invalidToken();
         } catch (Throwable t) {
             discordSRV.logger().error("Could not create JDA instance due to an unknown error", t);

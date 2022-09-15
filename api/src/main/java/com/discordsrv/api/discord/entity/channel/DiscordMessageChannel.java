@@ -27,7 +27,7 @@ import com.discordsrv.api.DiscordSRVApi;
 import com.discordsrv.api.discord.entity.Snowflake;
 import com.discordsrv.api.discord.entity.message.ReceivedDiscordMessage;
 import com.discordsrv.api.discord.entity.message.SendableDiscordMessage;
-import net.dv8tion.jda.api.entities.MessageChannel;
+import net.dv8tion.jda.api.entities.channel.middleman.MessageChannel;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.InputStream;

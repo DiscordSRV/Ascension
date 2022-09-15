@@ -67,7 +67,7 @@ public class DiscordInteractionHookImpl implements DiscordInteractionHook {
 
     @Override
     public CompletableFuture<ReceivedDiscordMessage> editOriginal(SendableDiscordMessage message) {
-        return hook.editOriginal(SendableDiscordMessageUtil.toJDA(message)).submit()
+        return hook.editOriginal(SendableDiscordMessageUtil.toJDAEdit(message)).submit()
                 .thenApply(msg -> ReceivedDiscordMessageImpl.fromJDA(discordSRV, msg));
     }
 
@@ -76,7 +76,7 @@ public class DiscordInteractionHookImpl implements DiscordInteractionHook {
         if (!(hook instanceof IReplyCallback)) {
             throw new IllegalStateException("This interaction cannot be replied to");
         }
-        return ((IReplyCallback) hook).reply(SendableDiscordMessageUtil.toJDA(message)).submit()
+        return ((IReplyCallback) hook).reply(SendableDiscordMessageUtil.toJDASend(message)).submit()
                 .thenApply(hook -> new DiscordInteractionHookImpl(discordSRV, hook));
     }
 
@@ -85,7 +85,7 @@ public class DiscordInteractionHookImpl implements DiscordInteractionHook {
         if (!(hook instanceof IReplyCallback)) {
             throw new IllegalStateException("This interaction cannot be replied to");
         }
-        return ((IReplyCallback) hook).reply(SendableDiscordMessageUtil.toJDA(message)).setEphemeral(true).submit()
+        return ((IReplyCallback) hook).reply(SendableDiscordMessageUtil.toJDASend(message)).setEphemeral(true).submit()
                 .thenApply(hook -> new DiscordInteractionHookImpl(discordSRV, hook));
     }
 

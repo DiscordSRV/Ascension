@@ -28,9 +28,11 @@ import com.discordsrv.api.discord.entity.message.SendableDiscordMessage;
 import com.discordsrv.common.DiscordSRV;
 import com.discordsrv.common.discord.api.entity.message.ReceivedDiscordMessageImpl;
 import com.discordsrv.common.discord.api.entity.message.util.SendableDiscordMessageUtil;
-import net.dv8tion.jda.api.entities.GuildMessageChannel;
 import net.dv8tion.jda.api.entities.Message;
-import net.dv8tion.jda.api.requests.restaction.MessageAction;
+import net.dv8tion.jda.api.entities.channel.middleman.GuildMessageChannel;
+import net.dv8tion.jda.api.requests.FluentRestAction;
+import net.dv8tion.jda.api.requests.restaction.MessageCreateAction;
+import net.dv8tion.jda.api.utils.FileUpload;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.InputStream;
@@ -78,9 +80,9 @@ public abstract class AbstractDiscordGuildMessageChannel<T extends GuildMessageC
             }
             return webhookClient.send(webhookMessage.build());
         }, (channel, msg) -> {
-            MessageAction action = channel.sendMessage(msg);
+            MessageCreateAction action = channel.sendMessage(SendableDiscordMessageUtil.toJDASend(msg));
             for (Map.Entry<String, InputStream> entry : attachments.entrySet()) {
-                action = action.addFile(entry.getValue(), entry.getKey());
+                action = action.addFiles(FileUpload.fromData(entry.getValue(), entry.getKey()));
             }
             return action;
         });
@@ -91,14 +93,14 @@ public abstract class AbstractDiscordGuildMessageChannel<T extends GuildMessageC
         return message(
                 message,
                 (client, msg) -> client.edit(id, msg.build()),
-                (textChannel, msg) -> textChannel.editMessageById(id, msg)
+                (textChannel, msg) -> textChannel.editMessageById(id, SendableDiscordMessageUtil.toJDAEdit(msg))
         );
     }
 
     private CompletableFuture<ReceivedDiscordMessage> message(
             SendableDiscordMessage message,
             BiFunction<WebhookClient, WebhookMessageBuilder, CompletableFuture<ReadonlyMessage>> webhookFunction,
-            BiFunction<T, Message, MessageAction> jdaFunction) {
+            BiFunction<T, SendableDiscordMessage, FluentRestAction<? extends Message, ?>> jdaFunction) {
         return discordSRV.discordAPI().mapExceptions(() -> {
             CompletableFuture<ReceivedDiscordMessage> future;
             if (message.isWebhookMessage()) {
@@ -108,7 +110,7 @@ public abstract class AbstractDiscordGuildMessageChannel<T extends GuildMessageC
                         .thenApply(msg -> ReceivedDiscordMessageImpl.fromWebhook(discordSRV, msg));
             } else {
                 future = jdaFunction
-                        .apply(channel, SendableDiscordMessageUtil.toJDA(message))
+                        .apply(channel, message)
                         .submit()
                         .thenApply(msg -> ReceivedDiscordMessageImpl.fromJDA(discordSRV, msg));
             }

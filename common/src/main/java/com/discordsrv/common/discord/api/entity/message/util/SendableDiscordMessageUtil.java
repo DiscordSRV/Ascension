@@ -23,10 +23,10 @@ import com.discordsrv.api.discord.entity.interaction.component.actionrow.Message
 import com.discordsrv.api.discord.entity.message.AllowedMention;
 import com.discordsrv.api.discord.entity.message.DiscordMessageEmbed;
 import com.discordsrv.api.discord.entity.message.SendableDiscordMessage;
-import net.dv8tion.jda.api.MessageBuilder;
 import net.dv8tion.jda.api.entities.Message;
 import net.dv8tion.jda.api.entities.MessageEmbed;
 import net.dv8tion.jda.api.interactions.components.ActionRow;
+import net.dv8tion.jda.api.utils.messages.*;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
@@ -37,7 +37,8 @@ public final class SendableDiscordMessageUtil {
 
     private SendableDiscordMessageUtil() {}
 
-    public static Message toJDA(@NotNull SendableDiscordMessage message) {
+    @SuppressWarnings("unchecked")
+    private static <T extends AbstractMessageBuilder<?, ?>> T jdaBuilder(@NotNull SendableDiscordMessage message, T builder) {
         List<Message.MentionType> allowedTypes = new ArrayList<>();
         List<Long> allowedUsers = new ArrayList<>();
         List<Long> allowedRoles = new ArrayList<>();
@@ -61,23 +62,38 @@ public final class SendableDiscordMessageUtil {
             embeds.add(embed.toJDA());
         }
 
+        return (T) builder
+                .setContent(message.getContent().orElse(null))
+                .setEmbeds(embeds)
+                .setAllowedMentions(allowedTypes)
+                .mentionUsers(allowedUsers.stream().mapToLong(l -> l).toArray())
+                .mentionRoles(allowedRoles.stream().mapToLong(l -> l).toArray());
+    }
+
+    public static MessageCreateData toJDASend(@NotNull SendableDiscordMessage message) {
         List<ActionRow> actionRows = new ArrayList<>();
         for (MessageActionRow actionRow : message.getActionRows()) {
             actionRows.add(actionRow.asJDA());
         }
 
-        return new MessageBuilder()
-                .setContent(message.getContent().orElse(null))
-                .setEmbeds(embeds)
-                .setAllowedMentions(allowedTypes)
-                .mentionUsers(allowedUsers.stream().mapToLong(l -> l).toArray())
-                .mentionRoles(allowedRoles.stream().mapToLong(l -> l).toArray())
-                .setActionRows(actionRows)
+        return jdaBuilder(message, new MessageCreateBuilder())
+                .addComponents(actionRows)
+                .build();
+    }
+
+    public static MessageEditData toJDAEdit(@NotNull SendableDiscordMessage message) {
+        List<ActionRow> actionRows = new ArrayList<>();
+        for (MessageActionRow actionRow : message.getActionRows()) {
+            actionRows.add(actionRow.asJDA());
+        }
+
+        return jdaBuilder(message, new MessageEditBuilder())
+                .setComponents(actionRows)
                 .build();
     }
 
     public static WebhookMessageBuilder toWebhook(@NotNull SendableDiscordMessage message) {
-        return WebhookMessageBuilder.fromJDA(toJDA(message))
+        return WebhookMessageBuilder.fromJDA(null/*toJDA(message)*/) // TODO: lib update? lib replacement?
                 .setUsername(message.getWebhookUsername().orElse(null))
                 .setAvatarUrl(message.getWebhookAvatarUrl().orElse(null));
     }

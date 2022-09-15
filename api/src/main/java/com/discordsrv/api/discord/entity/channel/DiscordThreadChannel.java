@@ -24,7 +24,7 @@
 package com.discordsrv.api.discord.entity.channel;
 
 import com.discordsrv.api.discord.entity.JDAEntity;
-import net.dv8tion.jda.api.entities.ThreadChannel;
+import net.dv8tion.jda.api.entities.channel.concrete.ThreadChannel;
 import org.jetbrains.annotations.NotNull;
 
 public interface DiscordThreadChannel extends DiscordGuildMessageChannel, JDAEntity<ThreadChannel> {

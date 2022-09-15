@@ -25,7 +25,7 @@ package com.discordsrv.api.discord.entity.channel;
 
 import com.discordsrv.api.discord.entity.DiscordUser;
 import com.discordsrv.api.discord.entity.JDAEntity;
-import net.dv8tion.jda.api.entities.PrivateChannel;
+import net.dv8tion.jda.api.entities.channel.concrete.PrivateChannel;
 import org.jetbrains.annotations.Nullable;
 
 /**

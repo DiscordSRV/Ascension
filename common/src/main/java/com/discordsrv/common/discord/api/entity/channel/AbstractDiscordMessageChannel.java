@@ -20,7 +20,7 @@ package com.discordsrv.common.discord.api.entity.channel;
 
 import com.discordsrv.api.discord.entity.channel.DiscordMessageChannel;
 import com.discordsrv.common.DiscordSRV;
-import net.dv8tion.jda.api.entities.*;
+import net.dv8tion.jda.api.entities.channel.middleman.MessageChannel;
 
 import java.util.Objects;
 

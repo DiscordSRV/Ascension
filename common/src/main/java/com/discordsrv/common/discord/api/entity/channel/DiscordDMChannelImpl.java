@@ -25,9 +25,10 @@ import com.discordsrv.api.discord.entity.message.SendableDiscordMessage;
 import com.discordsrv.common.DiscordSRV;
 import com.discordsrv.common.discord.api.entity.message.ReceivedDiscordMessageImpl;
 import com.discordsrv.common.discord.api.entity.message.util.SendableDiscordMessageUtil;
-import net.dv8tion.jda.api.entities.PrivateChannel;
 import net.dv8tion.jda.api.entities.User;
-import net.dv8tion.jda.api.requests.restaction.MessageAction;
+import net.dv8tion.jda.api.entities.channel.concrete.PrivateChannel;
+import net.dv8tion.jda.api.requests.restaction.MessageCreateAction;
+import net.dv8tion.jda.api.utils.FileUpload;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.InputStream;
@@ -59,9 +60,9 @@ public class DiscordDMChannelImpl extends AbstractDiscordMessageChannel<PrivateC
             throw new IllegalArgumentException("Cannot send webhook messages to DMChannels");
         }
 
-        MessageAction action = channel.sendMessage(SendableDiscordMessageUtil.toJDA(message));
+        MessageCreateAction action = channel.sendMessage(SendableDiscordMessageUtil.toJDASend(message));
         for (Map.Entry<String, InputStream> entry : attachments.entrySet()) {
-            action = action.addFile(entry.getValue(), entry.getKey());
+            action = action.addFiles(FileUpload.fromData(entry.getValue(), entry.getKey()));
         }
 
         CompletableFuture<ReceivedDiscordMessage> future = action.submit()
@@ -85,7 +86,7 @@ public class DiscordDMChannelImpl extends AbstractDiscordMessageChannel<PrivateC
         }
 
         CompletableFuture<ReceivedDiscordMessage> future = channel
-                .editMessageById(id, SendableDiscordMessageUtil.toJDA(message))
+                .editMessageById(id, SendableDiscordMessageUtil.toJDAEdit(message))
                 .submit()
                 .thenApply(msg -> ReceivedDiscordMessageImpl.fromJDA(discordSRV, msg));
 

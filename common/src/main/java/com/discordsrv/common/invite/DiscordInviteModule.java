@@ -26,9 +26,9 @@ import com.discordsrv.common.config.main.DiscordInviteConfig;
 import com.discordsrv.common.module.type.AbstractModule;
 import net.dv8tion.jda.api.JDA;
 import net.dv8tion.jda.api.Permission;
-import net.dv8tion.jda.api.entities.BaseGuildMessageChannel;
 import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.entities.Member;
+import net.dv8tion.jda.api.entities.channel.attribute.IInviteContainer;
 
 import java.util.List;
 
@@ -81,7 +81,7 @@ public class DiscordInviteModule extends AbstractModule<DiscordSRV> {
                 return;
             }
 
-            BaseGuildMessageChannel channel = guild.getRulesChannel();
+            IInviteContainer channel = guild.getRulesChannel();
             if (channel == null) {
                 channel = guild.getDefaultChannel();
             }

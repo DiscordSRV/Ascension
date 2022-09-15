@@ -29,7 +29,7 @@ import com.discordsrv.common.component.util.ComponentUtil;
 import com.discordsrv.common.config.main.channels.DiscordToMinecraftChatConfig;
 import com.discordsrv.common.function.OrDefault;
 import dev.vankka.mcdiscordreserializer.renderer.implementation.DefaultMinecraftRenderer;
-import net.dv8tion.jda.api.entities.GuildChannel;
+import net.dv8tion.jda.api.entities.channel.middleman.GuildChannel;
 import net.dv8tion.jda.api.utils.MiscUtil;
 import net.kyori.adventure.text.Component;
 import org.jetbrains.annotations.NotNull;

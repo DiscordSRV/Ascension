@@ -24,7 +24,7 @@
 package com.discordsrv.api.discord.entity.channel;
 
 import com.discordsrv.api.discord.entity.JDAEntity;
-import net.dv8tion.jda.api.entities.NewsChannel;
+import net.dv8tion.jda.api.entities.channel.concrete.NewsChannel;
 
 public interface DiscordNewsChannel extends DiscordGuildMessageChannel, DiscordThreadContainer, JDAEntity<NewsChannel> {
 
