@@ -16,9 +16,8 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package com.discordsrv.common.server.scheduler;
+package com.discordsrv.common.scheduler;
 
-import com.discordsrv.common.scheduler.Scheduler;
 import org.jetbrains.annotations.ApiStatus;
 
 import java.util.concurrent.TimeUnit;

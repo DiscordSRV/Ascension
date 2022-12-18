@@ -16,24 +16,25 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package com.discordsrv.common.server.config.channels.base;
+package com.discordsrv.common.config.main.channels.base.proxy;
 
 import com.discordsrv.common.config.annotation.Order;
+import com.discordsrv.common.config.main.channels.JoinMessageConfig;
+import com.discordsrv.common.config.main.channels.ServerSwitchMessageConfig;
 import com.discordsrv.common.config.main.channels.base.BaseChannelConfig;
-import com.discordsrv.common.server.config.channels.DeathMessageConfig;
 import org.spongepowered.configurate.objectmapping.ConfigSerializable;
 
 @ConfigSerializable
-public class ServerBaseChannelConfig extends BaseChannelConfig {
+public class ProxyBaseChannelConfig extends BaseChannelConfig {
 
     @Order(1)
-    public ServerJoinMessageConfig joinMessages = new ServerJoinMessageConfig();
+    public JoinMessageConfig joinMessages = new JoinMessageConfig();
 
     @Order(3)
-    public DeathMessageConfig deathMessages = new DeathMessageConfig();
+    public ServerSwitchMessageConfig serverSwitchMessages = new ServerSwitchMessageConfig();
 
     @Override
-    public ServerJoinMessageConfig joinMessages() {
+    public JoinMessageConfig joinMessages() {
         return joinMessages;
     }
 }

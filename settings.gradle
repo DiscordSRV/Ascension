@@ -134,7 +134,7 @@ dependencyResolutionManagement {
 rootProject.name = 'DiscordSRV2'
 
 [
-        'common', 'common:api', 'common:server', 'common:proxy', 'common:unrelocate', 'common:templates',
+        'common', 'common:api', 'common:unrelocate', 'common:templates',
         'i18n',
         'api',
         'bukkit', 'bukkit:loader',

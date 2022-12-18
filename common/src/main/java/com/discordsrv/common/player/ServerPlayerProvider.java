@@ -16,25 +16,21 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package com.discordsrv.proxy.config.channels.base;
+package com.discordsrv.common.player;
 
-import com.discordsrv.common.config.annotation.Order;
-import com.discordsrv.common.config.main.channels.JoinMessageConfig;
-import com.discordsrv.common.config.main.channels.base.BaseChannelConfig;
-import com.discordsrv.proxy.config.channels.ServerSwitchMessageConfig;
-import org.spongepowered.configurate.objectmapping.ConfigSerializable;
+import com.discordsrv.common.DiscordSRV;
+import com.discordsrv.common.player.provider.AbstractPlayerProvider;
 
-@ConfigSerializable
-public class ProxyBaseChannelConfig extends BaseChannelConfig {
+import java.util.Optional;
+import java.util.UUID;
+import java.util.concurrent.CompletableFuture;
 
-    @Order(1)
-    public JoinMessageConfig joinMessages = new JoinMessageConfig();
+public abstract class ServerPlayerProvider<T extends IPlayer, DT extends DiscordSRV> extends AbstractPlayerProvider<T, DT> {
 
-    @Order(3)
-    public ServerSwitchMessageConfig serverSwitchMessages = new ServerSwitchMessageConfig();
-
-    @Override
-    public JoinMessageConfig joinMessages() {
-        return joinMessages;
+    public ServerPlayerProvider(DT discordSRV) {
+        super(discordSRV);
     }
+
+    public abstract CompletableFuture<Optional<IOfflinePlayer>> offlinePlayer(UUID uuid);
+    public abstract CompletableFuture<Optional<IOfflinePlayer>> offlinePlayer(String username);
 }

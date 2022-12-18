@@ -16,7 +16,7 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package com.discordsrv.common.server.config.channels.base;
+package com.discordsrv.common.config.main.channels.base.server;
 
 import com.discordsrv.common.config.annotation.Order;
 import com.discordsrv.common.config.main.channels.JoinMessageConfig;

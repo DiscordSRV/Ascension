@@ -18,7 +18,7 @@
 
 package com.discordsrv.sponge.scheduler;
 
-import com.discordsrv.common.server.scheduler.ServerScheduler;
+import com.discordsrv.common.scheduler.ServerScheduler;
 import com.discordsrv.common.scheduler.StandardScheduler;
 import com.discordsrv.sponge.SpongeDiscordSRV;
 import org.spongepowered.api.scheduler.TaskExecutorService;

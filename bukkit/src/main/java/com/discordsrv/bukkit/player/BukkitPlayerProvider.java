@@ -20,7 +20,7 @@ package com.discordsrv.bukkit.player;
 
 import com.discordsrv.bukkit.BukkitDiscordSRV;
 import com.discordsrv.common.player.IOfflinePlayer;
-import com.discordsrv.common.server.player.ServerPlayerProvider;
+import com.discordsrv.common.player.ServerPlayerProvider;
 import org.bukkit.OfflinePlayer;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;

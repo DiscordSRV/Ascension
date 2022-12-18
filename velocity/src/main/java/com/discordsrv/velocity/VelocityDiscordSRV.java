@@ -26,7 +26,7 @@ import com.discordsrv.common.config.manager.MainConfigManager;
 import com.discordsrv.common.debug.data.OnlineMode;
 import com.discordsrv.common.plugin.PluginManager;
 import com.discordsrv.common.scheduler.StandardScheduler;
-import com.discordsrv.proxy.ProxyDiscordSRV;
+import com.discordsrv.common.ProxyDiscordSRV;
 import com.discordsrv.velocity.command.game.handler.VelocityCommandHandler;
 import com.discordsrv.velocity.console.VelocityConsole;
 import com.discordsrv.velocity.player.VelocityPlayerProvider;

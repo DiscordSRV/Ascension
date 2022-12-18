@@ -36,7 +36,8 @@ dependencies {
     annotationProcessor project(':api')
 
     // Common
-    implementation project(':common:common-proxy')
+    implementation project(':common')
+    implementation project(':common:common-templates')
 
     // DependencyDownload
     implementation(libs.mcdependencydownload.bungee.bootstrap)

@@ -12,8 +12,7 @@ version = null
 
 dependencies {
     implementation(project(':common:common-api'))
-    implementation(project(':common:common-server'))
-    implementation(project(':common:common-proxy'))
+    implementation(project(':common'))
 
     // Depend on all platforms for configs
     implementation(project(':bukkit')) { transitive = false }

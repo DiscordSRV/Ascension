@@ -16,24 +16,24 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package com.discordsrv.proxy.config.manager;
+package com.discordsrv.common.config.manager.manager;
 
 import com.discordsrv.common.DiscordSRV;
 import com.discordsrv.common.config.main.MainConfig;
 import com.discordsrv.common.config.main.channels.base.IChannelConfig;
 import com.discordsrv.common.config.manager.MainConfigManager;
-import com.discordsrv.proxy.config.channels.base.ProxyBaseChannelConfig;
-import com.discordsrv.proxy.config.channels.base.ProxyChannelConfig;
+import com.discordsrv.common.config.main.channels.base.server.ServerBaseChannelConfig;
+import com.discordsrv.common.config.main.channels.base.server.ServerChannelConfig;
 import org.spongepowered.configurate.objectmapping.ObjectMapper;
 
-public abstract class ProxyConfigManager<T extends MainConfig> extends MainConfigManager<T> {
+public abstract class ServerConfigManager<T extends MainConfig> extends MainConfigManager<T> {
 
-    public ProxyConfigManager(DiscordSRV discordSRV) {
+    public ServerConfigManager(DiscordSRV discordSRV) {
         super(discordSRV);
     }
 
     @Override
     public IChannelConfig.Serializer getChannelConfigSerializer(ObjectMapper.Factory mapperFactory) {
-        return new IChannelConfig.Serializer(mapperFactory, ProxyBaseChannelConfig.class, ProxyChannelConfig.class);
+        return new IChannelConfig.Serializer(mapperFactory, ServerBaseChannelConfig.class, ServerChannelConfig.class);
     }
 }

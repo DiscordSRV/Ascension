@@ -22,7 +22,7 @@ import com.discordsrv.bukkit.BukkitDiscordSRV;
 import com.discordsrv.bukkit.DiscordSRVBukkitBootstrap;
 import com.discordsrv.common.DiscordSRV;
 import com.discordsrv.common.scheduler.StandardScheduler;
-import com.discordsrv.common.server.scheduler.ServerScheduler;
+import com.discordsrv.common.scheduler.ServerScheduler;
 import org.bukkit.plugin.Plugin;
 
 import java.util.function.BiConsumer;

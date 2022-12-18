@@ -63,8 +63,9 @@ dependencies {
     annotationProcessor project(':api')
 
     // Common
-    compileOnly project(':common:common-server')
-    implementation project(path: ':common:common-server', configuration: 'runtimeElements')
+    compileOnly project(':common')
+    implementation project(':common:common-templates')
+    implementation project(path: ':common', configuration: 'runtimeElements')
 
     // DependencyDownload
     implementation(libs.mcdependencydownload.bukkit.bootstrap)

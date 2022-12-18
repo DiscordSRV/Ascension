@@ -16,15 +16,14 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package com.discordsrv.common.server;
+package com.discordsrv.common;
 
-import com.discordsrv.common.AbstractDiscordSRV;
 import com.discordsrv.common.bootstrap.IBootstrap;
 import com.discordsrv.common.config.connection.ConnectionConfig;
 import com.discordsrv.common.config.main.MainConfig;
-import com.discordsrv.common.server.modules.DeathMessageModule;
-import com.discordsrv.common.server.player.ServerPlayerProvider;
-import com.discordsrv.common.server.scheduler.ServerScheduler;
+import com.discordsrv.common.messageforwarding.game.DeathMessageModule;
+import com.discordsrv.common.player.ServerPlayerProvider;
+import com.discordsrv.common.scheduler.ServerScheduler;
 import org.jetbrains.annotations.NotNull;
 
 import javax.annotation.OverridingMethodsMustInvokeSuper;

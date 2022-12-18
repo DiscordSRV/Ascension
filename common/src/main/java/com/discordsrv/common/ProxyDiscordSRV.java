@@ -16,24 +16,25 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package com.discordsrv.common.server.config.manager;
+package com.discordsrv.common;
 
-import com.discordsrv.common.DiscordSRV;
+import com.discordsrv.common.bootstrap.IBootstrap;
+import com.discordsrv.common.config.connection.ConnectionConfig;
 import com.discordsrv.common.config.main.MainConfig;
-import com.discordsrv.common.config.main.channels.base.IChannelConfig;
-import com.discordsrv.common.config.manager.MainConfigManager;
-import com.discordsrv.common.server.config.channels.base.ServerBaseChannelConfig;
-import com.discordsrv.common.server.config.channels.base.ServerChannelConfig;
-import org.spongepowered.configurate.objectmapping.ObjectMapper;
+import com.discordsrv.common.messageforwarding.game.ServerSwitchMessageModule;
 
-public abstract class ServerConfigManager<T extends MainConfig> extends MainConfigManager<T> {
+public abstract class ProxyDiscordSRV<B extends IBootstrap, C extends MainConfig, CC extends ConnectionConfig> extends AbstractDiscordSRV<B, C, CC> {
 
-    public ServerConfigManager(DiscordSRV discordSRV) {
-        super(discordSRV);
+    public ProxyDiscordSRV(B bootstrap) {
+        super(bootstrap);
     }
 
     @Override
-    public IChannelConfig.Serializer getChannelConfigSerializer(ObjectMapper.Factory mapperFactory) {
-        return new IChannelConfig.Serializer(mapperFactory, ServerBaseChannelConfig.class, ServerChannelConfig.class);
+    protected void enable() throws Throwable {
+        super.enable();
+
+        registerModule(ServerSwitchMessageModule::new);
+
+        startedMessage();
     }
 }

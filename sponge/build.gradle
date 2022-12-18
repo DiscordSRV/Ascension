@@ -30,7 +30,8 @@ dependencies {
     annotationProcessor project(':api')
 
     // Common
-    implementation project(':common:common-server')
+    implementation project(':common')
+    implementation project(':common:common-templates')
 
     // Dependency Download
     implementation(libs.dependencydownload.jarinjar.bootstrap)

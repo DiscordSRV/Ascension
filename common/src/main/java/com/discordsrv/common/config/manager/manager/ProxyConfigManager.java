@@ -16,38 +16,24 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package com.discordsrv.common.server.config.channels.base;
+package com.discordsrv.common.config.manager.manager;
 
+import com.discordsrv.common.DiscordSRV;
+import com.discordsrv.common.config.main.MainConfig;
 import com.discordsrv.common.config.main.channels.base.IChannelConfig;
-import com.discordsrv.common.config.main.channels.base.ThreadConfig;
-import org.spongepowered.configurate.objectmapping.ConfigSerializable;
-import org.spongepowered.configurate.objectmapping.meta.Comment;
-import org.spongepowered.configurate.objectmapping.meta.Setting;
+import com.discordsrv.common.config.main.channels.base.proxy.ProxyBaseChannelConfig;
+import com.discordsrv.common.config.main.channels.base.proxy.ProxyChannelConfig;
+import com.discordsrv.common.config.manager.MainConfigManager;
+import org.spongepowered.configurate.objectmapping.ObjectMapper;
 
-import java.util.List;
+public abstract class ProxyConfigManager<T extends MainConfig> extends MainConfigManager<T> {
 
-@ConfigSerializable
-public class ServerChannelConfig extends ServerBaseChannelConfig implements IChannelConfig {
-
-    public ServerChannelConfig() {
-        initialize();
+    public ProxyConfigManager(DiscordSRV discordSRV) {
+        super(discordSRV);
     }
 
-    @Setting(CHANNEL_IDS_OPTION_NAME)
-    @Comment(CHANNEL_IDS_COMMENT)
-    public List<Long> channelIds = CHANNEL_IDS_VALUE;
-
     @Override
-    public List<Long> channelIds() {
-        return channelIds;
-    }
-
-    @Setting(THREADS_OPTION_NAME)
-    @Comment(THREADS_COMMENT)
-    public List<ThreadConfig> threads = THREADS_VALUE;
-
-    @Override
-    public List<ThreadConfig> threads() {
-        return threads;
+    public IChannelConfig.Serializer getChannelConfigSerializer(ObjectMapper.Factory mapperFactory) {
+        return new IChannelConfig.Serializer(mapperFactory, ProxyBaseChannelConfig.class, ProxyChannelConfig.class);
     }
 }

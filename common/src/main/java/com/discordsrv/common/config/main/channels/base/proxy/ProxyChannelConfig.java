@@ -16,37 +16,38 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package com.discordsrv.common.server.config.channels;
+package com.discordsrv.common.config.main.channels.base.proxy;
 
-import com.discordsrv.api.discord.entity.message.DiscordMessageEmbed;
-import com.discordsrv.api.discord.entity.message.SendableDiscordMessage;
-import com.discordsrv.common.config.annotation.Untranslated;
-import com.discordsrv.common.config.main.channels.IMessageConfig;
+import com.discordsrv.common.config.main.channels.base.IChannelConfig;
+import com.discordsrv.common.config.main.channels.base.ThreadConfig;
 import org.spongepowered.configurate.objectmapping.ConfigSerializable;
 import org.spongepowered.configurate.objectmapping.meta.Comment;
+import org.spongepowered.configurate.objectmapping.meta.Setting;
+
+import java.util.List;
 
 @ConfigSerializable
-public class DeathMessageConfig implements IMessageConfig {
+public class ProxyChannelConfig extends ProxyBaseChannelConfig implements IChannelConfig {
 
-    @Comment("Enable death message forwarding")
-    public boolean enabled = true;
-
-    @Untranslated(Untranslated.Type.VALUE)
-    public SendableDiscordMessage.Builder format = SendableDiscordMessage.builder()
-            .addEmbed(
-                    DiscordMessageEmbed.builder()
-                            .setAuthor("%message%", null, "%player_avatar_url%")
-                            .setColor(1)
-                            .build()
-            );
-
-    @Override
-    public boolean enabled() {
-        return enabled;
+    public ProxyChannelConfig() {
+        initialize();
     }
 
+    @Setting(CHANNEL_IDS_OPTION_NAME)
+    @Comment(CHANNEL_IDS_COMMENT)
+    public List<Long> channelIds = CHANNEL_IDS_VALUE;
+
     @Override
-    public SendableDiscordMessage.Builder format() {
-        return format;
+    public List<Long> channelIds() {
+        return channelIds;
+    }
+
+    @Setting(THREADS_OPTION_NAME)
+    @Comment(THREADS_COMMENT)
+    public List<ThreadConfig> threads = THREADS_VALUE;
+
+    @Override
+    public List<ThreadConfig> threads() {
+        return threads;
     }
 }

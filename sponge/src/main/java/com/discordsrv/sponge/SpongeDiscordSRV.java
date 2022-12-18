@@ -26,7 +26,7 @@ import com.discordsrv.common.config.manager.ConnectionConfigManager;
 import com.discordsrv.common.config.manager.MainConfigManager;
 import com.discordsrv.common.debug.data.OnlineMode;
 import com.discordsrv.common.plugin.PluginManager;
-import com.discordsrv.common.server.ServerDiscordSRV;
+import com.discordsrv.common.ServerDiscordSRV;
 import com.discordsrv.sponge.console.SpongeConsole;
 import com.discordsrv.sponge.player.SpongePlayerProvider;
 import com.discordsrv.sponge.plugin.SpongePluginManager;

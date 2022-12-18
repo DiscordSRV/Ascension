@@ -20,8 +20,8 @@ package com.discordsrv.bukkit.config.main;
 
 import com.discordsrv.common.config.main.MainConfig;
 import com.discordsrv.common.config.main.channels.base.ChannelConfig;
-import com.discordsrv.common.server.config.channels.base.ServerBaseChannelConfig;
-import com.discordsrv.common.server.config.channels.base.ServerChannelConfig;
+import com.discordsrv.common.config.main.channels.base.server.ServerBaseChannelConfig;
+import com.discordsrv.common.config.main.channels.base.server.ServerChannelConfig;
 import org.spongepowered.configurate.objectmapping.ConfigSerializable;
 
 @ConfigSerializable

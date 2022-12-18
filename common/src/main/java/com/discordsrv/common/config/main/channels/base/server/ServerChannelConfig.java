@@ -16,7 +16,7 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package com.discordsrv.proxy.config.channels.base;
+package com.discordsrv.common.config.main.channels.base.server;
 
 import com.discordsrv.common.config.main.channels.base.IChannelConfig;
 import com.discordsrv.common.config.main.channels.base.ThreadConfig;
@@ -27,9 +27,9 @@ import org.spongepowered.configurate.objectmapping.meta.Setting;
 import java.util.List;
 
 @ConfigSerializable
-public class ProxyChannelConfig extends ProxyBaseChannelConfig implements IChannelConfig {
+public class ServerChannelConfig extends ServerBaseChannelConfig implements IChannelConfig {
 
-    public ProxyChannelConfig() {
+    public ServerChannelConfig() {
         initialize();
     }
 

@@ -16,43 +16,42 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package com.discordsrv.common.server.modules;
+package com.discordsrv.common.messageforwarding.game;
 
 import com.discordsrv.api.discord.entity.message.ReceivedDiscordMessageCluster;
 import com.discordsrv.api.event.bus.EventPriority;
 import com.discordsrv.api.event.bus.Subscribe;
-import com.discordsrv.api.event.events.message.forward.game.DeathMessageForwardedEvent;
-import com.discordsrv.api.event.events.message.receive.game.DeathMessageReceiveEvent;
+import com.discordsrv.api.event.events.message.forward.game.ServerSwitchMessageForwardedEvent;
+import com.discordsrv.api.event.events.message.receive.game.ServerSwitchMessageReceiveEvent;
 import com.discordsrv.common.DiscordSRV;
+import com.discordsrv.common.config.main.channels.ServerSwitchMessageConfig;
 import com.discordsrv.common.config.main.channels.base.BaseChannelConfig;
+import com.discordsrv.common.config.main.channels.base.proxy.ProxyBaseChannelConfig;
 import com.discordsrv.common.function.OrDefault;
-import com.discordsrv.common.messageforwarding.game.AbstractGameMessageModule;
-import com.discordsrv.common.server.config.channels.DeathMessageConfig;
-import com.discordsrv.common.server.config.channels.base.ServerBaseChannelConfig;
 
-public class DeathMessageModule extends AbstractGameMessageModule<DeathMessageConfig, DeathMessageReceiveEvent> {
+public class ServerSwitchMessageModule extends AbstractGameMessageModule<ServerSwitchMessageConfig, ServerSwitchMessageReceiveEvent> {
 
-    public DeathMessageModule(DiscordSRV discordSRV) {
-        super(discordSRV, "DEATH_MESSAGES");
+    public ServerSwitchMessageModule(DiscordSRV discordSRV) {
+        super(discordSRV, "SERVER_SWITCH_MESSAGES");
     }
 
     @Subscribe(priority = EventPriority.LAST)
-    public void onDeathReceive(DeathMessageReceiveEvent event) {
+    public void onServerSwitchReceive(ServerSwitchMessageReceiveEvent event) {
         if (checkCancellation(event) || checkProcessor(event)) {
             return;
         }
 
-        process(event, event.getPlayer(), event.getGameChannel());
+        process(event, event.getPlayer(), null);
         event.markAsProcessed();
     }
 
     @Override
-    public OrDefault<DeathMessageConfig> mapConfig(OrDefault<BaseChannelConfig> channelConfig) {
-        return channelConfig.map(cfg -> ((ServerBaseChannelConfig) cfg).deathMessages);
+    public OrDefault<ServerSwitchMessageConfig> mapConfig(OrDefault<BaseChannelConfig> channelConfig) {
+        return channelConfig.map(cfg -> ((ProxyBaseChannelConfig) cfg).serverSwitchMessages);
     }
 
     @Override
     public void postClusterToEventBus(ReceivedDiscordMessageCluster cluster) {
-        discordSRV.eventBus().publish(new DeathMessageForwardedEvent(cluster));
+        discordSRV.eventBus().publish(new ServerSwitchMessageForwardedEvent(cluster));
     }
 }
