@@ -61,6 +61,7 @@ import java.util.regex.Pattern;
 
 public class MinecraftToDiscordChatModule extends AbstractGameMessageModule<MinecraftToDiscordChatConfig, GameChatMessageReceiveEvent> {
 
+    // TODO: allow disabling these
     private final Map<Long, Map<Long, CachedMention>> memberMentions = new ConcurrentHashMap<>();
     private final Map<Long, Map<Long, CachedMention>> roleMentions = new ConcurrentHashMap<>();
     private final Map<Long, Map<Long, CachedMention>> channelMentions = new ConcurrentHashMap<>();
@@ -219,7 +220,7 @@ public class MinecraftToDiscordChatModule extends AbstractGameMessageModule<Mine
     }
 
     private Map<Long, CachedMention> getMemberMentions(Guild guild) {
-        return channelMentions.computeIfAbsent(guild.getIdLong(), key -> {
+        return memberMentions.computeIfAbsent(guild.getIdLong(), key -> {
             Map<Long, CachedMention> mentions = new LinkedHashMap<>();
             for (Member member : guild.getMembers()) {
                 mentions.put(member.getIdLong(), convertMember(member));
@@ -259,7 +260,7 @@ public class MinecraftToDiscordChatModule extends AbstractGameMessageModule<Mine
     }
 
     private Map<Long, CachedMention> getChannelMentions(Guild guild) {
-        return memberMentions.computeIfAbsent(guild.getIdLong(), key -> {
+        return channelMentions.computeIfAbsent(guild.getIdLong(), key -> {
             Map<Long, CachedMention> mentions = new LinkedHashMap<>();
             for (GuildChannel channel : guild.getChannels()) {
                 mentions.put(channel.getIdLong(), convertChannel(channel));
