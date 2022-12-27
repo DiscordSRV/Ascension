@@ -25,6 +25,7 @@ import org.jetbrains.annotations.Nullable;
 import org.spongepowered.configurate.CommentedConfigurationNode;
 import org.spongepowered.configurate.ConfigurateException;
 import org.spongepowered.configurate.ConfigurationNode;
+import org.spongepowered.configurate.ConfigurationOptions;
 import org.spongepowered.configurate.loader.AbstractConfigurationLoader;
 import org.spongepowered.configurate.serialize.SerializationException;
 import org.spongepowered.configurate.yaml.YamlConfigurationLoader;
@@ -37,6 +38,8 @@ import java.util.List;
 public abstract class TranslatedConfigManager<T extends Config, LT extends AbstractConfigurationLoader<CommentedConfigurationNode>>
         extends ConfigurateConfigManager<T, LT> {
 
+    private String header;
+
     public TranslatedConfigManager(DiscordSRV discordSRV) {
         super(discordSRV);
     }
@@ -46,6 +49,15 @@ public abstract class TranslatedConfigManager<T extends Config, LT extends Abstr
         super.reload();
         translate();
         super.save();
+    }
+
+    @Override
+    public ConfigurationOptions defaultOptions() {
+        ConfigurationOptions options = super.defaultOptions();
+        if (header != null) {
+            options = options.header(header);
+        }
+        return options;
     }
 
     @Override
@@ -77,6 +89,8 @@ public abstract class TranslatedConfigManager<T extends Config, LT extends Abstr
             ConfigurationNode comments = translationRoot.node(fileIdentifier + "_comments");
 
             CommentedConfigurationNode node = loader().createNode();
+            this.header = comments.node("$header").getString();
+
             save(config, (Class<T>) config.getClass(), node);
             translateNode(node, translation, comments);
         } catch (ConfigurateException e) {

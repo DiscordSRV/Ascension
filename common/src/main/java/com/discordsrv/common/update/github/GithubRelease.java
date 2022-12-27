@@ -16,24 +16,9 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package com.discordsrv.common.config.connection;
+package com.discordsrv.common.update.github;
 
-import com.discordsrv.common.config.Config;
-import org.spongepowered.configurate.objectmapping.ConfigSerializable;
+public class GithubRelease {
 
-@ConfigSerializable
-public class ConnectionConfig implements Config {
-
-    public static final String FILE_NAME = "connections.yaml";
-
-    @Override
-    public final String getFileName() {
-        return FILE_NAME;
-    }
-
-    public BotConfig bot = new BotConfig();
-
-    public StorageConfig storage = new StorageConfig();
-
-    public UpdateConfig update = new UpdateConfig();
+    public String tag_name;
 }

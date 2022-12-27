@@ -81,6 +81,11 @@ public final class DiscordSRVTranslation {
             Config config = (Config) configManager.createConfiguration();
             String fileIdentifier = config.getFileName();
             ConfigurationNode commentSection = node.node(fileIdentifier + "_comments");
+            
+            String header = configManager.defaultOptions().header();
+            if (header != null) {
+                commentSection.node("$header").set(header);
+            }
 
             ObjectMapper.Factory mapperFactory = configManager.configObjectMapperBuilder()
                     .addProcessor(Untranslated.class, untranslatedProcessorFactory)

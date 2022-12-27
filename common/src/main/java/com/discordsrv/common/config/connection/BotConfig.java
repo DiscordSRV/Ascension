@@ -18,22 +18,14 @@
 
 package com.discordsrv.common.config.connection;
 
-import com.discordsrv.common.config.Config;
 import org.spongepowered.configurate.objectmapping.ConfigSerializable;
+import org.spongepowered.configurate.objectmapping.meta.Comment;
 
 @ConfigSerializable
-public class ConnectionConfig implements Config {
+public class BotConfig {
 
-    public static final String FILE_NAME = "connections.yaml";
+    @Comment("The Discord bot token from https://discord.com/developers/applications\n"
+            + "Requires a connection to: discord.com, gateway.discord.gg, cdn.discordapp.com")
+    public String token = "Token here";
 
-    @Override
-    public final String getFileName() {
-        return FILE_NAME;
-    }
-
-    public BotConfig bot = new BotConfig();
-
-    public StorageConfig storage = new StorageConfig();
-
-    public UpdateConfig update = new UpdateConfig();
 }

@@ -83,7 +83,7 @@ public interface Scheduler {
     ScheduledFuture<?> runLater(Runnable task, long timeMillis);
 
     /**
-     * Schedules the given task without any initial delay.
+     * Schedules the given task at the given rate.
      *
      * @param task the task
      * @param rate the rate in the given unit
@@ -91,7 +91,7 @@ public interface Scheduler {
      */
     @ApiStatus.NonExtendable
     default ScheduledFuture<?> runAtFixedRate(@NotNull Runnable task, long rate, @NotNull TimeUnit unit) {
-        return runAtFixedRate(task, 0, rate, unit);
+        return runAtFixedRate(task, rate, rate, unit);
     }
 
     /**

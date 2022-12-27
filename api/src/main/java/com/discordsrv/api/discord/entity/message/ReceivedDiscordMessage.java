@@ -31,6 +31,7 @@ import com.discordsrv.api.discord.entity.channel.DiscordTextChannel;
 import com.discordsrv.api.discord.entity.guild.DiscordGuild;
 import com.discordsrv.api.discord.entity.guild.DiscordGuildMember;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.jetbrains.annotations.Unmodifiable;
 
 import java.util.List;
@@ -43,10 +44,11 @@ import java.util.concurrent.CompletableFuture;
 public interface ReceivedDiscordMessage extends Snowflake {
 
     /**
-     * Gets the content of this message.
-     * @return the message content
+     * Gets the content of this message. This will return {@code null} if the bot doesn't have the MESSAGE_CONTENT intent,
+     * and this message was not from the bot, did not mention the bot and was not a direct message.
+     * @return the message content or {@code null}
      */
-    @NotNull
+    @Nullable
     String getContent();
 
     /**

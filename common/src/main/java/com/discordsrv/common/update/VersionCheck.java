@@ -16,24 +16,28 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package com.discordsrv.common.config.connection;
+package com.discordsrv.common.update;
 
-import com.discordsrv.common.config.Config;
-import org.spongepowered.configurate.objectmapping.ConfigSerializable;
+import java.util.List;
 
-@ConfigSerializable
-public class ConnectionConfig implements Config {
+public class VersionCheck {
 
-    public static final String FILE_NAME = "connections.yaml";
+    public Status status;
 
-    @Override
-    public final String getFileName() {
-        return FILE_NAME;
+    public int amount;
+    public AmountSource amountSource;
+    public String amountType;
+
+    public boolean insecure;
+    public List<String> securityIssues;
+
+    public enum Status {
+        UP_TO_DATE,
+        OUTDATED,
+        UNKNOWN
     }
 
-    public BotConfig bot = new BotConfig();
-
-    public StorageConfig storage = new StorageConfig();
-
-    public UpdateConfig update = new UpdateConfig();
+    public enum AmountSource {
+        GITHUB
+    }
 }

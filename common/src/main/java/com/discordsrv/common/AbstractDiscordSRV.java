@@ -33,6 +33,7 @@ import com.discordsrv.common.channel.GlobalChannelLookupModule;
 import com.discordsrv.common.command.game.GameCommandModule;
 import com.discordsrv.common.component.ComponentFactory;
 import com.discordsrv.common.config.connection.ConnectionConfig;
+import com.discordsrv.common.config.connection.UpdateConfig;
 import com.discordsrv.common.config.main.LinkedAccountConfig;
 import com.discordsrv.common.config.main.MainConfig;
 import com.discordsrv.common.config.manager.ConnectionConfigManager;
@@ -71,6 +72,8 @@ import com.discordsrv.common.placeholder.result.ComponentResultStringifier;
 import com.discordsrv.common.profile.ProfileManager;
 import com.discordsrv.common.storage.Storage;
 import com.discordsrv.common.storage.StorageType;
+import com.discordsrv.common.update.UpdateChecker;
+import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import net.dv8tion.jda.api.JDA;
 import net.dv8tion.jda.api.JDAInfo;
@@ -133,12 +136,15 @@ public abstract class AbstractDiscordSRV<B extends IBootstrap, C extends MainCon
     private LinkProvider linkProvider;
 
     // Version
+    private UpdateChecker updateChecker;
     private String version;
     private String gitRevision;
     private String gitBranch;
 
     private OkHttpClient httpClient;
-    private final ObjectMapper objectMapper = new ObjectMapper();
+    private final ObjectMapper objectMapper = new ObjectMapper()
+            .configure(DeserializationFeature.FAIL_ON_IGNORED_PROPERTIES, false)
+            .configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
 
     // Internal
     private final ReentrantLock lifecycleLock = new ReentrantLock();
@@ -165,6 +171,7 @@ public abstract class AbstractDiscordSRV<B extends IBootstrap, C extends MainCon
         this.discordConnectionDetails = new DiscordConnectionDetailsImpl(this);
         this.discordConnectionManager = new JDAConnectionManager(this);
         this.channelConfig = new ChannelConfigHelper(this);
+        this.updateChecker = new UpdateChecker(this);
         readManifest();
 
         Dispatcher dispatcher = new Dispatcher();
@@ -585,6 +592,27 @@ public abstract class AbstractDiscordSRV<B extends IBootstrap, C extends MainCon
             }
 
             channelConfig().reload();
+        }
+
+        // Update check
+        UpdateConfig updateConfig = connectionConfig().update;
+        if (updateConfig.security.enabled) {
+            if (updateChecker.isSecurityFailed()) {
+                // Security has already failed
+                return;
+            }
+
+            if (initial && !updateChecker.check(true)) {
+                // Security failed cancel startup & shutdown
+                invokeDisable();
+                return;
+            }
+        } else if (initial) {
+            // Not using security, run update check off thread
+            scheduler().run(() -> updateChecker.check(true));
+        }
+        if (initial) {
+            scheduler().runAtFixedRate(() -> updateChecker.check(false), 6L, TimeUnit.HOURS);
         }
 
         if (flags.contains(ReloadFlag.LINKED_ACCOUNT_PROVIDER)) {

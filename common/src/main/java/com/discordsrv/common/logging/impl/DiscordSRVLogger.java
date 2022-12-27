@@ -100,6 +100,12 @@ public class DiscordSRVLogger implements Logger {
 
     @Override
     public void log(@Nullable String loggerName, @NotNull LogLevel logLevel, @Nullable String message, @Nullable Throwable throwable) {
+        if (throwable != null && throwable.getMessage() != null
+                && (throwable.getStackTrace() == null || throwable.getStackTrace().length == 0)) {
+            // Empty stack trace
+            message = (message != null ? message + ": " : "") + throwable.getMessage();
+            throwable = null;
+        }
         if (throwable instanceof InsufficientPermissionException) {
             Permission permission = ((InsufficientPermissionException) throwable).getPermission();
             String msg = "The bot is missing the \"" + permission.getName() + "\" permission";

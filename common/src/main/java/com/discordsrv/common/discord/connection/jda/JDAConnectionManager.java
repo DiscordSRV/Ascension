@@ -27,6 +27,7 @@ import com.discordsrv.api.event.events.lifecycle.DiscordSRVShuttingDownEvent;
 import com.discordsrv.api.event.events.placeholder.PlaceholderLookupEvent;
 import com.discordsrv.api.placeholder.PlaceholderLookupResult;
 import com.discordsrv.common.DiscordSRV;
+import com.discordsrv.common.config.connection.BotConfig;
 import com.discordsrv.common.config.connection.ConnectionConfig;
 import com.discordsrv.common.discord.api.DiscordAPIImpl;
 import com.discordsrv.common.discord.api.entity.message.ReceivedDiscordMessageImpl;
@@ -100,6 +101,9 @@ public class JDAConnectionManager implements DiscordConnectionManager {
 
         // Disable all mentions by default for safety
         MessageRequest.setDefaultMentions(Collections.emptyList());
+
+        // Disable this warning (that doesn't even have a stacktrace)
+        Message.suppressContentIntentWarning();
 
         discordSRV.eventBus().subscribe(this);
     }
@@ -247,7 +251,7 @@ public class JDAConnectionManager implements DiscordConnectionManager {
                 TimeUnit.SECONDS
         );
 
-        ConnectionConfig.Bot botConfig = discordSRV.connectionConfig().bot;
+        BotConfig botConfig = discordSRV.connectionConfig().bot;
         DiscordConnectionDetails connectionDetails = discordSRV.discordConnectionDetails();
         Set<GatewayIntent> intents = connectionDetails.getGatewayIntents();
         boolean membersIntent = intents.contains(GatewayIntent.GUILD_MEMBERS);

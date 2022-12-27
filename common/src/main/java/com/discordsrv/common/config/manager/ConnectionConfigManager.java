@@ -22,6 +22,7 @@ import com.discordsrv.common.DiscordSRV;
 import com.discordsrv.common.config.connection.ConnectionConfig;
 import com.discordsrv.common.config.manager.loader.YamlConfigLoaderProvider;
 import com.discordsrv.common.config.manager.manager.TranslatedConfigManager;
+import org.spongepowered.configurate.ConfigurationOptions;
 import org.spongepowered.configurate.yaml.YamlConfigurationLoader;
 
 public abstract class ConnectionConfigManager<C extends ConnectionConfig>
@@ -30,6 +31,18 @@ public abstract class ConnectionConfigManager<C extends ConnectionConfig>
 
     public ConnectionConfigManager(DiscordSRV discordSRV) {
         super(discordSRV);
+    }
+
+    @Override
+    public ConfigurationOptions defaultOptions() {
+        return super.defaultOptions()
+                .header("DiscordSRV's configuration file for connections to different external services.\n"
+                                + "This file is intended to contain connection details to services in order to keep them out of the config.yml\n"
+                                + "and to serve as a easy way to identify and control what external connections are being used.\n"
+                                + "\n"
+                                + "All domains listed as \"Requires a connection to\" require port 443 (https/wss) unless otherwise specified\n"
+                                + "\n"
+                                + " ABSOLUTELY DO NOT SEND THIS FILE TO ANYONE - IT ONLY CONTAINS SECRETS\n");
     }
 
     @Override
