@@ -31,15 +31,21 @@ import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArrayList;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 public abstract class AbstractPlayerProvider<T extends IPlayer, DT extends DiscordSRV> implements PlayerProvider<T> {
 
     private final Map<UUID, T> players = new ConcurrentHashMap<>();
     private final List<T> allPlayers = new CopyOnWriteArrayList<>();
     protected final DT discordSRV;
+    private final AtomicBoolean anyOffline = new AtomicBoolean(false);
 
     public AbstractPlayerProvider(DT discordSRV) {
         this.discordSRV = discordSRV;
+    }
+
+    public boolean isAnyOffline() {
+        return anyOffline.get();
     }
 
     public abstract void subscribe();
@@ -48,6 +54,11 @@ public abstract class AbstractPlayerProvider<T extends IPlayer, DT extends Disco
         this.players.put(uuid, player);
         this.allPlayers.add(player);
         discordSRV.scheduler().run(() -> discordSRV.eventBus().publish(new PlayerConnectedEvent(player, initial)));
+
+        if (uuid.getLeastSignificantBits() != 0 /* Not Geyser */
+                && uuid.version() == 3 /* Offline */) {
+            anyOffline.set(true);
+        }
     }
 
     protected void removePlayer(UUID uuid) {

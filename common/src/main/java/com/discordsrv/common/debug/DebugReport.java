@@ -127,6 +127,7 @@ public class DebugReport {
         values.put("jdaStatus", jda != null ? jda.getStatus().name() : "JDA null");
         values.put("platformLogger", discordSRV.platformLogger().getClass().getName());
         values.put("onlineMode", discordSRV.onlineMode().name());
+        values.put("offlineModeUuid", discordSRV.playerProvider().isAnyOffline());
 
         values.put("javaVersion", System.getProperty("java.version"));
         values.put("javaVendor", System.getProperty("java.vendor")
