@@ -38,6 +38,7 @@ import com.discordsrv.common.config.main.LinkedAccountConfig;
 import com.discordsrv.common.config.main.MainConfig;
 import com.discordsrv.common.config.manager.ConnectionConfigManager;
 import com.discordsrv.common.config.manager.MainConfigManager;
+import com.discordsrv.common.debug.data.VersionInfo;
 import com.discordsrv.common.dependency.DiscordSRVDependencyManager;
 import com.discordsrv.common.discord.api.DiscordAPIEventModule;
 import com.discordsrv.common.discord.api.DiscordAPIImpl;
@@ -135,9 +136,7 @@ public abstract class AbstractDiscordSRV<B extends IBootstrap, C extends MainCon
 
     // Version
     private UpdateChecker updateChecker;
-    private String version;
-    private String gitRevision;
-    private String gitBranch;
+    private VersionInfo versionInfo;
 
     private OkHttpClient httpClient;
     private final ObjectMapper objectMapper = new ObjectMapper()
@@ -189,9 +188,9 @@ public abstract class AbstractDiscordSRV<B extends IBootstrap, C extends MainCon
                             || host.endsWith("discord.gg");
 
                     String userAgent = isDiscord
-                                       ? "DiscordBot (https://github.com/DiscordSRV/DiscordSRV, " + version() + ")"
+                                       ? "DiscordBot (https://github.com/DiscordSRV/DiscordSRV, " + versionInfo() + ")"
                                                + " (" + JDAInfo.GITHUB + ", " + JDAInfo.VERSION + ")"
-                                       : "DiscordSRV/" + version();
+                                       : "DiscordSRV/" + versionInfo();
 
                     return chain.proceed(
                             original.newBuilder()
@@ -221,12 +220,17 @@ public abstract class AbstractDiscordSRV<B extends IBootstrap, C extends MainCon
                 Manifest manifest = new Manifest(inputStream);
                 Attributes attributes = manifest.getMainAttributes();
 
-                version = readAttribute(attributes, "Implementation-Version");
+                String version = readAttribute(attributes, "Implementation-Version");
                 if (version == null) {
                     logger().error("Failed to get version from manifest");
                 }
-                gitRevision = readAttribute(attributes, "Git-Commit");
-                gitBranch = readAttribute(attributes, "Git-Branch");
+
+                versionInfo = new VersionInfo(
+                        version,
+                        readAttribute(attributes, "Git-Commit"),
+                        readAttribute(attributes, "Git-Branch"),
+                        readAttribute(attributes, "Build-Time")
+                );
             }
         } catch (IOException e) {
             logger().error("Failed to read manifest", e);
@@ -320,18 +324,8 @@ public abstract class AbstractDiscordSRV<B extends IBootstrap, C extends MainCon
     }
 
     @Override
-    public final @NotNull String version() {
-        return version;
-    }
-
-    @Override
-    public final @Nullable String gitRevision() {
-        return gitRevision;
-    }
-
-    @Override
-    public final @Nullable String gitBranch() {
-        return gitBranch;
+    public final @NotNull VersionInfo versionInfo() {
+        return versionInfo;
     }
 
     @Override

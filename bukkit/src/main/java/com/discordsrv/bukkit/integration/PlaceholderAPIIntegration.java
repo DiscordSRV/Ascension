@@ -119,7 +119,7 @@ public class PlaceholderAPIIntegration extends PluginIntegration<BukkitDiscordSR
 
         @Override
         public @NotNull String getVersion() {
-            return discordSRV.version();
+            return discordSRV.versionInfo().version();
         }
 
         @Override

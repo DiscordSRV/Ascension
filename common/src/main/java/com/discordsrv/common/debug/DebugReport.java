@@ -119,9 +119,10 @@ public class DebugReport {
     private DebugFile environment() {
         Map<String, Object> values = new LinkedHashMap<>();
         values.put("discordSRV", discordSRV.getClass().getName());
-        values.put("version", discordSRV.version());
-        values.put("gitRevision", discordSRV.gitRevision());
-        values.put("gitBranch", discordSRV.gitBranch());
+        values.put("version", discordSRV.versionInfo().version());
+        values.put("gitRevision", discordSRV.versionInfo().gitRevision());
+        values.put("gitBranch", discordSRV.versionInfo().gitBranch());
+        values.put("buildTime", discordSRV.versionInfo().buildTime());
         values.put("status", discordSRV.status().name());
         JDA jda = discordSRV.jda();
         values.put("jdaStatus", jda != null ? jda.getStatus().name() : "JDA null");

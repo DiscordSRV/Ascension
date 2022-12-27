@@ -123,6 +123,10 @@ subprojects {
                     'Implementation-Version': project.version
             )
         }
+
+        manifest.attributes(
+                'Build-Time': new Date().toString()
+        )
         if (indraGit.isPresent()) {
             indraGit.applyVcsInformationToManifest(manifest)
         }

@@ -22,6 +22,7 @@ import com.discordsrv.api.event.bus.Subscribe;
 import com.discordsrv.common.DiscordSRV;
 import com.discordsrv.common.config.connection.ConnectionConfig;
 import com.discordsrv.common.config.connection.UpdateConfig;
+import com.discordsrv.common.debug.data.VersionInfo;
 import com.discordsrv.common.exception.MessageException;
 import com.discordsrv.common.logging.NamedLogger;
 import com.discordsrv.common.player.IPlayer;
@@ -75,7 +76,7 @@ public class UpdateChecker {
      */
     public boolean check(boolean logUpToDate) {
         UpdateConfig config = discordSRV.connectionConfig().update;
-        boolean isSnapshot = discordSRV.version().endsWith("-SNAPSHOT");
+        boolean isSnapshot = discordSRV.versionInfo().version().endsWith("-SNAPSHOT");
         boolean isSecurity = config.security.enabled;
         boolean isFirstPartyNotification = config.firstPartyNotification;
         boolean isNotification = config.notificationEnabled;
@@ -155,10 +156,11 @@ public class UpdateChecker {
      * @return {@code null} for preventing shutdown
      */
     private VersionCheck checkFirstParty(boolean isSnapshot) throws IOException {
+        VersionInfo versionInfo = discordSRV.versionInfo();
         Request request = new Request.Builder()
                 .url(DOWNLOAD_SERVICE_HOST + "/v2/" + GITHUB_REPOSITORY
                              + "/" + (isSnapshot ? DOWNLOAD_SERVICE_SNAPSHOT_CHANNEL : DOWNLOAD_SERVICE_RELEASE_CHANNEL)
-                             + "/version-check/" + (isSnapshot ? discordSRV.gitRevision() : discordSRV.version()))
+                             + "/version-check/" + (isSnapshot ? versionInfo.gitRevision() : versionInfo.version()))
                 .get().build();
 
         String responseString;
@@ -193,10 +195,11 @@ public class UpdateChecker {
     }
 
     private VersionCheck checkGitHub(boolean isSnapshot) throws IOException {
+        VersionInfo versionInfo = discordSRV.versionInfo();
         if (isSnapshot) {
             Request request = new Request.Builder()
                     .url(GITHUB_API_HOST + "/repos/" + GITHUB_REPOSITORY + "/compare/"
-                                 + GITHUB_DEV_BRANCH + "..." + discordSRV.gitRevision() + "?per_page=0")
+                                 + GITHUB_DEV_BRANCH + "..." + versionInfo.gitRevision() + "?per_page=0")
                     .get().build();
 
             try (Response response = discordSRV.httpClient().newCall(request).execute()) {
@@ -219,7 +222,7 @@ public class UpdateChecker {
             }
         }
 
-        String version = discordSRV.version();
+        String version = versionInfo.version();
 
         int versionsBehind = 0;
         boolean found = false;

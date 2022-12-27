@@ -30,6 +30,7 @@ import com.discordsrv.common.config.manager.ConnectionConfigManager;
 import com.discordsrv.common.config.manager.MainConfigManager;
 import com.discordsrv.common.console.Console;
 import com.discordsrv.common.debug.data.OnlineMode;
+import com.discordsrv.common.debug.data.VersionInfo;
 import com.discordsrv.common.dependency.DiscordSRVDependencyManager;
 import com.discordsrv.common.discord.api.DiscordAPIImpl;
 import com.discordsrv.common.discord.connection.jda.JDAConnectionManager;
@@ -98,11 +99,7 @@ public interface DiscordSRV extends DiscordSRVApi {
 
     // Version
     @NotNull
-    String version();
-    @Nullable
-    String gitRevision();
-    @Nullable
-    String gitBranch();
+    VersionInfo versionInfo();
 
     // Config
     ConnectionConfigManager<? extends ConnectionConfig> connectionConfigManager();

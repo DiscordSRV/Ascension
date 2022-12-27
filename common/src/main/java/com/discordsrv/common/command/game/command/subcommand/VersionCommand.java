@@ -52,7 +52,7 @@ public class VersionCommand implements GameCommandExecutor {
     public void execute(ICommandSender sender, GameCommandArguments arguments) {
         sender.sendMessage(
                 Component.text().content("Running DiscordSRV ").color(TextColor.color(Color.BLURPLE.rgb()))
-                        .append(Component.text("v" + discordSRV.version(), NamedTextColor.GRAY))
+                        .append(Component.text("v" + discordSRV.versionInfo(), NamedTextColor.GRAY))
         );
     }
 }
