@@ -135,8 +135,8 @@ public class DebugReport {
                 + " (" + System.getProperty("java.vendor.url") + ")");
 
         values.put("operatingSystem", System.getProperty("os.name")
-                + " " + System.getProperty("os.version")
                 + " (" + System.getProperty("os.arch") + ")");
+        values.put("operatingSystemVersion", System.getProperty("os.version"));
 
         Runtime runtime = Runtime.getRuntime();
         values.put("cores", runtime.availableProcessors());

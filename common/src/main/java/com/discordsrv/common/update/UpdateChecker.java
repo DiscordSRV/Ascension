@@ -134,8 +134,7 @@ public class UpdateChecker {
                 log(check, logUpToDate);
                 return true;
             } else {
-                discordSRV.logger().error("Update check" + (isFirstPartyNotification ? "s" : "")
-                                                  + " failed: unknown version");
+                logger.error("Update check" + (isFirstPartyNotification ? "s" : "") + " failed: unknown version");
             }
         }
 
