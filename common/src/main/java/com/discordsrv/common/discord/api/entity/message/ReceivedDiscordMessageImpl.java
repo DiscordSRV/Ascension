@@ -29,6 +29,7 @@ import com.discordsrv.api.discord.entity.channel.DiscordDMChannel;
 import com.discordsrv.api.discord.entity.channel.DiscordMessageChannel;
 import com.discordsrv.api.discord.entity.channel.DiscordTextChannel;
 import com.discordsrv.api.discord.entity.channel.DiscordThreadChannel;
+import com.discordsrv.api.discord.entity.guild.DiscordGuild;
 import com.discordsrv.api.discord.entity.guild.DiscordGuildMember;
 import com.discordsrv.api.discord.entity.message.DiscordMessageEmbed;
 import com.discordsrv.api.discord.entity.message.ReceivedDiscordMessage;
@@ -47,11 +48,11 @@ import net.dv8tion.jda.api.entities.MessageEmbed;
 import net.dv8tion.jda.api.requests.ErrorResponse;
 import net.kyori.adventure.text.Component;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.jetbrains.annotations.Unmodifiable;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 
 public class ReceivedDiscordMessageImpl implements ReceivedDiscordMessage {
@@ -146,11 +147,11 @@ public class ReceivedDiscordMessageImpl implements ReceivedDiscordMessage {
         }
 
         DiscordMessageChannel channel = discordSRV.discordAPI().getMessageChannelById(
-                webhookMessage.getChannelId()).orElse(null);
+                webhookMessage.getChannelId());
         DiscordUser user = discordSRV.discordAPI().getUserById(
-                webhookMessage.getAuthor().getId()).orElse(null);
+                webhookMessage.getAuthor().getId());
         DiscordGuildMember member = channel instanceof DiscordTextChannel && user != null
-                ? ((DiscordTextChannel) channel).getGuild().getMemberById(user.getId()).orElse(null) : null;
+                ? ((DiscordTextChannel) channel).getGuild().getMemberById(user.getId()) : null;
 
         List<Attachment> attachments = new ArrayList<>();
         for (ReadonlyAttachment attachment : webhookMessage.getAttachments()) {
@@ -241,9 +242,10 @@ public class ReceivedDiscordMessageImpl implements ReceivedDiscordMessage {
 
     @Override
     public @NotNull String getJumpUrl() {
+        DiscordGuild guild = getGuild();
         return String.format(
                 Message.JUMP_URL,
-                getGuild().map(guild -> Long.toUnsignedString(guild.getId())).orElse("@me"),
+                guild != null ? Long.toUnsignedString(guild.getId()) : "@me",
                 Long.toUnsignedString(getChannel().getId()),
                 Long.toUnsignedString(id)
         );
@@ -260,22 +262,22 @@ public class ReceivedDiscordMessageImpl implements ReceivedDiscordMessage {
     }
 
     @Override
-    public @NotNull Optional<DiscordTextChannel> getTextChannel() {
+    public @Nullable DiscordTextChannel getTextChannel() {
         return channel instanceof DiscordTextChannel
-                ? Optional.of((DiscordTextChannel) channel)
-                : Optional.empty();
+                ? (DiscordTextChannel) channel
+                : null;
     }
 
     @Override
-    public @NotNull Optional<DiscordDMChannel> getDMChannel() {
+    public @Nullable DiscordDMChannel getDMChannel() {
         return channel instanceof DiscordDMChannel
-                ? Optional.of((DiscordDMChannel) channel)
-                : Optional.empty();
+                ? (DiscordDMChannel) channel
+                : null;
     }
 
     @Override
-    public @NotNull Optional<DiscordGuildMember> getMember() {
-        return Optional.ofNullable(member);
+    public @Nullable DiscordGuildMember getMember() {
+        return member;
     }
 
     @Override
@@ -289,13 +291,13 @@ public class ReceivedDiscordMessageImpl implements ReceivedDiscordMessage {
     }
 
     @Override
-    public @NotNull Optional<ReceivedDiscordMessage> getReplyingTo() {
-        return Optional.ofNullable(replyingTo);
+    public @Nullable ReceivedDiscordMessage getReplyingTo() {
+        return replyingTo;
     }
 
     @Override
     public @NotNull CompletableFuture<Void> delete() {
-        DiscordTextChannel textChannel = discordSRV.discordAPI().getTextChannelById(channelId).orElse(null);
+        DiscordTextChannel textChannel = discordSRV.discordAPI().getTextChannelById(channelId);
         if (textChannel == null) {
             return CompletableFutureUtil.failed(new RestErrorResponseException(ErrorResponse.UNKNOWN_CHANNEL));
         }
@@ -309,7 +311,7 @@ public class ReceivedDiscordMessageImpl implements ReceivedDiscordMessage {
             throw new IllegalArgumentException("Cannot edit a non-webhook message into a webhook message");
         }
 
-        DiscordTextChannel textChannel = discordSRV.discordAPI().getTextChannelById(channelId).orElse(null);
+        DiscordTextChannel textChannel = discordSRV.discordAPI().getTextChannelById(channelId);
         if (textChannel == null) {
             return CompletableFutureUtil.failed(new RestErrorResponseException(ErrorResponse.UNKNOWN_CHANNEL));
         }

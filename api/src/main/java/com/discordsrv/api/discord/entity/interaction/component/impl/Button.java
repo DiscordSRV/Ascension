@@ -23,16 +23,15 @@
 
 package com.discordsrv.api.discord.entity.interaction.component.impl;
 
+import com.discordsrv.api.discord.entity.guild.DiscordCustomEmoji;
 import com.discordsrv.api.discord.entity.interaction.component.ComponentIdentifier;
 import com.discordsrv.api.discord.entity.interaction.component.MessageComponent;
-import com.discordsrv.api.discord.entity.guild.DiscordCustomEmoji;
 import net.dv8tion.jda.api.entities.emoji.Emoji;
 import net.dv8tion.jda.api.interactions.components.ItemComponent;
 import net.dv8tion.jda.api.interactions.components.buttons.ButtonStyle;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.Optional;
 import java.util.UUID;
 
 /**
@@ -92,9 +91,9 @@ public class Button implements MessageComponent {
         return buttonStyle;
     }
 
-    @NotNull
-    public Optional<String> getUrl() {
-        return buttonStyle == Style.LINK ? Optional.of(idOrUrl) : Optional.empty();
+    @Nullable
+    public String getUrl() {
+        return buttonStyle == Style.LINK ? idOrUrl : null;
     }
 
     @NotNull

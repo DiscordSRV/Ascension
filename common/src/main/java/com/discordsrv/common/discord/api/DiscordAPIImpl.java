@@ -66,6 +66,7 @@ import java.util.Optional;
 import java.util.concurrent.*;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
+import java.util.function.Function;
 
 public class DiscordAPIImpl implements DiscordAPI {
 
@@ -121,7 +122,7 @@ public class DiscordAPIImpl implements DiscordAPI {
 
         for (ThreadConfig threadConfig : threads) {
             long channelId = threadConfig.channelId;
-            DiscordTextChannel channel = getTextChannelById(channelId).orElse(null);
+            DiscordTextChannel channel = getTextChannelById(channelId);
             if (channel == null) {
                 if (channelId > 0 && log) {
                     discordSRV.logger().error("Unable to find channel with ID " + Long.toUnsignedString(channelId));
@@ -327,14 +328,14 @@ public class DiscordAPIImpl implements DiscordAPI {
     }
 
     @Override
-    public @NotNull Optional<? extends DiscordMessageChannel> getMessageChannelById(long id) {
-        Optional<DiscordTextChannel> textChannel = getTextChannelById(id);
-        if (textChannel.isPresent()) {
+    public @Nullable DiscordMessageChannel getMessageChannelById(long id) {
+        DiscordTextChannel textChannel = getTextChannelById(id);
+        if (textChannel != null) {
             return textChannel;
         }
 
-        Optional<DiscordThreadChannel> threadChannel = getCachedThreadChannelById(id);
-        if (threadChannel.isPresent()) {
+        DiscordThreadChannel threadChannel = getCachedThreadChannelById(id);
+        if (threadChannel != null) {
             return threadChannel;
         }
 
@@ -355,11 +356,23 @@ public class DiscordAPIImpl implements DiscordAPI {
         }
     }
 
+    private <T, J> T mapJDAEntity(Function<JDA, J> get, Function<J, T> map) {
+        JDA jda = discordSRV.jda();
+        if (jda == null) {
+            return null;
+        }
+
+        J entity = get.apply(jda);
+        if (entity == null) {
+            return null;
+        }
+
+        return map.apply(entity);
+    }
+
     @Override
-    public @NotNull Optional<DiscordDMChannel> getDirectMessageChannelById(long id) {
-        return discordSRV.jda()
-                .map(jda -> jda.getPrivateChannelById(id))
-                .map(this::getDirectMessageChannel);
+    public @Nullable DiscordDMChannel getDirectMessageChannelById(long id) {
+        return mapJDAEntity(jda -> jda.getPrivateChannelById(id), this::getDirectMessageChannel);
     }
 
     public DiscordDMChannelImpl getDirectMessageChannel(PrivateChannel jda) {
@@ -367,8 +380,8 @@ public class DiscordAPIImpl implements DiscordAPI {
     }
 
     @Override
-    public @NotNull Optional<DiscordNewsChannel> getNewsChannelById(long id) {
-        return Optional.empty();
+    public @Nullable DiscordNewsChannel getNewsChannelById(long id) {
+        return null;
     }
 
     public DiscordNewsChannelImpl getNewsChannel(NewsChannel jda) {
@@ -376,10 +389,8 @@ public class DiscordAPIImpl implements DiscordAPI {
     }
 
     @Override
-    public @NotNull Optional<DiscordTextChannel> getTextChannelById(long id) {
-        return discordSRV.jda()
-                .map(jda -> jda.getTextChannelById(id))
-                .map(this::getTextChannel);
+    public @Nullable DiscordTextChannel getTextChannelById(long id) {
+        return mapJDAEntity(jda -> jda.getTextChannelById(id), this::getTextChannel);
     }
 
     public DiscordTextChannelImpl getTextChannel(TextChannel jda) {
@@ -387,10 +398,8 @@ public class DiscordAPIImpl implements DiscordAPI {
     }
 
     @Override
-    public @NotNull Optional<DiscordThreadChannel> getCachedThreadChannelById(long id) {
-        return discordSRV.jda()
-                .map(jda -> jda.getThreadChannelById(id))
-                .map(this::getThreadChannel);
+    public @Nullable DiscordThreadChannel getCachedThreadChannelById(long id) {
+        return mapJDAEntity(jda -> jda.getThreadChannelById(id), this::getThreadChannel);
     }
 
     public DiscordThreadChannelImpl getThreadChannel(ThreadChannel jda) {
@@ -398,10 +407,8 @@ public class DiscordAPIImpl implements DiscordAPI {
     }
 
     @Override
-    public @NotNull Optional<DiscordGuild> getGuildById(long id) {
-        return discordSRV.jda()
-                .map(jda -> jda.getGuildById(id))
-                .map(this::getGuild);
+    public @Nullable DiscordGuild getGuildById(long id) {
+        return mapJDAEntity(jda -> jda.getGuildById(id), this::getGuild);
     }
 
     public DiscordGuildImpl getGuild(Guild jda) {
@@ -413,10 +420,8 @@ public class DiscordAPIImpl implements DiscordAPI {
     }
 
     @Override
-    public @NotNull Optional<DiscordUser> getUserById(long id) {
-        return discordSRV.jda()
-                .map(jda -> jda.getUserById(id))
-                .map(this::getUser);
+    public @Nullable DiscordUser getUserById(long id) {
+        return mapJDAEntity(jda -> jda.getUserById(id), this::getUser);
     }
 
     public DiscordUserImpl getUser(User jda) {
@@ -425,14 +430,16 @@ public class DiscordAPIImpl implements DiscordAPI {
 
     @Override
     public @NotNull CompletableFuture<DiscordUser> retrieveUserById(long id) {
-        JDA jda = discordSRV.jda().orElse(null);
+        JDA jda = discordSRV.jda();
         if (jda == null) {
             return notReady();
         }
 
-        return jda.retrieveUserById(id)
-                .submit()
-                .thenApply(this::getUser);
+        return mapExceptions(
+                jda.retrieveUserById(id)
+                        .submit()
+                        .thenApply(this::getUser)
+        );
     }
 
     @Override
@@ -443,10 +450,8 @@ public class DiscordAPIImpl implements DiscordAPI {
     }
 
     @Override
-    public @NotNull Optional<DiscordRole> getRoleById(long id) {
-        return discordSRV.jda()
-                .map(jda -> jda.getRoleById(id))
-                .map(this::getRole);
+    public @Nullable DiscordRole getRoleById(long id) {
+        return mapJDAEntity(jda -> jda.getRoleById(id), this::getRole);
     }
 
     public DiscordRoleImpl getRole(Role jda) {
@@ -471,7 +476,7 @@ public class DiscordAPIImpl implements DiscordAPI {
 
         @Override
         public @NonNull CompletableFuture<WebhookClient> asyncLoad(@NonNull Long channelId, @NonNull Executor executor) {
-            JDA jda = discordSRV.jda().orElse(null);
+            JDA jda = discordSRV.jda();
             if (jda == null) {
                 return notReady();
             }

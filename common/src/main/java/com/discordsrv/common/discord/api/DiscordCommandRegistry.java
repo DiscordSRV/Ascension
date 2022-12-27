@@ -60,8 +60,9 @@ public class DiscordCommandRegistry {
 
     public Command.RegistrationResult register(Command command, boolean temporary) {
         CommandType type = command.getType();
+        Long guildId = command.getGuildId();
         Registry registry = registries
-                .computeIfAbsent(command.getGuildId().orElse(GLOBAL_ID), key -> new EnumMap<>(CommandType.class))
+                .computeIfAbsent(guildId != null ? guildId : GLOBAL_ID, key -> new EnumMap<>(CommandType.class))
                 .computeIfAbsent(type, key -> new Registry());
         if (registry.contains(command)) {
             return Command.RegistrationResult.ALREADY_REGISTERED;
@@ -78,8 +79,9 @@ public class DiscordCommandRegistry {
     }
 
     public void unregister(Command command) {
+        Long guildId = command.getGuildId();
         Registry registry = registries
-                .computeIfAbsent(command.getGuildId().orElse(GLOBAL_ID), key -> Collections.emptyMap())
+                .computeIfAbsent(guildId != null ? guildId : GLOBAL_ID, key -> Collections.emptyMap())
                 .get(command.getType());
 
         if (registry != null) {
@@ -95,7 +97,7 @@ public class DiscordCommandRegistry {
     }
 
     public void registerCommandsToDiscord() {
-        JDA jda = discordSRV.jda().orElse(null);
+        JDA jda = discordSRV.jda();
         if (jda == null) {
             return;
         }

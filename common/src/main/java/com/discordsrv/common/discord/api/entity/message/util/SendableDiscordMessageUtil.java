@@ -63,7 +63,7 @@ public final class SendableDiscordMessageUtil {
         }
 
         return (T) builder
-                .setContent(message.getContent().orElse(null))
+                .setContent(message.getContent())
                 .setEmbeds(embeds)
                 .setAllowedMentions(allowedTypes)
                 .mentionUsers(allowedUsers.stream().mapToLong(l -> l).toArray())
@@ -94,7 +94,7 @@ public final class SendableDiscordMessageUtil {
 
     public static WebhookMessageBuilder toWebhook(@NotNull SendableDiscordMessage message) {
         return WebhookMessageBuilder.fromJDA(null/*toJDA(message)*/) // TODO: lib update? lib replacement?
-                .setUsername(message.getWebhookUsername().orElse(null))
-                .setAvatarUrl(message.getWebhookAvatarUrl().orElse(null));
+                .setUsername(message.getWebhookUsername())
+                .setAvatarUrl(message.getWebhookAvatarUrl());
     }
 }

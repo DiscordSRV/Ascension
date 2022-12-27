@@ -26,6 +26,7 @@ import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.entities.Member;
 import net.dv8tion.jda.api.entities.Role;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
 
@@ -55,13 +56,13 @@ public class DiscordGuildImpl implements DiscordGuild {
     }
 
     @Override
-    public @NotNull Optional<DiscordGuildMember> getMemberById(long id) {
+    public @Nullable DiscordGuildMember getMemberById(long id) {
         Member member = guild.getMemberById(id);
         if (member == null) {
-            return Optional.empty();
+            return null;
         }
 
-        return Optional.of(discordSRV.discordAPI().getGuildMember(member));
+        return discordSRV.discordAPI().getGuildMember(member);
     }
 
     @Override
@@ -74,13 +75,13 @@ public class DiscordGuildImpl implements DiscordGuild {
     }
 
     @Override
-    public @NotNull Optional<DiscordRole> getRoleById(long id) {
+    public @Nullable DiscordRole getRoleById(long id) {
         Role role = guild.getRoleById(id);
         if (role == null) {
-            return Optional.empty();
+            return null;
         }
 
-        return Optional.of(discordSRV.discordAPI().getRole(role));
+        return discordSRV.discordAPI().getRole(role);
     }
 
     @Override

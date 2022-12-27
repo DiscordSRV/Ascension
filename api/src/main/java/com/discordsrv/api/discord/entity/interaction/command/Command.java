@@ -141,9 +141,9 @@ public class Command implements JDAEntity<CommandData> {
         return id;
     }
 
-    @NotNull
-    public Optional<Long> getGuildId() {
-        return Optional.ofNullable(guildId);
+    @Nullable
+    public Long getGuildId() {
+        return guildId;
     }
 
     @NotNull
@@ -194,19 +194,19 @@ public class Command implements JDAEntity<CommandData> {
         return defaultPermission;
     }
 
-    @NotNull
+    @Nullable
     @SuppressWarnings("unchecked")
-    public <T extends AbstractCommandInteractionEvent<?>> Optional<Consumer<T>> getEventHandler() {
+    public <T extends AbstractCommandInteractionEvent<?>> Consumer<T> getEventHandler() {
         if (eventHandler == null) {
-            return Optional.empty();
+            return null;
         }
 
-        return Optional.of((Consumer<T>) eventHandler);
+        return (Consumer<T>) eventHandler;
     }
 
-    @NotNull
-    public Optional<Consumer<DiscordCommandAutoCompleteInteractionEvent>> getAutoCompleteHandler() {
-        return Optional.ofNullable(autoCompleteHandler);
+    @Nullable
+    public Consumer<DiscordCommandAutoCompleteInteractionEvent> getAutoCompleteHandler() {
+        return autoCompleteHandler;
     }
 
     @Override

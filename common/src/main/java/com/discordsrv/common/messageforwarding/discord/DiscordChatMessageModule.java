@@ -51,7 +51,7 @@ public class DiscordChatMessageModule extends AbstractModule<DiscordSRV> {
     @Subscribe
     public void onDiscordMessageReceived(DiscordMessageReceiveEvent event) {
         if (!discordSRV.isReady() || event.getMessage().isFromSelf()
-                || !(event.getTextChannel().isPresent() || event.getThreadChannel().isPresent())) {
+                || !(event.getTextChannel() != null || event.getThreadChannel() != null)) {
             return;
         }
 
@@ -84,7 +84,7 @@ public class DiscordChatMessageModule extends AbstractModule<DiscordSRV> {
         DiscordMessageChannel channel = event.getChannel();
         ReceivedDiscordMessage discordMessage = event.getDiscordMessage();
         DiscordUser author = discordMessage.getAuthor();
-        DiscordGuildMember member = discordMessage.getMember().orElse(null);
+        DiscordGuildMember member = discordMessage.getMember();
         boolean webhookMessage = discordMessage.isWebhookMessage();
 
         DiscordIgnoresConfig ignores = chatConfig.get(cfg -> cfg.ignores);

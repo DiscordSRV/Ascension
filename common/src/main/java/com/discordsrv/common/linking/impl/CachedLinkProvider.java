@@ -63,7 +63,7 @@ public abstract class CachedLinkProvider implements LinkProvider {
                             @NonNull Long oldValue,
                             @NonNull Executor executor
                     ) {
-                        if (!discordSRV.playerProvider().player(key).isPresent()) {
+                        if (discordSRV.playerProvider().player(key) == null) {
                             // Don't keep players that aren't online in cache
                             return CompletableFuture.completedFuture(null);
                         }

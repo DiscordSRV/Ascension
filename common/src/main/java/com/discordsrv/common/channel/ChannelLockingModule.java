@@ -87,7 +87,7 @@ public class ChannelLockingModule extends AbstractModule<DiscordSRV> {
             OrDefault<ChannelLockingConfig.Channels> shutdownConfig,
             boolean state
     ) {
-        JDA jda = discordSRV.jda().orElse(null);
+        JDA jda = discordSRV.jda();
         if (jda == null) {
             return;
         }

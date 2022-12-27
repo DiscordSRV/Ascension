@@ -21,9 +21,10 @@ package com.discordsrv.common.profile;
 import com.discordsrv.api.profile.IProfileManager;
 import com.discordsrv.common.DiscordSRV;
 import org.jetbrains.annotations.Blocking;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.Map;
-import java.util.Optional;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
@@ -43,7 +44,7 @@ public class ProfileManager implements IProfileManager {
         Profile profile = lookupProfile(playerUUID).join();
         profiles.put(playerUUID, profile);
         if (profile.isLinked()) {
-            discordUserMap.put(profile.userId().orElseThrow(AssertionError::new), profile);
+            discordUserMap.put(profile.userId(), profile);
         }
     }
 
@@ -54,29 +55,29 @@ public class ProfileManager implements IProfileManager {
         }
 
         if (profile.isLinked()) {
-            discordUserMap.remove(profile.userId().orElseThrow(AssertionError::new));
+            discordUserMap.remove(profile.userId());
         }
     }
 
     @Override
-    public CompletableFuture<Profile> lookupProfile(UUID playerUUID) {
+    public @NotNull CompletableFuture<Profile> lookupProfile(UUID playerUUID) {
         return discordSRV.linkProvider().getUserId(playerUUID)
                 .thenApply(opt -> new Profile(playerUUID, opt.orElse(null)));
     }
 
     @Override
-    public Optional<Profile> getProfile(UUID playerUUID) {
-        return Optional.ofNullable(profiles.get(playerUUID));
+    public @Nullable Profile getProfile(UUID playerUUID) {
+        return profiles.get(playerUUID);
     }
 
     @Override
-    public CompletableFuture<Profile> lookupProfile(long userId) {
+    public @NotNull CompletableFuture<Profile> lookupProfile(long userId) {
         return discordSRV.linkProvider().getPlayerUUID(userId)
                 .thenApply(opt -> new Profile(opt.orElse(null), userId));
     }
 
     @Override
-    public Optional<Profile> getProfile(long userId) {
-        return Optional.ofNullable(discordUserMap.get(userId));
+    public @Nullable Profile getProfile(long userId) {
+        return discordUserMap.get(userId);
     }
 }

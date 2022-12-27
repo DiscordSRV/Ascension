@@ -26,8 +26,7 @@ package com.discordsrv.api.event.events;
 import com.discordsrv.api.event.bus.EventListener;
 import com.discordsrv.api.event.bus.internal.EventStateHolder;
 import org.jetbrains.annotations.ApiStatus;
-
-import java.util.Optional;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * A {@link Event} that can be processed.
@@ -49,18 +48,19 @@ public interface Processable extends Event {
     /**
      * Returns the {@link EventListener} that processed this event.
      *
-     * @return the event listener that processed this event or an empty optional if it was processed before being passed to the {@link com.discordsrv.api.event.bus.EventBus}
+     * @return the event listener that processed this event or {@code null} if it was processed before being passed to the {@link com.discordsrv.api.event.bus.EventBus}
      * @throws IllegalStateException if the event has not been processed
      */
     @ApiStatus.NonExtendable
-    default Optional<EventListener> whoProcessed() {
+    @Nullable
+    default EventListener whoProcessed() {
         EventListener listener = EventStateHolder.PROCESSED.get();
         if (listener == null) {
             throw new IllegalStateException("Event has not been processed");
         } else if (listener == EventStateHolder.UNKNOWN_LISTENER) {
-            return Optional.empty();
+            return null;
         }
 
-        return Optional.of(listener);
+        return listener;
     }
 }

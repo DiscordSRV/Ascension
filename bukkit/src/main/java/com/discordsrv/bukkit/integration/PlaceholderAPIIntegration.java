@@ -76,17 +76,21 @@ public class PlaceholderAPIIntegration extends PluginIntegration<BukkitDiscordSR
         }
         placeholder = "%" + placeholder + "%";
 
-        Player player = event.getContext(DiscordSRVPlayer.class)
-                .map(p -> discordSRV.server().getPlayer(p.uniqueId()))
-                .orElse(null);
+        DiscordSRVPlayer srvPlayer = event.getContext(DiscordSRVPlayer.class);
+        Player player = srvPlayer != null ? discordSRV.server().getPlayer(srvPlayer.uniqueId()) : null;
         if (player != null) {
             setResult(event, placeholder, PlaceholderAPI.setPlaceholders(player, placeholder));
             return;
         }
 
-        UUID uuid = event.getContext(IProfile.class)
-                .flatMap(IProfile::playerUUID)
-                .orElseGet(() -> event.getContext(IOfflinePlayer.class).map(IOfflinePlayer::uniqueId).orElse(null));
+        IProfile profile = event.getContext(IProfile.class);
+        UUID uuid = profile != null ? profile.playerUUID() : null;
+        if (uuid == null) {
+            IOfflinePlayer offlinePlayer = event.getContext(IOfflinePlayer.class);
+            if (offlinePlayer != null) {
+                uuid = offlinePlayer.uniqueId();
+            }
+        }
 
         OfflinePlayer offlinePlayer = uuid != null ? discordSRV.server().getOfflinePlayer(uuid) : null;
         setResult(event, placeholder, PlaceholderAPI.setPlaceholders(offlinePlayer, placeholder));
@@ -138,7 +142,10 @@ public class PlaceholderAPIIntegration extends PluginIntegration<BukkitDiscordSR
             Set<Object> context;
             if (player != null) {
                 context = new HashSet<>(2);
-                discordSRV.profileManager().getProfile(player.getUniqueId()).ifPresent(context::add);
+                IProfile profile = discordSRV.profileManager().getProfile(player.getUniqueId());
+                if (profile != null) {
+                    context.add(profile);
+                }
                 if (player instanceof Player) {
                     context.add(discordSRV.playerProvider().player((Player) player));
                 } else {

@@ -27,7 +27,6 @@ import org.spongepowered.api.event.Listener;
 import org.spongepowered.api.event.Order;
 import org.spongepowered.api.event.network.ServerSideConnectionEvent;
 
-import java.util.Optional;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 
@@ -64,7 +63,11 @@ public class SpongePlayerProvider extends ServerPlayerProvider<SpongePlayer, Spo
     }
 
     public SpongePlayer player(ServerPlayer player) {
-        return player(player.uniqueId()).orElseThrow(() -> new IllegalStateException("Player not available"));
+        SpongePlayer srvPlayer = player(player.uniqueId());
+        if (srvPlayer == null) {
+            throw new IllegalStateException("Player not available");
+        }
+        return srvPlayer;
     }
 
     // IOfflinePlayer
@@ -74,17 +77,17 @@ public class SpongePlayerProvider extends ServerPlayerProvider<SpongePlayer, Spo
     }
 
     @Override
-    public CompletableFuture<Optional<IOfflinePlayer>> offlinePlayer(UUID uuid) {
+    public CompletableFuture<IOfflinePlayer> offlinePlayer(UUID uuid) {
         return discordSRV.game().server().userManager()
                 .load(uuid)
-                .thenApply(optional -> optional.map(this::convert));
+                .thenApply(optional -> optional.map(this::convert).orElse(null));
     }
 
     @Override
-    public CompletableFuture<Optional<IOfflinePlayer>> offlinePlayer(String username) {
+    public CompletableFuture<IOfflinePlayer> offlinePlayer(String username) {
         return discordSRV.game().server().userManager()
                 .load(username)
-                .thenApply(optional -> optional.map(this::convert));
+                .thenApply(optional -> optional.map(this::convert).orElse(null));
     }
 
     public IOfflinePlayer offlinePlayer(User user) {

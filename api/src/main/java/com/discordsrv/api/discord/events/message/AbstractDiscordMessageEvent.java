@@ -30,8 +30,7 @@ import com.discordsrv.api.discord.entity.channel.DiscordThreadChannel;
 import com.discordsrv.api.discord.events.AbstractDiscordEvent;
 import net.dv8tion.jda.api.events.message.GenericMessageEvent;
 import org.jetbrains.annotations.NotNull;
-
-import java.util.Optional;
+import org.jetbrains.annotations.Nullable;
 
 public abstract class AbstractDiscordMessageEvent<T extends GenericMessageEvent> extends AbstractDiscordEvent<T> {
 
@@ -43,7 +42,7 @@ public abstract class AbstractDiscordMessageEvent<T extends GenericMessageEvent>
     }
 
     public boolean isGuildMessage() {
-        return !getDMChannel().isPresent();
+        return getDMChannel() == null;
     }
 
     /**
@@ -51,25 +50,25 @@ public abstract class AbstractDiscordMessageEvent<T extends GenericMessageEvent>
      * This will not be present on messages from threads (see {@link #getThreadChannel()}).
      * @return an optional potentially containing a {@link DiscordTextChannel}
      */
-    @NotNull
-    public Optional<DiscordTextChannel> getTextChannel() {
+    @Nullable
+    public DiscordTextChannel getTextChannel() {
         return channel instanceof DiscordTextChannel
-               ? Optional.of((DiscordTextChannel) channel)
-               : Optional.empty();
+               ? (DiscordTextChannel) channel
+               : null;
     }
 
-    @NotNull
-    public Optional<DiscordThreadChannel> getThreadChannel() {
+    @Nullable
+    public DiscordThreadChannel getThreadChannel() {
         return channel instanceof DiscordThreadChannel
-               ? Optional.of((DiscordThreadChannel) channel)
-               : Optional.empty();
+               ? (DiscordThreadChannel) channel
+               : null;
     }
 
-    @NotNull
-    public Optional<DiscordDMChannel> getDMChannel() {
+    @Nullable
+    public DiscordDMChannel getDMChannel() {
         return channel instanceof DiscordDMChannel
-               ? Optional.of((DiscordDMChannel) channel)
-               : Optional.empty();
+               ? (DiscordDMChannel) channel
+               : null;
     }
 
     @NotNull

@@ -26,8 +26,7 @@ package com.discordsrv.api.component;
 import com.discordsrv.api.DiscordSRVApi;
 import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
-
-import java.util.Optional;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * A Minecraft json text component. Use {@link DiscordSRVApi#componentFactory()} to get an instance.<br/>
@@ -101,14 +100,14 @@ public interface MinecraftComponent {
      *
      * @return a {@link Adapter} for this component using the unrelocated adventure, {@code null} if not available
      */
-    @NotNull
+    @Nullable
     @ApiStatus.NonExtendable
-    default Optional<Adapter<Object>> unrelocatedAdapter() {
+    default Adapter<Object> unrelocatedAdapter() {
         MinecraftComponentAdapter<Object> adapter = MinecraftComponentAdapter.UNRELOCATED;
         if (adapter == null) {
-            return Optional.empty();
+            return null;
         }
-        return Optional.of(adventureAdapter(adapter));
+        return adventureAdapter(adapter);
     }
 
     /**

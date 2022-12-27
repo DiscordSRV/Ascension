@@ -27,8 +27,8 @@ import com.discordsrv.api.event.events.Event;
 import com.discordsrv.api.event.events.Processable;
 import com.discordsrv.api.placeholder.PlaceholderLookupResult;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
-import java.util.Optional;
 import java.util.Set;
 
 public class PlaceholderLookupEvent implements Event, Processable {
@@ -53,13 +53,13 @@ public class PlaceholderLookupEvent implements Event, Processable {
     }
 
     @SuppressWarnings("unchecked")
-    public <T> Optional<T> getContext(Class<T> type) {
+    public <T> @Nullable T getContext(Class<T> type) {
         for (Object o : contexts) {
             if (type.isAssignableFrom(o.getClass())) {
-                return Optional.of((T) o);
+                return (T) o;
             }
         }
-        return Optional.empty();
+        return null;
     }
 
     @Override

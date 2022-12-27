@@ -94,7 +94,7 @@ public class DiscordMessageMirroringModule extends AbstractModule<DiscordSRV> {
             }
 
             DiscordIgnoresConfig ignores = config.get(cfg -> cfg.ignores);
-            if (ignores != null && ignores.shouldBeIgnored(message.isWebhookMessage(), message.getAuthor(), message.getMember().orElse(null))) {
+            if (ignores != null && ignores.shouldBeIgnored(message.isWebhookMessage(), message.getAuthor(), message.getMember())) {
                 continue;
             }
 
@@ -143,11 +143,10 @@ public class DiscordMessageMirroringModule extends AbstractModule<DiscordSRV> {
             List<Long> channelIds = iChannelConfig.channelIds();
             if (channelIds != null) {
                 for (Long channelId : channelIds) {
-                    discordSRV.discordAPI().getTextChannelById(channelId).ifPresent(textChannel -> {
-                        if (textChannel.getId() != channel.getId()) {
-                            mirrorChannels.add(Pair.of(textChannel, config));
-                        }
-                    });
+                    DiscordTextChannel textChannel = discordSRV.discordAPI().getTextChannelById(channelId);
+                    if (textChannel != null && textChannel.getId() != channel.getId()) {
+                        mirrorChannels.add(Pair.of(textChannel, config));
+                    }
                 }
             }
 
@@ -257,7 +256,7 @@ public class DiscordMessageMirroringModule extends AbstractModule<DiscordSRV> {
             DiscordGuildMessageChannel destinationChannel,
             OrDefault<MirroringConfig> config
     ) {
-        DiscordGuildMember member = message.getMember().orElse(null);
+        DiscordGuildMember member = message.getMember();
         DiscordUser user = message.getAuthor();
         String username = discordSRV.placeholderService().replacePlaceholders(
                 config.get(cfg -> cfg.usernameFormat, "%user_effective_name% [M]"),
@@ -267,8 +266,8 @@ public class DiscordMessageMirroringModule extends AbstractModule<DiscordSRV> {
             username = username.substring(0, 32);
         }
 
-        ReceivedDiscordMessage replyMessage = message.getReplyingTo().orElse(null);
-        String content = message.getContent()
+        ReceivedDiscordMessage replyMessage = message.getReplyingTo();
+        String content = Objects.requireNonNull(message.getContent())
                 .replace("[", "\\["); // Block markdown urls
 
         if (replyMessage != null) {
@@ -399,7 +398,7 @@ public class DiscordMessageMirroringModule extends AbstractModule<DiscordSRV> {
         }
 
         public DiscordGuildMessageChannel getMessageChannel(DiscordSRV discordSRV) {
-            DiscordTextChannel textChannel = discordSRV.discordAPI().getTextChannelById(channelId).orElse(null);
+            DiscordTextChannel textChannel = discordSRV.discordAPI().getTextChannelById(channelId);
             if (textChannel == null) {
                 return null;
             } else if (threadId == -1) {

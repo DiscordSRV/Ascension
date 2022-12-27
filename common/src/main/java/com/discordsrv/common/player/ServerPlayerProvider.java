@@ -21,7 +21,6 @@ package com.discordsrv.common.player;
 import com.discordsrv.common.DiscordSRV;
 import com.discordsrv.common.player.provider.AbstractPlayerProvider;
 
-import java.util.Optional;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 
@@ -31,6 +30,6 @@ public abstract class ServerPlayerProvider<T extends IPlayer, DT extends Discord
         super(discordSRV);
     }
 
-    public abstract CompletableFuture<Optional<IOfflinePlayer>> offlinePlayer(UUID uuid);
-    public abstract CompletableFuture<Optional<IOfflinePlayer>> offlinePlayer(String username);
+    public abstract CompletableFuture<IOfflinePlayer> offlinePlayer(UUID uuid);
+    public abstract CompletableFuture<IOfflinePlayer> offlinePlayer(String username);
 }

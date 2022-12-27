@@ -30,9 +30,9 @@ import com.discordsrv.api.discord.entity.Mentionable;
 import com.discordsrv.api.placeholder.annotation.Placeholder;
 import net.dv8tion.jda.api.entities.Member;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
-import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 
 /**
@@ -58,8 +58,8 @@ public interface DiscordGuildMember extends JDAEntity<Member>, Mentionable {
      * Gets the nickname of the Discord server member.
      * @return the nickname server member
      */
-    @NotNull
-    Optional<String> getNickname();
+    @Nullable
+    String getNickname();
 
     /**
      * Gets the roles of this Discord server member.
@@ -96,7 +96,8 @@ public interface DiscordGuildMember extends JDAEntity<Member>, Mentionable {
     @Placeholder("user_effective_name")
     @NotNull
     default String getEffectiveName() {
-        return getNickname().orElseGet(() -> getUser().getUsername());
+        String nickname = getNickname();
+        return nickname != null ? nickname : getUser().getUsername();
     }
 
     /**

@@ -32,10 +32,10 @@ import net.dv8tion.jda.api.entities.Role;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.TextColor;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 
 public class DiscordGuildMemberImpl implements DiscordGuildMember {
@@ -72,8 +72,8 @@ public class DiscordGuildMemberImpl implements DiscordGuildMember {
     }
 
     @Override
-    public @NotNull Optional<String> getNickname() {
-        return Optional.ofNullable(member.getNickname());
+    public @Nullable String getNickname() {
+        return member.getNickname();
     }
 
     @Override

@@ -29,6 +29,7 @@ import com.discordsrv.common.component.util.ComponentUtil;
 import com.discordsrv.common.config.main.channels.DiscordToMinecraftChatConfig;
 import com.discordsrv.common.function.OrDefault;
 import dev.vankka.mcdiscordreserializer.renderer.implementation.DefaultMinecraftRenderer;
+import net.dv8tion.jda.api.JDA;
 import net.dv8tion.jda.api.entities.channel.middleman.GuildChannel;
 import net.dv8tion.jda.api.utils.MiscUtil;
 import net.kyori.adventure.text.Component;
@@ -77,9 +78,12 @@ public class DiscordSRVMinecraftRenderer extends DefaultMinecraftRenderer {
             return component.append(Component.text("<#" + id + ">"));
         }
 
-        GuildChannel guildChannel = discordSRV.jda()
-                .map(jda -> jda.getGuildChannelById(id))
-                .orElse(null);
+        JDA jda = discordSRV.jda();
+        if (jda == null) {
+            return Component.empty();
+        }
+
+        GuildChannel guildChannel = jda.getGuildChannelById(id);
 
         return component.append(ComponentUtil.fromAPI(
                 discordSRV.componentFactory()
@@ -96,17 +100,15 @@ public class DiscordSRVMinecraftRenderer extends DefaultMinecraftRenderer {
         DiscordToMinecraftChatConfig.Mentions.Format format =
                 context != null ? context.config.map(cfg -> cfg.mentions).get(cfg -> cfg.user) : null;
         DiscordGuild guild = context != null
-                             ? discordSRV.discordAPI()
-                                     .getGuildById(context.event.getGuild().getId())
-                                     .orElse(null)
+                             ? discordSRV.discordAPI().getGuildById(context.event.getGuild().getId())
                              : null;
         if (format == null || guild == null) {
             return component.append(Component.text("<@" + id + ">"));
         }
 
         long userId = MiscUtil.parseLong(id);
-        DiscordUser user = discordSRV.discordAPI().getUserById(userId).orElse(null);
-        DiscordGuildMember member = guild.getMemberById(userId).orElse(null);
+        DiscordUser user = discordSRV.discordAPI().getUserById(userId);
+        DiscordGuildMember member = guild.getMemberById(userId);
 
         GameTextBuilder builder = discordSRV.componentFactory()
                 .textBuilder(user != null ? format.format : format.unknownFormat);
@@ -133,7 +135,7 @@ public class DiscordSRVMinecraftRenderer extends DefaultMinecraftRenderer {
         }
 
         long roleId = MiscUtil.parseLong(id);
-        DiscordRole role = discordSRV.discordAPI().getRoleById(roleId).orElse(null);
+        DiscordRole role = discordSRV.discordAPI().getRoleById(roleId);
 
         GameTextBuilder builder = discordSRV.componentFactory()
                 .textBuilder(role != null ? format.format : format.unknownFormat);

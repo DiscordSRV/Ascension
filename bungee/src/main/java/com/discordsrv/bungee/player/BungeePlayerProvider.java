@@ -57,7 +57,11 @@ public class BungeePlayerProvider extends AbstractPlayerProvider<BungeePlayer, B
     }
 
     public BungeePlayer player(ProxiedPlayer player) {
-        return player(player.getUniqueId()).orElseThrow(() -> new IllegalStateException("Player not available"));
+        BungeePlayer srvPlayer = player(player.getUniqueId());
+        if (srvPlayer == null) {
+            throw new IllegalStateException("Player not available");
+        }
+        return srvPlayer;
     }
 
 }

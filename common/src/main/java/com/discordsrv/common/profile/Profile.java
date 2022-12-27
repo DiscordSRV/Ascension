@@ -19,9 +19,8 @@
 package com.discordsrv.common.profile;
 
 import com.discordsrv.api.profile.IProfile;
-import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
-import java.util.Optional;
 import java.util.UUID;
 
 public class Profile implements IProfile {
@@ -35,12 +34,12 @@ public class Profile implements IProfile {
     }
 
     @Override
-    public @NotNull Optional<UUID> playerUUID() {
-        return Optional.ofNullable(playerUUID);
+    public @Nullable UUID playerUUID() {
+        return playerUUID;
     }
 
     @Override
-    public @NotNull Optional<Long> userId() {
-        return Optional.ofNullable(userId);
+    public @Nullable Long userId() {
+        return userId;
     }
 }

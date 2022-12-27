@@ -37,6 +37,7 @@ import com.discordsrv.common.logging.NamedLogger;
 import com.discordsrv.common.module.type.AbstractModule;
 import com.discordsrv.common.player.IPlayer;
 import com.discordsrv.common.player.event.PlayerConnectedEvent;
+import com.discordsrv.common.profile.Profile;
 import com.github.benmanes.caffeine.cache.Cache;
 import org.apache.commons.lang3.StringUtils;
 import org.jetbrains.annotations.Nullable;
@@ -170,12 +171,12 @@ public class GroupSyncModule extends AbstractModule<DiscordSRV> {
 
     private CompletableFuture<Long> lookupLinkedAccount(UUID player) {
         return discordSRV.profileManager().lookupProfile(player)
-                .thenApply(profile -> profile.userId().orElse(null));
+                .thenApply(Profile::userId);
     }
 
     private CompletableFuture<UUID> lookupLinkedAccount(long userId) {
         return discordSRV.profileManager().lookupProfile(userId)
-                .thenApply(profile -> profile.playerUUID().orElse(null));
+                .thenApply(Profile::playerUUID);
     }
 
     // Permission data helper methods
@@ -259,7 +260,7 @@ public class GroupSyncModule extends AbstractModule<DiscordSRV> {
     }
 
     public Collection<CompletableFuture<GroupSyncResult>> resync(UUID player, long userId, GroupSyncCause cause) {
-        if (noPermissionProvider() || (!discordSRV.playerProvider().player(player).isPresent() && !supportsOffline())) {
+        if (noPermissionProvider() || (discordSRV.playerProvider().player(player) == null && !supportsOffline())) {
             return Collections.emptyList();
         }
 
@@ -292,12 +293,12 @@ public class GroupSyncModule extends AbstractModule<DiscordSRV> {
     }
 
     private CompletableFuture<GroupSyncResult> resyncPair(GroupSyncConfig.PairConfig pair, UUID player, long userId) {
-        DiscordRole role = discordSRV.discordAPI().getRoleById(pair.roleId).orElse(null);
+        DiscordRole role = discordSRV.discordAPI().getRoleById(pair.roleId);
         if (role == null) {
             return CompletableFuture.completedFuture(GroupSyncResult.ROLE_DOESNT_EXIST);
         }
 
-        DiscordGuildMember member = role.getGuild().getMemberById(userId).orElse(null);
+        DiscordGuildMember member = role.getGuild().getMemberById(userId);
         if (member == null) {
             return CompletableFuture.completedFuture(GroupSyncResult.NOT_A_GUILD_MEMBER);
         }
@@ -612,12 +613,12 @@ public class GroupSyncModule extends AbstractModule<DiscordSRV> {
 
     private CompletableFuture<GroupSyncResult> modifyRoleState(long userId, GroupSyncConfig.PairConfig config, boolean remove) {
         long roleId = config.roleId;
-        DiscordRole role = discordSRV.discordAPI().getRoleById(roleId).orElse(null);
+        DiscordRole role = discordSRV.discordAPI().getRoleById(roleId);
         if (role == null) {
             return CompletableFuture.completedFuture(GroupSyncResult.ROLE_DOESNT_EXIST);
         }
 
-        DiscordGuildMember member = role.getGuild().getMemberById(userId).orElse(null);
+        DiscordGuildMember member = role.getGuild().getMemberById(userId);
         if (member == null) {
             return CompletableFuture.completedFuture(GroupSyncResult.NOT_A_GUILD_MEMBER);
         }

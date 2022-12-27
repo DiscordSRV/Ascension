@@ -41,7 +41,6 @@ import com.discordsrv.common.config.manager.MainConfigManager;
 import com.discordsrv.common.dependency.DiscordSRVDependencyManager;
 import com.discordsrv.common.discord.api.DiscordAPIEventModule;
 import com.discordsrv.common.discord.api.DiscordAPIImpl;
-import com.discordsrv.common.discord.connection.DiscordConnectionManager;
 import com.discordsrv.common.discord.connection.jda.JDAConnectionManager;
 import com.discordsrv.common.discord.details.DiscordConnectionDetailsImpl;
 import com.discordsrv.common.event.bus.EventBusImpl;
@@ -92,7 +91,6 @@ import java.lang.reflect.Constructor;
 import java.net.URL;
 import java.nio.file.Path;
 import java.util.Locale;
-import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
@@ -272,9 +270,11 @@ public abstract class AbstractDiscordSRV<B extends IBootstrap, C extends MainCon
     }
 
     @Override
-    public final @NotNull Optional<JDA> jda() {
-        return Optional.ofNullable(discordConnectionManager)
-                .map(DiscordConnectionManager::instance);
+    public final @Nullable JDA jda() {
+        if (discordConnectionManager == null) {
+            return null;
+        }
+        return discordConnectionManager.instance();
     }
 
     @Override
@@ -688,7 +688,7 @@ public abstract class AbstractDiscordSRV<B extends IBootstrap, C extends MainCon
                 if (!initial) {
                     waitForStatus(Status.CONNECTED, 20, TimeUnit.SECONDS);
                 } else {
-                    JDA jda = jda().orElse(null);
+                    JDA jda = jda();
                     if (jda != null) {
                         try {
                             jda.awaitReady();

@@ -23,17 +23,23 @@
 
 package com.discordsrv.api.profile;
 
-import java.util.Optional;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 
 public interface IProfileManager {
 
+    @NotNull
     CompletableFuture<? extends IProfile> lookupProfile(UUID playerUUID);
 
-    Optional<? extends IProfile> getProfile(UUID playerUUID);
+    @Nullable
+    IProfile getProfile(UUID playerUUID);
 
+    @NotNull
     CompletableFuture<? extends IProfile> lookupProfile(long userId);
 
-    Optional<? extends IProfile> getProfile(long userId);
+    @Nullable
+    IProfile getProfile(long userId);
 }

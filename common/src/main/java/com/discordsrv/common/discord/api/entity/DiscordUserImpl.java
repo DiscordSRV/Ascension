@@ -78,7 +78,7 @@ public class DiscordUserImpl implements DiscordUser {
 
     @Override
     public CompletableFuture<DiscordDMChannel> openPrivateChannel() {
-        JDA jda = discordSRV.jda().orElse(null);
+        JDA jda = discordSRV.jda();
         if (jda == null) {
             return discordSRV.discordAPI().notReady();
         }

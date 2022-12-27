@@ -20,6 +20,7 @@ package com.discordsrv.common.command.game.command.subcommand;
 
 import com.discordsrv.api.component.MinecraftComponent;
 import com.discordsrv.api.discord.entity.channel.DiscordMessageChannel;
+import com.discordsrv.api.discord.entity.channel.DiscordTextChannel;
 import com.discordsrv.api.discord.entity.channel.DiscordThreadChannel;
 import com.discordsrv.api.discord.entity.message.SendableDiscordMessage;
 import com.discordsrv.common.DiscordSRV;
@@ -105,14 +106,21 @@ public abstract class BroadcastCommand implements GameCommandExecutor, GameComma
         List<CompletableFuture<DiscordThreadChannel>> futures = new ArrayList<>();
         try {
             long id = Long.parseUnsignedLong(channel);
-            discordSRV.discordAPI().getMessageChannelById(id).ifPresent(channels::add);
+
+            DiscordMessageChannel messageChannel = discordSRV.discordAPI().getMessageChannelById(id);
+            if (messageChannel != null) {
+                channels.add(messageChannel);
+            }
         } catch (IllegalArgumentException ignored) {
             OrDefault<BaseChannelConfig> channelConfig = discordSRV.channelConfig().orDefault(null, channel);
             IChannelConfig config = channelConfig.get(cfg -> cfg instanceof IChannelConfig ? (IChannelConfig) cfg : null);
 
             if (config != null) {
                 for (Long channelId : config.channelIds()) {
-                    discordSRV.discordAPI().getTextChannelById(channelId).ifPresent(channels::add);
+                    DiscordTextChannel textChannel = discordSRV.discordAPI().getTextChannelById(channelId);
+                    if (textChannel != null) {
+                        channels.add(textChannel);
+                    }
                 }
 
                 discordSRV.discordAPI().findOrCreateThreads(channelConfig, config, channels::add, futures, false);

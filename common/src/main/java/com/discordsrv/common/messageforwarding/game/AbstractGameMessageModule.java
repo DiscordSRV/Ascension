@@ -100,7 +100,7 @@ public abstract class AbstractGameMessageModule<T extends IMessageConfig, E exte
         List<Long> channelIds = channelConfig.channelIds();
         if (channelIds != null) {
             for (Long channelId : channelConfig.channelIds()) {
-                DiscordTextChannel textChannel = discordSRV.discordAPI().getTextChannelById(channelId).orElse(null);
+                DiscordTextChannel textChannel = discordSRV.discordAPI().getTextChannelById(channelId);
                 if (textChannel != null) {
                     messageChannels.add(textChannel);
                 } else if (channelId > 0) {

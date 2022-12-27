@@ -35,6 +35,7 @@ import com.discordsrv.api.placeholder.mapper.ResultMappers;
 import com.discordsrv.api.placeholder.util.Placeholders;
 import net.dv8tion.jda.api.entities.MessageEmbed;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
 import java.util.function.Function;
@@ -67,8 +68,8 @@ public class SendableDiscordMessageImpl implements SendableDiscordMessage {
     }
 
     @Override
-    public @NotNull Optional<String> getContent() {
-        return Optional.ofNullable(content);
+    public @Nullable String getContent() {
+        return content;
     }
 
     @Override
@@ -88,13 +89,13 @@ public class SendableDiscordMessageImpl implements SendableDiscordMessage {
     }
 
     @Override
-    public @NotNull Optional<String> getWebhookUsername() {
-        return Optional.ofNullable(webhookUsername);
+    public @Nullable String getWebhookUsername() {
+        return webhookUsername;
     }
 
     @Override
-    public @NotNull Optional<String> getWebhookAvatarUrl() {
-        return Optional.ofNullable(webhookAvatarUrl);
+    public @Nullable String getWebhookAvatarUrl() {
+        return webhookAvatarUrl;
     }
 
     public static class BuilderImpl implements SendableDiscordMessage.Builder {

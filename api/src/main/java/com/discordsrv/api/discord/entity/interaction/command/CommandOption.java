@@ -115,14 +115,14 @@ public class CommandOption implements JDAEntity<OptionData> {
         return channelTypes;
     }
 
-    @NotNull
-    public Optional<Number> getMinValue() {
-        return Optional.ofNullable(minValue);
+    @Nullable
+    public Number getMinValue() {
+        return minValue;
     }
 
-    @NotNull
-    public Optional<Number> getMaxValue() {
-        return Optional.ofNullable(maxValue);
+    @Nullable
+    public Number getMaxValue() {
+        return maxValue;
     }
 
     @Override
@@ -131,12 +131,24 @@ public class CommandOption implements JDAEntity<OptionData> {
                 .setRequired(required)
                 .setAutoComplete(autoComplete);
         if (type == Type.LONG) {
-            getMinValue().ifPresent(num -> data.setMinValue(num.longValue()));
-            getMaxValue().ifPresent(num -> data.setMaxValue(num.longValue()));
+            Number min = getMinValue();
+            if (min != null) {
+                data.setMinValue(min.longValue());
+            }
+            Number max = getMaxValue();
+            if (max != null) {
+                data.setMinValue(max.longValue());
+            }
         }
         if (type == Type.DOUBLE) {
-            getMinValue().ifPresent(num -> data.setMinValue(num.doubleValue()));
-            getMaxValue().ifPresent(num -> data.setMaxValue(num.doubleValue()));
+            Number min = getMinValue();
+            if (min != null) {
+                data.setMinValue(min.doubleValue());
+            }
+            Number max = getMaxValue();
+            if (max != null) {
+                data.setMinValue(max.doubleValue());
+            }
         }
         for (Map.Entry<String, Object> entry : choices.entrySet()) {
             String key = entry.getKey();

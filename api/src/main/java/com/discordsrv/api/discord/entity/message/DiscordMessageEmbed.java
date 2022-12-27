@@ -32,7 +32,6 @@ import org.jetbrains.annotations.Nullable;
 import java.time.OffsetDateTime;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
 
 /**
  * A Discord embed.
@@ -102,39 +101,39 @@ public class DiscordMessageEmbed {
         this.footerImageUrl = footerImageUrl;
     }
 
-    @NotNull
-    public Optional<Color> getColor() {
-        return Optional.ofNullable(color);
+    @Nullable
+    public Color getColor() {
+        return color;
     }
 
-    @NotNull
-    public Optional<String> getAuthorName() {
-        return Optional.ofNullable(authorName);
+    @Nullable
+    public String getAuthorName() {
+        return authorName;
     }
 
-    @NotNull
-    public Optional<String> getAuthorUrl() {
-        return Optional.ofNullable(authorUrl);
+    @Nullable
+    public String getAuthorUrl() {
+        return authorUrl;
     }
 
-    @NotNull
-    public Optional<String> getAuthorImageUrl() {
-        return Optional.ofNullable(authorImageUrl);
+    @Nullable
+    public String getAuthorImageUrl() {
+        return authorImageUrl;
     }
 
-    @NotNull
-    public Optional<String> getTitle() {
-        return Optional.ofNullable(title);
+    @Nullable
+    public String getTitle() {
+        return title;
     }
 
-    @NotNull
-    public Optional<String> getTitleUrl() {
-        return Optional.ofNullable(titleUrl);
+    @Nullable
+    public String getTitleUrl() {
+        return titleUrl;
     }
 
-    @NotNull
-    public Optional<String> getDescription() {
-        return Optional.ofNullable(description);
+    @Nullable
+    public String getDescription() {
+        return description;
     }
 
     @NotNull
@@ -142,29 +141,29 @@ public class DiscordMessageEmbed {
         return fields;
     }
 
-    @NotNull
-    public Optional<String> getThumbnailUrl() {
-        return Optional.ofNullable(thumbnailUrl);
+    @Nullable
+    public String getThumbnailUrl() {
+        return thumbnailUrl;
     }
 
-    @NotNull
-    public Optional<String> getImageUrl() {
-        return Optional.ofNullable(imageUrl);
+    @Nullable
+    public String getImageUrl() {
+        return imageUrl;
     }
 
-    @NotNull
-    public Optional<OffsetDateTime> getTimestamp() {
-        return Optional.ofNullable(timestamp);
+    @Nullable
+    public OffsetDateTime getTimestamp() {
+        return timestamp;
     }
 
-    @NotNull
-    public Optional<String> getFooter() {
-        return Optional.ofNullable(footer);
+    @Nullable
+    public String getFooter() {
+        return footer;
     }
 
-    @NotNull
-    public Optional<String> getFooterImageUrl() {
-        return Optional.ofNullable(footerImageUrl);
+    @Nullable
+    public String getFooterImageUrl() {
+        return footerImageUrl;
     }
 
     @NotNull
@@ -254,19 +253,19 @@ public class DiscordMessageEmbed {
         }
 
         protected Builder(DiscordMessageEmbed embed) {
-            this.color = embed.getColor().orElse(null);
-            this.authorName = embed.getAuthorName().orElse(null);
-            this.authorUrl = embed.getAuthorUrl().orElse(null);
-            this.authorImageUrl = embed.getAuthorImageUrl().orElse(null);
-            this.title = embed.getTitle().orElse(null);
-            this.titleUrl = embed.getTitleUrl().orElse(null);
-            this.description = embed.getDescription().orElse(null);
+            this.color = embed.getColor();
+            this.authorName = embed.getAuthorName();
+            this.authorUrl = embed.getAuthorUrl();
+            this.authorImageUrl = embed.getAuthorImageUrl();
+            this.title = embed.getTitle();
+            this.titleUrl = embed.getTitleUrl();
+            this.description = embed.getDescription();
             this.fields = new ArrayList<>(embed.getFields());
-            this.thumbnailUrl = embed.getThumbnailUrl().orElse(null);
-            this.imageUrl = embed.getImageUrl().orElse(null);
-            this.timestamp = embed.getTimestamp().orElse(null);
-            this.footer = embed.getFooter().orElse(null);
-            this.footerImageUrl = embed.getFooterImageUrl().orElse(null);
+            this.thumbnailUrl = embed.getThumbnailUrl();
+            this.imageUrl = embed.getImageUrl();
+            this.timestamp = embed.getTimestamp();
+            this.footer = embed.getFooter();
+            this.footerImageUrl = embed.getFooterImageUrl();
         }
 
         @Nullable

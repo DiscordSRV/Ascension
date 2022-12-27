@@ -33,9 +33,8 @@ public final class EventUtil {
             return false;
         }
 
-        String whoProcessed = event.whoProcessed()
-                .map(EventListener::className)
-                .orElse("Unknown");
+        EventListener processor = event.whoProcessed();
+        String whoProcessed = processor != null ? processor.className() : "Unknown";
         if (!whoProcessed.startsWith("com.discordsrv")) {
             logger.debug(event + " was handled by non-DiscordSRV handler: " + whoProcessed);
         }
@@ -47,9 +46,8 @@ public final class EventUtil {
             return false;
         }
 
-        String whoCancelled = event.whoCancelled()
-                .map(EventListener::className)
-                .orElse("Unknown");
+        EventListener canceller = event.whoCancelled();
+        String whoCancelled = canceller != null ? canceller.className() : "Unknown";
         logger.debug(event + " was cancelled by " + whoCancelled);
         return true;
     }

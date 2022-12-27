@@ -23,8 +23,12 @@ import com.discordsrv.common.player.IPlayer;
 import com.discordsrv.common.player.event.PlayerConnectedEvent;
 import com.discordsrv.common.player.event.PlayerDisconnectedEvent;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
-import java.util.*;
+import java.util.Collection;
+import java.util.List;
+import java.util.Map;
+import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArrayList;
 
@@ -55,18 +59,18 @@ public abstract class AbstractPlayerProvider<T extends IPlayer, DT extends Disco
     }
 
     @Override
-    public final @NotNull Optional<T> player(@NotNull UUID uuid) {
-        return Optional.ofNullable(players.get(uuid));
+    public final @Nullable T player(@NotNull UUID uuid) {
+        return players.get(uuid);
     }
 
     @Override
-    public final @NotNull Optional<T> player(@NotNull String username) {
+    public final @Nullable T player(@NotNull String username) {
         for (T value : allPlayers) {
             if (value.username().equalsIgnoreCase(username)) {
-                return Optional.of(value);
+                return value;
             }
         }
-        return Optional.empty();
+        return null;
     }
 
     @Override

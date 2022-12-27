@@ -27,10 +27,10 @@ import com.discordsrv.common.paste.PasteService;
 import com.discordsrv.common.plugin.Plugin;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import net.dv8tion.jda.api.JDA;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 
-import java.io.FileOutputStream;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.FileStore;
@@ -92,7 +92,7 @@ public class DebugReport {
 
     public Path zip() throws Throwable {
         Path zipPath = discordSRV.dataDirectory().resolve("debug-" + System.currentTimeMillis() + ".zip");
-        try (ZipOutputStream zipOutputStream = new ZipOutputStream(new FileOutputStream(zipPath.toFile()))) {
+        try (ZipOutputStream zipOutputStream = new ZipOutputStream(Files.newOutputStream(zipPath))) {
             for (DebugFile file : files) {
                 zipOutputStream.putNextEntry(new ZipEntry(file.name()));
 
@@ -123,7 +123,8 @@ public class DebugReport {
         values.put("gitRevision", discordSRV.gitRevision());
         values.put("gitBranch", discordSRV.gitBranch());
         values.put("status", discordSRV.status().name());
-        values.put("jdaStatus", discordSRV.jda().map(jda -> jda.getStatus().name()).orElse("JDA null"));
+        JDA jda = discordSRV.jda();
+        values.put("jdaStatus", jda != null ? jda.getStatus().name() : "JDA null");
         values.put("platformLogger", discordSRV.platformLogger().getClass().getName());
         values.put("onlineMode", discordSRV.onlineMode().name());
 

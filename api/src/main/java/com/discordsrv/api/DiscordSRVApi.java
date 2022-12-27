@@ -149,8 +149,8 @@ public interface DiscordSRVApi {
      * @see #discordConnectionDetails() discordConnectionDetails() to use specific GatewayIntents and CacheFlags
      * @see #jdaVersion() jdaVersion() to get the current jda version being used
      */
-    @NotNull
-    Optional<JDA> jda();
+    @Nullable
+    JDA jda();
 
     /**
      * Discord connection detail manager, specify {@link net.dv8tion.jda.api.requests.GatewayIntent}s and {@link net.dv8tion.jda.api.utils.cache.CacheFlag}s you need here.

@@ -31,8 +31,7 @@ import com.discordsrv.api.discord.entity.interaction.component.ComponentIdentifi
 import com.discordsrv.api.discord.events.AbstractDiscordEvent;
 import net.dv8tion.jda.api.events.interaction.GenericInteractionCreateEvent;
 import org.jetbrains.annotations.NotNull;
-
-import java.util.Optional;
+import org.jetbrains.annotations.Nullable;
 
 public abstract class AbstractInteractionEvent<T extends GenericInteractionCreateEvent> extends AbstractDiscordEvent<T> {
 
@@ -64,13 +63,13 @@ public abstract class AbstractInteractionEvent<T extends GenericInteractionCreat
         return user;
     }
 
-    @NotNull
-    public Optional<DiscordGuildMember> getMember() {
-        return Optional.ofNullable(member);
+    @Nullable
+    public DiscordGuildMember getMember() {
+        return member;
     }
 
-    public Optional<DiscordGuild> getGuild() {
-        return Optional.ofNullable(member).map(DiscordGuildMember::getGuild);
+    public DiscordGuild getGuild() {
+        return member != null ? member.getGuild() : null;
     }
 
     @NotNull

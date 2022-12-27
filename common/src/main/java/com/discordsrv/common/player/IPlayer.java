@@ -41,7 +41,11 @@ public interface IPlayer extends DiscordSRVPlayer, IOfflinePlayer, ICommandSende
 
     @ApiStatus.NonExtendable
     default Profile profile() {
-        return discordSRV().profileManager().getProfile(uniqueId()).orElseThrow(IllegalStateException::new);
+        Profile profile = discordSRV().profileManager().getProfile(uniqueId());
+        if (profile == null) {
+            throw new IllegalStateException("Profile does not exist");
+        }
+        return profile;
     }
 
     @NotNull

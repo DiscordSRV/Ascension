@@ -23,21 +23,20 @@
 
 package com.discordsrv.api.profile;
 
-import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
-import java.util.Optional;
 import java.util.UUID;
 
 public interface IProfile {
 
-    @NotNull
-    Optional<UUID> playerUUID();
+    @Nullable
+    UUID playerUUID();
 
-    @NotNull
-    Optional<Long> userId();
+    @Nullable
+    Long userId();
 
     default boolean isLinked() {
-        return playerUUID().isPresent() && userId().isPresent();
+        return playerUUID() != null && userId() != null;
     }
 
 }

@@ -24,8 +24,8 @@
 package com.discordsrv.api.player;
 
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
-import java.util.Optional;
 import java.util.UUID;
 
 /**
@@ -38,15 +38,15 @@ public interface IPlayerProvider {
      * @param player the uuid for the player
      * @return the {@link DiscordSRVPlayer} instance for the player, if available
      */
-    @NotNull
-    Optional<? extends DiscordSRVPlayer> player(@NotNull UUID player);
+    @Nullable
+    DiscordSRVPlayer player(@NotNull UUID player);
 
     /**
      * Gets a player from the cache of online players.
      * @param username case-insensitive username for the player
      * @return the {@link DiscordSRVPlayer} instance for the player, if available
      */
-    @NotNull
-    Optional<? extends DiscordSRVPlayer> player(@NotNull String username);
+    @Nullable
+    DiscordSRVPlayer player(@NotNull String username);
 
 }

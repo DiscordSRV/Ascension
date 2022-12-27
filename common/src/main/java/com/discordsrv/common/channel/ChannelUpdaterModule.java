@@ -66,7 +66,7 @@ public class ChannelUpdaterModule extends AbstractModule<DiscordSRV> {
             discordSRV.waitForStatus(DiscordSRV.Status.CONNECTED, 15, TimeUnit.SECONDS);
         } catch (InterruptedException ignored) {}
 
-        JDA jda = discordSRV.jda().orElse(null);
+        JDA jda = discordSRV.jda();
         if (jda == null) {
             return;
         }

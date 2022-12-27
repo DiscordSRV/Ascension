@@ -18,29 +18,32 @@
 
 package com.discordsrv.common.player.provider;
 
+import com.discordsrv.api.player.DiscordSRVPlayer;
 import com.discordsrv.api.player.IPlayerProvider;
 import com.discordsrv.common.player.IPlayer;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.Collection;
-import java.util.Optional;
 import java.util.UUID;
 
 public interface PlayerProvider<T extends IPlayer> extends IPlayerProvider {
 
     /**
      * Gets an online player by {@link UUID}.
+     *
      * @param uuid the uuid of the Player
      */
-    @NotNull
-    Optional<T> player(@NotNull UUID uuid);
+    @Nullable
+    DiscordSRVPlayer player(@NotNull UUID uuid);
 
     /**
      * Gets an online player by username.
+     *
      * @param username case-insensitive username for the player
      */
-    @NotNull
-    Optional<T> player(@NotNull String username);
+    @Nullable
+    DiscordSRVPlayer player(@NotNull String username);
 
     /**
      * Gets all online players.

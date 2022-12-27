@@ -35,7 +35,6 @@ import org.jetbrains.annotations.Nullable;
 import org.jetbrains.annotations.Unmodifiable;
 
 import java.util.List;
-import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 
 /**
@@ -104,38 +103,40 @@ public interface ReceivedDiscordMessage extends Snowflake {
      * Gets the messages this message is replying to.
      * @return the messages this message is replying to or a empty optional
      */
-    @NotNull
-    Optional<ReceivedDiscordMessage> getReplyingTo();
+    @Nullable
+    ReceivedDiscordMessage getReplyingTo();
 
     /**
      * Gets the text channel the message was sent in. Not present if this message is a dm.
      * @return an optional potentially containing the text channel the message was sent in
      */
-    @NotNull
-    Optional<DiscordTextChannel> getTextChannel();
+    @Nullable
+    DiscordTextChannel getTextChannel();
 
     /**
      * Gets the dm channel the message was sent in. Not present if this message was sent in a server.
      * @return an optional potentially containing the dm channel the message was sent in
      */
-    @NotNull
-    Optional<DiscordDMChannel> getDMChannel();
+    @Nullable
+    DiscordDMChannel getDMChannel();
 
     /**
      * Gets the Discord server member that sent this message.
      * This is not present if the message was sent by a webhook.
      * @return an optional potentially containing the Discord server member that sent this message
      */
-    @NotNull
-    Optional<DiscordGuildMember> getMember();
+    @Nullable
+    DiscordGuildMember getMember();
 
     /**
      * Gets the Discord server the message was posted in. This is not present if the message was a dm.
      * @return an optional potentially containing the Discord server the message was posted in
      */
-    @NotNull
-    default Optional<DiscordGuild> getGuild() {
-        return getTextChannel().map(DiscordTextChannel::getGuild);
+    @Nullable
+    default DiscordGuild getGuild() {
+        DiscordTextChannel textChannel = getTextChannel();
+
+        return textChannel != null ? textChannel.getGuild() : null;
     }
 
     /**

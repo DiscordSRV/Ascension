@@ -25,9 +25,9 @@ package com.discordsrv.api.discord.entity.interaction.component;
 
 import org.intellij.lang.annotations.Subst;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.Objects;
-import java.util.Optional;
 import java.util.regex.Pattern;
 
 /**
@@ -62,23 +62,23 @@ public class ComponentIdentifier {
         return new ComponentIdentifier(extensionName, identifier);
     }
 
-    @NotNull
-    public static Optional<ComponentIdentifier> parseFromDiscord(@NotNull String discordIdentifier) {
+    @Nullable
+    public static ComponentIdentifier parseFromDiscord(@NotNull String discordIdentifier) {
         if (!discordIdentifier.startsWith(ID_PREFIX)) {
-            return Optional.empty();
+            return null;
         }
         discordIdentifier = discordIdentifier.substring(ID_PREFIX.length());
 
         @Subst("Example:Test")
         String[] parts = discordIdentifier.split(Pattern.quote(ID_PREFIX));
         if (parts.length != 2) {
-            return Optional.empty();
+            return null;
         }
 
         try {
-            return Optional.of(of(parts[0], parts[1]));
+            return of(parts[0], parts[1]);
         } catch (IllegalStateException ignored) {
-            return Optional.empty();
+            return null;
         }
     }
 

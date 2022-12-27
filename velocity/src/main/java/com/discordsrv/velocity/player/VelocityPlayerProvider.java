@@ -57,6 +57,10 @@ public class VelocityPlayerProvider extends AbstractPlayerProvider<VelocityPlaye
     }
 
     public VelocityPlayer player(Player player) {
-        return player(player.getUniqueId()).orElseThrow(() -> new IllegalStateException("Player not available"));
+        VelocityPlayer srvPlayer = player(player.getUniqueId());
+        if (srvPlayer == null) {
+            throw new IllegalStateException("Player not available");
+        }
+        return srvPlayer;
     }
 }

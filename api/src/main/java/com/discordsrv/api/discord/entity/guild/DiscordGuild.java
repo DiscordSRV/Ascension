@@ -28,9 +28,9 @@ import com.discordsrv.api.discord.entity.Snowflake;
 import com.discordsrv.api.placeholder.annotation.Placeholder;
 import net.dv8tion.jda.api.entities.Guild;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
-import java.util.Optional;
 import java.util.Set;
 
 /**
@@ -58,8 +58,8 @@ public interface DiscordGuild extends JDAEntity<Guild>, Snowflake {
      * @param id the id for the Discord guild member
      * @return the Discord guild member from the cache
      */
-    @NotNull
-    Optional<DiscordGuildMember> getMemberById(long id);
+    @Nullable
+    DiscordGuildMember getMemberById(long id);
 
     /**
      * Gets the members of this server that are in the cache.
@@ -73,8 +73,8 @@ public interface DiscordGuild extends JDAEntity<Guild>, Snowflake {
      * @param id the id for the Discord role
      * @return the Discord role from the cache
      */
-    @NotNull
-    Optional<DiscordRole> getRoleById(long id);
+    @Nullable
+    DiscordRole getRoleById(long id);
 
     /**
      * Gets the roles in this Discord server.

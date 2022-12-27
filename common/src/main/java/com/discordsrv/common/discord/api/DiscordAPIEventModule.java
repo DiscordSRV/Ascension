@@ -58,6 +58,7 @@ import net.dv8tion.jda.api.interactions.commands.Command;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
 public class DiscordAPIEventModule extends AbstractModule<DiscordSRV> {
@@ -140,7 +141,10 @@ public class DiscordAPIEventModule extends AbstractModule<DiscordSRV> {
             DiscordCommandAutoCompleteInteractionEvent autoComplete = new DiscordCommandAutoCompleteInteractionEvent(
                     (CommandAutoCompleteInteractionEvent) event, command.getId(), user, guildMember, channel);
             discordSRV.eventBus().publish(autoComplete);
-            command.getAutoCompleteHandler().ifPresent(handler -> handler.accept(autoComplete));
+            Consumer<DiscordCommandAutoCompleteInteractionEvent> autoCompleteHandler = command.getAutoCompleteHandler();
+            if (autoCompleteHandler != null) {
+                autoCompleteHandler.accept(autoComplete);
+            };
 
             List<Command.Choice> choices = new ArrayList<>();
             for (Map.Entry<String, Object> entry : autoComplete.getChoices().entrySet()) {
@@ -180,7 +184,10 @@ public class DiscordAPIEventModule extends AbstractModule<DiscordSRV> {
                 );
 
                 newEvent = interactionEvent;
-                command.getEventHandler().ifPresent(handler -> handler.accept(interactionEvent));
+                Consumer<AbstractCommandInteractionEvent<?>> eventHandler = command.getEventHandler();
+                if (eventHandler != null) {
+                    eventHandler.accept(interactionEvent);
+                }
             } else if (event instanceof UserContextInteractionEvent) {
                 com.discordsrv.api.discord.entity.interaction.command.Command command = discordSRV.discordAPI()
                         .getActiveCommand(guild, CommandType.MESSAGE, name).orElse(null);
@@ -198,7 +205,10 @@ public class DiscordAPIEventModule extends AbstractModule<DiscordSRV> {
                 );
 
                 newEvent = interactionEvent;
-                command.getEventHandler().ifPresent(handler -> handler.accept(interactionEvent));
+                Consumer<AbstractCommandInteractionEvent<?>> eventHandler = command.getEventHandler();
+                if (eventHandler != null) {
+                    eventHandler.accept(interactionEvent);
+                }
             } else if (event instanceof SlashCommandInteractionEvent) {
                 com.discordsrv.api.discord.entity.interaction.command.Command command = discordSRV.discordAPI()
                         .getActiveCommand(guild, CommandType.USER, name).orElse(null);
@@ -216,11 +226,14 @@ public class DiscordAPIEventModule extends AbstractModule<DiscordSRV> {
                 );
 
                 newEvent = interactionEvent;
-                command.getEventHandler().ifPresent(handler -> handler.accept(interactionEvent));
+                Consumer<AbstractCommandInteractionEvent<?>> eventHandler = command.getEventHandler();
+                if (eventHandler != null) {
+                    eventHandler.accept(interactionEvent);
+                }
             }
         } else if (event instanceof GenericComponentInteractionCreateEvent) {
             ComponentIdentifier identifier = ComponentIdentifier.parseFromDiscord(
-                    ((GenericComponentInteractionCreateEvent) event).getComponentId()).orElse(null);
+                    ((GenericComponentInteractionCreateEvent) event).getComponentId());
             if (identifier == null) {
                 return;
             }
@@ -234,7 +247,7 @@ public class DiscordAPIEventModule extends AbstractModule<DiscordSRV> {
             }
         } else if (event instanceof ModalInteractionEvent) {
             ComponentIdentifier identifier = ComponentIdentifier.parseFromDiscord(
-                    ((ModalInteractionEvent) event).getModalId()).orElse(null);
+                    ((ModalInteractionEvent) event).getModalId());
             if (identifier == null) {
                 return;
             }

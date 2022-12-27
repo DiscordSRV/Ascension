@@ -44,7 +44,7 @@ public class DiscordInviteModule extends AbstractModule<DiscordSRV> {
 
     @Override
     public void reload() {
-        JDA jda = discordSRV.jda().orElse(null);
+        JDA jda = discordSRV.jda();
         if (jda == null) {
             return;
         }

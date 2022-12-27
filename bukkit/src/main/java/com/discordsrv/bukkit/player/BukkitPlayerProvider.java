@@ -29,7 +29,6 @@ import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerLoginEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
 
-import java.util.Optional;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.Supplier;
@@ -67,30 +66,34 @@ public class BukkitPlayerProvider extends ServerPlayerProvider<BukkitPlayer, Buk
     }
 
     public BukkitPlayer player(Player player) {
-        return player(player.getUniqueId()).orElseThrow(() -> new IllegalStateException("Player not available"));
+        BukkitPlayer srvPlayer = player(player.getUniqueId());
+        if (srvPlayer == null) {
+            throw new IllegalStateException("Player not available");
+        }
+        return srvPlayer;
     }
 
     // IOfflinePlayer
 
-    private CompletableFuture<Optional<IOfflinePlayer>> getFuture(Supplier<OfflinePlayer> provider) {
+    private CompletableFuture<IOfflinePlayer> getFuture(Supplier<OfflinePlayer> provider) {
         return CompletableFuture.supplyAsync(() -> {
             OfflinePlayer offlinePlayer = provider.get();
             if (offlinePlayer == null) {
-                return Optional.empty();
+                return null;
             }
 
-            return Optional.of(new BukkitOfflinePlayer(discordSRV, offlinePlayer));
+            return new BukkitOfflinePlayer(discordSRV, offlinePlayer);
         }, discordSRV.scheduler().executor());
     }
 
     @Override
-    public CompletableFuture<Optional<IOfflinePlayer>> offlinePlayer(UUID uuid) {
+    public CompletableFuture<IOfflinePlayer> offlinePlayer(UUID uuid) {
         return getFuture(() -> discordSRV.server().getOfflinePlayer(uuid));
     }
 
     @SuppressWarnings("deprecation") // Shut up, I know
     @Override
-    public CompletableFuture<Optional<IOfflinePlayer>> offlinePlayer(String username) {
+    public CompletableFuture<IOfflinePlayer> offlinePlayer(String username) {
         return getFuture(() -> discordSRV.server().getOfflinePlayer(username));
     }
 
