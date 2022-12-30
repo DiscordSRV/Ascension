@@ -29,12 +29,13 @@ import com.discordsrv.api.discord.entity.guild.DiscordGuildMember;
 import com.discordsrv.api.discord.entity.interaction.DiscordInteractionHook;
 import com.discordsrv.api.discord.entity.interaction.component.ComponentIdentifier;
 import com.discordsrv.api.discord.events.interaction.AbstractDeferrableInteractionEvent;
-import net.dv8tion.jda.api.events.interaction.component.SelectMenuInteractionEvent;
+import net.dv8tion.jda.api.events.interaction.component.GenericSelectMenuInteractionEvent;
 
-public class DiscordSelectMenuInteractionEvent extends AbstractDeferrableInteractionEvent<SelectMenuInteractionEvent> {
+// TODO: newest changes
+public class DiscordSelectMenuInteractionEvent extends AbstractDeferrableInteractionEvent<GenericSelectMenuInteractionEvent<?, ?>> {
 
     public DiscordSelectMenuInteractionEvent(
-            SelectMenuInteractionEvent jdaEvent,
+            GenericSelectMenuInteractionEvent<?, ?> jdaEvent,
             ComponentIdentifier identifier,
             DiscordUser user,
             DiscordGuildMember member,

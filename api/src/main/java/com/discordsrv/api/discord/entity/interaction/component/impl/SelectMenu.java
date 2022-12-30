@@ -23,22 +23,24 @@
 
 package com.discordsrv.api.discord.entity.interaction.component.impl;
 
+import com.discordsrv.api.discord.entity.guild.DiscordCustomEmoji;
 import com.discordsrv.api.discord.entity.interaction.component.ComponentIdentifier;
 import com.discordsrv.api.discord.entity.interaction.component.MessageComponent;
-import com.discordsrv.api.discord.entity.guild.DiscordCustomEmoji;
 import net.dv8tion.jda.api.entities.emoji.Emoji;
 import net.dv8tion.jda.api.interactions.components.ItemComponent;
-import net.dv8tion.jda.api.interactions.components.selections.SelectOption;
 import org.jetbrains.annotations.NotNull;
 
 import javax.annotation.CheckReturnValue;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 
 /**
  * A Discord selection menu.
  * @see #builder(ComponentIdentifier)
  * @see com.discordsrv.api.discord.events.interaction.component.DiscordSelectMenuInteractionEvent
  */
+// TODO: newest changes
 public class SelectMenu implements MessageComponent {
 
     /**
@@ -69,27 +71,28 @@ public class SelectMenu implements MessageComponent {
 
     @Override
     public ItemComponent asJDA() {
-        net.dv8tion.jda.api.interactions.components.selections.SelectMenu.Builder builder =
-                net.dv8tion.jda.api.interactions.components.selections.SelectMenu.create(id)
-                        .setDisabled(disabled)
-                        .setPlaceholder(placeholder)
-                        .setMinValues(minValues)
-                        .setMaxValues(maxValues);
-
-        Set<SelectOption> defaultOptions = new HashSet<>();
-        for (Option option : options) {
-            SelectOption selectOption = SelectOption.of(option.getLabel(), option.getValue())
-                    .withEmoji(option.getEmoji())
-                    .withDescription(option.getDescription());
-
-            builder.addOptions(selectOption);
-            if (option.isDefault()) {
-                defaultOptions.add(selectOption);
-            }
-        }
-        builder.setDefaultOptions(defaultOptions);
-
-        return builder.build();
+        return null;
+//        net.dv8tion.jda.api.interactions.components.selections.SelectMenu.Builder<?, ?> builder =
+//                new net.dv8tion.jda.api.interactions.components.selections.SelectMenu.Builder<>(id)
+//                        .setDisabled(disabled)
+//                        .setPlaceholder(placeholder)
+//                        .setMinValues(minValues)
+//                        .setMaxValues(maxValues);
+//
+//        Set<SelectOption> defaultOptions = new HashSet<>();
+//        for (Option option : options) {
+//            SelectOption selectOption = SelectOption.of(option.getLabel(), option.getValue())
+//                    .withEmoji(option.getEmoji())
+//                    .withDescription(option.getDescription());
+//
+//            builder.addOptions(selectOption);
+//            if (option.isDefault()) {
+//                defaultOptions.add(selectOption);
+//            }
+//        }
+//        builder.setDefaultOptions(defaultOptions);
+//
+//        return builder.build();
     }
 
     /**

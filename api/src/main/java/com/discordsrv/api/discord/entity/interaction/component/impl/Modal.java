@@ -39,7 +39,7 @@ import java.util.stream.Collectors;
  * @see #builder(ComponentIdentifier, String)
  * @see com.discordsrv.api.discord.events.interaction.DiscordModalInteractionEvent
  */
-public class Modal implements JDAEntity<net.dv8tion.jda.api.interactions.components.Modal> {
+public class Modal implements JDAEntity<net.dv8tion.jda.api.interactions.modals.Modal> {
 
     /**
      * Creates a new modal builder.
@@ -77,8 +77,8 @@ public class Modal implements JDAEntity<net.dv8tion.jda.api.interactions.compone
     }
 
     @Override
-    public net.dv8tion.jda.api.interactions.components.Modal asJDA() {
-        return net.dv8tion.jda.api.interactions.components.Modal.create(id, title)
+    public net.dv8tion.jda.api.interactions.modals.Modal asJDA() {
+        return net.dv8tion.jda.api.interactions.modals.Modal.create(id, title)
                 .addActionRows(rows.stream().map(ActionRow::asJDA).collect(Collectors.toList()))
                 .build();
     }

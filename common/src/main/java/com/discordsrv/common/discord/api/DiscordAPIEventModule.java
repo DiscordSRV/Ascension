@@ -48,7 +48,7 @@ import net.dv8tion.jda.api.events.interaction.ModalInteractionEvent;
 import net.dv8tion.jda.api.events.interaction.command.*;
 import net.dv8tion.jda.api.events.interaction.component.ButtonInteractionEvent;
 import net.dv8tion.jda.api.events.interaction.component.GenericComponentInteractionCreateEvent;
-import net.dv8tion.jda.api.events.interaction.component.SelectMenuInteractionEvent;
+import net.dv8tion.jda.api.events.interaction.component.GenericSelectMenuInteractionEvent;
 import net.dv8tion.jda.api.events.message.MessageDeleteEvent;
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
 import net.dv8tion.jda.api.events.message.MessageUpdateEvent;
@@ -144,7 +144,7 @@ public class DiscordAPIEventModule extends AbstractModule<DiscordSRV> {
             Consumer<DiscordCommandAutoCompleteInteractionEvent> autoCompleteHandler = command.getAutoCompleteHandler();
             if (autoCompleteHandler != null) {
                 autoCompleteHandler.accept(autoComplete);
-            };
+            }
 
             List<Command.Choice> choices = new ArrayList<>();
             for (Map.Entry<String, Object> entry : autoComplete.getChoices().entrySet()) {
@@ -241,9 +241,9 @@ public class DiscordAPIEventModule extends AbstractModule<DiscordSRV> {
             if (event instanceof ButtonInteractionEvent) {
                 newEvent = new DiscordButtonInteractionEvent(
                         (ButtonInteractionEvent) event, identifier, user, guildMember, channel, hook);
-            } else if (event instanceof SelectMenuInteractionEvent) {
+            } else if (event instanceof GenericSelectMenuInteractionEvent) {
                 newEvent = new DiscordSelectMenuInteractionEvent(
-                        (SelectMenuInteractionEvent) event, identifier, user, guildMember, channel, hook);
+                        (GenericSelectMenuInteractionEvent<?, ?>) event, identifier, user, guildMember, channel, hook);
             }
         } else if (event instanceof ModalInteractionEvent) {
             ComponentIdentifier identifier = ComponentIdentifier.parseFromDiscord(

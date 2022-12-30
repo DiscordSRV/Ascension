@@ -44,9 +44,9 @@ import net.dv8tion.jda.api.JDABuilder;
 import net.dv8tion.jda.api.entities.*;
 import net.dv8tion.jda.api.entities.channel.concrete.PrivateChannel;
 import net.dv8tion.jda.api.entities.channel.concrete.TextChannel;
-import net.dv8tion.jda.api.events.DisconnectEvent;
-import net.dv8tion.jda.api.events.ShutdownEvent;
 import net.dv8tion.jda.api.events.StatusChangeEvent;
+import net.dv8tion.jda.api.events.session.SessionDisconnectEvent;
+import net.dv8tion.jda.api.events.session.ShutdownEvent;
 import net.dv8tion.jda.api.exceptions.ErrorResponseException;
 import net.dv8tion.jda.api.exceptions.InvalidTokenException;
 import net.dv8tion.jda.api.exceptions.RateLimitedException;
@@ -375,7 +375,7 @@ public class JDAConnectionManager implements DiscordConnectionManager {
     }
 
     @Subscribe
-    public void onDisconnect(DisconnectEvent event) {
+    public void onDisconnect(SessionDisconnectEvent event) {
         CloseCode closeCode = event.getCloseCode();
         if (checkCode(closeCode)) {
             return;
