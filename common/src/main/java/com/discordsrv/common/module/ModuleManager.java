@@ -121,7 +121,7 @@ public class ModuleManager {
             throw new IllegalArgumentException("Cannot unregister a delegate");
         }
 
-        if (getAbstract(module).isHasBeenEnabled()) {
+        if (getAbstract(module).hasBeenEnabled()) {
             disable(module);
         }
 

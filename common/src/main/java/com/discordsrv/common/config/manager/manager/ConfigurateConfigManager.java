@@ -98,12 +98,11 @@ public abstract class ConfigurateConfigManager<T, LT extends AbstractConfigurati
         return new IChannelConfig.Serializer(mapperFactory, BaseChannelConfig.class, ChannelConfig.class);
     }
 
-    public ConfigurationOptions defaultOptions() {
+    public ConfigurationOptions defaultOptions(ObjectMapper.Factory objectMapper) {
         return ConfigurationOptions.defaults()
                 .shouldCopyDefaults(false)
                 .implicitInitialization(false)
                 .serializers(builder -> {
-                    ObjectMapper.Factory objectMapper = configObjectMapper();
                     builder.register(BaseChannelConfig.class, getChannelConfigSerializer(objectMapper));
                     builder.register(Color.class, new ColorSerializer());
                     builder.register(Pattern.class, new PatternSerializer());
@@ -122,11 +121,11 @@ public abstract class ConfigurateConfigManager<T, LT extends AbstractConfigurati
     }
 
     public ConfigurationOptions configNodeOptions() {
-        return defaultOptions();
+        return defaultOptions(configObjectMapper());
     }
 
     public ConfigurationOptions defaultNodeOptions() {
-        return defaultOptions();
+        return defaultOptions(defaultObjectMapper());
     }
 
     @SuppressWarnings("unchecked")

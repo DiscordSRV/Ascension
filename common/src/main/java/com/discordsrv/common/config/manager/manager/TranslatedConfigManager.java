@@ -27,6 +27,7 @@ import org.spongepowered.configurate.ConfigurateException;
 import org.spongepowered.configurate.ConfigurationNode;
 import org.spongepowered.configurate.ConfigurationOptions;
 import org.spongepowered.configurate.loader.AbstractConfigurationLoader;
+import org.spongepowered.configurate.objectmapping.ObjectMapper;
 import org.spongepowered.configurate.serialize.SerializationException;
 import org.spongepowered.configurate.yaml.YamlConfigurationLoader;
 
@@ -52,8 +53,8 @@ public abstract class TranslatedConfigManager<T extends Config, LT extends Abstr
     }
 
     @Override
-    public ConfigurationOptions defaultOptions() {
-        ConfigurationOptions options = super.defaultOptions();
+    public ConfigurationOptions defaultOptions(ObjectMapper.Factory objectMapper) {
+        ConfigurationOptions options = super.defaultOptions(objectMapper);
         if (header != null) {
             options = options.header(header);
         }

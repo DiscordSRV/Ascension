@@ -30,10 +30,14 @@ public final class DiscordFormattingUtil {
     private DiscordFormattingUtil() {}
 
     public static String escapeContent(String content) {
-        content = escapeChars(content, '*', '_', '|', '`', '~', ':', '[');
-        content = escapeQuote(content);
+        content = escapeFormatting(content);
+        content = escapeQuotes(content);
         content = escapeMentions(content);
         return content;
+    }
+
+    public static String escapeFormatting(String content) {
+        return escapeChars(content, '*', '_', '|', '`', '~', ':', '[');
     }
 
     private static String escapeChars(String input, char... characters) {
@@ -45,11 +49,11 @@ public final class DiscordFormattingUtil {
         return input;
     }
 
-    private static String escapeQuote(String input) {
+    public static String escapeQuotes(String input) {
         return input.replaceAll("^>", Matcher.quoteReplacement("\\>"));
     }
 
-    private static String escapeMentions(String input) {
+    public static String escapeMentions(String input) {
         return input.replaceAll("<([@#])", Matcher.quoteReplacement("\\<") + "$1");
     }
 }

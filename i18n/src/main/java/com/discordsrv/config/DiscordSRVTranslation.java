@@ -82,7 +82,7 @@ public final class DiscordSRVTranslation {
             String fileIdentifier = config.getFileName();
             ConfigurationNode commentSection = node.node(fileIdentifier + "_comments");
             
-            String header = configManager.defaultOptions().header();
+            String header = configManager.configNodeOptions().header();
             if (header != null) {
                 commentSection.node("$header").set(header);
             }

@@ -44,7 +44,7 @@ public abstract class AbstractModule<DT extends DiscordSRV> implements Module {
         return logger;
     }
 
-    public boolean isHasBeenEnabled() {
+    public final boolean hasBeenEnabled() {
         return hasBeenEnabled;
     }
 
@@ -65,7 +65,7 @@ public abstract class AbstractModule<DT extends DiscordSRV> implements Module {
 
     @Override
     public String toString() {
-        return getClass().getName() + "{enabled=" + isEnabled() + "}";
+        return getClass().getName();
     }
 
     // Utility

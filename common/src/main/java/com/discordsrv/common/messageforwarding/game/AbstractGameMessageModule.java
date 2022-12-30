@@ -39,6 +39,7 @@ import com.discordsrv.common.function.OrDefault;
 import com.discordsrv.common.future.util.CompletableFutureUtil;
 import com.discordsrv.common.logging.NamedLogger;
 import com.discordsrv.common.module.type.AbstractModule;
+import com.discordsrv.common.player.IPlayer;
 import net.kyori.adventure.text.Component;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -66,22 +67,27 @@ public abstract class AbstractGameMessageModule<T extends IMessageConfig, E exte
             @Nullable DiscordSRVPlayer player,
             @Nullable GameChannel channel
     ) {
+        if (player != null && !(player instanceof IPlayer)) {
+            throw new IllegalArgumentException("Provided player was not created by DiscordSRV, instead was " + player.getClass().getName());
+        }
+        IPlayer srvPlayer = (IPlayer) player;
+
         if (channel == null) {
             // Send to all channels due to lack of specified channel
             List<CompletableFuture<Void>> futures = new ArrayList<>();
             for (OrDefault<BaseChannelConfig> channelConfig : discordSRV.channelConfig().getAllChannels()) {
-                futures.add(forwardToChannel(event, player, channelConfig));
+                futures.add(forwardToChannel(event, srvPlayer, channelConfig));
             }
             return CompletableFutureUtil.combine(futures);
         }
 
         OrDefault<BaseChannelConfig> channelConfig = discordSRV.channelConfig().orDefault(channel);
-        return forwardToChannel(event, player, channelConfig);
+        return forwardToChannel(event, srvPlayer, channelConfig);
     }
 
     private CompletableFuture<Void> forwardToChannel(
             @Nullable E event,
-            @Nullable DiscordSRVPlayer player,
+            @Nullable IPlayer player,
             @NotNull OrDefault<BaseChannelConfig> config
     ) {
         OrDefault<T> moduleConfig = mapConfig(event, config);
@@ -123,7 +129,7 @@ public abstract class AbstractGameMessageModule<T extends IMessageConfig, E exte
             String message = component != null ? convertMessage(moduleConfig, component) : null;
             Map<CompletableFuture<ReceivedDiscordMessage>, DiscordMessageChannel> messageFutures;
             messageFutures = sendMessageToChannels(
-                    moduleConfig, format, messageChannels, message,
+                    moduleConfig, format, messageChannels, message, player,
                     // Context
                     config, player
             );
@@ -178,6 +184,7 @@ public abstract class AbstractGameMessageModule<T extends IMessageConfig, E exte
             SendableDiscordMessage.Builder format,
             List<DiscordMessageChannel> channels,
             String message,
+            IPlayer player,
             Object... context
     ) {
         SendableDiscordMessage discordMessage = format.toFormatter()

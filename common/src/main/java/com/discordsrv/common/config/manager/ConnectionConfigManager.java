@@ -23,6 +23,7 @@ import com.discordsrv.common.config.connection.ConnectionConfig;
 import com.discordsrv.common.config.manager.loader.YamlConfigLoaderProvider;
 import com.discordsrv.common.config.manager.manager.TranslatedConfigManager;
 import org.spongepowered.configurate.ConfigurationOptions;
+import org.spongepowered.configurate.objectmapping.ObjectMapper;
 import org.spongepowered.configurate.yaml.YamlConfigurationLoader;
 
 public abstract class ConnectionConfigManager<C extends ConnectionConfig>
@@ -34,8 +35,8 @@ public abstract class ConnectionConfigManager<C extends ConnectionConfig>
     }
 
     @Override
-    public ConfigurationOptions defaultOptions() {
-        return super.defaultOptions()
+    public ConfigurationOptions defaultOptions(ObjectMapper.Factory objectMapper) {
+        return super.defaultOptions(objectMapper)
                 .header("DiscordSRV's configuration file for connections to different external services.\n"
                                 + "This file is intended to contain connection details to services in order to keep them out of the config.yml\n"
                                 + "and to serve as a easy way to identify and control what external connections are being used.\n"

@@ -37,7 +37,7 @@ import com.discordsrv.common.component.translation.Translation;
 import com.discordsrv.common.config.manager.ConnectionConfigManager;
 import com.discordsrv.common.config.manager.MainConfigManager;
 import com.discordsrv.common.debug.data.OnlineMode;
-import com.discordsrv.common.messageforwarding.game.MinecraftToDiscordChatModule;
+import com.discordsrv.common.messageforwarding.game.minecrafttodiscord.MinecraftToDiscordChatModule;
 import com.discordsrv.common.plugin.PluginManager;
 import com.discordsrv.common.ServerDiscordSRV;
 import com.fasterxml.jackson.databind.JsonNode;

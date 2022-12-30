@@ -19,6 +19,7 @@
 package com.discordsrv.common.config.main.channels;
 
 import com.discordsrv.api.discord.entity.message.SendableDiscordMessage;
+import com.discordsrv.common.config.annotation.DefaultOnly;
 import com.discordsrv.common.config.annotation.Untranslated;
 import org.spongepowered.configurate.objectmapping.ConfigSerializable;
 import org.spongepowered.configurate.objectmapping.meta.Comment;
@@ -34,6 +35,7 @@ public class MinecraftToDiscordChatConfig implements IMessageConfig {
     public boolean enabled = true;
 
     @Untranslated(Untranslated.Type.VALUE)
+    @DefaultOnly
     public SendableDiscordMessage.Builder format = SendableDiscordMessage.builder()
             .setWebhookUsername("%player_meta_prefix|player_prefix%%player_display_name|player_name%%player_meta_suffix|player_suffix%")
             .setWebhookAvatarUrl("%player_avatar_url%")
@@ -43,7 +45,6 @@ public class MinecraftToDiscordChatConfig implements IMessageConfig {
     @Comment("Regex filters for Minecraft message contents (this is the %message% part of the \"format\" option)")
     public Map<Pattern, String> contentRegexFilters = new LinkedHashMap<>();
 
-    @Comment("What mentions should be translated from chat messages to mentions (this does not effect if they will cause a notification or not)")
     public Mentions mentions = new Mentions();
 
     @Override
@@ -59,9 +60,26 @@ public class MinecraftToDiscordChatConfig implements IMessageConfig {
     @ConfigSerializable
     public static class Mentions {
 
+        @Comment("If role mentions should be rendered on Discord\n\n"
+                + "The player needs one of the below permission to trigger notifications:\n"
+                + "- discordsrv.mention.roles.mentionable (for roles which have \"Allow anyone to @mention this role\" enabled)\n"
+                + "- discordsrv.mention.roles.all (to mention ALL roles except @everyone)")
         public boolean roles = true;
-        public boolean users = true;
+
+        @Comment("If channel mentions should be rendered on Discord")
         public boolean channels = true;
+
+        @Comment("If user mentions should be rendered on Discord\n"
+                + "The player needs the discordsrv.mention.user permission to trigger a notification")
+        public boolean users = true;
+
+        @Comment("If uncached users should be looked up from the Discord API when a mention (\"@something\") occurs in chat.\n"
+                + "The player needs the discordsrv.mention.lookup.user permission for uncached members to be looked up")
+        public boolean uncachedUsers = true;
+
+        @Comment("If @everyone and @here mentions should be enabled\n"
+                + "The player needs the discordsrv.mention.everyone permission to render the mention and trigger a notification")
+        public boolean everyone = false;
 
     }
     

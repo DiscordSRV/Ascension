@@ -20,9 +20,13 @@ package com.discordsrv.common.linking.impl;
 
 import com.discordsrv.common.DiscordSRV;
 import com.discordsrv.common.linking.LinkProvider;
+import com.discordsrv.common.logging.Logger;
+import com.discordsrv.common.logging.NamedLogger;
 import me.minecraftauth.lib.AuthService;
 import me.minecraftauth.lib.account.AccountType;
+import me.minecraftauth.lib.account.Identity;
 import me.minecraftauth.lib.account.MinecraftAccount;
+import me.minecraftauth.lib.exception.LookupException;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Optional;
@@ -31,16 +35,26 @@ import java.util.concurrent.CompletableFuture;
 
 public class MinecraftAuthenticationLinker extends CachedLinkProvider implements LinkProvider {
 
+    private final Logger logger;
+
     public MinecraftAuthenticationLinker(DiscordSRV discordSRV) {
         super(discordSRV);
+        this.logger = new NamedLogger(discordSRV, "MINECRAFTAUTH_LINKER");
     }
 
     @Override
     public CompletableFuture<Optional<Long>> queryUserId(@NotNull UUID playerUUID) {
         return CompletableFuture.supplyAsync(
-                () -> AuthService.lookup(AccountType.MINECRAFT, playerUUID.toString())
-                        .flatMap(identity -> Optional.ofNullable(identity.getDiscordAccount()))
-                        .map(discord -> Long.parseUnsignedLong(discord.getUserId())),
+                () -> {
+                    try {
+                        return AuthService.lookup(AccountType.MINECRAFT, playerUUID.toString())
+                                .map(Identity::getDiscordAccount)
+                                .map(discord -> Long.parseUnsignedLong(discord.getUserId()));
+                    } catch (LookupException e) {
+                        logger.error("Lookup for uuid " + playerUUID + " failed", e);
+                        return Optional.empty();
+                    }
+                },
                 discordSRV.scheduler().executor()
         );
     }
@@ -48,9 +62,16 @@ public class MinecraftAuthenticationLinker extends CachedLinkProvider implements
     @Override
     public CompletableFuture<Optional<UUID>> queryPlayerUUID(long userId) {
         return CompletableFuture.supplyAsync(
-                () -> AuthService.lookup(AccountType.DISCORD, Long.toUnsignedString(userId))
-                        .flatMap(identity -> Optional.ofNullable(identity.getMinecraftAccount()))
-                        .map(MinecraftAccount::getUUID),
+                () -> {
+                    try {
+                        return AuthService.lookup(AccountType.DISCORD, Long.toUnsignedString(userId))
+                                .map(Identity::getMinecraftAccount)
+                                .map(MinecraftAccount::getUUID);
+                    } catch (LookupException e) {
+                        logger.error("Lookup for user id " + Long.toUnsignedString(userId) + " failed", e);
+                        return Optional.empty();
+                    }
+                },
                 discordSRV.scheduler().executor()
         );
     }

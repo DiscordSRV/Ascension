@@ -64,6 +64,7 @@ import com.discordsrv.common.messageforwarding.game.JoinMessageModule;
 import com.discordsrv.common.messageforwarding.game.LeaveMessageModule;
 import com.discordsrv.common.messageforwarding.game.StartMessageModule;
 import com.discordsrv.common.messageforwarding.game.StopMessageModule;
+import com.discordsrv.common.messageforwarding.game.minecrafttodiscord.MentionCachingModule;
 import com.discordsrv.common.module.ModuleManager;
 import com.discordsrv.common.module.type.AbstractModule;
 import com.discordsrv.common.placeholder.PlaceholderServiceImpl;
@@ -531,6 +532,7 @@ public abstract class AbstractDiscordSRV<B extends IBootstrap, C extends MainCon
         registerModule(JoinMessageModule::new);
         registerModule(LeaveMessageModule::new);
         registerModule(DiscordInviteModule::new);
+        registerModule(MentionCachingModule::new);
 
         // Integrations
         registerIntegration("com.discordsrv.common.integration.LuckPermsIntegration");

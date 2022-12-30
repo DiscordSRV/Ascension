@@ -492,7 +492,7 @@ public class DiscordAPIImpl implements DiscordAPI {
                     User user = webhook.getOwnerAsUser();
                     if (user == null
                             || !user.getId().equals(jda.getSelfUser().getId())
-                            || !webhook.getName().equals("DiscordSRV")) {
+                            || !webhook.getName().equals("DSRV")) {
                         continue;
                     }
 
@@ -506,7 +506,7 @@ public class DiscordAPIImpl implements DiscordAPI {
                     return CompletableFuture.completedFuture(webhook);
                 }
 
-                return textChannel.createWebhook("DiscordSRV").submit();
+                return textChannel.createWebhook("DSRV").submit();
             }).thenApply(webhook ->
                     WebhookClientBuilder.fromJDA(webhook)
                             .setHttpClient(jda.getHttpClient())
