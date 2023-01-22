@@ -23,10 +23,55 @@
 
 package com.discordsrv.api.module.type;
 
+import com.discordsrv.api.DiscordSRVApi;
+import com.discordsrv.api.discord.connection.details.DiscordCacheFlag;
+import com.discordsrv.api.discord.connection.details.DiscordGatewayIntent;
+import com.discordsrv.api.discord.connection.details.DiscordMemberCachePolicy;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+
+import java.util.Collection;
+import java.util.Collections;
+import java.util.Set;
+
 public interface Module {
 
+    /**
+     * Determines if this {@link Module} should be enabled at the instant this method is called, this will be used
+     * to determine when modules should be enabled or disabled when DiscordSRV enabled, disables and reloads.
+     * @return the current enabled status the module should be in currently
+     */
     default boolean isEnabled() {
         return true;
+    }
+
+    /**
+     * Provides a {@link Collection} of {@link DiscordGatewayIntent}s that are required for this {@link Module}.
+     * @return the collection of gateway intents required by this module at the time this method is called
+     */
+    @NotNull
+    default Collection<DiscordGatewayIntent> requiredIntents() {
+        return Collections.emptyList();
+    }
+
+    /**
+     * Provides a {@link Collection} of {@link DiscordCacheFlag}s that are required for this {@link Module}.
+     * {@link DiscordGatewayIntent}s required by the cache flags will be required automatically.
+     * @return the collection of cache flags required by this module at the time this method is called
+     */
+    @NotNull
+    default Collection<DiscordCacheFlag> requiredCacheFlags() {
+        return Collections.emptyList();
+    }
+
+    /**
+     * Provides a {@link Collection} of {@link DiscordMemberCachePolicy DiscordMemberCachePolicies} that are required for this {@link Module},
+     * if a policy other than {@link DiscordMemberCachePolicy#OWNER} or {@link DiscordMemberCachePolicy#VOICE} is provided the {@link DiscordGatewayIntent#GUILD_MEMBERS} intent will be required automatically.
+     * @return the collection of member caching policies required by this module at the time this method is called
+     */
+    @NotNull
+    default Collection<DiscordMemberCachePolicy> requiredMemberCachingPolicies() {
+        return Collections.emptyList();
     }
 
     /**
@@ -39,14 +84,39 @@ public interface Module {
         return 0;
     }
 
+    /**
+     * Determines the order which this module should shut down in compared to other modules.
+     * @return the shutdown order of this module, higher values will be shut down first. The default is the same as {@link #priority(Class)} with the type of the class.
+     */
     default int shutdownOrder() {
         return priority(getClass());
     }
 
+    /**
+     * Called by DiscordSRV to enable this module. Calls {@link #reload()} if not implemented.
+     */
     default void enable() {
         reload();
     }
 
+    /**
+     * Called by DiscordSRV to disable this module.
+     */
     default void disable() {}
-    default void reload() {}
+
+    /**
+     * Called by DiscordSRV to reload this module. This is called to enable the module as well unless {@link #enable()} is overridden and does not call super.
+     * Use {@link #reloadNoResult()} if you don't wish to provide any result.
+     * @return the result(s) that occurred during this reload, if any. May be {@code null}.
+     */
+    @Nullable
+    default Set<DiscordSRVApi.ReloadResult> reload() {
+        reloadNoResult();
+        return null;
+    }
+
+    /**
+     * An alternative to {@link #reload()}, which returns {@code void} instead of results. This method will <b>not</b> be called if {@link #reload()} is overridden!
+     */
+    default void reloadNoResult() {}
 }

@@ -51,9 +51,10 @@ public abstract class ServerDiscordSRV<B extends IBootstrap, C extends MainConfi
     public final CompletableFuture<Void> invokeServerStarted() {
         return invokeLifecycle(() -> {
             if (status().isShutdown()) {
-                return;
+                return null;
             }
             this.serverStarted();
+            return null;
         });
     }
 

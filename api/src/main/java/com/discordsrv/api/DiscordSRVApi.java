@@ -25,7 +25,7 @@ package com.discordsrv.api;
 
 import com.discordsrv.api.component.MinecraftComponentFactory;
 import com.discordsrv.api.discord.DiscordAPI;
-import com.discordsrv.api.discord.connection.jda.DiscordConnectionDetails;
+import com.discordsrv.api.discord.connection.details.DiscordConnectionDetails;
 import com.discordsrv.api.event.bus.EventBus;
 import com.discordsrv.api.placeholder.PlaceholderService;
 import com.discordsrv.api.player.DiscordSRVPlayer;
@@ -38,6 +38,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
+import java.util.function.Predicate;
 
 /**
  * The DiscordSRV API.
@@ -261,7 +262,7 @@ public interface DiscordSRVApi {
         CONFIG(false),
         LINKED_ACCOUNT_PROVIDER(false),
         STORAGE(true),
-        DISCORD_CONNECTION(true),
+        DISCORD_CONNECTION(DiscordSRVApi::isReady),
         MODULES(false),
 
         ;
@@ -269,14 +270,31 @@ public interface DiscordSRVApi {
         public static final Set<ReloadFlag> ALL = Collections.unmodifiableSet(new LinkedHashSet<>(Arrays.asList(values())));
         public static final Set<ReloadFlag> DEFAULT_FLAGS = Collections.unmodifiableSet(new LinkedHashSet<>(Arrays.asList(CONFIG, MODULES)));
 
-        private final boolean requiresConfirm;
+        private final Predicate<DiscordSRVApi> requiresConfirm;
 
         ReloadFlag(boolean requiresConfirm) {
+            this(__ -> requiresConfirm);
+        }
+
+        ReloadFlag(Predicate<DiscordSRVApi> requiresConfirm) {
             this.requiresConfirm = requiresConfirm;
         }
 
-        public boolean requiresConfirm() {
-            return requiresConfirm;
+        public boolean requiresConfirm(DiscordSRVApi discordSRV) {
+            return requiresConfirm.test(discordSRV);
+        }
+    }
+
+    interface ReloadResult {
+
+        ReloadResult RESTART_REQUIRED = Results.RESTART_REQUIRED;
+
+        String name();
+
+        enum Results implements ReloadResult {
+
+            RESTART_REQUIRED
+
         }
     }
 }

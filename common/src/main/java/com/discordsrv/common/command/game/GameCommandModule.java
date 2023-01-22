@@ -47,7 +47,7 @@ public class GameCommandModule extends AbstractModule<DiscordSRV> {
     }
 
     @Override
-    public void reload() {
+    public void reloadNoResult() {
         CommandConfig config = discordSRV.config().command;
         if (config == null) {
             return;

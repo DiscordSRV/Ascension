@@ -21,6 +21,7 @@ package com.discordsrv.common.messageforwarding.discord;
 import com.discordsrv.api.channel.GameChannel;
 import com.discordsrv.api.component.GameTextBuilder;
 import com.discordsrv.api.component.MinecraftComponent;
+import com.discordsrv.api.discord.connection.details.DiscordGatewayIntent;
 import com.discordsrv.api.discord.entity.DiscordUser;
 import com.discordsrv.api.discord.entity.channel.DiscordMessageChannel;
 import com.discordsrv.api.discord.entity.guild.DiscordGuildMember;
@@ -39,13 +40,31 @@ import com.discordsrv.common.function.OrDefault;
 import com.discordsrv.common.logging.NamedLogger;
 import com.discordsrv.common.module.type.AbstractModule;
 import net.kyori.adventure.text.Component;
+import org.jetbrains.annotations.NotNull;
 
+import java.util.Arrays;
+import java.util.Collection;
 import java.util.Map;
 
 public class DiscordChatMessageModule extends AbstractModule<DiscordSRV> {
 
     public DiscordChatMessageModule(DiscordSRV discordSRV) {
         super(discordSRV, new NamedLogger(discordSRV, "DISCORD_TO_MINECRAFT"));
+    }
+
+    @Override
+    public boolean isEnabled() {
+        for (OrDefault<BaseChannelConfig> config : discordSRV.channelConfig().getAllChannels()) {
+            if (config.map(cfg -> cfg.discordToMinecraft).get(cfg -> cfg.enabled, false)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    @Override
+    public @NotNull Collection<DiscordGatewayIntent> requiredIntents() {
+        return Arrays.asList(DiscordGatewayIntent.GUILD_MESSAGES, DiscordGatewayIntent.MESSAGE_CONTENT);
     }
 
     @Subscribe

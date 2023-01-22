@@ -39,12 +39,6 @@ public interface DiscordConnectionManager {
     JDA instance();
 
     /**
-     * Are gateway intents and cache flags accepted.
-     * @return true for yes
-     */
-    boolean areDetailsAccepted();
-
-    /**
      * Attempts to connect to Discord.
      * @return a {@link CompletableFuture}
      */

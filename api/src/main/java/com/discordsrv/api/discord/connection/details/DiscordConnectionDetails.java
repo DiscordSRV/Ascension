@@ -21,61 +21,46 @@
  * SOFTWARE.
  */
 
-package com.discordsrv.api.discord.connection.jda;
+package com.discordsrv.api.discord.connection.details;
 
 import com.discordsrv.api.DiscordSRVApi;
 import net.dv8tion.jda.api.requests.GatewayIntent;
 import net.dv8tion.jda.api.utils.cache.CacheFlag;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.Set;
-
 /**
- * A helper class to provide {@link GatewayIntent}s and {@link CacheFlag}s to the {@link net.dv8tion.jda.api.JDA} instance created by DiscordSRV during startup.
+ * A helper class to provide {@link DiscordGatewayIntent}s and {@link DiscordCacheFlag}s for the Discord connection.
  * @see DiscordSRVApi#discordConnectionDetails()
  */
 @SuppressWarnings("unused") // API
 public interface DiscordConnectionDetails {
 
     /**
-     * If {@link #requestGatewayIntent(GatewayIntent, GatewayIntent...)}} and {@link #requestCacheFlag(CacheFlag, CacheFlag...)} can be used.
-     * @return true, if {@link GatewayIntent}s and {@link CacheFlag} will be accepted
-     */
-    boolean readyToTakeDetails();
-
-    /**
-     * The current gateway intents.
-     * @return the current set of gateway intents
-     */
-    @NotNull
-    Set<GatewayIntent> getGatewayIntents();
-
-    /**
-     * Requests that the provided {@link GatewayIntent}s be passed to {@link net.dv8tion.jda.api.JDA}.
+     * Requests that the provided {@link DiscordGatewayIntent}s be passed to the Discord connection.
      *
      * @param gatewayIntent the first gateway intent to add
      * @param gatewayIntents more gateway intents
-     * @throws IllegalStateException if DiscordSRV is already connecting/connected to Discord
-     * @see #readyToTakeDetails()
+     * @return {@code true} if the Discord connection is yet to be created and the intent will become active once it is
      */
-    void requestGatewayIntent(@NotNull GatewayIntent gatewayIntent, @NotNull GatewayIntent... gatewayIntents);
+    boolean requestGatewayIntent(@NotNull DiscordGatewayIntent gatewayIntent, @NotNull DiscordGatewayIntent... gatewayIntents);
 
     /**
-     * The current cache flags.
-     * @return the current set of cache flags
-     */
-    @NotNull
-    Set<CacheFlag> getCacheFlags();
-
-    /**
-     * Requests that the provided {@link CacheFlag} be passed to {@link net.dv8tion.jda.api.JDA}.
+     * Requests that the provided {@link DiscordCacheFlag}s be passed to the Discord connection.
      *
      * @param cacheFlag the first cache flag
      * @param cacheFlags more cache flags
-     * @throws IllegalStateException if DiscordSRV is already connecting/connected to Discord
+     * @return {@code true} if the Discord connection is yet to be created and the intent will become active once it is
      * @throws IllegalArgumentException if one of the requested {@link CacheFlag}s requires a {@link GatewayIntent} that hasn't been requested
-     * @see #readyToTakeDetails()
      */
-    void requestCacheFlag(@NotNull CacheFlag cacheFlag, @NotNull CacheFlag... cacheFlags);
+    boolean requestCacheFlag(@NotNull DiscordCacheFlag cacheFlag, @NotNull DiscordCacheFlag... cacheFlags);
+
+    /**
+     * Requests that the provided {@link DiscordMemberCachePolicy}s be passed to the Discord connection.
+     *
+     * @param memberCachePolicy the first member cache policy
+     * @param memberCachePolicies more member cache policies
+     * @return {@code true} if the Discord connection is yet to be created and the intent will become active once it is
+     */
+    boolean requestMemberCachePolicy(@NotNull DiscordMemberCachePolicy memberCachePolicy, @NotNull DiscordMemberCachePolicy... memberCachePolicies);
 
 }

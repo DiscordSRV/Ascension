@@ -18,11 +18,12 @@
 
 package com.discordsrv.common.discord.details;
 
-import com.discordsrv.api.discord.connection.jda.DiscordConnectionDetails;
+import com.discordsrv.api.discord.connection.details.DiscordCacheFlag;
+import com.discordsrv.api.discord.connection.details.DiscordConnectionDetails;
+import com.discordsrv.api.discord.connection.details.DiscordGatewayIntent;
+import com.discordsrv.api.discord.connection.details.DiscordMemberCachePolicy;
 import com.discordsrv.common.DiscordSRV;
 import com.discordsrv.common.exception.util.ExceptionUtil;
-import net.dv8tion.jda.api.requests.GatewayIntent;
-import net.dv8tion.jda.api.utils.cache.CacheFlag;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.*;
@@ -30,58 +31,52 @@ import java.util.*;
 public class DiscordConnectionDetailsImpl implements DiscordConnectionDetails {
 
     private final DiscordSRV discordSRV;
-    private final Set<GatewayIntent> gatewayIntents = new HashSet<>();
-    private final Set<CacheFlag> cacheFlags = new HashSet<>();
+    private final Set<DiscordGatewayIntent> gatewayIntents = new HashSet<>();
+    private final Set<DiscordCacheFlag> cacheFlags = new HashSet<>();
+    private final Set<DiscordMemberCachePolicy> memberCachePolicies = new HashSet<>();
 
     public DiscordConnectionDetailsImpl(DiscordSRV discordSRV) {
         this.discordSRV = discordSRV;
+        this.memberCachePolicies.add(DiscordMemberCachePolicy.OWNER);
+    }
+
+    private boolean isStatus() {
+        return discordSRV.status() == DiscordSRV.Status.INITIALIZED
+                || discordSRV.status() == DiscordSRV.Status.ATTEMPTING_TO_CONNECT;
+    }
+
+    public @NotNull Set<DiscordGatewayIntent> getGatewayIntents() {
+        Set<DiscordGatewayIntent> intents = new HashSet<>(gatewayIntents);
+        intents.addAll(discordSRV.moduleManager().requiredIntents());
+        return intents;
     }
 
     @Override
-    public boolean readyToTakeDetails() {
-        return discordSRV.discordConnectionManager().areDetailsAccepted();
-    }
-
-    private void check() {
-        if (!readyToTakeDetails()) {
-            throw new IllegalStateException("Too late. Please use DiscordConnectionDetails#readyToTakeDetails " +
-                    "to check if the method can be used");
-        }
-    }
-
-    @Override
-    public @NotNull Set<GatewayIntent> getGatewayIntents() {
-        return gatewayIntents;
-    }
-
-    @Override
-    public void requestGatewayIntent(@NotNull GatewayIntent gatewayIntent, GatewayIntent... gatewayIntents) {
-        check();
-
-        List<GatewayIntent> intents = new ArrayList<>(Collections.singleton(gatewayIntent));
+    public boolean requestGatewayIntent(@NotNull DiscordGatewayIntent gatewayIntent, DiscordGatewayIntent... gatewayIntents) {
+        List<DiscordGatewayIntent> intents = new ArrayList<>(Collections.singleton(gatewayIntent));
         intents.addAll(Arrays.asList(gatewayIntents));
 
         this.gatewayIntents.addAll(intents);
+        return isStatus();
+    }
+
+    public @NotNull Set<DiscordCacheFlag> getCacheFlags() {
+        Set<DiscordCacheFlag> flags = new HashSet<>(cacheFlags);
+        flags.addAll(discordSRV.moduleManager().requiredCacheFlags());
+        return flags;
     }
 
     @Override
-    public @NotNull Set<CacheFlag> getCacheFlags() {
-        return cacheFlags;
-    }
-
-    @Override
-    public void requestCacheFlag(@NotNull CacheFlag cacheFlag, CacheFlag... cacheFlags) {
-        check();
-
-        List<CacheFlag> flags = new ArrayList<>(Collections.singleton(cacheFlag));
+    public boolean requestCacheFlag(@NotNull DiscordCacheFlag cacheFlag, DiscordCacheFlag... cacheFlags) {
+        List<DiscordCacheFlag> flags = new ArrayList<>(Collections.singleton(cacheFlag));
         flags.addAll(Arrays.asList(cacheFlags));
 
         List<Throwable> suppressed = new ArrayList<>();
-        for (CacheFlag flag : flags) {
-            GatewayIntent requiredIntent = flag.getRequiredIntent();
+        for (DiscordCacheFlag flag : flags) {
+            DiscordGatewayIntent requiredIntent = flag.requiredIntent();
             if (requiredIntent != null && !gatewayIntents.contains(requiredIntent)) {
                 suppressed.add(ExceptionUtil.minifyException(new IllegalArgumentException("CacheFlag "
-                        + flag.getRequiredIntent().name() + " requires GatewayIntent " + requiredIntent.name())));
+                        + requiredIntent.name() + " requires GatewayIntent " + requiredIntent.name())));
             }
         }
 
@@ -92,5 +87,21 @@ public class DiscordConnectionDetailsImpl implements DiscordConnectionDetails {
         }
 
         this.cacheFlags.addAll(flags);
+        return isStatus();
+    }
+
+    public @NotNull Set<DiscordMemberCachePolicy> getMemberCachePolicies() {
+        Set<DiscordMemberCachePolicy> policies = new HashSet<>(memberCachePolicies);
+        policies.addAll(discordSRV.moduleManager().requiredMemberCachePolicies());
+        return policies;
+    }
+
+    @Override
+    public boolean requestMemberCachePolicy(@NotNull DiscordMemberCachePolicy memberCachePolicy, @NotNull DiscordMemberCachePolicy... memberCachePolicies) {
+        List<DiscordMemberCachePolicy> policies = new ArrayList<>(Collections.singleton(memberCachePolicy));
+        policies.addAll(Arrays.asList(memberCachePolicies));
+
+        this.memberCachePolicies.addAll(policies);
+        return isStatus();
     }
 }

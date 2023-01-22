@@ -18,6 +18,8 @@
 
 package com.discordsrv.common.module.type;
 
+import com.discordsrv.api.discord.connection.details.DiscordCacheFlag;
+import com.discordsrv.api.discord.connection.details.DiscordGatewayIntent;
 import com.discordsrv.api.event.events.Cancellable;
 import com.discordsrv.api.event.events.Processable;
 import com.discordsrv.api.module.type.Module;
@@ -25,11 +27,19 @@ import com.discordsrv.common.DiscordSRV;
 import com.discordsrv.common.event.util.EventUtil;
 import com.discordsrv.common.logging.Logger;
 
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
+
 public abstract class AbstractModule<DT extends DiscordSRV> implements Module {
 
     protected final DT discordSRV;
     private final Logger logger;
     private boolean hasBeenEnabled = false;
+
+    private final List<DiscordGatewayIntent> requestedIntents = new ArrayList<>();
+    private final List<DiscordCacheFlag> requestedCacheFlags = new ArrayList<>();
+    private int requestedMemberCachePolicies = 0;
 
     public AbstractModule(DT discordSRV) {
         this(discordSRV, discordSRV.logger());
@@ -40,13 +50,26 @@ public abstract class AbstractModule<DT extends DiscordSRV> implements Module {
         this.logger = logger;
     }
 
+    @Override
+    public String toString() {
+        return getClass().getName();
+    }
+
+    // Utility
+
     public final Logger logger() {
         return logger;
     }
 
-    public final boolean hasBeenEnabled() {
-        return hasBeenEnabled;
+    protected final boolean checkProcessor(Processable event) {
+        return EventUtil.checkProcessor(discordSRV, event, logger());
     }
+
+    protected final boolean checkCancellation(Cancellable event) {
+        return EventUtil.checkCancellation(discordSRV, event, logger());
+    }
+
+    // Internal
 
     public final boolean enableModule() {
         if (hasBeenEnabled || !isEnabled()) {
@@ -63,17 +86,44 @@ public abstract class AbstractModule<DT extends DiscordSRV> implements Module {
         return true;
     }
 
-    @Override
-    public String toString() {
-        return getClass().getName();
+    public final boolean disableModule() {
+        if (!hasBeenEnabled) {
+            return false;
+        }
+
+        disable();
+        hasBeenEnabled = false;
+
+        try {
+            discordSRV.eventBus().unsubscribe(this);
+            // Ignore not having listener methods exception
+        } catch (IllegalArgumentException ignored) {}
+        return true;
     }
 
-    // Utility
-    protected final boolean checkProcessor(Processable event) {
-        return EventUtil.checkProcessor(discordSRV, event, logger());
+    public final void setRequestedIntents(Collection<DiscordGatewayIntent> intents) {
+        this.requestedIntents.clear();
+        this.requestedIntents.addAll(intents);
     }
 
-    protected final boolean checkCancellation(Cancellable event) {
-        return EventUtil.checkCancellation(discordSRV, event, logger());
+    public final List<DiscordGatewayIntent> getRequestedIntents() {
+        return requestedIntents;
+    }
+
+    public final void setRequestedCacheFlags(Collection<DiscordCacheFlag> cacheFlags) {
+        this.requestedCacheFlags.clear();
+        this.requestedCacheFlags.addAll(cacheFlags);
+    }
+
+    public final List<DiscordCacheFlag> getRequestedCacheFlags() {
+        return requestedCacheFlags;
+    }
+
+    public final void setRequestedMemberCachePolicies(int amount) {
+        this.requestedMemberCachePolicies = amount;
+    }
+
+    public final int getRequestedMemberCachePolicies() {
+        return requestedMemberCachePolicies;
     }
 }

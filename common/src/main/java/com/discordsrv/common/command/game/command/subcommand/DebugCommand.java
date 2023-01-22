@@ -27,6 +27,7 @@ import com.discordsrv.common.debug.DebugReport;
 import com.discordsrv.common.paste.Paste;
 import com.discordsrv.common.paste.PasteService;
 import com.discordsrv.common.paste.service.AESEncryptedPasteService;
+import com.discordsrv.common.paste.service.BytebinPasteService;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.event.ClickEvent;
 import net.kyori.adventure.text.format.NamedTextColor;
@@ -67,7 +68,7 @@ public class DebugCommand implements GameCommandExecutor {
 
     public DebugCommand(DiscordSRV discordSRV) {
         this.discordSRV = discordSRV;
-        this.pasteService = new AESEncryptedPasteService(null /* TODO: tbd */, 128);
+        this.pasteService = new AESEncryptedPasteService(new BytebinPasteService(discordSRV, "https://bytebin.lucko.me") /* TODO: final store tbd */, 128);
     }
 
     @Override

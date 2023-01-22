@@ -19,7 +19,7 @@
 package com.discordsrv.common.function;
 
 @FunctionalInterface
-public interface CheckedRunnable {
+public interface CheckedRunnable<T> {
 
-    void run() throws Throwable;
+    T run() throws Throwable;
 }

@@ -45,7 +45,7 @@ public class ChannelUpdaterModule extends AbstractModule<DiscordSRV> {
     }
 
     @Override
-    public void reload() {
+    public void reloadNoResult() {
         futures.forEach(future -> future.cancel(false));
         futures.clear();
 

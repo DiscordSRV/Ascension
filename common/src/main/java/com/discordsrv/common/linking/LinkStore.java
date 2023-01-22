@@ -23,7 +23,7 @@ import org.jetbrains.annotations.NotNull;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 
-public interface LinkStore {
+public interface LinkStore extends LinkProvider {
 
     CompletableFuture<Void> createLink(@NotNull UUID playerUUID, long userId);
 

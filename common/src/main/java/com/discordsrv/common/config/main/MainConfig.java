@@ -45,6 +45,8 @@ public class MainConfig implements Config {
 
     public LinkedAccountConfig linkedAccounts = new LinkedAccountConfig();
 
+    public MemberCachingConfig memberCaching = new MemberCachingConfig();
+
     public List<ChannelUpdaterConfig> channelUpdaters = new ArrayList<>(Collections.singletonList(new ChannelUpdaterConfig()));
 
     @Comment("Configuration options for group-role synchronization")

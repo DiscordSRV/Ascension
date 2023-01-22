@@ -19,6 +19,7 @@
 package com.discordsrv.common.module.type;
 
 import com.discordsrv.common.DiscordSRV;
+import com.discordsrv.common.logging.Logger;
 
 import javax.annotation.OverridingMethodsMustInvokeSuper;
 
@@ -26,6 +27,10 @@ public abstract class PluginIntegration<DT extends DiscordSRV> extends AbstractM
 
     public PluginIntegration(DT discordSRV) {
         super(discordSRV);
+    }
+
+    public PluginIntegration(DT discordSRV, Logger logger) {
+        super(discordSRV, logger);
     }
 
     @Override

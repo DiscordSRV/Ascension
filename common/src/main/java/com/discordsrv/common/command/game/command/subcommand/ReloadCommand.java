@@ -18,13 +18,17 @@
 
 package com.discordsrv.common.command.game.command.subcommand;
 
+import com.discordsrv.api.DiscordSRVApi;
 import com.discordsrv.common.DiscordSRV;
 import com.discordsrv.common.command.game.abstraction.GameCommand;
 import com.discordsrv.common.command.game.abstraction.GameCommandArguments;
 import com.discordsrv.common.command.game.abstraction.GameCommandExecutor;
 import com.discordsrv.common.command.game.abstraction.GameCommandSuggester;
 import com.discordsrv.common.command.game.sender.ICommandSender;
+import com.discordsrv.common.player.IPlayer;
 import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.event.ClickEvent;
+import net.kyori.adventure.text.event.HoverEvent;
 import net.kyori.adventure.text.format.NamedTextColor;
 import net.kyori.adventure.text.format.TextDecoration;
 
@@ -75,7 +79,7 @@ public class ReloadCommand implements GameCommandExecutor, GameCommandSuggester 
             return;
         }
 
-        discordSRV.invokeReload(flags, false).whenComplete((v, t) -> {
+        discordSRV.invokeReload(flags, false).whenComplete((results, t) -> {
             if (t != null) {
                 discordSRV.logger().error("Failed to reload", t);
                 sender.sendMessage(
@@ -83,8 +87,42 @@ public class ReloadCommand implements GameCommandExecutor, GameCommandSuggester 
                                 .append(Component.text("Reload failed.", NamedTextColor.DARK_RED, TextDecoration.BOLD))
                                 .append(Component.text("Please check the server console/log for more details."))
                 );
-            } else {
-                sender.sendMessage(Component.text("Reload successful", NamedTextColor.GRAY));
+                return;
+            }
+
+            for (DiscordSRV.ReloadResult result : results) {
+                String res = result.name();
+                if (res.equals(DiscordSRV.ReloadResults.SECURITY_FAILED.name())) {
+                    sender.sendMessage(Component.text(
+                            "DiscordSRV is disabled due to a security check failure. "
+                                    + "Please check console for more details", NamedTextColor.DARK_RED));
+                } else if (res.equals(DiscordSRV.ReloadResults.SUCCESS.name())) {
+                    sender.sendMessage(Component.text("Reload successful", NamedTextColor.GRAY));
+                } else if (res.equals(DiscordSRV.ReloadResults.RESTART_REQUIRED.name())) {
+                    sender.sendMessage(Component.text("Some changes require a server restart"));
+                } else if (res.equals(DiscordSRV.ReloadResults.STORAGE_CONNECTION_FAILED.name())) {
+                    sender.sendMessage(Component.text("Storage connection failed, please check console for details.", NamedTextColor.RED));
+                } else if (res.equals(DiscordSRV.ReloadResults.DISCORD_CONNECTION_FAILED.name())) {
+                    sender.sendMessage(Component.text("Discord connection failed, please check console for details.", NamedTextColor.RED));
+                } else if (res.equals(DiscordSRV.ReloadResults.DISCORD_CONNECTION_RELOAD_REQUIRED.name())) {
+                    String command = "discordsrv reload " + DiscordSRVApi.ReloadFlag.DISCORD_CONNECTION.name().toLowerCase(Locale.ROOT) + " -confirm";
+                    Component child;
+                    if (sender instanceof IPlayer) {
+                        child = Component.text("[Click to reload Discord connection]", NamedTextColor.DARK_RED)
+                                .clickEvent(ClickEvent.runCommand("/" + command))
+                                .hoverEvent(HoverEvent.showText(Component.text("/" + command)));
+                    } else {
+                        child = Component.text("Run ", NamedTextColor.DARK_RED)
+                                .append(Component.text(command, NamedTextColor.GRAY))
+                                .append(Component.text(" to reload the Discord connection"));
+                    }
+
+                    sender.sendMessage(
+                            Component.text()
+                                    .append(Component.text("Some changes require a Discord connection reload. ", NamedTextColor.GRAY))
+                                    .append(child)
+                    );
+                }
             }
         });
     }
@@ -103,10 +141,16 @@ public class ReloadCommand implements GameCommandExecutor, GameCommandSuggester 
         boolean confirm = parts.remove("-confirm");
 
         Set<DiscordSRV.ReloadFlag> flags = new LinkedHashSet<>();
+        if (discordSRV.status().isStartupError()) {
+            // If startup error, use all flags
+            parts.clear();
+            flags.addAll(DiscordSRVApi.ReloadFlag.ALL);
+        }
+
         for (String part : parts) {
             try {
                 DiscordSRV.ReloadFlag flag = DiscordSRV.ReloadFlag.valueOf(part.toUpperCase(Locale.ROOT));
-                if (flag.requiresConfirm() && !confirm) {
+                if (flag.requiresConfirm(discordSRV) && !confirm) {
                     dangerousFlags.set(true);
                     sender.sendMessage(
                             Component.text("Reloading ", NamedTextColor.RED)

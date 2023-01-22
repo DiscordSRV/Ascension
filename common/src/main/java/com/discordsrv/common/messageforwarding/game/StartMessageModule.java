@@ -18,17 +18,31 @@
 
 package com.discordsrv.common.messageforwarding.game;
 
+import com.discordsrv.api.discord.entity.channel.DiscordMessageChannel;
+import com.discordsrv.api.discord.entity.message.ReceivedDiscordMessage;
 import com.discordsrv.api.discord.entity.message.ReceivedDiscordMessageCluster;
+import com.discordsrv.api.discord.entity.message.SendableDiscordMessage;
 import com.discordsrv.api.event.events.message.receive.game.AbstractGameMessageReceiveEvent;
 import com.discordsrv.common.DiscordSRV;
 import com.discordsrv.common.config.main.channels.StartMessageConfig;
 import com.discordsrv.common.config.main.channels.base.BaseChannelConfig;
 import com.discordsrv.common.function.OrDefault;
+import com.discordsrv.common.player.IPlayer;
+
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
+import java.util.concurrent.CompletableFuture;
 
 public class StartMessageModule extends AbstractGameMessageModule<StartMessageConfig, AbstractGameMessageReceiveEvent> {
 
     public StartMessageModule(DiscordSRV discordSRV) {
         super(discordSRV, "START_MESSAGE");
+    }
+
+    @Override
+    public boolean isEnabled() {
+        return true;
     }
 
     @Override
@@ -38,6 +52,21 @@ public class StartMessageModule extends AbstractGameMessageModule<StartMessageCo
 
     @Override
     public void postClusterToEventBus(ReceivedDiscordMessageCluster cluster) {}
+
+    @Override
+    public Map<CompletableFuture<ReceivedDiscordMessage>, DiscordMessageChannel> sendMessageToChannels(
+            OrDefault<StartMessageConfig> config,
+            SendableDiscordMessage.Builder format,
+            List<DiscordMessageChannel> channels,
+            String message,
+            IPlayer player,
+            Object... context
+    ) {
+        if (!config.get(cfg -> cfg.enabled, false)) {
+            return Collections.emptyMap();
+        }
+        return super.sendMessageToChannels(config, format, channels, message, player, context);
+    }
 
     @Override
     public void enable() {

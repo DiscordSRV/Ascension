@@ -18,9 +18,13 @@
 
 package com.discordsrv.common.discord.connection.jda;
 
-import com.discordsrv.api.discord.connection.jda.DiscordConnectionDetails;
+import com.discordsrv.api.DiscordSRVApi;
+import com.discordsrv.api.discord.connection.details.DiscordCacheFlag;
+import com.discordsrv.api.discord.connection.details.DiscordGatewayIntent;
+import com.discordsrv.api.discord.connection.details.DiscordMemberCachePolicy;
 import com.discordsrv.api.discord.connection.jda.errorresponse.ErrorCallbackContext;
 import com.discordsrv.api.discord.entity.DiscordUser;
+import com.discordsrv.api.discord.entity.guild.DiscordGuildMember;
 import com.discordsrv.api.event.bus.EventPriority;
 import com.discordsrv.api.event.bus.Subscribe;
 import com.discordsrv.api.event.events.lifecycle.DiscordSRVShuttingDownEvent;
@@ -29,9 +33,13 @@ import com.discordsrv.api.placeholder.PlaceholderLookupResult;
 import com.discordsrv.common.DiscordSRV;
 import com.discordsrv.common.config.connection.BotConfig;
 import com.discordsrv.common.config.connection.ConnectionConfig;
+import com.discordsrv.common.config.main.MemberCachingConfig;
+import com.discordsrv.common.debug.DebugGenerateEvent;
+import com.discordsrv.common.debug.file.TextDebugFile;
 import com.discordsrv.common.discord.api.DiscordAPIImpl;
 import com.discordsrv.common.discord.api.entity.message.ReceivedDiscordMessageImpl;
 import com.discordsrv.common.discord.connection.DiscordConnectionManager;
+import com.discordsrv.common.discord.details.DiscordConnectionDetailsImpl;
 import com.discordsrv.common.logging.Logger;
 import com.discordsrv.common.logging.NamedLogger;
 import com.discordsrv.common.scheduler.Scheduler;
@@ -52,27 +60,23 @@ import net.dv8tion.jda.api.exceptions.InvalidTokenException;
 import net.dv8tion.jda.api.exceptions.RateLimitedException;
 import net.dv8tion.jda.api.requests.*;
 import net.dv8tion.jda.api.utils.ChunkingFilter;
-import net.dv8tion.jda.api.utils.MemberCachePolicy;
+import net.dv8tion.jda.api.utils.cache.CacheFlag;
 import net.dv8tion.jda.api.utils.messages.MessageRequest;
 import net.dv8tion.jda.internal.entities.ReceivedMessage;
 import net.dv8tion.jda.internal.hooks.EventManagerProxy;
+import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.InterruptedIOException;
-import java.util.*;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.LinkedHashSet;
+import java.util.Set;
 import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Consumer;
 
 public class JDAConnectionManager implements DiscordConnectionManager {
-
-    private static final Map<GatewayIntent, String> PRIVILEGED_INTENTS = new HashMap<>();
-
-    static {
-        PRIVILEGED_INTENTS.put(GatewayIntent.GUILD_MEMBERS, "Server Members Intent");
-        PRIVILEGED_INTENTS.put(GatewayIntent.GUILD_PRESENCES, "Presence Intent");
-        PRIVILEGED_INTENTS.put(GatewayIntent.MESSAGE_CONTENT, "Message Content Intent");
-    }
 
     private final DiscordSRV discordSRV;
     private final FailureCallback failureCallback;
@@ -82,7 +86,11 @@ public class JDAConnectionManager implements DiscordConnectionManager {
 
     private CompletableFuture<Void> connectionFuture;
     private JDA instance;
-    private boolean detailsAccepted = true;
+
+    // Currently used intents & cache flags
+    private final Set<DiscordGatewayIntent> intents = new HashSet<>();
+    private final Set<DiscordCacheFlag> cacheFlags = new HashSet<>();
+    private final Set<DiscordMemberCachePolicy> memberCachePolicies = new HashSet<>();
 
     // Bot owner details
     private final Timeout botOwnerTimeout = new Timeout(5, TimeUnit.MINUTES);
@@ -108,14 +116,21 @@ public class JDAConnectionManager implements DiscordConnectionManager {
         discordSRV.eventBus().subscribe(this);
     }
 
-    @Override
-    public JDA instance() {
-        return instance;
+    public Set<DiscordGatewayIntent> getIntents() {
+        return intents;
+    }
+
+    public Set<DiscordCacheFlag> getCacheFlags() {
+        return cacheFlags;
+    }
+
+    public Set<DiscordMemberCachePolicy> getMemberCachePolicies() {
+        return memberCachePolicies;
     }
 
     @Override
-    public boolean areDetailsAccepted() {
-        return detailsAccepted;
+    public JDA instance() {
+        return instance;
     }
 
     private void checkDefaultFailureCallback() {
@@ -141,10 +156,10 @@ public class JDAConnectionManager implements DiscordConnectionManager {
         DiscordSRV.Status newStatus;
         if (ordinal < JDA.Status.CONNECTED.ordinal()) {
             newStatus = DiscordSRV.Status.ATTEMPTING_TO_CONNECT;
-        } else if (ordinal < JDA.Status.SHUTTING_DOWN.ordinal()) {
-            newStatus = DiscordSRV.Status.CONNECTED;
-        } else {
+        } else if (status == JDA.Status.DISCONNECTED || ordinal >= JDA.Status.SHUTTING_DOWN.ordinal()) {
             newStatus = DiscordSRV.Status.FAILED_TO_CONNECT;
+        } else {
+            newStatus = DiscordSRV.Status.CONNECTED;
         }
         discordSRV.setStatus(newStatus);
     }
@@ -172,6 +187,37 @@ public class JDAConnectionManager implements DiscordConnectionManager {
 
     private DiscordAPIImpl api() {
         return discordSRV.discordAPI();
+    }
+
+    @Subscribe
+    public void onDebugGenerate(DebugGenerateEvent event) {
+
+        StringBuilder builder = new StringBuilder();
+        builder.append("Intents: ").append(intents);
+        builder.append("\nCache Flags: ").append(cacheFlags);
+        builder.append("\nMember Caching Policies: ").append(memberCachePolicies.size());
+
+        if (instance != null) {
+            CompletableFuture<Long> restPingFuture = instance.getRestPing().timeout(5, TimeUnit.SECONDS).submit();
+            builder.append("\nGateway Ping: ").append(instance.getGatewayPing()).append("ms");
+
+            String restPing;
+            try {
+                restPing = restPingFuture.get() + "ms";
+            } catch (ExecutionException e) {
+                if (e.getCause() instanceof TimeoutException) {
+                    restPing = ">5s";
+                } else {
+                    restPing = ExceptionUtils.getMessage(e);
+                }
+            } catch (Throwable t) {
+                restPing = ExceptionUtils.getMessage(t);
+            }
+
+            builder.append("\nRest Ping: ").append(restPing);
+        }
+
+        event.addFile(new TextDebugFile("jda_connection_manager.txt", builder));
     }
 
     @Subscribe(priority = EventPriority.EARLIEST)
@@ -232,10 +278,7 @@ public class JDAConnectionManager implements DiscordConnectionManager {
     }
 
     private void connectInternal() {
-        discordSRV.discordConnectionDetails().requestGatewayIntent(GatewayIntent.GUILD_MESSAGES); // TODO: figure out how DiscordSRV required intents are going to work
-        discordSRV.discordConnectionDetails().requestGatewayIntent(GatewayIntent.GUILD_MEMBERS); // TODO: figure out how DiscordSRV required intents are going to work
-        detailsAccepted = false;
-
+        discordSRV.setStatus(DiscordSRVApi.Status.ATTEMPTING_TO_CONNECT);
         this.gatewayPool = new ScheduledThreadPoolExecutor(
                 1,
                 r -> new Thread(r, Scheduler.THREAD_NAME_PREFIX + "JDA Gateway")
@@ -252,15 +295,70 @@ public class JDAConnectionManager implements DiscordConnectionManager {
         );
 
         BotConfig botConfig = discordSRV.connectionConfig().bot;
-        DiscordConnectionDetails connectionDetails = discordSRV.discordConnectionDetails();
-        Set<GatewayIntent> intents = connectionDetails.getGatewayIntents();
-        boolean membersIntent = intents.contains(GatewayIntent.GUILD_MEMBERS);
+        MemberCachingConfig memberCachingConfig = discordSRV.config().memberCaching;
+        DiscordConnectionDetailsImpl connectionDetails = discordSRV.discordConnectionDetails();
+
+        Set<GatewayIntent> intents = new LinkedHashSet<>();
+        this.intents.clear();
+        this.intents.addAll(connectionDetails.getGatewayIntents());
+        this.intents.forEach(intent -> intents.add(intent.asJDA()));
+
+        Set<CacheFlag> cacheFlags = new LinkedHashSet<>();
+        this.cacheFlags.clear();
+        this.cacheFlags.addAll(connectionDetails.getCacheFlags());
+        this.cacheFlags.forEach(flag -> {
+            cacheFlags.add(flag.asJDA());
+            DiscordGatewayIntent intent = flag.requiredIntent();
+            if (intent != null) {
+                intents.add(intent.asJDA());
+            }
+        });
+
+        this.memberCachePolicies.clear();
+        this.memberCachePolicies.addAll(connectionDetails.getMemberCachePolicies());
+        if (memberCachingConfig.all || this.memberCachePolicies.contains(DiscordMemberCachePolicy.ALL)) {
+            this.memberCachePolicies.clear();
+            this.memberCachePolicies.add(DiscordMemberCachePolicy.ALL);
+        } else if (memberCachingConfig.linkedUsers) {
+            this.memberCachePolicies.add(DiscordMemberCachePolicy.LINKED);
+        }
+        for (DiscordMemberCachePolicy policy : this.memberCachePolicies) {
+            if (policy != DiscordMemberCachePolicy.OWNER && policy != DiscordMemberCachePolicy.VOICE) {
+                this.intents.add(DiscordGatewayIntent.GUILD_MEMBERS);
+                break;
+            }
+        }
+
+        ChunkingFilter chunkingFilter;
+        if (memberCachingConfig.chunk) {
+            MemberCachingConfig.GuildFilter servers = memberCachingConfig.chunkingServerFilter;
+            long[] ids = servers.ids.stream().mapToLong(l -> l).toArray();
+            if (servers.blacklist) {
+                chunkingFilter = ChunkingFilter.exclude(ids);
+            } else {
+                chunkingFilter = ChunkingFilter.include(ids);
+            }
+        } else {
+            chunkingFilter = ChunkingFilter.NONE;
+        }
 
         // Start with everything disabled & enable stuff that we actually need
         JDABuilder jdaBuilder = JDABuilder.createLight(botConfig.token, intents);
-        jdaBuilder.enableCache(connectionDetails.getCacheFlags());
-        jdaBuilder.setMemberCachePolicy(membersIntent ? MemberCachePolicy.ALL : MemberCachePolicy.OWNER);
-        jdaBuilder.setChunkingFilter(membersIntent ? ChunkingFilter.ALL : ChunkingFilter.NONE);
+        jdaBuilder.enableCache(cacheFlags);
+        jdaBuilder.setMemberCachePolicy(member -> {
+            if (this.memberCachePolicies.isEmpty()) {
+                return false;
+            }
+
+            DiscordGuildMember guildMember = api().getGuildMember(member);
+            for (DiscordMemberCachePolicy memberCachePolicy : this.memberCachePolicies) {
+                if (memberCachePolicy.isCached(guildMember)) {
+                    return true;
+                }
+            }
+            return false;
+        });
+        jdaBuilder.setChunkingFilter(chunkingFilter);
 
         // We shut down JDA ourselves. Doing it at the JVM's shutdown may cause errors due to classloading
         jdaBuilder.setEnableShutdownHook(false);
@@ -310,7 +408,6 @@ public class JDAConnectionManager implements DiscordConnectionManager {
 
     @SuppressWarnings("BusyWait")
     private void shutdownInternal(long timeoutMillis) {
-        detailsAccepted = true;
         if (instance == null) {
             shutdownExecutors();
             return;
@@ -413,15 +510,15 @@ public class JDAConnectionManager implements DiscordConnectionManager {
         if (closeCode == null) {
             return false;
         } else if (closeCode == CloseCode.DISALLOWED_INTENTS) {
-            Set<GatewayIntent> intents = discordSRV.discordConnectionDetails().getGatewayIntents();
+            Set<DiscordGatewayIntent> intents = getIntents();
             discordSRV.logger().error("+-------------------------------------->");
             discordSRV.logger().error("| Failed to connect to Discord:");
             discordSRV.logger().error("|");
             discordSRV.logger().error("| The Discord bot is lacking one or more");
             discordSRV.logger().error("| privileged intents listed below");
             discordSRV.logger().error("|");
-            for (GatewayIntent intent : intents) {
-                String displayName = PRIVILEGED_INTENTS.get(intent);
+            for (DiscordGatewayIntent intent : intents) {
+                String displayName = intent.portalName();
                 if (displayName != null) {
                     discordSRV.logger().error("| " + displayName);
                 }
@@ -434,8 +531,9 @@ public class JDAConnectionManager implements DiscordConnectionManager {
             discordSRV.logger().error("|       Discord user who created the bot");
             discordSRV.logger().error("| 3. Go to the \"Bot\" tab");
             discordSRV.logger().error("| 4. Make sure the intents listed above are all enabled");
-            discordSRV.logger().error("| 5. "); // TODO
+            discordSRV.logger().error("| 5. Run the \"/discordsrv reload config discord_connection\" command");
             discordSRV.logger().error("+-------------------------------------->");
+            discordSRV.setStatus(DiscordSRVApi.Status.FAILED_TO_CONNECT);
             return true;
         } else if (closeCode == CloseCode.AUTHENTICATION_FAILED) {
             invalidToken();
@@ -453,9 +551,15 @@ public class JDAConnectionManager implements DiscordConnectionManager {
         discordSRV.logger().error("|");
         discordSRV.logger().error("| You can get the token for your bot from:");
         discordSRV.logger().error("| https://discord.com/developers/applications");
+        discordSRV.logger().error("| by selecting the application, going to the \"Bot\" tab");
+        discordSRV.logger().error("| and clicking on \"Reset Token\"");
         discordSRV.logger().error("| - Keep in mind the bot is only visible to");
         discordSRV.logger().error("|   the Discord user that created the bot");
+        discordSRV.logger().error("|");
+        discordSRV.logger().error("| Once the token is corrected in the " + ConnectionConfig.FILE_NAME);
+        discordSRV.logger().error("| Run the \"/discordsrv reload config discord_connection\" command");
         discordSRV.logger().error("+------------------------------>");
+        discordSRV.setStatus(DiscordSRVApi.Status.FAILED_TO_CONNECT);
     }
 
     private class FailureCallback implements Consumer<Throwable> {

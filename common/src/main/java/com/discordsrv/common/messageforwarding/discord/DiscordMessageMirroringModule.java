@@ -19,6 +19,7 @@
 package com.discordsrv.common.messageforwarding.discord;
 
 import com.discordsrv.api.channel.GameChannel;
+import com.discordsrv.api.discord.connection.details.DiscordGatewayIntent;
 import com.discordsrv.api.discord.entity.DiscordUser;
 import com.discordsrv.api.discord.entity.channel.DiscordGuildMessageChannel;
 import com.discordsrv.api.discord.entity.channel.DiscordMessageChannel;
@@ -47,6 +48,7 @@ import okhttp3.Request;
 import okhttp3.Response;
 import okhttp3.ResponseBody;
 import org.apache.commons.lang3.tuple.Pair;
+import org.jetbrains.annotations.NotNull;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
@@ -65,6 +67,21 @@ public class DiscordMessageMirroringModule extends AbstractModule<DiscordSRV> {
                 .expireAfterWrite(30, TimeUnit.MINUTES)
                 .expireAfterAccess(10, TimeUnit.MINUTES)
                 .build();
+    }
+
+    @Override
+    public boolean isEnabled() {
+        for (OrDefault<BaseChannelConfig> config : discordSRV.channelConfig().getAllChannels()) {
+            if (config.map(cfg -> cfg.mirroring).get(cfg -> cfg.enabled, false)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    @Override
+    public @NotNull Collection<DiscordGatewayIntent> requiredIntents() {
+        return Arrays.asList(DiscordGatewayIntent.GUILD_MESSAGES, DiscordGatewayIntent.MESSAGE_CONTENT);
     }
 
     @Subscribe

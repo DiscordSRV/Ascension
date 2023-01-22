@@ -18,7 +18,6 @@
 
 package com.discordsrv.common;
 
-import com.discordsrv.api.discord.connection.jda.DiscordConnectionDetails;
 import com.discordsrv.api.event.events.lifecycle.DiscordSRVConnectedEvent;
 import com.discordsrv.api.event.events.lifecycle.DiscordSRVReadyEvent;
 import com.discordsrv.api.event.events.lifecycle.DiscordSRVReloadedEvent;
@@ -92,11 +91,8 @@ import java.io.InputStream;
 import java.lang.reflect.Constructor;
 import java.net.URL;
 import java.nio.file.Path;
-import java.util.Locale;
-import java.util.Set;
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.TimeUnit;
+import java.util.*;
+import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.concurrent.locks.ReentrantLock;
 import java.util.jar.Attributes;
@@ -120,7 +116,7 @@ public abstract class AbstractDiscordSRV<B extends IBootstrap, C extends MainCon
     private PlaceholderServiceImpl placeholderService;
     private ComponentFactory componentFactory;
     private DiscordAPIImpl discordAPI;
-    private DiscordConnectionDetails discordConnectionDetails;
+    private DiscordConnectionDetailsImpl discordConnectionDetails;
 
     // DiscordSRV
     protected final B bootstrap;
@@ -189,9 +185,9 @@ public abstract class AbstractDiscordSRV<B extends IBootstrap, C extends MainCon
                             || host.endsWith("discord.gg");
 
                     String userAgent = isDiscord
-                                       ? "DiscordBot (https://github.com/DiscordSRV/DiscordSRV, " + versionInfo() + ")"
+                                       ? "DiscordBot (https://github.com/DiscordSRV/DiscordSRV, " + versionInfo().version() + ")"
                                                + " (" + JDAInfo.GITHUB + ", " + JDAInfo.VERSION + ")"
-                                       : "DiscordSRV/" + versionInfo();
+                                       : "DiscordSRV/" + versionInfo().version();
 
                     return chain.proceed(
                             original.newBuilder()
@@ -283,7 +279,7 @@ public abstract class AbstractDiscordSRV<B extends IBootstrap, C extends MainCon
     }
 
     @Override
-    public final @NotNull DiscordConnectionDetails discordConnectionDetails() {
+    public final @NotNull DiscordConnectionDetailsImpl discordConnectionDetails() {
         return discordConnectionDetails;
     }
 
@@ -385,7 +381,11 @@ public abstract class AbstractDiscordSRV<B extends IBootstrap, C extends MainCon
             Constructor<?> constructor = clazz.getConstructors()[0];
             module = constructor.newInstance(this);
         } catch (Throwable e) {
-            moduleManager.logger().debug("Failed to load integration: " + className, e);
+            String suffix = "";
+            if (e instanceof LinkageError || e instanceof ClassNotFoundException) {
+                suffix = " (Integration likely not installed or using wrong version)";
+            }
+            moduleManager.logger().debug("Failed to load integration: " + className + suffix, e);
             return;
         }
         moduleManager.registerModule(this, d -> (AbstractModule<?>) module);
@@ -394,6 +394,11 @@ public abstract class AbstractDiscordSRV<B extends IBootstrap, C extends MainCon
     @Override
     public void unregisterModule(AbstractModule<?> module) {
         moduleManager.unregister(module);
+    }
+
+    @Override
+    public ModuleManager moduleManager() {
+        return moduleManager;
     }
 
     @Override
@@ -446,7 +451,7 @@ public abstract class AbstractDiscordSRV<B extends IBootstrap, C extends MainCon
 
     // Lifecycle
 
-    protected CompletableFuture<Void> invokeLifecycle(CheckedRunnable runnable) {
+    protected CompletableFuture<Void> invokeLifecycle(CheckedRunnable<?> runnable) {
         return invokeLifecycle(() -> {
             try {
                 lifecycleLock.lock();
@@ -454,21 +459,22 @@ public abstract class AbstractDiscordSRV<B extends IBootstrap, C extends MainCon
             } finally {
                 lifecycleLock.unlock();
             }
+            return null;
         }, "Failed to enable", true);
     }
 
-    protected CompletableFuture<Void> invokeLifecycle(CheckedRunnable runnable, String message, boolean enable) {
-        return CompletableFuture.runAsync(() -> {
+    protected <T> CompletableFuture<T> invokeLifecycle(CheckedRunnable<T> runnable, String message, boolean enable) {
+        return CompletableFuture.supplyAsync(() -> {
             if (status().isShutdown()) {
                 // Already shutdown/shutting down, don't bother
-                return;
+                return null;
             }
             try {
-                runnable.run();
+                return runnable.run();
             } catch (Throwable t) {
                 if (status().isShutdown() && t instanceof NoClassDefFoundError) {
                     // Already shutdown, ignore errors for classes that already got unloaded
-                    return;
+                    return null;
                 }
                 if (enable) {
                     setStatus(Status.FAILED_TO_START);
@@ -476,6 +482,7 @@ public abstract class AbstractDiscordSRV<B extends IBootstrap, C extends MainCon
                 }
                 logger().error(message, t);
             }
+            return null;
         }, scheduler().executorService());
     }
 
@@ -485,6 +492,7 @@ public abstract class AbstractDiscordSRV<B extends IBootstrap, C extends MainCon
             this.enable();
             waitForStatus(Status.CONNECTED);
             eventBus().publish(new DiscordSRVReadyEvent());
+            return null;
         });
     }
 
@@ -498,7 +506,7 @@ public abstract class AbstractDiscordSRV<B extends IBootstrap, C extends MainCon
     }
 
     @Override
-    public final CompletableFuture<Void> invokeReload(Set<ReloadFlag> flags, boolean silent) {
+    public final CompletableFuture<List<ReloadResult>> invokeReload(Set<ReloadFlag> flags, boolean silent) {
         return invokeLifecycle(() -> reload(flags, silent), "Failed to reload", false);
     }
 
@@ -573,7 +581,7 @@ public abstract class AbstractDiscordSRV<B extends IBootstrap, C extends MainCon
     }
 
     @OverridingMethodsMustInvokeSuper
-    protected void reload(Set<ReloadFlag> flags, boolean initial) throws Throwable {
+    protected List<ReloadResult> reload(Set<ReloadFlag> flags, boolean initial) throws Throwable {
         if (!initial) {
             logger().info("Reloading DiscordSRV...");
         }
@@ -595,13 +603,13 @@ public abstract class AbstractDiscordSRV<B extends IBootstrap, C extends MainCon
         if (updateConfig.security.enabled) {
             if (updateChecker.isSecurityFailed()) {
                 // Security has already failed
-                return;
+                return Collections.singletonList(ReloadResults.SECURITY_FAILED);
             }
 
             if (initial && !updateChecker.check(true)) {
                 // Security failed cancel startup & shutdown
                 invokeDisable();
-                return;
+                return Collections.singletonList(ReloadResults.SECURITY_FAILED);
             }
         } else if (initial) {
             // Not using security, run update check off thread
@@ -670,7 +678,7 @@ public abstract class AbstractDiscordSRV<B extends IBootstrap, C extends MainCon
                 e.log(this);
                 logger().error("Failed to connect to storage");
                 setStatus(Status.FAILED_TO_START);
-                return;
+                return Collections.singletonList(ReloadResults.STORAGE_CONNECTION_FAILED);
             }
         }
 
@@ -683,6 +691,9 @@ public abstract class AbstractDiscordSRV<B extends IBootstrap, C extends MainCon
                 }
                 if (!initial) {
                     waitForStatus(Status.CONNECTED, 20, TimeUnit.SECONDS);
+                    if (status() != Status.CONNECTED) {
+                        return Collections.singletonList(ReloadResults.DISCORD_CONNECTION_FAILED);
+                    }
                 } else {
                     JDA jda = jda();
                     if (jda != null) {
@@ -690,7 +701,7 @@ public abstract class AbstractDiscordSRV<B extends IBootstrap, C extends MainCon
                             jda.awaitReady();
                         } catch (IllegalStateException ignored) {
                             // JDA shutdown -> don't continue
-                            return;
+                            return Collections.singletonList(ReloadResults.DISCORD_CONNECTION_FAILED);
                         }
                     }
                 }
@@ -699,13 +710,17 @@ public abstract class AbstractDiscordSRV<B extends IBootstrap, C extends MainCon
             }
         }
 
+        List<ReloadResult> results = new ArrayList<>();
         if (flags.contains(ReloadFlag.MODULES)) {
-            moduleManager.reload();
+            results.addAll(moduleManager.reload());
         }
 
         if (!initial) {
             eventBus().publish(new DiscordSRVReloadedEvent(flags));
             logger().info("Reload complete.");
         }
+
+        results.add(ReloadResults.SUCCESS);
+        return results;
     }
 }

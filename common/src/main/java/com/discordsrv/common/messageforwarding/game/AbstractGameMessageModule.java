@@ -55,6 +55,16 @@ public abstract class AbstractGameMessageModule<T extends IMessageConfig, E exte
         super(discordSRV, new NamedLogger(discordSRV, loggerName));
     }
 
+    @Override
+    public boolean isEnabled() {
+        for (OrDefault<BaseChannelConfig> channelConfig : discordSRV.channelConfig().getAllChannels()) {
+            if (mapConfig(channelConfig).get(IMessageConfig::enabled, false)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
     public OrDefault<T> mapConfig(E event, OrDefault<BaseChannelConfig> channelConfig) {
         return mapConfig(channelConfig);
     }

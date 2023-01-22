@@ -18,9 +18,17 @@
 
 package com.discordsrv.common.module.type;
 
+import com.discordsrv.api.DiscordSRVApi;
+import com.discordsrv.api.discord.connection.details.DiscordCacheFlag;
+import com.discordsrv.api.discord.connection.details.DiscordGatewayIntent;
+import com.discordsrv.api.discord.connection.details.DiscordMemberCachePolicy;
 import com.discordsrv.api.module.type.Module;
 import com.discordsrv.common.DiscordSRV;
 import com.discordsrv.common.logging.NamedLogger;
+import org.jetbrains.annotations.NotNull;
+
+import java.util.Collection;
+import java.util.Set;
 
 public class ModuleDelegate extends AbstractModule<DiscordSRV> {
 
@@ -37,13 +45,38 @@ public class ModuleDelegate extends AbstractModule<DiscordSRV> {
     }
 
     @Override
+    public @NotNull Collection<DiscordGatewayIntent> requiredIntents() {
+        return module.requiredIntents();
+    }
+
+    @Override
+    public @NotNull Collection<DiscordCacheFlag> requiredCacheFlags() {
+        return module.requiredCacheFlags();
+    }
+
+    @Override
+    public @NotNull Collection<DiscordMemberCachePolicy> requiredMemberCachingPolicies() {
+        return module.requiredMemberCachingPolicies();
+    }
+
+    @Override
+    public int priority(Class<?> type) {
+        return module.priority(type);
+    }
+
+    @Override
+    public int shutdownOrder() {
+        return module.shutdownOrder();
+    }
+
+    @Override
     public void enable() {
         module.enable();
     }
 
     @Override
-    public void reload() {
-        module.reload();
+    public Set<DiscordSRVApi.ReloadResult> reload() {
+        return module.reload();
     }
 
     @Override
@@ -53,7 +86,6 @@ public class ModuleDelegate extends AbstractModule<DiscordSRV> {
 
     @Override
     public String toString() {
-        String original = super.toString();
-        return original.substring(0, original.length() - 1) + ",module=" + module.getClass().getName() + "(" + module + ")}";
+        return super.toString() + "{module=" + module.getClass().getName() + "(" + module + ")}";
     }
 }

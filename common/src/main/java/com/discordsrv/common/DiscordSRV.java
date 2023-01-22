@@ -34,9 +34,11 @@ import com.discordsrv.common.debug.data.VersionInfo;
 import com.discordsrv.common.dependency.DiscordSRVDependencyManager;
 import com.discordsrv.common.discord.api.DiscordAPIImpl;
 import com.discordsrv.common.discord.connection.jda.JDAConnectionManager;
+import com.discordsrv.common.discord.details.DiscordConnectionDetailsImpl;
 import com.discordsrv.common.linking.LinkProvider;
 import com.discordsrv.common.logging.Logger;
 import com.discordsrv.common.logging.impl.DiscordSRVLogger;
+import com.discordsrv.common.module.ModuleManager;
 import com.discordsrv.common.module.type.AbstractModule;
 import com.discordsrv.common.placeholder.PlaceholderServiceImpl;
 import com.discordsrv.common.player.provider.AbstractPlayerProvider;
@@ -52,6 +54,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.nio.file.Path;
+import java.util.List;
 import java.util.Locale;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
@@ -112,11 +115,14 @@ public interface DiscordSRV extends DiscordSRVApi {
     // Internal
     JDAConnectionManager discordConnectionManager();
 
+    @NotNull DiscordConnectionDetailsImpl discordConnectionDetails();
+
     // Modules
     @Nullable
     <T extends Module> T getModule(Class<T> moduleType);
     void registerModule(AbstractModule<?> module);
     void unregisterModule(AbstractModule<?> module);
+    ModuleManager moduleManager();
 
     Locale locale();
 
@@ -139,6 +145,17 @@ public interface DiscordSRV extends DiscordSRVApi {
     // Lifecycle
     CompletableFuture<Void> invokeEnable();
     CompletableFuture<Void> invokeDisable();
-    CompletableFuture<Void> invokeReload(Set<ReloadFlag> flags, boolean silent);
+    CompletableFuture<List<ReloadResult>> invokeReload(Set<ReloadFlag> flags, boolean silent);
+
+    enum ReloadResults implements ReloadResult {
+
+        // Internal reasons
+        SUCCESS,
+        SECURITY_FAILED,
+        STORAGE_CONNECTION_FAILED,
+        DISCORD_CONNECTION_RELOAD_REQUIRED,
+        DISCORD_CONNECTION_FAILED
+
+    }
 
 }

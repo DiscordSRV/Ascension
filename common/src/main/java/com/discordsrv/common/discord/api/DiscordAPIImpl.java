@@ -21,6 +21,7 @@ package com.discordsrv.common.discord.api;
 import club.minnced.discord.webhook.WebhookClient;
 import club.minnced.discord.webhook.WebhookClientBuilder;
 import com.discordsrv.api.discord.DiscordAPI;
+import com.discordsrv.api.discord.connection.details.DiscordGatewayIntent;
 import com.discordsrv.api.discord.connection.jda.errorresponse.ErrorCallbackContext;
 import com.discordsrv.api.discord.entity.DiscordUser;
 import com.discordsrv.api.discord.entity.channel.*;
@@ -54,7 +55,6 @@ import net.dv8tion.jda.api.entities.channel.concrete.ThreadChannel;
 import net.dv8tion.jda.api.entities.channel.middleman.MessageChannel;
 import net.dv8tion.jda.api.exceptions.ErrorResponseException;
 import net.dv8tion.jda.api.requests.ErrorResponse;
-import net.dv8tion.jda.api.requests.GatewayIntent;
 import org.checkerframework.checker.index.qual.NonNegative;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.jetbrains.annotations.NotNull;
@@ -444,9 +444,8 @@ public class DiscordAPIImpl implements DiscordAPI {
 
     @Override
     public boolean isUserCachingEnabled() {
-        return discordSRV.discordConnectionDetails()
-                .getGatewayIntents()
-                .contains(GatewayIntent.GUILD_MEMBERS);
+        return discordSRV.discordConnectionManager().getIntents()
+                .contains(DiscordGatewayIntent.GUILD_MEMBERS);
     }
 
     @Override

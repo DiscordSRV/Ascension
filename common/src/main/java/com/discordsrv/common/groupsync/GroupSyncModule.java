@@ -69,7 +69,7 @@ public class GroupSyncModule extends AbstractModule<DiscordSRV> {
     }
 
     @Override
-    public void reload() {
+    public void reloadNoResult() {
         synchronized (pairs) {
             pairs.values().forEach(future -> {
                 if (future != null) {

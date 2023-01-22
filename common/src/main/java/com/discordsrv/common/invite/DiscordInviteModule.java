@@ -18,7 +18,9 @@
 
 package com.discordsrv.common.invite;
 
+import com.discordsrv.api.discord.connection.details.DiscordGatewayIntent;
 import com.discordsrv.api.discord.connection.jda.errorresponse.ErrorCallbackContext;
+import com.discordsrv.api.event.bus.Subscribe;
 import com.discordsrv.api.placeholder.FormattedText;
 import com.discordsrv.api.placeholder.annotation.Placeholder;
 import com.discordsrv.common.DiscordSRV;
@@ -29,7 +31,13 @@ import net.dv8tion.jda.api.Permission;
 import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.entities.Member;
 import net.dv8tion.jda.api.entities.channel.attribute.IInviteContainer;
+import net.dv8tion.jda.api.events.guild.invite.GuildInviteDeleteEvent;
+import net.dv8tion.jda.api.events.guild.update.GuildUpdateVanityCodeEvent;
+import org.apache.commons.lang3.StringUtils;
+import org.jetbrains.annotations.NotNull;
 
+import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 
 public class DiscordInviteModule extends AbstractModule<DiscordSRV> {
@@ -43,7 +51,29 @@ public class DiscordInviteModule extends AbstractModule<DiscordSRV> {
     }
 
     @Override
-    public void reload() {
+    public @NotNull Collection<DiscordGatewayIntent> requiredIntents() {
+        DiscordInviteConfig config = discordSRV.config().invite;
+        if (StringUtils.isNotEmpty(config.inviteUrl)) {
+            return Collections.emptyList();
+        }
+
+        return Collections.singleton(DiscordGatewayIntent.GUILD_INVITES);
+    }
+
+    @Subscribe
+    public void onGuildInviteDelete(GuildInviteDeleteEvent event) {
+        if (invite.equals(event.getUrl())) {
+            reload();
+        }
+    }
+
+    @Subscribe
+    public void onGuildUpdateVanityCode(GuildUpdateVanityCodeEvent event) {
+        reload();
+    }
+
+    @Override
+    public void reloadNoResult() {
         JDA jda = discordSRV.jda();
         if (jda == null) {
             return;
@@ -53,7 +83,7 @@ public class DiscordInviteModule extends AbstractModule<DiscordSRV> {
 
         // Manual
         String invite = config.inviteUrl;
-        if (invite != null && !invite.isEmpty()) {
+        if (StringUtils.isNotEmpty(invite)) {
             this.invite = invite;
             return;
         }
