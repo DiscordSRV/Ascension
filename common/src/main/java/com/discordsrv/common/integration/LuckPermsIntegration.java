@@ -1,6 +1,6 @@
 /*
  * This file is part of DiscordSRV, licensed under the GPLv3 License
- * Copyright (c) 2016-2022 Austin "Scarsz" Shapiro, Henri "Vankka" Schubin and DiscordSRV contributors
+ * Copyright (c) 2016-2023 Austin "Scarsz" Shapiro, Henri "Vankka" Schubin and DiscordSRV contributors
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -18,12 +18,12 @@
 
 package com.discordsrv.common.integration;
 
+import com.discordsrv.api.module.type.PermissionDataProvider;
 import com.discordsrv.common.DiscordSRV;
 import com.discordsrv.common.exception.MessageException;
 import com.discordsrv.common.future.util.CompletableFutureUtil;
 import com.discordsrv.common.groupsync.GroupSyncModule;
 import com.discordsrv.common.groupsync.enums.GroupSyncCause;
-import com.discordsrv.api.module.type.PermissionDataProvider;
 import com.discordsrv.common.module.type.PluginIntegration;
 import net.luckperms.api.LuckPerms;
 import net.luckperms.api.LuckPermsProvider;

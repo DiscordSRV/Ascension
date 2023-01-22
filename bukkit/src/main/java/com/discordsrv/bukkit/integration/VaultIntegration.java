@@ -1,6 +1,6 @@
 /*
  * This file is part of DiscordSRV, licensed under the GPLv3 License
- * Copyright (c) 2016-2022 Austin "Scarsz" Shapiro, Henri "Vankka" Schubin and DiscordSRV contributors
+ * Copyright (c) 2016-2023 Austin "Scarsz" Shapiro, Henri "Vankka" Schubin and DiscordSRV contributors
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -18,11 +18,11 @@
 
 package com.discordsrv.bukkit.integration;
 
+import com.discordsrv.api.module.type.PermissionDataProvider;
 import com.discordsrv.bukkit.BukkitDiscordSRV;
 import com.discordsrv.common.exception.MessageException;
 import com.discordsrv.common.function.CheckedSupplier;
 import com.discordsrv.common.future.util.CompletableFutureUtil;
-import com.discordsrv.api.module.type.PermissionDataProvider;
 import com.discordsrv.common.module.type.PluginIntegration;
 import net.milkbowl.vault.chat.Chat;
 import net.milkbowl.vault.permission.Permission;

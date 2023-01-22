@@ -1,6 +1,6 @@
 /*
  * This file is part of DiscordSRV, licensed under the GPLv3 License
- * Copyright (c) 2016-2022 Austin "Scarsz" Shapiro, Henri "Vankka" Schubin and DiscordSRV contributors
+ * Copyright (c) 2016-2023 Austin "Scarsz" Shapiro, Henri "Vankka" Schubin and DiscordSRV contributors
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -21,8 +21,8 @@ package com.discordsrv.bukkit.scheduler;
 import com.discordsrv.bukkit.BukkitDiscordSRV;
 import com.discordsrv.bukkit.DiscordSRVBukkitBootstrap;
 import com.discordsrv.common.DiscordSRV;
-import com.discordsrv.common.scheduler.StandardScheduler;
 import com.discordsrv.common.scheduler.ServerScheduler;
+import com.discordsrv.common.scheduler.StandardScheduler;
 import org.bukkit.plugin.Plugin;
 
 import java.util.function.BiConsumer;

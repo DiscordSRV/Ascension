@@ -1,6 +1,6 @@
 /*
  * This file is part of DiscordSRV, licensed under the GPLv3 License
- * Copyright (c) 2016-2022 Austin "Scarsz" Shapiro, Henri "Vankka" Schubin and DiscordSRV contributors
+ * Copyright (c) 2016-2023 Austin "Scarsz" Shapiro, Henri "Vankka" Schubin and DiscordSRV contributors
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -32,6 +32,7 @@ import com.discordsrv.bukkit.listener.BukkitStatusMessageListener;
 import com.discordsrv.bukkit.player.BukkitPlayerProvider;
 import com.discordsrv.bukkit.plugin.BukkitPluginManager;
 import com.discordsrv.bukkit.scheduler.BukkitScheduler;
+import com.discordsrv.common.ServerDiscordSRV;
 import com.discordsrv.common.command.game.handler.ICommandHandler;
 import com.discordsrv.common.component.translation.Translation;
 import com.discordsrv.common.config.manager.ConnectionConfigManager;
@@ -39,7 +40,6 @@ import com.discordsrv.common.config.manager.MainConfigManager;
 import com.discordsrv.common.debug.data.OnlineMode;
 import com.discordsrv.common.messageforwarding.game.minecrafttodiscord.MinecraftToDiscordChatModule;
 import com.discordsrv.common.plugin.PluginManager;
-import com.discordsrv.common.ServerDiscordSRV;
 import com.fasterxml.jackson.databind.JsonNode;
 import net.kyori.adventure.platform.bukkit.BukkitAudiences;
 import org.bukkit.Server;

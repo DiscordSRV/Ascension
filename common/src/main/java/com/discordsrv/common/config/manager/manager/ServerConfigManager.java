@@ -1,6 +1,6 @@
 /*
  * This file is part of DiscordSRV, licensed under the GPLv3 License
- * Copyright (c) 2016-2022 Austin "Scarsz" Shapiro, Henri "Vankka" Schubin and DiscordSRV contributors
+ * Copyright (c) 2016-2023 Austin "Scarsz" Shapiro, Henri "Vankka" Schubin and DiscordSRV contributors
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -21,9 +21,9 @@ package com.discordsrv.common.config.manager.manager;
 import com.discordsrv.common.DiscordSRV;
 import com.discordsrv.common.config.main.MainConfig;
 import com.discordsrv.common.config.main.channels.base.IChannelConfig;
-import com.discordsrv.common.config.manager.MainConfigManager;
 import com.discordsrv.common.config.main.channels.base.server.ServerBaseChannelConfig;
 import com.discordsrv.common.config.main.channels.base.server.ServerChannelConfig;
+import com.discordsrv.common.config.manager.MainConfigManager;
 import org.spongepowered.configurate.objectmapping.ObjectMapper;
 
 public abstract class ServerConfigManager<T extends MainConfig> extends MainConfigManager<T> {

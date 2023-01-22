@@ -1,6 +1,6 @@
 /*
  * This file is part of DiscordSRV, licensed under the GPLv3 License
- * Copyright (c) 2016-2022 Austin "Scarsz" Shapiro, Henri "Vankka" Schubin and DiscordSRV contributors
+ * Copyright (c) 2016-2023 Austin "Scarsz" Shapiro, Henri "Vankka" Schubin and DiscordSRV contributors
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -18,8 +18,8 @@
 
 package com.discordsrv.common.placeholder.provider;
 
-import com.discordsrv.api.placeholder.annotation.Placeholder;
 import com.discordsrv.api.placeholder.PlaceholderLookupResult;
+import com.discordsrv.api.placeholder.annotation.Placeholder;
 import com.discordsrv.common.placeholder.provider.util.PlaceholderMethodUtil;
 import org.jetbrains.annotations.NotNull;
 

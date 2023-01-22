@@ -1,6 +1,6 @@
 /*
  * This file is part of DiscordSRV, licensed under the GPLv3 License
- * Copyright (c) 2016-2022 Austin "Scarsz" Shapiro, Henri "Vankka" Schubin and DiscordSRV contributors
+ * Copyright (c) 2016-2023 Austin "Scarsz" Shapiro, Henri "Vankka" Schubin and DiscordSRV contributors
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -18,11 +18,11 @@
 
 package com.discordsrv.common.logging.backend.impl;
 
-import com.discordsrv.common.logging.LogLevel;
 import com.discordsrv.common.logging.LogAppender;
+import com.discordsrv.common.logging.LogLevel;
+import com.discordsrv.common.logging.Logger;
 import com.discordsrv.common.logging.backend.LogFilter;
 import com.discordsrv.common.logging.backend.LoggingBackend;
-import com.discordsrv.common.logging.Logger;
 import org.apache.commons.collections4.bidimap.DualHashBidiMap;
 import org.apache.logging.log4j.Level;
 import org.apache.logging.log4j.LogManager;

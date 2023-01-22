@@ -1,6 +1,6 @@
 /*
  * This file is part of DiscordSRV, licensed under the GPLv3 License
- * Copyright (c) 2016-2022 Austin "Scarsz" Shapiro, Henri "Vankka" Schubin and DiscordSRV contributors
+ * Copyright (c) 2016-2023 Austin "Scarsz" Shapiro, Henri "Vankka" Schubin and DiscordSRV contributors
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -510,7 +510,6 @@ public class JDAConnectionManager implements DiscordConnectionManager {
         if (closeCode == null) {
             return false;
         } else if (closeCode == CloseCode.DISALLOWED_INTENTS) {
-            Set<DiscordGatewayIntent> intents = getIntents();
             discordSRV.logger().error("+-------------------------------------->");
             discordSRV.logger().error("| Failed to connect to Discord:");
             discordSRV.logger().error("|");
@@ -518,10 +517,12 @@ public class JDAConnectionManager implements DiscordConnectionManager {
             discordSRV.logger().error("| privileged intents listed below");
             discordSRV.logger().error("|");
             for (DiscordGatewayIntent intent : intents) {
-                String displayName = intent.portalName();
-                if (displayName != null) {
-                    discordSRV.logger().error("| " + displayName);
+                if (!intent.privileged()) {
+                    continue;
                 }
+
+                String displayName = intent.portalName();
+                discordSRV.logger().error("| " + displayName);
             }
             discordSRV.logger().error("|");
             discordSRV.logger().error("| Instructions for enabling privileged gateway intents:");

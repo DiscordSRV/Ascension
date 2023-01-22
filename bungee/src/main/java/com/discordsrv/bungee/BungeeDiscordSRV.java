@@ -1,6 +1,6 @@
 /*
  * This file is part of DiscordSRV, licensed under the GPLv3 License
- * Copyright (c) 2016-2022 Austin "Scarsz" Shapiro, Henri "Vankka" Schubin and DiscordSRV contributors
+ * Copyright (c) 2016-2023 Austin "Scarsz" Shapiro, Henri "Vankka" Schubin and DiscordSRV contributors
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -22,6 +22,7 @@ import com.discordsrv.bungee.command.game.handler.BungeeCommandHandler;
 import com.discordsrv.bungee.console.BungeeConsole;
 import com.discordsrv.bungee.player.BungeePlayerProvider;
 import com.discordsrv.bungee.plugin.BungeePluginManager;
+import com.discordsrv.common.ProxyDiscordSRV;
 import com.discordsrv.common.command.game.handler.ICommandHandler;
 import com.discordsrv.common.config.connection.ConnectionConfig;
 import com.discordsrv.common.config.main.MainConfig;
@@ -30,7 +31,6 @@ import com.discordsrv.common.config.manager.MainConfigManager;
 import com.discordsrv.common.debug.data.OnlineMode;
 import com.discordsrv.common.plugin.PluginManager;
 import com.discordsrv.common.scheduler.StandardScheduler;
-import com.discordsrv.common.ProxyDiscordSRV;
 import net.kyori.adventure.platform.bungeecord.BungeeAudiences;
 import net.md_5.bungee.api.ProxyServer;
 import net.md_5.bungee.api.plugin.Plugin;
