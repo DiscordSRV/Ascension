@@ -19,9 +19,9 @@
 package com.discordsrv.common.placeholder.result;
 
 import com.discordsrv.api.component.MinecraftComponent;
+import com.discordsrv.api.placeholder.DiscordPlaceholders;
 import com.discordsrv.api.placeholder.FormattedText;
 import com.discordsrv.api.placeholder.mapper.PlaceholderResultMapper;
-import com.discordsrv.api.placeholder.mapper.ResultMappers;
 import com.discordsrv.common.DiscordSRV;
 import com.discordsrv.common.component.util.ComponentUtil;
 import net.kyori.adventure.text.Component;
@@ -43,10 +43,14 @@ public class ComponentResultStringifier implements PlaceholderResultMapper {
         }
         if (result instanceof Component) {
             Component component = (Component) result;
-            if (ResultMappers.isPlainContext()) {
-                return PlainTextComponentSerializer.plainText().serialize(component);
-            } else {
-                return new FormattedText(discordSRV.componentFactory().discordSerializer().serialize(component));
+            DiscordPlaceholders.MappingState mappingState = DiscordPlaceholders.MAPPING_STATE.get();
+            switch (mappingState) {
+                case ANSI: // TODO: ansi serializer (?)
+                case PLAIN:
+                    return PlainTextComponentSerializer.plainText().serialize(component);
+                default:
+                case NORMAL:
+                    return new FormattedText(discordSRV.componentFactory().discordSerializer().serialize(component));
             }
         }
         return null;

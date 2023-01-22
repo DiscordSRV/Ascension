@@ -31,6 +31,7 @@ import com.discordsrv.api.event.bus.EventPriority;
 import com.discordsrv.api.event.bus.Subscribe;
 import com.discordsrv.api.event.events.message.forward.game.GameChatMessageForwardedEvent;
 import com.discordsrv.api.event.events.message.receive.game.GameChatMessageReceiveEvent;
+import com.discordsrv.api.placeholder.DiscordPlaceholders;
 import com.discordsrv.api.placeholder.FormattedText;
 import com.discordsrv.api.placeholder.util.Placeholders;
 import com.discordsrv.common.DiscordSRV;
@@ -50,8 +51,7 @@ import java.util.concurrent.CompletableFuture;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-public class MinecraftToDiscordChatModule
-        extends AbstractGameMessageModule<MinecraftToDiscordChatConfig, GameChatMessageReceiveEvent> {
+public class MinecraftToDiscordChatModule extends AbstractGameMessageModule<MinecraftToDiscordChatConfig, GameChatMessageReceiveEvent> {
 
     public MinecraftToDiscordChatModule(DiscordSRV discordSRV) {
         super(discordSRV, "MINECRAFT_TO_DISCORD");
@@ -203,10 +203,6 @@ public class MinecraftToDiscordChatModule
                 .sorted(Comparator.comparingInt(mention -> ((MentionCachingModule.CachedMention) mention).searchLength()).reversed())
                 .forEachOrdered(mention -> channelMessagePlaceholders.replaceAll(mention.search(), mention.mention()));
 
-        String formattedMessage = DiscordFormattingUtil.escapeFormatting(
-                DiscordFormattingUtil.escapeQuotes(
-                        channelMessagePlaceholders.toString()));
-
         List<AllowedMention> allowedMentions = new ArrayList<>();
         if (mentionConfig.get(cfg -> cfg.users, false) && player.hasPermission("discordsrv.mention.user")) {
             allowedMentions.add(AllowedMention.ALL_USERS);
@@ -224,23 +220,41 @@ public class MinecraftToDiscordChatModule
             }
         }
 
-        if (mentionConfig.get(cfg -> cfg.everyone, false) && player.hasPermission("discordsrv.mention.everyone")) {
+        boolean everyone = mentionConfig.get(cfg -> cfg.everyone, false) && player.hasPermission("discordsrv.mention.everyone");
+        if (everyone) {
             allowedMentions.add(AllowedMention.EVERYONE);
-        } else {
-            formattedMessage = formattedMessage
-                    .replace("@everyone", "\\@\u200Beveryone") // zero-width-space
-                    .replace("@here", "\\@\u200Bhere"); // zero-width-space
-
-            if (formattedMessage.contains("@everyone") || formattedMessage.contains("@here")) {
-                throw new IllegalStateException("@everyone or @here blocking unsuccessful");
-            }
         }
 
         return format.setAllowedMentions(allowedMentions)
                 .toFormatter()
                 .addContext(context)
-                .addReplacement("%message%", new FormattedText(formattedMessage))
+                .addReplacement("%message%", () -> {
+                    String finalMessage = channelMessagePlaceholders.toString();
+                    if (DiscordPlaceholders.MAPPING_STATE.get() != DiscordPlaceholders.MappingState.NORMAL) {
+                        return preventEveryoneMentions(everyone, finalMessage, false);
+                    } else {
+                        String formattedMessage = DiscordFormattingUtil.escapeFormatting(
+                                DiscordFormattingUtil.escapeQuotes(finalMessage));
+                        return new FormattedText(preventEveryoneMentions(everyone, formattedMessage, true));
+                    }
+                })
                 .applyPlaceholderService()
                 .build();
+    }
+
+    private String preventEveryoneMentions(boolean everyoneAllowed, String message, boolean permitBackslash) {
+        if (everyoneAllowed) {
+            // Nothing to do
+            return message;
+        }
+
+        message = message
+                .replace("@everyone", (permitBackslash ? "\\" : "") + "@\u200Beveryone") // zero-width-space
+                .replace("@here", (permitBackslash ? "\\" : "") + "@\u200Bhere"); // zero-width-space
+
+        if (message.contains("@everyone") || message.contains("@here")) {
+            throw new IllegalStateException("@everyone or @here blocking unsuccessful");
+        }
+        return message;
     }
 }

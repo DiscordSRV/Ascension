@@ -29,9 +29,9 @@ import com.discordsrv.api.discord.entity.message.AllowedMention;
 import com.discordsrv.api.discord.entity.message.DiscordMessageEmbed;
 import com.discordsrv.api.discord.entity.message.SendableDiscordMessage;
 import com.discordsrv.api.discord.util.DiscordFormattingUtil;
+import com.discordsrv.api.placeholder.DiscordPlaceholders;
 import com.discordsrv.api.placeholder.FormattedText;
 import com.discordsrv.api.placeholder.PlaceholderService;
-import com.discordsrv.api.placeholder.mapper.ResultMappers;
 import com.discordsrv.api.placeholder.util.Placeholders;
 import net.dv8tion.jda.api.entities.MessageEmbed;
 import org.jetbrains.annotations.NotNull;
@@ -265,7 +265,7 @@ public class SendableDiscordMessageImpl implements SendableDiscordMessage {
         private Function<Matcher, Object> wrapFunction(Function<Matcher, Object> function) {
             return matcher -> {
                 Object result = function.apply(matcher);
-                if (result instanceof FormattedText || ResultMappers.isPlainContext()) {
+                if (result instanceof FormattedText || DiscordPlaceholders.MAPPING_STATE.get() != DiscordPlaceholders.MappingState.NORMAL) {
                     // Process as regular text
                     return result.toString();
                 } else if (result instanceof CharSequence) {
@@ -281,6 +281,11 @@ public class SendableDiscordMessageImpl implements SendableDiscordMessage {
 
         @Override
         public @NotNull SendableDiscordMessage build() {
+            DiscordSRVApi api = DiscordSRVApi.get();
+            if (api == null) {
+                throw new IllegalStateException("DiscordSRVApi not available");
+            }
+
             Function<String, String> placeholders = input -> {
                 if (input == null) {
                     return null;
@@ -289,11 +294,25 @@ public class SendableDiscordMessageImpl implements SendableDiscordMessage {
                 Placeholders placeholderUtil = new Placeholders(input)
                         .addAll(replacements);
 
-                // Empty string -> null
+                // Empty string -> null (so we don't provide empty strings to random fields)
                 String output = placeholderUtil.toString();
                 return output.isEmpty() ? null : output;
             };
-            builder.setContent(placeholders.apply(builder.getContent()));
+            Function<String, String> discordPlaceholders = input -> {
+                if (input == null) {
+                    return null;
+                }
+
+                // Empty string -> null (so we don't provide empty strings to random fields)
+                String output = api.discordPlaceholders().map(input, in -> {
+                    // Since this will be processed in parts, we don't want parts to return null, only the full output
+                    String out = placeholders.apply(in);
+                    return out == null ? "" : out;
+                });
+                return output.isEmpty() ? null : output;
+            };
+
+            builder.setContent(discordPlaceholders.apply(builder.getContent()));
 
             List<DiscordMessageEmbed> embeds = new ArrayList<>(builder.getEmbeds());
             embeds.forEach(builder::removeEmbed);
@@ -302,7 +321,7 @@ public class SendableDiscordMessageImpl implements SendableDiscordMessage {
                 DiscordMessageEmbed.Builder embedBuilder = embed.toBuilder();
 
                 // TODO: check which parts allow formatting more thoroughly
-                ResultMappers.runInPlainContext(() -> {
+                DiscordPlaceholders.with(DiscordPlaceholders.MappingState.PLAIN, () -> {
                     embedBuilder.setAuthor(
                             cutToLength(
                                     placeholders.apply(embedBuilder.getAuthorName()),
@@ -338,7 +357,7 @@ public class SendableDiscordMessageImpl implements SendableDiscordMessage {
 
                 embedBuilder.setDescription(
                         cutToLength(
-                                placeholders.apply(embedBuilder.getDescription()),
+                                discordPlaceholders.apply(embedBuilder.getDescription()),
                                 MessageEmbed.DESCRIPTION_MAX_LENGTH
                         )
                 );
@@ -361,7 +380,7 @@ public class SendableDiscordMessageImpl implements SendableDiscordMessage {
                 builder.addEmbed(embedBuilder.build());
             }
 
-            ResultMappers.runInPlainContext(() -> {
+            DiscordPlaceholders.with(DiscordPlaceholders.MappingState.PLAIN, () -> {
                 builder.setWebhookUsername(placeholders.apply(builder.getWebhookUsername()));
                 builder.setWebhookAvatarUrl(placeholders.apply(builder.getWebhookAvatarUrl()));
             });

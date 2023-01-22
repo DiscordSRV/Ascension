@@ -66,6 +66,7 @@ import com.discordsrv.common.messageforwarding.game.StopMessageModule;
 import com.discordsrv.common.messageforwarding.game.minecrafttodiscord.MentionCachingModule;
 import com.discordsrv.common.module.ModuleManager;
 import com.discordsrv.common.module.type.AbstractModule;
+import com.discordsrv.common.placeholder.DiscordPlaceholdersImpl;
 import com.discordsrv.common.placeholder.PlaceholderServiceImpl;
 import com.discordsrv.common.placeholder.context.GlobalTextHandlingContext;
 import com.discordsrv.common.placeholder.result.ComponentResultStringifier;
@@ -116,6 +117,7 @@ public abstract class AbstractDiscordSRV<B extends IBootstrap, C extends MainCon
     private EventBusImpl eventBus;
     private ProfileManager profileManager;
     private PlaceholderServiceImpl placeholderService;
+    private DiscordPlaceholdersImpl discordPlaceholders;
     private ComponentFactory componentFactory;
     private DiscordAPIImpl discordAPI;
     private DiscordConnectionDetailsImpl discordConnectionDetails;
@@ -162,6 +164,7 @@ public abstract class AbstractDiscordSRV<B extends IBootstrap, C extends MainCon
         this.moduleManager = new ModuleManager(this);
         this.profileManager = new ProfileManager(this);
         this.placeholderService = new PlaceholderServiceImpl(this);
+        this.discordPlaceholders = new DiscordPlaceholdersImpl();
         this.componentFactory = new ComponentFactory(this);
         this.discordAPI = new DiscordAPIImpl(this);
         this.discordConnectionDetails = new DiscordConnectionDetailsImpl(this);
@@ -260,6 +263,11 @@ public abstract class AbstractDiscordSRV<B extends IBootstrap, C extends MainCon
     @Override
     public final @NotNull PlaceholderServiceImpl placeholderService() {
         return placeholderService;
+    }
+
+    @Override
+    public final @NotNull DiscordPlaceholdersImpl discordPlaceholders() {
+        return discordPlaceholders;
     }
 
     @Override

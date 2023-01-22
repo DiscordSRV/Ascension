@@ -27,6 +27,7 @@ import com.discordsrv.api.component.MinecraftComponentFactory;
 import com.discordsrv.api.discord.DiscordAPI;
 import com.discordsrv.api.discord.connection.details.DiscordConnectionDetails;
 import com.discordsrv.api.event.bus.EventBus;
+import com.discordsrv.api.placeholder.DiscordPlaceholders;
 import com.discordsrv.api.placeholder.PlaceholderService;
 import com.discordsrv.api.player.DiscordSRVPlayer;
 import com.discordsrv.api.player.IPlayerProvider;
@@ -103,6 +104,13 @@ public interface DiscordSRVApi {
      */
     @NotNull
     PlaceholderService placeholderService();
+
+    /**
+     * Provides the {@link DiscordPlaceholders} instance.
+     * @return the {@link DiscordPlaceholders} instance
+     */
+    @NotNull
+    DiscordPlaceholders discordPlaceholders();
 
     /**
      * A provider for {@link com.discordsrv.api.component.MinecraftComponent}s.
