@@ -25,7 +25,8 @@ import org.spongepowered.configurate.objectmapping.meta.Comment;
 public class BotConfig {
 
     @Comment("The Discord bot token from https://discord.com/developers/applications\n"
-            + "Requires a connection to: discord.com, gateway.discord.gg, cdn.discordapp.com")
+            + "Requires a connection to: discord.com, gateway.discord.gg, cdn.discordapp.com\n"
+            + "Privacy Policy: https://discord.com/privacy Terms: https://discord.com/developers/docs/policies-and-agreements/developer-terms-of-service")
     public String token = "Token here";
 
 }

@@ -28,7 +28,7 @@ import java.util.List;
 public class ChannelUpdaterConfig {
 
     @Comment("The channel IDs.\n"
-            + "The bot will need the \"View Channel\" and \"Manage Channels\" permissions, "
+            + "The bot will need the \"View Channel\" and \"Manage Channels\" permissions for the provided channels, "
             + "additionally \"Connect\" is required for voice channels")
     public List<Long> channelIds = new ArrayList<>();
 

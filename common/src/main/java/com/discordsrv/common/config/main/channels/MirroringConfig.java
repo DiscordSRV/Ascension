@@ -46,7 +46,7 @@ public class MirroringConfig {
 
         @Comment("Maximum size (in kB) to download and re-upload, set to 0 for unlimited or -1 to disable re-uploading.\n"
                 + "The default value is -1 (disabled)\n\n"
-                + "When this is enabled files smaller than the specified limit are downloaded and then re-uploaded to each mirror channel individually.\n"
+                + "When this is enabled, files smaller than the specified limit are downloaded and then re-uploaded to each mirror channel individually.\n"
                 + "Please consider limiting the users allowed to attach files if this is enabled,\n"
                 + "as spam of large files may result in a lot of downstream and upstream data usage")
         public int maximumSizeKb = -1;

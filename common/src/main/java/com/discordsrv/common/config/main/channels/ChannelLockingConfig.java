@@ -48,7 +48,7 @@ public class ChannelLockingConfig {
     @ConfigSerializable
     public static class Threads {
 
-        @Comment("If threads should be archived while the server is shutdown")
+        @Comment("If the configured threads should be archived while the server is shutdown")
         public boolean archive = true;
 
         @Comment("If the bot will attempt to unarchive threads rather than make new threads")

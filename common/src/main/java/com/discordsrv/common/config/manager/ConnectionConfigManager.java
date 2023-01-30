@@ -37,13 +37,7 @@ public abstract class ConnectionConfigManager<C extends ConnectionConfig>
     @Override
     public ConfigurationOptions defaultOptions(ObjectMapper.Factory objectMapper) {
         return super.defaultOptions(objectMapper)
-                .header("DiscordSRV's configuration file for connections to different external services.\n"
-                                + "This file is intended to contain connection details to services in order to keep them out of the config.yml\n"
-                                + "and to serve as a easy way to identify and control what external connections are being used.\n"
-                                + "\n"
-                                + "All domains listed as \"Requires a connection to\" require port 443 (https/wss) unless otherwise specified\n"
-                                + "\n"
-                                + " ABSOLUTELY DO NOT SEND THIS FILE TO ANYONE - IT ONLY CONTAINS SECRETS\n");
+                .header(ConnectionConfig.HEADER);
     }
 
     @Override

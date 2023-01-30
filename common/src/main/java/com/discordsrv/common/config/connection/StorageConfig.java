@@ -64,7 +64,8 @@ public class StorageConfig {
 
         @Comment("The database address.\n"
                 + "Uses the default port (MySQL: 3306)\n"
-                + "for the database if a port isn't specified in the \"address:port\" format")
+                + "for the database if a port isn't specified in the \"address:port\" format\n"
+                + "Please make sure the port for your database is open and your firewall(s) allow(s) connections from the server to the database")
         public String databaseAddress = "localhost";
 
         @Comment("The name of the database")

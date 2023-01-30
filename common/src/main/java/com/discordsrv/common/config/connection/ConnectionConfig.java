@@ -25,6 +25,13 @@ import org.spongepowered.configurate.objectmapping.ConfigSerializable;
 public class ConnectionConfig implements Config {
 
     public static final String FILE_NAME = "connections.yaml";
+    public static final String HEADER = "DiscordSRV's configuration file for connections to different external services.\n"
+            + "This file is intended to contain connection details to services in order to keep them out of the config.yml\n"
+            + "and to serve as a easy way to identify and control what external connections are being used.\n"
+            + "\n"
+            + "All domains listed as \"Requires a connection to\" require port 443 (https/wss) unless otherwise specified\n"
+            + "\n"
+            + " ABSOLUTELY DO NOT SEND THIS FILE TO ANYONE - IT ONLY CONTAINS SECRETS\n";
 
     @Override
     public final String getFileName() {
@@ -34,6 +41,8 @@ public class ConnectionConfig implements Config {
     public BotConfig bot = new BotConfig();
 
     public StorageConfig storage = new StorageConfig();
+
+    public MinecraftAuthConfig minecraftAuth = new MinecraftAuthConfig();
 
     public UpdateConfig update = new UpdateConfig();
 }

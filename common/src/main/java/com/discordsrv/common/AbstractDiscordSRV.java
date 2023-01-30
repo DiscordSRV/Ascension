@@ -633,9 +633,18 @@ public abstract class AbstractDiscordSRV<B extends IBootstrap, C extends MainCon
             LinkedAccountConfig linkedAccountConfig = config().linkedAccounts;
             if (linkedAccountConfig != null && linkedAccountConfig.enabled) {
                 String provider = linkedAccountConfig.provider;
+                boolean permitMinecraftAuth = connectionConfig().minecraftAuth.allow;
+                if (provider.equals("auto")) {
+                    provider = permitMinecraftAuth ? "minecraftauth" : "storage";
+                }
                 switch (provider) {
-                    case "auto":
                     case "minecraftauth":
+                        if (!permitMinecraftAuth) {
+                            linkProvider = null;
+                            logger().error("minecraftauth.me is disabled in the " + ConnectionConfig.FILE_NAME + ", "
+                                                   + "but linked-accounts.provider is set to \"minecraftauth\". Linked accounts will be disabled");
+                            break;
+                        }
                         dependencyManager.mcAuthLib().download().get();
                         linkProvider = new MinecraftAuthenticationLinker(this);
                         logger().info("Using minecraftauth.me for linked accounts");

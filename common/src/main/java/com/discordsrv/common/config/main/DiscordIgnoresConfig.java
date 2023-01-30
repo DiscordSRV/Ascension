@@ -33,13 +33,13 @@ public class DiscordIgnoresConfig {
     @Comment("User, bot and webhook ids to ignore")
     public IDs usersAndWebhookIds = new IDs();
 
-    @Comment("Role ids for users/bots to ignore")
+    @Comment("Role ids for users and bots to ignore")
     public IDs roleIds = new IDs();
 
-    @Comment("If bots (webhooks not included) should be ignored")
+    @Comment("If all bots (webhooks not included) should be ignored")
     public boolean bots = false;
 
-    @Comment("If webhooks should be ignored (webhook messages sent by this DiscordSRV instance will always be ignored)")
+    @Comment("If all webhooks should be ignored (webhook messages sent by this DiscordSRV instance will always be ignored)")
     public boolean webhooks = true;
 
     @ConfigSerializable

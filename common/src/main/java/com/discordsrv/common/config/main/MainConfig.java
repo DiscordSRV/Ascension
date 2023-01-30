@@ -55,6 +55,6 @@ public class MainConfig implements Config {
     @Comment("Command configuration")
     public CommandConfig command = new CommandConfig();
 
-    @Comment("The %discord_invite% placeholder configuration. The below options will be attempted in the order they are in")
+    @Comment("Configuration for the %discord_invite% placeholder. The below options will be attempted in the order they are in")
     public DiscordInviteConfig invite = new DiscordInviteConfig();
 }

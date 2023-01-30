@@ -27,7 +27,7 @@ public class CommandConfig {
     @Comment("If the /discord command should be set by DiscordSRV")
     public boolean useDiscordCommand = true;
 
-    @Comment("Use /link as a alias for /discord link")
+    @Comment("If /link should be used as a alias for /discord link")
     public boolean useLinkAlias = false;
 
     @Comment("Discord command format, player placeholders may be used")

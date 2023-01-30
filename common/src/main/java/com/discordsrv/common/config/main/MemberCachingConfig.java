@@ -30,13 +30,13 @@ public class MemberCachingConfig {
     @Comment("If linked users' members should be cached, this requires the \"Server Members Intent\"")
     public boolean linkedUsers = true;
 
-    @Comment("If all members should be cached")
+    @Comment("If all members should be cached, this requires the \"Server Members Intent\"")
     public boolean all = false;
 
     @Comment("If members should be cached at startup, this requires the \"Server Members Intent\"")
     public boolean chunk = false;
 
-    @Comment("Filter for which servers should be chunked")
+    @Comment("Filter for which servers should be cached at startup")
     public GuildFilter chunkingServerFilter = new GuildFilter();
 
     @ConfigSerializable

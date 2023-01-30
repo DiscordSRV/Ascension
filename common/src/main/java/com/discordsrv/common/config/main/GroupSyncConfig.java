@@ -53,7 +53,8 @@ public class GroupSyncConfig {
             }
         }
 
-        @Comment("Timed resynchronization. This is required if you're not using LuckPerms")
+        @Comment("Timed resynchronization.\n"
+                + "This is required if you're not using LuckPerms and want to use Minecraft to Discord synchronization")
         public TimerConfig timer = new TimerConfig();
 
         @ConfigSerializable

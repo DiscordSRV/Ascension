@@ -26,7 +26,7 @@ import org.spongepowered.configurate.objectmapping.ConfigSerializable;
 @ConfigSerializable
 public class ServerSwitchMessageConfig implements IMessageConfig {
 
-    public boolean enabled = true;
+    public boolean enabled = false;
 
     @Untranslated(Untranslated.Type.VALUE)
     public SendableDiscordMessage.Builder format = SendableDiscordMessage.builder()
