@@ -35,7 +35,7 @@ import com.discordsrv.common.debug.data.VersionInfo;
 import com.discordsrv.common.dependency.DiscordSRVDependencyManager;
 import com.discordsrv.common.discord.api.DiscordAPIImpl;
 import com.discordsrv.common.discord.connection.jda.JDAConnectionManager;
-import com.discordsrv.common.discord.details.DiscordConnectionDetailsImpl;
+import com.discordsrv.common.discord.connection.details.DiscordConnectionDetailsImpl;
 import com.discordsrv.common.linking.LinkProvider;
 import com.discordsrv.common.logging.Logger;
 import com.discordsrv.common.logging.impl.DiscordSRVLogger;

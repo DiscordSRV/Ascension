@@ -39,7 +39,7 @@ import com.discordsrv.common.debug.file.TextDebugFile;
 import com.discordsrv.common.discord.api.DiscordAPIImpl;
 import com.discordsrv.common.discord.api.entity.message.ReceivedDiscordMessageImpl;
 import com.discordsrv.common.discord.connection.DiscordConnectionManager;
-import com.discordsrv.common.discord.details.DiscordConnectionDetailsImpl;
+import com.discordsrv.common.discord.connection.details.DiscordConnectionDetailsImpl;
 import com.discordsrv.common.logging.Logger;
 import com.discordsrv.common.logging.NamedLogger;
 import com.discordsrv.common.scheduler.Scheduler;

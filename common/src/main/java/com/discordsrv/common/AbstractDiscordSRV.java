@@ -42,7 +42,7 @@ import com.discordsrv.common.dependency.DiscordSRVDependencyManager;
 import com.discordsrv.common.discord.api.DiscordAPIEventModule;
 import com.discordsrv.common.discord.api.DiscordAPIImpl;
 import com.discordsrv.common.discord.connection.jda.JDAConnectionManager;
-import com.discordsrv.common.discord.details.DiscordConnectionDetailsImpl;
+import com.discordsrv.common.discord.connection.details.DiscordConnectionDetailsImpl;
 import com.discordsrv.common.event.bus.EventBusImpl;
 import com.discordsrv.common.exception.StorageException;
 import com.discordsrv.common.function.CheckedFunction;
