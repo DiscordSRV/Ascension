@@ -18,6 +18,7 @@
 
 package com.discordsrv.common.config.main;
 
+import com.discordsrv.api.channel.GameChannel;
 import com.discordsrv.common.config.Config;
 import com.discordsrv.common.config.annotation.DefaultOnly;
 import com.discordsrv.common.config.main.channels.base.BaseChannelConfig;
@@ -28,7 +29,7 @@ import org.spongepowered.configurate.objectmapping.meta.Comment;
 import java.util.*;
 
 @ConfigSerializable
-public class MainConfig implements Config {
+public abstract class MainConfig implements Config {
 
     public static final String FILE_NAME = "config.yaml";
 
@@ -37,9 +38,9 @@ public class MainConfig implements Config {
         return FILE_NAME;
     }
 
-    @DefaultOnly("default")
+    @DefaultOnly(ChannelConfig.DEFAULT_KEY)
     public Map<String, BaseChannelConfig> channels = new LinkedHashMap<String, BaseChannelConfig>() {{
-        put("global", new ChannelConfig());
+        put(GameChannel.DEFAULT_NAME, new ChannelConfig());
         put(ChannelConfig.DEFAULT_KEY, new BaseChannelConfig());
     }};
 
@@ -57,4 +58,6 @@ public class MainConfig implements Config {
 
     @Comment("Configuration for the %discord_invite% placeholder. The below options will be attempted in the order they are in")
     public DiscordInviteConfig invite = new DiscordInviteConfig();
+
+    public abstract PluginIntegrationConfig integrations();
 }

@@ -20,6 +20,7 @@ package com.discordsrv.common.module.type;
 
 import com.discordsrv.common.DiscordSRV;
 import com.discordsrv.common.logging.Logger;
+import org.jetbrains.annotations.NotNull;
 
 import javax.annotation.OverridingMethodsMustInvokeSuper;
 
@@ -33,9 +34,15 @@ public abstract class PluginIntegration<DT extends DiscordSRV> extends AbstractM
         super(discordSRV, logger);
     }
 
+    @NotNull
+    public abstract String getIntegrationName();
+
     @Override
     @OverridingMethodsMustInvokeSuper
     public boolean isEnabled() {
+        if (discordSRV.config().integrations().disabledIntegrations.contains(getIntegrationName())) {
+            return false;
+        }
         return super.isEnabled();
     }
 }

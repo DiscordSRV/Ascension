@@ -24,20 +24,20 @@
 package com.discordsrv.api.discord.entity.interaction.component.actionrow;
 
 import com.discordsrv.api.discord.entity.JDAEntity;
-import com.discordsrv.api.discord.entity.interaction.component.Component;
+import com.discordsrv.api.discord.entity.interaction.component.DiscordComponent;
 import net.dv8tion.jda.api.interactions.components.ItemComponent;
 
 import java.util.List;
 import java.util.stream.Collectors;
 
-public interface ActionRow<T extends Component<? extends ItemComponent>> extends JDAEntity<net.dv8tion.jda.api.interactions.components.ActionRow> {
+public interface ActionRow<T extends DiscordComponent<? extends ItemComponent>> extends JDAEntity<net.dv8tion.jda.api.interactions.components.ActionRow> {
 
     List<T> components();
 
     @Override
     default net.dv8tion.jda.api.interactions.components.ActionRow asJDA() {
         return net.dv8tion.jda.api.interactions.components.ActionRow.of(
-                components().stream().map(Component::asJDA).collect(Collectors.toList())
+                components().stream().map(DiscordComponent::asJDA).collect(Collectors.toList())
         );
     }
 }

@@ -66,6 +66,11 @@ public class LuckPermsIntegration extends PluginIntegration<DiscordSRV> implemen
     }
 
     @Override
+    public @NotNull String getIntegrationName() {
+        return "LuckPerms";
+    }
+
+    @Override
     public boolean isEnabled() {
         try {
             Class.forName("net.luckperms.api.LuckPerms");

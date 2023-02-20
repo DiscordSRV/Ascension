@@ -18,7 +18,6 @@
 
 package com.discordsrv.bungee.console.executor;
 
-import dev.vankka.dynamicproxy.CallOriginal;
 import dev.vankka.dynamicproxy.processor.Original;
 import dev.vankka.dynamicproxy.processor.Proxy;
 import net.kyori.adventure.text.Component;
@@ -47,27 +46,27 @@ public abstract class BungeeCommandExecutorProxyTemplate implements CommandSende
 
     @Override
     public void sendMessage(BaseComponent... message) {
-        CallOriginal.call((Object) message);
+        commandSender.sendMessage(message);
         forwardComponent(BungeeComponentSerializer.get().deserialize(message));
     }
 
     @Override
     public void sendMessage(BaseComponent message) {
-        CallOriginal.call(message);
+        commandSender.sendMessage(message);
         forwardComponent(BungeeComponentSerializer.get().deserialize(new BaseComponent[]{message}));
     }
 
     @Override
     @SuppressWarnings({"deprecation", "RedundantSuppression"})
     public void sendMessage(String message) {
-        CallOriginal.call(message);
+        commandSender.sendMessage(message);
         forwardComponent(LegacyComponentSerializer.legacySection().deserialize(message));
     }
 
     @Override
     @SuppressWarnings({"deprecation", "RedundantSuppression"})
     public void sendMessages(String... messages) {
-        CallOriginal.call((Object) messages);
+        commandSender.sendMessages(messages);
         forwardComponent(LegacyComponentSerializer.legacySection().deserialize(String.join("\n", messages)));
     }
 }

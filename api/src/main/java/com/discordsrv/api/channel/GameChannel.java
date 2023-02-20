@@ -31,6 +31,8 @@ import org.jetbrains.annotations.NotNull;
  */
 public interface GameChannel {
 
+    String DEFAULT_NAME = "global";
+
     /**
      * Gets the name of the plugin/mod/extension that 'owns' this game channel.
      * @return the name of the owner of this game channel

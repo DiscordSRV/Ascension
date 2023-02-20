@@ -18,7 +18,6 @@
 
 package com.discordsrv.bukkit.console.executor;
 
-import dev.vankka.dynamicproxy.CallOriginal;
 import dev.vankka.dynamicproxy.processor.Original;
 import dev.vankka.dynamicproxy.processor.Proxy;
 import net.kyori.adventure.platform.bukkit.BukkitComponentSerializer;
@@ -51,26 +50,26 @@ public abstract class BukkitCommandExecutorProxyTemplate implements CommandSende
 
     @Override
     public void sendMessage(@Nullable UUID sender, @NotNull String... messages) {
+        commandSender.sendMessage(sender, messages);
         forwardLegacy(String.join("\n", messages));
-        CallOriginal.call(sender, messages);
     }
 
     @Override
     public void sendMessage(@NotNull String... messages) {
+        commandSender.sendMessage(messages);
         forwardLegacy(String.join("\n", messages));
-        CallOriginal.call((Object) messages);
     }
 
     @Override
     public void sendMessage(@Nullable UUID sender, @NotNull String message) {
+        commandSender.sendMessage(sender, message);
         forwardLegacy(message);
-        CallOriginal.call(sender, message);
     }
 
     @Override
     public void sendMessage(@NotNull String message) {
+        commandSender.sendMessage(message);
         forwardLegacy(message);
-        CallOriginal.call(message);
     }
 
     private void forwardLegacy(String legacy) {

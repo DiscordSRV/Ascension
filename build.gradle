@@ -11,6 +11,7 @@ version '3.0.0-SNAPSHOT'
 subprojects {
     apply plugin: 'java'
     apply plugin: 'java-library'
+    apply plugin: 'idea'
     apply plugin: 'com.github.johnrengelman.shadow'
     apply plugin: 'org.cadixdev.licenser'
     apply plugin: 'net.kyori.indra.git'
@@ -29,7 +30,7 @@ subprojects {
         compileOnlyApi.extendsFrom runtimeDownloadApi
         runtimeDownloadOnly.extendsFrom runtimeDownloadApi
 
-        all {
+        configureEach {
             resolutionStrategy.failOnDynamicVersions()
         }
     }
@@ -63,26 +64,15 @@ subprojects {
         mavenCentral()
     }
 
-    // Add a 'template' source set to all projects
-    sourceSets {
-        template {
-            java {
-                compileClasspath += sourceSets.main.compileClasspath
-            }
-        }
-        main {
-            java {
-                srcDir sourceSets.template.output.generatedSourcesDirs.getSingleFile()
+    var generatedSources = sourceSets.main.output.generatedSourcesDirs
+    idea {
+        module {
+            generatedSources.forEach {
+                generatedSourceDirs.plus(it)
             }
         }
     }
 
-    // Compile template source
-    compileJava { dependsOn compileTemplateJava }
-
-    // Fix template source set not being depended on/other tasks not depending on template source set
-    checkLicenseMain { dependsOn compileTemplateJava }
-    updateLicenseMain { dependsOn compileTemplateJava }
 
     dependencies {
         // Test dependencies
@@ -90,14 +80,14 @@ subprojects {
         testRuntimeOnly(libs.jupiter.engine)
 
         // DynamicProxy
-        templateAnnotationProcessor(libs.dynamicproxy)
+        annotationProcessor(libs.dynamicproxy)
     }
 
     test {
         useJUnitPlatform()
     }
 
-    task deleteJarsDir(type: Delete) {
+    tasks.register('deleteJarsDir', Delete) {
         delete rootProject.file('jars')
     }
     clean.dependsOn deleteJarsDir

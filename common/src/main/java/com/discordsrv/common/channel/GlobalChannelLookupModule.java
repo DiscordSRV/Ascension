@@ -26,11 +26,8 @@ import com.discordsrv.common.module.type.AbstractModule;
 
 public class GlobalChannelLookupModule extends AbstractModule<DiscordSRV> {
 
-    private final DefaultGlobalChannel defaultGlobalChannel;
-
     public GlobalChannelLookupModule(DiscordSRV discordSRV) {
         super(discordSRV);
-        defaultGlobalChannel = new DefaultGlobalChannel(discordSRV);
     }
 
     @Subscribe(priority = EventPriority.LATE)
@@ -40,7 +37,7 @@ public class GlobalChannelLookupModule extends AbstractModule<DiscordSRV> {
                 return;
             }
 
-            event.process(defaultGlobalChannel);
+            event.process(new GlobalChannel(discordSRV));
         }
     }
 }

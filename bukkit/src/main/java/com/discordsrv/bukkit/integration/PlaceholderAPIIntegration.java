@@ -48,6 +48,11 @@ public class PlaceholderAPIIntegration extends PluginIntegration<BukkitDiscordSR
     }
 
     @Override
+    public @NotNull String getIntegrationName() {
+        return "PlaceholderAPI";
+    }
+
+    @Override
     public boolean isEnabled() {
         try {
             Class.forName("me.clip.placeholderapi.PlaceholderAPI");

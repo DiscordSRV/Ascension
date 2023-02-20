@@ -37,7 +37,6 @@ dependencies {
 
     // Common
     implementation project(':common')
-    implementation project(':common:common-templates')
 
     // DependencyDownload
     implementation(libs.mcdependencydownload.bungee.bootstrap)

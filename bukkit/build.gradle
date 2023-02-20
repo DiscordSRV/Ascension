@@ -21,7 +21,7 @@ configurations {
     compileOnly.extendsFrom commodore
 }
 
-task generateResourceForCommodore(type: GenerateDependencyDownloadResourceTask) {
+tasks.register('generateResourceForCommodore', GenerateDependencyDownloadResourceTask) {
     var conf = configurations.commodore
     configuration = conf
     file = 'dependencies/' + conf.name + '.txt'
@@ -48,6 +48,10 @@ allprojects {
             filter {
                 includeGroup 'net.milkbowl.vault'
                 includeGroup 'me.clip'
+                includeGroup 'com.palmergames.bukkit'
+                includeGroup 'mineverse.aust1n46'
+                includeGroup 'ru.mrbrikster'
+                includeGroup 'com.github.ucchyocean.lc'
             }
         }
     }
@@ -64,7 +68,6 @@ dependencies {
 
     // Common
     compileOnly project(':common')
-    implementation project(':common:common-templates')
     implementation project(path: ':common', configuration: 'runtimeElements')
 
     // DependencyDownload
@@ -85,6 +88,12 @@ dependencies {
     // Integrations
     compileOnly(libs.vaultapi)
     compileOnly(libs.placeholderapi.bukkit)
+
+    // Chat Integrations
+    compileOnly(libs.chatty)
+    compileOnly(libs.lunachat)
+    compileOnly(libs.townychat)
+    compileOnly(libs.venturechat)
 }
 
 processResources {

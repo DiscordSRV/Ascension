@@ -9,22 +9,22 @@ configurations {
     testRuntimeOnly.extendsFrom runtimeDownloadOnly
 }
 
-task generateResourceForHikari(type: GenerateDependencyDownloadResourceTask) {
+tasks.register('generateResourceForHikari', GenerateDependencyDownloadResourceTask) {
     var conf = configurations.hikari
     configuration = conf
     file = 'dependencies/' + conf.name + '.txt'
 }
-task generateResourceForH2Driver(type: GenerateDependencyDownloadResourceTask) {
+tasks.register('generateResourceForH2Driver', GenerateDependencyDownloadResourceTask) {
     var conf = configurations.h2Driver
     configuration = conf
     file = 'dependencies/' + conf.name + '.txt'
 }
-task generateResourceForMySQLDriver(type: GenerateDependencyDownloadResourceTask) {
+tasks.register('generateResourceForMySQLDriver', GenerateDependencyDownloadResourceTask) {
     var conf = configurations.mysqlDriver
     configuration = conf
     file = 'dependencies/' + conf.name + '.txt'
 }
-task generateResourceForMCAuthLib(type: GenerateDependencyDownloadResourceTask) {
+tasks.register('generateResourceForMCAuthLib', GenerateDependencyDownloadResourceTask) {
     var conf = configurations.mcAuthLib
     configuration = conf
     file = 'dependencies/' + conf.name + '.txt'
@@ -65,7 +65,6 @@ dependencies {
     runtimeDownloadApi(libs.configurate.hocon)
 
     // Logging
-    compileOnlyApi project(':common:common-unrelocate')
     compileOnly(libs.log4j.core)
 
     // Adventure, MCDiscordReserializer, EnhancedLegacyText

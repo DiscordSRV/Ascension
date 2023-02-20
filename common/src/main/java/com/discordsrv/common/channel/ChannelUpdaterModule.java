@@ -45,6 +45,22 @@ public class ChannelUpdaterModule extends AbstractModule<DiscordSRV> {
     }
 
     @Override
+    public boolean isEnabled() {
+        boolean any = false;
+        for (ChannelUpdaterConfig channelUpdater : discordSRV.config().channelUpdaters) {
+            if (!channelUpdater.channelIds.isEmpty()) {
+                any = true;
+                break;
+            }
+        }
+        if (!any) {
+            return false;
+        }
+
+        return super.isEnabled();
+    }
+
+    @Override
     public void reloadNoResult() {
         futures.forEach(future -> future.cancel(false));
         futures.clear();
@@ -64,7 +80,9 @@ public class ChannelUpdaterModule extends AbstractModule<DiscordSRV> {
         try {
             // Wait a moment in case we're (re)connecting at the time
             discordSRV.waitForStatus(DiscordSRV.Status.CONNECTED, 15, TimeUnit.SECONDS);
-        } catch (InterruptedException ignored) {}
+        } catch (InterruptedException ignored) {
+            Thread.currentThread().interrupt();
+        }
 
         JDA jda = discordSRV.jda();
         if (jda == null) {

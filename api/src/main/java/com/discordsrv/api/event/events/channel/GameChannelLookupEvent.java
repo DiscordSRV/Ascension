@@ -47,7 +47,15 @@ public class GameChannelLookupEvent implements Processable {
     }
 
     /**
-     * The channel name being looked up, this should be case insensitive wherever possible.
+     * If this is for the "default" channel.
+     * @return if this lookup is for the default channel
+     */
+    public boolean isDefault() {
+        return GameChannel.DEFAULT_NAME.equals(channelName);
+    }
+
+    /**
+     * The channel name being looked up, this should be case-insensitive wherever possible.
      * @return the channel name
      */
     @NotNull
@@ -75,6 +83,7 @@ public class GameChannelLookupEvent implements Processable {
 
     /**
      * Provides a {@link GameChannel} for the provided channel name ({@link #getChannelName()}).
+     * If this is the {@link #isDefault()} channel, any channel name is accepted.
      * @param channel the channel
      * @throws IllegalStateException if the event is already processed
      */
@@ -88,7 +97,7 @@ public class GameChannelLookupEvent implements Processable {
         }
 
         String channelName = channel.getChannelName();
-        if (!channelName.equalsIgnoreCase(this.channelName)) {
+        if (!isDefault() && !channelName.equalsIgnoreCase(this.channelName)) {
             throw new IllegalArgumentException("The provided channel is named "
                     + channelName + " when it should've been: " + this.channelName);
         }

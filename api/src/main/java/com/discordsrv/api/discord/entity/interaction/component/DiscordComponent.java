@@ -26,4 +26,4 @@ package com.discordsrv.api.discord.entity.interaction.component;
 import com.discordsrv.api.discord.entity.JDAEntity;
 import net.dv8tion.jda.api.interactions.components.ItemComponent;
 
-public interface Component<T extends ItemComponent> extends JDAEntity<T> {}
+public interface DiscordComponent<T extends ItemComponent> extends JDAEntity<T> {}

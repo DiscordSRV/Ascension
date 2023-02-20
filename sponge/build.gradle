@@ -31,7 +31,6 @@ dependencies {
 
     // Common
     implementation project(':common')
-    implementation project(':common:common-templates')
 
     // Dependency Download
     implementation(libs.dependencydownload.jarinjar.bootstrap)

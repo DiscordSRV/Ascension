@@ -18,7 +18,7 @@
 
 package com.discordsrv.sponge.console.executor;
 
-import com.discordsrv.common.command.executor.AdventureCommandExecutorProxy;
+import com.discordsrv.common.command.game.executor.AdventureCommandExecutorProxy;
 import com.discordsrv.common.command.game.executor.CommandExecutor;
 import com.discordsrv.sponge.SpongeDiscordSRV;
 import net.kyori.adventure.text.Component;

@@ -25,7 +25,6 @@ dependencies {
 
     // Common
     implementation project(':common')
-    implementation project(':common:common-templates')
 
     // Platform
     annotationProcessor(libs.velocity)

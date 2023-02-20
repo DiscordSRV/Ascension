@@ -50,6 +50,11 @@ public class VaultIntegration extends PluginIntegration<BukkitDiscordSRV> implem
     }
 
     @Override
+    public @NotNull String getIntegrationName() {
+        return "Vault";
+    }
+
+    @Override
     public int priority(Class<?> type) {
         // Lower priority than default
         return -1;

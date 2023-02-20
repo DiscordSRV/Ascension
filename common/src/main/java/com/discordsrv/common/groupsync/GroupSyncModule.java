@@ -69,6 +69,22 @@ public class GroupSyncModule extends AbstractModule<DiscordSRV> {
     }
 
     @Override
+    public boolean isEnabled() {
+        boolean any = false;
+        for (GroupSyncConfig.PairConfig pair : discordSRV.config().groupSync.pairs) {
+            if (pair.roleId != 0 && StringUtils.isNotEmpty(pair.groupName)) {
+                any = true;
+                break;
+            }
+        }
+        if (!any) {
+            return false;
+        }
+
+        return super.isEnabled();
+    }
+
+    @Override
     public void reloadNoResult() {
         synchronized (pairs) {
             pairs.values().forEach(future -> {

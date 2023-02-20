@@ -18,7 +18,7 @@
 
 package com.discordsrv.velocity.console.executor;
 
-import com.discordsrv.common.command.executor.AdventureCommandExecutorProxy;
+import com.discordsrv.common.command.game.executor.AdventureCommandExecutorProxy;
 import com.discordsrv.common.command.game.executor.CommandExecutor;
 import com.discordsrv.velocity.VelocityDiscordSRV;
 import com.velocitypowered.api.proxy.ConsoleCommandSource;

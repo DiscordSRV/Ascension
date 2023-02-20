@@ -101,6 +101,10 @@ dependencyResolutionManagement {
             library('luckperms', 'net.luckperms', 'api').version('5.4')
             library('vaultapi', 'net.milkbowl.vault', 'VaultAPI').version('1.7')
             library('placeholderapi-bukkit', 'me.clip', 'placeholderapi').version('2.11.1')
+            library('townychat', 'com.palmergames.bukkit', 'TownyChat').version('0.45')
+            library('venturechat', 'mineverse.aust1n46', 'venturechat').version('3.5.0')
+            library('chatty', 'ru.mrbrikster', 'chatty-api').version('2.19.13')
+            library('lunachat', 'com.github.ucchyocean.lc', 'LunaChat').version('3.0.16')
 
             // Logging
             library('slf4j-api', 'org.slf4j', 'slf4j-api').version('1.7.36')
@@ -134,7 +138,7 @@ dependencyResolutionManagement {
 rootProject.name = 'DiscordSRV2'
 
 [
-        'common', 'common:api', 'common:unrelocate', 'common:templates',
+        'common', 'common:api',
         'i18n',
         'api',
         'bukkit', 'bukkit:loader',

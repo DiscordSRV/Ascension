@@ -18,7 +18,9 @@
 
 package com.discordsrv.bukkit.config.main;
 
+import com.discordsrv.api.channel.GameChannel;
 import com.discordsrv.common.config.main.MainConfig;
+import com.discordsrv.common.config.main.PluginIntegrationConfig;
 import com.discordsrv.common.config.main.channels.base.ChannelConfig;
 import com.discordsrv.common.config.main.channels.base.server.ServerBaseChannelConfig;
 import com.discordsrv.common.config.main.channels.base.server.ServerChannelConfig;
@@ -29,7 +31,14 @@ public class BukkitConfig extends MainConfig {
 
     public BukkitConfig() {
         channels.clear();
-        channels.put("global", new ServerChannelConfig());
+        channels.put(GameChannel.DEFAULT_NAME, new ServerChannelConfig());
         channels.put(ChannelConfig.DEFAULT_KEY, new ServerBaseChannelConfig());
+    }
+
+    public PluginIntegrationConfig integrations = new PluginIntegrationConfig();
+
+    @Override
+    public PluginIntegrationConfig integrations() {
+        return integrations;
     }
 }

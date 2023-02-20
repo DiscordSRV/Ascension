@@ -16,9 +16,8 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package com.discordsrv.common.command.executor;
+package com.discordsrv.common.command.game.executor;
 
-import dev.vankka.dynamicproxy.CallOriginal;
 import dev.vankka.dynamicproxy.processor.Original;
 import dev.vankka.dynamicproxy.processor.Proxy;
 import net.kyori.adventure.audience.Audience;
@@ -49,73 +48,73 @@ public abstract class AdventureCommandExecutorProxyTemplate implements Audience 
 
     @Override
     public void sendMessage(@NotNull Identified source, @NotNull ComponentLike message, @NotNull MessageType type) {
-        CallOriginal.call(source, message, type);
+        audience.sendMessage(source, message, type);
         forwardComponent(message);
     }
 
     @Override
     public void sendMessage(@NotNull Identity source, @NotNull ComponentLike message, @NotNull MessageType type) {
-        CallOriginal.call(source, message, type);
+        audience.sendMessage(source, message, type);
         forwardComponent(message);
     }
 
     @Override
     public void sendMessage(@NotNull Identified source, @NotNull Component message, @NotNull MessageType type) {
-        CallOriginal.call(source, message, type);
+        audience.sendMessage(source, message, type);
         forwardComponent(message);
     }
 
     @Override
     public void sendMessage(@NotNull Identity source, @NotNull Component message, @NotNull MessageType type) {
-        CallOriginal.call(source, message, type);
+        audience.sendMessage(source, message, type);
         forwardComponent(message);
     }
 
     @Override
     public void sendMessage(@NotNull Identified source, @NotNull ComponentLike message) {
-        CallOriginal.call(source, message);
+        audience.sendMessage(source, message);
         forwardComponent(message);
     }
 
     @Override
     public void sendMessage(@NotNull Component message) {
-        CallOriginal.call(message);
+        audience.sendMessage(message);
         forwardComponent(message);
     }
 
     @Override
     public void sendMessage(@NotNull ComponentLike message) {
-        CallOriginal.call(message);
+        audience.sendMessage(message);
         forwardComponent(message);
     }
 
     @Override
     public void sendMessage(@NotNull Identity source, @NotNull Component message) {
-        CallOriginal.call(source, message);
+        audience.sendMessage(source, message);
         forwardComponent(message);
     }
 
     @Override
     public void sendMessage(@NotNull Component message, @NotNull MessageType type) {
-        CallOriginal.call(message, type);
+        audience.sendMessage(message, type);
         forwardComponent(message);
     }
 
     @Override
     public void sendMessage(@NotNull Identified source, @NotNull Component message) {
-        CallOriginal.call(source, message);
+        audience.sendMessage(source, message);
         forwardComponent(message);
     }
 
     @Override
     public void sendMessage(@NotNull Identity source, @NotNull ComponentLike message) {
-        CallOriginal.call(source, message);
+        audience.sendMessage(source, message);
         forwardComponent(message);
     }
 
     @Override
     public void sendMessage(@NotNull ComponentLike message, @NotNull MessageType type) {
-        CallOriginal.call(message, type);
+        audience.sendMessage(message, type);
         forwardComponent(message);
     }
 }

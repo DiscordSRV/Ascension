@@ -22,7 +22,7 @@ import com.discordsrv.api.component.MinecraftComponent;
 import com.discordsrv.api.event.events.message.receive.game.GameChatMessageReceiveEvent;
 import com.discordsrv.bukkit.BukkitDiscordSRV;
 import com.discordsrv.bukkit.component.PaperComponentHandle;
-import com.discordsrv.common.channel.DefaultGlobalChannel;
+import com.discordsrv.common.channel.GlobalChannel;
 import com.discordsrv.common.component.util.ComponentUtil;
 import io.papermc.paper.event.player.AsyncChatEvent;
 import net.kyori.adventure.platform.bukkit.BukkitComponentSerializer;
@@ -53,7 +53,7 @@ public abstract class BukkitChatListener implements Listener {
         discordSRV.scheduler().run(() -> discordSRV.eventBus().publish(
                 new GameChatMessageReceiveEvent(
                         discordSRV.playerProvider().player(player),
-                        new DefaultGlobalChannel(discordSRV),
+                        new GlobalChannel(discordSRV),
                         component,
                         cancelled
                 )

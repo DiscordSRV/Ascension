@@ -25,5 +25,5 @@ package com.discordsrv.api.discord.entity.interaction.component;
 
 import net.dv8tion.jda.api.interactions.components.ItemComponent;
 
-public interface MessageComponent extends Component<ItemComponent> {
+public interface MessageComponent extends DiscordComponent<ItemComponent> {
 }

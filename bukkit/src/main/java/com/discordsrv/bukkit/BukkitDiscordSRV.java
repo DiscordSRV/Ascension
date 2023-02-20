@@ -227,6 +227,12 @@ public class BukkitDiscordSRV extends ServerDiscordSRV<DiscordSRVBukkitBootstrap
         registerIntegration("com.discordsrv.bukkit.integration.VaultIntegration");
         registerIntegration("com.discordsrv.bukkit.integration.PlaceholderAPIIntegration");
 
+        // Chat Integrations
+        registerIntegration("com.discordsrv.bukkit.integration.chat.ChattyChatIntegration");
+        registerIntegration("com.discordsrv.bukkit.integration.chat.LunaChatIntegration");
+        registerIntegration("com.discordsrv.bukkit.integration.chat.TownyChatIntegration");
+        registerIntegration("com.discordsrv.bukkit.integration.chat.VentureChatIntegration");
+
         super.enable();
 
         // Connection listener
