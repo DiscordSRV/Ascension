@@ -22,7 +22,6 @@ import com.discordsrv.common.DiscordSRV;
 import com.discordsrv.common.exception.StorageException;
 import com.discordsrv.common.function.CheckedConsumer;
 import com.discordsrv.common.function.CheckedFunction;
-import com.discordsrv.common.linking.impl.StorageLinker;
 import com.discordsrv.common.storage.Storage;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -40,7 +39,7 @@ public abstract class SQLStorage implements Storage {
 
     public abstract Connection getConnection();
     public abstract boolean isAutoCloseConnections();
-    public abstract void createTables(Connection connection, String tablePrefix, boolean linkedAccounts) throws SQLException;
+    public abstract void createTables(Connection connection, String tablePrefix) throws SQLException;
 
     private void useConnection(CheckedConsumer<Connection> connectionConsumer) throws StorageException {
         useConnection(connection -> {
@@ -77,8 +76,7 @@ public abstract class SQLStorage implements Storage {
     public void initialize() {
         useConnection((CheckedConsumer<Connection>) connection -> createTables(
                 connection,
-                discordSRV.connectionConfig().storage.sqlTablePrefix,
-                discordSRV.linkProvider() instanceof StorageLinker
+                discordSRV.connectionConfig().storage.sqlTablePrefix
         ));
     }
 
@@ -123,6 +121,16 @@ public abstract class SQLStorage implements Storage {
                 statement.setString(1, player.toString());
                 statement.setLong(2, userId);
 
+                exceptEffectedRows(statement.executeUpdate(), 1);
+            }
+        });
+    }
+
+    @Override
+    public void removeLink(@NotNull UUID player, long userId) {
+        useConnection(connection -> {
+            try (PreparedStatement statement = connection.prepareStatement("delete " + tablePrefix() + "LINKED_ACCOUNTS where PLAYER_UUID = ?;")) {
+                statement.setString(1, player.toString());
                 exceptEffectedRows(statement.executeUpdate(), 1);
             }
         });

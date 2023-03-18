@@ -16,17 +16,15 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package com.discordsrv.common.linking;
+package com.discordsrv.common.linking.requirelinking.requirement;
 
-import org.jetbrains.annotations.NotNull;
+public abstract class LongRequirement implements Requirement<Long> {
 
-import java.util.UUID;
-import java.util.concurrent.CompletableFuture;
-
-public interface LinkStore extends LinkProvider {
-
-    CompletableFuture<Void> createLink(@NotNull UUID playerUUID, long userId);
-    CompletableFuture<Void> removeLink(@NotNull UUID playerUUID, long userId);
-
-    CompletableFuture<Integer> getLinkedAccountCount();
+    @Override
+    public Long parse(String input) {
+        try {
+            return Long.parseUnsignedLong(input);
+        } catch (NumberFormatException ignored) {}
+        return null;
+    }
 }

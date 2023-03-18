@@ -16,17 +16,22 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package com.discordsrv.common.linking;
+package com.discordsrv.common.config.main.linking;
 
-import org.jetbrains.annotations.NotNull;
+import org.spongepowered.configurate.objectmapping.ConfigSerializable;
 
-import java.util.UUID;
-import java.util.concurrent.CompletableFuture;
+import java.util.HashMap;
+import java.util.Map;
 
-public interface LinkStore extends LinkProvider {
+@ConfigSerializable
+public class ProxyRequiredLinkingConfig extends RequiredLinkingConfig {
 
-    CompletableFuture<Void> createLink(@NotNull UUID playerUUID, long userId);
-    CompletableFuture<Void> removeLink(@NotNull UUID playerUUID, long userId);
+    public TargetRequirementConfig proxyRequirements = new TargetRequirementConfig();
 
-    CompletableFuture<Integer> getLinkedAccountCount();
+    public Map<String, TargetRequirementConfig> serverRequirements = new HashMap<String, TargetRequirementConfig>() {{
+        put("example", new TargetRequirementConfig());
+    }};
+
+    @ConfigSerializable
+    public static class TargetRequirementConfig extends RequirementsConfig {}
 }

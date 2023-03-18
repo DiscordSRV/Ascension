@@ -31,5 +31,9 @@ import java.lang.annotation.Target;
 @Target(ElementType.FIELD)
 public @interface Order {
 
+    /**
+     * Lowest to highest.
+     * @return the order value of the option
+     */
     int value();
 }

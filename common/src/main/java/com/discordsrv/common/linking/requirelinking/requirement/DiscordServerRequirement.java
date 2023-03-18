@@ -16,17 +16,36 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package com.discordsrv.common.linking;
+package com.discordsrv.common.linking.requirelinking.requirement;
 
-import org.jetbrains.annotations.NotNull;
+import com.discordsrv.api.discord.entity.guild.DiscordGuild;
+import com.discordsrv.common.DiscordSRV;
 
+import java.util.Objects;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 
-public interface LinkStore extends LinkProvider {
+public class DiscordServerRequirement extends LongRequirement {
 
-    CompletableFuture<Void> createLink(@NotNull UUID playerUUID, long userId);
-    CompletableFuture<Void> removeLink(@NotNull UUID playerUUID, long userId);
+    private final DiscordSRV discordSRV;
 
-    CompletableFuture<Integer> getLinkedAccountCount();
+    public DiscordServerRequirement(DiscordSRV discordSRV) {
+        this.discordSRV = discordSRV;
+    }
+
+    @Override
+    public String name() {
+        return "DiscordServer";
+    }
+
+    @Override
+    public CompletableFuture<Boolean> isMet(Long value, UUID player, long userId) {
+        DiscordGuild guild = discordSRV.discordAPI().getGuildById(value);
+        if (guild == null) {
+            return CompletableFuture.completedFuture(false);
+        }
+
+        return guild.retrieveMemberById(userId)
+                .thenApply(Objects::nonNull);
+    }
 }

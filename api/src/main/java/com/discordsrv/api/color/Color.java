@@ -34,6 +34,8 @@ public class Color {
      * Discord's blurple color (<a href="https://discord.com/branding">Discord branding</a>).
      */
     public static final Color BLURPLE = new Color(0x5865F2);
+    public static final Color WHITE = new Color(0xFFFFFF);
+    public static final Color BLACK = new Color(0);
 
     private final int rgb;
 

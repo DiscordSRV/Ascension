@@ -16,17 +16,26 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package com.discordsrv.common.linking;
+package com.discordsrv.bukkit.config.main;
 
-import org.jetbrains.annotations.NotNull;
+import com.discordsrv.common.config.main.linking.ServerRequiredLinkingConfig;
+import org.bukkit.event.EventPriority;
+import org.spongepowered.configurate.objectmapping.ConfigSerializable;
+import org.spongepowered.configurate.objectmapping.meta.Comment;
 
-import java.util.UUID;
-import java.util.concurrent.CompletableFuture;
+public class BukkitRequiredLinkingConfig extends ServerRequiredLinkingConfig {
 
-public interface LinkStore extends LinkProvider {
+    public KickOptions kick = new KickOptions();
 
-    CompletableFuture<Void> createLink(@NotNull UUID playerUUID, long userId);
-    CompletableFuture<Void> removeLink(@NotNull UUID playerUUID, long userId);
+    @ConfigSerializable
+    public static class KickOptions {
 
-    CompletableFuture<Integer> getLinkedAccountCount();
+        @Comment("The event to use for kick.\n"
+                + "Available events: AsyncPlayerPreLoginEvent (preferred), PlayerLoginEvent")
+        public String event = "AsyncPlayerPreLoginEvent";
+
+        @Comment("The event priority to use for the kick")
+        public String priority = EventPriority.NORMAL.name();
+
+    }
 }

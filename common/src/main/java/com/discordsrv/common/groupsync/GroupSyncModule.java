@@ -255,20 +255,20 @@ public class GroupSyncModule extends AbstractModule<DiscordSRV> {
 
     // Resync user
 
-    public CompletableFuture<Set<GroupSyncResult>> resync(UUID player, GroupSyncCause cause) {
+    public CompletableFuture<List<GroupSyncResult>> resync(UUID player, GroupSyncCause cause) {
         return lookupLinkedAccount(player).thenCompose(userId -> {
             if (userId == null) {
-                return CompletableFuture.completedFuture(Collections.emptySet());
+                return CompletableFuture.completedFuture(Collections.emptyList());
             }
 
             return CompletableFutureUtil.combine(resync(player, userId, cause));
         });
     }
 
-    public CompletableFuture<Set<GroupSyncResult>> resync(long userId, GroupSyncCause cause) {
+    public CompletableFuture<List<GroupSyncResult>> resync(long userId, GroupSyncCause cause) {
         return lookupLinkedAccount(userId).thenCompose(player -> {
             if (player == null) {
-                return CompletableFuture.completedFuture(Collections.emptySet());
+                return CompletableFuture.completedFuture(Collections.emptyList());
             }
 
             return CompletableFutureUtil.combine(resync(player, userId, cause));

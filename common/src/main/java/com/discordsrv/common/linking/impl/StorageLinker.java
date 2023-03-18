@@ -58,6 +58,14 @@ public class StorageLinker extends CachedLinkProvider implements LinkProvider, L
     }
 
     @Override
+    public CompletableFuture<Void> removeLink(@NotNull UUID playerUUID, long userId) {
+        return CompletableFuture.runAsync(
+                () -> discordSRV.storage().removeLink(playerUUID, userId),
+                discordSRV.scheduler().executor()
+        );
+    }
+
+    @Override
     public CompletableFuture<Integer> getLinkedAccountCount() {
         return CompletableFuture.supplyAsync(
                 () -> discordSRV.storage().getLinkedAccountCount(),

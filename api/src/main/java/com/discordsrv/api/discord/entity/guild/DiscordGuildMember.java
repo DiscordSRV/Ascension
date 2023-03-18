@@ -32,6 +32,7 @@ import net.dv8tion.jda.api.entities.Member;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.time.OffsetDateTime;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 
@@ -114,5 +115,28 @@ public interface DiscordGuildMember extends JDAEntity<Member>, Mentionable {
      */
     @Placeholder("user_color")
     Color getColor();
+
+    /**
+     * Gets the time the member joined the server.
+     * @return the time the member joined the server
+     */
+    @NotNull
+    OffsetDateTime getTimeJoined();
+
+    /**
+     * Time the member started boosting.
+     * @return the time the member started boosting or {@code null}
+     */
+    @Nullable
+    OffsetDateTime getTimeBoosted();
+
+    /**
+     * If the Discord server member is boosted.
+     * @return {@code true} if this Discord server member is boosting
+     */
+    @Placeholder("user_isboosting")
+    default boolean isBoosting() {
+        return getTimeBoosted() != null;
+    }
 
 }

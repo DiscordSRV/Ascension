@@ -16,22 +16,21 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package com.discordsrv.common.config.main;
+package com.discordsrv.common.config.main.linking;
 
-import com.discordsrv.common.config.connection.ConnectionConfig;
+import com.discordsrv.common.config.annotation.Order;
 import org.spongepowered.configurate.objectmapping.ConfigSerializable;
 import org.spongepowered.configurate.objectmapping.meta.Comment;
+import org.spongepowered.configurate.objectmapping.meta.Setting;
 
 @ConfigSerializable
-public class LinkedAccountConfig {
+public class ServerRequiredLinkingConfig extends RequiredLinkingConfig {
 
-    @Comment("Should linked accounts be enabled")
-    public boolean enabled = true;
+    @Comment("How the player should be blocked from joining the server.\nAvailable options: KICK, FREEZE")
+    public String action = "KICK";
 
-    @Comment("The linked account provider\n"
-            + "\n"
-            + " - auto: Defaults to using \"minecraftauth\" (if the " + ConnectionConfig.FILE_NAME + " permits it) otherwise \"storage\"\n"
-            + " - minecraftauth: Uses minecraftauth.me as the linked account provider\n"
-            + " - storage: Use the configured database for linked accounts")
-    public String provider = "auto";
+    @Setting(nodeFromParent = true)
+    @Order(10)
+    public RequirementsConfig requirements = new RequirementsConfig();
+
 }

@@ -29,6 +29,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
+import java.util.concurrent.CompletableFuture;
 
 public class DiscordGuildImpl implements DiscordGuild {
 
@@ -53,6 +54,14 @@ public class DiscordGuildImpl implements DiscordGuild {
     @Override
     public int getMemberCount() {
         return guild.getMemberCount();
+    }
+
+    @Override
+    public @NotNull CompletableFuture<DiscordGuildMember> retrieveMemberById(long id) {
+        return discordSRV.discordAPI().mapExceptions(() -> guild.retrieveMemberById(id)
+                .submit()
+                .thenApply(member -> new DiscordGuildMemberImpl(discordSRV, member))
+        );
     }
 
     @Override

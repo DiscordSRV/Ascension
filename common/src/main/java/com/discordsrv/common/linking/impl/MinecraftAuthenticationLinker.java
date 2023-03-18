@@ -19,19 +19,22 @@
 package com.discordsrv.common.linking.impl;
 
 import com.discordsrv.common.DiscordSRV;
+import com.discordsrv.common.function.CheckedSupplier;
+import com.discordsrv.common.future.util.CompletableFutureUtil;
 import com.discordsrv.common.linking.LinkProvider;
 import com.discordsrv.common.logging.Logger;
 import com.discordsrv.common.logging.NamedLogger;
 import me.minecraftauth.lib.AuthService;
 import me.minecraftauth.lib.account.AccountType;
-import me.minecraftauth.lib.account.Identity;
-import me.minecraftauth.lib.account.MinecraftAccount;
-import me.minecraftauth.lib.exception.LookupException;
+import me.minecraftauth.lib.account.platform.discord.DiscordAccount;
+import me.minecraftauth.lib.account.platform.minecraft.MinecraftAccount;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Optional;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
+import java.util.function.Consumer;
+import java.util.function.Supplier;
 
 public class MinecraftAuthenticationLinker extends CachedLinkProvider implements LinkProvider {
 
@@ -44,35 +47,85 @@ public class MinecraftAuthenticationLinker extends CachedLinkProvider implements
 
     @Override
     public CompletableFuture<Optional<Long>> queryUserId(@NotNull UUID playerUUID) {
-        return CompletableFuture.supplyAsync(
-                () -> {
-                    try {
-                        return AuthService.lookup(AccountType.MINECRAFT, playerUUID.toString())
-                                .map(Identity::getDiscordAccount)
-                                .map(discord -> Long.parseUnsignedLong(discord.getUserId()));
-                    } catch (LookupException e) {
-                        logger.error("Lookup for uuid " + playerUUID + " failed", e);
-                        return Optional.empty();
-                    }
-                },
-                discordSRV.scheduler().executor()
-        );
+        return query(
+                () -> AuthService.lookup(AccountType.MINECRAFT, playerUUID.toString(), AccountType.DISCORD)
+                        .map(account -> (DiscordAccount) account)
+                        .map(discord -> Long.parseUnsignedLong(discord.getUserId())),
+                () -> discordSRV.storage().getUserId(playerUUID),
+                userId -> linked(playerUUID, userId),
+                userId -> unlinked(playerUUID, userId)
+        ).exceptionally(t -> {
+            logger.error("Lookup for uuid " + playerUUID + " failed", t);
+            return Optional.empty();
+        });
     }
 
     @Override
     public CompletableFuture<Optional<UUID>> queryPlayerUUID(long userId) {
-        return CompletableFuture.supplyAsync(
-                () -> {
-                    try {
-                        return AuthService.lookup(AccountType.DISCORD, Long.toUnsignedString(userId))
-                                .map(Identity::getMinecraftAccount)
-                                .map(MinecraftAccount::getUUID);
-                    } catch (LookupException e) {
-                        logger.error("Lookup for user id " + Long.toUnsignedString(userId) + " failed", e);
-                        return Optional.empty();
-                    }
-                },
+        return query(
+                () -> AuthService.lookup(AccountType.DISCORD, Long.toUnsignedString(userId), AccountType.MINECRAFT)
+                        .map(account -> (MinecraftAccount) account)
+                        .map(MinecraftAccount::getUUID),
+                () -> discordSRV.storage().getPlayerUUID(userId),
+                playerUUID -> linked(playerUUID, userId),
+                playerUUID -> unlinked(playerUUID, userId)
+        ).exceptionally(t -> {
+            logger.error("Lookup for user id " + Long.toUnsignedString(userId) + " failed", t);
+            return Optional.empty();
+        });
+    }
+
+    private void linked(UUID playerUUID, long userId) {
+        logger.debug("New link: " + playerUUID + " & " + Long.toUnsignedString(userId));
+        discordSRV.storage().createLink(playerUUID, userId);
+
+    }
+
+    private void unlinked(UUID playerUUID, long userId) {
+        logger.debug("Unlink: " + playerUUID + " & " + Long.toUnsignedString(userId));
+        discordSRV.storage().removeLink(playerUUID, userId);
+
+    }
+
+    private <T> CompletableFuture<Optional<T>> query(
+            CheckedSupplier<Optional<T>> authSupplier,
+            Supplier<T> storageSupplier,
+            Consumer<T> linked,
+            Consumer<T> unlinked
+    ) {
+        CompletableFuture<Optional<T>> authService = new CompletableFuture<>();
+
+        discordSRV.scheduler().run(() -> {
+            try {
+                authService.complete(authSupplier.get());
+            } catch (Throwable t) {
+                authService.completeExceptionally(t);
+            }
+        });
+        CompletableFuture<Optional<T>> storageResult = CompletableFuture.supplyAsync(
+                () -> Optional.ofNullable(storageSupplier.get()),
                 discordSRV.scheduler().executor()
         );
+
+        return CompletableFutureUtil.combine(authService, storageResult).thenApply(results -> {
+            Optional<T> auth = authService.join();
+            Optional<T> storage = storageResult.join();
+
+            if (auth.isPresent() && !storage.isPresent()) {
+                // new link
+                linked.accept(auth.get());
+            }
+            if (!auth.isPresent() && storage.isPresent()) {
+                // unlink
+                unlinked.accept(storage.get());
+            }
+            if (auth.isPresent() && storage.isPresent() && !auth.get().equals(storage.get())) {
+                // linked account changed
+                unlinked.accept(storage.get());
+                linked.accept(auth.get());
+            }
+
+            return auth;
+        });
     }
 }

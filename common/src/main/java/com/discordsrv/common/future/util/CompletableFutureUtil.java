@@ -18,9 +18,9 @@
 
 package com.discordsrv.common.future.util;
 
+import java.util.ArrayList;
 import java.util.Collection;
-import java.util.HashSet;
-import java.util.Set;
+import java.util.List;
 import java.util.concurrent.CompletableFuture;
 
 public final class CompletableFutureUtil {
@@ -37,19 +37,20 @@ public final class CompletableFutureUtil {
     }
 
     @SuppressWarnings("unchecked")
-    public static <T> CompletableFuture<Set<T>> combine(Collection<CompletableFuture<T>> futures) {
+    public static <T> CompletableFuture<List<T>> combine(Collection<CompletableFuture<T>> futures) {
         return combine(futures.toArray(new CompletableFuture[0]));
     }
 
-    public static <T> CompletableFuture<Set<T>> combine(CompletableFuture<T>[] futures) {
-        CompletableFuture<Set<T>> future = new CompletableFuture<>();
+    @SafeVarargs
+    public static <T> CompletableFuture<List<T>> combine(CompletableFuture<T>... futures) {
+        CompletableFuture<List<T>> future = new CompletableFuture<>();
         CompletableFuture.allOf(futures).whenComplete((v, t) -> {
             if (t != null) {
                 future.completeExceptionally(t);
                 return;
             }
 
-            Set<T> results = new HashSet<>();
+            List<T> results = new ArrayList<>();
             for (CompletableFuture<T> aFuture : futures) {
                 results.add(aFuture.join());
             }

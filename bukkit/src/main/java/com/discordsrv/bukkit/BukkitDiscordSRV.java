@@ -31,6 +31,7 @@ import com.discordsrv.bukkit.listener.BukkitDeathListener;
 import com.discordsrv.bukkit.listener.BukkitStatusMessageListener;
 import com.discordsrv.bukkit.player.BukkitPlayerProvider;
 import com.discordsrv.bukkit.plugin.BukkitPluginManager;
+import com.discordsrv.bukkit.requiredlinking.BukkitRequiredLinkingModule;
 import com.discordsrv.bukkit.scheduler.BukkitScheduler;
 import com.discordsrv.common.ServerDiscordSRV;
 import com.discordsrv.common.command.game.handler.ICommandHandler;
@@ -222,6 +223,7 @@ public class BukkitDiscordSRV extends ServerDiscordSRV<DiscordSRVBukkitBootstrap
 
         // Modules
         registerModule(MinecraftToDiscordChatModule::new);
+        registerModule(BukkitRequiredLinkingModule::new);
 
         // Integrations
         registerIntegration("com.discordsrv.bukkit.integration.VaultIntegration");

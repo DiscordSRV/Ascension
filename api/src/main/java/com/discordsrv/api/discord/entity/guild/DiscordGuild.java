@@ -32,6 +32,7 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
 import java.util.Set;
+import java.util.concurrent.CompletableFuture;
 
 /**
  * A Discord server.
@@ -52,6 +53,14 @@ public interface DiscordGuild extends JDAEntity<Guild>, Snowflake {
      */
     @Placeholder("server_member_count")
     int getMemberCount();
+
+    /**
+     * Retrieves a Discord guild member from Discord by id.
+     * @param id the id for the Discord guild member
+     * @return a future for the Discord guild member
+     */
+    @NotNull
+    CompletableFuture<DiscordGuildMember> retrieveMemberById(long id);
 
     /**
      * Gets a Discord guild member by id from the cache, the provided entity can be cached and will not update if it changes on Discord.

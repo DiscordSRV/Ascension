@@ -16,17 +16,17 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package com.discordsrv.common.linking;
-
-import org.jetbrains.annotations.NotNull;
+package com.discordsrv.common.linking.requirelinking.requirement;
 
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 
-public interface LinkStore extends LinkProvider {
+public interface Requirement<T> {
 
-    CompletableFuture<Void> createLink(@NotNull UUID playerUUID, long userId);
-    CompletableFuture<Void> removeLink(@NotNull UUID playerUUID, long userId);
+    String name();
 
-    CompletableFuture<Integer> getLinkedAccountCount();
+    T parse(String input);
+
+    CompletableFuture<Boolean> isMet(T value, UUID player, long userId);
+
 }

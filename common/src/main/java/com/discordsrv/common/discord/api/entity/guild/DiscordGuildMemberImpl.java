@@ -34,6 +34,7 @@ import net.kyori.adventure.text.format.TextColor;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.time.OffsetDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
@@ -108,6 +109,16 @@ public class DiscordGuildMemberImpl implements DiscordGuildMember {
     @Override
     public Color getColor() {
         return color;
+    }
+
+    @Override
+    public @NotNull OffsetDateTime getTimeJoined() {
+        return member.getTimeJoined();
+    }
+
+    @Override
+    public @Nullable OffsetDateTime getTimeBoosted() {
+        return member.getTimeBoosted();
     }
 
     //

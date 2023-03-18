@@ -24,17 +24,15 @@ import com.discordsrv.api.discord.entity.message.SendableDiscordMessage;
 import com.discordsrv.common.future.util.CompletableFutureUtil;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 import java.util.concurrent.CompletableFuture;
 
 public class ReceivedDiscordMessageClusterImpl implements ReceivedDiscordMessageCluster {
 
     private final Set<ReceivedDiscordMessage> messages;
 
-    public ReceivedDiscordMessageClusterImpl(Set<ReceivedDiscordMessage> messages) {
-        this.messages = messages;
+    public ReceivedDiscordMessageClusterImpl(Collection<ReceivedDiscordMessage> messages) {
+        this.messages = new HashSet<>(messages);
     }
 
     @Override

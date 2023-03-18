@@ -35,6 +35,8 @@ public class BukkitConfig extends MainConfig {
         channels.put(ChannelConfig.DEFAULT_KEY, new ServerBaseChannelConfig());
     }
 
+    public BukkitRequiredLinkingConfig requiredLinking = new BukkitRequiredLinkingConfig();
+
     public PluginIntegrationConfig integrations = new PluginIntegrationConfig();
 
     @Override

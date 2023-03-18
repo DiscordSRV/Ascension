@@ -23,6 +23,7 @@ import com.discordsrv.common.config.Config;
 import com.discordsrv.common.config.annotation.DefaultOnly;
 import com.discordsrv.common.config.main.channels.base.BaseChannelConfig;
 import com.discordsrv.common.config.main.channels.base.ChannelConfig;
+import com.discordsrv.common.config.main.linking.LinkedAccountConfig;
 import org.spongepowered.configurate.objectmapping.ConfigSerializable;
 import org.spongepowered.configurate.objectmapping.meta.Comment;
 

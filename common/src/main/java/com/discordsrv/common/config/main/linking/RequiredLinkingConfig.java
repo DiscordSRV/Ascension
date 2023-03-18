@@ -16,17 +16,16 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package com.discordsrv.common.linking;
+package com.discordsrv.common.config.main.linking;
 
-import org.jetbrains.annotations.NotNull;
+import com.discordsrv.common.config.annotation.Order;
+import org.spongepowered.configurate.objectmapping.ConfigSerializable;
+import org.spongepowered.configurate.objectmapping.meta.Comment;
 
-import java.util.UUID;
-import java.util.concurrent.CompletableFuture;
+@ConfigSerializable
+public abstract class RequiredLinkingConfig {
 
-public interface LinkStore extends LinkProvider {
-
-    CompletableFuture<Void> createLink(@NotNull UUID playerUUID, long userId);
-    CompletableFuture<Void> removeLink(@NotNull UUID playerUUID, long userId);
-
-    CompletableFuture<Integer> getLinkedAccountCount();
+    @Comment("If required linking is enabled")
+    @Order(-10)
+    public boolean enabled = false;
 }

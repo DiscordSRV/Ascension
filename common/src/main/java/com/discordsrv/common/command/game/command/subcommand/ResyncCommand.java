@@ -35,7 +35,6 @@ import net.kyori.adventure.text.format.NamedTextColor;
 import java.util.ArrayList;
 import java.util.EnumMap;
 import java.util.List;
-import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
@@ -75,7 +74,7 @@ public class ResyncCommand implements GameCommandExecutor {
                 .whenComplete((results, t) -> {
                     EnumMap<GroupSyncResult, AtomicInteger> resultCounts = new EnumMap<>(GroupSyncResult.class);
                     int total = 0;
-                    for (Set<GroupSyncResult> result : results) {
+                    for (List<GroupSyncResult> result : results) {
                         for (GroupSyncResult singleResult : result) {
                             total++;
                             resultCounts.computeIfAbsent(singleResult, key -> new AtomicInteger(0)).getAndIncrement();
@@ -103,8 +102,8 @@ public class ResyncCommand implements GameCommandExecutor {
                 });
     }
 
-    private List<CompletableFuture<Set<GroupSyncResult>>> resyncOnlinePlayers(GroupSyncModule module) {
-        List<CompletableFuture<Set<GroupSyncResult>>> futures = new ArrayList<>();
+    private List<CompletableFuture<List<GroupSyncResult>>> resyncOnlinePlayers(GroupSyncModule module) {
+        List<CompletableFuture<List<GroupSyncResult>>> futures = new ArrayList<>();
         for (IPlayer player : discordSRV.playerProvider().allPlayers()) {
             futures.add(module.resync(player.uniqueId(), GroupSyncCause.COMMAND));
         }

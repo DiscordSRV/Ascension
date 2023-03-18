@@ -49,6 +49,12 @@ public class MemoryLinker implements LinkProvider, LinkStore {
     }
 
     @Override
+    public CompletableFuture<Void> removeLink(@NotNull UUID playerUUID, long userId) {
+        map.remove(playerUUID);
+        return CompletableFuture.completedFuture(null);
+    }
+
+    @Override
     public CompletableFuture<Integer> getLinkedAccountCount() {
         return CompletableFuture.completedFuture(map.size());
     }

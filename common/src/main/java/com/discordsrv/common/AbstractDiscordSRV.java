@@ -33,7 +33,7 @@ import com.discordsrv.common.command.game.GameCommandModule;
 import com.discordsrv.common.component.ComponentFactory;
 import com.discordsrv.common.config.connection.ConnectionConfig;
 import com.discordsrv.common.config.connection.UpdateConfig;
-import com.discordsrv.common.config.main.LinkedAccountConfig;
+import com.discordsrv.common.config.main.linking.LinkedAccountConfig;
 import com.discordsrv.common.config.main.MainConfig;
 import com.discordsrv.common.config.manager.ConnectionConfigManager;
 import com.discordsrv.common.config.manager.MainConfigManager;

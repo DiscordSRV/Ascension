@@ -26,7 +26,11 @@ public class MinecraftAuthConfig {
 
     @Comment("If minecraftauth.me connections are allowed for Discord linking (requires linked-accounts.provider to be \"auto\" or \"minecraftauth\").\n"
             + "Requires a connection to: minecraftauth.me\n"
-            + "Privacy Policy: https://minecraftauth.me/privacy.txt")
+            + "Privacy Policy: https://minecraftauth.me/privacy")
     public boolean allow = true;
+
+    @Comment("minecraftauth.me token for checking subscription, following and membership statuses for required linking\n"
+            + "You can get the token from https://minecraftauth.me/api/token whilst logged in (please keep in mind that the token resets every time you visit that page)")
+    public String token = "";
 
 }

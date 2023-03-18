@@ -75,7 +75,7 @@ public class UpdateConfig {
 
         @Setting(value = "force")
         @Comment("If the security check needs to be completed for DiscordSRV to enable,\n"
-                + "if the security check fails, DiscordSRV will be disabled if this option is set to true")
+                + "if the security check cannot be performed, DiscordSRV will be disabled if this option is set to true")
         public boolean force = false;
 
     }

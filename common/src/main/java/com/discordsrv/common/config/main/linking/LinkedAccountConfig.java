@@ -16,17 +16,22 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package com.discordsrv.common.linking;
+package com.discordsrv.common.config.main.linking;
 
-import org.jetbrains.annotations.NotNull;
+import com.discordsrv.common.config.connection.ConnectionConfig;
+import org.spongepowered.configurate.objectmapping.ConfigSerializable;
+import org.spongepowered.configurate.objectmapping.meta.Comment;
 
-import java.util.UUID;
-import java.util.concurrent.CompletableFuture;
+@ConfigSerializable
+public class LinkedAccountConfig {
 
-public interface LinkStore extends LinkProvider {
+    @Comment("Should linked accounts be enabled")
+    public boolean enabled = true;
 
-    CompletableFuture<Void> createLink(@NotNull UUID playerUUID, long userId);
-    CompletableFuture<Void> removeLink(@NotNull UUID playerUUID, long userId);
-
-    CompletableFuture<Integer> getLinkedAccountCount();
+    @Comment("The linked account provider\n"
+            + "\n"
+            + " - auto: Defaults to using \"minecraftauth\" (if the " + ConnectionConfig.FILE_NAME + " permits it) otherwise \"storage\"\n"
+            + " - minecraftauth: Uses minecraftauth.me as the linked account provider\n"
+            + " - storage: Use the configured database for linked accounts")
+    public String provider = "auto";
 }
