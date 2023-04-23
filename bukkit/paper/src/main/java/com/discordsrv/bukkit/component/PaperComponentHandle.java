@@ -64,7 +64,7 @@ public class PaperComponentHandle<T> {
         if (handle != null) {
             Object unrelocated = null;
             try {
-                unrelocated = handle.invoke(target);
+                unrelocated = handle.invokeExact(target);
             } catch (Throwable ignored) {}
             if (unrelocated != null) {
                 MinecraftComponent component = discordSRV.componentFactory().empty();

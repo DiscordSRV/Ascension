@@ -16,24 +16,21 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package com.discordsrv.bukkit.console.executor;
+package com.discordsrv.bukkit.scheduler;
 
-import com.discordsrv.bukkit.BukkitDiscordSRV;
-import com.discordsrv.common.command.game.executor.CommandExecutor;
+import com.discordsrv.common.scheduler.ServerScheduler;
+import org.bukkit.Server;
 import org.bukkit.command.CommandSender;
+import org.bukkit.plugin.Plugin;
 
-public class CommandSenderExecutor implements CommandExecutor {
+import java.util.function.BiConsumer;
 
-    private final BukkitDiscordSRV discordSRV;
-    private final CommandSender commandSender;
+public interface IBukkitScheduler extends ServerScheduler {
 
-    public CommandSenderExecutor(BukkitDiscordSRV discordSRV, CommandSender commandSender) {
-        this.discordSRV = discordSRV;
-        this.commandSender = commandSender;
+    void runWithArgs(BiConsumer<Server, Plugin> runNormal);
+
+    default void runOnMainThread(CommandSender sender, Runnable task) {
+        runOnMainThread(task);
     }
 
-    @Override
-    public void runCommand(String command) {
-        discordSRV.scheduler().runOnMainThread(commandSender, () -> discordSRV.server().dispatchCommand(commandSender, command));
-    }
 }

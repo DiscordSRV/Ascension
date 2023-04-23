@@ -50,7 +50,7 @@ public abstract class ServerRequireLinkingModule<T extends DiscordSRV> extends R
         }
     }
 
-    public CompletableFuture<Component> getKickReason(UUID playerUUID) {
+    public CompletableFuture<Component> getBlockReason(UUID playerUUID) {
         RequirementsConfig config = config();
         if (config.bypassUUIDs.contains(playerUUID.toString())) {
             // Bypasses: let them through
@@ -63,7 +63,7 @@ public abstract class ServerRequireLinkingModule<T extends DiscordSRV> extends R
             return CompletableFuture.completedFuture(Component.text("Unable to check linking status at this time"));
         }
 
-        return linkProvider.getUserId(playerUUID)
+        return linkProvider.queryUserId(playerUUID)
                 .thenCompose(opt -> {
                     if (!opt.isPresent()) {
                         // User is not linked

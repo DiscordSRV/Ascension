@@ -6,6 +6,9 @@ dependencies {
     // API
     implementation project(':common:common-api')
 
+    // Platform
+    compileOnly(libs.spigotapi)
+
     // DependencyDownload
     implementation(libs.mcdependencydownload.bukkit.loader)
 }

@@ -23,7 +23,6 @@ import dev.vankka.dynamicproxy.processor.Proxy;
 import net.kyori.adventure.platform.bukkit.BukkitComponentSerializer;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.serializer.bungeecord.BungeeComponentSerializer;
-import net.md_5.bungee.api.chat.BaseComponent;
 import org.bukkit.command.CommandSender;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -31,6 +30,7 @@ import org.jetbrains.annotations.Nullable;
 import java.util.UUID;
 import java.util.function.Consumer;
 
+@SuppressWarnings("deprecation") // Paper
 @Proxy(value = CommandSender.class, className = "BukkitCommandExecutorProxy")
 public abstract class BukkitCommandExecutorProxyTemplate implements CommandSender {
 
@@ -81,7 +81,6 @@ public abstract class BukkitCommandExecutorProxyTemplate implements CommandSende
         return spigot;
     }
 
-    @SuppressWarnings("deprecation")
     public class Spigot extends CommandSender.Spigot {
 
         private final CommandSender.Spigot spigot;
@@ -91,30 +90,30 @@ public abstract class BukkitCommandExecutorProxyTemplate implements CommandSende
         }
 
         @Override
-        public void sendMessage(@Nullable UUID sender, @NotNull BaseComponent component) {
+        public void sendMessage(@Nullable UUID sender, @NotNull net.md_5.bungee.api.chat.BaseComponent component) {
             spigot.sendMessage(sender, component);
-            forwardBungee(new BaseComponent[] {component});
+            forwardBungee(new net.md_5.bungee.api.chat.BaseComponent[] {component});
         }
 
         @Override
-        public void sendMessage(@NotNull BaseComponent component) {
+        public void sendMessage(@NotNull net.md_5.bungee.api.chat.BaseComponent component) {
             spigot.sendMessage(component);
-            forwardBungee(new BaseComponent[] {component});
+            forwardBungee(new net.md_5.bungee.api.chat.BaseComponent[] {component});
         }
 
         @Override
-        public void sendMessage(@Nullable UUID sender, @NotNull BaseComponent... components) {
+        public void sendMessage(@Nullable UUID sender, @NotNull net.md_5.bungee.api.chat.BaseComponent... components) {
             spigot.sendMessage(components);
             forwardBungee(components);
         }
 
         @Override
-        public void sendMessage(@NotNull BaseComponent... components) {
+        public void sendMessage(@NotNull net.md_5.bungee.api.chat.BaseComponent... components) {
             spigot.sendMessage(components);
             forwardBungee(components);
         }
 
-        private void forwardBungee(BaseComponent[] components) {
+        private void forwardBungee(net.md_5.bungee.api.chat.BaseComponent[] components) {
             componentConsumer.accept(BungeeComponentSerializer.get().deserialize(components));
         }
     }

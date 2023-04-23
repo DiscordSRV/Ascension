@@ -4,7 +4,13 @@ version: @VERSION@
 description: ""
 authors: [Scarsz, Vankka]
 load: STARTUP
+
+# Marks the plugin non-legacy in versions 1.13 and above
+# This does not mean that the plugin only supports 1.13
 api-version: 1.13
+
+# Marks the plugin as supporting Folia
+folia-supported: true
 
 softdepend: [
   # Permission + group providers

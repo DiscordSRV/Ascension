@@ -25,16 +25,35 @@ import com.discordsrv.common.command.game.handler.ICommandHandler;
 import com.discordsrv.common.command.game.sender.ICommandSender;
 import com.discordsrv.common.logging.Logger;
 import com.discordsrv.common.logging.NamedLogger;
+import org.bukkit.Server;
+import org.bukkit.command.CommandMap;
 import org.bukkit.command.CommandSender;
 import org.bukkit.command.ConsoleCommandSender;
 import org.bukkit.command.PluginCommand;
 import org.bukkit.entity.Player;
 import org.bukkit.plugin.Plugin;
 
+import java.lang.invoke.MethodHandle;
+import java.lang.invoke.MethodHandles;
+import java.lang.invoke.MethodType;
 import java.lang.reflect.Constructor;
 import java.util.Locale;
 
 public abstract class AbstractBukkitCommandHandler implements ICommandHandler {
+
+    private static final MethodHandle COMMAND_MAP_HANDLE;
+
+    static {
+        MethodHandle handle = null;
+        try {
+            handle = MethodHandles.lookup().findVirtual(
+                    Server.class,
+                    "getCommandMap",
+                    MethodType.methodType(CommandMap.class)
+            );
+        } catch (ReflectiveOperationException ignored) {}
+        COMMAND_MAP_HANDLE = handle;
+    }
 
     public static AbstractBukkitCommandHandler get(BukkitDiscordSRV discordSRV) {
         try {
@@ -76,13 +95,20 @@ public abstract class AbstractBukkitCommandHandler implements ICommandHandler {
             return pluginCommand;
         }
 
+        if (COMMAND_MAP_HANDLE == null) {
+            // CommandMap unusable, can't get the command from it
+            return null;
+        }
+
         PluginCommand command = null;
         try {
             Constructor<?> constructor = PluginCommand.class.getDeclaredConstructor(String.class, Plugin.class);
             constructor.setAccessible(true);
             command = (PluginCommand) constructor.newInstance(label, discordSRV.plugin());
-            discordSRV.server().getCommandMap().register(label, discordSRV.plugin().getName().toLowerCase(Locale.ROOT), command);
-        } catch (ReflectiveOperationException ignored) {}
+
+            CommandMap commandMap = (CommandMap) COMMAND_MAP_HANDLE.invokeExact(discordSRV.server());
+            commandMap.register(label, discordSRV.plugin().getName().toLowerCase(Locale.ROOT), command);
+        } catch (Throwable ignored) {}
 
         return command;
     }

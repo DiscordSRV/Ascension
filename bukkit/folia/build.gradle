@@ -1,0 +1,9 @@
+disableAutoTargetJvm() // Requires Java 17, we target 8
+
+dependencies {
+    // Platform
+    compileOnly(libs.folia)
+
+    // Common
+    compileOnly project(':common')
+}

@@ -45,7 +45,7 @@ public class BukkitCommandSender implements ICommandSender {
 
     @Override
     public void runCommand(String command) {
-        discordSRV.scheduler().runOnMainThread(() -> discordSRV.server().dispatchCommand(commandSender, command));
+        discordSRV.scheduler().runOnMainThread(commandSender, () -> discordSRV.server().dispatchCommand(commandSender, command));
     }
 
     @Override

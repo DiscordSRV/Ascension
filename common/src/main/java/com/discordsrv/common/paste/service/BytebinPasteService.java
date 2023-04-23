@@ -38,7 +38,7 @@ public class BytebinPasteService implements PasteService {
     public Paste uploadFile(byte[] fileContent) throws Throwable {
         Request request = new Request.Builder()
                 .url(bytebinUrl + "/post")
-                .header("Content-Encoding", "gzip")
+                //.header("Content-Encoding", "gzip")
                 .post(RequestBody.create(MediaType.get("application/octet-stream"), fileContent))
                 .build();
 

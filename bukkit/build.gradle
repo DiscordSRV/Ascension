@@ -36,6 +36,7 @@ allprojects {
             filter {
                 includeGroup 'com.destroystokyo.paper'
                 includeGroup 'io.papermc.paper'
+                includeGroup 'dev.folia'
                 includeGroup 'org.spigotmc'
                 includeGroup 'net.md-5'
             }
@@ -55,20 +56,23 @@ allprojects {
             }
         }
     }
-
-    dependencies {
-        // Platform
-        compileOnly(libs.paperapi.old)
-    }
 }
 
 dependencies {
     // API
     annotationProcessor project(':api')
 
+    // Platform
+    compileOnly(libs.spigotapi)
+
     // Common
     compileOnly project(':common')
     implementation project(path: ':common', configuration: 'runtimeElements')
+
+    // Folia, modern bukkit
+    api project(':bukkit:bukkit-folia')
+    api project(':bukkit:bukkit-paper')
+    api project(':bukkit:bukkit-bukkit1_12')
 
     // DependencyDownload
     implementation(libs.mcdependencydownload.bukkit.bootstrap)

@@ -16,24 +16,13 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package com.discordsrv.bukkit.console.executor;
+package com.discordsrv.bukkit.scheduler;
 
 import com.discordsrv.bukkit.BukkitDiscordSRV;
-import com.discordsrv.common.command.game.executor.CommandExecutor;
-import org.bukkit.command.CommandSender;
 
-public class CommandSenderExecutor implements CommandExecutor {
+public class FoliaScheduler extends AbstractBukkitScheduler implements IFoliaScheduler {
 
-    private final BukkitDiscordSRV discordSRV;
-    private final CommandSender commandSender;
-
-    public CommandSenderExecutor(BukkitDiscordSRV discordSRV, CommandSender commandSender) {
-        this.discordSRV = discordSRV;
-        this.commandSender = commandSender;
-    }
-
-    @Override
-    public void runCommand(String command) {
-        discordSRV.scheduler().runOnMainThread(commandSender, () -> discordSRV.server().dispatchCommand(commandSender, command));
+    public FoliaScheduler(BukkitDiscordSRV discordSRV) {
+        super(discordSRV);
     }
 }

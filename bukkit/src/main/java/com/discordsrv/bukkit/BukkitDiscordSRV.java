@@ -25,14 +25,18 @@ import com.discordsrv.bukkit.config.main.BukkitConfig;
 import com.discordsrv.bukkit.config.manager.BukkitConfigManager;
 import com.discordsrv.bukkit.config.manager.BukkitConnectionConfigManager;
 import com.discordsrv.bukkit.console.BukkitConsole;
-import com.discordsrv.bukkit.listener.BukkitChatListener;
 import com.discordsrv.bukkit.listener.BukkitConnectionListener;
 import com.discordsrv.bukkit.listener.BukkitDeathListener;
+import com.discordsrv.bukkit.listener.BukkitRequiredLinkingListener;
 import com.discordsrv.bukkit.listener.BukkitStatusMessageListener;
+import com.discordsrv.bukkit.listener.award.BukkitAwardForwarder;
+import com.discordsrv.bukkit.listener.chat.BukkitChatForwarder;
 import com.discordsrv.bukkit.player.BukkitPlayerProvider;
 import com.discordsrv.bukkit.plugin.BukkitPluginManager;
 import com.discordsrv.bukkit.requiredlinking.BukkitRequiredLinkingModule;
 import com.discordsrv.bukkit.scheduler.BukkitScheduler;
+import com.discordsrv.bukkit.scheduler.FoliaScheduler;
+import com.discordsrv.bukkit.scheduler.IBukkitScheduler;
 import com.discordsrv.common.ServerDiscordSRV;
 import com.discordsrv.common.command.game.handler.ICommandHandler;
 import com.discordsrv.common.component.translation.Translation;
@@ -60,19 +64,29 @@ public class BukkitDiscordSRV extends ServerDiscordSRV<DiscordSRVBukkitBootstrap
 
     private BukkitAudiences audiences;
 
-    private final BukkitScheduler scheduler;
+    private final IBukkitScheduler scheduler;
     private final BukkitConsole console;
     private final BukkitPlayerProvider playerProvider;
     private final BukkitPluginManager pluginManager;
     private AbstractBukkitCommandHandler commandHandler;
+    private final BukkitRequiredLinkingListener requiredLinkingListener;
 
     private final BukkitConnectionConfigManager connectionConfigManager;
     private final BukkitConfigManager configManager;
 
+    private static IBukkitScheduler createScheduler(BukkitDiscordSRV discordSRV) {
+        try {
+            Class.forName("io.papermc.paper.threadedregions.scheduler.GlobalRegionScheduler");
+            return new FoliaScheduler(discordSRV);
+        } catch (ClassNotFoundException ignored) {
+            return new BukkitScheduler(discordSRV);
+        }
+    }
+
     public BukkitDiscordSRV(DiscordSRVBukkitBootstrap bootstrap) {
         super(bootstrap);
 
-        this.scheduler = new BukkitScheduler(this);
+        this.scheduler = createScheduler(this);
         this.console = new BukkitConsole(this);
         this.playerProvider = new BukkitPlayerProvider(this);
         this.pluginManager = new BukkitPluginManager(this);
@@ -82,6 +96,8 @@ public class BukkitDiscordSRV extends ServerDiscordSRV<DiscordSRVBukkitBootstrap
         this.configManager = new BukkitConfigManager(this);
 
         load();
+
+        this.requiredLinkingListener = new BukkitRequiredLinkingListener(this);
     }
 
     public JavaPlugin plugin() {
@@ -97,7 +113,7 @@ public class BukkitDiscordSRV extends ServerDiscordSRV<DiscordSRVBukkitBootstrap
     }
 
     @Override
-    public BukkitScheduler scheduler() {
+    public IBukkitScheduler scheduler() {
         return scheduler;
     }
 
@@ -217,7 +233,8 @@ public class BukkitDiscordSRV extends ServerDiscordSRV<DiscordSRVBukkitBootstrap
         commandHandler = AbstractBukkitCommandHandler.get(this);
 
         // Register listeners
-        server().getPluginManager().registerEvents(BukkitChatListener.get(this), plugin());
+        server().getPluginManager().registerEvents(BukkitAwardForwarder.get(this), plugin());
+        server().getPluginManager().registerEvents(BukkitChatForwarder.get(this), plugin());
         server().getPluginManager().registerEvents(new BukkitDeathListener(this), plugin());
         server().getPluginManager().registerEvents(new BukkitStatusMessageListener(this), plugin());
 
@@ -241,4 +258,10 @@ public class BukkitDiscordSRV extends ServerDiscordSRV<DiscordSRVBukkitBootstrap
         server().getPluginManager().registerEvents(new BukkitConnectionListener(this), plugin());
     }
 
+    @Override
+    protected void disable() {
+        super.disable();
+
+        requiredLinkingListener.disable();
+    }
 }

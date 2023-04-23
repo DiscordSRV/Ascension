@@ -16,10 +16,14 @@ dependencyResolutionManagement {
             plugin('indra-git', 'net.kyori.indra.git').version('2.1.1')
 
             // Bukkit
-            version('bukkit', '1.16.5-R0.1-SNAPSHOT')
-            library('paperapi', 'io.papermc.paper', 'paper-api').versionRef('bukkit')
-            library('paperapi-old', 'com.destroystokyo.paper', 'paper-api').versionRef('bukkit')
-            library('spigotapi', 'org.spigotmc', 'spigot-api').versionRef('bukkit')
+            version('bukkit_minimum', '1.8.8-R0.1-SNAPSHOT')
+            version('bukkit1_12',     '1.12.2-R0.1-SNAPSHOT')
+            version('bukkit_latest',  '1.19.4-R0.1-SNAPSHOT')
+            version('folia',          '1.19.4-R0.1-SNAPSHOT')
+            library('paperapi', 'io.papermc.paper', 'paper-api').versionRef('bukkit_latest')
+            library('spigotapi', 'org.spigotmc', 'spigot-api').versionRef('bukkit_minimum')
+            library('spigotapi-onetwelve', 'org.spigotmc', 'spigot-api').versionRef('bukkit1_12')
+            library('folia', 'dev.folia', 'folia-api').versionRef('folia')
 
             // Bungee
             library('bungee', 'net.md-5', 'bungeecord-api').version('1.17-R0.1-SNAPSHOT')
@@ -141,7 +145,7 @@ rootProject.name = 'DiscordSRV2'
         'common', 'common:api',
         'i18n',
         'api',
-        'bukkit', 'bukkit:loader',
+        'bukkit', 'bukkit:loader', 'bukkit:folia', 'bukkit:paper', 'bukkit:bukkit1_12',
         'bungee', 'bungee:loader',
         'sponge', 'sponge:loader',
         'velocity'

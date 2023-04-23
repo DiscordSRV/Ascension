@@ -23,32 +23,59 @@ import com.discordsrv.api.event.events.message.receive.game.DeathMessageReceiveE
 import com.discordsrv.api.player.DiscordSRVPlayer;
 import com.discordsrv.bukkit.BukkitDiscordSRV;
 import com.discordsrv.bukkit.component.PaperComponentHandle;
+import org.bukkit.event.Cancellable;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.entity.PlayerDeathEvent;
 
+import java.lang.invoke.MethodHandle;
+import java.lang.invoke.MethodHandles;
+import java.lang.invoke.MethodType;
+
 public class BukkitDeathListener implements Listener {
 
-    private final BukkitDiscordSRV discordSRV;
-    private final PaperComponentHandle<PlayerDeathEvent> componentHandle;
+    private static final PaperComponentHandle<PlayerDeathEvent> COMPONENT_HANDLE;
+    private static final MethodHandle CANCELLED_HANDLE;
 
-    @SuppressWarnings("deprecation") // Paper
-    public BukkitDeathListener(BukkitDiscordSRV discordSRV) {
-        this.discordSRV = discordSRV;
-        this.componentHandle = new PaperComponentHandle<>(
+    static {
+        COMPONENT_HANDLE = new PaperComponentHandle<>(
                 PlayerDeathEvent.class,
                 "deathMessage",
                 PlayerDeathEvent::getDeathMessage
         );
+
+        MethodHandle handle = null;
+        try {
+            handle = MethodHandles.lookup().findVirtual(
+                    Cancellable.class,
+                    "isCancelled",
+                    MethodType.methodType(boolean.class)
+            );
+        } catch (ReflectiveOperationException ignored) {}
+        CANCELLED_HANDLE = handle;
+    }
+
+    private final BukkitDiscordSRV discordSRV;
+
+    public BukkitDeathListener(BukkitDiscordSRV discordSRV) {
+        this.discordSRV = discordSRV;
     }
 
     @EventHandler(priority = EventPriority.MONITOR)
     public void onPlayerDeath(PlayerDeathEvent event) {
         DiscordSRVPlayer player = discordSRV.playerProvider().player(event.getEntity());
-        MinecraftComponent component = componentHandle.getComponent(discordSRV, event);
+        MinecraftComponent component = COMPONENT_HANDLE.getComponent(discordSRV, event);
 
+        boolean cancelled = false;
+        if (CANCELLED_HANDLE != null) {
+            try {
+                cancelled = (boolean) CANCELLED_HANDLE.invokeExact(event);
+            } catch (Throwable ignored) {}
+        }
+
+        boolean wasCancelled = cancelled;
         discordSRV.scheduler().run(() -> discordSRV.eventBus().publish(
-                new DeathMessageReceiveEvent(player, null, component, event.isCancelled())));
+                new DeathMessageReceiveEvent(player, null, component, wasCancelled)));
     }
 }

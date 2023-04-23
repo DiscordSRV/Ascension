@@ -18,13 +18,19 @@
 
 package com.discordsrv.common.plugin;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
+
 import java.util.List;
 
 public class Plugin {
 
+    @JsonProperty("identifier")
     private final String identifier;
+    @JsonProperty("name")
     private final String name;
+    @JsonProperty("version")
     private final String version;
+    @JsonProperty("authors")
     private final List<String> authors;
 
     public Plugin(String name, String version, List<String> authors) {

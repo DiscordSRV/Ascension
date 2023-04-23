@@ -21,43 +21,39 @@ package com.discordsrv.bukkit.scheduler;
 import com.discordsrv.bukkit.BukkitDiscordSRV;
 import com.discordsrv.bukkit.DiscordSRVBukkitBootstrap;
 import com.discordsrv.common.DiscordSRV;
-import com.discordsrv.common.scheduler.ServerScheduler;
-import com.discordsrv.common.scheduler.StandardScheduler;
+import org.bukkit.Server;
 import org.bukkit.plugin.Plugin;
 
 import java.util.function.BiConsumer;
 
-public class BukkitScheduler extends StandardScheduler implements ServerScheduler {
-
-    private final BukkitDiscordSRV discordSRV;
+public class BukkitScheduler extends AbstractBukkitScheduler {
 
     public BukkitScheduler(BukkitDiscordSRV discordSRV) {
         super(discordSRV);
-        this.discordSRV = discordSRV;
     }
 
-    private void checkDisable(Runnable task, BiConsumer<org.bukkit.scheduler.BukkitScheduler, Plugin> runNormal) {
+    protected void checkDisable(Runnable task, BiConsumer<Server, Plugin> runNormal) {
         // Can't run tasks when disabling, so we'll push those to the bootstrap to run after disable
         if (!discordSRV.plugin().isEnabled() && discordSRV.status() == DiscordSRV.Status.SHUTTING_DOWN) {
             ((DiscordSRVBukkitBootstrap) discordSRV.bootstrap()).mainThreadTasksForDisable().add(task);
             return;
         }
 
-        runNormal.accept(discordSRV.server().getScheduler(), discordSRV.plugin());
+        runWithArgs(runNormal);
     }
 
     @Override
     public void runOnMainThread(Runnable task) {
-        checkDisable(task, (scheduler, plugin) -> scheduler.runTask(plugin, task));
+        checkDisable(task, (server, plugin) -> server.getScheduler().runTask(plugin, task));
     }
 
     @Override
     public void runOnMainThreadLaterInTicks(Runnable task, int ticks) {
-        checkDisable(task, (scheduler, plugin) -> scheduler.runTaskLater(plugin, task, ticks));
+        checkDisable(task, (server, plugin) -> server.getScheduler().runTaskLater(plugin, task, ticks));
     }
 
     @Override
     public void runOnMainThreadAtFixedRateInTicks(Runnable task, int initialTicks, int rateTicks) {
-        checkDisable(task, (scheduler, plugin) -> scheduler.runTaskTimer(plugin, task, initialTicks, rateTicks));
+        checkDisable(task, (server, plugin) -> server.getScheduler().runTaskTimer(plugin, task, initialTicks, rateTicks));
     }
 }

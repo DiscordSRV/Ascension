@@ -1,0 +1,13 @@
+disableAutoTargetJvm() // Requires Java 17, we target 8
+
+dependencies {
+    // Platform
+    compileOnly(libs.paperapi)
+
+    // Adventure (runtime downloaded by :bukkit)
+    compileOnly(libs.adventure.platform.bukkit)
+
+    // Common
+    compileOnly project(':bukkit:bukkit-bukkit1_12')
+    compileOnly project(':common')
+}

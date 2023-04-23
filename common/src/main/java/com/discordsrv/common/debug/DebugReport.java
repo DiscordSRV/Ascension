@@ -25,10 +25,10 @@ import com.discordsrv.common.debug.file.TextDebugFile;
 import com.discordsrv.common.paste.Paste;
 import com.discordsrv.common.paste.PasteService;
 import com.discordsrv.common.plugin.Plugin;
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import net.dv8tion.jda.api.JDA;
-import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 
 import java.io.IOException;
@@ -113,7 +113,9 @@ public class DebugReport {
     }
 
     public void addFile(DebugFile file) {
-        files.add(file);
+        if (file != null) {
+            files.add(file);
+        }
     }
 
     private DebugFile environment() {
@@ -167,24 +169,12 @@ public class DebugReport {
                 .sorted(Comparator.comparing(plugin -> plugin.name().toLowerCase(Locale.ROOT)))
                 .collect(Collectors.toList());
 
-        int longestName = 0;
-        int longestVersion = 0;
-        for (Plugin plugin : plugins) {
-            longestName = Math.max(longestName, plugin.name().length());
-            longestVersion = Math.max(longestVersion, plugin.version().length());
+        try {
+            String json = discordSRV.json().writeValueAsString(plugins);
+            return new TextDebugFile(5, "plugins.json", json);
+        } catch (JsonProcessingException e) {
+            return null;
         }
-
-        longestName++;
-        longestVersion++;
-        StringBuilder builder = new StringBuilder("Plugins (" + plugins.size() + "):\n");
-
-        for (Plugin plugin : plugins) {
-            builder.append('\n')
-                    .append(StringUtils.rightPad(plugin.name(), longestName))
-                    .append(" v").append(StringUtils.rightPad(plugin.version(), longestVersion))
-                    .append(" ").append(plugin.authors());
-        }
-        return new TextDebugFile(5, "plugins.txt", builder.toString());
     }
 
     private DebugFile readFile(int order, Path file) {
