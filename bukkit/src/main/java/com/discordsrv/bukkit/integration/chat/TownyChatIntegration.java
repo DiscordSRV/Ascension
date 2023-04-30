@@ -81,9 +81,10 @@ public class TownyChatIntegration extends PluginIntegration<BukkitDiscordSRV> im
 
         discordSRV.scheduler().run(() -> discordSRV.eventBus().publish(
                 new GameChatMessageReceiveEvent(
+                        event,
                         discordSRV.playerProvider().player(player),
-                        new TownyChatChannel(channel),
                         component,
+                        new TownyChatChannel(channel),
                         event.isCancelled()
                 )
         ));

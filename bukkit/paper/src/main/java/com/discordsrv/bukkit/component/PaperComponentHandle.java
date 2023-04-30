@@ -64,7 +64,7 @@ public class PaperComponentHandle<T> {
         if (handle != null) {
             Object unrelocated = null;
             try {
-                unrelocated = handle.invokeExact(target);
+                unrelocated = handle.invoke(target);
             } catch (Throwable ignored) {}
             if (unrelocated != null) {
                 MinecraftComponent component = discordSRV.componentFactory().empty();
@@ -76,6 +76,10 @@ public class PaperComponentHandle<T> {
                 adapter.setComponent(unrelocated);
                 return component;
             }
+        }
+
+        if (legacy == null) {
+            return null;
         }
 
         String legacyOutput = legacy.apply(target);

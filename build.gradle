@@ -13,7 +13,7 @@ subprojects {
     apply plugin: 'java-library'
     apply plugin: 'idea'
     apply plugin: 'com.github.johnrengelman.shadow'
-    apply plugin: 'org.cadixdev.licenser'
+    //apply plugin: 'org.cadixdev.licenser'
     apply plugin: 'net.kyori.indra.git'
     apply plugin: 'dev.vankka.dependencydownload.plugin'
 
@@ -37,6 +37,7 @@ subprojects {
 
     generateRuntimeDownloadResourceForRuntimeDownloadOnly {
         file = 'dependencies/runtimeDownload-' + project.name + '.txt'
+        includeShadowJarRelocations = false
     }
 
     repositories {
@@ -73,7 +74,6 @@ subprojects {
         }
     }
 
-
     dependencies {
         // Test dependencies
         testImplementation(libs.jupiter.api)
@@ -97,7 +97,7 @@ subprojects {
         duplicatesStrategy = DuplicatesStrategy.INCLUDE
 
         // If CI then check that licenses are correct, otherwise automatically apply licenses on build
-        dependsOn (System.getenv('CI') === 'true' ? licenseCheck : licenseFormat)
+//        dependsOn (System.getenv('CI') === 'true' ? licenseCheck : licenseFormat)
         // Always run shadowJar
         finalizedBy shadowJar
 
@@ -145,14 +145,15 @@ subprojects {
         duplicatesStrategy = DuplicatesStrategy.EXCLUDE
     }
 
-    license {
-        header = rootProject.file('buildscript/license/LICENSE_HEADER')
-        properties {
-            var inception = '2016'
-            var currentYear = String.valueOf(Calendar.getInstance().get(Calendar.YEAR))
 
-            year = inception == currentYear ? currentYear : inception + '-' + currentYear
-        }
-        include '**/*.java' // only java files
-    }
+//    license {
+//        header = rootProject.file('buildscript/license/LICENSE_HEADER')
+//        properties {
+//            var inception = '2016'
+//            var currentYear = String.valueOf(Calendar.getInstance().get(Calendar.YEAR))
+//
+//            year = inception == currentYear ? currentYear : inception + '-' + currentYear
+//        }
+//        include '**/*.java' // only java files
+//    }
 }

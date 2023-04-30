@@ -87,9 +87,10 @@ public class LunaChatIntegration extends PluginIntegration<BukkitDiscordSRV> imp
 
         discordSRV.scheduler().run(() -> discordSRV.eventBus().publish(
                 new GameChatMessageReceiveEvent(
+                        event,
                         discordSRV.playerProvider().player(player),
-                        new LunaChatChannel(channel),
                         component,
+                        new LunaChatChannel(channel),
                         event.isCancelled()
                 )
         ));

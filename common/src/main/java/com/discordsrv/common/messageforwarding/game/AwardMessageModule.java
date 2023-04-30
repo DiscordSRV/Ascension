@@ -23,23 +23,24 @@ import com.discordsrv.api.discord.entity.message.ReceivedDiscordMessageCluster;
 import com.discordsrv.api.discord.entity.message.SendableDiscordMessage;
 import com.discordsrv.api.event.bus.EventPriority;
 import com.discordsrv.api.event.bus.Subscribe;
-import com.discordsrv.api.event.events.message.forward.game.JoinMessageForwardedEvent;
-import com.discordsrv.api.event.events.message.receive.game.JoinMessageReceiveEvent;
-import com.discordsrv.api.placeholder.FormattedText;
+import com.discordsrv.api.event.events.message.forward.game.AwardMessageForwardedEvent;
+import com.discordsrv.api.event.events.message.receive.game.AwardMessageReceiveEvent;
 import com.discordsrv.common.DiscordSRV;
 import com.discordsrv.common.component.util.ComponentUtil;
-import com.discordsrv.common.config.main.channels.IMessageConfig;
+import com.discordsrv.common.config.main.channels.AwardMessageConfig;
 import com.discordsrv.common.config.main.channels.base.BaseChannelConfig;
+import com.discordsrv.common.config.main.channels.base.server.ServerBaseChannelConfig;
 import com.discordsrv.common.function.OrDefault;
+import net.kyori.adventure.text.Component;
 
-public class JoinMessageModule extends AbstractGameMessageModule<IMessageConfig, JoinMessageReceiveEvent> {
+public class AwardMessageModule extends AbstractGameMessageModule<AwardMessageConfig, AwardMessageReceiveEvent> {
 
-    public JoinMessageModule(DiscordSRV discordSRV) {
-        super(discordSRV, "JOIN_MESSAGES");
+    public AwardMessageModule(DiscordSRV discordSRV) {
+        super(discordSRV, "AWARD_MESSAGES");
     }
 
     @Subscribe(priority = EventPriority.LAST)
-    public void onJoinMessageReceive(JoinMessageReceiveEvent event) {
+    public void onAwardMessageReceive(AwardMessageReceiveEvent event) {
         if (checkCancellation(event) || checkProcessor(event)) {
             return;
         }
@@ -49,31 +50,25 @@ public class JoinMessageModule extends AbstractGameMessageModule<IMessageConfig,
     }
 
     @Override
-    public OrDefault<IMessageConfig> mapConfig(JoinMessageReceiveEvent event, OrDefault<BaseChannelConfig> channelConfig) {
-        return channelConfig
-                .map(BaseChannelConfig::joinMessages)
-                .map(cfg -> cfg.getForEvent(event));
-    }
-
-    @Override
-    public OrDefault<IMessageConfig> mapConfig(OrDefault<BaseChannelConfig> channelConfig) {
-        return channelConfig.map(BaseChannelConfig::joinMessages);
+    public OrDefault<AwardMessageConfig> mapConfig(OrDefault<BaseChannelConfig> channelConfig) {
+        return channelConfig.map(cfg -> ((ServerBaseChannelConfig) cfg).awardMessages);
     }
 
     @Override
     public void postClusterToEventBus(ReceivedDiscordMessageCluster cluster) {
-        discordSRV.eventBus().publish(new JoinMessageForwardedEvent(cluster));
+        discordSRV.eventBus().publish(new AwardMessageForwardedEvent(cluster));
     }
 
     @Override
-    public void setPlaceholders(
-            OrDefault<IMessageConfig> config,
-            JoinMessageReceiveEvent event,
-            SendableDiscordMessage.Formatter formatter
-    ) {
-        MinecraftComponent messageComponent = event.getMessage();
-        String message = messageComponent != null ? convertComponent(config, ComponentUtil.fromAPI(messageComponent)) : null;
+    public void setPlaceholders(OrDefault<AwardMessageConfig> config, AwardMessageReceiveEvent event, SendableDiscordMessage.Formatter formatter) {
+        MinecraftComponent nameComponent = event.getName();
+        Component name = nameComponent != null ? ComponentUtil.fromAPI(nameComponent) : null;
 
-        formatter.addPlaceholder("message", new FormattedText(message));
+        MinecraftComponent titleComponent = event.getTitle();
+        Component title = titleComponent != null ? ComponentUtil.fromAPI(titleComponent) : null;
+
+        formatter
+                .addPlaceholder("award_name", name)
+                .addPlaceholder("award_title", title);
     }
 }

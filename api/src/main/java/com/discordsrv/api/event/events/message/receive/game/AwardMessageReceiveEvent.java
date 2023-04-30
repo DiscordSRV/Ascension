@@ -25,49 +25,59 @@ package com.discordsrv.api.event.events.message.receive.game;
 
 import com.discordsrv.api.channel.GameChannel;
 import com.discordsrv.api.component.MinecraftComponent;
-import com.discordsrv.api.event.events.PlayerEvent;
 import com.discordsrv.api.player.DiscordSRVPlayer;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-public class GameChatMessageReceiveEvent extends AbstractGameMessageReceiveEvent implements PlayerEvent {
+public class AwardMessageReceiveEvent extends AbstractGameMessageReceiveEvent {
 
     private final DiscordSRVPlayer player;
-    private MinecraftComponent message;
+    private MinecraftComponent name;
+    private MinecraftComponent title;
     private GameChannel gameChannel;
 
-    public GameChatMessageReceiveEvent(
+    public AwardMessageReceiveEvent(
             @Nullable Object triggeringEvent,
             @NotNull DiscordSRVPlayer player,
-            @NotNull MinecraftComponent message,
-            @NotNull GameChannel gameChannel,
-            boolean cancelled) {
+            @Nullable MinecraftComponent name,
+            @Nullable MinecraftComponent title,
+            @Nullable GameChannel gameChannel,
+            boolean cancelled
+    ) {
         super(triggeringEvent, cancelled);
         this.player = player;
-        this.message = message;
+        this.name = name;
+        this.title = title;
         this.gameChannel = gameChannel;
     }
 
-    @NotNull
-    public MinecraftComponent getMessage() {
-        return message;
+    public DiscordSRVPlayer getPlayer() {
+        return player;
     }
 
-    public void setMessage(@NotNull MinecraftComponent message) {
-        this.message = message;
+    @Nullable
+    public MinecraftComponent getName() {
+        return name;
     }
 
-    @NotNull
+    public void setName(@Nullable MinecraftComponent name) {
+        this.name = name;
+    }
+
+    @Nullable
+    public MinecraftComponent getTitle() {
+        return title;
+    }
+
+    public void setTitle(@Nullable MinecraftComponent title) {
+        this.title = title;
+    }
+
     public GameChannel getGameChannel() {
         return gameChannel;
     }
 
-    public void setGameChannel(@NotNull GameChannel gameChannel) {
+    public void setGameChannel(GameChannel gameChannel) {
         this.gameChannel = gameChannel;
-    }
-
-    @Override
-    public DiscordSRVPlayer getPlayer() {
-        return player;
     }
 }

@@ -18,12 +18,16 @@
 
 package com.discordsrv.common.messageforwarding.game;
 
+import com.discordsrv.api.component.MinecraftComponent;
 import com.discordsrv.api.discord.entity.message.ReceivedDiscordMessageCluster;
+import com.discordsrv.api.discord.entity.message.SendableDiscordMessage;
 import com.discordsrv.api.event.bus.EventPriority;
 import com.discordsrv.api.event.bus.Subscribe;
 import com.discordsrv.api.event.events.message.forward.game.DeathMessageForwardedEvent;
 import com.discordsrv.api.event.events.message.receive.game.DeathMessageReceiveEvent;
+import com.discordsrv.api.placeholder.FormattedText;
 import com.discordsrv.common.DiscordSRV;
+import com.discordsrv.common.component.util.ComponentUtil;
 import com.discordsrv.common.config.main.channels.DeathMessageConfig;
 import com.discordsrv.common.config.main.channels.base.BaseChannelConfig;
 import com.discordsrv.common.config.main.channels.base.server.ServerBaseChannelConfig;
@@ -36,7 +40,7 @@ public class DeathMessageModule extends AbstractGameMessageModule<DeathMessageCo
     }
 
     @Subscribe(priority = EventPriority.LAST)
-    public void onDeathReceive(DeathMessageReceiveEvent event) {
+    public void onDeathMessageReceive(DeathMessageReceiveEvent event) {
         if (checkCancellation(event) || checkProcessor(event)) {
             return;
         }
@@ -54,4 +58,17 @@ public class DeathMessageModule extends AbstractGameMessageModule<DeathMessageCo
     public void postClusterToEventBus(ReceivedDiscordMessageCluster cluster) {
         discordSRV.eventBus().publish(new DeathMessageForwardedEvent(cluster));
     }
+
+    @Override
+    public void setPlaceholders(
+            OrDefault<DeathMessageConfig> config,
+            DeathMessageReceiveEvent event,
+            SendableDiscordMessage.Formatter formatter
+    ) {
+        MinecraftComponent messageComponent = event.getMessage();
+        String message = messageComponent != null ? convertComponent(config, ComponentUtil.fromAPI(messageComponent)) : null;
+
+        formatter.addPlaceholder("message", new FormattedText(message));
+    }
+
 }

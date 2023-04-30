@@ -20,6 +20,7 @@ package com.discordsrv.common.placeholder.provider;
 
 import com.discordsrv.api.placeholder.PlaceholderLookupResult;
 import com.discordsrv.api.placeholder.annotation.Placeholder;
+import com.discordsrv.api.placeholder.provider.PlaceholderProvider;
 import com.discordsrv.common.placeholder.provider.util.PlaceholderMethodUtil;
 import org.jetbrains.annotations.NotNull;
 

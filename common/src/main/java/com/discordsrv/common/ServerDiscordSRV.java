@@ -21,6 +21,7 @@ package com.discordsrv.common;
 import com.discordsrv.common.bootstrap.IBootstrap;
 import com.discordsrv.common.config.connection.ConnectionConfig;
 import com.discordsrv.common.config.main.MainConfig;
+import com.discordsrv.common.messageforwarding.game.AwardMessageModule;
 import com.discordsrv.common.messageforwarding.game.DeathMessageModule;
 import com.discordsrv.common.player.ServerPlayerProvider;
 import com.discordsrv.common.scheduler.ServerScheduler;
@@ -45,6 +46,7 @@ public abstract class ServerDiscordSRV<B extends IBootstrap, C extends MainConfi
     protected void enable() throws Throwable {
         super.enable();
 
+        registerModule(AwardMessageModule::new);
         registerModule(DeathMessageModule::new);
     }
 

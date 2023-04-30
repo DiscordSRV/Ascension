@@ -59,17 +59,20 @@ public class StopMessageModule extends AbstractGameMessageModule<StopMessageConf
     @Override
     public Map<CompletableFuture<ReceivedDiscordMessage>, DiscordMessageChannel> sendMessageToChannels(
             OrDefault<StopMessageConfig> config,
+            IPlayer player,
             SendableDiscordMessage.Builder format,
             List<DiscordMessageChannel> channels,
-            String message,
-            IPlayer player,
+            AbstractGameMessageReceiveEvent event,
             Object... context
     ) {
         if (!config.get(cfg -> cfg.enabled, false)) {
             return Collections.emptyMap();
         }
-        return super.sendMessageToChannels(config, format, channels, message, player, context);
+        return super.sendMessageToChannels(config, player, format, channels, event, context);
     }
+
+    @Override
+    public void setPlaceholders(OrDefault<StopMessageConfig> config, AbstractGameMessageReceiveEvent event, SendableDiscordMessage.Formatter formatter) {}
 
     @Override
     public void disable() {

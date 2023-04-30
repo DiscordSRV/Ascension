@@ -23,28 +23,24 @@
 
 package com.discordsrv.api.event.events.message.receive.game;
 
-import com.discordsrv.api.component.MinecraftComponent;
 import com.discordsrv.api.event.events.Cancellable;
 import com.discordsrv.api.event.events.Processable;
-import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 public abstract class AbstractGameMessageReceiveEvent implements Processable, Cancellable {
 
-    private final MinecraftComponent message;
+    private final Object triggeringEvent;
     private boolean cancelled;
     private boolean processed;
 
-    public AbstractGameMessageReceiveEvent(
-            @NotNull MinecraftComponent message,
-            boolean cancelled
-    ) {
-        this.message = message;
+    public AbstractGameMessageReceiveEvent(@Nullable Object triggeringEvent, boolean cancelled) {
+        this.triggeringEvent = triggeringEvent;
         this.cancelled = cancelled;
     }
 
-    @NotNull
-    public MinecraftComponent getMessage() {
-        return message;
+    @Nullable
+    public Object getTriggeringEvent() {
+        return triggeringEvent;
     }
 
     @Override

@@ -89,9 +89,10 @@ public class VentureChatIntegration extends PluginIntegration<BukkitDiscordSRV> 
 
         discordSRV.scheduler().run(() -> discordSRV.eventBus().publish(
                 new GameChatMessageReceiveEvent(
+                        event,
                         discordSRV.playerProvider().player(player),
-                        new VentureChatChannel(channel),
                         component,
+                        new VentureChatChannel(channel),
                         false
                 )
         ));

@@ -26,7 +26,7 @@ import com.discordsrv.api.placeholder.annotation.PlaceholderRemainder;
 import com.discordsrv.api.placeholder.mapper.PlaceholderResultMapper;
 import com.discordsrv.common.DiscordSRV;
 import com.discordsrv.common.placeholder.provider.AnnotationPlaceholderProvider;
-import com.discordsrv.common.placeholder.provider.PlaceholderProvider;
+import com.discordsrv.api.placeholder.provider.PlaceholderProvider;
 import com.github.benmanes.caffeine.cache.CacheLoader;
 import com.github.benmanes.caffeine.cache.LoadingCache;
 import org.apache.commons.lang3.StringUtils;

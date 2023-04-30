@@ -1,74 +1,75 @@
 // Relocations
 
+[
+        // JDA, WS
+        'net.dv8tion.jda',
+        'com.iwebpp',
+        'com.neovisionaries.ws',
+
+        // Trove
+        'gnu.trove',
+
+        // Jackson
+        'com.fasterxml.jackson',
+
+        // okhttp
+        'okhttp3',
+        'okio',
+
+        // DependencyDownload
+        'dev.vankka.dependencydownload',
+        'dev.vankka.mcdependencydownload',
+        'me.lucko.jarrelocator',
+        'org.objectweb.asm',
+
+        // Configurate, geantyref, yaml
+        'org.spongepowered.configurate',
+        'io.leangen.geantyref',
+        'org.yaml.snakeyaml',
+
+        // HikariCP
+        'com.zaxxer.hikari',
+
+        // MinecraftAuth lib (& it's dependencies)
+        'me.minecraftauth.lib',
+        'com.github.kevinsawicki.http',
+        'org.json.simple',
+        'alexh',
+
+        // Adventure (API isn't relocated always)
+        'net.kyori.adventure.platform',
+        'net.kyori.adventure.text.serializer',
+
+        // EnhancedLegacyText, MCDiscordReserializer
+        'dev.vankka.enhancedlegacytext',
+        'dev.vankka.mcdiscordreserializer',
+        'dev.vankka.simpleast',
+
+        // Caffeine
+        'com.github.benmanes.caffeine',
+
+        // Commons
+        'org.apache.commons',
+
+        // SLF4J
+        'org.slf4j',
+
+        // Checker Framework
+        'org.checkerframework',
+
+        // Gson, Google error prone annotations
+        'com.google.gson',
+        'com.google.errorprone.annotations',
+
+        // Webhooks
+        'club.minnced',
+        'org.json',
+].each {
+    tasks.shadowJar.relocate it, 'com.discordsrv.dependencies.' + it
+    tasks.generateRuntimeDownloadResourceForRuntimeDownloadOnly.relocate it, 'com.discordsrv.dependencies.' + it
+}
+
 shadowJar {
-    [
-            // JDA, WS
-            'net.dv8tion.jda',
-            'com.iwebpp',
-            'com.neovisionaries.ws',
-
-            // Trove
-            'gnu.trove',
-
-            // Jackson
-            'com.fasterxml.jackson',
-
-            // okhttp
-            'okhttp3',
-            'okio',
-
-            // DependencyDownload
-            'dev.vankka.dependencydownload',
-            'dev.vankka.mcdependencydownload',
-            'me.lucko.jarrelocator',
-            'org.objectweb.asm',
-
-            // Configurate, geantyref, yaml
-            'org.spongepowered.configurate',
-            'io.leangen.geantyref',
-            'org.yaml.snakeyaml',
-
-            // HikariCP
-            'com.zaxxer.hikari',
-
-            // MinecraftAuth lib (& it's dependencies)
-            'me.minecraftauth.lib',
-            'com.github.kevinsawicki.http',
-            'org.json.simple',
-            'alexh',
-
-            // Adventure (API isn't relocated always)
-            'net.kyori.adventure.platform',
-            'net.kyori.adventure.text.serializer',
-
-            // EnhancedLegacyText, MCDiscordReserializer
-            'dev.vankka.enhancedlegacytext',
-            'dev.vankka.mcdiscordreserializer',
-            'dev.vankka.simpleast',
-
-            // Caffeine
-            'com.github.benmanes.caffeine',
-
-            // Commons
-            'org.apache.commons',
-
-            // SLF4J
-            'org.slf4j',
-
-            // Checker Framework
-            'org.checkerframework',
-
-            // Gson, Google error prone annotations
-            'com.google.gson',
-            'com.google.errorprone.annotations',
-
-            // Webhooks
-            'club.minnced',
-            'org.json',
-    ].each {
-        relocate it, 'com.discordsrv.dependencies.' + it
-    }
-
     // Unrelocate package, in case a platform uses something we normally relocate
     relocate('com.discordsrv.unrelocate.', '')
 }

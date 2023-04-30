@@ -79,9 +79,10 @@ public class ChattyChatIntegration extends PluginIntegration<BukkitDiscordSRV> i
 
         discordSRV.scheduler().run(() -> discordSRV.eventBus().publish(
                 new GameChatMessageReceiveEvent(
+                        event,
                         discordSRV.playerProvider().player(player),
-                        new ChattyChannel(chat),
                         component,
+                        new ChattyChannel(chat),
                         false
                 )
         ));

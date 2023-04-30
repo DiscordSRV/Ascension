@@ -10,7 +10,7 @@ dependencyResolutionManagement {
     versionCatalogs {
         libs {
             // Buildscript
-            plugin('shadow', 'com.github.johnrengelman.shadow').version('7.1.1')
+            plugin('shadow', 'com.github.johnrengelman.shadow').version('8.1.1')
             plugin('licenser', 'org.cadixdev.licenser').version('0.6.1')
             plugin('blossom', 'net.kyori.blossom').version('1.2.0')
             plugin('indra-git', 'net.kyori.indra.git').version('2.1.1')

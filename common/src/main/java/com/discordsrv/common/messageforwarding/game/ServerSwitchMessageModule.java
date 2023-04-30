@@ -18,12 +18,16 @@
 
 package com.discordsrv.common.messageforwarding.game;
 
+import com.discordsrv.api.component.MinecraftComponent;
 import com.discordsrv.api.discord.entity.message.ReceivedDiscordMessageCluster;
+import com.discordsrv.api.discord.entity.message.SendableDiscordMessage;
 import com.discordsrv.api.event.bus.EventPriority;
 import com.discordsrv.api.event.bus.Subscribe;
 import com.discordsrv.api.event.events.message.forward.game.ServerSwitchMessageForwardedEvent;
 import com.discordsrv.api.event.events.message.receive.game.ServerSwitchMessageReceiveEvent;
+import com.discordsrv.api.placeholder.FormattedText;
 import com.discordsrv.common.DiscordSRV;
+import com.discordsrv.common.component.util.ComponentUtil;
 import com.discordsrv.common.config.main.channels.ServerSwitchMessageConfig;
 import com.discordsrv.common.config.main.channels.base.BaseChannelConfig;
 import com.discordsrv.common.config.main.channels.base.proxy.ProxyBaseChannelConfig;
@@ -36,7 +40,7 @@ public class ServerSwitchMessageModule extends AbstractGameMessageModule<ServerS
     }
 
     @Subscribe(priority = EventPriority.LAST)
-    public void onServerSwitchReceive(ServerSwitchMessageReceiveEvent event) {
+    public void onServerSwitchMessageReceive(ServerSwitchMessageReceiveEvent event) {
         if (checkCancellation(event) || checkProcessor(event)) {
             return;
         }
@@ -53,5 +57,17 @@ public class ServerSwitchMessageModule extends AbstractGameMessageModule<ServerS
     @Override
     public void postClusterToEventBus(ReceivedDiscordMessageCluster cluster) {
         discordSRV.eventBus().publish(new ServerSwitchMessageForwardedEvent(cluster));
+    }
+
+    @Override
+    public void setPlaceholders(
+            OrDefault<ServerSwitchMessageConfig> config,
+            ServerSwitchMessageReceiveEvent event,
+            SendableDiscordMessage.Formatter formatter
+    ) {
+        MinecraftComponent messageComponent = event.getMessage();
+        String message = messageComponent != null ? convertComponent(config, ComponentUtil.fromAPI(messageComponent)) : null;
+
+        formatter.addPlaceholder("message", new FormattedText(message));
     }
 }

@@ -24,6 +24,7 @@ import com.discordsrv.bukkit.BukkitDiscordSRV;
 import com.discordsrv.bukkit.component.PaperComponentHandle;
 import com.discordsrv.common.channel.GlobalChannel;
 import org.bukkit.entity.Player;
+import org.bukkit.event.Event;
 import org.bukkit.event.Listener;
 
 public class BukkitChatForwarder implements IBukkitChatForwarder {
@@ -45,12 +46,13 @@ public class BukkitChatForwarder implements IBukkitChatForwarder {
     }
 
     @Override
-    public void publishEvent(Player player, MinecraftComponent component, boolean cancelled) {
+    public void publishEvent(Event event, Player player, MinecraftComponent component, boolean cancelled) {
         discordSRV.scheduler().run(() -> discordSRV.eventBus().publish(
                 new GameChatMessageReceiveEvent(
+                        event,
                         discordSRV.playerProvider().player(player),
-                        new GlobalChannel(discordSRV),
                         component,
+                        new GlobalChannel(discordSRV),
                         cancelled
                 )
         ));

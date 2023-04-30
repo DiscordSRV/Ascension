@@ -35,6 +35,7 @@ import com.discordsrv.api.placeholder.DiscordPlaceholders;
 import com.discordsrv.api.placeholder.FormattedText;
 import com.discordsrv.api.placeholder.util.Placeholders;
 import com.discordsrv.common.DiscordSRV;
+import com.discordsrv.common.component.util.ComponentUtil;
 import com.discordsrv.common.config.main.channels.MinecraftToDiscordChatConfig;
 import com.discordsrv.common.config.main.channels.base.BaseChannelConfig;
 import com.discordsrv.common.function.OrDefault;
@@ -79,7 +80,7 @@ public class MinecraftToDiscordChatModule extends AbstractGameMessageModule<Mine
     }
 
     @Override
-    public String convertMessage(OrDefault<MinecraftToDiscordChatConfig> config, Component component) {
+    public String convertComponent(OrDefault<MinecraftToDiscordChatConfig> config, Component component) {
         DiscordSerializer discordSerializer = discordSRV.componentFactory().discordSerializer();
         String content = discordSerializer.serialize(component, discordSerializer.getDefaultOptions().withEscapeMarkdown(false));
 
@@ -93,10 +94,10 @@ public class MinecraftToDiscordChatModule extends AbstractGameMessageModule<Mine
     @Override
     public Map<CompletableFuture<ReceivedDiscordMessage>, DiscordMessageChannel> sendMessageToChannels(
             OrDefault<MinecraftToDiscordChatConfig> config,
+            IPlayer player,
             SendableDiscordMessage.Builder format,
             List<DiscordMessageChannel> channels,
-            String message,
-            IPlayer player,
+            GameChatMessageReceiveEvent event,
             Object... context
     ) {
         Map<DiscordGuild, Set<DiscordMessageChannel>> channelMap = new LinkedHashMap<>();
@@ -112,6 +113,9 @@ public class MinecraftToDiscordChatModule extends AbstractGameMessageModule<Mine
                     .add(channel);
         }
 
+        Component component = ComponentUtil.fromAPI(event.getMessage());
+        String message = convertComponent(config, component);
+
         Map<CompletableFuture<ReceivedDiscordMessage>, DiscordMessageChannel> futures = new LinkedHashMap<>();
 
         // Format messages per-Guild
@@ -126,6 +130,9 @@ public class MinecraftToDiscordChatModule extends AbstractGameMessageModule<Mine
 
         return futures;
     }
+
+    @Override
+    public void setPlaceholders(OrDefault<MinecraftToDiscordChatConfig> config, GameChatMessageReceiveEvent event, SendableDiscordMessage.Formatter formatter) {}
 
     private final Pattern MENTION_PATTERN = Pattern.compile("@\\S+");
 
@@ -228,7 +235,7 @@ public class MinecraftToDiscordChatModule extends AbstractGameMessageModule<Mine
         return format.setAllowedMentions(allowedMentions)
                 .toFormatter()
                 .addContext(context)
-                .addReplacement("%message%", () -> {
+                .addPlaceholder("message", () -> {
                     String finalMessage = channelMessagePlaceholders.toString();
                     if (DiscordPlaceholders.MAPPING_STATE.get() != DiscordPlaceholders.MappingState.NORMAL) {
                         return preventEveryoneMentions(everyone, finalMessage, false);

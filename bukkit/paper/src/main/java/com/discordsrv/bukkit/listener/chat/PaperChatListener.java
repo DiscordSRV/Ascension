@@ -49,6 +49,6 @@ public class PaperChatListener implements Listener {
     @EventHandler(priority = EventPriority.MONITOR)
     public void onAsyncChat(AsyncChatEvent event) {
         MinecraftComponent component = COMPONENT_HANDLE.getComponent(discordSRV, event);
-        listener.publishEvent(event.getPlayer(), component, event.isCancelled());
+        listener.publishEvent(event, event.getPlayer(), component, event.isCancelled());
     }
 }

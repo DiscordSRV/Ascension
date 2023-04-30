@@ -27,10 +27,8 @@ import com.discordsrv.api.discord.entity.message.ReceivedDiscordMessage;
 import com.discordsrv.api.discord.entity.message.ReceivedDiscordMessageCluster;
 import com.discordsrv.api.discord.entity.message.SendableDiscordMessage;
 import com.discordsrv.api.event.events.message.receive.game.AbstractGameMessageReceiveEvent;
-import com.discordsrv.api.placeholder.FormattedText;
 import com.discordsrv.api.player.DiscordSRVPlayer;
 import com.discordsrv.common.DiscordSRV;
-import com.discordsrv.common.component.util.ComponentUtil;
 import com.discordsrv.common.config.main.channels.IMessageConfig;
 import com.discordsrv.common.config.main.channels.base.BaseChannelConfig;
 import com.discordsrv.common.config.main.channels.base.IChannelConfig;
@@ -135,11 +133,9 @@ public abstract class AbstractGameMessageModule<T extends IMessageConfig, E exte
                 return CompletableFuture.completedFuture(null);
             }
 
-            Component component = event != null ? ComponentUtil.fromAPI(event.getMessage()) : null;
-            String message = component != null ? convertMessage(moduleConfig, component) : null;
             Map<CompletableFuture<ReceivedDiscordMessage>, DiscordMessageChannel> messageFutures;
             messageFutures = sendMessageToChannels(
-                    moduleConfig, format, messageChannels, message, player,
+                    moduleConfig, player, format, messageChannels, event,
                     // Context
                     config, player
             );
@@ -185,22 +181,25 @@ public abstract class AbstractGameMessageModule<T extends IMessageConfig, E exte
         });
     }
 
-    public String convertMessage(OrDefault<T> config, Component component) {
+    public String convertComponent(OrDefault<T> config, Component component) {
         return discordSRV.componentFactory().discordSerializer().serialize(component);
     }
 
     public Map<CompletableFuture<ReceivedDiscordMessage>, DiscordMessageChannel> sendMessageToChannels(
             OrDefault<T> config,
+            IPlayer player,
             SendableDiscordMessage.Builder format,
             List<DiscordMessageChannel> channels,
-            String message,
-            IPlayer player,
+            E event,
             Object... context
     ) {
-        SendableDiscordMessage discordMessage = format.toFormatter()
+        SendableDiscordMessage.Formatter formatter = format.toFormatter()
                 .addContext(context)
-                .addReplacement("%message%", new FormattedText(message))
-                .applyPlaceholderService()
+                .applyPlaceholderService();
+
+        setPlaceholders(config, event, formatter);
+
+        SendableDiscordMessage discordMessage = formatter
                 .build();
 
         Map<CompletableFuture<ReceivedDiscordMessage>, DiscordMessageChannel> futures = new LinkedHashMap<>();
@@ -210,4 +209,6 @@ public abstract class AbstractGameMessageModule<T extends IMessageConfig, E exte
 
         return futures;
     }
+
+    public abstract void setPlaceholders(OrDefault<T> config, E event, SendableDiscordMessage.Formatter formatter);
 }

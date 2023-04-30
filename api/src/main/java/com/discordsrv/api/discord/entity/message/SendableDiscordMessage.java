@@ -26,6 +26,7 @@ package com.discordsrv.api.discord.entity.message;
 import com.discordsrv.api.component.GameTextBuilder;
 import com.discordsrv.api.discord.entity.interaction.component.actionrow.MessageActionRow;
 import com.discordsrv.api.discord.entity.message.impl.SendableDiscordMessageImpl;
+import com.discordsrv.api.placeholder.provider.SinglePlaceholder;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.annotations.Unmodifiable;
@@ -269,6 +270,14 @@ public interface SendableDiscordMessage {
          */
         @NotNull
         Formatter addContext(Object... context);
+
+        default Formatter addPlaceholder(String placeholder, Object replacement) {
+            return addContext(new SinglePlaceholder(placeholder, replacement));
+        }
+
+        default Formatter addPlaceholder(String placeholder, Supplier<Object> replacementSupplier) {
+            return addContext(new SinglePlaceholder(placeholder, replacementSupplier));
+        }
 
         @NotNull
         default Formatter addReplacement(String target, Object replacement) {

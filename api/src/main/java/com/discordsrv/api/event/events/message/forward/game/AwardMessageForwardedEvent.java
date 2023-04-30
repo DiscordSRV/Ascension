@@ -21,40 +21,14 @@
  * SOFTWARE.
  */
 
-package com.discordsrv.api.event.events.message.receive.game;
+package com.discordsrv.api.event.events.message.forward.game;
 
-import com.discordsrv.api.component.MinecraftComponent;
-import com.discordsrv.api.player.DiscordSRVPlayer;
+import com.discordsrv.api.discord.entity.message.ReceivedDiscordMessageCluster;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
-public class ServerSwitchMessageReceiveEvent extends AbstractGameMessageReceiveEvent {
+public class AwardMessageForwardedEvent extends AbstractGameMessageForwardedEvent {
 
-    private final DiscordSRVPlayer player;
-    private MinecraftComponent message;
-
-    public ServerSwitchMessageReceiveEvent(
-            @Nullable Object triggeringEvent,
-            @NotNull DiscordSRVPlayer player,
-            @Nullable MinecraftComponent message,
-            boolean cancelled
-    ) {
-        super(triggeringEvent, cancelled);
-        this.player = player;
-        this.message = message;
-    }
-
-    @NotNull
-    public DiscordSRVPlayer getPlayer() {
-        return player;
-    }
-
-    @Nullable
-    public MinecraftComponent getMessage() {
-        return message;
-    }
-
-    public void setMessage(@Nullable MinecraftComponent message) {
-        this.message = message;
+    public AwardMessageForwardedEvent(@NotNull ReceivedDiscordMessageCluster discordMessage) {
+        super(discordMessage);
     }
 }

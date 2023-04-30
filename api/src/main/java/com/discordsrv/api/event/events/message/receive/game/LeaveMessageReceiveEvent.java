@@ -32,21 +32,33 @@ import org.jetbrains.annotations.Nullable;
 public class LeaveMessageReceiveEvent extends AbstractGameMessageReceiveEvent {
 
     private final DiscordSRVPlayer player;
+    private MinecraftComponent message;
     private GameChannel gameChannel;
 
     public LeaveMessageReceiveEvent(
+            @Nullable Object triggeringEvent,
             @NotNull DiscordSRVPlayer player,
-            @Nullable GameChannel gameChannel,
             @NotNull MinecraftComponent message,
+            @Nullable GameChannel gameChannel,
             boolean cancelled) {
-        super(message, cancelled);
+        super(triggeringEvent, cancelled);
         this.player = player;
+        this.message = message;
         this.gameChannel = gameChannel;
     }
 
     @NotNull
     public DiscordSRVPlayer getPlayer() {
         return player;
+    }
+
+    @Nullable
+    public MinecraftComponent getMessage() {
+        return message;
+    }
+
+    public void setMessage(@Nullable MinecraftComponent message) {
+        this.message = message;
     }
 
     @Nullable

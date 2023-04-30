@@ -40,10 +40,10 @@ jar {
     from sourceSets.ap.output
 }
 
-license {
-    // Overwrite the default
-    header = rootProject.file('buildscript/license/API_LICENSE_HEADER')
-}
+//license {
+//    // Overwrite the default
+//    header = rootProject.file('buildscript/license/API_LICENSE_HEADER')
+//}
 
 publishing {
     publications {
