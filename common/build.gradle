@@ -36,6 +36,9 @@ dependencies {
     compileOnlyApi project(':common:common-api')
     testImplementation project(':common:common-api')
 
+    // Unrelocate
+    compileOnlyApi project(':common:common-unrelocate')
+
     // DependencyDownload
     api(libs.dependencydownload.runtime)
 
