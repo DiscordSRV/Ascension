@@ -33,16 +33,16 @@ import com.discordsrv.common.command.game.GameCommandModule;
 import com.discordsrv.common.component.ComponentFactory;
 import com.discordsrv.common.config.connection.ConnectionConfig;
 import com.discordsrv.common.config.connection.UpdateConfig;
-import com.discordsrv.common.config.main.linking.LinkedAccountConfig;
 import com.discordsrv.common.config.main.MainConfig;
+import com.discordsrv.common.config.main.linking.LinkedAccountConfig;
 import com.discordsrv.common.config.manager.ConnectionConfigManager;
 import com.discordsrv.common.config.manager.MainConfigManager;
 import com.discordsrv.common.debug.data.VersionInfo;
 import com.discordsrv.common.dependency.DiscordSRVDependencyManager;
 import com.discordsrv.common.discord.api.DiscordAPIEventModule;
 import com.discordsrv.common.discord.api.DiscordAPIImpl;
-import com.discordsrv.common.discord.connection.jda.JDAConnectionManager;
 import com.discordsrv.common.discord.connection.details.DiscordConnectionDetailsImpl;
+import com.discordsrv.common.discord.connection.jda.JDAConnectionManager;
 import com.discordsrv.common.event.bus.EventBusImpl;
 import com.discordsrv.common.exception.StorageException;
 import com.discordsrv.common.function.CheckedFunction;
@@ -91,6 +91,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.lang.reflect.Constructor;
 import java.net.URL;
+import java.net.URLClassLoader;
 import java.nio.file.Path;
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
@@ -208,10 +209,18 @@ public abstract class AbstractDiscordSRV<B extends IBootstrap, C extends MainCon
     }
 
     protected URL getManifest() {
-        return getClass().getClassLoader().getResource(JarFile.MANIFEST_NAME);
+        ClassLoader classLoader = bootstrap.classLoader();
+        if (classLoader instanceof URLClassLoader) {
+            return ((URLClassLoader) classLoader).findResource(JarFile.MANIFEST_NAME);
+        }
+
+        return classLoader.getResource(JarFile.MANIFEST_NAME);
     }
 
     private void readManifest() {
+        String version = bootstrap.getClass().getPackage().getImplementationVersion();
+        String gitCommit = null, gitBranch = null, buildTime = null;
+
         try {
             URL url = getManifest();
             if (url == null) {
@@ -222,21 +231,22 @@ public abstract class AbstractDiscordSRV<B extends IBootstrap, C extends MainCon
                 Manifest manifest = new Manifest(inputStream);
                 Attributes attributes = manifest.getMainAttributes();
 
-                String version = readAttribute(attributes, "Implementation-Version");
                 if (version == null) {
-                    logger().error("Failed to get version from manifest");
+                    version = readAttribute(attributes, "Implementation-Version");
+                    if (version == null) {
+                        logger().error("Failed to get version from manifest");
+                    }
                 }
 
-                versionInfo = new VersionInfo(
-                        version,
-                        readAttribute(attributes, "Git-Commit"),
-                        readAttribute(attributes, "Git-Branch"),
-                        readAttribute(attributes, "Build-Time")
-                );
+                gitCommit = readAttribute(attributes, "Git-Commit");
+                gitBranch = readAttribute(attributes, "Git-Branch");
+                buildTime = readAttribute(attributes, "Build-Time");
             }
         } catch (IOException e) {
             logger().error("Failed to read manifest", e);
         }
+
+        versionInfo = new VersionInfo(version, gitCommit, gitBranch, buildTime);
     }
 
     private String readAttribute(Attributes attributes, String key) {

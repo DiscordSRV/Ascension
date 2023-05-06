@@ -55,6 +55,11 @@ public class MockDiscordSRV extends AbstractDiscordSRV<IBootstrap, MainConfig, C
             }
 
             @Override
+            public ClassLoader classLoader() {
+                return null;
+            }
+
+            @Override
             public LifecycleManager lifecycleManager() {
                 return null;
             }

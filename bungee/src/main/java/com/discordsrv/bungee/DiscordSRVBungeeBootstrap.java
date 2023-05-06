@@ -69,6 +69,11 @@ public class DiscordSRVBungeeBootstrap extends BungeeBootstrap implements IBoots
     }
 
     @Override
+    public ClassLoader classLoader() {
+        return getClassLoader();
+    }
+
+    @Override
     public LifecycleManager lifecycleManager() {
         return lifecycleManager;
     }

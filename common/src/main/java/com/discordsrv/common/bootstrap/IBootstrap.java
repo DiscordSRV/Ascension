@@ -27,6 +27,7 @@ public interface IBootstrap {
 
     Logger logger();
     ClasspathAppender classpathAppender();
+    ClassLoader classLoader();
     LifecycleManager lifecycleManager();
     Path dataDirectory();
 

@@ -96,6 +96,11 @@ public class DiscordSRVVelocityBootstrap implements IBootstrap {
     }
 
     @Override
+    public ClassLoader classLoader() {
+        return getClass().getClassLoader();
+    }
+
+    @Override
     public LifecycleManager lifecycleManager() {
         return lifecycleManager;
     }

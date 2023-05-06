@@ -100,6 +100,11 @@ public class DiscordSRVSpongeBootstrap extends AbstractBootstrap implements ISpo
     }
 
     @Override
+    public ClassLoader classLoader() {
+        return getClassLoader();
+    }
+
+    @Override
     public LifecycleManager lifecycleManager() {
         return lifecycleManager;
     }

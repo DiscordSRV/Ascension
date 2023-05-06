@@ -24,6 +24,7 @@ import com.discordsrv.common.logging.Logger;
 import com.discordsrv.common.logging.backend.LogFilter;
 import com.discordsrv.common.logging.backend.LoggingBackend;
 import org.apache.commons.collections4.bidimap.DualHashBidiMap;
+import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -62,7 +63,15 @@ public class JavaLoggerImpl implements Logger, LoggingBackend {
     public void log(@Nullable String loggerName, @NotNull LogLevel level, @Nullable String message, @Nullable Throwable throwable) {
         Level logLevel = LEVELS.getKey(level);
         if (logLevel != null) {
-            logger.log(logLevel, message, throwable);
+            List<String> contents = new ArrayList<>(2);
+            if (message != null) {
+                contents.add(message);
+            }
+            if (throwable != null) {
+                // Exceptions aren't always logged correctly by the logger itself
+                contents.add(ExceptionUtils.getStackTrace(throwable));
+            }
+            logger.log(logLevel, String.join("\n", contents));
         }
     }
 

@@ -92,6 +92,11 @@ public class DiscordSRVBukkitBootstrap extends BukkitBootstrap implements IBoots
     }
 
     @Override
+    public ClassLoader classLoader() {
+        return getClassLoader();
+    }
+
+    @Override
     public LifecycleManager lifecycleManager() {
         return lifecycleManager;
     }
