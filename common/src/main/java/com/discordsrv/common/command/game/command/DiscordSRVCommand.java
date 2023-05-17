@@ -24,6 +24,7 @@ import com.discordsrv.common.command.game.abstraction.GameCommand;
 import com.discordsrv.common.command.game.abstraction.GameCommandArguments;
 import com.discordsrv.common.command.game.abstraction.GameCommandExecutor;
 import com.discordsrv.common.command.game.command.subcommand.*;
+import com.discordsrv.common.command.game.command.subcommand.reload.ReloadCommand;
 import com.discordsrv.common.command.game.sender.ICommandSender;
 import com.discordsrv.common.component.util.ComponentUtil;
 

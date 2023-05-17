@@ -237,7 +237,7 @@ public class MinecraftToDiscordChatModule extends AbstractGameMessageModule<Mine
                 .addContext(context)
                 .addPlaceholder("message", () -> {
                     String finalMessage = channelMessagePlaceholders.toString();
-                    if (DiscordPlaceholders.MAPPING_STATE.get() != DiscordPlaceholders.MappingState.NORMAL) {
+                    if (DiscordPlaceholders.FORMATTING.get() != DiscordPlaceholders.Formatting.NORMAL) {
                         return preventEveryoneMentions(everyone, finalMessage, false);
                     } else {
                         String formattedMessage = DiscordFormattingUtil.escapeFormatting(

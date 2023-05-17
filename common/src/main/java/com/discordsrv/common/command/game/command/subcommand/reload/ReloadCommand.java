@@ -16,7 +16,7 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package com.discordsrv.common.command.game.command.subcommand;
+package com.discordsrv.common.command.game.command.subcommand.reload;
 
 import com.discordsrv.api.DiscordSRVApi;
 import com.discordsrv.common.DiscordSRV;
@@ -92,19 +92,19 @@ public class ReloadCommand implements GameCommandExecutor, GameCommandSuggester 
 
             for (DiscordSRV.ReloadResult result : results) {
                 String res = result.name();
-                if (res.equals(DiscordSRV.ReloadResults.SECURITY_FAILED.name())) {
+                if (res.equals(ReloadResults.SECURITY_FAILED.name())) {
                     sender.sendMessage(Component.text(
                             "DiscordSRV is disabled due to a security check failure. "
                                     + "Please check console for more details", NamedTextColor.DARK_RED));
-                } else if (res.equals(DiscordSRV.ReloadResults.SUCCESS.name())) {
+                } else if (res.equals(ReloadResults.SUCCESS.name())) {
                     sender.sendMessage(Component.text("Reload successful", NamedTextColor.GRAY));
-                } else if (res.equals(DiscordSRV.ReloadResults.RESTART_REQUIRED.name())) {
+                } else if (res.equals(ReloadResults.RESTART_REQUIRED.name())) {
                     sender.sendMessage(Component.text("Some changes require a server restart"));
-                } else if (res.equals(DiscordSRV.ReloadResults.STORAGE_CONNECTION_FAILED.name())) {
+                } else if (res.equals(ReloadResults.STORAGE_CONNECTION_FAILED.name())) {
                     sender.sendMessage(Component.text("Storage connection failed, please check console for details.", NamedTextColor.RED));
-                } else if (res.equals(DiscordSRV.ReloadResults.DISCORD_CONNECTION_FAILED.name())) {
+                } else if (res.equals(ReloadResults.DISCORD_CONNECTION_FAILED.name())) {
                     sender.sendMessage(Component.text("Discord connection failed, please check console for details.", NamedTextColor.RED));
-                } else if (res.equals(DiscordSRV.ReloadResults.DISCORD_CONNECTION_RELOAD_REQUIRED.name())) {
+                } else if (res.equals(ReloadResults.DISCORD_CONNECTION_RELOAD_REQUIRED.name())) {
                     String command = "discordsrv reload " + DiscordSRVApi.ReloadFlag.DISCORD_CONNECTION.name().toLowerCase(Locale.ROOT) + " -confirm";
                     Component child;
                     if (sender instanceof IPlayer) {

@@ -19,7 +19,6 @@
 package com.discordsrv.bukkit.config.main;
 
 import com.discordsrv.common.config.main.linking.ServerRequiredLinkingConfig;
-import org.bukkit.event.EventPriority;
 import org.spongepowered.configurate.objectmapping.ConfigSerializable;
 import org.spongepowered.configurate.objectmapping.meta.Comment;
 
@@ -35,7 +34,7 @@ public class BukkitRequiredLinkingConfig extends ServerRequiredLinkingConfig {
         public String event = "AsyncPlayerPreLoginEvent";
 
         @Comment("The event priority to use for the kick")
-        public String priority = EventPriority.NORMAL.name();
+        public String priority = "NORMAL";
 
     }
 }

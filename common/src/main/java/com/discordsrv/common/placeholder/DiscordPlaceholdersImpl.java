@@ -69,18 +69,18 @@ public class DiscordPlaceholdersImpl implements DiscordPlaceholders {
                     String childText = ((TextNode<?>) node.getChildren().get(0)).getContent();
 
                     if (textStyle.getType() == TextStyle.Type.CODE_STRING) {
-                        DiscordPlaceholders.with(MappingState.PLAIN, () -> finalText.append("`").append(placeholders.apply(childText)).append("`"));
+                        DiscordPlaceholders.with(Formatting.PLAIN, () -> finalText.append("`").append(placeholders.apply(childText)).append("`"));
                     } else if (textStyle.getType() == TextStyle.Type.CODE_BLOCK) {
                         String language = textStyle.getExtra().get("language");
 
                         if (language != null && language.equals("ansi")) {
-                            DiscordPlaceholders.with(MappingState.ANSI, () -> finalText
+                            DiscordPlaceholders.with(Formatting.ANSI, () -> finalText
                                     .append("```ansi\n")
                                     .append(placeholders.apply(childText))
                                     .append("```")
                             );
                         } else {
-                            DiscordPlaceholders.with(MappingState.PLAIN, () -> finalText
+                            DiscordPlaceholders.with(Formatting.PLAIN, () -> finalText
                                     .append("```")
                                     .append(language != null ? language : "")
                                     .append("\n")

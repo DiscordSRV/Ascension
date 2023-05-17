@@ -27,6 +27,7 @@ import com.discordsrv.api.event.bus.Subscribe;
 import com.discordsrv.api.event.events.lifecycle.DiscordSRVShuttingDownEvent;
 import com.discordsrv.api.module.type.Module;
 import com.discordsrv.common.DiscordSRV;
+import com.discordsrv.common.command.game.command.subcommand.reload.ReloadResults;
 import com.discordsrv.common.debug.DebugGenerateEvent;
 import com.discordsrv.common.debug.file.TextDebugFile;
 import com.discordsrv.common.discord.connection.jda.JDAConnectionManager;
@@ -206,7 +207,7 @@ public class ModuleManager {
             }
 
             if (fail) {
-                reloadResults.add(DiscordSRV.ReloadResults.DISCORD_CONNECTION_RELOAD_REQUIRED);
+                reloadResults.add(ReloadResults.DISCORD_CONNECTION_RELOAD_REQUIRED);
             }
 
             // Check if the module needs to be enabled or disabled
@@ -229,7 +230,7 @@ public class ModuleManager {
 
         List<DiscordSRVApi.ReloadResult> results = new ArrayList<>();
 
-        List<DiscordSRV.ReloadResult> validResults = Arrays.asList(DiscordSRVApi.ReloadResult.Results.values());
+        List<DiscordSRV.ReloadResult> validResults = Arrays.asList(DiscordSRVApi.ReloadResult.DefaultConstants.values());
         for (DiscordSRVApi.ReloadResult reloadResult : reloadResults) {
             if (validResults.contains(reloadResult)) {
                 results.add(reloadResult);

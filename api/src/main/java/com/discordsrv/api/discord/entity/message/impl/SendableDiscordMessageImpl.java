@@ -265,7 +265,7 @@ public class SendableDiscordMessageImpl implements SendableDiscordMessage {
         private Function<Matcher, Object> wrapFunction(Function<Matcher, Object> function) {
             return matcher -> {
                 Object result = function.apply(matcher);
-                if (result instanceof FormattedText || DiscordPlaceholders.MAPPING_STATE.get() != DiscordPlaceholders.MappingState.NORMAL) {
+                if (result instanceof FormattedText || DiscordPlaceholders.FORMATTING.get() != DiscordPlaceholders.Formatting.NORMAL) {
                     // Process as regular text
                     return result.toString();
                 } else if (result instanceof CharSequence) {
@@ -321,7 +321,7 @@ public class SendableDiscordMessageImpl implements SendableDiscordMessage {
                 DiscordMessageEmbed.Builder embedBuilder = embed.toBuilder();
 
                 // TODO: check which parts allow formatting more thoroughly
-                DiscordPlaceholders.with(DiscordPlaceholders.MappingState.PLAIN, () -> {
+                DiscordPlaceholders.with(DiscordPlaceholders.Formatting.PLAIN, () -> {
                     embedBuilder.setAuthor(
                             cutToLength(
                                     placeholders.apply(embedBuilder.getAuthorName()),
@@ -380,7 +380,7 @@ public class SendableDiscordMessageImpl implements SendableDiscordMessage {
                 builder.addEmbed(embedBuilder.build());
             }
 
-            DiscordPlaceholders.with(DiscordPlaceholders.MappingState.PLAIN, () -> {
+            DiscordPlaceholders.with(DiscordPlaceholders.Formatting.PLAIN, () -> {
                 builder.setWebhookUsername(placeholders.apply(builder.getWebhookUsername()));
                 builder.setWebhookAvatarUrl(placeholders.apply(builder.getWebhookAvatarUrl()));
             });

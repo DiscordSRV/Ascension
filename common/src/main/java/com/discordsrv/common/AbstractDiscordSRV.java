@@ -30,6 +30,7 @@ import com.discordsrv.common.channel.ChannelLockingModule;
 import com.discordsrv.common.channel.ChannelUpdaterModule;
 import com.discordsrv.common.channel.GlobalChannelLookupModule;
 import com.discordsrv.common.command.game.GameCommandModule;
+import com.discordsrv.common.command.game.command.subcommand.reload.ReloadResults;
 import com.discordsrv.common.component.ComponentFactory;
 import com.discordsrv.common.config.connection.ConnectionConfig;
 import com.discordsrv.common.config.connection.UpdateConfig;

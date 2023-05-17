@@ -152,15 +152,4 @@ public interface DiscordSRV extends DiscordSRVApi {
     CompletableFuture<Void> invokeDisable();
     CompletableFuture<List<ReloadResult>> invokeReload(Set<ReloadFlag> flags, boolean silent);
 
-    enum ReloadResults implements ReloadResult {
-
-        // Internal reasons
-        SUCCESS,
-        SECURITY_FAILED,
-        STORAGE_CONNECTION_FAILED,
-        DISCORD_CONNECTION_RELOAD_REQUIRED,
-        DISCORD_CONNECTION_FAILED
-
-    }
-
 }

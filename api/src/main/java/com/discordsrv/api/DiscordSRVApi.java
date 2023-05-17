@@ -56,7 +56,7 @@ public interface DiscordSRVApi {
      */
     @Nullable
     static DiscordSRVApi get() {
-        return ApiInstanceHolder.API;
+        return InstanceHolder.API;
     }
 
     /**
@@ -66,7 +66,7 @@ public interface DiscordSRVApi {
      */
     @NotNull
     static Optional<DiscordSRVApi> optional() {
-        return Optional.ofNullable(ApiInstanceHolder.API);
+        return Optional.ofNullable(InstanceHolder.API);
     }
 
     /**
@@ -74,7 +74,7 @@ public interface DiscordSRVApi {
      * @return true if {@link #get()} and {@link #optional()} will return the API instance
      */
     static boolean isAvailable() {
-        return ApiInstanceHolder.API != null;
+        return InstanceHolder.API != null;
     }
 
     /**
@@ -295,14 +295,27 @@ public interface DiscordSRVApi {
 
     interface ReloadResult {
 
-        ReloadResult RESTART_REQUIRED = Results.RESTART_REQUIRED;
+        ReloadResult RESTART_REQUIRED = DefaultConstants.RESTART_REQUIRED;
 
         String name();
 
-        enum Results implements ReloadResult {
+        enum DefaultConstants implements ReloadResult {
 
             RESTART_REQUIRED
 
+        }
+    }
+
+    @ApiStatus.Internal
+    @SuppressWarnings("unused") // API, Reflection
+    final class InstanceHolder {
+
+        static DiscordSRVApi API;
+
+        private InstanceHolder() {}
+
+        private static void provide(DiscordSRVApi api) {
+            InstanceHolder.API = api;
         }
     }
 }

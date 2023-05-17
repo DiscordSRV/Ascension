@@ -30,16 +30,16 @@ import java.util.function.Function;
  */
 public interface DiscordPlaceholders {
 
-    ThreadLocal<MappingState> MAPPING_STATE = ThreadLocal.withInitial(() -> MappingState.NORMAL);
+    ThreadLocal<Formatting> FORMATTING = ThreadLocal.withInitial(() -> Formatting.NORMAL);
 
-    static void with(MappingState mappingState, Runnable runnable) {
-        MappingState before = MAPPING_STATE.get();
-        MAPPING_STATE.set(mappingState);
+    static void with(Formatting formatting, Runnable runnable) {
+        Formatting before = FORMATTING.get();
+        FORMATTING.set(formatting);
         runnable.run();
-        MAPPING_STATE.set(before);
+        FORMATTING.set(before);
     }
 
-    enum MappingState {
+    enum Formatting {
         NORMAL,
         PLAIN,
         ANSI

@@ -43,7 +43,7 @@ public class ComponentResultStringifier implements PlaceholderResultMapper {
         }
         if (result instanceof Component) {
             Component component = (Component) result;
-            DiscordPlaceholders.MappingState mappingState = DiscordPlaceholders.MAPPING_STATE.get();
+            DiscordPlaceholders.Formatting mappingState = DiscordPlaceholders.FORMATTING.get();
             switch (mappingState) {
                 case ANSI: // TODO: ansi serializer (?)
                 case PLAIN:
