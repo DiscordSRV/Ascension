@@ -28,32 +28,8 @@ tasks.register('generateResourceForCommodore', GenerateDependencyDownloadResourc
 
 allprojects {
     repositories {
-        exclusiveContent {
-            forRepository {
-                maven { url 'https://papermc.io/repo/repository/maven-public/' }
-            }
-            filter {
-                includeGroup 'com.destroystokyo.paper'
-                includeGroup 'io.papermc.paper'
-                includeGroup 'dev.folia'
-                includeGroup 'org.spigotmc'
-                includeGroup 'net.md-5'
-            }
-        }
-
-        exclusiveContent {
-            forRepository {
-                maven { url 'https://nexus.scarsz.me/content/groups/public/' }
-            }
-            filter {
-                includeGroup 'net.milkbowl.vault'
-                includeGroup 'me.clip'
-                includeGroup 'com.palmergames.bukkit'
-                includeGroup 'mineverse.aust1n46'
-                includeGroup 'ru.mrbrikster'
-                includeGroup 'com.github.ucchyocean.lc'
-            }
-        }
+        maven { url 'https://papermc.io/repo/repository/maven-public/' }
+        maven { url 'https://nexus.scarsz.me/content/groups/public/' }
     }
 }
 
@@ -95,6 +71,7 @@ dependencies {
     // Chat Integrations
     compileOnly(libs.chatty)
     compileOnly(libs.lunachat)
+    compileOnly(libs.mcmmo)
     compileOnly(libs.townychat)
     compileOnly(libs.venturechat)
 }
