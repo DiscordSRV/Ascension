@@ -110,6 +110,7 @@ dependencyResolutionManagement {
             library('chatty', 'ru.mrbrikster', 'chatty-api').version('2.19.13')
             library('lunachat', 'com.github.ucchyocean.lc', 'LunaChat').version('3.0.16')
             library('mcmmo', 'com.gmail.nossr50', 'mcmmo').version('2.1.220')
+            library('griefprevention', 'me.ryanhamshire', 'GriefPrevention').version('16.18.1')
 
             // Logging
             library('slf4j-api', 'org.slf4j', 'slf4j-api').version('1.7.36')

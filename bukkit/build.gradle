@@ -70,6 +70,7 @@ dependencies {
 
     // Chat Integrations
     compileOnly(libs.chatty)
+    compileOnly(libs.griefprevention)
     compileOnly(libs.lunachat)
     compileOnly(libs.mcmmo)
     compileOnly(libs.townychat)

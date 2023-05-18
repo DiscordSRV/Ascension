@@ -64,7 +64,11 @@ public class McMMOChatIntegration extends PluginIntegration<BukkitDiscordSRV> im
             return;
         }
 
-        if (ChatAPI.isUsingPartyChat(player) || ChatAPI.isUsingAdminChat(player)) {
+        if (ChatAPI.isUsingPartyChat(player)) {
+            logger().debug(player.getName() + " is using party chat");
+            event.setCancelled(true);
+        } else if (ChatAPI.isUsingAdminChat(player)) {
+            logger().debug(player.getName() + " is using admin chat");
             event.setCancelled(true);
         }
     }

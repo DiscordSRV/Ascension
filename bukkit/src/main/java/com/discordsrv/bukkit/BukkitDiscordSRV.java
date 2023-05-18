@@ -248,6 +248,7 @@ public class BukkitDiscordSRV extends ServerDiscordSRV<DiscordSRVBukkitBootstrap
 
         // Chat Integrations
         registerIntegration("com.discordsrv.bukkit.integration.chat.ChattyChatIntegration");
+        registerIntegration("com.discordsrv.bukkit.integration.chat.GriefPreventionChatIntegration");
         registerIntegration("com.discordsrv.bukkit.integration.chat.LunaChatIntegration");
         registerIntegration("com.discordsrv.bukkit.integration.chat.McMMOChatIntegration");
         registerIntegration("com.discordsrv.bukkit.integration.chat.TownyChatIntegration");
