@@ -44,7 +44,7 @@ import java.util.List;
 
 public class UpdateChecker {
 
-    private static final String USER_DOWNLOAD_URL = "https://discordsrv.com/download";
+    private static final String USER_DOWNLOAD_URL = "-";// "https://discordsrv.com/download";
     private static final String GITHUB_REPOSITORY = "DiscordSRV/Ascension";
     private static final String GITHUB_DEV_BRANCH = "main";
 
