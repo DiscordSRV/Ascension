@@ -76,7 +76,7 @@ public class UpdateChecker {
      */
     public boolean check(boolean logUpToDate) {
         UpdateConfig config = discordSRV.connectionConfig().update;
-        boolean isSnapshot = discordSRV.versionInfo().version().endsWith("-SNAPSHOT");
+        boolean isSnapshot = discordSRV.versionInfo().isSnapshot();
         boolean isSecurity = config.security.enabled;
         boolean isFirstPartyNotification = config.firstPartyNotification;
         boolean isNotification = config.notificationEnabled;

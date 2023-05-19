@@ -40,6 +40,10 @@ public class VersionInfo {
         return version;
     }
 
+    public boolean isSnapshot() {
+        return version.endsWith("-SNAPSHOT");
+    }
+
     @Nullable
     public String gitRevision() {
         return gitRevision;
