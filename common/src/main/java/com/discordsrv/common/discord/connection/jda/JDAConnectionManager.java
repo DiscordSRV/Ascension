@@ -63,6 +63,7 @@ import net.dv8tion.jda.api.utils.cache.CacheFlag;
 import net.dv8tion.jda.api.utils.messages.MessageRequest;
 import net.dv8tion.jda.internal.entities.ReceivedMessage;
 import net.dv8tion.jda.internal.hooks.EventManagerProxy;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.jetbrains.annotations.NotNull;
 
@@ -283,6 +284,13 @@ public class JDAConnectionManager implements DiscordConnectionManager {
     }
 
     private void connectInternal() {
+        BotConfig botConfig = discordSRV.connectionConfig().bot;
+        String token = botConfig.token;
+        if (StringUtils.isBlank(token) || token.contains(" ")) {
+            invalidToken();
+            return;
+        }
+
         discordSRV.setStatus(DiscordSRVApi.Status.ATTEMPTING_TO_CONNECT);
         this.gatewayPool = new ScheduledThreadPoolExecutor(
                 1,
@@ -299,7 +307,6 @@ public class JDAConnectionManager implements DiscordConnectionManager {
                 TimeUnit.SECONDS
         );
 
-        BotConfig botConfig = discordSRV.connectionConfig().bot;
         MemberCachingConfig memberCachingConfig = discordSRV.config().memberCaching;
         DiscordConnectionDetailsImpl connectionDetails = discordSRV.discordConnectionDetails();
 
@@ -348,7 +355,7 @@ public class JDAConnectionManager implements DiscordConnectionManager {
         }
 
         // Start with everything disabled & enable stuff that we actually need
-        JDABuilder jdaBuilder = JDABuilder.createLight(botConfig.token, intents);
+        JDABuilder jdaBuilder = JDABuilder.createLight(token, intents);
         jdaBuilder.enableCache(cacheFlags);
         jdaBuilder.setMemberCachePolicy(member -> {
             if (this.memberCachePolicies.isEmpty()) {
