@@ -23,6 +23,7 @@
 
 package com.discordsrv.api.component;
 
+import com.discordsrv.api.placeholder.provider.SinglePlaceholder;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.function.Function;
@@ -37,6 +38,14 @@ public interface GameTextBuilder {
 
     @NotNull
     GameTextBuilder addContext(Object... context);
+
+    default GameTextBuilder addPlaceholder(String placeholder, Object replacement) {
+        return addContext(new SinglePlaceholder(placeholder, replacement));
+    }
+
+    default GameTextBuilder addPlaceholder(String placeholder, Supplier<Object> replacementSupplier) {
+        return addContext(new SinglePlaceholder(placeholder, replacementSupplier));
+    }
 
     @NotNull
     default GameTextBuilder addReplacement(String target, Object replacement) {

@@ -129,7 +129,7 @@ public class DiscordChatMessageModule extends AbstractModule<DiscordSRV> {
         GameTextBuilder componentBuilder = discordSRV.componentFactory()
                 .textBuilder(format)
                 .addContext(discordMessage, author, channel, channelConfig)
-                .addReplacement("%message%", messageComponent);
+                .addPlaceholder("message", messageComponent);
         if (member != null) {
             componentBuilder.addContext(member);
         }

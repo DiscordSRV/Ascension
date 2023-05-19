@@ -71,6 +71,23 @@ public interface DiscordAPI {
     DiscordTextChannel getTextChannelById(long id);
 
     /**
+     * Gets a Discord voice channel by id, the provided entity should be stored for long periods of time.
+     * @param id the id for the voice channel
+     * @return the voice channel
+     */
+    @Nullable
+    DiscordVoiceChannel getVoiceChannelById(long id);
+
+    /**
+     * Gets a Discord stage channel by id, the provided entity should be stored for long periods of time.
+     * @param id the id for the voice channel
+     * @return the voice channel
+     */
+    @Nullable
+    DiscordStageChannel getStageChannelById(long id);
+
+
+    /**
      * Gets a Discord thread channel by id from the cache, the provided entity should not be stored for long periods of time.
      * @param id the id for the thread channel
      * @return the thread channel

@@ -29,6 +29,9 @@ import dev.vankka.mcdiscordreserializer.discord.DiscordSerializer;
 import dev.vankka.mcdiscordreserializer.discord.DiscordSerializerOptions;
 import dev.vankka.mcdiscordreserializer.minecraft.MinecraftSerializer;
 import dev.vankka.mcdiscordreserializer.minecraft.MinecraftSerializerOptions;
+import net.kyori.adventure.text.TranslatableComponent;
+import net.kyori.adventure.text.flattener.ComponentFlattener;
+import net.kyori.adventure.text.serializer.plain.PlainTextComponentSerializer;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Locale;
@@ -48,6 +51,7 @@ public class ComponentFactory implements MinecraftComponentFactory {
     private final DiscordSRV discordSRV;
     private final MinecraftSerializer minecraftSerializer;
     private final DiscordSerializer discordSerializer;
+    private final PlainTextComponentSerializer plainSerializer;
 
     // Not the same as Adventure's TranslationRegistry
     private final TranslationRegistry translationRegistry = new TranslationRegistry();
@@ -61,20 +65,29 @@ public class ComponentFactory implements MinecraftComponentFactory {
         this.discordSerializer = new DiscordSerializer();
         discordSerializer.setDefaultOptions(
                 DiscordSerializerOptions.defaults()
-                        .withTranslationProvider(translatableComponent -> {
-                            Translation translation = translationRegistry.lookup(Locale.US, translatableComponent.key());
-                            if (translation == null) {
-                                return null;
-                            }
+                        .withTranslationProvider(this::provideTranslation)
+        );
+        this.plainSerializer = PlainTextComponentSerializer.builder()
+                .flattener(
+                        ComponentFlattener.basic().toBuilder()
+                                .mapper(TranslatableComponent.class, this::provideTranslation)
+                                .build()
+                )
+                .build();
+    }
 
-                            return translation.translate(
-                                    translatableComponent.args()
-                                            .stream()
-                                            .map(discordSerializer::serialize)
-                                            .map(str -> (Object) str)
-                                            .toArray(Object[]::new)
-                            );
-                        })
+    private String provideTranslation(TranslatableComponent component) {
+        Translation translation = translationRegistry.lookup(Locale.US, component.key());
+        if (translation == null) {
+            return null;
+        }
+
+        return translation.translate(
+                component.args()
+                        .stream()
+                        .map(discordSerializer::serialize)
+                        .map(str -> (Object) str)
+                        .toArray(Object[]::new)
         );
     }
 
@@ -94,6 +107,10 @@ public class ComponentFactory implements MinecraftComponentFactory {
 
     public DiscordSerializer discordSerializer() {
         return discordSerializer;
+    }
+
+    public PlainTextComponentSerializer plainSerializer() {
+        return plainSerializer;
     }
 
     public TranslationRegistry translationRegistry() {

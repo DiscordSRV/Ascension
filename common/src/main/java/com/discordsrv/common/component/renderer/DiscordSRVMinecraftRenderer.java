@@ -33,12 +33,16 @@ import net.dv8tion.jda.api.JDA;
 import net.dv8tion.jda.api.entities.channel.middleman.GuildChannel;
 import net.dv8tion.jda.api.utils.MiscUtil;
 import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.event.ClickEvent;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.function.Supplier;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 public class DiscordSRVMinecraftRenderer extends DefaultMinecraftRenderer {
 
+    private static final Pattern MESSAGE_URL_PATTERN = Pattern.compile("https://(?:(?:ptb|canary)\\.)?discord\\.com/channels/[0-9]{16,20}/([0-9]{16,20})/[0-9]{16,20}");
     private static final ThreadLocal<Context> CONTEXT = new ThreadLocal<>();
     private final DiscordSRV discordSRV;
 
@@ -70,6 +74,41 @@ public class DiscordSRVMinecraftRenderer extends DefaultMinecraftRenderer {
     }
 
     @Override
+    public Component appendLink(@NotNull Component part, String link) {
+        JDA jda = discordSRV.jda();
+
+        if (jda != null) {
+            Matcher matcher = MESSAGE_URL_PATTERN.matcher(link);
+            if (matcher.matches()) {
+                String channel = matcher.group(1);
+                GuildChannel guildChannel = jda.getGuildChannelById(channel);
+
+                Context context = CONTEXT.get();
+                String format = context != null ? context.config.map(cfg -> cfg.mentions).get(cfg -> cfg.message) : null;
+                if (format == null || guildChannel == null) {
+                    return super.appendLink(part, link);
+                }
+
+                return Component.text()
+                        .clickEvent(ClickEvent.openUrl(link))
+                        .append(
+                                ComponentUtil.fromAPI(
+                                        discordSRV.componentFactory()
+                                                .textBuilder(format)
+                                                .addContext(guildChannel)
+                                                .addPlaceholder("jump_url", link)
+                                                .applyPlaceholderService()
+                                                .build()
+                                )
+                        )
+                        .build();
+            }
+        }
+
+        return super.appendLink(part, link);
+    }
+
+    @Override
     public @NotNull Component appendChannelMention(@NotNull Component component, @NotNull String id) {
         Context context = CONTEXT.get();
         DiscordToMinecraftChatConfig.Mentions.Format format =
@@ -88,7 +127,7 @@ public class DiscordSRVMinecraftRenderer extends DefaultMinecraftRenderer {
         return component.append(ComponentUtil.fromAPI(
                 discordSRV.componentFactory()
                         .textBuilder(guildChannel != null ? format.format : format.unknownFormat)
-                        .addReplacement("%channel_name%", guildChannel != null ? guildChannel.getName() : null)
+                        .addContext(guildChannel)
                         .applyPlaceholderService()
                         .build()
         ));

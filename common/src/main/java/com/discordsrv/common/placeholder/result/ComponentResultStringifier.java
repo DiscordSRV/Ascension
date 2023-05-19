@@ -25,7 +25,6 @@ import com.discordsrv.api.placeholder.mapper.PlaceholderResultMapper;
 import com.discordsrv.common.DiscordSRV;
 import com.discordsrv.common.component.util.ComponentUtil;
 import net.kyori.adventure.text.Component;
-import net.kyori.adventure.text.serializer.plain.PlainTextComponentSerializer;
 import org.jetbrains.annotations.NotNull;
 
 public class ComponentResultStringifier implements PlaceholderResultMapper {
@@ -47,7 +46,7 @@ public class ComponentResultStringifier implements PlaceholderResultMapper {
             switch (mappingState) {
                 case ANSI: // TODO: ansi serializer (?)
                 case PLAIN:
-                    return PlainTextComponentSerializer.plainText().serialize(component);
+                    return discordSRV.componentFactory().plainSerializer().serialize(component);
                 default:
                 case NORMAL:
                     return new FormattedText(discordSRV.componentFactory().discordSerializer().serialize(component));

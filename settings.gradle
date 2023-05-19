@@ -130,7 +130,7 @@ dependencyResolutionManagement {
             library('adventure-serializer-bungee', 'net.kyori', 'adventure-text-serializer-bungeecord').versionRef('adventure-platform')
 
             // MCDiscordReserializer & EnhancedLegacyText
-            library('mcdiscordreserializer', 'dev.vankka', 'mcdiscordreserializer').version('4.3.0')
+            library('mcdiscordreserializer', 'dev.vankka', 'mcdiscordreserializer').version('4.4.0-SNAPSHOT')
             library('enhancedlegacytext', 'dev.vankka', 'enhancedlegacytext').version('1.0.0')
 
             // JUnit

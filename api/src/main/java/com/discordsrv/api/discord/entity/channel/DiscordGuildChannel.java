@@ -25,6 +25,7 @@ package com.discordsrv.api.discord.entity.channel;
 
 import com.discordsrv.api.discord.entity.Snowflake;
 import com.discordsrv.api.discord.entity.guild.DiscordGuild;
+import com.discordsrv.api.placeholder.annotation.Placeholder;
 import org.jetbrains.annotations.NotNull;
 
 public interface DiscordGuildChannel extends Snowflake {
@@ -34,6 +35,7 @@ public interface DiscordGuildChannel extends Snowflake {
      * @return the name of the channel
      */
     @NotNull
+    @Placeholder("channel_name")
     String getName();
 
     /**
@@ -42,4 +44,12 @@ public interface DiscordGuildChannel extends Snowflake {
      */
     @NotNull
     DiscordGuild getGuild();
+
+    /**
+     * Gets the jump url for this channel
+     * @return the https url to go to this channel
+     */
+    @NotNull
+    @Placeholder("channel_jump_url")
+    String getJumpUrl();
 }

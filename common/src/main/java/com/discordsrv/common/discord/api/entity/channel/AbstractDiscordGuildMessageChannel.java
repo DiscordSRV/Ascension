@@ -66,6 +66,11 @@ public abstract class AbstractDiscordGuildMessageChannel<T extends GuildMessageC
     }
 
     @Override
+    public @NotNull String getJumpUrl() {
+        return channel.getJumpUrl();
+    }
+
+    @Override
     public @NotNull DiscordGuild getGuild() {
         return guild;
     }

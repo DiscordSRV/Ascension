@@ -336,8 +336,8 @@ public class ReceivedDiscordMessageImpl implements ReceivedDiscordMessage {
         for (Attachment attachment : attachments) {
             components.add(ComponentUtil.fromAPI(
                     discordSRV.componentFactory().textBuilder(attachmentFormat)
-                            .addReplacement("%file_name%", attachment.fileName())
-                            .addReplacement("%file_url%", attachment.url())
+                            .addPlaceholder("file_name", attachment.fileName())
+                            .addPlaceholder("file_url", attachment.url())
                             .build()
             ));
         }

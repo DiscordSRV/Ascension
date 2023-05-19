@@ -48,10 +48,7 @@ import com.github.benmanes.caffeine.cache.AsyncLoadingCache;
 import com.github.benmanes.caffeine.cache.Expiry;
 import net.dv8tion.jda.api.JDA;
 import net.dv8tion.jda.api.entities.*;
-import net.dv8tion.jda.api.entities.channel.concrete.NewsChannel;
-import net.dv8tion.jda.api.entities.channel.concrete.PrivateChannel;
-import net.dv8tion.jda.api.entities.channel.concrete.TextChannel;
-import net.dv8tion.jda.api.entities.channel.concrete.ThreadChannel;
+import net.dv8tion.jda.api.entities.channel.concrete.*;
 import net.dv8tion.jda.api.entities.channel.middleman.MessageChannel;
 import net.dv8tion.jda.api.exceptions.ErrorResponseException;
 import net.dv8tion.jda.api.requests.ErrorResponse;
@@ -395,6 +392,24 @@ public class DiscordAPIImpl implements DiscordAPI {
 
     public DiscordTextChannelImpl getTextChannel(TextChannel jda) {
         return new DiscordTextChannelImpl(discordSRV, jda);
+    }
+
+    @Override
+    public @Nullable DiscordVoiceChannel getVoiceChannelById(long id) {
+        return mapJDAEntity(jda -> jda.getVoiceChannelById(id), this::getVoiceChannel);
+    }
+
+    public DiscordVoiceChannelImpl getVoiceChannel(VoiceChannel jda) {
+        return new DiscordVoiceChannelImpl(discordSRV, jda);
+    }
+
+    @Override
+    public @Nullable DiscordStageChannel getStageChannelById(long id) {
+        return mapJDAEntity(jda -> jda.getStageChannelById(id), this::getStageChannel);
+    }
+
+    public DiscordStageChannelImpl getStageChannel(StageChannel jda) {
+        return new DiscordStageChannelImpl(discordSRV, jda);
     }
 
     @Override

@@ -50,8 +50,7 @@ import com.neovisionaries.ws.client.WebSocketFrame;
 import net.dv8tion.jda.api.JDA;
 import net.dv8tion.jda.api.JDABuilder;
 import net.dv8tion.jda.api.entities.*;
-import net.dv8tion.jda.api.entities.channel.concrete.PrivateChannel;
-import net.dv8tion.jda.api.entities.channel.concrete.TextChannel;
+import net.dv8tion.jda.api.entities.channel.concrete.*;
 import net.dv8tion.jda.api.events.StatusChangeEvent;
 import net.dv8tion.jda.api.events.session.SessionDisconnectEvent;
 import net.dv8tion.jda.api.events.session.ShutdownEvent;
@@ -236,6 +235,12 @@ public class JDAConnectionManager implements DiscordConnectionManager {
                 converted = api().getDirectMessageChannel((PrivateChannel) o);
             } else if (o instanceof TextChannel) {
                 converted = api().getTextChannel((TextChannel) o);
+            } else if (o instanceof ThreadChannel) {
+                converted = api().getThreadChannel((ThreadChannel) o);
+            } else if (o instanceof VoiceChannel) {
+                converted = api().getVoiceChannel((VoiceChannel) o);
+            } else if (o instanceof StageChannel) {
+                converted = api().getStageChannel((StageChannel) o);
             } else if (o instanceof Guild) {
                 converted = api().getGuild((Guild) o);
             } else if (o instanceof Member) {
