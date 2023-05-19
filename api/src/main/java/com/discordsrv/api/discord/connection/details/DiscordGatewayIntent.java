@@ -29,7 +29,7 @@ import net.dv8tion.jda.api.requests.GatewayIntent;
 public enum DiscordGatewayIntent implements JDAEntity<GatewayIntent> {
 
     GUILD_MEMBERS(GatewayIntent.GUILD_MEMBERS, "Server Members Intent"),
-    GUILD_BANS(GatewayIntent.GUILD_BANS),
+    GUILD_MODERATION(GatewayIntent.GUILD_MODERATION),
     GUILD_EMOJIS_AND_STICKERS(GatewayIntent.GUILD_EMOJIS_AND_STICKERS),
     GUILD_WEBHOOKS(GatewayIntent.GUILD_WEBHOOKS),
     GUILD_INVITES(GatewayIntent.GUILD_INVITES),
