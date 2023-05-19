@@ -45,12 +45,12 @@ import java.util.List;
 public class UpdateChecker {
 
     private static final String USER_DOWNLOAD_URL = "https://discordsrv.com/download";
-    private static final String GITHUB_REPOSITORY = "DiscordSRV/DiscordSRV";
-    private static final String GITHUB_DEV_BRANCH = "master";
+    private static final String GITHUB_REPOSITORY = "DiscordSRV/Ascension";
+    private static final String GITHUB_DEV_BRANCH = "main";
 
     private static final String DOWNLOAD_SERVICE_HOST = "https://download.discordsrv.com";
-    private static final String DOWNLOAD_SERVICE_SNAPSHOT_CHANNEL = "snapshot";
-    private static final String DOWNLOAD_SERVICE_RELEASE_CHANNEL = "release";
+    private static final String DOWNLOAD_SERVICE_SNAPSHOT_CHANNEL = "ascension-snapshot";
+    private static final String DOWNLOAD_SERVICE_RELEASE_CHANNEL = null;
 
     private static final String GITHUB_API_HOST = "https://api.github.com";
 

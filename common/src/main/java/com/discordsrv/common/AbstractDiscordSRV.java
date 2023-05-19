@@ -175,6 +175,16 @@ public abstract class AbstractDiscordSRV<B extends IBootstrap, C extends MainCon
         this.updateChecker = new UpdateChecker(this);
         readManifest();
 
+        ///////////////////////////////////////////////////////////////
+        logger.warning("");
+        logger.warning("+-----------------------------------------+");
+        logger.warning("This is a testing version of DiscordSRV");
+        logger.warning("Limited or no support will be provided");
+        logger.warning("EVERYTHING is subject to change.");
+        logger.warning("+-----------------------------------------+");
+        logger.warning("");
+        ///////////////////////////////////////////////////////////////
+
         Dispatcher dispatcher = new Dispatcher();
         dispatcher.setMaxRequests(20); // Set maximum amount of requests at a time (to something more reasonable than 64)
         dispatcher.setMaxRequestsPerHost(16); // Most requests are to discord.com

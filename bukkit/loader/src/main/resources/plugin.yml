@@ -1,4 +1,4 @@
-name: DiscordSRV
+name: DiscordSRV-Ascension
 main: com.discordsrv.bukkit.loader.DiscordSRVBukkitLoader
 version: @VERSION@
 description: ""
