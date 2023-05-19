@@ -79,7 +79,7 @@ public class Modal implements JDAEntity<net.dv8tion.jda.api.interactions.modals.
     @Override
     public net.dv8tion.jda.api.interactions.modals.Modal asJDA() {
         return net.dv8tion.jda.api.interactions.modals.Modal.create(id, title)
-                .addActionRows(rows.stream().map(ActionRow::asJDA).collect(Collectors.toList()))
+                .addComponents(rows.stream().map(ActionRow::asJDA).collect(Collectors.toList()))
                 .build();
     }
 
