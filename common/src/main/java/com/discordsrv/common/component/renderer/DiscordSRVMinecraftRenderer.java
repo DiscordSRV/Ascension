@@ -84,7 +84,7 @@ public class DiscordSRVMinecraftRenderer extends DefaultMinecraftRenderer {
                 GuildChannel guildChannel = jda.getGuildChannelById(channel);
 
                 Context context = CONTEXT.get();
-                String format = context != null ? context.config.map(cfg -> cfg.mentions).get(cfg -> cfg.message) : null;
+                String format = context != null ? context.config.map(cfg -> cfg.mentions).get(cfg -> cfg.messageUrl) : null;
                 if (format == null || guildChannel == null) {
                     return super.appendLink(part, link);
                 }

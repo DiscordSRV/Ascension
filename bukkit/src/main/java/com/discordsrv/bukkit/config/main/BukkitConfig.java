@@ -19,6 +19,7 @@
 package com.discordsrv.bukkit.config.main;
 
 import com.discordsrv.api.channel.GameChannel;
+import com.discordsrv.common.config.annotation.Order;
 import com.discordsrv.common.config.main.MainConfig;
 import com.discordsrv.common.config.main.PluginIntegrationConfig;
 import com.discordsrv.common.config.main.channels.base.ChannelConfig;
@@ -35,8 +36,10 @@ public class BukkitConfig extends MainConfig {
         channels.put(ChannelConfig.DEFAULT_KEY, new ServerBaseChannelConfig());
     }
 
+    @Order(5)
     public BukkitRequiredLinkingConfig requiredLinking = new BukkitRequiredLinkingConfig();
 
+    @Order(100)
     public PluginIntegrationConfig integrations = new PluginIntegrationConfig();
 
     @Override

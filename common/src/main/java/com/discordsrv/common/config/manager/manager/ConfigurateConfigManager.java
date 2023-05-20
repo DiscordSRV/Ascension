@@ -35,18 +35,21 @@ import com.discordsrv.common.config.serializer.PatternSerializer;
 import com.discordsrv.common.config.serializer.SendableDiscordMessageSerializer;
 import com.discordsrv.common.exception.ConfigException;
 import org.jetbrains.annotations.Nullable;
-import org.spongepowered.configurate.CommentedConfigurationNode;
-import org.spongepowered.configurate.ConfigurateException;
-import org.spongepowered.configurate.ConfigurationNode;
-import org.spongepowered.configurate.ConfigurationOptions;
+import org.spongepowered.configurate.*;
 import org.spongepowered.configurate.loader.AbstractConfigurationLoader;
 import org.spongepowered.configurate.objectmapping.ConfigSerializable;
 import org.spongepowered.configurate.objectmapping.FieldDiscoverer;
 import org.spongepowered.configurate.objectmapping.ObjectMapper;
+import org.spongepowered.configurate.objectmapping.meta.Comment;
+import org.spongepowered.configurate.objectmapping.meta.Processor;
 import org.spongepowered.configurate.serialize.SerializationException;
+import org.spongepowered.configurate.serialize.TypeSerializer;
 import org.spongepowered.configurate.util.NamingScheme;
 import org.spongepowered.configurate.util.NamingSchemes;
+import org.spongepowered.configurate.yaml.ScalarStyle;
+import org.spongepowered.configurate.yaml.YamlConfigurationLoader;
 
+import java.lang.reflect.Type;
 import java.nio.file.Path;
 import java.util.Arrays;
 import java.util.Comparator;
@@ -103,6 +106,26 @@ public abstract class ConfigurateConfigManager<T, LT extends AbstractConfigurati
                 .shouldCopyDefaults(false)
                 .implicitInitialization(false)
                 .serializers(builder -> {
+                    builder.register(String.class, new TypeSerializer<String>() {
+
+                        @Override
+                        public String deserialize(Type type, ConfigurationNode node) {
+                            return node.getString();
+                        }
+
+                        @Override
+                        public void serialize(Type type, @org.checkerframework.checker.nullness.qual.Nullable String obj, ConfigurationNode node) {
+                            RepresentationHint<ScalarStyle> hint = YamlConfigurationLoader.SCALAR_STYLE;
+
+                            ScalarStyle style = node.hint(hint);
+                            if (style == hint.defaultValue()) {
+                                // Set scalar style for strings to double quotes, by default
+                                node = node.hint(hint, ScalarStyle.DOUBLE_QUOTED);
+                            }
+
+                            node.raw(obj);
+                        }
+                    });
                     builder.register(BaseChannelConfig.class, getChannelConfigSerializer(objectMapper));
                     builder.register(Color.class, new ColorSerializer());
                     builder.register(Pattern.class, new PatternSerializer());
@@ -136,6 +159,20 @@ public abstract class ConfigurateConfigManager<T, LT extends AbstractConfigurati
         });
 
         return ObjectMapper.factoryBuilder()
+                .addProcessor(Comment.class, (data, fieldType) -> {
+                    Processor<Object> processor = Processor.comments().make(data, fieldType);
+
+                    return (value, destination) -> {
+                        processor.process(value, destination);
+                        if (destination instanceof CommentedConfigurationNode) {
+                            String comment = ((CommentedConfigurationNode) destination).comment();
+                            if (comment != null) {
+                                // Yaml doesn't render empty lines correctly, so we add a space when there are double line breaks
+                                ((CommentedConfigurationNode) destination).comment(comment.replace("\n\n", "\n \n"));
+                            }
+                        }
+                    };
+                })
                 .defaultNamingScheme(NAMING_SCHEME)
                 .addDiscoverer(new OrderedFieldDiscovererProxy<>((FieldDiscoverer<Object>) FieldDiscoverer.emptyConstructorObject(), fieldOrder))
                 .addDiscoverer(new OrderedFieldDiscovererProxy<>((FieldDiscoverer<Object>) FieldDiscoverer.record(), fieldOrder));

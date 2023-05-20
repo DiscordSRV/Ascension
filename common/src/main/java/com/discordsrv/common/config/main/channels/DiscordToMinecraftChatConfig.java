@@ -63,7 +63,7 @@ public class DiscordToMinecraftChatConfig {
         public Format channel = new Format("[hover:show_text:Click to go to channel][click:open_url:%channel_jump_url%]&#5865f2#%channel_name%", "&#5865f2#deleted-channel");
         public Format user = new Format("[hover:show_text:Tag: %user_tag%&r\nRoles: %user_roles_, |text_&7&oNone%]&#5865f2@%user_effective_name|user_name%", "&#5865f2@Unknown user");
 
-        public String message = "[hover:show_text:Click to go to message][click:open_url:%jump_url%]&#5865f2#%channel_name% > ...";
+        public String messageUrl = "[hover:show_text:Click to go to message][click:open_url:%jump_url%]&#5865f2#%channel_name% > ...";
 
         @ConfigSerializable
         public static class Format {

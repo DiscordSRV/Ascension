@@ -30,8 +30,8 @@ public class StorageConfig {
 
     @Comment("The storage backend to use.\n\n"
             + "- H2\n"
-            + "- MySQL\n")
-    public String backend = "h2";
+            + "- MySQL")
+    public String backend = "H2";
 
     @Comment("SQL table prefix")
     public String sqlTablePrefix = "discordsrv_";
