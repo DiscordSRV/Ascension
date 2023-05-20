@@ -21,7 +21,6 @@ dependencies {
     implementation(project(':velocity')) { transitive = false }
 
     api(libs.configurate.yaml)
-    api(libs.configurate.hocon)
 }
 
 application {

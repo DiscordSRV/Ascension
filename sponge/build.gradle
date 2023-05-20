@@ -8,14 +8,14 @@ shadowJar {
 
 allprojects {
     repositories {
-        exclusiveContent {
-            forRepository {
+//        exclusiveContent {
+//            forRepository {
                 maven { url 'https://repo.spongepowered.org/maven/' }
-            }
-            filter {
-                includeGroup 'org.spongepowered'
-            }
-        }
+//            }
+//            filter {
+//                includeGroup 'org.spongepowered'
+//            }
+//        }
     }
 
     dependencies {

@@ -22,6 +22,9 @@ import org.jetbrains.annotations.ApiStatus;
 import org.spongepowered.configurate.loader.AbstractConfigurationLoader;
 import org.spongepowered.configurate.yaml.NodeStyle;
 import org.spongepowered.configurate.yaml.YamlConfigurationLoader;
+import org.spongepowered.configurate.yaml.internal.snakeyaml.DumperOptions;
+
+import java.lang.reflect.Field;
 
 public interface YamlConfigLoaderProvider extends ConfigLoaderProvider<YamlConfigurationLoader> {
 
@@ -36,8 +39,21 @@ public interface YamlConfigLoaderProvider extends ConfigLoaderProvider<YamlConfi
     @Override
     @ApiStatus.NonExtendable
     default AbstractConfigurationLoader.Builder<?, YamlConfigurationLoader> createBuilder() {
-        return YamlConfigurationLoader.builder()
+        YamlConfigurationLoader.Builder builder = YamlConfigurationLoader.builder()
+                .commentsEnabled(true)
                 .nodeStyle(nodeStyle())
                 .indent(indent());
+
+        try {
+            Field field = builder.getClass().getDeclaredField("options");
+            field.setAccessible(true);
+
+            DumperOptions dumperOptions = (DumperOptions) field.get(builder);
+            dumperOptions.setSplitLines(false);
+        } catch (ReflectiveOperationException e) {
+            e.printStackTrace();
+        }
+
+        return builder;
     }
 }

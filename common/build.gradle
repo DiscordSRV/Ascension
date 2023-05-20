@@ -65,7 +65,6 @@ dependencies {
 
     // Config
     runtimeDownloadApi(libs.configurate.yaml)
-    runtimeDownloadApi(libs.configurate.hocon)
 
     // Logging
     compileOnly(libs.log4j.core)

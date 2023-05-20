@@ -52,6 +52,8 @@ subprojects {
                 includeGroup 'github.scarsz'
                 includeGroup 'me.scarsz'
                 includeGroup 'me.minecraftauth'
+
+                includeGroup 'org.spongepowered' // Configurate yamlbranch
             }
         }
         maven {
