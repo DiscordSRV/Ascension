@@ -24,7 +24,6 @@ import com.discordsrv.api.player.DiscordSRVPlayer;
 import com.discordsrv.common.DiscordSRV;
 import com.discordsrv.common.command.game.sender.ICommandSender;
 import com.discordsrv.common.config.main.channels.base.BaseChannelConfig;
-import com.discordsrv.common.function.OrDefault;
 import com.discordsrv.common.permission.util.PermissionUtil;
 import com.discordsrv.common.profile.Profile;
 import net.kyori.adventure.text.Component;
@@ -66,8 +65,8 @@ public interface IPlayer extends DiscordSRVPlayer, IOfflinePlayer, ICommandSende
     @Nullable
     @ApiStatus.NonExtendable
     @Placeholder("player_avatar_url")
-    default String getAvatarUrl(OrDefault<BaseChannelConfig> config) {
-        String avatarUrlProvider = config.get(cfg -> cfg.avatarUrlProvider);
+    default String getAvatarUrl(BaseChannelConfig config) {
+        String avatarUrlProvider = config.avatarUrlProvider;
         if (avatarUrlProvider == null) {
             return null;
         }

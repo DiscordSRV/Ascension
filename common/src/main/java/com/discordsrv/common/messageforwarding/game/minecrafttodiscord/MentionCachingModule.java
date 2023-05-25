@@ -22,7 +22,6 @@ import com.discordsrv.api.event.bus.Subscribe;
 import com.discordsrv.common.DiscordSRV;
 import com.discordsrv.common.config.main.channels.MinecraftToDiscordChatConfig;
 import com.discordsrv.common.config.main.channels.base.BaseChannelConfig;
-import com.discordsrv.common.function.OrDefault;
 import com.discordsrv.common.module.type.AbstractModule;
 import com.github.benmanes.caffeine.cache.Cache;
 import net.dv8tion.jda.api.entities.Guild;
@@ -60,16 +59,14 @@ public class MentionCachingModule extends AbstractModule<DiscordSRV> {
 
     @Override
     public boolean isEnabled() {
-        for (OrDefault<BaseChannelConfig> channel : discordSRV.channelConfig().getAllChannels()) {
-            OrDefault<MinecraftToDiscordChatConfig> config = channel.map(cfg -> cfg.minecraftToDiscord);
-            if (!config.get(cfg -> cfg.enabled, false)) {
+        for (BaseChannelConfig channel : discordSRV.channelConfig().getAllChannels()) {
+            MinecraftToDiscordChatConfig config = channel.minecraftToDiscord;
+            if (!config.enabled) {
                 continue;
             }
 
-            OrDefault<MinecraftToDiscordChatConfig.Mentions> mentions = config.map(cfg -> cfg.mentions);
-            if (mentions.get(cfg -> cfg.roles, false)
-                    || mentions.get(cfg -> cfg.users, false)
-                    || mentions.get(cfg -> cfg.channels, false)) {
+            MinecraftToDiscordChatConfig.Mentions mentions = config.mentions;
+            if (mentions.roles || mentions.users || mentions.channels) {
                 return true;
             }
         }

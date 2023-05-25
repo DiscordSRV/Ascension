@@ -40,7 +40,6 @@ import com.discordsrv.api.placeholder.annotation.PlaceholderRemainder;
 import com.discordsrv.common.DiscordSRV;
 import com.discordsrv.common.component.util.ComponentUtil;
 import com.discordsrv.common.config.main.channels.base.BaseChannelConfig;
-import com.discordsrv.common.function.OrDefault;
 import com.discordsrv.common.future.util.CompletableFutureUtil;
 import net.dv8tion.jda.api.entities.Member;
 import net.dv8tion.jda.api.entities.Message;
@@ -324,14 +323,14 @@ public class ReceivedDiscordMessageImpl implements ReceivedDiscordMessage {
     //
 
     @Placeholder("message_attachments")
-    public Component _attachments(OrDefault<BaseChannelConfig> config, @PlaceholderRemainder String suffix) {
+    public Component _attachments(BaseChannelConfig config, @PlaceholderRemainder String suffix) {
         if (suffix.startsWith("_")) {
             suffix = suffix.substring(1);
         } else if (!suffix.isEmpty()) {
             return null;
         }
 
-        String attachmentFormat = config.map(cfg -> cfg.discordToMinecraft).get(cfg -> cfg.attachmentFormat);
+        String attachmentFormat = config.discordToMinecraft.attachmentFormat;
         List<Component> components = new ArrayList<>();
         for (Attachment attachment : attachments) {
             components.add(ComponentUtil.fromAPI(

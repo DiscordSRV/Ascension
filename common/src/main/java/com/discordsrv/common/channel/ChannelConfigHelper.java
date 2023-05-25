@@ -28,23 +28,32 @@ import com.discordsrv.common.config.main.channels.base.BaseChannelConfig;
 import com.discordsrv.common.config.main.channels.base.ChannelConfig;
 import com.discordsrv.common.config.main.channels.base.IChannelConfig;
 import com.discordsrv.common.config.main.channels.base.ThreadConfig;
-import com.discordsrv.common.function.OrDefault;
+import com.discordsrv.common.config.manager.MainConfigManager;
 import com.github.benmanes.caffeine.cache.CacheLoader;
 import com.github.benmanes.caffeine.cache.LoadingCache;
 import org.apache.commons.lang3.tuple.Pair;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.checkerframework.checker.nullness.qual.Nullable;
+import org.spongepowered.configurate.CommentedConfigurationNode;
+import org.spongepowered.configurate.objectmapping.ObjectMapper;
+import org.spongepowered.configurate.serialize.SerializationException;
 
 import java.util.*;
-import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.TimeUnit;
 
 public class ChannelConfigHelper {
 
     private final DiscordSRV discordSRV;
+
+    // game channel name eg. "global" -> game channel ("discordsrv:global")
     private final LoadingCache<String, GameChannel> nameToChannelCache;
+
+    // game channel name -> config
+    private final Map<String, BaseChannelConfig> configs;
+
+    // caches for Discord channel -> config
     private final Map<Long, Map<String, BaseChannelConfig>> textChannelToConfigMap;
-    private final LoadingCache<Pair<Long, String>, Map<String, BaseChannelConfig>> threadToConfigCache;
+    private final Map<Pair<Long, String>, Map<String, BaseChannelConfig>> threadToConfigMap;
 
     public ChannelConfigHelper(DiscordSRV discordSRV) {
         this.discordSRV = discordSRV;
@@ -65,62 +74,96 @@ public class ChannelConfigHelper {
                         return event.getChannelFromProcessing();
                     }
                 });
-        this.textChannelToConfigMap = new ConcurrentHashMap<>();
-        this.threadToConfigCache = discordSRV.caffeineBuilder()
-                .expireAfterWrite(60, TimeUnit.SECONDS)
-                .expireAfterAccess(30, TimeUnit.SECONDS)
-                .refreshAfterWrite(10, TimeUnit.SECONDS)
-                .build(key -> {
-                    Map<String, BaseChannelConfig> map = new HashMap<>();
-                    for (Map.Entry<String, BaseChannelConfig> entry : channels().entrySet()) {
-                        String channelName = entry.getKey();
-                        BaseChannelConfig value = entry.getValue();
-                        if (value instanceof IChannelConfig) {
-                            IChannelConfig channelConfig = (IChannelConfig) value;
-                            List<ThreadConfig> threads = channelConfig.threads();
-                            if (threads == null) {
-                                continue;
-                            }
-
-                            for (ThreadConfig thread : threads) {
-                                if (Objects.equals(thread.channelId, key.getKey())
-                                        && Objects.equals(thread.threadName, key.getValue())) {
-                                    map.put(channelName, value);
-                                }
-                            }
-                        }
-                    }
-                    return map;
-                });
+        this.configs = new HashMap<>();
+        this.textChannelToConfigMap = new HashMap<>();
+        this.threadToConfigMap = new LinkedHashMap<>();
     }
 
-    public void reload() {
-        Map<Long, Map<String, BaseChannelConfig>> newMap = new HashMap<>();
+    @SuppressWarnings("unchecked")
+    private BaseChannelConfig map(BaseChannelConfig defaultConfig, BaseChannelConfig config)
+            throws SerializationException {
+        MainConfigManager<?> configManager = discordSRV.configManager();
+
+        CommentedConfigurationNode defaultNode = CommentedConfigurationNode.root(configManager.defaultNodeOptions());
+        CommentedConfigurationNode target = CommentedConfigurationNode.root(configManager.configNodeOptions());
+
+        configManager.defaultObjectMapper()
+                .get((Class<BaseChannelConfig>) defaultConfig.getClass())
+                .save(defaultConfig, defaultNode);
+
+        ObjectMapper<BaseChannelConfig> mapper = configManager.configObjectMapper()
+                .get((Class<BaseChannelConfig>) config.getClass());
+
+        mapper.save(config, target);
+        target.mergeFrom(defaultNode);
+
+        return mapper.load(target);
+    }
+
+    public void reload() throws SerializationException {
+        Map<String, BaseChannelConfig> configChannels = discordSRV.config().channels;
+        BaseChannelConfig defaultConfig = configChannels.computeIfAbsent(ChannelConfig.DEFAULT_KEY, key -> discordSRV.config().createDefaultBaseChannel());
+
+        Map<String, BaseChannelConfig> configs = new HashMap<>();
+        for (Map.Entry<String, BaseChannelConfig> entry : configChannels.entrySet()) {
+            if (Objects.equals(entry.getKey(), ChannelConfig.DEFAULT_KEY)) {
+                continue;
+            }
+
+            BaseChannelConfig mapped = map(defaultConfig, entry.getValue());
+            configs.put(entry.getKey(), mapped);
+        }
+
+        synchronized (this.configs) {
+            this.configs.clear();
+            this.configs.putAll(configs);
+        }
+
+        Map<Long, Map<String, BaseChannelConfig>> text = new HashMap<>();
+        Map<Pair<Long, String>, Map<String, BaseChannelConfig>> thread = new HashMap<>();
+
         for (Map.Entry<String, BaseChannelConfig> entry : channels().entrySet()) {
             String channelName = entry.getKey();
             BaseChannelConfig value = entry.getValue();
             if (value instanceof IChannelConfig) {
                 IChannelConfig channelConfig = (IChannelConfig) value;
+
                 List<Long> channelIds = channelConfig.channelIds();
-                if (channelIds == null) {
-                    continue;
+                if (channelIds != null) {
+                    for (long channelId : channelIds) {
+                        text.computeIfAbsent(channelId, key -> new LinkedHashMap<>())
+                                .put(channelName, value);
+                    }
                 }
 
-                for (long channelId : channelIds) {
-                    newMap.computeIfAbsent(channelId, key -> new LinkedHashMap<>())
-                            .put(channelName, value);
+                List<ThreadConfig> threads = channelConfig.threads();
+                if (threads != null) {
+                    for (ThreadConfig threadConfig : threads) {
+                        Pair<Long, String> pair = Pair.of(
+                                threadConfig.channelId,
+                                threadConfig.threadName.toLowerCase(Locale.ROOT)
+                        );
+                        thread.computeIfAbsent(pair, key -> new LinkedHashMap<>())
+                                .put(channelName, value);
+                    }
                 }
             }
         }
 
         synchronized (textChannelToConfigMap) {
             textChannelToConfigMap.clear();
-            textChannelToConfigMap.putAll(newMap);
+            textChannelToConfigMap.putAll(text);
+        }
+        synchronized (threadToConfigMap) {
+            threadToConfigMap.clear();
+            threadToConfigMap.putAll(thread);
         }
     }
 
     private Map<String, BaseChannelConfig> channels() {
-        return discordSRV.config().channels;
+        synchronized (configs) {
+            return configs;
+        }
     }
 
     private BaseChannelConfig findChannel(String key) {
@@ -130,16 +173,12 @@ public class ChannelConfigHelper {
             return byExact;
         }
 
-        for (Map.Entry<String, BaseChannelConfig> entry : channels().entrySet()) {
+        for (Map.Entry<String, BaseChannelConfig> entry : channels.entrySet()) {
             if (entry.getKey().equalsIgnoreCase(key)) {
                 return entry.getValue();
             }
         }
         return null;
-    }
-
-    private BaseChannelConfig getDefault() {
-        return channels().computeIfAbsent(ChannelConfig.DEFAULT_KEY, key -> new BaseChannelConfig());
     }
 
     public Set<String> getKeys() {
@@ -148,45 +187,22 @@ public class ChannelConfigHelper {
         return keys;
     }
 
-    public Set<OrDefault<BaseChannelConfig>> getAllChannels() {
-        BaseChannelConfig defaultConfig = getDefault();
-
-        Set<OrDefault<BaseChannelConfig>> channelConfigs = new HashSet<>();
+    public Set<BaseChannelConfig> getAllChannels() {
+        Set<BaseChannelConfig> channelConfigs = new HashSet<>();
         for (Map.Entry<String, BaseChannelConfig> entry : channels().entrySet()) {
             if (entry.getKey().equals(ChannelConfig.DEFAULT_KEY)) {
                 continue;
             }
-            channelConfigs.add(new OrDefault<>(entry.getValue(), defaultConfig));
+            channelConfigs.add(entry.getValue());
         }
         return channelConfigs;
     }
 
-    public OrDefault<BaseChannelConfig> orDefault(GameChannel gameChannel) {
-        return orDefault(gameChannel.getOwnerName(), gameChannel.getChannelName());
-    }
-
-    public OrDefault<BaseChannelConfig> orDefault(String ownerName, String channelName) {
-        BaseChannelConfig defaultConfig = getDefault();
-
-        if (ownerName == null && channelName.contains(":")) {
-            String[] parts = channelName.split(":", 2);
-            if (parts.length == 2) {
-                ownerName = parts[0];
-                channelName = parts[1];
-            }
-        }
-
-        return new OrDefault<>(
-                get(ownerName, channelName),
-                defaultConfig
-        );
-    }
-
     public BaseChannelConfig get(GameChannel gameChannel) {
-        return get(gameChannel.getOwnerName(), gameChannel.getChannelName());
+        return resolve(gameChannel.getOwnerName(), gameChannel.getChannelName());
     }
 
-    public BaseChannelConfig get(String ownerName, String channelName) {
+    public BaseChannelConfig resolve(String ownerName, String channelName) {
         if (ownerName != null) {
             ownerName = ownerName.toLowerCase(Locale.ROOT);
 
@@ -210,26 +226,8 @@ public class ChannelConfigHelper {
         return gameChannel != null ? get(gameChannel) : null;
     }
 
-    public Map<GameChannel, OrDefault<BaseChannelConfig>> orDefault(DiscordMessageChannel messageChannel) {
-        BaseChannelConfig defaultConfig = getDefault();
-
-        Map<GameChannel, OrDefault<BaseChannelConfig>> channels = new HashMap<>();
-        for (Map.Entry<GameChannel, BaseChannelConfig> entry : getDiscordResolved(messageChannel).entrySet()) {
-            channels.put(
-                    entry.getKey(),
-                    new OrDefault<>(entry.getValue(), defaultConfig)
-            );
-        }
-        return channels;
-    }
-
-    public Map<GameChannel, BaseChannelConfig> getDiscordResolved(DiscordMessageChannel channel) {
-        Map<String, BaseChannelConfig> pairs = null;
-        if (channel instanceof DiscordTextChannel) {
-            pairs = getText((DiscordTextChannel) channel);
-        } else if (channel instanceof DiscordThreadChannel) {
-            pairs = getThread((DiscordThreadChannel) channel);
-        }
+    public Map<GameChannel, BaseChannelConfig> resolve(DiscordMessageChannel channel) {
+        Map<String, BaseChannelConfig> pairs = get(channel);
         if (pairs == null || pairs.isEmpty()) {
             return Collections.emptyMap();
         }
@@ -247,11 +245,30 @@ public class ChannelConfigHelper {
         return channels;
     }
 
-    public Map<String, BaseChannelConfig> getText(DiscordTextChannel channel) {
-        return textChannelToConfigMap.get(channel.getId());
+    private Map<String, BaseChannelConfig> get(DiscordMessageChannel channel) {
+        Map<String, BaseChannelConfig> pairs = null;
+        if (channel instanceof DiscordTextChannel) {
+            pairs = getByTextChannel((DiscordTextChannel) channel);
+        } else if (channel instanceof DiscordThreadChannel) {
+            pairs = getByThreadChannel((DiscordThreadChannel) channel);
+        }
+
+        return pairs;
     }
 
-    public Map<String, BaseChannelConfig> getThread(DiscordThreadChannel channel) {
-        return threadToConfigCache.get(Pair.of(channel.getParentChannel().getId(), channel.getName()));
+    private Map<String, BaseChannelConfig> getByTextChannel(DiscordTextChannel channel) {
+        synchronized (textChannelToConfigMap) {
+            return textChannelToConfigMap.get(channel.getId());
+        }
+    }
+
+    private Map<String, BaseChannelConfig> getByThreadChannel(DiscordThreadChannel channel) {
+        Pair<Long, String> pair = Pair.of(
+                channel.getParentChannel().getId(),
+                channel.getName().toLowerCase(Locale.ROOT)
+        );
+        synchronized (threadToConfigMap) {
+            return threadToConfigMap.get(pair);
+        }
     }
 }

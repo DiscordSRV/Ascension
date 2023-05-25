@@ -23,7 +23,6 @@ import com.discordsrv.common.DiscordSRV;
 import com.discordsrv.common.config.main.channels.ChannelLockingConfig;
 import com.discordsrv.common.config.main.channels.base.BaseChannelConfig;
 import com.discordsrv.common.config.main.channels.base.IChannelConfig;
-import com.discordsrv.common.function.OrDefault;
 import com.discordsrv.common.module.type.AbstractModule;
 import net.dv8tion.jda.api.JDA;
 import net.dv8tion.jda.api.Permission;
@@ -34,7 +33,6 @@ import net.dv8tion.jda.api.entities.channel.concrete.TextChannel;
 import net.dv8tion.jda.api.requests.restaction.PermissionOverrideAction;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 import java.util.function.BiConsumer;
 
@@ -52,11 +50,11 @@ public class ChannelLockingModule extends AbstractModule<DiscordSRV> {
     @Override
     public void enable() {
         doForAllChannels((config, channelConfig) -> {
-            OrDefault<ChannelLockingConfig> shutdownConfig = config.map(cfg -> cfg.channelLocking);
-            OrDefault<ChannelLockingConfig.Channels> channels = shutdownConfig.map(cfg -> cfg.channels);
-            OrDefault<ChannelLockingConfig.Threads> threads = shutdownConfig.map(cfg -> cfg.threads);
+            ChannelLockingConfig shutdownConfig = config.channelLocking;
+            ChannelLockingConfig.Channels channels = shutdownConfig.channels;
+            ChannelLockingConfig.Threads threads = shutdownConfig.threads;
 
-            if (threads.get(cfg -> cfg.unarchive, true)) {
+            if (threads.unarchive) {
                 discordSRV.discordAPI().findOrCreateThreads(config, channelConfig, __ -> {}, new ArrayList<>(), false);
             }
             channelPermissions(channelConfig, channels, true);
@@ -66,11 +64,11 @@ public class ChannelLockingModule extends AbstractModule<DiscordSRV> {
     @Override
     public void disable() {
         doForAllChannels((config, channelConfig) -> {
-            OrDefault<ChannelLockingConfig> shutdownConfig = config.map(cfg -> cfg.channelLocking);
-            OrDefault<ChannelLockingConfig.Channels> channels = shutdownConfig.map(cfg -> cfg.channels);
-            OrDefault<ChannelLockingConfig.Threads> threads = shutdownConfig.map(cfg -> cfg.threads);
+            ChannelLockingConfig shutdownConfig = config.channelLocking;
+            ChannelLockingConfig.Channels channels = shutdownConfig.channels;
+            ChannelLockingConfig.Threads threads = shutdownConfig.threads;
 
-            if (threads.get(cfg -> cfg.archive, true)) {
+            if (threads.archive) {
                 for (DiscordThreadChannel thread : discordSRV.discordAPI().findThreads(config, channelConfig)) {
                     thread.asJDA().getManager()
                             .setArchived(true)
@@ -84,7 +82,7 @@ public class ChannelLockingModule extends AbstractModule<DiscordSRV> {
 
     private void channelPermissions(
             IChannelConfig channelConfig,
-            OrDefault<ChannelLockingConfig.Channels> shutdownConfig,
+            ChannelLockingConfig.Channels shutdownConfig,
             boolean state
     ) {
         JDA jda = discordSRV.jda();
@@ -92,20 +90,20 @@ public class ChannelLockingModule extends AbstractModule<DiscordSRV> {
             return;
         }
 
-        boolean everyone = shutdownConfig.get(cfg -> cfg.everyone, false);
-        List<Long> roleIds = shutdownConfig.get(cfg -> cfg.roleIds, Collections.emptyList());
+        boolean everyone = shutdownConfig.everyone;
+        List<Long> roleIds = shutdownConfig.roleIds;
         if (!everyone && roleIds.isEmpty()) {
             return;
         }
 
         List<Permission> permissions = new ArrayList<>();
-        if (shutdownConfig.get(cfg -> cfg.read, false)) {
+        if (shutdownConfig.read) {
             permissions.add(Permission.VIEW_CHANNEL);
         }
-        if (shutdownConfig.get(cfg -> cfg.write, true)) {
+        if (shutdownConfig.write) {
             permissions.add(Permission.MESSAGE_SEND);
         }
-        if (shutdownConfig.get(cfg -> cfg.addReactions, true)) {
+        if (shutdownConfig.addReactions) {
             permissions.add(Permission.MESSAGE_ADD_REACTION);
         }
 
@@ -150,9 +148,9 @@ public class ChannelLockingModule extends AbstractModule<DiscordSRV> {
         action.reason("DiscordSRV channel locking").queue();
     }
 
-    private void doForAllChannels(BiConsumer<OrDefault<BaseChannelConfig>, IChannelConfig> channelConsumer) {
-        for (OrDefault<BaseChannelConfig> config : discordSRV.channelConfig().getAllChannels()) {
-            IChannelConfig channelConfig = config.get(cfg -> cfg instanceof IChannelConfig ? (IChannelConfig) cfg : null);
+    private void doForAllChannels(BiConsumer<BaseChannelConfig, IChannelConfig> channelConsumer) {
+        for (BaseChannelConfig config : discordSRV.channelConfig().getAllChannels()) {
+            IChannelConfig channelConfig = config instanceof IChannelConfig ? (IChannelConfig) config : null;
             if (channelConfig == null) {
                 continue;
             }

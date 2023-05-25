@@ -41,7 +41,6 @@ import com.discordsrv.common.discord.api.entity.guild.DiscordGuildImpl;
 import com.discordsrv.common.discord.api.entity.guild.DiscordGuildMemberImpl;
 import com.discordsrv.common.discord.api.entity.guild.DiscordRoleImpl;
 import com.discordsrv.common.function.CheckedSupplier;
-import com.discordsrv.common.function.OrDefault;
 import com.discordsrv.common.future.util.CompletableFutureUtil;
 import com.github.benmanes.caffeine.cache.AsyncCacheLoader;
 import com.github.benmanes.caffeine.cache.AsyncLoadingCache;
@@ -93,7 +92,7 @@ public class DiscordAPIImpl implements DiscordAPI {
      * @param config the config that specified the threads
      * @return the list of active threads
      */
-    public List<DiscordThreadChannel> findThreads(OrDefault<BaseChannelConfig> config, IChannelConfig channelConfig) {
+    public List<DiscordThreadChannel> findThreads(BaseChannelConfig config, IChannelConfig channelConfig) {
         List<DiscordThreadChannel> channels = new ArrayList<>();
         findOrCreateThreads(config, channelConfig, channels::add, null, false);
         return channels;
@@ -106,7 +105,7 @@ public class DiscordAPIImpl implements DiscordAPI {
      * @param futures a possibly null list of {@link CompletableFuture} for tasks that need to be completed to get all threads
      */
     public void findOrCreateThreads(
-            OrDefault<BaseChannelConfig> config,
+            BaseChannelConfig config,
             IChannelConfig channelConfig,
             Consumer<DiscordThreadChannel> channelConsumer,
             @Nullable List<CompletableFuture<DiscordThreadChannel>> futures,
@@ -179,11 +178,11 @@ public class DiscordAPIImpl implements DiscordAPI {
     }
 
     private CompletableFuture<DiscordThreadChannel> findOrCreateThread(
-            OrDefault<BaseChannelConfig> config,
+            BaseChannelConfig config,
             ThreadConfig threadConfig,
             DiscordTextChannel textChannel
     ) {
-        if (!config.map(cfg -> cfg.channelLocking).map(cfg -> cfg.threads).get(cfg -> cfg.unarchive, true)) {
+        if (!config.channelLocking.threads.unarchive) {
             return textChannel.createThread(threadConfig.threadName, threadConfig.privateThread);
         }
 

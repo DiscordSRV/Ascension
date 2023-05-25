@@ -31,7 +31,6 @@ import com.discordsrv.common.component.util.ComponentUtil;
 import com.discordsrv.common.config.main.channels.DeathMessageConfig;
 import com.discordsrv.common.config.main.channels.base.BaseChannelConfig;
 import com.discordsrv.common.config.main.channels.base.server.ServerBaseChannelConfig;
-import com.discordsrv.common.function.OrDefault;
 
 public class DeathMessageModule extends AbstractGameMessageModule<DeathMessageConfig, DeathMessageReceiveEvent> {
 
@@ -50,8 +49,8 @@ public class DeathMessageModule extends AbstractGameMessageModule<DeathMessageCo
     }
 
     @Override
-    public OrDefault<DeathMessageConfig> mapConfig(OrDefault<BaseChannelConfig> channelConfig) {
-        return channelConfig.map(cfg -> ((ServerBaseChannelConfig) cfg).deathMessages);
+    public DeathMessageConfig mapConfig(BaseChannelConfig channelConfig) {
+        return ((ServerBaseChannelConfig) channelConfig).deathMessages;
     }
 
     @Override
@@ -61,7 +60,7 @@ public class DeathMessageModule extends AbstractGameMessageModule<DeathMessageCo
 
     @Override
     public void setPlaceholders(
-            OrDefault<DeathMessageConfig> config,
+            DeathMessageConfig config,
             DeathMessageReceiveEvent event,
             SendableDiscordMessage.Formatter formatter
     ) {

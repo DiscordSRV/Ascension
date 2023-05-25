@@ -18,11 +18,10 @@
 
 package com.discordsrv.bukkit.config.main;
 
-import com.discordsrv.api.channel.GameChannel;
 import com.discordsrv.common.config.annotation.Order;
 import com.discordsrv.common.config.main.MainConfig;
 import com.discordsrv.common.config.main.PluginIntegrationConfig;
-import com.discordsrv.common.config.main.channels.base.ChannelConfig;
+import com.discordsrv.common.config.main.channels.base.BaseChannelConfig;
 import com.discordsrv.common.config.main.channels.base.server.ServerBaseChannelConfig;
 import com.discordsrv.common.config.main.channels.base.server.ServerChannelConfig;
 import org.spongepowered.configurate.objectmapping.ConfigSerializable;
@@ -30,10 +29,14 @@ import org.spongepowered.configurate.objectmapping.ConfigSerializable;
 @ConfigSerializable
 public class BukkitConfig extends MainConfig {
 
-    public BukkitConfig() {
-        channels.clear();
-        channels.put(GameChannel.DEFAULT_NAME, new ServerChannelConfig());
-        channels.put(ChannelConfig.DEFAULT_KEY, new ServerBaseChannelConfig());
+    @Override
+    public BaseChannelConfig createDefaultBaseChannel() {
+        return new ServerBaseChannelConfig();
+    }
+
+    @Override
+    public BaseChannelConfig createDefaultChannel() {
+        return new ServerChannelConfig();
     }
 
     @Order(5)

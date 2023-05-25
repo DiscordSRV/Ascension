@@ -39,10 +39,18 @@ public abstract class MainConfig implements Config {
         return FILE_NAME;
     }
 
+    public BaseChannelConfig createDefaultChannel() {
+        return new ChannelConfig();
+    }
+
+    public BaseChannelConfig createDefaultBaseChannel() {
+        return new BaseChannelConfig();
+    }
+
     @DefaultOnly(ChannelConfig.DEFAULT_KEY)
     public Map<String, BaseChannelConfig> channels = new LinkedHashMap<String, BaseChannelConfig>() {{
-        put(GameChannel.DEFAULT_NAME, new ChannelConfig());
-        put(ChannelConfig.DEFAULT_KEY, new BaseChannelConfig());
+        put(GameChannel.DEFAULT_NAME, createDefaultChannel());
+        put(ChannelConfig.DEFAULT_KEY, createDefaultBaseChannel());
     }};
 
     public LinkedAccountConfig linkedAccounts = new LinkedAccountConfig();

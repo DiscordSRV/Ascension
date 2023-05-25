@@ -32,7 +32,6 @@ import com.discordsrv.common.command.game.sender.ICommandSender;
 import com.discordsrv.common.component.util.ComponentUtil;
 import com.discordsrv.common.config.main.channels.base.BaseChannelConfig;
 import com.discordsrv.common.config.main.channels.base.IChannelConfig;
-import com.discordsrv.common.function.OrDefault;
 import com.discordsrv.common.future.util.CompletableFutureUtil;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
@@ -112,8 +111,8 @@ public abstract class BroadcastCommand implements GameCommandExecutor, GameComma
                 channels.add(messageChannel);
             }
         } catch (IllegalArgumentException ignored) {
-            OrDefault<BaseChannelConfig> channelConfig = discordSRV.channelConfig().orDefault(null, channel);
-            IChannelConfig config = channelConfig.get(cfg -> cfg instanceof IChannelConfig ? (IChannelConfig) cfg : null);
+            BaseChannelConfig channelConfig = discordSRV.channelConfig().resolve(null, channel);
+            IChannelConfig config = channelConfig instanceof IChannelConfig ? (IChannelConfig) channelConfig : null;
 
             if (config != null) {
                 for (Long channelId : config.channelIds()) {

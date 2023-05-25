@@ -33,7 +33,6 @@ import com.discordsrv.common.config.main.channels.IMessageConfig;
 import com.discordsrv.common.config.main.channels.base.BaseChannelConfig;
 import com.discordsrv.common.config.main.channels.base.IChannelConfig;
 import com.discordsrv.common.discord.api.entity.message.ReceivedDiscordMessageClusterImpl;
-import com.discordsrv.common.function.OrDefault;
 import com.discordsrv.common.future.util.CompletableFutureUtil;
 import com.discordsrv.common.logging.NamedLogger;
 import com.discordsrv.common.module.type.AbstractModule;
@@ -55,19 +54,19 @@ public abstract class AbstractGameMessageModule<T extends IMessageConfig, E exte
 
     @Override
     public boolean isEnabled() {
-        for (OrDefault<BaseChannelConfig> channelConfig : discordSRV.channelConfig().getAllChannels()) {
-            if (mapConfig(channelConfig).get(IMessageConfig::enabled, false)) {
+        for (BaseChannelConfig channelConfig : discordSRV.channelConfig().getAllChannels()) {
+            if (mapConfig(channelConfig).enabled()) {
                 return true;
             }
         }
         return false;
     }
 
-    public OrDefault<T> mapConfig(E event, OrDefault<BaseChannelConfig> channelConfig) {
+    public T mapConfig(E event, BaseChannelConfig channelConfig) {
         return mapConfig(channelConfig);
     }
 
-    public abstract OrDefault<T> mapConfig(OrDefault<BaseChannelConfig> channelConfig);
+    public abstract T mapConfig(BaseChannelConfig channelConfig);
     public abstract void postClusterToEventBus(ReceivedDiscordMessageCluster cluster);
 
     public final CompletableFuture<?> process(
@@ -83,27 +82,27 @@ public abstract class AbstractGameMessageModule<T extends IMessageConfig, E exte
         if (channel == null) {
             // Send to all channels due to lack of specified channel
             List<CompletableFuture<Void>> futures = new ArrayList<>();
-            for (OrDefault<BaseChannelConfig> channelConfig : discordSRV.channelConfig().getAllChannels()) {
+            for (BaseChannelConfig channelConfig : discordSRV.channelConfig().getAllChannels()) {
                 futures.add(forwardToChannel(event, srvPlayer, channelConfig));
             }
             return CompletableFutureUtil.combine(futures);
         }
 
-        OrDefault<BaseChannelConfig> channelConfig = discordSRV.channelConfig().orDefault(channel);
+        BaseChannelConfig channelConfig = discordSRV.channelConfig().get(channel);
         return forwardToChannel(event, srvPlayer, channelConfig);
     }
 
     private CompletableFuture<Void> forwardToChannel(
             @Nullable E event,
             @Nullable IPlayer player,
-            @NotNull OrDefault<BaseChannelConfig> config
+            @NotNull BaseChannelConfig config
     ) {
-        OrDefault<T> moduleConfig = mapConfig(event, config);
-        if (!moduleConfig.get(IMessageConfig::enabled, true)) {
+        T moduleConfig = mapConfig(event, config);
+        if (!moduleConfig.enabled()) {
             return null;
         }
 
-        IChannelConfig channelConfig = config.get(c -> c instanceof IChannelConfig ? (IChannelConfig) c : null);
+        IChannelConfig channelConfig = config instanceof IChannelConfig ? (IChannelConfig) config : null;
         if (channelConfig == null) {
             return null;
         }
@@ -128,7 +127,7 @@ public abstract class AbstractGameMessageModule<T extends IMessageConfig, E exte
         discordSRV.discordAPI().findOrCreateThreads(config, channelConfig, messageChannels::add, futures, true);
 
         return CompletableFuture.allOf(futures.toArray(new CompletableFuture[0])).thenCompose((v) -> {
-            SendableDiscordMessage.Builder format = moduleConfig.get(IMessageConfig::format);
+            SendableDiscordMessage.Builder format = moduleConfig.format();
             if (format == null) {
                 return CompletableFuture.completedFuture(null);
             }
@@ -181,12 +180,12 @@ public abstract class AbstractGameMessageModule<T extends IMessageConfig, E exte
         });
     }
 
-    public String convertComponent(OrDefault<T> config, Component component) {
+    public String convertComponent(T config, Component component) {
         return discordSRV.componentFactory().discordSerializer().serialize(component);
     }
 
     public Map<CompletableFuture<ReceivedDiscordMessage>, DiscordMessageChannel> sendMessageToChannels(
-            OrDefault<T> config,
+            T config,
             IPlayer player,
             SendableDiscordMessage.Builder format,
             List<DiscordMessageChannel> channels,
@@ -210,5 +209,5 @@ public abstract class AbstractGameMessageModule<T extends IMessageConfig, E exte
         return futures;
     }
 
-    public abstract void setPlaceholders(OrDefault<T> config, E event, SendableDiscordMessage.Formatter formatter);
+    public abstract void setPlaceholders(T config, E event, SendableDiscordMessage.Formatter formatter);
 }

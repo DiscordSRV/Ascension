@@ -30,7 +30,6 @@ import com.discordsrv.common.DiscordSRV;
 import com.discordsrv.common.component.util.ComponentUtil;
 import com.discordsrv.common.config.main.channels.LeaveMessageConfig;
 import com.discordsrv.common.config.main.channels.base.BaseChannelConfig;
-import com.discordsrv.common.function.OrDefault;
 
 public class LeaveMessageModule extends AbstractGameMessageModule<LeaveMessageConfig, LeaveMessageReceiveEvent> {
 
@@ -49,8 +48,8 @@ public class LeaveMessageModule extends AbstractGameMessageModule<LeaveMessageCo
     }
 
     @Override
-    public OrDefault<LeaveMessageConfig> mapConfig(OrDefault<BaseChannelConfig> channelConfig) {
-        return channelConfig.map(cfg -> cfg.leaveMessages);
+    public LeaveMessageConfig mapConfig(BaseChannelConfig channelConfig) {
+        return channelConfig.leaveMessages;
     }
 
     @Override
@@ -60,7 +59,7 @@ public class LeaveMessageModule extends AbstractGameMessageModule<LeaveMessageCo
 
     @Override
     public void setPlaceholders(
-            OrDefault<LeaveMessageConfig> config,
+            LeaveMessageConfig config,
             LeaveMessageReceiveEvent event,
             SendableDiscordMessage.Formatter formatter
     ) {

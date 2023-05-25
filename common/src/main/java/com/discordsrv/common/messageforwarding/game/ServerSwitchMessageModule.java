@@ -31,7 +31,6 @@ import com.discordsrv.common.component.util.ComponentUtil;
 import com.discordsrv.common.config.main.channels.ServerSwitchMessageConfig;
 import com.discordsrv.common.config.main.channels.base.BaseChannelConfig;
 import com.discordsrv.common.config.main.channels.base.proxy.ProxyBaseChannelConfig;
-import com.discordsrv.common.function.OrDefault;
 
 public class ServerSwitchMessageModule extends AbstractGameMessageModule<ServerSwitchMessageConfig, ServerSwitchMessageReceiveEvent> {
 
@@ -50,8 +49,8 @@ public class ServerSwitchMessageModule extends AbstractGameMessageModule<ServerS
     }
 
     @Override
-    public OrDefault<ServerSwitchMessageConfig> mapConfig(OrDefault<BaseChannelConfig> channelConfig) {
-        return channelConfig.map(cfg -> ((ProxyBaseChannelConfig) cfg).serverSwitchMessages);
+    public ServerSwitchMessageConfig mapConfig(BaseChannelConfig channelConfig) {
+        return ((ProxyBaseChannelConfig) channelConfig).serverSwitchMessages;
     }
 
     @Override
@@ -61,7 +60,7 @@ public class ServerSwitchMessageModule extends AbstractGameMessageModule<ServerS
 
     @Override
     public void setPlaceholders(
-            OrDefault<ServerSwitchMessageConfig> config,
+            ServerSwitchMessageConfig config,
             ServerSwitchMessageReceiveEvent event,
             SendableDiscordMessage.Formatter formatter
     ) {

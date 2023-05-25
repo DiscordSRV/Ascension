@@ -73,7 +73,7 @@ public class BukkitAdvancementListener extends AbstractBukkitAwardListener {
 
         try {
             ReturnData data = nms.getData(event.getAdvancement());
-            if (data == null || checkIfShouldSkip(event.getPlayer())) {
+            if (data == null) {
                 return;
             }
 

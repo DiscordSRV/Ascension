@@ -62,10 +62,6 @@ public class PaperModernAdvancementListener extends AbstractBukkitAwardListener 
             return;
         }
 
-        if (checkIfShouldSkip(event.getPlayer())) {
-            return;
-        }
-
         MinecraftComponent message = MESSAGE_HANDLE.getComponent(discordSRV, event);
         MinecraftComponent displayName = DISPLAY_NAME_HANDLE.getComponent(discordSRV, advancement);
         forwarder.publishEvent(event, event.getPlayer(), displayName, message, false);

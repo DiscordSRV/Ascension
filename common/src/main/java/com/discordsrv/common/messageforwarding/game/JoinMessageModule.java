@@ -30,7 +30,6 @@ import com.discordsrv.common.DiscordSRV;
 import com.discordsrv.common.component.util.ComponentUtil;
 import com.discordsrv.common.config.main.channels.IMessageConfig;
 import com.discordsrv.common.config.main.channels.base.BaseChannelConfig;
-import com.discordsrv.common.function.OrDefault;
 
 public class JoinMessageModule extends AbstractGameMessageModule<IMessageConfig, JoinMessageReceiveEvent> {
 
@@ -49,15 +48,13 @@ public class JoinMessageModule extends AbstractGameMessageModule<IMessageConfig,
     }
 
     @Override
-    public OrDefault<IMessageConfig> mapConfig(JoinMessageReceiveEvent event, OrDefault<BaseChannelConfig> channelConfig) {
-        return channelConfig
-                .map(BaseChannelConfig::joinMessages)
-                .map(cfg -> cfg.getForEvent(event));
+    public IMessageConfig mapConfig(JoinMessageReceiveEvent event, BaseChannelConfig channelConfig) {
+        return channelConfig.joinMessages().getForEvent(event);
     }
 
     @Override
-    public OrDefault<IMessageConfig> mapConfig(OrDefault<BaseChannelConfig> channelConfig) {
-        return channelConfig.map(BaseChannelConfig::joinMessages);
+    public IMessageConfig mapConfig(BaseChannelConfig channelConfig) {
+        return channelConfig.joinMessages();
     }
 
     @Override
@@ -67,7 +64,7 @@ public class JoinMessageModule extends AbstractGameMessageModule<IMessageConfig,
 
     @Override
     public void setPlaceholders(
-            OrDefault<IMessageConfig> config,
+            IMessageConfig config,
             JoinMessageReceiveEvent event,
             SendableDiscordMessage.Formatter formatter
     ) {

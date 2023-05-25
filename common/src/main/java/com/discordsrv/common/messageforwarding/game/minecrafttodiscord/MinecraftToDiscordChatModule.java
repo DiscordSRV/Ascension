@@ -38,7 +38,6 @@ import com.discordsrv.common.DiscordSRV;
 import com.discordsrv.common.component.util.ComponentUtil;
 import com.discordsrv.common.config.main.channels.MinecraftToDiscordChatConfig;
 import com.discordsrv.common.config.main.channels.base.BaseChannelConfig;
-import com.discordsrv.common.function.OrDefault;
 import com.discordsrv.common.future.util.CompletableFutureUtil;
 import com.discordsrv.common.messageforwarding.game.AbstractGameMessageModule;
 import com.discordsrv.common.player.IPlayer;
@@ -70,8 +69,8 @@ public class MinecraftToDiscordChatModule extends AbstractGameMessageModule<Mine
     }
 
     @Override
-    public OrDefault<MinecraftToDiscordChatConfig> mapConfig(OrDefault<BaseChannelConfig> channelConfig) {
-        return channelConfig.map(cfg -> cfg.minecraftToDiscord);
+    public MinecraftToDiscordChatConfig mapConfig(BaseChannelConfig channelConfig) {
+        return channelConfig.minecraftToDiscord;
     }
 
     @Override
@@ -80,20 +79,19 @@ public class MinecraftToDiscordChatModule extends AbstractGameMessageModule<Mine
     }
 
     @Override
-    public String convertComponent(OrDefault<MinecraftToDiscordChatConfig> config, Component component) {
+    public String convertComponent(MinecraftToDiscordChatConfig config, Component component) {
         DiscordSerializer discordSerializer = discordSRV.componentFactory().discordSerializer();
         String content = discordSerializer.serialize(component, discordSerializer.getDefaultOptions().withEscapeMarkdown(false));
 
         Placeholders messagePlaceholders = new Placeholders(content);
-        config.opt(cfg -> cfg.contentRegexFilters)
-                .ifPresent(patterns -> patterns.forEach(messagePlaceholders::replaceAll));
+        config.contentRegexFilters.forEach(messagePlaceholders::replaceAll);
 
         return messagePlaceholders.toString();
     }
 
     @Override
     public Map<CompletableFuture<ReceivedDiscordMessage>, DiscordMessageChannel> sendMessageToChannels(
-            OrDefault<MinecraftToDiscordChatConfig> config,
+            MinecraftToDiscordChatConfig config,
             IPlayer player,
             SendableDiscordMessage.Builder format,
             List<DiscordMessageChannel> channels,
@@ -132,24 +130,22 @@ public class MinecraftToDiscordChatModule extends AbstractGameMessageModule<Mine
     }
 
     @Override
-    public void setPlaceholders(OrDefault<MinecraftToDiscordChatConfig> config, GameChatMessageReceiveEvent event, SendableDiscordMessage.Formatter formatter) {}
+    public void setPlaceholders(MinecraftToDiscordChatConfig config, GameChatMessageReceiveEvent event, SendableDiscordMessage.Formatter formatter) {}
 
     private final Pattern MENTION_PATTERN = Pattern.compile("@\\S+");
 
     private CompletableFuture<SendableDiscordMessage> getMessageForGuild(
-            OrDefault<MinecraftToDiscordChatConfig> config,
+            MinecraftToDiscordChatConfig config,
             SendableDiscordMessage.Builder format,
             Guild guild,
             String message,
             IPlayer player,
             Object[] context
     ) {
-        OrDefault<MinecraftToDiscordChatConfig.Mentions> mentionConfig = config.map(cfg -> cfg.mentions);
+        MinecraftToDiscordChatConfig.Mentions mentionConfig = config.mentions;
         MentionCachingModule mentionCaching = discordSRV.getModule(MentionCachingModule.class);
 
-        if (mentionCaching != null
-                && mentionConfig.get(cfg -> cfg.users, false)
-                && mentionConfig.get(cfg -> cfg.uncachedUsers, false)
+        if (mentionCaching != null && mentionConfig.users && mentionConfig.uncachedUsers
                 && player.hasPermission("discordsrv.mention.lookup.user")) {
             List<CompletableFuture<List<MentionCachingModule.CachedMention>>> futures = new ArrayList<>();
 
@@ -174,7 +170,7 @@ public class MinecraftToDiscordChatModule extends AbstractGameMessageModule<Mine
     }
 
     private SendableDiscordMessage getMessageForGuildWithMentions(
-            OrDefault<MinecraftToDiscordChatConfig> config,
+            MinecraftToDiscordChatConfig config,
             SendableDiscordMessage.Builder format,
             Guild guild,
             String message,
@@ -182,7 +178,7 @@ public class MinecraftToDiscordChatModule extends AbstractGameMessageModule<Mine
             Object[] context,
             Set<MentionCachingModule.CachedMention> memberMentions
     ) {
-        OrDefault<MinecraftToDiscordChatConfig.Mentions> mentionConfig = config.map(cfg -> cfg.mentions);
+        MinecraftToDiscordChatConfig.Mentions mentionConfig = config.mentions;
         Set<MentionCachingModule.CachedMention> mentions = new LinkedHashSet<>();
 
         if (memberMentions != null) {
@@ -191,13 +187,13 @@ public class MinecraftToDiscordChatModule extends AbstractGameMessageModule<Mine
 
         MentionCachingModule mentionCaching = discordSRV.getModule(MentionCachingModule.class);
         if (mentionCaching != null) {
-            if (mentionConfig.get(cfg -> cfg.roles, false)) {
+            if (mentionConfig.roles) {
                 mentions.addAll(mentionCaching.getRoleMentions(guild).values());
             }
-            if (mentionConfig.get(cfg -> cfg.channels, true)) {
+            if (mentionConfig.channels) {
                 mentions.addAll(mentionCaching.getChannelMentions(guild).values());
             }
-            if (mentionConfig.get(cfg -> cfg.users, false)) {
+            if (mentionConfig.users) {
                 mentions.addAll(mentionCaching.getMemberMentions(guild).values());
             }
         }
@@ -211,10 +207,10 @@ public class MinecraftToDiscordChatModule extends AbstractGameMessageModule<Mine
                 .forEachOrdered(mention -> channelMessagePlaceholders.replaceAll(mention.search(), mention.mention()));
 
         List<AllowedMention> allowedMentions = new ArrayList<>();
-        if (mentionConfig.get(cfg -> cfg.users, false) && player.hasPermission("discordsrv.mention.user")) {
+        if (mentionConfig.users && player.hasPermission("discordsrv.mention.user")) {
             allowedMentions.add(AllowedMention.ALL_USERS);
         }
-        if (mentionConfig.get(cfg -> cfg.roles, false)) {
+        if (mentionConfig.roles) {
             if (player.hasPermission("discordsrv.mention.roles.mentionable")) {
                 for (Role role : guild.getRoles()) {
                     if (role.isMentionable()) {
@@ -227,7 +223,7 @@ public class MinecraftToDiscordChatModule extends AbstractGameMessageModule<Mine
             }
         }
 
-        boolean everyone = mentionConfig.get(cfg -> cfg.everyone, false) && player.hasPermission("discordsrv.mention.everyone");
+        boolean everyone = mentionConfig.everyone && player.hasPermission("discordsrv.mention.everyone");
         if (everyone) {
             allowedMentions.add(AllowedMention.EVERYONE);
         }

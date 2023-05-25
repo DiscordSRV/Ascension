@@ -27,7 +27,6 @@ import com.discordsrv.api.event.events.message.receive.discord.DiscordChatMessag
 import com.discordsrv.common.DiscordSRV;
 import com.discordsrv.common.component.util.ComponentUtil;
 import com.discordsrv.common.config.main.channels.DiscordToMinecraftChatConfig;
-import com.discordsrv.common.function.OrDefault;
 import dev.vankka.mcdiscordreserializer.renderer.implementation.DefaultMinecraftRenderer;
 import net.dv8tion.jda.api.JDA;
 import net.dv8tion.jda.api.entities.channel.middleman.GuildChannel;
@@ -52,7 +51,7 @@ public class DiscordSRVMinecraftRenderer extends DefaultMinecraftRenderer {
 
     public static void runInContext(
             DiscordChatMessageProcessingEvent event,
-            OrDefault<DiscordToMinecraftChatConfig> config,
+            DiscordToMinecraftChatConfig config,
             Runnable runnable
     ) {
         getWithContext(event, config, () -> {
@@ -63,7 +62,7 @@ public class DiscordSRVMinecraftRenderer extends DefaultMinecraftRenderer {
 
     public static <T> T getWithContext(
             DiscordChatMessageProcessingEvent event,
-            OrDefault<DiscordToMinecraftChatConfig> config,
+            DiscordToMinecraftChatConfig config,
             Supplier<T> supplier
     ) {
         Context oldValue = CONTEXT.get();
@@ -84,7 +83,7 @@ public class DiscordSRVMinecraftRenderer extends DefaultMinecraftRenderer {
                 GuildChannel guildChannel = jda.getGuildChannelById(channel);
 
                 Context context = CONTEXT.get();
-                String format = context != null ? context.config.map(cfg -> cfg.mentions).get(cfg -> cfg.messageUrl) : null;
+                String format = context != null ? context.config.mentions.messageUrl : null;
                 if (format == null || guildChannel == null) {
                     return super.appendLink(part, link);
                 }
@@ -111,8 +110,7 @@ public class DiscordSRVMinecraftRenderer extends DefaultMinecraftRenderer {
     @Override
     public @NotNull Component appendChannelMention(@NotNull Component component, @NotNull String id) {
         Context context = CONTEXT.get();
-        DiscordToMinecraftChatConfig.Mentions.Format format =
-                context != null ? context.config.map(cfg -> cfg.mentions).get(cfg -> cfg.channel) : null;
+        DiscordToMinecraftChatConfig.Mentions.Format format = context != null ? context.config.mentions.channel : null;
         if (format == null) {
             return component.append(Component.text("<#" + id + ">"));
         }
@@ -136,8 +134,7 @@ public class DiscordSRVMinecraftRenderer extends DefaultMinecraftRenderer {
     @Override
     public @NotNull Component appendUserMention(@NotNull Component component, @NotNull String id) {
         Context context = CONTEXT.get();
-        DiscordToMinecraftChatConfig.Mentions.Format format =
-                context != null ? context.config.map(cfg -> cfg.mentions).get(cfg -> cfg.user) : null;
+        DiscordToMinecraftChatConfig.Mentions.Format format = context != null ? context.config.mentions.user : null;
         DiscordGuild guild = context != null
                              ? discordSRV.discordAPI().getGuildById(context.event.getGuild().getId())
                              : null;
@@ -167,8 +164,7 @@ public class DiscordSRVMinecraftRenderer extends DefaultMinecraftRenderer {
     @Override
     public @NotNull Component appendRoleMention(@NotNull Component component, @NotNull String id) {
         Context context = CONTEXT.get();
-        DiscordToMinecraftChatConfig.Mentions.Format format =
-                context != null ? context.config.map(cfg -> cfg.mentions).get(cfg -> cfg.role) : null;
+        DiscordToMinecraftChatConfig.Mentions.Format format = context != null ? context.config.mentions.role : null;
         if (format == null) {
             return component.append(Component.text("<#" + id + ">"));
         }
@@ -191,9 +187,9 @@ public class DiscordSRVMinecraftRenderer extends DefaultMinecraftRenderer {
     private static class Context {
 
         private final DiscordChatMessageProcessingEvent event;
-        private final OrDefault<DiscordToMinecraftChatConfig> config;
+        private final DiscordToMinecraftChatConfig config;
 
-        public Context(DiscordChatMessageProcessingEvent event, OrDefault<DiscordToMinecraftChatConfig> config) {
+        public Context(DiscordChatMessageProcessingEvent event, DiscordToMinecraftChatConfig config) {
             this.event = event;
             this.config = config;
         }

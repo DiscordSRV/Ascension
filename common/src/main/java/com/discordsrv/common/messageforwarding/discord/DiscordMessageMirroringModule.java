@@ -38,7 +38,6 @@ import com.discordsrv.common.config.main.DiscordIgnoresConfig;
 import com.discordsrv.common.config.main.channels.MirroringConfig;
 import com.discordsrv.common.config.main.channels.base.BaseChannelConfig;
 import com.discordsrv.common.config.main.channels.base.IChannelConfig;
-import com.discordsrv.common.function.OrDefault;
 import com.discordsrv.common.future.util.CompletableFutureUtil;
 import com.discordsrv.common.logging.NamedLogger;
 import com.discordsrv.common.module.type.AbstractModule;
@@ -71,8 +70,8 @@ public class DiscordMessageMirroringModule extends AbstractModule<DiscordSRV> {
 
     @Override
     public boolean isEnabled() {
-        for (OrDefault<BaseChannelConfig> config : discordSRV.channelConfig().getAllChannels()) {
-            if (config.map(cfg -> cfg.mirroring).get(cfg -> cfg.enabled, false)) {
+        for (BaseChannelConfig config : discordSRV.channelConfig().getAllChannels()) {
+            if (config.mirroring.enabled) {
                 return true;
             }
         }
@@ -90,7 +89,7 @@ public class DiscordMessageMirroringModule extends AbstractModule<DiscordSRV> {
             return;
         }
 
-        Map<GameChannel, OrDefault<BaseChannelConfig>> channels = discordSRV.channelConfig().orDefault(event.getChannel());
+        Map<GameChannel, BaseChannelConfig> channels = discordSRV.channelConfig().resolve(event.getChannel());
         if (channels == null || channels.isEmpty()) {
             return;
         }
@@ -98,31 +97,31 @@ public class DiscordMessageMirroringModule extends AbstractModule<DiscordSRV> {
         ReceivedDiscordMessage message = event.getDiscordMessage();
         DiscordMessageChannel channel = event.getChannel();
 
-        List<Pair<DiscordGuildMessageChannel, OrDefault<MirroringConfig>>> mirrorChannels = new ArrayList<>();
+        List<Pair<DiscordGuildMessageChannel, MirroringConfig>> mirrorChannels = new ArrayList<>();
         List<CompletableFuture<DiscordThreadChannel>> futures = new ArrayList<>();
         Map<ReceivedDiscordMessage.Attachment, byte[]> attachments = new LinkedHashMap<>();
         DiscordMessageEmbed.Builder attachmentEmbed = DiscordMessageEmbed.builder().setDescription("Attachments");
 
-        for (Map.Entry<GameChannel, OrDefault<BaseChannelConfig>> entry : channels.entrySet()) {
-            OrDefault<BaseChannelConfig> channelConfig = entry.getValue();
-            OrDefault<MirroringConfig> config = channelConfig.map(cfg -> cfg.mirroring);
-            if (!config.get(cfg -> cfg.enabled, true)) {
+        for (Map.Entry<GameChannel, BaseChannelConfig> entry : channels.entrySet()) {
+            BaseChannelConfig channelConfig = entry.getValue();
+            MirroringConfig config = channelConfig.mirroring;
+            if (!config.enabled) {
                 continue;
             }
 
-            DiscordIgnoresConfig ignores = config.get(cfg -> cfg.ignores);
+            DiscordIgnoresConfig ignores = config.ignores;
             if (ignores != null && ignores.shouldBeIgnored(message.isWebhookMessage(), message.getAuthor(), message.getMember())) {
                 continue;
             }
 
-            IChannelConfig iChannelConfig = channelConfig.get(cfg -> cfg instanceof IChannelConfig ? (IChannelConfig) cfg : null);
+            IChannelConfig iChannelConfig = channelConfig instanceof IChannelConfig ? (IChannelConfig) channelConfig : null;
             if (iChannelConfig == null) {
                 continue;
             }
 
-            OrDefault<MirroringConfig.AttachmentConfig> attachmentConfig = config.map(cfg -> cfg.attachments);
-            int maxSize = attachmentConfig.get(cfg -> cfg.maximumSizeKb, -1);
-            boolean embedAttachments = attachmentConfig.get(cfg -> cfg.embedAttachments, true);
+            MirroringConfig.AttachmentConfig attachmentConfig = config.attachments;
+            int maxSize = attachmentConfig.maximumSizeKb;
+            boolean embedAttachments = attachmentConfig.embedAttachments;
             if (maxSize >= 0 || embedAttachments) {
                 for (ReceivedDiscordMessage.Attachment attachment : message.getAttachments()) {
                     if (attachments.containsKey(attachment)) {
@@ -175,18 +174,18 @@ public class DiscordMessageMirroringModule extends AbstractModule<DiscordSRV> {
         }
 
         CompletableFutureUtil.combine(futures).whenComplete((v, t) -> {
-            List<CompletableFuture<Pair<ReceivedDiscordMessage, OrDefault<MirroringConfig>>>> messageFutures = new ArrayList<>();
-            for (Pair<DiscordGuildMessageChannel, OrDefault<MirroringConfig>> pair : mirrorChannels) {
+            List<CompletableFuture<Pair<ReceivedDiscordMessage, MirroringConfig>>> messageFutures = new ArrayList<>();
+            for (Pair<DiscordGuildMessageChannel, MirroringConfig> pair : mirrorChannels) {
                 DiscordGuildMessageChannel mirrorChannel = pair.getKey();
-                OrDefault<MirroringConfig> config = pair.getValue();
-                OrDefault<MirroringConfig.AttachmentConfig> attachmentConfig = config.map(cfg -> cfg.attachments);
+                MirroringConfig config = pair.getValue();
+                MirroringConfig.AttachmentConfig attachmentConfig = config.attachments;
 
                 SendableDiscordMessage.Builder messageBuilder = convert(event.getDiscordMessage(), mirrorChannel, config);
-                if (!attachmentEmbed.getFields().isEmpty() && attachmentConfig.get(cfg -> cfg.embedAttachments, true)) {
+                if (!attachmentEmbed.getFields().isEmpty() && attachmentConfig.embedAttachments) {
                     messageBuilder.addEmbed(attachmentEmbed.build());
                 }
 
-                int maxSize = attachmentConfig.get(cfg -> cfg.maximumSizeKb, -1);
+                int maxSize = attachmentConfig.maximumSizeKb;
                 Map<String, InputStream> currentAttachments;
                 if (!attachments.isEmpty() && maxSize > 0) {
                     currentAttachments = new LinkedHashMap<>();
@@ -199,7 +198,7 @@ public class DiscordMessageMirroringModule extends AbstractModule<DiscordSRV> {
                     currentAttachments = Collections.emptyMap();
                 }
 
-                CompletableFuture<Pair<ReceivedDiscordMessage, OrDefault<MirroringConfig>>> future =
+                CompletableFuture<Pair<ReceivedDiscordMessage, MirroringConfig>> future =
                         mirrorChannel.sendMessage(messageBuilder.build(), currentAttachments)
                                 .thenApply(msg -> Pair.of(msg, config));
 
@@ -212,7 +211,7 @@ public class DiscordMessageMirroringModule extends AbstractModule<DiscordSRV> {
 
             CompletableFutureUtil.combine(messageFutures).whenComplete((messages, t2) -> {
                 Map<Long, MessageReference> references = new LinkedHashMap<>();
-                for (Pair<ReceivedDiscordMessage, OrDefault<MirroringConfig>> pair : messages) {
+                for (Pair<ReceivedDiscordMessage, MirroringConfig> pair : messages) {
                     ReceivedDiscordMessage msg = pair.getKey();
                     references.put(msg.getChannel().getId(), getReference(msg, pair.getValue()));
                 }
@@ -271,12 +270,12 @@ public class DiscordMessageMirroringModule extends AbstractModule<DiscordSRV> {
     private SendableDiscordMessage.Builder convert(
             ReceivedDiscordMessage message,
             DiscordGuildMessageChannel destinationChannel,
-            OrDefault<MirroringConfig> config
+            MirroringConfig config
     ) {
         DiscordGuildMember member = message.getMember();
         DiscordUser user = message.getAuthor();
         String username = discordSRV.placeholderService().replacePlaceholders(
-                config.get(cfg -> cfg.usernameFormat, "%user_effective_name% [M]"),
+                config.usernameFormat, "%user_effective_name% [M]",
                 member, user
         );
         if (username.length() > 32) {
@@ -308,13 +307,8 @@ public class DiscordMessageMirroringModule extends AbstractModule<DiscordSRV> {
                     Long.toUnsignedString(matchingReference.messageId)
             ) : replyMessage.getJumpUrl();
 
-            String replyFormat = config.get(
-                    cfg -> cfg.replyFormat,
-                    "[In reply to %user_effective_name|user_name%](%message_jump_url%)\n"
-            );
-
             content = discordSRV.placeholderService()
-                    .replacePlaceholders(replyFormat, replyMessage.getMember(), replyMessage.getAuthor())
+                    .replacePlaceholders(config.replyFormat, replyMessage.getMember(), replyMessage.getAuthor())
                     .replace("%message_jump_url%", jumpUrl) + content;
         }
 
@@ -334,7 +328,7 @@ public class DiscordMessageMirroringModule extends AbstractModule<DiscordSRV> {
         return builder;
     }
 
-    private MessageReference getReference(ReceivedDiscordMessage message, OrDefault<MirroringConfig> config) {
+    private MessageReference getReference(ReceivedDiscordMessage message, MirroringConfig config) {
         return getReference(message.getChannel(), message.getId(), message.isWebhookMessage(), config);
     }
 
@@ -342,7 +336,7 @@ public class DiscordMessageMirroringModule extends AbstractModule<DiscordSRV> {
             DiscordMessageChannel channel,
             long messageId,
             boolean webhookMessage,
-            OrDefault<MirroringConfig> config
+            MirroringConfig config
     ) {
         if (channel instanceof DiscordTextChannel) {
             DiscordTextChannel textChannel = (DiscordTextChannel) channel;
@@ -380,13 +374,13 @@ public class DiscordMessageMirroringModule extends AbstractModule<DiscordSRV> {
         private final long threadId;
         private final long messageId;
         private final boolean webhookMessage;
-        private final OrDefault<MirroringConfig> config;
+        private final MirroringConfig config;
 
         public MessageReference(
                 DiscordTextChannel textChannel,
                 long messageId,
                 boolean webhookMessage,
-                OrDefault<MirroringConfig> config
+                MirroringConfig config
         ) {
             this(textChannel.getId(), -1L, messageId, webhookMessage, config);
         }
@@ -395,7 +389,7 @@ public class DiscordMessageMirroringModule extends AbstractModule<DiscordSRV> {
                 DiscordThreadChannel threadChannel,
                 long messageId,
                 boolean webhookMessage,
-                OrDefault<MirroringConfig> config
+                MirroringConfig config
         ) {
             this(threadChannel.getParentChannel().getId(), threadChannel.getId(), messageId, webhookMessage, config);
         }
@@ -405,7 +399,7 @@ public class DiscordMessageMirroringModule extends AbstractModule<DiscordSRV> {
                 long threadId,
                 long messageId,
                 boolean webhookMessage,
-                OrDefault<MirroringConfig> config
+                MirroringConfig config
         ) {
             this.channelId = channelId;
             this.threadId = threadId;

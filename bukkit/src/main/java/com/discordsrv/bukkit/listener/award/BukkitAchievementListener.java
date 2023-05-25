@@ -34,10 +34,6 @@ public class BukkitAchievementListener extends AbstractBukkitAwardListener {
 
     @EventHandler(priority = EventPriority.MONITOR)
     public void onPlayerAchievementAwarded(PlayerAchievementAwardedEvent event) {
-        if (checkIfShouldSkip(event.getPlayer())) {
-            return;
-        }
-
         MinecraftComponent name = ComponentUtil.toAPI(BukkitComponentSerializer.legacy().deserialize(event.getAchievement().name()));
         forwarder.publishEvent(event, event.getPlayer(), name, null, event.isCancelled());
     }

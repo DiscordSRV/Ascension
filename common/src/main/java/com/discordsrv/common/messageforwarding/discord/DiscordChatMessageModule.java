@@ -36,10 +36,10 @@ import com.discordsrv.common.component.util.ComponentUtil;
 import com.discordsrv.common.config.main.DiscordIgnoresConfig;
 import com.discordsrv.common.config.main.channels.DiscordToMinecraftChatConfig;
 import com.discordsrv.common.config.main.channels.base.BaseChannelConfig;
-import com.discordsrv.common.function.OrDefault;
 import com.discordsrv.common.logging.NamedLogger;
 import com.discordsrv.common.module.type.AbstractModule;
 import net.kyori.adventure.text.Component;
+import org.apache.commons.lang3.StringUtils;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Arrays;
@@ -54,8 +54,8 @@ public class DiscordChatMessageModule extends AbstractModule<DiscordSRV> {
 
     @Override
     public boolean isEnabled() {
-        for (OrDefault<BaseChannelConfig> config : discordSRV.channelConfig().getAllChannels()) {
-            if (config.map(cfg -> cfg.discordToMinecraft).get(cfg -> cfg.enabled, false)) {
+        for (BaseChannelConfig config : discordSRV.channelConfig().getAllChannels()) {
+            if (config.discordToMinecraft.enabled) {
                 return true;
             }
         }
@@ -83,20 +83,20 @@ public class DiscordChatMessageModule extends AbstractModule<DiscordSRV> {
             return;
         }
 
-        Map<GameChannel, OrDefault<BaseChannelConfig>> channels = discordSRV.channelConfig().orDefault(event.getChannel());
+        Map<GameChannel, BaseChannelConfig> channels = discordSRV.channelConfig().resolve(event.getChannel());
         if (channels == null || channels.isEmpty()) {
             return;
         }
 
-        for (Map.Entry<GameChannel, OrDefault<BaseChannelConfig>> entry : channels.entrySet()) {
+        for (Map.Entry<GameChannel, BaseChannelConfig> entry : channels.entrySet()) {
             process(event, entry.getKey(), entry.getValue());
         }
         event.markAsProcessed();
     }
 
-    private void process(DiscordChatMessageProcessingEvent event, GameChannel gameChannel, OrDefault<BaseChannelConfig> channelConfig) {
-        OrDefault<DiscordToMinecraftChatConfig> chatConfig = channelConfig.map(cfg -> cfg.discordToMinecraft);
-        if (!chatConfig.get(cfg -> cfg.enabled, true)) {
+    private void process(DiscordChatMessageProcessingEvent event, GameChannel gameChannel, BaseChannelConfig channelConfig) {
+        DiscordToMinecraftChatConfig chatConfig = channelConfig.discordToMinecraft;
+        if (!chatConfig.enabled) {
             return;
         }
 
@@ -106,22 +106,19 @@ public class DiscordChatMessageModule extends AbstractModule<DiscordSRV> {
         DiscordGuildMember member = discordMessage.getMember();
         boolean webhookMessage = discordMessage.isWebhookMessage();
 
-        DiscordIgnoresConfig ignores = chatConfig.get(cfg -> cfg.ignores);
+        DiscordIgnoresConfig ignores = chatConfig.ignores;
         if (ignores != null && ignores.shouldBeIgnored(webhookMessage, author, member)) {
             // TODO: response for humans
             return;
         }
 
-        String format = chatConfig.opt(cfg -> webhookMessage ? cfg.webhookFormat : cfg.format)
-                .map(option -> option.replace("\\n", "\n"))
-                .orElse(null);
-        if (format == null) {
+        String format = webhookMessage ? chatConfig.webhookFormat : chatConfig.format;
+        if (StringUtils.isBlank(format)) {
             return;
         }
 
         Placeholders message = new Placeholders(event.getMessageContent());
-        chatConfig.opt(cfg -> cfg.contentRegexFilters)
-                .ifPresent(filters -> filters.forEach(message::replaceAll));
+        chatConfig.contentRegexFilters.forEach(message::replaceAll);
 
         Component messageComponent = DiscordSRVMinecraftRenderer.getWithContext(event, chatConfig, () ->
                 discordSRV.componentFactory().minecraftSerializer().serialize(message.toString()));

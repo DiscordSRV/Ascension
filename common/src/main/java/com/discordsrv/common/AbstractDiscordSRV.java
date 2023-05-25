@@ -621,12 +621,12 @@ public abstract class AbstractDiscordSRV<B extends IBootstrap, C extends MainCon
             try {
                 connectionConfigManager().load();
                 configManager().load();
+
+                channelConfig().reload();
             } catch (Throwable t) {
                 setStatus(Status.FAILED_TO_LOAD_CONFIG);
                 throw t;
             }
-
-            channelConfig().reload();
         }
 
         // Update check

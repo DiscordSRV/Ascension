@@ -26,7 +26,6 @@ import com.discordsrv.api.event.events.message.receive.game.AbstractGameMessageR
 import com.discordsrv.common.DiscordSRV;
 import com.discordsrv.common.config.main.channels.StartMessageConfig;
 import com.discordsrv.common.config.main.channels.base.BaseChannelConfig;
-import com.discordsrv.common.function.OrDefault;
 import com.discordsrv.common.player.IPlayer;
 
 import java.util.Collections;
@@ -46,8 +45,8 @@ public class StartMessageModule extends AbstractGameMessageModule<StartMessageCo
     }
 
     @Override
-    public OrDefault<StartMessageConfig> mapConfig(OrDefault<BaseChannelConfig> channelConfig) {
-        return channelConfig.map(cfg -> cfg.startMessage);
+    public StartMessageConfig mapConfig(BaseChannelConfig channelConfig) {
+        return channelConfig.startMessage;
     }
 
     @Override
@@ -55,21 +54,21 @@ public class StartMessageModule extends AbstractGameMessageModule<StartMessageCo
 
     @Override
     public Map<CompletableFuture<ReceivedDiscordMessage>, DiscordMessageChannel> sendMessageToChannels(
-            OrDefault<StartMessageConfig> config,
+            StartMessageConfig config,
             IPlayer player,
             SendableDiscordMessage.Builder format,
             List<DiscordMessageChannel> channels,
             AbstractGameMessageReceiveEvent event,
             Object... context
     ) {
-        if (!config.get(cfg -> cfg.enabled, false)) {
+        if (!config.enabled) {
             return Collections.emptyMap();
         }
         return super.sendMessageToChannels(config, player, format, channels, event, context);
     }
 
     @Override
-    public void setPlaceholders(OrDefault<StartMessageConfig> config, AbstractGameMessageReceiveEvent event, SendableDiscordMessage.Formatter formatter) {}
+    public void setPlaceholders(StartMessageConfig config, AbstractGameMessageReceiveEvent event, SendableDiscordMessage.Formatter formatter) {}
 
     @Override
     public void enable() {
