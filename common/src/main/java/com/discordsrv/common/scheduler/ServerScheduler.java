@@ -28,18 +28,15 @@ public interface ServerScheduler extends Scheduler {
     int TICKS_PER_SECOND = 20;
     long MILLISECONDS_PER_TICK = (1000L / TICKS_PER_SECOND);
 
-    @ApiStatus.NonExtendable
-    default long timeToTicks(long time, TimeUnit unit) {
+    static long timeToTicks(long time, TimeUnit unit) {
         return millisToTicks(unit.toMillis(time));
     }
 
-    @ApiStatus.NonExtendable
-    default long millisToTicks(long milliseconds) {
+    static long millisToTicks(long milliseconds) {
         return milliseconds / MILLISECONDS_PER_TICK;
     }
 
-    @ApiStatus.NonExtendable
-    default long ticksToMillis(long ticks) {
+    static long ticksToMillis(long ticks) {
         return ticks * MILLISECONDS_PER_TICK;
     }
 

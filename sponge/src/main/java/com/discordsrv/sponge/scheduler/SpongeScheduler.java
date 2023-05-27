@@ -41,11 +41,11 @@ public class SpongeScheduler extends StandardScheduler implements ServerSchedule
 
     @Override
     public void runOnMainThreadLaterInTicks(Runnable task, int ticks) {
-        service.schedule(task, ticksToMillis(ticks), TimeUnit.MILLISECONDS);
+        service.schedule(task, ServerScheduler.ticksToMillis(ticks), TimeUnit.MILLISECONDS);
     }
 
     @Override
     public void runOnMainThreadAtFixedRateInTicks(Runnable task, int initialTicks, int rateTicks) {
-        service.scheduleAtFixedRate(task, ticksToMillis(initialTicks), ticksToMillis(rateTicks), TimeUnit.MILLISECONDS);
+        service.scheduleAtFixedRate(task, ServerScheduler.ticksToMillis(initialTicks), ServerScheduler.ticksToMillis(rateTicks), TimeUnit.MILLISECONDS);
     }
 }
