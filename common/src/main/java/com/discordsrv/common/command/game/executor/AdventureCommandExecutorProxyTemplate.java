@@ -21,7 +21,6 @@ package com.discordsrv.common.command.game.executor;
 import dev.vankka.dynamicproxy.processor.Original;
 import dev.vankka.dynamicproxy.processor.Proxy;
 import net.kyori.adventure.audience.Audience;
-import net.kyori.adventure.audience.MessageType;
 import net.kyori.adventure.identity.Identified;
 import net.kyori.adventure.identity.Identity;
 import net.kyori.adventure.text.Component;
@@ -30,6 +29,7 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.function.Consumer;
 
+@SuppressWarnings({"UnstableApiUsage", "deprecation"})
 @Proxy(value = Audience.class, className = "AdventureCommandExecutorProxy")
 public abstract class AdventureCommandExecutorProxyTemplate implements Audience {
 
@@ -47,25 +47,25 @@ public abstract class AdventureCommandExecutorProxyTemplate implements Audience 
     }
 
     @Override
-    public void sendMessage(@NotNull Identified source, @NotNull ComponentLike message, @NotNull MessageType type) {
+    public void sendMessage(@NotNull Identified source, @NotNull ComponentLike message, @NotNull net.kyori.adventure.audience.MessageType type) {
         audience.sendMessage(source, message, type);
         forwardComponent(message);
     }
 
     @Override
-    public void sendMessage(@NotNull Identity source, @NotNull ComponentLike message, @NotNull MessageType type) {
+    public void sendMessage(@NotNull Identity source, @NotNull ComponentLike message, @NotNull net.kyori.adventure.audience.MessageType type) {
         audience.sendMessage(source, message, type);
         forwardComponent(message);
     }
 
     @Override
-    public void sendMessage(@NotNull Identified source, @NotNull Component message, @NotNull MessageType type) {
+    public void sendMessage(@NotNull Identified source, @NotNull Component message, @NotNull net.kyori.adventure.audience.MessageType type) {
         audience.sendMessage(source, message, type);
         forwardComponent(message);
     }
 
     @Override
-    public void sendMessage(@NotNull Identity source, @NotNull Component message, @NotNull MessageType type) {
+    public void sendMessage(@NotNull Identity source, @NotNull Component message, @NotNull net.kyori.adventure.audience.MessageType type) {
         audience.sendMessage(source, message, type);
         forwardComponent(message);
     }
@@ -95,7 +95,7 @@ public abstract class AdventureCommandExecutorProxyTemplate implements Audience 
     }
 
     @Override
-    public void sendMessage(@NotNull Component message, @NotNull MessageType type) {
+    public void sendMessage(@NotNull Component message, @NotNull net.kyori.adventure.audience.MessageType type) {
         audience.sendMessage(message, type);
         forwardComponent(message);
     }
@@ -113,7 +113,7 @@ public abstract class AdventureCommandExecutorProxyTemplate implements Audience 
     }
 
     @Override
-    public void sendMessage(@NotNull ComponentLike message, @NotNull MessageType type) {
+    public void sendMessage(@NotNull ComponentLike message, @NotNull net.kyori.adventure.audience.MessageType type) {
         audience.sendMessage(message, type);
         forwardComponent(message);
     }
