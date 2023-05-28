@@ -757,7 +757,7 @@ public abstract class AbstractDiscordSRV<B extends IBootstrap, C extends MainCon
             results.addAll(moduleManager.reload());
         }
 
-        if (1 == 1) {
+        if (flags.contains(ReloadFlag.DISCORD_COMMANDS)) {
             discordAPI().commandRegistry().registerCommandsFromEvent();
             discordAPI().commandRegistry().registerCommandsToDiscord();
         }

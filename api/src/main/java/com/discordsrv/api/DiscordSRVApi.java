@@ -272,6 +272,7 @@ public interface DiscordSRVApi {
         STORAGE(true),
         DISCORD_CONNECTION(DiscordSRVApi::isReady),
         MODULES(false),
+        DISCORD_COMMANDS(false),
 
         ;
 
