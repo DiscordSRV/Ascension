@@ -1,4 +1,4 @@
-package com.discordsrv.common.command.game.command.subcommand.reload;
+package com.discordsrv.common.command.game.commands.subcommand.reload;
 
 import com.discordsrv.api.DiscordSRVApi;
 

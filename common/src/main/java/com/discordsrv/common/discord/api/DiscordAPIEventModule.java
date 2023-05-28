@@ -23,6 +23,7 @@ import com.discordsrv.api.discord.entity.channel.DiscordMessageChannel;
 import com.discordsrv.api.discord.entity.guild.DiscordGuildMember;
 import com.discordsrv.api.discord.entity.interaction.DiscordInteractionHook;
 import com.discordsrv.api.discord.entity.interaction.command.CommandType;
+import com.discordsrv.api.discord.entity.interaction.command.SubCommandGroup;
 import com.discordsrv.api.discord.entity.interaction.component.ComponentIdentifier;
 import com.discordsrv.api.discord.events.interaction.DiscordModalInteractionEvent;
 import com.discordsrv.api.discord.events.interaction.command.*;
@@ -169,7 +170,7 @@ public class DiscordAPIEventModule extends AbstractModule<DiscordSRV> {
             String name = ((GenericCommandInteractionEvent) event).getName();
             if (event instanceof MessageContextInteractionEvent) {
                 com.discordsrv.api.discord.entity.interaction.command.Command command = discordSRV.discordAPI()
-                        .getActiveCommand(guild, CommandType.CHAT_INPUT, name).orElse(null);
+                        .getActiveCommand(guild, CommandType.MESSAGE, name).orElse(null);
                 if (command == null) {
                     return;
                 }
@@ -190,7 +191,7 @@ public class DiscordAPIEventModule extends AbstractModule<DiscordSRV> {
                 }
             } else if (event instanceof UserContextInteractionEvent) {
                 com.discordsrv.api.discord.entity.interaction.command.Command command = discordSRV.discordAPI()
-                        .getActiveCommand(guild, CommandType.MESSAGE, name).orElse(null);
+                        .getActiveCommand(guild, CommandType.USER, name).orElse(null);
                 if (command == null) {
                     return;
                 }
@@ -211,9 +212,33 @@ public class DiscordAPIEventModule extends AbstractModule<DiscordSRV> {
                 }
             } else if (event instanceof SlashCommandInteractionEvent) {
                 com.discordsrv.api.discord.entity.interaction.command.Command command = discordSRV.discordAPI()
-                        .getActiveCommand(guild, CommandType.USER, name).orElse(null);
+                        .getActiveCommand(guild, CommandType.CHAT_INPUT, name).orElse(null);
                 if (command == null) {
                     return;
+                }
+
+                String subCommandGroupName = ((SlashCommandInteractionEvent) event).getSubcommandGroup();
+                String subCommandName = ((SlashCommandInteractionEvent) event).getSubcommandName();
+
+                if (subCommandGroupName != null) {
+                    for (SubCommandGroup group : command.getSubCommandGroups()) {
+                        if (group.getName().equals(subCommandGroupName)) {
+                            for (com.discordsrv.api.discord.entity.interaction.command.Command subCommand : group.getCommands()) {
+                                if (subCommand.getName().equals(subCommandName)) {
+                                    command = subCommand;
+                                    break;
+                                }
+                            }
+                            break;
+                        }
+                    }
+                } else if (subCommandName != null) {
+                    for (com.discordsrv.api.discord.entity.interaction.command.Command subCommand : command.getSubCommands()) {
+                        if (subCommandName.equals(subCommand.getName())) {
+                            command = subCommand;
+                            break;
+                        }
+                    }
                 }
 
                 DiscordChatInputInteractionEvent interactionEvent = new DiscordChatInputInteractionEvent(

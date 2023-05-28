@@ -91,9 +91,13 @@ public class DiscordCommandRegistry {
 
     @Nullable
     public Command getActive(Long guildId, CommandType type, String name) {
-        return registries
+        Registry registry = registries
                 .computeIfAbsent(guildId != null ? guildId : GLOBAL_ID, key -> Collections.emptyMap())
-                .get(type).getActive(name);
+                .get(type);
+        if (registry == null) {
+            return null;
+        }
+        return registry.getActive(name);
     }
 
     public void registerCommandsToDiscord() {
@@ -149,7 +153,10 @@ public class DiscordCommandRegistry {
                 action.addCommands(allCommands.stream().map(JDAEntity::asJDA).collect(Collectors.toList()))
                         .queue(v -> {
                             for (CommandType value : CommandType.values()) {
-                                commandsByType.get(value).putActiveCommands(commandsToRegister.get(value));
+                                Registry registry = commandsByType.get(value);
+                                if (registry != null) {
+                                    registry.putActiveCommands(commandsToRegister.get(value));
+                                }
                             }
                         });
             }

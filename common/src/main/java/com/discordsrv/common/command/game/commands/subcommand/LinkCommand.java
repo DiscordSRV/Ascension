@@ -16,30 +16,23 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package com.discordsrv.common.command.game.command.subcommand;
+package com.discordsrv.common.command.game.commands.subcommand;
 
-import com.discordsrv.api.color.Color;
 import com.discordsrv.common.DiscordSRV;
 import com.discordsrv.common.command.game.abstraction.GameCommand;
 import com.discordsrv.common.command.game.abstraction.GameCommandArguments;
 import com.discordsrv.common.command.game.abstraction.GameCommandExecutor;
 import com.discordsrv.common.command.game.sender.ICommandSender;
-import com.discordsrv.common.debug.data.VersionInfo;
-import net.kyori.adventure.text.Component;
-import net.kyori.adventure.text.TextComponent;
-import net.kyori.adventure.text.format.NamedTextColor;
-import net.kyori.adventure.text.format.TextColor;
-import org.apache.commons.lang3.StringUtils;
 
-public class VersionCommand implements GameCommandExecutor {
+public class LinkCommand implements GameCommandExecutor {
 
     private static GameCommand INSTANCE;
 
     public static GameCommand get(DiscordSRV discordSRV) {
         if (INSTANCE == null) {
-            INSTANCE = GameCommand.literal("version")
-                    .requiredPermission("discordsrv.admin.version")
-                    .executor(new VersionCommand(discordSRV));
+            INSTANCE = GameCommand.literal("link")
+                    .requiredPermission("discordsrv.player.link")
+                    .executor(new LinkCommand(discordSRV));
         }
 
         return INSTANCE;
@@ -47,28 +40,12 @@ public class VersionCommand implements GameCommandExecutor {
 
     private final DiscordSRV discordSRV;
 
-    public VersionCommand(DiscordSRV discordSRV) {
+    public LinkCommand(DiscordSRV discordSRV) {
         this.discordSRV = discordSRV;
     }
 
     @Override
     public void execute(ICommandSender sender, GameCommandArguments arguments) {
-        VersionInfo versionInfo = discordSRV.versionInfo();
 
-        TextComponent.Builder builder =
-                Component.text()
-                        .content("Running DiscordSRV ")
-                        .color(TextColor.color(Color.BLURPLE.rgb()))
-                        .append(Component.text("v" + versionInfo.version(), NamedTextColor.GRAY));
-        if (versionInfo.isSnapshot()) {
-            String rev = StringUtils.substring(versionInfo.gitRevision(), 0, 6);
-            builder.append(
-                    Component.text()
-                            .content(" (" + rev + "/" + versionInfo.gitBranch() + ")")
-                            .color(NamedTextColor.AQUA)
-            );
-        }
-
-        sender.sendMessage(builder);
     }
 }

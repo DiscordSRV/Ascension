@@ -16,29 +16,31 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package com.discordsrv.common.command.game.command;
+package com.discordsrv.common.command.game.commands;
 
 import com.discordsrv.api.component.MinecraftComponent;
 import com.discordsrv.common.DiscordSRV;
+import com.discordsrv.common.command.combined.commands.DebugCommand;
+import com.discordsrv.common.command.combined.commands.VersionCommand;
 import com.discordsrv.common.command.game.abstraction.GameCommand;
 import com.discordsrv.common.command.game.abstraction.GameCommandArguments;
 import com.discordsrv.common.command.game.abstraction.GameCommandExecutor;
-import com.discordsrv.common.command.game.command.subcommand.*;
-import com.discordsrv.common.command.game.command.subcommand.reload.ReloadCommand;
+import com.discordsrv.common.command.game.commands.subcommand.*;
+import com.discordsrv.common.command.game.commands.subcommand.reload.ReloadCommand;
 import com.discordsrv.common.command.game.sender.ICommandSender;
 import com.discordsrv.common.component.util.ComponentUtil;
 
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
-public class DiscordSRVCommand implements GameCommandExecutor {
+public class DiscordSRVGameCommand implements GameCommandExecutor {
 
     private static final Map<String, GameCommand> INSTANCES = new ConcurrentHashMap<>();
-    private static DiscordSRVCommand COMMAND;
+    private static DiscordSRVGameCommand COMMAND;
 
     public static GameCommand get(DiscordSRV discordSRV, String alias) {
         if (COMMAND == null) {
-            COMMAND = new DiscordSRVCommand(discordSRV);
+            COMMAND = new DiscordSRVGameCommand(discordSRV);
         }
         return INSTANCES.computeIfAbsent(alias, key ->
                 GameCommand.literal(alias)
@@ -47,17 +49,17 @@ public class DiscordSRVCommand implements GameCommandExecutor {
                         .then(BroadcastCommand.discord(discordSRV))
                         .then(BroadcastCommand.minecraft(discordSRV))
                         .then(BroadcastCommand.json(discordSRV))
-                        .then(DebugCommand.get(discordSRV))
+                        .then(DebugCommand.getGame(discordSRV))
                         .then(LinkCommand.get(discordSRV))
                         .then(ReloadCommand.get(discordSRV))
                         .then(ResyncCommand.get(discordSRV))
-                        .then(VersionCommand.get(discordSRV))
+                        .then(VersionCommand.getGame(discordSRV))
         );
     }
 
     private final DiscordSRV discordSRV;
 
-    public DiscordSRVCommand(DiscordSRV discordSRV) {
+    public DiscordSRVGameCommand(DiscordSRV discordSRV) {
         this.discordSRV = discordSRV;
     }
 

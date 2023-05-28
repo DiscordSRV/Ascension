@@ -16,7 +16,7 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package com.discordsrv.common.command.game.command.subcommand;
+package com.discordsrv.common.command.game.commands.subcommand;
 
 import com.discordsrv.api.component.MinecraftComponent;
 import com.discordsrv.api.discord.entity.channel.DiscordMessageChannel;

@@ -485,6 +485,10 @@ public class DiscordAPIImpl implements DiscordAPI {
         return Optional.ofNullable(commandRegistry.getActive(guild != null ? guild.getIdLong() : null, type, name));
     }
 
+    public DiscordCommandRegistry commandRegistry() {
+        return commandRegistry;
+    }
+
     private class WebhookCacheLoader implements AsyncCacheLoader<Long, WebhookClient> {
 
         @Override

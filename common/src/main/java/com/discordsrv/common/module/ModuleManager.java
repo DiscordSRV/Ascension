@@ -27,7 +27,7 @@ import com.discordsrv.api.event.bus.Subscribe;
 import com.discordsrv.api.event.events.lifecycle.DiscordSRVShuttingDownEvent;
 import com.discordsrv.api.module.type.Module;
 import com.discordsrv.common.DiscordSRV;
-import com.discordsrv.common.command.game.command.subcommand.reload.ReloadResults;
+import com.discordsrv.common.command.game.commands.subcommand.reload.ReloadResults;
 import com.discordsrv.common.debug.DebugGenerateEvent;
 import com.discordsrv.common.debug.file.TextDebugFile;
 import com.discordsrv.common.discord.connection.jda.JDAConnectionManager;

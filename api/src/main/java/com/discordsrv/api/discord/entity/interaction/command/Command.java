@@ -181,6 +181,12 @@ public class Command implements JDAEntity<CommandData> {
 
     @NotNull
     @Unmodifiable
+    public List<Command> getSubCommands() {
+        return Collections.unmodifiableList(subCommands);
+    }
+
+    @NotNull
+    @Unmodifiable
     public List<CommandOption> getOptions() {
         return Collections.unmodifiableList(options);
     }

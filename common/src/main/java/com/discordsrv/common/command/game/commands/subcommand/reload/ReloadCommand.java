@@ -16,7 +16,7 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package com.discordsrv.common.command.game.command.subcommand.reload;
+package com.discordsrv.common.command.game.commands.subcommand.reload;
 
 import com.discordsrv.api.DiscordSRVApi;
 import com.discordsrv.common.DiscordSRV;
