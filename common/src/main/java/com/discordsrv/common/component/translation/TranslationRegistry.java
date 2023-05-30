@@ -55,4 +55,8 @@ public class TranslationRegistry {
             ).get(key);
         }
     }
+
+    public void clear() {
+        translations.clear();
+    }
 }

@@ -274,6 +274,9 @@ public interface DiscordSRVApi {
         MODULES(false),
         DISCORD_COMMANDS(false),
 
+        // Bukkit only
+        TRANSLATIONS(false)
+
         ;
 
         public static final Set<ReloadFlag> ALL = Collections.unmodifiableSet(new LinkedHashSet<>(Arrays.asList(values())));

@@ -20,6 +20,7 @@ package com.discordsrv.bukkit;
 
 import com.discordsrv.api.DiscordSRVApi;
 import com.discordsrv.bukkit.command.game.handler.AbstractBukkitCommandHandler;
+import com.discordsrv.bukkit.component.translation.BukkitTranslationLoader;
 import com.discordsrv.bukkit.config.connection.BukkitConnectionConfig;
 import com.discordsrv.bukkit.config.main.BukkitConfig;
 import com.discordsrv.bukkit.config.manager.BukkitConfigManager;
@@ -39,30 +40,25 @@ import com.discordsrv.bukkit.scheduler.FoliaScheduler;
 import com.discordsrv.bukkit.scheduler.IBukkitScheduler;
 import com.discordsrv.common.ServerDiscordSRV;
 import com.discordsrv.common.command.game.handler.ICommandHandler;
-import com.discordsrv.common.component.translation.Translation;
 import com.discordsrv.common.config.manager.ConnectionConfigManager;
 import com.discordsrv.common.config.manager.MainConfigManager;
 import com.discordsrv.common.debug.data.OnlineMode;
 import com.discordsrv.common.messageforwarding.game.minecrafttodiscord.MinecraftToDiscordChatModule;
 import com.discordsrv.common.plugin.PluginManager;
-import com.fasterxml.jackson.databind.JsonNode;
 import net.kyori.adventure.platform.bukkit.BukkitAudiences;
 import org.bukkit.Server;
 import org.bukkit.plugin.ServicePriority;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.jetbrains.annotations.NotNull;
 
-import java.io.InputStream;
 import java.lang.reflect.Field;
-import java.net.URL;
-import java.util.HashMap;
-import java.util.Locale;
-import java.util.Map;
-import java.util.Properties;
+import java.util.List;
+import java.util.Set;
 
 public class BukkitDiscordSRV extends ServerDiscordSRV<DiscordSRVBukkitBootstrap, BukkitConfig, BukkitConnectionConfig> {
 
     private BukkitAudiences audiences;
+    private BukkitTranslationLoader translationLoader;
 
     private final IBukkitScheduler scheduler;
     private final BukkitConsole console;
@@ -171,55 +167,6 @@ public class BukkitDiscordSRV extends ServerDiscordSRV<DiscordSRVBukkitBootstrap
         return configManager;
     }
 
-    private URL findResource(String name) {
-        ClassLoader classLoader = getClass().getClassLoader();
-        URL url = null;
-        while (classLoader != null && url == null) {
-            url = classLoader.getResource(name);
-            classLoader = classLoader.getParent();
-        }
-        return url;
-    }
-
-    private void loadMCTranslations() {
-        Map<String, Translation> translations = new HashMap<>();
-        try {
-            URL enUS = findResource("assets/minecraft/lang/en_US.lang");
-            if (enUS == null) {
-                enUS = findResource("assets/minecraft/lang/en_us.lang");
-            }
-            if (enUS != null) {
-                Properties properties = new Properties();
-                try (InputStream inputStream = enUS.openStream()) {
-                    properties.load(inputStream);
-                }
-
-                properties.forEach((k, v) -> translations.put((String) k, Translation.stringFormat((String) v)));
-            }
-        } catch (Throwable t) {
-            logger().debug("Failed to load locale", t);
-        }
-        try {
-            URL enUS = findResource("assets/minecraft/lang/en_us.json");
-            if (enUS != null) {
-                JsonNode node = json().readTree(enUS);
-                node.fields().forEachRemaining(entry -> translations.put(
-                        entry.getKey(),
-                        Translation.stringFormat(entry.getValue().textValue()))
-                );
-            }
-        } catch (Throwable t) {
-            logger().debug("Failed to load locale", t);
-        }
-
-        if (translations.isEmpty()) {
-            logger().warning("No Minecraft translations were found, some components may not render correctly");
-        } else {
-            componentFactory().translationRegistry().register(Locale.US, translations);
-            logger().debug("Found " + translations.size() + " Minecraft translations for en_us");
-        }
-    }
-
     @Override
     protected void enable() throws Throwable {
         // Service provider
@@ -227,7 +174,7 @@ public class BukkitDiscordSRV extends ServerDiscordSRV<DiscordSRVBukkitBootstrap
 
         // Adventure related stuff
         this.audiences = BukkitAudiences.create(bootstrap.getPlugin());
-        loadMCTranslations();
+        this.translationLoader = new BukkitTranslationLoader(this);
 
         // Command handler
         commandHandler = AbstractBukkitCommandHandler.get(this);
@@ -261,9 +208,21 @@ public class BukkitDiscordSRV extends ServerDiscordSRV<DiscordSRVBukkitBootstrap
     }
 
     @Override
+    protected List<ReloadResult> reload(Set<ReloadFlag> flags, boolean initial) throws Throwable {
+        List<ReloadResult> results = super.reload(flags, initial);
+
+        if (flags.contains(ReloadFlag.TRANSLATIONS)) {
+            translationLoader.reload();
+        }
+
+        return results;
+    }
+
+    @Override
     protected void disable() {
         super.disable();
 
         requiredLinkingListener.disable();
+        audiences.close();
     }
 }
