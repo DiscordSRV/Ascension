@@ -23,6 +23,7 @@ import com.discordsrv.api.event.events.message.receive.game.GameChatMessageRecei
 import com.discordsrv.bukkit.BukkitDiscordSRV;
 import com.discordsrv.bukkit.component.PaperComponentHandle;
 import com.discordsrv.common.channel.GlobalChannel;
+import com.discordsrv.common.player.IPlayer;
 import org.bukkit.entity.Player;
 import org.bukkit.event.Event;
 import org.bukkit.event.Listener;
@@ -47,10 +48,11 @@ public class BukkitChatForwarder implements IBukkitChatForwarder {
 
     @Override
     public void publishEvent(Event event, Player player, MinecraftComponent component, boolean cancelled) {
+        IPlayer srvPlayer = discordSRV.playerProvider().player(player);
         discordSRV.scheduler().run(() -> discordSRV.eventBus().publish(
                 new GameChatMessageReceiveEvent(
                         event,
-                        discordSRV.playerProvider().player(player),
+                        srvPlayer,
                         component,
                         new GlobalChannel(discordSRV),
                         cancelled
