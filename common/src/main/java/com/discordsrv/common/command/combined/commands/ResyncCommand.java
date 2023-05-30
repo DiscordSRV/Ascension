@@ -102,7 +102,9 @@ public class ResyncCommand extends CombinedCommand {
                                                 .withDiscordFormatting(Text.Formatting.BOLD),
                                         new Text(")").withGameColor(NamedTextColor.GRAY)
                                 ),
-                                total > 0 ? Collections.singletonList(new Text(resultHover)) : Collections.emptyList()
+                                total > 0
+                                    ? Collections.singletonList(new Text(resultHover))
+                                    : (execution instanceof GameCommandExecution ? Collections.singletonList(new Text("Nothing done")) : Collections.emptyList())
                         );
                     });
         });
