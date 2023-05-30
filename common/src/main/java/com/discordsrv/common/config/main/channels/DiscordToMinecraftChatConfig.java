@@ -39,7 +39,7 @@ public class DiscordToMinecraftChatConfig {
 
     @Comment("The Discord to Minecraft message format for webhook messages (if enabled)")
     @Untranslated(Untranslated.Type.VALUE)
-    public String webhookFormat = "[&#5865F2Discord&r] [hover:show_text:Webhook message]%user_name%&r » %message%%message_attachments_ %";
+    public String webhookFormat = "[&#5865F2Discord&r] [hover:show_text:Webhook message]%user_name%&r » %message%%message_attachments:' '%";
 
     @Comment("Attachment format")
     @Untranslated(Untranslated.Type.VALUE)

@@ -324,10 +324,13 @@ public class ReceivedDiscordMessageImpl implements ReceivedDiscordMessage {
 
     @Placeholder("message_attachments")
     public Component _attachments(BaseChannelConfig config, @PlaceholderRemainder String suffix) {
-        if (suffix.startsWith("_")) {
+        if (suffix.startsWith(":")) {
             suffix = suffix.substring(1);
         } else if (!suffix.isEmpty()) {
             return null;
+        }
+        if (suffix.startsWith("'") && suffix.endsWith("'")) {
+            suffix = suffix.substring(1, suffix.length() - 1);
         }
 
         String attachmentFormat = config.discordToMinecraft.attachmentFormat;
