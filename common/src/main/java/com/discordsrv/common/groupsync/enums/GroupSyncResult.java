@@ -37,6 +37,8 @@ public enum GroupSyncResult {
     NOT_A_GUILD_MEMBER("User is not part of the server the role is in"),
     PERMISSION_BACKEND_FAIL_CHECK("Failed to check group status, error printed"),
     UPDATE_FAILED("Failed to modify role/group, error printed"),
+    NO_PERMISSION_PROVIDER("No permission provider"),
+    PERMISSION_PROVIDER_NO_OFFLINE_SUPPORT("Permission provider doesn't support offline players"),
 
     ;
 

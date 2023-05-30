@@ -2,6 +2,7 @@ package com.discordsrv.common.command.combined.abstraction;
 
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Collections;
 
 public interface CommandExecution {
 
@@ -12,7 +13,12 @@ public interface CommandExecution {
     default void send(Text... texts) {
         send(Arrays.asList(texts));
     }
-    void send(Collection<Text> texts);
+
+    default void send(Collection<Text> texts) {
+        send(texts, Collections.emptyList());
+    }
+
+    void send(Collection<Text> texts, Collection<Text> extra);
 
     void runAsync(Runnable runnable);
 }

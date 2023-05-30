@@ -5,6 +5,7 @@ import com.discordsrv.common.command.game.abstraction.GameCommandArguments;
 import com.discordsrv.common.command.game.sender.ICommandSender;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.TextComponent;
+import net.kyori.adventure.text.event.HoverEvent;
 
 import java.util.Collection;
 
@@ -31,7 +32,15 @@ public class GameCommandExecution implements CommandExecution {
     }
 
     @Override
-    public void send(Collection<Text> texts) {
+    public void send(Collection<Text> texts, Collection<Text> extra) {
+        TextComponent.Builder builder = render(texts);
+        if (!extra.isEmpty()) {
+            builder.hoverEvent(HoverEvent.showText(render(extra)));
+        }
+        sender.sendMessage(builder);
+    }
+
+    private TextComponent.Builder render(Collection<Text> texts) {
         TextComponent.Builder builder = Component.text();
         for (Text text : texts) {
             builder.append(
@@ -40,7 +49,7 @@ public class GameCommandExecution implements CommandExecution {
                             .decorations(text.gameFormatting(), true)
             );
         }
-        sender.sendMessage(builder);
+        return builder;
     }
 
     @Override

@@ -202,7 +202,7 @@ public class GroupSyncModule extends AbstractModule<DiscordSRV> {
         return groupsContext == null ? discordSRV.getModule(PermissionDataProvider.Groups.class) : groupsContext;
     }
 
-    private boolean noPermissionProvider() {
+    public boolean noPermissionProvider() {
         PermissionDataProvider.Groups groups = getPermissionProvider();
         return groups == null || !groups.isEnabled();
     }
@@ -276,8 +276,10 @@ public class GroupSyncModule extends AbstractModule<DiscordSRV> {
     }
 
     public Collection<CompletableFuture<GroupSyncResult>> resync(UUID player, long userId, GroupSyncCause cause) {
-        if (noPermissionProvider() || (discordSRV.playerProvider().player(player) == null && !supportsOffline())) {
-            return Collections.emptyList();
+        if (noPermissionProvider()) {
+            return Collections.singletonList(CompletableFuture.completedFuture(GroupSyncResult.NO_PERMISSION_PROVIDER));
+        } else if (discordSRV.playerProvider().player(player) == null && !supportsOffline()) {
+            return Collections.singletonList(CompletableFuture.completedFuture(GroupSyncResult.PERMISSION_PROVIDER_NO_OFFLINE_SUPPORT));
         }
 
         Map<GroupSyncConfig.PairConfig, CompletableFuture<GroupSyncResult>> futures = new LinkedHashMap<>();

@@ -35,18 +35,22 @@ public class DiscordCommandExecution implements CommandExecution {
     }
 
     @Override
-    public void send(Collection<Text> texts) {
+    public void send(Collection<Text> texts, Collection<Text> extra) {
         StringBuilder builder = new StringBuilder();
         EnumMap<Text.Formatting, Boolean> formats = new EnumMap<>(Text.Formatting.class);
 
         for (Text text : texts) {
-            if (StringUtils.isEmpty(text.content())) continue;
-
-            verifyStyle(builder, formats, text);
-            builder.append(text.content());
+            render(text, builder, formats);
         }
-
         verifyStyle(builder, formats, null);
+
+        if (!extra.isEmpty()) {
+            builder.append("\n\n");
+            for (Text text : extra) {
+                render(text, builder, formats);
+            }
+            verifyStyle(builder, formats, null);
+        }
 
         InteractionHook interactionHook = hook.get();
         boolean ephemeral = isEphemeral.get();
@@ -55,6 +59,13 @@ public class DiscordCommandExecution implements CommandExecution {
         } else {
             event.asJDA().reply(builder.toString()).setEphemeral(ephemeral).queue();
         }
+    }
+
+    private void render(Text text, StringBuilder builder, EnumMap<Text.Formatting, Boolean> formats) {
+        if (StringUtils.isEmpty(text.content())) return;
+
+        verifyStyle(builder, formats, text);
+        builder.append(text.content());
     }
 
     private void verifyStyle(StringBuilder builder, EnumMap<Text.Formatting, Boolean> formats, Text text) {
