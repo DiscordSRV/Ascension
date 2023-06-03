@@ -31,7 +31,7 @@ public class GlobalTextHandlingContext {
         this.discordSRV = discordSRV;
     }
 
-    @Placeholder("text_")
+    @Placeholder("text")
     public MinecraftComponent text(@PlaceholderRemainder String text) {
         return discordSRV.componentFactory().textBuilder(text).build();
     }

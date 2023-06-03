@@ -39,8 +39,19 @@ public final class PlaceholderMethodUtil {
             PlaceholderRemainder annotation = parameter.getAnnotation(PlaceholderRemainder.class);
             if (annotation != null) {
                 parameters[i] = null;
+
                 if (parameter.getType().isAssignableFrom(String.class)) {
-                    parameterValues[i] = remainder;
+                    String suffix = remainder;
+                    if (suffix.startsWith(":")) {
+                        suffix = suffix.substring(1);
+                    } else if (!suffix.isEmpty()) {
+                        suffix = "";
+                    }
+                    if (suffix.startsWith("'") && suffix.endsWith("'")) {
+                        suffix = suffix.substring(1, suffix.length() - 1);
+                    }
+
+                    parameterValues[i] = suffix;
                 } else {
                     parameterValues[i] = null;
                 }

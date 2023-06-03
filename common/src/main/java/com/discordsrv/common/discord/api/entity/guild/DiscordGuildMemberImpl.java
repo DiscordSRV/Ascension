@@ -142,12 +142,6 @@ public class DiscordGuildMemberImpl implements DiscordGuildMember {
 
     @Placeholder("user_roles")
     public Component _allRoles(@PlaceholderRemainder String suffix) {
-        if (suffix.startsWith("_")) {
-            suffix = suffix.substring(1);
-        } else if (!suffix.isEmpty()) {
-            return null;
-        }
-
         List<Component> components = new ArrayList<>();
         for (DiscordRole role : getRoles()) {
             components.add(Component.text(role.getName()).color(TextColor.color(role.getColor().rgb())));
