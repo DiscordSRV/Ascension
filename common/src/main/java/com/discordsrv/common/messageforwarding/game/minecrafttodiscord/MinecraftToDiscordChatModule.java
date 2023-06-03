@@ -31,7 +31,6 @@ import com.discordsrv.api.event.bus.EventPriority;
 import com.discordsrv.api.event.bus.Subscribe;
 import com.discordsrv.api.event.events.message.forward.game.GameChatMessageForwardedEvent;
 import com.discordsrv.api.event.events.message.receive.game.GameChatMessageReceiveEvent;
-import com.discordsrv.api.placeholder.DiscordPlaceholders;
 import com.discordsrv.api.placeholder.FormattedText;
 import com.discordsrv.api.placeholder.util.Placeholders;
 import com.discordsrv.common.DiscordSRV;
@@ -41,7 +40,6 @@ import com.discordsrv.common.config.main.channels.base.BaseChannelConfig;
 import com.discordsrv.common.future.util.CompletableFutureUtil;
 import com.discordsrv.common.messageforwarding.game.AbstractGameMessageModule;
 import com.discordsrv.common.player.IPlayer;
-import dev.vankka.mcdiscordreserializer.discord.DiscordSerializer;
 import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.entities.Role;
 import net.kyori.adventure.text.Component;
@@ -50,6 +48,7 @@ import java.util.*;
 import java.util.concurrent.CompletableFuture;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 
 public class MinecraftToDiscordChatModule extends AbstractGameMessageModule<MinecraftToDiscordChatConfig, GameChatMessageReceiveEvent> {
 
@@ -80,8 +79,7 @@ public class MinecraftToDiscordChatModule extends AbstractGameMessageModule<Mine
 
     @Override
     public String convertComponent(MinecraftToDiscordChatConfig config, Component component) {
-        DiscordSerializer discordSerializer = discordSRV.componentFactory().discordSerializer();
-        String content = discordSerializer.serialize(component, discordSerializer.getDefaultOptions().withEscapeMarkdown(false));
+        String content = discordSRV.placeholderService().getResultAsPlain(component).toString();
 
         Placeholders messagePlaceholders = new Placeholders(content);
         config.contentRegexFilters.forEach(messagePlaceholders::replaceAll);
@@ -111,9 +109,7 @@ public class MinecraftToDiscordChatModule extends AbstractGameMessageModule<Mine
                     .add(channel);
         }
 
-        Component component = ComponentUtil.fromAPI(event.getMessage());
-        String message = convertComponent(config, component);
-
+        Component message = ComponentUtil.fromAPI(event.getMessage());
         Map<CompletableFuture<ReceivedDiscordMessage>, DiscordMessageChannel> futures = new LinkedHashMap<>();
 
         // Format messages per-Guild
@@ -138,7 +134,7 @@ public class MinecraftToDiscordChatModule extends AbstractGameMessageModule<Mine
             MinecraftToDiscordChatConfig config,
             SendableDiscordMessage.Builder format,
             Guild guild,
-            String message,
+            Component message,
             IPlayer player,
             Object[] context
     ) {
@@ -149,7 +145,8 @@ public class MinecraftToDiscordChatModule extends AbstractGameMessageModule<Mine
                 && player.hasPermission("discordsrv.mention.lookup.user")) {
             List<CompletableFuture<List<MentionCachingModule.CachedMention>>> futures = new ArrayList<>();
 
-            Matcher matcher = MENTION_PATTERN.matcher(message);
+            String messageContent = discordSRV.componentFactory().plainSerializer().serialize(message);
+            Matcher matcher = MENTION_PATTERN.matcher(messageContent);
             while (matcher.find()) {
                 futures.add(mentionCaching.lookupMemberMentions(guild, matcher.group()));
             }
@@ -173,7 +170,7 @@ public class MinecraftToDiscordChatModule extends AbstractGameMessageModule<Mine
             MinecraftToDiscordChatConfig config,
             SendableDiscordMessage.Builder format,
             Guild guild,
-            String message,
+            Component message,
             IPlayer player,
             Object[] context,
             Set<MentionCachingModule.CachedMention> memberMentions
@@ -198,13 +195,9 @@ public class MinecraftToDiscordChatModule extends AbstractGameMessageModule<Mine
             }
         }
 
-        Placeholders channelMessagePlaceholders = new Placeholders(
-                DiscordFormattingUtil.escapeMentions(message));
-
-        // From longest to shortest
-        mentions.stream()
+        List<MentionCachingModule.CachedMention> orderedMentions = mentions.stream()
                 .sorted(Comparator.comparingInt(mention -> ((MentionCachingModule.CachedMention) mention).searchLength()).reversed())
-                .forEachOrdered(mention -> channelMessagePlaceholders.replaceAll(mention.search(), mention.mention()));
+                .collect(Collectors.toList());
 
         List<AllowedMention> allowedMentions = new ArrayList<>();
         if (mentionConfig.users && player.hasPermission("discordsrv.mention.user")) {
@@ -232,28 +225,29 @@ public class MinecraftToDiscordChatModule extends AbstractGameMessageModule<Mine
                 .toFormatter()
                 .addContext(context)
                 .addPlaceholder("message", () -> {
+                    String convertedComponent = convertComponent(config, message);
+                    Placeholders channelMessagePlaceholders = new Placeholders(
+                            DiscordFormattingUtil.escapeMentions(convertedComponent));
+
+                    // From longest to shortest
+                    orderedMentions.forEach(mention -> channelMessagePlaceholders.replaceAll(mention.search(), mention.mention()));
+
                     String finalMessage = channelMessagePlaceholders.toString();
-                    if (DiscordPlaceholders.FORMATTING.get() != DiscordPlaceholders.Formatting.NORMAL) {
-                        return preventEveryoneMentions(everyone, finalMessage, false);
-                    } else {
-                        String formattedMessage = DiscordFormattingUtil.escapeFormatting(
-                                DiscordFormattingUtil.escapeQuotes(finalMessage));
-                        return new FormattedText(preventEveryoneMentions(everyone, formattedMessage, true));
-                    }
+                    return new FormattedText(preventEveryoneMentions(everyone, finalMessage));
                 })
                 .applyPlaceholderService()
                 .build();
     }
 
-    private String preventEveryoneMentions(boolean everyoneAllowed, String message, boolean permitBackslash) {
+    private String preventEveryoneMentions(boolean everyoneAllowed, String message) {
         if (everyoneAllowed) {
             // Nothing to do
             return message;
         }
 
         message = message
-                .replace("@everyone", (permitBackslash ? "\\" : "") + "@\u200Beveryone") // zero-width-space
-                .replace("@here", (permitBackslash ? "\\" : "") + "@\u200Bhere"); // zero-width-space
+                .replace("@everyone", "\\@\u200Beveryone") // zero-width-space
+                .replace("@here", "\\@\u200Bhere"); // zero-width-space
 
         if (message.contains("@everyone") || message.contains("@here")) {
             throw new IllegalStateException("@everyone or @here blocking unsuccessful");

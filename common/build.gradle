@@ -74,6 +74,7 @@ dependencies {
     runtimeDownloadApi(libs.adventure.serializer.plain)
     runtimeDownloadApi(libs.adventure.serializer.legacy)
     runtimeDownloadApi(libs.adventure.serializer.gson)
+    runtimeDownloadApi(libs.adventure.serializer.ansi)
     runtimeDownloadApi(libs.mcdiscordreserializer)
     runtimeDownloadApi(libs.enhancedlegacytext)
 

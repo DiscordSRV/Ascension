@@ -31,7 +31,9 @@ import dev.vankka.mcdiscordreserializer.minecraft.MinecraftSerializer;
 import dev.vankka.mcdiscordreserializer.minecraft.MinecraftSerializerOptions;
 import net.kyori.adventure.text.TranslatableComponent;
 import net.kyori.adventure.text.flattener.ComponentFlattener;
+import net.kyori.adventure.text.serializer.ansi.ANSIComponentSerializer;
 import net.kyori.adventure.text.serializer.plain.PlainTextComponentSerializer;
+import net.kyori.ansi.ColorLevel;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Locale;
@@ -52,6 +54,7 @@ public class ComponentFactory implements MinecraftComponentFactory {
     private final MinecraftSerializer minecraftSerializer;
     private final DiscordSerializer discordSerializer;
     private final PlainTextComponentSerializer plainSerializer;
+    private final ANSIComponentSerializer ansiSerializer;
 
     // Not the same as Adventure's TranslationRegistry
     private final TranslationRegistry translationRegistry = new TranslationRegistry();
@@ -62,17 +65,20 @@ public class ComponentFactory implements MinecraftComponentFactory {
                 MinecraftSerializerOptions.defaults()
                         .addRenderer(new DiscordSRVMinecraftRenderer(discordSRV))
         );
-        this.discordSerializer = new DiscordSerializer();
-        discordSerializer.setDefaultOptions(
+        this.discordSerializer = new DiscordSerializer(
                 DiscordSerializerOptions.defaults()
                         .withTranslationProvider(this::provideTranslation)
         );
+
+        ComponentFlattener flattener = ComponentFlattener.basic().toBuilder()
+                .mapper(TranslatableComponent.class, this::provideTranslation)
+                .build();
         this.plainSerializer = PlainTextComponentSerializer.builder()
-                .flattener(
-                        ComponentFlattener.basic().toBuilder()
-                                .mapper(TranslatableComponent.class, this::provideTranslation)
-                                .build()
-                )
+                .flattener(flattener)
+                .build();
+        this.ansiSerializer = ANSIComponentSerializer.builder()
+                .colorLevel(ColorLevel.INDEXED_16)
+                .flattener(flattener)
                 .build();
     }
 
@@ -111,6 +117,10 @@ public class ComponentFactory implements MinecraftComponentFactory {
 
     public PlainTextComponentSerializer plainSerializer() {
         return plainSerializer;
+    }
+
+    public ANSIComponentSerializer ansiSerializer() {
+        return ansiSerializer;
     }
 
     public TranslationRegistry translationRegistry() {

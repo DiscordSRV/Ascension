@@ -116,11 +116,12 @@ dependencyResolutionManagement {
             library('log4j-core', 'org.apache.logging.log4j', 'log4j-core').version('2.0-beta9')
 
             // Adventure
-            version('adventure', '4.13.1')
+            version('adventure', '4.14.0-SNAPSHOT')
             library('adventure-api', 'net.kyori', 'adventure-api').versionRef('adventure')
             library('adventure-serializer-plain', 'net.kyori', 'adventure-text-serializer-plain').versionRef('adventure')
             library('adventure-serializer-legacy', 'net.kyori', 'adventure-text-serializer-legacy').versionRef('adventure')
             library('adventure-serializer-gson', 'net.kyori', 'adventure-text-serializer-gson').versionRef('adventure')
+            library('adventure-serializer-ansi', 'net.kyori', 'adventure-text-serializer-ansi').versionRef('adventure')
 
             // Adventure Platform
             version('adventure-platform', '4.3.0')
