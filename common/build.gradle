@@ -42,12 +42,6 @@ dependencies {
     // DependencyDownload
     api(libs.dependencydownload.runtime)
 
-    // Discord Webhooks
-    runtimeDownloadApi(libs.webhooks) {
-        // okhttp is already included
-        exclude group: 'com.squareup.okhttp3', module: 'okhttp'
-    }
-
     // Apache Commons
     runtimeDownloadApi(libs.commons.lang)
     runtimeDownloadApi(libs.commons.io)

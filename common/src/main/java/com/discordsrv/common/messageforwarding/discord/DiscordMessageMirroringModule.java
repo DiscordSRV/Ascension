@@ -235,7 +235,7 @@ public class DiscordMessageMirroringModule extends AbstractModule<DiscordSRV> {
             }
 
             SendableDiscordMessage sendableMessage = convert(message, channel, reference.config).build();
-            channel.editMessageById(reference.messageId, sendableMessage).whenComplete((v, t) -> {
+            channel.editMessageById(reference.messageId, sendableMessage, null).whenComplete((v, t) -> {
                 if (t != null) {
                     discordSRV.logger().error("Failed to update mirrored message in " + channel);
                 }

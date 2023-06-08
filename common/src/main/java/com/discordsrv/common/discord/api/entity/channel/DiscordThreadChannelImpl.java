@@ -18,12 +18,13 @@
 
 package com.discordsrv.common.discord.api.entity.channel;
 
-import club.minnced.discord.webhook.WebhookClient;
 import com.discordsrv.api.discord.entity.channel.DiscordChannelType;
 import com.discordsrv.api.discord.entity.channel.DiscordThreadChannel;
 import com.discordsrv.api.discord.entity.channel.DiscordThreadContainer;
 import com.discordsrv.api.discord.entity.guild.DiscordGuild;
 import com.discordsrv.common.DiscordSRV;
+import net.dv8tion.jda.api.entities.Message;
+import net.dv8tion.jda.api.entities.WebhookClient;
 import net.dv8tion.jda.api.entities.channel.ChannelType;
 import net.dv8tion.jda.api.entities.channel.attribute.IThreadContainer;
 import net.dv8tion.jda.api.entities.channel.concrete.ThreadChannel;
@@ -48,10 +49,10 @@ public class DiscordThreadChannelImpl extends AbstractDiscordGuildMessageChannel
     }
 
     @Override
-    public CompletableFuture<WebhookClient> queryWebhookClient() {
+    public CompletableFuture<WebhookClient<Message>> queryWebhookClient() {
         return discordSRV.discordAPI()
                 .queryWebhookClient(getParentChannel().getId())
-                .thenApply(client -> client.onThread(getId()));
+                .thenApply(client -> null/* client.onThread(getId())*/); // TODO
     }
 
     @Override

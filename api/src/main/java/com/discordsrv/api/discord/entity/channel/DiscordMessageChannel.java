@@ -29,6 +29,7 @@ import com.discordsrv.api.discord.entity.message.ReceivedDiscordMessage;
 import com.discordsrv.api.discord.entity.message.SendableDiscordMessage;
 import net.dv8tion.jda.api.entities.channel.middleman.MessageChannel;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.io.InputStream;
 import java.util.Collections;
@@ -86,7 +87,7 @@ public interface DiscordMessageChannel extends Snowflake {
      * @return a future returning the message after being edited
      */
     @NotNull
-    CompletableFuture<ReceivedDiscordMessage> editMessageById(long id, @NotNull SendableDiscordMessage message);
+    CompletableFuture<ReceivedDiscordMessage> editMessageById(long id, @NotNull SendableDiscordMessage message, @Nullable Map<String, InputStream> attachments);
 
     /**
      * Returns the JDA representation of this object. This should not be used if it can be avoided.
