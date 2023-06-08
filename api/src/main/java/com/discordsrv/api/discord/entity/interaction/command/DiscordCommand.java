@@ -40,7 +40,7 @@ import java.util.regex.Pattern;
 /**
  * A Discord command.
  */
-public class Command implements JDAEntity<CommandData> {
+public class DiscordCommand implements JDAEntity<CommandData> {
 
     private static final String CHAT_INPUT_NAME_REGEX = "(?U)[\\w-]{1,32}";
     public static final Pattern CHAT_INPUT_NAME_PATTERN = Pattern.compile(CHAT_INPUT_NAME_REGEX);
@@ -100,27 +100,27 @@ public class Command implements JDAEntity<CommandData> {
     private final Map<Locale, String> nameTranslations;
     private final Map<Locale, String> descriptionTranslations;
     private final List<SubCommandGroup> subCommandGroups;
-    private final List<Command> subCommands;
+    private final List<DiscordCommand> subCommands;
     private final List<CommandOption> options;
     private final Long guildId;
     private final boolean guildOnly;
     private final DefaultPermission defaultPermission;
     private final Consumer<? extends AbstractCommandInteractionEvent<?>> eventHandler;
-    private final Consumer<DiscordCommandAutoCompleteInteractionEvent> autoCompleteHandler;
+    private final AutoCompleteHandler autoCompleteHandler;
 
-    private Command(
+    private DiscordCommand(
             ComponentIdentifier id,
             CommandType type,
             Map<Locale, String> nameTranslations,
             Map<Locale, String> descriptionTranslations,
             List<SubCommandGroup> subCommandGroups,
-            List<Command> subCommands,
+            List<DiscordCommand> subCommands,
             List<CommandOption> options,
             Long guildId,
             boolean guildOnly,
             DefaultPermission defaultPermission,
             Consumer<? extends AbstractCommandInteractionEvent<?>> eventHandler,
-            Consumer<DiscordCommandAutoCompleteInteractionEvent> autoCompleteHandler
+            AutoCompleteHandler autoCompleteHandler
     ) {
         this.id = id;
         this.type = type;
@@ -181,7 +181,7 @@ public class Command implements JDAEntity<CommandData> {
 
     @NotNull
     @Unmodifiable
-    public List<Command> getSubCommands() {
+    public List<DiscordCommand> getSubCommands() {
         return Collections.unmodifiableList(subCommands);
     }
 
@@ -211,7 +211,7 @@ public class Command implements JDAEntity<CommandData> {
     }
 
     @Nullable
-    public Consumer<DiscordCommandAutoCompleteInteractionEvent> getAutoCompleteHandler() {
+    public AutoCompleteHandler getAutoCompleteHandler() {
         return autoCompleteHandler;
     }
 
@@ -228,7 +228,8 @@ public class Command implements JDAEntity<CommandData> {
             case CHAT_INPUT:
                 SlashCommandData slashCommandData = Commands.slash(getName(), Objects.requireNonNull(getDescription()));
                 slashCommandData.addSubcommandGroups(subCommandGroups.stream().map(JDAEntity::asJDA).toArray(SubcommandGroupData[]::new));
-                slashCommandData.addSubcommands(subCommands.stream().map(Command::asJDASubcommand).toArray(SubcommandData[]::new));
+                slashCommandData.addSubcommands(subCommands.stream().map(
+                        DiscordCommand::asJDASubcommand).toArray(SubcommandData[]::new));
                 slashCommandData.addOptions(options.stream().map(JDAEntity::asJDA).toArray(OptionData[]::new));
                 commandData = slashCommandData;
                 break;
@@ -252,9 +253,9 @@ public class Command implements JDAEntity<CommandData> {
 
         private final Map<Locale, String> descriptionTranslations = new LinkedHashMap<>();
         private final List<SubCommandGroup> subCommandGroups = new ArrayList<>();
-        private final List<Command> subCommands = new ArrayList<>();
+        private final List<DiscordCommand> subCommands = new ArrayList<>();
         private final List<CommandOption> options = new ArrayList<>();
-        private Consumer<DiscordCommandAutoCompleteInteractionEvent> autoCompleteHandler;
+        private AutoCompleteHandler autoCompleteHandler;
 
         private ChatInputBuilder(ComponentIdentifier id, String name, String description) {
             super(id, CommandType.CHAT_INPUT, name);
@@ -296,7 +297,7 @@ public class Command implements JDAEntity<CommandData> {
          * @return this builder, useful for chaining
          */
         @NotNull
-        public ChatInputBuilder addSubCommand(@NotNull Command command) {
+        public ChatInputBuilder addSubCommand(@NotNull DiscordCommand command) {
             this.subCommands.add(command);
             return this;
         }
@@ -319,14 +320,14 @@ public class Command implements JDAEntity<CommandData> {
          * @return this builder, useful for chaining
          */
         @NotNull
-        public ChatInputBuilder setAutoCompleteHandler(Consumer<DiscordCommandAutoCompleteInteractionEvent> autoCompleteHandler) {
+        public ChatInputBuilder setAutoCompleteHandler(AutoCompleteHandler autoCompleteHandler) {
             this.autoCompleteHandler = autoCompleteHandler;
             return this;
         }
 
         @Override
-        public Command build() {
-            return new Command(
+        public DiscordCommand build() {
+            return new DiscordCommand(
                     id,
                     type,
                     nameTranslations,
@@ -341,6 +342,13 @@ public class Command implements JDAEntity<CommandData> {
                     autoCompleteHandler
             );
         }
+    }
+
+    @FunctionalInterface
+    public interface AutoCompleteHandler {
+
+        void autoComplete(DiscordCommandAutoCompleteInteractionEvent event);
+
     }
 
     public static class Builder<E extends AbstractCommandInteractionEvent<?>> {
@@ -414,8 +422,8 @@ public class Command implements JDAEntity<CommandData> {
             return this;
         }
 
-        public Command build() {
-            return new Command(
+        public DiscordCommand build() {
+            return new DiscordCommand(
                     id,
                     type,
                     nameTranslations,

@@ -43,15 +43,15 @@ public class SubCommandGroup implements JDAEntity<SubcommandGroupData> {
      * @return a new sub command group
      */
     @NotNull
-    public static SubCommandGroup of(@NotNull String name, @NotNull String description, @NotNull Command... commands) {
+    public static SubCommandGroup of(@NotNull String name, @NotNull String description, @NotNull DiscordCommand... commands) {
         return new SubCommandGroup(name, description, Arrays.asList(commands));
     }
 
     private final String name;
     private final String description;
-    private final List<Command> commands;
+    private final List<DiscordCommand> commands;
 
-    private SubCommandGroup(String name, String description, List<Command> commands) {
+    private SubCommandGroup(String name, String description, List<DiscordCommand> commands) {
         this.name = name;
         this.description = description;
         this.commands = commands;
@@ -69,13 +69,13 @@ public class SubCommandGroup implements JDAEntity<SubcommandGroupData> {
 
     @NotNull
     @Unmodifiable
-    public List<Command> getCommands() {
+    public List<DiscordCommand> getCommands() {
         return commands;
     }
 
     @Override
     public SubcommandGroupData asJDA() {
         return new SubcommandGroupData(name, description)
-                .addSubcommands(commands.stream().map(Command::asJDASubcommand).toArray(SubcommandData[]::new));
+                .addSubcommands(commands.stream().map(DiscordCommand::asJDASubcommand).toArray(SubcommandData[]::new));
     }
 }

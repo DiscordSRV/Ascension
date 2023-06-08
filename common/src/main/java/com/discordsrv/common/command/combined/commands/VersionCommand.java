@@ -19,7 +19,7 @@
 package com.discordsrv.common.command.combined.commands;
 
 import com.discordsrv.api.color.Color;
-import com.discordsrv.api.discord.entity.interaction.command.Command;
+import com.discordsrv.api.discord.entity.interaction.command.DiscordCommand;
 import com.discordsrv.api.discord.entity.interaction.component.ComponentIdentifier;
 import com.discordsrv.common.DiscordSRV;
 import com.discordsrv.common.command.combined.abstraction.CombinedCommand;
@@ -38,7 +38,7 @@ public class VersionCommand extends CombinedCommand {
 
     private static VersionCommand INSTANCE;
     private static GameCommand GAME;
-    private static Command DISCORD;
+    private static DiscordCommand DISCORD;
 
     private static VersionCommand getInstance(DiscordSRV discordSRV) {
         return INSTANCE != null ? INSTANCE : (INSTANCE = new VersionCommand(discordSRV));
@@ -55,10 +55,10 @@ public class VersionCommand extends CombinedCommand {
         return GAME;
     }
 
-    public static Command getDiscord(DiscordSRV discordSRV) {
+    public static DiscordCommand getDiscord(DiscordSRV discordSRV) {
         if (DISCORD == null) {
             VersionCommand command = getInstance(discordSRV);
-            DISCORD = Command.chatInput(ComponentIdentifier.of("DiscordSRV", "version"), "version", "Get the DiscordSRV version")
+            DISCORD = DiscordCommand.chatInput(ComponentIdentifier.of("DiscordSRV", "version"), "version", "Get the DiscordSRV version")
                     .setEventHandler(command)
                     .build();
         }

@@ -23,6 +23,7 @@ import com.discordsrv.api.module.type.Module;
 import com.discordsrv.api.placeholder.DiscordPlaceholders;
 import com.discordsrv.common.bootstrap.IBootstrap;
 import com.discordsrv.common.channel.ChannelConfigHelper;
+import com.discordsrv.common.command.discord.commands.subcommand.ExecuteCommand;
 import com.discordsrv.common.command.game.handler.ICommandHandler;
 import com.discordsrv.common.component.ComponentFactory;
 import com.discordsrv.common.config.connection.ConnectionConfig;
@@ -34,8 +35,8 @@ import com.discordsrv.common.debug.data.OnlineMode;
 import com.discordsrv.common.debug.data.VersionInfo;
 import com.discordsrv.common.dependency.DiscordSRVDependencyManager;
 import com.discordsrv.common.discord.api.DiscordAPIImpl;
-import com.discordsrv.common.discord.connection.jda.JDAConnectionManager;
 import com.discordsrv.common.discord.connection.details.DiscordConnectionDetailsImpl;
+import com.discordsrv.common.discord.connection.jda.JDAConnectionManager;
 import com.discordsrv.common.linking.LinkProvider;
 import com.discordsrv.common.logging.Logger;
 import com.discordsrv.common.logging.impl.DiscordSRVLogger;
@@ -151,5 +152,9 @@ public interface DiscordSRV extends DiscordSRVApi {
     CompletableFuture<Void> invokeEnable();
     CompletableFuture<Void> invokeDisable();
     CompletableFuture<List<ReloadResult>> invokeReload(Set<ReloadFlag> flags, boolean silent);
+
+    default ExecuteCommand.AutoCompleteHelper autoCompleteHelper() {
+        return null;
+    }
 
 }

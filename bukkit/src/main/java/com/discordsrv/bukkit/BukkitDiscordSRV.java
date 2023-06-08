@@ -39,6 +39,7 @@ import com.discordsrv.bukkit.scheduler.BukkitScheduler;
 import com.discordsrv.bukkit.scheduler.FoliaScheduler;
 import com.discordsrv.bukkit.scheduler.IBukkitScheduler;
 import com.discordsrv.common.ServerDiscordSRV;
+import com.discordsrv.common.command.discord.commands.subcommand.ExecuteCommand;
 import com.discordsrv.common.command.game.handler.ICommandHandler;
 import com.discordsrv.common.config.manager.ConnectionConfigManager;
 import com.discordsrv.common.config.manager.MainConfigManager;
@@ -47,11 +48,14 @@ import com.discordsrv.common.messageforwarding.game.minecrafttodiscord.Minecraft
 import com.discordsrv.common.plugin.PluginManager;
 import net.kyori.adventure.platform.bukkit.BukkitAudiences;
 import org.bukkit.Server;
+import org.bukkit.command.Command;
 import org.bukkit.plugin.ServicePriority;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.jetbrains.annotations.NotNull;
 
 import java.lang.reflect.Field;
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 
@@ -224,5 +228,41 @@ public class BukkitDiscordSRV extends ServerDiscordSRV<DiscordSRVBukkitBootstrap
 
         requiredLinkingListener.disable();
         audiences.close();
+    }
+
+    public ExecuteCommand.AutoCompleteHelper autoCompleteHelper() {
+        return parts -> {
+            String commandName = !parts.isEmpty() ? parts.remove(0) : null;
+            Command command = commandName != null ? server().getPluginCommand(commandName) : null;
+            if (command == null) {
+                if (parts.size() > 1) {
+                    // Command is not known but there are arguments, nothing to auto complete...
+                    return Collections.emptyList();
+                } else {
+                    // List out commands
+                    List<String> suggestions = new ArrayList<>();
+                    for (String cmd : PaperCmdMap.getMap(server())) {
+                        if (commandName == null || cmd.startsWith(commandName)) {
+                            suggestions.add(cmd);
+                        }
+                    }
+
+                    return suggestions;
+                }
+            }
+
+            // Get the arguments minus the last one (if any)
+            String prefix = String.join(" ", parts.subList(0, parts.size() - (!parts.isEmpty() ? 1 : 0)));
+            if (!prefix.isEmpty()) {
+                prefix = prefix + " ";
+            }
+
+            List<String> suggestions = new ArrayList<>();
+            for (String suggestion : command.tabComplete(server().getConsoleSender(), commandName, parts.toArray(new String[0]))) {
+                suggestions.add(commandName + " " + prefix + suggestion);
+            }
+
+            return suggestions;
+        };
     }
 }

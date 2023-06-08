@@ -47,16 +47,16 @@ public class DiscordCommandAutoCompleteInteractionEvent extends AbstractInteract
         super(jdaEvent, identifier, user, member, channel);
     }
 
-    public void addChoice(String key, String value) {
-        this.choices.put(key, value);
+    public void addChoice(String name, String value) {
+        this.choices.put(name, value);
     }
 
-    public void addChoice(String key, double value) {
-        this.choices.put(key, value);
+    public void addChoice(String name, double value) {
+        this.choices.put(name, value);
     }
 
-    public void addChoice(String key, long value) {
-        this.choices.put(key, value);
+    public void addChoice(String name, long value) {
+        this.choices.put(name, value);
     }
 
     public Map<String, Object> getChoices() {

@@ -27,8 +27,8 @@ import com.discordsrv.api.discord.entity.DiscordUser;
 import com.discordsrv.api.discord.entity.channel.*;
 import com.discordsrv.api.discord.entity.guild.DiscordGuild;
 import com.discordsrv.api.discord.entity.guild.DiscordRole;
-import com.discordsrv.api.discord.entity.interaction.command.Command;
 import com.discordsrv.api.discord.entity.interaction.command.CommandType;
+import com.discordsrv.api.discord.entity.interaction.command.DiscordCommand;
 import com.discordsrv.api.discord.exception.NotReadyException;
 import com.discordsrv.api.discord.exception.RestErrorResponseException;
 import com.discordsrv.common.DiscordSRV;
@@ -472,16 +472,16 @@ public class DiscordAPIImpl implements DiscordAPI {
     }
 
     @Override
-    public Command.RegistrationResult registerCommand(Command command) {
+    public DiscordCommand.RegistrationResult registerCommand(DiscordCommand command) {
         return commandRegistry.register(command, false);
     }
 
     @Override
-    public void unregisterCommand(Command command) {
+    public void unregisterCommand(DiscordCommand command) {
         commandRegistry.unregister(command);
     }
 
-    public Optional<Command> getActiveCommand(@Nullable Guild guild, CommandType type, String name) {
+    public Optional<DiscordCommand> getActiveCommand(@Nullable Guild guild, CommandType type, String name) {
         return Optional.ofNullable(commandRegistry.getActive(guild != null ? guild.getIdLong() : null, type, name));
     }
 
