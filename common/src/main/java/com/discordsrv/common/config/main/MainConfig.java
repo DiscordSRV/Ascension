@@ -57,13 +57,13 @@ public abstract class MainConfig implements Config {
 
     public MemberCachingConfig memberCaching = new MemberCachingConfig();
 
-    public List<ChannelUpdaterConfig> channelUpdaters = new ArrayList<>(Collections.singletonList(new ChannelUpdaterConfig()));
+    public TimedUpdaterConfig timedUpdater = new TimedUpdaterConfig();
 
     @Comment("Configuration options for group-role synchronization")
     public GroupSyncConfig groupSync = new GroupSyncConfig();
 
-    @Comment("Command configuration")
-    public CommandConfig command = new CommandConfig();
+    @Comment("In-game command configuration")
+    public GameCommandConfig gameCommand = new GameCommandConfig();
 
     @Comment("Configuration for the %discord_invite% placeholder. The below options will be attempted in the order they are in")
     public DiscordInviteConfig invite = new DiscordInviteConfig();

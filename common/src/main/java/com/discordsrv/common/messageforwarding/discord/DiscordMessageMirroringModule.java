@@ -309,7 +309,8 @@ public class DiscordMessageMirroringModule extends AbstractModule<DiscordSRV> {
 
             content = discordSRV.placeholderService()
                     .replacePlaceholders(config.replyFormat, replyMessage.getMember(), replyMessage.getAuthor())
-                    .replace("%message_jump_url%", jumpUrl) + content;
+                    .replace("%message_jump_url%", jumpUrl)
+                    .replace("%message%", content);
         }
 
         SendableDiscordMessage.Builder builder = SendableDiscordMessage.builder()

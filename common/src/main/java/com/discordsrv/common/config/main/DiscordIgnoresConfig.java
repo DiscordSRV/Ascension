@@ -31,7 +31,7 @@ import java.util.Optional;
 public class DiscordIgnoresConfig {
 
     @Comment("User, bot and webhook ids to ignore")
-    public IDs usersAndWebhookIds = new IDs();
+    public IDs userBotAndWebhookIds = new IDs();
 
     @Comment("Role ids for users and bots to ignore")
     public IDs roleIds = new IDs();
@@ -58,7 +58,7 @@ public class DiscordIgnoresConfig {
             return true;
         }
 
-        DiscordIgnoresConfig.IDs users = usersAndWebhookIds;
+        DiscordIgnoresConfig.IDs users = userBotAndWebhookIds;
         if (users != null && users.ids.contains(author.getId()) != users.whitelist) {
             return true;
         }

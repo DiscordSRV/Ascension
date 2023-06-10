@@ -39,8 +39,11 @@ public class ChannelLockingConfig {
         @Comment("Role ids for roles that should have the permissions taken while the server is offline")
         public List<Long> roleIds = new ArrayList<>();
 
+        @Comment("If the \"View Channel\" permission should be taken from the specified roles")
         public boolean read = false;
+        @Comment("If the \"Send Messages\" permission should be taken from the specified roles")
         public boolean write = true;
+        @Comment("If the \"Add Reactions\" permission should be taken from the specified roles")
         public boolean addReactions = true;
 
     }

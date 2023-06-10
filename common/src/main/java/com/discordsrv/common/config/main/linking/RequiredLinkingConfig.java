@@ -20,12 +20,10 @@ package com.discordsrv.common.config.main.linking;
 
 import com.discordsrv.common.config.annotation.Order;
 import org.spongepowered.configurate.objectmapping.ConfigSerializable;
-import org.spongepowered.configurate.objectmapping.meta.Comment;
 
 @ConfigSerializable
 public abstract class RequiredLinkingConfig {
 
-    @Comment("If required linking is enabled")
     @Order(-10)
     public boolean enabled = false;
 }

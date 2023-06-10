@@ -30,7 +30,7 @@ public class LinkedAccountConfig {
 
     @Comment("The linked account provider\n"
             + "\n"
-            + " - auto: Defaults to using \"minecraftauth\" (if the " + ConnectionConfig.FILE_NAME + " permits it) otherwise \"storage\"\n"
+            + " - auto: Uses \"minecraftauth\" if the " + ConnectionConfig.FILE_NAME + " permits it and the server is in online mode, otherwise \"storage\"\n"
             + " - minecraftauth: Uses minecraftauth.me as the linked account provider\n"
             + " - storage: Use the configured database for linked accounts")
     public String provider = "auto";

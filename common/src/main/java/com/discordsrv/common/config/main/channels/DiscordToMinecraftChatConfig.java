@@ -30,7 +30,6 @@ import java.util.regex.Pattern;
 @ConfigSerializable
 public class DiscordToMinecraftChatConfig {
 
-    @Comment("Is Discord to Minecraft chat forwarding enabled")
     public boolean enabled = true;
 
     @Comment("The Discord to Minecraft message format for regular users and bots")

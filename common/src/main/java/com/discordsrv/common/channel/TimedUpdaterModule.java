@@ -20,7 +20,7 @@ package com.discordsrv.common.channel;
 
 import com.discordsrv.api.discord.connection.jda.errorresponse.ErrorCallbackContext;
 import com.discordsrv.common.DiscordSRV;
-import com.discordsrv.common.config.main.ChannelUpdaterConfig;
+import com.discordsrv.common.config.main.TimedUpdaterConfig;
 import com.discordsrv.common.logging.NamedLogger;
 import com.discordsrv.common.module.type.AbstractModule;
 import net.dv8tion.jda.api.JDA;
@@ -31,24 +31,27 @@ import net.dv8tion.jda.api.managers.channel.concrete.TextChannelManager;
 import org.apache.commons.lang3.StringUtils;
 
 import java.util.LinkedHashSet;
+import java.util.List;
 import java.util.Set;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
 
-public class ChannelUpdaterModule extends AbstractModule<DiscordSRV> {
+public class TimedUpdaterModule extends AbstractModule<DiscordSRV> {
 
     private final Set<ScheduledFuture<?>> futures = new LinkedHashSet<>();
     private boolean firstReload = true;
 
-    public ChannelUpdaterModule(DiscordSRV discordSRV) {
+    public TimedUpdaterModule(DiscordSRV discordSRV) {
         super(discordSRV, new NamedLogger(discordSRV, "CHANNEL_UPDATER"));
     }
 
     @Override
     public boolean isEnabled() {
         boolean any = false;
-        for (ChannelUpdaterConfig channelUpdater : discordSRV.config().channelUpdaters) {
-            if (!channelUpdater.channelIds.isEmpty()) {
+
+        TimedUpdaterConfig config = discordSRV.config().timedUpdater;
+        for (TimedUpdaterConfig.UpdaterConfig updaterConfig : config.getConfigs()) {
+            if (updaterConfig.any()) {
                 any = true;
                 break;
             }
@@ -65,18 +68,21 @@ public class ChannelUpdaterModule extends AbstractModule<DiscordSRV> {
         futures.forEach(future -> future.cancel(false));
         futures.clear();
 
-        for (ChannelUpdaterConfig config : discordSRV.config().channelUpdaters) {
+        TimedUpdaterConfig config = discordSRV.config().timedUpdater;
+        for (TimedUpdaterConfig.UpdaterConfig updaterConfig : config.getConfigs()) {
+            long time = Math.max(updaterConfig.timeSeconds(), updaterConfig.minimumSeconds());
+
             futures.add(discordSRV.scheduler().runAtFixedRate(
-                    () -> update(config),
-                    firstReload ? 0 : config.timeMinutes,
-                    config.timeMinutes,
-                    TimeUnit.MINUTES
+                    () -> update(updaterConfig),
+                    firstReload ? 0 : time,
+                    time,
+                    TimeUnit.SECONDS
             ));
         }
         firstReload = false;
     }
 
-    public void update(ChannelUpdaterConfig config) {
+    public void update(TimedUpdaterConfig.UpdaterConfig config) {
         try {
             // Wait a moment in case we're (re)connecting at the time
             discordSRV.waitForStatus(DiscordSRV.Status.CONNECTED, 15, TimeUnit.SECONDS);
@@ -89,9 +95,26 @@ public class ChannelUpdaterModule extends AbstractModule<DiscordSRV> {
             return;
         }
 
-        String topicFormat = config.topicFormat;
-        String nameFormat = config.nameFormat;
+        if (config instanceof TimedUpdaterConfig.VoiceChannelConfig) {
+            updateChannel(
+                    jda,
+                    ((TimedUpdaterConfig.VoiceChannelConfig) config).channelIds,
+                    ((TimedUpdaterConfig.VoiceChannelConfig) config).nameFormat,
+                    null
+            );
+        } else if (config instanceof TimedUpdaterConfig.TextChannelConfig) {
+            updateChannel(
+                    jda,
+                    ((TimedUpdaterConfig.TextChannelConfig) config).channelIds,
+                    ((TimedUpdaterConfig.TextChannelConfig) config).nameFormat,
+                    ((TimedUpdaterConfig.TextChannelConfig) config).topicFormat
+            );
+        }
 
+
+    }
+
+    private void updateChannel(JDA jda, List<Long> channelIds, String nameFormat, String topicFormat) {
         if (topicFormat != null) {
             topicFormat = discordSRV.placeholderService().replacePlaceholders(topicFormat);
         }
@@ -99,7 +122,7 @@ public class ChannelUpdaterModule extends AbstractModule<DiscordSRV> {
             nameFormat = discordSRV.placeholderService().replacePlaceholders(nameFormat);
         }
 
-        for (Long channelId : config.channelIds) {
+        for (Long channelId : channelIds) {
             GuildChannel channel = jda.getGuildChannelById(channelId);
             if (channel == null) {
                 continue;

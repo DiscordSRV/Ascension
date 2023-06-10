@@ -27,7 +27,7 @@ import com.discordsrv.common.api.util.ApiInstanceUtil;
 import com.discordsrv.common.bootstrap.IBootstrap;
 import com.discordsrv.common.channel.ChannelConfigHelper;
 import com.discordsrv.common.channel.ChannelLockingModule;
-import com.discordsrv.common.channel.ChannelUpdaterModule;
+import com.discordsrv.common.channel.TimedUpdaterModule;
 import com.discordsrv.common.channel.GlobalChannelLookupModule;
 import com.discordsrv.common.command.discord.DiscordCommandModule;
 import com.discordsrv.common.command.game.GameCommandModule;
@@ -562,7 +562,7 @@ public abstract class AbstractDiscordSRV<B extends IBootstrap, C extends MainCon
 
         // Modules
         registerModule(ChannelLockingModule::new);
-        registerModule(ChannelUpdaterModule::new);
+        registerModule(TimedUpdaterModule::new);
         registerModule(DiscordCommandModule::new);
         registerModule(GameCommandModule::new);
         registerModule(GlobalChannelLookupModule::new);
@@ -658,7 +658,7 @@ public abstract class AbstractDiscordSRV<B extends IBootstrap, C extends MainCon
                 String provider = linkedAccountConfig.provider;
                 boolean permitMinecraftAuth = connectionConfig().minecraftAuth.allow;
                 if (provider.equals("auto")) {
-                    provider = permitMinecraftAuth ? "minecraftauth" : "storage";
+                    provider = permitMinecraftAuth && onlineMode().isOnline() ? "minecraftauth" : "storage";
                 }
                 switch (provider) {
                     case "minecraftauth":

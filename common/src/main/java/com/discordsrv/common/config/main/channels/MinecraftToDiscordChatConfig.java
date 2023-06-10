@@ -31,7 +31,6 @@ import java.util.regex.Pattern;
 @ConfigSerializable
 public class MinecraftToDiscordChatConfig implements IMessageConfig {
 
-    @Comment("Is Minecraft to Discord chat forwarding enabled")
     public boolean enabled = true;
 
     @Untranslated(Untranslated.Type.VALUE)

@@ -21,23 +21,15 @@ package com.discordsrv.common.config.main;
 import org.spongepowered.configurate.objectmapping.ConfigSerializable;
 import org.spongepowered.configurate.objectmapping.meta.Comment;
 
-import java.util.ArrayList;
-import java.util.List;
-
 @ConfigSerializable
-public class ChannelUpdaterConfig {
+public class GameCommandConfig {
 
-    @Comment("The channel IDs.\n"
-            + "The bot will need the \"View Channel\" and \"Manage Channels\" permissions for the provided channels, "
-            + "additionally \"Connect\" is required for voice channels")
-    public List<Long> channelIds = new ArrayList<>();
+    @Comment("If the /discord command should be set by DiscordSRV")
+    public boolean useDiscordCommand = true;
 
-    @Comment("If this is blank, the name will not be updated")
-    public String nameFormat = "";
+    @Comment("If /link should be used as a alias for /discord link")
+    public boolean useLinkAlias = false;
 
-    @Comment("If this is blank, the topic will not be updated. Unavailable for voice channels")
-    public String topicFormat = "";
-
-    @Comment("The time between updates in minutes. The minimum time is 10 minutes.")
-    public int timeMinutes = 10;
+    @Comment("The Discord command response format (/discord), player placeholders may be used")
+    public String discordFormat = "[click:open_url:%discord_invite%]&b&lClick here &r&ato join our Discord server!";
 }

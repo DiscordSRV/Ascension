@@ -22,12 +22,10 @@ import com.discordsrv.api.discord.entity.message.DiscordMessageEmbed;
 import com.discordsrv.api.discord.entity.message.SendableDiscordMessage;
 import com.discordsrv.common.config.annotation.Untranslated;
 import org.spongepowered.configurate.objectmapping.ConfigSerializable;
-import org.spongepowered.configurate.objectmapping.meta.Comment;
 
 @ConfigSerializable
 public class DeathMessageConfig implements IMessageConfig {
 
-    @Comment("Enable death message forwarding")
     public boolean enabled = true;
 
     @Untranslated(Untranslated.Type.VALUE)

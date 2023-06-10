@@ -20,10 +20,20 @@ package com.discordsrv.common.debug.data;
 
 public enum OnlineMode {
 
-    ONLINE,
-    OFFLINE,
-    BUNGEE,
-    VELOCITY;
+    ONLINE(true),
+    OFFLINE(false),
+    BUNGEE(true),
+    VELOCITY(true);
+
+    private final boolean online;
+
+    OnlineMode(boolean online) {
+        this.online = online;
+    }
+
+    public boolean isOnline() {
+        return online;
+    }
 
     public static OnlineMode of(boolean onlineMode) {
         return onlineMode ? OnlineMode.ONLINE : OnlineMode.OFFLINE;
