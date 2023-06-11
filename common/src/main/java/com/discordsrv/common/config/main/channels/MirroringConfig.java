@@ -27,7 +27,7 @@ public class MirroringConfig {
 
     public boolean enabled = true;
 
-    @Comment("Users, bots and webhooks to ignore when mirroring")
+    @Comment("Users, bots, roles and webhooks to ignore when mirroring")
     public DiscordIgnoresConfig ignores = new DiscordIgnoresConfig();
 
     @Comment("The format of the username of mirrored messages\n"

@@ -35,7 +35,7 @@ public class UpdateConfig {
     public boolean notificationInGame = true;
 
     @Setting(value = "enable-first-party-api-for-notifications")
-    @Comment("Weather the DiscordSRV download API should be used for update checks\n"
+    @Comment("Whether the DiscordSRV download API should be used for update checks\n"
             + "Requires a connection to: download.discordsrv.com")
     public boolean firstPartyNotification = true;
 
@@ -49,7 +49,7 @@ public class UpdateConfig {
     public static class GitHub {
 
         @Setting(value = "enabled")
-        @Comment("Weather the GitHub API should be used for update checks\n"
+        @Comment("Whether the GitHub API should be used for update checks\n"
                 + "This will be the secondary API if both first party and GitHub sources are enabled\n"
                 + "Requires a connection to: api.github.com")
         public boolean enabled = true;
