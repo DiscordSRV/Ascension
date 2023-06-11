@@ -563,7 +563,8 @@ public class JDAConnectionManager implements DiscordConnectionManager {
         discordSRV.logger().error("| The token provided in the");
         discordSRV.logger().error("| " + ConnectionConfig.FILE_NAME + " is invalid");
         discordSRV.logger().error("|");
-        discordSRV.logger().error("| Don't have a bot/token? See " + DocumentationConfig.CREATE_TOKEN);
+        discordSRV.logger().error("| Don't have a bot/token? See");
+        discordSRV.logger().error("| " + DocumentationConfig.CREATE_TOKEN);
         discordSRV.logger().error("| for how to get one!");
         discordSRV.logger().error("|");
         discordSRV.logger().error("| Already have a bot? You can get the token for your bot from:");
