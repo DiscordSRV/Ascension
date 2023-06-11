@@ -34,6 +34,12 @@ public abstract class MainConfig implements Config {
 
     public static final String FILE_NAME = "config.yaml";
 
+    public static final String HEADER = String.join("\n", Arrays.asList(
+            "Welcome to the DiscordSRV configuration file",
+            "",
+            ""
+    ));
+
     @Override
     public final String getFileName() {
         return FILE_NAME;
@@ -48,6 +54,12 @@ public abstract class MainConfig implements Config {
     }
 
     @DefaultOnly(ChannelConfig.DEFAULT_KEY)
+    @Comment("Channels configuration\n\n"
+            + "This is where everything related to in-game chat channels is configured.\n"
+            + "The key of this option is the in-game channel name (the default keys are \"global\" and \"default\")\n"
+            + "channel-ids and threads can be configured for all channels except \"default\"\n"
+            + "\"default\" is a special section which has the default values for all channels unless they are specified (overridden) under the channel's own section\n"
+            + "So if you don't specify a certain option under a channel's own section, the option will take it's value from the \"default\" section")
     public Map<String, BaseChannelConfig> channels = new LinkedHashMap<String, BaseChannelConfig>() {{
         put(GameChannel.DEFAULT_NAME, createDefaultChannel());
         put(ChannelConfig.DEFAULT_KEY, createDefaultBaseChannel());
