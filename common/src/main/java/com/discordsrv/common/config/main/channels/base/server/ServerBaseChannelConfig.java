@@ -23,6 +23,7 @@ import com.discordsrv.common.config.main.channels.AwardMessageConfig;
 import com.discordsrv.common.config.main.channels.DeathMessageConfig;
 import com.discordsrv.common.config.main.channels.base.BaseChannelConfig;
 import org.spongepowered.configurate.objectmapping.ConfigSerializable;
+import org.spongepowered.configurate.objectmapping.meta.Comment;
 
 @ConfigSerializable
 public class ServerBaseChannelConfig extends BaseChannelConfig {
@@ -31,6 +32,7 @@ public class ServerBaseChannelConfig extends BaseChannelConfig {
     public ServerJoinMessageConfig joinMessages = new ServerJoinMessageConfig();
 
     @Order(3)
+    @Comment("Advancement/Achievement message configuration")
     public AwardMessageConfig awardMessages = new AwardMessageConfig();
 
     @Order(3)
