@@ -59,7 +59,7 @@ public abstract class MainConfig implements Config {
             + "The key of this option is the in-game channel name (the default keys are \"global\" and \"default\")\n"
             + "channel-ids and threads can be configured for all channels except \"default\"\n"
             + "\"default\" is a special section which has the default values for all channels unless they are specified (overridden) under the channel's own section\n"
-            + "So if you don't specify a certain option under a channel's own section, the option will take it's value from the \"default\" section")
+            + "So if you don't specify a certain option under a channel's own section, the option will take its value from the \"default\" section")
     public Map<String, BaseChannelConfig> channels = new LinkedHashMap<String, BaseChannelConfig>() {{
         put(GameChannel.DEFAULT_NAME, createDefaultChannel());
         put(ChannelConfig.DEFAULT_KEY, createDefaultBaseChannel());

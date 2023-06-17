@@ -54,7 +54,7 @@ public class ChannelLockingConfig {
         @Comment("If the configured threads should be archived while the server is shutdown")
         public boolean archive = true;
 
-        @Comment("If the bot will attempt to unarchive threads rather than make new threads")
+        @Comment("If the bot should attempt to unarchive threads rather than make new threads")
         public boolean unarchive = true;
 
     }
