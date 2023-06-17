@@ -16,7 +16,7 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package com.discordsrv.common.config.main;
+package com.discordsrv.common.config.main.generic;
 
 import com.discordsrv.api.discord.entity.DiscordUser;
 import com.discordsrv.api.discord.entity.guild.DiscordGuildMember;

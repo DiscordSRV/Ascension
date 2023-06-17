@@ -16,16 +16,12 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package com.discordsrv.common.config.main.channels.base;
+package com.discordsrv.common.config.main.generic;
 
-import org.spongepowered.configurate.objectmapping.ConfigSerializable;
+import com.discordsrv.api.discord.entity.message.SendableDiscordMessage;
 
-@ConfigSerializable
-public class ThreadConfig {
+public interface IMessageConfig {
 
-    public Long channelId = 0L;
-
-    public String threadName = "Minecraft Server chat bridge";
-    public boolean privateThread = false;
-
+    boolean enabled();
+    SendableDiscordMessage.Builder format();
 }

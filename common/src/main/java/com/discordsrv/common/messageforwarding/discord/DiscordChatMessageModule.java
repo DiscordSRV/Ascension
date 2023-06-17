@@ -33,7 +33,7 @@ import com.discordsrv.api.placeholder.util.Placeholders;
 import com.discordsrv.common.DiscordSRV;
 import com.discordsrv.common.component.renderer.DiscordSRVMinecraftRenderer;
 import com.discordsrv.common.component.util.ComponentUtil;
-import com.discordsrv.common.config.main.DiscordIgnoresConfig;
+import com.discordsrv.common.config.main.generic.DiscordIgnoresConfig;
 import com.discordsrv.common.config.main.channels.DiscordToMinecraftChatConfig;
 import com.discordsrv.common.config.main.channels.base.BaseChannelConfig;
 import com.discordsrv.common.logging.NamedLogger;

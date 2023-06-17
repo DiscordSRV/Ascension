@@ -18,38 +18,22 @@
 
 package com.discordsrv.common.config.main.channels.base;
 
+import com.discordsrv.common.config.main.generic.DestinationConfig;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.spongepowered.configurate.ConfigurationNode;
 import org.spongepowered.configurate.objectmapping.ObjectMapper;
-import org.spongepowered.configurate.objectmapping.meta.Setting;
 import org.spongepowered.configurate.serialize.SerializationException;
 import org.spongepowered.configurate.serialize.TypeSerializer;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
 import java.lang.reflect.Type;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.List;
 
 public interface IChannelConfig {
 
     String DEFAULT_KEY = "default";
 
-    String CHANNEL_IDS_OPTION_NAME = "channel-ids";
-    String CHANNEL_IDS_COMMENT = "The channels this in-game channel will forward to in Discord";
-    List<Long> CHANNEL_IDS_VALUE = new ArrayList<>();
-
-    List<Long> channelIds();
-
-    String THREADS_OPTION_NAME = "threads";
-    String THREADS_COMMENT = "The threads that this in-game channel will forward to in Discord (this can be used instead of or with the channel-ids option)";
-    List<ThreadConfig> THREADS_VALUE = new ArrayList<>(Collections.singletonList(new ThreadConfig()));
-
-    List<String> VALUES = Arrays.asList(CHANNEL_IDS_OPTION_NAME, THREADS_OPTION_NAME);
-
-    List<ThreadConfig> threads();
+    DestinationConfig destination();
 
     default void initialize() {
         // Clear everything besides channelIds by default (these will be filled back in by Configurate if they are in the config itself)
@@ -58,11 +42,6 @@ public interface IChannelConfig {
             for (Field field : clazz.getFields()) {
                 int modifiers = field.getModifiers();
                 if (!Modifier.isPublic(modifiers) || Modifier.isFinal(modifiers) || Modifier.isStatic(modifiers)) {
-                    continue;
-                }
-
-                Setting setting = field.getAnnotation(Setting.class);
-                if (setting != null && VALUES.contains(setting.value())) {
                     continue;
                 }
 

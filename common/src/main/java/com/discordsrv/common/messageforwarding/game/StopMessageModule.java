@@ -18,7 +18,7 @@
 
 package com.discordsrv.common.messageforwarding.game;
 
-import com.discordsrv.api.discord.entity.channel.DiscordMessageChannel;
+import com.discordsrv.api.discord.entity.channel.DiscordGuildMessageChannel;
 import com.discordsrv.api.discord.entity.message.ReceivedDiscordMessage;
 import com.discordsrv.api.discord.entity.message.ReceivedDiscordMessageCluster;
 import com.discordsrv.api.discord.entity.message.SendableDiscordMessage;
@@ -56,11 +56,11 @@ public class StopMessageModule extends AbstractGameMessageModule<StopMessageConf
     public void postClusterToEventBus(ReceivedDiscordMessageCluster cluster) {}
 
     @Override
-    public Map<CompletableFuture<ReceivedDiscordMessage>, DiscordMessageChannel> sendMessageToChannels(
+    public Map<CompletableFuture<ReceivedDiscordMessage>, DiscordGuildMessageChannel> sendMessageToChannels(
             StopMessageConfig config,
             IPlayer player,
             SendableDiscordMessage.Builder format,
-            List<DiscordMessageChannel> channels,
+            List<DiscordGuildMessageChannel> channels,
             AbstractGameMessageReceiveEvent event,
             Object... context
     ) {

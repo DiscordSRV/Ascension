@@ -19,9 +19,8 @@
 package com.discordsrv.common.command.game.commands.subcommand;
 
 import com.discordsrv.api.component.MinecraftComponent;
+import com.discordsrv.api.discord.entity.channel.DiscordGuildMessageChannel;
 import com.discordsrv.api.discord.entity.channel.DiscordMessageChannel;
-import com.discordsrv.api.discord.entity.channel.DiscordTextChannel;
-import com.discordsrv.api.discord.entity.channel.DiscordThreadChannel;
 import com.discordsrv.api.discord.entity.message.SendableDiscordMessage;
 import com.discordsrv.common.DiscordSRV;
 import com.discordsrv.common.command.game.abstraction.GameCommand;
@@ -32,7 +31,6 @@ import com.discordsrv.common.command.game.sender.ICommandSender;
 import com.discordsrv.common.component.util.ComponentUtil;
 import com.discordsrv.common.config.main.channels.base.BaseChannelConfig;
 import com.discordsrv.common.config.main.channels.base.IChannelConfig;
-import com.discordsrv.common.future.util.CompletableFutureUtil;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 import net.kyori.adventure.text.serializer.gson.GsonComponentSerializer;
@@ -98,11 +96,16 @@ public abstract class BroadcastCommand implements GameCommandExecutor, GameComma
 
     @Override
     public void execute(ICommandSender sender, GameCommandArguments arguments) {
+        doExecute(sender, arguments);
+    }
+
+    @SuppressWarnings("unchecked") // Wacky generics
+    private <CC extends BaseChannelConfig & IChannelConfig> void doExecute(ICommandSender sender, GameCommandArguments arguments) {
         String channel = arguments.getString("channel");
         String content = arguments.getString("content");
 
         List<DiscordMessageChannel> channels = new ArrayList<>();
-        List<CompletableFuture<DiscordThreadChannel>> futures = new ArrayList<>();
+        CompletableFuture<List<DiscordGuildMessageChannel>> future = null;
         try {
             long id = Long.parseUnsignedLong(channel);
 
@@ -112,24 +115,17 @@ public abstract class BroadcastCommand implements GameCommandExecutor, GameComma
             }
         } catch (IllegalArgumentException ignored) {
             BaseChannelConfig channelConfig = discordSRV.channelConfig().resolve(null, channel);
-            IChannelConfig config = channelConfig instanceof IChannelConfig ? (IChannelConfig) channelConfig : null;
+            CC config = channelConfig instanceof IChannelConfig ? (CC) channelConfig : null;
 
             if (config != null) {
-                for (Long channelId : config.channelIds()) {
-                    DiscordTextChannel textChannel = discordSRV.discordAPI().getTextChannelById(channelId);
-                    if (textChannel != null) {
-                        channels.add(textChannel);
-                    }
-                }
-
-                discordSRV.discordAPI().findOrCreateThreads(channelConfig, config, channels::add, futures, false);
+                future = discordSRV.discordAPI().findOrCreateDestinations(config, true, false);
             }
         }
 
-        if (!futures.isEmpty()) {
-            CompletableFutureUtil.combine(futures).whenComplete((v, t) -> execute(sender, content, channel, channels));
+        if (future != null) {
+            future.whenComplete((messageChannels, t) -> doBroadcast(sender, content, channel, messageChannels));
         } else {
-            execute(sender, content, channel, channels);
+            doBroadcast(sender, content, channel, channels);
         }
     }
 
@@ -145,7 +141,7 @@ public abstract class BroadcastCommand implements GameCommandExecutor, GameComma
                 .collect(Collectors.toList());
     }
 
-    private void execute(ICommandSender sender, String content, String channel, List<DiscordMessageChannel> channels) {
+    private void doBroadcast(ICommandSender sender, String content, String channel, List<? extends DiscordMessageChannel> channels) {
         if (channels.isEmpty()) {
             sender.sendMessage(
                     Component.text()

@@ -22,6 +22,7 @@ import com.discordsrv.api.discord.entity.message.DiscordMessageEmbed;
 import com.discordsrv.api.discord.entity.message.SendableDiscordMessage;
 import com.discordsrv.api.event.events.message.receive.game.JoinMessageReceiveEvent;
 import com.discordsrv.common.config.annotation.Untranslated;
+import com.discordsrv.common.config.main.generic.IMessageConfig;
 import org.jetbrains.annotations.Nullable;
 import org.spongepowered.configurate.objectmapping.ConfigSerializable;
 import org.spongepowered.configurate.objectmapping.meta.Comment;
