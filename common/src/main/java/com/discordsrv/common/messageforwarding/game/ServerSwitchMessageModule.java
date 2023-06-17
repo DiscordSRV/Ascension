@@ -28,7 +28,7 @@ import com.discordsrv.api.event.events.message.receive.game.ServerSwitchMessageR
 import com.discordsrv.api.placeholder.FormattedText;
 import com.discordsrv.common.DiscordSRV;
 import com.discordsrv.common.component.util.ComponentUtil;
-import com.discordsrv.common.config.main.channels.ServerSwitchMessageConfig;
+import com.discordsrv.common.config.main.channels.proxy.ServerSwitchMessageConfig;
 import com.discordsrv.common.config.main.channels.base.BaseChannelConfig;
 import com.discordsrv.common.config.main.channels.base.proxy.ProxyBaseChannelConfig;
 

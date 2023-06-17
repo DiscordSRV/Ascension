@@ -16,7 +16,7 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package com.discordsrv.common.config.main.channels;
+package com.discordsrv.common.config.main.channels.server;
 
 import com.discordsrv.api.discord.entity.message.DiscordMessageEmbed;
 import com.discordsrv.api.discord.entity.message.SendableDiscordMessage;
@@ -25,7 +25,7 @@ import com.discordsrv.common.config.main.generic.IMessageConfig;
 import org.spongepowered.configurate.objectmapping.ConfigSerializable;
 
 @ConfigSerializable
-public class DeathMessageConfig implements IMessageConfig {
+public class AwardMessageConfig implements IMessageConfig {
 
     public boolean enabled = true;
 
@@ -33,7 +33,11 @@ public class DeathMessageConfig implements IMessageConfig {
     public SendableDiscordMessage.Builder format = SendableDiscordMessage.builder()
             .addEmbed(
                     DiscordMessageEmbed.builder()
-                            .setAuthor("%message%", null, "%player_avatar_url%")
+                            .setAuthor(
+                                    "%award_title|text:'{player_name} made the achievement {award_name}'%",
+                                    null,
+                                    "%player_avatar_url%"
+                            )
                             .setColor(1)
                             .build()
             );
