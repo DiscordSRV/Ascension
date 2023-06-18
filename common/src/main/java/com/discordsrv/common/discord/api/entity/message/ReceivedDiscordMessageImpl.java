@@ -257,6 +257,29 @@ public class ReceivedDiscordMessageImpl implements ReceivedDiscordMessage {
     // Placeholders
     //
 
+    @Placeholder("message_reply")
+    public Component _reply(BaseChannelConfig config, @PlaceholderRemainder String suffix) {
+        if (replyingTo == null) {
+            return null;
+        }
+
+        String content = replyingTo.getContent();
+        if (content == null) {
+            return null;
+        }
+
+        Component component = discordSRV.componentFactory().minecraftSerializer().serialize(content);
+
+        String replyFormat = config.discordToMinecraft.replyFormat;
+        return ComponentUtil.fromAPI(
+                discordSRV.componentFactory().textBuilder(replyFormat)
+                        .applyPlaceholderService()
+                        .addPlaceholder("message", component)
+                        .addContext(replyingTo.getMember(), replyingTo.getAuthor(), replyingTo)
+                        .build()
+        );
+    }
+
     @Placeholder("message_attachments")
     public Component _attachments(BaseChannelConfig config, @PlaceholderRemainder String suffix) {
         String attachmentFormat = config.discordToMinecraft.attachmentFormat;

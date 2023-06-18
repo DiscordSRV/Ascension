@@ -34,7 +34,7 @@ public class DiscordToMinecraftChatConfig {
 
     @Comment("The Discord to Minecraft message format for regular users and bots")
     @Untranslated(Untranslated.Type.VALUE)
-    public String format = "[&#5865F2Discord&r] [hover:show_text:Tag: %user_tag%&r\nRoles: %user_roles:', '|text:'&7&oNone'%]%user_color%%user_effective_server_name%&r » %message%%message_attachments%";
+    public String format = "[&#5865F2Discord&r] [hover:show_text:Tag: %user_tag%&r\nRoles: %user_roles:', '|text:'&7&oNone'%]%user_color%%user_effective_server_name%&r%message_reply% » %message%%message_attachments%";
 
     @Comment("The Discord to Minecraft message format for webhook messages (if enabled)")
     @Untranslated(Untranslated.Type.VALUE)
@@ -43,6 +43,10 @@ public class DiscordToMinecraftChatConfig {
     @Comment("Attachment format")
     @Untranslated(Untranslated.Type.VALUE)
     public String attachmentFormat = " [hover:show_text:Open %file_name% in browser][click:open_url:%file_url%]&a[&f%file_name%&a]&r";
+
+    @Comment("Reply format")
+    @Untranslated(Untranslated.Type.VALUE)
+    public String replyFormat = " [hover:show_text:%message%][click:open_url:%message_jump_url%]replying to %user_color|text:''%%user_effective_server_name|user_effective_name%&r";
 
     // TODO: more info on regex pairs (String#replaceAll)
     @Comment("Regex filters for Discord message contents (this is the %message% part of the \"format\" option)")
