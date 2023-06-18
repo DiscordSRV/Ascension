@@ -23,8 +23,6 @@ import com.discordsrv.common.logging.LogLevel;
 import com.discordsrv.common.logging.Logger;
 import com.discordsrv.common.logging.backend.LogFilter;
 import com.discordsrv.common.logging.backend.LoggingBackend;
-import org.apache.commons.collections4.bidimap.DualHashBidiMap;
-import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -39,12 +37,18 @@ import java.util.logging.LogRecord;
 
 public class JavaLoggerImpl implements Logger, LoggingBackend {
 
-    private static final DualHashBidiMap<Level, LogLevel> LEVELS = new DualHashBidiMap<>();
+    private static final Map<Level, LogLevel> LEVELS = new HashMap<>();
+    private static final Map<LogLevel, Level> LEVELS_REVERSE = new HashMap<>();
+
+    private static void put(Level level, LogLevel logLevel) {
+        LEVELS.put(level, logLevel);
+        LEVELS_REVERSE.put(logLevel, level);
+    }
 
     static {
-        LEVELS.put(Level.INFO, LogLevel.INFO);
-        LEVELS.put(Level.WARNING, LogLevel.WARNING);
-        LEVELS.put(Level.SEVERE, LogLevel.ERROR);
+        put(Level.INFO, LogLevel.INFO);
+        put(Level.WARNING, LogLevel.WARNING);
+        put(Level.SEVERE, LogLevel.ERROR);
     }
 
     private final java.util.logging.Logger logger;
@@ -61,7 +65,7 @@ public class JavaLoggerImpl implements Logger, LoggingBackend {
 
     @Override
     public void log(@Nullable String loggerName, @NotNull LogLevel level, @Nullable String message, @Nullable Throwable throwable) {
-        Level logLevel = LEVELS.getKey(level);
+        Level logLevel = LEVELS_REVERSE.get(level);
         if (logLevel != null) {
             List<String> contents = new ArrayList<>(2);
             if (message != null) {
@@ -69,7 +73,7 @@ public class JavaLoggerImpl implements Logger, LoggingBackend {
             }
             if (throwable != null) {
                 // Exceptions aren't always logged correctly by the logger itself
-                contents.add(ExceptionUtils.getStackTrace(throwable));
+                contents.add(getStackTrace(throwable));
             }
             logger.log(logLevel, String.join("\n", contents));
         }

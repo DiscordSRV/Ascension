@@ -21,6 +21,9 @@ package com.discordsrv.common.logging;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.io.PrintWriter;
+import java.io.StringWriter;
+
 public interface Logger {
 
     default void info(String message) {
@@ -68,5 +71,12 @@ public interface Logger {
     }
     
     void log(@Nullable String loggerName, @NotNull LogLevel logLevel, @Nullable String message, @Nullable Throwable throwable);
+
+    default String getStackTrace(Throwable throwable) {
+        final StringWriter stringWriter = new StringWriter();
+        final PrintWriter printWriter = new PrintWriter(stringWriter, true);
+        throwable.printStackTrace(printWriter);
+        return stringWriter.getBuffer().toString();
+    }
 
 }

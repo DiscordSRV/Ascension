@@ -23,7 +23,6 @@ import com.discordsrv.common.logging.LogLevel;
 import com.discordsrv.common.logging.Logger;
 import com.discordsrv.common.logging.backend.LogFilter;
 import com.discordsrv.common.logging.backend.LoggingBackend;
-import org.apache.commons.collections4.bidimap.DualHashBidiMap;
 import org.apache.logging.log4j.Level;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Marker;
@@ -41,14 +40,20 @@ import java.util.Map;
 
 public class Log4JLoggerImpl implements Logger, LoggingBackend {
 
-    private static final DualHashBidiMap<Level, LogLevel> LEVELS = new DualHashBidiMap<>();
+    private static final Map<Level, LogLevel> LEVELS = new HashMap<>();
+    private static final Map<LogLevel, Level> LEVELS_REVERSE = new HashMap<>();
+
+    private static void put(Level level, LogLevel logLevel) {
+        LEVELS.put(level, logLevel);
+        LEVELS_REVERSE.put(logLevel, level);
+    }
 
     static {
-        LEVELS.put(Level.INFO, LogLevel.INFO);
-        LEVELS.put(Level.WARN, LogLevel.WARNING);
-        LEVELS.put(Level.ERROR, LogLevel.ERROR);
-        LEVELS.put(Level.DEBUG, LogLevel.DEBUG);
-        LEVELS.put(Level.TRACE, LogLevel.TRACE);
+        put(Level.INFO, LogLevel.INFO);
+        put(Level.WARN, LogLevel.WARNING);
+        put(Level.ERROR, LogLevel.ERROR);
+        put(Level.DEBUG, LogLevel.DEBUG);
+        put(Level.TRACE, LogLevel.TRACE);
     }
 
     private final org.apache.logging.log4j.Logger logger;
@@ -65,7 +70,7 @@ public class Log4JLoggerImpl implements Logger, LoggingBackend {
 
     @Override
     public void log(@Nullable String loggerName, @NotNull LogLevel level, @Nullable String message, @Nullable Throwable throwable) {
-        Level logLevel = LEVELS.getKey(level);
+        Level logLevel = LEVELS_REVERSE.get(level);
         logger.log(logLevel, message, throwable);
     }
 
