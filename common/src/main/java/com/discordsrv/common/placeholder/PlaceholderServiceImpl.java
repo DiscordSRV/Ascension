@@ -82,11 +82,8 @@ public class PlaceholderServiceImpl implements PlaceholderService {
     public PlaceholderLookupResult lookupPlaceholder(@NotNull String placeholder, @NotNull Set<Object> lookupContexts) {
         Set<Object> contexts = new HashSet<>(lookupContexts);
         contexts.addAll(globalContext);
+        contexts.removeIf(Objects::isNull);
         for (Object context : contexts) {
-            if (context == null) {
-                continue;
-            }
-
             if (context instanceof PlaceholderProvider) {
                 PlaceholderLookupResult result = ((PlaceholderProvider) context).lookup(placeholder, contexts);
                 if (result.getType() != PlaceholderLookupResult.Type.UNKNOWN_PLACEHOLDER) {
