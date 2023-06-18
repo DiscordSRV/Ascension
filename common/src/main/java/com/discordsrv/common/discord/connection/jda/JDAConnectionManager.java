@@ -311,10 +311,8 @@ public class JDAConnectionManager implements DiscordConnectionManager {
         MemberCachingConfig memberCachingConfig = discordSRV.config().memberCaching;
         DiscordConnectionDetailsImpl connectionDetails = discordSRV.discordConnectionDetails();
 
-        Set<GatewayIntent> intents = new LinkedHashSet<>();
         this.intents.clear();
         this.intents.addAll(connectionDetails.getGatewayIntents());
-        this.intents.forEach(intent -> intents.add(intent.asJDA()));
 
         Set<CacheFlag> cacheFlags = new LinkedHashSet<>();
         this.cacheFlags.clear();
@@ -323,7 +321,7 @@ public class JDAConnectionManager implements DiscordConnectionManager {
             cacheFlags.add(flag.asJDA());
             DiscordGatewayIntent intent = flag.requiredIntent();
             if (intent != null) {
-                intents.add(intent.asJDA());
+                this.intents.add(intent);
             }
         });
 
@@ -354,6 +352,9 @@ public class JDAConnectionManager implements DiscordConnectionManager {
         } else {
             chunkingFilter = ChunkingFilter.NONE;
         }
+
+        Set<GatewayIntent> intents = new LinkedHashSet<>();
+        this.intents.forEach(intent -> intents.add(intent.asJDA()));
 
         // Start with everything disabled & enable stuff that we actually need
         JDABuilder jdaBuilder = JDABuilder.createLight(token, intents);
