@@ -57,6 +57,14 @@ public interface DiscordUser extends JDAEntity<User>, Snowflake, Mentionable {
     String getUsername();
 
     /**
+     * Gets the effective display name of the Discord user.
+     * @return the user's effective display name
+     */
+    @Placeholder("user_effective_name")
+    @NotNull
+    String getEffectiveName();
+
+    /**
      * Gets the Discord user's discriminator.
      * @return the user's discriminator
      */
@@ -85,7 +93,7 @@ public interface DiscordUser extends JDAEntity<User>, Snowflake, Mentionable {
      * Gets the Discord user's username followed by a {@code #} and their discriminator.
      * @return the Discord user's username and discriminator in the following format {@code Username#1234}
      */
-    @Placeholder("user_tag")
+    @Deprecated
     default String getAsTag() {
         return getUsername() + "#" + getDiscriminator();
     }

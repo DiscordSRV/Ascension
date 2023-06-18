@@ -18,8 +18,6 @@
 
 package com.discordsrv.common.discord.api;
 
-import club.minnced.discord.webhook.WebhookClient;
-import club.minnced.discord.webhook.WebhookClientBuilder;
 import com.discordsrv.api.discord.DiscordAPI;
 import com.discordsrv.api.discord.connection.details.DiscordGatewayIntent;
 import com.discordsrv.api.discord.connection.jda.errorresponse.ErrorCallbackContext;
@@ -70,7 +68,7 @@ public class DiscordAPIImpl implements DiscordAPI {
 
     private final DiscordSRV discordSRV;
     private final DiscordCommandRegistry commandRegistry;
-    private final AsyncLoadingCache<Long, WebhookClient> cachedClients;
+    private final AsyncLoadingCache<Long, WebhookClient<Message>> cachedClients;
     private final List<ThreadChannelLookup> threadLookups = new CopyOnWriteArrayList<>();
 
     public DiscordAPIImpl(DiscordSRV discordSRV) {
@@ -81,11 +79,11 @@ public class DiscordAPIImpl implements DiscordAPI {
                 .buildAsync(new WebhookCacheLoader());
     }
 
-    public CompletableFuture<WebhookClient> queryWebhookClient(long channelId) {
+    public CompletableFuture<WebhookClient<Message>> queryWebhookClient(long channelId) {
         return cachedClients.get(channelId);
     }
 
-    public AsyncLoadingCache<Long, WebhookClient> getCachedClients() {
+    public AsyncLoadingCache<Long, WebhookClient<Message>> getCachedClients() {
         return cachedClients;
     }
 
@@ -503,10 +501,10 @@ public class DiscordAPIImpl implements DiscordAPI {
         return commandRegistry;
     }
 
-    private class WebhookCacheLoader implements AsyncCacheLoader<Long, WebhookClient> {
+    private class WebhookCacheLoader implements AsyncCacheLoader<Long, WebhookClient<Message>> {
 
         @Override
-        public @NonNull CompletableFuture<WebhookClient> asyncLoad(@NonNull Long channelId, @NonNull Executor executor) {
+        public @NonNull CompletableFuture<WebhookClient<Message>> asyncLoad(@NonNull Long channelId, @NonNull Executor executor) {
             JDA jda = discordSRV.jda();
             if (jda == null) {
                 return notReady();
@@ -539,15 +537,16 @@ public class DiscordAPIImpl implements DiscordAPI {
 
                 return textChannel.createWebhook("DSRV").submit();
             }).thenApply(webhook ->
-                    WebhookClientBuilder.fromJDA(webhook)
-                            .setHttpClient(jda.getHttpClient())
-                            .setExecutorService(discordSRV.scheduler().scheduledExecutorService())
-                            .build()
+                    WebhookClient.createClient(
+                            webhook.getJDA(),
+                            webhook.getId(),
+                            Objects.requireNonNull(webhook.getToken())
+                    )
             );
         }
     }
 
-    private class WebhookCacheExpiry implements Expiry<Long, WebhookClient> {
+    private class WebhookCacheExpiry implements Expiry<Long, WebhookClient<Message>> {
 
         private boolean isConfiguredChannel(Long channelId) {
             for (BaseChannelConfig config : discordSRV.config().channels.values()) {

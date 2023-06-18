@@ -62,6 +62,11 @@ public class DiscordUserImpl implements DiscordUser {
     }
 
     @Override
+    public @NotNull String getEffectiveName() {
+        return user.getEffectiveName();
+    }
+
+    @Override
     public @NotNull String getDiscriminator() {
         return user.getDiscriminator();
     }

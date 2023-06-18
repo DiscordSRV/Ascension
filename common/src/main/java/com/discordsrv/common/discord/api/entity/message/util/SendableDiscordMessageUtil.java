@@ -18,7 +18,6 @@
 
 package com.discordsrv.common.discord.api.entity.message.util;
 
-import club.minnced.discord.webhook.send.WebhookMessageBuilder;
 import com.discordsrv.api.discord.entity.interaction.component.actionrow.MessageActionRow;
 import com.discordsrv.api.discord.entity.message.AllowedMention;
 import com.discordsrv.api.discord.entity.message.DiscordMessageEmbed;
@@ -90,11 +89,5 @@ public final class SendableDiscordMessageUtil {
         return jdaBuilder(message, new MessageEditBuilder())
                 .setComponents(actionRows)
                 .build();
-    }
-
-    public static WebhookMessageBuilder toWebhook(@NotNull SendableDiscordMessage message) {
-        return WebhookMessageBuilder.fromJDA(null/*toJDA(message)*/) // TODO: lib update? lib replacement?
-                .setUsername(message.getWebhookUsername())
-                .setAvatarUrl(message.getWebhookAvatarUrl());
     }
 }

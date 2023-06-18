@@ -30,6 +30,7 @@ import net.dv8tion.jda.api.entities.channel.concrete.PrivateChannel;
 import net.dv8tion.jda.api.requests.restaction.MessageCreateAction;
 import net.dv8tion.jda.api.utils.FileUpload;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.io.InputStream;
 import java.util.Map;
@@ -80,7 +81,11 @@ public class DiscordDMChannelImpl extends AbstractDiscordMessageChannel<PrivateC
     }
 
     @Override
-    public @NotNull CompletableFuture<ReceivedDiscordMessage> editMessageById(long id, @NotNull SendableDiscordMessage message) {
+    public @NotNull CompletableFuture<ReceivedDiscordMessage> editMessageById(
+            long id,
+            @NotNull SendableDiscordMessage message,
+            @Nullable Map<String, InputStream> attachments
+    ) {
         if (message.isWebhookMessage()) {
             throw new IllegalArgumentException("Cannot send webhook messages to DMChannels");
         }

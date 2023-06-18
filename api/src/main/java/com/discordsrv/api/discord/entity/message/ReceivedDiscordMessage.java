@@ -34,7 +34,9 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.annotations.Unmodifiable;
 
+import java.io.InputStream;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 
 /**
@@ -147,6 +149,10 @@ public interface ReceivedDiscordMessage extends Snowflake {
     @NotNull
     CompletableFuture<Void> delete();
 
+    default CompletableFuture<ReceivedDiscordMessage> edit(@NotNull SendableDiscordMessage message) {
+        return edit(message, null);
+    }
+
     /**
      * Edits this message to the provided message.
      *
@@ -156,7 +162,7 @@ public interface ReceivedDiscordMessage extends Snowflake {
      * but the provided {@link SendableDiscordMessage} specifies a webhook username.
      */
     @NotNull
-    CompletableFuture<ReceivedDiscordMessage> edit(SendableDiscordMessage message);
+    CompletableFuture<ReceivedDiscordMessage> edit(@NotNull SendableDiscordMessage message, @Nullable Map<String, InputStream> attachments);
 
     class Attachment {
 

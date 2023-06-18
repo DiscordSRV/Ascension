@@ -54,7 +54,7 @@ public class ReceivedDiscordMessageClusterImpl implements ReceivedDiscordMessage
     public @NotNull CompletableFuture<ReceivedDiscordMessageCluster> editAll(SendableDiscordMessage newMessage) {
         List<CompletableFuture<ReceivedDiscordMessage>> futures = new ArrayList<>(messages.size());
         for (ReceivedDiscordMessage message : messages) {
-            futures.add(message.edit(newMessage));
+            futures.add(message.edit(newMessage, null));
         }
 
         return CompletableFutureUtil.combine(futures).thenApply(ReceivedDiscordMessageClusterImpl::new);

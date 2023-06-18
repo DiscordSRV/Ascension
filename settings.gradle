@@ -56,14 +56,11 @@ dependencyResolutionManagement {
             library('findbugs-annotations', 'com.google.code.findbugs', 'jsr305').version('3.0.2')
 
             // JDA
-            library('jda', 'net.dv8tion', 'JDA').version('5.0.0-beta.9')
+            library('jda', 'net.dv8tion', 'JDA').version('5.0.0-beta.10.webhooks_2')
             library('okhttp', 'com.squareup.okhttp3', 'okhttp').version {
                 prefer '3.14.9'
                 reject '[4,)' // Kotlin
             }
-
-            // Discord Webhooks
-            library('webhooks', 'club.minnced', 'discord-webhooks').version('0.8.2')
 
             // Apache commons
             library('commons-lang', 'org.apache.commons', 'commons-lang3').version('3.12.0')

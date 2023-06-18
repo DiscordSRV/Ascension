@@ -136,7 +136,7 @@ public class DebugCommand extends CombinedCommand {
             String key = new String(KEY_ENCODER.encode(paste.decryptionKey()), StandardCharsets.UTF_8);
             String url = String.format(URL_FORMAT, paste.id(), key);
 
-            execution.send(new Text(url));
+            execution.send(new Text(url)); // TODO: fix in-game click
             return null;
         } catch (Throwable e) {
             return e;
