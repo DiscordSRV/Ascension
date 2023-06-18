@@ -55,6 +55,13 @@ public interface DiscordGuild extends JDAEntity<Guild>, Snowflake {
     int getMemberCount();
 
     /**
+     * Gets the bot's membership in the server.
+     * @return the connected bot's member
+     */
+    @NotNull
+    DiscordGuildMember getSelfMember();
+
+    /**
      * Retrieves a Discord guild member from Discord by id.
      * @param id the id for the Discord guild member
      * @return a future for the Discord guild member

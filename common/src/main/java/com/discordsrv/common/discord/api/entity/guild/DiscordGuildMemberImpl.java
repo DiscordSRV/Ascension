@@ -88,6 +88,11 @@ public class DiscordGuildMemberImpl implements DiscordGuildMember {
     }
 
     @Override
+    public boolean canInteract(@NotNull DiscordRole role) {
+        return member.canInteract(role.asJDA());
+    }
+
+    @Override
     public CompletableFuture<Void> addRole(@NotNull DiscordRole role) {
         return discordSRV.discordAPI().mapExceptions(() ->
                 guild.asJDA().addRoleToMember(member, role.asJDA()).submit()

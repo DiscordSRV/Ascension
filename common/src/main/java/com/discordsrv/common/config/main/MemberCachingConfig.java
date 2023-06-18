@@ -34,7 +34,7 @@ public class MemberCachingConfig {
     public boolean all = false;
 
     @Comment("If members should be cached at startup, this requires the \"Server Members Intent\"")
-    public boolean chunk = false;
+    public boolean chunk = true;
 
     @Comment("Filter for which servers should be cached at startup")
     public GuildFilter chunkingServerFilter = new GuildFilter();

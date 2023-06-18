@@ -57,6 +57,11 @@ public class DiscordGuildImpl implements DiscordGuild {
     }
 
     @Override
+    public @NotNull DiscordGuildMember getSelfMember() {
+        return discordSRV.discordAPI().getGuildMember(guild.getSelfMember());
+    }
+
+    @Override
     public @NotNull CompletableFuture<DiscordGuildMember> retrieveMemberById(long id) {
         return discordSRV.discordAPI().mapExceptions(() -> guild.retrieveMemberById(id)
                 .submit()

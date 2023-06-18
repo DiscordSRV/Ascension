@@ -77,6 +77,13 @@ public interface DiscordGuildMember extends JDAEntity<Member>, Mentionable {
     boolean hasRole(@NotNull DiscordRole role);
 
     /**
+     * If this member can interact (edit, add/take from members) with the specified role.
+     * @param role the role
+     * @return {@code true} if the member has a role above the specified role or is the server owner
+     */
+    boolean canInteract(@NotNull DiscordRole role);
+
+    /**
      * Gives the given role to this member.
      * @param role the role to give
      * @return a future
