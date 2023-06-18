@@ -56,7 +56,7 @@ dependencyResolutionManagement {
             library('findbugs-annotations', 'com.google.code.findbugs', 'jsr305').version('3.0.2')
 
             // JDA
-            library('jda', 'net.dv8tion', 'JDA').version('5.0.0-beta.10')
+            library('jda', 'net.dv8tion', 'JDA').version('5.0.0-beta.10.webhooks_2')
             library('okhttp', 'com.squareup.okhttp3', 'okhttp').version {
                 prefer '3.14.9'
                 reject '[4,)' // Kotlin

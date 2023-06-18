@@ -91,7 +91,11 @@ public abstract class AbstractDiscordGuildMessageChannel<T extends GuildMessageC
 
         CompletableFuture<R> createRequest;
         if (message.isWebhookMessage()) {
-            createRequest = queryWebhookClient().thenApply(client -> (R) client.sendMessage(createData));
+            createRequest = queryWebhookClient()
+                    .thenApply(client -> (R) client.sendMessage(createData)
+                            .setUsername(message.getWebhookUsername())
+                            .setAvatarUrl(message.getWebhookAvatarUrl())
+                    );
         } else {
             createRequest = CompletableFuture.completedFuture(((R) channel.sendMessage(createData)));
         }

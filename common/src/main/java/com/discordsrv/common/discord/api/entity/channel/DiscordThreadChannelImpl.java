@@ -29,6 +29,7 @@ import net.dv8tion.jda.api.entities.channel.ChannelType;
 import net.dv8tion.jda.api.entities.channel.attribute.IThreadContainer;
 import net.dv8tion.jda.api.entities.channel.concrete.ThreadChannel;
 import net.dv8tion.jda.api.entities.channel.middleman.MessageChannel;
+import net.dv8tion.jda.internal.requests.IncomingWebhookClient;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.concurrent.CompletableFuture;
@@ -52,7 +53,7 @@ public class DiscordThreadChannelImpl extends AbstractDiscordGuildMessageChannel
     public CompletableFuture<WebhookClient<Message>> queryWebhookClient() {
         return discordSRV.discordAPI()
                 .queryWebhookClient(getParentChannel().getId())
-                .thenApply(client -> null/* client.onThread(getId())*/); // TODO
+                .thenApply(client -> ((IncomingWebhookClient) client).withThreadId(Long.toUnsignedString(getId())));
     }
 
     @Override

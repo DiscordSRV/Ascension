@@ -56,6 +56,7 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.concurrent.*;
 import java.util.function.BiConsumer;
@@ -523,10 +524,11 @@ public class DiscordAPIImpl implements DiscordAPI {
 
                 return textChannel.createWebhook("DSRV").submit();
             }).thenApply(webhook ->
-                    WebhookClientBuilder.fromJDA(webhook)
-                            .setHttpClient(jda.getHttpClient())
-                            .setExecutorService(discordSRV.scheduler().scheduledExecutorService())
-                            .build()
+                    WebhookClient.createClient(
+                            webhook.getJDA(),
+                            webhook.getId(),
+                            Objects.requireNonNull(webhook.getToken())
+                    )
             );
         }
     }

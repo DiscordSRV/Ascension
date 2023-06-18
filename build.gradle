@@ -53,7 +53,8 @@ subprojects {
                 includeGroup 'me.scarsz'
                 includeGroup 'me.minecraftauth'
 
-                includeGroup 'org.spongepowered' // Configurate yamlbranch
+                includeGroup 'org.spongepowered' // SpongePowered/Configurate feature/yaml-improvements branch
+                includeGroup 'net.dv8tion' // DiscordSRV/JDA v5-webhooks branch
             }
         }
         maven {

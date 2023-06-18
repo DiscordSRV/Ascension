@@ -76,7 +76,7 @@ public class ReceivedDiscordMessageImpl implements ReceivedDiscordMessage {
                     );
 
             if (clientFuture != null) {
-                long clientId = clientFuture.join().getId(); // TODO
+                long clientId = clientFuture.join().getIdLong();
                 self = clientId == user.getId();
             }
         } else {
