@@ -5,11 +5,22 @@ import com.discordsrv.common.command.game.abstraction.GameCommandArguments;
 import com.discordsrv.common.command.game.sender.ICommandSender;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.TextComponent;
+import net.kyori.adventure.text.TextReplacementConfig;
+import net.kyori.adventure.text.event.ClickEvent;
 import net.kyori.adventure.text.event.HoverEvent;
 
 import java.util.Collection;
+import java.util.regex.Pattern;
 
 public class GameCommandExecution implements CommandExecution {
+
+    private static final TextReplacementConfig URL_REPLACEMENT = TextReplacementConfig.builder()
+            .match(Pattern.compile("^https?://[-a-zA-Z0-9+&@#/%?=~_|!:,.;]*[-a-zA-Z0-9+&@#/%=~_|]"))
+            .replacement((matchResult, builder) -> {
+                String url = matchResult.group();
+                return builder.clickEvent(ClickEvent.openUrl(url));
+            })
+            .build();
 
     private final DiscordSRV discordSRV;
     private final ICommandSender sender;
@@ -37,7 +48,7 @@ public class GameCommandExecution implements CommandExecution {
         if (!extra.isEmpty()) {
             builder.hoverEvent(HoverEvent.showText(render(extra)));
         }
-        sender.sendMessage(builder);
+        sender.sendMessage(builder.build().replaceText(URL_REPLACEMENT));
     }
 
     private TextComponent.Builder render(Collection<Text> texts) {
