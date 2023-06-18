@@ -40,11 +40,11 @@ public class DiscordToMinecraftChatConfig {
     @Untranslated(Untranslated.Type.VALUE)
     public String webhookFormat = "[&#5865F2Discord&r] [hover:show_text:Bot message]%user_effective_name%&r » %message%%message_attachments%";
 
-    @Comment("Attachment format")
+    @Comment("Format for a single attachment in the %message_attachments% placeholder")
     @Untranslated(Untranslated.Type.VALUE)
     public String attachmentFormat = " [hover:show_text:Open %file_name% in browser][click:open_url:%file_url%]&a[&f%file_name%&a]&r";
 
-    @Comment("Reply format")
+    @Comment("Format for the %message_reply% placeholder, when the message is a reply to another message")
     @Untranslated(Untranslated.Type.VALUE)
     public String replyFormat = " [hover:show_text:%message%][click:open_url:%message_jump_url%]replying to %user_color|text:''%%user_effective_server_name|user_effective_name%&r";
 
