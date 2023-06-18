@@ -34,7 +34,7 @@ public class DiscordToMinecraftChatConfig {
 
     @Comment("The Discord to Minecraft message format for regular users and bots")
     @Untranslated(Untranslated.Type.VALUE)
-    public String format = "[&#5865F2Discord&r] [hover:show_text:Tag: %user_tag%&r\nRoles: %user_roles:', '|text:'&7&oNone'%]%user_color%%user_effective_server_name%&r%message_reply% » %message%%message_attachments%";
+    public String format = "[&#5865F2Discord&r] [hover:show_text:Username: @%user_name%&r\nRoles: %user_roles:', '|text:'&7&oNone'%]%user_color%%user_effective_server_name%&r%message_reply% » %message%%message_attachments%";
 
     @Comment("The Discord to Minecraft message format for webhook messages (if enabled)")
     @Untranslated(Untranslated.Type.VALUE)

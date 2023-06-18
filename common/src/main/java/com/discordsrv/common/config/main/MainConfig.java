@@ -21,6 +21,8 @@ package com.discordsrv.common.config.main;
 import com.discordsrv.api.channel.GameChannel;
 import com.discordsrv.common.config.Config;
 import com.discordsrv.common.config.annotation.DefaultOnly;
+import com.discordsrv.common.config.annotation.Order;
+import com.discordsrv.common.config.connection.ConnectionConfig;
 import com.discordsrv.common.config.main.channels.base.BaseChannelConfig;
 import com.discordsrv.common.config.main.channels.base.ChannelConfig;
 import com.discordsrv.common.config.main.linking.LinkedAccountConfig;
@@ -37,7 +39,7 @@ public abstract class MainConfig implements Config {
     public static final String HEADER = String.join("\n", Arrays.asList(
             "Welcome to the DiscordSRV configuration file",
             "",
-            ""
+            "Looking for the \"BotToken\" option? It has been moved into the " + ConnectionConfig.FILE_NAME
     ));
 
     @Override
@@ -67,8 +69,6 @@ public abstract class MainConfig implements Config {
 
     public LinkedAccountConfig linkedAccounts = new LinkedAccountConfig();
 
-    public MemberCachingConfig memberCaching = new MemberCachingConfig();
-
     public TimedUpdaterConfig timedUpdater = new TimedUpdaterConfig();
 
     @Comment("Configuration options for group-role synchronization")
@@ -81,4 +81,7 @@ public abstract class MainConfig implements Config {
     public DiscordInviteConfig invite = new DiscordInviteConfig();
 
     public abstract PluginIntegrationConfig integrations();
+
+    @Order(1000)
+    public MemberCachingConfig memberCaching = new MemberCachingConfig();
 }

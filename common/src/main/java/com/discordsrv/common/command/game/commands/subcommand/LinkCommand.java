@@ -23,6 +23,7 @@ import com.discordsrv.common.command.game.abstraction.GameCommand;
 import com.discordsrv.common.command.game.abstraction.GameCommandArguments;
 import com.discordsrv.common.command.game.abstraction.GameCommandExecutor;
 import com.discordsrv.common.command.game.sender.ICommandSender;
+import net.kyori.adventure.text.Component;
 
 public class LinkCommand implements GameCommandExecutor {
 
@@ -46,6 +47,6 @@ public class LinkCommand implements GameCommandExecutor {
 
     @Override
     public void execute(ICommandSender sender, GameCommandArguments arguments) {
-
+        sender.sendMessage(Component.text("Not currently implemented")); // TODO
     }
 }
