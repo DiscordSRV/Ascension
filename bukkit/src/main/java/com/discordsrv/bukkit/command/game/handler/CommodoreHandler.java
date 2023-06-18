@@ -25,6 +25,7 @@ import com.discordsrv.common.command.game.sender.ICommandSender;
 import com.mojang.brigadier.tree.LiteralCommandNode;
 import me.lucko.commodore.Commodore;
 import me.lucko.commodore.CommodoreProvider;
+import org.bukkit.command.CommandSender;
 import org.bukkit.command.PluginCommand;
 
 import java.util.ArrayList;
@@ -43,7 +44,7 @@ public class CommodoreHandler extends AbstractBukkitCommandExecutor {
     public CommodoreHandler(BukkitDiscordSRV discordSRV) {
         super(discordSRV);
         this.commodore = CommodoreProvider.getCommodore(discordSRV.plugin());
-        this.senderFunction = wrapper -> sender(commodore.getBukkitSender(wrapper));
+        this.senderFunction = wrapper -> sender((CommandSender) wrapper); // This is probably wrong...
     }
 
     @Override

@@ -553,9 +553,6 @@ public abstract class AbstractDiscordSRV<B extends IBootstrap, C extends MainCon
         // Logging
         DependencyLoggerAdapter.setAppender(new DependencyLoggingHandler(this));
 
-        // Register PlayerProvider listeners
-        playerProvider().subscribe();
-
         // Placeholder result stringifiers & global contexts
         placeholderService().addResultMapper(new ComponentResultStringifier(this));
         placeholderService().addGlobalContext(new GlobalTextHandlingContext(this));
@@ -584,6 +581,9 @@ public abstract class AbstractDiscordSRV<B extends IBootstrap, C extends MainCon
         } catch (ExecutionException e) {
             throw e.getCause();
         }
+
+        // Register PlayerProvider listeners
+        playerProvider().subscribe();
     }
 
     protected final void startedMessage() {
@@ -610,6 +610,13 @@ public abstract class AbstractDiscordSRV<B extends IBootstrap, C extends MainCon
         this.status.set(Status.SHUTTING_DOWN);
         eventBus().publish(new DiscordSRVShuttingDownEvent());
         eventBus().shutdown();
+        try {
+            if (storage != null) {
+                storage.close();
+            }
+        } catch (Throwable t) {
+            logger().error("Failed to close storage connection", t);
+        }
         this.status.set(Status.SHUTDOWN);
     }
 

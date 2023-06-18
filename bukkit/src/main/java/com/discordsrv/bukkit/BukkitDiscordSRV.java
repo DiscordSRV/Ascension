@@ -179,12 +179,6 @@ public class BukkitDiscordSRV extends ServerDiscordSRV<DiscordSRVBukkitBootstrap
         // Command handler
         commandHandler = AbstractBukkitCommandHandler.get(this);
 
-        // Register listeners
-        server().getPluginManager().registerEvents(BukkitAwardForwarder.get(this), plugin());
-        server().getPluginManager().registerEvents(BukkitChatForwarder.get(this), plugin());
-        server().getPluginManager().registerEvents(new BukkitDeathListener(this), plugin());
-        server().getPluginManager().registerEvents(new BukkitStatusMessageListener(this), plugin());
-
         // Modules
         registerModule(MinecraftToDiscordChatModule::new);
         registerModule(BukkitRequiredLinkingModule::new);
@@ -202,6 +196,12 @@ public class BukkitDiscordSRV extends ServerDiscordSRV<DiscordSRVBukkitBootstrap
         registerIntegration("com.discordsrv.bukkit.integration.chat.VentureChatIntegration");
 
         super.enable();
+
+        // Register listeners
+        server().getPluginManager().registerEvents(BukkitAwardForwarder.get(this), plugin());
+        server().getPluginManager().registerEvents(BukkitChatForwarder.get(this), plugin());
+        server().getPluginManager().registerEvents(new BukkitDeathListener(this), plugin());
+        server().getPluginManager().registerEvents(new BukkitStatusMessageListener(this), plugin());
 
         // Connection listener
         server().getPluginManager().registerEvents(new BukkitConnectionListener(this), plugin());

@@ -48,16 +48,18 @@ public class BukkitBasicCommandHandler extends AbstractBukkitCommandExecutor imp
 
     @Override
     public void registerCommand(GameCommand command) {
-        PluginCommand pluginCommand = command(command);
-        if (pluginCommand == null) {
-            logger.error("Failed to create command " + command.getLabel());
-            return;
-        }
+        discordSRV.scheduler().runOnMainThread(() -> {
+            PluginCommand pluginCommand = command(command);
+            if (pluginCommand == null) {
+                logger.error("Failed to create command " + command.getLabel());
+                return;
+            }
 
-        logger.debug("Registering command " + command.getLabel() + " with basic handler");
+            logger.debug("Registering command " + command.getLabel() + " with basic handler");
 
-        handler.registerCommand(command);
-        pluginCommand.setExecutor(this);
-        pluginCommand.setTabCompleter(this);
+            handler.registerCommand(command);
+            pluginCommand.setExecutor(this);
+            pluginCommand.setTabCompleter(this);
+        });
     }
 }
