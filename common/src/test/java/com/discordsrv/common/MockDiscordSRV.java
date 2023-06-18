@@ -23,8 +23,10 @@ import com.discordsrv.common.bootstrap.LifecycleManager;
 import com.discordsrv.common.command.game.handler.ICommandHandler;
 import com.discordsrv.common.config.connection.ConnectionConfig;
 import com.discordsrv.common.config.main.MainConfig;
+import com.discordsrv.common.config.main.PluginIntegrationConfig;
 import com.discordsrv.common.config.manager.ConnectionConfigManager;
 import com.discordsrv.common.config.manager.MainConfigManager;
+import com.discordsrv.common.config.manager.manager.ServerConfigManager;
 import com.discordsrv.common.console.Console;
 import com.discordsrv.common.debug.data.OnlineMode;
 import com.discordsrv.common.logging.Logger;
@@ -133,7 +135,17 @@ public class MockDiscordSRV extends AbstractDiscordSRV<IBootstrap, MainConfig, C
 
     @Override
     public MainConfigManager<MainConfig> configManager() {
-        return null;
+        return new ServerConfigManager<MainConfig>(this) {
+            @Override
+            public MainConfig createConfiguration() {
+                return new MainConfig() {
+                    @Override
+                    public PluginIntegrationConfig integrations() {
+                        return null;
+                    }
+                };
+            }
+        };
     }
 
     @Override
