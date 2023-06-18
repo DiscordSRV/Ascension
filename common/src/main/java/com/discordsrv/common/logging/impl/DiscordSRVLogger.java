@@ -19,6 +19,8 @@
 package com.discordsrv.common.logging.impl;
 
 import com.discordsrv.common.DiscordSRV;
+import com.discordsrv.common.config.main.DebugConfig;
+import com.discordsrv.common.config.main.MainConfig;
 import com.discordsrv.common.logging.LogLevel;
 import com.discordsrv.common.logging.Logger;
 import net.dv8tion.jda.api.Permission;
@@ -36,6 +38,7 @@ import java.nio.file.StandardOpenOption;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Queue;
 import java.util.concurrent.ConcurrentLinkedQueue;
@@ -46,6 +49,8 @@ public class DiscordSRVLogger implements Logger {
     private static final DateFormat DATE_TIME_FORMATTER = new SimpleDateFormat("EEE HH:mm:ss z");
     private static final String LOG_LINE_FORMAT = "[%s] [%s] %s";
     private static final String LOG_FILE_NAME_FORMAT = "%s-%s.log";
+
+    private static final List<String> DISABLE_DEBUG_BY_DEFAULT = Collections.singletonList("Hikari");
 
     private final Queue<LogEntry> linesToAdd = new ConcurrentLinkedQueue<>();
 
@@ -123,13 +128,34 @@ public class DiscordSRVLogger implements Logger {
     }
 
     private void doLog(String loggerName, LogLevel logLevel, String message, Throwable throwable) {
-        if (logLevel != LogLevel.DEBUG && logLevel != LogLevel.TRACE) {
-            discordSRV.platformLogger().log(null, logLevel, message, throwable);
+        MainConfig config = discordSRV.config();
+        DebugConfig debugConfig = config != null ? config.debug : null;
+
+        if (logLevel == LogLevel.TRACE || (loggerName != null && logLevel == LogLevel.DEBUG && DISABLE_DEBUG_BY_DEFAULT.contains(loggerName))) {
+            if (loggerName == null
+                    || debugConfig == null
+                    || debugConfig.additionalLevels == null
+                    || !debugConfig.additionalLevels.getOrDefault(loggerName, Collections.emptyList()).contains(logLevel.name())) {
+                return;
+            }
         }
 
-        // TODO: handle trace & hikari
+        boolean debugOrTrace = logLevel == LogLevel.DEBUG || logLevel == LogLevel.TRACE;
+        boolean logToConsole = debugConfig != null && debugConfig.logToConsole;
+
+        if (!debugOrTrace || logToConsole) {
+            String consoleMessage = message;
+            LogLevel consoleLevel = logLevel;
+            if (debugOrTrace) {
+                // Normally DEBUG/TRACE logging isn't enabled, so we convert it to INFO and add the level
+                consoleMessage = "[" + logLevel.name() + "]" + (message != null ? " " + message : "");
+                consoleLevel = LogLevel.INFO;
+            }
+            discordSRV.platformLogger().log(null, consoleLevel, consoleMessage, throwable);
+        }
+
         Path debugLog = debugLogs.isEmpty() ? null : debugLogs.get(0);
-        if (debugLog == null || logLevel == LogLevel.TRACE/* || loggerName.equals("Hikari")*/) {
+        if (debugLog == null) {
             return;
         }
         long time = System.currentTimeMillis();

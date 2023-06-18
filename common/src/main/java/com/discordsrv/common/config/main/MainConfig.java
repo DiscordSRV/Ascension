@@ -84,4 +84,8 @@ public abstract class MainConfig implements Config {
 
     @Order(1000)
     public MemberCachingConfig memberCaching = new MemberCachingConfig();
+
+    @Order(5000)
+    @Comment("Options for diagnosing DiscordSRV, you do not need to touch these options during normal operation")
+    public DebugConfig debug = new DebugConfig();
 }
