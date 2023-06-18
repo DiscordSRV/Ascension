@@ -638,7 +638,7 @@ public class JDAConnectionManager implements DiscordConnectionManager {
                             discordSRV.logger().error("| server requiring 2FA for moderation actions");
                             if (user != null) {
                                 discordSRV.logger().error("|");
-                                discordSRV.logger().error("| The Discord bot's owner is " + user.getAsTag() + " (" + user.getId() + ")");
+                                discordSRV.logger().error("| The Discord bot's owner is " + user.getUsername() + " (" + user.getId() + ")");
                             }
                             discordSRV.logger().error("|");
                             discordSRV.logger().error("| You can view instructions for enabling 2FA here:");

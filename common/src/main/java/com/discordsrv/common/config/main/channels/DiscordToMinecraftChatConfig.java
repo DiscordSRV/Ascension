@@ -35,11 +35,11 @@ public class DiscordToMinecraftChatConfig {
 
     @Comment("The Discord to Minecraft message format for regular users and bots")
     @Untranslated(Untranslated.Type.VALUE)
-    public String format = "[&#5865F2Discord&r] [hover:show_text:Tag: %user_tag%&r\nRoles: %user_roles:', '|text:'&7&oNone'%]%user_color%%user_effective_name%&r » %message%%message_attachments%";
+    public String format = "[&#5865F2Discord&r] [hover:show_text:Tag: %user_tag%&r\nRoles: %user_roles:', '|text:'&7&oNone'%]%user_color%%user_effective_server_name%&r » %message%%message_attachments%";
 
     @Comment("The Discord to Minecraft message format for webhook messages (if enabled)")
     @Untranslated(Untranslated.Type.VALUE)
-    public String webhookFormat = "[&#5865F2Discord&r] [hover:show_text:Webhook message]%user_name%&r » %message%%message_attachments%";
+    public String webhookFormat = "[&#5865F2Discord&r] [hover:show_text:Webhook message]%user_effective_name%&r » %message%%message_attachments%";
 
     @Comment("Attachment format")
     @Untranslated(Untranslated.Type.VALUE)
@@ -61,7 +61,7 @@ public class DiscordToMinecraftChatConfig {
 
         public Format role = new Format("&#5865f2@%role_name%", "&#5865f2@deleted-role");
         public Format channel = new Format("[hover:show_text:Click to go to channel][click:open_url:%channel_jump_url%]&#5865f2#%channel_name%", "&#5865f2#deleted-channel");
-        public Format user = new Format("[hover:show_text:Tag: %user_tag%&r\nRoles: %user_roles:', '|text:'&7&oNone'%]&#5865f2@%user_effective_name|user_name%", "&#5865f2@Unknown user");
+        public Format user = new Format("[hover:show_text:Username: @%user_name%&r\nRoles: %user_roles:', '|text:'&7&oNone'%]&#5865f2@%user_effective_server_name|user_effective_name%", "&#5865f2@Unknown user");
 
         public String messageUrl = "[hover:show_text:Click to go to message][click:open_url:%jump_url%]&#5865f2#%channel_name% > ...";
 
