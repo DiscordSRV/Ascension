@@ -633,7 +633,9 @@ public abstract class AbstractDiscordSRV<B extends IBootstrap, C extends MainCon
 
                 channelConfig().reload();
             } catch (Throwable t) {
-                setStatus(Status.FAILED_TO_LOAD_CONFIG);
+                if (initial) {
+                    setStatus(Status.FAILED_TO_LOAD_CONFIG);
+                }
                 throw t;
             }
         }
@@ -726,7 +728,9 @@ public abstract class AbstractDiscordSRV<B extends IBootstrap, C extends MainCon
             } catch (StorageException e) {
                 e.log(this);
                 logger().error("Failed to connect to storage");
-                setStatus(Status.FAILED_TO_START);
+                if (initial) {
+                    setStatus(Status.FAILED_TO_START);
+                }
                 return Collections.singletonList(ReloadResults.STORAGE_CONNECTION_FAILED);
             }
         }
