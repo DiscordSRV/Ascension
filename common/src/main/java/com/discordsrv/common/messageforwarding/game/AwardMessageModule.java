@@ -68,7 +68,7 @@ public class AwardMessageModule extends AbstractGameMessageModule<AwardMessageCo
             return;
         }
 
-        if (!checkIfShouldPermit(event.getPlayer())) {
+        if (checkIfShouldPermit(event.getPlayer())) {
             process(event, event.getPlayer(), event.getGameChannel());
         }
 
