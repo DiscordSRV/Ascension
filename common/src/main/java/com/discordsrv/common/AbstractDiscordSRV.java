@@ -112,6 +112,7 @@ import java.util.jar.Manifest;
 public abstract class AbstractDiscordSRV<B extends IBootstrap, C extends MainConfig, CC extends ConnectionConfig> implements DiscordSRV {
 
     private final AtomicReference<Status> status = new AtomicReference<>(Status.INITIALIZED);
+    private final AtomicReference<Boolean> beenReady = new AtomicReference<>(false);
 
     // DiscordSRVApi
     private EventBusImpl eventBus;
@@ -443,6 +444,12 @@ public abstract class AbstractDiscordSRV<B extends IBootstrap, C extends MainCon
         }
         if (status == Status.CONNECTED) {
             eventBus().publish(new DiscordSRVConnectedEvent());
+            synchronized (beenReady) {
+                if (!beenReady.get()) {
+                    eventBus.publish(new DiscordSRVReadyEvent());
+                    beenReady.set(true);
+                }
+            }
         }
     }
 
@@ -481,8 +488,6 @@ public abstract class AbstractDiscordSRV<B extends IBootstrap, C extends MainCon
     public final void runEnable() {
         try {
             this.enable();
-            waitForStatus(Status.CONNECTED);
-            eventBus.publish(new DiscordSRVReadyEvent());
         } catch (Throwable t) {
             logger.error("Failed to enable", t);
             setStatus(Status.FAILED_TO_START);
