@@ -120,7 +120,7 @@ public class DiscordChatMessageModule extends AbstractModule<DiscordSRV> {
         Placeholders message = new Placeholders(event.getMessageContent());
         chatConfig.contentRegexFilters.forEach(message::replaceAll);
 
-        Component messageComponent = DiscordSRVMinecraftRenderer.getWithContext(event, chatConfig, () ->
+        Component messageComponent = DiscordSRVMinecraftRenderer.getWithContext(event.getGuild(), chatConfig, () ->
                 discordSRV.componentFactory().minecraftSerializer().serialize(message.toString()));
 
         GameTextBuilder componentBuilder = discordSRV.componentFactory()
@@ -133,7 +133,7 @@ public class DiscordChatMessageModule extends AbstractModule<DiscordSRV> {
 
         componentBuilder.applyPlaceholderService();
 
-        MinecraftComponent component = componentBuilder.build();
+        MinecraftComponent component = DiscordSRVMinecraftRenderer.getWithContext(event.getGuild(), chatConfig, componentBuilder::build);
         if (ComponentUtil.isEmpty(component)) {
             // Empty
             return;
