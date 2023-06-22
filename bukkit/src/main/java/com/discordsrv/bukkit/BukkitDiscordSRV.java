@@ -208,7 +208,7 @@ public class BukkitDiscordSRV extends ServerDiscordSRV<DiscordSRVBukkitBootstrap
     }
 
     @Override
-    protected List<ReloadResult> reload(Set<ReloadFlag> flags, boolean initial) throws Throwable {
+    public List<ReloadResult> reload(Set<ReloadFlag> flags, boolean initial) throws Throwable {
         List<ReloadResult> results = super.reload(flags, initial);
 
         if (flags.contains(ReloadFlag.TRANSLATIONS)) {

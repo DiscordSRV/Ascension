@@ -51,13 +51,24 @@ public abstract class ServerDiscordSRV<B extends IBootstrap, C extends MainConfi
     }
 
     public final CompletableFuture<Void> invokeServerStarted() {
-        return invokeLifecycle(() -> {
+        return CompletableFuture.supplyAsync(() -> {
             if (status().isShutdown()) {
+                // Already shutdown/shutting down, don't bother
                 return null;
             }
-            this.serverStarted();
+            try {
+                this.serverStarted();
+            } catch (Throwable t) {
+                if (status().isShutdown() && t instanceof NoClassDefFoundError) {
+                    // Already shutdown, ignore errors for classes that already got unloaded
+                    return null;
+                }
+                setStatus(Status.FAILED_TO_START);
+                disable();
+                logger().error("Failed to start", t);
+            }
             return null;
-        });
+        }, scheduler().executorService());
     }
 
     @OverridingMethodsMustInvokeSuper

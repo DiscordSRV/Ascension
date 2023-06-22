@@ -148,8 +148,8 @@ public interface DiscordSRV extends DiscordSRVApi {
     ObjectMapper json();
 
     // Lifecycle
-    CompletableFuture<Void> invokeEnable();
+    void runEnable();
+    List<ReloadResult> runReload(Set<ReloadFlag> flags, boolean silent);
     CompletableFuture<Void> invokeDisable();
-    CompletableFuture<List<ReloadResult>> invokeReload(Set<ReloadFlag> flags, boolean silent);
 
 }

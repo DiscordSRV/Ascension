@@ -90,14 +90,14 @@ public class LifecycleManager {
         if (!completableFuture.isDone()) {
             return;
         }
-        discordSRVSupplier.get().invokeEnable();
+        discordSRVSupplier.get().runEnable();
     }
 
     public void reload(DiscordSRV discordSRV) {
         if (discordSRV == null) {
             return;
         }
-        discordSRV.invokeReload(DiscordSRVApi.ReloadFlag.DEFAULT_FLAGS, false);
+        discordSRV.runReload(DiscordSRVApi.ReloadFlag.DEFAULT_FLAGS, false);
     }
 
     public void disable(DiscordSRV discordSRV) {
