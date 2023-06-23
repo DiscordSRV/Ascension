@@ -69,11 +69,10 @@ public interface IPlayer extends DiscordSRVPlayer, IOfflinePlayer, ICommandSende
         AvatarProviderConfig avatarConfig = discordSRV().config().avatarProvider;
         String avatarUrlTemplate = avatarConfig.avatarUrlTemplate;
 
-        // TODO maybe put these additional templates in config options?
         if (avatarConfig.autoDecideAvatarUrl) {
             // Offline mode
             if (uniqueId().version() == 3) avatarUrlTemplate = "https://cravatar.eu/helmavatar/%username%/128.png#%texture%";
-            // Bedrock - TODO test or maybe find a better service
+            // Bedrock
             else if (uniqueId().getLeastSignificantBits() == 0) avatarUrlTemplate = "https://api.tydiumcraft.net/skin?uuid=%uuid_nodashes%&type=avatar&size=128";
         }
 
