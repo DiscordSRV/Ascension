@@ -23,7 +23,7 @@ import com.discordsrv.api.placeholder.util.Placeholders;
 import com.discordsrv.api.player.DiscordSRVPlayer;
 import com.discordsrv.common.DiscordSRV;
 import com.discordsrv.common.command.game.sender.ICommandSender;
-import com.discordsrv.common.config.main.channels.base.BaseChannelConfig;
+import com.discordsrv.common.config.main.AvatarProviderConfig;
 import com.discordsrv.common.permission.util.PermissionUtil;
 import com.discordsrv.common.profile.Profile;
 import net.kyori.adventure.text.Component;
@@ -65,16 +65,28 @@ public interface IPlayer extends DiscordSRVPlayer, IOfflinePlayer, ICommandSende
     @Nullable
     @ApiStatus.NonExtendable
     @Placeholder("player_avatar_url")
-    default String getAvatarUrl(BaseChannelConfig config) {
-        String avatarUrlProvider = config.avatarUrlProvider;
-        if (avatarUrlProvider == null) {
+    default String getAvatarUrl() {
+        AvatarProviderConfig avatarConfig = discordSRV().config().avatarProvider;
+        String avatarUrlTemplate = avatarConfig.avatarUrlTemplate;
+
+        // TODO maybe put these additional templates in config options?
+        if (avatarConfig.autoDecideAvatarUrl) {
+            // Offline mode
+            if (uniqueId().version() == 3) avatarUrlTemplate = "https://cravatar.eu/helmavatar/%username%/%size%.png#%texture%";
+            // Bedrock - TODO test or maybe find a better service
+            else if (uniqueId().getLeastSignificantBits() == 0) avatarUrlTemplate = "https://api.tydiumcraft.net/skin?uuid=%uuid_nodashes%&type=avatar&size=%size%";
+        }
+
+        if (avatarUrlTemplate == null) {
             return null;
         }
 
-        return new Placeholders(avatarUrlProvider)
+        return new Placeholders(avatarUrlTemplate)
                 .replace("%uuid%", uniqueId().toString())
+                .replace("%uuid_nodashes%", uniqueId().toString().replaceAll("-", ""))
                 .replace("%username%", username())
                 .replace("%texture%", "") // TODO
+                .replace("%size%", avatarConfig.size)
                 .toString();
     }
 

@@ -80,6 +80,9 @@ public abstract class MainConfig implements Config {
     @Comment("Configuration for the %discord_invite% placeholder. The below options will be attempted in the order they are in")
     public DiscordInviteConfig invite = new DiscordInviteConfig();
 
+    @Comment("Configuration for the avatar URL to provide to webhook messages and embeds")
+    public AvatarProviderConfig avatarProvider = new AvatarProviderConfig();
+
     public abstract PluginIntegrationConfig integrations();
 
     @Order(1000)
