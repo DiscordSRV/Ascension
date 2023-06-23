@@ -33,6 +33,6 @@ public class DiscordInviteConfig {
     @Comment("If the bot is only in one Discord server, it will attempt to automatically create a invite for it.\n"
             + "The bot will only attempt to do so if it has permission to \"Create Invite\"\n"
             + "The server must also have a rules channel (available for community servers) or default channel (automatically determined by Discord)")
-    public boolean autoCreateInvite = true;
+    public boolean autoCreateInvite = false;
 
 }

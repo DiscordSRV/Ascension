@@ -39,10 +39,6 @@ public class BaseChannelConfig {
     @Order(2)
     public LeaveMessageConfig leaveMessages = new LeaveMessageConfig();
 
-    @Untranslated(Untranslated.Type.VALUE)
-    @Order(10)
-    public String avatarUrlProvider = "https://heads.discordsrv.com/head.png?texture=%texture%&uuid=%uuid%&name=%username%&overlay";
-
     @Order(20)
     public StartMessageConfig startMessage = new StartMessageConfig();
     @Order(20)
