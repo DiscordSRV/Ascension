@@ -7,8 +7,8 @@ import org.spongepowered.configurate.objectmapping.meta.Comment;
 @ConfigSerializable
 public class AvatarProviderConfig {
 
-    @Comment("Whether to let DiscordSRV decide an appropriate avatar URL\n" +
-            "This will result in appropriate head renders being provided for Bedrock and Offline Mode players.")
+    @Comment("Whether to let DiscordSRV decide an appropriate avatar URL automatically\n" +
+            "This will result in appropriate head renders being provided for Bedrock players (when using Floodgate) and Offline Mode players (via username).")
     public boolean autoDecideAvatarUrl = true;
 
     @Untranslated(Untranslated.Type.VALUE)
