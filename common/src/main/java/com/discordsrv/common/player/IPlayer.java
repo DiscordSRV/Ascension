@@ -72,9 +72,9 @@ public interface IPlayer extends DiscordSRVPlayer, IOfflinePlayer, ICommandSende
         // TODO maybe put these additional templates in config options?
         if (avatarConfig.autoDecideAvatarUrl) {
             // Offline mode
-            if (uniqueId().version() == 3) avatarUrlTemplate = "https://cravatar.eu/helmavatar/%username%/%size%.png#%texture%";
+            if (uniqueId().version() == 3) avatarUrlTemplate = "https://cravatar.eu/helmavatar/%username%/128.png#%texture%";
             // Bedrock - TODO test or maybe find a better service
-            else if (uniqueId().getLeastSignificantBits() == 0) avatarUrlTemplate = "https://api.tydiumcraft.net/skin?uuid=%uuid_nodashes%&type=avatar&size=%size%";
+            else if (uniqueId().getLeastSignificantBits() == 0) avatarUrlTemplate = "https://api.tydiumcraft.net/skin?uuid=%uuid_nodashes%&type=avatar&size=128";
         }
 
         if (avatarUrlTemplate == null) {
@@ -86,7 +86,6 @@ public interface IPlayer extends DiscordSRVPlayer, IOfflinePlayer, ICommandSende
                 .replace("%uuid_nodashes%", uniqueId().toString().replaceAll("-", ""))
                 .replace("%username%", username())
                 .replace("%texture%", "") // TODO
-                .replace("%size%", avatarConfig.size)
                 .toString();
     }
 
