@@ -128,7 +128,7 @@ dependencyResolutionManagement {
 
             // MCDiscordReserializer & EnhancedLegacyText
             library('mcdiscordreserializer', 'dev.vankka', 'mcdiscordreserializer').version('4.4.0-SNAPSHOT')
-            library('enhancedlegacytext', 'dev.vankka', 'enhancedlegacytext').version('1.0.0')
+            library('enhancedlegacytext', 'dev.vankka', 'enhancedlegacytext').version('2.0.0-SNAPSHOT')
 
             // JUnit
             version('junit', '5.9.2')

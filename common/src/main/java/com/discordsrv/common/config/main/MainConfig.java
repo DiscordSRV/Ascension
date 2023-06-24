@@ -39,7 +39,9 @@ public abstract class MainConfig implements Config {
     public static final String HEADER = String.join("\n", Arrays.asList(
             "Welcome to the DiscordSRV configuration file",
             "",
-            "Looking for the \"BotToken\" option? It has been moved into the " + ConnectionConfig.FILE_NAME
+            "Looking for the \"BotToken\" option? It has been moved into the " + ConnectionConfig.FILE_NAME,
+            "Need help with the format for Minecraft messages? https://github.com/Vankka/EnhancedLegacyText/wiki/Format",
+            "Need help with Discord markdown? https://support.discord.com/hc/en-us/articles/210298617"
     ));
 
     @Override

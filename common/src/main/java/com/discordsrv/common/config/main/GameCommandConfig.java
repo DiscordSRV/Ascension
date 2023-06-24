@@ -31,5 +31,5 @@ public class GameCommandConfig {
     public boolean useLinkAlias = false;
 
     @Comment("The Discord command response format (/discord), player placeholders may be used")
-    public String discordFormat = "[click:open_url:%discord_invite%]&b&lClick here &r&ato join our Discord server!";
+    public String discordFormat = "[click:open_url:%discord_invite%][color:aqua][bold:on]Click here [color][bold][color:green]to join our Discord server!";
 }
