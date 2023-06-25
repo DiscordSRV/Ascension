@@ -279,7 +279,7 @@ public class UpdateChecker {
                 if (loggedCheck == null || loggedCheck.amount != versionCheck.amount) {
                     logger.warning(
                             "DiscordSRV is outdated by " + versionCheck.amount + " " + versionCheck.amountType
-                                    + ". Get the latest version from https://discordsrv.com/dowload");
+                                    + ". Get the latest version from " + USER_DOWNLOAD_URL);
                     loggedCheck = versionCheck;
                 }
                 break;
