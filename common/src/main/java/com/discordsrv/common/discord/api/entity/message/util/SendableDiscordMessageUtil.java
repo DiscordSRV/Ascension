@@ -25,11 +25,14 @@ import com.discordsrv.api.discord.entity.message.SendableDiscordMessage;
 import net.dv8tion.jda.api.entities.Message;
 import net.dv8tion.jda.api.entities.MessageEmbed;
 import net.dv8tion.jda.api.interactions.components.ActionRow;
+import net.dv8tion.jda.api.utils.FileUpload;
 import net.dv8tion.jda.api.utils.messages.*;
 import org.jetbrains.annotations.NotNull;
 
+import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 public final class SendableDiscordMessageUtil {
@@ -61,12 +64,18 @@ public final class SendableDiscordMessageUtil {
             embeds.add(embed.toJDA());
         }
 
+        List<FileUpload> uploads = new ArrayList<>();
+        for (Map.Entry<InputStream, String> attachment : message.getAttachments().entrySet()) {
+            uploads.add(FileUpload.fromData(attachment.getKey(), attachment.getValue()));
+        }
+
         return (T) builder
                 .setContent(message.getContent())
                 .setEmbeds(embeds)
                 .setAllowedMentions(allowedTypes)
                 .mentionUsers(allowedUsers.stream().mapToLong(l -> l).toArray())
-                .mentionRoles(allowedRoles.stream().mapToLong(l -> l).toArray());
+                .mentionRoles(allowedRoles.stream().mapToLong(l -> l).toArray())
+                .setFiles(uploads);
     }
 
     public static MessageCreateData toJDASend(@NotNull SendableDiscordMessage message) {

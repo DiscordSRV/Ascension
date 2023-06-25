@@ -121,7 +121,7 @@ public class DiscordMessageMirroringModule extends AbstractModule<DiscordSRV> {
             }
 
             MirroringConfig.AttachmentConfig attachmentConfig = config.attachments;
-            int maxSize = attachmentConfig.maximumSizeKb;
+            int maxSize = attachmentConfig.maximumSizeKb * 1000;
             boolean embedAttachments = attachmentConfig.embedAttachments;
             if (maxSize >= 0 || embedAttachments) {
                 for (ReceivedDiscordMessage.Attachment attachment : message.getAttachments()) {
@@ -129,10 +129,11 @@ public class DiscordMessageMirroringModule extends AbstractModule<DiscordSRV> {
                         continue;
                     }
 
-                    if (maxSize == 0 || attachment.sizeBytes() <= (maxSize * 1000)) {
+                    if (maxSize == 0 || attachment.sizeBytes() <= maxSize) {
                         Request request = new Request.Builder()
-                                .url(attachment.proxyUrl())
+                                .url(attachment.url())
                                 .get()
+                                .addHeader("Accept", "*/*")
                                 .build();
 
                         byte[] bytes = null;
@@ -187,26 +188,40 @@ public class DiscordMessageMirroringModule extends AbstractModule<DiscordSRV> {
                         messageBuilder.addEmbed(attachmentEmbed.build());
                     }
 
-                    int maxSize = attachmentConfig.maximumSizeKb;
-                    Map<String, InputStream> currentAttachments;
-                    if (!attachments.isEmpty() && maxSize > 0) {
-                        currentAttachments = new LinkedHashMap<>();
+                    int maxSize = attachmentConfig.maximumSizeKb * 1000;
+                    List<InputStream> streams = new ArrayList<>();
+                    if (!attachments.isEmpty() && maxSize >= 0) {
                         attachments.forEach((attachment, bytes) -> {
-                            if (bytes != null && attachment.sizeBytes() <= maxSize) {
-                                currentAttachments.put(attachment.fileName(), new ByteArrayInputStream(bytes));
+                            if (bytes != null && (maxSize == 0 || attachment.sizeBytes() <= maxSize)) {
+                                InputStream stream = new ByteArrayInputStream(bytes);
+                                streams.add(stream);
+                                messageBuilder.addAttachment(stream, attachment.fileName());
                             }
                         });
-                    } else {
-                        currentAttachments = Collections.emptyMap();
+                    }
+
+                    if (messageBuilder.isEmpty()) {
+                        logger().debug("Nothing to mirror to " + mirrorChannel + ", skipping");
+                        for (InputStream stream : streams) {
+                            try {
+                                stream.close();
+                            } catch (IOException ignored) {}
+                        }
+                        return;
                     }
 
                     CompletableFuture<MirroredMessage> future =
-                            mirrorChannel.sendMessage(messageBuilder.build(), currentAttachments)
+                            mirrorChannel.sendMessage(messageBuilder.build())
                                     .thenApply(msg -> new MirroredMessage(msg, config));
 
                     mirrorFutures.add(future);
                     future.exceptionally(t2 -> {
                         logger().error("Failed to mirror message to " + mirrorChannel, t2);
+                        for (InputStream stream : streams) {
+                            try {
+                                stream.close();
+                            } catch (IOException ignored) {}
+                        }
                         return null;
                     });
                 }
@@ -249,7 +264,7 @@ public class DiscordMessageMirroringModule extends AbstractModule<DiscordSRV> {
             }
 
             SendableDiscordMessage sendableMessage = convert(message, channel, reference.config).build();
-            channel.editMessageById(reference.messageId, sendableMessage, null).exceptionally(t -> {
+            channel.editMessageById(reference.messageId, sendableMessage).exceptionally(t -> {
                 logger().error("Failed to update mirrored message in " + channel);
                 return null;
             });

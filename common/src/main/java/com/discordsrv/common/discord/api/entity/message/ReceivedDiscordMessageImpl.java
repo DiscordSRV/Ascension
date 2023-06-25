@@ -45,10 +45,8 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.annotations.Unmodifiable;
 
-import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 
 public class ReceivedDiscordMessageImpl implements ReceivedDiscordMessage {
@@ -238,8 +236,7 @@ public class ReceivedDiscordMessageImpl implements ReceivedDiscordMessage {
 
     @Override
     public @NotNull CompletableFuture<ReceivedDiscordMessage> edit(
-            @NotNull SendableDiscordMessage message,
-            @Nullable Map<String, InputStream> attachments
+            @NotNull SendableDiscordMessage message
     ) {
         if (!webhookMessage && message.isWebhookMessage()) {
             throw new IllegalArgumentException("Cannot edit a non-webhook message into a webhook message");
@@ -250,7 +247,7 @@ public class ReceivedDiscordMessageImpl implements ReceivedDiscordMessage {
             return CompletableFutureUtil.failed(new RestErrorResponseException(ErrorResponse.UNKNOWN_CHANNEL));
         }
 
-        return textChannel.editMessageById(getId(), message, attachments);
+        return textChannel.editMessageById(getId(), message);
     }
 
     //

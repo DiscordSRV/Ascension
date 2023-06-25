@@ -32,7 +32,6 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.io.InputStream;
-import java.util.Collections;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 
@@ -54,21 +53,7 @@ public interface DiscordMessageChannel extends Snowflake {
      * @return a future returning the message after being sent
      */
     @NotNull
-    default CompletableFuture<ReceivedDiscordMessage> sendMessage(@NotNull SendableDiscordMessage message) {
-        return sendMessage(message, Collections.emptyMap());
-    }
-
-    /**
-     * Sends the provided message to the channel with the provided attachments.
-     *
-     * @param message the message to send to the channel
-     * @param attachments the attachments (in a map of file name and input stream pairs) to include in the message, the streams will be closed upon execution
-     * @return a future returning the message after being sent
-     */
-    CompletableFuture<ReceivedDiscordMessage> sendMessage(
-            @NotNull SendableDiscordMessage message,
-            @NotNull Map<String, InputStream> attachments
-    );
+    CompletableFuture<ReceivedDiscordMessage> sendMessage(@NotNull SendableDiscordMessage message);
 
     /**
      * Deletes the message identified by the id.
@@ -87,7 +72,7 @@ public interface DiscordMessageChannel extends Snowflake {
      * @return a future returning the message after being edited
      */
     @NotNull
-    CompletableFuture<ReceivedDiscordMessage> editMessageById(long id, @NotNull SendableDiscordMessage message, @Nullable Map<String, InputStream> attachments);
+    CompletableFuture<ReceivedDiscordMessage> editMessageById(long id, @NotNull SendableDiscordMessage message);
 
     /**
      * Returns the JDA representation of this object. This should not be used if it can be avoided.

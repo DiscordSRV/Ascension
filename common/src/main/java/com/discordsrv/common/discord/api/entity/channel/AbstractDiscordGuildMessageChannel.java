@@ -29,18 +29,12 @@ import net.dv8tion.jda.api.entities.Message;
 import net.dv8tion.jda.api.entities.WebhookClient;
 import net.dv8tion.jda.api.entities.channel.middleman.GuildMessageChannel;
 import net.dv8tion.jda.api.requests.RestAction;
-import net.dv8tion.jda.api.utils.FileUpload;
 import net.dv8tion.jda.api.utils.messages.MessageCreateData;
 import net.dv8tion.jda.api.utils.messages.MessageCreateRequest;
 import net.dv8tion.jda.api.utils.messages.MessageEditData;
 import net.dv8tion.jda.api.utils.messages.MessageEditRequest;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
-import java.io.InputStream;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 
 public abstract class AbstractDiscordGuildMessageChannel<T extends GuildMessageChannel>
@@ -79,14 +73,12 @@ public abstract class AbstractDiscordGuildMessageChannel<T extends GuildMessageC
     }
 
     @Override
-    public CompletableFuture<ReceivedDiscordMessage> sendMessage(
-            @NotNull SendableDiscordMessage message, @NotNull Map<String, InputStream> attachments
-    ) {
-        return sendInternal(message, attachments);
+    public @NotNull CompletableFuture<ReceivedDiscordMessage> sendMessage(@NotNull SendableDiscordMessage message) {
+        return sendInternal(message);
     }
 
     @SuppressWarnings("unchecked") // Generics
-    private <R extends MessageCreateRequest<? extends MessageCreateRequest<?>> & RestAction<Message>> CompletableFuture<ReceivedDiscordMessage> sendInternal(SendableDiscordMessage message, Map<String, InputStream> attachments) {
+    private <R extends MessageCreateRequest<? extends MessageCreateRequest<?>> & RestAction<Message>> CompletableFuture<ReceivedDiscordMessage> sendInternal(SendableDiscordMessage message) {
         MessageCreateData createData = SendableDiscordMessageUtil.toJDASend(message);
 
         CompletableFuture<R> createRequest;
@@ -101,12 +93,6 @@ public abstract class AbstractDiscordGuildMessageChannel<T extends GuildMessageC
         }
 
         return createRequest
-                .thenApply(action -> {
-                    for (Map.Entry<String, InputStream> entry : attachments.entrySet()) {
-                        action = (R) action.addFiles(FileUpload.fromData(entry.getValue(), entry.getKey()));
-                    }
-                    return action;
-                })
                 .thenCompose(RestAction::submit)
                 .thenApply(msg -> ReceivedDiscordMessageImpl.fromJDA(discordSRV, msg));
     }
@@ -114,17 +100,15 @@ public abstract class AbstractDiscordGuildMessageChannel<T extends GuildMessageC
     @Override
     public @NotNull CompletableFuture<ReceivedDiscordMessage> editMessageById(
             long id,
-            @NotNull SendableDiscordMessage message,
-            @Nullable Map<String, InputStream> attachments
+            @NotNull SendableDiscordMessage message
     ) {
-        return editInternal(id, message, attachments);
+        return editInternal(id, message);
     }
 
     @SuppressWarnings("unchecked") // Generics
     private <R extends MessageEditRequest<? extends MessageEditRequest<?>> & RestAction<Message>> CompletableFuture<ReceivedDiscordMessage> editInternal(
             long id,
-            SendableDiscordMessage message,
-            Map<String, InputStream> attachments
+            SendableDiscordMessage message
     ) {
         MessageEditData editData = SendableDiscordMessageUtil.toJDAEdit(message);
 
@@ -136,19 +120,6 @@ public abstract class AbstractDiscordGuildMessageChannel<T extends GuildMessageC
         }
 
         return editRequest
-                .thenApply(action -> {
-                    if (attachments != null) {
-                        List<FileUpload> uploads = new ArrayList<>();
-                        for (Map.Entry<String, InputStream> entry : attachments.entrySet()) {
-                            uploads.add(FileUpload.fromData(entry.getValue(), entry.getKey()));
-                        }
-                        action = (R) action.setFiles(uploads);
-                    } else {
-                        action = (R) action.setAttachments(); // TODO
-                    }
-
-                    return action;
-                })
                 .thenCompose(RestAction::submit)
                 .thenApply(msg -> ReceivedDiscordMessageImpl.fromJDA(discordSRV, msg));
     }

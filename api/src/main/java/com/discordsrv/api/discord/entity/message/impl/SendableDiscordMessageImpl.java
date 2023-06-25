@@ -37,6 +37,7 @@ import net.dv8tion.jda.api.entities.MessageEmbed;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.io.InputStream;
 import java.util.*;
 import java.util.function.Function;
 import java.util.regex.Matcher;
@@ -50,6 +51,7 @@ public class SendableDiscordMessageImpl implements SendableDiscordMessage {
     private final Set<AllowedMention> allowedMentions;
     private final String webhookUsername;
     private final String webhookAvatarUrl;
+    private final Map<InputStream, String> attachments;
 
     protected SendableDiscordMessageImpl(
             String content,
@@ -57,7 +59,8 @@ public class SendableDiscordMessageImpl implements SendableDiscordMessage {
             List<MessageActionRow> actionRows,
             Set<AllowedMention> allowedMentions,
             String webhookUsername,
-            String webhookAvatarUrl
+            String webhookAvatarUrl,
+            Map<InputStream, String> attachments
     ) {
         this.content = content;
         this.embeds = Collections.unmodifiableList(embeds);
@@ -65,6 +68,7 @@ public class SendableDiscordMessageImpl implements SendableDiscordMessage {
         this.allowedMentions = Collections.unmodifiableSet(allowedMentions);
         this.webhookUsername = webhookUsername;
         this.webhookAvatarUrl = webhookAvatarUrl;
+        this.attachments = Collections.unmodifiableMap(attachments);
     }
 
     @Override
@@ -98,6 +102,11 @@ public class SendableDiscordMessageImpl implements SendableDiscordMessage {
         return webhookAvatarUrl;
     }
 
+    @Override
+    public Map<InputStream, String> getAttachments() {
+        return attachments;
+    }
+
     public static class BuilderImpl implements SendableDiscordMessage.Builder {
 
         private String content;
@@ -106,6 +115,7 @@ public class SendableDiscordMessageImpl implements SendableDiscordMessage {
         private final Set<AllowedMention> allowedMentions = new LinkedHashSet<>();
         private String webhookUsername;
         private String webhookAvatarUrl;
+        private final Map<InputStream, String> attachments = new LinkedHashMap<>();
 
         @Override
         public String getContent() {
@@ -206,8 +216,19 @@ public class SendableDiscordMessageImpl implements SendableDiscordMessage {
         }
 
         @Override
+        public Builder addAttachment(InputStream inputStream, String fileName) {
+            this.attachments.put(inputStream, fileName);
+            return this;
+        }
+
+        @Override
+        public boolean isEmpty() {
+            return (content == null || content.isEmpty()) && embeds.isEmpty() && attachments.isEmpty() && actionRows.isEmpty();
+        }
+
+        @Override
         public @NotNull SendableDiscordMessage build() {
-            return new SendableDiscordMessageImpl(content, embeds, actionRows, allowedMentions, webhookUsername, webhookAvatarUrl);
+            return new SendableDiscordMessageImpl(content, embeds, actionRows, allowedMentions, webhookUsername, webhookAvatarUrl, attachments);
         }
 
         @Override

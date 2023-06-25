@@ -28,12 +28,8 @@ import com.discordsrv.common.discord.api.entity.message.util.SendableDiscordMess
 import net.dv8tion.jda.api.entities.User;
 import net.dv8tion.jda.api.entities.channel.concrete.PrivateChannel;
 import net.dv8tion.jda.api.requests.restaction.MessageCreateAction;
-import net.dv8tion.jda.api.utils.FileUpload;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
-import java.io.InputStream;
-import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.CompletableFuture;
 
@@ -53,18 +49,12 @@ public class DiscordDMChannelImpl extends AbstractDiscordMessageChannel<PrivateC
     }
 
     @Override
-    public CompletableFuture<ReceivedDiscordMessage> sendMessage(
-            @NotNull SendableDiscordMessage message,
-            @NotNull Map<String, InputStream> attachments
-    ) {
+    public CompletableFuture<ReceivedDiscordMessage> sendMessage(@NotNull SendableDiscordMessage message) {
         if (message.isWebhookMessage()) {
             throw new IllegalArgumentException("Cannot send webhook messages to DMChannels");
         }
 
         MessageCreateAction action = channel.sendMessage(SendableDiscordMessageUtil.toJDASend(message));
-        for (Map.Entry<String, InputStream> entry : attachments.entrySet()) {
-            action = action.addFiles(FileUpload.fromData(entry.getValue(), entry.getKey()));
-        }
 
         CompletableFuture<ReceivedDiscordMessage> future = action.submit()
                 .thenApply(msg -> ReceivedDiscordMessageImpl.fromJDA(discordSRV, msg));
@@ -83,8 +73,7 @@ public class DiscordDMChannelImpl extends AbstractDiscordMessageChannel<PrivateC
     @Override
     public @NotNull CompletableFuture<ReceivedDiscordMessage> editMessageById(
             long id,
-            @NotNull SendableDiscordMessage message,
-            @Nullable Map<String, InputStream> attachments
+            @NotNull SendableDiscordMessage message
     ) {
         if (message.isWebhookMessage()) {
             throw new IllegalArgumentException("Cannot send webhook messages to DMChannels");
