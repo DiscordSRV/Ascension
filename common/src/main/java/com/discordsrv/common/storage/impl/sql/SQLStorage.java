@@ -31,6 +31,8 @@ import java.util.UUID;
 
 public abstract class SQLStorage implements Storage {
 
+    protected static final String LINKED_ACCOUNTS_TABLE_NAME = "linked_accounts";
+
     protected final DiscordSRV discordSRV;
 
     public SQLStorage(DiscordSRV discordSRV) {
@@ -83,7 +85,7 @@ public abstract class SQLStorage implements Storage {
     @Override
     public @Nullable Long getUserId(@NotNull UUID player) {
         return useConnection(connection -> {
-            try (PreparedStatement statement = connection.prepareStatement("select USER_ID from " + tablePrefix() + "LINKED_ACCOUNTS where PLAYER_UUID = ?;")) {
+            try (PreparedStatement statement = connection.prepareStatement("select USER_ID from " + tablePrefix() + LINKED_ACCOUNTS_TABLE_NAME + " where PLAYER_UUID = ?;")) {
                 statement.setString(1, player.toString());
                 try (ResultSet resultSet = statement.executeQuery()) {
                     if (resultSet.next()) {
@@ -98,7 +100,7 @@ public abstract class SQLStorage implements Storage {
     @Override
     public @Nullable UUID getPlayerUUID(long userId) {
         return useConnection(connection -> {
-            try (PreparedStatement statement = connection.prepareStatement("select PLAYER_UUID from " + tablePrefix() + "LINKED_ACCOUNTS where USER_ID = ?;")) {
+            try (PreparedStatement statement = connection.prepareStatement("select PLAYER_UUID from " + tablePrefix() + LINKED_ACCOUNTS_TABLE_NAME + " where USER_ID = ?;")) {
                 statement.setLong(1, userId);
                 try (ResultSet resultSet = statement.executeQuery()) {
                     if (resultSet.next()) {
@@ -117,7 +119,7 @@ public abstract class SQLStorage implements Storage {
     @Override
     public void createLink(@NotNull UUID player, long userId) {
         useConnection(connection -> {
-            try (PreparedStatement statement = connection.prepareStatement("insert into " + tablePrefix() + "LINKED_ACCOUNTS (PLAYER_UUID, USER_ID) values (?, ?);")) {
+            try (PreparedStatement statement = connection.prepareStatement("insert into " + tablePrefix() + LINKED_ACCOUNTS_TABLE_NAME + " (PLAYER_UUID, USER_ID) values (?, ?);")) {
                 statement.setString(1, player.toString());
                 statement.setLong(2, userId);
 
@@ -129,7 +131,7 @@ public abstract class SQLStorage implements Storage {
     @Override
     public void removeLink(@NotNull UUID player, long userId) {
         useConnection(connection -> {
-            try (PreparedStatement statement = connection.prepareStatement("delete " + tablePrefix() + "LINKED_ACCOUNTS where PLAYER_UUID = ?;")) {
+            try (PreparedStatement statement = connection.prepareStatement("delete " + tablePrefix() + LINKED_ACCOUNTS_TABLE_NAME + " where PLAYER_UUID = ?;")) {
                 statement.setString(1, player.toString());
                 exceptEffectedRows(statement.executeUpdate(), 1);
             }
@@ -140,7 +142,7 @@ public abstract class SQLStorage implements Storage {
     public int getLinkedAccountCount() {
         return useConnection(connection -> {
             try (Statement statement = connection.createStatement()) {
-                try (ResultSet resultSet = statement.executeQuery("select count(*) from " + tablePrefix() + "LINKED_ACCOUNTS;")) {
+                try (ResultSet resultSet = statement.executeQuery("select count(*) from " + tablePrefix() + LINKED_ACCOUNTS_TABLE_NAME + ";")) {
                     if (resultSet.next()) {
                         return resultSet.getInt(1);
                     }
