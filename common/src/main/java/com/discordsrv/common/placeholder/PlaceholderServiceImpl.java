@@ -217,7 +217,7 @@ public class PlaceholderServiceImpl implements PlaceholderService {
                 Pattern.LITERAL
         )
                 .matcher(input)
-                .replaceFirst(output instanceof String ? (String) output : output.toString());
+                .replaceFirst(Matcher.quoteReplacement(output.toString()));
     }
 
     private Object getResultRepresentation(List<PlaceholderLookupResult> results, String placeholder, Matcher matcher) {
