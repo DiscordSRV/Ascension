@@ -80,8 +80,8 @@ public class BukkitAdvancementListener extends AbstractBukkitAwardListener {
             forwarder.publishEvent(
                     event,
                     event.getPlayer(),
-                    data.titleJson != null ? ComponentUtil.toAPI(BukkitComponentSerializer.gson().deserialize(data.titleJson)) : null,
                     data.nameJson != null ? ComponentUtil.toAPI(BukkitComponentSerializer.gson().deserialize(data.nameJson)) : null,
+                    data.titleJson != null ? ComponentUtil.toAPI(BukkitComponentSerializer.gson().deserialize(data.titleJson)) : null,
                     false);
         } catch (ReflectiveOperationException e) {
             logger.debug("Failed to get advancement data", e);
@@ -143,7 +143,7 @@ public class BukkitAdvancementListener extends AbstractBukkitAwardListener {
         }
 
         private String toJson(Object chat) throws ReflectiveOperationException {
-            return (String) toJsonMethod.invoke(chat);
+            return (String) toJsonMethod.invoke(null, chat);
         }
     }
 
