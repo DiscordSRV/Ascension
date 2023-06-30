@@ -60,6 +60,8 @@ import java.util.regex.Pattern;
 public abstract class ConfigurateConfigManager<T, LT extends AbstractConfigurationLoader<CommentedConfigurationNode>>
         implements ConfigManager<T>, ConfigLoaderProvider<LT> {
 
+    public static ThreadLocal<Boolean> CLEAN_MAPPER = ThreadLocal.withInitial(() -> false);
+
     public static NamingScheme NAMING_SCHEME = in -> {
         in = Character.toLowerCase(in.charAt(0)) + in.substring(1);
         in = NamingSchemes.LOWER_CASE_DASHED.coerce(in);
@@ -226,7 +228,16 @@ public abstract class ConfigurateConfigManager<T, LT extends AbstractConfigurati
     }
 
     private CommentedConfigurationNode getDefault(T defaultConfig, boolean cleanMapper) throws SerializationException {
-        return getDefault(defaultConfig, cleanMapper ? defaultObjectMapper() : configObjectMapper());
+        try {
+            if (cleanMapper) {
+                CLEAN_MAPPER.set(true);
+            }
+            return getDefault(defaultConfig, cleanMapper ? defaultObjectMapper() : configObjectMapper());
+        } finally {
+            if (cleanMapper) {
+                CLEAN_MAPPER.set(false);
+            }
+        }
     }
 
     @SuppressWarnings("unchecked")

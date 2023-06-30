@@ -20,6 +20,7 @@ package com.discordsrv.common.config.serializer;
 
 import com.discordsrv.api.color.Color;
 import com.discordsrv.api.discord.entity.message.DiscordMessageEmbed;
+import com.discordsrv.common.config.manager.manager.ConfigurateConfigManager;
 import net.dv8tion.jda.api.entities.Role;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.spongepowered.configurate.ConfigurationNode;
@@ -45,6 +46,9 @@ public class DiscordMessageEmbedSerializer implements TypeSerializer<DiscordMess
 
     @Override
     public DiscordMessageEmbed.Builder deserialize(Type type, ConfigurationNode node) throws SerializationException {
+        if (ConfigurateConfigManager.CLEAN_MAPPER.get()) {
+            return null;
+        }
         if (!node.node(map("Enabled")).getBoolean(node.node(map("Enable")).getBoolean(true))) {
             return null;
         }
@@ -86,7 +90,7 @@ public class DiscordMessageEmbedSerializer implements TypeSerializer<DiscordMess
     @Override
     public void serialize(Type type, DiscordMessageEmbed.@Nullable Builder obj, ConfigurationNode node)
             throws SerializationException {
-        if (obj == null) {
+        if (obj == null || ConfigurateConfigManager.CLEAN_MAPPER.get()) {
             node.set(null);
             return;
         }

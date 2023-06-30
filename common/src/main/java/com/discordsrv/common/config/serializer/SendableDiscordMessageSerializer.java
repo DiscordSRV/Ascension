@@ -20,6 +20,7 @@ package com.discordsrv.common.config.serializer;
 
 import com.discordsrv.api.discord.entity.message.DiscordMessageEmbed;
 import com.discordsrv.api.discord.entity.message.SendableDiscordMessage;
+import com.discordsrv.common.config.manager.manager.ConfigurateConfigManager;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.spongepowered.configurate.ConfigurationNode;
 import org.spongepowered.configurate.serialize.SerializationException;
@@ -47,7 +48,7 @@ public class SendableDiscordMessageSerializer implements TypeSerializer<Sendable
     public SendableDiscordMessage.Builder deserialize(Type type, ConfigurationNode node)
             throws SerializationException {
         String contentOnly = node.getString();
-        if (contentOnly != null) {
+        if (contentOnly != null || ConfigurateConfigManager.CLEAN_MAPPER.get()) {
             return SendableDiscordMessage.builder()
                     .setContent(contentOnly);
         }
@@ -81,7 +82,7 @@ public class SendableDiscordMessageSerializer implements TypeSerializer<Sendable
     @Override
     public void serialize(Type type, SendableDiscordMessage.@Nullable Builder obj, ConfigurationNode node)
             throws SerializationException {
-        if (obj == null) {
+        if (obj == null || ConfigurateConfigManager.CLEAN_MAPPER.get()) {
             node.set(null);
             return;
         }
