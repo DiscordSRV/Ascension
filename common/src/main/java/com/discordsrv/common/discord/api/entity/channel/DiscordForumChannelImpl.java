@@ -27,7 +27,7 @@ public class DiscordForumChannelImpl implements DiscordForumChannel {
     public DiscordForumChannelImpl(DiscordSRV discordSRV, ForumChannel channel) {
         this.discordSRV = discordSRV;
         this.channel = channel;
-        this.guild = discordSRV.discordAPI().getGuild(channel.getGuild());;
+        this.guild = discordSRV.discordAPI().getGuild(channel.getGuild());
     }
 
     @Override
