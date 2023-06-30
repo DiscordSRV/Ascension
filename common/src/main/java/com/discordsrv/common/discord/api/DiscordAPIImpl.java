@@ -46,6 +46,7 @@ import com.github.benmanes.caffeine.cache.AsyncLoadingCache;
 import com.github.benmanes.caffeine.cache.Expiry;
 import net.dv8tion.jda.api.JDA;
 import net.dv8tion.jda.api.entities.*;
+import net.dv8tion.jda.api.entities.channel.Channel;
 import net.dv8tion.jda.api.entities.channel.concrete.*;
 import net.dv8tion.jda.api.entities.channel.middleman.MessageChannel;
 import net.dv8tion.jda.api.exceptions.ErrorResponseException;
@@ -339,6 +340,16 @@ public class DiscordAPIImpl implements DiscordAPI {
         }
 
         return getDirectMessageChannelById(id);
+    }
+
+    public DiscordChannel getChannel(Channel jda) {
+        if (jda instanceof ForumChannel) {
+            return getForumChannel((ForumChannel) jda);
+        } else if (jda instanceof MessageChannel) {
+            return getMessageChannel((MessageChannel) jda);
+        } else {
+            throw new IllegalArgumentException("Unmappable Channel type: " + jda.getClass().getName());
+        }
     }
 
     public AbstractDiscordMessageChannel<?> getMessageChannel(MessageChannel jda) {

@@ -24,27 +24,17 @@
 package com.discordsrv.api.discord.entity.channel;
 
 import com.discordsrv.api.DiscordSRVApi;
-import com.discordsrv.api.discord.entity.Snowflake;
 import com.discordsrv.api.discord.entity.message.ReceivedDiscordMessage;
 import com.discordsrv.api.discord.entity.message.SendableDiscordMessage;
 import net.dv8tion.jda.api.entities.channel.middleman.MessageChannel;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
-import java.io.InputStream;
-import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 
 /**
  * A Discord channel that can send/receive messages.
  */
-public interface DiscordMessageChannel extends Snowflake {
-
-    /**
-     * Returns the type of channel this is.
-     * @return the type of the channel
-     */
-    DiscordChannelType getType();
+public interface DiscordMessageChannel extends DiscordChannel {
 
     /**
      * Sends the provided message to the channel.

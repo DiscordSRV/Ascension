@@ -1,5 +1,6 @@
 package com.discordsrv.common.discord.api.entity.channel;
 
+import com.discordsrv.api.discord.entity.channel.DiscordChannelType;
 import com.discordsrv.api.discord.entity.channel.DiscordForumChannel;
 import com.discordsrv.api.discord.entity.channel.DiscordThreadChannel;
 import com.discordsrv.api.discord.entity.guild.DiscordGuild;
@@ -109,5 +110,10 @@ public class DiscordForumChannelImpl implements DiscordForumChannel {
                     .submit()
                     .thenApply(channel -> discordSRV.discordAPI().getThreadChannel(channel));
         });
+    }
+
+    @Override
+    public DiscordChannelType getType() {
+        return DiscordChannelType.FORUM;
     }
 }

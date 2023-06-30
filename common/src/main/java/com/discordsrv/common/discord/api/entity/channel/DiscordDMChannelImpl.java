@@ -49,7 +49,7 @@ public class DiscordDMChannelImpl extends AbstractDiscordMessageChannel<PrivateC
     }
 
     @Override
-    public CompletableFuture<ReceivedDiscordMessage> sendMessage(@NotNull SendableDiscordMessage message) {
+    public @NotNull CompletableFuture<ReceivedDiscordMessage> sendMessage(@NotNull SendableDiscordMessage message) {
         if (message.isWebhookMessage()) {
             throw new IllegalArgumentException("Cannot send webhook messages to DMChannels");
         }
