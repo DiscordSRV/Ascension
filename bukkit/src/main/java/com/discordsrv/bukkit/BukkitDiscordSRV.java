@@ -19,6 +19,7 @@
 package com.discordsrv.bukkit;
 
 import com.discordsrv.api.DiscordSRVApi;
+import com.discordsrv.bukkit.command.game.BukkitAutoCompleteHelper;
 import com.discordsrv.bukkit.command.game.handler.AbstractBukkitCommandHandler;
 import com.discordsrv.bukkit.component.translation.BukkitTranslationLoader;
 import com.discordsrv.bukkit.config.connection.BukkitConnectionConfig;
@@ -48,14 +49,11 @@ import com.discordsrv.common.messageforwarding.game.minecrafttodiscord.Minecraft
 import com.discordsrv.common.plugin.PluginManager;
 import net.kyori.adventure.platform.bukkit.BukkitAudiences;
 import org.bukkit.Server;
-import org.bukkit.command.Command;
 import org.bukkit.plugin.ServicePriority;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.jetbrains.annotations.NotNull;
 
 import java.lang.reflect.Field;
-import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 
@@ -70,6 +68,7 @@ public class BukkitDiscordSRV extends ServerDiscordSRV<DiscordSRVBukkitBootstrap
     private final BukkitPluginManager pluginManager;
     private AbstractBukkitCommandHandler commandHandler;
     private final BukkitRequiredLinkingListener requiredLinkingListener;
+    private final BukkitAutoCompleteHelper autoCompleteHelper;
 
     private final BukkitConnectionConfigManager connectionConfigManager;
     private final BukkitConfigManager configManager;
@@ -98,6 +97,7 @@ public class BukkitDiscordSRV extends ServerDiscordSRV<DiscordSRVBukkitBootstrap
         load();
 
         this.requiredLinkingListener = new BukkitRequiredLinkingListener(this);
+        this.autoCompleteHelper = new BukkitAutoCompleteHelper(this);
     }
 
     public JavaPlugin plugin() {
@@ -231,38 +231,6 @@ public class BukkitDiscordSRV extends ServerDiscordSRV<DiscordSRVBukkitBootstrap
     }
 
     public ExecuteCommand.AutoCompleteHelper autoCompleteHelper() {
-        return parts -> {
-            String commandName = !parts.isEmpty() ? parts.remove(0) : null;
-            Command command = commandName != null ? server().getPluginCommand(commandName) : null;
-            if (command == null) {
-                if (parts.size() > 1) {
-                    // Command is not known but there are arguments, nothing to auto complete...
-                    return Collections.emptyList();
-                } else {
-                    // List out commands
-                    List<String> suggestions = new ArrayList<>();
-                    for (String cmd : PaperCmdMap.getMap(server())) {
-                        if (commandName == null || cmd.startsWith(commandName)) {
-                            suggestions.add(cmd);
-                        }
-                    }
-
-                    return suggestions;
-                }
-            }
-
-            // Get the arguments minus the last one (if any)
-            String prefix = String.join(" ", parts.subList(0, parts.size() - (!parts.isEmpty() ? 1 : 0)));
-            if (!prefix.isEmpty()) {
-                prefix = prefix + " ";
-            }
-
-            List<String> suggestions = new ArrayList<>();
-            for (String suggestion : command.tabComplete(server().getConsoleSender(), commandName, parts.toArray(new String[0]))) {
-                suggestions.add(commandName + " " + prefix + suggestion);
-            }
-
-            return suggestions;
-        };
+        return autoCompleteHelper;
     }
 }

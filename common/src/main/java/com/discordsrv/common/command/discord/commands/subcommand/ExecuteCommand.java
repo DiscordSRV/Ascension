@@ -6,11 +6,17 @@ import com.discordsrv.api.discord.entity.interaction.component.ComponentIdentifi
 import com.discordsrv.api.discord.events.interaction.command.DiscordChatInputInteractionEvent;
 import com.discordsrv.api.discord.events.interaction.command.DiscordCommandAutoCompleteInteractionEvent;
 import com.discordsrv.common.DiscordSRV;
+import com.discordsrv.common.logging.Logger;
+import com.discordsrv.common.logging.NamedLogger;
 import net.dv8tion.jda.api.interactions.commands.OptionMapping;
 
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 import java.util.function.Consumer;
 
 public class ExecuteCommand implements Consumer<DiscordChatInputInteractionEvent>, DiscordCommand.AutoCompleteHandler {
@@ -36,9 +42,11 @@ public class ExecuteCommand implements Consumer<DiscordChatInputInteractionEvent
     }
 
     private final DiscordSRV discordSRV;
+    private final Logger logger;
 
     public ExecuteCommand(DiscordSRV discordSRV) {
         this.discordSRV = discordSRV;
+        this.logger = new NamedLogger(discordSRV, "EXECUTE_COMMAND");
     }
 
     @Override
@@ -63,12 +71,25 @@ public class ExecuteCommand implements Consumer<DiscordChatInputInteractionEvent
         List<String> parts = new ArrayList<>(Arrays.asList(command.split(" ")));
 
         AutoCompleteHelper helper = discordSRV.autoCompleteHelper();
+        if (helper == null) {
+            // No suggestions available.
+            return;
+        }
 
-        List<String> suggestions = helper.suggestCommands(new ArrayList<>(parts));
+        List<String> suggestions = getSuggestions(helper, parts);
+        if (suggestions == null) {
+            return;
+        }
+
         if (suggestions.isEmpty() || suggestions.contains(command)) {
             parts.add("");
-            suggestions = new ArrayList<>(helper.suggestCommands(parts));
 
+            List<String> newSuggestions = getSuggestions(helper, parts);
+            if (newSuggestions == null) {
+                return;
+            }
+
+            suggestions = new ArrayList<>(newSuggestions);
             if (suggestions.isEmpty()) {
                 suggestions.add(command);
             }
@@ -81,8 +102,25 @@ public class ExecuteCommand implements Consumer<DiscordChatInputInteractionEvent
         }
     }
 
+    private List<String> getSuggestions(AutoCompleteHelper helper, List<String> parts) {
+        try {
+            return helper.suggestCommands(new ArrayList<>(parts)).get(2, TimeUnit.SECONDS);
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+            return null;
+        } catch (TimeoutException e) {
+            return null;
+        } catch (ExecutionException e) {
+            logger.error("Failed to suggest commands", e.getCause());
+            return null;
+        } catch (Throwable t) {
+            logger.error("Failed to suggest commands", t);
+            return null;
+        }
+    }
+
     public interface AutoCompleteHelper {
 
-        List<String> suggestCommands(List<String> parts);
+        CompletableFuture<List<String>> suggestCommands(List<String> parts);
     }
 }

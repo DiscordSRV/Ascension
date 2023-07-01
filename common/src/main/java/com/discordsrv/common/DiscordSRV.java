@@ -153,6 +153,7 @@ public interface DiscordSRV extends DiscordSRVApi {
     List<ReloadResult> runReload(Set<ReloadFlag> flags, boolean silent);
     CompletableFuture<Void> invokeDisable();
 
+    @Nullable
     default ExecuteCommand.AutoCompleteHelper autoCompleteHelper() {
         return null;
     }
