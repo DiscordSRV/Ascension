@@ -34,7 +34,7 @@ public class AwardMessageConfig implements IMessageConfig {
             .addEmbed(
                     DiscordMessageEmbed.builder()
                             .setAuthor(
-                                    "%award_title|text:'{player_name} made the achievement {award_name}'%",
+                                    "%award_title|text:'{player_name} made the advancement {award_name}'%",
                                     null,
                                     "%player_avatar_url%"
                             )
