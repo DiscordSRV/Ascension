@@ -32,12 +32,14 @@ import com.discordsrv.api.discord.entity.message.SendableDiscordMessage;
 import com.discordsrv.api.discord.events.message.DiscordMessageDeleteEvent;
 import com.discordsrv.api.discord.events.message.DiscordMessageUpdateEvent;
 import com.discordsrv.api.event.bus.Subscribe;
+import com.discordsrv.api.event.events.message.forward.game.AbstractGameMessageForwardedEvent;
 import com.discordsrv.api.event.events.message.receive.discord.DiscordChatMessageProcessingEvent;
+import com.discordsrv.api.placeholder.provider.SinglePlaceholder;
 import com.discordsrv.common.DiscordSRV;
-import com.discordsrv.common.config.main.DiscordIgnoresConfig;
 import com.discordsrv.common.config.main.channels.MirroringConfig;
 import com.discordsrv.common.config.main.channels.base.BaseChannelConfig;
 import com.discordsrv.common.config.main.channels.base.IChannelConfig;
+import com.discordsrv.common.config.main.generic.DiscordIgnoresConfig;
 import com.discordsrv.common.future.util.CompletableFutureUtil;
 import com.discordsrv.common.logging.NamedLogger;
 import com.discordsrv.common.module.type.AbstractModule;
@@ -46,8 +48,8 @@ import net.dv8tion.jda.api.entities.Message;
 import okhttp3.Request;
 import okhttp3.Response;
 import okhttp3.ResponseBody;
-import org.apache.commons.lang3.tuple.Pair;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
@@ -58,13 +60,13 @@ import java.util.concurrent.TimeUnit;
 
 public class DiscordMessageMirroringModule extends AbstractModule<DiscordSRV> {
 
-    private final Cache<String, Mirror> mapping;
+    private final Cache<Long, Cache<Long, Sync>> mapping;
 
     public DiscordMessageMirroringModule(DiscordSRV discordSRV) {
         super(discordSRV, new NamedLogger(discordSRV, "DISCORD_MIRRORING"));
         this.mapping = discordSRV.caffeineBuilder()
-                .expireAfterWrite(30, TimeUnit.MINUTES)
-                .expireAfterAccess(10, TimeUnit.MINUTES)
+                .expireAfterWrite(60, TimeUnit.MINUTES)
+                .expireAfterAccess(30, TimeUnit.MINUTES)
                 .build();
     }
 
@@ -83,8 +85,9 @@ public class DiscordMessageMirroringModule extends AbstractModule<DiscordSRV> {
         return Arrays.asList(DiscordGatewayIntent.GUILD_MESSAGES, DiscordGatewayIntent.MESSAGE_CONTENT);
     }
 
+    @SuppressWarnings("unchecked") // Wacky generics
     @Subscribe
-    public void onDiscordChatMessageProcessing(DiscordChatMessageProcessingEvent event) {
+    public <CC extends BaseChannelConfig & IChannelConfig> void onDiscordChatMessageProcessing(DiscordChatMessageProcessingEvent event) {
         if (checkCancellation(event)) {
             return;
         }
@@ -95,16 +98,14 @@ public class DiscordMessageMirroringModule extends AbstractModule<DiscordSRV> {
         }
 
         ReceivedDiscordMessage message = event.getDiscordMessage();
-        DiscordMessageChannel channel = event.getChannel();
 
-        List<Pair<DiscordGuildMessageChannel, MirroringConfig>> mirrorChannels = new ArrayList<>();
-        List<CompletableFuture<DiscordThreadChannel>> futures = new ArrayList<>();
+        List<CompletableFuture<MirrorOperation>> futures = new ArrayList<>();
         Map<ReceivedDiscordMessage.Attachment, byte[]> attachments = new LinkedHashMap<>();
         DiscordMessageEmbed.Builder attachmentEmbed = DiscordMessageEmbed.builder().setDescription("Attachments");
 
         for (Map.Entry<GameChannel, BaseChannelConfig> entry : channels.entrySet()) {
-            BaseChannelConfig channelConfig = entry.getValue();
-            MirroringConfig config = channelConfig.mirroring;
+            BaseChannelConfig baseChannelConfig = entry.getValue();
+            MirroringConfig config = baseChannelConfig.mirroring;
             if (!config.enabled) {
                 continue;
             }
@@ -114,13 +115,13 @@ public class DiscordMessageMirroringModule extends AbstractModule<DiscordSRV> {
                 continue;
             }
 
-            IChannelConfig iChannelConfig = channelConfig instanceof IChannelConfig ? (IChannelConfig) channelConfig : null;
-            if (iChannelConfig == null) {
+            CC channelConfig = baseChannelConfig instanceof IChannelConfig ? (CC) baseChannelConfig : null;
+            if (channelConfig == null) {
                 continue;
             }
 
             MirroringConfig.AttachmentConfig attachmentConfig = config.attachments;
-            int maxSize = attachmentConfig.maximumSizeKb;
+            int maxSize = attachmentConfig.maximumSizeKb * 1000;
             boolean embedAttachments = attachmentConfig.embedAttachments;
             if (maxSize >= 0 || embedAttachments) {
                 for (ReceivedDiscordMessage.Attachment attachment : message.getAttachments()) {
@@ -128,10 +129,11 @@ public class DiscordMessageMirroringModule extends AbstractModule<DiscordSRV> {
                         continue;
                     }
 
-                    if (maxSize == 0 || attachment.sizeBytes() <= (maxSize * 1000)) {
+                    if (maxSize == 0 || attachment.sizeBytes() <= maxSize) {
                         Request request = new Request.Builder()
-                                .url(attachment.proxyUrl())
+                                .url(attachment.url())
                                 .get()
+                                .addHeader("Accept", "*/*")
                                 .build();
 
                         byte[] bytes = null;
@@ -141,7 +143,7 @@ public class DiscordMessageMirroringModule extends AbstractModule<DiscordSRV> {
                                 bytes = body.bytes();
                             }
                         } catch (IOException e) {
-                            discordSRV.logger().error("Failed to download attachment for mirroring", e);
+                            logger().error("Failed to download attachment for mirroring", e);
                         }
                         attachments.put(attachment, bytes);
                         continue;
@@ -156,111 +158,191 @@ public class DiscordMessageMirroringModule extends AbstractModule<DiscordSRV> {
                 }
             }
 
-            List<Long> channelIds = iChannelConfig.channelIds();
-            if (channelIds != null) {
-                for (Long channelId : channelIds) {
-                    DiscordTextChannel textChannel = discordSRV.discordAPI().getTextChannelById(channelId);
-                    if (textChannel != null && textChannel.getId() != channel.getId()) {
-                        mirrorChannels.add(Pair.of(textChannel, config));
-                    }
-                }
-            }
-
-            discordSRV.discordAPI().findOrCreateThreads(channelConfig, iChannelConfig, threadChannel -> {
-                if (threadChannel.getId() != channel.getId()) {
-                    mirrorChannels.add(Pair.of(threadChannel, config));
-                }
-            }, futures, false);
+            futures.add(
+                    discordSRV.discordAPI().findOrCreateDestinations(channelConfig, true, true)
+                            .thenApply(messageChannels -> {
+                                List<MirrorTarget> targets = new ArrayList<>();
+                                for (DiscordGuildMessageChannel messageChannel : messageChannels) {
+                                    targets.add(new MirrorTarget(messageChannel, config));
+                                }
+                                return new MirrorOperation(message, config, targets);
+                            })
+            );
         }
 
-        CompletableFutureUtil.combine(futures).whenComplete((v, t) -> {
-            List<CompletableFuture<Pair<ReceivedDiscordMessage, MirroringConfig>>> messageFutures = new ArrayList<>();
-            for (Pair<DiscordGuildMessageChannel, MirroringConfig> pair : mirrorChannels) {
-                DiscordGuildMessageChannel mirrorChannel = pair.getKey();
-                MirroringConfig config = pair.getValue();
-                MirroringConfig.AttachmentConfig attachmentConfig = config.attachments;
+        CompletableFutureUtil.combine(futures).whenComplete((lists, t) -> {
+            for (MirrorOperation operation : lists) {
+                List<CompletableFuture<MirroredMessage>> mirrorFutures = new ArrayList<>();
 
-                SendableDiscordMessage.Builder messageBuilder = convert(event.getDiscordMessage(), mirrorChannel, config);
-                if (!attachmentEmbed.getFields().isEmpty() && attachmentConfig.embedAttachments) {
-                    messageBuilder.addEmbed(attachmentEmbed.build());
-                }
+                for (MirrorTarget target : operation.targets) {
+                    DiscordGuildMessageChannel mirrorChannel = target.targetChannel;
+                    if (mirrorChannel.getId() == event.getChannel().getId()) {
+                        continue;
+                    }
 
-                int maxSize = attachmentConfig.maximumSizeKb;
-                Map<String, InputStream> currentAttachments;
-                if (!attachments.isEmpty() && maxSize > 0) {
-                    currentAttachments = new LinkedHashMap<>();
-                    attachments.forEach((attachment, bytes) -> {
-                        if (bytes != null && attachment.sizeBytes() <= maxSize) {
-                            currentAttachments.put(attachment.fileName(), new ByteArrayInputStream(bytes));
+                    MirroringConfig config = target.config;
+                    MirroringConfig.AttachmentConfig attachmentConfig = config.attachments;
+
+                    SendableDiscordMessage.Builder messageBuilder = convert(event.getDiscordMessage(), mirrorChannel, config);
+                    if (!attachmentEmbed.getFields().isEmpty() && attachmentConfig.embedAttachments) {
+                        messageBuilder.addEmbed(attachmentEmbed.build());
+                    }
+
+                    int maxSize = attachmentConfig.maximumSizeKb * 1000;
+                    List<InputStream> streams = new ArrayList<>();
+                    if (!attachments.isEmpty() && maxSize >= 0) {
+                        attachments.forEach((attachment, bytes) -> {
+                            if (bytes != null && (maxSize == 0 || attachment.sizeBytes() <= maxSize)) {
+                                InputStream stream = new ByteArrayInputStream(bytes);
+                                streams.add(stream);
+                                messageBuilder.addAttachment(stream, attachment.fileName());
+                            }
+                        });
+                    }
+
+                    if (messageBuilder.isEmpty()) {
+                        logger().debug("Nothing to mirror to " + mirrorChannel + ", skipping");
+                        for (InputStream stream : streams) {
+                            try {
+                                stream.close();
+                            } catch (IOException ignored) {}
                         }
+                        return;
+                    }
+
+                    CompletableFuture<MirroredMessage> future =
+                            mirrorChannel.sendMessage(messageBuilder.build())
+                                    .thenApply(msg -> new MirroredMessage(msg, config));
+
+                    mirrorFutures.add(future);
+                    future.exceptionally(t2 -> {
+                        logger().error("Failed to mirror message to " + mirrorChannel, t2);
+                        for (InputStream stream : streams) {
+                            try {
+                                stream.close();
+                            } catch (IOException ignored) {}
+                        }
+                        return null;
                     });
-                } else {
-                    currentAttachments = Collections.emptyMap();
                 }
 
-                CompletableFuture<Pair<ReceivedDiscordMessage, MirroringConfig>> future =
-                        mirrorChannel.sendMessage(messageBuilder.build(), currentAttachments)
-                                .thenApply(msg -> Pair.of(msg, config));
+                CompletableFutureUtil.combine(mirrorFutures).whenComplete((messages, t2) -> {
+                    MessageReference reference = getReference(operation.originalMessage, operation.configForOriginalMessage);
 
-                messageFutures.add(future);
-                future.exceptionally(t2 -> {
-                    discordSRV.logger().error("Failed to mirror message to " + mirrorChannel, t2);
-                    return null;
+                    Map<ReceivedDiscordMessage, MessageReference> references = new LinkedHashMap<>();
+                    references.put(message, reference);
+                    for (MirroredMessage mirroredMessage : messages) {
+                        references.put(mirroredMessage.message, getReference(mirroredMessage));
+                    }
+
+                    putIntoCache(reference, references);
                 });
             }
-
-            CompletableFutureUtil.combine(messageFutures).whenComplete((messages, t2) -> {
-                Map<Long, MessageReference> references = new LinkedHashMap<>();
-                for (Pair<ReceivedDiscordMessage, MirroringConfig> pair : messages) {
-                    ReceivedDiscordMessage msg = pair.getKey();
-                    references.put(msg.getChannel().getId(), getReference(msg, pair.getValue()));
-                }
-                mapping.put(getCacheKey(message), new Mirror(getReference(message, null), references));
-            });
+        }).exceptionally(t -> {
+            logger().error("Failed to mirror message", t);
+            return null;
         });
     }
 
     @Subscribe
     public void onDiscordMessageUpdate(DiscordMessageUpdateEvent event) {
-        ReceivedDiscordMessage message = event.getMessage();
-        Mirror mirror = mapping.get(getCacheKey(message), k -> null);
-        if (mirror == null) {
+        Cache<Long, Sync> syncs = mapping.getIfPresent(event.getChannel().getId());
+        if (syncs == null) {
             return;
         }
 
-        for (MessageReference reference : mirror.mirrors.values()) {
+        ReceivedDiscordMessage message = event.getMessage();
+        Sync sync = syncs.getIfPresent(message.getId());
+        if (sync == null || sync.original == null || !sync.original.isMatching(message)) {
+            return;
+        }
+
+        for (MessageReference reference : sync.mirrors) {
             DiscordGuildMessageChannel channel = reference.getMessageChannel(discordSRV);
             if (channel == null) {
                 continue;
             }
 
             SendableDiscordMessage sendableMessage = convert(message, channel, reference.config).build();
-            channel.editMessageById(reference.messageId, sendableMessage).whenComplete((v, t) -> {
-                if (t != null) {
-                    discordSRV.logger().error("Failed to update mirrored message in " + channel);
-                }
+            channel.editMessageById(reference.messageId, sendableMessage).exceptionally(t -> {
+                logger().error("Failed to update mirrored message in " + channel);
+                return null;
             });
         }
     }
 
     @Subscribe
     public void onDiscordMessageDelete(DiscordMessageDeleteEvent event) {
-        Mirror mirror = mapping.get(getCacheKey(event.getChannel(), event.getMessageId()), k -> null);
-        if (mirror == null) {
+        Cache<Long, Sync> syncs = mapping.getIfPresent(event.getChannel().getId());
+        if (syncs == null) {
             return;
         }
 
-        for (MessageReference reference : mirror.mirrors.values()) {
+        Sync sync = syncs.getIfPresent(event.getMessageId());
+        if (sync == null || sync.original == null || !sync.original.isMatching(event.getChannel())
+                || sync.original.messageId != event.getMessageId()) {
+            return;
+        }
+
+        for (MessageReference reference : sync.mirrors) {
             DiscordMessageChannel channel = reference.getMessageChannel(discordSRV);
             if (channel == null) {
                 continue;
             }
 
-            channel.deleteMessageById(reference.messageId, reference.webhookMessage).whenComplete((v, t) -> {
-                if (t != null) {
-                    discordSRV.logger().error("Failed to delete mirrored message in " + channel);
-                }
+            channel.deleteMessageById(reference.messageId, reference.webhookMessage).exceptionally(t -> {
+                logger().error("Failed to delete mirrored message in " + channel);
+                return null;
             });
+        }
+    }
+
+    @Subscribe
+    public void onGameMessageForwarded(AbstractGameMessageForwardedEvent event) {
+        Set<? extends ReceivedDiscordMessage> messages = event.getDiscordMessage().getMessages();
+
+        Map<ReceivedDiscordMessage, MessageReference> references = new LinkedHashMap<>();
+        for (ReceivedDiscordMessage message : messages) {
+            DiscordMessageChannel channel = message.getChannel();
+
+            MirroringConfig config = discordSRV.channelConfig().resolve(channel).values().iterator().next().mirroring; // TODO: add channel to event
+            MessageReference reference = getReference(message, config);
+            references.put(message, reference);
+        }
+
+        putIntoCache(null, references);
+    }
+
+    @SuppressWarnings("DataFlowIssue") // Supplier always returns a non-null value
+    @NotNull
+    private Cache<Long, Sync> getCache(long channelId) {
+        return mapping.get(
+                channelId,
+                k -> discordSRV.caffeineBuilder()
+                        .expireAfterWrite(30, TimeUnit.MINUTES)
+                        .expireAfterAccess(10, TimeUnit.MINUTES)
+                        .build()
+        );
+    }
+
+    private void putIntoCache(@Nullable MessageReference original, Map<ReceivedDiscordMessage, MessageReference> references) {
+        if (original == null && references.size() <= 1) {
+            return;
+        }
+
+        for (Map.Entry<ReceivedDiscordMessage, MessageReference> entry : references.entrySet()) {
+            ReceivedDiscordMessage message = entry.getKey();
+            MessageReference reference = entry.getValue();
+
+            List<MessageReference> refs = new ArrayList<>();
+            for (MessageReference ref : references.values()) {
+                if (ref == reference) {
+                    continue;
+                }
+                refs.add(ref);
+            }
+
+            getCache(message.getChannel().getId()).put(message.getId(), new Sync(original, refs));
         }
     }
 
@@ -274,10 +356,7 @@ public class DiscordMessageMirroringModule extends AbstractModule<DiscordSRV> {
     ) {
         DiscordGuildMember member = message.getMember();
         DiscordUser user = message.getAuthor();
-        String username = discordSRV.placeholderService().replacePlaceholders(
-                config.usernameFormat, "%user_effective_name% [M]",
-                member, user
-        );
+        String username = discordSRV.placeholderService().replacePlaceholders(config.usernameFormat, member, user);
         if (username.length() > 32) {
             username = username.substring(0, 32);
         }
@@ -288,15 +367,12 @@ public class DiscordMessageMirroringModule extends AbstractModule<DiscordSRV> {
 
         if (replyMessage != null) {
             MessageReference matchingReference = null;
-            for (Mirror mirror : mapping.asMap().values()) {
-                if (!mirror.hasMessage(replyMessage)) {
-                    continue;
-                }
 
-                MessageReference ref = mirror.getForChannel(destinationChannel);
-                if (ref != null) {
-                    matchingReference = ref;
-                    break;
+            Cache<Long, Sync> syncs = mapping.getIfPresent(replyMessage.getChannel().getId());
+            if (syncs != null) {
+                Sync sync = syncs.getIfPresent(replyMessage.getId());
+                if (sync != null) {
+                    matchingReference = sync.getForChannel(destinationChannel);
                 }
             }
 
@@ -308,8 +384,13 @@ public class DiscordMessageMirroringModule extends AbstractModule<DiscordSRV> {
             ) : replyMessage.getJumpUrl();
 
             content = discordSRV.placeholderService()
-                    .replacePlaceholders(config.replyFormat, replyMessage.getMember(), replyMessage.getAuthor())
-                    .replace("%message_jump_url%", jumpUrl) + content;
+                    .replacePlaceholders(
+                            config.replyFormat,
+                            replyMessage.getMember(),
+                            replyMessage.getAuthor(),
+                            new SinglePlaceholder("message_jump_url", jumpUrl),
+                            new SinglePlaceholder("message", content)
+                    );
         }
 
         SendableDiscordMessage.Builder builder = SendableDiscordMessage.builder()
@@ -321,11 +402,14 @@ public class DiscordMessageMirroringModule extends AbstractModule<DiscordSRV> {
                             ? member.getEffectiveServerAvatarUrl()
                             : user.getEffectiveAvatarUrl()
                 );
-        builder.getAllowedMentions().clear();
         for (DiscordMessageEmbed embed : message.getEmbeds()) {
             builder.addEmbed(embed);
         }
         return builder;
+    }
+
+    private MessageReference getReference(MirroredMessage message) {
+        return getReference(message.message, message.config);
     }
 
     private MessageReference getReference(ReceivedDiscordMessage message, MirroringConfig config) {
@@ -348,24 +432,61 @@ public class DiscordMessageMirroringModule extends AbstractModule<DiscordSRV> {
         throw new IllegalStateException("Unexpected channel type: " + channel.getClass().getName());
     }
 
-    private static String getCacheKey(ReceivedDiscordMessage message) {
-        return getCacheKey(message.getChannel(), message.getId());
-    }
+    private static class MirrorOperation {
 
-    private static String getCacheKey(DiscordMessageChannel channel, long messageId) {
-        if (channel instanceof DiscordTextChannel) {
-            return getCacheKey(channel.getId(), 0L, messageId);
-        } else if (channel instanceof DiscordThreadChannel) {
-            long parentId = ((DiscordThreadChannel) channel).getParentChannel().getId();
-            return getCacheKey(parentId, channel.getId(), messageId);
+        private final ReceivedDiscordMessage originalMessage;
+        private final MirroringConfig configForOriginalMessage;
+        private final List<MirrorTarget> targets;
+
+        public MirrorOperation(ReceivedDiscordMessage originalMessage, MirroringConfig configForOriginalMessage, List<MirrorTarget> targets) {
+            this.originalMessage = originalMessage;
+            this.configForOriginalMessage = configForOriginalMessage;
+            this.targets = targets;
         }
-        throw new IllegalStateException("Unexpected channel type: " + channel.getClass().getName());
+
     }
 
-    private static String getCacheKey(long channelId, long threadId, long messageId) {
-        return Long.toUnsignedString(channelId)
-                + (threadId > 0 ? ":" + Long.toUnsignedString(threadId) : "")
-                + ":" + Long.toUnsignedString(messageId);
+    private static class MirrorTarget {
+
+        private final DiscordGuildMessageChannel targetChannel;
+        private final MirroringConfig config;
+
+        public MirrorTarget(DiscordGuildMessageChannel targetChannel, MirroringConfig config) {
+            this.targetChannel = targetChannel;
+            this.config = config;
+        }
+    }
+
+    private static class MirroredMessage {
+
+        private final ReceivedDiscordMessage message;
+        private final MirroringConfig config;
+
+        public MirroredMessage(ReceivedDiscordMessage message, MirroringConfig config) {
+            this.message = message;
+            this.config = config;
+        }
+    }
+
+    private static class Sync {
+
+        private final MessageReference original;
+        private final List<MessageReference> mirrors;
+
+        public Sync(MessageReference original, List<MessageReference> mirrors) {
+            this.original = original;
+            this.mirrors = mirrors;
+        }
+
+        public MessageReference getForChannel(DiscordGuildMessageChannel channel) {
+            for (MessageReference mirror : mirrors) {
+                if (mirror.isMatching(channel)) {
+                    return mirror;
+                }
+            }
+            return null;
+        }
+
     }
 
     private static class MessageReference {
@@ -424,44 +545,15 @@ public class DiscordMessageMirroringModule extends AbstractModule<DiscordSRV> {
             return null;
         }
 
-        public boolean isMatching(ReceivedDiscordMessage message) {
-            return isMatching((DiscordGuildMessageChannel) message.getChannel())
-                    && message.getId() == messageId;
-        }
-
-        public boolean isMatching(DiscordGuildMessageChannel channel) {
+        public boolean isMatching(DiscordMessageChannel channel) {
             return channel instanceof DiscordThreadChannel
                     ? channel.getId() == threadId
                             && ((DiscordThreadChannel) channel).getParentChannel().getId() == channelId
                     : channel.getId() == channelId;
         }
-    }
 
-    private static class Mirror {
-
-        private final MessageReference original;
-        private final Map<Long, MessageReference> mirrors; // thread/channel id -> reference
-
-        public Mirror(MessageReference original, Map<Long, MessageReference> mirrors) {
-            this.original = original;
-            this.mirrors = mirrors;
-        }
-
-        public boolean hasMessage(ReceivedDiscordMessage message) {
-            if (original.isMatching(message)) {
-                return true;
-            }
-            MessageReference reference = mirrors.get(message.getChannel().getId());
-            return reference != null && reference.isMatching(message);
-        }
-
-        public MessageReference getForChannel(DiscordGuildMessageChannel channel) {
-            long id = channel.getId();
-            if (original.isMatching(channel)) {
-                return original;
-            } else {
-                return mirrors.get(id);
-            }
+        public boolean isMatching(ReceivedDiscordMessage message) {
+            return isMatching(message.getChannel()) && messageId == message.getId();
         }
     }
 }

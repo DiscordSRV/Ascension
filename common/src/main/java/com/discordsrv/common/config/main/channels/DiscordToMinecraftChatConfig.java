@@ -19,7 +19,7 @@
 package com.discordsrv.common.config.main.channels;
 
 import com.discordsrv.common.config.annotation.Untranslated;
-import com.discordsrv.common.config.main.DiscordIgnoresConfig;
+import com.discordsrv.common.config.main.generic.DiscordIgnoresConfig;
 import org.spongepowered.configurate.objectmapping.ConfigSerializable;
 import org.spongepowered.configurate.objectmapping.meta.Comment;
 
@@ -30,27 +30,30 @@ import java.util.regex.Pattern;
 @ConfigSerializable
 public class DiscordToMinecraftChatConfig {
 
-    @Comment("Is Discord to Minecraft chat forwarding enabled")
     public boolean enabled = true;
 
     @Comment("The Discord to Minecraft message format for regular users and bots")
     @Untranslated(Untranslated.Type.VALUE)
-    public String format = "[&#5865F2Discord&r] [hover:show_text:Tag: %user_tag%&r\nRoles: %user_roles:', '|text:'&7&oNone'%]%user_color%%user_effective_name%&r » %message%%message_attachments%";
+    public String format = "[[color:#5865F2]Discord[color]] [hover:show_text:Username: @%user_tag%\nRoles: %user_roles:', '|text:'[color:gray][italics:on]None[color][italics]'%]%user_color%%user_effective_server_name%[color][hover]%message_reply% » %message%%message_attachments%";
 
     @Comment("The Discord to Minecraft message format for webhook messages (if enabled)")
     @Untranslated(Untranslated.Type.VALUE)
-    public String webhookFormat = "[&#5865F2Discord&r] [hover:show_text:Webhook message]%user_name%&r » %message%%message_attachments%";
+    public String webhookFormat = "[[color:#5865F2]Discord[color]] [hover:show_text:Bot message]%user_effective_name%[hover] » %message%%message_attachments%";
 
-    @Comment("Attachment format")
+    @Comment("Format for a single attachment in the %message_attachments% placeholder")
     @Untranslated(Untranslated.Type.VALUE)
-    public String attachmentFormat = " [hover:show_text:Open %file_name% in browser][click:open_url:%file_url%]&a[&f%file_name%&a]&r";
+    public String attachmentFormat = " [hover:show_text:Open %file_name% in browser][click:open_url:%file_url%][color:green][[color:white]%file_name%[color:green]][color][click][hover]";
+
+    @Comment("Format for the %message_reply% placeholder, when the message is a reply to another message")
+    @Untranslated(Untranslated.Type.VALUE)
+    public String replyFormat = " [hover:show_text:%message%][click:open_url:%message_jump_url%]replying to %user_color|text:''%%user_effective_server_name|user_effective_name%[color][click][hover]";
 
     // TODO: more info on regex pairs (String#replaceAll)
     @Comment("Regex filters for Discord message contents (this is the %message% part of the \"format\" option)")
     @Untranslated(Untranslated.Type.VALUE)
     public Map<Pattern, String> contentRegexFilters = new LinkedHashMap<>();
 
-    @Comment("Users, bots and webhooks to ignore")
+    @Comment("Users, bots, roles and webhooks to ignore")
     public DiscordIgnoresConfig ignores = new DiscordIgnoresConfig();
 
     @Comment("The representations of Discord mentions in-game")
@@ -59,11 +62,11 @@ public class DiscordToMinecraftChatConfig {
     @ConfigSerializable
     public static class Mentions {
 
-        public Format role = new Format("&#5865f2@%role_name%", "&#5865f2@deleted-role");
-        public Format channel = new Format("[hover:show_text:Click to go to channel][click:open_url:%channel_jump_url%]&#5865f2#%channel_name%", "&#5865f2#deleted-channel");
-        public Format user = new Format("[hover:show_text:Tag: %user_tag%&r\nRoles: %user_roles:', '|text:'&7&oNone'%]&#5865f2@%user_effective_name|user_name%", "&#5865f2@Unknown user");
+        public Format role = new Format("%role_color%@%role_name%", "[color:#5865F2]@deleted-role");
+        public Format channel = new Format("[hover:show_text:Click to go to channel][click:open_url:%channel_jump_url%][color:#5865F2]#%channel_name%", "[color:#5865F2]#Unknown");
+        public Format user = new Format("[hover:show_text:Username: @%user_tag%\nRoles: %user_roles:', '|text:'[color:gray][italics:on]None[color][italics]'%][color:#5865F2]@%user_effective_server_name|user_effective_name%", "[color:#5865F2]@Unknown user");
 
-        public String messageUrl = "[hover:show_text:Click to go to message][click:open_url:%jump_url%]&#5865f2#%channel_name% > ...";
+        public String messageUrl = "[hover:show_text:Click to go to message][click:open_url:%jump_url%][color:#5865F2]#%channel_name% > ...";
 
         @ConfigSerializable
         public static class Format {

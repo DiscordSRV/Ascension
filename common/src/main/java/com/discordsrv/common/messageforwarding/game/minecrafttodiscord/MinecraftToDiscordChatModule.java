@@ -19,8 +19,7 @@
 package com.discordsrv.common.messageforwarding.game.minecrafttodiscord;
 
 import com.discordsrv.api.channel.GameChannel;
-import com.discordsrv.api.discord.entity.channel.DiscordGuildChannel;
-import com.discordsrv.api.discord.entity.channel.DiscordMessageChannel;
+import com.discordsrv.api.discord.entity.channel.DiscordGuildMessageChannel;
 import com.discordsrv.api.discord.entity.guild.DiscordGuild;
 import com.discordsrv.api.discord.entity.message.AllowedMention;
 import com.discordsrv.api.discord.entity.message.ReceivedDiscordMessage;
@@ -88,36 +87,31 @@ public class MinecraftToDiscordChatModule extends AbstractGameMessageModule<Mine
     }
 
     @Override
-    public Map<CompletableFuture<ReceivedDiscordMessage>, DiscordMessageChannel> sendMessageToChannels(
+    public Map<CompletableFuture<ReceivedDiscordMessage>, DiscordGuildMessageChannel> sendMessageToChannels(
             MinecraftToDiscordChatConfig config,
             IPlayer player,
             SendableDiscordMessage.Builder format,
-            List<DiscordMessageChannel> channels,
+            List<DiscordGuildMessageChannel> channels,
             GameChatMessageReceiveEvent event,
             Object... context
     ) {
-        Map<DiscordGuild, Set<DiscordMessageChannel>> channelMap = new LinkedHashMap<>();
-        for (DiscordMessageChannel channel : channels) {
-            DiscordGuild guild;
-            if (channel instanceof DiscordGuildChannel) {
-                guild = ((DiscordGuildChannel) channel).getGuild();
-            } else {
-                continue;
-            }
+        Map<DiscordGuild, Set<DiscordGuildMessageChannel>> channelMap = new LinkedHashMap<>();
+        for (DiscordGuildMessageChannel channel : channels) {
+            DiscordGuild guild = channel.getGuild();
 
             channelMap.computeIfAbsent(guild, key -> new LinkedHashSet<>())
                     .add(channel);
         }
 
         Component message = ComponentUtil.fromAPI(event.getMessage());
-        Map<CompletableFuture<ReceivedDiscordMessage>, DiscordMessageChannel> futures = new LinkedHashMap<>();
+        Map<CompletableFuture<ReceivedDiscordMessage>, DiscordGuildMessageChannel> futures = new LinkedHashMap<>();
 
         // Format messages per-Guild
-        for (Map.Entry<DiscordGuild, Set<DiscordMessageChannel>> entry : channelMap.entrySet()) {
+        for (Map.Entry<DiscordGuild, Set<DiscordGuildMessageChannel>> entry : channelMap.entrySet()) {
             Guild guild = entry.getKey().asJDA();
             CompletableFuture<SendableDiscordMessage> messageFuture = getMessageForGuild(config, format, guild, message, player, context);
 
-            for (DiscordMessageChannel channel : entry.getValue()) {
+            for (DiscordGuildMessageChannel channel : entry.getValue()) {
                 futures.put(messageFuture.thenCompose(channel::sendMessage), channel);
             }
         }

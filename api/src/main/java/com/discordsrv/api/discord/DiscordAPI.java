@@ -71,6 +71,14 @@ public interface DiscordAPI {
     DiscordTextChannel getTextChannelById(long id);
 
     /**
+     * Gets a Discord forum channel by id, the provided entity should not be stored for long periods of time.
+     * @param id the id for the text channel
+     * @return the forum channel
+     */
+    @Nullable
+    DiscordForumChannel getForumChannelById(long id);
+
+    /**
      * Gets a Discord voice channel by id, the provided entity should be stored for long periods of time.
      * @param id the id for the voice channel
      * @return the voice channel

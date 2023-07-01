@@ -18,16 +18,17 @@
 
 package com.discordsrv.common.discord.api.entity.channel;
 
-import club.minnced.discord.webhook.WebhookClient;
 import com.discordsrv.api.discord.entity.channel.DiscordChannelType;
 import com.discordsrv.api.discord.entity.channel.DiscordThreadChannel;
 import com.discordsrv.api.discord.entity.channel.DiscordThreadContainer;
 import com.discordsrv.api.discord.entity.guild.DiscordGuild;
 import com.discordsrv.common.DiscordSRV;
+import net.dv8tion.jda.api.entities.Message;
+import net.dv8tion.jda.api.entities.WebhookClient;
 import net.dv8tion.jda.api.entities.channel.ChannelType;
 import net.dv8tion.jda.api.entities.channel.attribute.IThreadContainer;
 import net.dv8tion.jda.api.entities.channel.concrete.ThreadChannel;
-import net.dv8tion.jda.api.entities.channel.middleman.MessageChannel;
+import net.dv8tion.jda.internal.requests.IncomingWebhookClient;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.concurrent.CompletableFuture;
@@ -41,22 +42,15 @@ public class DiscordThreadChannelImpl extends AbstractDiscordGuildMessageChannel
         super(discordSRV, thread);
 
         IThreadContainer container = thread.getParentChannel();
-        this.threadContainer = container instanceof MessageChannel
-                           ? (DiscordThreadContainer) discordSRV.discordAPI().getMessageChannel((MessageChannel) container)
-                           : null;
+        this.threadContainer = (DiscordThreadContainer) discordSRV.discordAPI().getChannel(container);
         this.guild = discordSRV.discordAPI().getGuild(thread.getGuild());
     }
 
     @Override
-    public CompletableFuture<WebhookClient> queryWebhookClient() {
+    public CompletableFuture<WebhookClient<Message>> queryWebhookClient() {
         return discordSRV.discordAPI()
                 .queryWebhookClient(getParentChannel().getId())
-                .thenApply(client -> client.onThread(getId()));
-    }
-
-    @Override
-    public @NotNull String getName() {
-        return channel.getName();
+                .thenApply(client -> ((IncomingWebhookClient) client).withThreadId(Long.toUnsignedString(getId())));
     }
 
     @Override

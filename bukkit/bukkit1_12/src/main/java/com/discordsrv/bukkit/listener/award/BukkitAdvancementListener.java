@@ -52,11 +52,11 @@ public class BukkitAdvancementListener extends AbstractBukkitAwardListener {
                     || version.startsWith("v1_2")) {
                 // 1.19.4+
                 nms = new NMS("org.bukkit.craftbukkit." + version + ".advancement.CraftAdvancement",
-                                   "k", "d", "i", "a");
+                                   "d", "i", "a");
             } else {
                 // <1.19.4
                 nms = new NMS("org.bukkit.craftbukkit." + version + ".advancement.CraftAdvancement",
-                                   "j", "c", "i", "a");
+                                   "c", "i", "a");
             }
         } catch (Throwable t) {
             logger.error("Could not get NMS methods for advancements.");
@@ -81,7 +81,7 @@ public class BukkitAdvancementListener extends AbstractBukkitAwardListener {
                     event,
                     event.getPlayer(),
                     data.titleJson != null ? ComponentUtil.toAPI(BukkitComponentSerializer.gson().deserialize(data.titleJson)) : null,
-                    data.nameJson != null ? ComponentUtil.toAPI(BukkitComponentSerializer.gson().deserialize(data.nameJson)) : null,
+                    null,
                     false);
         } catch (ReflectiveOperationException e) {
             logger.debug("Failed to get advancement data", e);
@@ -91,7 +91,6 @@ public class BukkitAdvancementListener extends AbstractBukkitAwardListener {
     private static class NMS {
 
         private final Method handleMethod;
-        private final Method advancementNameMethod;
         private final Method advancementDisplayMethod;
         private final Method broadcastToChatMethod;
         private final Method titleMethod;
@@ -99,7 +98,6 @@ public class BukkitAdvancementListener extends AbstractBukkitAwardListener {
 
         public NMS(
                 String craftAdvancementClassName,
-                String nameMethodName,
                 String displayMethodName,
                 String broadcastToChatMethodName,
                 String titleMethodName
@@ -107,7 +105,6 @@ public class BukkitAdvancementListener extends AbstractBukkitAwardListener {
             Class<?> clazz = Class.forName(craftAdvancementClassName);
             handleMethod = clazz.getDeclaredMethod("getHandle");
             Class<?> nmsClass = handleMethod.getReturnType();
-            advancementNameMethod = nmsClass.getDeclaredMethod(nameMethodName);
             advancementDisplayMethod = nmsClass.getDeclaredMethod(displayMethodName);
             Class<?> displayClass = advancementDisplayMethod.getReturnType();
             broadcastToChatMethod = displayClass.getDeclaredMethod(broadcastToChatMethodName);
@@ -133,27 +130,22 @@ public class BukkitAdvancementListener extends AbstractBukkitAwardListener {
                 return null;
             }
 
-            Object nameChat = advancementNameMethod.invoke(nms);
             Object titleChat = titleMethod.invoke(display);
-
             return new ReturnData(
-                    toJson(nameChat),
                     toJson(titleChat)
             );
         }
 
         private String toJson(Object chat) throws ReflectiveOperationException {
-            return (String) toJsonMethod.invoke(chat);
+            return (String) toJsonMethod.invoke(null, chat);
         }
     }
 
     private static class ReturnData {
 
-        private final String nameJson;
         private final String titleJson;
 
-        public ReturnData(String nameJson, String titleJson) {
-            this.nameJson = nameJson;
+        public ReturnData(String titleJson) {
             this.titleJson = titleJson;
         }
     }

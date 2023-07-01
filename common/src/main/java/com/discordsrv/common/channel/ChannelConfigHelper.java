@@ -27,7 +27,8 @@ import com.discordsrv.common.DiscordSRV;
 import com.discordsrv.common.config.main.channels.base.BaseChannelConfig;
 import com.discordsrv.common.config.main.channels.base.ChannelConfig;
 import com.discordsrv.common.config.main.channels.base.IChannelConfig;
-import com.discordsrv.common.config.main.channels.base.ThreadConfig;
+import com.discordsrv.common.config.main.generic.ThreadConfig;
+import com.discordsrv.common.config.main.generic.DestinationConfig;
 import com.discordsrv.common.config.manager.MainConfigManager;
 import com.github.benmanes.caffeine.cache.CacheLoader;
 import com.github.benmanes.caffeine.cache.LoadingCache;
@@ -126,9 +127,9 @@ public class ChannelConfigHelper {
             String channelName = entry.getKey();
             BaseChannelConfig value = entry.getValue();
             if (value instanceof IChannelConfig) {
-                IChannelConfig channelConfig = (IChannelConfig) value;
+                DestinationConfig destination = ((IChannelConfig) value).destination();
 
-                List<Long> channelIds = channelConfig.channelIds();
+                List<Long> channelIds = destination.channelIds;
                 if (channelIds != null) {
                     for (long channelId : channelIds) {
                         text.computeIfAbsent(channelId, key -> new LinkedHashMap<>())
@@ -136,7 +137,7 @@ public class ChannelConfigHelper {
                     }
                 }
 
-                List<ThreadConfig> threads = channelConfig.threads();
+                List<ThreadConfig> threads = destination.threads;
                 if (threads != null) {
                     for (ThreadConfig threadConfig : threads) {
                         Pair<Long, String> pair = Pair.of(

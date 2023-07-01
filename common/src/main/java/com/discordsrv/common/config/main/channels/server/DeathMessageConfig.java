@@ -16,28 +16,25 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package com.discordsrv.common.config.main.channels;
+package com.discordsrv.common.config.main.channels.server;
 
 import com.discordsrv.api.discord.entity.message.DiscordMessageEmbed;
 import com.discordsrv.api.discord.entity.message.SendableDiscordMessage;
 import com.discordsrv.common.config.annotation.Untranslated;
+import com.discordsrv.common.config.main.generic.IMessageConfig;
 import org.spongepowered.configurate.objectmapping.ConfigSerializable;
 
 @ConfigSerializable
-public class ServerSwitchMessageConfig implements IMessageConfig {
+public class DeathMessageConfig implements IMessageConfig {
 
-    public boolean enabled = false;
+    public boolean enabled = true;
 
     @Untranslated(Untranslated.Type.VALUE)
     public SendableDiscordMessage.Builder format = SendableDiscordMessage.builder()
             .addEmbed(
                     DiscordMessageEmbed.builder()
-                            .setAuthor(
-                                    "%player_display_name% switched from %from_server% to %to_server%",
-                                    null,
-                                    "%player_avatar_url%"
-                            )
-                            .setColor(0x5555FF)
+                            .setAuthor("%message%", null, "%player_avatar_url%")
+                            .setColor(1)
                             .build()
             );
 

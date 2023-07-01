@@ -19,12 +19,9 @@
 package com.discordsrv.common.config.main.channels.base.proxy;
 
 import com.discordsrv.common.config.main.channels.base.IChannelConfig;
-import com.discordsrv.common.config.main.channels.base.ThreadConfig;
+import com.discordsrv.common.config.main.generic.DestinationConfig;
 import org.spongepowered.configurate.objectmapping.ConfigSerializable;
-import org.spongepowered.configurate.objectmapping.meta.Comment;
 import org.spongepowered.configurate.objectmapping.meta.Setting;
-
-import java.util.List;
 
 @ConfigSerializable
 public class ProxyChannelConfig extends ProxyBaseChannelConfig implements IChannelConfig {
@@ -33,21 +30,11 @@ public class ProxyChannelConfig extends ProxyBaseChannelConfig implements IChann
         initialize();
     }
 
-    @Setting(CHANNEL_IDS_OPTION_NAME)
-    @Comment(CHANNEL_IDS_COMMENT)
-    public List<Long> channelIds = CHANNEL_IDS_VALUE;
+    @Setting(nodeFromParent = true)
+    public DestinationConfig destination = new DestinationConfig();
 
     @Override
-    public List<Long> channelIds() {
-        return channelIds;
-    }
-
-    @Setting(THREADS_OPTION_NAME)
-    @Comment(THREADS_COMMENT)
-    public List<ThreadConfig> threads = THREADS_VALUE;
-
-    @Override
-    public List<ThreadConfig> threads() {
-        return threads;
+    public DestinationConfig destination() {
+        return destination;
     }
 }

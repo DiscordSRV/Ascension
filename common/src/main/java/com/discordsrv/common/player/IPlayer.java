@@ -19,11 +19,10 @@
 package com.discordsrv.common.player;
 
 import com.discordsrv.api.placeholder.annotation.Placeholder;
-import com.discordsrv.api.placeholder.util.Placeholders;
 import com.discordsrv.api.player.DiscordSRVPlayer;
 import com.discordsrv.common.DiscordSRV;
 import com.discordsrv.common.command.game.sender.ICommandSender;
-import com.discordsrv.common.config.main.channels.base.BaseChannelConfig;
+import com.discordsrv.common.config.main.AvatarProviderConfig;
 import com.discordsrv.common.permission.util.PermissionUtil;
 import com.discordsrv.common.profile.Profile;
 import net.kyori.adventure.text.Component;
@@ -58,6 +57,17 @@ public interface IPlayer extends DiscordSRVPlayer, IOfflinePlayer, ICommandSende
         return identity().uuid();
     }
 
+    @ApiStatus.NonExtendable
+    @Placeholder("player_uuid_nodashes")
+    default @NotNull String uniqueIdNoDashes() {
+        return uniqueId().toString().replace("-", "");
+    }
+
+    @Placeholder("player_texture")
+    default @Nullable String textureId() {
+        return null; // TODO: implement
+    }
+
     @NotNull
     @Placeholder("player_display_name")
     Component displayName();
@@ -65,17 +75,22 @@ public interface IPlayer extends DiscordSRVPlayer, IOfflinePlayer, ICommandSende
     @Nullable
     @ApiStatus.NonExtendable
     @Placeholder("player_avatar_url")
-    default String getAvatarUrl(BaseChannelConfig config) {
-        String avatarUrlProvider = config.avatarUrlProvider;
-        if (avatarUrlProvider == null) {
+    default String getAvatarUrl() {
+        AvatarProviderConfig avatarConfig = discordSRV().config().avatarProvider;
+        String avatarUrlTemplate = avatarConfig.avatarUrlTemplate;
+
+        if (avatarConfig.autoDecideAvatarUrl) {
+            // Offline mode
+            if (uniqueId().version() == 3) avatarUrlTemplate = "https://cravatar.eu/helmavatar/%player_name%/128.png#%texture%";
+            // Bedrock
+            else if (uniqueId().getLeastSignificantBits() == 0) avatarUrlTemplate = "https://api.tydiumcraft.net/skin?uuid=%player_uuid_nodashes%&type=avatar&size=128";
+        }
+
+        if (avatarUrlTemplate == null) {
             return null;
         }
 
-        return new Placeholders(avatarUrlProvider)
-                .replace("%uuid%", uniqueId().toString())
-                .replace("%username%", username())
-                .replace("%texture%", "") // TODO
-                .toString();
+        return discordSRV().placeholderService().replacePlaceholders(avatarUrlTemplate, this);
     }
 
     @Nullable

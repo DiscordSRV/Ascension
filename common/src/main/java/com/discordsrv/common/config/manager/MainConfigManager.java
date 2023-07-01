@@ -22,6 +22,8 @@ import com.discordsrv.common.DiscordSRV;
 import com.discordsrv.common.config.main.MainConfig;
 import com.discordsrv.common.config.manager.loader.YamlConfigLoaderProvider;
 import com.discordsrv.common.config.manager.manager.TranslatedConfigManager;
+import org.spongepowered.configurate.ConfigurationOptions;
+import org.spongepowered.configurate.objectmapping.ObjectMapper;
 import org.spongepowered.configurate.yaml.YamlConfigurationLoader;
 
 public abstract class MainConfigManager<C extends MainConfig>
@@ -30,6 +32,12 @@ public abstract class MainConfigManager<C extends MainConfig>
 
     public MainConfigManager(DiscordSRV discordSRV) {
         super(discordSRV);
+    }
+
+    @Override
+    public ConfigurationOptions defaultOptions(ObjectMapper.Factory objectMapper) {
+        return super.defaultOptions(objectMapper)
+                .header(MainConfig.HEADER);
     }
 
     @Override

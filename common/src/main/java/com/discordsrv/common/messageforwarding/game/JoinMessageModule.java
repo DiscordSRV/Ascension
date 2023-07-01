@@ -28,7 +28,7 @@ import com.discordsrv.api.event.events.message.receive.game.JoinMessageReceiveEv
 import com.discordsrv.api.placeholder.FormattedText;
 import com.discordsrv.common.DiscordSRV;
 import com.discordsrv.common.component.util.ComponentUtil;
-import com.discordsrv.common.config.main.channels.IMessageConfig;
+import com.discordsrv.common.config.main.generic.IMessageConfig;
 import com.discordsrv.common.config.main.channels.base.BaseChannelConfig;
 
 public class JoinMessageModule extends AbstractGameMessageModule<IMessageConfig, JoinMessageReceiveEvent> {

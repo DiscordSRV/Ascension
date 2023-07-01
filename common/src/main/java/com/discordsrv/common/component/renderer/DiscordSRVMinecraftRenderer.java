@@ -23,7 +23,6 @@ import com.discordsrv.api.discord.entity.DiscordUser;
 import com.discordsrv.api.discord.entity.guild.DiscordGuild;
 import com.discordsrv.api.discord.entity.guild.DiscordGuildMember;
 import com.discordsrv.api.discord.entity.guild.DiscordRole;
-import com.discordsrv.api.event.events.message.receive.discord.DiscordChatMessageProcessingEvent;
 import com.discordsrv.common.DiscordSRV;
 import com.discordsrv.common.component.util.ComponentUtil;
 import com.discordsrv.common.config.main.channels.DiscordToMinecraftChatConfig;
@@ -50,23 +49,23 @@ public class DiscordSRVMinecraftRenderer extends DefaultMinecraftRenderer {
     }
 
     public static void runInContext(
-            DiscordChatMessageProcessingEvent event,
+            DiscordGuild guild,
             DiscordToMinecraftChatConfig config,
             Runnable runnable
     ) {
-        getWithContext(event, config, () -> {
+        getWithContext(guild, config, () -> {
             runnable.run();
             return null;
         });
     }
 
     public static <T> T getWithContext(
-            DiscordChatMessageProcessingEvent event,
+            DiscordGuild guild,
             DiscordToMinecraftChatConfig config,
             Supplier<T> supplier
     ) {
         Context oldValue = CONTEXT.get();
-        CONTEXT.set(new Context(event, config));
+        CONTEXT.set(new Context(guild, config));
         T output = supplier.get();
         CONTEXT.set(oldValue);
         return output;
@@ -135,9 +134,7 @@ public class DiscordSRVMinecraftRenderer extends DefaultMinecraftRenderer {
     public @NotNull Component appendUserMention(@NotNull Component component, @NotNull String id) {
         Context context = CONTEXT.get();
         DiscordToMinecraftChatConfig.Mentions.Format format = context != null ? context.config.mentions.user : null;
-        DiscordGuild guild = context != null
-                             ? discordSRV.discordAPI().getGuildById(context.event.getGuild().getId())
-                             : null;
+        DiscordGuild guild = context != null ? context.guild : null;
         if (format == null || guild == null) {
             return component.append(Component.text("<@" + id + ">"));
         }
@@ -186,11 +183,11 @@ public class DiscordSRVMinecraftRenderer extends DefaultMinecraftRenderer {
 
     private static class Context {
 
-        private final DiscordChatMessageProcessingEvent event;
+        private final DiscordGuild guild;
         private final DiscordToMinecraftChatConfig config;
 
-        public Context(DiscordChatMessageProcessingEvent event, DiscordToMinecraftChatConfig config) {
-            this.event = event;
+        public Context(DiscordGuild guild, DiscordToMinecraftChatConfig config) {
+            this.guild = guild;
             this.config = config;
         }
     }

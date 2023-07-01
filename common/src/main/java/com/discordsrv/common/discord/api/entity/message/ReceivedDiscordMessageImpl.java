@@ -18,12 +18,6 @@
 
 package com.discordsrv.common.discord.api.entity.message;
 
-import club.minnced.discord.webhook.WebhookClient;
-import club.minnced.discord.webhook.receive.ReadonlyAttachment;
-import club.minnced.discord.webhook.receive.ReadonlyEmbed;
-import club.minnced.discord.webhook.receive.ReadonlyMessage;
-import club.minnced.discord.webhook.send.WebhookEmbed;
-import com.discordsrv.api.color.Color;
 import com.discordsrv.api.discord.entity.DiscordUser;
 import com.discordsrv.api.discord.entity.channel.DiscordDMChannel;
 import com.discordsrv.api.discord.entity.channel.DiscordMessageChannel;
@@ -44,6 +38,7 @@ import com.discordsrv.common.future.util.CompletableFutureUtil;
 import net.dv8tion.jda.api.entities.Member;
 import net.dv8tion.jda.api.entities.Message;
 import net.dv8tion.jda.api.entities.MessageEmbed;
+import net.dv8tion.jda.api.entities.WebhookClient;
 import net.dv8tion.jda.api.requests.ErrorResponse;
 import net.kyori.adventure.text.Component;
 import org.jetbrains.annotations.NotNull;
@@ -71,7 +66,7 @@ public class ReceivedDiscordMessageImpl implements ReceivedDiscordMessage {
 
         boolean self = false;
         if (webhookMessage) {
-            CompletableFuture<WebhookClient> clientFuture = discordSRV.discordAPI()
+            CompletableFuture<WebhookClient<Message>> clientFuture = discordSRV.discordAPI()
                     .getCachedClients()
                     .getIfPresent(channel instanceof DiscordThreadChannel
                                   ? ((DiscordThreadChannel) channel).getParentChannel().getId()
@@ -79,7 +74,7 @@ public class ReceivedDiscordMessageImpl implements ReceivedDiscordMessage {
                     );
 
             if (clientFuture != null) {
-                long clientId = clientFuture.join().getId();
+                long clientId = clientFuture.join().getIdLong();
                 self = clientId == user.getId();
             }
         } else {
@@ -110,71 +105,6 @@ public class ReceivedDiscordMessageImpl implements ReceivedDiscordMessage {
                 message.getContentRaw(),
                 mappedEmbeds,
                 webhookMessage
-        );
-    }
-
-    public static ReceivedDiscordMessage fromWebhook(DiscordSRV discordSRV, ReadonlyMessage webhookMessage) {
-        List<DiscordMessageEmbed> mappedEmbeds = new ArrayList<>();
-        for (ReadonlyEmbed embed : webhookMessage.getEmbeds()) {
-            List<DiscordMessageEmbed.Field> fields = new ArrayList<>();
-            for (WebhookEmbed.EmbedField field : embed.getFields()) {
-                fields.add(new DiscordMessageEmbed.Field(field.getName(), field.getValue(), field.isInline()));
-            }
-
-            Integer color = embed.getColor();
-            WebhookEmbed.EmbedAuthor author = embed.getAuthor();
-            WebhookEmbed.EmbedTitle title = embed.getTitle();
-            ReadonlyEmbed.EmbedImage thumbnail = embed.getThumbnail();
-            ReadonlyEmbed.EmbedImage image = embed.getImage();
-            WebhookEmbed.EmbedFooter footer = embed.getFooter();
-
-            mappedEmbeds.add(new DiscordMessageEmbed(
-                    color != null ? new Color(color) : null,
-                    author != null ? author.getName() : null,
-                    author != null ? author.getUrl() : null,
-                    author != null ? author.getIconUrl() : null,
-                    title != null ? title.getText() : null,
-                    title != null ? title.getUrl() : null,
-                    embed.getDescription(),
-                    fields,
-                    thumbnail != null ? thumbnail.getUrl() : null,
-                    image != null ? image.getUrl() : null,
-                    embed.getTimestamp(),
-                    footer != null ? footer.getText() : null,
-                    footer != null ? footer.getIconUrl() : null
-            ));
-        }
-
-        DiscordMessageChannel channel = discordSRV.discordAPI().getMessageChannelById(
-                webhookMessage.getChannelId());
-        DiscordUser user = discordSRV.discordAPI().getUserById(
-                webhookMessage.getAuthor().getId());
-        DiscordGuildMember member = channel instanceof DiscordTextChannel && user != null
-                ? ((DiscordTextChannel) channel).getGuild().getMemberById(user.getId()) : null;
-
-        List<Attachment> attachments = new ArrayList<>();
-        for (ReadonlyAttachment attachment : webhookMessage.getAttachments()) {
-            attachments.add(new Attachment(
-                    attachment.getFileName(),
-                    attachment.getUrl(),
-                    attachment.getProxyUrl(),
-                    attachment.getSize()
-            ));
-        }
-
-        return new ReceivedDiscordMessageImpl(
-                discordSRV,
-                attachments,
-                true, // These are always from rest responses
-                channel,
-                null,
-                member,
-                user,
-                webhookMessage.getChannelId(),
-                webhookMessage.getId(),
-                webhookMessage.getContent(),
-                mappedEmbeds,
-                true
         );
     }
 
@@ -305,7 +235,9 @@ public class ReceivedDiscordMessageImpl implements ReceivedDiscordMessage {
     }
 
     @Override
-    public @NotNull CompletableFuture<ReceivedDiscordMessage> edit(SendableDiscordMessage message) {
+    public @NotNull CompletableFuture<ReceivedDiscordMessage> edit(
+            @NotNull SendableDiscordMessage message
+    ) {
         if (!webhookMessage && message.isWebhookMessage()) {
             throw new IllegalArgumentException("Cannot edit a non-webhook message into a webhook message");
         }
@@ -321,6 +253,29 @@ public class ReceivedDiscordMessageImpl implements ReceivedDiscordMessage {
     //
     // Placeholders
     //
+
+    @Placeholder("message_reply")
+    public Component _reply(BaseChannelConfig config, @PlaceholderRemainder String suffix) {
+        if (replyingTo == null) {
+            return null;
+        }
+
+        String content = replyingTo.getContent();
+        if (content == null) {
+            return null;
+        }
+
+        Component component = discordSRV.componentFactory().minecraftSerializer().serialize(content);
+
+        String replyFormat = config.discordToMinecraft.replyFormat;
+        return ComponentUtil.fromAPI(
+                discordSRV.componentFactory().textBuilder(replyFormat)
+                        .applyPlaceholderService()
+                        .addPlaceholder("message", component)
+                        .addContext(replyingTo.getMember(), replyingTo.getAuthor(), replyingTo)
+                        .build()
+        );
+    }
 
     @Placeholder("message_attachments")
     public Component _attachments(BaseChannelConfig config, @PlaceholderRemainder String suffix) {

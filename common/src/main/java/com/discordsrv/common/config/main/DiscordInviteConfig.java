@@ -27,12 +27,12 @@ public class DiscordInviteConfig {
     @Comment("Manually enter a invite url here, if this isn't set this is ignored and the options below will take effect")
     public String inviteUrl = "";
 
-    @Comment("If the bot is only in one Discord server, it will attempt to get it's vanity url")
+    @Comment("If the bot is only in one Discord server, it will attempt to get its vanity url")
     public boolean attemptToUseVanityUrl = true;
 
     @Comment("If the bot is only in one Discord server, it will attempt to automatically create a invite for it.\n"
             + "The bot will only attempt to do so if it has permission to \"Create Invite\"\n"
             + "The server must also have a rules channel (available for community servers) or default channel (automatically determined by Discord)")
-    public boolean autoCreateInvite = true;
+    public boolean autoCreateInvite = false;
 
 }

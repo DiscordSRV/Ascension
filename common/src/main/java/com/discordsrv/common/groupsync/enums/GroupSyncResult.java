@@ -34,6 +34,7 @@ public enum GroupSyncResult {
 
     // Errors
     ROLE_DOESNT_EXIST("Role doesn't exist"),
+    ROLE_CANNOT_INTERACT("Bot doesn't have a role above the synced role (cannot interact)"),
     NOT_A_GUILD_MEMBER("User is not part of the server the role is in"),
     PERMISSION_BACKEND_FAIL_CHECK("Failed to check group status, error printed"),
     UPDATE_FAILED("Failed to modify role/group, error printed"),

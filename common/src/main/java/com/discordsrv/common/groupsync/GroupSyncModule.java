@@ -18,7 +18,6 @@
 
 package com.discordsrv.common.groupsync;
 
-import com.discordsrv.api.discord.entity.guild.DiscordGuildMember;
 import com.discordsrv.api.discord.entity.guild.DiscordRole;
 import com.discordsrv.api.discord.events.member.role.DiscordMemberRoleAddEvent;
 import com.discordsrv.api.discord.events.member.role.DiscordMemberRoleRemoveEvent;
@@ -316,85 +315,90 @@ public class GroupSyncModule extends AbstractModule<DiscordSRV> {
             return CompletableFuture.completedFuture(GroupSyncResult.ROLE_DOESNT_EXIST);
         }
 
-        DiscordGuildMember member = role.getGuild().getMemberById(userId);
-        if (member == null) {
-            return CompletableFuture.completedFuture(GroupSyncResult.NOT_A_GUILD_MEMBER);
+        if (!role.getGuild().getSelfMember().canInteract(role)) {
+            return CompletableFuture.completedFuture(GroupSyncResult.ROLE_CANNOT_INTERACT);
         }
 
-        boolean hasRole = member.hasRole(role);
-        String groupName = pair.groupName;
-        CompletableFuture<GroupSyncResult> resultFuture = new CompletableFuture<>();
-
-        hasGroup(player, groupName, pair.serverContext).whenComplete((hasGroup, t) -> {
-            if (t != null) {
-                discordSRV.logger().error("Failed to check if player " + player + " has group " + groupName, t);
-                resultFuture.complete(GroupSyncResult.PERMISSION_BACKEND_FAIL_CHECK);
-                return;
+        return role.getGuild().retrieveMemberById(userId).thenCompose(member -> {
+            if (member == null) {
+                return CompletableFuture.completedFuture(GroupSyncResult.NOT_A_GUILD_MEMBER);
             }
 
-            if (hasRole == hasGroup) {
-                resultFuture.complete(hasRole ? GroupSyncResult.BOTH_TRUE : GroupSyncResult.BOTH_FALSE);
-                // We're all good
-                return;
-            }
+            boolean hasRole = member.hasRole(role);
+            String groupName = pair.groupName;
+            CompletableFuture<GroupSyncResult> resultFuture = new CompletableFuture<>();
 
-            GroupSyncSide side = pair.tieBreaker();
-            GroupSyncDirection direction = pair.direction();
-            CompletableFuture<Void> future;
-            GroupSyncResult result;
-            if (hasRole) {
-                if (side == GroupSyncSide.DISCORD) {
-                    // Has role, add group
-                    if (direction == GroupSyncDirection.MINECRAFT_TO_DISCORD) {
-                        resultFuture.complete(GroupSyncResult.WRONG_DIRECTION);
-                        return;
-                    }
-
-                    result = GroupSyncResult.ADD_GROUP;
-                    future = addGroup(player, groupName, pair.serverContext);
-                } else {
-                    // Doesn't have group, remove role
-                    if (direction == GroupSyncDirection.DISCORD_TO_MINECRAFT) {
-                        resultFuture.complete(GroupSyncResult.WRONG_DIRECTION);
-                        return;
-                    }
-
-                    result = GroupSyncResult.REMOVE_ROLE;
-                    future = member.removeRole(role);
-                }
-            } else {
-                if (side == GroupSyncSide.DISCORD) {
-                    // Doesn't have role, remove group
-                    if (direction == GroupSyncDirection.MINECRAFT_TO_DISCORD) {
-                        resultFuture.complete(GroupSyncResult.WRONG_DIRECTION);
-                        return;
-                    }
-
-                    result = GroupSyncResult.REMOVE_GROUP;
-                    future = removeGroup(player, groupName, pair.serverContext);
-                } else {
-                    // Has group, add role
-                    if (direction == GroupSyncDirection.DISCORD_TO_MINECRAFT) {
-                        resultFuture.complete(GroupSyncResult.WRONG_DIRECTION);
-                        return;
-                    }
-
-                    result = GroupSyncResult.ADD_ROLE;
-                    future = member.addRole(role);
-                }
-            }
-            future.whenComplete((v, t2) -> {
-                if (t2 != null) {
-                    discordSRV.logger().error("Failed to " + result + " to " + player + "/" + Long.toUnsignedString(userId), t2);
-                    resultFuture.complete(GroupSyncResult.UPDATE_FAILED);
+            hasGroup(player, groupName, pair.serverContext).whenComplete((hasGroup, t) -> {
+                if (t != null) {
+                    discordSRV.logger().error("Failed to check if player " + player + " has group " + groupName, t);
+                    resultFuture.complete(GroupSyncResult.PERMISSION_BACKEND_FAIL_CHECK);
                     return;
                 }
 
-                resultFuture.complete(result);
-            });
-        });
+                if (hasRole == hasGroup) {
+                    resultFuture.complete(hasRole ? GroupSyncResult.BOTH_TRUE : GroupSyncResult.BOTH_FALSE);
+                    // We're all good
+                    return;
+                }
 
-        return resultFuture;
+                GroupSyncSide side = pair.tieBreaker();
+                GroupSyncDirection direction = pair.direction();
+                CompletableFuture<Void> future;
+                GroupSyncResult result;
+                if (hasRole) {
+                    if (side == GroupSyncSide.DISCORD) {
+                        // Has role, add group
+                        if (direction == GroupSyncDirection.MINECRAFT_TO_DISCORD) {
+                            resultFuture.complete(GroupSyncResult.WRONG_DIRECTION);
+                            return;
+                        }
+
+                        result = GroupSyncResult.ADD_GROUP;
+                        future = addGroup(player, groupName, pair.serverContext);
+                    } else {
+                        // Doesn't have group, remove role
+                        if (direction == GroupSyncDirection.DISCORD_TO_MINECRAFT) {
+                            resultFuture.complete(GroupSyncResult.WRONG_DIRECTION);
+                            return;
+                        }
+
+                        result = GroupSyncResult.REMOVE_ROLE;
+                        future = member.removeRole(role);
+                    }
+                } else {
+                    if (side == GroupSyncSide.DISCORD) {
+                        // Doesn't have role, remove group
+                        if (direction == GroupSyncDirection.MINECRAFT_TO_DISCORD) {
+                            resultFuture.complete(GroupSyncResult.WRONG_DIRECTION);
+                            return;
+                        }
+
+                        result = GroupSyncResult.REMOVE_GROUP;
+                        future = removeGroup(player, groupName, pair.serverContext);
+                    } else {
+                        // Has group, add role
+                        if (direction == GroupSyncDirection.DISCORD_TO_MINECRAFT) {
+                            resultFuture.complete(GroupSyncResult.WRONG_DIRECTION);
+                            return;
+                        }
+
+                        result = GroupSyncResult.ADD_ROLE;
+                        future = member.addRole(role);
+                    }
+                }
+                future.whenComplete((v, t2) -> {
+                    if (t2 != null) {
+                        discordSRV.logger().error("Failed to " + result + " to " + player + "/" + Long.toUnsignedString(userId), t2);
+                        resultFuture.complete(GroupSyncResult.UPDATE_FAILED);
+                        return;
+                    }
+
+                    resultFuture.complete(result);
+                });
+            });
+
+            return resultFuture;
+        });
     }
 
     // Listeners & methods to indicate something changed
@@ -636,44 +640,49 @@ public class GroupSyncModule extends AbstractModule<DiscordSRV> {
             return CompletableFuture.completedFuture(GroupSyncResult.ROLE_DOESNT_EXIST);
         }
 
-        DiscordGuildMember member = role.getGuild().getMemberById(userId);
-        if (member == null) {
-            return CompletableFuture.completedFuture(GroupSyncResult.NOT_A_GUILD_MEMBER);
+        if (!role.getGuild().getSelfMember().canInteract(role)) {
+            return CompletableFuture.completedFuture(GroupSyncResult.ROLE_CANNOT_INTERACT);
         }
 
-        Map<Long, Boolean> expected = expectedDiscordChanges.get(userId, key -> new ConcurrentHashMap<>());
-        if (expected != null) {
-            expected.put(roleId, remove);
-        }
-
-        boolean hasRole = member.hasRole(role);
-        CompletableFuture<GroupSyncResult> future;
-        if (remove && hasRole) {
-            future = member.removeRole(role).thenApply(v -> GroupSyncResult.REMOVE_ROLE);
-        } else if (!remove && !hasRole) {
-            future = member.addRole(role).thenApply(v -> GroupSyncResult.ADD_ROLE);
-        } else {
-            if (expected != null) {
-                // Nothing needed to be changed, remove expectation
-                expected.remove(roleId);
+        return role.getGuild().retrieveMemberById(userId).thenCompose(member -> {
+            if (member == null) {
+                return CompletableFuture.completedFuture(GroupSyncResult.NOT_A_GUILD_MEMBER);
             }
-            return CompletableFuture.completedFuture(GroupSyncResult.ALREADY_IN_SYNC);
-        }
 
-        CompletableFuture<GroupSyncResult> resultFuture = new CompletableFuture<>();
-        future.whenComplete((result, t) -> {
-            if (t != null) {
+            Map<Long, Boolean> expected = expectedDiscordChanges.get(userId, key -> new ConcurrentHashMap<>());
+            if (expected != null) {
+                expected.put(roleId, remove);
+            }
+
+            boolean hasRole = member.hasRole(role);
+            CompletableFuture<GroupSyncResult> future;
+            if (remove && hasRole) {
+                future = member.removeRole(role).thenApply(v -> GroupSyncResult.REMOVE_ROLE);
+            } else if (!remove && !hasRole) {
+                future = member.addRole(role).thenApply(v -> GroupSyncResult.ADD_ROLE);
+            } else {
                 if (expected != null) {
-                    // Failed, remove expectation
+                    // Nothing needed to be changed, remove expectation
                     expected.remove(roleId);
                 }
-
-                resultFuture.complete(GroupSyncResult.UPDATE_FAILED);
-                discordSRV.logger().error("Failed to give/take role " + role + " to/from " + member, t);
-                return;
+                return CompletableFuture.completedFuture(GroupSyncResult.ALREADY_IN_SYNC);
             }
-            resultFuture.complete(result);
+
+            CompletableFuture<GroupSyncResult> resultFuture = new CompletableFuture<>();
+            future.whenComplete((result, t) -> {
+                if (t != null) {
+                    if (expected != null) {
+                        // Failed, remove expectation
+                        expected.remove(roleId);
+                    }
+
+                    resultFuture.complete(GroupSyncResult.UPDATE_FAILED);
+                    discordSRV.logger().error("Failed to give/take role " + role + " to/from " + member, t);
+                    return;
+                }
+                resultFuture.complete(result);
+            });
+            return resultFuture;
         });
-        return resultFuture;
     }
 }

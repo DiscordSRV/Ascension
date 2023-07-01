@@ -20,18 +20,16 @@ package com.discordsrv.common.messageforwarding.game;
 
 import com.discordsrv.api.channel.GameChannel;
 import com.discordsrv.api.discord.connection.jda.errorresponse.ErrorCallbackContext;
-import com.discordsrv.api.discord.entity.channel.DiscordMessageChannel;
-import com.discordsrv.api.discord.entity.channel.DiscordTextChannel;
-import com.discordsrv.api.discord.entity.channel.DiscordThreadChannel;
+import com.discordsrv.api.discord.entity.channel.DiscordGuildMessageChannel;
 import com.discordsrv.api.discord.entity.message.ReceivedDiscordMessage;
 import com.discordsrv.api.discord.entity.message.ReceivedDiscordMessageCluster;
 import com.discordsrv.api.discord.entity.message.SendableDiscordMessage;
 import com.discordsrv.api.event.events.message.receive.game.AbstractGameMessageReceiveEvent;
 import com.discordsrv.api.player.DiscordSRVPlayer;
 import com.discordsrv.common.DiscordSRV;
-import com.discordsrv.common.config.main.channels.IMessageConfig;
 import com.discordsrv.common.config.main.channels.base.BaseChannelConfig;
 import com.discordsrv.common.config.main.channels.base.IChannelConfig;
+import com.discordsrv.common.config.main.generic.IMessageConfig;
 import com.discordsrv.common.discord.api.entity.message.ReceivedDiscordMessageClusterImpl;
 import com.discordsrv.common.future.util.CompletableFutureUtil;
 import com.discordsrv.common.logging.NamedLogger;
@@ -44,7 +42,6 @@ import org.jetbrains.annotations.Nullable;
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionException;
-import java.util.concurrent.CopyOnWriteArrayList;
 
 public abstract class AbstractGameMessageModule<T extends IMessageConfig, E extends AbstractGameMessageReceiveEvent> extends AbstractModule<DiscordSRV> {
 
@@ -92,7 +89,8 @@ public abstract class AbstractGameMessageModule<T extends IMessageConfig, E exte
         return forwardToChannel(event, srvPlayer, channelConfig);
     }
 
-    private CompletableFuture<Void> forwardToChannel(
+    @SuppressWarnings("unchecked") // Wacky generis
+    private <CC extends BaseChannelConfig & IChannelConfig> CompletableFuture<Void> forwardToChannel(
             @Nullable E event,
             @Nullable IPlayer player,
             @NotNull BaseChannelConfig config
@@ -102,37 +100,18 @@ public abstract class AbstractGameMessageModule<T extends IMessageConfig, E exte
             return null;
         }
 
-        IChannelConfig channelConfig = config instanceof IChannelConfig ? (IChannelConfig) config : null;
+        CC channelConfig = config instanceof IChannelConfig ? (CC) config : null;
         if (channelConfig == null) {
             return null;
         }
 
-        List<DiscordMessageChannel> messageChannels = new CopyOnWriteArrayList<>();
-        List<CompletableFuture<DiscordThreadChannel>> futures = new ArrayList<>();
-
-        List<Long> channelIds = channelConfig.channelIds();
-        if (channelIds != null) {
-            for (Long channelId : channelConfig.channelIds()) {
-                DiscordTextChannel textChannel = discordSRV.discordAPI().getTextChannelById(channelId);
-                if (textChannel != null) {
-                    messageChannels.add(textChannel);
-                } else if (channelId > 0) {
-                    discordSRV.logger().error("Unable to find channel with ID "
-                                                      + Long.toUnsignedString(channelId)
-                                                      + ", unable to forward message to Discord");
-                }
-            }
-        }
-
-        discordSRV.discordAPI().findOrCreateThreads(config, channelConfig, messageChannels::add, futures, true);
-
-        return CompletableFuture.allOf(futures.toArray(new CompletableFuture[0])).thenCompose((v) -> {
+        return discordSRV.discordAPI().findOrCreateDestinations(channelConfig, true, true).thenCompose(messageChannels -> {
             SendableDiscordMessage.Builder format = moduleConfig.format();
             if (format == null) {
                 return CompletableFuture.completedFuture(null);
             }
 
-            Map<CompletableFuture<ReceivedDiscordMessage>, DiscordMessageChannel> messageFutures;
+            Map<CompletableFuture<ReceivedDiscordMessage>, DiscordGuildMessageChannel> messageFutures;
             messageFutures = sendMessageToChannels(
                     moduleConfig, player, format, messageChannels, event,
                     // Context
@@ -142,7 +121,7 @@ public abstract class AbstractGameMessageModule<T extends IMessageConfig, E exte
             return CompletableFuture.allOf(messageFutures.keySet().toArray(new CompletableFuture[0]))
                     .whenComplete((vo, t2) -> {
                         Set<ReceivedDiscordMessage> messages = new LinkedHashSet<>();
-                        for (Map.Entry<CompletableFuture<ReceivedDiscordMessage>, DiscordMessageChannel> entry : messageFutures.entrySet()) {
+                        for (Map.Entry<CompletableFuture<ReceivedDiscordMessage>, DiscordGuildMessageChannel> entry : messageFutures.entrySet()) {
                             CompletableFuture<ReceivedDiscordMessage> future = entry.getKey();
                             if (future.isCompletedExceptionally()) {
                                 future.exceptionally(t -> {
@@ -184,11 +163,11 @@ public abstract class AbstractGameMessageModule<T extends IMessageConfig, E exte
         return discordSRV.componentFactory().discordSerializer().serialize(component);
     }
 
-    public Map<CompletableFuture<ReceivedDiscordMessage>, DiscordMessageChannel> sendMessageToChannels(
+    public Map<CompletableFuture<ReceivedDiscordMessage>, DiscordGuildMessageChannel> sendMessageToChannels(
             T config,
             IPlayer player,
             SendableDiscordMessage.Builder format,
-            List<DiscordMessageChannel> channels,
+            List<DiscordGuildMessageChannel> channels,
             E event,
             Object... context
     ) {
@@ -201,8 +180,8 @@ public abstract class AbstractGameMessageModule<T extends IMessageConfig, E exte
         SendableDiscordMessage discordMessage = formatter
                 .build();
 
-        Map<CompletableFuture<ReceivedDiscordMessage>, DiscordMessageChannel> futures = new LinkedHashMap<>();
-        for (DiscordMessageChannel channel : channels) {
+        Map<CompletableFuture<ReceivedDiscordMessage>, DiscordGuildMessageChannel> futures = new LinkedHashMap<>();
+        for (DiscordGuildMessageChannel channel : channels) {
             futures.put(channel.sendMessage(discordMessage), channel);
         }
 

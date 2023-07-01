@@ -21,29 +21,21 @@ package com.discordsrv.bukkit.command.game.handler;
 import com.discordsrv.bukkit.BukkitDiscordSRV;
 import com.discordsrv.common.command.game.abstraction.GameCommand;
 import com.discordsrv.common.command.game.handler.util.BrigadierUtil;
-import com.discordsrv.common.command.game.sender.ICommandSender;
 import com.mojang.brigadier.tree.LiteralCommandNode;
 import me.lucko.commodore.Commodore;
 import me.lucko.commodore.CommodoreProvider;
 import org.bukkit.command.PluginCommand;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Locale;
-import java.util.function.Function;
-
 /**
- * No avoiding basic handler on bukkit. Unfortunately it isn't possible to use brigadier for executing.
+ * No avoiding basic handler on Bukkit. Commodore only sends the command tree to the client, nothing else.
  */
-public class CommodoreHandler extends AbstractBukkitCommandExecutor {
+public class CommodoreHandler extends BukkitBasicCommandHandler {
 
     private final Commodore commodore;
-    private final Function<?, ICommandSender> senderFunction;
 
     public CommodoreHandler(BukkitDiscordSRV discordSRV) {
         super(discordSRV);
         this.commodore = CommodoreProvider.getCommodore(discordSRV.plugin());
-        this.senderFunction = wrapper -> sender(commodore.getBukkitSender(wrapper));
     }
 
     @Override
@@ -58,38 +50,11 @@ public class CommodoreHandler extends AbstractBukkitCommandExecutor {
 
         handler.registerCommand(command);
         pluginCommand.setExecutor(this);
+        pluginCommand.setTabCompleter(this);
 
-        List<LiteralCommandNode<?>> nodes = getAliases(command, pluginCommand);
         discordSRV.scheduler().runOnMainThread(() -> {
-            for (LiteralCommandNode<?> node : nodes) {
-                commodore.register(node);
-            }
+            LiteralCommandNode<?> commandNode = BrigadierUtil.convertToBrigadier(command, null);
+            commodore.register(pluginCommand, commandNode);
         });
-    }
-
-    private List<LiteralCommandNode<?>> getAliases(GameCommand command, PluginCommand pluginCommand) {
-        String commandName = pluginCommand.getName();
-        String pluginName = pluginCommand.getPlugin().getName().toLowerCase(Locale.ROOT);
-
-        List<String> allAliases = new ArrayList<>();
-        allAliases.add(commandName);
-        allAliases.addAll(pluginCommand.getAliases());
-
-        List<LiteralCommandNode<?>> nodes = new ArrayList<>();
-        for (String alias : allAliases) {
-            if (alias.equals(commandName)) {
-                LiteralCommandNode<?> node = BrigadierUtil.convertToBrigadier(command, senderFunction);
-                if (node.getRedirect() != null) {
-                    throw new IllegalStateException("Cannot register a redirected node!");
-                }
-                nodes.add(node);
-            } else {
-                nodes.add(BrigadierUtil.convertToBrigadier(GameCommand.literal(alias).redirect(command), senderFunction));
-            }
-
-            // plugin:command
-            nodes.add(BrigadierUtil.convertToBrigadier(GameCommand.literal(pluginName + ":" + alias).redirect(command), senderFunction));
-        }
-        return nodes;
     }
 }

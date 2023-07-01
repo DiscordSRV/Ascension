@@ -25,4 +25,19 @@ public class FoliaScheduler extends AbstractBukkitScheduler implements IFoliaSch
     public FoliaScheduler(BukkitDiscordSRV discordSRV) {
         super(discordSRV);
     }
+
+    @Override
+    public void runOnMainThread(Runnable task) {
+        checkDisable(task, (server, plugin) -> IFoliaScheduler.super.runOnMainThread(task));
+    }
+
+    @Override
+    public void runOnMainThreadLaterInTicks(Runnable task, int ticks) {
+        checkDisable(task, (server, plugin) -> IFoliaScheduler.super.runOnMainThreadLaterInTicks(task, ticks));
+    }
+
+    @Override
+    public void runOnMainThreadAtFixedRateInTicks(Runnable task, int initialTicks, int rateTicks) {
+        checkDisable(task, (server, plugin) -> IFoliaScheduler.super.runOnMainThreadAtFixedRateInTicks(task, initialTicks, rateTicks));
+    }
 }

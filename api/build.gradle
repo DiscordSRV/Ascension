@@ -37,7 +37,8 @@ java {
 }
 
 jar {
-    from sourceSets.ap.output
+    from sourceSets.ap.output.classesDirs
+    from sourceSets.ap.output.resourcesDir
 }
 
 //license {

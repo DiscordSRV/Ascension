@@ -18,18 +18,19 @@
 
 package com.discordsrv.common.channel;
 
+import com.discordsrv.api.discord.entity.channel.DiscordGuildMessageChannel;
 import com.discordsrv.api.discord.entity.channel.DiscordThreadChannel;
 import com.discordsrv.common.DiscordSRV;
 import com.discordsrv.common.config.main.channels.ChannelLockingConfig;
 import com.discordsrv.common.config.main.channels.base.BaseChannelConfig;
 import com.discordsrv.common.config.main.channels.base.IChannelConfig;
 import com.discordsrv.common.module.type.AbstractModule;
-import net.dv8tion.jda.api.JDA;
 import net.dv8tion.jda.api.Permission;
 import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.entities.IPermissionHolder;
 import net.dv8tion.jda.api.entities.Role;
-import net.dv8tion.jda.api.entities.channel.concrete.TextChannel;
+import net.dv8tion.jda.api.entities.channel.attribute.IPermissionContainer;
+import net.dv8tion.jda.api.entities.channel.middleman.GuildMessageChannel;
 import net.dv8tion.jda.api.requests.restaction.PermissionOverrideAction;
 
 import java.util.ArrayList;
@@ -54,42 +55,57 @@ public class ChannelLockingModule extends AbstractModule<DiscordSRV> {
             ChannelLockingConfig.Channels channels = shutdownConfig.channels;
             ChannelLockingConfig.Threads threads = shutdownConfig.threads;
 
-            if (threads.unarchive) {
-                discordSRV.discordAPI().findOrCreateThreads(config, channelConfig, __ -> {}, new ArrayList<>(), false);
-            }
-            channelPermissions(channelConfig, channels, true);
+            discordSRV.discordAPI()
+                    .findOrCreateDestinations((BaseChannelConfig & IChannelConfig) config, threads.unarchive, true)
+                    .whenComplete((destinations, t) -> {
+                        if (channels.everyone || !channels.roleIds.isEmpty()) {
+                            for (DiscordGuildMessageChannel destination : destinations) {
+                                channelPermissions(channels, destination, true);
+                            }
+                        }
+                    });
         });
     }
 
     @Override
     public void disable() {
         doForAllChannels((config, channelConfig) -> {
+            if (!(config instanceof IChannelConfig)) {
+                return;
+            }
+
             ChannelLockingConfig shutdownConfig = config.channelLocking;
             ChannelLockingConfig.Channels channels = shutdownConfig.channels;
             ChannelLockingConfig.Threads threads = shutdownConfig.threads;
 
-            if (threads.archive) {
-                for (DiscordThreadChannel thread : discordSRV.discordAPI().findThreads(config, channelConfig)) {
-                    thread.asJDA().getManager()
+            boolean archive = threads.archive;
+            boolean isChannels = channels.everyone || !channels.roleIds.isEmpty();
+            if (!threads.archive && !isChannels) {
+                return;
+            }
+
+            List<DiscordGuildMessageChannel> destinations = discordSRV.discordAPI()
+                    .findDestinations((BaseChannelConfig & IChannelConfig) config, true);
+
+            for (DiscordGuildMessageChannel destination : destinations) {
+                if (archive && destination instanceof DiscordThreadChannel) {
+                    ((DiscordThreadChannel) destination).asJDA().getManager()
                             .setArchived(true)
                             .reason("DiscordSRV channel locking")
                             .queue();
                 }
+                if (isChannels) {
+                    channelPermissions(channels, destination, false);
+                }
             }
-            channelPermissions(channelConfig, channels, false);
         });
     }
 
     private void channelPermissions(
-            IChannelConfig channelConfig,
             ChannelLockingConfig.Channels shutdownConfig,
+            DiscordGuildMessageChannel channel,
             boolean state
     ) {
-        JDA jda = discordSRV.jda();
-        if (jda == null) {
-            return;
-        }
-
         boolean everyone = shutdownConfig.everyone;
         List<Long> roleIds = shutdownConfig.roleIds;
         if (!everyone && roleIds.isEmpty()) {
@@ -107,33 +123,31 @@ public class ChannelLockingModule extends AbstractModule<DiscordSRV> {
             permissions.add(Permission.MESSAGE_ADD_REACTION);
         }
 
-        for (Long channelId : channelConfig.channelIds()) {
-            TextChannel channel = jda.getTextChannelById(channelId);
-            if (channel == null) {
+        GuildMessageChannel messageChannel = (GuildMessageChannel) channel.getAsJDAMessageChannel();
+        if (!(messageChannel instanceof IPermissionContainer)) {
+            return;
+        }
+
+        Guild guild = messageChannel.getGuild();
+        if (!guild.getSelfMember().hasPermission(messageChannel, Permission.MANAGE_PERMISSIONS)) {
+            logger().error("Cannot change permissions of " + channel + ": lacking \"Manage Permissions\" permission");
+            return;
+        }
+
+        if (everyone) {
+            setPermission((IPermissionContainer) messageChannel, guild.getPublicRole(), permissions, state);
+        }
+        for (Long roleId : roleIds) {
+            Role role = guild.getRoleById(roleId);
+            if (role == null) {
                 continue;
             }
 
-            Guild guild = channel.getGuild();
-            if (!guild.getSelfMember().hasPermission(channel, Permission.MANAGE_PERMISSIONS)) {
-                logger().error("Cannot change permissions of " + channel + ": lacking \"Manage Permissions\" permission");
-                continue;
-            }
-
-            if (everyone) {
-                setPermission(channel, guild.getPublicRole(), permissions, state);
-            }
-            for (Long roleId : roleIds) {
-                Role role = channel.getGuild().getRoleById(roleId);
-                if (role == null) {
-                    continue;
-                }
-
-                setPermission(channel, role, permissions, state);
-            }
+            setPermission((IPermissionContainer) messageChannel, role, permissions, state);
         }
     }
 
-    private void setPermission(TextChannel channel, IPermissionHolder holder, List<Permission> permissions, boolean state) {
+    private void setPermission(IPermissionContainer channel, IPermissionHolder holder, List<Permission> permissions, boolean state) {
         PermissionOverrideAction action = channel.upsertPermissionOverride(holder);
         if ((state ? action.getAllowedPermissions() : action.getDeniedPermissions()).containsAll(permissions)) {
             // Already correct

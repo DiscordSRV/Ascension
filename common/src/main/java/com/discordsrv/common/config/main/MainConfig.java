@@ -21,6 +21,8 @@ package com.discordsrv.common.config.main;
 import com.discordsrv.api.channel.GameChannel;
 import com.discordsrv.common.config.Config;
 import com.discordsrv.common.config.annotation.DefaultOnly;
+import com.discordsrv.common.config.annotation.Order;
+import com.discordsrv.common.config.connection.ConnectionConfig;
 import com.discordsrv.common.config.main.channels.base.BaseChannelConfig;
 import com.discordsrv.common.config.main.channels.base.ChannelConfig;
 import com.discordsrv.common.config.main.linking.LinkedAccountConfig;
@@ -33,6 +35,14 @@ import java.util.*;
 public abstract class MainConfig implements Config {
 
     public static final String FILE_NAME = "config.yaml";
+
+    public static final String HEADER = String.join("\n", Arrays.asList(
+            "Welcome to the DiscordSRV configuration file",
+            "",
+            "Looking for the \"BotToken\" option? It has been moved into the " + ConnectionConfig.FILE_NAME,
+            "Need help with the format for Minecraft messages? https://github.com/Vankka/EnhancedLegacyText/wiki/Format",
+            "Need help with Discord markdown? https://support.discord.com/hc/en-us/articles/210298617"
+    ));
 
     @Override
     public final String getFileName() {
@@ -48,6 +58,12 @@ public abstract class MainConfig implements Config {
     }
 
     @DefaultOnly(ChannelConfig.DEFAULT_KEY)
+    @Comment("Channels configuration\n\n"
+            + "This is where everything related to in-game chat channels is configured.\n"
+            + "The key of this option is the in-game channel name (the default keys are \"global\" and \"default\")\n"
+            + "channel-ids and threads can be configured for all channels except \"default\"\n"
+            + "\"default\" is a special section which has the default values for all channels unless they are specified (overridden) under the channel's own section\n"
+            + "So if you don't specify a certain option under a channel's own section, the option will take its value from the \"default\" section")
     public Map<String, BaseChannelConfig> channels = new LinkedHashMap<String, BaseChannelConfig>() {{
         put(GameChannel.DEFAULT_NAME, createDefaultChannel());
         put(ChannelConfig.DEFAULT_KEY, createDefaultBaseChannel());
@@ -55,18 +71,27 @@ public abstract class MainConfig implements Config {
 
     public LinkedAccountConfig linkedAccounts = new LinkedAccountConfig();
 
-    public MemberCachingConfig memberCaching = new MemberCachingConfig();
-
-    public List<ChannelUpdaterConfig> channelUpdaters = new ArrayList<>(Collections.singletonList(new ChannelUpdaterConfig()));
+    public TimedUpdaterConfig timedUpdater = new TimedUpdaterConfig();
 
     @Comment("Configuration options for group-role synchronization")
     public GroupSyncConfig groupSync = new GroupSyncConfig();
 
-    @Comment("Command configuration")
-    public CommandConfig command = new CommandConfig();
+    @Comment("In-game command configuration")
+    public GameCommandConfig gameCommand = new GameCommandConfig();
 
     @Comment("Configuration for the %discord_invite% placeholder. The below options will be attempted in the order they are in")
     public DiscordInviteConfig invite = new DiscordInviteConfig();
 
+    @Order(10) // To go below required linking config @ 5
+    @Comment("Configuration for the %player_avatar_url% placeholder")
+    public AvatarProviderConfig avatarProvider = new AvatarProviderConfig();
+
     public abstract PluginIntegrationConfig integrations();
+
+    @Order(1000)
+    public MemberCachingConfig memberCaching = new MemberCachingConfig();
+
+    @Order(5000)
+    @Comment("Options for diagnosing DiscordSRV, you do not need to touch these options during normal operation")
+    public DebugConfig debug = new DebugConfig();
 }

@@ -16,26 +16,29 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package com.discordsrv.common.config.main.channels;
+package com.discordsrv.common.config.main.channels.proxy;
 
 import com.discordsrv.api.discord.entity.message.DiscordMessageEmbed;
 import com.discordsrv.api.discord.entity.message.SendableDiscordMessage;
 import com.discordsrv.common.config.annotation.Untranslated;
+import com.discordsrv.common.config.main.generic.IMessageConfig;
 import org.spongepowered.configurate.objectmapping.ConfigSerializable;
-import org.spongepowered.configurate.objectmapping.meta.Comment;
 
 @ConfigSerializable
-public class DeathMessageConfig implements IMessageConfig {
+public class ServerSwitchMessageConfig implements IMessageConfig {
 
-    @Comment("Enable death message forwarding")
-    public boolean enabled = true;
+    public boolean enabled = false;
 
     @Untranslated(Untranslated.Type.VALUE)
     public SendableDiscordMessage.Builder format = SendableDiscordMessage.builder()
             .addEmbed(
                     DiscordMessageEmbed.builder()
-                            .setAuthor("%message%", null, "%player_avatar_url%")
-                            .setColor(1)
+                            .setAuthor(
+                                    "%player_display_name% switched from %from_server% to %to_server%",
+                                    null,
+                                    "%player_avatar_url%"
+                            )
+                            .setColor(0x5555FF)
                             .build()
             );
 

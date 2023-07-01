@@ -23,7 +23,7 @@ import com.discordsrv.common.command.game.abstraction.GameCommand;
 import com.discordsrv.common.command.game.commands.DiscordSRVGameCommand;
 import com.discordsrv.common.command.game.commands.subcommand.LinkCommand;
 import com.discordsrv.common.command.game.handler.ICommandHandler;
-import com.discordsrv.common.config.main.CommandConfig;
+import com.discordsrv.common.config.main.GameCommandConfig;
 import com.discordsrv.common.module.type.AbstractModule;
 
 import java.util.HashSet;
@@ -48,7 +48,7 @@ public class GameCommandModule extends AbstractModule<DiscordSRV> {
 
     @Override
     public void reloadNoResult() {
-        CommandConfig config = discordSRV.config().command;
+        GameCommandConfig config = discordSRV.config().gameCommand;
         if (config == null) {
             return;
         }

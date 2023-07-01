@@ -19,6 +19,7 @@
 package com.discordsrv.common.config.main.linking;
 
 import com.discordsrv.common.config.annotation.DefaultOnly;
+import com.discordsrv.common.config.connection.ConnectionConfig;
 import org.spongepowered.configurate.objectmapping.ConfigSerializable;
 import org.spongepowered.configurate.objectmapping.meta.Comment;
 import org.spongepowered.configurate.objectmapping.meta.Setting;
@@ -43,7 +44,8 @@ public class RequirementsConfig {
             + "DiscordServer(Server ID)\n"
             + "DiscordBoosting(Server ID)\n"
             + "DiscordRole(Role ID)\n"
-            + "The following are available if you're using MinecraftAuth.me for linked accounts:\n"
+            + "\n"
+            + "The following are available if you're using MinecraftAuth.me for linked accounts and a MinecraftAuth.me token is specified in the " + ConnectionConfig.FILE_NAME + ":\n"
             + "PatreonSubscriber() or PatreonSubscriber(Tier Title)\n"
             + "GlimpseSubscriber() or GlimpseSubscriber(Level Name)\n"
             + "TwitchFollower()\n"

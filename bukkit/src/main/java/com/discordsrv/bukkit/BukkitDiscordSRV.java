@@ -183,12 +183,6 @@ public class BukkitDiscordSRV extends ServerDiscordSRV<DiscordSRVBukkitBootstrap
         // Command handler
         commandHandler = AbstractBukkitCommandHandler.get(this);
 
-        // Register listeners
-        server().getPluginManager().registerEvents(BukkitAwardForwarder.get(this), plugin());
-        server().getPluginManager().registerEvents(BukkitChatForwarder.get(this), plugin());
-        server().getPluginManager().registerEvents(new BukkitDeathListener(this), plugin());
-        server().getPluginManager().registerEvents(new BukkitStatusMessageListener(this), plugin());
-
         // Modules
         registerModule(MinecraftToDiscordChatModule::new);
         registerModule(BukkitRequiredLinkingModule::new);
@@ -207,12 +201,18 @@ public class BukkitDiscordSRV extends ServerDiscordSRV<DiscordSRVBukkitBootstrap
 
         super.enable();
 
+        // Register listeners
+        server().getPluginManager().registerEvents(BukkitAwardForwarder.get(this), plugin());
+        server().getPluginManager().registerEvents(BukkitChatForwarder.get(this), plugin());
+        server().getPluginManager().registerEvents(new BukkitDeathListener(this), plugin());
+        server().getPluginManager().registerEvents(new BukkitStatusMessageListener(this), plugin());
+
         // Connection listener
         server().getPluginManager().registerEvents(new BukkitConnectionListener(this), plugin());
     }
 
     @Override
-    protected List<ReloadResult> reload(Set<ReloadFlag> flags, boolean initial) throws Throwable {
+    public List<ReloadResult> reload(Set<ReloadFlag> flags, boolean initial) throws Throwable {
         List<ReloadResult> results = super.reload(flags, initial);
 
         if (flags.contains(ReloadFlag.TRANSLATIONS)) {

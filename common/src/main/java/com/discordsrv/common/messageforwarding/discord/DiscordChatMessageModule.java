@@ -33,7 +33,7 @@ import com.discordsrv.api.placeholder.util.Placeholders;
 import com.discordsrv.common.DiscordSRV;
 import com.discordsrv.common.component.renderer.DiscordSRVMinecraftRenderer;
 import com.discordsrv.common.component.util.ComponentUtil;
-import com.discordsrv.common.config.main.DiscordIgnoresConfig;
+import com.discordsrv.common.config.main.generic.DiscordIgnoresConfig;
 import com.discordsrv.common.config.main.channels.DiscordToMinecraftChatConfig;
 import com.discordsrv.common.config.main.channels.base.BaseChannelConfig;
 import com.discordsrv.common.logging.NamedLogger;
@@ -120,7 +120,7 @@ public class DiscordChatMessageModule extends AbstractModule<DiscordSRV> {
         Placeholders message = new Placeholders(event.getMessageContent());
         chatConfig.contentRegexFilters.forEach(message::replaceAll);
 
-        Component messageComponent = DiscordSRVMinecraftRenderer.getWithContext(event, chatConfig, () ->
+        Component messageComponent = DiscordSRVMinecraftRenderer.getWithContext(event.getGuild(), chatConfig, () ->
                 discordSRV.componentFactory().minecraftSerializer().serialize(message.toString()));
 
         GameTextBuilder componentBuilder = discordSRV.componentFactory()
@@ -133,7 +133,7 @@ public class DiscordChatMessageModule extends AbstractModule<DiscordSRV> {
 
         componentBuilder.applyPlaceholderService();
 
-        MinecraftComponent component = componentBuilder.build();
+        MinecraftComponent component = DiscordSRVMinecraftRenderer.getWithContext(event.getGuild(), chatConfig, componentBuilder::build);
         if (ComponentUtil.isEmpty(component)) {
             // Empty
             return;

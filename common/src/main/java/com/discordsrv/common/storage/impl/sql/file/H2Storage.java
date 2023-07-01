@@ -102,7 +102,7 @@ public class H2Storage extends SQLStorage {
     public void createTables(Connection connection, String tablePrefix) throws SQLException {
         try (Statement statement = connection.createStatement()) {
             statement.execute(
-                    "create table if not exists " + tablePrefix + "linked_accounts "
+                    "create table if not exists " + tablePrefix + LINKED_ACCOUNTS_TABLE_NAME + " "
                             + "(ID int not null auto_increment, "
                             + "PLAYER_UUID varchar(36), "
                             + "USER_ID bigint, "

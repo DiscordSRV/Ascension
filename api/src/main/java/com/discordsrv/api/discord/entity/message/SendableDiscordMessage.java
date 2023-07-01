@@ -31,8 +31,10 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.annotations.Unmodifiable;
 
+import java.io.InputStream;
 import java.util.Collection;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.function.Function;
 import java.util.function.Supplier;
@@ -106,6 +108,8 @@ public interface SendableDiscordMessage {
     default boolean isWebhookMessage() {
         return getWebhookUsername() != null;
     }
+
+    Map<InputStream, String> getAttachments();
 
     @SuppressWarnings("UnusedReturnValue") // API
     interface Builder {
@@ -237,6 +241,20 @@ public interface SendableDiscordMessage {
          */
         @NotNull
         Builder setWebhookAvatarUrl(String webhookAvatarUrl);
+
+        /**
+         * Adds an attachment to this builder.
+         * @param inputStream an input stream containing the file contents
+         * @param fileName the name of the file
+         * @return the builder, useful for chaining
+         */
+        Builder addAttachment(InputStream inputStream, String fileName);
+
+        /**
+         * Checks if this builder has any sendable content.
+         * @return {@code true} if there is no sendable content
+         */
+        boolean isEmpty();
 
         /**
          * Builds a {@link SendableDiscordMessage} from this builder.

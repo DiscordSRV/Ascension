@@ -92,11 +92,12 @@ public abstract class AbstractBukkitCommandHandler implements ICommandHandler {
         String label = gameCommand.getLabel();
         PluginCommand pluginCommand = discordSRV.plugin().getCommand(label);
         if (pluginCommand != null) {
+            logger.debug("PluginCommand available for \"" + label + "\"");
             return pluginCommand;
         }
 
         if (COMMAND_MAP_HANDLE == null) {
-            // CommandMap unusable, can't get the command from it
+            logger.debug("Unable to get command from command map");
             return null;
         }
 
@@ -107,8 +108,16 @@ public abstract class AbstractBukkitCommandHandler implements ICommandHandler {
             command = (PluginCommand) constructor.newInstance(label, discordSRV.plugin());
 
             CommandMap commandMap = (CommandMap) COMMAND_MAP_HANDLE.invokeExact(discordSRV.server());
-            commandMap.register(label, discordSRV.plugin().getName().toLowerCase(Locale.ROOT), command);
-        } catch (Throwable ignored) {}
+            boolean result = commandMap.register(label, discordSRV.plugin().getName().toLowerCase(Locale.ROOT), command);
+
+            if (result) {
+                logger.debug("Registered command \"" + label + "\" in CommandMap successfully");
+            } else {
+                logger.debug("Registered command \"" + label + "\" into CommandMap but with fallback prefix");
+            }
+        } catch (Throwable t) {
+            logger.debug("Failed to register command \"" + label + "\" to CommandMap", t);
+        }
 
         return command;
     }

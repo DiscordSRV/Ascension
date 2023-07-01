@@ -16,18 +16,17 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package com.discordsrv.common.config.main.channels;
+package com.discordsrv.common.config.main.channels.server;
 
 import com.discordsrv.api.discord.entity.message.DiscordMessageEmbed;
 import com.discordsrv.api.discord.entity.message.SendableDiscordMessage;
 import com.discordsrv.common.config.annotation.Untranslated;
+import com.discordsrv.common.config.main.generic.IMessageConfig;
 import org.spongepowered.configurate.objectmapping.ConfigSerializable;
-import org.spongepowered.configurate.objectmapping.meta.Comment;
 
 @ConfigSerializable
 public class AwardMessageConfig implements IMessageConfig {
 
-    @Comment("Enable achievement/advancement message forwarding")
     public boolean enabled = true;
 
     @Untranslated(Untranslated.Type.VALUE)
@@ -35,7 +34,7 @@ public class AwardMessageConfig implements IMessageConfig {
             .addEmbed(
                     DiscordMessageEmbed.builder()
                             .setAuthor(
-                                    "%award_title|text:'{player_name} made the achievement {award_name}'%",
+                                    "%award_title|text:'{player_name} made the advancement {award_name}'%",
                                     null,
                                     "%player_avatar_url%"
                             )

@@ -28,7 +28,7 @@ import com.discordsrv.api.event.events.message.receive.game.AwardMessageReceiveE
 import com.discordsrv.api.player.DiscordSRVPlayer;
 import com.discordsrv.common.DiscordSRV;
 import com.discordsrv.common.component.util.ComponentUtil;
-import com.discordsrv.common.config.main.channels.AwardMessageConfig;
+import com.discordsrv.common.config.main.channels.server.AwardMessageConfig;
 import com.discordsrv.common.config.main.channels.base.BaseChannelConfig;
 import com.discordsrv.common.config.main.channels.base.server.ServerBaseChannelConfig;
 import com.github.benmanes.caffeine.cache.Cache;
@@ -68,7 +68,7 @@ public class AwardMessageModule extends AbstractGameMessageModule<AwardMessageCo
             return;
         }
 
-        if (!checkIfShouldPermit(event.getPlayer())) {
+        if (checkIfShouldPermit(event.getPlayer())) {
             process(event, event.getPlayer(), event.getGameChannel());
         }
 

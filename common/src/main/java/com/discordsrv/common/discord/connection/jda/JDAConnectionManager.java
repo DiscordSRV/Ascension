@@ -33,6 +33,7 @@ import com.discordsrv.api.placeholder.PlaceholderLookupResult;
 import com.discordsrv.common.DiscordSRV;
 import com.discordsrv.common.config.connection.BotConfig;
 import com.discordsrv.common.config.connection.ConnectionConfig;
+import com.discordsrv.common.config.documentation.DocumentationURLs;
 import com.discordsrv.common.config.main.MemberCachingConfig;
 import com.discordsrv.common.debug.DebugGenerateEvent;
 import com.discordsrv.common.debug.file.TextDebugFile;
@@ -310,10 +311,8 @@ public class JDAConnectionManager implements DiscordConnectionManager {
         MemberCachingConfig memberCachingConfig = discordSRV.config().memberCaching;
         DiscordConnectionDetailsImpl connectionDetails = discordSRV.discordConnectionDetails();
 
-        Set<GatewayIntent> intents = new LinkedHashSet<>();
         this.intents.clear();
         this.intents.addAll(connectionDetails.getGatewayIntents());
-        this.intents.forEach(intent -> intents.add(intent.asJDA()));
 
         Set<CacheFlag> cacheFlags = new LinkedHashSet<>();
         this.cacheFlags.clear();
@@ -322,7 +321,7 @@ public class JDAConnectionManager implements DiscordConnectionManager {
             cacheFlags.add(flag.asJDA());
             DiscordGatewayIntent intent = flag.requiredIntent();
             if (intent != null) {
-                intents.add(intent.asJDA());
+                this.intents.add(intent);
             }
         });
 
@@ -353,6 +352,9 @@ public class JDAConnectionManager implements DiscordConnectionManager {
         } else {
             chunkingFilter = ChunkingFilter.NONE;
         }
+
+        Set<GatewayIntent> intents = new LinkedHashSet<>();
+        this.intents.forEach(intent -> intents.add(intent.asJDA()));
 
         // Start with everything disabled & enable stuff that we actually need
         JDABuilder jdaBuilder = JDABuilder.createLight(token, intents);
@@ -562,7 +564,10 @@ public class JDAConnectionManager implements DiscordConnectionManager {
         discordSRV.logger().error("| The token provided in the");
         discordSRV.logger().error("| " + ConnectionConfig.FILE_NAME + " is invalid");
         discordSRV.logger().error("|");
-        discordSRV.logger().error("| You can get the token for your bot from:");
+        discordSRV.logger().error("| Haven't created a bot yet? Installing the plugin for the first time?");
+        discordSRV.logger().error("| See " + DocumentationURLs.CREATE_TOKEN);
+        discordSRV.logger().error("|");
+        discordSRV.logger().error("| Already have a bot? You can get the token for your bot from:");
         discordSRV.logger().error("| https://discord.com/developers/applications");
         discordSRV.logger().error("| by selecting the application, going to the \"Bot\" tab");
         discordSRV.logger().error("| and clicking on \"Reset Token\"");
@@ -638,7 +643,7 @@ public class JDAConnectionManager implements DiscordConnectionManager {
                             discordSRV.logger().error("| server requiring 2FA for moderation actions");
                             if (user != null) {
                                 discordSRV.logger().error("|");
-                                discordSRV.logger().error("| The Discord bot's owner is " + user.getAsTag() + " (" + user.getId() + ")");
+                                discordSRV.logger().error("| The Discord bot's owner is " + user.getUsername() + " (" + user.getId() + ")");
                             }
                             discordSRV.logger().error("|");
                             discordSRV.logger().error("| You can view instructions for enabling 2FA here:");

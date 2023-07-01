@@ -19,27 +19,11 @@
 package com.discordsrv.bukkit.scheduler;
 
 import com.discordsrv.bukkit.BukkitDiscordSRV;
-import com.discordsrv.bukkit.DiscordSRVBukkitBootstrap;
-import com.discordsrv.common.DiscordSRV;
-import org.bukkit.Server;
-import org.bukkit.plugin.Plugin;
-
-import java.util.function.BiConsumer;
 
 public class BukkitScheduler extends AbstractBukkitScheduler {
 
     public BukkitScheduler(BukkitDiscordSRV discordSRV) {
         super(discordSRV);
-    }
-
-    protected void checkDisable(Runnable task, BiConsumer<Server, Plugin> runNormal) {
-        // Can't run tasks when disabling, so we'll push those to the bootstrap to run after disable
-        if (!discordSRV.plugin().isEnabled() && discordSRV.status() == DiscordSRV.Status.SHUTTING_DOWN) {
-            ((DiscordSRVBukkitBootstrap) discordSRV.bootstrap()).mainThreadTasksForDisable().add(task);
-            return;
-        }
-
-        runWithArgs(runNormal);
     }
 
     @Override

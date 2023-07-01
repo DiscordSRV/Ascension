@@ -27,8 +27,8 @@ import com.discordsrv.common.api.util.ApiInstanceUtil;
 import com.discordsrv.common.bootstrap.IBootstrap;
 import com.discordsrv.common.channel.ChannelConfigHelper;
 import com.discordsrv.common.channel.ChannelLockingModule;
-import com.discordsrv.common.channel.ChannelUpdaterModule;
 import com.discordsrv.common.channel.GlobalChannelLookupModule;
+import com.discordsrv.common.channel.TimedUpdaterModule;
 import com.discordsrv.common.command.discord.DiscordCommandModule;
 import com.discordsrv.common.command.game.GameCommandModule;
 import com.discordsrv.common.command.game.commands.subcommand.reload.ReloadResults;
@@ -48,7 +48,6 @@ import com.discordsrv.common.discord.connection.jda.JDAConnectionManager;
 import com.discordsrv.common.event.bus.EventBusImpl;
 import com.discordsrv.common.exception.StorageException;
 import com.discordsrv.common.function.CheckedFunction;
-import com.discordsrv.common.function.CheckedRunnable;
 import com.discordsrv.common.groupsync.GroupSyncModule;
 import com.discordsrv.common.invite.DiscordInviteModule;
 import com.discordsrv.common.linking.LinkProvider;
@@ -100,7 +99,6 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
-import java.util.concurrent.locks.ReentrantLock;
 import java.util.jar.Attributes;
 import java.util.jar.JarFile;
 import java.util.jar.Manifest;
@@ -114,7 +112,7 @@ import java.util.jar.Manifest;
 public abstract class AbstractDiscordSRV<B extends IBootstrap, C extends MainConfig, CC extends ConnectionConfig> implements DiscordSRV {
 
     private final AtomicReference<Status> status = new AtomicReference<>(Status.INITIALIZED);
-    private CompletableFuture<Void> enableFuture;
+    private final AtomicReference<Boolean> beenReady = new AtomicReference<>(false);
 
     // DiscordSRVApi
     private EventBusImpl eventBus;
@@ -146,9 +144,6 @@ public abstract class AbstractDiscordSRV<B extends IBootstrap, C extends MainCon
     private final ObjectMapper objectMapper = new ObjectMapper()
             .configure(DeserializationFeature.FAIL_ON_IGNORED_PROPERTIES, false)
             .configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
-
-    // Internal
-    private final ReentrantLock lifecycleLock = new ReentrantLock();
 
     public AbstractDiscordSRV(B bootstrap) {
         ApiInstanceUtil.setInstance(this);
@@ -449,6 +444,12 @@ public abstract class AbstractDiscordSRV<B extends IBootstrap, C extends MainCon
         }
         if (status == Status.CONNECTED) {
             eventBus().publish(new DiscordSRVConnectedEvent());
+            synchronized (beenReady) {
+                if (!beenReady.get()) {
+                    eventBus.publish(new DiscordSRVReadyEvent());
+                    beenReady.set(true);
+                }
+            }
         }
     }
 
@@ -483,63 +484,33 @@ public abstract class AbstractDiscordSRV<B extends IBootstrap, C extends MainCon
 
     // Lifecycle
 
-    protected CompletableFuture<Void> invokeLifecycle(CheckedRunnable<?> runnable) {
-        return invokeLifecycle(() -> {
-            try {
-                lifecycleLock.lock();
-                runnable.run();
-            } finally {
-                lifecycleLock.unlock();
-            }
-            return null;
-        }, "Failed to enable", true);
-    }
-
-    protected <T> CompletableFuture<T> invokeLifecycle(CheckedRunnable<T> runnable, String message, boolean enable) {
-        return CompletableFuture.supplyAsync(() -> {
-            if (status().isShutdown()) {
-                // Already shutdown/shutting down, don't bother
-                return null;
-            }
-            try {
-                return runnable.run();
-            } catch (Throwable t) {
-                if (status().isShutdown() && t instanceof NoClassDefFoundError) {
-                    // Already shutdown, ignore errors for classes that already got unloaded
-                    return null;
-                }
-                if (enable) {
-                    setStatus(Status.FAILED_TO_START);
-                    disable();
-                }
-                logger().error(message, t);
-            }
-            return null;
-        }, scheduler().executorService());
-    }
-
     @Override
-    public final CompletableFuture<Void> invokeEnable() {
-        return enableFuture = invokeLifecycle(() -> {
+    public final void runEnable() {
+        try {
             this.enable();
-            waitForStatus(Status.CONNECTED);
-            eventBus().publish(new DiscordSRVReadyEvent());
-            return null;
-        });
+        } catch (Throwable t) {
+            logger.error("Failed to enable", t);
+            setStatus(Status.FAILED_TO_START);
+        }
     }
 
     @Override
     public final CompletableFuture<Void> invokeDisable() {
-        if (enableFuture != null && !enableFuture.isDone()) {
-            logger().warning("Start cancelled");
-            enableFuture.cancel(true);
-        }
         return CompletableFuture.runAsync(this::disable, scheduler().executorService());
     }
 
     @Override
-    public final CompletableFuture<List<ReloadResult>> invokeReload(Set<ReloadFlag> flags, boolean silent) {
-        return invokeLifecycle(() -> reload(flags, silent), "Failed to reload", false);
+    public final List<ReloadResult> runReload(Set<ReloadFlag> flags, boolean silent) {
+        try {
+            return reload(flags, silent);
+        } catch (Throwable e) {
+            if (silent) {
+                throw new RuntimeException(e);
+            } else {
+                logger.error("Failed to reload", e);
+            }
+            return Collections.singletonList(ReloadResults.FAILED);
+        }
     }
 
     @OverridingMethodsMustInvokeSuper
@@ -553,16 +524,13 @@ public abstract class AbstractDiscordSRV<B extends IBootstrap, C extends MainCon
         // Logging
         DependencyLoggerAdapter.setAppender(new DependencyLoggingHandler(this));
 
-        // Register PlayerProvider listeners
-        playerProvider().subscribe();
-
         // Placeholder result stringifiers & global contexts
         placeholderService().addResultMapper(new ComponentResultStringifier(this));
         placeholderService().addGlobalContext(new GlobalTextHandlingContext(this));
 
         // Modules
         registerModule(ChannelLockingModule::new);
-        registerModule(ChannelUpdaterModule::new);
+        registerModule(TimedUpdaterModule::new);
         registerModule(DiscordCommandModule::new);
         registerModule(GameCommandModule::new);
         registerModule(GlobalChannelLookupModule::new);
@@ -580,10 +548,13 @@ public abstract class AbstractDiscordSRV<B extends IBootstrap, C extends MainCon
 
         // Initial load
         try {
-            invokeReload(ReloadFlag.ALL, true).get();
-        } catch (ExecutionException e) {
+            runReload(ReloadFlag.ALL, true);
+        } catch (RuntimeException e) {
             throw e.getCause();
         }
+
+        // Register PlayerProvider listeners
+        playerProvider().subscribe();
     }
 
     protected final void startedMessage() {
@@ -610,11 +581,18 @@ public abstract class AbstractDiscordSRV<B extends IBootstrap, C extends MainCon
         this.status.set(Status.SHUTTING_DOWN);
         eventBus().publish(new DiscordSRVShuttingDownEvent());
         eventBus().shutdown();
+        try {
+            if (storage != null) {
+                storage.close();
+            }
+        } catch (Throwable t) {
+            logger().error("Failed to close storage connection", t);
+        }
         this.status.set(Status.SHUTDOWN);
     }
 
     @OverridingMethodsMustInvokeSuper
-    protected List<ReloadResult> reload(Set<ReloadFlag> flags, boolean initial) throws Throwable {
+    public List<ReloadResult> reload(Set<ReloadFlag> flags, boolean initial) throws Throwable {
         if (!initial) {
             logger().info("Reloading DiscordSRV...");
         }
@@ -626,7 +604,9 @@ public abstract class AbstractDiscordSRV<B extends IBootstrap, C extends MainCon
 
                 channelConfig().reload();
             } catch (Throwable t) {
-                setStatus(Status.FAILED_TO_LOAD_CONFIG);
+                if (initial) {
+                    setStatus(Status.FAILED_TO_LOAD_CONFIG);
+                }
                 throw t;
             }
         }
@@ -658,7 +638,7 @@ public abstract class AbstractDiscordSRV<B extends IBootstrap, C extends MainCon
                 String provider = linkedAccountConfig.provider;
                 boolean permitMinecraftAuth = connectionConfig().minecraftAuth.allow;
                 if (provider.equals("auto")) {
-                    provider = permitMinecraftAuth ? "minecraftauth" : "storage";
+                    provider = permitMinecraftAuth && onlineMode().isOnline() ? "minecraftauth" : "storage";
                 }
                 switch (provider) {
                     case "minecraftauth":
@@ -719,7 +699,9 @@ public abstract class AbstractDiscordSRV<B extends IBootstrap, C extends MainCon
             } catch (StorageException e) {
                 e.log(this);
                 logger().error("Failed to connect to storage");
-                setStatus(Status.FAILED_TO_START);
+                if (initial) {
+                    setStatus(Status.FAILED_TO_START);
+                }
                 return Collections.singletonList(ReloadResults.STORAGE_CONNECTION_FAILED);
             }
         }

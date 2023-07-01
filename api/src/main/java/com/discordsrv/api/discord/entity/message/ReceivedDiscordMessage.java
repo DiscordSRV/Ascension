@@ -30,6 +30,7 @@ import com.discordsrv.api.discord.entity.channel.DiscordMessageChannel;
 import com.discordsrv.api.discord.entity.channel.DiscordTextChannel;
 import com.discordsrv.api.discord.entity.guild.DiscordGuild;
 import com.discordsrv.api.discord.entity.guild.DiscordGuildMember;
+import com.discordsrv.api.placeholder.annotation.Placeholder;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.annotations.Unmodifiable;
@@ -69,6 +70,7 @@ public interface ReceivedDiscordMessage extends Snowflake {
      * @return the jump url
      */
     @NotNull
+    @Placeholder("message_jump_url")
     String getJumpUrl();
 
     /**
@@ -155,8 +157,7 @@ public interface ReceivedDiscordMessage extends Snowflake {
      * @throws IllegalArgumentException if the message is not a webhook message,
      * but the provided {@link SendableDiscordMessage} specifies a webhook username.
      */
-    @NotNull
-    CompletableFuture<ReceivedDiscordMessage> edit(SendableDiscordMessage message);
+    CompletableFuture<ReceivedDiscordMessage> edit(@NotNull SendableDiscordMessage message);
 
     class Attachment {
 
