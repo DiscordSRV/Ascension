@@ -138,7 +138,7 @@ dependencyResolutionManagement {
     }
 }
 
-rootProject.name = 'DiscordSRV2'
+rootProject.name = 'DiscordSRV-Ascension'
 
 [
         'common', 'common:api', 'common:unrelocate',
