@@ -13,6 +13,7 @@ import net.dv8tion.jda.api.interactions.commands.OptionMapping;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Locale;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
@@ -95,6 +96,19 @@ public class ExecuteCommand implements Consumer<DiscordChatInputInteractionEvent
             }
         }
 
+        suggestions.sort((s1, s2) -> {
+            // Options with semicolons (eg. plugin:command) are at the bottom
+            int semi1 = s1.indexOf(':');
+            int semi2 = s2.indexOf(':');
+            if (semi1 > semi2) {
+                return 1;
+            } else if (semi2 > semi1) {
+                return -1;
+            }
+
+            // Otherwise alphabetically sorted
+            return s1.toLowerCase(Locale.ROOT).compareTo(s2.toLowerCase(Locale.ROOT));
+        });
         for (String suggestion : suggestions) {
             if (event.getChoices().size() >= 25) break;
 
