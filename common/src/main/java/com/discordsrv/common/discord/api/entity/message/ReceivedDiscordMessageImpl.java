@@ -255,7 +255,7 @@ public class ReceivedDiscordMessageImpl implements ReceivedDiscordMessage {
     //
 
     @Placeholder("message_reply")
-    public Component _reply(BaseChannelConfig config, @PlaceholderRemainder String suffix) {
+    public Component _reply(BaseChannelConfig config) {
         if (replyingTo == null) {
             return null;
         }
