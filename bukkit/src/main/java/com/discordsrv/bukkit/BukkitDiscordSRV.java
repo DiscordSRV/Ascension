@@ -19,7 +19,7 @@
 package com.discordsrv.bukkit;
 
 import com.discordsrv.api.DiscordSRVApi;
-import com.discordsrv.bukkit.command.game.BukkitAutoCompleteHelper;
+import com.discordsrv.bukkit.command.game.BukkitGameCommandExecutionHelper;
 import com.discordsrv.bukkit.command.game.handler.AbstractBukkitCommandHandler;
 import com.discordsrv.bukkit.component.translation.BukkitTranslationLoader;
 import com.discordsrv.bukkit.config.connection.BukkitConnectionConfig;
@@ -40,7 +40,6 @@ import com.discordsrv.bukkit.scheduler.BukkitScheduler;
 import com.discordsrv.bukkit.scheduler.FoliaScheduler;
 import com.discordsrv.bukkit.scheduler.IBukkitScheduler;
 import com.discordsrv.common.ServerDiscordSRV;
-import com.discordsrv.common.command.discord.commands.subcommand.ExecuteCommand;
 import com.discordsrv.common.command.game.handler.ICommandHandler;
 import com.discordsrv.common.config.manager.ConnectionConfigManager;
 import com.discordsrv.common.config.manager.MainConfigManager;
@@ -68,7 +67,7 @@ public class BukkitDiscordSRV extends ServerDiscordSRV<DiscordSRVBukkitBootstrap
     private final BukkitPluginManager pluginManager;
     private AbstractBukkitCommandHandler commandHandler;
     private final BukkitRequiredLinkingListener requiredLinkingListener;
-    private final BukkitAutoCompleteHelper autoCompleteHelper;
+    private final BukkitGameCommandExecutionHelper autoCompleteHelper;
 
     private final BukkitConnectionConfigManager connectionConfigManager;
     private final BukkitConfigManager configManager;
@@ -97,7 +96,7 @@ public class BukkitDiscordSRV extends ServerDiscordSRV<DiscordSRVBukkitBootstrap
         load();
 
         this.requiredLinkingListener = new BukkitRequiredLinkingListener(this);
-        this.autoCompleteHelper = new BukkitAutoCompleteHelper(this);
+        this.autoCompleteHelper = new BukkitGameCommandExecutionHelper(this);
     }
 
     public JavaPlugin plugin() {
@@ -230,7 +229,8 @@ public class BukkitDiscordSRV extends ServerDiscordSRV<DiscordSRVBukkitBootstrap
         audiences.close();
     }
 
-    public ExecuteCommand.AutoCompleteHelper autoCompleteHelper() {
+    @Override
+    public BukkitGameCommandExecutionHelper executeHelper() {
         return autoCompleteHelper;
     }
 }

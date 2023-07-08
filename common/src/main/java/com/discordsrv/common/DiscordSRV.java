@@ -23,7 +23,7 @@ import com.discordsrv.api.module.type.Module;
 import com.discordsrv.api.placeholder.DiscordPlaceholders;
 import com.discordsrv.common.bootstrap.IBootstrap;
 import com.discordsrv.common.channel.ChannelConfigHelper;
-import com.discordsrv.common.command.discord.commands.subcommand.ExecuteCommand;
+import com.discordsrv.common.command.game.GameCommandExecutionHelper;
 import com.discordsrv.common.command.game.handler.ICommandHandler;
 import com.discordsrv.common.component.ComponentFactory;
 import com.discordsrv.common.config.connection.ConnectionConfig;
@@ -154,7 +154,7 @@ public interface DiscordSRV extends DiscordSRVApi {
     CompletableFuture<Void> invokeDisable();
 
     @Nullable
-    default ExecuteCommand.AutoCompleteHelper autoCompleteHelper() {
+    default GameCommandExecutionHelper executeHelper() {
         return null;
     }
 

@@ -7,6 +7,7 @@ import com.discordsrv.common.command.combined.commands.DebugCommand;
 import com.discordsrv.common.command.combined.commands.ResyncCommand;
 import com.discordsrv.common.command.combined.commands.VersionCommand;
 import com.discordsrv.common.command.discord.commands.subcommand.ExecuteCommand;
+import com.discordsrv.common.config.main.DiscordCommandConfig;
 
 public class DiscordSRVDiscordCommand {
 
@@ -16,11 +17,18 @@ public class DiscordSRVDiscordCommand {
 
     public static DiscordCommand get(DiscordSRV discordSRV) {
         if (INSTANCE == null) {
-            INSTANCE = DiscordCommand.chatInput(IDENTIFIER, "discordsrv", "DiscordSRV related commands")
+            DiscordCommandConfig config = discordSRV.config().discordCommand;
+
+            DiscordCommand.ChatInputBuilder builder = DiscordCommand.chatInput(IDENTIFIER, "discordsrv", "DiscordSRV related commands")
                     .addSubCommand(DebugCommand.getDiscord(discordSRV))
                     .addSubCommand(VersionCommand.getDiscord(discordSRV))
-                    .addSubCommand(ResyncCommand.getDiscord(discordSRV))
-                    .addSubCommand(ExecuteCommand.get(discordSRV))
+                    .addSubCommand(ResyncCommand.getDiscord(discordSRV));
+
+            if (config.execute.enabled) {
+                builder = builder.addSubCommand(ExecuteCommand.get(discordSRV));
+            }
+
+            INSTANCE = builder
                     .setGuildOnly(false)
                     .setDefaultPermission(DiscordCommand.DefaultPermission.ADMINISTRATOR)
                     .build();
