@@ -30,13 +30,14 @@ public class StorageConfig {
 
     @Comment("The storage backend to use.\n\n"
             + "- H2\n"
-            + "- MySQL")
+            + "- MySQL\n"
+            + "- MariaDB")
     public String backend = "H2";
 
     @Comment("SQL table prefix")
     public String sqlTablePrefix = "discordsrv_";
 
-    @Comment("Connection options for remote databases (MySQL)")
+    @Comment("Connection options for remote databases (MySQL, MariaDB)")
     public Remote remote = new Remote();
 
     @Comment("Extra connection properties for database drivers")

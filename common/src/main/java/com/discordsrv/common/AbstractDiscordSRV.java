@@ -567,6 +567,7 @@ public abstract class AbstractDiscordSRV<B extends IBootstrap, C extends MainCon
         switch (backend.toLowerCase(Locale.ROOT)) {
             case "h2": return StorageType.H2;
             case "mysql": return StorageType.MYSQL;
+            case "mariadb": return StorageType.MARIADB;
         }
         throw new StorageException("Unknown storage backend \"" + backend + "\"");
     }

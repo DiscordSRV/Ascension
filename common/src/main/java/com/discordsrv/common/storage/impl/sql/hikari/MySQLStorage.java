@@ -50,8 +50,7 @@ public class MySQLStorage extends HikariStorage {
         }
     }
 
-    @Override
-    public void createTables(Connection connection, String tablePrefix) throws SQLException {
+    public static void createTablesMySQL(Connection connection, String tablePrefix) throws SQLException {
         try (Statement statement = connection.createStatement()) {
             statement.execute(
                     "create table if not exists " + tablePrefix + LINKED_ACCOUNTS_TABLE_NAME + " "
@@ -61,6 +60,11 @@ public class MySQLStorage extends HikariStorage {
                             + "constraint LINKED_ACCOUNTS_PK primary key (ID)"
                             + ")");
         }
+    }
+
+    @Override
+    public void createTables(Connection connection, String tablePrefix) throws SQLException {
+        createTablesMySQL(connection, tablePrefix);
     }
 
     @Override

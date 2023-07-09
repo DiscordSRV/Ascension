@@ -89,6 +89,7 @@ dependencyResolutionManagement {
             }
             library('h2', 'com.h2database', 'h2').version('2.1.210')
             library('mysql', 'mysql', 'mysql-connector-java').version('8.0.28')
+            library('mariadb', 'org.mariadb.jdbc', 'mariadb-java-client').version('3.1.4')
 
             // MinecraftAuth lib
             library('minecraftauth-lib', 'me.minecraftauth', 'lib').version('1.1.0')

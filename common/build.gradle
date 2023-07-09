@@ -4,8 +4,9 @@ configurations {
     hikari
     h2Driver
     mysqlDriver
+    mariadbDriver
     mcAuthLib
-    compileOnly.extendsFrom hikari, h2Driver, mysqlDriver, mcAuthLib
+    compileOnly.extendsFrom hikari, h2Driver, mysqlDriver, mariadbDriver, mcAuthLib
     testRuntimeOnly.extendsFrom runtimeDownloadOnly
 }
 
@@ -21,6 +22,11 @@ tasks.register('generateResourceForH2Driver', GenerateDependencyDownloadResource
 }
 tasks.register('generateResourceForMySQLDriver', GenerateDependencyDownloadResourceTask) {
     var conf = configurations.mysqlDriver
+    configuration = conf
+    file = 'dependencies/' + conf.name + '.txt'
+}
+tasks.register('generateResourceForMariaDBDriver', GenerateDependencyDownloadResourceTask) {
+    var conf = configurations.mariadbDriver
     configuration = conf
     file = 'dependencies/' + conf.name + '.txt'
 }
@@ -76,6 +82,7 @@ dependencies {
     hikari(libs.hikaricp)
     h2Driver(libs.h2)
     mysqlDriver(libs.mysql)
+    mariadbDriver(libs.mariadb)
 
     // MinecraftAuthentication library
     mcAuthLib(libs.minecraftauth.lib) {
