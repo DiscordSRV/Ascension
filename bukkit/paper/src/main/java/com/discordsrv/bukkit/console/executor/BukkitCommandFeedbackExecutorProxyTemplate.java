@@ -31,8 +31,8 @@ import java.util.UUID;
 import java.util.function.Consumer;
 
 @SuppressWarnings("deprecation") // Paper
-@Proxy(value = CommandSender.class, className = "BukkitCommandExecutorProxy")
-public abstract class BukkitCommandExecutorProxyTemplate implements CommandSender {
+@Proxy(value = CommandSender.class, className = "BukkitCommandFeedbackExecutorProxy")
+public abstract class BukkitCommandFeedbackExecutorProxyTemplate implements CommandSender {
 
     @Original
     private final CommandSender commandSender;
@@ -40,7 +40,7 @@ public abstract class BukkitCommandExecutorProxyTemplate implements CommandSende
 
     private Spigot spigot;
 
-    public BukkitCommandExecutorProxyTemplate(CommandSender commandSender, Consumer<Component> componentConsumer) {
+    public BukkitCommandFeedbackExecutorProxyTemplate(CommandSender commandSender, Consumer<Component> componentConsumer) {
         this.commandSender = commandSender;
         this.componentConsumer = componentConsumer;
         try {

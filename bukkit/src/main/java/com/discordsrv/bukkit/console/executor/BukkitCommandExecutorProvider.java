@@ -21,7 +21,9 @@ package com.discordsrv.bukkit.console.executor;
 import com.discordsrv.bukkit.BukkitDiscordSRV;
 import com.discordsrv.common.command.game.executor.CommandExecutor;
 import com.discordsrv.common.command.game.executor.CommandExecutorProvider;
+import com.discordsrv.common.component.util.ComponentUtil;
 import net.kyori.adventure.text.Component;
+import org.bukkit.Server;
 import org.bukkit.command.CommandSender;
 
 import java.util.function.Consumer;
@@ -33,7 +35,9 @@ public class BukkitCommandExecutorProvider implements CommandExecutorProvider {
     static {
         boolean has = false;
         try {
-            has = PaperCommandExecutor.CREATE_COMMAND_SENDER != null;
+            //noinspection JavaReflectionMemberAccess
+            Server.class.getDeclaredMethod("createCommandSender", Consumer.class);
+            has = true;
         } catch (Throwable ignored) {}
         HAS_PAPER_FORWARDING = has;
     }
@@ -48,11 +52,15 @@ public class BukkitCommandExecutorProvider implements CommandExecutorProvider {
     public CommandExecutor getConsoleExecutor(Consumer<Component> componentConsumer) {
         if (HAS_PAPER_FORWARDING) {
             try {
-                return new PaperCommandExecutor(discordSRV, componentConsumer);
+                CommandSender sender = new PaperCommandFeedbackExecutor(
+                        discordSRV.server(),
+                        apiComponent -> componentConsumer.accept(ComponentUtil.fromAPI(apiComponent))
+                ).sender();
+                return new CommandSenderExecutor(discordSRV, sender);
             } catch (Throwable ignored) {}
         }
 
-        CommandSender commandSender = new BukkitCommandExecutorProxy(discordSRV.server().getConsoleSender(), componentConsumer).getProxy();
+        CommandSender commandSender = new BukkitCommandFeedbackExecutorProxy(discordSRV.server().getConsoleSender(), componentConsumer).getProxy();
         return new CommandSenderExecutor(discordSRV, commandSender);
     }
 }

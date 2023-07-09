@@ -36,7 +36,7 @@ public class BukkitGameCommandExecutionHelper implements GameCommandExecutionHel
                 if (PaperCommandMap.IS_AVAILABLE) {
                     // If Paper's CommandMap is available we can list out 'root' commands
                     CompletableFuture<List<String>> future = new CompletableFuture<>();
-                    discordSRV.scheduler().runOnMainThread(() -> {
+                    discordSRV.scheduler().runOnMainThread(discordSRV.server().getConsoleSender(), () -> {
                         try {
                             for (String cmd : PaperCommandMap.getKnownCommands(discordSRV.server())) {
                                 if (commandName == null || cmd.startsWith(commandName)) {
@@ -63,9 +63,10 @@ public class BukkitGameCommandExecutionHelper implements GameCommandExecutionHel
 
         CompletableFuture<List<String>> future = new CompletableFuture<>();
         String finalPrefix = prefix;
-        discordSRV.scheduler().runOnMainThread(() -> {
+
+        CommandSender commandSender = discordSRV.server().getConsoleSender();
+        discordSRV.scheduler().runOnMainThread(commandSender, () -> {
             try {
-                CommandSender commandSender = discordSRV.server().getConsoleSender();
                 List<String> completions = command.tabComplete(commandSender, commandName, parts.toArray(new String[0]));
 
                 List<String> suggestions = new ArrayList<>();

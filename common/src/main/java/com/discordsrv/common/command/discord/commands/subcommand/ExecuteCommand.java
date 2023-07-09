@@ -13,15 +13,13 @@ import com.discordsrv.common.config.main.DiscordCommandConfig;
 import com.discordsrv.common.config.main.generic.GameCommandFilterConfig;
 import com.discordsrv.common.logging.Logger;
 import com.discordsrv.common.logging.NamedLogger;
+import net.dv8tion.jda.api.entities.Message;
+import net.dv8tion.jda.api.interactions.InteractionHook;
 import net.dv8tion.jda.api.interactions.commands.OptionMapping;
+import net.kyori.adventure.text.Component;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Locale;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.TimeoutException;
+import java.util.*;
+import java.util.concurrent.*;
 import java.util.function.Consumer;
 
 public class ExecuteCommand implements Consumer<DiscordChatInputInteractionEvent>, DiscordCommand.AutoCompleteHandler {
@@ -88,7 +86,10 @@ public class ExecuteCommand implements Consumer<DiscordChatInputInteractionEvent
             return;
         }
 
-        discordSRV.logger().error("> " + command);
+        boolean ephemeral = config.ephemeral;
+        event.asJDA().reply("Executing command `" + command + "`")
+                .setEphemeral(ephemeral)
+                .queue(ih -> new ExecutionContext(discordSRV, ih, config.getOutputMode(), ephemeral).run(command));
     }
 
     @Override
@@ -170,5 +171,85 @@ public class ExecuteCommand implements Consumer<DiscordChatInputInteractionEvent
             logger.error("Failed to suggest commands", t);
             return null;
         }
+    }
+
+    private static class ExecutionContext {
+
+        private final DiscordSRV discordSRV;
+        private final InteractionHook hook;
+        private final DiscordCommandConfig.OutputMode outputMode;
+        private final boolean ephemeral;
+        private ScheduledFuture<?> future;
+        private final Queue<Component> queued = new LinkedBlockingQueue<>();
+
+        public ExecutionContext(
+                DiscordSRV discordSRV,
+                InteractionHook hook,
+                DiscordCommandConfig.OutputMode outputMode,
+                boolean ephemeral
+        ) {
+            this.discordSRV = discordSRV;
+            this.hook = hook;
+            this.outputMode = outputMode;
+            this.ephemeral = ephemeral;
+        }
+
+        public void run(String command) {
+            discordSRV.console().commandExecutorProvider()
+                    .getConsoleExecutor(this::consumeComponent)
+                    .runCommand(command);
+        }
+
+        private void consumeComponent(Component component) {
+            if (outputMode == DiscordCommandConfig.OutputMode.OFF) {
+                return;
+            }
+            synchronized (queued) {
+                queued.offer(component);
+                if (future == null) {
+                    future = discordSRV.scheduler().runLater(this::send, 500);
+                }
+            }
+        }
+
+        private void send() {
+            boolean ansi = outputMode == DiscordCommandConfig.OutputMode.ANSI;
+            boolean plainBlock = outputMode == DiscordCommandConfig.OutputMode.PLAIN_BLOCK;
+            String prefix = ansi ? "```ansi\n" : (plainBlock ? "```\n" : "");
+            String suffix = ansi ? "```" : (plainBlock ? "```" : "");
+
+            String delimiter = "\n";
+            StringJoiner joiner = new StringJoiner(delimiter);
+
+            Component component;
+            synchronized (queued) {
+                while ((component = queued.poll()) != null) {
+                    String discord;
+                    switch (outputMode) {
+                        default:
+                        case MARKDOWN:
+                            discord = discordSRV.componentFactory().discordSerializer().serialize(component);
+                            break;
+                        case ANSI:
+                            discord = discordSRV.componentFactory().ansiSerializer().serialize(component);
+                            break;
+                        case PLAIN:
+                        case PLAIN_BLOCK:
+                            discord = discordSRV.componentFactory().plainSerializer().serialize(component);
+                            break;
+                    }
+
+                    if (prefix.length() + suffix.length() + discord.length() + joiner.length() + delimiter.length() > Message.MAX_CONTENT_LENGTH) {
+                        hook.sendMessage(prefix + joiner + suffix).setEphemeral(ephemeral).queue();
+                        joiner = new StringJoiner(delimiter);
+                    }
+
+                    joiner.add(discord);
+                }
+                future = null;
+            }
+            hook.sendMessage(prefix + joiner + suffix).setEphemeral(ephemeral).queue();
+        }
+
     }
 }

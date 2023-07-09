@@ -33,7 +33,6 @@ public class BukkitPlayer extends BukkitCommandSender implements IPlayer {
 
     private static final PaperComponentHandle<Player> DISPLAY_NAME_HANDLE = makeDisplayNameHandle();
 
-    @SuppressWarnings("deprecation") // Paper
     private static PaperComponentHandle<Player> makeDisplayNameHandle() {
         return new PaperComponentHandle<>(
                 Player.class,
@@ -63,7 +62,7 @@ public class BukkitPlayer extends BukkitCommandSender implements IPlayer {
 
     @Override
     public @NotNull Component displayName() {
-        return ComponentUtil.fromAPI(DISPLAY_NAME_HANDLE.getComponent(discordSRV, player));
+        return ComponentUtil.fromAPI(DISPLAY_NAME_HANDLE.getComponent(player));
     }
 
     @Override

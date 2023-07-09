@@ -65,7 +65,7 @@ public class BukkitDeathListener implements Listener {
     @EventHandler(priority = EventPriority.MONITOR)
     public void onPlayerDeath(PlayerDeathEvent event) {
         DiscordSRVPlayer player = discordSRV.playerProvider().player(event.getEntity());
-        MinecraftComponent component = COMPONENT_HANDLE.getComponent(discordSRV, event);
+        MinecraftComponent component = COMPONENT_HANDLE.getComponent(event);
 
         boolean cancelled = false;
         if (CANCELLED_HANDLE != null) {

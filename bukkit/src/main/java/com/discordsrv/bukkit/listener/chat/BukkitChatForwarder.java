@@ -34,7 +34,7 @@ public class BukkitChatForwarder implements IBukkitChatForwarder {
         // TODO: config option
         //noinspection ConstantConditions,PointlessBooleanExpression
         if (1 == 2 && PaperComponentHandle.IS_PAPER_ADVENTURE) {
-            return new PaperChatListener(discordSRV, new BukkitChatForwarder(discordSRV));
+            return new PaperChatListener(new BukkitChatForwarder(discordSRV));
         }
 
         return new BukkitChatListener(new BukkitChatForwarder(discordSRV));

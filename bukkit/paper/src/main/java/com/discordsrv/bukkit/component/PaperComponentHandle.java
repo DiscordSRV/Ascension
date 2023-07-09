@@ -19,7 +19,6 @@
 package com.discordsrv.bukkit.component;
 
 import com.discordsrv.api.component.MinecraftComponent;
-import com.discordsrv.common.DiscordSRV;
 import com.discordsrv.common.component.ComponentFactory;
 import com.discordsrv.common.component.util.ComponentUtil;
 import net.kyori.adventure.platform.bukkit.BukkitComponentSerializer;
@@ -60,21 +59,14 @@ public class PaperComponentHandle<T> {
         this.handle = handle;
     }
 
-    public MinecraftComponent getComponent(DiscordSRV discordSRV, T target) {
+    public MinecraftComponent getComponent(T target) {
         if (handle != null) {
             Object unrelocated = null;
             try {
                 unrelocated = handle.invoke(target);
             } catch (Throwable ignored) {}
             if (unrelocated != null) {
-                MinecraftComponent component = discordSRV.componentFactory().empty();
-                MinecraftComponent.Adapter<Object> adapter = component.unrelocatedAdapter();
-                if (adapter == null) {
-                    throw new IllegalStateException("Unrelocated adventure unavailable");
-                }
-
-                adapter.setComponent(unrelocated);
-                return component;
+                return ComponentUtil.fromUnrelocated(unrelocated);
             }
         }
 

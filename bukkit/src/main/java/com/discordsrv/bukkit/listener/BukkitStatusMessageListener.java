@@ -57,7 +57,7 @@ public class BukkitStatusMessageListener implements Listener {
     @EventHandler(priority = EventPriority.MONITOR)
     public void onPlayerJoin(PlayerJoinEvent event) {
         DiscordSRVPlayer player = discordSRV.playerProvider().player(event.getPlayer());
-        MinecraftComponent component = JOIN_HANDLE.getComponent(discordSRV, event);
+        MinecraftComponent component = JOIN_HANDLE.getComponent(event);
         boolean firstJoin = !event.getPlayer().hasPlayedBefore();
 
         discordSRV.scheduler().run(() -> discordSRV.eventBus().publish(
@@ -68,7 +68,7 @@ public class BukkitStatusMessageListener implements Listener {
     @EventHandler(priority = EventPriority.HIGH)
     public void onPlayerQuit(PlayerQuitEvent event) {
         DiscordSRVPlayer player = discordSRV.playerProvider().player(event.getPlayer());
-        MinecraftComponent component = QUIT_HANDLE.getComponent(discordSRV, event);
+        MinecraftComponent component = QUIT_HANDLE.getComponent(event);
 
         discordSRV.scheduler().run(() -> discordSRV.eventBus().publish(
                 new LeaveMessageReceiveEvent(event, player, component, null, false)
