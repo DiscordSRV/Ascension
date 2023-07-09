@@ -103,6 +103,7 @@ processResources {
             generateResourceForHikari,
             generateResourceForH2Driver,
             generateResourceForMySQLDriver,
+            generateResourceForMariaDBDriver,
             generateResourceForMCAuthLib
     )
 }
