@@ -29,7 +29,9 @@ import com.discordsrv.common.config.main.linking.LinkedAccountConfig;
 import org.spongepowered.configurate.objectmapping.ConfigSerializable;
 import org.spongepowered.configurate.objectmapping.meta.Comment;
 
-import java.util.*;
+import java.util.Arrays;
+import java.util.LinkedHashMap;
+import java.util.Map;
 
 @ConfigSerializable
 public abstract class MainConfig implements Config {
@@ -78,6 +80,9 @@ public abstract class MainConfig implements Config {
 
     @Comment("In-game command configuration")
     public GameCommandConfig gameCommand = new GameCommandConfig();
+
+    @Comment("Discord command configuration")
+    public DiscordCommandConfig discordCommand = new DiscordCommandConfig();
 
     @Comment("Configuration for the %discord_invite% placeholder. The below options will be attempted in the order they are in")
     public DiscordInviteConfig invite = new DiscordInviteConfig();

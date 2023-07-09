@@ -18,8 +18,8 @@ dependencyResolutionManagement {
             // Bukkit
             version('bukkit_minimum', '1.8.8-R0.1-SNAPSHOT')
             version('bukkit1_12',     '1.12.2-R0.1-SNAPSHOT')
-            version('bukkit_latest',  '1.19.4-R0.1-SNAPSHOT')
-            version('folia',          '1.19.4-R0.1-SNAPSHOT')
+            version('bukkit_latest',  '1.20.1-R0.1-SNAPSHOT')
+            version('folia',          '1.20.1-R0.1-SNAPSHOT')
             library('paperapi', 'io.papermc.paper', 'paper-api').versionRef('bukkit_latest')
             library('spigotapi', 'org.spigotmc', 'spigot-api').versionRef('bukkit_minimum')
             library('spigotapi-onetwelve', 'org.spigotmc', 'spigot-api').versionRef('bukkit1_12')

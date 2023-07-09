@@ -19,6 +19,7 @@
 package com.discordsrv.bukkit;
 
 import com.discordsrv.api.DiscordSRVApi;
+import com.discordsrv.bukkit.command.game.BukkitGameCommandExecutionHelper;
 import com.discordsrv.bukkit.command.game.handler.AbstractBukkitCommandHandler;
 import com.discordsrv.bukkit.component.translation.BukkitTranslationLoader;
 import com.discordsrv.bukkit.config.connection.BukkitConnectionConfig;
@@ -66,6 +67,7 @@ public class BukkitDiscordSRV extends ServerDiscordSRV<DiscordSRVBukkitBootstrap
     private final BukkitPluginManager pluginManager;
     private AbstractBukkitCommandHandler commandHandler;
     private final BukkitRequiredLinkingListener requiredLinkingListener;
+    private final BukkitGameCommandExecutionHelper autoCompleteHelper;
 
     private final BukkitConnectionConfigManager connectionConfigManager;
     private final BukkitConfigManager configManager;
@@ -94,6 +96,7 @@ public class BukkitDiscordSRV extends ServerDiscordSRV<DiscordSRVBukkitBootstrap
         load();
 
         this.requiredLinkingListener = new BukkitRequiredLinkingListener(this);
+        this.autoCompleteHelper = new BukkitGameCommandExecutionHelper(this);
     }
 
     public JavaPlugin plugin() {
@@ -224,5 +227,10 @@ public class BukkitDiscordSRV extends ServerDiscordSRV<DiscordSRVBukkitBootstrap
 
         requiredLinkingListener.disable();
         audiences.close();
+    }
+
+    @Override
+    public BukkitGameCommandExecutionHelper executeHelper() {
+        return autoCompleteHelper;
     }
 }

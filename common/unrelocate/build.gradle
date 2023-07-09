@@ -1,3 +1,4 @@
 dependencies {
     compileOnlyApi(libs.slf4j.api)
+    compileOnlyApi(libs.adventure.api)
 }

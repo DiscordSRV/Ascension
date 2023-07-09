@@ -27,7 +27,7 @@ import com.discordsrv.api.discord.entity.DiscordUser;
 import com.discordsrv.api.discord.entity.channel.*;
 import com.discordsrv.api.discord.entity.guild.DiscordGuild;
 import com.discordsrv.api.discord.entity.guild.DiscordRole;
-import com.discordsrv.api.discord.entity.interaction.command.Command;
+import com.discordsrv.api.discord.entity.interaction.command.DiscordCommand;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -147,11 +147,11 @@ public interface DiscordAPI {
      * Registers a Discord command.
      * @param command the command to register
      */
-    Command.RegistrationResult registerCommand(Command command);
+    DiscordCommand.RegistrationResult registerCommand(DiscordCommand command);
 
     /**
      * Unregisters a Discord command.
      * @param command the command to unregister
      */
-    void unregisterCommand(Command command);
+    void unregisterCommand(DiscordCommand command);
 }

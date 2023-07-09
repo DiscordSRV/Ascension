@@ -45,11 +45,8 @@ public class PaperModernAdvancementListener extends AbstractBukkitAwardListener 
         );
     }
 
-    private final DiscordSRV discordSRV;
-
     public PaperModernAdvancementListener(DiscordSRV discordSRV, IBukkitAwardForwarder forwarder) {
         super(discordSRV, forwarder);
-        this.discordSRV = discordSRV;
     }
 
     @EventHandler(priority = EventPriority.MONITOR)
@@ -62,8 +59,8 @@ public class PaperModernAdvancementListener extends AbstractBukkitAwardListener 
             return;
         }
 
-        MinecraftComponent message = MESSAGE_HANDLE.getComponent(discordSRV, event);
-        MinecraftComponent displayName = DISPLAY_NAME_HANDLE.getComponent(discordSRV, advancement);
+        MinecraftComponent message = MESSAGE_HANDLE.getComponent(event);
+        MinecraftComponent displayName = DISPLAY_NAME_HANDLE.getComponent(advancement);
         forwarder.publishEvent(event, event.getPlayer(), displayName, message, false);
     }
 }

@@ -18,7 +18,7 @@
 
 package com.discordsrv.common.command.combined.commands;
 
-import com.discordsrv.api.discord.entity.interaction.command.Command;
+import com.discordsrv.api.discord.entity.interaction.command.DiscordCommand;
 import com.discordsrv.api.discord.entity.interaction.command.CommandOption;
 import com.discordsrv.api.discord.entity.interaction.component.ComponentIdentifier;
 import com.discordsrv.common.DiscordSRV;
@@ -43,7 +43,7 @@ public class DebugCommand extends CombinedCommand {
 
     private static DebugCommand INSTANCE;
     private static GameCommand GAME;
-    private static Command DISCORD;
+    private static DiscordCommand DISCORD;
 
     private static DebugCommand getInstance(DiscordSRV discordSRV) {
         return INSTANCE != null ? INSTANCE : (INSTANCE = new DebugCommand(discordSRV));
@@ -67,10 +67,10 @@ public class DebugCommand extends CombinedCommand {
         return GAME;
     }
 
-    public static Command getDiscord(DiscordSRV discordSRV) {
+    public static DiscordCommand getDiscord(DiscordSRV discordSRV) {
         if (DISCORD == null) {
             DebugCommand command = getInstance(discordSRV);
-            DISCORD = Command.chatInput(ComponentIdentifier.of("DiscordSRV", "debug"), "debug", "Create a debug report")
+            DISCORD = DiscordCommand.chatInput(ComponentIdentifier.of("DiscordSRV", "debug"), "debug", "Create a debug report")
                     .addOption(
                             CommandOption.builder(CommandOption.Type.STRING, "format", "The format to generate the debug report")
                                     .addChoice(".zip", "zip")

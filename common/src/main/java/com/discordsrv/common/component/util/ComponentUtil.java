@@ -70,14 +70,14 @@ public final class ComponentUtil {
         }
     }
 
-    public static Component fromUnrelocated(Object unrelocatedAdventure) {
+    public static MinecraftComponent fromUnrelocated(Object unrelocatedAdventure) {
         MinecraftComponentImpl component = MinecraftComponentImpl.empty();
         MinecraftComponent.Adapter<Object> adapter = component.unrelocatedAdapter();
         if (adapter == null) {
             throw new IllegalStateException("Could not get unrelocated adventure gson serializer");
         }
         adapter.setComponent(unrelocatedAdventure);
-        return fromAPI(component);
+        return component;
     }
 
     public static Component join(Component delimiter, Collection<? extends ComponentLike> components) {

@@ -20,7 +20,6 @@ package com.discordsrv.bukkit.listener.chat;
 
 import com.discordsrv.api.component.MinecraftComponent;
 import com.discordsrv.bukkit.component.PaperComponentHandle;
-import com.discordsrv.common.DiscordSRV;
 import io.papermc.paper.event.player.AsyncChatEvent;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
@@ -38,17 +37,15 @@ public class PaperChatListener implements Listener {
         );
     }
 
-    private final DiscordSRV discordSRV;
     private final IBukkitChatForwarder listener;
 
-    public PaperChatListener(DiscordSRV discordSRV, IBukkitChatForwarder listener) {
-        this.discordSRV = discordSRV;
+    public PaperChatListener(IBukkitChatForwarder listener) {
         this.listener = listener;
     }
 
     @EventHandler(priority = EventPriority.MONITOR)
     public void onAsyncChat(AsyncChatEvent event) {
-        MinecraftComponent component = COMPONENT_HANDLE.getComponent(discordSRV, event);
+        MinecraftComponent component = COMPONENT_HANDLE.getComponent(event);
         listener.publishEvent(event, event.getPlayer(), component, event.isCancelled());
     }
 }

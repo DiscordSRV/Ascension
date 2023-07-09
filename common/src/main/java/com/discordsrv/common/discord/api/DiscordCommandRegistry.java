@@ -19,7 +19,7 @@
 package com.discordsrv.common.discord.api;
 
 import com.discordsrv.api.discord.entity.JDAEntity;
-import com.discordsrv.api.discord.entity.interaction.command.Command;
+import com.discordsrv.api.discord.entity.interaction.command.DiscordCommand;
 import com.discordsrv.api.discord.entity.interaction.command.CommandType;
 import com.discordsrv.api.discord.events.interaction.command.CommandRegisterEvent;
 import com.discordsrv.common.DiscordSRV;
@@ -50,7 +50,7 @@ public class DiscordCommandRegistry {
         CommandRegisterEvent event = new CommandRegisterEvent();
         discordSRV.eventBus().publish(event);
 
-        List<Command> commands = event.getCommands();
+        List<DiscordCommand> commands = event.getCommands();
         for (Map<CommandType, Registry> registryMap : registries.values()) {
             registryMap.values().forEach(registry -> registry.removeIf(reg -> reg.isTemporary() && !commands.contains(reg.getCommand())));
         }
@@ -58,27 +58,27 @@ public class DiscordCommandRegistry {
         commands.forEach(cmd -> register(cmd, true));
     }
 
-    public Command.RegistrationResult register(Command command, boolean temporary) {
+    public DiscordCommand.RegistrationResult register(DiscordCommand command, boolean temporary) {
         CommandType type = command.getType();
         Long guildId = command.getGuildId();
         Registry registry = registries
                 .computeIfAbsent(guildId != null ? guildId : GLOBAL_ID, key -> new EnumMap<>(CommandType.class))
                 .computeIfAbsent(type, key -> new Registry());
         if (registry.contains(command)) {
-            return Command.RegistrationResult.ALREADY_REGISTERED;
+            return DiscordCommand.RegistrationResult.ALREADY_REGISTERED;
         }
 
         boolean first = registry.register(command, temporary);
         if (!first) {
-            return Command.RegistrationResult.NAME_ALREADY_IN_USE;
+            return DiscordCommand.RegistrationResult.NAME_ALREADY_IN_USE;
         }
         if (registry.getInTimeOrder().indexOf(command) >= type.getMaximumCount()) {
-            return Command.RegistrationResult.TOO_MANY_COMMANDS;
+            return DiscordCommand.RegistrationResult.TOO_MANY_COMMANDS;
         }
-        return Command.RegistrationResult.REGISTERED;
+        return DiscordCommand.RegistrationResult.REGISTERED;
     }
 
-    public void unregister(Command command) {
+    public void unregister(DiscordCommand command) {
         Long guildId = command.getGuildId();
         Registry registry = registries
                 .computeIfAbsent(guildId != null ? guildId : GLOBAL_ID, key -> Collections.emptyMap())
@@ -90,7 +90,7 @@ public class DiscordCommandRegistry {
     }
 
     @Nullable
-    public Command getActive(Long guildId, CommandType type, String name) {
+    public DiscordCommand getActive(Long guildId, CommandType type, String name) {
         Registry registry = registries
                 .computeIfAbsent(guildId != null ? guildId : GLOBAL_ID, key -> Collections.emptyMap())
                 .get(type);
@@ -114,23 +114,23 @@ public class DiscordCommandRegistry {
 
         for (long guildId : ids) {
             Map<CommandType, Registry> commandsByType = registries.getOrDefault(guildId, Collections.emptyMap());
-            Map<CommandType, Set<Command>> commandsToRegister = new EnumMap<>(CommandType.class);
+            Map<CommandType, Set<DiscordCommand>> commandsToRegister = new EnumMap<>(CommandType.class);
 
             boolean updateNeeded = false;
             for (Map.Entry<CommandType, Registry> entry : commandsByType.entrySet()) {
                 Registry registry = entry.getValue();
 
-                List<Command> commands = registry.getInTimeOrder();
-                Set<Command> currentCommands = new LinkedHashSet<>();
+                List<DiscordCommand> commands = registry.getInTimeOrder();
+                Set<DiscordCommand> currentCommands = new LinkedHashSet<>();
                 int max = Math.min(commands.size(), entry.getKey().getMaximumCount());
                 for (int i = 0; i < max; i++) {
-                    Command command = commands.get(i);
+                    DiscordCommand command = commands.get(i);
                     currentCommands.add(command);
                 }
 
                 commandsToRegister.put(entry.getKey(), currentCommands);
 
-                Collection<Command> activeCommands = registry.activeCommands.values();
+                Collection<DiscordCommand> activeCommands = registry.activeCommands.values();
                 if (activeCommands.size() != currentCommands.size() || !currentCommands.containsAll(activeCommands)) {
                     updateNeeded = true;
                 }
@@ -148,7 +148,7 @@ public class DiscordCommandRegistry {
                     action = guild.updateCommands();
                 }
 
-                List<Command> allCommands = new ArrayList<>();
+                List<DiscordCommand> allCommands = new ArrayList<>();
                 commandsToRegister.values().forEach(allCommands::addAll);
                 action.addCommands(allCommands.stream().map(JDAEntity::asJDA).collect(Collectors.toList()))
                         .queue(v -> {
@@ -166,7 +166,7 @@ public class DiscordCommandRegistry {
     private static class Registry {
 
         private final Map<String, List<Registration>> registry = new ConcurrentHashMap<>();
-        private final Map<String, Command> activeCommands = new HashMap<>();
+        private final Map<String, DiscordCommand> activeCommands = new HashMap<>();
 
         public void removeIf(Predicate<Registration> commandPredicate) {
             List<String> removeKeys = new ArrayList<>();
@@ -180,7 +180,7 @@ public class DiscordCommandRegistry {
             removeKeys.forEach(registry::remove);
         }
 
-        public boolean contains(@NotNull Command command) {
+        public boolean contains(@NotNull DiscordCommand command) {
             List<Registration> commands = registry.get(command.getName());
             if (commands == null) {
                 return false;
@@ -189,14 +189,14 @@ public class DiscordCommandRegistry {
             return commands.stream().anyMatch(reg -> reg.getCommand() == command);
         }
 
-        public boolean register(@NotNull Command command, boolean temporary) {
+        public boolean register(@NotNull DiscordCommand command, boolean temporary) {
             List<Registration> commands = registry.computeIfAbsent(command.getName(), key -> new CopyOnWriteArrayList<>());
             boolean empty = commands.isEmpty();
             commands.add(new Registration(command, temporary));
             return empty;
         }
 
-        public void unregister(@NotNull Command command) {
+        public void unregister(@NotNull DiscordCommand command) {
             List<Registration> commands = registry.get(command.getName());
             if (commands == null) {
                 return;
@@ -208,16 +208,16 @@ public class DiscordCommandRegistry {
             }
         }
 
-        public void putActiveCommands(Set<Command> commands) {
+        public void putActiveCommands(Set<DiscordCommand> commands) {
             synchronized (activeCommands) {
                 activeCommands.clear();
-                for (Command command : commands) {
+                for (DiscordCommand command : commands) {
                     activeCommands.put(command.getName(), command);
                 }
             }
         }
 
-        public List<Command> getInTimeOrder() {
+        public List<DiscordCommand> getInTimeOrder() {
             List<Registration> registrations = registry.values().stream()
                     .map(list -> list.get(0))
                     .collect(Collectors.toList());
@@ -229,7 +229,7 @@ public class DiscordCommandRegistry {
         }
 
         @Nullable
-        public Command getActive(String name) {
+        public DiscordCommand getActive(String name) {
             synchronized (activeCommands) {
                 return activeCommands.get(name);
             }
@@ -238,17 +238,17 @@ public class DiscordCommandRegistry {
 
     private static class Registration {
 
-        private final Command command;
+        private final DiscordCommand command;
         private final long time;
         private final boolean temporary;
 
-        public Registration(Command command, boolean temporary) {
+        public Registration(DiscordCommand command, boolean temporary) {
             this.command = command;
             this.time = System.currentTimeMillis();
             this.temporary = temporary;
         }
 
-        public Command getCommand() {
+        public DiscordCommand getCommand() {
             return command;
         }
 
