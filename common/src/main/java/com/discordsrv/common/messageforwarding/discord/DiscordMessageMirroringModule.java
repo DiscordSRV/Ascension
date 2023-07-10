@@ -33,7 +33,7 @@ import com.discordsrv.api.discord.events.message.DiscordMessageDeleteEvent;
 import com.discordsrv.api.discord.events.message.DiscordMessageUpdateEvent;
 import com.discordsrv.api.event.bus.Subscribe;
 import com.discordsrv.api.event.events.message.forward.game.AbstractGameMessageForwardedEvent;
-import com.discordsrv.api.event.events.message.receive.discord.DiscordChatMessageProcessingEvent;
+import com.discordsrv.api.event.events.message.receive.discord.DiscordChatMessageReceiveEvent;
 import com.discordsrv.api.placeholder.provider.SinglePlaceholder;
 import com.discordsrv.common.DiscordSRV;
 import com.discordsrv.common.config.main.channels.MirroringConfig;
@@ -87,7 +87,7 @@ public class DiscordMessageMirroringModule extends AbstractModule<DiscordSRV> {
 
     @SuppressWarnings("unchecked") // Wacky generics
     @Subscribe
-    public <CC extends BaseChannelConfig & IChannelConfig> void onDiscordChatMessageProcessing(DiscordChatMessageProcessingEvent event) {
+    public <CC extends BaseChannelConfig & IChannelConfig> void onDiscordChatMessageProcessing(DiscordChatMessageReceiveEvent event) {
         if (checkCancellation(event)) {
             return;
         }
@@ -97,7 +97,7 @@ public class DiscordMessageMirroringModule extends AbstractModule<DiscordSRV> {
             return;
         }
 
-        ReceivedDiscordMessage message = event.getDiscordMessage();
+        ReceivedDiscordMessage message = event.getMessage();
 
         List<CompletableFuture<MirrorOperation>> futures = new ArrayList<>();
         Map<ReceivedDiscordMessage.Attachment, byte[]> attachments = new LinkedHashMap<>();
@@ -183,7 +183,7 @@ public class DiscordMessageMirroringModule extends AbstractModule<DiscordSRV> {
                     MirroringConfig config = target.config;
                     MirroringConfig.AttachmentConfig attachmentConfig = config.attachments;
 
-                    SendableDiscordMessage.Builder messageBuilder = convert(event.getDiscordMessage(), mirrorChannel, config);
+                    SendableDiscordMessage.Builder messageBuilder = convert(event.getMessage(), mirrorChannel, config);
                     if (!attachmentEmbed.getFields().isEmpty() && attachmentConfig.embedAttachments) {
                         messageBuilder.addEmbed(attachmentEmbed.build());
                     }

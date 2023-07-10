@@ -29,36 +29,24 @@ import com.discordsrv.api.discord.entity.channel.DiscordThreadChannel;
 import com.discordsrv.api.discord.entity.guild.DiscordGuild;
 import com.discordsrv.api.discord.entity.message.ReceivedDiscordMessage;
 import com.discordsrv.api.event.events.Cancellable;
-import com.discordsrv.api.event.events.Processable;
 import org.jetbrains.annotations.NotNull;
 
-public class DiscordChatMessageProcessingEvent implements Cancellable, Processable {
+public class DiscordChatMessageReceiveEvent implements Cancellable {
 
-    private final ReceivedDiscordMessage discordMessage;
-    private String messageContent;
+    private final ReceivedDiscordMessage message;
     private final DiscordMessageChannel channel;
     private boolean cancelled;
-    private boolean processed;
 
-    public DiscordChatMessageProcessingEvent(@NotNull ReceivedDiscordMessage discordMessage, @NotNull DiscordMessageChannel channel) {
-        this.discordMessage = discordMessage;
-        this.messageContent = discordMessage.getContent();
+    public DiscordChatMessageReceiveEvent(@NotNull ReceivedDiscordMessage discordMessage, @NotNull DiscordMessageChannel channel) {
+        this.message = discordMessage;
         this.channel = channel;
         if (!(channel instanceof DiscordTextChannel) && !(channel instanceof DiscordThreadChannel)) {
             throw new IllegalStateException("Cannot process messages that aren't from a text channel or thread");
         }
     }
 
-    public ReceivedDiscordMessage getDiscordMessage() {
-        return discordMessage;
-    }
-
-    public String getMessageContent() {
-        return messageContent;
-    }
-
-    public void setMessageContent(@NotNull String messageContent) {
-        this.messageContent = messageContent;
+    public ReceivedDiscordMessage getMessage() {
+        return message;
     }
 
     public DiscordMessageChannel getChannel() {
@@ -83,19 +71,6 @@ public class DiscordChatMessageProcessingEvent implements Cancellable, Processab
     @Override
     public void setCancelled(boolean cancelled) {
         this.cancelled = cancelled;
-    }
-
-    @Override
-    public boolean isProcessed() {
-        return processed;
-    }
-
-    @Override
-    public void markAsProcessed() {
-        if (isCancelled()) {
-            throw new IllegalStateException("Cannot process cancelled event");
-        }
-        this.processed = true;
     }
 
 }

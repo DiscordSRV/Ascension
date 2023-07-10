@@ -59,6 +59,10 @@ public class DiscordToMinecraftChatConfig {
     @Comment("The representations of Discord mentions in-game")
     public Mentions mentions = new Mentions();
 
+    @Comment("The amount of milliseconds to delay processing Discord messages, if the message is deleted in that time it will not be processed.\n"
+            + "This can be used together with Discord moderation bots, to filter forwarded messages")
+    public long delayMillis = 0L;
+
     @ConfigSerializable
     public static class Mentions {
 
