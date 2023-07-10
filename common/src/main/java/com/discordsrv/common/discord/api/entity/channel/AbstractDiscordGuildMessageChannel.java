@@ -128,9 +128,7 @@ public abstract class AbstractDiscordGuildMessageChannel<T extends GuildMessageC
     public CompletableFuture<Void> deleteMessageById(long id, boolean webhookMessage) {
         CompletableFuture<Void> future;
         if (webhookMessage) {
-            future = discordSRV.discordAPI()
-                    .queryWebhookClient(channel.getIdLong())
-                    .thenCompose(client -> client.deleteMessageById(id).submit());
+            future = queryWebhookClient().thenCompose(client -> client.deleteMessageById(id).submit());
         } else {
             future = channel.deleteMessageById(id).submit();
         }
