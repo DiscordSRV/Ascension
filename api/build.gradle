@@ -8,13 +8,6 @@ dependencies {
 
     // JDA
     api(libs.jda) {
-        // Annotations are suppose to be compile time only
-        exclude group: 'org.jetbrains', module: 'annotations'
-        exclude group: 'com.google.code.findbugs', module: 'jsr305'
-
-        // Downgrade okhttp (due to kotlin)
-        exclude group: 'com.squareup.okhttp3', module: 'okhttp'
-
         // We don't use audio
         exclude module: 'opus-java'
     }

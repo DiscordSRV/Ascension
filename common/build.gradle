@@ -1,12 +1,27 @@
 import dev.vankka.dependencydownload.task.GenerateDependencyDownloadResourceTask
 
 configurations {
-    hikari
-    h2Driver
-    mysqlDriver
-    mariadbDriver
-    mcAuthLib
-    compileOnly.extendsFrom hikari, h2Driver, mysqlDriver, mariadbDriver, mcAuthLib
+    // Dependencies to exclude from runtime downloaded jars
+    runtimeDownloadExclude {
+        extendsFrom runtimeExclude
+    }
+
+    hikariOnly
+    hikari.extendsFrom hikariOnly, runtimeDownloadExclude
+
+    h2DriverOnly
+    h2Driver.extendsFrom h2DriverOnly, runtimeDownloadExclude
+
+    mysqlDriverOnly
+    mysqlDriver.extendsFrom mysqlDriverOnly, runtimeDownloadExclude
+
+    mariadbDriverOnly
+    mariadbDriver.extendsFrom mariadbDriverOnly, runtimeDownloadExclude
+
+    mcAuthLibOnly
+    mcAuthLib.extendsFrom mcAuthLibOnly, runtimeDownloadExclude
+
+    compileOnly.extendsFrom hikariOnly, h2DriverOnly, mysqlDriverOnly, mariadbDriverOnly, mcAuthLibOnly
     testRuntimeOnly.extendsFrom runtimeDownloadOnly
 }
 
@@ -53,12 +68,13 @@ dependencies {
     runtimeDownloadApi(libs.commons.io)
 
     // Caffeine
-    runtimeDownloadApi(libs.caffeine) {
-        exclude group: 'com.google.errorprone', module: 'error_prone_annotations'
-    }
+    runtimeDownloadApi(libs.caffeine)
 
     // DynamicProxy
-    runtimeDownloadApi(libs.dynamicproxy)
+    runtimeDownloadApi(libs.dynamicproxy) {
+        // Not needed at runtime
+        exclude module: 'javaparser-symbol-solver-core'
+    }
 
     // Jackson (transitive in :api)
     compileOnlyApi(libs.jackson.databind)
@@ -79,15 +95,18 @@ dependencies {
     runtimeDownloadApi(libs.enhancedlegacytext)
 
     // Database
-    hikari(libs.hikaricp)
-    h2Driver(libs.h2)
-    mysqlDriver(libs.mysql)
-    mariadbDriver(libs.mariadb)
+    hikariOnly(libs.hikaricp) {
+        // Already provided
+        exclude group: 'org.slf4j'
+    }
+    h2DriverOnly(libs.h2)
+    mysqlDriverOnly(libs.mysql)
+    mariadbDriverOnly(libs.mariadb)
 
     // MinecraftAuthentication library
-    mcAuthLib(libs.minecraftauth.lib) {
+    mcAuthLibOnly(libs.minecraftauth.lib) {
+        // JUnit is a testing library
         exclude group: 'junit', module: 'junit'
-        exclude group: 'org.jetbrains', module: 'annotations'
     }
 
     // Brigadier

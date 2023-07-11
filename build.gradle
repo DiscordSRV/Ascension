@@ -26,6 +26,17 @@ subprojects {
     }
 
     configurations {
+        // Exclude dependencies from being included in jars
+        runtimeExclude {
+            // Annotations are suppose to be compile time only
+            exclude group: 'org.jetbrains', module: 'annotations'
+            exclude group: 'com.google.code.findbugs', module: 'jsr305'
+            exclude group: 'com.google.errorprone', module: 'error_prone_annotations'
+        }
+        runtimeClasspath.extendsFrom runtimeExclude
+        runtimeDownloadOnly.extendsFrom runtimeExclude
+
+        // Create runtimeDownloadApi configuration (compileOnlyApi + runtimeDownloadOnly)
         runtimeDownloadApi
         compileOnlyApi.extendsFrom runtimeDownloadApi
         runtimeDownloadOnly.extendsFrom runtimeDownloadApi

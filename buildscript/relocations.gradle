@@ -16,6 +16,9 @@
         'okhttp3',
         'okio',
 
+        // Kotlin
+        'kotlin',
+
         // DependencyDownload
         'dev.vankka.dependencydownload',
         'dev.vankka.mcdependencydownload',
