@@ -20,6 +20,7 @@ package com.discordsrv.common.linking.requirelinking;
 
 import com.discordsrv.common.DiscordSRV;
 import com.discordsrv.common.config.main.linking.RequirementsConfig;
+import com.discordsrv.common.config.main.linking.ServerRequiredLinkingConfig;
 import com.discordsrv.common.future.util.CompletableFutureUtil;
 import com.discordsrv.common.linking.LinkProvider;
 import net.kyori.adventure.text.Component;
@@ -38,7 +39,8 @@ public abstract class ServerRequireLinkingModule<T extends DiscordSRV> extends R
         super(discordSRV);
     }
 
-    public abstract RequirementsConfig config();
+    @Override
+    public abstract ServerRequiredLinkingConfig config();
 
     @Override
     public void reloadNoResult() {
@@ -46,14 +48,15 @@ public abstract class ServerRequireLinkingModule<T extends DiscordSRV> extends R
 
         synchronized (compiledRequirements) {
             compiledRequirements.clear();
-            compiledRequirements.addAll(compile(config().requirements));
+            compiledRequirements.addAll(compile(config().requirements.requirements));
         }
     }
 
-    public CompletableFuture<Component> getBlockReason(UUID playerUUID) {
-        RequirementsConfig config = config();
+    public CompletableFuture<Component> getBlockReason(UUID playerUUID, String playerName) {
+        RequirementsConfig config = config().requirements;
         if (config.bypassUUIDs.contains(playerUUID.toString())) {
             // Bypasses: let them through
+            logger().debug("Player " + playerName + " is bypassing required linking requirements");
             return CompletableFuture.completedFuture(null);
         }
 
@@ -93,7 +96,7 @@ public abstract class ServerRequireLinkingModule<T extends DiscordSRV> extends R
                                 pass.complete(null);
                             }
                         }).exceptionally(t -> {
-                            logger().debug("Check \"" + requirement.input() + "\" failed for " + playerUUID + " / " + Long.toUnsignedString(userId), t);
+                            logger().debug("Check \"" + requirement.input() + "\" failed for " + playerName + " / " + Long.toUnsignedString(userId), t);
                             return null;
                         });
                     }

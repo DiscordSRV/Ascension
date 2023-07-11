@@ -90,13 +90,13 @@ public class BukkitRequiredLinkingListener implements Listener {
         return module;
     }
 
-    private CompletableFuture<Component> getBlockReason(UUID playerUUID) {
+    private CompletableFuture<Component> getBlockReason(UUID playerUUID, String playerName) {
         BukkitRequiredLinkingModule module = getModule();
         if (module == null) {
             return CompletableFuture.completedFuture(Component.text("Discord unavailable, please try again later"));
         }
 
-        return module.getBlockReason(playerUUID);
+        return module.getBlockReason(playerUUID, playerName);
     }
 
     //
@@ -108,16 +108,19 @@ public class BukkitRequiredLinkingListener implements Listener {
                 "AsyncPlayerPreLoginEvent",
                 priority,
                 event.getUniqueId(),
+                event.getName(),
                 () -> event.getLoginResult() != AsyncPlayerPreLoginEvent.Result.ALLOWED ? event.getLoginResult().name() : null,
                 text -> event.disallow(AsyncPlayerPreLoginEvent.Result.KICK_OTHER, text)
         );
     }
 
     private void handle(PlayerLoginEvent event, EventPriority priority) {
+        Player player = event.getPlayer();
         handle(
                 "PlayerLoginEvent",
                 priority,
-                event.getPlayer().getUniqueId(),
+                player.getUniqueId(),
+                player.getName(),
                 () -> event.getResult() != PlayerLoginEvent.Result.ALLOWED ? event.getResult().name() : null,
                 text -> event.disallow(PlayerLoginEvent.Result.KICK_OTHER, text)
         );
@@ -127,6 +130,7 @@ public class BukkitRequiredLinkingListener implements Listener {
             String eventType,
             EventPriority priority,
             UUID playerUUID,
+            String playerName,
             Supplier<String> alreadyBlocked,
             Consumer<String> disallow
     ) {
@@ -138,11 +142,11 @@ public class BukkitRequiredLinkingListener implements Listener {
 
         String blockType = alreadyBlocked.get();
         if (blockType != null) {
-            discordSRV.logger().debug(playerUUID + " is already blocked for " + eventType + "/" + priority + " (" + blockType + ")");
+            discordSRV.logger().debug(playerName + " is already blocked for " + eventType + "/" + priority + " (" + blockType + ")");
             return;
         }
 
-        Component kickReason = getBlockReason(playerUUID).join();
+        Component kickReason = getBlockReason(playerUUID, playerName).join();
         if (kickReason != null) {
             disallow.accept(BukkitComponentSerializer.legacy().serialize(kickReason));
         }
@@ -179,7 +183,7 @@ public class BukkitRequiredLinkingListener implements Listener {
             return;
         }
 
-        Component blockReason = getBlockReason(event.getUniqueId()).join();
+        Component blockReason = getBlockReason(event.getUniqueId(), event.getName()).join();
         if (blockReason != null) {
             frozen.put(event.getUniqueId(), blockReason);
         }
@@ -267,7 +271,7 @@ public class BukkitRequiredLinkingListener implements Listener {
             player.sendMessage(Component.text("Checking..."));
 
             UUID uuid = player.uniqueId();
-            getBlockReason(uuid).whenComplete((reason, t) -> {
+            getBlockReason(uuid, player.username()).whenComplete((reason, t) -> {
                 if (t != null) {
                     return;
                 }

@@ -40,14 +40,17 @@ public class StandardScheduler implements Scheduler {
         this(
                 discordSRV,
                 new ThreadPoolExecutor(
-                        1, /* Core pool size */
-                        20, /* Max pool size */
-                        60, TimeUnit.SECONDS, /* Timeout */
+                        /* Core pool size */
+                        1,
+                        /* Max pool size: cpu cores / 2 or at least 1 */
+                        Math.max(1, Runtime.getRuntime().availableProcessors() / 2),
+                        /* Timeout */
+                        60, TimeUnit.SECONDS,
                         new SynchronousQueue<>(),
                         new CountingThreadFactory(Scheduler.THREAD_NAME_PREFIX + "Executor #%s")
                 ),
                 new ScheduledThreadPoolExecutor(
-                        0, /* Core pool size */
+                        1, /* Core pool size */
                         new CountingThreadFactory(Scheduler.THREAD_NAME_PREFIX + "Scheduled Executor #%s")
                 ),
                 new ForkJoinPool(
@@ -55,12 +58,12 @@ public class StandardScheduler implements Scheduler {
                         Math.min(
                                 /* max of 10 */
                                 10,
-                                /* cpu cores - 1 or at least 1 */
+                                /* cpu cores / 2 or at least 1 */
                                 Math.max(1, Runtime.getRuntime().availableProcessors() - 1)
                         ),
                         new CountingForkJoinWorkerThreadFactory(Scheduler.THREAD_NAME_PREFIX + "ForkJoinPool Worker #%s"),
                         null,
-                        false /* FIFO */
+                        false /* async mode -> FIFO */
                 )
         );
     }

@@ -19,23 +19,58 @@
 package com.discordsrv.common.linking.requirelinking;
 
 import com.discordsrv.common.DiscordSRV;
+import com.discordsrv.common.config.main.linking.RequiredLinkingConfig;
 import com.discordsrv.common.linking.impl.MinecraftAuthenticationLinker;
 import com.discordsrv.common.linking.requirelinking.requirement.*;
 import com.discordsrv.common.linking.requirelinking.requirement.parser.RequirementParser;
 import com.discordsrv.common.module.type.AbstractModule;
+import com.discordsrv.common.scheduler.Scheduler;
+import com.discordsrv.common.scheduler.threadfactory.CountingThreadFactory;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.SynchronousQueue;
+import java.util.concurrent.ThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;
 import java.util.function.BiFunction;
 
 public abstract class RequiredLinkingModule<T extends DiscordSRV> extends AbstractModule<T> {
 
     private final List<Requirement<?>> availableRequirements = new ArrayList<>();
+    private ThreadPoolExecutor executor;
 
     public RequiredLinkingModule(T discordSRV) {
         super(discordSRV);
+    }
+
+    public abstract RequiredLinkingConfig config();
+
+    @Override
+    public boolean isEnabled() {
+        return config().enabled;
+    }
+
+    @Override
+    public void enable() {
+        executor = new ThreadPoolExecutor(
+                1,
+                Math.max(2, Runtime.getRuntime().availableProcessors() / 2),
+                10,
+                TimeUnit.SECONDS,
+                new SynchronousQueue<>(),
+                new CountingThreadFactory(Scheduler.THREAD_NAME_PREFIX + "RequiredLinking #%s")
+        );
+
+        super.enable();
+    }
+
+    @Override
+    public void disable() {
+        if (executor != null) {
+            executor.shutdown();
+        }
     }
 
     @Override
