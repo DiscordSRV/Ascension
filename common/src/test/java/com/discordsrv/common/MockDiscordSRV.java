@@ -26,7 +26,7 @@ import com.discordsrv.common.config.main.MainConfig;
 import com.discordsrv.common.config.main.PluginIntegrationConfig;
 import com.discordsrv.common.config.configurate.manager.ConnectionConfigManager;
 import com.discordsrv.common.config.configurate.manager.MainConfigManager;
-import com.discordsrv.common.config.configurate.manager.managers.ServerConfigManager;
+import com.discordsrv.common.config.configurate.manager.abstraction.ServerConfigManager;
 import com.discordsrv.common.console.Console;
 import com.discordsrv.common.debug.data.OnlineMode;
 import com.discordsrv.common.logging.Logger;

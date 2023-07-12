@@ -16,7 +16,7 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package com.discordsrv.common.config.configurate.manager.managers;
+package com.discordsrv.common.config.configurate.manager.abstraction;
 
 import com.discordsrv.common.exception.ConfigException;
 

@@ -21,7 +21,7 @@ package com.discordsrv.common.config.configurate.manager;
 import com.discordsrv.common.DiscordSRV;
 import com.discordsrv.common.config.configurate.manager.loader.YamlConfigLoaderProvider;
 import com.discordsrv.common.config.connection.ConnectionConfig;
-import com.discordsrv.common.config.configurate.manager.managers.TranslatedConfigManager;
+import com.discordsrv.common.config.configurate.manager.abstraction.TranslatedConfigManager;
 import org.spongepowered.configurate.ConfigurationOptions;
 import org.spongepowered.configurate.objectmapping.ObjectMapper;
 import org.spongepowered.configurate.yaml.YamlConfigurationLoader;

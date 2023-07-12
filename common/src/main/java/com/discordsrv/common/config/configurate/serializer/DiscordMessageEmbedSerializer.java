@@ -20,7 +20,7 @@ package com.discordsrv.common.config.configurate.serializer;
 
 import com.discordsrv.api.color.Color;
 import com.discordsrv.api.discord.entity.message.DiscordMessageEmbed;
-import com.discordsrv.common.config.configurate.manager.managers.ConfigurateConfigManager;
+import com.discordsrv.common.config.configurate.manager.abstraction.ConfigurateConfigManager;
 import net.dv8tion.jda.api.entities.Role;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.spongepowered.configurate.ConfigurationNode;
