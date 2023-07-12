@@ -208,12 +208,12 @@ public class EventBusImpl implements EventBus {
                     Object listener = eventListener.listener();
                     eventListener.method().invoke(listener, event);
                 } catch (IllegalAccessException e) {
-                    discordSRV.logger().error("Failed to access listener method: " + eventListener.methodName() + " in " + eventListener.className(), e);
+                    logger.error("Failed to access listener method: " + eventListener.methodName() + " in " + eventListener.className(), e);
                 } catch (InvocationTargetException e) {
                     String eventClassName = eventClass.getName();
                     Throwable cause = e.getCause();
                     if (eventListener.className().startsWith("com.discordsrv")) {
-                        discordSRV.logger().error("Failed to pass " + eventClassName + " to " + eventListener, cause);
+                        logger.error("Failed to pass " + eventClassName + " to " + eventListener, cause);
                     } else {
                         e.getCause().printStackTrace();
                     }
