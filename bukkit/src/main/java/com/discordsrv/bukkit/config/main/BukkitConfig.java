@@ -18,7 +18,7 @@
 
 package com.discordsrv.bukkit.config.main;
 
-import com.discordsrv.common.config.annotation.Order;
+import com.discordsrv.common.config.configurate.annotation.Order;
 import com.discordsrv.common.config.main.MainConfig;
 import com.discordsrv.common.config.main.PluginIntegrationConfig;
 import com.discordsrv.common.config.main.channels.base.BaseChannelConfig;

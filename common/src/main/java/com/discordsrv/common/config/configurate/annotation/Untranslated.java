@@ -16,7 +16,7 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package com.discordsrv.common.config.annotation;
+package com.discordsrv.common.config.configurate.annotation;
 
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;

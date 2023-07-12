@@ -29,7 +29,7 @@ import com.discordsrv.common.config.main.channels.base.ChannelConfig;
 import com.discordsrv.common.config.main.channels.base.IChannelConfig;
 import com.discordsrv.common.config.main.generic.ThreadConfig;
 import com.discordsrv.common.config.main.generic.DestinationConfig;
-import com.discordsrv.common.config.manager.MainConfigManager;
+import com.discordsrv.common.config.configurate.manager.MainConfigManager;
 import com.github.benmanes.caffeine.cache.CacheLoader;
 import com.github.benmanes.caffeine.cache.LoadingCache;
 import org.apache.commons.lang3.tuple.Pair;
@@ -85,14 +85,14 @@ public class ChannelConfigHelper {
             throws SerializationException {
         MainConfigManager<?> configManager = discordSRV.configManager();
 
-        CommentedConfigurationNode defaultNode = CommentedConfigurationNode.root(configManager.configNodeOptions());
-        CommentedConfigurationNode target = CommentedConfigurationNode.root(configManager.configNodeOptions());
+        CommentedConfigurationNode defaultNode = CommentedConfigurationNode.root(configManager.nodeOptions());
+        CommentedConfigurationNode target = CommentedConfigurationNode.root(configManager.nodeOptions());
 
-        configManager.configObjectMapper()
+        configManager.objectMapper()
                 .get((Class<BaseChannelConfig>) defaultConfig.getClass())
                 .save(defaultConfig, defaultNode);
 
-        ObjectMapper<BaseChannelConfig> mapper = configManager.configObjectMapper()
+        ObjectMapper<BaseChannelConfig> mapper = configManager.objectMapper()
                 .get((Class<BaseChannelConfig>) config.getClass());
 
         mapper.save(config, target);

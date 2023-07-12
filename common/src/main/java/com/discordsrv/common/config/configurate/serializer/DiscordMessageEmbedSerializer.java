@@ -16,11 +16,11 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package com.discordsrv.common.config.serializer;
+package com.discordsrv.common.config.configurate.serializer;
 
 import com.discordsrv.api.color.Color;
 import com.discordsrv.api.discord.entity.message.DiscordMessageEmbed;
-import com.discordsrv.common.config.manager.manager.ConfigurateConfigManager;
+import com.discordsrv.common.config.configurate.manager.managers.ConfigurateConfigManager;
 import net.dv8tion.jda.api.entities.Role;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.spongepowered.configurate.ConfigurationNode;

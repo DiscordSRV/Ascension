@@ -20,7 +20,7 @@ package com.discordsrv.bukkit.config.manager;
 
 import com.discordsrv.bukkit.config.connection.BukkitConnectionConfig;
 import com.discordsrv.common.DiscordSRV;
-import com.discordsrv.common.config.manager.ConnectionConfigManager;
+import com.discordsrv.common.config.configurate.manager.ConnectionConfigManager;
 
 public class BukkitConnectionConfigManager extends ConnectionConfigManager<BukkitConnectionConfig> {
 

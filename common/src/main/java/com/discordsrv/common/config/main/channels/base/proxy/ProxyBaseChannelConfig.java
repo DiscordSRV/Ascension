@@ -18,7 +18,7 @@
 
 package com.discordsrv.common.config.main.channels.base.proxy;
 
-import com.discordsrv.common.config.annotation.Order;
+import com.discordsrv.common.config.configurate.annotation.Order;
 import com.discordsrv.common.config.main.channels.JoinMessageConfig;
 import com.discordsrv.common.config.main.channels.proxy.ServerSwitchMessageConfig;
 import com.discordsrv.common.config.main.channels.base.BaseChannelConfig;

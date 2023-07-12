@@ -16,32 +16,32 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package com.discordsrv.common.config.manager;
+package com.discordsrv.common.config.configurate.manager;
 
 import com.discordsrv.common.DiscordSRV;
-import com.discordsrv.common.config.connection.ConnectionConfig;
-import com.discordsrv.common.config.manager.loader.YamlConfigLoaderProvider;
-import com.discordsrv.common.config.manager.manager.TranslatedConfigManager;
+import com.discordsrv.common.config.configurate.manager.loader.YamlConfigLoaderProvider;
+import com.discordsrv.common.config.main.MainConfig;
+import com.discordsrv.common.config.configurate.manager.managers.TranslatedConfigManager;
 import org.spongepowered.configurate.ConfigurationOptions;
 import org.spongepowered.configurate.objectmapping.ObjectMapper;
 import org.spongepowered.configurate.yaml.YamlConfigurationLoader;
 
-public abstract class ConnectionConfigManager<C extends ConnectionConfig>
+public abstract class MainConfigManager<C extends MainConfig>
         extends TranslatedConfigManager<C, YamlConfigurationLoader>
         implements YamlConfigLoaderProvider {
 
-    public ConnectionConfigManager(DiscordSRV discordSRV) {
+    public MainConfigManager(DiscordSRV discordSRV) {
         super(discordSRV);
     }
 
     @Override
-    public ConfigurationOptions defaultOptions(ObjectMapper.Factory objectMapper) {
-        return super.defaultOptions(objectMapper)
-                .header(ConnectionConfig.HEADER);
+    public ConfigurationOptions configurationOptions(ObjectMapper.Factory objectMapper) {
+        return super.configurationOptions(objectMapper)
+                .header(MainConfig.HEADER);
     }
 
     @Override
     protected String fileName() {
-        return ConnectionConfig.FILE_NAME;
+        return MainConfig.FILE_NAME;
     }
 }

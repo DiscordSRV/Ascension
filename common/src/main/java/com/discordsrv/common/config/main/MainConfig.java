@@ -20,8 +20,8 @@ package com.discordsrv.common.config.main;
 
 import com.discordsrv.api.channel.GameChannel;
 import com.discordsrv.common.config.Config;
-import com.discordsrv.common.config.annotation.DefaultOnly;
-import com.discordsrv.common.config.annotation.Order;
+import com.discordsrv.common.config.configurate.annotation.DefaultOnly;
+import com.discordsrv.common.config.configurate.annotation.Order;
 import com.discordsrv.common.config.connection.ConnectionConfig;
 import com.discordsrv.common.config.main.channels.base.BaseChannelConfig;
 import com.discordsrv.common.config.main.channels.base.ChannelConfig;

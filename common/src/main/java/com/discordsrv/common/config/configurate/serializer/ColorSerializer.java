@@ -16,26 +16,44 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package com.discordsrv.common.config.serializer;
+package com.discordsrv.common.config.configurate.serializer;
 
+import com.discordsrv.api.color.Color;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.spongepowered.configurate.ConfigurationNode;
 import org.spongepowered.configurate.serialize.SerializationException;
 import org.spongepowered.configurate.serialize.TypeSerializer;
 
 import java.lang.reflect.Type;
-import java.util.regex.Pattern;
 
-public class PatternSerializer implements TypeSerializer<Pattern> {
+public class ColorSerializer implements TypeSerializer<Color> {
 
     @Override
-    public Pattern deserialize(Type type, ConfigurationNode node) {
-        String pattern = node != null ? node.getString() : null;
-        return pattern != null ? Pattern.compile(pattern) : null;
+    public Color deserialize(Type type, ConfigurationNode node) {
+        String hexColor = node.getString();
+        int length;
+        if (hexColor != null && ((length = hexColor.length()) == 6 || (length == 7 && hexColor.startsWith("#")))) {
+            if (length == 7) {
+                hexColor = hexColor.substring(1);
+            }
+
+            try {
+                return new Color(hexColor);
+            } catch (NumberFormatException ignored) {}
+        } else {
+            int intColor = node.getInt(Integer.MIN_VALUE);
+            if (intColor != Integer.MIN_VALUE) {
+                return new Color(intColor);
+            }
+        }
+        return null;
     }
 
     @Override
-    public void serialize(Type type, @Nullable Pattern obj, ConfigurationNode node) throws SerializationException {
-        node.set(obj != null ? obj.pattern() : null);
+    public void serialize(Type type, @Nullable Color obj, ConfigurationNode node) throws SerializationException {
+        if (obj == null) {
+            return;
+        }
+        node.set("#" + obj.hex());
     }
 }

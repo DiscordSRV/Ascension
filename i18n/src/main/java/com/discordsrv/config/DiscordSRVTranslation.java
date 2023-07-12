@@ -22,9 +22,9 @@ import com.discordsrv.bukkit.config.manager.BukkitConfigManager;
 import com.discordsrv.bukkit.config.manager.BukkitConnectionConfigManager;
 import com.discordsrv.common.DiscordSRV;
 import com.discordsrv.common.config.Config;
-import com.discordsrv.common.config.annotation.Untranslated;
-import com.discordsrv.common.config.manager.manager.ConfigurateConfigManager;
-import com.discordsrv.common.config.manager.manager.TranslatedConfigManager;
+import com.discordsrv.common.config.configurate.annotation.Untranslated;
+import com.discordsrv.common.config.configurate.manager.managers.ConfigurateConfigManager;
+import com.discordsrv.common.config.configurate.manager.managers.TranslatedConfigManager;
 import org.spongepowered.configurate.CommentedConfigurationNode;
 import org.spongepowered.configurate.ConfigurateException;
 import org.spongepowered.configurate.ConfigurationNode;
@@ -82,12 +82,12 @@ public final class DiscordSRVTranslation {
             String fileIdentifier = config.getFileName();
             ConfigurationNode commentSection = node.node(fileIdentifier + "_comments");
             
-            String header = configManager.configNodeOptions().header();
+            String header = configManager.nodeOptions().header();
             if (header != null) {
                 commentSection.node("$header").set(header);
             }
 
-            ObjectMapper.Factory mapperFactory = configManager.configObjectMapperBuilder()
+            ObjectMapper.Factory mapperFactory = configManager.objectMapperBuilder()
                     .addProcessor(Untranslated.class, untranslatedProcessorFactory)
                     .build();
 

@@ -16,24 +16,32 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package com.discordsrv.common.config.manager.manager;
+package com.discordsrv.common.config.configurate.manager;
 
 import com.discordsrv.common.DiscordSRV;
-import com.discordsrv.common.config.main.MainConfig;
-import com.discordsrv.common.config.main.channels.base.IChannelConfig;
-import com.discordsrv.common.config.main.channels.base.proxy.ProxyBaseChannelConfig;
-import com.discordsrv.common.config.main.channels.base.proxy.ProxyChannelConfig;
-import com.discordsrv.common.config.manager.MainConfigManager;
+import com.discordsrv.common.config.configurate.manager.loader.YamlConfigLoaderProvider;
+import com.discordsrv.common.config.connection.ConnectionConfig;
+import com.discordsrv.common.config.configurate.manager.managers.TranslatedConfigManager;
+import org.spongepowered.configurate.ConfigurationOptions;
 import org.spongepowered.configurate.objectmapping.ObjectMapper;
+import org.spongepowered.configurate.yaml.YamlConfigurationLoader;
 
-public abstract class ProxyConfigManager<T extends MainConfig> extends MainConfigManager<T> {
+public abstract class ConnectionConfigManager<C extends ConnectionConfig>
+        extends TranslatedConfigManager<C, YamlConfigurationLoader>
+        implements YamlConfigLoaderProvider {
 
-    public ProxyConfigManager(DiscordSRV discordSRV) {
+    public ConnectionConfigManager(DiscordSRV discordSRV) {
         super(discordSRV);
     }
 
     @Override
-    public IChannelConfig.Serializer getChannelConfigSerializer(ObjectMapper.Factory mapperFactory) {
-        return new IChannelConfig.Serializer(mapperFactory, ProxyBaseChannelConfig.class, ProxyChannelConfig.class);
+    public ConfigurationOptions configurationOptions(ObjectMapper.Factory objectMapper) {
+        return super.configurationOptions(objectMapper)
+                .header(ConnectionConfig.HEADER);
+    }
+
+    @Override
+    protected String fileName() {
+        return ConnectionConfig.FILE_NAME;
     }
 }

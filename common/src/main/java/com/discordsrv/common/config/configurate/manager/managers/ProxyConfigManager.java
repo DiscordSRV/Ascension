@@ -16,32 +16,24 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package com.discordsrv.common.config.manager;
+package com.discordsrv.common.config.configurate.manager.managers;
 
 import com.discordsrv.common.DiscordSRV;
+import com.discordsrv.common.config.configurate.manager.MainConfigManager;
 import com.discordsrv.common.config.main.MainConfig;
-import com.discordsrv.common.config.manager.loader.YamlConfigLoaderProvider;
-import com.discordsrv.common.config.manager.manager.TranslatedConfigManager;
-import org.spongepowered.configurate.ConfigurationOptions;
+import com.discordsrv.common.config.main.channels.base.IChannelConfig;
+import com.discordsrv.common.config.main.channels.base.proxy.ProxyBaseChannelConfig;
+import com.discordsrv.common.config.main.channels.base.proxy.ProxyChannelConfig;
 import org.spongepowered.configurate.objectmapping.ObjectMapper;
-import org.spongepowered.configurate.yaml.YamlConfigurationLoader;
 
-public abstract class MainConfigManager<C extends MainConfig>
-        extends TranslatedConfigManager<C, YamlConfigurationLoader>
-        implements YamlConfigLoaderProvider {
+public abstract class ProxyConfigManager<T extends MainConfig> extends MainConfigManager<T> {
 
-    public MainConfigManager(DiscordSRV discordSRV) {
+    public ProxyConfigManager(DiscordSRV discordSRV) {
         super(discordSRV);
     }
 
     @Override
-    public ConfigurationOptions defaultOptions(ObjectMapper.Factory objectMapper) {
-        return super.defaultOptions(objectMapper)
-                .header(MainConfig.HEADER);
-    }
-
-    @Override
-    protected String fileName() {
-        return MainConfig.FILE_NAME;
+    public IChannelConfig.Serializer getChannelConfigSerializer(ObjectMapper.Factory mapperFactory) {
+        return new IChannelConfig.Serializer(mapperFactory, ProxyBaseChannelConfig.class, ProxyChannelConfig.class);
     }
 }

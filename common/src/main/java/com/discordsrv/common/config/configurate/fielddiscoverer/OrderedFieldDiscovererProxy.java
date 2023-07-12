@@ -16,7 +16,7 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package com.discordsrv.common.config.fielddiscoverer;
+package com.discordsrv.common.config.configurate.fielddiscoverer;
 
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.spongepowered.configurate.objectmapping.FieldData;
@@ -30,6 +30,10 @@ import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 
+/**
+ * Proxy for {@link com.discordsrv.common.config.configurate.annotation.Order}.
+ * @param <T> T of proxied {@link FieldDiscoverer}
+ */
 public class OrderedFieldDiscovererProxy<T> implements FieldDiscoverer<T> {
 
     private final FieldDiscoverer<T> fieldDiscoverer;

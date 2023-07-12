@@ -16,7 +16,7 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package com.discordsrv.common.config.manager.loader;
+package com.discordsrv.common.config.configurate.manager.loader;
 
 import org.jetbrains.annotations.ApiStatus;
 import org.spongepowered.configurate.CommentedConfigurationNode;

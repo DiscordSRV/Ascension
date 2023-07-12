@@ -18,7 +18,7 @@
 
 package com.discordsrv.common.config.main.channels;
 
-import com.discordsrv.common.config.annotation.Untranslated;
+import com.discordsrv.common.config.configurate.annotation.Untranslated;
 import com.discordsrv.common.config.main.generic.DiscordIgnoresConfig;
 import org.spongepowered.configurate.objectmapping.ConfigSerializable;
 import org.spongepowered.configurate.objectmapping.meta.Comment;

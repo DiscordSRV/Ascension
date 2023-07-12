@@ -16,14 +16,14 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package com.discordsrv.common.config.manager.manager;
+package com.discordsrv.common.config.configurate.manager.managers;
 
 import com.discordsrv.common.DiscordSRV;
+import com.discordsrv.common.config.configurate.manager.MainConfigManager;
 import com.discordsrv.common.config.main.MainConfig;
 import com.discordsrv.common.config.main.channels.base.IChannelConfig;
 import com.discordsrv.common.config.main.channels.base.server.ServerBaseChannelConfig;
 import com.discordsrv.common.config.main.channels.base.server.ServerChannelConfig;
-import com.discordsrv.common.config.manager.MainConfigManager;
 import org.spongepowered.configurate.objectmapping.ObjectMapper;
 
 public abstract class ServerConfigManager<T extends MainConfig> extends MainConfigManager<T> {

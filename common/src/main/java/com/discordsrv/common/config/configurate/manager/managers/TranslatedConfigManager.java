@@ -16,7 +16,7 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package com.discordsrv.common.config.manager.manager;
+package com.discordsrv.common.config.configurate.manager.managers;
 
 import com.discordsrv.common.DiscordSRV;
 import com.discordsrv.common.config.Config;
@@ -53,8 +53,8 @@ public abstract class TranslatedConfigManager<T extends Config, LT extends Abstr
     }
 
     @Override
-    public ConfigurationOptions defaultOptions(ObjectMapper.Factory objectMapper) {
-        ConfigurationOptions options = super.defaultOptions(objectMapper);
+    public ConfigurationOptions configurationOptions(ObjectMapper.Factory objectMapper) {
+        ConfigurationOptions options = super.configurationOptions(objectMapper);
         if (header != null) {
             options = options.header(header);
         }

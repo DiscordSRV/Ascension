@@ -18,7 +18,7 @@
 
 package com.discordsrv.common.config.main.linking;
 
-import com.discordsrv.common.config.annotation.DefaultOnly;
+import com.discordsrv.common.config.configurate.annotation.DefaultOnly;
 import com.discordsrv.common.config.connection.ConnectionConfig;
 import org.spongepowered.configurate.objectmapping.ConfigSerializable;
 import org.spongepowered.configurate.objectmapping.meta.Comment;

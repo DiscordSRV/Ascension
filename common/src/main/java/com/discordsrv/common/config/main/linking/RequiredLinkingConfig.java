@@ -18,7 +18,7 @@
 
 package com.discordsrv.common.config.main.linking;
 
-import com.discordsrv.common.config.annotation.Order;
+import com.discordsrv.common.config.configurate.annotation.Order;
 import org.spongepowered.configurate.objectmapping.ConfigSerializable;
 
 @ConfigSerializable

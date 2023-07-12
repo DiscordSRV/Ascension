@@ -16,24 +16,16 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package com.discordsrv.common.config.annotation;
+package com.discordsrv.common.config.configurate.manager.managers;
 
-import java.lang.annotation.ElementType;
-import java.lang.annotation.Retention;
-import java.lang.annotation.RetentionPolicy;
-import java.lang.annotation.Target;
+import com.discordsrv.common.exception.ConfigException;
 
-/**
- * Manually determines the position of the option in the config, everything is ordered {@code 0} by default,
- * and will go in the order they are defined.
- */
-@Retention(RetentionPolicy.RUNTIME)
-@Target(ElementType.FIELD)
-public @interface Order {
+public interface ConfigManager<T> {
 
-    /**
-     * Lowest to highest.
-     * @return the order value of the option
-     */
-    int value();
+    T createConfiguration();
+    T config();
+
+    void load() throws ConfigException;
+    void reload() throws ConfigException;
+    void save() throws ConfigException;
 }

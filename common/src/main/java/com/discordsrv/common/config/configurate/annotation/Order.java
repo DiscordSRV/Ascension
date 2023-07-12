@@ -16,7 +16,7 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package com.discordsrv.common.config.annotation;
+package com.discordsrv.common.config.configurate.annotation;
 
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
@@ -24,20 +24,16 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
 /**
- * Prevents the annotated options from being (partially) merged into existing configs (only being added to new configs).
+ * Manually determines the position of the option in the config, everything is ordered {@code 0} by default,
+ * and will go in the order they are defined.
  */
 @Retention(RetentionPolicy.RUNTIME)
 @Target(ElementType.FIELD)
-public @interface DefaultOnly {
+public @interface Order {
 
     /**
-     * The children that are whitelisted/blacklisted based on {@link #whitelist()},
-     * if this is empty the entire option will be blacklisted from being merged into existing configs.
+     * Lowest to highest.
+     * @return the order value of the option
      */
-    String[] value() default {};
-
-    /**
-     * Only the provided {@link #value()} otherwise everything except the provided {@link #value()}.
-     */
-    boolean whitelist() default true;
+    int value();
 }
