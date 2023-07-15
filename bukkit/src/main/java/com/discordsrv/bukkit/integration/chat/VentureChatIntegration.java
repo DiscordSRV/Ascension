@@ -34,11 +34,14 @@ import mineverse.Aust1n46.chat.channel.ChatChannel;
 import mineverse.Aust1n46.chat.utilities.Format;
 import net.kyori.adventure.platform.bukkit.BukkitComponentSerializer;
 import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.TextReplacementConfig;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.HandlerList;
 import org.bukkit.event.Listener;
 import org.jetbrains.annotations.NotNull;
+
+import java.util.regex.Pattern;
 
 public class VentureChatIntegration extends PluginIntegration<BukkitDiscordSRV> implements Listener {
 
@@ -157,10 +160,11 @@ public class VentureChatIntegration extends PluginIntegration<BukkitDiscordSRV> 
                 }
 
                 if (player.hasFilter() && channel.isFiltered()) {
-                    comp = BukkitComponentSerializer.legacy().deserialize(
-                            Format.FilterChat(
-                                    BukkitComponentSerializer.legacy().serialize(comp)
-                            )
+                    comp = comp.replaceText(
+                            TextReplacementConfig.builder()
+                                    .match(Pattern.compile("[\\w\\W]+"))
+                                    .replacement(match -> match.content(Format.FilterChat(match.content())))
+                                    .build()
                     );
                 }
 
