@@ -144,7 +144,6 @@ public class VentureChatIntegration extends PluginIntegration<BukkitDiscordSRV> 
 
         @Override
         public void sendMessage(@NotNull MinecraftComponent component) {
-            Component comp = ComponentUtil.fromAPI(component);
             for (MineverseChatPlayer player : MineverseChatAPI.getMineverseChatPlayers()) {
                 if (!player.isListening(channel.getName())) {
                     continue;
@@ -159,6 +158,7 @@ public class VentureChatIntegration extends PluginIntegration<BukkitDiscordSRV> 
                     continue;
                 }
 
+                Component comp = ComponentUtil.fromAPI(component);
                 if (player.hasFilter() && channel.isFiltered()) {
                     comp = comp.replaceText(
                             TextReplacementConfig.builder()
