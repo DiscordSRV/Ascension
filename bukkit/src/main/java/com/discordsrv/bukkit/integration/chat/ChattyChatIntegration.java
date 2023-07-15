@@ -28,6 +28,7 @@ import com.discordsrv.common.component.util.ComponentUtil;
 import com.discordsrv.common.logging.NamedLogger;
 import com.discordsrv.common.module.type.PluginIntegration;
 import net.kyori.adventure.platform.bukkit.BukkitComponentSerializer;
+import net.kyori.adventure.text.Component;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.HandlerList;
@@ -129,7 +130,10 @@ public class ChattyChatIntegration extends PluginIntegration<BukkitDiscordSRV> i
 
         @Override
         public void sendMessage(@NotNull MinecraftComponent component) {
-            chat.sendMessage(BukkitComponentSerializer.legacy().serialize(ComponentUtil.fromAPI(component)));
+            Component comp = ComponentUtil.fromAPI(component);
+            for (Player recipient : chat.getRecipients(null)) {
+                discordSRV.playerProvider().player(recipient).sendMessage(comp);
+            }
         }
     }
 }

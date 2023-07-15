@@ -34,6 +34,8 @@ import com.github.ucchyocean.lc3.channel.Channel;
 import com.github.ucchyocean.lc3.member.ChannelMember;
 import com.github.ucchyocean.lc3.member.ChannelMemberPlayer;
 import net.kyori.adventure.platform.bukkit.BukkitComponentSerializer;
+import net.kyori.adventure.text.serializer.bungeecord.BungeeComponentSerializer;
+import net.md_5.bungee.api.chat.BaseComponent;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.HandlerList;
@@ -145,8 +147,10 @@ public class LunaChatIntegration extends PluginIntegration<BukkitDiscordSRV> imp
 
         @Override
         public void sendMessage(@NotNull MinecraftComponent component) {
-            String message = BukkitComponentSerializer.legacy().serialize(ComponentUtil.fromAPI(component));
-            channel.chatFromOtherSource("Discord", null, message);
+            BaseComponent[] baseComponent = BungeeComponentSerializer.get().serialize(ComponentUtil.fromAPI(component));
+            for (ChannelMember member : channel.getMembers()) {
+                member.sendMessage(baseComponent);
+            }
         }
     }
 
