@@ -42,8 +42,8 @@ public class StandardScheduler implements Scheduler {
                 new ThreadPoolExecutor(
                         /* Core pool size */
                         1,
-                        /* Max pool size: cpu cores / 2 or at least 1 */
-                        Math.max(1, Runtime.getRuntime().availableProcessors() / 2),
+                        /* Max pool size: cpu cores - 2 or at least 4 */
+                        Math.max(4, Runtime.getRuntime().availableProcessors() - 2),
                         /* Timeout */
                         60, TimeUnit.SECONDS,
                         new SynchronousQueue<>(),
