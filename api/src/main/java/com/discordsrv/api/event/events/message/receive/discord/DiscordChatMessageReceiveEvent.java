@@ -31,6 +31,10 @@ import com.discordsrv.api.discord.entity.message.ReceivedDiscordMessage;
 import com.discordsrv.api.event.events.Cancellable;
 import org.jetbrains.annotations.NotNull;
 
+/**
+ * Indicates that a Discord message has been received and will be processed unless cancelled.
+ * This runs once per Discord message, before {@link DiscordChatMessageProcessEvent}.
+ */
 public class DiscordChatMessageReceiveEvent implements Cancellable {
 
     private final ReceivedDiscordMessage message;

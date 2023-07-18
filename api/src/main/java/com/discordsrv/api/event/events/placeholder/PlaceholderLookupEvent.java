@@ -31,6 +31,9 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.Set;
 
+/**
+ * An event for converting a placeholder's name and context into a {@link PlaceholderLookupResult}.
+ */
 public class PlaceholderLookupEvent implements Event, Processable {
 
     private final String placeholder;
@@ -44,14 +47,28 @@ public class PlaceholderLookupEvent implements Event, Processable {
         this.contexts = contexts;
     }
 
+    /**
+     * The placeholders that was requested.
+     * @return the placeholder
+     */
     public String getPlaceholder() {
         return placeholder;
     }
 
+    /**
+     * Gets all contexts provided for this lookup, this may be things like {@link com.discordsrv.api.player.DiscordSRVPlayer} or {@link com.discordsrv.api.discord.entity.DiscordUser}.
+     * @return all contexts for this request
+     */
     public Set<Object> getContexts() {
         return contexts;
     }
 
+    /**
+     * Returns the context of the given type if provided.
+     * @param type the type of context to look for
+     * @return the given context if provided, otherwise {@code null}
+     * @param <T> the type of the context to lookup
+     */
     @SuppressWarnings("unchecked")
     public <T> @Nullable T getContext(Class<T> type) {
         for (Object o : contexts) {

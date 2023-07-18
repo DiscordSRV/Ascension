@@ -6,6 +6,10 @@ import com.discordsrv.api.discord.entity.message.ReceivedDiscordMessage;
 import com.discordsrv.api.event.events.Cancellable;
 import com.discordsrv.api.event.events.Processable;
 
+/**
+ * Indicates that a Discord message is about to be processed, this will run once per {@link GameChannel} destination,
+ * meaning it could run multiple times for a single Discord message. This runs after {@link DiscordChatMessageReceiveEvent}.
+ */
 public class DiscordChatMessageProcessEvent implements Cancellable, Processable {
 
     private final DiscordMessageChannel discordChannel;

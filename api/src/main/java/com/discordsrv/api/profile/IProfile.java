@@ -27,6 +27,9 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.UUID;
 
+/**
+ * A profile for a Minecraft player, Discord user or linked pair.
+ */
 public interface IProfile {
 
     @Nullable
@@ -35,6 +38,10 @@ public interface IProfile {
     @Nullable
     Long userId();
 
+    /**
+     * If this profile belongs to a linked Player and User pair.
+     * @return {@code true} if this profile is for a linked player/user
+     */
     default boolean isLinked() {
         return playerUUID() != null && userId() != null;
     }

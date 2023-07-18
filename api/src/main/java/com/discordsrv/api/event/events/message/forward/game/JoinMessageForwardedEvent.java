@@ -26,6 +26,9 @@ package com.discordsrv.api.event.events.message.forward.game;
 import com.discordsrv.api.discord.entity.message.ReceivedDiscordMessageCluster;
 import org.jetbrains.annotations.NotNull;
 
+/**
+ * Indicates that a join message was forwarded to Discord.
+ */
 public class JoinMessageForwardedEvent extends AbstractGameMessageForwardedEvent {
 
     public JoinMessageForwardedEvent(@NotNull ReceivedDiscordMessageCluster discordMessage) {

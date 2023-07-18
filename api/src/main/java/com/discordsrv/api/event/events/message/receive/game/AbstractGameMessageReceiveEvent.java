@@ -38,6 +38,10 @@ public abstract class AbstractGameMessageReceiveEvent implements Processable, Ca
         this.cancelled = cancelled;
     }
 
+    /**
+     * Gets the event that triggered this event to occur. This varies depending on platform and different plugin integrations.
+     * @return an event object, that isn't guaranteed to be of the same type every time or {@code null}
+     */
     @Nullable
     public Object getTriggeringEvent() {
         return triggeringEvent;

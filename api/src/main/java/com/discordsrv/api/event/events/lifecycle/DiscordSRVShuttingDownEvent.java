@@ -28,8 +28,8 @@ import com.discordsrv.api.event.events.Event;
 
 /**
  * Indicates that DiscordSRV is shutting down.
- *
- * DiscordSRV's own systems will shutdown at the following times:
+ * <p>
+ * DiscordSRV's own systems will shut down at the following times:
  * {@link EventPriority#EARLY}<br/>
  *  - DiscordSRV's own modules shutdown<br/>
  *

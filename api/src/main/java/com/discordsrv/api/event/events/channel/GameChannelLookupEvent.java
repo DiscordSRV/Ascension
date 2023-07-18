@@ -32,6 +32,8 @@ import org.jetbrains.annotations.Nullable;
  * This event is used to lookup {@link GameChannel}s by their name (and optionally plugin name).
  * This is also used to determine which plugin's channel should take priority when multiple plugins
  * define channels with the same name ({@link com.discordsrv.api.event.bus.EventPriority}).
+ *
+ * @see #isDefault()
  */
 public class GameChannelLookupEvent implements Processable {
 
@@ -47,7 +49,7 @@ public class GameChannelLookupEvent implements Processable {
     }
 
     /**
-     * If this is for the "default" channel.
+     * If this is {@code true} the default channel should be returned, if it exists.
      * @return if this lookup is for the default channel
      */
     public boolean isDefault() {
@@ -86,6 +88,7 @@ public class GameChannelLookupEvent implements Processable {
      * If this is the {@link #isDefault()} channel, any channel name is accepted.
      * @param channel the channel
      * @throws IllegalStateException if the event is already processed
+     * @throws IllegalArgumentException if the provided channel doesn't match {@link #getChannelName()} and {@link #isDefault()} is {@code false}
      */
     public void process(@NotNull GameChannel channel) {
         if (processed) {

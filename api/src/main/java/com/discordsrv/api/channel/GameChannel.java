@@ -27,7 +27,7 @@ import com.discordsrv.api.component.MinecraftComponent;
 import org.jetbrains.annotations.NotNull;
 
 /**
- * An in-game channel for sending Minecraft messages.
+ * An in-game channel for sending Minecraft messages to.
  */
 public interface GameChannel {
 

@@ -26,6 +26,9 @@ package com.discordsrv.api.event.events.message.forward.game;
 import com.discordsrv.api.discord.entity.message.ReceivedDiscordMessageCluster;
 import org.jetbrains.annotations.NotNull;
 
+/**
+ * Indicates that an advancement or achievement message was forwarded to Discord.
+ */
 public class AwardMessageForwardedEvent extends AbstractGameMessageForwardedEvent {
 
     public AwardMessageForwardedEvent(@NotNull ReceivedDiscordMessageCluster discordMessage) {

@@ -29,6 +29,10 @@ import com.discordsrv.api.player.DiscordSRVPlayer;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+/**
+ * Indicates that a join message was received and will be processed
+ * at {@link com.discordsrv.api.event.bus.EventPriority#DEFAULT} unless cancelled or processed by a 3rd party.
+ */
 public class JoinMessageReceiveEvent extends AbstractGameMessageReceiveEvent {
 
     private final DiscordSRVPlayer player;

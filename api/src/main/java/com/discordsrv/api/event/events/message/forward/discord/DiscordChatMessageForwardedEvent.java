@@ -28,6 +28,9 @@ import com.discordsrv.api.component.MinecraftComponent;
 import com.discordsrv.api.event.events.Event;
 import org.jetbrains.annotations.NotNull;
 
+/**
+ * Indicates that a message from Discord was forwarded to the provided {@link GameChannel}.
+ */
 public class DiscordChatMessageForwardedEvent implements Event {
 
     private final MinecraftComponent message;

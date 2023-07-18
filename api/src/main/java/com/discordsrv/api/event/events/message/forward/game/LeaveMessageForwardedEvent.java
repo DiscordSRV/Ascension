@@ -26,6 +26,9 @@ package com.discordsrv.api.event.events.message.forward.game;
 import com.discordsrv.api.discord.entity.message.ReceivedDiscordMessageCluster;
 import org.jetbrains.annotations.NotNull;
 
+/**
+ * Indicates that a leave message was forwarded to Discord.
+ */
 public class LeaveMessageForwardedEvent extends AbstractGameMessageForwardedEvent {
 
     public LeaveMessageForwardedEvent(@NotNull ReceivedDiscordMessageCluster discordMessage) {
