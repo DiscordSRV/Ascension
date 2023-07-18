@@ -23,6 +23,7 @@ import com.discordsrv.common.function.CheckedSupplier;
 import com.discordsrv.common.future.util.CompletableFutureUtil;
 import com.discordsrv.common.linking.LinkProvider;
 import com.discordsrv.common.linking.LinkStore;
+import com.discordsrv.common.linking.LinkingModule;
 import com.discordsrv.common.logging.Logger;
 import com.discordsrv.common.logging.NamedLogger;
 import me.minecraftauth.lib.AuthService;
@@ -80,14 +81,35 @@ public class MinecraftAuthenticationLinker extends CachedLinkProvider implements
 
     private void linked(UUID playerUUID, long userId) {
         logger.debug("New link: " + playerUUID + " & " + Long.toUnsignedString(userId));
-        linkStore.createLink(playerUUID, userId);
+        linkStore.createLink(playerUUID, userId).whenComplete((v, t) -> {
+            if (t != null) {
+                logger.error("Failed to link player persistently", t);
+                return;
+            }
+
+            module().linked(playerUUID, userId);
+        });
 
     }
 
     private void unlinked(UUID playerUUID, long userId) {
         logger.debug("Unlink: " + playerUUID + " & " + Long.toUnsignedString(userId));
-        linkStore.createLink(playerUUID, userId);
+        linkStore.createLink(playerUUID, userId).whenComplete((v, t) -> {
+            if (t != null) {
+                logger.error("Failed to unlink player in persistent storage", t);
+                return;
+            }
 
+            module().unlinked(playerUUID, userId);
+        });
+    }
+
+    private LinkingModule module() {
+        LinkingModule module = discordSRV.getModule(LinkingModule.class);
+        if (module == null) {
+            throw new IllegalStateException("LinkingModule not available");
+        }
+        return module;
     }
 
     private <T> CompletableFuture<Optional<T>> query(

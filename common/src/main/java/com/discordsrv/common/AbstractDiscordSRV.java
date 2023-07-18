@@ -51,6 +51,7 @@ import com.discordsrv.common.function.CheckedFunction;
 import com.discordsrv.common.groupsync.GroupSyncModule;
 import com.discordsrv.common.invite.DiscordInviteModule;
 import com.discordsrv.common.linking.LinkProvider;
+import com.discordsrv.common.linking.LinkingModule;
 import com.discordsrv.common.linking.impl.MemoryLinker;
 import com.discordsrv.common.linking.impl.MinecraftAuthenticationLinker;
 import com.discordsrv.common.linking.impl.StorageLinker;
@@ -542,6 +543,7 @@ public abstract class AbstractDiscordSRV<B extends IBootstrap, C extends MainCon
         registerModule(LeaveMessageModule::new);
         registerModule(DiscordInviteModule::new);
         registerModule(MentionCachingModule::new);
+        registerModule(LinkingModule::new);
 
         // Integrations
         registerIntegration("com.discordsrv.common.integration.LuckPermsIntegration");
