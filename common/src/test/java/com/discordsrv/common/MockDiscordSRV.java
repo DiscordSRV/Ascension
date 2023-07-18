@@ -21,12 +21,14 @@ package com.discordsrv.common;
 import com.discordsrv.common.bootstrap.IBootstrap;
 import com.discordsrv.common.bootstrap.LifecycleManager;
 import com.discordsrv.common.command.game.handler.ICommandHandler;
+import com.discordsrv.common.config.configurate.manager.ConnectionConfigManager;
+import com.discordsrv.common.config.configurate.manager.MainConfigManager;
+import com.discordsrv.common.config.configurate.manager.MessagesConfigManager;
+import com.discordsrv.common.config.configurate.manager.abstraction.ServerConfigManager;
 import com.discordsrv.common.config.connection.ConnectionConfig;
 import com.discordsrv.common.config.main.MainConfig;
 import com.discordsrv.common.config.main.PluginIntegrationConfig;
-import com.discordsrv.common.config.configurate.manager.ConnectionConfigManager;
-import com.discordsrv.common.config.configurate.manager.MainConfigManager;
-import com.discordsrv.common.config.configurate.manager.abstraction.ServerConfigManager;
+import com.discordsrv.common.config.messages.MessagesConfig;
 import com.discordsrv.common.console.Console;
 import com.discordsrv.common.debug.data.OnlineMode;
 import com.discordsrv.common.logging.Logger;
@@ -44,7 +46,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 
 @SuppressWarnings("ConstantConditions")
-public class MockDiscordSRV extends AbstractDiscordSRV<IBootstrap, MainConfig, ConnectionConfig> {
+public class MockDiscordSRV extends AbstractDiscordSRV<IBootstrap, MainConfig, ConnectionConfig, MessagesConfig> {
 
     public static final MockDiscordSRV INSTANCE = new MockDiscordSRV();
 
@@ -146,6 +148,11 @@ public class MockDiscordSRV extends AbstractDiscordSRV<IBootstrap, MainConfig, C
                 };
             }
         };
+    }
+
+    @Override
+    public MessagesConfigManager<MessagesConfig> messagesConfigManager() {
+        return null;
     }
 
     @Override

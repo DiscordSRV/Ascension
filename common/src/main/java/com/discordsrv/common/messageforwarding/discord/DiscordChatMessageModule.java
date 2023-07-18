@@ -31,6 +31,7 @@ import com.discordsrv.api.discord.events.message.DiscordMessageDeleteEvent;
 import com.discordsrv.api.discord.events.message.DiscordMessageReceiveEvent;
 import com.discordsrv.api.discord.events.message.DiscordMessageUpdateEvent;
 import com.discordsrv.api.event.bus.Subscribe;
+import com.discordsrv.api.event.events.message.forward.discord.DiscordChatMessageForwardedEvent;
 import com.discordsrv.api.event.events.message.receive.discord.DiscordChatMessageProcessEvent;
 import com.discordsrv.api.event.events.message.receive.discord.DiscordChatMessageReceiveEvent;
 import com.discordsrv.api.placeholder.util.Placeholders;
@@ -203,6 +204,7 @@ public class DiscordChatMessageModule extends AbstractModule<DiscordSRV> {
         }
 
         gameChannel.sendMessage(component);
+        discordSRV.eventBus().publish(new DiscordChatMessageForwardedEvent(component, gameChannel));
     }
 
     public static class MessageSend {

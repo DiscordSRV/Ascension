@@ -26,6 +26,7 @@ import com.discordsrv.bukkit.config.connection.BukkitConnectionConfig;
 import com.discordsrv.bukkit.config.main.BukkitConfig;
 import com.discordsrv.bukkit.config.manager.BukkitConfigManager;
 import com.discordsrv.bukkit.config.manager.BukkitConnectionConfigManager;
+import com.discordsrv.bukkit.config.manager.BukkitMessagesConfigManager;
 import com.discordsrv.bukkit.console.BukkitConsole;
 import com.discordsrv.bukkit.listener.BukkitConnectionListener;
 import com.discordsrv.bukkit.listener.BukkitDeathListener;
@@ -43,6 +44,8 @@ import com.discordsrv.common.ServerDiscordSRV;
 import com.discordsrv.common.command.game.handler.ICommandHandler;
 import com.discordsrv.common.config.configurate.manager.ConnectionConfigManager;
 import com.discordsrv.common.config.configurate.manager.MainConfigManager;
+import com.discordsrv.common.config.configurate.manager.MessagesConfigManager;
+import com.discordsrv.common.config.messages.MessagesConfig;
 import com.discordsrv.common.debug.data.OnlineMode;
 import com.discordsrv.common.messageforwarding.game.minecrafttodiscord.MinecraftToDiscordChatModule;
 import com.discordsrv.common.plugin.PluginManager;
@@ -56,7 +59,7 @@ import java.lang.reflect.Field;
 import java.util.List;
 import java.util.Set;
 
-public class BukkitDiscordSRV extends ServerDiscordSRV<DiscordSRVBukkitBootstrap, BukkitConfig, BukkitConnectionConfig> {
+public class BukkitDiscordSRV extends ServerDiscordSRV<DiscordSRVBukkitBootstrap, BukkitConfig, BukkitConnectionConfig, MessagesConfig> {
 
     private BukkitAudiences audiences;
     private BukkitTranslationLoader translationLoader;
@@ -71,6 +74,7 @@ public class BukkitDiscordSRV extends ServerDiscordSRV<DiscordSRVBukkitBootstrap
 
     private final BukkitConnectionConfigManager connectionConfigManager;
     private final BukkitConfigManager configManager;
+    private final BukkitMessagesConfigManager messagesConfigManager;
 
     private static IBukkitScheduler createScheduler(BukkitDiscordSRV discordSRV) {
         try {
@@ -92,6 +96,7 @@ public class BukkitDiscordSRV extends ServerDiscordSRV<DiscordSRVBukkitBootstrap
         // Config
         this.connectionConfigManager = new BukkitConnectionConfigManager(this);
         this.configManager = new BukkitConfigManager(this);
+        this.messagesConfigManager = new BukkitMessagesConfigManager(this);
 
         load();
 
@@ -168,6 +173,11 @@ public class BukkitDiscordSRV extends ServerDiscordSRV<DiscordSRVBukkitBootstrap
     @Override
     public MainConfigManager<BukkitConfig> configManager() {
         return configManager;
+    }
+
+    @Override
+    public MessagesConfigManager<MessagesConfig> messagesConfigManager() {
+        return messagesConfigManager;
     }
 
     @Override

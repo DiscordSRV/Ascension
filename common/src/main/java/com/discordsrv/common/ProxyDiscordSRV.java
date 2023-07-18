@@ -21,9 +21,15 @@ package com.discordsrv.common;
 import com.discordsrv.common.bootstrap.IBootstrap;
 import com.discordsrv.common.config.connection.ConnectionConfig;
 import com.discordsrv.common.config.main.MainConfig;
+import com.discordsrv.common.config.messages.MessagesConfig;
 import com.discordsrv.common.messageforwarding.game.ServerSwitchMessageModule;
 
-public abstract class ProxyDiscordSRV<B extends IBootstrap, C extends MainConfig, CC extends ConnectionConfig> extends AbstractDiscordSRV<B, C, CC> {
+public abstract class ProxyDiscordSRV<
+        B extends IBootstrap,
+        C extends MainConfig,
+        CC extends ConnectionConfig,
+        MC extends MessagesConfig
+> extends AbstractDiscordSRV<B, C, CC, MC> {
 
     public ProxyDiscordSRV(B bootstrap) {
         super(bootstrap);

@@ -69,26 +69,30 @@ public abstract class ConfigurateConfigManager<T, LT extends AbstractConfigurati
     };
 
     protected final DiscordSRV discordSRV;
-    private final Path filePath;
     private final ObjectMapper.Factory objectMapper;
     private final ObjectMapper.Factory cleanObjectMapper;
-    private final LT loader;
+    private Path filePath;
+    private LT loader;
 
     protected T configuration;
 
     public ConfigurateConfigManager(DiscordSRV discordSRV) {
         this.discordSRV = discordSRV;
-        this.filePath = discordSRV.dataDirectory().resolve(fileName());
         this.objectMapper = objectMapperBuilder().build();
         this.cleanObjectMapper = cleanObjectMapperBuilder().build();
-        this.loader = createLoader(filePath, nodeOptions());
     }
 
     public Path filePath() {
+        if (filePath == null) {
+            filePath = discordSRV.dataDirectory().resolve(fileName());
+        }
         return filePath;
     }
 
     public LT loader() {
+        if (loader == null) {
+            loader = createLoader(filePath(), nodeOptions());
+        }
         return loader;
     }
 
@@ -310,6 +314,7 @@ public abstract class ConfigurateConfigManager<T, LT extends AbstractConfigurati
     @Override
     public void save() throws ConfigException {
         try {
+            LT loader = loader();
             CommentedConfigurationNode node = loader.createNode();
             save(configuration, (Class<T>) configuration.getClass(), node);
             loader.save(node);

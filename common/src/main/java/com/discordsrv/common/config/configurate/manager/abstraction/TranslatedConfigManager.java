@@ -35,6 +35,7 @@ import java.net.URL;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Locale;
 
 public abstract class TranslatedConfigManager<T extends Config, LT extends AbstractConfigurationLoader<CommentedConfigurationNode>>
         extends ConfigurateConfigManager<T, LT> {
@@ -43,6 +44,10 @@ public abstract class TranslatedConfigManager<T extends Config, LT extends Abstr
 
     public TranslatedConfigManager(DiscordSRV discordSRV) {
         super(discordSRV);
+    }
+
+    public Locale locale() {
+        return discordSRV.defaultLocale();
     }
 
     @Override
@@ -100,9 +105,12 @@ public abstract class TranslatedConfigManager<T extends Config, LT extends Abstr
     }
 
     private ConfigurationNode getTranslationRoot() throws ConfigurateException {
-        String languageCode = discordSRV.locale().getISO3Language();
-        URL resourceURL = discordSRV.getClass().getClassLoader()
-                .getResource("translations/" + languageCode + ".yml");
+        String languageCode = locale().getISO3Language();
+        ClassLoader classLoader = discordSRV.getClass().getClassLoader();
+        URL resourceURL = classLoader.getResource("translations/" + languageCode + ".yaml");
+        if (resourceURL == null) {
+            resourceURL = classLoader.getResource("translations/eng.yaml");
+        }
         if (resourceURL == null) {
             return null;
         }
