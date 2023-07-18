@@ -22,6 +22,7 @@ import com.discordsrv.common.DiscordSRV;
 import com.discordsrv.common.function.CheckedSupplier;
 import com.discordsrv.common.future.util.CompletableFutureUtil;
 import com.discordsrv.common.linking.LinkProvider;
+import com.discordsrv.common.linking.LinkStore;
 import com.discordsrv.common.logging.Logger;
 import com.discordsrv.common.logging.NamedLogger;
 import me.minecraftauth.lib.AuthService;
@@ -39,9 +40,11 @@ import java.util.function.Supplier;
 public class MinecraftAuthenticationLinker extends CachedLinkProvider implements LinkProvider {
 
     private final Logger logger;
+    private final LinkStore linkStore;
 
     public MinecraftAuthenticationLinker(DiscordSRV discordSRV) {
         super(discordSRV);
+        this.linkStore = new StorageLinker(discordSRV);
         this.logger = new NamedLogger(discordSRV, "MINECRAFTAUTH_LINKER");
     }
 
@@ -51,7 +54,7 @@ public class MinecraftAuthenticationLinker extends CachedLinkProvider implements
                 () -> AuthService.lookup(AccountType.MINECRAFT, playerUUID.toString(), AccountType.DISCORD)
                         .map(account -> (DiscordAccount) account)
                         .map(discord -> Long.parseUnsignedLong(discord.getUserId())),
-                () -> discordSRV.storage().getUserId(playerUUID),
+                () -> linkStore.getUserId(playerUUID),
                 userId -> linked(playerUUID, userId),
                 userId -> unlinked(playerUUID, userId)
         ).exceptionally(t -> {
@@ -66,7 +69,7 @@ public class MinecraftAuthenticationLinker extends CachedLinkProvider implements
                 () -> AuthService.lookup(AccountType.DISCORD, Long.toUnsignedString(userId), AccountType.MINECRAFT)
                         .map(account -> (MinecraftAccount) account)
                         .map(MinecraftAccount::getUUID),
-                () -> discordSRV.storage().getPlayerUUID(userId),
+                () -> linkStore.getPlayerUUID(userId),
                 playerUUID -> linked(playerUUID, userId),
                 playerUUID -> unlinked(playerUUID, userId)
         ).exceptionally(t -> {
@@ -77,19 +80,19 @@ public class MinecraftAuthenticationLinker extends CachedLinkProvider implements
 
     private void linked(UUID playerUUID, long userId) {
         logger.debug("New link: " + playerUUID + " & " + Long.toUnsignedString(userId));
-        discordSRV.storage().createLink(playerUUID, userId);
+        linkStore.createLink(playerUUID, userId);
 
     }
 
     private void unlinked(UUID playerUUID, long userId) {
         logger.debug("Unlink: " + playerUUID + " & " + Long.toUnsignedString(userId));
-        discordSRV.storage().removeLink(playerUUID, userId);
+        linkStore.createLink(playerUUID, userId);
 
     }
 
     private <T> CompletableFuture<Optional<T>> query(
             CheckedSupplier<Optional<T>> authSupplier,
-            Supplier<T> storageSupplier,
+            Supplier<CompletableFuture<Optional<T>>> storageSupplier,
             Consumer<T> linked,
             Consumer<T> unlinked
     ) {
@@ -102,14 +105,11 @@ public class MinecraftAuthenticationLinker extends CachedLinkProvider implements
                 authService.completeExceptionally(t);
             }
         });
-        CompletableFuture<Optional<T>> storageResult = CompletableFuture.supplyAsync(
-                () -> Optional.ofNullable(storageSupplier.get()),
-                discordSRV.scheduler().executor()
-        );
 
-        return CompletableFutureUtil.combine(authService, storageResult).thenApply(results -> {
+        CompletableFuture<Optional<T>> storageFuture = storageSupplier.get();
+        return CompletableFutureUtil.combine(authService, storageFuture).thenApply(results -> {
             Optional<T> auth = authService.join();
-            Optional<T> storage = storageResult.join();
+            Optional<T> storage = storageFuture.join();
 
             if (auth.isPresent() && !storage.isPresent()) {
                 // new link
