@@ -32,6 +32,7 @@ import org.spongepowered.configurate.serialize.SerializationException;
 import org.spongepowered.configurate.yaml.YamlConfigurationLoader;
 
 import java.net.URL;
+import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -39,10 +40,17 @@ import java.util.List;
 public abstract class TranslatedConfigManager<T extends Config, LT extends AbstractConfigurationLoader<CommentedConfigurationNode>>
         extends ConfigurateConfigManager<T, LT> {
 
+    private final DiscordSRV discordSRV;
     private String header;
 
     public TranslatedConfigManager(DiscordSRV discordSRV) {
         super(discordSRV);
+        this.discordSRV = discordSRV;
+    }
+
+    protected TranslatedConfigManager(Path dataDirectory) {
+        super(dataDirectory);
+        this.discordSRV = null;
     }
 
     @Override
@@ -100,6 +108,10 @@ public abstract class TranslatedConfigManager<T extends Config, LT extends Abstr
     }
 
     private ConfigurationNode getTranslationRoot() throws ConfigurateException {
+        if (discordSRV == null) {
+            return null;
+        }
+
         String languageCode = discordSRV.locale().getISO3Language();
         URL resourceURL = discordSRV.getClass().getClassLoader()
                 .getResource("translations/" + languageCode + ".yml");

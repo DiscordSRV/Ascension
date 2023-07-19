@@ -26,12 +26,18 @@ import org.spongepowered.configurate.ConfigurationOptions;
 import org.spongepowered.configurate.objectmapping.ObjectMapper;
 import org.spongepowered.configurate.yaml.YamlConfigurationLoader;
 
+import java.nio.file.Path;
+
 public abstract class ConnectionConfigManager<C extends ConnectionConfig>
         extends TranslatedConfigManager<C, YamlConfigurationLoader>
         implements YamlConfigLoaderProvider {
 
     public ConnectionConfigManager(DiscordSRV discordSRV) {
         super(discordSRV);
+    }
+
+    protected ConnectionConfigManager(Path dataDirectory) {
+        super(dataDirectory);
     }
 
     @Override

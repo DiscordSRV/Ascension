@@ -18,11 +18,12 @@
 
 package com.discordsrv.config;
 
-import com.discordsrv.common.DiscordSRV;
-import com.discordsrv.common.config.configurate.manager.loader.YamlConfigLoaderProvider;
 import com.discordsrv.common.config.configurate.manager.abstraction.ConfigurateConfigManager;
+import com.discordsrv.common.config.configurate.manager.loader.YamlConfigLoaderProvider;
 import org.spongepowered.configurate.objectmapping.ObjectMapper;
 import org.spongepowered.configurate.yaml.YamlConfigurationLoader;
+
+import java.nio.file.Path;
 
 public class TranslationConfigManagerProxy<C>
         extends ConfigurateConfigManager<C, YamlConfigurationLoader>
@@ -31,8 +32,8 @@ public class TranslationConfigManagerProxy<C>
     private final ObjectMapper.Factory objectMapper;
     private final ConfigurateConfigManager<C, ?> configManager;
 
-    public TranslationConfigManagerProxy(DiscordSRV discordSRV, ObjectMapper.Factory objectMapper, ConfigurateConfigManager<C, ?> configManager) {
-        super(discordSRV);
+    public TranslationConfigManagerProxy(Path dataDirectory, ObjectMapper.Factory objectMapper, ConfigurateConfigManager<C, ?> configManager) {
+        super(dataDirectory);
         this.objectMapper = objectMapper;
         this.configManager = configManager;
     }

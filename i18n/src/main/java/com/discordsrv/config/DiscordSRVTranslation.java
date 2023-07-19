@@ -20,7 +20,6 @@ package com.discordsrv.config;
 
 import com.discordsrv.bukkit.config.manager.BukkitConfigManager;
 import com.discordsrv.bukkit.config.manager.BukkitConnectionConfigManager;
-import com.discordsrv.common.DiscordSRV;
 import com.discordsrv.common.config.Config;
 import com.discordsrv.common.config.configurate.annotation.Untranslated;
 import com.discordsrv.common.config.configurate.manager.abstraction.ConfigurateConfigManager;
@@ -34,6 +33,8 @@ import org.spongepowered.configurate.serialize.SerializationException;
 import org.spongepowered.configurate.yaml.YamlConfigurationLoader;
 
 import java.io.File;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -44,10 +45,11 @@ import java.util.Map;
  */
 public final class DiscordSRVTranslation {
 
-    private static final DiscordSRV discordSRV = new MockDiscordSRV();
+    private static final Path DATA_DIRECTORY = Paths.get(".");
+
     private static final List<TranslatedConfigManager<? extends Config, ?>> CONFIGS = Arrays.asList(
-            new BukkitConfigManager(discordSRV),
-            new BukkitConnectionConfigManager(discordSRV)
+            new BukkitConfigManager(DATA_DIRECTORY),
+            new BukkitConnectionConfigManager(DATA_DIRECTORY)
     );
 
     public static void main(String[] args) throws ConfigurateException {
@@ -61,8 +63,7 @@ public final class DiscordSRVTranslation {
             try {
                 Untranslated.Type type = data.value();
                 if (type.isValue()) {
-                    Object value = destination.get(Object.class);
-                    if (type.isComment()/* || !(value instanceof String)*/) {
+                    if (type.isComment()) {
                         destination.set(null);
                     } else {
                         destination.set("");
@@ -91,7 +92,7 @@ public final class DiscordSRVTranslation {
                     .addProcessor(Untranslated.class, untranslatedProcessorFactory)
                     .build();
 
-            TranslationConfigManagerProxy<?> configManagerProxy = new TranslationConfigManagerProxy<>(discordSRV, mapperFactory, configManager);
+            TranslationConfigManagerProxy<?> configManagerProxy = new TranslationConfigManagerProxy<>(DATA_DIRECTORY, mapperFactory, configManager);
             CommentedConfigurationNode configurationNode = configManagerProxy.getDefaultNode(mapperFactory);
 
             convertCommentsToOptions(configurationNode, commentSection);

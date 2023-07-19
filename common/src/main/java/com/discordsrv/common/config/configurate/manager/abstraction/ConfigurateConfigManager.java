@@ -68,7 +68,6 @@ public abstract class ConfigurateConfigManager<T, LT extends AbstractConfigurati
         return in;
     };
 
-    protected final DiscordSRV discordSRV;
     private final Path filePath;
     private final ObjectMapper.Factory objectMapper;
     private final ObjectMapper.Factory cleanObjectMapper;
@@ -77,8 +76,11 @@ public abstract class ConfigurateConfigManager<T, LT extends AbstractConfigurati
     protected T configuration;
 
     public ConfigurateConfigManager(DiscordSRV discordSRV) {
-        this.discordSRV = discordSRV;
-        this.filePath = discordSRV.dataDirectory().resolve(fileName());
+        this(discordSRV.dataDirectory());
+    }
+
+    protected ConfigurateConfigManager(Path dataDirectory) {
+        this.filePath = dataDirectory.resolve(fileName());
         this.objectMapper = objectMapperBuilder().build();
         this.cleanObjectMapper = cleanObjectMapperBuilder().build();
         this.loader = createLoader(filePath, nodeOptions());
@@ -161,6 +163,13 @@ public abstract class ConfigurateConfigManager<T, LT extends AbstractConfigurati
         });
 
         return ObjectMapper.factoryBuilder()
+                .defaultNamingScheme(NAMING_SCHEME)
+                .addDiscoverer(new OrderedFieldDiscovererProxy<>((FieldDiscoverer<Object>) FieldDiscoverer.emptyConstructorObject(), fieldOrder))
+                .addDiscoverer(new OrderedFieldDiscovererProxy<>((FieldDiscoverer<Object>) FieldDiscoverer.record(), fieldOrder));
+    }
+
+    public ObjectMapper.Factory.Builder objectMapperBuilder() {
+        return commonObjectMapperBuilder()
                 .addProcessor(Comment.class, (data, fieldType) -> {
                     Processor<Object> processor = Processor.comments().make(data, fieldType);
 
@@ -174,14 +183,7 @@ public abstract class ConfigurateConfigManager<T, LT extends AbstractConfigurati
                             }
                         }
                     };
-                })
-                .defaultNamingScheme(NAMING_SCHEME)
-                .addDiscoverer(new OrderedFieldDiscovererProxy<>((FieldDiscoverer<Object>) FieldDiscoverer.emptyConstructorObject(), fieldOrder))
-                .addDiscoverer(new OrderedFieldDiscovererProxy<>((FieldDiscoverer<Object>) FieldDiscoverer.record(), fieldOrder));
-    }
-
-    public ObjectMapper.Factory.Builder objectMapperBuilder() {
-        return commonObjectMapperBuilder();
+                });
     }
 
     protected ObjectMapper.Factory.Builder cleanObjectMapperBuilder() {

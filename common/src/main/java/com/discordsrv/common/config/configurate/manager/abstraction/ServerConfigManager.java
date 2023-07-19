@@ -26,10 +26,16 @@ import com.discordsrv.common.config.main.channels.base.server.ServerBaseChannelC
 import com.discordsrv.common.config.main.channels.base.server.ServerChannelConfig;
 import org.spongepowered.configurate.objectmapping.ObjectMapper;
 
+import java.nio.file.Path;
+
 public abstract class ServerConfigManager<T extends MainConfig> extends MainConfigManager<T> {
 
     public ServerConfigManager(DiscordSRV discordSRV) {
         super(discordSRV);
+    }
+
+    protected ServerConfigManager(Path dataDirectory) {
+        super(dataDirectory);
     }
 
     @Override

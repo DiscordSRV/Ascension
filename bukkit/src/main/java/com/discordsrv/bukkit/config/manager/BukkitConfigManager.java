@@ -22,10 +22,16 @@ import com.discordsrv.bukkit.config.main.BukkitConfig;
 import com.discordsrv.common.DiscordSRV;
 import com.discordsrv.common.config.configurate.manager.abstraction.ServerConfigManager;
 
+import java.nio.file.Path;
+
 public class BukkitConfigManager extends ServerConfigManager<BukkitConfig> {
 
     public BukkitConfigManager(DiscordSRV discordSRV) {
         super(discordSRV);
+    }
+
+    public BukkitConfigManager(Path dataDirectory) {
+        super(dataDirectory);
     }
 
     @Override
