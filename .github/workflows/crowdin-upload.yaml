@@ -22,11 +22,11 @@ jobs:
       - name: Generate translation source
         run: "java -jar i18n/build/libs/i18n-all.jar"
       - name: Upload translations to Crowdin
-        uses: crowdin/github-action@1.11.0
+        uses: crowdin/github-action@v1
         with:
-          upload_translations: true
+          upload_sources: true
+          upload_translations: false
           download_translations: false
-          localization_branch_name: i18n
           source: "source.yaml"
           translation: "/%original_path%/src/main/resources/translations/%three_letters_code%.yaml"
           project_id: ${{ secrets.CROWDIN_PROJECT_ID }}
