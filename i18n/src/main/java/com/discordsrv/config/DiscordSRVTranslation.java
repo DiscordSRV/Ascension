@@ -103,7 +103,7 @@ public final class DiscordSRVTranslation {
         }
 
         YamlConfigurationLoader.builder()
-                .path(Paths.get("i18n", "source.yaml"))
+                .path(Paths.get("i18n", "build", "source.yaml"))
                 .build()
                 .save(node);
     }
