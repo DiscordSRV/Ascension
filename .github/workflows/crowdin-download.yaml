@@ -11,12 +11,26 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v3
-      - name: Download translations from Crowdin
+      - name: Download source from Crowdin
         uses: crowdin/github-action@v1
         with:
           upload_sources: false
           upload_translations: false
           download_sources: true
+          download_translations: false
+
+          project_id: ${{ secrets.CROWDIN_PROJECT_ID }}
+          token: ${{ secrets.CROWDIN_PERSONAL_TOKEN }}
+          source: "source.yaml"
+          translation: "/i18n/src/main/resources/translations/%three_letters_code%.%file_extension%"
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - name: Download translations from Crowdin
+        uses: crowdin/github-action@v1
+        with:
+          upload_sources: false
+          upload_translations: false
+          download_sources: false
           download_translations: true
           download_translations_args: "--verbose"
 
@@ -28,7 +42,7 @@ jobs:
 
           project_id: ${{ secrets.CROWDIN_PROJECT_ID }}
           token: ${{ secrets.CROWDIN_PERSONAL_TOKEN }}
-          source: "i18n/build/source.yaml"
+          source: "source.yaml"
           translation: "/i18n/src/main/resources/translations/%three_letters_code%.%file_extension%"
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
