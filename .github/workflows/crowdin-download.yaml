@@ -1,8 +1,9 @@
 name: Crowdin translation download
 
 on:
-  push:
-    branches: [dev]
+  workflow_dispatch:
+  schedule:
+    - cron: '0 0 * * *'
 
 jobs:
   synchronize-with-crowdin:
@@ -11,7 +12,7 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v3
       - name: Download translations from Crowdin
-        uses: crowdin/github-action@1.4.8
+        uses: crowdin/github-action@1.11.0
         with:
           upload_translations: false
           download_translations: true
