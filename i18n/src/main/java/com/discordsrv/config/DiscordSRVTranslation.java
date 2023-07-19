@@ -32,7 +32,6 @@ import org.spongepowered.configurate.objectmapping.meta.Processor;
 import org.spongepowered.configurate.serialize.SerializationException;
 import org.spongepowered.configurate.yaml.YamlConfigurationLoader;
 
-import java.io.File;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
@@ -104,7 +103,7 @@ public final class DiscordSRVTranslation {
         }
 
         YamlConfigurationLoader.builder()
-                .file(new File("i18n", "source.yaml"))
+                .path(Paths.get("i18n", "source.yaml"))
                 .build()
                 .save(node);
     }
