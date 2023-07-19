@@ -11,20 +11,17 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v3
-      - name: Download source from Crowdin
-        uses: crowdin/github-action@v1
+      - name: Setup Java
+        uses: actions/setup-java@v3
         with:
-          upload_sources: false
-          upload_translations: false
-          download_sources: true
-          download_translations: false
-
-          project_id: ${{ secrets.CROWDIN_PROJECT_ID }}
-          token: ${{ secrets.CROWDIN_PERSONAL_TOKEN }}
-          source: "source.yaml"
-          translation: "/i18n/src/main/resources/translations/%three_letters_code%.%file_extension%"
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          distribution: "adopt"
+          java-version: "17"
+      - name: Make gradlew executable
+        run: "sudo chmod +x gradlew"
+      - name: Build i18n application
+        run: "./gradlew i18n:build"
+      - name: Generate translation source
+        run: "java -jar i18n/build/libs/i18n-all.jar"
       - name: Download translations from Crowdin
         uses: crowdin/github-action@v1
         with:
@@ -42,7 +39,7 @@ jobs:
 
           project_id: ${{ secrets.CROWDIN_PROJECT_ID }}
           token: ${{ secrets.CROWDIN_PERSONAL_TOKEN }}
-          source: "source.yaml"
+          source: "i18n/build/source.yaml"
           translation: "/i18n/src/main/resources/translations/%three_letters_code%.%file_extension%"
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
