@@ -21,14 +21,14 @@ jobs:
         run: "./gradlew i18n:build"
       - name: Generate translation source
         run: "java -jar i18n/build/libs/i18n-all.jar"
-      - name: Upload translations to Crowdin
+      - name: Upload source to Crowdin
         uses: crowdin/github-action@v1
         with:
           upload_sources: true
           upload_translations: false
           download_translations: false
-          source: "i18n/build/source.yaml"
-          translation: "i18n/src/main/resources/translations/%three_letters_code%.yaml"
+          source: "/i18n/build/source.yaml"
+          translation: "/i18n/src/main/resources/translations/%three_letters_code%.yaml"
           project_id: ${{ secrets.CROWDIN_PROJECT_ID }}
           token: ${{ secrets.CROWDIN_PERSONAL_TOKEN }}
         env:
