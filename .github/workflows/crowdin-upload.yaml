@@ -28,7 +28,7 @@ jobs:
           upload_translations: false
           download_translations: false
           source: "i18n/build/source.yaml"
-          translation: "%three_letters_code%.yaml"
+          translation: "/%three_letters_code%.yaml"
           project_id: ${{ secrets.CROWDIN_PROJECT_ID }}
           token: ${{ secrets.CROWDIN_PERSONAL_TOKEN }}
         env:
