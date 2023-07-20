@@ -46,7 +46,7 @@ public class StandardScheduler implements Scheduler {
                         Math.max(4, Runtime.getRuntime().availableProcessors() - 2),
                         /* Timeout */
                         60, TimeUnit.SECONDS,
-                        new SynchronousQueue<>(),
+                        new LinkedBlockingQueue<>(),
                         new CountingThreadFactory(Scheduler.THREAD_NAME_PREFIX + "Executor #%s")
                 ),
                 new ScheduledThreadPoolExecutor(

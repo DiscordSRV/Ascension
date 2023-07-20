@@ -31,7 +31,6 @@ import java.nio.file.Path;
 import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.CompletionException;
 import java.util.concurrent.Executor;
 
 public class DependencyLoader {
@@ -99,20 +98,8 @@ public class DependencyLoader {
     }
 
     private CompletableFuture<Void> download(ClasspathAppender appender) {
-        CompletableFuture<Void> future = new CompletableFuture<>();
-        executor.execute(() -> {
-            try {
-                dependencyManager.downloadAll(executor, REPOSITORIES).join();
-                dependencyManager.relocateAll(executor).join();
-                dependencyManager.loadAll(executor, appender).join();
-
-                future.complete(null);
-            } catch (CompletionException e) {
-                future.completeExceptionally(e.getCause());
-            } catch (Throwable t) {
-                future.completeExceptionally(t);
-            }
-        });
-        return future;
+        return dependencyManager.downloadAll(executor, REPOSITORIES)
+                        .thenCompose(v -> dependencyManager.relocateAll(executor))
+                        .thenCompose(v -> dependencyManager.loadAll(executor, appender));
     }
 }
