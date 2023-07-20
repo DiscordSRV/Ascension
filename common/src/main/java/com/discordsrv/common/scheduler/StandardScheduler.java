@@ -22,6 +22,7 @@ import com.discordsrv.api.event.bus.EventPriority;
 import com.discordsrv.api.event.bus.Subscribe;
 import com.discordsrv.api.event.events.lifecycle.DiscordSRVShuttingDownEvent;
 import com.discordsrv.common.DiscordSRV;
+import com.discordsrv.common.scheduler.executor.DynamicCachingThreadPoolExecutor;
 import com.discordsrv.common.scheduler.threadfactory.CountingForkJoinWorkerThreadFactory;
 import com.discordsrv.common.scheduler.threadfactory.CountingThreadFactory;
 import org.jetbrains.annotations.NotNull;
@@ -39,7 +40,7 @@ public class StandardScheduler implements Scheduler {
     public StandardScheduler(DiscordSRV discordSRV) {
         this(
                 discordSRV,
-                new ThreadPoolExecutor(
+                new DynamicCachingThreadPoolExecutor(
                         /* Core pool size */
                         1,
                         /* Max pool size: cpu cores - 2 or at least 4 */

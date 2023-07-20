@@ -25,6 +25,7 @@ import com.discordsrv.common.linking.requirelinking.requirement.*;
 import com.discordsrv.common.linking.requirelinking.requirement.parser.RequirementParser;
 import com.discordsrv.common.module.type.AbstractModule;
 import com.discordsrv.common.scheduler.Scheduler;
+import com.discordsrv.common.scheduler.executor.DynamicCachingThreadPoolExecutor;
 import com.discordsrv.common.scheduler.threadfactory.CountingThreadFactory;
 
 import java.util.ArrayList;
@@ -54,7 +55,7 @@ public abstract class RequiredLinkingModule<T extends DiscordSRV> extends Abstra
 
     @Override
     public void enable() {
-        executor = new ThreadPoolExecutor(
+        executor = new DynamicCachingThreadPoolExecutor(
                 1,
                 Math.max(2, Runtime.getRuntime().availableProcessors() / 2),
                 10,

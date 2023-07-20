@@ -576,6 +576,23 @@ public abstract class AbstractDiscordSRV<B extends IBootstrap, C extends MainCon
 
     @OverridingMethodsMustInvokeSuper
     protected void disable() {
+        scheduler().run(() -> {
+            System.out.println(1);
+            try {
+                Thread.sleep(500000);
+            } catch (InterruptedException e) {
+                throw new RuntimeException(e);
+            }
+        });
+        scheduler().run(() -> {
+            System.out.println(2);
+            try {
+                Thread.sleep(500000);
+            } catch (InterruptedException e) {
+                throw new RuntimeException(e);
+            }
+        });
+
         Status status = this.status.get();
         if (status == Status.INITIALIZED || status.isShutdown()) {
             // Hasn't started or already shutting down/shutdown
