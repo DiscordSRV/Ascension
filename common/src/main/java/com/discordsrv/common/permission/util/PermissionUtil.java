@@ -21,6 +21,7 @@ package com.discordsrv.common.permission.util;
 import com.discordsrv.api.module.type.PermissionDataProvider;
 import com.discordsrv.common.DiscordSRV;
 import com.discordsrv.common.component.util.ComponentUtil;
+import com.discordsrv.common.exception.MessageException;
 import net.kyori.adventure.text.Component;
 
 import java.util.UUID;
@@ -76,7 +77,12 @@ public final class PermissionUtil {
         } catch (InterruptedException e) {
             Thread.currentThread().interrupt();
         } catch (ExecutionException e) {
-            discordSRV.logger().error("Failed to lookup " + what, e.getCause());
+            Throwable cause = e.getCause();
+            if (cause instanceof MessageException) {
+                discordSRV.logger().debug("Failed to lookup " + what + ": " + cause.getMessage());
+            } else {
+                discordSRV.logger().debug("Failed to lookup " + what, cause);
+            }
         }
         return translate(discordSRV, data);
     }
