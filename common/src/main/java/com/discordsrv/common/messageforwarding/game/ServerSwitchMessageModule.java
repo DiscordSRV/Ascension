@@ -25,12 +25,12 @@ import com.discordsrv.api.event.bus.EventPriority;
 import com.discordsrv.api.event.bus.Subscribe;
 import com.discordsrv.api.event.events.message.forward.game.ServerSwitchMessageForwardedEvent;
 import com.discordsrv.api.event.events.message.receive.game.ServerSwitchMessageReceiveEvent;
-import com.discordsrv.api.placeholder.FormattedText;
 import com.discordsrv.common.DiscordSRV;
 import com.discordsrv.common.component.util.ComponentUtil;
-import com.discordsrv.common.config.main.channels.proxy.ServerSwitchMessageConfig;
 import com.discordsrv.common.config.main.channels.base.BaseChannelConfig;
 import com.discordsrv.common.config.main.channels.base.proxy.ProxyBaseChannelConfig;
+import com.discordsrv.common.config.main.channels.proxy.ServerSwitchMessageConfig;
+import net.kyori.adventure.text.Component;
 
 public class ServerSwitchMessageModule extends AbstractGameMessageModule<ServerSwitchMessageConfig, ServerSwitchMessageReceiveEvent> {
 
@@ -65,8 +65,8 @@ public class ServerSwitchMessageModule extends AbstractGameMessageModule<ServerS
             SendableDiscordMessage.Formatter formatter
     ) {
         MinecraftComponent messageComponent = event.getMessage();
-        String message = messageComponent != null ? convertComponent(config, ComponentUtil.fromAPI(messageComponent)) : null;
+        Component message = messageComponent != null ? ComponentUtil.fromAPI(messageComponent) : null;
 
-        formatter.addPlaceholder("message", new FormattedText(message));
+        formatter.addPlaceholder("message", message);
     }
 }

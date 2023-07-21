@@ -25,11 +25,11 @@ import com.discordsrv.api.event.bus.EventPriority;
 import com.discordsrv.api.event.bus.Subscribe;
 import com.discordsrv.api.event.events.message.forward.game.LeaveMessageForwardedEvent;
 import com.discordsrv.api.event.events.message.receive.game.LeaveMessageReceiveEvent;
-import com.discordsrv.api.placeholder.FormattedText;
 import com.discordsrv.common.DiscordSRV;
 import com.discordsrv.common.component.util.ComponentUtil;
 import com.discordsrv.common.config.main.channels.LeaveMessageConfig;
 import com.discordsrv.common.config.main.channels.base.BaseChannelConfig;
+import net.kyori.adventure.text.Component;
 
 public class LeaveMessageModule extends AbstractGameMessageModule<LeaveMessageConfig, LeaveMessageReceiveEvent> {
 
@@ -64,8 +64,8 @@ public class LeaveMessageModule extends AbstractGameMessageModule<LeaveMessageCo
             SendableDiscordMessage.Formatter formatter
     ) {
         MinecraftComponent messageComponent = event.getMessage();
-        String message = messageComponent != null ? convertComponent(config, ComponentUtil.fromAPI(messageComponent)) : null;
+        Component message = messageComponent != null ? ComponentUtil.fromAPI(messageComponent) : null;
 
-        formatter.addPlaceholder("message", new FormattedText(message));
+        formatter.addPlaceholder("message", message);
     }
 }

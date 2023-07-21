@@ -77,16 +77,6 @@ public class MinecraftToDiscordChatModule extends AbstractGameMessageModule<Mine
     }
 
     @Override
-    public String convertComponent(MinecraftToDiscordChatConfig config, Component component) {
-        String content = discordSRV.placeholderService().getResultAsPlain(component).toString();
-
-        Placeholders messagePlaceholders = new Placeholders(content);
-        config.contentRegexFilters.forEach(messagePlaceholders::replaceAll);
-
-        return messagePlaceholders.toString();
-    }
-
-    @Override
     public Map<CompletableFuture<ReceivedDiscordMessage>, DiscordGuildMessageChannel> sendMessageToChannels(
             MinecraftToDiscordChatConfig config,
             IPlayer player,
@@ -231,6 +221,15 @@ public class MinecraftToDiscordChatModule extends AbstractGameMessageModule<Mine
                 })
                 .applyPlaceholderService()
                 .build();
+    }
+
+    public String convertComponent(MinecraftToDiscordChatConfig config, Component component) {
+        String content = discordSRV.placeholderService().getResultAsPlain(component).toString();
+
+        Placeholders messagePlaceholders = new Placeholders(content);
+        config.contentRegexFilters.forEach(messagePlaceholders::replaceAll);
+
+        return messagePlaceholders.toString();
     }
 
     private String preventEveryoneMentions(boolean everyoneAllowed, String message) {

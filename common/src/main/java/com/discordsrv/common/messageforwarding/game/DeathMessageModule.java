@@ -25,12 +25,11 @@ import com.discordsrv.api.event.bus.EventPriority;
 import com.discordsrv.api.event.bus.Subscribe;
 import com.discordsrv.api.event.events.message.forward.game.DeathMessageForwardedEvent;
 import com.discordsrv.api.event.events.message.receive.game.DeathMessageReceiveEvent;
-import com.discordsrv.api.placeholder.FormattedText;
 import com.discordsrv.common.DiscordSRV;
 import com.discordsrv.common.component.util.ComponentUtil;
-import com.discordsrv.common.config.main.channels.server.DeathMessageConfig;
 import com.discordsrv.common.config.main.channels.base.BaseChannelConfig;
 import com.discordsrv.common.config.main.channels.base.server.ServerBaseChannelConfig;
+import com.discordsrv.common.config.main.channels.server.DeathMessageConfig;
 
 public class DeathMessageModule extends AbstractGameMessageModule<DeathMessageConfig, DeathMessageReceiveEvent> {
 
@@ -65,9 +64,7 @@ public class DeathMessageModule extends AbstractGameMessageModule<DeathMessageCo
             SendableDiscordMessage.Formatter formatter
     ) {
         MinecraftComponent messageComponent = event.getMessage();
-        String message = messageComponent != null ? convertComponent(config, ComponentUtil.fromAPI(messageComponent)) : null;
-
-        formatter.addPlaceholder("message", new FormattedText(message));
+        formatter.addPlaceholder("message", ComponentUtil.fromAPI(messageComponent));
     }
 
 }

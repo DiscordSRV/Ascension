@@ -25,11 +25,11 @@ import com.discordsrv.api.event.bus.EventPriority;
 import com.discordsrv.api.event.bus.Subscribe;
 import com.discordsrv.api.event.events.message.forward.game.JoinMessageForwardedEvent;
 import com.discordsrv.api.event.events.message.receive.game.JoinMessageReceiveEvent;
-import com.discordsrv.api.placeholder.FormattedText;
 import com.discordsrv.common.DiscordSRV;
 import com.discordsrv.common.component.util.ComponentUtil;
-import com.discordsrv.common.config.main.generic.IMessageConfig;
 import com.discordsrv.common.config.main.channels.base.BaseChannelConfig;
+import com.discordsrv.common.config.main.generic.IMessageConfig;
+import net.kyori.adventure.text.Component;
 
 public class JoinMessageModule extends AbstractGameMessageModule<IMessageConfig, JoinMessageReceiveEvent> {
 
@@ -69,8 +69,8 @@ public class JoinMessageModule extends AbstractGameMessageModule<IMessageConfig,
             SendableDiscordMessage.Formatter formatter
     ) {
         MinecraftComponent messageComponent = event.getMessage();
-        String message = messageComponent != null ? convertComponent(config, ComponentUtil.fromAPI(messageComponent)) : null;
+        Component message = messageComponent != null ? ComponentUtil.fromAPI(messageComponent) : null;
 
-        formatter.addPlaceholder("message", new FormattedText(message));
+        formatter.addPlaceholder("message", message);
     }
 }

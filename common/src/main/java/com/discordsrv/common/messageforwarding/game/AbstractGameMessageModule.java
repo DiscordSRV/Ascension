@@ -35,7 +35,6 @@ import com.discordsrv.common.future.util.CompletableFutureUtil;
 import com.discordsrv.common.logging.NamedLogger;
 import com.discordsrv.common.module.type.AbstractModule;
 import com.discordsrv.common.player.IPlayer;
-import net.kyori.adventure.text.Component;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -157,10 +156,6 @@ public abstract class AbstractGameMessageModule<T extends IMessageConfig, E exte
             discordSRV.logger().error("Error in sending message", t);
             return null;
         });
-    }
-
-    public String convertComponent(T config, Component component) {
-        return discordSRV.componentFactory().discordSerializer().serialize(component);
     }
 
     public Map<CompletableFuture<ReceivedDiscordMessage>, DiscordGuildMessageChannel> sendMessageToChannels(
