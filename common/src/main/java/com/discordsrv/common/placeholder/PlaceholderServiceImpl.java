@@ -25,6 +25,8 @@ import com.discordsrv.api.placeholder.annotation.Placeholder;
 import com.discordsrv.api.placeholder.annotation.PlaceholderRemainder;
 import com.discordsrv.api.placeholder.mapper.PlaceholderResultMapper;
 import com.discordsrv.common.DiscordSRV;
+import com.discordsrv.common.logging.Logger;
+import com.discordsrv.common.logging.NamedLogger;
 import com.discordsrv.common.placeholder.provider.AnnotationPlaceholderProvider;
 import com.discordsrv.api.placeholder.provider.PlaceholderProvider;
 import com.github.benmanes.caffeine.cache.CacheLoader;
@@ -47,12 +49,14 @@ import java.util.regex.Pattern;
 public class PlaceholderServiceImpl implements PlaceholderService {
 
     private final DiscordSRV discordSRV;
+    private final Logger logger;
     private final LoadingCache<Class<?>, Set<PlaceholderProvider>> classProviders;
     private final Set<PlaceholderResultMapper> mappers = new CopyOnWriteArraySet<>();
     private final Set<Object> globalContext = new CopyOnWriteArraySet<>();
 
     public PlaceholderServiceImpl(DiscordSRV discordSRV) {
         this.discordSRV = discordSRV;
+        this.logger = new NamedLogger(discordSRV, "PLACEHOLDER_SERVICE");
         this.classProviders = discordSRV.caffeineBuilder()
                 .expireAfterAccess(10, TimeUnit.MINUTES)
                 .expireAfterWrite(15, TimeUnit.MINUTES)
@@ -245,6 +249,7 @@ public class PlaceholderServiceImpl implements PlaceholderService {
                         replacement = "Unavailable";
                         break;
                     case LOOKUP_FAILED:
+                        logger.trace("Lookup failed", result.getError());
                         replacement = "Error";
                         break;
                     case NEW_LOOKUP:

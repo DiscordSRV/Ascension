@@ -30,8 +30,8 @@ public class SinglePlaceholder implements PlaceholderProvider {
             return PlaceholderLookupResult.success(
                     resultProvider.get()
             );
-        } catch (Throwable ignored) {
-            return PlaceholderLookupResult.LOOKUP_FAILED;
+        } catch (Throwable t) {
+            return PlaceholderLookupResult.lookupFailed(t);
         }
     }
 }

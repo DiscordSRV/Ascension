@@ -85,9 +85,8 @@ public class AnnotationPlaceholderProvider implements PlaceholderProvider {
                 assert method != null;
                 result = PlaceholderMethodUtil.lookup(method, instance, context, remainder);
             }
-        } catch (Throwable e) {
-            e.printStackTrace();
-            return PlaceholderLookupResult.LOOKUP_FAILED;
+        } catch (Throwable t) {
+            return PlaceholderLookupResult.lookupFailed(t);
         }
 
         String reLookup = annotation.relookup();

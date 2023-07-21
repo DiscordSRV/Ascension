@@ -27,7 +27,6 @@ import java.util.Set;
 
 public class PlaceholderLookupResult {
 
-    public static final PlaceholderLookupResult LOOKUP_FAILED = new PlaceholderLookupResult(Type.LOOKUP_FAILED);
     public static final PlaceholderLookupResult DATA_NOT_AVAILABLE = new PlaceholderLookupResult(Type.DATA_NOT_AVAILABLE);
     public static final PlaceholderLookupResult UNKNOWN_PLACEHOLDER = new PlaceholderLookupResult(Type.UNKNOWN_PLACEHOLDER);
 
@@ -39,25 +38,40 @@ public class PlaceholderLookupResult {
         return new PlaceholderLookupResult(placeholder, extras);
     }
 
+    public static PlaceholderLookupResult lookupFailed(Throwable error) {
+        return new PlaceholderLookupResult(error);
+    }
+
     private final Type type;
     private final Object value;
+    private final Throwable error;
     private final Set<Object> extras;
 
     protected PlaceholderLookupResult(Type type) {
         this.type = type;
         this.value = null;
+        this.error = null;
         this.extras = null;
     }
 
     protected PlaceholderLookupResult(Object value) {
         this.type = Type.SUCCESS;
         this.value = value;
+        this.error = null;
+        this.extras = null;
+    }
+
+    protected PlaceholderLookupResult(Throwable error) {
+        this.type = Type.LOOKUP_FAILED;
+        this.value = null;
+        this.error = error;
         this.extras = null;
     }
 
     protected PlaceholderLookupResult(String placeholder, Set<Object> extras) {
         this.type = Type.NEW_LOOKUP;
         this.value = placeholder;
+        this.error = null;
         this.extras = extras;
     }
 
@@ -67,6 +81,10 @@ public class PlaceholderLookupResult {
 
     public Object getValue() {
         return value;
+    }
+
+    public Throwable getError() {
+        return error;
     }
 
     public Set<Object> getExtras() {

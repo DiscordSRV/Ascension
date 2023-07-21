@@ -25,6 +25,7 @@ import net.kyori.adventure.text.Component;
 
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutionException;
 import java.util.function.Function;
 
 public final class PermissionUtil {
@@ -42,11 +43,11 @@ public final class PermissionUtil {
     }
 
     public static Component getPrefix(DiscordSRV discordSRV, UUID uuid) {
-        return getLegacy(discordSRV, perm -> perm.getPrefix(uuid));
+        return getLegacy(discordSRV, "prefix", perm -> perm.getPrefix(uuid));
     }
 
     public static Component getSuffix(DiscordSRV discordSRV, UUID uuid) {
-        return getLegacy(discordSRV, perm -> perm.getSuffix(uuid));
+        return getLegacy(discordSRV, "suffix", perm -> perm.getSuffix(uuid));
     }
 
     private static Component getMeta(DiscordSRV discordSRV, UUID uuid, String metaKey) {
@@ -61,6 +62,7 @@ public final class PermissionUtil {
 
     private static Component getLegacy(
             DiscordSRV discordSRV,
+            String what,
             Function<PermissionDataProvider.PrefixAndSuffix, CompletableFuture<String>> legacy
     ) {
         PermissionDataProvider.PrefixAndSuffix permission = discordSRV.getModule(PermissionDataProvider.PrefixAndSuffix.class);
@@ -68,7 +70,14 @@ public final class PermissionUtil {
             return null;
         }
 
-        String data = legacy.apply(permission).join();
+        String data = null;
+        try {
+            data = legacy.apply(permission).get();
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+        } catch (ExecutionException e) {
+            discordSRV.logger().error("Failed to lookup " + what, e.getCause());
+        }
         return translate(discordSRV, data);
     }
 
