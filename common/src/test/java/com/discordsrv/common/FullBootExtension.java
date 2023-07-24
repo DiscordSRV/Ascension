@@ -2,7 +2,8 @@ package com.discordsrv.common;
 
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Assumptions;
-import org.junit.jupiter.api.extension.*;
+import org.junit.jupiter.api.extension.BeforeAllCallback;
+import org.junit.jupiter.api.extension.ExtensionContext;
 
 public class FullBootExtension implements BeforeAllCallback, ExtensionContext.Store.CloseableResource {
 
@@ -18,6 +19,7 @@ public class FullBootExtension implements BeforeAllCallback, ExtensionContext.St
 
         if (started) return;
         started = true;
+        context.getRoot().getStore(ExtensionContext.Namespace.GLOBAL).put("Full boot extension", this);
 
         try {
             System.out.println("Enabling...");
@@ -30,6 +32,8 @@ public class FullBootExtension implements BeforeAllCallback, ExtensionContext.St
 
     @Override
     public void close() {
+        System.out.println("Disabling...");
         MockDiscordSRV.INSTANCE.disable();
+        System.out.println("Disabled successfully");
     }
 }
