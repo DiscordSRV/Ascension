@@ -60,11 +60,9 @@ public class EventBusImpl implements EventBus {
 
     private final Map<Object, List<EventListenerImpl>> listeners = new ConcurrentHashMap<>();
     private final List<EventListenerImpl> allListeners = new CopyOnWriteArrayList<>();
-    private final DiscordSRV discordSRV;
     private final Logger logger;
 
     public EventBusImpl(DiscordSRV discordSRV) {
-        this.discordSRV = discordSRV;
         this.logger = new NamedLogger(discordSRV, "EVENT_BUS");
         subscribe(this);
     }
