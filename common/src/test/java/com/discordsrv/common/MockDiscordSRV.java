@@ -44,6 +44,7 @@ import com.discordsrv.common.scheduler.Scheduler;
 import com.discordsrv.common.scheduler.StandardScheduler;
 import com.discordsrv.common.storage.impl.MemoryStorage;
 import dev.vankka.dependencydownload.classpath.ClasspathAppender;
+import org.apache.commons.lang3.StringUtils;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.IOException;
@@ -205,20 +206,22 @@ public class MockDiscordSRV extends AbstractDiscordSRV<IBootstrap, MainConfig, C
             }
         };
 
-        ChannelConfig global = (ChannelConfig) config.channels.get(GameChannel.DEFAULT_NAME);
-        DestinationConfig destination = global.destination = new DestinationConfig();
+        if (StringUtils.isNotEmpty(FullBootExtension.TEST_CHANNEL_ID)) {
+            ChannelConfig global = (ChannelConfig) config.channels.get(GameChannel.DEFAULT_NAME);
+            DestinationConfig destination = global.destination = new DestinationConfig();
 
-        long channelId = Long.parseLong(FullBootExtension.TEST_CHANNEL_ID);
+            long channelId = Long.parseLong(FullBootExtension.TEST_CHANNEL_ID);
 
-        List<Long> channelIds = destination.channelIds;
-        channelIds.clear();
-        channelIds.add(channelId);
+            List<Long> channelIds = destination.channelIds;
+            channelIds.clear();
+            channelIds.add(channelId);
 
-        List<ThreadConfig> threadConfigs = destination.threads;
-        threadConfigs.clear();
-        ThreadConfig thread = new ThreadConfig();
-        thread.channelId = channelId;
-        threadConfigs.add(thread);
+            List<ThreadConfig> threadConfigs = destination.threads;
+            threadConfigs.clear();
+            ThreadConfig thread = new ThreadConfig();
+            thread.channelId = channelId;
+            threadConfigs.add(thread);
+        }
 
         return config;
     }
