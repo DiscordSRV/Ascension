@@ -18,23 +18,31 @@
 
 package com.discordsrv.common;
 
+import com.discordsrv.api.channel.GameChannel;
 import com.discordsrv.common.bootstrap.IBootstrap;
 import com.discordsrv.common.bootstrap.LifecycleManager;
 import com.discordsrv.common.command.game.handler.ICommandHandler;
-import com.discordsrv.common.config.connection.ConnectionConfig;
-import com.discordsrv.common.config.main.MainConfig;
-import com.discordsrv.common.config.main.PluginIntegrationConfig;
 import com.discordsrv.common.config.configurate.manager.ConnectionConfigManager;
 import com.discordsrv.common.config.configurate.manager.MainConfigManager;
 import com.discordsrv.common.config.configurate.manager.abstraction.ServerConfigManager;
+import com.discordsrv.common.config.connection.ConnectionConfig;
+import com.discordsrv.common.config.main.MainConfig;
+import com.discordsrv.common.config.main.PluginIntegrationConfig;
+import com.discordsrv.common.config.main.channels.base.ChannelConfig;
+import com.discordsrv.common.config.main.generic.DestinationConfig;
+import com.discordsrv.common.config.main.generic.ThreadConfig;
 import com.discordsrv.common.console.Console;
 import com.discordsrv.common.debug.data.OnlineMode;
+import com.discordsrv.common.debug.data.VersionInfo;
 import com.discordsrv.common.logging.Logger;
 import com.discordsrv.common.logging.backend.impl.JavaLoggerImpl;
+import com.discordsrv.common.messageforwarding.game.minecrafttodiscord.MinecraftToDiscordChatModule;
+import com.discordsrv.common.player.IPlayer;
 import com.discordsrv.common.player.provider.AbstractPlayerProvider;
 import com.discordsrv.common.plugin.PluginManager;
 import com.discordsrv.common.scheduler.Scheduler;
 import com.discordsrv.common.scheduler.StandardScheduler;
+import com.discordsrv.common.storage.impl.MemoryStorage;
 import dev.vankka.dependencydownload.classpath.ClasspathAppender;
 import org.jetbrains.annotations.NotNull;
 
@@ -42,11 +50,16 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.List;
 
 @SuppressWarnings("ConstantConditions")
 public class MockDiscordSRV extends AbstractDiscordSRV<IBootstrap, MainConfig, ConnectionConfig> {
 
     public static final MockDiscordSRV INSTANCE = new MockDiscordSRV();
+
+    public boolean configLoaded = false;
+    public boolean connectionConfigLoaded = false;
+    public boolean playerProviderSubscribed = false;
 
     private final Scheduler scheduler = new StandardScheduler(this);
     private Path path;
@@ -83,6 +96,7 @@ public class MockDiscordSRV extends AbstractDiscordSRV<IBootstrap, MainConfig, C
             }
         });
         load();
+        versionInfo = new VersionInfo("JUnit", "JUnit", "JUnit", "JUnit");
     }
 
     @Override
@@ -115,7 +129,7 @@ public class MockDiscordSRV extends AbstractDiscordSRV<IBootstrap, MainConfig, C
 
     @Override
     public OnlineMode onlineMode() {
-        return null;
+        return OnlineMode.ONLINE;
     }
 
     @Override
@@ -125,12 +139,39 @@ public class MockDiscordSRV extends AbstractDiscordSRV<IBootstrap, MainConfig, C
 
     @Override
     public @NotNull AbstractPlayerProvider<?, ?> playerProvider() {
-        return null;
+        return new AbstractPlayerProvider<IPlayer, DiscordSRV>(this) {
+            @Override
+            public void subscribe() {
+                playerProviderSubscribed = true;
+            }
+        };
     }
 
     @Override
     public ConnectionConfigManager<ConnectionConfig> connectionConfigManager() {
-        return null;
+        return new ConnectionConfigManager<ConnectionConfig>(this) {
+            @Override
+            public ConnectionConfig createConfiguration() {
+                return connectionConfig();
+            }
+
+            @Override
+            public void load() {
+                connectionConfigLoaded = true;
+            }
+        };
+    }
+
+    @Override
+    public ConnectionConfig connectionConfig() {
+        ConnectionConfig config = new ConnectionConfig();
+        config.bot.token = FullBootExtension.BOT_TOKEN;
+        config.storage.backend = MemoryStorage.IDENTIFIER;
+        config.minecraftAuth.allow = false;
+        config.update.firstPartyNotification = false;
+        config.update.security.enabled = false;
+        config.update.github.enabled = false;
+        return config;
     }
 
     @Override
@@ -138,18 +179,47 @@ public class MockDiscordSRV extends AbstractDiscordSRV<IBootstrap, MainConfig, C
         return new ServerConfigManager<MainConfig>(this) {
             @Override
             public MainConfig createConfiguration() {
-                return new MainConfig() {
-                    @Override
-                    public PluginIntegrationConfig integrations() {
-                        return null;
-                    }
-                };
+                return config();
+            }
+
+            @Override
+            public void load() {
+                configLoaded = true;
             }
         };
     }
 
     @Override
-    public void waitForStatus(Status status) throws InterruptedException {
-        super.waitForStatus(status);
+    protected void enable() throws Throwable {
+        super.enable();
+
+        registerModule(MinecraftToDiscordChatModule::new);
+    }
+
+    @Override
+    public MainConfig config() {
+        MainConfig config = new MainConfig() {
+            @Override
+            public PluginIntegrationConfig integrations() {
+                return null;
+            }
+        };
+
+        ChannelConfig global = (ChannelConfig) config.channels.get(GameChannel.DEFAULT_NAME);
+        DestinationConfig destination = global.destination = new DestinationConfig();
+
+        long channelId = Long.parseLong(FullBootExtension.TEST_CHANNEL_ID);
+
+        List<Long> channelIds = destination.channelIds;
+        channelIds.clear();
+        channelIds.add(channelId);
+
+        List<ThreadConfig> threadConfigs = destination.threads;
+        threadConfigs.clear();
+        ThreadConfig thread = new ThreadConfig();
+        thread.channelId = channelId;
+        threadConfigs.add(thread);
+
+        return config;
     }
 }

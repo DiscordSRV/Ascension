@@ -52,7 +52,6 @@ import com.discordsrv.common.groupsync.GroupSyncModule;
 import com.discordsrv.common.invite.DiscordInviteModule;
 import com.discordsrv.common.linking.LinkProvider;
 import com.discordsrv.common.linking.LinkingModule;
-import com.discordsrv.common.linking.impl.MemoryLinker;
 import com.discordsrv.common.linking.impl.MinecraftAuthenticationLinker;
 import com.discordsrv.common.linking.impl.StorageLinker;
 import com.discordsrv.common.logging.Logger;
@@ -75,6 +74,7 @@ import com.discordsrv.common.placeholder.result.ComponentResultStringifier;
 import com.discordsrv.common.profile.ProfileManager;
 import com.discordsrv.common.storage.Storage;
 import com.discordsrv.common.storage.StorageType;
+import com.discordsrv.common.storage.impl.MemoryStorage;
 import com.discordsrv.common.update.UpdateChecker;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -139,7 +139,7 @@ public abstract class AbstractDiscordSRV<B extends IBootstrap, C extends MainCon
 
     // Version
     private UpdateChecker updateChecker;
-    private VersionInfo versionInfo;
+    protected VersionInfo versionInfo;
 
     private OkHttpClient httpClient;
     private final ObjectMapper objectMapper = new ObjectMapper()
@@ -571,6 +571,9 @@ public abstract class AbstractDiscordSRV<B extends IBootstrap, C extends MainCon
             case "mysql": return StorageType.MYSQL;
             case "mariadb": return StorageType.MARIADB;
         }
+        if (backend.equals(MemoryStorage.IDENTIFIER)) {
+            return StorageType.MEMORY;
+        }
         throw new StorageException("Unknown storage backend \"" + backend + "\"");
     }
 
@@ -659,12 +662,6 @@ public abstract class AbstractDiscordSRV<B extends IBootstrap, C extends MainCon
                         linkProvider = new StorageLinker(this);
                         logger().info("Using storage for linked accounts");
                         break;
-                    case "memory": {
-                        linkProvider = new MemoryLinker();
-                        logger().warning("Using memory for linked accounts");
-                        logger().warning("Linked accounts will be lost upon restart");
-                        break;
-                    }
                     default: {
                         linkProvider = null;
                         logger().error("Unknown linked account provider: \"" + provider + "\", linked accounts will not be used");
@@ -686,6 +683,10 @@ public abstract class AbstractDiscordSRV<B extends IBootstrap, C extends MainCon
                 try {
                     StorageType storageType = getStorageType();
                     logger().info("Using " + storageType.prettyName() + " as storage");
+                    if (storageType == StorageType.MEMORY) {
+                        logger().warning("Using memory as storage backend.");
+                        logger().warning("Data will not persist across server restarts.");
+                    }
                     if (storageType.hikari()) {
                         dependencyManager().hikari().download().get();
                     }

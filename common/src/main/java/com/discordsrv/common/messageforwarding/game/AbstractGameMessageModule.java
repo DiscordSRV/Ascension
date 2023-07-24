@@ -35,6 +35,7 @@ import com.discordsrv.common.future.util.CompletableFutureUtil;
 import com.discordsrv.common.logging.NamedLogger;
 import com.discordsrv.common.module.type.AbstractModule;
 import com.discordsrv.common.player.IPlayer;
+import com.discordsrv.common.testing.TestHelper;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -128,6 +129,7 @@ public abstract class AbstractGameMessageModule<T extends IMessageConfig, E exte
                                         t = t.getCause();
                                     }
                                     ErrorCallbackContext.context("Failed to deliver a message to " + entry.getValue()).accept(t);
+                                    TestHelper.fail(t);
                                     return null;
                                 });
                                 // Ignore ones that failed
@@ -150,10 +152,12 @@ public abstract class AbstractGameMessageModule<T extends IMessageConfig, E exte
                             return null;
                         }
                         discordSRV.logger().error("Failed to publish to event bus", t);
+                        TestHelper.fail(t);
                         return null;
                     });
         }).exceptionally(t -> {
             discordSRV.logger().error("Error in sending message", t);
+            TestHelper.fail(t);
             return null;
         });
     }

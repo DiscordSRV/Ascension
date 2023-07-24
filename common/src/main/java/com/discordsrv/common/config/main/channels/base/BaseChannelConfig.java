@@ -32,7 +32,7 @@ public class BaseChannelConfig {
     public DiscordToMinecraftChatConfig discordToMinecraft = new DiscordToMinecraftChatConfig();
 
     public JoinMessageConfig joinMessages() {
-        return null;
+        return new JoinMessageConfig();
     }
 
     @Order(2)

@@ -32,6 +32,7 @@ import com.discordsrv.common.debug.file.TextDebugFile;
 import com.discordsrv.common.exception.InvalidListenerMethodException;
 import com.discordsrv.common.logging.Logger;
 import com.discordsrv.common.logging.NamedLogger;
+import com.discordsrv.common.testing.TestHelper;
 import net.dv8tion.jda.api.events.GenericEvent;
 import org.apache.commons.lang3.tuple.Pair;
 import org.jetbrains.annotations.NotNull;
@@ -209,6 +210,7 @@ public class EventBusImpl implements EventBus {
                     eventListener.method().invoke(listener, event);
                 } catch (IllegalAccessException e) {
                     logger.error("Failed to access listener method: " + eventListener.methodName() + " in " + eventListener.className(), e);
+                    TestHelper.fail(e);
                 } catch (InvocationTargetException e) {
                     String eventClassName = eventClass.getName();
                     Throwable cause = e.getCause();
@@ -217,6 +219,7 @@ public class EventBusImpl implements EventBus {
                     } else {
                         e.getCause().printStackTrace();
                     }
+                    TestHelper.fail(cause);
                 }
                 long timeTaken = System.currentTimeMillis() - startTime;
                 logger.trace(eventListener + " took " + timeTaken + "ms to execute");

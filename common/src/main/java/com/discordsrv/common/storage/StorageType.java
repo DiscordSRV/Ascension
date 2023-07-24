@@ -19,6 +19,7 @@
 package com.discordsrv.common.storage;
 
 import com.discordsrv.common.DiscordSRV;
+import com.discordsrv.common.storage.impl.MemoryStorage;
 import com.discordsrv.common.storage.impl.sql.file.H2Storage;
 import com.discordsrv.common.storage.impl.sql.hikari.MariaDBStorage;
 import com.discordsrv.common.storage.impl.sql.hikari.MySQLStorage;
@@ -29,7 +30,8 @@ public enum StorageType {
 
     H2(H2Storage::new, "H2", false),
     MYSQL(MySQLStorage::new, "MySQL", true),
-    MARIADB(MariaDBStorage::new, "MariaDB", true);
+    MARIADB(MariaDBStorage::new, "MariaDB", true),
+    MEMORY(discordSRV -> new MemoryStorage(), "Memory", false);
 
     private final Function<DiscordSRV, Storage> storageFunction;
     private final String prettyName;
