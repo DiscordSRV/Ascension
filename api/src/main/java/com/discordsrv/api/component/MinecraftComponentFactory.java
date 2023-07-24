@@ -40,5 +40,12 @@ public interface MinecraftComponentFactory {
     @NotNull
     MinecraftComponent empty();
 
-    GameTextBuilder textBuilder(String content);
+    /**
+     * Creates a EnhancedLegacyText {@link GameTextBuilder} based on the given input.
+     * @param enhancedLegacyText the format
+     * @return the new builder
+     */
+    @NotNull
+    GameTextBuilder textBuilder(@NotNull String enhancedLegacyText);
+
 }

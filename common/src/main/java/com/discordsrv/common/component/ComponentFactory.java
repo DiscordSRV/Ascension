@@ -25,13 +25,16 @@ import com.discordsrv.common.DiscordSRV;
 import com.discordsrv.common.component.renderer.DiscordSRVMinecraftRenderer;
 import com.discordsrv.common.component.translation.Translation;
 import com.discordsrv.common.component.translation.TranslationRegistry;
+import dev.vankka.enhancedlegacytext.EnhancedLegacyText;
 import dev.vankka.mcdiscordreserializer.discord.DiscordSerializer;
 import dev.vankka.mcdiscordreserializer.discord.DiscordSerializerOptions;
 import dev.vankka.mcdiscordreserializer.minecraft.MinecraftSerializer;
 import dev.vankka.mcdiscordreserializer.minecraft.MinecraftSerializerOptions;
+import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.TranslatableComponent;
 import net.kyori.adventure.text.flattener.ComponentFlattener;
 import net.kyori.adventure.text.serializer.ansi.ANSIComponentSerializer;
+import net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer;
 import net.kyori.adventure.text.serializer.plain.PlainTextComponentSerializer;
 import net.kyori.ansi.ColorLevel;
 import org.jetbrains.annotations.NotNull;
@@ -103,8 +106,16 @@ public class ComponentFactory implements MinecraftComponentFactory {
     }
 
     @Override
-    public GameTextBuilder textBuilder(String content) {
-        return new EnhancedTextBuilderImpl(discordSRV, content);
+    public @NotNull GameTextBuilder textBuilder(@NotNull String enhancedLegacyText) {
+        return new EnhancedTextBuilderImpl(discordSRV, enhancedLegacyText);
+    }
+
+    public @NotNull Component parse(@NotNull String textInput) {
+        if (textInput.contains(String.valueOf(LegacyComponentSerializer.SECTION_CHAR))) {
+            return LegacyComponentSerializer.legacySection().deserialize(textInput);
+        }
+
+        return EnhancedLegacyText.get().parse(textInput);
     }
 
     public MinecraftSerializer minecraftSerializer() {

@@ -20,7 +20,6 @@ package com.discordsrv.common.permission.util;
 
 import com.discordsrv.api.module.type.PermissionDataProvider;
 import com.discordsrv.common.DiscordSRV;
-import com.discordsrv.common.component.util.ComponentUtil;
 import com.discordsrv.common.exception.MessageException;
 import net.kyori.adventure.text.Component;
 
@@ -88,6 +87,6 @@ public final class PermissionUtil {
     }
 
     private static Component translate(DiscordSRV discordSRV, String data) {
-        return data != null ? ComponentUtil.fromAPI(discordSRV.componentFactory().textBuilder(data).build()) : null;
+        return data != null ? discordSRV.componentFactory().parse(data) : null;
     }
 }
