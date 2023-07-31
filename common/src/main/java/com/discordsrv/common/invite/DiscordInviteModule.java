@@ -26,6 +26,7 @@ import com.discordsrv.api.placeholder.annotation.Placeholder;
 import com.discordsrv.common.DiscordSRV;
 import com.discordsrv.common.config.main.DiscordInviteConfig;
 import com.discordsrv.common.module.type.AbstractModule;
+import com.discordsrv.common.permission.util.DiscordPermissionUtil;
 import net.dv8tion.jda.api.JDA;
 import net.dv8tion.jda.api.Permission;
 import net.dv8tion.jda.api.entities.Guild;
@@ -118,6 +119,8 @@ public class DiscordInviteModule extends AbstractModule<DiscordSRV> {
             if (channel == null) {
                 return;
             }
+
+            if (!DiscordPermissionUtil.requiredPermissionsCheck(this, "automatically create invite", channel, Permission.CREATE_INSTANT_INVITE)) return;
 
             channel.createInvite().setMaxAge(0).setUnique(true).queue(
                     inv -> this.invite = inv.getUrl(),
