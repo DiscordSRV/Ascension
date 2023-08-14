@@ -1,4 +1,4 @@
-# Temporary repository for DiscordSRV3 [Not ready, not usable]
+# Temporary repository for DiscordSRV3 [Testing builds available on our Discord server]
 
 # DiscordSRV
 
