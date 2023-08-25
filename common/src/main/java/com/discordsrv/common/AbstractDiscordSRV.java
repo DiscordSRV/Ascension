@@ -457,7 +457,7 @@ public abstract class AbstractDiscordSRV<
         MainConfig config = config();
         if (config != null) {
             String defaultLanguage = config.messages.defaultLanguage;
-            if (StringUtils.isBlank(defaultLanguage)) {
+            if (StringUtils.isNotBlank(defaultLanguage)) {
                 for (Locale locale : Locale.getAvailableLocales()) {
                     if (locale.getISO3Language().equals(defaultLanguage)) {
                         return locale;
