@@ -18,11 +18,16 @@
 
 package com.discordsrv.common.linking.impl;
 
+import com.discordsrv.api.component.MinecraftComponent;
 import com.discordsrv.common.DiscordSRV;
+import com.discordsrv.common.component.util.ComponentUtil;
 import com.discordsrv.common.linking.LinkProvider;
 import com.discordsrv.common.linking.LinkStore;
+import net.kyori.adventure.text.Component;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
+import java.util.Locale;
 import java.util.Optional;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
@@ -71,5 +76,10 @@ public class StorageLinker extends CachedLinkProvider implements LinkProvider, L
                 () -> discordSRV.storage().getLinkedAccountCount(),
                 discordSRV.scheduler().executor()
         );
+    }
+
+    @Override
+    public MinecraftComponent getLinkingInstructions(String username, UUID playerUUID, @Nullable Locale locale) {
+        return ComponentUtil.toAPI(Component.text("<linking instructions>"));
     }
 }

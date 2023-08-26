@@ -19,6 +19,7 @@
 package com.discordsrv.common.linking.requirelinking;
 
 import com.discordsrv.common.DiscordSRV;
+import com.discordsrv.common.component.util.ComponentUtil;
 import com.discordsrv.common.config.main.linking.RequirementsConfig;
 import com.discordsrv.common.config.main.linking.ServerRequiredLinkingConfig;
 import com.discordsrv.common.future.util.CompletableFutureUtil;
@@ -63,14 +64,23 @@ public abstract class ServerRequireLinkingModule<T extends DiscordSRV> extends R
         LinkProvider linkProvider = discordSRV.linkProvider();
         if (linkProvider == null) {
             // Link provider unavailable but required linking enabled: error message
-            return CompletableFuture.completedFuture(Component.text("Unable to check linking status at this time"));
+            Component message = ComponentUtil.fromAPI(
+                    discordSRV.componentFactory().textBuilder(
+                            discordSRV.messagesConfig(null).unableToCheckLinkingStatus
+                    ).build()
+            );
+            return CompletableFuture.completedFuture(message);
         }
 
         return linkProvider.queryUserId(playerUUID)
                 .thenCompose(opt -> {
                     if (!opt.isPresent()) {
                         // User is not linked
-                        return CompletableFuture.completedFuture(Component.text("Not linked"));
+                        return CompletableFuture.completedFuture(
+                                ComponentUtil.fromAPI(
+                                        linkProvider.getLinkingInstructions(playerName, playerUUID, null)
+                                )
+                        );
                     }
 
                     List<CompiledRequirement> requirements;

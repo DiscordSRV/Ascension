@@ -22,6 +22,7 @@ import com.discordsrv.bukkit.BukkitDiscordSRV;
 import com.discordsrv.bukkit.config.main.BukkitRequiredLinkingConfig;
 import com.discordsrv.bukkit.requiredlinking.BukkitRequiredLinkingModule;
 import com.discordsrv.common.DiscordSRV;
+import com.discordsrv.common.component.util.ComponentUtil;
 import com.discordsrv.common.player.IPlayer;
 import net.kyori.adventure.platform.bukkit.BukkitComponentSerializer;
 import net.kyori.adventure.text.Component;
@@ -93,7 +94,12 @@ public class BukkitRequiredLinkingListener implements Listener {
     private CompletableFuture<Component> getBlockReason(UUID playerUUID, String playerName) {
         BukkitRequiredLinkingModule module = getModule();
         if (module == null) {
-            return CompletableFuture.completedFuture(Component.text("Discord unavailable, please try again later"));
+            Component message = ComponentUtil.fromAPI(
+                    discordSRV.componentFactory().textBuilder(
+                            discordSRV.messagesConfig(null).noDiscordConnection
+                    ).build()
+            );
+            return CompletableFuture.completedFuture(message);
         }
 
         return module.getBlockReason(playerUUID, playerName);

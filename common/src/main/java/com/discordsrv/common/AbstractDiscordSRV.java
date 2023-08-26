@@ -393,8 +393,8 @@ public abstract class AbstractDiscordSRV<
     public abstract MessagesConfigManager<MC> messagesConfigManager();
 
     @Override
-    public MC messagesConfig(Locale locale) {
-        MessagesConfigSingleManager<MC> manager = messagesConfigManager().getManager(locale);
+    public MC messagesConfig(@Nullable Locale locale) {
+        MessagesConfigSingleManager<MC> manager = locale != null ? messagesConfigManager().getManager(locale) : null;
         if (manager == null) {
             manager = messagesConfigManager().getManager(defaultLocale());
         }

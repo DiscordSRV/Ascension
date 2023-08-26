@@ -18,8 +18,11 @@
 
 package com.discordsrv.common.linking;
 
+import com.discordsrv.api.component.MinecraftComponent;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
+import java.util.Locale;
 import java.util.Optional;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
@@ -53,4 +56,6 @@ public interface LinkProvider {
     default Optional<UUID> getCachedPlayerUUID(long userId) {
         return Optional.empty();
     }
+
+    MinecraftComponent getLinkingInstructions(String username, UUID playerUUID, @Nullable Locale locale);
 }

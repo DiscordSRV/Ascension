@@ -18,7 +18,9 @@
 
 package com.discordsrv.common.linking.impl;
 
+import com.discordsrv.api.component.MinecraftComponent;
 import com.discordsrv.common.DiscordSRV;
+import com.discordsrv.common.component.util.ComponentUtil;
 import com.discordsrv.common.function.CheckedSupplier;
 import com.discordsrv.common.future.util.CompletableFutureUtil;
 import com.discordsrv.common.linking.LinkProvider;
@@ -30,8 +32,10 @@ import me.minecraftauth.lib.AuthService;
 import me.minecraftauth.lib.account.AccountType;
 import me.minecraftauth.lib.account.platform.discord.DiscordAccount;
 import me.minecraftauth.lib.account.platform.minecraft.MinecraftAccount;
+import net.kyori.adventure.text.Component;
 import org.jetbrains.annotations.NotNull;
 
+import java.util.Locale;
 import java.util.Optional;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
@@ -77,6 +81,11 @@ public class MinecraftAuthenticationLinker extends CachedLinkProvider implements
             logger.error("Lookup for user id " + Long.toUnsignedString(userId) + " failed", t);
             return Optional.empty();
         });
+    }
+
+    @Override
+    public MinecraftComponent getLinkingInstructions(String username, UUID playerUUID, Locale locale) {
+        return ComponentUtil.toAPI(Component.text("<linking instructions>"));
     }
 
     private void linked(UUID playerUUID, long userId) {
