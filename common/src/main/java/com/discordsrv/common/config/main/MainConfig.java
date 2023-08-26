@@ -87,6 +87,8 @@ public abstract class MainConfig implements Config {
     @Comment("Configuration for the %discord_invite% placeholder. The below options will be attempted in the order they are in")
     public DiscordInviteConfig invite = new DiscordInviteConfig();
 
+    public MessagesMainConfig messages = new MessagesMainConfig();
+
     @Order(10) // To go below required linking config @ 5
     @Comment("Configuration for the %player_avatar_url% placeholder")
     public AvatarProviderConfig avatarProvider = new AvatarProviderConfig();

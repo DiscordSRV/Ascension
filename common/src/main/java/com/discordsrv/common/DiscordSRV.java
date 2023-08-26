@@ -26,10 +26,12 @@ import com.discordsrv.common.channel.ChannelConfigHelper;
 import com.discordsrv.common.command.game.GameCommandExecutionHelper;
 import com.discordsrv.common.command.game.handler.ICommandHandler;
 import com.discordsrv.common.component.ComponentFactory;
-import com.discordsrv.common.config.connection.ConnectionConfig;
-import com.discordsrv.common.config.main.MainConfig;
 import com.discordsrv.common.config.configurate.manager.ConnectionConfigManager;
 import com.discordsrv.common.config.configurate.manager.MainConfigManager;
+import com.discordsrv.common.config.configurate.manager.MessagesConfigManager;
+import com.discordsrv.common.config.connection.ConnectionConfig;
+import com.discordsrv.common.config.main.MainConfig;
+import com.discordsrv.common.config.messages.MessagesConfig;
 import com.discordsrv.common.console.Console;
 import com.discordsrv.common.debug.data.OnlineMode;
 import com.discordsrv.common.debug.data.VersionInfo;
@@ -115,6 +117,9 @@ public interface DiscordSRV extends DiscordSRVApi {
     ConnectionConfig connectionConfig();
     MainConfigManager<? extends MainConfig> configManager();
     MainConfig config();
+    MessagesConfigManager<? extends MessagesConfig> messagesConfigManager();
+    MessagesConfig messagesConfig(Locale locale);
+
     // Config helper
     ChannelConfigHelper channelConfig();
 
@@ -130,7 +135,7 @@ public interface DiscordSRV extends DiscordSRVApi {
     void unregisterModule(AbstractModule<?> module);
     ModuleManager moduleManager();
 
-    Locale locale();
+    Locale defaultLocale();
 
     // Status
     void setStatus(Status status);

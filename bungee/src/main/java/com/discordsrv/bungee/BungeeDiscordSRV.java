@@ -24,10 +24,12 @@ import com.discordsrv.bungee.player.BungeePlayerProvider;
 import com.discordsrv.bungee.plugin.BungeePluginManager;
 import com.discordsrv.common.ProxyDiscordSRV;
 import com.discordsrv.common.command.game.handler.ICommandHandler;
+import com.discordsrv.common.config.configurate.manager.MessagesConfigManager;
 import com.discordsrv.common.config.connection.ConnectionConfig;
 import com.discordsrv.common.config.main.MainConfig;
 import com.discordsrv.common.config.configurate.manager.ConnectionConfigManager;
 import com.discordsrv.common.config.configurate.manager.MainConfigManager;
+import com.discordsrv.common.config.messages.MessagesConfig;
 import com.discordsrv.common.debug.data.OnlineMode;
 import com.discordsrv.common.plugin.PluginManager;
 import com.discordsrv.common.scheduler.StandardScheduler;
@@ -36,7 +38,7 @@ import net.md_5.bungee.api.ProxyServer;
 import net.md_5.bungee.api.plugin.Plugin;
 import org.jetbrains.annotations.NotNull;
 
-public class BungeeDiscordSRV extends ProxyDiscordSRV<DiscordSRVBungeeBootstrap, MainConfig, ConnectionConfig> {
+public class BungeeDiscordSRV extends ProxyDiscordSRV<DiscordSRVBungeeBootstrap, MainConfig, ConnectionConfig, MessagesConfig> {
 
     private BungeeAudiences audiences;
 
@@ -106,6 +108,11 @@ public class BungeeDiscordSRV extends ProxyDiscordSRV<DiscordSRVBungeeBootstrap,
 
     @Override
     public MainConfigManager<MainConfig> configManager() {
+        return null;
+    }
+
+    @Override
+    public MessagesConfigManager<MessagesConfig> messagesConfigManager() {
         return null;
     }
 

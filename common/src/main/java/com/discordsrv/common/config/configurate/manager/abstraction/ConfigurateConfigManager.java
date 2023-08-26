@@ -71,7 +71,7 @@ public abstract class ConfigurateConfigManager<T, LT extends AbstractConfigurati
     private final Path filePath;
     private final ObjectMapper.Factory objectMapper;
     private final ObjectMapper.Factory cleanObjectMapper;
-    private final LT loader;
+    private LT loader;
 
     protected T configuration;
 
@@ -83,7 +83,6 @@ public abstract class ConfigurateConfigManager<T, LT extends AbstractConfigurati
         this.filePath = dataDirectory.resolve(fileName());
         this.objectMapper = objectMapperBuilder().build();
         this.cleanObjectMapper = cleanObjectMapperBuilder().build();
-        this.loader = createLoader(filePath, nodeOptions());
     }
 
     public Path filePath() {
@@ -91,6 +90,9 @@ public abstract class ConfigurateConfigManager<T, LT extends AbstractConfigurati
     }
 
     public LT loader() {
+        if (loader == null) {
+            loader = createLoader(filePath(), nodeOptions());
+        }
         return loader;
     }
 
@@ -312,6 +314,7 @@ public abstract class ConfigurateConfigManager<T, LT extends AbstractConfigurati
     @Override
     public void save() throws ConfigException {
         try {
+            LT loader = loader();
             CommentedConfigurationNode node = loader.createNode();
             save(configuration, (Class<T>) configuration.getClass(), node);
             loader.save(node);

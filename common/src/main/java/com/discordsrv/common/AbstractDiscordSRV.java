@@ -33,12 +33,15 @@ import com.discordsrv.common.command.discord.DiscordCommandModule;
 import com.discordsrv.common.command.game.GameCommandModule;
 import com.discordsrv.common.command.game.commands.subcommand.reload.ReloadResults;
 import com.discordsrv.common.component.ComponentFactory;
+import com.discordsrv.common.config.configurate.manager.ConnectionConfigManager;
+import com.discordsrv.common.config.configurate.manager.MainConfigManager;
+import com.discordsrv.common.config.configurate.manager.MessagesConfigManager;
+import com.discordsrv.common.config.configurate.manager.MessagesConfigSingleManager;
 import com.discordsrv.common.config.connection.ConnectionConfig;
 import com.discordsrv.common.config.connection.UpdateConfig;
 import com.discordsrv.common.config.main.MainConfig;
 import com.discordsrv.common.config.main.linking.LinkedAccountConfig;
-import com.discordsrv.common.config.configurate.manager.ConnectionConfigManager;
-import com.discordsrv.common.config.configurate.manager.MainConfigManager;
+import com.discordsrv.common.config.messages.MessagesConfig;
 import com.discordsrv.common.debug.data.VersionInfo;
 import com.discordsrv.common.dependency.DiscordSRVDependencyManager;
 import com.discordsrv.common.discord.api.DiscordAPIEventModule;
@@ -84,6 +87,7 @@ import okhttp3.ConnectionPool;
 import okhttp3.Dispatcher;
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
+import org.apache.commons.lang3.StringUtils;
 import org.intellij.lang.annotations.Language;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -110,7 +114,12 @@ import java.util.jar.Manifest;
  * @param <C> the config type
  * @param <CC> the connections config type
  */
-public abstract class AbstractDiscordSRV<B extends IBootstrap, C extends MainConfig, CC extends ConnectionConfig> implements DiscordSRV {
+public abstract class AbstractDiscordSRV<
+        B extends IBootstrap,
+        C extends MainConfig,
+        CC extends ConnectionConfig,
+        MC extends MessagesConfig
+> implements DiscordSRV {
 
     private final AtomicReference<Status> status = new AtomicReference<>(Status.INITIALIZED);
     private final AtomicReference<Boolean> beenReady = new AtomicReference<>(false);
@@ -380,6 +389,21 @@ public abstract class AbstractDiscordSRV<B extends IBootstrap, C extends MainCon
         return configManager().config();
     }
 
+    @Override
+    public abstract MessagesConfigManager<MC> messagesConfigManager();
+
+    @Override
+    public MC messagesConfig(Locale locale) {
+        MessagesConfigSingleManager<MC> manager = messagesConfigManager().getManager(locale);
+        if (manager == null) {
+            manager = messagesConfigManager().getManager(defaultLocale());
+        }
+        if (manager == null) {
+            manager = messagesConfigManager().getManager(Locale.US);
+        }
+        return manager.config();
+    }
+
     // Module
 
     @Override
@@ -430,8 +454,15 @@ public abstract class AbstractDiscordSRV<B extends IBootstrap, C extends MainCon
     }
 
     @Override
-    public Locale locale() {
-        // TODO: config
+    public Locale defaultLocale() {
+        MainConfig config = config();
+        if (config != null) {
+            String defaultLanguage = config.messages.defaultLanguage;
+            if (StringUtils.isNotBlank(defaultLanguage)) {
+                return Locale.forLanguageTag(defaultLanguage);
+            }
+        }
+
         return Locale.getDefault();
     }
 
@@ -607,6 +638,7 @@ public abstract class AbstractDiscordSRV<B extends IBootstrap, C extends MainCon
             try {
                 connectionConfigManager().load();
                 configManager().load();
+                messagesConfigManager().load();
 
                 channelConfig().reload();
             } catch (Throwable t) {

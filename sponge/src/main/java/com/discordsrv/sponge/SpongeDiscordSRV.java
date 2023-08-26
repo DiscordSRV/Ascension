@@ -21,10 +21,12 @@ package com.discordsrv.sponge;
 import com.discordsrv.api.DiscordSRVApi;
 import com.discordsrv.common.ServerDiscordSRV;
 import com.discordsrv.common.command.game.handler.ICommandHandler;
+import com.discordsrv.common.config.configurate.manager.MessagesConfigManager;
 import com.discordsrv.common.config.connection.ConnectionConfig;
 import com.discordsrv.common.config.main.MainConfig;
 import com.discordsrv.common.config.configurate.manager.ConnectionConfigManager;
 import com.discordsrv.common.config.configurate.manager.MainConfigManager;
+import com.discordsrv.common.config.messages.MessagesConfig;
 import com.discordsrv.common.debug.data.OnlineMode;
 import com.discordsrv.common.plugin.PluginManager;
 import com.discordsrv.sponge.console.SpongeConsole;
@@ -37,7 +39,7 @@ import org.spongepowered.api.event.Listener;
 import org.spongepowered.api.event.lifecycle.ProvideServiceEvent;
 import org.spongepowered.plugin.PluginContainer;
 
-public class SpongeDiscordSRV extends ServerDiscordSRV<DiscordSRVSpongeBootstrap, MainConfig, ConnectionConfig> {
+public class SpongeDiscordSRV extends ServerDiscordSRV<DiscordSRVSpongeBootstrap, MainConfig, ConnectionConfig, MessagesConfig> {
 
     private final SpongeScheduler scheduler;
     private final SpongeConsole console;
@@ -102,6 +104,11 @@ public class SpongeDiscordSRV extends ServerDiscordSRV<DiscordSRVSpongeBootstrap
 
     @Override
     public MainConfigManager<MainConfig> configManager() {
+        return null;
+    }
+
+    @Override
+    public MessagesConfigManager<MessagesConfig> messagesConfigManager() {
         return null;
     }
 
