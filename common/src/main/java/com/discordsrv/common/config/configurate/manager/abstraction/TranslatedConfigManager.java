@@ -105,11 +105,14 @@ public abstract class TranslatedConfigManager<T extends Config, LT extends Abstr
     }
 
     private ConfigurationNode getTranslationRoot() throws ConfigurateException {
-        String languageCode = locale().getISO3Language();
+        String languageCode = locale().getLanguage();
+        String countryCode = locale().getCountry();
+
         ClassLoader classLoader = discordSRV.getClass().getClassLoader();
-        URL resourceURL = classLoader.getResource("translations/" + languageCode + ".yaml");
+
+        URL resourceURL = classLoader.getResource("translations/" + languageCode + "_" + countryCode + ".yaml");
         if (resourceURL == null) {
-            resourceURL = classLoader.getResource("translations/eng.yaml");
+            resourceURL = classLoader.getResource("translations/" + languageCode + ".yaml");
         }
         if (resourceURL == null) {
             return null;

@@ -17,7 +17,6 @@ public abstract class MessagesConfigManager<C extends MessagesConfig> {
     private final Map<Locale, MessagesConfigSingleManager<C>> configs = new LinkedHashMap<>();
     private final DiscordSRV discordSRV;
     private final Logger logger;
-    private boolean multi;
 
     public MessagesConfigManager(DiscordSRV discordSRV) {
         this.discordSRV = discordSRV;
@@ -45,10 +44,7 @@ public abstract class MessagesConfigManager<C extends MessagesConfig> {
                 throw new ConfigException("MainConfig not available");
             }
 
-            boolean multiple = config.messages.multiple;
-            Locale defaultLocale = discordSRV.defaultLocale();
-
-            if (multiple) {
+            if (config.messages.multiple) {
                 try {
                     Path messagesDirectory = directory();
                     if (!Files.exists(messagesDirectory)) {
@@ -83,7 +79,8 @@ public abstract class MessagesConfigManager<C extends MessagesConfig> {
                     throw new ConfigException("Failed to initialize messages configs", t);
                 }
             } else {
-                configs.put(Locale.US, new MessagesConfigSingleManager<>(discordSRV, this, Locale.US, false));
+                Locale defaultLocale = discordSRV.defaultLocale();
+                configs.put(defaultLocale, new MessagesConfigSingleManager<>(discordSRV, this, defaultLocale, false));
             }
 
             for (Map.Entry<Locale, MessagesConfigSingleManager<C>> entry : configs.entrySet()) {
