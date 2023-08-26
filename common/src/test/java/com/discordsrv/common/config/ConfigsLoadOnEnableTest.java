@@ -13,5 +13,6 @@ public class ConfigsLoadOnEnableTest {
     public void configsLoaded() {
         Assertions.assertTrue(MockDiscordSRV.INSTANCE.configLoaded, "Config loaded");
         Assertions.assertTrue(MockDiscordSRV.INSTANCE.connectionConfigLoaded, "Connection config loaded");
+        Assertions.assertTrue(MockDiscordSRV.INSTANCE.messagesConfigLoaded, "Messages config loaded");
     }
 }

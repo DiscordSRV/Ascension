@@ -36,6 +36,7 @@ import com.discordsrv.common.config.messages.MessagesConfig;
 import com.discordsrv.common.console.Console;
 import com.discordsrv.common.debug.data.OnlineMode;
 import com.discordsrv.common.debug.data.VersionInfo;
+import com.discordsrv.common.exception.ConfigException;
 import com.discordsrv.common.logging.Logger;
 import com.discordsrv.common.logging.backend.impl.JavaLoggerImpl;
 import com.discordsrv.common.messageforwarding.game.minecrafttodiscord.MinecraftToDiscordChatModule;
@@ -62,6 +63,7 @@ public class MockDiscordSRV extends AbstractDiscordSRV<IBootstrap, MainConfig, C
 
     public boolean configLoaded = false;
     public boolean connectionConfigLoaded = false;
+    public boolean messagesConfigLoaded = false;
     public boolean playerProviderSubscribed = false;
 
     private final Scheduler scheduler = new StandardScheduler(this);
@@ -230,6 +232,16 @@ public class MockDiscordSRV extends AbstractDiscordSRV<IBootstrap, MainConfig, C
 
     @Override
     public MessagesConfigManager<MessagesConfig> messagesConfigManager() {
-        return null;
+        return new MessagesConfigManager<MessagesConfig>(null) {
+            @Override
+            public MessagesConfig createConfiguration() {
+                return null;
+            }
+
+            @Override
+            public void load() throws ConfigException {
+                messagesConfigLoaded = true;
+            }
+        };
     }
 }
