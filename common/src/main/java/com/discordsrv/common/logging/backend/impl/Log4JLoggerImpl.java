@@ -149,8 +149,8 @@ public class Log4JLoggerImpl implements Logger, LoggingBackend {
     public boolean removeAppender(LogAppender appender) {
         if (logger instanceof org.apache.logging.log4j.core.Logger) {
             org.apache.logging.log4j.core.Logger loggerImpl = (org.apache.logging.log4j.core.Logger) logger;
-            Appender log4jAppender = appenders.get(appender);
-            loggerImpl.addAppender(log4jAppender);
+            Appender log4jAppender = appenders.remove(appender);
+            loggerImpl.removeAppender(log4jAppender);
             return true;
         }
         return false;
