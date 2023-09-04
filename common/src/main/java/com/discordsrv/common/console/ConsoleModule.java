@@ -1,5 +1,6 @@
 package com.discordsrv.common.console;
 
+import com.discordsrv.api.DiscordSRVApi;
 import com.discordsrv.common.DiscordSRV;
 import com.discordsrv.common.config.main.ConsoleConfig;
 import com.discordsrv.common.console.entry.LogEntry;
@@ -13,6 +14,7 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.function.Consumer;
 
 public class ConsoleModule extends AbstractModule<DiscordSRV> implements LogAppender {
 
@@ -29,8 +31,9 @@ public class ConsoleModule extends AbstractModule<DiscordSRV> implements LogAppe
         backend.addAppender(this);
     }
 
+
     @Override
-    public void reloadNoResult() {
+    public void reload(Consumer<DiscordSRVApi.ReloadResult> resultConsumer) {
         for (SingleConsoleHandler handler : handlers) {
             handler.shutdown();
         }
