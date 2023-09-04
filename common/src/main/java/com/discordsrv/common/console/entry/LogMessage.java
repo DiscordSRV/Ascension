@@ -3,17 +3,18 @@ package com.discordsrv.common.console.entry;
 public class LogMessage {
 
     private final LogEntry entry;
-    private String formatted;
+    private final String formatted;
 
-    public LogMessage(LogEntry entry) {
+    public LogMessage(LogEntry entry, String formatted) {
         this.entry = entry;
-    }
-
-    public String getFormatted() {
-        return formatted;
-    }
-
-    public void setFormatted(String formatted) {
         this.formatted = formatted;
+    }
+
+    public LogEntry entry() {
+        return entry;
+    }
+
+    public String formatted() {
+        return formatted;
     }
 }

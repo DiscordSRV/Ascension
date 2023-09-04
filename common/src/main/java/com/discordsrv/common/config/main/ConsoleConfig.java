@@ -1,10 +1,14 @@
 package com.discordsrv.common.config.main;
 
+import com.discordsrv.common.config.main.generic.DestinationConfig;
 import org.spongepowered.configurate.objectmapping.meta.Comment;
 
 import java.util.Locale;
 
 public class ConsoleConfig {
+
+    @Comment("The console channel or thread")
+    public DestinationConfig.Single channel = new DestinationConfig.Single();
 
     @Comment("The format for log lines")
     public String lineFormat = "[%log_time:'ccc HH:mm:ss zzz'%] [%log_level%] [%logger_name%] %message%";
@@ -55,6 +59,10 @@ public class ConsoleConfig {
 
         public String suffix() {
             return suffix;
+        }
+
+        public int blockLength() {
+            return prefix().length() + suffix().length();
         }
     }
 }

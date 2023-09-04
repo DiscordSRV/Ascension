@@ -1,5 +1,7 @@
 package com.discordsrv.common.console;
 
+import com.discordsrv.api.discord.entity.channel.DiscordGuildMessageChannel;
+import com.discordsrv.api.discord.entity.message.SendableDiscordMessage;
 import com.discordsrv.common.DiscordSRV;
 import com.discordsrv.common.config.main.ConsoleConfig;
 import com.discordsrv.common.console.entry.LogEntry;
@@ -11,7 +13,7 @@ import org.apache.commons.lang3.exception.ExceptionUtils;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Queue;
-import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.*;
 
 public class SingleConsoleHandler {
 
@@ -19,13 +21,23 @@ public class SingleConsoleHandler {
 
     private final DiscordSRV discordSRV;
     private final ConsoleConfig config;
+    private final Future<?> queueProcessingFuture;
     private final Queue<LogEntry> queue = new LinkedBlockingQueue<>();
+
+    // Editing
     private final List<LogMessage> messageCache;
+    private Long mostRecentMessageId;
+
+    // Preventing concurrent sends
+    private final Object sendLock = new Object();
+    private Future<?> sendFuture;
 
     public SingleConsoleHandler(DiscordSRV discordSRV, ConsoleConfig config) {
         this.discordSRV = discordSRV;
         this.config = config;
         this.messageCache = config.useEditing ? new ArrayList<>() : null;
+
+        this.queueProcessingFuture = discordSRV.scheduler().runAtFixedRate(this::processQueue, 2, TimeUnit.SECONDS);
     }
 
     public void queue(LogEntry entry) {
@@ -33,34 +45,117 @@ public class SingleConsoleHandler {
     }
 
     public void shutdown() {
-
+        queueProcessingFuture.cancel(false);
+        queue.clear();
+        messageCache.clear();
+        mostRecentMessageId = null;
     }
 
     private void processQueue() {
         ConsoleConfig.OutputMode outputMode = config.getOutputMode();
 
-
+        Queue<LogMessage> currentBuffer = new LinkedBlockingQueue<>();
+        LogEntry entry;
+        while ((entry = queue.poll()) != null) {
+            List<String> messages = formatEntry(entry, outputMode);
+            if (messages.size() == 1) {
+                LogMessage message = new LogMessage(entry, messages.get(0));
+                currentBuffer.add(message);
+            } else {
+                clearBuffer(currentBuffer, outputMode);
+                for (String message : messages) {
+                    send(message, true, outputMode);
+                }
+            }
+        }
+        clearBuffer(currentBuffer, outputMode);
     }
 
-    private List<String> formatEntry(LogEntry entry) {
-        String message = entry.message();
-        String throwable = ExceptionUtils.getMessage(entry.throwable());
+    private void clearBuffer(Queue<LogMessage> currentBuffer, ConsoleConfig.OutputMode outputMode) {
+        int blockLength = outputMode.blockLength();
 
-        message = discordSRV.placeholderService().replacePlaceholders(config.lineFormat, entry);
+        StringBuilder builder = new StringBuilder();
+        if (messageCache != null) {
+            for (LogMessage logMessage : messageCache) {
+                builder.append(logMessage.formatted());
+            }
+        }
 
-        ConsoleConfig.OutputMode outputMode = config.getOutputMode();
+        LogMessage current;
+        while ((current = currentBuffer.poll()) != null) {
+            String formatted = current.formatted();
+            if (formatted.length() + builder.length() + blockLength > MESSAGE_MAX_LENGTH) {
+                send(builder.toString(), true, outputMode);
+                builder.setLength(0);
+                if (messageCache != null) {
+                    messageCache.clear();
+                }
+            }
 
-        String prefix = outputMode.prefix();
-        String suffix = outputMode.suffix();
-        int blockLength = prefix.length() + suffix.length();
+            builder.append(formatted);
+            if (messageCache != null) {
+                messageCache.add(current);
+            }
+        }
+
+        if (builder.length() > 0) {
+            send(builder.toString(), false, outputMode);
+        }
+    }
+
+    private void send(String message, boolean isFull, ConsoleConfig.OutputMode outputMode) {
+        SendableDiscordMessage sendableMessage = SendableDiscordMessage.builder()
+                .setContent(outputMode.prefix() + message + outputMode.suffix())
+                .setSuppressedNotifications(config.silentMessages)
+                .build();
+
+        synchronized (sendLock) {
+            if (sendFuture != null && !sendFuture.isDone()) {
+                try {
+                    sendFuture.get();
+                } catch (InterruptedException e) {
+                    Thread.currentThread().interrupt();
+                } catch (ExecutionException ignored) {}
+            }
+
+            sendFuture = discordSRV.discordAPI()
+                    .findOrCreateDestinations(config.channel.asDestination(), true, true, true)
+                    .thenApply(channels -> {
+                        if (channels.isEmpty()) {
+                            throw new IllegalStateException("No channel");
+                        }
+
+                        DiscordGuildMessageChannel channel = channels.get(0);
+                        if (mostRecentMessageId != null) {
+                            long channelId = mostRecentMessageId;
+                            if (isFull) {
+                                mostRecentMessageId = null;
+                            }
+                            return channel.editMessageById(channelId, sendableMessage);
+                        }
+
+                        return channel.sendMessage(sendableMessage)
+                                .whenComplete((receivedMessage, t) -> {
+                                    if (receivedMessage != null) {
+                                        mostRecentMessageId = receivedMessage.getId();
+                                    }
+                                });
+                    });
+        }
+    }
+
+    private List<String> formatEntry(LogEntry entry, ConsoleConfig.OutputMode outputMode) {
+        int blockLength = outputMode.blockLength();
         int maximumPart = MESSAGE_MAX_LENGTH - blockLength - "\n".length();
+
+        String message = discordSRV.placeholderService().replacePlaceholders(config.lineFormat, entry) + "\n";
 
         if (outputMode == ConsoleConfig.OutputMode.DIFF) {
             message = getLogLevelDiffCharacter(entry.level()) + message;
             // TODO: also format throwable?
         }
 
-        message += "\n";
+        String throwable = ExceptionUtils.getMessage(entry.throwable());
         if (!throwable.isEmpty()) {
             throwable += "\n";
         }

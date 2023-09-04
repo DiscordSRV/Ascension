@@ -86,6 +86,7 @@ public final class SendableDiscordMessageUtil {
 
         return jdaBuilder(message, new MessageCreateBuilder())
                 .addComponents(actionRows)
+                .setSuppressedNotifications(message.isSuppressedNotifications())
                 .build();
     }
 

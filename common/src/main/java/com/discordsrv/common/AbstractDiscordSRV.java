@@ -42,6 +42,7 @@ import com.discordsrv.common.config.connection.UpdateConfig;
 import com.discordsrv.common.config.main.MainConfig;
 import com.discordsrv.common.config.main.linking.LinkedAccountConfig;
 import com.discordsrv.common.config.messages.MessagesConfig;
+import com.discordsrv.common.console.ConsoleModule;
 import com.discordsrv.common.debug.data.VersionInfo;
 import com.discordsrv.common.dependency.DiscordSRVDependencyManager;
 import com.discordsrv.common.discord.api.DiscordAPIEventModule;
@@ -72,6 +73,7 @@ import com.discordsrv.common.module.ModuleManager;
 import com.discordsrv.common.module.type.AbstractModule;
 import com.discordsrv.common.placeholder.DiscordPlaceholdersImpl;
 import com.discordsrv.common.placeholder.PlaceholderServiceImpl;
+import com.discordsrv.common.placeholder.context.GlobalDateFormattingContext;
 import com.discordsrv.common.placeholder.context.GlobalTextHandlingContext;
 import com.discordsrv.common.placeholder.result.ComponentResultStringifier;
 import com.discordsrv.common.profile.ProfileManager;
@@ -559,8 +561,10 @@ public abstract class AbstractDiscordSRV<
         // Placeholder result stringifiers & global contexts
         placeholderService().addResultMapper(new ComponentResultStringifier(this));
         placeholderService().addGlobalContext(new GlobalTextHandlingContext(this));
+        placeholderService().addGlobalContext(new GlobalDateFormattingContext(this));
 
         // Modules
+        registerModule(ConsoleModule::new);
         registerModule(ChannelLockingModule::new);
         registerModule(TimedUpdaterModule::new);
         registerModule(DiscordCommandModule::new);

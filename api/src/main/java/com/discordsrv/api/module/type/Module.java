@@ -93,11 +93,9 @@ public interface Module {
     }
 
     /**
-     * Called by DiscordSRV to enable this module. Calls {@link #reload()} if not implemented.
+     * Called by DiscordSRV to enable this module.
      */
-    default void enable() {
-        reload();
-    }
+    default void enable() {}
 
     /**
      * Called by DiscordSRV to disable this module.

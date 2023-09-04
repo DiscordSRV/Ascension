@@ -27,13 +27,19 @@ public class ConsoleModule extends AbstractModule<DiscordSRV> implements LogAppe
     public void enable() {
         backend = discordSRV.console().loggingBackend();
         backend.addAppender(this);
-
-        reload();
     }
 
     @Override
     public void reloadNoResult() {
-        handlers.add(new SingleConsoleHandler(discordSRV, new ConsoleConfig())); // TODO
+        for (SingleConsoleHandler handler : handlers) {
+            handler.shutdown();
+        }
+        handlers.clear();
+
+        List<ConsoleConfig> configs = discordSRV.config().console;
+        for (ConsoleConfig config : configs) {
+            handlers.add(new SingleConsoleHandler(discordSRV, config));
+        }
     }
 
     @Override

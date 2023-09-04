@@ -109,6 +109,12 @@ public interface SendableDiscordMessage {
         return getWebhookUsername() != null;
     }
 
+    /**
+     * If notifications for this message are suppressed.
+     * @return if sending this message doesn't cause a notification
+     */
+    boolean isSuppressedNotifications();
+
     Map<InputStream, String> getAttachments();
 
     @SuppressWarnings("UnusedReturnValue") // API
@@ -255,6 +261,19 @@ public interface SendableDiscordMessage {
          * @return {@code true} if there is no sendable content
          */
         boolean isEmpty();
+
+        /**
+         * Sets if this message's notifications will be suppressed.
+         * @param suppressedNotifications if notifications should be suppressed
+         * @return this builder, useful for chaining
+         */
+        Builder setSuppressedNotifications(boolean suppressedNotifications);
+
+        /**
+         * Checks if this builder has notifications suppressed.
+         * @return {@code true} if notifications should be suppressed for this message
+         */
+        boolean isSuppressedNotifications();
 
         /**
          * Builds a {@link SendableDiscordMessage} from this builder.
