@@ -18,6 +18,7 @@
 
 package com.discordsrv.common.groupsync;
 
+import com.discordsrv.api.DiscordSRVApi;
 import com.discordsrv.api.discord.entity.guild.DiscordRole;
 import com.discordsrv.api.discord.events.member.role.DiscordMemberRoleAddEvent;
 import com.discordsrv.api.discord.events.member.role.DiscordMemberRoleRemoveEvent;
@@ -46,6 +47,7 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
+import java.util.function.Consumer;
 
 public class GroupSyncModule extends AbstractModule<DiscordSRV> {
 
@@ -84,7 +86,7 @@ public class GroupSyncModule extends AbstractModule<DiscordSRV> {
     }
 
     @Override
-    public void reloadNoResult() {
+    public void reload(Consumer<DiscordSRVApi.ReloadResult> resultConsumer) {
         synchronized (pairs) {
             pairs.values().forEach(future -> {
                 if (future != null) {

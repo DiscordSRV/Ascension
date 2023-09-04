@@ -18,6 +18,7 @@
 
 package com.discordsrv.common.invite;
 
+import com.discordsrv.api.DiscordSRVApi;
 import com.discordsrv.api.discord.connection.details.DiscordGatewayIntent;
 import com.discordsrv.api.discord.connection.jda.errorresponse.ErrorCallbackContext;
 import com.discordsrv.api.event.bus.Subscribe;
@@ -39,6 +40,7 @@ import org.jetbrains.annotations.NotNull;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
+import java.util.function.Consumer;
 
 public class DiscordInviteModule extends AbstractModule<DiscordSRV> {
 
@@ -63,17 +65,17 @@ public class DiscordInviteModule extends AbstractModule<DiscordSRV> {
     @Subscribe
     public void onGuildInviteDelete(GuildInviteDeleteEvent event) {
         if (invite.equals(event.getUrl())) {
-            reload();
+            reload(__ -> {});
         }
     }
 
     @Subscribe
     public void onGuildUpdateVanityCode(GuildUpdateVanityCodeEvent event) {
-        reload();
+        reload(__ -> {});
     }
 
     @Override
-    public void reloadNoResult() {
+    public void reload(Consumer<DiscordSRVApi.ReloadResult> resultConsumer) {
         JDA jda = discordSRV.jda();
         if (jda == null) {
             return;

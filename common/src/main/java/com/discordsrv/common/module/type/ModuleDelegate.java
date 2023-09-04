@@ -28,7 +28,7 @@ import com.discordsrv.common.logging.NamedLogger;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Collection;
-import java.util.Set;
+import java.util.function.Consumer;
 
 public class ModuleDelegate extends AbstractModule<DiscordSRV> {
 
@@ -75,8 +75,8 @@ public class ModuleDelegate extends AbstractModule<DiscordSRV> {
     }
 
     @Override
-    public Set<DiscordSRVApi.ReloadResult> reload() {
-        return module.reload();
+    public void reload(Consumer<DiscordSRVApi.ReloadResult> resultConsumer) {
+        module.reload(resultConsumer);
     }
 
     @Override

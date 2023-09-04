@@ -18,6 +18,7 @@
 
 package com.discordsrv.common.linking.requirelinking;
 
+import com.discordsrv.api.DiscordSRVApi;
 import com.discordsrv.common.DiscordSRV;
 import com.discordsrv.common.config.main.linking.RequiredLinkingConfig;
 import com.discordsrv.common.linking.impl.MinecraftAuthenticationLinker;
@@ -36,6 +37,7 @@ import java.util.concurrent.SynchronousQueue;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 import java.util.function.BiFunction;
+import java.util.function.Consumer;
 
 public abstract class RequiredLinkingModule<T extends DiscordSRV> extends AbstractModule<T> {
 
@@ -75,7 +77,7 @@ public abstract class RequiredLinkingModule<T extends DiscordSRV> extends Abstra
     }
 
     @Override
-    public void reloadNoResult() {
+    public void reload(Consumer<DiscordSRVApi.ReloadResult> resultConsumer) {
         List<Requirement<?>> requirements = new ArrayList<>();
 
         requirements.add(new DiscordRoleRequirement(discordSRV));

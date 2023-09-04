@@ -28,11 +28,10 @@ import com.discordsrv.api.discord.connection.details.DiscordCacheFlag;
 import com.discordsrv.api.discord.connection.details.DiscordGatewayIntent;
 import com.discordsrv.api.discord.connection.details.DiscordMemberCachePolicy;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 import java.util.Collection;
 import java.util.Collections;
-import java.util.Set;
+import java.util.function.Consumer;
 
 public interface Module {
 
@@ -93,11 +92,9 @@ public interface Module {
     }
 
     /**
-     * Called by DiscordSRV to enable this module. Calls {@link #reload()} if not implemented.
+     * Called by DiscordSRV to enable this module.
      */
-    default void enable() {
-        reload();
-    }
+    default void enable() {}
 
     /**
      * Called by DiscordSRV to disable this module.
@@ -105,18 +102,8 @@ public interface Module {
     default void disable() {}
 
     /**
-     * Called by DiscordSRV to reload this module. This is called to enable the module as well unless {@link #enable()} is overridden and does not call super.
-     * Use {@link #reloadNoResult()} if you don't wish to provide any result.
-     * @return the result(s) that occurred during this reload, if any. May be {@code null}.
+     * Called by DiscordSRV to reload this module. This is called when the module is enabled as well.
+     * @param resultConsumer a consumer to supply results to, if any apply
      */
-    @Nullable
-    default Set<DiscordSRVApi.ReloadResult> reload() {
-        reloadNoResult();
-        return null;
-    }
-
-    /**
-     * An alternative to {@link #reload()}, which returns {@code void} instead of results. This method will <b>not</b> be called if {@link #reload()} is overridden!
-     */
-    default void reloadNoResult() {}
+    default void reload(Consumer<DiscordSRVApi.ReloadResult> resultConsumer) {}
 }
