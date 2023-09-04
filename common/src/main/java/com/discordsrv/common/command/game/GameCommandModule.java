@@ -18,6 +18,7 @@
 
 package com.discordsrv.common.command.game;
 
+import com.discordsrv.api.DiscordSRVApi;
 import com.discordsrv.common.DiscordSRV;
 import com.discordsrv.common.command.game.abstraction.GameCommand;
 import com.discordsrv.common.command.game.commands.DiscordSRVGameCommand;
@@ -28,6 +29,7 @@ import com.discordsrv.common.module.type.AbstractModule;
 
 import java.util.HashSet;
 import java.util.Set;
+import java.util.function.Consumer;
 
 public class GameCommandModule extends AbstractModule<DiscordSRV> {
 
@@ -47,7 +49,7 @@ public class GameCommandModule extends AbstractModule<DiscordSRV> {
     }
 
     @Override
-    public void reloadNoResult() {
+    public void reload(Consumer<DiscordSRVApi.ReloadResult> resultConsumer) {
         GameCommandConfig config = discordSRV.config().gameCommand;
         if (config == null) {
             return;

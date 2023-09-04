@@ -219,10 +219,12 @@ public class ModuleManager {
             }
 
             try {
-                Set<DiscordSRVApi.ReloadResult> results = abstractModule.reload();
-                if (results != null) {
-                    reloadResults.addAll(results);
-                }
+                abstractModule.reload(result -> {
+                    if (result == null) {
+                        throw new NullPointerException("null result supplied to resultConsumer");
+                    }
+                    reloadResults.add(result);
+                });
             } catch (Throwable t) {
                 discordSRV.logger().error("Failed to reload " + module.getClass().getSimpleName(), t);
             }

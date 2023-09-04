@@ -18,6 +18,7 @@
 
 package com.discordsrv.common.channel;
 
+import com.discordsrv.api.DiscordSRVApi;
 import com.discordsrv.api.discord.connection.jda.errorresponse.ErrorCallbackContext;
 import com.discordsrv.common.DiscordSRV;
 import com.discordsrv.common.config.main.TimedUpdaterConfig;
@@ -35,6 +36,7 @@ import java.util.List;
 import java.util.Set;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
+import java.util.function.Consumer;
 
 public class TimedUpdaterModule extends AbstractModule<DiscordSRV> {
 
@@ -64,7 +66,7 @@ public class TimedUpdaterModule extends AbstractModule<DiscordSRV> {
     }
 
     @Override
-    public void reloadNoResult() {
+    public void reload(Consumer<DiscordSRVApi.ReloadResult> resultConsumer) {
         futures.forEach(future -> future.cancel(false));
         futures.clear();
 

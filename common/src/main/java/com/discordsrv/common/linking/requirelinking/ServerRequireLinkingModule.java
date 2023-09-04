@@ -18,6 +18,7 @@
 
 package com.discordsrv.common.linking.requirelinking;
 
+import com.discordsrv.api.DiscordSRVApi;
 import com.discordsrv.common.DiscordSRV;
 import com.discordsrv.common.component.util.ComponentUtil;
 import com.discordsrv.common.config.main.linking.RequirementsConfig;
@@ -31,6 +32,7 @@ import java.util.List;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CopyOnWriteArrayList;
+import java.util.function.Consumer;
 
 public abstract class ServerRequireLinkingModule<T extends DiscordSRV> extends RequiredLinkingModule<T> {
 
@@ -44,8 +46,8 @@ public abstract class ServerRequireLinkingModule<T extends DiscordSRV> extends R
     public abstract ServerRequiredLinkingConfig config();
 
     @Override
-    public void reloadNoResult() {
-        super.reloadNoResult();
+    public void reload(Consumer<DiscordSRVApi.ReloadResult> resultConsumer) {
+        super.reload(resultConsumer);
 
         synchronized (compiledRequirements) {
             compiledRequirements.clear();
