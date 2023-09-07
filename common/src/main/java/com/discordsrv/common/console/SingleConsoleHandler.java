@@ -8,12 +8,14 @@ import com.discordsrv.common.console.entry.LogEntry;
 import com.discordsrv.common.console.entry.LogMessage;
 import com.discordsrv.common.logging.LogLevel;
 import net.dv8tion.jda.api.entities.Message;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Queue;
-import java.util.concurrent.*;
+import java.util.*;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.Future;
+import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.TimeUnit;
 
 public class SingleConsoleHandler {
 
@@ -35,7 +37,7 @@ public class SingleConsoleHandler {
     public SingleConsoleHandler(DiscordSRV discordSRV, ConsoleConfig config) {
         this.discordSRV = discordSRV;
         this.config = config;
-        this.messageCache = config.useEditing ? new ArrayList<>() : null;
+        this.messageCache = config.appender.useEditing ? new ArrayList<>() : null;
 
         this.queueProcessingFuture = discordSRV.scheduler().runAtFixedRate(this::processQueue, 2, TimeUnit.SECONDS);
     }
@@ -52,11 +54,30 @@ public class SingleConsoleHandler {
     }
 
     private void processQueue() {
-        ConsoleConfig.OutputMode outputMode = config.getOutputMode();
+        if (sendFuture != null && !sendFuture.isDone()) {
+            // Previous send still in progress.
+            return;
+        }
+
+        ConsoleConfig.Appender appenderConfig = config.appender;
+        ConsoleConfig.OutputMode outputMode = appenderConfig.getOutputMode();
 
         Queue<LogMessage> currentBuffer = new LinkedBlockingQueue<>();
         LogEntry entry;
         while ((entry = queue.poll()) != null) {
+            String level = entry.level().name();
+            if (appenderConfig.levels.levels.contains(level) == appenderConfig.levels.blacklist) {
+                // Ignored level
+                continue;
+            }
+
+            String loggerName = entry.loggerName();
+            if (StringUtils.isEmpty(loggerName)) loggerName = "NONE";
+            if (appenderConfig.loggers.loggers.contains(loggerName) == appenderConfig.loggers.blacklist) {
+                // Ignored logger
+                continue;
+            }
+
             List<String> messages = formatEntry(entry, outputMode);
             if (messages.size() == 1) {
                 LogMessage message = new LogMessage(entry, messages.get(0));
@@ -106,7 +127,7 @@ public class SingleConsoleHandler {
     private void send(String message, boolean isFull, ConsoleConfig.OutputMode outputMode) {
         SendableDiscordMessage sendableMessage = SendableDiscordMessage.builder()
                 .setContent(outputMode.prefix() + message + outputMode.suffix())
-                .setSuppressedNotifications(config.silentMessages)
+                .setSuppressedNotifications(config.appender.silentMessages)
                 .build();
 
         synchronized (sendLock) {
@@ -148,7 +169,7 @@ public class SingleConsoleHandler {
         int blockLength = outputMode.blockLength();
         int maximumPart = MESSAGE_MAX_LENGTH - blockLength - "\n".length();
 
-        String message = discordSRV.placeholderService().replacePlaceholders(config.lineFormat, entry) + "\n";
+        String message = discordSRV.placeholderService().replacePlaceholders(config.appender.lineFormat, entry) + "\n";
 
         if (outputMode == ConsoleConfig.OutputMode.DIFF) {
             message = getLogLevelDiffCharacter(entry.level()) + message;

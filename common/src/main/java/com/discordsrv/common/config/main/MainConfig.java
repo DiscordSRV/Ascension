@@ -83,7 +83,7 @@ public abstract class MainConfig implements Config {
     public DiscordCommandConfig discordCommand = new DiscordCommandConfig();
 
     @Comment("Options for console channel(s) and/or thread(s)")
-    public List<ConsoleConfig> console = new ArrayList<>();
+    public List<ConsoleConfig> console = new ArrayList<>(Collections.singleton(new ConsoleConfig()));
 
     @Comment("Configuration for the %discord_invite% placeholder. The below options will be attempted in the order they are in")
     public DiscordInviteConfig invite = new DiscordInviteConfig();
