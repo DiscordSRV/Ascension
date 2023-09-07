@@ -51,7 +51,9 @@ public class DiscordToMinecraftChatConfig {
     // TODO: more info on regex pairs (String#replaceAll)
     @Comment("Regex filters for Discord message contents (this is the %message% part of the \"format\" option)")
     @Untranslated(Untranslated.Type.VALUE)
-    public Map<Pattern, String> contentRegexFilters = new LinkedHashMap<>();
+    public Map<Pattern, String> contentRegexFilters = new LinkedHashMap<Pattern, String>() {{
+        put(Pattern.compile("\\n{2,}"), "\n");
+    }};
 
     @Comment("Users, bots, roles and webhooks to ignore")
     public DiscordIgnoresConfig ignores = new DiscordIgnoresConfig();

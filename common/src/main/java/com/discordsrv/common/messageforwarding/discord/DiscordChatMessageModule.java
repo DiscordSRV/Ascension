@@ -52,8 +52,13 @@ import java.util.Collection;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ScheduledFuture;
+import java.util.regex.Pattern;
 
 public class DiscordChatMessageModule extends AbstractModule<DiscordSRV> {
+
+    // Filter for ASCII control characters which have no use being displayed, but might be misinterpreted somewhere
+    // Notably this excludes, 0x09 HT (\t), 0x0A LF (\n), 0x0B VT (\v) and 0x0D CR (\r) (which may be used for text formatting)
+    private static final Pattern ASCII_CONTROL_FILTER = Pattern.compile("[\\u0000-\\u0008\\u000C\\u000E-\\u001F\\u007F]");
 
     private final Map<String, MessageSend> sends = new ConcurrentHashMap<>();
 
@@ -182,6 +187,7 @@ public class DiscordChatMessageModule extends AbstractModule<DiscordSRV> {
         }
 
         Placeholders message = new Placeholders(event.getContent());
+        message.replaceAll(ASCII_CONTROL_FILTER, "");
         chatConfig.contentRegexFilters.forEach(message::replaceAll);
 
         Component messageComponent = DiscordSRVMinecraftRenderer.getWithContext(guild, chatConfig, () ->
