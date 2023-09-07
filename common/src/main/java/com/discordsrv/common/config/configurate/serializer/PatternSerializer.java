@@ -18,10 +18,13 @@
 
 package com.discordsrv.common.config.configurate.serializer;
 
+import org.apache.commons.lang3.StringUtils;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.spongepowered.configurate.ConfigurationNode;
 import org.spongepowered.configurate.serialize.SerializationException;
 import org.spongepowered.configurate.serialize.TypeSerializer;
+import org.spongepowered.configurate.yaml.ScalarStyle;
+import org.spongepowered.configurate.yaml.YamlConfigurationLoader;
 
 import java.lang.reflect.Type;
 import java.util.regex.Pattern;
@@ -31,11 +34,12 @@ public class PatternSerializer implements TypeSerializer<Pattern> {
     @Override
     public Pattern deserialize(Type type, ConfigurationNode node) {
         String pattern = node != null ? node.getString() : null;
-        return pattern != null ? Pattern.compile(pattern) : null;
+        return StringUtils.isNotEmpty(pattern) ? Pattern.compile(pattern) : null;
     }
 
     @Override
     public void serialize(Type type, @Nullable Pattern obj, ConfigurationNode node) throws SerializationException {
-        node.set(obj != null ? obj.pattern() : null);
+        node = node.hint(YamlConfigurationLoader.SCALAR_STYLE, ScalarStyle.DOUBLE_QUOTED);
+        node.raw(obj != null ? obj.pattern() : null);
     }
 }
