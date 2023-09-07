@@ -31,7 +31,6 @@ public class ConsoleModule extends AbstractModule<DiscordSRV> implements LogAppe
         backend.addAppender(this);
     }
 
-
     @Override
     public void reload(Consumer<DiscordSRVApi.ReloadResult> resultConsumer) {
         for (SingleConsoleHandler handler : handlers) {

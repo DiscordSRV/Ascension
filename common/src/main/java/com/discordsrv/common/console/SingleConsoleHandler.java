@@ -11,15 +11,33 @@ import net.dv8tion.jda.api.entities.Message;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Queue;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.TimeUnit;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 public class SingleConsoleHandler {
 
     private static final int MESSAGE_MAX_LENGTH = Message.MAX_CONTENT_LENGTH;
+    private static final String ESCAPE = "\u001B";
+    private static final Pattern ANSI_PATTERN = Pattern.compile(
+            ESCAPE
+                    + "\\["
+                    + "(\\d{1,3}"
+                        + "(;\\d{1,3}"
+                            + "(;\\d{1,3}"
+                                + "(?:(?:;\\d{1,3}){2})?"
+                            + ")?"
+                        + ")?"
+                    + ")"
+                    + "m"
+    );
+    private static final Pattern COLOR_CODE_PATTERN = Pattern.compile("\\u007F[0-9a-fk-orx]");
 
     private final DiscordSRV discordSRV;
     private final ConsoleConfig config;
@@ -93,6 +111,10 @@ public class SingleConsoleHandler {
     }
 
     private void clearBuffer(Queue<LogMessage> currentBuffer, ConsoleConfig.OutputMode outputMode) {
+        if (currentBuffer.isEmpty()) {
+            return;
+        }
+
         int blockLength = outputMode.blockLength();
 
         StringBuilder builder = new StringBuilder();
@@ -165,11 +187,41 @@ public class SingleConsoleHandler {
         }
     }
 
+    private String getAnsiEscapeSequence(String codePart) {
+        String[] split = codePart.split(";");
+        int[] numbers = new int[split.length];
+        for (int i = 0; i < split.length; i++) {
+            numbers[i] = Integer.parseInt(split[i]);
+        }
+        if (numbers.length == 1) {
+            return String.valueOf(numbers[0]);
+        } else if (numbers.length == 2) {
+            return numbers[0] + ";" + numbers[1];
+        } else {
+            // longer than supported by Discord, so drop the ansi here
+            return null;
+        }
+    }
+
     private List<String> formatEntry(LogEntry entry, ConsoleConfig.OutputMode outputMode) {
         int blockLength = outputMode.blockLength();
         int maximumPart = MESSAGE_MAX_LENGTH - blockLength - "\n".length();
 
         String message = discordSRV.placeholderService().replacePlaceholders(config.appender.lineFormat, entry) + "\n";
+
+        // TODO: make a parser for ANSI + color codes that makes a intermediary format that can be converted to
+        // TODO: either 16 color ansi (ANSI mode) or just bold/italics/underline/strikethrough markdown (MARKDOWN mode)
+        Matcher matcher = ANSI_PATTERN.matcher(message);
+        while (matcher.find()) {
+            String codes = matcher.group(1);
+            String escapeSequence = getAnsiEscapeSequence(codes);
+            if (escapeSequence != null && outputMode == ConsoleConfig.OutputMode.ANSI) {
+                message = matcher.replaceAll(ESCAPE + escapeSequence + "m");
+            } else {
+                message = matcher.replaceAll("");
+            }
+        }
+        message = message.replaceAll(COLOR_CODE_PATTERN.pattern(), "");
 
         if (outputMode == ConsoleConfig.OutputMode.DIFF) {
             message = getLogLevelDiffCharacter(entry.level()) + message;

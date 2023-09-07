@@ -64,6 +64,7 @@ public class ConsoleConfig {
         ANSI("```ansi\n", "```"),
         LOG("```accesslog\n", "```"),
         DIFF("```diff\n", "```"),
+        MARKDOWN("", ""),
         PLAIN("```\n", "```"),
         PLAIN_CONTENT("", "");
 
