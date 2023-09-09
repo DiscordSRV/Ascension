@@ -50,7 +50,7 @@ public abstract class TranslatedConfigManager<T extends Config, LT extends Abstr
     }
 
     protected TranslatedConfigManager(Path dataDirectory) {
-        super(dataDirectory);
+        super(dataDirectory, null);
         this.discordSRV = null;
     }
 

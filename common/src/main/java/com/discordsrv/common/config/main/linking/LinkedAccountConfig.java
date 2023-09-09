@@ -33,5 +33,11 @@ public class LinkedAccountConfig {
             + " - auto: Uses \"minecraftauth\" if the " + ConnectionConfig.FILE_NAME + " permits it and the server is in online mode, otherwise \"storage\"\n"
             + " - minecraftauth: Uses minecraftauth.me as the linked account provider\n"
             + " - storage: Use the configured database for linked accounts")
-    public String provider = "auto";
+    public Provider provider = Provider.AUTO;
+
+    public enum Provider {
+        AUTO,
+        MINECRAFTAUTH,
+        STORAGE
+    }
 }

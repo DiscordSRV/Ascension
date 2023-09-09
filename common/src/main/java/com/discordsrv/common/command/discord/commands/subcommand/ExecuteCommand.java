@@ -89,7 +89,7 @@ public class ExecuteCommand implements Consumer<DiscordChatInputInteractionEvent
         boolean ephemeral = config.ephemeral;
         event.asJDA().reply("Executing command `" + command + "`")
                 .setEphemeral(ephemeral)
-                .queue(ih -> new ExecutionContext(discordSRV, ih, config.getOutputMode(), ephemeral).run(command));
+                .queue(ih -> new ExecutionContext(discordSRV, ih, config.outputMode, ephemeral).run(command));
     }
 
     @Override
@@ -214,7 +214,7 @@ public class ExecuteCommand implements Consumer<DiscordChatInputInteractionEvent
 
         private void send() {
             boolean ansi = outputMode == DiscordCommandConfig.OutputMode.ANSI;
-            boolean plainBlock = outputMode == DiscordCommandConfig.OutputMode.PLAIN_BLOCK;
+            boolean plainBlock = outputMode == DiscordCommandConfig.OutputMode.CODEBLOCK;
             String prefix = ansi ? "```ansi\n" : (plainBlock ? "```\n" : "");
             String suffix = ansi ? "```" : (plainBlock ? "```" : "");
 
@@ -234,7 +234,7 @@ public class ExecuteCommand implements Consumer<DiscordChatInputInteractionEvent
                             discord = discordSRV.componentFactory().ansiSerializer().serialize(component);
                             break;
                         case PLAIN:
-                        case PLAIN_BLOCK:
+                        case CODEBLOCK:
                             discord = discordSRV.componentFactory().plainSerializer().serialize(component);
                             break;
                     }

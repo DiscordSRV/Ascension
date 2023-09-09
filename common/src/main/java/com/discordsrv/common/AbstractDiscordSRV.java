@@ -673,13 +673,13 @@ public abstract class AbstractDiscordSRV<
         if (flags.contains(ReloadFlag.LINKED_ACCOUNT_PROVIDER)) {
             LinkedAccountConfig linkedAccountConfig = config().linkedAccounts;
             if (linkedAccountConfig != null && linkedAccountConfig.enabled) {
-                String provider = linkedAccountConfig.provider;
+                LinkedAccountConfig.Provider provider = linkedAccountConfig.provider;
                 boolean permitMinecraftAuth = connectionConfig().minecraftAuth.allow;
-                if (provider.equals("auto")) {
-                    provider = permitMinecraftAuth && onlineMode().isOnline() ? "minecraftauth" : "storage";
+                if (provider == LinkedAccountConfig.Provider.AUTO) {
+                    provider = permitMinecraftAuth && onlineMode().isOnline() ? LinkedAccountConfig.Provider.MINECRAFTAUTH : LinkedAccountConfig.Provider.STORAGE;
                 }
                 switch (provider) {
-                    case "minecraftauth":
+                    case MINECRAFTAUTH:
                         if (!permitMinecraftAuth) {
                             linkProvider = null;
                             logger().error("minecraftauth.me is disabled in the " + ConnectionConfig.FILE_NAME + ", "
@@ -690,7 +690,7 @@ public abstract class AbstractDiscordSRV<
                         linkProvider = new MinecraftAuthenticationLinker(this);
                         logger().info("Using minecraftauth.me for linked accounts");
                         break;
-                    case "storage":
+                    case STORAGE:
                         linkProvider = new StorageLinker(this);
                         logger().info("Using storage for linked accounts");
                         break;

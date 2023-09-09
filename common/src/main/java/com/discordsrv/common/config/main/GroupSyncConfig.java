@@ -42,16 +42,8 @@ public class GroupSyncConfig {
         public Long roleId = 0L;
 
         @Comment("The direction this group-role pair will synchronize in.\n"
-                + "Valid options: BIDIRECTIONAL, MINECRAFT_TO_DISCORD, DISCORD_TO_MINECRAFT")
-        public String direction = GroupSyncDirection.BIDIRECTIONAL.name();
-
-        public GroupSyncDirection direction() {
-            try {
-                return GroupSyncDirection.valueOf(direction);
-            } catch (IllegalArgumentException ignored) {
-                return null;
-            }
-        }
+                + "Valid options: bidirectional, minecraft_to_discord, discord_to_minecraft")
+        public GroupSyncDirection direction = GroupSyncDirection.BIDIRECTIONAL;
 
         @Comment("Timed resynchronization.\n"
                 + "This is required if you're not using LuckPerms and want to use Minecraft to Discord synchronization")
@@ -68,16 +60,8 @@ public class GroupSyncConfig {
         }
 
         @Comment("Decides which side takes priority when using timed synchronization or the resync command\n"
-                + "Valid options: MINECRAFT, DISCORD")
-        public String tieBreaker = GroupSyncSide.MINECRAFT.name();
-
-        public GroupSyncSide tieBreaker() {
-            try {
-                return GroupSyncSide.valueOf(tieBreaker);
-            } catch (IllegalArgumentException ignored) {
-                return null;
-            }
-        }
+                + "Valid options: minecraft, discord")
+        public GroupSyncSide tieBreaker = GroupSyncSide.MINECRAFT;
 
         @Comment("The LuckPerms \"server\" context value, used when adding, removing and checking the groups of players.\n"
                 + "Make this blank (\"\") to use the current server's value, or \"global\" to not use the context")
@@ -90,7 +74,7 @@ public class GroupSyncConfig {
         public boolean validate(DiscordSRV discordSRV) {
             String label = "Group synchronization (" + groupName + ":" + Long.toUnsignedString(roleId) + ")";
             boolean invalidTieBreaker, invalidDirection = false;
-            if ((invalidTieBreaker = (tieBreaker() == null)) || (invalidDirection = (direction == null))) {
+            if ((invalidTieBreaker = (tieBreaker == null)) || (invalidDirection = (direction == null))) {
                 if (invalidTieBreaker) {
                     discordSRV.logger().error(label + " has invalid tie-breaker: " + tieBreaker
                                                       + ", should be one of " + Arrays.toString(GroupSyncSide.values()));
@@ -100,10 +84,10 @@ public class GroupSyncConfig {
                                                       + ", should be one of " + Arrays.toString(GroupSyncDirection.values()));
                 }
                 return false;
-            } else if (direction() != GroupSyncDirection.BIDIRECTIONAL) {
+            } else if (direction != GroupSyncDirection.BIDIRECTIONAL) {
                 boolean minecraft;
-                if ((direction() == GroupSyncDirection.MINECRAFT_TO_DISCORD) != (minecraft = (tieBreaker() == GroupSyncSide.MINECRAFT))) {
-                    String opposite = (minecraft ? GroupSyncSide.DISCORD : GroupSyncSide.MINECRAFT).name();
+                if ((direction == GroupSyncDirection.MINECRAFT_TO_DISCORD) != (minecraft = (tieBreaker == GroupSyncSide.MINECRAFT))) {
+                    GroupSyncSide opposite = (minecraft ? GroupSyncSide.DISCORD : GroupSyncSide.MINECRAFT);
                     discordSRV.logger().warning(label + " with direction "
                                                         + direction + " with tie-breaker "
                                                         + tieBreaker + " (should be " + opposite + ")");
@@ -116,7 +100,7 @@ public class GroupSyncConfig {
         @Override
         public String toString() {
             String arrow;
-            switch (direction()) {
+            switch (direction) {
                 default:
                 case BIDIRECTIONAL:
                     arrow = "<->";

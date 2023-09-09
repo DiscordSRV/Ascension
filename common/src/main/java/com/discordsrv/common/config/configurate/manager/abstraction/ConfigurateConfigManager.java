@@ -25,15 +25,14 @@ import com.discordsrv.common.DiscordSRV;
 import com.discordsrv.common.config.configurate.annotation.DefaultOnly;
 import com.discordsrv.common.config.configurate.annotation.Order;
 import com.discordsrv.common.config.configurate.fielddiscoverer.OrderedFieldDiscovererProxy;
+import com.discordsrv.common.config.configurate.manager.loader.ConfigLoaderProvider;
+import com.discordsrv.common.config.configurate.serializer.*;
 import com.discordsrv.common.config.main.channels.base.BaseChannelConfig;
 import com.discordsrv.common.config.main.channels.base.ChannelConfig;
 import com.discordsrv.common.config.main.channels.base.IChannelConfig;
-import com.discordsrv.common.config.configurate.manager.loader.ConfigLoaderProvider;
-import com.discordsrv.common.config.configurate.serializer.ColorSerializer;
-import com.discordsrv.common.config.configurate.serializer.DiscordMessageEmbedSerializer;
-import com.discordsrv.common.config.configurate.serializer.PatternSerializer;
-import com.discordsrv.common.config.configurate.serializer.SendableDiscordMessageSerializer;
 import com.discordsrv.common.exception.ConfigException;
+import com.discordsrv.common.logging.Logger;
+import com.discordsrv.common.logging.NamedLogger;
 import org.jetbrains.annotations.Nullable;
 import org.spongepowered.configurate.*;
 import org.spongepowered.configurate.loader.AbstractConfigurationLoader;
@@ -69,6 +68,7 @@ public abstract class ConfigurateConfigManager<T, LT extends AbstractConfigurati
     };
 
     private final Path filePath;
+    private final Logger logger;
     private final ObjectMapper.Factory objectMapper;
     private final ObjectMapper.Factory cleanObjectMapper;
     private LT loader;
@@ -76,11 +76,12 @@ public abstract class ConfigurateConfigManager<T, LT extends AbstractConfigurati
     protected T configuration;
 
     public ConfigurateConfigManager(DiscordSRV discordSRV) {
-        this(discordSRV.dataDirectory());
+        this(discordSRV.dataDirectory(), new NamedLogger(discordSRV, "CONFIG"));
     }
 
-    protected ConfigurateConfigManager(Path dataDirectory) {
+    protected ConfigurateConfigManager(Path dataDirectory, Logger logger) {
         this.filePath = dataDirectory.resolve(fileName());
+        this.logger = logger;
         this.objectMapper = objectMapperBuilder().build();
         this.cleanObjectMapper = cleanObjectMapperBuilder().build();
     }
@@ -133,6 +134,8 @@ public abstract class ConfigurateConfigManager<T, LT extends AbstractConfigurati
                         }
                     });
                     builder.register(BaseChannelConfig.class, getChannelConfigSerializer(objectMapper));
+                    //noinspection unchecked
+                    builder.register((Class<Enum<?>>) (Object) Enum.class, new EnumSerializer(logger));
                     builder.register(Color.class, new ColorSerializer());
                     builder.register(Pattern.class, new PatternSerializer());
                     builder.register(DiscordMessageEmbed.Builder.class, new DiscordMessageEmbedSerializer(NAMING_SCHEME));

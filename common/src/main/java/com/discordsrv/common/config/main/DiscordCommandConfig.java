@@ -7,7 +7,6 @@ import org.spongepowered.configurate.objectmapping.meta.Comment;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-import java.util.Locale;
 
 @ConfigSerializable
 public class DiscordCommandConfig {
@@ -36,20 +35,9 @@ public class DiscordCommandConfig {
                 + "- markdown: Regular Discord markdown\n"
                 + "- ansi: A colored ansi code block\n"
                 + "- plain: Plain text\n"
-                + "- codeblock: Plain code block\n"
+                + "- code_block: Plain code block\n"
                 + "- off: No command output")
-        public String outputMode = "markdown";
-
-        public OutputMode getOutputMode() {
-            switch (outputMode.toLowerCase(Locale.ROOT)) {
-                default:
-                case "markdown": return OutputMode.MARKDOWN;
-                case "ansi": return OutputMode.ANSI;
-                case "plain": return OutputMode.PLAIN;
-                case "codeblock": return OutputMode.PLAIN_BLOCK;
-                case "off": return OutputMode.OFF;
-            }
-        }
+        public OutputMode outputMode = OutputMode.MARKDOWN;
 
         @Comment("At least one condition has to match to allow execution")
         public List<GameCommandFilterConfig> filters = new ArrayList<>();
@@ -66,7 +54,7 @@ public class DiscordCommandConfig {
         MARKDOWN,
         ANSI,
         PLAIN,
-        PLAIN_BLOCK,
+        CODEBLOCK,
         OFF
     }
 }
