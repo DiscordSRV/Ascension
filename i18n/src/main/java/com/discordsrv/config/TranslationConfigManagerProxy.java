@@ -20,6 +20,7 @@ package com.discordsrv.config;
 
 import com.discordsrv.common.config.configurate.manager.abstraction.ConfigurateConfigManager;
 import com.discordsrv.common.config.configurate.manager.loader.YamlConfigLoaderProvider;
+import com.discordsrv.common.logging.Logger;
 import org.spongepowered.configurate.objectmapping.ObjectMapper;
 import org.spongepowered.configurate.yaml.YamlConfigurationLoader;
 
@@ -32,8 +33,8 @@ public class TranslationConfigManagerProxy<C>
     private final ObjectMapper.Factory objectMapper;
     private final ConfigurateConfigManager<C, ?> configManager;
 
-    public TranslationConfigManagerProxy(Path dataDirectory, ObjectMapper.Factory objectMapper, ConfigurateConfigManager<C, ?> configManager) {
-        super(dataDirectory);
+    public TranslationConfigManagerProxy(Path dataDirectory, Logger logger, ObjectMapper.Factory objectMapper, ConfigurateConfigManager<C, ?> configManager) {
+        super(dataDirectory, logger);
         this.objectMapper = objectMapper;
         this.configManager = configManager;
     }

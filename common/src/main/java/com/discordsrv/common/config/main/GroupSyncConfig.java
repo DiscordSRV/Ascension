@@ -19,6 +19,7 @@
 package com.discordsrv.common.config.main;
 
 import com.discordsrv.common.DiscordSRV;
+import com.discordsrv.common.config.configurate.annotation.Constants;
 import com.discordsrv.common.groupsync.enums.GroupSyncDirection;
 import com.discordsrv.common.groupsync.enums.GroupSyncSide;
 import org.spongepowered.configurate.objectmapping.ConfigSerializable;
@@ -42,7 +43,8 @@ public class GroupSyncConfig {
         public Long roleId = 0L;
 
         @Comment("The direction this group-role pair will synchronize in.\n"
-                + "Valid options: bidirectional, minecraft_to_discord, discord_to_minecraft")
+                + "Valid options: %1, %2, %3")
+        @Constants.Comment({"bidirectional", "minecraft_to_discord", "discord_to_minecraft"})
         public GroupSyncDirection direction = GroupSyncDirection.BIDIRECTIONAL;
 
         @Comment("Timed resynchronization.\n"
@@ -60,11 +62,13 @@ public class GroupSyncConfig {
         }
 
         @Comment("Decides which side takes priority when using timed synchronization or the resync command\n"
-                + "Valid options: minecraft, discord")
+                + "Valid options: %1, %2")
+        @Constants.Comment({"minecraft", "discord"})
         public GroupSyncSide tieBreaker = GroupSyncSide.MINECRAFT;
 
-        @Comment("The LuckPerms \"server\" context value, used when adding, removing and checking the groups of players.\n"
-                + "Make this blank (\"\") to use the current server's value, or \"global\" to not use the context")
+        @Comment("The LuckPerms \"%1\" context value, used when adding, removing and checking the groups of players.\n"
+                + "Make this blank (\"\") to use the current server's value, or \"%2\" to not use the context")
+        @Constants.Comment({"server", "global"})
         public String serverContext = "global";
 
         public boolean isTheSameAs(PairConfig config) {

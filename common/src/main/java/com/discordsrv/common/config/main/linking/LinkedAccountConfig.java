@@ -18,6 +18,7 @@
 
 package com.discordsrv.common.config.main.linking;
 
+import com.discordsrv.common.config.configurate.annotation.Constants;
 import com.discordsrv.common.config.connection.ConnectionConfig;
 import org.spongepowered.configurate.objectmapping.ConfigSerializable;
 import org.spongepowered.configurate.objectmapping.meta.Comment;
@@ -30,9 +31,10 @@ public class LinkedAccountConfig {
 
     @Comment("The linked account provider\n"
             + "\n"
-            + " - auto: Uses \"minecraftauth\" if the " + ConnectionConfig.FILE_NAME + " permits it and the server is in online mode, otherwise \"storage\"\n"
-            + " - minecraftauth: Uses minecraftauth.me as the linked account provider\n"
-            + " - storage: Use the configured database for linked accounts")
+            + " - auto: Uses \"%3\" if the %1 permits it and the server is in online mode, otherwise \"%4\"\n"
+            + " - %3: Uses %2 as the linked account provider\n"
+            + " - %4: Use the configured database for linked accounts")
+    @Constants.Comment({ConnectionConfig.FILE_NAME, "minecraftauth.me", "minecraftauth", "storage"})
     public Provider provider = Provider.AUTO;
 
     public enum Provider {

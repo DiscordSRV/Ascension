@@ -24,6 +24,7 @@ import com.discordsrv.common.config.Config;
 import com.discordsrv.common.config.configurate.annotation.Untranslated;
 import com.discordsrv.common.config.configurate.manager.abstraction.ConfigurateConfigManager;
 import com.discordsrv.common.config.configurate.manager.abstraction.TranslatedConfigManager;
+import com.discordsrv.common.logging.backend.impl.JavaLoggerImpl;
 import org.spongepowered.configurate.CommentedConfigurationNode;
 import org.spongepowered.configurate.ConfigurateException;
 import org.spongepowered.configurate.ConfigurationNode;
@@ -82,16 +83,16 @@ public final class DiscordSRVTranslation {
             String fileIdentifier = config.getFileName();
             ConfigurationNode commentSection = node.node(fileIdentifier + "_comments");
             
-            String header = configManager.nodeOptions().header();
+            String header = configManager.nodeOptions(false).header();
             if (header != null) {
                 commentSection.node("$header").set(header);
             }
 
-            ObjectMapper.Factory mapperFactory = configManager.objectMapperBuilder()
+            ObjectMapper.Factory mapperFactory = configManager.objectMapperBuilder(false)
                     .addProcessor(Untranslated.class, untranslatedProcessorFactory)
                     .build();
 
-            TranslationConfigManagerProxy<?> configManagerProxy = new TranslationConfigManagerProxy<>(DATA_DIRECTORY, mapperFactory, configManager);
+            TranslationConfigManagerProxy<?> configManagerProxy = new TranslationConfigManagerProxy<>(DATA_DIRECTORY, JavaLoggerImpl.getRoot(), mapperFactory, configManager);
             CommentedConfigurationNode configurationNode = configManagerProxy.getDefaultNode(mapperFactory);
 
             convertCommentsToOptions(configurationNode, commentSection);

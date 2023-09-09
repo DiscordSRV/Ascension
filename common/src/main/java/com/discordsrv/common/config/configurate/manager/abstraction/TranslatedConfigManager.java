@@ -25,9 +25,7 @@ import org.jetbrains.annotations.Nullable;
 import org.spongepowered.configurate.CommentedConfigurationNode;
 import org.spongepowered.configurate.ConfigurateException;
 import org.spongepowered.configurate.ConfigurationNode;
-import org.spongepowered.configurate.ConfigurationOptions;
 import org.spongepowered.configurate.loader.AbstractConfigurationLoader;
-import org.spongepowered.configurate.objectmapping.ObjectMapper;
 import org.spongepowered.configurate.serialize.SerializationException;
 import org.spongepowered.configurate.yaml.YamlConfigurationLoader;
 
@@ -66,12 +64,11 @@ public abstract class TranslatedConfigManager<T extends Config, LT extends Abstr
     }
 
     @Override
-    public ConfigurationOptions configurationOptions(ObjectMapper.Factory objectMapper) {
-        ConfigurationOptions options = super.configurationOptions(objectMapper);
+    protected String header() {
         if (header != null) {
-            options = options.header(header);
+            return header;
         }
-        return options;
+        return super.header();
     }
 
     @Override

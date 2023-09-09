@@ -1,5 +1,6 @@
 package com.discordsrv.common.config.main;
 
+import com.discordsrv.common.config.configurate.annotation.Constants;
 import com.discordsrv.common.config.main.generic.GameCommandFilterConfig;
 import org.spongepowered.configurate.objectmapping.ConfigSerializable;
 import org.spongepowered.configurate.objectmapping.meta.Comment;
@@ -32,11 +33,12 @@ public class DiscordCommandConfig {
         public boolean ephemeral = true;
 
         @Comment("The mode for the command output, available options are:\n"
-                + "- markdown: Regular Discord markdown\n"
-                + "- ansi: A colored ansi code block\n"
-                + "- plain: Plain text\n"
-                + "- code_block: Plain code block\n"
-                + "- off: No command output")
+                + "- %1: Regular Discord markdown\n"
+                + "- %2: A colored ansi code block\n"
+                + "- %3: Plain text\n"
+                + "- %4: Plain code block\n"
+                + "- %5: No command output")
+        @Constants.Comment({"markdown", "ansi", "plain", "code_block", "off"})
         public OutputMode outputMode = OutputMode.MARKDOWN;
 
         @Comment("At least one condition has to match to allow execution")
@@ -46,7 +48,8 @@ public class DiscordCommandConfig {
                 "Suggestions go through the server's main thread (on servers with a main thread) to ensure compatability.")
         public boolean suggest = true;
 
-        @Comment("If suggestions should be filtered based on the \"filters\" option")
+        @Comment("If suggestions should be filtered based on the \"%1\" option")
+        @Constants.Comment("filters")
         public boolean filterSuggestions = true;
     }
 

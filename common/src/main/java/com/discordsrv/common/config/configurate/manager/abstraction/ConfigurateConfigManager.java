@@ -22,6 +22,7 @@ import com.discordsrv.api.color.Color;
 import com.discordsrv.api.discord.entity.message.DiscordMessageEmbed;
 import com.discordsrv.api.discord.entity.message.SendableDiscordMessage;
 import com.discordsrv.common.DiscordSRV;
+import com.discordsrv.common.config.configurate.annotation.Constants;
 import com.discordsrv.common.config.configurate.annotation.DefaultOnly;
 import com.discordsrv.common.config.configurate.annotation.Order;
 import com.discordsrv.common.config.configurate.fielddiscoverer.OrderedFieldDiscovererProxy;
@@ -48,6 +49,7 @@ import org.spongepowered.configurate.util.NamingSchemes;
 import org.spongepowered.configurate.yaml.ScalarStyle;
 import org.spongepowered.configurate.yaml.YamlConfigurationLoader;
 
+import java.lang.reflect.Field;
 import java.lang.reflect.Type;
 import java.nio.file.Path;
 import java.util.Arrays;
@@ -82,7 +84,7 @@ public abstract class ConfigurateConfigManager<T, LT extends AbstractConfigurati
     protected ConfigurateConfigManager(Path dataDirectory, Logger logger) {
         this.filePath = dataDirectory.resolve(fileName());
         this.logger = logger;
-        this.objectMapper = objectMapperBuilder().build();
+        this.objectMapper = objectMapperBuilder(true).build();
         this.cleanObjectMapper = cleanObjectMapperBuilder().build();
     }
 
@@ -92,7 +94,7 @@ public abstract class ConfigurateConfigManager<T, LT extends AbstractConfigurati
 
     public LT loader() {
         if (loader == null) {
-            loader = createLoader(filePath(), nodeOptions());
+            loader = createLoader(filePath(), nodeOptions(true));
         }
         return loader;
     }
@@ -104,12 +106,48 @@ public abstract class ConfigurateConfigManager<T, LT extends AbstractConfigurati
 
     protected abstract String fileName();
 
+    protected Field headerField() throws ReflectiveOperationException {
+        return null;
+    }
+
+    protected String header() {
+        try {
+            Field headerField = headerField();
+            return headerField != null ? (String) headerField.get(null) : null;
+        } catch (ReflectiveOperationException e) {
+            return null;
+        }
+    }
+    protected String[] headerConstants() {
+        try {
+            Field headerField = headerField();
+            if (headerField == null) {
+                return new String[0];
+            }
+
+            Constants constants = headerField.getAnnotation(Constants.class);
+            if (constants == null) {
+                return new String[0];
+            }
+
+            return constants.value();
+        } catch (ReflectiveOperationException e) {
+            return new String[0];
+        }
+    }
+
     public IChannelConfig.Serializer getChannelConfigSerializer(ObjectMapper.Factory mapperFactory) {
         return new IChannelConfig.Serializer(mapperFactory, BaseChannelConfig.class, ChannelConfig.class);
     }
 
-    public ConfigurationOptions configurationOptions(ObjectMapper.Factory objectMapper) {
+    public ConfigurationOptions configurationOptions(ObjectMapper.Factory objectMapper, boolean headerSubstitutions) {
+        String header = header();
+        if (header != null && headerSubstitutions) {
+            header = doSubstitution(header, headerConstants());
+        }
+
         return ConfigurationOptions.defaults()
+                .header(header)
                 .shouldCopyDefaults(false)
                 .implicitInitialization(false)
                 .serializers(builder -> {
@@ -152,16 +190,16 @@ public abstract class ConfigurateConfigManager<T, LT extends AbstractConfigurati
                 });
     }
 
-    public ConfigurationOptions nodeOptions() {
-        return configurationOptions(objectMapper());
+    public ConfigurationOptions nodeOptions(boolean headerSubstitutions) {
+        return configurationOptions(objectMapper(), headerSubstitutions);
     }
 
     public ConfigurationOptions cleanNodeOptions() {
-        return configurationOptions(cleanObjectMapper());
+        return configurationOptions(cleanObjectMapper(), true);
     }
 
     @SuppressWarnings("unchecked")
-    public ObjectMapper.Factory.Builder commonObjectMapperBuilder() {
+    public ObjectMapper.Factory.Builder commonObjectMapperBuilder(boolean commentSubstitutions) {
         Comparator<OrderedFieldDiscovererProxy.FieldCollectorData<Object, ?>> fieldOrder = Comparator.comparingInt(data -> {
             Order order = data.annotations().getAnnotation(Order.class);
             return order != null ? order.value() : 0;
@@ -170,11 +208,50 @@ public abstract class ConfigurateConfigManager<T, LT extends AbstractConfigurati
         return ObjectMapper.factoryBuilder()
                 .defaultNamingScheme(NAMING_SCHEME)
                 .addDiscoverer(new OrderedFieldDiscovererProxy<>((FieldDiscoverer<Object>) FieldDiscoverer.emptyConstructorObject(), fieldOrder))
-                .addDiscoverer(new OrderedFieldDiscovererProxy<>((FieldDiscoverer<Object>) FieldDiscoverer.record(), fieldOrder));
+                .addDiscoverer(new OrderedFieldDiscovererProxy<>((FieldDiscoverer<Object>) FieldDiscoverer.record(), fieldOrder))
+                .addProcessor(Constants.Comment.class, (data, fieldType) -> (value, destination) -> {
+                    // This needs to go before comment processing.
+                    if (commentSubstitutions && destination instanceof CommentedConfigurationNode) {
+                        String comment = ((CommentedConfigurationNode) destination).comment();
+                        if (comment != null) {
+                            ((CommentedConfigurationNode) destination).comment(
+                                    doSubstitution(comment, data.value())
+                            );
+                        }
+                    }
+                })
+                .addProcessor(Constants.class, (data, fieldType) -> (value, destination) -> {
+                    if (data == null || data.value().length == 0) {
+                        return;
+                    }
+
+                    String optionValue = destination.getString();
+                    if (optionValue == null) {
+                        return;
+                    }
+
+                    try {
+                        destination.set(
+                                doSubstitution(
+                                        destination.getString(),
+                                        data.value()
+                                )
+                        );
+                    } catch (SerializationException e) {
+                        throw new RuntimeException(e);
+                    }
+                });
     }
 
-    public ObjectMapper.Factory.Builder objectMapperBuilder() {
-        return commonObjectMapperBuilder()
+    private static String doSubstitution(String input, String[] values) {
+        for (int i = 0; i < values.length; i++) {
+            input = input.replace("%" + (i + 1), values[i]);
+        }
+        return input;
+    }
+
+    public ObjectMapper.Factory.Builder objectMapperBuilder(boolean commentSubstitutions) {
+        return commonObjectMapperBuilder(commentSubstitutions)
                 .addProcessor(Comment.class, (data, fieldType) -> {
                     Processor<Object> processor = Processor.comments().make(data, fieldType);
 
@@ -192,7 +269,7 @@ public abstract class ConfigurateConfigManager<T, LT extends AbstractConfigurati
     }
 
     protected ObjectMapper.Factory.Builder cleanObjectMapperBuilder() {
-        return commonObjectMapperBuilder()
+        return commonObjectMapperBuilder(true)
                 .addProcessor(DefaultOnly.class, (data, value) -> (value1, destination) -> {
                     String[] children = data.value();
                     boolean whitelist = data.whitelist();

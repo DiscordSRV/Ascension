@@ -18,18 +18,22 @@
 
 package com.discordsrv.common.config.main;
 
+import com.discordsrv.common.config.configurate.annotation.Constants;
 import org.spongepowered.configurate.objectmapping.ConfigSerializable;
 import org.spongepowered.configurate.objectmapping.meta.Comment;
 
 @ConfigSerializable
 public class GameCommandConfig {
 
-    @Comment("If the /discord command should be set by DiscordSRV")
+    @Comment("If the %1 command should be set by DiscordSRV")
+    @Constants.Comment("/discord")
     public boolean useDiscordCommand = true;
 
-    @Comment("If /link should be used as a alias for /discord link")
+    @Comment("If %1 should be used as a alias for %2")
+    @Constants.Comment({"/link", "/discord link"})
     public boolean useLinkAlias = false;
 
-    @Comment("The Discord command response format (/discord), player placeholders may be used")
+    @Comment("The Discord command response format (%1), player placeholders may be used")
+    @Constants.Comment("/discord")
     public String discordFormat = "[click:open_url:%discord_invite%][color:aqua][bold:on]Click here [color][bold][color:green]to join our Discord server!";
 }

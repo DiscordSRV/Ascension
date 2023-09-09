@@ -18,6 +18,7 @@
 
 package com.discordsrv.common.config.main.channels;
 
+import com.discordsrv.common.config.configurate.annotation.Constants;
 import com.discordsrv.common.config.configurate.annotation.Untranslated;
 import com.discordsrv.common.config.main.generic.DiscordIgnoresConfig;
 import org.spongepowered.configurate.objectmapping.ConfigSerializable;
@@ -33,19 +34,15 @@ public class DiscordToMinecraftChatConfig {
     public boolean enabled = true;
 
     @Comment("The Discord to Minecraft message format for regular users and bots")
-    @Untranslated(Untranslated.Type.VALUE)
     public String format = "[[color:#5865F2]Discord[color]] [hover:show_text:Username: @%user_tag%\nRoles: %user_roles:', '|text:'[color:gray][italics:on]None[color][italics]'%]%user_color%%user_effective_server_name%[color][hover]%message_reply% » %message%%message_attachments%";
 
     @Comment("The Discord to Minecraft message format for webhook messages (if enabled)")
-    @Untranslated(Untranslated.Type.VALUE)
     public String webhookFormat = "[[color:#5865F2]Discord[color]] [hover:show_text:Bot message]%user_effective_name%[hover] » %message%%message_attachments%";
 
     @Comment("Format for a single attachment in the %message_attachments% placeholder")
-    @Untranslated(Untranslated.Type.VALUE)
     public String attachmentFormat = " [hover:show_text:Open %file_name% in browser][click:open_url:%file_url%][color:green][[color:white]%file_name%[color:green]][color][click][hover]";
 
     @Comment("Format for the %message_reply% placeholder, when the message is a reply to another message")
-    @Untranslated(Untranslated.Type.VALUE)
     public String replyFormat = " [hover:show_text:%message%][click:open_url:%message_jump_url%]replying to %user_color|text:''%%user_effective_server_name|user_effective_name%[color][click][hover]";
 
     // TODO: more info on regex pairs (String#replaceAll)
