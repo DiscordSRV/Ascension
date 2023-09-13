@@ -233,13 +233,6 @@ public class BukkitDiscordSRV extends ServerDiscordSRV<DiscordSRVBukkitBootstrap
     }
 
     @Override
-    protected void serverStarted() {
-        super.serverStarted();
-
-        server().getConsoleSender().sendMessage(ChatColor.BOLD + "asd" + ChatColor.RESET + " bbb " + ChatColor.UNDERLINE + "und");
-    }
-
-    @Override
     protected void disable() {
         super.disable();
 
