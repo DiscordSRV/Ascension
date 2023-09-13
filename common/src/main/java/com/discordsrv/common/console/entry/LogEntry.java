@@ -35,7 +35,6 @@ public class LogEntry {
         return level;
     }
 
-    @Placeholder("message")
     public String message() {
         return message;
     }
