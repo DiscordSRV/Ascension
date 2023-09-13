@@ -1,5 +1,6 @@
 package com.discordsrv.common.config.main.generic;
 
+import com.discordsrv.common.config.configurate.annotation.Constants;
 import org.apache.commons.lang3.StringUtils;
 import org.spongepowered.configurate.objectmapping.ConfigSerializable;
 import org.spongepowered.configurate.objectmapping.meta.Comment;
@@ -17,7 +18,8 @@ public class DestinationConfig {
     public List<Long> channelIds = new ArrayList<>();
 
     @Setting("threads")
-    @Comment("The threads that this in-game channel will forward to in Discord (this can be used instead of or with the channel-ids option)")
+    @Comment("The threads that this in-game channel will forward to in Discord (this can be used instead of or with the %1 option)")
+    @Constants.Comment("channel-ids")
     public List<ThreadConfig> threads = new ArrayList<>(Collections.singletonList(new ThreadConfig()));
 
     @ConfigSerializable

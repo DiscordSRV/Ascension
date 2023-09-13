@@ -23,18 +23,7 @@ public class ConsoleConfig {
                 + "- diff: A \"diff\" code block highlighting warnings and errors with different colors\n"
                 + "- plain: Plain text code block\n"
                 + "- plain_content: Plain text")
-        public String outputMode = "ansi";
-
-        public OutputMode getOutputMode() {
-            switch (outputMode.toLowerCase(Locale.ROOT)) {
-                default:
-                case "ansi": return OutputMode.ANSI;
-                case "log": return OutputMode.LOG;
-                case "diff": return OutputMode.DIFF;
-                case "plain": return OutputMode.PLAIN;
-                case "plain_content": return OutputMode.PLAIN_CONTENT;
-            }
-        }
+        public OutputMode outputMode = OutputMode.ANSI;
 
         @Comment("Avoids sending new messages by editing the most recent message until it reaches it's maximum length")
         public boolean useEditing = true;

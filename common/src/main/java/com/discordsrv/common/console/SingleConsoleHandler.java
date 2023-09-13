@@ -64,7 +64,7 @@ public class SingleConsoleHandler {
         }
 
         ConsoleConfig.Appender appenderConfig = config.appender;
-        ConsoleConfig.OutputMode outputMode = appenderConfig.getOutputMode();
+        ConsoleConfig.OutputMode outputMode = appenderConfig.outputMode;
 
         Queue<LogMessage> currentBuffer = new LinkedBlockingQueue<>();
         LogEntry entry;

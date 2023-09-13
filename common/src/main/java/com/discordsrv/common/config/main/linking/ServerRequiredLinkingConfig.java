@@ -26,8 +26,13 @@ import org.spongepowered.configurate.objectmapping.meta.Setting;
 @ConfigSerializable
 public class ServerRequiredLinkingConfig extends RequiredLinkingConfig {
 
-    @Comment("How the player should be blocked from joining the server.\nAvailable options: KICK, FREEZE")
-    public String action = "KICK";
+    @Comment("How the player should be blocked from joining the server.\nAvailable options: kick, freeze")
+    public Action action = Action.KICK;
+
+    public enum Action {
+        KICK,
+        FREEZE
+    }
 
     @Setting(nodeFromParent = true)
     @Order(10)

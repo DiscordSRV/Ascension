@@ -20,9 +20,11 @@ package com.discordsrv.common.config.main;
 
 import com.discordsrv.api.channel.GameChannel;
 import com.discordsrv.common.config.Config;
+import com.discordsrv.common.config.configurate.annotation.Constants;
 import com.discordsrv.common.config.configurate.annotation.DefaultOnly;
 import com.discordsrv.common.config.configurate.annotation.Order;
 import com.discordsrv.common.config.connection.ConnectionConfig;
+import com.discordsrv.common.config.documentation.DocumentationURLs;
 import com.discordsrv.common.config.main.channels.base.BaseChannelConfig;
 import com.discordsrv.common.config.main.channels.base.ChannelConfig;
 import com.discordsrv.common.config.main.linking.LinkedAccountConfig;
@@ -36,12 +38,13 @@ public abstract class MainConfig implements Config {
 
     public static final String FILE_NAME = "config.yaml";
 
+    @Constants({DocumentationURLs.ELT_FORMAT, DocumentationURLs.DISCORD_MARKDOWN})
     public static final String HEADER = String.join("\n", Arrays.asList(
             "Welcome to the DiscordSRV configuration file",
             "",
             "Looking for the \"BotToken\" option? It has been moved into the " + ConnectionConfig.FILE_NAME,
-            "Need help with the format for Minecraft messages? https://github.com/Vankka/EnhancedLegacyText/wiki/Format",
-            "Need help with Discord markdown? https://support.discord.com/hc/en-us/articles/210298617"
+            "Need help with the format for Minecraft messages? %1",
+            "Need help with Discord markdown? %2"
     ));
 
     @Override
@@ -60,10 +63,11 @@ public abstract class MainConfig implements Config {
     @DefaultOnly(ChannelConfig.DEFAULT_KEY)
     @Comment("Channels configuration\n\n"
             + "This is where everything related to in-game chat channels is configured.\n"
-            + "The key of this option is the in-game channel name (the default keys are \"global\" and \"default\")\n"
-            + "channel-ids and threads can be configured for all channels except \"default\"\n"
-            + "\"default\" is a special section which has the default values for all channels unless they are specified (overridden) under the channel's own section\n"
-            + "So if you don't specify a certain option under a channel's own section, the option will take its value from the \"default\" section")
+            + "The key of this option is the in-game channel name (the default keys are \"%1\" and \"%2\")\n"
+            + "%3 and %4 can be configured for all channels except \"%2\"\n"
+            + "\"%2\" is a special section which has the default values for all channels unless they are specified (overridden) under the channel's own section\n"
+            + "So if you don't specify a certain option under a channel's own section, the option will take its value from the \"%2\" section")
+    @Constants.Comment({GameChannel.DEFAULT_NAME, ChannelConfig.DEFAULT_KEY, "channel-ids", "threads"})
     public Map<String, BaseChannelConfig> channels = new LinkedHashMap<String, BaseChannelConfig>() {{
         put(GameChannel.DEFAULT_NAME, createDefaultChannel());
         put(ChannelConfig.DEFAULT_KEY, createDefaultBaseChannel());
@@ -85,13 +89,15 @@ public abstract class MainConfig implements Config {
     @Comment("Options for console channel(s) and/or thread(s)")
     public List<ConsoleConfig> console = new ArrayList<>(Collections.singleton(new ConsoleConfig()));
 
-    @Comment("Configuration for the %discord_invite% placeholder. The below options will be attempted in the order they are in")
+    @Comment("Configuration for the %1 placeholder. The below options will be attempted in the order they are in")
+    @Constants.Comment("%discord_invite%")
     public DiscordInviteConfig invite = new DiscordInviteConfig();
 
     public MessagesMainConfig messages = new MessagesMainConfig();
 
     @Order(10) // To go below required linking config @ 5
-    @Comment("Configuration for the %player_avatar_url% placeholder")
+    @Comment("Configuration for the %1 placeholder")
+    @Constants.Comment("%player_avatar_url%")
     public AvatarProviderConfig avatarProvider = new AvatarProviderConfig();
 
     public abstract PluginIntegrationConfig integrations();

@@ -149,8 +149,8 @@ public class GroupSyncModule extends AbstractModule<DiscordSRV> {
         for (Map.Entry<GroupSyncConfig.PairConfig, Future<?>> entry : pairs.entrySet()) {
             GroupSyncConfig.PairConfig pair = entry.getKey();
             builder.append("\n- ").append(pair)
-                    .append(" (tie-breaker: ").append(pair.tieBreaker())
-                    .append(", direction: ").append(pair.direction())
+                    .append(" (tie-breaker: ").append(pair.tieBreaker)
+                    .append(", direction: ").append(pair.direction)
                     .append(", server context: ").append(pair.serverContext).append(")");
             if (entry.getValue() != null) {
                 builder.append(" [Timed]");
@@ -343,8 +343,8 @@ public class GroupSyncModule extends AbstractModule<DiscordSRV> {
                     return;
                 }
 
-                GroupSyncSide side = pair.tieBreaker();
-                GroupSyncDirection direction = pair.direction();
+                GroupSyncSide side = pair.tieBreaker;
+                GroupSyncDirection direction = pair.direction;
                 CompletableFuture<Void> future;
                 GroupSyncResult result;
                 if (hasRole) {
@@ -473,7 +473,7 @@ public class GroupSyncModule extends AbstractModule<DiscordSRV> {
 
         Map<GroupSyncConfig.PairConfig, CompletableFuture<GroupSyncResult>> futures = new LinkedHashMap<>();
         for (GroupSyncConfig.PairConfig pair : pairs) {
-            GroupSyncDirection direction = pair.direction();
+            GroupSyncDirection direction = pair.direction;
             if (direction == GroupSyncDirection.MINECRAFT_TO_DISCORD) {
                 // Not going Discord -> Minecraft
                 futures.put(pair, CompletableFuture.completedFuture(GroupSyncResult.WRONG_DIRECTION));
@@ -543,7 +543,7 @@ public class GroupSyncModule extends AbstractModule<DiscordSRV> {
         PermissionDataProvider.Groups permissionProvider = getPermissionProvider();
         Map<GroupSyncConfig.PairConfig, CompletableFuture<GroupSyncResult>> futures = new LinkedHashMap<>();
         for (GroupSyncConfig.PairConfig pair : pairs) {
-            GroupSyncDirection direction = pair.direction();
+            GroupSyncDirection direction = pair.direction;
             if (direction == GroupSyncDirection.DISCORD_TO_MINECRAFT) {
                 // Not going Minecraft -> Discord
                 futures.put(pair, CompletableFuture.completedFuture(GroupSyncResult.WRONG_DIRECTION));

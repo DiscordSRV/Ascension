@@ -85,8 +85,8 @@ public class ChannelConfigHelper {
             throws SerializationException {
         MainConfigManager<?> configManager = discordSRV.configManager();
 
-        CommentedConfigurationNode defaultNode = CommentedConfigurationNode.root(configManager.nodeOptions());
-        CommentedConfigurationNode target = CommentedConfigurationNode.root(configManager.nodeOptions());
+        CommentedConfigurationNode defaultNode = CommentedConfigurationNode.root(configManager.nodeOptions(true));
+        CommentedConfigurationNode target = CommentedConfigurationNode.root(configManager.nodeOptions(true));
 
         configManager.objectMapper()
                 .get((Class<BaseChannelConfig>) defaultConfig.getClass())

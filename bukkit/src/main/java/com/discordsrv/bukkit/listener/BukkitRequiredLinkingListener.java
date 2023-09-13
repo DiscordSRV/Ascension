@@ -23,6 +23,7 @@ import com.discordsrv.bukkit.config.main.BukkitRequiredLinkingConfig;
 import com.discordsrv.bukkit.requiredlinking.BukkitRequiredLinkingModule;
 import com.discordsrv.common.DiscordSRV;
 import com.discordsrv.common.component.util.ComponentUtil;
+import com.discordsrv.common.config.main.linking.ServerRequiredLinkingConfig;
 import com.discordsrv.common.player.IPlayer;
 import net.kyori.adventure.platform.bukkit.BukkitComponentSerializer;
 import net.kyori.adventure.text.Component;
@@ -141,7 +142,7 @@ public class BukkitRequiredLinkingListener implements Listener {
             Consumer<String> disallow
     ) {
         BukkitRequiredLinkingConfig config = discordSRV.config().requiredLinking;
-        if (!config.enabled || !config.action.equalsIgnoreCase("KICK")
+        if (!config.enabled || config.action != ServerRequiredLinkingConfig.Action.KICK
                 || !eventType.equals(config.kick.event) || !priority.name().equals(config.kick.priority)) {
             return;
         }
@@ -185,7 +186,7 @@ public class BukkitRequiredLinkingListener implements Listener {
         }
 
         BukkitRequiredLinkingConfig config = discordSRV.config().requiredLinking;
-        if (!config.enabled || !config.action.equalsIgnoreCase("FREEZE")) {
+        if (!config.enabled || config.action != ServerRequiredLinkingConfig.Action.FREEZE) {
             return;
         }
 

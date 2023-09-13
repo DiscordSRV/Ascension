@@ -21,6 +21,7 @@ package com.discordsrv.common.config.main.channels;
 import com.discordsrv.api.discord.entity.message.DiscordMessageEmbed;
 import com.discordsrv.api.discord.entity.message.SendableDiscordMessage;
 import com.discordsrv.api.event.events.message.receive.game.JoinMessageReceiveEvent;
+import com.discordsrv.common.config.configurate.annotation.Constants;
 import com.discordsrv.common.config.configurate.annotation.Untranslated;
 import com.discordsrv.common.config.main.generic.IMessageConfig;
 import org.jetbrains.annotations.Nullable;
@@ -68,8 +69,18 @@ public class JoinMessageConfig implements IMessageConfig {
     @ConfigSerializable
     public static class FirstJoin implements IMessageConfig {
 
-        @Comment("How first join should behave:\n- enabled (uses the format below)\n- disabled (first join messages are disabled)\n- use_regular (uses the format above)")
-        public String firstJoinPreference = "enabled";
+        @Comment("How first join should behave:\n"
+                + "- %1 (uses the format below)\n"
+                + "- %2 (first join messages are disabled)\n"
+                + "- %3 (uses the format above)")
+        @Constants.Comment({"enabled", "disabled", "use_regular"})
+        public Preference preference = Preference.ENABLED;
+
+        public enum Preference {
+            ENABLED,
+            DISABLED,
+            USE_REGULAR
+        }
 
         @Untranslated(Untranslated.Type.VALUE)
         public SendableDiscordMessage.Builder format = SendableDiscordMessage.builder()
@@ -81,12 +92,12 @@ public class JoinMessageConfig implements IMessageConfig {
                 );
 
         public boolean isRegular() {
-            return "use_regular".equalsIgnoreCase(firstJoinPreference);
+            return preference == Preference.USE_REGULAR;
         }
 
         @Override
         public boolean enabled() {
-            return "enabled".equalsIgnoreCase(firstJoinPreference);
+            return preference == Preference.ENABLED;
         }
 
         @Override

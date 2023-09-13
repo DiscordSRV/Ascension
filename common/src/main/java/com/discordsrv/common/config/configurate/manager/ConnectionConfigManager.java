@@ -19,13 +19,12 @@
 package com.discordsrv.common.config.configurate.manager;
 
 import com.discordsrv.common.DiscordSRV;
+import com.discordsrv.common.config.configurate.manager.abstraction.TranslatedConfigManager;
 import com.discordsrv.common.config.configurate.manager.loader.YamlConfigLoaderProvider;
 import com.discordsrv.common.config.connection.ConnectionConfig;
-import com.discordsrv.common.config.configurate.manager.abstraction.TranslatedConfigManager;
-import org.spongepowered.configurate.ConfigurationOptions;
-import org.spongepowered.configurate.objectmapping.ObjectMapper;
 import org.spongepowered.configurate.yaml.YamlConfigurationLoader;
 
+import java.lang.reflect.Field;
 import java.nio.file.Path;
 
 public abstract class ConnectionConfigManager<C extends ConnectionConfig>
@@ -41,9 +40,8 @@ public abstract class ConnectionConfigManager<C extends ConnectionConfig>
     }
 
     @Override
-    public ConfigurationOptions configurationOptions(ObjectMapper.Factory objectMapper) {
-        return super.configurationOptions(objectMapper)
-                .header(ConnectionConfig.HEADER);
+    protected Field headerField() throws ReflectiveOperationException {
+        return ConnectionConfig.class.getField("HEADER");
     }
 
     @Override
