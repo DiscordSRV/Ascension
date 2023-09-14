@@ -68,6 +68,19 @@ public class DiscordSRVBukkitBootstrap extends BukkitBootstrap implements IBoots
     @Override
     public void onEnable() {
         lifecycleManager.loadAndEnable(() -> this.discordSRV = new BukkitDiscordSRV(this));
+
+        boolean isFolia = false;
+        try {
+            Class.forName("io.papermc.paper.threadedregions.scheduler.GlobalRegionScheduler");
+            isFolia = true;
+        } catch (ClassNotFoundException ignored) {}
+
+        if (isFolia) {
+            discordSRV.invokeServerStarted();
+            return;
+        }
+
+        // Run a task on the main thread 1 tick later, so essentially when the server has finished booting
         getPlugin().getServer().getScheduler().runTaskLater(getPlugin(), () -> discordSRV.invokeServerStarted(), 1L);
     }
 
