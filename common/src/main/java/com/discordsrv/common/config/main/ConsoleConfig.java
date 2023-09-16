@@ -25,6 +25,12 @@ public class ConsoleConfig {
                 + "- plain_content: Plain text")
         public OutputMode outputMode = OutputMode.ANSI;
 
+        @Comment("In \"diff\" mode, should exception lines have the prefix character as well")
+        public boolean diffExceptions = true;
+
+        @Comment("If urls should have embeds disabled")
+        public boolean disableLinkEmbeds = true;
+
         @Comment("Avoids sending new messages by editing the most recent message until it reaches it's maximum length")
         public boolean useEditing = true;
 

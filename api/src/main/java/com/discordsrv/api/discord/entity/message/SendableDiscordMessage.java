@@ -115,6 +115,12 @@ public interface SendableDiscordMessage {
      */
     boolean isSuppressedNotifications();
 
+    /**
+     * If embeds for this message are suppressed.
+     * @return if embeds for this message are suppressed
+     */
+    boolean isSuppressedEmbeds();
+
     Map<InputStream, String> getAttachments();
 
     @SuppressWarnings("UnusedReturnValue") // API
@@ -274,6 +280,19 @@ public interface SendableDiscordMessage {
          * @return {@code true} if notifications should be suppressed for this message
          */
         boolean isSuppressedNotifications();
+
+        /**
+         * Sets if this message's embeds will be suppressed.
+         * @param suppressedEmbeds if embeds should be suppressed
+         * @return this builder, useful for chaining
+         */
+        Builder setSuppressedEmbeds(boolean suppressedEmbeds);
+
+        /**
+         * Checks if this builder has embeds suppressed.
+         * @return {@code true} if embeds should be suppressed for this message
+         */
+        boolean isSuppressedEmbeds();
 
         /**
          * Builds a {@link SendableDiscordMessage} from this builder.

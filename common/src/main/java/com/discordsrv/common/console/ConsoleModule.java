@@ -40,7 +40,7 @@ public class ConsoleModule extends AbstractModule<DiscordSRV> implements LogAppe
 
         List<ConsoleConfig> configs = discordSRV.config().console;
         for (ConsoleConfig config : configs) {
-            handlers.add(new SingleConsoleHandler(discordSRV, config));
+            handlers.add(new SingleConsoleHandler(discordSRV, logger(), config));
         }
     }
 

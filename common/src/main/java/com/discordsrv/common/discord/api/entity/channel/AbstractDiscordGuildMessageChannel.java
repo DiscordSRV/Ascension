@@ -89,7 +89,11 @@ public abstract class AbstractDiscordGuildMessageChannel<T extends GuildMessageC
                             .setAvatarUrl(message.getWebhookAvatarUrl())
                     );
         } else {
-            createRequest = CompletableFuture.completedFuture(((R) channel.sendMessage(createData)));
+            createRequest = CompletableFuture.completedFuture(
+                    ((R) channel.sendMessage(createData)
+                            // JDA doesn't properly grab this from MessageCreateData
+                            .setSuppressEmbeds(createData.isSuppressEmbeds()))
+            );
         }
 
         return createRequest

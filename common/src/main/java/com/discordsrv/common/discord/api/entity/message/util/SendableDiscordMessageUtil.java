@@ -73,6 +73,7 @@ public final class SendableDiscordMessageUtil {
                 .setContent(message.getContent())
                 .setEmbeds(embeds)
                 .setAllowedMentions(allowedTypes)
+                .setSuppressEmbeds(message.isSuppressedEmbeds())
                 .mentionUsers(allowedUsers.stream().mapToLong(l -> l).toArray())
                 .mentionRoles(allowedRoles.stream().mapToLong(l -> l).toArray())
                 .setFiles(uploads);

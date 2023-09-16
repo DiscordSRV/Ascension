@@ -52,6 +52,7 @@ public class SendableDiscordMessageImpl implements SendableDiscordMessage {
     private final String webhookUsername;
     private final String webhookAvatarUrl;
     private final boolean suppressedNotifications;
+    private final boolean suppressedEmbeds;
     private final Map<InputStream, String> attachments;
 
     protected SendableDiscordMessageImpl(
@@ -62,6 +63,7 @@ public class SendableDiscordMessageImpl implements SendableDiscordMessage {
             String webhookUsername,
             String webhookAvatarUrl,
             boolean suppressedNotifications,
+            boolean suppressedEmbeds,
             Map<InputStream, String> attachments
     ) {
         this.content = content;
@@ -71,6 +73,7 @@ public class SendableDiscordMessageImpl implements SendableDiscordMessage {
         this.webhookUsername = webhookUsername;
         this.webhookAvatarUrl = webhookAvatarUrl;
         this.suppressedNotifications = suppressedNotifications;
+        this.suppressedEmbeds = suppressedEmbeds;
         this.attachments = Collections.unmodifiableMap(attachments);
     }
 
@@ -111,6 +114,11 @@ public class SendableDiscordMessageImpl implements SendableDiscordMessage {
     }
 
     @Override
+    public boolean isSuppressedEmbeds() {
+        return suppressedEmbeds;
+    }
+
+    @Override
     public Map<InputStream, String> getAttachments() {
         return attachments;
     }
@@ -124,6 +132,7 @@ public class SendableDiscordMessageImpl implements SendableDiscordMessage {
         private String webhookUsername;
         private String webhookAvatarUrl;
         private boolean suppressedNotifications;
+        private boolean suppressedEmbeds;
         private final Map<InputStream, String> attachments = new LinkedHashMap<>();
 
         @Override
@@ -242,13 +251,24 @@ public class SendableDiscordMessageImpl implements SendableDiscordMessage {
         }
 
         @Override
+        public boolean isSuppressedEmbeds() {
+            return suppressedEmbeds;
+        }
+
+        @Override
+        public Builder setSuppressedEmbeds(boolean suppressedEmbeds) {
+            this.suppressedEmbeds = suppressedEmbeds;
+            return this;
+        }
+
+        @Override
         public boolean isSuppressedNotifications() {
             return suppressedNotifications;
         }
 
         @Override
         public @NotNull SendableDiscordMessage build() {
-            return new SendableDiscordMessageImpl(content, embeds, actionRows, allowedMentions, webhookUsername, webhookAvatarUrl, suppressedNotifications, attachments);
+            return new SendableDiscordMessageImpl(content, embeds, actionRows, allowedMentions, webhookUsername, webhookAvatarUrl, suppressedNotifications, suppressedEmbeds, attachments);
         }
 
         @Override

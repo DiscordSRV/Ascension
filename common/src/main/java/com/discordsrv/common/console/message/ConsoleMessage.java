@@ -58,6 +58,11 @@ public class ConsoleMessage {
         return discordSRV.componentFactory().ansiSerializer().serialize(component);
     }
 
+    public String asPlain() {
+        Component component = builder.build();
+        return discordSRV.componentFactory().plainSerializer().serialize(component);
+    }
+
     private void parse(String input) {
         Matcher matcher = PATTERN.matcher(input);
 

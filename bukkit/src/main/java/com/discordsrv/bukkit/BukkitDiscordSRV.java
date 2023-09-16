@@ -50,7 +50,6 @@ import com.discordsrv.common.debug.data.OnlineMode;
 import com.discordsrv.common.messageforwarding.game.minecrafttodiscord.MinecraftToDiscordChatModule;
 import com.discordsrv.common.plugin.PluginManager;
 import net.kyori.adventure.platform.bukkit.BukkitAudiences;
-import org.bukkit.ChatColor;
 import org.bukkit.Server;
 import org.bukkit.plugin.ServicePriority;
 import org.bukkit.plugin.java.JavaPlugin;
