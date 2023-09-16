@@ -55,7 +55,7 @@ public class ConsoleMessage {
 
     public String asAnsi() {
         Component component = builder.build();
-        return discordSRV.componentFactory().ansiSerializer().serialize(component);
+        return discordSRV.componentFactory().ansiSerializer().serialize(component) + (ANSI_ESCAPE + "[0m");
     }
 
     public String asPlain() {
