@@ -1,10 +1,13 @@
 package com.discordsrv.common.config.main;
 
 import com.discordsrv.common.config.main.generic.DestinationConfig;
+import com.discordsrv.common.config.main.generic.GameCommandFilterConfig;
+import org.spongepowered.configurate.objectmapping.ConfigSerializable;
 import org.spongepowered.configurate.objectmapping.meta.Comment;
 
 import java.util.*;
 
+@ConfigSerializable
 public class ConsoleConfig {
 
     @Comment("The console channel or thread")
@@ -12,6 +15,9 @@ public class ConsoleConfig {
 
     public Appender appender = new Appender();
 
+    public Execution commandExecution = new Execution();
+
+    @ConfigSerializable
     public static class Appender {
 
         @Comment("The format for log lines")
@@ -52,6 +58,39 @@ public class ConsoleConfig {
             public List<String> loggers = new ArrayList<>(Collections.singletonList("ExcludedLogger"));
             public boolean blacklist = true;
         }
+
+    }
+
+    @ConfigSerializable
+    public static class Execution {
+
+        public Execution() {
+            filters.add(
+                    new GameCommandFilterConfig(
+                            new ArrayList<>(),
+                            false,
+                            new ArrayList<>(Arrays.asList("list", "whitelist"))
+                    )
+            );
+            filters.add(
+                    new GameCommandFilterConfig(
+                            new ArrayList<>(),
+                            true,
+                            new ArrayList<>(Arrays.asList(
+                                    "?",
+                                    "op",
+                                    "deop",
+                                    "execute"
+                            ))
+                    )
+            );
+        }
+
+        @Comment("At least one condition has to match to allow execution")
+        public List<GameCommandFilterConfig> filters = new ArrayList<>();
+
+        @Comment("If a command is inputted starting with /, a warning response will be given if this is enabled")
+        public boolean enableSlashWarning = true;
 
     }
 

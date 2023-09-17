@@ -1,10 +1,18 @@
 package com.discordsrv.common.console;
 
-import com.discordsrv.api.discord.entity.channel.DiscordGuildMessageChannel;
+import com.discordsrv.api.discord.entity.DiscordUser;
+import com.discordsrv.api.discord.entity.channel.*;
+import com.discordsrv.api.discord.entity.guild.DiscordGuildMember;
+import com.discordsrv.api.discord.entity.message.ReceivedDiscordMessage;
 import com.discordsrv.api.discord.entity.message.SendableDiscordMessage;
+import com.discordsrv.api.discord.events.message.DiscordMessageReceiveEvent;
+import com.discordsrv.api.event.bus.Subscribe;
 import com.discordsrv.api.placeholder.provider.SinglePlaceholder;
 import com.discordsrv.common.DiscordSRV;
+import com.discordsrv.common.command.game.GameCommandExecutionHelper;
 import com.discordsrv.common.config.main.ConsoleConfig;
+import com.discordsrv.common.config.main.generic.DestinationConfig;
+import com.discordsrv.common.config.main.generic.GameCommandFilterConfig;
 import com.discordsrv.common.console.entry.LogEntry;
 import com.discordsrv.common.console.entry.LogMessage;
 import com.discordsrv.common.console.message.ConsoleMessage;
@@ -47,6 +55,88 @@ public class SingleConsoleHandler {
         this.messageCache = config.appender.useEditing ? new ArrayList<>() : null;
 
         timeQueueProcess();
+        discordSRV.eventBus().subscribe(this);
+    }
+
+    @Subscribe
+    public void onDiscordMessageReceived(DiscordMessageReceiveEvent event) {
+        DiscordMessageChannel messageChannel = event.getChannel();
+        DiscordGuildChannel channel = messageChannel instanceof DiscordGuildChannel ? (DiscordGuildChannel) messageChannel : null;
+        if (channel == null) {
+            return;
+        }
+
+        ReceivedDiscordMessage message = event.getMessage();
+        if (message.isFromSelf()) {
+            return;
+        }
+
+        String command = event.getMessage().getContent();
+        if (command == null) {
+            return;
+        }
+
+        DestinationConfig.Single destination = config.channel;
+        String threadName = destination.threadName;
+
+        DiscordGuildChannel checkChannel;
+        if (StringUtils.isNotEmpty(threadName)) {
+            if (!(channel instanceof DiscordThreadChannel)) {
+                return;
+            }
+
+            if (!channel.getName().equals(threadName)) {
+                return;
+            }
+
+            checkChannel = ((DiscordThreadChannel) channel).getParentChannel();
+        } else {
+            checkChannel = channel;
+        }
+        if (checkChannel.getId() != destination.channelId) {
+            return;
+        }
+
+        DiscordUser user = message.getAuthor();
+        DiscordGuildMember member = message.getMember();
+        GameCommandExecutionHelper helper = discordSRV.executeHelper();
+
+        if (command.startsWith("/") && config.commandExecution.enableSlashWarning) {
+            // TODO: reply, translation
+            messageChannel.sendMessage(
+                    SendableDiscordMessage.builder()
+                            .setContent("Your command was prefixed with `/`, but normally commands in the Minecraft server console should **not** begin with `/`")
+                            .build()
+            );
+        }
+
+        boolean pass = false;
+        for (GameCommandFilterConfig filter : config.commandExecution.filters) {
+            if (filter.isAcceptableCommand(member, user, command, false, helper)) {
+                pass = true;
+                break;
+            }
+        }
+        if (!pass) {
+            if (!user.isBot()) {
+                // TODO: reply, translation
+                messageChannel.sendMessage(
+                        SendableDiscordMessage.builder()
+                                .setContent("You are not allowed to run that command")
+                                .build()
+                );
+            }
+            return;
+        }
+
+        // Split message when editing
+        if (messageCache != null) {
+            messageCache.clear();
+        }
+        mostRecentMessageId = null;
+
+        // Run the command
+        discordSRV.console().runCommand(command);
     }
 
     public void queue(LogEntry entry) {
@@ -54,6 +144,7 @@ public class SingleConsoleHandler {
     }
 
     public void shutdown() {
+        discordSRV.eventBus().unsubscribe(this);
         queueProcessingFuture.cancel(false);
         queue.clear();
         messageCache.clear();
@@ -169,16 +260,16 @@ public class SingleConsoleHandler {
 
                         DiscordGuildMessageChannel channel = channels.get(0);
                         if (mostRecentMessageId != null) {
-                            long channelId = mostRecentMessageId;
+                            long messageId = mostRecentMessageId;
                             if (isFull) {
                                 mostRecentMessageId = null;
                             }
-                            return channel.editMessageById(channelId, sendableMessage);
+                            return channel.editMessageById(messageId, sendableMessage);
                         }
 
                         return channel.sendMessage(sendableMessage)
                                 .whenComplete((receivedMessage, t) -> {
-                                    if (receivedMessage != null) {
+                                    if (receivedMessage != null && messageCache != null) {
                                         mostRecentMessageId = receivedMessage.getId();
                                     }
                                 });

@@ -1,6 +1,7 @@
 package com.discordsrv.common.console;
 
 import com.discordsrv.api.DiscordSRVApi;
+import com.discordsrv.api.discord.connection.details.DiscordGatewayIntent;
 import com.discordsrv.common.DiscordSRV;
 import com.discordsrv.common.config.main.ConsoleConfig;
 import com.discordsrv.common.console.entry.LogEntry;
@@ -13,6 +14,8 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 import java.util.function.Consumer;
 
@@ -23,6 +26,11 @@ public class ConsoleModule extends AbstractModule<DiscordSRV> implements LogAppe
 
     public ConsoleModule(DiscordSRV discordSRV) {
         super(discordSRV, new NamedLogger(discordSRV, "CONSOLE"));
+    }
+
+    @Override
+    public @NotNull Collection<DiscordGatewayIntent> requiredIntents() {
+        return Collections.singletonList(DiscordGatewayIntent.MESSAGE_CONTENT);
     }
 
     @Override
