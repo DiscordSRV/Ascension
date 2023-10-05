@@ -33,15 +33,13 @@ import dev.vankka.mcdiscordreserializer.minecraft.MinecraftSerializerOptions;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.TranslatableComponent;
 import net.kyori.adventure.text.flattener.ComponentFlattener;
-import net.kyori.adventure.text.format.NamedTextColor;
-import net.kyori.adventure.text.format.TextColor;
 import net.kyori.adventure.text.serializer.ansi.ANSIComponentSerializer;
 import net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer;
 import net.kyori.adventure.text.serializer.plain.PlainTextComponentSerializer;
 import net.kyori.ansi.ColorLevel;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.*;
+import java.util.Locale;
 
 public class ComponentFactory implements MinecraftComponentFactory {
 
@@ -60,7 +58,6 @@ public class ComponentFactory implements MinecraftComponentFactory {
     private final DiscordSerializer discordSerializer;
     private final PlainTextComponentSerializer plainSerializer;
     private final ANSIComponentSerializer ansiSerializer;
-    private final ANSIComponentSerializerWrapper ansiWrapper = new ANSIComponentSerializerWrapper();
 
     // Not the same as Adventure's TranslationRegistry
     private final TranslationRegistry translationRegistry = new TranslationRegistry();
@@ -83,7 +80,7 @@ public class ComponentFactory implements MinecraftComponentFactory {
                 .flattener(flattener)
                 .build();
         this.ansiSerializer = ANSIComponentSerializer.builder()
-                .colorLevel(ColorLevel.INDEXED_16)
+                .colorLevel(ColorLevel.INDEXED_8)
                 .flattener(flattener)
                 .build();
     }
@@ -134,47 +131,11 @@ public class ComponentFactory implements MinecraftComponentFactory {
     }
 
     public ANSIComponentSerializer ansiSerializer() {
-        return ansiWrapper;
+        return ansiSerializer;
     }
 
     public TranslationRegistry translationRegistry() {
         return translationRegistry;
     }
 
-    private static final Set<TextColor> ANSI_SUPPORTED_COLORS = new HashSet<>(Arrays.asList(
-            NamedTextColor.BLACK,
-            NamedTextColor.DARK_BLUE,
-            NamedTextColor.DARK_GREEN,
-            NamedTextColor.DARK_AQUA,
-            NamedTextColor.DARK_RED,
-            NamedTextColor.DARK_PURPLE,
-            NamedTextColor.GOLD,
-            NamedTextColor.GRAY
-    ));
-
-    /**
-     * "Fix" for Discord only supporting 8 colors.
-     * <a href="https://github.com/KyoriPowered/ansi/issues/35">KyoriPowered/ansi issue</a>
-     */
-    private class ANSIComponentSerializerWrapper implements ANSIComponentSerializer {
-
-        @Override
-        public @NotNull String serialize(@NotNull Component component) {
-            return ansiSerializer.serialize(recursivelyCheckColor(component));
-        }
-
-        private Component recursivelyCheckColor(Component component) {
-            if (!ANSI_SUPPORTED_COLORS.contains(component.color())) {
-                component = component.color(null);
-            }
-
-            List<Component> children = component.children();
-            List<Component> newChildren = new ArrayList<>(children.size());
-            for (Component child : children) {
-                newChildren.add(recursivelyCheckColor(child));
-            }
-
-            return component.children(newChildren);
-        }
-    }
 }
