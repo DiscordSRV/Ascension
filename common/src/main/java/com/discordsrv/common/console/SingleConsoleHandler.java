@@ -43,6 +43,7 @@ public class SingleConsoleHandler {
     private final ConsoleConfig config;
     private final Queue<LogEntry> queue = new LinkedBlockingQueue<>();
     private Future<?> queueProcessingFuture;
+    private boolean shutdown = false;
 
     // Editing
     private final List<LogMessage> messageCache;
@@ -163,8 +164,14 @@ public class SingleConsoleHandler {
     }
 
     public void shutdown() {
+        shutdown = true;
         discordSRV.eventBus().unsubscribe(this);
         queueProcessingFuture.cancel(false);
+        try {
+            queueProcessingFuture.wait(TimeUnit.SECONDS.toMillis(3));
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+        }
         queue.clear();
         if (messageCache != null) {
             messageCache.clear();
@@ -173,6 +180,9 @@ public class SingleConsoleHandler {
     }
 
     private void timeQueueProcess() {
+        if (shutdown) {
+            return;
+        }
         this.queueProcessingFuture = discordSRV.scheduler().runLater(this::processQueue, 2, TimeUnit.SECONDS);
     }
 
