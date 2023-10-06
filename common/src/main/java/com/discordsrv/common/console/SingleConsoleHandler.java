@@ -31,6 +31,9 @@ import java.util.concurrent.Future;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.TimeUnit;
 
+/**
+ * The log appending and command handling for a single console channel.
+ */
 public class SingleConsoleHandler {
 
     private static final int MESSAGE_MAX_LENGTH = Message.MAX_CONTENT_LENGTH;
@@ -163,7 +166,9 @@ public class SingleConsoleHandler {
         discordSRV.eventBus().unsubscribe(this);
         queueProcessingFuture.cancel(false);
         queue.clear();
-        messageCache.clear();
+        if (messageCache != null) {
+            messageCache.clear();
+        }
         mostRecentMessageId = null;
     }
 

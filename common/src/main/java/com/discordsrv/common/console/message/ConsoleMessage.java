@@ -11,6 +11,9 @@ import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+/**
+ * Helper class for parsing raw console messages into markdown, ansi or plain content for forwarding to Discord.
+ */
 public class ConsoleMessage {
 
     private static final String ANSI_ESCAPE = "\u001B";

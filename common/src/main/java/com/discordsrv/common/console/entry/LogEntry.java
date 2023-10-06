@@ -9,6 +9,9 @@ import java.time.ZonedDateTime;
 import java.util.LinkedHashSet;
 import java.util.Set;
 
+/**
+ * A raw log entry from a platform logger. May be parsed to become a {@link LogMessage}.
+ */
 public class LogEntry {
 
     private final String loggerName;

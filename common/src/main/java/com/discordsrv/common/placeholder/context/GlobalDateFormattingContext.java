@@ -11,6 +11,8 @@ import java.util.concurrent.TimeUnit;
 
 public class GlobalDateFormattingContext {
 
+    private static final String TIMESTAMP_IDENTIFIER = "timestamp";
+
     private final LoadingCache<String, DateTimeFormatter> cache;
 
     public GlobalDateFormattingContext(DiscordSRV discordSRV) {
@@ -21,6 +23,15 @@ public class GlobalDateFormattingContext {
 
     @Placeholder("date")
     public String formatDate(ZonedDateTime time, @PlaceholderRemainder String format) {
+        if (format.startsWith(TIMESTAMP_IDENTIFIER)) {
+            String style = format.substring(TIMESTAMP_IDENTIFIER.length());
+            if (!style.isEmpty() && !style.startsWith(":")) {
+                return null;
+            }
+
+            return "<t:" + time.toEpochSecond() + style + ">";
+        }
+
         DateTimeFormatter formatter = cache.get(format);
         if (formatter == null) {
             throw new IllegalStateException("Illegal state");

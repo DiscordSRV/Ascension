@@ -1,5 +1,8 @@
 package com.discordsrv.common.console.entry;
 
+/**
+ * A {@link LogEntry} with formatting.
+ */
 public class LogMessage {
 
     private final LogEntry entry;
