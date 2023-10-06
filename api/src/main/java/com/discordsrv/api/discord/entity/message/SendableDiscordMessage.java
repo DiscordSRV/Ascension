@@ -110,6 +110,12 @@ public interface SendableDiscordMessage {
     }
 
     /**
+     * Gets the raw inputs streams and file names for attachments, for this message.
+     * @return the map of input streams to file names
+     */
+    Map<InputStream, String> getAttachments();
+
+    /**
      * If notifications for this message are suppressed.
      * @return if sending this message doesn't cause a notification
      */
@@ -121,7 +127,19 @@ public interface SendableDiscordMessage {
      */
     boolean isSuppressedEmbeds();
 
-    Map<InputStream, String> getAttachments();
+    /**
+     * Gets the id for the message this message is in reply to
+     * @return the message id
+     */
+    Long getMessageIdToReplyTo();
+
+    /**
+     * Creates a copy of this {@link SendableDiscordMessage} with the specified reply message id.
+     *
+     * @param replyingToMessageId the reply message id
+     * @return a new {@link SendableDiscordMessage} identical to the current instance except for the reply message id
+     */
+    SendableDiscordMessage withReplyingToMessageId(Long replyingToMessageId);
 
     @SuppressWarnings("UnusedReturnValue") // API
     interface Builder {
@@ -263,12 +281,6 @@ public interface SendableDiscordMessage {
         Builder addAttachment(InputStream inputStream, String fileName);
 
         /**
-         * Checks if this builder has any sendable content.
-         * @return {@code true} if there is no sendable content
-         */
-        boolean isEmpty();
-
-        /**
          * Sets if this message's notifications will be suppressed.
          * @param suppressedNotifications if notifications should be suppressed
          * @return this builder, useful for chaining
@@ -293,6 +305,34 @@ public interface SendableDiscordMessage {
          * @return {@code true} if embeds should be suppressed for this message
          */
         boolean isSuppressedEmbeds();
+
+        /**
+         * Sets the message this message should be in reply to.
+         * @param messageId the id for the message this is in reply to
+         * @return this builder, useful for chaining
+         */
+        Builder setMessageIdToReplyTo(Long messageId);
+
+        /**
+         * Sets the message this message should be in reply to.
+         * @param message the message this is in reply to
+         * @return this builder, useful for chaining
+         */
+        default Builder setMessageToReplyTo(@NotNull ReceivedDiscordMessage message) {
+            return setMessageIdToReplyTo(message.getId());
+        }
+
+        /**
+         * Gets the id for the message this message is in reply to
+         * @return the message id
+         */
+        Long getMessageIdToReplyTo();
+
+        /**
+         * Checks if this builder has any sendable content.
+         * @return {@code true} if there is no sendable content
+         */
+        boolean isEmpty();
 
         /**
          * Builds a {@link SendableDiscordMessage} from this builder.

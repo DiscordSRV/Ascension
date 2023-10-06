@@ -226,12 +226,12 @@ public class ReceivedDiscordMessageImpl implements ReceivedDiscordMessage {
 
     @Override
     public @NotNull CompletableFuture<Void> delete() {
-        DiscordTextChannel textChannel = discordSRV.discordAPI().getTextChannelById(channelId);
-        if (textChannel == null) {
+        DiscordMessageChannel messageChannel = discordSRV.discordAPI().getMessageChannelById(channelId);
+        if (messageChannel == null) {
             return CompletableFutureUtil.failed(new RestErrorResponseException(ErrorResponse.UNKNOWN_CHANNEL));
         }
 
-        return textChannel.deleteMessageById(getId(), fromSelf && webhookMessage);
+        return messageChannel.deleteMessageById(getId(), fromSelf && webhookMessage);
     }
 
     @Override
@@ -242,12 +242,26 @@ public class ReceivedDiscordMessageImpl implements ReceivedDiscordMessage {
             throw new IllegalArgumentException("Cannot edit a non-webhook message into a webhook message");
         }
 
-        DiscordTextChannel textChannel = discordSRV.discordAPI().getTextChannelById(channelId);
-        if (textChannel == null) {
+        DiscordMessageChannel messageChannel = discordSRV.discordAPI().getMessageChannelById(channelId);
+        if (messageChannel == null) {
             return CompletableFutureUtil.failed(new RestErrorResponseException(ErrorResponse.UNKNOWN_CHANNEL));
         }
 
-        return textChannel.editMessageById(getId(), message);
+        return messageChannel.editMessageById(getId(), message);
+    }
+
+    @Override
+    public CompletableFuture<ReceivedDiscordMessage> reply(@NotNull SendableDiscordMessage message) {
+        if (message.isWebhookMessage()) {
+            throw new IllegalStateException("Webhook messages cannot be used as replies");
+        }
+
+        DiscordMessageChannel messageChannel = discordSRV.discordAPI().getMessageChannelById(channelId);
+        if (messageChannel == null) {
+            return CompletableFutureUtil.failed(new RestErrorResponseException(ErrorResponse.UNKNOWN_CHANNEL));
+        }
+
+        return messageChannel.sendMessage(message.withReplyingToMessageId(id));
     }
 
     //

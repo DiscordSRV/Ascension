@@ -56,9 +56,13 @@ public class DiscordDMChannelImpl extends AbstractDiscordMessageChannel<PrivateC
 
         MessageCreateAction action = channel.sendMessage(SendableDiscordMessageUtil.toJDASend(message));
 
+        Long referencedMessageId = message.getMessageIdToReplyTo();
+        if (referencedMessageId != null) {
+            action = action.setMessageReference(referencedMessageId);
+        }
+
         CompletableFuture<ReceivedDiscordMessage> future = action.submit()
                 .thenApply(msg -> ReceivedDiscordMessageImpl.fromJDA(discordSRV, msg));
-
         return discordSRV.discordAPI().mapExceptions(future);
     }
 

@@ -1,7 +1,10 @@
 package com.discordsrv.common.console;
 
 import com.discordsrv.api.discord.entity.DiscordUser;
-import com.discordsrv.api.discord.entity.channel.*;
+import com.discordsrv.api.discord.entity.channel.DiscordGuildChannel;
+import com.discordsrv.api.discord.entity.channel.DiscordGuildMessageChannel;
+import com.discordsrv.api.discord.entity.channel.DiscordMessageChannel;
+import com.discordsrv.api.discord.entity.channel.DiscordThreadChannel;
 import com.discordsrv.api.discord.entity.guild.DiscordGuildMember;
 import com.discordsrv.api.discord.entity.message.ReceivedDiscordMessage;
 import com.discordsrv.api.discord.entity.message.SendableDiscordMessage;
@@ -22,9 +25,7 @@ import net.dv8tion.jda.api.entities.Message;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Queue;
+import java.util.*;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Future;
 import java.util.concurrent.LinkedBlockingQueue;
@@ -47,6 +48,9 @@ public class SingleConsoleHandler {
     // Preventing concurrent sends
     private final Object sendLock = new Object();
     private CompletableFuture<?> sendFuture;
+
+    // Don't annoy console users twice about using /
+    private final Set<Long> warnedSlashUsageUserIds = new HashSet<>();
 
     public SingleConsoleHandler(DiscordSRV discordSRV, Logger logger, ConsoleConfig config) {
         this.discordSRV = discordSRV;
@@ -102,12 +106,24 @@ public class SingleConsoleHandler {
         GameCommandExecutionHelper helper = discordSRV.executeHelper();
 
         if (command.startsWith("/") && config.commandExecution.enableSlashWarning) {
-            // TODO: reply, translation
-            messageChannel.sendMessage(
-                    SendableDiscordMessage.builder()
-                            .setContent("Your command was prefixed with `/`, but normally commands in the Minecraft server console should **not** begin with `/`")
-                            .build()
-            );
+            long userId = user.getId();
+
+            boolean newUser;
+            synchronized (warnedSlashUsageUserIds) {
+                newUser = !warnedSlashUsageUserIds.contains(userId);
+                if (newUser) {
+                    warnedSlashUsageUserIds.add(userId);
+                }
+            }
+
+            if (newUser) {
+                // TODO: translation
+                message.reply(
+                        SendableDiscordMessage.builder()
+                                .setContent("Your command was prefixed with `/`, but normally commands in the Minecraft server console should **not** begin with `/`")
+                                .build()
+                );
+            }
         }
 
         boolean pass = false;
@@ -119,8 +135,8 @@ public class SingleConsoleHandler {
         }
         if (!pass) {
             if (!user.isBot()) {
-                // TODO: reply, translation
-                messageChannel.sendMessage(
+                // TODO: translation
+                message.reply(
                         SendableDiscordMessage.builder()
                                 .setContent("You are not allowed to run that command")
                                 .build()

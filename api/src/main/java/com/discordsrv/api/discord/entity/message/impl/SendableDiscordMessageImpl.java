@@ -51,9 +51,10 @@ public class SendableDiscordMessageImpl implements SendableDiscordMessage {
     private final Set<AllowedMention> allowedMentions;
     private final String webhookUsername;
     private final String webhookAvatarUrl;
+    private final Map<InputStream, String> attachments;
     private final boolean suppressedNotifications;
     private final boolean suppressedEmbeds;
-    private final Map<InputStream, String> attachments;
+    private final Long replyingToMessageId;
 
     protected SendableDiscordMessageImpl(
             String content,
@@ -62,9 +63,10 @@ public class SendableDiscordMessageImpl implements SendableDiscordMessage {
             Set<AllowedMention> allowedMentions,
             String webhookUsername,
             String webhookAvatarUrl,
+            Map<InputStream, String> attachments,
             boolean suppressedNotifications,
             boolean suppressedEmbeds,
-            Map<InputStream, String> attachments
+            Long replyingToMessageId
     ) {
         this.content = content;
         this.embeds = Collections.unmodifiableList(embeds);
@@ -72,9 +74,25 @@ public class SendableDiscordMessageImpl implements SendableDiscordMessage {
         this.allowedMentions = Collections.unmodifiableSet(allowedMentions);
         this.webhookUsername = webhookUsername;
         this.webhookAvatarUrl = webhookAvatarUrl;
+        this.attachments = Collections.unmodifiableMap(attachments);
         this.suppressedNotifications = suppressedNotifications;
         this.suppressedEmbeds = suppressedEmbeds;
-        this.attachments = Collections.unmodifiableMap(attachments);
+        this.replyingToMessageId = replyingToMessageId;
+    }
+
+    public SendableDiscordMessageImpl withReplyingToMessageId(Long replyingToMessageId) {
+        return new SendableDiscordMessageImpl(
+                content,
+                embeds,
+                actionRows,
+                allowedMentions,
+                webhookUsername,
+                webhookAvatarUrl,
+                attachments,
+                suppressedNotifications,
+                suppressedEmbeds,
+                replyingToMessageId
+        );
     }
 
     @Override
@@ -119,6 +137,11 @@ public class SendableDiscordMessageImpl implements SendableDiscordMessage {
     }
 
     @Override
+    public Long getMessageIdToReplyTo() {
+        return replyingToMessageId;
+    }
+
+    @Override
     public Map<InputStream, String> getAttachments() {
         return attachments;
     }
@@ -131,9 +154,10 @@ public class SendableDiscordMessageImpl implements SendableDiscordMessage {
         private final Set<AllowedMention> allowedMentions = new LinkedHashSet<>();
         private String webhookUsername;
         private String webhookAvatarUrl;
+        private final Map<InputStream, String> attachments = new LinkedHashMap<>();
         private boolean suppressedNotifications;
         private boolean suppressedEmbeds;
-        private final Map<InputStream, String> attachments = new LinkedHashMap<>();
+        private Long replyingToMessageId;
 
         @Override
         public String getContent() {
@@ -256,6 +280,17 @@ public class SendableDiscordMessageImpl implements SendableDiscordMessage {
         }
 
         @Override
+        public Builder setMessageIdToReplyTo(Long messageId) {
+            replyingToMessageId = messageId;
+            return this;
+        }
+
+        @Override
+        public Long getMessageIdToReplyTo() {
+            return replyingToMessageId;
+        }
+
+        @Override
         public Builder setSuppressedEmbeds(boolean suppressedEmbeds) {
             this.suppressedEmbeds = suppressedEmbeds;
             return this;
@@ -268,7 +303,7 @@ public class SendableDiscordMessageImpl implements SendableDiscordMessage {
 
         @Override
         public @NotNull SendableDiscordMessage build() {
-            return new SendableDiscordMessageImpl(content, embeds, actionRows, allowedMentions, webhookUsername, webhookAvatarUrl, suppressedNotifications, suppressedEmbeds, attachments);
+            return new SendableDiscordMessageImpl(content, embeds, actionRows, allowedMentions, webhookUsername, webhookAvatarUrl, attachments, suppressedNotifications, suppressedEmbeds, replyingToMessageId);
         }
 
         @Override
