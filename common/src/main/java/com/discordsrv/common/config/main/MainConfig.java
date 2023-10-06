@@ -31,9 +31,7 @@ import com.discordsrv.common.config.main.linking.LinkedAccountConfig;
 import org.spongepowered.configurate.objectmapping.ConfigSerializable;
 import org.spongepowered.configurate.objectmapping.meta.Comment;
 
-import java.util.Arrays;
-import java.util.LinkedHashMap;
-import java.util.Map;
+import java.util.*;
 
 @ConfigSerializable
 public abstract class MainConfig implements Config {
@@ -87,6 +85,9 @@ public abstract class MainConfig implements Config {
 
     @Comment("Discord command configuration")
     public DiscordCommandConfig discordCommand = new DiscordCommandConfig();
+
+    @Comment("Options for console channel(s) and/or thread(s)")
+    public List<ConsoleConfig> console = new ArrayList<>(Collections.singleton(new ConsoleConfig()));
 
     @Comment("Configuration for the %1 placeholder. The below options will be attempted in the order they are in")
     @Constants.Comment("%discord_invite%")

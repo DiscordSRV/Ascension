@@ -73,6 +73,7 @@ public final class SendableDiscordMessageUtil {
                 .setContent(message.getContent())
                 .setEmbeds(embeds)
                 .setAllowedMentions(allowedTypes)
+                .setSuppressEmbeds(message.isSuppressedEmbeds())
                 .mentionUsers(allowedUsers.stream().mapToLong(l -> l).toArray())
                 .mentionRoles(allowedRoles.stream().mapToLong(l -> l).toArray())
                 .setFiles(uploads);
@@ -86,6 +87,7 @@ public final class SendableDiscordMessageUtil {
 
         return jdaBuilder(message, new MessageCreateBuilder())
                 .addComponents(actionRows)
+                .setSuppressedNotifications(message.isSuppressedNotifications())
                 .build();
     }
 

@@ -159,6 +159,15 @@ public interface ReceivedDiscordMessage extends Snowflake {
      */
     CompletableFuture<ReceivedDiscordMessage> edit(@NotNull SendableDiscordMessage message);
 
+    /**
+     * Send the provided message in the channel this message was sent in, replying to this message.
+     *
+     * @param message the message
+     * @return a future that will fail if the request fails, otherwise the new message provided by the request response
+     * @throws IllegalArgumentException if the provided message is a webhook message
+     */
+    CompletableFuture<ReceivedDiscordMessage> reply(@NotNull SendableDiscordMessage message);
+
     class Attachment {
 
         private final String fileName;

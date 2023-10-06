@@ -109,7 +109,37 @@ public interface SendableDiscordMessage {
         return getWebhookUsername() != null;
     }
 
+    /**
+     * Gets the raw inputs streams and file names for attachments, for this message.
+     * @return the map of input streams to file names
+     */
     Map<InputStream, String> getAttachments();
+
+    /**
+     * If notifications for this message are suppressed.
+     * @return if sending this message doesn't cause a notification
+     */
+    boolean isSuppressedNotifications();
+
+    /**
+     * If embeds for this message are suppressed.
+     * @return if embeds for this message are suppressed
+     */
+    boolean isSuppressedEmbeds();
+
+    /**
+     * Gets the id for the message this message is in reply to
+     * @return the message id
+     */
+    Long getMessageIdToReplyTo();
+
+    /**
+     * Creates a copy of this {@link SendableDiscordMessage} with the specified reply message id.
+     *
+     * @param replyingToMessageId the reply message id
+     * @return a new {@link SendableDiscordMessage} identical to the current instance except for the reply message id
+     */
+    SendableDiscordMessage withReplyingToMessageId(Long replyingToMessageId);
 
     @SuppressWarnings("UnusedReturnValue") // API
     interface Builder {
@@ -249,6 +279,54 @@ public interface SendableDiscordMessage {
          * @return the builder, useful for chaining
          */
         Builder addAttachment(InputStream inputStream, String fileName);
+
+        /**
+         * Sets if this message's notifications will be suppressed.
+         * @param suppressedNotifications if notifications should be suppressed
+         * @return this builder, useful for chaining
+         */
+        Builder setSuppressedNotifications(boolean suppressedNotifications);
+
+        /**
+         * Checks if this builder has notifications suppressed.
+         * @return {@code true} if notifications should be suppressed for this message
+         */
+        boolean isSuppressedNotifications();
+
+        /**
+         * Sets if this message's embeds will be suppressed.
+         * @param suppressedEmbeds if embeds should be suppressed
+         * @return this builder, useful for chaining
+         */
+        Builder setSuppressedEmbeds(boolean suppressedEmbeds);
+
+        /**
+         * Checks if this builder has embeds suppressed.
+         * @return {@code true} if embeds should be suppressed for this message
+         */
+        boolean isSuppressedEmbeds();
+
+        /**
+         * Sets the message this message should be in reply to.
+         * @param messageId the id for the message this is in reply to
+         * @return this builder, useful for chaining
+         */
+        Builder setMessageIdToReplyTo(Long messageId);
+
+        /**
+         * Sets the message this message should be in reply to.
+         * @param message the message this is in reply to
+         * @return this builder, useful for chaining
+         */
+        default Builder setMessageToReplyTo(@NotNull ReceivedDiscordMessage message) {
+            return setMessageIdToReplyTo(message.getId());
+        }
+
+        /**
+         * Gets the id for the message this message is in reply to
+         * @return the message id
+         */
+        Long getMessageIdToReplyTo();
 
         /**
          * Checks if this builder has any sendable content.

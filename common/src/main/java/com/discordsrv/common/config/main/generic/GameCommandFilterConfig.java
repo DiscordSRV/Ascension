@@ -103,7 +103,7 @@ public class GameCommandFilterConfig {
             }
         }
         if (!match) {
-            return true;
+            return false;
         }
 
         for (String configCommand : commands) {

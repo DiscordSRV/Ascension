@@ -126,6 +126,9 @@ dependencyResolutionManagement {
             library('adventure-platform-bungee', 'net.kyori', 'adventure-platform-bungeecord').versionRef('adventure-platform')
             library('adventure-serializer-bungee', 'net.kyori', 'adventure-text-serializer-bungeecord').versionRef('adventure-platform')
 
+            // Upgrade ansi (used by ansi serializer)
+            library('kyori-ansi', 'net.kyori', 'ansi').version('1.1.0-SNAPSHOT')
+
             // MCDiscordReserializer & EnhancedLegacyText
             library('mcdiscordreserializer', 'dev.vankka', 'mcdiscordreserializer').version('4.4.0-SNAPSHOT')
             library('enhancedlegacytext', 'dev.vankka', 'enhancedlegacytext').version('2.0.0-SNAPSHOT')

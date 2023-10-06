@@ -29,6 +29,7 @@ import net.dv8tion.jda.api.entities.Message;
 import net.dv8tion.jda.api.entities.WebhookClient;
 import net.dv8tion.jda.api.entities.channel.middleman.GuildMessageChannel;
 import net.dv8tion.jda.api.requests.RestAction;
+import net.dv8tion.jda.api.requests.restaction.MessageCreateAction;
 import net.dv8tion.jda.api.utils.messages.MessageCreateData;
 import net.dv8tion.jda.api.utils.messages.MessageCreateRequest;
 import net.dv8tion.jda.api.utils.messages.MessageEditData;
@@ -89,7 +90,15 @@ public abstract class AbstractDiscordGuildMessageChannel<T extends GuildMessageC
                             .setAvatarUrl(message.getWebhookAvatarUrl())
                     );
         } else {
-            createRequest = CompletableFuture.completedFuture(((R) channel.sendMessage(createData)));
+            MessageCreateAction action = channel.sendMessage(createData)
+                    // JDA doesn't properly grab this from MessageCreateData
+                    .setSuppressEmbeds(createData.isSuppressEmbeds());
+
+            Long referencedMessageId = message.getMessageIdToReplyTo();
+            if (referencedMessageId != null) {
+                action = action.setMessageReference(referencedMessageId);
+            }
+            createRequest = CompletableFuture.completedFuture((R) action);
         }
 
         return createRequest

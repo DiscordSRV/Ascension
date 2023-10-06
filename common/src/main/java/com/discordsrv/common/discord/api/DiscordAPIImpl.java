@@ -100,7 +100,15 @@ public class DiscordAPIImpl implements DiscordAPI {
             boolean create,
             boolean log
     ) {
-        DestinationConfig destination = config.destination();
+        return findOrCreateDestinations(config.destination(), config.channelLocking.threads.unarchive, create, log);
+    }
+
+    public CompletableFuture<List<DiscordGuildMessageChannel>> findOrCreateDestinations(
+            DestinationConfig destination,
+            boolean unarchive,
+            boolean create,
+            boolean log
+    ) {
 
         List<DiscordGuildMessageChannel> channels = new CopyOnWriteArrayList<>();
         for (Long channelId : destination.channelIds) {
@@ -148,7 +156,7 @@ public class DiscordAPIImpl implements DiscordAPI {
                     unarchiveOrCreateThread(threadConfig, channel, thread, future);
                 } else {
                     // Find or create the thread
-                    future = findOrCreateThread(config, threadConfig, channel);
+                    future = findOrCreateThread(unarchive, threadConfig, channel);
                 }
 
                 DiscordThreadContainer container = channel;
@@ -181,12 +189,8 @@ public class DiscordAPIImpl implements DiscordAPI {
         return null;
     }
 
-    private CompletableFuture<DiscordThreadChannel> findOrCreateThread(
-            BaseChannelConfig config,
-            ThreadConfig threadConfig,
-            DiscordThreadContainer container
-    ) {
-        if (!config.channelLocking.threads.unarchive) {
+    private CompletableFuture<DiscordThreadChannel> findOrCreateThread(boolean unarchive, ThreadConfig threadConfig, DiscordThreadContainer container) {
+        if (!unarchive) {
             return container.createThread(threadConfig.threadName, threadConfig.privateThread);
         }
 

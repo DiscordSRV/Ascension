@@ -68,19 +68,19 @@ public class ComponentFactory implements MinecraftComponentFactory {
                 MinecraftSerializerOptions.defaults()
                         .addRenderer(new DiscordSRVMinecraftRenderer(discordSRV))
         );
-        this.discordSerializer = new DiscordSerializer(
-                DiscordSerializerOptions.defaults()
-                        .withTranslationProvider(this::provideTranslation)
-        );
 
         ComponentFlattener flattener = ComponentFlattener.basic().toBuilder()
                 .mapper(TranslatableComponent.class, this::provideTranslation)
                 .build();
+        this.discordSerializer = new DiscordSerializer(
+                DiscordSerializerOptions.defaults()
+                        .withFlattener(flattener)
+        );
         this.plainSerializer = PlainTextComponentSerializer.builder()
                 .flattener(flattener)
                 .build();
         this.ansiSerializer = ANSIComponentSerializer.builder()
-                .colorLevel(ColorLevel.INDEXED_16)
+                .colorLevel(ColorLevel.INDEXED_8)
                 .flattener(flattener)
                 .build();
     }
@@ -137,4 +137,5 @@ public class ComponentFactory implements MinecraftComponentFactory {
     public TranslationRegistry translationRegistry() {
         return translationRegistry;
     }
+
 }
