@@ -85,16 +85,16 @@ public class MinecraftToDiscordChatMessageTest {
                             new GlobalChannel(MockDiscordSRV.INSTANCE),
                             false
                     ));
+
+            try {
+                future.get(40, TimeUnit.SECONDS);
+            } catch (ExecutionException e) {
+                Assertions.fail(e.getCause());
+            } catch (TimeoutException e) {
+                Assertions.fail("Failed to round trip message in 40 seconds", e);
+            }
         } finally {
             TestHelper.set(null);
-        }
-
-        try {
-            future.get(40, TimeUnit.SECONDS);
-        } catch (ExecutionException e) {
-            Assertions.fail(e.getCause());
-        } catch (TimeoutException e) {
-            Assertions.fail("Failed to round trip message in 40 seconds", e);
         }
     }
 
