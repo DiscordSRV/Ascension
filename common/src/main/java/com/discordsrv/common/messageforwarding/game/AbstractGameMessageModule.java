@@ -107,7 +107,7 @@ public abstract class AbstractGameMessageModule<T extends IMessageConfig, E exte
 
         return discordSRV.discordAPI().findOrCreateDestinations(channelConfig, true, true).thenCompose(messageChannels -> {
             SendableDiscordMessage.Builder format = moduleConfig.format();
-            if (format == null) {
+            if (format == null || format.isEmpty()) {
                 return CompletableFuture.completedFuture(null);
             }
 
@@ -178,6 +178,9 @@ public abstract class AbstractGameMessageModule<T extends IMessageConfig, E exte
 
         SendableDiscordMessage discordMessage = formatter
                 .build();
+        if (discordMessage.isEmpty()) {
+            return Collections.emptyMap();
+        }
 
         Map<CompletableFuture<ReceivedDiscordMessage>, DiscordGuildMessageChannel> futures = new LinkedHashMap<>();
         for (DiscordGuildMessageChannel channel : channels) {

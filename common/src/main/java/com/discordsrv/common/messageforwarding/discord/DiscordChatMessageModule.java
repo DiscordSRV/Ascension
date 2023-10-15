@@ -190,8 +190,13 @@ public class DiscordChatMessageModule extends AbstractModule<DiscordSRV> {
         message.replaceAll(ASCII_CONTROL_FILTER, "");
         chatConfig.contentRegexFilters.forEach(message::replaceAll);
 
+        String finalMessage = message.toString();
+        if (StringUtils.isEmpty(finalMessage)) {
+            return;
+        }
+
         Component messageComponent = DiscordSRVMinecraftRenderer.getWithContext(guild, chatConfig, () ->
-                discordSRV.componentFactory().minecraftSerializer().serialize(message.toString()));
+                discordSRV.componentFactory().minecraftSerializer().serialize(finalMessage));
 
         GameTextBuilder componentBuilder = discordSRV.componentFactory()
                 .textBuilder(format)

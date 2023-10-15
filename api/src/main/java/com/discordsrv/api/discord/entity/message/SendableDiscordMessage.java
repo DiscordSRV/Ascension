@@ -141,6 +141,12 @@ public interface SendableDiscordMessage {
      */
     SendableDiscordMessage withReplyingToMessageId(Long replyingToMessageId);
 
+    /**
+     * Checks if this message has any sendable content.
+     * @return {@code true} if there is no sendable content
+     */
+    boolean isEmpty();
+
     @SuppressWarnings("UnusedReturnValue") // API
     interface Builder {
 

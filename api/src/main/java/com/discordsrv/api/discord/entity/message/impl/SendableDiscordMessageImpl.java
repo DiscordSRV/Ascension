@@ -96,6 +96,11 @@ public class SendableDiscordMessageImpl implements SendableDiscordMessage {
     }
 
     @Override
+    public boolean isEmpty() {
+        return (content == null || content.isEmpty()) && embeds.isEmpty() && attachments.isEmpty() && actionRows.isEmpty();
+    }
+
+    @Override
     public @Nullable String getContent() {
         return content;
     }
