@@ -94,7 +94,7 @@ subprojects {
         testRuntimeOnly(libs.jupiter.engine)
 
         // DynamicProxy
-        annotationProcessor(libs.dynamicproxy)
+        annotationProcessor(libs.dynamicproxy.api)
     }
 
     test {

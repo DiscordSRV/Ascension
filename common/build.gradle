@@ -71,10 +71,8 @@ dependencies {
     runtimeDownloadApi(libs.caffeine)
 
     // DynamicProxy
-    runtimeDownloadApi(libs.dynamicproxy) {
-        // Not needed at runtime
-        exclude module: 'javaparser-symbol-solver-core'
-    }
+    compileOnlyApi(libs.dynamicproxy.api)
+    runtimeDownloadApi(libs.dynamicproxy.runtime)
 
     // Jackson (transitive in :api)
     compileOnlyApi(libs.jackson.databind)
@@ -96,10 +94,7 @@ dependencies {
     runtimeDownloadApi(libs.enhancedlegacytext)
 
     // Database
-    hikariOnly(libs.hikaricp) {
-        // Already provided
-        exclude group: 'org.slf4j'
-    }
+    hikariOnly(libs.hikaricp)
     h2DriverOnly(libs.h2)
     mysqlDriverOnly(libs.mysql)
     mariadbDriverOnly(libs.mariadb)

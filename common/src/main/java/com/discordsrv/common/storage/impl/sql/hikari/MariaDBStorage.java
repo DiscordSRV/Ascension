@@ -4,15 +4,12 @@ import com.discordsrv.common.DiscordSRV;
 import com.discordsrv.common.config.connection.StorageConfig;
 import com.discordsrv.common.exception.StorageException;
 import com.zaxxer.hikari.HikariConfig;
-import dev.vankka.dependencydownload.classloader.IsolatedClassLoader;
 
 import java.io.IOException;
 import java.sql.Connection;
 import java.sql.SQLException;
 
 public class MariaDBStorage extends HikariStorage {
-
-    private IsolatedClassLoader classLoader;
 
     public MariaDBStorage(DiscordSRV discordSRV) {
         super(discordSRV);
@@ -21,19 +18,13 @@ public class MariaDBStorage extends HikariStorage {
     @Override
     public void close() {
         super.close();
-        if (classLoader != null) {
-            try {
-                classLoader.close();
-            } catch (IOException e) {
-                discordSRV.logger().error("Failed to close isolated classloader", e);
-            }
-        }
     }
 
     @Override
     public void initialize() {
         try {
-            initializeWithContext(classLoader = discordSRV.dependencyManager().mariadb().loadIntoIsolated());
+            discordSRV.dependencyManager().mariadb().download().join();
+            super.initialize();
         } catch (IOException e) {
             throw new StorageException(e);
         }
