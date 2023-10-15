@@ -35,7 +35,7 @@ public class MinecraftToDiscordChatMessageTest {
         EventBus bus = discordSRV.eventBus();
 
         String testMessage = UUID.randomUUID().toString();
-        CompletableFuture<Void> future = new CompletableFuture<>();
+        CompletableFuture<Integer> future = new CompletableFuture<>();
         Listener listener = new Listener(testMessage, future);
 
         bus.subscribe(listener);
@@ -87,7 +87,13 @@ public class MinecraftToDiscordChatMessageTest {
                     ));
 
             try {
-                future.get(40, TimeUnit.SECONDS);
+                Integer amount = future.get(40, TimeUnit.SECONDS);
+                if (amount == null) {
+                    Assertions.fail("Null amount returned by listener");
+                    return;
+                }
+
+                Assertions.assertEquals(2, amount, "Amount of messages received from listener");
             } catch (ExecutionException e) {
                 Assertions.fail(e.getCause());
             } catch (TimeoutException e) {
@@ -101,21 +107,23 @@ public class MinecraftToDiscordChatMessageTest {
     public static class Listener {
 
         private final String lookFor;
-        private final CompletableFuture<Void> success;
+        private final CompletableFuture<Integer> success;
 
-        public Listener(String lookFor, CompletableFuture<Void> success) {
+        public Listener(String lookFor, CompletableFuture<Integer> success) {
             this.lookFor = lookFor;
             this.success = success;
         }
 
         @Subscribe
         public void onForwarded(GameChatMessageForwardedEvent event) {
+            int count = 0;
             for (ReceivedDiscordMessage message : event.getDiscordMessage().getMessages()) {
                 String content = message.getContent();
                 if (content != null && content.contains(lookFor)) {
-                    success.complete(null);
+                    count++;
                 }
             }
+            success.complete(count);
         }
     }
 }
