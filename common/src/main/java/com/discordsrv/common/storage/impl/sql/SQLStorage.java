@@ -71,14 +71,19 @@ public abstract class SQLStorage implements Storage {
     }
 
     protected String tablePrefix() {
-        return discordSRV.connectionConfig().storage.sqlTablePrefix;
+        String tablePrefix = discordSRV.connectionConfig().storage.sqlTablePrefix;
+        if (!tablePrefix.matches("[\\w_-]*")) {
+            throw new IllegalStateException("SQL Table prefix may not contain non alphanumeric characters, dashes and underscores!");
+        }
+
+        return tablePrefix;
     }
 
     @Override
     public void initialize() {
         useConnection((CheckedConsumer<Connection>) connection -> createTables(
                 connection,
-                discordSRV.connectionConfig().storage.sqlTablePrefix
+                tablePrefix()
         ));
     }
 
