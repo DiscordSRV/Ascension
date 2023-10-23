@@ -28,7 +28,8 @@ import net.dv8tion.jda.api.entities.WebhookClient;
 import net.dv8tion.jda.api.entities.channel.ChannelType;
 import net.dv8tion.jda.api.entities.channel.attribute.IThreadContainer;
 import net.dv8tion.jda.api.entities.channel.concrete.ThreadChannel;
-import net.dv8tion.jda.internal.requests.IncomingWebhookClient;
+import net.dv8tion.jda.api.requests.restaction.WebhookMessageCreateAction;
+import net.dv8tion.jda.api.requests.restaction.WebhookMessageEditAction;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.concurrent.CompletableFuture;
@@ -49,8 +50,17 @@ public class DiscordThreadChannelImpl extends AbstractDiscordGuildMessageChannel
     @Override
     public CompletableFuture<WebhookClient<Message>> queryWebhookClient() {
         return discordSRV.discordAPI()
-                .queryWebhookClient(getParentChannel().getId())
-                .thenApply(client -> ((IncomingWebhookClient) client).withThreadId(Long.toUnsignedString(getId())));
+                .queryWebhookClient(getParentChannel().getId());
+    }
+
+    @Override
+    protected <R> WebhookMessageCreateAction<R> mapAction(WebhookMessageCreateAction<R> action) {
+        return super.mapAction(action).setThreadId(getId());
+    }
+
+    @Override
+    protected <R> WebhookMessageEditAction<R> mapAction(WebhookMessageEditAction<R> action) {
+        return super.mapAction(action).setThreadId(getId());
     }
 
     @Override

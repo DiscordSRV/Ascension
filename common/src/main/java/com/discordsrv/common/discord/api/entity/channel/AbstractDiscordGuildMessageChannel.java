@@ -30,6 +30,8 @@ import net.dv8tion.jda.api.entities.WebhookClient;
 import net.dv8tion.jda.api.entities.channel.middleman.GuildMessageChannel;
 import net.dv8tion.jda.api.requests.RestAction;
 import net.dv8tion.jda.api.requests.restaction.MessageCreateAction;
+import net.dv8tion.jda.api.requests.restaction.WebhookMessageCreateAction;
+import net.dv8tion.jda.api.requests.restaction.WebhookMessageEditAction;
 import net.dv8tion.jda.api.utils.messages.MessageCreateData;
 import net.dv8tion.jda.api.utils.messages.MessageCreateRequest;
 import net.dv8tion.jda.api.utils.messages.MessageEditData;
@@ -78,6 +80,10 @@ public abstract class AbstractDiscordGuildMessageChannel<T extends GuildMessageC
         return sendInternal(message);
     }
 
+    protected <R> WebhookMessageCreateAction<R> mapAction(WebhookMessageCreateAction<R> action) {
+        return action;
+    }
+
     @SuppressWarnings("unchecked") // Generics
     private <R extends MessageCreateRequest<? extends MessageCreateRequest<?>> & RestAction<Message>> CompletableFuture<ReceivedDiscordMessage> sendInternal(SendableDiscordMessage message) {
         MessageCreateData createData = SendableDiscordMessageUtil.toJDASend(message);
@@ -85,7 +91,7 @@ public abstract class AbstractDiscordGuildMessageChannel<T extends GuildMessageC
         CompletableFuture<R> createRequest;
         if (message.isWebhookMessage()) {
             createRequest = queryWebhookClient()
-                    .thenApply(client -> (R) client.sendMessage(createData)
+                    .thenApply(client -> (R) mapAction(client.sendMessage(createData))
                             .setUsername(message.getWebhookUsername())
                             .setAvatarUrl(message.getWebhookAvatarUrl())
                     );
@@ -114,6 +120,10 @@ public abstract class AbstractDiscordGuildMessageChannel<T extends GuildMessageC
         return editInternal(id, message);
     }
 
+    protected <R> WebhookMessageEditAction<R> mapAction(WebhookMessageEditAction<R> action) {
+        return action;
+    }
+
     @SuppressWarnings("unchecked") // Generics
     private <R extends MessageEditRequest<? extends MessageEditRequest<?>> & RestAction<Message>> CompletableFuture<ReceivedDiscordMessage> editInternal(
             long id,
@@ -123,7 +133,7 @@ public abstract class AbstractDiscordGuildMessageChannel<T extends GuildMessageC
 
         CompletableFuture<R> editRequest;
         if (message.isWebhookMessage()) {
-            editRequest = queryWebhookClient().thenApply(client -> (R) client.editMessageById(id, editData));
+            editRequest = queryWebhookClient().thenApply(client -> (R) mapAction(client.editMessageById(id, editData)));
         } else {
             editRequest = CompletableFuture.completedFuture(((R) channel.editMessageById(id, editData)));
         }
