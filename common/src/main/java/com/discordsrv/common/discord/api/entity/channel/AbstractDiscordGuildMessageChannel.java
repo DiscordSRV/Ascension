@@ -31,6 +31,7 @@ import net.dv8tion.jda.api.entities.channel.middleman.GuildMessageChannel;
 import net.dv8tion.jda.api.requests.RestAction;
 import net.dv8tion.jda.api.requests.restaction.MessageCreateAction;
 import net.dv8tion.jda.api.requests.restaction.WebhookMessageCreateAction;
+import net.dv8tion.jda.api.requests.restaction.WebhookMessageDeleteAction;
 import net.dv8tion.jda.api.requests.restaction.WebhookMessageEditAction;
 import net.dv8tion.jda.api.utils.messages.MessageCreateData;
 import net.dv8tion.jda.api.utils.messages.MessageCreateRequest;
@@ -143,11 +144,15 @@ public abstract class AbstractDiscordGuildMessageChannel<T extends GuildMessageC
                 .thenApply(msg -> ReceivedDiscordMessageImpl.fromJDA(discordSRV, msg));
     }
 
+    protected WebhookMessageDeleteAction mapAction(WebhookMessageDeleteAction action) {
+        return action;
+    }
+
     @Override
     public CompletableFuture<Void> deleteMessageById(long id, boolean webhookMessage) {
         CompletableFuture<Void> future;
         if (webhookMessage) {
-            future = queryWebhookClient().thenCompose(client -> client.deleteMessageById(id).submit());
+            future = queryWebhookClient().thenCompose(client -> mapAction(client.deleteMessageById(id)).submit());
         } else {
             future = channel.deleteMessageById(id).submit();
         }

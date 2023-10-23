@@ -23,12 +23,15 @@ import com.discordsrv.api.discord.entity.channel.DiscordThreadChannel;
 import com.discordsrv.api.discord.entity.channel.DiscordThreadContainer;
 import com.discordsrv.api.discord.entity.guild.DiscordGuild;
 import com.discordsrv.common.DiscordSRV;
+import net.dv8tion.jda.api.JDA;
+import net.dv8tion.jda.api.JDABuilder;
 import net.dv8tion.jda.api.entities.Message;
 import net.dv8tion.jda.api.entities.WebhookClient;
 import net.dv8tion.jda.api.entities.channel.ChannelType;
 import net.dv8tion.jda.api.entities.channel.attribute.IThreadContainer;
 import net.dv8tion.jda.api.entities.channel.concrete.ThreadChannel;
 import net.dv8tion.jda.api.requests.restaction.WebhookMessageCreateAction;
+import net.dv8tion.jda.api.requests.restaction.WebhookMessageDeleteAction;
 import net.dv8tion.jda.api.requests.restaction.WebhookMessageEditAction;
 import org.jetbrains.annotations.NotNull;
 
@@ -64,6 +67,11 @@ public class DiscordThreadChannelImpl extends AbstractDiscordGuildMessageChannel
     }
 
     @Override
+    protected WebhookMessageDeleteAction mapAction(WebhookMessageDeleteAction action) {
+        return super.mapAction(action).setThreadId(getId());
+    }
+
+    @Override
     public @NotNull DiscordGuild getGuild() {
         return guild;
     }
@@ -81,6 +89,12 @@ public class DiscordThreadChannelImpl extends AbstractDiscordGuildMessageChannel
     @Override
     public ThreadChannel asJDA() {
         return channel;
+    }
+
+    public static void main(String[] args) {
+        JDA jda = JDABuilder.createDefault("token").build();
+
+        WebhookClient.createClient(jda, "url").sendMessage("hello").setThreadId(1234567890L).queue();
     }
 
     @Override
