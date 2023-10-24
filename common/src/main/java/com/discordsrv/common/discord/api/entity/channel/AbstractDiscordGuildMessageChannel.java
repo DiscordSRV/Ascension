@@ -97,9 +97,7 @@ public abstract class AbstractDiscordGuildMessageChannel<T extends GuildMessageC
                             .setAvatarUrl(message.getWebhookAvatarUrl())
                     );
         } else {
-            MessageCreateAction action = channel.sendMessage(createData)
-                    // JDA doesn't properly grab this from MessageCreateData
-                    .setSuppressEmbeds(createData.isSuppressEmbeds());
+            MessageCreateAction action = channel.sendMessage(createData);
 
             Long referencedMessageId = message.getMessageIdToReplyTo();
             if (referencedMessageId != null) {
