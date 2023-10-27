@@ -29,11 +29,12 @@ import com.discordsrv.api.discord.entity.channel.DiscordThreadChannel;
 import com.discordsrv.api.discord.entity.guild.DiscordGuild;
 import com.discordsrv.api.discord.entity.message.ReceivedDiscordMessage;
 import com.discordsrv.api.event.events.Cancellable;
+import com.discordsrv.api.event.events.message.process.discord.DiscordChatMessageProcessEvent;
 import org.jetbrains.annotations.NotNull;
 
 /**
  * Indicates that a Discord message has been received and will be processed unless cancelled.
- * This runs once per Discord message, before {@link DiscordChatMessageProcessEvent}.
+ * This runs once per Discord message, before {@link DiscordChatMessageProcessEvent}(s).
  */
 public class DiscordChatMessageReceiveEvent implements Cancellable {
 

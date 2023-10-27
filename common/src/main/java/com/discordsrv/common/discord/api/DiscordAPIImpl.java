@@ -23,6 +23,7 @@ import com.discordsrv.api.discord.connection.details.DiscordGatewayIntent;
 import com.discordsrv.api.discord.connection.jda.errorresponse.ErrorCallbackContext;
 import com.discordsrv.api.discord.entity.DiscordUser;
 import com.discordsrv.api.discord.entity.channel.*;
+import com.discordsrv.api.discord.entity.guild.DiscordCustomEmoji;
 import com.discordsrv.api.discord.entity.guild.DiscordGuild;
 import com.discordsrv.api.discord.entity.guild.DiscordRole;
 import com.discordsrv.api.discord.entity.interaction.command.CommandType;
@@ -36,6 +37,7 @@ import com.discordsrv.common.config.main.generic.ThreadConfig;
 import com.discordsrv.common.config.main.generic.DestinationConfig;
 import com.discordsrv.common.discord.api.entity.DiscordUserImpl;
 import com.discordsrv.common.discord.api.entity.channel.*;
+import com.discordsrv.common.discord.api.entity.guild.DiscordCustomEmojiImpl;
 import com.discordsrv.common.discord.api.entity.guild.DiscordGuildImpl;
 import com.discordsrv.common.discord.api.entity.guild.DiscordGuildMemberImpl;
 import com.discordsrv.common.discord.api.entity.guild.DiscordRoleImpl;
@@ -49,6 +51,7 @@ import net.dv8tion.jda.api.entities.*;
 import net.dv8tion.jda.api.entities.channel.Channel;
 import net.dv8tion.jda.api.entities.channel.concrete.*;
 import net.dv8tion.jda.api.entities.channel.middleman.MessageChannel;
+import net.dv8tion.jda.api.entities.emoji.CustomEmoji;
 import net.dv8tion.jda.api.exceptions.ErrorResponseException;
 import net.dv8tion.jda.api.requests.ErrorResponse;
 import org.checkerframework.checker.index.qual.NonNegative;
@@ -496,6 +499,15 @@ public class DiscordAPIImpl implements DiscordAPI {
 
     public DiscordRoleImpl getRole(Role jda) {
         return new DiscordRoleImpl(discordSRV, jda);
+    }
+
+    @Override
+    public DiscordCustomEmoji getEmojiById(long id) {
+        return mapJDAEntity(jda -> jda.getEmojiById(id), this::getEmoji);
+    }
+
+    public DiscordCustomEmoji getEmoji(CustomEmoji jda) {
+        return new DiscordCustomEmojiImpl(jda);
     }
 
     @Override

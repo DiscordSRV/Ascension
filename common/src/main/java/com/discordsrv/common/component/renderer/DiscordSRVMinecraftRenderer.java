@@ -20,9 +20,11 @@ package com.discordsrv.common.component.renderer;
 
 import com.discordsrv.api.component.GameTextBuilder;
 import com.discordsrv.api.discord.entity.DiscordUser;
+import com.discordsrv.api.discord.entity.guild.DiscordCustomEmoji;
 import com.discordsrv.api.discord.entity.guild.DiscordGuild;
 import com.discordsrv.api.discord.entity.guild.DiscordGuildMember;
 import com.discordsrv.api.discord.entity.guild.DiscordRole;
+import com.discordsrv.api.event.events.message.process.discord.DiscordChatMessageCustomEmojiRenderEvent;
 import com.discordsrv.common.DiscordSRV;
 import com.discordsrv.common.component.util.ComponentUtil;
 import com.discordsrv.common.config.main.channels.DiscordToMinecraftChatConfig;
@@ -179,6 +181,42 @@ public class DiscordSRVMinecraftRenderer extends DefaultMinecraftRenderer {
         return component.append(ComponentUtil.fromAPI(
                 builder.applyPlaceholderService().build()
         ));
+    }
+
+    @Override
+    public @NotNull Component appendEmoteMention(
+            @NotNull Component component,
+            @NotNull String name,
+            @NotNull String id
+    ) {
+        Context context = CONTEXT.get();
+        DiscordToMinecraftChatConfig.EmoteBehaviour behaviour = context != null ? context.config.customEmojiBehaviour : null;
+        if (behaviour == null || behaviour == DiscordToMinecraftChatConfig.EmoteBehaviour.HIDE) {
+            return component;
+        }
+
+        System.out.println(name);
+        long emojiId = MiscUtil.parseLong(id);
+        DiscordCustomEmoji emoji = discordSRV.discordAPI().getEmojiById(emojiId);
+        if (emoji == null) {
+            return component;
+        }
+
+        DiscordChatMessageCustomEmojiRenderEvent event = new DiscordChatMessageCustomEmojiRenderEvent(emoji);
+        discordSRV.eventBus().publish(event);
+
+        if (event.isProcessed()) {
+            Component rendered = ComponentUtil.fromAPI(event.getRenderedEmojiFromProcessing());
+            return component.append(rendered);
+        }
+
+        switch (behaviour) {
+            case NAME:
+                return component.append(Component.text(":" + emoji.getName() + ":"));
+            case BLANK:
+            default:
+                return component;
+        }
     }
 
     private static class Context {

@@ -25,6 +25,7 @@ package com.discordsrv.api.discord;
 
 import com.discordsrv.api.discord.entity.DiscordUser;
 import com.discordsrv.api.discord.entity.channel.*;
+import com.discordsrv.api.discord.entity.guild.DiscordCustomEmoji;
 import com.discordsrv.api.discord.entity.guild.DiscordGuild;
 import com.discordsrv.api.discord.entity.guild.DiscordRole;
 import com.discordsrv.api.discord.entity.interaction.command.DiscordCommand;
@@ -142,6 +143,13 @@ public interface DiscordAPI {
      */
     @Nullable
     DiscordRole getRoleById(long id);
+
+    /**
+     * Gets a custom emoji for a Discord server by id, the provided entity should not be stored for long periods of time.
+     * @param id the id for the custom emoji
+     * @return the Discord custom emoji
+     */
+    DiscordCustomEmoji getEmojiById(long id);
 
     /**
      * Registers a Discord command.

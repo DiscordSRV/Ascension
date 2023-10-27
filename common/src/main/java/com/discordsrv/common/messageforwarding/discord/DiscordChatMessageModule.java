@@ -32,7 +32,7 @@ import com.discordsrv.api.discord.events.message.DiscordMessageReceiveEvent;
 import com.discordsrv.api.discord.events.message.DiscordMessageUpdateEvent;
 import com.discordsrv.api.event.bus.Subscribe;
 import com.discordsrv.api.event.events.message.forward.discord.DiscordChatMessageForwardedEvent;
-import com.discordsrv.api.event.events.message.receive.discord.DiscordChatMessageProcessEvent;
+import com.discordsrv.api.event.events.message.process.discord.DiscordChatMessageProcessEvent;
 import com.discordsrv.api.event.events.message.receive.discord.DiscordChatMessageReceiveEvent;
 import com.discordsrv.api.placeholder.util.Placeholders;
 import com.discordsrv.common.DiscordSRV;
@@ -59,6 +59,10 @@ public class DiscordChatMessageModule extends AbstractModule<DiscordSRV> {
     // Filter for ASCII control characters which have no use being displayed, but might be misinterpreted somewhere
     // Notably this excludes, 0x09 HT (\t), 0x0A LF (\n), 0x0B VT (\v) and 0x0D CR (\r) (which may be used for text formatting)
     private static final Pattern ASCII_CONTROL_FILTER = Pattern.compile("[\\u0000-\\u0008\\u000C\\u000E-\\u001F\\u007F]");
+
+    // A regex filter matching the unicode regular expression character category "Other Symbol"
+    // https://unicode.org/reports/tr18/#General_Category_Property
+    private static final Pattern EMOJI_FILTER = Pattern.compile("\\p{So}");
 
     private final Map<String, MessageSend> sends = new ConcurrentHashMap<>();
 
@@ -188,15 +192,24 @@ public class DiscordChatMessageModule extends AbstractModule<DiscordSRV> {
 
         Placeholders message = new Placeholders(event.getContent());
         message.replaceAll(ASCII_CONTROL_FILTER, "");
+        if (chatConfig.unicodeEmojiBehaviour == DiscordToMinecraftChatConfig.EmojiBehaviour.HIDE) {
+            message.replaceAll(EMOJI_FILTER, "");
+        }
         chatConfig.contentRegexFilters.forEach(message::replaceAll);
 
         String finalMessage = message.toString();
-        if (StringUtils.isEmpty(finalMessage)) {
+        if (finalMessage.trim().isEmpty()) {
+            // No sending empty messages
             return;
         }
 
         Component messageComponent = DiscordSRVMinecraftRenderer.getWithContext(guild, chatConfig, () ->
                 discordSRV.componentFactory().minecraftSerializer().serialize(finalMessage));
+
+        if (discordSRV.componentFactory().plainSerializer().serialize(messageComponent).trim().isEmpty()) {
+            // Check empty-ness again after rendering
+            return;
+        }
 
         GameTextBuilder componentBuilder = discordSRV.componentFactory()
                 .textBuilder(format)

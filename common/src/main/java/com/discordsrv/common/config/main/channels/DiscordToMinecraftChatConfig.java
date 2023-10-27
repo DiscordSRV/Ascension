@@ -18,7 +18,6 @@
 
 package com.discordsrv.common.config.main.channels;
 
-import com.discordsrv.common.config.configurate.annotation.Constants;
 import com.discordsrv.common.config.configurate.annotation.Untranslated;
 import com.discordsrv.common.config.main.generic.DiscordIgnoresConfig;
 import org.spongepowered.configurate.objectmapping.ConfigSerializable;
@@ -58,10 +57,6 @@ public class DiscordToMinecraftChatConfig {
     @Comment("The representations of Discord mentions in-game")
     public Mentions mentions = new Mentions();
 
-    @Comment("The amount of milliseconds to delay processing Discord messages, if the message is deleted in that time it will not be processed.\n"
-            + "This can be used together with Discord moderation bots, to filter forwarded messages")
-    public long delayMillis = 0L;
-
     @ConfigSerializable
     public static class Mentions {
 
@@ -90,7 +85,35 @@ public class DiscordToMinecraftChatConfig {
                 this.unknownFormat = unknownFormat;
             }
         }
-
     }
+
+    @Comment("How should unicode emoji be shown in-game:\n"
+            + "- hide: hides emojis in-game\n"
+            + "- show: shows emojis in-game as is (emojis may not be visible without resource packs)\n"
+            //+ "- name: shows the name of the emoji in-game (for example :smiley:)"
+            )
+    public EmojiBehaviour unicodeEmojiBehaviour = EmojiBehaviour.HIDE;
+
+    public enum EmojiBehaviour {
+        HIDE,
+        SHOW
+        // TODO: add and implement name
+    }
+
+    @Comment("How should custom emoji be shown in-game:\n"
+            + "- hide: custom emoji will not be shown in-game\n"
+            + "- blank: custom emoji will only be shown in-game if it is rendered by a 3rd party plugin\n"
+            + "- name: shows the name of the custom emoji in-game (for example :discordsrv:), unless rendered by a 3rd party plugin")
+    public EmoteBehaviour customEmojiBehaviour = EmoteBehaviour.BLANK;
+
+    public enum EmoteBehaviour {
+        HIDE,
+        BLANK,
+        NAME
+    }
+
+    @Comment("The amount of milliseconds to delay processing Discord messages, if the message is deleted in that time it will not be processed.\n"
+            + "This can be used together with Discord moderation bots, to filter forwarded messages")
+    public long delayMillis = 0L;
 
 }

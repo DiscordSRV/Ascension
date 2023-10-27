@@ -1,10 +1,11 @@
-package com.discordsrv.api.event.events.message.receive.discord;
+package com.discordsrv.api.event.events.message.process.discord;
 
 import com.discordsrv.api.channel.GameChannel;
 import com.discordsrv.api.discord.entity.channel.DiscordMessageChannel;
 import com.discordsrv.api.discord.entity.message.ReceivedDiscordMessage;
 import com.discordsrv.api.event.events.Cancellable;
 import com.discordsrv.api.event.events.Processable;
+import com.discordsrv.api.event.events.message.receive.discord.DiscordChatMessageReceiveEvent;
 
 /**
  * Indicates that a Discord message is about to be processed, this will run once per {@link GameChannel} destination,
