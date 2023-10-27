@@ -41,11 +41,6 @@ public interface Processable extends Event {
     boolean isProcessed();
 
     /**
-     * Marks this event as processed. This cannot be reversed, events cannot be unprocessed.
-     */
-    void markAsProcessed();
-
-    /**
      * Returns the {@link EventListener} that processed this event.
      *
      * @return the event listener that processed this event or {@code null} if it was processed before being passed to the {@link com.discordsrv.api.event.bus.EventBus}
@@ -62,5 +57,24 @@ public interface Processable extends Event {
         }
 
         return listener;
+    }
+
+    interface NoArgument extends Processable {
+
+        /**
+         * Marks this event as processed. This cannot be reversed.
+         * @see #isProcessed()
+         */
+        void markAsProcessed();
+    }
+
+    interface Argument<T> extends Processable {
+
+        /**
+         * Marks this event as processed with the given argument. This cannot be reversed.
+         * @param input the argument for processing the event
+         * @see #isProcessed()
+         */
+        void process(T input);
     }
 }

@@ -34,7 +34,7 @@ import java.util.Set;
 /**
  * An event for converting a placeholder's name and context into a {@link PlaceholderLookupResult}.
  */
-public class PlaceholderLookupEvent implements Event, Processable {
+public class PlaceholderLookupEvent implements Event, Processable.Argument<PlaceholderLookupResult> {
 
     private final String placeholder;
     private final Set<Object> contexts;
@@ -113,11 +113,5 @@ public class PlaceholderLookupEvent implements Event, Processable {
 
         this.result = result;
         this.processed = true;
-    }
-
-    @Override
-    @Deprecated
-    public void markAsProcessed() {
-        throw new RuntimeException("Please use process(PlaceholderLookupResult) instead");
     }
 }

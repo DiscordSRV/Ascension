@@ -35,7 +35,7 @@ import org.jetbrains.annotations.Nullable;
  *
  * @see #isDefault()
  */
-public class GameChannelLookupEvent implements Processable {
+public class GameChannelLookupEvent implements Processable.Argument<GameChannel> {
 
     private final String pluginName;
     private final String channelName;
@@ -90,6 +90,7 @@ public class GameChannelLookupEvent implements Processable {
      * @throws IllegalStateException if the event is already processed
      * @throws IllegalArgumentException if the provided channel doesn't match {@link #getChannelName()} and {@link #isDefault()} is {@code false}
      */
+    @Override
     public void process(@NotNull GameChannel channel) {
         if (processed) {
             throw new IllegalStateException("Already processed");
@@ -107,14 +108,5 @@ public class GameChannelLookupEvent implements Processable {
 
         this.channel = channel;
         this.processed = true;
-    }
-
-    /**
-     * @deprecated Use {@link #process(GameChannel)}.
-     */
-    @Override
-    @Deprecated
-    public void markAsProcessed() {
-        throw new RuntimeException("Please use process(GameChannel) instead");
     }
 }

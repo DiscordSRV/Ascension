@@ -27,7 +27,7 @@ import com.discordsrv.api.event.events.Cancellable;
 import com.discordsrv.api.event.events.Processable;
 import org.jetbrains.annotations.Nullable;
 
-public abstract class AbstractGameMessageReceiveEvent implements Processable, Cancellable {
+public abstract class AbstractGameMessageReceiveEvent implements Cancellable, Processable.NoArgument {
 
     private final Object triggeringEvent;
     private boolean cancelled;
