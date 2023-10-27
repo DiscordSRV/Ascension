@@ -304,6 +304,14 @@ public class SingleConsoleHandler {
                                         mostRecentMessageId = receivedMessage.getId();
                                     }
                                 });
+                    }).exceptionally(ex -> {
+                        String error = "Failed to send message to console channel";
+                        if (message.contains(error)) {
+                            // Prevent infinite loop of the same error
+                            return null;
+                        }
+                        logger.error(error, ex);
+                        return null;
                     });
         }
     }
@@ -357,31 +365,40 @@ public class SingleConsoleHandler {
         List<String> formatted = new ArrayList<>();
 
         // Handle message being longer than a message
-        message = cutToSizeIfNeeded(message, blockLength, maximumPart, formatted);
+        if (message.length() > MESSAGE_MAX_LENGTH) {
+            message = chopOnNewlines(message, blockLength, maximumPart, formatted);
+        }
 
         // Handle log entry being longer than a message
         int totalLength = blockLength + throwable.length() + message.length();
         if (totalLength > MESSAGE_MAX_LENGTH) {
-            StringBuilder builder = new StringBuilder(message);
-            for (String line : throwable.split("\n")) {
-                line += "\n";
-
-                // Handle a single line of a throwable being longer than a message
-                line = cutToSizeIfNeeded(line, blockLength, maximumPart, formatted);
-
-                if (blockLength + line.length() > MESSAGE_MAX_LENGTH) {
-                    // Need to split here
-                    formatted.add(builder.toString());
-                    builder.setLength(0);
-                }
-                builder.append(line);
-            }
-            formatted.add(builder.toString());
+            String remainingPart = chopOnNewlines(message, blockLength, maximumPart, formatted);
+            formatted.add(remainingPart);
         } else {
             formatted.add(message + throwable);
         }
 
         return formatted;
+    }
+
+    private String chopOnNewlines(String input, int blockLength, int maximumPart, List<String> formatted) {
+        if (!input.contains("\n")) {
+            return cutToSizeIfNeeded(input, blockLength, maximumPart, formatted);
+        }
+
+        StringBuilder builder = new StringBuilder();
+        for (String line : input.split("\n")) {
+            line += "\n";
+
+            line = cutToSizeIfNeeded(line, blockLength, maximumPart, formatted);
+
+            if (blockLength + line.length() + builder.length() > MESSAGE_MAX_LENGTH) {
+                formatted.add(builder.toString());
+                builder.setLength(0);
+            }
+            builder.append(line);
+        }
+        return builder.toString();
     }
 
     private String cutToSizeIfNeeded(
