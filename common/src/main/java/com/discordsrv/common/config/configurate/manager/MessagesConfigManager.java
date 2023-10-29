@@ -25,6 +25,10 @@ public abstract class MessagesConfigManager<C extends MessagesConfig> {
 
     public abstract C createConfiguration();
 
+    public Map<Locale, MessagesConfigSingleManager<C>> getAllManagers() {
+        return Collections.unmodifiableMap(configs);
+    }
+
     public MessagesConfigSingleManager<C> getManager(Locale locale) {
         synchronized (configs) {
             return configs.get(locale);

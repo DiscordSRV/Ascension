@@ -45,7 +45,7 @@ public abstract class ConnectionConfigManager<C extends ConnectionConfig>
     }
 
     @Override
-    protected String fileName() {
+    public String fileName() {
         return ConnectionConfig.FILE_NAME;
     }
 }

@@ -24,7 +24,7 @@ public class MessagesConfigSingleManager<C extends MessagesConfig>
     }
 
     @Override
-    protected String fileName() {
+    public String fileName() {
         if (multi) {
             return aggregateManager.directory().resolve(locale.getISO3Language() + ".yaml").toString();
         }

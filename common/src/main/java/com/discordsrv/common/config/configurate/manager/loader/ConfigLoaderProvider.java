@@ -35,11 +35,10 @@ public interface ConfigLoaderProvider<LT extends AbstractConfigurationLoader<Com
     AbstractConfigurationLoader.Builder<?, LT> createBuilder();
 
     @ApiStatus.NonExtendable
-    default LT createLoader(Path configFile, ConfigurationOptions options) {
+    default AbstractConfigurationLoader.Builder<?, LT> createLoader(Path configFile, ConfigurationOptions options) {
         return createBuilder()
                 .path(configFile)
                 .defaultOptions(options)
-                .headerMode(headerMode())
-                .build();
+                .headerMode(headerMode());
     }
 }

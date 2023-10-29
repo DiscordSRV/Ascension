@@ -19,6 +19,8 @@
 package com.discordsrv.common.config.configurate.manager.abstraction;
 
 import com.discordsrv.common.exception.ConfigException;
+import org.spongepowered.configurate.CommentedConfigurationNode;
+import org.spongepowered.configurate.loader.AbstractConfigurationLoader;
 
 public interface ConfigManager<T> {
 
@@ -27,5 +29,6 @@ public interface ConfigManager<T> {
 
     void load() throws ConfigException;
     void reload() throws ConfigException;
+    void save(AbstractConfigurationLoader<CommentedConfigurationNode> loader) throws ConfigException;
     void save() throws ConfigException;
 }

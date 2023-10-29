@@ -19,9 +19,13 @@
 package com.discordsrv.common.debug;
 
 import com.discordsrv.common.DiscordSRV;
+import com.discordsrv.common.config.configurate.manager.MessagesConfigSingleManager;
+import com.discordsrv.common.config.configurate.manager.abstraction.ConfigurateConfigManager;
+import com.discordsrv.common.config.messages.MessagesConfig;
 import com.discordsrv.common.debug.file.DebugFile;
 import com.discordsrv.common.debug.file.KeyValueDebugFile;
 import com.discordsrv.common.debug.file.TextDebugFile;
+import com.discordsrv.common.exception.ConfigException;
 import com.discordsrv.common.paste.Paste;
 import com.discordsrv.common.paste.PasteService;
 import com.discordsrv.common.plugin.Plugin;
@@ -30,8 +34,12 @@ import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import net.dv8tion.jda.api.JDA;
 import org.apache.commons.lang3.exception.ExceptionUtils;
+import org.spongepowered.configurate.CommentedConfigurationNode;
+import org.spongepowered.configurate.loader.AbstractConfigurationLoader;
 
+import java.io.BufferedWriter;
 import java.io.IOException;
+import java.io.StringWriter;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.FileStore;
 import java.nio.file.Files;
@@ -44,7 +52,7 @@ import java.util.zip.ZipOutputStream;
 
 public class DebugReport {
 
-    private static final int BIG_FILE_SPLIT_SIZE = 20000;
+    private static final int BIG_FILE_SPLIT_SIZE = 50000;
 
     private final List<DebugFile> files = new ArrayList<>();
     private final DiscordSRV discordSRV;
@@ -56,10 +64,16 @@ public class DebugReport {
     public void generate() {
         discordSRV.eventBus().publish(new DebugGenerateEvent(this));
 
-        addFile(environment());
-        addFile(plugins());
+        addFile(environment()); // 100
+        addFile(plugins()); // 90
         for (Path debugLog : discordSRV.logger().getDebugLogs()) {
-            addFile(readFile(1, debugLog));
+            addFile(readFile(80, debugLog));
+        }
+        addFile(config(79, discordSRV.configManager()));
+        addFile(rawConfig(79, discordSRV.configManager()));
+        for (MessagesConfigSingleManager<? extends MessagesConfig> manager : discordSRV.messagesConfigManager().getAllManagers().values()) {
+            addFile(config(78, manager));
+            addFile(rawConfig(78, manager));
         }
     }
 
@@ -160,7 +174,7 @@ public class DebugReport {
         } catch (IOException ignored) {}
         values.put("docker", docker);
 
-        return new KeyValueDebugFile(10, "environment.json", values);
+        return new KeyValueDebugFile(100, "environment.json", values);
     }
 
     private DebugFile plugins() {
@@ -169,12 +183,33 @@ public class DebugReport {
                 .sorted(Comparator.comparing(plugin -> plugin.name().toLowerCase(Locale.ROOT)))
                 .collect(Collectors.toList());
 
+        int order = 90;
+        String fileName = "plugins.json";
         try {
             String json = discordSRV.json().writeValueAsString(plugins);
-            return new TextDebugFile(5, "plugins.json", json);
+            return new TextDebugFile(order, fileName, json);
         } catch (JsonProcessingException e) {
-            return null;
+            return exception(order, fileName, e);
         }
+    }
+
+    private DebugFile config(int order, ConfigurateConfigManager<?, ?> manager) {
+        String fileName = "parsed_" + manager.fileName();
+        try (StringWriter writer = new StringWriter()) {
+            AbstractConfigurationLoader<CommentedConfigurationNode> loader = manager
+                    .createLoader(manager.filePath(), manager.nodeOptions(true))
+                    .sink(() -> new BufferedWriter(writer))
+                    .build();
+            manager.save(loader);
+
+            return new TextDebugFile(order, fileName, writer.toString());
+        } catch (IOException | ConfigException e) {
+            return exception(order, fileName, e);
+        }
+    }
+
+    private DebugFile rawConfig(int order, ConfigurateConfigManager<?, ?> manager) {
+        return readFile(order, manager.filePath());
     }
 
     private DebugFile readFile(int order, Path file) {
@@ -187,7 +222,11 @@ public class DebugReport {
             List<String> lines = Files.readAllLines(file, StandardCharsets.UTF_8);
             return new TextDebugFile(order, fileName, String.join("\n", lines));
         } catch (IOException e) {
-            return new TextDebugFile(order, fileName, ExceptionUtils.getStackTrace(e));
+            return exception(order, fileName, e);
         }
+    }
+
+    private DebugFile exception(int order, String fileName, Throwable throwable) {
+        return new TextDebugFile(order, fileName, ExceptionUtils.getStackTrace(throwable));
     }
 }

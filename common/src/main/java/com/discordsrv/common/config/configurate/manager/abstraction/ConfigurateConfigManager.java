@@ -94,7 +94,7 @@ public abstract class ConfigurateConfigManager<T, LT extends AbstractConfigurati
 
     public LT loader() {
         if (loader == null) {
-            loader = createLoader(filePath(), nodeOptions(true));
+            loader = createLoader(filePath(), nodeOptions(true)).build();
         }
         return loader;
     }
@@ -104,7 +104,7 @@ public abstract class ConfigurateConfigManager<T, LT extends AbstractConfigurati
         return configuration;
     }
 
-    protected abstract String fileName();
+    public abstract String fileName();
 
     protected Field headerField() throws ReflectiveOperationException {
         return null;
@@ -392,15 +392,20 @@ public abstract class ConfigurateConfigManager<T, LT extends AbstractConfigurati
 
     @SuppressWarnings("unchecked")
     @Override
-    public void save() throws ConfigException {
+    public void save(AbstractConfigurationLoader<CommentedConfigurationNode> loader) throws ConfigException {
         try {
-            LT loader = loader();
             CommentedConfigurationNode node = loader.createNode();
             save(configuration, (Class<T>) configuration.getClass(), node);
             loader.save(node);
         } catch (ConfigurateException e) {
             throw new ConfigException("Failed to load configuration", e);
         }
+    }
+
+    @Override
+    public void save() throws ConfigException {
+        LT loader = loader();
+        save(loader);
     }
 
     protected void save(T config, Class<T> clazz, CommentedConfigurationNode node) throws SerializationException {

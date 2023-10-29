@@ -45,7 +45,7 @@ public abstract class MainConfigManager<C extends MainConfig>
     }
 
     @Override
-    protected String fileName() {
+    public String fileName() {
         return MainConfig.FILE_NAME;
     }
 }
