@@ -21,6 +21,8 @@ package com.discordsrv.common.debug;
 import com.discordsrv.common.DiscordSRV;
 import com.discordsrv.common.config.configurate.manager.MessagesConfigSingleManager;
 import com.discordsrv.common.config.configurate.manager.abstraction.ConfigurateConfigManager;
+import com.discordsrv.common.config.connection.ConnectionConfig;
+import com.discordsrv.common.config.connection.StorageConfig;
 import com.discordsrv.common.config.messages.MessagesConfig;
 import com.discordsrv.common.debug.file.DebugFile;
 import com.discordsrv.common.debug.file.KeyValueDebugFile;
@@ -33,6 +35,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import net.dv8tion.jda.api.JDA;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.spongepowered.configurate.CommentedConfigurationNode;
 import org.spongepowered.configurate.loader.AbstractConfigurationLoader;
@@ -75,6 +78,7 @@ public class DebugReport {
             addFile(config(78, manager));
             addFile(rawConfig(78, manager));
         }
+        addFile(activeLimitedConnectionsConfig()); // 77
     }
 
     public Paste upload(PasteService service) throws Throwable {
@@ -210,6 +214,32 @@ public class DebugReport {
 
     private DebugFile rawConfig(int order, ConfigurateConfigManager<?, ?> manager) {
         return readFile(order, manager.filePath());
+    }
+
+    private DebugFile activeLimitedConnectionsConfig() {
+        ConnectionConfig config = discordSRV.connectionConfig();
+        StorageConfig.Pool poolConfig = config.storage.remote.poolOptions;
+
+        Map<String, Object> values = new LinkedHashMap<>();
+        values.put("minecraft-auth.allow", config.minecraftAuth.allow);
+        values.put("minecraft-auth.token_set", StringUtils.isNotBlank(config.minecraftAuth.token));
+
+        values.put("storage.backend", config.storage.backend);
+        values.put("storage.sql-table-prefix", config.storage.sqlTablePrefix);
+        values.put("storage.remote.pool-options.keepalive-time", poolConfig.keepaliveTime);
+        values.put("storage.remote.pool-options.maxiumum-lifetime", poolConfig.maximumLifetime);
+        values.put("storage.remote.pool-options.maximum-pool-size", poolConfig.maximumPoolSize);
+        values.put("storage.remote.pool-options.minimum-pool-size", poolConfig.minimumPoolSize);
+
+        values.put("update.notification-enabled", config.update.notificationEnabled);
+        values.put("update.notification-in-game", config.update.notificationInGame);
+        values.put("update.first-party-notification", config.update.firstPartyNotification);
+        values.put("update.github.enabled", config.update.github.enabled);
+        values.put("update.github.api-token_set", StringUtils.isNotBlank(config.update.github.apiToken));
+        values.put("update.security.enabled", config.update.security.enabled);
+        values.put("update.security.force", config.update.security.force);
+
+        return new KeyValueDebugFile(77, "connections.json", values, true);
     }
 
     private DebugFile readFile(int order, Path file) {

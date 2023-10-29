@@ -18,10 +18,10 @@
 
 package com.discordsrv.common.debug.file;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 
+import java.io.IOException;
 import java.util.Map;
 
 public class KeyValueDebugFile implements DebugFile {
@@ -31,11 +31,17 @@ public class KeyValueDebugFile implements DebugFile {
     private final int order;
     private final String name;
     private final Map<String, Object> values;
+    private final boolean prettyPrint;
 
     public KeyValueDebugFile(int order, String name, Map<String, Object> values) {
+        this(order, name, values, false);
+    }
+
+    public KeyValueDebugFile(int order, String name, Map<String, Object> values, boolean prettyPrint) {
         this.order = order;
         this.name = name;
         this.values = values;
+        this.prettyPrint = prettyPrint;
     }
 
     @Override
@@ -51,8 +57,12 @@ public class KeyValueDebugFile implements DebugFile {
     @Override
     public String content() {
         try {
-            return OBJECT_MAPPER.writeValueAsString(values);
-        } catch (JsonProcessingException e) {
+            if (prettyPrint) {
+                return OBJECT_MAPPER.writerWithDefaultPrettyPrinter().writeValueAsString(values);
+            } else {
+                return OBJECT_MAPPER.writeValueAsString(values);
+            }
+        } catch (IOException e) {
             return ExceptionUtils.getStackTrace(e);
         }
     }
