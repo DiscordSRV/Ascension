@@ -56,7 +56,7 @@ dependencyResolutionManagement {
             library('findbugs-annotations', 'com.google.code.findbugs', 'jsr305').version('3.0.2')
 
             // JDA
-            library('jda', 'net.dv8tion', 'JDA').version('5.0.0-beta.16')
+            library('jda', 'net.dv8tion', 'JDA').version('5.0.0-beta.17')
 
             // OkHTTP
             library('okhttp', 'com.squareup.okhttp3', 'okhttp').version('4.11.0')
