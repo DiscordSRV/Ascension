@@ -1,5 +1,8 @@
 package com.discordsrv.common.messageforwarding.game;
 
+import com.discordsrv.api.discord.entity.channel.DiscordMessageChannel;
+import com.discordsrv.api.discord.entity.channel.DiscordTextChannel;
+import com.discordsrv.api.discord.entity.channel.DiscordThreadChannel;
 import com.discordsrv.api.discord.entity.message.ReceivedDiscordMessage;
 import com.discordsrv.api.event.bus.EventBus;
 import com.discordsrv.api.event.bus.Subscribe;
@@ -35,7 +38,7 @@ public class MinecraftToDiscordChatMessageTest {
         EventBus bus = discordSRV.eventBus();
 
         String testMessage = UUID.randomUUID().toString();
-        CompletableFuture<Integer> future = new CompletableFuture<>();
+        CompletableFuture<Boolean> future = new CompletableFuture<>();
         Listener listener = new Listener(testMessage, future);
 
         bus.subscribe(listener);
@@ -87,13 +90,13 @@ public class MinecraftToDiscordChatMessageTest {
                     ));
 
             try {
-                Integer amount = future.get(40, TimeUnit.SECONDS);
-                if (amount == null) {
+                Boolean success = future.get(40, TimeUnit.SECONDS);
+                if (success == null) {
                     Assertions.fail("Null amount returned by listener");
                     return;
                 }
 
-                Assertions.assertEquals(2, amount, "Amount of messages received from listener");
+                Assertions.assertTrue(success, "Correct amount of messages received in the right channel types from listener");
             } catch (ExecutionException e) {
                 Assertions.fail(e.getCause());
             } catch (TimeoutException e) {
@@ -107,23 +110,30 @@ public class MinecraftToDiscordChatMessageTest {
     public static class Listener {
 
         private final String lookFor;
-        private final CompletableFuture<Integer> success;
+        private final CompletableFuture<Boolean> success;
 
-        public Listener(String lookFor, CompletableFuture<Integer> success) {
+        public Listener(String lookFor, CompletableFuture<Boolean> success) {
             this.lookFor = lookFor;
             this.success = success;
         }
 
         @Subscribe
         public void onForwarded(GameChatMessageForwardedEvent event) {
-            int count = 0;
+            int text = 0;
+            int thread = 0;
             for (ReceivedDiscordMessage message : event.getDiscordMessage().getMessages()) {
                 String content = message.getContent();
                 if (content != null && content.contains(lookFor)) {
-                    count++;
+                    DiscordMessageChannel channel = message.getChannel();
+                    if (channel instanceof DiscordTextChannel) {
+                        text++;
+                    } else if (channel instanceof DiscordThreadChannel) {
+                        thread++;
+                    }
                 }
             }
-            success.complete(count);
+
+            success.complete(text == 1 && thread == 1);
         }
     }
 }
