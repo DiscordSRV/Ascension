@@ -197,8 +197,9 @@ public class DiscordChatMessageModule extends AbstractModule<DiscordSRV> {
         }
         chatConfig.contentRegexFilters.forEach(message::replaceAll);
 
+        boolean attachments = !discordMessage.getAttachments().isEmpty() && format.contains("message_attachments");
         String finalMessage = message.toString();
-        if (finalMessage.trim().isEmpty()) {
+        if (finalMessage.trim().isEmpty() && !attachments) {
             // No sending empty messages
             return;
         }
@@ -206,7 +207,7 @@ public class DiscordChatMessageModule extends AbstractModule<DiscordSRV> {
         Component messageComponent = DiscordSRVMinecraftRenderer.getWithContext(guild, chatConfig, () ->
                 discordSRV.componentFactory().minecraftSerializer().serialize(finalMessage));
 
-        if (discordSRV.componentFactory().plainSerializer().serialize(messageComponent).trim().isEmpty()) {
+        if (discordSRV.componentFactory().plainSerializer().serialize(messageComponent).trim().isEmpty() && !attachments) {
             // Check empty-ness again after rendering
             return;
         }
