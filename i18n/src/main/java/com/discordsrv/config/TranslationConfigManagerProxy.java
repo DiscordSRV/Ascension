@@ -50,7 +50,7 @@ public class TranslationConfigManagerProxy<C>
     }
 
     @Override
-    protected String fileName() {
+    public String fileName() {
         return "none";
     }
 
