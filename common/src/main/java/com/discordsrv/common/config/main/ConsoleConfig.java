@@ -27,6 +27,7 @@ public class ConsoleConfig {
                 + "- ansi: A colored ansi code block\n"
                 + "- log: A \"accesslog\" code block\n"
                 + "- diff: A \"diff\" code block highlighting warnings and errors with different colors\n"
+                + "- markdown: Plain text with bold, italics, strikethrough and underlining\n"
                 + "- plain: Plain text code block\n"
                 + "- plain_content: Plain text")
         public OutputMode outputMode = OutputMode.ANSI;

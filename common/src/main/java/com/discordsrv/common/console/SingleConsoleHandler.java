@@ -9,6 +9,7 @@ import com.discordsrv.api.discord.entity.guild.DiscordGuildMember;
 import com.discordsrv.api.discord.entity.message.ReceivedDiscordMessage;
 import com.discordsrv.api.discord.entity.message.SendableDiscordMessage;
 import com.discordsrv.api.discord.events.message.DiscordMessageReceiveEvent;
+import com.discordsrv.api.discord.util.DiscordFormattingUtil;
 import com.discordsrv.api.event.bus.Subscribe;
 import com.discordsrv.api.placeholder.provider.SinglePlaceholder;
 import com.discordsrv.common.DiscordSRV;
@@ -163,12 +164,15 @@ public class SingleConsoleHandler {
         queue.offer(entry);
     }
 
+    @SuppressWarnings("SynchronizeOnNonFinalField")
     public void shutdown() {
         shutdown = true;
         discordSRV.eventBus().unsubscribe(this);
         queueProcessingFuture.cancel(false);
         try {
-            queueProcessingFuture.wait(TimeUnit.SECONDS.toMillis(3));
+            synchronized (queueProcessingFuture) {
+                queueProcessingFuture.wait(TimeUnit.SECONDS.toMillis(3));
+            }
         } catch (InterruptedException e) {
             Thread.currentThread().interrupt();
         }
@@ -320,8 +324,18 @@ public class SingleConsoleHandler {
         int blockLength = outputMode.blockLength();
         int maximumPart = MESSAGE_MAX_LENGTH - blockLength - "\n".length();
 
+        // Escape content
+        String plainMessage = entry.message();
+        if (outputMode != ConsoleConfig.OutputMode.MARKDOWN) {
+            if (outputMode == ConsoleConfig.OutputMode.PLAIN_CONTENT) {
+                plainMessage = DiscordFormattingUtil.escapeContent(plainMessage);
+            } else {
+                plainMessage = plainMessage.replace("``", "`\u200B`"); // zero-width-space
+            }
+        }
+
         String parsedMessage;
-        ConsoleMessage consoleMessage = new ConsoleMessage(discordSRV, entry.message());
+        ConsoleMessage consoleMessage = new ConsoleMessage(discordSRV, plainMessage);
         switch (outputMode) {
             case ANSI:
                 parsedMessage = consoleMessage.asAnsi();
