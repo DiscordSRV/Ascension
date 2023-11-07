@@ -24,6 +24,7 @@ public class ConsoleConfig {
         public String lineFormat = "[%log_time:'ccc HH:mm:ss zzz'%] [%log_level%] [%logger_name%] %message%";
 
         @Comment("The mode for the console output, available options are:\n"
+                + "- off: Turn off console appending\n"
                 + "- ansi: A colored ansi code block\n"
                 + "- log: A \"accesslog\" code block\n"
                 + "- diff: A \"diff\" code block highlighting warnings and errors with different colors\n"
@@ -87,6 +88,9 @@ public class ConsoleConfig {
             );
         }
 
+        @Comment("If command execution is enabled")
+        public boolean enabled = true;
+
         @Comment("At least one condition has to match to allow execution")
         public List<GameCommandFilterConfig> filters = new ArrayList<>();
 
@@ -96,6 +100,7 @@ public class ConsoleConfig {
     }
 
     public enum OutputMode {
+        OFF(null, null),
         ANSI("```ansi\n", "```"),
         LOG("```accesslog\n", "```"),
         DIFF("```diff\n", "```"),

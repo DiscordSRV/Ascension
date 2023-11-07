@@ -42,7 +42,7 @@ public class SingleConsoleHandler {
     private final DiscordSRV discordSRV;
     private final Logger logger;
     private final ConsoleConfig config;
-    private final Queue<LogEntry> queue = new LinkedBlockingQueue<>();
+    private final Queue<LogEntry> queue;
     private Future<?> queueProcessingFuture;
     private boolean shutdown = false;
 
@@ -61,6 +61,7 @@ public class SingleConsoleHandler {
         this.discordSRV = discordSRV;
         this.logger = logger;
         this.config = config;
+        this.queue = config.appender.outputMode != ConsoleConfig.OutputMode.OFF ? new LinkedBlockingQueue<>() : null;
         this.messageCache = config.appender.useEditing ? new ArrayList<>() : null;
 
         timeQueueProcess();
@@ -161,6 +162,10 @@ public class SingleConsoleHandler {
     }
 
     public void queue(LogEntry entry) {
+        if (queue == null) {
+            return;
+        }
+
         queue.offer(entry);
     }
 
@@ -185,6 +190,9 @@ public class SingleConsoleHandler {
 
     private void timeQueueProcess() {
         if (shutdown) {
+            return;
+        }
+        if (config.appender.outputMode == ConsoleConfig.OutputMode.OFF) {
             return;
         }
         this.queueProcessingFuture = discordSRV.scheduler().runLater(this::processQueue, 2, TimeUnit.SECONDS);
@@ -290,7 +298,8 @@ public class SingleConsoleHandler {
                     )
                     .thenApply(channels -> {
                         if (channels.isEmpty()) {
-                            throw new IllegalStateException("No channel");
+                            // Nowhere to send to
+                            return null;
                         }
 
                         DiscordGuildMessageChannel channel = channels.get(0);
