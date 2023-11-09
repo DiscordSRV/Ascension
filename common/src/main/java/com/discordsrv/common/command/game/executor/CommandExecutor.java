@@ -18,7 +18,17 @@
 
 package com.discordsrv.common.command.game.executor;
 
+import com.discordsrv.api.discord.entity.DiscordUser;
+import com.discordsrv.common.DiscordSRV;
+
 public interface CommandExecutor {
 
+    default void runCommandWithLogging(DiscordSRV discordSRV, DiscordUser user, String command) {
+        discordSRV.logger().writeLogForCurrentDay(
+                "commandexecution",
+                "@" + user.getAsTag() + " [ID " + Long.toUnsignedString(user.getId()) + "] executed \"" + command + "\""
+        );
+        runCommand(command);
+    }
     void runCommand(String command);
 }

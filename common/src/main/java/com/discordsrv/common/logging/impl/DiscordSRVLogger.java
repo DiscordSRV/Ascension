@@ -42,21 +42,30 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Queue;
 import java.util.concurrent.ConcurrentLinkedQueue;
+import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 
 public class DiscordSRVLogger implements Logger {
 
-    private static final DateFormat DATE_TIME_FORMATTER = new SimpleDateFormat("EEE HH:mm:ss z");
-    private static final String LOG_LINE_FORMAT = "[%s] [%s] %s";
+    private static final DateFormat ROTATED_DATE_TIME_FORMATTER = new SimpleDateFormat("EEE HH:mm:ss z");
+    private static final DateFormat DAY_DATE_TIME_FORMATTER = new SimpleDateFormat("HH:mm:ss z");
+    private static final DateFormat DAY = new SimpleDateFormat("yyyy-MM-dd");
+    private static final String ROTATED_LOG_LINE_FORMAT = "[%s] [%s] %s";
+    private static final String DAY_LOG_LINE_FORMAT = "[%s] %s";
     private static final String LOG_FILE_NAME_FORMAT = "%s-%s.log";
 
     private static final List<String> DISABLE_DEBUG_BY_DEFAULT = Collections.singletonList("Hikari");
 
-    private final Queue<LogEntry> linesToAdd = new ConcurrentLinkedQueue<>();
-
     private final DiscordSRV discordSRV;
+
+    // Files
     private final Path logsDirectory;
     private final List<Path> debugLogs;
+
+    // File writing
+    private final Queue<LogEntry> linesToWrite = new ConcurrentLinkedQueue<>();
+    private final Object lineProcessingLock = new Object();
+    private Future<?> lineProcessingFuture;
 
     public DiscordSRVLogger(DiscordSRV discordSRV) {
         this.discordSRV = discordSRV;
@@ -70,11 +79,15 @@ public class DiscordSRVLogger implements Logger {
         }
 
         this.debugLogs = rotateLog("debug", 3);
-        discordSRV.scheduler().runAtFixedRate(this::processLines, 0, 2, TimeUnit.SECONDS);
     }
 
     public List<Path> getDebugLogs() {
         return debugLogs;
+    }
+
+    public void writeLogForCurrentDay(String label, String message) {
+        Path log = logsDirectory.resolve(label + "_" + DAY.format(System.currentTimeMillis()) + ".log");
+        scheduleWrite(new LogEntry(log, null, System.currentTimeMillis(), null, message, null));
     }
 
     @SuppressWarnings("SameParameterValue")
@@ -128,6 +141,7 @@ public class DiscordSRVLogger implements Logger {
     }
 
     private void doLog(String loggerName, LogLevel logLevel, String message, Throwable throwable) {
+        long time = System.currentTimeMillis();
         MainConfig config = discordSRV.config();
         DebugConfig debugConfig = config != null ? config.debug : null;
 
@@ -158,13 +172,22 @@ public class DiscordSRVLogger implements Logger {
         if (debugLog == null) {
             return;
         }
-        long time = System.currentTimeMillis();
-        linesToAdd.add(new LogEntry(debugLog, loggerName, time, logLevel, message, throwable));
+
+        scheduleWrite(new LogEntry(debugLog, loggerName, time, logLevel, message, throwable));
+    }
+
+    private void scheduleWrite(LogEntry entry) {
+        linesToWrite.add(entry);
+        synchronized (lineProcessingLock) {
+            if (lineProcessingFuture == null || lineProcessingFuture.isDone()) {
+                lineProcessingFuture = discordSRV.scheduler().runLater(this::processLines, TimeUnit.SECONDS.toMillis(2));
+            }
+        }
     }
 
     private void processLines() {
         LogEntry entry;
-        while ((entry = linesToAdd.poll()) != null) {
+        while ((entry = linesToWrite.poll()) != null) {
             writeToFile(entry.log(), entry.loggerName(), entry.time(), entry.logLevel(), entry.message(), entry.throwable());
         }
     }
@@ -178,8 +201,15 @@ public class DiscordSRVLogger implements Logger {
                 message = "[" + loggerName + "] " + message;
             }
 
-            String timestamp = DATE_TIME_FORMATTER.format(time);
-            String line = String.format(LOG_LINE_FORMAT, timestamp, logLevel.name(), message) + "\n";
+            String line;
+            if (logLevel == null) {
+                String timestamp = DAY_DATE_TIME_FORMATTER.format(time);
+                line = String.format(DAY_LOG_LINE_FORMAT, timestamp, message) + "\n";
+            } else {
+                String timestamp = ROTATED_DATE_TIME_FORMATTER.format(time);
+                line = String.format(ROTATED_LOG_LINE_FORMAT, timestamp, logLevel.name(), message) + "\n";
+            }
+
             if (throwable != null) {
                 line += ExceptionUtils.getStackTrace(throwable) + "\n";
             }
@@ -199,7 +229,7 @@ public class DiscordSRVLogger implements Logger {
                 if (discordSRV.status() == DiscordSRV.Status.SHUTDOWN) {
                     return;
                 }
-                discordSRV.platformLogger().error("Failed to write to debug log", e);
+                discordSRV.platformLogger().error("Failed to write to log", e);
             } catch (Throwable ignored) {}
         }
     }

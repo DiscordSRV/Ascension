@@ -21,10 +21,10 @@ package com.discordsrv.common.groupsync.enums;
 public enum GroupSyncResult {
 
     // Something happened
-    ADD_GROUP("Success (group add)"),
-    REMOVE_GROUP("Success (group remove)"),
-    ADD_ROLE("Success (role add)"),
-    REMOVE_ROLE("Success (role remove)"),
+    ADD_GROUP("Success (group add)", true),
+    REMOVE_GROUP("Success (group remove)", true),
+    ADD_ROLE("Success (role add)", true),
+    REMOVE_ROLE("Success (role remove)", true),
 
     // Nothing done
     ALREADY_IN_SYNC("Already in sync"),
@@ -44,9 +44,19 @@ public enum GroupSyncResult {
     ;
 
     final String prettyResult;
+    final boolean success;
 
     GroupSyncResult(String prettyResult) {
+        this(prettyResult, false);
+    }
+
+    GroupSyncResult(String prettyResult, boolean success) {
         this.prettyResult = prettyResult;
+        this.success = success;
+    }
+
+    public boolean isSuccess() {
+        return success;
     }
 
     @Override

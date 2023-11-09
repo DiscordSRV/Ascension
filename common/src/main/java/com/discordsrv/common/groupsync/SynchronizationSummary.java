@@ -44,6 +44,15 @@ public class SynchronizationSummary {
         pairs.computeIfAbsent(result, key -> new LinkedHashSet<>()).add(config);
     }
 
+    public boolean anySuccess() {
+        for (GroupSyncResult result : pairs.keySet()) {
+            if (result.isSuccess()) {
+                return true;
+            }
+        }
+        return false;
+    }
+
     @Override
     public String toString() {
         int count = pairs.size();

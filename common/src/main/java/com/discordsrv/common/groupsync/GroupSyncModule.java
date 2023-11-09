@@ -180,7 +180,14 @@ public class GroupSyncModule extends AbstractModule<DiscordSRV> {
             for (Map.Entry<GroupSyncConfig.PairConfig, CompletableFuture<GroupSyncResult>> entry : pairs.entrySet()) {
                 summary.add(entry.getKey(), entry.getValue().join());
             }
-            logger().debug(summary.toString());
+
+            String finalSummary = summary.toString();
+            logger().debug(finalSummary);
+
+            if (summary.anySuccess()) {
+                // If anything was changed as a result of synchronization, log to file
+                discordSRV.logger().writeLogForCurrentDay("groupsync", finalSummary);
+            }
         });
     }
 

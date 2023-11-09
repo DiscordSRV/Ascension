@@ -89,7 +89,7 @@ public class ExecuteCommand implements Consumer<DiscordChatInputInteractionEvent
         boolean ephemeral = config.ephemeral;
         event.asJDA().reply("Executing command `" + command + "`")
                 .setEphemeral(ephemeral)
-                .queue(ih -> new ExecutionContext(discordSRV, ih, config.outputMode, ephemeral).run(command));
+                .queue(ih -> new ExecutionContext(discordSRV, ih, config.outputMode, ephemeral).run(event.getUser(), command));
     }
 
     @Override
@@ -194,10 +194,10 @@ public class ExecuteCommand implements Consumer<DiscordChatInputInteractionEvent
             this.ephemeral = ephemeral;
         }
 
-        public void run(String command) {
+        public void run(DiscordUser user, String command) {
             discordSRV.console().commandExecutorProvider()
                     .getConsoleExecutor(this::consumeComponent)
-                    .runCommand(command);
+                    .runCommandWithLogging(discordSRV, user, command);
         }
 
         private void consumeComponent(Component component) {

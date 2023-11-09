@@ -158,7 +158,7 @@ public class SingleConsoleHandler {
         mostRecentMessageId = null;
 
         // Run the command
-        discordSRV.console().runCommand(command);
+        discordSRV.console().runCommandWithLogging(discordSRV, user, command);
     }
 
     public void queue(LogEntry entry) {
