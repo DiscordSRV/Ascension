@@ -19,14 +19,18 @@
 package com.discordsrv.common.config.connection;
 
 import com.discordsrv.common.config.Config;
+import com.discordsrv.common.config.configurate.annotation.Constants;
+import com.discordsrv.common.config.main.MainConfig;
 import org.spongepowered.configurate.objectmapping.ConfigSerializable;
 
 @ConfigSerializable
 public class ConnectionConfig implements Config {
 
     public static final String FILE_NAME = "connections.yaml";
+
+    @Constants(MainConfig.FILE_NAME)
     public static final String HEADER = "DiscordSRV's configuration file for connections to different external services.\n"
-            + "This file is intended to contain connection details to services in order to keep them out of the config.yml\n"
+            + "This file is intended to contain connection details to services in order to keep them out of the %1\n"
             + "and to serve as a easy way to identify and control what external connections are being used.\n"
             + "\n"
             + "All domains listed as \"Requires a connection to\" require port 443 (https/wss) unless otherwise specified\n"

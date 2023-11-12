@@ -1,0 +1,11 @@
+dependencies {
+    // Platform
+    compileOnly(libs.spigotapi)
+
+    // Adventure (runtime downloaded by :bukkit)
+    compileOnly(libs.adventure.platform.bukkit)
+
+    // Common
+    compileOnly project(':bukkit:bukkit-bukkit1_12')
+    compileOnly project(':common')
+}

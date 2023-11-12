@@ -30,6 +30,9 @@ import org.bukkit.event.player.PlayerAdvancementDoneEvent;
 import java.lang.reflect.Method;
 import java.util.Arrays;
 
+/**
+ * Used for Spigot and Paper in versions before they added advancement apis.
+ */
 public class BukkitAdvancementListener extends AbstractBukkitAwardListener {
 
     private final NMS nms;
@@ -37,19 +40,12 @@ public class BukkitAdvancementListener extends AbstractBukkitAwardListener {
     public BukkitAdvancementListener(DiscordSRV discordSRV, IBukkitAwardForwarder forwarder) {
         super(discordSRV, forwarder);
 
-        String className = Bukkit.getServer().getClass().getName();
-        String[] packageParts = className.split("\\.");
-        if (packageParts.length != 5) {
-            this.nms = null;
-            logger.error("Server does not have NMS, incompatible with advancements.");
-            return;
-        }
+        String version = Bukkit.getServer().getBukkitVersion().split("-", 2)[0];
 
-        String version = packageParts[3];
         NMS nms = null;
         try {
-            if ((version.startsWith("v1_19") && !version.startsWith("v1_19_R1") && !version.startsWith("v1_19_R2"))
-                    || version.startsWith("v1_2")) {
+            if ((version.startsWith("1.19") && !version.matches("1.19.[1-3].*"))
+                    || version.startsWith("1.2")) {
                 // 1.19.4+
                 nms = new NMS("org.bukkit.craftbukkit." + version + ".advancement.CraftAdvancement",
                                    "d", "i", "a");

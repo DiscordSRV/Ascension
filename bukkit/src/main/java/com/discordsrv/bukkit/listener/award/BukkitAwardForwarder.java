@@ -24,21 +24,39 @@ import com.discordsrv.bukkit.BukkitDiscordSRV;
 import com.discordsrv.common.player.IPlayer;
 import org.bukkit.entity.Player;
 import org.bukkit.event.Listener;
+import org.intellij.lang.annotations.Language;
 
 public class BukkitAwardForwarder implements IBukkitAwardForwarder {
 
     public static Listener get(BukkitDiscordSRV discordSRV) {
-        try {
-            Class.forName("org.bukkit.event.player.PlayerAdvancementDoneEvent");
-            try {
-                Class.forName("io.papermc.paper.advancement.AdvancementDisplay");
+        BukkitAwardForwarder forwarder = new BukkitAwardForwarder(discordSRV);
 
-                return new PaperModernAdvancementListener(discordSRV, new BukkitAwardForwarder(discordSRV));
-            } catch (ClassNotFoundException ignored) {
-                return new BukkitAdvancementListener(discordSRV, new BukkitAwardForwarder(discordSRV));
+        if (exists("org.bukkit.event.player.PlayerAdvancementDoneEvent")) {
+            // Advancement
+            if (exists("io.papermc.paper.advancement.AdvancementDisplay")) {
+                // Paper
+                return new PaperModernAdvancementListener(discordSRV, forwarder);
+            } else if (exists("org.bukkit.advancement.AdvancementDisplay")) {
+                // Spigot
+                return new SpigotModernAdvancementListener(discordSRV, forwarder);
+            } else {
+                // Generic
+                return new BukkitAdvancementListener(discordSRV, forwarder);
             }
+        } else {
+            // Achievement
+            return new BukkitAchievementListener(discordSRV, forwarder);
+        }
+    }
+
+    private static boolean exists(
+            @Language(value = "JAVA", prefix = "class X{static{Class.forName(\"", suffix = "\")}}") String className
+    ) {
+        try {
+            Class.forName(className);
+            return true;
         } catch (ClassNotFoundException ignored) {
-            return new BukkitAchievementListener(discordSRV, new BukkitAwardForwarder(discordSRV));
+            return false;
         }
     }
 

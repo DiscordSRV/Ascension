@@ -38,7 +38,7 @@ dependencies {
     annotationProcessor project(':api')
 
     // Platform
-    compileOnly(libs.spigotapi)
+    compileOnly(libs.bukkit)
 
     // Common
     compileOnly project(':common')
@@ -47,6 +47,7 @@ dependencies {
     // Folia, modern bukkit
     api project(':bukkit:bukkit-folia')
     api project(':bukkit:bukkit-paper')
+    api project(':bukkit:bukkit-spigot')
     api project(':bukkit:bukkit-bukkit1_12')
 
     // DependencyDownload
@@ -72,6 +73,7 @@ dependencies {
     compileOnly(libs.chatty)
     compileOnly(libs.griefprevention)
     compileOnly(libs.lunachat)
+    compileOnly(libs.bungeecord.chat) // Required for LunaChatIntegration
     compileOnly(libs.mcmmo)
     compileOnly(libs.townychat)
     compileOnly(libs.venturechat)

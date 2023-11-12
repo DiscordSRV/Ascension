@@ -21,7 +21,8 @@ dependencyResolutionManagement {
             version('bukkit_latest',  '1.20.1-R0.1-SNAPSHOT')
             version('folia',          '1.20.1-R0.1-SNAPSHOT')
             library('paperapi', 'io.papermc.paper', 'paper-api').versionRef('bukkit_latest')
-            library('spigotapi', 'org.spigotmc', 'spigot-api').versionRef('bukkit_minimum')
+            library('spigotapi', 'org.spigotmc', 'spigot-api').versionRef('bukkit_latest')
+            library('bukkit', 'org.bukkit', 'bukkit').versionRef('bukkit_minimum')
             library('spigotapi-onetwelve', 'org.spigotmc', 'spigot-api').versionRef('bukkit1_12')
             library('folia', 'dev.folia', 'folia-api').versionRef('folia')
 
@@ -107,6 +108,7 @@ dependencyResolutionManagement {
             library('venturechat', 'mineverse.aust1n46', 'venturechat').version('3.5.0')
             library('chatty', 'ru.mrbrikster', 'chatty-api').version('2.19.13')
             library('lunachat', 'com.github.ucchyocean.lc', 'LunaChat').version('3.0.16')
+            library('bungeecord-chat', 'net.md-5', 'bungeecord-chat').version('1.12-SNAPSHOT')
             library('mcmmo', 'com.gmail.nossr50', 'mcmmo').version('2.1.220')
             library('griefprevention', 'me.ryanhamshire', 'GriefPrevention').version('16.18.1')
 
@@ -149,7 +151,7 @@ rootProject.name = 'DiscordSRV-Ascension'
         'common', 'common:api', 'common:unrelocate',
         'i18n',
         'api',
-        'bukkit', 'bukkit:loader', 'bukkit:folia', 'bukkit:paper', 'bukkit:bukkit1_12',
+        'bukkit', 'bukkit:loader', 'bukkit:folia', 'bukkit:spigot', 'bukkit:paper', 'bukkit:bukkit1_12',
         'bungee', 'bungee:loader',
         'sponge', 'sponge:loader',
         'velocity'
