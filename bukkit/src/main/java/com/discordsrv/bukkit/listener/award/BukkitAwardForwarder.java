@@ -34,14 +34,14 @@ public class BukkitAwardForwarder implements IBukkitAwardForwarder {
         if (exists("org.bukkit.event.player.PlayerAdvancementDoneEvent")) {
             // Advancement
             if (exists("io.papermc.paper.advancement.AdvancementDisplay")) {
-                // Paper
+                // Paper (Since 1.17.1)
                 return new PaperModernAdvancementListener(discordSRV, forwarder);
             } else if (exists("org.bukkit.advancement.AdvancementDisplay")) {
-                // Spigot
+                // Spigot (Since 1.19)
                 return new SpigotModernAdvancementListener(discordSRV, forwarder);
             } else {
                 // Generic
-                return new BukkitAdvancementListener(discordSRV, forwarder);
+                return new BukkitLegacyAdvancementListener(discordSRV, forwarder);
             }
         } else {
             // Achievement

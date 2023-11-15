@@ -33,11 +33,11 @@ import java.util.Arrays;
 /**
  * Used for Spigot and Paper in versions before they added advancement apis.
  */
-public class BukkitAdvancementListener extends AbstractBukkitAwardListener {
+public class BukkitLegacyAdvancementListener extends AbstractBukkitAwardListener {
 
     private final NMS nms;
 
-    public BukkitAdvancementListener(DiscordSRV discordSRV, IBukkitAwardForwarder forwarder) {
+    public BukkitLegacyAdvancementListener(DiscordSRV discordSRV, IBukkitAwardForwarder forwarder) {
         super(discordSRV, forwarder);
 
         String version = Bukkit.getServer().getBukkitVersion().split("-", 2)[0];
