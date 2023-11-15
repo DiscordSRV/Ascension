@@ -70,14 +70,22 @@ public class DebugReport {
         addFile(environment()); // 100
         addFile(plugins()); // 90
         for (Path debugLog : discordSRV.logger().getDebugLogs()) {
-            addFile(readFile(80, debugLog));
+            addFile(readFile(80, debugLog, null));
         }
-        addFile(config(79, discordSRV.configManager()));
-        addFile(rawConfig(79, discordSRV.configManager()));
+        addFile(config(79, discordSRV.configManager(), null));
+        addFile(rawConfig(79, discordSRV.configManager(), null));
+
+        Locale defaultLocale = discordSRV.defaultLocale();
         for (MessagesConfigSingleManager<? extends MessagesConfig> manager : discordSRV.messagesConfigManager().getAllManagers().values()) {
-            addFile(config(78, manager));
-            addFile(rawConfig(78, manager));
+            if (manager.locale() == defaultLocale) {
+                addFile(config(78, manager, "parsed_messages.yaml"));
+                addFile(rawConfig(78, manager, "messages.yaml"));
+            } else {
+                addFile(config(78, manager, "parsed_" + manager.locale() + "_messages.yaml"));
+                addFile(rawConfig(78, manager, manager.locale() + "_messages.yaml"));
+            }
         }
+
         addFile(activeLimitedConnectionsConfig()); // 77
     }
 
@@ -197,8 +205,8 @@ public class DebugReport {
         }
     }
 
-    private DebugFile config(int order, ConfigurateConfigManager<?, ?> manager) {
-        String fileName = "parsed_" + manager.fileName();
+    private DebugFile config(int order, ConfigurateConfigManager<?, ?> manager, String overrideFileName) {
+        String fileName = overrideFileName != null ? overrideFileName : "parsed_" + manager.fileName();
         try (StringWriter writer = new StringWriter()) {
             AbstractConfigurationLoader<CommentedConfigurationNode> loader = manager
                     .createLoader(manager.filePath(), manager.nodeOptions(true))
@@ -212,8 +220,8 @@ public class DebugReport {
         }
     }
 
-    private DebugFile rawConfig(int order, ConfigurateConfigManager<?, ?> manager) {
-        return readFile(order, manager.filePath());
+    private DebugFile rawConfig(int order, ConfigurateConfigManager<?, ?> manager, String overwriteFileName) {
+        return readFile(order, manager.filePath(), overwriteFileName);
     }
 
     private DebugFile activeLimitedConnectionsConfig() {
@@ -242,8 +250,8 @@ public class DebugReport {
         return new KeyValueDebugFile(77, "connections.json", values, true);
     }
 
-    private DebugFile readFile(int order, Path file) {
-        String fileName = file.getFileName().toString();
+    private DebugFile readFile(int order, Path file, String overwriteFileName) {
+        String fileName = overwriteFileName != null ? overwriteFileName : file.getFileName().toString();
         if (!Files.exists(file)) {
             return new TextDebugFile(order, fileName, "File does not exist");
         }
