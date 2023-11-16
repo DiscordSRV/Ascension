@@ -39,8 +39,6 @@ import net.kyori.adventure.text.serializer.plain.PlainTextComponentSerializer;
 import net.kyori.ansi.ColorLevel;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.Locale;
-
 public class ComponentFactory implements MinecraftComponentFactory {
 
     public static final Class<?> UNRELOCATED_ADVENTURE_COMPONENT;
@@ -86,7 +84,7 @@ public class ComponentFactory implements MinecraftComponentFactory {
     }
 
     private String provideTranslation(TranslatableComponent component) {
-        Translation translation = translationRegistry.lookup(Locale.US, component.key());
+        Translation translation = translationRegistry.lookup(discordSRV.defaultLocale(), component.key());
         if (translation == null) {
             return null;
         }
