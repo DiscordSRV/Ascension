@@ -28,6 +28,7 @@ import com.discordsrv.api.event.events.message.process.discord.DiscordChatMessag
 import com.discordsrv.common.DiscordSRV;
 import com.discordsrv.common.component.util.ComponentUtil;
 import com.discordsrv.common.config.main.channels.DiscordToMinecraftChatConfig;
+import com.discordsrv.common.config.main.generic.MentionsConfig;
 import dev.vankka.mcdiscordreserializer.renderer.implementation.DefaultMinecraftRenderer;
 import net.dv8tion.jda.api.JDA;
 import net.dv8tion.jda.api.entities.channel.middleman.GuildChannel;
@@ -35,6 +36,7 @@ import net.dv8tion.jda.api.utils.MiscUtil;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.event.ClickEvent;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.function.Supplier;
 import java.util.regex.Matcher;
@@ -75,75 +77,100 @@ public class DiscordSRVMinecraftRenderer extends DefaultMinecraftRenderer {
 
     @Override
     public Component appendLink(@NotNull Component part, String link) {
-        JDA jda = discordSRV.jda();
-
-        if (jda != null) {
-            Matcher matcher = MESSAGE_URL_PATTERN.matcher(link);
-            if (matcher.matches()) {
-                String channel = matcher.group(1);
-                GuildChannel guildChannel = jda.getGuildChannelById(channel);
-
-                Context context = CONTEXT.get();
-                String format = context != null ? context.config.mentions.messageUrl : null;
-                if (format == null || guildChannel == null) {
-                    return super.appendLink(part, link);
-                }
-
-                return Component.text()
-                        .clickEvent(ClickEvent.openUrl(link))
-                        .append(
-                                ComponentUtil.fromAPI(
-                                        discordSRV.componentFactory()
-                                                .textBuilder(format)
-                                                .addContext(guildChannel)
-                                                .addPlaceholder("jump_url", link)
-                                                .applyPlaceholderService()
-                                                .build()
-                                )
-                        )
-                        .build();
-            }
+        Component messageLink = makeMessageLink(link);
+        if (messageLink == null) {
+            return super.appendLink(part, link);
         }
 
-        return super.appendLink(part, link);
+        return part.append(messageLink);
+    }
+
+    public Component makeMessageLink(String link) {
+        JDA jda = discordSRV.jda();
+        if (jda == null) {
+            return null;
+        }
+
+        Matcher matcher = MESSAGE_URL_PATTERN.matcher(link);
+        if (!matcher.matches()) {
+            return null;
+        }
+
+        String channel = matcher.group(1);
+        GuildChannel guildChannel = jda.getGuildChannelById(channel);
+
+        Context context = CONTEXT.get();
+        String format = context != null ? context.config.mentions.messageUrl : null;
+        if (format == null || guildChannel == null) {
+            return null;
+        }
+
+        return Component.text()
+                .clickEvent(ClickEvent.openUrl(link))
+                .append(
+                        ComponentUtil.fromAPI(
+                                discordSRV.componentFactory()
+                                        .textBuilder(format)
+                                        .addContext(guildChannel)
+                                        .addPlaceholder("jump_url", link)
+                                        .applyPlaceholderService()
+                                        .build()
+                        )
+                )
+                .build();
     }
 
     @Override
     public @NotNull Component appendChannelMention(@NotNull Component component, @NotNull String id) {
         Context context = CONTEXT.get();
-        DiscordToMinecraftChatConfig.Mentions.Format format = context != null ? context.config.mentions.channel : null;
+        MentionsConfig.Format format = context != null ? context.config.mentions.channel : null;
         if (format == null) {
             return component.append(Component.text("<#" + id + ">"));
         }
 
+        Component mention = makeChannelMention(MiscUtil.parseLong(id), format);
+        if (mention == null) {
+            return component;
+        }
+
+        return component.append(mention);
+    }
+
+    @Nullable
+    public Component makeChannelMention(long id, MentionsConfig.Format format) {
         JDA jda = discordSRV.jda();
         if (jda == null) {
-            return Component.empty();
+            return null;
         }
 
         GuildChannel guildChannel = jda.getGuildChannelById(id);
 
-        return component.append(ComponentUtil.fromAPI(
+        return ComponentUtil.fromAPI(
                 discordSRV.componentFactory()
                         .textBuilder(guildChannel != null ? format.format : format.unknownFormat)
                         .addContext(guildChannel)
                         .applyPlaceholderService()
                         .build()
-        ));
+        );
     }
 
     @Override
     public @NotNull Component appendUserMention(@NotNull Component component, @NotNull String id) {
         Context context = CONTEXT.get();
-        DiscordToMinecraftChatConfig.Mentions.Format format = context != null ? context.config.mentions.user : null;
+        MentionsConfig.Format format = context != null ? context.config.mentions.user : null;
         DiscordGuild guild = context != null ? context.guild : null;
         if (format == null || guild == null) {
             return component.append(Component.text("<@" + id + ">"));
         }
 
         long userId = MiscUtil.parseLong(id);
-        DiscordUser user = discordSRV.discordAPI().getUserById(userId);
-        DiscordGuildMember member = guild.getMemberById(userId);
+        return component.append(makeUserMention(userId, format, guild));
+    }
+
+    @NotNull
+    public Component makeUserMention(long id, MentionsConfig.Format format, DiscordGuild guild) {
+        DiscordUser user = discordSRV.discordAPI().getUserById(id);
+        DiscordGuildMember member = guild.getMemberById(id);
 
         GameTextBuilder builder = discordSRV.componentFactory()
                 .textBuilder(user != null ? format.format : format.unknownFormat);
@@ -155,21 +182,25 @@ public class DiscordSRVMinecraftRenderer extends DefaultMinecraftRenderer {
             builder.addContext(member);
         }
 
-        return component.append(ComponentUtil.fromAPI(
+        return ComponentUtil.fromAPI(
                 builder.applyPlaceholderService().build()
-        ));
+        );
     }
 
     @Override
     public @NotNull Component appendRoleMention(@NotNull Component component, @NotNull String id) {
         Context context = CONTEXT.get();
-        DiscordToMinecraftChatConfig.Mentions.Format format = context != null ? context.config.mentions.role : null;
+        MentionsConfig.Format format = context != null ? context.config.mentions.role : null;
         if (format == null) {
             return component.append(Component.text("<#" + id + ">"));
         }
 
         long roleId = MiscUtil.parseLong(id);
-        DiscordRole role = discordSRV.discordAPI().getRoleById(roleId);
+        return component.append(makeRoleMention(roleId, format));
+    }
+
+    public Component makeRoleMention(long id, MentionsConfig.Format format) {
+        DiscordRole role = discordSRV.discordAPI().getRoleById(id);
 
         GameTextBuilder builder = discordSRV.componentFactory()
                 .textBuilder(role != null ? format.format : format.unknownFormat);
@@ -178,9 +209,9 @@ public class DiscordSRVMinecraftRenderer extends DefaultMinecraftRenderer {
             builder.addContext(role);
         }
 
-        return component.append(ComponentUtil.fromAPI(
+        return ComponentUtil.fromAPI(
                 builder.applyPlaceholderService().build()
-        ));
+        );
     }
 
     @Override
@@ -190,31 +221,39 @@ public class DiscordSRVMinecraftRenderer extends DefaultMinecraftRenderer {
             @NotNull String id
     ) {
         Context context = CONTEXT.get();
-        DiscordToMinecraftChatConfig.EmoteBehaviour behaviour = context != null ? context.config.customEmojiBehaviour : null;
-        if (behaviour == null || behaviour == DiscordToMinecraftChatConfig.EmoteBehaviour.HIDE) {
+        MentionsConfig.EmoteBehaviour behaviour = context != null ? context.config.mentions.customEmojiBehaviour : null;
+        if (behaviour == null || behaviour == MentionsConfig.EmoteBehaviour.HIDE) {
             return component;
         }
 
         long emojiId = MiscUtil.parseLong(id);
-        DiscordCustomEmoji emoji = discordSRV.discordAPI().getEmojiById(emojiId);
-        if (emoji == null) {
+        Component emoteMention = makeEmoteMention(emojiId, behaviour);
+        if (emoteMention == null) {
             return component;
+        }
+
+        return component.append(emoteMention);
+    }
+
+    public Component makeEmoteMention(long id, MentionsConfig.EmoteBehaviour behaviour) {
+        DiscordCustomEmoji emoji = discordSRV.discordAPI().getEmojiById(id);
+        if (emoji == null) {
+            return null;
         }
 
         DiscordChatMessageCustomEmojiRenderEvent event = new DiscordChatMessageCustomEmojiRenderEvent(emoji);
         discordSRV.eventBus().publish(event);
 
         if (event.isProcessed()) {
-            Component rendered = ComponentUtil.fromAPI(event.getRenderedEmojiFromProcessing());
-            return component.append(rendered);
+            return ComponentUtil.fromAPI(event.getRenderedEmojiFromProcessing());
         }
 
         switch (behaviour) {
             case NAME:
-                return component.append(Component.text(":" + emoji.getName() + ":"));
+                return Component.text(":" + emoji.getName() + ":");
             case BLANK:
             default:
-                return component;
+                return null;
         }
     }
 
