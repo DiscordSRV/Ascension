@@ -195,7 +195,6 @@ public class DiscordSRVMinecraftRenderer extends DefaultMinecraftRenderer {
             return component;
         }
 
-        System.out.println(name);
         long emojiId = MiscUtil.parseLong(id);
         DiscordCustomEmoji emoji = discordSRV.discordAPI().getEmojiById(emojiId);
         if (emoji == null) {
