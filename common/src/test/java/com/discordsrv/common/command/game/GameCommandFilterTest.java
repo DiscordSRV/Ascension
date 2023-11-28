@@ -1,6 +1,6 @@
 package com.discordsrv.common.command.game;
 
-import com.discordsrv.common.config.main.generic.GameCommandFilterConfig;
+import com.discordsrv.common.config.main.generic.GameCommandExecutionConditionConfig;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
@@ -15,67 +15,72 @@ public class GameCommandFilterTest {
 
     @Test
     public void test1() {
-        Assertions.assertTrue(GameCommandFilterConfig.isCommandMatch("test", "test", false, helper));
+        Assertions.assertTrue(GameCommandExecutionConditionConfig.isCommandMatch("test", "test", false, helper));
     }
 
     @Test
     public void test2() {
-        Assertions.assertFalse(GameCommandFilterConfig.isCommandMatch("test", "tester", false, helper));
+        Assertions.assertFalse(GameCommandExecutionConditionConfig.isCommandMatch("test", "tester", false, helper));
     }
 
     @Test
     public void argumentTest() {
-        Assertions.assertTrue(GameCommandFilterConfig.isCommandMatch("test arg", "test arg", false, helper));
+        Assertions.assertTrue(GameCommandExecutionConditionConfig.isCommandMatch("test arg", "test arg", false, helper));
     }
 
     @Test
     public void suggestTest() {
-        Assertions.assertTrue(GameCommandFilterConfig.isCommandMatch("test arg", "test", true, helper));
+        Assertions.assertTrue(GameCommandExecutionConditionConfig.isCommandMatch("test arg", "test", true, helper));
     }
 
     @Test
     public void extraTest() {
-        Assertions.assertTrue(GameCommandFilterConfig.isCommandMatch("test arg", "test arg extra arguments after that", false, helper));
+        Assertions.assertTrue(
+                GameCommandExecutionConditionConfig.isCommandMatch("test arg", "test arg extra arguments after that", false, helper));
     }
 
     @Test
     public void argumentOverflowTest1() {
-        Assertions.assertFalse(GameCommandFilterConfig.isCommandMatch("test arg", "test argument", false, helper));
+        Assertions.assertFalse(
+                GameCommandExecutionConditionConfig.isCommandMatch("test arg", "test argument", false, helper));
     }
 
     @Test
     public void sameCommandTest1() {
-        Assertions.assertFalse(GameCommandFilterConfig.isCommandMatch("plugin1:test", "test", false, helper));
+        Assertions.assertFalse(GameCommandExecutionConditionConfig.isCommandMatch("plugin1:test", "test", false, helper));
     }
 
     @Test
     public void sameCommandTest2() {
-        Assertions.assertTrue(GameCommandFilterConfig.isCommandMatch("plugin2:test", "test", false, helper));
+        Assertions.assertTrue(GameCommandExecutionConditionConfig.isCommandMatch("plugin2:test", "test", false, helper));
     }
 
     @Test
     public void regexTest1() {
-        Assertions.assertTrue(GameCommandFilterConfig.isCommandMatch("/test/", "test", false, helper));
+        Assertions.assertTrue(GameCommandExecutionConditionConfig.isCommandMatch("/test/", "test", false, helper));
     }
 
     @Test
     public void regexTest2() {
-        Assertions.assertFalse(GameCommandFilterConfig.isCommandMatch("/test/", "test extra", false, helper));
+        Assertions.assertFalse(GameCommandExecutionConditionConfig.isCommandMatch("/test/", "test extra", false, helper));
     }
 
     @Test
     public void regexTest3() {
-        Assertions.assertTrue(GameCommandFilterConfig.isCommandMatch("/test( argument)?/", "test argument", false, helper));
+        Assertions.assertTrue(
+                GameCommandExecutionConditionConfig.isCommandMatch("/test( argument)?/", "test argument", false, helper));
     }
 
     @Test
     public void regexTest4() {
-        Assertions.assertFalse(GameCommandFilterConfig.isCommandMatch("/test( argument)?/", "test fail", false, helper));
+        Assertions.assertFalse(
+                GameCommandExecutionConditionConfig.isCommandMatch("/test( argument)?/", "test fail", false, helper));
     }
 
     @Test
     public void regexTest5() {
-        Assertions.assertTrue(GameCommandFilterConfig.isCommandMatch("/test( argument)?/", "test", true, helper));
+        Assertions.assertTrue(
+                GameCommandExecutionConditionConfig.isCommandMatch("/test( argument)?/", "test", true, helper));
     }
 
     public static class ExecutionHelper implements GameCommandExecutionHelper {

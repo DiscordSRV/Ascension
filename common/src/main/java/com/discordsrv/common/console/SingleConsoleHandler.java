@@ -16,7 +16,7 @@ import com.discordsrv.common.DiscordSRV;
 import com.discordsrv.common.command.game.GameCommandExecutionHelper;
 import com.discordsrv.common.config.main.ConsoleConfig;
 import com.discordsrv.common.config.main.generic.DestinationConfig;
-import com.discordsrv.common.config.main.generic.GameCommandFilterConfig;
+import com.discordsrv.common.config.main.generic.GameCommandExecutionConditionConfig;
 import com.discordsrv.common.console.entry.LogEntry;
 import com.discordsrv.common.console.entry.LogMessage;
 import com.discordsrv.common.console.message.ConsoleMessage;
@@ -133,7 +133,7 @@ public class SingleConsoleHandler {
         }
 
         boolean pass = false;
-        for (GameCommandFilterConfig filter : config.commandExecution.filters) {
+        for (GameCommandExecutionConditionConfig filter : config.commandExecution.executionConditions) {
             if (filter.isAcceptableCommand(member, user, command, false, helper)) {
                 pass = true;
                 break;

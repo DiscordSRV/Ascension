@@ -1,7 +1,7 @@
 package com.discordsrv.common.config.main;
 
 import com.discordsrv.common.config.main.generic.DestinationConfig;
-import com.discordsrv.common.config.main.generic.GameCommandFilterConfig;
+import com.discordsrv.common.config.main.generic.GameCommandExecutionConditionConfig;
 import org.spongepowered.configurate.objectmapping.ConfigSerializable;
 import org.spongepowered.configurate.objectmapping.meta.Comment;
 
@@ -67,15 +67,15 @@ public class ConsoleConfig {
     public static class Execution {
 
         public Execution() {
-            filters.add(
-                    new GameCommandFilterConfig(
+            executionConditions.add(
+                    new GameCommandExecutionConditionConfig(
                             new ArrayList<>(),
                             false,
                             new ArrayList<>(Arrays.asList("list", "whitelist"))
                     )
             );
-            filters.add(
-                    new GameCommandFilterConfig(
+            executionConditions.add(
+                    new GameCommandExecutionConditionConfig(
                             new ArrayList<>(),
                             true,
                             new ArrayList<>(Arrays.asList(
@@ -92,7 +92,7 @@ public class ConsoleConfig {
         public boolean enabled = true;
 
         @Comment("At least one condition has to match to allow execution")
-        public List<GameCommandFilterConfig> filters = new ArrayList<>();
+        public List<GameCommandExecutionConditionConfig> executionConditions = new ArrayList<>();
 
         @Comment("If a command is inputted starting with /, a warning response will be given if this is enabled")
         public boolean enableSlashWarning = true;

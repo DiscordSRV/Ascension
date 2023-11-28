@@ -10,7 +10,7 @@ import com.discordsrv.api.discord.events.interaction.command.DiscordCommandAutoC
 import com.discordsrv.common.DiscordSRV;
 import com.discordsrv.common.command.game.GameCommandExecutionHelper;
 import com.discordsrv.common.config.main.DiscordCommandConfig;
-import com.discordsrv.common.config.main.generic.GameCommandFilterConfig;
+import com.discordsrv.common.config.main.generic.GameCommandExecutionConditionConfig;
 import com.discordsrv.common.logging.Logger;
 import com.discordsrv.common.logging.NamedLogger;
 import net.dv8tion.jda.api.entities.Message;
@@ -59,7 +59,7 @@ public class ExecuteCommand implements Consumer<DiscordChatInputInteractionEvent
     public boolean isNotAcceptableCommand(DiscordGuildMember member, DiscordUser user, String command, boolean suggestions) {
         DiscordCommandConfig.ExecuteConfig config = discordSRV.config().discordCommand.execute;
 
-        for (GameCommandFilterConfig filter : config.filters) {
+        for (GameCommandExecutionConditionConfig filter : config.executionConditions) {
             if (!filter.isAcceptableCommand(member, user, command, suggestions, helper)) {
                 return true;
             }

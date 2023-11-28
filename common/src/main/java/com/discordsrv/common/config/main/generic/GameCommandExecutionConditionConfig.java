@@ -12,17 +12,18 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 @ConfigSerializable
-public class GameCommandFilterConfig {
+public class GameCommandExecutionConditionConfig {
 
-    public GameCommandFilterConfig() {}
+    @SuppressWarnings("unused") // Configurate
+    public GameCommandExecutionConditionConfig() {}
 
-    public GameCommandFilterConfig(List<Long> roleAndUserIds, boolean blacklist, List<String> commands) {
+    public GameCommandExecutionConditionConfig(List<Long> roleAndUserIds, boolean blacklist, List<String> commands) {
         this.roleAndUserIds = roleAndUserIds;
         this.blacklist = blacklist;
         this.commands = commands;
     }
 
-    @Comment("The role and user ids which this filter applies to")
+    @Comment("The role and user ids that should be allowed to run the commands specified in this condition")
     public List<Long> roleAndUserIds = new ArrayList<>();
 
     @Comment("true for blacklist (blocking commands), false for whitelist (allowing commands)")

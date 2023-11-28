@@ -1,7 +1,7 @@
 package com.discordsrv.common.config.main;
 
 import com.discordsrv.common.config.configurate.annotation.Constants;
-import com.discordsrv.common.config.main.generic.GameCommandFilterConfig;
+import com.discordsrv.common.config.main.generic.GameCommandExecutionConditionConfig;
 import org.spongepowered.configurate.objectmapping.ConfigSerializable;
 import org.spongepowered.configurate.objectmapping.meta.Comment;
 
@@ -18,8 +18,8 @@ public class DiscordCommandConfig {
     public static class ExecuteConfig {
 
         public ExecuteConfig() {
-            filters.add(
-                    new GameCommandFilterConfig(
+            executionConditions.add(
+                    new GameCommandExecutionConditionConfig(
                             new ArrayList<>(),
                             false,
                             new ArrayList<>(Arrays.asList("say", "/gamemode(?: (?:survival|spectator)(?: .+)?)?/"))
@@ -42,7 +42,7 @@ public class DiscordCommandConfig {
         public OutputMode outputMode = OutputMode.MARKDOWN;
 
         @Comment("At least one condition has to match to allow execution")
-        public List<GameCommandFilterConfig> filters = new ArrayList<>();
+        public List<GameCommandExecutionConditionConfig> executionConditions = new ArrayList<>();
 
         @Comment("If commands should be suggested while typing\n" +
                 "Suggestions go through the server's main thread (on servers with a main thread) to ensure compatability.")
