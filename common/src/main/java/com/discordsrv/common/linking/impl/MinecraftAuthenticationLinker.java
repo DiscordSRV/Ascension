@@ -20,20 +20,22 @@ package com.discordsrv.common.linking.impl;
 
 import com.discordsrv.api.component.MinecraftComponent;
 import com.discordsrv.common.DiscordSRV;
-import com.discordsrv.common.component.util.ComponentUtil;
 import com.discordsrv.common.function.CheckedSupplier;
 import com.discordsrv.common.future.util.CompletableFutureUtil;
 import com.discordsrv.common.linking.LinkProvider;
 import com.discordsrv.common.linking.LinkStore;
 import com.discordsrv.common.linking.LinkingModule;
+import com.discordsrv.common.linking.requirelinking.RequiredLinkingModule;
+import com.discordsrv.common.linking.requirelinking.requirement.MinecraftAuthRequirement;
 import com.discordsrv.common.logging.Logger;
 import com.discordsrv.common.logging.NamedLogger;
+import com.discordsrv.common.player.IPlayer;
 import me.minecraftauth.lib.AuthService;
 import me.minecraftauth.lib.account.AccountType;
 import me.minecraftauth.lib.account.platform.discord.DiscordAccount;
 import me.minecraftauth.lib.account.platform.minecraft.MinecraftAccount;
-import net.kyori.adventure.text.Component;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.Locale;
 import java.util.Optional;
@@ -43,6 +45,8 @@ import java.util.function.Consumer;
 import java.util.function.Supplier;
 
 public class MinecraftAuthenticationLinker extends CachedLinkProvider implements LinkProvider {
+
+    public static final String BASE_LINK_URL = DiscordSRV.WEBSITE + "/link";
 
     private final Logger logger;
     private final LinkStore linkStore;
@@ -84,8 +88,45 @@ public class MinecraftAuthenticationLinker extends CachedLinkProvider implements
     }
 
     @Override
-    public MinecraftComponent getLinkingInstructions(String username, UUID playerUUID, Locale locale) {
-        return ComponentUtil.toAPI(Component.text("<linking instructions>"));
+    public CompletableFuture<MinecraftComponent> getLinkingInstructions(@NotNull IPlayer player, @Nullable String requestReason) {
+        return getInstructions(player, requestReason);
+    }
+
+    @Override
+    public CompletableFuture<MinecraftComponent> getLinkingInstructions(String username, UUID playerUUID, Locale locale, @Nullable String requestReason) {
+        return getInstructions(null, requestReason);
+    }
+
+    private CompletableFuture<MinecraftComponent> getInstructions(@Nullable IPlayer player, @Nullable String requestReason) {
+        String method = null;
+        if (requestReason != null) {
+            requestReason = requestReason.toLowerCase(Locale.ROOT);
+            if (requestReason.startsWith("discord")) {
+                method = "discord";
+            } else if (requestReason.startsWith("link")) {
+                method = "link";
+            } else if (requestReason.startsWith("freeze")) {
+                method = "freeze";
+            }
+        }
+
+        StringBuilder additionalParam = new StringBuilder();
+        RequiredLinkingModule<?> requiredLinkingModule = discordSRV.getModule(RequiredLinkingModule.class);
+        if (requiredLinkingModule != null && requiredLinkingModule.isEnabled()) {
+            for (MinecraftAuthRequirement.Type requirementType : requiredLinkingModule.getActiveRequirementTypes()) {
+                additionalParam.append(requirementType.character());
+            }
+        }
+
+        String url = BASE_LINK_URL + (additionalParam.length() > 0 ? "/" + additionalParam : "");
+        String simple = url.substring(url.indexOf("://") + 3); // Remove protocol & don't include method query parameter
+        MinecraftComponent component = discordSRV.messagesConfig(player).minecraftAuthLinking.textBuilder()
+                .addContext(player)
+                .addPlaceholder("minecraftauth_link", url + (method != null ? "?command=" + method : null))
+                .addPlaceholder("minecraftauth_link_simple", simple)
+                .applyPlaceholderService()
+                .build();
+        return CompletableFuture.completedFuture(component);
     }
 
     private void linked(UUID playerUUID, long userId) {

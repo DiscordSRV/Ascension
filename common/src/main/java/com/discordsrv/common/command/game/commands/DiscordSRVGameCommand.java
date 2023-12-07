@@ -66,7 +66,7 @@ public class DiscordSRVGameCommand implements GameCommandExecutor {
     }
 
     @Override
-    public void execute(ICommandSender sender, GameCommandArguments arguments) {
+    public void execute(ICommandSender sender, GameCommandArguments arguments, String label) {
         MinecraftComponent component = discordSRV.componentFactory()
                 .textBuilder(discordSRV.config().gameCommand.discordFormat)
                 .addContext(sender)

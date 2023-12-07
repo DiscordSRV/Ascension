@@ -24,7 +24,9 @@
 package com.discordsrv.api.player;
 
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
+import java.util.Locale;
 import java.util.UUID;
 
 /**
@@ -45,5 +47,12 @@ public interface DiscordSRVPlayer {
      */
     @NotNull
     UUID uniqueId();
+
+    /**
+     * Gets the locale of the player.
+     * @return the player's locale, or {@code null} if it isn't known
+     */
+    @Nullable
+    Locale locale();
 
 }

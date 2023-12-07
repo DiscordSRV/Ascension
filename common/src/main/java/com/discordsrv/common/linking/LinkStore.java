@@ -20,13 +20,21 @@ package com.discordsrv.common.linking;
 
 import org.jetbrains.annotations.NotNull;
 
+import java.time.Duration;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 
 public interface LinkStore extends LinkProvider {
 
+    Duration LINKING_CODE_EXPIRY_TIME = Duration.ofMinutes(5);
+    Duration LINKING_CODE_RATE_LIMIT = Duration.ofSeconds(5);
+
     CompletableFuture<Void> createLink(@NotNull UUID playerUUID, long userId);
     CompletableFuture<Void> removeLink(@NotNull UUID playerUUID, long userId);
+
+    CompletableFuture<UUID> getCodeLinking(long userId, @NotNull String code);
+    CompletableFuture<Void> removeLinkingCode(@NotNull String code);
+    CompletableFuture<Void> removeLinkingCode(@NotNull UUID playerUUID);
 
     CompletableFuture<Integer> getLinkedAccountCount();
 }

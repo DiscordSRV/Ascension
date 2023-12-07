@@ -18,6 +18,8 @@
 
 package com.discordsrv.common.config.connection;
 
+import com.discordsrv.common.config.configurate.annotation.Constants;
+import com.discordsrv.common.update.UpdateChecker;
 import org.spongepowered.configurate.objectmapping.ConfigSerializable;
 import org.spongepowered.configurate.objectmapping.meta.Comment;
 import org.spongepowered.configurate.objectmapping.meta.Setting;
@@ -30,13 +32,15 @@ public class UpdateConfig {
     public boolean notificationEnabled = true;
 
     @Setting(value = "notification-ingame")
-    @Comment("If players with the discordsrv.updatenotification permission should receive\n"
+    @Constants.Comment("discordsrv.updatenotification")
+    @Comment("If players with the %1 permission should receive\n"
             + "a update notification upon joining if there is a update available")
     public boolean notificationInGame = true;
 
     @Setting(value = "enable-first-party-api-for-notifications")
+    @Constants.Comment(UpdateChecker.DOWNLOAD_SERVICE_DOMAIN)
     @Comment("Whether the DiscordSRV download API should be used for update checks\n"
-            + "Requires a connection to: download.discordsrv.com")
+            + "Requires a connection to: %1")
     public boolean firstPartyNotification = true;
 
     @Setting(value = "github")
@@ -49,15 +53,17 @@ public class UpdateConfig {
     public static class GitHub {
 
         @Setting(value = "enabled")
+        @Constants.Comment(UpdateChecker.GITHUB_API_DOMAIN)
         @Comment("Whether the GitHub API should be used for update checks\n"
                 + "This will be the secondary API if both first party and GitHub sources are enabled\n"
-                + "Requires a connection to: api.github.com")
+                + "Requires a connection to: %1")
         public boolean enabled = true;
 
         @Setting(value = "api-token")
+        @Constants.Comment(UpdateChecker.GITHUB_REPOSITORY)
         @Comment("The GitHub API token used for authenticating to the GitHub api,\n"
                 + "if this isn't specified the API will be used 'anonymously'\n"
-                + "The token only requires read permission to DiscordSRV/DiscordSRV releases, workflows and commits")
+                + "The token only requires read permission to %1 releases, workflows and commits")
         public String apiToken = "";
 
     }
@@ -66,9 +72,10 @@ public class UpdateConfig {
     public static class Security {
 
         @Setting(value = "enabled")
+        @Constants.Comment(UpdateChecker.DOWNLOAD_SERVICE_DOMAIN)
         @Comment("Uses the DiscordSRV download API to check if the version of DiscordSRV\n"
                 + "being used is vulnerable to known vulnerabilities, disabling the plugin if it is.\n"
-                + "Requires a connection to: download.discordsrv.com\n"
+                + "Requires a connection to: %1\n"
                 + "\n"
                 + "WARNING! DO NOT TURN THIS OFF UNLESS YOU KNOW WHAT YOU'RE DOING AND STAY UP-TO-DATE")
         public boolean enabled = true;

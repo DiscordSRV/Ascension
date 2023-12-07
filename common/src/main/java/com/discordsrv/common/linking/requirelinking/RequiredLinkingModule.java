@@ -42,6 +42,7 @@ import java.util.function.Consumer;
 public abstract class RequiredLinkingModule<T extends DiscordSRV> extends AbstractModule<T> {
 
     private final List<Requirement<?>> availableRequirements = new ArrayList<>();
+    protected final List<MinecraftAuthRequirement.Type> activeRequirementTypes = new ArrayList<>();
     private ThreadPoolExecutor executor;
 
     public RequiredLinkingModule(T discordSRV) {
@@ -94,10 +95,15 @@ public abstract class RequiredLinkingModule<T extends DiscordSRV> extends Abstra
         }
     }
 
+    public List<MinecraftAuthRequirement.Type> getActiveRequirementTypes() {
+        return activeRequirementTypes;
+    }
+
     protected List<CompiledRequirement> compile(List<String> requirements) {
         List<CompiledRequirement> checks = new ArrayList<>();
         for (String requirement : requirements) {
-            BiFunction<UUID, Long, CompletableFuture<Boolean>> function = RequirementParser.getInstance().parse(requirement, availableRequirements);
+            BiFunction<UUID, Long, CompletableFuture<Boolean>> function = RequirementParser.getInstance().parse(requirement, availableRequirements,
+                                                                                                                activeRequirementTypes);
             checks.add(new CompiledRequirement(requirement, function));
         }
         return checks;

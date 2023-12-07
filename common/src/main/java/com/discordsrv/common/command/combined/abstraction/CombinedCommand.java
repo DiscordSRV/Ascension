@@ -17,7 +17,7 @@ public abstract class CombinedCommand implements GameCommandExecutor, Consumer<D
     }
 
     @Override
-    public void execute(ICommandSender sender, GameCommandArguments arguments) {
+    public void execute(ICommandSender sender, GameCommandArguments arguments, String label) {
         execute(new GameCommandExecution(discordSRV, sender, arguments));
     }
 

@@ -27,6 +27,7 @@ import net.kyori.adventure.text.Component;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.security.SecureRandom;
 import java.util.Locale;
 import java.util.Optional;
 import java.util.UUID;
@@ -71,6 +72,33 @@ public class StorageLinker extends CachedLinkProvider implements LinkProvider, L
     }
 
     @Override
+    public CompletableFuture<UUID> getCodeLinking(long userId, @NotNull String code) {
+        return CompletableFuture.supplyAsync(
+                () -> discordSRV.storage().getLinkingCode(code),
+                discordSRV.scheduler().executor()
+        );
+    }
+
+    @Override
+    public CompletableFuture<Void> removeLinkingCode(@NotNull String code) {
+        return CompletableFuture.runAsync(
+                () -> {
+                    UUID player = discordSRV.storage().getLinkingCode(code);
+                    discordSRV.storage().removeLinkingCode(player);
+                },
+                discordSRV.scheduler().executor()
+        );
+    }
+
+    @Override
+    public CompletableFuture<Void> removeLinkingCode(@NotNull UUID playerUUID) {
+        return CompletableFuture.runAsync(
+                () -> discordSRV.storage().removeLinkingCode(playerUUID),
+                discordSRV.scheduler().executor()
+        );
+    }
+
+    @Override
     public CompletableFuture<Integer> getLinkedAccountCount() {
         return CompletableFuture.supplyAsync(
                 () -> discordSRV.storage().getLinkedAccountCount(),
@@ -78,8 +106,24 @@ public class StorageLinker extends CachedLinkProvider implements LinkProvider, L
         );
     }
 
+    private final SecureRandom secureRandom = new SecureRandom();
+
     @Override
-    public MinecraftComponent getLinkingInstructions(String username, UUID playerUUID, @Nullable Locale locale) {
-        return ComponentUtil.toAPI(Component.text("<linking instructions>"));
+    public CompletableFuture<MinecraftComponent> getLinkingInstructions(String username, UUID playerUUID, @Nullable Locale locale, @Nullable String requestReason) {
+        return CompletableFuture.supplyAsync(
+                () -> {
+                    String code = null;
+                    while (code == null || discordSRV.storage().getLinkingCode(code) != null) {
+                        code = String.valueOf(secureRandom.nextInt(1000000));
+                        while (code.length() != 6) {
+                            code = "0" + code;
+                        }
+                    }
+
+                    discordSRV.storage().storeLinkingCode(playerUUID, code);
+                    return ComponentUtil.toAPI(Component.text(code));
+                },
+                discordSRV.scheduler().executor()
+        );
     }
 }

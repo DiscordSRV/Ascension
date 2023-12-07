@@ -26,6 +26,9 @@ import com.velocitypowered.api.proxy.Player;
 import net.kyori.adventure.identity.Identity;
 import net.kyori.adventure.text.Component;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+
+import java.util.Locale;
 
 public class VelocityPlayer extends VelocityCommandSender implements IPlayer {
 
@@ -44,6 +47,11 @@ public class VelocityPlayer extends VelocityCommandSender implements IPlayer {
     @Override
     public @NotNull String username() {
         return player.getUsername();
+    }
+
+    @Override
+    public @Nullable Locale locale() {
+        return player.getPlayerSettings().getLocale();
     }
 
     @Override

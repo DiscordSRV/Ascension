@@ -19,6 +19,7 @@
 package com.discordsrv.common.linking.requirelinking.requirement.parser;
 
 import com.discordsrv.common.future.util.CompletableFutureUtil;
+import com.discordsrv.common.linking.requirelinking.requirement.MinecraftAuthRequirement;
 import com.discordsrv.common.linking.requirelinking.requirement.Requirement;
 import org.apache.commons.lang3.StringUtils;
 
@@ -41,15 +42,15 @@ public class RequirementParser {
     private RequirementParser() {}
 
     @SuppressWarnings("unchecked")
-    public <T> BiFunction<UUID, Long, CompletableFuture<Boolean>> parse(String input, List<Requirement<?>> requirements) {
+    public <T> BiFunction<UUID, Long, CompletableFuture<Boolean>> parse(String input, List<Requirement<?>> requirements, List<MinecraftAuthRequirement.Type> types) {
         List<Requirement<T>> reqs = new ArrayList<>(requirements.size());
         requirements.forEach(r -> reqs.add((Requirement<T>) r));
 
-        Func func = parse(input, new AtomicInteger(0), reqs);
+        Func func = parse(input, new AtomicInteger(0), reqs, types);
         return func::test;
     }
 
-    private <T> Func parse(String input, AtomicInteger iterator, List<Requirement<T>> requirements) {
+    private <T> Func parse(String input, AtomicInteger iterator, List<Requirement<T>> requirements, List<MinecraftAuthRequirement.Type> types) {
         StringBuilder functionNameBuffer = new StringBuilder();
         StringBuilder functionValueBuffer = new StringBuilder();
         boolean isFunctionValue = false;
@@ -69,7 +70,7 @@ public class RequirementParser {
             char c = chars[i];
             if (c == '(' && functionNameBuffer.length() == 0) {
                 iterator.incrementAndGet();
-                Func function = parse(input, iterator, requirements);
+                Func function = parse(input, iterator, requirements, types);
                 if (function == null) {
                     throw error.apply("Empty brackets");
                 }
@@ -104,6 +105,10 @@ public class RequirementParser {
 
                 for (Requirement<T> requirement : requirements) {
                     if (requirement.name().equalsIgnoreCase(functionName)) {
+                        if (requirement instanceof MinecraftAuthRequirement) {
+                            types.add(((MinecraftAuthRequirement<?>) requirement).getType());
+                        }
+
                         T requirementValue = requirement.parse(value);
                         if (requirementValue == null) {
                             throw error.apply("Unacceptable function value for " + functionName);

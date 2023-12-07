@@ -18,6 +18,7 @@
 
 package com.discordsrv.velocity;
 
+import com.discordsrv.common.DiscordSRV;
 import com.discordsrv.common.bootstrap.IBootstrap;
 import com.discordsrv.common.bootstrap.LifecycleManager;
 import com.discordsrv.common.logging.Logger;
@@ -43,7 +44,7 @@ import java.nio.file.Path;
         version = "@VERSION@",
         description = "",
         authors = {"Scarsz", "Vankka"},
-        url = "https://discordsrv.com"
+        url = DiscordSRV.WEBSITE
 )
 public class DiscordSRVVelocityBootstrap implements IBootstrap {
 

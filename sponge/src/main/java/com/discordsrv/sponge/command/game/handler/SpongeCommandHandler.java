@@ -100,6 +100,7 @@ public class SpongeCommandHandler implements ICommandHandler {
         }
 
         if (executor != null) {
+            String label = command.getLabel();
             builder.executor(context -> {
                 executor.execute(getSender(context), new GameCommandArguments() {
                     @Override
@@ -127,7 +128,7 @@ public class SpongeCommandHandler implements ICommandHandler {
                             }
                         }).orElse(null);
                     }
-                });
+                }, label);
 
                 return CommandResult.success();
             });

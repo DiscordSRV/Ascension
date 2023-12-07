@@ -23,7 +23,15 @@ import com.discordsrv.common.command.game.abstraction.GameCommand;
 import com.discordsrv.common.command.game.abstraction.GameCommandArguments;
 import com.discordsrv.common.command.game.abstraction.GameCommandExecutor;
 import com.discordsrv.common.command.game.sender.ICommandSender;
+import com.discordsrv.common.component.util.ComponentUtil;
+import com.discordsrv.common.linking.LinkProvider;
+import com.discordsrv.common.linking.LinkStore;
+import com.discordsrv.common.player.IPlayer;
+import com.github.benmanes.caffeine.cache.Cache;
 import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.format.NamedTextColor;
+
+import java.util.UUID;
 
 public class LinkCommand implements GameCommandExecutor {
 
@@ -40,13 +48,54 @@ public class LinkCommand implements GameCommandExecutor {
     }
 
     private final DiscordSRV discordSRV;
+    private final Cache<UUID, Boolean> linkCheckRateLimit;
 
     public LinkCommand(DiscordSRV discordSRV) {
         this.discordSRV = discordSRV;
+        this.linkCheckRateLimit = discordSRV.caffeineBuilder()
+                .expireAfterWrite(LinkStore.LINKING_CODE_RATE_LIMIT)
+                .build();
     }
 
     @Override
-    public void execute(ICommandSender sender, GameCommandArguments arguments) {
-        sender.sendMessage(Component.text("Not currently implemented")); // TODO
+    public void execute(ICommandSender sender, GameCommandArguments arguments, String label) {
+        if (!(sender instanceof IPlayer)) {
+            sender.sendMessage(Component.text("Player only command").color(NamedTextColor.RED));
+            return;
+        }
+
+        IPlayer player = (IPlayer) sender;
+        LinkProvider linkProvider = discordSRV.linkProvider();
+        if (linkProvider.getCachedUserId(player.uniqueId()).isPresent()) {
+            player.sendMessage(discordSRV.messagesConfig(player).alreadyLinked.asComponent());
+            return;
+        }
+
+        if (linkCheckRateLimit.getIfPresent(player.uniqueId()) != null) {
+            player.sendMessage(discordSRV.messagesConfig(player).pleaseWaitBeforeRunningThatCommandAgain.asComponent());
+            return;
+        }
+        linkCheckRateLimit.put(player.uniqueId(), true);
+
+        sender.sendMessage(discordSRV.messagesConfig(player).checkingLinkStatus.asComponent());
+        linkProvider.queryUserId(player.uniqueId()).whenComplete((userId, t) -> {
+            if (t != null) {
+                sender.sendMessage(discordSRV.messagesConfig(player).unableToLinkAtThisTime.asComponent());
+                return;
+            }
+            if (userId.isPresent()) {
+                sender.sendMessage(discordSRV.messagesConfig(player).youAreNowLinked.asComponent());
+                return;
+            }
+
+            linkProvider.getLinkingInstructions(player, label).whenComplete((comp, t2) -> {
+                if (t2 != null) {
+                    sender.sendMessage(discordSRV.messagesConfig(player).unableToLinkAtThisTime.asComponent());
+                    return;
+                }
+
+                sender.sendMessage(ComponentUtil.fromAPI(comp));
+            });
+        });
     }
 }

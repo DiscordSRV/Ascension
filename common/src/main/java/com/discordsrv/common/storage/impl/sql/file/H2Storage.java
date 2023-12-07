@@ -109,5 +109,14 @@ public class H2Storage extends SQLStorage {
                             + "constraint LINKED_ACCOUNTS_PK primary key (ID)"
                             + ")");
         }
+        try (Statement statement = connection.createStatement()) {
+            statement.execute(
+                    "create table if not exists " + tablePrefix + LINKING_CODES_TABLE_NAME + " "
+                            + "(PLAYERUUID varchar(36), "
+                            + "CODE varchar(8), "
+                            + "EXPIRY bigint"
+                            + "constraint LINKING_CODES_PK primary key (PLAYERUUID)"
+                            + ")");
+        }
     }
 }

@@ -52,6 +52,7 @@ public class ColorSerializer implements TypeSerializer<Color> {
     @Override
     public void serialize(Type type, @Nullable Color obj, ConfigurationNode node) throws SerializationException {
         if (obj == null) {
+            node.set(null);
             return;
         }
         node.set("#" + obj.hex());

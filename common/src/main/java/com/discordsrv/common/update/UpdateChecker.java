@@ -44,15 +44,17 @@ import java.util.List;
 
 public class UpdateChecker {
 
-    private static final String USER_DOWNLOAD_URL = "-";// "https://discordsrv.com/download";
-    private static final String GITHUB_REPOSITORY = "DiscordSRV/Ascension";
+    private static final String USER_DOWNLOAD_URL = "-";// DiscordSRV.WEBSITE + "/download";
+    public static final String GITHUB_REPOSITORY = "DiscordSRV/Ascension";
     private static final String GITHUB_DEV_BRANCH = "main";
 
-    private static final String DOWNLOAD_SERVICE_HOST = "https://download.discordsrv.com";
+    public static final String DOWNLOAD_SERVICE_DOMAIN = "download.discordsrv.com";
+    private static final String DOWNLOAD_SERVICE_HOST = "https://" + DOWNLOAD_SERVICE_DOMAIN;
     private static final String DOWNLOAD_SERVICE_SNAPSHOT_CHANNEL = "testing";
     private static final String DOWNLOAD_SERVICE_RELEASE_CHANNEL = null;
 
-    private static final String GITHUB_API_HOST = "https://api.github.com";
+    public static final String GITHUB_API_DOMAIN = "api.github.com";
+    private static final String GITHUB_API_HOST = "https://" + GITHUB_API_DOMAIN;
 
     private final DiscordSRV discordSRV;
     private final NamedLogger logger;

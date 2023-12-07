@@ -41,6 +41,7 @@ public class MinecraftAuthRequirement<T> implements Requirement<MinecraftAuthReq
         // Patreon
         requirements.add(new MinecraftAuthRequirement<>(
                 discordSRV,
+                Type.PATREON,
                 "PatreonSubscriber",
                 AuthService::isSubscribedPatreon,
                 AuthService::isSubscribedPatreon
@@ -49,6 +50,7 @@ public class MinecraftAuthRequirement<T> implements Requirement<MinecraftAuthReq
         // Glimpse
         requirements.add(new MinecraftAuthRequirement<>(
                 discordSRV,
+                Type.GLIMPSE,
                 "GlimpseSubscriber",
                 AuthService::isSubscribedGlimpse,
                 AuthService::isSubscribedGlimpse
@@ -57,11 +59,13 @@ public class MinecraftAuthRequirement<T> implements Requirement<MinecraftAuthReq
         // Twitch
         requirements.add(new MinecraftAuthRequirement<>(
                 discordSRV,
+                Type.TWITCH,
                 "TwitchFollower",
                 AuthService::isFollowingTwitch
         ));
         requirements.add(new MinecraftAuthRequirement<>(
                 discordSRV,
+                Type.TWITCH,
                 "TwitchSubscriber",
                 AuthService::isSubscribedTwitch,
                 AuthService::isSubscribedTwitch,
@@ -78,11 +82,13 @@ public class MinecraftAuthRequirement<T> implements Requirement<MinecraftAuthReq
         // YouTube
         requirements.add(new MinecraftAuthRequirement<>(
                 discordSRV,
+                Type.YOUTUBE,
                 "YouTubeSubscriber",
                 AuthService::isSubscribedYouTube
         ));
         requirements.add(new MinecraftAuthRequirement<>(
                 discordSRV,
+                Type.YOUTUBE,
                 "YouTubeMember",
                 AuthService::isMemberYouTube,
                 AuthService::isMemberYouTube
@@ -92,6 +98,7 @@ public class MinecraftAuthRequirement<T> implements Requirement<MinecraftAuthReq
     }
 
     private final DiscordSRV discordSRV;
+    private final Type type;
     private final String name;
     private final Test test;
     private final TestSpecific<T> testSpecific;
@@ -99,30 +106,34 @@ public class MinecraftAuthRequirement<T> implements Requirement<MinecraftAuthReq
 
     public MinecraftAuthRequirement(
             DiscordSRV discordSRV,
+            Type type,
             String name,
             Test test
     ) {
-        this(discordSRV, name, test, null, null);
+        this(discordSRV, type, name, test, null, null);
     }
 
     @SuppressWarnings("unchecked")
     public MinecraftAuthRequirement(
             DiscordSRV discordSRV,
+            Type type,
             String name,
             Test test,
             TestSpecific<String> testSpecific
     ) {
-        this(discordSRV, name, test, (TestSpecific<T>) testSpecific, t -> (T) t);
+        this(discordSRV, type, name, test, (TestSpecific<T>) testSpecific, t -> (T) t);
     }
 
     public MinecraftAuthRequirement(
             DiscordSRV discordSRV,
+            Type type,
             String name,
             Test test,
             TestSpecific<T> testSpecific,
             Function<String, T> parse
     ) {
         this.discordSRV = discordSRV;
+        this.type = type;
         this.name = name;
         this.test = test;
         this.testSpecific = testSpecific;
@@ -132,6 +143,10 @@ public class MinecraftAuthRequirement<T> implements Requirement<MinecraftAuthReq
     @Override
     public String name() {
         return name;
+    }
+
+    public Type getType() {
+        return type;
     }
 
     @SuppressWarnings("unchecked")
@@ -189,6 +204,23 @@ public class MinecraftAuthRequirement<T> implements Requirement<MinecraftAuthReq
 
         public T getValue() {
             return value;
+        }
+    }
+
+    public enum Type {
+        PATREON('p'),
+        GLIMPSE('g'),
+        TWITCH('t'),
+        YOUTUBE('y');
+
+        private final char character;
+
+        Type(char character) {
+            this.character = character;
+        }
+
+        public char character() {
+            return character;
         }
     }
 }

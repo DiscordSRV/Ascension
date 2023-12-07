@@ -22,16 +22,19 @@ import com.discordsrv.common.DiscordSRV;
 import com.discordsrv.common.exception.StorageException;
 import com.discordsrv.common.function.CheckedConsumer;
 import com.discordsrv.common.function.CheckedFunction;
+import com.discordsrv.common.linking.LinkStore;
 import com.discordsrv.common.storage.Storage;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.sql.*;
+import java.util.Calendar;
 import java.util.UUID;
 
 public abstract class SQLStorage implements Storage {
 
     protected static final String LINKED_ACCOUNTS_TABLE_NAME = "linked_accounts";
+    protected static final String LINKING_CODES_TABLE_NAME = "linking_codes";
 
     protected final DiscordSRV discordSRV;
 
@@ -154,6 +157,60 @@ public abstract class SQLStorage implements Storage {
                 }
             }
             return 0;
+        });
+    }
+
+    private long getTimeMS() {
+        return Calendar.getInstance().getTimeInMillis();
+    }
+
+    @Override
+    public UUID getLinkingCode(String code) {
+        return useConnection(connection -> {
+            // Clean expired codes
+            try (PreparedStatement statement = connection.prepareStatement("DELETE FROM " + tablePrefix() + LINKING_CODES_TABLE_NAME + " where EXPIRY < ?;")) {
+                statement.setLong(1, getTimeMS());
+                statement.executeUpdate();
+            }
+
+            // Get the uuid for the code
+            try (Statement statement = connection.createStatement()) {
+                try (ResultSet resultSet = statement.executeQuery("select top 1 PLAYERUUID from " + tablePrefix() + LINKING_CODES_TABLE_NAME + ";")) {
+                    if (resultSet.next()) {
+                        return UUID.fromString(resultSet.getString("PLAYERUUID"));
+                    }
+                }
+            }
+            return null;
+        });
+    }
+
+    @Override
+    public void removeLinkingCode(@NotNull UUID player) {
+        useConnection(connection -> {
+            try (PreparedStatement statement = connection.prepareStatement("DELETE FROM " + tablePrefix() + LINKING_CODES_TABLE_NAME + " WHERE PLAYERUUID = ?")) {
+                statement.setString(1, player.toString());
+                statement.executeUpdate();
+            }
+        });
+    }
+
+    @Override
+    public void storeLinkingCode(@NotNull UUID player, String code) {
+        useConnection(connection -> {
+            // Remove existing code
+            try (PreparedStatement statement = connection.prepareStatement("DELETE FROM " + tablePrefix() + LINKING_CODES_TABLE_NAME + " where PLAYERUUID = ?")) {
+                statement.setString(1, player.toString());
+                statement.executeUpdate();
+            }
+
+            // Insert new code
+            try (PreparedStatement statement = connection.prepareStatement("INSERT INTO " + tablePrefix() + LINKING_CODES_TABLE_NAME + " (PLAYERUUID, CODE, EXPIRY)")) {
+                statement.setString(1, player.toString());
+                statement.setString(2, code);
+                statement.setLong(3, getTimeMS() + LinkStore.LINKING_CODE_EXPIRY_TIME.toMillis());
+                exceptEffectedRows(statement.executeUpdate(), 1);
+            }
         });
     }
 }

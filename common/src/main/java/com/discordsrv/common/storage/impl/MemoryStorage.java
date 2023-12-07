@@ -13,6 +13,7 @@ public class MemoryStorage implements Storage {
     public static String IDENTIFIER = UUID.randomUUID().toString();
 
     private final BidiMap<UUID, Long> linkedAccounts = new DualHashBidiMap<>();
+    private final BidiMap<UUID, String> linkingCodes = new DualHashBidiMap<>();
 
     public MemoryStorage() {}
 
@@ -42,6 +43,21 @@ public class MemoryStorage implements Storage {
     @Override
     public void removeLink(@NotNull UUID player, long userId) {
         linkedAccounts.remove(player, userId);
+    }
+
+    @Override
+    public void storeLinkingCode(@NotNull UUID player, String code) {
+        linkingCodes.put(player, code);
+    }
+
+    @Override
+    public UUID getLinkingCode(String code) {
+        return linkingCodes.getKey(code);
+    }
+
+    @Override
+    public void removeLinkingCode(@NotNull UUID player) {
+        linkingCodes.remove(player);
     }
 
     @Override

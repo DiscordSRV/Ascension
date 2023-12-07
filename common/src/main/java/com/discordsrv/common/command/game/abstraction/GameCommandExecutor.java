@@ -23,5 +23,5 @@ import com.discordsrv.common.command.game.sender.ICommandSender;
 @FunctionalInterface
 public interface GameCommandExecutor {
 
-    void execute(ICommandSender sender, GameCommandArguments arguments);
+    void execute(ICommandSender sender, GameCommandArguments arguments, String label);
 }

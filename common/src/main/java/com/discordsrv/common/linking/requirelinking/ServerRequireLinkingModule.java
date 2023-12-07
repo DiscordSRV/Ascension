@@ -25,6 +25,7 @@ import com.discordsrv.common.config.main.linking.RequirementsConfig;
 import com.discordsrv.common.config.main.linking.ServerRequiredLinkingConfig;
 import com.discordsrv.common.future.util.CompletableFutureUtil;
 import com.discordsrv.common.linking.LinkProvider;
+import com.discordsrv.common.linking.requirelinking.requirement.MinecraftAuthRequirement;
 import net.kyori.adventure.text.Component;
 
 import java.util.ArrayList;
@@ -50,12 +51,18 @@ public abstract class ServerRequireLinkingModule<T extends DiscordSRV> extends R
         super.reload(resultConsumer);
 
         synchronized (compiledRequirements) {
+            activeRequirementTypes.clear();
+
             compiledRequirements.clear();
             compiledRequirements.addAll(compile(config().requirements.requirements));
         }
     }
 
-    public CompletableFuture<Component> getBlockReason(UUID playerUUID, String playerName) {
+    public List<MinecraftAuthRequirement.Type> getRequirementTypes() {
+        return activeRequirementTypes;
+    }
+
+    public CompletableFuture<Component> getBlockReason(UUID playerUUID, String playerName, boolean join) {
         RequirementsConfig config = config().requirements;
         if (config.bypassUUIDs.contains(playerUUID.toString())) {
             // Bypasses: let them through
@@ -67,9 +74,7 @@ public abstract class ServerRequireLinkingModule<T extends DiscordSRV> extends R
         if (linkProvider == null) {
             // Link provider unavailable but required linking enabled: error message
             Component message = ComponentUtil.fromAPI(
-                    discordSRV.componentFactory().textBuilder(
-                            discordSRV.messagesConfig(null).unableToCheckLinkingStatus
-                    ).build()
+                    discordSRV.messagesConfig().minecraft.unableToCheckLinkingStatus.textBuilder().build()
             );
             return CompletableFuture.completedFuture(message);
         }
@@ -78,11 +83,8 @@ public abstract class ServerRequireLinkingModule<T extends DiscordSRV> extends R
                 .thenCompose(opt -> {
                     if (!opt.isPresent()) {
                         // User is not linked
-                        return CompletableFuture.completedFuture(
-                                ComponentUtil.fromAPI(
-                                        linkProvider.getLinkingInstructions(playerName, playerUUID, null)
-                                )
-                        );
+                        return linkProvider.getLinkingInstructions(playerName, playerUUID, null, join ? "join" : "freeze")
+                                .thenApply(ComponentUtil::fromAPI);
                     }
 
                     List<CompiledRequirement> requirements;

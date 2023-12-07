@@ -435,14 +435,14 @@ public class GameCommand {
     private class ExecutorProxy implements GameCommandExecutor {
 
         @Override
-        public void execute(ICommandSender sender, GameCommandArguments arguments) {
+        public void execute(ICommandSender sender, GameCommandArguments arguments, String label) {
             if (!hasPermission(sender)) {
                 sendNoPermission(sender);
                 return;
             }
 
             if (commandExecutor != null) {
-                commandExecutor.execute(sender, arguments);
+                commandExecutor.execute(sender, arguments, label);
             } else if (!children.isEmpty()) {
                 sendCommandInstructions(sender);
             } else {

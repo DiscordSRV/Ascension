@@ -24,7 +24,9 @@ import com.discordsrv.bukkit.requiredlinking.BukkitRequiredLinkingModule;
 import com.discordsrv.common.DiscordSRV;
 import com.discordsrv.common.component.util.ComponentUtil;
 import com.discordsrv.common.config.main.linking.ServerRequiredLinkingConfig;
+import com.discordsrv.common.linking.LinkStore;
 import com.discordsrv.common.player.IPlayer;
+import com.github.benmanes.caffeine.cache.Cache;
 import net.kyori.adventure.platform.bukkit.BukkitComponentSerializer;
 import net.kyori.adventure.text.Component;
 import org.bukkit.Location;
@@ -43,9 +45,13 @@ import java.util.function.Supplier;
 public class BukkitRequiredLinkingListener implements Listener {
 
     private final BukkitDiscordSRV discordSRV;
+    private final Cache<UUID, Boolean> linkCheckRateLimit;
 
     public BukkitRequiredLinkingListener(BukkitDiscordSRV discordSRV) {
         this.discordSRV = discordSRV;
+        this.linkCheckRateLimit = discordSRV.caffeineBuilder()
+                .expireAfterWrite(LinkStore.LINKING_CODE_RATE_LIMIT)
+                .build();
 
         register(PlayerLoginEvent.class, this::handle);
         register(AsyncPlayerPreLoginEvent.class, this::handle);
@@ -92,18 +98,16 @@ public class BukkitRequiredLinkingListener implements Listener {
         return module;
     }
 
-    private CompletableFuture<Component> getBlockReason(UUID playerUUID, String playerName) {
+    private CompletableFuture<Component> getBlockReason(UUID playerUUID, String playerName, boolean join) {
         BukkitRequiredLinkingModule module = getModule();
         if (module == null) {
             Component message = ComponentUtil.fromAPI(
-                    discordSRV.componentFactory().textBuilder(
-                            discordSRV.messagesConfig(null).noDiscordConnection
-                    ).build()
+                    discordSRV.messagesConfig().minecraft.unableToLinkAtThisTime.textBuilder().build()
             );
             return CompletableFuture.completedFuture(message);
         }
 
-        return module.getBlockReason(playerUUID, playerName);
+        return module.getBlockReason(playerUUID, playerName, join);
     }
 
     //
@@ -153,7 +157,7 @@ public class BukkitRequiredLinkingListener implements Listener {
             return;
         }
 
-        Component kickReason = getBlockReason(playerUUID, playerName).join();
+        Component kickReason = getBlockReason(playerUUID, playerName, true).join();
         if (kickReason != null) {
             disallow.accept(BukkitComponentSerializer.legacy().serialize(kickReason));
         }
@@ -190,7 +194,7 @@ public class BukkitRequiredLinkingListener implements Listener {
             return;
         }
 
-        Component blockReason = getBlockReason(event.getUniqueId(), event.getName()).join();
+        Component blockReason = getBlockReason(event.getUniqueId(), event.getName(), false).join();
         if (blockReason != null) {
             frozen.put(event.getUniqueId(), blockReason);
         }
@@ -273,12 +277,19 @@ public class BukkitRequiredLinkingListener implements Listener {
 
         String message = event.getMessage();
         if (message.startsWith("/")) message = message.substring(1);
-        if (message.equals("linked")) {
+        if (message.equals("discord link") || message.equals("link")) {
             IPlayer player = discordSRV.playerProvider().player(event.getPlayer());
+
+            if (linkCheckRateLimit.getIfPresent(player.uniqueId()) != null) {
+                player.sendMessage(discordSRV.messagesConfig(player).pleaseWaitBeforeRunningThatCommandAgain.asComponent());
+                return;
+            }
+            linkCheckRateLimit.put(player.uniqueId(), true);
+
             player.sendMessage(Component.text("Checking..."));
 
             UUID uuid = player.uniqueId();
-            getBlockReason(uuid, player.username()).whenComplete((reason, t) -> {
+            getBlockReason(uuid, player.username(), false).whenComplete((reason, t) -> {
                 if (t != null) {
                     return;
                 }

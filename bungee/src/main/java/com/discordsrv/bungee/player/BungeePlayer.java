@@ -27,6 +27,9 @@ import net.kyori.adventure.identity.Identity;
 import net.kyori.adventure.text.Component;
 import net.md_5.bungee.api.connection.ProxiedPlayer;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+
+import java.util.Locale;
 
 public class BungeePlayer extends BungeeCommandSender implements IPlayer {
 
@@ -47,6 +50,11 @@ public class BungeePlayer extends BungeeCommandSender implements IPlayer {
     @Override
     public @NotNull String username() {
         return commandSender.getName();
+    }
+
+    @Override
+    public @Nullable Locale locale() {
+        return player.getLocale();
     }
 
     @Override

@@ -28,6 +28,7 @@ import com.discordsrv.common.config.configurate.annotation.Order;
 import com.discordsrv.common.config.configurate.fielddiscoverer.OrderedFieldDiscovererProxy;
 import com.discordsrv.common.config.configurate.manager.loader.ConfigLoaderProvider;
 import com.discordsrv.common.config.configurate.serializer.*;
+import com.discordsrv.common.config.helper.MinecraftMessage;
 import com.discordsrv.common.config.main.channels.base.BaseChannelConfig;
 import com.discordsrv.common.config.main.channels.base.ChannelConfig;
 import com.discordsrv.common.config.main.channels.base.IChannelConfig;
@@ -179,6 +180,7 @@ public abstract class ConfigurateConfigManager<T, LT extends AbstractConfigurati
                     builder.register(DiscordMessageEmbed.Builder.class, new DiscordMessageEmbedSerializer(NAMING_SCHEME));
                     builder.register(DiscordMessageEmbed.Field.class, new DiscordMessageEmbedSerializer.FieldSerializer(NAMING_SCHEME));
                     builder.register(SendableDiscordMessage.Builder.class, new SendableDiscordMessageSerializer(NAMING_SCHEME));
+                    builder.register(MinecraftMessage.class, new MinecraftMessageSerializer());
 
                     // give Configurate' serializers the ObjectMapper mapper
                     builder.register(type -> {

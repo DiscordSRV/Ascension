@@ -84,7 +84,7 @@ public class DebugCommand extends CombinedCommand {
         return DISCORD;
     }
 
-    private static final String URL_FORMAT = "https://discordsrv.vankka.dev/debug/%s#%s";
+    private static final String URL_FORMAT = DiscordSRV.WEBSITE + "/debug/%s#%s";
     private static final Base64.Encoder KEY_ENCODER = Base64.getUrlEncoder().withoutPadding();
 
     private final PasteService pasteService;

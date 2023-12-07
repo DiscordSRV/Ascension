@@ -91,7 +91,8 @@ public final class BrigadierUtil {
             argumentBuilder.executes(context -> {
                 executor.execute(
                         commandSenderMapper.apply(context.getSource()),
-                        context::getArgument
+                        context::getArgument,
+                        label
                 );
                 return Command.SINGLE_SUCCESS;
             });

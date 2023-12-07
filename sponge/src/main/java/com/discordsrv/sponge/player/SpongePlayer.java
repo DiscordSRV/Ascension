@@ -25,7 +25,10 @@ import com.discordsrv.sponge.command.game.sender.SpongeCommandSender;
 import net.kyori.adventure.identity.Identity;
 import net.kyori.adventure.text.Component;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.spongepowered.api.entity.living.player.server.ServerPlayer;
+
+import java.util.Locale;
 
 public class SpongePlayer extends SpongeCommandSender implements IPlayer {
 
@@ -46,6 +49,11 @@ public class SpongePlayer extends SpongeCommandSender implements IPlayer {
     @Override
     public @NotNull String username() {
         return player.name();
+    }
+
+    @Override
+    public @Nullable Locale locale() {
+        return player.locale();
     }
 
     @Override

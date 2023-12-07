@@ -29,6 +29,8 @@ import net.kyori.adventure.text.Component;
 import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
 
+import java.util.Locale;
+
 public class BukkitPlayer extends BukkitCommandSender implements IPlayer {
 
     private static final PaperComponentHandle<Player> DISPLAY_NAME_HANDLE = makeDisplayNameHandle();
@@ -58,6 +60,11 @@ public class BukkitPlayer extends BukkitCommandSender implements IPlayer {
     @Override
     public @NotNull String username() {
         return player.getName();
+    }
+
+    @Override
+    public Locale locale() {
+        return PlayerLocaleProvider.getLocale(player);
     }
 
     @Override

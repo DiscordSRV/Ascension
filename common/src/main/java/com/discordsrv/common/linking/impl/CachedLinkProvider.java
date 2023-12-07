@@ -22,10 +22,8 @@ import com.discordsrv.api.event.bus.Subscribe;
 import com.discordsrv.common.DiscordSRV;
 import com.discordsrv.common.linking.LinkProvider;
 import com.discordsrv.common.player.event.PlayerConnectedEvent;
-import com.github.benmanes.caffeine.cache.AsyncCacheLoader;
-import com.github.benmanes.caffeine.cache.AsyncLoadingCache;
-import com.github.benmanes.caffeine.cache.Cache;
-import com.github.benmanes.caffeine.cache.RemovalListener;
+import com.github.benmanes.caffeine.cache.*;
+import org.checkerframework.checker.index.qual.NonNegative;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.jetbrains.annotations.NotNull;
 
@@ -48,8 +46,39 @@ public abstract class CachedLinkProvider implements LinkProvider {
         this.discordSRV = discordSRV;
         this.userToPlayer = discordSRV.caffeineBuilder().build();
         this.playerToUser = discordSRV.caffeineBuilder()
-                .refreshAfterWrite(30, TimeUnit.SECONDS)
-                .removalListener((RemovalListener<UUID, Long>) (key, value, cause) -> {
+                .expireAfter(new Expiry<UUID, Long>() {
+                    @Override
+                    public long expireAfterCreate(@NonNull UUID key, @NonNull Long value, long currentTime) {
+                        if (value == UNLINKED_USER) {
+                            return Long.MAX_VALUE;
+                        }
+                        return TimeUnit.MINUTES.toNanos(5);
+                    }
+
+                    @Override
+                    public long expireAfterUpdate(
+                            @NonNull UUID key,
+                            @NonNull Long value,
+                            long currentTime,
+                            @NonNegative long currentDuration
+                    ) {
+                        if (value == UNLINKED_USER) {
+                            return Long.MAX_VALUE;
+                        }
+                        return currentDuration;
+                    }
+
+                    @Override
+                    public long expireAfterRead(
+                            @NonNull UUID key,
+                            @NonNull Long value,
+                            long currentTime,
+                            @NonNegative long currentDuration
+                    ) {
+                        return currentDuration;
+                    }
+                })
+                .removalListener((key, value, cause) -> {
                     if (value != null) {
                         userToPlayer.invalidate(value);
                     }

@@ -19,6 +19,7 @@
 package com.discordsrv.common.linking;
 
 import com.discordsrv.api.component.MinecraftComponent;
+import com.discordsrv.common.player.IPlayer;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -57,5 +58,14 @@ public interface LinkProvider {
         return Optional.empty();
     }
 
-    MinecraftComponent getLinkingInstructions(String username, UUID playerUUID, @Nullable Locale locale);
+    default CompletableFuture<MinecraftComponent> getLinkingInstructions(@NotNull IPlayer player, @Nullable String requestReason) {
+        return getLinkingInstructions(player.username(), player.uniqueId(), player.locale(), requestReason);
+    }
+
+    CompletableFuture<MinecraftComponent> getLinkingInstructions(
+            String username,
+            UUID playerUUID,
+            @Nullable Locale locale,
+            @Nullable String requestReason
+    );
 }

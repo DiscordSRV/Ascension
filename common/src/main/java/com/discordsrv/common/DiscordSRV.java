@@ -25,6 +25,7 @@ import com.discordsrv.common.bootstrap.IBootstrap;
 import com.discordsrv.common.channel.ChannelConfigHelper;
 import com.discordsrv.common.command.game.GameCommandExecutionHelper;
 import com.discordsrv.common.command.game.handler.ICommandHandler;
+import com.discordsrv.common.command.game.sender.ICommandSender;
 import com.discordsrv.common.component.ComponentFactory;
 import com.discordsrv.common.config.configurate.manager.ConnectionConfigManager;
 import com.discordsrv.common.config.configurate.manager.MainConfigManager;
@@ -45,6 +46,7 @@ import com.discordsrv.common.logging.impl.DiscordSRVLogger;
 import com.discordsrv.common.module.ModuleManager;
 import com.discordsrv.common.module.type.AbstractModule;
 import com.discordsrv.common.placeholder.PlaceholderServiceImpl;
+import com.discordsrv.common.player.IPlayer;
 import com.discordsrv.common.player.provider.AbstractPlayerProvider;
 import com.discordsrv.common.plugin.PluginManager;
 import com.discordsrv.common.profile.ProfileManager;
@@ -65,6 +67,8 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
 
 public interface DiscordSRV extends DiscordSRVApi {
+
+    String WEBSITE = "https://discordsrv.vankka.dev";
 
     // Platform
     IBootstrap bootstrap();
@@ -118,7 +122,16 @@ public interface DiscordSRV extends DiscordSRVApi {
     MainConfigManager<? extends MainConfig> configManager();
     MainConfig config();
     MessagesConfigManager<? extends MessagesConfig> messagesConfigManager();
-    MessagesConfig messagesConfig(Locale locale);
+    default MessagesConfig messagesConfig() {
+        return messagesConfig((Locale) null);
+    }
+    default MessagesConfig.Minecraft messagesConfig(@Nullable ICommandSender sender) {
+        return sender instanceof IPlayer ? messagesConfig((IPlayer) sender) : messagesConfig((Locale) null).minecraft;
+    }
+    default MessagesConfig.Minecraft messagesConfig(@Nullable IPlayer player) {
+        return messagesConfig(player != null ? player.locale() : null).minecraft;
+    }
+    MessagesConfig messagesConfig(@Nullable Locale locale);
 
     // Config helper
     ChannelConfigHelper channelConfig();

@@ -62,7 +62,7 @@ public class ReloadCommand implements GameCommandExecutor, GameCommandSuggester 
     }
 
     @Override
-    public void execute(ICommandSender sender, GameCommandArguments arguments) {
+    public void execute(ICommandSender sender, GameCommandArguments arguments, String label) {
         AtomicBoolean dangerousFlags = new AtomicBoolean(false);
         Set<DiscordSRV.ReloadFlag> flags = getFlagsFromArguments(sender, arguments, dangerousFlags);
         if (flags == null) {
