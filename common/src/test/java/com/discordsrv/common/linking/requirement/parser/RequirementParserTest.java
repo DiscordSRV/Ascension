@@ -23,6 +23,7 @@ import com.discordsrv.common.linking.requirelinking.requirement.parser.Requireme
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.function.Executable;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.UUID;
@@ -69,7 +70,7 @@ public class RequirementParserTest {
     );
 
     private boolean parse(String input) {
-        return requirementParser.parse(input, requirements).apply(null, 0L).join();
+        return requirementParser.parse(input, requirements, new ArrayList<>()).apply(null, 0L).join();
     }
 
     @Test
