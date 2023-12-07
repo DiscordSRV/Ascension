@@ -19,10 +19,12 @@ import net.kyori.adventure.audience.Audience;
 import net.kyori.adventure.identity.Identity;
 import net.kyori.adventure.text.Component;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 
+import java.util.Locale;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
@@ -69,6 +71,11 @@ public class MinecraftToDiscordChatMessageTest {
                                 @Override
                                 public @NotNull String username() {
                                     return "Vankka";
+                                }
+
+                                @Override
+                                public @Nullable Locale locale() {
+                                    return Locale.getDefault();
                                 }
 
                                 @Override
