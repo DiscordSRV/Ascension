@@ -19,9 +19,14 @@
 package com.discordsrv.common.command.game.sender;
 
 import com.discordsrv.common.command.game.executor.CommandExecutor;
+import com.discordsrv.common.permission.util.Permission;
 import net.kyori.adventure.audience.ForwardingAudience;
 
 public interface ICommandSender extends ForwardingAudience.Single, CommandExecutor {
+
+    default boolean hasPermission(Permission permission) {
+        return hasPermission(permission.permission());
+    }
 
     boolean hasPermission(String permission);
 

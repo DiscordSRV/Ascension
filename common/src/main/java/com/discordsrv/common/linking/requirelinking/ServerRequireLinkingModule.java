@@ -79,7 +79,7 @@ public abstract class ServerRequireLinkingModule<T extends DiscordSRV> extends R
             return CompletableFuture.completedFuture(message);
         }
 
-        return linkProvider.queryUserId(playerUUID)
+        return linkProvider.queryUserId(playerUUID, true)
                 .thenCompose(opt -> {
                     if (!opt.isPresent()) {
                         // User is not linked

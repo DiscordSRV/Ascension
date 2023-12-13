@@ -20,6 +20,7 @@ package com.discordsrv.common.command.game.abstraction;
 
 import com.discordsrv.common.command.game.sender.ICommandSender;
 import com.discordsrv.common.function.CheckedFunction;
+import com.discordsrv.common.permission.util.Permission;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.TextComponent;
 import net.kyori.adventure.text.format.NamedTextColor;
@@ -174,6 +175,10 @@ public class GameCommand {
 
     public GameCommand getRedirection() {
         return redirection;
+    }
+
+    public GameCommand requiredPermission(Permission permission) {
+        return requiredPermission(permission.permission());
     }
 
     public GameCommand requiredPermission(String permission) {

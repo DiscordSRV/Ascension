@@ -22,14 +22,19 @@ import com.discordsrv.api.event.bus.Subscribe;
 import com.discordsrv.common.DiscordSRV;
 import com.discordsrv.common.linking.LinkProvider;
 import com.discordsrv.common.player.event.PlayerConnectedEvent;
-import com.github.benmanes.caffeine.cache.*;
+import com.github.benmanes.caffeine.cache.AsyncCacheLoader;
+import com.github.benmanes.caffeine.cache.AsyncLoadingCache;
+import com.github.benmanes.caffeine.cache.Cache;
+import com.github.benmanes.caffeine.cache.Expiry;
 import org.checkerframework.checker.index.qual.NonNegative;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Optional;
+import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.CopyOnWriteArraySet;
 import java.util.concurrent.Executor;
 import java.util.concurrent.TimeUnit;
 
@@ -41,6 +46,7 @@ public abstract class CachedLinkProvider implements LinkProvider {
     protected final DiscordSRV discordSRV;
     private final Cache<Long, UUID> userToPlayer;
     private final AsyncLoadingCache<UUID, Long> playerToUser;
+    private final Set<UUID> linkingAllowed = new CopyOnWriteArraySet<>();
 
     public CachedLinkProvider(DiscordSRV discordSRV) {
         this.discordSRV = discordSRV;
@@ -86,7 +92,7 @@ public abstract class CachedLinkProvider implements LinkProvider {
                 .buildAsync(new AsyncCacheLoader<UUID, Long>() {
                     @Override
                     public @NonNull CompletableFuture<Long> asyncLoad(@NonNull UUID key, @NonNull Executor executor) {
-                        return queryUserId(key).thenApply(opt -> opt.orElse(UNLINKED_USER));
+                        return queryUserId(key, linkingAllowed.remove(key)).thenApply(opt -> opt.orElse(UNLINKED_USER));
                     }
 
                     @Override
@@ -150,6 +156,9 @@ public abstract class CachedLinkProvider implements LinkProvider {
     @Subscribe
     public void onPlayerConnected(PlayerConnectedEvent event) {
         // Cache logged in players
-        playerToUser.get(event.player().uniqueId());
+        UUID uuid = event.player().uniqueId();
+        linkingAllowed.add(uuid);
+        playerToUser.get(uuid);
+        linkingAllowed.remove(uuid);
     }
 }

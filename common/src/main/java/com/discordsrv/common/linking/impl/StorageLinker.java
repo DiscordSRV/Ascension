@@ -40,7 +40,7 @@ public class StorageLinker extends CachedLinkProvider implements LinkProvider, L
     }
 
     @Override
-    public CompletableFuture<Optional<Long>> queryUserId(@NotNull UUID playerUUID) {
+    public CompletableFuture<Optional<Long>> queryUserId(@NotNull UUID playerUUID, boolean canCauseLink) {
         return CompletableFuture.supplyAsync(() -> {
             Long value = discordSRV.storage().getUserId(playerUUID);
             return Optional.ofNullable(value);
@@ -48,7 +48,7 @@ public class StorageLinker extends CachedLinkProvider implements LinkProvider, L
     }
 
     @Override
-    public CompletableFuture<Optional<UUID>> queryPlayerUUID(long userId) {
+    public CompletableFuture<Optional<UUID>> queryPlayerUUID(long userId, boolean canCauseLink) {
         return CompletableFuture.supplyAsync(() -> {
             UUID value = discordSRV.storage().getPlayerUUID(userId);
             return Optional.ofNullable(value);

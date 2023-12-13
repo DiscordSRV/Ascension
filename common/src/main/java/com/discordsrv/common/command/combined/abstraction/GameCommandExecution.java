@@ -3,6 +3,7 @@ package com.discordsrv.common.command.combined.abstraction;
 import com.discordsrv.common.DiscordSRV;
 import com.discordsrv.common.command.game.abstraction.GameCommandArguments;
 import com.discordsrv.common.command.game.sender.ICommandSender;
+import com.discordsrv.common.player.IPlayer;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.TextComponent;
 import net.kyori.adventure.text.TextReplacementConfig;
@@ -10,6 +11,7 @@ import net.kyori.adventure.text.event.ClickEvent;
 import net.kyori.adventure.text.event.HoverEvent;
 
 import java.util.Collection;
+import java.util.Locale;
 import java.util.regex.Pattern;
 
 public class GameCommandExecution implements CommandExecution {
@@ -25,11 +27,18 @@ public class GameCommandExecution implements CommandExecution {
     private final DiscordSRV discordSRV;
     private final ICommandSender sender;
     private final GameCommandArguments arguments;
+    private final String label;
 
-    public GameCommandExecution(DiscordSRV discordSRV, ICommandSender sender, GameCommandArguments arguments) {
+    public GameCommandExecution(DiscordSRV discordSRV, ICommandSender sender, GameCommandArguments arguments, String label) {
         this.discordSRV = discordSRV;
         this.sender = sender;
         this.arguments = arguments;
+        this.label = label;
+    }
+
+    @Override
+    public Locale locale() {
+        return sender instanceof IPlayer ? ((IPlayer) sender).locale() : null;
     }
 
     @Override
@@ -66,5 +75,13 @@ public class GameCommandExecution implements CommandExecution {
     @Override
     public void runAsync(Runnable runnable) {
         discordSRV.scheduler().run(runnable);
+    }
+
+    public ICommandSender getSender() {
+        return sender;
+    }
+
+    public String getLabel() {
+        return label;
     }
 }

@@ -38,6 +38,7 @@ import com.discordsrv.common.config.main.channels.MinecraftToDiscordChatConfig;
 import com.discordsrv.common.config.main.channels.base.BaseChannelConfig;
 import com.discordsrv.common.future.util.CompletableFutureUtil;
 import com.discordsrv.common.messageforwarding.game.AbstractGameMessageModule;
+import com.discordsrv.common.permission.util.Permission;
 import com.discordsrv.common.player.IPlayer;
 import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.entities.Role;
@@ -126,7 +127,7 @@ public class MinecraftToDiscordChatModule extends AbstractGameMessageModule<Mine
         MentionCachingModule mentionCaching = discordSRV.getModule(MentionCachingModule.class);
 
         if (mentionCaching != null && mentionConfig.users && mentionConfig.uncachedUsers
-                && player.hasPermission("discordsrv.mention.lookup.user")) {
+                && player.hasPermission(Permission.MENTION_USER_LOOKUP)) {
             List<CompletableFuture<List<MentionCachingModule.CachedMention>>> futures = new ArrayList<>();
 
             String messageContent = discordSRV.componentFactory().plainSerializer().serialize(message);
@@ -184,23 +185,23 @@ public class MinecraftToDiscordChatModule extends AbstractGameMessageModule<Mine
                 .collect(Collectors.toList());
 
         List<AllowedMention> allowedMentions = new ArrayList<>();
-        if (mentionConfig.users && player.hasPermission("discordsrv.mention.user")) {
+        if (mentionConfig.users && player.hasPermission(Permission.MENTION_USER)) {
             allowedMentions.add(AllowedMention.ALL_USERS);
         }
         if (mentionConfig.roles) {
-            if (player.hasPermission("discordsrv.mention.roles.mentionable")) {
+            if (player.hasPermission(Permission.MENTION_ROLE_MENTIONABLE)) {
                 for (Role role : guild.getRoles()) {
                     if (role.isMentionable()) {
                         allowedMentions.add(AllowedMention.role(role.getIdLong()));
                     }
                 }
             }
-            if (player.hasPermission("discordsrv.mention.roles.all")) {
+            if (player.hasPermission(Permission.MENTION_ROLE_ALL)) {
                 allowedMentions.add(AllowedMention.ALL_ROLES);
             }
         }
 
-        boolean everyone = mentionConfig.everyone && player.hasPermission("discordsrv.mention.everyone");
+        boolean everyone = mentionConfig.everyone && player.hasPermission(Permission.MENTION_EVERYONE);
         if (everyone) {
             allowedMentions.add(AllowedMention.EVERYONE);
         }

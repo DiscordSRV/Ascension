@@ -20,9 +20,9 @@ package com.discordsrv.common.command.game;
 
 import com.discordsrv.api.DiscordSRVApi;
 import com.discordsrv.common.DiscordSRV;
+import com.discordsrv.common.command.combined.commands.LinkInitCommand;
 import com.discordsrv.common.command.game.abstraction.GameCommand;
 import com.discordsrv.common.command.game.commands.DiscordSRVGameCommand;
-import com.discordsrv.common.command.game.commands.subcommand.LinkCommand;
 import com.discordsrv.common.command.game.handler.ICommandHandler;
 import com.discordsrv.common.config.main.GameCommandConfig;
 import com.discordsrv.common.module.type.AbstractModule;
@@ -43,7 +43,7 @@ public class GameCommandModule extends AbstractModule<DiscordSRV> {
         super(discordSRV);
         this.primaryCommand = DiscordSRVGameCommand.get(discordSRV, "discordsrv");
         this.discordAlias = DiscordSRVGameCommand.get(discordSRV, "discord");
-        this.linkCommand = LinkCommand.get(discordSRV);
+        this.linkCommand = LinkInitCommand.getGame(discordSRV);
 
         registerCommand(primaryCommand);
     }

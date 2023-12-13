@@ -1,26 +1,50 @@
 package com.discordsrv.common.command.combined.abstraction;
 
 import com.discordsrv.api.discord.events.interaction.command.DiscordChatInputInteractionEvent;
+import com.discordsrv.api.discord.events.interaction.command.DiscordCommandAutoCompleteInteractionEvent;
 import com.discordsrv.common.DiscordSRV;
+import net.dv8tion.jda.api.entities.User;
+import net.dv8tion.jda.api.events.interaction.GenericInteractionCreateEvent;
 import net.dv8tion.jda.api.interactions.InteractionHook;
+import net.dv8tion.jda.api.interactions.callbacks.IReplyCallback;
+import net.dv8tion.jda.api.interactions.commands.CommandInteractionPayload;
 import net.dv8tion.jda.api.interactions.commands.OptionMapping;
 import org.apache.commons.lang3.StringUtils;
 
 import java.util.Collection;
 import java.util.EnumMap;
+import java.util.Locale;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
 
 public class DiscordCommandExecution implements CommandExecution {
 
     private final DiscordSRV discordSRV;
-    private final DiscordChatInputInteractionEvent event;
+
+    private final GenericInteractionCreateEvent createEvent;
+    private final CommandInteractionPayload interactionPayload;
+    private final IReplyCallback replyCallback;
+
     private final AtomicBoolean isEphemeral = new AtomicBoolean(true);
     private final AtomicReference<InteractionHook> hook = new AtomicReference<>();
 
     public DiscordCommandExecution(DiscordSRV discordSRV, DiscordChatInputInteractionEvent event) {
         this.discordSRV = discordSRV;
-        this.event = event;
+        this.createEvent = event.asJDA();
+        this.interactionPayload = event.asJDA();
+        this.replyCallback = event.asJDA();
+    }
+
+    public DiscordCommandExecution(DiscordSRV discordSRV, DiscordCommandAutoCompleteInteractionEvent event) {
+        this.discordSRV = discordSRV;
+        this.createEvent = event.asJDA();
+        this.interactionPayload = event.asJDA();
+        this.replyCallback = null;
+    }
+
+    @Override
+    public Locale locale() {
+        return createEvent.getUserLocale().toLocale();
     }
 
     @Override
@@ -30,12 +54,16 @@ public class DiscordCommandExecution implements CommandExecution {
 
     @Override
     public String getArgument(String label) {
-        OptionMapping mapping = event.asJDA().getOption(label);
+        OptionMapping mapping = interactionPayload.getOption(label);
         return mapping != null ? mapping.getAsString() : null;
     }
 
     @Override
     public void send(Collection<Text> texts, Collection<Text> extra) {
+        if (replyCallback == null) {
+            throw new IllegalStateException("May not be used on auto completions");
+        }
+
         StringBuilder builder = new StringBuilder();
         EnumMap<Text.Formatting, Boolean> formats = new EnumMap<>(Text.Formatting.class);
 
@@ -57,7 +85,7 @@ public class DiscordCommandExecution implements CommandExecution {
         if (interactionHook != null) {
             interactionHook.sendMessage(builder.toString()).setEphemeral(ephemeral).queue();
         } else {
-            event.asJDA().reply(builder.toString()).setEphemeral(ephemeral).queue();
+            replyCallback.reply(builder.toString()).setEphemeral(ephemeral).queue();
         }
     }
 
@@ -83,9 +111,13 @@ public class DiscordCommandExecution implements CommandExecution {
 
     @Override
     public void runAsync(Runnable runnable) {
-        event.asJDA().deferReply(isEphemeral.get()).queue(ih -> {
+        replyCallback.deferReply(isEphemeral.get()).queue(ih -> {
             hook.set(ih);
             discordSRV.scheduler().run(runnable);
         });
+    }
+
+    public User getUser() {
+        return createEvent.getUser();
     }
 }
