@@ -21,6 +21,7 @@ package com.discordsrv.common.channel;
 import com.discordsrv.api.DiscordSRVApi;
 import com.discordsrv.api.discord.connection.jda.errorresponse.ErrorCallbackContext;
 import com.discordsrv.common.DiscordSRV;
+import com.discordsrv.common.ServerDiscordSRV;
 import com.discordsrv.common.config.main.TimedUpdaterConfig;
 import com.discordsrv.common.logging.NamedLogger;
 import com.discordsrv.common.module.type.AbstractModule;
@@ -62,7 +63,9 @@ public class TimedUpdaterModule extends AbstractModule<DiscordSRV> {
             return false;
         }
 
-        return super.isEnabled();
+        return super.isEnabled() && discordSRV.isReady() &&
+                (!(discordSRV instanceof ServerDiscordSRV)
+                        || ((ServerDiscordSRV<?, ?, ?, ?>) discordSRV).isServerStarted());
     }
 
     @Override
@@ -85,13 +88,6 @@ public class TimedUpdaterModule extends AbstractModule<DiscordSRV> {
     }
 
     public void update(TimedUpdaterConfig.UpdaterConfig config) {
-        try {
-            // Wait a moment in case we're (re)connecting at the time
-            discordSRV.waitForStatus(DiscordSRV.Status.CONNECTED, 15, TimeUnit.SECONDS);
-        } catch (InterruptedException ignored) {
-            Thread.currentThread().interrupt();
-        }
-
         JDA jda = discordSRV.jda();
         if (jda == null) {
             return;
@@ -112,8 +108,6 @@ public class TimedUpdaterModule extends AbstractModule<DiscordSRV> {
                     ((TimedUpdaterConfig.TextChannelConfig) config).topicFormat
             );
         }
-
-
     }
 
     private void updateChannel(JDA jda, List<Long> channelIds, String nameFormat, String topicFormat) {

@@ -11,6 +11,7 @@ import com.discordsrv.api.discord.entity.message.SendableDiscordMessage;
 import com.discordsrv.api.discord.events.message.DiscordMessageReceiveEvent;
 import com.discordsrv.api.discord.util.DiscordFormattingUtil;
 import com.discordsrv.api.event.bus.Subscribe;
+import com.discordsrv.api.placeholder.PlainPlaceholderFormat;
 import com.discordsrv.api.placeholder.provider.SinglePlaceholder;
 import com.discordsrv.common.DiscordSRV;
 import com.discordsrv.common.command.game.GameCommandExecutionHelper;
@@ -357,10 +358,16 @@ public class SingleConsoleHandler {
                 break;
         }
 
-        String message = discordSRV.placeholderService().replacePlaceholders(
-                config.appender.lineFormat,
-                entry,
-                new SinglePlaceholder("message", parsedMessage)
+        String message = PlainPlaceholderFormat.supplyWith(
+                outputMode == ConsoleConfig.OutputMode.PLAIN_CONTENT
+                    ? PlainPlaceholderFormat.Formatting.DISCORD
+                    : PlainPlaceholderFormat.Formatting.PLAIN,
+                () ->
+                        discordSRV.placeholderService().replacePlaceholders(
+                                config.appender.lineFormat,
+                                entry,
+                                new SinglePlaceholder("message", parsedMessage)
+                        )
         );
 
         Throwable thrown = entry.throwable();

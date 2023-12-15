@@ -34,6 +34,7 @@ import com.discordsrv.api.discord.events.message.DiscordMessageUpdateEvent;
 import com.discordsrv.api.event.bus.Subscribe;
 import com.discordsrv.api.event.events.message.forward.game.AbstractGameMessageForwardedEvent;
 import com.discordsrv.api.event.events.message.receive.discord.DiscordChatMessageReceiveEvent;
+import com.discordsrv.api.placeholder.PlainPlaceholderFormat;
 import com.discordsrv.api.placeholder.provider.SinglePlaceholder;
 import com.discordsrv.common.DiscordSRV;
 import com.discordsrv.common.config.main.channels.MirroringConfig;
@@ -365,6 +366,7 @@ public class DiscordMessageMirroringModule extends AbstractModule<DiscordSRV> {
         String content = Objects.requireNonNull(message.getContent())
                 .replace("[", "\\["); // Block markdown urls
 
+        String finalContent;
         if (replyMessage != null) {
             MessageReference matchingReference = null;
 
@@ -383,19 +385,24 @@ public class DiscordMessageMirroringModule extends AbstractModule<DiscordSRV> {
                     Long.toUnsignedString(matchingReference.messageId)
             ) : replyMessage.getJumpUrl();
 
-            content = discordSRV.placeholderService()
-                    .replacePlaceholders(
-                            config.replyFormat,
-                            replyMessage.getMember(),
-                            replyMessage.getAuthor(),
-                            new SinglePlaceholder("message_jump_url", jumpUrl),
-                            new SinglePlaceholder("message", content)
-                    );
+            finalContent = PlainPlaceholderFormat.supplyWith(
+                    PlainPlaceholderFormat.Formatting.DISCORD,
+                    () -> discordSRV.placeholderService()
+                            .replacePlaceholders(
+                                    config.replyFormat,
+                                    replyMessage.getMember(),
+                                    replyMessage.getAuthor(),
+                                    new SinglePlaceholder("message_jump_url", jumpUrl),
+                                    new SinglePlaceholder("message", content)
+                            )
+            );
+        } else {
+            finalContent = content;
         }
 
         SendableDiscordMessage.Builder builder = SendableDiscordMessage.builder()
                 .setAllowedMentions(Collections.emptyList())
-                .setContent(content.substring(0, Math.min(content.length(), Message.MAX_CONTENT_LENGTH)))
+                .setContent(finalContent.substring(0, Math.min(finalContent.length(), Message.MAX_CONTENT_LENGTH)))
                 .setWebhookUsername(username)
                 .setWebhookAvatarUrl(
                         member != null

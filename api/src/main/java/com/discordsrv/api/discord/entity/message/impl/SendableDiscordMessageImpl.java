@@ -29,7 +29,7 @@ import com.discordsrv.api.discord.entity.message.AllowedMention;
 import com.discordsrv.api.discord.entity.message.DiscordMessageEmbed;
 import com.discordsrv.api.discord.entity.message.SendableDiscordMessage;
 import com.discordsrv.api.discord.util.DiscordFormattingUtil;
-import com.discordsrv.api.placeholder.DiscordPlaceholders;
+import com.discordsrv.api.placeholder.PlainPlaceholderFormat;
 import com.discordsrv.api.placeholder.FormattedText;
 import com.discordsrv.api.placeholder.PlaceholderService;
 import com.discordsrv.api.placeholder.util.Placeholders;
@@ -358,15 +358,17 @@ public class SendableDiscordMessageImpl implements SendableDiscordMessage {
             if (api == null) {
                 throw new IllegalStateException("DiscordSRVApi not available");
             }
-            this.replacements.put(PlaceholderService.PATTERN,
-                    wrapFunction(matcher -> api.placeholderService().getResultAsPlain(matcher, context)));
+            this.replacements.put(
+                    PlaceholderService.PATTERN,
+                    wrapFunction(matcher -> api.placeholderService().getResultAsPlain(matcher, context))
+            );
             return this;
         }
 
         private Function<Matcher, Object> wrapFunction(Function<Matcher, Object> function) {
             return matcher -> {
                 Object result = function.apply(matcher);
-                if (result instanceof FormattedText || DiscordPlaceholders.FORMATTING.get() != DiscordPlaceholders.Formatting.NORMAL) {
+                if (result instanceof FormattedText || PlainPlaceholderFormat.FORMATTING.get() != PlainPlaceholderFormat.Formatting.DISCORD) {
                     // Process as regular text
                     return result.toString();
                 } else if (result instanceof CharSequence) {
@@ -413,7 +415,11 @@ public class SendableDiscordMessageImpl implements SendableDiscordMessage {
                 return output.isEmpty() ? null : output;
             };
 
-            builder.setContent(discordPlaceholders.apply(builder.getContent()));
+
+            PlainPlaceholderFormat.with(
+                    PlainPlaceholderFormat.Formatting.DISCORD,
+                    () -> builder.setContent(discordPlaceholders.apply(builder.getContent()))
+            );
 
             List<DiscordMessageEmbed> embeds = new ArrayList<>(builder.getEmbeds());
             embeds.forEach(builder::removeEmbed);
@@ -421,70 +427,67 @@ public class SendableDiscordMessageImpl implements SendableDiscordMessage {
             for (DiscordMessageEmbed embed : embeds) {
                 DiscordMessageEmbed.Builder embedBuilder = embed.toBuilder();
 
-                // TODO: check which parts allow formatting more thoroughly
-                DiscordPlaceholders.with(DiscordPlaceholders.Formatting.PLAIN, () -> {
-                    embedBuilder.setAuthor(
-                            cutToLength(
-                                    placeholders.apply(embedBuilder.getAuthorName()),
-                                    MessageEmbed.AUTHOR_MAX_LENGTH
-                            ),
-                            placeholders.apply(embedBuilder.getAuthorUrl()),
-                            placeholders.apply(embedBuilder.getAuthorImageUrl()));
+                embedBuilder.setAuthor(
+                        cutToLength(
+                                placeholders.apply(embedBuilder.getAuthorName()),
+                                MessageEmbed.AUTHOR_MAX_LENGTH
+                        ),
+                        placeholders.apply(embedBuilder.getAuthorUrl()),
+                        placeholders.apply(embedBuilder.getAuthorImageUrl()));
 
-                    embedBuilder.setTitle(
-                            cutToLength(
-                                    placeholders.apply(embedBuilder.getTitle()),
-                                    MessageEmbed.TITLE_MAX_LENGTH
-                            ),
-                            placeholders.apply(embedBuilder.getTitleUrl())
-                    );
+                embedBuilder.setTitle(
+                        cutToLength(
+                                placeholders.apply(embedBuilder.getTitle()),
+                                MessageEmbed.TITLE_MAX_LENGTH
+                        ),
+                        placeholders.apply(embedBuilder.getTitleUrl())
+                );
 
-                    embedBuilder.setThumbnailUrl(
-                            placeholders.apply(embedBuilder.getThumbnailUrl())
-                    );
+                embedBuilder.setThumbnailUrl(
+                        placeholders.apply(embedBuilder.getThumbnailUrl())
+                );
 
-                    embedBuilder.setImageUrl(
-                            placeholders.apply(embedBuilder.getImageUrl())
-                    );
+                embedBuilder.setImageUrl(
+                        placeholders.apply(embedBuilder.getImageUrl())
+                );
 
-                    embedBuilder.setFooter(
-                            cutToLength(
-                                    placeholders.apply(embedBuilder.getFooter()),
-                                    MessageEmbed.TEXT_MAX_LENGTH
-                            ),
-                            placeholders.apply(embedBuilder.getFooterImageUrl())
-                    );
-                });
+                embedBuilder.setFooter(
+                        cutToLength(
+                                placeholders.apply(embedBuilder.getFooter()),
+                                MessageEmbed.TEXT_MAX_LENGTH
+                        ),
+                        placeholders.apply(embedBuilder.getFooterImageUrl())
+                );
 
-                embedBuilder.setDescription(
+                PlainPlaceholderFormat.with(PlainPlaceholderFormat.Formatting.DISCORD, () -> embedBuilder.setDescription(
                         cutToLength(
                                 discordPlaceholders.apply(embedBuilder.getDescription()),
                                 MessageEmbed.DESCRIPTION_MAX_LENGTH
                         )
-                );
+                ));
 
                 List<DiscordMessageEmbed.Field> fields = new ArrayList<>(embedBuilder.getFields());
                 embedBuilder.getFields().clear();
 
-                fields.forEach(field -> embedBuilder.addField(
-                        cutToLength(
-                                placeholders.apply(field.getTitle()),
-                                MessageEmbed.TITLE_MAX_LENGTH
-                        ),
-                        cutToLength(
-                                placeholders.apply(field.getValue()),
-                                MessageEmbed.VALUE_MAX_LENGTH
-                        ),
-                        field.isInline()
-                ));
+                PlainPlaceholderFormat.with(PlainPlaceholderFormat.Formatting.DISCORD, () ->
+                        fields.forEach(field -> embedBuilder.addField(
+                                cutToLength(
+                                        placeholders.apply(field.getTitle()),
+                                        MessageEmbed.TITLE_MAX_LENGTH
+                                ),
+                                cutToLength(
+                                        placeholders.apply(field.getValue()),
+                                        MessageEmbed.VALUE_MAX_LENGTH
+                                ),
+                                field.isInline()
+                        ))
+                );
 
                 builder.addEmbed(embedBuilder.build());
             }
 
-            DiscordPlaceholders.with(DiscordPlaceholders.Formatting.PLAIN, () -> {
-                builder.setWebhookUsername(placeholders.apply(builder.getWebhookUsername()));
-                builder.setWebhookAvatarUrl(placeholders.apply(builder.getWebhookAvatarUrl()));
-            });
+            builder.setWebhookUsername(placeholders.apply(builder.getWebhookUsername()));
+            builder.setWebhookAvatarUrl(placeholders.apply(builder.getWebhookAvatarUrl()));
 
             return builder.build();
         }

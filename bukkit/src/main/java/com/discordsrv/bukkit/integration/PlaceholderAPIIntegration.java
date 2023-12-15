@@ -21,6 +21,7 @@ package com.discordsrv.bukkit.integration;
 import com.discordsrv.api.event.bus.Subscribe;
 import com.discordsrv.api.event.events.placeholder.PlaceholderLookupEvent;
 import com.discordsrv.api.placeholder.PlaceholderLookupResult;
+import com.discordsrv.api.placeholder.PlainPlaceholderFormat;
 import com.discordsrv.api.player.DiscordSRVPlayer;
 import com.discordsrv.api.profile.IProfile;
 import com.discordsrv.bukkit.BukkitDiscordSRV;
@@ -28,6 +29,7 @@ import com.discordsrv.common.module.type.PluginIntegration;
 import com.discordsrv.common.player.IOfflinePlayer;
 import me.clip.placeholderapi.PlaceholderAPI;
 import me.clip.placeholderapi.expansion.PlaceholderExpansion;
+import net.kyori.adventure.platform.bukkit.BukkitComponentSerializer;
 import org.bukkit.OfflinePlayer;
 import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
@@ -110,7 +112,7 @@ public class PlaceholderAPIIntegration extends PluginIntegration<BukkitDiscordSR
             return;
         }
 
-        event.process(PlaceholderLookupResult.success(result));
+        event.process(PlaceholderLookupResult.success(BukkitComponentSerializer.legacy().deserialize(result)));
     }
 
     public class Expansion extends PlaceholderExpansion {
@@ -164,7 +166,10 @@ public class PlaceholderAPIIntegration extends PluginIntegration<BukkitDiscordSR
             }
 
             String placeholder = "%" + params + "%";
-            String result = discordSRV.placeholderService().replacePlaceholders(placeholder, context);
+            String result = PlainPlaceholderFormat.supplyWith(
+                    PlainPlaceholderFormat.Formatting.LEGACY,
+                    () -> discordSRV.placeholderService().replacePlaceholders(placeholder, context)
+            );
             return placeholder.equals(result) ? null : result;
         }
     }

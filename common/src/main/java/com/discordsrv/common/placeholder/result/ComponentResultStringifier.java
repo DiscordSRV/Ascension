@@ -19,12 +19,13 @@
 package com.discordsrv.common.placeholder.result;
 
 import com.discordsrv.api.component.MinecraftComponent;
-import com.discordsrv.api.placeholder.DiscordPlaceholders;
+import com.discordsrv.api.placeholder.PlainPlaceholderFormat;
 import com.discordsrv.api.placeholder.FormattedText;
 import com.discordsrv.api.placeholder.mapper.PlaceholderResultMapper;
 import com.discordsrv.common.DiscordSRV;
 import com.discordsrv.common.component.util.ComponentUtil;
 import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer;
 import org.jetbrains.annotations.NotNull;
 
 public class ComponentResultStringifier implements PlaceholderResultMapper {
@@ -42,15 +43,17 @@ public class ComponentResultStringifier implements PlaceholderResultMapper {
         }
         if (result instanceof Component) {
             Component component = (Component) result;
-            DiscordPlaceholders.Formatting mappingState = DiscordPlaceholders.FORMATTING.get();
+            PlainPlaceholderFormat.Formatting mappingState = PlainPlaceholderFormat.FORMATTING.get();
             switch (mappingState) {
-                case ANSI:
-                    return discordSRV.componentFactory().ansiSerializer().serialize(component);
+                default:
                 case PLAIN:
                     return discordSRV.componentFactory().plainSerializer().serialize(component);
-                default:
-                case NORMAL:
+                case DISCORD:
                     return new FormattedText(discordSRV.componentFactory().discordSerializer().serialize(component));
+                case ANSI:
+                    return discordSRV.componentFactory().ansiSerializer().serialize(component);
+                case LEGACY:
+                    return LegacyComponentSerializer.legacySection().serialize(component);
             }
         }
         return null;

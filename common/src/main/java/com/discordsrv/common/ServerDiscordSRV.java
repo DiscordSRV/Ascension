@@ -38,6 +38,8 @@ public abstract class ServerDiscordSRV<
         MC extends MessagesConfig
 > extends AbstractDiscordSRV<B, C, CC, MC> {
 
+    private boolean serverStarted = false;
+
     public ServerDiscordSRV(B bootstrap) {
         super(bootstrap);
     }
@@ -79,6 +81,12 @@ public abstract class ServerDiscordSRV<
 
     @OverridingMethodsMustInvokeSuper
     protected void serverStarted() {
+        serverStarted = true;
+        moduleManager().reload();
         startedMessage();
+    }
+
+    public boolean isServerStarted() {
+        return serverStarted;
     }
 }

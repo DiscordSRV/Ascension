@@ -24,6 +24,7 @@ import com.discordsrv.api.discord.connection.details.DiscordGatewayIntent;
 import com.discordsrv.api.discord.connection.details.DiscordMemberCachePolicy;
 import com.discordsrv.api.event.bus.EventPriority;
 import com.discordsrv.api.event.bus.Subscribe;
+import com.discordsrv.api.event.events.lifecycle.DiscordSRVReadyEvent;
 import com.discordsrv.api.event.events.lifecycle.DiscordSRVShuttingDownEvent;
 import com.discordsrv.api.module.type.Module;
 import com.discordsrv.common.DiscordSRV;
@@ -183,6 +184,11 @@ public class ModuleManager {
                 .forEachOrdered(module -> disable(getAbstract(module)));
     }
 
+    @Subscribe
+    public void onDiscordSRVReady(DiscordSRVReadyEvent event) {
+        reload();
+    }
+
     public List<DiscordSRV.ReloadResult> reload() {
         JDAConnectionManager connectionManager = discordSRV.discordConnectionManager();
 
@@ -216,6 +222,7 @@ public class ModuleManager {
             }
             if (!abstractModule.isEnabled()) {
                 disable(abstractModule);
+                continue;
             }
 
             try {

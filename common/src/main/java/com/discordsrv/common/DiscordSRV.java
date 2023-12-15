@@ -20,7 +20,7 @@ package com.discordsrv.common;
 
 import com.discordsrv.api.DiscordSRVApi;
 import com.discordsrv.api.module.type.Module;
-import com.discordsrv.api.placeholder.DiscordPlaceholders;
+import com.discordsrv.api.placeholder.PlainPlaceholderFormat;
 import com.discordsrv.common.bootstrap.IBootstrap;
 import com.discordsrv.common.channel.ChannelConfigHelper;
 import com.discordsrv.common.command.game.GameCommandExecutionHelper;
@@ -97,7 +97,7 @@ public interface DiscordSRV extends DiscordSRVApi {
 
     @Override
     @NotNull
-    DiscordPlaceholders discordPlaceholders();
+    PlainPlaceholderFormat discordPlaceholders();
 
     @Override
     @NotNull

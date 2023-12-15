@@ -18,7 +18,7 @@
 
 package com.discordsrv.common.placeholder;
 
-import com.discordsrv.api.placeholder.DiscordPlaceholders;
+import com.discordsrv.api.placeholder.PlainPlaceholderFormat;
 import dev.vankka.mcdiscordreserializer.rules.DiscordMarkdownRules;
 import dev.vankka.simpleast.core.TextStyle;
 import dev.vankka.simpleast.core.node.Node;
@@ -32,7 +32,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Function;
 
-public class DiscordPlaceholdersImpl implements DiscordPlaceholders {
+public class DiscordPlaceholdersImpl implements PlainPlaceholderFormat {
 
     private final Parser<Object, Node<Object>, Object> parser;
 
@@ -58,7 +58,7 @@ public class DiscordPlaceholdersImpl implements DiscordPlaceholders {
             } else if (node instanceof StyleNode) {
                 String content = text.toString();
                 text.setLength(0);
-                finalText.append(placeholders.apply(content));
+                PlainPlaceholderFormat.with(Formatting.DISCORD, () -> finalText.append(placeholders.apply(content)));
 
                 for (Object style : ((StyleNode<?, ?>) node).getStyles()) {
                     if (!(style instanceof TextStyle)) {
@@ -69,24 +69,23 @@ public class DiscordPlaceholdersImpl implements DiscordPlaceholders {
                     String childText = ((TextNode<?>) node.getChildren().get(0)).getContent();
 
                     if (textStyle.getType() == TextStyle.Type.CODE_STRING) {
-                        DiscordPlaceholders.with(Formatting.PLAIN, () -> finalText.append("`").append(placeholders.apply(childText)).append("`"));
+                        finalText.append("`").append(placeholders.apply(childText)).append("`");
                     } else if (textStyle.getType() == TextStyle.Type.CODE_BLOCK) {
                         String language = textStyle.getExtra().get("language");
 
                         if (language != null && language.equals("ansi")) {
-                            DiscordPlaceholders.with(Formatting.ANSI, () -> finalText
+                            PlainPlaceholderFormat.with(Formatting.ANSI, () -> finalText
                                     .append("```ansi\n")
                                     .append(placeholders.apply(childText))
                                     .append("```")
                             );
                         } else {
-                            DiscordPlaceholders.with(Formatting.PLAIN, () -> finalText
+                            finalText
                                     .append("```")
                                     .append(language != null ? language : "")
                                     .append("\n")
                                     .append(placeholders.apply(childText))
-                                    .append("```")
-                            );
+                                    .append("```");
                         }
                     }
                 }

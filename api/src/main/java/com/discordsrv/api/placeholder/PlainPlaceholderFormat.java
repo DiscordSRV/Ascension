@@ -24,25 +24,35 @@
 package com.discordsrv.api.placeholder;
 
 import java.util.function.Function;
+import java.util.function.Supplier;
 
 /**
  * A helper class to handle replacing placeholders with Discord code blocks.
  */
-public interface DiscordPlaceholders {
+public interface PlainPlaceholderFormat {
 
-    ThreadLocal<Formatting> FORMATTING = ThreadLocal.withInitial(() -> Formatting.NORMAL);
+    ThreadLocal<Formatting> FORMATTING = ThreadLocal.withInitial(() -> Formatting.PLAIN);
 
     static void with(Formatting formatting, Runnable runnable) {
+        supplyWith(formatting, () -> {
+            runnable.run();
+            return null;
+        });
+    }
+
+    static <T> T supplyWith(Formatting formatting, Supplier<T> supplier) {
         Formatting before = FORMATTING.get();
         FORMATTING.set(formatting);
-        runnable.run();
+        T value = supplier.get();
         FORMATTING.set(before);
+        return value;
     }
 
     enum Formatting {
-        NORMAL,
         PLAIN,
-        ANSI
+        DISCORD,
+        ANSI,
+        LEGACY
     }
 
     String map(String input, Function<String, String> placeholders);
