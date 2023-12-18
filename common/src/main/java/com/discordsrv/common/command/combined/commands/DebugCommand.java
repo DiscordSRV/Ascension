@@ -31,7 +31,7 @@ import com.discordsrv.common.paste.Paste;
 import com.discordsrv.common.paste.PasteService;
 import com.discordsrv.common.paste.service.AESEncryptedPasteService;
 import com.discordsrv.common.paste.service.BytebinPasteService;
-import com.discordsrv.common.permission.util.Permission;
+import com.discordsrv.common.permission.Permission;
 import net.kyori.adventure.text.format.NamedTextColor;
 
 import java.nio.charset.StandardCharsets;

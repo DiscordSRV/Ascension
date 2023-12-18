@@ -28,7 +28,7 @@ import com.discordsrv.common.command.game.commands.subcommand.BroadcastCommand;
 import com.discordsrv.common.command.game.commands.subcommand.reload.ReloadCommand;
 import com.discordsrv.common.command.game.sender.ICommandSender;
 import com.discordsrv.common.component.util.ComponentUtil;
-import com.discordsrv.common.permission.util.Permission;
+import com.discordsrv.common.permission.Permission;
 
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;

@@ -6,7 +6,7 @@ import com.discordsrv.common.command.combined.abstraction.DiscordCommandExecutio
 import com.discordsrv.common.command.combined.abstraction.GameCommandExecution;
 import com.discordsrv.common.command.game.sender.ICommandSender;
 import com.discordsrv.common.config.messages.MessagesConfig;
-import com.discordsrv.common.permission.util.Permission;
+import com.discordsrv.common.permission.Permission;
 import com.discordsrv.common.player.IPlayer;
 import net.dv8tion.jda.api.JDA;
 import net.dv8tion.jda.api.entities.User;

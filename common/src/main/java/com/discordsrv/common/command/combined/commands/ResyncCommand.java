@@ -12,7 +12,7 @@ import com.discordsrv.common.future.util.CompletableFutureUtil;
 import com.discordsrv.common.groupsync.GroupSyncModule;
 import com.discordsrv.common.groupsync.enums.GroupSyncCause;
 import com.discordsrv.common.groupsync.enums.GroupSyncResult;
-import com.discordsrv.common.permission.util.Permission;
+import com.discordsrv.common.permission.Permission;
 import com.discordsrv.common.player.IPlayer;
 import net.kyori.adventure.text.format.NamedTextColor;
 

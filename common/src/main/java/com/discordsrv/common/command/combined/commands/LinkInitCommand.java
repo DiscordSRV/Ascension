@@ -14,7 +14,7 @@ import com.discordsrv.common.command.util.CommandUtil;
 import com.discordsrv.common.component.util.ComponentUtil;
 import com.discordsrv.common.linking.LinkProvider;
 import com.discordsrv.common.linking.LinkStore;
-import com.discordsrv.common.permission.util.Permission;
+import com.discordsrv.common.permission.Permission;
 import com.discordsrv.common.player.IPlayer;
 import com.github.benmanes.caffeine.cache.Cache;
 import net.kyori.adventure.text.format.NamedTextColor;

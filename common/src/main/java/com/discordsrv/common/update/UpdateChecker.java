@@ -25,7 +25,7 @@ import com.discordsrv.common.config.connection.UpdateConfig;
 import com.discordsrv.common.debug.data.VersionInfo;
 import com.discordsrv.common.exception.MessageException;
 import com.discordsrv.common.logging.NamedLogger;
-import com.discordsrv.common.permission.util.Permission;
+import com.discordsrv.common.permission.Permission;
 import com.discordsrv.common.player.IPlayer;
 import com.discordsrv.common.player.event.PlayerConnectedEvent;
 import com.discordsrv.common.update.github.GitHubCompareResponse;

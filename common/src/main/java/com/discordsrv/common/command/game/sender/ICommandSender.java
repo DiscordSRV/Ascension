@@ -19,7 +19,7 @@
 package com.discordsrv.common.command.game.sender;
 
 import com.discordsrv.common.command.game.executor.CommandExecutor;
-import com.discordsrv.common.permission.util.Permission;
+import com.discordsrv.common.permission.Permission;
 import net.kyori.adventure.audience.ForwardingAudience;
 
 public interface ICommandSender extends ForwardingAudience.Single, CommandExecutor {

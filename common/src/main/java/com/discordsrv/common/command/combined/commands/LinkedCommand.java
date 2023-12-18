@@ -9,7 +9,7 @@ import com.discordsrv.common.command.combined.abstraction.CommandExecution;
 import com.discordsrv.common.command.combined.abstraction.Text;
 import com.discordsrv.common.command.game.abstraction.GameCommand;
 import com.discordsrv.common.command.util.CommandUtil;
-import com.discordsrv.common.permission.util.Permission;
+import com.discordsrv.common.permission.Permission;
 
 import java.util.UUID;
 

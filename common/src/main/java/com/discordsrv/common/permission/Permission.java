@@ -1,4 +1,4 @@
-package com.discordsrv.common.permission.util;
+package com.discordsrv.common.permission;
 
 public enum Permission {
 
