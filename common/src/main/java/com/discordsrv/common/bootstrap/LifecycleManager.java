@@ -22,7 +22,6 @@ import com.discordsrv.api.DiscordSRVApi;
 import com.discordsrv.common.DiscordSRV;
 import com.discordsrv.common.dependency.DependencyLoader;
 import com.discordsrv.common.logging.Logger;
-import com.discordsrv.common.scheduler.threadfactory.CountingForkJoinWorkerThreadFactory;
 import dev.vankka.dependencydownload.classpath.ClasspathAppender;
 
 import java.io.IOException;
@@ -33,13 +32,14 @@ import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
-import java.util.concurrent.ForkJoinPool;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import java.util.function.Supplier;
 
 public class LifecycleManager {
 
     private final Logger logger;
-    private final ForkJoinPool taskPool;
+    private final ExecutorService taskPool;
     private final DependencyLoader dependencyLoader;
     private final CompletableFuture<?> completableFuture;
 
@@ -50,12 +50,7 @@ public class LifecycleManager {
             ClasspathAppender classpathAppender
     ) throws IOException {
         this.logger = logger;
-        this.taskPool = new ForkJoinPool(
-                Runtime.getRuntime().availableProcessors(),
-                new CountingForkJoinWorkerThreadFactory("DiscordSRV Initialization #%s"),
-                null,
-                false
-        );
+        this.taskPool = Executors.newSingleThreadExecutor(runnable -> new Thread(runnable, "DiscordSRV Initialization"));
 
         List<String> resourcePaths = new ArrayList<>(Collections.singletonList(
                 "dependencies/runtimeDownload-common.txt"
@@ -74,22 +69,24 @@ public class LifecycleManager {
     }
 
     public void loadAndEnable(Supplier<DiscordSRV> discordSRVSupplier) {
-        load();
-        enable(discordSRVSupplier);
+        if (load()) {
+            enable(discordSRVSupplier);
+        }
     }
 
-    public void load() {
+    private boolean load() {
         try {
             completableFuture.get();
-        } catch (ExecutionException | InterruptedException e) {
-            logger.error("Failed to download dependencies", e);
+            return true;
+        } catch (InterruptedException ignored) {
+            Thread.currentThread().interrupt();
+        } catch (ExecutionException e) {
+            logger.error("Failed to download dependencies", e.getCause());
         }
+        return false;
     }
 
-    public void enable(Supplier<DiscordSRV> discordSRVSupplier) {
-        if (!completableFuture.isDone()) {
-            return;
-        }
+    private void enable(Supplier<DiscordSRV> discordSRVSupplier) {
         discordSRVSupplier.get().runEnable();
     }
 
@@ -114,7 +111,9 @@ public class LifecycleManager {
             discordSRV.invokeDisable().get(/*15, TimeUnit.SECONDS*/);
         } catch (InterruptedException/* | TimeoutException*/ e) {
             logger.warning("Timed out/interrupted shutting down DiscordSRV");
-        } catch (ExecutionException ignored) {}
+        } catch (ExecutionException e) {
+            logger.error("Failed to disable", e.getCause());
+        }
     }
 
     public DependencyLoader getDependencyLoader() {

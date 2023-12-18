@@ -205,9 +205,7 @@ public abstract class AbstractDiscordSRV<
                 .addInterceptor(chain -> {
                     Request original = chain.request();
                     String host = original.url().host();
-                    boolean isDiscord = host.endsWith("discord.com")
-                            || host.endsWith("discordapp.com")
-                            || host.endsWith("discord.gg");
+                    boolean isDiscord = host.matches("(.*\\.|^)(?:discord\\.(?:com|gg)|(discordapp\\.com))");
 
                     String userAgent = isDiscord
                                        ? "DiscordBot (https://github.com/DiscordSRV/DiscordSRV, " + versionInfo().version() + ")"

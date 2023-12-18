@@ -65,7 +65,7 @@ public class DiscordSRVSpongeBootstrap extends AbstractBootstrap implements ISpo
 
     @Override
     public void onConstruct() {
-        lifecycleManager.load();
+        lifecycleManager.loadAndEnable(() -> this.discordSRV = new SpongeDiscordSRV(this));
 
         this.commandHandler = new SpongeCommandHandler(() -> discordSRV, pluginContainer);
         game.eventManager().registerListeners(pluginContainer, commandHandler);
@@ -73,7 +73,6 @@ public class DiscordSRVSpongeBootstrap extends AbstractBootstrap implements ISpo
 
     @Override
     public void onStarted() {
-        lifecycleManager.enable(() -> this.discordSRV = new SpongeDiscordSRV(this));
         if (discordSRV != null) {
             discordSRV.invokeServerStarted();
         }

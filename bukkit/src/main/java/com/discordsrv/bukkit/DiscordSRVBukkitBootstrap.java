@@ -76,12 +76,18 @@ public class DiscordSRVBukkitBootstrap extends BukkitBootstrap implements IBoots
         } catch (ClassNotFoundException ignored) {}
 
         if (isFolia) {
-            discordSRV.invokeServerStarted();
+            if (discordSRV != null) {
+                discordSRV.invokeServerStarted();
+            }
             return;
         }
 
         // Run a task on the main thread 1 tick later, so essentially when the server has finished booting
-        getPlugin().getServer().getScheduler().runTaskLater(getPlugin(), () -> discordSRV.invokeServerStarted(), 1L);
+        getPlugin().getServer().getScheduler().runTaskLater(getPlugin(), () -> {
+            if (discordSRV != null) {
+                discordSRV.invokeServerStarted();
+            }
+        }, 1L);
     }
 
     @Override
