@@ -18,8 +18,8 @@
 
 package com.discordsrv.common.command.combined.commands;
 
-import com.discordsrv.api.discord.entity.interaction.command.DiscordCommand;
 import com.discordsrv.api.discord.entity.interaction.command.CommandOption;
+import com.discordsrv.api.discord.entity.interaction.command.DiscordCommand;
 import com.discordsrv.api.discord.entity.interaction.component.ComponentIdentifier;
 import com.discordsrv.common.DiscordSRV;
 import com.discordsrv.common.command.combined.abstraction.CombinedCommand;

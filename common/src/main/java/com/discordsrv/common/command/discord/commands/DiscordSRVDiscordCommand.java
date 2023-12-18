@@ -6,6 +6,7 @@ import com.discordsrv.common.DiscordSRV;
 import com.discordsrv.common.command.combined.commands.*;
 import com.discordsrv.common.command.discord.commands.subcommand.ExecuteCommand;
 import com.discordsrv.common.config.main.DiscordCommandConfig;
+import com.discordsrv.common.linking.LinkStore;
 
 public class DiscordSRVDiscordCommand {
 
@@ -21,11 +22,13 @@ public class DiscordSRVDiscordCommand {
                     .addSubCommand(DebugCommand.getDiscord(discordSRV))
                     .addSubCommand(VersionCommand.getDiscord(discordSRV))
                     .addSubCommand(ResyncCommand.getDiscord(discordSRV))
-                    .addSubCommand(LinkInitCommand.getDiscord(discordSRV))
                     .addSubCommand(LinkedCommand.getDiscord(discordSRV));
 
             if (config.execute.enabled) {
                 builder = builder.addSubCommand(ExecuteCommand.get(discordSRV));
+            }
+            if (discordSRV.linkProvider() instanceof LinkStore) {
+                builder = builder.addSubCommand(LinkInitCommand.getDiscord(discordSRV));
             }
 
             INSTANCE = builder

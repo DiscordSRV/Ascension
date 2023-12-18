@@ -74,13 +74,17 @@ public class LinkedCommand extends CombinedCommand {
         }
 
         if (result.isPlayer()) {
-            execution.runAsync(() -> discordSRV.linkProvider().getUserId(result.getPlayerUUID()).whenComplete((userId, t) -> {
-                execution.send(new Text(userId.map(Long::toUnsignedString).orElse("Not linked"))); // TODO: username
-            }));
+            execution.runAsync(() -> {
+                discordSRV.linkProvider().getUserId(result.getPlayerUUID()).whenComplete((userId, t) -> {
+                    execution.send(new Text(userId.map(Long::toUnsignedString).orElse("Not linked"))); // TODO: username
+                });
+            });
         } else {
-            execution.runAsync(() -> discordSRV.linkProvider().getPlayerUUID(result.getUserId()).whenComplete((playerUUID, t) -> {
-                execution.send(new Text(playerUUID.map(UUID::toString).orElse("Not linked"))); // TODO: player name
-            }));
+            execution.runAsync(() -> {
+                discordSRV.linkProvider().getPlayerUUID(result.getUserId()).whenComplete((playerUUID, t) -> {
+                    execution.send(new Text(playerUUID.map(UUID::toString).orElse("Not linked"))); // TODO: player name
+                });
+            });
         }
     }
 }

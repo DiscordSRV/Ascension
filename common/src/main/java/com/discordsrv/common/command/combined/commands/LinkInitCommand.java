@@ -7,6 +7,7 @@ import com.discordsrv.common.DiscordSRV;
 import com.discordsrv.common.command.combined.abstraction.CombinedCommand;
 import com.discordsrv.common.command.combined.abstraction.CommandExecution;
 import com.discordsrv.common.command.combined.abstraction.GameCommandExecution;
+import com.discordsrv.common.command.combined.abstraction.Text;
 import com.discordsrv.common.command.game.abstraction.GameCommand;
 import com.discordsrv.common.command.game.sender.ICommandSender;
 import com.discordsrv.common.command.util.CommandUtil;
@@ -16,6 +17,7 @@ import com.discordsrv.common.linking.LinkStore;
 import com.discordsrv.common.permission.util.Permission;
 import com.discordsrv.common.player.IPlayer;
 import com.github.benmanes.caffeine.cache.Cache;
+import net.kyori.adventure.text.format.NamedTextColor;
 import org.apache.commons.lang3.StringUtils;
 
 import java.util.UUID;
@@ -93,7 +95,7 @@ public class LinkInitCommand extends CombinedCommand {
                 if (sender instanceof IPlayer) {
                     startLinking((IPlayer) sender, ((GameCommandExecution) execution).getLabel());
                 } else {
-                    // TODO: please specify player+user
+                    sender.sendMessage(execution.messages().minecraft.pleaseSpecifyPlayerAndUserToLink.asComponent());
                 }
                 return;
             }
@@ -106,25 +108,44 @@ public class LinkInitCommand extends CombinedCommand {
 
         LinkProvider linkProvider = discordSRV.linkProvider();
         if (!(linkProvider instanceof LinkStore)) {
-            // TODO: not allowed
+            execution.send(new Text("Cannot create links using this link provider").withGameColor(NamedTextColor.DARK_RED));
             return;
         }
 
         UUID playerUUID = CommandUtil.lookupPlayer(discordSRV, execution, false, playerArgument, null);
         if (playerUUID == null) {
-            // TODO: player not found
+            execution.send(
+                    execution.messages().minecraft.playerNotFound.asComponent(),
+                    execution.messages().discord.playerNotFound
+            );
             return;
         }
 
         Long userId = CommandUtil.lookupUser(discordSRV, execution, false, userArgument, null);
         if (userId == null) {
-            // TODO: user not found
+            execution.send(
+                    execution.messages().minecraft.userNotFound.asComponent(),
+                    execution.messages().discord.userNotFound
+            );
             return;
         }
 
         linkProvider.queryUserId(playerUUID).thenCompose(opt -> {
             if (opt.isPresent()) {
-                // TODO: already linked
+                execution.send(
+                        execution.messages().minecraft.playerAlreadyLinked3rd.asComponent(),
+                        execution.messages().discord.playerAlreadyLinked3rd
+                );
+                return null;
+            }
+
+            return linkProvider.queryPlayerUUID(userId);
+        }).thenCompose(opt -> {
+            if (opt.isPresent()) {
+                execution.send(
+                        execution.messages().minecraft.userAlreadyLinked3rd.asComponent(),
+                        execution.messages().discord.userAlreadyLinked3rd
+                );
                 return null;
             }
 
@@ -135,14 +156,17 @@ public class LinkInitCommand extends CombinedCommand {
                 return;
             }
 
-            // TODO: it did work
+            execution.send(
+                    execution.messages().minecraft.nowLinked3rd.asComponent(),
+                    execution.messages().discord.nowLinked3rd
+            );
         });
     }
 
     private void startLinking(IPlayer player, String label) {
         LinkProvider linkProvider = discordSRV.linkProvider();
         if (linkProvider.getCachedUserId(player.uniqueId()).isPresent()) {
-            player.sendMessage(discordSRV.messagesConfig(player).alreadyLinked.asComponent());
+            player.sendMessage(discordSRV.messagesConfig(player).alreadyLinked1st.asComponent());
             return;
         }
 
@@ -159,7 +183,7 @@ public class LinkInitCommand extends CombinedCommand {
                 return;
             }
             if (userId.isPresent()) {
-                player.sendMessage(discordSRV.messagesConfig(player).youAreNowLinked.asComponent());
+                player.sendMessage(discordSRV.messagesConfig(player).nowLinked1st.asComponent());
                 return;
             }
 

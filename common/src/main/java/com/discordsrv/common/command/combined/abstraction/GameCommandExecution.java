@@ -3,6 +3,7 @@ package com.discordsrv.common.command.combined.abstraction;
 import com.discordsrv.common.DiscordSRV;
 import com.discordsrv.common.command.game.abstraction.GameCommandArguments;
 import com.discordsrv.common.command.game.sender.ICommandSender;
+import com.discordsrv.common.config.messages.MessagesConfig;
 import com.discordsrv.common.player.IPlayer;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.TextComponent;
@@ -42,6 +43,11 @@ public class GameCommandExecution implements CommandExecution {
     }
 
     @Override
+    public MessagesConfig messages() {
+        return discordSRV.messagesConfig(locale());
+    }
+
+    @Override
     public void setEphemeral(boolean ephemeral) {
         // NO-OP
     }
@@ -58,6 +64,11 @@ public class GameCommandExecution implements CommandExecution {
             builder.hoverEvent(HoverEvent.showText(render(extra)));
         }
         sender.sendMessage(builder.build().replaceText(URL_REPLACEMENT));
+    }
+
+    @Override
+    public void send(Component minecraft, String discord) {
+        sender.sendMessage(minecraft);
     }
 
     private TextComponent.Builder render(Collection<Text> texts) {

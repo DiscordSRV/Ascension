@@ -3,12 +3,14 @@ package com.discordsrv.common.command.combined.abstraction;
 import com.discordsrv.api.discord.events.interaction.command.DiscordChatInputInteractionEvent;
 import com.discordsrv.api.discord.events.interaction.command.DiscordCommandAutoCompleteInteractionEvent;
 import com.discordsrv.common.DiscordSRV;
+import com.discordsrv.common.config.messages.MessagesConfig;
 import net.dv8tion.jda.api.entities.User;
 import net.dv8tion.jda.api.events.interaction.GenericInteractionCreateEvent;
 import net.dv8tion.jda.api.interactions.InteractionHook;
 import net.dv8tion.jda.api.interactions.callbacks.IReplyCallback;
 import net.dv8tion.jda.api.interactions.commands.CommandInteractionPayload;
 import net.dv8tion.jda.api.interactions.commands.OptionMapping;
+import net.kyori.adventure.text.Component;
 import org.apache.commons.lang3.StringUtils;
 
 import java.util.Collection;
@@ -48,6 +50,11 @@ public class DiscordCommandExecution implements CommandExecution {
     }
 
     @Override
+    public MessagesConfig messages() {
+        return discordSRV.messagesConfig(locale());
+    }
+
+    @Override
     public void setEphemeral(boolean ephemeral) {
         isEphemeral.set(ephemeral);
     }
@@ -60,10 +67,6 @@ public class DiscordCommandExecution implements CommandExecution {
 
     @Override
     public void send(Collection<Text> texts, Collection<Text> extra) {
-        if (replyCallback == null) {
-            throw new IllegalStateException("May not be used on auto completions");
-        }
-
         StringBuilder builder = new StringBuilder();
         EnumMap<Text.Formatting, Boolean> formats = new EnumMap<>(Text.Formatting.class);
 
@@ -80,12 +83,25 @@ public class DiscordCommandExecution implements CommandExecution {
             verifyStyle(builder, formats, null);
         }
 
+        sendResponse(builder.toString());
+    }
+
+    @Override
+    public void send(Component minecraft, String discord) {
+        sendResponse(discord);
+    }
+
+    private void sendResponse(String content) {
+        if (replyCallback == null) {
+            throw new IllegalStateException("May not be used on auto completions");
+        }
+
         InteractionHook interactionHook = hook.get();
         boolean ephemeral = isEphemeral.get();
         if (interactionHook != null) {
-            interactionHook.sendMessage(builder.toString()).setEphemeral(ephemeral).queue();
+            interactionHook.sendMessage(content).setEphemeral(ephemeral).queue();
         } else {
-            replyCallback.reply(builder.toString()).setEphemeral(ephemeral).queue();
+            replyCallback.reply(content).setEphemeral(ephemeral).queue();
         }
     }
 

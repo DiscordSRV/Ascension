@@ -4,14 +4,13 @@ import com.discordsrv.common.DiscordSRV;
 import com.discordsrv.common.command.combined.abstraction.CommandExecution;
 import com.discordsrv.common.command.combined.abstraction.DiscordCommandExecution;
 import com.discordsrv.common.command.combined.abstraction.GameCommandExecution;
-import com.discordsrv.common.command.combined.abstraction.Text;
 import com.discordsrv.common.command.game.sender.ICommandSender;
+import com.discordsrv.common.config.messages.MessagesConfig;
 import com.discordsrv.common.permission.util.Permission;
 import com.discordsrv.common.player.IPlayer;
 import net.dv8tion.jda.api.JDA;
 import net.dv8tion.jda.api.entities.User;
 import net.dv8tion.jda.api.utils.MiscUtil;
-import net.kyori.adventure.text.format.NamedTextColor;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
@@ -76,6 +75,8 @@ public final class CommandUtil {
             boolean lookupUser,
             @Nullable Permission otherPermission
     ) {
+        MessagesConfig messages = discordSRV.messagesConfig(execution.locale());
+
         if (execution instanceof GameCommandExecution) {
             ICommandSender sender = ((GameCommandExecution) execution).getSender();
             if (target != null) {
@@ -86,7 +87,10 @@ public final class CommandUtil {
             } else if (sender instanceof IPlayer && selfPermitted && lookupPlayer) {
                 target = ((IPlayer) sender).uniqueId().toString();
             } else {
-                execution.send(new Text(discordSRV.messagesConfig(execution.locale()).both.placeSpecifyTarget).withGameColor(NamedTextColor.RED));
+                execution.send(
+                        messages.minecraft.pleaseSpecifyPlayer.asComponent(),
+                        messages.discord.pleaseSpecifyPlayer
+                );
                 return TargetLookupResult.INVALID;
             }
         } else if (execution instanceof DiscordCommandExecution) {
@@ -94,7 +98,10 @@ public final class CommandUtil {
                 if (selfPermitted && lookupUser) {
                     target = Long.toUnsignedString(((DiscordCommandExecution) execution).getUser().getIdLong());
                 } else {
-                    execution.send(new Text(discordSRV.messagesConfig(execution.locale()).both.placeSpecifyTarget).withGameColor(NamedTextColor.RED));
+                    execution.send(
+                            messages.minecraft.pleaseSpecifyUser.asComponent(),
+                            messages.discord.pleaseSpecifyUser
+                    );
                     return TargetLookupResult.INVALID;
                 }
             }
@@ -109,8 +116,10 @@ public final class CommandUtil {
                 try {
                     id = MiscUtil.parseLong(target);
                 } catch (IllegalArgumentException ignored) {
-                    execution.send(new Text(discordSRV.messagesConfig(execution.locale()).both.invalidTarget)
-                                           .withGameColor(NamedTextColor.RED));
+                    execution.send(
+                            messages.minecraft.userNotFound.asComponent(),
+                            messages.discord.userNotFound
+                    );
                     return TargetLookupResult.INVALID;
                 }
 
@@ -142,7 +151,10 @@ public final class CommandUtil {
                 try {
                     uuid = UUID.fromString(target);
                 } catch (IllegalArgumentException ignored) {
-                    execution.send(new Text(discordSRV.messagesConfig(execution.locale()).both.invalidTarget).withGameColor(NamedTextColor.RED));
+                    execution.send(
+                            messages.minecraft.playerNotFound.asComponent(),
+                            messages.discord.playerNotFound
+                    );
                     return TargetLookupResult.INVALID;
                 }
             } else {
