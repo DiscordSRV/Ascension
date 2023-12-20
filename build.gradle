@@ -17,8 +17,20 @@ subprojects {
     apply plugin: 'net.kyori.indra.git'
     apply plugin: 'dev.vankka.dependencydownload.plugin'
 
+    var versionExtra = ""
+    if (rootProject.version.startsWith("-SNAPSHOT") && indraGit.isPresent()) {
+        var branch = indraGit.branchName()
+        if (branch == null) {
+            branch = "detached-head"
+        }
+        var gitHash = indraGit.commit().getName()
+        if (gitHash.length() > 7) {
+            gitHash = gitHash.substring(0, 7);
+        }
+        versionExtra = "-" + branch + "-" + gitHash
+    }
     group 'com.discordsrv'
-    version = rootProject.version
+    version = rootProject.version + versionExtra
 
     java {
         sourceCompatibility = JavaVersion.VERSION_1_8
