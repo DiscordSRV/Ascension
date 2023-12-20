@@ -114,7 +114,7 @@ public class H2Storage extends SQLStorage {
                     "create table if not exists " + tablePrefix + LINKING_CODES_TABLE_NAME + " "
                             + "(PLAYERUUID varchar(36), "
                             + "CODE varchar(8), "
-                            + "EXPIRY bigint"
+                            + "EXPIRY bigint, "
                             + "constraint LINKING_CODES_PK primary key (PLAYERUUID)"
                             + ")");
         }

@@ -99,7 +99,7 @@ public class DependencyLoader {
 
     private CompletableFuture<Void> download(ClasspathAppender appender) {
         return dependencyManager.downloadAll(executor, REPOSITORIES)
-                        .thenCompose(v -> dependencyManager.relocateAll(executor))
-                        .thenCompose(v -> dependencyManager.loadAll(executor, appender));
+                .thenCompose(v -> dependencyManager.relocateAll(executor))
+                .thenCompose(v -> dependencyManager.loadAll(executor, appender));
     }
 }
