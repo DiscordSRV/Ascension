@@ -81,7 +81,7 @@ public class MinecraftToDiscordChatModule extends AbstractGameMessageModule<Mine
             MinecraftToDiscordChatConfig config,
             IPlayer player,
             SendableDiscordMessage.Builder format,
-            List<DiscordGuildMessageChannel> channels,
+            Collection<DiscordGuildMessageChannel> channels,
             GameChatMessageReceiveEvent event,
             Object... context
     ) {

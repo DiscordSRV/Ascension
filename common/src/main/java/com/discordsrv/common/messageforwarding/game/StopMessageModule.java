@@ -28,8 +28,8 @@ import com.discordsrv.common.config.main.channels.StopMessageConfig;
 import com.discordsrv.common.config.main.channels.base.BaseChannelConfig;
 import com.discordsrv.common.player.IPlayer;
 
+import java.util.Collection;
 import java.util.Collections;
-import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
@@ -60,7 +60,7 @@ public class StopMessageModule extends AbstractGameMessageModule<StopMessageConf
             StopMessageConfig config,
             IPlayer player,
             SendableDiscordMessage.Builder format,
-            List<DiscordGuildMessageChannel> channels,
+            Collection<DiscordGuildMessageChannel> channels,
             AbstractGameMessageReceiveEvent event,
             Object... context
     ) {

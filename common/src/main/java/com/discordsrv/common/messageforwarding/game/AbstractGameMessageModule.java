@@ -166,7 +166,7 @@ public abstract class AbstractGameMessageModule<T extends IMessageConfig, E exte
             T config,
             IPlayer player,
             SendableDiscordMessage.Builder format,
-            List<DiscordGuildMessageChannel> channels,
+            Collection<DiscordGuildMessageChannel> channels,
             E event,
             Object... context
     ) {

@@ -303,7 +303,7 @@ public class SingleConsoleHandler {
                             return null;
                         }
 
-                        DiscordGuildMessageChannel channel = channels.get(0);
+                        DiscordGuildMessageChannel channel = channels.iterator().next();
                         if (mostRecentMessageId != null) {
                             long messageId = mostRecentMessageId;
                             if (isFull) {

@@ -59,10 +59,7 @@ import org.checkerframework.checker.nullness.qual.NonNull;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Objects;
-import java.util.Optional;
+import java.util.*;
 import java.util.concurrent.*;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
@@ -91,14 +88,14 @@ public class DiscordAPIImpl implements DiscordAPI {
         return cachedClients;
     }
 
-    public <T extends BaseChannelConfig & IChannelConfig> List<DiscordGuildMessageChannel> findDestinations(
+    public <T extends BaseChannelConfig & IChannelConfig> Collection<DiscordGuildMessageChannel> findDestinations(
             T config,
             boolean log
     ) {
         return findOrCreateDestinations(config, false, log).join();
     }
 
-    public <T extends BaseChannelConfig & IChannelConfig> CompletableFuture<List<DiscordGuildMessageChannel>> findOrCreateDestinations(
+    public <T extends BaseChannelConfig & IChannelConfig> CompletableFuture<Collection<DiscordGuildMessageChannel>> findOrCreateDestinations(
             T config,
             boolean create,
             boolean log
@@ -106,20 +103,21 @@ public class DiscordAPIImpl implements DiscordAPI {
         return findOrCreateDestinations(config.destination(), config.channelLocking.threads.unarchive, create, log);
     }
 
-    public CompletableFuture<List<DiscordGuildMessageChannel>> findOrCreateDestinations(
+    public CompletableFuture<Collection<DiscordGuildMessageChannel>> findOrCreateDestinations(
             DestinationConfig destination,
             boolean unarchive,
             boolean create,
             boolean log
     ) {
-
-        List<DiscordGuildMessageChannel> channels = new CopyOnWriteArrayList<>();
+        Set<DiscordGuildMessageChannel> channels = new HashSet<>();
         for (Long channelId : destination.channelIds) {
             DiscordMessageChannel channel = getMessageChannelById(channelId);
             if (!(channel instanceof DiscordGuildMessageChannel)) {
                 continue;
             }
-            channels.add((DiscordGuildMessageChannel) channel);
+            synchronized (channels) {
+                channels.add((DiscordGuildMessageChannel) channel);
+            }
         }
 
         List<CompletableFuture<Void>> threadFutures = new ArrayList<>();
@@ -143,7 +141,9 @@ public class DiscordAPIImpl implements DiscordAPI {
                 if (thread != null) {
                     ThreadChannel jdaChannel = thread.asJDA();
                     if (!jdaChannel.isArchived()) {
-                        channels.add(getThreadChannel(jdaChannel));
+                        synchronized (channels) {
+                            channels.add(getThreadChannel(jdaChannel));
+                        }
                         continue;
                     }
                 }
@@ -173,7 +173,9 @@ public class DiscordAPIImpl implements DiscordAPI {
                     }
 
                     if (threadChannel != null) {
-                        channels.add(threadChannel);
+                        synchronized (channels) {
+                            channels.add(threadChannel);
+                        }
                     }
                     return null;
                 }));

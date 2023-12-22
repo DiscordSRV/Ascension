@@ -47,8 +47,8 @@ public abstract class AbstractDiscordMessageChannel<T extends MessageChannel> im
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
-        AbstractDiscordGuildMessageChannel<?> that = (AbstractDiscordGuildMessageChannel<?>) o;
+        if (!(o instanceof DiscordMessageChannel)) return false;
+        DiscordMessageChannel that = (DiscordMessageChannel) o;
         return Objects.equals(getId(), that.getId());
     }
 

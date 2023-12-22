@@ -35,10 +35,7 @@ import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 import net.kyori.adventure.text.serializer.gson.GsonComponentSerializer;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.Locale;
+import java.util.*;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
@@ -104,8 +101,8 @@ public abstract class BroadcastCommand implements GameCommandExecutor, GameComma
         String channel = arguments.getString("channel");
         String content = arguments.getString("content");
 
-        List<DiscordMessageChannel> channels = new ArrayList<>();
-        CompletableFuture<List<DiscordGuildMessageChannel>> future = null;
+        Set<DiscordMessageChannel> channels = new HashSet<>();
+        CompletableFuture<Collection<DiscordGuildMessageChannel>> future = null;
         try {
             long id = Long.parseUnsignedLong(channel);
 
@@ -124,6 +121,8 @@ public abstract class BroadcastCommand implements GameCommandExecutor, GameComma
 
         if (future != null) {
             future.whenComplete((messageChannels, t) -> doBroadcast(sender, content, channel, messageChannels));
+        } else if (channels.isEmpty()) {
+            // TODO: please specify target
         } else {
             doBroadcast(sender, content, channel, channels);
         }
@@ -141,7 +140,7 @@ public abstract class BroadcastCommand implements GameCommandExecutor, GameComma
                 .collect(Collectors.toList());
     }
 
-    private void doBroadcast(ICommandSender sender, String content, String channel, List<? extends DiscordMessageChannel> channels) {
+    private void doBroadcast(ICommandSender sender, String content, String channel, Collection<? extends DiscordMessageChannel> channels) {
         if (channels.isEmpty()) {
             sender.sendMessage(
                     Component.text()

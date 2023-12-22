@@ -34,6 +34,7 @@ import net.dv8tion.jda.api.entities.channel.middleman.GuildMessageChannel;
 import net.dv8tion.jda.api.requests.restaction.PermissionOverrideAction;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 import java.util.function.BiConsumer;
 
@@ -84,7 +85,7 @@ public class ChannelLockingModule extends AbstractModule<DiscordSRV> {
                 return;
             }
 
-            List<DiscordGuildMessageChannel> destinations = discordSRV.discordAPI()
+            Collection<DiscordGuildMessageChannel> destinations = discordSRV.discordAPI()
                     .findDestinations((BaseChannelConfig & IChannelConfig) config, true);
 
             for (DiscordGuildMessageChannel destination : destinations) {
