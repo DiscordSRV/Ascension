@@ -6,8 +6,8 @@ task copyOutput(type: Copy) {
 }
 
 shadowJar {
-    // Don't add -all to the end of the jar name
-    archiveClassifier = ''
+    // Adds the commit for snapshots to the end of the file name
+    archiveClassifier = tasks.jar.archiveClassifier
 
     // Include the license in the jar
     from(rootProject.file('LICENSE')) {
