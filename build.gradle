@@ -18,7 +18,7 @@ subprojects {
     apply plugin: 'dev.vankka.dependencydownload.plugin'
 
     var versionExtra = ""
-    if (rootProject.version.startsWith("-SNAPSHOT") && indraGit.isPresent()) {
+    if (rootProject.version.endsWith("-SNAPSHOT") && indraGit.isPresent()) {
         var branch = indraGit.branchName()
         if (branch == null) {
             branch = "detached-head"
