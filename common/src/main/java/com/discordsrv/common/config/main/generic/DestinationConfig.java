@@ -14,7 +14,7 @@ import java.util.List;
 public class DestinationConfig {
 
     @Setting("channel-ids")
-    @Comment("The channels this in-game channel will forward to in Discord")
+    @Comment("The text and/or voice channel ids this in-game channel will forward to in Discord")
     public List<Long> channelIds = new ArrayList<>();
 
     @Setting("threads")
