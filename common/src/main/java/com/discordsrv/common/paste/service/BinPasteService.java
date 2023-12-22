@@ -52,7 +52,7 @@ public class BinPasteService implements PasteService {
 
         Request request = new Request.Builder()
                 .url(binUrl + "/v1/post")
-                .post(RequestBody.create(MediaType.get("application/json"), json.toString()))
+                .post(RequestBody.create(json.toString(), MediaType.get("application/json")))
                 .build();
 
         try (Response response = discordSRV.httpClient().newCall(request).execute()) {

@@ -141,6 +141,7 @@ public abstract class ConfigurateConfigManager<T, LT extends AbstractConfigurati
         return new IChannelConfig.Serializer(mapperFactory, BaseChannelConfig.class, ChannelConfig.class);
     }
 
+    @SuppressWarnings("unchecked") // Special Class cast
     public ConfigurationOptions configurationOptions(ObjectMapper.Factory objectMapper, boolean headerSubstitutions) {
         String header = header();
         if (header != null && headerSubstitutions) {

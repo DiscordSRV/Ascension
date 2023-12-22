@@ -39,7 +39,7 @@ public class BytebinPasteService implements PasteService {
         Request request = new Request.Builder()
                 .url(bytebinUrl + "/post")
                 //.header("Content-Encoding", "gzip")
-                .post(RequestBody.create(MediaType.get("application/octet-stream"), fileContent))
+                .post(RequestBody.create(fileContent, MediaType.get("application/octet-stream")))
                 .build();
 
         try (Response response = discordSRV.httpClient().newCall(request).execute()) {
