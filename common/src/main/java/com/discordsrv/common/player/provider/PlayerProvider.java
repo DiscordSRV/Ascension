@@ -20,12 +20,14 @@ package com.discordsrv.common.player.provider;
 
 import com.discordsrv.api.player.DiscordSRVPlayer;
 import com.discordsrv.api.player.IPlayerProvider;
+import com.discordsrv.common.player.IOfflinePlayer;
 import com.discordsrv.common.player.IPlayer;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.Collection;
 import java.util.UUID;
+import java.util.concurrent.CompletableFuture;
 
 public interface PlayerProvider<T extends IPlayer> extends IPlayerProvider {
 
@@ -51,4 +53,11 @@ public interface PlayerProvider<T extends IPlayer> extends IPlayerProvider {
      */
     @NotNull
     Collection<T> allPlayers();
+
+    CompletableFuture<UUID> lookupUUIDForUsername(String username);
+
+    default CompletableFuture<IOfflinePlayer> lookupOfflinePlayer(String username) {
+        return lookupUUIDForUsername(username).thenCompose(this::lookupOfflinePlayer);
+    }
+    CompletableFuture<IOfflinePlayer> lookupOfflinePlayer(UUID uuid);
 }

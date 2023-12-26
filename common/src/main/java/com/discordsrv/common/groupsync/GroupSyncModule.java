@@ -42,6 +42,7 @@ import com.github.benmanes.caffeine.cache.Cache;
 import org.apache.commons.lang3.StringUtils;
 import org.jetbrains.annotations.Nullable;
 
+import java.time.Duration;
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
@@ -127,9 +128,8 @@ public class GroupSyncModule extends AbstractModule<DiscordSRV> {
                     int cycleTime = timer.cycleTime;
                     future = discordSRV.scheduler().runAtFixedRate(
                             () -> resyncPair(pair, GroupSyncCause.TIMER),
-                            cycleTime,
-                            cycleTime,
-                            TimeUnit.MINUTES
+                            Duration.ofMinutes(cycleTime),
+                            Duration.ofMinutes(cycleTime)
                     );
                 }
 

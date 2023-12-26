@@ -20,10 +20,14 @@ package com.discordsrv.sponge.player;
 
 import com.discordsrv.common.DiscordSRV;
 import com.discordsrv.common.player.IOfflinePlayer;
+import com.discordsrv.common.player.provider.model.SkinInfo;
+import com.discordsrv.common.player.provider.model.Textures;
 import com.discordsrv.sponge.SpongeDiscordSRV;
 import net.kyori.adventure.identity.Identity;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.spongepowered.api.entity.living.player.User;
+import org.spongepowered.api.profile.property.ProfileProperty;
 
 public class SpongeOfflinePlayer implements IOfflinePlayer {
 
@@ -43,6 +47,19 @@ public class SpongeOfflinePlayer implements IOfflinePlayer {
     @Override
     public @NotNull String username() {
         return user.name();
+    }
+
+    @Override
+    public @Nullable SkinInfo skinInfo() {
+        for (ProfileProperty property : user.profile().properties()) {
+            if (!Textures.KEY.equals(property.name())) {
+                continue;
+            }
+
+            Textures textures = Textures.getFromBase64(discordSRV, property.value());
+            return textures.getSkinInfo();
+        }
+        return null;
     }
 
     @Override

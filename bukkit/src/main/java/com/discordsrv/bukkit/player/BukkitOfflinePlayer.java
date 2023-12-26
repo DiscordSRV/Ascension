@@ -21,9 +21,11 @@ package com.discordsrv.bukkit.player;
 import com.discordsrv.bukkit.BukkitDiscordSRV;
 import com.discordsrv.common.DiscordSRV;
 import com.discordsrv.common.player.IOfflinePlayer;
+import com.discordsrv.common.player.provider.model.SkinInfo;
 import net.kyori.adventure.identity.Identity;
 import org.bukkit.OfflinePlayer;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 public class BukkitOfflinePlayer implements IOfflinePlayer {
 
@@ -45,6 +47,11 @@ public class BukkitOfflinePlayer implements IOfflinePlayer {
     @Override
     public String username() {
         return offlinePlayer.getName();
+    }
+
+    @Override
+    public @Nullable SkinInfo skinInfo() {
+        return null;
     }
 
     @Override

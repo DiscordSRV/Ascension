@@ -6,8 +6,10 @@ import com.discordsrv.common.command.combined.abstraction.DiscordCommandExecutio
 import com.discordsrv.common.command.combined.abstraction.GameCommandExecution;
 import com.discordsrv.common.command.game.sender.ICommandSender;
 import com.discordsrv.common.config.messages.MessagesConfig;
+import com.discordsrv.common.logging.Logger;
 import com.discordsrv.common.permission.Permission;
 import com.discordsrv.common.player.IPlayer;
+import com.discordsrv.common.uuid.util.UUIDUtil;
 import net.dv8tion.jda.api.JDA;
 import net.dv8tion.jda.api.entities.User;
 import net.dv8tion.jda.api.utils.MiscUtil;
@@ -15,43 +17,49 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
 import java.util.UUID;
+import java.util.concurrent.CompletableFuture;
 
 public final class CommandUtil {
 
     private CommandUtil() {}
 
-    @Nullable
-    public static UUID lookupPlayer(
+    public static CompletableFuture<UUID> lookupPlayer(
             DiscordSRV discordSRV,
+            Logger logger,
             CommandExecution execution,
             boolean selfPermitted,
             String target,
             @Nullable Permission otherPermission
     ) {
-        TargetLookupResult result = lookupTarget(discordSRV, execution, target, selfPermitted, true, false, otherPermission);
-        if (result.isValid()) {
-            return result.getPlayerUUID();
-        }
-        return null;
+        return lookupTarget(discordSRV, logger, execution, target, selfPermitted, true, false, otherPermission)
+                .thenApply((result) -> {
+                    if (result != null && result.isValid()) {
+                        return result.getPlayerUUID();
+                    }
+                    return null;
+                });
     }
 
-    @Nullable
-    public static Long lookupUser(
+    public static CompletableFuture<Long> lookupUser(
             DiscordSRV discordSRV,
+            Logger logger,
             CommandExecution execution,
             boolean selfPermitted,
             String target,
             @Nullable Permission otherPermission
     ) {
-        TargetLookupResult result = lookupTarget(discordSRV, execution, target, selfPermitted, false, true, otherPermission);
-        if (result.isValid()) {
-            return result.getUserId();
-        }
-        return null;
+        return lookupTarget(discordSRV, logger, execution, target, selfPermitted, false, true, otherPermission)
+                .thenApply(result -> {
+                    if (result != null && result.isValid()) {
+                        return result.getUserId();
+                    }
+                    return null;
+                });
     }
 
-    public static TargetLookupResult lookupTarget(
+    public static CompletableFuture<TargetLookupResult> lookupTarget(
             DiscordSRV discordSRV,
+            Logger logger,
             CommandExecution execution,
             boolean selfPermitted,
             @Nullable Permission otherPermission
@@ -63,11 +71,12 @@ public final class CommandUtil {
         if (target == null) {
             target = execution.getArgument("player");
         }
-        return lookupTarget(discordSRV, execution, target, selfPermitted, true, true, otherPermission);
+        return lookupTarget(discordSRV, logger, execution, target, selfPermitted, true, true, otherPermission);
     }
 
-    private static TargetLookupResult lookupTarget(
+    private static CompletableFuture<TargetLookupResult> lookupTarget(
             DiscordSRV discordSRV,
+            Logger logger,
             CommandExecution execution,
             String target,
             boolean selfPermitted,
@@ -82,16 +91,10 @@ public final class CommandUtil {
             if (target != null) {
                 if (otherPermission != null && !sender.hasPermission(Permission.COMMAND_LINKED_OTHER)) {
                     sender.sendMessage(discordSRV.messagesConfig(sender).noPermission.asComponent());
-                    return TargetLookupResult.INVALID;
+                    return CompletableFuture.completedFuture(TargetLookupResult.INVALID);
                 }
             } else if (sender instanceof IPlayer && selfPermitted && lookupPlayer) {
                 target = ((IPlayer) sender).uniqueId().toString();
-            } else {
-                execution.send(
-                        messages.minecraft.pleaseSpecifyPlayer.asComponent(),
-                        messages.discord.pleaseSpecifyPlayer
-                );
-                return TargetLookupResult.INVALID;
             }
         } else if (execution instanceof DiscordCommandExecution) {
             if (target == null) {
@@ -102,11 +105,15 @@ public final class CommandUtil {
                             messages.minecraft.pleaseSpecifyUser.asComponent(),
                             messages.discord.pleaseSpecifyUser
                     );
-                    return TargetLookupResult.INVALID;
+                    return CompletableFuture.completedFuture(TargetLookupResult.INVALID);
                 }
             }
         } else {
             throw new IllegalStateException("Unexpected CommandExecution");
+        }
+
+        if (target == null) {
+            return CompletableFuture.completedFuture(requireTarget(execution, lookupUser, lookupPlayer, messages));
         }
 
         if (lookupUser) {
@@ -120,10 +127,10 @@ public final class CommandUtil {
                             messages.minecraft.userNotFound.asComponent(),
                             messages.discord.userNotFound
                     );
-                    return TargetLookupResult.INVALID;
+                    return CompletableFuture.completedFuture(TargetLookupResult.INVALID);
                 }
 
-                return new TargetLookupResult(true, null, id);
+                return CompletableFuture.completedFuture(new TargetLookupResult(true, null, id));
             } else if (target.startsWith("@")) {
                 // Discord username
                 String username = target.substring(1);
@@ -132,7 +139,7 @@ public final class CommandUtil {
                     List<User> users = jda.getUsersByName(username, true);
 
                     if (users.size() == 1) {
-                        return new TargetLookupResult(true, null, users.get(0).getIdLong());
+                        return CompletableFuture.completedFuture(new TargetLookupResult(true, null, users.get(0).getIdLong()));
                     }
                 }
             }
@@ -143,34 +150,62 @@ public final class CommandUtil {
             boolean shortUUID;
             if ((shortUUID = target.length() == 32) || target.length() == 36) {
                 // Player UUID
-                if (shortUUID) {
-                    target = target.substring(0, 8) + "-" + target.substring(8, 12) + "-" + target.substring(12, 16)
-                            + "-" + target.substring(16, 20) + "-" + target.substring(20);
-                }
-
                 try {
-                    uuid = UUID.fromString(target);
+                    if (shortUUID) {
+                        uuid = UUIDUtil.fromShort(target);
+                    } else {
+                        uuid = UUID.fromString(target);
+                    }
                 } catch (IllegalArgumentException ignored) {
                     execution.send(
                             messages.minecraft.playerNotFound.asComponent(),
                             messages.discord.playerNotFound
                     );
-                    return TargetLookupResult.INVALID;
+                    return CompletableFuture.completedFuture(TargetLookupResult.INVALID);
                 }
-            } else {
+                return CompletableFuture.completedFuture(new TargetLookupResult(true, uuid, 0L));
+            } else if (target.matches("[a-zA-Z0-9_]{1,16}")) {
                 // Player name
                 IPlayer playerByName = discordSRV.playerProvider().player(target);
                 if (playerByName != null) {
                     uuid = playerByName.uniqueId();
                 } else {
-                    throw new IllegalStateException("lookup offline"); // TODO: lookup offline player
+                    return discordSRV.playerProvider().lookupOfflinePlayer(target)
+                            .thenApply(offlinePlayer -> new TargetLookupResult(true, offlinePlayer.uniqueId(), 0L))
+                            .exceptionally(t -> {
+                                logger.error("Failed to lookup offline player by username", t);
+                                return TargetLookupResult.INVALID;
+                            });
                 }
+                return CompletableFuture.completedFuture(new TargetLookupResult(true, uuid, 0L));
             }
-
-            return new TargetLookupResult(true, uuid, 0L);
         }
 
-        return TargetLookupResult.INVALID;
+        return CompletableFuture.completedFuture(requireTarget(execution, lookupUser, lookupPlayer, messages));
+    }
+
+    private static TargetLookupResult requireTarget(CommandExecution execution, boolean lookupUser, boolean lookupPlayer, MessagesConfig messages) {
+        if (lookupPlayer && lookupUser) {
+            execution.send(
+                    messages.minecraft.pleaseSpecifyPlayerOrUser.asComponent(),
+                    messages.discord.pleaseSpecifyPlayerOrUser
+            );
+            return TargetLookupResult.INVALID;
+        } else if (lookupPlayer) {
+            execution.send(
+                    messages.minecraft.pleaseSpecifyPlayer.asComponent(),
+                    messages.discord.pleaseSpecifyPlayer
+            );
+            return TargetLookupResult.INVALID;
+        } else if (lookupUser) {
+            execution.send(
+                    messages.minecraft.pleaseSpecifyUser.asComponent(),
+                    messages.discord.pleaseSpecifyUser
+            );
+            return TargetLookupResult.INVALID;
+        } else {
+            throw new IllegalStateException("lookupPlayer & lookupUser are false");
+        }
     }
 
     public static class TargetLookupResult {

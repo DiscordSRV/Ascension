@@ -18,10 +18,15 @@
 
 package com.discordsrv.common.future.util;
 
+import com.discordsrv.common.DiscordSRV;
+
+import java.time.Duration;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ScheduledFuture;
+import java.util.concurrent.TimeoutException;
 
 public final class CompletableFutureUtil {
 
@@ -57,5 +62,18 @@ public final class CompletableFutureUtil {
             future.complete(results);
         });
         return future;
+    }
+
+    public static <T> CompletableFuture<T> timeout(DiscordSRV discordSRV, CompletableFuture<T> future, Duration timeout) {
+        ScheduledFuture<?> scheduledFuture = discordSRV.scheduler().runLater(() -> {
+            if (!future.isDone()) {
+                future.completeExceptionally(new TimeoutException());
+            }
+        }, timeout);
+        return future.whenComplete((__, t) -> {
+            if (t == null) {
+                scheduledFuture.cancel(false);
+            }
+        });
     }
 }

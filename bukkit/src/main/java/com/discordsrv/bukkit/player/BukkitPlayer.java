@@ -24,10 +24,12 @@ import com.discordsrv.bukkit.component.PaperComponentHandle;
 import com.discordsrv.common.DiscordSRV;
 import com.discordsrv.common.component.util.ComponentUtil;
 import com.discordsrv.common.player.IPlayer;
+import com.discordsrv.common.player.provider.model.SkinInfo;
 import net.kyori.adventure.identity.Identity;
 import net.kyori.adventure.text.Component;
 import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.Locale;
 
@@ -63,8 +65,13 @@ public class BukkitPlayer extends BukkitCommandSender implements IPlayer {
     }
 
     @Override
+    public @Nullable SkinInfo skinInfo() {
+        return SpigotPlayer.getSkinInfo(player);
+    }
+
+    @Override
     public Locale locale() {
-        return PlayerLocaleProvider.getLocale(player);
+        return PaperPlayer.getLocale(player);
     }
 
     @Override

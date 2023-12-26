@@ -37,13 +37,13 @@ import java.nio.file.Path;
 import java.nio.file.StandardOpenOption;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
+import java.time.Duration;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Queue;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.Future;
-import java.util.concurrent.TimeUnit;
 
 public class DiscordSRVLogger implements Logger {
 
@@ -111,7 +111,7 @@ public class DiscordSRVLogger implements Logger {
             }
             return logs;
         } catch (IOException e) {
-            e.printStackTrace();
+            doLog("LOGGING", LogLevel.ERROR, "Failed to rotate log", e);
             return null;
         }
     }
@@ -180,7 +180,7 @@ public class DiscordSRVLogger implements Logger {
         linesToWrite.add(entry);
         synchronized (lineProcessingLock) {
             if (lineProcessingFuture == null || lineProcessingFuture.isDone()) {
-                lineProcessingFuture = discordSRV.scheduler().runLater(this::processLines, TimeUnit.SECONDS.toMillis(2));
+                lineProcessingFuture = discordSRV.scheduler().runLater(this::processLines, Duration.ofSeconds(2));
             }
         }
     }

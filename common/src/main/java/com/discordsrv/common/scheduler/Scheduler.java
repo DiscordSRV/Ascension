@@ -21,6 +21,7 @@ package com.discordsrv.common.scheduler;
 import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
 
+import java.time.Duration;
 import java.util.concurrent.*;
 
 @SuppressWarnings({"UnusedReturnValue", "unused"}) // API
@@ -63,35 +64,22 @@ public interface Scheduler {
     Future<?> run(@NotNull Runnable task);
 
     /**
-     * Schedules the given task to run after the provided time in the provided {@link TimeUnit}.
-     *
-     * @param task the task
-     * @param time the amount of time in the provided unit
-     * @param unit the unit for the time
-     */
-    @ApiStatus.NonExtendable
-    default ScheduledFuture<?> runLater(@NotNull Runnable task, long time, @NotNull TimeUnit unit) {
-        return runLater(task, unit.toMillis(time));
-    }
-
-    /**
      * Schedules the given task after the provided amount of milliseconds.
      *
      * @param task the task
-     * @param timeMillis the delay before executing the task
+     * @param delay the delay before executing the task
      */
-    ScheduledFuture<?> runLater(Runnable task, long timeMillis);
+    ScheduledFuture<?> runLater(Runnable task, Duration delay);
 
     /**
      * Schedules the given task at the given rate.
      *
      * @param task the task
      * @param rate the rate in the given unit
-     * @param unit the unit for the rate
      */
     @ApiStatus.NonExtendable
-    default ScheduledFuture<?> runAtFixedRate(@NotNull Runnable task, long rate, @NotNull TimeUnit unit) {
-        return runAtFixedRate(task, rate, rate, unit);
+    default ScheduledFuture<?> runAtFixedRate(@NotNull Runnable task, Duration rate) {
+        return runAtFixedRate(task, rate, rate);
     }
 
     /**
@@ -100,21 +88,8 @@ public interface Scheduler {
      * @param task the task
      * @param initialDelay the initial delay in the provided unit
      * @param rate the rate to run the task at in the given unit
-     * @param unit the unit for the initial delay and rate
      */
     @ApiStatus.NonExtendable
-    default ScheduledFuture<?> runAtFixedRate(@NotNull Runnable task, long initialDelay, long rate, @NotNull TimeUnit unit) {
-        return runAtFixedRate(task, unit.toMillis(initialDelay), unit.toMillis(rate));
-    }
-
-    /**
-     * Schedules a task to run at the given rate after the initial delay.
-     *
-     * @param task the task
-     * @param initialDelayMillis the initial delay in milliseconds
-     * @param rateMillis the rate in milliseconds
-     */
-    ScheduledFuture<?> runAtFixedRate(@NotNull Runnable task, long initialDelayMillis, long rateMillis);
-
+    ScheduledFuture<?> runAtFixedRate(@NotNull Runnable task, Duration initialDelay, Duration rate);
 
 }

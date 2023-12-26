@@ -30,6 +30,14 @@ public abstract class ServerPlayerProvider<T extends IPlayer, DT extends Discord
         super(discordSRV);
     }
 
-    public abstract CompletableFuture<IOfflinePlayer> offlinePlayer(UUID uuid);
-    public abstract CompletableFuture<IOfflinePlayer> offlinePlayer(String username);
+    @Override
+    public CompletableFuture<UUID> lookupUUIDForUsername(String username) {
+        return lookupOfflinePlayer(username).thenApply(IOfflinePlayer::uniqueId);
+    }
+
+    @Override
+    public abstract CompletableFuture<IOfflinePlayer> lookupOfflinePlayer(String username);
+
+    @Override
+    public abstract CompletableFuture<IOfflinePlayer> lookupOfflinePlayer(UUID uuid);
 }

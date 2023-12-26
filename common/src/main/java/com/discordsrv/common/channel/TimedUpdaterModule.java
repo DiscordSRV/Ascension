@@ -31,6 +31,7 @@ import net.dv8tion.jda.api.managers.channel.ChannelManager;
 import net.dv8tion.jda.api.managers.channel.concrete.TextChannelManager;
 import org.apache.commons.lang3.StringUtils;
 
+import java.time.Duration;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
@@ -76,9 +77,8 @@ public class TimedUpdaterModule extends AbstractModule<DiscordSRV> {
 
             futures.add(discordSRV.scheduler().runAtFixedRate(
                     () -> update(updaterConfig),
-                    firstReload ? 0 : time,
-                    time,
-                    TimeUnit.SECONDS
+                    firstReload ? Duration.ZERO : Duration.ofSeconds(time),
+                    Duration.ofSeconds(time)
             ));
         }
         firstReload = false;

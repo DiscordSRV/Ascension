@@ -27,6 +27,7 @@ import com.discordsrv.common.scheduler.threadfactory.CountingForkJoinWorkerThrea
 import com.discordsrv.common.scheduler.threadfactory.CountingThreadFactory;
 import org.jetbrains.annotations.NotNull;
 
+import java.time.Duration;
 import java.util.concurrent.*;
 
 public class StandardScheduler implements Scheduler {
@@ -124,13 +125,13 @@ public class StandardScheduler implements Scheduler {
     }
 
     @Override
-    public ScheduledFuture<?> runLater(Runnable task, long timeMillis) {
-        return scheduledExecutorService.schedule(wrap(task), timeMillis, TimeUnit.MILLISECONDS);
+    public ScheduledFuture<?> runLater(Runnable task, Duration delay) {
+        return scheduledExecutorService.schedule(wrap(task), delay.toMillis(), TimeUnit.MILLISECONDS);
     }
 
     @Override
-    public ScheduledFuture<?> runAtFixedRate(@NotNull Runnable task, long initialDelayMillis, long rateMillis) {
-        return scheduledExecutorService.scheduleAtFixedRate(wrap(task), initialDelayMillis, rateMillis, TimeUnit.MILLISECONDS);
+    public ScheduledFuture<?> runAtFixedRate(@NotNull Runnable task, Duration initialDelay, Duration rate) {
+        return scheduledExecutorService.scheduleAtFixedRate(wrap(task), initialDelay.toMillis(), rate.toMillis(), TimeUnit.MILLISECONDS);
     }
 
     public class ExceptionHandlingExecutor implements Executor {

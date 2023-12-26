@@ -4,9 +4,9 @@ import org.bukkit.entity.Player;
 
 import java.util.Locale;
 
-public final class PlayerLocaleProvider {
+public final class PaperPlayer {
 
-    private PlayerLocaleProvider() {}
+    private PaperPlayer() {}
 
     private static final boolean localeMethodExists;
     private static final boolean getLocaleMethodExists;

@@ -23,6 +23,7 @@ import com.discordsrv.bungee.command.game.sender.BungeeCommandSender;
 import com.discordsrv.bungee.component.util.BungeeComponentUtil;
 import com.discordsrv.common.DiscordSRV;
 import com.discordsrv.common.player.IPlayer;
+import com.discordsrv.common.player.provider.model.SkinInfo;
 import net.kyori.adventure.identity.Identity;
 import net.kyori.adventure.text.Component;
 import net.md_5.bungee.api.connection.ProxiedPlayer;
@@ -50,6 +51,11 @@ public class BungeePlayer extends BungeeCommandSender implements IPlayer {
     @Override
     public @NotNull String username() {
         return commandSender.getName();
+    }
+
+    @Override
+    public @Nullable SkinInfo skinInfo() {
+        return null;
     }
 
     @Override
