@@ -172,14 +172,17 @@ public class DiscordMessageMirroringModule extends AbstractModule<DiscordSRV> {
         }
 
         CompletableFutureUtil.combine(futures).whenComplete((lists, t) -> {
+            Set<Long> channelIdsHandled = new HashSet<>();
             for (MirrorOperation operation : lists) {
                 List<CompletableFuture<MirroredMessage>> mirrorFutures = new ArrayList<>();
 
                 for (MirrorTarget target : operation.targets) {
                     DiscordGuildMessageChannel mirrorChannel = target.targetChannel;
-                    if (mirrorChannel.getId() == event.getChannel().getId()) {
+                    long channelId = mirrorChannel.getId();
+                    if (channelId == event.getChannel().getId() || channelIdsHandled.contains(channelId)) {
                         continue;
                     }
+                    channelIdsHandled.add(channelId);
 
                     MirroringConfig config = target.config;
                     MirroringConfig.AttachmentConfig attachmentConfig = config.attachments;
