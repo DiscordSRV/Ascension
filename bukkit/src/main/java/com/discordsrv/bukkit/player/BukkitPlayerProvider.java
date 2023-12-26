@@ -20,6 +20,7 @@ package com.discordsrv.bukkit.player;
 
 import com.discordsrv.bukkit.BukkitDiscordSRV;
 import com.discordsrv.common.player.IOfflinePlayer;
+import com.discordsrv.common.player.IPlayer;
 import com.discordsrv.common.player.ServerPlayerProvider;
 import org.bukkit.OfflinePlayer;
 import org.bukkit.entity.Player;
@@ -87,13 +88,23 @@ public class BukkitPlayerProvider extends ServerPlayerProvider<BukkitPlayer, Buk
     }
 
     @Override
-    public CompletableFuture<IOfflinePlayer> offlinePlayer(UUID uuid) {
+    public CompletableFuture<IOfflinePlayer> lookupOfflinePlayer(UUID uuid) {
+        IPlayer player = player(uuid);
+        if (player != null) {
+            return CompletableFuture.completedFuture(player);
+        }
+
         return getFuture(() -> discordSRV.server().getOfflinePlayer(uuid));
     }
 
     @SuppressWarnings("deprecation") // Shut up, I know
     @Override
-    public CompletableFuture<IOfflinePlayer> offlinePlayer(String username) {
+    public CompletableFuture<IOfflinePlayer> lookupOfflinePlayer(String username) {
+        IPlayer player = player(username);
+        if (player != null) {
+            return CompletableFuture.completedFuture(player);
+        }
+
         return getFuture(() -> discordSRV.server().getOfflinePlayer(username));
     }
 

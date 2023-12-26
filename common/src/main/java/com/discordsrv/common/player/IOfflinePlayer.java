@@ -20,6 +20,7 @@ package com.discordsrv.common.player;
 
 import com.discordsrv.api.placeholder.annotation.Placeholder;
 import com.discordsrv.common.DiscordSRV;
+import com.discordsrv.common.player.provider.model.SkinInfo;
 import com.discordsrv.common.profile.Profile;
 import net.kyori.adventure.identity.Identified;
 import org.jetbrains.annotations.ApiStatus;
@@ -47,5 +48,22 @@ public interface IOfflinePlayer extends Identified {
     @NotNull
     default UUID uniqueId() {
         return identity().uuid();
+    }
+
+    @Nullable
+    SkinInfo skinInfo();
+
+    @Placeholder("player_skin_texture_id")
+    @Nullable
+    default String skinTextureId() {
+        SkinInfo info = skinInfo();
+        return info != null ? info.textureId() : null;
+    }
+
+    @Placeholder("player_skin_model")
+    @Nullable
+    default String skinModel() {
+        SkinInfo info = skinInfo();
+        return info != null ? info.model() : null;
     }
 }

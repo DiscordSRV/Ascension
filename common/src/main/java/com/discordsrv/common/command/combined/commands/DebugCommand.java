@@ -18,8 +18,8 @@
 
 package com.discordsrv.common.command.combined.commands;
 
-import com.discordsrv.api.discord.entity.interaction.command.DiscordCommand;
 import com.discordsrv.api.discord.entity.interaction.command.CommandOption;
+import com.discordsrv.api.discord.entity.interaction.command.DiscordCommand;
 import com.discordsrv.api.discord.entity.interaction.component.ComponentIdentifier;
 import com.discordsrv.common.DiscordSRV;
 import com.discordsrv.common.command.combined.abstraction.CombinedCommand;
@@ -31,6 +31,7 @@ import com.discordsrv.common.paste.Paste;
 import com.discordsrv.common.paste.PasteService;
 import com.discordsrv.common.paste.service.AESEncryptedPasteService;
 import com.discordsrv.common.paste.service.BytebinPasteService;
+import com.discordsrv.common.permission.Permission;
 import net.kyori.adventure.text.format.NamedTextColor;
 
 import java.nio.charset.StandardCharsets;
@@ -53,7 +54,7 @@ public class DebugCommand extends CombinedCommand {
         if (GAME == null) {
             DebugCommand command = getInstance(discordSRV);
             GAME = GameCommand.literal("debug")
-                    .requiredPermission("discordsrv.admin.debug")
+                    .requiredPermission(Permission.COMMAND_DEBUG)
                     .executor(command)
                     .then(
                             GameCommand.stringWord("format")

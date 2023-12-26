@@ -18,6 +18,7 @@ import net.dv8tion.jda.api.interactions.InteractionHook;
 import net.dv8tion.jda.api.interactions.commands.OptionMapping;
 import net.kyori.adventure.text.Component;
 
+import java.time.Duration;
 import java.util.*;
 import java.util.concurrent.*;
 import java.util.function.Consumer;
@@ -207,7 +208,7 @@ public class ExecuteCommand implements Consumer<DiscordChatInputInteractionEvent
             synchronized (queued) {
                 queued.offer(component);
                 if (future == null) {
-                    future = discordSRV.scheduler().runLater(this::send, 500);
+                    future = discordSRV.scheduler().runLater(this::send, Duration.ofMillis(500));
                 }
             }
         }

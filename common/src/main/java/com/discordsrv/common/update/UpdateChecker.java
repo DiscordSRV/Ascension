@@ -24,7 +24,9 @@ import com.discordsrv.common.config.connection.ConnectionConfig;
 import com.discordsrv.common.config.connection.UpdateConfig;
 import com.discordsrv.common.debug.data.VersionInfo;
 import com.discordsrv.common.exception.MessageException;
+import com.discordsrv.common.http.util.HttpUtil;
 import com.discordsrv.common.logging.NamedLogger;
+import com.discordsrv.common.permission.Permission;
 import com.discordsrv.common.player.IPlayer;
 import com.discordsrv.common.player.event.PlayerConnectedEvent;
 import com.discordsrv.common.update.github.GitHubCompareResponse;
@@ -143,16 +145,6 @@ public class UpdateChecker {
         return true;
     }
 
-    private ResponseBody checkResponse(Request request, Response response, ResponseBody responseBody) throws IOException {
-        if (responseBody == null || !response.isSuccessful()) {
-            String responseString = responseBody == null
-                             ? "response body is null"
-                             : StringUtils.substring(responseBody.string(), 0, 500);
-            throw new MessageException("Request to " + request.url().host() + " failed: " + response.code() + ": " + responseString);
-        }
-        return responseBody;
-    }
-
     /**
      * @return {@code null} for preventing shutdown
      */
@@ -166,7 +158,7 @@ public class UpdateChecker {
 
         String responseString;
         try (Response response = discordSRV.httpClient().newCall(request).execute()) {
-            ResponseBody responseBody = checkResponse(request, response, response.body());
+            ResponseBody responseBody = HttpUtil.checkIfResponseSuccessful(request, response);
             responseString = responseBody.string();
         }
 
@@ -204,7 +196,7 @@ public class UpdateChecker {
                     .get().build();
 
             try (Response response = discordSRV.httpClient().newCall(request).execute()) {
-                ResponseBody responseBody = checkResponse(request, response, response.body());
+                ResponseBody responseBody = HttpUtil.checkIfResponseSuccessful(request, response);
                 GitHubCompareResponse compare = discordSRV.json().readValue(responseBody.byteStream(), GitHubCompareResponse.class);
 
                 VersionCheck versionCheck = new VersionCheck();
@@ -236,7 +228,7 @@ public class UpdateChecker {
                     .get().build();
 
             try (Response response = discordSRV.httpClient().newCall(request).execute()) {
-                ResponseBody responseBody = checkResponse(request, response, response.body());
+                ResponseBody responseBody = HttpUtil.checkIfResponseSuccessful(request, response);
                 List<GithubRelease> releases = discordSRV.json().readValue(responseBody.byteStream(), new TypeReference<List<GithubRelease>>() {});
 
                 for (GithubRelease release : releases) {
@@ -303,7 +295,7 @@ public class UpdateChecker {
         }
 
         IPlayer player = event.player();
-        if (!player.hasPermission("discordsrv.updatenotification")) {
+        if (!player.hasPermission(Permission.UPDATE_NOTIFICATION)) {
             return;
         }
 

@@ -20,9 +20,12 @@ package com.discordsrv.velocity.player;
 
 import com.discordsrv.common.DiscordSRV;
 import com.discordsrv.common.player.IPlayer;
+import com.discordsrv.common.player.provider.model.SkinInfo;
+import com.discordsrv.common.player.provider.model.Textures;
 import com.discordsrv.velocity.VelocityDiscordSRV;
 import com.discordsrv.velocity.command.game.sender.VelocityCommandSender;
 import com.velocitypowered.api.proxy.Player;
+import com.velocitypowered.api.util.GameProfile;
 import net.kyori.adventure.identity.Identity;
 import net.kyori.adventure.text.Component;
 import org.jetbrains.annotations.NotNull;
@@ -47,6 +50,19 @@ public class VelocityPlayer extends VelocityCommandSender implements IPlayer {
     @Override
     public @NotNull String username() {
         return player.getUsername();
+    }
+
+    @Override
+    public @Nullable SkinInfo skinInfo() {
+        for (GameProfile.Property property : player.getGameProfile().getProperties()) {
+            if (!Textures.KEY.equals(property.getName())) {
+                continue;
+            }
+
+            Textures textures = Textures.getFromBase64(discordSRV, property.getValue());
+            return textures.getSkinInfo();
+        }
+        return null;
     }
 
     @Override

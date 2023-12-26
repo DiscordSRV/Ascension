@@ -58,8 +58,9 @@ public class MinecraftAuthenticationLinker extends CachedLinkProvider implements
     }
 
     @Override
-    public CompletableFuture<Optional<Long>> queryUserId(@NotNull UUID playerUUID) {
+    public CompletableFuture<Optional<Long>> queryUserId(@NotNull UUID playerUUID, boolean canCauseLink) {
         return query(
+                canCauseLink,
                 () -> AuthService.lookup(AccountType.MINECRAFT, playerUUID.toString(), AccountType.DISCORD)
                         .map(account -> (DiscordAccount) account)
                         .map(discord -> Long.parseUnsignedLong(discord.getUserId())),
@@ -73,8 +74,9 @@ public class MinecraftAuthenticationLinker extends CachedLinkProvider implements
     }
 
     @Override
-    public CompletableFuture<Optional<UUID>> queryPlayerUUID(long userId) {
+    public CompletableFuture<Optional<UUID>> queryPlayerUUID(long userId, boolean canCauseLink) {
         return query(
+                canCauseLink,
                 () -> AuthService.lookup(AccountType.DISCORD, Long.toUnsignedString(userId), AccountType.MINECRAFT)
                         .map(account -> (MinecraftAccount) account)
                         .map(MinecraftAccount::getUUID),
@@ -163,6 +165,7 @@ public class MinecraftAuthenticationLinker extends CachedLinkProvider implements
     }
 
     private <T> CompletableFuture<Optional<T>> query(
+            boolean canCauseLink,
             CheckedSupplier<Optional<T>> authSupplier,
             Supplier<CompletableFuture<Optional<T>>> storageSupplier,
             Consumer<T> linked,
@@ -177,6 +180,9 @@ public class MinecraftAuthenticationLinker extends CachedLinkProvider implements
                 authService.completeExceptionally(t);
             }
         });
+        if (!canCauseLink) {
+            return authService;
+        }
 
         CompletableFuture<Optional<T>> storageFuture = storageSupplier.get();
         return CompletableFutureUtil.combine(authService, storageFuture).thenApply(results -> {

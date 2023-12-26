@@ -47,6 +47,7 @@ import net.kyori.adventure.text.Component;
 import org.apache.commons.lang3.StringUtils;
 import org.jetbrains.annotations.NotNull;
 
+import java.time.Duration;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Map;
@@ -133,7 +134,7 @@ public class DiscordChatMessageModule extends AbstractModule<DiscordSRV> {
             MessageSend send = new MessageSend(message, gameChannel, config);
 
             sends.put(key, send);
-            send.setFuture(discordSRV.scheduler().runLater(() -> processSend(key), delayMillis));
+            send.setFuture(discordSRV.scheduler().runLater(() -> processSend(key), Duration.ofMillis(delayMillis)));
         }
     }
 

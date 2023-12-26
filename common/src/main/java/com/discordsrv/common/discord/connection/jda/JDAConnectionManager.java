@@ -69,6 +69,7 @@ import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.InterruptedIOException;
+import java.time.Duration;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.LinkedHashSet;
@@ -303,9 +304,8 @@ public class JDAConnectionManager implements DiscordConnectionManager {
         );
         this.failureCallbackFuture = discordSRV.scheduler().runAtFixedRate(
                 this::checkDefaultFailureCallback,
-                30,
-                120,
-                TimeUnit.SECONDS
+                Duration.ofSeconds(30),
+                Duration.ofSeconds(120)
         );
 
         MemberCachingConfig memberCachingConfig = discordSRV.config().memberCaching;

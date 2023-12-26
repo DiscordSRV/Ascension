@@ -27,6 +27,7 @@ import net.dv8tion.jda.api.entities.Message;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 
+import java.time.Duration;
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Future;
@@ -196,7 +197,7 @@ public class SingleConsoleHandler {
         if (config.appender.outputMode == ConsoleConfig.OutputMode.OFF) {
             return;
         }
-        this.queueProcessingFuture = discordSRV.scheduler().runLater(this::processQueue, 2, TimeUnit.SECONDS);
+        this.queueProcessingFuture = discordSRV.scheduler().runLater(this::processQueue, Duration.ofSeconds(2));
     }
 
     private void processQueue() {

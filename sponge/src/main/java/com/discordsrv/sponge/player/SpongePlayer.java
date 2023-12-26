@@ -20,6 +20,8 @@ package com.discordsrv.sponge.player;
 
 import com.discordsrv.common.DiscordSRV;
 import com.discordsrv.common.player.IPlayer;
+import com.discordsrv.common.player.provider.model.SkinInfo;
+import com.discordsrv.common.player.provider.model.Textures;
 import com.discordsrv.sponge.SpongeDiscordSRV;
 import com.discordsrv.sponge.command.game.sender.SpongeCommandSender;
 import net.kyori.adventure.identity.Identity;
@@ -49,6 +51,13 @@ public class SpongePlayer extends SpongeCommandSender implements IPlayer {
     @Override
     public @NotNull String username() {
         return player.name();
+    }
+
+    @Override
+    public @Nullable SkinInfo skinInfo() {
+        String texturesRaw = player.skinProfile().get().value();
+        Textures textures = Textures.getFromBase64(discordSRV, texturesRaw);
+        return textures.getSkinInfo();
     }
 
     @Override

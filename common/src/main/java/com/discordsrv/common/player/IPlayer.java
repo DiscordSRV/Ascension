@@ -63,11 +63,6 @@ public interface IPlayer extends DiscordSRVPlayer, IOfflinePlayer, ICommandSende
         return uniqueId().toString().replace("-", "");
     }
 
-    @Placeholder("player_texture")
-    default @Nullable String textureId() {
-        return null; // TODO: implement
-    }
-
     @NotNull
     @Placeholder("player_display_name")
     Component displayName();
@@ -81,7 +76,7 @@ public interface IPlayer extends DiscordSRVPlayer, IOfflinePlayer, ICommandSende
 
         if (avatarConfig.autoDecideAvatarUrl) {
             // Offline mode
-            if (uniqueId().version() == 3) avatarUrlTemplate = "https://cravatar.eu/helmavatar/%player_name%/128.png#%texture%";
+            if (uniqueId().version() == 3) avatarUrlTemplate = "https://cravatar.eu/helmavatar/%player_name%/128.png#%player_skin_texture_id%";
             // Bedrock
             else if (uniqueId().getLeastSignificantBits() == 0) avatarUrlTemplate = "https://api.tydiumcraft.net/skin?uuid=%player_uuid_nodashes%&type=avatar&size=128";
         }

@@ -19,6 +19,7 @@
 package com.discordsrv.sponge.player;
 
 import com.discordsrv.common.player.IOfflinePlayer;
+import com.discordsrv.common.player.IPlayer;
 import com.discordsrv.common.player.ServerPlayerProvider;
 import com.discordsrv.sponge.SpongeDiscordSRV;
 import org.spongepowered.api.entity.living.player.User;
@@ -77,14 +78,24 @@ public class SpongePlayerProvider extends ServerPlayerProvider<SpongePlayer, Spo
     }
 
     @Override
-    public CompletableFuture<IOfflinePlayer> offlinePlayer(UUID uuid) {
+    public CompletableFuture<IOfflinePlayer> lookupOfflinePlayer(UUID uuid) {
+        IPlayer player = player(uuid);
+        if (player != null) {
+            return CompletableFuture.completedFuture(player);
+        }
+
         return discordSRV.game().server().userManager()
                 .load(uuid)
                 .thenApply(optional -> optional.map(this::convert).orElse(null));
     }
 
     @Override
-    public CompletableFuture<IOfflinePlayer> offlinePlayer(String username) {
+    public CompletableFuture<IOfflinePlayer> lookupOfflinePlayer(String username) {
+        IPlayer player = player(username);
+        if (player != null) {
+            return CompletableFuture.completedFuture(player);
+        }
+
         return discordSRV.game().server().userManager()
                 .load(username)
                 .thenApply(optional -> optional.map(this::convert).orElse(null));

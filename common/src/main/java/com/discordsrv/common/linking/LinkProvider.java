@@ -30,7 +30,11 @@ import java.util.concurrent.CompletableFuture;
 
 public interface LinkProvider {
 
-    CompletableFuture<Optional<Long>> queryUserId(@NotNull UUID playerUUID);
+    default CompletableFuture<Optional<Long>> queryUserId(@NotNull UUID playerUUID) {
+        return queryUserId(playerUUID, false);
+    }
+
+    CompletableFuture<Optional<Long>> queryUserId(@NotNull UUID playerUUID, boolean canCauseLink);
 
     default CompletableFuture<Optional<Long>> getUserId(@NotNull UUID playerUUID) {
         Optional<Long> userId = getCachedUserId(playerUUID);
@@ -44,7 +48,11 @@ public interface LinkProvider {
         return Optional.empty();
     }
 
-    CompletableFuture<Optional<UUID>> queryPlayerUUID(long userId);
+    default CompletableFuture<Optional<UUID>> queryPlayerUUID(long userId) {
+        return queryPlayerUUID(userId, false);
+    }
+
+    CompletableFuture<Optional<UUID>> queryPlayerUUID(long userId, boolean canCauseLink);
 
     default CompletableFuture<Optional<UUID>> getPlayerUUID(long userId) {
         Optional<UUID> playerUUID = getCachedPlayerUUID(userId);

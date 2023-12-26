@@ -14,6 +14,7 @@ import com.discordsrv.common.MockDiscordSRV;
 import com.discordsrv.common.channel.GlobalChannel;
 import com.discordsrv.common.component.util.ComponentUtil;
 import com.discordsrv.common.player.IPlayer;
+import com.discordsrv.common.player.provider.model.SkinInfo;
 import com.discordsrv.common.testing.TestHelper;
 import net.kyori.adventure.audience.Audience;
 import net.kyori.adventure.identity.Identity;
@@ -71,6 +72,11 @@ public class MinecraftToDiscordChatMessageTest {
                                 @Override
                                 public @NotNull String username() {
                                     return "Vankka";
+                                }
+
+                                @Override
+                                public @Nullable SkinInfo skinInfo() {
+                                    return null;
                                 }
 
                                 @Override

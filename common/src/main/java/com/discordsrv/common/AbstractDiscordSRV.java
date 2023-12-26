@@ -101,6 +101,7 @@ import java.lang.reflect.Constructor;
 import java.net.URL;
 import java.net.URLClassLoader;
 import java.nio.file.Path;
+import java.time.Duration;
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
@@ -669,7 +670,7 @@ public abstract class AbstractDiscordSRV<
             scheduler().run(() -> updateChecker.check(true));
         }
         if (initial) {
-            scheduler().runAtFixedRate(() -> updateChecker.check(false), 6L, TimeUnit.HOURS);
+            scheduler().runAtFixedRate(() -> updateChecker.check(false), Duration.ofHours(6));
         }
 
         if (flags.contains(ReloadFlag.LINKED_ACCOUNT_PROVIDER)) {
