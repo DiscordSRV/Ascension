@@ -19,6 +19,7 @@
 package com.discordsrv.common.player;
 
 import com.discordsrv.api.placeholder.annotation.Placeholder;
+import com.discordsrv.api.placeholder.annotation.PlaceholderPrefix;
 import com.discordsrv.api.player.DiscordSRVPlayer;
 import com.discordsrv.common.DiscordSRV;
 import com.discordsrv.common.command.game.sender.ICommandSender;
@@ -32,6 +33,7 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.UUID;
 
+@PlaceholderPrefix("player_")
 public interface IPlayer extends DiscordSRVPlayer, IOfflinePlayer, ICommandSender {
 
     @Override
@@ -47,29 +49,23 @@ public interface IPlayer extends DiscordSRVPlayer, IOfflinePlayer, ICommandSende
     }
 
     @NotNull
-    @Placeholder("player_name")
+    @Placeholder("name")
     String username();
 
     @Override
     @ApiStatus.NonExtendable
-    @Placeholder("player_uuid")
+    @Placeholder(value = "uuid", relookup = "uuid")
     default @NotNull UUID uniqueId() {
         return identity().uuid();
     }
 
-    @ApiStatus.NonExtendable
-    @Placeholder("player_uuid_nodashes")
-    default @NotNull String uniqueIdNoDashes() {
-        return uniqueId().toString().replace("-", "");
-    }
-
     @NotNull
-    @Placeholder("player_display_name")
+    @Placeholder("display_name")
     Component displayName();
 
     @Nullable
     @ApiStatus.NonExtendable
-    @Placeholder("player_avatar_url")
+    @Placeholder("avatar_url")
     default String getAvatarUrl() {
         AvatarProviderConfig avatarConfig = discordSRV().config().avatarProvider;
         String avatarUrlTemplate = avatarConfig.avatarUrlTemplate;
@@ -78,7 +74,7 @@ public interface IPlayer extends DiscordSRVPlayer, IOfflinePlayer, ICommandSende
             // Offline mode
             if (uniqueId().version() == 3) avatarUrlTemplate = "https://cravatar.eu/helmavatar/%player_name%/128.png#%player_skin_texture_id%";
             // Bedrock
-            else if (uniqueId().getLeastSignificantBits() == 0) avatarUrlTemplate = "https://api.tydiumcraft.net/skin?uuid=%player_uuid_nodashes%&type=avatar&size=128";
+            else if (uniqueId().getLeastSignificantBits() == 0) avatarUrlTemplate = "https://api.tydiumcraft.net/skin?uuid=%player_uuid_short%&type=avatar&size=128";
         }
 
         if (avatarUrlTemplate == null) {
@@ -90,28 +86,28 @@ public interface IPlayer extends DiscordSRVPlayer, IOfflinePlayer, ICommandSende
 
     @Nullable
     @ApiStatus.NonExtendable
-    @Placeholder("player_meta_prefix")
+    @Placeholder("meta_prefix")
     default Component getMetaPrefix() {
         return PermissionUtil.getMetaPrefix(discordSRV(), uniqueId());
     }
 
     @Nullable
     @ApiStatus.NonExtendable
-    @Placeholder("player_meta_suffix")
+    @Placeholder("meta_suffix")
     default Component getMetaSuffix() {
         return PermissionUtil.getMetaSuffix(discordSRV(), uniqueId());
     }
 
     @Nullable
     @ApiStatus.NonExtendable
-    @Placeholder("player_prefix")
+    @Placeholder("prefix")
     default Component getPrefix() {
         return PermissionUtil.getPrefix(discordSRV(), uniqueId());
     }
 
     @Nullable
     @ApiStatus.NonExtendable
-    @Placeholder("player_suffix")
+    @Placeholder("suffix")
     default Component getSuffix() {
         return PermissionUtil.getSuffix(discordSRV(), uniqueId());
     }

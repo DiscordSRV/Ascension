@@ -268,7 +268,7 @@ public class ReceivedDiscordMessageImpl implements ReceivedDiscordMessage {
     // Placeholders
     //
 
-    @Placeholder("message_reply")
+    @Placeholder("reply")
     public Component _reply(BaseChannelConfig config) {
         if (replyingTo == null) {
             return null;
@@ -291,7 +291,7 @@ public class ReceivedDiscordMessageImpl implements ReceivedDiscordMessage {
         );
     }
 
-    @Placeholder("message_attachments")
+    @Placeholder("attachments")
     public Component _attachments(BaseChannelConfig config, @PlaceholderRemainder String suffix) {
         String attachmentFormat = config.discordToMinecraft.attachmentFormat;
         List<Component> components = new ArrayList<>();

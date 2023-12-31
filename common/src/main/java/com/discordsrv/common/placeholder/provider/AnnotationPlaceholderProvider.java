@@ -20,6 +20,8 @@ package com.discordsrv.common.placeholder.provider;
 
 import com.discordsrv.api.placeholder.PlaceholderLookupResult;
 import com.discordsrv.api.placeholder.annotation.Placeholder;
+import com.discordsrv.api.placeholder.annotation.PlaceholderPrefix;
+import com.discordsrv.api.placeholder.annotation.PlaceholderRemainder;
 import com.discordsrv.api.placeholder.provider.PlaceholderProvider;
 import com.discordsrv.common.placeholder.provider.util.PlaceholderMethodUtil;
 import org.jetbrains.annotations.NotNull;
@@ -32,31 +34,35 @@ import java.util.Set;
 public class AnnotationPlaceholderProvider implements PlaceholderProvider {
 
     private final Placeholder annotation;
+    private final PlaceholderPrefix prefixAnnotation;
+    private final PlaceholderRemainder remainderAnnotation;
 
     private final Class<?> type;
     private final Method method;
-    private final boolean startsWith;
     private final Field field;
 
-    public AnnotationPlaceholderProvider(Placeholder annotation, Class<?> type, boolean startsWith, Method method) {
-        this.annotation = annotation;
-        this.type = type;
-        this.startsWith = startsWith;
-        this.method = method;
-        this.field = null;
+    public AnnotationPlaceholderProvider(Placeholder annotation, PlaceholderPrefix prefixAnnotation, PlaceholderRemainder remainderAnnotation, Class<?> type, Method method) {
+        this(annotation, prefixAnnotation, remainderAnnotation, type, method, null);
     }
 
-    public AnnotationPlaceholderProvider(Placeholder annotation, Class<?> type, boolean startsWith, Field field) {
+    public AnnotationPlaceholderProvider(Placeholder annotation, PlaceholderPrefix prefixAnnotation, Class<?> type, Field field) {
+        this(annotation, prefixAnnotation, null, type, null, field);
+    }
+
+    private AnnotationPlaceholderProvider(Placeholder annotation, PlaceholderPrefix prefixAnnotation, PlaceholderRemainder remainderAnnotation, Class<?> type, Method method, Field field) {
         this.annotation = annotation;
+        this.prefixAnnotation = prefixAnnotation;
+        this.remainderAnnotation = remainderAnnotation;
         this.type = type;
-        this.startsWith = startsWith;
-        this.method = null;
+        this.method = method;
         this.field = field;
     }
 
     @Override
     public @NotNull PlaceholderLookupResult lookup(@NotNull String placeholder, @NotNull Set<Object> context) {
-        String annotationPlaceholder = annotation.value();
+        String annotationPlaceholder = (prefixAnnotation != null ? prefixAnnotation.value() : "") + annotation.value();
+        String reLookup = annotation.relookup();
+        boolean startsWith = !reLookup.isEmpty() || remainderAnnotation != null;
         if (annotationPlaceholder.isEmpty()
                 || !(startsWith ? placeholder.startsWith(annotationPlaceholder) : placeholder.equals(annotationPlaceholder))
                 || (type != null && context.isEmpty())) {
@@ -75,7 +81,7 @@ public class AnnotationPlaceholderProvider implements PlaceholderProvider {
             }
         }
 
-        String remainder = placeholder.replace(annotationPlaceholder, "");
+        String remainder = placeholder.substring(annotationPlaceholder.length());
 
         Object result;
         try {
@@ -89,8 +95,10 @@ public class AnnotationPlaceholderProvider implements PlaceholderProvider {
             return PlaceholderLookupResult.lookupFailed(t);
         }
 
-        String reLookup = annotation.relookup();
-        if (!reLookup.isEmpty()) {
+        if (reLookup.isEmpty() && remainderAnnotation == null) {
+            reLookup = annotation.value();
+        }
+        if (!reLookup.isEmpty() && !remainder.isEmpty()) {
             if (result == null) {
                 return PlaceholderLookupResult.success(null);
             }

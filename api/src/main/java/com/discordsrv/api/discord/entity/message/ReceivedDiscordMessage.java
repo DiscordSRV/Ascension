@@ -31,6 +31,7 @@ import com.discordsrv.api.discord.entity.channel.DiscordTextChannel;
 import com.discordsrv.api.discord.entity.guild.DiscordGuild;
 import com.discordsrv.api.discord.entity.guild.DiscordGuildMember;
 import com.discordsrv.api.placeholder.annotation.Placeholder;
+import com.discordsrv.api.placeholder.annotation.PlaceholderPrefix;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.annotations.Unmodifiable;
@@ -41,6 +42,7 @@ import java.util.concurrent.CompletableFuture;
 /**
  * A message received from Discord.
  */
+@PlaceholderPrefix("message_")
 public interface ReceivedDiscordMessage extends Snowflake {
 
     /**
@@ -49,6 +51,7 @@ public interface ReceivedDiscordMessage extends Snowflake {
      * @return the message content or {@code null}
      */
     @Nullable
+    @Placeholder("content")
     String getContent();
 
     /**
@@ -70,7 +73,7 @@ public interface ReceivedDiscordMessage extends Snowflake {
      * @return the jump url
      */
     @NotNull
-    @Placeholder("message_jump_url")
+    @Placeholder("jump_url")
     String getJumpUrl();
 
     /**
@@ -92,6 +95,7 @@ public interface ReceivedDiscordMessage extends Snowflake {
      * @return the user that sent the message
      */
     @NotNull
+    @Placeholder(value = "user", relookup = "user")
     DiscordUser getAuthor();
 
     /**
@@ -99,6 +103,7 @@ public interface ReceivedDiscordMessage extends Snowflake {
      * @return the channel the message was sent in
      */
     @NotNull
+    @Placeholder(value = "channel", relookup = "channel")
     DiscordMessageChannel getChannel();
 
     /**
@@ -135,6 +140,7 @@ public interface ReceivedDiscordMessage extends Snowflake {
      * @return an optional potentially containing the Discord server the message was posted in
      */
     @Nullable
+    @Placeholder(value = "server", relookup = "server")
     default DiscordGuild getGuild() {
         DiscordTextChannel textChannel = getTextChannel();
 

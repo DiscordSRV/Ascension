@@ -46,15 +46,9 @@ public class LogEntry {
         return throwable;
     }
 
+    @Placeholder(value = "log_time", relookup = "date")
     public ZonedDateTime logTime() {
         return logTime;
     }
 
-    @Placeholder("log_time")
-    public PlaceholderLookupResult _logTimePlaceholder(@PlaceholderRemainder String format) {
-        Set<Object> extras = new LinkedHashSet<>();
-        extras.add(logTime());
-
-        return PlaceholderLookupResult.newLookup("date:'" + format + "'", extras);
-    }
 }

@@ -20,6 +20,7 @@ package com.discordsrv.common.placeholder;
 
 import com.discordsrv.api.placeholder.PlaceholderService;
 import com.discordsrv.api.placeholder.annotation.Placeholder;
+import com.discordsrv.api.placeholder.annotation.PlaceholderPrefix;
 import com.discordsrv.common.MockDiscordSRV;
 import org.junit.jupiter.api.Test;
 
@@ -69,6 +70,26 @@ public class PlaceholderServiceTest {
         assertEquals("b", service.replacePlaceholders("%empty|static_method%", PlaceholderContext.class));
     }
 
+    @Test
+    public void prefixFailTest() {
+        assertEquals("%placeholder%", service.replacePlaceholders("%placeholder%", PrefixContext.class));
+    }
+
+    @Test
+    public void prefixTest() {
+        assertEquals("value", service.replacePlaceholders("%prefix_placeholder%", PrefixContext.class));
+    }
+
+    @Test
+    public void prefixInheritFailTest() {
+        assertEquals("%prefix_noprefix%", service.replacePlaceholders("%prefix_noprefix%", PrefixInheritanceContext.class));
+    }
+
+    @Test
+    public void prefixInheritTest() {
+        assertEquals("value", service.replacePlaceholders("%noprefix%", PrefixInheritanceContext.class));
+    }
+
     public static class PlaceholderContext {
 
         @Placeholder("static_field")
@@ -94,5 +115,17 @@ public class PlaceholderServiceTest {
         public static String objectMethodWithContext(String output) {
             return output;
         }
+    }
+
+    @PlaceholderPrefix("prefix_")
+    public static class PrefixContext {
+
+        @Placeholder("placeholder")
+        public static String placeholder = "value";
+    }
+    public static class PrefixInheritanceContext extends PrefixContext {
+
+        @Placeholder("noprefix")
+        public static String noPrefix = "value";
     }
 }

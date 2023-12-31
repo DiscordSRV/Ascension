@@ -1,7 +1,9 @@
 package com.discordsrv.api.discord.entity.channel;
 
 import com.discordsrv.api.discord.entity.Snowflake;
+import com.discordsrv.api.placeholder.annotation.PlaceholderPrefix;
 
+@PlaceholderPrefix("channel_")
 public interface DiscordChannel extends Snowflake {
 
     /**

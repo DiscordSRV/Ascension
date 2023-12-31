@@ -28,6 +28,7 @@ import com.discordsrv.api.discord.entity.DiscordUser;
 import com.discordsrv.api.discord.entity.JDAEntity;
 import com.discordsrv.api.discord.entity.Mentionable;
 import com.discordsrv.api.placeholder.annotation.Placeholder;
+import com.discordsrv.api.placeholder.annotation.PlaceholderPrefix;
 import net.dv8tion.jda.api.entities.Member;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -39,6 +40,7 @@ import java.util.concurrent.CompletableFuture;
 /**
  * A Discord server member.
  */
+@PlaceholderPrefix("user_")
 public interface DiscordGuildMember extends JDAEntity<Member>, Mentionable {
 
     /**
@@ -52,6 +54,7 @@ public interface DiscordGuildMember extends JDAEntity<Member>, Mentionable {
      * Gets the Discord server this member is from.
      * @return the Discord server this member is from.
      */
+    @Placeholder(value = "server", relookup = "server")
     @NotNull
     DiscordGuild getGuild();
 
@@ -101,7 +104,7 @@ public interface DiscordGuildMember extends JDAEntity<Member>, Mentionable {
      * Gets the effective name of this Discord server member.
      * @return the Discord server member's effective name
      */
-    @Placeholder("user_effective_server_name")
+    @Placeholder("effective_server_name")
     @NotNull
     default String getEffectiveServerName() {
         String nickname = getNickname();
@@ -112,7 +115,7 @@ public interface DiscordGuildMember extends JDAEntity<Member>, Mentionable {
      * Gets the avatar url that is active for this user in this server.
      * @return the user's avatar url in this server
      */
-    @Placeholder("user_effective_server_avatar_url")
+    @Placeholder("effective_server_avatar_url")
     @NotNull
     String getEffectiveServerAvatarUrl();
 
@@ -120,13 +123,14 @@ public interface DiscordGuildMember extends JDAEntity<Member>, Mentionable {
      * Gets the color of this user's highest role that has a color.
      * @return the color that will be used for this user
      */
-    @Placeholder("user_color")
+    @Placeholder("color")
     Color getColor();
 
     /**
      * Gets the time the member joined the server.
      * @return the time the member joined the server
      */
+    @Placeholder(value = "time_joined", relookup = "date")
     @NotNull
     OffsetDateTime getTimeJoined();
 
@@ -134,6 +138,7 @@ public interface DiscordGuildMember extends JDAEntity<Member>, Mentionable {
      * Time the member started boosting.
      * @return the time the member started boosting or {@code null}
      */
+    @Placeholder(value = "time_boosted", relookup = "date")
     @Nullable
     OffsetDateTime getTimeBoosted();
 
@@ -141,7 +146,7 @@ public interface DiscordGuildMember extends JDAEntity<Member>, Mentionable {
      * If the Discord server member is boosted.
      * @return {@code true} if this Discord server member is boosting
      */
-    @Placeholder("user_isboosting")
+    @Placeholder("isboosting")
     default boolean isBoosting() {
         return getTimeBoosted() != null;
     }

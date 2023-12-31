@@ -130,12 +130,12 @@ public class DiscordGuildMemberImpl implements DiscordGuildMember {
     // Placeholders
     //
 
-    @Placeholder(value = "user_highest_role", relookup = "role")
+    @Placeholder(value = "highest_role", relookup = "role")
     public DiscordRole _highestRole() {
         return !roles.isEmpty() ? roles.get(0) : null;
     }
 
-    @Placeholder(value = "user_hoisted_role", relookup = "role")
+    @Placeholder(value = "hoisted_role", relookup = "role")
     public DiscordRole _hoistedRole() {
         for (DiscordRole role : roles) {
             if (role.isHoisted()) {
@@ -145,7 +145,7 @@ public class DiscordGuildMemberImpl implements DiscordGuildMember {
         return null;
     }
 
-    @Placeholder("user_roles")
+    @Placeholder("roles")
     public Component _allRoles(@PlaceholderRemainder String suffix) {
         List<Component> components = new ArrayList<>();
         for (DiscordRole role : getRoles()) {

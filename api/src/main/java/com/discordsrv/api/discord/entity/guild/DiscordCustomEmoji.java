@@ -25,8 +25,10 @@ package com.discordsrv.api.discord.entity.guild;
 
 import com.discordsrv.api.discord.entity.JDAEntity;
 import com.discordsrv.api.discord.entity.Snowflake;
+import com.discordsrv.api.placeholder.annotation.PlaceholderPrefix;
 import net.dv8tion.jda.api.entities.emoji.CustomEmoji;
 
+@PlaceholderPrefix("emoji_")
 public interface DiscordCustomEmoji extends JDAEntity<CustomEmoji>, Snowflake {
 
     String getName();

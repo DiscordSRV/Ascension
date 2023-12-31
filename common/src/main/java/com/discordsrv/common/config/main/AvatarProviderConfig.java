@@ -15,5 +15,5 @@ public class AvatarProviderConfig {
     @Comment("The template for URLs of player avatars\n" +
             "This will be used for official Java players only if auto-decide-avatar-url is set to true\n" +
             "This will be used ALWAYS if auto-decide-avatar-url is set to false")
-    public String avatarUrlTemplate = "https://crafatar.com/avatars/%player_uuid_nodashes%.png?size=128&overlay#%player_texture%";
+    public String avatarUrlTemplate = "https://crafatar.com/avatars/%player_uuid_short%.png?size=128&overlay#%player_skin_texture_id%";
 }

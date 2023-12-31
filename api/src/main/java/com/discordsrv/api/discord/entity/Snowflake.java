@@ -23,6 +23,8 @@
 
 package com.discordsrv.api.discord.entity;
 
+import com.discordsrv.api.placeholder.annotation.Placeholder;
+
 /**
  * A snowflake identifier.
  */
@@ -32,5 +34,6 @@ public interface Snowflake {
      * Gets the id of this entity.
      * @return the id of this entity
      */
+    @Placeholder("id")
     long getId();
 }

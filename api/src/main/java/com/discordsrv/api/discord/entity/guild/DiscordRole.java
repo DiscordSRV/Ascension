@@ -28,12 +28,14 @@ import com.discordsrv.api.discord.entity.JDAEntity;
 import com.discordsrv.api.discord.entity.Mentionable;
 import com.discordsrv.api.discord.entity.Snowflake;
 import com.discordsrv.api.placeholder.annotation.Placeholder;
+import com.discordsrv.api.placeholder.annotation.PlaceholderPrefix;
 import net.dv8tion.jda.api.entities.Role;
 import org.jetbrains.annotations.NotNull;
 
 /**
  * A Discord server role.
  */
+@PlaceholderPrefix("role_")
 public interface DiscordRole extends JDAEntity<Role>, Snowflake, Mentionable {
 
     /**
@@ -45,6 +47,7 @@ public interface DiscordRole extends JDAEntity<Role>, Snowflake, Mentionable {
      * The Discord server this role is from.
      * @return the Discord server
      */
+    @Placeholder(value = "server", relookup = "server")
     @NotNull
     DiscordGuild getGuild();
 
@@ -52,7 +55,7 @@ public interface DiscordRole extends JDAEntity<Role>, Snowflake, Mentionable {
      * Gets the name of the Discord role.
      * @return the role name
      */
-    @Placeholder("role_name")
+    @Placeholder("name")
     @NotNull
     String getName();
 
@@ -69,7 +72,7 @@ public interface DiscordRole extends JDAEntity<Role>, Snowflake, Mentionable {
      * @return the color of this role, or {@link #DEFAULT_COLOR} if there is no color set
      * @see #hasColor()
      */
-    @Placeholder("role_color")
+    @Placeholder(value = "color", relookup = "color")
     @NotNull
     Color getColor();
 

@@ -81,6 +81,7 @@ import com.discordsrv.common.storage.Storage;
 import com.discordsrv.common.storage.StorageType;
 import com.discordsrv.common.storage.impl.MemoryStorage;
 import com.discordsrv.common.update.UpdateChecker;
+import com.discordsrv.common.uuid.util.UUIDUtil;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import net.dv8tion.jda.api.JDA;
@@ -561,6 +562,7 @@ public abstract class AbstractDiscordSRV<
         placeholderService().addResultMapper(new ComponentResultStringifier(this));
         placeholderService().addGlobalContext(new GlobalTextHandlingContext(this));
         placeholderService().addGlobalContext(new GlobalDateFormattingContext(this));
+        placeholderService().addGlobalContext(UUIDUtil.class);
 
         // Modules
         registerModule(ConsoleModule::new);

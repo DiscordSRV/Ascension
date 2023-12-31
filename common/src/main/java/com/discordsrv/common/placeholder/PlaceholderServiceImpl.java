@@ -22,13 +22,14 @@ import com.discordsrv.api.event.events.placeholder.PlaceholderLookupEvent;
 import com.discordsrv.api.placeholder.PlaceholderLookupResult;
 import com.discordsrv.api.placeholder.PlaceholderService;
 import com.discordsrv.api.placeholder.annotation.Placeholder;
+import com.discordsrv.api.placeholder.annotation.PlaceholderPrefix;
 import com.discordsrv.api.placeholder.annotation.PlaceholderRemainder;
 import com.discordsrv.api.placeholder.mapper.PlaceholderResultMapper;
+import com.discordsrv.api.placeholder.provider.PlaceholderProvider;
 import com.discordsrv.common.DiscordSRV;
 import com.discordsrv.common.logging.Logger;
 import com.discordsrv.common.logging.NamedLogger;
 import com.discordsrv.common.placeholder.provider.AnnotationPlaceholderProvider;
-import com.discordsrv.api.placeholder.provider.PlaceholderProvider;
 import com.github.benmanes.caffeine.cache.CacheLoader;
 import com.github.benmanes.caffeine.cache.LoadingCache;
 import org.apache.commons.lang3.StringUtils;
@@ -43,6 +44,7 @@ import java.lang.reflect.Parameter;
 import java.util.*;
 import java.util.concurrent.CopyOnWriteArraySet;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -225,6 +227,8 @@ public class PlaceholderServiceImpl implements PlaceholderService {
     }
 
     private Object getResultRepresentation(List<PlaceholderLookupResult> results, String placeholder, Matcher matcher) {
+        Map<String, AtomicInteger> preventInfiniteLoop = new HashMap<>();
+
         Object best = null;
         for (PlaceholderLookupResult result : results) {
             while (result != null) {
@@ -253,7 +257,15 @@ public class PlaceholderServiceImpl implements PlaceholderService {
                         replacement = "Error";
                         break;
                     case NEW_LOOKUP:
-                        result = lookupPlaceholder((String) result.getValue(), result.getExtras());
+                        String placeholderKey = (String) result.getValue();
+
+                        AtomicInteger infiniteLoop = preventInfiniteLoop.computeIfAbsent(placeholderKey, key -> new AtomicInteger(0));
+                        if (infiniteLoop.incrementAndGet() > 10) {
+                            replacement = "Infinite Loop";
+                            break;
+                        }
+
+                        result = lookupPlaceholder(placeholderKey, result.getExtras());
                         newLookup = true;
                         break;
                 }
@@ -273,59 +285,65 @@ public class PlaceholderServiceImpl implements PlaceholderService {
 
     private static class ClassProviderLoader implements CacheLoader<Class<?>, Set<PlaceholderProvider>> {
 
-        private Set<Class<?>> getAll(Class<?> clazz) {
-            Set<Class<?>> classes = new LinkedHashSet<>();
-            classes.add(clazz);
+        private Set<PlaceholderProvider> loadProviders(Class<?> clazz, PlaceholderPrefix prefix) {
+            Set<PlaceholderProvider> providers = new LinkedHashSet<>();
 
-            for (Class<?> anInterface : clazz.getInterfaces()) {
-                classes.addAll(getAll(anInterface));
-            }
+            Class<?> currentClass = clazz;
+            while (currentClass != null) {
+                PlaceholderPrefix currentPrefix = currentClass.getAnnotation(PlaceholderPrefix.class);
+                if (currentPrefix != null && prefix == null) {
+                    prefix = currentPrefix;
+                }
+                PlaceholderPrefix usePrefix = (currentPrefix != null && currentPrefix.ignoreParents()) ? currentPrefix : prefix;
 
-            Class<?> superClass = clazz.getSuperclass();
-            if (superClass != null) {
-                classes.addAll(getAll(superClass));
-            }
-
-            return classes;
-        }
-
-        @Override
-        public @Nullable Set<PlaceholderProvider> load(@NonNull Class<?> key) {
-            Set<PlaceholderProvider> providers = new HashSet<>();
-
-            Set<Class<?>> classes = getAll(key);
-            for (Class<?> clazz : classes) {
                 for (Method method : clazz.getMethods()) {
+                    if (!method.getDeclaringClass().equals(currentClass)) {
+                        continue;
+                    }
+
                     Placeholder annotation = method.getAnnotation(Placeholder.class);
                     if (annotation == null) {
                         continue;
                     }
 
-                    boolean startsWith = !annotation.relookup().isEmpty();
-                    if (!startsWith) {
-                        for (Parameter parameter : method.getParameters()) {
-                            if (parameter.getAnnotation(PlaceholderRemainder.class) != null) {
-                                startsWith = true;
-                                break;
-                            }
+                    PlaceholderRemainder remainder = null;
+                    for (Parameter parameter : method.getParameters()) {
+                        remainder = parameter.getAnnotation(PlaceholderRemainder.class);
+                        if (remainder != null) {
+                            break;
                         }
                     }
 
                     boolean isStatic = Modifier.isStatic(method.getModifiers());
-                    providers.add(new AnnotationPlaceholderProvider(annotation, isStatic ? null : clazz, startsWith, method));
+                    providers.add(new AnnotationPlaceholderProvider(annotation, usePrefix, remainder, isStatic ? null : clazz, method));
                 }
                 for (Field field : clazz.getFields()) {
+                    if (!field.getDeclaringClass().equals(currentClass)) {
+                        continue;
+                    }
+
                     Placeholder annotation = field.getAnnotation(Placeholder.class);
                     if (annotation == null) {
                         continue;
                     }
 
                     boolean isStatic = Modifier.isStatic(field.getModifiers());
-                    providers.add(new AnnotationPlaceholderProvider(annotation, isStatic ? null : clazz, !annotation.relookup().isEmpty(), field));
+                    providers.add(new AnnotationPlaceholderProvider(annotation, usePrefix, isStatic ? null : clazz, field));
                 }
+
+                for (Class<?> anInterface : currentClass.getInterfaces()) {
+                    providers.addAll(loadProviders(anInterface, prefix));
+                }
+
+                currentClass = currentClass.getSuperclass();
             }
 
             return providers;
+        }
+
+        @Override
+        public @Nullable Set<PlaceholderProvider> load(@NonNull Class<?> key) {
+            return loadProviders(key, null);
         }
     }
 }

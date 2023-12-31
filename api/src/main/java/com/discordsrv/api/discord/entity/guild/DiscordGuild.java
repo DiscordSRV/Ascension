@@ -26,6 +26,7 @@ package com.discordsrv.api.discord.entity.guild;
 import com.discordsrv.api.discord.entity.JDAEntity;
 import com.discordsrv.api.discord.entity.Snowflake;
 import com.discordsrv.api.placeholder.annotation.Placeholder;
+import com.discordsrv.api.placeholder.annotation.PlaceholderPrefix;
 import net.dv8tion.jda.api.entities.Guild;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -37,13 +38,14 @@ import java.util.concurrent.CompletableFuture;
 /**
  * A Discord server.
  */
+@PlaceholderPrefix("server_")
 public interface DiscordGuild extends JDAEntity<Guild>, Snowflake {
 
     /**
      * Gets the name of this Discord guild.
      * @return the guild's name
      */
-    @Placeholder("server_name")
+    @Placeholder("name")
     @NotNull
     String getName();
 
@@ -51,7 +53,7 @@ public interface DiscordGuild extends JDAEntity<Guild>, Snowflake {
      * Gets the member count of the guild.
      * @return the guild's member count
      */
-    @Placeholder("server_member_count")
+    @Placeholder("member_count")
     int getMemberCount();
 
     /**

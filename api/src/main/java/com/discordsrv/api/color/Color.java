@@ -23,11 +23,15 @@
 
 package com.discordsrv.api.color;
 
+import com.discordsrv.api.placeholder.annotation.Placeholder;
+import com.discordsrv.api.placeholder.annotation.PlaceholderPrefix;
+
 import java.util.Objects;
 
 /**
  * Simple helper class for handling rgb colors, that is compatible with headless java installations.
  */
+@PlaceholderPrefix("color_")
 public class Color {
 
     /**
@@ -69,22 +73,27 @@ public class Color {
         this.rgb = Integer.parseInt(hex, 16);
     }
 
+    @Placeholder("rgb")
     public int rgb() {
         return rgb;
     }
 
+    @Placeholder("hex")
     public String hex() {
         return Integer.toHexString(0xF000000 | rgb).substring(1);
     }
 
+    @Placeholder("red")
     public int red() {
         return (rgb & 0xFF0000) >> 16;
     }
 
+    @Placeholder("green")
     public int green() {
         return (rgb & 0x00FF00) >> 8;
     }
 
+    @Placeholder("blue")
     public int blue() {
         return rgb & 0x0000FF;
     }

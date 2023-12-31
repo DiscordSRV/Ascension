@@ -25,6 +25,7 @@ package com.discordsrv.api.discord.entity;
 
 import com.discordsrv.api.discord.entity.channel.DiscordDMChannel;
 import com.discordsrv.api.placeholder.annotation.Placeholder;
+import com.discordsrv.api.placeholder.annotation.PlaceholderPrefix;
 import net.dv8tion.jda.api.entities.User;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -34,6 +35,7 @@ import java.util.concurrent.CompletableFuture;
 /**
  * A Discord user.
  */
+@PlaceholderPrefix("user_")
 public interface DiscordUser extends JDAEntity<User>, Snowflake, Mentionable {
 
     /**
@@ -52,7 +54,7 @@ public interface DiscordUser extends JDAEntity<User>, Snowflake, Mentionable {
      * Gets the username of the Discord user.
      * @return the user's username
      */
-    @Placeholder("user_name")
+    @Placeholder("name")
     @NotNull
     String getUsername();
 
@@ -60,7 +62,7 @@ public interface DiscordUser extends JDAEntity<User>, Snowflake, Mentionable {
      * Gets the effective display name of the Discord user.
      * @return the user's effective display name
      */
-    @Placeholder("user_effective_name")
+    @Placeholder("effective_name")
     @NotNull
     String getEffectiveName();
 
@@ -68,7 +70,7 @@ public interface DiscordUser extends JDAEntity<User>, Snowflake, Mentionable {
      * Gets the Discord user's discriminator.
      * @return the user's discriminator
      */
-    @Placeholder("user_discriminator")
+    @Placeholder("discriminator")
     @NotNull
     String getDiscriminator();
 
@@ -76,7 +78,7 @@ public interface DiscordUser extends JDAEntity<User>, Snowflake, Mentionable {
      * Gets the Discord user's avatar url, if an avatar is set.
      * @return the user's avatar url or {@code null}
      */
-    @Placeholder("user_avatar_url")
+    @Placeholder("avatar_url")
     @Nullable
     String getAvatarUrl();
 
@@ -85,7 +87,7 @@ public interface DiscordUser extends JDAEntity<User>, Snowflake, Mentionable {
      * if an avatar isn't set it'll be the url to the default avatar provided by Discord.
      * @return the user's avatar url
      */
-    @Placeholder("user_effective_avatar_url")
+    @Placeholder("effective_avatar_url")
     @NotNull
     String getEffectiveAvatarUrl();
 
@@ -93,7 +95,7 @@ public interface DiscordUser extends JDAEntity<User>, Snowflake, Mentionable {
      * Gets the Discord user's username, including discriminator if any.
      * @return the Discord user's username
      */
-    @Placeholder("user_tag")
+    @Placeholder("tag")
     default String getAsTag() {
         String username = getUsername();
         String discriminator = getDiscriminator();

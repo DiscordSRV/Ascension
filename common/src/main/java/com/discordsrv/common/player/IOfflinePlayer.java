@@ -19,6 +19,7 @@
 package com.discordsrv.common.player;
 
 import com.discordsrv.api.placeholder.annotation.Placeholder;
+import com.discordsrv.api.placeholder.annotation.PlaceholderPrefix;
 import com.discordsrv.common.DiscordSRV;
 import com.discordsrv.common.player.provider.model.SkinInfo;
 import com.discordsrv.common.profile.Profile;
@@ -30,6 +31,7 @@ import org.jetbrains.annotations.Nullable;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 
+@PlaceholderPrefix("player_")
 public interface IOfflinePlayer extends Identified {
 
     DiscordSRV discordSRV();
@@ -39,12 +41,12 @@ public interface IOfflinePlayer extends Identified {
         return discordSRV().profileManager().lookupProfile(uniqueId());
     }
 
-    @Placeholder("player_name")
+    @Placeholder("name")
     @Nullable
     String username();
 
     @ApiStatus.NonExtendable
-    @Placeholder("player_uuid")
+    @Placeholder(value = "uuid", relookup = "uuid")
     @NotNull
     default UUID uniqueId() {
         return identity().uuid();
@@ -53,14 +55,14 @@ public interface IOfflinePlayer extends Identified {
     @Nullable
     SkinInfo skinInfo();
 
-    @Placeholder("player_skin_texture_id")
+    @Placeholder("skin_texture_id")
     @Nullable
     default String skinTextureId() {
         SkinInfo info = skinInfo();
         return info != null ? info.textureId() : null;
     }
 
-    @Placeholder("player_skin_model")
+    @Placeholder("skin_model")
     @Nullable
     default String skinModel() {
         SkinInfo info = skinInfo();

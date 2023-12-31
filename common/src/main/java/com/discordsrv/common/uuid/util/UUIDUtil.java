@@ -1,9 +1,12 @@
 package com.discordsrv.common.uuid.util;
 
+import com.discordsrv.api.placeholder.annotation.Placeholder;
+import com.discordsrv.api.placeholder.annotation.PlaceholderPrefix;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.UUID;
 
+@PlaceholderPrefix("uuid_")
 public final class UUIDUtil {
 
     private UUIDUtil() {}
@@ -31,6 +34,7 @@ public final class UUIDUtil {
         return UUID.fromString(fullLengthUUID);
     }
 
+    @Placeholder("short")
     public static String toShort(@NotNull UUID uuid) {
         return uuid.toString().replace("-", "");
     }

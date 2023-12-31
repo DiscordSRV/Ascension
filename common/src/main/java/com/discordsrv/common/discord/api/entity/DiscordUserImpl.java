@@ -66,6 +66,7 @@ public class DiscordUserImpl implements DiscordUser {
         return user.getEffectiveName();
     }
 
+    @SuppressWarnings("deprecation")
     @Override
     public @NotNull String getDiscriminator() {
         return user.getDiscriminator();
