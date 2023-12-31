@@ -12,7 +12,8 @@ import java.lang.annotation.RetentionPolicy;
 @Retention(RetentionPolicy.RUNTIME)
 public @interface Constants {
 
-    String[] value();
+    String[] value() default {};
+    int[] intValue() default {};
 
     /**
      * Needs to go after {@link org.spongepowered.configurate.objectmapping.meta.Comment}.
@@ -20,6 +21,7 @@ public @interface Constants {
     @Retention(RetentionPolicy.RUNTIME)
     @interface Comment {
 
-        String[] value();
+        String[] value() default {};
+        int[] intValue() default {};
     }
 }

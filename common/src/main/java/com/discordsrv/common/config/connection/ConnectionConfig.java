@@ -28,12 +28,12 @@ public class ConnectionConfig implements Config {
 
     public static final String FILE_NAME = "connections.yaml";
 
-    @Constants(MainConfig.FILE_NAME)
+    @Constants({MainConfig.FILE_NAME, "443", "https/wss"})
     public static final String HEADER = "DiscordSRV's configuration file for connections to different external services.\n"
             + "This file is intended to contain connection details to services in order to keep them out of the %1\n"
             + "and to serve as a easy way to identify and control what external connections are being used.\n"
             + "\n"
-            + "All domains listed as \"Requires a connection to\" require port 443 (https/wss) unless otherwise specified\n"
+            + "All domains listed as \"Requires a connection to\" require port %2 (%3) unless otherwise specified\n"
             + "\n"
             + " ABSOLUTELY DO NOT SEND THIS FILE TO ANYONE - IT ONLY CONTAINS SECRETS\n";
 

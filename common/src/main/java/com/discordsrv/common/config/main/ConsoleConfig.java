@@ -5,7 +5,10 @@ import com.discordsrv.common.config.main.generic.GameCommandExecutionConditionCo
 import org.spongepowered.configurate.objectmapping.ConfigSerializable;
 import org.spongepowered.configurate.objectmapping.meta.Comment;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
 
 @ConfigSerializable
 public class ConsoleConfig {

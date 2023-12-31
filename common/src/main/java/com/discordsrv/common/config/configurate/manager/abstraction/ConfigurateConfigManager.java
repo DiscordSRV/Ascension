@@ -53,10 +53,7 @@ import org.spongepowered.configurate.yaml.YamlConfigurationLoader;
 import java.lang.reflect.Field;
 import java.lang.reflect.Type;
 import java.nio.file.Path;
-import java.util.Arrays;
-import java.util.Comparator;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.regex.Pattern;
 
 public abstract class ConfigurateConfigManager<T, LT extends AbstractConfigurationLoader<CommentedConfigurationNode>>
@@ -218,13 +215,14 @@ public abstract class ConfigurateConfigManager<T, LT extends AbstractConfigurati
                         String comment = ((CommentedConfigurationNode) destination).comment();
                         if (comment != null) {
                             ((CommentedConfigurationNode) destination).comment(
-                                    doSubstitution(comment, data.value())
+                                    doSubstitution(comment, getValues(data.value(), data.intValue()))
                             );
                         }
                     }
                 })
                 .addProcessor(Constants.class, (data, fieldType) -> (value, destination) -> {
-                    if (data == null || data.value().length == 0) {
+                    String[] values = getValues(data.value(), data.intValue());
+                    if (values.length == 0) {
                         return;
                     }
 
@@ -234,16 +232,19 @@ public abstract class ConfigurateConfigManager<T, LT extends AbstractConfigurati
                     }
 
                     try {
-                        destination.set(
-                                doSubstitution(
-                                        destination.getString(),
-                                        data.value()
-                                )
-                        );
+                        destination.set(doSubstitution(destination.getString(), values));
                     } catch (SerializationException e) {
                         throw new RuntimeException(e);
                     }
                 });
+    }
+
+    private String[] getValues(String[] value, int[] intValue) {
+        List<String> values = new ArrayList<>(Arrays.asList(value));
+        for (int i : intValue) {
+            values.add(String.valueOf(i));
+        }
+        return values.toArray(new String[0]);
     }
 
     private static String doSubstitution(String input, String[] values) {

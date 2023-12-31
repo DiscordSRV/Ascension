@@ -18,6 +18,7 @@
 
 package com.discordsrv.common.config.main;
 
+import com.discordsrv.common.config.configurate.annotation.Constants;
 import org.spongepowered.configurate.objectmapping.ConfigSerializable;
 import org.spongepowered.configurate.objectmapping.meta.Comment;
 
@@ -49,6 +50,8 @@ public class TimedUpdaterConfig {
 
     public static class VoiceChannelConfig implements UpdaterConfig {
 
+        private static final int MINIMUM_MINUTES = 10;
+
         @Comment("The channel IDs.\n"
                 + "The bot will need the \"View Channel\", \"Manage Channels\" and \"Connection\" permissions for the provided channels")
         public List<Long> channelIds = new ArrayList<>();
@@ -56,8 +59,9 @@ public class TimedUpdaterConfig {
         @Comment("The format for the channel name(s), placeholders are supported.")
         public String nameFormat = "";
 
-        @Comment("The time between updates in minutes. The minimum time is 10 minutes.")
-        public int timeMinutes = 10;
+        @Constants.Comment(intValue = MINIMUM_MINUTES)
+        @Comment("The time between updates in minutes. The minimum time is %1 minutes.")
+        public int timeMinutes = MINIMUM_MINUTES;
 
         @Override
         public boolean any() {
@@ -71,11 +75,13 @@ public class TimedUpdaterConfig {
 
         @Override
         public long minimumSeconds() {
-            return TimeUnit.MINUTES.toSeconds(10);
+            return TimeUnit.MINUTES.toSeconds(MINIMUM_MINUTES);
         }
     }
 
     public static class TextChannelConfig implements UpdaterConfig {
+
+        private static final int MINIMUM_MINUTES = 10;
 
         @Comment("The channel IDs.\n"
                 + "The bot will need the \"View Channel\" and \"Manage Channels\" permissions for the provided channels")
@@ -89,8 +95,9 @@ public class TimedUpdaterConfig {
                 + "If this is blank, the topic will not be updated")
         public String topicFormat = "";
 
-        @Comment("The time between updates in minutes. The minimum time is 10 minutes.")
-        public int timeMinutes = 10;
+        @Constants.Comment(intValue = MINIMUM_MINUTES)
+        @Comment("The time between updates in minutes. The minimum time is %1 minutes.")
+        public int timeMinutes = MINIMUM_MINUTES;
 
         @Override
         public boolean any() {
@@ -104,7 +111,7 @@ public class TimedUpdaterConfig {
 
         @Override
         public long minimumSeconds() {
-            return TimeUnit.MINUTES.toSeconds(10);
+            return TimeUnit.MINUTES.toSeconds(MINIMUM_MINUTES);
         }
     }
 

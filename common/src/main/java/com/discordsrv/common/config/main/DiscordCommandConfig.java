@@ -33,12 +33,11 @@ public class DiscordCommandConfig {
         public boolean ephemeral = true;
 
         @Comment("The mode for the command output, available options are:\n"
-                + "- %1: Regular Discord markdown\n"
-                + "- %2: A colored ansi code block\n"
-                + "- %3: Plain text\n"
-                + "- %4: Plain code block\n"
-                + "- %5: No command output")
-        @Constants.Comment({"markdown", "ansi", "plain", "code_block", "off"})
+                + "- markdown: Regular Discord markdown\n"
+                + "- ansi: A colored ansi code block\n"
+                + "- plain: Plain text\n"
+                + "- code_block: Plain code block\n"
+                + "- off: No command output")
         public OutputMode outputMode = OutputMode.MARKDOWN;
 
         @Comment("At least one condition has to match to allow execution")
