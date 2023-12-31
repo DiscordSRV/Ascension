@@ -20,7 +20,7 @@ package com.discordsrv.sponge.player;
 
 import com.discordsrv.common.player.IOfflinePlayer;
 import com.discordsrv.common.player.IPlayer;
-import com.discordsrv.common.player.ServerPlayerProvider;
+import com.discordsrv.common.player.provider.ServerPlayerProvider;
 import com.discordsrv.sponge.SpongeDiscordSRV;
 import org.spongepowered.api.entity.living.player.User;
 import org.spongepowered.api.entity.living.player.server.ServerPlayer;

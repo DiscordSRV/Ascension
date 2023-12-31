@@ -24,7 +24,7 @@ import com.discordsrv.common.config.main.MainConfig;
 import com.discordsrv.common.config.messages.MessagesConfig;
 import com.discordsrv.common.messageforwarding.game.AwardMessageModule;
 import com.discordsrv.common.messageforwarding.game.DeathMessageModule;
-import com.discordsrv.common.player.ServerPlayerProvider;
+import com.discordsrv.common.player.provider.ServerPlayerProvider;
 import com.discordsrv.common.scheduler.ServerScheduler;
 import org.jetbrains.annotations.NotNull;
 

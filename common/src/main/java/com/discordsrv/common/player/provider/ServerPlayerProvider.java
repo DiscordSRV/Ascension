@@ -16,9 +16,11 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package com.discordsrv.common.player;
+package com.discordsrv.common.player.provider;
 
 import com.discordsrv.common.DiscordSRV;
+import com.discordsrv.common.player.IOfflinePlayer;
+import com.discordsrv.common.player.IPlayer;
 import com.discordsrv.common.player.provider.AbstractPlayerProvider;
 
 import java.util.UUID;
