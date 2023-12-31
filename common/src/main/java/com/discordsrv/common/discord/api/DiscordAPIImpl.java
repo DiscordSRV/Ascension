@@ -33,8 +33,8 @@ import com.discordsrv.api.discord.exception.RestErrorResponseException;
 import com.discordsrv.common.DiscordSRV;
 import com.discordsrv.common.config.main.channels.base.BaseChannelConfig;
 import com.discordsrv.common.config.main.channels.base.IChannelConfig;
-import com.discordsrv.common.config.main.generic.ThreadConfig;
 import com.discordsrv.common.config.main.generic.DestinationConfig;
+import com.discordsrv.common.config.main.generic.ThreadConfig;
 import com.discordsrv.common.discord.api.entity.DiscordUserImpl;
 import com.discordsrv.common.discord.api.entity.channel.*;
 import com.discordsrv.common.discord.api.entity.guild.DiscordCustomEmojiImpl;
@@ -139,10 +139,9 @@ public class DiscordAPIImpl implements DiscordAPI {
                 // Check if a thread by the same name is still active
                 DiscordThreadChannel thread = findThread(threadConfig, channel.getActiveThreads());
                 if (thread != null) {
-                    ThreadChannel jdaChannel = thread.asJDA();
-                    if (!jdaChannel.isArchived()) {
+                    if (!thread.isArchived()) {
                         synchronized (channels) {
-                            channels.add(getThreadChannel(jdaChannel));
+                            channels.add(thread);
                         }
                         continue;
                     }
@@ -253,10 +252,10 @@ public class DiscordAPIImpl implements DiscordAPI {
             CompletableFuture<DiscordThreadChannel> future
     ) {
         if (thread != null) {
-            ThreadChannel channel = thread.asJDA();
-            if (channel.isLocked() || channel.isArchived()) {
+            if (thread.isLocked() || thread.isArchived()) {
                 try {
-                    channel.getManager()
+                    thread.asJDA()
+                            .getManager()
                             .setArchived(false)
                             .reason("DiscordSRV Auto Unarchive")
                             .queue(v -> future.complete(thread), future::completeExceptionally);

@@ -38,7 +38,7 @@ public interface DiscordMemberCachePolicy {
             .map(api -> api.profileManager().getProfile(member.getUser().getId()))
             .map(IProfile::isLinked).orElse(false);
     DiscordMemberCachePolicy VOICE = member -> member.asJDA().getVoiceState() != null;
-    DiscordMemberCachePolicy OWNER = member -> member.asJDA().isOwner();
+    DiscordMemberCachePolicy OWNER = DiscordGuildMember::isOwner;
 
     boolean isCached(DiscordGuildMember member);
 }

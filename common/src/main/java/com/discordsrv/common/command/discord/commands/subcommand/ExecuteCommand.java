@@ -2,11 +2,13 @@ package com.discordsrv.common.command.discord.commands.subcommand;
 
 import com.discordsrv.api.discord.entity.DiscordUser;
 import com.discordsrv.api.discord.entity.guild.DiscordGuildMember;
+import com.discordsrv.api.discord.entity.interaction.DiscordInteractionHook;
 import com.discordsrv.api.discord.entity.interaction.command.CommandOption;
 import com.discordsrv.api.discord.entity.interaction.command.DiscordCommand;
 import com.discordsrv.api.discord.entity.interaction.component.ComponentIdentifier;
-import com.discordsrv.api.discord.events.interaction.command.DiscordChatInputInteractionEvent;
-import com.discordsrv.api.discord.events.interaction.command.DiscordCommandAutoCompleteInteractionEvent;
+import com.discordsrv.api.discord.entity.message.SendableDiscordMessage;
+import com.discordsrv.api.event.events.discord.interaction.command.DiscordChatInputInteractionEvent;
+import com.discordsrv.api.event.events.discord.interaction.command.DiscordCommandAutoCompleteInteractionEvent;
 import com.discordsrv.common.DiscordSRV;
 import com.discordsrv.common.command.game.GameCommandExecutionHelper;
 import com.discordsrv.common.config.main.DiscordCommandConfig;
@@ -14,8 +16,6 @@ import com.discordsrv.common.config.main.generic.GameCommandExecutionConditionCo
 import com.discordsrv.common.logging.Logger;
 import com.discordsrv.common.logging.NamedLogger;
 import net.dv8tion.jda.api.entities.Message;
-import net.dv8tion.jda.api.interactions.InteractionHook;
-import net.dv8tion.jda.api.interactions.commands.OptionMapping;
 import net.kyori.adventure.text.Component;
 
 import java.time.Duration;
@@ -72,25 +72,28 @@ public class ExecuteCommand implements Consumer<DiscordChatInputInteractionEvent
     public void accept(DiscordChatInputInteractionEvent event) {
         DiscordCommandConfig.ExecuteConfig config = discordSRV.config().discordCommand.execute;
         if (!config.enabled) {
-            event.asJDA().reply("The execute command is disabled").setEphemeral(true).queue();
+            event.reply(SendableDiscordMessage.builder().setContent("The execute command is disabled").build());
             return;
         }
 
-        OptionMapping mapping = event.asJDA().getOption("command");
-        if (mapping == null) {
+        String command = event.getOption("command");
+        if (command == null) {
             return;
         }
 
-        String command = mapping.getAsString();
         if (isNotAcceptableCommand(event.getMember(), event.getUser(), command, false)) {
-            event.asJDA().reply("You do not have permission to run that command").setEphemeral(true).queue();
+            event.reply(SendableDiscordMessage.builder().setContent("You do not have permission to run that command").build());
             return;
         }
 
         boolean ephemeral = config.ephemeral;
-        event.asJDA().reply("Executing command `" + command + "`")
-                .setEphemeral(ephemeral)
-                .queue(ih -> new ExecutionContext(discordSRV, ih, config.outputMode, ephemeral).run(event.getUser(), command));
+        event.reply(SendableDiscordMessage.builder().setContent("Executing command `" + command + "`").build())
+                .whenComplete((ih, t) -> {
+                    if (t != null) {
+                        return;
+                    }
+                    new ExecutionContext(discordSRV, ih, config.outputMode, ephemeral).run(event.getUser(), command);
+                });
     }
 
     @Override
@@ -105,14 +108,12 @@ public class ExecuteCommand implements Consumer<DiscordChatInputInteractionEvent
             return;
         }
 
-        OptionMapping mapping = event.asJDA().getOption("command");
-        if (mapping == null) {
+        String command = event.getOption("command");
+        if (command == null) {
             return;
         }
 
-        String command = mapping.getAsString();
         List<String> parts = new ArrayList<>(Arrays.asList(command.split(" ")));
-
         List<String> suggestions = getSuggestions(parts);
         if (suggestions == null) {
             return;
@@ -177,7 +178,7 @@ public class ExecuteCommand implements Consumer<DiscordChatInputInteractionEvent
     private static class ExecutionContext {
 
         private final DiscordSRV discordSRV;
-        private final InteractionHook hook;
+        private final DiscordInteractionHook hook;
         private final DiscordCommandConfig.OutputMode outputMode;
         private final boolean ephemeral;
         private ScheduledFuture<?> future;
@@ -185,7 +186,7 @@ public class ExecuteCommand implements Consumer<DiscordChatInputInteractionEvent
 
         public ExecutionContext(
                 DiscordSRV discordSRV,
-                InteractionHook hook,
+                DiscordInteractionHook hook,
                 DiscordCommandConfig.OutputMode outputMode,
                 boolean ephemeral
         ) {
@@ -241,7 +242,7 @@ public class ExecuteCommand implements Consumer<DiscordChatInputInteractionEvent
                     }
 
                     if (prefix.length() + suffix.length() + discord.length() + joiner.length() + delimiter.length() > Message.MAX_CONTENT_LENGTH) {
-                        hook.sendMessage(prefix + joiner + suffix).setEphemeral(ephemeral).queue();
+                        hook.reply(SendableDiscordMessage.builder().setContent(prefix + joiner + suffix).build(), ephemeral);
                         joiner = new StringJoiner(delimiter);
                     }
 
@@ -249,7 +250,7 @@ public class ExecuteCommand implements Consumer<DiscordChatInputInteractionEvent
                 }
                 future = null;
             }
-            hook.sendMessage(prefix + joiner + suffix).setEphemeral(ephemeral).queue();
+            hook.reply(SendableDiscordMessage.builder().setContent(prefix + joiner + suffix).build(), ephemeral);
         }
 
     }

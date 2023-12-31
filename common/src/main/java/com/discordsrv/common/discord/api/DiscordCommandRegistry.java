@@ -19,9 +19,9 @@
 package com.discordsrv.common.discord.api;
 
 import com.discordsrv.api.discord.entity.JDAEntity;
-import com.discordsrv.api.discord.entity.interaction.command.DiscordCommand;
 import com.discordsrv.api.discord.entity.interaction.command.CommandType;
-import com.discordsrv.api.discord.events.interaction.command.CommandRegisterEvent;
+import com.discordsrv.api.discord.entity.interaction.command.DiscordCommand;
+import com.discordsrv.api.event.events.discord.interaction.command.CommandRegisterEvent;
 import com.discordsrv.common.DiscordSRV;
 import net.dv8tion.jda.api.JDA;
 import net.dv8tion.jda.api.entities.Guild;

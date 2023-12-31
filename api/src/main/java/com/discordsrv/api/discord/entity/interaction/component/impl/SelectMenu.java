@@ -38,7 +38,7 @@ import java.util.List;
 /**
  * A Discord selection menu.
  * @see #builder(ComponentIdentifier)
- * @see com.discordsrv.api.discord.events.interaction.component.DiscordSelectMenuInteractionEvent
+ * @see com.discordsrv.api.event.events.discord.interaction.component.DiscordSelectMenuInteractionEvent
  */
 // TODO: newest changes
 public class SelectMenu implements MessageComponent {

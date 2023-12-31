@@ -20,8 +20,8 @@ package com.discordsrv.common.linking.impl;
 
 import com.discordsrv.api.event.bus.Subscribe;
 import com.discordsrv.common.DiscordSRV;
+import com.discordsrv.common.event.events.player.PlayerConnectedEvent;
 import com.discordsrv.common.linking.LinkProvider;
-import com.discordsrv.common.player.event.PlayerConnectedEvent;
 import com.github.benmanes.caffeine.cache.AsyncCacheLoader;
 import com.github.benmanes.caffeine.cache.AsyncLoadingCache;
 import com.github.benmanes.caffeine.cache.Cache;

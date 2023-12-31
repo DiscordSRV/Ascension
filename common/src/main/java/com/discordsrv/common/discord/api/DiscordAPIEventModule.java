@@ -26,20 +26,23 @@ import com.discordsrv.api.discord.entity.interaction.command.CommandType;
 import com.discordsrv.api.discord.entity.interaction.command.DiscordCommand;
 import com.discordsrv.api.discord.entity.interaction.command.SubCommandGroup;
 import com.discordsrv.api.discord.entity.interaction.component.ComponentIdentifier;
-import com.discordsrv.api.discord.events.interaction.DiscordModalInteractionEvent;
-import com.discordsrv.api.discord.events.interaction.command.*;
-import com.discordsrv.api.discord.events.interaction.component.DiscordButtonInteractionEvent;
-import com.discordsrv.api.discord.events.interaction.component.DiscordSelectMenuInteractionEvent;
-import com.discordsrv.api.discord.events.member.role.DiscordMemberRoleAddEvent;
-import com.discordsrv.api.discord.events.member.role.DiscordMemberRoleRemoveEvent;
-import com.discordsrv.api.discord.events.message.DiscordMessageDeleteEvent;
-import com.discordsrv.api.discord.events.message.DiscordMessageReceiveEvent;
-import com.discordsrv.api.discord.events.message.DiscordMessageUpdateEvent;
 import com.discordsrv.api.event.bus.Subscribe;
 import com.discordsrv.api.event.events.Event;
+import com.discordsrv.api.event.events.discord.interaction.DiscordModalInteractionEvent;
+import com.discordsrv.api.event.events.discord.interaction.command.*;
+import com.discordsrv.api.event.events.discord.interaction.component.DiscordButtonInteractionEvent;
+import com.discordsrv.api.event.events.discord.interaction.component.DiscordSelectMenuInteractionEvent;
+import com.discordsrv.api.event.events.discord.member.role.DiscordMemberRoleAddEvent;
+import com.discordsrv.api.event.events.discord.member.role.DiscordMemberRoleRemoveEvent;
+import com.discordsrv.api.event.events.discord.message.DiscordMessageDeleteEvent;
+import com.discordsrv.api.event.events.discord.message.DiscordMessageReceiveEvent;
+import com.discordsrv.api.event.events.discord.message.DiscordMessageUpdateEvent;
 import com.discordsrv.common.DiscordSRV;
 import com.discordsrv.common.discord.api.entity.component.DiscordInteractionHookImpl;
 import com.discordsrv.common.discord.api.entity.message.ReceivedDiscordMessageImpl;
+import com.discordsrv.common.event.events.discord.interaction.command.DiscordChatInputInteractionEventImpl;
+import com.discordsrv.common.event.events.discord.interaction.command.DiscordMessageContextInteractionEventImpl;
+import com.discordsrv.common.event.events.discord.interaction.command.DiscordUserContextInteractionEventImpl;
 import com.discordsrv.common.module.type.AbstractModule;
 import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.entities.Member;
@@ -181,7 +184,8 @@ public class DiscordAPIEventModule extends AbstractModule<DiscordSRV> {
                     return;
                 }
 
-                DiscordMessageContextInteractionEvent interactionEvent = new DiscordMessageContextInteractionEvent(
+                DiscordMessageContextInteractionEvent interactionEvent = new DiscordMessageContextInteractionEventImpl(
+                        discordSRV,
                         (MessageContextInteractionEvent) event,
                         command.getId(),
                         user,
@@ -202,7 +206,8 @@ public class DiscordAPIEventModule extends AbstractModule<DiscordSRV> {
                     return;
                 }
 
-                DiscordUserContextInteractionEvent interactionEvent = new DiscordUserContextInteractionEvent(
+                DiscordUserContextInteractionEvent interactionEvent = new DiscordUserContextInteractionEventImpl(
+                        discordSRV,
                         (UserContextInteractionEvent) event,
                         command.getId(),
                         user,
@@ -228,7 +233,8 @@ public class DiscordAPIEventModule extends AbstractModule<DiscordSRV> {
                         ((SlashCommandInteractionEvent) event).getSubcommandName()
                 );
 
-                DiscordChatInputInteractionEvent interactionEvent = new DiscordChatInputInteractionEvent(
+                DiscordChatInputInteractionEvent interactionEvent = new DiscordChatInputInteractionEventImpl(
+                        discordSRV,
                         (SlashCommandInteractionEvent) event,
                         command.getId(),
                         user,

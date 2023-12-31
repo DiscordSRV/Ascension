@@ -39,8 +39,10 @@ public interface DiscordInteractionHook extends JDAEntity<InteractionHook> {
     CompletableFuture<DiscordInteractionHook> replyLater(boolean ephemeral);
 
     CompletableFuture<ReceivedDiscordMessage> editOriginal(SendableDiscordMessage message);
-    CompletableFuture<DiscordInteractionHook> reply(SendableDiscordMessage message);
-    CompletableFuture<DiscordInteractionHook> replyEphemeral(SendableDiscordMessage message);
+    CompletableFuture<DiscordInteractionHook> reply(SendableDiscordMessage message, boolean ephemeral);
+    default CompletableFuture<DiscordInteractionHook> reply(SendableDiscordMessage message) {
+        return reply(message, false);
+    }
     CompletableFuture<Void> replyModal(Modal modal);
 
 }

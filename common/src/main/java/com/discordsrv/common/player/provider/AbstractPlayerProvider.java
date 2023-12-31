@@ -19,12 +19,12 @@
 package com.discordsrv.common.player.provider;
 
 import com.discordsrv.common.DiscordSRV;
+import com.discordsrv.common.event.events.player.PlayerConnectedEvent;
+import com.discordsrv.common.event.events.player.PlayerDisconnectedEvent;
 import com.discordsrv.common.http.util.HttpUtil;
 import com.discordsrv.common.player.IOfflinePlayer;
 import com.discordsrv.common.player.IPlayer;
 import com.discordsrv.common.player.OfflinePlayer;
-import com.discordsrv.common.player.event.PlayerConnectedEvent;
-import com.discordsrv.common.player.event.PlayerDisconnectedEvent;
 import com.discordsrv.common.player.provider.model.GameProfileResponse;
 import com.discordsrv.common.player.provider.model.SkinInfo;
 import com.discordsrv.common.player.provider.model.Textures;

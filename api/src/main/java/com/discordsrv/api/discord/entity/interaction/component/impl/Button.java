@@ -38,7 +38,7 @@ import java.util.UUID;
  * A Discord button.
  * @see #builder(ComponentIdentifier, Style)
  * @see #urlBuilder(String)
- * @see com.discordsrv.api.discord.events.interaction.component.DiscordButtonInteractionEvent
+ * @see com.discordsrv.api.event.events.discord.interaction.component.DiscordButtonInteractionEvent
  */
 public class Button implements MessageComponent {
 

@@ -37,7 +37,7 @@ import java.util.stream.Collectors;
 /**
  * A Discord modal.
  * @see #builder(ComponentIdentifier, String)
- * @see com.discordsrv.api.discord.events.interaction.DiscordModalInteractionEvent
+ * @see com.discordsrv.api.event.events.discord.interaction.DiscordModalInteractionEvent
  */
 public class Modal implements JDAEntity<net.dv8tion.jda.api.interactions.modals.Modal> {
 

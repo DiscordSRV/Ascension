@@ -32,4 +32,40 @@ public interface DiscordThreadChannel extends DiscordGuildMessageChannel, JDAEnt
     @NotNull
     DiscordThreadContainer getParentChannel();
 
+    /**
+     * Is this thread archived.
+     * @return {@code true} if the thread is archived
+     */
+    boolean isArchived();
+
+    /**
+     * Is this thread locked from replies by non-moderators.
+     * @return {@code true} if the thread is locked
+     */
+    boolean isLocked();
+
+    /**
+     * Is the self user (bot) joined in this thread.
+     * @return {@code true} if the self user is current a part of this thread
+     */
+    boolean isJoined();
+
+    /**
+     * Is this thread invitable, meaning non-moderators can invite non-moderators to the thread.
+     * @return {@code true} if the thread is invitable
+     */
+    boolean isInvitable();
+
+    /**
+     * Is the self user (bot) the owner of this thread.
+     * @return {@code true} if the self user is the owner of this thread
+     */
+    boolean isOwnedBySelfUser();
+
+    /**
+     * Is this thread public, meaning anybody can read and join it if they can see its parent channel.
+     * @return {@code true} if this thread is public
+     */
+    boolean isPublic();
+
 }

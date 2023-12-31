@@ -75,6 +75,11 @@ public class DiscordGuildMemberImpl implements DiscordGuildMember {
     }
 
     @Override
+    public boolean isOwner() {
+        return member.isOwner();
+    }
+
+    @Override
     public @Nullable String getNickname() {
         return member.getNickname();
     }

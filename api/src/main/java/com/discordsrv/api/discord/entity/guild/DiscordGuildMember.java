@@ -59,6 +59,12 @@ public interface DiscordGuildMember extends JDAEntity<Member>, Mentionable {
     DiscordGuild getGuild();
 
     /**
+     * If this Discord server member is the owner of the Discord server.
+     * @return {@code true} if this member is the server owner
+     */
+    boolean isOwner();
+
+    /**
      * Gets the nickname of the Discord server member.
      * @return the nickname server member
      */

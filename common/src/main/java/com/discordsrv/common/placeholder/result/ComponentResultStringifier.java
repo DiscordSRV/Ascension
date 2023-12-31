@@ -19,8 +19,8 @@
 package com.discordsrv.common.placeholder.result;
 
 import com.discordsrv.api.component.MinecraftComponent;
-import com.discordsrv.api.placeholder.PlainPlaceholderFormat;
 import com.discordsrv.api.placeholder.FormattedText;
+import com.discordsrv.api.placeholder.PlainPlaceholderFormat;
 import com.discordsrv.api.placeholder.mapper.PlaceholderResultMapper;
 import com.discordsrv.common.DiscordSRV;
 import com.discordsrv.common.component.util.ComponentUtil;

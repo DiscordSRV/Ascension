@@ -82,6 +82,36 @@ public class DiscordThreadChannelImpl extends AbstractDiscordGuildMessageChannel
     }
 
     @Override
+    public boolean isArchived() {
+        return channel.isArchived();
+    }
+
+    @Override
+    public boolean isLocked() {
+        return channel.isLocked();
+    }
+
+    @Override
+    public boolean isJoined() {
+        return channel.isJoined();
+    }
+
+    @Override
+    public boolean isInvitable() {
+        return channel.isInvitable();
+    }
+
+    @Override
+    public boolean isOwnedBySelfUser() {
+        return channel.isOwner();
+    }
+
+    @Override
+    public boolean isPublic() {
+        return channel.isPublic();
+    }
+
+    @Override
     public String toString() {
         return "Thread:" + getName() + "(" + Long.toUnsignedString(getId()) + " in " + threadContainer + ")";
     }

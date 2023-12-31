@@ -1,8 +1,8 @@
 package com.discordsrv.common.command.combined.abstraction;
 
 import com.discordsrv.api.discord.entity.interaction.command.DiscordCommand;
-import com.discordsrv.api.discord.events.interaction.command.DiscordChatInputInteractionEvent;
-import com.discordsrv.api.discord.events.interaction.command.DiscordCommandAutoCompleteInteractionEvent;
+import com.discordsrv.api.event.events.discord.interaction.command.DiscordChatInputInteractionEvent;
+import com.discordsrv.api.event.events.discord.interaction.command.DiscordCommandAutoCompleteInteractionEvent;
 import com.discordsrv.common.DiscordSRV;
 import com.discordsrv.common.command.game.abstraction.GameCommandArguments;
 import com.discordsrv.common.command.game.abstraction.GameCommandExecutor;

@@ -21,7 +21,6 @@ package com.discordsrv.common.player.provider;
 import com.discordsrv.common.DiscordSRV;
 import com.discordsrv.common.player.IOfflinePlayer;
 import com.discordsrv.common.player.IPlayer;
-import com.discordsrv.common.player.provider.AbstractPlayerProvider;
 
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;

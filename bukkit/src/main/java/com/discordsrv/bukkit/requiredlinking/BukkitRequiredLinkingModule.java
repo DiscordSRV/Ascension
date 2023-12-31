@@ -20,7 +20,6 @@ package com.discordsrv.bukkit.requiredlinking;
 
 import com.discordsrv.bukkit.BukkitDiscordSRV;
 import com.discordsrv.bukkit.config.main.BukkitRequiredLinkingConfig;
-import com.discordsrv.common.config.main.linking.RequirementsConfig;
 import com.discordsrv.common.linking.requirelinking.ServerRequireLinkingModule;
 import org.bukkit.event.Listener;
 

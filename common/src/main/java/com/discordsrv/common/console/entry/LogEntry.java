@@ -1,13 +1,9 @@
 package com.discordsrv.common.console.entry;
 
-import com.discordsrv.api.placeholder.PlaceholderLookupResult;
 import com.discordsrv.api.placeholder.annotation.Placeholder;
-import com.discordsrv.api.placeholder.annotation.PlaceholderRemainder;
 import com.discordsrv.common.logging.LogLevel;
 
 import java.time.ZonedDateTime;
-import java.util.LinkedHashSet;
-import java.util.Set;
 
 /**
  * A raw log entry from a platform logger. May be parsed to become a {@link LogMessage}.

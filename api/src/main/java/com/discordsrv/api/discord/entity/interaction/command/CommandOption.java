@@ -229,11 +229,11 @@ public class CommandOption implements JDAEntity<OptionData> {
         }
 
         /**
-         * Sets if this option is auto completed. See {@link com.discordsrv.api.discord.events.interaction.command.DiscordCommandAutoCompleteInteractionEvent}.
+         * Sets if this option is auto completed. See {@link com.discordsrv.api.event.events.discord.interaction.command.DiscordCommandAutoCompleteInteractionEvent}.
          *
          * @param autoComplete is this choice auto completing
          * @return this builder, useful for chaining
-         * @see com.discordsrv.api.discord.events.interaction.command.DiscordCommandAutoCompleteInteractionEvent
+         * @see com.discordsrv.api.event.events.discord.interaction.command.DiscordCommandAutoCompleteInteractionEvent
          */
         @NotNull
         public Builder setAutoComplete(boolean autoComplete) {
