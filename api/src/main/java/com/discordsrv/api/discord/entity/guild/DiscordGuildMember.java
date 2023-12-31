@@ -123,7 +123,7 @@ public interface DiscordGuildMember extends JDAEntity<Member>, Mentionable {
      * Gets the color of this user's highest role that has a color.
      * @return the color that will be used for this user
      */
-    @Placeholder("color")
+    @Placeholder(value = "color", relookup = "color")
     Color getColor();
 
     /**
