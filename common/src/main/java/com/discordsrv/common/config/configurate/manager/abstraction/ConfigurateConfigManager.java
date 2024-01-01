@@ -35,6 +35,7 @@ import com.discordsrv.common.config.main.channels.base.IChannelConfig;
 import com.discordsrv.common.exception.ConfigException;
 import com.discordsrv.common.logging.Logger;
 import com.discordsrv.common.logging.NamedLogger;
+import org.apache.commons.lang3.StringUtils;
 import org.jetbrains.annotations.Nullable;
 import org.spongepowered.configurate.*;
 import org.spongepowered.configurate.loader.AbstractConfigurationLoader;
@@ -55,6 +56,7 @@ import java.lang.reflect.Type;
 import java.nio.file.Path;
 import java.util.*;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 
 public abstract class ConfigurateConfigManager<T, LT extends AbstractConfigurationLoader<CommentedConfigurationNode>>
         implements ConfigManager<T>, ConfigLoaderProvider<LT> {
@@ -213,11 +215,16 @@ public abstract class ConfigurateConfigManager<T, LT extends AbstractConfigurati
                     // This needs to go before comment processing.
                     if (commentSubstitutions && destination instanceof CommentedConfigurationNode) {
                         String comment = ((CommentedConfigurationNode) destination).comment();
-                        if (comment != null) {
-                            ((CommentedConfigurationNode) destination).comment(
-                                    doSubstitution(comment, getValues(data.value(), data.intValue()))
+                        if (StringUtils.isEmpty(comment)) {
+                            logger.error(
+                                    Arrays.stream(destination.path().array()).map(Object::toString).collect(Collectors.joining(", "))
+                                            + " is not commented but has comment constants! (make sure @Constants.Comment is below @Comment)"
                             );
+                            return;
                         }
+                        ((CommentedConfigurationNode) destination).comment(
+                                doSubstitution(comment, getValues(data.value(), data.intValue()))
+                        );
                     }
                 })
                 .addProcessor(Constants.class, (data, fieldType) -> (value, destination) -> {

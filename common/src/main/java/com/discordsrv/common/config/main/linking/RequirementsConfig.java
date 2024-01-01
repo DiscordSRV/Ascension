@@ -55,7 +55,8 @@ public class RequirementsConfig {
             + "\n"
             + "The following operators are available:\n"
             + "&& = and, for example: \"DiscordServer(...) && TwitchFollower()\"\n"
-            + "|| = or, for example \"DiscordBoosting(...) || YouTubeMember()\n"
-            + "You can also use brackets () to clear ambiguity, for example: \"DiscordServer(...) && (TwitchSubscriber() || PatreonSubscriber())\"")
+            + "|| = or, for example \"DiscordBoosting(...) || YouTubeMember()\"\n"
+            + "You can also use brackets () to clear ambiguity, for example: \"DiscordServer(...) && (TwitchSubscriber() || PatreonSubscriber())\"\n"
+            + "allows a member of the specified Discord server that is also a twitch or patreon subscriber to join the server")
     public List<String> requirements = new ArrayList<>();
 }
