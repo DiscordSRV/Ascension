@@ -64,7 +64,7 @@ public class MinecraftComponentImpl implements MinecraftComponent {
         try {
             component = GsonComponentSerializer.gson().deserialize(json);
         } catch (Throwable t) {
-            throw new IllegalArgumentException("Provided json is not valid", t);
+            throw new IllegalArgumentException("Provided json is not valid: " + json, t);
         }
         this.component = component;
         this.json = json;
