@@ -84,7 +84,8 @@ public class JDAConnectionManager implements DiscordConnectionManager {
     private final FailureCallback failureCallback;
     private Future<?> failureCallbackFuture;
     private ScheduledExecutorService gatewayPool;
-    private ScheduledExecutorService rateLimitPool;
+    private ScheduledExecutorService rateLimitSchedulerPool;
+    private ExecutorService rateLimitElasticPool;
 
     private CompletableFuture<Void> connectionFuture;
     private JDA instance;
@@ -298,9 +299,17 @@ public class JDAConnectionManager implements DiscordConnectionManager {
                 1,
                 r -> new Thread(r, Scheduler.THREAD_NAME_PREFIX + "JDA Gateway")
         );
-        this.rateLimitPool = new ScheduledThreadPoolExecutor(
-                5,
-                new CountingThreadFactory(Scheduler.THREAD_NAME_PREFIX + "JDA RateLimit #%s")
+        this.rateLimitSchedulerPool = new ScheduledThreadPoolExecutor(
+                2,
+                new CountingThreadFactory(Scheduler.THREAD_NAME_PREFIX + "JDA RateLimit Scheduler #%s")
+        );
+        this.rateLimitElasticPool = new ThreadPoolExecutor(
+                0,
+                12,
+                60L,
+                TimeUnit.SECONDS,
+                new SynchronousQueue<>(),
+                new CountingThreadFactory(Scheduler.THREAD_NAME_PREFIX + "JDA RateLimit Elastic #%s")
         );
         this.failureCallbackFuture = discordSRV.scheduler().runAtFixedRate(
                 this::checkDefaultFailureCallback,
@@ -386,7 +395,8 @@ public class JDAConnectionManager implements DiscordConnectionManager {
         // Our own (named) threads
         jdaBuilder.setCallbackPool(discordSRV.scheduler().forkJoinPool());
         jdaBuilder.setGatewayPool(gatewayPool);
-        jdaBuilder.setRateLimitPool(rateLimitPool, true);
+        jdaBuilder.setRateLimitScheduler(rateLimitSchedulerPool, true);
+        jdaBuilder.setRateLimitElastic(rateLimitElasticPool);
         jdaBuilder.setHttpClient(discordSRV.httpClient());
 
         WebSocketFactory webSocketFactory = new WebSocketFactory();
@@ -433,7 +443,7 @@ public class JDAConnectionManager implements DiscordConnectionManager {
             discordSRV.logger().info("Waiting up to " + TimeUnit.MILLISECONDS.toSeconds(timeoutMillis) + " seconds for JDA to shutdown...");
             discordSRV.scheduler().run(() -> {
                 try {
-                    while (instance != null && !rateLimitPool.isShutdown()) {
+                    while (instance != null && !rateLimitSchedulerPool.isShutdown()) {
                         Thread.sleep(50);
                     }
                 } catch (InterruptedException ignored) {}
@@ -468,8 +478,11 @@ public class JDAConnectionManager implements DiscordConnectionManager {
         if (gatewayPool != null) {
             gatewayPool.shutdownNow();
         }
-        if (rateLimitPool != null && !rateLimitPool.isShutdown()) {
-            rateLimitPool.shutdownNow();
+        if (rateLimitSchedulerPool != null && !rateLimitSchedulerPool.isShutdown()) {
+            rateLimitSchedulerPool.shutdownNow();
+        }
+        if (rateLimitElasticPool != null) {
+            rateLimitElasticPool.shutdownNow();
         }
         if (failureCallbackFuture != null) {
             failureCallbackFuture.cancel(false);

@@ -53,18 +53,18 @@ dependencyResolutionManagement {
             library('mcdependencydownload-velocity', 'dev.vankka', 'minecraftdependencydownload-velocity').versionRef('mcdependencydownload')
 
             // Annotations
-            library('jetbrains-annotations', 'org.jetbrains', 'annotations').version('23.0.0')
+            library('jetbrains-annotations', 'org.jetbrains', 'annotations').version('24.0.1')
             library('findbugs-annotations', 'com.google.code.findbugs', 'jsr305').version('3.0.2')
 
             // JDA
-            library('jda', 'net.dv8tion', 'JDA').version('5.0.0-beta.17')
+            library('jda', 'net.dv8tion', 'JDA').version('5.0.0-beta.20')
 
             // OkHTTP
-            library('okhttp', 'com.squareup.okhttp3', 'okhttp').version('4.11.0')
+            library('okhttp', 'com.squareup.okhttp3', 'okhttp').version('4.12.0')
 
             // Apache commons
-            library('commons-lang', 'org.apache.commons', 'commons-lang3').version('3.12.0')
-            library('commons-io', 'commons-io', 'commons-io').version('2.11.0')
+            library('commons-lang', 'org.apache.commons', 'commons-lang3').version('3.14.0')
+            library('commons-io', 'commons-io', 'commons-io').version('2.15.1')
 
             // Caffeine
             library('caffeine', 'com.github.ben-manes.caffeine', 'caffeine').version {
@@ -78,7 +78,7 @@ dependencyResolutionManagement {
             library('dynamicproxy-runtime', 'dev.vankka', 'dynamicproxy-runtime').versionRef('dynamicproxy')
 
             // Jackson
-            library('jackson-databind', 'com.fasterxml.jackson.core', 'jackson-databind').version('2.14.2')
+            library('jackson-databind', 'com.fasterxml.jackson.core', 'jackson-databind').version('2.16.1')
 
             // Config(urate)
             version('configurate', '4.2.0-yamlbranch-4')
@@ -117,7 +117,7 @@ dependencyResolutionManagement {
             library('log4j-core', 'org.apache.logging.log4j', 'log4j-core').version('2.0-beta9')
 
             // Adventure
-            version('adventure', '4.14.0-SNAPSHOT')
+            version('adventure', '4.15.0')
             library('adventure-api', 'net.kyori', 'adventure-api').versionRef('adventure')
             library('adventure-serializer-plain', 'net.kyori', 'adventure-text-serializer-plain').versionRef('adventure')
             library('adventure-serializer-legacy', 'net.kyori', 'adventure-text-serializer-legacy').versionRef('adventure')
@@ -125,7 +125,7 @@ dependencyResolutionManagement {
             library('adventure-serializer-ansi', 'net.kyori', 'adventure-text-serializer-ansi').versionRef('adventure')
 
             // Adventure Platform
-            version('adventure-platform', '4.3.0')
+            version('adventure-platform', '4.3.2')
             library('adventure-platform-bukkit', 'net.kyori', 'adventure-platform-bukkit').versionRef('adventure-platform')
             library('adventure-platform-bungee', 'net.kyori', 'adventure-platform-bungeecord').versionRef('adventure-platform')
             library('adventure-serializer-bungee', 'net.kyori', 'adventure-text-serializer-bungeecord').versionRef('adventure-platform')
@@ -138,7 +138,7 @@ dependencyResolutionManagement {
             library('enhancedlegacytext', 'dev.vankka', 'enhancedlegacytext').version('2.0.0-SNAPSHOT')
 
             // JUnit
-            version('junit', '5.9.2')
+            version('junit', '5.10.0')
             library('jupiter-api', 'org.junit.jupiter', 'junit-jupiter-api').versionRef('junit')
             library('jupiter-engine', 'org.junit.jupiter', 'junit-jupiter-engine').versionRef('junit')
         }
