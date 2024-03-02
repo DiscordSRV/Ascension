@@ -1,5 +1,4 @@
 // Relocations
-
 [
         // JDA, WS
         'net.dv8tion.jda',
@@ -40,6 +39,9 @@
         'alexh',
 
         // Adventure (API isn't relocated always)
+        'net.kyori.adventure.ansi',
+        'net.kyori.adventure.examination',
+        'net.kyori.adventure.option',
         'net.kyori.adventure.platform',
         'net.kyori.adventure.text.serializer',
 

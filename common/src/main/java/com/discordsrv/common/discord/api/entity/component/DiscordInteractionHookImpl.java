@@ -19,15 +19,12 @@
 package com.discordsrv.common.discord.api.entity.component;
 
 import com.discordsrv.api.discord.entity.interaction.DiscordInteractionHook;
-import com.discordsrv.api.discord.entity.interaction.component.impl.Modal;
 import com.discordsrv.api.discord.entity.message.ReceivedDiscordMessage;
 import com.discordsrv.api.discord.entity.message.SendableDiscordMessage;
 import com.discordsrv.common.DiscordSRV;
 import com.discordsrv.common.discord.api.entity.message.ReceivedDiscordMessageImpl;
 import com.discordsrv.common.discord.api.entity.message.util.SendableDiscordMessageUtil;
 import net.dv8tion.jda.api.interactions.InteractionHook;
-import net.dv8tion.jda.api.interactions.callbacks.IModalCallback;
-import net.dv8tion.jda.api.interactions.callbacks.IReplyCallback;
 
 import java.util.concurrent.CompletableFuture;
 
@@ -57,34 +54,14 @@ public class DiscordInteractionHookImpl implements DiscordInteractionHook {
     }
 
     @Override
-    public CompletableFuture<DiscordInteractionHook> replyLater(boolean ephemeral) {
-        if (!(hook instanceof IReplyCallback)) {
-            throw new IllegalStateException("This interaction cannot be replied to");
-        }
-        return ((IReplyCallback) hook).deferReply(ephemeral).submit()
-                .thenApply(hook -> new DiscordInteractionHookImpl(discordSRV, hook));
-    }
-
-    @Override
     public CompletableFuture<ReceivedDiscordMessage> editOriginal(SendableDiscordMessage message) {
         return hook.editOriginal(SendableDiscordMessageUtil.toJDAEdit(message)).submit()
                 .thenApply(msg -> ReceivedDiscordMessageImpl.fromJDA(discordSRV, msg));
     }
 
     @Override
-    public CompletableFuture<DiscordInteractionHook> reply(SendableDiscordMessage message, boolean ephemeral) {
-        if (!(hook instanceof IReplyCallback)) {
-            throw new IllegalStateException("This interaction cannot be replied to");
-        }
-        return ((IReplyCallback) hook).reply(SendableDiscordMessageUtil.toJDASend(message)).setEphemeral(ephemeral).submit()
-                .thenApply(hook -> new DiscordInteractionHookImpl(discordSRV, hook));
-    }
-
-    @Override
-    public CompletableFuture<Void> replyModal(Modal modal) {
-        if (!(hook instanceof IModalCallback)) {
-            throw new IllegalStateException("This interaction cannot be replied to");
-        }
-        return ((IModalCallback) hook).replyModal(modal.asJDA()).submit();
+    public CompletableFuture<ReceivedDiscordMessage> sendMessage(SendableDiscordMessage message, boolean ephemeral) {
+        return hook.sendMessage(SendableDiscordMessageUtil.toJDASend(message)).setEphemeral(ephemeral).submit()
+                .thenApply(msg -> ReceivedDiscordMessageImpl.fromJDA(discordSRV, msg));
     }
 }

@@ -24,7 +24,6 @@
 package com.discordsrv.api.discord.entity.interaction;
 
 import com.discordsrv.api.discord.entity.JDAEntity;
-import com.discordsrv.api.discord.entity.interaction.component.impl.Modal;
 import com.discordsrv.api.discord.entity.message.ReceivedDiscordMessage;
 import com.discordsrv.api.discord.entity.message.SendableDiscordMessage;
 import net.dv8tion.jda.api.interactions.InteractionHook;
@@ -36,13 +35,9 @@ public interface DiscordInteractionHook extends JDAEntity<InteractionHook> {
     long getExpiryTime();
     boolean isExpired();
 
-    CompletableFuture<DiscordInteractionHook> replyLater(boolean ephemeral);
-
     CompletableFuture<ReceivedDiscordMessage> editOriginal(SendableDiscordMessage message);
-    CompletableFuture<DiscordInteractionHook> reply(SendableDiscordMessage message, boolean ephemeral);
-    default CompletableFuture<DiscordInteractionHook> reply(SendableDiscordMessage message) {
-        return reply(message, false);
+    CompletableFuture<ReceivedDiscordMessage> sendMessage(SendableDiscordMessage message, boolean ephemeral);
+    default CompletableFuture<ReceivedDiscordMessage> sendMessage(SendableDiscordMessage message) {
+        return sendMessage(message, false);
     }
-    CompletableFuture<Void> replyModal(Modal modal);
-
 }

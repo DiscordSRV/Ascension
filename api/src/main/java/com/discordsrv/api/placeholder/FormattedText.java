@@ -23,6 +23,8 @@
 
 package com.discordsrv.api.placeholder;
 
+import org.jetbrains.annotations.NotNull;
+
 /**
  * Represents content that doesn't need to be processed for the purposes of DiscordSRV's processing.
  */
@@ -45,12 +47,12 @@ public class FormattedText implements CharSequence {
     }
 
     @Override
-    public CharSequence subSequence(int start, int end) {
+    public @NotNull CharSequence subSequence(int start, int end) {
         return text.subSequence(start, end);
     }
 
     @Override
-    public String toString() {
+    public @NotNull String toString() {
         return text.toString();
     }
 }

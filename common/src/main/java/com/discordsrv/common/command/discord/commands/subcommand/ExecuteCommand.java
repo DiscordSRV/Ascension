@@ -71,8 +71,9 @@ public class ExecuteCommand implements Consumer<DiscordChatInputInteractionEvent
     @Override
     public void accept(DiscordChatInputInteractionEvent event) {
         DiscordCommandConfig.ExecuteConfig config = discordSRV.config().discordCommand.execute;
+        boolean ephemeral = config.ephemeral;
         if (!config.enabled) {
-            event.reply(SendableDiscordMessage.builder().setContent("The execute command is disabled").build());
+            event.reply(SendableDiscordMessage.builder().setContent("The execute command is disabled").build(), ephemeral);
             return;
         }
 
@@ -82,12 +83,11 @@ public class ExecuteCommand implements Consumer<DiscordChatInputInteractionEvent
         }
 
         if (isNotAcceptableCommand(event.getMember(), event.getUser(), command, false)) {
-            event.reply(SendableDiscordMessage.builder().setContent("You do not have permission to run that command").build());
+            event.reply(SendableDiscordMessage.builder().setContent("You do not have permission to run that command").build(), ephemeral);
             return;
         }
 
-        boolean ephemeral = config.ephemeral;
-        event.reply(SendableDiscordMessage.builder().setContent("Executing command `" + command + "`").build())
+        event.reply(SendableDiscordMessage.builder().setContent("Executing command `" + command + "`").build(), ephemeral)
                 .whenComplete((ih, t) -> {
                     if (t != null) {
                         return;
@@ -242,7 +242,7 @@ public class ExecuteCommand implements Consumer<DiscordChatInputInteractionEvent
                     }
 
                     if (prefix.length() + suffix.length() + discord.length() + joiner.length() + delimiter.length() > Message.MAX_CONTENT_LENGTH) {
-                        hook.reply(SendableDiscordMessage.builder().setContent(prefix + joiner + suffix).build(), ephemeral);
+                        hook.sendMessage(SendableDiscordMessage.builder().setContent(prefix + joiner + suffix).build(), ephemeral);
                         joiner = new StringJoiner(delimiter);
                     }
 
@@ -250,7 +250,7 @@ public class ExecuteCommand implements Consumer<DiscordChatInputInteractionEvent
                 }
                 future = null;
             }
-            hook.reply(SendableDiscordMessage.builder().setContent(prefix + joiner + suffix).build(), ephemeral);
+            hook.sendMessage(SendableDiscordMessage.builder().setContent(prefix + joiner + suffix).build(), ephemeral);
         }
 
     }

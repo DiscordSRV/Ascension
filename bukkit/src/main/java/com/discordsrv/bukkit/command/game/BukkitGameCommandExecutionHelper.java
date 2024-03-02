@@ -56,13 +56,8 @@ public class BukkitGameCommandExecutionHelper implements GameCommandExecutionHel
         }
 
         // Get the arguments minus the last one (if any)
-        String prefix = String.join(" ", parts.subList(0, parts.size() - (!parts.isEmpty() ? 1 : 0)));
-        if (!prefix.isEmpty()) {
-            prefix = prefix + " ";
-        }
-
+        String prefix = parts.isEmpty() ? "" : String.join(" ", parts.subList(0, parts.size() - 1)) + " ";
         CompletableFuture<List<String>> future = new CompletableFuture<>();
-        String finalPrefix = prefix;
 
         CommandSender commandSender = discordSRV.server().getConsoleSender();
         discordSRV.scheduler().runOnMainThread(commandSender, () -> {
@@ -71,7 +66,7 @@ public class BukkitGameCommandExecutionHelper implements GameCommandExecutionHel
 
                 List<String> suggestions = new ArrayList<>();
                 for (String suggestion : completions) {
-                    suggestions.add(commandName + " " + finalPrefix + suggestion);
+                    suggestions.add(commandName + " " + prefix + suggestion);
                 }
                 future.complete(suggestions);
             } catch (Throwable t) {
