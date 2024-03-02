@@ -29,7 +29,13 @@ import com.discordsrv.common.DiscordSRV;
 import com.discordsrv.common.component.util.ComponentUtil;
 import com.discordsrv.common.config.main.channels.base.BaseChannelConfig;
 import com.discordsrv.common.config.main.generic.IMessageConfig;
+import com.discordsrv.common.permission.Permission;
+import com.discordsrv.common.player.IPlayer;
 import net.kyori.adventure.text.Component;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+
+import java.util.concurrent.CompletableFuture;
 
 public class JoinMessageModule extends AbstractGameMessageModule<IMessageConfig, JoinMessageReceiveEvent> {
 
@@ -45,6 +51,19 @@ public class JoinMessageModule extends AbstractGameMessageModule<IMessageConfig,
 
         process(event, event.getPlayer(), event.getGameChannel());
         event.markAsProcessed();
+    }
+
+    @Override
+    protected CompletableFuture<Void> forwardToChannel(
+            @Nullable JoinMessageReceiveEvent event,
+            @Nullable IPlayer player,
+            @NotNull BaseChannelConfig config
+    ) {
+        if (config.joinMessages().enableSilentPermission && player != null && player.hasPermission(Permission.SILENT_JOIN)) {
+            logger().info(player.username() + " is joining silently, join message will not be sent");
+            return CompletableFuture.completedFuture(null);
+        }
+        return super.forwardToChannel(event, player, config);
     }
 
     @Override

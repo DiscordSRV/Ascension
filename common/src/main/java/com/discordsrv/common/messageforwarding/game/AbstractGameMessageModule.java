@@ -90,7 +90,7 @@ public abstract class AbstractGameMessageModule<T extends IMessageConfig, E exte
     }
 
     @SuppressWarnings("unchecked") // Wacky generis
-    private <CC extends BaseChannelConfig & IChannelConfig> CompletableFuture<Void> forwardToChannel(
+    protected <CC extends BaseChannelConfig & IChannelConfig> CompletableFuture<Void> forwardToChannel(
             @Nullable E event,
             @Nullable IPlayer player,
             @NotNull BaseChannelConfig config

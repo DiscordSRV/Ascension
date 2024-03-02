@@ -29,7 +29,13 @@ import com.discordsrv.common.DiscordSRV;
 import com.discordsrv.common.component.util.ComponentUtil;
 import com.discordsrv.common.config.main.channels.LeaveMessageConfig;
 import com.discordsrv.common.config.main.channels.base.BaseChannelConfig;
+import com.discordsrv.common.permission.Permission;
+import com.discordsrv.common.player.IPlayer;
 import net.kyori.adventure.text.Component;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+
+import java.util.concurrent.CompletableFuture;
 
 public class LeaveMessageModule extends AbstractGameMessageModule<LeaveMessageConfig, LeaveMessageReceiveEvent> {
 
@@ -45,6 +51,19 @@ public class LeaveMessageModule extends AbstractGameMessageModule<LeaveMessageCo
 
         process(event, event.getPlayer(), event.getGameChannel());
         event.markAsProcessed();
+    }
+
+    @Override
+    protected CompletableFuture<Void> forwardToChannel(
+            @Nullable LeaveMessageReceiveEvent event,
+            @Nullable IPlayer player,
+            @NotNull BaseChannelConfig config
+    ) {
+        if (config.leaveMessages.enableSilentPermission && player != null && player.hasPermission(Permission.SILENT_QUIT)) {
+            logger().info(player.username() + " is leaving silently, leave message will not be sent");
+            return CompletableFuture.completedFuture(null);
+        }
+        return super.forwardToChannel(event, player, config);
     }
 
     @Override

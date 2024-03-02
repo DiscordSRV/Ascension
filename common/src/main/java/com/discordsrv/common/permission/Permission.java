@@ -9,12 +9,12 @@ public enum Permission {
     COMMAND_BROADCAST("command.admin.broadcast"),
     COMMAND_RESYNC("command.admin.resync"),
     COMMAND_VERSION("command.admin.version"),
+    COMMAND_LINK_OTHER("command.admin.link.other"),
+    COMMAND_LINKED_OTHER("command.admin.linked.other"),
     // Player
     COMMAND_ROOT("command.player.root"),
-    COMMAND_LINK("command.player.link.base"),
-    COMMAND_LINK_OTHER("command.player.link.other"),
-    COMMAND_LINKED("command.player.linked.base"),
-    COMMAND_LINKED_OTHER("command.player.linked.other"),
+    COMMAND_LINK("command.player.link"),
+    COMMAND_LINKED("command.player.linked"),
 
     // Mentions
     MENTION_USER("mention.user.base"),
@@ -25,6 +25,8 @@ public enum Permission {
 
     // Misc
     UPDATE_NOTIFICATION("updatenotification"),
+    SILENT_JOIN("silentjoin"),
+    SILENT_QUIT("silentquit"),
     ;
 
     private final String permission;
