@@ -50,7 +50,12 @@ public class EnhancedTextBuilderImpl implements GameTextBuilder {
 
     @Override
     public @NotNull GameTextBuilder addContext(Object... context) {
-        this.context.addAll(Arrays.asList(context));
+        for (Object o : context) {
+            if (o == null) {
+                continue;
+            }
+            this.context.add(o);
+        }
         return this;
     }
 

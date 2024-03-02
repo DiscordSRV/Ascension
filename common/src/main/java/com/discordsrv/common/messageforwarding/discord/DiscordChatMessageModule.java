@@ -215,13 +215,9 @@ public class DiscordChatMessageModule extends AbstractModule<DiscordSRV> {
 
         GameTextBuilder componentBuilder = discordSRV.componentFactory()
                 .textBuilder(format)
-                .addContext(discordMessage, author, channel, channelConfig)
+                .addContext(discordMessage, author, member, channel, channelConfig)
+                .applyPlaceholderService()
                 .addPlaceholder("message", messageComponent);
-        if (member != null) {
-            componentBuilder.addContext(member);
-        }
-
-        componentBuilder.applyPlaceholderService();
 
         MinecraftComponent component = DiscordSRVMinecraftRenderer.getWithContext(guild, chatConfig, componentBuilder::build);
         if (ComponentUtil.isEmpty(component)) {

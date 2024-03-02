@@ -172,18 +172,12 @@ public class DiscordSRVMinecraftRenderer extends DefaultMinecraftRenderer {
         DiscordUser user = discordSRV.discordAPI().getUserById(id);
         DiscordGuildMember member = guild.getMemberById(id);
 
-        GameTextBuilder builder = discordSRV.componentFactory()
-                .textBuilder(user != null ? format.format : format.unknownFormat);
-
-        if (user != null) {
-            builder.addContext(user);
-        }
-        if (member != null) {
-            builder.addContext(member);
-        }
-
         return ComponentUtil.fromAPI(
-                builder.applyPlaceholderService().build()
+                discordSRV.componentFactory()
+                        .textBuilder(user != null ? format.format : format.unknownFormat)
+                        .addContext(user, member)
+                        .applyPlaceholderService()
+                        .build()
         );
     }
 
@@ -202,15 +196,12 @@ public class DiscordSRVMinecraftRenderer extends DefaultMinecraftRenderer {
     public Component makeRoleMention(long id, MentionsConfig.Format format) {
         DiscordRole role = discordSRV.discordAPI().getRoleById(id);
 
-        GameTextBuilder builder = discordSRV.componentFactory()
-                .textBuilder(role != null ? format.format : format.unknownFormat);
-
-        if (role != null) {
-            builder.addContext(role);
-        }
-
         return ComponentUtil.fromAPI(
-                builder.applyPlaceholderService().build()
+                discordSRV.componentFactory()
+                        .textBuilder(role != null ? format.format : format.unknownFormat)
+                        .addContext(role)
+                        .applyPlaceholderService()
+                        .build()
         );
     }
 
