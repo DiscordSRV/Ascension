@@ -1,0 +1,295 @@
+config.yaml_comments:
+  $header:
+    - Etsitkö "BotToken" vaihtoehtoa? Se on siirretty connections.yaml tiedostoon
+    - Need help with the format for Minecraft messages? %1
+    - Need help with Discord markdown? %2
+    - List of placeholders %3
+  channels:
+    _comment: "Channels configuration\n \nThis is where everything related to\\ \\ in-game chat channels is configured.\nThe key of this option is the\\ \\ in-game channel name (the default keys are \"%1\" and \"%2\")\n%3 and\\ \\ %4 can be configured for all channels except \"%2\"\n\"%2\" is a special\\ \\ section which has the default values for all channels unless they are\\ \\ specified (overridden) under the channel's own section\nSo if you don't\\ \\ specify a certain option under a channel's own section, the option will\\ \\ take its value from the \"%2\" section"
+    default:
+      minecraft-to-discord:
+        content-regex-filters:
+          _comment: Regex filters for Minecraft message contents (this is the %message% part of the "format" option)
+        mentions:
+          roles:
+            _comment: "If role mentions should be rendered on Discord\n\\ \\ \nThe player needs one of the below permission to trigger\\ \\ notifications:\n- discordsrv.mention.roles.mentionable\\ \\ (for roles which have \"Allow anyone to @mention this\\ \\ role\" enabled)\n- discordsrv.mention.roles.all (to\\ \\ mention ALL roles except @everyone)"
+          channels:
+            _comment: If channel mentions should be rendered on Discord
+          users:
+            _comment:
+              - The player needs the discordsrv.mention.user permission
+              - to trigger a notification
+          uncached-users:
+            _comment:
+              - The player needs the discordsrv.mention.lookup.user permission
+              - for uncached members to be looked up
+          everyone:
+            _comment:
+              - The player needs the discordsrv.mention.everyone permission
+              - to render the mention and trigger a notification
+      discord-to-minecraft:
+        format:
+          _comment: The Discord to Minecraft message format for regular users and bots
+        webhook-format:
+          _comment: The Discord to Minecraft message format for webhook messages (if enabled)
+        attachment-format:
+          _comment: Format for a single attachment in the %message_attachments% placeholder
+        reply-format:
+          _comment: Format for the %message_reply% placeholder, when the message is a reply to another message
+        content-regex-filters:
+          _comment: Regex filters for Discord message contents (this is the %message% part of the "format" option)
+        ignores:
+          _comment: Users, bots, roles and webhooks to ignore
+          user-bot-and-webhook-ids:
+            _comment: User, bot and webhook ids to ignore
+            whitelist:
+              _comment: true for whitelisting the provided ids, false for blacklisting them
+          role-ids:
+            _comment: Role ids for users and bots to ignore
+            whitelist:
+              _comment: true for whitelisting the provided ids, false for blacklisting them
+          bots:
+            _comment: If all bots (webhooks not included) should be ignored
+          webhooks:
+            _comment: If all webhooks should be ignored (webhook messages sent by this DiscordSRV instance will always be ignored)
+        mentions:
+          _comment: The representations of Discord mentions in-game
+          role:
+            format:
+              _comment: The format shown in-game
+            unknown-format:
+              _comment: The format when the entity is deleted or can't be looked up
+          channel:
+            format:
+              _comment: The format shown in-game
+            unknown-format:
+              _comment: The format when the entity is deleted or can't be looked up
+          user:
+            format:
+              _comment: The format shown in-game
+            unknown-format:
+              _comment: The format when the entity is deleted or can't be looked up
+          custom-emoji-behaviour:
+            _comment: 'How should custom emoji be shown in-game: - hide: custom emoji will not be shown in-game - blank: custom emoji will only be shown in-game if it is rendered by a 3rd party plugin - name: shows the name of the custom emoji in-game (for example :discordsrv:), unless rendered by a 3rd party plugin'
+        unicode-emoji-behaviour:
+          _comment: 'How should unicode emoji be shown in-game: - hide: hides emojis in-game - show: shows emojis in-game as is (emojis may not be visible without resource packs) '
+        delay-millis:
+          _comment:
+            - This can be used together with Discord moderation bots, to
+            - filter forwarded messages
+      leave-messages:
+        enable-silent-permission:
+          _comment: If the "%1" permission should determine if leave messages are sent
+      mirroring:
+        _comment: Settings for synchronizing messages between the defined Discord channels and threads
+        ignores:
+          _comment: Users, bots, roles and webhooks to ignore when mirroring
+          user-bot-and-webhook-ids:
+            _comment: User, bot and webhook ids to ignore
+            whitelist:
+              _comment: true for whitelisting the provided ids, false for blacklisting them
+          role-ids:
+            _comment: Role ids for users and bots to ignore
+            whitelist:
+              _comment: true for whitelisting the provided ids, false for blacklisting them
+          bots:
+            _comment: If all bots (webhooks not included) should be ignored
+          webhooks:
+            _comment: If all webhooks should be ignored (webhook messages sent by this DiscordSRV instance will always be ignored)
+        username-format:
+          _comment:
+            - It's recommended to include some special character if in-game
+            - messages use webhooks,
+            - in order to prevent Discord users and in-game players with
+            - the same name being grouped together
+        reply-format:
+          _comment:
+            - '%message% will be replaced with the message content'
+            - '%message_jump_url% will be replaced with the url to the replied'
+            - message in the channel the message is sent in
+        attachments:
+          _comment: Attachment related options
+          maximum-size-kb:
+            _comment: "Maximum size (in kB) to download and re-upload,\\ \\ set to 0 for unlimited or -1 to disable re-uploading.\n\\ The default value is -1 (disabled)\n \nWhen this is enabled,\\ \\ files smaller than the specified limit are downloaded\\ \\ and then re-uploaded to each mirror channel individually.\n\\ Please consider limiting the users allowed to attach files\\ \\ if this is enabled,\nas spam of large files may result\\ \\ in a lot of downstream and upstream data usage"
+          embed-attachments:
+            _comment: If attachments should be placed into a embed in mirrored messages instead of re-uploading
+      channel-locking:
+        channels:
+          everyone:
+            _comment: If the permissions should be taken from @everyone while the server is offline
+          role-ids:
+            _comment: Role ids for roles that should have the permissions taken while the server is offline
+          read:
+            _comment: If the "View Channel" permission should be taken from the specified roles
+          write:
+            _comment: If the "Send Messages" permission should be taken from the specified roles
+          add-reactions:
+            _comment: If the "Add Reactions" permission should be taken from the specified roles
+        threads:
+          archive:
+            _comment: If the configured threads should be archived while the server is shutdown
+          unarchive:
+            _comment: If the bot should attempt to unarchive threads rather than make new threads
+  linked-accounts:
+    enabled:
+      _comment: Should linked accounts be enabled
+    provider:
+      _comment: "The linked account provider\n \n - auto: Uses \"minecraftauth\"\\ \\ if the %1 permits it and the server is in online mode or using ip\\ \\ forwarding, otherwise \"%4\"\n - minecraftauth: Uses %2 as the linked\\ \\ account provider (offline and (non-linked) bedrock players cannot\\ \\ link using this method)\n - storage: Use the configured database\\ \\ for linked accounts"
+  group-sync:
+    _comment: Configuration options for group-role synchronization
+    pairs:
+      _comment: Group-Role pairs for group synchronization
+  game-command:
+    _comment: In-game command configuration
+    use-discord-command:
+      _comment: If the %1 command should be set by DiscordSRV
+    use-link-alias:
+      _comment: If %1 should be used as a alias for %2
+    discord-format:
+      _comment: The Discord command response format (%1), player placeholders may be used
+  discord-command:
+    _comment: Discord command configuration
+    execute:
+      ephemeral:
+        _comment: If the command output should only be visible to the user who ran the command
+      output-mode:
+        _comment: 'The mode for the command output, available options are: - markdown: Regular Discord markdown - ansi: A colored ansi code block - plain: Plain text - code_block: Plain code block - off: No command output'
+      execution-conditions:
+        _comment: At least one condition has to match to allow execution
+      suggest:
+        _comment:
+          - Suggestions go through the server's main thread (on servers with
+          - a main thread) to ensure compatability.
+      filter-suggestions:
+        _comment: If suggestions should be filtered based on the "%1" option
+  console:
+    _comment: Options for console channel(s) and/or thread(s)
+  invite:
+    _comment: Configuration for the %1 placeholder. The below options will be attempted in the order they are in
+    invite-url:
+      _comment: Manually enter a invite url here, if this isn't set this is ignored and the options below will take effect
+    attempt-to-use-vanity-url:
+      _comment: If the bot is only in one Discord server, it will attempt to get its vanity url
+    auto-create-invite:
+      _comment:
+        - The bot will only attempt to do so if it has permission to "Create
+        - Invite"
+        - The server must also have a rules channel (available for community
+        - servers) or default channel (automatically determined by Discord)
+  messages:
+    default-language:
+      _comment:
+        - This should be in the ISO 639-1 format or ISO 639-1 (for example "en"),
+        - a underscore and a ISO 3166-1 country code to specify dialect (for
+        - example "pt_BR")
+    multiple:
+      _comment: If there should be a messages file per language (based on the player's or user's language), otherwise using the default
+    load-all-defaults:
+      _comment: If all languages provided with DiscordSRV should be loaded into the messages directory, only functions when "multiple" is set to true
+  required-linking:
+    kick:
+      event:
+        _comment: 'The event to use for kick. Available events: AsyncPlayerPreLoginEvent (preferred), PlayerLoginEvent'
+      priority:
+        _comment: The event priority to use for the kick
+    action:
+      _comment: 'How the player should be blocked from joining the server. Available options: kick, freeze'
+    bypass-uuids:
+      _comment: A list of uuids that are allowed to bypass these requirements
+    requirements:
+      _comment: "Requirements players must meet to be pass requirements\nOnly\\ \\ one option has to pass, for example [\"TwitchSubscriber()\", \"\\ DiscordRole(...)\"] allows twitch subscribers and users with the specified\\ \\ role to play\nwhile [\"TwitchSubscriber() && DiscordRole(...)\"\\ ] only allows twitch subscribers with the specified role to play\n\\ \\ \nValid values are:\nDiscordServer(Server ID)\nDiscordBoosting(Server\\ \\ ID)\nDiscordRole(Role ID)\n \nThe following are available if you're\\ \\ using MinecraftAuth.me for linked accounts and a MinecraftAuth.me\\ \\ token is specified in the connections.yaml:\nPatreonSubscriber()\\ \\ or PatreonSubscriber(Tier Title)\nGlimpseSubscriber() or GlimpseSubscriber(Level\\ \\ Name)\nTwitchFollower()\nTwitchSubscriber() or TwitchSubscriber(Tier)\n\\ YouTubeSubscriber()\nYouTubeMember() or YouTubeMember(Tier)\n \nThe\\ \\ following operators are available:\n&& = and, for example: \"DiscordServer(...)\\ \\ && TwitchFollower()\"\n|| = or, for example \"DiscordBoosting(...)\\ \\ || YouTubeMember()\"\nYou can also use brackets () to clear ambiguity,\\ \\ for example: \"DiscordServer(...) && (TwitchSubscriber() || PatreonSubscriber())\"\\ \nallows a member of the specified Discord server that is also a twitch\\ \\ or patreon subscriber to join the server"
+  avatar-provider:
+    _comment: Configuration for the %1 placeholder
+    auto-decide-avatar-url:
+      _comment:
+        - This will result in appropriate head renders being provided for Bedrock
+        - players (when using Floodgate) and Offline Mode players (via username).
+    avatar-url-template:
+      _comment:
+        - This will be used for official Java players only if %1 is set to true
+        - This will be used ALWAYS if %1 is set to false
+  integrations:
+    disabled-integrations:
+      _comment: Plugin integrations that should be disabled. Specify the names or ids of plugins to disable integrations for
+  member-caching:
+    linked-users:
+      _comment: If linked users' members should be cached, this requires the "Server Members Intent"
+    all:
+      _comment: If all members should be cached, this requires the "Server Members Intent"
+    chunk:
+      _comment: If members should be cached at startup, this requires the "Server Members Intent"
+    chunking-server-filter:
+      _comment: Filter for which servers should be cached at startup
+      blacklist:
+        _comment: If the ids option acts as a blacklist, otherwise it is a whitelist
+  debug:
+    _comment: Options for diagnosing DiscordSRV, you do not need to touch these options during normal operation
+    log-to-console:
+      _comment: If debug messages should be logged into the config
+    additional-levels:
+      _comment: 'Additional levels to log Example value: %1'
+connections.yaml_comments:
+  $header: "DiscordSRV's configuration file for connections to different external\\ \\ services.\nThis file is intended to contain connection details to services\\ \\ in order to keep them out of the %1\nand to serve as a easy way to identify\\ \\ and control what external connections are being used.\n\nAll domains listed\\ \\ as \"Requires a connection to\" require port %2 (%3) unless otherwise specified\n\\ \n ABSOLUTELY DO NOT SEND THIS FILE TO ANYONE - IT ONLY CONTAINS SECRETS\n"
+  bot:
+    token:
+      _comment: 'The Discord bot token from https://discord.com/developers/applications Requires a connection to: discord.com, gateway.discord.gg, cdn.discordapp.com Privacy Policy: https://discord.com/privacy Terms: https://discord.com/developers/docs/policies-and-agreements/developer-terms-of-service'
+  storage:
+    backend:
+      _comment: "The storage backend to use.\n \n- H2\n- MySQL\n- MariaDB"
+    sql-table-prefix:
+      _comment: SQL table prefix
+    remote:
+      _comment: Connection options for remote databases (MySQL, MariaDB)
+      database-address:
+        _comment: 'The database address. Uses the default port (MySQL: 3306) for the database if a port isn''t specified in the "address:port" format Please make sure the port for your database is open and your firewall(s) allow(s) connections from the server to the database'
+      database-name:
+        _comment: The name of the database
+      username:
+        _comment: The database username and password
+      pool-options:
+        _comment: Connection pool options. Don't touch these unless you know what you're doing
+        maximum-pool-size:
+          _comment: The maximum amount of concurrent connections to keep to the database
+        minimum-pool-size:
+          _comment: The minimum amount of concurrent connections to keep to the database
+        keepalive-time:
+          _comment:
+            - The time is specified in milliseconds. Use 0 to disable keepalive.The
+            - default is 0 (disabled)
+        maximum-lifetime:
+          _comment:
+            - The time is specified in milliseconds. Must be at least 30000ms
+            - (30 seconds)The default is 1800000ms (30 minutes)
+    driver-properties:
+      _comment: Extra connection properties for database drivers
+  minecraft-auth:
+    allow:
+      _comment: 'If minecraftauth.me connections are allowed for Discord linking (when linked-accounts.provider is "auto" or "minecraftauth"). Requires a connection to: minecraftauth.me Privacy Policy: https://minecraftauth.me/privacy'
+    token:
+      _comment:
+        - You can get the token from https://minecraftauth.me/api/token whilst
+        - logged in (please keep in mind that the token resets every time you
+        - visit that page)
+  update:
+    notification-enabled:
+      _comment: On/off for notifications when a new version of DiscordSRV is available
+    notification-ingame:
+      _comment:
+        - a update notification upon joining if there is a update available
+    enable-first-party-api-for-notifications:
+      _comment: 'Whether the DiscordSRV download API should be used for update checks Requires a connection to: %1'
+    github:
+      enabled:
+        _comment: 'Whether the GitHub API should be used for update checks This will be the secondary API if both first party and GitHub sources are enabled Requires a connection to: %1'
+      api-token:
+        _comment:
+          - if this isn't specified the API will be used 'anonymously'
+          - The token only requires read permission to %1 releases, workflows
+          - and commits
+    security:
+      enabled:
+        _comment: "Uses the DiscordSRV download API to check if the version\\ \\ of DiscordSRV\nbeing used is vulnerable to known vulnerabilities,\\ \\ disabling the plugin if it is.\nRequires a connection to: %1\n\\ \\ \nWARNING! DO NOT TURN THIS OFF UNLESS YOU KNOW WHAT YOU'RE\\ \\ DOING AND STAY UP-TO-DATE"
+      force:
+        _comment:
+          - if the security check cannot be performed, DiscordSRV will be
+          - disabled if this option is set to true
