@@ -11,10 +11,12 @@ public enum Permission {
     COMMAND_VERSION("command.admin.version"),
     COMMAND_LINK_OTHER("command.admin.link.other"),
     COMMAND_LINKED_OTHER("command.admin.linked.other"),
+    COMMAND_UNLINK_OTHER("command.admin.linked.other"),
     // Player
     COMMAND_ROOT("command.player.root"),
     COMMAND_LINK("command.player.link"),
     COMMAND_LINKED("command.player.linked"),
+    COMMAND_UNLINK("command.player.unlink"),
 
     // Mentions
     MENTION_USER("mention.user.base"),

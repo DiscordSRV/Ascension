@@ -1,5 +1,7 @@
 package com.discordsrv.common.command.combined.abstraction;
 
+import com.discordsrv.api.component.MinecraftComponent;
+import com.discordsrv.common.component.util.ComponentUtil;
 import com.discordsrv.common.config.messages.MessagesConfig;
 import net.kyori.adventure.text.Component;
 
@@ -26,6 +28,10 @@ public interface CommandExecution {
     }
 
     void send(Collection<Text> texts, Collection<Text> extra);
+
+    default void send(MinecraftComponent minecraft, String discord) {
+        send(ComponentUtil.fromAPI(minecraft), discord);
+    }
 
     void send(Component minecraft, String discord);
 

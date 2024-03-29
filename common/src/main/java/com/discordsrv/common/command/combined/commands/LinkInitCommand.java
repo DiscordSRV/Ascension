@@ -1,10 +1,8 @@
 package com.discordsrv.common.command.combined.commands;
 
-import com.discordsrv.api.discord.entity.DiscordUser;
 import com.discordsrv.api.discord.entity.interaction.command.CommandOption;
 import com.discordsrv.api.discord.entity.interaction.command.DiscordCommand;
 import com.discordsrv.api.discord.entity.interaction.component.ComponentIdentifier;
-import com.discordsrv.api.placeholder.provider.SinglePlaceholder;
 import com.discordsrv.common.DiscordSRV;
 import com.discordsrv.common.command.combined.abstraction.CombinedCommand;
 import com.discordsrv.common.command.combined.abstraction.CommandExecution;
@@ -15,35 +13,32 @@ import com.discordsrv.common.command.game.sender.ICommandSender;
 import com.discordsrv.common.command.util.CommandUtil;
 import com.discordsrv.common.component.util.ComponentUtil;
 import com.discordsrv.common.config.messages.MessagesConfig;
-import com.discordsrv.common.future.util.CompletableFutureUtil;
 import com.discordsrv.common.linking.LinkProvider;
 import com.discordsrv.common.linking.LinkStore;
 import com.discordsrv.common.logging.Logger;
 import com.discordsrv.common.logging.NamedLogger;
 import com.discordsrv.common.permission.Permission;
-import com.discordsrv.common.player.IOfflinePlayer;
 import com.discordsrv.common.player.IPlayer;
 import com.github.benmanes.caffeine.cache.Cache;
 import net.kyori.adventure.text.format.NamedTextColor;
 import org.apache.commons.lang3.StringUtils;
 
-import java.time.Duration;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 
 public class LinkInitCommand extends CombinedCommand {
 
-    private static DebugCommand INSTANCE;
+    private static LinkInitCommand INSTANCE;
     private static GameCommand GAME;
     private static DiscordCommand DISCORD;
 
-    private static DebugCommand getInstance(DiscordSRV discordSRV) {
-        return INSTANCE != null ? INSTANCE : (INSTANCE = new DebugCommand(discordSRV));
+    private static LinkInitCommand getInstance(DiscordSRV discordSRV) {
+        return INSTANCE != null ? INSTANCE : (INSTANCE = new LinkInitCommand(discordSRV));
     }
 
     public static GameCommand getGame(DiscordSRV discordSRV) {
         if (GAME == null) {
-            LinkInitCommand command = new LinkInitCommand(discordSRV);
+            LinkInitCommand command = getInstance(discordSRV);
             GAME = GameCommand.literal("link")
                     .then(
                             GameCommand.stringWord("player")
@@ -62,15 +57,15 @@ public class LinkInitCommand extends CombinedCommand {
 
     public static DiscordCommand getDiscord(DiscordSRV discordSRV) {
         if (DISCORD == null) {
-            DebugCommand command = getInstance(discordSRV);
+            LinkInitCommand command = getInstance(discordSRV);
             DISCORD = DiscordCommand.chatInput(ComponentIdentifier.of("DiscordSRV", "link"), "link", "Link players")
                     .addOption(
-                            CommandOption.builder(CommandOption.Type.STRING, "player", "The player to link")
+                            CommandOption.builder(CommandOption.Type.USER, "user", "The user to link")
                                     .setRequired(true)
                                     .build()
                     )
                     .addOption(
-                            CommandOption.builder(CommandOption.Type.USER, "user", "The user to link")
+                            CommandOption.builder(CommandOption.Type.STRING, "player", "The player to link")
                                     .setRequired(true)
                                     .build()
                     )
@@ -128,69 +123,39 @@ public class LinkInitCommand extends CombinedCommand {
 
         playerUUIDFuture.whenComplete((playerUUID, __) -> userIdFuture.whenComplete((userId, ___) -> {
             if (playerUUID == null) {
-                execution.send(
-                        execution.messages().minecraft.playerNotFound.asComponent(),
-                        execution.messages().discord.playerNotFound
-                );
+                execution.messages().playerNotFound(execution);
                 return;
             }
-
             if (userId == null) {
-                execution.send(
-                        execution.messages().minecraft.userNotFound.asComponent(),
-                        execution.messages().discord.userNotFound
-                );
+                execution.messages().userNotFound(execution);
                 return;
             }
-
-            CompletableFuture<IOfflinePlayer> playerFuture = CompletableFutureUtil.timeout(
-                    discordSRV,
-                    discordSRV.playerProvider().lookupOfflinePlayer(playerUUID),
-                    Duration.ofSeconds(5)
-            );
-            CompletableFuture<DiscordUser> userFuture = CompletableFutureUtil.timeout(
-                    discordSRV,
-                    discordSRV.discordAPI().retrieveUserById(userId),
-                    Duration.ofSeconds(5)
-            );
 
             linkProvider.queryUserId(playerUUID).whenComplete((linkedUser, t) -> {
                 if (t != null) {
                     logger.error("Failed to check linking status", t);
-                    execution.send(
-                            execution.messages().minecraft.unableToCheckLinkingStatus.asComponent(),
-                            execution.messages().discord.unableToCheckLinkingStatus
-                    );
+                    execution.messages().unableToCheckLinkingStatus(execution);
                     return;
                 }
                 if (linkedUser.isPresent()) {
-                    execution.send(
-                            execution.messages().minecraft.playerAlreadyLinked3rd.asComponent(),
-                            execution.messages().discord.playerAlreadyLinked3rd
-                    );
+                    execution.messages().playerAlreadyLinked3rd(execution);
                     return;
                 }
 
                 linkProvider.queryPlayerUUID(userId).whenComplete((linkedPlayer, t2) -> {
                     if (t2 != null) {
                         logger.error("Failed to check linking status", t2);
-                        execution.send(
-                                execution.messages().minecraft.unableToCheckLinkingStatus.asComponent(),
-                                execution.messages().discord.unableToCheckLinkingStatus
-                        );
+                        execution.messages().unableToCheckLinkingStatus(execution);
                         return;
                     }
                     if (linkedPlayer.isPresent()) {
-                        execution.send(
-                                execution.messages().minecraft.userAlreadyLinked3rd.asComponent(),
-                                execution.messages().discord.userAlreadyLinked3rd
-                        );
+                        execution.messages().userAlreadyLinked3rd(execution);
                         return;
                     }
 
                     ((LinkStore) linkProvider).createLink(playerUUID, userId).whenComplete((v, t3) -> {
                         if (t3 != null) {
-                            logger.error("Failed to check linking status", t3);
+                            logger.error("Failed to create link", t3);
                             execution.send(
                                     execution.messages().minecraft.unableToLinkAtThisTime.asComponent(),
                                     execution.messages().discord.unableToCheckLinkingStatus
@@ -198,23 +163,7 @@ public class LinkInitCommand extends CombinedCommand {
                             return;
                         }
 
-                        userFuture.whenComplete((user, ____) -> playerFuture.whenComplete((player, _____) -> execution.send(
-                                ComponentUtil.fromAPI(
-                                        execution.messages().minecraft.nowLinked3rd.textBuilder()
-                                                .applyPlaceholderService()
-                                                .addContext(user, player)
-                                                .addPlaceholder("user_id", userId)
-                                                .addPlaceholder("player_uuid", playerUUID)
-                                                .build()
-                                ),
-                                discordSRV.placeholderService().replacePlaceholders(
-                                        execution.messages().discord.nowLinked3rd,
-                                        user,
-                                        player,
-                                        new SinglePlaceholder("user_id", userId),
-                                        new SinglePlaceholder("player_uuid", playerUUID)
-                                )
-                        )));
+                        execution.messages().nowLinked3rd(discordSRV, execution, playerUUID, userId);
                     });
                 });
             });

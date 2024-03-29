@@ -28,6 +28,7 @@ import com.discordsrv.common.command.game.commands.subcommand.BroadcastCommand;
 import com.discordsrv.common.command.game.commands.subcommand.reload.ReloadCommand;
 import com.discordsrv.common.command.game.sender.ICommandSender;
 import com.discordsrv.common.component.util.ComponentUtil;
+import com.discordsrv.common.linking.LinkStore;
 import com.discordsrv.common.permission.Permission;
 
 import java.util.Map;
@@ -42,20 +43,25 @@ public class DiscordSRVGameCommand implements GameCommandExecutor {
         if (COMMAND == null) {
             COMMAND = new DiscordSRVGameCommand(discordSRV);
         }
-        return INSTANCES.computeIfAbsent(alias, key ->
-                GameCommand.literal(alias)
-                        .requiredPermission(Permission.COMMAND_ROOT)
-                        .executor(COMMAND)
-                        .then(BroadcastCommand.discord(discordSRV))
-                        .then(BroadcastCommand.minecraft(discordSRV))
-                        .then(BroadcastCommand.json(discordSRV))
-                        .then(DebugCommand.getGame(discordSRV))
-                        .then(LinkInitCommand.getGame(discordSRV))
-                        .then(LinkedCommand.getGame(discordSRV))
-                        .then(ReloadCommand.get(discordSRV))
-                        .then(ResyncCommand.getGame(discordSRV))
-                        .then(VersionCommand.getGame(discordSRV))
-        );
+        return INSTANCES.computeIfAbsent(alias, key -> {
+            GameCommand command = GameCommand.literal(alias)
+                    .requiredPermission(Permission.COMMAND_ROOT)
+                    .executor(COMMAND)
+                    .then(BroadcastCommand.discord(discordSRV))
+                    .then(BroadcastCommand.minecraft(discordSRV))
+                    .then(BroadcastCommand.json(discordSRV))
+                    .then(DebugCommand.getGame(discordSRV))
+                    .then(LinkInitCommand.getGame(discordSRV))
+                    .then(LinkedCommand.getGame(discordSRV))
+                    .then(ReloadCommand.get(discordSRV))
+                    .then(ResyncCommand.getGame(discordSRV))
+                    .then(VersionCommand.getGame(discordSRV));
+            if (discordSRV.linkProvider() instanceof LinkStore) {
+                command = command.then(UnlinkCommand.getGame(discordSRV));
+            }
+
+            return command;
+        });
     }
 
     private final DiscordSRV discordSRV;

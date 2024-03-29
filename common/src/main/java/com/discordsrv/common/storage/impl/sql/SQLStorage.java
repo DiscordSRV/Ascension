@@ -139,7 +139,7 @@ public abstract class SQLStorage implements Storage {
     @Override
     public void removeLink(@NotNull UUID player, long userId) {
         useConnection(connection -> {
-            try (PreparedStatement statement = connection.prepareStatement("delete " + tablePrefix() + LINKED_ACCOUNTS_TABLE_NAME + " where PLAYER_UUID = ?;")) {
+            try (PreparedStatement statement = connection.prepareStatement("delete from " + tablePrefix() + LINKED_ACCOUNTS_TABLE_NAME + " where PLAYER_UUID = ?;")) {
                 statement.setString(1, player.toString());
                 exceptEffectedRows(statement.executeUpdate(), 1);
             }
@@ -168,7 +168,7 @@ public abstract class SQLStorage implements Storage {
     public UUID getLinkingCode(String code) {
         return useConnection(connection -> {
             // Clean expired codes
-            try (PreparedStatement statement = connection.prepareStatement("DELETE FROM " + tablePrefix() + LINKING_CODES_TABLE_NAME + " where EXPIRY < ?;")) {
+            try (PreparedStatement statement = connection.prepareStatement("delete from " + tablePrefix() + LINKING_CODES_TABLE_NAME + " where EXPIRY < ?;")) {
                 statement.setLong(1, getTimeMS());
                 statement.executeUpdate();
             }
@@ -188,7 +188,7 @@ public abstract class SQLStorage implements Storage {
     @Override
     public void removeLinkingCode(@NotNull UUID player) {
         useConnection(connection -> {
-            try (PreparedStatement statement = connection.prepareStatement("DELETE FROM " + tablePrefix() + LINKING_CODES_TABLE_NAME + " WHERE PLAYERUUID = ?")) {
+            try (PreparedStatement statement = connection.prepareStatement("delete from " + tablePrefix() + LINKING_CODES_TABLE_NAME + " WHERE PLAYERUUID = ?")) {
                 statement.setString(1, player.toString());
                 statement.executeUpdate();
             }
@@ -199,13 +199,13 @@ public abstract class SQLStorage implements Storage {
     public void storeLinkingCode(@NotNull UUID player, String code) {
         useConnection(connection -> {
             // Remove existing code
-            try (PreparedStatement statement = connection.prepareStatement("DELETE FROM " + tablePrefix() + LINKING_CODES_TABLE_NAME + " where PLAYERUUID = ?")) {
+            try (PreparedStatement statement = connection.prepareStatement("delete from " + tablePrefix() + LINKING_CODES_TABLE_NAME + " where PLAYERUUID = ?")) {
                 statement.setString(1, player.toString());
                 statement.executeUpdate();
             }
 
             // Insert new code
-            try (PreparedStatement statement = connection.prepareStatement("INSERT INTO " + tablePrefix() + LINKING_CODES_TABLE_NAME + " (PLAYERUUID, CODE, EXPIRY)")) {
+            try (PreparedStatement statement = connection.prepareStatement("insert into " + tablePrefix() + LINKING_CODES_TABLE_NAME + " (PLAYERUUID, CODE, EXPIRY)")) {
                 statement.setString(1, player.toString());
                 statement.setString(2, code);
                 statement.setLong(3, getTimeMS() + LinkStore.LINKING_CODE_EXPIRY_TIME.toMillis());
