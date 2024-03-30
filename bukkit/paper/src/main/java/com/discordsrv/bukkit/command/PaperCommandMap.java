@@ -1,4 +1,4 @@
-package com.discordsrv.bukkit;
+package com.discordsrv.bukkit.command;
 
 import org.bukkit.Server;
 

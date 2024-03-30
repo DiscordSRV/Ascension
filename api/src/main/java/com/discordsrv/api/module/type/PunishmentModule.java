@@ -5,35 +5,34 @@ import org.jetbrains.annotations.Nullable;
 
 import java.time.Instant;
 import java.util.UUID;
+import java.util.concurrent.CompletableFuture;
 
 public interface PunishmentModule {
 
     interface Bans extends PunishmentModule {
-        Punishment getBan(@NotNull UUID playerUUID);
-        void addBan(@NotNull UUID playerUUID, @Nullable Instant until, @Nullable String reason);
-        void removeBan(@NotNull UUID playerUUID);
+        @Nullable
+        CompletableFuture<Punishment> getBan(@NotNull UUID playerUUID);
+        CompletableFuture<Void> addBan(@NotNull UUID playerUUID, @Nullable Instant until, @Nullable String reason, @NotNull String punisher);
+        CompletableFuture<Void> removeBan(@NotNull UUID playerUUID);
     }
 
     interface Mutes extends PunishmentModule {
-        Punishment getMute(@NotNull UUID playerUUID);
-        void addMute(@NotNull UUID playerUUID, @Nullable Instant until, @Nullable String reason);
-        void removeMute(@NotNull UUID playerUUID);
+        @Nullable
+        CompletableFuture<Punishment> getMute(@NotNull UUID playerUUID);
+        CompletableFuture<Void> addMute(@NotNull UUID playerUUID, @Nullable Instant until, @Nullable String reason, @NotNull String punisher);
+        CompletableFuture<Void> removeMute(@NotNull UUID playerUUID);
     }
 
     class Punishment {
 
-        private final boolean active;
         private final Instant until;
         private final String reason;
+        private final String punisher;
 
-        public Punishment(boolean active, @Nullable Instant until, @Nullable String reason) {
-            this.active = active;
+        public Punishment(@Nullable Instant until, @Nullable String reason, @Nullable String punisher) {
             this.until = until;
             this.reason = reason;
-        }
-
-        public boolean active() {
-            return active;
+            this.punisher = punisher;
         }
 
         public Instant until() {
@@ -42,6 +41,10 @@ public interface PunishmentModule {
 
         public String reason() {
             return reason;
+        }
+
+        public String punisher() {
+            return punisher;
         }
     }
 }

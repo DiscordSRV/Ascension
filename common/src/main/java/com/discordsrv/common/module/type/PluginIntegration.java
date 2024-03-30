@@ -34,6 +34,10 @@ public abstract class PluginIntegration<DT extends DiscordSRV> extends AbstractM
         super(discordSRV, logger);
     }
 
+    /**
+     * The id/name of the plugin/mod this integration is for.
+     * @return the id (when available) or name of the plugin or mod
+     */
     @NotNull
     public abstract String getIntegrationName();
 

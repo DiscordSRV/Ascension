@@ -14,6 +14,7 @@ import com.discordsrv.common.component.util.ComponentUtil;
 import com.discordsrv.common.module.type.PluginIntegration;
 import com.earth2me.essentials.Essentials;
 import com.earth2me.essentials.User;
+import com.earth2me.essentials.UserData;
 import net.essentialsx.api.v2.events.chat.GlobalChatEvent;
 import net.kyori.adventure.platform.bukkit.BukkitComponentSerializer;
 import org.bukkit.entity.Player;
@@ -25,6 +26,7 @@ import org.jetbrains.annotations.Nullable;
 import java.time.Instant;
 import java.util.Collection;
 import java.util.UUID;
+import java.util.concurrent.CompletableFuture;
 
 public class EssentialsXIntegration
         extends PluginIntegration<BukkitDiscordSRV>
@@ -55,46 +57,46 @@ public class EssentialsXIntegration
         return (Essentials) discordSRV.server().getPluginManager().getPlugin("Essentials");
     }
 
-    private User getUser(UUID playerUUID) {
-        return get().getUsers().loadUncachedUser(playerUUID);
+    private CompletableFuture<User> getUser(UUID playerUUID) {
+        return CompletableFuture.supplyAsync(() -> get().getUsers().loadUncachedUser(playerUUID), discordSRV.scheduler().executor());
     }
 
     @Override
-    public String getNickname(UUID playerUUID) {
-        User user = getUser(playerUUID);
-        return user.getNickname();
+    public CompletableFuture<String> getNickname(UUID playerUUID) {
+        return getUser(playerUUID).thenApply(UserData::getNickname);
     }
 
     @Override
-    public void setNickname(UUID playerUUID, String nickname) {
-        User user = getUser(playerUUID);
-        user.setNickname(nickname);
+    public CompletableFuture<Void> setNickname(UUID playerUUID, String nickname) {
+        return getUser(playerUUID).thenApply(user -> {
+            user.setNickname(nickname);
+            return null;
+        });
     }
 
     @Override
-    public Punishment getMute(@NotNull UUID playerUUID) {
-        User user = getUser(playerUUID);
-        if (!user.isMuted()) {
-            return new Punishment(false, null, null);
-        }
-
-        return new Punishment(true, Instant.ofEpochMilli(user.getMuteTimeout()), user.getMuteReason());
+    public CompletableFuture<Punishment> getMute(@NotNull UUID playerUUID) {
+        return getUser(playerUUID).thenApply(user -> new Punishment(Instant.ofEpochMilli(user.getMuteTimeout()), user.getMuteReason(), null));
     }
 
     @Override
-    public void addMute(@NotNull UUID playerUUID, @Nullable Instant until, @Nullable String reason) {
-        User user = getUser(playerUUID);
-        user.setMuted(true);
-        user.setMuteTimeout(until != null ? until.toEpochMilli() : 0);
-        user.setMuteReason(reason);
+    public CompletableFuture<Void> addMute(@NotNull UUID playerUUID, @Nullable Instant until, @Nullable String reason, @NotNull String punisher) {
+        return getUser(playerUUID).thenApply(user -> {
+            user.setMuted(true);
+            user.setMuteTimeout(until != null ? until.toEpochMilli() : 0);
+            user.setMuteReason(reason);
+            return null;
+        });
     }
 
     @Override
-    public void removeMute(@NotNull UUID playerUUID) {
-        User user = getUser(playerUUID);
-        user.setMuted(false);
-        user.setMuteTimeout(0);
-        user.setMuteReason(null);
+    public CompletableFuture<Void> removeMute(@NotNull UUID playerUUID) {
+        return getUser(playerUUID).thenApply(user -> {
+            user.setMuted(false);
+            user.setMuteTimeout(0);
+            user.setMuteReason(null);
+            return null;
+        });
     }
 
     @EventHandler(priority = org.bukkit.event.EventPriority.MONITOR)

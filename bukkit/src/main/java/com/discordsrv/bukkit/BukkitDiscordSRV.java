@@ -19,6 +19,7 @@
 package com.discordsrv.bukkit;
 
 import com.discordsrv.api.DiscordSRVApi;
+import com.discordsrv.bukkit.ban.BukkitBanModule;
 import com.discordsrv.bukkit.command.game.BukkitGameCommandExecutionHelper;
 import com.discordsrv.bukkit.command.game.handler.AbstractBukkitCommandHandler;
 import com.discordsrv.bukkit.component.translation.BukkitTranslationLoader;
@@ -195,10 +196,12 @@ public class BukkitDiscordSRV extends ServerDiscordSRV<DiscordSRVBukkitBootstrap
         // Modules
         registerModule(MinecraftToDiscordChatModule::new);
         registerModule(BukkitRequiredLinkingModule::new);
+        registerModule(BukkitBanModule::new);
 
         // Integrations
         registerIntegration("com.discordsrv.bukkit.integration.VaultIntegration");
         registerIntegration("com.discordsrv.bukkit.integration.PlaceholderAPIIntegration");
+        registerIntegration("com.discordsrv.bukkit.integration.EssentialsXIntegration");
 
         // Chat Integrations
         registerIntegration("com.discordsrv.bukkit.integration.chat.ChattyChatIntegration");

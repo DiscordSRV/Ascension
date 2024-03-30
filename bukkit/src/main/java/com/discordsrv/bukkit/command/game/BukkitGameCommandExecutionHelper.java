@@ -1,7 +1,7 @@
 package com.discordsrv.bukkit.command.game;
 
 import com.discordsrv.bukkit.BukkitDiscordSRV;
-import com.discordsrv.bukkit.PaperCommandMap;
+import com.discordsrv.bukkit.command.PaperCommandMap;
 import com.discordsrv.common.command.game.GameCommandExecutionHelper;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
