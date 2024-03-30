@@ -24,7 +24,10 @@
 package com.discordsrv.api.channel;
 
 import com.discordsrv.api.component.MinecraftComponent;
+import com.discordsrv.api.player.DiscordSRVPlayer;
 import org.jetbrains.annotations.NotNull;
+
+import java.util.Collection;
 
 /**
  * An in-game channel for sending Minecraft messages to.
@@ -54,8 +57,27 @@ public interface GameChannel {
     boolean isChat();
 
     /**
-     * Send a message to this {@link GameChannel}'s participants.
-     * @param component the message
+     * Players that will receive messages for this channel, these players must not be included in {@link #sendMessage(MinecraftComponent)}.
+     * @return the recipients for this channel
+     * @see #sendMessage(MinecraftComponent)
      */
-    void sendMessage(@NotNull MinecraftComponent component);
+    @NotNull
+    Collection<? extends DiscordSRVPlayer> getRecipients();
+
+    /**
+     * Send a message to this {@link GameChannel}'s participants which are not included in {@link #getRecipients()}.
+     * @param component the message
+     * @see #getRecipients()
+     */
+    default void sendMessage(@NotNull MinecraftComponent component) {}
+
+    /**
+     * Sends the given message to the given player, used with {@link #getRecipients()}. May be used to apply personalized filters.
+     * @param player the player
+     * @param component the message
+     * @see #getRecipients()
+     */
+    default void sendMessageToPlayer(@NotNull DiscordSRVPlayer player, @NotNull MinecraftComponent component) {
+        player.sendMessage(component);
+    }
 }

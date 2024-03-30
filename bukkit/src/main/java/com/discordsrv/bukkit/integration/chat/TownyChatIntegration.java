@@ -23,6 +23,7 @@ import com.discordsrv.api.component.MinecraftComponent;
 import com.discordsrv.api.event.bus.Subscribe;
 import com.discordsrv.api.event.events.channel.GameChannelLookupEvent;
 import com.discordsrv.api.event.events.message.receive.game.GameChatMessageReceiveEvent;
+import com.discordsrv.api.player.DiscordSRVPlayer;
 import com.discordsrv.bukkit.BukkitDiscordSRV;
 import com.discordsrv.bukkit.player.BukkitPlayer;
 import com.discordsrv.common.component.util.ComponentUtil;
@@ -38,6 +39,10 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.event.HandlerList;
 import org.bukkit.event.Listener;
 import org.jetbrains.annotations.NotNull;
+
+import java.util.Collection;
+import java.util.HashSet;
+import java.util.Set;
 
 public class TownyChatIntegration extends PluginIntegration<BukkitDiscordSRV> implements Listener {
 
@@ -79,14 +84,10 @@ public class TownyChatIntegration extends PluginIntegration<BukkitDiscordSRV> im
                 BukkitComponentSerializer.legacy().deserialize(event.getMessage())
         );
 
+        BukkitPlayer srvPlayer = discordSRV.playerProvider().player(player);
+        boolean cancelled = event.isCancelled();
         discordSRV.scheduler().run(() -> discordSRV.eventBus().publish(
-                new GameChatMessageReceiveEvent(
-                        event,
-                        discordSRV.playerProvider().player(player),
-                        component,
-                        new TownyChatChannel(channel),
-                        event.isCancelled()
-                )
+                new GameChatMessageReceiveEvent(event, srvPlayer, component, new TownyChatChannel(channel), cancelled)
         ));
     }
 
@@ -138,8 +139,11 @@ public class TownyChatIntegration extends PluginIntegration<BukkitDiscordSRV> im
         }
 
         @Override
-        public void sendMessage(@NotNull MinecraftComponent component) {
-            for (BukkitPlayer player : discordSRV.playerProvider().allPlayers()) {
+        public @NotNull Set<DiscordSRVPlayer> getRecipients() {
+            Collection<BukkitPlayer> players = discordSRV.playerProvider().allPlayers();
+            Set<DiscordSRVPlayer> filteredPlayers = new HashSet<>(players.size());
+
+            for (BukkitPlayer player : players) {
                 if (!channel.isPresent(player.username())) {
                     continue;
                 }
@@ -149,8 +153,9 @@ public class TownyChatIntegration extends PluginIntegration<BukkitDiscordSRV> im
                     continue;
                 }
 
-                player.sendMessage(ComponentUtil.fromAPI(component));
+                filteredPlayers.add(player);
             }
+            return filteredPlayers;
         }
     }
 }

@@ -18,7 +18,7 @@
 
 package com.discordsrv.common.integration;
 
-import com.discordsrv.api.module.type.PermissionDataProvider;
+import com.discordsrv.api.module.type.PermissionModule;
 import com.discordsrv.common.DiscordSRV;
 import com.discordsrv.common.exception.MessageException;
 import com.discordsrv.common.future.util.CompletableFutureUtil;
@@ -56,7 +56,7 @@ import java.util.function.BiFunction;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
-public class LuckPermsIntegration extends PluginIntegration<DiscordSRV> implements PermissionDataProvider.All {
+public class LuckPermsIntegration extends PluginIntegration<DiscordSRV> implements PermissionModule.All {
 
     private LuckPerms luckPerms;
     private final List<EventSubscription<?>> subscriptions = new ArrayList<>();

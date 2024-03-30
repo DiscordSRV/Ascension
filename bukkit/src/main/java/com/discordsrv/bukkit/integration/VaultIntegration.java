@@ -18,7 +18,7 @@
 
 package com.discordsrv.bukkit.integration;
 
-import com.discordsrv.api.module.type.PermissionDataProvider;
+import com.discordsrv.api.module.type.PermissionModule;
 import com.discordsrv.bukkit.BukkitDiscordSRV;
 import com.discordsrv.common.exception.MessageException;
 import com.discordsrv.common.function.CheckedSupplier;
@@ -38,7 +38,7 @@ import java.util.List;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 
-public class VaultIntegration extends PluginIntegration<BukkitDiscordSRV> implements PermissionDataProvider.Basic {
+public class VaultIntegration extends PluginIntegration<BukkitDiscordSRV> implements PermissionModule.Basic {
 
     private Permission permission;
     private Chat chat;

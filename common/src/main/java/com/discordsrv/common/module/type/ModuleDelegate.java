@@ -22,7 +22,7 @@ import com.discordsrv.api.DiscordSRVApi;
 import com.discordsrv.api.discord.connection.details.DiscordCacheFlag;
 import com.discordsrv.api.discord.connection.details.DiscordGatewayIntent;
 import com.discordsrv.api.discord.connection.details.DiscordMemberCachePolicy;
-import com.discordsrv.api.module.type.Module;
+import com.discordsrv.api.module.Module;
 import com.discordsrv.common.DiscordSRV;
 import com.discordsrv.common.logging.NamedLogger;
 import org.jetbrains.annotations.NotNull;

@@ -23,7 +23,9 @@ import com.discordsrv.api.component.MinecraftComponent;
 import com.discordsrv.api.event.bus.Subscribe;
 import com.discordsrv.api.event.events.channel.GameChannelLookupEvent;
 import com.discordsrv.api.event.events.message.receive.game.GameChatMessageReceiveEvent;
+import com.discordsrv.api.player.DiscordSRVPlayer;
 import com.discordsrv.bukkit.BukkitDiscordSRV;
+import com.discordsrv.bukkit.player.BukkitPlayer;
 import com.discordsrv.common.component.util.ComponentUtil;
 import com.discordsrv.common.logging.NamedLogger;
 import com.discordsrv.common.module.type.PluginIntegration;
@@ -33,7 +35,6 @@ import mineverse.Aust1n46.chat.api.events.VentureChatEvent;
 import mineverse.Aust1n46.chat.channel.ChatChannel;
 import mineverse.Aust1n46.chat.utilities.Format;
 import net.kyori.adventure.platform.bukkit.BukkitComponentSerializer;
-import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.TextReplacementConfig;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
@@ -41,6 +42,9 @@ import org.bukkit.event.HandlerList;
 import org.bukkit.event.Listener;
 import org.jetbrains.annotations.NotNull;
 
+import java.util.Collection;
+import java.util.HashSet;
+import java.util.Set;
 import java.util.regex.Pattern;
 
 public class VentureChatIntegration extends PluginIntegration<BukkitDiscordSRV> implements Listener {
@@ -90,14 +94,9 @@ public class VentureChatIntegration extends PluginIntegration<BukkitDiscordSRV> 
                 BukkitComponentSerializer.legacy().deserialize(event.getChat())
         );
 
+        BukkitPlayer srvPlayer = discordSRV.playerProvider().player(player);
         discordSRV.scheduler().run(() -> discordSRV.eventBus().publish(
-                new GameChatMessageReceiveEvent(
-                        event,
-                        discordSRV.playerProvider().player(player),
-                        component,
-                        new VentureChatChannel(channel),
-                        false
-                )
+                new GameChatMessageReceiveEvent(event, srvPlayer, component, new VentureChatChannel(channel), false)
         ));
     }
 
@@ -143,13 +142,16 @@ public class VentureChatIntegration extends PluginIntegration<BukkitDiscordSRV> 
         }
 
         @Override
-        public void sendMessage(@NotNull MinecraftComponent component) {
-            for (MineverseChatPlayer player : MineverseChatAPI.getMineverseChatPlayers()) {
-                if (!player.isListening(channel.getName())) {
+        public @NotNull Set<DiscordSRVPlayer> getRecipients() {
+            Collection<MineverseChatPlayer> chatPlayers = MineverseChatAPI.getMineverseChatPlayers();
+            Set<DiscordSRVPlayer> players = new HashSet<>(chatPlayers.size());
+
+            for (MineverseChatPlayer chatPlayer : chatPlayers) {
+                if (!chatPlayer.isListening(channel.getName())) {
                     continue;
                 }
 
-                Player bukkitPlayer = player.getPlayer();
+                Player bukkitPlayer = chatPlayer.getPlayer();
                 if (bukkitPlayer == null) {
                     continue;
                 }
@@ -158,18 +160,28 @@ public class VentureChatIntegration extends PluginIntegration<BukkitDiscordSRV> 
                     continue;
                 }
 
-                Component comp = ComponentUtil.fromAPI(component);
-                if (player.hasFilter() && channel.isFiltered()) {
-                    comp = comp.replaceText(
-                            TextReplacementConfig.builder()
-                                    .match(Pattern.compile("[\\w\\W]+"))
-                                    .replacement(match -> match.content(Format.FilterChat(match.content())))
-                                    .build()
-                    );
-                }
-
-                discordSRV.playerProvider().player(bukkitPlayer).sendMessage(comp);
+                players.add(discordSRV.playerProvider().player(bukkitPlayer));
             }
+            return players;
+        }
+
+        @Override
+        public void sendMessageToPlayer(@NotNull DiscordSRVPlayer player, @NotNull MinecraftComponent component) {
+            MineverseChatPlayer chatPlayer = MineverseChatAPI.getMineverseChatPlayer(player.uniqueId());
+
+            if (chatPlayer.hasFilter() && channel.isFiltered()) {
+                component = ComponentUtil.toAPI(
+                        ComponentUtil.fromAPI(component)
+                                .replaceText(
+                                        TextReplacementConfig.builder()
+                                                .match(Pattern.compile("[\\w\\W]+"))
+                                                .replacement(match -> match.content(Format.FilterChat(match.content())))
+                                                .build()
+                                )
+                );
+            }
+
+            player.sendMessage(component);
         }
     }
 }

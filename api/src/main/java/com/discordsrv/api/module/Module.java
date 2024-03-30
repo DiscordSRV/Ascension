@@ -21,7 +21,7 @@
  * SOFTWARE.
  */
 
-package com.discordsrv.api.module.type;
+package com.discordsrv.api.module;
 
 import com.discordsrv.api.DiscordSRVApi;
 import com.discordsrv.api.discord.connection.details.DiscordCacheFlag;

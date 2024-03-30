@@ -23,6 +23,7 @@
 
 package com.discordsrv.api.player;
 
+import com.discordsrv.api.component.MinecraftComponent;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -54,5 +55,11 @@ public interface DiscordSRVPlayer {
      */
     @Nullable
     Locale locale();
+
+    /**
+     * Sends the provided message to the player.
+     * @param component the message
+     */
+    void sendMessage(@NotNull MinecraftComponent component);
 
 }

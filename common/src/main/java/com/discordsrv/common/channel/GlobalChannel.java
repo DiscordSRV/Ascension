@@ -19,12 +19,11 @@
 package com.discordsrv.common.channel;
 
 import com.discordsrv.api.channel.GameChannel;
-import com.discordsrv.api.component.MinecraftComponent;
+import com.discordsrv.api.player.DiscordSRVPlayer;
 import com.discordsrv.common.DiscordSRV;
-import com.discordsrv.common.component.util.ComponentUtil;
-import com.discordsrv.common.player.IPlayer;
-import net.kyori.adventure.text.Component;
 import org.jetbrains.annotations.NotNull;
+
+import java.util.Collection;
 
 public class GlobalChannel implements GameChannel {
 
@@ -50,10 +49,7 @@ public class GlobalChannel implements GameChannel {
     }
 
     @Override
-    public void sendMessage(@NotNull MinecraftComponent minecraftComponent) {
-        Component component = ComponentUtil.fromAPI(minecraftComponent);
-        for (IPlayer player : discordSRV.playerProvider().allPlayers()) {
-            player.sendMessage(component);
-        }
+    public @NotNull Collection<? extends DiscordSRVPlayer> getRecipients() {
+        return discordSRV.playerProvider().allPlayers();
     }
 }

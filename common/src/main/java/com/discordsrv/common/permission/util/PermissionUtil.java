@@ -18,7 +18,7 @@
 
 package com.discordsrv.common.permission.util;
 
-import com.discordsrv.api.module.type.PermissionDataProvider;
+import com.discordsrv.api.module.type.PermissionModule;
 import com.discordsrv.common.DiscordSRV;
 import com.discordsrv.common.exception.MessageException;
 import net.kyori.adventure.text.Component;
@@ -51,7 +51,7 @@ public final class PermissionUtil {
     }
 
     private static Component getMeta(DiscordSRV discordSRV, UUID uuid, String metaKey) {
-        PermissionDataProvider.Meta meta = discordSRV.getModule(PermissionDataProvider.Meta.class);
+        PermissionModule.Meta meta = discordSRV.getModule(PermissionModule.Meta.class);
         if (meta == null) {
             return null;
         }
@@ -63,9 +63,9 @@ public final class PermissionUtil {
     private static Component getLegacy(
             DiscordSRV discordSRV,
             String what,
-            Function<PermissionDataProvider.PrefixAndSuffix, CompletableFuture<String>> legacy
+            Function<PermissionModule.PrefixAndSuffix, CompletableFuture<String>> legacy
     ) {
-        PermissionDataProvider.PrefixAndSuffix permission = discordSRV.getModule(PermissionDataProvider.PrefixAndSuffix.class);
+        PermissionModule.PrefixAndSuffix permission = discordSRV.getModule(PermissionModule.PrefixAndSuffix.class);
         if (permission == null) {
             return null;
         }

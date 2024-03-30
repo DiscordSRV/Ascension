@@ -26,7 +26,7 @@ import com.discordsrv.api.event.bus.EventPriority;
 import com.discordsrv.api.event.bus.Subscribe;
 import com.discordsrv.api.event.events.lifecycle.DiscordSRVReadyEvent;
 import com.discordsrv.api.event.events.lifecycle.DiscordSRVShuttingDownEvent;
-import com.discordsrv.api.module.type.Module;
+import com.discordsrv.api.module.Module;
 import com.discordsrv.common.DiscordSRV;
 import com.discordsrv.common.command.game.commands.subcommand.reload.ReloadResults;
 import com.discordsrv.common.debug.DebugGenerateEvent;

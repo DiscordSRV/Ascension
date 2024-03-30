@@ -6,7 +6,9 @@ import com.discordsrv.api.event.bus.EventPriority;
 import com.discordsrv.api.event.bus.Subscribe;
 import com.discordsrv.api.event.events.channel.GameChannelLookupEvent;
 import com.discordsrv.api.event.events.message.receive.game.GameChatMessageReceiveEvent;
+import com.discordsrv.api.player.DiscordSRVPlayer;
 import com.discordsrv.bukkit.BukkitDiscordSRV;
+import com.discordsrv.bukkit.player.BukkitPlayer;
 import com.discordsrv.common.component.util.ComponentUtil;
 import com.discordsrv.common.logging.NamedLogger;
 import com.discordsrv.common.module.type.PluginIntegration;
@@ -22,6 +24,9 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.event.HandlerList;
 import org.bukkit.event.Listener;
 import org.jetbrains.annotations.NotNull;
+
+import java.util.Collections;
+import java.util.Set;
 
 public class McMMOChatIntegration extends PluginIntegration<BukkitDiscordSRV> implements Listener {
 
@@ -85,14 +90,10 @@ public class McMMOChatIntegration extends PluginIntegration<BukkitDiscordSRV> im
                 BukkitComponentSerializer.gson().deserialize(json)
         );
 
+        BukkitPlayer srvPlayer = discordSRV.playerProvider().player(player);
+        boolean cancelled = event.isCancelled();
         discordSRV.scheduler().run(() -> discordSRV.eventBus().publish(
-                new GameChatMessageReceiveEvent(
-                        event,
-                        discordSRV.playerProvider().player(player),
-                        component,
-                        adminChannel,
-                        event.isCancelled()
-                )
+                new GameChatMessageReceiveEvent(event, srvPlayer, component, adminChannel, cancelled)
         ));
     }
 
@@ -122,6 +123,11 @@ public class McMMOChatIntegration extends PluginIntegration<BukkitDiscordSRV> im
         @Override
         public boolean isChat() {
             return true;
+        }
+
+        @Override
+        public @NotNull Set<DiscordSRVPlayer> getRecipients() {
+            return Collections.emptySet();
         }
 
         @Override

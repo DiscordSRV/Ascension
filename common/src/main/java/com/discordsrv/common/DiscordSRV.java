@@ -19,7 +19,7 @@
 package com.discordsrv.common;
 
 import com.discordsrv.api.DiscordSRVApi;
-import com.discordsrv.api.module.type.Module;
+import com.discordsrv.api.module.Module;
 import com.discordsrv.api.placeholder.PlainPlaceholderFormat;
 import com.discordsrv.common.bootstrap.IBootstrap;
 import com.discordsrv.common.channel.ChannelConfigHelper;

@@ -22,7 +22,7 @@ import com.discordsrv.api.event.events.lifecycle.DiscordSRVConnectedEvent;
 import com.discordsrv.api.event.events.lifecycle.DiscordSRVReadyEvent;
 import com.discordsrv.api.event.events.lifecycle.DiscordSRVReloadedEvent;
 import com.discordsrv.api.event.events.lifecycle.DiscordSRVShuttingDownEvent;
-import com.discordsrv.api.module.type.Module;
+import com.discordsrv.api.module.Module;
 import com.discordsrv.common.api.util.ApiInstanceUtil;
 import com.discordsrv.common.bootstrap.IBootstrap;
 import com.discordsrv.common.channel.ChannelConfigHelper;

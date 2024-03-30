@@ -23,7 +23,9 @@ import com.discordsrv.api.component.MinecraftComponent;
 import com.discordsrv.api.event.bus.Subscribe;
 import com.discordsrv.api.event.events.channel.GameChannelLookupEvent;
 import com.discordsrv.api.event.events.message.receive.game.GameChatMessageReceiveEvent;
+import com.discordsrv.api.player.DiscordSRVPlayer;
 import com.discordsrv.bukkit.BukkitDiscordSRV;
+import com.discordsrv.bukkit.player.BukkitPlayer;
 import com.discordsrv.common.component.util.ComponentUtil;
 import com.discordsrv.common.logging.NamedLogger;
 import com.discordsrv.common.module.type.PluginIntegration;
@@ -41,6 +43,10 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.event.HandlerList;
 import org.bukkit.event.Listener;
 import org.jetbrains.annotations.NotNull;
+
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
 
 public class LunaChatIntegration extends PluginIntegration<BukkitDiscordSRV> implements Listener {
 
@@ -87,14 +93,10 @@ public class LunaChatIntegration extends PluginIntegration<BukkitDiscordSRV> imp
                 BukkitComponentSerializer.legacy().deserialize(event.getNgMaskedMessage())
         );
 
+        BukkitPlayer srvPlayer = discordSRV.playerProvider().player(player);
+        boolean cancelled = event.isCancelled();
         discordSRV.scheduler().run(() -> discordSRV.eventBus().publish(
-                new GameChatMessageReceiveEvent(
-                        event,
-                        discordSRV.playerProvider().player(player),
-                        component,
-                        new LunaChatChannel(channel),
-                        event.isCancelled()
-                )
+                new GameChatMessageReceiveEvent(event, srvPlayer, component, new LunaChatChannel(channel), cancelled)
         ));
     }
 
@@ -146,9 +148,28 @@ public class LunaChatIntegration extends PluginIntegration<BukkitDiscordSRV> imp
         }
 
         @Override
+        public @NotNull Set<DiscordSRVPlayer> getRecipients() {
+            List<ChannelMember> members = channel.getMembers();
+            Set<DiscordSRVPlayer> players = new HashSet<>(members.size());
+            for (ChannelMember member : members) {
+                if (!(member instanceof ChannelMemberPlayer)) {
+                    continue;
+                }
+
+                Player player = ((ChannelMemberPlayer) member).getPlayer();
+                players.add(discordSRV.playerProvider().player(player));
+            }
+            return players;
+        }
+
+        @Override
         public void sendMessage(@NotNull MinecraftComponent component) {
             BaseComponent[] baseComponent = BungeeComponentSerializer.get().serialize(ComponentUtil.fromAPI(component));
             for (ChannelMember member : channel.getMembers()) {
+                if (member instanceof ChannelMemberPlayer) {
+                    continue;
+                }
+
                 member.sendMessage(baseComponent);
             }
         }

@@ -23,7 +23,7 @@ import com.discordsrv.api.discord.entity.guild.DiscordRole;
 import com.discordsrv.api.event.bus.Subscribe;
 import com.discordsrv.api.event.events.discord.member.role.DiscordMemberRoleAddEvent;
 import com.discordsrv.api.event.events.discord.member.role.DiscordMemberRoleRemoveEvent;
-import com.discordsrv.api.module.type.PermissionDataProvider;
+import com.discordsrv.api.module.type.PermissionModule;
 import com.discordsrv.common.DiscordSRV;
 import com.discordsrv.common.config.main.GroupSyncConfig;
 import com.discordsrv.common.debug.DebugGenerateEvent;
@@ -157,7 +157,7 @@ public class GroupSyncModule extends AbstractModule<DiscordSRV> {
             }
         }
 
-        PermissionDataProvider.Groups groups = getPermissionProvider();
+        PermissionModule.Groups groups = getPermissionProvider();
         if (groups != null) {
             builder.append("\n\nAvailable groups (").append(groups.getClass().getName()).append("):");
 
@@ -205,13 +205,13 @@ public class GroupSyncModule extends AbstractModule<DiscordSRV> {
 
     // Permission data helper methods
 
-    private PermissionDataProvider.Groups getPermissionProvider() {
-        PermissionDataProvider.GroupsContext groupsContext = discordSRV.getModule(PermissionDataProvider.GroupsContext.class);
-        return groupsContext == null ? discordSRV.getModule(PermissionDataProvider.Groups.class) : groupsContext;
+    private PermissionModule.Groups getPermissionProvider() {
+        PermissionModule.GroupsContext groupsContext = discordSRV.getModule(PermissionModule.GroupsContext.class);
+        return groupsContext == null ? discordSRV.getModule(PermissionModule.Groups.class) : groupsContext;
     }
 
     public boolean noPermissionProvider() {
-        PermissionDataProvider.Groups groups = getPermissionProvider();
+        PermissionModule.Groups groups = getPermissionProvider();
         return groups == null || !groups.isEnabled();
     }
 
@@ -224,9 +224,9 @@ public class GroupSyncModule extends AbstractModule<DiscordSRV> {
             String groupName,
             @Nullable String serverContext
     ) {
-        PermissionDataProvider.Groups permissionProvider = getPermissionProvider();
-        if (permissionProvider instanceof PermissionDataProvider.GroupsContext) {
-            return ((PermissionDataProvider.GroupsContext) permissionProvider)
+        PermissionModule.Groups permissionProvider = getPermissionProvider();
+        if (permissionProvider instanceof PermissionModule.GroupsContext) {
+            return ((PermissionModule.GroupsContext) permissionProvider)
                     .hasGroup(player, groupName, false, serverContext != null ? Collections.singleton(serverContext) : null);
         } else {
             return permissionProvider.hasGroup(player, groupName, false);
@@ -238,9 +238,9 @@ public class GroupSyncModule extends AbstractModule<DiscordSRV> {
             String groupName,
             @Nullable String serverContext
     ) {
-        PermissionDataProvider.Groups permissionProvider = getPermissionProvider();
-        if (permissionProvider instanceof PermissionDataProvider.GroupsContext) {
-            return ((PermissionDataProvider.GroupsContext) permissionProvider)
+        PermissionModule.Groups permissionProvider = getPermissionProvider();
+        if (permissionProvider instanceof PermissionModule.GroupsContext) {
+            return ((PermissionModule.GroupsContext) permissionProvider)
                     .addGroup(player, groupName, Collections.singleton(serverContext));
         } else {
             return permissionProvider.addGroup(player, groupName);
@@ -252,9 +252,9 @@ public class GroupSyncModule extends AbstractModule<DiscordSRV> {
             String groupName,
             @Nullable String serverContext
     ) {
-        PermissionDataProvider.Groups permissionProvider = getPermissionProvider();
-        if (permissionProvider instanceof PermissionDataProvider.GroupsContext) {
-            return ((PermissionDataProvider.GroupsContext) permissionProvider)
+        PermissionModule.Groups permissionProvider = getPermissionProvider();
+        if (permissionProvider instanceof PermissionModule.GroupsContext) {
+            return ((PermissionModule.GroupsContext) permissionProvider)
                     .removeGroup(player, groupName, Collections.singleton(serverContext));
         } else {
             return permissionProvider.removeGroup(player, groupName);
@@ -472,7 +472,7 @@ public class GroupSyncModule extends AbstractModule<DiscordSRV> {
             return;
         }
 
-        PermissionDataProvider.Groups permissionProvider = getPermissionProvider();
+        PermissionModule.Groups permissionProvider = getPermissionProvider();
         if (permissionProvider == null) {
             discordSRV.logger().warning("No supported permission plugin available to perform group sync");
             return;
@@ -547,7 +547,7 @@ public class GroupSyncModule extends AbstractModule<DiscordSRV> {
             return;
         }
 
-        PermissionDataProvider.Groups permissionProvider = getPermissionProvider();
+        PermissionModule.Groups permissionProvider = getPermissionProvider();
         Map<GroupSyncConfig.PairConfig, CompletableFuture<GroupSyncResult>> futures = new LinkedHashMap<>();
         for (GroupSyncConfig.PairConfig pair : pairs) {
             GroupSyncDirection direction = pair.direction;
@@ -559,10 +559,10 @@ public class GroupSyncModule extends AbstractModule<DiscordSRV> {
 
             // Check if we're in the right context
             String context = pair.serverContext;
-            if (permissionProvider instanceof PermissionDataProvider.GroupsContext) {
+            if (permissionProvider instanceof PermissionModule.GroupsContext) {
                 if (StringUtils.isEmpty(context)) {
                     // Use the default server context of the server
-                    Set<String> defaultValues = ((PermissionDataProvider.GroupsContext) permissionProvider)
+                    Set<String> defaultValues = ((PermissionModule.GroupsContext) permissionProvider)
                             .getDefaultServerContext();
                     if (!Objects.equals(serverContext, defaultValues)) {
                         continue;

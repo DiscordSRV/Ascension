@@ -23,6 +23,7 @@
 
 package com.discordsrv.api.module.type;
 
+import com.discordsrv.api.module.Module;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -31,30 +32,30 @@ import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 
-public interface PermissionDataProvider extends Module {
+public interface PermissionModule extends Module {
 
     boolean supportsOffline();
 
     interface Basic extends Groups, Permissions, PrefixAndSuffix {}
     interface All extends Basic, Meta, GroupsContext {}
 
-    interface Groups extends PermissionDataProvider {
+    interface Groups extends PermissionModule {
         List<String> getGroups();
         CompletableFuture<Boolean> hasGroup(@NotNull UUID player, @NotNull String groupName, boolean includeInherited);
         CompletableFuture<Void> addGroup(@NotNull UUID player, @NotNull String groupName);
         CompletableFuture<Void> removeGroup(@NotNull UUID player, @NotNull String groupName);
     }
 
-    interface Permissions extends PermissionDataProvider {
+    interface Permissions extends PermissionModule {
         CompletableFuture<Boolean> hasPermission(@NotNull UUID player, @NotNull String permission);
     }
 
-    interface PrefixAndSuffix extends PermissionDataProvider {
+    interface PrefixAndSuffix extends PermissionModule {
         CompletableFuture<String> getPrefix(@NotNull UUID player);
         CompletableFuture<String> getSuffix(@NotNull UUID player);
     }
 
-    interface Meta extends PermissionDataProvider {
+    interface Meta extends PermissionModule {
         CompletableFuture<String> getMeta(@NotNull UUID player, @NotNull String key);
     }
 

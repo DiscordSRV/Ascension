@@ -23,12 +23,13 @@ import com.discordsrv.api.component.MinecraftComponent;
 import com.discordsrv.api.event.bus.Subscribe;
 import com.discordsrv.api.event.events.channel.GameChannelLookupEvent;
 import com.discordsrv.api.event.events.message.receive.game.GameChatMessageReceiveEvent;
+import com.discordsrv.api.player.DiscordSRVPlayer;
 import com.discordsrv.bukkit.BukkitDiscordSRV;
+import com.discordsrv.bukkit.player.BukkitPlayer;
 import com.discordsrv.common.component.util.ComponentUtil;
 import com.discordsrv.common.logging.NamedLogger;
 import com.discordsrv.common.module.type.PluginIntegration;
 import net.kyori.adventure.platform.bukkit.BukkitComponentSerializer;
-import net.kyori.adventure.text.Component;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.HandlerList;
@@ -37,6 +38,10 @@ import org.jetbrains.annotations.NotNull;
 import ru.mrbrikster.chatty.api.ChattyApi;
 import ru.mrbrikster.chatty.api.chats.Chat;
 import ru.mrbrikster.chatty.api.events.ChattyMessageEvent;
+
+import java.util.Collection;
+import java.util.HashSet;
+import java.util.Set;
 
 public class ChattyChatIntegration extends PluginIntegration<BukkitDiscordSRV> implements Listener {
 
@@ -78,14 +83,9 @@ public class ChattyChatIntegration extends PluginIntegration<BukkitDiscordSRV> i
                 BukkitComponentSerializer.legacy().deserialize(event.getMessage())
         );
 
+        BukkitPlayer srvPlayer = discordSRV.playerProvider().player(player);
         discordSRV.scheduler().run(() -> discordSRV.eventBus().publish(
-                new GameChatMessageReceiveEvent(
-                        event,
-                        discordSRV.playerProvider().player(player),
-                        component,
-                        new ChattyChannel(chat),
-                        false
-                )
+                new GameChatMessageReceiveEvent(event, srvPlayer, component, new ChattyChannel(chat), false)
         ));
     }
 
@@ -129,11 +129,13 @@ public class ChattyChatIntegration extends PluginIntegration<BukkitDiscordSRV> i
         }
 
         @Override
-        public void sendMessage(@NotNull MinecraftComponent component) {
-            Component comp = ComponentUtil.fromAPI(component);
-            for (Player recipient : chat.getRecipients(null)) {
-                discordSRV.playerProvider().player(recipient).sendMessage(comp);
+        public @NotNull Set<DiscordSRVPlayer> getRecipients() {
+            Collection<? extends Player> players = chat.getRecipients(null);
+            Set<DiscordSRVPlayer> srvPlayers = new HashSet<>(players.size());
+            for (Player player : players) {
+                srvPlayers.add(discordSRV.playerProvider().player(player));
             }
+            return srvPlayers;
         }
     }
 }

@@ -22,7 +22,7 @@ import com.discordsrv.api.discord.connection.details.DiscordCacheFlag;
 import com.discordsrv.api.discord.connection.details.DiscordGatewayIntent;
 import com.discordsrv.api.event.events.Cancellable;
 import com.discordsrv.api.event.events.Processable;
-import com.discordsrv.api.module.type.Module;
+import com.discordsrv.api.module.Module;
 import com.discordsrv.common.DiscordSRV;
 import com.discordsrv.common.event.util.EventUtil;
 import com.discordsrv.common.logging.Logger;

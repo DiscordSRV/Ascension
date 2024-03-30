@@ -18,11 +18,13 @@
 
 package com.discordsrv.common.player;
 
+import com.discordsrv.api.component.MinecraftComponent;
 import com.discordsrv.api.placeholder.annotation.Placeholder;
 import com.discordsrv.api.placeholder.annotation.PlaceholderPrefix;
 import com.discordsrv.api.player.DiscordSRVPlayer;
 import com.discordsrv.common.DiscordSRV;
 import com.discordsrv.common.command.game.sender.ICommandSender;
+import com.discordsrv.common.component.util.ComponentUtil;
 import com.discordsrv.common.config.main.AvatarProviderConfig;
 import com.discordsrv.common.permission.util.PermissionUtil;
 import com.discordsrv.common.profile.Profile;
@@ -35,6 +37,11 @@ import java.util.UUID;
 
 @PlaceholderPrefix("player_")
 public interface IPlayer extends DiscordSRVPlayer, IOfflinePlayer, ICommandSender {
+
+    @Override
+    default void sendMessage(@NotNull MinecraftComponent component) {
+        sendMessage(ComponentUtil.fromAPI(component));
+    }
 
     @Override
     DiscordSRV discordSRV();

@@ -35,6 +35,7 @@ import com.discordsrv.api.event.events.message.forward.discord.DiscordChatMessag
 import com.discordsrv.api.event.events.message.process.discord.DiscordChatMessageProcessEvent;
 import com.discordsrv.api.event.events.message.receive.discord.DiscordChatMessageReceiveEvent;
 import com.discordsrv.api.placeholder.util.Placeholders;
+import com.discordsrv.api.player.DiscordSRVPlayer;
 import com.discordsrv.common.DiscordSRV;
 import com.discordsrv.common.component.renderer.DiscordSRVMinecraftRenderer;
 import com.discordsrv.common.component.util.ComponentUtil;
@@ -226,6 +227,12 @@ public class DiscordChatMessageModule extends AbstractModule<DiscordSRV> {
         }
 
         gameChannel.sendMessage(component);
+
+        Collection<? extends DiscordSRVPlayer> players = gameChannel.getRecipients();
+        for (DiscordSRVPlayer player : players) {
+            gameChannel.sendMessageToPlayer(player, component);
+        }
+
         discordSRV.eventBus().publish(new DiscordChatMessageForwardedEvent(component, gameChannel));
     }
 
