@@ -31,9 +31,9 @@ import com.discordsrv.common.debug.file.TextDebugFile;
 import com.discordsrv.common.event.events.player.PlayerConnectedEvent;
 import com.discordsrv.common.future.util.CompletableFutureUtil;
 import com.discordsrv.common.groupsync.enums.GroupSyncCause;
-import com.discordsrv.common.groupsync.enums.GroupSyncDirection;
+import com.discordsrv.common.sync.enums.SyncDirection;
 import com.discordsrv.common.groupsync.enums.GroupSyncResult;
-import com.discordsrv.common.groupsync.enums.GroupSyncSide;
+import com.discordsrv.common.sync.enums.SyncSide;
 import com.discordsrv.common.logging.NamedLogger;
 import com.discordsrv.common.module.type.AbstractModule;
 import com.discordsrv.common.player.IPlayer;
@@ -176,7 +176,7 @@ public class GroupSyncModule extends AbstractModule<DiscordSRV> {
             Map<GroupSyncConfig.PairConfig, CompletableFuture<GroupSyncResult>> pairs
     ) {
         CompletableFutureUtil.combine(pairs.values()).whenComplete((v, t) -> {
-            SynchronizationSummary summary = new SynchronizationSummary(player, cause);
+            GroupSyncSummary summary = new GroupSyncSummary(player, cause);
             for (Map.Entry<GroupSyncConfig.PairConfig, CompletableFuture<GroupSyncResult>> entry : pairs.entrySet()) {
                 summary.add(entry.getKey(), entry.getValue().join());
             }
@@ -312,7 +312,7 @@ public class GroupSyncModule extends AbstractModule<DiscordSRV> {
                 }
 
                 resyncPair(pair, uuid, userId).whenComplete((result, t2) -> logger().debug(
-                        new SynchronizationSummary(uuid, cause, pair, result).toString()
+                        new GroupSyncSummary(uuid, cause, pair, result).toString()
                 ));
             });
         }
@@ -350,14 +350,14 @@ public class GroupSyncModule extends AbstractModule<DiscordSRV> {
                     return;
                 }
 
-                GroupSyncSide side = pair.tieBreaker;
-                GroupSyncDirection direction = pair.direction;
+                SyncSide side = pair.tieBreaker;
+                SyncDirection direction = pair.direction;
                 CompletableFuture<Void> future;
                 GroupSyncResult result;
                 if (hasRole) {
-                    if (side == GroupSyncSide.DISCORD) {
+                    if (side == SyncSide.DISCORD) {
                         // Has role, add group
-                        if (direction == GroupSyncDirection.MINECRAFT_TO_DISCORD) {
+                        if (direction == SyncDirection.MINECRAFT_TO_DISCORD) {
                             resultFuture.complete(GroupSyncResult.WRONG_DIRECTION);
                             return;
                         }
@@ -366,7 +366,7 @@ public class GroupSyncModule extends AbstractModule<DiscordSRV> {
                         future = addGroup(player, groupName, pair.serverContext);
                     } else {
                         // Doesn't have group, remove role
-                        if (direction == GroupSyncDirection.DISCORD_TO_MINECRAFT) {
+                        if (direction == SyncDirection.DISCORD_TO_MINECRAFT) {
                             resultFuture.complete(GroupSyncResult.WRONG_DIRECTION);
                             return;
                         }
@@ -375,9 +375,9 @@ public class GroupSyncModule extends AbstractModule<DiscordSRV> {
                         future = member.removeRole(role);
                     }
                 } else {
-                    if (side == GroupSyncSide.DISCORD) {
+                    if (side == SyncSide.DISCORD) {
                         // Doesn't have role, remove group
-                        if (direction == GroupSyncDirection.MINECRAFT_TO_DISCORD) {
+                        if (direction == SyncDirection.MINECRAFT_TO_DISCORD) {
                             resultFuture.complete(GroupSyncResult.WRONG_DIRECTION);
                             return;
                         }
@@ -386,7 +386,7 @@ public class GroupSyncModule extends AbstractModule<DiscordSRV> {
                         future = removeGroup(player, groupName, pair.serverContext);
                     } else {
                         // Has group, add role
-                        if (direction == GroupSyncDirection.DISCORD_TO_MINECRAFT) {
+                        if (direction == SyncDirection.DISCORD_TO_MINECRAFT) {
                             resultFuture.complete(GroupSyncResult.WRONG_DIRECTION);
                             return;
                         }
@@ -480,8 +480,8 @@ public class GroupSyncModule extends AbstractModule<DiscordSRV> {
 
         Map<GroupSyncConfig.PairConfig, CompletableFuture<GroupSyncResult>> futures = new LinkedHashMap<>();
         for (GroupSyncConfig.PairConfig pair : pairs) {
-            GroupSyncDirection direction = pair.direction;
-            if (direction == GroupSyncDirection.MINECRAFT_TO_DISCORD) {
+            SyncDirection direction = pair.direction;
+            if (direction == SyncDirection.MINECRAFT_TO_DISCORD) {
                 // Not going Discord -> Minecraft
                 futures.put(pair, CompletableFuture.completedFuture(GroupSyncResult.WRONG_DIRECTION));
                 continue;
@@ -490,7 +490,7 @@ public class GroupSyncModule extends AbstractModule<DiscordSRV> {
             futures.put(pair, modifyGroupState(player, pair, remove));
 
             // If the sync is bidirectional, also add/remove any other roles that are linked to this group
-            if (direction == GroupSyncDirection.DISCORD_TO_MINECRAFT) {
+            if (direction == SyncDirection.DISCORD_TO_MINECRAFT) {
                 continue;
             }
 
@@ -550,8 +550,8 @@ public class GroupSyncModule extends AbstractModule<DiscordSRV> {
         PermissionModule.Groups permissionProvider = getPermissionProvider();
         Map<GroupSyncConfig.PairConfig, CompletableFuture<GroupSyncResult>> futures = new LinkedHashMap<>();
         for (GroupSyncConfig.PairConfig pair : pairs) {
-            GroupSyncDirection direction = pair.direction;
-            if (direction == GroupSyncDirection.DISCORD_TO_MINECRAFT) {
+            SyncDirection direction = pair.direction;
+            if (direction == SyncDirection.DISCORD_TO_MINECRAFT) {
                 // Not going Minecraft -> Discord
                 futures.put(pair, CompletableFuture.completedFuture(GroupSyncResult.WRONG_DIRECTION));
                 continue;
@@ -585,7 +585,7 @@ public class GroupSyncModule extends AbstractModule<DiscordSRV> {
             futures.put(pair, modifyRoleState(userId, pair, remove));
 
             // If the sync is bidirectional, also add/remove any other groups that are linked to this role
-            if (direction == GroupSyncDirection.MINECRAFT_TO_DISCORD) {
+            if (direction == SyncDirection.MINECRAFT_TO_DISCORD) {
                 continue;
             }
 

@@ -24,18 +24,18 @@ import com.discordsrv.common.groupsync.enums.GroupSyncResult;
 
 import java.util.*;
 
-public class SynchronizationSummary {
+public class GroupSyncSummary {
 
     private final EnumMap<GroupSyncResult, Set<GroupSyncConfig.PairConfig>> pairs = new EnumMap<>(GroupSyncResult.class);
     private final UUID player;
     private final GroupSyncCause cause;
 
-    public SynchronizationSummary(UUID player, GroupSyncCause cause, GroupSyncConfig.PairConfig config, GroupSyncResult result) {
+    public GroupSyncSummary(UUID player, GroupSyncCause cause, GroupSyncConfig.PairConfig config, GroupSyncResult result) {
         this(player, cause);
         add(config, result);
     }
 
-    public SynchronizationSummary(UUID player, GroupSyncCause cause) {
+    public GroupSyncSummary(UUID player, GroupSyncCause cause) {
         this.player = player;
         this.cause = cause;
     }

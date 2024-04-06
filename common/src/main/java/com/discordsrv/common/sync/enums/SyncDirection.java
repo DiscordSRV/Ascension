@@ -16,11 +16,26 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package com.discordsrv.common.groupsync.enums;
+package com.discordsrv.common.sync.enums;
 
-public enum GroupSyncSide {
+public enum SyncDirection {
 
-    MINECRAFT,
-    DISCORD
+    MINECRAFT_TO_DISCORD("->"),
+    DISCORD_TO_MINECRAFT("<-"),
+    BIDIRECTIONAL("<->");
+
+    private final String arrow;
+
+    SyncDirection(String arrow) {
+        this.arrow = arrow;
+    }
+
+    /**
+     * Game on the left, Discord on the right.
+     * @return the arrow
+     */
+    public String arrow() {
+        return arrow;
+    }
 
 }

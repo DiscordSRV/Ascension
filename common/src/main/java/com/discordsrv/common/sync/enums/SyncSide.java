@@ -16,12 +16,11 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package com.discordsrv.common.groupsync.enums;
+package com.discordsrv.common.sync.enums;
 
-public enum GroupSyncDirection {
+public enum SyncSide {
 
-    MINECRAFT_TO_DISCORD,
-    DISCORD_TO_MINECRAFT,
-    BIDIRECTIONAL
+    MINECRAFT,
+    DISCORD
 
 }

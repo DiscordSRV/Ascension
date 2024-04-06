@@ -20,8 +20,8 @@ package com.discordsrv.common.config.main;
 
 import com.discordsrv.common.DiscordSRV;
 import com.discordsrv.common.config.configurate.annotation.Constants;
-import com.discordsrv.common.groupsync.enums.GroupSyncDirection;
-import com.discordsrv.common.groupsync.enums.GroupSyncSide;
+import com.discordsrv.common.sync.enums.SyncDirection;
+import com.discordsrv.common.sync.enums.SyncSide;
 import org.spongepowered.configurate.objectmapping.ConfigSerializable;
 import org.spongepowered.configurate.objectmapping.meta.Comment;
 
@@ -45,7 +45,7 @@ public class GroupSyncConfig {
         @Comment("The direction this group-role pair will synchronize in.\n"
                 + "Valid options: %1, %2, %3")
         @Constants.Comment({"bidirectional", "minecraft_to_discord", "discord_to_minecraft"})
-        public GroupSyncDirection direction = GroupSyncDirection.BIDIRECTIONAL;
+        public SyncDirection direction = SyncDirection.BIDIRECTIONAL;
 
         @Comment("Timed resynchronization.\n"
                 + "This is required if you're not using LuckPerms and want to use Minecraft to Discord synchronization")
@@ -64,7 +64,7 @@ public class GroupSyncConfig {
         @Comment("Decides which side takes priority when using timed synchronization or the resync command\n"
                 + "Valid options: %1, %2")
         @Constants.Comment({"minecraft", "discord"})
-        public GroupSyncSide tieBreaker = GroupSyncSide.MINECRAFT;
+        public SyncSide tieBreaker = SyncSide.MINECRAFT;
 
         @Comment("The LuckPerms \"%1\" context value, used when adding, removing and checking the groups of players.\n"
                 + "Make this blank (\"\") to use the current server's value, or \"%2\" to not use the context")
@@ -81,17 +81,17 @@ public class GroupSyncConfig {
             if ((invalidTieBreaker = (tieBreaker == null)) || (invalidDirection = (direction == null))) {
                 if (invalidTieBreaker) {
                     discordSRV.logger().error(label + " has invalid tie-breaker: " + tieBreaker
-                                                      + ", should be one of " + Arrays.toString(GroupSyncSide.values()));
+                                                      + ", should be one of " + Arrays.toString(SyncSide.values()));
                 }
                 if (invalidDirection) {
                     discordSRV.logger().error(label + " has invalid direction: " + direction
-                                                      + ", should be one of " + Arrays.toString(GroupSyncDirection.values()));
+                                                      + ", should be one of " + Arrays.toString(SyncDirection.values()));
                 }
                 return false;
-            } else if (direction != GroupSyncDirection.BIDIRECTIONAL) {
+            } else if (direction != SyncDirection.BIDIRECTIONAL) {
                 boolean minecraft;
-                if ((direction == GroupSyncDirection.MINECRAFT_TO_DISCORD) != (minecraft = (tieBreaker == GroupSyncSide.MINECRAFT))) {
-                    GroupSyncSide opposite = (minecraft ? GroupSyncSide.DISCORD : GroupSyncSide.MINECRAFT);
+                if ((direction == SyncDirection.MINECRAFT_TO_DISCORD) != (minecraft = (tieBreaker == SyncSide.MINECRAFT))) {
+                    SyncSide opposite = (minecraft ? SyncSide.DISCORD : SyncSide.MINECRAFT);
                     discordSRV.logger().warning(label + " with direction "
                                                         + direction + " with tie-breaker "
                                                         + tieBreaker + " (should be " + opposite + ")");
@@ -103,20 +103,7 @@ public class GroupSyncConfig {
 
         @Override
         public String toString() {
-            String arrow;
-            switch (direction) {
-                default:
-                case BIDIRECTIONAL:
-                    arrow = "<->";
-                    break;
-                case DISCORD_TO_MINECRAFT:
-                    arrow = "<-";
-                    break;
-                case MINECRAFT_TO_DISCORD:
-                    arrow = "->";
-                    break;
-            }
-            return "PairConfig{" + groupName + arrow + roleId + '}';
+            return "PairConfig{" + groupName + direction.arrow() + Long.toUnsignedString(roleId) + '}';
         }
     }
 

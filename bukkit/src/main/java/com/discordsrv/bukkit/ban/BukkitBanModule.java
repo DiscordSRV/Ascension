@@ -2,10 +2,15 @@ package com.discordsrv.bukkit.ban;
 
 import com.discordsrv.api.module.type.PunishmentModule;
 import com.discordsrv.bukkit.BukkitDiscordSRV;
-import com.discordsrv.common.logging.NamedLogger;
+import com.discordsrv.common.bansync.BanSyncModule;
 import com.discordsrv.common.module.type.AbstractModule;
 import org.bukkit.BanEntry;
 import org.bukkit.BanList;
+import org.bukkit.entity.Player;
+import org.bukkit.event.EventHandler;
+import org.bukkit.event.EventPriority;
+import org.bukkit.event.Listener;
+import org.bukkit.event.player.PlayerKickEvent;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -14,10 +19,24 @@ import java.util.Date;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 
-public class BukkitBanModule extends AbstractModule<BukkitDiscordSRV> implements PunishmentModule.Bans {
+public class BukkitBanModule extends AbstractModule<BukkitDiscordSRV> implements Listener, PunishmentModule.Bans {
 
     public BukkitBanModule(BukkitDiscordSRV discordSRV) {
-        super(discordSRV, new NamedLogger(discordSRV, "BUKKIT_BAN"));
+        super(discordSRV);
+    }
+
+    @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
+    public void onPlayerKick(PlayerKickEvent event) {
+        Player player = event.getPlayer();
+        if (!player.isBanned()) {
+            return;
+        }
+
+        BanSyncModule module = discordSRV.getModule(BanSyncModule.class);
+        if (module != null) {
+            getBan(player.getUniqueId()).thenApply(Punishment::reason)
+                    .whenComplete((reason, t) -> module.notifyBanned(discordSRV.playerProvider().player(player), reason));
+        }
     }
 
     @Override
