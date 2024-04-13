@@ -8,12 +8,13 @@ import com.discordsrv.common.command.combined.abstraction.CommandExecution;
 import com.discordsrv.common.command.combined.abstraction.GameCommandExecution;
 import com.discordsrv.common.command.combined.abstraction.Text;
 import com.discordsrv.common.command.game.abstraction.GameCommand;
+import com.discordsrv.common.config.main.GroupSyncConfig;
 import com.discordsrv.common.future.util.CompletableFutureUtil;
 import com.discordsrv.common.groupsync.GroupSyncModule;
 import com.discordsrv.common.groupsync.enums.GroupSyncCause;
-import com.discordsrv.common.groupsync.enums.GroupSyncResult;
 import com.discordsrv.common.permission.Permission;
 import com.discordsrv.common.player.IPlayer;
+import com.discordsrv.common.sync.ISyncResult;
 import net.kyori.adventure.text.format.NamedTextColor;
 
 import java.util.*;
@@ -78,41 +79,45 @@ public class ResyncCommand extends CombinedCommand {
         execution.runAsync(() -> {
             long startTime = System.currentTimeMillis();
 
-            CompletableFutureUtil.combine(resyncOnlinePlayers(module))
-                    .whenComplete((results, t) -> {
-                        EnumMap<GroupSyncResult, AtomicInteger> resultCounts = new EnumMap<>(GroupSyncResult.class);
-                        int total = 0;
-                        for (List<GroupSyncResult> result : results) {
-                            for (GroupSyncResult singleResult : result) {
-                                total++;
-                                resultCounts.computeIfAbsent(singleResult, key -> new AtomicInteger(0)).getAndIncrement();
-                            }
-                        }
-                        String resultHover = resultCounts.entrySet().stream()
-                                            .map(entry -> entry.getKey().toString() + ": " + entry.getValue().get())
-                                            .collect(Collectors.joining("\n"));
+            CompletableFutureUtil.combine(resyncOnlinePlayers(module)).thenCompose(result -> {
+                List<CompletableFuture<ISyncResult>> results = new ArrayList<>();
+                for (Map<GroupSyncConfig.PairConfig, CompletableFuture<ISyncResult>> map : result) {
+                    results.addAll(map.values());
+                }
+                return CompletableFutureUtil.combine(results);
+            }).whenComplete((results, t) -> {
+                Map<ISyncResult, AtomicInteger> resultCounts = new HashMap<>();
+                int total = 0;
 
-                        long time = System.currentTimeMillis() - startTime;
-                        execution.send(
-                                Arrays.asList(
-                                        new Text("Synchronization completed in ").withGameColor(NamedTextColor.GRAY),
-                                        new Text(time + "ms").withGameColor(NamedTextColor.GREEN).withFormatting(Text.Formatting.BOLD),
-                                        new Text(" (").withGameColor(NamedTextColor.GRAY),
-                                        new Text(total + " result" + (total == 1 ? "" : "s"))
-                                                .withGameColor(NamedTextColor.GREEN)
-                                                .withDiscordFormatting(Text.Formatting.BOLD),
-                                        new Text(")").withGameColor(NamedTextColor.GRAY)
-                                ),
-                                total > 0
-                                    ? Collections.singletonList(new Text(resultHover))
-                                    : (execution instanceof GameCommandExecution ? Collections.singletonList(new Text("Nothing done")) : Collections.emptyList())
-                        );
-                    });
+                for (ISyncResult result : results) {
+                    total++;
+                    resultCounts.computeIfAbsent(result, key -> new AtomicInteger(0)).getAndIncrement();
+                }
+                String resultHover = resultCounts.entrySet().stream()
+                                    .map(entry -> entry.getKey().toString() + ": " + entry.getValue().get())
+                                    .collect(Collectors.joining("\n"));
+
+                long time = System.currentTimeMillis() - startTime;
+                execution.send(
+                        Arrays.asList(
+                                new Text("Synchronization completed in ").withGameColor(NamedTextColor.GRAY),
+                                new Text(time + "ms").withGameColor(NamedTextColor.GREEN).withFormatting(Text.Formatting.BOLD),
+                                new Text(" (").withGameColor(NamedTextColor.GRAY),
+                                new Text(total + " result" + (total == 1 ? "" : "s"))
+                                        .withGameColor(NamedTextColor.GREEN)
+                                        .withDiscordFormatting(Text.Formatting.BOLD),
+                                new Text(")").withGameColor(NamedTextColor.GRAY)
+                        ),
+                        total > 0
+                            ? Collections.singletonList(new Text(resultHover))
+                            : (execution instanceof GameCommandExecution ? Collections.singletonList(new Text("Nothing done")) : Collections.emptyList())
+                );
+            });
         });
     }
 
-    private List<CompletableFuture<List<GroupSyncResult>>> resyncOnlinePlayers(GroupSyncModule module) {
-        List<CompletableFuture<List<GroupSyncResult>>> futures = new ArrayList<>();
+    private List<CompletableFuture<Map<GroupSyncConfig.PairConfig, CompletableFuture<ISyncResult>>>> resyncOnlinePlayers(GroupSyncModule module) {
+        List<CompletableFuture<Map<GroupSyncConfig.PairConfig, CompletableFuture<ISyncResult>>>> futures = new ArrayList<>();
         for (IPlayer player : discordSRV.playerProvider().allPlayers()) {
             futures.add(module.resync(player.uniqueId(), GroupSyncCause.COMMAND));
         }

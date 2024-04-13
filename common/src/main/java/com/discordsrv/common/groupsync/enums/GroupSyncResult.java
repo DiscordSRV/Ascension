@@ -18,25 +18,15 @@
 
 package com.discordsrv.common.groupsync.enums;
 
-public enum GroupSyncResult {
+import com.discordsrv.common.sync.ISyncResult;
 
-    // Something happened
-    ADD_GROUP("Success (group add)", true),
-    REMOVE_GROUP("Success (group remove)", true),
-    ADD_ROLE("Success (role add)", true),
-    REMOVE_ROLE("Success (role remove)", true),
-
-    // Nothing done
-    ALREADY_IN_SYNC("Already in sync"),
-    WRONG_DIRECTION("Wrong direction"),
-    BOTH_TRUE("Both sides true"),
-    BOTH_FALSE("Both sides false"),
+public enum GroupSyncResult implements ISyncResult {
 
     // Errors
     ROLE_DOESNT_EXIST("Role doesn't exist"),
     ROLE_CANNOT_INTERACT("Bot doesn't have a role above the synced role (cannot interact)"),
     NOT_A_GUILD_MEMBER("User is not part of the server the role is in"),
-    PERMISSION_BACKEND_FAIL_CHECK("Failed to check group status, error printed"),
+    PERMISSION_BACKEND_FAILED("Failed to check group status, error printed"),
     UPDATE_FAILED("Failed to modify role/group, error printed"),
     NO_PERMISSION_PROVIDER("No permission provider"),
     PERMISSION_PROVIDER_NO_OFFLINE_SUPPORT("Permission provider doesn't support offline players"),

@@ -18,10 +18,9 @@
 
 package com.discordsrv.common.config.main;
 
-import com.discordsrv.common.DiscordSRV;
 import com.discordsrv.common.config.configurate.annotation.Constants;
-import com.discordsrv.common.sync.enums.SyncDirection;
-import com.discordsrv.common.sync.enums.SyncSide;
+import com.discordsrv.common.config.main.generic.AbstractSyncConfig;
+import org.apache.commons.lang3.StringUtils;
 import org.spongepowered.configurate.objectmapping.ConfigSerializable;
 import org.spongepowered.configurate.objectmapping.meta.Comment;
 
@@ -30,11 +29,13 @@ import java.util.*;
 @ConfigSerializable
 public class GroupSyncConfig {
 
-    @Comment("Group-Role pairs for group synchronization")
+    @Comment("Group-Role pairs for group synchronization\n"
+            + "\n"
+            + "If you are not using LuckPerms and want to use Minecraft -> Discord synchronization, you must specify timed synchronization")
     public List<PairConfig> pairs = new ArrayList<>(Collections.singletonList(new PairConfig()));
 
     @ConfigSerializable
-    public static class PairConfig {
+    public static class PairConfig extends AbstractSyncConfig<PairConfig, String, Long> {
 
         @Comment("The case-sensitive group name from your permissions plugin")
         public String groupName = "";
@@ -42,68 +43,42 @@ public class GroupSyncConfig {
         @Comment("The Discord role id")
         public Long roleId = 0L;
 
-        @Comment("The direction this group-role pair will synchronize in.\n"
-                + "Valid options: %1, %2, %3")
-        @Constants.Comment({"bidirectional", "minecraft_to_discord", "discord_to_minecraft"})
-        public SyncDirection direction = SyncDirection.BIDIRECTIONAL;
-
-        @Comment("Timed resynchronization.\n"
-                + "This is required if you're not using LuckPerms and want to use Minecraft to Discord synchronization")
-        public TimerConfig timer = new TimerConfig();
-
-        @ConfigSerializable
-        public static class TimerConfig {
-
-            @Comment("If timed synchronization of this group-role pair is enabled")
-            public boolean enabled = true;
-
-            @Comment("The amount of minutes between cycles")
-            public int cycleTime = 5;
-        }
-
-        @Comment("Decides which side takes priority when using timed synchronization or the resync command\n"
-                + "Valid options: %1, %2")
-        @Constants.Comment({"minecraft", "discord"})
-        public SyncSide tieBreaker = SyncSide.MINECRAFT;
-
         @Comment("The LuckPerms \"%1\" context value, used when adding, removing and checking the groups of players.\n"
                 + "Make this blank (\"\") to use the current server's value, or \"%2\" to not use the context")
         @Constants.Comment({"server", "global"})
         public String serverContext = "global";
 
-        public boolean isTheSameAs(PairConfig config) {
-            return groupName.equals(config.groupName) && Objects.equals(roleId, config.roleId);
+        public boolean isSet() {
+            return roleId != 0 && StringUtils.isNotEmpty(groupName);
         }
 
-        public boolean validate(DiscordSRV discordSRV) {
-            String label = "Group synchronization (" + groupName + ":" + Long.toUnsignedString(roleId) + ")";
-            boolean invalidTieBreaker, invalidDirection = false;
-            if ((invalidTieBreaker = (tieBreaker == null)) || (invalidDirection = (direction == null))) {
-                if (invalidTieBreaker) {
-                    discordSRV.logger().error(label + " has invalid tie-breaker: " + tieBreaker
-                                                      + ", should be one of " + Arrays.toString(SyncSide.values()));
-                }
-                if (invalidDirection) {
-                    discordSRV.logger().error(label + " has invalid direction: " + direction
-                                                      + ", should be one of " + Arrays.toString(SyncDirection.values()));
-                }
-                return false;
-            } else if (direction != SyncDirection.BIDIRECTIONAL) {
-                boolean minecraft;
-                if ((direction == SyncDirection.MINECRAFT_TO_DISCORD) != (minecraft = (tieBreaker == SyncSide.MINECRAFT))) {
-                    SyncSide opposite = (minecraft ? SyncSide.DISCORD : SyncSide.MINECRAFT);
-                    discordSRV.logger().warning(label + " with direction "
-                                                        + direction + " with tie-breaker "
-                                                        + tieBreaker + " (should be " + opposite + ")");
-                    tieBreaker = opposite; // Fix the config
-                }
-            }
-            return true;
+        @Override
+        public String gameId() {
+            return makeGameId(groupName, serverContext != null ? Collections.singleton(serverContext) : null);
+        }
+
+        @Override
+        public Long discordId() {
+            return roleId;
+        }
+
+        @Override
+        public boolean isSameAs(PairConfig config) {
+            return groupName.equals(config.groupName) && Objects.equals(roleId, config.roleId);
         }
 
         @Override
         public String toString() {
             return "PairConfig{" + groupName + direction.arrow() + Long.toUnsignedString(roleId) + '}';
+        }
+
+        @Override
+        public String describe() {
+            return "Group sync (" + groupName + ":" + Long.toUnsignedString(roleId) + ")";
+        }
+
+        public static String makeGameId(String groupName, Set<String> serverContext) {
+            return groupName + (serverContext != null ? String.join(" ", serverContext) : "");
         }
     }
 

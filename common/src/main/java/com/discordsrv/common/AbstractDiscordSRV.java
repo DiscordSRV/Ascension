@@ -24,6 +24,7 @@ import com.discordsrv.api.event.events.lifecycle.DiscordSRVReloadedEvent;
 import com.discordsrv.api.event.events.lifecycle.DiscordSRVShuttingDownEvent;
 import com.discordsrv.api.module.Module;
 import com.discordsrv.common.api.util.ApiInstanceUtil;
+import com.discordsrv.common.bansync.BanSyncModule;
 import com.discordsrv.common.bootstrap.IBootstrap;
 import com.discordsrv.common.channel.ChannelConfigHelper;
 import com.discordsrv.common.channel.ChannelLockingModule;
@@ -565,6 +566,7 @@ public abstract class AbstractDiscordSRV<
         placeholderService().addGlobalContext(UUIDUtil.class);
 
         // Modules
+        registerModule(BanSyncModule::new);
         registerModule(ConsoleModule::new);
         registerModule(ChannelLockingModule::new);
         registerModule(TimedUpdaterModule::new);

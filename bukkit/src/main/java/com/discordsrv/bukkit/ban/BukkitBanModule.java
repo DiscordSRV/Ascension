@@ -1,6 +1,7 @@
 package com.discordsrv.bukkit.ban;
 
 import com.discordsrv.api.module.type.PunishmentModule;
+import com.discordsrv.api.punishment.Punishment;
 import com.discordsrv.bukkit.BukkitDiscordSRV;
 import com.discordsrv.common.bansync.BanSyncModule;
 import com.discordsrv.common.module.type.AbstractModule;
@@ -34,13 +35,13 @@ public class BukkitBanModule extends AbstractModule<BukkitDiscordSRV> implements
 
         BanSyncModule module = discordSRV.getModule(BanSyncModule.class);
         if (module != null) {
-            getBan(player.getUniqueId()).thenApply(Punishment::reason)
-                    .whenComplete((reason, t) -> module.notifyBanned(discordSRV.playerProvider().player(player), reason));
+            getBan(player.getUniqueId())
+                    .whenComplete((punishment, t) -> module.notifyBanned(discordSRV.playerProvider().player(player), punishment));
         }
     }
 
     @Override
-    public CompletableFuture<Punishment> getBan(@NotNull UUID playerUUID) {
+    public CompletableFuture<com.discordsrv.api.punishment.Punishment> getBan(@NotNull UUID playerUUID) {
         CompletableFuture<BanEntry> entryFuture;
         if (PaperBanList.IS_AVAILABLE) {
             entryFuture = CompletableFuture.completedFuture(PaperBanList.getBanEntry(discordSRV.server(), playerUUID));
@@ -52,7 +53,7 @@ public class BukkitBanModule extends AbstractModule<BukkitDiscordSRV> implements
 
         return entryFuture.thenApply(ban -> {
             Date expiration = ban.getExpiration();
-            return new PunishmentModule.Punishment(expiration != null ? expiration.toInstant() : null, ban.getReason(), ban.getSource());
+            return new Punishment(expiration != null ? expiration.toInstant() : null, ban.getReason(), ban.getSource());
         });
     }
 

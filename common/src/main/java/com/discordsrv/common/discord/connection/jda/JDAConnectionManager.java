@@ -389,6 +389,9 @@ public class JDAConnectionManager implements DiscordConnectionManager {
         // We don't use MDC
         jdaBuilder.setContextEnabled(false);
 
+        // Enable event passthrough
+        jdaBuilder.setEventPassthrough(true);
+
         // Custom event manager to forward to the DiscordSRV event bus & block using JDA's event listeners
         jdaBuilder.setEventManager(new EventManagerProxy(new JDAEventManager(discordSRV), discordSRV.scheduler().forkJoinPool()));
 

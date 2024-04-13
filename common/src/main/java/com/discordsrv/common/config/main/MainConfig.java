@@ -81,6 +81,9 @@ public abstract class MainConfig implements Config {
     @Comment("Configuration options for group-role synchronization")
     public GroupSyncConfig groupSync = new GroupSyncConfig();
 
+    @Comment("Configuration options for ban synchronization")
+    public BanSyncConfig banSync = new BanSyncConfig();
+
     @Comment("In-game command configuration")
     public GameCommandConfig gameCommand = new GameCommandConfig();
 

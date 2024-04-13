@@ -8,6 +8,7 @@ import com.discordsrv.api.event.events.message.receive.game.GameChatMessageRecei
 import com.discordsrv.api.module.type.NicknameModule;
 import com.discordsrv.api.module.type.PunishmentModule;
 import com.discordsrv.api.player.DiscordSRVPlayer;
+import com.discordsrv.api.punishment.Punishment;
 import com.discordsrv.bukkit.BukkitDiscordSRV;
 import com.discordsrv.bukkit.player.BukkitPlayer;
 import com.discordsrv.common.component.util.ComponentUtil;
@@ -75,7 +76,7 @@ public class EssentialsXIntegration
     }
 
     @Override
-    public CompletableFuture<Punishment> getMute(@NotNull UUID playerUUID) {
+    public CompletableFuture<com.discordsrv.api.punishment.Punishment> getMute(@NotNull UUID playerUUID) {
         return getUser(playerUUID).thenApply(user -> new Punishment(Instant.ofEpochMilli(user.getMuteTimeout()), user.getMuteReason(), null));
     }
 

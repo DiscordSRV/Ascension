@@ -20,17 +20,17 @@ package com.discordsrv.common.groupsync;
 
 import com.discordsrv.common.config.main.GroupSyncConfig;
 import com.discordsrv.common.groupsync.enums.GroupSyncCause;
-import com.discordsrv.common.groupsync.enums.GroupSyncResult;
+import com.discordsrv.common.sync.ISyncResult;
 
 import java.util.*;
 
 public class GroupSyncSummary {
 
-    private final EnumMap<GroupSyncResult, Set<GroupSyncConfig.PairConfig>> pairs = new EnumMap<>(GroupSyncResult.class);
+    private final Map<ISyncResult, Set<GroupSyncConfig.PairConfig>> pairs = new HashMap<>();
     private final UUID player;
     private final GroupSyncCause cause;
 
-    public GroupSyncSummary(UUID player, GroupSyncCause cause, GroupSyncConfig.PairConfig config, GroupSyncResult result) {
+    public GroupSyncSummary(UUID player, GroupSyncCause cause, GroupSyncConfig.PairConfig config, ISyncResult result) {
         this(player, cause);
         add(config, result);
     }
@@ -40,12 +40,12 @@ public class GroupSyncSummary {
         this.cause = cause;
     }
 
-    public void add(GroupSyncConfig.PairConfig config, GroupSyncResult result) {
+    public void add(GroupSyncConfig.PairConfig config, ISyncResult result) {
         pairs.computeIfAbsent(result, key -> new LinkedHashSet<>()).add(config);
     }
 
     public boolean anySuccess() {
-        for (GroupSyncResult result : pairs.keySet()) {
+        for (ISyncResult result : pairs.keySet()) {
             if (result.isSuccess()) {
                 return true;
             }
@@ -59,7 +59,7 @@ public class GroupSyncSummary {
         StringBuilder message = new StringBuilder(
                 "Group synchronization (of " + count + " pair" + (count == 1 ? "" : "s") + ") for " + player + " (" + cause + ")");
 
-        for (Map.Entry<GroupSyncResult, Set<GroupSyncConfig.PairConfig>> entry : pairs.entrySet()) {
+        for (Map.Entry<ISyncResult, Set<GroupSyncConfig.PairConfig>> entry : pairs.entrySet()) {
             message.append(count == 1 ? ": " : "\n")
                     .append(entry.getKey().toString())
                     .append(": ")
