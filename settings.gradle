@@ -29,11 +29,6 @@ dependencyResolutionManagement {
             // Bungee
             library('bungee', 'net.md-5', 'bungeecord-api').version('1.17-R0.1-SNAPSHOT')
 
-            // Sponge
-            version('sponge', '8.0.0')
-            library('spongeapi', 'org.spongepowered', 'spongeapi').versionRef('sponge')
-            plugin('spongeplugin', 'org.spongepowered.gradle.plugin').version('2.0.0')
-
             // Velocity
             library('velocity', 'com.velocitypowered', 'velocity-api').version('3.0.0')
 
@@ -154,7 +149,6 @@ rootProject.name = 'DiscordSRV-Ascension'
         'api',
         'bukkit', 'bukkit:loader', 'bukkit:folia', 'bukkit:spigot', 'bukkit:paper', 'bukkit:bukkit1_12',
         'bungee', 'bungee:loader',
-        'sponge', 'sponge:loader',
         'velocity'
 ].each {
     include it

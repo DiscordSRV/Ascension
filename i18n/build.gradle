@@ -17,7 +17,6 @@ dependencies {
     // Depend on all platforms for configs
     implementation(project(':bukkit')) { transitive = false }
     implementation(project(':bungee')) { transitive = false }
-    implementation(project(':sponge')) { transitive = false }
     implementation(project(':velocity')) { transitive = false }
 
     api(libs.configurate.yaml)
