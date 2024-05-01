@@ -9,15 +9,14 @@ import com.discordsrv.common.DiscordSRV;
 import com.discordsrv.common.config.main.GroupSyncConfig;
 import com.discordsrv.common.debug.DebugGenerateEvent;
 import com.discordsrv.common.debug.file.TextDebugFile;
-import com.discordsrv.common.event.events.player.PlayerConnectedEvent;
 import com.discordsrv.common.future.util.CompletableFutureUtil;
 import com.discordsrv.common.groupsync.enums.GroupSyncCause;
 import com.discordsrv.common.groupsync.enums.GroupSyncResult;
-import com.discordsrv.common.player.IPlayer;
+import com.discordsrv.common.someone.Someone;
 import com.discordsrv.common.sync.AbstractSyncModule;
-import com.discordsrv.common.sync.ISyncResult;
+import com.discordsrv.common.sync.result.ISyncResult;
 import com.discordsrv.common.sync.SyncFail;
-import com.discordsrv.common.sync.enums.SyncResults;
+import com.discordsrv.common.sync.result.GenericSyncResults;
 import com.github.benmanes.caffeine.cache.Cache;
 import org.jetbrains.annotations.Nullable;
 
@@ -27,7 +26,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 
-public class GroupSyncModule extends AbstractSyncModule<DiscordSRV, String, Long, GroupSyncConfig.PairConfig, Boolean> {
+public class GroupSyncModule extends AbstractSyncModule<DiscordSRV, GroupSyncConfig.PairConfig, String, Long, Boolean> {
 
     private final Cache<Long, Map<Long, Boolean>> expectedDiscordChanges;
     private final Cache<UUID, Map<String, Boolean>> expectedMinecraftChanges;
@@ -44,12 +43,32 @@ public class GroupSyncModule extends AbstractSyncModule<DiscordSRV, String, Long
     }
 
     @Override
+    public String syncName() {
+        return "Group sync";
+    }
+
+    @Override
+    public String logName() {
+        return "groupsync";
+    }
+
+    @Override
+    public String gameTerm() {
+        return "group";
+    }
+
+    @Override
+    public String discordTerm() {
+        return "role";
+    }
+
+    @Override
     public List<GroupSyncConfig.PairConfig> configs() {
         return discordSRV.config().groupSync.pairs;
     }
 
     @Override
-    protected boolean isTrue(Boolean state) {
+    protected boolean isActive(Boolean state) {
         return state;
     }
 
@@ -97,50 +116,7 @@ public class GroupSyncModule extends AbstractSyncModule<DiscordSRV, String, Long
         event.addFile(new TextDebugFile("group-sync.txt", builder));
     }
 
-    private void logSummary(
-            UUID playerUUID,
-            GroupSyncCause cause,
-            CompletableFuture<Map<GroupSyncConfig.PairConfig, CompletableFuture<ISyncResult>>> future
-    ) {
-        future.whenComplete((result, t) -> {
-            if (t != null) {
-                // TODO: "not linked" doesn't need to be a error/ other errors that don't need to be errors?
-                logger().error("Failed to sync groups (" + cause + ") for " + playerUUID, t);
-                return;
-            }
-
-            logSummary(playerUUID, cause, result);
-        });
-    }
-
-    private void logSummary(
-            UUID playerUUID,
-            GroupSyncCause cause,
-            Map<GroupSyncConfig.PairConfig, CompletableFuture<ISyncResult>> pairs
-    ) {
-        CompletableFutureUtil.combine(pairs.values()).whenComplete((v, t) -> {
-            GroupSyncSummary summary = new GroupSyncSummary(playerUUID, cause);
-            for (Map.Entry<GroupSyncConfig.PairConfig, CompletableFuture<ISyncResult>> entry : pairs.entrySet()) {
-                summary.add(entry.getKey(), entry.getValue().join());
-            }
-
-            String finalSummary = summary.toString();
-            logger().debug(finalSummary);
-
-            if (summary.anySuccess()) {
-                // If anything was changed as a result of synchronization, log to file
-                discordSRV.logger().writeLogForCurrentDay("groupsync", finalSummary);
-            }
-        });
-    }
-
     // Listeners & methods to indicate something changed
-
-    @Subscribe
-    public void onPlayerConnected(PlayerConnectedEvent event) {
-        UUID playerUUID = event.player().uniqueId();
-        logSummary(playerUUID, GroupSyncCause.GAME_JOIN, resyncAll(playerUUID));
-    }
 
     @Subscribe
     public void onDiscordMemberRoleAdd(DiscordMemberRoleAddEvent event) {
@@ -171,18 +147,7 @@ public class GroupSyncModule extends AbstractSyncModule<DiscordSRV, String, Long
             return;
         }
 
-        lookupLinkedAccount(userId).whenComplete((playerUUID, t) -> {
-            if (playerUUID == null) {
-                return;
-            }
-
-            if (!permissionProvider.supportsOffline() && discordSRV.playerProvider().player(playerUUID) == null) {
-                logger().debug("Not running sync for " + playerUUID + ": permission provider does not support offline operations");
-                return;
-            }
-
-            logSummary(playerUUID, GroupSyncCause.DISCORD_ROLE_CHANGE, discordChanged(userId, playerUUID, roleId, state));
-        });
+        discordChanged(GroupSyncCause.DISCORD_ROLE_CHANGE, Someone.of(userId), roleId, state);
     }
 
     private void groupChanged(
@@ -202,17 +167,7 @@ public class GroupSyncModule extends AbstractSyncModule<DiscordSRV, String, Long
             return;
         }
 
-        if (!permissionProvider.supportsOffline() && discordSRV.playerProvider().player(playerUUID) == null) {
-            return;
-        }
-
-        lookupLinkedAccount(playerUUID).whenComplete((userId, t) -> {
-            if (userId == null) {
-                return;
-            }
-
-            logSummary(playerUUID, cause, gameChanged(userId, playerUUID, context(groupName, serverContext), state));
-        });
+        gameChanged(cause, Someone.of(playerUUID), context(groupName, serverContext), state);
     }
 
     private PermissionModule.Groups getPermissionProvider() {
@@ -236,31 +191,6 @@ public class GroupSyncModule extends AbstractSyncModule<DiscordSRV, String, Long
     }
 
     // Resync
-
-    @Override
-    protected void resyncTimer(GroupSyncConfig.PairConfig config) {
-        for (IPlayer player : discordSRV.playerProvider().allPlayers()) {
-            UUID playerUUID = player.uniqueId();
-            lookupLinkedAccount(playerUUID)
-                    .whenComplete((userId, t) -> {
-                        if (userId == null) {
-                            return;
-                        }
-
-                        logSummary(playerUUID, GroupSyncCause.TIMER, resync(config, playerUUID, userId).thenApply(result -> {
-                            Map<GroupSyncConfig.PairConfig, CompletableFuture<ISyncResult>> map = new HashMap<>();
-                            map.put(config, CompletableFuture.completedFuture(result));
-                            return map;
-                        }));
-                    });
-        }
-    }
-
-    public CompletableFuture<Map<GroupSyncConfig.PairConfig, CompletableFuture<ISyncResult>>> resync(UUID playerUUID, GroupSyncCause cause) {
-        CompletableFuture<Map<GroupSyncConfig.PairConfig, CompletableFuture<ISyncResult>>> future = resyncAll(playerUUID);
-        logSummary(playerUUID, cause, future);
-        return future;
-    }
 
     @Override
     public CompletableFuture<Boolean> getDiscord(GroupSyncConfig.PairConfig config, long userId) {
@@ -312,8 +242,8 @@ public class GroupSyncModule extends AbstractSyncModule<DiscordSRV, String, Long
 
         return role.getGuild().retrieveMemberById(userId)
                 .thenCompose(member -> state
-                                       ? member.addRole(role).thenApply(v -> (ISyncResult) SyncResults.ADD_DISCORD)
-                                       : member.removeRole(role).thenApply(v -> SyncResults.REMOVE_DISCORD)
+                                       ? member.addRole(role).thenApply(v -> (ISyncResult) GenericSyncResults.ADD_DISCORD)
+                                       : member.removeRole(role).thenApply(v -> GenericSyncResults.REMOVE_DISCORD)
                 ).whenComplete((r, t) -> {
                     if (t != null) {
                         //noinspection DataFlowIssue
@@ -331,8 +261,8 @@ public class GroupSyncModule extends AbstractSyncModule<DiscordSRV, String, Long
 
         CompletableFuture<ISyncResult> future =
                 state
-                    ? addGroup(playerUUID, config).thenApply(v -> SyncResults.ADD_GAME)
-                    : removeGroup(playerUUID, config).thenApply(v -> SyncResults.REMOVE_GAME);
+                    ? addGroup(playerUUID, config).thenApply(v -> GenericSyncResults.ADD_GAME)
+                    : removeGroup(playerUUID, config).thenApply(v -> GenericSyncResults.REMOVE_GAME);
         return future.exceptionally(t -> {
             //noinspection DataFlowIssue
             expected.remove(config.groupName);

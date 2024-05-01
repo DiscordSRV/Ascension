@@ -18,39 +18,30 @@
 
 package com.discordsrv.common.groupsync.enums;
 
-import com.discordsrv.common.sync.ISyncResult;
+import com.discordsrv.common.sync.result.ISyncResult;
 
 public enum GroupSyncResult implements ISyncResult {
 
-    // Errors
+    // Error
     ROLE_DOESNT_EXIST("Role doesn't exist"),
     ROLE_CANNOT_INTERACT("Bot doesn't have a role above the synced role (cannot interact)"),
     NOT_A_GUILD_MEMBER("User is not part of the server the role is in"),
-    PERMISSION_BACKEND_FAILED("Failed to check group status, error printed"),
-    UPDATE_FAILED("Failed to modify role/group, error printed"),
-    NO_PERMISSION_PROVIDER("No permission provider"),
-    PERMISSION_PROVIDER_NO_OFFLINE_SUPPORT("Permission provider doesn't support offline players"),
+    PERMISSION_BACKEND_FAILED("Failed to interact with permission backend, error printed"),
 
     ;
 
-    final String prettyResult;
-    final boolean success;
+    private final String format;
 
-    GroupSyncResult(String prettyResult) {
-        this(prettyResult, false);
-    }
-
-    GroupSyncResult(String prettyResult, boolean success) {
-        this.prettyResult = prettyResult;
-        this.success = success;
+    GroupSyncResult(String format) {
+        this.format = format;
     }
 
     public boolean isSuccess() {
-        return success;
+        return false;
     }
 
     @Override
-    public String toString() {
-        return prettyResult;
+    public String getFormat() {
+        return format;
     }
 }

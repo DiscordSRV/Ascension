@@ -1,30 +1,29 @@
 package com.discordsrv.common.bansync.enums;
 
-public enum BanSyncResult {
+import com.discordsrv.common.sync.result.ISyncResult;
 
-    // Success, actioned
-    BAN_USER("Ban user"),
-    BAN_PLAYER("Ban player"),
-    UNBAN_USER("Unban user"),
-    UNBAN_PLAYER("Unban player"),
-
-    // Nothing done
-    ALREADY_IN_SYNC("Already in sync"),
-    WRONG_DIRECTION("Wrong direction"),
+public enum BanSyncResult implements ISyncResult {
 
     // Error
     NO_PUNISHMENT_INTEGRATION("No punishment integration"),
     NO_DISCORD_CONNECTION("No Discord connection"),
     GUILD_DOESNT_EXIST("Guild doesn't exist"),
-    INVALID_CONFIG("Invalid config");
+    INVALID_CONFIG("Invalid config"),
+    ;
 
-    private final String prettyResult;
+    private final String format;
 
-    BanSyncResult(String prettyResult) {
-        this.prettyResult = prettyResult;
+    BanSyncResult(String format) {
+        this.format = format;
     }
 
-    public String prettyResult() {
-        return prettyResult;
+    @Override
+    public boolean isSuccess() {
+        return false;
+    }
+
+    @Override
+    public String getFormat() {
+        return format;
     }
 }

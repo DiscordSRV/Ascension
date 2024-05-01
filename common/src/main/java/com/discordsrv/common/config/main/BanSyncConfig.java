@@ -50,6 +50,6 @@ public class BanSyncConfig extends AbstractSyncConfig<BanSyncConfig, Void, Long>
 
     @Override
     public String describe() {
-        return "Ban sync";
+        return Long.toUnsignedString(serverId);
     }
 }

@@ -18,13 +18,10 @@
 
 package com.discordsrv.common.groupsync.enums;
 
-public enum GroupSyncCause {
+import com.discordsrv.common.sync.cause.ISyncCause;
 
-    API("API"),
-    COMMAND("Command"),
-    GAME_JOIN("Joined game"),
-    LINK("Linked account"),
-    TIMER("Timed synchronization"),
+public enum GroupSyncCause implements ISyncCause {
+
     DISCORD_ROLE_CHANGE("Discord role changed", true),
     LUCKPERMS_NODE_CHANGE("LuckPerms node changed", true),
     LUCKPERMS_TRACK("LuckPerms track promotion/demotion"),

@@ -69,12 +69,12 @@ public class GroupSyncConfig {
 
         @Override
         public String toString() {
-            return "PairConfig{" + groupName + direction.arrow() + Long.toUnsignedString(roleId) + '}';
+            return "GroupSyncConfig$PairConfig{" + describe() + '}';
         }
 
         @Override
         public String describe() {
-            return "Group sync (" + groupName + ":" + Long.toUnsignedString(roleId) + ")";
+            return groupName + direction.arrow() + Long.toUnsignedString(roleId);
         }
 
         public static String makeGameId(String groupName, Set<String> serverContext) {

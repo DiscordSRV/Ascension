@@ -6,14 +6,18 @@ import com.discordsrv.api.event.events.linking.AccountLinkedEvent;
 import com.discordsrv.api.module.type.PunishmentModule;
 import com.discordsrv.api.punishment.Punishment;
 import com.discordsrv.common.DiscordSRV;
+import com.discordsrv.common.bansync.enums.BanSyncCause;
 import com.discordsrv.common.bansync.enums.BanSyncResult;
 import com.discordsrv.common.config.main.BanSyncConfig;
-import com.discordsrv.common.event.events.player.PlayerConnectedEvent;
-import com.discordsrv.common.module.type.AbstractModule;
+import com.discordsrv.common.future.util.CompletableFutureUtil;
 import com.discordsrv.common.player.IPlayer;
-import com.discordsrv.common.profile.Profile;
+import com.discordsrv.common.someone.Someone;
+import com.discordsrv.common.sync.AbstractSyncModule;
+import com.discordsrv.common.sync.SyncFail;
+import com.discordsrv.common.sync.cause.GenericSyncCauses;
+import com.discordsrv.common.sync.result.ISyncResult;
 import com.discordsrv.common.sync.enums.SyncDirection;
-import com.discordsrv.common.sync.enums.SyncSide;
+import com.discordsrv.common.sync.result.GenericSyncResults;
 import net.dv8tion.jda.api.JDA;
 import net.dv8tion.jda.api.audit.ActionType;
 import net.dv8tion.jda.api.audit.AuditLogEntry;
@@ -29,27 +33,24 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.time.Duration;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.Map;
-import java.util.UUID;
+import java.util.*;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 
-public class BanSyncModule extends AbstractModule<DiscordSRV> {
+public class BanSyncModule extends AbstractSyncModule<DiscordSRV, BanSyncConfig, Void, Long, Punishment> {
 
     private final Map<Long, PunishmentEvent> events = new ConcurrentHashMap<>();
 
     public BanSyncModule(DiscordSRV discordSRV) {
-        super(discordSRV);
+        super(discordSRV, "BAN_SYNC");
     }
 
     @Override
     public boolean isEnabled() {
         if (discordSRV.config().banSync.serverId == 0) {
-            //return false;
+            //return false; // TODO
         }
 
         return super.isEnabled();
@@ -60,27 +61,38 @@ public class BanSyncModule extends AbstractModule<DiscordSRV> {
         return Collections.singleton(DiscordGatewayIntent.GUILD_MODERATION);
     }
 
-    private Punishment punishment(Guild.Ban ban) {
-        return ban != null ? new Punishment(null, ban.getReason(), ban.getUser().getName()) : null;
-    }
-
-    private CompletableFuture<Long> lookupLinkedAccount(UUID player) {
-        return discordSRV.profileManager().lookupProfile(player)
-                .thenApply(Profile::userId);
-    }
-
-    private CompletableFuture<UUID> lookupLinkedAccount(long userId) {
-        return discordSRV.profileManager().lookupProfile(userId)
-                .thenApply(Profile::playerUUID);
-    }
-
     public void notifyBanned(IPlayer player, @Nullable Punishment punishment) {
-        playerBanChange(player.uniqueId(), true, punishment);
+        gameChanged(BanSyncCause.PLAYER_BANNED, Someone.of(player.uniqueId()), null, punishment);
     }
 
-    @Subscribe
-    public void onPlayerConnected(PlayerConnectedEvent event) {
-        playerBanChange(event.player().uniqueId(), false, null);
+    @Override
+    public String syncName() {
+        return "Ban sync";
+    }
+
+    @Override
+    public String logName() {
+        return "bansync";
+    }
+
+    @Override
+    public String gameTerm() {
+        return "ban";
+    }
+
+    @Override
+    public String discordTerm() {
+        return "ban";
+    }
+
+    @Override
+    public List<BanSyncConfig> configs() {
+        return Collections.singletonList(discordSRV.config().banSync);
+    }
+
+    @Override
+    protected boolean isActive(Punishment state) {
+        return state != null;
     }
 
     private PunishmentEvent upsertEvent(long userId, boolean newState) {
@@ -106,7 +118,15 @@ public class BanSyncModule extends AbstractModule<DiscordSRV> {
                 return;
             }
 
-            userBanChange(userId, newState, punishment);
+            if (newState && punishment == null) {
+                punishment = new Punishment(null, null, null);
+            }
+            gameChanged(
+                    GenericSyncCauses.LINK,
+                    Someone.of(userId),
+                    null,
+                    punishment
+            );
         }
     }
 
@@ -147,7 +167,7 @@ public class BanSyncModule extends AbstractModule<DiscordSRV> {
     public void onAccountLinked(AccountLinkedEvent event) {
         BanSyncConfig config = discordSRV.config().banSync;
         if (config.resyncUponLinking) {
-            resync(event.getPlayerUUID(), event.getUserId());
+            resyncAll(GenericSyncCauses.LINK, Someone.of(event.getPlayerUUID(), event.getUserId()));
         }
     }
 
@@ -160,96 +180,40 @@ public class BanSyncModule extends AbstractModule<DiscordSRV> {
         });
     }
 
-    public CompletableFuture<BanSyncResult> resync(UUID playerUUID) {
-        return lookupLinkedAccount(playerUUID).thenCompose(userId -> {
-            if (userId == null) {
-                // Unlinked
-                return null;
-            }
-
-            return resync(playerUUID, userId);
-        });
-    }
-
-    public CompletableFuture<BanSyncResult> resync(long userId) {
-        return lookupLinkedAccount(userId).thenCompose(playerUUID -> {
-            if (playerUUID == null) {
-                // Unlinked
-                return null;
-            }
-
-            return resync(playerUUID, userId);
-        });
-    }
-
-    public CompletableFuture<BanSyncResult> resync(UUID playerUUID, long userId) {
-        return doResync(playerUUID, userId).whenComplete((r, t) -> {
-            String label = playerUUID + ":" + Long.toUnsignedString(userId);
-            if (t != null) {
-                logger().error("Failed to update ban state for " + label, t);
-            } else {
-                logger().debug("Updated " + label + " ban state: " + r);
-            }
-        });
-    }
-
-    private CompletableFuture<BanSyncResult> doResync(UUID playerUUID, long userId) {
-        BanSyncConfig config = discordSRV.config().banSync;
-
-        SyncSide side = config.tieBreaker;
-        if (side == null) {
-            return CompletableFuture.completedFuture(BanSyncResult.INVALID_CONFIG);
+    @Override
+    protected CompletableFuture<Punishment> getDiscord(BanSyncConfig config, long userId) {
+        JDA jda = discordSRV.jda();
+        if (jda == null) {
+            return CompletableFutureUtil.failed(new SyncFail(BanSyncResult.NO_DISCORD_CONNECTION));
         }
 
-        switch (side) {
-            case DISCORD:
-                JDA jda = discordSRV.jda();
-                if (jda == null) {
-                    return CompletableFuture.completedFuture(BanSyncResult.NO_DISCORD_CONNECTION);
-                }
-
-                Guild guild = jda.getGuildById(config.serverId);
-                if (guild == null) {
-                    // Server doesn't exist
-                    return CompletableFuture.completedFuture(BanSyncResult.GUILD_DOESNT_EXIST);
-                }
-
-                return getBan(guild, userId)
-                        .thenCompose(ban -> changePlayerBanState(playerUUID, ban != null, punishment(ban)));
-            case MINECRAFT:
-                PunishmentModule.Bans bans = discordSRV.getModule(PunishmentModule.Bans.class);
-                if (bans == null) {
-                    return CompletableFuture.completedFuture(BanSyncResult.NO_PUNISHMENT_INTEGRATION);
-                }
-
-                return bans.getBan(playerUUID)
-                        .thenCompose(punishment -> changeUserBanState(userId, punishment != null, punishment));
-            default:
-                throw new IllegalStateException("Missing side " + side.name());
+        Guild guild = jda.getGuildById(config.serverId);
+        if (guild == null) {
+            // Server doesn't exist
+            return CompletableFutureUtil.failed(new SyncFail(BanSyncResult.GUILD_DOESNT_EXIST));
         }
+
+        return getBan(guild, userId).thenApply(this::punishment);
     }
 
-    private void playerBanChange(UUID playerUUID, boolean newState, @Nullable Punishment punishment) {
-        lookupLinkedAccount(playerUUID).thenCompose(userId -> {
-            if (userId == null) {
-                // Unlinked
-                return null;
-            }
-
-            return changeUserBanState(userId, newState, punishment).whenComplete((r, t) -> {
-                if (t != null) {
-                    logger().error("Failed to update ban state for " + Long.toUnsignedString(userId), t);
-                } else {
-                    logger().debug("Updated " + Long.toUnsignedString(userId) + " ban state: " + r);
-                }
-            });
-        });
+    private Punishment punishment(Guild.Ban ban) {
+        return ban != null ? new Punishment(null, ban.getReason(), ban.getUser().getName()) : null;
     }
 
-    private CompletableFuture<BanSyncResult> changeUserBanState(long userId, boolean newState, @Nullable Punishment punishment) {
-        BanSyncConfig config = discordSRV.config().banSync;
+    @Override
+    protected CompletableFuture<Punishment> getGame(BanSyncConfig config, UUID playerUUID) {
+        PunishmentModule.Bans bans = discordSRV.getModule(PunishmentModule.Bans.class);
+        if (bans == null) {
+            return CompletableFutureUtil.failed(new SyncFail(BanSyncResult.NO_PUNISHMENT_INTEGRATION));
+        }
+
+        return bans.getBan(playerUUID);
+    }
+
+    @Override
+    protected CompletableFuture<ISyncResult> applyDiscord(BanSyncConfig config, long userId, Punishment state) {
         if (config.direction == SyncDirection.DISCORD_TO_MINECRAFT) {
-            return CompletableFuture.completedFuture(BanSyncResult.WRONG_DIRECTION);
+            return CompletableFuture.completedFuture(GenericSyncResults.WRONG_DIRECTION);
         }
 
         JDA jda = discordSRV.jda();
@@ -264,52 +228,23 @@ public class BanSyncModule extends AbstractModule<DiscordSRV> {
         }
 
         UserSnowflake snowflake = UserSnowflake.fromId(userId);
-        return getBan(guild, userId).thenCompose(ban -> {
-            if (ban == null) {
-                if (newState) {
-                    return guild.ban(snowflake, config.discordMessageHoursToDelete, TimeUnit.HOURS)
-                            .reason(discordSRV.placeholderService().replacePlaceholders(config.discordBanReasonFormat, punishment))
-                            .submit()
-                            .thenApply(v -> BanSyncResult.BAN_USER);
-                } else {
-                    // Already unbanned
-                    return CompletableFuture.completedFuture(BanSyncResult.ALREADY_IN_SYNC);
-                }
-            } else {
-                if (newState) {
-                    // Already banned
-                    return CompletableFuture.completedFuture(BanSyncResult.ALREADY_IN_SYNC);
-                } else {
-                    return guild.unban(snowflake)
-                            .reason(discordSRV.placeholderService().replacePlaceholders(config.discordUnbanReasonFormat, punishment))
-                            .submit()
-                            .thenApply(v -> BanSyncResult.UNBAN_USER);
-                }
-            }
-        });
+        if (state != null) {
+            return guild.ban(snowflake, config.discordMessageHoursToDelete, TimeUnit.HOURS)
+                    .reason(discordSRV.placeholderService().replacePlaceholders(config.discordBanReasonFormat, state))
+                    .submit()
+                    .thenApply(v -> GenericSyncResults.ADD_DISCORD);
+        } else {
+            return guild.unban(snowflake)
+                    .reason(discordSRV.placeholderService().replacePlaceholders(config.discordUnbanReasonFormat))
+                    .submit()
+                    .thenApply(v -> GenericSyncResults.REMOVE_DISCORD);
+        }
     }
 
-    public void userBanChange(long userId, boolean newState, @Nullable Punishment punishment) {
-        lookupLinkedAccount(userId).thenCompose(playerUUID -> {
-            if (playerUUID == null) {
-                // Unlinked
-                return null;
-            }
-
-            return changePlayerBanState(playerUUID, newState, punishment).whenComplete((r, t) -> {
-                if (t != null) {
-                    logger().error("Failed to update ban state for " + playerUUID, t);
-                } else {
-                    logger().debug("Updated " + playerUUID + " ban state: " + r);
-                }
-            });
-        });
-    }
-
-    private CompletableFuture<BanSyncResult> changePlayerBanState(UUID playerUUID, boolean newState, @Nullable Punishment punishment) {
-        BanSyncConfig config = discordSRV.config().banSync;
+    @Override
+    protected CompletableFuture<ISyncResult> applyGame(BanSyncConfig config, UUID playerUUID, Punishment state) {
         if (config.direction == SyncDirection.MINECRAFT_TO_DISCORD) {
-            return CompletableFuture.completedFuture(BanSyncResult.WRONG_DIRECTION);
+            return CompletableFuture.completedFuture(GenericSyncResults.WRONG_DIRECTION);
         }
 
         PunishmentModule.Bans bans = discordSRV.getModule(PunishmentModule.Bans.class);
@@ -317,26 +252,14 @@ public class BanSyncModule extends AbstractModule<DiscordSRV> {
             return CompletableFuture.completedFuture(BanSyncResult.NO_PUNISHMENT_INTEGRATION);
         }
 
-        return bans.getBan(playerUUID).thenCompose(existingPunishment -> {
-            if (existingPunishment == null) {
-                if (newState) {
-                    String reason = discordSRV.placeholderService().replacePlaceholders(config.gameBanReasonFormat, punishment);
-                    String punisher = discordSRV.placeholderService().replacePlaceholders(config.gamePunisherFormat, punishment);
-                    return bans.addBan(playerUUID, null, reason, punisher)
-                            .thenApply(v -> BanSyncResult.BAN_PLAYER);
-                } else {
-                    // Already unbanned
-                    return CompletableFuture.completedFuture(BanSyncResult.ALREADY_IN_SYNC);
-                }
-            } else {
-                if (newState) {
-                    // Already banned
-                    return CompletableFuture.completedFuture(BanSyncResult.ALREADY_IN_SYNC);
-                } else {
-                    return bans.removeBan(playerUUID).thenApply(v -> BanSyncResult.UNBAN_PLAYER);
-                }
-            }
-        });
+        if (state != null) {
+            String reason = discordSRV.placeholderService().replacePlaceholders(config.gameBanReasonFormat, state);
+            String punisher = discordSRV.placeholderService().replacePlaceholders(config.gamePunisherFormat, state);
+            return bans.addBan(playerUUID, null, reason, punisher)
+                    .thenApply(v -> GenericSyncResults.ADD_GAME);
+        } else {
+            return bans.removeBan(playerUUID).thenApply(v -> GenericSyncResults.REMOVE_GAME);
+        }
     }
 
 }

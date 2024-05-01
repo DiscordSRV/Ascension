@@ -1,5 +1,7 @@
 package com.discordsrv.common.sync;
 
+import com.discordsrv.common.sync.result.ISyncResult;
+
 public class SyncFail extends RuntimeException {
 
     private final ISyncResult result;

@@ -46,6 +46,11 @@ public final class CompletableFutureUtil {
         return combine(futures.toArray(new CompletableFuture[0]));
     }
 
+    @SuppressWarnings("unchecked")
+    public static <T> CompletableFuture<List<T>> combineGeneric(Collection<CompletableFuture<? extends T>> futures) {
+        return combine(futures.toArray(new CompletableFuture[0]));
+    }
+
     @SafeVarargs
     public static <T> CompletableFuture<List<T>> combine(CompletableFuture<T>... futures) {
         CompletableFuture<List<T>> future = new CompletableFuture<>();

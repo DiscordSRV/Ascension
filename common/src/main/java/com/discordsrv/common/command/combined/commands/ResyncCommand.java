@@ -8,13 +8,15 @@ import com.discordsrv.common.command.combined.abstraction.CommandExecution;
 import com.discordsrv.common.command.combined.abstraction.GameCommandExecution;
 import com.discordsrv.common.command.combined.abstraction.Text;
 import com.discordsrv.common.command.game.abstraction.GameCommand;
-import com.discordsrv.common.config.main.GroupSyncConfig;
 import com.discordsrv.common.future.util.CompletableFutureUtil;
 import com.discordsrv.common.groupsync.GroupSyncModule;
-import com.discordsrv.common.groupsync.enums.GroupSyncCause;
 import com.discordsrv.common.permission.Permission;
 import com.discordsrv.common.player.IPlayer;
-import com.discordsrv.common.sync.ISyncResult;
+import com.discordsrv.common.someone.Someone;
+import com.discordsrv.common.sync.AbstractSyncModule;
+import com.discordsrv.common.sync.SyncSummary;
+import com.discordsrv.common.sync.cause.GenericSyncCauses;
+import com.discordsrv.common.sync.result.ISyncResult;
 import net.kyori.adventure.text.format.NamedTextColor;
 
 import java.util.*;
@@ -79,15 +81,28 @@ public class ResyncCommand extends CombinedCommand {
         execution.runAsync(() -> {
             long startTime = System.currentTimeMillis();
 
-            CompletableFutureUtil.combine(resyncOnlinePlayers(module)).thenCompose(result -> {
-                List<CompletableFuture<ISyncResult>> results = new ArrayList<>();
-                for (Map<GroupSyncConfig.PairConfig, CompletableFuture<ISyncResult>> map : result) {
-                    results.addAll(map.values());
+            List<CompletableFuture<? extends SyncSummary<?>>> futures = resyncOnlinePlayers(module);
+            CompletableFutureUtil.combineGeneric(futures).thenCompose(result -> {
+                List<CompletableFuture<?>> results = new ArrayList<>();
+                for (SyncSummary<?> summary : result) {
+                    results.add(summary.resultFuture());
                 }
-                return CompletableFutureUtil.combine(results);
-            }).whenComplete((results, t) -> {
+                return CompletableFutureUtil.combineGeneric(results);
+            }).whenComplete((__, t) -> {
                 Map<ISyncResult, AtomicInteger> resultCounts = new HashMap<>();
                 int total = 0;
+
+                List<ISyncResult> results = new ArrayList<>();
+                for (CompletableFuture<? extends SyncSummary<?>> future : futures) {
+                    SyncSummary<?> summary = future.join();
+                    ISyncResult allFailResult = summary.allFailReason();
+                    if (allFailResult != null) {
+                        results.add(allFailResult);
+                        continue;
+                    }
+
+                    results.addAll(summary.resultFuture().join().values());
+                }
 
                 for (ISyncResult result : results) {
                     total++;
@@ -116,11 +131,11 @@ public class ResyncCommand extends CombinedCommand {
         });
     }
 
-    private List<CompletableFuture<Map<GroupSyncConfig.PairConfig, CompletableFuture<ISyncResult>>>> resyncOnlinePlayers(GroupSyncModule module) {
-        List<CompletableFuture<Map<GroupSyncConfig.PairConfig, CompletableFuture<ISyncResult>>>> futures = new ArrayList<>();
+    private List<CompletableFuture<? extends SyncSummary<?>>> resyncOnlinePlayers(AbstractSyncModule<?, ?, ?, ?, ?> module) {
+        List<CompletableFuture<? extends SyncSummary<?>>> summaries = new ArrayList<>();
         for (IPlayer player : discordSRV.playerProvider().allPlayers()) {
-            futures.add(module.resync(player.uniqueId(), GroupSyncCause.COMMAND));
+            summaries.add(module.resyncAll(GenericSyncCauses.COMMAND, Someone.of(player)));
         }
-        return futures;
+        return summaries;
     }
 }

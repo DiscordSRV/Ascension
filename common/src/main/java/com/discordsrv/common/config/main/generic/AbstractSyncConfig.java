@@ -9,6 +9,12 @@ import org.spongepowered.configurate.objectmapping.meta.Comment;
 
 import java.util.Arrays;
 
+/**
+ * A configuration for a synchronizable.
+ * @param <C> the implementation type
+ * @param <G> the game identifier
+ * @param <D> the Discord identifier
+ */
 @ConfigSerializable
 public abstract class AbstractSyncConfig<C extends AbstractSyncConfig<C, G, D>, G, D> {
 
@@ -43,8 +49,8 @@ public abstract class AbstractSyncConfig<C extends AbstractSyncConfig<C, G, D>, 
 
     public abstract String describe();
 
-    public boolean validate(DiscordSRV discordSRV) {
-        String label = describe();
+    public boolean validate(String syncName, DiscordSRV discordSRV) {
+        String label = syncName + " (" + describe() + ")";
         boolean invalidTieBreaker, invalidDirection = false;
         if ((invalidTieBreaker = (tieBreaker == null)) || (invalidDirection = (direction == null))) {
             if (invalidTieBreaker) {
