@@ -41,16 +41,17 @@ public class LifecycleManager {
     private final Logger logger;
     private final ExecutorService taskPool;
     private final DependencyLoader dependencyLoader;
-    private final CompletableFuture<?> completableFuture;
+    private CompletableFuture<?> completableFuture;
 
     public LifecycleManager(
             Logger logger,
             Path dataDirectory,
             String[] dependencyResources,
-            ClasspathAppender classpathAppender
+            ClasspathAppender classpathAppender,
+            boolean useExecutor
     ) throws IOException {
         this.logger = logger;
-        this.taskPool = Executors.newSingleThreadExecutor(runnable -> new Thread(runnable, "DiscordSRV Initialization"));
+        this.taskPool = useExecutor ? Executors.newSingleThreadExecutor(runnable -> new Thread(runnable, "DiscordSRV Initialization")) : null;
 
         List<String> resourcePaths = new ArrayList<>(Collections.singletonList(
                 "dependencies/runtimeDownload-common.txt"
@@ -63,9 +64,6 @@ public class LifecycleManager {
                 classpathAppender,
                 resourcePaths.toArray(new String[0])
         );
-
-        this.completableFuture = dependencyLoader.download();
-        completableFuture.whenComplete((v, t) -> taskPool.shutdown());
     }
 
     public void loadAndEnable(Supplier<DiscordSRV> discordSRVSupplier) {
@@ -76,6 +74,11 @@ public class LifecycleManager {
 
     private boolean load() {
         try {
+            this.completableFuture = dependencyLoader.download();
+            if (taskPool != null) {
+                completableFuture.whenComplete((v, t) -> taskPool.shutdown());
+            }
+
             completableFuture.get();
             return true;
         } catch (InterruptedException ignored) {

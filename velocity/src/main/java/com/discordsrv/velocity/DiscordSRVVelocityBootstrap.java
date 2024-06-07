@@ -64,7 +64,8 @@ public class DiscordSRVVelocityBootstrap implements IBootstrap {
                 this.logger,
                 dataDirectory,
                 new String[] {"dependencies/runtimeDownload-velocity.txt"},
-                classpathAppender
+                classpathAppender,
+                true
         );
         this.proxyServer = proxyServer;
         this.pluginContainer = pluginContainer;
