@@ -40,7 +40,7 @@ public class MinecraftComponentImpl implements MinecraftComponent {
         setJson(json);
     }
 
-    public MinecraftComponentImpl(Component component) {
+    public MinecraftComponentImpl(@NotNull Component component) {
         setComponent(component);
     }
 
@@ -48,7 +48,7 @@ public class MinecraftComponentImpl implements MinecraftComponent {
         return component;
     }
 
-    public void setComponent(Component component) {
+    public void setComponent(@NotNull Component component) {
         this.component = component;
         this.json = GsonComponentSerializer.gson().serialize(component);
     }

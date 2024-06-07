@@ -26,6 +26,9 @@ import net.kyori.adventure.text.ComponentLike;
 import net.kyori.adventure.text.TextComponent;
 import net.kyori.adventure.text.serializer.gson.GsonComponentSerializer;
 import net.kyori.adventure.text.serializer.plain.PlainTextComponentSerializer;
+import org.jetbrains.annotations.Contract;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.Collection;
 
@@ -36,25 +39,34 @@ public final class ComponentUtil {
 
     private static MinecraftComponentAdapter<Component> ADAPTER;
 
+    @NotNull
     private static MinecraftComponentAdapter<Component> getAdapter() {
         return ADAPTER != null ? ADAPTER : (ADAPTER = MinecraftComponentAdapter.create(GsonComponentSerializer.class, Component.class));
     }
 
     private ComponentUtil() {}
 
-    public static boolean isEmpty(Component component) {
+    public static boolean isEmpty(@NotNull Component component) {
         return PlainTextComponentSerializer.plainText().serialize(component).isEmpty();
     }
 
-    public static boolean isEmpty(MinecraftComponent component) {
+    public static boolean isEmpty(@NotNull MinecraftComponent component) {
         return component.asPlainString().isEmpty();
     }
 
+    @Contract("null -> null")
     public static MinecraftComponent toAPI(Component component) {
+        if (component == null) {
+            return null;
+        }
         return new MinecraftComponentImpl(component);
     }
 
-    public static Component fromAPI(MinecraftComponent component) {
+    @Contract("null -> null")
+    public static Component fromAPI(@Nullable MinecraftComponent component) {
+        if (component == null) {
+            return null;
+        }
         if (component instanceof MinecraftComponentImpl) {
             return ((MinecraftComponentImpl) component).getComponent();
         } else {
@@ -70,7 +82,7 @@ public final class ComponentUtil {
         }
     }
 
-    public static MinecraftComponent fromUnrelocated(Object unrelocatedAdventure) {
+    public static MinecraftComponent fromUnrelocated(@NotNull Object unrelocatedAdventure) {
         MinecraftComponentImpl component = MinecraftComponentImpl.empty();
         MinecraftComponent.Adapter<Object> adapter = component.unrelocatedAdapter();
         if (adapter == null) {
@@ -80,11 +92,11 @@ public final class ComponentUtil {
         return component;
     }
 
-    public static Component join(Component delimiter, Collection<? extends ComponentLike> components) {
+    public static Component join(@NotNull Component delimiter, @NotNull Collection<? extends ComponentLike> components) {
         return join(delimiter, components.toArray(new ComponentLike[0]));
     }
 
-    public static Component join(Component delimiter, ComponentLike[] components) {
+    public static Component join(@NotNull Component delimiter, @NotNull ComponentLike[] components) {
         TextComponent.Builder builder = Component.text();
         for (int i = 0; i < components.length; i++) {
             builder.append(components[i]);
