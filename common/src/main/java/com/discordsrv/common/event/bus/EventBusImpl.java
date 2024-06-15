@@ -40,10 +40,7 @@ import org.jetbrains.annotations.NotNull;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.function.Function;
@@ -78,6 +75,28 @@ public class EventBusImpl implements EventBus {
             throw new IllegalArgumentException("Listener is already registered");
         }
 
+        Pair<List<EventListenerImpl>, List<Throwable>> parsed = parseListeners(eventListener);
+        List<Throwable> suppressedMethods = parsed.getValue();
+        List<EventListenerImpl> methods = parsed.getKey();
+
+        if (methods.isEmpty() || !suppressedMethods.isEmpty()) {
+            IllegalArgumentException exception = new IllegalArgumentException(eventListener.getClass().getName()
+                    + " doesn't have valid listener methods that are annotated with " + Subscribe.class.getName());
+            suppressedMethods.forEach(exception::addSuppressed);
+            throw exception;
+        }
+
+        listeners.put(eventListener, methods);
+        allListeners.addAll(methods);
+        logger.debug("Listener " + eventListener.getClass().getName() + " subscribed");
+    }
+
+    @Override
+    public Collection<EventListenerImpl> getListeners(@NotNull Object eventListener) {
+        return parseListeners(eventListener).getKey();
+    }
+
+    private Pair<List<EventListenerImpl>, List<Throwable>> parseListeners(Object eventListener) {
         Class<?> listenerClass = eventListener.getClass();
 
         List<Throwable> suppressedMethods = new ArrayList<>();
@@ -90,16 +109,7 @@ public class EventBusImpl implements EventBus {
             }
         } while ((currentClass = currentClass.getSuperclass()) != null);
 
-        if (methods.isEmpty() || !suppressedMethods.isEmpty()) {
-            IllegalArgumentException exception = new IllegalArgumentException(listenerClass.getName()
-                    + " doesn't have valid listener methods that are annotated with " + Subscribe.class.getName());
-            suppressedMethods.forEach(exception::addSuppressed);
-            throw exception;
-        }
-
-        listeners.put(eventListener, methods);
-        allListeners.addAll(methods);
-        logger.debug("Listener " + eventListener.getClass().getName() + " subscribed");
+        return Pair.of(methods, suppressedMethods);
     }
 
     private void checkMethod(Object eventListener, Class<?> listenerClass, Method method,
@@ -215,6 +225,9 @@ public class EventBusImpl implements EventBus {
                     if (eventListener.className().startsWith("com.discordsrv")) {
                         logger.error("Failed to pass " + eventClassName + " to " + eventListener, cause);
                     } else {
+                        // Print the listener failing without references to the DiscordSRV event bus
+                        // as it isn't relevant to the exception, and often causes users to suspect DiscordSRV is doing something wrong when it isn't
+                        //noinspection CallToPrintStackTrace
                         e.getCause().printStackTrace();
                     }
                     TestHelper.fail(cause);

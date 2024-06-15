@@ -91,7 +91,8 @@ public class ConsoleConfig {
             );
         }
 
-        @Comment("If command execution is enabled")
+        @Comment("If command execution in this console channel is enabled\n"
+                + "Requires the \"Message Content Intent\"")
         public boolean enabled = true;
 
         @Comment("At least one condition has to match to allow execution")

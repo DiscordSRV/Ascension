@@ -28,6 +28,7 @@ public class BaseChannelConfig {
 
     @Order(0)
     public MinecraftToDiscordChatConfig minecraftToDiscord = new MinecraftToDiscordChatConfig();
+
     @Order(0)
     public DiscordToMinecraftChatConfig discordToMinecraft = new DiscordToMinecraftChatConfig();
 

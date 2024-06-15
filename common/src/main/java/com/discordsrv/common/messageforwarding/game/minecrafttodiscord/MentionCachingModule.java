@@ -18,6 +18,7 @@
 
 package com.discordsrv.common.messageforwarding.game.minecrafttodiscord;
 
+import com.discordsrv.api.discord.connection.details.DiscordGatewayIntent;
 import com.discordsrv.api.event.bus.Subscribe;
 import com.discordsrv.common.DiscordSRV;
 import com.discordsrv.common.config.main.channels.MinecraftToDiscordChatConfig;
@@ -38,6 +39,7 @@ import net.dv8tion.jda.api.events.guild.member.update.GuildMemberUpdateNicknameE
 import net.dv8tion.jda.api.events.role.RoleCreateEvent;
 import net.dv8tion.jda.api.events.role.RoleDeleteEvent;
 import net.dv8tion.jda.api.events.role.update.RoleUpdateNameEvent;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
@@ -55,6 +57,29 @@ public class MentionCachingModule extends AbstractModule<DiscordSRV> {
 
     public MentionCachingModule(DiscordSRV discordSRV) {
         super(discordSRV);
+    }
+
+    @Override
+    public @NotNull Collection<DiscordGatewayIntent> requiredIntents() {
+        boolean anyUserMentions = false;
+        for (BaseChannelConfig channel : discordSRV.channelConfig().getAllChannels()) {
+            MinecraftToDiscordChatConfig config = channel.minecraftToDiscord;
+            if (!config.enabled) {
+                continue;
+            }
+
+            MinecraftToDiscordChatConfig.Mentions mentions = config.mentions;
+            if (mentions.users) {
+                anyUserMentions = true;
+                break;
+            }
+        }
+
+        if (anyUserMentions) {
+            return EnumSet.of(DiscordGatewayIntent.GUILD_MEMBERS);
+        }
+
+        return Collections.emptySet();
     }
 
     @Override

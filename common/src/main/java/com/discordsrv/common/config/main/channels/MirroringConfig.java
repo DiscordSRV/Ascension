@@ -25,6 +25,7 @@ import org.spongepowered.configurate.objectmapping.meta.Comment;
 @ConfigSerializable
 public class MirroringConfig {
 
+    @Comment("Requires the \"Message Content Intent\"")
     public boolean enabled = true;
 
     @Comment("Users, bots, roles and webhooks to ignore when mirroring")

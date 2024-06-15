@@ -39,6 +39,7 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.Collection;
 import java.util.Collections;
+import java.util.EnumSet;
 import java.util.List;
 import java.util.function.Consumer;
 
@@ -56,10 +57,10 @@ public class DiscordInviteModule extends AbstractModule<DiscordSRV> {
     public @NotNull Collection<DiscordGatewayIntent> requiredIntents() {
         DiscordInviteConfig config = discordSRV.config().invite;
         if (StringUtils.isNotEmpty(config.inviteUrl)) {
-            return Collections.emptyList();
+            return Collections.emptySet();
         }
 
-        return Collections.singleton(DiscordGatewayIntent.GUILD_INVITES);
+        return EnumSet.of(DiscordGatewayIntent.GUILD_INVITES);
     }
 
     @Subscribe

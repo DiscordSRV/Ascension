@@ -53,7 +53,8 @@ public class EventListenerImpl implements EventListener {
         return listener;
     }
 
-    public Class<?> eventClass() {
+    @Override
+    public @NotNull Class<?> eventClass() {
         return eventClass;
     }
 

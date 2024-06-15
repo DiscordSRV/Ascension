@@ -31,6 +31,7 @@ import java.util.regex.Pattern;
 @ConfigSerializable
 public class DiscordToMinecraftChatConfig {
 
+    @Comment("Requires the \"Message Content Intent\"")
     public boolean enabled = true;
 
     @Comment("The Discord to Minecraft message format for regular users and bots")

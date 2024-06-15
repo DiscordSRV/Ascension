@@ -27,10 +27,14 @@ import com.discordsrv.api.DiscordSRVApi;
 import com.discordsrv.api.discord.connection.details.DiscordCacheFlag;
 import com.discordsrv.api.discord.connection.details.DiscordGatewayIntent;
 import com.discordsrv.api.discord.connection.details.DiscordMemberCachePolicy;
+import com.discordsrv.api.event.bus.EventListener;
+import com.discordsrv.api.event.events.discord.message.AbstractDiscordMessageEvent;
+import net.dv8tion.jda.api.events.GenericEvent;
+import net.dv8tion.jda.api.events.guild.member.GenericGuildMemberEvent;
+import net.dv8tion.jda.api.requests.GatewayIntent;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.Collection;
-import java.util.Collections;
+import java.util.*;
 import java.util.function.Consumer;
 
 public interface Module {
@@ -46,11 +50,55 @@ public interface Module {
 
     /**
      * Provides a {@link Collection} of {@link DiscordGatewayIntent}s that are required for this {@link Module}.
+     * This defaults to determining intents based on the events listened to in this class via {@link com.discordsrv.api.event.bus.Subscribe} methods.
      * @return the collection of gateway intents required by this module at the time this method is called
      */
+    @SuppressWarnings("unchecked") // Class generic cast
     @NotNull
     default Collection<DiscordGatewayIntent> requiredIntents() {
-        return Collections.emptyList();
+        DiscordSRVApi api = DiscordSRVApi.get();
+        if (api == null) {
+            return Collections.emptyList();
+        }
+
+        Collection<? extends EventListener> listeners = api.eventBus().getListeners(this);
+        EnumSet<DiscordGatewayIntent> intents = EnumSet.noneOf(DiscordGatewayIntent.class);
+
+        for (EventListener listener : listeners) {
+            Class<?> eventClass = listener.eventClass();
+
+            // DiscordSRV
+            if (AbstractDiscordMessageEvent.class.isAssignableFrom(eventClass)) {
+                intents.addAll(EnumSet.of(DiscordGatewayIntent.GUILD_MESSAGES, DiscordGatewayIntent.DIRECT_MESSAGES));
+            }
+            if (GenericGuildMemberEvent.class.isAssignableFrom(eventClass)) {
+                intents.add(DiscordGatewayIntent.GUILD_MEMBERS);
+            }
+
+            // JDA
+            if (!GenericEvent.class.isAssignableFrom(eventClass)) {
+                continue;
+            }
+
+            EnumSet<GatewayIntent> jdaIntents = GatewayIntent.fromEvents((Class<? extends GenericEvent>) listener.eventClass());
+            for (GatewayIntent jdaIntent : jdaIntents) {
+                try {
+                    intents.add(DiscordGatewayIntent.getByJda(jdaIntent));
+                } catch (IllegalArgumentException ignored) {}
+            }
+        }
+
+        // Below are some intents that will not be added by event reference (and have to be specified intentionally)
+
+        // Direct messages are rarely used by bots (and Guild & Direct message events are the same)
+        intents.remove(DiscordGatewayIntent.DIRECT_MESSAGES);
+        intents.remove(DiscordGatewayIntent.DIRECT_MESSAGE_REACTIONS);
+        intents.remove(DiscordGatewayIntent.DIRECT_MESSAGE_TYPING);
+
+        // Presences change A LOT
+        intents.remove(DiscordGatewayIntent.GUILD_PRESENCES);
+
+        return intents;
     }
 
     /**

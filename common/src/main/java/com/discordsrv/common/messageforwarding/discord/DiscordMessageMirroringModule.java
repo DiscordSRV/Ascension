@@ -83,7 +83,7 @@ public class DiscordMessageMirroringModule extends AbstractModule<DiscordSRV> {
 
     @Override
     public @NotNull Collection<DiscordGatewayIntent> requiredIntents() {
-        return Arrays.asList(DiscordGatewayIntent.GUILD_MESSAGES, DiscordGatewayIntent.MESSAGE_CONTENT);
+        return EnumSet.of(DiscordGatewayIntent.GUILD_MESSAGES, DiscordGatewayIntent.MESSAGE_CONTENT);
     }
 
     @SuppressWarnings("unchecked") // Wacky generics

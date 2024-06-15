@@ -9,7 +9,6 @@ import com.discordsrv.api.discord.entity.guild.DiscordGuildMember;
 import com.discordsrv.api.discord.entity.message.ReceivedDiscordMessage;
 import com.discordsrv.api.discord.entity.message.SendableDiscordMessage;
 import com.discordsrv.api.discord.util.DiscordFormattingUtil;
-import com.discordsrv.api.event.bus.Subscribe;
 import com.discordsrv.api.event.events.discord.message.DiscordMessageReceiveEvent;
 import com.discordsrv.api.placeholder.PlainPlaceholderFormat;
 import com.discordsrv.api.placeholder.provider.SinglePlaceholder;
@@ -67,11 +66,13 @@ public class SingleConsoleHandler {
         this.messageCache = config.appender.useEditing ? new ArrayList<>() : null;
 
         timeQueueProcess();
-        discordSRV.eventBus().subscribe(this);
     }
 
-    @Subscribe
-    public void onDiscordMessageReceived(DiscordMessageReceiveEvent event) {
+    public void handleDiscordMessageReceived(DiscordMessageReceiveEvent event) {
+        if (!config.commandExecution.enabled) {
+            return;
+        }
+
         DiscordMessageChannel messageChannel = event.getChannel();
         DiscordGuildChannel channel = messageChannel instanceof DiscordGuildChannel ? (DiscordGuildChannel) messageChannel : null;
         if (channel == null) {
@@ -174,7 +175,6 @@ public class SingleConsoleHandler {
     @SuppressWarnings("SynchronizeOnNonFinalField")
     public void shutdown() {
         shutdown = true;
-        discordSRV.eventBus().unsubscribe(this);
         queueProcessingFuture.cancel(false);
         try {
             synchronized (queueProcessingFuture) {

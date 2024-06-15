@@ -50,5 +50,10 @@ public final class EventStateHolder {
         public @NotNull String methodName() {
             return null;
         }
+
+        @Override
+        public @NotNull Class<?> eventClass() {
+            return null;
+        }
     }
 }

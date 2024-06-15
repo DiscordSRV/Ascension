@@ -70,7 +70,8 @@ public class MinecraftToDiscordChatConfig implements IMessageConfig {
         public boolean channels = true;
 
         @Comment("If user mentions should be rendered on Discord\n"
-                + "The player needs the discordsrv.mention.user permission to trigger a notification")
+                + "The player needs the discordsrv.mention.user permission to trigger a notification\n"
+                + "Requires the \"Server Members Intent\"")
         public boolean users = true;
 
         @Comment("If uncached users should be looked up from the Discord API when a mention (\"@something\") occurs in chat.\n"

@@ -28,7 +28,7 @@ import org.jetbrains.annotations.NotNull;
 import java.lang.reflect.Method;
 
 /**
- * A event listener.
+ * An event listener.
  */
 @SuppressWarnings("unused") // API
 public interface EventListener {
@@ -48,5 +48,12 @@ public interface EventListener {
      */
     @NotNull
     String methodName();
+
+    /**
+     * The event this listener is listening to.
+     * @return the event extending {@link com.discordsrv.api.event.events.Event} or {@link net.dv8tion.jda.api.events.GenericEvent}
+     */
+    @NotNull
+    Class<?> eventClass();
 
 }
