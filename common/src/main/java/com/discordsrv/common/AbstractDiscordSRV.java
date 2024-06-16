@@ -691,7 +691,7 @@ public abstract class AbstractDiscordSRV<
                                                    + "but linked-accounts.provider is set to \"minecraftauth\". Linked accounts will be disabled");
                             break;
                         }
-                        dependencyManager.mcAuthLib().download().get();
+                        dependencyManager.mcAuthLib().downloadRelocateAndLoad().get();
                         linkProvider = new MinecraftAuthenticationLinker(this);
                         logger().info("Using minecraftauth.me for linked accounts");
                         break;
@@ -725,7 +725,7 @@ public abstract class AbstractDiscordSRV<
                         logger().warning("Data will not persist across server restarts.");
                     }
                     if (storageType.hikari()) {
-                        dependencyManager().hikari().download().get();
+                        dependencyManager().hikari().downloadRelocateAndLoad().get();
                     }
                     storage = storageType.storageFunction().apply(this);
                     storage.initialize();

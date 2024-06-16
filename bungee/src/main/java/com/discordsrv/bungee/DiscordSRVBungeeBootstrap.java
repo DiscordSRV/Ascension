@@ -44,8 +44,7 @@ public class DiscordSRVBungeeBootstrap extends BungeeBootstrap implements IBoots
                 logger,
                 plugin.getDataFolder().toPath(),
                 new String[] {"dependencies/runtimeDownload-bungee.txt"},
-                getClasspathAppender(),
-                true
+                getClasspathAppender()
         );
     }
 

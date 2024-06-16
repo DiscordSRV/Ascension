@@ -43,7 +43,7 @@ public class H2Storage extends SQLStorage {
     @Override
     public void initialize() {
         try {
-            classLoader = discordSRV.dependencyManager().h2().loadIntoIsolated();
+            classLoader = discordSRV.dependencyManager().h2().intoIsolated();
         } catch (IOException e) {
             throw new StorageException(e);
         }

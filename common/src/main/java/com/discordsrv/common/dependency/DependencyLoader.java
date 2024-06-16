@@ -87,19 +87,23 @@ public class DependencyLoader {
         return dependencyManager;
     }
 
-    public IsolatedClassLoader loadIntoIsolated() throws IOException {
+    public IsolatedClassLoader intoIsolated() throws IOException {
         IsolatedClassLoader classLoader = new IsolatedClassLoader();
-        download(classLoader).join();
+        downloadRelocateAndLoad().join();
         return classLoader;
     }
 
-    public CompletableFuture<Void> download() {
-        return download(classpathAppender);
+    public CompletableFuture<Void> downloadRelocateAndLoad() {
+        return download().thenCompose(v -> relocateAndLoad(true));
     }
 
-    private CompletableFuture<Void> download(ClasspathAppender appender) {
-        return dependencyManager.downloadAll(executor, REPOSITORIES)
-                .thenCompose(v -> dependencyManager.relocateAll(executor))
-                .thenCompose(v -> dependencyManager.loadAll(executor, appender));
+    public CompletableFuture<Void> download() {
+        return dependencyManager.downloadAll(executor, REPOSITORIES);
+    }
+
+    public CompletableFuture<Void> relocateAndLoad(boolean useExecutor) {
+        Executor executorToUse = useExecutor ? executor : null;
+        return dependencyManager.relocateAll(executorToUse)
+                .thenCompose(v -> dependencyManager.loadAll(executorToUse, classpathAppender));
     }
 }

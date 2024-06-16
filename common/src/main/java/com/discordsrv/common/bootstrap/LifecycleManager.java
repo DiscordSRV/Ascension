@@ -41,17 +41,16 @@ public class LifecycleManager {
     private final Logger logger;
     private final ExecutorService taskPool;
     private final DependencyLoader dependencyLoader;
-    private CompletableFuture<?> completableFuture;
+    private final CompletableFuture<?> completableFuture;
 
     public LifecycleManager(
             Logger logger,
             Path dataDirectory,
             String[] dependencyResources,
-            ClasspathAppender classpathAppender,
-            boolean useExecutor
+            ClasspathAppender classpathAppender
     ) throws IOException {
         this.logger = logger;
-        this.taskPool = useExecutor ? Executors.newSingleThreadExecutor(runnable -> new Thread(runnable, "DiscordSRV Initialization")) : null;
+        this.taskPool = Executors.newSingleThreadExecutor(runnable -> new Thread(runnable, "DiscordSRV Initialization"));
 
         List<String> resourcePaths = new ArrayList<>(Collections.singletonList(
                 "dependencies/runtimeDownload-common.txt"
@@ -64,33 +63,27 @@ public class LifecycleManager {
                 classpathAppender,
                 resourcePaths.toArray(new String[0])
         );
+        this.completableFuture = dependencyLoader.download();
+        this.completableFuture.whenComplete((v, t) -> taskPool.shutdownNow());
     }
 
     public void loadAndEnable(Supplier<DiscordSRV> discordSRVSupplier) {
-        if (load()) {
-            enable(discordSRVSupplier);
+        if (relocateAndLoad()) {
+            discordSRVSupplier.get().runEnable();
         }
     }
 
-    private boolean load() {
+    private boolean relocateAndLoad() {
         try {
-            this.completableFuture = dependencyLoader.download();
-            if (taskPool != null) {
-                completableFuture.whenComplete((v, t) -> taskPool.shutdown());
-            }
-
             completableFuture.get();
+            dependencyLoader.relocateAndLoad(false).get();
             return true;
         } catch (InterruptedException ignored) {
             Thread.currentThread().interrupt();
         } catch (ExecutionException e) {
-            logger.error("Failed to download dependencies", e.getCause());
+            logger.error("Failed to download, relocate or load dependencies", e.getCause());
         }
         return false;
-    }
-
-    private void enable(Supplier<DiscordSRV> discordSRVSupplier) {
-        discordSRVSupplier.get().runEnable();
     }
 
     public void reload(DiscordSRV discordSRV) {

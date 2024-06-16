@@ -79,7 +79,7 @@ public class MySQLStorage extends HikariStorage {
     @Override
     public void initialize() {
         try {
-            initializeWithContext(classLoader = discordSRV.dependencyManager().mysql().loadIntoIsolated());
+            initializeWithContext(classLoader = discordSRV.dependencyManager().mysql().intoIsolated());
         } catch (IOException e) {
             throw new StorageException(e);
         }

@@ -47,8 +47,7 @@ public class DiscordSRVBukkitBootstrap extends BukkitBootstrap implements IBoots
                 logger,
                 plugin.getDataFolder().toPath(),
                 getDependencyResources(),
-                getClasspathAppender(),
-                false
+                getClasspathAppender()
         );
     }
 
