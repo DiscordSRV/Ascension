@@ -32,6 +32,7 @@ import dev.vankka.mcdiscordreserializer.minecraft.MinecraftSerializer;
 import dev.vankka.mcdiscordreserializer.minecraft.MinecraftSerializerOptions;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.TranslatableComponent;
+import net.kyori.adventure.text.TranslationArgument;
 import net.kyori.adventure.text.flattener.ComponentFlattener;
 import net.kyori.adventure.text.serializer.ansi.ANSIComponentSerializer;
 import net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer;
@@ -90,10 +91,9 @@ public class ComponentFactory implements MinecraftComponentFactory {
         }
 
         return translation.translate(
-                component.args()
+                component.arguments()
                         .stream()
-                        .map(discordSerializer::serialize)
-                        .map(str -> (Object) str)
+                        .map(TranslationArgument::value)
                         .toArray(Object[]::new)
         );
     }
