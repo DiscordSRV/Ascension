@@ -99,6 +99,10 @@ subprojects {
 
     test {
         useJUnitPlatform()
+
+        testLogging {
+            exceptionFormat = 'full'
+        }
     }
 
     tasks.register('deleteJarsDir', Delete) {
