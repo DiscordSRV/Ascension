@@ -28,6 +28,7 @@ import com.discordsrv.api.discord.entity.guild.DiscordGuild;
 import com.discordsrv.api.discord.entity.guild.DiscordRole;
 import com.discordsrv.api.discord.entity.interaction.command.CommandType;
 import com.discordsrv.api.discord.entity.interaction.command.DiscordCommand;
+import com.discordsrv.api.discord.entity.message.SendableDiscordMessage;
 import com.discordsrv.api.discord.exception.NotReadyException;
 import com.discordsrv.api.discord.exception.RestErrorResponseException;
 import com.discordsrv.common.DiscordSRV;
@@ -49,7 +50,9 @@ import com.github.benmanes.caffeine.cache.Expiry;
 import net.dv8tion.jda.api.JDA;
 import net.dv8tion.jda.api.entities.*;
 import net.dv8tion.jda.api.entities.channel.Channel;
+import net.dv8tion.jda.api.entities.channel.attribute.IWebhookContainer;
 import net.dv8tion.jda.api.entities.channel.concrete.*;
+import net.dv8tion.jda.api.entities.channel.middleman.GuildChannel;
 import net.dv8tion.jda.api.entities.channel.middleman.MessageChannel;
 import net.dv8tion.jda.api.entities.emoji.CustomEmoji;
 import net.dv8tion.jda.api.exceptions.ErrorResponseException;
@@ -168,7 +171,7 @@ public class DiscordAPIImpl implements DiscordAPI {
                                 "Failed to deliver message to thread \""
                                         + threadConfig.threadName + "\" in channel " + container
                         ).accept(t);
-                        throw new RuntimeException(); // Just here to fail the future
+                        throw new RuntimeException("Failed to deliver message to one or more threads");
                     }
 
                     if (threadChannel != null) {
@@ -248,7 +251,7 @@ public class DiscordAPIImpl implements DiscordAPI {
     private void unarchiveOrCreateThread(
             ThreadConfig config,
             DiscordThreadContainer container,
-            DiscordThreadChannel thread,
+            @Nullable DiscordThreadChannel thread,
             CompletableFuture<DiscordThreadChannel> future
     ) {
         if (thread != null) {
@@ -268,7 +271,16 @@ public class DiscordAPIImpl implements DiscordAPI {
             return;
         }
 
-        container.createThread(config.threadName, config.privateThread).whenComplete(((threadChannel, t) -> {
+        CompletableFuture<DiscordThreadChannel> createFuture;
+        if (container instanceof DiscordForumChannel) {
+            createFuture = ((DiscordForumChannel) container).createPost(
+                    config.threadName,
+                    SendableDiscordMessage.builder().setContent("\u200B").build() // zero-width-space
+            );
+        } else {
+            createFuture = container.createThread(config.threadName, config.privateThread);
+        }
+        createFuture.whenComplete(((threadChannel, t) -> {
             if (t != null) {
                 future.completeExceptionally(t);
             } else {
@@ -538,12 +550,13 @@ public class DiscordAPIImpl implements DiscordAPI {
                 return notReady();
             }
 
-            TextChannel textChannel = jda.getTextChannelById(channelId);
-            if (textChannel == null) {
+            GuildChannel channel = jda.getGuildChannelById(channelId);
+            IWebhookContainer webhookContainer = channel instanceof IWebhookContainer ? (IWebhookContainer) channel : null;
+            if (webhookContainer == null) {
                 return CompletableFutureUtil.failed(new IllegalArgumentException("Channel could not be found"));
             }
 
-            return textChannel.retrieveWebhooks().submit().thenApply(webhooks -> {
+            return webhookContainer.retrieveWebhooks().submit().thenApply(webhooks -> {
                 Webhook hook = null;
                 for (Webhook webhook : webhooks) {
                     User user = webhook.getOwnerAsUser();
@@ -563,7 +576,7 @@ public class DiscordAPIImpl implements DiscordAPI {
                     return CompletableFuture.completedFuture(webhook);
                 }
 
-                return textChannel.createWebhook("DSRV").submit();
+                return webhookContainer.createWebhook("DSRV").submit();
             }).thenApply(webhook ->
                     WebhookClient.createClient(
                             webhook.getJDA(),

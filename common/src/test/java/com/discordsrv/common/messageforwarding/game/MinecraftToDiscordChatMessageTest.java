@@ -146,7 +146,7 @@ public class MinecraftToDiscordChatMessageTest {
                 }
             }
 
-            success.complete(text == 1 && thread == 1);
+            success.complete(text == 1 && thread == 2);
         }
     }
 }

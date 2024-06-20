@@ -215,6 +215,7 @@ public class MockDiscordSRV extends AbstractDiscordSRV<IBootstrap, MainConfig, C
             DestinationConfig destination = global.destination = new DestinationConfig();
 
             long channelId = Long.parseLong(FullBootExtension.TEST_CHANNEL_ID);
+            long forumId = Long.parseLong(FullBootExtension.FORUM_CHANNEL_ID);
 
             List<Long> channelIds = destination.channelIds;
             channelIds.clear();
@@ -222,9 +223,14 @@ public class MockDiscordSRV extends AbstractDiscordSRV<IBootstrap, MainConfig, C
 
             List<ThreadConfig> threadConfigs = destination.threads;
             threadConfigs.clear();
+
             ThreadConfig thread = new ThreadConfig();
             thread.channelId = channelId;
             threadConfigs.add(thread);
+
+            ThreadConfig forumThread = new ThreadConfig();
+            thread.channelId = forumId;
+            threadConfigs.add(forumThread);
         }
 
         return config;
@@ -239,7 +245,7 @@ public class MockDiscordSRV extends AbstractDiscordSRV<IBootstrap, MainConfig, C
             }
 
             @Override
-            public void load() throws ConfigException {
+            public void load() {
                 messagesConfigLoaded = true;
             }
         };

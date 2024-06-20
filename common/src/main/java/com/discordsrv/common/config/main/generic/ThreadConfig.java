@@ -26,7 +26,10 @@ public class ThreadConfig {
 
     @Comment("Specify the text or forum channel id and the name of the thread (the thread will be automatically created if it doesn't exist)")
     public Long channelId = 0L;
+
     public String threadName = "Minecraft Server chat bridge";
+
+    @Comment("Does not effect forums")
     public boolean privateThread = false;
 
 }
