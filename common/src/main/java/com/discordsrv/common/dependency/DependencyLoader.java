@@ -89,12 +89,16 @@ public class DependencyLoader {
 
     public IsolatedClassLoader intoIsolated() throws IOException {
         IsolatedClassLoader classLoader = new IsolatedClassLoader();
-        downloadRelocateAndLoad().join();
+        downloadRelocateAndLoad(classLoader).join();
         return classLoader;
     }
 
     public CompletableFuture<Void> downloadRelocateAndLoad() {
-        return download().thenCompose(v -> relocateAndLoad(true));
+        return downloadRelocateAndLoad(classpathAppender);
+    }
+
+    public CompletableFuture<Void> downloadRelocateAndLoad(ClasspathAppender appender) {
+        return download().thenCompose(v -> relocateAndLoad(true, appender));
     }
 
     public CompletableFuture<Void> download() {
@@ -102,8 +106,12 @@ public class DependencyLoader {
     }
 
     public CompletableFuture<Void> relocateAndLoad(boolean useExecutor) {
+        return relocateAndLoad(useExecutor, classpathAppender);
+    }
+
+    public CompletableFuture<Void> relocateAndLoad(boolean useExecutor, ClasspathAppender appender) {
         Executor executorToUse = useExecutor ? executor : null;
         return dependencyManager.relocateAll(executorToUse)
-                .thenCompose(v -> dependencyManager.loadAll(executorToUse, classpathAppender));
+                .thenCompose(v -> dependencyManager.loadAll(executorToUse, appender));
     }
 }
