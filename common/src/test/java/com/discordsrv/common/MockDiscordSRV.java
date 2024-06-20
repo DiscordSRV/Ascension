@@ -237,7 +237,7 @@ public class MockDiscordSRV extends AbstractDiscordSRV<IBootstrap, MainConfig, C
             }
         };
 
-        if (StringUtils.isNotEmpty(FullBootExtension.TEST_CHANNEL_ID)) {
+        if (StringUtils.isNotEmpty(FullBootExtension.TEST_CHANNEL_ID) && StringUtils.isNotEmpty(FullBootExtension.FORUM_CHANNEL_ID)) {
             ChannelConfig global = (ChannelConfig) config.channels.get(GameChannel.DEFAULT_NAME);
             DestinationConfig destination = global.destination = new DestinationConfig();
 

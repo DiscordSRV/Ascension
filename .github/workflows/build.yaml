@@ -22,6 +22,7 @@ jobs:
         env:
           DISCORDSRV_AUTOTEST_BOT_TOKEN: ${{ secrets.DISCORDSRV_AUTOTEST_BOT_TOKEN }}
           DISCORDSRV_AUTOTEST_CHANNEL_ID: ${{ secrets.DISCORDSRV_AUTOTEST_CHANNEL_ID }}
+          DISCORDSRV_AUTOTEST_FORUM_ID: ${{ secrets.DISCORDSRV_AUTOTEST_FORUM_ID }}
       - name: Upload Build Artifacts
         uses: actions/upload-artifact@v3
         with:
