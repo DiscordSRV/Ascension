@@ -171,7 +171,7 @@ public class DiscordAPIImpl implements DiscordAPI {
                                 "Failed to deliver message to thread \""
                                         + threadConfig.threadName + "\" in channel " + container
                         ).accept(t);
-                        throw new RuntimeException("Failed to deliver message to one or more threads");
+                        return null;
                     }
 
                     if (threadChannel != null) {
@@ -198,7 +198,7 @@ public class DiscordAPIImpl implements DiscordAPI {
 
     private CompletableFuture<DiscordThreadChannel> findOrCreateThread(boolean unarchive, ThreadConfig threadConfig, DiscordThreadContainer container) {
         if (!unarchive) {
-            return container.createThread(threadConfig.threadName, threadConfig.privateThread);
+            return createThread(container, threadConfig.threadName, threadConfig.privateThread);
         }
 
         CompletableFuture<DiscordThreadChannel> completableFuture = new CompletableFuture<>();
@@ -271,22 +271,24 @@ public class DiscordAPIImpl implements DiscordAPI {
             return;
         }
 
-        CompletableFuture<DiscordThreadChannel> createFuture;
-        if (container instanceof DiscordForumChannel) {
-            createFuture = ((DiscordForumChannel) container).createPost(
-                    config.threadName,
-                    SendableDiscordMessage.builder().setContent("\u200B").build() // zero-width-space
-            );
-        } else {
-            createFuture = container.createThread(config.threadName, config.privateThread);
-        }
-        createFuture.whenComplete(((threadChannel, t) -> {
+        createThread(container, config.threadName, config.privateThread).whenComplete(((threadChannel, t) -> {
             if (t != null) {
                 future.completeExceptionally(t);
             } else {
                 future.complete(threadChannel);
             }
         }));
+    }
+
+    private CompletableFuture<DiscordThreadChannel> createThread(DiscordThreadContainer container, String name, boolean privateThread) {
+        if (container instanceof DiscordForumChannel) {
+            return ((DiscordForumChannel) container).createPost(
+                    name,
+                    SendableDiscordMessage.builder().setContent("\u200B").build() // zero-width-space
+            );
+        } else {
+            return container.createThread(name, privateThread);
+        }
     }
 
     public void lookupThreads(

@@ -21,6 +21,7 @@ package com.discordsrv.common;
 import com.discordsrv.api.channel.GameChannel;
 import com.discordsrv.common.bootstrap.IBootstrap;
 import com.discordsrv.common.bootstrap.LifecycleManager;
+import com.discordsrv.common.command.game.executor.CommandExecutorProvider;
 import com.discordsrv.common.command.game.handler.ICommandHandler;
 import com.discordsrv.common.config.configurate.manager.ConnectionConfigManager;
 import com.discordsrv.common.config.configurate.manager.MainConfigManager;
@@ -36,8 +37,8 @@ import com.discordsrv.common.config.messages.MessagesConfig;
 import com.discordsrv.common.console.Console;
 import com.discordsrv.common.debug.data.OnlineMode;
 import com.discordsrv.common.debug.data.VersionInfo;
-import com.discordsrv.common.exception.ConfigException;
 import com.discordsrv.common.logging.Logger;
+import com.discordsrv.common.logging.backend.LoggingBackend;
 import com.discordsrv.common.logging.backend.impl.JavaLoggerImpl;
 import com.discordsrv.common.messageforwarding.game.minecrafttodiscord.MinecraftToDiscordChatModule;
 import com.discordsrv.common.player.IPlayer;
@@ -47,6 +48,7 @@ import com.discordsrv.common.scheduler.Scheduler;
 import com.discordsrv.common.scheduler.StandardScheduler;
 import com.discordsrv.common.storage.impl.MemoryStorage;
 import dev.vankka.dependencydownload.classpath.ClasspathAppender;
+import net.kyori.adventure.audience.Audience;
 import org.apache.commons.lang3.StringUtils;
 import org.jetbrains.annotations.NotNull;
 
@@ -124,7 +126,32 @@ public class MockDiscordSRV extends AbstractDiscordSRV<IBootstrap, MainConfig, C
 
     @Override
     public Console console() {
-        return null;
+        return new Console() {
+            @Override
+            public LoggingBackend loggingBackend() {
+                return JavaLoggerImpl.getRoot();
+            }
+
+            @Override
+            public CommandExecutorProvider commandExecutorProvider() {
+                return null;
+            }
+
+            @Override
+            public boolean hasPermission(String permission) {
+                return false;
+            }
+
+            @Override
+            public void runCommand(String command) {
+
+            }
+
+            @Override
+            public @NotNull Audience audience() {
+                return null;
+            }
+        };
     }
 
     @Override
@@ -229,7 +256,7 @@ public class MockDiscordSRV extends AbstractDiscordSRV<IBootstrap, MainConfig, C
             threadConfigs.add(thread);
 
             ThreadConfig forumThread = new ThreadConfig();
-            thread.channelId = forumId;
+            forumThread.channelId = forumId;
             threadConfigs.add(forumThread);
         }
 
