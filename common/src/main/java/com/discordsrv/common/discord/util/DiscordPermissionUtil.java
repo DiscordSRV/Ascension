@@ -23,7 +23,7 @@ public final class DiscordPermissionUtil {
             channel = ((ThreadChannel) channel).getParentChannel();
         }
         EnumSet<Permission> missingPermissions = checkMissingPermissions(channel, permissions);
-        return format(missingPermissions, "#" + channel.getName());
+        return createErrorMessage(missingPermissions, "#" + channel.getName());
     }
 
     public static EnumSet<Permission> checkMissingPermissions(GuildChannel channel, Collection<Permission> permissions) {
@@ -45,7 +45,7 @@ public final class DiscordPermissionUtil {
 
     public static String missingPermissionsString(Guild guild, Collection<Permission> permissions) {
         EnumSet<Permission> missingPermissions = checkMissingPermissions(guild, permissions);
-        return format(missingPermissions, guild.getName());
+        return createErrorMessage(missingPermissions, guild.getName());
     }
 
     public static EnumSet<Permission> checkMissingPermissions(Guild guild, Collection<Permission> permissions) {
@@ -58,7 +58,7 @@ public final class DiscordPermissionUtil {
         return missingPermissions;
     }
 
-    private static String format(EnumSet<Permission> permissions, String where) {
+    public static String createErrorMessage(EnumSet<Permission> permissions, String where) {
         if (permissions.isEmpty()) {
             return null;
         }

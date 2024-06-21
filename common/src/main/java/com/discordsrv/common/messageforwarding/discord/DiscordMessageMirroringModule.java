@@ -41,11 +41,14 @@ import com.discordsrv.common.config.main.channels.MirroringConfig;
 import com.discordsrv.common.config.main.channels.base.BaseChannelConfig;
 import com.discordsrv.common.config.main.channels.base.IChannelConfig;
 import com.discordsrv.common.config.main.generic.DiscordIgnoresConfig;
+import com.discordsrv.common.discord.util.DiscordPermissionUtil;
 import com.discordsrv.common.future.util.CompletableFutureUtil;
 import com.discordsrv.common.logging.NamedLogger;
 import com.discordsrv.common.module.type.AbstractModule;
 import com.github.benmanes.caffeine.cache.Cache;
+import net.dv8tion.jda.api.Permission;
 import net.dv8tion.jda.api.entities.Message;
+import net.dv8tion.jda.api.entities.channel.middleman.GuildMessageChannel;
 import okhttp3.Request;
 import okhttp3.Response;
 import okhttp3.ResponseBody;
@@ -57,6 +60,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.CompletionException;
 import java.util.concurrent.TimeUnit;
 
 public class DiscordMessageMirroringModule extends AbstractModule<DiscordSRV> {
@@ -171,7 +175,7 @@ public class DiscordMessageMirroringModule extends AbstractModule<DiscordSRV> {
             );
         }
 
-        CompletableFutureUtil.combine(futures).whenComplete((lists, t) -> {
+        CompletableFutureUtil.combine(futures).whenComplete((lists, v) -> {
             Set<Long> channelIdsHandled = new HashSet<>();
             for (MirrorOperation operation : lists) {
                 List<CompletableFuture<MirroredMessage>> mirrorFutures = new ArrayList<>();
@@ -214,13 +218,23 @@ public class DiscordMessageMirroringModule extends AbstractModule<DiscordSRV> {
                         return;
                     }
 
+                    GuildMessageChannel channel = (GuildMessageChannel) mirrorChannel.getAsJDAMessageChannel();
+                    String missingPermissions = DiscordPermissionUtil.missingPermissionsString(channel, Permission.VIEW_CHANNEL, Permission.MANAGE_WEBHOOKS);
+                    if (missingPermissions != null) {
+                        logger().error("Failed to mirror message to " + describeChannel(mirrorChannel) + ": " + missingPermissions);
+                        continue;
+                    }
+
                     CompletableFuture<MirroredMessage> future =
                             mirrorChannel.sendMessage(messageBuilder.build())
                                     .thenApply(msg -> new MirroredMessage(msg, config));
 
                     mirrorFutures.add(future);
-                    future.exceptionally(t2 -> {
-                        logger().error("Failed to mirror message to " + mirrorChannel, t2);
+                    future.exceptionally(t -> {
+                        if (t instanceof CompletionException) {
+                            t = t.getCause();
+                        }
+                        logger().error("Failed to mirror message to " + describeChannel(mirrorChannel), t);
                         for (InputStream stream : streams) {
                             try {
                                 stream.close();
@@ -243,9 +257,20 @@ public class DiscordMessageMirroringModule extends AbstractModule<DiscordSRV> {
                 });
             }
         }).exceptionally(t -> {
+            if (t instanceof CompletionException) {
+                t = t.getCause();
+            }
             logger().error("Failed to mirror message", t);
             return null;
         });
+    }
+
+    private String describeChannel(DiscordGuildMessageChannel channel) {
+        if (channel instanceof DiscordThreadChannel) {
+            return "\"" + channel.getName() + "\" in #" + ((DiscordThreadChannel) channel).getParentChannel().getName();
+        }
+
+        return "#" + channel.getName();
     }
 
     @Subscribe
@@ -289,13 +314,13 @@ public class DiscordMessageMirroringModule extends AbstractModule<DiscordSRV> {
         }
 
         for (MessageReference reference : sync.mirrors) {
-            DiscordMessageChannel channel = reference.getMessageChannel(discordSRV);
+            DiscordGuildMessageChannel channel = reference.getMessageChannel(discordSRV);
             if (channel == null) {
                 continue;
             }
 
             channel.deleteMessageById(reference.messageId, reference.webhookMessage).exceptionally(t -> {
-                logger().error("Failed to delete mirrored message in " + channel);
+                logger().error("Failed to delete mirrored message in " + describeChannel(channel));
                 return null;
             });
         }
