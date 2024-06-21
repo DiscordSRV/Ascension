@@ -19,12 +19,12 @@
 package com.discordsrv.common.channel;
 
 import com.discordsrv.api.discord.entity.channel.DiscordGuildMessageChannel;
-import com.discordsrv.api.discord.entity.channel.DiscordMessageChannel;
 import com.discordsrv.api.discord.entity.channel.DiscordThreadChannel;
 import com.discordsrv.common.DiscordSRV;
 import com.discordsrv.common.config.main.channels.ChannelLockingConfig;
 import com.discordsrv.common.config.main.channels.base.BaseChannelConfig;
 import com.discordsrv.common.config.main.channels.base.IChannelConfig;
+import com.discordsrv.common.discord.util.DiscordPermissionUtil;
 import com.discordsrv.common.module.type.AbstractModule;
 import net.dv8tion.jda.api.Permission;
 import net.dv8tion.jda.api.entities.Guild;
@@ -55,7 +55,6 @@ public class ChannelLockingModule extends AbstractModule<DiscordSRV> {
         doForAllChannels((config, channelConfig) -> {
             ChannelLockingConfig shutdownConfig = config.channelLocking;
             ChannelLockingConfig.Channels channels = shutdownConfig.channels;
-            ChannelLockingConfig.Threads threads = shutdownConfig.threads;
 
             discordSRV.destinations()
                     .lookupDestination(((IChannelConfig) config).destination(), false, true)
@@ -131,8 +130,9 @@ public class ChannelLockingModule extends AbstractModule<DiscordSRV> {
         }
 
         Guild guild = messageChannel.getGuild();
-        if (!guild.getSelfMember().hasPermission(messageChannel, Permission.MANAGE_PERMISSIONS)) {
-            logger().error("Cannot change permissions of " + channel + ": lacking \"Manage Permissions\" permission");
+        String missingPermissions = DiscordPermissionUtil.missingPermissionsString(messageChannel, Permission.VIEW_CHANNEL, Permission.MANAGE_PERMISSIONS);
+        if (missingPermissions != null) {
+            logger().error("Cannot lock #" + channel.getName() + ": " + missingPermissions);
             return;
         }
 

@@ -135,4 +135,9 @@ public class DiscordForumChannelImpl implements DiscordForumChannel {
     public DiscordChannelType getType() {
         return DiscordChannelType.FORUM;
     }
+
+    @Override
+    public String toString() {
+        return "Forum:" + getName() + "(" + Long.toUnsignedString(getId()) + ")";
+    }
 }

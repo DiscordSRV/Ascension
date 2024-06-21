@@ -30,7 +30,7 @@ import com.discordsrv.common.player.IPlayer;
 
 import java.util.Collection;
 import java.util.Collections;
-import java.util.Map;
+import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
@@ -56,7 +56,7 @@ public class StopMessageModule extends AbstractGameMessageModule<StopMessageConf
     public void postClusterToEventBus(ReceivedDiscordMessageCluster cluster) {}
 
     @Override
-    public Map<CompletableFuture<ReceivedDiscordMessage>, DiscordGuildMessageChannel> sendMessageToChannels(
+    public List<CompletableFuture<ReceivedDiscordMessage>> sendMessageToChannels(
             StopMessageConfig config,
             IPlayer player,
             SendableDiscordMessage.Builder format,
@@ -65,7 +65,7 @@ public class StopMessageModule extends AbstractGameMessageModule<StopMessageConf
             Object... context
     ) {
         if (!config.enabled) {
-            return Collections.emptyMap();
+            return Collections.emptyList();
         }
         return super.sendMessageToChannels(config, player, format, channels, event, context);
     }

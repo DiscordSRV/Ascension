@@ -5,6 +5,7 @@ import com.discordsrv.api.discord.entity.message.SendableDiscordMessage;
 import com.discordsrv.common.DiscordSRV;
 import com.discordsrv.common.config.main.generic.DestinationConfig;
 import com.discordsrv.common.config.main.generic.ThreadConfig;
+import com.discordsrv.common.discord.util.DiscordPermissionUtil;
 import com.discordsrv.common.logging.Logger;
 import com.discordsrv.common.logging.NamedLogger;
 import net.dv8tion.jda.api.Permission;
@@ -113,7 +114,7 @@ public class DestinationLookupHelper {
                         return createThread(threadContainer, threadConfig, logFailures);
                     }).exceptionally(t -> {
                         if (logFailures) {
-                            logger.error("Failed to lookup threads in channel ID " + Long.toUnsignedString(channelId), t);
+                            logger.error("Failed to lookup threads in channel #" + threadContainer.getName(), t);
                         }
                         return null;
                     });
@@ -164,11 +165,15 @@ public class DestinationLookupHelper {
         boolean privateThread = !forum && threadConfig.privateThread;
 
         IThreadContainer container = threadContainer.getAsJDAThreadContainer();
-        if (!container.getGuild().getSelfMember().hasPermission(container, privateThread ? Permission.CREATE_PRIVATE_THREADS : Permission.CREATE_PUBLIC_THREADS)) {
+        String missingPermissions = DiscordPermissionUtil.missingPermissionsString(
+                container,
+                Permission.VIEW_CHANNEL,
+                privateThread ? Permission.CREATE_PRIVATE_THREADS : Permission.CREATE_PUBLIC_THREADS
+        );
+        if (missingPermissions != null) {
             if (logFailures) {
                 logger.error("Failed to create thread \"" + threadConfig.threadName + "\" "
-                                     + "in channel ID " + Long.toUnsignedString(threadContainer.getId())
-                                     + ": lacking \"Create " + (privateThread ? "Private" : "Public") + " Threads\" permission");
+                                     + "in channel #" + threadContainer.getName() + ": " + missingPermissions);
             }
             return CompletableFuture.completedFuture(null);
         }
@@ -185,7 +190,7 @@ public class DestinationLookupHelper {
         return future.exceptionally(t -> {
             if (logFailures) {
                 logger.error("Failed to create thread \"" + threadConfig.threadName + "\" "
-                                     + "in channel ID " + Long.toUnsignedString(threadContainer.getId()), t);
+                                     + "in channel #" + threadContainer.getName(), t);
             }
             return null;
         });
@@ -193,11 +198,17 @@ public class DestinationLookupHelper {
 
     private CompletableFuture<DiscordThreadChannel> unarchiveThread(DiscordThreadChannel channel, boolean logFailures) {
         ThreadChannel jdaChannel = channel.asJDA();
-        if ((jdaChannel.isLocked() || !jdaChannel.isOwner()) && !jdaChannel.getGuild().getSelfMember().hasPermission(jdaChannel, Permission.MANAGE_THREADS)) {
+
+        EnumSet<Permission> requiredPermissions = EnumSet.of(Permission.VIEW_CHANNEL);
+        if (jdaChannel.isLocked() || !jdaChannel.isOwner()) {
+            requiredPermissions.add(Permission.MANAGE_THREADS);
+        }
+
+        String missingPermissions = DiscordPermissionUtil.missingPermissionsString(jdaChannel, requiredPermissions);
+        if (missingPermissions != null) {
             if (logFailures) {
                 logger.error("Cannot unarchive thread \"" + channel.getName() + "\" "
-                                     + "in channel ID " + Long.toUnsignedString(channel.getParentChannel().getId())
-                                     + ": lacking \"Manage Threads\" permission");
+                                     + "in channel #" + channel.getParentChannel().getName() + ": " + missingPermissions);
             }
             return CompletableFuture.completedFuture(null);
         }
@@ -210,7 +221,7 @@ public class DestinationLookupHelper {
         ).thenApply(v -> channel).exceptionally(t -> {
             if (logFailures) {
                 logger.error("Failed to unarchive thread \"" + channel.getName() + "\" "
-                                     + "in channel ID " + Long.toUnsignedString(channel.getParentChannel().getId()), t);
+                                     + "in channel #" + channel.getParentChannel().getName(), t);
             }
             return null;
         });

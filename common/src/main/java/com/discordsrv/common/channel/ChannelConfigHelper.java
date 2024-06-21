@@ -33,8 +33,8 @@ import com.discordsrv.common.config.main.generic.ThreadConfig;
 import com.github.benmanes.caffeine.cache.CacheLoader;
 import com.github.benmanes.caffeine.cache.LoadingCache;
 import org.apache.commons.lang3.tuple.Pair;
-import org.checkerframework.checker.nullness.qual.NonNull;
-import org.checkerframework.checker.nullness.qual.Nullable;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.spongepowered.configurate.CommentedConfigurationNode;
 import org.spongepowered.configurate.objectmapping.ObjectMapper;
 import org.spongepowered.configurate.serialize.SerializationException;
@@ -65,7 +65,7 @@ public class ChannelConfigHelper {
                 .build(new CacheLoader<String, GameChannel>() {
 
                     @Override
-                    public @Nullable GameChannel load(@NonNull String channelName) {
+                    public @Nullable GameChannel load(@NotNull String channelName) {
                         GameChannelLookupEvent event = new GameChannelLookupEvent(null, channelName);
                         discordSRV.eventBus().publish(event);
                         if (!event.isProcessed()) {
@@ -199,11 +199,13 @@ public class ChannelConfigHelper {
         return channelConfigs;
     }
 
-    public BaseChannelConfig get(GameChannel gameChannel) {
+    @Nullable
+    public BaseChannelConfig get(@NotNull GameChannel gameChannel) {
         return resolve(gameChannel.getOwnerName(), gameChannel.getChannelName());
     }
 
-    public BaseChannelConfig resolve(String ownerName, String channelName) {
+    @Nullable
+    public BaseChannelConfig resolve(@Nullable String ownerName, @NotNull String channelName) {
         if (ownerName != null) {
             ownerName = ownerName.toLowerCase(Locale.ROOT);
 

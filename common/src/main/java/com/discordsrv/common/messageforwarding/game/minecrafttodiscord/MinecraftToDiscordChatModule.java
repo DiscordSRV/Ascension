@@ -78,7 +78,7 @@ public class MinecraftToDiscordChatModule extends AbstractGameMessageModule<Mine
     }
 
     @Override
-    public Map<CompletableFuture<ReceivedDiscordMessage>, DiscordGuildMessageChannel> sendMessageToChannels(
+    public List<CompletableFuture<ReceivedDiscordMessage>> sendMessageToChannels(
             MinecraftToDiscordChatConfig config,
             IPlayer player,
             SendableDiscordMessage.Builder format,
@@ -95,7 +95,7 @@ public class MinecraftToDiscordChatModule extends AbstractGameMessageModule<Mine
         }
 
         Component message = ComponentUtil.fromAPI(event.getMessage());
-        Map<CompletableFuture<ReceivedDiscordMessage>, DiscordGuildMessageChannel> futures = new LinkedHashMap<>();
+        List<CompletableFuture<ReceivedDiscordMessage>> futures = new ArrayList<>();
 
         // Format messages per-Guild
         for (Map.Entry<DiscordGuild, Set<DiscordGuildMessageChannel>> entry : channelMap.entrySet()) {
@@ -103,7 +103,7 @@ public class MinecraftToDiscordChatModule extends AbstractGameMessageModule<Mine
             CompletableFuture<SendableDiscordMessage> messageFuture = getMessageForGuild(config, format, guild, message, player, context);
 
             for (DiscordGuildMessageChannel channel : entry.getValue()) {
-                futures.put(messageFuture.thenCompose(channel::sendMessage), channel);
+                futures.add(messageFuture.thenCompose(msg -> sendMessageToChannel(channel, msg)));
             }
         }
 
