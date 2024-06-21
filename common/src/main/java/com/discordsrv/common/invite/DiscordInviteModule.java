@@ -26,30 +26,33 @@ import com.discordsrv.api.placeholder.FormattedText;
 import com.discordsrv.api.placeholder.annotation.Placeholder;
 import com.discordsrv.common.DiscordSRV;
 import com.discordsrv.common.config.main.DiscordInviteConfig;
+import com.discordsrv.common.discord.util.DiscordPermissionUtil;
+import com.discordsrv.common.logging.NamedLogger;
 import com.discordsrv.common.module.type.AbstractModule;
 import net.dv8tion.jda.api.JDA;
 import net.dv8tion.jda.api.Permission;
 import net.dv8tion.jda.api.entities.Guild;
-import net.dv8tion.jda.api.entities.Member;
+import net.dv8tion.jda.api.entities.Invite;
+import net.dv8tion.jda.api.entities.User;
 import net.dv8tion.jda.api.entities.channel.attribute.IInviteContainer;
 import net.dv8tion.jda.api.events.guild.invite.GuildInviteDeleteEvent;
 import net.dv8tion.jda.api.events.guild.update.GuildUpdateVanityCodeEvent;
 import org.apache.commons.lang3.StringUtils;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.Collection;
-import java.util.Collections;
-import java.util.EnumSet;
-import java.util.List;
+import java.util.*;
+import java.util.concurrent.Future;
 import java.util.function.Consumer;
 
 public class DiscordInviteModule extends AbstractModule<DiscordSRV> {
 
-    private static final String UNKNOWN_INVITE = "https://discord.gg/#Could_not_get_invite,_please_check_your_configuration";
+    private static final String UNKNOWN_INVITE = DiscordSRV.WEBSITE + "/invalid-invite";
     private String invite;
+    private Boolean botPublic = null;
+    private Future<?> appInfoFuture = null;
 
     public DiscordInviteModule(DiscordSRV discordSRV) {
-        super(discordSRV);
+        super(discordSRV, new NamedLogger(discordSRV, "INVITE"));
         discordSRV.placeholderService().addGlobalContext(this);
     }
 
@@ -79,6 +82,7 @@ public class DiscordInviteModule extends AbstractModule<DiscordSRV> {
     public void reload(Consumer<DiscordSRVApi.ReloadResult> resultConsumer) {
         JDA jda = discordSRV.jda();
         if (jda == null) {
+            logger().debug("JDA == null");
             return;
         }
 
@@ -87,21 +91,47 @@ public class DiscordInviteModule extends AbstractModule<DiscordSRV> {
         // Manual
         String invite = config.inviteUrl;
         if (StringUtils.isNotEmpty(invite)) {
+            logger().debug("Using configured invite");
             this.invite = invite;
+            return;
+        }
+
+        Guild guild = jda.getGuildById(config.serverId);
+        if (guild != null) {
+            logger().debug("Automatically determining invite for configured server id (" + Long.toUnsignedString(config.serverId) + ")");
+            consumeGuild(guild, config);
             return;
         }
 
         List<Guild> guilds = jda.getGuilds();
         if (guilds.size() != 1) {
+            logger().debug("Bot is in " + guilds.size() + " servers, not automatically determining invites");
             return;
         }
 
-        Guild guild = guilds.get(0);
+        if (botPublic == null) {
+            if (appInfoFuture == null) {
+                appInfoFuture = jda.retrieveApplicationInfo().submit().whenComplete((appInfo, t) -> {
+                    botPublic = appInfo.isBotPublic();
+                    logger().debug("The bot is " + (botPublic ? "public" : "private"));
+                    appInfoFuture = null;
+                    consumeGuild(guilds.get(0), config);
+                });
+            }
+            return;
+        }
 
+        if (!botPublic) {
+            consumeGuild(guilds.get(0), config);
+        }
+    }
+
+    private void consumeGuild(Guild guild, DiscordInviteConfig config) {
         // Vanity url
         if (config.attemptToUseVanityUrl) {
             String vanityUrl = guild.getVanityUrl();
             if (vanityUrl != null) {
+                logger().debug("Using vanity url");
                 this.invite = vanityUrl;
                 return;
             }
@@ -109,23 +139,59 @@ public class DiscordInviteModule extends AbstractModule<DiscordSRV> {
 
         // Auto create
         if (config.autoCreateInvite) {
-            Member selfMember = guild.getSelfMember();
-            if (!selfMember.hasPermission(Permission.CREATE_INSTANT_INVITE)) {
+            logger().debug("Auto creating invite");
+
+            List<IInviteContainer> channels = new ArrayList<>();
+            Optional.ofNullable(guild.getRulesChannel()).ifPresent(channels::add);
+            Optional.ofNullable(guild.getDefaultChannel()).ifPresent(channels::add);
+            if (channels.isEmpty()) {
+                logger().debug("No rules and default channel");
                 return;
             }
 
-            IInviteContainer channel = guild.getRulesChannel();
-            if (channel == null) {
-                channel = guild.getDefaultChannel();
+            List<String> missingPermissionMessages = new ArrayList<>();
+            IInviteContainer channelToUse = null;
+            for (IInviteContainer potentialChannel : channels) {
+                String missingPermissions = DiscordPermissionUtil.missingPermissionsString(
+                        potentialChannel,
+                        Permission.VIEW_CHANNEL,
+                        Permission.CREATE_INSTANT_INVITE,
+                        Permission.MANAGE_CHANNEL
+                );
+
+                if (missingPermissions != null) {
+                    missingPermissionMessages.add(missingPermissions);
+                } else {
+                    channelToUse = potentialChannel;
+                    break;
+                }
             }
-            if (channel == null) {
+            if (channelToUse == null) {
+                logger().error("Failed to automatically create invite: " + String.join(" and ", missingPermissionMessages));
                 return;
             }
 
-            channel.createInvite().setMaxAge(0).setUnique(true).queue(
-                    inv -> this.invite = inv.getUrl(),
-                    ErrorCallbackContext.context("Failed to auto create invite")
-            );
+            IInviteContainer channel = channelToUse;
+            channel.retrieveInvites().queue(invites -> {
+                boolean found = false;
+                for (Invite existingInvite : invites) {
+                    User inviter = existingInvite.getInviter();
+                    if (inviter != null && inviter.getIdLong() == inviter.getJDA().getSelfUser().getIdLong()) {
+                        this.invite = existingInvite.getUrl();
+                        found = true;
+                        break;
+                    }
+                }
+
+                if (found) {
+                    return;
+                }
+
+                channel.createInvite().setMaxAge(0).setUnique(true).queue(
+                        inv -> this.invite = inv.getUrl(),
+                        ErrorCallbackContext.context("Failed to auto create invite")
+                );
+            }, ErrorCallbackContext.context("Failed to get invites for automatic invite creation"));
         }
     }
 

@@ -22,11 +22,11 @@ public final class DiscordPermissionUtil {
         if (channel instanceof ThreadChannel) {
             channel = ((ThreadChannel) channel).getParentChannel();
         }
-        EnumSet<Permission> missingPermissions = checkMissingPermissions(channel, permissions);
+        EnumSet<Permission> missingPermissions = getMissingPermissions(channel, permissions);
         return createErrorMessage(missingPermissions, "#" + channel.getName());
     }
 
-    public static EnumSet<Permission> checkMissingPermissions(GuildChannel channel, Collection<Permission> permissions) {
+    public static EnumSet<Permission> getMissingPermissions(GuildChannel channel, Collection<Permission> permissions) {
         if (channel instanceof ThreadChannel) {
             channel = ((ThreadChannel) channel).getParentChannel();
         }
@@ -44,11 +44,11 @@ public final class DiscordPermissionUtil {
     }
 
     public static String missingPermissionsString(Guild guild, Collection<Permission> permissions) {
-        EnumSet<Permission> missingPermissions = checkMissingPermissions(guild, permissions);
+        EnumSet<Permission> missingPermissions = getMissingPermissions(guild, permissions);
         return createErrorMessage(missingPermissions, guild.getName());
     }
 
-    public static EnumSet<Permission> checkMissingPermissions(Guild guild, Collection<Permission> permissions) {
+    public static EnumSet<Permission> getMissingPermissions(Guild guild, Collection<Permission> permissions) {
         EnumSet<Permission> missingPermissions = EnumSet.noneOf(Permission.class);
         for (Permission permission : permissions) {
             if (!guild.getSelfMember().hasPermission(permission)) {

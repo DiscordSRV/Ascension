@@ -42,7 +42,9 @@ public class DependencyLoggingHandler implements LogAppender {
                 "WebSocket connection was closed and cannot be recovered due to identification issues",
                 // Failed JDA requests (handled with RestAction default failure)
                 "There was an I/O error while executing a REST request: ",
-                "There was an unexpected error while executing a REST request"
+                "There was an unexpected error while executing a REST request",
+                // This doesn't need to be a warning logged to the user
+                "Encountered 429 on route "
         ));
         BLACKLISTED_MESSAGES.put("com.zaxxer.hikari", Collections.singletonList(
                 // This is fine, we don't need a warning about it
@@ -76,7 +78,8 @@ public class DependencyLoggingHandler implements LogAppender {
             // Go through the blacklisted messages we gathered
             for (String blacklistedMessage : blacklistedMessages) {
                 if (message.contains(blacklistedMessage)) {
-                    return;
+                    logLevel = LogLevel.DEBUG;
+                    break;
                 }
             }
         }
