@@ -41,12 +41,11 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
 
 public class JoinMessageModule extends AbstractGameMessageModule<IMessageConfig, JoinMessageReceiveEvent> {
 
-    private final Map<UUID, Runnable> delayedTasks = new HashMap<>();
+    private final Map<UUID, Future<?>> delayedTasks = new HashMap<>();
 
     public JoinMessageModule(DiscordSRV discordSRV) {
         super(discordSRV, "JOIN_MESSAGES");
@@ -79,24 +78,12 @@ public class JoinMessageModule extends AbstractGameMessageModule<IMessageConfig,
 
             CompletableFuture<Void> completableFuture = new CompletableFuture<>();
             synchronized (delayedTasks) {
-                Future<?> future = discordSRV.scheduler().runLater(() -> {
-                    CompletableFuture<Void> forward = super.forwardToChannel(event, player, config);
+                CompletableFuture<Void> future = discordSRV.scheduler()
+                        .supplyLater(() -> super.forwardToChannel(event, player, config), Duration.ofMillis(delay))
+                        .thenCompose(r -> r)
+                        .whenComplete((v, t) -> delayedTasks.remove(playerUUID));
 
-                    synchronized (delayedTasks) {
-                        delayedTasks.remove(playerUUID);
-                    }
-                    try {
-                        completableFuture.complete(forward.get());
-                    } catch (ExecutionException e) {
-                        completableFuture.completeExceptionally(e.getCause());
-                    } catch (InterruptedException e) {
-                        Thread.currentThread().interrupt();
-                    }
-                }, Duration.ofMillis(delay));
-                delayedTasks.put(playerUUID, () -> {
-                    completableFuture.complete(null);
-                    future.cancel(true);
-                });
+                delayedTasks.put(playerUUID, future);
             }
             return completableFuture;
         }
@@ -106,9 +93,9 @@ public class JoinMessageModule extends AbstractGameMessageModule<IMessageConfig,
     @Subscribe
     public void onPlayerDisconnected(PlayerDisconnectedEvent event) {
         IPlayer player = event.player();
-        Runnable cancel = delayedTasks.remove(player.uniqueId());
-        if (cancel != null) {
-            cancel.run();
+        Future<?> future = delayedTasks.remove(player.uniqueId());
+        if (future != null) {
+            future.cancel(true);
             logger().info(player.username() + " left within timeout period, join message will not be sent");
         }
     }

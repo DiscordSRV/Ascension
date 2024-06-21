@@ -23,6 +23,7 @@ import org.bukkit.command.BlockCommandSender;
 import org.bukkit.command.CommandSender;
 import org.bukkit.command.ProxiedCommandSender;
 import org.bukkit.entity.Entity;
+import org.jetbrains.annotations.NotNull;
 
 public interface IFoliaScheduler extends ServerScheduler, IBukkitScheduler {
 
@@ -51,17 +52,17 @@ public interface IFoliaScheduler extends ServerScheduler, IBukkitScheduler {
     }
 
     @Override
-    default void runOnMainThread(Runnable task) {
+    default void runOnMainThread(@NotNull Runnable task) {
         runWithArgs((server, plugin) -> server.getGlobalRegionScheduler().execute(plugin, task));
     }
 
     @Override
-    default void runOnMainThreadLaterInTicks(Runnable task, int ticks) {
+    default void runOnMainThreadLaterInTicks(@NotNull Runnable task, int ticks) {
         runWithArgs((server, plugin) -> server.getGlobalRegionScheduler().runDelayed(plugin, r -> task.run(), ticks));
     }
 
     @Override
-    default void runOnMainThreadAtFixedRateInTicks(Runnable task, int initialTicks, int rateTicks) {
+    default void runOnMainThreadAtFixedRateInTicks(@NotNull Runnable task, int initialTicks, int rateTicks) {
         runWithArgs((server, plugin) -> server.getGlobalRegionScheduler().execute(plugin, task));
     }
 }

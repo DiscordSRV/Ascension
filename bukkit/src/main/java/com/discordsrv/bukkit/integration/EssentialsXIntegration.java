@@ -70,7 +70,7 @@ public class EssentialsXIntegration
     }
 
     private CompletableFuture<User> getUser(UUID playerUUID) {
-        return CompletableFuture.supplyAsync(() -> get().getUsers().loadUncachedUser(playerUUID), discordSRV.scheduler().executor());
+        return discordSRV.scheduler().supply(() -> get().getUsers().loadUncachedUser(playerUUID));
     }
 
     @Override

@@ -19,6 +19,7 @@
 package com.discordsrv.bukkit.scheduler;
 
 import com.discordsrv.bukkit.BukkitDiscordSRV;
+import org.jetbrains.annotations.NotNull;
 
 public class BukkitScheduler extends AbstractBukkitScheduler {
 
@@ -27,17 +28,17 @@ public class BukkitScheduler extends AbstractBukkitScheduler {
     }
 
     @Override
-    public void runOnMainThread(Runnable task) {
+    public void runOnMainThread(@NotNull Runnable task) {
         checkDisable(task, (server, plugin) -> server.getScheduler().runTask(plugin, task));
     }
 
     @Override
-    public void runOnMainThreadLaterInTicks(Runnable task, int ticks) {
+    public void runOnMainThreadLaterInTicks(@NotNull Runnable task, int ticks) {
         checkDisable(task, (server, plugin) -> server.getScheduler().runTaskLater(plugin, task, ticks));
     }
 
     @Override
-    public void runOnMainThreadAtFixedRateInTicks(Runnable task, int initialTicks, int rateTicks) {
+    public void runOnMainThreadAtFixedRateInTicks(@NotNull Runnable task, int initialTicks, int rateTicks) {
         checkDisable(task, (server, plugin) -> server.getScheduler().runTaskTimer(plugin, task, initialTicks, rateTicks));
     }
 }

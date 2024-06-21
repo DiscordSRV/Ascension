@@ -18,11 +18,14 @@
 
 package com.discordsrv.bukkit.scheduler;
 
+import com.discordsrv.common.function.CheckedSupplier;
+import com.discordsrv.common.future.util.CompletableFutureUtil;
 import com.discordsrv.common.scheduler.ServerScheduler;
 import org.bukkit.Server;
 import org.bukkit.command.CommandSender;
 import org.bukkit.plugin.Plugin;
 
+import java.util.concurrent.CompletableFuture;
 import java.util.function.BiConsumer;
 
 public interface IBukkitScheduler extends ServerScheduler {
@@ -31,6 +34,14 @@ public interface IBukkitScheduler extends ServerScheduler {
 
     default void runOnMainThread(CommandSender sender, Runnable task) {
         runOnMainThread(task);
+    }
+
+    default CompletableFuture<Void> executeOnMainThread(CommandSender sender, Runnable runnable) {
+        return CompletableFuture.runAsync(runnable, task -> runOnMainThread(sender, task));
+    }
+
+    default <T> CompletableFuture<T> supplyOnMainThread(CommandSender sender, CheckedSupplier<T> supplier) {
+        return CompletableFutureUtil.supplyAsync(supplier, task -> runOnMainThread(sender, task));
     }
 
 }

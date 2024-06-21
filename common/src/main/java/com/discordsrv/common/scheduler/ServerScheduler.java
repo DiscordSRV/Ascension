@@ -18,8 +18,12 @@
 
 package com.discordsrv.common.scheduler;
 
-import org.jetbrains.annotations.ApiStatus;
+import com.discordsrv.common.function.CheckedRunnable;
+import com.discordsrv.common.function.CheckedSupplier;
+import com.discordsrv.common.future.util.CompletableFutureUtil;
+import org.jetbrains.annotations.NotNull;
 
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
 
 @SuppressWarnings("unused") // API
@@ -44,7 +48,17 @@ public interface ServerScheduler extends Scheduler {
      * Runs the provided task on the server's main thread as soon as possible.
      * @param task the task
      */
-    void runOnMainThread(Runnable task);
+    void runOnMainThread(@NotNull Runnable task);
+
+    @NotNull
+    default CompletableFuture<Void> supplyOnMainThread(@NotNull CheckedRunnable task) {
+        return CompletableFutureUtil.runAsync(task, this::runOnMainThread);
+    }
+
+    @NotNull
+    default <T> CompletableFuture<T> supplyOnMainThread(@NotNull CheckedSupplier<T> task) {
+        return CompletableFutureUtil.supplyAsync(task, this::runOnMainThread);
+    }
 
     /**
      * Runs the provided task in on the server's main thread in the provided amount of ticks.
@@ -53,7 +67,17 @@ public interface ServerScheduler extends Scheduler {
      * @see #TICKS_PER_SECOND
      * @see #timeToTicks(long, TimeUnit)
      */
-    void runOnMainThreadLaterInTicks(Runnable task, int ticks);
+    void runOnMainThreadLaterInTicks(@NotNull Runnable task, int ticks);
+
+    @NotNull
+    default CompletableFuture<Void> executeOnMainThreadLaterInTicks(@NotNull CheckedRunnable task, int ticks) {
+        return CompletableFutureUtil.runAsync(task, t -> runOnMainThreadLaterInTicks(t, ticks));
+    }
+
+    @NotNull
+    default <T> CompletableFuture<T> supplyOnMainThreadLaterInTicks(@NotNull CheckedSupplier<T> task, int ticks) {
+        return CompletableFutureUtil.supplyAsync(task, t -> runOnMainThreadLaterInTicks(t, ticks));
+    }
 
     /**
      * Runs the task on the server's main thread continuously at provided rate in ticks.
@@ -61,8 +85,7 @@ public interface ServerScheduler extends Scheduler {
      * @param task the task
      * @param rateTicks the rate in ticks
      */
-    @ApiStatus.NonExtendable
-    default void runOnMainThreadAtFixedRateInTicks(Runnable task, int rateTicks) {
+    default void runOnMainThreadAtFixedRateInTicks(@NotNull Runnable task, int rateTicks) {
         runOnMainThreadAtFixedRateInTicks(task, 0, rateTicks);
     }
 
@@ -73,7 +96,7 @@ public interface ServerScheduler extends Scheduler {
      * @param initialTicks the initial delay in ticks
      * @param rateTicks the rate in ticks
      */
-    void runOnMainThreadAtFixedRateInTicks(Runnable task, int initialTicks, int rateTicks);
+    void runOnMainThreadAtFixedRateInTicks(@NotNull Runnable task, int initialTicks, int rateTicks);
 
 
 }

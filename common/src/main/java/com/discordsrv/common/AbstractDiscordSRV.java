@@ -538,7 +538,7 @@ public abstract class AbstractDiscordSRV<
 
     @Override
     public final CompletableFuture<Void> invokeDisable() {
-        return CompletableFuture.runAsync(this::disable, scheduler().executorService());
+        return scheduler().execute(this::disable);
     }
 
     @Override

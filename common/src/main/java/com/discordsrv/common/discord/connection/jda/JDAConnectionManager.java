@@ -283,7 +283,7 @@ public class JDAConnectionManager implements DiscordConnectionManager {
             throw new IllegalStateException("Cannot reconnect, still active");
         }
 
-        return connectionFuture = CompletableFuture.runAsync(this::connectInternal, discordSRV.scheduler().executor());
+        return connectionFuture = discordSRV.scheduler().execute(this::connectInternal);
     }
 
     private void connectInternal() {
@@ -413,10 +413,10 @@ public class JDAConnectionManager implements DiscordConnectionManager {
 
     @Override
     public CompletableFuture<Void> reconnect() {
-        return CompletableFuture.runAsync(() -> {
+        return discordSRV.scheduler().execute(() -> {
             shutdown().join();
             connect().join();
-        }, discordSRV.scheduler().executor());
+        });
     }
 
     @Subscribe(priority = EventPriority.LATE)
@@ -427,7 +427,7 @@ public class JDAConnectionManager implements DiscordConnectionManager {
 
     @Override
     public CompletableFuture<Void> shutdown(long timeoutMillis) {
-        return CompletableFuture.runAsync(() -> shutdownInternal(timeoutMillis), discordSRV.scheduler().executor());
+        return discordSRV.scheduler().execute(() -> shutdownInternal(timeoutMillis));
     }
 
     @SuppressWarnings("BusyWait")

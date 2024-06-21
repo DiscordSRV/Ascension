@@ -59,7 +59,7 @@ public abstract class ServerDiscordSRV<
     }
 
     public final CompletableFuture<Void> invokeServerStarted() {
-        return CompletableFuture.supplyAsync(() -> {
+        return scheduler().supply(() -> {
             if (status().isShutdown()) {
                 // Already shutdown/shutting down, don't bother
                 return null;
@@ -76,7 +76,7 @@ public abstract class ServerDiscordSRV<
                 logger().error("Failed to start", t);
             }
             return null;
-        }, scheduler().executorService());
+        });
     }
 
     @OverridingMethodsMustInvokeSuper

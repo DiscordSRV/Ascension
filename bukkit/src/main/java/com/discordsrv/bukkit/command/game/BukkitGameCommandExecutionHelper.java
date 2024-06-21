@@ -35,20 +35,14 @@ public class BukkitGameCommandExecutionHelper implements GameCommandExecutionHel
 
                 if (PaperCommandMap.IS_AVAILABLE) {
                     // If Paper's CommandMap is available we can list out 'root' commands
-                    CompletableFuture<List<String>> future = new CompletableFuture<>();
-                    discordSRV.scheduler().runOnMainThread(discordSRV.server().getConsoleSender(), () -> {
-                        try {
-                            for (String cmd : PaperCommandMap.getKnownCommands(discordSRV.server())) {
-                                if (commandName == null || cmd.startsWith(commandName)) {
-                                    suggestions.add(cmd);
-                                }
+                    return discordSRV.scheduler().supplyOnMainThread(discordSRV.server().getConsoleSender(), () -> {
+                        for (String cmd : PaperCommandMap.getKnownCommands(discordSRV.server())) {
+                            if (commandName == null || cmd.startsWith(commandName)) {
+                                suggestions.add(cmd);
                             }
-                            future.complete(suggestions);
-                        } catch (Throwable t) {
-                            future.completeExceptionally(t);
                         }
+                        return suggestions;
                     });
-                    return future;
                 }
 
                 return CompletableFuture.completedFuture(suggestions);
@@ -57,24 +51,17 @@ public class BukkitGameCommandExecutionHelper implements GameCommandExecutionHel
 
         // Get the arguments minus the last one (if any)
         String prefix = parts.isEmpty() ? "" : String.join(" ", parts.subList(0, parts.size() - 1)) + " ";
-        CompletableFuture<List<String>> future = new CompletableFuture<>();
 
         CommandSender commandSender = discordSRV.server().getConsoleSender();
-        discordSRV.scheduler().runOnMainThread(commandSender, () -> {
-            try {
-                List<String> completions = command.tabComplete(commandSender, commandName, parts.toArray(new String[0]));
+        return discordSRV.scheduler().supplyOnMainThread(commandSender, () -> {
+            List<String> completions = command.tabComplete(commandSender, commandName, parts.toArray(new String[0]));
 
-                List<String> suggestions = new ArrayList<>();
-                for (String suggestion : completions) {
-                    suggestions.add(commandName + " " + prefix + suggestion);
-                }
-                future.complete(suggestions);
-            } catch (Throwable t) {
-                future.completeExceptionally(t);
+            List<String> suggestions = new ArrayList<>();
+            for (String suggestion : completions) {
+                suggestions.add(commandName + " " + prefix + suggestion);
             }
+            return suggestions;
         });
-
-        return future;
     }
 
     @Override

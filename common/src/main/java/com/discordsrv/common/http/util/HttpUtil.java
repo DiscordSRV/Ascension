@@ -26,8 +26,7 @@ public final class HttpUtil {
     }
 
     public static <T> CompletableFuture<T> readJson(DiscordSRV discordSRV, Request request, Class<T> type) {
-        CompletableFuture<T> future = new CompletableFuture<>();
-        discordSRV.scheduler().run(() -> {
+        return discordSRV.scheduler().supply(() -> {
             try (Response response = discordSRV.httpClient().newCall(request).execute()) {
                 ResponseBody responseBody = checkIfResponseSuccessful(request, response);
 
@@ -35,11 +34,8 @@ public final class HttpUtil {
                 if (result == null) {
                     throw new MessageException("Response json cannot be parsed");
                 }
-                future.complete(result);
-            } catch (Throwable t) {
-                future.completeExceptionally(t);
+                return result;
             }
         });
-        return future;
     }
 }

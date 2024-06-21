@@ -171,15 +171,7 @@ public class MinecraftAuthenticationLinker extends CachedLinkProvider implements
             Consumer<T> linked,
             Consumer<T> unlinked
     ) {
-        CompletableFuture<Optional<T>> authService = new CompletableFuture<>();
-
-        discordSRV.scheduler().run(() -> {
-            try {
-                authService.complete(authSupplier.get());
-            } catch (Throwable t) {
-                authService.completeExceptionally(t);
-            }
-        });
+        CompletableFuture<Optional<T>> authService = discordSRV.scheduler().supply(authSupplier);
         if (!canCauseLink) {
             return authService;
         }

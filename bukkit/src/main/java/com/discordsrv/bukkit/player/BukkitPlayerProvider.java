@@ -77,14 +77,14 @@ public class BukkitPlayerProvider extends ServerPlayerProvider<BukkitPlayer, Buk
     // IOfflinePlayer
 
     private CompletableFuture<IOfflinePlayer> getFuture(Supplier<OfflinePlayer> provider) {
-        return CompletableFuture.supplyAsync(() -> {
+        return discordSRV.scheduler().supply(() -> {
             OfflinePlayer offlinePlayer = provider.get();
             if (offlinePlayer == null) {
                 return null;
             }
 
             return new BukkitOfflinePlayer(discordSRV, offlinePlayer);
-        }, discordSRV.scheduler().executor());
+        });
     }
 
     @Override

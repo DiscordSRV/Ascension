@@ -116,20 +116,11 @@ public class VaultIntegration extends PluginIntegration<BukkitDiscordSRV> implem
     }
 
     private <T> CompletableFuture<T> supply(CheckedSupplier<T> supplier, boolean async) {
-        CompletableFuture<T> future = new CompletableFuture<>();
-        Runnable runnable = () -> {
-            try {
-                future.complete(supplier.get());
-            } catch (Throwable e) {
-                future.completeExceptionally(e);
-            }
-        };
         if (async) {
-            discordSRV.scheduler().run(runnable);
+            return discordSRV.scheduler().supply(supplier);
         } else {
-            discordSRV.scheduler().runOnMainThread(runnable);
+            return discordSRV.scheduler().supplyOnMainThread(supplier);
         }
-        return future;
     }
 
     private OfflinePlayer offlinePlayer(UUID player) {
