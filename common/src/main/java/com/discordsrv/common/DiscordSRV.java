@@ -37,6 +37,7 @@ import com.discordsrv.common.console.Console;
 import com.discordsrv.common.debug.data.OnlineMode;
 import com.discordsrv.common.debug.data.VersionInfo;
 import com.discordsrv.common.dependency.DiscordSRVDependencyManager;
+import com.discordsrv.common.destination.DestinationLookupHelper;
 import com.discordsrv.common.discord.api.DiscordAPIImpl;
 import com.discordsrv.common.discord.connection.details.DiscordConnectionDetailsImpl;
 import com.discordsrv.common.discord.connection.jda.JDAConnectionManager;
@@ -135,6 +136,7 @@ public interface DiscordSRV extends DiscordSRVApi {
 
     // Config helper
     ChannelConfigHelper channelConfig();
+    DestinationLookupHelper destinations();
 
     // Internal
     JDAConnectionManager discordConnectionManager();

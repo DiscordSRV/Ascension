@@ -29,6 +29,9 @@ public class ThreadConfig {
 
     public String threadName = "Minecraft Server chat bridge";
 
+    @Comment("Should an existing thread with the same name be unarchived instead of creating a new thread every time")
+    public boolean unarchiveExisting = true;
+
     @Comment("Does not effect forums")
     public boolean privateThread = false;
 

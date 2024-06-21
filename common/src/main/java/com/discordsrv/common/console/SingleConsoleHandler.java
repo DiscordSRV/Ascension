@@ -295,8 +295,8 @@ public class SingleConsoleHandler {
 
             sendFuture = future
                     .thenCompose(__ ->
-                           discordSRV.discordAPI()
-                                   .findOrCreateDestinations(config.channel.asDestination(), true, true, true)
+                           discordSRV.destinations()
+                                   .lookupDestination(config.channel.asDestination(), true, true)
                     )
                     .thenApply(channels -> {
                         if (channels.isEmpty()) {

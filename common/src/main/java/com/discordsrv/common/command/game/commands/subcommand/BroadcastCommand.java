@@ -103,7 +103,7 @@ public abstract class BroadcastCommand implements GameCommandExecutor, GameComma
         String content = arguments.getString("content");
 
         Set<DiscordMessageChannel> channels = new HashSet<>();
-        CompletableFuture<Collection<DiscordGuildMessageChannel>> future = null;
+        CompletableFuture<List<DiscordGuildMessageChannel>> future = null;
         try {
             long id = Long.parseUnsignedLong(channel);
 
@@ -116,7 +116,7 @@ public abstract class BroadcastCommand implements GameCommandExecutor, GameComma
             CC config = channelConfig instanceof IChannelConfig ? (CC) channelConfig : null;
 
             if (config != null) {
-                future = discordSRV.discordAPI().findOrCreateDestinations(config, true, false);
+                future = discordSRV.destinations().lookupDestination(config.destination(), true, false);
             }
         }
 

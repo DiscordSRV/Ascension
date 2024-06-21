@@ -160,7 +160,7 @@ public class DiscordMessageMirroringModule extends AbstractModule<DiscordSRV> {
             }
 
             futures.add(
-                    discordSRV.discordAPI().findOrCreateDestinations(channelConfig, true, true)
+                    discordSRV.destinations().lookupDestination(channelConfig.destination(), true, true)
                             .thenApply(messageChannels -> {
                                 List<MirrorTarget> targets = new ArrayList<>();
                                 for (DiscordGuildMessageChannel messageChannel : messageChannels) {

@@ -45,6 +45,7 @@ import com.discordsrv.common.config.messages.MessagesConfig;
 import com.discordsrv.common.console.ConsoleModule;
 import com.discordsrv.common.debug.data.VersionInfo;
 import com.discordsrv.common.dependency.DiscordSRVDependencyManager;
+import com.discordsrv.common.destination.DestinationLookupHelper;
 import com.discordsrv.common.discord.api.DiscordAPIEventModule;
 import com.discordsrv.common.discord.api.DiscordAPIImpl;
 import com.discordsrv.common.discord.connection.details.DiscordConnectionDetailsImpl;
@@ -146,6 +147,7 @@ public abstract class AbstractDiscordSRV<
     private ModuleManager moduleManager;
     private JDAConnectionManager discordConnectionManager;
     private ChannelConfigHelper channelConfig;
+    private DestinationLookupHelper destinationLookupHelper;
 
     private Storage storage;
     private LinkProvider linkProvider;
@@ -182,6 +184,7 @@ public abstract class AbstractDiscordSRV<
         this.discordConnectionDetails = new DiscordConnectionDetailsImpl(this);
         this.discordConnectionManager = new JDAConnectionManager(this);
         this.channelConfig = new ChannelConfigHelper(this);
+        this.destinationLookupHelper = new DestinationLookupHelper(this);
         this.updateChecker = new UpdateChecker(this);
         readManifest();
 
@@ -367,6 +370,11 @@ public abstract class AbstractDiscordSRV<
     @Override
     public final ChannelConfigHelper channelConfig() {
         return channelConfig;
+    }
+
+    @Override
+    public DestinationLookupHelper destinations() {
+        return destinationLookupHelper;
     }
 
     @Override

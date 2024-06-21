@@ -105,7 +105,7 @@ public abstract class AbstractGameMessageModule<T extends IMessageConfig, E exte
             return null;
         }
 
-        return discordSRV.discordAPI().findOrCreateDestinations(channelConfig, true, true).thenCompose(messageChannels -> {
+        return discordSRV.destinations().lookupDestination(channelConfig.destination(), true, true).thenCompose(messageChannels -> {
             SendableDiscordMessage.Builder format = moduleConfig.format();
             if (format == null || format.isEmpty()) {
                 return CompletableFuture.completedFuture(null);

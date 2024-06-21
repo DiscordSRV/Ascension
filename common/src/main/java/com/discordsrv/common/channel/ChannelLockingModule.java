@@ -19,6 +19,7 @@
 package com.discordsrv.common.channel;
 
 import com.discordsrv.api.discord.entity.channel.DiscordGuildMessageChannel;
+import com.discordsrv.api.discord.entity.channel.DiscordMessageChannel;
 import com.discordsrv.api.discord.entity.channel.DiscordThreadChannel;
 import com.discordsrv.common.DiscordSRV;
 import com.discordsrv.common.config.main.channels.ChannelLockingConfig;
@@ -56,8 +57,8 @@ public class ChannelLockingModule extends AbstractModule<DiscordSRV> {
             ChannelLockingConfig.Channels channels = shutdownConfig.channels;
             ChannelLockingConfig.Threads threads = shutdownConfig.threads;
 
-            discordSRV.discordAPI()
-                    .findOrCreateDestinations((BaseChannelConfig & IChannelConfig) config, threads.unarchive, true)
+            discordSRV.destinations()
+                    .lookupDestination(((IChannelConfig) config).destination(), false, true)
                     .whenComplete((destinations, t) -> {
                         if (channels.everyone || !channels.roleIds.isEmpty()) {
                             for (DiscordGuildMessageChannel destination : destinations) {
@@ -85,8 +86,8 @@ public class ChannelLockingModule extends AbstractModule<DiscordSRV> {
                 return;
             }
 
-            Collection<DiscordGuildMessageChannel> destinations = discordSRV.discordAPI()
-                    .findDestinations((BaseChannelConfig & IChannelConfig) config, true);
+            Collection<DiscordGuildMessageChannel> destinations = discordSRV.destinations()
+                    .lookupDestination(((IChannelConfig) config).destination(), false, false).join();
 
             for (DiscordGuildMessageChannel destination : destinations) {
                 if (archive && destination instanceof DiscordThreadChannel) {
