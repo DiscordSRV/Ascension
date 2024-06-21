@@ -20,7 +20,6 @@ package com.discordsrv.common.discord.api;
 
 import com.discordsrv.api.discord.DiscordAPI;
 import com.discordsrv.api.discord.connection.details.DiscordGatewayIntent;
-import com.discordsrv.api.discord.connection.jda.errorresponse.ErrorCallbackContext;
 import com.discordsrv.api.discord.entity.DiscordUser;
 import com.discordsrv.api.discord.entity.channel.*;
 import com.discordsrv.api.discord.entity.guild.DiscordCustomEmoji;
@@ -28,7 +27,6 @@ import com.discordsrv.api.discord.entity.guild.DiscordGuild;
 import com.discordsrv.api.discord.entity.guild.DiscordRole;
 import com.discordsrv.api.discord.entity.interaction.command.CommandType;
 import com.discordsrv.api.discord.entity.interaction.command.DiscordCommand;
-import com.discordsrv.api.discord.entity.message.SendableDiscordMessage;
 import com.discordsrv.api.discord.exception.NotReadyException;
 import com.discordsrv.api.discord.exception.RestErrorResponseException;
 import com.discordsrv.common.DiscordSRV;
@@ -62,10 +60,11 @@ import org.checkerframework.checker.nullness.qual.NonNull;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.*;
-import java.util.concurrent.*;
-import java.util.function.BiConsumer;
-import java.util.function.Consumer;
+import java.util.Objects;
+import java.util.Optional;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.Executor;
+import java.util.concurrent.TimeUnit;
 import java.util.function.Function;
 
 public class DiscordAPIImpl implements DiscordAPI {

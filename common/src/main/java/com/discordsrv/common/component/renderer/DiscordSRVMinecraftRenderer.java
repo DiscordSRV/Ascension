@@ -18,7 +18,6 @@
 
 package com.discordsrv.common.component.renderer;
 
-import com.discordsrv.api.component.GameTextBuilder;
 import com.discordsrv.api.discord.entity.DiscordUser;
 import com.discordsrv.api.discord.entity.guild.DiscordCustomEmoji;
 import com.discordsrv.api.discord.entity.guild.DiscordGuild;
