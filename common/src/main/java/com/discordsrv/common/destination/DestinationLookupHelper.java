@@ -7,6 +7,9 @@ import com.discordsrv.common.config.main.generic.DestinationConfig;
 import com.discordsrv.common.config.main.generic.ThreadConfig;
 import com.discordsrv.common.logging.Logger;
 import com.discordsrv.common.logging.NamedLogger;
+import net.dv8tion.jda.api.Permission;
+import net.dv8tion.jda.api.entities.channel.attribute.IThreadContainer;
+import net.dv8tion.jda.api.entities.channel.concrete.ThreadChannel;
 import org.apache.commons.lang3.StringUtils;
 
 import java.util.*;
@@ -91,7 +94,7 @@ public class DestinationLookupHelper {
                     future = createThread(threadContainer, threadConfig, logFailures);
                 } else if (existingThread != null) {
                     // Unarchive existing thread
-                    future = unarchiveThread(existingThread);
+                    future = unarchiveThread(existingThread, logFailures);
                 } else {
                     // Lookup threads
                     CompletableFuture<List<DiscordThreadChannel>> threads =
@@ -103,7 +106,7 @@ public class DestinationLookupHelper {
                         DiscordThreadChannel archivedThread = findThread(archivedThreads, threadConfig);
                         if (archivedThread != null) {
                             // Unarchive existing thread
-                            return unarchiveThread(archivedThread);
+                            return unarchiveThread(archivedThread, logFailures);
                         }
 
                         // Create thread
@@ -157,14 +160,27 @@ public class DestinationLookupHelper {
             ThreadConfig threadConfig,
             boolean logFailures
     ) {
+        boolean forum = threadContainer instanceof DiscordForumChannel;
+        boolean privateThread = !forum && threadConfig.privateThread;
+
+        IThreadContainer container = threadContainer.getAsJDAThreadContainer();
+        if (!container.getGuild().getSelfMember().hasPermission(container, privateThread ? Permission.CREATE_PRIVATE_THREADS : Permission.CREATE_PUBLIC_THREADS)) {
+            if (logFailures) {
+                logger.error("Failed to create thread \"" + threadConfig.threadName + "\" "
+                                     + "in channel ID " + Long.toUnsignedString(threadContainer.getId())
+                                     + ": lacking \"Create " + (privateThread ? "Private" : "Public") + " Threads\" permission");
+            }
+            return CompletableFuture.completedFuture(null);
+        }
+
         CompletableFuture<DiscordThreadChannel> future;
-        if (threadContainer instanceof DiscordForumChannel) {
+        if (forum) {
             future = ((DiscordForumChannel) threadContainer).createPost(
                     threadConfig.threadName,
                     SendableDiscordMessage.builder().setContent("\u200B").build() // zero-width-space
             );
         } else {
-            future = threadContainer.createThread(threadConfig.threadName, threadConfig.privateThread);
+            future = threadContainer.createThread(threadConfig.threadName, privateThread);
         }
         return future.exceptionally(t -> {
             if (logFailures) {
@@ -175,15 +191,27 @@ public class DestinationLookupHelper {
         });
     }
 
-    private CompletableFuture<DiscordThreadChannel> unarchiveThread(DiscordThreadChannel channel) {
+    private CompletableFuture<DiscordThreadChannel> unarchiveThread(DiscordThreadChannel channel, boolean logFailures) {
+        ThreadChannel jdaChannel = channel.asJDA();
+        if ((jdaChannel.isLocked() || !jdaChannel.isOwner()) && !jdaChannel.getGuild().getSelfMember().hasPermission(jdaChannel, Permission.MANAGE_THREADS)) {
+            if (logFailures) {
+                logger.error("Cannot unarchive thread \"" + channel.getName() + "\" "
+                                     + "in channel ID " + Long.toUnsignedString(channel.getParentChannel().getId())
+                                     + ": lacking \"Manage Threads\" permission");
+            }
+            return CompletableFuture.completedFuture(null);
+        }
+
         return discordSRV.discordAPI().mapExceptions(
                 channel.asJDA().getManager()
                         .setArchived(false)
                         .reason("DiscordSRV destination lookup")
                         .submit()
         ).thenApply(v -> channel).exceptionally(t -> {
-            logger.error("Failed to unarchive thread \"" + channel.getName() + "\" "
-                                 + "in channel ID " + Long.toUnsignedString(channel.getParentChannel().getId()), t);
+            if (logFailures) {
+                logger.error("Failed to unarchive thread \"" + channel.getName() + "\" "
+                                     + "in channel ID " + Long.toUnsignedString(channel.getParentChannel().getId()), t);
+            }
             return null;
         });
     }

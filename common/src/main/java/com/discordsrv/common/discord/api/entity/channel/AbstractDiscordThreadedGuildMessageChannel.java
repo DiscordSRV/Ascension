@@ -100,4 +100,8 @@ public abstract class AbstractDiscordThreadedGuildMessageChannel<T extends Guild
         });
     }
 
+    @Override
+    public IThreadContainer getAsJDAThreadContainer() {
+        return channel;
+    }
 }

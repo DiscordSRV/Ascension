@@ -23,6 +23,8 @@
 
 package com.discordsrv.api.discord.entity.channel;
 
+import com.discordsrv.api.DiscordSRVApi;
+import net.dv8tion.jda.api.entities.channel.attribute.IThreadContainer;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.List;
@@ -42,4 +44,11 @@ public interface DiscordThreadContainer extends DiscordGuildChannel {
 
     CompletableFuture<DiscordThreadChannel> createThread(String name, boolean privateThread);
     CompletableFuture<DiscordThreadChannel> createThread(String name, long messageId);
+
+    /**
+     * Returns the JDA representation of this object. This should not be used if it can be avoided.
+     * @return the JDA representation of this object
+     * @see DiscordSRVApi#jda()
+     */
+    IThreadContainer getAsJDAThreadContainer();
 }

@@ -12,7 +12,6 @@ import net.dv8tion.jda.api.entities.channel.concrete.ForumChannel;
 import net.dv8tion.jda.api.entities.channel.concrete.ThreadChannel;
 import net.dv8tion.jda.api.entities.channel.forums.ForumPost;
 import net.dv8tion.jda.api.requests.restaction.AbstractThreadCreateAction;
-import net.dv8tion.jda.api.requests.restaction.ThreadChannelAction;
 import net.dv8tion.jda.api.requests.restaction.pagination.ThreadChannelPaginationAction;
 import org.jetbrains.annotations.NotNull;
 
@@ -105,6 +104,11 @@ public class DiscordForumChannelImpl implements DiscordForumChannel {
     @Override
     public CompletableFuture<DiscordThreadChannel> createThread(String name, long messageId) {
         return thread(channel -> channel.createThreadChannel(name, messageId), result -> result);
+    }
+
+    @Override
+    public IThreadContainer getAsJDAThreadContainer() {
+        return channel;
     }
 
     @Override
