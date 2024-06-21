@@ -2,6 +2,7 @@ package com.discordsrv.bukkit.integration;
 
 import com.discordsrv.api.channel.GameChannel;
 import com.discordsrv.api.component.MinecraftComponent;
+import com.discordsrv.api.event.bus.EventPriority;
 import com.discordsrv.api.event.bus.Subscribe;
 import com.discordsrv.api.event.events.channel.GameChannelLookupEvent;
 import com.discordsrv.api.event.events.message.receive.game.GameChatMessageReceiveEvent;
@@ -19,6 +20,7 @@ import net.essentialsx.api.v2.events.chat.GlobalChatEvent;
 import net.kyori.adventure.platform.bukkit.BukkitComponentSerializer;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
+import org.bukkit.event.HandlerList;
 import org.bukkit.event.Listener;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -51,6 +53,16 @@ public class EssentialsXIntegration
             return false;
         }
         return super.isEnabled();
+    }
+
+    @Override
+    public void enable() {
+        discordSRV.server().getPluginManager().registerEvents(this, discordSRV.plugin());
+    }
+
+    @Override
+    public void disable() {
+        HandlerList.unregisterAll(this);
     }
 
     private Essentials get() {
@@ -113,7 +125,7 @@ public class EssentialsXIntegration
         ));
     }
 
-    @Subscribe
+    @Subscribe(priority = EventPriority.LAST)
     public void onGameChannelLookup(GameChannelLookupEvent event) {
         if (checkProcessor(event) || !discordSRV.server().getPluginManager().isPluginEnabled("EssentialsChat")) {
             return;
