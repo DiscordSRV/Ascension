@@ -46,6 +46,9 @@ public class JoinMessageConfig implements IMessageConfig {
     @Constants.Comment("discordsrv.silentjoin")
     public boolean enableSilentPermission = true;
 
+    @Comment("Ignore if the player leaves within the given amount of milliseconds. This will delay sending the join message")
+    public long ignoreIfLeftWithinMS = 250;
+
     @Override
     public boolean enabled() {
         return enabled;

@@ -29,15 +29,24 @@ import com.discordsrv.common.DiscordSRV;
 import com.discordsrv.common.component.util.ComponentUtil;
 import com.discordsrv.common.config.main.channels.base.BaseChannelConfig;
 import com.discordsrv.common.config.main.generic.IMessageConfig;
+import com.discordsrv.common.event.events.player.PlayerDisconnectedEvent;
 import com.discordsrv.common.permission.Permission;
 import com.discordsrv.common.player.IPlayer;
 import net.kyori.adventure.text.Component;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.time.Duration;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.Future;
 
 public class JoinMessageModule extends AbstractGameMessageModule<IMessageConfig, JoinMessageReceiveEvent> {
+
+    private final Map<UUID, Runnable> delayedTasks = new HashMap<>();
 
     public JoinMessageModule(DiscordSRV discordSRV) {
         super(discordSRV, "JOIN_MESSAGES");
@@ -63,7 +72,45 @@ public class JoinMessageModule extends AbstractGameMessageModule<IMessageConfig,
             logger().info(player.username() + " is joining silently, join message will not be sent");
             return CompletableFuture.completedFuture(null);
         }
+
+        long delay = config.joinMessages().ignoreIfLeftWithinMS;
+        if (player != null && delay > 0) {
+            UUID playerUUID = player.uniqueId();
+
+            CompletableFuture<Void> completableFuture = new CompletableFuture<>();
+            synchronized (delayedTasks) {
+                Future<?> future = discordSRV.scheduler().runLater(() -> {
+                    CompletableFuture<Void> forward = super.forwardToChannel(event, player, config);
+
+                    synchronized (delayedTasks) {
+                        delayedTasks.remove(playerUUID);
+                    }
+                    try {
+                        completableFuture.complete(forward.get());
+                    } catch (ExecutionException e) {
+                        completableFuture.completeExceptionally(e.getCause());
+                    } catch (InterruptedException e) {
+                        Thread.currentThread().interrupt();
+                    }
+                }, Duration.ofMillis(delay));
+                delayedTasks.put(playerUUID, () -> {
+                    completableFuture.complete(null);
+                    future.cancel(true);
+                });
+            }
+            return completableFuture;
+        }
         return super.forwardToChannel(event, player, config);
+    }
+
+    @Subscribe
+    public void onPlayerDisconnected(PlayerDisconnectedEvent event) {
+        IPlayer player = event.player();
+        Runnable cancel = delayedTasks.remove(player.uniqueId());
+        if (cancel != null) {
+            cancel.run();
+            logger().info(player.username() + " left within timeout period, join message will not be sent");
+        }
     }
 
     @Override

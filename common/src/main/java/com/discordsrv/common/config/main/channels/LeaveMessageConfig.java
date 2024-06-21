@@ -44,6 +44,9 @@ public class LeaveMessageConfig implements IMessageConfig {
     @Constants.Comment("discordsrv.silentquit")
     public boolean enableSilentPermission = true;
 
+    @Comment("Ignore if the player joined within the given amount of milliseconds")
+    public long ignoreIfJoinedWithinMS = 250;
+
     @Override
     public boolean enabled() {
         return enabled;
