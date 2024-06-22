@@ -53,6 +53,8 @@ import java.util.stream.Collectors;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
 
+import static com.discordsrv.common.command.combined.commands.DebugCommand.KEY_ENCODER;
+
 public class DebugReport {
 
     private static final int BIG_FILE_SPLIT_SIZE = 50000;
@@ -101,7 +103,7 @@ public class DebugReport {
                 try {
                     Paste paste = service.uploadFile(convertToJson(file).toString().getBytes(StandardCharsets.UTF_8));
                     node.put("url", paste.url());
-                    node.put("decryption_key", new String(Base64.getUrlEncoder().encode(paste.decryptionKey()), StandardCharsets.UTF_8));
+                    node.put("decryption_key", new String(KEY_ENCODER.encode(paste.decryptionKey()), StandardCharsets.UTF_8));
                     node.put("length", length);
                 } catch (Throwable e) {
                     node.put("content", "Failed to upload file\n\n" + ExceptionUtils.getStackTrace(e));
