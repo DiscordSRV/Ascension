@@ -217,7 +217,7 @@ public class DebugReport {
             manager.save(loader);
 
             return new TextDebugFile(order, fileName, writer.toString());
-        } catch (IOException | ConfigException e) {
+        } catch (Exception e) {
             return exception(order, fileName, e);
         }
     }
