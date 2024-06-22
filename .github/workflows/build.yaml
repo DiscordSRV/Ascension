@@ -26,7 +26,7 @@ jobs:
           DISCORDSRV_AUTOTEST_CHANNEL_ID: ${{ secrets.DISCORDSRV_AUTOTEST_CHANNEL_ID }}
           DISCORDSRV_AUTOTEST_FORUM_ID: ${{ secrets.DISCORDSRV_AUTOTEST_FORUM_ID }}
       - name: Upload Build Artifacts
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: build-artifacts
           path: "jars/*.jar"
