@@ -159,6 +159,8 @@ public class DiscordAPIImpl implements DiscordAPI {
             return getDirectMessageChannel((PrivateChannel) jda);
         } else if (jda instanceof NewsChannel) {
             return getNewsChannel((NewsChannel) jda);
+        } else if (jda instanceof VoiceChannel) {
+            return getVoiceChannel((VoiceChannel) jda);
         } else {
             throw new IllegalArgumentException("Unmappable MessageChannel type: " + jda.getClass().getName());
         }
