@@ -52,7 +52,10 @@ public class ChannelLockingConfig {
     public static class Threads {
 
         @Comment("If the configured threads should be archived while the server is shutdown")
-        public boolean archive = true;
+        public boolean archive = false;
+
+        @Comment("If the configured threads should be locked while the server is shutdown")
+        public boolean lock = true;
 
     }
 
