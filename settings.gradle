@@ -10,10 +10,11 @@ dependencyResolutionManagement {
     versionCatalogs {
         libs {
             // Buildscript
-            plugin('shadow', 'com.github.johnrengelman.shadow').version('8.1.1')
-            plugin('licenser', 'org.cadixdev.licenser').version('0.6.1')
-            plugin('blossom', 'net.kyori.blossom').version('1.2.0')
+            plugin('shadow', 'io.github.goooler.shadow').version('8.1.7')
+            plugin('licenser', 'net.minecraftforge.licenser').version('1.0.1')
+            plugin('blossom', 'net.kyori.blossom').version('2.1.0')
             plugin('indra-git', 'net.kyori.indra.git').version('2.1.1')
+            plugin('idea-ext', 'org.jetbrains.gradle.plugin.idea-ext').version('1.1.7')
 
             // Bukkit
             version('bukkit_minimum', '1.8.8-R0.1-SNAPSHOT')

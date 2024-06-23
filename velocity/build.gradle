@@ -1,5 +1,16 @@
 apply from: rootProject.file('buildscript/standalone.gradle')
 apply plugin: 'net.kyori.blossom'
+apply plugin: 'org.jetbrains.gradle.plugin.idea-ext'
+
+sourceSets {
+    main {
+        blossom {
+            javaSources {
+                property('version', project.version.toString())
+            }
+        }
+    }
+}
 
 shadowJar {
     archiveBaseName = 'DiscordSRV-Velocity'
@@ -32,13 +43,4 @@ dependencies {
 
     // DependencyDownload
     implementation(libs.mcdependencydownload.velocity)
-}
-
-jar {
-    dependsOn blossomSourceReplacementJava
-}
-
-blossom {
-    var mainClass = 'src/main/java/com/discordsrv/velocity/DiscordSRVVelocityBootstrap.java'
-    replaceToken('@VERSION@', project.version, mainClass)
 }

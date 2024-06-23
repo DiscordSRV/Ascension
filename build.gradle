@@ -4,6 +4,7 @@ plugins {
     alias(libs.plugins.blossom) apply false
     alias(libs.plugins.indra.git) apply false
     alias(libs.plugins.dependencydownload.plugin) apply false
+    alias(libs.plugins.idea.ext) apply false
 }
 
 version '3.0.0-SNAPSHOT'
@@ -12,8 +13,8 @@ subprojects {
     apply plugin: 'java'
     apply plugin: 'java-library'
     apply plugin: 'idea'
-    apply plugin: 'com.github.johnrengelman.shadow'
-    //apply plugin: 'org.cadixdev.licenser'
+    apply plugin: 'io.github.goooler.shadow'
+    apply plugin: 'net.minecraftforge.licenser'
     apply plugin: 'net.kyori.indra.git'
     apply plugin: 'dev.vankka.dependencydownload.plugin'
 
@@ -98,8 +99,6 @@ subprojects {
     }
 
     test {
-        useJUnitPlatform()
-
         testLogging {
             exceptionFormat = 'full'
         }
@@ -115,7 +114,7 @@ subprojects {
         duplicatesStrategy = DuplicatesStrategy.INCLUDE
 
         // If CI then check that licenses are correct, otherwise automatically apply licenses on build
-//        dependsOn (System.getenv('CI') === 'true' ? licenseCheck : licenseFormat)
+        dependsOn (System.getenv('CI') === 'true' ? licenseCheck : licenseFormat)
         // Always run shadowJar
         finalizedBy shadowJar
 
@@ -171,14 +170,14 @@ subprojects {
     }
 
 
-//    license {
-//        header = rootProject.file('buildscript/license/LICENSE_HEADER')
-//        properties {
-//            var inception = '2016'
-//            var currentYear = String.valueOf(Calendar.getInstance().get(Calendar.YEAR))
-//
-//            year = inception == currentYear ? currentYear : inception + '-' + currentYear
-//        }
-//        include '**/*.java' // only java files
-//    }
+    license {
+        header = rootProject.file('buildscript/license/LICENSE_HEADER')
+        properties {
+            var inception = '2016'
+            var currentYear = String.valueOf(Calendar.getInstance().get(Calendar.YEAR))
+
+            year = inception == currentYear ? currentYear : inception + '-' + currentYear
+        }
+        include '**/*.java' // only java files
+    }
 }

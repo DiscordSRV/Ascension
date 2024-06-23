@@ -1,0 +1,8 @@
+package com.discordsrv.velocity;
+
+public final class Constants {
+    private Constants() {}
+
+{# @pebvariable name="version" type="java.lang.String" #}
+    public static final String VERSION = "{{ version }}";
+}
