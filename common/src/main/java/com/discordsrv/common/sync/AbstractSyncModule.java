@@ -338,7 +338,7 @@ public abstract class AbstractSyncModule<
                 return new SyncSummary<>(this, cause, someone).fail(GenericSyncResults.NOT_LINKED);
             }
 
-            return new SyncSummary<C>(this, cause, resolved)
+            return new SyncSummary<>(this, cause, resolved)
                     .appendResult(config, resync(config, resolved));
         }).whenComplete((summary, t) -> {
             if (summary != null) {
