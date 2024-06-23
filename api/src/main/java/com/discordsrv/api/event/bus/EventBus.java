@@ -1,6 +1,6 @@
 /*
  * This file is part of the DiscordSRV API, licensed under the MIT License
- * Copyright (c) 2016-2023 Austin "Scarsz" Shapiro, Henri "Vankka" Schubin and DiscordSRV contributors
+ * Copyright (c) 2016-2024 Austin "Scarsz" Shapiro, Henri "Vankka" Schubin and DiscordSRV contributors
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -28,6 +28,8 @@ import net.dv8tion.jda.api.events.GenericEvent;
 import org.jetbrains.annotations.Blocking;
 import org.jetbrains.annotations.NotNull;
 
+import java.util.Collection;
+
 /**
  * DiscordSRV's event bus, handling all events extending {@link Event}s and {@link GenericEvent}s.
  */
@@ -47,6 +49,14 @@ public interface EventBus {
      * @param eventListener an event listener that was subscribed with {@link #subscribe(Object)} before
      */
     void unsubscribe(@NotNull Object eventListener);
+
+    /**
+     * Gets the listeners for a given event listener.
+     *
+     * @param eventListener an event listener that has valid {@link Subscribe} methods.
+     * @return a set of event listener in the provided class according to this {@link EventBus}
+     */
+    Collection<? extends EventListener> getListeners(@NotNull Object eventListener);
 
     /**
      * Publishes a DiscordSRV {@link Event} to this {@link EventBus}.

@@ -1,6 +1,6 @@
 /*
  * This file is part of DiscordSRV, licensed under the GPLv3 License
- * Copyright (c) 2016-2023 Austin "Scarsz" Shapiro, Henri "Vankka" Schubin and DiscordSRV contributors
+ * Copyright (c) 2016-2024 Austin "Scarsz" Shapiro, Henri "Vankka" Schubin and DiscordSRV contributors
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -21,9 +21,13 @@ package com.discordsrv.common.logging.impl;
 import com.discordsrv.common.DiscordSRV;
 import com.discordsrv.common.config.main.DebugConfig;
 import com.discordsrv.common.config.main.MainConfig;
+import com.discordsrv.common.discord.util.DiscordPermissionUtil;
 import com.discordsrv.common.logging.LogLevel;
 import com.discordsrv.common.logging.Logger;
+import net.dv8tion.jda.api.JDA;
 import net.dv8tion.jda.api.Permission;
+import net.dv8tion.jda.api.entities.Guild;
+import net.dv8tion.jda.api.entities.channel.middleman.GuildChannel;
 import net.dv8tion.jda.api.exceptions.InsufficientPermissionException;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.jetbrains.annotations.NotNull;
@@ -38,10 +42,7 @@ import java.nio.file.StandardOpenOption;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.time.Duration;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.Queue;
+import java.util.*;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.Future;
 
@@ -125,8 +126,27 @@ public class DiscordSRVLogger implements Logger {
             throwable = null;
         }
         if (throwable instanceof InsufficientPermissionException) {
-            Permission permission = ((InsufficientPermissionException) throwable).getPermission();
-            String msg = "The bot is missing the \"" + permission.getName() + "\" permission";
+            InsufficientPermissionException exception = (InsufficientPermissionException) throwable;
+            Permission permission = exception.getPermission();
+
+            JDA jda = discordSRV.jda();
+            GuildChannel guildChannel = jda != null ? exception.getChannel(jda) : null;
+            long channelId = exception.getChannelId();
+            Guild guild = jda != null ? exception.getGuild(jda) : null;
+            long guildId = exception.getGuildId();
+
+            String where;
+            if (guildChannel != null) {
+                where = "#" + guildChannel.getName();
+            } else if (channelId != 0) {
+                where = "Channel ID " + Long.toUnsignedString(channelId);
+            } else if (guild != null) {
+                where = guild.getName();
+            } else {
+                where = "Server ID " + Long.toUnsignedString(guildId);
+            }
+
+            String msg = DiscordPermissionUtil.createErrorMessage(EnumSet.of(permission), where);
             if (message == null) {
                 message = msg;
             } else {

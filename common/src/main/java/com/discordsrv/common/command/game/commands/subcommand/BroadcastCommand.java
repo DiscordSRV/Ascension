@@ -1,6 +1,6 @@
 /*
  * This file is part of DiscordSRV, licensed under the GPLv3 License
- * Copyright (c) 2016-2023 Austin "Scarsz" Shapiro, Henri "Vankka" Schubin and DiscordSRV contributors
+ * Copyright (c) 2016-2024 Austin "Scarsz" Shapiro, Henri "Vankka" Schubin and DiscordSRV contributors
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -103,7 +103,7 @@ public abstract class BroadcastCommand implements GameCommandExecutor, GameComma
         String content = arguments.getString("content");
 
         Set<DiscordMessageChannel> channels = new HashSet<>();
-        CompletableFuture<Collection<DiscordGuildMessageChannel>> future = null;
+        CompletableFuture<List<DiscordGuildMessageChannel>> future = null;
         try {
             long id = Long.parseUnsignedLong(channel);
 
@@ -116,7 +116,7 @@ public abstract class BroadcastCommand implements GameCommandExecutor, GameComma
             CC config = channelConfig instanceof IChannelConfig ? (CC) channelConfig : null;
 
             if (config != null) {
-                future = discordSRV.discordAPI().findOrCreateDestinations(config, true, false);
+                future = discordSRV.destinations().lookupDestination(config.destination(), true, false);
             }
         }
 

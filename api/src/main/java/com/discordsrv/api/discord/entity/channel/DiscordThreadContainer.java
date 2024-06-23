@@ -1,6 +1,6 @@
 /*
  * This file is part of the DiscordSRV API, licensed under the MIT License
- * Copyright (c) 2016-2023 Austin "Scarsz" Shapiro, Henri "Vankka" Schubin and DiscordSRV contributors
+ * Copyright (c) 2016-2024 Austin "Scarsz" Shapiro, Henri "Vankka" Schubin and DiscordSRV contributors
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -23,6 +23,8 @@
 
 package com.discordsrv.api.discord.entity.channel;
 
+import com.discordsrv.api.DiscordSRVApi;
+import net.dv8tion.jda.api.entities.channel.attribute.IThreadContainer;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.List;
@@ -42,4 +44,11 @@ public interface DiscordThreadContainer extends DiscordGuildChannel {
 
     CompletableFuture<DiscordThreadChannel> createThread(String name, boolean privateThread);
     CompletableFuture<DiscordThreadChannel> createThread(String name, long messageId);
+
+    /**
+     * Returns the JDA representation of this object. This should not be used if it can be avoided.
+     * @return the JDA representation of this object
+     * @see DiscordSRVApi#jda()
+     */
+    IThreadContainer getAsJDAThreadContainer();
 }

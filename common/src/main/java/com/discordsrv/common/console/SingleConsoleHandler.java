@@ -1,3 +1,21 @@
+/*
+ * This file is part of DiscordSRV, licensed under the GPLv3 License
+ * Copyright (c) 2016-2024 Austin "Scarsz" Shapiro, Henri "Vankka" Schubin and DiscordSRV contributors
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <https://www.gnu.org/licenses/>.
+ */
+
 package com.discordsrv.common.console;
 
 import com.discordsrv.api.discord.entity.DiscordUser;
@@ -9,7 +27,6 @@ import com.discordsrv.api.discord.entity.guild.DiscordGuildMember;
 import com.discordsrv.api.discord.entity.message.ReceivedDiscordMessage;
 import com.discordsrv.api.discord.entity.message.SendableDiscordMessage;
 import com.discordsrv.api.discord.util.DiscordFormattingUtil;
-import com.discordsrv.api.event.bus.Subscribe;
 import com.discordsrv.api.event.events.discord.message.DiscordMessageReceiveEvent;
 import com.discordsrv.api.placeholder.PlainPlaceholderFormat;
 import com.discordsrv.api.placeholder.provider.SinglePlaceholder;
@@ -67,11 +84,13 @@ public class SingleConsoleHandler {
         this.messageCache = config.appender.useEditing ? new ArrayList<>() : null;
 
         timeQueueProcess();
-        discordSRV.eventBus().subscribe(this);
     }
 
-    @Subscribe
-    public void onDiscordMessageReceived(DiscordMessageReceiveEvent event) {
+    public void handleDiscordMessageReceived(DiscordMessageReceiveEvent event) {
+        if (!config.commandExecution.enabled) {
+            return;
+        }
+
         DiscordMessageChannel messageChannel = event.getChannel();
         DiscordGuildChannel channel = messageChannel instanceof DiscordGuildChannel ? (DiscordGuildChannel) messageChannel : null;
         if (channel == null) {
@@ -174,7 +193,6 @@ public class SingleConsoleHandler {
     @SuppressWarnings("SynchronizeOnNonFinalField")
     public void shutdown() {
         shutdown = true;
-        discordSRV.eventBus().unsubscribe(this);
         queueProcessingFuture.cancel(false);
         try {
             synchronized (queueProcessingFuture) {
@@ -295,8 +313,8 @@ public class SingleConsoleHandler {
 
             sendFuture = future
                     .thenCompose(__ ->
-                           discordSRV.discordAPI()
-                                   .findOrCreateDestinations(config.channel.asDestination(), true, true, true)
+                           discordSRV.destinations()
+                                   .lookupDestination(config.channel.asDestination(), true, true)
                     )
                     .thenApply(channels -> {
                         if (channels.isEmpty()) {

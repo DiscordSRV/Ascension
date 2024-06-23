@@ -1,6 +1,6 @@
 /*
  * This file is part of DiscordSRV, licensed under the GPLv3 License
- * Copyright (c) 2016-2023 Austin "Scarsz" Shapiro, Henri "Vankka" Schubin and DiscordSRV contributors
+ * Copyright (c) 2016-2024 Austin "Scarsz" Shapiro, Henri "Vankka" Schubin and DiscordSRV contributors
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -120,17 +120,17 @@ public class StandardScheduler implements Scheduler {
     }
 
     @Override
-    public Future<?> run(@NotNull Runnable task) {
+    public @NotNull Future<?> run(@NotNull Runnable task) {
         return executorService.submit(wrap(task));
     }
 
     @Override
-    public ScheduledFuture<?> runLater(Runnable task, Duration delay) {
+    public @NotNull ScheduledFuture<?> runLater(@NotNull Runnable task, @NotNull Duration delay) {
         return scheduledExecutorService.schedule(wrap(task), delay.toMillis(), TimeUnit.MILLISECONDS);
     }
 
     @Override
-    public ScheduledFuture<?> runAtFixedRate(@NotNull Runnable task, Duration initialDelay, Duration rate) {
+    public @NotNull ScheduledFuture<?> runAtFixedRate(@NotNull Runnable task, Duration initialDelay, Duration rate) {
         return scheduledExecutorService.scheduleAtFixedRate(wrap(task), initialDelay.toMillis(), rate.toMillis(), TimeUnit.MILLISECONDS);
     }
 

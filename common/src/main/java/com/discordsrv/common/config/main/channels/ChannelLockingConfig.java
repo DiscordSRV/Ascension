@@ -1,6 +1,6 @@
 /*
  * This file is part of DiscordSRV, licensed under the GPLv3 License
- * Copyright (c) 2016-2023 Austin "Scarsz" Shapiro, Henri "Vankka" Schubin and DiscordSRV contributors
+ * Copyright (c) 2016-2024 Austin "Scarsz" Shapiro, Henri "Vankka" Schubin and DiscordSRV contributors
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -52,10 +52,10 @@ public class ChannelLockingConfig {
     public static class Threads {
 
         @Comment("If the configured threads should be archived while the server is shutdown")
-        public boolean archive = true;
+        public boolean archive = false;
 
-        @Comment("If the bot should attempt to unarchive threads rather than make new threads")
-        public boolean unarchive = true;
+        @Comment("If the configured threads should be locked while the server is shutdown")
+        public boolean lock = true;
 
     }
 

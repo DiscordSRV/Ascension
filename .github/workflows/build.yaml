@@ -10,20 +10,23 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
-        uses: actions/checkout@v3
-      - name: Set up JDK 17
-        uses: actions/setup-java@v3
+        uses: actions/checkout@v4
+      - name: Setup Java
+        uses: actions/setup-java@v4
         with:
           distribution: 'temurin'
           java-version: 17
           cache: 'gradle'
+      - name: Setup Gradle
+        uses: gradle/actions/setup-gradle@v3
       - name: Build with Gradle
         run: ./gradlew build --no-daemon
         env:
           DISCORDSRV_AUTOTEST_BOT_TOKEN: ${{ secrets.DISCORDSRV_AUTOTEST_BOT_TOKEN }}
           DISCORDSRV_AUTOTEST_CHANNEL_ID: ${{ secrets.DISCORDSRV_AUTOTEST_CHANNEL_ID }}
+          DISCORDSRV_AUTOTEST_FORUM_ID: ${{ secrets.DISCORDSRV_AUTOTEST_FORUM_ID }}
       - name: Upload Build Artifacts
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: build-artifacts
           path: "jars/*.jar"

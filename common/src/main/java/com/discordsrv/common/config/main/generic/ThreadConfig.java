@@ -1,6 +1,6 @@
 /*
  * This file is part of DiscordSRV, licensed under the GPLv3 License
- * Copyright (c) 2016-2023 Austin "Scarsz" Shapiro, Henri "Vankka" Schubin and DiscordSRV contributors
+ * Copyright (c) 2016-2024 Austin "Scarsz" Shapiro, Henri "Vankka" Schubin and DiscordSRV contributors
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -26,7 +26,13 @@ public class ThreadConfig {
 
     @Comment("Specify the text or forum channel id and the name of the thread (the thread will be automatically created if it doesn't exist)")
     public Long channelId = 0L;
+
     public String threadName = "Minecraft Server chat bridge";
+
+    @Comment("Should an existing thread with the same name be unarchived instead of creating a new thread every time")
+    public boolean unarchiveExisting = true;
+
+    @Comment("Does not effect forums")
     public boolean privateThread = false;
 
 }

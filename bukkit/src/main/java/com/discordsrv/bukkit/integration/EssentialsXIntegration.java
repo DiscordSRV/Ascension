@@ -1,7 +1,26 @@
+/*
+ * This file is part of DiscordSRV, licensed under the GPLv3 License
+ * Copyright (c) 2016-2024 Austin "Scarsz" Shapiro, Henri "Vankka" Schubin and DiscordSRV contributors
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <https://www.gnu.org/licenses/>.
+ */
+
 package com.discordsrv.bukkit.integration;
 
 import com.discordsrv.api.channel.GameChannel;
 import com.discordsrv.api.component.MinecraftComponent;
+import com.discordsrv.api.event.bus.EventPriority;
 import com.discordsrv.api.event.bus.Subscribe;
 import com.discordsrv.api.event.events.channel.GameChannelLookupEvent;
 import com.discordsrv.api.event.events.message.receive.game.GameChatMessageReceiveEvent;
@@ -20,6 +39,7 @@ import net.essentialsx.api.v2.events.chat.GlobalChatEvent;
 import net.kyori.adventure.platform.bukkit.BukkitComponentSerializer;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
+import org.bukkit.event.HandlerList;
 import org.bukkit.event.Listener;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -54,12 +74,22 @@ public class EssentialsXIntegration
         return super.isEnabled();
     }
 
+    @Override
+    public void enable() {
+        discordSRV.server().getPluginManager().registerEvents(this, discordSRV.plugin());
+    }
+
+    @Override
+    public void disable() {
+        HandlerList.unregisterAll(this);
+    }
+
     private Essentials get() {
         return (Essentials) discordSRV.server().getPluginManager().getPlugin("Essentials");
     }
 
     private CompletableFuture<User> getUser(UUID playerUUID) {
-        return CompletableFuture.supplyAsync(() -> get().getUsers().loadUncachedUser(playerUUID), discordSRV.scheduler().executor());
+        return discordSRV.scheduler().supply(() -> get().getUsers().loadUncachedUser(playerUUID));
     }
 
     @Override
@@ -114,7 +144,7 @@ public class EssentialsXIntegration
         ));
     }
 
-    @Subscribe
+    @Subscribe(priority = EventPriority.LAST)
     public void onGameChannelLookup(GameChannelLookupEvent event) {
         if (checkProcessor(event) || !discordSRV.server().getPluginManager().isPluginEnabled("EssentialsChat")) {
             return;

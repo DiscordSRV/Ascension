@@ -1,6 +1,6 @@
 /*
  * This file is part of DiscordSRV, licensed under the GPLv3 License
- * Copyright (c) 2016-2023 Austin "Scarsz" Shapiro, Henri "Vankka" Schubin and DiscordSRV contributors
+ * Copyright (c) 2016-2024 Austin "Scarsz" Shapiro, Henri "Vankka" Schubin and DiscordSRV contributors
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -18,6 +18,7 @@
 
 package com.discordsrv.common.discord.api;
 
+import com.discordsrv.api.discord.connection.details.DiscordGatewayIntent;
 import com.discordsrv.api.discord.entity.DiscordUser;
 import com.discordsrv.api.discord.entity.channel.DiscordMessageChannel;
 import com.discordsrv.api.discord.entity.guild.DiscordGuildMember;
@@ -37,6 +38,7 @@ import com.discordsrv.api.event.events.discord.member.role.DiscordMemberRoleRemo
 import com.discordsrv.api.event.events.discord.message.DiscordMessageDeleteEvent;
 import com.discordsrv.api.event.events.discord.message.DiscordMessageReceiveEvent;
 import com.discordsrv.api.event.events.discord.message.DiscordMessageUpdateEvent;
+import com.discordsrv.api.module.Module;
 import com.discordsrv.common.DiscordSRV;
 import com.discordsrv.common.discord.api.entity.component.DiscordInteractionHookImpl;
 import com.discordsrv.common.discord.api.entity.message.ReceivedDiscordMessageImpl;
@@ -59,10 +61,9 @@ import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
 import net.dv8tion.jda.api.events.message.MessageUpdateEvent;
 import net.dv8tion.jda.api.interactions.callbacks.IDeferrableCallback;
 import net.dv8tion.jda.api.interactions.commands.Command;
+import org.jetbrains.annotations.NotNull;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
@@ -74,6 +75,15 @@ public class DiscordAPIEventModule extends AbstractModule<DiscordSRV> {
 
     private DiscordAPIImpl api() {
         return discordSRV.discordAPI();
+    }
+
+    /**
+     * See {@link Module#requiredIntents()} implementation.
+     * @return no intents as these events might not be listened to
+     */
+    @Override
+    public @NotNull Collection<DiscordGatewayIntent> requiredIntents() {
+        return Collections.emptyList();
     }
 
     @Subscribe

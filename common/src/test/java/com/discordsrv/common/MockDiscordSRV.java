@@ -1,6 +1,6 @@
 /*
  * This file is part of DiscordSRV, licensed under the GPLv3 License
- * Copyright (c) 2016-2023 Austin "Scarsz" Shapiro, Henri "Vankka" Schubin and DiscordSRV contributors
+ * Copyright (c) 2016-2024 Austin "Scarsz" Shapiro, Henri "Vankka" Schubin and DiscordSRV contributors
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -21,6 +21,7 @@ package com.discordsrv.common;
 import com.discordsrv.api.channel.GameChannel;
 import com.discordsrv.common.bootstrap.IBootstrap;
 import com.discordsrv.common.bootstrap.LifecycleManager;
+import com.discordsrv.common.command.game.executor.CommandExecutorProvider;
 import com.discordsrv.common.command.game.handler.ICommandHandler;
 import com.discordsrv.common.config.configurate.manager.ConnectionConfigManager;
 import com.discordsrv.common.config.configurate.manager.MainConfigManager;
@@ -36,8 +37,8 @@ import com.discordsrv.common.config.messages.MessagesConfig;
 import com.discordsrv.common.console.Console;
 import com.discordsrv.common.debug.data.OnlineMode;
 import com.discordsrv.common.debug.data.VersionInfo;
-import com.discordsrv.common.exception.ConfigException;
 import com.discordsrv.common.logging.Logger;
+import com.discordsrv.common.logging.backend.LoggingBackend;
 import com.discordsrv.common.logging.backend.impl.JavaLoggerImpl;
 import com.discordsrv.common.messageforwarding.game.minecrafttodiscord.MinecraftToDiscordChatModule;
 import com.discordsrv.common.player.IPlayer;
@@ -47,6 +48,7 @@ import com.discordsrv.common.scheduler.Scheduler;
 import com.discordsrv.common.scheduler.StandardScheduler;
 import com.discordsrv.common.storage.impl.MemoryStorage;
 import dev.vankka.dependencydownload.classpath.ClasspathAppender;
+import net.kyori.adventure.audience.Audience;
 import org.apache.commons.lang3.StringUtils;
 import org.jetbrains.annotations.NotNull;
 
@@ -124,7 +126,32 @@ public class MockDiscordSRV extends AbstractDiscordSRV<IBootstrap, MainConfig, C
 
     @Override
     public Console console() {
-        return null;
+        return new Console() {
+            @Override
+            public LoggingBackend loggingBackend() {
+                return JavaLoggerImpl.getRoot();
+            }
+
+            @Override
+            public CommandExecutorProvider commandExecutorProvider() {
+                return null;
+            }
+
+            @Override
+            public boolean hasPermission(String permission) {
+                return false;
+            }
+
+            @Override
+            public void runCommand(String command) {
+
+            }
+
+            @Override
+            public @NotNull Audience audience() {
+                return null;
+            }
+        };
     }
 
     @Override
@@ -210,11 +237,12 @@ public class MockDiscordSRV extends AbstractDiscordSRV<IBootstrap, MainConfig, C
             }
         };
 
-        if (StringUtils.isNotEmpty(FullBootExtension.TEST_CHANNEL_ID)) {
+        if (StringUtils.isNotEmpty(FullBootExtension.TEST_CHANNEL_ID) && StringUtils.isNotEmpty(FullBootExtension.FORUM_CHANNEL_ID)) {
             ChannelConfig global = (ChannelConfig) config.channels.get(GameChannel.DEFAULT_NAME);
             DestinationConfig destination = global.destination = new DestinationConfig();
 
             long channelId = Long.parseLong(FullBootExtension.TEST_CHANNEL_ID);
+            long forumId = Long.parseLong(FullBootExtension.FORUM_CHANNEL_ID);
 
             List<Long> channelIds = destination.channelIds;
             channelIds.clear();
@@ -222,9 +250,14 @@ public class MockDiscordSRV extends AbstractDiscordSRV<IBootstrap, MainConfig, C
 
             List<ThreadConfig> threadConfigs = destination.threads;
             threadConfigs.clear();
+
             ThreadConfig thread = new ThreadConfig();
             thread.channelId = channelId;
             threadConfigs.add(thread);
+
+            ThreadConfig forumThread = new ThreadConfig();
+            forumThread.channelId = forumId;
+            threadConfigs.add(forumThread);
         }
 
         return config;
@@ -239,7 +272,7 @@ public class MockDiscordSRV extends AbstractDiscordSRV<IBootstrap, MainConfig, C
             }
 
             @Override
-            public void load() throws ConfigException {
+            public void load() {
                 messagesConfigLoaded = true;
             }
         };

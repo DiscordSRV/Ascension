@@ -1,6 +1,6 @@
 /*
  * This file is part of DiscordSRV, licensed under the GPLv3 License
- * Copyright (c) 2016-2023 Austin "Scarsz" Shapiro, Henri "Vankka" Schubin and DiscordSRV contributors
+ * Copyright (c) 2016-2024 Austin "Scarsz" Shapiro, Henri "Vankka" Schubin and DiscordSRV contributors
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -27,10 +27,14 @@ public class DiscordInviteConfig {
     @Comment("Manually enter a invite url here, if this isn't set this is ignored and the options below will take effect")
     public String inviteUrl = "";
 
-    @Comment("If the bot is only in one Discord server, it will attempt to get its vanity url")
+    @Comment("The server id to automatically grab the vanity url from or to generate the invite to.\n"
+            + "If this is not specified and the bot is private and only in a single server, it will use that")
+    public long serverId = 0L;
+
+    @Comment("If the bot should automatically use the vanity invite url from the automatically determined server, if one is set")
     public boolean attemptToUseVanityUrl = true;
 
-    @Comment("If the bot is only in one Discord server, it will attempt to automatically create a invite for it.\n"
+    @Comment("If the bot should automatically create a invite to the automatically determined server\n"
             + "The bot will only attempt to do so if it has permission to \"Create Invite\"\n"
             + "The server must also have a rules channel (available for community servers) or default channel (automatically determined by Discord)")
     public boolean autoCreateInvite = false;

@@ -1,3 +1,21 @@
+/*
+ * This file is part of DiscordSRV, licensed under the GPLv3 License
+ * Copyright (c) 2016-2024 Austin "Scarsz" Shapiro, Henri "Vankka" Schubin and DiscordSRV contributors
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <https://www.gnu.org/licenses/>.
+ */
+
 package com.discordsrv.bukkit.command.game;
 
 import com.discordsrv.bukkit.BukkitDiscordSRV;
@@ -35,20 +53,14 @@ public class BukkitGameCommandExecutionHelper implements GameCommandExecutionHel
 
                 if (PaperCommandMap.IS_AVAILABLE) {
                     // If Paper's CommandMap is available we can list out 'root' commands
-                    CompletableFuture<List<String>> future = new CompletableFuture<>();
-                    discordSRV.scheduler().runOnMainThread(discordSRV.server().getConsoleSender(), () -> {
-                        try {
-                            for (String cmd : PaperCommandMap.getKnownCommands(discordSRV.server())) {
-                                if (commandName == null || cmd.startsWith(commandName)) {
-                                    suggestions.add(cmd);
-                                }
+                    return discordSRV.scheduler().supplyOnMainThread(discordSRV.server().getConsoleSender(), () -> {
+                        for (String cmd : PaperCommandMap.getKnownCommands(discordSRV.server())) {
+                            if (commandName == null || cmd.startsWith(commandName)) {
+                                suggestions.add(cmd);
                             }
-                            future.complete(suggestions);
-                        } catch (Throwable t) {
-                            future.completeExceptionally(t);
                         }
+                        return suggestions;
                     });
-                    return future;
                 }
 
                 return CompletableFuture.completedFuture(suggestions);
@@ -57,24 +69,17 @@ public class BukkitGameCommandExecutionHelper implements GameCommandExecutionHel
 
         // Get the arguments minus the last one (if any)
         String prefix = parts.isEmpty() ? "" : String.join(" ", parts.subList(0, parts.size() - 1)) + " ";
-        CompletableFuture<List<String>> future = new CompletableFuture<>();
 
         CommandSender commandSender = discordSRV.server().getConsoleSender();
-        discordSRV.scheduler().runOnMainThread(commandSender, () -> {
-            try {
-                List<String> completions = command.tabComplete(commandSender, commandName, parts.toArray(new String[0]));
+        return discordSRV.scheduler().supplyOnMainThread(commandSender, () -> {
+            List<String> completions = command.tabComplete(commandSender, commandName, parts.toArray(new String[0]));
 
-                List<String> suggestions = new ArrayList<>();
-                for (String suggestion : completions) {
-                    suggestions.add(commandName + " " + prefix + suggestion);
-                }
-                future.complete(suggestions);
-            } catch (Throwable t) {
-                future.completeExceptionally(t);
+            List<String> suggestions = new ArrayList<>();
+            for (String suggestion : completions) {
+                suggestions.add(commandName + " " + prefix + suggestion);
             }
+            return suggestions;
         });
-
-        return future;
     }
 
     @Override

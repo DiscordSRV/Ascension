@@ -1,6 +1,6 @@
 /*
  * This file is part of DiscordSRV, licensed under the GPLv3 License
- * Copyright (c) 2016-2023 Austin "Scarsz" Shapiro, Henri "Vankka" Schubin and DiscordSRV contributors
+ * Copyright (c) 2016-2024 Austin "Scarsz" Shapiro, Henri "Vankka" Schubin and DiscordSRV contributors
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -63,31 +63,27 @@ public class LifecycleManager {
                 classpathAppender,
                 resourcePaths.toArray(new String[0])
         );
-
         this.completableFuture = dependencyLoader.download();
-        completableFuture.whenComplete((v, t) -> taskPool.shutdown());
+        this.completableFuture.whenComplete((v, t) -> taskPool.shutdownNow());
     }
 
     public void loadAndEnable(Supplier<DiscordSRV> discordSRVSupplier) {
-        if (load()) {
-            enable(discordSRVSupplier);
+        if (relocateAndLoad()) {
+            discordSRVSupplier.get().runEnable();
         }
     }
 
-    private boolean load() {
+    private boolean relocateAndLoad() {
         try {
             completableFuture.get();
+            dependencyLoader.relocateAndLoad(false).get();
             return true;
         } catch (InterruptedException ignored) {
             Thread.currentThread().interrupt();
         } catch (ExecutionException e) {
-            logger.error("Failed to download dependencies", e.getCause());
+            logger.error("Failed to download, relocate or load dependencies", e.getCause());
         }
         return false;
-    }
-
-    private void enable(Supplier<DiscordSRV> discordSRVSupplier) {
-        discordSRVSupplier.get().runEnable();
     }
 
     public void reload(DiscordSRV discordSRV) {

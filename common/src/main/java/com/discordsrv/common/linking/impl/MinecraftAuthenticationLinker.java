@@ -1,6 +1,6 @@
 /*
  * This file is part of DiscordSRV, licensed under the GPLv3 License
- * Copyright (c) 2016-2023 Austin "Scarsz" Shapiro, Henri "Vankka" Schubin and DiscordSRV contributors
+ * Copyright (c) 2016-2024 Austin "Scarsz" Shapiro, Henri "Vankka" Schubin and DiscordSRV contributors
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -171,15 +171,7 @@ public class MinecraftAuthenticationLinker extends CachedLinkProvider implements
             Consumer<T> linked,
             Consumer<T> unlinked
     ) {
-        CompletableFuture<Optional<T>> authService = new CompletableFuture<>();
-
-        discordSRV.scheduler().run(() -> {
-            try {
-                authService.complete(authSupplier.get());
-            } catch (Throwable t) {
-                authService.completeExceptionally(t);
-            }
-        });
+        CompletableFuture<Optional<T>> authService = discordSRV.scheduler().supply(authSupplier);
         if (!canCauseLink) {
             return authService;
         }

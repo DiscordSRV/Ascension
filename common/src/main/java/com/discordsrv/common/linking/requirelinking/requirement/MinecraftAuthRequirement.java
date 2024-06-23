@@ -1,6 +1,6 @@
 /*
  * This file is part of DiscordSRV, licensed under the GPLv3 License
- * Copyright (c) 2016-2023 Austin "Scarsz" Shapiro, Henri "Vankka" Schubin and DiscordSRV contributors
+ * Copyright (c) 2016-2024 Austin "Scarsz" Shapiro, Henri "Vankka" Schubin and DiscordSRV contributors
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -19,7 +19,6 @@
 package com.discordsrv.common.linking.requirelinking.requirement;
 
 import com.discordsrv.common.DiscordSRV;
-import com.discordsrv.common.function.CheckedSupplier;
 import me.minecraftauth.lib.AuthService;
 import me.minecraftauth.lib.account.platform.twitch.SubTier;
 import me.minecraftauth.lib.exception.LookupException;
@@ -165,23 +164,13 @@ public class MinecraftAuthRequirement<T> implements Requirement<MinecraftAuthReq
     public CompletableFuture<Boolean> isMet(Reference<T> atomicReference, UUID player, long userId) {
         String token = discordSRV.connectionConfig().minecraftAuth.token;
         T value = atomicReference.getValue();
-        if (value == null) {
-            return supply(() -> test.test(token, player));
-        } else {
-            return supply(() -> testSpecific.test(token, player, value));
-        }
-    }
-
-    private CompletableFuture<Boolean> supply(CheckedSupplier<Boolean> provider) {
-        CompletableFuture<Boolean> completableFuture = new CompletableFuture<>();
-        discordSRV.scheduler().run(() -> {
-            try {
-                completableFuture.complete(provider.get());
-            } catch (Throwable t) {
-                completableFuture.completeExceptionally(t);
+        return discordSRV.scheduler().supply(() -> {
+            if (value == null) {
+                return test.test(token, player);
+            } else {
+                return testSpecific.test(token, player, value);
             }
         });
-        return completableFuture;
     }
 
     @FunctionalInterface

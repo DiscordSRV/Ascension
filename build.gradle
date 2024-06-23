@@ -1,9 +1,10 @@
 plugins {
     alias(libs.plugins.shadow) apply false
-    alias(libs.plugins.licenser) apply false
     alias(libs.plugins.blossom) apply false
     alias(libs.plugins.indra.git) apply false
+    alias(libs.plugins.indra.licenser) apply false
     alias(libs.plugins.dependencydownload.plugin) apply false
+    alias(libs.plugins.idea.ext) apply false
 }
 
 version '3.0.0-SNAPSHOT'
@@ -12,9 +13,9 @@ subprojects {
     apply plugin: 'java'
     apply plugin: 'java-library'
     apply plugin: 'idea'
-    apply plugin: 'com.github.johnrengelman.shadow'
-    //apply plugin: 'org.cadixdev.licenser'
+    apply plugin: 'io.github.goooler.shadow'
     apply plugin: 'net.kyori.indra.git'
+    apply plugin: 'net.kyori.indra.licenser.spotless'
     apply plugin: 'dev.vankka.dependencydownload.plugin'
 
     group 'com.discordsrv'
@@ -90,8 +91,8 @@ subprojects {
 
     dependencies {
         // Test dependencies
-        testImplementation(libs.jupiter.api)
-        testRuntimeOnly(libs.jupiter.engine)
+        testImplementation(libs.junit.jupiter)
+        testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
 
         // DynamicProxy
         annotationProcessor(libs.dynamicproxy.api)
@@ -99,6 +100,10 @@ subprojects {
 
     test {
         useJUnitPlatform()
+
+        testLogging {
+            exceptionFormat = 'full'
+        }
     }
 
     tasks.register('deleteJarsDir', Delete) {
@@ -111,7 +116,7 @@ subprojects {
         duplicatesStrategy = DuplicatesStrategy.INCLUDE
 
         // If CI then check that licenses are correct, otherwise automatically apply licenses on build
-//        dependsOn (System.getenv('CI') === 'true' ? licenseCheck : licenseFormat)
+        dependsOn (System.getenv('CI') === 'true' ? spotlessCheck : spotlessApply)
         // Always run shadowJar
         finalizedBy shadowJar
 
@@ -158,7 +163,8 @@ subprojects {
     gradle.projectsEvaluated {
         tasks.withType(JavaCompile) {
             // Enable compiler warnings for unchecked & deprecation
-            options.compilerArgs << '-Xlint:unchecked' << '-Xlint:deprecation'
+            // Disable compiler warning for source/target 8
+            options.compilerArgs << '-Xlint:unchecked' << '-Xlint:deprecation' << '-Xlint:-options'
         }
     }
 
@@ -166,15 +172,10 @@ subprojects {
         duplicatesStrategy = DuplicatesStrategy.EXCLUDE
     }
 
-
-//    license {
-//        header = rootProject.file('buildscript/license/LICENSE_HEADER')
-//        properties {
-//            var inception = '2016'
-//            var currentYear = String.valueOf(Calendar.getInstance().get(Calendar.YEAR))
-//
-//            year = inception == currentYear ? currentYear : inception + '-' + currentYear
-//        }
-//        include '**/*.java' // only java files
-//    }
+    indraSpotlessLicenser {
+        licenseHeaderFile(rootProject.file('buildscript/license/LICENSE_HEADER'))
+        newLine(true)
+        property('inception', '2016')
+        property('year_now', String.valueOf(Calendar.getInstance().get(Calendar.YEAR)))
+    }
 }

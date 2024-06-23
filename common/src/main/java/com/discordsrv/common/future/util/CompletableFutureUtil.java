@@ -1,6 +1,6 @@
 /*
  * This file is part of DiscordSRV, licensed under the GPLv3 License
- * Copyright (c) 2016-2023 Austin "Scarsz" Shapiro, Henri "Vankka" Schubin and DiscordSRV contributors
+ * Copyright (c) 2016-2024 Austin "Scarsz" Shapiro, Henri "Vankka" Schubin and DiscordSRV contributors
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -19,12 +19,15 @@
 package com.discordsrv.common.future.util;
 
 import com.discordsrv.common.DiscordSRV;
+import com.discordsrv.common.function.CheckedRunnable;
+import com.discordsrv.common.function.CheckedSupplier;
 
 import java.time.Duration;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.Executor;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeoutException;
 
@@ -53,20 +56,13 @@ public final class CompletableFutureUtil {
 
     @SafeVarargs
     public static <T> CompletableFuture<List<T>> combine(CompletableFuture<T>... futures) {
-        CompletableFuture<List<T>> future = new CompletableFuture<>();
-        CompletableFuture.allOf(futures).whenComplete((v, t) -> {
-            if (t != null) {
-                future.completeExceptionally(t);
-                return;
-            }
-
+        return CompletableFuture.allOf(futures).thenApply(v -> {
             List<T> results = new ArrayList<>();
             for (CompletableFuture<T> aFuture : futures) {
                 results.add(aFuture.join());
             }
-            future.complete(results);
+            return results;
         });
-        return future;
     }
 
     public static <T> CompletableFuture<T> timeout(DiscordSRV discordSRV, CompletableFuture<T> future, Duration timeout) {
@@ -80,5 +76,29 @@ public final class CompletableFutureUtil {
                 scheduledFuture.cancel(false);
             }
         });
+    }
+
+    public static <T> CompletableFuture<T> supplyAsync(CheckedSupplier<T> supplier, Executor executor) {
+        CompletableFuture<T> future = new CompletableFuture<>();
+        executor.execute(() -> {
+            if (future.isCancelled()) {
+                return;
+            }
+            try {
+                future.complete(supplier.get());
+            } catch (InterruptedException ignored) {
+                Thread.currentThread().interrupt();
+            } catch (Throwable t) {
+                future.completeExceptionally(t);
+            }
+        });
+        return future;
+    }
+
+    public static CompletableFuture<Void> runAsync(CheckedRunnable runnable, Executor executor) {
+        return supplyAsync(() -> {
+            runnable.run();
+            return null;
+        }, executor);
     }
 }

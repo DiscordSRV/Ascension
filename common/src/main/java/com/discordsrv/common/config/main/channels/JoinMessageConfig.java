@@ -1,6 +1,6 @@
 /*
  * This file is part of DiscordSRV, licensed under the GPLv3 License
- * Copyright (c) 2016-2023 Austin "Scarsz" Shapiro, Henri "Vankka" Schubin and DiscordSRV contributors
+ * Copyright (c) 2016-2024 Austin "Scarsz" Shapiro, Henri "Vankka" Schubin and DiscordSRV contributors
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -45,6 +45,9 @@ public class JoinMessageConfig implements IMessageConfig {
     @Comment("If the \"%1\" permission should determine if join messages are sent")
     @Constants.Comment("discordsrv.silentjoin")
     public boolean enableSilentPermission = true;
+
+    @Comment("Ignore if the player leaves within the given amount of milliseconds. This will delay sending the join message")
+    public long ignoreIfLeftWithinMS = 250;
 
     @Override
     public boolean enabled() {

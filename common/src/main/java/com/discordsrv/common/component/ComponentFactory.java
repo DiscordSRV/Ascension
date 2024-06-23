@@ -1,6 +1,6 @@
 /*
  * This file is part of DiscordSRV, licensed under the GPLv3 License
- * Copyright (c) 2016-2023 Austin "Scarsz" Shapiro, Henri "Vankka" Schubin and DiscordSRV contributors
+ * Copyright (c) 2016-2024 Austin "Scarsz" Shapiro, Henri "Vankka" Schubin and DiscordSRV contributors
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -90,10 +90,10 @@ public class ComponentFactory implements MinecraftComponentFactory {
         }
 
         return translation.translate(
-                component.args()
+                component.arguments()
                         .stream()
-                        .map(discordSerializer::serialize)
-                        .map(str -> (Object) str)
+                        // Prevent infinite loop here by using the default PlainTextSerializer
+                        .map(argument -> PlainTextComponentSerializer.plainText().serialize(argument.asComponent()))
                         .toArray(Object[]::new)
         );
     }

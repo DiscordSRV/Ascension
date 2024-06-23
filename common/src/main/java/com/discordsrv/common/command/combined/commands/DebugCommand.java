@@ -1,6 +1,6 @@
 /*
  * This file is part of DiscordSRV, licensed under the GPLv3 License
- * Copyright (c) 2016-2023 Austin "Scarsz" Shapiro, Henri "Vankka" Schubin and DiscordSRV contributors
+ * Copyright (c) 2016-2024 Austin "Scarsz" Shapiro, Henri "Vankka" Schubin and DiscordSRV contributors
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -86,7 +86,7 @@ public class DebugCommand extends CombinedCommand {
     }
 
     private static final String URL_FORMAT = DiscordSRV.WEBSITE + "/debug/%s#%s";
-    private static final Base64.Encoder KEY_ENCODER = Base64.getUrlEncoder().withoutPadding();
+    public static final Base64.Encoder KEY_ENCODER = Base64.getUrlEncoder().withoutPadding();
 
     private final PasteService pasteService;
 

@@ -1,6 +1,6 @@
 /*
  * This file is part of DiscordSRV, licensed under the GPLv3 License
- * Copyright (c) 2016-2023 Austin "Scarsz" Shapiro, Henri "Vankka" Schubin and DiscordSRV contributors
+ * Copyright (c) 2016-2024 Austin "Scarsz" Shapiro, Henri "Vankka" Schubin and DiscordSRV contributors
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -46,6 +46,7 @@ import com.discordsrv.common.config.messages.MessagesConfig;
 import com.discordsrv.common.console.ConsoleModule;
 import com.discordsrv.common.debug.data.VersionInfo;
 import com.discordsrv.common.dependency.DiscordSRVDependencyManager;
+import com.discordsrv.common.destination.DestinationLookupHelper;
 import com.discordsrv.common.discord.api.DiscordAPIEventModule;
 import com.discordsrv.common.discord.api.DiscordAPIImpl;
 import com.discordsrv.common.discord.connection.details.DiscordConnectionDetailsImpl;
@@ -147,6 +148,7 @@ public abstract class AbstractDiscordSRV<
     private ModuleManager moduleManager;
     private JDAConnectionManager discordConnectionManager;
     private ChannelConfigHelper channelConfig;
+    private DestinationLookupHelper destinationLookupHelper;
 
     private Storage storage;
     private LinkProvider linkProvider;
@@ -183,6 +185,7 @@ public abstract class AbstractDiscordSRV<
         this.discordConnectionDetails = new DiscordConnectionDetailsImpl(this);
         this.discordConnectionManager = new JDAConnectionManager(this);
         this.channelConfig = new ChannelConfigHelper(this);
+        this.destinationLookupHelper = new DestinationLookupHelper(this);
         this.updateChecker = new UpdateChecker(this);
         readManifest();
 
@@ -371,6 +374,11 @@ public abstract class AbstractDiscordSRV<
     }
 
     @Override
+    public DestinationLookupHelper destinations() {
+        return destinationLookupHelper;
+    }
+
+    @Override
     public final JDAConnectionManager discordConnectionManager() {
         return discordConnectionManager;
     }
@@ -531,7 +539,7 @@ public abstract class AbstractDiscordSRV<
 
     @Override
     public final CompletableFuture<Void> invokeDisable() {
-        return CompletableFuture.runAsync(this::disable, scheduler().executorService());
+        return scheduler().execute(this::disable);
     }
 
     @Override
@@ -693,7 +701,7 @@ public abstract class AbstractDiscordSRV<
                                                    + "but linked-accounts.provider is set to \"minecraftauth\". Linked accounts will be disabled");
                             break;
                         }
-                        dependencyManager.mcAuthLib().download().get();
+                        dependencyManager.mcAuthLib().downloadRelocateAndLoad().get();
                         linkProvider = new MinecraftAuthenticationLinker(this);
                         logger().info("Using minecraftauth.me for linked accounts");
                         break;
@@ -727,7 +735,7 @@ public abstract class AbstractDiscordSRV<
                         logger().warning("Data will not persist across server restarts.");
                     }
                     if (storageType.hikari()) {
-                        dependencyManager().hikari().download().get();
+                        dependencyManager().hikari().downloadRelocateAndLoad().get();
                     }
                     storage = storageType.storageFunction().apply(this);
                     storage.initialize();

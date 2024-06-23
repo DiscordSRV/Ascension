@@ -1,7 +1,27 @@
+/*
+ * This file is part of DiscordSRV, licensed under the GPLv3 License
+ * Copyright (c) 2016-2024 Austin "Scarsz" Shapiro, Henri "Vankka" Schubin and DiscordSRV contributors
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <https://www.gnu.org/licenses/>.
+ */
+
 package com.discordsrv.common.console;
 
 import com.discordsrv.api.DiscordSRVApi;
 import com.discordsrv.api.discord.connection.details.DiscordGatewayIntent;
+import com.discordsrv.api.event.bus.Subscribe;
+import com.discordsrv.api.event.events.discord.message.DiscordMessageReceiveEvent;
 import com.discordsrv.common.DiscordSRV;
 import com.discordsrv.common.config.main.ConsoleConfig;
 import com.discordsrv.common.config.main.generic.DestinationConfig;
@@ -15,10 +35,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.List;
+import java.util.*;
 import java.util.function.Consumer;
 
 public class ConsoleModule extends AbstractModule<DiscordSRV> implements LogAppender {
@@ -32,7 +49,12 @@ public class ConsoleModule extends AbstractModule<DiscordSRV> implements LogAppe
 
     @Override
     public @NotNull Collection<DiscordGatewayIntent> requiredIntents() {
-        return Collections.singletonList(DiscordGatewayIntent.MESSAGE_CONTENT);
+        boolean anyExecutors = discordSRV.config().console.stream().anyMatch(config -> config.commandExecution.enabled);
+        if (anyExecutors) {
+            return EnumSet.of(DiscordGatewayIntent.GUILD_MESSAGES, DiscordGatewayIntent.MESSAGE_CONTENT);
+        }
+
+        return Collections.emptySet();
     }
 
     @Override
@@ -81,6 +103,13 @@ public class ConsoleModule extends AbstractModule<DiscordSRV> implements LogAppe
         LogEntry entry = new LogEntry(loggerName, logLevel, message, throwable);
         for (SingleConsoleHandler handler : handlers) {
             handler.queue(entry);
+        }
+    }
+
+    @Subscribe
+    public void onDiscordMessageReceived(DiscordMessageReceiveEvent event) {
+        for (SingleConsoleHandler handler : handlers) {
+            handler.handleDiscordMessageReceived(event);
         }
     }
 }

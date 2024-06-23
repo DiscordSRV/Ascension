@@ -18,7 +18,7 @@ softdepend: [
   # Chat
   Chatty, LunaChat, TownyChat, VentureChat,
   # Other integrations
-  PlaceholderAPI,
+  PlaceholderAPI, Essentials,
   # Adventure
   ViaVersion
 ]

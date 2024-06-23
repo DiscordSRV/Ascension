@@ -1,4 +1,6 @@
-disableAutoTargetJvm() // Requires Java 17, we target 8
+java {
+    disableAutoTargetJvm() // Requires Java 17, we target 8
+}
 
 dependencies {
     // Platform

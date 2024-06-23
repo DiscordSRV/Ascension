@@ -1,6 +1,6 @@
 /*
  * This file is part of DiscordSRV, licensed under the GPLv3 License
- * Copyright (c) 2016-2023 Austin "Scarsz" Shapiro, Henri "Vankka" Schubin and DiscordSRV contributors
+ * Copyright (c) 2016-2024 Austin "Scarsz" Shapiro, Henri "Vankka" Schubin and DiscordSRV contributors
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -30,7 +30,7 @@ import com.discordsrv.common.player.IPlayer;
 
 import java.util.Collection;
 import java.util.Collections;
-import java.util.Map;
+import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
@@ -56,7 +56,7 @@ public class StopMessageModule extends AbstractGameMessageModule<StopMessageConf
     public void postClusterToEventBus(ReceivedDiscordMessageCluster cluster) {}
 
     @Override
-    public Map<CompletableFuture<ReceivedDiscordMessage>, DiscordGuildMessageChannel> sendMessageToChannels(
+    public List<CompletableFuture<ReceivedDiscordMessage>> sendMessageToChannels(
             StopMessageConfig config,
             IPlayer player,
             SendableDiscordMessage.Builder format,
@@ -65,7 +65,7 @@ public class StopMessageModule extends AbstractGameMessageModule<StopMessageConf
             Object... context
     ) {
         if (!config.enabled) {
-            return Collections.emptyMap();
+            return Collections.emptyList();
         }
         return super.sendMessageToChannels(config, player, format, channels, event, context);
     }

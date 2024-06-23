@@ -1,6 +1,6 @@
 /*
  * This file is part of the DiscordSRV API, licensed under the MIT License
- * Copyright (c) 2016-2023 Austin "Scarsz" Shapiro, Henri "Vankka" Schubin and DiscordSRV contributors
+ * Copyright (c) 2016-2024 Austin "Scarsz" Shapiro, Henri "Vankka" Schubin and DiscordSRV contributors
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -26,6 +26,8 @@ package com.discordsrv.api.discord.connection.details;
 import com.discordsrv.api.discord.entity.JDAEntity;
 import net.dv8tion.jda.api.requests.GatewayIntent;
 
+import java.util.EnumSet;
+
 public enum DiscordGatewayIntent implements JDAEntity<GatewayIntent> {
 
     GUILD_MEMBERS(GatewayIntent.GUILD_MEMBERS, "Server Members Intent"),
@@ -43,16 +45,31 @@ public enum DiscordGatewayIntent implements JDAEntity<GatewayIntent> {
     DIRECT_MESSAGE_TYPING(GatewayIntent.DIRECT_MESSAGE_TYPING),
     MESSAGE_CONTENT(GatewayIntent.MESSAGE_CONTENT, "Message Content Intent"),
     SCHEDULED_EVENTS(GatewayIntent.SCHEDULED_EVENTS),
+    AUTO_MODERATION_CONFIGURATION(GatewayIntent.AUTO_MODERATION_CONFIGURATION),
+    AUTO_MODERATION_EXECUTION(GatewayIntent.AUTO_MODERATION_EXECUTION),
 
     ;
 
-    static DiscordGatewayIntent getByJda(GatewayIntent jda) {
+    public static final EnumSet<DiscordGatewayIntent> PRIVILEGED;
+
+    static {
+        EnumSet<DiscordGatewayIntent> privileged = EnumSet.noneOf(DiscordGatewayIntent.class);
+        for (DiscordGatewayIntent intent : values()) {
+            if (intent.privileged()) {
+                privileged.add(intent);
+            }
+        }
+
+        PRIVILEGED = privileged;
+    }
+
+    public static DiscordGatewayIntent getByJda(GatewayIntent jda) {
         for (DiscordGatewayIntent value : values()) {
             if (value.asJDA() == jda) {
                 return value;
             }
         }
-        throw new IllegalArgumentException("This intent does not have a ");
+        throw new IllegalArgumentException("This intent does not have a DiscordGatewayIntent");
     }
 
     private final GatewayIntent jda;

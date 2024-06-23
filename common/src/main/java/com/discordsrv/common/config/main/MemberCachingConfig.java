@@ -1,6 +1,6 @@
 /*
  * This file is part of DiscordSRV, licensed under the GPLv3 License
- * Copyright (c) 2016-2023 Austin "Scarsz" Shapiro, Henri "Vankka" Schubin and DiscordSRV contributors
+ * Copyright (c) 2016-2024 Austin "Scarsz" Shapiro, Henri "Vankka" Schubin and DiscordSRV contributors
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -27,13 +27,16 @@ import java.util.List;
 @ConfigSerializable
 public class MemberCachingConfig {
 
-    @Comment("If linked users' members should be cached, this requires the \"Server Members Intent\"")
+    @Comment("If linked users' members should be cached\n"
+            + "Requires the \"Server Members Intent\"")
     public boolean linkedUsers = true;
 
-    @Comment("If all members should be cached, this requires the \"Server Members Intent\"")
+    @Comment("If all members should be cached\n"
+            + "Requires the \"Server Members Intent\"")
     public boolean all = false;
 
-    @Comment("If members should be cached at startup, this requires the \"Server Members Intent\"")
+    @Comment("If members should be cached at startup\n"
+            + "Requires the \"Server Members Intent\"")
     public boolean chunk = true;
 
     @Comment("Filter for which servers should be cached at startup")

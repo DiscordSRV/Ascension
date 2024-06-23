@@ -1,6 +1,6 @@
 /*
  * This file is part of DiscordSRV, licensed under the GPLv3 License
- * Copyright (c) 2016-2023 Austin "Scarsz" Shapiro, Henri "Vankka" Schubin and DiscordSRV contributors
+ * Copyright (c) 2016-2024 Austin "Scarsz" Shapiro, Henri "Vankka" Schubin and DiscordSRV contributors
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -40,7 +40,7 @@ public class MinecraftComponentImpl implements MinecraftComponent {
         setJson(json);
     }
 
-    public MinecraftComponentImpl(Component component) {
+    public MinecraftComponentImpl(@NotNull Component component) {
         setComponent(component);
     }
 
@@ -48,7 +48,7 @@ public class MinecraftComponentImpl implements MinecraftComponent {
         return component;
     }
 
-    public void setComponent(Component component) {
+    public void setComponent(@NotNull Component component) {
         this.component = component;
         this.json = GsonComponentSerializer.gson().serialize(component);
     }

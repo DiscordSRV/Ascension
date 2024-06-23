@@ -1,6 +1,6 @@
 /*
  * This file is part of DiscordSRV, licensed under the GPLv3 License
- * Copyright (c) 2016-2023 Austin "Scarsz" Shapiro, Henri "Vankka" Schubin and DiscordSRV contributors
+ * Copyright (c) 2016-2024 Austin "Scarsz" Shapiro, Henri "Vankka" Schubin and DiscordSRV contributors
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -38,14 +38,19 @@ public abstract class MainConfig implements Config {
 
     public static final String FILE_NAME = "config.yaml";
 
-    @Constants({DocumentationURLs.ELT_FORMAT, DocumentationURLs.DISCORD_MARKDOWN, DocumentationURLs.PLACEHOLDERS})
+    @Constants({
+            ConnectionConfig.FILE_NAME,
+            DocumentationURLs.ELT_FORMAT,
+            DocumentationURLs.DISCORD_MARKDOWN,
+            DocumentationURLs.PLACEHOLDERS
+    })
     public static final String HEADER = String.join("\n", Arrays.asList(
             "Welcome to the DiscordSRV configuration file",
             "",
-            "Looking for the \"BotToken\" option? It has been moved into the " + ConnectionConfig.FILE_NAME,
-            "Need help with the format for Minecraft messages? %1",
-            "Need help with Discord markdown? %2",
-            "List of placeholders %3"
+            "Looking for the \"BotToken\" option? It has been moved into the %1",
+            "Need help with the format for Minecraft messages? %2",
+            "Need help with Discord markdown? %3",
+            "List of placeholders %4"
     ));
 
     @Override

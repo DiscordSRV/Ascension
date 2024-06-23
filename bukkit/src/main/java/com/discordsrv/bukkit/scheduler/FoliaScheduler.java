@@ -1,6 +1,6 @@
 /*
  * This file is part of DiscordSRV, licensed under the GPLv3 License
- * Copyright (c) 2016-2023 Austin "Scarsz" Shapiro, Henri "Vankka" Schubin and DiscordSRV contributors
+ * Copyright (c) 2016-2024 Austin "Scarsz" Shapiro, Henri "Vankka" Schubin and DiscordSRV contributors
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -19,6 +19,7 @@
 package com.discordsrv.bukkit.scheduler;
 
 import com.discordsrv.bukkit.BukkitDiscordSRV;
+import org.jetbrains.annotations.NotNull;
 
 public class FoliaScheduler extends AbstractBukkitScheduler implements IFoliaScheduler {
 
@@ -27,17 +28,17 @@ public class FoliaScheduler extends AbstractBukkitScheduler implements IFoliaSch
     }
 
     @Override
-    public void runOnMainThread(Runnable task) {
+    public void runOnMainThread(@NotNull Runnable task) {
         checkDisable(task, (server, plugin) -> IFoliaScheduler.super.runOnMainThread(task));
     }
 
     @Override
-    public void runOnMainThreadLaterInTicks(Runnable task, int ticks) {
+    public void runOnMainThreadLaterInTicks(@NotNull Runnable task, int ticks) {
         checkDisable(task, (server, plugin) -> IFoliaScheduler.super.runOnMainThreadLaterInTicks(task, ticks));
     }
 
     @Override
-    public void runOnMainThreadAtFixedRateInTicks(Runnable task, int initialTicks, int rateTicks) {
+    public void runOnMainThreadAtFixedRateInTicks(@NotNull Runnable task, int initialTicks, int rateTicks) {
         checkDisable(task, (server, plugin) -> IFoliaScheduler.super.runOnMainThreadAtFixedRateInTicks(task, initialTicks, rateTicks));
     }
 }

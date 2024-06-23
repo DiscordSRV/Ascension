@@ -1,6 +1,6 @@
 /*
  * This file is part of DiscordSRV, licensed under the GPLv3 License
- * Copyright (c) 2016-2023 Austin "Scarsz" Shapiro, Henri "Vankka" Schubin and DiscordSRV contributors
+ * Copyright (c) 2016-2024 Austin "Scarsz" Shapiro, Henri "Vankka" Schubin and DiscordSRV contributors
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -116,20 +116,11 @@ public class VaultIntegration extends PluginIntegration<BukkitDiscordSRV> implem
     }
 
     private <T> CompletableFuture<T> supply(CheckedSupplier<T> supplier, boolean async) {
-        CompletableFuture<T> future = new CompletableFuture<>();
-        Runnable runnable = () -> {
-            try {
-                future.complete(supplier.get());
-            } catch (Throwable e) {
-                future.completeExceptionally(e);
-            }
-        };
         if (async) {
-            discordSRV.scheduler().run(runnable);
+            return discordSRV.scheduler().supply(supplier);
         } else {
-            discordSRV.scheduler().runOnMainThread(runnable);
+            return discordSRV.scheduler().supplyOnMainThread(supplier);
         }
-        return future;
     }
 
     private OfflinePlayer offlinePlayer(UUID player) {

@@ -1,6 +1,6 @@
 /*
  * This file is part of DiscordSRV, licensed under the GPLv3 License
- * Copyright (c) 2016-2023 Austin "Scarsz" Shapiro, Henri "Vankka" Schubin and DiscordSRV contributors
+ * Copyright (c) 2016-2024 Austin "Scarsz" Shapiro, Henri "Vankka" Schubin and DiscordSRV contributors
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -59,7 +59,7 @@ public abstract class ServerDiscordSRV<
     }
 
     public final CompletableFuture<Void> invokeServerStarted() {
-        return CompletableFuture.supplyAsync(() -> {
+        return scheduler().supply(() -> {
             if (status().isShutdown()) {
                 // Already shutdown/shutting down, don't bother
                 return null;
@@ -76,7 +76,7 @@ public abstract class ServerDiscordSRV<
                 logger().error("Failed to start", t);
             }
             return null;
-        }, scheduler().executorService());
+        });
     }
 
     @OverridingMethodsMustInvokeSuper

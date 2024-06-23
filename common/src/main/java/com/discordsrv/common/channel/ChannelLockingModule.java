@@ -1,6 +1,6 @@
 /*
  * This file is part of DiscordSRV, licensed under the GPLv3 License
- * Copyright (c) 2016-2023 Austin "Scarsz" Shapiro, Henri "Vankka" Schubin and DiscordSRV contributors
+ * Copyright (c) 2016-2024 Austin "Scarsz" Shapiro, Henri "Vankka" Schubin and DiscordSRV contributors
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -24,6 +24,7 @@ import com.discordsrv.common.DiscordSRV;
 import com.discordsrv.common.config.main.channels.ChannelLockingConfig;
 import com.discordsrv.common.config.main.channels.base.BaseChannelConfig;
 import com.discordsrv.common.config.main.channels.base.IChannelConfig;
+import com.discordsrv.common.discord.util.DiscordPermissionUtil;
 import com.discordsrv.common.module.type.AbstractModule;
 import net.dv8tion.jda.api.Permission;
 import net.dv8tion.jda.api.entities.Guild;
@@ -31,12 +32,11 @@ import net.dv8tion.jda.api.entities.IPermissionHolder;
 import net.dv8tion.jda.api.entities.Role;
 import net.dv8tion.jda.api.entities.channel.attribute.IPermissionContainer;
 import net.dv8tion.jda.api.entities.channel.middleman.GuildMessageChannel;
+import net.dv8tion.jda.api.managers.channel.concrete.ThreadChannelManager;
 import net.dv8tion.jda.api.requests.restaction.PermissionOverrideAction;
 
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.List;
-import java.util.function.BiConsumer;
 
 public class ChannelLockingModule extends AbstractModule<DiscordSRV> {
 
@@ -51,55 +51,48 @@ public class ChannelLockingModule extends AbstractModule<DiscordSRV> {
 
     @Override
     public void enable() {
-        doForAllChannels((config, channelConfig) -> {
-            ChannelLockingConfig shutdownConfig = config.channelLocking;
-            ChannelLockingConfig.Channels channels = shutdownConfig.channels;
-            ChannelLockingConfig.Threads threads = shutdownConfig.threads;
-
-            discordSRV.discordAPI()
-                    .findOrCreateDestinations((BaseChannelConfig & IChannelConfig) config, threads.unarchive, true)
-                    .whenComplete((destinations, t) -> {
-                        if (channels.everyone || !channels.roleIds.isEmpty()) {
-                            for (DiscordGuildMessageChannel destination : destinations) {
-                                channelPermissions(channels, destination, true);
-                            }
-                        }
-                    });
-        });
+        run(true);
     }
 
     @Override
     public void disable() {
-        doForAllChannels((config, channelConfig) -> {
-            if (!(config instanceof IChannelConfig)) {
-                return;
+        run(false);
+    }
+
+    private void run(boolean unlocked) {
+        for (BaseChannelConfig config : discordSRV.channelConfig().getAllChannels()) {
+            IChannelConfig channelConfig = config instanceof IChannelConfig ? (IChannelConfig) config : null;
+            if (channelConfig == null) {
+                continue;
             }
 
-            ChannelLockingConfig shutdownConfig = config.channelLocking;
-            ChannelLockingConfig.Channels channels = shutdownConfig.channels;
-            ChannelLockingConfig.Threads threads = shutdownConfig.threads;
+            ChannelLockingConfig lockingConfig = config.channelLocking;
+            ChannelLockingConfig.Channels channels = lockingConfig.channels;
+            ChannelLockingConfig.Threads threads = lockingConfig.threads;
 
-            boolean archive = threads.archive;
             boolean isChannels = channels.everyone || !channels.roleIds.isEmpty();
-            if (!threads.archive && !isChannels) {
-                return;
-            }
+            boolean isThreads = threads.archive || threads.lock;
 
-            Collection<DiscordGuildMessageChannel> destinations = discordSRV.discordAPI()
-                    .findDestinations((BaseChannelConfig & IChannelConfig) config, true);
-
-            for (DiscordGuildMessageChannel destination : destinations) {
-                if (archive && destination instanceof DiscordThreadChannel) {
-                    ((DiscordThreadChannel) destination).asJDA().getManager()
-                            .setArchived(true)
-                            .reason("DiscordSRV channel locking")
-                            .queue();
-                }
-                if (isChannels) {
-                    channelPermissions(channels, destination, false);
-                }
-            }
-        });
+            discordSRV.destinations()
+                    .lookupDestination(channelConfig.destination(), false, true)
+                    .whenComplete((destinations, t) -> {
+                        for (DiscordGuildMessageChannel destination : destinations) {
+                            if (isThreads && destination instanceof DiscordThreadChannel) {
+                                ThreadChannelManager manager = ((DiscordThreadChannel) destination).asJDA().getManager();
+                                if (threads.archive) {
+                                    manager = manager.setArchived(!unlocked);
+                                }
+                                if (threads.lock) {
+                                    manager = manager.setLocked(!unlocked);
+                                }
+                                manager.reason("DiscordSRV channel locking").queue();
+                            }
+                            if (isChannels) {
+                                channelPermissions(channels, destination, unlocked);
+                            }
+                        }
+                    });
+        }
     }
 
     private void channelPermissions(
@@ -130,8 +123,9 @@ public class ChannelLockingModule extends AbstractModule<DiscordSRV> {
         }
 
         Guild guild = messageChannel.getGuild();
-        if (!guild.getSelfMember().hasPermission(messageChannel, Permission.MANAGE_PERMISSIONS)) {
-            logger().error("Cannot change permissions of " + channel + ": lacking \"Manage Permissions\" permission");
+        String missingPermissions = DiscordPermissionUtil.missingPermissionsString(messageChannel, Permission.VIEW_CHANNEL, Permission.MANAGE_PERMISSIONS);
+        if (missingPermissions != null) {
+            logger().error("Cannot lock #" + channel.getName() + ": " + missingPermissions);
             return;
         }
 
@@ -161,16 +155,5 @@ public class ChannelLockingModule extends AbstractModule<DiscordSRV> {
             action = action.deny(permissions);
         }
         action.reason("DiscordSRV channel locking").queue();
-    }
-
-    private void doForAllChannels(BiConsumer<BaseChannelConfig, IChannelConfig> channelConsumer) {
-        for (BaseChannelConfig config : discordSRV.channelConfig().getAllChannels()) {
-            IChannelConfig channelConfig = config instanceof IChannelConfig ? (IChannelConfig) config : null;
-            if (channelConfig == null) {
-                continue;
-            }
-
-            channelConsumer.accept(config, channelConfig);
-        }
     }
 }

@@ -1,6 +1,6 @@
 /*
  * This file is part of DiscordSRV, licensed under the GPLv3 License
- * Copyright (c) 2016-2023 Austin "Scarsz" Shapiro, Henri "Vankka" Schubin and DiscordSRV contributors
+ * Copyright (c) 2016-2024 Austin "Scarsz" Shapiro, Henri "Vankka" Schubin and DiscordSRV contributors
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -29,18 +29,49 @@ import com.discordsrv.common.DiscordSRV;
 import com.discordsrv.common.component.util.ComponentUtil;
 import com.discordsrv.common.config.main.channels.LeaveMessageConfig;
 import com.discordsrv.common.config.main.channels.base.BaseChannelConfig;
+import com.discordsrv.common.event.events.player.PlayerConnectedEvent;
 import com.discordsrv.common.permission.Permission;
 import com.discordsrv.common.player.IPlayer;
 import net.kyori.adventure.text.Component;
+import org.apache.commons.lang3.tuple.Pair;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.time.Duration;
+import java.util.Map;
+import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.Future;
 
 public class LeaveMessageModule extends AbstractGameMessageModule<LeaveMessageConfig, LeaveMessageReceiveEvent> {
 
+    private final Map<UUID, Pair<Long, Future<?>>> playersJoinedRecently = new ConcurrentHashMap<>();
+
     public LeaveMessageModule(DiscordSRV discordSRV) {
         super(discordSRV, "LEAVE_MESSAGES");
+    }
+
+    @Subscribe
+    public void onPlayerConnected(PlayerConnectedEvent event) {
+        UUID playerUUID = event.player().uniqueId();
+        Pair<Long, Future<?>> pair = playersJoinedRecently.remove(playerUUID);
+        if (pair != null) {
+            pair.getValue().cancel(true);
+        }
+
+        long maxMS = 0;
+        for (BaseChannelConfig channel : discordSRV.channelConfig().getAllChannels()) {
+            long ms = channel.leaveMessages.ignoreIfJoinedWithinMS;
+            if (maxMS < ms) {
+                maxMS = ms;
+            }
+        }
+        if (maxMS > 0) {
+            long currentTime = System.currentTimeMillis();
+            Future<?> removeFuture = discordSRV.scheduler().runLater(() -> playersJoinedRecently.remove(playerUUID), Duration.ofMillis(maxMS));
+            playersJoinedRecently.put(playerUUID, Pair.of(currentTime, removeFuture));
+        }
     }
 
     @Subscribe(priority = EventPriority.LAST)
@@ -59,6 +90,17 @@ public class LeaveMessageModule extends AbstractGameMessageModule<LeaveMessageCo
             @Nullable IPlayer player,
             @NotNull BaseChannelConfig config
     ) {
+        if (player != null) {
+            Pair<Long, Future<?>> pair = playersJoinedRecently.remove(player.uniqueId());
+            if (pair != null) {
+                long delta = System.currentTimeMillis() - pair.getKey();
+                if (delta < config.leaveMessages.ignoreIfJoinedWithinMS) {
+                    logger().info(player.username() + " joined within timeout period, join message will not be sent");
+                    return CompletableFuture.completedFuture(null);
+                }
+            }
+        }
+
         if (config.leaveMessages.enableSilentPermission && player != null && player.hasPermission(Permission.SILENT_QUIT)) {
             logger().info(player.username() + " is leaving silently, leave message will not be sent");
             return CompletableFuture.completedFuture(null);

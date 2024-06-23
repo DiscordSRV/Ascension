@@ -1,6 +1,6 @@
 /*
  * This file is part of DiscordSRV, licensed under the GPLv3 License
- * Copyright (c) 2016-2023 Austin "Scarsz" Shapiro, Henri "Vankka" Schubin and DiscordSRV contributors
+ * Copyright (c) 2016-2024 Austin "Scarsz" Shapiro, Henri "Vankka" Schubin and DiscordSRV contributors
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -18,7 +18,9 @@
 
 package com.discordsrv.common.scheduler;
 
-import org.jetbrains.annotations.ApiStatus;
+import com.discordsrv.common.function.CheckedRunnable;
+import com.discordsrv.common.function.CheckedSupplier;
+import com.discordsrv.common.future.util.CompletableFutureUtil;
 import org.jetbrains.annotations.NotNull;
 
 import java.time.Duration;
@@ -61,7 +63,18 @@ public interface Scheduler {
      *
      * @param task the task
      */
+    @NotNull
     Future<?> run(@NotNull Runnable task);
+
+    @NotNull
+    default CompletableFuture<Void> execute(@NotNull CheckedRunnable task) {
+        return CompletableFutureUtil.runAsync(task, this::run);
+    }
+
+    @NotNull
+    default <T> CompletableFuture<T> supply(@NotNull CheckedSupplier<T> supplier) {
+        return CompletableFutureUtil.supplyAsync(supplier, this::run);
+    }
 
     /**
      * Schedules the given task after the provided amount of milliseconds.
@@ -69,7 +82,18 @@ public interface Scheduler {
      * @param task the task
      * @param delay the delay before executing the task
      */
-    ScheduledFuture<?> runLater(Runnable task, Duration delay);
+    @NotNull
+    ScheduledFuture<?> runLater(@NotNull Runnable task, @NotNull Duration delay);
+
+    @NotNull
+    default CompletableFuture<Void> executeLater(@NotNull CheckedRunnable task, @NotNull Duration delay) {
+        return CompletableFutureUtil.runAsync(task, t -> runLater(t, delay));
+    }
+
+    @NotNull
+    default <T> CompletableFuture<T> supplyLater(@NotNull CheckedSupplier<T> supplier, @NotNull Duration delay) {
+        return CompletableFutureUtil.supplyAsync(supplier, task -> runLater(task, delay));
+    }
 
     /**
      * Schedules the given task at the given rate.
@@ -77,7 +101,7 @@ public interface Scheduler {
      * @param task the task
      * @param rate the rate in the given unit
      */
-    @ApiStatus.NonExtendable
+    @NotNull
     default ScheduledFuture<?> runAtFixedRate(@NotNull Runnable task, Duration rate) {
         return runAtFixedRate(task, rate, rate);
     }
@@ -89,7 +113,7 @@ public interface Scheduler {
      * @param initialDelay the initial delay in the provided unit
      * @param rate the rate to run the task at in the given unit
      */
-    @ApiStatus.NonExtendable
+    @NotNull
     ScheduledFuture<?> runAtFixedRate(@NotNull Runnable task, Duration initialDelay, Duration rate);
 
 }
