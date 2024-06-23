@@ -1,3 +1,21 @@
+/*
+ * This file is part of DiscordSRV, licensed under the GPLv3 License
+ * Copyright (c) 2016-2024 Austin "Scarsz" Shapiro, Henri "Vankka" Schubin and DiscordSRV contributors
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <https://www.gnu.org/licenses/>.
+ */
+
 package com.discordsrv.common.bansync;
 
 import com.discordsrv.api.discord.connection.details.DiscordGatewayIntent;
@@ -71,7 +89,7 @@ public class BanSyncModule extends AbstractSyncModule<DiscordSRV, BanSyncConfig,
     }
 
     @Override
-    public String logName() {
+    public String logFileName() {
         return "bansync";
     }
 
@@ -91,8 +109,10 @@ public class BanSyncModule extends AbstractSyncModule<DiscordSRV, BanSyncConfig,
     }
 
     @Override
-    protected boolean isActive(Punishment state) {
-        return state != null;
+    protected @Nullable ISyncResult doesStateMatch(Punishment one, Punishment two) {
+        boolean oneActive = one != null;
+        boolean twoActive = two != null;
+        return (oneActive == twoActive) ? GenericSyncResults.both(oneActive) : null;
     }
 
     private PunishmentEvent upsertEvent(long userId, boolean newState) {
@@ -211,7 +231,7 @@ public class BanSyncModule extends AbstractSyncModule<DiscordSRV, BanSyncConfig,
     }
 
     @Override
-    protected CompletableFuture<ISyncResult> applyDiscord(BanSyncConfig config, long userId, Punishment state) {
+    protected CompletableFuture<ISyncResult> applyDiscord(BanSyncConfig config, long userId, Punishment newState) {
         if (config.direction == SyncDirection.DISCORD_TO_MINECRAFT) {
             return CompletableFuture.completedFuture(GenericSyncResults.WRONG_DIRECTION);
         }
@@ -228,9 +248,10 @@ public class BanSyncModule extends AbstractSyncModule<DiscordSRV, BanSyncConfig,
         }
 
         UserSnowflake snowflake = UserSnowflake.fromId(userId);
-        if (state != null) {
+        if (newState != null) {
             return guild.ban(snowflake, config.discordMessageHoursToDelete, TimeUnit.HOURS)
-                    .reason(discordSRV.placeholderService().replacePlaceholders(config.discordBanReasonFormat, state))
+                    .reason(discordSRV.placeholderService().replacePlaceholders(config.discordBanReasonFormat,
+                                                                                newState))
                     .submit()
                     .thenApply(v -> GenericSyncResults.ADD_DISCORD);
         } else {
@@ -242,7 +263,7 @@ public class BanSyncModule extends AbstractSyncModule<DiscordSRV, BanSyncConfig,
     }
 
     @Override
-    protected CompletableFuture<ISyncResult> applyGame(BanSyncConfig config, UUID playerUUID, Punishment state) {
+    protected CompletableFuture<ISyncResult> applyGame(BanSyncConfig config, UUID playerUUID, Punishment newState) {
         if (config.direction == SyncDirection.MINECRAFT_TO_DISCORD) {
             return CompletableFuture.completedFuture(GenericSyncResults.WRONG_DIRECTION);
         }
@@ -252,9 +273,11 @@ public class BanSyncModule extends AbstractSyncModule<DiscordSRV, BanSyncConfig,
             return CompletableFuture.completedFuture(BanSyncResult.NO_PUNISHMENT_INTEGRATION);
         }
 
-        if (state != null) {
-            String reason = discordSRV.placeholderService().replacePlaceholders(config.gameBanReasonFormat, state);
-            String punisher = discordSRV.placeholderService().replacePlaceholders(config.gamePunisherFormat, state);
+        if (newState != null) {
+            String reason = discordSRV.placeholderService().replacePlaceholders(config.gameBanReasonFormat,
+                                                                                newState);
+            String punisher = discordSRV.placeholderService().replacePlaceholders(config.gamePunisherFormat,
+                                                                                  newState);
             return bans.addBan(playerUUID, null, reason, punisher)
                     .thenApply(v -> GenericSyncResults.ADD_GAME);
         } else {

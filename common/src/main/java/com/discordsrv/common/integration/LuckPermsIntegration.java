@@ -178,8 +178,8 @@ public class LuckPermsIntegration extends PluginIntegration<DiscordSRV> implemen
 
             InheritanceNode node = InheritanceNode.builder(group).context(contexts).build();
             DataMutateResult result = function.apply(user.data(), node);
-            if (result != DataMutateResult.SUCCESS) {
-                return CompletableFutureUtil.failed(new MessageException(result.name()));
+            if (!result.wasSuccessful()) {
+                return CompletableFutureUtil.failed(new MessageException("Group mutate failed: " + result.name()));
             }
 
             return luckPerms.getUserManager().saveUser(user);

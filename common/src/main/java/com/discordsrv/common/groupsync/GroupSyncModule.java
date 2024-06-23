@@ -66,7 +66,7 @@ public class GroupSyncModule extends AbstractSyncModule<DiscordSRV, GroupSyncCon
     }
 
     @Override
-    public String logName() {
+    public String logFileName() {
         return "groupsync";
     }
 
@@ -86,8 +86,11 @@ public class GroupSyncModule extends AbstractSyncModule<DiscordSRV, GroupSyncCon
     }
 
     @Override
-    protected boolean isActive(Boolean state) {
-        return state;
+    protected @Nullable ISyncResult doesStateMatch(Boolean one, Boolean two) {
+        if (one == two) {
+            return GenericSyncResults.both(one);
+        }
+        return null;
     }
 
     @Override
@@ -154,8 +157,8 @@ public class GroupSyncModule extends AbstractSyncModule<DiscordSRV, GroupSyncCon
         groupChanged(player, groupName, serverContext, cause, false);
     }
 
-    private void roleChanged(long userId, long roleId, boolean state) {
-        if (checkExpectation(expectedDiscordChanges, userId, roleId, state)) {
+    private void roleChanged(long userId, long roleId, boolean newState) {
+        if (checkExpectation(expectedDiscordChanges, userId, roleId, newState)) {
             return;
         }
 
@@ -165,7 +168,7 @@ public class GroupSyncModule extends AbstractSyncModule<DiscordSRV, GroupSyncCon
             return;
         }
 
-        discordChanged(GroupSyncCause.DISCORD_ROLE_CHANGE, Someone.of(userId), roleId, state);
+        discordChanged(GroupSyncCause.DISCORD_ROLE_CHANGE, Someone.of(userId), roleId, newState);
     }
 
     private void groupChanged(
@@ -173,7 +176,7 @@ public class GroupSyncModule extends AbstractSyncModule<DiscordSRV, GroupSyncCon
             String groupName,
             Set<String> serverContext,
             GroupSyncCause cause,
-            Boolean state
+            boolean state
     ) {
         if (cause.isDiscordSRVCanCause() && checkExpectation(expectedMinecraftChanges, playerUUID, groupName, state)) {
             return;
@@ -247,7 +250,7 @@ public class GroupSyncModule extends AbstractSyncModule<DiscordSRV, GroupSyncCon
     }
 
     @Override
-    public CompletableFuture<ISyncResult> applyDiscord(GroupSyncConfig.PairConfig config, long userId, Boolean state) {
+    public CompletableFuture<ISyncResult> applyDiscord(GroupSyncConfig.PairConfig config, long userId, Boolean newState) {
         DiscordRole role = discordSRV.discordAPI().getRoleById(config.roleId);
         if (role == null) {
             return CompletableFutureUtil.failed(new SyncFail(GroupSyncResult.ROLE_DOESNT_EXIST));
@@ -255,11 +258,11 @@ public class GroupSyncModule extends AbstractSyncModule<DiscordSRV, GroupSyncCon
 
         Map<Long, Boolean> expected = expectedDiscordChanges.get(userId, key -> new ConcurrentHashMap<>());
         if (expected != null) {
-            expected.put(config.roleId, state);
+            expected.put(config.roleId, newState);
         }
 
         return role.getGuild().retrieveMemberById(userId)
-                .thenCompose(member -> state
+                .thenCompose(member -> newState
                                        ? member.addRole(role).thenApply(v -> (ISyncResult) GenericSyncResults.ADD_DISCORD)
                                        : member.removeRole(role).thenApply(v -> GenericSyncResults.REMOVE_DISCORD)
                 ).whenComplete((r, t) -> {
@@ -271,14 +274,14 @@ public class GroupSyncModule extends AbstractSyncModule<DiscordSRV, GroupSyncCon
     }
 
     @Override
-    public CompletableFuture<ISyncResult> applyGame(GroupSyncConfig.PairConfig config, UUID playerUUID, Boolean state) {
+    public CompletableFuture<ISyncResult> applyGame(GroupSyncConfig.PairConfig config, UUID playerUUID, Boolean newState) {
         Map<String, Boolean> expected = expectedMinecraftChanges.get(playerUUID, key -> new ConcurrentHashMap<>());
         if (expected != null) {
-            expected.put(config.groupName, state);
+            expected.put(config.groupName, newState);
         }
 
         CompletableFuture<ISyncResult> future =
-                state
+                newState
                     ? addGroup(playerUUID, config).thenApply(v -> GenericSyncResults.ADD_GAME)
                     : removeGroup(playerUUID, config).thenApply(v -> GenericSyncResults.REMOVE_GAME);
         return future.exceptionally(t -> {

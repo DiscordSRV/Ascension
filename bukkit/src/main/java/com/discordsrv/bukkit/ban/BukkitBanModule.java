@@ -70,6 +70,9 @@ public class BukkitBanModule extends AbstractModule<BukkitDiscordSRV> implements
         }
 
         return entryFuture.thenApply(ban -> {
+            if (ban == null) {
+                return null;
+            }
             Date expiration = ban.getExpiration();
             return new Punishment(expiration != null ? expiration.toInstant() : null, ban.getReason(), ban.getSource());
         });
