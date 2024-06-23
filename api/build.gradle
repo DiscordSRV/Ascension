@@ -34,9 +34,9 @@ jar {
     from sourceSets.ap.output.resourcesDir
 }
 
-license {
+indraSpotlessLicenser {
     // Overwrite the default
-    header = rootProject.file('buildscript/license/API_LICENSE_HEADER')
+    licenseHeaderFile(rootProject.file('buildscript/license/API_LICENSE_HEADER'))
 }
 
 publishing {

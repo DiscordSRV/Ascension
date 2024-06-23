@@ -11,9 +11,10 @@ dependencyResolutionManagement {
         libs {
             // Buildscript
             plugin('shadow', 'io.github.goooler.shadow').version('8.1.7')
-            plugin('licenser', 'net.minecraftforge.licenser').version('1.0.1')
+            plugin('spotless', 'com.diffplug.spotless').version('6.25.0')
             plugin('blossom', 'net.kyori.blossom').version('2.1.0')
-            plugin('indra-git', 'net.kyori.indra.git').version('2.1.1')
+            plugin('indra-git', 'net.kyori.indra.git').version('2.2.0')
+            plugin('indra-licenser', 'net.kyori.indra.licenser.spotless').version('2.2.0')
             plugin('idea-ext', 'org.jetbrains.gradle.plugin.idea-ext').version('1.1.7')
 
             // Bukkit
@@ -135,9 +136,7 @@ dependencyResolutionManagement {
             library('enhancedlegacytext', 'dev.vankka', 'enhancedlegacytext').version('2.0.0-SNAPSHOT')
 
             // JUnit
-            version('junit', '5.10.0')
-            library('jupiter-api', 'org.junit.jupiter', 'junit-jupiter-api').versionRef('junit')
-            library('jupiter-engine', 'org.junit.jupiter', 'junit-jupiter-engine').versionRef('junit')
+            library('junit-jupiter', 'org.junit.jupiter', 'junit-jupiter').version('5.10.2')
         }
     }
 }
