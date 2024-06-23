@@ -22,21 +22,34 @@ import com.discordsrv.common.sync.result.ISyncResult;
 
 public enum GroupSyncResult implements ISyncResult {
 
+    // Fail
+    NOT_A_GUILD_MEMBER("User is not part of the server the role is in", true),
+
     // Error
     ROLE_DOESNT_EXIST("Role doesn't exist"),
     ROLE_CANNOT_INTERACT("Bot doesn't have a role above the synced role (cannot interact)"),
-    NOT_A_GUILD_MEMBER("User is not part of the server the role is in"),
     PERMISSION_BACKEND_FAILED("Failed to interact with permission backend, error printed"),
 
     ;
 
     private final String format;
+    private final boolean success;
 
     GroupSyncResult(String format) {
-        this.format = format;
+        this(format, false);
     }
 
-    public boolean isSuccess() {
+    GroupSyncResult(String format, boolean success) {
+        this.format = format;
+        this.success = success;
+    }
+
+    public boolean isError() {
+        return !success;
+    }
+
+    @Override
+    public boolean isUpdate() {
         return false;
     }
 

@@ -435,7 +435,7 @@ public abstract class AbstractSyncModule<
             if (allFailReason != null) {
                 String reason = allFailReason.format(gameTerm(), discordTerm());
                 String message = "Failed to " + syncName() + " " + summary.who() + " (sync cause: " + summary.cause() + "): " + reason;
-                if (!allFailReason.isSuccess()) {
+                if (allFailReason.isError()) {
                     logger().error(message, throwableToLog);
                 } else {
                     logger().debug(message, throwableToLog);
@@ -453,14 +453,18 @@ public abstract class AbstractSyncModule<
 
             List<String> successResults = new ArrayList<>();
             List<String> failResults = new ArrayList<>();
+            List<String> auditResults = new ArrayList<>();
             for (Map.Entry<ISyncResult, List<String>> entry : groupedResults.entrySet()) {
                 ISyncResult result = entry.getKey();
                 String line = result.format(gameTerm(), discordTerm())
                         + ": [" + String.join(", ", entry.getValue()) + "]";
-                if (result.isSuccess()) {
-                    successResults.add(line);
-                } else {
+                if (result.isError()) {
                     failResults.add(line);
+                } else {
+                    successResults.add(line);
+                }
+                if (result.isUpdate()) {
+                    auditResults.add(line);
                 }
             }
 
@@ -473,7 +477,9 @@ public abstract class AbstractSyncModule<
             if (anyFail) {
                 logger().error(syncName() + partially + " failed for " + formatResults(summary, failResults));
             }
-            discordSRV.logger().writeLogForCurrentDay(logFileName(), formatResults(summary, successResults));
+            if (!auditResults.isEmpty()) {
+                discordSRV.logger().writeLogForCurrentDay(logFileName(), formatResults(summary, auditResults));
+            }
         });
     }
 

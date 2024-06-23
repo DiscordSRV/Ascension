@@ -22,7 +22,8 @@ import com.discordsrv.api.placeholder.util.Placeholders;
 
 public interface ISyncResult {
 
-    boolean isSuccess();
+    boolean isError();
+    boolean isUpdate();
     String getFormat();
 
     default String format(String gameTerm, String discordTerm) {

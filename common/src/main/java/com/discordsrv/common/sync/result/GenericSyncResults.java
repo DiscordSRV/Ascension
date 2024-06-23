@@ -21,17 +21,17 @@ package com.discordsrv.common.sync.result;
 public enum GenericSyncResults implements ISyncResult {
 
     // Success, actioned
-    ADD_DISCORD("Add %d"),
-    REMOVE_DISCORD("Remove %d"),
-    ADD_GAME("Add %g"),
-    REMOVE_GAME("Remove %g"),
+    ADD_DISCORD("Add %d", true),
+    REMOVE_DISCORD("Remove %d", true),
+    ADD_GAME("Add %g", true),
+    REMOVE_GAME("Remove %g", true),
 
     // Success, Nothing done
     BOTH_TRUE("Both true"),
     BOTH_FALSE("Both false"),
     WRONG_DIRECTION("Wrong direction"),
 
-    // Error
+    // Fail
     NOT_LINKED("Accounts not linked"),
 
     ;
@@ -41,20 +41,31 @@ public enum GenericSyncResults implements ISyncResult {
     }
 
     private final String message;
+    private final boolean update;
     private final boolean success;
 
     GenericSyncResults(String message) {
-        this(message, true);
+        this(message, false);
     }
 
-    GenericSyncResults(String message, boolean success) {
+    GenericSyncResults(String message, boolean update) {
+        this(message, update, true);
+    }
+
+    GenericSyncResults(String message, boolean update, boolean success) {
         this.message = message;
+        this.update = update;
         this.success = success;
     }
 
     @Override
-    public boolean isSuccess() {
-        return success;
+    public boolean isError() {
+        return !success;
+    }
+
+    @Override
+    public boolean isUpdate() {
+        return update;
     }
 
     @Override

@@ -27,6 +27,7 @@ public enum BanSyncResult implements ISyncResult {
     NO_DISCORD_CONNECTION("No Discord connection"),
     GUILD_DOESNT_EXIST("Guild doesn't exist"),
     INVALID_CONFIG("Invalid config"),
+
     ;
 
     private final String format;
@@ -36,7 +37,12 @@ public enum BanSyncResult implements ISyncResult {
     }
 
     @Override
-    public boolean isSuccess() {
+    public boolean isError() {
+        return true;
+    }
+
+    @Override
+    public boolean isUpdate() {
         return false;
     }
 
