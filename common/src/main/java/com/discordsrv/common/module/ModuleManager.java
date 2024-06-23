@@ -189,7 +189,7 @@ public class ModuleManager {
         reload();
     }
 
-    public List<DiscordSRV.ReloadResult> reload() {
+    public synchronized List<DiscordSRV.ReloadResult> reload() {
         JDAConnectionManager connectionManager = discordSRV.discordConnectionManager();
 
         Set<DiscordSRVApi.ReloadResult> reloadResults = new HashSet<>();
