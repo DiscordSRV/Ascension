@@ -161,7 +161,8 @@ subprojects {
     gradle.projectsEvaluated {
         tasks.withType(JavaCompile) {
             // Enable compiler warnings for unchecked & deprecation
-            options.compilerArgs << '-Xlint:unchecked' << '-Xlint:deprecation'
+            // Disable compiler warning for source/target 8
+            options.compilerArgs << '-Xlint:unchecked' << '-Xlint:deprecation' << '-Xlint:-options'
         }
     }
 
