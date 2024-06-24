@@ -18,21 +18,25 @@
 
 package com.discordsrv.common.config.main;
 
+import com.discordsrv.common.bansync.BanSyncModule;
 import com.discordsrv.common.config.main.generic.AbstractSyncConfig;
 import org.spongepowered.configurate.objectmapping.ConfigSerializable;
 import org.spongepowered.configurate.objectmapping.meta.Comment;
 
 @ConfigSerializable
-public class BanSyncConfig extends AbstractSyncConfig<BanSyncConfig, Void, Long> {
+public class BanSyncConfig extends AbstractSyncConfig<BanSyncConfig, BanSyncModule.Game, Long> {
 
     @Comment("The id for the Discord server where the bans should be synced from/to")
     public long serverId = 0L;
 
     @Comment("The reason applied when creating new bans in Minecraft")
-    public String gameBanReasonFormat = "%reason%";
+    public String gameBanReasonFormat = "%punishment_reason%";
 
     @Comment("The punisher applied when creating new bans in Minecraft")
-    public String gamePunisherFormat = "@%user_effective_server_name%";
+    public String gamePunisherFormat = "%user_color%@%user_name%";
+
+    @Comment("The kick reason when a ban is applied to a online player")
+    public String gameKickReason = "&cYou have been banned for &f%punishment_reason% &cby &f%punishment_punisher%";
 
     @Comment("The reason applied when creating new bans in Discord")
     public String discordBanReasonFormat = "Banned by %punishment_punisher% in Minecraft for %punishment_reason%, ends: %punishment_until:'YYYY-MM-dd HH:mm:ss zzz'|text:'Never'%";
@@ -52,8 +56,8 @@ public class BanSyncConfig extends AbstractSyncConfig<BanSyncConfig, Void, Long>
     }
 
     @Override
-    public Void gameId() {
-        return null;
+    public BanSyncModule.Game gameId() {
+        return BanSyncModule.Game.INSTANCE;
     }
 
     @Override

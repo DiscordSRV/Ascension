@@ -55,6 +55,14 @@ public final class ComponentUtil {
     }
 
     @Contract("null -> null")
+    public static MinecraftComponent fromPlain(@Nullable String plainText) {
+        if (plainText == null) {
+            return null;
+        }
+        return toAPI(Component.text(plainText));
+    }
+
+    @Contract("null -> null")
     public static MinecraftComponent toAPI(Component component) {
         if (component == null) {
             return null;

@@ -23,31 +23,39 @@
 
 package com.discordsrv.api.punishment;
 
-import org.jetbrains.annotations.Nullable;
+import com.discordsrv.api.component.MinecraftComponent;
+import com.discordsrv.api.placeholder.annotation.Placeholder;
+import com.discordsrv.api.placeholder.annotation.PlaceholderPrefix;
 
 import java.time.Instant;
 
+@PlaceholderPrefix("punishment_")
 public class Punishment {
 
-    private final Instant until;
-    private final String reason;
-    private final String punisher;
+    public static final Punishment UNKNOWN = new Punishment(null, null, null);
 
-    public Punishment(@Nullable Instant until, @Nullable String reason, @Nullable String punisher) {
+    private final Instant until;
+    private final MinecraftComponent reason;
+    private final MinecraftComponent punisher;
+
+    public Punishment(Instant until, MinecraftComponent reason, MinecraftComponent punisher) {
         this.until = until;
         this.reason = reason;
         this.punisher = punisher;
     }
 
+    @Placeholder(value = "until", relookup = "date")
     public Instant until() {
         return until;
     }
 
-    public String reason() {
+    @Placeholder("reason")
+    public MinecraftComponent reason() {
         return reason;
     }
 
-    public String punisher() {
+    @Placeholder("punisher")
+    public MinecraftComponent punisher() {
         return punisher;
     }
 }

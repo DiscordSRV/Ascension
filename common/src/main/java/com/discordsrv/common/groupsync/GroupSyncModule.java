@@ -93,22 +93,6 @@ public class GroupSyncModule extends AbstractSyncModule<DiscordSRV, GroupSyncCon
         return null;
     }
 
-    @Override
-    public boolean isEnabled() {
-        boolean any = false;
-        for (GroupSyncConfig.PairConfig pair : discordSRV.config().groupSync.pairs) {
-            if (pair.isSet()) {
-                any = true;
-                break;
-            }
-        }
-        if (!any) {
-            return false;
-        }
-
-        return super.isEnabled();
-    }
-
     @Subscribe
     public void onDebugGenerate(DebugGenerateEvent event) {
         StringBuilder builder = new StringBuilder("Active pairs:");
@@ -251,6 +235,8 @@ public class GroupSyncModule extends AbstractSyncModule<DiscordSRV, GroupSyncCon
 
     @Override
     public CompletableFuture<ISyncResult> applyDiscord(GroupSyncConfig.PairConfig config, long userId, Boolean newState) {
+        boolean stateToApply = newState != null && newState;
+
         DiscordRole role = discordSRV.discordAPI().getRoleById(config.roleId);
         if (role == null) {
             return CompletableFutureUtil.failed(new SyncFail(GroupSyncResult.ROLE_DOESNT_EXIST));
@@ -258,11 +244,11 @@ public class GroupSyncModule extends AbstractSyncModule<DiscordSRV, GroupSyncCon
 
         Map<Long, Boolean> expected = expectedDiscordChanges.get(userId, key -> new ConcurrentHashMap<>());
         if (expected != null) {
-            expected.put(config.roleId, newState);
+            expected.put(config.roleId, stateToApply);
         }
 
         return role.getGuild().retrieveMemberById(userId)
-                .thenCompose(member -> newState
+                .thenCompose(member -> stateToApply
                                        ? member.addRole(role).thenApply(v -> (ISyncResult) GenericSyncResults.ADD_DISCORD)
                                        : member.removeRole(role).thenApply(v -> GenericSyncResults.REMOVE_DISCORD)
                 ).whenComplete((r, t) -> {
@@ -275,13 +261,15 @@ public class GroupSyncModule extends AbstractSyncModule<DiscordSRV, GroupSyncCon
 
     @Override
     public CompletableFuture<ISyncResult> applyGame(GroupSyncConfig.PairConfig config, UUID playerUUID, Boolean newState) {
+        boolean stateToApply = newState != null && newState;
+
         Map<String, Boolean> expected = expectedMinecraftChanges.get(playerUUID, key -> new ConcurrentHashMap<>());
         if (expected != null) {
-            expected.put(config.groupName, newState);
+            expected.put(config.groupName, stateToApply);
         }
 
         CompletableFuture<ISyncResult> future =
-                newState
+                stateToApply
                     ? addGroup(playerUUID, config).thenApply(v -> GenericSyncResults.ADD_GAME)
                     : removeGroup(playerUUID, config).thenApply(v -> GenericSyncResults.REMOVE_GAME);
         return future.exceptionally(t -> {

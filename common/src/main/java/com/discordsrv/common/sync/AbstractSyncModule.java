@@ -32,9 +32,10 @@ import com.discordsrv.common.someone.Someone;
 import com.discordsrv.common.sync.cause.GenericSyncCauses;
 import com.discordsrv.common.sync.cause.ISyncCause;
 import com.discordsrv.common.sync.enums.SyncDirection;
-import com.discordsrv.common.sync.result.GenericSyncResults;
 import com.discordsrv.common.sync.enums.SyncSide;
+import com.discordsrv.common.sync.result.GenericSyncResults;
 import com.discordsrv.common.sync.result.ISyncResult;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.time.Duration;
@@ -63,8 +64,8 @@ public abstract class AbstractSyncModule<
 > extends AbstractModule<DT> {
 
     protected final Map<C, Future<?>> syncs = new LinkedHashMap<>();
-    private final Map<G, List<C>> configsForGame = new ConcurrentHashMap<>();
-    private final Map<D, List<C>> configsForDiscord = new ConcurrentHashMap<>();
+    protected final Map<G, List<C>> configsForGame = new ConcurrentHashMap<>();
+    protected final Map<D, List<C>> configsForDiscord = new ConcurrentHashMap<>();
 
     public AbstractSyncModule(DT discordSRV, String loggerName) {
         super(discordSRV, new NamedLogger(discordSRV, loggerName));
@@ -81,6 +82,22 @@ public abstract class AbstractSyncModule<
      * @return a list of configurations for synchronizables
      */
     protected abstract List<C> configs();
+
+    @Override
+    public boolean isEnabled() {
+        boolean any = false;
+        for (C config : configs()) {
+            if (config.isSet()) {
+                any = true;
+                break;
+            }
+        }
+        if (!any) {
+            return false;
+        }
+
+        return super.isEnabled();
+    }
 
     @Override
     public void reload(Consumer<DiscordSRVApi.ReloadResult> resultConsumer) {
@@ -182,9 +199,9 @@ public abstract class AbstractSyncModule<
      * @param newState the newState to apply
      * @return a future with the result of the synchronization
      */
-    protected abstract CompletableFuture<ISyncResult> applyDiscord(C config, long userId, S newState);
+    protected abstract CompletableFuture<ISyncResult> applyDiscord(C config, long userId, @Nullable S newState);
 
-    protected CompletableFuture<ISyncResult> applyDiscordIfDoesNotMatch(C config, long userId, S newState) {
+    protected CompletableFuture<ISyncResult> applyDiscordIfDoesNotMatch(C config, long userId, @Nullable S newState) {
         return getDiscord(config, userId).thenCompose(currentState -> {
             ISyncResult result = doesStateMatch(newState, currentState);
             if (result != null) {
@@ -203,9 +220,9 @@ public abstract class AbstractSyncModule<
      * @param newState the newState to apply
      * @return a future with the result of the synchronization
      */
-    protected abstract CompletableFuture<ISyncResult> applyGame(C config, UUID playerUUID, S newState);
+    protected abstract CompletableFuture<ISyncResult> applyGame(C config, UUID playerUUID, @Nullable S newState);
 
-    protected CompletableFuture<ISyncResult> applyGameIfDoesNotMatch(C config, UUID playerUUID, S newState) {
+    protected CompletableFuture<ISyncResult> applyGameIfDoesNotMatch(C config, UUID playerUUID, @Nullable S newState) {
         return getGame(config, playerUUID).thenCompose(currentState -> {
             ISyncResult result = doesStateMatch(currentState, newState);
             if (result != null) {
@@ -216,7 +233,7 @@ public abstract class AbstractSyncModule<
         });
     }
 
-    protected CompletableFuture<SyncSummary<C>> discordChanged(ISyncCause cause, Someone someone, D discordId, S newState) {
+    protected CompletableFuture<SyncSummary<C>> discordChanged(ISyncCause cause, Someone someone, D discordId, @Nullable S newState) {
         List<C> gameConfigs = configsForDiscord.get(discordId);
         if (gameConfigs == null) {
             return CompletableFuture.completedFuture(null);
@@ -264,7 +281,7 @@ public abstract class AbstractSyncModule<
         });
     }
 
-    protected CompletableFuture<SyncSummary<C>> gameChanged(ISyncCause cause, Someone someone, G gameId, S newState) {
+    protected CompletableFuture<SyncSummary<C>> gameChanged(ISyncCause cause, Someone someone, @NotNull G gameId, @Nullable S newState) {
         List<C> discordConfigs = configsForGame.get(gameId);
         if (discordConfigs == null) {
             return CompletableFuture.completedFuture(null);

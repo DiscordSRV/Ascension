@@ -107,15 +107,20 @@ public class EssentialsXIntegration
 
     @Override
     public CompletableFuture<com.discordsrv.api.punishment.Punishment> getMute(@NotNull UUID playerUUID) {
-        return getUser(playerUUID).thenApply(user -> new Punishment(Instant.ofEpochMilli(user.getMuteTimeout()), user.getMuteReason(), null));
+        return getUser(playerUUID).thenApply(user -> new Punishment(
+                Instant.ofEpochMilli(user.getMuteTimeout()),
+                ComponentUtil.toAPI(BukkitComponentSerializer.legacy().deserialize(user.getMuteReason())),
+                null
+        ));
     }
 
     @Override
-    public CompletableFuture<Void> addMute(@NotNull UUID playerUUID, @Nullable Instant until, @Nullable String reason, @NotNull String punisher) {
+    public CompletableFuture<Void> addMute(@NotNull UUID playerUUID, @Nullable Instant until, @Nullable MinecraftComponent reason, @NotNull MinecraftComponent punisher) {
+        String reasonLegacy = reason != null ? BukkitComponentSerializer.legacy().serialize(ComponentUtil.fromAPI(reason)) : null;
         return getUser(playerUUID).thenApply(user -> {
             user.setMuted(true);
             user.setMuteTimeout(until != null ? until.toEpochMilli() : 0);
-            user.setMuteReason(reason);
+            user.setMuteReason(reasonLegacy);
             return null;
         });
     }
