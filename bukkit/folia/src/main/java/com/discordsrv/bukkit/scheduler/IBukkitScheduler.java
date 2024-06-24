@@ -24,6 +24,7 @@ import com.discordsrv.common.scheduler.ServerScheduler;
 import org.bukkit.Server;
 import org.bukkit.command.CommandSender;
 import org.bukkit.plugin.Plugin;
+import org.jetbrains.annotations.CheckReturnValue;
 
 import java.util.concurrent.CompletableFuture;
 import java.util.function.BiConsumer;
@@ -36,10 +37,12 @@ public interface IBukkitScheduler extends ServerScheduler {
         runOnMainThread(task);
     }
 
+    @CheckReturnValue
     default CompletableFuture<Void> executeOnMainThread(CommandSender sender, Runnable runnable) {
         return CompletableFuture.runAsync(runnable, task -> runOnMainThread(sender, task));
     }
 
+    @CheckReturnValue
     default <T> CompletableFuture<T> supplyOnMainThread(CommandSender sender, CheckedSupplier<T> supplier) {
         return CompletableFutureUtil.supplyAsync(supplier, task -> runOnMainThread(sender, task));
     }

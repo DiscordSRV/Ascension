@@ -50,7 +50,7 @@ dependencyResolutionManagement {
             library('mcdependencydownload-velocity', 'dev.vankka', 'minecraftdependencydownload-velocity').versionRef('mcdependencydownload')
 
             // Annotations
-            library('jetbrains-annotations', 'org.jetbrains', 'annotations').version('24.0.1')
+            library('jetbrains-annotations', 'org.jetbrains', 'annotations').version('24.1.0')
             library('findbugs-annotations', 'com.google.code.findbugs', 'jsr305').version('3.0.2')
 
             // JDA

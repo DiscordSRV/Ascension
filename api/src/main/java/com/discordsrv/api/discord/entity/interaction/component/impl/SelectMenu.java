@@ -28,9 +28,9 @@ import com.discordsrv.api.discord.entity.interaction.component.ComponentIdentifi
 import com.discordsrv.api.discord.entity.interaction.component.MessageComponent;
 import net.dv8tion.jda.api.entities.emoji.Emoji;
 import net.dv8tion.jda.api.interactions.components.ItemComponent;
+import org.jetbrains.annotations.CheckReturnValue;
 import org.jetbrains.annotations.NotNull;
 
-import javax.annotation.CheckReturnValue;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;

@@ -21,10 +21,12 @@ package com.discordsrv.common.scheduler;
 import com.discordsrv.common.function.CheckedRunnable;
 import com.discordsrv.common.function.CheckedSupplier;
 import com.discordsrv.common.future.util.CompletableFutureUtil;
+import org.jetbrains.annotations.CheckReturnValue;
 import org.jetbrains.annotations.NotNull;
 
 import java.time.Duration;
 import java.util.concurrent.*;
+import java.util.function.Supplier;
 
 @SuppressWarnings({"UnusedReturnValue", "unused"}) // API
 public interface Scheduler {
@@ -38,24 +40,28 @@ public interface Scheduler {
      * An executor that will actually catch exceptions.
      * @return the {@link Executor}
      */
+    @CheckReturnValue
     Executor executor();
 
     /**
      * Returns the {@link ExecutorService} being used.
      * @return the {@link ExecutorService}
      */
+    @CheckReturnValue
     ExecutorService executorService();
 
     /**
      * Returns the {@link ScheduledExecutorService} being used.
      * @return the {@link ScheduledExecutorService}
      */
+    @CheckReturnValue
     ScheduledExecutorService scheduledExecutorService();
 
     /**
      * Returns the {@link ForkJoinPool} being used.
      * @return the {@link ForkJoinPool}
      */
+    @CheckReturnValue
     ForkJoinPool forkJoinPool();
 
     /**
@@ -66,12 +72,26 @@ public interface Scheduler {
     @NotNull
     Future<?> run(@NotNull Runnable task);
 
+    /**
+     * Helper method for {@link CompletableFuture#runAsync(Runnable)}.
+     *
+     * @param task the task to execute
+     * @return a future
+     */
     @NotNull
+    @CheckReturnValue
     default CompletableFuture<Void> execute(@NotNull CheckedRunnable task) {
         return CompletableFutureUtil.runAsync(task, this::run);
     }
 
+    /**
+     * Helper method for {@link CompletableFuture#supplyAsync(Supplier)}.
+     *
+     * @param supplier the supplier
+     * @return a future
+     */
     @NotNull
+    @CheckReturnValue
     default <T> CompletableFuture<T> supply(@NotNull CheckedSupplier<T> supplier) {
         return CompletableFutureUtil.supplyAsync(supplier, this::run);
     }
@@ -85,12 +105,28 @@ public interface Scheduler {
     @NotNull
     ScheduledFuture<?> runLater(@NotNull Runnable task, @NotNull Duration delay);
 
+    /**
+     * Helper method for {@link CompletableFuture#runAsync(Runnable)} with delay.
+     *
+     * @param task the task to execute
+     * @param delay the delay before executing the task
+     * @return a future
+     */
     @NotNull
+    @CheckReturnValue
     default CompletableFuture<Void> executeLater(@NotNull CheckedRunnable task, @NotNull Duration delay) {
         return CompletableFutureUtil.runAsync(task, t -> runLater(t, delay));
     }
 
+    /**
+     * Helper method for {@link CompletableFuture#supplyAsync(Supplier)} with delay.
+     *
+     * @param supplier the supplier
+     * @param delay the delay before executing the task
+     * @return a future
+     */
     @NotNull
+    @CheckReturnValue
     default <T> CompletableFuture<T> supplyLater(@NotNull CheckedSupplier<T> supplier, @NotNull Duration delay) {
         return CompletableFutureUtil.supplyAsync(supplier, task -> runLater(task, delay));
     }
