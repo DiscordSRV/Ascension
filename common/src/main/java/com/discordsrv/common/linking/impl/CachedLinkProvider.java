@@ -55,9 +55,6 @@ public abstract class CachedLinkProvider implements LinkProvider {
                 .expireAfter(new Expiry<UUID, Long>() {
                     @Override
                     public long expireAfterCreate(@NonNull UUID key, @NonNull Long value, long currentTime) {
-                        if (value == UNLINKED_USER) {
-                            return Long.MAX_VALUE;
-                        }
                         return TimeUnit.MINUTES.toNanos(5);
                     }
 
@@ -68,9 +65,6 @@ public abstract class CachedLinkProvider implements LinkProvider {
                             long currentTime,
                             @NonNegative long currentDuration
                     ) {
-                        if (value == UNLINKED_USER) {
-                            return Long.MAX_VALUE;
-                        }
                         return currentDuration;
                     }
 
