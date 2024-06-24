@@ -175,7 +175,7 @@ public abstract class SQLStorage implements Storage {
 
             // Get the uuid for the code
             try (Statement statement = connection.createStatement()) {
-                try (ResultSet resultSet = statement.executeQuery("select top 1 PLAYERUUID from " + tablePrefix() + LINKING_CODES_TABLE_NAME + ";")) {
+                try (ResultSet resultSet = statement.executeQuery("select PLAYERUUID from " + tablePrefix() + LINKING_CODES_TABLE_NAME + " LIMIT 1;")) {
                     if (resultSet.next()) {
                         return UUID.fromString(resultSet.getString("PLAYERUUID"));
                     }
@@ -188,7 +188,7 @@ public abstract class SQLStorage implements Storage {
     @Override
     public void removeLinkingCode(@NotNull UUID player) {
         useConnection(connection -> {
-            try (PreparedStatement statement = connection.prepareStatement("delete from " + tablePrefix() + LINKING_CODES_TABLE_NAME + " WHERE PLAYERUUID = ?")) {
+            try (PreparedStatement statement = connection.prepareStatement("delete from " + tablePrefix() + LINKING_CODES_TABLE_NAME + " WHERE PLAYERUUID = ?;")) {
                 statement.setString(1, player.toString());
                 statement.executeUpdate();
             }
@@ -199,13 +199,13 @@ public abstract class SQLStorage implements Storage {
     public void storeLinkingCode(@NotNull UUID player, String code) {
         useConnection(connection -> {
             // Remove existing code
-            try (PreparedStatement statement = connection.prepareStatement("delete from " + tablePrefix() + LINKING_CODES_TABLE_NAME + " where PLAYERUUID = ?")) {
+            try (PreparedStatement statement = connection.prepareStatement("delete from " + tablePrefix() + LINKING_CODES_TABLE_NAME + " where PLAYERUUID = ?;")) {
                 statement.setString(1, player.toString());
                 statement.executeUpdate();
             }
 
             // Insert new code
-            try (PreparedStatement statement = connection.prepareStatement("insert into " + tablePrefix() + LINKING_CODES_TABLE_NAME + " (PLAYERUUID, CODE, EXPIRY)")) {
+            try (PreparedStatement statement = connection.prepareStatement("insert into " + tablePrefix() + LINKING_CODES_TABLE_NAME + " (PLAYERUUID, CODE, EXPIRY) VALUES (?, ?, ?);")) {
                 statement.setString(1, player.toString());
                 statement.setString(2, code);
                 statement.setLong(3, getTimeMS() + LinkStore.LINKING_CODE_EXPIRY_TIME.toMillis());
