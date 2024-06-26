@@ -78,6 +78,7 @@ import com.discordsrv.common.placeholder.PlaceholderServiceImpl;
 import com.discordsrv.common.placeholder.context.GlobalDateFormattingContext;
 import com.discordsrv.common.placeholder.context.GlobalTextHandlingContext;
 import com.discordsrv.common.placeholder.result.ComponentResultStringifier;
+import com.discordsrv.common.presence.PresenceUpdaterModule;
 import com.discordsrv.common.profile.ProfileManager;
 import com.discordsrv.common.storage.Storage;
 import com.discordsrv.common.storage.StorageType;
@@ -590,6 +591,7 @@ public abstract class AbstractDiscordSRV<
         registerModule(DiscordInviteModule::new);
         registerModule(MentionCachingModule::new);
         registerModule(LinkingModule::new);
+        registerModule(PresenceUpdaterModule::new);
 
         // Integrations
         registerIntegration("com.discordsrv.common.integration.LuckPermsIntegration");
@@ -608,6 +610,7 @@ public abstract class AbstractDiscordSRV<
     protected final void startedMessage() {
         registerModule(StartMessageModule::new);
         registerModule(StopMessageModule::new);
+        Optional.ofNullable(getModule(PresenceUpdaterModule.class)).ifPresent(PresenceUpdaterModule::serverStarted);
     }
 
     private StorageType getStorageType() {

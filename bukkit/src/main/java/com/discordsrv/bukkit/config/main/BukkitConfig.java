@@ -20,7 +20,7 @@ package com.discordsrv.bukkit.config.main;
 
 import com.discordsrv.common.config.configurate.annotation.Order;
 import com.discordsrv.common.config.main.MainConfig;
-import com.discordsrv.common.config.main.PluginIntegrationConfig;
+import com.discordsrv.common.config.main.PresenceUpdaterConfig;
 import com.discordsrv.common.config.main.channels.base.BaseChannelConfig;
 import com.discordsrv.common.config.main.channels.base.server.ServerBaseChannelConfig;
 import com.discordsrv.common.config.main.channels.base.server.ServerChannelConfig;
@@ -42,11 +42,8 @@ public class BukkitConfig extends MainConfig {
     @Order(5)
     public BukkitRequiredLinkingConfig requiredLinking = new BukkitRequiredLinkingConfig();
 
-    @Order(100)
-    public PluginIntegrationConfig integrations = new PluginIntegrationConfig();
-
     @Override
-    public PluginIntegrationConfig integrations() {
-        return integrations;
+    public PresenceUpdaterConfig defaultPresenceUpdater() {
+        return new PresenceUpdaterConfig.Server();
     }
 }

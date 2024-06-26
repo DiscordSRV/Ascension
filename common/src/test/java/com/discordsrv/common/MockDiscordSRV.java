@@ -29,7 +29,6 @@ import com.discordsrv.common.config.configurate.manager.MessagesConfigManager;
 import com.discordsrv.common.config.configurate.manager.abstraction.ServerConfigManager;
 import com.discordsrv.common.config.connection.ConnectionConfig;
 import com.discordsrv.common.config.main.MainConfig;
-import com.discordsrv.common.config.main.PluginIntegrationConfig;
 import com.discordsrv.common.config.main.channels.base.ChannelConfig;
 import com.discordsrv.common.config.main.generic.DestinationConfig;
 import com.discordsrv.common.config.main.generic.ThreadConfig;
@@ -230,12 +229,7 @@ public class MockDiscordSRV extends AbstractDiscordSRV<IBootstrap, MainConfig, C
 
     @Override
     public MainConfig config() {
-        MainConfig config = new MainConfig() {
-            @Override
-            public PluginIntegrationConfig integrations() {
-                return null;
-            }
-        };
+        MainConfig config = new MainConfig() {};
 
         if (StringUtils.isNotEmpty(FullBootExtension.TEST_CHANNEL_ID) && StringUtils.isNotEmpty(FullBootExtension.FORUM_CHANNEL_ID)) {
             ChannelConfig global = (ChannelConfig) config.channels.get(GameChannel.DEFAULT_NAME);

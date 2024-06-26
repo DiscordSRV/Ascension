@@ -44,7 +44,7 @@ public abstract class PluginIntegration<DT extends DiscordSRV> extends AbstractM
     @Override
     @OverridingMethodsMustInvokeSuper
     public boolean isEnabled() {
-        if (discordSRV.config().integrations().disabledIntegrations.contains(getIntegrationName())) {
+        if (discordSRV.config().integrations.disabledIntegrations.contains(getIntegrationName())) {
             return false;
         }
         return super.isEnabled();

@@ -81,6 +81,12 @@ public abstract class MainConfig implements Config {
 
     public LinkedAccountConfig linkedAccounts = new LinkedAccountConfig();
 
+    public PresenceUpdaterConfig presenceUpdater = defaultPresenceUpdater();
+
+    protected PresenceUpdaterConfig defaultPresenceUpdater() {
+        return new PresenceUpdaterConfig();
+    }
+
     public TimedUpdaterConfig timedUpdater = new TimedUpdaterConfig();
 
     @Comment("Configuration options for group-role synchronization")
@@ -109,7 +115,12 @@ public abstract class MainConfig implements Config {
     @Constants.Comment("%player_avatar_url%")
     public AvatarProviderConfig avatarProvider = new AvatarProviderConfig();
 
-    public abstract PluginIntegrationConfig integrations();
+    @Order(100)
+    public PluginIntegrationConfig integrations = defaultIntegrations();
+
+    protected PluginIntegrationConfig defaultIntegrations() {
+        return new PluginIntegrationConfig();
+    }
 
     @Order(1000)
     public MemberCachingConfig memberCaching = new MemberCachingConfig();
