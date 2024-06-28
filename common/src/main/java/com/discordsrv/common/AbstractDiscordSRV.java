@@ -667,6 +667,12 @@ public abstract class AbstractDiscordSRV<
             }
         }
 
+        List<ReloadResult> results = new ArrayList<>();
+        // Reload any modules that can be enabled before DiscordSRV is ready
+        if (initial) {
+            results.addAll(moduleManager().reload());
+        }
+
         // Update check
         UpdateConfig updateConfig = connectionConfig().update;
         if (updateConfig.security.enabled) {
@@ -788,8 +794,8 @@ public abstract class AbstractDiscordSRV<
             }
         }
 
-        List<ReloadResult> results = new ArrayList<>();
-        if (flags.contains(ReloadFlag.MODULES)) {
+        // Modules are reloaded upon DiscordSRV being ready, thus not needed at initial
+        if (!initial && flags.contains(ReloadFlag.MODULES)) {
             results.addAll(moduleManager.reload());
         }
 

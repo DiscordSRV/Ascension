@@ -16,9 +16,12 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package com.discordsrv.common.linking.requirelinking.requirement;
+package com.discordsrv.common.linking.requirelinking.requirement.type;
 
 import com.discordsrv.common.DiscordSRV;
+import com.discordsrv.common.linking.requirelinking.RequiredLinkingModule;
+import com.discordsrv.common.linking.requirelinking.requirement.RequirementType;
+import com.discordsrv.common.someone.Someone;
 import me.minecraftauth.lib.AuthService;
 import me.minecraftauth.lib.account.platform.twitch.SubTier;
 import me.minecraftauth.lib.exception.LookupException;
@@ -30,41 +33,41 @@ import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.Function;
 
-public class MinecraftAuthRequirement<T> implements Requirement<MinecraftAuthRequirement.Reference<T>> {
+public class MinecraftAuthRequirementType<T> extends RequirementType<MinecraftAuthRequirementType.Reference<T>> {
 
     private static final Reference<?> NULL_VALUE = new Reference<>(null);
 
-    public static List<Requirement<?>> createRequirements(DiscordSRV discordSRV) {
-        List<Requirement<?>> requirements = new ArrayList<>();
+    public static List<RequirementType<?>> createRequirements(RequiredLinkingModule<?> module) {
+        List<RequirementType<?>> requirementTypes = new ArrayList<>();
 
         // Patreon
-        requirements.add(new MinecraftAuthRequirement<>(
-                discordSRV,
-                Type.PATREON,
+        requirementTypes.add(new MinecraftAuthRequirementType<>(
+                module,
+                Provider.PATREON,
                 "PatreonSubscriber",
                 AuthService::isSubscribedPatreon,
                 AuthService::isSubscribedPatreon
         ));
 
         // Glimpse
-        requirements.add(new MinecraftAuthRequirement<>(
-                discordSRV,
-                Type.GLIMPSE,
+        requirementTypes.add(new MinecraftAuthRequirementType<>(
+                module,
+                Provider.GLIMPSE,
                 "GlimpseSubscriber",
                 AuthService::isSubscribedGlimpse,
                 AuthService::isSubscribedGlimpse
         ));
 
         // Twitch
-        requirements.add(new MinecraftAuthRequirement<>(
-                discordSRV,
-                Type.TWITCH,
+        requirementTypes.add(new MinecraftAuthRequirementType<>(
+                module,
+                Provider.TWITCH,
                 "TwitchFollower",
                 AuthService::isFollowingTwitch
         ));
-        requirements.add(new MinecraftAuthRequirement<>(
-                discordSRV,
-                Type.TWITCH,
+        requirementTypes.add(new MinecraftAuthRequirementType<>(
+                module,
+                Provider.TWITCH,
                 "TwitchSubscriber",
                 AuthService::isSubscribedTwitch,
                 AuthService::isSubscribedTwitch,
@@ -79,60 +82,59 @@ public class MinecraftAuthRequirement<T> implements Requirement<MinecraftAuthReq
         ));
 
         // YouTube
-        requirements.add(new MinecraftAuthRequirement<>(
-                discordSRV,
-                Type.YOUTUBE,
+        requirementTypes.add(new MinecraftAuthRequirementType<>(
+                module,
+                Provider.YOUTUBE,
                 "YouTubeSubscriber",
                 AuthService::isSubscribedYouTube
         ));
-        requirements.add(new MinecraftAuthRequirement<>(
-                discordSRV,
-                Type.YOUTUBE,
+        requirementTypes.add(new MinecraftAuthRequirementType<>(
+                module,
+                Provider.YOUTUBE,
                 "YouTubeMember",
                 AuthService::isMemberYouTube,
                 AuthService::isMemberYouTube
         ));
 
-        return requirements;
+        return requirementTypes;
     }
 
-    private final DiscordSRV discordSRV;
-    private final Type type;
+    private final Provider provider;
     private final String name;
     private final Test test;
     private final TestSpecific<T> testSpecific;
     private final Function<String, T> parse;
 
-    public MinecraftAuthRequirement(
-            DiscordSRV discordSRV,
-            Type type,
+    public MinecraftAuthRequirementType(
+            RequiredLinkingModule<? extends DiscordSRV> module,
+            Provider provider,
             String name,
             Test test
     ) {
-        this(discordSRV, type, name, test, null, null);
+        this(module, provider, name, test, null, null);
     }
 
     @SuppressWarnings("unchecked")
-    public MinecraftAuthRequirement(
-            DiscordSRV discordSRV,
-            Type type,
+    public MinecraftAuthRequirementType(
+            RequiredLinkingModule<? extends DiscordSRV> module,
+            Provider provider,
             String name,
             Test test,
             TestSpecific<String> testSpecific
     ) {
-        this(discordSRV, type, name, test, (TestSpecific<T>) testSpecific, t -> (T) t);
+        this(module, provider, name, test, (TestSpecific<T>) testSpecific, t -> (T) t);
     }
 
-    public MinecraftAuthRequirement(
-            DiscordSRV discordSRV,
-            Type type,
+    public MinecraftAuthRequirementType(
+            RequiredLinkingModule<? extends DiscordSRV> module,
+            Provider provider,
             String name,
             Test test,
             TestSpecific<T> testSpecific,
             Function<String, T> parse
     ) {
-        this.discordSRV = discordSRV;
-        this.type = type;
+        super(module);
+        this.provider = provider;
         this.name = name;
         this.test = test;
         this.testSpecific = testSpecific;
@@ -144,8 +146,8 @@ public class MinecraftAuthRequirement<T> implements Requirement<MinecraftAuthReq
         return name;
     }
 
-    public Type getType() {
-        return type;
+    public Provider getProvider() {
+        return provider;
     }
 
     @SuppressWarnings("unchecked")
@@ -161,14 +163,14 @@ public class MinecraftAuthRequirement<T> implements Requirement<MinecraftAuthReq
     }
 
     @Override
-    public CompletableFuture<Boolean> isMet(Reference<T> atomicReference, UUID player, long userId) {
-        String token = discordSRV.connectionConfig().minecraftAuth.token;
+    public CompletableFuture<Boolean> isMet(Reference<T> atomicReference, Someone.Resolved someone) {
+        String token = module.discordSRV().connectionConfig().minecraftAuth.token;
         T value = atomicReference.getValue();
-        return discordSRV.scheduler().supply(() -> {
+        return module.discordSRV().scheduler().supply(() -> {
             if (value == null) {
-                return test.test(token, player);
+                return test.test(token, someone.playerUUID());
             } else {
-                return testSpecific.test(token, player, value);
+                return testSpecific.test(token, someone.playerUUID(), value);
             }
         });
     }
@@ -196,7 +198,7 @@ public class MinecraftAuthRequirement<T> implements Requirement<MinecraftAuthReq
         }
     }
 
-    public enum Type {
+    public enum Provider {
         PATREON('p'),
         GLIMPSE('g'),
         TWITCH('t'),
@@ -204,7 +206,7 @@ public class MinecraftAuthRequirement<T> implements Requirement<MinecraftAuthReq
 
         private final char character;
 
-        Type(char character) {
+        Provider(char character) {
             this.character = character;
         }
 

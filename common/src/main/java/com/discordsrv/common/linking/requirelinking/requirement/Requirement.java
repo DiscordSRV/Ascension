@@ -18,15 +18,27 @@
 
 package com.discordsrv.common.linking.requirelinking.requirement;
 
-import java.util.UUID;
-import java.util.concurrent.CompletableFuture;
+public class Requirement<T> {
 
-public interface Requirement<T> {
+    private final RequirementType<T> type;
+    private final T value;
+    private final boolean negated;
 
-    String name();
+    public Requirement(RequirementType<T> type, T value, boolean negated) {
+        this.type = type;
+        this.value = value;
+        this.negated = negated;
+    }
 
-    T parse(String input);
+    public RequirementType<T> type() {
+        return type;
+    }
 
-    CompletableFuture<Boolean> isMet(T value, UUID player, long userId);
+    public T value() {
+        return value;
+    }
 
+    public boolean negated() {
+        return negated;
+    }
 }

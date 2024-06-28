@@ -82,7 +82,7 @@ public abstract class ServerDiscordSRV<
     @OverridingMethodsMustInvokeSuper
     protected void serverStarted() {
         serverStarted = true;
-        moduleManager().reload();
+        moduleManager().enableModules();
         startedMessage();
     }
 

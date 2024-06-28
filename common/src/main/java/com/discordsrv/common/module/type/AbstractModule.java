@@ -35,7 +35,7 @@ public abstract class AbstractModule<DT extends DiscordSRV> implements Module {
 
     protected final DT discordSRV;
     private final Logger logger;
-    private boolean hasBeenEnabled = false;
+    private boolean isCurrentlyEnabled = false;
 
     private final List<DiscordGatewayIntent> requestedIntents = new ArrayList<>();
     private final List<DiscordCacheFlag> requestedCacheFlags = new ArrayList<>();
@@ -72,11 +72,11 @@ public abstract class AbstractModule<DT extends DiscordSRV> implements Module {
     // Internal
 
     public final boolean enableModule() {
-        if (hasBeenEnabled || !isEnabled()) {
+        if (isCurrentlyEnabled) {
             return false;
         }
 
-        hasBeenEnabled = true;
+        isCurrentlyEnabled = true;
         enable();
 
         try {
@@ -87,12 +87,12 @@ public abstract class AbstractModule<DT extends DiscordSRV> implements Module {
     }
 
     public final boolean disableModule() {
-        if (!hasBeenEnabled) {
+        if (!isCurrentlyEnabled) {
             return false;
         }
 
         disable();
-        hasBeenEnabled = false;
+        isCurrentlyEnabled = false;
 
         try {
             discordSRV.eventBus().unsubscribe(this);

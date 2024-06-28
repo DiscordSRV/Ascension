@@ -21,6 +21,7 @@ package com.discordsrv.bukkit.requiredlinking;
 import com.discordsrv.bukkit.BukkitDiscordSRV;
 import com.discordsrv.bukkit.config.main.BukkitRequiredLinkingConfig;
 import com.discordsrv.common.linking.requirelinking.ServerRequireLinkingModule;
+import com.discordsrv.common.player.IPlayer;
 import org.bukkit.event.Listener;
 
 public class BukkitRequiredLinkingModule extends ServerRequireLinkingModule<BukkitDiscordSRV> implements Listener {
@@ -32,5 +33,14 @@ public class BukkitRequiredLinkingModule extends ServerRequireLinkingModule<Bukk
     @Override
     public BukkitRequiredLinkingConfig config() {
         return discordSRV.config().requiredLinking;
+    }
+
+    @Override
+    public void recheck(IPlayer player) {
+        getBlockReason(player.uniqueId(), player.username(), false).whenComplete((component, throwable) -> {
+            if (component != null) {
+                // TODO: handle
+            }
+        });
     }
 }

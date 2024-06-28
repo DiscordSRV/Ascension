@@ -63,6 +63,10 @@ public class Someone {
         this.userId = userId;
     }
 
+    private <T> T throwIllegal() {
+        throw new IllegalStateException("Cannot have Someone instance without either a Player UUID or User Id");
+    }
+
     @NotNull
     public CompletableFuture<@NotNull Profile> profile(DiscordSRV discordSRV) {
         if (playerUUID != null) {
@@ -70,7 +74,7 @@ public class Someone {
         } else if (userId != null) {
             return discordSRV.profileManager().lookupProfile(userId);
         } else {
-            throw new IllegalStateException("Cannot have Someone instance without either a Player UUID or User Id");
+            return throwIllegal();
         }
     }
 
@@ -80,14 +84,31 @@ public class Someone {
             return CompletableFuture.completedFuture(of(playerUUID, userId));
         }
 
-        return profile(discordSRV).thenApply(profile -> {
-            UUID playerUUID = profile.playerUUID();
-            Long userId = profile.userId();
-            if (playerUUID == null || userId == null) {
-                return null;
-            }
-            return of(playerUUID, userId);
-        });
+        if (playerUUID != null) {
+            return withUserId(discordSRV).thenApply(userId -> userId != null ? of(playerUUID, userId) : null);
+        } else if (userId != null) {
+            return withPlayerUUID(discordSRV).thenApply(playerUUID -> playerUUID != null ? of(playerUUID, userId) : null);
+        } else {
+            return throwIllegal();
+        }
+    }
+
+    public CompletableFuture<@Nullable Long> withUserId(DiscordSRV discordSRV) {
+        if (userId != null) {
+            return CompletableFuture.completedFuture(userId);
+        } else if (playerUUID == null) {
+            return throwIllegal();
+        }
+        return discordSRV.linkProvider().getUserId(playerUUID).thenApply(opt -> opt.orElse(null));
+    }
+
+    public CompletableFuture<@Nullable UUID> withPlayerUUID(DiscordSRV discordSRV) {
+        if (playerUUID != null) {
+            return CompletableFuture.completedFuture(playerUUID);
+        } else if (userId == null) {
+            return throwIllegal();
+        }
+        return discordSRV.linkProvider().getPlayerUUID(userId).thenApply(opt -> opt.orElse(null));
     }
 
     @Nullable
@@ -102,7 +123,7 @@ public class Someone {
 
     @Override
     public String toString() {
-        return playerUUID != null ? playerUUID.toString() : Objects.requireNonNull(userId).toString();
+        return playerUUID != null ? playerUUID.toString() : Long.toUnsignedString(Objects.requireNonNull(userId));
     }
 
     @SuppressWarnings("DataFlowIssue")

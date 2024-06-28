@@ -118,6 +118,12 @@ public class ModuleManager {
             : delegates.computeIfAbsent(module, mod -> new ModuleDelegate(discordSRV, mod));
     }
 
+    private String getName(AbstractModule<?> abstractModule) {
+        return abstractModule instanceof ModuleDelegate
+                ? ((ModuleDelegate) abstractModule).getBase().getClass().getName()
+               : abstractModule.getClass().getSimpleName();
+    }
+
     public <DT extends DiscordSRV> void registerModule(DT discordSRV, CheckedFunction<DT, AbstractModule<?>> function) {
         try {
             register(function.apply(discordSRV));
@@ -134,12 +140,10 @@ public class ModuleManager {
         this.modules.add(module);
         this.moduleLookupTable.put(module.getClass().getName(), module);
 
-        logger.debug(module + " registered");
+        logger.debug(module.getClass().getName() + " registered");
 
-        if (discordSRV.isReady()) {
-            // Check if Discord connection is ready, if it is already we'll enable the module
-            enable(getAbstract(module));
-        }
+        // Enable the module if we're already ready
+        enableOrDisableAsNeeded(getAbstract(module), discordSRV.isReady(), true);
     }
 
     public void unregister(Module module) {
@@ -154,17 +158,35 @@ public class ModuleManager {
         this.moduleLookupTable.values().removeIf(mod -> mod == module);
         this.delegates.remove(module);
 
-        logger.debug(module + " unregistered");
+        logger.debug(module.getClass().getName() + " unregistered");
     }
 
-    private void enable(AbstractModule<?> module) {
+    private List<DiscordSRVApi.ReloadResult> enable(AbstractModule<?> module) {
         try {
             if (module.enableModule()) {
                 logger.debug(module + " enabled");
+                return reload(module);
             }
         } catch (Throwable t) {
-            discordSRV.logger().error("Failed to enable " + module.getClass().getSimpleName(), t);
+            discordSRV.logger().error("Failed to enable " + getName(module), t);
+            return Collections.emptyList();
         }
+        return null;
+    }
+
+    private List<DiscordSRVApi.ReloadResult> reload(AbstractModule<?> module) {
+        List<DiscordSRVApi.ReloadResult> reloadResults = new ArrayList<>();
+        try {
+            module.reload(result -> {
+                if (result == null) {
+                    throw new NullPointerException("null result supplied to resultConsumer");
+                }
+                reloadResults.add(result);
+            });
+        } catch (Throwable t) {
+            discordSRV.logger().error("Failed to reload " + getName(module), t);
+        }
+        return reloadResults;
     }
 
     private void disable(AbstractModule<?> module) {
@@ -173,7 +195,7 @@ public class ModuleManager {
                 logger.debug(module + " disabled");
             }
         } catch (Throwable t) {
-            discordSRV.logger().error("Failed to disable " + module.getClass().getSimpleName(), t);
+            discordSRV.logger().error("Failed to disable " + getName(module), t);
         }
     }
 
@@ -189,52 +211,21 @@ public class ModuleManager {
         reload();
     }
 
-    public synchronized List<DiscordSRV.ReloadResult> reload() {
-        JDAConnectionManager connectionManager = discordSRV.discordConnectionManager();
+    public List<DiscordSRVApi.ReloadResult> reload() {
+        return reloadAndEnableModules(true);
+    }
+
+    public void enableModules() {
+        reloadAndEnableModules(false);
+    }
+
+    private synchronized List<DiscordSRV.ReloadResult> reloadAndEnableModules(boolean reload) {
+        boolean isReady = discordSRV.isReady();
+        logger().debug((reload ? "Reloading" : "Enabling") + " modules (DiscordSRV ready = " + isReady + ")");
 
         Set<DiscordSRVApi.ReloadResult> reloadResults = new HashSet<>();
         for (Module module : modules) {
-            AbstractModule<?> abstractModule = getAbstract(module);
-
-            boolean fail = false;
-            if (abstractModule.isEnabled()) {
-                for (DiscordGatewayIntent requiredIntent : abstractModule.getRequestedIntents()) {
-                    if (!connectionManager.getIntents().contains(requiredIntent)) {
-                        fail = true;
-                        logger().warning("Missing gateway intent " + requiredIntent.name() + " for module " + module.getClass().getSimpleName());
-                    }
-                }
-                for (DiscordCacheFlag requiredCacheFlag : abstractModule.getRequestedCacheFlags()) {
-                    if (!connectionManager.getCacheFlags().contains(requiredCacheFlag)) {
-                        fail = true;
-                        logger().warning("Missing cache flag " + requiredCacheFlag.name() + " for module " + module.getClass().getSimpleName());
-                    }
-                }
-            }
-
-            if (fail) {
-                reloadResults.add(ReloadResults.DISCORD_CONNECTION_RELOAD_REQUIRED);
-            }
-
-            // Check if the module needs to be enabled or disabled
-            if (!fail) {
-                enable(abstractModule);
-            }
-            if (!abstractModule.isEnabled()) {
-                disable(abstractModule);
-                continue;
-            }
-
-            try {
-                abstractModule.reload(result -> {
-                    if (result == null) {
-                        throw new NullPointerException("null result supplied to resultConsumer");
-                    }
-                    reloadResults.add(result);
-                });
-            } catch (Throwable t) {
-                discordSRV.logger().error("Failed to reload " + module.getClass().getSimpleName(), t);
-            }
+            reloadResults.addAll(enableOrDisableAsNeeded(getAbstract(module), isReady, reload));
         }
 
         List<DiscordSRVApi.ReloadResult> results = new ArrayList<>();
@@ -247,6 +238,52 @@ public class ModuleManager {
         }
 
         return results;
+    }
+
+    private List<DiscordSRVApi.ReloadResult> enableOrDisableAsNeeded(AbstractModule<?> module, boolean isReady, boolean reload) {
+        boolean canBeEnabled = isReady || module.canEnableBeforeReady();
+        if (!canBeEnabled) {
+            return Collections.emptyList();
+        }
+
+        boolean enabled = module.isEnabled();
+        if (!enabled) {
+            disable(module);
+            return Collections.emptyList();
+        }
+
+        JDAConnectionManager connectionManager = discordSRV.discordConnectionManager();
+
+        boolean fail = false;
+        for (DiscordGatewayIntent requiredIntent : module.getRequestedIntents()) {
+            if (!connectionManager.getIntents().contains(requiredIntent)) {
+                fail = true;
+                logger().warning("Missing gateway intent " + requiredIntent.name() + " for module " + getName(module));
+            }
+        }
+        for (DiscordCacheFlag requiredCacheFlag : module.getRequestedCacheFlags()) {
+            if (!connectionManager.getCacheFlags().contains(requiredCacheFlag)) {
+                fail = true;
+                logger().warning("Missing cache flag " + requiredCacheFlag.name() + " for module " + getName(module));
+            }
+        }
+
+        List<DiscordSRVApi.ReloadResult> reloadResults = new ArrayList<>();
+        if (fail) {
+            reloadResults.add(ReloadResults.DISCORD_CONNECTION_RELOAD_REQUIRED);
+        }
+
+        // Enable the module if reload passed
+        if (!fail) {
+            List<DiscordSRVApi.ReloadResult> results = enable(module);
+            if (results != null) {
+                reloadResults.addAll(results);
+            } else if (reload) {
+                reloadResults.addAll(reload(module));
+            }
+        }
+
+        return reloadResults;
     }
 
     @Subscribe

@@ -19,13 +19,13 @@
 package com.discordsrv.common.linking.requirelinking.requirement.parser;
 
 import com.discordsrv.common.future.util.CompletableFutureUtil;
-import com.discordsrv.common.linking.requirelinking.requirement.MinecraftAuthRequirement;
 import com.discordsrv.common.linking.requirelinking.requirement.Requirement;
+import com.discordsrv.common.linking.requirelinking.requirement.RequirementType;
+import com.discordsrv.common.someone.Someone;
 import org.apache.commons.lang3.StringUtils;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.BiFunction;
@@ -42,15 +42,24 @@ public class RequirementParser {
     private RequirementParser() {}
 
     @SuppressWarnings("unchecked")
-    public <T> BiFunction<UUID, Long, CompletableFuture<Boolean>> parse(String input, List<Requirement<?>> requirements, List<MinecraftAuthRequirement.Type> types) {
-        List<Requirement<T>> reqs = new ArrayList<>(requirements.size());
-        requirements.forEach(r -> reqs.add((Requirement<T>) r));
+    public <T> ParsedRequirements parse(
+            String input,
+            List<RequirementType<?>> availableRequirementTypes
+    ) {
+        List<RequirementType<T>> reqs = new ArrayList<>(availableRequirementTypes.size());
+        availableRequirementTypes.forEach(r -> reqs.add((RequirementType<T>) r));
 
-        Func func = parse(input, new AtomicInteger(0), reqs, types);
-        return func::test;
+        List<Requirement<?>> usedRequirements = new ArrayList<>();
+        Func func = parse(input, new AtomicInteger(0), reqs, usedRequirements);
+        return new ParsedRequirements(input, func::test, usedRequirements);
     }
 
-    private <T> Func parse(String input, AtomicInteger iterator, List<Requirement<T>> requirements, List<MinecraftAuthRequirement.Type> types) {
+    private <T> Func parse(
+            String input,
+            AtomicInteger iterator,
+            List<RequirementType<T>> availableRequirementTypes,
+            List<Requirement<?>> parsedRequirements
+    ) {
         StringBuilder functionNameBuffer = new StringBuilder();
         StringBuilder functionValueBuffer = new StringBuilder();
         boolean isFunctionValue = false;
@@ -58,6 +67,7 @@ public class RequirementParser {
         Func func = null;
         Operator operator = null;
         boolean operatorSecond = false;
+        boolean negated = false;
 
         Function<String, RuntimeException> error = text -> {
             int i = iterator.get();
@@ -70,7 +80,7 @@ public class RequirementParser {
             char c = chars[i];
             if (c == '(' && functionNameBuffer.length() == 0) {
                 iterator.incrementAndGet();
-                Func function = parse(input, iterator, requirements, types);
+                Func function = parse(input, iterator, availableRequirementTypes, parsedRequirements);
                 if (function == null) {
                     throw error.apply("Empty brackets");
                 }
@@ -103,18 +113,20 @@ public class RequirementParser {
                 String functionName = functionNameBuffer.toString();
                 String value = functionValueBuffer.toString();
 
-                for (Requirement<T> requirement : requirements) {
-                    if (requirement.name().equalsIgnoreCase(functionName)) {
-                        if (requirement instanceof MinecraftAuthRequirement) {
-                            types.add(((MinecraftAuthRequirement<?>) requirement).getType());
-                        }
-
-                        T requirementValue = requirement.parse(value);
+                for (RequirementType<T> requirementType : availableRequirementTypes) {
+                    if (requirementType.name().equalsIgnoreCase(functionName)) {
+                        T requirementValue = requirementType.parse(value);
                         if (requirementValue == null) {
                             throw error.apply("Unacceptable function value for " + functionName);
                         }
 
-                        Func function = (player, user) -> requirement.isMet(requirementValue, player, user);
+                        boolean isNegated = negated;
+                        negated = false;
+
+                        parsedRequirements.add(new Requirement<>(requirementType, requirementValue, isNegated));
+
+                        Func function = someone -> requirementType.isMet(requirementValue, someone)
+                                .thenApply(val -> isNegated != val);
                         if (func != null) {
                             if (operator == null) {
                                 throw error.apply("No operator");
@@ -163,12 +175,23 @@ public class RequirementParser {
                 throw error.apply("Operators must be exactly two of the same character");
             }
 
-            if (!Character.isSpaceChar(c)) {
-                if (isFunctionValue) {
-                    functionValueBuffer.append(c);
-                } else {
-                    functionNameBuffer.append(c);
+            if (Character.isSpaceChar(c)) {
+                continue;
+            }
+
+            if (isFunctionValue) {
+                functionValueBuffer.append(c);
+            } else {
+                if (c == '!') {
+                    if (functionNameBuffer.length() > 0) {
+                        throw error.apply("Negation must be before function name");
+                    }
+
+                    negated = !negated;
+                    continue;
                 }
+
+                functionNameBuffer.append(c);
             }
         }
 
@@ -180,7 +203,7 @@ public class RequirementParser {
 
     @FunctionalInterface
     private interface Func {
-        CompletableFuture<Boolean> test(UUID player, long user);
+        CompletableFuture<Boolean> test(Someone.Resolved someone);
     }
 
     private enum Operator {
@@ -197,7 +220,7 @@ public class RequirementParser {
         }
 
         private static Func apply(Func one, Func two, BiFunction<Boolean, Boolean, Boolean> function) {
-            return (player, user) -> CompletableFutureUtil.combine(one.test(player, user), two.test(player, user))
+            return someone -> CompletableFutureUtil.combine(one.test(someone), two.test(someone))
                     .thenApply(bools -> function.apply(bools.get(0), bools.get(1)));
         }
     }

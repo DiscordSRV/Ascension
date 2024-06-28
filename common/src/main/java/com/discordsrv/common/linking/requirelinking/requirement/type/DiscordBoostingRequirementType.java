@@ -16,20 +16,21 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package com.discordsrv.common.linking.requirelinking.requirement;
+package com.discordsrv.common.linking.requirelinking.requirement.type;
 
 import com.discordsrv.api.discord.entity.guild.DiscordGuild;
+import com.discordsrv.api.event.bus.Subscribe;
 import com.discordsrv.common.DiscordSRV;
+import com.discordsrv.common.linking.requirelinking.RequiredLinkingModule;
+import com.discordsrv.common.someone.Someone;
+import net.dv8tion.jda.api.events.guild.member.update.GuildMemberUpdateBoostTimeEvent;
 
-import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 
-public class DiscordBoostingRequirement extends LongRequirement {
+public class DiscordBoostingRequirementType extends LongRequirementType {
 
-    private final DiscordSRV discordSRV;
-
-    public DiscordBoostingRequirement(DiscordSRV discordSRV) {
-        this.discordSRV = discordSRV;
+    public DiscordBoostingRequirementType(RequiredLinkingModule<? extends DiscordSRV> module) {
+        super(module);
     }
 
     @Override
@@ -38,13 +39,18 @@ public class DiscordBoostingRequirement extends LongRequirement {
     }
 
     @Override
-    public CompletableFuture<Boolean> isMet(Long value, UUID player, long userId) {
-        DiscordGuild guild = discordSRV.discordAPI().getGuildById(value);
+    public CompletableFuture<Boolean> isMet(Long value, Someone.Resolved someone) {
+        DiscordGuild guild = module.discordSRV().discordAPI().getGuildById(value);
         if (guild == null) {
             return CompletableFuture.completedFuture(false);
         }
 
-        return guild.retrieveMemberById(userId)
+        return guild.retrieveMemberById(someone.userId())
                 .thenApply(member -> member != null && member.isBoosting());
+    }
+
+    @Subscribe
+    public void onGuildMemberUpdateBoostTime(GuildMemberUpdateBoostTimeEvent event) {
+        stateChanged(Someone.of(event.getMember().getIdLong()), null, event.getNewTimeBoosted() != null);
     }
 }

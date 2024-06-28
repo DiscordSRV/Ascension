@@ -16,20 +16,22 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package com.discordsrv.common.linking.requirelinking.requirement;
+package com.discordsrv.common.linking.requirelinking.requirement.type;
 
 import com.discordsrv.api.discord.entity.guild.DiscordRole;
+import com.discordsrv.api.event.bus.Subscribe;
+import com.discordsrv.api.event.events.discord.member.role.AbstractDiscordMemberRoleChangeEvent;
+import com.discordsrv.api.event.events.discord.member.role.DiscordMemberRoleAddEvent;
 import com.discordsrv.common.DiscordSRV;
+import com.discordsrv.common.linking.requirelinking.RequiredLinkingModule;
+import com.discordsrv.common.someone.Someone;
 
-import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 
-public class DiscordRoleRequirement extends LongRequirement {
+public class DiscordRoleRequirementType extends LongRequirementType {
 
-    private final DiscordSRV discordSRV;
-
-    public DiscordRoleRequirement(DiscordSRV discordSRV) {
-        this.discordSRV = discordSRV;
+    public DiscordRoleRequirementType(RequiredLinkingModule<? extends DiscordSRV> module) {
+        super(module);
     }
 
     @Override
@@ -38,14 +40,24 @@ public class DiscordRoleRequirement extends LongRequirement {
     }
 
     @Override
-    public CompletableFuture<Boolean> isMet(Long value, UUID player, long userId) {
-        DiscordRole role = discordSRV.discordAPI().getRoleById(value);
+    public CompletableFuture<Boolean> isMet(Long value, Someone.Resolved someone) {
+        DiscordRole role = module.discordSRV().discordAPI().getRoleById(value);
         if (role == null) {
             return CompletableFuture.completedFuture(false);
         }
 
         return role.getGuild()
-                .retrieveMemberById(userId)
+                .retrieveMemberById(someone.userId())
                 .thenApply(member -> member.getRoles().contains(role));
+    }
+
+    @Subscribe
+    public void onDiscordMemberRoleAdd(AbstractDiscordMemberRoleChangeEvent<?> event) {
+        boolean add = event instanceof DiscordMemberRoleAddEvent;
+
+        Someone someone = Someone.of(event.getMember().getUser().getId());
+        for (DiscordRole role : event.getRoles()) {
+            stateChanged(someone, role.getId(), add);
+        }
     }
 }

@@ -39,6 +39,10 @@ public class ModuleDelegate extends AbstractModule<DiscordSRV> {
         this.module = module;
     }
 
+    public Module getBase() {
+        return module;
+    }
+
     @Override
     public boolean isEnabled() {
         return module.isEnabled();

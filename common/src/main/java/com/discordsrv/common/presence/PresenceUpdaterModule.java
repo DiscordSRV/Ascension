@@ -27,6 +27,7 @@ import com.discordsrv.common.config.main.PresenceUpdaterConfig;
 import com.discordsrv.common.logging.NamedLogger;
 import com.discordsrv.common.module.type.AbstractModule;
 import net.dv8tion.jda.api.JDA;
+import net.dv8tion.jda.api.events.StatusChangeEvent;
 
 import java.time.Duration;
 import java.util.List;
@@ -45,6 +46,11 @@ public class PresenceUpdaterModule extends AbstractModule<DiscordSRV> {
         super(discordSRV, new NamedLogger(discordSRV, "PRESENCE_UPDATER"));
     }
 
+    @Override
+    public boolean canEnableBeforeReady() {
+        return true;
+    }
+
     public void serverStarted() {
         serverState.set(ServerState.STARTED);
         setPresenceOrSchedule();
@@ -56,8 +62,19 @@ public class PresenceUpdaterModule extends AbstractModule<DiscordSRV> {
         setPresenceOrSchedule();
     }
 
+    @Subscribe
+    public void onStatusChange(StatusChangeEvent event) {
+        if (event.getNewStatus() == JDA.Status.IDENTIFYING_SESSION) {
+            setPresenceOrSchedule();
+        }
+    }
+
     @Override
     public void reload(Consumer<DiscordSRVApi.ReloadResult> resultConsumer) {
+        if (discordSRV.jda() == null) {
+            return;
+        }
+
         setPresenceOrSchedule();
 
         // Log problems with presences

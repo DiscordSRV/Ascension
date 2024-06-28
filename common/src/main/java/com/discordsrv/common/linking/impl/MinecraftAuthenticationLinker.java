@@ -26,7 +26,7 @@ import com.discordsrv.common.linking.LinkProvider;
 import com.discordsrv.common.linking.LinkStore;
 import com.discordsrv.common.linking.LinkingModule;
 import com.discordsrv.common.linking.requirelinking.RequiredLinkingModule;
-import com.discordsrv.common.linking.requirelinking.requirement.MinecraftAuthRequirement;
+import com.discordsrv.common.linking.requirelinking.requirement.type.MinecraftAuthRequirementType;
 import com.discordsrv.common.logging.Logger;
 import com.discordsrv.common.logging.NamedLogger;
 import com.discordsrv.common.player.IPlayer;
@@ -115,8 +115,8 @@ public class MinecraftAuthenticationLinker extends CachedLinkProvider implements
         StringBuilder additionalParam = new StringBuilder();
         RequiredLinkingModule<?> requiredLinkingModule = discordSRV.getModule(RequiredLinkingModule.class);
         if (requiredLinkingModule != null && requiredLinkingModule.isEnabled()) {
-            for (MinecraftAuthRequirement.Type requirementType : requiredLinkingModule.getActiveRequirementTypes()) {
-                additionalParam.append(requirementType.character());
+            for (MinecraftAuthRequirementType.Provider requirementProvider : requiredLinkingModule.getActiveMinecraftAuthProviders()) {
+                additionalParam.append(requirementProvider.character());
             }
         }
 
@@ -146,7 +146,7 @@ public class MinecraftAuthenticationLinker extends CachedLinkProvider implements
 
     private void unlinked(UUID playerUUID, long userId) {
         logger.debug("Unlink: " + playerUUID + " & " + Long.toUnsignedString(userId));
-        linkStore.createLink(playerUUID, userId).whenComplete((v, t) -> {
+        linkStore.removeLink(playerUUID, userId).whenComplete((v, t) -> {
             if (t != null) {
                 logger.error("Failed to unlink player in persistent storage", t);
                 return;

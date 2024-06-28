@@ -18,24 +18,48 @@
 
 package com.discordsrv.common.linking.requirement.parser;
 
-import com.discordsrv.common.linking.requirelinking.requirement.Requirement;
+import com.discordsrv.common.DiscordSRV;
+import com.discordsrv.common.MockDiscordSRV;
+import com.discordsrv.common.config.main.linking.RequiredLinkingConfig;
+import com.discordsrv.common.linking.requirelinking.RequiredLinkingModule;
+import com.discordsrv.common.linking.requirelinking.requirement.RequirementType;
+import com.discordsrv.common.linking.requirelinking.requirement.parser.ParsedRequirements;
 import com.discordsrv.common.linking.requirelinking.requirement.parser.RequirementParser;
+import com.discordsrv.common.player.IPlayer;
+import com.discordsrv.common.someone.Someone;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.function.Executable;
 
-import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-public class RequirementParserTest {
+public class RequirementTypeParserTest {
 
     private final RequirementParser requirementParser = RequirementParser.getInstance();
-    private final List<Requirement<?>> requirements = Arrays.asList(
-            new Requirement<Boolean>() {
+    private final RequiredLinkingModule<?> module = new RequiredLinkingModule<DiscordSRV>(MockDiscordSRV.INSTANCE) {
+        @Override
+        public RequiredLinkingConfig config() {
+            return null;
+        }
+
+        @Override
+        public void reload() {}
+
+        @Override
+        public List<ParsedRequirements> getAllActiveRequirements() {
+            return Collections.emptyList();
+        }
+
+        @Override
+        public void recheck(IPlayer player) {}
+    };
+    private final List<RequirementType<?>> requirementTypes = Arrays.asList(
+            new RequirementType<Boolean>(module) {
                 @Override
                 public String name() {
                     return "F";
@@ -47,11 +71,11 @@ public class RequirementParserTest {
                 }
 
                 @Override
-                public CompletableFuture<Boolean> isMet(Boolean value, UUID player, long userId) {
+                public CompletableFuture<Boolean> isMet(Boolean value, Someone.Resolved someone) {
                     return CompletableFuture.completedFuture(value);
                 }
             },
-            new Requirement<Object>() {
+            new RequirementType<Object>(module) {
                 @Override
                 public String name() {
                     return "AlwaysError";
@@ -63,19 +87,37 @@ public class RequirementParserTest {
                 }
 
                 @Override
-                public CompletableFuture<Boolean> isMet(Object value, UUID player, long userId) {
+                public CompletableFuture<Boolean> isMet(Object value, Someone.Resolved someone) {
                     return null;
                 }
             }
     );
 
     private boolean parse(String input) {
-        return requirementParser.parse(input, requirements, new ArrayList<>()).apply(null, 0L).join();
+        return requirementParser.parse(input, requirementTypes)
+                .predicate()
+                .apply(Someone.of(UUID.randomUUID(), 0L))
+                .join();
     }
 
     @Test
     public void differentCase() {
         assertFalse(parse("f(false) || F(false)"));
+    }
+
+    @Test
+    public void negate() {
+        assertTrue(parse("!F(false)"));
+    }
+
+    @Test
+    public void negateReverse() {
+        assertFalse(parse("!F(true)"));
+    }
+
+    @Test
+    public void doubleNegate() {
+        assertTrue(parse("!!F(true)"));
     }
 
     @Test
@@ -96,6 +138,11 @@ public class RequirementParserTest {
     @Test
     public void andPass() {
         assertTrue(parse("F(true) && F(true)"));
+    }
+
+    @Test
+    public void andNegate() {
+        assertTrue(parse("F(true) && !F(false)"));
     }
 
     @Test
@@ -141,6 +188,11 @@ public class RequirementParserTest {
     @Test
     public void unacceptableValueError() {
         assertExceptionMessageStartsWith("Unacceptable function value for", () -> parse("AlwaysError()"));
+    }
+
+    @Test
+    public void negateBeforeFunctionNameError() {
+        assertExceptionMessageStartsWith("Negation must be before function name", () -> parse("F!(false)"));
     }
 
 }

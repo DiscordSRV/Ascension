@@ -18,6 +18,7 @@
 
 package com.discordsrv.common.config.main.linking;
 
+import com.discordsrv.common.config.configurate.annotation.Constants;
 import com.discordsrv.common.config.configurate.annotation.DefaultOnly;
 import com.discordsrv.common.config.connection.ConnectionConfig;
 import org.spongepowered.configurate.objectmapping.ConfigSerializable;
@@ -45,7 +46,7 @@ public class RequirementsConfig {
             + "DiscordBoosting(Server ID)\n"
             + "DiscordRole(Role ID)\n"
             + "\n"
-            + "The following are available if you're using MinecraftAuth.me for linked accounts and a MinecraftAuth.me token is specified in the " + ConnectionConfig.FILE_NAME + ":\n"
+            + "The following are available if you're using MinecraftAuth.me for linked accounts and a MinecraftAuth.me token is specified in the %1:\n"
             + "PatreonSubscriber() or PatreonSubscriber(Tier Title)\n"
             + "GlimpseSubscriber() or GlimpseSubscriber(Level Name)\n"
             + "TwitchFollower()\n"
@@ -58,5 +59,6 @@ public class RequirementsConfig {
             + "|| = or, for example \"DiscordBoosting(...) || YouTubeMember()\"\n"
             + "You can also use brackets () to clear ambiguity, for example: \"DiscordServer(...) && (TwitchSubscriber() || PatreonSubscriber())\"\n"
             + "allows a member of the specified Discord server that is also a twitch or patreon subscriber to join the server")
-    public List<String> requirements = new ArrayList<>();
+    @Constants.Comment({ConnectionConfig.FILE_NAME})
+    public List<String> additionalRequirements = new ArrayList<>();
 }

@@ -18,13 +18,28 @@
 
 package com.discordsrv.common.linking.requirelinking.requirement;
 
-public abstract class LongRequirement implements Requirement<Long> {
+import com.discordsrv.common.DiscordSRV;
+import com.discordsrv.common.linking.requirelinking.RequiredLinkingModule;
+import com.discordsrv.common.module.type.AbstractModule;
+import com.discordsrv.common.someone.Someone;
 
-    @Override
-    public Long parse(String input) {
-        try {
-            return Long.parseUnsignedLong(input);
-        } catch (NumberFormatException ignored) {}
-        return null;
+import java.util.concurrent.CompletableFuture;
+
+public abstract class RequirementType<T> extends AbstractModule<DiscordSRV> {
+
+    protected final RequiredLinkingModule<? extends DiscordSRV> module;
+
+    public RequirementType(RequiredLinkingModule<? extends DiscordSRV> module) {
+        super(module.discordSRV());
+        this.module = module;
     }
+
+    public final void stateChanged(Someone someone, T value, boolean newState) {
+        module.stateChanged(someone, this, value, newState);
+    }
+
+    public abstract String name();
+    public abstract T parse(String input);
+    public abstract CompletableFuture<Boolean> isMet(T value, Someone.Resolved someone);
+
 }

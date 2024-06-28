@@ -42,6 +42,14 @@ import java.util.function.Consumer;
 public interface Module {
 
     /**
+     * Determined if this {@link Module} can be enabled before {@link DiscordSRVApi#isReady()}.
+     * @return {@code true} to allow this {@link Module} to be enabled before DiscordSRV is ready
+     */
+    default boolean canEnableBeforeReady() {
+        return false;
+    }
+
+    /**
      * Determines if this {@link Module} should be enabled at the instant this method is called, this will be used
      * to determine when modules should be enabled or disabled when DiscordSRV enabled, disables and reloads.
      * @return the current enabled status the module should be in currently

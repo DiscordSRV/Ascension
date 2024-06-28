@@ -16,36 +16,23 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package com.discordsrv.common.linking.requirelinking.requirement;
+package com.discordsrv.common.linking.requirelinking.requirement.type;
 
-import com.discordsrv.api.discord.entity.guild.DiscordGuild;
 import com.discordsrv.common.DiscordSRV;
+import com.discordsrv.common.linking.requirelinking.RequiredLinkingModule;
+import com.discordsrv.common.linking.requirelinking.requirement.RequirementType;
 
-import java.util.Objects;
-import java.util.UUID;
-import java.util.concurrent.CompletableFuture;
+public abstract class LongRequirementType extends RequirementType<Long> {
 
-public class DiscordServerRequirement extends LongRequirement {
-
-    private final DiscordSRV discordSRV;
-
-    public DiscordServerRequirement(DiscordSRV discordSRV) {
-        this.discordSRV = discordSRV;
+    public LongRequirementType(RequiredLinkingModule<? extends DiscordSRV> module) {
+        super(module);
     }
 
     @Override
-    public String name() {
-        return "DiscordServer";
-    }
-
-    @Override
-    public CompletableFuture<Boolean> isMet(Long value, UUID player, long userId) {
-        DiscordGuild guild = discordSRV.discordAPI().getGuildById(value);
-        if (guild == null) {
-            return CompletableFuture.completedFuture(false);
-        }
-
-        return guild.retrieveMemberById(userId)
-                .thenApply(Objects::nonNull);
+    public Long parse(String input) {
+        try {
+            return Long.parseUnsignedLong(input);
+        } catch (NumberFormatException ignored) {}
+        return null;
     }
 }
