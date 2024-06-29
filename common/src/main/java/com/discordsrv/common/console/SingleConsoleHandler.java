@@ -43,13 +43,12 @@ import com.discordsrv.common.logging.Logger;
 import net.dv8tion.jda.api.entities.Message;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.exception.ExceptionUtils;
+import org.apache.commons.lang3.tuple.Pair;
 
 import java.time.Duration;
 import java.util.*;
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.Future;
-import java.util.concurrent.LinkedBlockingQueue;
-import java.util.concurrent.TimeUnit;
+import java.util.concurrent.*;
+import java.util.concurrent.atomic.AtomicLong;
 
 /**
  * The log appending and command handling for a single console channel.
@@ -57,20 +56,22 @@ import java.util.concurrent.TimeUnit;
 public class SingleConsoleHandler {
 
     private static final int MESSAGE_MAX_LENGTH = Message.MAX_CONTENT_LENGTH;
+    private static final int SEND_QUEUE_MAX_SIZE = 6;
 
     private final DiscordSRV discordSRV;
     private final Logger logger;
-    private final ConsoleConfig config;
-    private final Queue<LogEntry> queue;
+    private ConsoleConfig config;
+    private Queue<LogEntry> messageQueue;
+    private Deque<Pair<SendableDiscordMessage, Boolean>> sendQueue;
     private Future<?> queueProcessingFuture;
     private boolean shutdown = false;
 
     // Editing
-    private final List<LogMessage> messageCache;
-    private Long mostRecentMessageId;
+    private List<LogMessage> messageCache;
+    private final AtomicLong mostRecentMessageId = new AtomicLong(0);
 
-    // Preventing concurrent sends
-    private final Object sendLock = new Object();
+    // Sending
+    private boolean sentFirstBatch = false;
     private CompletableFuture<?> sendFuture;
 
     // Don't annoy console users twice about using /
@@ -79,11 +80,7 @@ public class SingleConsoleHandler {
     public SingleConsoleHandler(DiscordSRV discordSRV, Logger logger, ConsoleConfig config) {
         this.discordSRV = discordSRV;
         this.logger = logger;
-        this.config = config;
-        this.queue = config.appender.outputMode != ConsoleConfig.OutputMode.OFF ? new LinkedBlockingQueue<>() : null;
-        this.messageCache = config.appender.useEditing ? new ArrayList<>() : null;
-
-        timeQueueProcess();
+        setConfig(config);
     }
 
     public void handleDiscordMessageReceived(DiscordMessageReceiveEvent event) {
@@ -108,7 +105,7 @@ public class SingleConsoleHandler {
         }
 
         DestinationConfig.Single destination = config.channel;
-        String threadName = destination.threadName;
+        String threadName = destination.thread.threadName;
 
         DiscordGuildChannel checkChannel;
         if (StringUtils.isNotEmpty(threadName)) {
@@ -176,36 +173,88 @@ public class SingleConsoleHandler {
         if (messageCache != null) {
             messageCache.clear();
         }
-        mostRecentMessageId = null;
+        synchronized (mostRecentMessageId) {
+            mostRecentMessageId.set(0);
+        }
 
         // Run the command
         discordSRV.console().runCommandWithLogging(discordSRV, user, command);
     }
 
     public void queue(LogEntry entry) {
-        if (queue == null) {
+        if (messageQueue == null) {
             return;
         }
 
-        queue.offer(entry);
+        messageQueue.offer(entry);
     }
 
-    @SuppressWarnings("SynchronizeOnNonFinalField")
+    public ConsoleConfig getConfig() {
+        return config;
+    }
+
+    public void setConfig(ConsoleConfig config) {
+        if (queueProcessingFuture != null) {
+            queueProcessingFuture.cancel(false);
+        }
+
+        this.config = config;
+
+        boolean sendOn = config.appender.outputMode != ConsoleConfig.OutputMode.OFF;
+        if (sendOn) {
+            if (messageQueue == null) {
+                this.messageQueue = new LinkedBlockingQueue<>();
+                this.sendQueue = new LinkedBlockingDeque<>();
+            }
+        } else {
+            if (messageQueue != null) {
+                this.messageQueue = null;
+                this.sendQueue = null;
+            }
+        }
+
+        boolean edit = config.appender.useEditing;
+        if (edit) {
+            if (messageCache == null) {
+                this.messageCache = new ArrayList<>();
+            }
+        } else {
+            if (messageCache != null) {
+                this.messageCache = null;
+            }
+        }
+
+        timeQueueProcess();
+    }
+
+    @SuppressWarnings({"BusyWait"})
     public void shutdown() {
         shutdown = true;
         queueProcessingFuture.cancel(false);
+        processQueue();
+
         try {
-            synchronized (queueProcessingFuture) {
-                queueProcessingFuture.wait(TimeUnit.SECONDS.toMillis(3));
+            long start = System.nanoTime();
+            while (!sendFuture.isDone()) {
+                if (System.nanoTime() - start > TimeUnit.SECONDS.toNanos(3)) {
+                    break;
+                }
+                Thread.sleep(50);
             }
-        } catch (InterruptedException e) {
+            sendFuture.cancel(true);
+        } catch (InterruptedException ignored) {
             Thread.currentThread().interrupt();
         }
-        queue.clear();
+        if (messageQueue != null) {
+            messageQueue.clear();
+        }
+        if (sendQueue != null) {
+            sendQueue.clear();
+        }
         if (messageCache != null) {
             messageCache.clear();
         }
-        mostRecentMessageId = null;
+        mostRecentMessageId.set(0);
     }
 
     private void timeQueueProcess() {
@@ -215,54 +264,77 @@ public class SingleConsoleHandler {
         if (config.appender.outputMode == ConsoleConfig.OutputMode.OFF) {
             return;
         }
-        this.queueProcessingFuture = discordSRV.scheduler().runLater(this::processQueue, Duration.ofSeconds(2));
+        this.queueProcessingFuture = discordSRV.scheduler().runLater(this::processQueue, Duration.ofMillis(1500));
     }
 
     private void processQueue() {
         try {
-            ConsoleConfig.Appender appenderConfig = config.appender;
-            ConsoleConfig.OutputMode outputMode = appenderConfig.outputMode;
+            processMessageQueue();
+        } catch (Exception e) {
+            logger.error("Failed to process console lines", e);
+        }
 
-            Queue<LogMessage> currentBuffer = new LinkedBlockingQueue<>();
-            LogEntry entry;
-            while ((entry = queue.poll()) != null) {
-                String level = entry.level().name();
-                if (appenderConfig.levels.levels.contains(level) == appenderConfig.levels.blacklist) {
-                    // Ignored level
-                    continue;
-                }
-
-                String loggerName = entry.loggerName();
-                if (StringUtils.isEmpty(loggerName)) loggerName = "NONE";
-                if (appenderConfig.loggers.loggers.contains(loggerName) == appenderConfig.loggers.blacklist) {
-                    // Ignored logger
-                    continue;
-                }
-
-                List<String> messages = formatEntry(entry, outputMode, config.appender.diffExceptions);
-                if (messages.size() == 1) {
-                    LogMessage message = new LogMessage(entry, messages.get(0));
-                    currentBuffer.add(message);
-                } else {
-                    clearBuffer(currentBuffer, outputMode);
-                    for (String message : messages) {
-                        send(message, true, outputMode);
-                    }
-                }
+        int oversize = sendQueue.size() - SEND_QUEUE_MAX_SIZE;
+        if (sentFirstBatch && oversize > 0) {
+            int remove = oversize + 1;
+            for (int i = 0; i < remove; i++) {
+                sendQueue.pollLast();
             }
-            clearBuffer(currentBuffer, outputMode);
-        } catch (Exception ex) {
-            logger.error("Failed to process console lines", ex);
+
+            logger.warning("Skipping " + remove + " log messages because the send queue is backed up");
+        }
+
+        if (!shutdown && !discordSRV.isReady()) {
+            // Not ready yet
+            timeQueueProcess();
+            return;
+        }
+
+        try {
+            processSendQueue();
+        } catch (Exception e) {
+            logger.error("Failed to send console lines", e);
         }
 
         if (sendFuture != null) {
-            sendFuture.whenComplete((__, ___) -> {
-                sendFuture = null;
-                timeQueueProcess();
-            });
+            sendFuture.whenComplete((v, t) -> timeQueueProcess());
         } else {
             timeQueueProcess();
         }
+    }
+
+    private void processMessageQueue() {
+        ConsoleConfig.Appender appenderConfig = config.appender;
+        ConsoleConfig.OutputMode outputMode = appenderConfig.outputMode;
+
+        Queue<LogMessage> currentBuffer = new LinkedBlockingQueue<>();
+        LogEntry entry;
+        while ((entry = messageQueue.poll()) != null) {
+            String level = entry.level().name();
+            if (appenderConfig.levels.levels.contains(level) == appenderConfig.levels.blacklist) {
+                // Ignored level
+                continue;
+            }
+
+            String loggerName = entry.loggerName();
+            if (StringUtils.isEmpty(loggerName)) loggerName = "NONE";
+            if (appenderConfig.loggers.loggers.contains(loggerName) == appenderConfig.loggers.blacklist) {
+                // Ignored logger
+                continue;
+            }
+
+            List<String> messages = formatEntry(entry, outputMode, config.appender.diffExceptions);
+            if (messages.size() == 1) {
+                LogMessage message = new LogMessage(entry, messages.get(0));
+                currentBuffer.add(message);
+            } else {
+                clearBuffer(currentBuffer, outputMode);
+                for (String message : messages) {
+                    queueMessage(message, true, outputMode);
+                }
+            }
+        }
+        clearBuffer(currentBuffer, outputMode);
     }
 
     private void clearBuffer(Queue<LogMessage> currentBuffer, ConsoleConfig.OutputMode outputMode) {
@@ -272,7 +344,7 @@ public class SingleConsoleHandler {
 
         int blockLength = outputMode.blockLength();
 
-        StringBuilder builder = new StringBuilder();
+        StringBuilder builder = new StringBuilder(MESSAGE_MAX_LENGTH);
         if (messageCache != null) {
             for (LogMessage logMessage : messageCache) {
                 builder.append(logMessage.formatted());
@@ -283,7 +355,7 @@ public class SingleConsoleHandler {
         while ((current = currentBuffer.poll()) != null) {
             String formatted = current.formatted();
             if (formatted.length() + builder.length() + blockLength > MESSAGE_MAX_LENGTH) {
-                send(builder.toString(), true, outputMode);
+                queueMessage(builder.toString(), true, outputMode);
                 builder.setLength(0);
                 if (messageCache != null) {
                     messageCache.clear();
@@ -297,56 +369,18 @@ public class SingleConsoleHandler {
         }
 
         if (builder.length() > 0) {
-            send(builder.toString(), false, outputMode);
+            queueMessage(builder.toString(), false, outputMode);
         }
     }
 
-    private void send(String message, boolean isFull, ConsoleConfig.OutputMode outputMode) {
+    private void queueMessage(String message, boolean lastEdit, ConsoleConfig.OutputMode outputMode) {
         SendableDiscordMessage sendableMessage = SendableDiscordMessage.builder()
                 .setContent(outputMode.prefix() + message + outputMode.suffix())
                 .setSuppressedNotifications(config.appender.silentMessages)
                 .setSuppressedEmbeds(config.appender.disableLinkEmbeds)
                 .build();
 
-        synchronized (sendLock) {
-            CompletableFuture<?> future = sendFuture != null ? sendFuture : CompletableFuture.completedFuture(null);
-
-            sendFuture = future
-                    .thenCompose(__ ->
-                           discordSRV.destinations()
-                                   .lookupDestination(config.channel.asDestination(), true, true)
-                    )
-                    .thenApply(channels -> {
-                        if (channels.isEmpty()) {
-                            // Nowhere to send to
-                            return null;
-                        }
-
-                        DiscordGuildMessageChannel channel = channels.iterator().next();
-                        if (mostRecentMessageId != null) {
-                            long messageId = mostRecentMessageId;
-                            if (isFull) {
-                                mostRecentMessageId = null;
-                            }
-                            return channel.editMessageById(messageId, sendableMessage);
-                        }
-
-                        return channel.sendMessage(sendableMessage)
-                                .whenComplete((receivedMessage, t) -> {
-                                    if (receivedMessage != null && messageCache != null) {
-                                        mostRecentMessageId = receivedMessage.getId();
-                                    }
-                                });
-                    }).exceptionally(ex -> {
-                        String error = "Failed to send message to console channel";
-                        if (message.contains(error)) {
-                            // Prevent infinite loop of the same error
-                            return null;
-                        }
-                        logger.error(error, ex);
-                        return null;
-                    });
-        }
+        sendQueue.offer(Pair.of(sendableMessage, lastEdit));
     }
 
     private List<String> formatEntry(LogEntry entry, ConsoleConfig.OutputMode outputMode, boolean diffExceptions) {
@@ -476,5 +510,63 @@ public class SingleConsoleHandler {
             return "- ";
         }
         return "  ";
+    }
+
+    private void processSendQueue() {
+        Pair<SendableDiscordMessage, Boolean> pair;
+        do {
+            pair = sendQueue.poll();
+            if (pair == null) {
+                // *crickets* Nothing to send
+                continue;
+            }
+            SendableDiscordMessage sendableMessage = pair.getKey();
+            boolean lastEdit = pair.getValue();
+
+            if (sendFuture == null) {
+                sendFuture = CompletableFuture.completedFuture(null);
+            }
+
+            sendFuture = sendFuture
+                    .thenCompose(__ -> discordSRV.destinations().lookupDestination(config.channel.asDestination(), true, true))
+                    .thenCompose(channels -> {
+                        if (channels.isEmpty()) {
+                            // Nowhere to send to
+                            return null;
+                        }
+
+                        DiscordGuildMessageChannel channel = channels.iterator().next();
+                        synchronized (mostRecentMessageId) {
+                            long messageId = mostRecentMessageId.get();
+                            if (messageId != 0) {
+                                if (lastEdit) {
+                                    mostRecentMessageId.set(0);
+                                }
+                                return channel.editMessageById(messageId, sendableMessage);
+                            }
+                        }
+
+                        return channel.sendMessage(sendableMessage);
+                    }).thenApply(msg -> {
+                        if (!lastEdit && msg != null && messageCache != null) {
+                            synchronized (mostRecentMessageId) {
+                                mostRecentMessageId.set(msg.getId());
+                            }
+                        }
+
+                        sentFirstBatch = true;
+                        return msg;
+                    }).exceptionally(ex -> {
+                        String error = "Failed to send message to console channel";
+                        String messageContent = sendableMessage.getContent();
+                        if (messageContent != null && messageContent.contains(error)) {
+                            // Prevent infinite loop of the same error
+                            return null;
+                        }
+
+                        logger.error(error, ex);
+                        return null;
+                    });
+        } while (pair != null);
     }
 }

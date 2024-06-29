@@ -31,7 +31,6 @@ import com.discordsrv.common.logging.LogLevel;
 import com.discordsrv.common.logging.NamedLogger;
 import com.discordsrv.common.logging.backend.LoggingBackend;
 import com.discordsrv.common.module.type.AbstractModule;
-import org.apache.commons.lang3.StringUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -58,6 +57,11 @@ public class ConsoleModule extends AbstractModule<DiscordSRV> implements LogAppe
     }
 
     @Override
+    public boolean canEnableBeforeReady() {
+        return discordSRV.config() != null;
+    }
+
+    @Override
     public void enable() {
         backend = discordSRV.console().loggingBackend();
         backend.addAppender(this);
@@ -65,15 +69,31 @@ public class ConsoleModule extends AbstractModule<DiscordSRV> implements LogAppe
 
     @Override
     public void reload(Consumer<DiscordSRVApi.ReloadResult> resultConsumer) {
-        for (SingleConsoleHandler handler : handlers) {
-            handler.shutdown();
-        }
-        handlers.clear();
-
         List<ConsoleConfig> configs = discordSRV.config().console;
-        for (ConsoleConfig config : configs) {
+        Set<ConsoleConfig> uncheckedConfigs = new LinkedHashSet<>(configs);
+
+        for (int i = handlers.size() - 1; i >= 0; i--) {
+            SingleConsoleHandler handler = handlers.get(i);
+
+            ConsoleConfig matchingConfig = null;
+            for (ConsoleConfig config : configs) {
+                if (config.channel.equals(handler.getConfig().channel)) {
+                    matchingConfig = config;
+                    break;
+                }
+            }
+            if (matchingConfig != null) {
+                handler.setConfig(matchingConfig);
+                uncheckedConfigs.remove(matchingConfig);
+            } else {
+                handlers.remove(i);
+                discordSRV.scheduler().run(handler::shutdown);
+            }
+        }
+
+        for (ConsoleConfig config : uncheckedConfigs) {
             DestinationConfig.Single destination = config.channel;
-            if (destination.channelId == 0L && StringUtils.isEmpty(destination.threadName)) {
+            if (destination.channelId == 0L) {
                 logger().debug("Skipping a console handler due to lack of channel");
                 continue;
             }
@@ -84,6 +104,7 @@ public class ConsoleModule extends AbstractModule<DiscordSRV> implements LogAppe
 
             handlers.add(new SingleConsoleHandler(discordSRV, logger(), config));
         }
+        logger().debug(handlers.size() + " console handlers active");
     }
 
     @Override

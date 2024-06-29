@@ -21,8 +21,16 @@ package com.discordsrv.common.config.main.generic;
 import org.spongepowered.configurate.objectmapping.ConfigSerializable;
 import org.spongepowered.configurate.objectmapping.meta.Comment;
 
+import java.util.Objects;
+
 @ConfigSerializable
 public class ThreadConfig {
+
+    public ThreadConfig() {}
+
+    public ThreadConfig(String name) {
+        this.threadName = name;
+    }
 
     @Comment("Specify the text or forum channel id and the name of the thread (the thread will be automatically created if it doesn't exist)")
     public Long channelId = 0L;
@@ -35,4 +43,19 @@ public class ThreadConfig {
     @Comment("Does not effect forums")
     public boolean privateThread = false;
 
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        ThreadConfig that = (ThreadConfig) o;
+        return unarchiveExisting == that.unarchiveExisting
+                && privateThread == that.privateThread
+                && Objects.equals(channelId, that.channelId)
+                && Objects.equals(threadName, that.threadName);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(channelId, threadName, unarchiveExisting, privateThread);
+    }
 }

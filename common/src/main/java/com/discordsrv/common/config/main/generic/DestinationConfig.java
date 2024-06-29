@@ -27,6 +27,7 @@ import org.spongepowered.configurate.objectmapping.meta.Setting;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Objects;
 
 @ConfigSerializable
 public class DestinationConfig {
@@ -45,23 +46,43 @@ public class DestinationConfig {
         @Setting("channel-id")
         public Long channelId = 0L;
 
-        @Setting("thread-name")
-        @Comment("If specified this destination will be a thread in the provided channel-id's channel, if left blank the destination will be the channel")
-        public String threadName = "";
-        public boolean privateThread = false;
+        @Setting(nodeFromParent = true)
+        public ThreadConfig thread = new ThreadConfig("");
 
         public DestinationConfig asDestination() {
             DestinationConfig config = new DestinationConfig();
-            if (StringUtils.isEmpty(threadName)) {
+            if (thread == null || StringUtils.isEmpty(thread.threadName)) {
                 config.channelIds.add(channelId);
             } else {
-                ThreadConfig threadConfig = new ThreadConfig();
-                threadConfig.channelId = channelId;
-                threadConfig.threadName = threadName;
-                threadConfig.privateThread = privateThread;
-                config.threads.add(threadConfig);
+                config.threads.add(thread);
             }
             return config;
         }
+
+        @Override
+        public boolean equals(Object o) {
+            if (this == o) return true;
+            if (o == null || getClass() != o.getClass()) return false;
+            Single single = (Single) o;
+            return Objects.equals(channelId, single.channelId) && Objects.equals(thread, single.thread);
+        }
+
+        @Override
+        public int hashCode() {
+            return Objects.hash(channelId, thread);
+        }
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        DestinationConfig that = (DestinationConfig) o;
+        return Objects.equals(channelIds, that.channelIds) && Objects.equals(threads, that.threads);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(channelIds, threads);
     }
 }
