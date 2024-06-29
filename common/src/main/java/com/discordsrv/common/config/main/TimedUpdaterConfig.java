@@ -59,7 +59,8 @@ public class TimedUpdaterConfig {
         @Comment("The format for the channel name(s), placeholders are supported.")
         public String nameFormat = "";
 
-        @Comment("The time between updates in minutes. The minimum time is %1 minutes.")
+        @Comment("The time between updates in minutes.\n"
+                + "Minimum value: %1")
         @Constants.Comment(intValue = MINIMUM_MINUTES)
         public int timeMinutes = MINIMUM_MINUTES;
 
@@ -95,7 +96,8 @@ public class TimedUpdaterConfig {
                 + "If this is blank, the topic will not be updated")
         public String topicFormat = "";
 
-        @Comment("The time between updates in minutes. The minimum time is %1 minutes.")
+        @Comment("The time between updates in minutes.\n"
+                + "Minimum value: %1")
         @Constants.Comment(intValue = MINIMUM_MINUTES)
         public int timeMinutes = MINIMUM_MINUTES;
 

@@ -34,7 +34,7 @@ import java.util.Locale;
 public class PresenceUpdaterConfig {
 
     @Comment("The amount of seconds between presence updates\n"
-            + "Minimum value: %1s")
+            + "Minimum value: %1")
     @Constants.Comment("30")
     public int updaterRateInSeconds = 90;
 

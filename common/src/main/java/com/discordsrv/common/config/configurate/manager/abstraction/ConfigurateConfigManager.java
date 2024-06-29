@@ -25,6 +25,7 @@ import com.discordsrv.common.DiscordSRV;
 import com.discordsrv.common.config.configurate.annotation.Constants;
 import com.discordsrv.common.config.configurate.annotation.DefaultOnly;
 import com.discordsrv.common.config.configurate.annotation.Order;
+import com.discordsrv.common.config.configurate.fielddiscoverer.FieldValueDiscovererProxy;
 import com.discordsrv.common.config.configurate.fielddiscoverer.OrderedFieldDiscovererProxy;
 import com.discordsrv.common.config.configurate.manager.loader.ConfigLoaderProvider;
 import com.discordsrv.common.config.configurate.serializer.*;
@@ -209,7 +210,7 @@ public abstract class ConfigurateConfigManager<T, LT extends AbstractConfigurati
 
         return ObjectMapper.factoryBuilder()
                 .defaultNamingScheme(NAMING_SCHEME)
-                .addDiscoverer(new OrderedFieldDiscovererProxy<>((FieldDiscoverer<Object>) FieldDiscoverer.emptyConstructorObject(), fieldOrder))
+                .addDiscoverer(new OrderedFieldDiscovererProxy<>((FieldDiscoverer<Object>) (Object) FieldValueDiscovererProxy.EMPTY_CONSTRUCTOR_INSTANCE, fieldOrder))
                 .addDiscoverer(new OrderedFieldDiscovererProxy<>((FieldDiscoverer<Object>) FieldDiscoverer.record(), fieldOrder))
                 .addProcessor(Constants.Comment.class, (data, fieldType) -> (value, destination) -> {
                     // This needs to go before comment processing.
