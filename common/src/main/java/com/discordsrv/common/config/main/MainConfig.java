@@ -84,7 +84,7 @@ public abstract class MainConfig implements Config {
     public PresenceUpdaterConfig presenceUpdater = defaultPresenceUpdater();
 
     protected PresenceUpdaterConfig defaultPresenceUpdater() {
-        return new PresenceUpdaterConfig();
+        return new PresenceUpdaterConfig(); // TODO: fix overriding this not effecting the final config
     }
 
     public TimedUpdaterConfig timedUpdater = new TimedUpdaterConfig();
