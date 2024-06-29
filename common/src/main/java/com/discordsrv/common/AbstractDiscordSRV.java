@@ -38,6 +38,7 @@ import com.discordsrv.common.config.configurate.manager.ConnectionConfigManager;
 import com.discordsrv.common.config.configurate.manager.MainConfigManager;
 import com.discordsrv.common.config.configurate.manager.MessagesConfigManager;
 import com.discordsrv.common.config.configurate.manager.MessagesConfigSingleManager;
+import com.discordsrv.common.config.connection.BotConfig;
 import com.discordsrv.common.config.connection.ConnectionConfig;
 import com.discordsrv.common.config.connection.UpdateConfig;
 import com.discordsrv.common.config.main.MainConfig;
@@ -671,6 +672,18 @@ public abstract class AbstractDiscordSRV<
         // Reload any modules that can be enabled before DiscordSRV is ready
         if (initial) {
             results.addAll(moduleManager().reload());
+        }
+
+        if (connectionConfig().bot.token.equals(BotConfig.DEFAULT_TOKEN)) {
+            logger().info("");
+            logger().info("Welcome to DiscordSRV!");
+            logger().info("");
+            logger().info("To get started with using DiscordSRV please configure a bot token, instructions will be listed below");
+            logger().info("You can review and/or disable external services DiscordSRV uses in the " + ConnectionConfig.FILE_NAME + " before adding a bot token");
+            logger().info("");
+            JDAConnectionManager.invalidToken(this, true);
+            results.add(ReloadResults.DEFAULT_BOT_TOKEN);
+            return results;
         }
 
         // Update check

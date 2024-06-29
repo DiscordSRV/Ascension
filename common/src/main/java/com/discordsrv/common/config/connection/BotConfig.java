@@ -24,9 +24,11 @@ import org.spongepowered.configurate.objectmapping.meta.Comment;
 @ConfigSerializable
 public class BotConfig {
 
+    public static final String DEFAULT_TOKEN = "Token here";
+
     @Comment("The Discord bot token from https://discord.com/developers/applications\n"
             + "Requires a connection to: discord.com, gateway.discord.gg, cdn.discordapp.com\n"
             + "Privacy Policy: https://discord.com/privacy Terms: https://discord.com/developers/docs/policies-and-agreements/developer-terms-of-service")
-    public String token = "Token here";
+    public String token = DEFAULT_TOKEN;
 
 }

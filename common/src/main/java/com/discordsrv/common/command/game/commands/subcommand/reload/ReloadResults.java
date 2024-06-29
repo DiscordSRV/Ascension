@@ -22,6 +22,7 @@ import com.discordsrv.api.DiscordSRVApi;
 
 public enum ReloadResults implements DiscordSRVApi.ReloadResult {
     FAILED,
+    DEFAULT_BOT_TOKEN,
     SUCCESS,
     SECURITY_FAILED,
     STORAGE_CONNECTION_FAILED,

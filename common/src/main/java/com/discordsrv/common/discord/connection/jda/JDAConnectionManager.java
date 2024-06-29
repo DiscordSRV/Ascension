@@ -70,10 +70,7 @@ import org.jetbrains.annotations.NotNull;
 
 import java.io.InterruptedIOException;
 import java.time.Duration;
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.LinkedHashSet;
-import java.util.Set;
+import java.util.*;
 import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Consumer;
@@ -289,8 +286,9 @@ public class JDAConnectionManager implements DiscordConnectionManager {
     private void connectInternal() {
         BotConfig botConfig = discordSRV.connectionConfig().bot;
         String token = botConfig.token;
-        if (StringUtils.isBlank(token) || token.contains(" ")) {
-            invalidToken();
+        boolean defaultToken = false;
+        if (StringUtils.isBlank(token) || (defaultToken = token.equals(BotConfig.DEFAULT_TOKEN))) {
+            invalidToken(discordSRV, defaultToken);
             return;
         }
 
@@ -408,7 +406,7 @@ public class JDAConnectionManager implements DiscordConnectionManager {
         try {
             instance = jdaBuilder.build();
         } catch (InvalidTokenException ignored) {
-            invalidToken();
+            invalidToken(discordSRV, false);
         } catch (Throwable t) {
             discordSRV.logger().error("Could not create JDA instance due to an unknown error", t);
         }
@@ -567,32 +565,39 @@ public class JDAConnectionManager implements DiscordConnectionManager {
             discordSRV.setStatus(DiscordSRVApi.Status.FAILED_TO_CONNECT);
             return true;
         } else if (closeCode == CloseCode.AUTHENTICATION_FAILED) {
-            invalidToken();
+            invalidToken(discordSRV, false);
             return true;
         }
         return false;
     }
 
-    private void invalidToken() {
-        discordSRV.logger().error("+------------------------------>");
-        discordSRV.logger().error("| Failed to connect to Discord:");
-        discordSRV.logger().error("|");
-        discordSRV.logger().error("| The token provided in the");
-        discordSRV.logger().error("| " + ConnectionConfig.FILE_NAME + " is invalid");
-        discordSRV.logger().error("|");
-        discordSRV.logger().error("| Haven't created a bot yet? Installing the plugin for the first time?");
-        discordSRV.logger().error("| See " + DocumentationURLs.CREATE_TOKEN);
-        discordSRV.logger().error("|");
-        discordSRV.logger().error("| Already have a bot? You can get the token for your bot from:");
-        discordSRV.logger().error("| https://discord.com/developers/applications");
-        discordSRV.logger().error("| by selecting the application, going to the \"Bot\" tab");
-        discordSRV.logger().error("| and clicking on \"Reset Token\"");
-        discordSRV.logger().error("| - Keep in mind the bot is only visible to");
-        discordSRV.logger().error("|   the Discord user that created the bot");
-        discordSRV.logger().error("|");
-        discordSRV.logger().error("| Once the token is corrected in the " + ConnectionConfig.FILE_NAME);
-        discordSRV.logger().error("| Run the \"/discordsrv reload config discord_connection\" command");
-        discordSRV.logger().error("+------------------------------>");
+    public static void invalidToken(DiscordSRV discordSRV, boolean defaultToken) {
+        List<String> lines = Arrays.asList(
+                "+------------------------------>",
+                "| Failed to connect to Discord:",
+                "|",
+                "| The token provided in the",
+                "| " + ConnectionConfig.FILE_NAME + " is invalid",
+                "|",
+                "| Haven't created a bot yet? Installing the plugin for the first time?",
+                "| See " + DocumentationURLs.CREATE_TOKEN,
+                "|",
+                "| Already have a bot? You can get the token for your bot from:",
+                "| https://discord.com/developers/applications",
+                "| by selecting the application, going to the \"Bot\" tab",
+                "| and clicking on \"Reset Token\"",
+                "| - Keep in mind the bot is only visible to",
+                "|   the Discord user that created the bot",
+                "|",
+                "| Once the token is corrected in the " + ConnectionConfig.FILE_NAME,
+                "| Run the \"/discordsrv reload config discord_connection\" command",
+                "+------------------------------>"
+        );
+        if (defaultToken) {
+            lines.forEach(line -> discordSRV.logger().warning(line));
+        } else {
+            lines.forEach(line -> discordSRV.logger().error(line));
+        }
         discordSRV.setStatus(DiscordSRVApi.Status.FAILED_TO_CONNECT);
     }
 
