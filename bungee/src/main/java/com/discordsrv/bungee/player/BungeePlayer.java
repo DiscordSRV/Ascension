@@ -26,11 +26,13 @@ import com.discordsrv.common.player.IPlayer;
 import com.discordsrv.common.player.provider.model.SkinInfo;
 import net.kyori.adventure.identity.Identity;
 import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.serializer.bungeecord.BungeeComponentSerializer;
 import net.md_5.bungee.api.connection.ProxiedPlayer;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.Locale;
+import java.util.concurrent.CompletableFuture;
 
 public class BungeePlayer extends BungeeCommandSender implements IPlayer {
 
@@ -51,6 +53,12 @@ public class BungeePlayer extends BungeeCommandSender implements IPlayer {
     @Override
     public @NotNull String username() {
         return commandSender.getName();
+    }
+
+    @Override
+    public CompletableFuture<Void> kick(Component component) {
+        player.disconnect(BungeeComponentSerializer.get().serialize(component));
+        return CompletableFuture.completedFuture(null);
     }
 
     @Override

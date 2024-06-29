@@ -93,6 +93,11 @@ public class MinecraftToDiscordChatMessageTest {
                                 }
 
                                 @Override
+                                public CompletableFuture<Void> kick(Component component) {
+                                    return null;
+                                }
+
+                                @Override
                                 public @Nullable SkinInfo skinInfo() {
                                     return null;
                                 }
