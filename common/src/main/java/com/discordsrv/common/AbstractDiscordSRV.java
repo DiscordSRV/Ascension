@@ -694,42 +694,6 @@ public abstract class AbstractDiscordSRV<
             scheduler().runAtFixedRate(() -> updateChecker.check(false), Duration.ofHours(6));
         }
 
-        if (flags.contains(ReloadFlag.LINKED_ACCOUNT_PROVIDER)) {
-            LinkedAccountConfig linkedAccountConfig = config().linkedAccounts;
-            if (linkedAccountConfig != null && linkedAccountConfig.enabled) {
-                LinkedAccountConfig.Provider provider = linkedAccountConfig.provider;
-                boolean permitMinecraftAuth = connectionConfig().minecraftAuth.allow;
-                if (provider == LinkedAccountConfig.Provider.AUTO) {
-                    provider = permitMinecraftAuth && onlineMode().isOnline() ? LinkedAccountConfig.Provider.MINECRAFTAUTH : LinkedAccountConfig.Provider.STORAGE;
-                }
-                switch (provider) {
-                    case MINECRAFTAUTH:
-                        if (!permitMinecraftAuth) {
-                            linkProvider = null;
-                            logger().error("minecraftauth.me is disabled in the " + ConnectionConfig.FILE_NAME + ", "
-                                                   + "but linked-accounts.provider is set to \"minecraftauth\". Linked accounts will be disabled");
-                            break;
-                        }
-                        dependencyManager.mcAuthLib().downloadRelocateAndLoad().get();
-                        linkProvider = new MinecraftAuthenticationLinker(this);
-                        logger().info("Using minecraftauth.me for linked accounts");
-                        break;
-                    case STORAGE:
-                        linkProvider = new StorageLinker(this);
-                        logger().info("Using storage for linked accounts");
-                        break;
-                    default: {
-                        linkProvider = null;
-                        logger().error("Unknown linked account provider: \"" + provider + "\", linked accounts will not be used");
-                        break;
-                    }
-                }
-            } else {
-                linkProvider = null;
-                logger().info("Linked accounts are disabled");
-            }
-        }
-
         if (flags.contains(ReloadFlag.STORAGE)) {
             if (storage != null) {
                 storage.close();
@@ -763,6 +727,42 @@ public abstract class AbstractDiscordSRV<
                     setStatus(Status.FAILED_TO_START);
                 }
                 return Collections.singletonList(ReloadResults.STORAGE_CONNECTION_FAILED);
+            }
+        }
+
+        if (flags.contains(ReloadFlag.LINKED_ACCOUNT_PROVIDER)) {
+            LinkedAccountConfig linkedAccountConfig = config().linkedAccounts;
+            if (linkedAccountConfig != null && linkedAccountConfig.enabled) {
+                LinkedAccountConfig.Provider provider = linkedAccountConfig.provider;
+                boolean permitMinecraftAuth = connectionConfig().minecraftAuth.allow;
+                if (provider == LinkedAccountConfig.Provider.AUTO) {
+                    provider = permitMinecraftAuth && onlineMode().isOnline() ? LinkedAccountConfig.Provider.MINECRAFTAUTH : LinkedAccountConfig.Provider.STORAGE;
+                }
+                switch (provider) {
+                    case MINECRAFTAUTH:
+                        if (!permitMinecraftAuth) {
+                            linkProvider = null;
+                            logger().error("minecraftauth.me is disabled in the " + ConnectionConfig.FILE_NAME + ", "
+                                                   + "but linked-accounts.provider is set to \"minecraftauth\". Linked accounts will be disabled");
+                            break;
+                        }
+                        dependencyManager.mcAuthLib().downloadRelocateAndLoad().get();
+                        linkProvider = new MinecraftAuthenticationLinker(this);
+                        logger().info("Using minecraftauth.me for linked accounts");
+                        break;
+                    case STORAGE:
+                        linkProvider = new StorageLinker(this);
+                        logger().info("Using storage for linked accounts");
+                        break;
+                    default: {
+                        linkProvider = null;
+                        logger().error("Unknown linked account provider: \"" + provider + "\", linked accounts will not be used");
+                        break;
+                    }
+                }
+            } else {
+                linkProvider = null;
+                logger().info("Linked accounts are disabled");
             }
         }
 
