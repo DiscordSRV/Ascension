@@ -90,7 +90,7 @@ public final class ComponentUtil {
         }
     }
 
-    public static MinecraftComponent fromUnrelocated(@NotNull Object unrelocatedAdventure) {
+    public static MinecraftComponent fromUnrelocated(@NotNull com.discordsrv.unrelocate.net.kyori.adventure.text.Component unrelocatedAdventure) {
         MinecraftComponentImpl component = MinecraftComponentImpl.empty();
         MinecraftComponent.Adapter<Object> adapter = component.unrelocatedAdapter();
         if (adapter == null) {
@@ -98,6 +98,14 @@ public final class ComponentUtil {
         }
         adapter.setComponent(unrelocatedAdventure);
         return component;
+    }
+
+    public static com.discordsrv.unrelocate.net.kyori.adventure.text.Component toUnrelocated(MinecraftComponent component) {
+        MinecraftComponent.Adapter<Object> adapter = component.unrelocatedAdapter();
+        if (adapter == null) {
+            throw new IllegalStateException("Could not get unrelocated adventure gson serializer");
+        }
+        return (com.discordsrv.unrelocate.net.kyori.adventure.text.Component) adapter.getComponent();
     }
 
     public static Component join(@NotNull Component delimiter, @NotNull Collection<? extends ComponentLike> components) {

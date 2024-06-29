@@ -66,7 +66,7 @@ public class PaperComponentHandle<T> {
                 unrelocated = handle.invoke(target);
             } catch (Throwable ignored) {}
             if (unrelocated != null) {
-                return ComponentUtil.fromUnrelocated(unrelocated);
+                return ComponentUtil.fromUnrelocated((com.discordsrv.unrelocate.net.kyori.adventure.text.Component) unrelocated);
             }
         }
 

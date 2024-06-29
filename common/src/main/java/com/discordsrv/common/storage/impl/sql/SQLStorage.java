@@ -174,8 +174,9 @@ public abstract class SQLStorage implements Storage {
             }
 
             // Get the uuid for the code
-            try (Statement statement = connection.createStatement()) {
-                try (ResultSet resultSet = statement.executeQuery("select PLAYERUUID from " + tablePrefix() + LINKING_CODES_TABLE_NAME + " LIMIT 1;")) {
+            try (PreparedStatement statement = connection.prepareStatement("select PLAYERUUID from " + tablePrefix() + LINKING_CODES_TABLE_NAME + " where CODE = ? LIMIT 1;")) {
+                statement.setString(1, code);
+                try (ResultSet resultSet = statement.executeQuery()) {
                     if (resultSet.next()) {
                         return UUID.fromString(resultSet.getString("PLAYERUUID"));
                     }

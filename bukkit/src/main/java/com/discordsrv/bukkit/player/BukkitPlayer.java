@@ -26,12 +26,14 @@ import com.discordsrv.common.component.util.ComponentUtil;
 import com.discordsrv.common.player.IPlayer;
 import com.discordsrv.common.player.provider.model.SkinInfo;
 import net.kyori.adventure.identity.Identity;
+import net.kyori.adventure.platform.bukkit.BukkitComponentSerializer;
 import net.kyori.adventure.text.Component;
 import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.Locale;
+import java.util.concurrent.CompletableFuture;
 
 public class BukkitPlayer extends BukkitCommandSender implements IPlayer {
 
@@ -62,6 +64,17 @@ public class BukkitPlayer extends BukkitCommandSender implements IPlayer {
     @Override
     public @NotNull String username() {
         return player.getName();
+    }
+
+    @Override
+    public CompletableFuture<Void> kick(Component component) {
+        return discordSRV.scheduler().executeOnMainThread(player, () -> {
+            if (PaperPlayer.isKickAvailable()) {
+                PaperPlayer.kick(player, component);
+            } else {
+                player.kickPlayer(BukkitComponentSerializer.legacy().serialize(component));
+            }
+        });
     }
 
     @Override

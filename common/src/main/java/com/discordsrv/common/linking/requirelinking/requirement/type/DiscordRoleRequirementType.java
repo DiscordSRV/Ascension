@@ -52,7 +52,7 @@ public class DiscordRoleRequirementType extends LongRequirementType {
     }
 
     @Subscribe
-    public void onDiscordMemberRoleAdd(AbstractDiscordMemberRoleChangeEvent<?> event) {
+    public void onDiscordMemberRoleChange(AbstractDiscordMemberRoleChangeEvent<?> event) {
         boolean add = event instanceof DiscordMemberRoleAddEvent;
 
         Someone someone = Someone.of(event.getMember().getUser().getId());

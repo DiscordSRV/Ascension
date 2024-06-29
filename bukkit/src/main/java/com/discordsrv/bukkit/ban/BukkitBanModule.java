@@ -20,7 +20,6 @@ package com.discordsrv.bukkit.ban;
 
 import com.discordsrv.api.component.MinecraftComponent;
 import com.discordsrv.api.module.type.PunishmentModule;
-import com.discordsrv.api.player.DiscordSRVPlayer;
 import com.discordsrv.api.punishment.Punishment;
 import com.discordsrv.bukkit.BukkitDiscordSRV;
 import com.discordsrv.common.bansync.BanSyncModule;
@@ -125,18 +124,5 @@ public class BukkitBanModule extends AbstractModule<BukkitDiscordSRV> implements
             banList.pardon(offlinePlayer.username());
             return null;
         });
-    }
-
-    @Override
-    public CompletableFuture<Void> kickPlayer(@NotNull DiscordSRVPlayer srvPlayer, @NotNull MinecraftComponent message) {
-        Player player = discordSRV.server().getPlayer(srvPlayer.uniqueId());
-        if (player == null) {
-            return CompletableFuture.completedFuture(null);
-        }
-
-        return discordSRV.scheduler().executeOnMainThread(
-                player,
-                () -> player.kickPlayer(BukkitComponentSerializer.legacy().serialize(ComponentUtil.fromAPI(message)))
-        );
     }
 }

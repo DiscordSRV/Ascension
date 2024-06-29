@@ -154,9 +154,7 @@ public abstract class RequiredLinkingModule<T extends DiscordSRV> extends Abstra
     public <RT> void stateChanged(Someone someone, RequirementType<RT> requirementType, RT value, boolean newState) {
         for (ParsedRequirements activeRequirement : getAllActiveRequirements()) {
             for (Requirement<?> requirement : activeRequirement.usedRequirements()) {
-                if (requirement.type() != requirementType
-                        || !Objects.equals(requirement.value(), value)
-                        || newState == requirement.negated()) {
+                if (requirement.type() != requirementType || !Objects.equals(requirement.value(), value)) {
                     continue;
                 }
 
@@ -258,7 +256,7 @@ public abstract class RequiredLinkingModule<T extends DiscordSRV> extends Abstra
                 }
 
                 // None of the futures passed: additional requirements not met
-                return Component.text("You did not pass additionalRequirements");
+                return Component.text("You did not pass requirements");
             });
         });
     }

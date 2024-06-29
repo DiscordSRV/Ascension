@@ -18,16 +18,23 @@
 
 package com.discordsrv.bukkit.player;
 
+import com.discordsrv.common.component.util.ComponentUtil;
+import net.kyori.adventure.text.Component;
 import org.bukkit.entity.Player;
 
+import java.lang.invoke.MethodHandle;
+import java.lang.invoke.MethodHandles;
+import java.lang.invoke.MethodType;
 import java.util.Locale;
 
+@SuppressWarnings("JavaLangInvokeHandleSignature") // Unrelocate
 public final class PaperPlayer {
 
     private PaperPlayer() {}
 
-    private static final boolean localeMethodExists;
-    private static final boolean getLocaleMethodExists;
+    private static final boolean LOCALE_METHOD_EXISTS;
+    private static final boolean GETLOCALE_METHOD_EXISTS;
+    private static final MethodHandle KICK_COMPONENT_HANDLE;
 
     static {
         Class<?> playerClass = Player.class;
@@ -41,18 +48,40 @@ public final class PaperPlayer {
             playerClass.getMethod("getLocale");
             getLocale = true;
         } catch (ReflectiveOperationException ignored) {}
-        localeMethodExists = locale;
-        getLocaleMethodExists = getLocale;
+        LOCALE_METHOD_EXISTS = locale;
+        GETLOCALE_METHOD_EXISTS = getLocale;
+
+        MethodHandles.Lookup lookup = MethodHandles.lookup();
+        MethodHandle handle = null;
+        try {
+            handle = lookup.findVirtual(Player.class, "kick", MethodType.methodType(
+                    void.class,
+                    com.discordsrv.unrelocate.net.kyori.adventure.text.Component.class
+            ));
+        } catch (ReflectiveOperationException ignored) {}
+        KICK_COMPONENT_HANDLE = handle;
     }
 
     @SuppressWarnings("deprecation")
     public static Locale getLocale(Player player) {
-        if (localeMethodExists) {
+        if (LOCALE_METHOD_EXISTS) {
             return player.locale();
-        } else if (getLocaleMethodExists) {
+        } else if (GETLOCALE_METHOD_EXISTS) {
             return Locale.forLanguageTag(player.getLocale());
         } else {
             return null;
+        }
+    }
+
+    public static boolean isKickAvailable() {
+        return KICK_COMPONENT_HANDLE != null;
+    }
+
+    public static void kick(Player player, Component reason) {
+        try {
+            KICK_COMPONENT_HANDLE.invokeExact(player, ComponentUtil.toUnrelocated(ComponentUtil.toAPI(reason)));
+        } catch (Throwable e) {
+            throw new RuntimeException("Failed to kick player", e);
         }
     }
 }

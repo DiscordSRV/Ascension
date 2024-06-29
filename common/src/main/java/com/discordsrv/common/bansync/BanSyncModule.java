@@ -309,7 +309,7 @@ public class BanSyncModule extends AbstractSyncModule<DiscordSRV, BanSyncConfig,
                                 .applyPlaceholderService()
                                 .build();
 
-                        return bans.kickPlayer(player, kickMessage);
+                        return player.kick(ComponentUtil.fromAPI(kickMessage));
                     })
                     .thenApply(v -> GenericSyncResults.ADD_GAME);
         } else {

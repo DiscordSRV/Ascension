@@ -31,7 +31,6 @@ import com.discordsrv.bukkit.config.manager.BukkitMessagesConfigManager;
 import com.discordsrv.bukkit.console.BukkitConsole;
 import com.discordsrv.bukkit.listener.BukkitConnectionListener;
 import com.discordsrv.bukkit.listener.BukkitDeathListener;
-import com.discordsrv.bukkit.listener.BukkitRequiredLinkingListener;
 import com.discordsrv.bukkit.listener.BukkitStatusMessageListener;
 import com.discordsrv.bukkit.listener.award.BukkitAwardForwarder;
 import com.discordsrv.bukkit.listener.chat.BukkitChatForwarder;
@@ -70,7 +69,6 @@ public class BukkitDiscordSRV extends ServerDiscordSRV<DiscordSRVBukkitBootstrap
     private final BukkitPlayerProvider playerProvider;
     private final BukkitPluginManager pluginManager;
     private AbstractBukkitCommandHandler commandHandler;
-    private final BukkitRequiredLinkingListener requiredLinkingListener;
     private final BukkitGameCommandExecutionHelper autoCompleteHelper;
 
     private final BukkitConnectionConfigManager connectionConfigManager;
@@ -101,7 +99,6 @@ public class BukkitDiscordSRV extends ServerDiscordSRV<DiscordSRVBukkitBootstrap
 
         load();
 
-        this.requiredLinkingListener = new BukkitRequiredLinkingListener(this);
         this.autoCompleteHelper = new BukkitGameCommandExecutionHelper(this);
     }
 
@@ -238,7 +235,6 @@ public class BukkitDiscordSRV extends ServerDiscordSRV<DiscordSRVBukkitBootstrap
     protected void disable() {
         super.disable();
 
-        requiredLinkingListener.disable();
         audiences.close();
     }
 

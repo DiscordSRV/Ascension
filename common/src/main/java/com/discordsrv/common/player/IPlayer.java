@@ -34,6 +34,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.UUID;
+import java.util.concurrent.CompletableFuture;
 
 @PlaceholderPrefix("player_")
 public interface IPlayer extends DiscordSRVPlayer, IOfflinePlayer, ICommandSender {
@@ -65,6 +66,8 @@ public interface IPlayer extends DiscordSRVPlayer, IOfflinePlayer, ICommandSende
     default @NotNull UUID uniqueId() {
         return identity().uuid();
     }
+
+    CompletableFuture<Void> kick(Component component);
 
     @NotNull
     @Placeholder("display_name")

@@ -25,7 +25,6 @@ package com.discordsrv.api.module.type;
 
 import com.discordsrv.api.component.MinecraftComponent;
 import com.discordsrv.api.module.Module;
-import com.discordsrv.api.player.DiscordSRVPlayer;
 import com.discordsrv.api.punishment.Punishment;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -40,7 +39,6 @@ public interface PunishmentModule extends Module {
         CompletableFuture<@Nullable Punishment> getBan(@NotNull UUID playerUUID);
         CompletableFuture<Void> addBan(@NotNull UUID playerUUID, @Nullable Instant until, @Nullable MinecraftComponent reason, @NotNull MinecraftComponent punisher);
         CompletableFuture<Void> removeBan(@NotNull UUID playerUUID);
-        CompletableFuture<Void> kickPlayer(@NotNull DiscordSRVPlayer player, @NotNull MinecraftComponent message);
     }
 
     interface Mutes extends PunishmentModule {
