@@ -22,6 +22,7 @@ import com.discordsrv.api.event.bus.Subscribe;
 import com.discordsrv.common.DiscordSRV;
 import com.discordsrv.common.event.events.player.PlayerConnectedEvent;
 import com.discordsrv.common.linking.LinkProvider;
+import com.discordsrv.common.linking.LinkStore;
 import com.github.benmanes.caffeine.cache.AsyncCacheLoader;
 import com.github.benmanes.caffeine.cache.AsyncLoadingCache;
 import com.github.benmanes.caffeine.cache.Cache;
@@ -154,5 +155,39 @@ public abstract class CachedLinkProvider implements LinkProvider {
         linkingAllowed.add(uuid);
         playerToUser.get(uuid);
         linkingAllowed.remove(uuid);
+    }
+
+    protected void addToCache(UUID playerUUID, long userId) {
+        playerToUser.put(playerUUID, CompletableFuture.completedFuture(userId));
+    }
+
+    protected void evictFromCache(UUID playerUUID) {
+        playerToUser.synchronous().invalidate(playerUUID);
+    }
+
+    public static abstract class Store extends CachedLinkProvider implements LinkStore {
+
+        public Store(DiscordSRV discordSRV) {
+            super(discordSRV);
+        }
+
+        public abstract CompletableFuture<Void> link(@NotNull UUID playerUUID, long userId);
+        public abstract CompletableFuture<Void> unlink(@NotNull UUID playerUUID, long userId);
+
+        @Override
+        public final CompletableFuture<Void> createLink(@NotNull UUID playerUUID, long userId) {
+            return link(playerUUID, userId).thenApply(v -> {
+                addToCache(playerUUID, userId);
+                return null;
+            });
+        }
+
+        @Override
+        public CompletableFuture<Void> removeLink(@NotNull UUID playerUUID, long userId) {
+            return unlink(playerUUID, userId).thenApply(v -> {
+                evictFromCache(playerUUID);
+                return null;
+            });
+        }
     }
 }

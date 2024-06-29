@@ -22,7 +22,6 @@ import com.discordsrv.api.component.MinecraftComponent;
 import com.discordsrv.common.DiscordSRV;
 import com.discordsrv.common.function.CheckedSupplier;
 import com.discordsrv.common.future.util.CompletableFutureUtil;
-import com.discordsrv.common.linking.LinkProvider;
 import com.discordsrv.common.linking.LinkStore;
 import com.discordsrv.common.linking.LinkingModule;
 import com.discordsrv.common.linking.requirelinking.RequiredLinkingModule;
@@ -44,7 +43,7 @@ import java.util.concurrent.CompletableFuture;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
 
-public class MinecraftAuthenticationLinker extends CachedLinkProvider implements LinkProvider {
+public class MinecraftAuthenticationLinker extends CachedLinkProvider {
 
     public static final String BASE_LINK_URL = DiscordSRV.WEBSITE + "/link";
 

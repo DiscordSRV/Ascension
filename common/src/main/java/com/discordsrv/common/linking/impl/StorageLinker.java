@@ -21,8 +21,6 @@ package com.discordsrv.common.linking.impl;
 import com.discordsrv.api.component.MinecraftComponent;
 import com.discordsrv.common.DiscordSRV;
 import com.discordsrv.common.component.util.ComponentUtil;
-import com.discordsrv.common.linking.LinkProvider;
-import com.discordsrv.common.linking.LinkStore;
 import net.kyori.adventure.text.Component;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -33,7 +31,7 @@ import java.util.Optional;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 
-public class StorageLinker extends CachedLinkProvider implements LinkProvider, LinkStore {
+public class StorageLinker extends CachedLinkProvider.Store {
 
     public StorageLinker(DiscordSRV discordSRV) {
         super(discordSRV);
@@ -56,12 +54,12 @@ public class StorageLinker extends CachedLinkProvider implements LinkProvider, L
     }
 
     @Override
-    public CompletableFuture<Void> createLink(@NotNull UUID playerUUID, long userId) {
+    public CompletableFuture<Void> link(@NotNull UUID playerUUID, long userId) {
         return discordSRV.scheduler().execute(() -> discordSRV.storage().createLink(playerUUID, userId));
     }
 
     @Override
-    public CompletableFuture<Void> removeLink(@NotNull UUID playerUUID, long userId) {
+    public CompletableFuture<Void> unlink(@NotNull UUID playerUUID, long userId) {
         return discordSRV.scheduler().execute(() -> discordSRV.storage().removeLink(playerUUID, userId));
     }
 
