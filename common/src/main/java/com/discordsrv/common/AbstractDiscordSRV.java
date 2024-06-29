@@ -675,13 +675,15 @@ public abstract class AbstractDiscordSRV<
         }
 
         if (connectionConfig().bot.token.equals(BotConfig.DEFAULT_TOKEN)) {
-            logger().info("");
-            logger().info("Welcome to DiscordSRV!");
-            logger().info("");
-            logger().info("To get started with using DiscordSRV please configure a bot token, instructions will be listed below");
-            logger().info("You can review and/or disable external services DiscordSRV uses in the " + ConnectionConfig.FILE_NAME + " before adding a bot token");
-            logger().info("");
-            JDAConnectionManager.invalidToken(this, true);
+            if (initial) {
+                logger().info("");
+                logger().info("Welcome to DiscordSRV!");
+                logger().info("");
+                logger().info("To get started with using DiscordSRV please configure a bot token, instructions will be printed below");
+                logger().info("You can review and/or disable external services DiscordSRV uses in the " + ConnectionConfig.FILE_NAME + " before adding a bot token");
+                logger().info("");
+            }
+            discordConnectionManager.invalidToken(true);
             results.add(ReloadResults.DEFAULT_BOT_TOKEN);
             return results;
         }

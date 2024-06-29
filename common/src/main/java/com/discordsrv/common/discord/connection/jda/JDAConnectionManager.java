@@ -288,7 +288,7 @@ public class JDAConnectionManager implements DiscordConnectionManager {
         String token = botConfig.token;
         boolean defaultToken = false;
         if (StringUtils.isBlank(token) || (defaultToken = token.equals(BotConfig.DEFAULT_TOKEN))) {
-            invalidToken(discordSRV, defaultToken);
+            invalidToken(defaultToken);
             return;
         }
 
@@ -406,7 +406,7 @@ public class JDAConnectionManager implements DiscordConnectionManager {
         try {
             instance = jdaBuilder.build();
         } catch (InvalidTokenException ignored) {
-            invalidToken(discordSRV, false);
+            invalidToken(false);
         } catch (Throwable t) {
             discordSRV.logger().error("Could not create JDA instance due to an unknown error", t);
         }
@@ -565,13 +565,13 @@ public class JDAConnectionManager implements DiscordConnectionManager {
             discordSRV.setStatus(DiscordSRVApi.Status.FAILED_TO_CONNECT);
             return true;
         } else if (closeCode == CloseCode.AUTHENTICATION_FAILED) {
-            invalidToken(discordSRV, false);
+            invalidToken(false);
             return true;
         }
         return false;
     }
 
-    public static void invalidToken(DiscordSRV discordSRV, boolean defaultToken) {
+    public void invalidToken(boolean defaultToken) {
         List<String> lines = Arrays.asList(
                 "+------------------------------>",
                 "| Failed to connect to Discord:",
