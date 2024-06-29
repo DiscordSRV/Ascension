@@ -35,17 +35,14 @@ public class GameCommandModule extends AbstractModule<DiscordSRV> {
 
     private final Set<GameCommand> commands = new HashSet<>();
 
-    private final GameCommand primaryCommand;
-    private final GameCommand discordAlias;
-    private final GameCommand linkCommand;
-
     public GameCommandModule(DiscordSRV discordSRV) {
         super(discordSRV);
-        this.primaryCommand = DiscordSRVGameCommand.get(discordSRV, "discordsrv");
-        this.discordAlias = DiscordSRVGameCommand.get(discordSRV, "discord");
-        this.linkCommand = LinkInitCommand.getGame(discordSRV);
+    }
 
-        registerCommand(primaryCommand);
+    @Override
+    public boolean canEnableBeforeReady() {
+        // Can enable after JDA starts attempting to connect
+        return discordSRV.config() != null && discordSRV.status() != DiscordSRVApi.Status.INITIALIZED;
     }
 
     @Override
@@ -55,12 +52,12 @@ public class GameCommandModule extends AbstractModule<DiscordSRV> {
             return;
         }
 
-        registerCommand(primaryCommand);
+        registerCommand(DiscordSRVGameCommand.get(discordSRV, "discordsrv"));
         if (config.useDiscordCommand) {
-            registerCommand(discordAlias);
+            registerCommand(DiscordSRVGameCommand.get(discordSRV, "discord"));
         }
         if (config.useLinkAlias) {
-            registerCommand(linkCommand);
+            registerCommand(LinkInitCommand.getGame(discordSRV));
         }
     }
 
