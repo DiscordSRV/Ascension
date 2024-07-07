@@ -23,8 +23,11 @@ import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
+import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.player.PlayerLoginEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
+
+import java.util.UUID;
 
 public class BukkitConnectionListener implements Listener {
 
@@ -33,6 +36,7 @@ public class BukkitConnectionListener implements Listener {
     public BukkitConnectionListener(BukkitDiscordSRV discordSRV) {
         this.discordSRV = discordSRV;
 
+        // Load players who joined before this listener was created
         for (Player onlinePlayer : discordSRV.server().getOnlinePlayers()) {
             discordSRV.profileManager().loadProfile(onlinePlayer.getUniqueId());
         }
@@ -52,6 +56,16 @@ public class BukkitConnectionListener implements Listener {
         if (event.getResult() != PlayerLoginEvent.Result.ALLOWED) {
             // Unload in case got blocked after NORMAL
             discordSRV.profileManager().unloadProfile(event.getPlayer().getUniqueId());
+        }
+    }
+
+    @EventHandler(priority = EventPriority.LOWEST)
+    public void onPlayerJoin(PlayerJoinEvent event) {
+        UUID playerUUID = event.getPlayer().getUniqueId();
+        if (discordSRV.profileManager().getProfile(playerUUID) == null) {
+            // Not loaded in yet (offline mode)
+            // No blocking since this runs on main thread
+            discordSRV.profileManager().loadProfile(playerUUID);
         }
     }
 

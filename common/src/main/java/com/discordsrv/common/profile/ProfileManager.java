@@ -20,7 +20,6 @@ package com.discordsrv.common.profile;
 
 import com.discordsrv.api.profile.IProfileManager;
 import com.discordsrv.common.DiscordSRV;
-import org.jetbrains.annotations.Blocking;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -32,6 +31,7 @@ import java.util.concurrent.ConcurrentHashMap;
 public class ProfileManager implements IProfileManager {
 
     private final DiscordSRV discordSRV;
+    private final Map<UUID, CompletableFuture<Profile>> profileLookups = new ConcurrentHashMap<>();
     private final Map<UUID, Profile> profiles = new ConcurrentHashMap<>();
     private final Map<Long, Profile> discordUserMap = new ConcurrentHashMap<>();
 
@@ -39,16 +39,25 @@ public class ProfileManager implements IProfileManager {
         this.discordSRV = discordSRV;
     }
 
-    @Blocking
-    public void loadProfile(UUID playerUUID) {
-        Profile profile = lookupProfile(playerUUID).join();
-        profiles.put(playerUUID, profile);
-        if (profile.isLinked()) {
-            discordUserMap.put(profile.userId(), profile);
-        }
+    public CompletableFuture<Profile> loadProfile(UUID playerUUID) {
+        CompletableFuture<Profile> lookup = lookupProfile(playerUUID)
+                .thenApply(profile -> {
+                    profiles.put(playerUUID, profile);
+                    if (profile.isLinked()) {
+                        discordUserMap.put(profile.userId(), profile);
+                    }
+                    return profile;
+                });
+        profileLookups.put(playerUUID, lookup);
+        return lookup;
     }
 
     public void unloadProfile(UUID playerUUID) {
+        CompletableFuture<Profile> lookup = profileLookups.remove(playerUUID);
+        if (lookup != null) {
+            lookup.cancel(false);
+        }
+
         Profile profile = profiles.remove(playerUUID);
         if (profile == null) {
             return;
