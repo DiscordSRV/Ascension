@@ -27,8 +27,6 @@ import com.github.benmanes.caffeine.cache.AsyncCacheLoader;
 import com.github.benmanes.caffeine.cache.AsyncLoadingCache;
 import com.github.benmanes.caffeine.cache.Cache;
 import com.github.benmanes.caffeine.cache.Expiry;
-import org.checkerframework.checker.index.qual.NonNegative;
-import org.checkerframework.checker.nullness.qual.NonNull;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Optional;
@@ -55,26 +53,26 @@ public abstract class CachedLinkProvider implements LinkProvider {
         this.playerToUser = discordSRV.caffeineBuilder()
                 .expireAfter(new Expiry<UUID, Long>() {
                     @Override
-                    public long expireAfterCreate(@NonNull UUID key, @NonNull Long value, long currentTime) {
+                    public long expireAfterCreate(@NotNull UUID key, @NotNull Long value, long currentTime) {
                         return TimeUnit.MINUTES.toNanos(5);
                     }
 
                     @Override
                     public long expireAfterUpdate(
-                            @NonNull UUID key,
-                            @NonNull Long value,
+                            @NotNull UUID key,
+                            @NotNull Long value,
                             long currentTime,
-                            @NonNegative long currentDuration
+                            long currentDuration
                     ) {
                         return currentDuration;
                     }
 
                     @Override
                     public long expireAfterRead(
-                            @NonNull UUID key,
-                            @NonNull Long value,
+                            @NotNull UUID key,
+                            @NotNull Long value,
                             long currentTime,
-                            @NonNegative long currentDuration
+                            long currentDuration
                     ) {
                         return currentDuration;
                     }
@@ -86,15 +84,15 @@ public abstract class CachedLinkProvider implements LinkProvider {
                 })
                 .buildAsync(new AsyncCacheLoader<UUID, Long>() {
                     @Override
-                    public @NonNull CompletableFuture<Long> asyncLoad(@NonNull UUID key, @NonNull Executor executor) {
+                    public @NotNull CompletableFuture<Long> asyncLoad(@NotNull UUID key, @NotNull Executor executor) {
                         return queryUserId(key, linkingAllowed.remove(key)).thenApply(opt -> opt.orElse(UNLINKED_USER));
                     }
 
                     @Override
-                    public @NonNull CompletableFuture<Long> asyncReload(
-                            @NonNull UUID key,
-                            @NonNull Long oldValue,
-                            @NonNull Executor executor
+                    public @NotNull CompletableFuture<Long> asyncReload(
+                            @NotNull UUID key,
+                            @NotNull Long oldValue,
+                            @NotNull Executor executor
                     ) {
                         if (discordSRV.playerProvider().player(key) == null) {
                             // Don't keep players that aren't online in cache

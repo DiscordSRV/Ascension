@@ -27,7 +27,6 @@ import com.discordsrv.common.config.messages.MessagesConfig;
 import com.discordsrv.common.debug.file.DebugFile;
 import com.discordsrv.common.debug.file.KeyValueDebugFile;
 import com.discordsrv.common.debug.file.TextDebugFile;
-import com.discordsrv.common.exception.ConfigException;
 import com.discordsrv.common.paste.Paste;
 import com.discordsrv.common.paste.PasteService;
 import com.discordsrv.common.plugin.Plugin;

@@ -4,7 +4,6 @@ apply plugin: 'maven-publish'
 dependencies {
     // Annotations
     compileOnlyApi(libs.jetbrains.annotations)
-    compileOnlyApi(libs.findbugs.annotations)
 
     // JDA
     api(libs.jda) {
@@ -17,6 +16,7 @@ dependencies {
 // Relocations are in buildscript/api.gradle
 
 sourceSets {
+    // Annotation Processor
     ap {
         java {
             compileClasspath += sourceSets.main.compileClasspath + sourceSets.main.output

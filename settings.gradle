@@ -35,14 +35,14 @@ dependencyResolutionManagement {
             library('velocity', 'com.velocitypowered', 'velocity-api').version('3.0.0')
 
             // DependencyDownload
-            version('dependencydownload', '1.3.1-SNAPSHOT')
+            version('dependencydownload', '1.3.1')
             plugin('dependencydownload-plugin', 'dev.vankka.dependencydownload.plugin').versionRef('dependencydownload')
             library('dependencydownload-runtime', 'dev.vankka', 'dependencydownload-runtime').versionRef('dependencydownload')
             library('dependencydownload-jarinjar-bootstrap', 'dev.vankka', 'dependencydownload-jarinjar-bootstrap').versionRef('dependencydownload')
             library('dependencydownload-jarinjar-loader', 'dev.vankka', 'dependencydownload-jarinjar-loader').versionRef('dependencydownload')
 
             // MinecraftDependencyDownload
-            version('mcdependencydownload', '1.0.0-SNAPSHOT')
+            version('mcdependencydownload', '1.0.0')
             library('mcdependencydownload-bukkit-bootstrap', 'dev.vankka', 'minecraftdependencydownload-bukkit').versionRef('mcdependencydownload')
             library('mcdependencydownload-bukkit-loader', 'dev.vankka', 'minecraftdependencydownload-bukkit-loader').versionRef('mcdependencydownload')
             library('mcdependencydownload-bungee-bootstrap', 'dev.vankka', 'minecraftdependencydownload-bungee').versionRef('mcdependencydownload')
@@ -51,7 +51,6 @@ dependencyResolutionManagement {
 
             // Annotations
             library('jetbrains-annotations', 'org.jetbrains', 'annotations').version('24.1.0')
-            library('findbugs-annotations', 'com.google.code.findbugs', 'jsr305').version('3.0.2')
 
             // JDA
             library('jda', 'net.dv8tion', 'JDA').version('5.0.0-beta.20')

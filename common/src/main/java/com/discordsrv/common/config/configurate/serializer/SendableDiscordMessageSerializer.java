@@ -21,7 +21,7 @@ package com.discordsrv.common.config.configurate.serializer;
 import com.discordsrv.api.discord.entity.message.DiscordMessageEmbed;
 import com.discordsrv.api.discord.entity.message.SendableDiscordMessage;
 import com.discordsrv.common.config.configurate.manager.abstraction.ConfigurateConfigManager;
-import org.checkerframework.checker.nullness.qual.Nullable;
+import org.jetbrains.annotations.Nullable;
 import org.spongepowered.configurate.ConfigurationNode;
 import org.spongepowered.configurate.serialize.SerializationException;
 import org.spongepowered.configurate.serialize.TypeSerializer;

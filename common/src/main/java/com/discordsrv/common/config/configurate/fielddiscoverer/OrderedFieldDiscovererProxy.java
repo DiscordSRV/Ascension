@@ -18,7 +18,7 @@
 
 package com.discordsrv.common.config.configurate.fielddiscoverer;
 
-import org.checkerframework.checker.nullness.qual.Nullable;
+import org.jetbrains.annotations.Nullable;
 import org.spongepowered.configurate.objectmapping.FieldData;
 import org.spongepowered.configurate.objectmapping.FieldDiscoverer;
 import org.spongepowered.configurate.serialize.SerializationException;

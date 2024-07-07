@@ -55,8 +55,6 @@ import net.dv8tion.jda.api.entities.channel.middleman.MessageChannel;
 import net.dv8tion.jda.api.entities.emoji.CustomEmoji;
 import net.dv8tion.jda.api.exceptions.ErrorResponseException;
 import net.dv8tion.jda.api.requests.ErrorResponse;
-import org.checkerframework.checker.index.qual.NonNegative;
-import org.checkerframework.checker.nullness.qual.NonNull;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -324,7 +322,7 @@ public class DiscordAPIImpl implements DiscordAPI {
     private class WebhookCacheLoader implements AsyncCacheLoader<Long, WebhookClient<Message>> {
 
         @Override
-        public @NonNull CompletableFuture<WebhookClient<Message>> asyncLoad(@NonNull Long channelId, @NonNull Executor executor) {
+        public @NotNull CompletableFuture<WebhookClient<Message>> asyncLoad(@NotNull Long channelId, @NotNull Executor executor) {
             JDA jda = discordSRV.jda();
             if (jda == null) {
                 return notReady();
@@ -393,17 +391,17 @@ public class DiscordAPIImpl implements DiscordAPI {
         }
 
         @Override
-        public long expireAfterCreate(@NonNull Long channelId, @NonNull WebhookClient webhookClient, long currentTime) {
+        public long expireAfterCreate(@NotNull Long channelId, @NotNull WebhookClient webhookClient, long currentTime) {
             return expireAfterWrite(channelId);
         }
 
         @Override
-        public long expireAfterUpdate(@NonNull Long channelId, @NonNull WebhookClient webhookClient, long currentTime, @NonNegative long currentDuration) {
+        public long expireAfterUpdate(@NotNull Long channelId, @NotNull WebhookClient webhookClient, long currentTime, long currentDuration) {
             return expireAfterWrite(channelId);
         }
 
         @Override
-        public long expireAfterRead(@NonNull Long channelId, @NonNull WebhookClient webhookClient, long currentTime, @NonNegative long currentDuration) {
+        public long expireAfterRead(@NotNull Long channelId, @NotNull WebhookClient webhookClient, long currentTime, long currentDuration) {
             return isConfiguredChannel(channelId) ? Long.MAX_VALUE : TimeUnit.MINUTES.toNanos(10);
         }
     }

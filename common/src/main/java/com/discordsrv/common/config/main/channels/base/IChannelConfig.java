@@ -19,7 +19,7 @@
 package com.discordsrv.common.config.main.channels.base;
 
 import com.discordsrv.common.config.main.generic.DestinationConfig;
-import org.checkerframework.checker.nullness.qual.Nullable;
+import org.jetbrains.annotations.Nullable;
 import org.spongepowered.configurate.ConfigurationNode;
 import org.spongepowered.configurate.objectmapping.ObjectMapper;
 import org.spongepowered.configurate.serialize.SerializationException;

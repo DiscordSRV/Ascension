@@ -96,10 +96,10 @@ import okhttp3.OkHttpClient;
 import okhttp3.Request;
 import org.apache.commons.lang3.StringUtils;
 import org.intellij.lang.annotations.Language;
+import org.jetbrains.annotations.MustBeInvokedByOverriders;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import javax.annotation.OverridingMethodsMustInvokeSuper;
 import java.io.IOException;
 import java.io.InputStream;
 import java.lang.reflect.Constructor;
@@ -558,7 +558,7 @@ public abstract class AbstractDiscordSRV<
         }
     }
 
-    @OverridingMethodsMustInvokeSuper
+    @MustBeInvokedByOverriders
     protected void enable() throws Throwable {
         if (eventBus == null) {
             // Error that should only occur with new platforms
@@ -627,7 +627,7 @@ public abstract class AbstractDiscordSRV<
         throw new StorageException("Unknown storage backend \"" + backend + "\"");
     }
 
-    @OverridingMethodsMustInvokeSuper
+    @MustBeInvokedByOverriders
     protected void disable() {
         Status status = this.status.get();
         if (status == Status.INITIALIZED || status.isShutdown()) {
@@ -647,7 +647,7 @@ public abstract class AbstractDiscordSRV<
         this.status.set(Status.SHUTDOWN);
     }
 
-    @OverridingMethodsMustInvokeSuper
+    @MustBeInvokedByOverriders
     public List<ReloadResult> reload(Set<ReloadFlag> flags, boolean initial) throws Throwable {
         if (!initial) {
             logger().info("Reloading DiscordSRV...");

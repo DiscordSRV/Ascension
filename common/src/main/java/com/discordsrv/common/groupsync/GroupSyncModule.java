@@ -32,9 +32,9 @@ import com.discordsrv.common.groupsync.enums.GroupSyncCause;
 import com.discordsrv.common.groupsync.enums.GroupSyncResult;
 import com.discordsrv.common.someone.Someone;
 import com.discordsrv.common.sync.AbstractSyncModule;
-import com.discordsrv.common.sync.result.ISyncResult;
 import com.discordsrv.common.sync.SyncFail;
 import com.discordsrv.common.sync.result.GenericSyncResults;
+import com.discordsrv.common.sync.result.ISyncResult;
 import com.github.benmanes.caffeine.cache.Cache;
 import org.jetbrains.annotations.Nullable;
 

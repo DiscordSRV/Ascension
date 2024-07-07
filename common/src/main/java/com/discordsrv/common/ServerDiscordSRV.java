@@ -26,9 +26,9 @@ import com.discordsrv.common.messageforwarding.game.AwardMessageModule;
 import com.discordsrv.common.messageforwarding.game.DeathMessageModule;
 import com.discordsrv.common.player.provider.ServerPlayerProvider;
 import com.discordsrv.common.scheduler.ServerScheduler;
+import org.jetbrains.annotations.MustBeInvokedByOverriders;
 import org.jetbrains.annotations.NotNull;
 
-import javax.annotation.OverridingMethodsMustInvokeSuper;
 import java.util.concurrent.CompletableFuture;
 
 public abstract class ServerDiscordSRV<
@@ -79,7 +79,7 @@ public abstract class ServerDiscordSRV<
         });
     }
 
-    @OverridingMethodsMustInvokeSuper
+    @MustBeInvokedByOverriders
     protected void serverStarted() {
         serverStarted = true;
         moduleManager().enableModules();

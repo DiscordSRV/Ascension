@@ -37,6 +37,15 @@ subprojects {
         runtimeClasspath.extendsFrom runtimeExclude
         runtimeDownloadOnly.extendsFrom runtimeExclude
 
+        // Exclude dependencies at compile time
+        compileExclude {
+            // Stuff we aren't using but is included with dependencies
+            exclude group: 'org.checkerframework', module: 'checker-qual'
+            exclude group: 'com.google.code.findbugs', module: 'jsr305'
+            exclude group: 'com.google.errorprone', module: 'error_prone_annotations'
+        }
+        compileClasspath.extendsFrom compileExclude
+
         // Create runtimeDownloadApi configuration (compileOnlyApi + runtimeDownloadOnly)
         runtimeDownloadApi
         compileOnlyApi.extendsFrom runtimeDownloadApi
@@ -141,7 +150,7 @@ subprojects {
             if (rootProject.version.endsWith("-SNAPSHOT")) {
                 var gitHash = indraGit.commit().getName()
                 if (gitHash.length() > 7) {
-                    gitHash = gitHash.substring(0, 7);
+                    gitHash = gitHash.substring(0, 7)
                 }
                 archiveClassifier = gitHash
             }

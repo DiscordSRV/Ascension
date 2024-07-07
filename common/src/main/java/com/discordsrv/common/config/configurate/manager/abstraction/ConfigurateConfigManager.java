@@ -161,7 +161,7 @@ public abstract class ConfigurateConfigManager<T, LT extends AbstractConfigurati
                         }
 
                         @Override
-                        public void serialize(Type type, @org.checkerframework.checker.nullness.qual.Nullable String obj, ConfigurationNode node) {
+                        public void serialize(Type type, @Nullable String obj, ConfigurationNode node) {
                             RepresentationHint<ScalarStyle> hint = YamlConfigurationLoader.SCALAR_STYLE;
 
                             ScalarStyle style = node.hint(hint);

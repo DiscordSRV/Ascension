@@ -33,9 +33,8 @@ import com.discordsrv.common.placeholder.provider.AnnotationPlaceholderProvider;
 import com.github.benmanes.caffeine.cache.CacheLoader;
 import com.github.benmanes.caffeine.cache.LoadingCache;
 import org.apache.commons.lang3.StringUtils;
-import org.checkerframework.checker.nullness.qual.NonNull;
-import org.checkerframework.checker.nullness.qual.Nullable;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
@@ -342,7 +341,7 @@ public class PlaceholderServiceImpl implements PlaceholderService {
         }
 
         @Override
-        public @Nullable Set<PlaceholderProvider> load(@NonNull Class<?> key) {
+        public @Nullable Set<PlaceholderProvider> load(@NotNull Class<?> key) {
             return loadProviders(key, null);
         }
     }
