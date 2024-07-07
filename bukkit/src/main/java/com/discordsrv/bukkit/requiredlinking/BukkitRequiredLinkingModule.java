@@ -33,9 +33,11 @@ import org.bukkit.entity.Player;
 import org.bukkit.event.*;
 import org.bukkit.event.player.*;
 
+import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
@@ -180,6 +182,7 @@ public class BukkitRequiredLinkingModule extends ServerRequireLinkingModule<Bukk
     //
 
     private final Map<UUID, Component> frozen = new ConcurrentHashMap<>();
+    private final List<UUID> loginsHandled = new CopyOnWriteArrayList<>();
 
     private boolean isFrozen(Player player) {
         return frozen.containsKey(player.getUniqueId());
@@ -191,11 +194,50 @@ public class BukkitRequiredLinkingModule extends ServerRequireLinkingModule<Bukk
     }
 
     @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
-    public void onPreLogin(AsyncPlayerPreLoginEvent event) {
+    public void onAsyncPlayerPreLogin(AsyncPlayerPreLoginEvent event) {
         if (event.getLoginResult() != AsyncPlayerPreLoginEvent.Result.ALLOWED) {
             return;
         }
 
+        UUID playerUUID = event.getUniqueId();
+        loginsHandled.add(playerUUID);
+        handleLogin(playerUUID, event.getName());
+    }
+
+    @EventHandler(priority = EventPriority.MONITOR)
+    public void onPlayerLogin(PlayerLoginEvent event) {
+        if (event.getResult() != PlayerLoginEvent.Result.ALLOWED) {
+            frozen.remove(event.getPlayer().getUniqueId());
+        }
+    }
+
+    @EventHandler(priority = EventPriority.LOWEST)
+    public void onPlayerJoinLowest(PlayerJoinEvent event) {
+        Player player = event.getPlayer();
+        UUID playerUUID = player.getUniqueId();
+        if (!loginsHandled.remove(playerUUID)) {
+            handleLogin(playerUUID, player.getName());
+        }
+    }
+
+    @EventHandler(priority = EventPriority.MONITOR)
+    public void onPlayerJoinMonitor(PlayerJoinEvent event) {
+        UUID playerUUID = event.getPlayer().getUniqueId();
+
+        Component blockReason = frozen.get(playerUUID);
+        if (blockReason == null) {
+            return;
+        }
+
+        IPlayer srvPlayer = discordSRV.playerProvider().player(playerUUID);
+        if (srvPlayer == null) {
+            throw new IllegalStateException("Player not available: " + playerUUID);
+        }
+
+        srvPlayer.sendMessage(blockReason);
+    }
+
+    private void handleLogin(UUID playerUUID, String username) {
         if (discordSRV.isShutdown()) {
             return;
         } else if (!discordSRV.isReady()) {
@@ -211,33 +253,10 @@ public class BukkitRequiredLinkingModule extends ServerRequireLinkingModule<Bukk
             return;
         }
 
-        Component blockReason = getBlockReason(event.getUniqueId(), event.getName(), false).join();
+        Component blockReason = getBlockReason(playerUUID, username, false).join();
         if (blockReason != null) {
-            frozen.put(event.getUniqueId(), blockReason);
+            frozen.put(playerUUID, blockReason);
         }
-    }
-
-    @EventHandler(priority = EventPriority.MONITOR)
-    public void onLogin(PlayerLoginEvent event) {
-        if (event.getResult() != PlayerLoginEvent.Result.ALLOWED) {
-            frozen.remove(event.getPlayer().getUniqueId());
-        }
-    }
-
-    @EventHandler(priority = EventPriority.MONITOR)
-    public void onJoin(PlayerJoinEvent event) {
-        UUID uuid = event.getPlayer().getUniqueId();
-        Component blockReason = frozen.get(uuid);
-        if (blockReason == null) {
-            return;
-        }
-
-        IPlayer player = discordSRV.playerProvider().player(uuid);
-        if (player == null) {
-            throw new IllegalStateException("Player not available: " + uuid);
-        }
-
-        player.sendMessage(blockReason);
     }
 
     @EventHandler(priority = EventPriority.LOWEST, ignoreCancelled = true)
@@ -271,7 +290,7 @@ public class BukkitRequiredLinkingModule extends ServerRequireLinkingModule<Bukk
     }
 
     @EventHandler(priority = EventPriority.LOWEST, ignoreCancelled = true)
-    public void onPlayerChat(AsyncPlayerChatEvent event) {
+    public void onAsyncPlayerChat(AsyncPlayerChatEvent event) {
         Component freezeReason = frozen.get(event.getPlayer().getUniqueId());
         if (freezeReason == null) {
             event.getRecipients().removeIf(this::isFrozen);
@@ -285,7 +304,7 @@ public class BukkitRequiredLinkingModule extends ServerRequireLinkingModule<Bukk
     }
 
     @EventHandler(priority = EventPriority.LOWEST, ignoreCancelled = true)
-    public void onPlayerCommand(PlayerCommandPreprocessEvent event) {
+    public void onPlayerCommandPreprocess(PlayerCommandPreprocessEvent event) {
         if (!isFrozen(event.getPlayer())) {
             return;
         }
