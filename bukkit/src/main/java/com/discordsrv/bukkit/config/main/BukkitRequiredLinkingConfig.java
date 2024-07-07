@@ -30,7 +30,7 @@ public class BukkitRequiredLinkingConfig extends ServerRequiredLinkingConfig {
     public static class KickOptions {
 
         @Comment("The event to use for kick.\n"
-                + "Available events: AsyncPlayerPreLoginEvent (preferred), PlayerLoginEvent")
+                + "Available events: AsyncPlayerPreLoginEvent (preferred), PlayerLoginEvent, PlayerJoinEvent")
         public String event = "AsyncPlayerPreLoginEvent";
 
         @Comment("The event priority to use for the kick")

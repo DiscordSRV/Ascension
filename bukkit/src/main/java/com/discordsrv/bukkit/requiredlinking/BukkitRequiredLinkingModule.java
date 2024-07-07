@@ -60,8 +60,9 @@ public class BukkitRequiredLinkingModule extends ServerRequireLinkingModule<Bukk
     public void enable() {
         super.enable();
 
-        register(PlayerLoginEvent.class, this::handle);
         register(AsyncPlayerPreLoginEvent.class, this::handle);
+        register(PlayerLoginEvent.class, this::handle);
+        register(PlayerJoinEvent.class, this::handle);
         discordSRV.server().getPluginManager().registerEvents(this, discordSRV.plugin());
     }
 
@@ -133,6 +134,18 @@ public class BukkitRequiredLinkingModule extends ServerRequireLinkingModule<Bukk
                 player.getName(),
                 () -> event.getResult() != PlayerLoginEvent.Result.ALLOWED ? event.getResult().name() : null,
                 text -> event.disallow(PlayerLoginEvent.Result.KICK_OTHER, text)
+        );
+    }
+
+    private void handle(PlayerJoinEvent event, EventPriority priority) {
+        Player player = event.getPlayer();
+        handle(
+                "PlayerJoinEvent",
+                priority,
+                player.getUniqueId(),
+                player.getName(),
+                () -> null,
+                player::kickPlayer
         );
     }
 
