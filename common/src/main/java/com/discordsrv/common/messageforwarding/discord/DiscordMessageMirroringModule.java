@@ -34,7 +34,7 @@ import com.discordsrv.api.event.events.discord.message.DiscordMessageDeleteEvent
 import com.discordsrv.api.event.events.discord.message.DiscordMessageUpdateEvent;
 import com.discordsrv.api.event.events.message.forward.game.AbstractGameMessageForwardedEvent;
 import com.discordsrv.api.event.events.message.receive.discord.DiscordChatMessageReceiveEvent;
-import com.discordsrv.api.placeholder.PlainPlaceholderFormat;
+import com.discordsrv.api.placeholder.format.PlainPlaceholderFormat;
 import com.discordsrv.api.placeholder.provider.SinglePlaceholder;
 import com.discordsrv.common.DiscordSRV;
 import com.discordsrv.common.config.main.channels.MirroringConfig;

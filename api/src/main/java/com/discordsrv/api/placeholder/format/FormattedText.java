@@ -21,7 +21,7 @@
  * SOFTWARE.
  */
 
-package com.discordsrv.api.placeholder;
+package com.discordsrv.api.placeholder.format;
 
 import org.jetbrains.annotations.NotNull;
 

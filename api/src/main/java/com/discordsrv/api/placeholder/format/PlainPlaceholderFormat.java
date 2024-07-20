@@ -21,7 +21,7 @@
  * SOFTWARE.
  */
 
-package com.discordsrv.api.placeholder;
+package com.discordsrv.api.placeholder.format;
 
 import java.util.function.Function;
 import java.util.function.Supplier;

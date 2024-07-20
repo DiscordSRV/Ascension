@@ -28,7 +28,7 @@ import com.discordsrv.api.discord.entity.message.ReceivedDiscordMessage;
 import com.discordsrv.api.discord.entity.message.SendableDiscordMessage;
 import com.discordsrv.api.discord.util.DiscordFormattingUtil;
 import com.discordsrv.api.event.events.discord.message.DiscordMessageReceiveEvent;
-import com.discordsrv.api.placeholder.PlainPlaceholderFormat;
+import com.discordsrv.api.placeholder.format.PlainPlaceholderFormat;
 import com.discordsrv.api.placeholder.provider.SinglePlaceholder;
 import com.discordsrv.common.DiscordSRV;
 import com.discordsrv.common.command.game.GameCommandExecutionHelper;

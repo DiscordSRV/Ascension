@@ -16,13 +16,12 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package com.discordsrv.common.placeholder;
+package com.discordsrv.common.placeholder.format;
 
-import com.discordsrv.api.placeholder.PlainPlaceholderFormat;
+import com.discordsrv.api.placeholder.format.PlainPlaceholderFormat;
 import dev.vankka.mcdiscordreserializer.rules.DiscordMarkdownRules;
-import dev.vankka.simpleast.core.TextStyle;
+import dev.vankka.mcdiscordreserializer.rules.StyleNode;
 import dev.vankka.simpleast.core.node.Node;
-import dev.vankka.simpleast.core.node.StyleNode;
 import dev.vankka.simpleast.core.node.TextNode;
 import dev.vankka.simpleast.core.parser.Parser;
 import dev.vankka.simpleast.core.parser.Rule;
@@ -32,11 +31,11 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Function;
 
-public class DiscordPlaceholdersImpl implements PlainPlaceholderFormat {
+public class DiscordMarkdownFormatImpl implements PlainPlaceholderFormat {
 
     private final Parser<Object, Node<Object>, Object> parser;
 
-    public DiscordPlaceholdersImpl() {
+    public DiscordMarkdownFormatImpl() {
         List<Rule<Object, Node<Object>, Object>> rules = new ArrayList<>();
         rules.add(SimpleMarkdownRules.createEscapeRule());
         rules.add(SimpleMarkdownRules.createNewlineRule());
@@ -61,31 +60,36 @@ public class DiscordPlaceholdersImpl implements PlainPlaceholderFormat {
                 PlainPlaceholderFormat.with(Formatting.DISCORD, () -> finalText.append(placeholders.apply(content)));
 
                 for (Object style : ((StyleNode<?, ?>) node).getStyles()) {
-                    if (!(style instanceof TextStyle)) {
+                    if (!(style instanceof StyleNode.Style)) {
                         continue;
                     }
 
-                    TextStyle textStyle = (TextStyle) style;
+                    StyleNode.Style textStyle = (StyleNode.Style) style;
                     String childText = ((TextNode<?>) node.getChildren().get(0)).getContent();
 
-                    if (textStyle.getType() == TextStyle.Type.CODE_STRING) {
-                        finalText.append("`").append(placeholders.apply(childText)).append("`");
-                    } else if (textStyle.getType() == TextStyle.Type.CODE_BLOCK) {
-                        String language = textStyle.getExtra().get("language");
+                    if (textStyle == StyleNode.Styles.CODE_STRING) {
+                        String blockContent = placeholders.apply(childText);
+                        if (blockContent != null && !blockContent.isEmpty()) {
+                            finalText.append("`").append(blockContent).append("`");
+                        }
+                    } else if (textStyle instanceof StyleNode.CodeBlockStyle) {
+                        String language = ((StyleNode.CodeBlockStyle) textStyle).getLanguage();
 
                         if (language != null && language.equals("ansi")) {
-                            PlainPlaceholderFormat.with(Formatting.ANSI, () -> finalText
-                                    .append("```ansi\n")
-                                    .append(placeholders.apply(childText))
-                                    .append("```")
-                            );
+                            String blockContent = PlainPlaceholderFormat.supplyWith(Formatting.ANSI, () -> placeholders.apply(childText));
+                            if (blockContent != null && !blockContent.isEmpty()) {
+                                finalText.append("```ansi\n").append(blockContent).append("```");
+                            }
                         } else {
-                            finalText
-                                    .append("```")
-                                    .append(language != null ? language : "")
-                                    .append("\n")
-                                    .append(placeholders.apply(childText))
-                                    .append("```");
+                            String blockContent = PlainPlaceholderFormat.supplyWith(Formatting.PLAIN, () -> placeholders.apply(childText));
+                            if (blockContent != null && !blockContent.isEmpty()) {
+                                finalText
+                                        .append("```")
+                                        .append(language != null ? language : "")
+                                        .append("\n")
+                                        .append(blockContent)
+                                        .append("```");
+                            }
                         }
                     }
                 }

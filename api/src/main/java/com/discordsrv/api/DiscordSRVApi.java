@@ -28,7 +28,7 @@ import com.discordsrv.api.discord.DiscordAPI;
 import com.discordsrv.api.discord.connection.details.DiscordConnectionDetails;
 import com.discordsrv.api.event.bus.EventBus;
 import com.discordsrv.api.placeholder.PlaceholderService;
-import com.discordsrv.api.placeholder.PlainPlaceholderFormat;
+import com.discordsrv.api.placeholder.format.PlainPlaceholderFormat;
 import com.discordsrv.api.player.DiscordSRVPlayer;
 import com.discordsrv.api.player.IPlayerProvider;
 import com.discordsrv.api.profile.IProfileManager;
@@ -110,7 +110,7 @@ public interface DiscordSRVApi {
      * @return the {@link PlainPlaceholderFormat} instance
      */
     @NotNull
-    PlainPlaceholderFormat discordPlaceholders();
+    PlainPlaceholderFormat discordMarkdownFormat();
 
     /**
      * A provider for {@link com.discordsrv.api.component.MinecraftComponent}s.

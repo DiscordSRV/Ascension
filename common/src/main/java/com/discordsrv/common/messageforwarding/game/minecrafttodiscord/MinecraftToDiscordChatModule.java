@@ -30,7 +30,7 @@ import com.discordsrv.api.event.bus.EventPriority;
 import com.discordsrv.api.event.bus.Subscribe;
 import com.discordsrv.api.event.events.message.forward.game.GameChatMessageForwardedEvent;
 import com.discordsrv.api.event.events.message.receive.game.GameChatMessageReceiveEvent;
-import com.discordsrv.api.placeholder.FormattedText;
+import com.discordsrv.api.placeholder.format.FormattedText;
 import com.discordsrv.api.placeholder.util.Placeholders;
 import com.discordsrv.common.DiscordSRV;
 import com.discordsrv.common.component.util.ComponentUtil;
@@ -225,7 +225,7 @@ public class MinecraftToDiscordChatModule extends AbstractGameMessageModule<Mine
     }
 
     public String convertComponent(MinecraftToDiscordChatConfig config, Component component) {
-        String content = discordSRV.placeholderService().getResultAsPlain(component).toString();
+        String content = discordSRV.placeholderService().getResultAsCharSequence(component).toString();
 
         Placeholders messagePlaceholders = new Placeholders(content);
         config.contentRegexFilters.forEach(messagePlaceholders::replaceAll);

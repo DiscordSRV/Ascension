@@ -74,7 +74,7 @@ import com.discordsrv.common.messageforwarding.game.StopMessageModule;
 import com.discordsrv.common.messageforwarding.game.minecrafttodiscord.MentionCachingModule;
 import com.discordsrv.common.module.ModuleManager;
 import com.discordsrv.common.module.type.AbstractModule;
-import com.discordsrv.common.placeholder.DiscordPlaceholdersImpl;
+import com.discordsrv.common.placeholder.format.DiscordMarkdownFormatImpl;
 import com.discordsrv.common.placeholder.PlaceholderServiceImpl;
 import com.discordsrv.common.placeholder.context.GlobalDateFormattingContext;
 import com.discordsrv.common.placeholder.context.GlobalTextHandlingContext;
@@ -136,7 +136,7 @@ public abstract class AbstractDiscordSRV<
     private EventBusImpl eventBus;
     private ProfileManager profileManager;
     private PlaceholderServiceImpl placeholderService;
-    private DiscordPlaceholdersImpl discordPlaceholders;
+    private DiscordMarkdownFormatImpl discordMarkdownFormat;
     private ComponentFactory componentFactory;
     private DiscordAPIImpl discordAPI;
     private DiscordConnectionDetailsImpl discordConnectionDetails;
@@ -181,7 +181,7 @@ public abstract class AbstractDiscordSRV<
         this.moduleManager = new ModuleManager(this);
         this.profileManager = new ProfileManager(this);
         this.placeholderService = new PlaceholderServiceImpl(this);
-        this.discordPlaceholders = new DiscordPlaceholdersImpl();
+        this.discordMarkdownFormat = new DiscordMarkdownFormatImpl();
         this.componentFactory = new ComponentFactory(this);
         this.discordAPI = new DiscordAPIImpl(this);
         this.discordConnectionDetails = new DiscordConnectionDetailsImpl(this);
@@ -301,8 +301,8 @@ public abstract class AbstractDiscordSRV<
     }
 
     @Override
-    public final @NotNull DiscordPlaceholdersImpl discordPlaceholders() {
-        return discordPlaceholders;
+    public final @NotNull DiscordMarkdownFormatImpl discordMarkdownFormat() {
+        return discordMarkdownFormat;
     }
 
     @Override

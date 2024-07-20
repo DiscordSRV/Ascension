@@ -21,7 +21,7 @@ package com.discordsrv.bukkit.integration;
 import com.discordsrv.api.event.bus.Subscribe;
 import com.discordsrv.api.event.events.placeholder.PlaceholderLookupEvent;
 import com.discordsrv.api.placeholder.PlaceholderLookupResult;
-import com.discordsrv.api.placeholder.PlainPlaceholderFormat;
+import com.discordsrv.api.placeholder.format.PlainPlaceholderFormat;
 import com.discordsrv.api.player.DiscordSRVPlayer;
 import com.discordsrv.api.profile.IProfile;
 import com.discordsrv.bukkit.BukkitDiscordSRV;

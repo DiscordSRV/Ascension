@@ -54,8 +54,8 @@ public interface PlaceholderService {
 
     Object getResult(@NotNull Matcher matcher, @NotNull Set<Object> context);
     @NotNull
-    CharSequence getResultAsPlain(@NotNull Matcher matcher, @NotNull Set<Object> context);
+    CharSequence getResultAsCharSequence(@NotNull Matcher matcher, @NotNull Set<Object> context);
     @NotNull
-    CharSequence getResultAsPlain(@Nullable Object result);
+    CharSequence getResultAsCharSequence(@Nullable Object result);
 
 }

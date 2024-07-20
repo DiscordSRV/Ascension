@@ -29,9 +29,9 @@ import com.discordsrv.api.discord.entity.message.AllowedMention;
 import com.discordsrv.api.discord.entity.message.DiscordMessageEmbed;
 import com.discordsrv.api.discord.entity.message.SendableDiscordMessage;
 import com.discordsrv.api.discord.util.DiscordFormattingUtil;
-import com.discordsrv.api.placeholder.FormattedText;
+import com.discordsrv.api.placeholder.format.FormattedText;
 import com.discordsrv.api.placeholder.PlaceholderService;
-import com.discordsrv.api.placeholder.PlainPlaceholderFormat;
+import com.discordsrv.api.placeholder.format.PlainPlaceholderFormat;
 import com.discordsrv.api.placeholder.util.Placeholders;
 import net.dv8tion.jda.api.entities.MessageEmbed;
 import org.jetbrains.annotations.NotNull;
@@ -360,7 +360,7 @@ public class SendableDiscordMessageImpl implements SendableDiscordMessage {
             }
             this.replacements.put(
                     PlaceholderService.PATTERN,
-                    wrapFunction(matcher -> api.placeholderService().getResultAsPlain(matcher, context))
+                    wrapFunction(matcher -> api.placeholderService().getResultAsCharSequence(matcher, context))
             );
             return this;
         }
@@ -373,8 +373,7 @@ public class SendableDiscordMessageImpl implements SendableDiscordMessage {
                     return result.toString();
                 } else if (result instanceof CharSequence) {
                     // Escape content
-                    return DiscordFormattingUtil.escapeContent(
-                            result.toString());
+                    return DiscordFormattingUtil.escapeContent(result.toString());
                 }
 
                 // Use default behaviour for everything else
@@ -401,13 +400,13 @@ public class SendableDiscordMessageImpl implements SendableDiscordMessage {
                 String output = placeholderUtil.toString();
                 return output.isEmpty() ? null : output;
             };
-            Function<String, String> discordPlaceholders = input -> {
+            Function<String, String> markdownPlaceholders = input -> {
                 if (input == null) {
                     return null;
                 }
 
                 // Empty string -> null (so we don't provide empty strings to random fields)
-                String output = api.discordPlaceholders().map(input, in -> {
+                String output = api.discordMarkdownFormat().map(input, in -> {
                     // Since this will be processed in parts, we don't want parts to return null, only the full output
                     String out = placeholders.apply(in);
                     return out == null ? "" : out;
@@ -418,7 +417,7 @@ public class SendableDiscordMessageImpl implements SendableDiscordMessage {
 
             PlainPlaceholderFormat.with(
                     PlainPlaceholderFormat.Formatting.DISCORD,
-                    () -> builder.setContent(discordPlaceholders.apply(builder.getContent()))
+                    () -> builder.setContent(markdownPlaceholders.apply(builder.getContent()))
             );
 
             List<DiscordMessageEmbed> embeds = new ArrayList<>(builder.getEmbeds());
@@ -461,7 +460,7 @@ public class SendableDiscordMessageImpl implements SendableDiscordMessage {
 
                 PlainPlaceholderFormat.with(PlainPlaceholderFormat.Formatting.DISCORD, () -> embedBuilder.setDescription(
                         cutToLength(
-                                discordPlaceholders.apply(embedBuilder.getDescription()),
+                                markdownPlaceholders.apply(embedBuilder.getDescription()),
                                 MessageEmbed.DESCRIPTION_MAX_LENGTH
                         )
                 ));

@@ -177,13 +177,13 @@ public class PlaceholderServiceImpl implements PlaceholderService {
     }
 
     @Override
-    public @NotNull CharSequence getResultAsPlain(@NotNull Matcher matcher, @NotNull Set<Object> context) {
+    public @NotNull CharSequence getResultAsCharSequence(@NotNull Matcher matcher, @NotNull Set<Object> context) {
         Object result = getResult(matcher, context);
-        return getResultAsPlain(result);
+        return getResultAsCharSequence(result);
     }
 
     @Override
-    public @NotNull CharSequence getResultAsPlain(@Nullable Object result) {
+    public @NotNull CharSequence getResultAsCharSequence(@Nullable Object result) {
         if (result == null) {
             return "";
         } else if (result instanceof CharSequence) {
@@ -216,7 +216,7 @@ public class PlaceholderServiceImpl implements PlaceholderService {
     private String updateContent(List<PlaceholderLookupResult> results, String placeholder, Matcher matcher, String input) {
         Object representation = getResultRepresentation(results, placeholder, matcher);
 
-        CharSequence output = getResultAsPlain(representation);
+        CharSequence output = getResultAsCharSequence(representation);
         return Pattern.compile(
                 matcher.group(1) + placeholder + matcher.group(3),
                 Pattern.LITERAL
@@ -242,9 +242,9 @@ public class PlaceholderServiceImpl implements PlaceholderService {
                     case SUCCESS:
                         replacement = result.getValue();
                         if (replacement == null) {
-                            replacement = getResultAsPlain(null);
+                            replacement = getResultAsCharSequence(null);
                         }
-                        if (StringUtils.isNotBlank(getResultAsPlain(replacement))) {
+                        if (StringUtils.isNotBlank(getResultAsCharSequence(replacement))) {
                             return replacement;
                         }
                         break;
