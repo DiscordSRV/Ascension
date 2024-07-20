@@ -18,6 +18,7 @@
 
 package com.discordsrv.bukkit.player;
 
+import com.discordsrv.api.component.MinecraftComponent;
 import com.discordsrv.bukkit.BukkitDiscordSRV;
 import com.discordsrv.bukkit.command.game.sender.BukkitCommandSender;
 import com.discordsrv.bukkit.component.PaperComponentHandle;
@@ -32,12 +33,16 @@ import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.lang.invoke.MethodHandle;
+import java.lang.invoke.MethodHandles;
+import java.lang.invoke.MethodType;
 import java.util.Locale;
 import java.util.concurrent.CompletableFuture;
 
 public class BukkitPlayer extends BukkitCommandSender implements IPlayer {
 
     private static final PaperComponentHandle<Player> DISPLAY_NAME_HANDLE = makeDisplayNameHandle();
+    private static final MethodHandle PAPER_SEND_MESSAGE_HANDLE = makePaperSendMessageHandle();
 
     private static PaperComponentHandle<Player> makeDisplayNameHandle() {
         return new PaperComponentHandle<>(
@@ -45,6 +50,18 @@ public class BukkitPlayer extends BukkitCommandSender implements IPlayer {
                 "displayName",
                 Player::getDisplayName
         );
+    }
+
+    @SuppressWarnings("JavaLangInvokeHandleSignature") // Unrelocate
+    private static MethodHandle makePaperSendMessageHandle() {
+        MethodHandles.Lookup lookup = MethodHandles.lookup();
+        try {
+            return lookup.findVirtual(Player.class, "sendMessage", MethodType.methodType(
+                    void.class,
+                    com.discordsrv.unrelocate.net.kyori.adventure.text.Component.class
+            ));
+        } catch (ReflectiveOperationException ignored) {}
+        return null;
     }
 
     private final Player player;
@@ -95,5 +112,30 @@ public class BukkitPlayer extends BukkitCommandSender implements IPlayer {
     @Override
     public @NotNull Identity identity() {
         return identity;
+    }
+
+    // Use Paper native method directly for sendMessage if available (as the most used Audience method)
+    // may be replaced by https://github.com/KyoriPowered/adventure-platform/pull/116
+
+    @Override
+    public void sendMessage(@NotNull MinecraftComponent component) {
+        if (PAPER_SEND_MESSAGE_HANDLE == null) {
+            super.sendMessage(ComponentUtil.fromAPI(component));
+            return;
+        }
+        try {
+            PAPER_SEND_MESSAGE_HANDLE.invoke(player, ComponentUtil.toUnrelocated(component));
+        } catch (Throwable ignored) {
+            super.sendMessage(ComponentUtil.fromAPI(component));
+        }
+    }
+
+    @Override
+    public void sendMessage(@NotNull Component message) {
+        if (PAPER_SEND_MESSAGE_HANDLE == null) {
+            super.sendMessage(message);
+            return;
+        }
+        sendMessage(ComponentUtil.toAPI(message));
     }
 }

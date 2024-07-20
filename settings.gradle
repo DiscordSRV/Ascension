@@ -122,7 +122,7 @@ dependencyResolutionManagement {
             library('adventure-serializer-ansi', 'net.kyori', 'adventure-text-serializer-ansi').versionRef('adventure')
 
             // Adventure Platform
-            version('adventure-platform', '4.3.2')
+            version('adventure-platform', '4.3.3-SNAPSHOT')
             library('adventure-platform-bukkit', 'net.kyori', 'adventure-platform-bukkit').versionRef('adventure-platform')
             library('adventure-platform-bungee', 'net.kyori', 'adventure-platform-bungeecord').versionRef('adventure-platform')
             library('adventure-serializer-bungee', 'net.kyori', 'adventure-text-serializer-bungeecord').versionRef('adventure-platform')
