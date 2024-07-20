@@ -19,6 +19,7 @@
 package com.discordsrv.common.config.main.channels;
 
 import com.discordsrv.api.discord.entity.message.SendableDiscordMessage;
+import com.discordsrv.common.config.util.ConfigUtil;
 import com.discordsrv.common.config.configurate.annotation.DefaultOnly;
 import com.discordsrv.common.config.configurate.annotation.Untranslated;
 import com.discordsrv.common.config.main.generic.IMessageConfig;
@@ -32,7 +33,11 @@ import java.util.regex.Pattern;
 @ConfigSerializable
 public class MinecraftToDiscordChatConfig implements IMessageConfig {
 
-    public boolean enabled = true;
+    public MinecraftToDiscordChatConfig() {
+        ConfigUtil.nullAllFields(this);
+    }
+
+    public Boolean enabled = true;
 
     @Untranslated(Untranslated.Type.VALUE)
     @DefaultOnly

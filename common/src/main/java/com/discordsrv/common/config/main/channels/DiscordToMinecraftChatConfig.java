@@ -18,6 +18,7 @@
 
 package com.discordsrv.common.config.main.channels;
 
+import com.discordsrv.common.config.util.ConfigUtil;
 import com.discordsrv.common.config.configurate.annotation.Untranslated;
 import com.discordsrv.common.config.main.generic.DiscordIgnoresConfig;
 import com.discordsrv.common.config.main.generic.MentionsConfig;
@@ -31,11 +32,18 @@ import java.util.regex.Pattern;
 @ConfigSerializable
 public class DiscordToMinecraftChatConfig {
 
+    public DiscordToMinecraftChatConfig() {
+        ConfigUtil.nullAllFields(this);
+    }
+
     @Comment("Requires the \"Message Content Intent\"")
-    public boolean enabled = true;
+    public Boolean enabled = true;
 
     @Comment("The Discord to Minecraft message format for regular users and bots")
-    public String format = "[[color:#5865F2]Discord[color]] [hover:show_text:Username: @%user_tag% [italics:on][color:gray](Shift+Click to mention)[color][italics:off]\nRoles: %user_roles:', '|text:'[color:gray][italics:on]None[color][italics]'%][insert:@%user_tag%]%user_color%%user_effective_server_name%[color][hover]%message_reply% » %message%%message_attachments%";
+    public String format = "[[color:#5865F2]Discord[color]] "
+            + "[hover:show_text:Username: @%user_tag% [italics:on][color:gray](Shift+Click to mention)[color][italics:off]\nRoles: %user_roles:', '|text:'[color:gray][italics:on]None[color][italics]'%]"
+            + "[insert:@%user_tag%]%user_color%%user_effective_server_name%[color][insert]"
+            + "[hover]%message_reply% » %message%%message_attachments%";
 
     @Comment("The Discord to Minecraft message format for webhook messages (if enabled)")
     public String webhookFormat = "[[color:#5865F2]Discord[color]] [hover:show_text:Bot message]%user_effective_name%[hover] » %message%%message_attachments%";
@@ -74,6 +82,6 @@ public class DiscordToMinecraftChatConfig {
 
     @Comment("The amount of milliseconds to delay processing Discord messages, if the message is deleted in that time it will not be processed.\n"
             + "This can be used together with Discord moderation bots, to filter forwarded messages")
-    public long delayMillis = 0L;
+    public Long delayMillis = 0L;
 
 }

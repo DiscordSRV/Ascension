@@ -21,6 +21,7 @@ package com.discordsrv.common.config.main.channels;
 import com.discordsrv.api.discord.entity.message.DiscordMessageEmbed;
 import com.discordsrv.api.discord.entity.message.SendableDiscordMessage;
 import com.discordsrv.api.event.events.message.receive.game.JoinMessageReceiveEvent;
+import com.discordsrv.common.config.util.ConfigUtil;
 import com.discordsrv.common.config.configurate.annotation.Constants;
 import com.discordsrv.common.config.configurate.annotation.Untranslated;
 import com.discordsrv.common.config.main.generic.IMessageConfig;
@@ -31,7 +32,11 @@ import org.spongepowered.configurate.objectmapping.meta.Comment;
 @ConfigSerializable
 public class JoinMessageConfig implements IMessageConfig {
 
-    public boolean enabled = true;
+    public JoinMessageConfig() {
+        ConfigUtil.nullAllFields(this);
+    }
+
+    public Boolean enabled = true;
 
     @Untranslated(Untranslated.Type.VALUE)
     public SendableDiscordMessage.Builder format = SendableDiscordMessage.builder()
@@ -44,10 +49,10 @@ public class JoinMessageConfig implements IMessageConfig {
 
     @Comment("If the \"%1\" permission should determine if join messages are sent")
     @Constants.Comment("discordsrv.silentjoin")
-    public boolean enableSilentPermission = true;
+    public Boolean enableSilentPermission = true;
 
     @Comment("Ignore if the player leaves within the given amount of milliseconds. This will delay sending the join message")
-    public long ignoreIfLeftWithinMS = 250;
+    public Long ignoreIfLeftWithinMS = 250L;
 
     @Override
     public boolean enabled() {

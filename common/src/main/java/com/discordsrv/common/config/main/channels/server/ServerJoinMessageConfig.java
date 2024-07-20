@@ -18,11 +18,16 @@
 
 package com.discordsrv.common.config.main.channels.server;
 
+import com.discordsrv.common.config.util.ConfigUtil;
 import com.discordsrv.common.config.configurate.annotation.Order;
 import com.discordsrv.common.config.main.channels.JoinMessageConfig;
 import org.jetbrains.annotations.Nullable;
 
 public class ServerJoinMessageConfig extends JoinMessageConfig {
+
+    public ServerJoinMessageConfig() {
+        ConfigUtil.nullAllFields(this);
+    }
 
     @Order(10)
     public FirstJoin firstJoin = new FirstJoin();

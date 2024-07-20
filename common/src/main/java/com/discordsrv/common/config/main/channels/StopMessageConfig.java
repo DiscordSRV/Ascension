@@ -19,6 +19,7 @@
 package com.discordsrv.common.config.main.channels;
 
 import com.discordsrv.api.discord.entity.message.SendableDiscordMessage;
+import com.discordsrv.common.config.util.ConfigUtil;
 import com.discordsrv.common.config.configurate.annotation.Untranslated;
 import com.discordsrv.common.config.main.generic.IMessageConfig;
 import org.spongepowered.configurate.objectmapping.ConfigSerializable;
@@ -26,7 +27,11 @@ import org.spongepowered.configurate.objectmapping.ConfigSerializable;
 @ConfigSerializable
 public class StopMessageConfig implements IMessageConfig {
 
-    public boolean enabled = true;
+    public StopMessageConfig() {
+        ConfigUtil.nullAllFields(this);
+    }
+
+    public Boolean enabled = true;
 
     @Untranslated(Untranslated.Type.VALUE)
     public SendableDiscordMessage.Builder format = SendableDiscordMessage.builder()

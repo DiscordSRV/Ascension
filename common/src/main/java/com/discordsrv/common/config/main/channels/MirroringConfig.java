@@ -18,6 +18,7 @@
 
 package com.discordsrv.common.config.main.channels;
 
+import com.discordsrv.common.config.util.ConfigUtil;
 import com.discordsrv.common.config.main.generic.DiscordIgnoresConfig;
 import org.spongepowered.configurate.objectmapping.ConfigSerializable;
 import org.spongepowered.configurate.objectmapping.meta.Comment;
@@ -25,8 +26,12 @@ import org.spongepowered.configurate.objectmapping.meta.Comment;
 @ConfigSerializable
 public class MirroringConfig {
 
+    public MirroringConfig() {
+        ConfigUtil.nullAllFields(this);
+    }
+
     @Comment("Requires the \"Message Content Intent\"")
-    public boolean enabled = true;
+    public Boolean enabled = true;
 
     @Comment("Users, bots, roles and webhooks to ignore when mirroring")
     public DiscordIgnoresConfig ignores = new DiscordIgnoresConfig();

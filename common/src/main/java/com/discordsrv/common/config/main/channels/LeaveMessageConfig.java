@@ -20,6 +20,7 @@ package com.discordsrv.common.config.main.channels;
 
 import com.discordsrv.api.discord.entity.message.DiscordMessageEmbed;
 import com.discordsrv.api.discord.entity.message.SendableDiscordMessage;
+import com.discordsrv.common.config.util.ConfigUtil;
 import com.discordsrv.common.config.configurate.annotation.Constants;
 import com.discordsrv.common.config.configurate.annotation.Untranslated;
 import com.discordsrv.common.config.main.generic.IMessageConfig;
@@ -29,7 +30,11 @@ import org.spongepowered.configurate.objectmapping.meta.Comment;
 @ConfigSerializable
 public class LeaveMessageConfig implements IMessageConfig {
 
-    public boolean enabled = true;
+    public LeaveMessageConfig() {
+        ConfigUtil.nullAllFields(this);
+    }
+
+    public Boolean enabled = true;
 
     @Untranslated(Untranslated.Type.VALUE)
     public SendableDiscordMessage.Builder format = SendableDiscordMessage.builder()
@@ -42,10 +47,10 @@ public class LeaveMessageConfig implements IMessageConfig {
 
     @Comment("If the \"%1\" permission should determine if leave messages are sent")
     @Constants.Comment("discordsrv.silentquit")
-    public boolean enableSilentPermission = true;
+    public Boolean enableSilentPermission = true;
 
     @Comment("Ignore if the player joined within the given amount of milliseconds")
-    public long ignoreIfJoinedWithinMS = 250;
+    public Long ignoreIfJoinedWithinMS = 250L;
 
     @Override
     public boolean enabled() {

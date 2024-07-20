@@ -181,11 +181,18 @@ public class DestinationLookupHelper {
         boolean forum = threadContainer instanceof DiscordForumChannel;
         boolean privateThread = !forum && threadConfig.privateThread;
 
+        Permission createPermission;
+        if (forum) {
+            createPermission = Permission.MESSAGE_SEND;
+        } else {
+            createPermission = privateThread ? Permission.CREATE_PRIVATE_THREADS : Permission.CREATE_PUBLIC_THREADS;
+        }
+
         IThreadContainer container = threadContainer.getAsJDAThreadContainer();
         String missingPermissions = DiscordPermissionUtil.missingPermissionsString(
                 container,
                 Permission.VIEW_CHANNEL,
-                privateThread ? Permission.CREATE_PRIVATE_THREADS : Permission.CREATE_PUBLIC_THREADS
+                createPermission
         );
         if (missingPermissions != null) {
             if (logFailures) {

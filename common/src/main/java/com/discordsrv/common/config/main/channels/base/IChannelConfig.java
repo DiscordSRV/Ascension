@@ -25,8 +25,6 @@ import org.spongepowered.configurate.objectmapping.ObjectMapper;
 import org.spongepowered.configurate.serialize.SerializationException;
 import org.spongepowered.configurate.serialize.TypeSerializer;
 
-import java.lang.reflect.Field;
-import java.lang.reflect.Modifier;
 import java.lang.reflect.Type;
 
 public interface IChannelConfig {
@@ -34,24 +32,6 @@ public interface IChannelConfig {
     String DEFAULT_KEY = "default";
 
     DestinationConfig destination();
-
-    default void initialize() {
-        // Clear everything besides channelIds by default (these will be filled back in by Configurate if they are in the config itself)
-        Class<?> clazz = getClass();
-        while (clazz != null) {
-            for (Field field : clazz.getFields()) {
-                int modifiers = field.getModifiers();
-                if (!Modifier.isPublic(modifiers) || Modifier.isFinal(modifiers) || Modifier.isStatic(modifiers)) {
-                    continue;
-                }
-
-                try {
-                    field.set(this, null);
-                } catch (IllegalAccessException ignored) {}
-            }
-            clazz = clazz.getSuperclass();
-        }
-    }
 
     class Serializer implements TypeSerializer<BaseChannelConfig> {
 

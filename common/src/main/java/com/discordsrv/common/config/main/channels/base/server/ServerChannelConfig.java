@@ -18,6 +18,7 @@
 
 package com.discordsrv.common.config.main.channels.base.server;
 
+import com.discordsrv.common.config.util.ConfigUtil;
 import com.discordsrv.common.config.main.channels.base.IChannelConfig;
 import com.discordsrv.common.config.main.generic.DestinationConfig;
 import org.spongepowered.configurate.objectmapping.ConfigSerializable;
@@ -27,7 +28,7 @@ import org.spongepowered.configurate.objectmapping.meta.Setting;
 public class ServerChannelConfig extends ServerBaseChannelConfig implements IChannelConfig {
 
     public ServerChannelConfig() {
-        initialize();
+        ConfigUtil.nullAllFields(this);
     }
 
     @Setting(nodeFromParent = true)
