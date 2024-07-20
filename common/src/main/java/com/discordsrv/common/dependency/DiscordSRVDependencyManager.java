@@ -36,7 +36,6 @@ public class DiscordSRVDependencyManager {
         this.dependencyManager = new ApplicationDependencyManager(cacheDirectory);
 
         if (initialLoader != null) {
-            //noinspection ResultOfMethodCallIgnored
             dependencyManager.include(initialLoader.getDependencyManager());
         }
     }

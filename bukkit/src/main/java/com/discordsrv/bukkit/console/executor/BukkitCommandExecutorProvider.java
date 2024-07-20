@@ -30,16 +30,16 @@ import java.util.function.Consumer;
 
 public class BukkitCommandExecutorProvider implements CommandExecutorProvider {
 
-    private static final boolean HAS_PAPER_FORWARDING;
+    private static final boolean HAS_PAPER_FORWARDING = hasPaperForwarding();
 
-    static {
-        boolean has = false;
+    @SuppressWarnings("JavaReflectionMemberAccess") // Paper only
+    private static boolean hasPaperForwarding() {
         try {
-            //noinspection JavaReflectionMemberAccess
             Server.class.getDeclaredMethod("createCommandSender", Consumer.class);
-            has = true;
+            return true;
         } catch (Throwable ignored) {}
-        HAS_PAPER_FORWARDING = has;
+
+        return false;
     }
 
     private final BukkitDiscordSRV discordSRV;

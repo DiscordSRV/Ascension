@@ -146,10 +146,9 @@ public class DestinationLookupHelper {
             futures.add(future);
         }
 
-        //noinspection rawtypes
         return CompletableFuture.allOf(
                 futures.stream()
-                        .map(future -> (CompletableFuture) future)
+                        .map(future -> (CompletableFuture<?>) future)
                         .toArray(CompletableFuture[]::new)
         ).thenApply(v -> {
             Set<Long> idsDuplicateCheck = new HashSet<>();
