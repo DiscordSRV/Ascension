@@ -28,6 +28,7 @@ import com.github.benmanes.caffeine.cache.Cache;
 import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.entities.Member;
 import net.dv8tion.jda.api.entities.Role;
+import net.dv8tion.jda.api.entities.channel.concrete.Category;
 import net.dv8tion.jda.api.entities.channel.middleman.GuildChannel;
 import net.dv8tion.jda.api.events.channel.ChannelCreateEvent;
 import net.dv8tion.jda.api.events.channel.ChannelDeleteEvent;
@@ -149,7 +150,7 @@ public class MentionCachingModule extends AbstractModule<DiscordSRV> {
 
     private CachedMention convertMember(Member member) {
         return new CachedMention(
-                "@" + member.getEffectiveName(),
+                "@" + member.getUser().getName(),
                 member.getAsMention(),
                 member.getIdLong()
         );
@@ -230,6 +231,11 @@ public class MentionCachingModule extends AbstractModule<DiscordSRV> {
         return channelMentions.computeIfAbsent(guild.getIdLong(), key -> {
             Map<Long, CachedMention> mentions = new LinkedHashMap<>();
             for (GuildChannel channel : guild.getChannels()) {
+                if (channel instanceof Category) {
+                    // Not mentionable
+                    continue;
+                }
+
                 mentions.put(channel.getIdLong(), convertChannel(channel));
             }
             return mentions;

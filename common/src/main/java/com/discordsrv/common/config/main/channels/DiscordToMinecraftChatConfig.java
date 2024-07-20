@@ -35,7 +35,7 @@ public class DiscordToMinecraftChatConfig {
     public boolean enabled = true;
 
     @Comment("The Discord to Minecraft message format for regular users and bots")
-    public String format = "[[color:#5865F2]Discord[color]] [hover:show_text:Username: @%user_tag%\nRoles: %user_roles:', '|text:'[color:gray][italics:on]None[color][italics]'%]%user_color%%user_effective_server_name%[color][hover]%message_reply% » %message%%message_attachments%";
+    public String format = "[[color:#5865F2]Discord[color]] [hover:show_text:Username: @%user_tag% [italics:on](Shift+Click to mention)[italics:off]\nRoles: %user_roles:', '|text:'[color:gray][italics:on]None[color][italics]'%][insert:@%user_tag%]%user_color%%user_effective_server_name%[color][hover]%message_reply% » %message%%message_attachments%";
 
     @Comment("The Discord to Minecraft message format for webhook messages (if enabled)")
     public String webhookFormat = "[[color:#5865F2]Discord[color]] [hover:show_text:Bot message]%user_effective_name%[hover] » %message%%message_attachments%";
