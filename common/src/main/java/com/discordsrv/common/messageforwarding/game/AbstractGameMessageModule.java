@@ -100,7 +100,10 @@ public abstract class AbstractGameMessageModule<T extends IMessageConfig, E exte
             // Send to all channels due to lack of specified channel
             List<CompletableFuture<Void>> futures = new ArrayList<>();
             for (BaseChannelConfig channelConfig : discordSRV.channelConfig().getAllChannels()) {
-                futures.add(forwardToChannel(event, srvPlayer, channelConfig));
+                CompletableFuture<Void> future = forwardToChannel(event, srvPlayer, channelConfig);
+                if (future != null) {
+                    futures.add(future);
+                }
             }
             return CompletableFutureUtil.combine(futures);
         }

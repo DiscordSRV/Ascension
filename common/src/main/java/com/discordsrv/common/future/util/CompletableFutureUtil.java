@@ -21,6 +21,7 @@ package com.discordsrv.common.future.util;
 import com.discordsrv.common.DiscordSRV;
 import com.discordsrv.common.function.CheckedRunnable;
 import com.discordsrv.common.function.CheckedSupplier;
+import org.jetbrains.annotations.NotNull;
 
 import java.time.Duration;
 import java.util.ArrayList;
@@ -38,24 +39,28 @@ public final class CompletableFutureUtil {
     /**
      * Same as {@link CompletableFuture#completedFuture(Object)} but for failing.
      */
-    public static <T> CompletableFuture<T> failed(Throwable throwable) {
+    @NotNull
+    public static <T> CompletableFuture<T> failed(@NotNull Throwable throwable) {
         CompletableFuture<T> future = new CompletableFuture<>();
         future.completeExceptionally(throwable);
         return future;
     }
 
     @SuppressWarnings("unchecked")
-    public static <T> CompletableFuture<List<T>> combine(Collection<CompletableFuture<T>> futures) {
+    @NotNull
+    public static <T> CompletableFuture<List<T>> combine(@NotNull Collection<@NotNull CompletableFuture<T>> futures) {
         return combine(futures.toArray(new CompletableFuture[0]));
     }
 
     @SuppressWarnings("unchecked")
-    public static <T> CompletableFuture<List<T>> combineGeneric(Collection<CompletableFuture<? extends T>> futures) {
+    @NotNull
+    public static <T> CompletableFuture<List<T>> combineGeneric(@NotNull Collection<@NotNull CompletableFuture<? extends T>> futures) {
         return combine(futures.toArray(new CompletableFuture[0]));
     }
 
     @SafeVarargs
-    public static <T> CompletableFuture<List<T>> combine(CompletableFuture<T>... futures) {
+    @NotNull
+    public static <T> CompletableFuture<List<T>> combine(@NotNull CompletableFuture<@NotNull T>... futures) {
         return CompletableFuture.allOf(futures).thenApply(v -> {
             List<T> results = new ArrayList<>();
             for (CompletableFuture<T> aFuture : futures) {
@@ -65,7 +70,8 @@ public final class CompletableFutureUtil {
         });
     }
 
-    public static <T> CompletableFuture<T> timeout(DiscordSRV discordSRV, CompletableFuture<T> future, Duration timeout) {
+    @NotNull
+    public static <T> CompletableFuture<T> timeout(@NotNull DiscordSRV discordSRV, @NotNull CompletableFuture<T> future, @NotNull Duration timeout) {
         ScheduledFuture<?> scheduledFuture = discordSRV.scheduler().runLater(() -> {
             if (!future.isDone()) {
                 future.completeExceptionally(new TimeoutException());
@@ -78,7 +84,8 @@ public final class CompletableFutureUtil {
         });
     }
 
-    public static <T> CompletableFuture<T> supplyAsync(CheckedSupplier<T> supplier, Executor executor) {
+    @NotNull
+    public static <T> CompletableFuture<T> supplyAsync(@NotNull CheckedSupplier<T> supplier, @NotNull Executor executor) {
         CompletableFuture<T> future = new CompletableFuture<>();
         executor.execute(() -> {
             if (future.isCancelled()) {
@@ -95,7 +102,8 @@ public final class CompletableFutureUtil {
         return future;
     }
 
-    public static CompletableFuture<Void> runAsync(CheckedRunnable runnable, Executor executor) {
+    @NotNull
+    public static CompletableFuture<Void> runAsync(@NotNull CheckedRunnable runnable, @NotNull Executor executor) {
         return supplyAsync(() -> {
             runnable.run();
             return null;
