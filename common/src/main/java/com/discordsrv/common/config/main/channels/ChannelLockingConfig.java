@@ -18,7 +18,7 @@
 
 package com.discordsrv.common.config.main.channels;
 
-import com.discordsrv.common.config.util.ConfigUtil;
+import com.discordsrv.common.config.configurate.manager.abstraction.ConfigurateConfigManager;
 import org.spongepowered.configurate.objectmapping.ConfigSerializable;
 import org.spongepowered.configurate.objectmapping.meta.Comment;
 
@@ -29,7 +29,7 @@ import java.util.List;
 public class ChannelLockingConfig {
 
     public ChannelLockingConfig() {
-        ConfigUtil.nullAllFields(this);
+        ConfigurateConfigManager.nullAllFields(this);
     }
 
     public Channels channels = new Channels();

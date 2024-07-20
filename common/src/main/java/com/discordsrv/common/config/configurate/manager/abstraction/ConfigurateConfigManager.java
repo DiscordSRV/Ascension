@@ -53,6 +53,7 @@ import org.spongepowered.configurate.yaml.ScalarStyle;
 import org.spongepowered.configurate.yaml.YamlConfigurationLoader;
 
 import java.lang.reflect.Field;
+import java.lang.reflect.Modifier;
 import java.lang.reflect.Type;
 import java.nio.file.Path;
 import java.util.*;
@@ -62,7 +63,8 @@ import java.util.stream.Collectors;
 public abstract class ConfigurateConfigManager<T, LT extends AbstractConfigurationLoader<CommentedConfigurationNode>>
         implements ConfigManager<T>, ConfigLoaderProvider<LT> {
 
-    public static ThreadLocal<Boolean> CLEAN_MAPPER = ThreadLocal.withInitial(() -> false);
+    public static final ThreadLocal<Boolean> CLEAN_MAPPER = ThreadLocal.withInitial(() -> false);
+    private static final ThreadLocal<Boolean> SAVE_OR_LOAD = ThreadLocal.withInitial(() -> false);
 
     public static NamingScheme NAMING_SCHEME = in -> {
         in = Character.toLowerCase(in.charAt(0)) + in.substring(1);
@@ -87,6 +89,31 @@ public abstract class ConfigurateConfigManager<T, LT extends AbstractConfigurati
         this.logger = logger;
         this.objectMapper = objectMapperBuilder(true).build();
         this.cleanObjectMapper = cleanObjectMapperBuilder().build();
+    }
+
+    public static void nullAllFields(Object object) {
+        if (!SAVE_OR_LOAD.get()) {
+            return;
+        }
+
+        Class<?> clazz = object.getClass();
+        while (clazz != null) {
+            for (Field field : clazz.getFields()) {
+                if (field.getType().isPrimitive()) {
+                    continue;
+                }
+
+                int modifiers = field.getModifiers();
+                if (!Modifier.isPublic(modifiers) || Modifier.isFinal(modifiers) || Modifier.isStatic(modifiers)) {
+                    continue;
+                }
+
+                try {
+                    field.set(object, null);
+                } catch (IllegalAccessException ignored) {}
+            }
+            clazz = clazz.getSuperclass();
+        }
     }
 
     public Path filePath() {
@@ -387,9 +414,14 @@ public abstract class ConfigurateConfigManager<T, LT extends AbstractConfigurati
                 node = getDefault(defaultConfig, false);
             }
 
-            this.configuration = objectMapper()
-                    .get((Class<T>) defaultConfig.getClass())
-                    .load(node);
+            try {
+                SAVE_OR_LOAD.set(true);
+                this.configuration = objectMapper()
+                        .get((Class<T>) defaultConfig.getClass())
+                        .load(node);
+            } finally {
+                SAVE_OR_LOAD.set(false);
+            }
         } catch (ConfigurateException e) {
             Class<?> configClass = defaultConfig.getClass();
             if (!configClass.isAnnotationPresent(ConfigSerializable.class)) {
@@ -421,6 +453,11 @@ public abstract class ConfigurateConfigManager<T, LT extends AbstractConfigurati
     }
 
     protected void save(T config, Class<T> clazz, CommentedConfigurationNode node) throws SerializationException {
-        objectMapper().get(clazz).save(config, node);
+        try {
+            SAVE_OR_LOAD.set(true);
+            objectMapper().get(clazz).save(config, node);
+        } finally {
+            SAVE_OR_LOAD.set(false);
+        }
     }
 }
