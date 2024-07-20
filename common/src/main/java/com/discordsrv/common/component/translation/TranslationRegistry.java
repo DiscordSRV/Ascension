@@ -20,7 +20,6 @@ package com.discordsrv.common.component.translation;
 
 import org.jetbrains.annotations.Nullable;
 
-import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.Locale;
 import java.util.Map;
@@ -44,16 +43,23 @@ public class TranslationRegistry {
     }
 
     @Nullable
-    public Translation lookup(Locale locale, String key) {
+    private Translation getTranslationOrNull(Locale locale, String key) {
+        Map<String, Translation> localeMap;
         synchronized (translations) {
-            return translations.getOrDefault(
-                    locale, // Try the suggested locale first
-                    translations.getOrDefault(
-                            DEFAULT_LOCALE, // Then try the default locale
-                            Collections.emptyMap() // Then fail
-                    )
-            ).get(key);
+            localeMap = translations.get(locale);
         }
+
+        return localeMap != null ? localeMap.get(key) : null;
+    }
+
+    @Nullable
+    public Translation lookup(Locale locale, String key) {
+        Translation translation = getTranslationOrNull(locale, key);
+        if (translation != null) {
+            return translation;
+        }
+
+        return getTranslationOrNull(DEFAULT_LOCALE, key);
     }
 
     public void clear() {

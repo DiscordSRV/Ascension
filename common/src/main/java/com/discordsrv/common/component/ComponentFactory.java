@@ -25,6 +25,8 @@ import com.discordsrv.common.DiscordSRV;
 import com.discordsrv.common.component.renderer.DiscordSRVMinecraftRenderer;
 import com.discordsrv.common.component.translation.Translation;
 import com.discordsrv.common.component.translation.TranslationRegistry;
+import com.discordsrv.common.logging.Logger;
+import com.discordsrv.common.logging.NamedLogger;
 import dev.vankka.enhancedlegacytext.EnhancedLegacyText;
 import dev.vankka.mcdiscordreserializer.discord.DiscordSerializer;
 import dev.vankka.mcdiscordreserializer.discord.DiscordSerializerOptions;
@@ -39,6 +41,9 @@ import net.kyori.adventure.text.serializer.plain.PlainTextComponentSerializer;
 import net.kyori.ansi.ColorLevel;
 import org.jetbrains.annotations.NotNull;
 
+import java.util.HashSet;
+import java.util.Set;
+
 public class ComponentFactory implements MinecraftComponentFactory {
 
     public static final Class<?> UNRELOCATED_ADVENTURE_COMPONENT;
@@ -52,6 +57,8 @@ public class ComponentFactory implements MinecraftComponentFactory {
     }
 
     private final DiscordSRV discordSRV;
+    private final Logger logger;
+
     private final MinecraftSerializer minecraftSerializer;
     private final DiscordSerializer discordSerializer;
     private final PlainTextComponentSerializer plainSerializer;
@@ -62,6 +69,8 @@ public class ComponentFactory implements MinecraftComponentFactory {
 
     public ComponentFactory(DiscordSRV discordSRV) {
         this.discordSRV = discordSRV;
+        this.logger = new NamedLogger(discordSRV, "COMPONENT_FACTORY");
+
         this.minecraftSerializer = new MinecraftSerializer(
                 MinecraftSerializerOptions.defaults()
                         .addRenderer(new DiscordSRVMinecraftRenderer(discordSRV))
@@ -83,19 +92,40 @@ public class ComponentFactory implements MinecraftComponentFactory {
                 .build();
     }
 
+    private final ThreadLocal<Set<String>> translationHistory = new ThreadLocal<>();
     private String provideTranslation(TranslatableComponent component) {
-        Translation translation = translationRegistry.lookup(discordSRV.defaultLocale(), component.key());
+        Set<String> history = translationHistory.get();
+        if (history == null) {
+            history = new HashSet<>();
+        }
+
+        String key = component.key();
+        if (history.contains(key)) {
+            // Prevent infinite loop here
+            logger.debug("Preventing recursive translation: " + key);
+            return key;
+        }
+
+        Translation translation = translationRegistry.lookup(discordSRV.defaultLocale(), key);
         if (translation == null) {
             return null;
         }
 
-        return translation.translate(
-                component.arguments()
-                        .stream()
-                        // Prevent infinite loop here by using the default PlainTextSerializer
-                        .map(argument -> PlainTextComponentSerializer.plainText().serialize(argument.asComponent()))
-                        .toArray(Object[]::new)
-        );
+        try {
+            history.add(key);
+            translationHistory.set(history);
+
+            return translation.translate(
+                    component.arguments()
+                            .stream()
+                            .map(argument -> plainSerializer().serialize(argument.asComponent()))
+                            .toArray(Object[]::new)
+            );
+        } finally {
+            Set<String> newHistory = translationHistory.get();
+            newHistory.remove(key);
+            translationHistory.set(newHistory.isEmpty() ? null : newHistory);
+        }
     }
 
     @Override
