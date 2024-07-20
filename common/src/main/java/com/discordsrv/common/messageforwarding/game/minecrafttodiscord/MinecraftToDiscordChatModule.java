@@ -43,6 +43,7 @@ import com.discordsrv.common.player.IPlayer;
 import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.entities.Role;
 import net.kyori.adventure.text.Component;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
@@ -73,8 +74,8 @@ public class MinecraftToDiscordChatModule extends AbstractGameMessageModule<Mine
     }
 
     @Override
-    public void postClusterToEventBus(ReceivedDiscordMessageCluster cluster) {
-        discordSRV.eventBus().publish(new GameChatMessageForwardedEvent(cluster));
+    public void postClusterToEventBus(GameChannel channel, @NotNull ReceivedDiscordMessageCluster cluster) {
+        discordSRV.eventBus().publish(new GameChatMessageForwardedEvent(channel, cluster));
     }
 
     @Override

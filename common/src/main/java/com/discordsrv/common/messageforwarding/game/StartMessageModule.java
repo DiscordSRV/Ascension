@@ -18,6 +18,7 @@
 
 package com.discordsrv.common.messageforwarding.game;
 
+import com.discordsrv.api.channel.GameChannel;
 import com.discordsrv.api.discord.entity.channel.DiscordGuildMessageChannel;
 import com.discordsrv.api.discord.entity.message.ReceivedDiscordMessage;
 import com.discordsrv.api.discord.entity.message.ReceivedDiscordMessageCluster;
@@ -27,6 +28,7 @@ import com.discordsrv.common.DiscordSRV;
 import com.discordsrv.common.config.main.channels.StartMessageConfig;
 import com.discordsrv.common.config.main.channels.base.BaseChannelConfig;
 import com.discordsrv.common.player.IPlayer;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.Collection;
 import java.util.Collections;
@@ -50,7 +52,7 @@ public class StartMessageModule extends AbstractGameMessageModule<StartMessageCo
     }
 
     @Override
-    public void postClusterToEventBus(ReceivedDiscordMessageCluster cluster) {}
+    public void postClusterToEventBus(GameChannel channel, @NotNull ReceivedDiscordMessageCluster cluster) {}
 
     @Override
     public List<CompletableFuture<ReceivedDiscordMessage>> sendMessageToChannels(

@@ -18,6 +18,8 @@
 
 package com.discordsrv.common.config.main.generic;
 
+import com.discordsrv.api.discord.entity.channel.DiscordChannel;
+import com.discordsrv.api.discord.entity.channel.DiscordThreadChannel;
 import com.discordsrv.common.config.configurate.annotation.Constants;
 import org.apache.commons.lang3.StringUtils;
 import org.spongepowered.configurate.objectmapping.ConfigSerializable;
@@ -71,6 +73,21 @@ public class DestinationConfig {
         public int hashCode() {
             return Objects.hash(channelId, thread);
         }
+    }
+
+    public boolean contains(DiscordChannel channel) {
+        if (channel instanceof DiscordThreadChannel) {
+            long parentId = ((DiscordThreadChannel) channel).getParentChannel().getId();
+            String threadName = ((DiscordThreadChannel) channel).getName();
+            for (ThreadConfig thread : threads) {
+                if (thread.channelId == parentId && thread.threadName.equals(threadName)) {
+                    return true;
+                }
+            }
+            return false;
+        }
+
+        return channelIds.contains(channel.getId());
     }
 
     @Override

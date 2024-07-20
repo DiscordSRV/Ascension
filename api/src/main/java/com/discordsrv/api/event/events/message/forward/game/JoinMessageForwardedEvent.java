@@ -23,15 +23,20 @@
 
 package com.discordsrv.api.event.events.message.forward.game;
 
+import com.discordsrv.api.channel.GameChannel;
 import com.discordsrv.api.discord.entity.message.ReceivedDiscordMessageCluster;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * Indicates that a join message was forwarded to Discord.
  */
 public class JoinMessageForwardedEvent extends AbstractGameMessageForwardedEvent {
 
-    public JoinMessageForwardedEvent(@NotNull ReceivedDiscordMessageCluster discordMessage) {
-        super(discordMessage);
+    public JoinMessageForwardedEvent(
+            @Nullable GameChannel originGameChannel,
+            @NotNull ReceivedDiscordMessageCluster discordMessage
+    ) {
+        super(originGameChannel, discordMessage);
     }
 }

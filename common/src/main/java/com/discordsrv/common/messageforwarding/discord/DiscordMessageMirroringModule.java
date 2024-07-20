@@ -330,12 +330,28 @@ public class DiscordMessageMirroringModule extends AbstractModule<DiscordSRV> {
     public void onGameMessageForwarded(AbstractGameMessageForwardedEvent event) {
         Set<? extends ReceivedDiscordMessage> messages = event.getDiscordMessage().getMessages();
 
+        GameChannel gameChannel = event.getOriginGameChannel();
+        BaseChannelConfig gameChannelConfig = gameChannel != null ? discordSRV.channelConfig().get(gameChannel) : null;
+
         Map<ReceivedDiscordMessage, MessageReference> references = new LinkedHashMap<>();
         for (ReceivedDiscordMessage message : messages) {
-            DiscordMessageChannel channel = message.getChannel();
+            BaseChannelConfig channelConfig = gameChannelConfig;
+            if (channelConfig == null) {
+                DiscordMessageChannel channel = message.getChannel();
 
-            MirroringConfig config = discordSRV.channelConfig().resolve(channel).values().iterator().next().mirroring; // TODO: add channel to event
-            MessageReference reference = getReference(message, config);
+                channelConfig = discordSRV.channelConfig()
+                        .resolve(channel)
+                        .values()
+                        .stream()
+                        .filter(config -> config instanceof IChannelConfig && ((IChannelConfig) config).destination().contains(channel))
+                        .findAny()
+                        .orElse(null);
+            }
+            if (channelConfig == null) {
+                continue;
+            }
+
+            MessageReference reference = getReference(message, channelConfig.mirroring);
             references.put(message, reference);
         }
 

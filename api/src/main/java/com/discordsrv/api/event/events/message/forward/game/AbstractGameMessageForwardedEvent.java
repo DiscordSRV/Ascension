@@ -23,16 +23,27 @@
 
 package com.discordsrv.api.event.events.message.forward.game;
 
+import com.discordsrv.api.channel.GameChannel;
 import com.discordsrv.api.discord.entity.message.ReceivedDiscordMessageCluster;
 import com.discordsrv.api.event.events.Event;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 public abstract class AbstractGameMessageForwardedEvent implements Event {
 
+    private final GameChannel originGameChannel;
     private final ReceivedDiscordMessageCluster discordMessage;
 
-    public AbstractGameMessageForwardedEvent(@NotNull ReceivedDiscordMessageCluster discordMessage) {
+    public AbstractGameMessageForwardedEvent(
+            @Nullable GameChannel originGameChannel,
+            @NotNull ReceivedDiscordMessageCluster discordMessage
+    ) {
+        this.originGameChannel = originGameChannel;
         this.discordMessage = discordMessage;
+    }
+
+    public GameChannel getOriginGameChannel() {
+        return originGameChannel;
     }
 
     /**

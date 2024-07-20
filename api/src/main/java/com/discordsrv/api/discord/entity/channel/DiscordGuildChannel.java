@@ -30,7 +30,7 @@ import com.discordsrv.api.placeholder.annotation.PlaceholderPrefix;
 import org.jetbrains.annotations.NotNull;
 
 @PlaceholderPrefix("channel_")
-public interface DiscordGuildChannel extends Snowflake {
+public interface DiscordGuildChannel extends DiscordChannel, Snowflake {
 
     /**
      * Gets the name of the channel.

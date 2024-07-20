@@ -18,6 +18,7 @@
 
 package com.discordsrv.common.messageforwarding.game;
 
+import com.discordsrv.api.channel.GameChannel;
 import com.discordsrv.api.component.MinecraftComponent;
 import com.discordsrv.api.discord.entity.message.ReceivedDiscordMessageCluster;
 import com.discordsrv.api.discord.entity.message.SendableDiscordMessage;
@@ -65,7 +66,8 @@ public class JoinMessageModule extends AbstractGameMessageModule<IMessageConfig,
     protected CompletableFuture<Void> forwardToChannel(
             @Nullable JoinMessageReceiveEvent event,
             @Nullable IPlayer player,
-            @NotNull BaseChannelConfig config
+            @NotNull BaseChannelConfig config,
+            @Nullable GameChannel channel
     ) {
         if (config.joinMessages().enableSilentPermission && player != null && player.hasPermission(Permission.SILENT_JOIN)) {
             logger().info(player.username() + " is joining silently, join message will not be sent");
@@ -79,7 +81,7 @@ public class JoinMessageModule extends AbstractGameMessageModule<IMessageConfig,
             CompletableFuture<Void> completableFuture = new CompletableFuture<>();
             synchronized (delayedTasks) {
                 CompletableFuture<Void> future = discordSRV.scheduler()
-                        .supplyLater(() -> super.forwardToChannel(event, player, config), Duration.ofMillis(delay))
+                        .supplyLater(() -> super.forwardToChannel(event, player, config, channel), Duration.ofMillis(delay))
                         .thenCompose(r -> r)
                         .whenComplete((v, t) -> delayedTasks.remove(playerUUID));
 
@@ -87,7 +89,7 @@ public class JoinMessageModule extends AbstractGameMessageModule<IMessageConfig,
             }
             return completableFuture;
         }
-        return super.forwardToChannel(event, player, config);
+        return super.forwardToChannel(event, player, config, channel);
     }
 
     @Subscribe
@@ -111,8 +113,8 @@ public class JoinMessageModule extends AbstractGameMessageModule<IMessageConfig,
     }
 
     @Override
-    public void postClusterToEventBus(ReceivedDiscordMessageCluster cluster) {
-        discordSRV.eventBus().publish(new JoinMessageForwardedEvent(cluster));
+    public void postClusterToEventBus(GameChannel channel, @NotNull ReceivedDiscordMessageCluster cluster) {
+        discordSRV.eventBus().publish(new JoinMessageForwardedEvent(channel, cluster));
     }
 
     @Override

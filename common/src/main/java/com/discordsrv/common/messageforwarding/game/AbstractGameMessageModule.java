@@ -54,11 +54,11 @@ import java.util.concurrent.CompletableFuture;
  * <p>
  * Order of operations:
  * - Event (E generic) is received, implementation calls {@link #process(AbstractGameMessageReceiveEvent, DiscordSRVPlayer, GameChannel)}
- * - {@link IPlayer} and {@link BaseChannelConfig} (uses {@link #mapConfig(AbstractGameMessageReceiveEvent, BaseChannelConfig)} are resolved, then {@link #forwardToChannel(AbstractGameMessageReceiveEvent, IPlayer, BaseChannelConfig)} is called
+ * - {@link IPlayer} and {@link BaseChannelConfig} (uses {@link #mapConfig(AbstractGameMessageReceiveEvent, BaseChannelConfig)} are resolved, then {@link #forwardToChannel(AbstractGameMessageReceiveEvent, IPlayer, BaseChannelConfig, GameChannel)} is called
  * - Destinations are looked up and {@link #sendMessageToChannels} gets called
  * - {@link #setPlaceholders(IMessageConfig, AbstractGameMessageReceiveEvent, SendableDiscordMessage.Formatter)} is called to set any additional placeholders
  * - {@link #sendMessageToChannel(DiscordGuildMessageChannel, SendableDiscordMessage)} is called (once per channel) to send messages to individual channels
- * - {@link #postClusterToEventBus(ReceivedDiscordMessageCluster)} is called with all messages that were sent (if any messages were sent)
+ * - {@link #postClusterToEventBus(GameChannel, ReceivedDiscordMessageCluster)} is called with all messages that were sent (if any messages were sent)
  *
  * @param <T> config model
  * @param <E> the event indicating a message was received from in-game, of type {@link AbstractGameMessageReceiveEvent}
@@ -84,7 +84,7 @@ public abstract class AbstractGameMessageModule<T extends IMessageConfig, E exte
     }
 
     public abstract T mapConfig(BaseChannelConfig channelConfig);
-    public abstract void postClusterToEventBus(ReceivedDiscordMessageCluster cluster);
+    public abstract void postClusterToEventBus(@Nullable GameChannel channel, @NotNull ReceivedDiscordMessageCluster cluster);
 
     public final CompletableFuture<?> process(
             @Nullable E event,
@@ -100,7 +100,7 @@ public abstract class AbstractGameMessageModule<T extends IMessageConfig, E exte
             // Send to all channels due to lack of specified channel
             List<CompletableFuture<Void>> futures = new ArrayList<>();
             for (BaseChannelConfig channelConfig : discordSRV.channelConfig().getAllChannels()) {
-                CompletableFuture<Void> future = forwardToChannel(event, srvPlayer, channelConfig);
+                CompletableFuture<Void> future = forwardToChannel(event, srvPlayer, channelConfig, null);
                 if (future != null) {
                     futures.add(future);
                 }
@@ -113,14 +113,15 @@ public abstract class AbstractGameMessageModule<T extends IMessageConfig, E exte
             return CompletableFuture.completedFuture(null);
         }
 
-        return forwardToChannel(event, srvPlayer, channelConfig);
+        return forwardToChannel(event, srvPlayer, channelConfig, channel);
     }
 
     @SuppressWarnings("unchecked") // Wacky generis
     protected <CC extends BaseChannelConfig & IChannelConfig> CompletableFuture<Void> forwardToChannel(
             @Nullable E event,
             @Nullable IPlayer player,
-            @NotNull BaseChannelConfig config
+            @NotNull BaseChannelConfig config,
+            @Nullable GameChannel channel
     ) {
         T moduleConfig = mapConfig(event, config);
         if (!moduleConfig.enabled()) {
@@ -158,7 +159,7 @@ public abstract class AbstractGameMessageModule<T extends IMessageConfig, E exte
                     return;
                 }
 
-                postClusterToEventBus(new ReceivedDiscordMessageClusterImpl(messages));
+                postClusterToEventBus(channel, new ReceivedDiscordMessageClusterImpl(messages));
             }).exceptionally(t -> {
                 discordSRV.logger().error("Failed to publish to event bus", t);
                 TestHelper.fail(t);

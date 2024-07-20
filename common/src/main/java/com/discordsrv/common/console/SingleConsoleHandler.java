@@ -22,7 +22,6 @@ import com.discordsrv.api.discord.entity.DiscordUser;
 import com.discordsrv.api.discord.entity.channel.DiscordGuildChannel;
 import com.discordsrv.api.discord.entity.channel.DiscordGuildMessageChannel;
 import com.discordsrv.api.discord.entity.channel.DiscordMessageChannel;
-import com.discordsrv.api.discord.entity.channel.DiscordThreadChannel;
 import com.discordsrv.api.discord.entity.guild.DiscordGuildMember;
 import com.discordsrv.api.discord.entity.message.ReceivedDiscordMessage;
 import com.discordsrv.api.discord.entity.message.SendableDiscordMessage;
@@ -105,23 +104,7 @@ public class SingleConsoleHandler {
         }
 
         DestinationConfig.Single destination = config.channel;
-        String threadName = destination.thread.threadName;
-
-        DiscordGuildChannel checkChannel;
-        if (StringUtils.isNotEmpty(threadName)) {
-            if (!(channel instanceof DiscordThreadChannel)) {
-                return;
-            }
-
-            if (!channel.getName().equals(threadName)) {
-                return;
-            }
-
-            checkChannel = ((DiscordThreadChannel) channel).getParentChannel();
-        } else {
-            checkChannel = channel;
-        }
-        if (checkChannel.getId() != destination.channelId) {
+        if (!destination.asDestination().contains(channel)) {
             return;
         }
 

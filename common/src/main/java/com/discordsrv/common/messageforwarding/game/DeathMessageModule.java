@@ -18,6 +18,7 @@
 
 package com.discordsrv.common.messageforwarding.game;
 
+import com.discordsrv.api.channel.GameChannel;
 import com.discordsrv.api.component.MinecraftComponent;
 import com.discordsrv.api.discord.entity.message.ReceivedDiscordMessageCluster;
 import com.discordsrv.api.discord.entity.message.SendableDiscordMessage;
@@ -30,6 +31,7 @@ import com.discordsrv.common.component.util.ComponentUtil;
 import com.discordsrv.common.config.main.channels.base.BaseChannelConfig;
 import com.discordsrv.common.config.main.channels.base.server.ServerBaseChannelConfig;
 import com.discordsrv.common.config.main.channels.server.DeathMessageConfig;
+import org.jetbrains.annotations.NotNull;
 
 public class DeathMessageModule extends AbstractGameMessageModule<DeathMessageConfig, DeathMessageReceiveEvent> {
 
@@ -53,8 +55,8 @@ public class DeathMessageModule extends AbstractGameMessageModule<DeathMessageCo
     }
 
     @Override
-    public void postClusterToEventBus(ReceivedDiscordMessageCluster cluster) {
-        discordSRV.eventBus().publish(new DeathMessageForwardedEvent(cluster));
+    public void postClusterToEventBus(GameChannel channel, @NotNull ReceivedDiscordMessageCluster cluster) {
+        discordSRV.eventBus().publish(new DeathMessageForwardedEvent(channel, cluster));
     }
 
     @Override

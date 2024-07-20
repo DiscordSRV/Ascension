@@ -18,6 +18,7 @@
 
 package com.discordsrv.common.messageforwarding.game;
 
+import com.discordsrv.api.channel.GameChannel;
 import com.discordsrv.api.component.MinecraftComponent;
 import com.discordsrv.api.discord.entity.message.ReceivedDiscordMessageCluster;
 import com.discordsrv.api.discord.entity.message.SendableDiscordMessage;
@@ -88,7 +89,8 @@ public class LeaveMessageModule extends AbstractGameMessageModule<LeaveMessageCo
     protected CompletableFuture<Void> forwardToChannel(
             @Nullable LeaveMessageReceiveEvent event,
             @Nullable IPlayer player,
-            @NotNull BaseChannelConfig config
+            @NotNull BaseChannelConfig config,
+            @Nullable GameChannel channel
     ) {
         if (player != null) {
             Pair<Long, Future<?>> pair = playersJoinedRecently.remove(player.uniqueId());
@@ -105,7 +107,7 @@ public class LeaveMessageModule extends AbstractGameMessageModule<LeaveMessageCo
             logger().info(player.username() + " is leaving silently, leave message will not be sent");
             return CompletableFuture.completedFuture(null);
         }
-        return super.forwardToChannel(event, player, config);
+        return super.forwardToChannel(event, player, config, channel);
     }
 
     @Override
@@ -114,8 +116,8 @@ public class LeaveMessageModule extends AbstractGameMessageModule<LeaveMessageCo
     }
 
     @Override
-    public void postClusterToEventBus(ReceivedDiscordMessageCluster cluster) {
-        discordSRV.eventBus().publish(new LeaveMessageForwardedEvent(cluster));
+    public void postClusterToEventBus(GameChannel channel, @NotNull ReceivedDiscordMessageCluster cluster) {
+        discordSRV.eventBus().publish(new LeaveMessageForwardedEvent(channel, cluster));
     }
 
     @Override

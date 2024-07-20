@@ -23,15 +23,20 @@
 
 package com.discordsrv.api.event.events.message.forward.game;
 
+import com.discordsrv.api.channel.GameChannel;
 import com.discordsrv.api.discord.entity.message.ReceivedDiscordMessageCluster;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * Indicates that a death message was forwarded to Discord.
  */
 public class DeathMessageForwardedEvent extends AbstractGameMessageForwardedEvent {
 
-    public DeathMessageForwardedEvent(@NotNull ReceivedDiscordMessageCluster discordMessage) {
-        super(discordMessage);
+    public DeathMessageForwardedEvent(
+            @Nullable GameChannel originGameChannel,
+            @NotNull ReceivedDiscordMessageCluster discordMessage
+    ) {
+        super(originGameChannel, discordMessage);
     }
 }

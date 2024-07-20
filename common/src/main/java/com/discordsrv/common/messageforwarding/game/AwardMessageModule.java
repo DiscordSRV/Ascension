@@ -18,6 +18,7 @@
 
 package com.discordsrv.common.messageforwarding.game;
 
+import com.discordsrv.api.channel.GameChannel;
 import com.discordsrv.api.component.MinecraftComponent;
 import com.discordsrv.api.discord.entity.message.ReceivedDiscordMessageCluster;
 import com.discordsrv.api.discord.entity.message.SendableDiscordMessage;
@@ -33,6 +34,8 @@ import com.discordsrv.common.config.main.channels.base.server.ServerBaseChannelC
 import com.discordsrv.common.config.main.channels.server.AwardMessageConfig;
 import com.github.benmanes.caffeine.cache.Cache;
 import net.kyori.adventure.text.Component;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.UUID;
 import java.util.concurrent.TimeUnit;
@@ -81,8 +84,8 @@ public class AwardMessageModule extends AbstractGameMessageModule<AwardMessageCo
     }
 
     @Override
-    public void postClusterToEventBus(ReceivedDiscordMessageCluster cluster) {
-        discordSRV.eventBus().publish(new AwardMessageForwardedEvent(cluster));
+    public void postClusterToEventBus(@Nullable GameChannel channel, @NotNull ReceivedDiscordMessageCluster cluster) {
+        discordSRV.eventBus().publish(new AwardMessageForwardedEvent(channel, cluster));
     }
 
     @Override
