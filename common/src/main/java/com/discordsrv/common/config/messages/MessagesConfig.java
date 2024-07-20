@@ -325,7 +325,7 @@ public class MessagesConfig implements Config {
                 "&f[click:open_url:%minecraftauth_link%][hover:show_text:Click to open]%minecraftauth_link_simple%[click]" + NEUTRAL_COLOR,
                 "&fMinecraftAuth"
         })
-        public MinecraftMessage minecraftAuthLinking = make("%1Please visit %2 to link your account through %4");
+        public MinecraftMessage minecraftAuthLinking = make("%1Please visit %2 to link your account through %3");
 
         @Untranslated(Untranslated.Type.COMMENT)
         @Comment("/discord unlink")
