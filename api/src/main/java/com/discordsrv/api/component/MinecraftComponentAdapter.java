@@ -28,8 +28,9 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 /**
- * A helper class to make {@link MinecraftComponent}s using Adventure.
- * @param <Component> the Adventure Component type, relocated or unrelocated
+ * A persistent Adventure adapter for {@link MinecraftComponent}s, this is more efficient than using {@link MinecraftComponent#asAdventure(Class)}.
+ * @see MinecraftComponent#asAdventure(MinecraftComponentAdapter)
+ * @param <Component> the Adventure Component type, unrelocated or relocated
  */
 public interface MinecraftComponentAdapter<Component> {
 
