@@ -37,11 +37,7 @@ public class MinecraftMessage {
     }
 
     public GameTextBuilder textBuilder() {
-        DiscordSRVApi discordSRV = DiscordSRVApi.get();
-        if (discordSRV == null) {
-            throw new IllegalStateException("DiscordSRVApi == null");
-        }
-        return discordSRV.componentFactory().textBuilder(rawFormat);
+        return DiscordSRVApi.get().componentFactory().textBuilder(rawFormat);
     }
 
     public MinecraftComponent make() {

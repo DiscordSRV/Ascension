@@ -25,6 +25,7 @@ package com.discordsrv.api.component;
 
 import com.discordsrv.api.DiscordSRVApi;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * A factory for creating {@link MinecraftComponent}s.
@@ -33,12 +34,21 @@ import org.jetbrains.annotations.NotNull;
 public interface MinecraftComponentFactory {
 
     /**
-     * Creates an empty {@link MinecraftComponent}.
+     * Creates an {@link MinecraftComponent} from JSON.
      *
+     * @param json the Minecraft component json
      * @return a new {@link MinecraftComponent}
      */
     @NotNull
-    MinecraftComponent empty();
+    MinecraftComponent fromJson(@NotNull String json);
+
+    /**
+     * Create an {@link MinecraftComponentAdapter} for the given GSONComponentSerializer class.
+     * @param gsonSerializerClass the serializer class
+     * @return a new {@link MinecraftComponentAdapter}
+     */
+    @NotNull
+    <T> MinecraftComponentAdapter<T> makeAdapter(Class<?> gsonSerializerClass, @Nullable Class<T> componentClass);
 
     /**
      * Creates a EnhancedLegacyText {@link GameTextBuilder} based on the given input.

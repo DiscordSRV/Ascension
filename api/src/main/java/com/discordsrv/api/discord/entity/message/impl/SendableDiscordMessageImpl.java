@@ -355,9 +355,6 @@ public class SendableDiscordMessageImpl implements SendableDiscordMessage {
         @Override
         public @NotNull Formatter applyPlaceholderService() {
             DiscordSRVApi api = DiscordSRVApi.get();
-            if (api == null) {
-                throw new IllegalStateException("DiscordSRVApi not available");
-            }
             this.replacements.put(
                     PlaceholderService.PATTERN,
                     wrapFunction(matcher -> api.placeholderService().getResultAsCharSequence(matcher, context))
@@ -384,9 +381,6 @@ public class SendableDiscordMessageImpl implements SendableDiscordMessage {
         @Override
         public @NotNull SendableDiscordMessage build() {
             DiscordSRVApi api = DiscordSRVApi.get();
-            if (api == null) {
-                throw new IllegalStateException("DiscordSRVApi not available");
-            }
 
             Function<String, String> placeholders = input -> {
                 if (input == null) {

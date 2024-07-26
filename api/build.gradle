@@ -5,6 +5,9 @@ dependencies {
     // Annotations
     compileOnlyApi(libs.jetbrains.annotations)
 
+    // Unrelocate
+    compileOnly(project(':common:common-unrelocate'))
+
     // JDA
     api(libs.jda) {
         // We don't use audio

@@ -23,97 +23,66 @@
 
 package com.discordsrv.api.component;
 
-import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
+import com.discordsrv.api.DiscordSRVApi;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
- * A persistent Adventure adapter for {@link MinecraftComponent}s, this is more efficient than using {@link MinecraftComponent#adventureAdapter(Class)}.
- * @see MinecraftComponent#adventureAdapter(MinecraftComponentAdapter)
+ * A helper class to make {@link MinecraftComponent}s using Adventure.
+ * @param <Component> the Adventure Component type, relocated or unrelocated
  */
-public class MinecraftComponentAdapter<Component> {
+public interface MinecraftComponentAdapter<Component> {
 
-    public static final MinecraftComponentAdapter<Object> UNRELOCATED;
-
-    static {
-        MinecraftComponentAdapter<Object> unrelocated = null;
-        try {
-            unrelocated = MinecraftComponentAdapter.create(
-                    Class.forName("net.ky".concat("ori.adventure.text.serializer.gson.GsonComponentSerializer"))
-            );
-        } catch (ClassNotFoundException ignored) {}
-        UNRELOCATED = unrelocated;
+    /**
+     * Create a new {@link MinecraftComponentAdapter} for the given GSONComponentSerializer class.
+     *
+     * @param gsonSerializerClass the serializer class
+     * @return a new {@link MinecraftComponentAdapter}
+     * @param <Component> the type of Adventure Component the serializer handles
+     */
+    @NotNull
+    static <Component> MinecraftComponentAdapter<Component> create(Class<?> gsonSerializerClass) {
+        return create(gsonSerializerClass, null);
     }
 
     /**
-     * Creates a new {@link MinecraftComponentAdapter} that can be used with {@link MinecraftComponent}s.
+     * Create a new {@link MinecraftComponentAdapter} for the given GSONComponentSerializer class.
      *
-     * @param gsonSerializerClass a GsonComponentSerializer class
-     * @return a new {@link MinecraftComponentAdapter} with the provided GsonComponentSerializer
-     * @throws IllegalArgumentException if the provided argument is not a GsonComponentSerialize class
+     * @param gsonSerializerClass the serializer class
+     * @param componentClass the {@code Component} class that's returned by the given gson component serializer
+     * @return a new {@link MinecraftComponentAdapter}
+     * @param <T> the type of Adventure Component the serializer returns
+     * @throws IllegalArgumentException if the provided componentClass does not match the gsonSerializerClasses Component
      */
-    public static MinecraftComponentAdapter<Object> create(Class<?> gsonSerializerClass) {
-        return new MinecraftComponentAdapter<>(gsonSerializerClass, null);
+    @NotNull
+    static <T> MinecraftComponentAdapter<T> create(Class<?> gsonSerializerClass, Class<T> componentClass) {
+        return DiscordSRVApi.get()
+                .componentFactory()
+                .makeAdapter(gsonSerializerClass, componentClass);
     }
 
     /**
-     * Creates a new {@link MinecraftComponentAdapter} that can be used with {@link MinecraftComponent}s.
+     * Create a new {@link MinecraftComponentAdapter} for unrelocated Adventure.
      *
-     * @param gsonSerializerClass a GsonComponentSerializer class
-     * @param componentClass the Component class returned by the GsonComponentSerializer
-     * @return a new {@link MinecraftComponentAdapter} with the provided GsonComponentSerializer
-     * @throws IllegalArgumentException if the provided argument is not a GsonComponentSerialize class
+     * @return the shared instance of {@link MinecraftComponentAdapter} unrelocated Adventure, or {@code null}
      */
-    public static <Component> MinecraftComponentAdapter<Component> create(Class<?> gsonSerializerClass, Class<Component> componentClass) {
-        return new MinecraftComponentAdapter<>(gsonSerializerClass, componentClass);
+    @SuppressWarnings("unchecked")
+    @Nullable
+    static MinecraftComponentAdapter<com.discordsrv.unrelocate.net.kyori.adventure.text.Component> unrelocated() {
+        return (MinecraftComponentAdapter<com.discordsrv.unrelocate.net.kyori.adventure.text.Component>) (Object) MinecraftComponentAdapterUnrelocated.INSTANCE;
     }
 
-    private final Class<?> gsonSerializerClass;
-    private final Object instance;
-    private final Method deserialize;
-    private final Method serialize;
+    /**
+     * Converts a {@link MinecraftComponent} to an Adventure Component.
+     * @param component the {@link MinecraftComponent}
+     * @return a new Adventure Component
+     */
+    Component toAdventure(MinecraftComponent component);
 
-    private MinecraftComponentAdapter(Class<?> gsonSerializerClass, Class<Component> providedComponentClass) {
-        try {
-            this.gsonSerializerClass = gsonSerializerClass;
-            this.instance = gsonSerializerClass.getDeclaredMethod("gson").invoke(null);
-            this.deserialize = gsonSerializerClass.getMethod("deserialize", Object.class);
-            Class<?> componentClass = deserialize.getReturnType();
-            checkComponentClass(providedComponentClass, componentClass);
-            this.serialize = gsonSerializerClass.getMethod("serialize", componentClass);
-        } catch (InvocationTargetException | IllegalAccessException | NoSuchMethodException e) {
-            throw new IllegalArgumentException("The provided class is not a GsonComponentSerializer", e);
-        }
-    }
-
-    private static void checkComponentClass(Class<?> provided, Class<?> actual) {
-        if (provided == null) {
-            // Ignore null
-            return;
-        }
-
-        String providedName = provided.getName();
-        String actualName = actual.getName();
-        if (!providedName.equals(actualName)) {
-            throw new IllegalArgumentException(
-                    "The provided Component class (" + providedName
-                            + ") does not match the one returned by the serializer: " + actualName
-            );
-        }
-    }
-
-    public Class<?> serializerClass() {
-        return gsonSerializerClass;
-    }
-
-    public Object serializerInstance() {
-        return instance;
-    }
-
-    public Method deserializeMethod() {
-        return deserialize;
-    }
-
-    public Method serializeMethod() {
-        return serialize;
-    }
+    /**
+     * Converts an Adventure Component into a {@link MinecraftComponent}.
+     * @param component the Adventure Component
+     * @return a new {@link MinecraftComponent}
+     */
+    MinecraftComponent toDiscordSRV(Component component);
 }

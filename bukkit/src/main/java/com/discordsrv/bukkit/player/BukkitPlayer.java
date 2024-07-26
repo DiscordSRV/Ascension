@@ -124,7 +124,7 @@ public class BukkitPlayer extends BukkitCommandSender implements IPlayer {
             return;
         }
         try {
-            PAPER_SEND_MESSAGE_HANDLE.invoke(player, ComponentUtil.toUnrelocated(component));
+            PAPER_SEND_MESSAGE_HANDLE.invoke(player, component.asAdventure());
         } catch (Throwable ignored) {
             super.sendMessage(ComponentUtil.fromAPI(component));
         }

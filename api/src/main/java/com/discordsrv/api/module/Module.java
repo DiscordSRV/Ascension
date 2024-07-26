@@ -67,9 +67,6 @@ public interface Module {
     @NotNull
     default Collection<DiscordGatewayIntent> requiredIntents() {
         DiscordSRVApi api = DiscordSRVApi.get();
-        if (api == null) {
-            return Collections.emptyList();
-        }
 
         Collection<? extends EventListener> listeners = api.eventBus().getListeners(this);
         EnumSet<DiscordGatewayIntent> intents = EnumSet.noneOf(DiscordGatewayIntent.class);

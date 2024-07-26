@@ -79,7 +79,7 @@ public final class PaperPlayer {
 
     public static void kick(Player player, Component reason) {
         try {
-            KICK_COMPONENT_HANDLE.invokeExact(player, ComponentUtil.toUnrelocated(ComponentUtil.toAPI(reason)));
+            KICK_COMPONENT_HANDLE.invokeExact(player, ComponentUtil.toAPI(reason).asAdventure());
         } catch (Throwable e) {
             throw new RuntimeException("Failed to kick player", e);
         }

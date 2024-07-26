@@ -43,7 +43,7 @@ import java.util.function.Predicate;
 
 /**
  * The DiscordSRV API.
- *
+ * <p>
  * Use your platform's service provider or {@link #get()} / {@link #optional()} to get the instance.
  */
 @SuppressWarnings("unused") // API
@@ -51,12 +51,17 @@ public interface DiscordSRVApi {
 
     /**
      * Gets the instance of {@link DiscordSRVApi}.
-     * @return the DiscordSRV api, or {@code null} if not available
+     * @return the DiscordSRV api
      * @see #isAvailable()
+     * @throws IllegalStateException if DiscordSRV has not been initialized yet
      */
-    @Nullable
+    @NotNull
     static DiscordSRVApi get() {
-        return InstanceHolder.API;
+        DiscordSRVApi api = InstanceHolder.API;
+        if (api == null) {
+            throw new IllegalStateException("DiscordSRV has not been initialized yet");
+        }
+        return api;
     }
 
     /**

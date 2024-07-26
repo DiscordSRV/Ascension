@@ -20,6 +20,7 @@ package com.discordsrv.common.component;
 
 import com.discordsrv.api.component.GameTextBuilder;
 import com.discordsrv.api.component.MinecraftComponent;
+import com.discordsrv.api.component.MinecraftComponentAdapter;
 import com.discordsrv.api.component.MinecraftComponentFactory;
 import com.discordsrv.common.DiscordSRV;
 import com.discordsrv.common.component.renderer.DiscordSRVMinecraftRenderer;
@@ -40,6 +41,7 @@ import net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer;
 import net.kyori.adventure.text.serializer.plain.PlainTextComponentSerializer;
 import net.kyori.ansi.ColorLevel;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.HashSet;
 import java.util.Set;
@@ -129,8 +131,13 @@ public class ComponentFactory implements MinecraftComponentFactory {
     }
 
     @Override
-    public @NotNull MinecraftComponent empty() {
-        return MinecraftComponentImpl.empty();
+    public @NotNull MinecraftComponent fromJson(@NotNull String json) {
+        return new MinecraftComponentImpl(json);
+    }
+
+    @Override
+    public <T> @NotNull MinecraftComponentAdapter<T> makeAdapter(Class<?> gsonSerializerClass, @Nullable Class<T> componentClass) {
+        return new MinecraftComponentAdapterImpl<>(gsonSerializerClass, componentClass);
     }
 
     @Override

@@ -27,10 +27,10 @@ import com.discordsrv.api.placeholder.annotation.Placeholder;
 import com.discordsrv.api.placeholder.annotation.PlaceholderPrefix;
 import com.discordsrv.api.placeholder.annotation.PlaceholderRemainder;
 import com.discordsrv.common.DiscordSRV;
-import com.discordsrv.common.component.util.ComponentUtil;
 import net.dv8tion.jda.api.entities.Member;
 import net.dv8tion.jda.api.entities.Role;
 import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.JoinConfiguration;
 import net.kyori.adventure.text.format.TextColor;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -159,7 +159,7 @@ public class DiscordGuildMemberImpl implements DiscordGuildMember {
             components.add(Component.text(role.getName()).color(TextColor.color(role.getColor().rgb())));
         }
 
-        return ComponentUtil.join(Component.text(suffix), components);
+        return Component.join(JoinConfiguration.separator(Component.text(suffix)), components);
     }
 
     @Override

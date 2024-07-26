@@ -22,29 +22,25 @@ import com.discordsrv.api.component.MinecraftComponent;
 import com.discordsrv.api.component.MinecraftComponentAdapter;
 import com.discordsrv.common.component.MinecraftComponentImpl;
 import net.kyori.adventure.text.Component;
-import net.kyori.adventure.text.ComponentLike;
-import net.kyori.adventure.text.TextComponent;
 import net.kyori.adventure.text.serializer.gson.GsonComponentSerializer;
 import net.kyori.adventure.text.serializer.plain.PlainTextComponentSerializer;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.Collection;
-
 /**
- * An util class for {@link Component}s and {@link MinecraftComponent}s.
+ * A util class for {@link Component}s and {@link MinecraftComponent}s.
  */
 public final class ComponentUtil {
+
+    private ComponentUtil() {}
 
     private static MinecraftComponentAdapter<Component> ADAPTER;
 
     @NotNull
-    private static MinecraftComponentAdapter<Component> getAdapter() {
+    private static MinecraftComponentAdapter<Component> adapter() {
         return ADAPTER != null ? ADAPTER : (ADAPTER = MinecraftComponentAdapter.create(GsonComponentSerializer.class, Component.class));
     }
-
-    private ComponentUtil() {}
 
     public static boolean isEmpty(@NotNull Component component) {
         return PlainTextComponentSerializer.plainText().serialize(component).isEmpty();
@@ -78,48 +74,7 @@ public final class ComponentUtil {
         if (component instanceof MinecraftComponentImpl) {
             return ((MinecraftComponentImpl) component).getComponent();
         } else {
-            return component.adventureAdapter(getAdapter()).getComponent();
+            return component.asAdventure(adapter());
         }
-    }
-
-    public static void set(MinecraftComponent minecraftComponent, Component component) {
-        if (component instanceof MinecraftComponentImpl) {
-            ((MinecraftComponentImpl) component).setComponent(component);
-        } else {
-            minecraftComponent.adventureAdapter(getAdapter()).setComponent(component);
-        }
-    }
-
-    public static MinecraftComponent fromUnrelocated(@NotNull com.discordsrv.unrelocate.net.kyori.adventure.text.Component unrelocatedAdventure) {
-        MinecraftComponentImpl component = MinecraftComponentImpl.empty();
-        MinecraftComponent.Adapter<Object> adapter = component.unrelocatedAdapter();
-        if (adapter == null) {
-            throw new IllegalStateException("Could not get unrelocated adventure gson serializer");
-        }
-        adapter.setComponent(unrelocatedAdventure);
-        return component;
-    }
-
-    public static com.discordsrv.unrelocate.net.kyori.adventure.text.Component toUnrelocated(MinecraftComponent component) {
-        MinecraftComponent.Adapter<Object> adapter = component.unrelocatedAdapter();
-        if (adapter == null) {
-            throw new IllegalStateException("Could not get unrelocated adventure gson serializer");
-        }
-        return (com.discordsrv.unrelocate.net.kyori.adventure.text.Component) adapter.getComponent();
-    }
-
-    public static Component join(@NotNull Component delimiter, @NotNull Collection<? extends ComponentLike> components) {
-        return join(delimiter, components.toArray(new ComponentLike[0]));
-    }
-
-    public static Component join(@NotNull Component delimiter, @NotNull ComponentLike[] components) {
-        TextComponent.Builder builder = Component.text();
-        for (int i = 0; i < components.length; i++) {
-            builder.append(components[i]);
-            if (i < components.length - 1) {
-                builder.append(delimiter);
-            }
-        }
-        return builder.build();
     }
 }

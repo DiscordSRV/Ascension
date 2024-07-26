@@ -19,38 +19,27 @@
 package com.discordsrv.common.component;
 
 import com.discordsrv.api.component.MinecraftComponent;
-import com.discordsrv.api.component.MinecraftComponentAdapter;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.serializer.gson.GsonComponentSerializer;
 import net.kyori.adventure.text.serializer.plain.PlainTextComponentSerializer;
 import org.jetbrains.annotations.NotNull;
 
-import java.lang.reflect.InvocationTargetException;
-
 public class MinecraftComponentImpl implements MinecraftComponent {
 
-    private String json;
-    private Component component;
-
-    public static MinecraftComponentImpl empty() {
-        return new MinecraftComponentImpl("{text:\"\"}");
-    }
+    private final String json;
+    private final Component component;
 
     public MinecraftComponentImpl(String json) {
-        setJson(json);
+        this(GsonComponentSerializer.gson().deserialize(json));
     }
 
     public MinecraftComponentImpl(@NotNull Component component) {
-        setComponent(component);
+        this.component = component;
+        this.json = GsonComponentSerializer.gson().serialize(component);
     }
 
     public Component getComponent() {
         return component;
-    }
-
-    public void setComponent(@NotNull Component component) {
-        this.component = component;
-        this.json = GsonComponentSerializer.gson().serialize(component);
     }
 
     @Override
@@ -59,76 +48,9 @@ public class MinecraftComponentImpl implements MinecraftComponent {
     }
 
     @Override
-    public void setJson(@NotNull String json) throws IllegalArgumentException {
-        Component component;
-        try {
-            component = GsonComponentSerializer.gson().deserialize(json);
-        } catch (Throwable t) {
-            throw new IllegalArgumentException("Provided json is not valid: " + json, t);
-        }
-        this.component = component;
-        this.json = json;
-    }
-
-    @Override
     public @NotNull String asPlainString() {
         return PlainTextComponentSerializer.plainText().serialize(component);
     }
 
-    @Override
-    public <T> MinecraftComponent.@NotNull Adapter<T> adventureAdapter(
-            @NotNull Class<?> gsonSerializerClass, @NotNull Class<T> componentClass
-    ) {
-        return new Adapter<>(gsonSerializerClass, componentClass);
-    }
-
-    @Override
-    public <T> MinecraftComponent.@NotNull Adapter<T> adventureAdapter(@NotNull MinecraftComponentAdapter<T> adapter) {
-        return new Adapter<>(adapter);
-    }
-
-    @SuppressWarnings("unchecked")
-    public class Adapter<T> implements MinecraftComponent.Adapter<T> {
-
-        private final MinecraftComponentAdapter<T> adapter;
-
-        private Adapter(Class<?> gsonSerializerClass, Class<T> componentClass) {
-            this(MinecraftComponentAdapter.create(gsonSerializerClass, componentClass));
-        }
-
-        private Adapter(MinecraftComponentAdapter<T> adapter) {
-            this.adapter = adapter;
-        }
-
-        @Override
-        public @NotNull T getComponent() {
-            try {
-                return (T) adapter.deserializeMethod()
-                        .invoke(
-                                adapter.serializerInstance(),
-                                json
-                        );
-            } catch (IllegalAccessException | InvocationTargetException e) {
-                throw new RuntimeException("Failed to convert to adventure component", e);
-            }
-        }
-
-        @Override
-        public void setComponent(@NotNull Object adventureComponent) {
-            try {
-                setJson(
-                        (String) adapter.serializeMethod()
-                                .invoke(
-                                        adapter.serializerInstance(),
-                                        adventureComponent
-                                )
-                );
-            } catch (InvocationTargetException e) {
-                throw new IllegalArgumentException("The provided class is not a Component for the GsonComponentSerializer " + adapter.serializerClass().getName(), e);
-            } catch (IllegalAccessException e) {
-                throw new RuntimeException("Failed to convert from adventure component", e);
-            }
-        }
-    }
 }
 

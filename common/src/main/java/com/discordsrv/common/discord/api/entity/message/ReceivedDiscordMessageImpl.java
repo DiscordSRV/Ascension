@@ -42,6 +42,7 @@ import net.dv8tion.jda.api.entities.MessageEmbed;
 import net.dv8tion.jda.api.entities.WebhookClient;
 import net.dv8tion.jda.api.requests.ErrorResponse;
 import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.JoinConfiguration;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.annotations.Unmodifiable;
@@ -307,7 +308,7 @@ public class ReceivedDiscordMessageImpl implements ReceivedDiscordMessage {
             ));
         }
 
-        return ComponentUtil.join(Component.text(suffix), components);
+        return Component.join(JoinConfiguration.separator(Component.text(suffix)), components);
     }
 
     @Override
