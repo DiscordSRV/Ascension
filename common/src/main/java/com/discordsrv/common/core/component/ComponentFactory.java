@@ -22,7 +22,9 @@ import com.discordsrv.api.component.GameTextBuilder;
 import com.discordsrv.api.component.MinecraftComponent;
 import com.discordsrv.api.component.MinecraftComponentAdapter;
 import com.discordsrv.api.component.MinecraftComponentFactory;
+import com.discordsrv.api.discord.entity.guild.DiscordGuild;
 import com.discordsrv.common.DiscordSRV;
+import com.discordsrv.common.config.main.channels.DiscordToMinecraftChatConfig;
 import com.discordsrv.common.core.component.renderer.DiscordSRVMinecraftRenderer;
 import com.discordsrv.common.core.component.translation.Translation;
 import com.discordsrv.common.core.component.translation.TranslationRegistry;
@@ -151,6 +153,10 @@ public class ComponentFactory implements MinecraftComponentFactory {
         }
 
         return EnhancedLegacyText.get().parse(textInput);
+    }
+
+    public Component minecraftSerialize(DiscordGuild guild, DiscordToMinecraftChatConfig config, String discordMessage) {
+        return DiscordSRVMinecraftRenderer.getWithContext(guild, config, () -> minecraftSerializer().serialize(discordMessage));
     }
 
     public MinecraftSerializer minecraftSerializer() {

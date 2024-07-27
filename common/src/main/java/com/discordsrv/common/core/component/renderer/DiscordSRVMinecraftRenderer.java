@@ -51,17 +51,6 @@ public class DiscordSRVMinecraftRenderer extends DefaultMinecraftRenderer {
         this.discordSRV = discordSRV;
     }
 
-    public static void runInContext(
-            DiscordGuild guild,
-            DiscordToMinecraftChatConfig config,
-            Runnable runnable
-    ) {
-        getWithContext(guild, config, () -> {
-            runnable.run();
-            return null;
-        });
-    }
-
     public static <T> T getWithContext(
             DiscordGuild guild,
             DiscordToMinecraftChatConfig config,

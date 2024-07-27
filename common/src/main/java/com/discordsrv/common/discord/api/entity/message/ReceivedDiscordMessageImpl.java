@@ -282,7 +282,7 @@ public class ReceivedDiscordMessageImpl implements ReceivedDiscordMessage {
             return null;
         }
 
-        Component component = discordSRV.componentFactory().minecraftSerializer().serialize(content);
+        Component component = discordSRV.componentFactory().minecraftSerialize(getGuild(), config.discordToMinecraft, content);
 
         String replyFormat = config.discordToMinecraft.replyFormat;
         return ComponentUtil.fromAPI(

@@ -19,7 +19,6 @@
 package com.discordsrv.common.feature.messageforwarding.discord;
 
 import com.discordsrv.api.channel.GameChannel;
-import com.discordsrv.api.component.GameTextBuilder;
 import com.discordsrv.api.component.MinecraftComponent;
 import com.discordsrv.api.discord.connection.details.DiscordGatewayIntent;
 import com.discordsrv.api.discord.entity.DiscordUser;
@@ -40,7 +39,6 @@ import com.discordsrv.common.DiscordSRV;
 import com.discordsrv.common.config.main.channels.DiscordToMinecraftChatConfig;
 import com.discordsrv.common.config.main.channels.base.BaseChannelConfig;
 import com.discordsrv.common.config.main.generic.DiscordIgnoresConfig;
-import com.discordsrv.common.core.component.renderer.DiscordSRVMinecraftRenderer;
 import com.discordsrv.common.core.logging.NamedLogger;
 import com.discordsrv.common.core.module.type.AbstractModule;
 import com.discordsrv.common.util.ComponentUtil;
@@ -206,21 +204,18 @@ public class DiscordChatMessageModule extends AbstractModule<DiscordSRV> {
             return;
         }
 
-        Component messageComponent = DiscordSRVMinecraftRenderer.getWithContext(guild, chatConfig, () ->
-                discordSRV.componentFactory().minecraftSerializer().serialize(finalMessage));
-
+        Component messageComponent = discordSRV.componentFactory().minecraftSerialize(guild, chatConfig, finalMessage);
         if (ComponentUtil.isEmpty(messageComponent) && !attachments) {
             // Check empty-ness again after rendering
             return;
         }
 
-        GameTextBuilder componentBuilder = discordSRV.componentFactory()
+        MinecraftComponent component = discordSRV.componentFactory()
                 .textBuilder(format)
                 .addContext(discordMessage, author, member, channel, channelConfig)
                 .applyPlaceholderService()
-                .addPlaceholder("message", messageComponent);
-
-        MinecraftComponent component = DiscordSRVMinecraftRenderer.getWithContext(guild, chatConfig, componentBuilder::build);
+                .addPlaceholder("message", messageComponent)
+                .build();
         if (ComponentUtil.isEmpty(component)) {
             // Empty
             return;
