@@ -45,7 +45,7 @@ import com.discordsrv.common.core.storage.impl.MemoryStorage;
 import com.discordsrv.common.feature.console.Console;
 import com.discordsrv.common.feature.debug.data.OnlineMode;
 import com.discordsrv.common.feature.debug.data.VersionInfo;
-import com.discordsrv.common.feature.messageforwarding.game.minecrafttodiscord.MinecraftToDiscordChatModule;
+import com.discordsrv.common.feature.messageforwarding.game.MinecraftToDiscordChatModule;
 import dev.vankka.dependencydownload.classpath.ClasspathAppender;
 import net.kyori.adventure.audience.Audience;
 import org.apache.commons.lang3.StringUtils;

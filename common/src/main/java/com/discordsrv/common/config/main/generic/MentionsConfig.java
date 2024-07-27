@@ -33,9 +33,14 @@ public class MentionsConfig {
             "[hover:show_text:Click to go to channel][click:open_url:%channel_jump_url%][color:#5865F2]#%channel_name%",
             "[color:#5865F2]#Unknown"
     );
-    public Format user = new Format(
-            "[hover:show_text:Username: @%user_tag%\nRoles: %user_roles:', '|text:'[color:gray][italics:on]None[color][italics]'%][color:#5865F2]@%user_effective_server_name|user_effective_name%",
-            "[color:#5865F2]@Unknown user"
+    public FormatUser user = new FormatUser(
+            "[hover:show_text:Username: @%user_tag% [italics:on][color:gray](Shift+Click to mention)[color][italics:off]\nRoles: %user_roles:', '|text:'[color:gray][italics:on]None[color][italics]'%]"
+                    + "[insert:@%user_tag%][color:#5865F2]"
+                    + "@%user_effective_server_name|user_effective_name%",
+            "[color:#5865F2]@Unknown user",
+            "[hover:show_text:Username: @%user_tag% [italics:on][color:gray](Shift+Click to mention)[color][italics:off]]"
+                    + "[insert:@%user_tag%][color:#5865F2]"
+                    + "@%user_effective_name%"
     );
 
     public String messageUrl = "[hover:show_text:Click to go to message][click:open_url:%jump_url%][color:#5865F2]#%channel_name% > ...";
@@ -69,6 +74,21 @@ public class MentionsConfig {
         public Format(String format, String unknownFormat) {
             this.format = format;
             this.unknownFormat = unknownFormat;
+        }
+    }
+
+    @ConfigSerializable
+    public static class FormatUser extends Format {
+
+        @Comment("The format shown in-game for users that cannot be linked to a specific Discord server")
+        public String formatGlobal = "";
+
+        @SuppressWarnings("unused") // Configurate
+        public FormatUser() {}
+
+        public FormatUser(String format, String unknownFormat, String globalFormat) {
+            super(format, unknownFormat);
+            this.formatGlobal = globalFormat;
         }
     }
 }

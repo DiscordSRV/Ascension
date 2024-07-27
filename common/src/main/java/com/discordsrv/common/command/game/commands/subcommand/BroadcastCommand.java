@@ -113,7 +113,7 @@ public abstract class BroadcastCommand implements GameCommandExecutor, GameComma
             }
         } catch (IllegalArgumentException ignored) {
             BaseChannelConfig channelConfig = discordSRV.channelConfig().resolve(null, channel);
-            CC config = channelConfig instanceof IChannelConfig ? (CC) channelConfig : null;
+            CC config = channelConfig != null ? (CC) channelConfig : null;
 
             if (config != null) {
                 future = discordSRV.destinations().lookupDestination(config.destination(), true, false);
@@ -203,7 +203,7 @@ public abstract class BroadcastCommand implements GameCommandExecutor, GameComma
                     .applyPlaceholderService()
                     .build();
 
-            return discordSRV.componentFactory().discordSerializer().serialize(ComponentUtil.fromAPI(component));
+            return discordSRV.componentFactory().discordSerialize(ComponentUtil.fromAPI(component));
         }
     }
 
@@ -216,7 +216,7 @@ public abstract class BroadcastCommand implements GameCommandExecutor, GameComma
         @Override
         public String getContent(String content) {
             Component component = GsonComponentSerializer.gson().deserialize(content);
-            return discordSRV.componentFactory().discordSerializer().serialize(component);
+            return discordSRV.componentFactory().discordSerialize(component);
         }
     }
 }

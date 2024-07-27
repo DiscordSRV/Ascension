@@ -48,7 +48,7 @@ import com.discordsrv.common.config.configurate.manager.MainConfigManager;
 import com.discordsrv.common.config.configurate.manager.MessagesConfigManager;
 import com.discordsrv.common.config.messages.MessagesConfig;
 import com.discordsrv.common.feature.debug.data.OnlineMode;
-import com.discordsrv.common.feature.messageforwarding.game.minecrafttodiscord.MinecraftToDiscordChatModule;
+import com.discordsrv.common.feature.messageforwarding.game.MinecraftToDiscordChatModule;
 import net.kyori.adventure.platform.bukkit.BukkitAudiences;
 import org.bukkit.Server;
 import org.bukkit.plugin.ServicePriority;

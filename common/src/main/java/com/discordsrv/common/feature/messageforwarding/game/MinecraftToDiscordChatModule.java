@@ -16,7 +16,7 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package com.discordsrv.common.feature.messageforwarding.game.minecrafttodiscord;
+package com.discordsrv.common.feature.messageforwarding.game;
 
 import com.discordsrv.api.channel.GameChannel;
 import com.discordsrv.api.discord.entity.channel.DiscordGuildMessageChannel;
@@ -31,14 +31,15 @@ import com.discordsrv.api.eventbus.Subscribe;
 import com.discordsrv.api.events.message.forward.game.GameChatMessageForwardedEvent;
 import com.discordsrv.api.events.message.receive.game.GameChatMessageReceiveEvent;
 import com.discordsrv.api.placeholder.format.FormattedText;
+import com.discordsrv.api.placeholder.format.PlainPlaceholderFormat;
 import com.discordsrv.api.placeholder.util.Placeholders;
 import com.discordsrv.common.DiscordSRV;
 import com.discordsrv.common.abstraction.player.IPlayer;
 import com.discordsrv.common.config.main.channels.MinecraftToDiscordChatConfig;
 import com.discordsrv.common.config.main.channels.base.BaseChannelConfig;
-import com.discordsrv.common.feature.messageforwarding.game.AbstractGameMessageModule;
+import com.discordsrv.common.feature.mention.CachedMention;
+import com.discordsrv.common.feature.mention.MentionCachingModule;
 import com.discordsrv.common.permission.game.Permission;
-import com.discordsrv.common.util.CompletableFutureUtil;
 import com.discordsrv.common.util.ComponentUtil;
 import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.entities.Role;
@@ -47,9 +48,6 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
-import java.util.stream.Collectors;
 
 public class MinecraftToDiscordChatModule extends AbstractGameMessageModule<MinecraftToDiscordChatConfig, GameChatMessageReceiveEvent> {
 
@@ -114,8 +112,6 @@ public class MinecraftToDiscordChatModule extends AbstractGameMessageModule<Mine
     @Override
     public void setPlaceholders(MinecraftToDiscordChatConfig config, GameChatMessageReceiveEvent event, SendableDiscordMessage.Formatter formatter) {}
 
-    private final Pattern MENTION_PATTERN = Pattern.compile("@\\S+");
-
     private CompletableFuture<SendableDiscordMessage> getMessageForGuild(
             MinecraftToDiscordChatConfig config,
             SendableDiscordMessage.Builder format,
@@ -124,29 +120,10 @@ public class MinecraftToDiscordChatModule extends AbstractGameMessageModule<Mine
             IPlayer player,
             Object[] context
     ) {
-        MinecraftToDiscordChatConfig.Mentions mentionConfig = config.mentions;
         MentionCachingModule mentionCaching = discordSRV.getModule(MentionCachingModule.class);
-
-        if (mentionCaching != null && mentionConfig.users && mentionConfig.uncachedUsers
-                && player.hasPermission(Permission.MENTION_USER_LOOKUP)) {
-            List<CompletableFuture<List<MentionCachingModule.CachedMention>>> futures = new ArrayList<>();
-
-            String messageContent = discordSRV.componentFactory().plainSerializer().serialize(message);
-            Matcher matcher = MENTION_PATTERN.matcher(messageContent);
-            while (matcher.find()) {
-                futures.add(mentionCaching.lookupMemberMentions(guild, matcher.group()));
-            }
-
-            if (!futures.isEmpty()) {
-                return CompletableFutureUtil.combine(futures).thenApply(values -> {
-                    Set<MentionCachingModule.CachedMention> mentions = new LinkedHashSet<>();
-                    for (List<MentionCachingModule.CachedMention> value : values) {
-                        mentions.addAll(value);
-                    }
-
-                    return getMessageForGuildWithMentions(config, format, guild, message, player, context, mentions);
-                });
-            }
+        if (mentionCaching != null) {
+            return mentionCaching.lookup(config.mentions, guild, player, message)
+                    .thenApply(mentions -> getMessageForGuildWithMentions(config, format, guild, message, player, context, mentions));
         }
 
         return CompletableFuture.completedFuture(getMessageForGuildWithMentions(config, format, guild, message, player, context, null));
@@ -159,31 +136,9 @@ public class MinecraftToDiscordChatModule extends AbstractGameMessageModule<Mine
             Component message,
             IPlayer player,
             Object[] context,
-            Set<MentionCachingModule.CachedMention> memberMentions
+            List<CachedMention> mentions
     ) {
         MinecraftToDiscordChatConfig.Mentions mentionConfig = config.mentions;
-        Set<MentionCachingModule.CachedMention> mentions = new LinkedHashSet<>();
-
-        if (memberMentions != null) {
-            mentions.addAll(memberMentions);
-        }
-
-        MentionCachingModule mentionCaching = discordSRV.getModule(MentionCachingModule.class);
-        if (mentionCaching != null) {
-            if (mentionConfig.roles) {
-                mentions.addAll(mentionCaching.getRoleMentions(guild).values());
-            }
-            if (mentionConfig.channels) {
-                mentions.addAll(mentionCaching.getChannelMentions(guild).values());
-            }
-            if (mentionConfig.users) {
-                mentions.addAll(mentionCaching.getMemberMentions(guild).values());
-            }
-        }
-
-        List<MentionCachingModule.CachedMention> orderedMentions = mentions.stream()
-                .sorted(Comparator.comparingInt(mention -> ((MentionCachingModule.CachedMention) mention).searchLength()).reversed())
-                .collect(Collectors.toList());
 
         List<AllowedMention> allowedMentions = new ArrayList<>();
         if (mentionConfig.users && player.hasPermission(Permission.MENTION_USER)) {
@@ -211,27 +166,22 @@ public class MinecraftToDiscordChatModule extends AbstractGameMessageModule<Mine
                 .toFormatter()
                 .addContext(context)
                 .addPlaceholder("message", () -> {
-                    String convertedComponent = convertComponent(config, message);
-                    Placeholders channelMessagePlaceholders = new Placeholders(
-                            DiscordFormattingUtil.escapeMentions(convertedComponent));
+                    String content = PlainPlaceholderFormat.supplyWith(
+                            PlainPlaceholderFormat.Formatting.DISCORD,
+                            () -> discordSRV.placeholderService().getResultAsCharSequence(message).toString()
+                    );
+                    Placeholders messagePlaceholders = new Placeholders(DiscordFormattingUtil.escapeMentions(content));
+                    config.contentRegexFilters.forEach(messagePlaceholders::replaceAll);
 
-                    // From longest to shortest
-                    orderedMentions.forEach(mention -> channelMessagePlaceholders.replaceAll(mention.search(), mention.mention()));
+                    if (mentions != null) {
+                        mentions.forEach(mention -> messagePlaceholders.replaceAll(mention.search(), mention.mention()));
+                    }
 
-                    String finalMessage = channelMessagePlaceholders.toString();
+                    String finalMessage = messagePlaceholders.toString();
                     return new FormattedText(preventEveryoneMentions(everyone, finalMessage));
                 })
                 .applyPlaceholderService()
                 .build();
-    }
-
-    public String convertComponent(MinecraftToDiscordChatConfig config, Component component) {
-        String content = discordSRV.placeholderService().getResultAsCharSequence(component).toString();
-
-        Placeholders messagePlaceholders = new Placeholders(content);
-        config.contentRegexFilters.forEach(messagePlaceholders::replaceAll);
-
-        return messagePlaceholders.toString();
     }
 
     private String preventEveryoneMentions(boolean everyoneAllowed, String message) {

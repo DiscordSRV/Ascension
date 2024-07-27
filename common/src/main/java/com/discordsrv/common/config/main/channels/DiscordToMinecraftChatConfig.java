@@ -21,7 +21,6 @@ package com.discordsrv.common.config.main.channels;
 import com.discordsrv.common.config.configurate.annotation.Untranslated;
 import com.discordsrv.common.config.configurate.manager.abstraction.ConfigurateConfigManager;
 import com.discordsrv.common.config.main.generic.DiscordIgnoresConfig;
-import com.discordsrv.common.config.main.generic.MentionsConfig;
 import org.spongepowered.configurate.objectmapping.ConfigSerializable;
 import org.spongepowered.configurate.objectmapping.meta.Comment;
 
@@ -63,9 +62,6 @@ public class DiscordToMinecraftChatConfig {
 
     @Comment("Users, bots, roles and webhooks to ignore")
     public DiscordIgnoresConfig ignores = new DiscordIgnoresConfig();
-
-    @Comment("The representations of Discord mentions in-game")
-    public MentionsConfig mentions = new MentionsConfig();
 
     @Comment("How should unicode emoji be shown in-game:\n"
             + "- hide: hides emojis in-game\n"

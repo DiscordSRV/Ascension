@@ -71,7 +71,7 @@ public class ConsoleMessage {
 
     public String asMarkdown() {
         Component component = builder.build();
-        return discordSRV.componentFactory().discordSerializer().serialize(component);
+        return discordSRV.componentFactory().discordSerialize(component);
     }
 
     public String asAnsi() {
