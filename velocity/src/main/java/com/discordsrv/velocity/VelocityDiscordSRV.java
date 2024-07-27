@@ -19,6 +19,7 @@
 package com.discordsrv.velocity;
 
 import com.discordsrv.common.ProxyDiscordSRV;
+import com.discordsrv.common.abstraction.plugin.PluginManager;
 import com.discordsrv.common.command.game.handler.ICommandHandler;
 import com.discordsrv.common.config.configurate.manager.ConnectionConfigManager;
 import com.discordsrv.common.config.configurate.manager.MainConfigManager;
@@ -26,9 +27,8 @@ import com.discordsrv.common.config.configurate.manager.MessagesConfigManager;
 import com.discordsrv.common.config.connection.ConnectionConfig;
 import com.discordsrv.common.config.main.MainConfig;
 import com.discordsrv.common.config.messages.MessagesConfig;
-import com.discordsrv.common.debug.data.OnlineMode;
-import com.discordsrv.common.plugin.PluginManager;
-import com.discordsrv.common.scheduler.StandardScheduler;
+import com.discordsrv.common.core.scheduler.StandardScheduler;
+import com.discordsrv.common.feature.debug.data.OnlineMode;
 import com.discordsrv.velocity.command.game.handler.VelocityCommandHandler;
 import com.discordsrv.velocity.console.VelocityConsole;
 import com.discordsrv.velocity.player.VelocityPlayerProvider;

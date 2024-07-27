@@ -22,9 +22,9 @@ import com.discordsrv.bungee.BungeeDiscordSRV;
 import com.discordsrv.bungee.command.game.sender.BungeeCommandSender;
 import com.discordsrv.bungee.console.executor.BungeeCommandExecutorProvider;
 import com.discordsrv.common.command.game.executor.CommandExecutorProvider;
-import com.discordsrv.common.console.Console;
-import com.discordsrv.common.logging.backend.LoggingBackend;
-import com.discordsrv.common.logging.backend.impl.JavaLoggerImpl;
+import com.discordsrv.common.core.logging.backend.LoggingBackend;
+import com.discordsrv.common.core.logging.backend.impl.JavaLoggerImpl;
+import com.discordsrv.common.feature.console.Console;
 
 public class BungeeConsole extends BungeeCommandSender implements Console {
 

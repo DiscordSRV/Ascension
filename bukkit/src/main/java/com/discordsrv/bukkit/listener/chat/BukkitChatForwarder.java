@@ -19,11 +19,11 @@
 package com.discordsrv.bukkit.listener.chat;
 
 import com.discordsrv.api.component.MinecraftComponent;
-import com.discordsrv.api.event.events.message.receive.game.GameChatMessageReceiveEvent;
+import com.discordsrv.api.events.message.receive.game.GameChatMessageReceiveEvent;
 import com.discordsrv.bukkit.BukkitDiscordSRV;
 import com.discordsrv.bukkit.component.PaperComponentHandle;
-import com.discordsrv.common.channel.GlobalChannel;
-import com.discordsrv.common.player.IPlayer;
+import com.discordsrv.common.abstraction.player.IPlayer;
+import com.discordsrv.common.feature.channel.global.GlobalChannel;
 import org.bukkit.entity.Player;
 import org.bukkit.event.Event;
 import org.bukkit.event.Listener;

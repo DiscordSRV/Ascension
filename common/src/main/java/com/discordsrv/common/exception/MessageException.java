@@ -18,7 +18,7 @@
 
 package com.discordsrv.common.exception;
 
-import com.discordsrv.common.exception.util.ExceptionUtil;
+import com.discordsrv.common.util.ExceptionUtil;
 
 public class MessageException extends RuntimeException {
 

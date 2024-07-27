@@ -25,6 +25,7 @@ package com.discordsrv.api.discord.entity.interaction.command;
 
 import com.discordsrv.api.discord.entity.JDAEntity;
 import com.discordsrv.api.discord.entity.channel.DiscordChannelType;
+import com.discordsrv.api.events.discord.interaction.command.DiscordCommandAutoCompleteInteractionEvent;
 import net.dv8tion.jda.api.interactions.commands.OptionType;
 import net.dv8tion.jda.api.interactions.commands.build.OptionData;
 import org.jetbrains.annotations.NotNull;
@@ -229,11 +230,11 @@ public class CommandOption implements JDAEntity<OptionData> {
         }
 
         /**
-         * Sets if this option is auto completed. See {@link com.discordsrv.api.event.events.discord.interaction.command.DiscordCommandAutoCompleteInteractionEvent}.
+         * Sets if this option is auto completed. See {@link DiscordCommandAutoCompleteInteractionEvent}.
          *
          * @param autoComplete is this choice auto completing
          * @return this builder, useful for chaining
-         * @see com.discordsrv.api.event.events.discord.interaction.command.DiscordCommandAutoCompleteInteractionEvent
+         * @see DiscordCommandAutoCompleteInteractionEvent
          */
         @NotNull
         public Builder setAutoComplete(boolean autoComplete) {

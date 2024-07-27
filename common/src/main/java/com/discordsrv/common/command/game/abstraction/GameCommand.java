@@ -19,8 +19,8 @@
 package com.discordsrv.common.command.game.abstraction;
 
 import com.discordsrv.common.command.game.sender.ICommandSender;
-import com.discordsrv.common.function.CheckedFunction;
-import com.discordsrv.common.permission.Permission;
+import com.discordsrv.common.permission.game.Permission;
+import com.discordsrv.common.util.function.CheckedFunction;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.TextComponent;
 import net.kyori.adventure.text.format.NamedTextColor;

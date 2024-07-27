@@ -27,6 +27,7 @@ import com.discordsrv.api.discord.entity.JDAEntity;
 import com.discordsrv.api.discord.entity.interaction.component.ComponentIdentifier;
 import com.discordsrv.api.discord.entity.interaction.component.actionrow.ActionRow;
 import com.discordsrv.api.discord.entity.interaction.component.actionrow.ModalActionRow;
+import com.discordsrv.api.events.discord.interaction.DiscordModalInteractionEvent;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
@@ -37,7 +38,7 @@ import java.util.stream.Collectors;
 /**
  * A Discord modal.
  * @see #builder(ComponentIdentifier, String)
- * @see com.discordsrv.api.event.events.discord.interaction.DiscordModalInteractionEvent
+ * @see DiscordModalInteractionEvent
  */
 public class Modal implements JDAEntity<net.dv8tion.jda.api.interactions.modals.Modal> {
 

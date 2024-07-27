@@ -21,7 +21,7 @@ package com.discordsrv.common.config.helper;
 import com.discordsrv.api.DiscordSRVApi;
 import com.discordsrv.api.component.GameTextBuilder;
 import com.discordsrv.api.component.MinecraftComponent;
-import com.discordsrv.common.component.util.ComponentUtil;
+import com.discordsrv.common.util.ComponentUtil;
 import net.kyori.adventure.text.Component;
 
 public class MinecraftMessage {

@@ -18,8 +18,8 @@
 
 package com.discordsrv.common.config.main.channels;
 
-import com.discordsrv.common.config.configurate.manager.abstraction.ConfigurateConfigManager;
 import com.discordsrv.common.config.configurate.annotation.Untranslated;
+import com.discordsrv.common.config.configurate.manager.abstraction.ConfigurateConfigManager;
 import com.discordsrv.common.config.main.generic.DiscordIgnoresConfig;
 import com.discordsrv.common.config.main.generic.MentionsConfig;
 import org.spongepowered.configurate.objectmapping.ConfigSerializable;

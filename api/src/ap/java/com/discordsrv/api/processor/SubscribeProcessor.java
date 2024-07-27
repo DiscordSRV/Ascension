@@ -23,7 +23,7 @@
 
 package com.discordsrv.api.processor;
 
-import com.discordsrv.api.event.bus.Subscribe;
+import com.discordsrv.api.eventbus.Subscribe;
 
 import javax.annotation.processing.*;
 import javax.lang.model.SourceVersion;

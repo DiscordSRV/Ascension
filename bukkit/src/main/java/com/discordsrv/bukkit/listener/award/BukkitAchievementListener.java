@@ -20,7 +20,7 @@ package com.discordsrv.bukkit.listener.award;
 
 import com.discordsrv.api.component.MinecraftComponent;
 import com.discordsrv.common.DiscordSRV;
-import com.discordsrv.common.component.util.ComponentUtil;
+import com.discordsrv.common.util.ComponentUtil;
 import net.kyori.adventure.platform.bukkit.BukkitComponentSerializer;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;

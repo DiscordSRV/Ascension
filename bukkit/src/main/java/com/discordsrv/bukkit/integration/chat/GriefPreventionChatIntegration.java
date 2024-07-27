@@ -18,13 +18,13 @@
 
 package com.discordsrv.bukkit.integration.chat;
 
-import com.discordsrv.api.event.bus.EventPriority;
-import com.discordsrv.api.event.bus.Subscribe;
-import com.discordsrv.api.event.events.message.receive.game.GameChatMessageReceiveEvent;
+import com.discordsrv.api.eventbus.EventPriority;
+import com.discordsrv.api.eventbus.Subscribe;
+import com.discordsrv.api.events.message.receive.game.GameChatMessageReceiveEvent;
 import com.discordsrv.api.player.DiscordSRVPlayer;
 import com.discordsrv.bukkit.BukkitDiscordSRV;
-import com.discordsrv.common.logging.NamedLogger;
-import com.discordsrv.common.module.type.PluginIntegration;
+import com.discordsrv.common.core.logging.NamedLogger;
+import com.discordsrv.common.core.module.type.PluginIntegration;
 import me.ryanhamshire.GriefPrevention.GriefPrevention;
 import org.jetbrains.annotations.NotNull;
 

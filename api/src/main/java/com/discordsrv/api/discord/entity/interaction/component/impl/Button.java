@@ -26,6 +26,7 @@ package com.discordsrv.api.discord.entity.interaction.component.impl;
 import com.discordsrv.api.discord.entity.guild.DiscordCustomEmoji;
 import com.discordsrv.api.discord.entity.interaction.component.ComponentIdentifier;
 import com.discordsrv.api.discord.entity.interaction.component.MessageComponent;
+import com.discordsrv.api.events.discord.interaction.component.DiscordButtonInteractionEvent;
 import net.dv8tion.jda.api.entities.emoji.Emoji;
 import net.dv8tion.jda.api.interactions.components.ItemComponent;
 import net.dv8tion.jda.api.interactions.components.buttons.ButtonStyle;
@@ -38,7 +39,7 @@ import java.util.UUID;
  * A Discord button.
  * @see #builder(ComponentIdentifier, Style)
  * @see #urlBuilder(String)
- * @see com.discordsrv.api.event.events.discord.interaction.component.DiscordButtonInteractionEvent
+ * @see DiscordButtonInteractionEvent
  */
 public class Button implements MessageComponent {
 

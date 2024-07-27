@@ -19,7 +19,7 @@
 package com.discordsrv.bukkit.listener.award;
 
 import com.discordsrv.common.DiscordSRV;
-import com.discordsrv.common.component.util.ComponentUtil;
+import com.discordsrv.common.util.ComponentUtil;
 import net.kyori.adventure.platform.bukkit.BukkitComponentSerializer;
 import org.bukkit.Bukkit;
 import org.bukkit.advancement.Advancement;

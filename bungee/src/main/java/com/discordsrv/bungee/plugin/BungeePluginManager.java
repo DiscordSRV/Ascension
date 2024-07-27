@@ -19,8 +19,8 @@
 package com.discordsrv.bungee.plugin;
 
 import com.discordsrv.bungee.BungeeDiscordSRV;
-import com.discordsrv.common.plugin.Plugin;
-import com.discordsrv.common.plugin.PluginManager;
+import com.discordsrv.common.abstraction.plugin.Plugin;
+import com.discordsrv.common.abstraction.plugin.PluginManager;
 import net.md_5.bungee.api.plugin.PluginDescription;
 
 import java.util.Collections;

@@ -20,13 +20,13 @@ package com.discordsrv.common.linking.requirement.parser;
 
 import com.discordsrv.common.DiscordSRV;
 import com.discordsrv.common.MockDiscordSRV;
+import com.discordsrv.common.abstraction.player.IPlayer;
 import com.discordsrv.common.config.main.linking.RequiredLinkingConfig;
-import com.discordsrv.common.linking.requirelinking.RequiredLinkingModule;
-import com.discordsrv.common.linking.requirelinking.requirement.RequirementType;
-import com.discordsrv.common.linking.requirelinking.requirement.parser.ParsedRequirements;
-import com.discordsrv.common.linking.requirelinking.requirement.parser.RequirementParser;
-import com.discordsrv.common.player.IPlayer;
-import com.discordsrv.common.someone.Someone;
+import com.discordsrv.common.feature.linking.requirelinking.RequiredLinkingModule;
+import com.discordsrv.common.feature.linking.requirelinking.requirement.RequirementType;
+import com.discordsrv.common.feature.linking.requirelinking.requirement.parser.ParsedRequirements;
+import com.discordsrv.common.feature.linking.requirelinking.requirement.parser.RequirementParser;
+import com.discordsrv.common.helper.Someone;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.function.Executable;
 

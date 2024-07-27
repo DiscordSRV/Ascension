@@ -25,7 +25,7 @@ import com.discordsrv.common.command.game.abstraction.GameCommand;
 import com.discordsrv.common.command.game.commands.DiscordSRVGameCommand;
 import com.discordsrv.common.command.game.handler.ICommandHandler;
 import com.discordsrv.common.config.main.GameCommandConfig;
-import com.discordsrv.common.module.type.AbstractModule;
+import com.discordsrv.common.core.module.type.AbstractModule;
 
 import java.util.HashSet;
 import java.util.Set;

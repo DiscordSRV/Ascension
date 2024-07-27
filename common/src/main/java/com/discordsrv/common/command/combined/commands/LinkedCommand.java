@@ -25,10 +25,10 @@ import com.discordsrv.common.DiscordSRV;
 import com.discordsrv.common.command.combined.abstraction.CombinedCommand;
 import com.discordsrv.common.command.combined.abstraction.CommandExecution;
 import com.discordsrv.common.command.game.abstraction.GameCommand;
-import com.discordsrv.common.command.util.CommandUtil;
-import com.discordsrv.common.logging.Logger;
-import com.discordsrv.common.logging.NamedLogger;
-import com.discordsrv.common.permission.Permission;
+import com.discordsrv.common.core.logging.Logger;
+import com.discordsrv.common.core.logging.NamedLogger;
+import com.discordsrv.common.permission.game.Permission;
+import com.discordsrv.common.util.CommandUtil;
 
 import java.util.UUID;
 

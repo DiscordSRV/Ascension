@@ -19,8 +19,8 @@
 package com.discordsrv.bukkit.listener.award;
 
 import com.discordsrv.common.DiscordSRV;
-import com.discordsrv.common.logging.Logger;
-import com.discordsrv.common.logging.NamedLogger;
+import com.discordsrv.common.core.logging.Logger;
+import com.discordsrv.common.core.logging.NamedLogger;
 import org.bukkit.event.Listener;
 
 public abstract class AbstractBukkitAwardListener implements Listener {

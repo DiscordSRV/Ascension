@@ -20,10 +20,10 @@ package com.discordsrv.bukkit.integration;
 
 import com.discordsrv.api.module.type.PermissionModule;
 import com.discordsrv.bukkit.BukkitDiscordSRV;
+import com.discordsrv.common.core.module.type.PluginIntegration;
 import com.discordsrv.common.exception.MessageException;
-import com.discordsrv.common.function.CheckedSupplier;
-import com.discordsrv.common.future.util.CompletableFutureUtil;
-import com.discordsrv.common.module.type.PluginIntegration;
+import com.discordsrv.common.util.CompletableFutureUtil;
+import com.discordsrv.common.util.function.CheckedSupplier;
 import net.milkbowl.vault.chat.Chat;
 import net.milkbowl.vault.permission.Permission;
 import org.bukkit.OfflinePlayer;

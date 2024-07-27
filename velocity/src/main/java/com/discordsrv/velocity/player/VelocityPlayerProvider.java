@@ -18,7 +18,7 @@
 
 package com.discordsrv.velocity.player;
 
-import com.discordsrv.common.player.provider.AbstractPlayerProvider;
+import com.discordsrv.common.abstraction.player.provider.AbstractPlayerProvider;
 import com.discordsrv.velocity.VelocityDiscordSRV;
 import com.velocitypowered.api.event.PostOrder;
 import com.velocitypowered.api.event.Subscribe;

@@ -21,9 +21,9 @@ package com.discordsrv.common.config.configurate.manager;
 import com.discordsrv.common.DiscordSRV;
 import com.discordsrv.common.config.main.MainConfig;
 import com.discordsrv.common.config.messages.MessagesConfig;
+import com.discordsrv.common.core.logging.Logger;
+import com.discordsrv.common.core.logging.NamedLogger;
 import com.discordsrv.common.exception.ConfigException;
-import com.discordsrv.common.logging.Logger;
-import com.discordsrv.common.logging.NamedLogger;
 
 import java.nio.file.Files;
 import java.nio.file.Path;

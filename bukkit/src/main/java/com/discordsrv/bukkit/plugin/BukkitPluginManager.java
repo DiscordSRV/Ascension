@@ -19,8 +19,8 @@
 package com.discordsrv.bukkit.plugin;
 
 import com.discordsrv.bukkit.BukkitDiscordSRV;
-import com.discordsrv.common.plugin.Plugin;
-import com.discordsrv.common.plugin.PluginManager;
+import com.discordsrv.common.abstraction.plugin.Plugin;
+import com.discordsrv.common.abstraction.plugin.PluginManager;
 import org.bukkit.plugin.PluginDescriptionFile;
 
 import java.util.Arrays;

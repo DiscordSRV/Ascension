@@ -18,11 +18,11 @@
 
 package com.discordsrv.common;
 
-import com.discordsrv.common.bootstrap.IBootstrap;
+import com.discordsrv.common.abstraction.bootstrap.IBootstrap;
 import com.discordsrv.common.config.connection.ConnectionConfig;
 import com.discordsrv.common.config.main.MainConfig;
 import com.discordsrv.common.config.messages.MessagesConfig;
-import com.discordsrv.common.messageforwarding.game.ServerSwitchMessageModule;
+import com.discordsrv.common.feature.messageforwarding.game.ServerSwitchMessageModule;
 
 public abstract class ProxyDiscordSRV<
         B extends IBootstrap,

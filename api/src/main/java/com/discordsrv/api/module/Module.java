@@ -27,8 +27,9 @@ import com.discordsrv.api.DiscordSRVApi;
 import com.discordsrv.api.discord.connection.details.DiscordCacheFlag;
 import com.discordsrv.api.discord.connection.details.DiscordGatewayIntent;
 import com.discordsrv.api.discord.connection.details.DiscordMemberCachePolicy;
-import com.discordsrv.api.event.bus.EventListener;
-import com.discordsrv.api.event.events.discord.message.AbstractDiscordMessageEvent;
+import com.discordsrv.api.eventbus.EventListener;
+import com.discordsrv.api.eventbus.Subscribe;
+import com.discordsrv.api.events.discord.message.AbstractDiscordMessageEvent;
 import net.dv8tion.jda.api.events.GenericEvent;
 import net.dv8tion.jda.api.events.guild.member.GenericGuildMemberEvent;
 import net.dv8tion.jda.api.requests.GatewayIntent;
@@ -60,7 +61,7 @@ public interface Module {
 
     /**
      * Provides a {@link Collection} of {@link DiscordGatewayIntent}s that are required for this {@link Module}.
-     * This defaults to determining intents based on the events listened to in this class via {@link com.discordsrv.api.event.bus.Subscribe} methods.
+     * This defaults to determining intents based on the events listened to in this class via {@link Subscribe} methods.
      * @return the collection of gateway intents required by this module at the time this method is called
      */
     @SuppressWarnings("unchecked") // Class generic cast

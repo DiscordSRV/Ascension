@@ -19,9 +19,9 @@
 package com.discordsrv.bukkit.player;
 
 import com.discordsrv.bukkit.BukkitDiscordSRV;
-import com.discordsrv.common.player.IOfflinePlayer;
-import com.discordsrv.common.player.IPlayer;
-import com.discordsrv.common.player.provider.ServerPlayerProvider;
+import com.discordsrv.common.abstraction.player.IOfflinePlayer;
+import com.discordsrv.common.abstraction.player.IPlayer;
+import com.discordsrv.common.abstraction.player.provider.ServerPlayerProvider;
 import org.bukkit.OfflinePlayer;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;

@@ -21,13 +21,13 @@ package com.discordsrv.common.config.messages;
 import com.discordsrv.api.discord.entity.DiscordUser;
 import com.discordsrv.api.placeholder.provider.SinglePlaceholder;
 import com.discordsrv.common.DiscordSRV;
+import com.discordsrv.common.abstraction.player.IOfflinePlayer;
 import com.discordsrv.common.command.combined.abstraction.CommandExecution;
 import com.discordsrv.common.config.Config;
 import com.discordsrv.common.config.configurate.annotation.Constants;
 import com.discordsrv.common.config.configurate.annotation.Untranslated;
 import com.discordsrv.common.config.helper.MinecraftMessage;
-import com.discordsrv.common.future.util.CompletableFutureUtil;
-import com.discordsrv.common.player.IOfflinePlayer;
+import com.discordsrv.common.util.CompletableFutureUtil;
 import org.spongepowered.configurate.objectmapping.ConfigSerializable;
 import org.spongepowered.configurate.objectmapping.meta.Comment;
 

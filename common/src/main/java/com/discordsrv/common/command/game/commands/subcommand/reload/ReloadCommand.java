@@ -20,13 +20,13 @@ package com.discordsrv.common.command.game.commands.subcommand.reload;
 
 import com.discordsrv.api.DiscordSRVApi;
 import com.discordsrv.common.DiscordSRV;
+import com.discordsrv.common.abstraction.player.IPlayer;
 import com.discordsrv.common.command.game.abstraction.GameCommand;
 import com.discordsrv.common.command.game.abstraction.GameCommandArguments;
 import com.discordsrv.common.command.game.abstraction.GameCommandExecutor;
 import com.discordsrv.common.command.game.abstraction.GameCommandSuggester;
 import com.discordsrv.common.command.game.sender.ICommandSender;
-import com.discordsrv.common.permission.Permission;
-import com.discordsrv.common.player.IPlayer;
+import com.discordsrv.common.permission.game.Permission;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.event.ClickEvent;
 import net.kyori.adventure.text.event.HoverEvent;

@@ -19,10 +19,10 @@
 package com.discordsrv.common.command.combined.abstraction;
 
 import com.discordsrv.common.DiscordSRV;
+import com.discordsrv.common.abstraction.player.IPlayer;
 import com.discordsrv.common.command.game.abstraction.GameCommandArguments;
 import com.discordsrv.common.command.game.sender.ICommandSender;
 import com.discordsrv.common.config.messages.MessagesConfig;
-import com.discordsrv.common.player.IPlayer;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.TextComponent;
 import net.kyori.adventure.text.TextReplacementConfig;

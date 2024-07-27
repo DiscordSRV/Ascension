@@ -24,7 +24,7 @@ import com.discordsrv.common.DiscordSRV;
 import com.discordsrv.common.command.combined.commands.*;
 import com.discordsrv.common.command.discord.commands.subcommand.ExecuteCommand;
 import com.discordsrv.common.config.main.DiscordCommandConfig;
-import com.discordsrv.common.linking.LinkStore;
+import com.discordsrv.common.feature.linking.LinkStore;
 
 public class DiscordSRVDiscordCommand {
 

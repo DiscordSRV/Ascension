@@ -18,14 +18,14 @@
 
 package com.discordsrv.common;
 
-import com.discordsrv.common.bootstrap.IBootstrap;
+import com.discordsrv.common.abstraction.bootstrap.IBootstrap;
+import com.discordsrv.common.abstraction.player.provider.ServerPlayerProvider;
 import com.discordsrv.common.config.connection.ConnectionConfig;
 import com.discordsrv.common.config.main.MainConfig;
 import com.discordsrv.common.config.messages.MessagesConfig;
-import com.discordsrv.common.messageforwarding.game.AwardMessageModule;
-import com.discordsrv.common.messageforwarding.game.DeathMessageModule;
-import com.discordsrv.common.player.provider.ServerPlayerProvider;
-import com.discordsrv.common.scheduler.ServerScheduler;
+import com.discordsrv.common.core.scheduler.ServerScheduler;
+import com.discordsrv.common.feature.messageforwarding.game.AwardMessageModule;
+import com.discordsrv.common.feature.messageforwarding.game.DeathMessageModule;
 import org.jetbrains.annotations.MustBeInvokedByOverriders;
 import org.jetbrains.annotations.NotNull;
 

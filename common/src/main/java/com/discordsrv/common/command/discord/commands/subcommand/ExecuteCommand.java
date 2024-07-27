@@ -25,14 +25,14 @@ import com.discordsrv.api.discord.entity.interaction.command.CommandOption;
 import com.discordsrv.api.discord.entity.interaction.command.DiscordCommand;
 import com.discordsrv.api.discord.entity.interaction.component.ComponentIdentifier;
 import com.discordsrv.api.discord.entity.message.SendableDiscordMessage;
-import com.discordsrv.api.event.events.discord.interaction.command.DiscordChatInputInteractionEvent;
-import com.discordsrv.api.event.events.discord.interaction.command.DiscordCommandAutoCompleteInteractionEvent;
+import com.discordsrv.api.events.discord.interaction.command.DiscordChatInputInteractionEvent;
+import com.discordsrv.api.events.discord.interaction.command.DiscordCommandAutoCompleteInteractionEvent;
 import com.discordsrv.common.DiscordSRV;
 import com.discordsrv.common.command.game.GameCommandExecutionHelper;
 import com.discordsrv.common.config.main.DiscordCommandConfig;
 import com.discordsrv.common.config.main.generic.GameCommandExecutionConditionConfig;
-import com.discordsrv.common.logging.Logger;
-import com.discordsrv.common.logging.NamedLogger;
+import com.discordsrv.common.core.logging.Logger;
+import com.discordsrv.common.core.logging.NamedLogger;
 import net.dv8tion.jda.api.entities.Message;
 import net.kyori.adventure.text.Component;
 

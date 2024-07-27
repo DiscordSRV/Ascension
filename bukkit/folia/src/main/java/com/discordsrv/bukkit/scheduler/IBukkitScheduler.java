@@ -18,9 +18,9 @@
 
 package com.discordsrv.bukkit.scheduler;
 
-import com.discordsrv.common.function.CheckedSupplier;
-import com.discordsrv.common.future.util.CompletableFutureUtil;
-import com.discordsrv.common.scheduler.ServerScheduler;
+import com.discordsrv.common.core.scheduler.ServerScheduler;
+import com.discordsrv.common.util.CompletableFutureUtil;
+import com.discordsrv.common.util.function.CheckedSupplier;
 import org.bukkit.Server;
 import org.bukkit.command.CommandSender;
 import org.bukkit.plugin.Plugin;

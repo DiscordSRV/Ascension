@@ -18,8 +18,8 @@
 
 package com.discordsrv.velocity.plugin;
 
-import com.discordsrv.common.plugin.Plugin;
-import com.discordsrv.common.plugin.PluginManager;
+import com.discordsrv.common.abstraction.plugin.Plugin;
+import com.discordsrv.common.abstraction.plugin.PluginManager;
 import com.discordsrv.velocity.VelocityDiscordSRV;
 import com.velocitypowered.api.plugin.PluginDescription;
 

@@ -19,9 +19,9 @@
 package com.discordsrv.velocity.player;
 
 import com.discordsrv.common.DiscordSRV;
-import com.discordsrv.common.player.IPlayer;
-import com.discordsrv.common.player.provider.model.SkinInfo;
-import com.discordsrv.common.player.provider.model.Textures;
+import com.discordsrv.common.abstraction.player.IPlayer;
+import com.discordsrv.common.abstraction.player.provider.model.SkinInfo;
+import com.discordsrv.common.abstraction.player.provider.model.Textures;
 import com.discordsrv.velocity.VelocityDiscordSRV;
 import com.discordsrv.velocity.command.game.sender.VelocityCommandSender;
 import com.velocitypowered.api.proxy.Player;

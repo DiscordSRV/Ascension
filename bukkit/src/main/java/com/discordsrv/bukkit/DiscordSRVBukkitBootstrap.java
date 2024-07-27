@@ -18,10 +18,10 @@
 
 package com.discordsrv.bukkit;
 
-import com.discordsrv.common.bootstrap.IBootstrap;
-import com.discordsrv.common.bootstrap.LifecycleManager;
-import com.discordsrv.common.logging.Logger;
-import com.discordsrv.common.logging.backend.impl.JavaLoggerImpl;
+import com.discordsrv.common.abstraction.bootstrap.IBootstrap;
+import com.discordsrv.common.abstraction.bootstrap.LifecycleManager;
+import com.discordsrv.common.core.logging.Logger;
+import com.discordsrv.common.core.logging.backend.impl.JavaLoggerImpl;
 import dev.vankka.dependencydownload.classpath.ClasspathAppender;
 import dev.vankka.dependencydownload.jarinjar.classloader.JarInJarClassLoader;
 import dev.vankka.mcdependencydownload.bukkit.bootstrap.BukkitBootstrap;

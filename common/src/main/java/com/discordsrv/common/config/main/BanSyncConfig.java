@@ -18,8 +18,8 @@
 
 package com.discordsrv.common.config.main;
 
-import com.discordsrv.common.bansync.BanSyncModule;
 import com.discordsrv.common.config.main.generic.AbstractSyncConfig;
+import com.discordsrv.common.feature.bansync.BanSyncModule;
 import org.spongepowered.configurate.objectmapping.ConfigSerializable;
 import org.spongepowered.configurate.objectmapping.meta.Comment;
 

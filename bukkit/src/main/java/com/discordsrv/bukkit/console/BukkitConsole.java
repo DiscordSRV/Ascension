@@ -22,11 +22,11 @@ import com.discordsrv.bukkit.BukkitDiscordSRV;
 import com.discordsrv.bukkit.command.game.sender.BukkitCommandSender;
 import com.discordsrv.bukkit.console.executor.BukkitCommandExecutorProvider;
 import com.discordsrv.common.command.game.executor.CommandExecutorProvider;
-import com.discordsrv.common.console.Console;
-import com.discordsrv.common.logging.NamedLogger;
-import com.discordsrv.common.logging.backend.LoggingBackend;
-import com.discordsrv.common.logging.backend.impl.JavaLoggerImpl;
-import com.discordsrv.common.logging.backend.impl.Log4JLoggerImpl;
+import com.discordsrv.common.core.logging.NamedLogger;
+import com.discordsrv.common.core.logging.backend.LoggingBackend;
+import com.discordsrv.common.core.logging.backend.impl.JavaLoggerImpl;
+import com.discordsrv.common.core.logging.backend.impl.Log4JLoggerImpl;
+import com.discordsrv.common.feature.console.Console;
 
 public class BukkitConsole extends BukkitCommandSender implements Console {
 

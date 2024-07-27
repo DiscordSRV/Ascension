@@ -18,11 +18,11 @@
 
 package com.discordsrv.common.command.discord;
 
-import com.discordsrv.api.event.bus.Subscribe;
-import com.discordsrv.api.event.events.discord.interaction.command.CommandRegisterEvent;
+import com.discordsrv.api.eventbus.Subscribe;
+import com.discordsrv.api.events.discord.interaction.command.CommandRegisterEvent;
 import com.discordsrv.common.DiscordSRV;
 import com.discordsrv.common.command.discord.commands.DiscordSRVDiscordCommand;
-import com.discordsrv.common.module.type.AbstractModule;
+import com.discordsrv.common.core.module.type.AbstractModule;
 
 public class DiscordCommandModule extends AbstractModule<DiscordSRV> {
 

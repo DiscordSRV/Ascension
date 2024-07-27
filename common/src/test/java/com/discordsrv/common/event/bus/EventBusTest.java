@@ -18,9 +18,9 @@
 
 package com.discordsrv.common.event.bus;
 
-import com.discordsrv.api.event.bus.EventBus;
-import com.discordsrv.api.event.bus.Subscribe;
-import com.discordsrv.api.event.events.Event;
+import com.discordsrv.api.eventbus.EventBus;
+import com.discordsrv.api.eventbus.Subscribe;
+import com.discordsrv.api.events.Event;
 import com.discordsrv.common.MockDiscordSRV;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;

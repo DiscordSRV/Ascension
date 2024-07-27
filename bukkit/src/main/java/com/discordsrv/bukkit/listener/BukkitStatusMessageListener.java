@@ -19,8 +19,8 @@
 package com.discordsrv.bukkit.listener;
 
 import com.discordsrv.api.component.MinecraftComponent;
-import com.discordsrv.api.event.events.message.receive.game.JoinMessageReceiveEvent;
-import com.discordsrv.api.event.events.message.receive.game.LeaveMessageReceiveEvent;
+import com.discordsrv.api.events.message.receive.game.JoinMessageReceiveEvent;
+import com.discordsrv.api.events.message.receive.game.LeaveMessageReceiveEvent;
 import com.discordsrv.api.player.DiscordSRVPlayer;
 import com.discordsrv.bukkit.BukkitDiscordSRV;
 import com.discordsrv.bukkit.component.PaperComponentHandle;

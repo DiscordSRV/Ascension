@@ -23,7 +23,7 @@ import com.discordsrv.api.discord.connection.details.DiscordConnectionDetails;
 import com.discordsrv.api.discord.connection.details.DiscordGatewayIntent;
 import com.discordsrv.api.discord.connection.details.DiscordMemberCachePolicy;
 import com.discordsrv.common.DiscordSRV;
-import com.discordsrv.common.exception.util.ExceptionUtil;
+import com.discordsrv.common.util.ExceptionUtil;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.*;

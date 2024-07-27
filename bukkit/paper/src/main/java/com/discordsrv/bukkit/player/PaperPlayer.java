@@ -18,7 +18,7 @@
 
 package com.discordsrv.bukkit.player;
 
-import com.discordsrv.common.component.util.ComponentUtil;
+import com.discordsrv.common.util.ComponentUtil;
 import net.kyori.adventure.text.Component;
 import org.bukkit.entity.Player;
 

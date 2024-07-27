@@ -18,7 +18,7 @@
 
 package com.discordsrv.bukkit.player;
 
-import com.discordsrv.common.player.provider.model.SkinInfo;
+import com.discordsrv.common.abstraction.player.provider.model.SkinInfo;
 import org.bukkit.entity.Player;
 import org.bukkit.profile.PlayerTextures;
 

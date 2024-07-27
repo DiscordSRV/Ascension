@@ -19,9 +19,9 @@
 package com.discordsrv.common.config.main.generic;
 
 import com.discordsrv.common.DiscordSRV;
+import com.discordsrv.common.abstraction.sync.enums.SyncDirection;
+import com.discordsrv.common.abstraction.sync.enums.SyncSide;
 import com.discordsrv.common.config.configurate.annotation.Constants;
-import com.discordsrv.common.sync.enums.SyncDirection;
-import com.discordsrv.common.sync.enums.SyncSide;
 import org.spongepowered.configurate.objectmapping.ConfigSerializable;
 import org.spongepowered.configurate.objectmapping.meta.Comment;
 

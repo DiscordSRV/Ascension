@@ -25,7 +25,7 @@ package com.discordsrv.api.discord.entity.interaction.command;
 
 import com.discordsrv.api.discord.entity.JDAEntity;
 import com.discordsrv.api.discord.entity.interaction.component.ComponentIdentifier;
-import com.discordsrv.api.event.events.discord.interaction.command.*;
+import com.discordsrv.api.events.discord.interaction.command.*;
 import net.dv8tion.jda.api.Permission;
 import net.dv8tion.jda.api.interactions.commands.DefaultMemberPermissions;
 import net.dv8tion.jda.api.interactions.commands.build.*;
@@ -52,7 +52,7 @@ public class DiscordCommand implements JDAEntity<CommandData> {
      * @param name the name of the command, 1-32 characters alphanumeric and dashes
      * @param description the description of the command
      * @return a new chat input command builder
-     * @see com.discordsrv.api.event.events.discord.interaction.command.DiscordChatInputInteractionEvent
+     * @see DiscordChatInputInteractionEvent
      */
     public static ChatInputBuilder chatInput(
             ComponentIdentifier id,
@@ -71,7 +71,7 @@ public class DiscordCommand implements JDAEntity<CommandData> {
      * @param id a unique identifier for this interaction, used to check if a given event was for this interaction
      * @param name the name of the command, 1-32 characters
      * @return a new command builder
-     * @see com.discordsrv.api.event.events.discord.interaction.command.DiscordUserContextInteractionEvent
+     * @see DiscordUserContextInteractionEvent
      */
     public static Builder<DiscordUserContextInteractionEvent> user(
             ComponentIdentifier id,
@@ -86,7 +86,7 @@ public class DiscordCommand implements JDAEntity<CommandData> {
      * @param id a unique identifier for this interaction, used to check if a given event was for this interaction
      * @param name the name of the command, 1-32 characters
      * @return a new command builder
-     * @see com.discordsrv.api.event.events.discord.interaction.command.DiscordMessageContextInteractionEvent
+     * @see DiscordMessageContextInteractionEvent
      */
     public static Builder<DiscordMessageContextInteractionEvent> message(
             ComponentIdentifier id,

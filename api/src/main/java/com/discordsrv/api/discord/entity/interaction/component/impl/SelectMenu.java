@@ -26,6 +26,7 @@ package com.discordsrv.api.discord.entity.interaction.component.impl;
 import com.discordsrv.api.discord.entity.guild.DiscordCustomEmoji;
 import com.discordsrv.api.discord.entity.interaction.component.ComponentIdentifier;
 import com.discordsrv.api.discord.entity.interaction.component.MessageComponent;
+import com.discordsrv.api.events.discord.interaction.component.DiscordSelectMenuInteractionEvent;
 import net.dv8tion.jda.api.entities.emoji.Emoji;
 import net.dv8tion.jda.api.interactions.components.ItemComponent;
 import org.jetbrains.annotations.CheckReturnValue;
@@ -38,7 +39,7 @@ import java.util.List;
 /**
  * A Discord selection menu.
  * @see #builder(ComponentIdentifier)
- * @see com.discordsrv.api.event.events.discord.interaction.component.DiscordSelectMenuInteractionEvent
+ * @see DiscordSelectMenuInteractionEvent
  */
 // TODO: newest changes
 public class SelectMenu implements MessageComponent {

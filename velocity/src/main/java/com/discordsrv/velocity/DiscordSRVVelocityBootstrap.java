@@ -19,10 +19,10 @@
 package com.discordsrv.velocity;
 
 import com.discordsrv.common.DiscordSRV;
-import com.discordsrv.common.bootstrap.IBootstrap;
-import com.discordsrv.common.bootstrap.LifecycleManager;
-import com.discordsrv.common.logging.Logger;
-import com.discordsrv.common.logging.backend.impl.SLF4JLoggerImpl;
+import com.discordsrv.common.abstraction.bootstrap.IBootstrap;
+import com.discordsrv.common.abstraction.bootstrap.LifecycleManager;
+import com.discordsrv.common.core.logging.Logger;
+import com.discordsrv.common.core.logging.backend.impl.SLF4JLoggerImpl;
 import com.google.inject.Inject;
 import com.velocitypowered.api.event.Subscribe;
 import com.velocitypowered.api.event.proxy.ProxyInitializeEvent;

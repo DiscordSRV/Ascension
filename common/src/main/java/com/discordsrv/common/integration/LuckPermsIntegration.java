@@ -20,11 +20,11 @@ package com.discordsrv.common.integration;
 
 import com.discordsrv.api.module.type.PermissionModule;
 import com.discordsrv.common.DiscordSRV;
+import com.discordsrv.common.core.module.type.PluginIntegration;
 import com.discordsrv.common.exception.MessageException;
-import com.discordsrv.common.future.util.CompletableFutureUtil;
-import com.discordsrv.common.groupsync.GroupSyncModule;
-import com.discordsrv.common.groupsync.enums.GroupSyncCause;
-import com.discordsrv.common.module.type.PluginIntegration;
+import com.discordsrv.common.feature.groupsync.GroupSyncModule;
+import com.discordsrv.common.feature.groupsync.enums.GroupSyncCause;
+import com.discordsrv.common.util.CompletableFutureUtil;
 import net.luckperms.api.LuckPerms;
 import net.luckperms.api.LuckPermsProvider;
 import net.luckperms.api.context.ContextSet;

@@ -19,7 +19,7 @@
 package com.discordsrv.bungee.player;
 
 import com.discordsrv.bungee.BungeeDiscordSRV;
-import com.discordsrv.common.player.provider.AbstractPlayerProvider;
+import com.discordsrv.common.abstraction.player.provider.AbstractPlayerProvider;
 import net.md_5.bungee.api.connection.ProxiedPlayer;
 import net.md_5.bungee.api.event.PlayerDisconnectEvent;
 import net.md_5.bungee.api.event.PostLoginEvent;

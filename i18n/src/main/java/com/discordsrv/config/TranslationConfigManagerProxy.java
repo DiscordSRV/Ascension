@@ -20,7 +20,7 @@ package com.discordsrv.config;
 
 import com.discordsrv.common.config.configurate.manager.abstraction.ConfigurateConfigManager;
 import com.discordsrv.common.config.configurate.manager.loader.YamlConfigLoaderProvider;
-import com.discordsrv.common.logging.Logger;
+import com.discordsrv.common.core.logging.Logger;
 import org.spongepowered.configurate.objectmapping.ObjectMapper;
 import org.spongepowered.configurate.yaml.YamlConfigurationLoader;
 

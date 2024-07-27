@@ -26,12 +26,12 @@ import com.discordsrv.common.command.combined.abstraction.CombinedCommand;
 import com.discordsrv.common.command.combined.abstraction.CommandExecution;
 import com.discordsrv.common.command.combined.abstraction.Text;
 import com.discordsrv.common.command.game.abstraction.GameCommand;
-import com.discordsrv.common.debug.DebugReport;
-import com.discordsrv.common.paste.Paste;
-import com.discordsrv.common.paste.PasteService;
-import com.discordsrv.common.paste.service.AESEncryptedPasteService;
-import com.discordsrv.common.paste.service.BytebinPasteService;
-import com.discordsrv.common.permission.Permission;
+import com.discordsrv.common.core.paste.Paste;
+import com.discordsrv.common.core.paste.PasteService;
+import com.discordsrv.common.core.paste.service.AESEncryptedPasteService;
+import com.discordsrv.common.core.paste.service.BytebinPasteService;
+import com.discordsrv.common.feature.debug.DebugReport;
+import com.discordsrv.common.permission.game.Permission;
 import net.kyori.adventure.text.format.NamedTextColor;
 
 import java.nio.charset.StandardCharsets;

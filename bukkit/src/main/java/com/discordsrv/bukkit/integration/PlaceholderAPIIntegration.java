@@ -18,15 +18,15 @@
 
 package com.discordsrv.bukkit.integration;
 
-import com.discordsrv.api.event.bus.Subscribe;
-import com.discordsrv.api.event.events.placeholder.PlaceholderLookupEvent;
+import com.discordsrv.api.eventbus.Subscribe;
+import com.discordsrv.api.events.placeholder.PlaceholderLookupEvent;
 import com.discordsrv.api.placeholder.PlaceholderLookupResult;
 import com.discordsrv.api.placeholder.format.PlainPlaceholderFormat;
 import com.discordsrv.api.player.DiscordSRVPlayer;
 import com.discordsrv.api.profile.IProfile;
 import com.discordsrv.bukkit.BukkitDiscordSRV;
-import com.discordsrv.common.module.type.PluginIntegration;
-import com.discordsrv.common.player.IOfflinePlayer;
+import com.discordsrv.common.abstraction.player.IOfflinePlayer;
+import com.discordsrv.common.core.module.type.PluginIntegration;
 import me.clip.placeholderapi.PlaceholderAPI;
 import me.clip.placeholderapi.expansion.PlaceholderExpansion;
 import net.kyori.adventure.platform.bukkit.BukkitComponentSerializer;

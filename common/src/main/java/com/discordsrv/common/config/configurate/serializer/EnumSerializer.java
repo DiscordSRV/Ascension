@@ -18,7 +18,7 @@
 
 package com.discordsrv.common.config.configurate.serializer;
 
-import com.discordsrv.common.logging.Logger;
+import com.discordsrv.common.core.logging.Logger;
 import io.leangen.geantyref.GenericTypeReflector;
 import org.jetbrains.annotations.Nullable;
 import org.spongepowered.configurate.ConfigurationNode;

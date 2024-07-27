@@ -21,7 +21,7 @@ package com.discordsrv.bukkit.console.executor;
 import com.discordsrv.bukkit.BukkitDiscordSRV;
 import com.discordsrv.common.command.game.executor.CommandExecutor;
 import com.discordsrv.common.command.game.executor.CommandExecutorProvider;
-import com.discordsrv.common.component.util.ComponentUtil;
+import com.discordsrv.common.util.ComponentUtil;
 import net.kyori.adventure.text.Component;
 import org.bukkit.Server;
 import org.bukkit.command.CommandSender;

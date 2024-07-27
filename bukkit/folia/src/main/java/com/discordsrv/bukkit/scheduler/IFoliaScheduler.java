@@ -18,7 +18,7 @@
 
 package com.discordsrv.bukkit.scheduler;
 
-import com.discordsrv.common.scheduler.ServerScheduler;
+import com.discordsrv.common.core.scheduler.ServerScheduler;
 import org.bukkit.command.BlockCommandSender;
 import org.bukkit.command.CommandSender;
 import org.bukkit.command.ProxiedCommandSender;

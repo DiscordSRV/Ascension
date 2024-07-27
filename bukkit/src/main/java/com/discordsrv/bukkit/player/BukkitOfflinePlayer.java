@@ -20,8 +20,8 @@ package com.discordsrv.bukkit.player;
 
 import com.discordsrv.bukkit.BukkitDiscordSRV;
 import com.discordsrv.common.DiscordSRV;
-import com.discordsrv.common.player.IOfflinePlayer;
-import com.discordsrv.common.player.provider.model.SkinInfo;
+import com.discordsrv.common.abstraction.player.IOfflinePlayer;
+import com.discordsrv.common.abstraction.player.provider.model.SkinInfo;
 import net.kyori.adventure.identity.Identity;
 import org.bukkit.OfflinePlayer;
 import org.jetbrains.annotations.NotNull;

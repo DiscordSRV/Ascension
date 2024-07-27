@@ -27,9 +27,9 @@ import com.discordsrv.common.command.game.abstraction.GameCommandExecutor;
 import com.discordsrv.common.command.game.commands.subcommand.BroadcastCommand;
 import com.discordsrv.common.command.game.commands.subcommand.reload.ReloadCommand;
 import com.discordsrv.common.command.game.sender.ICommandSender;
-import com.discordsrv.common.component.util.ComponentUtil;
-import com.discordsrv.common.linking.LinkStore;
-import com.discordsrv.common.permission.Permission;
+import com.discordsrv.common.feature.linking.LinkStore;
+import com.discordsrv.common.permission.game.Permission;
+import com.discordsrv.common.util.ComponentUtil;
 
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;

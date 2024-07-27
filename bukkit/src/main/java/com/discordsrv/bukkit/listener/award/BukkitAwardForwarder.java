@@ -19,9 +19,9 @@
 package com.discordsrv.bukkit.listener.award;
 
 import com.discordsrv.api.component.MinecraftComponent;
-import com.discordsrv.api.event.events.message.receive.game.AwardMessageReceiveEvent;
+import com.discordsrv.api.events.message.receive.game.AwardMessageReceiveEvent;
 import com.discordsrv.bukkit.BukkitDiscordSRV;
-import com.discordsrv.common.player.IPlayer;
+import com.discordsrv.common.abstraction.player.IPlayer;
 import org.bukkit.entity.Player;
 import org.bukkit.event.Listener;
 import org.intellij.lang.annotations.Language;

@@ -19,8 +19,8 @@
 package com.discordsrv.bukkit.component;
 
 import com.discordsrv.api.component.MinecraftComponent;
-import com.discordsrv.common.component.ComponentFactory;
-import com.discordsrv.common.component.util.ComponentUtil;
+import com.discordsrv.common.core.component.ComponentFactory;
+import com.discordsrv.common.util.ComponentUtil;
 import net.kyori.adventure.platform.bukkit.BukkitComponentSerializer;
 
 import java.lang.invoke.MethodHandle;

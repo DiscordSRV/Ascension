@@ -19,9 +19,9 @@
 package com.discordsrv.bukkit.component.translation;
 
 import com.discordsrv.bukkit.BukkitDiscordSRV;
-import com.discordsrv.common.component.translation.Translation;
-import com.discordsrv.common.component.translation.TranslationRegistry;
-import com.discordsrv.common.logging.NamedLogger;
+import com.discordsrv.common.core.component.translation.Translation;
+import com.discordsrv.common.core.component.translation.TranslationRegistry;
+import com.discordsrv.common.core.logging.NamedLogger;
 import com.fasterxml.jackson.databind.JsonNode;
 
 import java.io.IOException;

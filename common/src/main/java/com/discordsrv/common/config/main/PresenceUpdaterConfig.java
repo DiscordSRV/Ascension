@@ -19,7 +19,7 @@
 package com.discordsrv.common.config.main;
 
 import com.discordsrv.common.config.configurate.annotation.Constants;
-import com.discordsrv.common.logging.Logger;
+import com.discordsrv.common.core.logging.Logger;
 import net.dv8tion.jda.api.OnlineStatus;
 import net.dv8tion.jda.api.entities.Activity;
 import org.spongepowered.configurate.objectmapping.ConfigSerializable;

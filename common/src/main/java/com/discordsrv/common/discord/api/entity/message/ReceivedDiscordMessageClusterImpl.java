@@ -21,7 +21,7 @@ package com.discordsrv.common.discord.api.entity.message;
 import com.discordsrv.api.discord.entity.message.ReceivedDiscordMessage;
 import com.discordsrv.api.discord.entity.message.ReceivedDiscordMessageCluster;
 import com.discordsrv.api.discord.entity.message.SendableDiscordMessage;
-import com.discordsrv.common.future.util.CompletableFutureUtil;
+import com.discordsrv.common.util.CompletableFutureUtil;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.*;

@@ -24,7 +24,7 @@ import com.discordsrv.common.config.Config;
 import com.discordsrv.common.config.configurate.annotation.Untranslated;
 import com.discordsrv.common.config.configurate.manager.abstraction.ConfigurateConfigManager;
 import com.discordsrv.common.config.configurate.manager.abstraction.TranslatedConfigManager;
-import com.discordsrv.common.logging.backend.impl.JavaLoggerImpl;
+import com.discordsrv.common.core.logging.backend.impl.JavaLoggerImpl;
 import org.spongepowered.configurate.CommentedConfigurationNode;
 import org.spongepowered.configurate.ConfigurateException;
 import org.spongepowered.configurate.ConfigurationNode;
