@@ -20,6 +20,7 @@ package com.discordsrv.common.util;
 
 import net.dv8tion.jda.api.Permission;
 import net.dv8tion.jda.api.entities.Guild;
+import net.dv8tion.jda.api.entities.channel.concrete.ForumChannel;
 import net.dv8tion.jda.api.entities.channel.concrete.ThreadChannel;
 import net.dv8tion.jda.api.entities.channel.middleman.GuildChannel;
 
@@ -41,7 +42,7 @@ public final class DiscordPermissionUtil {
             channel = ((ThreadChannel) channel).getParentChannel();
         }
         EnumSet<Permission> missingPermissions = getMissingPermissions(channel, permissions);
-        return createErrorMessage(missingPermissions, "#" + channel.getName());
+        return createErrorMessage(channel, missingPermissions, "#" + channel.getName());
     }
 
     public static EnumSet<Permission> getMissingPermissions(GuildChannel channel, Collection<Permission> permissions) {
@@ -63,7 +64,7 @@ public final class DiscordPermissionUtil {
 
     public static String missingPermissionsString(Guild guild, Collection<Permission> permissions) {
         EnumSet<Permission> missingPermissions = getMissingPermissions(guild, permissions);
-        return createErrorMessage(missingPermissions, guild.getName());
+        return createErrorMessage(null, missingPermissions, guild.getName());
     }
 
     public static EnumSet<Permission> getMissingPermissions(Guild guild, Collection<Permission> permissions) {
@@ -76,12 +77,34 @@ public final class DiscordPermissionUtil {
         return missingPermissions;
     }
 
-    public static String createErrorMessage(EnumSet<Permission> permissions, String where) {
+    public static String createErrorMessage(GuildChannel channel, EnumSet<Permission> permissions, String where) {
         if (permissions.isEmpty()) {
             return null;
         }
 
-        return "the bot is lacking permissions in " + where + ": "
-                + permissions.stream().map(Permission::getName).collect(Collectors.joining(", "));
+        return "the bot is lacking permissions in " + where + ": " + permissions.stream()
+                .map(permission -> getPermissionName(channel, permission))
+                .collect(Collectors.joining(", "));
+    }
+
+    public static String getPermissionName(GuildChannel channel, Permission permission) {
+        if (channel instanceof ForumChannel) {
+            switch (permission) {
+                case MESSAGE_SEND: return "Create Posts";
+                case MESSAGE_SEND_IN_THREADS: return "Send Messages in Posts";
+                case MANAGE_THREADS: return "Manage Posts";
+                case MESSAGE_HISTORY: return "Read Post History";
+            }
+        }
+
+        switch (permission) {
+            case MANAGE_CHANNEL: return "Manage Channel" + (channel != null ? "s" : "");
+            case VIEW_CHANNEL: return "View Channel" + (channel != null ? "s" : "");
+            case MANAGE_PERMISSIONS: return "Manage Permission" + (channel != null ? "s" : "");
+            case MANAGE_GUILD_EXPRESSIONS: return "Manage Expressions";
+            case CREATE_INSTANT_INVITE: return "Create Invite";
+        }
+
+        return permission.getName();
     }
 }

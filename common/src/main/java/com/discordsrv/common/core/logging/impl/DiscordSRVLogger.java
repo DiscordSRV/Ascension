@@ -146,7 +146,7 @@ public class DiscordSRVLogger implements Logger {
                 where = "Server ID " + Long.toUnsignedString(guildId);
             }
 
-            String msg = DiscordPermissionUtil.createErrorMessage(EnumSet.of(permission), where);
+            String msg = DiscordPermissionUtil.createErrorMessage(guildChannel, EnumSet.of(permission), where);
             if (message == null) {
                 message = msg;
             } else {
