@@ -72,7 +72,7 @@ public class GameChatMessageReceiveEvent extends AbstractGameMessageReceiveEvent
     }
 
     @Override
-    public DiscordSRVPlayer getPlayer() {
+    public @NotNull DiscordSRVPlayer getPlayer() {
         return player;
     }
 }

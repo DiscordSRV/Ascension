@@ -24,6 +24,7 @@
 package com.discordsrv.api.events;
 
 import com.discordsrv.api.player.DiscordSRVPlayer;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * An event that is related to a {@link DiscordSRVPlayer}.
@@ -34,5 +35,6 @@ public interface PlayerEvent extends Event {
      * The player that this event is related to.
      * @return the player
      */
+    @NotNull
     DiscordSRVPlayer getPlayer();
 }
