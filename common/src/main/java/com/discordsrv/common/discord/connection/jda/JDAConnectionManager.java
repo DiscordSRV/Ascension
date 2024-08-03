@@ -74,6 +74,7 @@ import java.util.*;
 import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Consumer;
+import java.util.stream.Collectors;
 
 public class JDAConnectionManager implements DiscordConnectionManager {
 
@@ -228,7 +229,7 @@ public class JDAConnectionManager implements DiscordConnectionManager {
 
         // Map JDA objects to 1st party API objects
         Set<Object> newContext = new HashSet<>();
-        boolean anyConverted = false;
+        boolean contextChanged = false;
         for (Object o : event.getContexts()) {
             Object converted;
             boolean isConversion = true;
@@ -257,13 +258,29 @@ public class JDAConnectionManager implements DiscordConnectionManager {
                 isConversion = false;
             }
             if (isConversion) {
-                anyConverted = true;
+                contextChanged = true;
             }
             newContext.add(converted);
         }
 
+        // Add DiscordUser as context if it is missing and DiscordGuildMember is present
+        List<DiscordGuildMember> members = newContext.stream()
+                .filter(context -> context instanceof DiscordGuildMember)
+                .map(context -> (DiscordGuildMember) context)
+                .collect(Collectors.toList());
+        for (DiscordGuildMember member : members) {
+            DiscordUser user = member.getUser();
+            boolean userMissing = newContext.stream()
+                    .filter(context -> context instanceof DiscordUser)
+                    .noneMatch(context -> ((DiscordUser) context).getId() == user.getId());
+            if (!userMissing) {
+                newContext.add(user);
+                contextChanged = true;
+            }
+        }
+
         // Prevent infinite recursion
-        if (anyConverted) {
+        if (contextChanged) {
             event.process(PlaceholderLookupResult.newLookup(event.getPlaceholder(), newContext));
         }
     }
