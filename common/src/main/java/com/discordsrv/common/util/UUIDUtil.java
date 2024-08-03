@@ -56,4 +56,19 @@ public final class UUIDUtil {
     public static String toShort(@NotNull UUID uuid) {
         return uuid.toString().replace("-", "");
     }
+
+    @Placeholder("version")
+    public static int getVersion(@NotNull UUID uuid) {
+        return uuid.version();
+    }
+
+    @Placeholder("isgeyser")
+    public static boolean isGeyser(@NotNull UUID uuid) {
+        return uuid.getLeastSignificantBits() == 0;
+    }
+
+    @Placeholder("isoffline")
+    public static boolean isOffline(@NotNull UUID uuid) {
+        return !isGeyser(uuid) && uuid.version() == 3;
+    }
 }

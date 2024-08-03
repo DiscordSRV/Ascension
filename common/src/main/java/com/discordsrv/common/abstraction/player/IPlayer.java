@@ -28,6 +28,7 @@ import com.discordsrv.common.config.main.AvatarProviderConfig;
 import com.discordsrv.common.feature.profile.Profile;
 import com.discordsrv.common.util.ComponentUtil;
 import com.discordsrv.common.util.GamePermissionUtil;
+import com.discordsrv.common.util.UUIDUtil;
 import net.kyori.adventure.text.Component;
 import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
@@ -82,9 +83,9 @@ public interface IPlayer extends DiscordSRVPlayer, IOfflinePlayer, ICommandSende
 
         if (avatarConfig.autoDecideAvatarUrl) {
             // Offline mode
-            if (uniqueId().version() == 3) avatarUrlTemplate = "https://cravatar.eu/helmavatar/%player_name%/128.png#%player_skin_texture_id%";
+            if (UUIDUtil.isOffline(uniqueId())) avatarUrlTemplate = "https://cravatar.eu/helmavatar/%player_name%/128.png#%player_skin_texture_id%";
             // Bedrock
-            else if (uniqueId().getLeastSignificantBits() == 0) avatarUrlTemplate = "https://api.tydiumcraft.net/skin?uuid=%player_uuid_short%&type=avatar&size=128";
+            else if (UUIDUtil.isGeyser(uniqueId())) avatarUrlTemplate = "https://api.tydiumcraft.net/skin?uuid=%player_uuid_short%&type=avatar&size=128";
         }
 
         if (avatarUrlTemplate == null) {
