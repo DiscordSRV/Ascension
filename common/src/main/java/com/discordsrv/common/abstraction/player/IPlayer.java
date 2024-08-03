@@ -58,12 +58,10 @@ public interface IPlayer extends DiscordSRVPlayer, IOfflinePlayer, ICommandSende
     }
 
     @NotNull
-    @Placeholder("name")
     String username();
 
     @Override
     @ApiStatus.NonExtendable
-    @Placeholder(value = "uuid", relookup = "uuid")
     default @NotNull UUID uniqueId() {
         return identity().uuid();
     }

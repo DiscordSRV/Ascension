@@ -18,6 +18,10 @@
 
 package com.discordsrv.common.abstraction.player.provider.model;
 
+import com.discordsrv.api.placeholder.annotation.Placeholder;
+import com.discordsrv.api.placeholder.annotation.PlaceholderPrefix;
+
+@PlaceholderPrefix("skin_")
 public class SkinInfo {
 
     private final String textureId;
@@ -28,10 +32,12 @@ public class SkinInfo {
         this.model = model;
     }
 
+    @Placeholder("texture_id")
     public String textureId() {
         return textureId;
     }
 
+    @Placeholder("model")
     public String model() {
         return model;
     }

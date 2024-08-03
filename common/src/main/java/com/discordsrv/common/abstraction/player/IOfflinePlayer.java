@@ -53,19 +53,6 @@ public interface IOfflinePlayer extends Identified {
     }
 
     @Nullable
+    @Placeholder(value = "skin", relookup = "skin")
     SkinInfo skinInfo();
-
-    @Placeholder("skin_texture_id")
-    @Nullable
-    default String skinTextureId() {
-        SkinInfo info = skinInfo();
-        return info != null ? info.textureId() : null;
-    }
-
-    @Placeholder("skin_model")
-    @Nullable
-    default String skinModel() {
-        SkinInfo info = skinInfo();
-        return info != null ? info.model() : null;
-    }
 }

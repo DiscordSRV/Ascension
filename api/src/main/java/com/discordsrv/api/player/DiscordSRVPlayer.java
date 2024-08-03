@@ -24,6 +24,7 @@
 package com.discordsrv.api.player;
 
 import com.discordsrv.api.component.MinecraftComponent;
+import com.discordsrv.api.placeholder.annotation.Placeholder;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -40,6 +41,7 @@ public interface DiscordSRVPlayer {
      * @return the player's username
      */
     @NotNull
+    @Placeholder("name")
     String username();
 
     /**
@@ -47,6 +49,7 @@ public interface DiscordSRVPlayer {
      * @return the player's unique id
      */
     @NotNull
+    @Placeholder(value = "uuid", relookup = "uuid")
     UUID uniqueId();
 
     /**
