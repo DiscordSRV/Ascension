@@ -43,29 +43,30 @@ import net.dv8tion.jda.api.events.guild.member.update.GuildMemberUpdateNicknameE
 import net.dv8tion.jda.api.events.role.RoleCreateEvent;
 import net.dv8tion.jda.api.events.role.RoleDeleteEvent;
 import net.dv8tion.jda.api.events.role.update.RoleUpdateNameEvent;
-import net.kyori.adventure.text.Component;
+import org.apache.commons.lang3.tuple.Pair;
 import org.jetbrains.annotations.NotNull;
 
+import java.time.Duration;
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.TimeUnit;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 public class MentionCachingModule extends AbstractModule<DiscordSRV> {
 
-    private static final Pattern USER_MENTION_PATTERN = Pattern.compile("(?<!<)@[a-z0-9_.]{2,32}");
+    private static final Pattern USER_MENTION_PATTERN = Pattern.compile("(?<!<)@([a-z0-9_.]{2,32})");
 
-    private final Map<Long, Map<Long, CachedMention>> memberMentions = new ConcurrentHashMap<>();
-    private final Map<Long, Cache<String, CachedMention>> memberMentionsCache = new ConcurrentHashMap<>();
-
+    private final Cache<Pair<Long, Long>, CachedMention> memberMentionsCache;
     private final Map<Long, Map<Long, CachedMention>> roleMentions = new ConcurrentHashMap<>();
     private final Map<Long, Map<Long, CachedMention>> channelMentions = new ConcurrentHashMap<>();
 
     public MentionCachingModule(DiscordSRV discordSRV) {
         super(discordSRV);
+        this.memberMentionsCache = discordSRV.caffeineBuilder()
+                .expireAfterWrite(Duration.ofMinutes(5))
+                .build();
     }
 
     @Override
@@ -108,7 +109,7 @@ public class MentionCachingModule extends AbstractModule<DiscordSRV> {
 
     @Override
     public void disable() {
-        memberMentions.clear();
+        memberMentionsCache.invalidateAll();
         roleMentions.clear();
         channelMentions.clear();
     }
@@ -117,32 +118,31 @@ public class MentionCachingModule extends AbstractModule<DiscordSRV> {
             MinecraftToDiscordChatConfig.Mentions config,
             Guild guild,
             IPlayer player,
-            Component message
+            String messageContent
     ) {
-        List<CachedMention> mentions = new ArrayList<>();
-        if (config.users) {
-            mentions.addAll(getMemberMentions(guild).values());
-        }
-
         List<CompletableFuture<List<CachedMention>>> futures = new ArrayList<>();
-        if (config.users && config.uncachedUsers && player.hasPermission(Permission.MENTION_USER_LOOKUP)) {
-            String messageContent = discordSRV.componentFactory().plainSerializer().serialize(message);
+        List<CachedMention> mentions = new ArrayList<>();
+
+        if (config.users) {
+            boolean uncached = config.uncachedUsers && player.hasPermission(Permission.MENTION_USER_LOOKUP);
+
             Matcher matcher = USER_MENTION_PATTERN.matcher(messageContent);
             while (matcher.find()) {
-                String mention = matcher.group();
-                boolean perfectMatch = false;
-                for (CachedMention cachedMention : mentions) {
-                    if (cachedMention.search().matcher(mention).matches()) {
-                        perfectMatch = true;
-                        break;
-                    }
+                String username = matcher.group(1);
+
+                List<Member> members = guild.getMembersByName(username, false);
+                boolean any = false;
+                for (Member member : members) {
+                    mentions.add(getMemberMention(member));
+                    any = true;
+                    break;
                 }
-                if (!perfectMatch) {
-                    futures.add(lookupMemberMentions(guild, mention));
+
+                if (!any && uncached) {
+                    futures.add(lookupMemberMentions(guild, username));
                 }
             }
         }
-
         if (config.roles) {
             mentions.addAll(getRoleMentions(guild).values());
         }
@@ -163,8 +163,7 @@ public class MentionCachingModule extends AbstractModule<DiscordSRV> {
     @Subscribe
     public void onGuildDelete(GuildLeaveEvent event) {
         long guildId = event.getGuild().getIdLong();
-        memberMentions.remove(guildId);
-        memberMentionsCache.remove(guildId);
+        memberMentionsCache.asMap().keySet().removeIf(pair -> pair.getKey() == guildId);
         roleMentions.remove(guildId);
         channelMentions.remove(guildId);
     }
@@ -173,38 +172,29 @@ public class MentionCachingModule extends AbstractModule<DiscordSRV> {
     // Member
     //
 
-    private CompletableFuture<List<CachedMention>> lookupMemberMentions(Guild guild, String mention) {
-        Cache<String, CachedMention> cache = memberMentionsCache.computeIfAbsent(guild.getIdLong(), key -> discordSRV.caffeineBuilder()
-                .expireAfterAccess(10, TimeUnit.MINUTES)
-                .build()
-        );
-        CachedMention cached = cache.getIfPresent(mention);
-        if (cached != null) {
-            return CompletableFuture.completedFuture(Collections.singletonList(cached));
-        }
-
+    private CompletableFuture<List<CachedMention>> lookupMemberMentions(Guild guild, String username) {
         CompletableFuture<List<Member>> memberFuture = new CompletableFuture<>();
-        guild.retrieveMembersByPrefix(mention.substring(1), 100)
+        guild.retrieveMembersByPrefix(username, 100)
                 .onSuccess(memberFuture::complete).onError(memberFuture::completeExceptionally);
 
         return memberFuture.thenApply(members -> {
             List<CachedMention> cachedMentions = new ArrayList<>();
             for (Member member : members) {
-                CachedMention cachedMention = cache.get(member.getUser().getName(), k -> convertMember(member));
-                cachedMentions.add(cachedMention);
+                cachedMentions.add(getMemberMention(member));
             }
             return cachedMentions;
         });
     }
 
-    private Map<Long, CachedMention> getMemberMentions(Guild guild) {
-        return memberMentions.computeIfAbsent(guild.getIdLong(), key -> {
-            Map<Long, CachedMention> mentions = new LinkedHashMap<>();
-            for (Member member : guild.getMembers()) {
-                mentions.put(member.getIdLong(), convertMember(member));
-            }
-            return mentions;
-        });
+    private Pair<Long, Long> getMemberKey(Member member) {
+        return Pair.of(member.getGuild().getIdLong(), member.getIdLong());
+    }
+
+    private CachedMention getMemberMention(Member member) {
+        return memberMentionsCache.get(
+                getMemberKey(member),
+                key -> convertMember(member)
+        );
     }
 
     private CachedMention convertMember(Member member) {
@@ -224,13 +214,18 @@ public class MentionCachingModule extends AbstractModule<DiscordSRV> {
             return;
         }
 
-        getMemberMentions(event.getGuild()).put(member.getIdLong(), convertMember(member));
+        memberMentionsCache.put(getMemberKey(member), convertMember(member));
     }
 
     @Subscribe
     public void onMemberUpdate(GuildMemberUpdateNicknameEvent event) {
         Member member = event.getMember();
-        getMemberMentions(event.getGuild()).replace(member.getIdLong(), convertMember(member));
+        if (member.getGuild().getMemberCache().getElementById(member.getIdLong()) == null) {
+            // Member is not cached
+            return;
+        }
+
+        memberMentionsCache.put(getMemberKey(member), convertMember(member));
     }
 
     @Subscribe
@@ -240,7 +235,7 @@ public class MentionCachingModule extends AbstractModule<DiscordSRV> {
             return;
         }
 
-        getMemberMentions(event.getGuild()).remove(member.getIdLong());
+        memberMentionsCache.invalidate(getMemberKey(member));
     }
 
     //

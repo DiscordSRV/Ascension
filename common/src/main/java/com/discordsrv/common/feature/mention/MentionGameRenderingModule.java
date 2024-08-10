@@ -86,7 +86,9 @@ public class MentionGameRenderingModule extends AbstractModule<DiscordSRV> {
             guilds.add(channel.getGuild());
         }
 
-        Component component = ComponentUtil.fromAPI(event.getMessage());
+        Component message = ComponentUtil.fromAPI(event.getMessage());
+        String messageContent = discordSRV.componentFactory().plainSerializer().serialize(message);
+
         List<CachedMention> cachedMentions = new ArrayList<>();
         for (DiscordGuild guild : guilds) {
             cachedMentions.addAll(
@@ -94,7 +96,7 @@ public class MentionGameRenderingModule extends AbstractModule<DiscordSRV> {
                             config.minecraftToDiscord.mentions,
                             guild.asJDA(),
                             (IPlayer) event.getPlayer(),
-                            component
+                            messageContent
                     ).join()
             );
         }
@@ -103,13 +105,13 @@ public class MentionGameRenderingModule extends AbstractModule<DiscordSRV> {
         DiscordGuild guild = guilds.size() == 1 ? guilds.iterator().next() : null;
 
         for (CachedMention cachedMention : cachedMentions) {
-            component = component.replaceText(
+            message = message.replaceText(
                     TextReplacementConfig.builder().match(cachedMention.search())
                             .replacement(() -> replacement(cachedMention, mentionsConfig, guild))
                             .build()
             );
         }
-        event.process(ComponentUtil.toAPI(component));
+        event.process(ComponentUtil.toAPI(message));
     }
 
     private Component replacement(CachedMention mention, MentionsConfig config, DiscordGuild guild) {
