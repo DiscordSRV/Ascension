@@ -248,7 +248,7 @@ public class ExecuteCommand implements Consumer<DiscordChatInputInteractionEvent
                     switch (outputMode) {
                         default:
                         case MARKDOWN:
-                            discord = discordSRV.componentFactory().discordSerializer().serialize(component);
+                            discord = discordSRV.componentFactory().discordSerialize(component);
                             break;
                         case ANSI:
                             discord = discordSRV.componentFactory().ansiSerializer().serialize(component);

@@ -20,6 +20,7 @@ package com.discordsrv.common.config.main.channels.base;
 
 import com.discordsrv.common.config.configurate.annotation.Order;
 import com.discordsrv.common.config.main.channels.*;
+import com.discordsrv.common.config.main.generic.MentionsConfig;
 import org.spongepowered.configurate.objectmapping.ConfigSerializable;
 import org.spongepowered.configurate.objectmapping.meta.Comment;
 
@@ -31,6 +32,9 @@ public class BaseChannelConfig {
 
     @Order(0)
     public DiscordToMinecraftChatConfig discordToMinecraft = new DiscordToMinecraftChatConfig();
+
+    @Comment("The representations of Discord mentions in-game")
+    public MentionsConfig mentions = new MentionsConfig();
 
     public JoinMessageConfig joinMessages() {
         return new JoinMessageConfig();

@@ -24,6 +24,7 @@ import net.kyori.adventure.platform.bukkit.BukkitComponentSerializer;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
+import org.bukkit.event.player.AsyncPlayerChatEvent;
 
 public class BukkitChatListener implements Listener {
 
@@ -33,11 +34,22 @@ public class BukkitChatListener implements Listener {
         this.forwarder = forwarder;
     }
 
-    @EventHandler(priority = EventPriority.MONITOR)
-    public void onAsyncPlayerChat(org.bukkit.event.player.AsyncPlayerChatEvent event) {
+    @EventHandler(priority = EventPriority.LOW, ignoreCancelled = true)
+    public void onAsyncPlayerChatAnnotate(AsyncPlayerChatEvent event) {
         MinecraftComponent component = ComponentUtil.toAPI(
                 BukkitComponentSerializer.legacy().deserialize(event.getMessage()));
 
-        forwarder.publishEvent(event, event.getPlayer(), component, event.isCancelled());
+        MinecraftComponent annotated = forwarder.annotateChatMessage(event, event.getPlayer(), component);
+        if (annotated != null) {
+            event.setMessage(BukkitComponentSerializer.legacy().serialize(ComponentUtil.fromAPI(annotated)));
+        }
+    }
+
+    @EventHandler(priority = EventPriority.MONITOR)
+    public void onAsyncPlayerChatForward(AsyncPlayerChatEvent event) {
+        MinecraftComponent component = ComponentUtil.toAPI(
+                BukkitComponentSerializer.legacy().deserialize(event.getMessage()));
+
+        forwarder.forwardMessage(event, event.getPlayer(), component, event.isCancelled());
     }
 }

@@ -22,19 +22,28 @@ import com.discordsrv.api.component.GameTextBuilder;
 import com.discordsrv.api.component.MinecraftComponent;
 import com.discordsrv.api.component.MinecraftComponentAdapter;
 import com.discordsrv.api.component.MinecraftComponentFactory;
+import com.discordsrv.api.discord.entity.DiscordUser;
+import com.discordsrv.api.discord.entity.guild.DiscordCustomEmoji;
 import com.discordsrv.api.discord.entity.guild.DiscordGuild;
+import com.discordsrv.api.discord.entity.guild.DiscordGuildMember;
+import com.discordsrv.api.discord.entity.guild.DiscordRole;
+import com.discordsrv.api.events.message.process.discord.DiscordChatMessageCustomEmojiRenderEvent;
 import com.discordsrv.common.DiscordSRV;
-import com.discordsrv.common.config.main.channels.DiscordToMinecraftChatConfig;
+import com.discordsrv.common.config.main.channels.base.BaseChannelConfig;
+import com.discordsrv.common.config.main.generic.MentionsConfig;
 import com.discordsrv.common.core.component.renderer.DiscordSRVMinecraftRenderer;
 import com.discordsrv.common.core.component.translation.Translation;
 import com.discordsrv.common.core.component.translation.TranslationRegistry;
 import com.discordsrv.common.core.logging.Logger;
 import com.discordsrv.common.core.logging.NamedLogger;
+import com.discordsrv.common.util.ComponentUtil;
 import dev.vankka.enhancedlegacytext.EnhancedLegacyText;
 import dev.vankka.mcdiscordreserializer.discord.DiscordSerializer;
 import dev.vankka.mcdiscordreserializer.discord.DiscordSerializerOptions;
 import dev.vankka.mcdiscordreserializer.minecraft.MinecraftSerializer;
 import dev.vankka.mcdiscordreserializer.minecraft.MinecraftSerializerOptions;
+import net.dv8tion.jda.api.JDA;
+import net.dv8tion.jda.api.entities.channel.middleman.GuildChannel;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.TranslatableComponent;
 import net.kyori.adventure.text.flattener.ComponentFlattener;
@@ -155,8 +164,77 @@ public class ComponentFactory implements MinecraftComponentFactory {
         return EnhancedLegacyText.get().parse(textInput);
     }
 
-    public Component minecraftSerialize(DiscordGuild guild, DiscordToMinecraftChatConfig config, String discordMessage) {
+    // Mentions
+
+    @NotNull
+    public Component makeChannelMention(long id, MentionsConfig.Format format) {
+        JDA jda = discordSRV.jda();
+        GuildChannel guildChannel = jda != null ? jda.getGuildChannelById(id) : null;
+
+        return DiscordContentComponent.of("<#" + Long.toUnsignedString(id) + ">", ComponentUtil.fromAPI(
+                discordSRV.componentFactory()
+                        .textBuilder(guildChannel != null ? format.format : format.unknownFormat)
+                        .addContext(guildChannel)
+                        .applyPlaceholderService()
+                        .build()
+        ));
+    }
+
+    @NotNull
+    public Component makeUserMention(long id, MentionsConfig.FormatUser format, DiscordGuild guild) {
+        DiscordUser user = discordSRV.discordAPI().getUserById(id);
+        DiscordGuildMember member = guild.getMemberById(id);
+
+        return DiscordContentComponent.of("<@" + Long.toUnsignedString(id) + ">", ComponentUtil.fromAPI(
+                discordSRV.componentFactory()
+                        .textBuilder(user != null ? (member != null ? format.format : format.formatGlobal) : format.unknownFormat)
+                        .addContext(user, member)
+                        .applyPlaceholderService()
+                        .build()
+        ));
+    }
+
+    public Component makeRoleMention(long id, MentionsConfig.Format format) {
+        DiscordRole role = discordSRV.discordAPI().getRoleById(id);
+
+        return DiscordContentComponent.of("<@&" + Long.toUnsignedString(id) + ">", ComponentUtil.fromAPI(
+                discordSRV.componentFactory()
+                        .textBuilder(role != null ? format.format : format.unknownFormat)
+                        .addContext(role)
+                        .applyPlaceholderService()
+                        .build()
+        ));
+    }
+
+    public Component makeEmoteMention(long id, MentionsConfig.EmoteBehaviour behaviour) {
+        DiscordCustomEmoji emoji = discordSRV.discordAPI().getEmojiById(id);
+        if (emoji == null) {
+            return null;
+        }
+
+        DiscordChatMessageCustomEmojiRenderEvent event = new DiscordChatMessageCustomEmojiRenderEvent(emoji);
+        discordSRV.eventBus().publish(event);
+
+        if (event.isProcessed()) {
+            return DiscordContentComponent.of(emoji.asJDA().getAsMention(), ComponentUtil.fromAPI(event.getRenderedEmojiFromProcessing()));
+        }
+
+        switch (behaviour) {
+            case NAME:
+                return DiscordContentComponent.of(emoji.asJDA().getAsMention(), Component.text(":" + emoji.getName() + ":"));
+            case BLANK:
+            default:
+                return null;
+        }
+    }
+
+    public Component minecraftSerialize(DiscordGuild guild, BaseChannelConfig config, String discordMessage) {
         return DiscordSRVMinecraftRenderer.getWithContext(guild, config, () -> minecraftSerializer().serialize(discordMessage));
+    }
+
+    public String discordSerialize(Component component) {
+        Component mapped = DiscordContentComponent.remapToDiscord(component);
+        return discordSerializer().serialize(mapped);
     }
 
     public MinecraftSerializer minecraftSerializer() {

@@ -19,10 +19,12 @@
 package com.discordsrv.bukkit.listener.chat;
 
 import com.discordsrv.api.component.MinecraftComponent;
+import com.discordsrv.api.events.message.render.GameChatRenderEvent;
 import com.discordsrv.api.events.message.receive.game.GameChatMessageReceiveEvent;
 import com.discordsrv.bukkit.BukkitDiscordSRV;
 import com.discordsrv.bukkit.component.PaperComponentHandle;
 import com.discordsrv.common.abstraction.player.IPlayer;
+import com.discordsrv.common.core.logging.NamedLogger;
 import com.discordsrv.common.feature.channel.global.GlobalChannel;
 import org.bukkit.entity.Player;
 import org.bukkit.event.Event;
@@ -33,8 +35,8 @@ public class BukkitChatForwarder implements IBukkitChatForwarder {
     public static Listener get(BukkitDiscordSRV discordSRV) {
         // TODO: config option
         //noinspection ConstantConditions,PointlessBooleanExpression
-        if (1 == 2 && PaperComponentHandle.IS_PAPER_ADVENTURE) {
-            return new PaperChatListener(new BukkitChatForwarder(discordSRV));
+        if (1 == 1 && PaperComponentHandle.IS_PAPER_ADVENTURE) {
+            return new PaperChatListener(new BukkitChatForwarder(discordSRV), new NamedLogger(discordSRV, "CHAT_LISTENER"));
         }
 
         return new BukkitChatListener(new BukkitChatForwarder(discordSRV));
@@ -47,7 +49,21 @@ public class BukkitChatForwarder implements IBukkitChatForwarder {
     }
 
     @Override
-    public void publishEvent(Event event, Player player, MinecraftComponent component, boolean cancelled) {
+    public MinecraftComponent annotateChatMessage(Event event, Player player, MinecraftComponent component) {
+        IPlayer srvPlayer = discordSRV.playerProvider().player(player);
+        GameChatRenderEvent annotateEvent = new GameChatRenderEvent(
+                event,
+                srvPlayer,
+                new GlobalChannel(discordSRV),
+                component
+        );
+
+        discordSRV.eventBus().publish(annotateEvent);
+        return annotateEvent.getAnnotatedMessage();
+    }
+
+    @Override
+    public void forwardMessage(Event event, Player player, MinecraftComponent component, boolean cancelled) {
         IPlayer srvPlayer = discordSRV.playerProvider().player(player);
         discordSRV.scheduler().run(() -> discordSRV.eventBus().publish(
                 new GameChatMessageReceiveEvent(

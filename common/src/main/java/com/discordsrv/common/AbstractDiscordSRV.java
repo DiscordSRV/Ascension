@@ -71,13 +71,14 @@ import com.discordsrv.common.feature.linking.LinkProvider;
 import com.discordsrv.common.feature.linking.LinkingModule;
 import com.discordsrv.common.feature.linking.impl.MinecraftAuthenticationLinker;
 import com.discordsrv.common.feature.linking.impl.StorageLinker;
+import com.discordsrv.common.feature.mention.MentionGameRenderingModule;
 import com.discordsrv.common.feature.messageforwarding.discord.DiscordChatMessageModule;
 import com.discordsrv.common.feature.messageforwarding.discord.DiscordMessageMirroringModule;
 import com.discordsrv.common.feature.messageforwarding.game.JoinMessageModule;
 import com.discordsrv.common.feature.messageforwarding.game.LeaveMessageModule;
 import com.discordsrv.common.feature.messageforwarding.game.StartMessageModule;
 import com.discordsrv.common.feature.messageforwarding.game.StopMessageModule;
-import com.discordsrv.common.feature.messageforwarding.game.minecrafttodiscord.MentionCachingModule;
+import com.discordsrv.common.feature.mention.MentionCachingModule;
 import com.discordsrv.common.feature.profile.ProfileManager;
 import com.discordsrv.common.feature.update.UpdateChecker;
 import com.discordsrv.common.helper.ChannelConfigHelper;
@@ -593,6 +594,7 @@ public abstract class AbstractDiscordSRV<
         registerModule(MentionCachingModule::new);
         registerModule(LinkingModule::new);
         registerModule(PresenceUpdaterModule::new);
+        registerModule(MentionGameRenderingModule::new);
 
         // Integrations
         registerIntegration("com.discordsrv.common.integration.LuckPermsIntegration");

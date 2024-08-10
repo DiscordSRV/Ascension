@@ -20,32 +20,69 @@ package com.discordsrv.bukkit.listener.chat;
 
 import com.discordsrv.api.component.MinecraftComponent;
 import com.discordsrv.bukkit.component.PaperComponentHandle;
+import com.discordsrv.common.core.logging.Logger;
+import com.discordsrv.unrelocate.net.kyori.adventure.text.Component;
 import io.papermc.paper.event.player.AsyncChatEvent;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 
+import java.lang.invoke.MethodHandle;
+import java.lang.invoke.MethodHandles;
+import java.lang.invoke.MethodType;
+
 public class PaperChatListener implements Listener {
 
-    private static final PaperComponentHandle<AsyncChatEvent> COMPONENT_HANDLE;
+    private static final PaperComponentHandle<AsyncChatEvent> GET_MESSAGE_HANDLE = makeGet();
+    private static final MethodHandle SET_MESSAGE_HANDLE = makeSet();
 
-    static {
-        COMPONENT_HANDLE = new PaperComponentHandle<>(
+    private static PaperComponentHandle<AsyncChatEvent> makeGet() {
+        return new PaperComponentHandle<>(
                 AsyncChatEvent.class,
                 "message",
                 null
         );
     }
+    @SuppressWarnings("JavaLangInvokeHandleSignature") // Unrelocate
+    private static MethodHandle makeSet() {
+        try {
+            return MethodHandles.lookup().findVirtual(
+                    AsyncChatEvent.class,
+                    "message",
+                    MethodType.methodType(void.class, Component.class)
+            );
+        } catch (NoSuchMethodException | IllegalAccessException ignored) {}
+        return null;
+    }
 
     private final IBukkitChatForwarder listener;
+    private final Logger logger;
 
-    public PaperChatListener(IBukkitChatForwarder listener) {
+    public PaperChatListener(IBukkitChatForwarder listener, Logger logger) {
         this.listener = listener;
+        this.logger = logger;
+    }
+
+    @EventHandler(priority = EventPriority.LOW)
+    public void onAsyncChatRender(AsyncChatEvent event) {
+        if (SET_MESSAGE_HANDLE == null) {
+            return;
+        }
+
+        MinecraftComponent component = GET_MESSAGE_HANDLE.getComponent(event);
+        MinecraftComponent annotated = listener.annotateChatMessage(event, event.getPlayer(), component);
+        if (annotated != null) {
+            try {
+                SET_MESSAGE_HANDLE.invoke(event, annotated.asAdventure());
+            } catch (Throwable t) {
+                logger.debug("Failed to render Minecraft message", t);
+            }
+        }
     }
 
     @EventHandler(priority = EventPriority.MONITOR)
-    public void onAsyncChat(AsyncChatEvent event) {
-        MinecraftComponent component = COMPONENT_HANDLE.getComponent(event);
-        listener.publishEvent(event, event.getPlayer(), component, event.isCancelled());
+    public void onAsyncChatForward(AsyncChatEvent event) {
+        MinecraftComponent component = GET_MESSAGE_HANDLE.getComponent(event);
+        listener.forwardMessage(event, event.getPlayer(), component, event.isCancelled());
     }
 }

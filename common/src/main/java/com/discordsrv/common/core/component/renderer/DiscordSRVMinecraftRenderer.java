@@ -18,14 +18,9 @@
 
 package com.discordsrv.common.core.component.renderer;
 
-import com.discordsrv.api.discord.entity.DiscordUser;
-import com.discordsrv.api.discord.entity.guild.DiscordCustomEmoji;
 import com.discordsrv.api.discord.entity.guild.DiscordGuild;
-import com.discordsrv.api.discord.entity.guild.DiscordGuildMember;
-import com.discordsrv.api.discord.entity.guild.DiscordRole;
-import com.discordsrv.api.events.message.process.discord.DiscordChatMessageCustomEmojiRenderEvent;
 import com.discordsrv.common.DiscordSRV;
-import com.discordsrv.common.config.main.channels.DiscordToMinecraftChatConfig;
+import com.discordsrv.common.config.main.channels.base.BaseChannelConfig;
 import com.discordsrv.common.config.main.generic.MentionsConfig;
 import com.discordsrv.common.util.ComponentUtil;
 import dev.vankka.mcdiscordreserializer.renderer.implementation.DefaultMinecraftRenderer;
@@ -35,7 +30,6 @@ import net.dv8tion.jda.api.utils.MiscUtil;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.event.ClickEvent;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 import java.util.function.Supplier;
 import java.util.regex.Matcher;
@@ -53,7 +47,7 @@ public class DiscordSRVMinecraftRenderer extends DefaultMinecraftRenderer {
 
     public static <T> T getWithContext(
             DiscordGuild guild,
-            DiscordToMinecraftChatConfig config,
+            BaseChannelConfig config,
             Supplier<T> supplier
     ) {
         Context oldValue = CONTEXT.get();
@@ -116,57 +110,20 @@ public class DiscordSRVMinecraftRenderer extends DefaultMinecraftRenderer {
             return component.append(Component.text("<#" + id + ">"));
         }
 
-        Component mention = makeChannelMention(MiscUtil.parseLong(id), format);
-        if (mention == null) {
-            return component;
-        }
-
-        return component.append(mention);
-    }
-
-    @Nullable
-    public Component makeChannelMention(long id, MentionsConfig.Format format) {
-        JDA jda = discordSRV.jda();
-        if (jda == null) {
-            return null;
-        }
-
-        GuildChannel guildChannel = jda.getGuildChannelById(id);
-
-        return ComponentUtil.fromAPI(
-                discordSRV.componentFactory()
-                        .textBuilder(guildChannel != null ? format.format : format.unknownFormat)
-                        .addContext(guildChannel)
-                        .applyPlaceholderService()
-                        .build()
-        );
+        return component.append(discordSRV.componentFactory().makeChannelMention(MiscUtil.parseLong(id), format));
     }
 
     @Override
     public @NotNull Component appendUserMention(@NotNull Component component, @NotNull String id) {
         Context context = CONTEXT.get();
-        MentionsConfig.Format format = context != null ? context.config.mentions.user : null;
+        MentionsConfig.FormatUser format = context != null ? context.config.mentions.user : null;
         DiscordGuild guild = context != null ? context.guild : null;
         if (format == null || guild == null) {
             return component.append(Component.text("<@" + id + ">"));
         }
 
         long userId = MiscUtil.parseLong(id);
-        return component.append(makeUserMention(userId, format, guild));
-    }
-
-    @NotNull
-    public Component makeUserMention(long id, MentionsConfig.Format format, DiscordGuild guild) {
-        DiscordUser user = discordSRV.discordAPI().getUserById(id);
-        DiscordGuildMember member = guild.getMemberById(id);
-
-        return ComponentUtil.fromAPI(
-                discordSRV.componentFactory()
-                        .textBuilder(user != null ? format.format : format.unknownFormat)
-                        .addContext(user, member)
-                        .applyPlaceholderService()
-                        .build()
-        );
+        return component.append(discordSRV.componentFactory().makeUserMention(userId, format, guild));
     }
 
     @Override
@@ -178,19 +135,7 @@ public class DiscordSRVMinecraftRenderer extends DefaultMinecraftRenderer {
         }
 
         long roleId = MiscUtil.parseLong(id);
-        return component.append(makeRoleMention(roleId, format));
-    }
-
-    public Component makeRoleMention(long id, MentionsConfig.Format format) {
-        DiscordRole role = discordSRV.discordAPI().getRoleById(id);
-
-        return ComponentUtil.fromAPI(
-                discordSRV.componentFactory()
-                        .textBuilder(role != null ? format.format : format.unknownFormat)
-                        .addContext(role)
-                        .applyPlaceholderService()
-                        .build()
-        );
+        return component.append(discordSRV.componentFactory().makeRoleMention(roleId, format));
     }
 
     @Override
@@ -206,7 +151,7 @@ public class DiscordSRVMinecraftRenderer extends DefaultMinecraftRenderer {
         }
 
         long emojiId = MiscUtil.parseLong(id);
-        Component emoteMention = makeEmoteMention(emojiId, behaviour);
+        Component emoteMention = discordSRV.componentFactory().makeEmoteMention(emojiId, behaviour);
         if (emoteMention == null) {
             return component;
         }
@@ -214,34 +159,12 @@ public class DiscordSRVMinecraftRenderer extends DefaultMinecraftRenderer {
         return component.append(emoteMention);
     }
 
-    public Component makeEmoteMention(long id, MentionsConfig.EmoteBehaviour behaviour) {
-        DiscordCustomEmoji emoji = discordSRV.discordAPI().getEmojiById(id);
-        if (emoji == null) {
-            return null;
-        }
-
-        DiscordChatMessageCustomEmojiRenderEvent event = new DiscordChatMessageCustomEmojiRenderEvent(emoji);
-        discordSRV.eventBus().publish(event);
-
-        if (event.isProcessed()) {
-            return ComponentUtil.fromAPI(event.getRenderedEmojiFromProcessing());
-        }
-
-        switch (behaviour) {
-            case NAME:
-                return Component.text(":" + emoji.getName() + ":");
-            case BLANK:
-            default:
-                return null;
-        }
-    }
-
     private static class Context {
 
         private final DiscordGuild guild;
-        private final DiscordToMinecraftChatConfig config;
+        private final BaseChannelConfig config;
 
-        public Context(DiscordGuild guild, DiscordToMinecraftChatConfig config) {
+        public Context(DiscordGuild guild, BaseChannelConfig config) {
             this.guild = guild;
             this.config = config;
         }

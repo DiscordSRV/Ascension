@@ -204,7 +204,7 @@ public class DiscordChatMessageModule extends AbstractModule<DiscordSRV> {
             return;
         }
 
-        Component messageComponent = discordSRV.componentFactory().minecraftSerialize(guild, chatConfig, finalMessage);
+        Component messageComponent = discordSRV.componentFactory().minecraftSerialize(guild, channelConfig, finalMessage);
         if (ComponentUtil.isEmpty(messageComponent) && !attachments) {
             // Check empty-ness again after rendering
             return;

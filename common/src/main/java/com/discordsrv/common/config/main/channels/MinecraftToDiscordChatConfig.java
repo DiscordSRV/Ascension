@@ -65,6 +65,9 @@ public class MinecraftToDiscordChatConfig implements IMessageConfig {
     @ConfigSerializable
     public static class Mentions {
 
+        @Comment("Should mentions be rendered in Minecraft when sent in Minecraft")
+        public boolean renderMentionsInGame = true;
+
         @Comment("If role mentions should be rendered on Discord\n\n"
                 + "The player needs one of the below permission to trigger notifications:\n"
                 + "- discordsrv.mention.roles.mentionable (for roles which have \"Allow anyone to @mention this role\" enabled)\n"
@@ -87,6 +90,9 @@ public class MinecraftToDiscordChatConfig implements IMessageConfig {
                 + "The player needs the discordsrv.mention.everyone permission to render the mention and trigger a notification")
         public boolean everyone = false;
 
+        public boolean anyCaching() {
+            return roles || channels || users;
+        }
     }
     
 }
