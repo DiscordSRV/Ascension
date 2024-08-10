@@ -171,7 +171,7 @@ public class ComponentFactory implements MinecraftComponentFactory {
         JDA jda = discordSRV.jda();
         GuildChannel guildChannel = jda != null ? jda.getGuildChannelById(id) : null;
 
-        return DiscordMentionComponent.of("<#" + Long.toUnsignedString(id) + ">").append(ComponentUtil.fromAPI(
+        return DiscordContentComponent.of("<#" + Long.toUnsignedString(id) + ">", ComponentUtil.fromAPI(
                 discordSRV.componentFactory()
                         .textBuilder(guildChannel != null ? format.format : format.unknownFormat)
                         .addContext(guildChannel)
@@ -185,7 +185,7 @@ public class ComponentFactory implements MinecraftComponentFactory {
         DiscordUser user = discordSRV.discordAPI().getUserById(id);
         DiscordGuildMember member = guild.getMemberById(id);
 
-        return DiscordMentionComponent.of("<@" + Long.toUnsignedString(id) + ">").append(ComponentUtil.fromAPI(
+        return DiscordContentComponent.of("<@" + Long.toUnsignedString(id) + ">", ComponentUtil.fromAPI(
                 discordSRV.componentFactory()
                         .textBuilder(user != null ? (member != null ? format.format : format.formatGlobal) : format.unknownFormat)
                         .addContext(user, member)
@@ -197,7 +197,7 @@ public class ComponentFactory implements MinecraftComponentFactory {
     public Component makeRoleMention(long id, MentionsConfig.Format format) {
         DiscordRole role = discordSRV.discordAPI().getRoleById(id);
 
-        return DiscordMentionComponent.of("<@&" + Long.toUnsignedString(id) + ">").append(ComponentUtil.fromAPI(
+        return DiscordContentComponent.of("<@&" + Long.toUnsignedString(id) + ">", ComponentUtil.fromAPI(
                 discordSRV.componentFactory()
                         .textBuilder(role != null ? format.format : format.unknownFormat)
                         .addContext(role)
@@ -206,7 +206,6 @@ public class ComponentFactory implements MinecraftComponentFactory {
         ));
     }
 
-    @SuppressWarnings("DataFlowIssue") // isProcessed = processed is not null
     public Component makeEmoteMention(long id, MentionsConfig.EmoteBehaviour behaviour) {
         DiscordCustomEmoji emoji = discordSRV.discordAPI().getEmojiById(id);
         if (emoji == null) {
@@ -217,13 +216,12 @@ public class ComponentFactory implements MinecraftComponentFactory {
         discordSRV.eventBus().publish(event);
 
         if (event.isProcessed()) {
-            return DiscordMentionComponent.of(emoji.asJDA().getAsMention())
-                    .append(ComponentUtil.fromAPI(event.getRenderedEmojiFromProcessing()));
+            return DiscordContentComponent.of(emoji.asJDA().getAsMention(), ComponentUtil.fromAPI(event.getRenderedEmojiFromProcessing()));
         }
 
         switch (behaviour) {
             case NAME:
-                return DiscordMentionComponent.of(emoji.asJDA().getAsMention()).append(Component.text(":" + emoji.getName() + ":"));
+                return DiscordContentComponent.of(emoji.asJDA().getAsMention(), Component.text(":" + emoji.getName() + ":"));
             case BLANK:
             default:
                 return null;
@@ -235,12 +233,7 @@ public class ComponentFactory implements MinecraftComponentFactory {
     }
 
     public String discordSerialize(Component component) {
-        Component mapped = Component.text().append(component).mapChildrenDeep(comp -> {
-            if (comp instanceof DiscordMentionComponent) {
-                return Component.text(((DiscordMentionComponent) comp).mention());
-            }
-            return comp;
-        }).children().get(0);
+        Component mapped = DiscordContentComponent.remapToDiscord(component);
         return discordSerializer().serialize(mapped);
     }
 

@@ -25,7 +25,6 @@ import com.discordsrv.api.discord.entity.message.AllowedMention;
 import com.discordsrv.api.discord.entity.message.ReceivedDiscordMessage;
 import com.discordsrv.api.discord.entity.message.ReceivedDiscordMessageCluster;
 import com.discordsrv.api.discord.entity.message.SendableDiscordMessage;
-import com.discordsrv.api.discord.util.DiscordFormattingUtil;
 import com.discordsrv.api.eventbus.EventPriority;
 import com.discordsrv.api.eventbus.Subscribe;
 import com.discordsrv.api.events.message.forward.game.GameChatMessageForwardedEvent;
@@ -170,7 +169,7 @@ public class MinecraftToDiscordChatModule extends AbstractGameMessageModule<Mine
                             PlainPlaceholderFormat.Formatting.DISCORD,
                             () -> discordSRV.placeholderService().getResultAsCharSequence(message).toString()
                     );
-                    Placeholders messagePlaceholders = new Placeholders(DiscordFormattingUtil.escapeMentions(content));
+                    Placeholders messagePlaceholders = new Placeholders(content);
                     config.contentRegexFilters.forEach(messagePlaceholders::replaceAll);
 
                     if (mentions != null) {
