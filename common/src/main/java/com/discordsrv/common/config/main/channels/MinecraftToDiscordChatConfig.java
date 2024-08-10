@@ -83,8 +83,9 @@ public class MinecraftToDiscordChatConfig implements IMessageConfig {
         public boolean users = true;
 
         @Comment("If uncached users should be looked up from the Discord API when a mention (\"@something\") occurs in chat.\n"
-                + "The player needs the discordsrv.mention.lookup.user permission for uncached members to be looked up")
-        public boolean uncachedUsers = true;
+                + "The player needs the discordsrv.mention.lookup.user permission for uncached members to be looked up\n"
+                + "This WILL cause sending messages to be delayed")
+        public boolean uncachedUsers = false;
 
         @Comment("If @everyone and @here mentions should be enabled\n"
                 + "The player needs the discordsrv.mention.everyone permission to render the mention and trigger a notification")

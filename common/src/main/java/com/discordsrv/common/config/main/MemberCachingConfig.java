@@ -33,7 +33,7 @@ public class MemberCachingConfig {
 
     @Comment("If all members should be cached\n"
             + "Requires the \"Server Members Intent\"")
-    public boolean all = false;
+    public boolean all = true;
 
     @Comment("If members should be cached at startup\n"
             + "Requires the \"Server Members Intent\"")

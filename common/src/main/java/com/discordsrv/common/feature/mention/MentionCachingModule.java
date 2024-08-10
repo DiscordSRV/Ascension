@@ -56,7 +56,7 @@ import java.util.stream.Collectors;
 
 public class MentionCachingModule extends AbstractModule<DiscordSRV> {
 
-    private static final Pattern USER_MENTION_PATTERN = Pattern.compile("@[a-z0-9_.]{2,32}");
+    private static final Pattern USER_MENTION_PATTERN = Pattern.compile("(?<!<)@[a-z0-9_.]{2,32}");
 
     private final Map<Long, Map<Long, CachedMention>> memberMentions = new ConcurrentHashMap<>();
     private final Map<Long, Cache<String, CachedMention>> memberMentionsCache = new ConcurrentHashMap<>();
