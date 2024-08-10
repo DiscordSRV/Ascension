@@ -29,7 +29,7 @@ public enum Permission {
     COMMAND_VERSION("command.admin.version"),
     COMMAND_LINK_OTHER("command.admin.link.other"),
     COMMAND_LINKED_OTHER("command.admin.linked.other"),
-    COMMAND_UNLINK_OTHER("command.admin.linked.other"),
+    COMMAND_UNLINK_OTHER("command.admin.unlink.other"),
     // Player
     COMMAND_ROOT("command.player.root"),
     COMMAND_LINK("command.player.link"),
