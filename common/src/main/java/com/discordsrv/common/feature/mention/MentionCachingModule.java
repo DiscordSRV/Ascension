@@ -100,7 +100,7 @@ public class MentionCachingModule extends AbstractModule<DiscordSRV> {
                 continue;
             }
 
-            if (config.mentions.anyCaching()) {
+            if (config.mentions.any()) {
                 return true;
             }
         }

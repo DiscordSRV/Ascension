@@ -145,20 +145,19 @@ public class MinecraftToDiscordChatModule extends AbstractGameMessageModule<Mine
             allowedMentions.add(AllowedMention.ALL_USERS);
         }
         if (mentionConfig.roles) {
-            if (player.hasPermission(Permission.MENTION_ROLE_MENTIONABLE)) {
+            if (player.hasPermission(Permission.MENTION_ROLE_ALL)) {
+                allowedMentions.add(AllowedMention.ALL_ROLES);
+            } else if (player.hasPermission(Permission.MENTION_ROLE_MENTIONABLE)) {
                 for (Role role : guild.getRoles()) {
                     if (role.isMentionable()) {
                         allowedMentions.add(AllowedMention.role(role.getIdLong()));
                     }
                 }
             }
-            if (player.hasPermission(Permission.MENTION_ROLE_ALL)) {
-                allowedMentions.add(AllowedMention.ALL_ROLES);
-            }
         }
 
-        boolean everyone = mentionConfig.everyone && player.hasPermission(Permission.MENTION_EVERYONE);
-        if (everyone) {
+        boolean everyoneMentionAllowed = mentionConfig.everyone && player.hasPermission(Permission.MENTION_EVERYONE);
+        if (everyoneMentionAllowed) {
             allowedMentions.add(AllowedMention.EVERYONE);
         }
 
@@ -178,7 +177,7 @@ public class MinecraftToDiscordChatModule extends AbstractGameMessageModule<Mine
                     }
 
                     String finalMessage = messagePlaceholders.toString();
-                    return new FormattedText(preventEveryoneMentions(everyone, finalMessage));
+                    return new FormattedText(preventEveryoneMentions(everyoneMentionAllowed, finalMessage));
                 })
                 .applyPlaceholderService()
                 .build();

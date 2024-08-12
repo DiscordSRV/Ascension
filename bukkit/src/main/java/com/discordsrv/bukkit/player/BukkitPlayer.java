@@ -36,6 +36,7 @@ import org.jetbrains.annotations.Nullable;
 import java.lang.invoke.MethodHandle;
 import java.lang.invoke.MethodHandles;
 import java.lang.invoke.MethodType;
+import java.util.Collection;
 import java.util.Locale;
 import java.util.concurrent.CompletableFuture;
 
@@ -92,6 +93,16 @@ public class BukkitPlayer extends BukkitCommandSender implements IPlayer {
                 player.kickPlayer(BukkitComponentSerializer.legacy().serialize(component));
             }
         });
+    }
+
+    @Override
+    public void addChatSuggestions(Collection<String> suggestions) {
+        SpigotPlayer.addChatSuggestions(player, suggestions);
+    }
+
+    @Override
+    public void removeChatSuggestions(Collection<String> suggestions) {
+        SpigotPlayer.removeChatSuggestions(player, suggestions);
     }
 
     @Override

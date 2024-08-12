@@ -54,7 +54,7 @@ public class MentionGameRenderingModule extends AbstractModule<DiscordSRV> {
             }
 
             MinecraftToDiscordChatConfig.Mentions mentions = config.mentions;
-            if (mentions.renderMentionsInGame && mentions.anyCaching()) {
+            if (mentions.renderMentionsInGame && mentions.any()) {
                 return true;
             }
 
@@ -63,7 +63,7 @@ public class MentionGameRenderingModule extends AbstractModule<DiscordSRV> {
     }
 
     @Subscribe
-    public void onGameChatAnnotate(GameChatRenderEvent event) {
+    public void onGameChatRender(GameChatRenderEvent event) {
         if (checkCancellation(event) || checkProcessor(event)) {
             return;
         }

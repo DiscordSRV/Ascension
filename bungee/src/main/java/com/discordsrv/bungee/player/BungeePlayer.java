@@ -31,6 +31,7 @@ import net.md_5.bungee.api.connection.ProxiedPlayer;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.Collection;
 import java.util.Locale;
 import java.util.concurrent.CompletableFuture;
 
@@ -59,6 +60,16 @@ public class BungeePlayer extends BungeeCommandSender implements IPlayer {
     public CompletableFuture<Void> kick(Component component) {
         player.disconnect(BungeeComponentSerializer.get().serialize(component));
         return CompletableFuture.completedFuture(null);
+    }
+
+    @Override
+    public void addChatSuggestions(Collection<String> suggestions) {
+        // API missing
+    }
+
+    @Override
+    public void removeChatSuggestions(Collection<String> suggestions) {
+        // API missing
     }
 
     @Override

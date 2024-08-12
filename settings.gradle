@@ -20,7 +20,7 @@ dependencyResolutionManagement {
             // Bukkit
             version('bukkit_minimum', '1.8.8-R0.1-SNAPSHOT')
             version('bukkit1_12',     '1.12.2-R0.1-SNAPSHOT')
-            version('bukkit_latest',  '1.20.1-R0.1-SNAPSHOT')
+            version('bukkit_latest',  '1.21.1-R0.1-SNAPSHOT')
             version('folia',          '1.20.1-R0.1-SNAPSHOT')
             library('paperapi', 'io.papermc.paper', 'paper-api').versionRef('bukkit_latest')
             library('spigotapi', 'org.spigotmc', 'spigot-api').versionRef('bukkit_latest')
@@ -29,10 +29,10 @@ dependencyResolutionManagement {
             library('folia', 'dev.folia', 'folia-api').versionRef('folia')
 
             // Bungee
-            library('bungee', 'net.md-5', 'bungeecord-api').version('1.17-R0.1-SNAPSHOT')
+            library('bungee', 'net.md-5', 'bungeecord-api').version('1.21-R0.1-SNAPSHOT')
 
             // Velocity
-            library('velocity', 'com.velocitypowered', 'velocity-api').version('3.0.0')
+            library('velocity', 'com.velocitypowered', 'velocity-api').version('3.3.0-SNAPSHOT')
 
             // DependencyDownload
             version('dependencydownload', '1.3.1')

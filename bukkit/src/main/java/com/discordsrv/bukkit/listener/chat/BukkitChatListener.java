@@ -39,7 +39,7 @@ public class BukkitChatListener implements Listener {
         MinecraftComponent component = ComponentUtil.toAPI(
                 BukkitComponentSerializer.legacy().deserialize(event.getMessage()));
 
-        MinecraftComponent annotated = forwarder.annotateChatMessage(event, event.getPlayer(), component);
+        MinecraftComponent annotated = forwarder.renderChatMessage(event, event.getPlayer(), component);
         if (annotated != null) {
             event.setMessage(BukkitComponentSerializer.legacy().serialize(ComponentUtil.fromAPI(annotated)));
         }

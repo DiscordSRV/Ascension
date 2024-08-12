@@ -31,6 +31,7 @@ import net.kyori.adventure.text.Component;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.Collection;
 import java.util.Locale;
 import java.util.concurrent.CompletableFuture;
 
@@ -57,6 +58,16 @@ public class VelocityPlayer extends VelocityCommandSender implements IPlayer {
     public CompletableFuture<Void> kick(Component component) {
         player.disconnect(component);
         return CompletableFuture.completedFuture(null);
+    }
+
+    @Override
+    public void addChatSuggestions(Collection<String> suggestions) {
+        player.addCustomChatCompletions(suggestions);
+    }
+
+    @Override
+    public void removeChatSuggestions(Collection<String> suggestions) {
+        player.removeCustomChatCompletions(suggestions);
     }
 
     @Override

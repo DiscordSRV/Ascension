@@ -24,6 +24,6 @@ import org.bukkit.event.Event;
 
 public interface IBukkitChatForwarder {
 
-    MinecraftComponent annotateChatMessage(Event event, Player player, MinecraftComponent component);
+    MinecraftComponent renderChatMessage(Event event, Player player, MinecraftComponent component);
     void forwardMessage(Event event, Player player, MinecraftComponent component, boolean cancelled);
 }

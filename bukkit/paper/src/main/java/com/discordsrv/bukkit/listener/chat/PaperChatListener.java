@@ -70,7 +70,7 @@ public class PaperChatListener implements Listener {
         }
 
         MinecraftComponent component = GET_MESSAGE_HANDLE.getComponent(event);
-        MinecraftComponent annotated = listener.annotateChatMessage(event, event.getPlayer(), component);
+        MinecraftComponent annotated = listener.renderChatMessage(event, event.getPlayer(), component);
         if (annotated != null) {
             try {
                 SET_MESSAGE_HANDLE.invoke(event, annotated.asAdventure());

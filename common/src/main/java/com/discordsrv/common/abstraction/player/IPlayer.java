@@ -21,6 +21,7 @@ package com.discordsrv.common.abstraction.player;
 import com.discordsrv.api.component.MinecraftComponent;
 import com.discordsrv.api.placeholder.annotation.Placeholder;
 import com.discordsrv.api.placeholder.annotation.PlaceholderPrefix;
+import com.discordsrv.api.placeholder.format.FormattedText;
 import com.discordsrv.api.player.DiscordSRVPlayer;
 import com.discordsrv.common.DiscordSRV;
 import com.discordsrv.common.command.game.sender.ICommandSender;
@@ -34,6 +35,7 @@ import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.Collection;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 
@@ -68,6 +70,9 @@ public interface IPlayer extends DiscordSRVPlayer, IOfflinePlayer, ICommandSende
 
     CompletableFuture<Void> kick(Component component);
 
+    void addChatSuggestions(Collection<String> suggestions);
+    void removeChatSuggestions(Collection<String> suggestions);
+
     @NotNull
     @Placeholder("display_name")
     Component displayName();
@@ -96,14 +101,14 @@ public interface IPlayer extends DiscordSRVPlayer, IOfflinePlayer, ICommandSende
     @Nullable
     @ApiStatus.NonExtendable
     @Placeholder("meta_prefix")
-    default Component getMetaPrefix() {
+    default FormattedText getMetaPrefix() {
         return GamePermissionUtil.getMetaPrefix(discordSRV(), uniqueId());
     }
 
     @Nullable
     @ApiStatus.NonExtendable
     @Placeholder("meta_suffix")
-    default Component getMetaSuffix() {
+    default FormattedText getMetaSuffix() {
         return GamePermissionUtil.getMetaSuffix(discordSRV(), uniqueId());
     }
 

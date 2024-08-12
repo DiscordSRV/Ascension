@@ -91,7 +91,7 @@ public class MinecraftToDiscordChatConfig implements IMessageConfig {
                 + "The player needs the discordsrv.mention.everyone permission to render the mention and trigger a notification")
         public boolean everyone = false;
 
-        public boolean anyCaching() {
+        public boolean any() {
             return roles || channels || users;
         }
     }

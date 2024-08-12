@@ -28,7 +28,7 @@ tasks.register('generateResourceForCommodore', GenerateDependencyDownloadResourc
 
 allprojects {
     repositories {
-        maven { url 'https://papermc.io/repo/repository/maven-public/' }
+        maven { url 'https://repo.papermc.io/repository/maven-public/' }
         maven { url 'https://nexus.scarsz.me/content/groups/public/' }
         maven { url 'https://repo.essentialsx.net/releases/' }
     }

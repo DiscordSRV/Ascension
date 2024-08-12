@@ -2,6 +2,10 @@ apply from: rootProject.file('buildscript/standalone.gradle')
 apply plugin: 'net.kyori.blossom'
 apply plugin: 'org.jetbrains.gradle.plugin.idea-ext'
 
+java {
+    disableAutoTargetJvm() // Requires Java 17, we target 8
+}
+
 sourceSets {
     main {
         blossom {
@@ -21,7 +25,7 @@ shadowJar {
 repositories {
     exclusiveContent {
         forRepository {
-            maven { url 'https://nexus.velocitypowered.com/repository/maven-public/' }
+            maven { url 'https://repo.papermc.io/repository/maven-public/' }
         }
         filter {
             includeGroup 'com.velocitypowered'
@@ -39,7 +43,9 @@ dependencies {
 
     // Platform
     annotationProcessor(libs.velocity)
-    compileOnly(libs.velocity)
+    compileOnly(libs.velocity) {
+        exclude module: 'caffeine'
+    }
 
     // DependencyDownload
     implementation(libs.mcdependencydownload.velocity)

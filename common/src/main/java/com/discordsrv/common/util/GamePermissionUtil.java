@@ -19,6 +19,7 @@
 package com.discordsrv.common.util;
 
 import com.discordsrv.api.module.type.PermissionModule;
+import com.discordsrv.api.placeholder.format.FormattedText;
 import com.discordsrv.common.DiscordSRV;
 import com.discordsrv.common.exception.MessageException;
 import net.kyori.adventure.text.Component;
@@ -35,11 +36,21 @@ public final class GamePermissionUtil {
 
     private GamePermissionUtil() {}
 
-    public static Component getMetaPrefix(DiscordSRV discordSRV, UUID uuid) {
+    public static FormattedText getMetaPrefix(DiscordSRV discordSRV, UUID uuid) {
         return getMeta(discordSRV, uuid, PREFIX_META_KEY);
     }
-    public static Component getMetaSuffix(DiscordSRV discordSRV, UUID uuid) {
+    public static FormattedText getMetaSuffix(DiscordSRV discordSRV, UUID uuid) {
         return getMeta(discordSRV, uuid, SUFFIX_META_KEY);
+    }
+
+    private static FormattedText getMeta(DiscordSRV discordSRV, UUID uuid, String metaKey) {
+        PermissionModule.Meta meta = discordSRV.getModule(PermissionModule.Meta.class);
+        if (meta == null) {
+            return null;
+        }
+
+        String data = meta.getMeta(uuid, metaKey).join();
+        return new FormattedText(data);
     }
 
     public static Component getPrefix(DiscordSRV discordSRV, UUID uuid) {
@@ -48,16 +59,6 @@ public final class GamePermissionUtil {
 
     public static Component getSuffix(DiscordSRV discordSRV, UUID uuid) {
         return getLegacy(discordSRV, "suffix", perm -> perm.getSuffix(uuid));
-    }
-
-    private static Component getMeta(DiscordSRV discordSRV, UUID uuid, String metaKey) {
-        PermissionModule.Meta meta = discordSRV.getModule(PermissionModule.Meta.class);
-        if (meta == null) {
-            return null;
-        }
-
-        String data = meta.getMeta(uuid, metaKey).join();
-        return translate(discordSRV, data);
     }
 
     private static Component getLegacy(

@@ -49,7 +49,7 @@ public class BukkitChatForwarder implements IBukkitChatForwarder {
     }
 
     @Override
-    public MinecraftComponent annotateChatMessage(Event event, Player player, MinecraftComponent component) {
+    public MinecraftComponent renderChatMessage(Event event, Player player, MinecraftComponent component) {
         IPlayer srvPlayer = discordSRV.playerProvider().player(player);
         GameChatRenderEvent annotateEvent = new GameChatRenderEvent(
                 event,

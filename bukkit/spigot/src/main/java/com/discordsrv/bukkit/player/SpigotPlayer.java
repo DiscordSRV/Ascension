@@ -23,27 +23,34 @@ import org.bukkit.entity.Player;
 import org.bukkit.profile.PlayerTextures;
 
 import java.net.URL;
+import java.util.Collection;
 import java.util.Locale;
 
 public final class SpigotPlayer {
 
     private SpigotPlayer() {}
 
-    private static final boolean playerProfileExists;
+    private static final boolean PLAYER_PROFILE_EXISTS;
+    private static final boolean CHATSUGGESTIONS_METHODS_AVAILABLE;
 
     static {
         Class<?> playerClass = Player.class;
 
-        boolean playerProfile = false;
+        boolean playerProfile = false, chatSuggestions = false;
         try {
             playerClass.getMethod("getPlayerProfile");
             playerProfile = true;
         } catch (ReflectiveOperationException ignored) {}
-        playerProfileExists = playerProfile;
+        try {
+            playerClass.getMethod("addCustomChatCompletions", Collection.class);
+            chatSuggestions = true;
+        } catch (ReflectiveOperationException ignored) {}
+        PLAYER_PROFILE_EXISTS = playerProfile;
+        CHATSUGGESTIONS_METHODS_AVAILABLE = chatSuggestions;
     }
 
     public static SkinInfo getSkinInfo(Player player) {
-        if (!playerProfileExists) {
+        if (!PLAYER_PROFILE_EXISTS) {
             return null;
         }
 
@@ -59,5 +66,19 @@ public final class SpigotPlayer {
                 skinUrlPlain.substring(skinUrlPlain.lastIndexOf('/') + 1),
                 textures.getSkinModel().toString().toLowerCase(Locale.ROOT)
         );
+    }
+
+    public static void addChatSuggestions(Player player, Collection<String> suggestions) {
+        if (!CHATSUGGESTIONS_METHODS_AVAILABLE) {
+            return;
+        }
+        player.addCustomChatCompletions(suggestions);
+    }
+
+    public static void removeChatSuggestions(Player player, Collection<String> suggestions) {
+        if (!CHATSUGGESTIONS_METHODS_AVAILABLE) {
+            return;
+        }
+        player.removeCustomChatCompletions(suggestions);
     }
 }
