@@ -27,6 +27,7 @@ public final class BungeeComponentUtil {
 
     private BungeeComponentUtil() {}
 
+    @SuppressWarnings("deprecation") // Array method
     public static Component fromLegacy(String legacy) {
         BaseComponent[] components = TextComponent.fromLegacyText(legacy);
         return BungeeComponentSerializer.get().deserialize(components);

@@ -1,5 +1,5 @@
 java {
-    disableAutoTargetJvm() // Requires Java 17, we target 8
+    disableAutoTargetJvm() // Requires Java 21, we target 8
 }
 
 dependencies {

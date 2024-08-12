@@ -43,6 +43,7 @@ import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 
+import java.util.Collection;
 import java.util.Locale;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
@@ -96,6 +97,12 @@ public class MinecraftToDiscordChatMessageTest {
                                 public CompletableFuture<Void> kick(Component component) {
                                     return null;
                                 }
+
+                                @Override
+                                public void addChatSuggestions(Collection<String> suggestions) {}
+
+                                @Override
+                                public void removeChatSuggestions(Collection<String> suggestions) {}
 
                                 @Override
                                 public @Nullable SkinInfo skinInfo() {
