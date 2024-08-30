@@ -49,7 +49,7 @@ public class ComponentResultStringifier implements PlaceholderResultMapper {
                 case PLAIN:
                     return discordSRV.componentFactory().plainSerializer().serialize(component);
                 case DISCORD:
-                    return new FormattedText(discordSRV.componentFactory().discordSerialize(component));
+                    return FormattedText.of(discordSRV.componentFactory().discordSerialize(component));
                 case ANSI:
                     return discordSRV.componentFactory().ansiSerializer().serialize(component);
                 case LEGACY:

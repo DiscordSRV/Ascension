@@ -23,16 +23,26 @@
 
 package com.discordsrv.api.placeholder.format;
 
+import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * Represents content that doesn't need to be processed for the purposes of DiscordSRV's processing.
  */
 public class FormattedText implements CharSequence {
 
+    @Contract(value = "null -> null; !null -> new", pure = true)
+    public static FormattedText of(@Nullable CharSequence text) {
+        if (text == null) {
+            return null;
+        }
+        return new FormattedText(text);
+    }
+
     private final CharSequence text;
 
-    public FormattedText(CharSequence text) {
+    private FormattedText(@NotNull CharSequence text) {
         this.text = text;
     }
 

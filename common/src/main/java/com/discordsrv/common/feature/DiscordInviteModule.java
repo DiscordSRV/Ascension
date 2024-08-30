@@ -197,6 +197,6 @@ public class DiscordInviteModule extends AbstractModule<DiscordSRV> {
 
     @Placeholder("discord_invite")
     public CharSequence getInvite() {
-        return new FormattedText(invite != null ? invite : UNKNOWN_INVITE);
+        return FormattedText.of(invite != null ? invite : UNKNOWN_INVITE);
     }
 }

@@ -177,7 +177,7 @@ public class MinecraftToDiscordChatModule extends AbstractGameMessageModule<Mine
                     }
 
                     String finalMessage = messagePlaceholders.toString();
-                    return new FormattedText(preventEveryoneMentions(everyoneMentionAllowed, finalMessage));
+                    return FormattedText.of(preventEveryoneMentions(everyoneMentionAllowed, finalMessage));
                 })
                 .applyPlaceholderService()
                 .build();

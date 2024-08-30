@@ -50,7 +50,7 @@ public final class GamePermissionUtil {
         }
 
         String data = meta.getMeta(uuid, metaKey).join();
-        return new FormattedText(data);
+        return FormattedText.of(data);
     }
 
     public static Component getPrefix(DiscordSRV discordSRV, UUID uuid) {
