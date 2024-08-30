@@ -2,7 +2,7 @@
 
 This is a temporary repository for developing the next major version of DiscordSRV,
 if you are interested in more details, contributing or testing builds join our [Discord server](https://discord.discordsrv.com), 
-opt-in to the `Tester` role in `#notifications` and check out the `#ascension-testing` forum.
+opt-in to the `Tester` role in `Channels & Roles` and check out the `#ascension-testing` forum.
 
 ### License
 
