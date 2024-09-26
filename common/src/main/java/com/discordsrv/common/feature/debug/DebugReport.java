@@ -236,7 +236,7 @@ public class DebugReport {
         values.put("storage.backend", config.storage.backend);
         values.put("storage.sql-table-prefix", config.storage.sqlTablePrefix);
         values.put("storage.remote.pool-options.keepalive-time", poolConfig.keepaliveTime);
-        values.put("storage.remote.pool-options.maxiumum-lifetime", poolConfig.maximumLifetime);
+        values.put("storage.remote.pool-options.maximum-lifetime", poolConfig.maximumLifetime);
         values.put("storage.remote.pool-options.maximum-pool-size", poolConfig.maximumPoolSize);
         values.put("storage.remote.pool-options.minimum-pool-size", poolConfig.minimumPoolSize);
 

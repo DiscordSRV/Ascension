@@ -69,7 +69,7 @@ public abstract class AbstractPlayerProvider<T extends IPlayer, DT extends Disco
         this.allPlayers.add(player);
         discordSRV.scheduler().run(() -> discordSRV.eventBus().publish(new PlayerConnectedEvent(player, initial)));
 
-        if (UUIDUtil.isOffline(uuid) /* Offline */) {
+        if (UUIDUtil.isOffline(uuid)) {
             anyOffline.set(true);
         }
     }
