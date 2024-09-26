@@ -473,14 +473,12 @@ public class DiscordMessageMirroringModule extends AbstractModule<DiscordSRV> {
             boolean webhookMessage,
             MirroringConfig config
     ) {
-        if (channel instanceof DiscordTextChannel) {
-            DiscordTextChannel textChannel = (DiscordTextChannel) channel;
-            return new MessageReference(textChannel, messageId, webhookMessage, config);
-        } else if (channel instanceof DiscordThreadChannel) {
+        if (channel instanceof DiscordThreadChannel) {
             DiscordThreadChannel threadChannel = (DiscordThreadChannel) channel;
             return new MessageReference(threadChannel, messageId, webhookMessage, config);
+        } else {
+            return new MessageReference(channel, messageId, webhookMessage, config);
         }
-        throw new IllegalStateException("Unexpected channel type: " + channel.getClass().getName());
     }
 
     private static class MirrorOperation {
@@ -549,12 +547,12 @@ public class DiscordMessageMirroringModule extends AbstractModule<DiscordSRV> {
         private final MirroringConfig config;
 
         public MessageReference(
-                DiscordTextChannel textChannel,
+                DiscordMessageChannel messageChannel,
                 long messageId,
                 boolean webhookMessage,
                 MirroringConfig config
         ) {
-            this(textChannel.getId(), -1L, messageId, webhookMessage, config);
+            this(messageChannel.getId(), -1L, messageId, webhookMessage, config);
         }
 
         public MessageReference(
