@@ -65,6 +65,7 @@ import com.discordsrv.common.feature.channel.ChannelLockingModule;
 import com.discordsrv.common.feature.channel.TimedUpdaterModule;
 import com.discordsrv.common.feature.channel.global.GlobalChannelLookupModule;
 import com.discordsrv.common.feature.console.ConsoleModule;
+import com.discordsrv.common.feature.customcommands.CustomCommandModule;
 import com.discordsrv.common.feature.debug.data.VersionInfo;
 import com.discordsrv.common.feature.groupsync.GroupSyncModule;
 import com.discordsrv.common.feature.linking.LinkProvider;
@@ -595,6 +596,7 @@ public abstract class AbstractDiscordSRV<
         registerModule(LinkingModule::new);
         registerModule(PresenceUpdaterModule::new);
         registerModule(MentionGameRenderingModule::new);
+        registerModule(CustomCommandModule::new);
 
         // Integrations
         registerIntegration("com.discordsrv.common.integration.LuckPermsIntegration");

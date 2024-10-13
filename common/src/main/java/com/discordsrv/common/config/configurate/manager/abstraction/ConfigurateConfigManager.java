@@ -63,7 +63,7 @@ import java.util.stream.Collectors;
 public abstract class ConfigurateConfigManager<T, LT extends AbstractConfigurationLoader<CommentedConfigurationNode>>
         implements ConfigManager<T>, ConfigLoaderProvider<LT> {
 
-    public static final ThreadLocal<Boolean> CLEAN_MAPPER = ThreadLocal.withInitial(() -> false);
+    public static final ThreadLocal<Boolean> DEFAULT_CONFIG = ThreadLocal.withInitial(() -> false);
     private static final ThreadLocal<Boolean> SAVE_OR_LOAD = ThreadLocal.withInitial(() -> false);
 
     public static NamingScheme NAMING_SCHEME = in -> {
@@ -353,19 +353,19 @@ public abstract class ConfigurateConfigManager<T, LT extends AbstractConfigurati
     /**
      * Gets the default config given the default object from {@link #createConfiguration()}
      * @param defaultConfig the object
-     * @param cleanMapper if options that are marked with {@link DefaultOnly} or serializers that make use of {@link #CLEAN_MAPPER} should be excluded from the node
+     * @param cleanMapper if options that are marked with {@link DefaultOnly} or serializers that make use of {@link #DEFAULT_CONFIG} should be excluded from the node
      * @return the node with the values from the object
      * @throws SerializationException if serialization fails
      */
     private CommentedConfigurationNode getDefault(T defaultConfig, boolean cleanMapper) throws SerializationException {
         try {
             if (cleanMapper) {
-                CLEAN_MAPPER.set(true);
+                DEFAULT_CONFIG.set(true);
             }
             return getDefault(defaultConfig, cleanMapper ? cleanObjectMapper() : objectMapper());
         } finally {
             if (cleanMapper) {
-                CLEAN_MAPPER.set(false);
+                DEFAULT_CONFIG.set(false);
             }
         }
     }

@@ -40,6 +40,13 @@ import java.util.concurrent.CompletableFuture;
 public interface DiscordAPI {
 
     /**
+     * Gets a Discord channel by id, the provided entity should not be stored for long periods of time.
+     * @param id the id for the channel
+     * @return the channel
+     */
+    DiscordChannel getChannelById(long id);
+
+    /**
      * Gets a Discord message channel by id, the provided entity should not be stored for long periods of time.
      * @param id the id for the message channel
      * @return the message channel
@@ -94,7 +101,6 @@ public interface DiscordAPI {
      */
     @Nullable
     DiscordStageChannel getStageChannelById(long id);
-
 
     /**
      * Gets a Discord thread channel by id from the cache, the provided entity should not be stored for long periods of time.

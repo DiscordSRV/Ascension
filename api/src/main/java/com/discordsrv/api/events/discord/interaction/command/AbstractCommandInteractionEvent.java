@@ -23,9 +23,12 @@
 
 package com.discordsrv.api.events.discord.interaction.command;
 
+import com.discordsrv.api.DiscordSRVApi;
 import com.discordsrv.api.discord.entity.DiscordUser;
+import com.discordsrv.api.discord.entity.channel.DiscordChannel;
 import com.discordsrv.api.discord.entity.channel.DiscordMessageChannel;
 import com.discordsrv.api.discord.entity.guild.DiscordGuildMember;
+import com.discordsrv.api.discord.entity.guild.DiscordRole;
 import com.discordsrv.api.discord.entity.interaction.DiscordInteractionHook;
 import com.discordsrv.api.discord.entity.interaction.component.ComponentIdentifier;
 import com.discordsrv.api.discord.entity.message.SendableDiscordMessage;
@@ -39,7 +42,10 @@ import java.util.concurrent.CompletableFuture;
 public abstract class AbstractCommandInteractionEvent<E extends GenericCommandInteractionEvent>
         extends AbstractDeferrableInteractionEvent<E> {
 
+    private final DiscordSRVApi discordSRV;
+
     public AbstractCommandInteractionEvent(
+            DiscordSRVApi discordSRV,
             E jdaEvent,
             ComponentIdentifier identifier,
             DiscordUser user,
@@ -48,6 +54,7 @@ public abstract class AbstractCommandInteractionEvent<E extends GenericCommandIn
             DiscordInteractionHook interaction
     ) {
         super(jdaEvent, identifier, user, member, channel, interaction);
+        this.discordSRV = discordSRV;
     }
 
     public abstract CompletableFuture<DiscordInteractionHook> reply(SendableDiscordMessage message, boolean ephemeral);
@@ -57,8 +64,65 @@ public abstract class AbstractCommandInteractionEvent<E extends GenericCommandIn
     }
 
     @Nullable
-    public String getOption(String name) {
+    public String getOptionAsString(String name) {
         OptionMapping mapping = jdaEvent.getOption(name);
         return mapping != null ? mapping.getAsString() : null;
+    }
+
+    @Nullable
+    public DiscordUser getOptionAsUser(String name) {
+        OptionMapping mapping = jdaEvent.getOption(name);
+        if (mapping == null) {
+            return null;
+        }
+        long id = mapping.getAsLong();
+        return discordSRV.discordAPI().getUserById(id);
+    }
+
+    @Nullable
+    public DiscordRole getOptionAsRole(String name) {
+        OptionMapping mapping = jdaEvent.getOption(name);
+        if (mapping == null) {
+            return null;
+        }
+        long id = mapping.getAsLong();
+        return discordSRV.discordAPI().getRoleById(id);
+    }
+
+    @Nullable
+    public DiscordChannel getOptionAsChannel(String name) {
+        OptionMapping mapping = jdaEvent.getOption(name);
+        if (mapping == null) {
+            return null;
+        }
+        long id = mapping.getAsLong();
+        return discordSRV.discordAPI().getChannelById(id);
+    }
+
+    @Nullable
+    public Long getOptionAsLong(String name) {
+        OptionMapping mapping = jdaEvent.getOption(name);
+        if (mapping == null) {
+            return null;
+        }
+        return mapping.getAsLong();
+    }
+
+    @Nullable
+    public Double getOptionAsDouble(String name) {
+        OptionMapping mapping = jdaEvent.getOption(name);
+        if (mapping == null) {
+            return null;
+        }
+        return mapping.getAsDouble();
+    }
+
+    @Nullable
+    public Boolean getOptionAsBoolean(String name) {
+        OptionMapping mapping = jdaEvent.getOption(name);
+        if (mapping == null) {
+            return null;
+        }
+        return mapping.getAsBoolean();
     }
 }

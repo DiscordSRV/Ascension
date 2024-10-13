@@ -43,7 +43,7 @@ public class DiscordMessageContextInteractionEventImpl extends DiscordMessageCon
             DiscordUser user,
             DiscordGuildMember member,
             DiscordMessageChannel channel, DiscordInteractionHook interaction) {
-        super(jdaEvent, identifier, user, member, channel, interaction);
+        super(discordSRV, jdaEvent, identifier, user, member, channel, interaction);
         this.discordSRV = discordSRV;
     }
 

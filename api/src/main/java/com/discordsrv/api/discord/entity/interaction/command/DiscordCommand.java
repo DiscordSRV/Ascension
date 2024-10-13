@@ -55,9 +55,9 @@ public class DiscordCommand implements JDAEntity<CommandData> {
      * @see DiscordChatInputInteractionEvent
      */
     public static ChatInputBuilder chatInput(
-            ComponentIdentifier id,
-            @org.intellij.lang.annotations.Pattern(CHAT_INPUT_NAME_REGEX) String name,
-            String description
+            @NotNull ComponentIdentifier id,
+            @NotNull @org.intellij.lang.annotations.Pattern(CHAT_INPUT_NAME_REGEX) String name,
+            @NotNull String description
     ) {
         if (!CHAT_INPUT_NAME_PATTERN.matcher(name).matches()) {
             throw new IllegalArgumentException("Name must be alphanumeric (dashes allowed), 1 and 32 characters");
@@ -74,8 +74,8 @@ public class DiscordCommand implements JDAEntity<CommandData> {
      * @see DiscordUserContextInteractionEvent
      */
     public static Builder<DiscordUserContextInteractionEvent> user(
-            ComponentIdentifier id,
-            @org.intellij.lang.annotations.Pattern(".{1,32}") String name
+            @NotNull ComponentIdentifier id,
+            @NotNull @org.intellij.lang.annotations.Pattern(".{1,32}") String name
     ) {
         return new Builder<>(id, CommandType.USER, name);
     }
@@ -89,8 +89,8 @@ public class DiscordCommand implements JDAEntity<CommandData> {
      * @see DiscordMessageContextInteractionEvent
      */
     public static Builder<DiscordMessageContextInteractionEvent> message(
-            ComponentIdentifier id,
-            @org.intellij.lang.annotations.Pattern(".{1,32}") String name
+            @NotNull ComponentIdentifier id,
+            @NotNull @org.intellij.lang.annotations.Pattern(".{1,32}") String name
     ) {
         return new Builder<>(id, CommandType.MESSAGE, name);
     }

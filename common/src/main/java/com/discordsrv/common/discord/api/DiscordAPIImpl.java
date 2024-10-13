@@ -114,6 +114,16 @@ public class DiscordAPIImpl implements DiscordAPI {
     }
 
     @Override
+    public DiscordChannel getChannelById(long id) {
+        DiscordForumChannel forumChannel = getForumChannelById(id);
+        if (forumChannel != null) {
+            return forumChannel;
+        }
+
+        return getMessageChannelById(id);
+    }
+
+    @Override
     public @Nullable DiscordMessageChannel getMessageChannelById(long id) {
         DiscordTextChannel textChannel = getTextChannelById(id);
         if (textChannel != null) {
@@ -128,6 +138,11 @@ public class DiscordAPIImpl implements DiscordAPI {
         DiscordVoiceChannel voiceChannel = getVoiceChannelById(id);
         if (voiceChannel != null) {
             return voiceChannel;
+        }
+
+        DiscordStageChannel stageChannel = getStageChannelById(id);
+        if (stageChannel != null) {
+            return stageChannel;
         }
 
         DiscordNewsChannel newsChannel = getNewsChannelById(id);
@@ -153,12 +168,14 @@ public class DiscordAPIImpl implements DiscordAPI {
             return getTextChannel((TextChannel) jda);
         } else if (jda instanceof ThreadChannel) {
             return getThreadChannel((ThreadChannel) jda);
-        } else if (jda instanceof PrivateChannel) {
-            return getDirectMessageChannel((PrivateChannel) jda);
-        } else if (jda instanceof NewsChannel) {
-            return getNewsChannel((NewsChannel) jda);
         } else if (jda instanceof VoiceChannel) {
             return getVoiceChannel((VoiceChannel) jda);
+        } else if (jda instanceof StageChannel) {
+            return getStageChannel((StageChannel) jda);
+        } else if (jda instanceof NewsChannel) {
+            return getNewsChannel((NewsChannel) jda);
+        } else if (jda instanceof PrivateChannel) {
+            return getDirectMessageChannel((PrivateChannel) jda);
         } else {
             throw new IllegalArgumentException("Unmappable MessageChannel type: " + jda.getClass().getName());
         }
@@ -189,7 +206,7 @@ public class DiscordAPIImpl implements DiscordAPI {
 
     @Override
     public @Nullable DiscordNewsChannel getNewsChannelById(long id) {
-        return null;
+        return mapJDAEntity(jda -> jda.getNewsChannelById(id), this::getNewsChannel);
     }
 
     public DiscordNewsChannelImpl getNewsChannel(NewsChannel jda) {

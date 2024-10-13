@@ -104,6 +104,11 @@ public abstract class MainConfig implements Config {
     @Comment("Options for console channel(s) and/or thread(s)")
     public List<ConsoleConfig> console = new ArrayList<>(Collections.singleton(new ConsoleConfig()));
 
+    public List<CustomCommandConfig> customCommands = new ArrayList<>(Arrays.asList(
+            CustomCommandConfig.defaultIp(),
+            CustomCommandConfig.defaultHelloWorld()
+    ));
+
     @Comment("Configuration for the %1 placeholder. The below options will be attempted in the order they are in")
     @Constants.Comment("%discord_invite%")
     public DiscordInviteConfig invite = new DiscordInviteConfig();

@@ -95,7 +95,7 @@ public class ExecuteCommand implements Consumer<DiscordChatInputInteractionEvent
             return;
         }
 
-        String command = event.getOption("command");
+        String command = event.getOptionAsString("command");
         if (command == null) {
             return;
         }

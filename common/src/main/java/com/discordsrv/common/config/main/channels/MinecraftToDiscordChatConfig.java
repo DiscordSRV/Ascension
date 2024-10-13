@@ -19,7 +19,6 @@
 package com.discordsrv.common.config.main.channels;
 
 import com.discordsrv.api.discord.entity.message.SendableDiscordMessage;
-import com.discordsrv.common.config.configurate.annotation.DefaultOnly;
 import com.discordsrv.common.config.configurate.annotation.Untranslated;
 import com.discordsrv.common.config.configurate.manager.abstraction.ConfigurateConfigManager;
 import com.discordsrv.common.config.main.generic.IMessageConfig;
@@ -40,7 +39,6 @@ public class MinecraftToDiscordChatConfig implements IMessageConfig {
     public Boolean enabled = true;
 
     @Untranslated(Untranslated.Type.VALUE)
-    @DefaultOnly
     public SendableDiscordMessage.Builder format = SendableDiscordMessage.builder()
             .setWebhookUsername("%player_meta_prefix|player_prefix%%player_display_name|player_name%%player_meta_suffix|player_suffix%")
             .setWebhookAvatarUrl("%player_avatar_url%")

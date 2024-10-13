@@ -23,6 +23,7 @@
 
 package com.discordsrv.api.events.discord.interaction.command;
 
+import com.discordsrv.api.DiscordSRVApi;
 import com.discordsrv.api.discord.entity.DiscordUser;
 import com.discordsrv.api.discord.entity.channel.DiscordMessageChannel;
 import com.discordsrv.api.discord.entity.guild.DiscordGuildMember;
@@ -33,6 +34,7 @@ import net.dv8tion.jda.api.events.interaction.command.UserContextInteractionEven
 public abstract class DiscordUserContextInteractionEvent extends AbstractCommandInteractionEvent<UserContextInteractionEvent> {
 
     public DiscordUserContextInteractionEvent(
+            DiscordSRVApi discordSRV,
             UserContextInteractionEvent jdaEvent,
             ComponentIdentifier identifier,
             DiscordUser user,
@@ -40,6 +42,6 @@ public abstract class DiscordUserContextInteractionEvent extends AbstractCommand
             DiscordMessageChannel channel,
             DiscordInteractionHook interaction
     ) {
-        super(jdaEvent, identifier, user, member, channel, interaction);
+        super(discordSRV, jdaEvent, identifier, user, member, channel, interaction);
     }
 }

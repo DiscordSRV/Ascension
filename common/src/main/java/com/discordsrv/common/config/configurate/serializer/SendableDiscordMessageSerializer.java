@@ -47,8 +47,13 @@ public class SendableDiscordMessageSerializer implements TypeSerializer<Sendable
     @Override
     public SendableDiscordMessage.Builder deserialize(Type type, ConfigurationNode node)
             throws SerializationException {
+        Object raw = node.raw();
+        if (raw instanceof SendableDiscordMessage.Builder) {
+            return (SendableDiscordMessage.Builder) raw;
+        }
+
         String contentOnly = node.getString();
-        if (contentOnly != null || ConfigurateConfigManager.CLEAN_MAPPER.get()) {
+        if (contentOnly != null) {
             return SendableDiscordMessage.builder()
                     .setContent(contentOnly);
         }
@@ -82,8 +87,12 @@ public class SendableDiscordMessageSerializer implements TypeSerializer<Sendable
     @Override
     public void serialize(Type type, SendableDiscordMessage.@Nullable Builder obj, ConfigurationNode node)
             throws SerializationException {
-        if (obj == null || ConfigurateConfigManager.CLEAN_MAPPER.get()) {
+        if (obj == null) {
             node.set(null);
+            return;
+        }
+        if (ConfigurateConfigManager.DEFAULT_CONFIG.get()) {
+            node.raw(obj);
             return;
         }
 

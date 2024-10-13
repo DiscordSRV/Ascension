@@ -46,8 +46,9 @@ public class DiscordMessageEmbedSerializer implements TypeSerializer<DiscordMess
 
     @Override
     public DiscordMessageEmbed.Builder deserialize(Type type, ConfigurationNode node) throws SerializationException {
-        if (ConfigurateConfigManager.CLEAN_MAPPER.get()) {
-            return null;
+        Object raw = node.raw();
+        if (raw instanceof DiscordMessageEmbed.Builder) {
+            return (DiscordMessageEmbed.Builder) raw;
         }
         if (!node.node(map("Enabled")).getBoolean(node.node(map("Enable")).getBoolean(true))) {
             return null;
@@ -90,8 +91,12 @@ public class DiscordMessageEmbedSerializer implements TypeSerializer<DiscordMess
     @Override
     public void serialize(Type type, DiscordMessageEmbed.@Nullable Builder obj, ConfigurationNode node)
             throws SerializationException {
-        if (obj == null || ConfigurateConfigManager.CLEAN_MAPPER.get()) {
+        if (obj == null) {
             node.set(null);
+            return;
+        }
+        if (ConfigurateConfigManager.DEFAULT_CONFIG.get()) {
+            node.raw(obj);
             return;
         }
 
@@ -134,6 +139,11 @@ public class DiscordMessageEmbedSerializer implements TypeSerializer<DiscordMess
 
         @Override
         public DiscordMessageEmbed.Field deserialize(Type type, ConfigurationNode node) {
+            Object raw = node.raw();
+            if (raw instanceof DiscordMessageEmbed.Field) {
+                return (DiscordMessageEmbed.Field) raw;
+            }
+
             // v1 compat
             String footerString = node.getString();
             if (footerString != null) {
@@ -163,6 +173,10 @@ public class DiscordMessageEmbedSerializer implements TypeSerializer<DiscordMess
                 throws SerializationException {
             if (obj == null) {
                 node.set(null);
+                return;
+            }
+            if (ConfigurateConfigManager.DEFAULT_CONFIG.get()) {
+                node.raw(obj);
                 return;
             }
 
