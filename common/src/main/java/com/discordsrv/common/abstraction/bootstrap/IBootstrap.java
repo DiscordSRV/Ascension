@@ -24,7 +24,7 @@ import dev.vankka.dependencydownload.classpath.ClasspathAppender;
 import java.nio.file.Path;
 
 /**
- * The plugin-/mod main "startup" class that the server sees.
+ * Bootstrap type that sits between the plugin/mod main class and the {@link com.discordsrv.common.DiscordSRV} instance.
  */
 public interface IBootstrap {
 
