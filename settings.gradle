@@ -17,6 +17,12 @@ dependencyResolutionManagement {
             plugin('indra-licenser', 'net.kyori.indra.licenser.spotless').version('2.2.0')
             plugin('idea-ext', 'org.jetbrains.gradle.plugin.idea-ext').version('1.1.7')
 
+            // Run platforms
+            version('runtask', '2.3.1')
+            plugin('run-paper', 'xyz.jpenilla.run-paper').versionRef('runtask')
+            plugin('run-velocity', 'xyz.jpenilla.run-velocity').versionRef('runtask')
+            plugin('run-waterfall', 'xyz.jpenilla.run-waterfall').versionRef('runtask')
+
             // Bukkit
             version('bukkit_minimum', '1.8.8-R0.1-SNAPSHOT')
             version('bukkit1_12',     '1.12.2-R0.1-SNAPSHOT')

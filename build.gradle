@@ -5,6 +5,9 @@ plugins {
     alias(libs.plugins.indra.licenser) apply false
     alias(libs.plugins.dependencydownload.plugin) apply false
     alias(libs.plugins.idea.ext) apply false
+    alias(libs.plugins.run.paper) apply false
+    alias(libs.plugins.run.waterfall) apply false
+    alias(libs.plugins.run.velocity) apply false
 }
 
 version '3.0.0-SNAPSHOT'

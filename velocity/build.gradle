@@ -1,6 +1,7 @@
 apply from: rootProject.file('buildscript/standalone.gradle')
 apply plugin: 'net.kyori.blossom'
 apply plugin: 'org.jetbrains.gradle.plugin.idea-ext'
+apply plugin: 'xyz.jpenilla.run-velocity'
 
 java {
     disableAutoTargetJvm() // Requires Java 17, we target 8
@@ -49,4 +50,10 @@ dependencies {
 
     // DependencyDownload
     implementation(libs.mcdependencydownload.velocity)
+}
+
+tasks {
+    runVelocity {
+        velocityVersion("3.1.2-SNAPSHOT")
+    }
 }
