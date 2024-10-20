@@ -107,7 +107,7 @@ public class MockDiscordSRV extends AbstractDiscordSRV<IBootstrap, MainConfig, C
 
     @Override
     public ServerType serverType() {
-        return ServerType.SERVER;
+        return null;
     }
 
     @Override
