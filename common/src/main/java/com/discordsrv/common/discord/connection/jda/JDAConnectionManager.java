@@ -192,7 +192,6 @@ public class JDAConnectionManager implements DiscordConnectionManager {
 
     @Subscribe
     public void onDebugGenerate(DebugGenerateEvent event) {
-
         StringBuilder builder = new StringBuilder();
         builder.append("Intents: ").append(intents);
         builder.append("\nCache Flags: ").append(cacheFlags);

@@ -43,7 +43,11 @@ public abstract class PluginIntegration<DT extends DiscordSRV> extends AbstractM
     @Override
     @MustBeInvokedByOverriders
     public boolean isEnabled() {
-        if (discordSRV.config().integrations.disabledIntegrations.contains(getIntegrationName())) {
+        String integrationName = getIntegrationName();
+        if (discordSRV.config().integrations.disabledIntegrations.contains(integrationName)) {
+            return false;
+        }
+        if (!discordSRV.pluginManager().isPluginEnabled(integrationName)) {
             return false;
         }
         return super.isEnabled();
