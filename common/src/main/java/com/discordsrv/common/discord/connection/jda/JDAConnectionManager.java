@@ -51,7 +51,7 @@ import com.neovisionaries.ws.client.WebSocketFrame;
 import net.dv8tion.jda.api.JDA;
 import net.dv8tion.jda.api.JDABuilder;
 import net.dv8tion.jda.api.entities.*;
-import net.dv8tion.jda.api.entities.channel.concrete.*;
+import net.dv8tion.jda.api.entities.channel.Channel;
 import net.dv8tion.jda.api.events.StatusChangeEvent;
 import net.dv8tion.jda.api.events.session.SessionDisconnectEvent;
 import net.dv8tion.jda.api.events.session.ShutdownEvent;
@@ -232,16 +232,13 @@ public class JDAConnectionManager implements DiscordConnectionManager {
         for (Object o : event.getContexts()) {
             Object converted;
             boolean isConversion = true;
-            if (o instanceof PrivateChannel) {
-                converted = api().getDirectMessageChannel((PrivateChannel) o);
-            } else if (o instanceof TextChannel) {
-                converted = api().getTextChannel((TextChannel) o);
-            } else if (o instanceof ThreadChannel) {
-                converted = api().getThreadChannel((ThreadChannel) o);
-            } else if (o instanceof VoiceChannel) {
-                converted = api().getVoiceChannel((VoiceChannel) o);
-            } else if (o instanceof StageChannel) {
-                converted = api().getStageChannel((StageChannel) o);
+            if (o instanceof Channel) {
+                try {
+                    converted = api().getChannel((Channel) o);
+                } catch (IllegalArgumentException e) {
+                    discordSRV.logger().debug("Failed to map " + o.getClass().getName(), e);
+                    converted = o;
+                }
             } else if (o instanceof Guild) {
                 converted = api().getGuild((Guild) o);
             } else if (o instanceof Member) {
