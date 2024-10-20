@@ -29,6 +29,17 @@ import java.util.Objects;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 
+/**
+ * Represents a subject that is
+ * - a Minecraft player, or
+ * - a Discord user, or
+ * - a Minecraft player and their linked Discord user
+ *
+ * @see #withLinkedAccounts(DiscordSRV)
+ * @see #withUserId(DiscordSRV)
+ * @see #withPlayerUUID(DiscordSRV)
+ * @see #profile(DiscordSRV)
+ */
 public class Someone {
 
     public static Someone.Resolved of(@NotNull DiscordSRVPlayer player, @NotNull DiscordUser user) {

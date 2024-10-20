@@ -40,7 +40,7 @@ import com.discordsrv.bukkit.requiredlinking.BukkitRequiredLinkingModule;
 import com.discordsrv.bukkit.scheduler.BukkitScheduler;
 import com.discordsrv.bukkit.scheduler.FoliaScheduler;
 import com.discordsrv.bukkit.scheduler.IBukkitScheduler;
-import com.discordsrv.common.ServerDiscordSRV;
+import com.discordsrv.common.AbstractDiscordSRV;
 import com.discordsrv.common.abstraction.plugin.PluginManager;
 import com.discordsrv.common.command.game.handler.ICommandHandler;
 import com.discordsrv.common.config.configurate.manager.ConnectionConfigManager;
@@ -59,7 +59,7 @@ import java.lang.reflect.Field;
 import java.util.List;
 import java.util.Set;
 
-public class BukkitDiscordSRV extends ServerDiscordSRV<DiscordSRVBukkitBootstrap, BukkitConfig, BukkitConnectionConfig, MessagesConfig> {
+public class BukkitDiscordSRV extends AbstractDiscordSRV<DiscordSRVBukkitBootstrap, BukkitConfig, BukkitConnectionConfig, MessagesConfig> {
 
     private BukkitAudiences audiences;
     private BukkitTranslationLoader translationLoader;
@@ -122,6 +122,11 @@ public class BukkitDiscordSRV extends ServerDiscordSRV<DiscordSRVBukkitBootstrap
     @Override
     public BukkitConsole console() {
         return console;
+    }
+
+    @Override
+    public ServerType serverType() {
+        return ServerType.SERVER;
     }
 
     @Override

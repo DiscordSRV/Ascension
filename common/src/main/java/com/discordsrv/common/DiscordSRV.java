@@ -72,6 +72,7 @@ public interface DiscordSRV extends DiscordSRVApi {
     String WEBSITE = "https://discordsrv.vankka.dev";
 
     // Platform
+    ServerType serverType();
     IBootstrap bootstrap();
     Logger platformLogger();
     Path dataDirectory();
@@ -172,10 +173,16 @@ public interface DiscordSRV extends DiscordSRVApi {
     void runEnable();
     List<ReloadResult> runReload(Set<ReloadFlag> flags, boolean silent);
     CompletableFuture<Void> invokeDisable();
+    boolean isServerStarted();
 
     @Nullable
     default GameCommandExecutionHelper executeHelper() {
         return null;
+    }
+
+    enum ServerType {
+        SERVER,
+        PROXY
     }
 
 }

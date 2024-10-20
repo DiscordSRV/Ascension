@@ -21,7 +21,6 @@ package com.discordsrv.common.feature.channel;
 import com.discordsrv.api.DiscordSRVApi;
 import com.discordsrv.api.discord.connection.jda.errorresponse.ErrorCallbackContext;
 import com.discordsrv.common.DiscordSRV;
-import com.discordsrv.common.ServerDiscordSRV;
 import com.discordsrv.common.config.main.TimedUpdaterConfig;
 import com.discordsrv.common.core.logging.NamedLogger;
 import com.discordsrv.common.core.module.type.AbstractModule;
@@ -64,9 +63,7 @@ public class TimedUpdaterModule extends AbstractModule<DiscordSRV> {
             return false;
         }
 
-        return super.isEnabled() && discordSRV.isReady() &&
-                (!(discordSRV instanceof ServerDiscordSRV)
-                        || ((ServerDiscordSRV<?, ?, ?, ?>) discordSRV).isServerStarted());
+        return super.isEnabled() && discordSRV.isReady() && discordSRV.isServerStarted();
     }
 
     @Override

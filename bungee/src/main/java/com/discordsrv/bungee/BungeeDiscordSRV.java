@@ -22,7 +22,7 @@ import com.discordsrv.bungee.command.game.handler.BungeeCommandHandler;
 import com.discordsrv.bungee.console.BungeeConsole;
 import com.discordsrv.bungee.player.BungeePlayerProvider;
 import com.discordsrv.bungee.plugin.BungeePluginManager;
-import com.discordsrv.common.ProxyDiscordSRV;
+import com.discordsrv.common.AbstractDiscordSRV;
 import com.discordsrv.common.abstraction.plugin.PluginManager;
 import com.discordsrv.common.command.game.handler.ICommandHandler;
 import com.discordsrv.common.config.configurate.manager.ConnectionConfigManager;
@@ -38,7 +38,7 @@ import net.md_5.bungee.api.ProxyServer;
 import net.md_5.bungee.api.plugin.Plugin;
 import org.jetbrains.annotations.NotNull;
 
-public class BungeeDiscordSRV extends ProxyDiscordSRV<DiscordSRVBungeeBootstrap, MainConfig, ConnectionConfig, MessagesConfig> {
+public class BungeeDiscordSRV extends AbstractDiscordSRV<DiscordSRVBungeeBootstrap, MainConfig, ConnectionConfig, MessagesConfig> {
 
     private BungeeAudiences audiences;
 
@@ -69,6 +69,11 @@ public class BungeeDiscordSRV extends ProxyDiscordSRV<DiscordSRVBungeeBootstrap,
 
     public BungeeAudiences audiences() {
         return audiences;
+    }
+
+    @Override
+    public ServerType serverType() {
+        return ServerType.PROXY;
     }
 
     @Override

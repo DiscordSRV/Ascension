@@ -36,6 +36,9 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.function.Supplier;
 
+/**
+ * A wrapper for loading in the initial dependencies, enabling and disabling {@link DiscordSRV}.
+ */
 public class LifecycleManager {
 
     private final Logger logger;

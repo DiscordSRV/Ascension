@@ -20,6 +20,9 @@ package com.discordsrv.common.helper;
 
 import java.util.function.Consumer;
 
+/**
+ * Data access for unit testing.
+ */
 public final class TestHelper {
 
     private static final ThreadLocal<Consumer<Throwable>> error = new ThreadLocal<>();

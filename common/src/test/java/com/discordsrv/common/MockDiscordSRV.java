@@ -106,6 +106,11 @@ public class MockDiscordSRV extends AbstractDiscordSRV<IBootstrap, MainConfig, C
     }
 
     @Override
+    public ServerType serverType() {
+        return ServerType.SERVER;
+    }
+
+    @Override
     public Path dataDirectory() {
         if (this.path == null) {
             Path path = Paths.get("/tmp/discordsrv-test");

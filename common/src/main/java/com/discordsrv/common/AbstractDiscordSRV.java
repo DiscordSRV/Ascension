@@ -75,10 +75,7 @@ import com.discordsrv.common.feature.linking.impl.StorageLinker;
 import com.discordsrv.common.feature.mention.MentionGameRenderingModule;
 import com.discordsrv.common.feature.messageforwarding.discord.DiscordChatMessageModule;
 import com.discordsrv.common.feature.messageforwarding.discord.DiscordMessageMirroringModule;
-import com.discordsrv.common.feature.messageforwarding.game.JoinMessageModule;
-import com.discordsrv.common.feature.messageforwarding.game.LeaveMessageModule;
-import com.discordsrv.common.feature.messageforwarding.game.StartMessageModule;
-import com.discordsrv.common.feature.messageforwarding.game.StopMessageModule;
+import com.discordsrv.common.feature.messageforwarding.game.*;
 import com.discordsrv.common.feature.mention.MentionCachingModule;
 import com.discordsrv.common.feature.profile.ProfileManager;
 import com.discordsrv.common.feature.update.UpdateChecker;
@@ -133,6 +130,7 @@ public abstract class AbstractDiscordSRV<
 
     private final AtomicReference<Status> status = new AtomicReference<>(Status.INITIALIZED);
     private final AtomicReference<Boolean> beenReady = new AtomicReference<>(false);
+    private boolean serverStarted = false;
 
     // DiscordSRVApi
     private EventBusImpl eventBus;
@@ -598,6 +596,14 @@ public abstract class AbstractDiscordSRV<
         registerModule(MentionGameRenderingModule::new);
         registerModule(CustomCommandModule::new);
 
+        if (serverType() == ServerType.PROXY) {
+            registerModule(ServerSwitchMessageModule::new);
+        }
+        if (serverType() == ServerType.SERVER) {
+            registerModule(AwardMessageModule::new);
+            registerModule(DeathMessageModule::new);
+        }
+
         // Integrations
         registerIntegration("com.discordsrv.common.integration.LuckPermsIntegration");
 
@@ -608,14 +614,47 @@ public abstract class AbstractDiscordSRV<
             throw e.getCause();
         }
 
+        if (serverType() == ServerType.PROXY) {
+            invokeServerStarted().get();
+        }
+
         // Register PlayerProvider listeners
         playerProvider().subscribe();
     }
 
-    protected final void startedMessage() {
+    public final CompletableFuture<Void> invokeServerStarted() {
+        return scheduler().supply(() -> {
+            if (status().isShutdown()) {
+                // Already shutdown/shutting down, don't bother
+                return null;
+            }
+            try {
+                this.serverStarted();
+            } catch (Throwable t) {
+                if (status().isShutdown() && t instanceof NoClassDefFoundError) {
+                    // Already shutdown, ignore errors for classes that already got unloaded
+                    return null;
+                }
+                setStatus(Status.FAILED_TO_START);
+                disable();
+                logger().error("Failed to start", t);
+            }
+            return null;
+        });
+    }
+
+    @MustBeInvokedByOverriders
+    protected void serverStarted() {
+        serverStarted = true;
+        moduleManager().enableModules();
+
         registerModule(StartMessageModule::new);
         registerModule(StopMessageModule::new);
         Optional.ofNullable(getModule(PresenceUpdaterModule.class)).ifPresent(PresenceUpdaterModule::serverStarted);
+    }
+
+    public boolean isServerStarted() {
+        return serverStarted;
     }
 
     private StorageType getStorageType() {

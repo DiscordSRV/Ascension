@@ -23,6 +23,9 @@ import dev.vankka.dependencydownload.classpath.ClasspathAppender;
 
 import java.nio.file.Path;
 
+/**
+ * The plugin-/mod main "startup" class that the server sees.
+ */
 public interface IBootstrap {
 
     Logger logger();

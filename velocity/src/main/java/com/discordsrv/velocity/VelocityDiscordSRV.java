@@ -18,7 +18,7 @@
 
 package com.discordsrv.velocity;
 
-import com.discordsrv.common.ProxyDiscordSRV;
+import com.discordsrv.common.AbstractDiscordSRV;
 import com.discordsrv.common.abstraction.plugin.PluginManager;
 import com.discordsrv.common.command.game.handler.ICommandHandler;
 import com.discordsrv.common.config.configurate.manager.ConnectionConfigManager;
@@ -41,7 +41,7 @@ import java.net.URL;
 import java.net.URLClassLoader;
 import java.util.jar.JarFile;
 
-public class VelocityDiscordSRV extends ProxyDiscordSRV<DiscordSRVVelocityBootstrap, MainConfig, ConnectionConfig, MessagesConfig> {
+public class VelocityDiscordSRV extends AbstractDiscordSRV<DiscordSRVVelocityBootstrap, MainConfig, ConnectionConfig, MessagesConfig> {
 
     private final StandardScheduler scheduler;
     private final VelocityConsole console;
@@ -81,6 +81,11 @@ public class VelocityDiscordSRV extends ProxyDiscordSRV<DiscordSRVVelocityBootst
 
     public ProxyServer proxy() {
         return bootstrap.proxyServer();
+    }
+
+    @Override
+    public ServerType serverType() {
+        return ServerType.PROXY;
     }
 
     @Override
