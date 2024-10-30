@@ -72,11 +72,11 @@ import com.discordsrv.common.feature.linking.LinkProvider;
 import com.discordsrv.common.feature.linking.LinkingModule;
 import com.discordsrv.common.feature.linking.impl.MinecraftAuthenticationLinker;
 import com.discordsrv.common.feature.linking.impl.StorageLinker;
+import com.discordsrv.common.feature.mention.MentionCachingModule;
 import com.discordsrv.common.feature.mention.MentionGameRenderingModule;
 import com.discordsrv.common.feature.messageforwarding.discord.DiscordChatMessageModule;
 import com.discordsrv.common.feature.messageforwarding.discord.DiscordMessageMirroringModule;
 import com.discordsrv.common.feature.messageforwarding.game.*;
-import com.discordsrv.common.feature.mention.MentionCachingModule;
 import com.discordsrv.common.feature.profile.ProfileManager;
 import com.discordsrv.common.feature.update.UpdateChecker;
 import com.discordsrv.common.helper.ChannelConfigHelper;
@@ -102,8 +102,10 @@ import org.jetbrains.annotations.Nullable;
 import java.io.IOException;
 import java.io.InputStream;
 import java.lang.reflect.Constructor;
+import java.net.InetAddress;
 import java.net.URL;
 import java.net.URLClassLoader;
+import java.net.UnknownHostException;
 import java.nio.file.Path;
 import java.time.Duration;
 import java.util.*;
@@ -114,6 +116,7 @@ import java.util.concurrent.atomic.AtomicReference;
 import java.util.jar.Attributes;
 import java.util.jar.JarFile;
 import java.util.jar.Manifest;
+import java.util.stream.Collectors;
 
 /**
  * DiscordSRV's implementation's common code.
@@ -606,6 +609,23 @@ public abstract class AbstractDiscordSRV<
 
         // Integrations
         registerIntegration("com.discordsrv.common.integration.LuckPermsIntegration");
+
+        // Check if the system has working DNS
+        try {
+            String discordDomain = "discord.com";
+            String gatewayDomain = "gateway.discord.gg";
+            String discordAddresses = Arrays.stream(InetAddress.getAllByName(discordDomain))
+                    .map(InetAddress::getHostAddress)
+                    .collect(Collectors.joining(", "));
+            String gatewayAddresses = Arrays.stream(InetAddress.getAllByName(gatewayDomain))
+                    .map(InetAddress::getHostAddress)
+                    .collect(Collectors.joining(", "));
+
+            logger().debug("DNS OK (" + discordDomain + "=[" + discordAddresses
+                                   + "], " + gatewayDomain + "=[" + gatewayAddresses + "])");
+        } catch (UnknownHostException e) {
+            logger().debug("DNS check failed", e);
+        }
 
         // Initial load
         try {
