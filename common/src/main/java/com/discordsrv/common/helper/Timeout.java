@@ -20,7 +20,7 @@ package com.discordsrv.common.helper;
 
 import org.jetbrains.annotations.NotNull;
 
-import java.util.concurrent.TimeUnit;
+import java.time.Duration;
 import java.util.concurrent.atomic.AtomicLong;
 
 /**
@@ -31,8 +31,8 @@ public class Timeout {
     private final AtomicLong last = new AtomicLong(0);
     private final long timeoutMS;
 
-    public Timeout(long time, @NotNull TimeUnit unit) {
-        this(unit.toMillis(time));
+    public Timeout(@NotNull Duration duration) {
+        this(duration.toMillis());
     }
 
     public Timeout(long timeoutMS) {

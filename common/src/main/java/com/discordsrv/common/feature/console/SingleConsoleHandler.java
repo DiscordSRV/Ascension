@@ -45,6 +45,7 @@ import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.apache.commons.lang3.tuple.Pair;
 
 import java.time.Duration;
+import java.time.OffsetDateTime;
 import java.util.*;
 import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicLong;
@@ -511,7 +512,12 @@ public class SingleConsoleHandler {
             }
 
             sendFuture = sendFuture
-                    .thenCompose(__ -> discordSRV.destinations().lookupDestination(config.channel.asDestination(), true, true))
+                    .thenCompose(__ -> discordSRV.destinations().lookupDestination(
+                            config.channel.asDestination(),
+                            true,
+                            true,
+                            OffsetDateTime.now())
+                    )
                     .thenCompose(channels -> {
                         if (channels.isEmpty()) {
                             // Nowhere to send to

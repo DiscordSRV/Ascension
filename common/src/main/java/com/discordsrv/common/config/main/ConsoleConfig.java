@@ -32,7 +32,10 @@ import java.util.List;
 public class ConsoleConfig {
 
     @Comment("The console channel or thread")
-    public DestinationConfig.Single channel = new DestinationConfig.Single();
+    public DestinationConfig.Single channel = new DestinationConfig.Single("DiscordSRV Console #%date:'w'%", true);
+
+    @Comment("The amount of threads to keep. Rotation interval is based on placeholders in the thread name")
+    public int threadsToKeepInRotation = 3;
 
     public Appender appender = new Appender();
 

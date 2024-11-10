@@ -94,12 +94,12 @@ public class JDAConnectionManager implements DiscordConnectionManager {
     private final Set<DiscordMemberCachePolicy> memberCachePolicies = new HashSet<>();
 
     // Bot owner details
-    private final Timeout botOwnerTimeout = new Timeout(5, TimeUnit.MINUTES);
+    private final Timeout botOwnerTimeout = new Timeout(Duration.ofMinutes(5));
     private final AtomicReference<CompletableFuture<DiscordUser>> botOwnerRequest = new AtomicReference<>();
 
     // Logging timeouts
-    private final Timeout mfaTimeout = new Timeout(30, TimeUnit.SECONDS);
-    private final Timeout serverErrorTimeout = new Timeout(20, TimeUnit.SECONDS);
+    private final Timeout mfaTimeout = new Timeout(Duration.ofSeconds(30));
+    private final Timeout serverErrorTimeout = new Timeout(Duration.ofSeconds(20));
 
     public JDAConnectionManager(DiscordSRV discordSRV) {
         this.discordSRV = discordSRV;
@@ -293,7 +293,9 @@ public class JDAConnectionManager implements DiscordConnectionManager {
             throw new IllegalStateException("Cannot reconnect, still active");
         }
 
-        return connectionFuture = discordSRV.scheduler().execute(this::connectInternal);
+        this.connectInternal();
+        return CompletableFuture.completedFuture(null);
+        //return connectionFuture = discordSRV.scheduler().execute(this::connectInternal);
     }
 
     private void connectInternal() {

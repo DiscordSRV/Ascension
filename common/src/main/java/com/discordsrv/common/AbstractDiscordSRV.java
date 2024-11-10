@@ -81,6 +81,7 @@ import com.discordsrv.common.feature.profile.ProfileManager;
 import com.discordsrv.common.feature.update.UpdateChecker;
 import com.discordsrv.common.helper.ChannelConfigHelper;
 import com.discordsrv.common.helper.DestinationLookupHelper;
+import com.discordsrv.common.helper.TemporaryLocalData;
 import com.discordsrv.common.logging.adapter.DependencyLoggerAdapter;
 import com.discordsrv.common.util.ApiInstanceUtil;
 import com.discordsrv.common.util.UUIDUtil;
@@ -154,6 +155,7 @@ public abstract class AbstractDiscordSRV<
     private JDAConnectionManager discordConnectionManager;
     private ChannelConfigHelper channelConfig;
     private DestinationLookupHelper destinationLookupHelper;
+    private TemporaryLocalData temporaryLocalData;
 
     private Storage storage;
     private LinkProvider linkProvider;
@@ -191,6 +193,7 @@ public abstract class AbstractDiscordSRV<
         this.discordConnectionManager = new JDAConnectionManager(this);
         this.channelConfig = new ChannelConfigHelper(this);
         this.destinationLookupHelper = new DestinationLookupHelper(this);
+        this.temporaryLocalData = new TemporaryLocalData(this);
         this.updateChecker = new UpdateChecker(this);
         readManifest();
 
@@ -361,6 +364,11 @@ public abstract class AbstractDiscordSRV<
     @Override
     public final Storage storage() {
         return storage;
+    }
+
+    @Override
+    public TemporaryLocalData temporaryLocalData() {
+        return temporaryLocalData;
     }
 
     @Override
@@ -707,6 +715,7 @@ public abstract class AbstractDiscordSRV<
         } catch (Throwable t) {
             logger().error("Failed to close storage connection", t);
         }
+        temporaryLocalData.save();
         this.status.set(Status.SHUTDOWN);
     }
 
