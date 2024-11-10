@@ -293,7 +293,10 @@ public class JDAConnectionManager implements DiscordConnectionManager {
             throw new IllegalStateException("Cannot reconnect, still active");
         }
 
-        return connectionFuture = discordSRV.scheduler().execute(this::connectInternal);
+        this.connectInternal();
+        return CompletableFuture.completedFuture(null);
+        // TODO: investigate why this is broken
+        //return connectionFuture = discordSRV.scheduler().execute(this::connectInternal);
     }
 
     private void connectInternal() {
