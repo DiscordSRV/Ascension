@@ -51,6 +51,14 @@ public class DestinationConfig {
         @Setting(nodeFromParent = true)
         public ThreadConfig thread = new ThreadConfig("");
 
+        @SuppressWarnings("unused") // Configurate
+        public Single() {}
+
+        public Single(String threadName, boolean privateThread) {
+            this.thread.threadName = threadName;
+            this.thread.privateThread = privateThread;
+        }
+
         public DestinationConfig asDestination() {
             DestinationConfig config = new DestinationConfig();
             if (thread == null || StringUtils.isEmpty(thread.threadName)) {

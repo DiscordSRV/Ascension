@@ -19,6 +19,7 @@
 package com.discordsrv.common.feature.console;
 
 import com.discordsrv.api.discord.entity.DiscordUser;
+import com.discordsrv.api.discord.entity.channel.DiscordChannel;
 import com.discordsrv.api.discord.entity.channel.DiscordGuildChannel;
 import com.discordsrv.api.discord.entity.channel.DiscordGuildMessageChannel;
 import com.discordsrv.api.discord.entity.channel.DiscordMessageChannel;
@@ -38,6 +39,7 @@ import com.discordsrv.common.core.logging.Logger;
 import com.discordsrv.common.feature.console.entry.LogEntry;
 import com.discordsrv.common.feature.console.entry.LogMessage;
 import com.discordsrv.common.feature.console.message.ConsoleMessage;
+import com.discordsrv.common.helper.TemporaryLocalData;
 import com.discordsrv.common.logging.LogLevel;
 import net.dv8tion.jda.api.entities.Message;
 import org.apache.commons.lang3.StringUtils;
@@ -45,6 +47,7 @@ import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.apache.commons.lang3.tuple.Pair;
 
 import java.time.Duration;
+import java.time.ZonedDateTime;
 import java.util.*;
 import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicLong;
@@ -60,6 +63,7 @@ public class SingleConsoleHandler {
     private final DiscordSRV discordSRV;
     private final Logger logger;
     private ConsoleConfig config;
+    private String key;
     private Queue<LogEntry> messageQueue;
     private Deque<Pair<SendableDiscordMessage, Boolean>> sendQueue;
     private Future<?> queueProcessingFuture;
@@ -67,6 +71,7 @@ public class SingleConsoleHandler {
 
     // Editing
     private List<LogMessage> messageCache;
+    private final AtomicLong mostRecentMessageChannelId = new AtomicLong(0);
     private final AtomicLong mostRecentMessageId = new AtomicLong(0);
 
     // Sending
@@ -176,12 +181,21 @@ public class SingleConsoleHandler {
         return config;
     }
 
+    public String getKey() {
+        return key;
+    }
+
     public void setConfig(ConsoleConfig config) {
         if (queueProcessingFuture != null) {
             queueProcessingFuture.cancel(false);
         }
 
         this.config = config;
+
+        DestinationConfig.Single destination = config.channel;
+        this.key = Long.toUnsignedString(config.channel.channelId)
+                + "-" + destination.thread.threadName
+                + "-" + config.channel.thread.privateThread;
 
         boolean sendOn = config.appender.outputMode != ConsoleConfig.OutputMode.OFF;
         if (sendOn) {
@@ -205,6 +219,8 @@ public class SingleConsoleHandler {
             if (messageCache != null) {
                 this.messageCache = null;
             }
+            mostRecentMessageChannelId.set(0);
+            mostRecentMessageId.set(0);
         }
 
         timeQueueProcess();
@@ -511,7 +527,23 @@ public class SingleConsoleHandler {
             }
 
             sendFuture = sendFuture
-                    .thenCompose(__ -> discordSRV.destinations().lookupDestination(config.channel.asDestination(), true, true))
+                    .thenCompose(__ -> {
+                        if (mostRecentMessageId.get() != 0) {
+                            long channelId = mostRecentMessageChannelId.get();
+                            DiscordMessageChannel channel = discordSRV.discordAPI().getMessageChannelById(channelId);
+                            if (channel instanceof DiscordGuildMessageChannel) {
+                                return CompletableFuture.completedFuture(
+                                        Collections.singletonList((DiscordGuildMessageChannel) channel)
+                                );
+                            }
+                        }
+
+                        return discordSRV.destinations().lookupDestination(
+                                config.channel.asDestination(),
+                                true,
+                                true,
+                                ZonedDateTime.now());
+                    })
                     .thenCompose(channels -> {
                         if (channels.isEmpty()) {
                             // Nowhere to send to
@@ -519,6 +551,43 @@ public class SingleConsoleHandler {
                         }
 
                         DiscordGuildMessageChannel channel = channels.iterator().next();
+
+                        int amountOfChannels = config.threadsToKeepInRotation;
+                        if (amountOfChannels > 0) {
+                            TemporaryLocalData.Model temporaryData = discordSRV.temporaryLocalData().get();
+
+                            List<Long> channelsToDelete = null;
+                            synchronized (temporaryData) {
+                                Map<String, List<Long>> rotationIds = temporaryData.consoleThreadRotationIds;
+                                List<Long> channelIds = rotationIds.computeIfAbsent(key, k -> new ArrayList<>(amountOfChannels));
+
+                                if (channelIds.isEmpty() || channelIds.get(0) != channel.getId()) {
+                                    channelIds.add(0, channel.getId());
+                                }
+                                if (channelIds.size() > amountOfChannels) {
+                                    rotationIds.put(key, channelIds.subList(0, amountOfChannels));
+                                    channelsToDelete = channelIds.subList(amountOfChannels, channelIds.size());
+                                }
+                            }
+                            discordSRV.temporaryLocalData().saveLater();
+
+                            if (channelsToDelete != null) {
+                                for (Long channelId : channelsToDelete) {
+                                    DiscordChannel channelToDelete = discordSRV.discordAPI().getChannelById(channelId);
+                                    if (channelToDelete instanceof DiscordGuildChannel) {
+                                        ((DiscordGuildChannel) channelToDelete).delete();
+                                    }
+                                }
+                            }
+                        }
+
+                        return CompletableFuture.completedFuture(channel);
+                    })
+                    .thenCompose(channel -> {
+                        if (channel == null) {
+                            return null;
+                        }
+
                         synchronized (mostRecentMessageId) {
                             long messageId = mostRecentMessageId.get();
                             if (messageId != 0) {
@@ -527,6 +596,9 @@ public class SingleConsoleHandler {
                                 }
                                 return channel.editMessageById(messageId, sendableMessage);
                             }
+
+                            // Rotation may cause channel to change
+                            mostRecentMessageChannelId.set(channel.getId());
                         }
 
                         return channel.sendMessage(sendableMessage);
@@ -540,6 +612,10 @@ public class SingleConsoleHandler {
                         sentFirstBatch = true;
                         return msg;
                     }).exceptionally(ex -> {
+                        synchronized (mostRecentMessageId) {
+                            mostRecentMessageId.set(0);
+                        }
+
                         String error = "Failed to send message to console channel";
                         String messageContent = sendableMessage.getContent();
                         if (messageContent != null && messageContent.contains(error)) {

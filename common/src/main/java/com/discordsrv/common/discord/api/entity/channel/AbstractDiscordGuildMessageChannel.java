@@ -157,4 +157,8 @@ public abstract class AbstractDiscordGuildMessageChannel<T extends GuildMessageC
         return discordSRV.discordAPI().mapExceptions(future);
     }
 
+    @Override
+    public CompletableFuture<Void> delete() {
+        return discordSRV.discordAPI().mapExceptions(() -> channel.delete().submit());
+    }
 }

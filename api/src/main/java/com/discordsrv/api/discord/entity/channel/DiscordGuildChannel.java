@@ -29,6 +29,8 @@ import com.discordsrv.api.placeholder.annotation.Placeholder;
 import com.discordsrv.api.placeholder.annotation.PlaceholderPrefix;
 import org.jetbrains.annotations.NotNull;
 
+import java.util.concurrent.CompletableFuture;
+
 @PlaceholderPrefix("channel_")
 public interface DiscordGuildChannel extends DiscordChannel, Snowflake {
 
@@ -55,4 +57,10 @@ public interface DiscordGuildChannel extends DiscordChannel, Snowflake {
     @NotNull
     @Placeholder("jump_url")
     String getJumpUrl();
+
+    /**
+     * Deletes the channel.
+     * @return a future completing upon deletion
+     */
+    CompletableFuture<Void> delete();
 }

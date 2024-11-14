@@ -53,6 +53,7 @@ import com.discordsrv.common.feature.linking.LinkProvider;
 import com.discordsrv.common.feature.profile.ProfileManager;
 import com.discordsrv.common.helper.ChannelConfigHelper;
 import com.discordsrv.common.helper.DestinationLookupHelper;
+import com.discordsrv.common.helper.TemporaryLocalData;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.benmanes.caffeine.cache.Caffeine;
 import okhttp3.OkHttpClient;
@@ -61,6 +62,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.nio.file.Path;
+import java.time.ZonedDateTime;
 import java.util.List;
 import java.util.Locale;
 import java.util.Set;
@@ -110,6 +112,7 @@ public interface DiscordSRV extends DiscordSRVApi {
 
     // Storage
     Storage storage();
+    TemporaryLocalData temporaryLocalData();
 
     // Link Provider
     LinkProvider linkProvider();
@@ -174,6 +177,7 @@ public interface DiscordSRV extends DiscordSRVApi {
     List<ReloadResult> runReload(Set<ReloadFlag> flags, boolean silent);
     CompletableFuture<Void> invokeDisable();
     boolean isServerStarted();
+    ZonedDateTime getInitializeTime();
 
     @Nullable
     default GameCommandExecutionHelper executeHelper() {

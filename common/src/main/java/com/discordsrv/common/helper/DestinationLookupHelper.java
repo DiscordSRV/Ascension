@@ -48,7 +48,8 @@ public class DestinationLookupHelper {
     public CompletableFuture<List<DiscordGuildMessageChannel>> lookupDestination(
             DestinationConfig config,
             boolean allowRequests,
-            boolean logFailures
+            boolean logFailures,
+            Object... threadNameContext
     ) {
         List<CompletableFuture<? extends DiscordGuildMessageChannel>> futures = new ArrayList<>();
 
@@ -90,7 +91,10 @@ public class DestinationLookupHelper {
                 continue;
             }
 
-            DiscordThreadChannel existingThread = findThread(threadContainer.getActiveThreads(), threadConfig);
+            String threadName = discordSRV.placeholderService().replacePlaceholders(threadConfig.threadName, threadNameContext);
+            boolean privateThread = threadConfig.privateThread && !(threadContainer instanceof DiscordForumChannel);
+
+            DiscordThreadChannel existingThread = findThread(threadContainer.getActiveThreads(), threadName, privateThread);
             if (existingThread != null && !existingThread.isArchived()) {
                 futures.add(CompletableFuture.completedFuture(existingThread));
                 continue;
@@ -100,7 +104,7 @@ public class DestinationLookupHelper {
                 continue;
             }
 
-            String threadKey = Long.toUnsignedString(channelId) + ":" + threadConfig.threadName + "/" + threadConfig.privateThread;
+            String threadKey = Long.toUnsignedString(channelId) + ":" + threadName + "/" + privateThread;
 
             CompletableFuture<DiscordThreadChannel> future;
             synchronized (threadActions) {
@@ -110,26 +114,26 @@ public class DestinationLookupHelper {
                     future = existingFuture;
                 } else if (!threadConfig.unarchiveExisting) {
                     // Unarchiving not allowed, create new
-                    future = createThread(threadContainer, threadConfig, logFailures);
+                    future = createThread(threadContainer, threadName, privateThread, logFailures);
                 } else if (existingThread != null) {
                     // Unarchive existing thread
                     future = unarchiveThread(existingThread, logFailures);
                 } else {
                     // Lookup threads
                     CompletableFuture<List<DiscordThreadChannel>> threads =
-                            threadConfig.privateThread
+                            privateThread
                             ? threadContainer.retrieveArchivedPrivateThreads()
                             : threadContainer.retrieveArchivedPublicThreads();
 
                     future = threads.thenCompose(archivedThreads -> {
-                        DiscordThreadChannel archivedThread = findThread(archivedThreads, threadConfig);
+                        DiscordThreadChannel archivedThread = findThread(archivedThreads, threadName, privateThread);
                         if (archivedThread != null) {
                             // Unarchive existing thread
                             return unarchiveThread(archivedThread, logFailures);
                         }
 
                         // Create thread
-                        return createThread(threadContainer, threadConfig, logFailures);
+                        return createThread(threadContainer, threadName, privateThread, logFailures);
                     }).exceptionally(t -> {
                         if (logFailures) {
                             logger.error("Failed to lookup threads in channel #" + threadContainer.getName(), t);
@@ -164,9 +168,9 @@ public class DestinationLookupHelper {
         });
     }
 
-    private DiscordThreadChannel findThread(Collection<DiscordThreadChannel> threads, ThreadConfig config) {
+    private DiscordThreadChannel findThread(Collection<DiscordThreadChannel> threads, String threadName, boolean privateThread) {
         for (DiscordThreadChannel thread : threads) {
-            if (thread.getName().equals(config.threadName)) {
+            if (thread.getName().equals(threadName) && thread.isPublic() != privateThread) {
                 return thread;
             }
         }
@@ -175,11 +179,11 @@ public class DestinationLookupHelper {
 
     private CompletableFuture<DiscordThreadChannel> createThread(
             DiscordThreadContainer threadContainer,
-            ThreadConfig threadConfig,
+            String threadName,
+            boolean privateThread,
             boolean logFailures
     ) {
         boolean forum = threadContainer instanceof DiscordForumChannel;
-        boolean privateThread = !forum && threadConfig.privateThread;
 
         Permission createPermission;
         if (forum) {
@@ -196,7 +200,7 @@ public class DestinationLookupHelper {
         );
         if (missingPermissions != null) {
             if (logFailures) {
-                logger.error("Failed to create thread \"" + threadConfig.threadName + "\" "
+                logger.error("Failed to create thread \"" + threadName + "\" "
                                      + "in channel #" + threadContainer.getName() + ": " + missingPermissions);
             }
             return CompletableFuture.completedFuture(null);
@@ -205,15 +209,15 @@ public class DestinationLookupHelper {
         CompletableFuture<DiscordThreadChannel> future;
         if (forum) {
             future = ((DiscordForumChannel) threadContainer).createPost(
-                    threadConfig.threadName,
+                    threadName,
                     SendableDiscordMessage.builder().setContent("\u200B").build() // zero-width-space
             );
         } else {
-            future = threadContainer.createThread(threadConfig.threadName, privateThread);
+            future = threadContainer.createThread(threadName, privateThread);
         }
         return future.exceptionally(t -> {
             if (logFailures) {
-                logger.error("Failed to create thread \"" + threadConfig.threadName + "\" "
+                logger.error("Failed to create thread \"" + threadName + "\" "
                                      + "in channel #" + threadContainer.getName(), t);
             }
             return null;

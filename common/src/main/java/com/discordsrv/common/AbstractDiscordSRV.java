@@ -81,6 +81,7 @@ import com.discordsrv.common.feature.profile.ProfileManager;
 import com.discordsrv.common.feature.update.UpdateChecker;
 import com.discordsrv.common.helper.ChannelConfigHelper;
 import com.discordsrv.common.helper.DestinationLookupHelper;
+import com.discordsrv.common.helper.TemporaryLocalData;
 import com.discordsrv.common.logging.adapter.DependencyLoggerAdapter;
 import com.discordsrv.common.util.ApiInstanceUtil;
 import com.discordsrv.common.util.UUIDUtil;
@@ -108,6 +109,7 @@ import java.net.URLClassLoader;
 import java.net.UnknownHostException;
 import java.nio.file.Path;
 import java.time.Duration;
+import java.time.ZonedDateTime;
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
@@ -154,6 +156,7 @@ public abstract class AbstractDiscordSRV<
     private JDAConnectionManager discordConnectionManager;
     private ChannelConfigHelper channelConfig;
     private DestinationLookupHelper destinationLookupHelper;
+    private TemporaryLocalData temporaryLocalData;
 
     private Storage storage;
     private LinkProvider linkProvider;
@@ -161,6 +164,8 @@ public abstract class AbstractDiscordSRV<
     // Version
     private UpdateChecker updateChecker;
     protected VersionInfo versionInfo;
+
+    private final ZonedDateTime initializeTime = ZonedDateTime.now();
 
     private OkHttpClient httpClient;
     private final ObjectMapper objectMapper = new ObjectMapper()
@@ -191,6 +196,7 @@ public abstract class AbstractDiscordSRV<
         this.discordConnectionManager = new JDAConnectionManager(this);
         this.channelConfig = new ChannelConfigHelper(this);
         this.destinationLookupHelper = new DestinationLookupHelper(this);
+        this.temporaryLocalData = new TemporaryLocalData(this);
         this.updateChecker = new UpdateChecker(this);
         readManifest();
 
@@ -364,6 +370,11 @@ public abstract class AbstractDiscordSRV<
     }
 
     @Override
+    public TemporaryLocalData temporaryLocalData() {
+        return temporaryLocalData;
+    }
+
+    @Override
     public final LinkProvider linkProvider() {
         return linkProvider;
     }
@@ -531,6 +542,10 @@ public abstract class AbstractDiscordSRV<
     }
 
     // Lifecycle
+
+    public ZonedDateTime getInitializeTime() {
+        return initializeTime;
+    }
 
     @Override
     public final void runEnable() {
@@ -707,6 +722,7 @@ public abstract class AbstractDiscordSRV<
         } catch (Throwable t) {
             logger().error("Failed to close storage connection", t);
         }
+        temporaryLocalData.save();
         this.status.set(Status.SHUTDOWN);
     }
 
