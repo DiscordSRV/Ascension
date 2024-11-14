@@ -92,8 +92,9 @@ public class DestinationLookupHelper {
             }
 
             String threadName = discordSRV.placeholderService().replacePlaceholders(threadConfig.threadName, threadNameContext);
+            boolean privateThread = threadConfig.privateThread && !(threadContainer instanceof DiscordForumChannel);
 
-            DiscordThreadChannel existingThread = findThread(threadContainer.getActiveThreads(), threadName);
+            DiscordThreadChannel existingThread = findThread(threadContainer.getActiveThreads(), threadName, privateThread);
             if (existingThread != null && !existingThread.isArchived()) {
                 futures.add(CompletableFuture.completedFuture(existingThread));
                 continue;
@@ -103,7 +104,7 @@ public class DestinationLookupHelper {
                 continue;
             }
 
-            String threadKey = Long.toUnsignedString(channelId) + ":" + threadName + "/" + threadConfig.privateThread;
+            String threadKey = Long.toUnsignedString(channelId) + ":" + threadName + "/" + privateThread;
 
             CompletableFuture<DiscordThreadChannel> future;
             synchronized (threadActions) {
@@ -113,26 +114,26 @@ public class DestinationLookupHelper {
                     future = existingFuture;
                 } else if (!threadConfig.unarchiveExisting) {
                     // Unarchiving not allowed, create new
-                    future = createThread(threadContainer, threadName, threadConfig.privateThread, logFailures);
+                    future = createThread(threadContainer, threadName, privateThread, logFailures);
                 } else if (existingThread != null) {
                     // Unarchive existing thread
                     future = unarchiveThread(existingThread, logFailures);
                 } else {
                     // Lookup threads
                     CompletableFuture<List<DiscordThreadChannel>> threads =
-                            threadConfig.privateThread
+                            privateThread
                             ? threadContainer.retrieveArchivedPrivateThreads()
                             : threadContainer.retrieveArchivedPublicThreads();
 
                     future = threads.thenCompose(archivedThreads -> {
-                        DiscordThreadChannel archivedThread = findThread(archivedThreads, threadName);
+                        DiscordThreadChannel archivedThread = findThread(archivedThreads, threadName, privateThread);
                         if (archivedThread != null) {
                             // Unarchive existing thread
                             return unarchiveThread(archivedThread, logFailures);
                         }
 
                         // Create thread
-                        return createThread(threadContainer, threadName, threadConfig.privateThread, logFailures);
+                        return createThread(threadContainer, threadName, privateThread, logFailures);
                     }).exceptionally(t -> {
                         if (logFailures) {
                             logger.error("Failed to lookup threads in channel #" + threadContainer.getName(), t);
@@ -167,9 +168,9 @@ public class DestinationLookupHelper {
         });
     }
 
-    private DiscordThreadChannel findThread(Collection<DiscordThreadChannel> threads, String threadName) {
+    private DiscordThreadChannel findThread(Collection<DiscordThreadChannel> threads, String threadName, boolean privateThread) {
         for (DiscordThreadChannel thread : threads) {
-            if (thread.getName().equals(threadName)) {
+            if (thread.getName().equals(threadName) && thread.isPublic() != privateThread) {
                 return thread;
             }
         }
@@ -183,7 +184,6 @@ public class DestinationLookupHelper {
             boolean logFailures
     ) {
         boolean forum = threadContainer instanceof DiscordForumChannel;
-        if (forum) privateThread = false;
 
         Permission createPermission;
         if (forum) {

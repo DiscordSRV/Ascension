@@ -77,6 +77,11 @@ public class DiscordForumChannelImpl implements DiscordForumChannel {
     }
 
     @Override
+    public CompletableFuture<Void> delete() {
+        return discordSRV.discordAPI().mapExceptions(() -> channel.delete().submit());
+    }
+
+    @Override
     public @NotNull List<DiscordThreadChannel> getActiveThreads() {
         List<ThreadChannel> threads = channel.getThreadChannels();
         List<DiscordThreadChannel> threadChannels = new ArrayList<>(threads.size());

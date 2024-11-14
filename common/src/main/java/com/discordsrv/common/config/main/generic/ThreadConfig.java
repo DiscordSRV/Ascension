@@ -48,14 +48,13 @@ public class ThreadConfig {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         ThreadConfig that = (ThreadConfig) o;
-        return unarchiveExisting == that.unarchiveExisting
-                && privateThread == that.privateThread
+        return privateThread == that.privateThread
                 && Objects.equals(channelId, that.channelId)
                 && Objects.equals(threadName, that.threadName);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(channelId, threadName, unarchiveExisting, privateThread);
+        return Objects.hash(channelId, threadName, privateThread);
     }
 }

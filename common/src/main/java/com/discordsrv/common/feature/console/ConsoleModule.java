@@ -29,6 +29,7 @@ import com.discordsrv.common.core.logging.NamedLogger;
 import com.discordsrv.common.core.logging.backend.LoggingBackend;
 import com.discordsrv.common.core.module.type.AbstractModule;
 import com.discordsrv.common.feature.console.entry.LogEntry;
+import com.discordsrv.common.helper.TemporaryLocalData;
 import com.discordsrv.common.logging.LogAppender;
 import com.discordsrv.common.logging.LogLevel;
 import org.jetbrains.annotations.NotNull;
@@ -104,6 +105,13 @@ public class ConsoleModule extends AbstractModule<DiscordSRV> implements LogAppe
 
             handlers.add(new SingleConsoleHandler(discordSRV, logger(), config));
         }
+
+        TemporaryLocalData.Model temporaryData = discordSRV.temporaryLocalData().get();
+        synchronized (temporaryData) {
+            temporaryData.consoleThreadRotationIds.keySet()
+                    .removeIf(key -> handlers.stream().noneMatch(handler -> handler.getKey().equals(key)));
+        }
+
         logger().debug(handlers.size() + " console handlers active");
     }
 

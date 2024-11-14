@@ -109,6 +109,7 @@ import java.net.URLClassLoader;
 import java.net.UnknownHostException;
 import java.nio.file.Path;
 import java.time.Duration;
+import java.time.ZonedDateTime;
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
@@ -163,6 +164,8 @@ public abstract class AbstractDiscordSRV<
     // Version
     private UpdateChecker updateChecker;
     protected VersionInfo versionInfo;
+
+    private final ZonedDateTime initializeTime = ZonedDateTime.now();
 
     private OkHttpClient httpClient;
     private final ObjectMapper objectMapper = new ObjectMapper()
@@ -539,6 +542,10 @@ public abstract class AbstractDiscordSRV<
     }
 
     // Lifecycle
+
+    public ZonedDateTime getInitializeTime() {
+        return initializeTime;
+    }
 
     @Override
     public final void runEnable() {

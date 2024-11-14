@@ -20,41 +20,57 @@ package com.discordsrv.common.core.placeholder.context;
 
 import com.discordsrv.api.placeholder.annotation.Placeholder;
 import com.discordsrv.api.placeholder.annotation.PlaceholderRemainder;
+import com.discordsrv.api.placeholder.format.FormattedText;
 import com.discordsrv.common.DiscordSRV;
 import com.github.benmanes.caffeine.cache.LoadingCache;
 
+import java.time.DateTimeException;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
+import java.time.temporal.ChronoField;
+import java.time.temporal.TemporalAccessor;
 import java.util.concurrent.TimeUnit;
 
 public class GlobalDateFormattingContext {
 
     private static final String TIMESTAMP_IDENTIFIER = "timestamp";
 
+    private final DiscordSRV discordSRV;
     private final LoadingCache<String, DateTimeFormatter> cache;
 
     public GlobalDateFormattingContext(DiscordSRV discordSRV) {
+        this.discordSRV = discordSRV;
         this.cache = discordSRV.caffeineBuilder()
                 .expireAfterAccess(30, TimeUnit.SECONDS)
                 .build(DateTimeFormatter::ofPattern);
     }
 
     @Placeholder("date")
-    public String formatDate(ZonedDateTime time, @PlaceholderRemainder String format) {
+    public CharSequence formatDate(TemporalAccessor time, @PlaceholderRemainder String format) {
         if (format.startsWith(TIMESTAMP_IDENTIFIER)) {
             String style = format.substring(TIMESTAMP_IDENTIFIER.length());
-            if (!style.isEmpty() && !style.startsWith(":")) {
+            if ((!style.isEmpty() && !style.startsWith(":")) || !time.isSupported(ChronoField.INSTANT_SECONDS)) {
                 return null;
             }
 
-            return "<t:" + time.toEpochSecond() + style + ">";
+            return FormattedText.of("<t:" + time.getLong(ChronoField.INSTANT_SECONDS) + style + ">");
         }
 
         DateTimeFormatter formatter = cache.get(format);
         if (formatter == null) {
             throw new IllegalStateException("Illegal state");
         }
-        return formatter.format(time);
+
+        try {
+            return formatter.format(time);
+        } catch (DateTimeException e) {
+            return e.getMessage();
+        }
+    }
+
+    @Placeholder(value = "start_date", relookup = "date")
+    public ZonedDateTime getStartDate() {
+        return discordSRV.getInitializeTime();
     }
 
 }
