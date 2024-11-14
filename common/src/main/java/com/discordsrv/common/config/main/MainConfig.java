@@ -128,6 +128,7 @@ public abstract class MainConfig implements Config {
     }
 
     @Order(1000)
+    @Comment("These options are for fine-tuning, only touch them if you know what you're doing")
     public MemberCachingConfig memberCaching = new MemberCachingConfig();
 
     @Order(5000)

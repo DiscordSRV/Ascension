@@ -33,7 +33,7 @@ public class MirroringConfig {
     @Comment("Requires the \"Message Content Intent\"")
     public Boolean enabled = true;
 
-    @Comment("Users, bots, roles and webhooks to ignore when mirroring")
+    @Comment("Users to not mirror")
     public DiscordIgnoresConfig ignores = new DiscordIgnoresConfig();
 
     @Comment("The format of the username of mirrored messages\n"

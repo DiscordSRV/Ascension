@@ -28,6 +28,7 @@ import com.discordsrv.common.config.main.generic.IMessageConfig;
 import org.jetbrains.annotations.Nullable;
 import org.spongepowered.configurate.objectmapping.ConfigSerializable;
 import org.spongepowered.configurate.objectmapping.meta.Comment;
+import org.spongepowered.configurate.objectmapping.meta.Setting;
 
 @ConfigSerializable
 public class JoinMessageConfig implements IMessageConfig {
@@ -52,6 +53,7 @@ public class JoinMessageConfig implements IMessageConfig {
     public Boolean enableSilentPermission = true;
 
     @Comment("Ignore if the player leaves within the given amount of milliseconds. This will delay sending the join message")
+    @Setting("ignore-if-left-within-ms")
     public Long ignoreIfLeftWithinMS = 250L;
 
     @Override

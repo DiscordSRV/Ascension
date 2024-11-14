@@ -49,7 +49,7 @@ public class GameCommandExecutionConditionConfig {
 
     @Comment("The commands and/or patterns that are allowed/blocked.\n" +
             "The command needs to start with input, this will attempt to normalize command aliases where possible (for the main command)\n" +
-            "If the command start and ends with /, the input will be treated as a regular expression (regex) and it will pass if it matches the entire command")
+            "If the command starts and ends with /, the input will be treated as a regular expression (regex) and it will pass if it matches the entire command")
     public List<String> commands = new ArrayList<>();
 
     public static boolean isCommandMatch(String configCommand, String command, boolean suggestions, GameCommandExecutionHelper helper) {

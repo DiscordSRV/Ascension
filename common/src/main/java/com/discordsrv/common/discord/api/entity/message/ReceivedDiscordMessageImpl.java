@@ -291,6 +291,7 @@ public class ReceivedDiscordMessageImpl implements ReceivedDiscordMessage {
                         .addPlaceholder("message", component)
                         .addContext(replyingTo.getMember(), replyingTo.getAuthor(), replyingTo)
                         .build()
+                // TODO: add contentRegexFilters to this
         );
     }
 

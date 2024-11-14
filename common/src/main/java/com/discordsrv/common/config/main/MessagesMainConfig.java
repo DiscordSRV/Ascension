@@ -25,7 +25,7 @@ import org.spongepowered.configurate.objectmapping.meta.Comment;
 public class MessagesMainConfig {
 
     @Comment("The language code for the default language, if left blank the system default will be used.\n"
-            + "This should be in the ISO 639-1 format or ISO 639-1 (for example \"en\"), a underscore and a ISO 3166-1 country code to specify dialect (for example \"pt_BR\")")
+            + "This should be in the ISO 639-1 format (for example \"en\"), or ISO 639-1, a underscore and a ISO 3166-1 country code to specify dialect (for example \"pt_BR\")")
     public String defaultLanguage = "en";
 
     @Comment("If there should be a messages file per language (based on the player's or user's language), otherwise using the default")

@@ -26,6 +26,7 @@ import com.discordsrv.common.config.configurate.manager.abstraction.ConfigurateC
 import com.discordsrv.common.config.main.generic.IMessageConfig;
 import org.spongepowered.configurate.objectmapping.ConfigSerializable;
 import org.spongepowered.configurate.objectmapping.meta.Comment;
+import org.spongepowered.configurate.objectmapping.meta.Setting;
 
 @ConfigSerializable
 public class LeaveMessageConfig implements IMessageConfig {
@@ -50,6 +51,7 @@ public class LeaveMessageConfig implements IMessageConfig {
     public Boolean enableSilentPermission = true;
 
     @Comment("Ignore if the player joined within the given amount of milliseconds")
+    @Setting("ignore-if-joined-within-ms")
     public Long ignoreIfJoinedWithinMS = 250L;
 
     @Override

@@ -29,7 +29,7 @@ import java.util.Map;
 @ConfigSerializable
 public class DebugConfig {
 
-    @Comment("If debug messages should be logged into the config")
+    @Comment("If debug messages should be logged into the console")
     public boolean logToConsole = false;
 
     @Comment("Additional levels to log\nExample value: %1")

@@ -55,7 +55,9 @@ public class DiscordCommandConfig {
                 + "- ansi: A colored ansi code block\n"
                 + "- plain: Plain text\n"
                 + "- code_block: Plain code block\n"
-                + "- off: No command output")
+                + "- off: No command output\n"
+                + "\n"
+                + "Please note that some commands may not be work with output forwarding")
         public OutputMode outputMode = OutputMode.MARKDOWN;
 
         @Comment("At least one condition has to match to allow execution")
@@ -66,7 +68,7 @@ public class DiscordCommandConfig {
         public boolean suggest = true;
 
         @Comment("If suggestions should be filtered based on the \"%1\" option")
-        @Constants.Comment("filters")
+        @Constants.Comment("execution-conditions")
         public boolean filterSuggestions = true;
     }
 

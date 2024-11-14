@@ -31,10 +31,10 @@ public class LinkedAccountConfig {
 
     @Comment("The linked account provider\n"
             + "\n"
-            + " - auto: Uses \"minecraftauth\" if the %1 permits it and the server is in online mode or using ip forwarding, otherwise \"%4\"\n"
+            + " - auto: Uses \"minecraftauth\" if the %1 permits it and the server is in online mode or using ip forwarding, otherwise \"%3\"\n"
             + " - minecraftauth: Uses %2 as the linked account provider (offline and (non-linked) bedrock players cannot link using this method)\n"
             + " - storage: Use the configured database for linked accounts")
-    @Constants.Comment({ConnectionConfig.FILE_NAME, "minecraftauth.me"})
+    @Constants.Comment({ConnectionConfig.FILE_NAME, "minecraftauth.me", "storage"})
     public Provider provider = Provider.AUTO;
 
     public enum Provider {

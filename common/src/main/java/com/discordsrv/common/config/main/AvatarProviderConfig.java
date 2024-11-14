@@ -31,9 +31,9 @@ public class AvatarProviderConfig {
     public boolean autoDecideAvatarUrl = true;
 
     @Untranslated(Untranslated.Type.VALUE)
-    @Constants("auto-decide-avatar-url")
     @Comment("The template for URLs of player avatars\n" +
             "This will be used for official Java players only if %1 is set to true\n" +
             "This will be used ALWAYS if %1 is set to false")
+    @Constants.Comment("auto-decide-avatar-url")
     public String avatarUrlTemplate = "https://crafatar.com/avatars/%player_uuid_short%.png?size=128&overlay#%player_skin_texture_id%";
 }

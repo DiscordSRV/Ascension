@@ -53,7 +53,7 @@ public class TimedUpdaterConfig {
         private static final int MINIMUM_MINUTES = 10;
 
         @Comment("The channel IDs.\n"
-                + "The bot will need the \"View Channel\", \"Manage Channels\" and \"Connection\" permissions for the provided channels")
+                + "The bot will need the \"View Channel\", \"Manage Channels\" and \"Connect\" permissions for the provided channels")
         public List<Long> channelIds = new ArrayList<>();
 
         @Comment("The format for the channel name(s), placeholders are supported.")
