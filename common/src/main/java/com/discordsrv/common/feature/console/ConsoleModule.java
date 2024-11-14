@@ -32,6 +32,7 @@ import com.discordsrv.common.feature.console.entry.LogEntry;
 import com.discordsrv.common.helper.TemporaryLocalData;
 import com.discordsrv.common.logging.LogAppender;
 import com.discordsrv.common.logging.LogLevel;
+import net.dv8tion.jda.api.events.session.ReadyEvent;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -139,6 +140,13 @@ public class ConsoleModule extends AbstractModule<DiscordSRV> implements LogAppe
     public void onDiscordMessageReceived(DiscordMessageReceiveEvent event) {
         for (SingleConsoleHandler handler : handlers) {
             handler.handleDiscordMessageReceived(event);
+        }
+    }
+
+    @Subscribe
+    public void onReady(ReadyEvent event) {
+        for (SingleConsoleHandler handler : handlers) {
+            handler.initializeChannel();
         }
     }
 }

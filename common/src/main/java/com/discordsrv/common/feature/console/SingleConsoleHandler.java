@@ -68,10 +68,10 @@ public class SingleConsoleHandler {
     private Deque<Pair<SendableDiscordMessage, Boolean>> sendQueue;
     private Future<?> queueProcessingFuture;
     private boolean shutdown = false;
+    private final AtomicLong latestChannelId = new AtomicLong(0);
 
     // Editing
     private List<LogMessage> messageCache;
-    private final AtomicLong mostRecentMessageChannelId = new AtomicLong(0);
     private final AtomicLong mostRecentMessageId = new AtomicLong(0);
 
     // Sending
@@ -108,8 +108,7 @@ public class SingleConsoleHandler {
             return;
         }
 
-        DestinationConfig.Single destination = config.channel;
-        if (!destination.asDestination().contains(channel)) {
+        if (!config.channel.asDestination().contains(channel) && latestChannelId.get() != channel.getId()) {
             return;
         }
 
@@ -219,11 +218,21 @@ public class SingleConsoleHandler {
             if (messageCache != null) {
                 this.messageCache = null;
             }
-            mostRecentMessageChannelId.set(0);
             mostRecentMessageId.set(0);
         }
 
         timeQueueProcess();
+    }
+
+    public void initializeChannel() {
+        rotateToLatestChannel().whenComplete((channel, __) -> {
+            if (channel != null) {
+                synchronized (mostRecentMessageId) {
+                    mostRecentMessageId.set(0);
+                    latestChannelId.set(channel.getId());
+                }
+            }
+        });
     }
 
     @SuppressWarnings({"BusyWait"})
@@ -511,6 +520,53 @@ public class SingleConsoleHandler {
         return "  ";
     }
 
+    private CompletableFuture<DiscordGuildMessageChannel> rotateToLatestChannel() {
+        return discordSRV.destinations().lookupDestination(
+                config.channel.asDestination(),
+                true,
+                true,
+                ZonedDateTime.now()
+                ).thenCompose(channels -> {
+                    if (channels.isEmpty()) {
+                        // Nowhere to send to
+                        return CompletableFuture.completedFuture(null);
+                    }
+
+                    DiscordGuildMessageChannel channel = channels.iterator().next();
+
+                    int amountOfChannels = config.threadsToKeepInRotation;
+                    if (amountOfChannels > 0) {
+                        TemporaryLocalData.Model temporaryData = discordSRV.temporaryLocalData().get();
+
+                        List<Long> channelsToDelete = null;
+                        synchronized (temporaryData) {
+                            Map<String, List<Long>> rotationIds = temporaryData.consoleThreadRotationIds;
+                            List<Long> channelIds = rotationIds.computeIfAbsent(key, k -> new ArrayList<>(amountOfChannels));
+
+                            if (channelIds.isEmpty() || channelIds.get(0) != channel.getId()) {
+                                channelIds.add(0, channel.getId());
+                            }
+                            if (channelIds.size() > amountOfChannels) {
+                                rotationIds.put(key, channelIds.subList(0, amountOfChannels));
+                                channelsToDelete = channelIds.subList(amountOfChannels, channelIds.size());
+                            }
+                        }
+                        discordSRV.temporaryLocalData().saveLater();
+
+                        if (channelsToDelete != null) {
+                            for (Long channelId : channelsToDelete) {
+                                DiscordChannel channelToDelete = discordSRV.discordAPI().getChannelById(channelId);
+                                if (channelToDelete instanceof DiscordGuildChannel) {
+                                    ((DiscordGuildChannel) channelToDelete).delete();
+                                }
+                            }
+                        }
+                    }
+
+                    return CompletableFuture.completedFuture(channel);
+                });
+    }
+
     private void processSendQueue() {
         Pair<SendableDiscordMessage, Boolean> pair;
         do {
@@ -529,63 +585,19 @@ public class SingleConsoleHandler {
             sendFuture = sendFuture
                     .thenCompose(__ -> {
                         if (mostRecentMessageId.get() != 0) {
-                            long channelId = mostRecentMessageChannelId.get();
+                            // Don't rotate if editing
+                            long channelId = latestChannelId.get();
                             DiscordMessageChannel channel = discordSRV.discordAPI().getMessageChannelById(channelId);
                             if (channel instanceof DiscordGuildMessageChannel) {
-                                return CompletableFuture.completedFuture(
-                                        Collections.singletonList((DiscordGuildMessageChannel) channel)
-                                );
+                                return CompletableFuture.completedFuture((DiscordGuildMessageChannel) channel);
                             }
                         }
 
-                        return discordSRV.destinations().lookupDestination(
-                                config.channel.asDestination(),
-                                true,
-                                true,
-                                ZonedDateTime.now());
-                    })
-                    .thenCompose(channels -> {
-                        if (channels.isEmpty()) {
-                            // Nowhere to send to
-                            return null;
-                        }
-
-                        DiscordGuildMessageChannel channel = channels.iterator().next();
-
-                        int amountOfChannels = config.threadsToKeepInRotation;
-                        if (amountOfChannels > 0) {
-                            TemporaryLocalData.Model temporaryData = discordSRV.temporaryLocalData().get();
-
-                            List<Long> channelsToDelete = null;
-                            synchronized (temporaryData) {
-                                Map<String, List<Long>> rotationIds = temporaryData.consoleThreadRotationIds;
-                                List<Long> channelIds = rotationIds.computeIfAbsent(key, k -> new ArrayList<>(amountOfChannels));
-
-                                if (channelIds.isEmpty() || channelIds.get(0) != channel.getId()) {
-                                    channelIds.add(0, channel.getId());
-                                }
-                                if (channelIds.size() > amountOfChannels) {
-                                    rotationIds.put(key, channelIds.subList(0, amountOfChannels));
-                                    channelsToDelete = channelIds.subList(amountOfChannels, channelIds.size());
-                                }
-                            }
-                            discordSRV.temporaryLocalData().saveLater();
-
-                            if (channelsToDelete != null) {
-                                for (Long channelId : channelsToDelete) {
-                                    DiscordChannel channelToDelete = discordSRV.discordAPI().getChannelById(channelId);
-                                    if (channelToDelete instanceof DiscordGuildChannel) {
-                                        ((DiscordGuildChannel) channelToDelete).delete();
-                                    }
-                                }
-                            }
-                        }
-
-                        return CompletableFuture.completedFuture(channel);
+                        return rotateToLatestChannel();
                     })
                     .thenCompose(channel -> {
                         if (channel == null) {
-                            return null;
+                            return CompletableFuture.completedFuture(null);
                         }
 
                         synchronized (mostRecentMessageId) {
@@ -597,8 +609,7 @@ public class SingleConsoleHandler {
                                 return channel.editMessageById(messageId, sendableMessage);
                             }
 
-                            // Rotation may cause channel to change
-                            mostRecentMessageChannelId.set(channel.getId());
+                            latestChannelId.set(channel.getId());
                         }
 
                         return channel.sendMessage(sendableMessage);
