@@ -116,7 +116,10 @@ dependencyResolutionManagement {
             library('essentialsx', 'net.essentialsx', 'EssentialsX').version('2.20.1')
 
             // Logging
-            library('slf4j-api', 'org.slf4j', 'slf4j-api').version('1.7.36')
+            library('slf4j-api', 'org.slf4j', 'slf4j-api').version {
+                prefer '1.7.36'
+                reject '[2,)' // Uses ServiceLoader
+            }
             library('log4j-core', 'org.apache.logging.log4j', 'log4j-core').version('2.0-beta9')
 
             // Adventure

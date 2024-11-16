@@ -43,9 +43,14 @@ dependencies {
     implementation project(':common')
 
     // Platform
-    annotationProcessor(libs.velocity)
+    annotationProcessor(libs.velocity) {
+        // v2
+        exclude module: 'slf4j-api'
+    }
     compileOnly(libs.velocity) {
         exclude module: 'caffeine'
+        // v2
+        exclude module: 'slf4j-api'
     }
 
     // DependencyDownload
@@ -54,6 +59,6 @@ dependencies {
 
 tasks {
     runVelocity {
-        velocityVersion("3.1.2-SNAPSHOT")
+        velocityVersion(libs.velocity.get().version)
     }
 }

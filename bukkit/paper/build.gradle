@@ -4,7 +4,10 @@ java {
 
 dependencies {
     // Platform
-    compileOnly(libs.paperapi)
+    compileOnly(libs.paperapi) {
+        // v2
+        exclude module: 'slf4j-api'
+    }
 
     // Adventure (runtime downloaded by :bukkit)
     compileOnly(libs.adventure.platform.bukkit)

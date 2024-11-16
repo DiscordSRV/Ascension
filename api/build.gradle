@@ -12,8 +12,11 @@ dependencies {
     api(libs.jda) {
         // We don't use audio
         exclude module: 'opus-java'
+        // v2
+        exclude module: 'slf4j-api'
     }
     api(libs.okhttp)
+    api(libs.slf4j.api)
 }
 
 // Relocations are in buildscript/api.gradle
