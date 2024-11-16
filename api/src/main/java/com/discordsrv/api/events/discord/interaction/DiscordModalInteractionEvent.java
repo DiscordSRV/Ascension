@@ -30,7 +30,7 @@ import com.discordsrv.api.discord.entity.interaction.DiscordInteractionHook;
 import com.discordsrv.api.discord.entity.interaction.component.ComponentIdentifier;
 import net.dv8tion.jda.api.events.interaction.ModalInteractionEvent;
 
-public class DiscordModalInteractionEvent extends AbstractDeferrableInteractionEvent<ModalInteractionEvent> {
+public class DiscordModalInteractionEvent extends AbstractInteractionWithHookEvent<ModalInteractionEvent> {
 
     public DiscordModalInteractionEvent(
             ModalInteractionEvent jdaEvent,

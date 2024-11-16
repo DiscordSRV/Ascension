@@ -54,4 +54,12 @@ public class DiscordChatInputInteractionEventImpl extends DiscordChatInputIntera
                         .thenApply(ih -> new DiscordInteractionHookImpl(discordSRV, ih))
         );
     }
+
+    @Override
+    public CompletableFuture<DiscordInteractionHook> deferReply(boolean ephemeral) {
+        return discordSRV.discordAPI().mapExceptions(
+                () -> jdaEvent.deferReply(ephemeral).submit()
+                        .thenApply(ih -> new DiscordInteractionHookImpl(discordSRV, ih))
+        );
+    }
 }

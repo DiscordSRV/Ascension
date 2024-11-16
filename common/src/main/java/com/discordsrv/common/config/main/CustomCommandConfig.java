@@ -21,9 +21,12 @@ package com.discordsrv.common.config.main;
 import com.discordsrv.api.discord.entity.interaction.command.CommandOption;
 import com.discordsrv.api.discord.entity.message.DiscordMessageEmbed;
 import com.discordsrv.api.discord.entity.message.SendableDiscordMessage;
+import com.discordsrv.common.config.configurate.annotation.Constants;
 import org.spongepowered.configurate.objectmapping.ConfigSerializable;
+import org.spongepowered.configurate.objectmapping.meta.Comment;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 @ConfigSerializable
@@ -48,21 +51,52 @@ public class CustomCommandConfig {
         return config;
     }
 
+    @Comment("The command in Discord, this can be in up-to 3 parts (seperated by spaces).\n"
+            + "You cannot specify commands on the 2nd and 3rd layer for the same main command at once.\n"
+            + "You cannot specify a action for the main command if you specify something for the same main command on the 2nd or 3rd layer")
     public String command = "";
+
+    @Comment("The description of the command, will be shown to the user")
     public String description = "";
+
+    @Comment("If the command output should only be visible to the user who ran the command")
     public boolean ephemeral = false;
 
     public List<OptionConfig> options = new ArrayList<>();
+
+    @Comment("Only one of the constraints has to be true to allow execution")
+    public List<ConstraintConfig> constraints = new ArrayList<>(Collections.singletonList(new ConstraintConfig()));
+
+    @Comment("A list of console commands to run upon this commands execution")
+    public List<String> consoleCommandsToRun = new ArrayList<>();
 
     public SendableDiscordMessage.Builder response = SendableDiscordMessage.builder().setContent("test");
 
     @ConfigSerializable
     public static class OptionConfig {
 
+        @Comment("Acceptable options are: %1")
+        @Constants.Comment("STRING, LONG, DOUBLE, BOOLEAN, USER, CHANNEL, ROLE, MENTIONABLE, ATTACHMENT")
         public CommandOption.Type type = CommandOption.Type.USER;
+
+        @Comment("The name of this option, will be shown to the user")
         public String name = "target_user";
+
+        @Comment("The description of this option, will be shown to the user")
         public String description = "The user to greet";
+
+        @Comment("If this option is required to run the command")
         public boolean required = true;
 
+    }
+
+    @ConfigSerializable
+    public static class ConstraintConfig {
+
+        @Comment("The role and user ids that should/should not be allowed to run this custom command")
+        public List<Long> roleAndUserIds = new ArrayList<>();
+
+        @Comment("true for blacklisting the specified roles and users, false for whitelisting")
+        public boolean blacklist = true;
     }
 }

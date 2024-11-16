@@ -28,10 +28,10 @@ import com.discordsrv.api.discord.entity.channel.DiscordMessageChannel;
 import com.discordsrv.api.discord.entity.guild.DiscordGuildMember;
 import com.discordsrv.api.discord.entity.interaction.DiscordInteractionHook;
 import com.discordsrv.api.discord.entity.interaction.component.ComponentIdentifier;
-import com.discordsrv.api.events.discord.interaction.AbstractDeferrableInteractionEvent;
+import com.discordsrv.api.events.discord.interaction.AbstractInteractionWithHookEvent;
 import net.dv8tion.jda.api.events.interaction.component.GenericSelectMenuInteractionEvent;
 
-public class DiscordSelectMenuInteractionEvent extends AbstractDeferrableInteractionEvent<GenericSelectMenuInteractionEvent<?, ?>> {
+public class DiscordSelectMenuInteractionEvent extends AbstractInteractionWithHookEvent<GenericSelectMenuInteractionEvent<?, ?>> {
 
     public DiscordSelectMenuInteractionEvent(
             GenericSelectMenuInteractionEvent<?, ?> jdaEvent,

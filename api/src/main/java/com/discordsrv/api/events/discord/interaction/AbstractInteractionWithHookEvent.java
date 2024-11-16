@@ -31,11 +31,11 @@ import com.discordsrv.api.discord.entity.interaction.component.ComponentIdentifi
 import net.dv8tion.jda.api.events.interaction.GenericInteractionCreateEvent;
 import org.jetbrains.annotations.NotNull;
 
-public abstract class AbstractDeferrableInteractionEvent<T extends GenericInteractionCreateEvent> extends AbstractInteractionEvent<T> {
+public class AbstractInteractionWithHookEvent<T extends GenericInteractionCreateEvent> extends AbstractInteractionEvent<T> {
 
     protected final DiscordInteractionHook hook;
 
-    public AbstractDeferrableInteractionEvent(
+    public AbstractInteractionWithHookEvent(
             T jdaEvent,
             ComponentIdentifier identifier,
             DiscordUser user,

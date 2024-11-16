@@ -32,7 +32,7 @@ import com.discordsrv.api.discord.entity.guild.DiscordRole;
 import com.discordsrv.api.discord.entity.interaction.DiscordInteractionHook;
 import com.discordsrv.api.discord.entity.interaction.component.ComponentIdentifier;
 import com.discordsrv.api.discord.entity.message.SendableDiscordMessage;
-import com.discordsrv.api.events.discord.interaction.AbstractDeferrableInteractionEvent;
+import com.discordsrv.api.events.discord.interaction.AbstractInteractionWithHookEvent;
 import net.dv8tion.jda.api.events.interaction.command.GenericCommandInteractionEvent;
 import net.dv8tion.jda.api.interactions.commands.OptionMapping;
 import org.jetbrains.annotations.Nullable;
@@ -40,7 +40,7 @@ import org.jetbrains.annotations.Nullable;
 import java.util.concurrent.CompletableFuture;
 
 public abstract class AbstractCommandInteractionEvent<E extends GenericCommandInteractionEvent>
-        extends AbstractDeferrableInteractionEvent<E> {
+        extends AbstractInteractionWithHookEvent<E> {
 
     private final DiscordSRVApi discordSRV;
 
@@ -62,6 +62,8 @@ public abstract class AbstractCommandInteractionEvent<E extends GenericCommandIn
     public CompletableFuture<DiscordInteractionHook> reply(SendableDiscordMessage message) {
         return reply(message, false);
     }
+
+    public abstract CompletableFuture<DiscordInteractionHook> deferReply(boolean ephemeral);
 
     @Nullable
     public String getOptionAsString(String name) {

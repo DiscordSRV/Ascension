@@ -33,8 +33,7 @@ import net.dv8tion.jda.api.events.interaction.GenericInteractionCreateEvent;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-public abstract class AbstractInteractionEvent<T extends GenericInteractionCreateEvent> extends
-                                                                                        AbstractDiscordEvent<T> {
+public abstract class AbstractInteractionEvent<T extends GenericInteractionCreateEvent> extends AbstractDiscordEvent<T> {
 
     protected final ComponentIdentifier identifier;
     protected final DiscordUser user;

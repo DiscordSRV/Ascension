@@ -42,7 +42,9 @@ public class DiscordMessageContextInteractionEventImpl extends DiscordMessageCon
             ComponentIdentifier identifier,
             DiscordUser user,
             DiscordGuildMember member,
-            DiscordMessageChannel channel, DiscordInteractionHook interaction) {
+            DiscordMessageChannel channel,
+            DiscordInteractionHook interaction
+    ) {
         super(discordSRV, jdaEvent, identifier, user, member, channel, interaction);
         this.discordSRV = discordSRV;
     }
@@ -51,6 +53,14 @@ public class DiscordMessageContextInteractionEventImpl extends DiscordMessageCon
     public CompletableFuture<DiscordInteractionHook> reply(SendableDiscordMessage message, boolean ephemeral) {
         return discordSRV.discordAPI().mapExceptions(
                 () -> jdaEvent.reply(SendableDiscordMessageUtil.toJDASend(message)).setEphemeral(ephemeral).submit()
+                        .thenApply(ih -> new DiscordInteractionHookImpl(discordSRV, ih))
+        );
+    }
+
+    @Override
+    public CompletableFuture<DiscordInteractionHook> deferReply(boolean ephemeral) {
+        return discordSRV.discordAPI().mapExceptions(
+                () -> jdaEvent.deferReply(ephemeral).submit()
                         .thenApply(ih -> new DiscordInteractionHookImpl(discordSRV, ih))
         );
     }

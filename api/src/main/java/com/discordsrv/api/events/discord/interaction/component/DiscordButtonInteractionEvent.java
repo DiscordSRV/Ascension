@@ -28,10 +28,10 @@ import com.discordsrv.api.discord.entity.channel.DiscordMessageChannel;
 import com.discordsrv.api.discord.entity.guild.DiscordGuildMember;
 import com.discordsrv.api.discord.entity.interaction.DiscordInteractionHook;
 import com.discordsrv.api.discord.entity.interaction.component.ComponentIdentifier;
-import com.discordsrv.api.events.discord.interaction.AbstractDeferrableInteractionEvent;
+import com.discordsrv.api.events.discord.interaction.AbstractInteractionWithHookEvent;
 import net.dv8tion.jda.api.events.interaction.component.ButtonInteractionEvent;
 
-public class DiscordButtonInteractionEvent extends AbstractDeferrableInteractionEvent<ButtonInteractionEvent> {
+public class DiscordButtonInteractionEvent extends AbstractInteractionWithHookEvent<ButtonInteractionEvent> {
 
     public DiscordButtonInteractionEvent(
             ButtonInteractionEvent jdaEvent,
@@ -39,8 +39,8 @@ public class DiscordButtonInteractionEvent extends AbstractDeferrableInteraction
             DiscordUser user,
             DiscordGuildMember member,
             DiscordMessageChannel channel,
-            DiscordInteractionHook interaction
+            DiscordInteractionHook hook
     ) {
-        super(jdaEvent, identifier, user, member, channel, interaction);
+        super(jdaEvent, identifier, user, member, channel, hook);
     }
 }

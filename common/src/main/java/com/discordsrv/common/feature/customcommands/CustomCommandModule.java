@@ -21,11 +21,13 @@ package com.discordsrv.common.feature.customcommands;
 import com.discordsrv.api.DiscordSRVApi;
 import com.discordsrv.api.discord.entity.DiscordUser;
 import com.discordsrv.api.discord.entity.channel.DiscordChannel;
+import com.discordsrv.api.discord.entity.guild.DiscordGuildMember;
 import com.discordsrv.api.discord.entity.guild.DiscordRole;
 import com.discordsrv.api.discord.entity.interaction.command.CommandOption;
 import com.discordsrv.api.discord.entity.interaction.command.DiscordCommand;
 import com.discordsrv.api.discord.entity.interaction.component.ComponentIdentifier;
 import com.discordsrv.api.discord.entity.message.SendableDiscordMessage;
+import com.discordsrv.api.events.discord.interaction.command.AbstractCommandInteractionEvent;
 import com.discordsrv.common.DiscordSRV;
 import com.discordsrv.common.config.main.CustomCommandConfig;
 import com.discordsrv.common.core.logging.NamedLogger;
@@ -99,73 +101,8 @@ public class CustomCommandModule extends AbstractModule<DiscordSRV> {
                 );
             }
 
-            commandBuilder.setEventHandler(event -> {
-                SendableDiscordMessage.Formatter formatter = config.response.toFormatter();
-
-                for (CustomCommandConfig.OptionConfig option : config.options) {
-                    String optionName = option.name;
-
-                    Object context;
-                    String reLookup = null;
-                    switch (option.type) {
-                        case CHANNEL:
-                            context = event.getOptionAsChannel(optionName);
-                            reLookup = "channel";
-                            break;
-                        case USER:
-                            context = event.getOptionAsUser(optionName);
-                            reLookup = "user";
-                            break;
-                        case ROLE:
-                            context = event.getOptionAsRole(optionName);
-                            reLookup = "role";
-                            break;
-                        case MENTIONABLE:
-                            Long id = event.getOptionAsLong(optionName);
-                            if (id == null) {
-                                context = event.getOptionAsString(optionName);
-                                break;
-                            }
-
-                            DiscordUser user = discordSRV.discordAPI().getUserById(id);
-                            if (user != null) {
-                                context = user;
-                                reLookup = "user";
-                                break;
-                            }
-
-                            DiscordRole role = discordSRV.discordAPI().getRoleById(id);
-                            if (role != null) {
-                                context = role;
-                                reLookup = "role";
-                                break;
-                            }
-
-                            DiscordChannel channel = discordSRV.discordAPI().getChannelById(id);
-                            if (channel != null) {
-                                context = channel;
-                                reLookup = "channel";
-                                break;
-                            }
-
-                            context = event.getOptionAsString(optionName);
-                            break;
-                        default:
-                            context = event.getOptionAsString(optionName);
-                            break;
-                    }
-
-                    formatter = formatter.addPlaceholder("option_" + optionName, context, reLookup);
-                }
-
-                SendableDiscordMessage message = formatter.applyPlaceholderService().build();
-                event.reply(message, config.ephemeral).whenComplete((ih, t) -> {
-                    if (t != null) {
-                        logger().debug("Failed to reply to custom command: " + config.command, t);
-                    }
-                });
-            });
-
+            ExecutionHandler handler = new ExecutionHandler(config);
+            commandBuilder.setEventHandler(handler::accept);
             DiscordCommand command = commandBuilder.build();
 
             LayerCommand foundLayer = layeredCommands.stream()
@@ -228,6 +165,117 @@ public class CustomCommandModule extends AbstractModule<DiscordSRV> {
 
         public List<DiscordCommand> getCommands() {
             return commands;
+        }
+    }
+
+    public class ExecutionHandler implements Consumer<AbstractCommandInteractionEvent<?>> {
+
+        private final CustomCommandConfig config;
+
+        public ExecutionHandler(CustomCommandConfig config) {
+            this.config = config;
+        }
+
+        @Override
+        public void accept(AbstractCommandInteractionEvent<?> event) {
+            DiscordGuildMember member = event.getMember();
+            if (member == null) {
+                return;
+            }
+
+            boolean anyAllowingConstraint = config.constraints.isEmpty();
+            for (CustomCommandConfig.ConstraintConfig constraint : config.constraints) {
+                boolean included = constraint.roleAndUserIds.contains(member.getUser().getId());
+                if (!included) {
+                    for (DiscordRole role : member.getRoles()) {
+                        if (constraint.roleAndUserIds.contains(role.getId())) {
+                            included = true;
+                            break;
+                        }
+                    }
+                }
+
+                if (included != constraint.blacklist) {
+                    anyAllowingConstraint = true;
+                    break;
+                }
+            }
+            if (!anyAllowingConstraint) {
+                event.reply(SendableDiscordMessage.builder().setContent("You do not have permission to run that command").build(), true); // TODO: translation
+                return;
+            }
+
+            List<String> commandsToRun = config.consoleCommandsToRun;
+            for (String command : commandsToRun) {
+                discordSRV.console().runCommandWithLogging(discordSRV, event.getUser(), command);
+            }
+
+            SendableDiscordMessage.Formatter formatter = config.response.toFormatter();
+            optionsToFormatter(event, formatter);
+
+            SendableDiscordMessage message = formatter.applyPlaceholderService().build();
+            event.reply(message, config.ephemeral).whenComplete((__, t) -> {
+                if (t != null) {
+                    logger().debug("Failed to reply to custom command: " + config.command, t);
+                }
+            });
+        }
+
+        private void optionsToFormatter(AbstractCommandInteractionEvent<?> event, SendableDiscordMessage.Formatter formatter) {
+            for (CustomCommandConfig.OptionConfig option : config.options) {
+                String optionName = option.name;
+
+                Object context;
+                String reLookup = null;
+                switch (option.type) {
+                    case CHANNEL:
+                        context = event.getOptionAsChannel(optionName);
+                        reLookup = "channel";
+                        break;
+                    case USER:
+                        context = event.getOptionAsUser(optionName);
+                        reLookup = "user";
+                        break;
+                    case ROLE:
+                        context = event.getOptionAsRole(optionName);
+                        reLookup = "role";
+                        break;
+                    case MENTIONABLE:
+                        Long id = event.getOptionAsLong(optionName);
+                        if (id == null) {
+                            context = event.getOptionAsString(optionName);
+                            break;
+                        }
+
+                        DiscordUser user = discordSRV.discordAPI().getUserById(id);
+                        if (user != null) {
+                            context = user;
+                            reLookup = "user";
+                            break;
+                        }
+
+                        DiscordRole role = discordSRV.discordAPI().getRoleById(id);
+                        if (role != null) {
+                            context = role;
+                            reLookup = "role";
+                            break;
+                        }
+
+                        DiscordChannel channel = discordSRV.discordAPI().getChannelById(id);
+                        if (channel != null) {
+                            context = channel;
+                            reLookup = "channel";
+                            break;
+                        }
+
+                        context = event.getOptionAsString(optionName);
+                        break;
+                    default:
+                        context = event.getOptionAsString(optionName);
+                        break;
+                }
+                formatter = formatter.addPlaceholder("option_" + optionName, context, reLookup);
+            }
         }
     }
 }
