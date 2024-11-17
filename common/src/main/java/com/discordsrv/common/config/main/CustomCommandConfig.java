@@ -64,6 +64,10 @@ public class CustomCommandConfig {
 
     public List<OptionConfig> options = new ArrayList<>();
 
+    @Comment("The Discord server id to register this command in\n"
+            + "Use 0 for all Discord servers, or -1 to make the command global")
+    public long serverId = 0;
+
     @Comment("Only one of the constraints has to be true to allow execution")
     public List<ConstraintConfig> constraints = new ArrayList<>(Collections.singletonList(new ConstraintConfig()));
 

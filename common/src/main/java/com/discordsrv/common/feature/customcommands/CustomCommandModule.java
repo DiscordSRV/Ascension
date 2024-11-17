@@ -101,6 +101,9 @@ public class CustomCommandModule extends AbstractModule<DiscordSRV> {
                 );
             }
 
+            commandBuilder.setGuildOnly(config.serverId >= 0);
+            commandBuilder.setGuildId(config.serverId > 0 ? config.serverId : null);
+
             ExecutionHandler handler = new ExecutionHandler(config);
             commandBuilder.setEventHandler(handler::accept);
             DiscordCommand command = commandBuilder.build();
