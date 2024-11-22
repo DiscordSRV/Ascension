@@ -25,7 +25,7 @@ import com.discordsrv.common.DiscordSRV;
 import com.discordsrv.common.command.combined.abstraction.CombinedCommand;
 import com.discordsrv.common.command.combined.abstraction.CommandExecution;
 import com.discordsrv.common.command.combined.abstraction.Text;
-import com.discordsrv.common.command.game.abstraction.GameCommand;
+import com.discordsrv.common.command.game.abstraction.command.GameCommand;
 import com.discordsrv.common.core.paste.Paste;
 import com.discordsrv.common.core.paste.PasteService;
 import com.discordsrv.common.core.paste.service.AESEncryptedPasteService;

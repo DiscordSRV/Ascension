@@ -21,7 +21,7 @@ package com.discordsrv.common.config.main.generic;
 import com.discordsrv.api.discord.entity.DiscordUser;
 import com.discordsrv.api.discord.entity.guild.DiscordGuildMember;
 import com.discordsrv.api.discord.entity.guild.DiscordRole;
-import com.discordsrv.common.command.game.GameCommandExecutionHelper;
+import com.discordsrv.common.command.game.abstraction.GameCommandExecutionHelper;
 import org.spongepowered.configurate.objectmapping.ConfigSerializable;
 import org.spongepowered.configurate.objectmapping.meta.Comment;
 

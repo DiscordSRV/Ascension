@@ -29,6 +29,9 @@ import com.discordsrv.common.config.configurate.fielddiscoverer.FieldValueDiscov
 import com.discordsrv.common.config.configurate.fielddiscoverer.OrderedFieldDiscovererProxy;
 import com.discordsrv.common.config.configurate.manager.loader.ConfigLoaderProvider;
 import com.discordsrv.common.config.configurate.serializer.*;
+import com.discordsrv.common.config.configurate.serializer.helper.DiscordMessageSerializer;
+import com.discordsrv.common.config.configurate.serializer.helper.MinecraftMessageSerializer;
+import com.discordsrv.common.config.helper.DiscordMessage;
 import com.discordsrv.common.config.helper.MinecraftMessage;
 import com.discordsrv.common.config.main.channels.base.BaseChannelConfig;
 import com.discordsrv.common.config.main.channels.base.ChannelConfig;
@@ -207,8 +210,9 @@ public abstract class ConfigurateConfigManager<T, LT extends AbstractConfigurati
                     builder.register(Pattern.class, new PatternSerializer());
                     builder.register(DiscordMessageEmbed.Builder.class, new DiscordMessageEmbedSerializer(NAMING_SCHEME));
                     builder.register(DiscordMessageEmbed.Field.class, new DiscordMessageEmbedSerializer.FieldSerializer(NAMING_SCHEME));
-                    builder.register(SendableDiscordMessage.Builder.class, new SendableDiscordMessageSerializer(NAMING_SCHEME));
+                    builder.register(SendableDiscordMessage.Builder.class, new SendableDiscordMessageSerializer(NAMING_SCHEME, false));
                     builder.register(MinecraftMessage.class, new MinecraftMessageSerializer());
+                    builder.register(DiscordMessage.class, new DiscordMessageSerializer(NAMING_SCHEME));
 
                     // give Configurate' serializers the ObjectMapper mapper
                     builder.register(type -> {

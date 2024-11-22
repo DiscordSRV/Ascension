@@ -18,7 +18,7 @@
 
 package com.discordsrv.velocity.command.game.sender;
 
-import com.discordsrv.common.command.game.sender.ICommandSender;
+import com.discordsrv.common.command.game.abstraction.sender.ICommandSender;
 import com.discordsrv.velocity.VelocityDiscordSRV;
 import com.velocitypowered.api.command.CommandSource;
 import net.kyori.adventure.audience.Audience;

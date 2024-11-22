@@ -20,7 +20,6 @@ package com.discordsrv.common.feature.linking.impl;
 
 import com.discordsrv.api.component.MinecraftComponent;
 import com.discordsrv.common.DiscordSRV;
-import com.discordsrv.common.abstraction.player.IPlayer;
 import com.discordsrv.common.core.logging.Logger;
 import com.discordsrv.common.core.logging.NamedLogger;
 import com.discordsrv.common.feature.linking.LinkStore;
@@ -89,16 +88,28 @@ public class MinecraftAuthenticationLinker extends CachedLinkProvider {
     }
 
     @Override
-    public CompletableFuture<MinecraftComponent> getLinkingInstructions(@NotNull IPlayer player, @Nullable String requestReason) {
-        return getInstructions(player, requestReason);
+    public CompletableFuture<MinecraftComponent> getLinkingInstructions(
+            String username,
+            UUID playerUUID,
+            Locale locale,
+            @Nullable String requestReason,
+            Object... additionalContext
+    ) {
+        return getInstructions(username, playerUUID, locale, requestReason);
     }
 
     @Override
-    public CompletableFuture<MinecraftComponent> getLinkingInstructions(String username, UUID playerUUID, Locale locale, @Nullable String requestReason) {
-        return getInstructions(null, requestReason);
+    public boolean isValidCode(@NotNull String code) {
+        throw new IllegalStateException("Does not offer codes");
     }
 
-    private CompletableFuture<MinecraftComponent> getInstructions(@Nullable IPlayer player, @Nullable String requestReason) {
+    private CompletableFuture<MinecraftComponent> getInstructions(
+            String playerName,
+            UUID playerUUID,
+            @Nullable Locale locale,
+            @Nullable String requestReason,
+            Object... additionalContext
+    ) {
         String method = null;
         if (requestReason != null) {
             requestReason = requestReason.toLowerCase(Locale.ROOT);
@@ -121,10 +132,12 @@ public class MinecraftAuthenticationLinker extends CachedLinkProvider {
 
         String url = BASE_LINK_URL + (additionalParam.length() > 0 ? "/" + additionalParam : "");
         String simple = url.substring(url.indexOf("://") + 3); // Remove protocol & don't include method query parameter
-        MinecraftComponent component = discordSRV.messagesConfig(player).minecraftAuthLinking.textBuilder()
-                .addContext(player)
+        MinecraftComponent component = discordSRV.messagesConfig(locale).minecraft.minecraftAuthLinking.textBuilder()
+                .addContext(additionalContext)
                 .addPlaceholder("minecraftauth_link", url + (method != null ? "?command=" + method : null))
                 .addPlaceholder("minecraftauth_link_simple", simple)
+                .addPlaceholder("player_name", playerName)
+                .addPlaceholder("player_uuid", playerUUID)
                 .applyPlaceholderService()
                 .build();
         return CompletableFuture.completedFuture(component);

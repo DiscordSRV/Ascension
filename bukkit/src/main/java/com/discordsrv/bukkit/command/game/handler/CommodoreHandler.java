@@ -19,8 +19,8 @@
 package com.discordsrv.bukkit.command.game.handler;
 
 import com.discordsrv.bukkit.BukkitDiscordSRV;
-import com.discordsrv.common.command.game.abstraction.GameCommand;
-import com.discordsrv.common.command.game.handler.util.BrigadierUtil;
+import com.discordsrv.common.command.game.abstraction.command.GameCommand;
+import com.discordsrv.common.command.game.abstraction.handler.util.BrigadierUtil;
 import com.mojang.brigadier.tree.LiteralCommandNode;
 import me.lucko.commodore.Commodore;
 import me.lucko.commodore.CommodoreProvider;

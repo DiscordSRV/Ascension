@@ -16,15 +16,12 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package com.discordsrv.common.command.game;
+package com.discordsrv.common.command.game.abstraction.command;
 
-import java.util.List;
-import java.util.concurrent.CompletableFuture;
+import com.discordsrv.common.command.game.abstraction.sender.ICommandSender;
 
-public interface GameCommandExecutionHelper {
+@FunctionalInterface
+public interface GameCommandExecutor {
 
-    CompletableFuture<List<String>> suggestCommands(List<String> parts);
-    List<String> getAliases(String command);
-    boolean isSameCommand(String command1, String command2);
-
+    void execute(ICommandSender sender, GameCommandArguments arguments, String label);
 }

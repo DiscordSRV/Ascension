@@ -16,9 +16,9 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package com.discordsrv.common.command.game.abstraction;
+package com.discordsrv.common.command.game.abstraction.command;
 
-import com.discordsrv.common.command.game.sender.ICommandSender;
+import com.discordsrv.common.command.game.abstraction.sender.ICommandSender;
 import com.discordsrv.common.permission.game.Permission;
 import com.discordsrv.common.util.function.CheckedFunction;
 import net.kyori.adventure.text.Component;

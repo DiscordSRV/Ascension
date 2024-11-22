@@ -19,6 +19,7 @@
 package com.discordsrv.common.core.storage;
 
 import com.discordsrv.common.feature.linking.LinkStore;
+import org.apache.commons.lang3.tuple.Pair;
 import org.jetbrains.annotations.Blocking;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -43,8 +44,8 @@ public interface Storage {
     /**
      * Inserts the given code for the given player, removing any existing code if any, with a {@link LinkStore#LINKING_CODE_EXPIRY_TIME} expiry.
      */
-    void storeLinkingCode(@NotNull UUID player, String code);
-    UUID getLinkingCode(String code);
+    void storeLinkingCode(@NotNull UUID player, String username, String code);
+    Pair<UUID, String> getLinkingCode(String code);
     void removeLinkingCode(@NotNull UUID player);
 
     int getLinkedAccountCount();

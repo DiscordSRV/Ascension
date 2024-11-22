@@ -19,8 +19,8 @@
 package com.discordsrv.bungee.console.executor;
 
 import com.discordsrv.bungee.BungeeDiscordSRV;
-import com.discordsrv.common.command.game.executor.CommandExecutor;
-import com.discordsrv.common.command.game.executor.CommandExecutorProvider;
+import com.discordsrv.common.command.game.abstraction.executor.CommandExecutor;
+import com.discordsrv.common.command.game.abstraction.executor.CommandExecutorProvider;
 import net.kyori.adventure.text.Component;
 
 import java.util.function.Consumer;

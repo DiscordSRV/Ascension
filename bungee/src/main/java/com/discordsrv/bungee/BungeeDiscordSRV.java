@@ -24,7 +24,7 @@ import com.discordsrv.bungee.player.BungeePlayerProvider;
 import com.discordsrv.bungee.plugin.BungeePluginManager;
 import com.discordsrv.common.AbstractDiscordSRV;
 import com.discordsrv.common.abstraction.plugin.PluginManager;
-import com.discordsrv.common.command.game.handler.ICommandHandler;
+import com.discordsrv.common.command.game.abstraction.handler.ICommandHandler;
 import com.discordsrv.common.config.configurate.manager.ConnectionConfigManager;
 import com.discordsrv.common.config.configurate.manager.MainConfigManager;
 import com.discordsrv.common.config.configurate.manager.MessagesConfigManager;

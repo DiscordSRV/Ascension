@@ -18,6 +18,7 @@
 
 package com.discordsrv.common.feature.linking;
 
+import org.apache.commons.lang3.tuple.Pair;
 import org.jetbrains.annotations.NotNull;
 
 import java.time.Duration;
@@ -32,8 +33,13 @@ public interface LinkStore extends LinkProvider {
     CompletableFuture<Void> createLink(@NotNull UUID playerUUID, long userId);
     CompletableFuture<Void> removeLink(@NotNull UUID playerUUID, long userId);
 
-    CompletableFuture<UUID> getCodeLinking(long userId, @NotNull String code);
-    CompletableFuture<Void> removeLinkingCode(@NotNull String code);
+    /**
+     * Gets the linking code information for the given code.
+     * @param userId the Discord user id this request is for
+     * @param code the code
+     * @return a part with the Player's {@link UUID} and username
+     */
+    CompletableFuture<Pair<UUID, String>> getCodeLinking(long userId, @NotNull String code);
     CompletableFuture<Void> removeLinkingCode(@NotNull UUID playerUUID);
 
     CompletableFuture<Integer> getLinkedAccountCount();

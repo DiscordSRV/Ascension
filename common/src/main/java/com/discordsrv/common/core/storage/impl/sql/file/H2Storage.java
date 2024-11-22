@@ -102,21 +102,27 @@ public class H2Storage extends SQLStorage {
     public void createTables(Connection connection, String tablePrefix) throws SQLException {
         try (Statement statement = connection.createStatement()) {
             statement.execute(
-                    "create table if not exists " + tablePrefix + LINKED_ACCOUNTS_TABLE_NAME + " "
-                            + "(ID int not null auto_increment, "
-                            + "PLAYER_UUID varchar(36), "
-                            + "USER_ID bigint, "
-                            + "constraint LINKED_ACCOUNTS_PK primary key (ID)"
-                            + ")");
+                    "create table if not exists " + tablePrefix + LINKED_ACCOUNTS_TABLE_NAME + " ("
+                            + "ID int not null auto_increment,"
+                            + "PLAYER_UUID varchar(36),"
+                            + "USER_ID bigint,"
+                            + "constraint LINKED_ACCOUNTS_PK primary key (ID),"
+                            + "constraint LINKED_ACCOUNTS_UQ unique (PLAYER_UUID, USER_ID)"
+                            + ");");
         }
         try (Statement statement = connection.createStatement()) {
             statement.execute(
-                    "create table if not exists " + tablePrefix + LINKING_CODES_TABLE_NAME + " "
-                            + "(PLAYERUUID varchar(36), "
-                            + "CODE varchar(8), "
-                            + "EXPIRY bigint, "
-                            + "constraint LINKING_CODES_PK primary key (PLAYERUUID)"
-                            + ")");
+                    "create table if not exists " + tablePrefix + LINKING_CODES_TABLE_NAME + " ("
+                            + "PLAYERUUID varchar(36),"
+                            + "PLAYERUSERNAME varchar(32),"
+                            + "CODE varchar(8),"
+                            + "EXPIRY bigint,"
+                            + "constraint LINKING_CODES_PK primary key (PLAYERUUID),"
+                            + "constraint LINKING_CODES_UQ unique (CODE)"
+                            + ");");
+        }
+        try (Statement statement = connection.createStatement()) {
+            statement.execute("alter table " + tablePrefix + LINKING_CODES_TABLE_NAME + " add column if not exists PLAYERUSERNAME varchar(32);");
         }
     }
 }

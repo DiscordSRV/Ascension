@@ -18,8 +18,8 @@
 
 package com.discordsrv.velocity.console.executor;
 
-import com.discordsrv.common.command.game.executor.CommandExecutor;
-import com.discordsrv.common.command.game.executor.CommandExecutorProvider;
+import com.discordsrv.common.command.game.abstraction.executor.CommandExecutor;
+import com.discordsrv.common.command.game.abstraction.executor.CommandExecutorProvider;
 import com.discordsrv.velocity.VelocityDiscordSRV;
 import net.kyori.adventure.text.Component;
 

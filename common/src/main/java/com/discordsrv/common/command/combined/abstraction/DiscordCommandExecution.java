@@ -18,16 +18,19 @@
 
 package com.discordsrv.common.command.combined.abstraction;
 
+import com.discordsrv.api.discord.entity.DiscordUser;
+import com.discordsrv.api.discord.entity.message.SendableDiscordMessage;
+import com.discordsrv.api.events.discord.interaction.AbstractInteractionEvent;
 import com.discordsrv.api.events.discord.interaction.command.DiscordChatInputInteractionEvent;
 import com.discordsrv.api.events.discord.interaction.command.DiscordCommandAutoCompleteInteractionEvent;
 import com.discordsrv.common.DiscordSRV;
 import com.discordsrv.common.config.messages.MessagesConfig;
-import net.dv8tion.jda.api.entities.User;
-import net.dv8tion.jda.api.events.interaction.GenericInteractionCreateEvent;
+import com.discordsrv.common.discord.api.entity.message.util.SendableDiscordMessageUtil;
 import net.dv8tion.jda.api.interactions.InteractionHook;
 import net.dv8tion.jda.api.interactions.callbacks.IReplyCallback;
 import net.dv8tion.jda.api.interactions.commands.CommandInteractionPayload;
 import net.dv8tion.jda.api.interactions.commands.OptionMapping;
+import net.dv8tion.jda.api.utils.messages.MessageCreateData;
 import net.kyori.adventure.text.Component;
 import org.apache.commons.lang3.StringUtils;
 
@@ -40,8 +43,8 @@ import java.util.concurrent.atomic.AtomicReference;
 public class DiscordCommandExecution implements CommandExecution {
 
     private final DiscordSRV discordSRV;
+    private final AbstractInteractionEvent<?> event;
 
-    private final GenericInteractionCreateEvent createEvent;
     private final CommandInteractionPayload interactionPayload;
     private final IReplyCallback replyCallback;
 
@@ -50,21 +53,25 @@ public class DiscordCommandExecution implements CommandExecution {
 
     public DiscordCommandExecution(DiscordSRV discordSRV, DiscordChatInputInteractionEvent event) {
         this.discordSRV = discordSRV;
-        this.createEvent = event.asJDA();
+        this.event = event;
         this.interactionPayload = event.asJDA();
         this.replyCallback = event.asJDA();
     }
 
     public DiscordCommandExecution(DiscordSRV discordSRV, DiscordCommandAutoCompleteInteractionEvent event) {
         this.discordSRV = discordSRV;
-        this.createEvent = event.asJDA();
+        this.event = event;
         this.interactionPayload = event.asJDA();
         this.replyCallback = null;
     }
 
+    public DiscordUser getUser() {
+        return event.getUser();
+    }
+
     @Override
     public Locale locale() {
-        return createEvent.getUserLocale().toLocale();
+        return event.getUserLocale();
     }
 
     @Override
@@ -101,25 +108,26 @@ public class DiscordCommandExecution implements CommandExecution {
             verifyStyle(builder, formats, null);
         }
 
-        sendResponse(builder.toString());
+        sendResponse(SendableDiscordMessage.builder().setContent(builder.toString()).build());
     }
 
     @Override
-    public void send(Component minecraft, String discord) {
+    public void send(Component minecraft, SendableDiscordMessage discord) {
         sendResponse(discord);
     }
 
-    private void sendResponse(String content) {
+    private void sendResponse(SendableDiscordMessage message) {
         if (replyCallback == null) {
             throw new IllegalStateException("May not be used on auto completions");
         }
 
         InteractionHook interactionHook = hook.get();
         boolean ephemeral = isEphemeral.get();
+        MessageCreateData data = SendableDiscordMessageUtil.toJDASend(message);
         if (interactionHook != null) {
-            interactionHook.sendMessage(content).setEphemeral(ephemeral).queue();
+            interactionHook.sendMessage(data).setEphemeral(ephemeral).queue();
         } else {
-            replyCallback.reply(content).setEphemeral(ephemeral).queue();
+            replyCallback.reply(data).setEphemeral(ephemeral).queue();
         }
     }
 
@@ -149,9 +157,5 @@ public class DiscordCommandExecution implements CommandExecution {
             hook.set(ih);
             discordSRV.scheduler().run(runnable);
         });
-    }
-
-    public User getUser() {
-        return createEvent.getUser();
     }
 }

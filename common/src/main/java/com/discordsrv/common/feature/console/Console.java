@@ -18,8 +18,8 @@
 
 package com.discordsrv.common.feature.console;
 
-import com.discordsrv.common.command.game.executor.CommandExecutorProvider;
-import com.discordsrv.common.command.game.sender.ICommandSender;
+import com.discordsrv.common.command.game.abstraction.executor.CommandExecutorProvider;
+import com.discordsrv.common.command.game.abstraction.sender.ICommandSender;
 import com.discordsrv.common.core.logging.backend.LoggingBackend;
 
 public interface Console extends ICommandSender {

@@ -16,12 +16,15 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package com.discordsrv.common.command.game.abstraction;
+package com.discordsrv.common.command.game.abstraction.command;
 
-import com.discordsrv.common.command.game.sender.ICommandSender;
+import com.discordsrv.common.command.game.abstraction.sender.ICommandSender;
+
+import java.util.List;
 
 @FunctionalInterface
-public interface GameCommandExecutor {
+public interface GameCommandSuggester {
 
-    void execute(ICommandSender sender, GameCommandArguments arguments, String label);
+    List<String> suggestValues(ICommandSender sender, GameCommandArguments previousArguments, String currentInput);
+
 }

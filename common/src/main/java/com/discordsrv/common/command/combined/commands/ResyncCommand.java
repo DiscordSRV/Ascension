@@ -30,7 +30,7 @@ import com.discordsrv.common.command.combined.abstraction.CombinedCommand;
 import com.discordsrv.common.command.combined.abstraction.CommandExecution;
 import com.discordsrv.common.command.combined.abstraction.GameCommandExecution;
 import com.discordsrv.common.command.combined.abstraction.Text;
-import com.discordsrv.common.command.game.abstraction.GameCommand;
+import com.discordsrv.common.command.game.abstraction.command.GameCommand;
 import com.discordsrv.common.feature.groupsync.GroupSyncModule;
 import com.discordsrv.common.helper.Someone;
 import com.discordsrv.common.permission.game.Permission;

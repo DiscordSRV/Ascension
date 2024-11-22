@@ -19,7 +19,7 @@
 package com.discordsrv.bungee.command.game.sender;
 
 import com.discordsrv.bungee.BungeeDiscordSRV;
-import com.discordsrv.common.command.game.sender.ICommandSender;
+import com.discordsrv.common.command.game.abstraction.sender.ICommandSender;
 import net.kyori.adventure.audience.Audience;
 import net.md_5.bungee.api.CommandSender;
 import org.jetbrains.annotations.NotNull;

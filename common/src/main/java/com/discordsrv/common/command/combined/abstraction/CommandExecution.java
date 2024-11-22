@@ -19,6 +19,7 @@
 package com.discordsrv.common.command.combined.abstraction;
 
 import com.discordsrv.api.component.MinecraftComponent;
+import com.discordsrv.api.discord.entity.message.SendableDiscordMessage;
 import com.discordsrv.common.config.messages.MessagesConfig;
 import com.discordsrv.common.util.ComponentUtil;
 import net.kyori.adventure.text.Component;
@@ -47,11 +48,11 @@ public interface CommandExecution {
 
     void send(Collection<Text> texts, Collection<Text> extra);
 
-    default void send(MinecraftComponent minecraft, String discord) {
+    default void send(MinecraftComponent minecraft, SendableDiscordMessage discord) {
         send(ComponentUtil.fromAPI(minecraft), discord);
     }
 
-    void send(Component minecraft, String discord);
+    void send(Component minecraft, SendableDiscordMessage discord);
 
     void runAsync(Runnable runnable);
 }

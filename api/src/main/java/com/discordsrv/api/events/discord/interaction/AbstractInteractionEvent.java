@@ -33,6 +33,8 @@ import net.dv8tion.jda.api.events.interaction.GenericInteractionCreateEvent;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.Locale;
+
 public abstract class AbstractInteractionEvent<T extends GenericInteractionCreateEvent> extends AbstractDiscordEvent<T> {
 
     protected final ComponentIdentifier identifier;
@@ -56,6 +58,16 @@ public abstract class AbstractInteractionEvent<T extends GenericInteractionCreat
 
     public boolean isFor(ComponentIdentifier identifier) {
         return this.identifier.equals(identifier);
+    }
+
+    @NotNull
+    public Locale getGuildLocale() {
+        return jdaEvent.getGuildLocale().toLocale();
+    }
+
+    @NotNull
+    public Locale getUserLocale() {
+        return jdaEvent.getUserLocale().toLocale();
     }
 
     @NotNull

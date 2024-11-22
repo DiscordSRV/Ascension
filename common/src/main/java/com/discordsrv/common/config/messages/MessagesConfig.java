@@ -19,13 +19,14 @@
 package com.discordsrv.common.config.messages;
 
 import com.discordsrv.api.discord.entity.DiscordUser;
-import com.discordsrv.api.placeholder.provider.SinglePlaceholder;
+import com.discordsrv.api.discord.entity.message.SendableDiscordMessage;
 import com.discordsrv.common.DiscordSRV;
 import com.discordsrv.common.abstraction.player.IOfflinePlayer;
 import com.discordsrv.common.command.combined.abstraction.CommandExecution;
 import com.discordsrv.common.config.Config;
 import com.discordsrv.common.config.configurate.annotation.Constants;
 import com.discordsrv.common.config.configurate.annotation.Untranslated;
+import com.discordsrv.common.config.helper.DiscordMessage;
 import com.discordsrv.common.config.helper.MinecraftMessage;
 import com.discordsrv.common.util.CompletableFutureUtil;
 import org.spongepowered.configurate.objectmapping.ConfigSerializable;
@@ -94,35 +95,35 @@ public class MessagesConfig implements Config {
     public void playerNotFound(CommandExecution execution) {
         execution.send(
                 minecraft.playerNotFound.asComponent(),
-                discord.playerNotFound
+                discord.playerNotFound.get()
         );
     }
 
     public void userNotFound(CommandExecution execution) {
         execution.send(
                 minecraft.userNotFound.asComponent(),
-                discord.userNotFound
+                discord.userNotFound.get()
         );
     }
 
     public void unableToCheckLinkingStatus(CommandExecution execution) {
         execution.send(
                 minecraft.unableToCheckLinkingStatus.asComponent(),
-                discord.unableToCheckLinkingStatus
+                discord.unableToCheckLinkingStatus.get()
         );
     }
 
     public void playerAlreadyLinked3rd(CommandExecution execution) {
         execution.send(
                 minecraft.playerAlreadyLinked3rd.asComponent(),
-                discord.playerAlreadyLinked3rd
+                discord.playerAlreadyLinked3rd.get()
         );
     }
 
     public void userAlreadyLinked3rd(CommandExecution execution) {
         execution.send(
                 minecraft.userAlreadyLinked3rd.asComponent(),
-                discord.userAlreadyLinked3rd
+                discord.userAlreadyLinked3rd.get()
         );
     }
 
@@ -134,13 +135,12 @@ public class MessagesConfig implements Config {
                         .addPlaceholder("user_id", userId)
                         .addPlaceholder("player_uuid", playerUUID)
                         .build(),
-                discordSRV.placeholderService().replacePlaceholders(
-                        execution.messages().discord.nowLinked3rd,
-                        user,
-                        player,
-                        new SinglePlaceholder("user_id", userId),
-                        new SinglePlaceholder("player_uuid", playerUUID)
-                )
+                execution.messages().discord.nowLinked3rd.format()
+                        .addContext(user, player)
+                        .addPlaceholder("user_id", userId)
+                        .addPlaceholder("player_uuid", playerUUID)
+                        .applyPlaceholderService()
+                        .build()
         ));
     }
 
@@ -158,13 +158,12 @@ public class MessagesConfig implements Config {
                         .addPlaceholder("user_id", userId)
                         .addPlaceholder("player_uuid", playerUUID)
                         .build(),
-                discordSRV.placeholderService().replacePlaceholders(
-                        discord.discordUserLinkedTo,
-                        user,
-                        player,
-                        new SinglePlaceholder("user_id", userId),
-                        new SinglePlaceholder("player_uuid", playerUUID)
-                )
+                discord.discordUserLinkedTo.format()
+                        .addContext(user, player)
+                        .addPlaceholder("user_id", userId)
+                        .addPlaceholder("player_uuid", playerUUID)
+                        .applyPlaceholderService()
+                        .build()
         ));
     }
 
@@ -180,11 +179,11 @@ public class MessagesConfig implements Config {
                         .addContext(user)
                         .addPlaceholder("user_id", userId)
                         .build(),
-                discordSRV.placeholderService().replacePlaceholders(
-                        discord.discordUserUnlinked,
-                        user,
-                        new SinglePlaceholder("user_id", userId)
-                )
+                discord.discordUserUnlinked.format()
+                        .addContext(user)
+                        .addPlaceholder("user_id", userId)
+                        .applyPlaceholderService()
+                        .build()
         ));
     }
 
@@ -202,13 +201,12 @@ public class MessagesConfig implements Config {
                         .addPlaceholder("player_uuid", playerUUID)
                         .addPlaceholder("user_id", userId)
                         .build(),
-                discordSRV.placeholderService().replacePlaceholders(
-                        discord.minecraftPlayerLinkedTo,
-                        player,
-                        user,
-                        new SinglePlaceholder("player_uuid", playerUUID),
-                        new SinglePlaceholder("user_id", userId)
-                )
+                discord.minecraftPlayerLinkedTo.format()
+                        .addContext(player, user)
+                        .addPlaceholder("player_uuid", playerUUID)
+                        .addPlaceholder("user_id", userId)
+                        .applyPlaceholderService()
+                        .build()
         ));
     }
 
@@ -224,18 +222,17 @@ public class MessagesConfig implements Config {
                         .addContext(player)
                         .addPlaceholder("player_uuid", playerUUID)
                         .build(),
-                discordSRV.placeholderService().replacePlaceholders(
-                        discord.minecraftPlayerUnlinked,
-                        player,
-                        new SinglePlaceholder("player_uuid", playerUUID)
-                )
+                discord.minecraftPlayerUnlinked.format()
+                        .addPlaceholder("player_uuid", playerUUID)
+                        .applyPlaceholderService()
+                        .build()
         ));
     }
 
     public void unlinked(CommandExecution execution) {
         execution.send(
                 minecraft.unlinked.asComponent(),
-                discord.unlinked
+                discord.unlinked.get()
         );
     }
 
@@ -246,6 +243,7 @@ public class MessagesConfig implements Config {
         private static final String ERROR_COLOR = "&c";
         private static final String SUCCESS_COLOR = "&a";
         private static final String NEUTRAL_COLOR = "&b";
+        private static final String BLURPLE_COLOR = "&#5865F2";
 
         private MinecraftMessage make(String rawFormat) {
             return new MinecraftMessage(rawFormat);
@@ -326,6 +324,12 @@ public class MessagesConfig implements Config {
                 "&fMinecraftAuth"
         })
         public MinecraftMessage minecraftAuthLinking = make("%1Please visit %2 to link your account through %3");
+        @Constants({NEUTRAL_COLOR, BLURPLE_COLOR})
+        public MinecraftMessage storageLinking = make(
+                "%1Join our %2Discord %1server at "
+                        + "[click:open_url:%discord_invite%]%discord_invite_simple%[click]"
+                        + " and link your account by running the "
+                        + "&r[click:copy_to_clipboard:/<todo> link %code%][hover:show_text:Click to copy]/<todo> link %code%"); // TODO
 
         @Untranslated(Untranslated.Type.COMMENT)
         @Comment("/discord unlink")
@@ -343,63 +347,75 @@ public class MessagesConfig implements Config {
         private static final String INPUT_ERROR_PREFIX = "\uD83D\uDDD2️ ";
         private static final String ERROR_PREFIX = "❌ ";
 
+        private DiscordMessage make(String rawFormat) {
+            return new DiscordMessage(SendableDiscordMessage.builder().setContent(rawFormat));
+        }
+
         @Comment("Generic")
         @Constants(INPUT_ERROR_PREFIX)
-        public String pleaseSpecifyPlayer = "%1Please specify the Minecraft player";
+        public DiscordMessage pleaseSpecifyPlayer = make("%1Please specify the Minecraft player");
         @Constants(INPUT_ERROR_PREFIX)
-        public String pleaseSpecifyUser = "%1Please specify the Discord user";
+        public DiscordMessage pleaseSpecifyUser = make("%1Please specify the Discord user");
         @Constants(INPUT_ERROR_PREFIX)
-        public String pleaseSpecifyPlayerOrUser = "%1Please specify the Minecraft player or Discord user";
+        public DiscordMessage pleaseSpecifyPlayerOrUser = make("%1Please specify the Minecraft player or Discord user");
         @Constants(ERROR_PREFIX)
-        public String playerNotFound = "%1Minecraft player not found";
+        public DiscordMessage playerNotFound = make("%1Minecraft player not found");
         @Constants(ERROR_PREFIX)
-        public String userNotFound = "%1Discord user not found";
+        public DiscordMessage userNotFound = make("%1Discord user not found");
         @Constants(ERROR_PREFIX)
-        public String unableToCheckLinkingStatus = "%1Unable to check linking status, please try again later";
+        public DiscordMessage unableToCheckLinkingStatus = make("%1Unable to check linking status, please try again later");
 
         @Constants({
                 SUCCESS_PREFIX,
                 "**%user_name%** (<@%user_id%>)",
                 "**%player_name%** (%player_uuid%)"
         })
-        public String discordUserLinkedTo = "%1%2 is linked to %3";
+        public DiscordMessage discordUserLinkedTo = make("%1%2 is linked to %3");
 
         @Constants({
                 ERROR_PREFIX,
                 "**%user_name%** (<@%user_id%>)"
         })
-        public String discordUserUnlinked = "%1%2 is __unlinked__";
+        public DiscordMessage discordUserUnlinked = make("%1%2 is __unlinked__");
 
         @Constants({
                 SUCCESS_PREFIX,
                 "**%player_name%** (%player_uuid%)",
                 "**%user_name%** (<@%user_id%>)"
         })
-        public String minecraftPlayerLinkedTo = "%1%2 is linked to %3";
+        public DiscordMessage minecraftPlayerLinkedTo = make("%1%2 is linked to %3");
 
         @Constants({
                 ERROR_PREFIX,
                 "**%player_name%** (%player_uuid%)"
         })
-        public String minecraftPlayerUnlinked = "%1%2 is __unlinked__";
+        public DiscordMessage minecraftPlayerUnlinked = make("%1%2 is __unlinked__");
 
         @Untranslated(Untranslated.Type.COMMENT)
         @Comment("/discord link")
         @Constants(ERROR_PREFIX)
-        public String playerAlreadyLinked3rd = "%1That Minecraft player is already linked";
+        public DiscordMessage playerAlreadyLinked3rd = make("%1That Minecraft player is already linked");
         @Constants(ERROR_PREFIX)
-        public String userAlreadyLinked3rd = "%1That Discord user is already linked";
+        public DiscordMessage userAlreadyLinked3rd = make("%1That Discord user is already linked");
+        @Constants(ERROR_PREFIX)
+        public DiscordMessage alreadyLinked1st = make("%1You are already linked");
         @Constants({
                 SUCCESS_PREFIX,
                 "**%player_name%** (%player_uuid%)",
                 "**%user_name%** (<@%user_id%>)"
         })
-        public String nowLinked3rd = "%1Link created successfully\n%2 and %3";
+        public DiscordMessage nowLinked3rd = make("%1Link created successfully\n%2 and %3");
+        @Constants(ERROR_PREFIX)
+        public DiscordMessage pleaseWaitBeforeRunningThatCommandAgain = make("%1Please wait before running that command again");
+        @Constants(ERROR_PREFIX)
+        public DiscordMessage invalidLinkingCode = make("%1Invalid linking code");
+        @Constants({SUCCESS_PREFIX, "**%player_name%**"})
+        public DiscordMessage accountLinked = make("%1Account linked to %2 successfully");
 
         @Untranslated(Untranslated.Type.COMMENT)
         @Comment("/discord unlink")
         @Constants({SUCCESS_PREFIX})
-        public String unlinked = "%1Accounts unlinked";
+        public DiscordMessage unlinked = make("%1Accounts unlinked");
 
     }
 }

@@ -21,12 +21,12 @@ package com.discordsrv.common.command.game.commands;
 import com.discordsrv.api.component.MinecraftComponent;
 import com.discordsrv.common.DiscordSRV;
 import com.discordsrv.common.command.combined.commands.*;
-import com.discordsrv.common.command.game.abstraction.GameCommand;
-import com.discordsrv.common.command.game.abstraction.GameCommandArguments;
-import com.discordsrv.common.command.game.abstraction.GameCommandExecutor;
+import com.discordsrv.common.command.game.abstraction.command.GameCommand;
+import com.discordsrv.common.command.game.abstraction.command.GameCommandArguments;
+import com.discordsrv.common.command.game.abstraction.command.GameCommandExecutor;
 import com.discordsrv.common.command.game.commands.subcommand.BroadcastCommand;
 import com.discordsrv.common.command.game.commands.subcommand.reload.ReloadCommand;
-import com.discordsrv.common.command.game.sender.ICommandSender;
+import com.discordsrv.common.command.game.abstraction.sender.ICommandSender;
 import com.discordsrv.common.feature.linking.LinkStore;
 import com.discordsrv.common.permission.game.Permission;
 import com.discordsrv.common.util.ComponentUtil;
@@ -51,7 +51,7 @@ public class DiscordSRVGameCommand implements GameCommandExecutor {
                     .then(BroadcastCommand.minecraft(discordSRV))
                     .then(BroadcastCommand.json(discordSRV))
                     .then(DebugCommand.getGame(discordSRV))
-                    .then(LinkInitCommand.getGame(discordSRV))
+                    .then(LinkOtherCommand.getGame(discordSRV))
                     .then(LinkedCommand.getGame(discordSRV))
                     .then(ReloadCommand.get(discordSRV))
                     .then(ResyncCommand.getGame(discordSRV))

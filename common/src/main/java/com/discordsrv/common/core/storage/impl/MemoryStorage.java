@@ -21,17 +21,20 @@ package com.discordsrv.common.core.storage.impl;
 import com.discordsrv.common.core.storage.Storage;
 import org.apache.commons.collections4.BidiMap;
 import org.apache.commons.collections4.bidimap.DualHashBidiMap;
+import org.apache.commons.lang3.tuple.Pair;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.Map;
 import java.util.UUID;
+import java.util.concurrent.ConcurrentHashMap;
 
 public class MemoryStorage implements Storage {
 
     public static String IDENTIFIER = UUID.randomUUID().toString();
 
     private final BidiMap<UUID, Long> linkedAccounts = new DualHashBidiMap<>();
-    private final BidiMap<UUID, String> linkingCodes = new DualHashBidiMap<>();
+    private final Map<String, Pair<UUID, String>> linkingCodes = new ConcurrentHashMap<>();
 
     public MemoryStorage() {}
 
@@ -64,22 +67,23 @@ public class MemoryStorage implements Storage {
     }
 
     @Override
-    public void storeLinkingCode(@NotNull UUID player, String code) {
-        linkingCodes.put(player, code);
+    public void storeLinkingCode(@NotNull UUID player, @NotNull String username, String code) {
+        linkingCodes.put(code, Pair.of(player, username));
     }
 
     @Override
-    public UUID getLinkingCode(String code) {
-        return linkingCodes.getKey(code);
+    public Pair<UUID, String> getLinkingCode(String code) {
+        return linkingCodes.get(code);
     }
 
     @Override
     public void removeLinkingCode(@NotNull UUID player) {
-        linkingCodes.remove(player);
+        linkingCodes.values().removeIf(code -> code.getKey() == player);
     }
 
     @Override
     public int getLinkedAccountCount() {
         return linkedAccounts.size();
     }
+
 }

@@ -16,14 +16,27 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package com.discordsrv.common.command.game.executor;
+package com.discordsrv.common.config.helper;
 
-import net.kyori.adventure.text.Component;
+import com.discordsrv.api.discord.entity.message.SendableDiscordMessage;
 
-import java.util.function.Consumer;
+public class DiscordMessage {
 
-@FunctionalInterface
-public interface CommandExecutorProvider {
+    private final SendableDiscordMessage.Builder builder;
 
-    CommandExecutor getConsoleExecutor(Consumer<Component> componentConsumer);
+    public DiscordMessage(SendableDiscordMessage.Builder builder) {
+        this.builder = builder;
+    }
+
+    public SendableDiscordMessage get() {
+        return builder.build();
+    }
+
+    public SendableDiscordMessage.Builder builder() {
+        return builder.clone();
+    }
+
+    public SendableDiscordMessage.Formatter format() {
+        return builder.toFormatter();
+    }
 }

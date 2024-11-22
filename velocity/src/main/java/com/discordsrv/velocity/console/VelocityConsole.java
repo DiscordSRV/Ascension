@@ -18,7 +18,7 @@
 
 package com.discordsrv.velocity.console;
 
-import com.discordsrv.common.command.game.executor.CommandExecutorProvider;
+import com.discordsrv.common.command.game.abstraction.executor.CommandExecutorProvider;
 import com.discordsrv.common.core.logging.backend.LoggingBackend;
 import com.discordsrv.common.core.logging.backend.impl.Log4JLoggerImpl;
 import com.discordsrv.common.feature.console.Console;

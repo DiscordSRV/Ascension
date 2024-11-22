@@ -16,19 +16,26 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package com.discordsrv.common.command.game.executor;
+package com.discordsrv.common.command.game.abstraction.command;
 
-import com.discordsrv.api.discord.entity.DiscordUser;
-import com.discordsrv.common.DiscordSRV;
+@FunctionalInterface
+public interface GameCommandArguments {
 
-public interface CommandExecutor {
+    <T> T get(String label, Class<T> type);
 
-    default void runCommandWithLogging(DiscordSRV discordSRV, DiscordUser user, String command) {
-        discordSRV.logger().writeLogForCurrentDay(
-                "commandexecution",
-                "@" + user.getAsTag() + " [ID " + Long.toUnsignedString(user.getId()) + "] executed \"" + command + "\""
-        );
-        runCommand(command);
+    default boolean has(String label) {
+        try {
+            return get(label, Object.class) != null;
+        } catch (Throwable ignored) {
+            return false;
+        }
     }
-    void runCommand(String command);
+
+    default String getString(String label) {
+        return get(label, String.class);
+    }
+
+    default Integer getInt(String label) {
+        return get(label, Integer.class);
+    }
 }

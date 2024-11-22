@@ -16,11 +16,11 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package com.discordsrv.common.command.game.handler;
+package com.discordsrv.common.command.game.abstraction.handler;
 
-import com.discordsrv.common.command.game.abstraction.GameCommand;
-import com.discordsrv.common.command.game.abstraction.GameCommandArguments;
-import com.discordsrv.common.command.game.sender.ICommandSender;
+import com.discordsrv.common.command.game.abstraction.command.GameCommand;
+import com.discordsrv.common.command.game.abstraction.command.GameCommandArguments;
+import com.discordsrv.common.command.game.abstraction.sender.ICommandSender;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 import net.kyori.adventure.text.format.TextDecoration;

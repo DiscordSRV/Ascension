@@ -16,12 +16,12 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package com.discordsrv.common.command.game.handler.util;
+package com.discordsrv.common.command.game.abstraction.handler.util;
 
-import com.discordsrv.common.command.game.abstraction.GameCommand;
-import com.discordsrv.common.command.game.abstraction.GameCommandExecutor;
-import com.discordsrv.common.command.game.abstraction.GameCommandSuggester;
-import com.discordsrv.common.command.game.sender.ICommandSender;
+import com.discordsrv.common.command.game.abstraction.command.GameCommand;
+import com.discordsrv.common.command.game.abstraction.command.GameCommandExecutor;
+import com.discordsrv.common.command.game.abstraction.command.GameCommandSuggester;
+import com.discordsrv.common.command.game.abstraction.sender.ICommandSender;
 import com.mojang.brigadier.Command;
 import com.mojang.brigadier.arguments.*;
 import com.mojang.brigadier.builder.ArgumentBuilder;

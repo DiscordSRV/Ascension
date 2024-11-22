@@ -20,9 +20,9 @@ package com.discordsrv.bungee.command.game.handler;
 
 import com.discordsrv.bungee.BungeeDiscordSRV;
 import com.discordsrv.bungee.command.game.sender.BungeeCommandSender;
-import com.discordsrv.common.command.game.abstraction.GameCommand;
-import com.discordsrv.common.command.game.handler.BasicCommandHandler;
-import com.discordsrv.common.command.game.sender.ICommandSender;
+import com.discordsrv.common.command.game.abstraction.command.GameCommand;
+import com.discordsrv.common.command.game.abstraction.handler.BasicCommandHandler;
+import com.discordsrv.common.command.game.abstraction.sender.ICommandSender;
 import net.md_5.bungee.api.CommandSender;
 import net.md_5.bungee.api.connection.ProxiedPlayer;
 import net.md_5.bungee.api.plugin.Command;

@@ -22,10 +22,10 @@ import com.discordsrv.api.discord.entity.interaction.command.DiscordCommand;
 import com.discordsrv.api.events.discord.interaction.command.DiscordChatInputInteractionEvent;
 import com.discordsrv.api.events.discord.interaction.command.DiscordCommandAutoCompleteInteractionEvent;
 import com.discordsrv.common.DiscordSRV;
-import com.discordsrv.common.command.game.abstraction.GameCommandArguments;
-import com.discordsrv.common.command.game.abstraction.GameCommandExecutor;
-import com.discordsrv.common.command.game.abstraction.GameCommandSuggester;
-import com.discordsrv.common.command.game.sender.ICommandSender;
+import com.discordsrv.common.command.game.abstraction.command.GameCommandArguments;
+import com.discordsrv.common.command.game.abstraction.command.GameCommandExecutor;
+import com.discordsrv.common.command.game.abstraction.command.GameCommandSuggester;
+import com.discordsrv.common.command.game.abstraction.sender.ICommandSender;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.Collections;

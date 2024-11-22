@@ -74,6 +74,8 @@ public interface LinkProvider {
             String username,
             UUID playerUUID,
             @Nullable Locale locale,
-            @Nullable String requestReason
+            @Nullable String requestReason,
+            Object... additionalContext
     );
+    boolean isValidCode(@NotNull String code);
 }

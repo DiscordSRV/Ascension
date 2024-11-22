@@ -16,18 +16,14 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package com.discordsrv.common.command.game.sender;
+package com.discordsrv.common.command.game.abstraction.executor;
 
-import com.discordsrv.common.command.game.executor.CommandExecutor;
-import com.discordsrv.common.permission.game.Permission;
-import net.kyori.adventure.audience.ForwardingAudience;
+import net.kyori.adventure.text.Component;
 
-public interface ICommandSender extends ForwardingAudience.Single, CommandExecutor {
+import java.util.function.Consumer;
 
-    default boolean hasPermission(Permission permission) {
-        return hasPermission(permission.permission());
-    }
+@FunctionalInterface
+public interface CommandExecutorProvider {
 
-    boolean hasPermission(String permission);
-
+    CommandExecutor getConsoleExecutor(Consumer<Component> componentConsumer);
 }

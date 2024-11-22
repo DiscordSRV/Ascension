@@ -19,7 +19,7 @@
 package com.discordsrv.bukkit.command.game.sender;
 
 import com.discordsrv.bukkit.BukkitDiscordSRV;
-import com.discordsrv.common.command.game.sender.ICommandSender;
+import com.discordsrv.common.command.game.abstraction.sender.ICommandSender;
 import net.kyori.adventure.audience.Audience;
 import org.bukkit.command.CommandSender;
 import org.jetbrains.annotations.NotNull;

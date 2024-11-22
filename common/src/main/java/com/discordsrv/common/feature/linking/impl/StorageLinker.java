@@ -20,8 +20,7 @@ package com.discordsrv.common.feature.linking.impl;
 
 import com.discordsrv.api.component.MinecraftComponent;
 import com.discordsrv.common.DiscordSRV;
-import com.discordsrv.common.util.ComponentUtil;
-import net.kyori.adventure.text.Component;
+import org.apache.commons.lang3.tuple.Pair;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -64,16 +63,8 @@ public class StorageLinker extends CachedLinkProvider.Store {
     }
 
     @Override
-    public CompletableFuture<UUID> getCodeLinking(long userId, @NotNull String code) {
+    public CompletableFuture<Pair<UUID, String>> getCodeLinking(long userId, @NotNull String code) {
         return discordSRV.scheduler().supply(() -> discordSRV.storage().getLinkingCode(code));
-    }
-
-    @Override
-    public CompletableFuture<Void> removeLinkingCode(@NotNull String code) {
-        return discordSRV.scheduler().execute(() -> {
-            UUID player = discordSRV.storage().getLinkingCode(code);
-            discordSRV.storage().removeLinkingCode(player);
-        });
     }
 
     @Override
@@ -89,7 +80,13 @@ public class StorageLinker extends CachedLinkProvider.Store {
     private final SecureRandom secureRandom = new SecureRandom();
 
     @Override
-    public CompletableFuture<MinecraftComponent> getLinkingInstructions(String username, UUID playerUUID, @Nullable Locale locale, @Nullable String requestReason) {
+    public CompletableFuture<MinecraftComponent> getLinkingInstructions(
+            String username,
+            UUID playerUUID,
+            @Nullable Locale locale,
+            @Nullable String requestReason,
+            Object... additionalContext
+    ) {
         return discordSRV.scheduler().supply(() -> {
             String code = null;
             while (code == null || discordSRV.storage().getLinkingCode(code) != null) {
@@ -99,8 +96,19 @@ public class StorageLinker extends CachedLinkProvider.Store {
                 }
             }
 
-            discordSRV.storage().storeLinkingCode(playerUUID, code);
-            return ComponentUtil.toAPI(Component.text(code));
+            discordSRV.storage().storeLinkingCode(playerUUID, username, code);
+            return discordSRV.messagesConfig(locale).minecraft.storageLinking.textBuilder()
+                    .addContext(additionalContext)
+                    .addPlaceholder("%code%", code)
+                    .addPlaceholder("%player_name%", username)
+                    .addPlaceholder("%player_uuid%", playerUUID)
+                    .applyPlaceholderService()
+                    .build();
         });
+    }
+
+    @Override
+    public boolean isValidCode(@NotNull String code) {
+        return code.matches("[0-9]{6}");
     }
 }

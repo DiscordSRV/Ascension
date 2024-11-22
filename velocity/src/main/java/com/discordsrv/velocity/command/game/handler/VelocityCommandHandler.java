@@ -18,10 +18,10 @@
 
 package com.discordsrv.velocity.command.game.handler;
 
-import com.discordsrv.common.command.game.abstraction.GameCommand;
-import com.discordsrv.common.command.game.handler.ICommandHandler;
-import com.discordsrv.common.command.game.handler.util.BrigadierUtil;
-import com.discordsrv.common.command.game.sender.ICommandSender;
+import com.discordsrv.common.command.game.abstraction.command.GameCommand;
+import com.discordsrv.common.command.game.abstraction.handler.ICommandHandler;
+import com.discordsrv.common.command.game.abstraction.handler.util.BrigadierUtil;
+import com.discordsrv.common.command.game.abstraction.sender.ICommandSender;
 import com.discordsrv.velocity.VelocityDiscordSRV;
 import com.discordsrv.velocity.command.game.sender.VelocityCommandSender;
 import com.mojang.brigadier.tree.LiteralCommandNode;

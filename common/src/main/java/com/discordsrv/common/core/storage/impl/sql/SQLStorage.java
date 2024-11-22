@@ -24,6 +24,7 @@ import com.discordsrv.common.exception.StorageException;
 import com.discordsrv.common.feature.linking.LinkStore;
 import com.discordsrv.common.util.function.CheckedConsumer;
 import com.discordsrv.common.util.function.CheckedFunction;
+import org.apache.commons.lang3.tuple.Pair;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -165,20 +166,16 @@ public abstract class SQLStorage implements Storage {
     }
 
     @Override
-    public UUID getLinkingCode(String code) {
+    public Pair<UUID, String> getLinkingCode(String code) {
         return useConnection(connection -> {
-            // Clean expired codes
-            try (PreparedStatement statement = connection.prepareStatement("delete from " + tablePrefix() + LINKING_CODES_TABLE_NAME + " where EXPIRY < ?;")) {
-                statement.setLong(1, getTimeMS());
-                statement.executeUpdate();
-            }
-
             // Get the uuid for the code
-            try (PreparedStatement statement = connection.prepareStatement("select PLAYERUUID from " + tablePrefix() + LINKING_CODES_TABLE_NAME + " where CODE = ? LIMIT 1;")) {
+            try (PreparedStatement statement = connection.prepareStatement("select PLAYERUUID, PLAYERUSERNAME from " + tablePrefix() + LINKING_CODES_TABLE_NAME + " where CODE = ? LIMIT 1;")) {
                 statement.setString(1, code);
                 try (ResultSet resultSet = statement.executeQuery()) {
                     if (resultSet.next()) {
-                        return UUID.fromString(resultSet.getString("PLAYERUUID"));
+                        UUID uuid = UUID.fromString(resultSet.getString("PLAYERUUID"));
+                        String username = resultSet.getString("PLAYERUSERNAME");
+                        return Pair.of(uuid, username);
                     }
                 }
             }
@@ -197,7 +194,7 @@ public abstract class SQLStorage implements Storage {
     }
 
     @Override
-    public void storeLinkingCode(@NotNull UUID player, String code) {
+    public void storeLinkingCode(@NotNull UUID player, @NotNull String username, String code) {
         useConnection(connection -> {
             // Remove existing code
             try (PreparedStatement statement = connection.prepareStatement("delete from " + tablePrefix() + LINKING_CODES_TABLE_NAME + " where PLAYERUUID = ?;")) {
@@ -206,10 +203,11 @@ public abstract class SQLStorage implements Storage {
             }
 
             // Insert new code
-            try (PreparedStatement statement = connection.prepareStatement("insert into " + tablePrefix() + LINKING_CODES_TABLE_NAME + " (PLAYERUUID, CODE, EXPIRY) VALUES (?, ?, ?);")) {
+            try (PreparedStatement statement = connection.prepareStatement("insert into " + tablePrefix() + LINKING_CODES_TABLE_NAME + " (PLAYERUUID, PLAYERUSERNAME, CODE, EXPIRY) VALUES (?, ?, ?, ?);")) {
                 statement.setString(1, player.toString());
-                statement.setString(2, code);
-                statement.setLong(3, getTimeMS() + LinkStore.LINKING_CODE_EXPIRY_TIME.toMillis());
+                statement.setString(2, username);
+                statement.setString(3, code);
+                statement.setLong(4, getTimeMS() + LinkStore.LINKING_CODE_EXPIRY_TIME.toMillis());
                 exceptEffectedRows(statement.executeUpdate(), 1);
             }
         });

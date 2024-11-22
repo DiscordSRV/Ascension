@@ -16,7 +16,7 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package com.discordsrv.common.config.configurate.serializer;
+package com.discordsrv.common.config.configurate.serializer.helper;
 
 import com.discordsrv.common.config.helper.MinecraftMessage;
 import org.jetbrains.annotations.Nullable;

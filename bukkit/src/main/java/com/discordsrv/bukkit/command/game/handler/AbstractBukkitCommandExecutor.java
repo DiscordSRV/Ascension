@@ -19,7 +19,7 @@
 package com.discordsrv.bukkit.command.game.handler;
 
 import com.discordsrv.bukkit.BukkitDiscordSRV;
-import com.discordsrv.common.command.game.handler.BasicCommandHandler;
+import com.discordsrv.common.command.game.abstraction.handler.BasicCommandHandler;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;

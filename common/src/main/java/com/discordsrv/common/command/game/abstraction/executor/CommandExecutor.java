@@ -16,11 +16,19 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package com.discordsrv.common.command.game.handler;
+package com.discordsrv.common.command.game.abstraction.executor;
 
-import com.discordsrv.common.command.game.abstraction.GameCommand;
+import com.discordsrv.api.discord.entity.DiscordUser;
+import com.discordsrv.common.DiscordSRV;
 
-public interface ICommandHandler {
+public interface CommandExecutor {
 
-    void registerCommand(GameCommand command);
+    default void runCommandWithLogging(DiscordSRV discordSRV, DiscordUser user, String command) {
+        discordSRV.logger().writeLogForCurrentDay(
+                "commandexecution",
+                "@" + user.getAsTag() + " [ID " + Long.toUnsignedString(user.getId()) + "] executed \"" + command + "\""
+        );
+        runCommand(command);
+    }
+    void runCommand(String command);
 }

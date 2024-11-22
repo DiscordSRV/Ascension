@@ -19,7 +19,7 @@
 package com.discordsrv.bungee.console.executor;
 
 import com.discordsrv.bungee.BungeeDiscordSRV;
-import com.discordsrv.common.command.game.executor.CommandExecutor;
+import com.discordsrv.common.command.game.abstraction.executor.CommandExecutor;
 import net.kyori.adventure.text.Component;
 import net.md_5.bungee.api.CommandSender;
 

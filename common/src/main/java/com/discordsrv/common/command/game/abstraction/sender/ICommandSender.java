@@ -16,15 +16,18 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package com.discordsrv.common.command.game.abstraction;
+package com.discordsrv.common.command.game.abstraction.sender;
 
-import com.discordsrv.common.command.game.sender.ICommandSender;
+import com.discordsrv.common.command.game.abstraction.executor.CommandExecutor;
+import com.discordsrv.common.permission.game.Permission;
+import net.kyori.adventure.audience.ForwardingAudience;
 
-import java.util.List;
+public interface ICommandSender extends ForwardingAudience.Single, CommandExecutor {
 
-@FunctionalInterface
-public interface GameCommandSuggester {
+    default boolean hasPermission(Permission permission) {
+        return hasPermission(permission.permission());
+    }
 
-    List<String> suggestValues(ICommandSender sender, GameCommandArguments previousArguments, String currentInput);
+    boolean hasPermission(String permission);
 
 }

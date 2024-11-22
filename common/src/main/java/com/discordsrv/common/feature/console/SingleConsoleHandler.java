@@ -31,7 +31,7 @@ import com.discordsrv.api.events.discord.message.DiscordMessageReceiveEvent;
 import com.discordsrv.api.placeholder.format.PlainPlaceholderFormat;
 import com.discordsrv.api.placeholder.provider.SinglePlaceholder;
 import com.discordsrv.common.DiscordSRV;
-import com.discordsrv.common.command.game.GameCommandExecutionHelper;
+import com.discordsrv.common.command.game.abstraction.GameCommandExecutionHelper;
 import com.discordsrv.common.config.main.ConsoleConfig;
 import com.discordsrv.common.config.main.generic.DestinationConfig;
 import com.discordsrv.common.config.main.generic.GameCommandExecutionConditionConfig;

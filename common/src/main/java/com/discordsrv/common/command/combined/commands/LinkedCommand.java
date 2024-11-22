@@ -24,7 +24,7 @@ import com.discordsrv.api.discord.entity.interaction.component.ComponentIdentifi
 import com.discordsrv.common.DiscordSRV;
 import com.discordsrv.common.command.combined.abstraction.CombinedCommand;
 import com.discordsrv.common.command.combined.abstraction.CommandExecution;
-import com.discordsrv.common.command.game.abstraction.GameCommand;
+import com.discordsrv.common.command.game.abstraction.command.GameCommand;
 import com.discordsrv.common.core.logging.Logger;
 import com.discordsrv.common.core.logging.NamedLogger;
 import com.discordsrv.common.permission.game.Permission;
@@ -129,7 +129,7 @@ public class LinkedCommand extends CombinedCommand {
                     logger.error("Failed to check linking status during linked command", t);
                     execution.send(
                             execution.messages().minecraft.unableToCheckLinkingStatus.asComponent(),
-                            execution.messages().discord.unableToCheckLinkingStatus
+                            execution.messages().discord.unableToCheckLinkingStatus.get()
                     );
                     return;
                 }

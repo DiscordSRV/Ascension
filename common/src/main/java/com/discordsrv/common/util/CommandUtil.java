@@ -23,7 +23,7 @@ import com.discordsrv.common.abstraction.player.IPlayer;
 import com.discordsrv.common.command.combined.abstraction.CommandExecution;
 import com.discordsrv.common.command.combined.abstraction.DiscordCommandExecution;
 import com.discordsrv.common.command.combined.abstraction.GameCommandExecution;
-import com.discordsrv.common.command.game.sender.ICommandSender;
+import com.discordsrv.common.command.game.abstraction.sender.ICommandSender;
 import com.discordsrv.common.config.messages.MessagesConfig;
 import com.discordsrv.common.core.logging.Logger;
 import com.discordsrv.common.permission.game.Permission;
@@ -116,11 +116,11 @@ public final class CommandUtil {
         } else if (execution instanceof DiscordCommandExecution) {
             if (target == null) {
                 if (selfPermitted && lookupUser) {
-                    target = Long.toUnsignedString(((DiscordCommandExecution) execution).getUser().getIdLong());
+                    target = Long.toUnsignedString(((DiscordCommandExecution) execution).getUser().getId());
                 } else {
                     execution.send(
                             messages.minecraft.pleaseSpecifyUser.asComponent(),
-                            messages.discord.pleaseSpecifyUser
+                            messages.discord.pleaseSpecifyUser.get()
                     );
                     return CompletableFuture.completedFuture(TargetLookupResult.INVALID);
                 }
@@ -142,7 +142,7 @@ public final class CommandUtil {
                 } catch (IllegalArgumentException ignored) {
                     execution.send(
                             messages.minecraft.userNotFound.asComponent(),
-                            messages.discord.userNotFound
+                            messages.discord.userNotFound.get()
                     );
                     return CompletableFuture.completedFuture(TargetLookupResult.INVALID);
                 }
@@ -176,7 +176,7 @@ public final class CommandUtil {
                 } catch (IllegalArgumentException ignored) {
                     execution.send(
                             messages.minecraft.playerNotFound.asComponent(),
-                            messages.discord.playerNotFound
+                            messages.discord.playerNotFound.get()
                     );
                     return CompletableFuture.completedFuture(TargetLookupResult.INVALID);
                 }
@@ -205,19 +205,19 @@ public final class CommandUtil {
         if (lookupPlayer && lookupUser) {
             execution.send(
                     messages.minecraft.pleaseSpecifyPlayerOrUser.asComponent(),
-                    messages.discord.pleaseSpecifyPlayerOrUser
+                    messages.discord.pleaseSpecifyPlayerOrUser.get()
             );
             return TargetLookupResult.INVALID;
         } else if (lookupPlayer) {
             execution.send(
                     messages.minecraft.pleaseSpecifyPlayer.asComponent(),
-                    messages.discord.pleaseSpecifyPlayer
+                    messages.discord.pleaseSpecifyPlayer.get()
             );
             return TargetLookupResult.INVALID;
         } else if (lookupUser) {
             execution.send(
                     messages.minecraft.pleaseSpecifyUser.asComponent(),
-                    messages.discord.pleaseSpecifyUser
+                    messages.discord.pleaseSpecifyUser.get()
             );
             return TargetLookupResult.INVALID;
         } else {

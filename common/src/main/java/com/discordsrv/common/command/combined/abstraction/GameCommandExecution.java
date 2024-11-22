@@ -18,10 +18,11 @@
 
 package com.discordsrv.common.command.combined.abstraction;
 
+import com.discordsrv.api.discord.entity.message.SendableDiscordMessage;
 import com.discordsrv.common.DiscordSRV;
 import com.discordsrv.common.abstraction.player.IPlayer;
-import com.discordsrv.common.command.game.abstraction.GameCommandArguments;
-import com.discordsrv.common.command.game.sender.ICommandSender;
+import com.discordsrv.common.command.game.abstraction.command.GameCommandArguments;
+import com.discordsrv.common.command.game.abstraction.sender.ICommandSender;
 import com.discordsrv.common.config.messages.MessagesConfig;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.TextComponent;
@@ -85,7 +86,7 @@ public class GameCommandExecution implements CommandExecution {
     }
 
     @Override
-    public void send(Component minecraft, String discord) {
+    public void send(Component minecraft, SendableDiscordMessage discord) {
         sender.sendMessage(minecraft);
     }
 

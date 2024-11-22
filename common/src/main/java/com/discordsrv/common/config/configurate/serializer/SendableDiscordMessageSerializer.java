@@ -35,9 +35,11 @@ import java.util.List;
 public class SendableDiscordMessageSerializer implements TypeSerializer<SendableDiscordMessage.Builder> {
 
     private final NamingScheme namingScheme;
+    private final boolean preferContentOnly;
 
-    public SendableDiscordMessageSerializer(NamingScheme namingScheme) {
+    public SendableDiscordMessageSerializer(NamingScheme namingScheme, boolean preferContentOnly) {
         this.namingScheme = namingScheme;
+        this.preferContentOnly = preferContentOnly;
     }
 
     private String map(String option) {
@@ -93,6 +95,11 @@ public class SendableDiscordMessageSerializer implements TypeSerializer<Sendable
         }
         if (ConfigurateConfigManager.DEFAULT_CONFIG.get()) {
             node.raw(obj);
+            return;
+        }
+
+        if (obj.getWebhookUsername() == null && obj.getEmbeds().isEmpty() && preferContentOnly) {
+            node.set(obj.getContent());
             return;
         }
 

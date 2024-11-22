@@ -18,24 +18,13 @@
 
 package com.discordsrv.common.command.game.abstraction;
 
-@FunctionalInterface
-public interface GameCommandArguments {
+import java.util.List;
+import java.util.concurrent.CompletableFuture;
 
-    <T> T get(String label, Class<T> type);
+public interface GameCommandExecutionHelper {
 
-    default boolean has(String label) {
-        try {
-            return get(label, Object.class) != null;
-        } catch (Throwable ignored) {
-            return false;
-        }
-    }
+    CompletableFuture<List<String>> suggestCommands(List<String> parts);
+    List<String> getAliases(String command);
+    boolean isSameCommand(String command1, String command2);
 
-    default String getString(String label) {
-        return get(label, String.class);
-    }
-
-    default Integer getInt(String label) {
-        return get(label, Integer.class);
-    }
 }
