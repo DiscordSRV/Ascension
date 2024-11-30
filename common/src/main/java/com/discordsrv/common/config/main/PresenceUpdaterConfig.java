@@ -18,6 +18,7 @@
 
 package com.discordsrv.common.config.main;
 
+import com.discordsrv.common.DiscordSRV;
 import com.discordsrv.common.config.configurate.annotation.Constants;
 import com.discordsrv.common.core.logging.Logger;
 import net.dv8tion.jda.api.OnlineStatus;
@@ -75,7 +76,7 @@ public class PresenceUpdaterConfig {
         })
         public String activity = "playing Minecraft";
 
-        public Activity activity(Logger logger) {
+        public Activity activity(Logger logger, DiscordSRV discordSRV) {
             Activity.ActivityType activityType = Activity.ActivityType.CUSTOM_STATUS;
             String activity = this.activity;
             String url = null;
@@ -115,7 +116,11 @@ public class PresenceUpdaterConfig {
                 break;
             }
 
-            return Activity.of(activityType, activity, url);
+            return Activity.of(
+                    activityType,
+                    discordSRV.placeholderService().replacePlaceholders(activity),
+                    url
+            );
         }
     }
 }

@@ -79,7 +79,7 @@ public class PresenceUpdaterModule extends AbstractModule<DiscordSRV> {
 
         // Log problems with presences
         for (PresenceUpdaterConfig.Presence presence : discordSRV.config().presenceUpdater.presences) {
-            presence.activity(logger());
+            presence.activity(logger(), discordSRV);
         }
     }
 
@@ -89,7 +89,7 @@ public class PresenceUpdaterModule extends AbstractModule<DiscordSRV> {
             // Guess not
             return;
         }
-        jda.getPresence().setPresence(config.status, config.activity(null));
+        jda.getPresence().setPresence(config.status, config.activity(null, discordSRV));
     }
 
     private void setPresenceOrSchedule() {
