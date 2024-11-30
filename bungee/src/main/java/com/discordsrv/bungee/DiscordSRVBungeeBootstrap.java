@@ -25,6 +25,7 @@ import com.discordsrv.common.core.logging.backend.impl.JavaLoggerImpl;
 import dev.vankka.dependencydownload.classpath.ClasspathAppender;
 import dev.vankka.dependencydownload.jarinjar.classloader.JarInJarClassLoader;
 import dev.vankka.mcdependencydownload.bungee.bootstrap.BungeeBootstrap;
+import net.md_5.bungee.api.ProxyServer;
 import net.md_5.bungee.api.plugin.Plugin;
 
 import java.io.IOException;
@@ -81,5 +82,11 @@ public class DiscordSRVBungeeBootstrap extends BungeeBootstrap implements IBoots
     @Override
     public Path dataDirectory() {
         return getPlugin().getDataFolder().toPath();
+    }
+
+    @Override
+    public String platformVersion() {
+        ProxyServer proxyServer = getPlugin().getProxy();
+        return proxyServer.getName() + " version " + proxyServer.getVersion();
     }
 }

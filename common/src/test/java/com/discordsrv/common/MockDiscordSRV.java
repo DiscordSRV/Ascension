@@ -100,6 +100,11 @@ public class MockDiscordSRV extends AbstractDiscordSRV<IBootstrap, MainConfig, C
             public Path dataDirectory() {
                 return null;
             }
+
+            @Override
+            public String platformVersion() {
+                return null;
+            }
         });
         load();
         versionInfo = new VersionInfo("JUnit", "JUnit", "JUnit", "JUnit");

@@ -32,6 +32,7 @@ import com.velocitypowered.api.plugin.Plugin;
 import com.velocitypowered.api.plugin.PluginContainer;
 import com.velocitypowered.api.plugin.annotation.DataDirectory;
 import com.velocitypowered.api.proxy.ProxyServer;
+import com.velocitypowered.api.util.ProxyVersion;
 import dev.vankka.dependencydownload.classpath.ClasspathAppender;
 import dev.vankka.mcdependencydownload.velocity.classpath.VelocityClasspathAppender;
 
@@ -109,6 +110,12 @@ public class DiscordSRVVelocityBootstrap implements IBootstrap {
     @Override
     public Path dataDirectory() {
         return dataDirectory;
+    }
+
+    @Override
+    public String platformVersion() {
+        ProxyVersion version = proxyServer.getVersion();
+        return version.getName() + " (from " + version.getVendor() + ") version " + version.getVersion();
     }
 
     public ProxyServer proxyServer() {

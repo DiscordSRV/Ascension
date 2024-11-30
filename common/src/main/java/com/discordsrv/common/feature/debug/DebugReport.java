@@ -148,6 +148,7 @@ public class DebugReport {
     private DebugFile environment() {
         Map<String, Object> values = new LinkedHashMap<>();
         values.put("discordSRV", discordSRV.getClass().getName());
+        values.put("platformVersion", discordSRV.bootstrap().platformVersion());
         values.put("version", discordSRV.versionInfo().version());
         values.put("gitRevision", discordSRV.versionInfo().gitRevision());
         values.put("gitBranch", discordSRV.versionInfo().gitBranch());

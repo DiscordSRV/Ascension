@@ -25,6 +25,7 @@ import com.discordsrv.common.core.logging.backend.impl.JavaLoggerImpl;
 import dev.vankka.dependencydownload.classpath.ClasspathAppender;
 import dev.vankka.dependencydownload.jarinjar.classloader.JarInJarClassLoader;
 import dev.vankka.mcdependencydownload.bukkit.bootstrap.BukkitBootstrap;
+import org.bukkit.Server;
 import org.bukkit.plugin.java.JavaPlugin;
 
 import java.io.IOException;
@@ -123,6 +124,12 @@ public class DiscordSRVBukkitBootstrap extends BukkitBootstrap implements IBoots
     @Override
     public Path dataDirectory() {
         return getPlugin().getDataFolder().toPath();
+    }
+
+    @Override
+    public String platformVersion() {
+        Server server = getPlugin().getServer();
+        return server.getName() + " version " + server.getVersion() + " (implementation version " + server.getBukkitVersion() + ")";
     }
 
     public List<Runnable> mainThreadTasksForDisable() {

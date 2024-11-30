@@ -33,5 +33,6 @@ public interface IBootstrap {
     ClassLoader classLoader();
     LifecycleManager lifecycleManager();
     Path dataDirectory();
+    String platformVersion();
 
 }
