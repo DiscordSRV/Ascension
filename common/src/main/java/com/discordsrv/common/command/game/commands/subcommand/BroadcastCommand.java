@@ -112,7 +112,7 @@ public abstract class BroadcastCommand implements GameCommandExecutor, GameComma
                 channels.add(messageChannel);
             }
         } catch (IllegalArgumentException ignored) {
-            BaseChannelConfig channelConfig = discordSRV.channelConfig().resolve(null, channel);
+            BaseChannelConfig channelConfig = discordSRV.channelConfig().resolve(channel);
             CC config = channelConfig != null ? (CC) channelConfig : null;
 
             if (config != null) {

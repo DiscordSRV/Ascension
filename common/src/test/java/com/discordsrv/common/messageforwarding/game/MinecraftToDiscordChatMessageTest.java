@@ -21,6 +21,7 @@ package com.discordsrv.common.messageforwarding.game;
 import com.discordsrv.api.discord.entity.channel.DiscordMessageChannel;
 import com.discordsrv.api.discord.entity.channel.DiscordTextChannel;
 import com.discordsrv.api.discord.entity.channel.DiscordThreadChannel;
+import com.discordsrv.api.discord.entity.channel.DiscordVoiceChannel;
 import com.discordsrv.api.discord.entity.message.ReceivedDiscordMessage;
 import com.discordsrv.api.eventbus.EventBus;
 import com.discordsrv.api.eventbus.Subscribe;
@@ -163,6 +164,7 @@ public class MinecraftToDiscordChatMessageTest {
         @Subscribe
         public void onForwarded(GameChatMessageForwardedEvent event) {
             int text = 0;
+            int voice = 0;
             int thread = 0;
             for (ReceivedDiscordMessage message : event.getDiscordMessage().getMessages()) {
                 String content = message.getContent();
@@ -170,13 +172,15 @@ public class MinecraftToDiscordChatMessageTest {
                     DiscordMessageChannel channel = message.getChannel();
                     if (channel instanceof DiscordTextChannel) {
                         text++;
+                    } else if (channel instanceof DiscordVoiceChannel) {
+                        voice++;
                     } else if (channel instanceof DiscordThreadChannel) {
                         thread++;
                     }
                 }
             }
 
-            success.complete(text == 1 && thread == 2);
+            success.complete(text == 1 && voice == 1 && thread == 2);
         }
     }
 }

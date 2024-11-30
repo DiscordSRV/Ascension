@@ -20,7 +20,6 @@ package com.discordsrv.common.helper;
 
 import com.discordsrv.api.channel.GameChannel;
 import com.discordsrv.api.discord.entity.channel.DiscordMessageChannel;
-import com.discordsrv.api.discord.entity.channel.DiscordTextChannel;
 import com.discordsrv.api.discord.entity.channel.DiscordThreadChannel;
 import com.discordsrv.api.events.channel.GameChannelLookupEvent;
 import com.discordsrv.common.DiscordSRV;
@@ -30,6 +29,8 @@ import com.discordsrv.common.config.main.channels.base.ChannelConfig;
 import com.discordsrv.common.config.main.channels.base.IChannelConfig;
 import com.discordsrv.common.config.main.generic.DestinationConfig;
 import com.discordsrv.common.config.main.generic.ThreadConfig;
+import com.discordsrv.common.core.logging.Logger;
+import com.discordsrv.common.core.logging.NamedLogger;
 import com.github.benmanes.caffeine.cache.CacheLoader;
 import com.github.benmanes.caffeine.cache.LoadingCache;
 import org.apache.commons.lang3.tuple.Pair;
@@ -45,6 +46,7 @@ import java.util.concurrent.TimeUnit;
 public class ChannelConfigHelper {
 
     private final DiscordSRV discordSRV;
+    private final Logger logger;
 
     // game channel name eg. "global" -> game channel ("discordsrv:global")
     private final LoadingCache<String, GameChannel> nameToChannelCache;
@@ -53,11 +55,13 @@ public class ChannelConfigHelper {
     private final Map<String, BaseChannelConfig> configs;
 
     // caches for Discord channel -> config
-    private final Map<Long, Map<String, BaseChannelConfig>> textChannelToConfigMap;
+    private final Map<Long, Map<String, BaseChannelConfig>> messageChannelToConfigMap;
     private final Map<Pair<Long, String>, Map<String, BaseChannelConfig>> threadToConfigMap;
 
     public ChannelConfigHelper(DiscordSRV discordSRV) {
         this.discordSRV = discordSRV;
+        this.logger = new NamedLogger(discordSRV, "CHANNEL_CONFIG_HELPER");
+
         this.nameToChannelCache = discordSRV.caffeineBuilder()
                 .expireAfterWrite(60, TimeUnit.SECONDS)
                 .expireAfterAccess(30, TimeUnit.SECONDS)
@@ -65,19 +69,31 @@ public class ChannelConfigHelper {
                 .build(new CacheLoader<String, GameChannel>() {
 
                     @Override
-                    public @Nullable GameChannel load(@NotNull String channelName) {
-                        GameChannelLookupEvent event = new GameChannelLookupEvent(null, channelName);
+                    public @Nullable GameChannel load(@NotNull String channelAtom) {
+                        Pair<String, String> channelPair = parseOwnerAndChannel(channelAtom);
+
+                        GameChannelLookupEvent event = new GameChannelLookupEvent(channelPair.getKey(), channelPair.getValue());
                         discordSRV.eventBus().publish(event);
                         if (!event.isProcessed()) {
                             return null;
                         }
 
-                        return event.getChannelFromProcessing();
+                        GameChannel channel = event.getChannelFromProcessing();
+                        logger.trace(channelAtom + " looked up to " + GameChannel.toString(channel));
+                        return channel;
                     }
                 });
         this.configs = new HashMap<>();
-        this.textChannelToConfigMap = new HashMap<>();
+        this.messageChannelToConfigMap = new HashMap<>();
         this.threadToConfigMap = new LinkedHashMap<>();
+    }
+
+    private Pair<String, String> parseOwnerAndChannel(String channelAtom) {
+        String[] split = channelAtom.split(":", 2);
+        String channelName = split[split.length - 1];
+        String ownerName = split.length == 2 ? split[0] : null;
+
+        return Pair.of(ownerName, channelName);
     }
 
     @SuppressWarnings("unchecked")
@@ -120,7 +136,7 @@ public class ChannelConfigHelper {
             this.configs.putAll(configs);
         }
 
-        Map<Long, Map<String, BaseChannelConfig>> text = new HashMap<>();
+        Map<Long, Map<String, BaseChannelConfig>> messageChannel = new HashMap<>();
         Map<Pair<Long, String>, Map<String, BaseChannelConfig>> thread = new HashMap<>();
 
         for (Map.Entry<String, BaseChannelConfig> entry : channels().entrySet()) {
@@ -132,7 +148,7 @@ public class ChannelConfigHelper {
                 List<Long> channelIds = destination.channelIds;
                 if (channelIds != null) {
                     for (long channelId : channelIds) {
-                        text.computeIfAbsent(channelId, key -> new LinkedHashMap<>())
+                        messageChannel.computeIfAbsent(channelId, key -> new LinkedHashMap<>())
                                 .put(channelName, value);
                     }
                 }
@@ -151,9 +167,9 @@ public class ChannelConfigHelper {
             }
         }
 
-        synchronized (textChannelToConfigMap) {
-            textChannelToConfigMap.clear();
-            textChannelToConfigMap.putAll(text);
+        synchronized (messageChannelToConfigMap) {
+            messageChannelToConfigMap.clear();
+            messageChannelToConfigMap.putAll(messageChannel);
         }
         synchronized (threadToConfigMap) {
             threadToConfigMap.clear();
@@ -205,6 +221,12 @@ public class ChannelConfigHelper {
     }
 
     @Nullable
+    public BaseChannelConfig resolve(@NotNull String channelAtom) {
+        Pair<String, String> channelPair = parseOwnerAndChannel(channelAtom);
+        return resolve(channelPair.getKey(), channelPair.getValue());
+    }
+
+    @Nullable
     public BaseChannelConfig resolve(@Nullable String ownerName, @NotNull String channelName) {
         if (ownerName != null) {
             ownerName = ownerName.toLowerCase(Locale.ROOT);
@@ -216,6 +238,7 @@ public class ChannelConfigHelper {
             }
 
             // Check if this owner has the highest priority for this channel name
+            // in case they are, we can also use "channel" config directly
             GameChannel gameChannel = nameToChannelCache.get(channelName);
             if (gameChannel != null && gameChannel.getOwnerName().equalsIgnoreCase(ownerName)) {
                 config = findChannel(channelName);
@@ -249,19 +272,16 @@ public class ChannelConfigHelper {
     }
 
     private Map<String, BaseChannelConfig> get(DiscordMessageChannel channel) {
-        Map<String, BaseChannelConfig> pairs = null;
-        if (channel instanceof DiscordTextChannel) {
-            pairs = getByTextChannel((DiscordTextChannel) channel);
-        } else if (channel instanceof DiscordThreadChannel) {
-            pairs = getByThreadChannel((DiscordThreadChannel) channel);
+        if (channel instanceof DiscordThreadChannel) {
+            return getByThreadChannel((DiscordThreadChannel) channel);
         }
 
-        return pairs;
+        return getByMessageChannel(channel);
     }
 
-    private Map<String, BaseChannelConfig> getByTextChannel(DiscordTextChannel channel) {
-        synchronized (textChannelToConfigMap) {
-            return textChannelToConfigMap.get(channel.getId());
+    private Map<String, BaseChannelConfig> getByMessageChannel(DiscordMessageChannel channel) {
+        synchronized (messageChannelToConfigMap) {
+            return messageChannelToConfigMap.get(channel.getId());
         }
     }
 

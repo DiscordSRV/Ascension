@@ -26,16 +26,18 @@ import org.junit.jupiter.api.extension.ExtensionContext;
 public class FullBootExtension implements BeforeAllCallback, ExtensionContext.Store.CloseableResource {
 
     public static String BOT_TOKEN = System.getenv("DISCORDSRV_AUTOTEST_BOT_TOKEN");
-    public static String TEST_CHANNEL_ID = System.getenv("DISCORDSRV_AUTOTEST_CHANNEL_ID");
+    public static String TEXT_CHANNEL_ID = System.getenv("DISCORDSRV_AUTOTEST_CHANNEL_ID");
     public static String FORUM_CHANNEL_ID = System.getenv("DISCORDSRV_AUTOTEST_FORUM_ID");
+    public static String VOICE_CHANNEL_ID = System.getenv("DISCORDSRV_AUTOTEST_VOICE_ID");
 
     public boolean started = false;
 
     @Override
     public void beforeAll(ExtensionContext context) {
         Assumptions.assumeTrue(BOT_TOKEN != null, "Automated testing bot token");
-        Assumptions.assumeTrue(TEST_CHANNEL_ID != null, "Automated testing channel id");
-        Assumptions.assumeTrue(FORUM_CHANNEL_ID != null, "Automated testing forum id");
+        Assumptions.assumeTrue(TEXT_CHANNEL_ID != null, "Automated testing text channel id");
+        Assumptions.assumeTrue(FORUM_CHANNEL_ID != null, "Automated testing forum channel id");
+        Assumptions.assumeTrue(VOICE_CHANNEL_ID != null, "Automated testing voice channel id");
 
         if (started) return;
         started = true;

@@ -23,9 +23,7 @@
 
 package com.discordsrv.api.events.message.receive.discord;
 
-import com.discordsrv.api.discord.entity.channel.DiscordMessageChannel;
-import com.discordsrv.api.discord.entity.channel.DiscordTextChannel;
-import com.discordsrv.api.discord.entity.channel.DiscordThreadChannel;
+import com.discordsrv.api.discord.entity.channel.*;
 import com.discordsrv.api.discord.entity.guild.DiscordGuild;
 import com.discordsrv.api.discord.entity.message.ReceivedDiscordMessage;
 import com.discordsrv.api.events.Cancellable;
@@ -39,15 +37,12 @@ import org.jetbrains.annotations.NotNull;
 public class DiscordChatMessageReceiveEvent implements Cancellable {
 
     private final ReceivedDiscordMessage message;
-    private final DiscordMessageChannel channel;
+    private final DiscordGuildMessageChannel channel;
     private boolean cancelled;
 
-    public DiscordChatMessageReceiveEvent(@NotNull ReceivedDiscordMessage discordMessage, @NotNull DiscordMessageChannel channel) {
+    public DiscordChatMessageReceiveEvent(@NotNull ReceivedDiscordMessage discordMessage, @NotNull DiscordGuildMessageChannel channel) {
         this.message = discordMessage;
         this.channel = channel;
-        if (!(channel instanceof DiscordTextChannel) && !(channel instanceof DiscordThreadChannel)) {
-            throw new IllegalStateException("Cannot process messages that aren't from a text channel or thread");
-        }
     }
 
     public ReceivedDiscordMessage getMessage() {
@@ -59,13 +54,7 @@ public class DiscordChatMessageReceiveEvent implements Cancellable {
     }
 
     public DiscordGuild getGuild() {
-        if (channel instanceof DiscordTextChannel) {
-            return ((DiscordTextChannel) channel).getGuild();
-        } else if (channel instanceof DiscordThreadChannel) {
-            return ((DiscordThreadChannel) channel).getParentChannel().getGuild();
-        } else {
-            throw new IllegalStateException("Message isn't from a text channel or thread");
-        }
+        return channel.getGuild();
     }
 
     @Override

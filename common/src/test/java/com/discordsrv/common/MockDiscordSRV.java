@@ -241,22 +241,24 @@ public class MockDiscordSRV extends AbstractDiscordSRV<IBootstrap, MainConfig, C
     public MainConfig config() {
         MainConfig config = new MainConfig() {};
 
-        if (StringUtils.isNotEmpty(FullBootExtension.TEST_CHANNEL_ID) && StringUtils.isNotEmpty(FullBootExtension.FORUM_CHANNEL_ID)) {
+        if (StringUtils.isNotEmpty(FullBootExtension.TEXT_CHANNEL_ID) && StringUtils.isNotEmpty(FullBootExtension.FORUM_CHANNEL_ID)) {
             ChannelConfig global = (ChannelConfig) config.channels.get(GameChannel.DEFAULT_NAME);
             DestinationConfig destination = global.destination = new DestinationConfig();
 
-            long channelId = Long.parseLong(FullBootExtension.TEST_CHANNEL_ID);
+            long textChannelId = Long.parseLong(FullBootExtension.TEXT_CHANNEL_ID);
+            long voiceChannelId = Long.parseLong(FullBootExtension.VOICE_CHANNEL_ID);
             long forumId = Long.parseLong(FullBootExtension.FORUM_CHANNEL_ID);
 
             List<Long> channelIds = destination.channelIds;
             channelIds.clear();
-            channelIds.add(channelId);
+            channelIds.add(textChannelId);
+            channelIds.add(voiceChannelId);
 
             List<ThreadConfig> threadConfigs = destination.threads;
             threadConfigs.clear();
 
             ThreadConfig thread = new ThreadConfig();
-            thread.channelId = channelId;
+            thread.channelId = textChannelId;
             threadConfigs.add(thread);
 
             ThreadConfig forumThread = new ThreadConfig();

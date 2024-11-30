@@ -22,6 +22,8 @@ import com.discordsrv.api.channel.GameChannel;
 import com.discordsrv.api.component.MinecraftComponent;
 import com.discordsrv.api.discord.connection.details.DiscordGatewayIntent;
 import com.discordsrv.api.discord.entity.DiscordUser;
+import com.discordsrv.api.discord.entity.channel.DiscordChannel;
+import com.discordsrv.api.discord.entity.channel.DiscordGuildMessageChannel;
 import com.discordsrv.api.discord.entity.channel.DiscordMessageChannel;
 import com.discordsrv.api.discord.entity.guild.DiscordGuild;
 import com.discordsrv.api.discord.entity.guild.DiscordGuildMember;
@@ -95,12 +97,19 @@ public class DiscordChatMessageModule extends AbstractModule<DiscordSRV> {
 
     @Subscribe
     public void onDiscordMessageReceived(DiscordMessageReceiveEvent event) {
-        if (!discordSRV.isReady() || event.getMessage().isFromSelf()
-                || !(event.getTextChannel() != null || event.getThreadChannel() != null)) {
+        if (!discordSRV.isReady() || event.getMessage().isFromSelf()) {
             return;
         }
 
-        discordSRV.eventBus().publish(new DiscordChatMessageReceiveEvent(event.getMessage(), event.getChannel()));
+        DiscordChannel channel = event.getChannel();
+        if (!(channel instanceof DiscordGuildMessageChannel)) {
+            return;
+        }
+
+        discordSRV.eventBus().publish(new DiscordChatMessageReceiveEvent(
+                event.getMessage(),
+                (DiscordGuildMessageChannel) channel
+        ));
     }
 
     @Subscribe

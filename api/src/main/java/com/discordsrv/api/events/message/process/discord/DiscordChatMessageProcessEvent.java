@@ -24,6 +24,7 @@
 package com.discordsrv.api.events.message.process.discord;
 
 import com.discordsrv.api.channel.GameChannel;
+import com.discordsrv.api.discord.entity.channel.DiscordMessageChannel;
 import com.discordsrv.api.discord.entity.message.ReceivedDiscordMessage;
 import com.discordsrv.api.events.Cancellable;
 import com.discordsrv.api.events.Processable;
@@ -49,6 +50,10 @@ public class DiscordChatMessageProcessEvent implements Cancellable, Processable.
         this.message = message;
         this.content = message.getContent();
         this.destinationChannel = destinationChannel;
+    }
+
+    public DiscordMessageChannel getChannel() {
+        return message.getChannel();
     }
 
     public ReceivedDiscordMessage getMessage() {
