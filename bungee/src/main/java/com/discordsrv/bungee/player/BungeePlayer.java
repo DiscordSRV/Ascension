@@ -92,4 +92,9 @@ public class BungeePlayer extends BungeeCommandSender implements IPlayer {
         return BungeeComponentUtil.fromLegacy(player.getDisplayName());
     }
 
+    @Override
+    public String toString() {
+        return "BungeePlayer{" + username() + "}";
+    }
+
 }

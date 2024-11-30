@@ -77,4 +77,11 @@ public class LeaveMessageReceiveEvent extends AbstractGameMessageReceiveEvent im
         this.gameChannel = gameChannel;
     }
 
+    @Override
+    public String toString() {
+        return "LeaveMessageReceiveEvent{"
+                + "player=" + player + ", "
+                + "gameChannel=" + GameChannel.toString(gameChannel)
+                + '}';
+    }
 }

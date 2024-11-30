@@ -124,7 +124,7 @@ public class DiscordChatMessageModule extends AbstractModule<DiscordSRV> {
             }
 
             long delayMillis = config.discordToMinecraft.delayMillis;
-            if (delayMillis == 0) {
+            if (delayMillis <= 0) {
                 process(message, gameChannel, config);
                 return;
             }
@@ -162,7 +162,7 @@ public class DiscordChatMessageModule extends AbstractModule<DiscordSRV> {
     }
 
     private void process(ReceivedDiscordMessage discordMessage, GameChannel gameChannel, BaseChannelConfig channelConfig) {
-        DiscordChatMessageProcessEvent event = new DiscordChatMessageProcessEvent(discordMessage.getChannel(), discordMessage, gameChannel);
+        DiscordChatMessageProcessEvent event = new DiscordChatMessageProcessEvent(discordMessage, gameChannel);
         discordSRV.eventBus().publish(event);
         if (checkCancellation(event) || checkProcessor(event)) {
             return;
@@ -181,12 +181,17 @@ public class DiscordChatMessageModule extends AbstractModule<DiscordSRV> {
 
         DiscordIgnoresConfig ignores = chatConfig.ignores;
         if (ignores != null && ignores.shouldBeIgnored(webhookMessage, author, member)) {
-            // TODO: response for humans
+            if (!author.isBot()) {
+                logger().debug(author + " users message is being ignored");
+                // TODO: response for humans
+            }
             return;
         }
 
         String format = webhookMessage ? chatConfig.webhookFormat : chatConfig.format;
         if (StringUtils.isBlank(format)) {
+            // No sending empty message #1
+            logger().debug("Message from " + author + " not being sent, format is blank");
             return;
         }
 
@@ -198,15 +203,17 @@ public class DiscordChatMessageModule extends AbstractModule<DiscordSRV> {
         chatConfig.contentRegexFilters.forEach(message::replaceAll);
 
         boolean attachments = !discordMessage.getAttachments().isEmpty() && format.contains("message_attachments");
-        String finalMessage = message.toString();
-        if (finalMessage.trim().isEmpty() && !attachments) {
-            // No sending empty messages
+        String regexFilteredMessage = message.toString();
+        if (regexFilteredMessage.trim().isEmpty() && !attachments) {
+            // No sending empty message #2
+            logger().debug("Message from " + author + " filtered entirely after regex filtering");
             return;
         }
 
-        Component messageComponent = discordSRV.componentFactory().minecraftSerialize(guild, channelConfig, finalMessage);
+        Component messageComponent = discordSRV.componentFactory().minecraftSerialize(guild, channelConfig, regexFilteredMessage);
         if (ComponentUtil.isEmpty(messageComponent) && !attachments) {
-            // Check empty-ness again after rendering
+            // No sending empty message #3
+            logger().debug("Message from " + author + " filtered entirely after serialization");
             return;
         }
 
@@ -217,7 +224,8 @@ public class DiscordChatMessageModule extends AbstractModule<DiscordSRV> {
                 .addPlaceholder("message", messageComponent)
                 .build();
         if (ComponentUtil.isEmpty(component)) {
-            // Empty
+            logger().debug("Message from " + author + " filtered entirely after building message");
+            // No sending empty message #4
             return;
         }
 
@@ -227,6 +235,9 @@ public class DiscordChatMessageModule extends AbstractModule<DiscordSRV> {
         for (DiscordSRVPlayer player : players) {
             gameChannel.sendMessageToPlayer(player, component);
         }
+        logger().debug("Sending message from " + author + " to "
+                               + GameChannel.toString(gameChannel) + " and "
+                               + players.size() + " players directly");
 
         discordSRV.eventBus().publish(new DiscordChatMessageForwardedEvent(component, gameChannel));
     }

@@ -75,4 +75,12 @@ public class GameChatMessageReceiveEvent extends AbstractGameMessageReceiveEvent
     public @NotNull DiscordSRVPlayer getPlayer() {
         return player;
     }
+
+    @Override
+    public String toString() {
+        return "GameChatMessageReceiveEvent{"
+                + "player=" + player + ", "
+                + "gameChannel=" + GameChannel.toString(gameChannel)
+                + '}';
+    }
 }

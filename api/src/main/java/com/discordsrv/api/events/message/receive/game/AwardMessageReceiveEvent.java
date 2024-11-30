@@ -88,4 +88,12 @@ public class AwardMessageReceiveEvent extends AbstractGameMessageReceiveEvent im
     public void setGameChannel(GameChannel gameChannel) {
         this.gameChannel = gameChannel;
     }
+
+    @Override
+    public String toString() {
+        return "AwardMessageReceiveEvent{"
+                + "player=" + player + ", "
+                + "gameChannel=" + GameChannel.toString(gameChannel)
+                + '}';
+    }
 }

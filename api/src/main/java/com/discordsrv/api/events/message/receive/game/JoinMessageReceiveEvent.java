@@ -84,4 +84,11 @@ public class JoinMessageReceiveEvent extends AbstractGameMessageReceiveEvent imp
         return firstJoin;
     }
 
+    @Override
+    public String toString() {
+        return "JoinMessageReceiveEvent{"
+                + "player=" + player + ", "
+                + "gameChannel=" + GameChannel.toString(gameChannel)
+                + '}';
+    }
 }

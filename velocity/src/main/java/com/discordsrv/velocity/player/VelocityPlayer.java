@@ -101,4 +101,10 @@ public class VelocityPlayer extends VelocityCommandSender implements IPlayer {
                 () -> Component.text(player.getUsername())
         );
     }
+
+    @Override
+    public String toString() {
+        return "VelocityPlayer{" + username() + "}";
+    }
+
 }

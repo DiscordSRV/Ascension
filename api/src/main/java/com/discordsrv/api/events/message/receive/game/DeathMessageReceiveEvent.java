@@ -76,4 +76,12 @@ public class DeathMessageReceiveEvent extends AbstractGameMessageReceiveEvent im
     public void setGameChannel(@Nullable GameChannel gameChannel) {
         this.gameChannel = gameChannel;
     }
+
+    @Override
+    public String toString() {
+        return "DeathMessageReceiveEvent{"
+                + "player=" + player + ", "
+                + "gameChannel=" + GameChannel.toString(gameChannel)
+                + '}';
+    }
 }

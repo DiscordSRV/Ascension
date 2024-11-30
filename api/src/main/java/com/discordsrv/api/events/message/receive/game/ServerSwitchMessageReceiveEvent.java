@@ -64,4 +64,11 @@ public class ServerSwitchMessageReceiveEvent extends AbstractGameMessageReceiveE
     public void setMessage(@Nullable MinecraftComponent message) {
         this.message = message;
     }
+
+    @Override
+    public String toString() {
+        return "ServerSwitchMessageReceiveEvent{"
+                + "player=" + player
+                + "}";
+    }
 }

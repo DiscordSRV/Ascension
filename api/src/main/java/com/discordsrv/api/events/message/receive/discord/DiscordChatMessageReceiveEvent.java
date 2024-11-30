@@ -78,4 +78,11 @@ public class DiscordChatMessageReceiveEvent implements Cancellable {
         this.cancelled = cancelled;
     }
 
+    @Override
+    public String toString() {
+        return "DiscordChatMessageReceiveEvent{"
+                + "message.author=" + message.getAuthor() + ", "
+                + "channel=" + channel
+                + '}';
+    }
 }

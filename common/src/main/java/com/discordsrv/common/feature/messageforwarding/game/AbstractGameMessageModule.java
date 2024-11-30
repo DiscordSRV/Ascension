@@ -136,6 +136,7 @@ public abstract class AbstractGameMessageModule<T extends IMessageConfig, E exte
         return discordSRV.destinations().lookupDestination(channelConfig.destination(), true, true).thenCompose(messageChannels -> {
             SendableDiscordMessage.Builder format = moduleConfig.format();
             if (format == null || format.isEmpty()) {
+                logger().debug("Message from " + player + " skipped, format is empty");
                 return CompletableFuture.completedFuture(null);
             }
 
@@ -189,6 +190,7 @@ public abstract class AbstractGameMessageModule<T extends IMessageConfig, E exte
         SendableDiscordMessage discordMessage = formatter
                 .build();
         if (discordMessage.isEmpty()) {
+            logger().debug("Message from " + player + " skipped, empty after formatting");
             return Collections.emptyList();
         }
 
@@ -200,8 +202,7 @@ public abstract class AbstractGameMessageModule<T extends IMessageConfig, E exte
         return futures;
     }
 
-    @Nullable
-    protected final CompletableFuture<ReceivedDiscordMessage> sendMessageToChannel(DiscordGuildMessageChannel channel, SendableDiscordMessage message) {
+    protected final @NotNull CompletableFuture<ReceivedDiscordMessage> sendMessageToChannel(DiscordGuildMessageChannel channel, SendableDiscordMessage message) {
         GuildChannel permissionChannel = (GuildMessageChannel) channel.getAsJDAMessageChannel();
 
         Permission sendPermission;

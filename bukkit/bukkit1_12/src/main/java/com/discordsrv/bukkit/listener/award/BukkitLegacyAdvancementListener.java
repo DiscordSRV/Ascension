@@ -22,6 +22,7 @@ import com.discordsrv.common.DiscordSRV;
 import com.discordsrv.common.util.ComponentUtil;
 import net.kyori.adventure.platform.bukkit.BukkitComponentSerializer;
 import org.bukkit.Bukkit;
+import org.bukkit.Server;
 import org.bukkit.advancement.Advancement;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
@@ -40,18 +41,20 @@ public class BukkitLegacyAdvancementListener extends AbstractBukkitAwardListener
     public BukkitLegacyAdvancementListener(DiscordSRV discordSRV, IBukkitAwardForwarder forwarder) {
         super(discordSRV, forwarder);
 
-        String version = Bukkit.getServer().getBukkitVersion().split("-", 2)[0];
+        Server server = Bukkit.getServer();
+        String version = server.getBukkitVersion().split("-", 2)[0];
 
         NMS nms = null;
         try {
+            String nmsVersion = server.getClass().getName().split("\\.", 4)[3];
             if ((version.startsWith("1.19") && !version.matches("1.19.[1-3].*"))
                     || version.startsWith("1.2")) {
                 // 1.19.4+
-                nms = new NMS("org.bukkit.craftbukkit." + version + ".advancement.CraftAdvancement",
+                nms = new NMS("org.bukkit.craftbukkit." + nmsVersion + ".advancement.CraftAdvancement",
                                    "d", "i", "a");
             } else {
                 // <1.19.4
-                nms = new NMS("org.bukkit.craftbukkit." + version + ".advancement.CraftAdvancement",
+                nms = new NMS("org.bukkit.craftbukkit." + nmsVersion + ".advancement.CraftAdvancement",
                                    "c", "i", "a");
             }
         } catch (Throwable t) {

@@ -26,6 +26,7 @@ package com.discordsrv.api.channel;
 import com.discordsrv.api.component.MinecraftComponent;
 import com.discordsrv.api.player.DiscordSRVPlayer;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.Collection;
 
@@ -79,5 +80,12 @@ public interface GameChannel {
      */
     default void sendMessageToPlayer(@NotNull DiscordSRVPlayer player, @NotNull MinecraftComponent component) {
         player.sendMessage(component);
+    }
+
+    static String toString(@Nullable GameChannel channel) {
+        if (channel == null) {
+            return null;
+        }
+        return channel.getClass().getSimpleName() + "{" + channel.getOwnerName() + ":" + channel.getChannelName() + '}';
     }
 }

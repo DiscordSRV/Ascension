@@ -149,4 +149,9 @@ public class BukkitPlayer extends BukkitCommandSender implements IPlayer {
         }
         sendMessage(ComponentUtil.toAPI(message));
     }
+
+    @Override
+    public String toString() {
+        return "BukkitPlayer{" + username() + "}";
+    }
 }

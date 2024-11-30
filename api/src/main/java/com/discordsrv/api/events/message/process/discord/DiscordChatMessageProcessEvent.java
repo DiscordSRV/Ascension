@@ -24,11 +24,11 @@
 package com.discordsrv.api.events.message.process.discord;
 
 import com.discordsrv.api.channel.GameChannel;
-import com.discordsrv.api.discord.entity.channel.DiscordMessageChannel;
 import com.discordsrv.api.discord.entity.message.ReceivedDiscordMessage;
 import com.discordsrv.api.events.Cancellable;
 import com.discordsrv.api.events.Processable;
 import com.discordsrv.api.events.message.receive.discord.DiscordChatMessageReceiveEvent;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * Indicates that a Discord message is about to be processed, this will run once per {@link GameChannel} destination,
@@ -36,7 +36,6 @@ import com.discordsrv.api.events.message.receive.discord.DiscordChatMessageRecei
  */
 public class DiscordChatMessageProcessEvent implements Cancellable, Processable.NoArgument {
 
-    private final DiscordMessageChannel discordChannel;
     private final ReceivedDiscordMessage message;
     private String content;
     private final GameChannel destinationChannel;
@@ -44,18 +43,12 @@ public class DiscordChatMessageProcessEvent implements Cancellable, Processable.
     private boolean processed;
 
     public DiscordChatMessageProcessEvent(
-            DiscordMessageChannel discordChannel,
-            ReceivedDiscordMessage message,
-            GameChannel destinationChannel
+            @NotNull ReceivedDiscordMessage message,
+            @NotNull GameChannel destinationChannel
     ) {
-        this.discordChannel = discordChannel;
         this.message = message;
         this.content = message.getContent();
         this.destinationChannel = destinationChannel;
-    }
-
-    public DiscordMessageChannel getDiscordChannel() {
-        return discordChannel;
     }
 
     public ReceivedDiscordMessage getMessage() {
@@ -98,5 +91,14 @@ public class DiscordChatMessageProcessEvent implements Cancellable, Processable.
             throw new IllegalStateException("Cannot process already processed event");
         }
         this.processed = true;
+    }
+
+    @Override
+    public String toString() {
+        return "DiscordChatMessageProcessEvent{"
+                + "message.channel=" + message.getChannel() + ", "
+                + "message.author=" + message.getAuthor() + ", "
+                + "destinationChannel=" + destinationChannel
+                + '}';
     }
 }
