@@ -55,7 +55,7 @@ public class LunaChatIntegration extends PluginIntegration<BukkitDiscordSRV> imp
     }
 
     @Override
-    public @NotNull String getIntegrationName() {
+    public @NotNull String getIntegrationId() {
         return "LunaChat";
     }
 
@@ -134,7 +134,7 @@ public class LunaChatIntegration extends PluginIntegration<BukkitDiscordSRV> imp
 
         @Override
         public @NotNull String getOwnerName() {
-            return getIntegrationName();
+            return getIntegrationId();
         }
 
         @Override

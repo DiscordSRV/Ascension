@@ -24,6 +24,7 @@ import com.discordsrv.velocity.VelocityDiscordSRV;
 import com.velocitypowered.api.plugin.PluginDescription;
 
 import java.util.List;
+import java.util.Locale;
 import java.util.stream.Collectors;
 
 public class VelocityPluginManager implements PluginManager {
@@ -35,8 +36,8 @@ public class VelocityPluginManager implements PluginManager {
     }
 
     @Override
-    public boolean isPluginEnabled(String pluginName) {
-        return discordSRV.proxy().getPluginManager().isLoaded(pluginName);
+    public boolean isPluginEnabled(String pluginIdentifier) {
+        return discordSRV.proxy().getPluginManager().isLoaded(pluginIdentifier.toLowerCase(Locale.ROOT));
     }
 
     @Override

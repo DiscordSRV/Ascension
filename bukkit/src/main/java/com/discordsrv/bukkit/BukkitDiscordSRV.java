@@ -240,6 +240,7 @@ public class BukkitDiscordSRV extends AbstractDiscordSRV<DiscordSRVBukkitBootstr
     protected void disable() {
         super.disable();
 
+        pluginManager.disable();
         audiences.close();
     }
 

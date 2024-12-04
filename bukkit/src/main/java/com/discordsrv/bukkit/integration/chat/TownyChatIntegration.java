@@ -51,7 +51,7 @@ public class TownyChatIntegration extends PluginIntegration<BukkitDiscordSRV> im
     }
 
     @Override
-    public @NotNull String getIntegrationName() {
+    public @NotNull String getIntegrationId() {
         return "TownyChat";
     }
 
@@ -125,7 +125,7 @@ public class TownyChatIntegration extends PluginIntegration<BukkitDiscordSRV> im
 
         @Override
         public @NotNull String getOwnerName() {
-            return getIntegrationName();
+            return getIntegrationId();
         }
 
         @Override

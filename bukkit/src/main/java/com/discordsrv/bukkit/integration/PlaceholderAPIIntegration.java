@@ -50,7 +50,7 @@ public class PlaceholderAPIIntegration extends PluginIntegration<BukkitDiscordSR
     }
 
     @Override
-    public @NotNull String getIntegrationName() {
+    public @NotNull String getIntegrationId() {
         return "PlaceholderAPI";
     }
 

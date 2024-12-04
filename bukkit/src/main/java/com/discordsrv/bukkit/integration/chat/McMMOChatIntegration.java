@@ -55,7 +55,7 @@ public class McMMOChatIntegration extends PluginIntegration<BukkitDiscordSRV> im
     }
 
     @Override
-    public @NotNull String getIntegrationName() {
+    public @NotNull String getIntegrationId() {
         return "mcMMO";
     }
 
@@ -130,7 +130,7 @@ public class McMMOChatIntegration extends PluginIntegration<BukkitDiscordSRV> im
 
         @Override
         public @NotNull String getOwnerName() {
-            return getIntegrationName();
+            return getIntegrationId();
         }
 
         @Override

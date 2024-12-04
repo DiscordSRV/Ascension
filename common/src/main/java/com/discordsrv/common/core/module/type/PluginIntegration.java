@@ -38,16 +38,16 @@ public abstract class PluginIntegration<DT extends DiscordSRV> extends AbstractM
      * @return the id (when available) or name of the plugin or mod
      */
     @NotNull
-    public abstract String getIntegrationName();
+    public abstract String getIntegrationId();
 
     @Override
     @MustBeInvokedByOverriders
     public boolean isEnabled() {
-        String integrationName = getIntegrationName();
-        if (discordSRV.config().integrations.disabledIntegrations.contains(integrationName)) {
+        String integrationId = getIntegrationId();
+        if (discordSRV.config().integrations.disabledIntegrations.contains(integrationId)) {
             return false;
         }
-        if (!discordSRV.pluginManager().isPluginEnabled(integrationName)) {
+        if (!discordSRV.pluginManager().isPluginEnabled(integrationId)) {
             return false;
         }
         return super.isEnabled();

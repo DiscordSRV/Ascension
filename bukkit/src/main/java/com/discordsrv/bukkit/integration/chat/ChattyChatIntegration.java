@@ -50,7 +50,7 @@ public class ChattyChatIntegration extends PluginIntegration<BukkitDiscordSRV> i
     }
 
     @Override
-    public @NotNull String getIntegrationName() {
+    public @NotNull String getIntegrationId() {
         return "Chatty";
     }
 
@@ -115,7 +115,7 @@ public class ChattyChatIntegration extends PluginIntegration<BukkitDiscordSRV> i
 
         @Override
         public @NotNull String getOwnerName() {
-            return getIntegrationName();
+            return getIntegrationId();
         }
 
         @Override

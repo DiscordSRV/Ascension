@@ -21,18 +21,29 @@ package com.discordsrv.bukkit.plugin;
 import com.discordsrv.bukkit.BukkitDiscordSRV;
 import com.discordsrv.common.abstraction.plugin.Plugin;
 import com.discordsrv.common.abstraction.plugin.PluginManager;
+import com.discordsrv.common.events.integration.IntegrationLifecycleEvent;
+import org.bukkit.event.EventHandler;
+import org.bukkit.event.HandlerList;
+import org.bukkit.event.Listener;
+import org.bukkit.event.server.PluginDisableEvent;
+import org.bukkit.event.server.PluginEnableEvent;
 import org.bukkit.plugin.PluginDescriptionFile;
 
 import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
 
-public class BukkitPluginManager implements PluginManager {
+public class BukkitPluginManager implements PluginManager, Listener {
 
     private final BukkitDiscordSRV discordSRV;
 
     public BukkitPluginManager(BukkitDiscordSRV discordSRV) {
         this.discordSRV = discordSRV;
+        discordSRV.server().getPluginManager().registerEvents(this, discordSRV.plugin());
+    }
+
+    public void disable() {
+        HandlerList.unregisterAll(this);
     }
 
     @Override
@@ -48,5 +59,21 @@ public class BukkitPluginManager implements PluginManager {
                     return new Plugin(plugin.getName(), description.getVersion(), description.getAuthors());
                 })
                 .collect(Collectors.toList());
+    }
+
+    @EventHandler
+    public void onPluginEnable(PluginEnableEvent event) {
+        discordSRV.eventBus().publish(new IntegrationLifecycleEvent(
+                event.getPlugin().getName(),
+                IntegrationLifecycleEvent.Type.ENABLE
+        ));
+    }
+
+    @EventHandler
+    public void onPluginDisable(PluginDisableEvent event) {
+        discordSRV.eventBus().publish(new IntegrationLifecycleEvent(
+                event.getPlugin().getName(),
+                IntegrationLifecycleEvent.Type.DISABLE
+        ));
     }
 }

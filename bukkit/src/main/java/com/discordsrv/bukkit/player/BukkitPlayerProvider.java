@@ -26,6 +26,7 @@ import org.bukkit.OfflinePlayer;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
+import org.bukkit.event.HandlerList;
 import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.player.PlayerLoginEvent;
@@ -51,6 +52,11 @@ public class BukkitPlayerProvider extends ServerPlayerProvider<BukkitPlayer, Buk
         for (Player player : discordSRV.server().getOnlinePlayers()) {
             addPlayer(player, true);
         }
+    }
+
+    @Override
+    public void unsubscribe() {
+        HandlerList.unregisterAll(this);
     }
 
     @EventHandler(priority = EventPriority.MONITOR)

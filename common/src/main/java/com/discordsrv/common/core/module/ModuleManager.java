@@ -33,7 +33,9 @@ import com.discordsrv.common.core.logging.Logger;
 import com.discordsrv.common.core.logging.NamedLogger;
 import com.discordsrv.common.core.module.type.AbstractModule;
 import com.discordsrv.common.core.module.type.ModuleDelegate;
+import com.discordsrv.common.core.module.type.PluginIntegration;
 import com.discordsrv.common.discord.connection.jda.JDAConnectionManager;
+import com.discordsrv.common.events.integration.IntegrationLifecycleEvent;
 import com.discordsrv.common.feature.debug.DebugGenerateEvent;
 import com.discordsrv.common.feature.debug.file.TextDebugFile;
 import com.discordsrv.common.util.function.CheckedFunction;
@@ -211,6 +213,18 @@ public class ModuleManager {
         reload();
     }
 
+    @Subscribe
+    public void onIntegrationLifecycle(IntegrationLifecycleEvent event) {
+        String integrationIdentifier = event.integrationIdentifier();
+        for (Module module : modules) {
+            AbstractModule<?> abstractModule = getAbstract(module);
+            if (abstractModule instanceof PluginIntegration
+                    && ((PluginIntegration<?>) abstractModule).getIntegrationId().equals(integrationIdentifier)) {
+                enableOrDisableAsNeeded(abstractModule, discordSRV.isReady(), true);
+            }
+        }
+    }
+
     public List<DiscordSRVApi.ReloadResult> reload() {
         return reloadAndEnableModules(true);
     }
@@ -240,7 +254,7 @@ public class ModuleManager {
         return results;
     }
 
-    private List<DiscordSRVApi.ReloadResult> enableOrDisableAsNeeded(AbstractModule<?> module, boolean isReady, boolean reload) {
+    private List<DiscordSRVApi.ReloadResult> enableOrDisableAsNeeded(AbstractModule<?> module, boolean isReady, boolean mayReload) {
         boolean canBeEnabled = isReady || module.canEnableBeforeReady();
         if (!canBeEnabled) {
             return Collections.emptyList();
@@ -278,7 +292,7 @@ public class ModuleManager {
             List<DiscordSRVApi.ReloadResult> results = enable(module);
             if (results != null) {
                 reloadResults.addAll(results);
-            } else if (reload) {
+            } else if (mayReload) {
                 reloadResults.addAll(reload(module));
             }
         }

@@ -63,6 +63,7 @@ public abstract class AbstractPlayerProvider<T extends IPlayer, DT extends Disco
     }
 
     public abstract void subscribe();
+    public abstract void unsubscribe();
 
     protected void addPlayer(UUID uuid, T player, boolean initial) {
         this.players.put(uuid, player);

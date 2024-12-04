@@ -54,7 +54,7 @@ public class VentureChatIntegration extends PluginIntegration<BukkitDiscordSRV> 
     }
 
     @Override
-    public @NotNull String getIntegrationName() {
+    public @NotNull String getIntegrationId() {
         return "VentureChat";
     }
 
@@ -128,7 +128,7 @@ public class VentureChatIntegration extends PluginIntegration<BukkitDiscordSRV> 
 
         @Override
         public @NotNull String getOwnerName() {
-            return getIntegrationName();
+            return getIntegrationId();
         }
 
         @Override

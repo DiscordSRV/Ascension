@@ -66,7 +66,7 @@ public class LuckPermsIntegration extends PluginIntegration<DiscordSRV> implemen
     }
 
     @Override
-    public @NotNull String getIntegrationName() {
+    public @NotNull String getIntegrationId() {
         return "LuckPerms";
     }
 

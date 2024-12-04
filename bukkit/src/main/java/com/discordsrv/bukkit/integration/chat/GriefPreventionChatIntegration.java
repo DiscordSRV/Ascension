@@ -35,7 +35,7 @@ public class GriefPreventionChatIntegration extends PluginIntegration<BukkitDisc
     }
 
     @Override
-    public @NotNull String getIntegrationName() {
+    public @NotNull String getIntegrationId() {
         return "GriefPrevention";
     }
 
@@ -52,7 +52,8 @@ public class GriefPreventionChatIntegration extends PluginIntegration<BukkitDisc
 
     @Subscribe(priority = EventPriority.EARLY)
     public void onGameChatMessageReceive(GameChatMessageReceiveEvent event) {
-        GriefPrevention griefPrevention = (GriefPrevention) discordSRV.server().getPluginManager().getPlugin(getIntegrationName());
+        GriefPrevention griefPrevention = (GriefPrevention) discordSRV.server().getPluginManager().getPlugin(
+                getIntegrationId());
         if (griefPrevention == null) {
             return;
         }

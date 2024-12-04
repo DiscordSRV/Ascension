@@ -42,6 +42,11 @@ public class BungeePlayerProvider extends AbstractPlayerProvider<BungeePlayer, B
         }
     }
 
+    @Override
+    public void unsubscribe() {
+        discordSRV.proxy().getPluginManager().unregisterListener(this);
+    }
+
     @EventHandler(priority = Byte.MIN_VALUE) // Runs first
     public void onPostLogin(PostLoginEvent event) {
         addPlayer(event.getPlayer(), false);

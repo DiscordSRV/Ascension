@@ -185,6 +185,11 @@ public class MockDiscordSRV extends AbstractDiscordSRV<IBootstrap, MainConfig, C
             public void subscribe() {
                 playerProviderSubscribed = true;
             }
+
+            @Override
+            public void unsubscribe() {
+                playerProviderSubscribed = false;
+            }
         };
     }
 

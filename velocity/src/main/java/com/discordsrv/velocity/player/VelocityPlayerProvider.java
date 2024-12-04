@@ -42,6 +42,11 @@ public class VelocityPlayerProvider extends AbstractPlayerProvider<VelocityPlaye
         }
     }
 
+    @Override
+    public void unsubscribe() {
+        discordSRV.proxy().getEventManager().unregisterListener(discordSRV.plugin(), this);
+    }
+
     @Subscribe(order = PostOrder.FIRST)
     public void onPostLogin(PostLoginEvent event) {
         addPlayer(event.getPlayer(), false);

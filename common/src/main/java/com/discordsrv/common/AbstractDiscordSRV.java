@@ -713,6 +713,10 @@ public abstract class AbstractDiscordSRV<
             return;
         }
         this.status.set(Status.SHUTTING_DOWN);
+
+        // Unregister PlayerProvider listeners
+        playerProvider().unsubscribe();
+
         eventBus().publish(new DiscordSRVShuttingDownEvent());
         eventBus().shutdown();
         try {

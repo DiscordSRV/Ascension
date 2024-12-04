@@ -50,7 +50,7 @@ public class VaultIntegration extends PluginIntegration<BukkitDiscordSRV> implem
     }
 
     @Override
-    public @NotNull String getIntegrationName() {
+    public @NotNull String getIntegrationId() {
         return "Vault";
     }
 

@@ -60,7 +60,7 @@ public class EssentialsXIntegration
     }
 
     @Override
-    public @NotNull String getIntegrationName() {
+    public @NotNull String getIntegrationId() {
         return "Essentials";
     }
 
@@ -164,7 +164,7 @@ public class EssentialsXIntegration
 
         @Override
         public @NotNull String getOwnerName() {
-            return getIntegrationName();
+            return getIntegrationId();
         }
 
         @Override
