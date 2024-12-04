@@ -21,29 +21,24 @@
  * SOFTWARE.
  */
 
-package com.discordsrv.api.events.lifecycle;
+package com.discordsrv.api.reload;
 
-import com.discordsrv.api.events.Event;
-import com.discordsrv.api.reload.ReloadFlag;
+import org.jetbrains.annotations.ApiStatus;
 
-import java.util.Set;
+public enum ReloadResult {
 
-/**
- * An event for when DiscordSRV successfully reloads partially or completely.
- */
-public class DiscordSRVReloadedEvent implements Event {
+    RESTART_REQUIRED,
 
-    private final Set<ReloadFlag> flags;
-
-    public DiscordSRVReloadedEvent(Set<ReloadFlag> flags) {
-        this.flags = flags;
-    }
-
-    /**
-     * Set of DiscordSRV systems that were reloaded.
-     * @return an unmodifiable set of {@link ReloadFlag}s
-     */
-    public Set<ReloadFlag> flags() {
-        return flags;
-    }
+    @ApiStatus.Internal
+    ERROR,
+    @ApiStatus.Internal
+    DEFAULT_BOT_TOKEN,
+    @ApiStatus.Internal
+    DISCORD_CONNECTION_RELOAD_REQUIRED,
+    @ApiStatus.Internal
+    SECURITY_FAILED,
+    @ApiStatus.Internal
+    STORAGE_CONNECTION_FAILED,
+    @ApiStatus.Internal
+    DISCORD_CONNECTION_FAILED,
 }

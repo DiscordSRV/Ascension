@@ -19,11 +19,12 @@
 package com.discordsrv.common.command.game;
 
 import com.discordsrv.api.DiscordSRVApi;
+import com.discordsrv.api.reload.ReloadResult;
 import com.discordsrv.common.DiscordSRV;
 import com.discordsrv.common.command.combined.commands.LinkOtherCommand;
 import com.discordsrv.common.command.game.abstraction.command.GameCommand;
-import com.discordsrv.common.command.game.commands.DiscordSRVGameCommand;
 import com.discordsrv.common.command.game.abstraction.handler.ICommandHandler;
+import com.discordsrv.common.command.game.commands.DiscordSRVGameCommand;
 import com.discordsrv.common.config.main.GameCommandConfig;
 import com.discordsrv.common.core.module.type.AbstractModule;
 
@@ -46,7 +47,7 @@ public class GameCommandModule extends AbstractModule<DiscordSRV> {
     }
 
     @Override
-    public void reload(Consumer<DiscordSRVApi.ReloadResult> resultConsumer) {
+    public void reload(Consumer<ReloadResult> resultConsumer) {
         GameCommandConfig config = discordSRV.config().gameCommand;
         if (config == null) {
             return;

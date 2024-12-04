@@ -38,8 +38,7 @@ import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.*;
-import java.util.function.Predicate;
+import java.util.Optional;
 
 /**
  * The DiscordSRV API.
@@ -156,7 +155,6 @@ public interface DiscordSRVApi {
      * <p>
      * JDA is an external library and comes with its own versioning and deprecation policies, using DiscordSRV's own APIs where possible is recommended.
      * DiscordSRV will upgrade JDA as needed, including breaking changes and major version upgrades.
-     *
      * <a href="https://github.com/DV8FromTheWorld/JDA#deprecation-policy">JDA's deprecation policy</a>
      *
      * @see #discordAPI() discordAPI() for the first party api
@@ -269,50 +267,6 @@ public interface DiscordSRVApi {
             return this == CONNECTED;
         }
 
-    }
-
-    enum ReloadFlag {
-        CONFIG(false),
-        LINKED_ACCOUNT_PROVIDER(false),
-        STORAGE(true),
-        DISCORD_CONNECTION(DiscordSRVApi::isReady),
-        MODULES(false),
-        DISCORD_COMMANDS(false),
-
-        // Bukkit only
-        TRANSLATIONS(false)
-
-        ;
-
-        public static final Set<ReloadFlag> ALL = Collections.unmodifiableSet(new LinkedHashSet<>(Arrays.asList(values())));
-        public static final Set<ReloadFlag> DEFAULT_FLAGS = Collections.unmodifiableSet(new LinkedHashSet<>(Arrays.asList(CONFIG, MODULES)));
-
-        private final Predicate<DiscordSRVApi> requiresConfirm;
-
-        ReloadFlag(boolean requiresConfirm) {
-            this(__ -> requiresConfirm);
-        }
-
-        ReloadFlag(Predicate<DiscordSRVApi> requiresConfirm) {
-            this.requiresConfirm = requiresConfirm;
-        }
-
-        public boolean requiresConfirm(DiscordSRVApi discordSRV) {
-            return requiresConfirm.test(discordSRV);
-        }
-    }
-
-    interface ReloadResult {
-
-        ReloadResult RESTART_REQUIRED = DefaultConstants.RESTART_REQUIRED;
-
-        String name();
-
-        enum DefaultConstants implements ReloadResult {
-
-            RESTART_REQUIRED
-
-        }
     }
 
     @ApiStatus.Internal

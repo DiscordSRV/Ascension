@@ -18,7 +18,6 @@
 
 package com.discordsrv.common.feature.customcommands;
 
-import com.discordsrv.api.DiscordSRVApi;
 import com.discordsrv.api.discord.entity.DiscordUser;
 import com.discordsrv.api.discord.entity.channel.DiscordChannel;
 import com.discordsrv.api.discord.entity.guild.DiscordGuildMember;
@@ -28,6 +27,7 @@ import com.discordsrv.api.discord.entity.interaction.command.DiscordCommand;
 import com.discordsrv.api.discord.entity.interaction.component.ComponentIdentifier;
 import com.discordsrv.api.discord.entity.message.SendableDiscordMessage;
 import com.discordsrv.api.events.discord.interaction.command.AbstractCommandInteractionEvent;
+import com.discordsrv.api.reload.ReloadResult;
 import com.discordsrv.common.DiscordSRV;
 import com.discordsrv.common.config.main.CustomCommandConfig;
 import com.discordsrv.common.core.logging.NamedLogger;
@@ -55,7 +55,7 @@ public class CustomCommandModule extends AbstractModule<DiscordSRV> {
     }
 
     @Override
-    public void reload(Consumer<DiscordSRVApi.ReloadResult> resultConsumer) {
+    public void reload(Consumer<ReloadResult> resultConsumer) {
         List<CustomCommandConfig> configs = discordSRV.config().customCommands;
 
         List<LayerCommand> layeredCommands = new ArrayList<>();

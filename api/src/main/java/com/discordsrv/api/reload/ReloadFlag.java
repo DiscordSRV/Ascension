@@ -21,29 +21,42 @@
  * SOFTWARE.
  */
 
-package com.discordsrv.api.events.lifecycle;
+package com.discordsrv.api.reload;
 
-import com.discordsrv.api.events.Event;
-import com.discordsrv.api.reload.ReloadFlag;
+import com.discordsrv.api.DiscordSRVApi;
 
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.LinkedHashSet;
 import java.util.Set;
+import java.util.function.Predicate;
 
-/**
- * An event for when DiscordSRV successfully reloads partially or completely.
- */
-public class DiscordSRVReloadedEvent implements Event {
+public enum ReloadFlag {
+    CONFIG(false),
+    LINKED_ACCOUNT_PROVIDER(false),
+    STORAGE(true),
+    DISCORD_CONNECTION(DiscordSRVApi::isReady),
+    DISCORD_COMMANDS(false),
 
-    private final Set<ReloadFlag> flags;
+    // Bukkit only
+    TRANSLATIONS(false);
 
-    public DiscordSRVReloadedEvent(Set<ReloadFlag> flags) {
-        this.flags = flags;
+    public static final Set<ReloadFlag> ALL = Collections.unmodifiableSet(
+            new LinkedHashSet<>(Arrays.asList(values())));
+    public static final Set<ReloadFlag> DEFAULT_FLAGS = Collections.unmodifiableSet(
+            new LinkedHashSet<>(Collections.singletonList(CONFIG)));
+
+    private final Predicate<DiscordSRVApi> requiresConfirm;
+
+    ReloadFlag(boolean requiresConfirm) {
+        this(__ -> requiresConfirm);
     }
 
-    /**
-     * Set of DiscordSRV systems that were reloaded.
-     * @return an unmodifiable set of {@link ReloadFlag}s
-     */
-    public Set<ReloadFlag> flags() {
-        return flags;
+    ReloadFlag(Predicate<DiscordSRVApi> requiresConfirm) {
+        this.requiresConfirm = requiresConfirm;
+    }
+
+    public boolean requiresConfirm(DiscordSRVApi discordSRV) {
+        return requiresConfirm.test(discordSRV);
     }
 }

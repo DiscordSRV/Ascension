@@ -18,10 +18,10 @@
 
 package com.discordsrv.common.feature.console;
 
-import com.discordsrv.api.DiscordSRVApi;
 import com.discordsrv.api.discord.connection.details.DiscordGatewayIntent;
 import com.discordsrv.api.eventbus.Subscribe;
 import com.discordsrv.api.events.discord.message.DiscordMessageReceiveEvent;
+import com.discordsrv.api.reload.ReloadResult;
 import com.discordsrv.common.DiscordSRV;
 import com.discordsrv.common.config.main.ConsoleConfig;
 import com.discordsrv.common.config.main.generic.DestinationConfig;
@@ -70,7 +70,7 @@ public class ConsoleModule extends AbstractModule<DiscordSRV> implements LogAppe
     }
 
     @Override
-    public void reload(Consumer<DiscordSRVApi.ReloadResult> resultConsumer) {
+    public void reload(Consumer<ReloadResult> resultConsumer) {
         List<ConsoleConfig> configs = discordSRV.config().console;
         Set<ConsoleConfig> uncheckedConfigs = new LinkedHashSet<>(configs);
 

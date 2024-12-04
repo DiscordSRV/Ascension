@@ -30,6 +30,7 @@ import com.discordsrv.api.discord.connection.details.DiscordMemberCachePolicy;
 import com.discordsrv.api.eventbus.EventListener;
 import com.discordsrv.api.eventbus.Subscribe;
 import com.discordsrv.api.events.discord.message.AbstractDiscordMessageEvent;
+import com.discordsrv.api.reload.ReloadResult;
 import net.dv8tion.jda.api.events.GenericEvent;
 import net.dv8tion.jda.api.events.guild.member.GenericGuildMemberEvent;
 import net.dv8tion.jda.api.requests.GatewayIntent;
@@ -161,5 +162,5 @@ public interface Module {
      * Called by DiscordSRV to reload this module. This is called when the module is enabled as well.
      * @param resultConsumer a consumer to supply results to, if any apply
      */
-    default void reload(Consumer<DiscordSRVApi.ReloadResult> resultConsumer) {}
+    default void reload(Consumer<ReloadResult> resultConsumer) {}
 }

@@ -18,7 +18,7 @@
 
 package com.discordsrv.common.abstraction.bootstrap;
 
-import com.discordsrv.api.DiscordSRVApi;
+import com.discordsrv.api.reload.ReloadFlag;
 import com.discordsrv.common.DiscordSRV;
 import com.discordsrv.common.core.dependency.DependencyLoader;
 import com.discordsrv.common.core.logging.Logger;
@@ -44,7 +44,7 @@ public class LifecycleManager {
     private final Logger logger;
     private final ExecutorService taskPool;
     private final DependencyLoader dependencyLoader;
-    private final CompletableFuture<?> completableFuture;
+    private final CompletableFuture<?> dependencyLoadFuture;
 
     public LifecycleManager(
             Logger logger,
@@ -66,19 +66,26 @@ public class LifecycleManager {
                 classpathAppender,
                 resourcePaths.toArray(new String[0])
         );
-        this.completableFuture = dependencyLoader.download();
-        this.completableFuture.whenComplete((v, t) -> taskPool.shutdownNow());
+        this.dependencyLoadFuture = dependencyLoader.download();
+        this.dependencyLoadFuture.whenComplete((v, t) -> taskPool.shutdownNow());
     }
 
     public void loadAndEnable(Supplier<DiscordSRV> discordSRVSupplier) {
-        if (relocateAndLoad()) {
-            discordSRVSupplier.get().runEnable();
+        if (!relocateAndLoad()) {
+            return;
         }
+
+        DiscordSRV discordSRV = discordSRVSupplier.get();
+        if (discordSRV == null) {
+            return;
+        }
+
+        discordSRV.runEnable();
     }
 
     private boolean relocateAndLoad() {
         try {
-            completableFuture.get();
+            dependencyLoadFuture.get();
             dependencyLoader.relocateAndLoad(false).get();
             return true;
         } catch (InterruptedException ignored) {
@@ -93,12 +100,12 @@ public class LifecycleManager {
         if (discordSRV == null) {
             return;
         }
-        discordSRV.runReload(DiscordSRVApi.ReloadFlag.DEFAULT_FLAGS, false);
+        discordSRV.runReload(ReloadFlag.DEFAULT_FLAGS);
     }
 
     public void disable(DiscordSRV discordSRV) {
-        if (!completableFuture.isDone()) {
-            completableFuture.cancel(true);
+        if (!dependencyLoadFuture.isDone()) {
+            dependencyLoadFuture.cancel(true);
             return;
         }
 
@@ -107,7 +114,7 @@ public class LifecycleManager {
         }
 
         try {
-            discordSRV.invokeDisable().get(/*15, TimeUnit.SECONDS*/);
+            discordSRV.runDisable().get(/*15, TimeUnit.SECONDS*/);
         } catch (InterruptedException/* | TimeoutException*/ e) {
             logger.warning("Timed out/interrupted shutting down DiscordSRV");
         } catch (ExecutionException e) {

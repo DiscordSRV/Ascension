@@ -18,10 +18,10 @@
 
 package com.discordsrv.common.feature;
 
-import com.discordsrv.api.DiscordSRVApi;
 import com.discordsrv.api.eventbus.EventPriority;
 import com.discordsrv.api.eventbus.Subscribe;
 import com.discordsrv.api.events.lifecycle.DiscordSRVShuttingDownEvent;
+import com.discordsrv.api.reload.ReloadResult;
 import com.discordsrv.common.DiscordSRV;
 import com.discordsrv.common.config.main.PresenceUpdaterConfig;
 import com.discordsrv.common.core.logging.NamedLogger;
@@ -70,7 +70,7 @@ public class PresenceUpdaterModule extends AbstractModule<DiscordSRV> {
     }
 
     @Override
-    public void reload(Consumer<DiscordSRVApi.ReloadResult> resultConsumer) {
+    public void reload(Consumer<ReloadResult> resultConsumer) {
         if (discordSRV.jda() == null) {
             return;
         }

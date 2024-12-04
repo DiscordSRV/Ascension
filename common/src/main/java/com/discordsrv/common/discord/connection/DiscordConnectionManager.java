@@ -21,15 +21,12 @@ package com.discordsrv.common.discord.connection;
 import net.dv8tion.jda.api.JDA;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.TimeUnit;
-
 public interface DiscordConnectionManager {
 
     /**
      * The default amount of milliseconds to wait for shutdown before ending without completing rate limited requests.
      */
-    long DEFAULT_SHUTDOWN_TIMEOUT = TimeUnit.SECONDS.toMillis(10);
+    int DEFAULT_SHUTDOWN_TIMEOUT = 10;
 
     /**
      * Gets the instance.
@@ -40,33 +37,16 @@ public interface DiscordConnectionManager {
 
     /**
      * Attempts to connect to Discord.
-     * @return a {@link CompletableFuture}
      */
-    CompletableFuture<Void> connect();
-
-    /**
-     * Shuts down the Discord connection and connects again.
-     * @return a {@link CompletableFuture}
-     */
-    CompletableFuture<Void> reconnect();
-
-    /**
-     * Shuts down the Discord connection after waiting for queued requests to complete. Blocks until shutdown is completed.
-     * @return a {@link CompletableFuture}
-     * @see #DEFAULT_SHUTDOWN_TIMEOUT
-     */
-    default CompletableFuture<Void> shutdown() {
-        return shutdown(DEFAULT_SHUTDOWN_TIMEOUT);
-    }
+    void connect();
 
     /**
      * Shuts down the Discord connection after waiting for queued requests to complete.
      * Waits the provided amount of milliseconds before running {@link #shutdownNow()}.
      *
-     * @param timeoutMillis the maximum amount of milliseconds to wait for shut down
-     * @return a {@link CompletableFuture}
+     * @param timeoutSeconds the maximum amount of seconds to wait for JDA to shut down
      */
-    CompletableFuture<Void> shutdown(long timeoutMillis);
+    void shutdown(int timeoutSeconds);
 
     /**
      * Shuts down the Discord connection without waiting for queued requests to be completed.

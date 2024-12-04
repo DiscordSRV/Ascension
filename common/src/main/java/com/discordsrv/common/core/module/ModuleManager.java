@@ -18,7 +18,6 @@
 
 package com.discordsrv.common.core.module;
 
-import com.discordsrv.api.DiscordSRVApi;
 import com.discordsrv.api.discord.connection.details.DiscordCacheFlag;
 import com.discordsrv.api.discord.connection.details.DiscordGatewayIntent;
 import com.discordsrv.api.discord.connection.details.DiscordMemberCachePolicy;
@@ -27,8 +26,8 @@ import com.discordsrv.api.eventbus.Subscribe;
 import com.discordsrv.api.events.lifecycle.DiscordSRVReadyEvent;
 import com.discordsrv.api.events.lifecycle.DiscordSRVShuttingDownEvent;
 import com.discordsrv.api.module.Module;
+import com.discordsrv.api.reload.ReloadResult;
 import com.discordsrv.common.DiscordSRV;
-import com.discordsrv.common.command.game.commands.subcommand.reload.ReloadResults;
 import com.discordsrv.common.core.logging.Logger;
 import com.discordsrv.common.core.logging.NamedLogger;
 import com.discordsrv.common.core.module.type.AbstractModule;
@@ -163,7 +162,7 @@ public class ModuleManager {
         logger.debug(module.getClass().getName() + " unregistered");
     }
 
-    private List<DiscordSRVApi.ReloadResult> enable(AbstractModule<?> module) {
+    private List<ReloadResult> enable(AbstractModule<?> module) {
         try {
             if (module.enableModule()) {
                 logger.debug(module + " enabled");
@@ -176,8 +175,8 @@ public class ModuleManager {
         return null;
     }
 
-    private List<DiscordSRVApi.ReloadResult> reload(AbstractModule<?> module) {
-        List<DiscordSRVApi.ReloadResult> reloadResults = new ArrayList<>();
+    private List<ReloadResult> reload(AbstractModule<?> module) {
+        List<ReloadResult> reloadResults = new ArrayList<>();
         try {
             module.reload(result -> {
                 if (result == null) {
@@ -225,7 +224,7 @@ public class ModuleManager {
         }
     }
 
-    public List<DiscordSRVApi.ReloadResult> reload() {
+    public List<ReloadResult> reload() {
         return reloadAndEnableModules(true);
     }
 
@@ -233,19 +232,19 @@ public class ModuleManager {
         reloadAndEnableModules(false);
     }
 
-    private synchronized List<DiscordSRV.ReloadResult> reloadAndEnableModules(boolean reload) {
+    private synchronized List<ReloadResult> reloadAndEnableModules(boolean reload) {
         boolean isReady = discordSRV.isReady();
         logger().debug((reload ? "Reloading" : "Enabling") + " modules (DiscordSRV ready = " + isReady + ")");
 
-        Set<DiscordSRVApi.ReloadResult> reloadResults = new HashSet<>();
+        Set<ReloadResult> reloadResults = new HashSet<>();
         for (Module module : modules) {
             reloadResults.addAll(enableOrDisableAsNeeded(getAbstract(module), isReady, reload));
         }
 
-        List<DiscordSRVApi.ReloadResult> results = new ArrayList<>();
+        List<ReloadResult> results = new ArrayList<>();
 
-        List<DiscordSRV.ReloadResult> validResults = Arrays.asList(DiscordSRVApi.ReloadResult.DefaultConstants.values());
-        for (DiscordSRVApi.ReloadResult reloadResult : reloadResults) {
+        List<ReloadResult> validResults = Arrays.asList(ReloadResult.values());
+        for (ReloadResult reloadResult : reloadResults) {
             if (validResults.contains(reloadResult)) {
                 results.add(reloadResult);
             }
@@ -254,7 +253,7 @@ public class ModuleManager {
         return results;
     }
 
-    private List<DiscordSRVApi.ReloadResult> enableOrDisableAsNeeded(AbstractModule<?> module, boolean isReady, boolean mayReload) {
+    private List<ReloadResult> enableOrDisableAsNeeded(AbstractModule<?> module, boolean isReady, boolean mayReload) {
         boolean canBeEnabled = isReady || module.canEnableBeforeReady();
         if (!canBeEnabled) {
             return Collections.emptyList();
@@ -282,14 +281,14 @@ public class ModuleManager {
             }
         }
 
-        List<DiscordSRVApi.ReloadResult> reloadResults = new ArrayList<>();
+        List<ReloadResult> reloadResults = new ArrayList<>();
         if (fail) {
-            reloadResults.add(ReloadResults.DISCORD_CONNECTION_RELOAD_REQUIRED);
+            reloadResults.add(ReloadResult.DISCORD_CONNECTION_RELOAD_REQUIRED);
         }
 
         // Enable the module if reload passed
         if (!fail) {
-            List<DiscordSRVApi.ReloadResult> results = enable(module);
+            List<ReloadResult> results = enable(module);
             if (results != null) {
                 reloadResults.addAll(results);
             } else if (mayReload) {

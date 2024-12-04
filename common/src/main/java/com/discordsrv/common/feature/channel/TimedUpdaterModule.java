@@ -18,8 +18,8 @@
 
 package com.discordsrv.common.feature.channel;
 
-import com.discordsrv.api.DiscordSRVApi;
 import com.discordsrv.api.discord.connection.jda.errorresponse.ErrorCallbackContext;
+import com.discordsrv.api.reload.ReloadResult;
 import com.discordsrv.common.DiscordSRV;
 import com.discordsrv.common.config.main.TimedUpdaterConfig;
 import com.discordsrv.common.core.logging.NamedLogger;
@@ -67,7 +67,7 @@ public class TimedUpdaterModule extends AbstractModule<DiscordSRV> {
     }
 
     @Override
-    public void reload(Consumer<DiscordSRVApi.ReloadResult> resultConsumer) {
+    public void reload(Consumer<ReloadResult> resultConsumer) {
         futures.forEach(future -> future.cancel(false));
         futures.clear();
 

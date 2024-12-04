@@ -19,6 +19,8 @@
 package com.discordsrv.bukkit;
 
 import com.discordsrv.api.DiscordSRVApi;
+import com.discordsrv.api.reload.ReloadFlag;
+import com.discordsrv.api.reload.ReloadResult;
 import com.discordsrv.bukkit.ban.BukkitBanModule;
 import com.discordsrv.bukkit.command.game.BukkitGameCommandExecutionHelper;
 import com.discordsrv.bukkit.command.game.handler.AbstractBukkitCommandHandler;
@@ -226,7 +228,7 @@ public class BukkitDiscordSRV extends AbstractDiscordSRV<DiscordSRVBukkitBootstr
     }
 
     @Override
-    public List<ReloadResult> reload(Set<ReloadFlag> flags, boolean initial) throws Throwable {
+    protected List<ReloadResult> reload(Set<ReloadFlag> flags, boolean initial) throws Throwable {
         List<ReloadResult> results = super.reload(flags, initial);
 
         if (flags.contains(ReloadFlag.TRANSLATIONS)) {

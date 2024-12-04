@@ -23,10 +23,11 @@ import com.discordsrv.api.events.lifecycle.DiscordSRVReadyEvent;
 import com.discordsrv.api.events.lifecycle.DiscordSRVReloadedEvent;
 import com.discordsrv.api.events.lifecycle.DiscordSRVShuttingDownEvent;
 import com.discordsrv.api.module.Module;
+import com.discordsrv.api.reload.ReloadFlag;
 import com.discordsrv.common.abstraction.bootstrap.IBootstrap;
 import com.discordsrv.common.command.discord.DiscordCommandModule;
 import com.discordsrv.common.command.game.GameCommandModule;
-import com.discordsrv.common.command.game.commands.subcommand.reload.ReloadResults;
+import com.discordsrv.api.reload.ReloadResult;
 import com.discordsrv.common.config.configurate.manager.ConnectionConfigManager;
 import com.discordsrv.common.config.configurate.manager.MainConfigManager;
 import com.discordsrv.common.config.configurate.manager.MessagesConfigManager;
@@ -55,6 +56,7 @@ import com.discordsrv.common.core.storage.StorageType;
 import com.discordsrv.common.core.storage.impl.MemoryStorage;
 import com.discordsrv.common.discord.api.DiscordAPIEventModule;
 import com.discordsrv.common.discord.api.DiscordAPIImpl;
+import com.discordsrv.common.discord.connection.DiscordConnectionManager;
 import com.discordsrv.common.discord.connection.details.DiscordConnectionDetailsImpl;
 import com.discordsrv.common.discord.connection.jda.JDAConnectionManager;
 import com.discordsrv.common.exception.StorageException;
@@ -90,10 +92,7 @@ import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import net.dv8tion.jda.api.JDA;
 import net.dv8tion.jda.api.JDAInfo;
-import okhttp3.ConnectionPool;
-import okhttp3.Dispatcher;
-import okhttp3.OkHttpClient;
-import okhttp3.Request;
+import okhttp3.*;
 import org.apache.commons.lang3.StringUtils;
 import org.intellij.lang.annotations.Language;
 import org.jetbrains.annotations.MustBeInvokedByOverriders;
@@ -136,6 +135,7 @@ public abstract class AbstractDiscordSRV<
     private final AtomicReference<Status> status = new AtomicReference<>(Status.INITIALIZED);
     private final AtomicReference<Boolean> beenReady = new AtomicReference<>(false);
     private boolean serverStarted = false;
+    private final Object reloadLock = new Object();
 
     // DiscordSRVApi
     private EventBusImpl eventBus;
@@ -543,37 +543,72 @@ public abstract class AbstractDiscordSRV<
 
     // Lifecycle
 
+    public boolean isServerStarted() {
+        return serverStarted;
+    }
+
     public ZonedDateTime getInitializeTime() {
         return initializeTime;
     }
 
+    /**
+     * Run blocking when plugin/mod is triggered for enabling.
+     */
     @Override
     public final void runEnable() {
         try {
             this.enable();
         } catch (Throwable t) {
-            logger.error("Failed to enable", t);
+            logger().error("Failed to enable", t);
             setStatus(Status.FAILED_TO_START);
         }
     }
 
+    /**
+     * Must be manually triggered for {@link DiscordSRV.ServerType#SERVER}, automatically triggered in {@link #enable()} for {@link DiscordSRV.ServerType#PROXY}.
+     * @return a future running on the {@link #scheduler()}
+     */
+    public final CompletableFuture<Void> runServerStarted() {
+        return scheduler().execute(() -> {
+            if (status().isShutdown()) {
+                // Already shutdown/shutting down, don't bother
+                return;
+            }
+            try {
+                this.serverStarted();
+            } catch (Throwable t) {
+                if (status().isShutdown() && t instanceof NoClassDefFoundError) {
+                    // Already shutdown, ignore errors for classes that already got unloaded
+                    return;
+                }
+                logger().error("Failed to start", t);
+                setStatus(Status.FAILED_TO_START);
+
+                disable();
+            }
+        });
+    }
+
+    /**
+     * Triggers a reload of DiscordSRV.
+     * @param flags the targets to reload
+     * @return the results of the reload
+     */
     @Override
-    public final CompletableFuture<Void> invokeDisable() {
-        return scheduler().execute(this::disable);
+    public final List<ReloadResult> runReload(Set<ReloadFlag> flags) {
+        try {
+            synchronized (reloadLock) {
+                return reload(flags, false);
+            }
+        } catch (Throwable e) {
+            logger.error("Failed to reload", e);
+            return Collections.singletonList(ReloadResult.ERROR);
+        }
     }
 
     @Override
-    public final List<ReloadResult> runReload(Set<ReloadFlag> flags, boolean silent) {
-        try {
-            return reload(flags, silent);
-        } catch (Throwable e) {
-            if (silent) {
-                throw new RuntimeException(e);
-            } else {
-                logger.error("Failed to reload", e);
-            }
-            return Collections.singletonList(ReloadResults.FAILED);
-        }
+    public final CompletableFuture<Void> runDisable() {
+        return scheduler().execute(this::disable);
     }
 
     @MustBeInvokedByOverriders
@@ -643,39 +678,14 @@ public abstract class AbstractDiscordSRV<
         }
 
         // Initial load
-        try {
-            runReload(ReloadFlag.ALL, true);
-        } catch (RuntimeException e) {
-            throw e.getCause();
-        }
+        reload(ReloadFlag.ALL, true);
 
         if (serverType() == ServerType.PROXY) {
-            invokeServerStarted().get();
+            runServerStarted().get();
         }
 
         // Register PlayerProvider listeners
         playerProvider().subscribe();
-    }
-
-    public final CompletableFuture<Void> invokeServerStarted() {
-        return scheduler().supply(() -> {
-            if (status().isShutdown()) {
-                // Already shutdown/shutting down, don't bother
-                return null;
-            }
-            try {
-                this.serverStarted();
-            } catch (Throwable t) {
-                if (status().isShutdown() && t instanceof NoClassDefFoundError) {
-                    // Already shutdown, ignore errors for classes that already got unloaded
-                    return null;
-                }
-                setStatus(Status.FAILED_TO_START);
-                disable();
-                logger().error("Failed to start", t);
-            }
-            return null;
-        });
     }
 
     @MustBeInvokedByOverriders
@@ -688,50 +698,8 @@ public abstract class AbstractDiscordSRV<
         Optional.ofNullable(getModule(PresenceUpdaterModule.class)).ifPresent(PresenceUpdaterModule::serverStarted);
     }
 
-    public boolean isServerStarted() {
-        return serverStarted;
-    }
-
-    private StorageType getStorageType() {
-        String backend = connectionConfig().storage.backend;
-        switch (backend.toLowerCase(Locale.ROOT)) {
-            case "h2": return StorageType.H2;
-            case "mysql": return StorageType.MYSQL;
-            case "mariadb": return StorageType.MARIADB;
-        }
-        if (backend.equals(MemoryStorage.IDENTIFIER)) {
-            return StorageType.MEMORY;
-        }
-        throw new StorageException("Unknown storage backend \"" + backend + "\"");
-    }
-
     @MustBeInvokedByOverriders
-    protected void disable() {
-        Status status = this.status.get();
-        if (status == Status.INITIALIZED || status.isShutdown()) {
-            // Hasn't started or already shutting down/shutdown
-            return;
-        }
-        this.status.set(Status.SHUTTING_DOWN);
-
-        // Unregister PlayerProvider listeners
-        playerProvider().unsubscribe();
-
-        eventBus().publish(new DiscordSRVShuttingDownEvent());
-        eventBus().shutdown();
-        try {
-            if (storage != null) {
-                storage.close();
-            }
-        } catch (Throwable t) {
-            logger().error("Failed to close storage connection", t);
-        }
-        temporaryLocalData.save();
-        this.status.set(Status.SHUTDOWN);
-    }
-
-    @MustBeInvokedByOverriders
-    public List<ReloadResult> reload(Set<ReloadFlag> flags, boolean initial) throws Throwable {
+    protected List<ReloadResult> reload(Set<ReloadFlag> flags, boolean initial) throws Throwable {
         if (!initial) {
             logger().info("Reloading DiscordSRV...");
         }
@@ -767,7 +735,7 @@ public abstract class AbstractDiscordSRV<
                 logger().info("");
             }
             discordConnectionManager.invalidToken(true);
-            results.add(ReloadResults.DEFAULT_BOT_TOKEN);
+            results.add(ReloadResult.DEFAULT_BOT_TOKEN);
             return results;
         }
 
@@ -776,13 +744,13 @@ public abstract class AbstractDiscordSRV<
         if (updateConfig.security.enabled) {
             if (updateChecker.isSecurityFailed()) {
                 // Security has already failed
-                return Collections.singletonList(ReloadResults.SECURITY_FAILED);
+                return Collections.singletonList(ReloadResult.SECURITY_FAILED);
             }
 
             if (initial && !updateChecker.check(true)) {
                 // Security failed cancel startup & shutdown
-                invokeDisable();
-                return Collections.singletonList(ReloadResults.SECURITY_FAILED);
+                runDisable();
+                return Collections.singletonList(ReloadResult.SECURITY_FAILED);
             }
         } else if (initial) {
             // Not using security, run update check off thread
@@ -824,7 +792,7 @@ public abstract class AbstractDiscordSRV<
                 if (initial) {
                     setStatus(Status.FAILED_TO_START);
                 }
-                return Collections.singletonList(ReloadResults.STORAGE_CONNECTION_FAILED);
+                return Collections.singletonList(ReloadResult.STORAGE_CONNECTION_FAILED);
             }
         }
 
@@ -854,7 +822,7 @@ public abstract class AbstractDiscordSRV<
                         break;
                     default: {
                         linkProvider = null;
-                        logger().error("Unknown linked account provider: \"" + provider + "\", linked accounts will not be used");
+                        logger().error("Unknown linked account provider: \"" + provider + "\", linked accounts will be disabled");
                         break;
                     }
                 }
@@ -865,35 +833,20 @@ public abstract class AbstractDiscordSRV<
         }
 
         if (flags.contains(ReloadFlag.DISCORD_CONNECTION)) {
-            try {
-                if (discordConnectionManager.instance() != null) {
-                    discordConnectionManager.reconnect().get();
-                } else {
-                    discordConnectionManager.connect().get();
+            // Shutdown will not fail even if not connected
+            discordConnectionManager.shutdown(DiscordConnectionManager.DEFAULT_SHUTDOWN_TIMEOUT);
+
+            discordConnectionManager.connect();
+            if (!initial) {
+                waitForStatus(Status.CONNECTED, 20, TimeUnit.SECONDS);
+                if (status() != Status.CONNECTED) {
+                    return Collections.singletonList(ReloadResult.DISCORD_CONNECTION_FAILED);
                 }
-                if (!initial) {
-                    waitForStatus(Status.CONNECTED, 20, TimeUnit.SECONDS);
-                    if (status() != Status.CONNECTED) {
-                        return Collections.singletonList(ReloadResults.DISCORD_CONNECTION_FAILED);
-                    }
-                } else {
-                    JDA jda = jda();
-                    if (jda != null) {
-                        try {
-                            jda.awaitReady();
-                        } catch (IllegalStateException ignored) {
-                            // JDA shutdown -> don't continue
-                            return Collections.singletonList(ReloadResults.DISCORD_CONNECTION_FAILED);
-                        }
-                    }
-                }
-            } catch (ExecutionException e) {
-                throw e.getCause();
             }
         }
 
         // Modules are reloaded upon DiscordSRV being ready, thus not needed at initial
-        if (!initial && flags.contains(ReloadFlag.MODULES)) {
+        if (!initial && flags.contains(ReloadFlag.CONFIG)) {
             results.addAll(moduleManager.reload());
         }
 
@@ -907,7 +860,56 @@ public abstract class AbstractDiscordSRV<
             logger().info("Reload complete.");
         }
 
-        results.add(ReloadResults.SUCCESS);
         return results;
+    }
+
+    private StorageType getStorageType() {
+        String backend = connectionConfig().storage.backend;
+        switch (backend.toLowerCase(Locale.ROOT)) {
+            case "h2": return StorageType.H2;
+            case "mysql": return StorageType.MYSQL;
+            case "mariadb": return StorageType.MARIADB;
+        }
+        if (backend.equals(MemoryStorage.IDENTIFIER)) {
+            return StorageType.MEMORY;
+        }
+        throw new StorageException("Unknown storage backend \"" + backend + "\"");
+    }
+
+    @SuppressWarnings("resource") //
+    @MustBeInvokedByOverriders
+    protected void disable() {
+        Status status = this.status.get();
+        if (status == Status.INITIALIZED || status.isShutdown()) {
+            // Hasn't started or already shutting down/shutdown
+            return;
+        }
+        this.status.set(Status.SHUTTING_DOWN);
+
+        // Unregister PlayerProvider listeners
+        playerProvider().unsubscribe();
+
+        eventBus().publish(new DiscordSRVShuttingDownEvent());
+        eventBus().shutdown();
+
+        // Shutdown OkHttp
+        httpClient.dispatcher().executorService().shutdownNow();
+        httpClient.connectionPool().evictAll();
+        try {
+            Cache cache = httpClient.cache();
+            if (cache != null) {
+                cache.close();
+            }
+        } catch (IOException ignored) {}
+
+        try {
+            if (storage != null) {
+                storage.close();
+            }
+        } catch (Throwable t) {
+            logger().error("Failed to close storage connection", t);
+        }
+        temporaryLocalData.save();
+        this.status.set(Status.SHUTDOWN);
     }
 }

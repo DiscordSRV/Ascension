@@ -18,8 +18,8 @@
 
 package com.discordsrv.common.abstraction.sync;
 
-import com.discordsrv.api.DiscordSRVApi;
 import com.discordsrv.api.eventbus.Subscribe;
+import com.discordsrv.api.reload.ReloadResult;
 import com.discordsrv.common.DiscordSRV;
 import com.discordsrv.common.abstraction.player.IPlayer;
 import com.discordsrv.common.abstraction.sync.cause.GenericSyncCauses;
@@ -100,7 +100,7 @@ public abstract class AbstractSyncModule<
     }
 
     @Override
-    public void reload(Consumer<DiscordSRVApi.ReloadResult> resultConsumer) {
+    public void reload(Consumer<ReloadResult> resultConsumer) {
         synchronized (syncs) {
             syncs.values().forEach(future -> {
                 if (future != null) {

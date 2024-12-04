@@ -85,7 +85,6 @@ public class JDAConnectionManager implements DiscordConnectionManager {
     private ScheduledExecutorService rateLimitSchedulerPool;
     private ExecutorService rateLimitElasticPool;
 
-    private CompletableFuture<Void> connectionFuture;
     private JDA instance;
 
     // Currently used intents & cache flags
@@ -286,20 +285,11 @@ public class JDAConnectionManager implements DiscordConnectionManager {
     //
 
     @Override
-    public CompletableFuture<Void> connect() {
-        if (connectionFuture != null && !connectionFuture.isDone()) {
-            throw new IllegalStateException("Already connecting");
-        } else if (instance != null && instance.getStatus() != JDA.Status.SHUTDOWN) {
+    public void connect() {
+        if (instance != null && instance.getStatus() != JDA.Status.SHUTDOWN) {
             throw new IllegalStateException("Cannot reconnect, still active");
         }
 
-        this.connectInternal();
-        return CompletableFuture.completedFuture(null);
-        // TODO: investigate why this is broken
-        //return connectionFuture = discordSRV.scheduler().execute(this::connectInternal);
-    }
-
-    private void connectInternal() {
         BotConfig botConfig = discordSRV.connectionConfig().bot;
         String token = botConfig.token;
         boolean defaultToken = false;
@@ -412,8 +402,8 @@ public class JDAConnectionManager implements DiscordConnectionManager {
         // Our own (named) threads
         jdaBuilder.setCallbackPool(discordSRV.scheduler().forkJoinPool());
         jdaBuilder.setGatewayPool(gatewayPool);
-        jdaBuilder.setRateLimitScheduler(rateLimitSchedulerPool, true);
-        jdaBuilder.setRateLimitElastic(rateLimitElasticPool);
+        jdaBuilder.setRateLimitScheduler(rateLimitSchedulerPool);
+        jdaBuilder.setRateLimitElastic(rateLimitElasticPool, true);
         jdaBuilder.setHttpClient(discordSRV.httpClient());
 
         WebSocketFactory webSocketFactory = new WebSocketFactory();
@@ -428,27 +418,13 @@ public class JDAConnectionManager implements DiscordConnectionManager {
         }
     }
 
-    @Override
-    public CompletableFuture<Void> reconnect() {
-        return discordSRV.scheduler().execute(() -> {
-            shutdown().join();
-            connect().join();
-        });
-    }
-
     @Subscribe(priority = EventPriority.LATE)
     public void onDSRVShuttingDown(DiscordSRVShuttingDownEvent event) {
-        // This has a timeout
-        shutdown().join();
+        shutdown(DEFAULT_SHUTDOWN_TIMEOUT);
     }
 
-    @Override
-    public CompletableFuture<Void> shutdown(long timeoutMillis) {
-        return discordSRV.scheduler().execute(() -> shutdownInternal(timeoutMillis));
-    }
-
-    @SuppressWarnings("BusyWait")
-    private void shutdownInternal(long timeoutMillis) {
+    @SuppressWarnings("BusyWait") // Known
+    public void shutdown(int timeoutSeconds) {
         if (instance == null) {
             shutdownExecutors();
             return;
@@ -457,14 +433,16 @@ public class JDAConnectionManager implements DiscordConnectionManager {
         instance.shutdown();
 
         try {
-            discordSRV.logger().info("Waiting up to " + TimeUnit.MILLISECONDS.toSeconds(timeoutMillis) + " seconds for JDA to shutdown...");
+            discordSRV.logger().info("Waiting up to " + timeoutSeconds + " seconds for JDA to shutdown...");
             discordSRV.scheduler().run(() -> {
                 try {
-                    while (instance != null && !rateLimitSchedulerPool.isShutdown()) {
+                    while (instance != null && instance.getStatus() != JDA.Status.SHUTDOWN && !rateLimitElasticPool.isShutdown()) {
                         Thread.sleep(50);
                     }
-                } catch (InterruptedException ignored) {}
-            }).get(timeoutMillis, TimeUnit.MILLISECONDS);
+                } catch (InterruptedException ignored) {
+                    Thread.currentThread().interrupt();
+                }
+            }).get(timeoutSeconds, TimeUnit.SECONDS);
             instance = null;
             shutdownExecutors();
             discordSRV.logger().info("JDA shutdown completed.");
@@ -478,7 +456,9 @@ public class JDAConnectionManager implements DiscordConnectionManager {
                 }
                 discordSRV.logger().error("Failed to shutdown JDA", t);
             }
-        } catch (InterruptedException ignored) {}
+        } catch (InterruptedException ignored) {
+            Thread.currentThread().interrupt();
+        }
     }
 
     @Override
@@ -495,10 +475,10 @@ public class JDAConnectionManager implements DiscordConnectionManager {
         if (gatewayPool != null) {
             gatewayPool.shutdownNow();
         }
-        if (rateLimitSchedulerPool != null && !rateLimitSchedulerPool.isShutdown()) {
+        if (rateLimitSchedulerPool != null) {
             rateLimitSchedulerPool.shutdownNow();
         }
-        if (rateLimitElasticPool != null) {
+        if (rateLimitElasticPool != null && !rateLimitElasticPool.isShutdown()) {
             rateLimitElasticPool.shutdownNow();
         }
         if (failureCallbackFuture != null) {

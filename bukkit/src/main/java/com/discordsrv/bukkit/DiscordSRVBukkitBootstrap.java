@@ -71,7 +71,7 @@ public class DiscordSRVBukkitBootstrap extends BukkitBootstrap implements IBoots
         lifecycleManager.loadAndEnable(() -> this.discordSRV = new BukkitDiscordSRV(this));
         if (discordSRV == null) return;
 
-        discordSRV.scheduler().runOnMainThreadLaterInTicks(() -> discordSRV.invokeServerStarted(), 1);
+        discordSRV.scheduler().runOnMainThreadLaterInTicks(() -> discordSRV.runServerStarted(), 1);
     }
 
     @Override

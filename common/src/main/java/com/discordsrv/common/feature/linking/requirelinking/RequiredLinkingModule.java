@@ -18,9 +18,9 @@
 
 package com.discordsrv.common.feature.linking.requirelinking;
 
-import com.discordsrv.api.DiscordSRVApi;
 import com.discordsrv.api.eventbus.Subscribe;
 import com.discordsrv.api.events.linking.AccountUnlinkedEvent;
+import com.discordsrv.api.reload.ReloadResult;
 import com.discordsrv.common.DiscordSRV;
 import com.discordsrv.common.abstraction.player.IPlayer;
 import com.discordsrv.common.config.main.linking.RequiredLinkingConfig;
@@ -101,7 +101,7 @@ public abstract class RequiredLinkingModule<T extends DiscordSRV> extends Abstra
     }
 
     @Override
-    public final void reload(Consumer<DiscordSRVApi.ReloadResult> resultConsumer) {
+    public final void reload(Consumer<ReloadResult> resultConsumer) {
         List<RequirementType<?>> requirementTypes = new ArrayList<>();
 
         requirementTypes.add(new DiscordRoleRequirementType(this));

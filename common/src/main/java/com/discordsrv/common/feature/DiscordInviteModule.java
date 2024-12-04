@@ -18,12 +18,12 @@
 
 package com.discordsrv.common.feature;
 
-import com.discordsrv.api.DiscordSRVApi;
 import com.discordsrv.api.discord.connection.details.DiscordGatewayIntent;
 import com.discordsrv.api.discord.connection.jda.errorresponse.ErrorCallbackContext;
 import com.discordsrv.api.eventbus.Subscribe;
 import com.discordsrv.api.placeholder.annotation.Placeholder;
 import com.discordsrv.api.placeholder.format.FormattedText;
+import com.discordsrv.api.reload.ReloadResult;
 import com.discordsrv.common.DiscordSRV;
 import com.discordsrv.common.config.main.DiscordInviteConfig;
 import com.discordsrv.common.core.logging.NamedLogger;
@@ -79,7 +79,7 @@ public class DiscordInviteModule extends AbstractModule<DiscordSRV> {
     }
 
     @Override
-    public void reload(Consumer<DiscordSRVApi.ReloadResult> resultConsumer) {
+    public void reload(Consumer<ReloadResult> resultConsumer) {
         JDA jda = discordSRV.jda();
         if (jda == null) {
             logger().debug("JDA == null");
