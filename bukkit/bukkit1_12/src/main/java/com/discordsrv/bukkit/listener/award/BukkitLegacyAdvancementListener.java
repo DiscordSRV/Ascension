@@ -46,7 +46,7 @@ public class BukkitLegacyAdvancementListener extends AbstractBukkitAwardListener
 
         NMS nms = null;
         try {
-            String nmsVersion = server.getClass().getName().split("\\.", 4)[3];
+            String nmsVersion = server.getClass().getName().split("\\.")[3];
             if ((version.startsWith("1.19") && !version.matches("1.19.[1-3].*"))
                     || version.startsWith("1.2")) {
                 // 1.19.4+
