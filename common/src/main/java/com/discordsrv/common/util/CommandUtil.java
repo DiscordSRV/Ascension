@@ -106,7 +106,7 @@ public final class CommandUtil {
         if (execution instanceof GameCommandExecution) {
             ICommandSender sender = ((GameCommandExecution) execution).getSender();
             if (target != null) {
-                if (otherPermission != null && !sender.hasPermission(Permission.COMMAND_LINKED_OTHER)) {
+                if (otherPermission != null && !sender.hasPermission(otherPermission)) {
                     sender.sendMessage(discordSRV.messagesConfig(sender).noPermission.asComponent());
                     return CompletableFuture.completedFuture(TargetLookupResult.INVALID);
                 }
