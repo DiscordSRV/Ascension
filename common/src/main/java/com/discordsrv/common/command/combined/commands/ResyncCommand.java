@@ -18,6 +18,7 @@
 
 package com.discordsrv.common.command.combined.commands;
 
+import com.discordsrv.api.discord.entity.interaction.command.CommandOption;
 import com.discordsrv.api.discord.entity.interaction.command.DiscordCommand;
 import com.discordsrv.api.discord.entity.interaction.component.ComponentIdentifier;
 import com.discordsrv.common.DiscordSRV;
@@ -31,16 +32,19 @@ import com.discordsrv.common.command.combined.abstraction.CommandExecution;
 import com.discordsrv.common.command.combined.abstraction.GameCommandExecution;
 import com.discordsrv.common.command.combined.abstraction.Text;
 import com.discordsrv.common.command.game.abstraction.command.GameCommand;
+import com.discordsrv.common.feature.bansync.BanSyncModule;
 import com.discordsrv.common.feature.groupsync.GroupSyncModule;
 import com.discordsrv.common.helper.Someone;
 import com.discordsrv.common.permission.game.Permission;
 import com.discordsrv.common.util.CompletableFutureUtil;
 import net.kyori.adventure.text.format.NamedTextColor;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 public class ResyncCommand extends CombinedCommand {
 
@@ -57,7 +61,12 @@ public class ResyncCommand extends CombinedCommand {
             ResyncCommand command = getInstance(discordSRV);
             GAME = GameCommand.literal("resync")
                     .requiredPermission(Permission.COMMAND_RESYNC)
-                    .executor(command);
+                    .then(
+                            GameCommand.stringWord("type")
+                                    .requiredPermission(Permission.COMMAND_RESYNC)
+                                    .executor(command)
+                                    .suggester(command)
+                    );
         }
 
         return GAME;
@@ -66,7 +75,17 @@ public class ResyncCommand extends CombinedCommand {
     public static DiscordCommand getDiscord(DiscordSRV discordSRV) {
         if (DISCORD == null) {
             ResyncCommand command = getInstance(discordSRV);
-            DISCORD = DiscordCommand.chatInput(ComponentIdentifier.of("DiscordSRV", "resync"), "resync", "Perform group resync for online players")
+            DISCORD = DiscordCommand.chatInput(
+                        ComponentIdentifier.of("DiscordSRV", "resync"),
+                        "resync",
+                        "Perform group resync for online players"
+                    )
+                    .addOption(
+                            CommandOption.builder(CommandOption.Type.STRING, "type", "The type of sync to run")
+                                    .addChoice("Group Sync", "group")
+                                    .addChoice("Ban Sync", "ban")
+                                    .build()
+                    )
                     .setEventHandler(command)
                     .build();
         }
@@ -79,15 +98,38 @@ public class ResyncCommand extends CombinedCommand {
     }
 
     @Override
-    public void execute(CommandExecution execution) {
-        GroupSyncModule module = discordSRV.getModule(GroupSyncModule.class);
-        if (module == null) {
-            execution.send(new Text("GroupSync module has not initialized correctly.").withGameColor(NamedTextColor.RED));
-            return;
+    public List<String> suggest(CommandExecution execution, @Nullable String input) {
+        if (input == null) {
+            return Collections.emptyList();
         }
 
-        if (module.noPermissionProvider()) {
-            execution.send(new Text("No permission provider available.").withGameColor(NamedTextColor.RED));
+        return Stream.of("ban", "group")
+                .filter(command -> command.toLowerCase(Locale.ROOT).startsWith(input.toLowerCase(Locale.ROOT)))
+                .collect(Collectors.toList());
+    }
+
+    @Override
+    public void execute(CommandExecution execution) {
+        AbstractSyncModule<?, ?, ?, ?, ?> module;
+        switch (execution.getArgument("type")) {
+            case "group":
+                GroupSyncModule groupSyncModule = discordSRV.getModule(GroupSyncModule.class);
+                if (groupSyncModule != null && groupSyncModule.noPermissionProvider()) {
+                    execution.send(new Text("No permission provider available.").withGameColor(NamedTextColor.RED));
+                    return;
+                }
+
+                module = groupSyncModule;
+                break;
+            case "ban":
+                module = discordSRV.getModule(BanSyncModule.class);
+                break;
+            default:
+                execution.send(new Text("Unexpected type"));
+                return;
+        }
+        if (module == null) {
+            execution.send(new Text("Module has not initialized correctly.").withGameColor(NamedTextColor.RED));
             return;
         }
 
