@@ -24,16 +24,17 @@ import com.discordsrv.api.events.lifecycle.DiscordSRVReloadedEvent;
 import com.discordsrv.api.events.lifecycle.DiscordSRVShuttingDownEvent;
 import com.discordsrv.api.module.Module;
 import com.discordsrv.api.reload.ReloadFlag;
+import com.discordsrv.api.reload.ReloadResult;
 import com.discordsrv.common.abstraction.bootstrap.IBootstrap;
 import com.discordsrv.common.command.discord.DiscordCommandModule;
 import com.discordsrv.common.command.game.GameCommandModule;
-import com.discordsrv.api.reload.ReloadResult;
 import com.discordsrv.common.config.configurate.manager.ConnectionConfigManager;
 import com.discordsrv.common.config.configurate.manager.MainConfigManager;
 import com.discordsrv.common.config.configurate.manager.MessagesConfigManager;
 import com.discordsrv.common.config.configurate.manager.MessagesConfigSingleManager;
 import com.discordsrv.common.config.connection.BotConfig;
 import com.discordsrv.common.config.connection.ConnectionConfig;
+import com.discordsrv.common.config.connection.HttpProxyConfig;
 import com.discordsrv.common.config.connection.UpdateConfig;
 import com.discordsrv.common.config.main.MainConfig;
 import com.discordsrv.common.config.main.linking.LinkedAccountConfig;
@@ -102,10 +103,7 @@ import org.jetbrains.annotations.Nullable;
 import java.io.IOException;
 import java.io.InputStream;
 import java.lang.reflect.Constructor;
-import java.net.InetAddress;
-import java.net.URL;
-import java.net.URLClassLoader;
-import java.net.UnknownHostException;
+import java.net.*;
 import java.nio.file.Path;
 import java.time.Duration;
 import java.time.ZonedDateTime;
@@ -210,15 +208,19 @@ public abstract class AbstractDiscordSRV<
         logger.warning("");
         ///////////////////////////////////////////////////////////////
 
-        Dispatcher dispatcher = new Dispatcher();
-        dispatcher.setMaxRequests(20); // Set maximum amount of requests at a time (to something more reasonable than 64)
-        dispatcher.setMaxRequestsPerHost(16); // Most requests are to discord.com
+        createHttpClient();
+    }
 
-        ConnectionPool connectionPool = new ConnectionPool(5, 10, TimeUnit.SECONDS);
+    private HttpProxyConfig usedProxyConfig = null;
+    private void createHttpClient() {
+        HttpProxyConfig proxyConfig = connectionConfig() != null ? connectionConfig().httpProxy : null;
+        if (httpClient != null && Objects.equals(usedProxyConfig, proxyConfig)) {
+            // Skip recreating client, if proxy is the same
+            return;
+        }
+        usedProxyConfig = proxyConfig;
 
-        this.httpClient = new OkHttpClient.Builder()
-                .dispatcher(dispatcher)
-                .connectionPool(connectionPool)
+        OkHttpClient.Builder builder =  new OkHttpClient.Builder()
                 .addInterceptor(chain -> {
                     Request original = chain.request();
                     String host = original.url().host();
@@ -238,8 +240,41 @@ public abstract class AbstractDiscordSRV<
                 })
                 .connectTimeout(20, TimeUnit.SECONDS)
                 .readTimeout(20, TimeUnit.SECONDS)
-                .writeTimeout(20, TimeUnit.SECONDS)
-                .build();
+                .writeTimeout(20, TimeUnit.SECONDS);
+
+        Dispatcher dispatcher = new Dispatcher();
+        dispatcher.setMaxRequests(20); // Set maximum amount of requests at a time (to something more reasonable than 64)
+        dispatcher.setMaxRequestsPerHost(16); // Most requests are to discord.com
+        builder.dispatcher(dispatcher);
+
+        builder.connectionPool(new ConnectionPool(5, 10, TimeUnit.SECONDS));
+
+        if (proxyConfig != null && proxyConfig.enabled) {
+            builder.proxy(new Proxy(Proxy.Type.HTTP, new InetSocketAddress(proxyConfig.host, proxyConfig.port)));
+
+            HttpProxyConfig.BasicAuthConfig basicAuthConfig = proxyConfig.basicAuth;
+            if (basicAuthConfig != null && basicAuthConfig.enabled) {
+                // https://stackoverflow.com/questions/41806422/java-web-start-unable-to-tunnel-through-proxy-since-java-8-update-111
+                String disabledSchemes = "jdk.http.auth.tunneling.disabledSchemes";
+
+                String oldDisabledSchemes = System.getProperty(disabledSchemes);
+                if (oldDisabledSchemes != null) {
+                    String newDisabledSchemes = Arrays.stream(oldDisabledSchemes.split(","))
+                            .filter(disabledScheme -> !disabledScheme.equalsIgnoreCase("Basic"))
+                            .collect(Collectors.joining(","));
+                    if (!oldDisabledSchemes.equals(newDisabledSchemes)) {
+                        System.setProperty(disabledSchemes, newDisabledSchemes);
+                    }
+                }
+
+                String credential = Credentials.basic(basicAuthConfig.username, basicAuthConfig.password);
+                builder.proxyAuthenticator((route, response) -> response.request().newBuilder()
+                        .header("Proxy-Authorization", credential)
+                        .build());
+            }
+        }
+
+        this.httpClient = builder.build();
     }
 
     protected URL getManifest() {
@@ -711,6 +746,7 @@ public abstract class AbstractDiscordSRV<
                 messagesConfigManager().load();
 
                 channelConfig().reload();
+                createHttpClient();
             } catch (Throwable t) {
                 if (initial) {
                     setStatus(Status.FAILED_TO_LOAD_CONFIG);
@@ -847,7 +883,7 @@ public abstract class AbstractDiscordSRV<
 
         // Modules are reloaded upon DiscordSRV being ready, thus not needed at initial
         if (!initial && flags.contains(ReloadFlag.CONFIG)) {
-            results.addAll(moduleManager.reload());
+            results.addAll(moduleManager().reload());
         }
 
         if (flags.contains(ReloadFlag.DISCORD_COMMANDS)) {
@@ -893,14 +929,16 @@ public abstract class AbstractDiscordSRV<
         eventBus().shutdown();
 
         // Shutdown OkHttp
-        httpClient.dispatcher().executorService().shutdownNow();
-        httpClient.connectionPool().evictAll();
-        try {
-            Cache cache = httpClient.cache();
-            if (cache != null) {
-                cache.close();
-            }
-        } catch (IOException ignored) {}
+        if (httpClient != null) {
+            httpClient.dispatcher().executorService().shutdownNow();
+            httpClient.connectionPool().evictAll();
+            try {
+                Cache cache = httpClient.cache();
+                if (cache != null) {
+                    cache.close();
+                }
+            } catch (IOException ignored) {}
+        }
 
         try {
             if (storage != null) {

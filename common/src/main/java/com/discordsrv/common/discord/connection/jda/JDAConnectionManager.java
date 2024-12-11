@@ -33,6 +33,7 @@ import com.discordsrv.api.placeholder.PlaceholderLookupResult;
 import com.discordsrv.common.DiscordSRV;
 import com.discordsrv.common.config.connection.BotConfig;
 import com.discordsrv.common.config.connection.ConnectionConfig;
+import com.discordsrv.common.config.connection.HttpProxyConfig;
 import com.discordsrv.common.config.documentation.DocumentationURLs;
 import com.discordsrv.common.config.main.MemberCachingConfig;
 import com.discordsrv.common.core.logging.Logger;
@@ -46,6 +47,7 @@ import com.discordsrv.common.discord.connection.details.DiscordConnectionDetails
 import com.discordsrv.common.feature.debug.DebugGenerateEvent;
 import com.discordsrv.common.feature.debug.file.TextDebugFile;
 import com.discordsrv.common.helper.Timeout;
+import com.neovisionaries.ws.client.ProxySettings;
 import com.neovisionaries.ws.client.WebSocketFactory;
 import com.neovisionaries.ws.client.WebSocketFrame;
 import net.dv8tion.jda.api.JDA;
@@ -407,6 +409,19 @@ public class JDAConnectionManager implements DiscordConnectionManager {
         jdaBuilder.setHttpClient(discordSRV.httpClient());
 
         WebSocketFactory webSocketFactory = new WebSocketFactory();
+
+        HttpProxyConfig proxyConfig = discordSRV.connectionConfig().httpProxy;
+        if (proxyConfig != null && proxyConfig.enabled) {
+            ProxySettings proxySettings = webSocketFactory.getProxySettings();
+            proxySettings.setHost(proxyConfig.host);
+            proxySettings.setPort(proxyConfig.port);
+
+            HttpProxyConfig.BasicAuthConfig basicAuthConfig = proxyConfig.basicAuth;
+            if (basicAuthConfig != null && basicAuthConfig.enabled) {
+                proxySettings.setCredentials(basicAuthConfig.username, basicAuthConfig.password);
+            }
+        }
+
         jdaBuilder.setWebsocketFactory(webSocketFactory);
 
         try {

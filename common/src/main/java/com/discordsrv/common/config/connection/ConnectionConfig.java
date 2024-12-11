@@ -49,4 +49,6 @@ public class ConnectionConfig implements Config {
     public MinecraftAuthConfig minecraftAuth = new MinecraftAuthConfig();
 
     public UpdateConfig update = new UpdateConfig();
+
+    public HttpProxyConfig httpProxy = new HttpProxyConfig();
 }
