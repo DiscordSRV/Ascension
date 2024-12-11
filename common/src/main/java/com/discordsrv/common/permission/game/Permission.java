@@ -22,19 +22,19 @@ public enum Permission {
 
     // Commands
     // Admin
-    COMMAND_DEBUG("command.admin.debug"),
-    COMMAND_RELOAD("command.admin.reload"),
-    COMMAND_BROADCAST("command.admin.broadcast"),
-    COMMAND_RESYNC("command.admin.resync"),
-    COMMAND_VERSION("command.admin.version"),
-    COMMAND_LINK_OTHER("command.admin.link.other"),
-    COMMAND_LINKED_OTHER("command.admin.linked.other"),
-    COMMAND_UNLINK_OTHER("command.admin.unlink.other"),
+    COMMAND_DEBUG("command.debug"),
+    COMMAND_RELOAD("command.reload"),
+    COMMAND_BROADCAST("command.broadcast"),
+    COMMAND_RESYNC("command.resync"),
+    COMMAND_VERSION("command.version"),
+    COMMAND_LINK_OTHER("command.link.other"),
+    COMMAND_LINKED_OTHER("command.linked.other"),
+    COMMAND_UNLINK_OTHER("command.unlink.other"),
     // Player
-    COMMAND_ROOT("command.player.root"),
-    COMMAND_LINK("command.player.link"),
-    COMMAND_LINKED("command.player.linked"),
-    COMMAND_UNLINK("command.player.unlink"),
+    COMMAND_ROOT("command.root"),
+    COMMAND_LINK("command.link.self"),
+    COMMAND_LINKED("command.linked.self"),
+    COMMAND_UNLINK("command.unlink.self"),
 
     // Mentions
     MENTION_USER("mention.user.base"),
