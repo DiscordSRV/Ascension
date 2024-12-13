@@ -41,7 +41,7 @@ dependencyResolutionManagement {
             library('velocity', 'com.velocitypowered', 'velocity-api').version('3.3.0-SNAPSHOT')
 
             // DependencyDownload
-            version('dependencydownload', '1.3.1')
+            version('dependencydownload', '2.0.0-SNAPSHOT')
             plugin('dependencydownload-plugin', 'dev.vankka.dependencydownload.plugin').versionRef('dependencydownload')
             library('dependencydownload-runtime', 'dev.vankka', 'dependencydownload-runtime').versionRef('dependencydownload')
             library('dependencydownload-jarinjar-bootstrap', 'dev.vankka', 'dependencydownload-jarinjar-bootstrap').versionRef('dependencydownload')

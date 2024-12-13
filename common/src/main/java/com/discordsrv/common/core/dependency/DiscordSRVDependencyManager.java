@@ -21,6 +21,7 @@ package com.discordsrv.common.core.dependency;
 import com.discordsrv.common.DiscordSRV;
 import dev.vankka.dependencydownload.ApplicationDependencyManager;
 import dev.vankka.dependencydownload.DependencyManager;
+import dev.vankka.dependencydownload.path.DependencyPathProvider;
 
 import java.io.IOException;
 import java.nio.file.Path;
@@ -33,7 +34,7 @@ public class DiscordSRVDependencyManager {
     public DiscordSRVDependencyManager(DiscordSRV discordSRV, DependencyLoader initialLoader) {
         this.discordSRV = discordSRV;
         Path cacheDirectory = DependencyLoader.resolvePath(discordSRV.dataDirectory());
-        this.dependencyManager = new ApplicationDependencyManager(cacheDirectory);
+        this.dependencyManager = new ApplicationDependencyManager(DependencyPathProvider.directory(cacheDirectory));
 
         if (initialLoader != null) {
             dependencyManager.include(initialLoader.getDependencyManager());

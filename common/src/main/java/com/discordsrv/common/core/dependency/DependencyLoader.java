@@ -22,8 +22,10 @@ import com.discordsrv.common.DiscordSRV;
 import dev.vankka.dependencydownload.DependencyManager;
 import dev.vankka.dependencydownload.classloader.IsolatedClassLoader;
 import dev.vankka.dependencydownload.classpath.ClasspathAppender;
+import dev.vankka.dependencydownload.path.DependencyPathProvider;
+import dev.vankka.dependencydownload.repository.MavenRepository;
 import dev.vankka.dependencydownload.repository.Repository;
-import dev.vankka.dependencydownload.repository.StandardRepository;
+import dev.vankka.dependencydownload.resource.DependencyDownloadResource;
 
 import java.io.IOException;
 import java.net.URL;
@@ -37,10 +39,10 @@ public class DependencyLoader {
 
     private static final List<Repository> REPOSITORIES = Arrays.asList(
             // TODO
-            new StandardRepository("https://repo1.maven.org/maven2"),
-            new StandardRepository("https://oss.sonatype.org/content/repositories/snapshots"),
-            new StandardRepository("https://s01.oss.sonatype.org/content/repositories/snapshots"),
-            new StandardRepository("https://nexus.scarsz.me/content/groups/public")
+            new MavenRepository("https://repo1.maven.org/maven2"),
+            new MavenRepository("https://oss.sonatype.org/content/repositories/snapshots"),
+            new MavenRepository("https://s01.oss.sonatype.org/content/repositories/snapshots"),
+            new MavenRepository("https://nexus.scarsz.me/content/groups/public")
     );
 
     public static Path resolvePath(Path dataDirectory) {
@@ -48,13 +50,13 @@ public class DependencyLoader {
     }
 
     public static DependencyManager fromPaths(Path dataDirectory, String[] resources) throws IOException {
-        DependencyManager dependencyManager = new DependencyManager(resolvePath(dataDirectory));
+        DependencyManager dependencyManager = new DependencyManager(DependencyPathProvider.directory(resolvePath(dataDirectory)));
         for (String dependencyResource : resources) {
             URL resource = DependencyLoader.class.getClassLoader().getResource(dependencyResource);
             if (resource == null) {
                 throw new IllegalArgumentException("Could not find resource with: " + dependencyResource);
             }
-            dependencyManager.loadFromResource(resource);
+            dependencyManager.loadResource(DependencyDownloadResource.parse(resource));
         }
 
         return dependencyManager;
