@@ -61,6 +61,7 @@ public class LifecycleManager {
         resourcePaths.addAll(Arrays.asList(dependencyResources));
 
         this.dependencyLoader = new DependencyLoader(
+                logger,
                 dataDirectory,
                 taskPool,
                 classpathAppender,

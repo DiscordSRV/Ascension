@@ -34,7 +34,10 @@ public class DiscordSRVDependencyManager {
     public DiscordSRVDependencyManager(DiscordSRV discordSRV, DependencyLoader initialLoader) {
         this.discordSRV = discordSRV;
         Path cacheDirectory = DependencyLoader.resolvePath(discordSRV.dataDirectory());
-        this.dependencyManager = new ApplicationDependencyManager(DependencyPathProvider.directory(cacheDirectory));
+        this.dependencyManager = new ApplicationDependencyManager(
+                DependencyPathProvider.directory(cacheDirectory),
+                new DependencyDownloadLogger(discordSRV.logger())
+        );
 
         if (initialLoader != null) {
             dependencyManager.include(initialLoader.getDependencyManager());
@@ -42,31 +45,31 @@ public class DiscordSRVDependencyManager {
     }
 
     private DependencyLoader loader(DependencyManager manager) {
-        return new DependencyLoader(discordSRV, dependencyManager.include(manager));
+        return new DependencyLoader(discordSRV, manager);
     }
 
-    private DependencyLoader loader(String[] paths) throws IOException {
-        return loader(DependencyLoader.fromPaths(discordSRV.dataDirectory(), paths));
+    private DependencyLoader loader(String resourceName) throws IOException {
+        return loader(dependencyManager.includeResource(DependencyLoader.loadResource(resourceName)));
     }
 
     public DependencyLoader hikari() throws IOException {
-        return loader(new String[] {"dependencies/hikari.txt"});
+        return loader("dependencies/hikari.txt");
     }
 
     public DependencyLoader h2() throws IOException {
-        return loader(new String[] {"dependencies/h2Driver.txt"});
+        return loader("dependencies/h2Driver.txt");
     }
 
     public DependencyLoader mysql() throws IOException {
-        return loader(new String[] {"dependencies/mysqlDriver.txt"});
+        return loader("dependencies/mysqlDriver.txt");
     }
 
     public DependencyLoader mariadb() throws IOException {
-        return loader(new String[] {"dependencies/mariadbDriver.txt"});
+        return loader("dependencies/mariadbDriver.txt");
     }
 
     public DependencyLoader mcAuthLib() throws IOException {
-        return loader(new String[] {"dependencies/mcAuthLib.txt"});
+        return loader("dependencies/mcAuthLib.txt");
     }
 
 }

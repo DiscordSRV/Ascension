@@ -181,8 +181,8 @@ public abstract class AbstractDiscordSRV<
      * Method that should be called at the end of implementors constructors.
      */
     protected final void load() {
-        this.dependencyManager = new DiscordSRVDependencyManager(this, bootstrap.lifecycleManager() != null ? bootstrap.lifecycleManager().getDependencyLoader() : null);
         this.logger = new DiscordSRVLogger(this);
+        this.dependencyManager = new DiscordSRVDependencyManager(this, bootstrap.lifecycleManager() != null ? bootstrap.lifecycleManager().getDependencyLoader() : null);
         this.eventBus = new EventBusImpl(this);
         this.moduleManager = new ModuleManager(this);
         this.profileManager = new ProfileManager(this);
@@ -804,7 +804,7 @@ public abstract class AbstractDiscordSRV<
             try {
                 try {
                     StorageType storageType = getStorageType();
-                    logger().info("Using " + storageType.prettyName() + " as storage");
+                    logger().info("Using " + storageType.prettyName() + " as storage, loading drivers...");
                     if (storageType == StorageType.MEMORY) {
                         logger().warning("Using memory as storage backend.");
                         logger().warning("Data will not persist across server restarts.");
@@ -848,6 +848,7 @@ public abstract class AbstractDiscordSRV<
                                                    + "but linked-accounts.provider is set to \"minecraftauth\". Linked accounts will be disabled");
                             break;
                         }
+                        logger().info("Loading MinecraftAuth library");
                         dependencyManager.mcAuthLib().downloadRelocateAndLoad().get();
                         linkProvider = new MinecraftAuthenticationLinker(this);
                         logger().info("Using minecraftauth.me for linked accounts");

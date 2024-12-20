@@ -25,16 +25,20 @@ import org.jetbrains.annotations.Nullable;
 
 public class NamedLogger implements Logger {
 
-    private final DiscordSRV discordSRV;
+    private final Logger logger;
     private final String name;
 
     public NamedLogger(DiscordSRV discordSRV, String name) {
-        this.discordSRV = discordSRV;
+        this(discordSRV.logger(), name);
+    }
+
+    public NamedLogger(Logger logger, String name) {
+        this.logger = logger;
         this.name = name;
     }
 
     @Override
     public void log(@Nullable String loggerName, @NotNull LogLevel logLevel, @Nullable String message, @Nullable Throwable throwable) {
-        discordSRV.logger().log(name, logLevel, message, throwable);
+        logger.log(name, logLevel, message, throwable);
     }
 }
