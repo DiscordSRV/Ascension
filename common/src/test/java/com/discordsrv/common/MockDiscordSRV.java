@@ -57,10 +57,30 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.List;
 
+import static org.junit.jupiter.api.Assertions.fail;
+
 @SuppressWarnings("ConstantConditions")
 public class MockDiscordSRV extends AbstractDiscordSRV<IBootstrap, MainConfig, ConnectionConfig, MessagesConfig> {
 
-    public static final MockDiscordSRV INSTANCE = new MockDiscordSRV();
+    private static MockDiscordSRV INSTANCE = null;
+    private static Throwable FAILED_TO_GET_INSTANCE = null;
+    public static MockDiscordSRV getInstance() {
+        if (FAILED_TO_GET_INSTANCE != null) {
+            fail("Failed to make MockDiscordSRV instance", FAILED_TO_GET_INSTANCE);
+            assert false;
+        }
+
+        if (INSTANCE != null) {
+            return INSTANCE;
+        }
+
+        try {
+            return INSTANCE = new MockDiscordSRV();
+        } catch (Throwable t) {
+            FAILED_TO_GET_INSTANCE = t;
+            return getInstance();
+        }
+    }
 
     public boolean configLoaded = false;
     public boolean connectionConfigLoaded = false;

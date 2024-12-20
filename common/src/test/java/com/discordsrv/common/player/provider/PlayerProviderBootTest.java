@@ -29,6 +29,6 @@ public class PlayerProviderBootTest {
 
     @Test
     public void subscribed() {
-        Assertions.assertTrue(MockDiscordSRV.INSTANCE.playerProviderSubscribed, "Player provider subscribed");
+        Assertions.assertTrue(MockDiscordSRV.getInstance().playerProviderSubscribed, "Player provider subscribed");
     }
 }

@@ -46,8 +46,8 @@ public class FullBootExtension implements BeforeAllCallback, ExtensionContext.St
 
         try {
             System.out.println("Enabling...");
-            MockDiscordSRV.INSTANCE.enable();
-            MockDiscordSRV.INSTANCE.waitForStatus(DiscordSRVApi.Status.CONNECTED);
+            MockDiscordSRV.getInstance().enable();
+            MockDiscordSRV.getInstance().waitForStatus(DiscordSRVApi.Status.CONNECTED);
             System.out.println("Enabled successfully");
         } catch (Throwable e) {
             Assertions.fail(e);
@@ -57,7 +57,7 @@ public class FullBootExtension implements BeforeAllCallback, ExtensionContext.St
     @Override
     public void close() {
         System.out.println("Disabling...");
-        MockDiscordSRV.INSTANCE.disable();
+        MockDiscordSRV.getInstance().disable();
         System.out.println("Disabled successfully");
     }
 }

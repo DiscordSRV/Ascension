@@ -41,7 +41,7 @@ import static org.junit.jupiter.api.Assertions.*;
 public class RequirementTypeParserTest {
 
     private final RequirementParser requirementParser = RequirementParser.getInstance();
-    private final RequiredLinkingModule<?> module = new RequiredLinkingModule<DiscordSRV>(MockDiscordSRV.INSTANCE) {
+    private final RequiredLinkingModule<?> module = new RequiredLinkingModule<DiscordSRV>(MockDiscordSRV.getInstance()) {
         @Override
         public RequiredLinkingConfig config() {
             return null;

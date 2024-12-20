@@ -31,7 +31,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 public class EventBusTest {
 
     private static final Listener listener = new Listener();
-    private static final EventBus eventBus = MockDiscordSRV.INSTANCE.eventBus();
+    private static final EventBus eventBus = MockDiscordSRV.getInstance().eventBus();
 
     @BeforeAll
     public static void subscribe() {

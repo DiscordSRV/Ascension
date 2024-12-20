@@ -28,7 +28,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 
 public class PlaceholderServiceTest {
 
-    private final PlaceholderService service = MockDiscordSRV.INSTANCE.placeholderService();
+    private final PlaceholderService service = MockDiscordSRV.getInstance().placeholderService();
 
     @Test
     public void staticFieldTest() {

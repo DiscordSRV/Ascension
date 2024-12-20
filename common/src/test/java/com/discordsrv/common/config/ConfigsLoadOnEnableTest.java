@@ -29,8 +29,9 @@ public class ConfigsLoadOnEnableTest {
 
     @Test
     public void configsLoaded() {
-        Assertions.assertTrue(MockDiscordSRV.INSTANCE.configLoaded, "Config loaded");
-        Assertions.assertTrue(MockDiscordSRV.INSTANCE.connectionConfigLoaded, "Connection config loaded");
-        Assertions.assertTrue(MockDiscordSRV.INSTANCE.messagesConfigLoaded, "Messages config loaded");
+        MockDiscordSRV discordSRV = MockDiscordSRV.getInstance();
+        Assertions.assertTrue(discordSRV.configLoaded, "Config loaded");
+        Assertions.assertTrue(discordSRV.connectionConfigLoaded, "Connection config loaded");
+        Assertions.assertTrue(discordSRV.messagesConfigLoaded, "Messages config loaded");
     }
 }
