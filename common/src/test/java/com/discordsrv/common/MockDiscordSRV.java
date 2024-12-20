@@ -279,7 +279,7 @@ public class MockDiscordSRV extends AbstractDiscordSRV<IBootstrap, MainConfig, C
 
     @Override
     public MessagesConfigManager<MessagesConfig> messagesConfigManager() {
-        return new MessagesConfigManager<MessagesConfig>(null) {
+        return new MessagesConfigManager<MessagesConfig>(this) {
             @Override
             public MessagesConfig createConfiguration() {
                 return null;
