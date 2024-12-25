@@ -23,11 +23,11 @@ import com.discordsrv.api.placeholder.annotation.Placeholder;
 import com.discordsrv.api.placeholder.annotation.PlaceholderRemainder;
 import com.discordsrv.common.DiscordSRV;
 
-public class GlobalTextHandlingContext {
+public class TextHandlingContext {
 
     private final DiscordSRV discordSRV;
 
-    public GlobalTextHandlingContext(DiscordSRV discordSRV) {
+    public TextHandlingContext(DiscordSRV discordSRV) {
         this.discordSRV = discordSRV;
     }
 

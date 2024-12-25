@@ -31,14 +31,14 @@ import java.time.temporal.ChronoField;
 import java.time.temporal.TemporalAccessor;
 import java.util.concurrent.TimeUnit;
 
-public class GlobalDateFormattingContext {
+public class DateFormattingContext {
 
     private static final String TIMESTAMP_IDENTIFIER = "timestamp";
 
     private final DiscordSRV discordSRV;
     private final LoadingCache<String, DateTimeFormatter> cache;
 
-    public GlobalDateFormattingContext(DiscordSRV discordSRV) {
+    public DateFormattingContext(DiscordSRV discordSRV) {
         this.discordSRV = discordSRV;
         this.cache = discordSRV.caffeineBuilder()
                 .expireAfterAccess(30, TimeUnit.SECONDS)

@@ -40,7 +40,7 @@ public class MinecraftToDiscordChatConfig implements IMessageConfig {
 
     @Untranslated(Untranslated.Type.VALUE)
     public SendableDiscordMessage.Builder format = SendableDiscordMessage.builder()
-            .setWebhookUsername("%player_meta_prefix|player_prefix%%player_display_name|player_name%%player_meta_suffix|player_suffix%")
+            .setWebhookUsername("%player_prefix%%player_display_name|player_name%%player_suffix%")
             .setWebhookAvatarUrl("%player_avatar_url%")
             .setContent("%message%");
 

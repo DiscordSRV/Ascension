@@ -48,8 +48,9 @@ import com.discordsrv.common.core.logging.impl.DiscordSRVLogger;
 import com.discordsrv.common.core.module.ModuleManager;
 import com.discordsrv.common.core.module.type.AbstractModule;
 import com.discordsrv.common.core.placeholder.PlaceholderServiceImpl;
-import com.discordsrv.common.core.placeholder.context.GlobalDateFormattingContext;
-import com.discordsrv.common.core.placeholder.context.GlobalTextHandlingContext;
+import com.discordsrv.common.core.placeholder.context.DateFormattingContext;
+import com.discordsrv.common.core.placeholder.context.GamePermissionContext;
+import com.discordsrv.common.core.placeholder.context.TextHandlingContext;
 import com.discordsrv.common.core.placeholder.format.DiscordMarkdownFormatImpl;
 import com.discordsrv.common.core.placeholder.result.ComponentResultStringifier;
 import com.discordsrv.common.core.storage.Storage;
@@ -659,8 +660,9 @@ public abstract class AbstractDiscordSRV<
 
         // Placeholder result stringifiers & global contexts
         placeholderService().addResultMapper(new ComponentResultStringifier(this));
-        placeholderService().addGlobalContext(new GlobalTextHandlingContext(this));
-        placeholderService().addGlobalContext(new GlobalDateFormattingContext(this));
+        placeholderService().addGlobalContext(new TextHandlingContext(this));
+        placeholderService().addGlobalContext(new DateFormattingContext(this));
+        placeholderService().addGlobalContext(new GamePermissionContext(this));
         placeholderService().addGlobalContext(UUIDUtil.class);
 
         // Modules
