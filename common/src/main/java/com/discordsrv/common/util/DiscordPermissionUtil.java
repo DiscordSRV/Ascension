@@ -97,11 +97,13 @@ public final class DiscordPermissionUtil {
             }
         }
 
+        if (channel == null && permission == Permission.MANAGE_PERMISSIONS) {
+            return "Manage Roles";
+        }
+
         switch (permission) {
-            case MANAGE_CHANNEL: return "Manage Channel" + (channel != null ? "s" : "");
-            case VIEW_CHANNEL: return "View Channel" + (channel != null ? "s" : "");
-            case MANAGE_PERMISSIONS: return "Manage Permission" + (channel != null ? "s" : "");
-            case MANAGE_GUILD_EXPRESSIONS: return "Manage Expressions";
+            case MANAGE_CHANNEL: return "Manage Channel" + (channel != null ? "" : "s");
+            case VIEW_CHANNEL: return "View Channel" + (channel != null ? "" : "s");
             case CREATE_INSTANT_INVITE: return "Create Invite";
         }
 
