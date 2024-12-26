@@ -33,7 +33,7 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
 /**
- * Placed on a public non-abstract non-static method that has only 1 parameters,
+ * Placed on a public non-abstract non-static method that has only 1 parameter,
  * being an event extending {@link Event} or {@link net.dv8tion.jda.api.events.GenericEvent}.
  *
  * You can register a listener through {@link EventBus#subscribe(Object)}, {@link DiscordSRVApi#eventBus()} to get the event bus.
@@ -52,7 +52,8 @@ public @interface Subscribe {
     /**
      * The priority for this event listener, this determines the order that event listeners receive events.
      * @return the priority of this event listener
+     * @see EventPriorities
      */
-    EventPriority priority() default EventPriority.DEFAULT;
+    byte priority() default 0;
 
 }

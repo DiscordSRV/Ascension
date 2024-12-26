@@ -19,10 +19,10 @@
 package com.discordsrv.common.core.eventbus;
 
 import com.discordsrv.api.eventbus.EventListener;
-import com.discordsrv.api.eventbus.EventPriority;
 import com.discordsrv.api.eventbus.Subscribe;
 import org.jetbrains.annotations.NotNull;
 
+import java.lang.invoke.MethodHandle;
 import java.lang.reflect.Method;
 
 public class EventListenerImpl implements EventListener {
@@ -32,20 +32,22 @@ public class EventListenerImpl implements EventListener {
     private final Subscribe annotation;
     private final Class<?> eventClass;
     private final Method method;
+    private final MethodHandle handle;
 
-    public EventListenerImpl(Object listener, Class<?> listenerClass, Subscribe annotation, Class<?> eventClass, Method method) {
+    public EventListenerImpl(Object listener, Class<?> listenerClass, Subscribe annotation, Class<?> eventClass, Method method, MethodHandle handle) {
         this.listener = listener;
         this.listenerClass = listenerClass;
         this.annotation = annotation;
         this.eventClass = eventClass;
         this.method = method;
+        this.handle = handle;
     }
 
     public boolean isIgnoringCancelled() {
         return annotation.ignoreCancelled();
     }
 
-    public EventPriority priority() {
+    public byte priority() {
         return annotation.priority();
     }
 
@@ -70,6 +72,10 @@ public class EventListenerImpl implements EventListener {
     @Override
     public @NotNull String methodName() {
         return method.getName();
+    }
+
+    public MethodHandle handle() {
+        return handle;
     }
 
     @Override

@@ -22,7 +22,7 @@ import com.discordsrv.api.channel.GameChannel;
 import com.discordsrv.api.component.MinecraftComponent;
 import com.discordsrv.api.discord.entity.message.ReceivedDiscordMessageCluster;
 import com.discordsrv.api.discord.entity.message.SendableDiscordMessage;
-import com.discordsrv.api.eventbus.EventPriority;
+import com.discordsrv.api.eventbus.EventPriorities;
 import com.discordsrv.api.eventbus.Subscribe;
 import com.discordsrv.api.events.message.forward.game.ServerSwitchMessageForwardedEvent;
 import com.discordsrv.api.events.message.receive.game.ServerSwitchMessageReceiveEvent;
@@ -40,7 +40,7 @@ public class ServerSwitchMessageModule extends AbstractGameMessageModule<ServerS
         super(discordSRV, "SERVER_SWITCH_MESSAGES");
     }
 
-    @Subscribe(priority = EventPriority.LAST)
+    @Subscribe(priority = EventPriorities.LAST)
     public void onServerSwitchMessageReceive(ServerSwitchMessageReceiveEvent event) {
         if (checkCancellation(event) || checkProcessor(event)) {
             return;

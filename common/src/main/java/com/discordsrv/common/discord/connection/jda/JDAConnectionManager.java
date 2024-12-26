@@ -25,7 +25,7 @@ import com.discordsrv.api.discord.connection.details.DiscordMemberCachePolicy;
 import com.discordsrv.api.discord.connection.jda.errorresponse.ErrorCallbackContext;
 import com.discordsrv.api.discord.entity.DiscordUser;
 import com.discordsrv.api.discord.entity.guild.DiscordGuildMember;
-import com.discordsrv.api.eventbus.EventPriority;
+import com.discordsrv.api.eventbus.EventPriorities;
 import com.discordsrv.api.eventbus.Subscribe;
 import com.discordsrv.api.events.lifecycle.DiscordSRVShuttingDownEvent;
 import com.discordsrv.api.events.placeholder.PlaceholderLookupEvent;
@@ -221,7 +221,7 @@ public class JDAConnectionManager implements DiscordConnectionManager {
         event.addFile(new TextDebugFile("jda_connection_manager.txt", builder));
     }
 
-    @Subscribe(priority = EventPriority.EARLIEST)
+    @Subscribe(priority = EventPriorities.EARLIEST)
     public void onPlaceholderLookup(PlaceholderLookupEvent event) {
         if (event.isProcessed()) {
             return;
@@ -433,7 +433,7 @@ public class JDAConnectionManager implements DiscordConnectionManager {
         }
     }
 
-    @Subscribe(priority = EventPriority.LATE)
+    @Subscribe(priority = EventPriorities.LATE)
     public void onDSRVShuttingDown(DiscordSRVShuttingDownEvent event) {
         shutdown(DEFAULT_SHUTDOWN_TIMEOUT);
     }

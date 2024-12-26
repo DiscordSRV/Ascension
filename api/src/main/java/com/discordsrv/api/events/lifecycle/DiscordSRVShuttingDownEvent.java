@@ -23,20 +23,20 @@
 
 package com.discordsrv.api.events.lifecycle;
 
-import com.discordsrv.api.eventbus.EventPriority;
+import com.discordsrv.api.eventbus.EventPriorities;
 import com.discordsrv.api.events.Event;
 
 /**
  * Indicates that DiscordSRV is shutting down.
  * <p>
  * DiscordSRV's own systems will shut down at the following times:
- * {@link EventPriority#EARLY}<br/>
+ * {@link EventPriorities#EARLY}<br/>
  *  - DiscordSRV's own modules shutdown<br/>
  *
- * {@link EventPriority#LATE}<br/>
+ * {@link EventPriorities#LATE}<br/>
  *  - Discord connections are shutdown<br/>
  *
- * {@link EventPriority#LAST}<br/>
+ * {@link EventPriorities#LAST}<br/>
  *  - DiscordSRV's scheduler is shutdown<br/>
  */
 public class DiscordSRVShuttingDownEvent implements Event {

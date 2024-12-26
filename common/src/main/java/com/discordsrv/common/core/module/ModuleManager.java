@@ -21,7 +21,7 @@ package com.discordsrv.common.core.module;
 import com.discordsrv.api.discord.connection.details.DiscordCacheFlag;
 import com.discordsrv.api.discord.connection.details.DiscordGatewayIntent;
 import com.discordsrv.api.discord.connection.details.DiscordMemberCachePolicy;
-import com.discordsrv.api.eventbus.EventPriority;
+import com.discordsrv.api.eventbus.EventPriorities;
 import com.discordsrv.api.eventbus.Subscribe;
 import com.discordsrv.api.events.lifecycle.DiscordSRVReadyEvent;
 import com.discordsrv.api.events.lifecycle.DiscordSRVShuttingDownEvent;
@@ -200,7 +200,7 @@ public class ModuleManager {
         }
     }
 
-    @Subscribe(priority = EventPriority.EARLY)
+    @Subscribe(priority = EventPriorities.EARLY)
     public void onShuttingDown(DiscordSRVShuttingDownEvent event) {
         modules.stream()
                 .sorted((m1, m2) -> Integer.compare(m2.shutdownOrder(), m1.shutdownOrder()))

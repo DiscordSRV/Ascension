@@ -20,7 +20,7 @@ package com.discordsrv.bukkit.integration.chat;
 
 import com.discordsrv.api.channel.GameChannel;
 import com.discordsrv.api.component.MinecraftComponent;
-import com.discordsrv.api.eventbus.EventPriority;
+import com.discordsrv.api.eventbus.EventPriorities;
 import com.discordsrv.api.eventbus.Subscribe;
 import com.discordsrv.api.events.channel.GameChannelLookupEvent;
 import com.discordsrv.api.events.message.receive.game.GameChatMessageReceiveEvent;
@@ -80,7 +80,7 @@ public class McMMOChatIntegration extends PluginIntegration<BukkitDiscordSRV> im
         HandlerList.unregisterAll(this);
     }
 
-    @Subscribe(priority = EventPriority.EARLY)
+    @Subscribe(priority = EventPriorities.EARLY)
     public void onGameChatMessageReceive(GameChatMessageReceiveEvent event) {
         Player player = discordSRV.server().getPlayer(event.getPlayer().uniqueId());
         if (!player.hasMetadata("mcMMO: Player Data")) {

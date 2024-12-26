@@ -20,7 +20,6 @@ package com.discordsrv.common.core.eventbus;
 
 import com.discordsrv.api.eventbus.EventBus;
 import com.discordsrv.api.eventbus.EventListener;
-import com.discordsrv.api.eventbus.EventPriority;
 import com.discordsrv.api.eventbus.Subscribe;
 import com.discordsrv.api.eventbus.internal.EventStateHolder;
 import com.discordsrv.api.events.Cancellable;
@@ -37,36 +36,40 @@ import net.dv8tion.jda.api.events.GenericEvent;
 import org.apache.commons.lang3.tuple.Pair;
 import org.jetbrains.annotations.NotNull;
 
-import java.lang.reflect.InvocationTargetException;
+import java.lang.invoke.MethodHandle;
+import java.lang.invoke.MethodHandles;
+import java.lang.invoke.MethodType;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArrayList;
-import java.util.function.Function;
+import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
 import static com.discordsrv.common.util.ExceptionUtil.minifyException;
 
 public class EventBusImpl implements EventBus {
 
-    private static final List<Pair<Function<Object, Boolean>, ThreadLocal<EventListener>>> STATES = Arrays.asList(
-            Pair.of(event -> event instanceof Cancellable && ((Cancellable) event).isCancelled(), EventStateHolder.CANCELLED),
-            Pair.of(event -> event instanceof Processable && ((Processable) event).isProcessed(), EventStateHolder.PROCESSED)
+    private static final List<State<?>> STATES = Arrays.asList(
+            new State<>(Cancellable.class, Cancellable::isCancelled, EventStateHolder.CANCELLED),
+            new State<>(Processable.class, Processable::isProcessed, EventStateHolder.PROCESSED)
     );
 
     private final Map<Object, List<EventListenerImpl>> listeners = new ConcurrentHashMap<>();
-    private final List<EventListenerImpl> allListeners = new CopyOnWriteArrayList<>();
+    private final Map<Class<?>, List<EventListenerImpl>> listenersByEvent = new ConcurrentHashMap<>();
     private final Logger logger;
 
     public EventBusImpl(DiscordSRV discordSRV) {
         this.logger = new NamedLogger(discordSRV, "EVENT_BUS");
+
+        // For debug generation
         subscribe(this);
     }
 
     public void shutdown() {
         listeners.clear();
-        allListeners.clear();
+        listenersByEvent.clear();
     }
 
     @Override
@@ -87,7 +90,10 @@ public class EventBusImpl implements EventBus {
         }
 
         listeners.put(eventListener, methods);
-        allListeners.addAll(methods);
+        for (EventListenerImpl method : methods) {
+            listenersByEvent.computeIfAbsent(method.eventClass(), key -> new CopyOnWriteArrayList<>())
+                    .add(method);
+        }
         logger.debug("Listener " + eventListener.getClass().getName() + " subscribed");
     }
 
@@ -123,7 +129,8 @@ public class EventBusImpl implements EventBus {
         int parameters = parameterTypes.length;
         List<Throwable> suppressed = new ArrayList<>();
 
-        if (Void.class.isAssignableFrom(method.getReturnType())) {
+        Class<?> returnType = method.getReturnType();
+        if (Void.class.isAssignableFrom(returnType)) {
             suppressed.add(createReasonException("Must return void"));
         }
 
@@ -149,6 +156,14 @@ public class EventBusImpl implements EventBus {
             }
         }
 
+        MethodHandle handle = null;
+        MethodType methodType = MethodType.methodType(method.getReturnType(), method.getParameterTypes());
+        try {
+            handle = MethodHandles.lookup().findVirtual(listenerClass, method.getName(), methodType);
+        } catch (ReflectiveOperationException e) {
+            suppressedMethods.add(e);
+        }
+
         if (!suppressed.isEmpty()) {
             Exception methodException = new InvalidListenerMethodException("Method " + method.getName() + "(" +
                     (parameters > 0 ? Arrays.stream(method.getParameterTypes())
@@ -159,7 +174,7 @@ public class EventBusImpl implements EventBus {
             return;
         }
 
-        EventListenerImpl listener = new EventListenerImpl(eventListener, listenerClass, annotation, firstParameter, method);
+        EventListenerImpl listener = new EventListenerImpl(eventListener, listenerClass, annotation, firstParameter, method, handle);
         methods.add(listener);
     }
 
@@ -172,7 +187,14 @@ public class EventBusImpl implements EventBus {
     public void unsubscribe(@NotNull Object eventListener) {
         List<EventListenerImpl> removed = listeners.remove(eventListener);
         if (removed != null) {
-            allListeners.removeAll(removed);
+            for (EventListenerImpl listener : removed) {
+                Class<?> eventClass = listener.eventClass();
+                List<EventListenerImpl> listeners = listenersByEvent.get(eventClass);
+                listeners.remove(listener);
+                if (listeners.isEmpty()) {
+                    listenersByEvent.remove(eventClass);
+                }
+            }
             logger.debug("Listener " + eventListener.getClass().getName() + " unsubscribed");
         }
     }
@@ -187,86 +209,102 @@ public class EventBusImpl implements EventBus {
         publishEvent(event);
     }
 
+    private void gatherListeners(Class<?> eventClass, List<EventListenerImpl> listeners) {
+        List<EventListenerImpl> listenersForEvent = this.listenersByEvent.get(eventClass);
+        if (listenersForEvent == null) {
+            return;
+        }
+        listeners.addAll(listenersForEvent);
+    }
+
     private void publishEvent(Object event) {
-        List<Boolean> states = new ArrayList<>(STATES.size());
-        for (Pair<Function<Object, Boolean>, ThreadLocal<EventListener>> entry : STATES) {
-            if (entry.getKey().apply(event)) {
-                // If the state is already set before listeners, we mark it as being changed by a 'unknown' event listener
-                states.add(true);
-                entry.getValue().set(EventStateHolder.UNKNOWN_LISTENER);
-                continue;
+        Class<?> eventClass = event.getClass();
+
+        Map<State<?>, Boolean> states = new HashMap<>(STATES.size());
+        for (State<?> state : STATES) {
+            if (state.eventClass().isAssignableFrom(eventClass)) {
+                boolean value = state.statePredicate().test(event);
+                states.put(state, value);
+
+                if (value) {
+                    state.stateHolder().set(EventStateHolder.UNKNOWN_LISTENER);
+                }
             }
-            states.add(false);
         }
 
-        Class<?> eventClass = event.getClass();
-        for (EventPriority priority : EventPriority.values()) {
-            for (EventListenerImpl eventListener : allListeners) {
-                if (eventListener.isIgnoringCancelled() && event instanceof Cancellable && ((Cancellable) event).isCancelled()) {
+        List<EventListenerImpl> listeners = new ArrayList<>();
+        while (!Object.class.equals(eventClass)) {
+            gatherListeners(eventClass, listeners);
+            for (Class<?> anInterface : eventClass.getInterfaces()) {
+                gatherListeners(anInterface, listeners);
+            }
+
+            eventClass = eventClass.getSuperclass();
+        }
+
+        listeners.sort(Comparator.comparingInt(EventListenerImpl::priority));
+
+        for (EventListenerImpl eventListener : listeners) {
+            if (eventListener.isIgnoringCancelled() && event instanceof Cancellable && ((Cancellable) event).isCancelled()) {
+                continue;
+            }
+
+            long startTime = System.currentTimeMillis();
+            try {
+                Object listener = eventListener.listener();
+                eventListener.handle().invoke(listener, event);
+            } catch (Throwable e) {
+                String eventClassName = eventClass.getName();
+                if (eventListener.className().startsWith("com.discordsrv")) {
+                    logger.error("Failed to pass " + eventClassName + " to " + eventListener, e);
+                } else {
+                    // Print the listener failing without references to the DiscordSRV event bus
+                    // as it isn't relevant to the exception, and often causes users to suspect DiscordSRV is doing something wrong when it isn't
+                    //noinspection CallToPrintStackTrace
+                    e.printStackTrace();
+                }
+                TestHelper.fail(e);
+            }
+            long timeTaken = System.currentTimeMillis() - startTime;
+            logger.trace(eventListener + " took " + timeTaken + "ms to execute");
+
+            for (Map.Entry<State<?>, Boolean> entry : states.entrySet()) {
+                State<?> state = entry.getKey();
+                boolean currentValue = entry.getValue();
+                boolean newValue = state.statePredicate().test(event);
+
+                if (currentValue == newValue) {
                     continue;
                 }
-                if (eventListener.priority() != priority) {
-                    continue;
-                }
-                if (!eventListener.eventClass().isAssignableFrom(eventClass)) {
-                    continue;
-                }
 
-                long startTime = System.currentTimeMillis();
-                try {
-                    Object listener = eventListener.listener();
-                    eventListener.method().invoke(listener, event);
-                } catch (IllegalAccessException e) {
-                    logger.error("Failed to access listener method: " + eventListener.methodName() + " in " + eventListener.className(), e);
-                    TestHelper.fail(e);
-                } catch (InvocationTargetException e) {
-                    String eventClassName = eventClass.getName();
-                    Throwable cause = e.getCause();
-                    if (eventListener.className().startsWith("com.discordsrv")) {
-                        logger.error("Failed to pass " + eventClassName + " to " + eventListener, cause);
-                    } else {
-                        // Print the listener failing without references to the DiscordSRV event bus
-                        // as it isn't relevant to the exception, and often causes users to suspect DiscordSRV is doing something wrong when it isn't
-                        //noinspection CallToPrintStackTrace
-                        e.getCause().printStackTrace();
-                    }
-                    TestHelper.fail(cause);
-                }
-                long timeTaken = System.currentTimeMillis() - startTime;
-                logger.trace(eventListener + " took " + timeTaken + "ms to execute");
-
-                for (int index = 0; index < STATES.size(); index++) {
-                    Pair<Function<Object, Boolean>, ThreadLocal<EventListener>> state = STATES.get(index);
-
-                    boolean current = states.get(index);
-                    boolean updated = state.getKey().apply(event);
-                    states.set(index, updated);
-
-                    ThreadLocal<EventListener> stateHolder = state.getValue();
-                    if (current != updated) {
-                        if (updated) {
-                            stateHolder.set(eventListener);
-                        } else {
-                            stateHolder.remove();
-                        }
-                    }
+                if (currentValue) {
+                    state.stateHolder().set(eventListener);
+                } else {
+                    state.stateHolder().set(EventStateHolder.UNKNOWN_LISTENER);
                 }
             }
         }
 
         // Clear the states
-        for (Pair<Function<Object, Boolean>, ThreadLocal<EventListener>> state : STATES) {
-            state.getValue().remove();
+        for (State<?> state : states.keySet()) {
+            state.stateHolder().remove();
         }
     }
 
     @Subscribe
     public void onDebugGenerate(DebugGenerateEvent event) {
-        StringBuilder builder = new StringBuilder("Registered listeners (" + listeners.size() + "/" + allListeners.size() + "):\n");
+        StringBuilder builder = new StringBuilder("Registered listeners\n");
+        builder.append(" (").append(listeners.size()).append(" listeners classes)\n");
+        builder.append(" (for ").append(listenersByEvent.size()).append(" events)\n");
+        builder.append(" (for a total of ")
+                .append(listeners.values().stream().mapToInt(List::size).sum())
+                .append(" individual listeners methods)\n");
 
         for (Map.Entry<Object, List<EventListenerImpl>> entry : listeners.entrySet()) {
             Object listener = entry.getKey();
             List<EventListenerImpl> eventListeners = entry.getValue();
+            eventListeners.sort(Comparator.comparingInt(EventListenerImpl::priority));
+
             builder.append('\n')
                     .append(listener)
                     .append(" (")
@@ -280,11 +318,37 @@ public class EventBusImpl implements EventBus {
                         .append(": ")
                         .append(eventListener.methodName())
                         .append(" @ ")
-                        .append(eventListener.priority().name())
+                        .append(eventListener.priority())
                         .append('\n');
             }
         }
 
         event.addFile(new TextDebugFile("event-bus.txt", builder));
+    }
+
+    private static class State<T> {
+
+        private final Class<T> eventClass;
+        private final Predicate<Object> statePredicate;
+        private final ThreadLocal<EventListener> stateHolder;
+
+        @SuppressWarnings("unchecked") // Converting generic to Object is easier down the line
+        public State(Class<T> eventClass, Predicate<T> statePredicate, ThreadLocal<EventListener> stateHolder) {
+            this.eventClass = eventClass;
+            this.statePredicate = (Predicate<Object>) statePredicate;
+            this.stateHolder = stateHolder;
+        }
+
+        public Class<T> eventClass() {
+            return eventClass;
+        }
+
+        public Predicate<Object> statePredicate() {
+            return statePredicate;
+        }
+
+        public ThreadLocal<EventListener> stateHolder() {
+            return stateHolder;
+        }
     }
 }

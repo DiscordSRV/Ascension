@@ -18,7 +18,7 @@
 
 package com.discordsrv.common.core.scheduler;
 
-import com.discordsrv.api.eventbus.EventPriority;
+import com.discordsrv.api.eventbus.EventPriorities;
 import com.discordsrv.api.eventbus.Subscribe;
 import com.discordsrv.api.events.lifecycle.DiscordSRVShuttingDownEvent;
 import com.discordsrv.common.DiscordSRV;
@@ -82,7 +82,7 @@ public class StandardScheduler implements Scheduler {
         this.forkJoinPool = forkJoinPool;
     }
 
-    @Subscribe(priority = EventPriority.LAST)
+    @Subscribe(priority = EventPriorities.LAST)
     public void onShuttingDown(DiscordSRVShuttingDownEvent event) {
         executorService.shutdownNow();
         scheduledExecutorService.shutdownNow();

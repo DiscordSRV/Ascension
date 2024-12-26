@@ -20,7 +20,7 @@ package com.discordsrv.bukkit.integration;
 
 import com.discordsrv.api.channel.GameChannel;
 import com.discordsrv.api.component.MinecraftComponent;
-import com.discordsrv.api.eventbus.EventPriority;
+import com.discordsrv.api.eventbus.EventPriorities;
 import com.discordsrv.api.eventbus.Subscribe;
 import com.discordsrv.api.events.channel.GameChannelLookupEvent;
 import com.discordsrv.api.events.message.receive.game.GameChatMessageReceiveEvent;
@@ -149,7 +149,7 @@ public class EssentialsXIntegration
         ));
     }
 
-    @Subscribe(priority = EventPriority.LAST)
+    @Subscribe(priority = EventPriorities.LAST)
     public void onGameChannelLookup(GameChannelLookupEvent event) {
         if (checkProcessor(event) || !discordSRV.server().getPluginManager().isPluginEnabled("EssentialsChat")) {
             return;

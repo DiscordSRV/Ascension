@@ -22,7 +22,7 @@ import com.discordsrv.api.channel.GameChannel;
 import com.discordsrv.api.component.MinecraftComponent;
 import com.discordsrv.api.discord.entity.message.ReceivedDiscordMessageCluster;
 import com.discordsrv.api.discord.entity.message.SendableDiscordMessage;
-import com.discordsrv.api.eventbus.EventPriority;
+import com.discordsrv.api.eventbus.EventPriorities;
 import com.discordsrv.api.eventbus.Subscribe;
 import com.discordsrv.api.events.message.forward.game.LeaveMessageForwardedEvent;
 import com.discordsrv.api.events.message.receive.game.LeaveMessageReceiveEvent;
@@ -75,7 +75,7 @@ public class LeaveMessageModule extends AbstractGameMessageModule<LeaveMessageCo
         }
     }
 
-    @Subscribe(priority = EventPriority.LAST)
+    @Subscribe(priority = EventPriorities.LAST)
     public void onLeaveMessageReceive(LeaveMessageReceiveEvent event) {
         if (checkCancellation(event) || checkProcessor(event)) {
             return;

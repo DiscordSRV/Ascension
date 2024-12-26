@@ -18,7 +18,7 @@
 
 package com.discordsrv.bukkit.integration.chat;
 
-import com.discordsrv.api.eventbus.EventPriority;
+import com.discordsrv.api.eventbus.EventPriorities;
 import com.discordsrv.api.eventbus.Subscribe;
 import com.discordsrv.api.events.message.receive.game.GameChatMessageReceiveEvent;
 import com.discordsrv.api.player.DiscordSRVPlayer;
@@ -50,7 +50,7 @@ public class GriefPreventionChatIntegration extends PluginIntegration<BukkitDisc
         return super.isEnabled();
     }
 
-    @Subscribe(priority = EventPriority.EARLY)
+    @Subscribe(priority = EventPriorities.EARLY)
     public void onGameChatMessageReceive(GameChatMessageReceiveEvent event) {
         GriefPrevention griefPrevention = (GriefPrevention) discordSRV.server().getPluginManager().getPlugin(
                 getIntegrationId());

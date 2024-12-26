@@ -22,7 +22,7 @@ import com.discordsrv.api.channel.GameChannel;
 import com.discordsrv.api.component.MinecraftComponent;
 import com.discordsrv.api.discord.entity.message.ReceivedDiscordMessageCluster;
 import com.discordsrv.api.discord.entity.message.SendableDiscordMessage;
-import com.discordsrv.api.eventbus.EventPriority;
+import com.discordsrv.api.eventbus.EventPriorities;
 import com.discordsrv.api.eventbus.Subscribe;
 import com.discordsrv.api.events.message.forward.game.AwardMessageForwardedEvent;
 import com.discordsrv.api.events.message.receive.game.AwardMessageReceiveEvent;
@@ -65,7 +65,7 @@ public class AwardMessageModule extends AbstractGameMessageModule<AwardMessageCo
         return permit;
     }
 
-    @Subscribe(priority = EventPriority.LAST)
+    @Subscribe(priority = EventPriorities.LAST)
     public void onAwardMessageReceive(AwardMessageReceiveEvent event) {
         if (checkCancellation(event) || checkProcessor(event)) {
             return;

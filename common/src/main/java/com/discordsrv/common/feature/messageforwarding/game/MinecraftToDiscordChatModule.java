@@ -25,7 +25,7 @@ import com.discordsrv.api.discord.entity.message.AllowedMention;
 import com.discordsrv.api.discord.entity.message.ReceivedDiscordMessage;
 import com.discordsrv.api.discord.entity.message.ReceivedDiscordMessageCluster;
 import com.discordsrv.api.discord.entity.message.SendableDiscordMessage;
-import com.discordsrv.api.eventbus.EventPriority;
+import com.discordsrv.api.eventbus.EventPriorities;
 import com.discordsrv.api.eventbus.Subscribe;
 import com.discordsrv.api.events.message.forward.game.GameChatMessageForwardedEvent;
 import com.discordsrv.api.events.message.receive.game.GameChatMessageReceiveEvent;
@@ -54,7 +54,7 @@ public class MinecraftToDiscordChatModule extends AbstractGameMessageModule<Mine
         super(discordSRV, "MINECRAFT_TO_DISCORD");
     }
 
-    @Subscribe(priority = EventPriority.LAST)
+    @Subscribe(priority = EventPriorities.LAST)
     public void onChatReceive(GameChatMessageReceiveEvent event) {
         if (checkProcessor(event) || checkCancellation(event) || !discordSRV.isReady()) {
             return;

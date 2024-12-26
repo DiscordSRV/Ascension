@@ -23,47 +23,19 @@
 
 package com.discordsrv.api.eventbus;
 
-import com.discordsrv.api.events.Processable;
-
 /**
  * A simple enum to dictate the order that event listeners will be executed, going from {@link #POST} to {@link #POST}.
  */
-public enum EventPriority {
+@SuppressWarnings("unused") // "API"
+public class EventPriorities {
 
-    /**
-     * This is the first in the priority order, this should be used to observe the event before any processing.
-     */
-    PRE,
+    public static final byte PRE = Byte.MIN_VALUE;
+    public static final byte EARLIEST = (byte) -96;
+    public static final byte EARLY = (byte) -48;
+    public static final byte DEFAULT = (byte) 0;
+    public static final byte LATE = (byte) 48;
+    public static final byte LAST = (byte) 96;
+    public static final byte POST = Byte.MAX_VALUE;
 
-    /**
-     * This is the earliest in the processing. This should be used to cancel events.
-     */
-    EARLIEST,
-
-    /**
-     * This should be used to modify events.
-     */
-    EARLY,
-
-    /**
-     * The default priority, right in the middle of the priority order. Use this if you need to override
-     * one of DiscordSRV's implementations for {@link Processable}s.
-     */
-    DEFAULT,
-
-    /**
-     * This is where DiscordSRV's integrations for other plugins will process {@link Processable}'s.
-     */
-    LATE,
-
-    /**
-     * This is where DiscordSRV's default implementations for {@link Processable}'s will run.
-     */
-    LAST,
-
-    /**
-     * This is the last in the priority order, this should be used to observe the event after all processing is complete.
-     */
-    POST
-
+    private EventPriorities() {}
 }
