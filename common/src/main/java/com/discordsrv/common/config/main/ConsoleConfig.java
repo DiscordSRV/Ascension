@@ -85,6 +85,19 @@ public class ConsoleConfig {
             public boolean blacklist = true;
         }
 
+        @Comment("Options for how to deal with exception stack traces in the console")
+        public Exceptions exceptions = new Exceptions();
+
+        public static class Exceptions {
+
+            @Comment("The time after which the exact same exception will not be forwarded to the console channel, in minutes\n"
+                    + "0 to not filter out duplicate exceptions, -1 to always filter out duplicate exceptions")
+            public int filterOutDuplicatesMinutes = 5;
+
+            @Comment("If the message alongside a exception should also be ignored when ignoring duplicate exceptions")
+            public boolean alsoBlockMessages = true;
+        }
+
     }
 
     @ConfigSerializable
