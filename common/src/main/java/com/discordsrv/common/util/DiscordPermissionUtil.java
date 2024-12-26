@@ -51,6 +51,7 @@ public final class DiscordPermissionUtil {
         }
         EnumSet<Permission> missingPermissions = EnumSet.noneOf(Permission.class);
         for (Permission permission : permissions) {
+            if (permission == null) continue;
             if (!channel.getGuild().getSelfMember().hasPermission(channel, permission)) {
                 missingPermissions.add(permission);
             }
@@ -70,6 +71,7 @@ public final class DiscordPermissionUtil {
     public static EnumSet<Permission> getMissingPermissions(Guild guild, Collection<Permission> permissions) {
         EnumSet<Permission> missingPermissions = EnumSet.noneOf(Permission.class);
         for (Permission permission : permissions) {
+            if (permission == null) continue;
             if (!guild.getSelfMember().hasPermission(permission)) {
                 missingPermissions.add(permission);
             }
