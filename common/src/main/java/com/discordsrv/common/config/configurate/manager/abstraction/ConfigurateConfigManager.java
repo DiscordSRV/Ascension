@@ -300,7 +300,7 @@ public abstract class ConfigurateConfigManager<T, LT extends AbstractConfigurati
 
                     return (value, destination) -> {
                         processor.process(value, destination);
-                        if (destination instanceof CommentedConfigurationNode) {
+                        if (commentSubstitutions && destination instanceof CommentedConfigurationNode) {
                             String comment = ((CommentedConfigurationNode) destination).comment();
                             if (comment != null) {
                                 // Yaml doesn't render empty lines correctly, so we add a space when there are double line breaks

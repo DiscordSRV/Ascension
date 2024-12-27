@@ -28,10 +28,10 @@ import com.discordsrv.common.core.logging.backend.impl.JavaLoggerImpl;
 import org.spongepowered.configurate.CommentedConfigurationNode;
 import org.spongepowered.configurate.ConfigurateException;
 import org.spongepowered.configurate.ConfigurationNode;
+import org.spongepowered.configurate.jackson.JacksonConfigurationLoader;
 import org.spongepowered.configurate.objectmapping.ObjectMapper;
 import org.spongepowered.configurate.objectmapping.meta.Processor;
 import org.spongepowered.configurate.serialize.SerializationException;
-import org.spongepowered.configurate.yaml.YamlConfigurationLoader;
 
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -103,8 +103,8 @@ public final class DiscordSRVTranslation {
             section.set(configSection);
         }
 
-        YamlConfigurationLoader.builder()
-                .path(Paths.get("i18n", "build", "source.yaml"))
+        JacksonConfigurationLoader.builder()
+                .path(Paths.get("i18n", "build", "source.json"))
                 .build()
                 .save(node);
     }

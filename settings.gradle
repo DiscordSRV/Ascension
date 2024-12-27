@@ -83,8 +83,9 @@ dependencyResolutionManagement {
             library('jackson-databind', 'com.fasterxml.jackson.core', 'jackson-databind').version('2.16.1')
 
             // Config(urate)
-            version('configurate', '4.2.0-yamlbranch-4')
+            version('configurate', '4.2.0-yamlbranch-5')
             library('configurate-yaml', 'org.spongepowered', 'configurate-yaml').versionRef('configurate')
+            library('configurate-jackson', 'org.spongepowered', 'configurate-jackson').versionRef('configurate')
 
             // DB
             library('hikaricp', 'com.zaxxer', 'HikariCP').version {

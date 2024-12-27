@@ -25,9 +25,9 @@ import org.jetbrains.annotations.Nullable;
 import org.spongepowered.configurate.CommentedConfigurationNode;
 import org.spongepowered.configurate.ConfigurateException;
 import org.spongepowered.configurate.ConfigurationNode;
+import org.spongepowered.configurate.jackson.JacksonConfigurationLoader;
 import org.spongepowered.configurate.loader.AbstractConfigurationLoader;
 import org.spongepowered.configurate.serialize.SerializationException;
-import org.spongepowered.configurate.yaml.YamlConfigurationLoader;
 
 import java.net.URL;
 import java.nio.file.Path;
@@ -127,7 +127,7 @@ public abstract class TranslatedConfigManager<T extends Config, LT extends Abstr
             return null;
         }
 
-        return YamlConfigurationLoader.builder().url(resourceURL).build().load();
+        return JacksonConfigurationLoader.builder().url(resourceURL).build().load();
     }
 
     private void translateNode(
