@@ -71,10 +71,11 @@ public class AwardMessageModule extends AbstractGameMessageModule<AwardMessageCo
             return;
         }
 
-        if (checkIfShouldPermit(event.getPlayer())) {
-            process(event, event.getPlayer(), event.getGameChannel());
+        if (!checkIfShouldPermit(event.getPlayer())) {
+            return;
         }
 
+        discordSRV.scheduler().run(() -> process(event, event.getPlayer(), event.getGameChannel()));
         event.markAsProcessed();
     }
 

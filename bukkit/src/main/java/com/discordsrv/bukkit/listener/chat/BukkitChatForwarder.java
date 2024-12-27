@@ -63,16 +63,13 @@ public class BukkitChatForwarder implements IBukkitChatForwarder {
     }
 
     @Override
-    public void forwardMessage(Event event, Player player, MinecraftComponent component, boolean cancelled) {
-        IPlayer srvPlayer = discordSRV.playerProvider().player(player);
-        discordSRV.scheduler().run(() -> discordSRV.eventBus().publish(
-                new GameChatMessageReceiveEvent(
-                        event,
-                        srvPlayer,
-                        component,
-                        new GlobalChannel(discordSRV),
-                        cancelled
-                )
+    public void forwardMessage(Event triggeringEvent, Player player, MinecraftComponent component, boolean cancelled) {
+        discordSRV.eventBus().publish(new GameChatMessageReceiveEvent(
+                triggeringEvent,
+                discordSRV.playerProvider().player(player),
+                component,
+                new GlobalChannel(discordSRV),
+                cancelled
         ));
     }
 }

@@ -45,7 +45,7 @@ public class DeathMessageModule extends AbstractGameMessageModule<DeathMessageCo
             return;
         }
 
-        process(event, event.getPlayer(), event.getGameChannel());
+        discordSRV.scheduler().run(() -> process(event, event.getPlayer(), event.getGameChannel()));
         event.markAsProcessed();
     }
 

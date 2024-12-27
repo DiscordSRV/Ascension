@@ -75,7 +75,12 @@ public class BukkitDeathListener implements Listener {
         }
 
         boolean wasCancelled = cancelled;
-        discordSRV.scheduler().run(() -> discordSRV.eventBus().publish(
-                new DeathMessageReceiveEvent(event, player, component, null, wasCancelled)));
+        discordSRV.eventBus().publish(new DeathMessageReceiveEvent(
+                event,
+                player,
+                component,
+                null,
+                wasCancelled
+        ));
     }
 }

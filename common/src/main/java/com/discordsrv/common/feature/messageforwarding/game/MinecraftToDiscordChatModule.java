@@ -56,12 +56,11 @@ public class MinecraftToDiscordChatModule extends AbstractGameMessageModule<Mine
 
     @Subscribe(priority = EventPriorities.LAST, ignoreCancelled = false, ignoreProcessed = false)
     public void onChatReceive(GameChatMessageReceiveEvent event) {
-        if (checkProcessor(event) || checkCancellation(event) || !discordSRV.isReady()) {
+        if (checkProcessor(event) || checkCancellation(event)) {
             return;
         }
 
-        GameChannel gameChannel = event.getGameChannel();
-        process(event, event.getPlayer(), gameChannel);
+        discordSRV.scheduler().run(() -> process(event, event.getPlayer(), event.getGameChannel()));
         event.markAsProcessed();
     }
 

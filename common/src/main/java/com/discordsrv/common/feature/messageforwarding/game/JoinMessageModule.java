@@ -26,6 +26,7 @@ import com.discordsrv.api.eventbus.EventPriorities;
 import com.discordsrv.api.eventbus.Subscribe;
 import com.discordsrv.api.events.message.forward.game.JoinMessageForwardedEvent;
 import com.discordsrv.api.events.message.receive.game.JoinMessageReceiveEvent;
+import com.discordsrv.api.player.DiscordSRVPlayer;
 import com.discordsrv.common.DiscordSRV;
 import com.discordsrv.common.abstraction.player.IPlayer;
 import com.discordsrv.common.config.main.channels.base.BaseChannelConfig;
@@ -47,6 +48,7 @@ import java.util.concurrent.Future;
 public class JoinMessageModule extends AbstractGameMessageModule<IMessageConfig, JoinMessageReceiveEvent> {
 
     private final Map<UUID, Future<?>> delayedTasks = new HashMap<>();
+    private final ThreadLocal<Boolean> silentJoinPermission = new ThreadLocal<>();
 
     public JoinMessageModule(DiscordSRV discordSRV) {
         super(discordSRV, "JOIN_MESSAGES");
@@ -58,7 +60,12 @@ public class JoinMessageModule extends AbstractGameMessageModule<IMessageConfig,
             return;
         }
 
-        process(event, event.getPlayer(), event.getGameChannel());
+        DiscordSRVPlayer player = event.getPlayer();
+        boolean silentJoin = player instanceof IPlayer && ((IPlayer) player).hasPermission(Permission.SILENT_JOIN);
+        discordSRV.scheduler().run(() -> {
+            silentJoinPermission.set(silentJoin);
+            process(event, event.getPlayer(), event.getGameChannel());
+        });
         event.markAsProcessed();
     }
 
@@ -69,7 +76,7 @@ public class JoinMessageModule extends AbstractGameMessageModule<IMessageConfig,
             @NotNull BaseChannelConfig config,
             @Nullable GameChannel channel
     ) {
-        if (config.joinMessages().enableSilentPermission && player != null && player.hasPermission(Permission.SILENT_JOIN)) {
+        if (player != null && config.joinMessages().enableSilentPermission && silentJoinPermission.get()) {
             logger().info(player.username() + " is joining silently, join message will not be sent");
             return CompletableFuture.completedFuture(null);
         }

@@ -46,7 +46,7 @@ public class ServerSwitchMessageModule extends AbstractGameMessageModule<ServerS
             return;
         }
 
-        process(event, event.getPlayer(), null);
+        discordSRV.scheduler().run(() -> process(event, event.getPlayer(), null));
         event.markAsProcessed();
     }
 

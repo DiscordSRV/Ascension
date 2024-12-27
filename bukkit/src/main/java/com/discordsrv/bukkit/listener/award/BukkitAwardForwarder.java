@@ -21,7 +21,6 @@ package com.discordsrv.bukkit.listener.award;
 import com.discordsrv.api.component.MinecraftComponent;
 import com.discordsrv.api.events.message.receive.game.AwardMessageReceiveEvent;
 import com.discordsrv.bukkit.BukkitDiscordSRV;
-import com.discordsrv.common.abstraction.player.IPlayer;
 import org.bukkit.entity.Player;
 import org.bukkit.event.Listener;
 import org.intellij.lang.annotations.Language;
@@ -67,16 +66,13 @@ public class BukkitAwardForwarder implements IBukkitAwardForwarder {
     }
 
     public void publishEvent(Object triggeringEvent, Player player, MinecraftComponent advancementName, MinecraftComponent message, boolean cancelled) {
-        IPlayer srvPlayer = discordSRV.playerProvider().player(player);
-        discordSRV.scheduler().run(() -> discordSRV.eventBus().publish(
-                new AwardMessageReceiveEvent(
-                        triggeringEvent,
-                        srvPlayer,
-                        advancementName,
-                        message,
-                        null,
-                        cancelled
-                )
+        discordSRV.eventBus().publish(new AwardMessageReceiveEvent(
+                triggeringEvent,
+                discordSRV.playerProvider().player(player),
+                advancementName,
+                message,
+                null,
+                cancelled
         ));
     }
 }
