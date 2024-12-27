@@ -19,7 +19,7 @@ jobs:
       - name: Setup Gradle
         uses: gradle/actions/setup-gradle@v3
       - name: Build i18n application
-        run: "./gradlew i18n:build"
+        run: "./gradlew i18n:build --no-daemon"
       - name: Generate translation source
         run: "java -jar i18n/build/libs/i18n-all.jar"
       - name: Upload source to Crowdin
