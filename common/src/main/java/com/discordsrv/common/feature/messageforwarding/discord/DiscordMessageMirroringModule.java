@@ -91,7 +91,7 @@ public class DiscordMessageMirroringModule extends AbstractModule<DiscordSRV> {
     }
 
     @SuppressWarnings("unchecked") // Wacky generics
-    @Subscribe
+    @Subscribe(ignoreCancelled = false)
     public <CC extends BaseChannelConfig & IChannelConfig> void onDiscordChatMessageProcessing(DiscordChatMessageReceiveEvent event) {
         if (checkCancellation(event)) {
             return;

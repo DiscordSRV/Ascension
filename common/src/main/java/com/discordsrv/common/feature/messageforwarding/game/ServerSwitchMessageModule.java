@@ -40,7 +40,7 @@ public class ServerSwitchMessageModule extends AbstractGameMessageModule<ServerS
         super(discordSRV, "SERVER_SWITCH_MESSAGES");
     }
 
-    @Subscribe(priority = EventPriorities.LAST)
+    @Subscribe(priority = EventPriorities.LAST, ignoreCancelled = false, ignoreProcessed = false)
     public void onServerSwitchMessageReceive(ServerSwitchMessageReceiveEvent event) {
         if (checkCancellation(event) || checkProcessor(event)) {
             return;

@@ -93,10 +93,6 @@ public class TownyChatIntegration extends PluginIntegration<BukkitDiscordSRV> im
 
     @Subscribe
     public void onGameChannelLookup(GameChannelLookupEvent event) {
-        if (checkProcessor(event)) {
-            return;
-        }
-
         Chat chat = (Chat) Bukkit.getPluginManager().getPlugin("TownyChat");
         if (chat == null) {
             logger().debug("TownyChat main class == null");

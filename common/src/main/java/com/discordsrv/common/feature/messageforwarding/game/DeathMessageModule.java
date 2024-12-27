@@ -39,7 +39,7 @@ public class DeathMessageModule extends AbstractGameMessageModule<DeathMessageCo
         super(discordSRV, "DEATH_MESSAGES");
     }
 
-    @Subscribe(priority = EventPriorities.LAST)
+    @Subscribe(priority = EventPriorities.LAST, ignoreCancelled = false, ignoreProcessed = false)
     public void onDeathMessageReceive(DeathMessageReceiveEvent event) {
         if (checkCancellation(event) || checkProcessor(event)) {
             return;

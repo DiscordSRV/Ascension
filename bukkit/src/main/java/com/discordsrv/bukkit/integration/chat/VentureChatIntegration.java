@@ -102,10 +102,6 @@ public class VentureChatIntegration extends PluginIntegration<BukkitDiscordSRV> 
 
     @Subscribe
     public void onGameChannelLookup(GameChannelLookupEvent event) {
-        if (checkProcessor(event)) {
-            return;
-        }
-
         ChatChannel channel;
         if (event.isDefault()) {
             channel = ChatChannel.getDefaultChannel();

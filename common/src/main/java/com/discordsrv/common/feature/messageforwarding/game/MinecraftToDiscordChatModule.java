@@ -54,7 +54,7 @@ public class MinecraftToDiscordChatModule extends AbstractGameMessageModule<Mine
         super(discordSRV, "MINECRAFT_TO_DISCORD");
     }
 
-    @Subscribe(priority = EventPriorities.LAST)
+    @Subscribe(priority = EventPriorities.LAST, ignoreCancelled = false, ignoreProcessed = false)
     public void onChatReceive(GameChatMessageReceiveEvent event) {
         if (checkProcessor(event) || checkCancellation(event) || !discordSRV.isReady()) {
             return;

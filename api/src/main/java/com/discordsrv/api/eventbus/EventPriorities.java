@@ -24,17 +24,32 @@
 package com.discordsrv.api.eventbus;
 
 /**
- * A simple enum to dictate the order that event listeners will be executed, going from {@link #POST} to {@link #POST}.
+ * A simple list of priorities for use in {@link Subscribe#priority()}, listeners may be assigned to any value of {@code byte}.
  */
 @SuppressWarnings("unused") // "API"
-public class EventPriorities {
+public final class EventPriorities {
 
+    /**
+     * Use to observe the event before any changes.
+     * Applying changes to the event at this priority is bad practice.
+     */
     public static final byte PRE = Byte.MIN_VALUE;
+
     public static final byte EARLIEST = (byte) -96;
     public static final byte EARLY = (byte) -48;
+
+    /**
+     * The default priority for {@link Subscribe#priority} unless otherwise specified.
+     */
     public static final byte DEFAULT = (byte) 0;
+
     public static final byte LATE = (byte) 48;
     public static final byte LAST = (byte) 96;
+
+    /**
+     * Use to observe the event after all changes.
+     * Applying changes to the event at this priority is bad practice.
+     */
     public static final byte POST = Byte.MAX_VALUE;
 
     private EventPriorities() {}

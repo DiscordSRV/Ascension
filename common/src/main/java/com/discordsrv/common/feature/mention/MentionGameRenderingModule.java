@@ -62,7 +62,7 @@ public class MentionGameRenderingModule extends AbstractModule<DiscordSRV> {
         return false;
     }
 
-    @Subscribe
+    @Subscribe(ignoreCancelled = false, ignoreProcessed = false)
     public void onGameChatRender(GameChatRenderEvent event) {
         if (checkCancellation(event) || checkProcessor(event)) {
             return;

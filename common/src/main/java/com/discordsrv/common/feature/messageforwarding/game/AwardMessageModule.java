@@ -65,7 +65,7 @@ public class AwardMessageModule extends AbstractGameMessageModule<AwardMessageCo
         return permit;
     }
 
-    @Subscribe(priority = EventPriorities.LAST)
+    @Subscribe(priority = EventPriorities.LAST, ignoreCancelled = false, ignoreProcessed = false)
     public void onAwardMessageReceive(AwardMessageReceiveEvent event) {
         if (checkCancellation(event) || checkProcessor(event)) {
             return;

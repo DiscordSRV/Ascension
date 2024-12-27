@@ -112,7 +112,7 @@ public class DiscordChatMessageModule extends AbstractModule<DiscordSRV> {
         ));
     }
 
-    @Subscribe
+    @Subscribe(ignoreCancelled = false)
     public void onDiscordChatMessageReceive(DiscordChatMessageReceiveEvent event) {
         if (checkCancellation(event)) {
             return;

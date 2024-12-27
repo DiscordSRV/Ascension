@@ -91,10 +91,6 @@ public class ChattyChatIntegration extends PluginIntegration<BukkitDiscordSRV> i
 
     @Subscribe
     public void onGameChannelLookup(GameChannelLookupEvent event) {
-        if (checkProcessor(event)) {
-            return;
-        }
-
         ChattyApi api = ChattyApi.get();
         if (api == null) {
             logger().error("ChattyApi == null");

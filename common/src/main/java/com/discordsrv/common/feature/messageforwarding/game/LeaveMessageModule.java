@@ -75,7 +75,7 @@ public class LeaveMessageModule extends AbstractGameMessageModule<LeaveMessageCo
         }
     }
 
-    @Subscribe(priority = EventPriorities.LAST)
+    @Subscribe(priority = EventPriorities.LAST, ignoreCancelled = false, ignoreProcessed = false)
     public void onLeaveMessageReceive(LeaveMessageReceiveEvent event) {
         if (checkCancellation(event) || checkProcessor(event)) {
             return;

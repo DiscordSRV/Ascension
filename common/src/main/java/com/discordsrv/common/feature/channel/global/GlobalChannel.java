@@ -40,7 +40,7 @@ public class GlobalChannel implements GameChannel {
 
     @Override
     public @NotNull String getChannelName() {
-        return "global";
+        return GameChannel.DEFAULT_NAME;
     }
 
     @Override

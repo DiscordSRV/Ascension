@@ -117,10 +117,6 @@ public class McMMOChatIntegration extends PluginIntegration<BukkitDiscordSRV> im
 
     @Subscribe
     public void onGameChannelLookup(GameChannelLookupEvent event) {
-        if (checkProcessor(event)) {
-            return;
-        }
-
         if (event.getChannelName().equalsIgnoreCase(adminChannel.getChannelName())) {
             event.process(adminChannel);
         }

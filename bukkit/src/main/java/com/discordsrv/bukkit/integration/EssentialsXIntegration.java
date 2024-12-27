@@ -151,7 +151,7 @@ public class EssentialsXIntegration
 
     @Subscribe(priority = EventPriorities.LAST)
     public void onGameChannelLookup(GameChannelLookupEvent event) {
-        if (checkProcessor(event) || !discordSRV.server().getPluginManager().isPluginEnabled("EssentialsChat")) {
+        if (!discordSRV.server().getPluginManager().isPluginEnabled("EssentialsChat")) {
             return;
         }
 

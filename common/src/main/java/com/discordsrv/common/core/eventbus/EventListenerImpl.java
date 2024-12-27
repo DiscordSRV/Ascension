@@ -47,6 +47,10 @@ public class EventListenerImpl implements EventListener {
         return annotation.ignoreCancelled();
     }
 
+    public boolean isIgnoringProcessed() {
+        return annotation.ignoreProcessed();
+    }
+
     public byte priority() {
         return annotation.priority();
     }

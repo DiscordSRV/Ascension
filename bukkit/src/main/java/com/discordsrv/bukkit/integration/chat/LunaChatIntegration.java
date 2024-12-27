@@ -102,10 +102,6 @@ public class LunaChatIntegration extends PluginIntegration<BukkitDiscordSRV> imp
 
     @Subscribe
     public void onGameChannelLookup(GameChannelLookupEvent event) {
-        if (checkProcessor(event)) {
-            return;
-        }
-
         LunaChatBukkit lunaChat = LunaChatBukkit.getInstance();
         if (lunaChat == null) {
             logger().debug("LunaChatBukkit == null");

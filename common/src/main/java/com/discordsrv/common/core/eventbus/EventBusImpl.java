@@ -248,6 +248,9 @@ public class EventBusImpl implements EventBus {
             if (eventListener.isIgnoringCancelled() && event instanceof Cancellable && ((Cancellable) event).isCancelled()) {
                 continue;
             }
+            if (eventListener.isIgnoringProcessed() && event instanceof Processable && ((Processable) event).isProcessed()) {
+                continue;
+            }
 
             long startTime = System.currentTimeMillis();
             try {

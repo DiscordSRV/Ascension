@@ -52,7 +52,7 @@ public class JoinMessageModule extends AbstractGameMessageModule<IMessageConfig,
         super(discordSRV, "JOIN_MESSAGES");
     }
 
-    @Subscribe(priority = EventPriorities.LAST)
+    @Subscribe(priority = EventPriorities.LAST, ignoreCancelled = false, ignoreProcessed = false)
     public void onJoinMessageReceive(JoinMessageReceiveEvent event) {
         if (checkCancellation(event) || checkProcessor(event)) {
             return;
