@@ -1,0 +1,18 @@
+java {
+    disableAutoTargetJvm() // Requires Java 21, we target 8
+}
+
+dependencies {
+    // Platform
+    compileOnly(libs.paperapi.latest) {
+        // v2
+        exclude module: 'slf4j-api'
+    }
+
+    // Adventure (runtime downloaded by :bukkit)
+    compileOnly(libs.adventure.platform.bukkit)
+
+    // Common
+    compileOnly project(':bukkitv1:bukkitv1-bukkit1_12')
+    compileOnly project(':common')
+}

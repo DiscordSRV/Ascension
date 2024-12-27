@@ -8,7 +8,7 @@ dependencies {
     implementation project(':common:common-api')
 
     // Platform
-    compileOnly(libs.spigotapi)
+    compileOnly(libs.paperapi.minimum)
 
     // DependencyDownload
     implementation(libs.mcdependencydownload.bukkit.loader)
@@ -19,12 +19,12 @@ processResources {
 }
 
 shadowJar {
-    archiveBaseName = 'DiscordSRV-Bukkit'
+    archiveBaseName = 'DiscordSRV-Paper'
 }
 
 tasks {
     runServer {
-        minecraftVersion("1.21.1")
+        minecraftVersion("1.21.2")
     }
 }
 

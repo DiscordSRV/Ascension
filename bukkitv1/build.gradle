@@ -1,0 +1,87 @@
+import dev.vankka.dependencydownload.task.GenerateDependencyDownloadResourceTask
+
+[
+        'net.kyori',
+        'me.lucko.commodore'
+].each {
+    tasks.shadowJar.relocate it, 'com.discordsrv.dependencies.' + it
+    tasks.generateRuntimeDownloadResourceForRuntimeDownloadOnly.relocate it, 'com.discordsrv.dependencies.' + it
+}
+// More relocations in buildscript/relocations.gradle
+
+shadowJar {
+    archiveFileName = 'bukkit.jarinjar'
+}
+
+apply from: rootProject.file('buildscript/runtime.gradle')
+
+configurations {
+    commodore
+    compileOnly.extendsFrom commodore
+}
+
+tasks.register('generateResourceForCommodore', GenerateDependencyDownloadResourceTask) {
+    var conf = configurations.commodore
+    configuration = conf
+    file = 'dependencies/' + conf.name + '.txt'
+}
+
+allprojects {
+    repositories {
+        maven { url 'https://repo.papermc.io/repository/maven-public/' }
+        maven { url 'https://nexus.scarsz.me/content/groups/public/' }
+        maven { url 'https://repo.essentialsx.net/releases/' }
+    }
+}
+
+dependencies {
+    // API
+    annotationProcessor project(':api')
+
+    // Platform
+    compileOnly(libs.bukkit.minimum)
+
+    // Common
+    compileOnly project(':common')
+    implementation project(path: ':common', configuration: 'runtimeElements')
+
+    // Folia, modern bukkit
+    api project(':bukkitv1:bukkitv1-folia')
+    api project(':bukkitv1:bukkitv1-paper')
+    api project(':bukkitv1:bukkitv1-spigot')
+    api project(':bukkitv1:bukkitv1-bukkit1_12')
+
+    // DependencyDownload
+    implementation(libs.mcdependencydownload.bukkit.bootstrap)
+
+    // Adventure
+    runtimeDownloadApi(libs.adventure.api)
+    runtimeDownloadApi(libs.adventure.platform.bukkit)
+
+    // Commodore
+    commodore(libs.commodore) {
+        // We only use commodore when it's included in the server, so we don't want to download it
+        exclude module: 'brigadier'
+        // We don't use the commodore file format
+        exclude module: 'commodore-file'
+    }
+
+    // Integrations
+    compileOnly(libs.vaultapi)
+    compileOnly(libs.placeholderapi.bukkit)
+
+    // Chat Integrations
+    compileOnly(libs.chatty)
+    compileOnly(libs.griefprevention)
+    compileOnly(libs.lunachat)
+    compileOnly(libs.bungeecord.chat) // Required for LunaChatIntegration
+    compileOnly(libs.mcmmo)
+    compileOnly(libs.townychat)
+    compileOnly(libs.venturechat)
+    compileOnly(libs.essentialsx)
+}
+
+
+processResources {
+    dependsOn(generateResourceForCommodore)
+}

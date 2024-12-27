@@ -1,0 +1,42 @@
+import dev.vankka.dependencydownload.task.GenerateDependencyDownloadResourceTask
+
+[
+        'net.kyori',
+        'me.lucko.commodore'
+].each {
+    tasks.shadowJar.relocate it, 'com.discordsrv.dependencies.' + it
+    tasks.generateRuntimeDownloadResourceForRuntimeDownloadOnly.relocate it, 'com.discordsrv.dependencies.' + it
+}
+// More relocations in buildscript/relocations.gradle
+
+shadowJar {
+    archiveFileName = 'bukkit.jarinjar'
+}
+
+apply from: rootProject.file('buildscript/runtime.gradle')
+
+configurations {
+    commodore
+    compileOnly.extendsFrom commodore
+}
+
+tasks.register('generateResourceForCommodore', GenerateDependencyDownloadResourceTask) {
+    var conf = configurations.commodore
+    configuration = conf
+    file = 'dependencies/' + conf.name + '.txt'
+}
+
+dependencies {
+    api project(':bukkit:bukkit-common')
+
+    // Adventure
+    runtimeDownloadApi(libs.adventure.api)
+    runtimeDownloadApi(libs.adventure.platform.bukkit)
+
+    // DependencyDownload
+    api(libs.mcdependencydownload.bukkit.bootstrap)
+}
+
+processResources {
+    dependsOn(generateResourceForCommodore)
+}

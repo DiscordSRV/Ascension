@@ -4,7 +4,10 @@ java {
 
 dependencies {
     // Platform
-    compileOnly(libs.folia)
+    compileOnly(libs.folia) {
+        // v2
+        exclude module: 'slf4j-api'
+    }
 
     // Common
     compileOnly project(':common')
