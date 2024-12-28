@@ -22,13 +22,13 @@ import com.discordsrv.common.exception.ConfigException;
 import org.spongepowered.configurate.CommentedConfigurationNode;
 import org.spongepowered.configurate.loader.AbstractConfigurationLoader;
 
+import java.util.concurrent.atomic.AtomicBoolean;
+
 public interface ConfigManager<T> {
 
     T createConfiguration();
     T config();
 
-    void load() throws ConfigException;
-    void reload() throws ConfigException;
+    void reload(boolean forceSave, AtomicBoolean anyMissingOptions) throws ConfigException;
     void save(AbstractConfigurationLoader<CommentedConfigurationNode> loader) throws ConfigException;
-    void save() throws ConfigException;
 }

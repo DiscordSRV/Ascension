@@ -94,12 +94,12 @@ public class BukkitDiscordSRV extends AbstractDiscordSRV<DiscordSRVBukkitBootstr
         this.playerProvider = new BukkitPlayerProvider(this);
         this.pluginManager = new BukkitPluginManager(this);
 
+        load();
+
         // Config
         this.connectionConfigManager = new BukkitConnectionConfigManager(this);
         this.configManager = new BukkitConfigManager(this);
         this.messagesConfigManager = new BukkitMessagesConfigManager(this);
-
-        load();
 
         this.autoCompleteHelper = new BukkitGameCommandExecutionHelper(this);
     }

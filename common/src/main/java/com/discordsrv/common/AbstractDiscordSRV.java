@@ -112,6 +112,7 @@ import java.util.*;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.jar.Attributes;
 import java.util.jar.JarFile;
@@ -441,7 +442,8 @@ public abstract class AbstractDiscordSRV<
 
     @Override
     public CC connectionConfig() {
-        return connectionConfigManager().config();
+        ConnectionConfigManager<CC> configManager = connectionConfigManager();
+        return configManager != null ? configManager.config() : null;
     }
 
     @Override
@@ -449,7 +451,8 @@ public abstract class AbstractDiscordSRV<
 
     @Override
     public C config() {
-        return configManager().config();
+        MainConfigManager<C> configManager = configManager();
+        return configManager != null ? configManager.config() : null;
     }
 
     @Override
@@ -457,12 +460,17 @@ public abstract class AbstractDiscordSRV<
 
     @Override
     public MC messagesConfig(@Nullable Locale locale) {
-        MessagesConfigSingleManager<MC> manager = locale != null ? messagesConfigManager().getManager(locale) : null;
+        MessagesConfigManager<MC> configManager = messagesConfigManager();
+        if (configManager == null) {
+            return null;
+        }
+
+        MessagesConfigSingleManager<MC> manager = locale != null ? configManager.getManager(locale) : null;
         if (manager == null) {
-            manager = messagesConfigManager().getManager(defaultLocale());
+            manager = configManager.getManager(defaultLocale());
         }
         if (manager == null) {
-            manager = messagesConfigManager().getManager(Locale.US);
+            manager = configManager.getManager(Locale.US);
         }
         return manager.config();
     }
@@ -715,7 +723,7 @@ public abstract class AbstractDiscordSRV<
         }
 
         // Initial load
-        reload(ReloadFlag.ALL, true);
+        reload(ReloadFlag.LOAD, true);
 
         if (serverType() == ServerType.PROXY) {
             runServerStarted().get();
@@ -741,11 +749,17 @@ public abstract class AbstractDiscordSRV<
             logger().info("Reloading DiscordSRV...");
         }
 
-        if (flags.contains(ReloadFlag.CONFIG)) {
+        boolean configUpgrade = flags.contains(ReloadFlag.CONFIG_UPGRADE);
+        if (flags.contains(ReloadFlag.CONFIG) || configUpgrade) {
             try {
-                connectionConfigManager().load();
-                configManager().load();
-                messagesConfigManager().load();
+                AtomicBoolean anyMissingOptions = new AtomicBoolean(false);
+                connectionConfigManager().reload(configUpgrade, anyMissingOptions);
+                configManager().reload(configUpgrade, anyMissingOptions);
+                messagesConfigManager().reload(configUpgrade, anyMissingOptions);
+
+                if (anyMissingOptions.get()) {
+                    logger().info("Use \"/discordsrv reload config_upgrade\" to write the latest configuration");
+                }
 
                 channelConfig().reload();
                 createHttpClient();

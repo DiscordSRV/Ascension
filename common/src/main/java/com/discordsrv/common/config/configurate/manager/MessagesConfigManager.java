@@ -28,6 +28,7 @@ import com.discordsrv.common.exception.ConfigException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.*;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.stream.Stream;
 
 public abstract class MessagesConfigManager<C extends MessagesConfig> {
@@ -57,7 +58,7 @@ public abstract class MessagesConfigManager<C extends MessagesConfig> {
         return discordSRV.dataDirectory().resolve("messages");
     }
 
-    public void load() throws ConfigException {
+    public void reload(boolean forceSave, AtomicBoolean anyMissingOptions) throws ConfigException {
         synchronized (configs) {
             configs.clear();
 
@@ -106,7 +107,7 @@ public abstract class MessagesConfigManager<C extends MessagesConfig> {
             }
 
             for (Map.Entry<Locale, MessagesConfigSingleManager<C>> entry : configs.entrySet()) {
-                entry.getValue().load();
+                entry.getValue().reload(forceSave, anyMissingOptions);
             }
         }
     }

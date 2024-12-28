@@ -20,8 +20,6 @@ package com.discordsrv.common.config.configurate.manager.abstraction;
 
 import com.discordsrv.common.DiscordSRV;
 import com.discordsrv.common.config.Config;
-import com.discordsrv.common.exception.ConfigException;
-import org.jetbrains.annotations.Nullable;
 import org.spongepowered.configurate.CommentedConfigurationNode;
 import org.spongepowered.configurate.ConfigurateException;
 import org.spongepowered.configurate.ConfigurationNode;
@@ -57,13 +55,6 @@ public abstract class TranslatedConfigManager<T extends Config, LT extends Abstr
     }
 
     @Override
-    public void load() throws ConfigException {
-        super.reload();
-        translate();
-        super.save();
-    }
-
-    @Override
     protected String header() {
         if (header != null) {
             return header;
@@ -72,41 +63,19 @@ public abstract class TranslatedConfigManager<T extends Config, LT extends Abstr
     }
 
     @Override
-    protected @Nullable ConfigurationNode getTranslation() throws ConfigurateException {
-        ConfigurationNode translation = getTranslationRoot();
-        if (translation == null) {
-            return null;
-        }
-        translation = translation.copy();
-        translation.node("_comments").set(null);
-        return translation;
-    }
+    protected void translate(CommentedConfigurationNode node) throws ConfigurateException {
+        String fileName = fileName();
 
-    @SuppressWarnings("unchecked")
-    public void translate() throws ConfigException {
-        T config = config();
-        if (config == null) {
+        ConfigurationNode translationRoot = getTranslationRoot();
+        if (translationRoot == null) {
             return;
         }
 
-        try {
-            ConfigurationNode translationRoot = getTranslationRoot();
-            if (translationRoot == null) {
-                return;
-            }
+        ConfigurationNode translation = translationRoot.node(fileName);
+        ConfigurationNode comments = translationRoot.node(fileName + "_comments");
 
-            String fileIdentifier = config.getFileName();
-            ConfigurationNode translation = translationRoot.node(fileIdentifier);
-            ConfigurationNode comments = translationRoot.node(fileIdentifier + "_comments");
-
-            CommentedConfigurationNode node = loader().createNode();
-            this.header = comments.node("$header").getString();
-
-            save(config, (Class<T>) config.getClass(), node);
-            translateNode(node, translation, comments);
-        } catch (ConfigurateException e) {
-            throw new ConfigException(e);
-        }
+        this.header = comments.node("$header").getString();
+        translateNode(node, translation, comments);
     }
 
     private ConfigurationNode getTranslationRoot() throws ConfigurateException {

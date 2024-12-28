@@ -92,12 +92,15 @@ public class TemporaryLocalData {
                 return new Model();
             }
 
+            Model model;
             try (InputStream inputStream = new BufferedInputStream(Files.newInputStream(file))) {
-                return discordSRV.json().readValue(inputStream, Model.class);
+                model = discordSRV.json().readValue(inputStream, Model.class);
             } catch (IOException e) {
                 discordSRV.logger().error("Failed to load temporary local data, resetting", e);
                 return new Model();
             }
+
+            return model != null ? model : new Model();
         }
     }
 
@@ -110,7 +113,6 @@ public class TemporaryLocalData {
          * {@link com.discordsrv.common.feature.console.SingleConsoleHandler} thread rotation.
          */
         public Map<String, List<Long>> consoleThreadRotationIds = new HashMap<>();
-
 
     }
 }

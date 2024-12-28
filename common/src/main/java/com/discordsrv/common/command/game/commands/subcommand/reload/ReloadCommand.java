@@ -155,7 +155,7 @@ public class ReloadCommand implements GameCommandExecutor, GameCommandSuggester 
         if (discordSRV.status().isStartupError()) {
             // If startup error, use all flags
             parts.clear();
-            flags.addAll(ReloadFlag.ALL);
+            flags.addAll(ReloadFlag.LOAD);
         }
 
         for (String part : parts) {
@@ -190,7 +190,7 @@ public class ReloadCommand implements GameCommandExecutor, GameCommandSuggester 
         String last = currentInput.substring(lastSpace);
         String beforeLastSpace = currentInput.substring(0, lastSpace);
 
-        List<String> options = ReloadFlag.ALL.stream()
+        List<String> options = Arrays.stream(ReloadFlag.values())
                 .map(flag -> flag.name().toLowerCase(Locale.ROOT))
                 .filter(flag -> flag.startsWith(last))
                 .collect(Collectors.toList());

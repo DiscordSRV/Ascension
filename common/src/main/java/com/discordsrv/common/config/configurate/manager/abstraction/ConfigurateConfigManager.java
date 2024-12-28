@@ -58,8 +58,10 @@ import org.spongepowered.configurate.yaml.YamlConfigurationLoader;
 import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
 import java.lang.reflect.Type;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.*;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
@@ -385,56 +387,73 @@ public abstract class ConfigurateConfigManager<T, LT extends AbstractConfigurati
         return node;
     }
 
-    @Nullable
-    protected ConfigurationNode getTranslation() throws ConfigurateException {
-        return null;
-    }
+    protected void translate(CommentedConfigurationNode node) throws ConfigurateException {}
 
+    @SuppressWarnings("unchecked") // Cast to generic
     @Override
-    public void load() throws ConfigException {
-        reload();
-        save();
-    }
-
-    @SuppressWarnings("unchecked")
-    @Override
-    public void reload() throws ConfigException {
+    public void reload(boolean forceSave, AtomicBoolean anyMissingOptions) throws ConfigException {
         T defaultConfig = createConfiguration();
+        Class<T> defaultConfigClass = (Class<T>) defaultConfig.getClass();
+
         try {
-            CommentedConfigurationNode node;
-            if (filePath().toFile().exists()) {
-                // Config file exists, load from that
-                node = loader().load();
+            SAVE_OR_LOAD.set(true);
 
-                ConfigurationNode translation = getTranslation();
-                if (translation != null) {
-                    // Merge translation
-                    node.mergeFrom(translation);
-                }
+            if (!Files.exists(filePath)) {
+                CommentedConfigurationNode node = getDefault(defaultConfig, false);
+                translate(node);
 
-                // Apply defaults that may not be there
-                node.mergeFrom(getDefault(defaultConfig, true));
-            } else {
-                node = getDefault(defaultConfig, false);
+                configuration = objectMapper().get(defaultConfigClass).load(node);
+
+                // TODO: v1 migration
+
+                save(loader());
+                return;
             }
 
-            try {
-                SAVE_OR_LOAD.set(true);
-                this.configuration = objectMapper()
-                        .get((Class<T>) defaultConfig.getClass())
-                        .load(node);
-            } finally {
-                SAVE_OR_LOAD.set(false);
+            // Load existing file & translate
+            CommentedConfigurationNode node = loader().load();
+
+            CommentedConfigurationNode defaultNode = getDefault(defaultConfig, true);
+            translate(defaultNode);
+
+            // Log missing options, apply (missing) defaults
+            if (!forceSave) {
+                // Only log if it's not being force saved
+                checkIfValuesMissing(node, defaultNode, anyMissingOptions);
+            }
+            node.mergeFrom(defaultNode);
+
+            configuration = objectMapper().get(defaultConfigClass).load(node);
+            if (forceSave) {
+                save(loader);
             }
         } catch (ConfigurateException e) {
             Class<?> configClass = defaultConfig.getClass();
             if (!configClass.isAnnotationPresent(ConfigSerializable.class)) {
                 // Not very obvious and can easily happen
-                throw new ConfigException(configClass.getName()
-                        + " is not annotated with @ConfigSerializable", e);
+                throw new ConfigException(configClass.getName() + " is not annotated with @ConfigSerializable", e);
             }
 
             throw new ConfigException("Failed to load configuration", e);
+        } finally {
+            SAVE_OR_LOAD.set(false);
+        }
+    }
+
+    private void checkIfValuesMissing(
+            CommentedConfigurationNode node,
+            CommentedConfigurationNode defaultNode,
+            AtomicBoolean anyMissingOptions
+    ) throws ConfigurateException {
+        for (CommentedConfigurationNode child : defaultNode.childrenMap().values()) {
+            CommentedConfigurationNode value = node.node(child.key());
+            if (value.virtual()) {
+                logger.warning("Missing option \"" + child.key() + "\" in " + fileName());
+                anyMissingOptions.set(true);
+                continue;
+            }
+
+            checkIfValuesMissing(value, child, anyMissingOptions);
         }
     }
 
@@ -442,24 +461,16 @@ public abstract class ConfigurateConfigManager<T, LT extends AbstractConfigurati
     @Override
     public void save(AbstractConfigurationLoader<CommentedConfigurationNode> loader) throws ConfigException {
         try {
+            SAVE_OR_LOAD.set(true);
             CommentedConfigurationNode node = loader.createNode();
-            save(configuration, (Class<T>) configuration.getClass(), node);
+
+            // Save configuration to the node
+            objectMapper().get((Class<T>) configuration.getClass()).save(configuration, node);
+
+            // Save the node to the provided loader
             loader.save(node);
         } catch (ConfigurateException e) {
             throw new ConfigException("Failed to load configuration", e);
-        }
-    }
-
-    @Override
-    public void save() throws ConfigException {
-        LT loader = loader();
-        save(loader);
-    }
-
-    protected void save(T config, Class<T> clazz, CommentedConfigurationNode node) throws SerializationException {
-        try {
-            SAVE_OR_LOAD.set(true);
-            objectMapper().get(clazz).save(config, node);
         } finally {
             SAVE_OR_LOAD.set(false);
         }
