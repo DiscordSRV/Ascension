@@ -850,6 +850,7 @@ public abstract class AbstractDiscordSRV<
 
         if (flags.contains(ReloadFlag.LINKED_ACCOUNT_PROVIDER)) {
             LinkedAccountConfig linkedAccountConfig = config().linkedAccounts;
+            boolean linkProviderMissing = linkProvider == null;
             if (linkedAccountConfig != null && linkedAccountConfig.enabled) {
                 LinkedAccountConfig.Provider provider = linkedAccountConfig.provider;
                 boolean permitMinecraftAuth = connectionConfig().minecraftAuth.allow;
@@ -882,6 +883,10 @@ public abstract class AbstractDiscordSRV<
             } else {
                 linkProvider = null;
                 logger().info("Linked accounts are disabled");
+            }
+
+            if (linkProviderMissing && linkProvider != null) {
+                playerProvider().loadAllProfilesAsync();
             }
         }
 

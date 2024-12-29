@@ -31,7 +31,6 @@ import com.discordsrv.bukkit.config.manager.BukkitConfigManager;
 import com.discordsrv.bukkit.config.manager.BukkitConnectionConfigManager;
 import com.discordsrv.bukkit.config.manager.BukkitMessagesConfigManager;
 import com.discordsrv.bukkit.console.BukkitConsole;
-import com.discordsrv.bukkit.listener.BukkitConnectionListener;
 import com.discordsrv.bukkit.listener.BukkitDeathListener;
 import com.discordsrv.bukkit.listener.BukkitStatusMessageListener;
 import com.discordsrv.bukkit.listener.award.BukkitAwardForwarder;
@@ -222,9 +221,6 @@ public class BukkitDiscordSRV extends AbstractDiscordSRV<DiscordSRVBukkitBootstr
         server().getPluginManager().registerEvents(BukkitChatForwarder.get(this), plugin());
         server().getPluginManager().registerEvents(new BukkitDeathListener(this), plugin());
         server().getPluginManager().registerEvents(new BukkitStatusMessageListener(this), plugin());
-
-        // Connection listener
-        server().getPluginManager().registerEvents(new BukkitConnectionListener(this), plugin());
     }
 
     @Override

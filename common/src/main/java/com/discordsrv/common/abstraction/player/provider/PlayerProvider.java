@@ -54,6 +54,8 @@ public interface PlayerProvider<T extends IPlayer> extends IPlayerProvider {
     @NotNull
     Collection<T> allPlayers();
 
+    void loadAllProfilesAsync();
+
     CompletableFuture<UUID> lookupUUIDForUsername(String username);
 
     default CompletableFuture<IOfflinePlayer> lookupOfflinePlayer(String username) {

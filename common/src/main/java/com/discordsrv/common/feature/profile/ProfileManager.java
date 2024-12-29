@@ -20,6 +20,7 @@ package com.discordsrv.common.feature.profile;
 
 import com.discordsrv.api.profile.IProfileManager;
 import com.discordsrv.common.DiscordSRV;
+import com.discordsrv.common.feature.linking.LinkProvider;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -49,6 +50,7 @@ public class ProfileManager implements IProfileManager {
                     return profile;
                 });
         profileLookups.put(playerUUID, lookup);
+        lookup.whenComplete((__, ___) -> profileLookups.remove(playerUUID));
         return lookup;
     }
 
@@ -70,7 +72,9 @@ public class ProfileManager implements IProfileManager {
 
     @Override
     public @NotNull CompletableFuture<Profile> lookupProfile(UUID playerUUID) {
-        return discordSRV.linkProvider().getUserId(playerUUID)
+        LinkProvider linkProvider = discordSRV.linkProvider();
+        if (linkProvider == null) return CompletableFuture.completedFuture(null);
+        return linkProvider.getUserId(playerUUID)
                 .thenApply(opt -> new Profile(playerUUID, opt.orElse(null)));
     }
 
@@ -81,7 +85,9 @@ public class ProfileManager implements IProfileManager {
 
     @Override
     public @NotNull CompletableFuture<Profile> lookupProfile(long userId) {
-        return discordSRV.linkProvider().getPlayerUUID(userId)
+        LinkProvider linkProvider = discordSRV.linkProvider();
+        if (linkProvider == null) return CompletableFuture.completedFuture(null);
+        return linkProvider.getPlayerUUID(userId)
                 .thenApply(opt -> new Profile(opt.orElse(null), userId));
     }
 
