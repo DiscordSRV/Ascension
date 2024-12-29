@@ -56,6 +56,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 import static org.junit.jupiter.api.Assertions.fail;
 
@@ -222,7 +223,7 @@ public class MockDiscordSRV extends AbstractDiscordSRV<IBootstrap, MainConfig, C
             }
 
             @Override
-            public void load() {
+            public void reload(boolean forceSave, AtomicBoolean anyMissingOptions) {
                 connectionConfigLoaded = true;
             }
         };
@@ -249,7 +250,7 @@ public class MockDiscordSRV extends AbstractDiscordSRV<IBootstrap, MainConfig, C
             }
 
             @Override
-            public void load() {
+            public void reload(boolean forceSave, AtomicBoolean anyMissingOptions) {
                 configLoaded = true;
             }
         };
@@ -306,7 +307,7 @@ public class MockDiscordSRV extends AbstractDiscordSRV<IBootstrap, MainConfig, C
             }
 
             @Override
-            public void load() {
+            public void reload(boolean forceSave, AtomicBoolean anyMissingOptions) {
                 messagesConfigLoaded = true;
             }
         };
