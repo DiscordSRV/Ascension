@@ -20,13 +20,23 @@ package com.discordsrv.bukkit.console;
 
 import com.discordsrv.bukkit.BukkitDiscordSRV;
 import com.discordsrv.bukkit.command.game.sender.BukkitCommandSender;
-import com.discordsrv.bukkit.console.executor.BukkitCommandExecutorProvider;
+import com.discordsrv.bukkit.console.executor.BukkitCommandExecutor;
+import com.discordsrv.bukkit.console.executor.BukkitCommandFeedbackExecutorProxy;
+import com.discordsrv.bukkit.console.executor.PaperCommandFeedbackExecutor;
+import com.discordsrv.bukkit.console.executor.SpigotCommandFeedbackExecutorProxy;
 import com.discordsrv.common.command.game.abstraction.executor.CommandExecutorProvider;
 import com.discordsrv.common.core.logging.NamedLogger;
 import com.discordsrv.common.core.logging.backend.LoggingBackend;
 import com.discordsrv.common.core.logging.backend.impl.JavaLoggerImpl;
 import com.discordsrv.common.core.logging.backend.impl.Log4JLoggerImpl;
 import com.discordsrv.common.feature.console.Console;
+import com.discordsrv.common.util.ReflectionUtil;
+import net.kyori.adventure.text.Component;
+import org.bukkit.Server;
+import org.bukkit.command.CommandSender;
+
+import java.util.function.Consumer;
+import java.util.function.Function;
 
 public class BukkitConsole extends BukkitCommandSender implements Console {
 
@@ -48,7 +58,16 @@ public class BukkitConsole extends BukkitCommandSender implements Console {
             logging = JavaLoggerImpl.getRoot();
         }
         this.loggingBackend = logging;
-        this.executorProvider = new BukkitCommandExecutorProvider(discordSRV);
+
+        Function<Consumer<Component>, CommandSender> commandSenderProvider;
+        if (ReflectionUtil.methodExists(Server.class, "createCommandSender", Consumer.class)) {
+            commandSenderProvider = consumer -> new PaperCommandFeedbackExecutor(discordSRV, consumer).sender();
+        } else if (ReflectionUtil.classExists("org.bukkit.command.CommandSender$Spigot")) {
+            commandSenderProvider = consumer -> new SpigotCommandFeedbackExecutorProxy(discordSRV.server().getConsoleSender(), consumer).getProxy();
+        } else {
+            commandSenderProvider = consumer -> new BukkitCommandFeedbackExecutorProxy(discordSRV.server().getConsoleSender(), consumer).getProxy();
+        }
+        this.executorProvider = consumer -> new BukkitCommandExecutor(discordSRV, commandSenderProvider.apply(consumer));
     }
 
     @Override
@@ -60,4 +79,5 @@ public class BukkitConsole extends BukkitCommandSender implements Console {
     public CommandExecutorProvider commandExecutorProvider() {
         return executorProvider;
     }
+
 }

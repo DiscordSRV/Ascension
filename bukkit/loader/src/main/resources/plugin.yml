@@ -9,9 +9,6 @@ load: STARTUP
 # This does not mean that the plugin only supports 1.13
 api-version: 1.13
 
-# Marks the plugin as supporting Folia
-folia-supported: true
-
 softdepend: [
   # Permission + group providers
   Vault, LuckPerms,

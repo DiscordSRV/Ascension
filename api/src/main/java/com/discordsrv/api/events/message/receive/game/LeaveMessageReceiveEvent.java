@@ -1,6 +1,6 @@
 /*
  * This file is part of the DiscordSRV API, licensed under the MIT License
- * Copyright (c) 2016-2024 Austin "Scarsz" Shapiro, Henri "Vankka" Schubin and DiscordSRV contributors
+ * Copyright (c) 2016-2025 Austin "Scarsz" Shapiro, Henri "Vankka" Schubin and DiscordSRV contributors
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -44,7 +44,7 @@ public class LeaveMessageReceiveEvent extends AbstractGameMessageReceiveEvent im
     public LeaveMessageReceiveEvent(
             @Nullable Object triggeringEvent,
             @NotNull DiscordSRVPlayer player,
-            @NotNull MinecraftComponent message,
+            @Nullable MinecraftComponent message,
             @Nullable GameChannel gameChannel,
             boolean cancelled) {
         super(triggeringEvent, cancelled);

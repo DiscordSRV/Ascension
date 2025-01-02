@@ -1,6 +1,6 @@
 /*
  * This file is part of DiscordSRV, licensed under the GPLv3 License
- * Copyright (c) 2016-2024 Austin "Scarsz" Shapiro, Henri "Vankka" Schubin and DiscordSRV contributors
+ * Copyright (c) 2016-2025 Austin "Scarsz" Shapiro, Henri "Vankka" Schubin and DiscordSRV contributors
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -26,10 +26,12 @@ import com.discordsrv.common.config.main.channels.base.proxy.ProxyBaseChannelCon
 import com.discordsrv.common.config.main.channels.base.proxy.ProxyChannelConfig;
 import org.spongepowered.configurate.objectmapping.ObjectMapper;
 
-public abstract class ProxyConfigManager<T extends MainConfig> extends MainConfigManager<T> {
+import java.util.function.Supplier;
 
-    public ProxyConfigManager(DiscordSRV discordSRV) {
-        super(discordSRV);
+public class ProxyConfigManager<C extends MainConfig> extends MainConfigManager<C> {
+
+    public ProxyConfigManager(DiscordSRV discordSRV, Supplier<C> configSupplier) {
+        super(discordSRV, configSupplier);
     }
 
     @Override

@@ -1,6 +1,6 @@
 /*
  * This file is part of the DiscordSRV API, licensed under the MIT License
- * Copyright (c) 2016-2024 Austin "Scarsz" Shapiro, Henri "Vankka" Schubin and DiscordSRV contributors
+ * Copyright (c) 2016-2025 Austin "Scarsz" Shapiro, Henri "Vankka" Schubin and DiscordSRV contributors
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -26,6 +26,7 @@ package com.discordsrv.api.component;
 import com.discordsrv.api.DiscordSRVApi;
 import com.discordsrv.unrelocate.net.kyori.adventure.text.Component;
 import org.jetbrains.annotations.ApiStatus;
+import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -59,8 +60,12 @@ public interface MinecraftComponent {
      * @param unrelocatedAdventureComponent the <b>unrelocated</b> adventure Component
      * @return a new {@link MinecraftComponent}
      */
-    @NotNull
-    static MinecraftComponent fromAdventure(@NotNull Component unrelocatedAdventureComponent) {
+    @Contract("null -> null; !null -> !null")
+    static MinecraftComponent fromAdventure(@Nullable Component unrelocatedAdventureComponent) {
+        if (unrelocatedAdventureComponent == null) {
+            return null;
+        }
+
         MinecraftComponentAdapter<Component> adapter = MinecraftComponentAdapter.unrelocated();
         if (adapter == null) {
             throw new IllegalStateException("Unrelocated Adventure GSON serializer not available");

@@ -1,6 +1,6 @@
 /*
  * This file is part of DiscordSRV, licensed under the GPLv3 License
- * Copyright (c) 2016-2024 Austin "Scarsz" Shapiro, Henri "Vankka" Schubin and DiscordSRV contributors
+ * Copyright (c) 2016-2025 Austin "Scarsz" Shapiro, Henri "Vankka" Schubin and DiscordSRV contributors
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -28,21 +28,25 @@ import com.discordsrv.common.exception.ConfigException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.*;
-import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.function.Supplier;
 import java.util.stream.Stream;
 
-public abstract class MessagesConfigManager<C extends MessagesConfig> {
+public class MessagesConfigManager<C extends MessagesConfig> {
 
     private final Map<Locale, MessagesConfigSingleManager<C>> configs = new LinkedHashMap<>();
+    private final Supplier<C> configSupplier;
     private final DiscordSRV discordSRV;
     private final Logger logger;
 
-    public MessagesConfigManager(DiscordSRV discordSRV) {
+    public MessagesConfigManager(DiscordSRV discordSRV, Supplier<C> configSupplier) {
         this.discordSRV = discordSRV;
+        this.configSupplier = configSupplier;
         this.logger = new NamedLogger(discordSRV, "MESSAGES_CONFIG");
     }
 
-    public abstract C createConfiguration();
+    public C createConfiguration() {
+        return configSupplier.get();
+    }
 
     public Map<Locale, MessagesConfigSingleManager<C>> getAllManagers() {
         return Collections.unmodifiableMap(configs);
@@ -58,7 +62,7 @@ public abstract class MessagesConfigManager<C extends MessagesConfig> {
         return discordSRV.dataDirectory().resolve("messages");
     }
 
-    public void reload(boolean forceSave, AtomicBoolean anyMissingOptions) throws ConfigException {
+    public void load() throws ConfigException {
         synchronized (configs) {
             configs.clear();
 
@@ -107,7 +111,7 @@ public abstract class MessagesConfigManager<C extends MessagesConfig> {
             }
 
             for (Map.Entry<Locale, MessagesConfigSingleManager<C>> entry : configs.entrySet()) {
-                entry.getValue().reload(forceSave, anyMissingOptions);
+                entry.getValue().load();
             }
         }
     }

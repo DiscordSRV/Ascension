@@ -18,12 +18,14 @@
 
 package com.discordsrv.config;
 
-import com.discordsrv.bukkit.config.manager.BukkitConfigManager;
-import com.discordsrv.bukkit.config.manager.BukkitConnectionConfigManager;
 import com.discordsrv.common.config.Config;
 import com.discordsrv.common.config.configurate.annotation.Untranslated;
+import com.discordsrv.common.config.configurate.manager.ConnectionConfigManager;
 import com.discordsrv.common.config.configurate.manager.abstraction.ConfigurateConfigManager;
+import com.discordsrv.common.config.configurate.manager.abstraction.ServerConfigManager;
 import com.discordsrv.common.config.configurate.manager.abstraction.TranslatedConfigManager;
+import com.discordsrv.common.config.connection.ConnectionConfig;
+import com.discordsrv.common.config.main.MainConfig;
 import com.discordsrv.common.core.logging.backend.impl.JavaLoggerImpl;
 import org.spongepowered.configurate.CommentedConfigurationNode;
 import org.spongepowered.configurate.ConfigurateException;
@@ -48,8 +50,8 @@ public final class DiscordSRVTranslation {
     private static final Path DATA_DIRECTORY = Paths.get(".");
 
     private static final List<TranslatedConfigManager<? extends Config, ?>> CONFIGS = Arrays.asList(
-            new BukkitConfigManager(DATA_DIRECTORY),
-            new BukkitConnectionConfigManager(DATA_DIRECTORY)
+            new ServerConfigManager<MainConfig>(DATA_DIRECTORY, () -> new MainConfig() {}),
+            new ConnectionConfigManager<ConnectionConfig>(DATA_DIRECTORY, ConnectionConfig::new)
     );
 
     public static void main(String[] args) throws ConfigurateException {
