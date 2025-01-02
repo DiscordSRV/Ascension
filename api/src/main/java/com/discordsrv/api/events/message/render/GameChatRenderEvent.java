@@ -1,6 +1,6 @@
 /*
  * This file is part of the DiscordSRV API, licensed under the MIT License
- * Copyright (c) 2016-2024 Austin "Scarsz" Shapiro, Henri "Vankka" Schubin and DiscordSRV contributors
+ * Copyright (c) 2016-2025 Austin "Scarsz" Shapiro, Henri "Vankka" Schubin and DiscordSRV contributors
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -58,7 +58,7 @@ public class GameChatRenderEvent implements PlayerEvent, Processable.Argument<Mi
     }
 
     @Override
-    public DiscordSRVPlayer getPlayer() {
+    public @NotNull DiscordSRVPlayer getPlayer() {
         return player;
     }
 

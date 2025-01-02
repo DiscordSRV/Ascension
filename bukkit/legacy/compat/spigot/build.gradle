@@ -1,5 +1,0 @@
-dependencies {
-    api(project(':bukkit:bukkit-common'))
-
-    compileOnly(libs.spigotapi.latest)
-}

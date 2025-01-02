@@ -1,0 +1,59 @@
+import dev.vankka.dependencydownload.task.GenerateDependencyDownloadResourceTask
+
+repositories {
+    maven { url 'https://nexus.scarsz.me/content/groups/public/' }
+    maven { url 'https://repo.essentialsx.net/releases/' }
+}
+
+configurations {
+    commodore
+    compileOnly.extendsFrom commodore
+}
+
+tasks.register('generateResourceForCommodore', GenerateDependencyDownloadResourceTask) {
+    var conf = configurations.commodore
+    configuration = conf
+    file = 'dependencies/' + conf.name + '.txt'
+}
+
+dependencies {
+    // API
+    annotationProcessor project(':api')
+
+    // Platform
+    compileOnly(libs.bukkit.minimum)
+
+    // Adventure
+    runtimeDownloadApi(libs.adventure.api)
+    runtimeDownloadApi(libs.adventure.platform.bukkit)
+
+    // Commodore
+    commodore(libs.commodore) {
+        // We only use commodore when it's included in the server, so we don't want to download it
+        exclude module: 'brigadier'
+        // We don't use the commodore file format
+        exclude module: 'commodore-file'
+    }
+
+    // Common
+    api project(':common')
+    compileOnlyApi project(':common')
+
+    // Integrations
+    compileOnly(libs.vaultapi)
+    compileOnly(libs.placeholderapi.bukkit)
+
+    // Chat Integrations
+    compileOnly(libs.chatty)
+    compileOnly(libs.griefprevention)
+    compileOnly(libs.lunachat)
+    compileOnly(libs.bungeecord.chat) // Required for LunaChatIntegration
+    compileOnly(libs.mcmmo)
+    compileOnly(libs.townychat)
+    compileOnly(libs.venturechat)
+    compileOnly(libs.essentialsx)
+}
+
+processResources {
+    dependsOn(generateResourceForCommodore)
+}

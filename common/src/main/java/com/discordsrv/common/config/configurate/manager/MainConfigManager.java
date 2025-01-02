@@ -1,6 +1,6 @@
 /*
  * This file is part of DiscordSRV, licensed under the GPLv3 License
- * Copyright (c) 2016-2024 Austin "Scarsz" Shapiro, Henri "Vankka" Schubin and DiscordSRV contributors
+ * Copyright (c) 2016-2025 Austin "Scarsz" Shapiro, Henri "Vankka" Schubin and DiscordSRV contributors
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -26,17 +26,22 @@ import org.spongepowered.configurate.yaml.YamlConfigurationLoader;
 
 import java.lang.reflect.Field;
 import java.nio.file.Path;
+import java.util.function.Supplier;
 
 public abstract class MainConfigManager<C extends MainConfig>
         extends TranslatedConfigManager<C, YamlConfigurationLoader>
         implements YamlConfigLoaderProvider {
 
-    public MainConfigManager(DiscordSRV discordSRV) {
+    private final Supplier<C> configSupplier;
+
+    public MainConfigManager(DiscordSRV discordSRV, Supplier<C> configSupplier) {
         super(discordSRV);
+        this.configSupplier = configSupplier;
     }
 
-    protected MainConfigManager(Path dataDirectory) {
+    protected MainConfigManager(Path dataDirectory, Supplier<C> configSupplier) {
         super(dataDirectory);
+        this.configSupplier = configSupplier;
     }
 
     @Override
@@ -47,5 +52,10 @@ public abstract class MainConfigManager<C extends MainConfig>
     @Override
     public String fileName() {
         return MainConfig.FILE_NAME;
+    }
+
+    @Override
+    public C createConfiguration() {
+        return configSupplier.get();
     }
 }

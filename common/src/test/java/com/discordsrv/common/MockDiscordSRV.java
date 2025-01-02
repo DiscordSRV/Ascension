@@ -1,6 +1,6 @@
 /*
  * This file is part of DiscordSRV, licensed under the GPLv3 License
- * Copyright (c) 2016-2024 Austin "Scarsz" Shapiro, Henri "Vankka" Schubin and DiscordSRV contributors
+ * Copyright (c) 2016-2025 Austin "Scarsz" Shapiro, Henri "Vankka" Schubin and DiscordSRV contributors
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -215,7 +215,7 @@ public class MockDiscordSRV extends AbstractDiscordSRV<IBootstrap, MainConfig, C
 
     @Override
     public ConnectionConfigManager<ConnectionConfig> connectionConfigManager() {
-        return new ConnectionConfigManager<ConnectionConfig>(this) {
+        return new ConnectionConfigManager<ConnectionConfig>(this, ConnectionConfig::new) {
             @Override
             public ConnectionConfig createConfiguration() {
                 return connectionConfig();
@@ -242,7 +242,7 @@ public class MockDiscordSRV extends AbstractDiscordSRV<IBootstrap, MainConfig, C
 
     @Override
     public MainConfigManager<MainConfig> configManager() {
-        return new ServerConfigManager<MainConfig>(this) {
+        return new ServerConfigManager<MainConfig>(this, () -> new MainConfig() {}) {
             @Override
             public MainConfig createConfiguration() {
                 return config();
@@ -299,7 +299,7 @@ public class MockDiscordSRV extends AbstractDiscordSRV<IBootstrap, MainConfig, C
 
     @Override
     public MessagesConfigManager<MessagesConfig> messagesConfigManager() {
-        return new MessagesConfigManager<MessagesConfig>(this) {
+        return new MessagesConfigManager<MessagesConfig>(this, MessagesConfig::new) {
             @Override
             public MessagesConfig createConfiguration() {
                 return null;

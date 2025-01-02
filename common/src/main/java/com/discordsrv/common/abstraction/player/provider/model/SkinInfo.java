@@ -1,6 +1,6 @@
 /*
  * This file is part of DiscordSRV, licensed under the GPLv3 License
- * Copyright (c) 2016-2024 Austin "Scarsz" Shapiro, Henri "Vankka" Schubin and DiscordSRV contributors
+ * Copyright (c) 2016-2025 Austin "Scarsz" Shapiro, Henri "Vankka" Schubin and DiscordSRV contributors
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -21,11 +21,19 @@ package com.discordsrv.common.abstraction.player.provider.model;
 import com.discordsrv.api.placeholder.annotation.Placeholder;
 import com.discordsrv.api.placeholder.annotation.PlaceholderPrefix;
 
+import java.net.URL;
+
 @PlaceholderPrefix("skin_")
 public class SkinInfo {
 
     private final String textureId;
     private final String model;
+
+    public SkinInfo(URL textureUrl, String model) {
+        String textureUrlPlain = textureUrl.toString();
+        this.textureId = textureUrlPlain.substring(textureUrlPlain.lastIndexOf('/') + 1);
+        this.model = model;
+    }
 
     public SkinInfo(String textureId, String model) {
         this.textureId = textureId;

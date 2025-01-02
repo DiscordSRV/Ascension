@@ -3,3 +3,44 @@ allprojects {
         maven { url 'https://repo.papermc.io/repository/maven-public/' }
     }
 }
+
+[
+        'net.kyori',
+        'me.lucko.commodore'
+].each {
+    tasks.shadowJar.relocate it, 'com.discordsrv.dependencies.' + it
+    tasks.generateRuntimeDownloadResourceForRuntimeDownloadOnly.relocate it, 'com.discordsrv.dependencies.' + it
+}
+// More relocations in buildscript/relocations.gradle
+
+shadowJar {
+    archiveFileName = 'bukkit.jarinjar'
+}
+
+apply from: rootProject.file('buildscript/runtime.gradle')
+
+dependencies {
+    // API
+    annotationProcessor project(':api')
+
+    // Common
+    compileOnly project(':common')
+    implementation project(path: ':common', configuration: 'runtimeElements')
+
+    // Platform
+    compileOnly(libs.bukkit.minimum)
+
+    // Compatability with newer versions and Folia
+    api project(':bukkit:bukkit-shared')
+    implementation(project(':bukkit:compat:bukkit-compat-paper'))
+    implementation(project(':bukkit:compat:bukkit-compat-folia'))
+    implementation(project(':bukkit:compat:bukkit-compat-spigot'))
+    implementation(project(':bukkit:compat:bukkit-compat-bukkit1_12'))
+
+    // Adventure
+    runtimeDownloadApi(libs.adventure.api)
+    runtimeDownloadApi(libs.adventure.platform.bukkit)
+
+    // DependencyDownload
+    api(libs.mcdependencydownload.bukkit.bootstrap)
+}

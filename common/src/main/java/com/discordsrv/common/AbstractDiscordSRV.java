@@ -1,6 +1,6 @@
 /*
  * This file is part of DiscordSRV, licensed under the GPLv3 License
- * Copyright (c) 2016-2024 Austin "Scarsz" Shapiro, Henri "Vankka" Schubin and DiscordSRV contributors
+ * Copyright (c) 2016-2025 Austin "Scarsz" Shapiro, Henri "Vankka" Schubin and DiscordSRV contributors
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -376,7 +376,7 @@ public abstract class AbstractDiscordSRV<
     // DiscordSRV
 
     @Override
-    public final IBootstrap bootstrap() {
+    public final B bootstrap() {
         return bootstrap;
     }
 
@@ -539,11 +539,9 @@ public abstract class AbstractDiscordSRV<
         }
         if (status == Status.CONNECTED) {
             eventBus().publish(new DiscordSRVConnectedEvent());
-            synchronized (beenReady) {
-                if (!beenReady.get()) {
-                    eventBus.publish(new DiscordSRVReadyEvent());
-                    beenReady.set(true);
-                }
+            if (beenReady.compareAndSet(false, true)) {
+                eventBus.publish(new DiscordSRVReadyEvent());
+                runReload(Collections.singleton(ReloadFlag.DISCORD_COMMANDS));
             }
         }
     }
@@ -889,7 +887,7 @@ public abstract class AbstractDiscordSRV<
             results.addAll(moduleManager().reload());
         }
 
-        if (flags.contains(ReloadFlag.DISCORD_COMMANDS)) {
+        if (flags.contains(ReloadFlag.DISCORD_COMMANDS) && isReady()) {
             discordAPI().commandRegistry().registerCommandsFromEvent();
             discordAPI().commandRegistry().registerCommandsToDiscord();
         }

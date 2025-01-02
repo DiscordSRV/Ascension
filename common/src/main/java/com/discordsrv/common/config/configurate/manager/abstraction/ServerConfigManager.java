@@ -1,6 +1,6 @@
 /*
  * This file is part of DiscordSRV, licensed under the GPLv3 License
- * Copyright (c) 2016-2024 Austin "Scarsz" Shapiro, Henri "Vankka" Schubin and DiscordSRV contributors
+ * Copyright (c) 2016-2025 Austin "Scarsz" Shapiro, Henri "Vankka" Schubin and DiscordSRV contributors
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -27,15 +27,16 @@ import com.discordsrv.common.config.main.channels.base.server.ServerChannelConfi
 import org.spongepowered.configurate.objectmapping.ObjectMapper;
 
 import java.nio.file.Path;
+import java.util.function.Supplier;
 
-public abstract class ServerConfigManager<T extends MainConfig> extends MainConfigManager<T> {
+public class ServerConfigManager<C extends MainConfig> extends MainConfigManager<C> {
 
-    public ServerConfigManager(DiscordSRV discordSRV) {
-        super(discordSRV);
+    public ServerConfigManager(DiscordSRV discordSRV, Supplier<C> configSupplier) {
+        super(discordSRV, configSupplier);
     }
 
-    protected ServerConfigManager(Path dataDirectory) {
-        super(dataDirectory);
+    public ServerConfigManager(Path dataDirectory, Supplier<C> configSupplier) {
+        super(dataDirectory, configSupplier);
     }
 
     @Override
