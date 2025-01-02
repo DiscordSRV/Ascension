@@ -39,11 +39,11 @@ public class BukkitAchievementListener extends AbstractBukkitListener<PlayerAchi
 
     @EventHandler(priority = EventPriority.MONITOR)
     public void onPlayerAchievementAwarded(PlayerAchievementAwardedEvent event) {
-        receiveEvent(event);
+        handleEvent(event);
     }
 
     @Override
-    protected void handleEvent(PlayerAchievementAwardedEvent event) {
+    protected void handleEvent(PlayerAchievementAwardedEvent event, Void __) {
         String achievement = WordUtils.capitalizeFully(event.getAchievement().name().replace('_', ' '));
         MinecraftComponent achievementName = ComponentUtil.toAPI(Component.text(achievement));
 

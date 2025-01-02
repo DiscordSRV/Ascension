@@ -40,11 +40,11 @@ public class PaperDeathListener extends AbstractBukkitListener<PlayerDeathEvent>
 
     @EventHandler(priority = EventPriority.MONITOR)
     public void onPlayerDeath(PlayerDeathEvent event) {
-        receiveEvent(event);
+        handleEvent(event);
     }
 
     @Override
-    protected void handleEvent(PlayerDeathEvent event) {
+    protected void handleEvent(PlayerDeathEvent event, Void __) {
         MinecraftComponent message = MESSAGE_HANDLE.getAPI(event);
 
         DiscordSRVPlayer player = discordSRV.playerProvider().player(event.getEntity());

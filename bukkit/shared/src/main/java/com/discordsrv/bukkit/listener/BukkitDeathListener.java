@@ -38,11 +38,11 @@ public class BukkitDeathListener extends AbstractBukkitListener<PlayerDeathEvent
 
     @EventHandler(priority = EventPriority.MONITOR)
     public void onPlayerDeath(PlayerDeathEvent event) {
-        receiveEvent(event);
+        handleEvent(event);
     }
 
     @Override
-    protected void handleEvent(PlayerDeathEvent event) {
+    protected void handleEvent(PlayerDeathEvent event, Void __) {
         String message = event.getDeathMessage();
         MinecraftComponent component = message == null ? null : ComponentUtil.toAPI(BukkitComponentSerializer.legacy().deserialize(message));
 

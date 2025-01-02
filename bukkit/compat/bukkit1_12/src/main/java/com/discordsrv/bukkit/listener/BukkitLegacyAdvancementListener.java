@@ -65,11 +65,11 @@ public class BukkitLegacyAdvancementListener extends AbstractBukkitListener<Play
 
     @EventHandler(priority = EventPriority.MONITOR)
     public void onPlayerAdvancementDone(PlayerAdvancementDoneEvent event) {
-        receiveEvent(event);
+        handleEvent(event);
     }
 
     @Override
-    protected void handleEvent(PlayerAdvancementDoneEvent event) {
+    protected void handleEvent(PlayerAdvancementDoneEvent event, Void __) {
         if (nms == null) {
             return;
         }

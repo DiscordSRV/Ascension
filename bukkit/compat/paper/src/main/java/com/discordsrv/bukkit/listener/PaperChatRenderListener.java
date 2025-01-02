@@ -48,7 +48,7 @@ public class PaperChatRenderListener extends AbstractBukkitListener<AsyncChatDec
     }
 
     @Override
-    protected void handleEvent(AsyncChatDecorateEvent event) {
+    protected void handleEvent(AsyncChatDecorateEvent event, Void __) {
         Player bukkitPlayer = event.player();
         if (bukkitPlayer == null) {
             return;

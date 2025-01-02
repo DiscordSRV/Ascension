@@ -42,11 +42,11 @@ public class PaperChatListener extends AbstractBukkitListener<AsyncChatEvent> {
 
     @EventHandler(priority = EventPriority.MONITOR)
     public void onAsyncChat(AsyncChatEvent event) {
-        receiveEvent(event);
+        handleEvent(event);
     }
 
     @Override
-    protected void handleEvent(AsyncChatEvent event) {
+    protected void handleEvent(AsyncChatEvent event, Void __) {
         MinecraftComponent component = MESSAGE_HANDLE.getAPI(event);
 
         IPlayer player = discordSRV.playerProvider().player(event.getPlayer());

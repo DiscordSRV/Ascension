@@ -39,11 +39,11 @@ public class BukkitChatListener extends AbstractBukkitListener<AsyncPlayerChatEv
 
     @EventHandler(priority = EventPriority.MONITOR)
     public void onAsyncPlayerChat(AsyncPlayerChatEvent event) {
-        receiveEvent(event);
+        handleEvent(event);
     }
 
     @Override
-    protected void handleEvent(AsyncPlayerChatEvent event) {
+    protected void handleEvent(AsyncPlayerChatEvent event, Void __) {
         MinecraftComponent component = ComponentUtil.toAPI(BukkitComponentSerializer.legacy().deserialize(event.getMessage()));
 
         IPlayer player = discordSRV.playerProvider().player(event.getPlayer());

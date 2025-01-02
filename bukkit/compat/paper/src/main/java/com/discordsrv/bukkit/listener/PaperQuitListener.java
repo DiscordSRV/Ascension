@@ -40,11 +40,11 @@ public class PaperQuitListener extends AbstractBukkitListener<PlayerQuitEvent> {
 
     @EventHandler(priority = EventPriority.HIGH)
     public void onPlayerQuit(PlayerQuitEvent event) {
-        receiveEvent(event);
+        handleEvent(event);
     }
 
     @Override
-    protected void handleEvent(PlayerQuitEvent event) {
+    protected void handleEvent(PlayerQuitEvent event, Void __) {
         MinecraftComponent message = MESSAGE_HANDLE.getAPI(event);
 
         DiscordSRVPlayer player = discordSRV.playerProvider().player(event.getPlayer());

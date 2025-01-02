@@ -47,15 +47,15 @@ public abstract class AbstractBukkitListener<E extends Event> extends AbstractMo
         HandlerList.unregisterAll(this);
     }
 
-    protected final void receiveEvent(E event) {
+    protected final void handleEvent(E event) {
         try {
-            handleEvent(event);
+            handleEvent(event, null);
         } catch (Throwable throwable) {
             logger().error("Failed to pass " + event.getClass().getName() + " to " + getClass().getName(), throwable);
         }
     }
 
-    protected abstract void handleEvent(E event);
+    protected abstract void handleEvent(E event, Void __);
 
     @Subscribe
     public void onDebugObservability(DebugObservabilityEvent event) {

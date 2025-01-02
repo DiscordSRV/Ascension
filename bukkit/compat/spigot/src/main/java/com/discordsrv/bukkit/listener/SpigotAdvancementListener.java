@@ -41,11 +41,11 @@ public class SpigotAdvancementListener extends AbstractBukkitListener<PlayerAdva
 
     @EventHandler(priority = EventPriority.MONITOR)
     public void onPlayerAdvancementDone(PlayerAdvancementDoneEvent event) {
-        receiveEvent(event);
+        handleEvent(event);
     }
 
     @Override
-    protected void handleEvent(PlayerAdvancementDoneEvent event) {
+    protected void handleEvent(PlayerAdvancementDoneEvent event, Void __) {
         Advancement advancement = event.getAdvancement();
         AdvancementDisplay display = advancement.getDisplay();
         if (display == null || !display.shouldAnnounceChat()) {
