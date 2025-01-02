@@ -25,7 +25,7 @@ import com.discordsrv.common.command.game.abstraction.handler.util.BrigadierUtil
 import com.mojang.brigadier.tree.LiteralCommandNode;
 import me.lucko.commodore.Commodore;
 import me.lucko.commodore.CommodoreProvider;
-import org.bukkit.command.PluginCommand;
+import org.bukkit.command.Command;
 
 public class CommodoreHandler extends BukkitBasicCommandHandler implements ICommandHandler {
 
@@ -37,10 +37,10 @@ public class CommodoreHandler extends BukkitBasicCommandHandler implements IComm
     }
 
     @Override
-    protected void registerPluginCommand(PluginCommand pluginCommand, GameCommand gameCommand) {
-        super.registerPluginCommand(pluginCommand, gameCommand);
+    protected void registerPluginCommand(Command command, GameCommand gameCommand) {
+        super.registerPluginCommand(command, gameCommand);
 
         LiteralCommandNode<?> commandNode = BrigadierUtil.convertToBrigadier(gameCommand, null);
-        commodore.register(pluginCommand, commandNode);
+        commodore.register(command, commandNode);
     }
 }

@@ -20,6 +20,8 @@ package com.discordsrv.bukkit;
 
 import com.discordsrv.bukkit.command.game.BukkitGameCommandExecutionHelper;
 import com.discordsrv.bukkit.command.game.PaperGameCommandExecutionHelper;
+import com.discordsrv.bukkit.command.game.handler.BukkitBasicCommandHandler;
+import com.discordsrv.bukkit.command.game.handler.CommodoreHandler;
 import com.discordsrv.bukkit.component.PaperComponentHandle;
 import com.discordsrv.bukkit.console.BukkitConsole;
 import com.discordsrv.bukkit.listener.*;
@@ -29,6 +31,7 @@ import com.discordsrv.bukkit.requiredlinking.BukkitRequiredLinkingModule;
 import com.discordsrv.bukkit.scheduler.BukkitScheduler;
 import com.discordsrv.bukkit.scheduler.FoliaScheduler;
 import com.discordsrv.common.command.game.abstraction.GameCommandExecutionHelper;
+import com.discordsrv.common.command.game.abstraction.handler.ICommandHandler;
 import com.discordsrv.common.feature.messageforwarding.game.MinecraftToDiscordChatModule;
 import com.discordsrv.common.util.ReflectionUtil;
 import org.bukkit.command.CommandMap;
@@ -41,6 +44,8 @@ public class BukkitDiscordSRVImpl extends BukkitDiscordSRV {
     private final GameCommandExecutionHelper executionHelper;
     private final BukkitPlayerProvider playerProvider;
     private final BukkitConsole console;
+
+    private ICommandHandler commandHandler;
 
     public BukkitDiscordSRVImpl(IBukkitBootstrap bootstrap) {
         super(bootstrap);
@@ -59,6 +64,13 @@ public class BukkitDiscordSRVImpl extends BukkitDiscordSRV {
 
     @Override
     protected void enable() throws Throwable {
+        // Commands
+        if (ReflectionUtil.classExists("com.mojang.brigadier.CommandDispatcher")) {
+            this.commandHandler = new CommodoreHandler(this);
+        } else {
+            this.commandHandler = new BukkitBasicCommandHandler(this);
+        }
+
         super.enable();
 
         // Modules
@@ -119,5 +131,10 @@ public class BukkitDiscordSRVImpl extends BukkitDiscordSRV {
     @Override
     public BukkitConsole console() {
         return console;
+    }
+
+    @Override
+    public ICommandHandler commandHandler() {
+        return commandHandler;
     }
 }

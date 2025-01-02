@@ -549,7 +549,6 @@ public abstract class AbstractDiscordSRV<
             eventBus().publish(new DiscordSRVConnectedEvent());
             if (beenReady.compareAndSet(false, true)) {
                 eventBus.publish(new DiscordSRVReadyEvent());
-                runReload(Collections.singleton(ReloadFlag.DISCORD_COMMANDS));
             }
         }
     }
@@ -907,8 +906,7 @@ public abstract class AbstractDiscordSRV<
         }
 
         if (flags.contains(ReloadFlag.DISCORD_COMMANDS) && isReady()) {
-            discordAPI().commandRegistry().registerCommandsFromEvent();
-            discordAPI().commandRegistry().registerCommandsToDiscord();
+            discordAPI().commandRegistry().reloadCommands();
         }
 
         if (!initial) {

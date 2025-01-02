@@ -30,17 +30,24 @@ import com.discordsrv.common.core.paste.Paste;
 import com.discordsrv.common.core.paste.PasteService;
 import com.discordsrv.common.core.paste.service.AESEncryptedPasteService;
 import com.discordsrv.common.core.paste.service.BytebinPasteService;
+import com.discordsrv.common.feature.debug.DebugObservabilityEvent;
 import com.discordsrv.common.feature.debug.DebugReport;
 import com.discordsrv.common.permission.game.Permission;
+import com.discordsrv.common.util.ExceptionUtil;
 import net.kyori.adventure.text.format.NamedTextColor;
 
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Path;
+import java.util.Arrays;
 import java.util.Base64;
-import java.util.Collections;
+import java.util.List;
 import java.util.Locale;
+import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.stream.Collectors;
 
 public class DebugCommand extends CombinedCommand {
+
+    private static final List<String> SUBCOMMANDS = Arrays.asList("start", "stop", "upload", "zip");
 
     private static DebugCommand INSTANCE;
     private static GameCommand GAME;
@@ -57,10 +64,12 @@ public class DebugCommand extends CombinedCommand {
                     .requiredPermission(Permission.COMMAND_DEBUG)
                     .executor(command)
                     .then(
-                            GameCommand.stringWord("format")
+                            GameCommand.stringWord("subcommand")
                                     .suggester((sender, previousArguments, currentInput) ->
-                                                       "zip".startsWith(currentInput.toLowerCase(Locale.ROOT))
-                                                        ? Collections.singletonList("zip") : Collections.emptyList())
+                                                       SUBCOMMANDS.stream()
+                                                               .filter(cmd -> cmd.startsWith(currentInput.toLowerCase(Locale.ROOT)))
+                                                               .collect(Collectors.toList())
+                                    )
                                     .executor(command)
                     );
         }
@@ -71,13 +80,17 @@ public class DebugCommand extends CombinedCommand {
     public static DiscordCommand getDiscord(DiscordSRV discordSRV) {
         if (DISCORD == null) {
             DebugCommand command = getInstance(discordSRV);
+            CommandOption.Builder optionBuilder = CommandOption.builder(
+                    CommandOption.Type.STRING,
+                    "subcommand",
+                    String.join("/", SUBCOMMANDS)
+            ).setRequired(false);
+            for (String subCommand : SUBCOMMANDS) {
+                optionBuilder = optionBuilder.addChoice(subCommand, subCommand);
+            }
+
             DISCORD = DiscordCommand.chatInput(ComponentIdentifier.of("DiscordSRV", "debug"), "debug", "Create a debug report")
-                    .addOption(
-                            CommandOption.builder(CommandOption.Type.STRING, "format", "The format to generate the debug report")
-                                    .addChoice(".zip", "zip")
-                                    .setRequired(false)
-                                    .build()
-                    )
+                    .addOption(optionBuilder.build())
                     .setEventHandler(command)
                     .build();
         }
@@ -89,6 +102,7 @@ public class DebugCommand extends CombinedCommand {
     public static final Base64.Encoder KEY_ENCODER = Base64.getUrlEncoder().withoutPadding();
 
     private final PasteService pasteService;
+    private final AtomicBoolean debugObserving = new AtomicBoolean(false);
 
     public DebugCommand(DiscordSRV discordSRV) {
         super(discordSRV);
@@ -97,37 +111,59 @@ public class DebugCommand extends CombinedCommand {
 
     @Override
     public void execute(CommandExecution execution) {
-        boolean usePaste = !"zip".equals(execution.getArgument("format"));
+        String argument = execution.getArgument("subcommand");
+        String subCommand = argument != null ? argument.toLowerCase(Locale.ROOT) : null;
+        if (subCommand != null && !SUBCOMMANDS.contains(subCommand)) {
+            execution.send(new Text("Unknown subcommand").withGameColor(NamedTextColor.RED));
+            return;
+        }
 
         execution.runAsync(() -> {
-            DebugReport report = new DebugReport(discordSRV);
-            report.generate();
-
-            Throwable pasteError = usePaste ? paste(execution, report) : null;
-            if (usePaste && pasteError == null) {
-                // Success
-                return;
-            }
-
-            Throwable zipError = zip(execution, report);
-            if (zipError == null) {
-                // Success
-                if (usePaste) {
-                    discordSRV.logger().warning("Failed to upload debug, zip generation succeeded", pasteError);
+            if ("start".equals(subCommand)) {
+                if (!debugObserving.compareAndSet(false, true)) {
+                    execution.send(new Text("Already debugging").withGameColor(NamedTextColor.RED));
+                    return;
                 }
+
+                discordSRV.eventBus().publish(new DebugObservabilityEvent(true));
+                execution.send(new Text("Debugging started").withGameColor(NamedTextColor.GREEN));
                 return;
             }
 
-            if (pasteError != null) {
-                zipError.addSuppressed(pasteError);
+            boolean useUpload = subCommand == null || "upload".equals(subCommand);
+            boolean useZip = subCommand == null || "zip".equals(subCommand);
+            if (useUpload || useZip) {
+                DebugReport report = new DebugReport(discordSRV);
+                report.generate();
+
+                Throwable pasteError = useUpload ? paste(execution, report) : null;
+                if (useUpload && pasteError == null) {
+                    useZip = false;
+                }
+
+                Throwable zipError = useZip ? zip(execution, report) : null;
+                if (pasteError != null || zipError != null) {
+                    // Failed
+                    RuntimeException exception = ExceptionUtil.minifyException(new RuntimeException("Failed to save debug"));
+                    if (pasteError != null) {
+                        exception.addSuppressed(pasteError);
+                    }
+                    if (zipError != null) {
+                        exception.addSuppressed(zipError);
+                    }
+
+                    discordSRV.logger().error("Failed to save debug", exception);
+                    execution.send(new Text("Failed to save debug").withGameColor(NamedTextColor.DARK_RED));
+                    return;
+                }
             }
-            discordSRV.logger().error(usePaste ? "Failed to upload & zip debug" : "Failed to zip debug", zipError);
-            execution.send(
-                    new Text(usePaste
-                             ? "Failed to upload debug report to paste & failed to generate zip"
-                             : "Failed to create debug zip"
-                    ).withGameColor(NamedTextColor.DARK_RED)
-            );
+
+            if (debugObserving.compareAndSet(true, false)) {
+                discordSRV.eventBus().publish(new DebugObservabilityEvent(true));
+                execution.send(new Text("Debugging stopped").withGameColor(NamedTextColor.GREEN));
+            } else if ("stop".equals(subCommand)) {
+                execution.send(new Text("Not debugging").withGameColor(NamedTextColor.RED));
+            }
         });
     }
 

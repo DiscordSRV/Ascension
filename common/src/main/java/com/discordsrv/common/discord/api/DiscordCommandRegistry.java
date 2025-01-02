@@ -21,7 +21,9 @@ package com.discordsrv.common.discord.api;
 import com.discordsrv.api.discord.entity.JDAEntity;
 import com.discordsrv.api.discord.entity.interaction.command.CommandType;
 import com.discordsrv.api.discord.entity.interaction.command.DiscordCommand;
+import com.discordsrv.api.eventbus.Subscribe;
 import com.discordsrv.api.events.discord.interaction.command.CommandRegisterEvent;
+import com.discordsrv.api.events.lifecycle.DiscordSRVReadyEvent;
 import com.discordsrv.common.DiscordSRV;
 import net.dv8tion.jda.api.JDA;
 import net.dv8tion.jda.api.entities.Guild;
@@ -44,9 +46,20 @@ public class DiscordCommandRegistry {
 
     public DiscordCommandRegistry(DiscordSRV discordSRV) {
         this.discordSRV = discordSRV;
+        discordSRV.eventBus().subscribe(this);
     }
 
-    public void registerCommandsFromEvent() {
+    @Subscribe
+    public void onDiscordSRVReady(DiscordSRVReadyEvent event) {
+        reloadCommands();
+    }
+
+    public void reloadCommands() {
+        registerCommandsFromEvent();
+        registerCommandsToDiscord();
+    }
+
+    private void registerCommandsFromEvent() {
         CommandRegisterEvent event = new CommandRegisterEvent();
         discordSRV.eventBus().publish(event);
 
@@ -100,7 +113,7 @@ public class DiscordCommandRegistry {
         return registry.getActive(name);
     }
 
-    public void registerCommandsToDiscord() {
+    private void registerCommandsToDiscord() {
         JDA jda = discordSRV.jda();
         if (jda == null) {
             return;

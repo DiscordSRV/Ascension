@@ -21,8 +21,6 @@ package com.discordsrv.bukkit;
 import com.discordsrv.api.DiscordSRVApi;
 import com.discordsrv.api.reload.ReloadFlag;
 import com.discordsrv.api.reload.ReloadResult;
-import com.discordsrv.bukkit.command.game.handler.BukkitBasicCommandHandler;
-import com.discordsrv.bukkit.command.game.handler.CommodoreHandler;
 import com.discordsrv.bukkit.component.translation.BukkitTranslationLoader;
 import com.discordsrv.bukkit.config.main.BukkitConfig;
 import com.discordsrv.bukkit.player.BukkitPlayerProvider;
@@ -30,7 +28,6 @@ import com.discordsrv.bukkit.plugin.BukkitPluginManager;
 import com.discordsrv.bukkit.scheduler.BukkitScheduler;
 import com.discordsrv.common.AbstractDiscordSRV;
 import com.discordsrv.common.command.game.abstraction.GameCommandExecutionHelper;
-import com.discordsrv.common.command.game.abstraction.handler.ICommandHandler;
 import com.discordsrv.common.config.configurate.manager.ConnectionConfigManager;
 import com.discordsrv.common.config.configurate.manager.MainConfigManager;
 import com.discordsrv.common.config.configurate.manager.MessagesConfigManager;
@@ -38,7 +35,6 @@ import com.discordsrv.common.config.configurate.manager.abstraction.ServerConfig
 import com.discordsrv.common.config.connection.ConnectionConfig;
 import com.discordsrv.common.config.messages.MessagesConfig;
 import com.discordsrv.common.feature.debug.data.OnlineMode;
-import com.discordsrv.common.util.ReflectionUtil;
 import net.kyori.adventure.platform.bukkit.BukkitAudiences;
 import org.bukkit.Server;
 import org.bukkit.plugin.ServicePriority;
@@ -56,7 +52,6 @@ public abstract class BukkitDiscordSRV extends AbstractDiscordSRV<IBukkitBootstr
     private BukkitTranslationLoader translationLoader;
 
     private final BukkitPluginManager pluginManager;
-    private ICommandHandler commandHandler;
 
     private final ConnectionConfigManager<ConnectionConfig> connectionConfigManager;
     private final MainConfigManager<BukkitConfig> configManager;
@@ -81,13 +76,6 @@ public abstract class BukkitDiscordSRV extends AbstractDiscordSRV<IBukkitBootstr
         // Adventure related stuff
         this.audiences = BukkitAudiences.create(bootstrap.getPlugin());
         this.translationLoader = new BukkitTranslationLoader(this);
-
-        // Commands
-        if (ReflectionUtil.classExists("com.mojang.brigadier.CommandDispatcher")) {
-            this.commandHandler = new CommodoreHandler(this);
-        } else {
-            this.commandHandler = new BukkitBasicCommandHandler(this);
-        }
 
         // Integrations
         registerIntegration("com.discordsrv.bukkit.integration.VaultIntegration");
@@ -167,11 +155,6 @@ public abstract class BukkitDiscordSRV extends AbstractDiscordSRV<IBukkitBootstr
     @Override
     public BukkitPluginManager pluginManager() {
         return pluginManager;
-    }
-
-    @Override
-    public ICommandHandler commandHandler() {
-        return commandHandler;
     }
 
     @Override

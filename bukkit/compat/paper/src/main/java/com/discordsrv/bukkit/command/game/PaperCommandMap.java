@@ -16,20 +16,20 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package com.discordsrv.common.util;
+package com.discordsrv.bukkit.command.game;
 
-public final class ExceptionUtil {
+import com.discordsrv.bukkit.BukkitDiscordSRV;
+import com.discordsrv.common.util.ReflectionUtil;
+import org.bukkit.Server;
+import org.bukkit.command.CommandMap;
 
-    private ExceptionUtil() {}
+public final class PaperCommandMap {
 
-    /**
-     * Removes the stacktrace from the given {@link Throwable}.
-     *
-     * @param throwable the throwable
-     * @return the same throwable with the stacktrace removed
-     */
-    public static <T extends Throwable> T minifyException(T throwable) {
-        throwable.setStackTrace(new StackTraceElement[0]);
-        return throwable;
+    private PaperCommandMap() {}
+
+    public static boolean IS_SUPPORTED = ReflectionUtil.methodExists(Server.class, "getCommandMap", new Class[0]);
+
+    public static CommandMap getCommandMap(BukkitDiscordSRV discordSRV) {
+        return discordSRV.server().getCommandMap();
     }
 }

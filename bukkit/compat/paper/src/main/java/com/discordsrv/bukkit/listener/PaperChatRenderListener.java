@@ -43,7 +43,7 @@ public class PaperChatRenderListener extends AbstractBukkitListener<AsyncChatDec
     }
 
     @EventHandler(priority = EventPriority.NORMAL, ignoreCancelled = true)
-    public void onAsyncPlayerChat(AsyncChatDecorateEvent event) {
+    public void onAsyncChatDecorate(AsyncChatDecorateEvent event) {
         handleEvent(event);
     }
 
