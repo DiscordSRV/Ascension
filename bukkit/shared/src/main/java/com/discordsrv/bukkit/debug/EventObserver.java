@@ -97,7 +97,7 @@ public class EventObserver<E extends Event, P> {
         while (currentClass != null && Event.class.isAssignableFrom(currentClass)) {
             try {
                 Method method = currentClass.getDeclaredMethod("getHandlerList");
-                if (!method.isAccessible()) method.setAccessible(true);
+                method.setAccessible(true);
                 return (HandlerList) method.invoke(null);
             } catch (NoSuchMethodException ignored) {
                 currentClass = currentClass.getSuperclass();
@@ -127,7 +127,7 @@ public class EventObserver<E extends Event, P> {
 
     private static Field getSlotsField() throws NoSuchFieldException {
         Field field = HandlerList.class.getDeclaredField("handlerslots");
-        if (!field.isAccessible()) field.setAccessible(true);
+        field.setAccessible(true);
         return field;
     }
 

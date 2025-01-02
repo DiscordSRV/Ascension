@@ -2,11 +2,6 @@ plugins {
     id 'application'
 }
 
-repositories {
-    // Required due to the sponge plugin
-    maven { url 'https://repo.spongepowered.org/maven/' }
-}
-
 // Don't need to be versioned, so we remove the version here to reduce the complexity of the CI
 version = null
 

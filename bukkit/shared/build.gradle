@@ -1,8 +1,8 @@
 import dev.vankka.dependencydownload.task.GenerateDependencyDownloadResourceTask
 
 repositories {
-    maven { url 'https://nexus.scarsz.me/content/groups/public/' }
-    maven { url 'https://repo.essentialsx.net/releases/' }
+    maven { url = 'https://nexus.scarsz.me/content/groups/public/' }
+    maven { url = 'https://repo.essentialsx.net/releases/' }
 }
 
 configurations {

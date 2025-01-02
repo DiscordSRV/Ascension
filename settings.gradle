@@ -13,8 +13,8 @@ dependencyResolutionManagement {
             plugin('shadow', 'io.github.goooler.shadow').version('8.1.8')
             plugin('spotless', 'com.diffplug.spotless').version('6.25.0')
             plugin('blossom', 'net.kyori.blossom').version('2.1.0')
-            plugin('indra-git', 'net.kyori.indra.git').version('2.2.0')
-            plugin('indra-licenser', 'net.kyori.indra.licenser.spotless').version('2.2.0')
+            plugin('indra-git', 'net.kyori.indra.git').version('3.1.3')
+            plugin('indra-licenser', 'net.kyori.indra.licenser.spotless').version('3.1.3')
             plugin('idea-ext', 'org.jetbrains.gradle.plugin.idea-ext').version('1.1.7')
 
             // Run platforms
