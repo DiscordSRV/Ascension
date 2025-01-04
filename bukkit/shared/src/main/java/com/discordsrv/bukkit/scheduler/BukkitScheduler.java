@@ -45,8 +45,7 @@ public class BukkitScheduler extends StandardScheduler implements ServerSchedule
     protected void checkDisable(Runnable task, BiConsumer<Server, Plugin> runNormal) {
         // Can't run tasks when disabling, so we'll push those to the bootstrap to run after disable
         if (!discordSRV.plugin().isEnabled() && discordSRV.status() == DiscordSRV.Status.SHUTTING_DOWN) {
-            // TODO
-            //((DiscordSRVBukkitBootstrap) discordSRV.bootstrap()).mainThreadTasksForDisable().add(task);
+            discordSRV.bootstrap().mainThreadTasksForDisable().add(task);
             return;
         }
 
