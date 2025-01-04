@@ -38,6 +38,7 @@ import dev.vankka.mcdependencydownload.velocity.classpath.VelocityClasspathAppen
 
 import java.io.IOException;
 import java.nio.file.Path;
+import java.util.Collections;
 
 @Plugin(
         id = "discordsrv",
@@ -64,7 +65,7 @@ public class DiscordSRVVelocityBootstrap implements IBootstrap {
         this.lifecycleManager = new LifecycleManager(
                 this.logger,
                 dataDirectory,
-                new String[] {"dependencies/runtimeDownload-velocity.txt"},
+                Collections.singletonList("dependencies/runtimeDownload-velocity.txt"),
                 classpathAppender
         );
         this.proxyServer = proxyServer;

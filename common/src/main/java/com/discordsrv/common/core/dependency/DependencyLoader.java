@@ -104,21 +104,9 @@ public class DependencyLoader {
         return downloadRelocateAndLoad(classpathAppender);
     }
 
-    public CompletableFuture<Void> downloadRelocateAndLoad(ClasspathAppender appender) {
-        return download().thenCompose(v -> relocateAndLoad(true, appender));
-    }
-
-    public CompletableFuture<Void> download() {
-        return dependencyManager.downloadAll(executor, REPOSITORIES);
-    }
-
-    public CompletableFuture<Void> relocateAndLoad(boolean useExecutor) {
-        return relocateAndLoad(useExecutor, classpathAppender);
-    }
-
-    public CompletableFuture<Void> relocateAndLoad(boolean useExecutor, ClasspathAppender appender) {
-        Executor executorToUse = useExecutor ? executor : null;
-        return dependencyManager.relocateAll(executorToUse)
-                .thenCompose(v -> dependencyManager.loadAll(executorToUse, appender));
+    private CompletableFuture<Void> downloadRelocateAndLoad(ClasspathAppender appender) {
+        return dependencyManager.downloadAll(executor, REPOSITORIES)
+                .thenCompose(v -> dependencyManager.relocateAll(executor))
+                .thenCompose(v -> dependencyManager.loadAll(executor, appender));
     }
 }

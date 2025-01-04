@@ -30,6 +30,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
+@SuppressWarnings("unused") // Used in BukkitLoader via reflection
 public class DiscordSRVBukkitBootstrap extends BukkitBootstrap implements IBukkitBootstrap {
 
     private final Logger logger;
@@ -49,7 +50,7 @@ public class DiscordSRVBukkitBootstrap extends BukkitBootstrap implements IBukki
         );
     }
 
-    private static String[] getDependencyResources() {
+    private static List<String> getDependencyResources() {
         List<String> resources = new ArrayList<>();
         resources.add("dependencies/runtimeDownload-bukkit.txt");
 
@@ -60,7 +61,7 @@ public class DiscordSRVBukkitBootstrap extends BukkitBootstrap implements IBukki
             // CommandDispatcher not present, don't need to bother downloading commodore
         }
 
-        return resources.toArray(new String[0]);
+        return resources;
     }
 
     @Override

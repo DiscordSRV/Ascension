@@ -27,8 +27,6 @@ import dev.vankka.dependencydownload.classpath.ClasspathAppender;
 import java.io.IOException;
 import java.nio.file.Path;
 import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
@@ -44,21 +42,20 @@ public class LifecycleManager {
     private final Logger logger;
     private final ExecutorService taskPool;
     private final DependencyLoader dependencyLoader;
-    private final CompletableFuture<?> dependencyLoadFuture;
+    private CompletableFuture<?> dependencyLoadFuture;
 
     public LifecycleManager(
             Logger logger,
             Path dataDirectory,
-            String[] dependencyResources,
+            List<String> dependencyResources,
             ClasspathAppender classpathAppender
     ) throws IOException {
         this.logger = logger;
         this.taskPool = Executors.newSingleThreadExecutor(runnable -> new Thread(runnable, "DiscordSRV Initialization"));
 
-        List<String> resourcePaths = new ArrayList<>(Collections.singletonList(
-                "dependencies/runtimeDownload-common.txt"
-        ));
-        resourcePaths.addAll(Arrays.asList(dependencyResources));
+        List<String> resourcePaths = new ArrayList<>(4);
+        resourcePaths.add("dependencies/runtimeDownload-common.txt");
+        resourcePaths.addAll(dependencyResources);
 
         this.dependencyLoader = new DependencyLoader(
                 logger,
@@ -67,12 +64,10 @@ public class LifecycleManager {
                 classpathAppender,
                 resourcePaths.toArray(new String[0])
         );
-        this.dependencyLoadFuture = dependencyLoader.download();
-        this.dependencyLoadFuture.whenComplete((v, t) -> taskPool.shutdownNow());
     }
 
     public void loadAndEnable(Supplier<DiscordSRV> discordSRVSupplier) {
-        if (!relocateAndLoad()) {
+        if (!downloadDependencies()) {
             return;
         }
 
@@ -84,15 +79,19 @@ public class LifecycleManager {
         discordSRV.runEnable();
     }
 
-    private boolean relocateAndLoad() {
+    private boolean downloadDependencies() {
         try {
+            dependencyLoadFuture = dependencyLoader.downloadRelocateAndLoad();
+
+            // We have to block here due to classloader concurrency issues on Bukkit & Paper...
             dependencyLoadFuture.get();
-            dependencyLoader.relocateAndLoad(false).get();
             return true;
         } catch (InterruptedException ignored) {
             Thread.currentThread().interrupt();
         } catch (ExecutionException e) {
             logger.error("Failed to download, relocate or load dependencies", e.getCause());
+        } finally {
+            taskPool.shutdownNow();
         }
         return false;
     }
@@ -105,7 +104,7 @@ public class LifecycleManager {
     }
 
     public void disable(DiscordSRV discordSRV) {
-        if (!dependencyLoadFuture.isDone()) {
+        if (dependencyLoadFuture != null && !dependencyLoadFuture.isDone()) {
             dependencyLoadFuture.cancel(true);
             return;
         }

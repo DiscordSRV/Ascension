@@ -30,6 +30,7 @@ import net.md_5.bungee.api.plugin.Plugin;
 
 import java.io.IOException;
 import java.nio.file.Path;
+import java.util.Collections;
 
 public class DiscordSRVBungeeBootstrap extends BungeeBootstrap implements IBootstrap {
 
@@ -44,7 +45,7 @@ public class DiscordSRVBungeeBootstrap extends BungeeBootstrap implements IBoots
         this.lifecycleManager = new LifecycleManager(
                 logger,
                 plugin.getDataFolder().toPath(),
-                new String[] {"dependencies/runtimeDownload-bungee.txt"},
+                Collections.singletonList("dependencies/runtimeDownload-bungee.txt"),
                 getClasspathAppender()
         );
     }
