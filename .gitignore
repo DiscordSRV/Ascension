@@ -39,5 +39,5 @@ hs_err_pid*
 !gradle-wrapper.jar
 
 # run-* Gradle tasks
-loader/run/
-velocity/run/
+**/loader/run/
+**/velocity/run/
