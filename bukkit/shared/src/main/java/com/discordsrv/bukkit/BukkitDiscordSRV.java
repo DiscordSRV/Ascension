@@ -28,10 +28,6 @@ import com.discordsrv.bukkit.plugin.BukkitPluginManager;
 import com.discordsrv.bukkit.scheduler.BukkitScheduler;
 import com.discordsrv.common.AbstractDiscordSRV;
 import com.discordsrv.common.command.game.abstraction.GameCommandExecutionHelper;
-import com.discordsrv.common.config.configurate.manager.ConnectionConfigManager;
-import com.discordsrv.common.config.configurate.manager.MainConfigManager;
-import com.discordsrv.common.config.configurate.manager.MessagesConfigManager;
-import com.discordsrv.common.config.configurate.manager.abstraction.ServerConfigManager;
 import com.discordsrv.common.config.connection.ConnectionConfig;
 import com.discordsrv.common.config.messages.MessagesConfig;
 import com.discordsrv.common.feature.debug.data.OnlineMode;
@@ -53,19 +49,10 @@ public abstract class BukkitDiscordSRV extends AbstractDiscordSRV<IBukkitBootstr
 
     private final BukkitPluginManager pluginManager;
 
-    private final ConnectionConfigManager<ConnectionConfig> connectionConfigManager;
-    private final MainConfigManager<BukkitConfig> configManager;
-    private final MessagesConfigManager<MessagesConfig> messagesConfigManager;
-
     public BukkitDiscordSRV(IBukkitBootstrap bootstrap) {
         super(bootstrap);
 
         this.pluginManager = new BukkitPluginManager(this);
-
-        // Config
-        this.connectionConfigManager = new ConnectionConfigManager<>(this, ConnectionConfig::new);
-        this.configManager = new ServerConfigManager<>(this, BukkitConfig::new);
-        this.messagesConfigManager = new MessagesConfigManager<>(this, MessagesConfig::new);
     }
 
     @Override
@@ -155,20 +142,5 @@ public abstract class BukkitDiscordSRV extends AbstractDiscordSRV<IBukkitBootstr
     @Override
     public BukkitPluginManager pluginManager() {
         return pluginManager;
-    }
-
-    @Override
-    public ConnectionConfigManager<ConnectionConfig> connectionConfigManager() {
-        return connectionConfigManager;
-    }
-
-    @Override
-    public MainConfigManager<BukkitConfig> configManager() {
-        return configManager;
-    }
-
-    @Override
-    public MessagesConfigManager<MessagesConfig> messagesConfigManager() {
-        return messagesConfigManager;
     }
 }

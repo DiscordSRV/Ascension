@@ -23,6 +23,7 @@ import com.discordsrv.bukkit.command.game.PaperGameCommandExecutionHelper;
 import com.discordsrv.bukkit.command.game.handler.BukkitBasicCommandHandler;
 import com.discordsrv.bukkit.command.game.handler.CommodoreHandler;
 import com.discordsrv.bukkit.component.PaperComponentHandle;
+import com.discordsrv.bukkit.config.main.BukkitConfig;
 import com.discordsrv.bukkit.console.BukkitConsole;
 import com.discordsrv.bukkit.listener.*;
 import com.discordsrv.bukkit.player.BukkitPlayerImpl;
@@ -32,6 +33,12 @@ import com.discordsrv.bukkit.scheduler.BukkitScheduler;
 import com.discordsrv.bukkit.scheduler.FoliaScheduler;
 import com.discordsrv.common.command.game.abstraction.GameCommandExecutionHelper;
 import com.discordsrv.common.command.game.abstraction.handler.ICommandHandler;
+import com.discordsrv.common.config.configurate.manager.ConnectionConfigManager;
+import com.discordsrv.common.config.configurate.manager.MainConfigManager;
+import com.discordsrv.common.config.configurate.manager.MessagesConfigManager;
+import com.discordsrv.common.config.configurate.manager.abstraction.ServerConfigManager;
+import com.discordsrv.common.config.connection.ConnectionConfig;
+import com.discordsrv.common.config.messages.MessagesConfig;
 import com.discordsrv.common.feature.messageforwarding.game.MinecraftToDiscordChatModule;
 import com.discordsrv.common.util.ReflectionUtil;
 import org.bukkit.command.CommandMap;
@@ -44,6 +51,10 @@ public class BukkitDiscordSRVImpl extends BukkitDiscordSRV {
     private final GameCommandExecutionHelper executionHelper;
     private final BukkitPlayerProvider playerProvider;
     private final BukkitConsole console;
+
+    private final ConnectionConfigManager<ConnectionConfig> connectionConfigManager;
+    private final MainConfigManager<BukkitConfig> configManager;
+    private final MessagesConfigManager<MessagesConfig> messagesConfigManager;
 
     private ICommandHandler commandHandler;
 
@@ -60,6 +71,11 @@ public class BukkitDiscordSRVImpl extends BukkitDiscordSRV {
         this.console = new BukkitConsole(this);
 
         load();
+
+        // Config
+        this.connectionConfigManager = new ConnectionConfigManager<>(this, ConnectionConfig::new);
+        this.configManager = new ServerConfigManager<>(this, BukkitConfig::new);
+        this.messagesConfigManager = new MessagesConfigManager<>(this, MessagesConfig::new);
     }
 
     @Override
@@ -136,5 +152,20 @@ public class BukkitDiscordSRVImpl extends BukkitDiscordSRV {
     @Override
     public ICommandHandler commandHandler() {
         return commandHandler;
+    }
+
+    @Override
+    public ConnectionConfigManager<ConnectionConfig> connectionConfigManager() {
+        return connectionConfigManager;
+    }
+
+    @Override
+    public MainConfigManager<BukkitConfig> configManager() {
+        return configManager;
+    }
+
+    @Override
+    public MessagesConfigManager<MessagesConfig> messagesConfigManager() {
+        return messagesConfigManager;
     }
 }
