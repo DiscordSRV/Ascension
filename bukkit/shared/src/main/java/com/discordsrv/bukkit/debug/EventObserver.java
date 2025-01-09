@@ -32,7 +32,7 @@ import java.util.*;
 import java.util.function.BiConsumer;
 import java.util.function.Function;
 
-public class EventObserver<E extends Event, P> {
+public class EventObserver<E extends Event, P> implements AutoCloseable {
 
     private final Plugin plugin;
     private final Class<?> eventClass;
@@ -52,6 +52,7 @@ public class EventObserver<E extends Event, P> {
         inject();
     }
 
+    @Override
     public void close() {
         if (originalMap == null) {
             return;
@@ -152,14 +153,15 @@ public class EventObserver<E extends Event, P> {
 
         private List<RegisteredListener> getListeners() {
             List<RegisteredListener> listeners = new ArrayList<>();
-            listeners.add(new CancellationDetectingListener<>(null, observer));
+            listeners.add(new ObservingListener<>(null, observer));
             for (RegisteredListener listener : this) {
                 listeners.add(listener);
-                listeners.add(new CancellationDetectingListener<>(listener, observer));
+                listeners.add(new ObservingListener<>(listener, observer));
             }
             return listeners;
         }
 
+        // toArray is used by Bukkit to get listeners
         @Override
         public Object @NotNull [] toArray() {
             return getListeners().toArray();
@@ -172,7 +174,7 @@ public class EventObserver<E extends Event, P> {
 
         @Override
         public boolean remove(Object o) {
-            if (o instanceof CancellationDetectingListener) {
+            if (o instanceof EventObserver.ObservingListener) {
                 // Prevent removing these from the collection
                 return true;
             }
@@ -181,7 +183,7 @@ public class EventObserver<E extends Event, P> {
 
         @Override
         public boolean add(RegisteredListener registeredListener) {
-            if (registeredListener instanceof CancellationDetectingListener) {
+            if (registeredListener instanceof EventObserver.ObservingListener) {
                 // Prevent adding these to the collection
                 return true;
             }
@@ -189,12 +191,12 @@ public class EventObserver<E extends Event, P> {
         }
     }
 
-    public static class CancellationDetectingListener<E extends Event, P> extends RegisteredListener {
+    public static class ObservingListener<E extends Event, P> extends RegisteredListener {
 
         private final RegisteredListener listener;
         private final EventObserver<E, P> observer;
 
-        public CancellationDetectingListener(
+        public ObservingListener(
                 RegisteredListener listener,
                 EventObserver<E, P> observer
         ) {
@@ -209,7 +211,7 @@ public class EventObserver<E extends Event, P> {
             this.observer = observer;
         }
 
-        @SuppressWarnings("unchecked")
+        @SuppressWarnings("unchecked") // Cast to generic
         @Override
         public void callEvent(Event event) {
             P propertyValue = observer.propertyGetter.apply((E) event);
