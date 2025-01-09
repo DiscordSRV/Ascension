@@ -26,11 +26,14 @@ import com.discordsrv.bukkit.debug.EventObserver;
 import com.discordsrv.common.abstraction.player.IPlayer;
 import com.discordsrv.common.core.logging.NamedLogger;
 import io.papermc.paper.advancement.AdvancementDisplay;
+import org.bukkit.GameRule;
 import org.bukkit.advancement.Advancement;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.player.PlayerAdvancementDoneEvent;
 import org.jetbrains.annotations.ApiStatus;
+
+import java.util.Objects;
 
 @ApiStatus.AvailableSince("Paper 1.17.1")
 public class PaperAdvancementListener extends AbstractBukkitListener<PlayerAdvancementDoneEvent> {
@@ -51,6 +54,12 @@ public class PaperAdvancementListener extends AbstractBukkitListener<PlayerAdvan
 
     @Override
     protected void handleEvent(PlayerAdvancementDoneEvent event, Void __) {
+        Boolean gameRuleValue = event.getPlayer().getWorld().getGameRuleValue(GameRule.ANNOUNCE_ADVANCEMENTS);
+        if (Objects.equals(gameRuleValue, false)) {
+            logger().trace("Skipping displaying advancement, disabled by gamerule");
+            return;
+        }
+
         Advancement advancement = event.getAdvancement();
         AdvancementDisplay display = advancement.getDisplay();
         if (display == null || !display.doesAnnounceToChat()) {
@@ -63,7 +72,7 @@ public class PaperAdvancementListener extends AbstractBukkitListener<PlayerAdvan
         MinecraftComponent displayName = ADVANCEMENT_DISPLAY_NAME_HANDLE.getAPI(advancement);
 
         IPlayer player = discordSRV.playerProvider().player(event.getPlayer());
-        discordSRV.scheduler().run(() -> discordSRV.eventBus().publish(
+        discordSRV.eventBus().publish(
                 new AwardMessageReceiveEvent(
                         event,
                         player,
@@ -72,7 +81,7 @@ public class PaperAdvancementListener extends AbstractBukkitListener<PlayerAdvan
                         null,
                         message == null
                 )
-        ));
+        );
     }
 
     private EventObserver<PlayerAdvancementDoneEvent, Boolean> observer;

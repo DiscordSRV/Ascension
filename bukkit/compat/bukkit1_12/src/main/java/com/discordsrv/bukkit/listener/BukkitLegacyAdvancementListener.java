@@ -74,6 +74,12 @@ public class BukkitLegacyAdvancementListener extends AbstractBukkitListener<Play
             return;
         }
 
+        String gameRuleValue = event.getPlayer().getWorld().getGameRuleValue("announceAdvancements");
+        if ("false".equals(gameRuleValue)) {
+            logger().trace("Skipping forwarding advancement, disabled by gamerule");
+            return;
+        }
+
         try {
             ReturnData data = nms.getData(event.getAdvancement());
             if (data == null) {
@@ -82,7 +88,7 @@ public class BukkitLegacyAdvancementListener extends AbstractBukkitListener<Play
 
             MinecraftComponent title = MinecraftComponent.fromJson(data.titleJson);
             IPlayer srvPlayer = discordSRV.playerProvider().player(event.getPlayer());
-            discordSRV.scheduler().run(() -> discordSRV.eventBus().publish(
+            discordSRV.eventBus().publish(
                     new AwardMessageReceiveEvent(
                             event,
                             srvPlayer,
@@ -91,7 +97,7 @@ public class BukkitLegacyAdvancementListener extends AbstractBukkitListener<Play
                             null,
                             false
                     )
-            ));
+            );
         } catch (ReflectiveOperationException e) {
             logger().debug("Failed to get advancement data", e);
         }

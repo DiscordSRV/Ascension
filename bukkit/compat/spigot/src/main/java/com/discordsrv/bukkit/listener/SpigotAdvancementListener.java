@@ -25,12 +25,15 @@ import com.discordsrv.common.abstraction.player.IPlayer;
 import com.discordsrv.common.core.logging.NamedLogger;
 import com.discordsrv.common.util.ComponentUtil;
 import net.kyori.adventure.platform.bukkit.BukkitComponentSerializer;
+import org.bukkit.GameRule;
 import org.bukkit.advancement.Advancement;
 import org.bukkit.advancement.AdvancementDisplay;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.player.PlayerAdvancementDoneEvent;
 import org.jetbrains.annotations.ApiStatus;
+
+import java.util.Objects;
 
 @ApiStatus.AvailableSince("Spigot 1.19")
 public class SpigotAdvancementListener extends AbstractBukkitListener<PlayerAdvancementDoneEvent> {
@@ -46,6 +49,12 @@ public class SpigotAdvancementListener extends AbstractBukkitListener<PlayerAdva
 
     @Override
     protected void handleEvent(PlayerAdvancementDoneEvent event, Void __) {
+        Boolean gameRuleValue = event.getPlayer().getWorld().getGameRuleValue(GameRule.ANNOUNCE_ADVANCEMENTS);
+        if (Objects.equals(gameRuleValue, false)) {
+            logger().trace("Skipping forwarding advancement, disabled by gamerule");
+            return;
+        }
+
         Advancement advancement = event.getAdvancement();
         AdvancementDisplay display = advancement.getDisplay();
         if (display == null || !display.shouldAnnounceChat()) {
@@ -56,7 +65,7 @@ public class SpigotAdvancementListener extends AbstractBukkitListener<PlayerAdva
 
         MinecraftComponent title = ComponentUtil.toAPI(BukkitComponentSerializer.legacy().deserialize(display.getTitle())) ;
         IPlayer srvPlayer = discordSRV.playerProvider().player(event.getPlayer());
-        discordSRV.scheduler().run(() -> discordSRV.eventBus().publish(
+        discordSRV.eventBus().publish(
                 new AwardMessageReceiveEvent(
                         event,
                         srvPlayer,
@@ -65,7 +74,7 @@ public class SpigotAdvancementListener extends AbstractBukkitListener<PlayerAdva
                         null,
                         false
                 )
-        ));
+        );
     }
 
     // Event is not cancellable
