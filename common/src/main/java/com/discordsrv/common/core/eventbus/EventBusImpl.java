@@ -218,11 +218,11 @@ public class EventBusImpl implements EventBus {
     }
 
     private void publishEvent(Object event) {
-        Class<?> eventClass = event.getClass();
+        Class<?> checkClass = event.getClass();
 
         Map<State<?>, Boolean> states = new HashMap<>(STATES.size());
         for (State<?> state : STATES) {
-            if (state.eventClass().isAssignableFrom(eventClass)) {
+            if (state.eventClass().isAssignableFrom(checkClass)) {
                 boolean value = state.statePredicate().test(event);
                 states.put(state, value);
 
@@ -233,13 +233,13 @@ public class EventBusImpl implements EventBus {
         }
 
         List<EventListenerImpl> listeners = new ArrayList<>();
-        while (!Object.class.equals(eventClass)) {
-            gatherListeners(eventClass, listeners);
-            for (Class<?> anInterface : eventClass.getInterfaces()) {
+        while (!Object.class.equals(checkClass)) {
+            gatherListeners(checkClass, listeners);
+            for (Class<?> anInterface : checkClass.getInterfaces()) {
                 gatherListeners(anInterface, listeners);
             }
 
-            eventClass = eventClass.getSuperclass();
+            checkClass = checkClass.getSuperclass();
         }
 
         listeners.sort(Comparator.comparingInt(EventListenerImpl::priority));
@@ -257,7 +257,7 @@ public class EventBusImpl implements EventBus {
                 Object listener = eventListener.listener();
                 eventListener.handle().invoke(listener, event);
             } catch (Throwable e) {
-                String eventClassName = eventClass.getName();
+                String eventClassName = event.getClass().getName();
                 if (eventListener.className().startsWith("com.discordsrv")) {
                     logger.error("Failed to pass " + eventClassName + " to " + eventListener, e);
                 } else {
