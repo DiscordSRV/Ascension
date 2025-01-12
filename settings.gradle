@@ -1,7 +1,8 @@
 pluginManagement {
     repositories {
         mavenLocal()
-        maven { url = 'https://s01.oss.sonatype.org/content/repositories/snapshots/' }
+        maven { url 'https://s01.oss.sonatype.org/content/repositories/snapshots/' }
+        maven { url 'https://maven.fabricmc.net/'}
         gradlePluginPortal()
     }
 }
@@ -39,6 +40,15 @@ dependencyResolutionManagement {
             // Velocity
             library('velocity', 'com.velocitypowered', 'velocity-api').version('3.3.0-SNAPSHOT')
 
+            // Fabric
+            version('fabric-loom', '1.9-SNAPSHOT')
+            plugin('fabric-loom', 'fabric-loom').versionRef('fabric-loom')
+            library('fabric-minecraft', 'com.mojang', 'minecraft').version('1.21.4')
+            library('fabric-yarn', 'net.fabricmc', 'yarn').version('1.21.4+build.8')
+            library('fabric-loader', 'net.fabricmc', 'fabric-loader').version('0.16.9')
+            library('fabric-api', 'net.fabricmc.fabric-api', 'fabric-api').version('0.114.2+1.21.4')
+            library('fabric-permissions-api', 'me.lucko', 'fabric-permissions-api').version('0.3.3')
+
             // DependencyDownload
             version('dependencydownload', '2.0.0-SNAPSHOT')
             plugin('dependencydownload-plugin', 'dev.vankka.dependencydownload.plugin').versionRef('dependencydownload')
@@ -53,6 +63,7 @@ dependencyResolutionManagement {
             library('mcdependencydownload-bungee-bootstrap', 'dev.vankka', 'minecraftdependencydownload-bungee').versionRef('mcdependencydownload')
             library('mcdependencydownload-bungee-loader', 'dev.vankka', 'minecraftdependencydownload-bungee-loader').versionRef('mcdependencydownload')
             library('mcdependencydownload-velocity', 'dev.vankka', 'minecraftdependencydownload-velocity').versionRef('mcdependencydownload')
+            library('mcdependencydownload-fabric', 'dev.vankka', 'minecraftdependencydownload-fabric').versionRef('mcdependencydownload')
 
             // Annotations
             library('jetbrains-annotations', 'org.jetbrains', 'annotations').version('24.1.0')
@@ -132,8 +143,10 @@ dependencyResolutionManagement {
 
             // Adventure Platform
             version('adventure-platform', '4.3.4')
+            version('adventure-platform-mod', '6.2.0')
             library('adventure-platform-bukkit', 'net.kyori', 'adventure-platform-bukkit').versionRef('adventure-platform')
             library('adventure-platform-bungee', 'net.kyori', 'adventure-platform-bungeecord').versionRef('adventure-platform')
+            library('adventure-platform-fabric', 'net.kyori', 'adventure-platform-fabric').versionRef('adventure-platform-mod')
             library('adventure-serializer-bungee', 'net.kyori', 'adventure-text-serializer-bungeecord').versionRef('adventure-platform')
 
             // Upgrade ansi (used by ansi serializer)
@@ -160,8 +173,11 @@ rootProject.name = 'DiscordSRV-Ascension'
         'bukkit:compat:bukkit1_12', 'bukkit:compat:spigot', 'bukkit:compat:paper', 'bukkit:compat:folia',
         // Bungee
         'bungee', 'bungee:loader',
+
         // Velocity
-        'velocity'
+        'velocity',
+        // Fabric
+        'fabric'
 ].each {
     include it
     findProject(':' + it).name = String.join('-', it.split(':'))

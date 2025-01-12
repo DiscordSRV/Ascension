@@ -1,0 +1,28 @@
+{
+  "schemaVersion": 1,
+  "id": "discordsrv",
+  "version": "${VERSION}",
+  "name": "DiscordSRV",
+  "description": "",
+  "authors": [],
+  "contact": {},
+  "license": "All-Rights-Reserved",
+  "environment": "server",
+  "entrypoints": {
+    "server": [
+      "com.discordsrv.fabric.DiscordSRVFabricBootstrap"
+    ]
+  },
+  "mixins": [],
+  "jars": [
+    {
+      "file": "META-INF/jars/adventure-platform-mod-shared-fabric-repack-6.1.0.jar"
+    }
+  ],
+  "depends": {
+    "fabricloader": ">=${LOADER_VERSION}",
+    "fabric": "*",
+    "minecraft": "${MINECRAFT_VERSION}",
+    "fabric-permissions-api-v0": "*"
+  }
+}

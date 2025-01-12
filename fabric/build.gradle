@@ -1,0 +1,80 @@
+apply from: rootProject.file('buildscript/standalone.gradle')
+apply plugin: 'fabric-loom'
+
+configurations.all {
+    resolutionStrategy {
+        force "org.slf4j:slf4j-api:1.7.36" // Introduced by Minecraft itself
+    }
+}
+
+java {
+    disableAutoTargetJvm() // Requires Java 21, we target 8
+}
+
+processResources {
+    filesMatching('**/fabric.mod.json') {
+        expand 'VERSION': project.version, 'MINECRAFT_VERSION': libs.fabric.minecraft.get().version, 'LOADER_VERSION': libs.fabric.loader.get().version
+    }
+}
+
+shadowJar {
+    archiveBaseName = 'DiscordSRV-Fabric'
+    mergeServiceFiles()
+}
+
+loom {
+    serverOnlyMinecraftJar()
+}
+
+repositories {
+    exclusiveContent {
+        forRepository {
+            maven { url 'https://maven.fabricmc.net/' }
+        }
+        filter {
+            includeGroup 'net.fabricmc'
+        }
+    }
+}
+
+dependencies {
+    // To change the versions see the settings.gradle file
+    minecraft(libs.fabric.minecraft)
+    mappings(variantOf(libs.fabric.yarn) { classifier("v2") })
+    compileOnly(libs.fabric.loader)
+    modImplementation(libs.fabric.api)
+
+    // API
+    annotationProcessor project(':api')
+    implementation project(':common:common-api')
+
+    // Common
+    implementation project(':common')
+
+    // Adventure
+    modImplementation(libs.adventure.platform.fabric)
+
+    // DependencyDownload
+    modImplementation(libs.mcdependencydownload.fabric)
+
+    // Permission API
+    modImplementation(libs.fabric.permissions.api)
+
+    // Relaying on runtime download to bring these isn't working
+    implementation(libs.configurate.yaml)
+    implementation(libs.caffeine)
+    implementation(libs.mcdiscordreserializer)
+    implementation(libs.enhancedlegacytext)
+    implementation(libs.minecraftauth.lib)
+
+    // Database
+    implementation(libs.hikaricp)
+    implementation(libs.h2)
+    implementation(libs.mysql)
+    implementation(libs.mariadb)
+
+    // Workaround for https://github.com/FabricMC/fabric-loom/issues/1020.
+    // The above plugin version workaround can introduce issues like this,
+    // where versions mismatch due to the inclusion of the plugins as libraries rather than pure plugins.
+    constraints {implementation("com.google.code.gson:gson:2.8.6")}
+}

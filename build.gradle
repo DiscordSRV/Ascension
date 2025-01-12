@@ -8,6 +8,7 @@ plugins {
     alias(libs.plugins.run.paper) apply false
     alias(libs.plugins.run.waterfall) apply false
     alias(libs.plugins.run.velocity) apply false
+    alias(libs.plugins.fabric.loom) apply false
 }
 
 version = '3.0.0-SNAPSHOT'
