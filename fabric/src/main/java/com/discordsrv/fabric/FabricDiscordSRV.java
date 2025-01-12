@@ -21,13 +21,11 @@ package com.discordsrv.fabric;
 import com.discordsrv.common.config.configurate.manager.ConnectionConfigManager;
 import com.discordsrv.common.config.configurate.manager.MainConfigManager;
 import com.discordsrv.common.config.configurate.manager.MessagesConfigManager;
+import com.discordsrv.common.config.configurate.manager.abstraction.ServerConfigManager;
+import com.discordsrv.common.config.connection.ConnectionConfig;
 import com.discordsrv.common.config.messages.MessagesConfig;
 import com.discordsrv.common.feature.messageforwarding.game.MinecraftToDiscordChatModule;
-import com.discordsrv.fabric.config.connection.FabricConnectionConfig;
 import com.discordsrv.fabric.config.main.FabricConfig;
-import com.discordsrv.fabric.config.manager.FabricConfigManager;
-import com.discordsrv.fabric.config.manager.FabricConnectionConfigManager;
-import com.discordsrv.fabric.config.manager.FabricMessagesConfigManager;
 import com.discordsrv.fabric.console.FabricConsole;
 import com.discordsrv.fabric.game.handler.FabricCommandHandler;
 import com.discordsrv.fabric.listener.FabricChatListener;
@@ -44,7 +42,7 @@ import org.jetbrains.annotations.NotNull;
 import java.net.URL;
 import java.util.jar.JarFile;
 
-public class FabricDiscordSRV extends AbstractDiscordSRV<DiscordSRVFabricBootstrap, FabricConfig, FabricConnectionConfig, MessagesConfig> {
+public class FabricDiscordSRV extends AbstractDiscordSRV<DiscordSRVFabricBootstrap, FabricConfig, ConnectionConfig, MessagesConfig> {
 
     private final StandardScheduler scheduler;
     private final FabricConsole console;
@@ -52,9 +50,9 @@ public class FabricDiscordSRV extends AbstractDiscordSRV<DiscordSRVFabricBootstr
     private final FabricModManager modManager;
     private final FabricCommandHandler commandHandler;
 
-    private final FabricConnectionConfigManager connectionConfigManager;
-    private final FabricConfigManager configManager;
-    private final FabricMessagesConfigManager messagesConfigManager;
+    private final ConnectionConfigManager<ConnectionConfig> connectionConfigManager;
+    private final MainConfigManager<FabricConfig> configManager;
+    private final MessagesConfigManager<MessagesConfig> messagesConfigManager;
 
     public FabricDiscordSRV(DiscordSRVFabricBootstrap bootstrap) {
         super(bootstrap);
@@ -66,12 +64,13 @@ public class FabricDiscordSRV extends AbstractDiscordSRV<DiscordSRVFabricBootstr
         this.commandHandler = new FabricCommandHandler(this);
 
         // Config
-        this.connectionConfigManager = new FabricConnectionConfigManager(this);
-        this.configManager = new FabricConfigManager(this);
-        this.messagesConfigManager = new FabricMessagesConfigManager(this);
+        this.connectionConfigManager = new ConnectionConfigManager<>(this, ConnectionConfig::new);
+        this.configManager = new ServerConfigManager<>(this, FabricConfig::new);
+        this.messagesConfigManager = new MessagesConfigManager<>(this, MessagesConfig::new);
+
+        load();
 
         registerEvents();
-        load();
     }
 
     private void registerEvents() {
@@ -137,7 +136,7 @@ public class FabricDiscordSRV extends AbstractDiscordSRV<DiscordSRVFabricBootstr
     }
 
     @Override
-    public ConnectionConfigManager<FabricConnectionConfig> connectionConfigManager() {
+    public ConnectionConfigManager<ConnectionConfig> connectionConfigManager() {
         return connectionConfigManager;
     }
 

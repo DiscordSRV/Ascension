@@ -173,7 +173,6 @@ rootProject.name = 'DiscordSRV-Ascension'
         'bukkit:compat:bukkit1_12', 'bukkit:compat:spigot', 'bukkit:compat:paper', 'bukkit:compat:folia',
         // Bungee
         'bungee', 'bungee:loader',
-
         // Velocity
         'velocity',
         // Fabric

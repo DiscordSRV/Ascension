@@ -34,6 +34,7 @@ import org.apache.logging.log4j.LogManager;
 
 import java.io.IOException;
 import java.nio.file.Path;
+import java.util.Collections;
 
 public class DiscordSRVFabricBootstrap implements DedicatedServerModInitializer, IBootstrap {
 
@@ -52,7 +53,7 @@ public class DiscordSRVFabricBootstrap implements DedicatedServerModInitializer,
             this.lifecycleManager = new LifecycleManager(
                     this.logger,
                     dataDirectory,
-                    new String[] {"dependencies/runtimeDownload-fabric.txt"},
+                    Collections.singletonList("dependencies/runtimeDownload-fabric.txt"),
                     classpathAppender
             );
         } catch (IOException e) {
