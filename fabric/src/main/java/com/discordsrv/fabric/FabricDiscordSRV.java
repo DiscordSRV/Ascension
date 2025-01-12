@@ -28,7 +28,7 @@ import com.discordsrv.common.feature.messageforwarding.game.MinecraftToDiscordCh
 import com.discordsrv.fabric.config.main.FabricConfig;
 import com.discordsrv.fabric.console.FabricConsole;
 import com.discordsrv.fabric.game.handler.FabricCommandHandler;
-import com.discordsrv.fabric.listener.FabricChatListener;
+import com.discordsrv.fabric.module.FabricChatModule;
 import com.discordsrv.fabric.player.FabricPlayerProvider;
 import com.discordsrv.fabric.plugin.FabricModManager;
 import com.discordsrv.common.AbstractDiscordSRV;
@@ -69,15 +69,17 @@ public class FabricDiscordSRV extends AbstractDiscordSRV<DiscordSRVFabricBootstr
         this.messagesConfigManager = new MessagesConfigManager<>(this, MessagesConfig::new);
 
         load();
-
-        registerEvents();
     }
 
-    private void registerEvents() {
-        new FabricChatListener(this);
+    @Override
+    protected void enable() throws Throwable {
+        super.enable();
+
+        // Chat
         registerModule(MinecraftToDiscordChatModule::new);
-    }
+        registerModule(FabricChatModule::new);
 
+    }
 
     //TODO: Implement this method. Maybe with KnotClassloader?
     @Override
@@ -148,10 +150,5 @@ public class FabricDiscordSRV extends AbstractDiscordSRV<DiscordSRVFabricBootstr
     @Override
     public MessagesConfigManager<MessagesConfig> messagesConfigManager() {
         return messagesConfigManager;
-    }
-
-    @Override
-    protected void enable() throws Throwable {
-        super.enable();
     }
 }
