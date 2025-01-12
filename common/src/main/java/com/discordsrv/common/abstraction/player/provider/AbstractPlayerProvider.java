@@ -1,6 +1,6 @@
 /*
  * This file is part of DiscordSRV, licensed under the GPLv3 License
- * Copyright (c) 2016-2024 Austin "Scarsz" Shapiro, Henri "Vankka" Schubin and DiscordSRV contributors
+ * Copyright (c) 2016-2025 Austin "Scarsz" Shapiro, Henri "Vankka" Schubin and DiscordSRV contributors
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -70,6 +70,8 @@ public abstract class AbstractPlayerProvider<T extends IPlayer, DT extends Disco
         this.allPlayers.add(player);
         discordSRV.scheduler().run(() -> discordSRV.eventBus().publish(new PlayerConnectedEvent(player, initial)));
 
+        discordSRV.profileManager().loadProfile(player.uniqueId());
+
         if (UUIDUtil.isOffline(uuid)) {
             anyOffline.set(true);
         }
@@ -81,6 +83,8 @@ public abstract class AbstractPlayerProvider<T extends IPlayer, DT extends Disco
             allPlayers.remove(player);
             discordSRV.scheduler().run(() -> discordSRV.eventBus().publish(new PlayerDisconnectedEvent(player)));
         }
+
+        discordSRV.profileManager().unloadProfile(uuid);
     }
 
     @Override
@@ -101,6 +105,13 @@ public abstract class AbstractPlayerProvider<T extends IPlayer, DT extends Disco
     @Override
     public @NotNull Collection<T> allPlayers() {
         return allPlayers;
+    }
+
+    @Override
+    public void loadAllProfilesAsync() {
+        for (T player : allPlayers()) {
+            discordSRV.profileManager().loadProfile(player.uniqueId());
+        }
     }
 
     @Override

@@ -11,7 +11,7 @@ plugins {
     alias(libs.plugins.fabric.loom) apply false
 }
 
-version '3.0.0-SNAPSHOT'
+version = '3.0.0-SNAPSHOT'
 
 subprojects {
     apply plugin: 'java'
@@ -22,7 +22,7 @@ subprojects {
     apply plugin: 'net.kyori.indra.licenser.spotless'
     apply plugin: 'dev.vankka.dependencydownload.plugin'
 
-    group 'com.discordsrv'
+    group = 'com.discordsrv'
     version = rootProject.version
 
     java {
@@ -69,10 +69,10 @@ subprojects {
         // Snapshot repositories
         //maven { url 'https://oss.sonatype.org/content/repositories/snapshots/' }
         //mavenLocal()
-        maven { url 'https://s01.oss.sonatype.org/content/repositories/snapshots/' }
+        maven { url = 'https://s01.oss.sonatype.org/content/repositories/snapshots/' }
 
         maven {
-            url 'https://nexus.scarsz.me/content/groups/public/'
+            url = 'https://nexus.scarsz.me/content/groups/public/'
             content {
                 includeGroup 'github.scarsz'
                 includeGroup 'me.scarsz'
@@ -83,7 +83,7 @@ subprojects {
             }
         }
         maven {
-            url 'https://libraries.minecraft.net'
+            url = 'https://libraries.minecraft.net'
             content {
                 includeGroup 'com.mojang'
             }

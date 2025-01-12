@@ -1,6 +1,6 @@
 /*
  * This file is part of DiscordSRV, licensed under the GPLv3 License
- * Copyright (c) 2016-2024 Austin "Scarsz" Shapiro, Henri "Vankka" Schubin and DiscordSRV contributors
+ * Copyright (c) 2016-2025 Austin "Scarsz" Shapiro, Henri "Vankka" Schubin and DiscordSRV contributors
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -22,13 +22,13 @@ import com.discordsrv.common.exception.ConfigException;
 import org.spongepowered.configurate.CommentedConfigurationNode;
 import org.spongepowered.configurate.loader.AbstractConfigurationLoader;
 
+import java.util.concurrent.atomic.AtomicBoolean;
+
 public interface ConfigManager<T> {
 
     T createConfiguration();
     T config();
 
-    void load() throws ConfigException;
-    void reload() throws ConfigException;
+    void reload(boolean forceSave, AtomicBoolean anyMissingOptions) throws ConfigException;
     void save(AbstractConfigurationLoader<CommentedConfigurationNode> loader) throws ConfigException;
-    void save() throws ConfigException;
 }

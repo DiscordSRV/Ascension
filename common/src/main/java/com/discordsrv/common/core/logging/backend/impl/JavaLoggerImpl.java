@@ -1,6 +1,6 @@
 /*
  * This file is part of DiscordSRV, licensed under the GPLv3 License
- * Copyright (c) 2016-2024 Austin "Scarsz" Shapiro, Henri "Vankka" Schubin and DiscordSRV contributors
+ * Copyright (c) 2016-2025 Austin "Scarsz" Shapiro, Henri "Vankka" Schubin and DiscordSRV contributors
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -30,10 +30,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.logging.Filter;
-import java.util.logging.Handler;
-import java.util.logging.Level;
-import java.util.logging.LogRecord;
+import java.util.logging.*;
 
 public class JavaLoggerImpl implements Logger, LoggingBackend {
 
@@ -66,17 +63,24 @@ public class JavaLoggerImpl implements Logger, LoggingBackend {
     @Override
     public void log(@Nullable String loggerName, @NotNull LogLevel level, @Nullable String message, @Nullable Throwable throwable) {
         Level logLevel = LEVELS_REVERSE.get(level);
-        if (logLevel != null) {
-            List<String> contents = new ArrayList<>(2);
-            if (message != null) {
-                contents.add(message);
-            }
-            if (throwable != null) {
-                // Exceptions aren't always logged correctly by the logger itself
-                contents.add(getStackTrace(throwable));
-            }
-            logger.log(logLevel, String.join("\n", contents));
+
+        boolean anythingAdded = false;
+        StringBuilder stringBuilder = new StringBuilder(message != null ? message.length() : 0);
+
+        // Unknown level
+        if (logLevel == null) {
+            logLevel = Level.INFO;
+            stringBuilder.append("[").append(level.name()).append("] ");
+            anythingAdded = true;
         }
+
+        if (message != null) {
+            stringBuilder.append(message);
+            anythingAdded = true;
+        }
+
+        String finalMessage = anythingAdded ? stringBuilder.toString() : null;
+        logger.log(logLevel, finalMessage, throwable);
     }
 
     @Override

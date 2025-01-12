@@ -19,7 +19,7 @@ jobs:
       - name: Setup Gradle
         uses: gradle/actions/setup-gradle@v3
       - name: Build i18n application
-        run: "./gradlew i18n:build"
+        run: "./gradlew i18n:build --no-daemon"
       - name: Generate translation source
         run: "java -jar i18n/build/libs/i18n-all.jar"
       - name: Upload source to Crowdin
@@ -32,7 +32,7 @@ jobs:
 
           project_id: ${{ secrets.CROWDIN_PROJECT_ID }}
           token: ${{ secrets.CROWDIN_PERSONAL_TOKEN }}
-          source: "i18n/build/source.yaml"
+          source: "i18n/build/source.json"
           translation: "/i18n/src/main/resources/translations/%two_letters_code%.%file_extension%"
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

@@ -1,6 +1,6 @@
 /*
  * This file is part of DiscordSRV, licensed under the GPLv3 License
- * Copyright (c) 2016-2024 Austin "Scarsz" Shapiro, Henri "Vankka" Schubin and DiscordSRV contributors
+ * Copyright (c) 2016-2025 Austin "Scarsz" Shapiro, Henri "Vankka" Schubin and DiscordSRV contributors
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -25,16 +25,20 @@ import org.jetbrains.annotations.Nullable;
 
 public class NamedLogger implements Logger {
 
-    private final DiscordSRV discordSRV;
+    private final Logger logger;
     private final String name;
 
     public NamedLogger(DiscordSRV discordSRV, String name) {
-        this.discordSRV = discordSRV;
+        this(discordSRV.logger(), name);
+    }
+
+    public NamedLogger(Logger logger, String name) {
+        this.logger = logger;
         this.name = name;
     }
 
     @Override
     public void log(@Nullable String loggerName, @NotNull LogLevel logLevel, @Nullable String message, @Nullable Throwable throwable) {
-        discordSRV.logger().log(name, logLevel, message, throwable);
+        logger.log(name, logLevel, message, throwable);
     }
 }

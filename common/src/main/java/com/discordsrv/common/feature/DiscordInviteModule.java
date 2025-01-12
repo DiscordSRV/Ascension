@@ -1,6 +1,6 @@
 /*
  * This file is part of DiscordSRV, licensed under the GPLv3 License
- * Copyright (c) 2016-2024 Austin "Scarsz" Shapiro, Henri "Vankka" Schubin and DiscordSRV contributors
+ * Copyright (c) 2016-2025 Austin "Scarsz" Shapiro, Henri "Vankka" Schubin and DiscordSRV contributors
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -35,6 +35,8 @@ import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.entities.Invite;
 import net.dv8tion.jda.api.entities.User;
 import net.dv8tion.jda.api.entities.channel.attribute.IInviteContainer;
+import net.dv8tion.jda.api.events.guild.GuildJoinEvent;
+import net.dv8tion.jda.api.events.guild.GuildLeaveEvent;
 import net.dv8tion.jda.api.events.guild.invite.GuildInviteDeleteEvent;
 import net.dv8tion.jda.api.events.guild.update.GuildUpdateVanityCodeEvent;
 import org.apache.commons.lang3.StringUtils;
@@ -68,13 +70,27 @@ public class DiscordInviteModule extends AbstractModule<DiscordSRV> {
 
     @Subscribe
     public void onGuildInviteDelete(GuildInviteDeleteEvent event) {
-        if (invite.equals(event.getUrl())) {
-            reload(__ -> {});
+        if (!Objects.equals(invite, event.getUrl())) {
+            return;
         }
+        reload(__ -> {});
     }
 
     @Subscribe
     public void onGuildUpdateVanityCode(GuildUpdateVanityCodeEvent event) {
+        reload(__ -> {});
+    }
+
+    @Subscribe
+    public void onGuildJoin(GuildJoinEvent event) {
+        if (event.getJDA().getGuilds().size() > 2) {
+            return;
+        }
+        reload(__ -> {});
+    }
+
+    @Subscribe
+    public void onGuildLeave(GuildLeaveEvent event) {
         reload(__ -> {});
     }
 

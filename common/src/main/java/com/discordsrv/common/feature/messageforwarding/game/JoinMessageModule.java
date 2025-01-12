@@ -1,6 +1,6 @@
 /*
  * This file is part of DiscordSRV, licensed under the GPLv3 License
- * Copyright (c) 2016-2024 Austin "Scarsz" Shapiro, Henri "Vankka" Schubin and DiscordSRV contributors
+ * Copyright (c) 2016-2025 Austin "Scarsz" Shapiro, Henri "Vankka" Schubin and DiscordSRV contributors
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -22,10 +22,11 @@ import com.discordsrv.api.channel.GameChannel;
 import com.discordsrv.api.component.MinecraftComponent;
 import com.discordsrv.api.discord.entity.message.ReceivedDiscordMessageCluster;
 import com.discordsrv.api.discord.entity.message.SendableDiscordMessage;
-import com.discordsrv.api.eventbus.EventPriority;
+import com.discordsrv.api.eventbus.EventPriorities;
 import com.discordsrv.api.eventbus.Subscribe;
 import com.discordsrv.api.events.message.forward.game.JoinMessageForwardedEvent;
 import com.discordsrv.api.events.message.receive.game.JoinMessageReceiveEvent;
+import com.discordsrv.api.player.DiscordSRVPlayer;
 import com.discordsrv.common.DiscordSRV;
 import com.discordsrv.common.abstraction.player.IPlayer;
 import com.discordsrv.common.config.main.channels.base.BaseChannelConfig;
@@ -47,18 +48,24 @@ import java.util.concurrent.Future;
 public class JoinMessageModule extends AbstractGameMessageModule<IMessageConfig, JoinMessageReceiveEvent> {
 
     private final Map<UUID, Future<?>> delayedTasks = new HashMap<>();
+    private final ThreadLocal<Boolean> silentJoinPermission = new ThreadLocal<>();
 
     public JoinMessageModule(DiscordSRV discordSRV) {
         super(discordSRV, "JOIN_MESSAGES");
     }
 
-    @Subscribe(priority = EventPriority.LAST)
+    @Subscribe(priority = EventPriorities.LAST, ignoreCancelled = false, ignoreProcessed = false)
     public void onJoinMessageReceive(JoinMessageReceiveEvent event) {
         if (checkCancellation(event) || checkProcessor(event)) {
             return;
         }
 
-        process(event, event.getPlayer(), event.getGameChannel());
+        DiscordSRVPlayer player = event.getPlayer();
+        boolean silentJoin = player instanceof IPlayer && ((IPlayer) player).hasPermission(Permission.SILENT_JOIN);
+        discordSRV.scheduler().run(() -> {
+            silentJoinPermission.set(silentJoin);
+            process(event, event.getPlayer(), event.getGameChannel());
+        });
         event.markAsProcessed();
     }
 
@@ -69,7 +76,7 @@ public class JoinMessageModule extends AbstractGameMessageModule<IMessageConfig,
             @NotNull BaseChannelConfig config,
             @Nullable GameChannel channel
     ) {
-        if (config.joinMessages().enableSilentPermission && player != null && player.hasPermission(Permission.SILENT_JOIN)) {
+        if (player != null && config.joinMessages().enableSilentPermission && silentJoinPermission.get()) {
             logger().info(player.username() + " is joining silently, join message will not be sent");
             return CompletableFuture.completedFuture(null);
         }

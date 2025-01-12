@@ -1,6 +1,6 @@
 /*
  * This file is part of DiscordSRV, licensed under the GPLv3 License
- * Copyright (c) 2016-2024 Austin "Scarsz" Shapiro, Henri "Vankka" Schubin and DiscordSRV contributors
+ * Copyright (c) 2016-2025 Austin "Scarsz" Shapiro, Henri "Vankka" Schubin and DiscordSRV contributors
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -48,8 +48,9 @@ import com.discordsrv.common.core.logging.impl.DiscordSRVLogger;
 import com.discordsrv.common.core.module.ModuleManager;
 import com.discordsrv.common.core.module.type.AbstractModule;
 import com.discordsrv.common.core.placeholder.PlaceholderServiceImpl;
-import com.discordsrv.common.core.placeholder.context.GlobalDateFormattingContext;
-import com.discordsrv.common.core.placeholder.context.GlobalTextHandlingContext;
+import com.discordsrv.common.core.placeholder.context.DateFormattingContext;
+import com.discordsrv.common.core.placeholder.context.GamePermissionContext;
+import com.discordsrv.common.core.placeholder.context.TextHandlingContext;
 import com.discordsrv.common.core.placeholder.format.DiscordMarkdownFormatImpl;
 import com.discordsrv.common.core.placeholder.result.ComponentResultStringifier;
 import com.discordsrv.common.core.storage.Storage;
@@ -111,6 +112,7 @@ import java.util.*;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.jar.Attributes;
 import java.util.jar.JarFile;
@@ -181,8 +183,8 @@ public abstract class AbstractDiscordSRV<
      * Method that should be called at the end of implementors constructors.
      */
     protected final void load() {
-        this.dependencyManager = new DiscordSRVDependencyManager(this, bootstrap.lifecycleManager() != null ? bootstrap.lifecycleManager().getDependencyLoader() : null);
         this.logger = new DiscordSRVLogger(this);
+        this.dependencyManager = new DiscordSRVDependencyManager(this, bootstrap.lifecycleManager() != null ? bootstrap.lifecycleManager().getDependencyLoader() : null);
         this.eventBus = new EventBusImpl(this);
         this.moduleManager = new ModuleManager(this);
         this.profileManager = new ProfileManager(this);
@@ -375,7 +377,7 @@ public abstract class AbstractDiscordSRV<
     // DiscordSRV
 
     @Override
-    public final IBootstrap bootstrap() {
+    public final B bootstrap() {
         return bootstrap;
     }
 
@@ -440,7 +442,8 @@ public abstract class AbstractDiscordSRV<
 
     @Override
     public CC connectionConfig() {
-        return connectionConfigManager().config();
+        ConnectionConfigManager<CC> configManager = connectionConfigManager();
+        return configManager != null ? configManager.config() : null;
     }
 
     @Override
@@ -448,7 +451,8 @@ public abstract class AbstractDiscordSRV<
 
     @Override
     public C config() {
-        return configManager().config();
+        MainConfigManager<C> configManager = configManager();
+        return configManager != null ? configManager.config() : null;
     }
 
     @Override
@@ -456,12 +460,17 @@ public abstract class AbstractDiscordSRV<
 
     @Override
     public MC messagesConfig(@Nullable Locale locale) {
-        MessagesConfigSingleManager<MC> manager = locale != null ? messagesConfigManager().getManager(locale) : null;
+        MessagesConfigManager<MC> configManager = messagesConfigManager();
+        if (configManager == null) {
+            return null;
+        }
+
+        MessagesConfigSingleManager<MC> manager = locale != null ? configManager.getManager(locale) : null;
         if (manager == null) {
-            manager = messagesConfigManager().getManager(defaultLocale());
+            manager = configManager.getManager(defaultLocale());
         }
         if (manager == null) {
-            manager = messagesConfigManager().getManager(Locale.US);
+            manager = configManager.getManager(Locale.US);
         }
         return manager.config();
     }
@@ -538,11 +547,8 @@ public abstract class AbstractDiscordSRV<
         }
         if (status == Status.CONNECTED) {
             eventBus().publish(new DiscordSRVConnectedEvent());
-            synchronized (beenReady) {
-                if (!beenReady.get()) {
-                    eventBus.publish(new DiscordSRVReadyEvent());
-                    beenReady.set(true);
-                }
+            if (beenReady.compareAndSet(false, true)) {
+                eventBus.publish(new DiscordSRVReadyEvent());
             }
         }
     }
@@ -659,8 +665,9 @@ public abstract class AbstractDiscordSRV<
 
         // Placeholder result stringifiers & global contexts
         placeholderService().addResultMapper(new ComponentResultStringifier(this));
-        placeholderService().addGlobalContext(new GlobalTextHandlingContext(this));
-        placeholderService().addGlobalContext(new GlobalDateFormattingContext(this));
+        placeholderService().addGlobalContext(new TextHandlingContext(this));
+        placeholderService().addGlobalContext(new DateFormattingContext(this));
+        placeholderService().addGlobalContext(new GamePermissionContext(this));
         placeholderService().addGlobalContext(UUIDUtil.class);
 
         // Modules
@@ -713,7 +720,7 @@ public abstract class AbstractDiscordSRV<
         }
 
         // Initial load
-        reload(ReloadFlag.ALL, true);
+        reload(ReloadFlag.LOAD, true);
 
         if (serverType() == ServerType.PROXY) {
             runServerStarted().get();
@@ -739,11 +746,17 @@ public abstract class AbstractDiscordSRV<
             logger().info("Reloading DiscordSRV...");
         }
 
-        if (flags.contains(ReloadFlag.CONFIG)) {
+        boolean configUpgrade = flags.contains(ReloadFlag.CONFIG_UPGRADE);
+        if (flags.contains(ReloadFlag.CONFIG) || configUpgrade) {
             try {
-                connectionConfigManager().load();
-                configManager().load();
-                messagesConfigManager().load();
+                AtomicBoolean anyMissingOptions = new AtomicBoolean(false);
+                connectionConfigManager().reload(configUpgrade, anyMissingOptions);
+                configManager().reload(configUpgrade, anyMissingOptions);
+                messagesConfigManager().reload(configUpgrade, anyMissingOptions);
+
+                if (anyMissingOptions.get()) {
+                    logger().info("Use \"/discordsrv reload config_upgrade\" to write the latest configuration");
+                }
 
                 channelConfig().reload();
                 createHttpClient();
@@ -804,7 +817,7 @@ public abstract class AbstractDiscordSRV<
             try {
                 try {
                     StorageType storageType = getStorageType();
-                    logger().info("Using " + storageType.prettyName() + " as storage");
+                    logger().info("Using " + storageType.prettyName() + " as storage, loading drivers...");
                     if (storageType == StorageType.MEMORY) {
                         logger().warning("Using memory as storage backend.");
                         logger().warning("Data will not persist across server restarts.");
@@ -834,6 +847,7 @@ public abstract class AbstractDiscordSRV<
 
         if (flags.contains(ReloadFlag.LINKED_ACCOUNT_PROVIDER)) {
             LinkedAccountConfig linkedAccountConfig = config().linkedAccounts;
+            boolean linkProviderMissing = linkProvider == null;
             if (linkedAccountConfig != null && linkedAccountConfig.enabled) {
                 LinkedAccountConfig.Provider provider = linkedAccountConfig.provider;
                 boolean permitMinecraftAuth = connectionConfig().minecraftAuth.allow;
@@ -848,6 +862,7 @@ public abstract class AbstractDiscordSRV<
                                                    + "but linked-accounts.provider is set to \"minecraftauth\". Linked accounts will be disabled");
                             break;
                         }
+                        logger().info("Loading MinecraftAuth library");
                         dependencyManager.mcAuthLib().downloadRelocateAndLoad().get();
                         linkProvider = new MinecraftAuthenticationLinker(this);
                         logger().info("Using minecraftauth.me for linked accounts");
@@ -865,6 +880,10 @@ public abstract class AbstractDiscordSRV<
             } else {
                 linkProvider = null;
                 logger().info("Linked accounts are disabled");
+            }
+
+            if (linkProviderMissing && linkProvider != null) {
+                playerProvider().loadAllProfilesAsync();
             }
         }
 
@@ -886,9 +905,8 @@ public abstract class AbstractDiscordSRV<
             results.addAll(moduleManager().reload());
         }
 
-        if (flags.contains(ReloadFlag.DISCORD_COMMANDS)) {
-            discordAPI().commandRegistry().registerCommandsFromEvent();
-            discordAPI().commandRegistry().registerCommandsToDiscord();
+        if (flags.contains(ReloadFlag.DISCORD_COMMANDS) && isReady()) {
+            discordAPI().commandRegistry().reloadCommands();
         }
 
         if (!initial) {

@@ -1,6 +1,6 @@
 /*
  * This file is part of DiscordSRV, licensed under the GPLv3 License
- * Copyright (c) 2016-2024 Austin "Scarsz" Shapiro, Henri "Vankka" Schubin and DiscordSRV contributors
+ * Copyright (c) 2016-2025 Austin "Scarsz" Shapiro, Henri "Vankka" Schubin and DiscordSRV contributors
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -22,10 +22,11 @@ import com.discordsrv.api.channel.GameChannel;
 import com.discordsrv.api.component.MinecraftComponent;
 import com.discordsrv.api.discord.entity.message.ReceivedDiscordMessageCluster;
 import com.discordsrv.api.discord.entity.message.SendableDiscordMessage;
-import com.discordsrv.api.eventbus.EventPriority;
+import com.discordsrv.api.eventbus.EventPriorities;
 import com.discordsrv.api.eventbus.Subscribe;
 import com.discordsrv.api.events.message.forward.game.LeaveMessageForwardedEvent;
 import com.discordsrv.api.events.message.receive.game.LeaveMessageReceiveEvent;
+import com.discordsrv.api.player.DiscordSRVPlayer;
 import com.discordsrv.common.DiscordSRV;
 import com.discordsrv.common.abstraction.player.IPlayer;
 import com.discordsrv.common.config.main.channels.LeaveMessageConfig;
@@ -48,6 +49,7 @@ import java.util.concurrent.Future;
 public class LeaveMessageModule extends AbstractGameMessageModule<LeaveMessageConfig, LeaveMessageReceiveEvent> {
 
     private final Map<UUID, Pair<Long, Future<?>>> playersJoinedRecently = new ConcurrentHashMap<>();
+    private final ThreadLocal<Boolean> silentQuitPermission = new ThreadLocal<>();
 
     public LeaveMessageModule(DiscordSRV discordSRV) {
         super(discordSRV, "LEAVE_MESSAGES");
@@ -75,13 +77,18 @@ public class LeaveMessageModule extends AbstractGameMessageModule<LeaveMessageCo
         }
     }
 
-    @Subscribe(priority = EventPriority.LAST)
+    @Subscribe(priority = EventPriorities.LAST, ignoreCancelled = false, ignoreProcessed = false)
     public void onLeaveMessageReceive(LeaveMessageReceiveEvent event) {
         if (checkCancellation(event) || checkProcessor(event)) {
             return;
         }
 
-        process(event, event.getPlayer(), event.getGameChannel());
+        DiscordSRVPlayer player = event.getPlayer();
+        boolean silentQuit = player instanceof IPlayer && ((IPlayer) player).hasPermission(Permission.SILENT_QUIT);
+        discordSRV.scheduler().run(() -> {
+            silentQuitPermission.set(silentQuit);
+            process(event, player, event.getGameChannel());
+        });
         event.markAsProcessed();
     }
 
@@ -93,7 +100,7 @@ public class LeaveMessageModule extends AbstractGameMessageModule<LeaveMessageCo
             @Nullable GameChannel channel
     ) {
         if (player != null) {
-            Pair<Long, Future<?>> pair = playersJoinedRecently.remove(player.uniqueId());
+            Pair<Long, Future<?>> pair = playersJoinedRecently.get(player.uniqueId());
             if (pair != null) {
                 long delta = System.currentTimeMillis() - pair.getKey();
                 if (delta < config.leaveMessages.ignoreIfJoinedWithinMS) {
@@ -103,7 +110,7 @@ public class LeaveMessageModule extends AbstractGameMessageModule<LeaveMessageCo
             }
         }
 
-        if (config.leaveMessages.enableSilentPermission && player != null && player.hasPermission(Permission.SILENT_QUIT)) {
+        if (player != null && config.leaveMessages.enableSilentPermission && silentQuitPermission.get()) {
             logger().info(player.username() + " is leaving silently, leave message will not be sent");
             return CompletableFuture.completedFuture(null);
         }

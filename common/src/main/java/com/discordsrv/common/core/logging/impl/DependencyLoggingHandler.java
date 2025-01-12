@@ -1,6 +1,6 @@
 /*
  * This file is part of DiscordSRV, licensed under the GPLv3 License
- * Copyright (c) 2016-2024 Austin "Scarsz" Shapiro, Henri "Vankka" Schubin and DiscordSRV contributors
+ * Copyright (c) 2016-2025 Austin "Scarsz" Shapiro, Henri "Vankka" Schubin and DiscordSRV contributors
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -19,11 +19,13 @@
 package com.discordsrv.common.core.logging.impl;
 
 import com.discordsrv.common.DiscordSRV;
+import com.discordsrv.common.helper.Timeout;
 import com.discordsrv.common.logging.LogAppender;
 import com.discordsrv.common.logging.LogLevel;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.time.Duration;
 import java.util.*;
 import java.util.concurrent.RejectedExecutionException;
 
@@ -31,6 +33,7 @@ public class DependencyLoggingHandler implements LogAppender {
 
     private static final Map<String, List<String>> BLACKLISTED_MESSAGES = new HashMap<>();
     private static final Map<String, String> LOGGER_MAPPINGS = new HashMap<>();
+    private static final Timeout RATELIMIT_TIMEOUT = new Timeout(Duration.ofSeconds(20));
 
     static {
         // Class names here will get relocated, which is fine
@@ -91,6 +94,23 @@ public class DependencyLoggingHandler implements LogAppender {
                 name = entry.getValue();
                 break;
             }
+        }
+
+        if (name.equals("JDA") && message != null &&
+                (message.startsWith("Encountered global rate limit!")
+                || message.startsWith("Encountered cloudflare rate limit!"))) {
+            if (!RATELIMIT_TIMEOUT.checkAndUpdate()) {
+                discordSRV.logger().warning(message);
+                return;
+            }
+
+            boolean usingProxy = discordSRV.connectionConfig().httpProxy.enabled;
+            discordSRV.logger().warning("+------------------------------------------>");
+            discordSRV.logger().warning("| " + message);
+            discordSRV.logger().warning("| This means the " + (usingProxy ? "proxy" : "server") + "'s ip is sending too many requests to Discord");
+            discordSRV.logger().warning("| The ip is being temporarily restricted from making requests to Discord");
+            discordSRV.logger().warning("+------------------------------------------>");
+            return;
         }
 
         if (name.equals("JDA") && message != null

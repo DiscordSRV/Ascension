@@ -1,6 +1,6 @@
 /*
  * This file is part of DiscordSRV, licensed under the GPLv3 License
- * Copyright (c) 2016-2024 Austin "Scarsz" Shapiro, Henri "Vankka" Schubin and DiscordSRV contributors
+ * Copyright (c) 2016-2025 Austin "Scarsz" Shapiro, Henri "Vankka" Schubin and DiscordSRV contributors
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -22,7 +22,7 @@ import com.discordsrv.api.channel.GameChannel;
 import com.discordsrv.api.component.MinecraftComponent;
 import com.discordsrv.api.discord.entity.message.ReceivedDiscordMessageCluster;
 import com.discordsrv.api.discord.entity.message.SendableDiscordMessage;
-import com.discordsrv.api.eventbus.EventPriority;
+import com.discordsrv.api.eventbus.EventPriorities;
 import com.discordsrv.api.eventbus.Subscribe;
 import com.discordsrv.api.events.message.forward.game.DeathMessageForwardedEvent;
 import com.discordsrv.api.events.message.receive.game.DeathMessageReceiveEvent;
@@ -39,13 +39,13 @@ public class DeathMessageModule extends AbstractGameMessageModule<DeathMessageCo
         super(discordSRV, "DEATH_MESSAGES");
     }
 
-    @Subscribe(priority = EventPriority.LAST)
+    @Subscribe(priority = EventPriorities.LAST, ignoreCancelled = false, ignoreProcessed = false)
     public void onDeathMessageReceive(DeathMessageReceiveEvent event) {
         if (checkCancellation(event) || checkProcessor(event)) {
             return;
         }
 
-        process(event, event.getPlayer(), event.getGameChannel());
+        discordSRV.scheduler().run(() -> process(event, event.getPlayer(), event.getGameChannel()));
         event.markAsProcessed();
     }
 

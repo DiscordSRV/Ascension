@@ -1,6 +1,6 @@
 /*
  * This file is part of DiscordSRV, licensed under the GPLv3 License
- * Copyright (c) 2016-2024 Austin "Scarsz" Shapiro, Henri "Vankka" Schubin and DiscordSRV contributors
+ * Copyright (c) 2016-2025 Austin "Scarsz" Shapiro, Henri "Vankka" Schubin and DiscordSRV contributors
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -57,7 +57,7 @@ public class MinecraftToDiscordChatMessageTest {
 
     @Test
     public void runTest() throws InterruptedException {
-        DiscordSRV discordSRV = MockDiscordSRV.INSTANCE;
+        DiscordSRV discordSRV = MockDiscordSRV.getInstance();
         EventBus bus = discordSRV.eventBus();
 
         String testMessage = UUID.randomUUID().toString();
@@ -69,7 +69,7 @@ public class MinecraftToDiscordChatMessageTest {
         try {
             TestHelper.set(future::completeExceptionally);
 
-            MockDiscordSRV.INSTANCE.eventBus().publish(
+            discordSRV.eventBus().publish(
                     new GameChatMessageReceiveEvent(
                             null,
                             new IPlayer() {
@@ -86,7 +86,7 @@ public class MinecraftToDiscordChatMessageTest {
 
                                 @Override
                                 public DiscordSRV discordSRV() {
-                                    return MockDiscordSRV.INSTANCE;
+                                    return discordSRV;
                                 }
 
                                 @Override
@@ -129,7 +129,7 @@ public class MinecraftToDiscordChatMessageTest {
                                 public void runCommand(String command) {}
                             },
                             ComponentUtil.toAPI(Component.text(testMessage)),
-                            new GlobalChannel(MockDiscordSRV.INSTANCE),
+                            new GlobalChannel(discordSRV),
                             false
                     ));
 

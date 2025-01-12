@@ -1,6 +1,6 @@
 /*
  * This file is part of DiscordSRV, licensed under the GPLv3 License
- * Copyright (c) 2016-2024 Austin "Scarsz" Shapiro, Henri "Vankka" Schubin and DiscordSRV contributors
+ * Copyright (c) 2016-2025 Austin "Scarsz" Shapiro, Henri "Vankka" Schubin and DiscordSRV contributors
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -21,14 +21,12 @@ package com.discordsrv.common.abstraction.player;
 import com.discordsrv.api.component.MinecraftComponent;
 import com.discordsrv.api.placeholder.annotation.Placeholder;
 import com.discordsrv.api.placeholder.annotation.PlaceholderPrefix;
-import com.discordsrv.api.placeholder.format.FormattedText;
 import com.discordsrv.api.player.DiscordSRVPlayer;
 import com.discordsrv.common.DiscordSRV;
 import com.discordsrv.common.command.game.abstraction.sender.ICommandSender;
 import com.discordsrv.common.config.main.AvatarProviderConfig;
 import com.discordsrv.common.feature.profile.Profile;
 import com.discordsrv.common.util.ComponentUtil;
-import com.discordsrv.common.util.GamePermissionUtil;
 import com.discordsrv.common.util.UUIDUtil;
 import net.kyori.adventure.text.Component;
 import org.jetbrains.annotations.ApiStatus;
@@ -96,34 +94,6 @@ public interface IPlayer extends DiscordSRVPlayer, IOfflinePlayer, ICommandSende
         }
 
         return discordSRV().placeholderService().replacePlaceholders(avatarUrlTemplate, this);
-    }
-
-    @Nullable
-    @ApiStatus.NonExtendable
-    @Placeholder("meta_prefix")
-    default FormattedText getMetaPrefix() {
-        return GamePermissionUtil.getMetaPrefix(discordSRV(), uniqueId());
-    }
-
-    @Nullable
-    @ApiStatus.NonExtendable
-    @Placeholder("meta_suffix")
-    default FormattedText getMetaSuffix() {
-        return GamePermissionUtil.getMetaSuffix(discordSRV(), uniqueId());
-    }
-
-    @Nullable
-    @ApiStatus.NonExtendable
-    @Placeholder("prefix")
-    default Component getPrefix() {
-        return GamePermissionUtil.getPrefix(discordSRV(), uniqueId());
-    }
-
-    @Nullable
-    @ApiStatus.NonExtendable
-    @Placeholder("suffix")
-    default Component getSuffix() {
-        return GamePermissionUtil.getSuffix(discordSRV(), uniqueId());
     }
 
 }

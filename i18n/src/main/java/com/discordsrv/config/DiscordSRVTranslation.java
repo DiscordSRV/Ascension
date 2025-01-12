@@ -1,6 +1,6 @@
 /*
  * This file is part of DiscordSRV, licensed under the GPLv3 License
- * Copyright (c) 2016-2024 Austin "Scarsz" Shapiro, Henri "Vankka" Schubin and DiscordSRV contributors
+ * Copyright (c) 2016-2025 Austin "Scarsz" Shapiro, Henri "Vankka" Schubin and DiscordSRV contributors
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -18,20 +18,22 @@
 
 package com.discordsrv.config;
 
-import com.discordsrv.bukkit.config.manager.BukkitConfigManager;
-import com.discordsrv.bukkit.config.manager.BukkitConnectionConfigManager;
 import com.discordsrv.common.config.Config;
 import com.discordsrv.common.config.configurate.annotation.Untranslated;
+import com.discordsrv.common.config.configurate.manager.ConnectionConfigManager;
 import com.discordsrv.common.config.configurate.manager.abstraction.ConfigurateConfigManager;
+import com.discordsrv.common.config.configurate.manager.abstraction.ServerConfigManager;
 import com.discordsrv.common.config.configurate.manager.abstraction.TranslatedConfigManager;
+import com.discordsrv.common.config.connection.ConnectionConfig;
+import com.discordsrv.common.config.main.MainConfig;
 import com.discordsrv.common.core.logging.backend.impl.JavaLoggerImpl;
 import org.spongepowered.configurate.CommentedConfigurationNode;
 import org.spongepowered.configurate.ConfigurateException;
 import org.spongepowered.configurate.ConfigurationNode;
+import org.spongepowered.configurate.jackson.JacksonConfigurationLoader;
 import org.spongepowered.configurate.objectmapping.ObjectMapper;
 import org.spongepowered.configurate.objectmapping.meta.Processor;
 import org.spongepowered.configurate.serialize.SerializationException;
-import org.spongepowered.configurate.yaml.YamlConfigurationLoader;
 
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -48,8 +50,8 @@ public final class DiscordSRVTranslation {
     private static final Path DATA_DIRECTORY = Paths.get(".");
 
     private static final List<TranslatedConfigManager<? extends Config, ?>> CONFIGS = Arrays.asList(
-            new BukkitConfigManager(DATA_DIRECTORY),
-            new BukkitConnectionConfigManager(DATA_DIRECTORY)
+            new ServerConfigManager<MainConfig>(DATA_DIRECTORY, () -> new MainConfig() {}),
+            new ConnectionConfigManager<ConnectionConfig>(DATA_DIRECTORY, ConnectionConfig::new)
     );
 
     public static void main(String[] args) throws ConfigurateException {
@@ -103,8 +105,8 @@ public final class DiscordSRVTranslation {
             section.set(configSection);
         }
 
-        YamlConfigurationLoader.builder()
-                .path(Paths.get("i18n", "build", "source.yaml"))
+        JacksonConfigurationLoader.builder()
+                .path(Paths.get("i18n", "build", "source.json"))
                 .build()
                 .save(node);
     }

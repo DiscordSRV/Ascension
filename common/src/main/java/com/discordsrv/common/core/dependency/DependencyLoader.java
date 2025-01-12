@@ -1,6 +1,6 @@
 /*
  * This file is part of DiscordSRV, licensed under the GPLv3 License
- * Copyright (c) 2016-2024 Austin "Scarsz" Shapiro, Henri "Vankka" Schubin and DiscordSRV contributors
+ * Copyright (c) 2016-2025 Austin "Scarsz" Shapiro, Henri "Vankka" Schubin and DiscordSRV contributors
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -19,6 +19,7 @@
 package com.discordsrv.common.core.dependency;
 
 import com.discordsrv.common.DiscordSRV;
+import com.discordsrv.common.core.logging.Logger;
 import dev.vankka.dependencydownload.DependencyManager;
 import dev.vankka.dependencydownload.classloader.IsolatedClassLoader;
 import dev.vankka.dependencydownload.classpath.ClasspathAppender;
@@ -49,14 +50,23 @@ public class DependencyLoader {
         return dataDirectory.resolve("cache");
     }
 
-    public static DependencyManager fromPaths(Path dataDirectory, String[] resources) throws IOException {
-        DependencyManager dependencyManager = new DependencyManager(DependencyPathProvider.directory(resolvePath(dataDirectory)));
+    public static DependencyDownloadResource loadResource(String resourceName) throws IOException {
+        URL resource = DependencyLoader.class.getClassLoader().getResource(resourceName);
+        if (resource == null) {
+            throw new IllegalArgumentException("Could not find resource with: " + resourceName);
+        }
+
+        return DependencyDownloadResource.parse(resource);
+    }
+
+    private static DependencyManager makeManager(Logger logger, Path dataDirectory, String[] resources) throws IOException {
+        DependencyManager dependencyManager = new DependencyManager(
+                DependencyPathProvider.directory(resolvePath(dataDirectory)),
+                new DependencyDownloadLogger(logger)
+        );
+
         for (String dependencyResource : resources) {
-            URL resource = DependencyLoader.class.getClassLoader().getResource(dependencyResource);
-            if (resource == null) {
-                throw new IllegalArgumentException("Could not find resource with: " + dependencyResource);
-            }
-            dependencyManager.loadResource(DependencyDownloadResource.parse(resource));
+            dependencyManager.loadResource(loadResource(dependencyResource));
         }
 
         return dependencyManager;
@@ -66,13 +76,8 @@ public class DependencyLoader {
     private final Executor executor;
     private final ClasspathAppender classpathAppender;
 
-
-    public DependencyLoader(DiscordSRV discordSRV, String[] paths) throws IOException {
-        this(discordSRV, fromPaths(discordSRV.dataDirectory(), paths));
-    }
-
-    public DependencyLoader(Path dataDirectory, Executor executor, ClasspathAppender classpathAppender, String[] paths) throws IOException {
-        this(executor, classpathAppender, fromPaths(dataDirectory, paths));
+    public DependencyLoader(Logger logger, Path dataDirectory, Executor executor, ClasspathAppender classpathAppender, String[] paths) throws IOException {
+        this(executor, classpathAppender, makeManager(logger, dataDirectory, paths));
     }
 
     public DependencyLoader(DiscordSRV discordSRV, DependencyManager dependencyManager) {
@@ -80,9 +85,9 @@ public class DependencyLoader {
     }
 
     public DependencyLoader(Executor executor, ClasspathAppender classpathAppender, DependencyManager dependencyManager) {
-        this.dependencyManager = dependencyManager;
         this.executor = executor;
         this.classpathAppender = classpathAppender;
+        this.dependencyManager = dependencyManager;
     }
 
     public DependencyManager getDependencyManager() {
@@ -99,21 +104,9 @@ public class DependencyLoader {
         return downloadRelocateAndLoad(classpathAppender);
     }
 
-    public CompletableFuture<Void> downloadRelocateAndLoad(ClasspathAppender appender) {
-        return download().thenCompose(v -> relocateAndLoad(true, appender));
-    }
-
-    public CompletableFuture<Void> download() {
-        return dependencyManager.downloadAll(executor, REPOSITORIES);
-    }
-
-    public CompletableFuture<Void> relocateAndLoad(boolean useExecutor) {
-        return relocateAndLoad(useExecutor, classpathAppender);
-    }
-
-    public CompletableFuture<Void> relocateAndLoad(boolean useExecutor, ClasspathAppender appender) {
-        Executor executorToUse = useExecutor ? executor : null;
-        return dependencyManager.relocateAll(executorToUse)
-                .thenCompose(v -> dependencyManager.loadAll(executorToUse, appender));
+    private CompletableFuture<Void> downloadRelocateAndLoad(ClasspathAppender appender) {
+        return dependencyManager.downloadAll(executor, REPOSITORIES)
+                .thenCompose(v -> dependencyManager.relocateAll(executor))
+                .thenCompose(v -> dependencyManager.loadAll(executor, appender));
     }
 }

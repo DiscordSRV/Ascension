@@ -1,6 +1,6 @@
 /*
  * This file is part of DiscordSRV, licensed under the GPLv3 License
- * Copyright (c) 2016-2024 Austin "Scarsz" Shapiro, Henri "Vankka" Schubin and DiscordSRV contributors
+ * Copyright (c) 2016-2025 Austin "Scarsz" Shapiro, Henri "Vankka" Schubin and DiscordSRV contributors
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -19,47 +19,107 @@
 package com.discordsrv.bukkit.command.game.handler;
 
 import com.discordsrv.bukkit.BukkitDiscordSRV;
+import com.discordsrv.bukkit.command.game.PaperCommandMap;
+import com.discordsrv.bukkit.command.game.sender.BukkitCommandSender;
 import com.discordsrv.common.command.game.abstraction.command.GameCommand;
-import org.bukkit.command.Command;
-import org.bukkit.command.CommandSender;
-import org.bukkit.command.PluginCommand;
-import org.bukkit.command.TabCompleter;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
+import com.discordsrv.common.command.game.abstraction.handler.BasicCommandHandler;
+import com.discordsrv.common.command.game.abstraction.handler.ICommandHandler;
+import com.discordsrv.common.command.game.abstraction.sender.ICommandSender;
+import com.discordsrv.common.core.logging.Logger;
+import com.discordsrv.common.core.logging.NamedLogger;
+import org.bukkit.command.*;
+import org.bukkit.entity.Player;
 
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
+import java.util.Locale;
 
-public class BukkitBasicCommandHandler extends AbstractBukkitCommandExecutor implements TabCompleter {
+public class BukkitBasicCommandHandler extends BasicCommandHandler implements ICommandHandler, TabExecutor {
+
+    protected final BukkitDiscordSRV discordSRV;
+    protected final Logger logger;
 
     public BukkitBasicCommandHandler(BukkitDiscordSRV discordSRV) {
-        super(discordSRV);
+        this.discordSRV = discordSRV;
+        this.logger = new NamedLogger(discordSRV, "COMMAND_HANDLER");
     }
 
-    @Override
-    public @Nullable List<String> onTabComplete(
-            @NotNull CommandSender sender,
-            @NotNull Command command,
-            @NotNull String alias,
-            @NotNull String[] args
-    ) {
-        return handler.suggest(sender(sender), alias, Arrays.asList(args));
+    protected ICommandSender sender(CommandSender commandSender) {
+        if (commandSender instanceof Player) {
+            return discordSRV.playerProvider().player((Player) commandSender);
+        } else if (commandSender instanceof ConsoleCommandSender) {
+            return discordSRV.console();
+        } else {
+            return new BukkitCommandSender(discordSRV, commandSender, () -> discordSRV.audiences().sender(commandSender));
+        }
+    }
+
+    protected Command command(GameCommand gameCommand) {
+        String label = gameCommand.getLabel();
+        PluginCommand pluginCommand = discordSRV.plugin().getCommand(label);
+        if (pluginCommand != null) {
+            pluginCommand.setExecutor(this);
+            pluginCommand.setTabCompleter(this);
+            return pluginCommand;
+        }
+
+        if (PaperCommandMap.IS_SUPPORTED) {
+            BukkitCommand bukkitCommand = new BukkitCommand(label);
+            PaperCommandMap.getCommandMap(discordSRV).register(label, bukkitCommand);
+            return bukkitCommand;
+        }
+
+        return null;
+    }
+
+    protected void registerPluginCommand(Command command, GameCommand gameCommand) {
+        logger.debug("Registering command " + gameCommand.getLabel() + " with basic handler");
     }
 
     @Override
     public void registerCommand(GameCommand command) {
+        super.registerCommand(command);
         discordSRV.scheduler().runOnMainThread(() -> {
-            PluginCommand pluginCommand = command(command);
-            if (pluginCommand == null) {
+            Command bukkitCommand = command(command);
+            if (bukkitCommand == null) {
                 logger.error("Failed to create command " + command.getLabel());
                 return;
             }
 
-            logger.debug("Registering command " + command.getLabel() + " with basic handler");
-
-            handler.registerCommand(command);
-            pluginCommand.setExecutor(this);
-            pluginCommand.setTabCompleter(this);
+            registerPluginCommand(bukkitCommand, command);
         });
+    }
+
+    private static List<String> aliases(BukkitDiscordSRV discordSRV, String name) {
+        return Collections.singletonList(discordSRV.plugin().getName().toLowerCase(Locale.ROOT) + ":" + name);
+    }
+
+    @Override
+    public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
+        execute(sender(sender), label, Arrays.asList(args));
+        return true;
+    }
+
+    @Override
+    public List<String> onTabComplete(CommandSender sender, Command command, String alias, String[] args) {
+        return suggest(sender(sender), alias, Arrays.asList(args));
+    }
+
+    public class BukkitCommand extends Command {
+
+        protected BukkitCommand(String name) {
+            super(name, null, null, aliases(discordSRV, name));
+        }
+
+        @Override
+        public boolean execute(CommandSender sender, String label, String[] args) {
+            return BukkitBasicCommandHandler.this.onCommand(sender, this, label, args);
+        }
+
+        @Override
+        public List<String> tabComplete(CommandSender sender, String alias, String[] args) throws IllegalArgumentException {
+            return BukkitBasicCommandHandler.this.onTabComplete(sender, this, alias, args);
+        }
     }
 }

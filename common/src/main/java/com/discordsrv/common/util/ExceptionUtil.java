@@ -1,6 +1,6 @@
 /*
  * This file is part of DiscordSRV, licensed under the GPLv3 License
- * Copyright (c) 2016-2024 Austin "Scarsz" Shapiro, Henri "Vankka" Schubin and DiscordSRV contributors
+ * Copyright (c) 2016-2025 Austin "Scarsz" Shapiro, Henri "Vankka" Schubin and DiscordSRV contributors
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -28,7 +28,7 @@ public final class ExceptionUtil {
      * @param throwable the throwable
      * @return the same throwable with the stacktrace removed
      */
-    public static Throwable minifyException(Throwable throwable) {
+    public static <T extends Throwable> T minifyException(T throwable) {
         throwable.setStackTrace(new StackTraceElement[0]);
         return throwable;
     }

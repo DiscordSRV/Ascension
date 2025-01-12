@@ -1,6 +1,6 @@
 /*
  * This file is part of DiscordSRV, licensed under the GPLv3 License
- * Copyright (c) 2016-2024 Austin "Scarsz" Shapiro, Henri "Vankka" Schubin and DiscordSRV contributors
+ * Copyright (c) 2016-2025 Austin "Scarsz" Shapiro, Henri "Vankka" Schubin and DiscordSRV contributors
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -18,7 +18,8 @@
 
 package com.discordsrv.common.feature.channel.global;
 
-import com.discordsrv.api.eventbus.EventPriority;
+import com.discordsrv.api.channel.GameChannel;
+import com.discordsrv.api.eventbus.EventPriorities;
 import com.discordsrv.api.eventbus.Subscribe;
 import com.discordsrv.api.events.channel.GameChannelLookupEvent;
 import com.discordsrv.common.DiscordSRV;
@@ -30,13 +31,9 @@ public class GlobalChannelLookupModule extends AbstractModule<DiscordSRV> {
         super(discordSRV);
     }
 
-    @Subscribe(priority = EventPriority.LATE)
+    @Subscribe(priority = EventPriorities.LATE)
     public void onGameChannelLookup(GameChannelLookupEvent event) {
-        if (event.getChannelName().equalsIgnoreCase("global")) {
-            if (checkProcessor(event)) {
-                return;
-            }
-
+        if (event.getChannelName().equalsIgnoreCase(GameChannel.DEFAULT_NAME)) {
             event.process(new GlobalChannel(discordSRV));
         }
     }

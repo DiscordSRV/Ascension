@@ -17,7 +17,7 @@ allprojects {
     repositories {
         exclusiveContent {
             forRepository {
-                maven { url 'https://oss.sonatype.org/content/repositories/snapshots/' }
+                maven { url = 'https://oss.sonatype.org/content/repositories/snapshots/' }
             }
             filter {
                 includeGroup 'net.md-5'

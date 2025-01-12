@@ -1,6 +1,6 @@
 /*
  * This file is part of DiscordSRV, licensed under the GPLv3 License
- * Copyright (c) 2016-2024 Austin "Scarsz" Shapiro, Henri "Vankka" Schubin and DiscordSRV contributors
+ * Copyright (c) 2016-2025 Austin "Scarsz" Shapiro, Henri "Vankka" Schubin and DiscordSRV contributors
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -29,8 +29,9 @@ public class ConfigsLoadOnEnableTest {
 
     @Test
     public void configsLoaded() {
-        Assertions.assertTrue(MockDiscordSRV.INSTANCE.configLoaded, "Config loaded");
-        Assertions.assertTrue(MockDiscordSRV.INSTANCE.connectionConfigLoaded, "Connection config loaded");
-        Assertions.assertTrue(MockDiscordSRV.INSTANCE.messagesConfigLoaded, "Messages config loaded");
+        MockDiscordSRV discordSRV = MockDiscordSRV.getInstance();
+        Assertions.assertTrue(discordSRV.configLoaded, "Config loaded");
+        Assertions.assertTrue(discordSRV.connectionConfigLoaded, "Connection config loaded");
+        Assertions.assertTrue(discordSRV.messagesConfigLoaded, "Messages config loaded");
     }
 }

@@ -1,6 +1,6 @@
 /*
  * This file is part of DiscordSRV, licensed under the GPLv3 License
- * Copyright (c) 2016-2024 Austin "Scarsz" Shapiro, Henri "Vankka" Schubin and DiscordSRV contributors
+ * Copyright (c) 2016-2025 Austin "Scarsz" Shapiro, Henri "Vankka" Schubin and DiscordSRV contributors
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -40,7 +40,7 @@ public class MinecraftToDiscordChatConfig implements IMessageConfig {
 
     @Untranslated(Untranslated.Type.VALUE)
     public SendableDiscordMessage.Builder format = SendableDiscordMessage.builder()
-            .setWebhookUsername("%player_meta_prefix|player_prefix%%player_display_name|player_name%%player_meta_suffix|player_suffix%")
+            .setWebhookUsername("%player_prefix%%player_display_name|player_name%%player_suffix%")
             .setWebhookAvatarUrl("%player_avatar_url%")
             .setContent("%message%");
 

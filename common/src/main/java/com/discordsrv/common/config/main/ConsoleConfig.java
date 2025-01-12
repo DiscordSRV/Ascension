@@ -1,6 +1,6 @@
 /*
  * This file is part of DiscordSRV, licensed under the GPLv3 License
- * Copyright (c) 2016-2024 Austin "Scarsz" Shapiro, Henri "Vankka" Schubin and DiscordSRV contributors
+ * Copyright (c) 2016-2025 Austin "Scarsz" Shapiro, Henri "Vankka" Schubin and DiscordSRV contributors
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -83,6 +83,19 @@ public class ConsoleConfig {
         public static class Loggers {
             public List<String> loggers = new ArrayList<>(Collections.singletonList("ExcludedLogger"));
             public boolean blacklist = true;
+        }
+
+        @Comment("Options for how to deal with exception stack traces in the console")
+        public Exceptions exceptions = new Exceptions();
+
+        public static class Exceptions {
+
+            @Comment("The time after which the exact same exception will not be forwarded to the console channel, in minutes\n"
+                    + "0 to not filter out duplicate exceptions, -1 to always filter out duplicate exceptions")
+            public int filterOutDuplicatesMinutes = 5;
+
+            @Comment("If the message alongside a exception should also be ignored when ignoring duplicate exceptions")
+            public boolean alsoBlockMessages = true;
         }
 
     }

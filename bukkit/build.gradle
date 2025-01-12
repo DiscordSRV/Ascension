@@ -1,4 +1,8 @@
-import dev.vankka.dependencydownload.task.GenerateDependencyDownloadResourceTask
+allprojects {
+    repositories {
+        maven { url = 'https://repo.papermc.io/repository/maven-public/' }
+    }
+}
 
 [
         'net.kyori',
@@ -15,73 +19,28 @@ shadowJar {
 
 apply from: rootProject.file('buildscript/runtime.gradle')
 
-configurations {
-    commodore
-    compileOnly.extendsFrom commodore
-}
-
-tasks.register('generateResourceForCommodore', GenerateDependencyDownloadResourceTask) {
-    var conf = configurations.commodore
-    configuration = conf
-    file = 'dependencies/' + conf.name + '.txt'
-}
-
-allprojects {
-    repositories {
-        maven { url 'https://repo.papermc.io/repository/maven-public/' }
-        maven { url 'https://nexus.scarsz.me/content/groups/public/' }
-        maven { url 'https://repo.essentialsx.net/releases/' }
-    }
-}
-
 dependencies {
     // API
     annotationProcessor project(':api')
-
-    // Platform
-    compileOnly(libs.bukkit)
 
     // Common
     compileOnly project(':common')
     implementation project(path: ':common', configuration: 'runtimeElements')
 
-    // Folia, modern bukkit
-    api project(':bukkit:bukkit-folia')
-    api project(':bukkit:bukkit-paper')
-    api project(':bukkit:bukkit-spigot')
-    api project(':bukkit:bukkit-bukkit1_12')
+    // Platform
+    compileOnly(libs.bukkit.minimum)
 
-    // DependencyDownload
-    implementation(libs.mcdependencydownload.bukkit.bootstrap)
+    // Compatability with newer versions and Folia
+    api project(':bukkit:bukkit-shared')
+    implementation(project(':bukkit:compat:bukkit-compat-paper'))
+    implementation(project(':bukkit:compat:bukkit-compat-folia'))
+    implementation(project(':bukkit:compat:bukkit-compat-spigot'))
+    implementation(project(':bukkit:compat:bukkit-compat-bukkit1_12'))
 
     // Adventure
     runtimeDownloadApi(libs.adventure.api)
     runtimeDownloadApi(libs.adventure.platform.bukkit)
 
-    // Commodore
-    commodore(libs.commodore) {
-        // We only use commodore when it's included in the server, so we don't want to download it
-        exclude module: 'brigadier'
-        // We don't use the commodore file format
-        exclude module: 'commodore-file'
-    }
-
-    // Integrations
-    compileOnly(libs.vaultapi)
-    compileOnly(libs.placeholderapi.bukkit)
-
-    // Chat Integrations
-    compileOnly(libs.chatty)
-    compileOnly(libs.griefprevention)
-    compileOnly(libs.lunachat)
-    compileOnly(libs.bungeecord.chat) // Required for LunaChatIntegration
-    compileOnly(libs.mcmmo)
-    compileOnly(libs.townychat)
-    compileOnly(libs.venturechat)
-    compileOnly(libs.essentialsx)
-}
-
-
-processResources {
-    dependsOn(generateResourceForCommodore)
+    // DependencyDownload
+    api(libs.mcdependencydownload.bukkit.bootstrap)
 }

@@ -1,6 +1,6 @@
 /*
  * This file is part of DiscordSRV, licensed under the GPLv3 License
- * Copyright (c) 2016-2024 Austin "Scarsz" Shapiro, Henri "Vankka" Schubin and DiscordSRV contributors
+ * Copyright (c) 2016-2025 Austin "Scarsz" Shapiro, Henri "Vankka" Schubin and DiscordSRV contributors
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -18,22 +18,20 @@
 
 package com.discordsrv.bukkit;
 
-import com.discordsrv.common.abstraction.bootstrap.IBootstrap;
 import com.discordsrv.common.abstraction.bootstrap.LifecycleManager;
 import com.discordsrv.common.core.logging.Logger;
 import com.discordsrv.common.core.logging.backend.impl.JavaLoggerImpl;
 import dev.vankka.dependencydownload.classpath.ClasspathAppender;
 import dev.vankka.dependencydownload.jarinjar.classloader.JarInJarClassLoader;
 import dev.vankka.mcdependencydownload.bukkit.bootstrap.BukkitBootstrap;
-import org.bukkit.Server;
 import org.bukkit.plugin.java.JavaPlugin;
 
 import java.io.IOException;
-import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
 
-public class DiscordSRVBukkitBootstrap extends BukkitBootstrap implements IBootstrap {
+@SuppressWarnings("unused") // Used in BukkitLoader via reflection
+public class DiscordSRVBukkitBootstrap extends BukkitBootstrap implements IBukkitBootstrap {
 
     private final Logger logger;
     private final LifecycleManager lifecycleManager;
@@ -52,7 +50,7 @@ public class DiscordSRVBukkitBootstrap extends BukkitBootstrap implements IBoots
         );
     }
 
-    private static String[] getDependencyResources() {
+    private static List<String> getDependencyResources() {
         List<String> resources = new ArrayList<>();
         resources.add("dependencies/runtimeDownload-bukkit.txt");
 
@@ -63,12 +61,12 @@ public class DiscordSRVBukkitBootstrap extends BukkitBootstrap implements IBoots
             // CommandDispatcher not present, don't need to bother downloading commodore
         }
 
-        return resources.toArray(new String[0]);
+        return resources;
     }
 
     @Override
     public void onEnable() {
-        lifecycleManager.loadAndEnable(() -> this.discordSRV = new BukkitDiscordSRV(this));
+        lifecycleManager.loadAndEnable(() -> this.discordSRV = new BukkitDiscordSRVImpl(this));
         if (discordSRV == null) return;
 
         discordSRV.scheduler().runOnMainThreadLaterInTicks(() -> discordSRV.runServerStarted(), 1);
@@ -105,16 +103,6 @@ public class DiscordSRVBukkitBootstrap extends BukkitBootstrap implements IBoots
     }
 
     @Override
-    public Path dataDirectory() {
-        return getPlugin().getDataFolder().toPath();
-    }
-
-    @Override
-    public String platformVersion() {
-        Server server = getPlugin().getServer();
-        return server.getName() + " version " + server.getVersion() + " (implementation version " + server.getBukkitVersion() + ")";
-    }
-
     public List<Runnable> mainThreadTasksForDisable() {
         return mainThreadTasksForDisable;
     }

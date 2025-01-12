@@ -1,6 +1,6 @@
 /*
  * This file is part of DiscordSRV, licensed under the GPLv3 License
- * Copyright (c) 2016-2024 Austin "Scarsz" Shapiro, Henri "Vankka" Schubin and DiscordSRV contributors
+ * Copyright (c) 2016-2025 Austin "Scarsz" Shapiro, Henri "Vankka" Schubin and DiscordSRV contributors
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -155,7 +155,7 @@ public class ReloadCommand implements GameCommandExecutor, GameCommandSuggester 
         if (discordSRV.status().isStartupError()) {
             // If startup error, use all flags
             parts.clear();
-            flags.addAll(ReloadFlag.ALL);
+            flags.addAll(ReloadFlag.LOAD);
         }
 
         for (String part : parts) {
@@ -190,7 +190,7 @@ public class ReloadCommand implements GameCommandExecutor, GameCommandSuggester 
         String last = currentInput.substring(lastSpace);
         String beforeLastSpace = currentInput.substring(0, lastSpace);
 
-        List<String> options = ReloadFlag.ALL.stream()
+        List<String> options = Arrays.stream(ReloadFlag.values())
                 .map(flag -> flag.name().toLowerCase(Locale.ROOT))
                 .filter(flag -> flag.startsWith(last))
                 .collect(Collectors.toList());

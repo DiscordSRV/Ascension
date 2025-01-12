@@ -1,0 +1,12 @@
+java {
+    disableAutoTargetJvm() // Requires Java 21, we target 8
+}
+
+dependencies {
+    api(project(':bukkit:bukkit-shared'))
+
+    compileOnly(libs.paperapi.latest) {
+        // v2
+        exclude module: 'slf4j-api'
+    }
+}

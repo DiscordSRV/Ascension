@@ -1,6 +1,6 @@
 /*
  * This file is part of the DiscordSRV API, licensed under the MIT License
- * Copyright (c) 2016-2024 Austin "Scarsz" Shapiro, Henri "Vankka" Schubin and DiscordSRV contributors
+ * Copyright (c) 2016-2025 Austin "Scarsz" Shapiro, Henri "Vankka" Schubin and DiscordSRV contributors
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -30,9 +30,11 @@ import java.util.Collections;
 import java.util.LinkedHashSet;
 import java.util.Set;
 import java.util.function.Predicate;
+import java.util.stream.Collectors;
 
 public enum ReloadFlag {
     CONFIG(false),
+    CONFIG_UPGRADE(false),
     LINKED_ACCOUNT_PROVIDER(false),
     STORAGE(true),
     DISCORD_CONNECTION(DiscordSRVApi::isReady),
@@ -41,8 +43,8 @@ public enum ReloadFlag {
     // Bukkit only
     TRANSLATIONS(false);
 
-    public static final Set<ReloadFlag> ALL = Collections.unmodifiableSet(
-            new LinkedHashSet<>(Arrays.asList(values())));
+    public static final Set<ReloadFlag> LOAD = Collections.unmodifiableSet(
+            Arrays.stream(values()).filter(flag -> flag != ReloadFlag.CONFIG_UPGRADE).collect(Collectors.toSet()));
     public static final Set<ReloadFlag> DEFAULT_FLAGS = Collections.unmodifiableSet(
             new LinkedHashSet<>(Collections.singletonList(CONFIG)));
 

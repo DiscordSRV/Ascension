@@ -1,6 +1,6 @@
 /*
  * This file is part of the DiscordSRV API, licensed under the MIT License
- * Copyright (c) 2016-2024 Austin "Scarsz" Shapiro, Henri "Vankka" Schubin and DiscordSRV contributors
+ * Copyright (c) 2016-2025 Austin "Scarsz" Shapiro, Henri "Vankka" Schubin and DiscordSRV contributors
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -25,7 +25,7 @@ package com.discordsrv.api.events.message.receive.game;
 
 import com.discordsrv.api.channel.GameChannel;
 import com.discordsrv.api.component.MinecraftComponent;
-import com.discordsrv.api.eventbus.EventPriority;
+import com.discordsrv.api.eventbus.EventPriorities;
 import com.discordsrv.api.events.PlayerEvent;
 import com.discordsrv.api.player.DiscordSRVPlayer;
 import org.jetbrains.annotations.NotNull;
@@ -33,7 +33,7 @@ import org.jetbrains.annotations.Nullable;
 
 /**
  * Indicates that a leave message was received and will be processed
- * at {@link EventPriority#DEFAULT} unless cancelled or processed by a 3rd party.
+ * at {@link EventPriorities#DEFAULT} unless cancelled or processed by a 3rd party.
  */
 public class LeaveMessageReceiveEvent extends AbstractGameMessageReceiveEvent implements PlayerEvent {
 
@@ -44,7 +44,7 @@ public class LeaveMessageReceiveEvent extends AbstractGameMessageReceiveEvent im
     public LeaveMessageReceiveEvent(
             @Nullable Object triggeringEvent,
             @NotNull DiscordSRVPlayer player,
-            @NotNull MinecraftComponent message,
+            @Nullable MinecraftComponent message,
             @Nullable GameChannel gameChannel,
             boolean cancelled) {
         super(triggeringEvent, cancelled);

@@ -1,6 +1,6 @@
 /*
  * This file is part of the DiscordSRV API, licensed under the MIT License
- * Copyright (c) 2016-2024 Austin "Scarsz" Shapiro, Henri "Vankka" Schubin and DiscordSRV contributors
+ * Copyright (c) 2016-2025 Austin "Scarsz" Shapiro, Henri "Vankka" Schubin and DiscordSRV contributors
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -24,7 +24,7 @@
 package com.discordsrv.api.events.channel;
 
 import com.discordsrv.api.channel.GameChannel;
-import com.discordsrv.api.eventbus.EventPriority;
+import com.discordsrv.api.eventbus.EventPriorities;
 import com.discordsrv.api.events.Processable;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -32,7 +32,7 @@ import org.jetbrains.annotations.Nullable;
 /**
  * This event is used to lookup {@link GameChannel}s by their name (and optionally plugin name).
  * This is also used to determine which plugin's channel should take priority when multiple plugins
- * define channels with the same name ({@link EventPriority}).
+ * define channels with the same name ({@link EventPriorities}).
  *
  * @see #isDefault()
  */

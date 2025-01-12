@@ -1,6 +1,6 @@
 /*
  * This file is part of DiscordSRV, licensed under the GPLv3 License
- * Copyright (c) 2016-2024 Austin "Scarsz" Shapiro, Henri "Vankka" Schubin and DiscordSRV contributors
+ * Copyright (c) 2016-2025 Austin "Scarsz" Shapiro, Henri "Vankka" Schubin and DiscordSRV contributors
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -53,6 +53,8 @@ public interface PlayerProvider<T extends IPlayer> extends IPlayerProvider {
      */
     @NotNull
     Collection<T> allPlayers();
+
+    void loadAllProfilesAsync();
 
     CompletableFuture<UUID> lookupUUIDForUsername(String username);
 

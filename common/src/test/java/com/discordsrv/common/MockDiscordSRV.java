@@ -1,6 +1,6 @@
 /*
  * This file is part of DiscordSRV, licensed under the GPLv3 License
- * Copyright (c) 2016-2024 Austin "Scarsz" Shapiro, Henri "Vankka" Schubin and DiscordSRV contributors
+ * Copyright (c) 2016-2025 Austin "Scarsz" Shapiro, Henri "Vankka" Schubin and DiscordSRV contributors
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -56,11 +56,32 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicBoolean;
+
+import static org.junit.jupiter.api.Assertions.fail;
 
 @SuppressWarnings("ConstantConditions")
 public class MockDiscordSRV extends AbstractDiscordSRV<IBootstrap, MainConfig, ConnectionConfig, MessagesConfig> {
 
-    public static final MockDiscordSRV INSTANCE = new MockDiscordSRV();
+    private static MockDiscordSRV INSTANCE = null;
+    private static Throwable FAILED_TO_GET_INSTANCE = null;
+    public static MockDiscordSRV getInstance() {
+        if (FAILED_TO_GET_INSTANCE != null) {
+            fail("Failed to make MockDiscordSRV instance", FAILED_TO_GET_INSTANCE);
+            assert false;
+        }
+
+        if (INSTANCE != null) {
+            return INSTANCE;
+        }
+
+        try {
+            return INSTANCE = new MockDiscordSRV();
+        } catch (Throwable t) {
+            FAILED_TO_GET_INSTANCE = t;
+            return getInstance();
+        }
+    }
 
     public boolean configLoaded = false;
     public boolean connectionConfigLoaded = false;
@@ -195,14 +216,14 @@ public class MockDiscordSRV extends AbstractDiscordSRV<IBootstrap, MainConfig, C
 
     @Override
     public ConnectionConfigManager<ConnectionConfig> connectionConfigManager() {
-        return new ConnectionConfigManager<ConnectionConfig>(this) {
+        return new ConnectionConfigManager<ConnectionConfig>(this, ConnectionConfig::new) {
             @Override
             public ConnectionConfig createConfiguration() {
                 return connectionConfig();
             }
 
             @Override
-            public void load() {
+            public void reload(boolean forceSave, AtomicBoolean anyMissingOptions) {
                 connectionConfigLoaded = true;
             }
         };
@@ -222,14 +243,14 @@ public class MockDiscordSRV extends AbstractDiscordSRV<IBootstrap, MainConfig, C
 
     @Override
     public MainConfigManager<MainConfig> configManager() {
-        return new ServerConfigManager<MainConfig>(this) {
+        return new ServerConfigManager<MainConfig>(this, () -> new MainConfig() {}) {
             @Override
             public MainConfig createConfiguration() {
                 return config();
             }
 
             @Override
-            public void load() {
+            public void reload(boolean forceSave, AtomicBoolean anyMissingOptions) {
                 configLoaded = true;
             }
         };
@@ -279,14 +300,14 @@ public class MockDiscordSRV extends AbstractDiscordSRV<IBootstrap, MainConfig, C
 
     @Override
     public MessagesConfigManager<MessagesConfig> messagesConfigManager() {
-        return new MessagesConfigManager<MessagesConfig>(null) {
+        return new MessagesConfigManager<MessagesConfig>(this, MessagesConfig::new) {
             @Override
             public MessagesConfig createConfiguration() {
                 return null;
             }
 
             @Override
-            public void load() {
+            public void reload(boolean forceSave, AtomicBoolean anyMissingOptions) {
                 messagesConfigLoaded = true;
             }
         };

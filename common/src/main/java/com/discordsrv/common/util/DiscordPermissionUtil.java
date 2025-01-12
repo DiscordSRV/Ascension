@@ -1,6 +1,6 @@
 /*
  * This file is part of DiscordSRV, licensed under the GPLv3 License
- * Copyright (c) 2016-2024 Austin "Scarsz" Shapiro, Henri "Vankka" Schubin and DiscordSRV contributors
+ * Copyright (c) 2016-2025 Austin "Scarsz" Shapiro, Henri "Vankka" Schubin and DiscordSRV contributors
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -51,6 +51,7 @@ public final class DiscordPermissionUtil {
         }
         EnumSet<Permission> missingPermissions = EnumSet.noneOf(Permission.class);
         for (Permission permission : permissions) {
+            if (permission == null) continue;
             if (!channel.getGuild().getSelfMember().hasPermission(channel, permission)) {
                 missingPermissions.add(permission);
             }
@@ -70,6 +71,7 @@ public final class DiscordPermissionUtil {
     public static EnumSet<Permission> getMissingPermissions(Guild guild, Collection<Permission> permissions) {
         EnumSet<Permission> missingPermissions = EnumSet.noneOf(Permission.class);
         for (Permission permission : permissions) {
+            if (permission == null) continue;
             if (!guild.getSelfMember().hasPermission(permission)) {
                 missingPermissions.add(permission);
             }
@@ -97,11 +99,13 @@ public final class DiscordPermissionUtil {
             }
         }
 
+        if (channel == null && permission == Permission.MANAGE_PERMISSIONS) {
+            return "Manage Roles";
+        }
+
         switch (permission) {
-            case MANAGE_CHANNEL: return "Manage Channel" + (channel != null ? "s" : "");
-            case VIEW_CHANNEL: return "View Channel" + (channel != null ? "s" : "");
-            case MANAGE_PERMISSIONS: return "Manage Permission" + (channel != null ? "s" : "");
-            case MANAGE_GUILD_EXPRESSIONS: return "Manage Expressions";
+            case MANAGE_CHANNEL: return "Manage Channel" + (channel != null ? "" : "s");
+            case VIEW_CHANNEL: return "View Channel" + (channel != null ? "" : "s");
             case CREATE_INSTANT_INVITE: return "Create Invite";
         }
 

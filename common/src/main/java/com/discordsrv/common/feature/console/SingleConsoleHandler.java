@@ -1,6 +1,6 @@
 /*
  * This file is part of DiscordSRV, licensed under the GPLv3 License
- * Copyright (c) 2016-2024 Austin "Scarsz" Shapiro, Henri "Vankka" Schubin and DiscordSRV contributors
+ * Copyright (c) 2016-2025 Austin "Scarsz" Shapiro, Henri "Vankka" Schubin and DiscordSRV contributors
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -41,6 +41,8 @@ import com.discordsrv.common.feature.console.entry.LogMessage;
 import com.discordsrv.common.feature.console.message.ConsoleMessage;
 import com.discordsrv.common.helper.TemporaryLocalData;
 import com.discordsrv.common.logging.LogLevel;
+import com.github.benmanes.caffeine.cache.Cache;
+import com.github.benmanes.caffeine.cache.Caffeine;
 import net.dv8tion.jda.api.entities.Message;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.exception.ExceptionUtils;
@@ -64,9 +66,6 @@ public class SingleConsoleHandler {
     private final Logger logger;
     private ConsoleConfig config;
     private String key;
-    private Queue<LogEntry> messageQueue;
-    private Deque<Pair<SendableDiscordMessage, Boolean>> sendQueue;
-    private Future<?> queueProcessingFuture;
     private boolean shutdown = false;
     private final AtomicLong latestChannelId = new AtomicLong(0);
 
@@ -75,8 +74,12 @@ public class SingleConsoleHandler {
     private final AtomicLong mostRecentMessageId = new AtomicLong(0);
 
     // Sending
-    private boolean sentFirstBatch = false;
+    private Future<?> queueProcessingFuture;
     private CompletableFuture<?> sendFuture;
+    private Queue<LogEntry> messageQueue;
+    private Deque<Pair<SendableDiscordMessage, Boolean>> sendQueue;
+    private boolean sentFirstBatch = false;
+    private Cache<Integer, Boolean> exceptions;
 
     // Don't annoy console users twice about using /
     private final Set<Long> warnedSlashUsageUserIds = new HashSet<>();
@@ -221,6 +224,17 @@ public class SingleConsoleHandler {
             mostRecentMessageId.set(0);
         }
 
+        int exceptionMinutes = config.appender.exceptions.filterOutDuplicatesMinutes;
+        if (exceptionMinutes != 0) {
+            Caffeine<Integer, Boolean> builder = discordSRV.caffeineBuilder();
+            if (exceptionMinutes > 0) {
+                builder = builder.expireAfterWrite(Duration.ofMinutes(exceptionMinutes));
+            }
+            this.exceptions = builder.build();
+        } else {
+            this.exceptions = null;
+        }
+
         timeQueueProcess();
     }
 
@@ -289,7 +303,7 @@ public class SingleConsoleHandler {
                 sendQueue.pollLast();
             }
 
-            logger.warning("Skipping " + remove + " log messages because the send queue is backed up");
+            logger.warning("Skipping " + remove + " console messages because the send queue is backed up");
         }
 
         if (!shutdown && !discordSRV.isReady()) {
@@ -331,7 +345,21 @@ public class SingleConsoleHandler {
                 continue;
             }
 
-            List<String> messages = formatEntry(entry, outputMode, config.appender.diffExceptions);
+            String throwable = ExceptionUtils.getStackTrace(entry.throwable());
+            if (!throwable.isEmpty() && this.exceptions != null) {
+                int hashCode = throwable.hashCode();
+                if (this.exceptions.getIfPresent(hashCode) == null) {
+                    this.exceptions.put(hashCode, true);
+                } else {
+                    if (config.appender.exceptions.alsoBlockMessages) {
+                        continue;
+                    }
+
+                    throwable = "";
+                }
+            }
+
+            List<String> messages = formatEntry(entry, throwable, outputMode, config.appender.diffExceptions);
             if (messages.size() == 1) {
                 LogMessage message = new LogMessage(entry, messages.get(0));
                 currentBuffer.add(message);
@@ -391,7 +419,7 @@ public class SingleConsoleHandler {
         sendQueue.offer(Pair.of(sendableMessage, lastEdit));
     }
 
-    private List<String> formatEntry(LogEntry entry, ConsoleConfig.OutputMode outputMode, boolean diffExceptions) {
+    private List<String> formatEntry(LogEntry entry, String throwable, ConsoleConfig.OutputMode outputMode, boolean diffExceptions) {
         int blockLength = outputMode.blockLength();
         int maximumPart = MESSAGE_MAX_LENGTH - blockLength - "\n".length();
 
@@ -431,9 +459,6 @@ public class SingleConsoleHandler {
                         )
         );
 
-        Throwable thrown = entry.throwable();
-        String throwable = thrown != null ? ExceptionUtils.getStackTrace(thrown) : StringUtils.EMPTY;
-
         if (outputMode == ConsoleConfig.OutputMode.DIFF) {
             String diff = getLogLevelDiffCharacter(entry.level());
             if (!message.isEmpty()) {
@@ -463,7 +488,7 @@ public class SingleConsoleHandler {
         // Handle log entry being longer than a message
         int totalLength = blockLength + throwable.length() + message.length();
         if (totalLength > MESSAGE_MAX_LENGTH) {
-            String remainingPart = chopOnNewlines(message, blockLength, maximumPart, formatted);
+            String remainingPart = chopOnNewlines(message + throwable, blockLength, maximumPart, formatted);
             formatted.add(remainingPart);
         } else {
             formatted.add(message + throwable);

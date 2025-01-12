@@ -1,6 +1,6 @@
 /*
  * This file is part of DiscordSRV, licensed under the GPLv3 License
- * Copyright (c) 2016-2024 Austin "Scarsz" Shapiro, Henri "Vankka" Schubin and DiscordSRV contributors
+ * Copyright (c) 2016-2025 Austin "Scarsz" Shapiro, Henri "Vankka" Schubin and DiscordSRV contributors
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -26,17 +26,22 @@ import org.spongepowered.configurate.yaml.YamlConfigurationLoader;
 
 import java.lang.reflect.Field;
 import java.nio.file.Path;
+import java.util.function.Supplier;
 
-public abstract class ConnectionConfigManager<C extends ConnectionConfig>
+public class ConnectionConfigManager<C extends ConnectionConfig>
         extends TranslatedConfigManager<C, YamlConfigurationLoader>
         implements YamlConfigLoaderProvider {
 
-    public ConnectionConfigManager(DiscordSRV discordSRV) {
+    private final Supplier<C> configSupplier;
+
+    public ConnectionConfigManager(DiscordSRV discordSRV, Supplier<C> configSupplier) {
         super(discordSRV);
+        this.configSupplier = configSupplier;
     }
 
-    protected ConnectionConfigManager(Path dataDirectory) {
+    public ConnectionConfigManager(Path dataDirectory, Supplier<C> configSupplier) {
         super(dataDirectory);
+        this.configSupplier = configSupplier;
     }
 
     @Override
@@ -47,5 +52,10 @@ public abstract class ConnectionConfigManager<C extends ConnectionConfig>
     @Override
     public String fileName() {
         return ConnectionConfig.FILE_NAME;
+    }
+
+    @Override
+    public C createConfiguration() {
+        return configSupplier.get();
     }
 }

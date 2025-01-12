@@ -1,6 +1,6 @@
 /*
  * This file is part of DiscordSRV, licensed under the GPLv3 License
- * Copyright (c) 2016-2024 Austin "Scarsz" Shapiro, Henri "Vankka" Schubin and DiscordSRV contributors
+ * Copyright (c) 2016-2025 Austin "Scarsz" Shapiro, Henri "Vankka" Schubin and DiscordSRV contributors
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -92,12 +92,15 @@ public class TemporaryLocalData {
                 return new Model();
             }
 
+            Model model;
             try (InputStream inputStream = new BufferedInputStream(Files.newInputStream(file))) {
-                return discordSRV.json().readValue(inputStream, Model.class);
+                model = discordSRV.json().readValue(inputStream, Model.class);
             } catch (IOException e) {
                 discordSRV.logger().error("Failed to load temporary local data, resetting", e);
                 return new Model();
             }
+
+            return model != null ? model : new Model();
         }
     }
 
@@ -110,7 +113,6 @@ public class TemporaryLocalData {
          * {@link com.discordsrv.common.feature.console.SingleConsoleHandler} thread rotation.
          */
         public Map<String, List<Long>> consoleThreadRotationIds = new HashMap<>();
-
 
     }
 }

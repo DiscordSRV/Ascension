@@ -1,6 +1,6 @@
 /*
  * This file is part of DiscordSRV, licensed under the GPLv3 License
- * Copyright (c) 2016-2024 Austin "Scarsz" Shapiro, Henri "Vankka" Schubin and DiscordSRV contributors
+ * Copyright (c) 2016-2025 Austin "Scarsz" Shapiro, Henri "Vankka" Schubin and DiscordSRV contributors
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -91,7 +91,7 @@ public class DiscordMessageMirroringModule extends AbstractModule<DiscordSRV> {
     }
 
     @SuppressWarnings("unchecked") // Wacky generics
-    @Subscribe
+    @Subscribe(ignoreCancelled = false)
     public <CC extends BaseChannelConfig & IChannelConfig> void onDiscordChatMessageProcessing(DiscordChatMessageReceiveEvent event) {
         if (checkCancellation(event)) {
             return;
@@ -188,41 +188,47 @@ public class DiscordMessageMirroringModule extends AbstractModule<DiscordSRV> {
                     }
                     channelIdsHandled.add(channelId);
 
+                    GuildMessageChannel channel = (GuildMessageChannel) mirrorChannel.getAsJDAMessageChannel();
+
                     MirroringConfig config = target.config;
                     MirroringConfig.AttachmentConfig attachmentConfig = config.attachments;
+                    int attachmentMaxSize = attachmentConfig.maximumSizeKb * 1000;
+
+                    boolean embedAttachments = attachmentConfig.embedAttachments;
+                    boolean attachAttachments = attachmentMaxSize >= 0;
+                    boolean hasAttachments = !attachments.isEmpty() && (embedAttachments || attachAttachments);
+
+                    String missingPermissions = DiscordPermissionUtil.missingPermissionsString(
+                            channel,
+                            Permission.VIEW_CHANNEL,
+                            Permission.MANAGE_WEBHOOKS,
+                            embedAttachments ? Permission.MESSAGE_EMBED_LINKS : null,
+                            attachAttachments ? Permission.MESSAGE_ATTACH_FILES : null
+                    );
+                    if (missingPermissions != null) {
+                        logger().error("Failed to mirror message to " + describeChannel(mirrorChannel) + ": " + missingPermissions);
+                        continue;
+                    }
 
                     SendableDiscordMessage.Builder messageBuilder = convert(event.getMessage(), mirrorChannel, config);
-                    if (!attachmentEmbed.getFields().isEmpty() && attachmentConfig.embedAttachments) {
+                    if (messageBuilder.isEmpty() && !hasAttachments) {
+                        logger().debug("Nothing to mirror to " + mirrorChannel + ", skipping");
+                        return;
+                    }
+
+                    if (embedAttachments && !attachmentEmbed.getFields().isEmpty()) {
                         messageBuilder.addEmbed(attachmentEmbed.build());
                     }
 
-                    int maxSize = attachmentConfig.maximumSizeKb * 1000;
                     List<InputStream> streams = new ArrayList<>();
-                    if (!attachments.isEmpty() && maxSize >= 0) {
+                    if (attachAttachments) {
                         attachments.forEach((attachment, bytes) -> {
-                            if (bytes != null && (maxSize == 0 || attachment.sizeBytes() <= maxSize)) {
+                            if (bytes != null && (attachmentMaxSize == 0 || attachment.sizeBytes() <= attachmentMaxSize)) {
                                 InputStream stream = new ByteArrayInputStream(bytes);
                                 streams.add(stream);
                                 messageBuilder.addAttachment(stream, attachment.fileName());
                             }
                         });
-                    }
-
-                    if (messageBuilder.isEmpty()) {
-                        logger().debug("Nothing to mirror to " + mirrorChannel + ", skipping");
-                        for (InputStream stream : streams) {
-                            try {
-                                stream.close();
-                            } catch (IOException ignored) {}
-                        }
-                        return;
-                    }
-
-                    GuildMessageChannel channel = (GuildMessageChannel) mirrorChannel.getAsJDAMessageChannel();
-                    String missingPermissions = DiscordPermissionUtil.missingPermissionsString(channel, Permission.VIEW_CHANNEL, Permission.MANAGE_WEBHOOKS);
-                    if (missingPermissions != null) {
-                        logger().error("Failed to mirror message to " + describeChannel(mirrorChannel) + ": " + missingPermissions);
-                        continue;
                     }
 
                     CompletableFuture<MirroredMessage> future =

@@ -1,6 +1,6 @@
 /*
  * This file is part of DiscordSRV, licensed under the GPLv3 License
- * Copyright (c) 2016-2024 Austin "Scarsz" Shapiro, Henri "Vankka" Schubin and DiscordSRV contributors
+ * Copyright (c) 2016-2025 Austin "Scarsz" Shapiro, Henri "Vankka" Schubin and DiscordSRV contributors
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -38,6 +38,7 @@ import dev.vankka.mcdependencydownload.velocity.classpath.VelocityClasspathAppen
 
 import java.io.IOException;
 import java.nio.file.Path;
+import java.util.Collections;
 
 @Plugin(
         id = "discordsrv",
@@ -64,7 +65,7 @@ public class DiscordSRVVelocityBootstrap implements IBootstrap {
         this.lifecycleManager = new LifecycleManager(
                 this.logger,
                 dataDirectory,
-                new String[] {"dependencies/runtimeDownload-velocity.txt"},
+                Collections.singletonList("dependencies/runtimeDownload-velocity.txt"),
                 classpathAppender
         );
         this.proxyServer = proxyServer;
