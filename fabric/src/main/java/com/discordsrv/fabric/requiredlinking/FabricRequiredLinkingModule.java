@@ -66,8 +66,8 @@ public class FabricRequiredLinkingModule extends ServerRequireLinkingModule<Fabr
     }
 
     public void register() {
+        // TODO: mixin into net.minecraft.server.PlayerManager#checkCanJoin
         ServerPlayConnectionEvents.INIT.register(this::onPlayerPreLogin);
-
     }
 
     @Override
@@ -129,7 +129,7 @@ public class FabricRequiredLinkingModule extends ServerRequireLinkingModule<Fabr
     }
 
     //
-    // Freeze - Not implemented yet
+    // Freeze - TODO: Not implemented yet
     //
 
     private final Map<UUID, Component> frozen = new ConcurrentHashMap<>();
