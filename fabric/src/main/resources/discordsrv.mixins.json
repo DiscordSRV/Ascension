@@ -3,7 +3,8 @@
   "package": "com.discordsrv.fabric.mixin",
   "compatibilityLevel": "JAVA_21",
   "mixins": [
-    "PlayerAdvancementTrackerMixin"
+    "PlayerAdvancementTrackerMixin",
+    "ban.BanCommandMixin"
   ],
   "injectors": {
     "defaultRequire": 1
