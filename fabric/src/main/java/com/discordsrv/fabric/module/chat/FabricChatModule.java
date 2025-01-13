@@ -16,16 +16,20 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package com.discordsrv.fabric.module;
+package com.discordsrv.fabric.module.chat;
 
 import com.discordsrv.api.events.message.receive.game.GameChatMessageReceiveEvent;
 import com.discordsrv.common.feature.channel.global.GlobalChannel;
 import com.discordsrv.common.util.ComponentUtil;
 import com.discordsrv.fabric.FabricDiscordSRV;
+import com.discordsrv.fabric.module.AbstractFabricModule;
 import net.fabricmc.fabric.api.message.v1.ServerMessageEvents;
+import net.kyori.adventure.platform.modcommon.MinecraftServerAudiences;
 import net.minecraft.network.message.MessageType;
 import net.minecraft.network.message.SignedMessage;
 import net.minecraft.server.network.ServerPlayerEntity;
+
+import java.util.Objects;
 
 public class FabricChatModule extends AbstractFabricModule {
     private final FabricDiscordSRV discordSRV;
@@ -45,7 +49,7 @@ public class FabricChatModule extends AbstractFabricModule {
         discordSRV.eventBus().publish(new GameChatMessageReceiveEvent(
             null,
             discordSRV.playerProvider().player(serverPlayerEntity),
-            ComponentUtil.fromPlain(signedMessage.getSignedContent()),
+            ComponentUtil.fromPlain(MinecraftServerAudiences.of(serverPlayerEntity.server).asAdventure(signedMessage).message()),
             new GlobalChannel(discordSRV),
             false
         ));

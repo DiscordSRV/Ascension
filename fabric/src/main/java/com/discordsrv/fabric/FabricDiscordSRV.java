@@ -28,7 +28,10 @@ import com.discordsrv.common.feature.messageforwarding.game.MinecraftToDiscordCh
 import com.discordsrv.fabric.config.main.FabricConfig;
 import com.discordsrv.fabric.console.FabricConsole;
 import com.discordsrv.fabric.game.handler.FabricCommandHandler;
-import com.discordsrv.fabric.module.FabricChatModule;
+import com.discordsrv.fabric.module.chat.FabricChatModule;
+import com.discordsrv.fabric.module.chat.FabricDeathModule;
+import com.discordsrv.fabric.module.chat.FabricJoinModule;
+import com.discordsrv.fabric.module.chat.FabricQuitModule;
 import com.discordsrv.fabric.player.FabricPlayerProvider;
 import com.discordsrv.fabric.plugin.FabricModManager;
 import com.discordsrv.common.AbstractDiscordSRV;
@@ -78,6 +81,9 @@ public class FabricDiscordSRV extends AbstractDiscordSRV<DiscordSRVFabricBootstr
         // Chat
         registerModule(MinecraftToDiscordChatModule::new);
         registerModule(FabricChatModule::new);
+        registerModule(FabricDeathModule::new);
+        registerModule(FabricJoinModule::new);
+        registerModule(FabricQuitModule::new);
 
     }
 
