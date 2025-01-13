@@ -29,6 +29,7 @@ import com.discordsrv.fabric.config.main.FabricConfig;
 import com.discordsrv.fabric.console.FabricConsole;
 import com.discordsrv.fabric.game.handler.FabricCommandHandler;
 import com.discordsrv.fabric.module.chat.*;
+import com.discordsrv.fabric.requiredlinking.FabricRequiredLinkingModule;
 import com.discordsrv.fabric.player.FabricPlayerProvider;
 import com.discordsrv.fabric.plugin.FabricModManager;
 import com.discordsrv.common.AbstractDiscordSRV;
@@ -83,6 +84,8 @@ public class FabricDiscordSRV extends AbstractDiscordSRV<DiscordSRVFabricBootstr
         registerModule(FabricQuitModule::new);
         registerModule(FabricAdvancementModule::new);
 
+        // Required linking
+        registerModule(FabricRequiredLinkingModule::new);
     }
 
     //TODO: Implement this method. Maybe with KnotClassloader?
