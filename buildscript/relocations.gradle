@@ -70,14 +70,6 @@
         'club.minnced',
         'org.json',
 
-        // Fabric,
-        'net.minecraft',
-        'com.mojang',
-        'me.lucko.fabric.api.permissions',
-        'net.kyori.adventure.platform.modcommon',
-        'org.spongepowered.asm',
-        'com.llamalad7.mixinextras',
-
 ].each {
     tasks.shadowJar.relocate it, 'com.discordsrv.dependencies.' + it
     tasks.generateRuntimeDownloadResourceForRuntimeDownloadOnly.relocate it, 'com.discordsrv.dependencies.' + it

@@ -15,11 +15,20 @@ processResources {
     filesMatching('**/fabric.mod.json') {
         expand 'VERSION': project.version, 'MINECRAFT_VERSION': libs.fabric.minecraft.get().version, 'LOADER_VERSION': libs.fabric.loader.get().version
     }
+    dependsOn generateRuntimeDownloadResourceForRuntimeDownloadOnly
 }
 
 shadowJar {
-    archiveBaseName = 'DiscordSRV-Fabric'
+    configurations = [project.configurations.shadow]
     mergeServiceFiles()
+}
+
+remapJar {
+    dependsOn shadowJar
+    mustRunAfter shadowJar
+    inputFile = shadowJar.archiveFile
+    archiveBaseName = 'DiscordSRV-Fabric'
+    archiveClassifier = jar.archiveClassifier
 }
 
 loom {
@@ -29,7 +38,7 @@ loom {
 repositories {
     exclusiveContent {
         forRepository {
-            maven { url 'https://maven.fabricmc.net/' }
+            maven { url = 'https://maven.fabricmc.net/' }
         }
         filter {
             includeGroup 'net.fabricmc'
@@ -42,39 +51,25 @@ dependencies {
     minecraft(libs.fabric.minecraft)
     mappings(variantOf(libs.fabric.yarn) { classifier("v2") })
     compileOnly(libs.fabric.loader)
+
+    // Fabric API
     modImplementation(libs.fabric.api)
+    modImplementation(libs.fabric.permissions.api)
+    include(libs.fabric.permissions.api)
 
     // API
     annotationProcessor project(':api')
-    implementation project(':common:common-api')
+    shadow project(':common:common-api')
 
     // Common
-    implementation project(':common')
+    shadow project(':common')
 
     // Adventure
     modImplementation(libs.adventure.platform.fabric)
+    include(libs.adventure.platform.fabric)
 
     // DependencyDownload
-    modImplementation(libs.mcdependencydownload.fabric)
-
-    // Permission API
-    modImplementation(libs.fabric.permissions.api)
-
-    // Relaying on runtime download to bring these isn't working
-    implementation(libs.configurate.yaml)
-    implementation(libs.caffeine)
-    implementation(libs.mcdiscordreserializer)
-    implementation(libs.enhancedlegacytext)
-    implementation(libs.minecraftauth.lib)
-
-    // Database
-    implementation(libs.hikaricp)
-    implementation(libs.h2)
-    implementation(libs.mysql)
-    implementation(libs.mariadb)
-
-    // Workaround for https://github.com/FabricMC/fabric-loom/issues/1020.
-    // The above plugin version workaround can introduce issues like this,
-    // where versions mismatch due to the inclusion of the plugins as libraries rather than pure plugins.
-    constraints {implementation("com.google.code.gson:gson:2.8.6")}
+    shadow(libs.mcdependencydownload.fabric) {
+        exclude module: 'fabric-loader'
+    }
 }

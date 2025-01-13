@@ -22,7 +22,6 @@ import com.discordsrv.common.DiscordSRV;
 import com.discordsrv.common.config.connection.StorageConfig;
 import com.discordsrv.common.core.storage.impl.sql.SQLStorage;
 import com.discordsrv.common.exception.StorageException;
-import com.discordsrv.common.util.ReflectionUtil;
 import dev.vankka.dependencydownload.classloader.IsolatedClassLoader;
 
 import java.io.IOException;
@@ -52,12 +51,7 @@ public class H2Storage extends SQLStorage {
         StorageConfig storageConfig = discordSRV.connectionConfig().storage;
 
         try {
-            Class<?> clazz;
-            if(ReflectionUtil.classExists("net.fabricmc.loader.api.FabricLoader")) {
-                clazz = getClass().getClassLoader().loadClass("org.h2.jdbc.JdbcConnection");
-            } else {
-                clazz = classLoader.loadClass("org.h2.jdbc.JdbcConnection");
-            }
+            Class<?> clazz = classLoader.loadClass("org.h2.jdbc.JdbcConnection");
 
             Constructor<?> constructor = clazz.getConstructor(
                     String.class, // url
