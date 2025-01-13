@@ -24,11 +24,9 @@ import com.discordsrv.common.abstraction.player.IPlayer;
 import com.discordsrv.common.util.ComponentUtil;
 import com.discordsrv.fabric.FabricDiscordSRV;
 import com.discordsrv.fabric.module.AbstractFabricModule;
-import net.kyori.adventure.text.Component;
 import net.minecraft.advancement.AdvancementEntry;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.util.Formatting;
-import org.apache.commons.lang3.text.WordUtils;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
 public class FabricAdvancementModule extends AbstractFabricModule {
