@@ -12,7 +12,7 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 @Mixin(BanCommand.class)
 public class BanCommandMixin {
 
-    @Inject(method = "ban", at = @At(value = "INVOKE", target = "Lnet/minecraft/server/BannedPlayerEntry;<init>(Lcom/mojang/authlib/GameProfile;Ljava/util/Date;Ljava/lang/String;Ljava/util/Date;Ljava/lang/String;)V"))
+    @Inject(method = "ban", at = @At(value = "INVOKE", target = "Lnet/minecraft/server/BannedPlayerList;add(Lnet/minecraft/server/ServerConfigEntry;)V", shift = At.Shift.AFTER))
     private static void ban(CallbackInfoReturnable<Integer> cir, @Local GameProfile gameProfile) {
         FabricBanModule.onBan(gameProfile);
     }
