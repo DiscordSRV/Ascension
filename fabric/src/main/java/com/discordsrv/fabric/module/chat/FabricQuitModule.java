@@ -20,23 +20,16 @@ package com.discordsrv.fabric.module.chat;
 
 import com.discordsrv.api.component.MinecraftComponent;
 import com.discordsrv.api.events.message.receive.game.LeaveMessageReceiveEvent;
-import com.discordsrv.api.player.DiscordSRVPlayer;
 import com.discordsrv.common.util.ComponentUtil;
 import com.discordsrv.fabric.FabricDiscordSRV;
 import com.discordsrv.fabric.module.AbstractFabricModule;
 import com.discordsrv.fabric.player.FabricPlayer;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayConnectionEvents;
-import net.kyori.adventure.platform.modcommon.MinecraftServerAudiences;
-import net.kyori.adventure.text.Component;
-import net.kyori.adventure.translation.GlobalTranslator;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.network.ServerPlayNetworkHandler;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.text.Text;
 import net.minecraft.util.Formatting;
-import net.minecraft.util.Identifier;
-
-import java.util.Locale;
 
 public class FabricQuitModule extends AbstractFabricModule {
     private final FabricDiscordSRV discordSRV;
@@ -47,7 +40,6 @@ public class FabricQuitModule extends AbstractFabricModule {
     }
 
     public void register() {
-        // First phase
         ServerPlayConnectionEvents.DISCONNECT.register(this::onDisconnect);
     }
 

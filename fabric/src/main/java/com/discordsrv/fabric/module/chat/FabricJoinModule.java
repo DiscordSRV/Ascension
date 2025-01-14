@@ -21,16 +21,12 @@ package com.discordsrv.fabric.module.chat;
 import com.discordsrv.api.component.MinecraftComponent;
 import com.discordsrv.api.events.message.receive.game.JoinMessageReceiveEvent;
 import com.discordsrv.api.player.DiscordSRVPlayer;
-import com.discordsrv.common.feature.bansync.BanSyncModule;
 import com.discordsrv.common.util.ComponentUtil;
 import com.discordsrv.fabric.FabricDiscordSRV;
 import com.discordsrv.fabric.module.AbstractFabricModule;
 import com.discordsrv.fabric.requiredlinking.FabricRequiredLinkingModule;
 import net.fabricmc.fabric.api.networking.v1.PacketSender;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayConnectionEvents;
-import net.kyori.adventure.platform.modcommon.MinecraftServerAudiences;
-import net.kyori.adventure.text.Component;
-import net.kyori.adventure.translation.GlobalTranslator;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.network.ServerPlayNetworkHandler;
 import net.minecraft.server.network.ServerPlayerEntity;
@@ -38,7 +34,6 @@ import net.minecraft.text.MutableText;
 import net.minecraft.text.Text;
 import net.minecraft.util.Formatting;
 
-import java.util.Locale;
 import java.util.Objects;
 
 public class FabricJoinModule extends AbstractFabricModule {
@@ -58,14 +53,14 @@ public class FabricJoinModule extends AbstractFabricModule {
         if (!enabled) return;
 
         FabricRequiredLinkingModule module = discordSRV.getModule(FabricRequiredLinkingModule.class);
-        if(module != null && !module.isLoginCancelled(serverPlayNetworkHandler.player.getUuid())) {
+        if(module != null && module.isLoginCancelled(serverPlayNetworkHandler.player.getUuid())) {
             module.removeLoginCancelled(serverPlayNetworkHandler.player.getUuid());
             return;
         }
 
         ServerPlayerEntity playerEntity = serverPlayNetworkHandler.player;
         MinecraftComponent component = getJoinMessage(playerEntity);
-        boolean firstJoin = !Objects.requireNonNull(minecraftServer.getUserCache()).findByName(serverPlayNetworkHandler.player.getGameProfile().getName()).isPresent();
+        boolean firstJoin = Objects.requireNonNull(minecraftServer.getUserCache()).findByName(serverPlayNetworkHandler.player.getGameProfile().getName()).isEmpty();
 
         DiscordSRVPlayer player = discordSRV.playerProvider().player(playerEntity);
         discordSRV.eventBus().publish(
