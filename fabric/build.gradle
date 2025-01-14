@@ -8,7 +8,8 @@ configurations.all {
 }
 
 java {
-    disableAutoTargetJvm() // Requires Java 21, we target 8
+    sourceCompatibility = JavaVersion.VERSION_21
+    targetCompatibility = JavaVersion.VERSION_21
 }
 
 processResources {
