@@ -25,12 +25,12 @@ import com.discordsrv.common.config.main.linking.ServerRequiredLinkingConfig;
 import com.discordsrv.common.feature.linking.LinkStore;
 import com.discordsrv.common.feature.linking.requirelinking.ServerRequireLinkingModule;
 import com.github.benmanes.caffeine.cache.Cache;
-import net.fabricmc.fabric.api.networking.v1.ServerPlayConnectionEvents;
+import com.mojang.authlib.GameProfile;
 import net.kyori.adventure.platform.modcommon.MinecraftServerAudiences;
 import net.kyori.adventure.text.Component;
-import net.minecraft.server.MinecraftServer;
-import net.minecraft.server.network.ServerPlayNetworkHandler;
 import net.minecraft.server.network.ServerPlayerEntity;
+import net.minecraft.text.Text;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
 import java.util.Map;
@@ -40,6 +40,7 @@ import java.util.concurrent.CopyOnWriteArrayList;
 
 
 public class FabricRequiredLinkingModule extends ServerRequireLinkingModule<FabricDiscordSRV> {
+    private static FabricRequiredLinkingModule instance;
 
     private boolean enabled = false;
     private final Cache<UUID, Boolean> linkCheckRateLimit;
@@ -50,7 +51,7 @@ public class FabricRequiredLinkingModule extends ServerRequireLinkingModule<Fabr
                 .expireAfterWrite(LinkStore.LINKING_CODE_RATE_LIMIT)
                 .build();
 
-        register();
+        instance = this;
     }
 
     @Override
@@ -65,10 +66,6 @@ public class FabricRequiredLinkingModule extends ServerRequireLinkingModule<Fabr
         this.enabled = true;
     }
 
-    public void register() {
-        // TODO: mixin into net.minecraft.server.PlayerManager#checkCanJoin
-        ServerPlayConnectionEvents.INIT.register(this::onPlayerPreLogin);
-    }
 
     @Override
     public void disable() {
@@ -77,33 +74,28 @@ public class FabricRequiredLinkingModule extends ServerRequireLinkingModule<Fabr
         this.enabled = false;
     }
 
-    private final List<UUID> loginsCancelled = new CopyOnWriteArrayList<>();
+    @Nullable
+    public static Text checkCanJoin(GameProfile profile) {
+        if (instance == null || (instance.discordSRV != null && instance.discordSRV.status() != DiscordSRV.Status.CONNECTED)) {
+            return Text.of("Currently unavailable to check link status because the server is still connecting to Discord.\n\nTry again in a minute.");
+        }
+        if (!instance.enabled) return null;
 
-    public boolean isLoginCancelled(UUID playerUUID) {
-        return loginsCancelled.contains(playerUUID);
-    }
-
-    public void removeLoginCancelled(UUID playerUUID) {
-        loginsCancelled.remove(playerUUID);
-    }
-
-    private void onPlayerPreLogin(ServerPlayNetworkHandler serverPlayNetworkHandler, MinecraftServer minecraftServer) {
-        if(!this.enabled) return;
-
-        ServerRequiredLinkingConfig config = config();
+        FabricDiscordSRV discordSRV = instance.discordSRV;
+        ServerRequiredLinkingConfig config = instance.config();
         if (!config.enabled || config.action != ServerRequiredLinkingConfig.Action.KICK) {
-            return;
+            return null;
         }
 
-        ServerPlayerEntity player = serverPlayNetworkHandler.player;
-        UUID playerUUID = player.getUuid();
-        String playerName = player.getName().getString();
+        UUID playerUUID = profile.getId();
+        String playerName = profile.getName();
 
-        Component kickReason = getBlockReason(playerUUID, playerName, true).join();
+        Component kickReason = instance.getBlockReason(playerUUID, playerName, true).join();
         if (kickReason != null) {
-            serverPlayNetworkHandler.disconnect(MinecraftServerAudiences.of(minecraftServer).asNative(kickReason));
-            loginsCancelled.add(playerUUID);
+            return MinecraftServerAudiences.of(discordSRV.getServer()).asNative(kickReason);
         }
+
+        return null;
     }
 
     @Override

@@ -4,7 +4,8 @@
   "compatibilityLevel": "JAVA_21",
   "mixins": [
     "PlayerAdvancementTrackerMixin",
-    "ban.BanCommandMixin"
+    "ban.BanCommandMixin",
+    "requiredlinking.PlayerManagerMixin"
   ],
   "injectors": {
     "defaultRequire": 1

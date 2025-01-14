@@ -24,7 +24,6 @@ import com.discordsrv.api.player.DiscordSRVPlayer;
 import com.discordsrv.common.util.ComponentUtil;
 import com.discordsrv.fabric.FabricDiscordSRV;
 import com.discordsrv.fabric.module.AbstractFabricModule;
-import com.discordsrv.fabric.requiredlinking.FabricRequiredLinkingModule;
 import net.fabricmc.fabric.api.networking.v1.PacketSender;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayConnectionEvents;
 import net.minecraft.server.MinecraftServer;
@@ -46,17 +45,10 @@ public class FabricJoinModule extends AbstractFabricModule {
 
     public void register() {
         ServerPlayConnectionEvents.JOIN.register(this::onJoin);
-
     }
 
     private void onJoin(ServerPlayNetworkHandler serverPlayNetworkHandler, PacketSender packetSender, MinecraftServer minecraftServer) {
         if (!enabled) return;
-
-        FabricRequiredLinkingModule module = discordSRV.getModule(FabricRequiredLinkingModule.class);
-        if(module != null && module.isLoginCancelled(serverPlayNetworkHandler.player.getUuid())) {
-            module.removeLoginCancelled(serverPlayNetworkHandler.player.getUuid());
-            return;
-        }
 
         ServerPlayerEntity playerEntity = serverPlayNetworkHandler.player;
         MinecraftComponent component = getJoinMessage(playerEntity);
