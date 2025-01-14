@@ -16,7 +16,7 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package com.discordsrv.fabric.game.handler;
+package com.discordsrv.fabric.command.game.handler;
 
 import com.discordsrv.fabric.FabricDiscordSRV;
 import com.discordsrv.common.command.game.abstraction.command.GameCommand;

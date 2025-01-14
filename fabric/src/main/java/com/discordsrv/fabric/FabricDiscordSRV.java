@@ -27,7 +27,7 @@ import com.discordsrv.common.config.messages.MessagesConfig;
 import com.discordsrv.common.feature.messageforwarding.game.MinecraftToDiscordChatModule;
 import com.discordsrv.fabric.config.main.FabricConfig;
 import com.discordsrv.fabric.console.FabricConsole;
-import com.discordsrv.fabric.game.handler.FabricCommandHandler;
+import com.discordsrv.fabric.command.game.handler.FabricCommandHandler;
 import com.discordsrv.fabric.module.chat.*;
 import com.discordsrv.fabric.module.ban.FabricBanModule;
 import com.discordsrv.fabric.requiredlinking.FabricRequiredLinkingModule;

@@ -20,7 +20,7 @@ package com.discordsrv.fabric.console;
 
 import com.discordsrv.fabric.FabricDiscordSRV;
 import com.discordsrv.fabric.console.executor.FabricCommandExecutorProvider;
-import com.discordsrv.fabric.game.sender.FabricCommandSender;
+import com.discordsrv.fabric.command.game.sender.FabricCommandSender;
 import com.discordsrv.common.command.game.abstraction.executor.CommandExecutorProvider;
 import com.discordsrv.common.core.logging.backend.LoggingBackend;
 import com.discordsrv.common.core.logging.backend.impl.Log4JLoggerImpl;
