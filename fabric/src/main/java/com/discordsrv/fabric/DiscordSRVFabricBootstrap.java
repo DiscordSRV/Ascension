@@ -71,7 +71,7 @@ public class DiscordSRVFabricBootstrap implements DedicatedServerModInitializer,
         });
 
         ServerLifecycleEvents.SERVER_STOPPING.register(minecraftServer -> {
-            this.discordSRV.runDisable();
+            if(this.discordSRV != null) this.discordSRV.runDisable();
         });
     }
 
