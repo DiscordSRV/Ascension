@@ -42,8 +42,8 @@
         'net.kyori.adventure.ansi',
         'net.kyori.adventure.examination',
         'net.kyori.adventure.option',
-        'net.kyori.adventure.platform',
-        'net.kyori.adventure.text.serializer',
+//        'net.kyori.adventure.platform',
+//        'net.kyori.adventure.text.serializer',
 
         // EnhancedLegacyText, MCDiscordReserializer
         'dev.vankka.enhancedlegacytext',
@@ -78,4 +78,6 @@
 shadowJar {
     // Unrelocate package, in case a platform uses something we normally relocate
     relocate('com.discordsrv.unrelocate.', '')
+//    relocate 'com.discordsrv.dependencies.net.kyori.adventure.platform.fabric.', 'net.kyori.adventure.platform.fabric'
+//    relocate 'com.discordsrv.dependencies.net.kyori.adventure.platform.modcommon.', 'net.kyori.adventure.platform.modcommon'
 }
