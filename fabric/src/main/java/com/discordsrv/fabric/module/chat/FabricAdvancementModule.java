@@ -28,7 +28,6 @@ import net.minecraft.advancement.Advancement;
 import net.minecraft.advancement.AdvancementEntry;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.util.Formatting;
-import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
 public class FabricAdvancementModule extends AbstractFabricModule {
     private final FabricDiscordSRV discordSRV;
@@ -40,21 +39,25 @@ public class FabricAdvancementModule extends AbstractFabricModule {
         instance = this;
     }
 
-    public static void onGrant(AdvancementEntry advancementEntry, String criterionName, CallbackInfoReturnable<Boolean> cir, ServerPlayerEntity owner) {
+    public static void onGrant(AdvancementEntry advancementEntry, ServerPlayerEntity owner) {
         if (instance == null || !instance.enabled) return;
 
         FabricDiscordSRV discordSRV = instance.discordSRV;
         Advancement advancement = advancementEntry.value();
-        if(advancement.name().isEmpty()) return; // Usually a crafting recipe.
-        String achievement = Formatting.strip(advancement.name().get().getString());
-        MinecraftComponent achievementName = ComponentUtil.fromPlain(achievement);
+        if(advancement.display().isEmpty() || advancement.name().isEmpty()) return; // Usually a crafting recipe.
+        String title = Formatting.strip(advancement.display().get().getTitle().getString());
+        MinecraftComponent advancementTitle = ComponentUtil.fromPlain(title);
+
+          // TODO: Add description to the event. So we can explain how the player got the advancement.
+//        String description = Formatting.strip(advancement.display().get().getDescription().getString());
+//        MinecraftComponent advancementDescription = ComponentUtil.fromPlain(description);
 
         IPlayer player = discordSRV.playerProvider().player(owner);
         discordSRV.eventBus().publish(
                 new AwardMessageReceiveEvent(
                         null,
                         player,
-                        achievementName,
+                        advancementTitle,
                         null,
                         null,
                         false

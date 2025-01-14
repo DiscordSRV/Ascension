@@ -35,6 +35,6 @@ public class PlayerAdvancementTrackerMixin {
 
     @Inject(method = "grantCriterion", at = @At(value = "INVOKE", target = "Lnet/minecraft/advancement/PlayerAdvancementTracker;onStatusUpdate(Lnet/minecraft/advancement/AdvancementEntry;)V"))
     public void onGrant(AdvancementEntry advancementEntry, String criterionName, CallbackInfoReturnable<Boolean> cir) {
-        FabricAdvancementModule.onGrant(advancementEntry, criterionName, cir, owner);
+        FabricAdvancementModule.onGrant(advancementEntry, owner);
     }
 }
