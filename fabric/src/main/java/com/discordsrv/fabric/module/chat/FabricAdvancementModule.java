@@ -24,6 +24,7 @@ import com.discordsrv.common.abstraction.player.IPlayer;
 import com.discordsrv.common.util.ComponentUtil;
 import com.discordsrv.fabric.FabricDiscordSRV;
 import com.discordsrv.fabric.module.AbstractFabricModule;
+import net.minecraft.advancement.Advancement;
 import net.minecraft.advancement.AdvancementEntry;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.util.Formatting;
@@ -43,7 +44,9 @@ public class FabricAdvancementModule extends AbstractFabricModule {
         if (instance == null || !instance.enabled) return;
 
         FabricDiscordSRV discordSRV = instance.discordSRV;
-        String achievement = Formatting.strip(advancementEntry.value().name().get().getString());
+        Advancement advancement = advancementEntry.value();
+        if(advancement.name().isEmpty()) return; // Usually a crafting recipe.
+        String achievement = Formatting.strip(advancement.name().get().getString());
         MinecraftComponent achievementName = ComponentUtil.fromPlain(achievement);
 
         IPlayer player = discordSRV.playerProvider().player(owner);
