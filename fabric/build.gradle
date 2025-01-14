@@ -24,12 +24,24 @@ shadowJar {
     mergeServiceFiles()
 }
 
+copyOutput {
+    from remapJar.archiveFile
+    into rootProject.file('jars')
+}
+
 remapJar {
     dependsOn shadowJar
     mustRunAfter shadowJar
     inputFile = shadowJar.archiveFile
     archiveBaseName = 'DiscordSRV-Fabric'
     archiveClassifier = jar.archiveClassifier
+
+    finalizedBy copyOutput // TODO: This currently adds the remapped jar to the jars folder with the shadow jar. The fix for the buildable jar was the artifacts task.
+}
+
+artifacts {
+    archives remapJar
+    shadow shadowJar
 }
 
 loom {
