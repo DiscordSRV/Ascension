@@ -46,6 +46,7 @@ artifacts {
 
 loom {
     serverOnlyMinecraftJar()
+    accessWidenerPath = file('src/main/resources/discordsrv.accesswidener')
 }
 
 repositories {

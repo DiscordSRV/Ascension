@@ -1,0 +1,7 @@
+accessWidener v1 named
+accessible method net/minecraft/server/network/ServerPlayNetworkHandler clampHorizontal (D)D
+accessible method net/minecraft/server/network/ServerPlayNetworkHandler clampVertical (D)D
+
+accessible field net/minecraft/server/network/ServerPlayNetworkHandler lastTickX D
+accessible field net/minecraft/server/network/ServerPlayNetworkHandler lastTickY D
+accessible field net/minecraft/server/network/ServerPlayNetworkHandler lastTickZ D
