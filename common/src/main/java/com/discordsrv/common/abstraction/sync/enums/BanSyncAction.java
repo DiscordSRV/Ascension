@@ -16,39 +16,9 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package com.discordsrv.common.feature.bansync.enums;
+package com.discordsrv.common.abstraction.sync.enums;
 
-import com.discordsrv.common.abstraction.sync.result.ISyncResult;
-
-public enum BanSyncResult implements ISyncResult {
-
-    // Error
-    NO_PUNISHMENT_INTEGRATION("No punishment integration"),
-    NO_DISCORD_CONNECTION("No Discord connection"),
-    GUILD_DOESNT_EXIST("Guild doesn't exist"),
-    INVALID_CONFIG("Invalid config"),
-    NOT_A_GUILD_MEMBER("User is not part of the server the role is in"),
-
-    ;
-
-    private final String format;
-
-    BanSyncResult(String format) {
-        this.format = format;
-    }
-
-    @Override
-    public boolean isError() {
-        return true;
-    }
-
-    @Override
-    public boolean isUpdate() {
-        return false;
-    }
-
-    @Override
-    public String getFormat() {
-        return format;
-    }
+public enum BanSyncAction {
+    BAN,
+    ROLE
 }
