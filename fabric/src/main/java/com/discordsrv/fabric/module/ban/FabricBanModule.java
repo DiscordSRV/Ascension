@@ -56,6 +56,7 @@ public class FabricBanModule extends AbstractFabricModule implements PunishmentM
     }
 
     public static void onBan(GameProfile gameProfile) {
+        if (instance == null) return;
         FabricDiscordSRV discordSRV = instance.discordSRV;
         BanSyncModule module = discordSRV.getModule(BanSyncModule.class);
         if (module != null) {
@@ -64,12 +65,19 @@ public class FabricBanModule extends AbstractFabricModule implements PunishmentM
         }
     }
 
+    public static void onPardon(GameProfile gameProfile) {
+        if (instance == null) return;
+        FabricDiscordSRV discordSRV = instance.discordSRV;
+        BanSyncModule module = discordSRV.getModule(BanSyncModule.class);
+        if (module != null) instance.removeBan(gameProfile.getId()).complete(null);
+    }
+
     @Override
     public CompletableFuture<@Nullable Punishment> getBan(@NotNull UUID playerUUID) {
         BannedPlayerList banList = discordSRV.getServer().getPlayerManager().getUserBanList();
 
         Optional<GameProfile> gameProfile = Objects.requireNonNull(discordSRV.getServer().getUserCache()).getByUuid(playerUUID);
-        if (!gameProfile.isPresent()) {
+        if (gameProfile.isEmpty()) {
             return CompletableFuture.completedFuture(null);
         }
 
@@ -94,11 +102,6 @@ public class FabricBanModule extends AbstractFabricModule implements PunishmentM
             @NotNull MinecraftComponent punisher
     ) {
         try {
-            String reasonLegacy = reason != null ? ComponentUtil.fromAPI(reason).toString() : null;
-            String punisherLegacy = ComponentUtil.fromAPI(punisher).toString();
-
-            BannedPlayerList banList = discordSRV.getServer().getPlayerManager().getUserBanList();
-
             discordSRV.getServer().getPlayerManager().getUserBanList().add(new BannedPlayerEntry(
                     discordSRV.getServer().getUserCache().getByUuid(playerUUID).get(),
                     null,
@@ -123,7 +126,7 @@ public class FabricBanModule extends AbstractFabricModule implements PunishmentM
         BannedPlayerList banList = discordSRV.getServer().getPlayerManager().getUserBanList();
 
         Optional<GameProfile> gameProfile = Objects.requireNonNull(discordSRV.getServer().getUserCache()).getByUuid(playerUUID);
-        if (!gameProfile.isPresent()) {
+        if (gameProfile.isEmpty()) {
             return CompletableFuture.completedFuture(null);
         }
 

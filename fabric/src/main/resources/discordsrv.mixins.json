@@ -5,6 +5,7 @@
   "mixins": [
     "PlayerAdvancementTrackerMixin",
     "ban.BanCommandMixin",
+    "ban.PardonCommandMixin",
     "requiredlinking.CommandManagerMixin",
     "requiredlinking.PlayerManagerMixin",
     "requiredlinking.ServerPlayNetworkHandlerMixin"
