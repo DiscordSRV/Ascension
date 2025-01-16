@@ -19,24 +19,17 @@
 package com.discordsrv.fabric.console.executor;
 
 import com.discordsrv.fabric.FabricDiscordSRV;
-import com.discordsrv.common.command.game.abstraction.executor.AdventureCommandExecutorProxy;
 import com.discordsrv.common.command.game.abstraction.executor.CommandExecutor;
-import net.kyori.adventure.text.Component;
 import net.minecraft.server.command.ServerCommandSource;
-
-import java.util.function.Consumer;
 
 public class FabricCommandExecutor implements CommandExecutor {
 
     private final FabricDiscordSRV discordSRV;
     private final ServerCommandSource source;
 
-    public FabricCommandExecutor(FabricDiscordSRV discordSRV, Consumer<Component> componentConsumer) {
+    public FabricCommandExecutor(FabricDiscordSRV discordSRV) {
         this.discordSRV = discordSRV;
-        this.source = (ServerCommandSource) new AdventureCommandExecutorProxy(
-                discordSRV.getServer().getCommandSource(),
-                componentConsumer
-        ).getProxy();
+        this.source = discordSRV.getServer().getCommandSource();
     }
 
     @Override

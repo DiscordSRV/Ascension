@@ -19,22 +19,22 @@
 package com.discordsrv.fabric.console;
 
 import com.discordsrv.fabric.FabricDiscordSRV;
-import com.discordsrv.fabric.console.executor.FabricCommandExecutorProvider;
 import com.discordsrv.fabric.command.game.sender.FabricCommandSender;
 import com.discordsrv.common.command.game.abstraction.executor.CommandExecutorProvider;
 import com.discordsrv.common.core.logging.backend.LoggingBackend;
 import com.discordsrv.common.core.logging.backend.impl.Log4JLoggerImpl;
 import com.discordsrv.common.feature.console.Console;
+import com.discordsrv.fabric.console.executor.FabricCommandExecutor;
 
 public class FabricConsole extends FabricCommandSender implements Console {
 
     private final LoggingBackend loggingBackend;
-    private final FabricCommandExecutorProvider executorProvider;
+    private final CommandExecutorProvider executorProvider;
 
     public FabricConsole(FabricDiscordSRV discordSRV) {
         super(discordSRV, discordSRV.getServer().getCommandSource());
         this.loggingBackend = Log4JLoggerImpl.getRoot();
-        this.executorProvider = new FabricCommandExecutorProvider(discordSRV);
+        this.executorProvider = consumer -> new FabricCommandExecutor(discordSRV);
     }
 
     @Override
