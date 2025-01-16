@@ -38,10 +38,15 @@ import com.discordsrv.common.abstraction.plugin.PluginManager;
 import com.discordsrv.common.command.game.abstraction.handler.ICommandHandler;
 import com.discordsrv.common.core.scheduler.StandardScheduler;
 import com.discordsrv.common.feature.debug.data.OnlineMode;
+import net.fabricmc.loader.api.FabricLoader;
 import net.minecraft.server.MinecraftServer;
 import org.jetbrains.annotations.NotNull;
 
-import java.net.URL;
+import java.io.IOException;
+import java.net.*;
+import java.nio.file.Path;
+import java.security.CodeSource;
+import java.util.NoSuchElementException;
 import java.util.jar.JarFile;
 
 public class FabricDiscordSRV extends AbstractDiscordSRV<DiscordSRVFabricBootstrap, FabricConfig, ConnectionConfig, MessagesConfig> {
@@ -92,17 +97,16 @@ public class FabricDiscordSRV extends AbstractDiscordSRV<DiscordSRVFabricBootstr
         registerModule(FabricBanModule::new);
     }
 
-    //TODO: Implement this method. Maybe with KnotClassloader?
     @Override
     protected URL getManifest() {
-        ClassLoader classLoader = getClass().getClassLoader();
-
-        return classLoader.getResource(JarFile.MANIFEST_NAME);
-//        if (classLoader instanceof URLClassLoader) {
-//            return ((URLClassLoader) classLoader).findResource(JarFile.MANIFEST_NAME);
-//        } else {
-//            throw new IllegalStateException("Class not loaded by a URLClassLoader, unable to get manifest");
-//        }
+        // Referenced from ManifestUtil in Fabric API
+        try {
+            CodeSource codeSource = getClass().getProtectionDomain().getCodeSource();
+            return URI.create("jar:" + codeSource.getLocation().toString() + "!/" + JarFile.MANIFEST_NAME).toURL();
+        } catch (MalformedURLException e) {
+            this.logger().error("Failed to get manifest URL", e);
+            return null;
+        }
     }
 
     public FabricModManager getModManager() {
