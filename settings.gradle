@@ -46,7 +46,7 @@ dependencyResolutionManagement {
             library('fabric-minecraft', 'com.mojang', 'minecraft').version('1.21.4')
             library('fabric-yarn', 'net.fabricmc', 'yarn').version('1.21.4+build.8')
             library('fabric-loader', 'net.fabricmc', 'fabric-loader').version('0.16.9')
-            library('fabric-api', 'net.fabricmc.fabric-api', 'fabric-api').version('0.114.2+1.21.4')
+            library('fabric-api', 'net.fabricmc.fabric-api', 'fabric-api').version('0.114.3+1.21.4')
             library('fabric-permissions-api', 'me.lucko', 'fabric-permissions-api').version('0.3.3')
 
             // DependencyDownload
