@@ -52,7 +52,6 @@ public class H2Storage extends SQLStorage {
 
         try {
             Class<?> clazz = classLoader.loadClass("org.h2.jdbc.JdbcConnection");
-
             Constructor<?> constructor = clazz.getConstructor(
                     String.class, // url
                     Properties.class, // info

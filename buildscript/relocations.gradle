@@ -69,7 +69,6 @@
         // Webhooks
         'club.minnced',
         'org.json',
-
 ].each {
     tasks.shadowJar.relocate it, 'com.discordsrv.dependencies.' + it
     tasks.generateRuntimeDownloadResourceForRuntimeDownloadOnly.relocate it, 'com.discordsrv.dependencies.' + it
@@ -78,6 +77,4 @@
 shadowJar {
     // Unrelocate package, in case a platform uses something we normally relocate
     relocate('com.discordsrv.unrelocate.', '')
-//    relocate 'com.discordsrv.dependencies.net.kyori.adventure.platform.fabric.', 'net.kyori.adventure.platform.fabric'
-//    relocate 'com.discordsrv.dependencies.net.kyori.adventure.platform.modcommon.', 'net.kyori.adventure.platform.modcommon'
 }

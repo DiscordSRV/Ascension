@@ -2,7 +2,6 @@
 .gradle
 **/build/
 !src/**/build/
-**/remappedSrc/
 
 # Ignore Gradle GUI config
 gradle-app.setting
@@ -42,4 +41,7 @@ hs_err_pid*
 # run-* Gradle tasks
 **/loader/run/
 **/velocity/run/
-**/fabric/run/
+**/fabric/run
+
+# Fabric mapping migration
+**/fabric/remappedSrc
