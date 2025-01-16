@@ -225,7 +225,8 @@ public class BanSyncModule extends AbstractSyncModule<DiscordSRV, BanSyncConfig,
                         }
                         throw (RuntimeException) t;
                     } else return CompletableFuture.completedFuture(this.punishment(ban));
-                }).thenCompose(punishment -> punishment); // Flatten the completablefuture
+                })
+                .thenCompose(future -> future); // composes the CompletableFuture returned from handle 
     }
 
     @Override
