@@ -213,10 +213,8 @@ public class BanSyncModule extends AbstractSyncModule<DiscordSRV, BanSyncConfig,
                             // Not banned, but they might still have some of the banned roles
                             return guild.retrieveMember(snowflake)
                                     .submit()
-                                    .thenApply(member -> {
-                                        if (member == null) {
-                                            return null;
-                                        }
+                                    .handle((member, throwable) -> {
+                                        if (throwable instanceof ErrorResponseException && ((ErrorResponseException) throwable).getErrorResponse() == ErrorResponse.UNKNOWN_MEMBER) return null;
 
                                         if (member.getRoles().stream().anyMatch(role -> config.minecraftToDiscord.role.roleId == role.getIdLong())) {
                                             return new Punishment(null, null, null);
@@ -292,23 +290,23 @@ public class BanSyncModule extends AbstractSyncModule<DiscordSRV, BanSyncConfig,
                             .thenApply(v -> GenericSyncResults.REMOVE_DISCORD);
                 }
             case ROLE:
+                boolean isBan = newState != null;
                 return guild.retrieveMember(snowflake)
                         .submit()
-                        .thenCompose(member -> {
-                            if (member == null) {
+                        .handle((member, t) -> {
+                            if (t instanceof ErrorResponseException && ((ErrorResponseException) t).getErrorResponse() == ErrorResponse.UNKNOWN_MEMBER)
                                 throw new SyncFail(BanSyncResult.NOT_A_GUILD_MEMBER);
-                            }
 
-                            boolean isBan = newState != null;
                             Set<Role> roles = new HashSet<>();
 
                             roles.add(guild.getRoleById(config.minecraftToDiscord.role.roleId));
 
                             return guild.modifyMemberRoles(member, isBan ? roles : Collections.emptySet(), isBan ? Collections.emptySet() : roles)
                                     .reason("DiscordSRV ban synchronization")
-                                    .submit()
-                                    .thenApply(v -> isBan ? GenericSyncResults.ADD_DISCORD : GenericSyncResults.REMOVE_DISCORD);
-                        });
+                                    .submit();
+                        })
+                        .thenCompose(r -> r) // Flatten the completablefuture
+                        .thenApply(v -> isBan ? GenericSyncResults.ADD_DISCORD : GenericSyncResults.REMOVE_DISCORD);
             default:
                 return CompletableFutureUtil.failed(new SyncFail(BanSyncResult.NO_DISCORD_CONNECTION));
         }
