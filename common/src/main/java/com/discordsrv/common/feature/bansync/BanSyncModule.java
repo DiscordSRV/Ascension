@@ -208,23 +208,24 @@ public class BanSyncModule extends AbstractSyncModule<DiscordSRV, BanSyncConfig,
         return guild.retrieveBan(snowflake)
                 .submit()
                 .handle((ban, t) -> {
-                    if (t != null) {
-                        if (t instanceof ErrorResponseException && ((ErrorResponseException) t).getErrorResponse() == ErrorResponse.UNKNOWN_BAN) {
-                            // Not banned, but they might still have some of the banned roles
-                            return guild.retrieveMember(snowflake)
-                                    .submit()
-                                    .handle((member, throwable) -> {
-                                        if (throwable instanceof ErrorResponseException && ((ErrorResponseException) throwable).getErrorResponse() == ErrorResponse.UNKNOWN_MEMBER) return null;
+                    if (t == null) return CompletableFuture.completedFuture(this.punishment(ban));
 
-                                        if (member.getRoles().stream().anyMatch(role -> config.minecraftToDiscord.role.roleId == role.getIdLong())) {
-                                            return new Punishment(null, null, null);
-                                        }
-
+                    if (t instanceof ErrorResponseException && ((ErrorResponseException) t).getErrorResponse() == ErrorResponse.UNKNOWN_BAN) {
+                        // Not banned, but they might still have some of the banned roles
+                        return guild.retrieveMember(snowflake)
+                                .submit()
+                                .handle((member, throwable) -> {
+                                    if (throwable instanceof ErrorResponseException && ((ErrorResponseException) throwable).getErrorResponse() == ErrorResponse.UNKNOWN_MEMBER)
                                         return null;
-                                    });
-                        }
-                        throw (RuntimeException) t;
-                    } else return CompletableFuture.completedFuture(this.punishment(ban));
+
+                                    if (member.getRoles().stream().anyMatch(role -> config.minecraftToDiscord.role.roleId == role.getIdLong())) {
+                                        return new Punishment(null, null, null);
+                                    }
+
+                                    return null;
+                                });
+                    }
+                    throw (RuntimeException) t;
                 })
                 .thenCompose(future -> future); // composes the CompletableFuture returned from handle 
     }
