@@ -41,6 +41,7 @@ import net.minecraft.server.network.ServerConfigurationNetworkHandler;
 import net.minecraft.server.network.ServerPlayNetworkHandler;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.text.Text;
+import net.minecraft.util.math.BlockPos;
 import org.jetbrains.annotations.Nullable;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
@@ -233,22 +234,15 @@ public class FabricRequiredLinkingModule extends ServerRequireLinkingModule<Fabr
             return;
         }
 
-        double d = ServerPlayNetworkHandler.clampHorizontal(packet.getX(player.getX()));
-        double e = ServerPlayNetworkHandler.clampVertical(packet.getY(player.getY()));
-        double f = ServerPlayNetworkHandler.clampHorizontal(packet.getZ(player.getZ()));
-        double i = player.getX();
-        double j = player.getY();
-        double k = player.getZ();
-        double l = d - player.networkHandler.lastTickX;
-        double m = e - player.networkHandler.lastTickY;
-        double n = f - player.networkHandler.lastTickZ;
-        // If the player last position is the same. Don't move the player
-        if (l * l + m * m + n * n > 0.0001) {
-            player.networkHandler.requestTeleport(i, j, k, player.getYaw(), player.getPitch());
-            IPlayer iPlayer = instance.discordSRV.playerProvider().player(player);
-            iPlayer.sendMessage(freezeReason);
-
+        BlockPos from = player.getBlockPos();
+        BlockPos to = new BlockPos((int) packet.getX(player.getX()), (int) packet.getY(player.getY()), (int) packet.getZ(player.getZ()));
+        if(from.getX() == to.getX() && from.getY() >= to.getY() && from.getZ() == to.getZ()) {
+            return;
         }
+
+        player.requestTeleport(from.getX() + 0.5, from.getY(), from.getZ() + 0.5);
+        IPlayer iPlayer = instance.discordSRV.playerProvider().player(player);
+        iPlayer.sendMessage(freezeReason);
 
         ci.cancel();
     }
