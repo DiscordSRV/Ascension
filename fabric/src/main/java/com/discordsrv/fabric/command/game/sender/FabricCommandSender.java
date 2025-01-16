@@ -38,7 +38,7 @@ public class FabricCommandSender implements ICommandSender {
 
     @Override
     public boolean hasPermission(String permission) {
-        return Permissions.check(commandSource, permission);
+        return Permissions.check(commandSource, permission, 4);
     }
 
     @Override
