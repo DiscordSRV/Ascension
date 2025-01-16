@@ -97,7 +97,7 @@ public interface Scheduler {
     }
 
     /**
-     * Schedules the given task after the provided amount of milliseconds.
+     * Schedules the given task after the provided number of milliseconds.
      *
      * @param task the task
      * @param delay the delay before executing the task
