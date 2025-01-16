@@ -26,7 +26,10 @@ import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.network.ServerPlayNetworkHandler;
 import net.minecraft.server.network.ServerPlayerEntity;
 
+import java.util.UUID;
+
 public class FabricPlayerProvider extends AbstractPlayerProvider<FabricPlayer, FabricDiscordSRV> {
+    private boolean enabled = false;
 
     public FabricPlayerProvider(FabricDiscordSRV discordSRV) {
         super(discordSRV);
@@ -37,6 +40,8 @@ public class FabricPlayerProvider extends AbstractPlayerProvider<FabricPlayer, F
 
     @Override
     public void subscribe() {
+        enabled = true;
+
         // Add players that are already connected
         for (ServerPlayerEntity player : discordSRV.getServer().getPlayerManager().getPlayerList()) {
             addPlayer(player, true);
@@ -45,9 +50,7 @@ public class FabricPlayerProvider extends AbstractPlayerProvider<FabricPlayer, F
 
     @Override
     public void unsubscribe() {
-        for (ServerPlayerEntity player : discordSRV.getServer().getPlayerManager().getPlayerList()) {
-            removePlayer(player.getUuid());
-        }
+        enabled = false;
     }
 
     private void onConnection(ServerPlayNetworkHandler serverPlayNetworkHandler, PacketSender packetSender, MinecraftServer minecraftServer) {
@@ -55,11 +58,17 @@ public class FabricPlayerProvider extends AbstractPlayerProvider<FabricPlayer, F
     }
 
     private void onDisconnect(ServerPlayNetworkHandler serverPlayNetworkHandler, MinecraftServer minecraftServer) {
-        removePlayer(serverPlayNetworkHandler.player.getUuid());
+        removePlayer(serverPlayNetworkHandler.player);
     }
 
     private void addPlayer(ServerPlayerEntity player, boolean initial) {
+        if(!enabled) return;
         addPlayer(player.getUuid(), new FabricPlayer(discordSRV, player), initial);
+    }
+
+    private void removePlayer(ServerPlayerEntity player) {
+        if(!enabled) return;
+        removePlayer(player.getUuid());
     }
 
     public FabricPlayer player(ServerPlayerEntity player) {
