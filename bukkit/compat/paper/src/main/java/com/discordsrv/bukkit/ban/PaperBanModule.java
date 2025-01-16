@@ -64,6 +64,8 @@ public class PaperBanModule extends AbstractBukkitListener<PlayerKickEvent> impl
             case IP_BANNED:
             case PLUGIN:
                 break;
+            default:
+                return;
         }
 
         Player player = event.getPlayer();

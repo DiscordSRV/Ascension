@@ -308,7 +308,7 @@ public class BanSyncModule extends AbstractSyncModule<DiscordSRV, BanSyncConfig,
                         .thenCompose(r -> r) // Flatten the completablefuture
                         .thenApply(v -> isBan ? GenericSyncResults.ADD_DISCORD : GenericSyncResults.REMOVE_DISCORD);
             default:
-                return CompletableFutureUtil.failed(new SyncFail(BanSyncResult.NO_DISCORD_CONNECTION));
+                return CompletableFutureUtil.failed(new SyncFail(BanSyncResult.INVALID_CONFIG));
         }
     }
 
