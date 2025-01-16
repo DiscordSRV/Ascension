@@ -6,7 +6,7 @@
   "description": "",
   "authors": [],
   "contact": {},
-  "license": "All-Rights-Reserved",
+  "license": "GPLv3",
   "environment": "server",
   "entrypoints": {
     "server": [
