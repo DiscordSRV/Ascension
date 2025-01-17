@@ -1,7 +1,7 @@
 apply from: rootProject.file('buildscript/standalone.gradle')
 apply plugin: 'fabric-loom'
 
-configurations.all {
+configurations.configureEach {
     resolutionStrategy {
         force "org.slf4j:slf4j-api:1.7.36" // Introduced by Minecraft itself
     }
@@ -24,7 +24,7 @@ shadowJar {
     mergeServiceFiles()
 }
 
-copyOutput {
+tasks.register('copyRemappedJar', Copy) {
     from remapJar.archiveFile
     into rootProject.file('jars')
 }
@@ -36,7 +36,7 @@ remapJar {
     archiveBaseName = 'DiscordSRV-Fabric'
     archiveClassifier = jar.archiveClassifier
 
-    finalizedBy copyOutput // TODO: This currently adds the remapped jar to the jars folder with the shadow jar. The fix for the buildable jar was the artifacts task.
+    finalizedBy copyRemappedJar
 }
 
 artifacts {

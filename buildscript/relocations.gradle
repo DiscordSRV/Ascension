@@ -42,8 +42,6 @@
         'net.kyori.adventure.ansi',
         'net.kyori.adventure.examination',
         'net.kyori.adventure.option',
-//        'net.kyori.adventure.platform',
-//        'net.kyori.adventure.text.serializer',
 
         // EnhancedLegacyText, MCDiscordReserializer
         'dev.vankka.enhancedlegacytext',
