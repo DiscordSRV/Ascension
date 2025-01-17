@@ -89,6 +89,7 @@ public class FabricGameCommandExecutionHelper implements GameCommandExecutionHel
                     }
                 }
             }
+            data = data.stream().map(String::trim).distinct().collect(Collectors.toList());
             return CompletableFuture.completedFuture(data);
         } catch (InterruptedException | ExecutionException e) {
             return CompletableFuture.completedFuture(Collections.emptyList());
