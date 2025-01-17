@@ -27,9 +27,9 @@ public class FabricCommandExecutor implements CommandExecutor {
     private final FabricDiscordSRV discordSRV;
     private final ServerCommandSource source;
 
-    public FabricCommandExecutor(FabricDiscordSRV discordSRV) {
+    public FabricCommandExecutor(FabricDiscordSRV discordSRV, ServerCommandSource source) {
         this.discordSRV = discordSRV;
-        this.source = discordSRV.getServer().getCommandSource();
+        this.source = source;
     }
 
     @Override
