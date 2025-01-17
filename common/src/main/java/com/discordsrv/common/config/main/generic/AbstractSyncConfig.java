@@ -50,7 +50,7 @@ public abstract class AbstractSyncConfig<C extends AbstractSyncConfig<C, G, D>, 
         @Comment("If timed synchronization is enabled")
         public boolean enabled = true;
 
-        @Comment("The amount of minutes between timed synchronization cycles")
+        @Comment("The number of minutes between timed synchronization cycles")
         public int cycleTime = 5;
     }
 

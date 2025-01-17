@@ -76,7 +76,7 @@ public class DiscordToMinecraftChatConfig {
         // TODO: add and implement name
     }
 
-    @Comment("The amount of milliseconds to delay processing Discord messages, if the message is deleted in that time it will not be processed.\n"
+    @Comment("The number of milliseconds by which to delay processing Discord messages, if the message is deleted in that time it will not be processed.\n"
             + "This can be used together with Discord moderation bots, to filter forwarded messages")
     public Long delayMillis = 0L;
 

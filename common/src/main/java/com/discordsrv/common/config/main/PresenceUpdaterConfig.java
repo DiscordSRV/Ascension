@@ -34,7 +34,7 @@ import java.util.Locale;
 @ConfigSerializable
 public class PresenceUpdaterConfig {
 
-    @Comment("The amount of seconds between presence updates\n"
+    @Comment("The number of seconds between presence updates\n"
             + "Minimum value: %1")
     @Constants.Comment("30")
     public int updaterRateInSeconds = 90;
@@ -69,7 +69,7 @@ public class PresenceUpdaterConfig {
         public OnlineStatus status = OnlineStatus.ONLINE;
 
         @Comment("This may be prefixed by one of the following and a space to specify the activity type: %1\n"
-                + "You can use streaming by setting the value to: %2, a YouTube or Twitch link and the text all seperated by a space")
+                + "You can use streaming by setting the value to: %2, a YouTube or Twitch link and the text all separated by a space")
         @Constants.Comment({
                 "\"playing\", \"listening\", \"watching\", \"competing in\"",
                 "\"streaming\""

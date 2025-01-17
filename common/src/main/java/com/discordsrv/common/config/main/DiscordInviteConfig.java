@@ -24,7 +24,7 @@ import org.spongepowered.configurate.objectmapping.meta.Comment;
 @ConfigSerializable
 public class DiscordInviteConfig {
 
-    @Comment("Manually enter a invite url here, if this isn't set this is ignored and the options below will take effect")
+    @Comment("Manually enter an invite url here, if this isn't set this is ignored and the options below will take effect")
     public String inviteUrl = "";
 
     @Comment("The server id to automatically grab the vanity url from or to generate the invite to.\n"
@@ -34,7 +34,7 @@ public class DiscordInviteConfig {
     @Comment("If the bot should automatically use the vanity invite url from the automatically determined server, if one is set")
     public boolean attemptToUseVanityUrl = true;
 
-    @Comment("If the bot should automatically create a invite to the automatically determined server\n"
+    @Comment("If the bot should automatically create an invite to the automatically determined server\n"
             + "The bot will only attempt to do so if it has permission to \"Create Invite\"\n"
             + "The server must also have a rules channel (available for community servers) or default channel (automatically determined by Discord)")
     public boolean autoCreateInvite = false;

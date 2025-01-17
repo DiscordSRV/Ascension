@@ -39,7 +39,7 @@ public class DestinationConfig {
     public List<Long> channelIds = new ArrayList<>();
 
     @Setting("threads")
-    @Comment("The threads that this in-game channel will forward to in Discord (this can be used instead of or with the %1 option)")
+    @Comment("The threads that this in-game channel will forward to in Discord (this can be used with or instead of the %1 option)")
     @Constants.Comment("channel-ids")
     public List<ThreadConfig> threads = new ArrayList<>(Collections.singletonList(new ThreadConfig()));
 

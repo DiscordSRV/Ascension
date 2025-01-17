@@ -59,7 +59,7 @@ public class MirroringConfig {
                 + "as spam of large files may result in a lot of downstream and upstream data usage")
         public int maximumSizeKb = -1;
 
-        @Comment("If attachments should be placed into a embed in mirrored messages instead of re-uploading")
+        @Comment("If attachments should be placed into an embed in mirrored messages instead of re-uploading")
         public boolean embedAttachments = true;
     }
 }
