@@ -18,6 +18,7 @@
 
 package com.discordsrv.fabric;
 
+import com.discordsrv.common.command.game.abstraction.GameCommandExecutionHelper;
 import com.discordsrv.common.config.configurate.manager.ConnectionConfigManager;
 import com.discordsrv.common.config.configurate.manager.MainConfigManager;
 import com.discordsrv.common.config.configurate.manager.MessagesConfigManager;
@@ -25,6 +26,7 @@ import com.discordsrv.common.config.configurate.manager.abstraction.ServerConfig
 import com.discordsrv.common.config.connection.ConnectionConfig;
 import com.discordsrv.common.config.messages.MessagesConfig;
 import com.discordsrv.common.feature.messageforwarding.game.MinecraftToDiscordChatModule;
+import com.discordsrv.fabric.command.game.FabricGameCommandExecutionHelper;
 import com.discordsrv.fabric.config.main.FabricConfig;
 import com.discordsrv.fabric.console.FabricConsole;
 import com.discordsrv.fabric.command.game.handler.FabricCommandHandler;
@@ -38,15 +40,12 @@ import com.discordsrv.common.abstraction.plugin.PluginManager;
 import com.discordsrv.common.command.game.abstraction.handler.ICommandHandler;
 import com.discordsrv.common.core.scheduler.StandardScheduler;
 import com.discordsrv.common.feature.debug.data.OnlineMode;
-import net.fabricmc.loader.api.FabricLoader;
 import net.minecraft.server.MinecraftServer;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
-import java.io.IOException;
 import java.net.*;
-import java.nio.file.Path;
 import java.security.CodeSource;
-import java.util.NoSuchElementException;
 import java.util.jar.JarFile;
 
 public class FabricDiscordSRV extends AbstractDiscordSRV<DiscordSRVFabricBootstrap, FabricConfig, ConnectionConfig, MessagesConfig> {
@@ -61,6 +60,8 @@ public class FabricDiscordSRV extends AbstractDiscordSRV<DiscordSRVFabricBootstr
     private final MainConfigManager<FabricConfig> configManager;
     private final MessagesConfigManager<MessagesConfig> messagesConfigManager;
 
+    private final FabricGameCommandExecutionHelper executionHelper;
+
     public FabricDiscordSRV(DiscordSRVFabricBootstrap bootstrap) {
         super(bootstrap);
 
@@ -69,6 +70,7 @@ public class FabricDiscordSRV extends AbstractDiscordSRV<DiscordSRVFabricBootstr
         this.playerProvider = new FabricPlayerProvider(this);
         this.modManager = new FabricModManager(this);
         this.commandHandler = new FabricCommandHandler(this);
+        this.executionHelper = new FabricGameCommandExecutionHelper(this);
 
         // Config
         this.connectionConfigManager = new ConnectionConfigManager<>(this, ConnectionConfig::new);
@@ -165,5 +167,10 @@ public class FabricDiscordSRV extends AbstractDiscordSRV<DiscordSRVFabricBootstr
     @Override
     public MessagesConfigManager<MessagesConfig> messagesConfigManager() {
         return messagesConfigManager;
+    }
+
+    @Override
+    public @Nullable GameCommandExecutionHelper executeHelper() {
+        return executionHelper;
     }
 }
