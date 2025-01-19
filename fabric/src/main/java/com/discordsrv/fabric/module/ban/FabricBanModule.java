@@ -26,10 +26,13 @@ import com.discordsrv.common.util.ComponentUtil;
 import com.discordsrv.fabric.FabricDiscordSRV;
 import com.discordsrv.fabric.module.AbstractFabricModule;
 import com.mojang.authlib.GameProfile;
+import net.kyori.adventure.platform.modcommon.MinecraftServerAudiences;
 import net.minecraft.server.BannedPlayerEntry;
 import net.minecraft.server.BannedPlayerList;
+import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.text.Text;
+import net.minecraft.util.UserCache;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -61,7 +64,9 @@ public class FabricBanModule extends AbstractFabricModule implements PunishmentM
         BanSyncModule module = discordSRV.getModule(BanSyncModule.class);
         if (module != null) {
             instance.getBan(gameProfile.getId())
-                    .whenComplete((punishment, t) -> module.notifyBanned(Objects.requireNonNull(discordSRV.playerProvider().player(gameProfile.getId())), punishment));
+                    .whenComplete((punishment, t) -> {
+                        if (punishment != null) module.notifyBanned(Objects.requireNonNull(discordSRV.playerProvider().player(gameProfile.getId())), punishment);
+                    });
         }
     }
 
@@ -102,17 +107,23 @@ public class FabricBanModule extends AbstractFabricModule implements PunishmentM
             @NotNull MinecraftComponent punisher
     ) {
         try {
-            discordSRV.getServer().getPlayerManager().getUserBanList().add(new BannedPlayerEntry(
-                    discordSRV.getServer().getUserCache().getByUuid(playerUUID).get(),
-                    null,
-                    ComponentUtil.fromAPI(reason).toString(),
-                    null,
-                    ComponentUtil.fromAPI(punisher).toString()
-            ));
+            MinecraftServer server = discordSRV.getServer();
+            UserCache userCache = server.getUserCache();
 
-            ServerPlayerEntity serverPlayerEntity = discordSRV.getServer().getPlayerManager().getPlayer(playerUUID);
+            GameProfile gameProfile = null;
+            if (userCache != null) {
+                gameProfile = userCache.getByUuid(playerUUID).orElse(null);
+            }
+
+            String reasonProvided = reason != null ? reason.asPlainString() : null;
+            Date expiration = until != null ? Date.from(until) : null;
+
+            BannedPlayerEntry banEntry = new BannedPlayerEntry(gameProfile, new Date(), reasonProvided, expiration, punisher.asPlainString());
+            server.getPlayerManager().getUserBanList().add(banEntry);
+
+            ServerPlayerEntity serverPlayerEntity = server.getPlayerManager().getPlayer(playerUUID);
             if (serverPlayerEntity != null) {
-                serverPlayerEntity.networkHandler.disconnect(Text.translatable("multiplayer.disconnect.banned"));
+                serverPlayerEntity.networkHandler.disconnect(reason != null ? MinecraftServerAudiences.of(server).asNative(reason.asAdventure()) : Text.translatable("multiplayer.disconnect.banned"));
             }
         } catch (Exception e) {
             discordSRV.logger().error("Failed to ban player", e);
