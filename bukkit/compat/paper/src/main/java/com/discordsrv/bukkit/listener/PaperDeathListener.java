@@ -63,6 +63,6 @@ public class PaperDeathListener extends AbstractBukkitListener<PlayerDeathEvent>
 
     @Override
     protected void observeEvents(boolean enable) {
-        observer = observeEvent(observer, PlayerDeathEvent.class, event -> event.isCancelled() || event.deathMessage() == null, enable);
+        observer = observeEvent(observer, PlayerDeathEvent.class, event -> event.isCancelled() || MESSAGE_HANDLE.getRaw(event) == null, enable);
     }
 }

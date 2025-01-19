@@ -88,6 +88,6 @@ public class PaperAdvancementListener extends AbstractBukkitListener<PlayerAdvan
 
     @Override
     protected void observeEvents(boolean enable) {
-        observer = observeEvent(observer, PlayerAdvancementDoneEvent.class, event -> event.message() == null, enable);
+        observer = observeEvent(observer, PlayerAdvancementDoneEvent.class, event -> MESSAGE_HANDLE.getRaw(event) == null, enable);
     }
 }
