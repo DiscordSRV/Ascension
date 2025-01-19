@@ -48,11 +48,11 @@ public class JoinMessageConfig implements IMessageConfig {
                             .build()
             );
 
-    @Comment("If the \"%1\" permission should determine if join messages are sent")
+    @Comment("If the \"%1\" permission should determine whether join messages are sent")
     @Constants.Comment("discordsrv.silentjoin")
     public Boolean enableSilentPermission = true;
 
-    @Comment("Ignore if the player leaves within the given amount of milliseconds. This will delay sending the join message")
+    @Comment("Ignore if the player leaves within the given number of milliseconds. This will delay sending the join message")
     @Setting("ignore-if-left-within-ms")
     public Long ignoreIfLeftWithinMS = 250L;
 

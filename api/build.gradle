@@ -12,6 +12,7 @@ dependencies {
     api(libs.jda) {
         // We don't use audio
         exclude module: 'opus-java'
+        exclude module: 'tink'
         // v2
         exclude module: 'slf4j-api'
     }

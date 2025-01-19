@@ -65,6 +65,6 @@ public class PaperJoinListener extends AbstractBukkitListener<PlayerJoinEvent> {
 
     @Override
     protected void observeEvents(boolean enable) {
-        observer = observeEvent(observer, PlayerJoinEvent.class, event -> event.joinMessage() == null, enable);
+        observer = observeEvent(observer, PlayerJoinEvent.class, event -> MESSAGE_HANDLE.getRaw(event) == null, enable);
     }
 }

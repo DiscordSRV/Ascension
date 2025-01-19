@@ -63,6 +63,6 @@ public class PaperQuitListener extends AbstractBukkitListener<PlayerQuitEvent> {
 
     @Override
     protected void observeEvents(boolean enable) {
-        observer = observeEvent(observer, PlayerQuitEvent.class, event -> event.quitMessage() == null, enable);
+        observer = observeEvent(observer, PlayerQuitEvent.class, event -> MESSAGE_HANDLE.getRaw(event) == null, enable);
     }
 }

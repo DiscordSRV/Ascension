@@ -79,7 +79,7 @@ public interface GameChannel {
      * @see #getRecipients()
      */
     default void sendMessageToPlayer(@NotNull DiscordSRVPlayer player, @NotNull MinecraftComponent component) {
-        player.sendMessage(component);
+        player.sendMessageFromDiscord(component);
     }
 
     static String toString(@Nullable GameChannel channel) {

@@ -177,7 +177,7 @@ public class VentureChatIntegration extends PluginIntegration<BukkitDiscordSRV> 
                 );
             }
 
-            player.sendMessage(component);
+            player.sendMessageFromDiscord(component);
         }
     }
 }

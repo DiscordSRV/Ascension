@@ -19,7 +19,9 @@
 package com.discordsrv.bukkit.component;
 
 import com.discordsrv.api.component.MinecraftComponent;
+import com.discordsrv.common.util.ReflectionUtil;
 import com.discordsrv.unrelocate.net.kyori.adventure.text.Component;
+import org.bukkit.Server;
 import org.jetbrains.annotations.ApiStatus;
 
 import java.lang.invoke.MethodHandle;
@@ -39,7 +41,9 @@ public class PaperComponentHandle<T> {
     }
 
     @ApiStatus.AvailableSince("Paper 1.16")
-    public static boolean IS_AVAILABLE = COMPONENT_CLASS != null;
+    public static boolean IS_AVAILABLE = COMPONENT_CLASS != null
+            && (ReflectionUtil.methodExists(Server.class, "broadcast", COMPONENT_CLASS)
+            || ReflectionUtil.classExists("io.papermc.paper.adventure.PaperAdventure"));
 
     public static <T> PaperComponentHandle.Get<T> getOrNull(Class<T> targetClass, String methodName) {
         try {

@@ -35,7 +35,7 @@ public class BanSyncConfig extends AbstractSyncConfig<BanSyncConfig, BanSyncModu
     @Comment("The punisher applied when creating new bans in Minecraft")
     public String gamePunisherFormat = "%user_color%@%user_name%";
 
-    @Comment("The kick reason when a ban is applied to a online player")
+    @Comment("The kick reason when a ban is applied to an online player")
     public String gameKickReason = "&cYou have been banned for &f%punishment_reason% &cby &f%punishment_punisher%";
 
     @Comment("The reason applied when creating new bans in Discord")

@@ -83,10 +83,10 @@ public class StorageConfig {
 
     public static class Pool {
 
-        @Comment("The maximum amount of concurrent connections to keep to the database")
+        @Comment("The maximum number of concurrent connections to keep to the database")
         public int maximumPoolSize = 5;
 
-        @Comment("The minimum amount of concurrent connections to keep to the database")
+        @Comment("The minimum number of concurrent connections to keep to the database")
         public int minimumPoolSize = 2;
 
         @Comment("How frequently to attempt to keep connections alive, in order to prevent being timed out by the database or network infrastructure.\n"
