@@ -41,6 +41,7 @@ import net.minecraft.server.network.ServerPlayNetworkHandler;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.text.Text;
 import net.minecraft.util.math.BlockPos;
+import net.minecraft.util.math.MathHelper;
 import org.jetbrains.annotations.Nullable;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
@@ -235,7 +236,7 @@ public class FabricRequiredLinkingModule extends ServerRequireLinkingModule<Fabr
         }
 
         BlockPos from = player.getBlockPos();
-        BlockPos to = new BlockPos((int) packet.getX(player.getX()), (int) packet.getY(player.getY()), (int) packet.getZ(player.getZ()));
+        BlockPos to = new BlockPos(MathHelper.floor(packet.getX(player.getX())), MathHelper.floor(packet.getY(player.getY())), MathHelper.floor(packet.getZ(player.getZ())));
         if(from.getX() == to.getX() && from.getY() >= to.getY() && from.getZ() == to.getZ()) {
             return;
         }
