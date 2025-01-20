@@ -1,13 +1,5 @@
 import org.apache.tools.ant.filters.ReplaceTokens
 
-[
-        'net.kyori.adventure.platform',
-        'net.kyori.adventure.text.serializer'
-].each {
-    tasks.shadowJar.relocate it, 'com.discordsrv.dependencies.' + it
-    tasks.generateRuntimeDownloadResourceForRuntimeDownloadOnly.relocate it, 'com.discordsrv.dependencies.' + it
-}
-
 apply plugin: 'xyz.jpenilla.run-waterfall'
 apply from: rootProject.file('buildscript/loader.gradle')
 

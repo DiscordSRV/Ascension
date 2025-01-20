@@ -6,6 +6,8 @@ allprojects {
 
 [
         'net.kyori',
+        'net.kyori.adventure.platform',
+        'net.kyori.adventure.text.serializer',
         'me.lucko.commodore'
 ].each {
     tasks.shadowJar.relocate it, 'com.discordsrv.dependencies.' + it

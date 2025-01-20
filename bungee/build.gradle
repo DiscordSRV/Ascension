@@ -3,7 +3,9 @@ shadowJar {
 
     configure {
         [
-                'net.kyori'
+                'net.kyori',
+                'net.kyori.adventure.platform',
+                'net.kyori.adventure.text.serializer'
         ].each {
             relocate it, 'com.discordsrv.dependencies.' + it
         }
