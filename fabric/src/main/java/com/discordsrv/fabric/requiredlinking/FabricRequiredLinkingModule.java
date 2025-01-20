@@ -33,6 +33,8 @@ import net.fabricmc.fabric.api.networking.v1.PacketSender;
 import net.fabricmc.fabric.api.networking.v1.ServerConfigurationConnectionEvents;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayConnectionEvents;
 import net.kyori.adventure.text.Component;
+import net.minecraft.network.message.MessageType;
+import net.minecraft.network.message.SignedMessage;
 import net.minecraft.network.packet.c2s.play.PlayerMoveC2SPacket;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.command.ServerCommandSource;
@@ -82,15 +84,7 @@ public class FabricRequiredLinkingModule extends ServerRequireLinkingModule<Fabr
     }
 
     public void register() {
-        ServerMessageEvents.ALLOW_CHAT_MESSAGE.register((text, player, parameters) -> {
-            // True if the message should be sent
-            if (isFrozen(player)) {
-                player.sendMessage(frozen.get(player.getUuid()));
-                return false;
-            }
-            return true;
-        });
-
+        ServerMessageEvents.ALLOW_CHAT_MESSAGE.register(this::allowChatMessage);
         ServerConfigurationConnectionEvents.CONFIGURE.register(this::onPlayerPreLogin);
         ServerPlayConnectionEvents.JOIN.register(this::onPlayerJoin);
         ServerPlayConnectionEvents.DISCONNECT.register(this::onPlayerQuit);
@@ -173,6 +167,18 @@ public class FabricRequiredLinkingModule extends ServerRequireLinkingModule<Fabr
     private void freeze(IPlayer player, Component blockReason) {
         frozen.put(player.uniqueId(), blockReason);
         player.sendMessage(blockReason);
+    }
+
+    private boolean allowChatMessage(SignedMessage signedMessage, ServerPlayerEntity player, MessageType.Parameters parameters) {
+        // True if the message should be sent
+        Component freezeReason = instance.frozen.get(player.getUuid());
+        if (freezeReason == null) {
+            return true;
+        }
+
+        IPlayer iPlayer = instance.discordSRV.playerProvider().player(player);
+        iPlayer.sendMessage(freezeReason);
+        return false;
     }
 
     private void onPlayerPreLogin(ServerConfigurationNetworkHandler handler, MinecraftServer minecraftServer) {
