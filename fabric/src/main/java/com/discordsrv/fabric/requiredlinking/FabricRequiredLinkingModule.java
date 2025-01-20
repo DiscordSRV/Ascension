@@ -162,7 +162,12 @@ public class FabricRequiredLinkingModule extends ServerRequireLinkingModule<Fabr
     private final List<UUID> loginsHandled = new CopyOnWriteArrayList<>();
 
     private boolean isFrozen(ServerPlayerEntity player) {
-        return frozen.containsKey(player.getUuid());
+        Component freezeReason = frozen.get(player.getUuid());
+        if (freezeReason == null) {
+            frozen.remove(player.getUuid());
+            return false;
+        }
+        return true;
     }
 
     private void freeze(IPlayer player, Component blockReason) {
