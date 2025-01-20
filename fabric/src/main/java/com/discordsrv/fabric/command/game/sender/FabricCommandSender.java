@@ -22,7 +22,6 @@ import com.discordsrv.fabric.FabricDiscordSRV;
 import com.discordsrv.common.command.game.abstraction.sender.ICommandSender;
 import me.lucko.fabric.api.permissions.v0.Permissions;
 import net.kyori.adventure.audience.Audience;
-import net.kyori.adventure.platform.modcommon.MinecraftServerAudiences;
 import net.minecraft.server.command.ServerCommandSource;
 import org.jetbrains.annotations.NotNull;
 
@@ -48,6 +47,6 @@ public class FabricCommandSender implements ICommandSender {
 
     @Override
     public @NotNull Audience audience() {
-        return MinecraftServerAudiences.of(discordSRV.getServer()).audience(commandSource);
+        return discordSRV.getAdventure().audience(commandSource);
     }
 }

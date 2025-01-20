@@ -32,7 +32,6 @@ import net.fabricmc.fabric.api.message.v1.ServerMessageEvents;
 import net.fabricmc.fabric.api.networking.v1.PacketSender;
 import net.fabricmc.fabric.api.networking.v1.ServerConfigurationConnectionEvents;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayConnectionEvents;
-import net.kyori.adventure.platform.modcommon.MinecraftServerAudiences;
 import net.kyori.adventure.text.Component;
 import net.minecraft.network.packet.c2s.play.PlayerMoveC2SPacket;
 import net.minecraft.server.MinecraftServer;
@@ -137,6 +136,7 @@ public class FabricRequiredLinkingModule extends ServerRequireLinkingModule<Fabr
         if (!instance.enabled) return null;
 
         FabricDiscordSRV discordSRV = instance.discordSRV;
+        assert discordSRV != null;
         ServerRequiredLinkingConfig config = instance.config();
         if (!config.enabled || config.action != ServerRequiredLinkingConfig.Action.KICK) {
             return null;
@@ -147,7 +147,7 @@ public class FabricRequiredLinkingModule extends ServerRequireLinkingModule<Fabr
 
         Component kickReason = instance.getBlockReason(playerUUID, playerName, true).join();
         if (kickReason != null) {
-            return MinecraftServerAudiences.of(discordSRV.getServer()).asNative(kickReason);
+            return discordSRV.getAdventure().asNative(kickReason);
         }
 
         return null;

@@ -27,6 +27,7 @@ import dev.vankka.mcdependencydownload.fabric.classpath.FabricClasspathAppender;
 import net.fabricmc.api.DedicatedServerModInitializer;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents;
 import net.fabricmc.loader.api.FabricLoader;
+import net.kyori.adventure.platform.modcommon.MinecraftServerAudiences;
 import net.minecraft.GameVersion;
 import net.minecraft.MinecraftVersion;
 import net.minecraft.server.MinecraftServer;
@@ -44,6 +45,7 @@ public class DiscordSRVFabricBootstrap implements DedicatedServerModInitializer,
     private MinecraftServer minecraftServer;
     private final Path dataDirectory;
     private FabricDiscordSRV discordSRV;
+    private MinecraftServerAudiences adventure;
 
     public DiscordSRVFabricBootstrap() {
         this.logger = new Log4JLoggerImpl(LogManager.getLogger("DiscordSRV"));
@@ -60,14 +62,15 @@ public class DiscordSRVFabricBootstrap implements DedicatedServerModInitializer,
             throw new RuntimeException(e);
         }
         this.minecraftServer = null;
+        this.adventure = null;
     }
 
     @Override
     public void onInitializeServer() {
         ServerLifecycleEvents.SERVER_STARTING.register(minecraftServer -> {
             this.minecraftServer = minecraftServer;
+            this.adventure = MinecraftServerAudiences.of(minecraftServer);
             lifecycleManager.loadAndEnable(() -> this.discordSRV = new FabricDiscordSRV(this));
-            this.discordSRV.runServerStarted();
         });
 
         ServerLifecycleEvents.SERVER_STARTED.register(minecraftServer -> this.discordSRV.runServerStarted());
@@ -114,5 +117,9 @@ public class DiscordSRVFabricBootstrap implements DedicatedServerModInitializer,
 
     public FabricDiscordSRV getDiscordSRV() {
         return discordSRV;
+    }
+
+    public MinecraftServerAudiences getAdventure() {
+        return adventure;
     }
 }

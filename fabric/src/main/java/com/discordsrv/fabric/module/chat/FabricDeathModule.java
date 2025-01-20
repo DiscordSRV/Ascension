@@ -29,7 +29,6 @@ import net.minecraft.entity.LivingEntity;
 import net.minecraft.entity.damage.DamageSource;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.text.Text;
-import net.minecraft.util.Formatting;
 
 public class FabricDeathModule extends AbstractFabricModule {
     private final FabricDiscordSRV discordSRV;
@@ -47,7 +46,7 @@ public class FabricDeathModule extends AbstractFabricModule {
         if (!enabled) return;
         if(livingEntity instanceof ServerPlayerEntity) {
             Text message = damageSource.getDeathMessage(livingEntity);
-            MinecraftComponent minecraftComponent = ComponentUtil.fromPlain(Formatting.strip(message.getString()));
+            MinecraftComponent minecraftComponent = ComponentUtil.toAPI(discordSRV.getAdventure().asAdventure(message));
 
             DiscordSRVPlayer player = discordSRV.playerProvider().player((ServerPlayerEntity) livingEntity);
             discordSRV.eventBus().publish(

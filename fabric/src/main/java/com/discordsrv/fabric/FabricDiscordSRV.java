@@ -40,6 +40,7 @@ import com.discordsrv.common.abstraction.plugin.PluginManager;
 import com.discordsrv.common.command.game.abstraction.handler.ICommandHandler;
 import com.discordsrv.common.core.scheduler.StandardScheduler;
 import com.discordsrv.common.feature.debug.data.OnlineMode;
+import net.kyori.adventure.platform.modcommon.MinecraftServerAudiences;
 import net.minecraft.server.MinecraftServer;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -117,6 +118,11 @@ public class FabricDiscordSRV extends AbstractDiscordSRV<DiscordSRVFabricBootstr
 
     public MinecraftServer getServer() {
         return bootstrap.getServer();
+    }
+
+    @NotNull
+    public MinecraftServerAudiences getAdventure() {
+        return bootstrap.getAdventure();
     }
 
     @Override

@@ -31,7 +31,6 @@ import net.minecraft.server.network.ServerPlayNetworkHandler;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.text.MutableText;
 import net.minecraft.text.Text;
-import net.minecraft.util.Formatting;
 
 import java.util.Objects;
 
@@ -75,6 +74,6 @@ public class FabricJoinModule extends AbstractFabricModule {
             mutableText = Text.translatable("multiplayer.player.joined.renamed", playerEntity.getDisplayName(), playerEntity.getName());
         }
 
-        return ComponentUtil.fromPlain(Formatting.strip(mutableText.formatted(Formatting.YELLOW).getString()));
+        return ComponentUtil.toAPI(discordSRV.getAdventure().asAdventure(mutableText));
     }
 }

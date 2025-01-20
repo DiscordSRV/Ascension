@@ -63,6 +63,6 @@ public class FabricQuitModule extends AbstractFabricModule {
     public MinecraftComponent getQuitMessage(ServerPlayerEntity player) {
         Text message = Text.translatable("multiplayer.player.left", player.getDisplayName()).formatted(Formatting.YELLOW);
 
-        return ComponentUtil.fromPlain(Formatting.strip(message.getString()));
+        return ComponentUtil.toAPI(discordSRV.getAdventure().asAdventure(message));
     }
 }

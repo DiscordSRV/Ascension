@@ -24,12 +24,9 @@ import com.discordsrv.common.util.ComponentUtil;
 import com.discordsrv.fabric.FabricDiscordSRV;
 import com.discordsrv.fabric.module.AbstractFabricModule;
 import net.fabricmc.fabric.api.message.v1.ServerMessageEvents;
-import net.kyori.adventure.platform.modcommon.MinecraftServerAudiences;
 import net.minecraft.network.message.MessageType;
 import net.minecraft.network.message.SignedMessage;
 import net.minecraft.server.network.ServerPlayerEntity;
-
-import java.util.Objects;
 
 public class FabricChatModule extends AbstractFabricModule {
     private final FabricDiscordSRV discordSRV;
@@ -49,7 +46,7 @@ public class FabricChatModule extends AbstractFabricModule {
         discordSRV.eventBus().publish(new GameChatMessageReceiveEvent(
             null,
             discordSRV.playerProvider().player(serverPlayerEntity),
-            ComponentUtil.fromPlain(MinecraftServerAudiences.of(serverPlayerEntity.server).asAdventure(signedMessage).message()),
+            ComponentUtil.toAPI(discordSRV.getAdventure().asAdventure(signedMessage.getContent())),
             new GlobalChannel(discordSRV),
             false
         ));

@@ -18,7 +18,6 @@
 
 package com.discordsrv.fabric.console.executor;
 
-import net.kyori.adventure.platform.modcommon.MinecraftServerAudiences;
 import net.kyori.adventure.text.Component;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.command.CommandOutput;
