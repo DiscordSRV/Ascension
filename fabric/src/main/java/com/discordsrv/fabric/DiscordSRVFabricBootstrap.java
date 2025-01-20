@@ -64,11 +64,13 @@ public class DiscordSRVFabricBootstrap implements DedicatedServerModInitializer,
 
     @Override
     public void onInitializeServer() {
-        ServerLifecycleEvents.SERVER_STARTED.register(minecraftServer -> {
+        ServerLifecycleEvents.SERVER_STARTING.register(minecraftServer -> {
             this.minecraftServer = minecraftServer;
             lifecycleManager.loadAndEnable(() -> this.discordSRV = new FabricDiscordSRV(this));
             this.discordSRV.runServerStarted();
         });
+
+        ServerLifecycleEvents.SERVER_STARTED.register(minecraftServer -> this.discordSRV.runServerStarted());
 
         ServerLifecycleEvents.SERVER_STOPPING.register(minecraftServer -> {
             if(this.discordSRV != null) this.discordSRV.runDisable();

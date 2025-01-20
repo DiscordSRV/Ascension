@@ -26,8 +26,6 @@ import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.network.ServerPlayNetworkHandler;
 import net.minecraft.server.network.ServerPlayerEntity;
 
-import java.util.UUID;
-
 public class FabricPlayerProvider extends AbstractPlayerProvider<FabricPlayer, FabricDiscordSRV> {
     private boolean enabled = false;
 
@@ -41,6 +39,7 @@ public class FabricPlayerProvider extends AbstractPlayerProvider<FabricPlayer, F
     @Override
     public void subscribe() {
         enabled = true;
+        if (discordSRV.getServer() == null || discordSRV.getServer().getPlayerManager() == null) return; // Server not started yet, So there's no players to add
 
         // Add players that are already connected
         for (ServerPlayerEntity player : discordSRV.getServer().getPlayerManager().getPlayerList()) {
