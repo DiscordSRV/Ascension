@@ -40,7 +40,7 @@ public class ThreadConfig {
     @Comment("Should an existing thread with the same name be unarchived instead of creating a new thread every time")
     public boolean unarchiveExisting = true;
 
-    @Comment("Does not effect forums")
+    @Comment("Does not affect forums")
     public boolean privateThread = false;
 
     @Override

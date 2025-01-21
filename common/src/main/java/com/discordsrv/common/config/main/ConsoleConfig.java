@@ -34,7 +34,7 @@ public class ConsoleConfig {
     @Comment("The console channel or thread")
     public DestinationConfig.Single channel = new DestinationConfig.Single("DiscordSRV Console #%date:'w'%", true);
 
-    @Comment("The amount of threads to keep. Rotation interval is based on placeholders in the thread name")
+    @Comment("The number of threads to keep. Rotation interval is based on placeholders in the thread name")
     public int threadsToKeepInRotation = 3;
 
     public Appender appender = new Appender();
@@ -50,7 +50,7 @@ public class ConsoleConfig {
         @Comment("The mode for the console output, available options are:\n"
                 + "- off: Turn off console appending\n"
                 + "- ansi: A colored ansi code block\n"
-                + "- log: A \"accesslog\" code block\n"
+                + "- log: An \"accesslog\" code block\n"
                 + "- diff: A \"diff\" code block highlighting warnings and errors with different colors\n"
                 + "- markdown: Plain text with bold, italics, strikethrough and underlining\n"
                 + "- plain: Plain text code block\n"
@@ -94,7 +94,7 @@ public class ConsoleConfig {
                     + "0 to not filter out duplicate exceptions, -1 to always filter out duplicate exceptions")
             public int filterOutDuplicatesMinutes = 5;
 
-            @Comment("If the message alongside a exception should also be ignored when ignoring duplicate exceptions")
+            @Comment("If the message alongside an exception should also be ignored when ignoring duplicate exceptions")
             public boolean alsoBlockMessages = true;
         }
 

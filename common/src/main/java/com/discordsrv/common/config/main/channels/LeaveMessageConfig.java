@@ -46,11 +46,11 @@ public class LeaveMessageConfig implements IMessageConfig {
                             .build()
             );
 
-    @Comment("If the \"%1\" permission should determine if leave messages are sent")
+    @Comment("If the \"%1\" permission should determine whether leave messages are sent")
     @Constants.Comment("discordsrv.silentquit")
     public Boolean enableSilentPermission = true;
 
-    @Comment("Ignore if the player joined within the given amount of milliseconds")
+    @Comment("Ignore if the player joined within the given number of milliseconds")
     @Setting("ignore-if-joined-within-ms")
     public Long ignoreIfJoinedWithinMS = 250L;
 

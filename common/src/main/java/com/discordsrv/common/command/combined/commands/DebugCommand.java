@@ -21,6 +21,9 @@ package com.discordsrv.common.command.combined.commands;
 import com.discordsrv.api.discord.entity.interaction.command.CommandOption;
 import com.discordsrv.api.discord.entity.interaction.command.DiscordCommand;
 import com.discordsrv.api.discord.entity.interaction.component.ComponentIdentifier;
+import com.discordsrv.api.eventbus.EventPriorities;
+import com.discordsrv.api.eventbus.Subscribe;
+import com.discordsrv.api.events.lifecycle.DiscordSRVShuttingDownEvent;
 import com.discordsrv.common.DiscordSRV;
 import com.discordsrv.common.command.combined.abstraction.CombinedCommand;
 import com.discordsrv.common.command.combined.abstraction.CommandExecution;
@@ -107,6 +110,14 @@ public class DebugCommand extends CombinedCommand {
     public DebugCommand(DiscordSRV discordSRV) {
         super(discordSRV);
         this.pasteService = new AESEncryptedPasteService(new BytebinPasteService(discordSRV, "https://bytebin.lucko.me") /* TODO: final store tbd */, 128);
+        discordSRV.eventBus().subscribe(this);
+    }
+
+    @Subscribe(priority = EventPriorities.EARLIEST)
+    public void onDiscordSRVShuttingDown(DiscordSRVShuttingDownEvent event) {
+        if (debugObserving.compareAndSet(true, false)) {
+            discordSRV.eventBus().publish(new DebugObservabilityEvent(false));
+        }
     }
 
     @Override
@@ -159,7 +170,7 @@ public class DebugCommand extends CombinedCommand {
             }
 
             if (debugObserving.compareAndSet(true, false)) {
-                discordSRV.eventBus().publish(new DebugObservabilityEvent(true));
+                discordSRV.eventBus().publish(new DebugObservabilityEvent(false));
                 execution.send(new Text("Debugging stopped").withGameColor(NamedTextColor.GREEN));
             } else if ("stop".equals(subCommand)) {
                 execution.send(new Text("Not debugging").withGameColor(NamedTextColor.RED));

@@ -21,6 +21,7 @@ package com.discordsrv.bukkit;
 import com.discordsrv.common.abstraction.bootstrap.LifecycleManager;
 import com.discordsrv.common.core.logging.Logger;
 import com.discordsrv.common.core.logging.backend.impl.JavaLoggerImpl;
+import com.discordsrv.common.util.ReflectionUtil;
 import dev.vankka.dependencydownload.classpath.ClasspathAppender;
 import dev.vankka.dependencydownload.jarinjar.classloader.JarInJarClassLoader;
 import dev.vankka.mcdependencydownload.bukkit.bootstrap.BukkitBootstrap;
@@ -53,12 +54,8 @@ public class DiscordSRVBukkitBootstrap extends BukkitBootstrap implements IBukki
     private static List<String> getDependencyResources() {
         List<String> resources = new ArrayList<>();
         resources.add("dependencies/runtimeDownload-bukkit.txt");
-
-        try {
-            Class.forName("com.mojang.brigadier.CommandDispatcher");
+        if (ReflectionUtil.classExists("com.mojang.brigadier.CommandDispatcher")) {
             resources.add("dependencies/commodore.txt");
-        } catch (ClassNotFoundException ignored) {
-            // CommandDispatcher not present, don't need to bother downloading commodore
         }
 
         return resources;

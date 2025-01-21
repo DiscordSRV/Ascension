@@ -41,7 +41,7 @@ import java.util.concurrent.CompletableFuture;
 public interface IPlayer extends DiscordSRVPlayer, IOfflinePlayer, ICommandSender {
 
     @Override
-    default void sendMessage(@NotNull MinecraftComponent component) {
+    default void sendMessageFromDiscord(@NotNull MinecraftComponent component) {
         sendMessage(ComponentUtil.fromAPI(component));
     }
 
