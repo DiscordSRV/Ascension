@@ -18,11 +18,11 @@
 
 package com.discordsrv.fabric.player;
 
-import com.discordsrv.fabric.FabricDiscordSRV;
-import com.discordsrv.fabric.command.game.sender.FabricCommandSender;
 import com.discordsrv.common.DiscordSRV;
 import com.discordsrv.common.abstraction.player.IPlayer;
 import com.discordsrv.common.abstraction.player.provider.model.SkinInfo;
+import com.discordsrv.fabric.FabricDiscordSRV;
+import com.discordsrv.fabric.command.game.sender.FabricCommandSender;
 import net.kyori.adventure.identity.Identity;
 import net.kyori.adventure.text.Component;
 import net.minecraft.server.network.ServerPlayerEntity;

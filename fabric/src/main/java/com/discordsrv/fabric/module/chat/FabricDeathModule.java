@@ -44,7 +44,7 @@ public class FabricDeathModule extends AbstractFabricModule {
 
     private void onDeath(LivingEntity livingEntity, DamageSource damageSource) {
         if (!enabled) return;
-        if(livingEntity instanceof ServerPlayerEntity) {
+        if (livingEntity instanceof ServerPlayerEntity) {
             Text message = damageSource.getDeathMessage(livingEntity);
             MinecraftComponent minecraftComponent = ComponentUtil.toAPI(discordSRV.getAdventure().asAdventure(message));
 

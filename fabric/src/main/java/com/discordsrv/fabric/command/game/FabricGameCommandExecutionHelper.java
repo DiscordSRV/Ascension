@@ -60,7 +60,7 @@ public class FabricGameCommandExecutionHelper implements GameCommandExecutionHel
                 return CompletableFuture.completedFuture(data);
             }
 
-            if(!parse.getContext().getNodes().isEmpty()) {
+            if (!parse.getContext().getNodes().isEmpty()) {
                 CommandNode<ServerCommandSource> lastNode = parse.getContext().getNodes().getLast().getNode();
                 if (lastNode.getChildren().isEmpty() && lastNode.getRedirect() == null) {
                     // We reached the end of the command tree. Suggest the full command as a valid command.
@@ -72,14 +72,14 @@ public class FabricGameCommandExecutionHelper implements GameCommandExecutionHel
             List<String> data = suggestions.getList().stream()
                     .map(suggestion -> fullCommand.substring(0, suggestion.getRange().getStart()) + suggestion.getText())
                     .collect(Collectors.toList());
-            if(data.isEmpty()) {
+            if (data.isEmpty()) {
                 // Suggestions are empty, Likely the user is still typing an argument.
                 // If the context is empty, We search all commands from the root.
                 CommandNode<ServerCommandSource> lastNode = !parse.getContext().getNodes().isEmpty() ? parse.getContext().getNodes().getLast().getNode() : parse.getContext().getRootNode();
 
                 for (CommandNode<ServerCommandSource> child : lastNode.getChildren()) {
                     if (child.getName().toLowerCase().startsWith(parts.getLast().toLowerCase())) {
-                        if(lastNode instanceof RootCommandNode<ServerCommandSource>) {
+                        if (lastNode instanceof RootCommandNode<ServerCommandSource>) {
                             data.add(child.getName());
                             continue;
                         }

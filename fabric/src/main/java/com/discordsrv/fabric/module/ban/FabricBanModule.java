@@ -51,12 +51,6 @@ public class FabricBanModule extends AbstractFabricModule implements PunishmentM
         instance = this;
     }
 
-
-    @Override
-    public void enable() {
-        this.enabled = true;
-    }
-
     public static void onBan(GameProfile gameProfile) {
         if (instance == null) return;
         FabricDiscordSRV discordSRV = instance.discordSRV;
@@ -64,7 +58,8 @@ public class FabricBanModule extends AbstractFabricModule implements PunishmentM
         if (module != null) {
             instance.getBan(gameProfile.getId())
                     .whenComplete((punishment, t) -> {
-                        if (punishment != null) module.notifyBanned(Objects.requireNonNull(discordSRV.playerProvider().player(gameProfile.getId())), punishment);
+                        if (punishment != null)
+                            module.notifyBanned(Objects.requireNonNull(discordSRV.playerProvider().player(gameProfile.getId())), punishment);
                     });
         }
     }
@@ -74,6 +69,11 @@ public class FabricBanModule extends AbstractFabricModule implements PunishmentM
         FabricDiscordSRV discordSRV = instance.discordSRV;
         BanSyncModule module = discordSRV.getModule(BanSyncModule.class);
         if (module != null) instance.removeBan(gameProfile.getId()).complete(null);
+    }
+
+    @Override
+    public void enable() {
+        this.enabled = true;
     }
 
     @Override

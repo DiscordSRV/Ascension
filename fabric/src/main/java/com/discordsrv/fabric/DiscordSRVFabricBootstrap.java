@@ -42,8 +42,8 @@ public class DiscordSRVFabricBootstrap implements DedicatedServerModInitializer,
     private final Logger logger;
     private final ClasspathAppender classpathAppender;
     private final LifecycleManager lifecycleManager;
-    private MinecraftServer minecraftServer;
     private final Path dataDirectory;
+    private MinecraftServer minecraftServer;
     private FabricDiscordSRV discordSRV;
     private MinecraftServerAudiences adventure;
 
@@ -76,7 +76,7 @@ public class DiscordSRVFabricBootstrap implements DedicatedServerModInitializer,
         ServerLifecycleEvents.SERVER_STARTED.register(minecraftServer -> this.discordSRV.runServerStarted());
 
         ServerLifecycleEvents.SERVER_STOPPING.register(minecraftServer -> {
-            if(this.discordSRV != null) this.discordSRV.runDisable();
+            if (this.discordSRV != null) this.discordSRV.runDisable();
         });
     }
 

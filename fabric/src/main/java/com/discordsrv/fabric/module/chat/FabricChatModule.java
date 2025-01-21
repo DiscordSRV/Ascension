@@ -44,11 +44,11 @@ public class FabricChatModule extends AbstractFabricModule {
         if (!enabled) return;
 
         discordSRV.eventBus().publish(new GameChatMessageReceiveEvent(
-            null,
-            discordSRV.playerProvider().player(serverPlayerEntity),
-            ComponentUtil.toAPI(discordSRV.getAdventure().asAdventure(signedMessage.getContent())),
-            new GlobalChannel(discordSRV),
-            false
+                null,
+                discordSRV.playerProvider().player(serverPlayerEntity),
+                ComponentUtil.toAPI(discordSRV.getAdventure().asAdventure(signedMessage.getContent())),
+                new GlobalChannel(discordSRV),
+                false
         ));
     }
 }

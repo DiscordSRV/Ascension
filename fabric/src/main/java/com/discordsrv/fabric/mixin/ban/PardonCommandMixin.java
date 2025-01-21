@@ -22,7 +22,6 @@ import com.discordsrv.fabric.module.ban.FabricBanModule;
 import com.llamalad7.mixinextras.sugar.Local;
 import com.mojang.authlib.GameProfile;
 import net.minecraft.server.command.ServerCommandSource;
-import net.minecraft.server.dedicated.command.BanCommand;
 import net.minecraft.server.dedicated.command.PardonCommand;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;

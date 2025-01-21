@@ -18,8 +18,8 @@
 
 package com.discordsrv.fabric.player;
 
-import com.discordsrv.fabric.FabricDiscordSRV;
 import com.discordsrv.common.abstraction.player.provider.AbstractPlayerProvider;
+import com.discordsrv.fabric.FabricDiscordSRV;
 import net.fabricmc.fabric.api.networking.v1.PacketSender;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayConnectionEvents;
 import net.minecraft.server.MinecraftServer;
@@ -39,7 +39,8 @@ public class FabricPlayerProvider extends AbstractPlayerProvider<FabricPlayer, F
     @Override
     public void subscribe() {
         enabled = true;
-        if (discordSRV.getServer() == null || discordSRV.getServer().getPlayerManager() == null) return; // Server not started yet, So there's no players to add
+        if (discordSRV.getServer() == null || discordSRV.getServer().getPlayerManager() == null)
+            return; // Server not started yet, So there's no players to add
 
         // Add players that are already connected
         for (ServerPlayerEntity player : discordSRV.getServer().getPlayerManager().getPlayerList()) {
@@ -61,12 +62,12 @@ public class FabricPlayerProvider extends AbstractPlayerProvider<FabricPlayer, F
     }
 
     private void addPlayer(ServerPlayerEntity player, boolean initial) {
-        if(!enabled) return;
+        if (!enabled) return;
         addPlayer(player.getUuid(), new FabricPlayer(discordSRV, player), initial);
     }
 
     private void removePlayer(ServerPlayerEntity player) {
-        if(!enabled) return;
+        if (!enabled) return;
         removePlayer(player.getUuid());
     }
 

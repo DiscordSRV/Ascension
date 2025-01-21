@@ -18,34 +18,36 @@
 
 package com.discordsrv.fabric;
 
+import com.discordsrv.common.AbstractDiscordSRV;
+import com.discordsrv.common.abstraction.plugin.PluginManager;
 import com.discordsrv.common.command.game.abstraction.GameCommandExecutionHelper;
+import com.discordsrv.common.command.game.abstraction.handler.ICommandHandler;
 import com.discordsrv.common.config.configurate.manager.ConnectionConfigManager;
 import com.discordsrv.common.config.configurate.manager.MainConfigManager;
 import com.discordsrv.common.config.configurate.manager.MessagesConfigManager;
 import com.discordsrv.common.config.configurate.manager.abstraction.ServerConfigManager;
 import com.discordsrv.common.config.connection.ConnectionConfig;
 import com.discordsrv.common.config.messages.MessagesConfig;
-import com.discordsrv.common.feature.messageforwarding.game.MinecraftToDiscordChatModule;
-import com.discordsrv.fabric.command.game.FabricGameCommandExecutionHelper;
-import com.discordsrv.fabric.config.main.FabricConfig;
-import com.discordsrv.fabric.console.FabricConsole;
-import com.discordsrv.fabric.command.game.handler.FabricCommandHandler;
-import com.discordsrv.fabric.module.chat.*;
-import com.discordsrv.fabric.module.ban.FabricBanModule;
-import com.discordsrv.fabric.requiredlinking.FabricRequiredLinkingModule;
-import com.discordsrv.fabric.player.FabricPlayerProvider;
-import com.discordsrv.fabric.plugin.FabricModManager;
-import com.discordsrv.common.AbstractDiscordSRV;
-import com.discordsrv.common.abstraction.plugin.PluginManager;
-import com.discordsrv.common.command.game.abstraction.handler.ICommandHandler;
 import com.discordsrv.common.core.scheduler.StandardScheduler;
 import com.discordsrv.common.feature.debug.data.OnlineMode;
+import com.discordsrv.common.feature.messageforwarding.game.MinecraftToDiscordChatModule;
+import com.discordsrv.fabric.command.game.FabricGameCommandExecutionHelper;
+import com.discordsrv.fabric.command.game.handler.FabricCommandHandler;
+import com.discordsrv.fabric.config.main.FabricConfig;
+import com.discordsrv.fabric.console.FabricConsole;
+import com.discordsrv.fabric.module.ban.FabricBanModule;
+import com.discordsrv.fabric.module.chat.*;
+import com.discordsrv.fabric.player.FabricPlayerProvider;
+import com.discordsrv.fabric.plugin.FabricModManager;
+import com.discordsrv.fabric.requiredlinking.FabricRequiredLinkingModule;
 import net.kyori.adventure.platform.modcommon.MinecraftServerAudiences;
 import net.minecraft.server.MinecraftServer;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.net.*;
+import java.net.MalformedURLException;
+import java.net.URI;
+import java.net.URL;
 import java.security.CodeSource;
 import java.util.jar.JarFile;
 
@@ -69,7 +71,7 @@ public class FabricDiscordSRV extends AbstractDiscordSRV<DiscordSRVFabricBootstr
         this.scheduler = new StandardScheduler(this);
         this.console = new FabricConsole(this);
         this.playerProvider = new FabricPlayerProvider(this);
-        this.modManager = new FabricModManager(this);
+        this.modManager = new FabricModManager();
         this.commandHandler = new FabricCommandHandler(this);
         this.executionHelper = new FabricGameCommandExecutionHelper(this);
 
@@ -110,10 +112,6 @@ public class FabricDiscordSRV extends AbstractDiscordSRV<DiscordSRVFabricBootstr
             this.logger().error("Failed to get manifest URL", e);
             return null;
         }
-    }
-
-    public FabricModManager getModManager() {
-        return modManager;
     }
 
     public MinecraftServer getServer() {

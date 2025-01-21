@@ -18,8 +18,8 @@
 
 package com.discordsrv.fabric.command.game.sender;
 
-import com.discordsrv.fabric.FabricDiscordSRV;
 import com.discordsrv.common.command.game.abstraction.sender.ICommandSender;
+import com.discordsrv.fabric.FabricDiscordSRV;
 import me.lucko.fabric.api.permissions.v0.Permissions;
 import net.kyori.adventure.audience.Audience;
 import net.minecraft.server.command.ServerCommandSource;

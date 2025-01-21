@@ -18,11 +18,11 @@
 
 package com.discordsrv.fabric.command.game.handler;
 
-import com.discordsrv.fabric.FabricDiscordSRV;
 import com.discordsrv.common.command.game.abstraction.command.GameCommand;
 import com.discordsrv.common.command.game.abstraction.handler.ICommandHandler;
 import com.discordsrv.common.command.game.abstraction.handler.util.BrigadierUtil;
 import com.discordsrv.common.command.game.abstraction.sender.ICommandSender;
+import com.discordsrv.fabric.FabricDiscordSRV;
 import com.mojang.brigadier.tree.LiteralCommandNode;
 import net.minecraft.command.CommandSource;
 import net.minecraft.server.command.ServerCommandSource;

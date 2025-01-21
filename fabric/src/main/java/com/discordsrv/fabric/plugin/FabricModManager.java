@@ -18,7 +18,6 @@
 
 package com.discordsrv.fabric.plugin;
 
-import com.discordsrv.fabric.FabricDiscordSRV;
 import com.discordsrv.common.abstraction.plugin.Plugin;
 import com.discordsrv.common.abstraction.plugin.PluginManager;
 import net.fabricmc.loader.api.FabricLoader;
@@ -29,12 +28,6 @@ import java.util.Locale;
 import java.util.stream.Collectors;
 
 public class FabricModManager implements PluginManager {
-
-    private final FabricDiscordSRV discordSRV;
-
-    public FabricModManager(FabricDiscordSRV discordSRV) {
-        this.discordSRV = discordSRV;
-    }
 
     @Override
     public boolean isPluginEnabled(String modIdentifier) {

@@ -39,5 +39,6 @@ public abstract class AbstractFabricModule extends AbstractModule<FabricDiscordS
         enabled = false;
     }
 
-    public void register() {}
+    public void register() {
+    }
 }

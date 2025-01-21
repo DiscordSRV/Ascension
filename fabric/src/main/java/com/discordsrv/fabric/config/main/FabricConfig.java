@@ -30,6 +30,9 @@ import org.spongepowered.configurate.objectmapping.ConfigSerializable;
 @ConfigSerializable
 public class FabricConfig extends MainConfig {
 
+    @Order(5)
+    public ServerRequiredLinkingConfig requiredLinking = new ServerRequiredLinkingConfig();
+
     @Override
     public BaseChannelConfig createDefaultBaseChannel() {
         return new ServerBaseChannelConfig();
@@ -39,9 +42,6 @@ public class FabricConfig extends MainConfig {
     public BaseChannelConfig createDefaultChannel() {
         return new ServerChannelConfig();
     }
-
-    @Order(5)
-    public ServerRequiredLinkingConfig requiredLinking = new ServerRequiredLinkingConfig();
 
     @Override
     public PresenceUpdaterConfig defaultPresenceUpdater() {

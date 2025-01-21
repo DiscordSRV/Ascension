@@ -18,8 +18,8 @@
 
 package com.discordsrv.fabric.console.executor;
 
-import com.discordsrv.fabric.FabricDiscordSRV;
 import com.discordsrv.common.command.game.abstraction.executor.CommandExecutor;
+import com.discordsrv.fabric.FabricDiscordSRV;
 import net.minecraft.server.command.ServerCommandSource;
 
 public class FabricCommandExecutor implements CommandExecutor {

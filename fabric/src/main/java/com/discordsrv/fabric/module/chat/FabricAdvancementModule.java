@@ -29,8 +29,8 @@ import net.minecraft.advancement.AdvancementEntry;
 import net.minecraft.server.network.ServerPlayerEntity;
 
 public class FabricAdvancementModule extends AbstractFabricModule {
-    private final FabricDiscordSRV discordSRV;
     private static FabricAdvancementModule instance;
+    private final FabricDiscordSRV discordSRV;
 
     public FabricAdvancementModule(FabricDiscordSRV discordSRV) {
         super(discordSRV);
@@ -43,10 +43,10 @@ public class FabricAdvancementModule extends AbstractFabricModule {
 
         FabricDiscordSRV discordSRV = instance.discordSRV;
         Advancement advancement = advancementEntry.value();
-        if(advancement.display().isEmpty() || advancement.name().isEmpty()) return; // Usually a crafting recipe.
+        if (advancement.display().isEmpty() || advancement.name().isEmpty()) return; // Usually a crafting recipe.
         MinecraftComponent advancementTitle = ComponentUtil.toAPI(discordSRV.getAdventure().asAdventure(advancement.display().get().getTitle()));
 
-          // TODO: Add description to the event. So we can explain how the player got the advancement.
+        // TODO: Add description to the event. So we can explain how the player got the advancement.
 //        String description = Formatting.strip(advancement.display().get().getDescription().getString());
 //        MinecraftComponent advancementDescription = ComponentUtil.fromPlain(description);
 
