@@ -103,7 +103,7 @@ public class BanSyncConfig extends AbstractSyncConfig<BanSyncConfig, BanSyncModu
             @Comment("The reason applied when removing bans in Discord")
             public String unbanReasonFormat = "Unbanned in Minecraft";
 
-            @Comment("The amount of hours to delete Discord messages, when syncing bans from Minecraft to Discord")
+            @Comment("The number of hours of Discord messages to delete, when syncing bans from Minecraft to Discord")
             public int messageHoursToDelete = 0;
         }
 
