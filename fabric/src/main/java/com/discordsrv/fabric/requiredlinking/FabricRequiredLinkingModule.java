@@ -72,6 +72,10 @@ public class FabricRequiredLinkingModule extends ServerRequireLinkingModule<Fabr
         instance = this;
     }
 
+    //
+    // Kick
+    //
+
     @Nullable
     public static Text checkCanJoin(GameProfile profile) {
         if (instance == null || (instance.discordSRV != null && instance.discordSRV.status() != DiscordSRV.Status.CONNECTED)) {
@@ -96,6 +100,10 @@ public class FabricRequiredLinkingModule extends ServerRequireLinkingModule<Fabr
 
         return null;
     }
+
+    //
+    // Freeze
+    //
 
     public static void onPlayerMove(ServerPlayerEntity player, PlayerMoveC2SPacket packet, CallbackInfo ci) {
         if (instance == null || !instance.enabled) return;
@@ -164,20 +172,12 @@ public class FabricRequiredLinkingModule extends ServerRequireLinkingModule<Fabr
         return discordSRV.config().requiredLinking;
     }
 
-    //
-    // Kick
-    //
-
     @Override
     public void enable() {
         super.enable();
 
         this.enabled = true;
     }
-
-    //
-    // Freeze
-    //
 
     public void register() {
         ServerMessageEvents.ALLOW_CHAT_MESSAGE.register(this::allowChatMessage);
@@ -214,6 +214,10 @@ public class FabricRequiredLinkingModule extends ServerRequireLinkingModule<Fabr
     public ServerRequiredLinkingConfig.Action action() {
         return config().action;
     }
+
+    //
+    // Freeze
+    //
 
     private boolean isFrozen(ServerPlayerEntity player) {
         Component freezeReason = frozen.get(player.getUuid());
