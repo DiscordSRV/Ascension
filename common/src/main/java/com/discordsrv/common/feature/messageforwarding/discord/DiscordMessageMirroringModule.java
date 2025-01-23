@@ -210,7 +210,7 @@ public class DiscordMessageMirroringModule extends AbstractModule<DiscordSRV> {
                         continue;
                     }
 
-                    SendableDiscordMessage.Builder messageBuilder = convert(event.getMessage(), mirrorChannel, config);
+                    SendableDiscordMessage.Builder messageBuilder = convert(message, mirrorChannel, config);
                     if (messageBuilder.isEmpty() && !hasAttachments) {
                         logger().debug("Nothing to mirror to " + mirrorChannel + ", skipping");
                         return;
@@ -413,8 +413,7 @@ public class DiscordMessageMirroringModule extends AbstractModule<DiscordSRV> {
         }
 
         ReceivedDiscordMessage replyMessage = message.getReplyingTo();
-        String content = Objects.requireNonNull(message.getContent())
-                .replace("[", "\\["); // Block markdown urls
+        String content = Objects.requireNonNull(message.getContent());
 
         String finalContent;
         if (replyMessage != null) {
