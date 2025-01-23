@@ -3,6 +3,11 @@ apply plugin: 'net.kyori.blossom'
 apply plugin: 'org.jetbrains.gradle.plugin.idea-ext'
 apply plugin: 'xyz.jpenilla.run-velocity'
 
+// TODO: not yet functional, so jar artifact disabled
+tasks.withType(Jar).configureEach {
+    enabled = false
+}
+
 java {
     disableAutoTargetJvm() // Requires Java 17, we target 8
 }

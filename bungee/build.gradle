@@ -1,3 +1,10 @@
+// TODO: not yet functional, so jar artifact disabled
+allprojects {
+    tasks.withType(Jar).configureEach {
+        enabled = false
+    }
+}
+
 shadowJar {
     archiveFileName = 'bungee.jarinjar'
 
