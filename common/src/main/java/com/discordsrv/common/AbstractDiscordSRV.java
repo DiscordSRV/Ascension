@@ -105,9 +105,12 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.lang.reflect.Constructor;
 import java.net.*;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.time.Duration;
+import java.time.LocalDateTime;
 import java.time.ZonedDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
@@ -747,12 +750,19 @@ public abstract class AbstractDiscordSRV<
         }
 
         boolean configUpgrade = flags.contains(ReloadFlag.CONFIG_UPGRADE);
+        Path backupPath = null;
+        if (configUpgrade) {
+            String dateAndTime = DateTimeFormatter.ofPattern("yyyy-MM-dd_HH-mm-ss").format(LocalDateTime.now());
+            backupPath = dataDirectory().resolve("config-migrated").resolve(dateAndTime);
+            Files.createDirectories(backupPath);
+        }
+
         if (flags.contains(ReloadFlag.CONFIG) || configUpgrade) {
             try {
                 AtomicBoolean anyMissingOptions = new AtomicBoolean(false);
-                connectionConfigManager().reload(configUpgrade, anyMissingOptions);
-                configManager().reload(configUpgrade, anyMissingOptions);
-                messagesConfigManager().reload(configUpgrade, anyMissingOptions);
+                connectionConfigManager().reload(configUpgrade, anyMissingOptions, backupPath);
+                configManager().reload(configUpgrade, anyMissingOptions, backupPath);
+                messagesConfigManager().reload(configUpgrade, anyMissingOptions, backupPath);
 
                 if (anyMissingOptions.get()) {
                     logger().info("Use \"/discordsrv reload config_upgrade\" to write the latest configuration");

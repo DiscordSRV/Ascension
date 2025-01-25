@@ -24,6 +24,7 @@ import com.discordsrv.common.config.messages.MessagesConfig;
 import com.discordsrv.common.core.logging.Logger;
 import com.discordsrv.common.core.logging.NamedLogger;
 import com.discordsrv.common.exception.ConfigException;
+import org.jetbrains.annotations.Nullable;
 
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -63,7 +64,7 @@ public class MessagesConfigManager<C extends MessagesConfig> {
         return discordSRV.dataDirectory().resolve("messages");
     }
 
-    public void reload(boolean forceSave, AtomicBoolean anyMissingOptions) throws ConfigException {
+    public void reload(boolean forceSave, AtomicBoolean anyMissingOptions, @Nullable Path backupPath) throws ConfigException {
         synchronized (configs) {
             configs.clear();
 
@@ -112,7 +113,7 @@ public class MessagesConfigManager<C extends MessagesConfig> {
             }
 
             for (Map.Entry<Locale, MessagesConfigSingleManager<C>> entry : configs.entrySet()) {
-                entry.getValue().reload(forceSave, anyMissingOptions);
+                entry.getValue().reload(forceSave, anyMissingOptions, backupPath);
             }
         }
     }
