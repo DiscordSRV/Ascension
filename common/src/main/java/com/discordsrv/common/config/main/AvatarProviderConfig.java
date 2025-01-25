@@ -63,5 +63,5 @@ public class AvatarProviderConfig {
     }
 
     @Comment("Default avatar URL")
-    public String defaultUrl = "%bot_user_effective_avatar_url%";
+    public String defaultUrl = "%bot_user_avatar_url%";
 }
