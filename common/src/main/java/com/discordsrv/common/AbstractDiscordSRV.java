@@ -50,6 +50,7 @@ import com.discordsrv.common.core.module.type.AbstractModule;
 import com.discordsrv.common.core.placeholder.PlaceholderServiceImpl;
 import com.discordsrv.common.core.placeholder.context.DateFormattingContext;
 import com.discordsrv.common.core.placeholder.context.GamePermissionContext;
+import com.discordsrv.common.core.placeholder.context.ReceivedDiscordMessageContext;
 import com.discordsrv.common.core.placeholder.context.TextHandlingContext;
 import com.discordsrv.common.core.placeholder.format.DiscordMarkdownFormatImpl;
 import com.discordsrv.common.core.placeholder.result.ComponentResultStringifier;
@@ -671,6 +672,7 @@ public abstract class AbstractDiscordSRV<
         placeholderService().addGlobalContext(new TextHandlingContext(this));
         placeholderService().addGlobalContext(new DateFormattingContext(this));
         placeholderService().addGlobalContext(new GamePermissionContext(this));
+        placeholderService().addGlobalContext(new ReceivedDiscordMessageContext(this));
         placeholderService().addGlobalContext(UUIDUtil.class);
 
         // Modules

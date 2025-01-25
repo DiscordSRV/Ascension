@@ -29,20 +29,14 @@ import com.discordsrv.api.discord.entity.message.DiscordMessageEmbed;
 import com.discordsrv.api.discord.entity.message.ReceivedDiscordMessage;
 import com.discordsrv.api.discord.entity.message.SendableDiscordMessage;
 import com.discordsrv.api.discord.exception.RestErrorResponseException;
-import com.discordsrv.api.placeholder.annotation.Placeholder;
 import com.discordsrv.api.placeholder.annotation.PlaceholderPrefix;
-import com.discordsrv.api.placeholder.annotation.PlaceholderRemainder;
 import com.discordsrv.common.DiscordSRV;
-import com.discordsrv.common.config.main.channels.base.BaseChannelConfig;
 import com.discordsrv.common.util.CompletableFutureUtil;
-import com.discordsrv.common.util.ComponentUtil;
 import net.dv8tion.jda.api.entities.Member;
 import net.dv8tion.jda.api.entities.Message;
 import net.dv8tion.jda.api.entities.MessageEmbed;
 import net.dv8tion.jda.api.entities.WebhookClient;
 import net.dv8tion.jda.api.requests.ErrorResponse;
-import net.kyori.adventure.text.Component;
-import net.kyori.adventure.text.JoinConfiguration;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.annotations.Unmodifiable;
@@ -265,51 +259,6 @@ public class ReceivedDiscordMessageImpl implements ReceivedDiscordMessage {
         }
 
         return messageChannel.sendMessage(message.withReplyingToMessageId(id));
-    }
-
-    //
-    // Placeholders
-    //
-
-    @Placeholder("reply")
-    public Component _reply(BaseChannelConfig config) {
-        if (replyingTo == null) {
-            return null;
-        }
-
-        String content = replyingTo.getContent();
-        if (content == null) {
-            return null;
-        }
-
-        Component component = discordSRV.componentFactory().minecraftSerialize(getGuild(), config, content);
-
-        String replyFormat = config.discordToMinecraft.replyFormat;
-        return ComponentUtil.fromAPI(
-                discordSRV.componentFactory().textBuilder(replyFormat)
-                        .applyPlaceholderService()
-                        .addPlaceholder("message", component)
-                        .addContext(replyingTo.getMember(), replyingTo.getAuthor(), replyingTo)
-                        .build()
-                // TODO: add contentRegexFilters to this
-        );
-    }
-
-    @Placeholder("attachments")
-    public Component _attachments(BaseChannelConfig config, @PlaceholderRemainder String suffix) {
-        String attachmentFormat = config.discordToMinecraft.attachmentFormat;
-        List<Component> components = new ArrayList<>();
-        for (Attachment attachment : attachments) {
-            components.add(ComponentUtil.fromAPI(
-                    discordSRV.componentFactory().textBuilder(attachmentFormat)
-                            .applyPlaceholderService()
-                            .addPlaceholder("file_name", attachment.fileName())
-                            .addPlaceholder("file_url", attachment.url())
-                            .build()
-            ));
-        }
-
-        return Component.join(JoinConfiguration.separator(Component.text(suffix)), components);
     }
 
     @Override
