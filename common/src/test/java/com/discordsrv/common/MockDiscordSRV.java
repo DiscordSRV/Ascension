@@ -223,7 +223,7 @@ public class MockDiscordSRV extends AbstractDiscordSRV<IBootstrap, MainConfig, C
             }
 
             @Override
-            public void reload(boolean forceSave, AtomicBoolean anyMissingOptions) {
+            public void reload(boolean forceSave, AtomicBoolean anyMissingOptions, Path backupPath) {
                 connectionConfigLoaded = true;
             }
         };
@@ -250,7 +250,7 @@ public class MockDiscordSRV extends AbstractDiscordSRV<IBootstrap, MainConfig, C
             }
 
             @Override
-            public void reload(boolean forceSave, AtomicBoolean anyMissingOptions) {
+            public void reload(boolean forceSave, AtomicBoolean anyMissingOptions, Path backupPath) {
                 configLoaded = true;
             }
         };
@@ -307,7 +307,7 @@ public class MockDiscordSRV extends AbstractDiscordSRV<IBootstrap, MainConfig, C
             }
 
             @Override
-            public void reload(boolean forceSave, AtomicBoolean anyMissingOptions) {
+            public void reload(boolean forceSave, AtomicBoolean anyMissingOptions, Path backupPath) {
                 messagesConfigLoaded = true;
             }
         };
