@@ -19,6 +19,7 @@
 package com.discordsrv.common.config.main;
 
 import com.discordsrv.common.config.configurate.annotation.Constants;
+import com.discordsrv.common.config.documentation.DocumentationURLs;
 import org.spongepowered.configurate.objectmapping.ConfigSerializable;
 import org.spongepowered.configurate.objectmapping.meta.Comment;
 
@@ -38,12 +39,14 @@ public class AvatarProviderConfig {
     }
 
     @Comment("Bring your own avatar url templates, empty templates will be skipped\n"
-            + "Placeholders:\n"
+            + "Suggested Placeholders:\n"
             + "%player_skin_texture_id% - The texture ID for the player\n"
             + "%player_skin_model% - The skin model (classic, slim) for the player\n"
             + "%player_uuid% - Full UUID for the player\n"
             + "%player_uuid_short% - The UUID for the player without dashes\n"
-            + "%player_name% - The player's username")
+            + "%player_name% - The player's username\n"
+            + "More placeholders at %1")
+    @Constants.Comment(DocumentationURLs.PLACEHOLDERS)
     public Services services = new Services();
 
     public static class Services {
