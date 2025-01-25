@@ -28,7 +28,6 @@ import com.discordsrv.common.abstraction.sync.enums.SyncDirection;
 import com.discordsrv.common.abstraction.sync.enums.SyncSide;
 import com.discordsrv.common.abstraction.sync.result.GenericSyncResults;
 import com.discordsrv.common.abstraction.sync.result.ISyncResult;
-import com.discordsrv.common.config.main.GroupSyncConfig;
 import com.discordsrv.common.config.main.generic.AbstractSyncConfig;
 import com.discordsrv.common.core.logging.NamedLogger;
 import com.discordsrv.common.core.module.type.AbstractModule;
@@ -130,7 +129,7 @@ public abstract class AbstractSyncModule<
                 }
 
                 Future<?> future = null;
-                GroupSyncConfig.PairConfig.TimerConfig timer = config.timer;
+                AbstractSyncConfig.TimerConfig timer = config.timer;
                 if (timer != null && timer.enabled) {
                     int cycleTime = timer.cycleTime;
                     future = discordSRV.scheduler().runAtFixedRate(
