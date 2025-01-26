@@ -31,6 +31,7 @@ public class FullBootExtension implements BeforeAllCallback, ExtensionContext.St
     public static String FORUM_CHANNEL_ID = System.getenv("DISCORDSRV_AUTOTEST_FORUM_ID");
     public static String MEDIA_CHANNEL_ID = System.getenv("DISCORDSRV_AUTOTEST_MEDIA_ID");
     public static String VOICE_CHANNEL_ID = System.getenv("DISCORDSRV_AUTOTEST_VOICE_ID");
+    public static String STAGE_CHANNEL_ID = System.getenv("DISCORDSRV_AUTOTEST_STAGE_ID");
 
     public static boolean started = false;
 
@@ -41,6 +42,7 @@ public class FullBootExtension implements BeforeAllCallback, ExtensionContext.St
         Assumptions.assumeTrue(FORUM_CHANNEL_ID != null, "Automated testing forum channel id");
         Assumptions.assumeTrue(MEDIA_CHANNEL_ID != null, "Automated testing media channel id");
         Assumptions.assumeTrue(VOICE_CHANNEL_ID != null, "Automated testing voice channel id");
+        Assumptions.assumeTrue(STAGE_CHANNEL_ID != null, "Automated testing stage channel id");
 
         if (started) return;
         started = true;
