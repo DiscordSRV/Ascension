@@ -160,6 +160,8 @@ public class DiscordAPIImpl implements DiscordAPI {
     public DiscordChannel getChannel(Channel jda) {
         if (jda instanceof ForumChannel) {
             return getForumChannel((ForumChannel) jda);
+        } else if (jda instanceof MediaChannel) {
+            return getMediaChannel((MediaChannel) jda);
         } else if (jda instanceof MessageChannel) {
             return getMessageChannel((MessageChannel) jda);
         } else {

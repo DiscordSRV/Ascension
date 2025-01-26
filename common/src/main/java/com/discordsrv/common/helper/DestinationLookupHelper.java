@@ -188,7 +188,7 @@ public class DestinationLookupHelper {
             boolean privateThread,
             boolean logFailures
     ) {
-        boolean forum = threadContainer instanceof DiscordForumChannel;
+        boolean forum = threadContainer instanceof DiscordForumChannel || threadContainer instanceof DiscordMediaChannel;
 
         Permission createPermission;
         if (forum) {
@@ -213,10 +213,13 @@ public class DestinationLookupHelper {
 
         CompletableFuture<DiscordThreadChannel> future;
         if (forum) {
-            future = ((DiscordForumChannel) threadContainer).createPost(
-                    threadName,
-                    SendableDiscordMessage.builder().setContent("\u200B").build() // zero-width-space
-            );
+            SendableDiscordMessage message = SendableDiscordMessage.builder().setContent("\u200B").build(); // zero-width-space
+
+            if (threadContainer instanceof DiscordForumChannel) {
+                future = ((DiscordForumChannel) threadContainer).createPost(threadName, message);
+            } else {
+                future = ((DiscordMediaChannel) threadContainer).createPost(threadName, message);
+            }
         } else {
             future = threadContainer.createThread(threadName, privateThread);
         }
