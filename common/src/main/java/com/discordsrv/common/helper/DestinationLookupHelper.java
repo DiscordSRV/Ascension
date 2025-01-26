@@ -82,7 +82,12 @@ public class DestinationLookupHelper {
             if (messageChannel instanceof DiscordThreadContainer) {
                 threadContainer = (DiscordThreadContainer) messageChannel;
             } else {
-                threadContainer = discordSRV.discordAPI().getForumChannelById(channelId);
+                DiscordForumChannel forumChannel = discordSRV.discordAPI().getForumChannelById(channelId);
+                if (forumChannel != null) {
+                    threadContainer = forumChannel;
+                } else {
+                    threadContainer = discordSRV.discordAPI().getMediaChannelById(channelId);
+                }
             }
             if (threadContainer == null) {
                 if (logFailures) {

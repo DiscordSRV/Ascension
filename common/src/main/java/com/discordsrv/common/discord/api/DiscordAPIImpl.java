@@ -119,6 +119,10 @@ public class DiscordAPIImpl implements DiscordAPI {
         if (forumChannel != null) {
             return forumChannel;
         }
+        DiscordMediaChannel mediaChannel = getMediaChannelById(id);
+        if (mediaChannel != null) {
+            return mediaChannel;
+        }
 
         return getMessageChannelById(id);
     }
@@ -229,6 +233,15 @@ public class DiscordAPIImpl implements DiscordAPI {
 
     public DiscordForumChannelImpl getForumChannel(ForumChannel jda) {
         return new DiscordForumChannelImpl(discordSRV, jda);
+    }
+
+    @Override
+    public @Nullable DiscordMediaChannel getMediaChannelById(long id) {
+        return mapJDAEntity(jda -> jda.getMediaChannelById(id), this::getMediaChannel);
+    }
+
+    public DiscordMediaChannelImpl getMediaChannel(MediaChannel jda) {
+        return new DiscordMediaChannelImpl(discordSRV, jda);
     }
 
     @Override
