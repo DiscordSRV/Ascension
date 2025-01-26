@@ -180,7 +180,7 @@ public class MinecraftToDiscordChatMessageTest {
                 }
             }
 
-            success.complete(text == 1 && voice == 1 && thread == 2);
+            success.complete(text == 1 && voice == 1 && thread == 3);
         }
     }
 }

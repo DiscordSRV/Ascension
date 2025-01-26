@@ -269,6 +269,7 @@ public class MockDiscordSRV extends AbstractDiscordSRV<IBootstrap, MainConfig, C
 
         if (StringUtils.isNotEmpty(FullBootExtension.TEXT_CHANNEL_ID)
                 && StringUtils.isNotEmpty(FullBootExtension.FORUM_CHANNEL_ID)
+                && StringUtils.isNotEmpty(FullBootExtension.MEDIA_CHANNEL_ID)
                 && StringUtils.isNotEmpty(FullBootExtension.VOICE_CHANNEL_ID)
         ) {
             ChannelConfig global = (ChannelConfig) config.channels.get(GameChannel.DEFAULT_NAME);
@@ -277,6 +278,7 @@ public class MockDiscordSRV extends AbstractDiscordSRV<IBootstrap, MainConfig, C
             long textChannelId = Long.parseLong(FullBootExtension.TEXT_CHANNEL_ID);
             long voiceChannelId = Long.parseLong(FullBootExtension.VOICE_CHANNEL_ID);
             long forumId = Long.parseLong(FullBootExtension.FORUM_CHANNEL_ID);
+            long mediaId = Long.parseLong(FullBootExtension.FORUM_CHANNEL_ID);
 
             List<Long> channelIds = destination.channelIds;
             channelIds.clear();
@@ -293,6 +295,10 @@ public class MockDiscordSRV extends AbstractDiscordSRV<IBootstrap, MainConfig, C
             ThreadConfig forumThread = new ThreadConfig();
             forumThread.channelId = forumId;
             threadConfigs.add(forumThread);
+
+            ThreadConfig mediaThread = new ThreadConfig();
+            mediaThread.channelId = mediaId;
+            threadConfigs.add(mediaThread);
         }
 
         return config;
