@@ -48,7 +48,6 @@ import com.discordsrv.common.feature.debug.data.VersionInfo;
 import com.discordsrv.common.feature.messageforwarding.game.MinecraftToDiscordChatModule;
 import dev.vankka.dependencydownload.classpath.ClasspathAppender;
 import net.kyori.adventure.audience.Audience;
-import org.apache.commons.lang3.StringUtils;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.IOException;
@@ -267,24 +266,21 @@ public class MockDiscordSRV extends AbstractDiscordSRV<IBootstrap, MainConfig, C
     public MainConfig config() {
         MainConfig config = new MainConfig() {};
 
-        if (StringUtils.isNotEmpty(FullBootExtension.TEXT_CHANNEL_ID)
-                && StringUtils.isNotEmpty(FullBootExtension.FORUM_CHANNEL_ID)
-                && StringUtils.isNotEmpty(FullBootExtension.MEDIA_CHANNEL_ID)
-                && StringUtils.isNotEmpty(FullBootExtension.VOICE_CHANNEL_ID)
-                && StringUtils.isNotEmpty(FullBootExtension.STAGE_CHANNEL_ID)
-        ) {
-            ChannelConfig global = (ChannelConfig) config.channels.get(GameChannel.DEFAULT_NAME);
-            DestinationConfig destination = global.destination = new DestinationConfig();
-
+        try {
             long textChannelId = Long.parseLong(FullBootExtension.TEXT_CHANNEL_ID);
+            long newsChannelId = Long.parseLong(FullBootExtension.NEWS_CHANNEL_ID);
+            long forumChannelId = Long.parseLong(FullBootExtension.FORUM_CHANNEL_ID);
+            long mediaChannelId = Long.parseLong(FullBootExtension.MEDIA_CHANNEL_ID);
             long voiceChannelId = Long.parseLong(FullBootExtension.VOICE_CHANNEL_ID);
             long stageChannelId = Long.parseLong(FullBootExtension.STAGE_CHANNEL_ID);
-            long forumId = Long.parseLong(FullBootExtension.FORUM_CHANNEL_ID);
-            long mediaId = Long.parseLong(FullBootExtension.MEDIA_CHANNEL_ID);
+
+            ChannelConfig global = (ChannelConfig) config.channels.get(GameChannel.DEFAULT_NAME);
+            DestinationConfig destination = global.destination = new DestinationConfig();
 
             List<Long> channelIds = destination.channelIds;
             channelIds.clear();
             channelIds.add(textChannelId);
+            channelIds.add(newsChannelId);
             channelIds.add(voiceChannelId);
             channelIds.add(stageChannelId);
 
@@ -296,13 +292,13 @@ public class MockDiscordSRV extends AbstractDiscordSRV<IBootstrap, MainConfig, C
             threadConfigs.add(thread);
 
             ThreadConfig forumThread = new ThreadConfig();
-            forumThread.channelId = forumId;
+            forumThread.channelId = forumChannelId;
             threadConfigs.add(forumThread);
 
             ThreadConfig mediaThread = new ThreadConfig();
-            mediaThread.channelId = mediaId;
+            mediaThread.channelId = mediaChannelId;
             threadConfigs.add(mediaThread);
-        }
+        } catch (NumberFormatException ignored) {}
 
         return config;
     }
