@@ -56,7 +56,12 @@ public class FabricPlayer extends FabricCommandSender implements IPlayer {
 
     @Override
     public @Nullable Locale locale() {
-        return Locale.of(player.getClientOptions().language());
+        // if java lower than 19
+        //? if java: >19 || minecraft: <1.20.2 {
+        return Locale.getDefault();
+        //?} else {
+        /*return Locale.of(player.getClientOptions().language());
+        *///?}
     }
 
     @Override
@@ -83,7 +88,11 @@ public class FabricPlayer extends FabricCommandSender implements IPlayer {
 
     @Override
     public @NotNull Identity identity() {
-        return player.identity();
+        //?if adventure: >=5.11.0 {
+        //return player.identity();
+        //?} else {
+        return Identity.identity(player.getUuid());
+        //?}
     }
 
     @Override

@@ -25,12 +25,12 @@ import com.discordsrv.fabric.FabricDiscordSRV;
 import com.discordsrv.fabric.module.AbstractFabricModule;
 import com.discordsrv.fabric.player.FabricPlayer;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayConnectionEvents;
+import net.kyori.adventure.text.Component;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.network.ServerPlayNetworkHandler;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.text.Text;
 import net.minecraft.util.Formatting;
-import net.kyori.adventure.text.Component;
 
 public class FabricQuitModule extends AbstractFabricModule {
     private final FabricDiscordSRV discordSRV;
@@ -64,10 +64,11 @@ public class FabricQuitModule extends AbstractFabricModule {
     public MinecraftComponent getQuitMessage(ServerPlayerEntity player) {
         Text message = Text.translatable("multiplayer.player.left", player.getDisplayName()).formatted(Formatting.YELLOW);
         //? if adventure: <6 {
-        /*Component component = FabricServerAudiences.of(discordSRV.getServer()).toAdventure(message);
-         *///?} else {
-        Component component = discordSRV.getAdventure().asAdventure(message);
-        //?}
+        @SuppressWarnings("removal")
+        Component component = discordSRV.getAdventure().toAdventure(message);
+        //?} else {
+        /*Component component = discordSRV.getAdventure().asAdventure(message);
+        *///?}
 
         return ComponentUtil.toAPI(component);
     }

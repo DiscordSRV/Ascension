@@ -24,34 +24,33 @@ import com.discordsrv.api.player.DiscordSRVPlayer;
 import com.discordsrv.common.util.ComponentUtil;
 import com.discordsrv.fabric.FabricDiscordSRV;
 import com.discordsrv.fabric.module.AbstractFabricModule;
-import net.fabricmc.fabric.api.entity.event.v1.ServerLivingEntityEvents;
+import net.kyori.adventure.text.Component;
 import net.minecraft.entity.LivingEntity;
 import net.minecraft.entity.damage.DamageSource;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.text.Text;
-import net.kyori.adventure.text.Component;
 
 public class FabricDeathModule extends AbstractFabricModule {
+    private static FabricDeathModule instance;
     private final FabricDiscordSRV discordSRV;
 
     public FabricDeathModule(FabricDiscordSRV discordSRV) {
         super(discordSRV);
         this.discordSRV = discordSRV;
+        instance = this;
     }
 
-    public void register() {
-        ServerLivingEntityEvents.AFTER_DEATH.register(this::onDeath);
-    }
-
-    private void onDeath(LivingEntity livingEntity, DamageSource damageSource) {
-        if (!enabled) return;
+    public static void onDeath(LivingEntity livingEntity, DamageSource damageSource) {
+        if (instance == null || !instance.enabled) return;
         if (livingEntity instanceof ServerPlayerEntity) {
+            FabricDiscordSRV discordSRV = instance.discordSRV;
             Text message = damageSource.getDeathMessage(livingEntity);
             //? if adventure: <6 {
-            /*Component component = FabricServerAudiences.of(discordSRV.getServer()).toAdventure(message);
-             *///?} else {
-            Component component = discordSRV.getAdventure().asAdventure(message);
-            //?}
+            @SuppressWarnings("removal")
+            Component component = discordSRV.getAdventure().toAdventure(message);
+            //?} else {
+            /*Component component = discordSRV.getAdventure().asAdventure(message);
+             *///?}
             MinecraftComponent minecraftComponent = ComponentUtil.toAPI(component);
 
             DiscordSRVPlayer player = discordSRV.playerProvider().player((ServerPlayerEntity) livingEntity);

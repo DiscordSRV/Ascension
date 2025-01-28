@@ -21,6 +21,10 @@ processResources {
     def loaderVersion = project.property("deps.fabric_loader")
     def minecraftVersion = ">=${project.property('mod.min_target')}- <=${project.property('mod.max_target')}"
 
+    inputs.property("version", version)
+    inputs.property("loaderVersion", loaderVersion)
+    inputs.property("minecraftVersion", minecraftVersion)
+
     filesMatching('fabric.mod.json') {
         expand(VERSION: version, LOADER_VERSION: loaderVersion, MINECRAFT_VERSION: minecraftVersion)
     }
@@ -33,8 +37,9 @@ shadowJar {
 }
 
 stonecutter {
-    def adventure = property("deps.adventure_platform_fabric")
+    def adventure = project.property("deps.adventure_platform_fabric")
     dependency("adventure", adventure)
+    dependency("java", project.property("deps.java"))
 }
 
 tasks.register('copyRemappedJar', Copy) {

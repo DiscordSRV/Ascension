@@ -3,6 +3,7 @@
   "package": "com.discordsrv.fabric.mixin",
   "compatibilityLevel": "JAVA_21",
   "mixins": [
+    "LivingEntityMixin",
     "PlayerAdvancementTrackerMixin",
     "ban.BanCommandMixin",
     "ban.PardonCommandMixin",

@@ -24,10 +24,10 @@ import com.discordsrv.common.util.ComponentUtil;
 import com.discordsrv.fabric.FabricDiscordSRV;
 import com.discordsrv.fabric.module.AbstractFabricModule;
 import net.fabricmc.fabric.api.message.v1.ServerMessageEvents;
+import net.kyori.adventure.text.Component;
 import net.minecraft.network.message.MessageType;
 import net.minecraft.network.message.SignedMessage;
 import net.minecraft.server.network.ServerPlayerEntity;
-import net.kyori.adventure.text.Component;
 
 public class FabricChatModule extends AbstractFabricModule {
     private final FabricDiscordSRV discordSRV;
@@ -41,14 +41,22 @@ public class FabricChatModule extends AbstractFabricModule {
         ServerMessageEvents.CHAT_MESSAGE.register(this::onChatMessage);
     }
 
-    private void onChatMessage(SignedMessage signedMessage, ServerPlayerEntity serverPlayerEntity, MessageType.Parameters parameters) {
+    //? if minecraft: <1.19.2 {
+    private void onChatMessage(net.minecraft.server.filter.FilteredMessage<SignedMessage> signedMessageFilteredMessage, ServerPlayerEntity serverPlayerEntity, net.minecraft.util.registry.RegistryKey<MessageType> messageTypeRegistryKey) {
+        onChatMessage(signedMessageFilteredMessage.raw(), serverPlayerEntity);
+    }
+    private void onChatMessage(SignedMessage signedMessage, ServerPlayerEntity serverPlayerEntity) {
+    //?} else {
+    /*private void onChatMessage(SignedMessage signedMessage, ServerPlayerEntity serverPlayerEntity, MessageType.Parameters parameters) {
+    *///?}
         if (!enabled) return;
 
         //? if adventure: <6 {
-        /*Component component = FabricServerAudiences.of(discordSRV.getServer()).toAdventure(signedMessage.getContent());
-         *///?} else {
-        Component component = discordSRV.getAdventure().asAdventure(signedMessage.getContent());
-        //?}
+        @SuppressWarnings("removal")
+        Component component = discordSRV.getAdventure().toAdventure(signedMessage.getContent());
+        //?} else {
+        /*Component component = discordSRV.getAdventure().asAdventure(signedMessage.getContent());
+         *///?}
         discordSRV.eventBus().publish(new GameChatMessageReceiveEvent(
                 null,
                 discordSRV.playerProvider().player(serverPlayerEntity),

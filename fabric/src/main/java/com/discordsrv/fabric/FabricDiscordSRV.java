@@ -40,20 +40,21 @@ import com.discordsrv.fabric.module.chat.*;
 import com.discordsrv.fabric.player.FabricPlayerProvider;
 import com.discordsrv.fabric.plugin.FabricModManager;
 import com.discordsrv.fabric.requiredlinking.FabricRequiredLinkingModule;
-//? if adventure: <6 {
-/*import net.kyori.adventure.platform.fabric.FabricServerAudiences;
-*///?} else {
- import net.kyori.adventure.platform.modcommon.MinecraftServerAudiences;
- //?}
 import net.minecraft.server.MinecraftServer;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-
 import java.net.MalformedURLException;
 import java.net.URI;
 import java.net.URL;
 import java.security.CodeSource;
 import java.util.jar.JarFile;
+
+//? if adventure: < 6 {
+import net.kyori.adventure.platform.fabric.FabricServerAudiences;
+//?} else {
+/*import net.kyori.adventure.platform.modcommon.MinecraftServerAudiences;
+ */
+//?}
 
 public class FabricDiscordSRV extends AbstractDiscordSRV<DiscordSRVFabricBootstrap, FabricConfig, ConnectionConfig, MessagesConfig> {
 
@@ -123,14 +124,14 @@ public class FabricDiscordSRV extends AbstractDiscordSRV<DiscordSRVFabricBootstr
     }
 
     @NotNull
-    //? if adventure: <6 {
-    /*public FabricServerAudiences getAdventure() {
+            //? if adventure: < 6 {
+    public FabricServerAudiences getAdventure() {
         return bootstrap.getAdventure();
     }
-    *///?} else {
-     public MinecraftServerAudiences getAdventure() {
+    //?} else {
+     /*public MinecraftServerAudiences getAdventure() {
         return bootstrap.getAdventure();
-    }//?}
+    }*///?}
 
     @Override
     public ServerType serverType() {

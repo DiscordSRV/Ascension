@@ -24,16 +24,14 @@ import com.discordsrv.common.abstraction.player.IPlayer;
 import com.discordsrv.common.util.ComponentUtil;
 import com.discordsrv.fabric.FabricDiscordSRV;
 import com.discordsrv.fabric.module.AbstractFabricModule;
-import net.minecraft.advancement.Advancement;
-import net.minecraft.advancement.AdvancementEntry;
-import net.minecraft.server.network.ServerPlayerEntity;
-
 import net.kyori.adventure.text.Component;
-//? if adventure: <6 {
-/*import net.kyori.adventure.platform.fabric.FabricServerAudiences;
-*///?} else {
- import net.kyori.adventure.platform.modcommon.MinecraftServerAudiences;
- //?}
+import net.minecraft.advancement.Advancement;
+import net.minecraft.advancement.AdvancementDisplay;
+import net.minecraft.server.network.ServerPlayerEntity;
+//? if minecraft: >=1.20.2
+/*import net.minecraft.advancement.AdvancementEntry;
+import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
+*/
 
 public class FabricAdvancementModule extends AbstractFabricModule {
     private static FabricAdvancementModule instance;
@@ -45,17 +43,28 @@ public class FabricAdvancementModule extends AbstractFabricModule {
         instance = this;
     }
 
-    public static void onGrant(AdvancementEntry advancementEntry, ServerPlayerEntity owner) {
+    //?if minecraft: <1.20.2 {
+    public static void onGrant(Advancement advancement, ServerPlayerEntity owner) {
+    //?} else {
+    /*public static void onGrant(AdvancementEntry advancementEntry, ServerPlayerEntity owner) {
+    *///?}
         if (instance == null || !instance.enabled) return;
 
         FabricDiscordSRV discordSRV = instance.discordSRV;
-        Advancement advancement = advancementEntry.value();
-        if (advancement.display().isEmpty() || advancement.name().isEmpty()) return; // Usually a crafting recipe.
+        //? if minecraft: <1.20.2 {
+        AdvancementDisplay display = advancement.getDisplay();
+        //?} else {
+        /*Advancement advancement = advancementEntry.value();
+        AdvancementDisplay display = advancement.display().get();
+        *///?}
+
+        if (display == null || !display.shouldAnnounceToChat()) return; // Usually a crafting recipe.
         //? if adventure: <6 {
-        /*Component component = FabricServerAudiences.of(discordSRV.getServer()).toAdventure(advancement.display().get().getTitle());
-         *///?} else {
-        Component component = discordSRV.getAdventure().asAdventure(advancement.display().get().getTitle());
-         //?}
+        @SuppressWarnings("removal")
+        Component component = discordSRV.getAdventure().toAdventure(display.getTitle());
+        //?} else {
+        /*Component component = discordSRV.getAdventure().asAdventure(display.getTitle());
+         *///?}
         MinecraftComponent advancementTitle = ComponentUtil.toAPI(component);
 
         IPlayer player = discordSRV.playerProvider().player(owner);

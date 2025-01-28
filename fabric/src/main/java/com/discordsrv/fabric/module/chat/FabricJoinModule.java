@@ -26,12 +26,12 @@ import com.discordsrv.fabric.FabricDiscordSRV;
 import com.discordsrv.fabric.module.AbstractFabricModule;
 import net.fabricmc.fabric.api.networking.v1.PacketSender;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayConnectionEvents;
+import net.kyori.adventure.text.Component;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.network.ServerPlayNetworkHandler;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.text.MutableText;
 import net.minecraft.text.Text;
-import net.kyori.adventure.text.Component;
 
 import java.util.Objects;
 
@@ -75,10 +75,11 @@ public class FabricJoinModule extends AbstractFabricModule {
             mutableText = Text.translatable("multiplayer.player.joined.renamed", playerEntity.getDisplayName(), playerEntity.getName());
         }
         //? if adventure: <6 {
-        /*Component component = FabricServerAudiences.of(discordSRV.getServer()).toAdventure(mutableText);
-         *///?} else {
-        Component component = discordSRV.getAdventure().asAdventure(mutableText);
-        //?}
+        @SuppressWarnings("removal")
+        Component component = discordSRV.getAdventure().toAdventure(mutableText);
+        //?} else {
+        /*Component component = discordSRV.getAdventure().asAdventure(mutableText);
+        *///?}
         return ComponentUtil.toAPI(component);
     }
 }

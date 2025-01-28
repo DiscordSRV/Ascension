@@ -27,10 +27,8 @@ import com.discordsrv.fabric.FabricDiscordSRV;
 import com.discordsrv.fabric.player.FabricPlayer;
 import com.github.benmanes.caffeine.cache.Cache;
 import com.mojang.authlib.GameProfile;
-import com.mojang.brigadier.ParseResults;
 import net.fabricmc.fabric.api.message.v1.ServerMessageEvents;
 import net.fabricmc.fabric.api.networking.v1.PacketSender;
-import net.fabricmc.fabric.api.networking.v1.ServerConfigurationConnectionEvents;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayConnectionEvents;
 import net.kyori.adventure.text.Component;
 import net.minecraft.network.message.MessageType;
@@ -38,7 +36,6 @@ import net.minecraft.network.message.SignedMessage;
 import net.minecraft.network.packet.c2s.play.PlayerMoveC2SPacket;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.command.ServerCommandSource;
-import net.minecraft.server.network.ServerConfigurationNetworkHandler;
 import net.minecraft.server.network.ServerPlayNetworkHandler;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.text.Text;
@@ -46,13 +43,19 @@ import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.MathHelper;
 import org.jetbrains.annotations.Nullable;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
-
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArrayList;
 
+//?if minecraft: >=1.19.2
+//import com.mojang.brigadier.ParseResults;
+
+//?if minecraft: >=1.20.2 {
+/*import net.fabricmc.fabric.api.networking.v1.ServerConfigurationConnectionEvents;
+import net.minecraft.server.network.ServerConfigurationNetworkHandler;
+*///?}
 
 public class FabricRequiredLinkingModule extends ServerRequireLinkingModule<FabricDiscordSRV> {
     private static FabricRequiredLinkingModule instance;
@@ -95,7 +98,11 @@ public class FabricRequiredLinkingModule extends ServerRequireLinkingModule<Fabr
 
         Component kickReason = instance.getBlockReason(playerUUID, playerName, true).join();
         if (kickReason != null) {
-            return discordSRV.getAdventure().asNative(kickReason);
+            //? if adventure: < 6 {
+            return discordSRV.getAdventure().toNative(kickReason);
+            //?} else {
+            /*return discordSRV.getAdventure().asNative(kickReason);
+            *///?}
         }
 
         return null;
@@ -125,11 +132,24 @@ public class FabricRequiredLinkingModule extends ServerRequireLinkingModule<Fabr
         ci.cancel();
     }
 
-    public static void onCommandExecute(ParseResults<ServerCommandSource> parseResults, String command, CallbackInfo ci) {
+    //?if minecraft: <1.19.2 {
+    public static void onCommandExecute(ServerCommandSource source, String command, CallbackInfo ci) {
+        if (source.getEntity() instanceof ServerPlayerEntity) {
+            onCommandExecute((ServerPlayerEntity) source.getEntity(), command, ci);
+        }
+    }
+    //?} else {
+    /*public static void onCommandExecute(ParseResults<ServerCommandSource> parseResults, String command, CallbackInfo ci) {
+        if(parseResults.getContext().getSource().isExecutedByPlayer()) {
+            onCommandExecute(parseResults.getContext().getSource().getPlayer(), command, ci);
+        }
+    }
+    *///?}
+
+
+    public static void onCommandExecute(ServerPlayerEntity playerEntity, String command, CallbackInfo ci) {
         if (instance == null || !instance.enabled) return;
         FabricDiscordSRV discordSRV = instance.discordSRV;
-        ServerPlayerEntity playerEntity = parseResults.getContext().getSource().getPlayer();
-        if (playerEntity == null) return;
 
         if (!instance.isFrozen(playerEntity)) {
             return;
@@ -181,7 +201,11 @@ public class FabricRequiredLinkingModule extends ServerRequireLinkingModule<Fabr
 
     public void register() {
         ServerMessageEvents.ALLOW_CHAT_MESSAGE.register(this::allowChatMessage);
-        ServerConfigurationConnectionEvents.CONFIGURE.register(this::onPlayerPreLogin);
+        //? if minecraft: >=1.20.2 {
+        //ServerConfigurationConnectionEvents.CONFIGURE.register(this::onPlayerPreLogin);
+        //?} else {
+        ServerPlayConnectionEvents.INIT.register(this::onPlayerPreLogin);
+        //?}
         ServerPlayConnectionEvents.JOIN.register(this::onPlayerJoin);
         ServerPlayConnectionEvents.DISCONNECT.register(this::onPlayerQuit);
     }
@@ -232,8 +256,11 @@ public class FabricRequiredLinkingModule extends ServerRequireLinkingModule<Fabr
         frozen.put(player.uniqueId(), blockReason);
         player.sendMessage(blockReason);
     }
-
-    private boolean allowChatMessage(SignedMessage signedMessage, ServerPlayerEntity player, MessageType.Parameters parameters) {
+    //? if minecraft: <1.19.2 {
+    private boolean allowChatMessage(SignedMessage signedMessage, ServerPlayerEntity player) {
+    //?} else {
+    /*private boolean allowChatMessage(SignedMessage signedMessage, ServerPlayerEntity player, MessageType.Parameters parameters) {
+     *///?}
         // True if the message should be sent
         Component freezeReason = instance.frozen.get(player.getUuid());
         if (freezeReason == null) {
@@ -245,12 +272,30 @@ public class FabricRequiredLinkingModule extends ServerRequireLinkingModule<Fabr
         return false;
     }
 
-    private void onPlayerPreLogin(ServerConfigurationNetworkHandler handler, MinecraftServer minecraftServer) {
+
+    //? if minecraft: <1.20.2 {
+    private void onPlayerPreLogin(ServerPlayNetworkHandler handler, MinecraftServer minecraftServer) {
+        if (!enabled) return;
+        UUID playerUUID = handler.getPlayer().getUuid();
+        if (loginsHandled.contains(playerUUID)) return;
+        loginsHandled.add(playerUUID);
+        handleLogin(playerUUID, handler.getPlayer().getName().getString());
+    }
+    //?}
+    //? if minecraft: <1.19.2 {
+    private boolean allowChatMessage(net.minecraft.server.filter.FilteredMessage<SignedMessage> signedMessageFilteredMessage, ServerPlayerEntity serverPlayerEntity, net.minecraft.util.registry.RegistryKey<MessageType> messageTypeRegistryKey) {
+        return allowChatMessage(signedMessageFilteredMessage.raw(), serverPlayerEntity);
+    }
+    //?}
+
+    //? if minecraft: >=1.20.2 {
+    /*private void onPlayerPreLogin(ServerConfigurationNetworkHandler handler, MinecraftServer minecraftServer) {
         if (!enabled) return;
         UUID playerUUID = handler.getDebugProfile().getId();
         loginsHandled.add(playerUUID);
         handleLogin(playerUUID, handler.getDebugProfile().getName());
     }
+    *///?}
 
     private void onPlayerJoin(ServerPlayNetworkHandler serverPlayNetworkHandler, PacketSender packetSender, MinecraftServer minecraftServer) {
         if (!enabled) return;
