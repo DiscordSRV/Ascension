@@ -31,6 +31,7 @@ import net.minecraft.server.network.ServerPlayNetworkHandler;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.text.MutableText;
 import net.minecraft.text.Text;
+import net.kyori.adventure.text.Component;
 
 import java.util.Objects;
 
@@ -51,7 +52,7 @@ public class FabricJoinModule extends AbstractFabricModule {
 
         ServerPlayerEntity playerEntity = serverPlayNetworkHandler.player;
         MinecraftComponent component = getJoinMessage(playerEntity);
-        boolean firstJoin = Objects.requireNonNull(minecraftServer.getUserCache()).findByName(serverPlayNetworkHandler.player.getGameProfile().getName()).isEmpty();
+        boolean firstJoin = !Objects.requireNonNull(minecraftServer.getUserCache()).findByName(serverPlayNetworkHandler.player.getGameProfile().getName()).isPresent();
 
         DiscordSRVPlayer player = discordSRV.playerProvider().player(playerEntity);
         discordSRV.eventBus().publish(
@@ -73,7 +74,11 @@ public class FabricJoinModule extends AbstractFabricModule {
         } else {
             mutableText = Text.translatable("multiplayer.player.joined.renamed", playerEntity.getDisplayName(), playerEntity.getName());
         }
-
-        return ComponentUtil.toAPI(discordSRV.getAdventure().asAdventure(mutableText));
+        //? if adventure: <6 {
+        /*Component component = FabricServerAudiences.of(discordSRV.getServer()).toAdventure(mutableText);
+         *///?} else {
+        Component component = discordSRV.getAdventure().asAdventure(mutableText);
+        //?}
+        return ComponentUtil.toAPI(component);
     }
 }

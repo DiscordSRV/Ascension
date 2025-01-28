@@ -28,6 +28,13 @@ import net.minecraft.advancement.Advancement;
 import net.minecraft.advancement.AdvancementEntry;
 import net.minecraft.server.network.ServerPlayerEntity;
 
+import net.kyori.adventure.text.Component;
+//? if adventure: <6 {
+/*import net.kyori.adventure.platform.fabric.FabricServerAudiences;
+*///?} else {
+ import net.kyori.adventure.platform.modcommon.MinecraftServerAudiences;
+ //?}
+
 public class FabricAdvancementModule extends AbstractFabricModule {
     private static FabricAdvancementModule instance;
     private final FabricDiscordSRV discordSRV;
@@ -44,11 +51,12 @@ public class FabricAdvancementModule extends AbstractFabricModule {
         FabricDiscordSRV discordSRV = instance.discordSRV;
         Advancement advancement = advancementEntry.value();
         if (advancement.display().isEmpty() || advancement.name().isEmpty()) return; // Usually a crafting recipe.
-        MinecraftComponent advancementTitle = ComponentUtil.toAPI(discordSRV.getAdventure().asAdventure(advancement.display().get().getTitle()));
-
-        // TODO: Add description to the event. So we can explain how the player got the advancement.
-//        String description = Formatting.strip(advancement.display().get().getDescription().getString());
-//        MinecraftComponent advancementDescription = ComponentUtil.fromPlain(description);
+        //? if adventure: <6 {
+        /*Component component = FabricServerAudiences.of(discordSRV.getServer()).toAdventure(advancement.display().get().getTitle());
+         *///?} else {
+        Component component = discordSRV.getAdventure().asAdventure(advancement.display().get().getTitle());
+         //?}
+        MinecraftComponent advancementTitle = ComponentUtil.toAPI(component);
 
         IPlayer player = discordSRV.playerProvider().player(owner);
         discordSRV.eventBus().publish(

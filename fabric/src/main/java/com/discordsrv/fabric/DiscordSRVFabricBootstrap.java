@@ -27,7 +27,6 @@ import dev.vankka.mcdependencydownload.fabric.classpath.FabricClasspathAppender;
 import net.fabricmc.api.DedicatedServerModInitializer;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents;
 import net.fabricmc.loader.api.FabricLoader;
-import net.kyori.adventure.platform.modcommon.MinecraftServerAudiences;
 import net.minecraft.GameVersion;
 import net.minecraft.MinecraftVersion;
 import net.minecraft.server.MinecraftServer;
@@ -37,6 +36,13 @@ import java.io.IOException;
 import java.nio.file.Path;
 import java.util.Collections;
 
+//? if adventure: <6 {
+/*import net.kyori.adventure.platform.fabric.FabricServerAudiences;
+*///?} else {
+ import net.kyori.adventure.platform.modcommon.MinecraftServerAudiences;
+ //?}
+
+
 public class DiscordSRVFabricBootstrap implements DedicatedServerModInitializer, IBootstrap {
 
     private final Logger logger;
@@ -45,7 +51,11 @@ public class DiscordSRVFabricBootstrap implements DedicatedServerModInitializer,
     private final Path dataDirectory;
     private MinecraftServer minecraftServer;
     private FabricDiscordSRV discordSRV;
+    //? if adventure: <6 {
+    /*private FabricServerAudiences adventure;
+    *///?} else {
     private MinecraftServerAudiences adventure;
+     //?}
 
     public DiscordSRVFabricBootstrap() {
         this.logger = new Log4JLoggerImpl(LogManager.getLogger("DiscordSRV"));
@@ -69,7 +79,11 @@ public class DiscordSRVFabricBootstrap implements DedicatedServerModInitializer,
     public void onInitializeServer() {
         ServerLifecycleEvents.SERVER_STARTING.register(minecraftServer -> {
             this.minecraftServer = minecraftServer;
+            //? if adventure: <6 {
+            /*this.adventure = FabricServerAudiences.of(minecraftServer);
+            *///?} else {
             this.adventure = MinecraftServerAudiences.of(minecraftServer);
+             //?}
             lifecycleManager.loadAndEnable(() -> this.discordSRV = new FabricDiscordSRV(this));
         });
 
@@ -119,7 +133,12 @@ public class DiscordSRVFabricBootstrap implements DedicatedServerModInitializer,
         return discordSRV;
     }
 
-    public MinecraftServerAudiences getAdventure() {
+    //? if adventure: <6 {
+    /*public FabricServerAudiences getAdventure() {
         return adventure;
     }
+    *///?} else {
+     public MinecraftServerAudiences getAdventure() {
+        return adventure;
+    }//?}
 }

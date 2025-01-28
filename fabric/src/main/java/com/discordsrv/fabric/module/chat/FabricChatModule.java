@@ -27,6 +27,7 @@ import net.fabricmc.fabric.api.message.v1.ServerMessageEvents;
 import net.minecraft.network.message.MessageType;
 import net.minecraft.network.message.SignedMessage;
 import net.minecraft.server.network.ServerPlayerEntity;
+import net.kyori.adventure.text.Component;
 
 public class FabricChatModule extends AbstractFabricModule {
     private final FabricDiscordSRV discordSRV;
@@ -43,10 +44,15 @@ public class FabricChatModule extends AbstractFabricModule {
     private void onChatMessage(SignedMessage signedMessage, ServerPlayerEntity serverPlayerEntity, MessageType.Parameters parameters) {
         if (!enabled) return;
 
+        //? if adventure: <6 {
+        /*Component component = FabricServerAudiences.of(discordSRV.getServer()).toAdventure(signedMessage.getContent());
+         *///?} else {
+        Component component = discordSRV.getAdventure().asAdventure(signedMessage.getContent());
+        //?}
         discordSRV.eventBus().publish(new GameChatMessageReceiveEvent(
                 null,
                 discordSRV.playerProvider().player(serverPlayerEntity),
-                ComponentUtil.toAPI(discordSRV.getAdventure().asAdventure(signedMessage.getContent())),
+                ComponentUtil.toAPI(component),
                 new GlobalChannel(discordSRV),
                 false
         ));

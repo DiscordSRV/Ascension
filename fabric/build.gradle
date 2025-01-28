@@ -1,3 +1,6 @@
+plugins {
+    id("dev.kikugie.stonecutter") version "0.5.1"
+}
 apply from: rootProject.file('buildscript/standalone.gradle')
 apply plugin: 'fabric-loom'
 
@@ -7,20 +10,20 @@ configurations.configureEach {
     }
 }
 
-def javaVersion = property("deps.java") == 8 ? JavaVersion.VERSION_1_8 : property("deps.java") == 17 ? JavaVersion.VERSION_17 : property("deps.java") == 21 ? JavaVersion.VERSION_21 : null;
 java {
-    // deps.java
+    def javaVersion = project.property("deps.java") == 17 ? JavaVersion.VERSION_17 : project.property("deps.java") == 21 ? JavaVersion.VERSION_21 : null;
     targetCompatibility = javaVersion
     sourceCompatibility = javaVersion
 }
 
 processResources {
-//    filesMatching('fabric.mod.json') {
-//        expand 'VERSION': project.version,
-//               'MINECRAFT_VERSION': ">=${stonecutter.current.property("mod.min_target")}- <=${stonecutter.current.property("mod.max_target")}",
-//               'LOADER_VERSION': property("deps.fabric_loader"),
-//               'JAVA_VERSION': property("deps.java")
-//    }
+    def version = project.version
+    def loaderVersion = project.property("deps.fabric_loader")
+    def minecraftVersion = ">=${project.property('mod.min_target')}- <=${project.property('mod.max_target')}"
+
+    filesMatching('fabric.mod.json') {
+        expand(VERSION: version, LOADER_VERSION: loaderVersion, MINECRAFT_VERSION: minecraftVersion)
+    }
     dependsOn generateRuntimeDownloadResourceForRuntimeDownloadOnly
 }
 
@@ -36,14 +39,18 @@ stonecutter {
 
 tasks.register('copyRemappedJar', Copy) {
     from remapJar.archiveFile
-    into rootProject.file('jars')
+    into rootProject.file('jars/fabric')
 }
 
 remapJar {
     dependsOn shadowJar
     mustRunAfter shadowJar
     inputFile = shadowJar.archiveFile
-    archiveBaseName = 'DiscordSRV-Fabric'
+    if (project.property('mod.min_target') == project.property('mod.max_target')) {
+        archiveBaseName = "DiscordSRV-Fabric-${project.property('mod.min_target')}"
+    } else {
+        archiveBaseName = "DiscordSRV-Fabric-${project.property('mod.min_target')}-${project.property('mod.max_target')}"
+    }
     archiveClassifier = jar.archiveClassifier
 
     finalizedBy copyRemappedJar
@@ -80,9 +87,8 @@ dependencies {
         'fabric-lifecycle-events-v1',
         'fabric-entity-events-v1',
         'fabric-networking-api-v1',
+        'fabric-message-api-v1',
     ]
-    //? if minecraft: >=1.19
-    /*apiModules.add('fabric-message-api-v1')*/
     apiModules.forEach {
         modImplementation(fabricApi.module(it, property("deps.fabric_api")))
     }

@@ -41,9 +41,10 @@ import com.discordsrv.fabric.player.FabricPlayerProvider;
 import com.discordsrv.fabric.plugin.FabricModManager;
 import com.discordsrv.fabric.requiredlinking.FabricRequiredLinkingModule;
 //? if adventure: <6 {
-import net.kyori.adventure.platform.modcommon.MinecraftServerAudiences;
-//?} else
-/*import net.kyori.adventure.platform.fabric.FabricServerAudiences;*/
+/*import net.kyori.adventure.platform.fabric.FabricServerAudiences;
+*///?} else {
+ import net.kyori.adventure.platform.modcommon.MinecraftServerAudiences;
+ //?}
 import net.minecraft.server.MinecraftServer;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -122,9 +123,14 @@ public class FabricDiscordSRV extends AbstractDiscordSRV<DiscordSRVFabricBootstr
     }
 
     @NotNull
-    public MinecraftServerAudiences getAdventure() {
+    //? if adventure: <6 {
+    /*public FabricServerAudiences getAdventure() {
         return bootstrap.getAdventure();
     }
+    *///?} else {
+     public MinecraftServerAudiences getAdventure() {
+        return bootstrap.getAdventure();
+    }//?}
 
     @Override
     public ServerType serverType() {

@@ -29,6 +29,7 @@ import net.minecraft.entity.LivingEntity;
 import net.minecraft.entity.damage.DamageSource;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.text.Text;
+import net.kyori.adventure.text.Component;
 
 public class FabricDeathModule extends AbstractFabricModule {
     private final FabricDiscordSRV discordSRV;
@@ -46,7 +47,12 @@ public class FabricDeathModule extends AbstractFabricModule {
         if (!enabled) return;
         if (livingEntity instanceof ServerPlayerEntity) {
             Text message = damageSource.getDeathMessage(livingEntity);
-            MinecraftComponent minecraftComponent = ComponentUtil.toAPI(discordSRV.getAdventure().asAdventure(message));
+            //? if adventure: <6 {
+            /*Component component = FabricServerAudiences.of(discordSRV.getServer()).toAdventure(message);
+             *///?} else {
+            Component component = discordSRV.getAdventure().asAdventure(message);
+            //?}
+            MinecraftComponent minecraftComponent = ComponentUtil.toAPI(component);
 
             DiscordSRVPlayer player = discordSRV.playerProvider().player((ServerPlayerEntity) livingEntity);
             discordSRV.eventBus().publish(
@@ -60,5 +66,4 @@ public class FabricDeathModule extends AbstractFabricModule {
             );
         }
     }
-
 }
