@@ -26,6 +26,7 @@
     "fabricloader": ">=${LOADER_VERSION}",
     "fabric": "*",
     "minecraft": "${MINECRAFT_VERSION}",
-    "fabric-permissions-api-v0": "*"
+    "fabric-permissions-api-v0": "*",
+    "java": ">=${JAVA_VERSION}"
   }
 }

@@ -7,21 +7,31 @@ configurations.configureEach {
     }
 }
 
+def javaVersion = property("deps.java") == 8 ? JavaVersion.VERSION_1_8 : property("deps.java") == 17 ? JavaVersion.VERSION_17 : property("deps.java") == 21 ? JavaVersion.VERSION_21 : null;
 java {
-    sourceCompatibility = JavaVersion.VERSION_21
-    targetCompatibility = JavaVersion.VERSION_21
+    // deps.java
+    targetCompatibility = javaVersion
+    sourceCompatibility = javaVersion
 }
 
 processResources {
-    filesMatching('**/fabric.mod.json') {
-        expand 'VERSION': project.version, 'MINECRAFT_VERSION': libs.fabric.minecraft.get().version, 'LOADER_VERSION': libs.fabric.loader.get().version
-    }
+//    filesMatching('fabric.mod.json') {
+//        expand 'VERSION': project.version,
+//               'MINECRAFT_VERSION': ">=${stonecutter.current.property("mod.min_target")}- <=${stonecutter.current.property("mod.max_target")}",
+//               'LOADER_VERSION': property("deps.fabric_loader"),
+//               'JAVA_VERSION': property("deps.java")
+//    }
     dependsOn generateRuntimeDownloadResourceForRuntimeDownloadOnly
 }
 
 shadowJar {
     configurations = [project.configurations.shadow]
     mergeServiceFiles()
+}
+
+stonecutter {
+    def adventure = property("deps.adventure_platform_fabric")
+    dependency("adventure", adventure)
 }
 
 tasks.register('copyRemappedJar', Copy) {
@@ -46,7 +56,6 @@ artifacts {
 
 loom {
     serverOnlyMinecraftJar()
-    accessWidenerPath = file('src/main/resources/discordsrv.accesswidener')
 }
 
 repositories {
@@ -61,13 +70,23 @@ repositories {
 }
 
 dependencies {
-    // To change the versions see the settings.gradle file
-    minecraft(libs.fabric.minecraft)
-    mappings(variantOf(libs.fabric.yarn) { classifier("v2") })
-    compileOnly(libs.fabric.loader)
+    minecraft("com.mojang:minecraft:${stonecutter.current.project}")
+    mappings("net.fabricmc:yarn:${property("deps.yarn_mappings")}:v2")
+    compileOnly("net.fabricmc:fabric-loader:${property("deps.fabric_loader")}")
 
     // Fabric API
-    modImplementation(libs.fabric.api)
+    Set<String> apiModules = [
+        'fabric-api-base',
+        'fabric-lifecycle-events-v1',
+        'fabric-entity-events-v1',
+        'fabric-networking-api-v1',
+    ]
+    //? if minecraft: >=1.19
+    /*apiModules.add('fabric-message-api-v1')*/
+    apiModules.forEach {
+        modImplementation(fabricApi.module(it, property("deps.fabric_api")))
+    }
+
     modImplementation(libs.fabric.permissions.api)
     include(libs.fabric.permissions.api)
 
@@ -79,8 +98,8 @@ dependencies {
     shadow project(':common')
 
     // Adventure
-    modImplementation(libs.adventure.platform.fabric)
-    include(libs.adventure.platform.fabric)
+    modImplementation("net.kyori:adventure-platform-fabric:${property("deps.adventure_platform_fabric")}")
+    include("net.kyori:adventure-platform-fabric:${property("deps.adventure_platform_fabric")}")
 
     // DependencyDownload
     shadow(libs.mcdependencydownload.fabric) {

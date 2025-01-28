@@ -40,7 +40,10 @@ import com.discordsrv.fabric.module.chat.*;
 import com.discordsrv.fabric.player.FabricPlayerProvider;
 import com.discordsrv.fabric.plugin.FabricModManager;
 import com.discordsrv.fabric.requiredlinking.FabricRequiredLinkingModule;
+//? if adventure: <6 {
 import net.kyori.adventure.platform.modcommon.MinecraftServerAudiences;
+//?} else
+/*import net.kyori.adventure.platform.fabric.FabricServerAudiences;*/
 import net.minecraft.server.MinecraftServer;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;

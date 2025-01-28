@@ -7,6 +7,17 @@ pluginManagement {
     }
 }
 
+plugins {
+    id("dev.kikugie.stonecutter") version "0.5.1"
+}
+
+stonecutter {
+    create("fabric") {
+        versions "1.16.4", "1.17.1", "1.18.1", "1.18.2", "1.19", "1.19.2", "1.19.3", "1.19.4", "1.20.1", "1.20.2", "1.20.4", "1.20.6", "1.21.1", "1.21.4"
+        vcsVersion = "1.21.4"
+    }
+}
+
 dependencyResolutionManagement {
     versionCatalogs {
         libs {
@@ -43,10 +54,6 @@ dependencyResolutionManagement {
             // Fabric
             version('fabric-loom', '1.9-SNAPSHOT')
             plugin('fabric-loom', 'fabric-loom').versionRef('fabric-loom')
-            library('fabric-minecraft', 'com.mojang', 'minecraft').version('1.21.4')
-            library('fabric-yarn', 'net.fabricmc', 'yarn').version('1.21.4+build.8')
-            library('fabric-loader', 'net.fabricmc', 'fabric-loader').version('0.16.9')
-            library('fabric-api', 'net.fabricmc.fabric-api', 'fabric-api').version('0.114.3+1.21.4')
             library('fabric-permissions-api', 'me.lucko', 'fabric-permissions-api').version('0.3.3')
 
             // DependencyDownload
@@ -143,10 +150,8 @@ dependencyResolutionManagement {
 
             // Adventure Platform
             version('adventure-platform', '4.3.4')
-            version('adventure-platform-mod', '6.2.0')
             library('adventure-platform-bukkit', 'net.kyori', 'adventure-platform-bukkit').versionRef('adventure-platform')
             library('adventure-platform-bungee', 'net.kyori', 'adventure-platform-bungeecord').versionRef('adventure-platform')
-            library('adventure-platform-fabric', 'net.kyori', 'adventure-platform-fabric').versionRef('adventure-platform-mod')
             library('adventure-serializer-bungee', 'net.kyori', 'adventure-text-serializer-bungeecord').versionRef('adventure-platform')
 
             // Upgrade ansi (used by ansi serializer)
