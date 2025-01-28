@@ -42,21 +42,21 @@ public class FabricChatModule extends AbstractFabricModule {
     }
 
     //? if minecraft: <1.19.2 {
-    private void onChatMessage(net.minecraft.server.filter.FilteredMessage<SignedMessage> signedMessageFilteredMessage, ServerPlayerEntity serverPlayerEntity, net.minecraft.util.registry.RegistryKey<MessageType> messageTypeRegistryKey) {
+    /*private void onChatMessage(net.minecraft.server.filter.FilteredMessage<SignedMessage> signedMessageFilteredMessage, ServerPlayerEntity serverPlayerEntity, net.minecraft.util.registry.RegistryKey<MessageType> messageTypeRegistryKey) {
         onChatMessage(signedMessageFilteredMessage.raw(), serverPlayerEntity);
     }
     private void onChatMessage(SignedMessage signedMessage, ServerPlayerEntity serverPlayerEntity) {
-    //?} else {
-    /*private void onChatMessage(SignedMessage signedMessage, ServerPlayerEntity serverPlayerEntity, MessageType.Parameters parameters) {
-    *///?}
+    *///?} else {
+    private void onChatMessage(SignedMessage signedMessage, ServerPlayerEntity serverPlayerEntity, MessageType.Parameters parameters) {
+    //?}
         if (!enabled) return;
 
         //? if adventure: <6 {
-        @SuppressWarnings("removal")
+        /*@SuppressWarnings("removal")
         Component component = discordSRV.getAdventure().toAdventure(signedMessage.getContent());
-        //?} else {
-        /*Component component = discordSRV.getAdventure().asAdventure(signedMessage.getContent());
-         *///?}
+        *///?} else {
+        Component component = discordSRV.getAdventure().asAdventure(signedMessage.getContent());
+         //?}
         discordSRV.eventBus().publish(new GameChatMessageReceiveEvent(
                 null,
                 discordSRV.playerProvider().player(serverPlayerEntity),

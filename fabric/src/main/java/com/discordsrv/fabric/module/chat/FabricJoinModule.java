@@ -75,11 +75,11 @@ public class FabricJoinModule extends AbstractFabricModule {
             mutableText = Text.translatable("multiplayer.player.joined.renamed", playerEntity.getDisplayName(), playerEntity.getName());
         }
         //? if adventure: <6 {
-        @SuppressWarnings("removal")
+        /*@SuppressWarnings("removal")
         Component component = discordSRV.getAdventure().toAdventure(mutableText);
-        //?} else {
-        /*Component component = discordSRV.getAdventure().asAdventure(mutableText);
-        *///?}
+        *///?} else {
+        Component component = discordSRV.getAdventure().asAdventure(mutableText);
+        //?}
         return ComponentUtil.toAPI(component);
     }
 }

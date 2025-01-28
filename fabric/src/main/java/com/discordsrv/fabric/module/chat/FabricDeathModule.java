@@ -46,11 +46,11 @@ public class FabricDeathModule extends AbstractFabricModule {
             FabricDiscordSRV discordSRV = instance.discordSRV;
             Text message = damageSource.getDeathMessage(livingEntity);
             //? if adventure: <6 {
-            @SuppressWarnings("removal")
+            /*@SuppressWarnings("removal")
             Component component = discordSRV.getAdventure().toAdventure(message);
-            //?} else {
-            /*Component component = discordSRV.getAdventure().asAdventure(message);
-             *///?}
+            *///?} else {
+            Component component = discordSRV.getAdventure().asAdventure(message);
+             //?}
             MinecraftComponent minecraftComponent = ComponentUtil.toAPI(component);
 
             DiscordSRVPlayer player = discordSRV.playerProvider().player((ServerPlayerEntity) livingEntity);

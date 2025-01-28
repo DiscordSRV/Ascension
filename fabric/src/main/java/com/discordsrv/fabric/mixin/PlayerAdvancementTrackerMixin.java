@@ -33,12 +33,12 @@ public class PlayerAdvancementTrackerMixin {
     @Shadow
     private ServerPlayerEntity owner;
 
-    //?if minecraft: <1.20.2 {
-    @Inject(method = "grantCriterion", at = @At(value = "INVOKE", target = "Lnet/minecraft/advancement/PlayerAdvancementTracker;updateDisplay(Lnet/minecraft/advancement/Advancement;)V"))
+    //? if minecraft: <1.20.2 {
+    /*@Inject(method = "grantCriterion", at = @At(value = "INVOKE", target = "Lnet/minecraft/advancement/PlayerAdvancementTracker;updateDisplay(Lnet/minecraft/advancement/Advancement;)V"))
     public void onGrant(Advancement advancementEntry, String criterionName, CallbackInfoReturnable<Boolean> cir) {
-    //?} else {
-    //@Inject(method = "grantCriterion", at = @At(value = "INVOKE", target = "Lnet/minecraft/advancement/PlayerAdvancementTracker;onStatusUpdate(Lnet/minecraft/advancement/AdvancementEntry;)V"))
-    //     public void onGrant(net.minecraft.advancement.AdvancementEntry advancementEntry, String criterionName, CallbackInfoReturnable<Boolean> cir) {
+    *///?} else {
+    @Inject(method = "grantCriterion", at = @At(value = "INVOKE", target = "Lnet/minecraft/advancement/PlayerAdvancementTracker;onStatusUpdate(Lnet/minecraft/advancement/AdvancementEntry;)V"))
+         public void onGrant(net.minecraft.advancement.AdvancementEntry advancementEntry, String criterionName, CallbackInfoReturnable<Boolean> cir) {
     //?}
         FabricAdvancementModule.onGrant(advancementEntry, owner);
     }

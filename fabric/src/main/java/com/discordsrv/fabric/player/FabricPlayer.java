@@ -88,11 +88,11 @@ public class FabricPlayer extends FabricCommandSender implements IPlayer {
 
     @Override
     public @NotNull Identity identity() {
-        //?if adventure: >=5.11.0 {
-        //return player.identity();
+        //? if adventure: >=5.11.0 {
+        return player.identity();
         //?} else {
-        return Identity.identity(player.getUuid());
-        //?}
+        /*return Identity.identity(player.getUuid());
+        *///?}
     }
 
     @Override

@@ -50,10 +50,10 @@ import java.security.CodeSource;
 import java.util.jar.JarFile;
 
 //? if adventure: < 6 {
-import net.kyori.adventure.platform.fabric.FabricServerAudiences;
-//?} else {
-/*import net.kyori.adventure.platform.modcommon.MinecraftServerAudiences;
- */
+/*import net.kyori.adventure.platform.fabric.FabricServerAudiences;
+*///?} else {
+import net.kyori.adventure.platform.modcommon.MinecraftServerAudiences;
+ 
 //?}
 
 public class FabricDiscordSRV extends AbstractDiscordSRV<DiscordSRVFabricBootstrap, FabricConfig, ConnectionConfig, MessagesConfig> {
@@ -125,13 +125,13 @@ public class FabricDiscordSRV extends AbstractDiscordSRV<DiscordSRVFabricBootstr
 
     @NotNull
             //? if adventure: < 6 {
-    public FabricServerAudiences getAdventure() {
+    /*public FabricServerAudiences getAdventure() {
         return bootstrap.getAdventure();
     }
-    //?} else {
-     /*public MinecraftServerAudiences getAdventure() {
+    *///?} else {
+     public MinecraftServerAudiences getAdventure() {
         return bootstrap.getAdventure();
-    }*///?}
+    }//?}
 
     @Override
     public ServerType serverType() {
