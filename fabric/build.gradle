@@ -40,6 +40,8 @@ stonecutter {
     def adventure = project.property("deps.adventure_platform_fabric")
     dependency("adventure", adventure)
     dependency("java", project.property("deps.java"))
+
+    swap("dependencies_file", "\"dependencies/runtimeDownload-${stonecutter.current.version}.txt\";")
 }
 
 tasks.register('copyRemappedJar', Copy) {
@@ -68,6 +70,10 @@ artifacts {
 
 loom {
     serverOnlyMinecraftJar()
+    runConfigs.all {
+        ideConfigGenerated(true) // Run configurations are not created for subprojects by default
+        runDir = "../../run" // Use a shared run folder and create separate worlds
+    }
 }
 
 repositories {

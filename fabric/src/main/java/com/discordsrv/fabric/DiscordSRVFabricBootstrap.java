@@ -44,6 +44,7 @@ import java.util.Collections;
 
 
 public class DiscordSRVFabricBootstrap implements DedicatedServerModInitializer, IBootstrap {
+    private final static String DEPENDENCIES_RUNTIME = /*$ dependencies_file*/" dependencies/runtimeDownload-fabric.txt";
 
     private final Logger logger;
     private final ClasspathAppender classpathAppender;
@@ -65,7 +66,7 @@ public class DiscordSRVFabricBootstrap implements DedicatedServerModInitializer,
             this.lifecycleManager = new LifecycleManager(
                     this.logger,
                     dataDirectory,
-                    Collections.singletonList("dependencies/runtimeDownload-fabric.txt"),
+                    Collections.singletonList(DEPENDENCIES_RUNTIME),
                     classpathAppender
             );
         } catch (IOException e) {
