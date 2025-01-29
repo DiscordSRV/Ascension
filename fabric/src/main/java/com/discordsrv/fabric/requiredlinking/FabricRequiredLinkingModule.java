@@ -49,10 +49,10 @@ import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArrayList;
 
-//? if minecraft: >=1.19.2
+//?if minecraft: >=1.19.2
 import com.mojang.brigadier.ParseResults;
 
-//? if minecraft: >=1.20.2 {
+//?if minecraft: >=1.20.2 {
 import net.fabricmc.fabric.api.networking.v1.ServerConfigurationConnectionEvents;
 import net.minecraft.server.network.ServerConfigurationNetworkHandler;
 //?}
@@ -98,7 +98,7 @@ public class FabricRequiredLinkingModule extends ServerRequireLinkingModule<Fabr
 
         Component kickReason = instance.getBlockReason(playerUUID, playerName, true).join();
         if (kickReason != null) {
-            //? if adventure: < 6 {
+            //?if adventure: <6 {
             /*return discordSRV.getAdventure().toNative(kickReason);
             *///?} else {
             return discordSRV.getAdventure().asNative(kickReason);
@@ -132,7 +132,7 @@ public class FabricRequiredLinkingModule extends ServerRequireLinkingModule<Fabr
         ci.cancel();
     }
 
-    //? if minecraft: <1.19.2 {
+    //?if minecraft: <1.19.2 {
     /*public static void onCommandExecute(ServerCommandSource source, String command, CallbackInfo ci) {
         if (source.getEntity() instanceof ServerPlayerEntity) {
             onCommandExecute((ServerPlayerEntity) source.getEntity(), command, ci);
@@ -201,7 +201,7 @@ public class FabricRequiredLinkingModule extends ServerRequireLinkingModule<Fabr
 
     public void register() {
         ServerMessageEvents.ALLOW_CHAT_MESSAGE.register(this::allowChatMessage);
-        //? if minecraft: >=1.20.2 {
+        //?if minecraft: >=1.20.2 {
         ServerConfigurationConnectionEvents.CONFIGURE.register(this::onPlayerPreLogin);
         //?} else {
         /*ServerPlayConnectionEvents.INIT.register(this::onPlayerPreLogin);
@@ -256,7 +256,7 @@ public class FabricRequiredLinkingModule extends ServerRequireLinkingModule<Fabr
         frozen.put(player.uniqueId(), blockReason);
         player.sendMessage(blockReason);
     }
-    //? if minecraft: <1.19.2 {
+    //?if minecraft: <1.19.2 {
     /*private boolean allowChatMessage(SignedMessage signedMessage, ServerPlayerEntity player) {
     *///?} else {
     private boolean allowChatMessage(SignedMessage signedMessage, ServerPlayerEntity player, MessageType.Parameters parameters) {
@@ -273,7 +273,7 @@ public class FabricRequiredLinkingModule extends ServerRequireLinkingModule<Fabr
     }
 
 
-    //? if minecraft: <1.20.2 {
+    //?if minecraft: <1.20.2 {
     /*private void onPlayerPreLogin(ServerPlayNetworkHandler handler, MinecraftServer minecraftServer) {
         if (!enabled) return;
         UUID playerUUID = handler.getPlayer().getUuid();
@@ -282,13 +282,13 @@ public class FabricRequiredLinkingModule extends ServerRequireLinkingModule<Fabr
         handleLogin(playerUUID, handler.getPlayer().getName().getString());
     }
     *///?}
-    //? if minecraft: <1.19.2 {
+    //?if minecraft: <1.19.2 {
     /*private boolean allowChatMessage(net.minecraft.server.filter.FilteredMessage<SignedMessage> signedMessageFilteredMessage, ServerPlayerEntity serverPlayerEntity, net.minecraft.util.registry.RegistryKey<MessageType> messageTypeRegistryKey) {
         return allowChatMessage(signedMessageFilteredMessage.raw(), serverPlayerEntity);
     }
     *///?}
 
-    //? if minecraft: >=1.20.2 {
+    //?if minecraft: >=1.20.2 {
     private void onPlayerPreLogin(ServerConfigurationNetworkHandler handler, MinecraftServer minecraftServer) {
         if (!enabled) return;
         UUID playerUUID = handler.getDebugProfile().getId();

@@ -28,7 +28,7 @@ import net.kyori.adventure.text.Component;
 import net.minecraft.advancement.Advancement;
 import net.minecraft.advancement.AdvancementDisplay;
 import net.minecraft.server.network.ServerPlayerEntity;
-//? if minecraft: >=1.20.2
+//?if minecraft: >=1.20.2
 import net.minecraft.advancement.AdvancementEntry;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
@@ -43,7 +43,7 @@ public class FabricAdvancementModule extends AbstractFabricModule {
         instance = this;
     }
 
-    //? if minecraft: <1.20.2 {
+    //?if minecraft: <1.20.2 {
     /*public static void onGrant(Advancement advancement, ServerPlayerEntity owner) {
     *///?} else {
     public static void onGrant(AdvancementEntry advancementEntry, ServerPlayerEntity owner) {
@@ -51,7 +51,7 @@ public class FabricAdvancementModule extends AbstractFabricModule {
         if (instance == null || !instance.enabled) return;
 
         FabricDiscordSRV discordSRV = instance.discordSRV;
-        //? if minecraft: <1.20.2 {
+        //?if minecraft: <1.20.2 {
         /*AdvancementDisplay display = advancement.getDisplay();
         *///?} else {
         Advancement advancement = advancementEntry.value();
@@ -59,7 +59,7 @@ public class FabricAdvancementModule extends AbstractFabricModule {
         //?}
 
         if (display == null || !display.shouldAnnounceToChat()) return; // Usually a crafting recipe.
-        //? if adventure: <6 {
+        //?if adventure: <6 {
         /*@SuppressWarnings("removal")
         Component component = discordSRV.getAdventure().toAdventure(display.getTitle());
         *///?} else {

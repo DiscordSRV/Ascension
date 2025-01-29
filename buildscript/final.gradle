@@ -18,3 +18,10 @@ shadowJar {
         finalizedBy copyOutput
     }
 }
+
+if (project.parent.name != "fabric") {
+    tasks.register("buildAll") {
+        dependsOn("build")
+        group = "build"
+    }
+}

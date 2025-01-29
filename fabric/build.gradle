@@ -1,8 +1,8 @@
 plugins {
     id("dev.kikugie.stonecutter") version "0.5.1"
+    id("fabric-loom")
 }
 apply from: rootProject.file('buildscript/standalone.gradle')
-apply plugin: 'fabric-loom'
 
 configurations.configureEach {
     resolutionStrategy {
@@ -11,7 +11,7 @@ configurations.configureEach {
 }
 
 java {
-    def javaVersion = project.property("deps.java") == 17 ? JavaVersion.VERSION_17 : project.property("deps.java") == 21 ? JavaVersion.VERSION_21 : null;
+    def javaVersion = project.property("deps.java") == 17 ? JavaVersion.VERSION_17 : project.property("deps.java") == 21 ? JavaVersion.VERSION_21 : null
     targetCompatibility = javaVersion
     sourceCompatibility = javaVersion
 }
@@ -94,11 +94,11 @@ dependencies {
 
     // Fabric API
     Set<String> apiModules = [
-        'fabric-api-base',
-        'fabric-lifecycle-events-v1',
-        'fabric-entity-events-v1',
-        'fabric-networking-api-v1',
-        'fabric-message-api-v1',
+            'fabric-api-base',
+            'fabric-lifecycle-events-v1',
+            'fabric-entity-events-v1',
+            'fabric-networking-api-v1',
+            'fabric-message-api-v1',
     ]
     apiModules.forEach {
         modImplementation(fabricApi.module(it, property("deps.fabric_api")))

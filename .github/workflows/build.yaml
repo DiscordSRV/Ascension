@@ -20,7 +20,7 @@ jobs:
       - name: Setup Gradle
         uses: gradle/actions/setup-gradle@v3
       - name: Build with Gradle
-        run: ./gradlew build --no-daemon
+        run: ./gradlew buildAll --no-daemon
         env:
           DISCORDSRV_AUTOTEST_BOT_TOKEN: ${{ secrets.DISCORDSRV_AUTOTEST_BOT_TOKEN }}
           DISCORDSRV_AUTOTEST_CHANNEL_ID: ${{ secrets.DISCORDSRV_AUTOTEST_CHANNEL_ID }}

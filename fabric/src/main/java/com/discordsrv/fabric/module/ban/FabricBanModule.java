@@ -123,7 +123,7 @@ public class FabricBanModule extends AbstractFabricModule implements PunishmentM
 
             ServerPlayerEntity serverPlayerEntity = server.getPlayerManager().getPlayer(playerUUID);
             if (serverPlayerEntity != null) {
-                //? if adventure: < 6 {
+                //?if adventure: <6 {
                 /*Text text = discordSRV.getAdventure().toNative(reason != null ? reason.asAdventure() : Component.empty());
                  *///?} else {
                 Text text = discordSRV.getAdventure().asNative(reason != null ? reason.asAdventure() : Component.empty());
