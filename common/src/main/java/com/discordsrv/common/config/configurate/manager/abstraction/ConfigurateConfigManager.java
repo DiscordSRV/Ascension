@@ -453,7 +453,11 @@ public abstract class ConfigurateConfigManager<T, LT extends AbstractConfigurati
         for (CommentedConfigurationNode child : defaultNode.childrenMap().values()) {
             CommentedConfigurationNode value = node.node(child.key());
             if (value.virtual()) {
-                logger.warning("Missing option \"" + child.key() + "\" in " + fileName());
+                List<String> keys = new ArrayList<>();
+                for (Object o : child.path()) {
+                    keys.add(String.valueOf(o));
+                }
+                logger.warning("Missing option \"" + String.join(".", keys) + "\" in " + fileName());
                 anyMissingOptions.set(true);
                 continue;
             }
