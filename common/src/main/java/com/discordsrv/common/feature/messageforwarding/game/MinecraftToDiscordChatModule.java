@@ -121,7 +121,7 @@ public class MinecraftToDiscordChatModule extends AbstractGameMessageModule<Mine
         MentionCachingModule mentionCaching = discordSRV.getModule(MentionCachingModule.class);
         if (mentionCaching != null) {
             String messageContent = discordSRV.componentFactory().plainSerializer().serialize(message);
-            return mentionCaching.lookup(config.mentions, guild, player, messageContent)
+            return mentionCaching.lookup(config.mentions, guild, player, messageContent, null)
                     .thenApply(mentions -> getMessageForGuildWithMentions(config, format, guild, message, player, context, mentions));
         }
 

@@ -52,7 +52,7 @@ public class ReceivedDiscordMessageContext {
             return null;
         }
 
-        Component component = discordSRV.componentFactory().minecraftSerialize(message.getGuild(), config, content);
+        Component component = discordSRV.componentFactory().minecraftSerialize(message, config, content);
 
         String replyFormat = config.discordToMinecraft.replyFormat;
         return ComponentUtil.fromAPI(
