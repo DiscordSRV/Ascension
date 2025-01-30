@@ -20,7 +20,6 @@ package com.discordsrv.common.core.module;
 
 import com.discordsrv.api.discord.connection.details.DiscordCacheFlag;
 import com.discordsrv.api.discord.connection.details.DiscordGatewayIntent;
-import com.discordsrv.api.discord.connection.details.DiscordMemberCachePolicy;
 import com.discordsrv.api.eventbus.EventPriorities;
 import com.discordsrv.api.eventbus.Subscribe;
 import com.discordsrv.api.events.lifecycle.DiscordSRVReadyEvent;
@@ -88,10 +87,6 @@ public class ModuleManager {
 
     public Set<DiscordCacheFlag> requiredCacheFlags() {
         return getModuleDetails(Module::requiredCacheFlags, AbstractModule::setRequestedCacheFlags);
-    }
-
-    public Set<DiscordMemberCachePolicy> requiredMemberCachePolicies() {
-        return getModuleDetails(Module::requiredMemberCachingPolicies, (mod, result) -> mod.setRequestedMemberCachePolicies(result.size()));
     }
 
     @SuppressWarnings("unchecked")

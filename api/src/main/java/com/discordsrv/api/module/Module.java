@@ -26,7 +26,6 @@ package com.discordsrv.api.module;
 import com.discordsrv.api.DiscordSRVApi;
 import com.discordsrv.api.discord.connection.details.DiscordCacheFlag;
 import com.discordsrv.api.discord.connection.details.DiscordGatewayIntent;
-import com.discordsrv.api.discord.connection.details.DiscordMemberCachePolicy;
 import com.discordsrv.api.eventbus.EventListener;
 import com.discordsrv.api.eventbus.Subscribe;
 import com.discordsrv.api.events.discord.message.AbstractDiscordMessageEvent;
@@ -117,16 +116,6 @@ public interface Module {
      */
     @NotNull
     default Collection<DiscordCacheFlag> requiredCacheFlags() {
-        return Collections.emptyList();
-    }
-
-    /**
-     * Provides a {@link Collection} of {@link DiscordMemberCachePolicy DiscordMemberCachePolicies} that are required for this {@link Module},
-     * if a policy other than {@link DiscordMemberCachePolicy#OWNER} or {@link DiscordMemberCachePolicy#VOICE} is provided the {@link DiscordGatewayIntent#GUILD_MEMBERS} intent will be required automatically.
-     * @return the collection of member caching policies required by this module at the time this method is called
-     */
-    @NotNull
-    default Collection<DiscordMemberCachePolicy> requiredMemberCachingPolicies() {
         return Collections.emptyList();
     }
 

@@ -21,7 +21,6 @@ package com.discordsrv.common.discord.connection.details;
 import com.discordsrv.api.discord.connection.details.DiscordCacheFlag;
 import com.discordsrv.api.discord.connection.details.DiscordConnectionDetails;
 import com.discordsrv.api.discord.connection.details.DiscordGatewayIntent;
-import com.discordsrv.api.discord.connection.details.DiscordMemberCachePolicy;
 import com.discordsrv.common.DiscordSRV;
 import com.discordsrv.common.util.ExceptionUtil;
 import org.jetbrains.annotations.NotNull;
@@ -33,11 +32,9 @@ public class DiscordConnectionDetailsImpl implements DiscordConnectionDetails {
     private final DiscordSRV discordSRV;
     private final Set<DiscordGatewayIntent> gatewayIntents = new HashSet<>();
     private final Set<DiscordCacheFlag> cacheFlags = new HashSet<>();
-    private final Set<DiscordMemberCachePolicy> memberCachePolicies = new HashSet<>();
 
     public DiscordConnectionDetailsImpl(DiscordSRV discordSRV) {
         this.discordSRV = discordSRV;
-        this.memberCachePolicies.add(DiscordMemberCachePolicy.OWNER);
     }
 
     private boolean isStatus() {
@@ -87,21 +84,6 @@ public class DiscordConnectionDetailsImpl implements DiscordConnectionDetails {
         }
 
         this.cacheFlags.addAll(flags);
-        return isStatus();
-    }
-
-    public @NotNull Set<DiscordMemberCachePolicy> getMemberCachePolicies() {
-        Set<DiscordMemberCachePolicy> policies = new HashSet<>(memberCachePolicies);
-        policies.addAll(discordSRV.moduleManager().requiredMemberCachePolicies());
-        return policies;
-    }
-
-    @Override
-    public boolean requestMemberCachePolicy(@NotNull DiscordMemberCachePolicy memberCachePolicy, @NotNull DiscordMemberCachePolicy... memberCachePolicies) {
-        List<DiscordMemberCachePolicy> policies = new ArrayList<>(Collections.singleton(memberCachePolicy));
-        policies.addAll(Arrays.asList(memberCachePolicies));
-
-        this.memberCachePolicies.addAll(policies);
         return isStatus();
     }
 }

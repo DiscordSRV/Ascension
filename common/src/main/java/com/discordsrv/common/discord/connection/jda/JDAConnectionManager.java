@@ -21,7 +21,6 @@ package com.discordsrv.common.discord.connection.jda;
 import com.discordsrv.api.DiscordSRVApi;
 import com.discordsrv.api.discord.connection.details.DiscordCacheFlag;
 import com.discordsrv.api.discord.connection.details.DiscordGatewayIntent;
-import com.discordsrv.api.discord.connection.details.DiscordMemberCachePolicy;
 import com.discordsrv.api.discord.connection.jda.errorresponse.ErrorCallbackContext;
 import com.discordsrv.api.discord.entity.DiscordUser;
 import com.discordsrv.api.discord.entity.guild.DiscordGuildMember;
@@ -46,6 +45,7 @@ import com.discordsrv.common.discord.connection.DiscordConnectionManager;
 import com.discordsrv.common.discord.connection.details.DiscordConnectionDetailsImpl;
 import com.discordsrv.common.feature.debug.DebugGenerateEvent;
 import com.discordsrv.common.feature.debug.file.TextDebugFile;
+import com.discordsrv.common.feature.linking.LinkProvider;
 import com.discordsrv.common.helper.Timeout;
 import com.neovisionaries.ws.client.ProxySettings;
 import com.neovisionaries.ws.client.WebSocketFactory;
@@ -62,6 +62,7 @@ import net.dv8tion.jda.api.exceptions.InvalidTokenException;
 import net.dv8tion.jda.api.exceptions.RateLimitedException;
 import net.dv8tion.jda.api.requests.*;
 import net.dv8tion.jda.api.utils.ChunkingFilter;
+import net.dv8tion.jda.api.utils.MemberCachePolicy;
 import net.dv8tion.jda.api.utils.cache.CacheFlag;
 import net.dv8tion.jda.api.utils.messages.MessageRequest;
 import net.dv8tion.jda.internal.entities.ReceivedMessage;
@@ -92,7 +93,6 @@ public class JDAConnectionManager implements DiscordConnectionManager {
     // Currently used intents & cache flags
     private final Set<DiscordGatewayIntent> intents = new HashSet<>();
     private final Set<DiscordCacheFlag> cacheFlags = new HashSet<>();
-    private final Set<DiscordMemberCachePolicy> memberCachePolicies = new HashSet<>();
 
     // Bot owner details
     private final Timeout botOwnerTimeout = new Timeout(Duration.ofMinutes(5));
@@ -124,10 +124,6 @@ public class JDAConnectionManager implements DiscordConnectionManager {
 
     public Set<DiscordCacheFlag> getCacheFlags() {
         return cacheFlags;
-    }
-
-    public Set<DiscordMemberCachePolicy> getMemberCachePolicies() {
-        return memberCachePolicies;
     }
 
     @Override
@@ -194,11 +190,27 @@ public class JDAConnectionManager implements DiscordConnectionManager {
     @Subscribe
     public void onDebugGenerate(DebugGenerateEvent event) {
         StringBuilder builder = new StringBuilder();
-        builder.append("Intents: ").append(intents);
+        builder.append("Intents: ").append(
+                intents.stream()
+                        .map(intent -> intent.toString() + (intent.privileged() ? "*" : ""))
+                        .collect(Collectors.joining(", "))
+        );
         builder.append("\nCache Flags: ").append(cacheFlags);
-        builder.append("\nMember Caching Policies: ").append(memberCachePolicies.size());
 
         if (instance != null) {
+            builder.append("\nUser cache size: ").append(instance.getUserCache().size());
+            builder.append("\nMember cache sizes (").append(instance.getGuildCache().size()).append(" guilds): ");
+            for (Guild guild : instance.getGuilds()) {
+                long cacheSize = guild.getMemberCache().size();
+                long memberCount = guild.getMemberCount();
+                double percent = Math.round((cacheSize / (double) memberCount) * 100_00) / 100.00;
+
+                builder.append("\n- ").append(guild.getId()).append(": ").append(cacheSize)
+                        .append(", approx size: ").append(memberCount)
+                        .append(" (").append(percent).append("% cached)");
+            }
+            builder.append("\n");
+
             CompletableFuture<Long> restPingFuture = instance.getRestPing().timeout(5, TimeUnit.SECONDS).submit();
             builder.append("\nGateway Ping: ").append(instance.getGatewayPing()).append("ms");
 
@@ -340,23 +352,29 @@ public class JDAConnectionManager implements DiscordConnectionManager {
             }
         });
 
-        this.memberCachePolicies.clear();
-        this.memberCachePolicies.addAll(connectionDetails.getMemberCachePolicies());
-        if (memberCachingConfig.all || this.memberCachePolicies.contains(DiscordMemberCachePolicy.ALL)) {
-            this.memberCachePolicies.clear();
-            this.memberCachePolicies.add(DiscordMemberCachePolicy.ALL);
+        MemberCachePolicy memberCachingPolicy;
+        if (memberCachingConfig.all) {
+            memberCachingPolicy = MemberCachePolicy.ALL;
         } else if (memberCachingConfig.linkedUsers) {
-            this.memberCachePolicies.add(DiscordMemberCachePolicy.LINKED);
+            memberCachingPolicy = member -> {
+                LinkProvider provider = discordSRV.linkProvider();
+                if (provider == null) {
+                    return false;
+                }
+                return provider.getCachedPlayerUUID(member.getIdLong()).isPresent();
+            };
+        } else {
+            memberCachingPolicy = MemberCachePolicy.NONE;
         }
-        for (DiscordMemberCachePolicy policy : this.memberCachePolicies) {
-            if (policy != DiscordMemberCachePolicy.OWNER && policy != DiscordMemberCachePolicy.VOICE) {
-                this.intents.add(DiscordGatewayIntent.GUILD_MEMBERS);
-                break;
-            }
+
+        boolean cacheAnyMembers = memberCachingPolicy != MemberCachePolicy.NONE;
+        int lruAmount = memberCachingConfig.lru;
+        if (lruAmount > 0 && cacheAnyMembers) {
+            memberCachingPolicy = memberCachingPolicy.and(MemberCachePolicy.lru(lruAmount));
         }
 
         ChunkingFilter chunkingFilter;
-        if (memberCachingConfig.chunk) {
+        if (memberCachingConfig.chunk && cacheAnyMembers) {
             MemberCachingConfig.GuildFilter servers = memberCachingConfig.chunkingServerFilter;
             long[] ids = servers.ids.stream().mapToLong(l -> l).toArray();
             if (servers.blacklist) {
@@ -364,6 +382,7 @@ public class JDAConnectionManager implements DiscordConnectionManager {
             } else {
                 chunkingFilter = ChunkingFilter.include(ids);
             }
+            this.intents.add(DiscordGatewayIntent.GUILD_MEMBERS);
         } else {
             chunkingFilter = ChunkingFilter.NONE;
         }
@@ -374,19 +393,7 @@ public class JDAConnectionManager implements DiscordConnectionManager {
         // Start with everything disabled & enable stuff that we actually need
         JDABuilder jdaBuilder = JDABuilder.createLight(token, intents);
         jdaBuilder.enableCache(cacheFlags);
-        jdaBuilder.setMemberCachePolicy(member -> {
-            if (this.memberCachePolicies.isEmpty()) {
-                return false;
-            }
-
-            DiscordGuildMember guildMember = api().getGuildMember(member);
-            for (DiscordMemberCachePolicy memberCachePolicy : this.memberCachePolicies) {
-                if (memberCachePolicy.isCached(guildMember)) {
-                    return true;
-                }
-            }
-            return false;
-        });
+        jdaBuilder.setMemberCachePolicy(memberCachingPolicy);
         jdaBuilder.setChunkingFilter(chunkingFilter);
 
         // We shut down JDA ourselves. Doing it at the JVM's shutdown may cause errors due to classloading
