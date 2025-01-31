@@ -1,6 +1,6 @@
 // Buildscript for loaders & standalone platforms
 
-task copyOutput(type: Copy) {
+tasks.register('copyOutput', Copy) {
     from(this.shadowJar)
     into rootProject.file('jars')
 }
@@ -14,5 +14,7 @@ shadowJar {
         rename { fileName -> 'LICENSE.txt' }
     }
 
-    finalizedBy copyOutput
+    if (it.project.name != "fabric") {
+        finalizedBy copyOutput
+    }
 }
