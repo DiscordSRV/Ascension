@@ -29,6 +29,7 @@ import net.kyori.adventure.platform.bukkit.BukkitComponentSerializer;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.player.PlayerJoinEvent;
+import org.jetbrains.annotations.NotNull;
 
 public class BukkitJoinListener extends AbstractBukkitListener<PlayerJoinEvent> {
 
@@ -38,11 +39,11 @@ public class BukkitJoinListener extends AbstractBukkitListener<PlayerJoinEvent> 
 
     @EventHandler(priority = EventPriority.MONITOR)
     public void onPlayerJoin(PlayerJoinEvent event) {
-        handleEvent(event);
+        handleEventWithErrorHandling(event);
     }
 
     @Override
-    protected void handleEvent(PlayerJoinEvent event, Void __) {
+    protected void handleEvent(@NotNull PlayerJoinEvent event, Void __) {
         String message = event.getJoinMessage();
         MinecraftComponent component = message == null ? null : ComponentUtil.toAPI(BukkitComponentSerializer.legacy().deserialize(message));
         boolean firstJoin = !event.getPlayer().hasPlayedBefore();

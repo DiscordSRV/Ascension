@@ -28,6 +28,8 @@ import org.bukkit.event.Event;
 import org.bukkit.event.HandlerList;
 import org.bukkit.event.Listener;
 import org.bukkit.plugin.Plugin;
+import org.jetbrains.annotations.ApiStatus;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.function.Function;
 
@@ -47,7 +49,11 @@ public abstract class AbstractBukkitListener<E extends Event> extends AbstractMo
         HandlerList.unregisterAll(this);
     }
 
-    protected final void handleEvent(E event) {
+    /**
+     * Passes events to {@link #handleEvent(Event, Void)}, and logs errors to our own loggers, which can be forwarded to our debug logs.
+     * @param event the event from the handler
+     */
+    protected final void handleEventWithErrorHandling(@NotNull E event) {
         try {
             handleEvent(event, null);
         } catch (Throwable throwable) {
@@ -55,7 +61,13 @@ public abstract class AbstractBukkitListener<E extends Event> extends AbstractMo
         }
     }
 
-    protected abstract void handleEvent(E event, Void __);
+    /**
+     * The event handler, the event listener should pass all events to {@link #handleEventWithErrorHandling(Event)} which will pass them here.
+     * @param event the event from the listener
+     * @param __ always {@code null}, used as a distraction to avoid users from invoking this method
+     */
+    @ApiStatus.OverrideOnly
+    protected abstract void handleEvent(@NotNull E event, Void __);
 
     @Subscribe
     public void onDebugObservability(DebugObservabilityEvent event) {

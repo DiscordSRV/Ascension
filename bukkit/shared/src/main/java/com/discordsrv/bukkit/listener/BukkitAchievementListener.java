@@ -30,6 +30,7 @@ import org.apache.commons.lang.WordUtils;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.player.PlayerAchievementAwardedEvent;
+import org.jetbrains.annotations.NotNull;
 
 public class BukkitAchievementListener extends AbstractBukkitListener<PlayerAchievementAwardedEvent> {
 
@@ -39,11 +40,11 @@ public class BukkitAchievementListener extends AbstractBukkitListener<PlayerAchi
 
     @EventHandler(priority = EventPriority.MONITOR)
     public void onPlayerAchievementAwarded(PlayerAchievementAwardedEvent event) {
-        handleEvent(event);
+        handleEventWithErrorHandling(event);
     }
 
     @Override
-    protected void handleEvent(PlayerAchievementAwardedEvent event, Void __) {
+    protected void handleEvent(@NotNull PlayerAchievementAwardedEvent event, Void __) {
         String achievement = WordUtils.capitalizeFully(event.getAchievement().name().replace('_', ' '));
         MinecraftComponent achievementName = ComponentUtil.toAPI(Component.text(achievement));
 

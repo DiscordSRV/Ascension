@@ -30,6 +30,7 @@ import net.kyori.adventure.platform.bukkit.BukkitComponentSerializer;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.player.AsyncPlayerChatEvent;
+import org.jetbrains.annotations.NotNull;
 
 public class BukkitChatListener extends AbstractBukkitListener<AsyncPlayerChatEvent> {
 
@@ -39,11 +40,11 @@ public class BukkitChatListener extends AbstractBukkitListener<AsyncPlayerChatEv
 
     @EventHandler(priority = EventPriority.MONITOR)
     public void onAsyncPlayerChat(AsyncPlayerChatEvent event) {
-        handleEvent(event);
+        handleEventWithErrorHandling(event);
     }
 
     @Override
-    protected void handleEvent(AsyncPlayerChatEvent event, Void __) {
+    protected void handleEvent(@NotNull AsyncPlayerChatEvent event, Void __) {
         MinecraftComponent component = ComponentUtil.toAPI(BukkitComponentSerializer.legacy().deserialize(event.getMessage()));
 
         IPlayer player = discordSRV.playerProvider().player(event.getPlayer());

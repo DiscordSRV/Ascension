@@ -32,6 +32,7 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.player.PlayerAdvancementDoneEvent;
 import org.jetbrains.annotations.ApiStatus;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.Objects;
 
@@ -49,11 +50,11 @@ public class PaperAdvancementListener extends AbstractBukkitListener<PlayerAdvan
 
     @EventHandler(priority = EventPriority.MONITOR)
     public void onPlayerAdvancementDone(PlayerAdvancementDoneEvent event) {
-        handleEvent(event);
+        handleEventWithErrorHandling(event);
     }
 
     @Override
-    protected void handleEvent(PlayerAdvancementDoneEvent event, Void __) {
+    protected void handleEvent(@NotNull PlayerAdvancementDoneEvent event, Void __) {
         Boolean gameRuleValue = event.getPlayer().getWorld().getGameRuleValue(GameRule.ANNOUNCE_ADVANCEMENTS);
         if (Objects.equals(gameRuleValue, false)) {
             logger().trace("Skipping displaying advancement, disabled by gamerule");
