@@ -110,8 +110,14 @@ public class BanSyncConfig extends AbstractSyncConfig<BanSyncConfig, BanSyncModu
         @ConfigSerializable
         public static class RoleConfig {
 
-            @Comment("Discord role id to add to the user when they are banned in Minecraft.")
+            @Comment("Discord role id to add to the user when they are banned in Minecraft")
             public Long roleId = 0L;
+
+            @Comment("Whether manually adding/removing the above role should cause the player's ban status in game to change\n"
+                    + "For example, removing the banned role from a user in Discord will unban them in the game if this option is set to true\n"
+                    + "BEWARE: This can be exploited to remove bans from players if %1 is set to 'discord'")
+            @Constants.Comment("tie-breaker")
+            public boolean changingRoleTriggersGameChange = false;
         }
     }
 }

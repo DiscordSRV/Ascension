@@ -20,7 +20,11 @@ package com.discordsrv.common.feature.bansync;
 
 import com.discordsrv.api.component.MinecraftComponent;
 import com.discordsrv.api.discord.connection.details.DiscordGatewayIntent;
+import com.discordsrv.api.discord.entity.guild.DiscordGuildMember;
+import com.discordsrv.api.discord.entity.guild.DiscordRole;
 import com.discordsrv.api.eventbus.Subscribe;
+import com.discordsrv.api.events.discord.member.role.DiscordMemberRoleAddEvent;
+import com.discordsrv.api.events.discord.member.role.DiscordMemberRoleRemoveEvent;
 import com.discordsrv.api.events.linking.AccountLinkedEvent;
 import com.discordsrv.api.module.type.PunishmentModule;
 import com.discordsrv.api.punishment.Punishment;
@@ -29,6 +33,8 @@ import com.discordsrv.common.abstraction.player.IPlayer;
 import com.discordsrv.common.abstraction.sync.AbstractSyncModule;
 import com.discordsrv.common.abstraction.sync.SyncFail;
 import com.discordsrv.common.abstraction.sync.cause.GenericSyncCauses;
+import com.discordsrv.common.abstraction.sync.cause.ISyncCause;
+import com.discordsrv.common.abstraction.sync.enums.BanSyncAction;
 import com.discordsrv.common.abstraction.sync.enums.SyncDirection;
 import com.discordsrv.common.abstraction.sync.result.GenericSyncResults;
 import com.discordsrv.common.abstraction.sync.result.ISyncResult;
@@ -123,10 +129,10 @@ public class BanSyncModule extends AbstractSyncModule<DiscordSRV, BanSyncConfig,
             this.newState = newState;
 
             // Run in 5s if an audit log event doesn't arrive
-            this.future = discordSRV.scheduler().runLater(() -> applyPunishment(null), Duration.ofSeconds(5));
+            this.future = discordSRV.scheduler().runLater(() -> applyPunishment(null, BanSyncCause.UNBANNED_ON_DISCORD), Duration.ofSeconds(5));
         }
 
-        public void applyPunishment(@Nullable Punishment punishment) {
+        public void applyPunishment(@Nullable Punishment punishment, ISyncCause cause) {
             if (!future.cancel(false)) {
                 return;
             }
@@ -135,7 +141,7 @@ public class BanSyncModule extends AbstractSyncModule<DiscordSRV, BanSyncConfig,
                 punishment = Punishment.UNKNOWN;
             }
             discordChanged(
-                    GenericSyncCauses.LINK,
+                    cause,
                     Someone.of(userId),
                     guildId,
                     punishment
@@ -189,9 +195,9 @@ public class BanSyncModule extends AbstractSyncModule<DiscordSRV, BanSyncConfig,
                     null,
                     ComponentUtil.fromPlain(entry.getReason()),
                     punisherName
-            ));
+            ), BanSyncCause.BANNED_ON_DISCORD);
         } else {
-            upsertEvent(guildId, bannedUserId, false).applyPunishment(null);
+            upsertEvent(guildId, bannedUserId, false).applyPunishment(null, BanSyncCause.UNBANNED_ON_DISCORD);
         }
     }
 
@@ -200,6 +206,28 @@ public class BanSyncModule extends AbstractSyncModule<DiscordSRV, BanSyncConfig,
         BanSyncConfig config = discordSRV.config().banSync;
         if (config.resyncUponLinking) {
             resyncAll(GenericSyncCauses.LINK, Someone.of(event.getPlayerUUID(), event.getUserId()));
+        }
+    }
+
+    @Subscribe
+    public void onRoleAdd(DiscordMemberRoleAddEvent event) {
+        handleRoleChanges(event.getMember(), event.getRoles(), true);
+    }
+
+    @Subscribe
+    public void onRoleRemove(DiscordMemberRoleRemoveEvent event) {
+        handleRoleChanges(event.getMember(), event.getRoles(), false);
+    }
+
+    private void handleRoleChanges(DiscordGuildMember member, List<DiscordRole> roles, boolean added) {
+        BanSyncConfig config = discordSRV.config().banSync;
+        if (config.minecraftToDiscord.action == BanSyncAction.ROLE && roles.stream().anyMatch(role -> config.minecraftToDiscord.role.roleId == role.getId())) {
+            if (config.minecraftToDiscord.role.changingRoleTriggersGameChange)
+                upsertEvent(roles.getFirst().getGuild().getId(), member.getUser().getId(), added).applyPunishment(added ? new Punishment(null, null, null) : null, BanSyncCause.BANNED_ROLE_CHANGED);
+            else logger().warning(String.format(
+                    "Ignoring banned role change for %s because manual changes are configured to not update the game state. This role will be added back at the next resync if the tie breaker is set to 'minecraft'.",
+                    member.getUser().getAsTag()
+            ));
         }
     }
 
@@ -217,8 +245,9 @@ public class BanSyncModule extends AbstractSyncModule<DiscordSRV, BanSyncConfig,
                                 .handle((member, throwable) -> {
                                     if (throwable instanceof ErrorResponseException && ((ErrorResponseException) throwable).getErrorResponse() == ErrorResponse.UNKNOWN_MEMBER)
                                         return null;
+                                    else if (throwable != null) throw new RuntimeException(throwable);
 
-                                    if (member.getRoles().stream().anyMatch(role -> config.minecraftToDiscord.role.roleId == role.getIdLong())) {
+                                    if (config.minecraftToDiscord.action == BanSyncAction.ROLE && member.getRoles().stream().anyMatch(role -> config.minecraftToDiscord.role.roleId == role.getIdLong())) {
                                         return new Punishment(null, null, null);
                                     }
 
@@ -298,6 +327,7 @@ public class BanSyncModule extends AbstractSyncModule<DiscordSRV, BanSyncConfig,
                         .handle((member, t) -> {
                             if (t instanceof ErrorResponseException && ((ErrorResponseException) t).getErrorResponse() == ErrorResponse.UNKNOWN_MEMBER)
                                 throw new SyncFail(BanSyncResult.NOT_A_GUILD_MEMBER);
+                            else if (t != null) throw new RuntimeException(t);
 
                             Set<Role> roles = new HashSet<>();
 
@@ -318,6 +348,14 @@ public class BanSyncModule extends AbstractSyncModule<DiscordSRV, BanSyncConfig,
     protected CompletableFuture<ISyncResult> applyGame(BanSyncConfig config, UUID playerUUID, Punishment newState) {
         if (config.direction == SyncDirection.MINECRAFT_TO_DISCORD) {
             return CompletableFuture.completedFuture(GenericSyncResults.WRONG_DIRECTION);
+        }
+
+        // This does not catch all circumstances under which a role change could precipitate a change in game state
+        if (newState != null && newState.punisher() == null && newState.until() == null && newState.reason() == null) {
+            // This punishment is a role, not a ban
+            if (!config.minecraftToDiscord.role.changingRoleTriggersGameChange) { // Role change should not cause game change
+                return CompletableFuture.completedFuture(BanSyncResult.ROLE_CHANGE_CANNOT_CHANGE_GAME);
+            }
         }
 
         PunishmentModule.Bans bans = discordSRV.getModule(PunishmentModule.Bans.class);

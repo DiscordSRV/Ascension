@@ -22,5 +22,20 @@ import com.discordsrv.common.abstraction.sync.cause.ISyncCause;
 
 public enum BanSyncCause implements ISyncCause {
 
-    PLAYER_BANNED
+    PLAYER_BANNED("Player banned"),
+    BANNED_ROLE_CHANGED("Banned role changed"),
+    BANNED_ON_DISCORD("Banned on Discord"),
+    UNBANNED_ON_DISCORD("Unbanned on Discord")
+    ;
+
+    private final String prettyCause;
+
+    BanSyncCause(String prettyCause) {
+        this.prettyCause = prettyCause;
+    }
+
+    @Override
+    public String toString() {
+        return prettyCause;
+    }
 }
