@@ -29,7 +29,7 @@ public class GameCommandConfig {
     @Constants.Comment("/discord")
     public boolean useDiscordCommand = true;
 
-    @Comment("If %1 should be used as a alias for %2")
+    @Comment("If %1 should be used as an alias for %2")
     @Constants.Comment({"/link", "/discord link"})
     public boolean useLinkAlias = false;
 

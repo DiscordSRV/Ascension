@@ -64,7 +64,7 @@ public class DiscordCommandConfig {
         public List<GameCommandExecutionConditionConfig> executionConditions = new ArrayList<>();
 
         @Comment("If commands should be suggested while typing\n" +
-                "Suggestions go through the server's main thread (on servers with a main thread) to ensure compatability.")
+                "Suggestions go through the server's main thread (on servers with a main thread) to ensure compatibility.")
         public boolean suggest = true;
 
         @Comment("If suggestions should be filtered based on the \"%1\" option")

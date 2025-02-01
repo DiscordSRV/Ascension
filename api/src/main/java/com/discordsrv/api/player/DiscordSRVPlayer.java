@@ -63,6 +63,6 @@ public interface DiscordSRVPlayer {
      * Sends the provided message to the player.
      * @param component the message
      */
-    void sendMessage(@NotNull MinecraftComponent component);
+    void sendMessageFromDiscord(@NotNull MinecraftComponent component);
 
 }

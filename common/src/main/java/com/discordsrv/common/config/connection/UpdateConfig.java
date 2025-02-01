@@ -33,7 +33,7 @@ public class UpdateConfig {
 
     @Setting(value = "notification-ingame")
     @Comment("If players with the %1 permission should receive\n"
-            + "a update notification upon joining if there is a update available")
+            + "an update notification upon joining if there is an update available")
     @Constants.Comment("discordsrv.updatenotification")
     public boolean notificationInGame = true;
 

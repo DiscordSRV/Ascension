@@ -83,7 +83,7 @@ public class BukkitDiscordSRVImpl extends BukkitDiscordSRV {
     @Override
     protected void enable() throws Throwable {
         // Commands
-        if (ReflectionUtil.classExists("com.mojang.brigadier.CommandDispatcher")) {
+        if (ReflectionUtil.classExists("me.lucko.commodore.Commodore")) {
             this.commandHandler = new CommodoreHandler(this);
         } else {
             this.commandHandler = new BukkitBasicCommandHandler(this);

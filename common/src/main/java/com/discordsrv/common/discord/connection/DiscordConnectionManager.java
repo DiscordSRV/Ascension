@@ -24,7 +24,7 @@ import org.jetbrains.annotations.Nullable;
 public interface DiscordConnectionManager {
 
     /**
-     * The default amount of milliseconds to wait for shutdown before ending without completing rate limited requests.
+     * The default number of milliseconds to wait for shutdown before ending without completing rate limited requests.
      */
     int DEFAULT_SHUTDOWN_TIMEOUT = 10;
 
@@ -42,9 +42,9 @@ public interface DiscordConnectionManager {
 
     /**
      * Shuts down the Discord connection after waiting for queued requests to complete.
-     * Waits the provided amount of milliseconds before running {@link #shutdownNow()}.
+     * Waits the provided number of milliseconds before running {@link #shutdownNow()}.
      *
-     * @param timeoutSeconds the maximum amount of seconds to wait for JDA to shut down
+     * @param timeoutSeconds the maximum number of seconds to wait for JDA to shut down
      */
     void shutdown(int timeoutSeconds);
 

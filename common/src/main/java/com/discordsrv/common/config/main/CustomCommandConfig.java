@@ -51,9 +51,9 @@ public class CustomCommandConfig {
         return config;
     }
 
-    @Comment("The command in Discord, this can be in up-to 3 parts (seperated by spaces).\n"
+    @Comment("The command in Discord, this can be in up to 3 parts (separated by spaces).\n"
             + "You cannot specify commands on the 2nd and 3rd layer for the same main command at once.\n"
-            + "You cannot specify a action for the main command if you specify something for the same main command on the 2nd or 3rd layer")
+            + "You cannot specify an action for the main command if you specify something for the same main command on the 2nd or 3rd layer")
     public String command = "";
 
     @Comment("The description of the command, will be shown to the user")

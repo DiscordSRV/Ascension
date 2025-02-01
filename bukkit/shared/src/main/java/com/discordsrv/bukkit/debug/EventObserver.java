@@ -214,14 +214,21 @@ public class EventObserver<E extends Event, P> implements AutoCloseable {
         @SuppressWarnings("unchecked") // Cast to generic
         @Override
         public void callEvent(Event event) {
+            if (event == null || !observer.eventClass.isAssignableFrom(event.getClass())) {
+                // HandlerLists may contain many events
+                return;
+            }
+
             P propertyValue = observer.propertyGetter.apply((E) event);
             P previousValue = observer.propertyValue.get();
 
-            if (!Objects.equals(propertyValue, previousValue)) {
-                observer.propertyValue.set(propertyValue);
-                if (listener != null) {
-                    observer.observer.accept(listener, (E) event);
-                }
+            if (Objects.equals(propertyValue, previousValue)) {
+                return;
+            }
+
+            observer.propertyValue.set(propertyValue);
+            if (listener != null) {
+                observer.observer.accept(listener, (E) event);
             }
         }
     }
