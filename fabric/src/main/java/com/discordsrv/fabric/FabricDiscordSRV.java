@@ -49,7 +49,7 @@ import java.net.URL;
 import java.security.CodeSource;
 import java.util.jar.JarFile;
 
-//?if adventure: <6 {
+//? if adventure: <6 {
 /*import net.kyori.adventure.platform.fabric.FabricServerAudiences;
 *///?} else {
 import net.kyori.adventure.platform.modcommon.MinecraftServerAudiences;
@@ -124,7 +124,7 @@ public class FabricDiscordSRV extends AbstractDiscordSRV<DiscordSRVFabricBootstr
     }
 
     @NotNull
-            //?if adventure: <6 {
+            //? if adventure: <6 {
     /*public FabricServerAudiences getAdventure() {
         return bootstrap.getAdventure();
     }

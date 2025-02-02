@@ -74,7 +74,7 @@ public class FabricJoinModule extends AbstractFabricModule {
         } else {
             mutableText = Text.translatable("multiplayer.player.joined.renamed", playerEntity.getDisplayName(), playerEntity.getName());
         }
-        //?if adventure: <6 {
+        //? if adventure: <6 {
         /*@SuppressWarnings("removal")
         Component component = discordSRV.getAdventure().toAdventure(mutableText);
         *///?} else {

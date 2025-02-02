@@ -35,7 +35,7 @@ import java.io.IOException;
 import java.nio.file.Path;
 import java.util.Collections;
 
-//?if adventure: <6 {
+//? if adventure: <6 {
 /*import net.kyori.adventure.platform.fabric.FabricServerAudiences;
 *///?} else {
  import net.kyori.adventure.platform.modcommon.MinecraftServerAudiences;
@@ -43,7 +43,7 @@ import java.util.Collections;
 
 
 public class DiscordSRVFabricBootstrap implements DedicatedServerModInitializer, IBootstrap {
-    private final static String DEPENDENCIES_RUNTIME = /*$ dependencies_file*/" dependencies/runtimeDownload-fabric.txt";
+    private final static String DEPENDENCIES_RUNTIME = /*$ dependencies_file*/"dependencies/runtimeDownload-1.21.4.txt";
 
     private final Logger logger;
     private final ClasspathAppender classpathAppender;
@@ -51,7 +51,7 @@ public class DiscordSRVFabricBootstrap implements DedicatedServerModInitializer,
     private final Path dataDirectory;
     private MinecraftServer minecraftServer;
     private FabricDiscordSRV discordSRV;
-    //?if adventure: <6 {
+    //? if adventure: <6 {
     /*private FabricServerAudiences adventure;
     *///?} else {
     private MinecraftServerAudiences adventure;
@@ -79,7 +79,7 @@ public class DiscordSRVFabricBootstrap implements DedicatedServerModInitializer,
     public void onInitializeServer() {
         ServerLifecycleEvents.SERVER_STARTING.register(minecraftServer -> {
             this.minecraftServer = minecraftServer;
-            //?if adventure: <6 {
+            //? if adventure: <6 {
             /*this.adventure = FabricServerAudiences.of(minecraftServer);
             *///?} else {
             this.adventure = MinecraftServerAudiences.of(minecraftServer);
@@ -133,7 +133,7 @@ public class DiscordSRVFabricBootstrap implements DedicatedServerModInitializer,
         return discordSRV;
     }
 
-    //?if adventure: <6 {
+    //? if adventure: <6 {
     /*public FabricServerAudiences getAdventure() {
         return adventure;
     }

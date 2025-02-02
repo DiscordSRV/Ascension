@@ -45,7 +45,7 @@ public class FabricDeathModule extends AbstractFabricModule {
         if (livingEntity instanceof ServerPlayerEntity) {
             FabricDiscordSRV discordSRV = instance.discordSRV;
             Text message = damageSource.getDeathMessage(livingEntity);
-            //?if adventure: <6 {
+            //? if adventure: <6 {
             /*@SuppressWarnings("removal")
             Component component = discordSRV.getAdventure().toAdventure(message);
             *///?} else {

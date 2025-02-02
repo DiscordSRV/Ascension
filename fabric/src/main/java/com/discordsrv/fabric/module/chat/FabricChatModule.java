@@ -41,7 +41,7 @@ public class FabricChatModule extends AbstractFabricModule {
         ServerMessageEvents.CHAT_MESSAGE.register(this::onChatMessage);
     }
 
-    //?if minecraft: <1.19.2 {
+    //? if minecraft: <1.19.2 {
     /*private void onChatMessage(net.minecraft.server.filter.FilteredMessage<SignedMessage> signedMessageFilteredMessage, ServerPlayerEntity serverPlayerEntity, net.minecraft.util.registry.RegistryKey<MessageType> messageTypeRegistryKey) {
         onChatMessage(signedMessageFilteredMessage.raw(), serverPlayerEntity);
     }
@@ -51,7 +51,7 @@ public class FabricChatModule extends AbstractFabricModule {
     //?}
         if (!enabled) return;
 
-        //?if adventure: <6 {
+        //? if adventure: <6 {
         /*@SuppressWarnings("removal")
         Component component = discordSRV.getAdventure().toAdventure(signedMessage.getContent());
         *///?} else {
