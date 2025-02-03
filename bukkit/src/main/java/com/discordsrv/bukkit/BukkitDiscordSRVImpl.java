@@ -70,12 +70,12 @@ public class BukkitDiscordSRVImpl extends BukkitDiscordSRV {
         this.playerProvider = new BukkitPlayerProvider(this, player -> new BukkitPlayerImpl(this, player));
         this.console = new BukkitConsole(this);
 
-        load();
-
         // Config
         this.connectionConfigManager = new ConnectionConfigManager<>(this, ConnectionConfig::new);
         this.configManager = new ServerConfigManager<>(this, BukkitConfig::new);
         this.messagesConfigManager = new MessagesConfigManager<>(this, MessagesConfig::new);
+
+        load();
     }
 
     @Override
@@ -115,10 +115,16 @@ public class BukkitDiscordSRVImpl extends BukkitDiscordSRV {
         if (PaperComponentHandle.IS_AVAILABLE) {
             // Paper (Since 1.16)
             registerModule(PaperChatListener::new);
-            registerModule(PaperChatRenderListener::new);
             registerModule(PaperDeathListener::new);
             registerModule(PaperJoinListener::new);
             registerModule(PaperQuitListener::new);
+
+            if (ReflectionUtil.classExists("io.papermc.paper.event.player.AsyncChatDecorateEvent")) {
+                // Paper (Since 1.19.1)
+                registerModule(PaperChatRenderListener::new);
+            } else {
+                registerModule(PaperLegacyChatRenderListener::new);
+            }
         } else {
             // Legacy
             registerModule(BukkitChatListener::new);

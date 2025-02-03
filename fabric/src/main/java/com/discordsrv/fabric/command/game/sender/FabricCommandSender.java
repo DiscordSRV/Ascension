@@ -19,6 +19,7 @@
 package com.discordsrv.fabric.command.game.sender;
 
 import com.discordsrv.common.command.game.abstraction.sender.ICommandSender;
+import com.discordsrv.common.permission.game.Permission;
 import com.discordsrv.fabric.FabricDiscordSRV;
 import me.lucko.fabric.api.permissions.v0.Permissions;
 import net.kyori.adventure.audience.Audience;
@@ -36,8 +37,9 @@ public class FabricCommandSender implements ICommandSender {
     }
 
     @Override
-    public boolean hasPermission(String permission) {
-        return Permissions.check(commandSource, permission, 4);
+    public boolean hasPermission(Permission permission) {
+        int defaultLevel = permission.requiresOpByDefault() ? 4 : 0;
+        return Permissions.check(commandSource, permission.permission(), defaultLevel);
     }
 
     @Override

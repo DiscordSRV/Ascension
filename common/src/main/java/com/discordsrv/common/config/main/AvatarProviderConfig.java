@@ -19,21 +19,52 @@
 package com.discordsrv.common.config.main;
 
 import com.discordsrv.common.config.configurate.annotation.Constants;
-import com.discordsrv.common.config.configurate.annotation.Untranslated;
+import com.discordsrv.common.config.documentation.DocumentationURLs;
 import org.spongepowered.configurate.objectmapping.ConfigSerializable;
 import org.spongepowered.configurate.objectmapping.meta.Comment;
 
 @ConfigSerializable
 public class AvatarProviderConfig {
 
-    @Comment("Whether to let DiscordSRV decide an appropriate avatar URL automatically\n" +
-            "This will result in appropriate head renders being provided for Bedrock players (when using Floodgate) and Offline Mode players (via username).")
-    public boolean autoDecideAvatarUrl = true;
+    @Comment("How the %1 placeholder provider\n"
+            + "Available values:\n"
+            + "off - Always use the default url\n"
+            + "url - Use the url from the template in Discord directly")
+    @Constants.Comment("%player_avatar_url%")
+    public Provider provider = Provider.OFF;
 
-    @Untranslated(Untranslated.Type.VALUE)
-    @Comment("The template for URLs of player avatars\n" +
-            "This will be used for official Java players only if %1 is set to true\n" +
-            "This will ALWAYS be used if %1 is set to false")
-    @Constants.Comment("auto-decide-avatar-url")
-    public String avatarUrlTemplate = "https://crafatar.com/avatars/%player_uuid_short%.png?size=128&overlay#%player_skin_texture_id%";
+    public enum Provider {
+        OFF,
+        URL
+    }
+
+    @Comment("Bring your own avatar url templates, empty templates will be skipped\n"
+            + "Suggested Placeholders:\n"
+            + "%player_skin_texture_id% - The texture ID for the player\n"
+            + "%player_skin_model% - The skin model (classic, slim) for the player\n"
+            + "%player_uuid% - Full UUID for the player\n"
+            + "%player_uuid_short% - The UUID for the player without dashes\n"
+            + "%player_name% - The player's username\n"
+            + "More placeholders at %1")
+    @Constants.Comment(DocumentationURLs.PLACEHOLDERS)
+    public Services services = new Services();
+
+    public static class Services {
+
+        @Comment("The url template, when the player's texture id and model is available.")
+        public String textureTemplate = "";
+
+        @Comment("The url template, when the player has a online mode UUID")
+        public String onlineUuidTemplate = "";
+
+        @Comment("The url template, for Bedrock players when the player has a Floodgate (Geyser) UUID")
+        public String floodgateTemplate = "";
+
+        @Comment("The url template, when the player has a offline mode UUID")
+        public String offlineTemplate = "";
+
+    }
+
+    @Comment("Default avatar URL")
+    public String defaultUrl = "%bot_user_avatar_url%";
 }

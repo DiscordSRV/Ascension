@@ -34,7 +34,7 @@ import com.discordsrv.common.core.logging.Logger;
 import com.discordsrv.common.core.logging.NamedLogger;
 import com.discordsrv.common.feature.linking.LinkProvider;
 import com.discordsrv.common.feature.linking.LinkStore;
-import com.discordsrv.common.permission.game.Permission;
+import com.discordsrv.common.permission.game.Permissions;
 import com.discordsrv.common.util.CommandUtil;
 import net.kyori.adventure.text.format.NamedTextColor;
 
@@ -61,11 +61,11 @@ public class LinkOtherCommand extends CombinedCommand {
                             GameCommand.stringWord("player")
                                     .then(
                                             GameCommand.stringWord("user")
-                                                    .requiredPermission(Permission.COMMAND_LINK_OTHER)
+                                                    .requiredPermission(Permissions.COMMAND_LINK_OTHER)
                                                     .executor(otherCommand)
                                     )
                     )
-                    .requiredPermission(Permission.COMMAND_LINK)
+                    .requiredPermission(Permissions.COMMAND_LINK)
                     .executor(initCommand);
         }
 
@@ -117,7 +117,7 @@ public class LinkOtherCommand extends CombinedCommand {
         String userArgument = execution.getArgument("user");
         if (execution instanceof GameCommandExecution) {
             ICommandSender sender = ((GameCommandExecution) execution).getSender();
-            if (!sender.hasPermission(Permission.COMMAND_LINK_OTHER)) {
+            if (!sender.hasPermission(Permissions.COMMAND_LINK_OTHER)) {
                 sender.sendMessage(discordSRV.messagesConfig(sender).noPermission.asComponent());
                 return;
             }

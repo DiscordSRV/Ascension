@@ -27,9 +27,12 @@ import org.junit.jupiter.api.extension.ExtensionContext;
 public class FullBootExtension implements BeforeAllCallback, ExtensionContext.Store.CloseableResource {
 
     public static String BOT_TOKEN = System.getenv("DISCORDSRV_AUTOTEST_BOT_TOKEN");
-    public static String TEXT_CHANNEL_ID = System.getenv("DISCORDSRV_AUTOTEST_CHANNEL_ID");
+    public static String TEXT_CHANNEL_ID = System.getenv("DISCORDSRV_AUTOTEST_TEXT_ID");
+    public static String NEWS_CHANNEL_ID = System.getenv("DISCORDSRV_AUTOTEST_NEWS_ID");
     public static String FORUM_CHANNEL_ID = System.getenv("DISCORDSRV_AUTOTEST_FORUM_ID");
+    public static String MEDIA_CHANNEL_ID = System.getenv("DISCORDSRV_AUTOTEST_MEDIA_ID");
     public static String VOICE_CHANNEL_ID = System.getenv("DISCORDSRV_AUTOTEST_VOICE_ID");
+    public static String STAGE_CHANNEL_ID = System.getenv("DISCORDSRV_AUTOTEST_STAGE_ID");
 
     public static boolean started = false;
 
@@ -37,8 +40,11 @@ public class FullBootExtension implements BeforeAllCallback, ExtensionContext.St
     public void beforeAll(ExtensionContext context) {
         Assumptions.assumeTrue(BOT_TOKEN != null, "Automated testing bot token");
         Assumptions.assumeTrue(TEXT_CHANNEL_ID != null, "Automated testing text channel id");
+        Assumptions.assumeTrue(NEWS_CHANNEL_ID != null, "Automated testing news channel id");
         Assumptions.assumeTrue(FORUM_CHANNEL_ID != null, "Automated testing forum channel id");
+        Assumptions.assumeTrue(MEDIA_CHANNEL_ID != null, "Automated testing media channel id");
         Assumptions.assumeTrue(VOICE_CHANNEL_ID != null, "Automated testing voice channel id");
+        Assumptions.assumeTrue(STAGE_CHANNEL_ID != null, "Automated testing stage channel id");
 
         if (started) return;
         started = true;

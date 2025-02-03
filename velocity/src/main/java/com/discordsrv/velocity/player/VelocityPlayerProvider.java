@@ -20,7 +20,6 @@ package com.discordsrv.velocity.player;
 
 import com.discordsrv.common.abstraction.player.provider.AbstractPlayerProvider;
 import com.discordsrv.velocity.VelocityDiscordSRV;
-import com.velocitypowered.api.event.PostOrder;
 import com.velocitypowered.api.event.Subscribe;
 import com.velocitypowered.api.event.connection.DisconnectEvent;
 import com.velocitypowered.api.event.connection.PostLoginEvent;
@@ -47,7 +46,7 @@ public class VelocityPlayerProvider extends AbstractPlayerProvider<VelocityPlaye
         discordSRV.proxy().getEventManager().unregisterListener(discordSRV.plugin(), this);
     }
 
-    @Subscribe(order = PostOrder.FIRST)
+    @Subscribe(priority = 32500)
     public void onPostLogin(PostLoginEvent event) {
         addPlayer(event.getPlayer(), false);
     }
@@ -56,7 +55,7 @@ public class VelocityPlayerProvider extends AbstractPlayerProvider<VelocityPlaye
         addPlayer(player.getUniqueId(), new VelocityPlayer(discordSRV, player), initial);
     }
 
-    @Subscribe(order = PostOrder.LAST)
+    @Subscribe(priority = -32500)
     public void onDisconnect(DisconnectEvent event) {
         removePlayer(event.getPlayer().getUniqueId());
     }

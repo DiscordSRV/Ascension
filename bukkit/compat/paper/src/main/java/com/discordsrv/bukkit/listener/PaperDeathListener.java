@@ -28,6 +28,7 @@ import com.discordsrv.common.core.logging.NamedLogger;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.entity.PlayerDeathEvent;
+import org.jetbrains.annotations.NotNull;
 
 public class PaperDeathListener extends AbstractBukkitListener<PlayerDeathEvent> {
 
@@ -40,11 +41,11 @@ public class PaperDeathListener extends AbstractBukkitListener<PlayerDeathEvent>
 
     @EventHandler(priority = EventPriority.MONITOR)
     public void onPlayerDeath(PlayerDeathEvent event) {
-        handleEvent(event);
+        handleEventWithErrorHandling(event);
     }
 
     @Override
-    protected void handleEvent(PlayerDeathEvent event, Void __) {
+    protected void handleEvent(@NotNull PlayerDeathEvent event, Void __) {
         MinecraftComponent message = MESSAGE_HANDLE.getAPI(event);
 
         DiscordSRVPlayer player = discordSRV.playerProvider().player(event.getEntity());

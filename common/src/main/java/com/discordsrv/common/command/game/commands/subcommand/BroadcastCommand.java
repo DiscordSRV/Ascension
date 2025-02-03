@@ -30,7 +30,7 @@ import com.discordsrv.common.command.game.abstraction.command.GameCommandSuggest
 import com.discordsrv.common.command.game.abstraction.sender.ICommandSender;
 import com.discordsrv.common.config.main.channels.base.BaseChannelConfig;
 import com.discordsrv.common.config.main.channels.base.IChannelConfig;
-import com.discordsrv.common.permission.game.Permission;
+import com.discordsrv.common.permission.game.Permissions;
 import com.discordsrv.common.util.ComponentUtil;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
@@ -70,7 +70,7 @@ public abstract class BroadcastCommand implements GameCommandExecutor, GameComma
             BroadcastCommand command = executor.get();
             consumer.accept(
                     GameCommand.literal(label)
-                            .requiredPermission(Permission.COMMAND_BROADCAST)
+                            .requiredPermission(Permissions.COMMAND_BROADCAST)
                             .then(
                                     GameCommand.string("channel")
                                             .suggester(command)

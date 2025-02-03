@@ -27,7 +27,7 @@ import com.discordsrv.common.command.combined.abstraction.CommandExecution;
 import com.discordsrv.common.command.game.abstraction.command.GameCommand;
 import com.discordsrv.common.core.logging.Logger;
 import com.discordsrv.common.core.logging.NamedLogger;
-import com.discordsrv.common.permission.game.Permission;
+import com.discordsrv.common.permission.game.Permissions;
 import com.discordsrv.common.util.CommandUtil;
 
 import java.util.UUID;
@@ -48,10 +48,10 @@ public class LinkedCommand extends CombinedCommand {
             GAME = GameCommand.literal("linked")
                     .then(
                             GameCommand.stringGreedy("target")
-                                    .requiredPermission(Permission.COMMAND_LINKED_OTHER)
+                                    .requiredPermission(Permissions.COMMAND_LINKED_OTHER)
                                     .executor(command)
                     )
-                    .requiredPermission(Permission.COMMAND_LINKED)
+                    .requiredPermission(Permissions.COMMAND_LINKED)
                     .executor(command);
         }
 
@@ -90,7 +90,7 @@ public class LinkedCommand extends CombinedCommand {
     public void execute(CommandExecution execution) {
         execution.setEphemeral(true);
 
-        execution.runAsync(() -> CommandUtil.lookupTarget(discordSRV, logger, execution, true, Permission.COMMAND_LINKED_OTHER)
+        execution.runAsync(() -> CommandUtil.lookupTarget(discordSRV, logger, execution, true, Permissions.COMMAND_LINKED_OTHER)
                 .whenComplete((result, t) -> {
                     if (t != null) {
                         logger.error("Failed to execute linked command", t);

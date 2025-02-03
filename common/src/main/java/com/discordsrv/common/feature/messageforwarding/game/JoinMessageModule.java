@@ -32,7 +32,7 @@ import com.discordsrv.common.abstraction.player.IPlayer;
 import com.discordsrv.common.config.main.channels.base.BaseChannelConfig;
 import com.discordsrv.common.config.main.generic.IMessageConfig;
 import com.discordsrv.common.events.player.PlayerDisconnectedEvent;
-import com.discordsrv.common.permission.game.Permission;
+import com.discordsrv.common.permission.game.Permissions;
 import com.discordsrv.common.util.ComponentUtil;
 import net.kyori.adventure.text.Component;
 import org.jetbrains.annotations.NotNull;
@@ -61,7 +61,7 @@ public class JoinMessageModule extends AbstractGameMessageModule<IMessageConfig,
         }
 
         DiscordSRVPlayer player = event.getPlayer();
-        boolean silentJoin = player instanceof IPlayer && ((IPlayer) player).hasPermission(Permission.SILENT_JOIN);
+        boolean silentJoin = player instanceof IPlayer && ((IPlayer) player).hasPermission(Permissions.SILENT_JOIN);
         discordSRV.scheduler().run(() -> {
             silentJoinPermission.set(silentJoin);
             process(event, event.getPlayer(), event.getGameChannel());

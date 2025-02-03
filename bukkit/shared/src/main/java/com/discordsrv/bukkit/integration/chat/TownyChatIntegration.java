@@ -28,6 +28,7 @@ import com.discordsrv.bukkit.BukkitDiscordSRV;
 import com.discordsrv.bukkit.player.BukkitPlayer;
 import com.discordsrv.common.core.logging.NamedLogger;
 import com.discordsrv.common.core.module.type.PluginIntegration;
+import com.discordsrv.common.permission.game.Permission;
 import com.discordsrv.common.util.ComponentUtil;
 import com.palmergames.bukkit.TownyChat.Chat;
 import com.palmergames.bukkit.TownyChat.channels.Channel;
@@ -145,7 +146,7 @@ public class TownyChatIntegration extends PluginIntegration<BukkitDiscordSRV> im
                 }
 
                 String permission = channel.getPermission();
-                if (permission != null && !player.hasPermission(permission)) {
+                if (permission != null && !player.hasPermission(Permission.of(permission))) {
                     continue;
                 }
 

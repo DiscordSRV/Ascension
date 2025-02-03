@@ -22,44 +22,37 @@ import com.discordsrv.api.component.MinecraftComponent;
 import com.discordsrv.api.events.message.render.GameChatRenderEvent;
 import com.discordsrv.bukkit.BukkitDiscordSRV;
 import com.discordsrv.bukkit.component.PaperComponentHandle;
-import com.discordsrv.bukkit.debug.EventObserver;
 import com.discordsrv.common.abstraction.player.IPlayer;
 import com.discordsrv.common.core.logging.NamedLogger;
 import com.discordsrv.common.feature.channel.global.GlobalChannel;
-import io.papermc.paper.event.player.AsyncChatDecorateEvent;
+import io.papermc.paper.event.player.AsyncChatEvent;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
-import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
 
-@SuppressWarnings("UnstableApiUsage") // Understood
-@ApiStatus.AvailableSince("Paper 1.19.1")
-public class PaperChatRenderListener extends AbstractBukkitListener<AsyncChatDecorateEvent> {
+public class PaperLegacyChatRenderListener extends AbstractBukkitListener<AsyncChatEvent> {
 
-    private static final PaperComponentHandle.Get<AsyncChatDecorateEvent> GET_RESULT_HANDLE
-            = PaperComponentHandle.get(AsyncChatDecorateEvent.class, "result");
-    private static final PaperComponentHandle.Set<AsyncChatDecorateEvent> SET_RESULT_HANDLE
-            = PaperComponentHandle.set(AsyncChatDecorateEvent.class, "result");
+    private static final PaperComponentHandle.Get<AsyncChatEvent> GET_MESSAGE_HANDLE
+            = PaperComponentHandle.get(AsyncChatEvent.class, "message");
+    private static final PaperComponentHandle.Set<AsyncChatEvent> SET_MESSAGE_HANDLE
+            = PaperComponentHandle.set(AsyncChatEvent.class, "message");
 
-    public PaperChatRenderListener(BukkitDiscordSRV discordSRV) {
+    public PaperLegacyChatRenderListener(BukkitDiscordSRV discordSRV) {
         super(discordSRV, new NamedLogger(discordSRV, "CHAT_RENDER_LISTENER"));
     }
 
     @EventHandler(priority = EventPriority.NORMAL, ignoreCancelled = true)
-    public void onAsyncChatDecorate(AsyncChatDecorateEvent event) {
+    public void onAsyncChat(AsyncChatEvent event) {
         handleEventWithErrorHandling(event);
     }
 
     @Override
-    protected void handleEvent(@NotNull AsyncChatDecorateEvent event, Void __) {
-        Player bukkitPlayer = event.player();
-        if (bukkitPlayer == null) {
-            return;
-        }
+    protected void handleEvent(@NotNull AsyncChatEvent event, Void __) {
+        Player bukkitPlayer = event.getPlayer();
 
         IPlayer player = discordSRV.playerProvider().player(bukkitPlayer);
-        MinecraftComponent message = GET_RESULT_HANDLE.getAPI(event);
+        MinecraftComponent message = GET_MESSAGE_HANDLE.getAPI(event);
 
         GameChatRenderEvent annotateEvent = new GameChatRenderEvent(
                 event,
@@ -72,14 +65,11 @@ public class PaperChatRenderListener extends AbstractBukkitListener<AsyncChatDec
 
         MinecraftComponent annotatedMessage = annotateEvent.getAnnotatedMessage();
         if (annotatedMessage != null) {
-            SET_RESULT_HANDLE.call(event, annotatedMessage);
+            SET_MESSAGE_HANDLE.call(event, annotatedMessage);
         }
     }
 
-    private EventObserver<AsyncChatDecorateEvent, Boolean> observer;
-
+    // Already observed via normal chat listener
     @Override
-    protected void observeEvents(boolean enable) {
-        observer = observeEvent(observer, AsyncChatDecorateEvent.class, AsyncChatDecorateEvent::isCancelled, enable);
-    }
+    protected void observeEvents(boolean enable) {}
 }

@@ -35,7 +35,7 @@ import com.discordsrv.common.core.paste.service.AESEncryptedPasteService;
 import com.discordsrv.common.core.paste.service.BytebinPasteService;
 import com.discordsrv.common.feature.debug.DebugObservabilityEvent;
 import com.discordsrv.common.feature.debug.DebugReport;
-import com.discordsrv.common.permission.game.Permission;
+import com.discordsrv.common.permission.game.Permissions;
 import com.discordsrv.common.util.ExceptionUtil;
 import net.kyori.adventure.text.format.NamedTextColor;
 
@@ -64,7 +64,7 @@ public class DebugCommand extends CombinedCommand {
         if (GAME == null) {
             DebugCommand command = getInstance(discordSRV);
             GAME = GameCommand.literal("debug")
-                    .requiredPermission(Permission.COMMAND_DEBUG)
+                    .requiredPermission(Permissions.COMMAND_DEBUG)
                     .executor(command)
                     .then(
                             GameCommand.stringWord("subcommand")

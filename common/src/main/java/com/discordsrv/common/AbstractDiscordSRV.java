@@ -40,6 +40,7 @@ import com.discordsrv.common.config.main.MainConfig;
 import com.discordsrv.common.config.main.linking.LinkedAccountConfig;
 import com.discordsrv.common.config.messages.MessagesConfig;
 import com.discordsrv.common.core.component.ComponentFactory;
+import com.discordsrv.common.core.component.translation.TranslationLoader;
 import com.discordsrv.common.core.dependency.DiscordSRVDependencyManager;
 import com.discordsrv.common.core.eventbus.EventBusImpl;
 import com.discordsrv.common.core.logging.Logger;
@@ -48,9 +49,7 @@ import com.discordsrv.common.core.logging.impl.DiscordSRVLogger;
 import com.discordsrv.common.core.module.ModuleManager;
 import com.discordsrv.common.core.module.type.AbstractModule;
 import com.discordsrv.common.core.placeholder.PlaceholderServiceImpl;
-import com.discordsrv.common.core.placeholder.context.DateFormattingContext;
-import com.discordsrv.common.core.placeholder.context.GamePermissionContext;
-import com.discordsrv.common.core.placeholder.context.TextHandlingContext;
+import com.discordsrv.common.core.placeholder.context.*;
 import com.discordsrv.common.core.placeholder.format.DiscordMarkdownFormatImpl;
 import com.discordsrv.common.core.placeholder.result.ComponentResultStringifier;
 import com.discordsrv.common.core.storage.Storage;
@@ -105,9 +104,12 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.lang.reflect.Constructor;
 import java.net.*;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.time.Duration;
+import java.time.LocalDateTime;
 import java.time.ZonedDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
@@ -150,13 +152,14 @@ public abstract class AbstractDiscordSRV<
     protected final B bootstrap;
     private final Logger platformLogger;
     private final Path dataDirectory;
+    private final DiscordSRVLogger logger;
     private DiscordSRVDependencyManager dependencyManager;
-    private DiscordSRVLogger logger;
     private ModuleManager moduleManager;
     private JDAConnectionManager discordConnectionManager;
     private ChannelConfigHelper channelConfig;
     private DestinationLookupHelper destinationLookupHelper;
     private TemporaryLocalData temporaryLocalData;
+    private TranslationLoader translationLoader;
 
     private Storage storage;
     private LinkProvider linkProvider;
@@ -177,13 +180,13 @@ public abstract class AbstractDiscordSRV<
         this.bootstrap = bootstrap;
         this.platformLogger = bootstrap.logger();
         this.dataDirectory = bootstrap.dataDirectory();
+        this.logger = new DiscordSRVLogger(this);
     }
 
     /**
      * Method that should be called at the end of implementors constructors.
      */
     protected final void load() {
-        this.logger = new DiscordSRVLogger(this);
         this.dependencyManager = new DiscordSRVDependencyManager(this, bootstrap.lifecycleManager() != null ? bootstrap.lifecycleManager().getDependencyLoader() : null);
         this.eventBus = new EventBusImpl(this);
         this.moduleManager = new ModuleManager(this);
@@ -663,11 +666,16 @@ public abstract class AbstractDiscordSRV<
         // Logging
         DependencyLoggerAdapter.setAppender(new DependencyLoggingHandler(this));
 
+        this.translationLoader = new TranslationLoader(this);
+
         // Placeholder result stringifiers & global contexts
         placeholderService().addResultMapper(new ComponentResultStringifier(this));
         placeholderService().addGlobalContext(new TextHandlingContext(this));
         placeholderService().addGlobalContext(new DateFormattingContext(this));
         placeholderService().addGlobalContext(new GamePermissionContext(this));
+        placeholderService().addGlobalContext(new ReceivedDiscordMessageContext(this));
+        placeholderService().addGlobalContext(new DiscordBotContext(this));
+        placeholderService().addGlobalContext(new AvatarProviderContext(this));
         placeholderService().addGlobalContext(UUIDUtil.class);
 
         // Modules
@@ -747,12 +755,19 @@ public abstract class AbstractDiscordSRV<
         }
 
         boolean configUpgrade = flags.contains(ReloadFlag.CONFIG_UPGRADE);
+        Path backupPath = null;
+        if (configUpgrade) {
+            String dateAndTime = DateTimeFormatter.ofPattern("yyyy-MM-dd_HH-mm-ss").format(LocalDateTime.now());
+            backupPath = dataDirectory().resolve("config-migrated").resolve(dateAndTime);
+            Files.createDirectories(backupPath);
+        }
+
         if (flags.contains(ReloadFlag.CONFIG) || configUpgrade) {
             try {
                 AtomicBoolean anyMissingOptions = new AtomicBoolean(false);
-                connectionConfigManager().reload(configUpgrade, anyMissingOptions);
-                configManager().reload(configUpgrade, anyMissingOptions);
-                messagesConfigManager().reload(configUpgrade, anyMissingOptions);
+                connectionConfigManager().reload(configUpgrade, anyMissingOptions, backupPath);
+                configManager().reload(configUpgrade, anyMissingOptions, backupPath);
+                messagesConfigManager().reload(configUpgrade, anyMissingOptions, backupPath);
 
                 if (anyMissingOptions.get()) {
                     logger().info("Use \"/discordsrv reload config_upgrade\" to write the latest configuration");
@@ -903,6 +918,10 @@ public abstract class AbstractDiscordSRV<
         // Modules are reloaded upon DiscordSRV being ready, thus not needed at initial
         if (!initial && flags.contains(ReloadFlag.CONFIG)) {
             results.addAll(moduleManager().reload());
+        }
+
+        if (translationLoader != null && flags.contains(ReloadFlag.TRANSLATIONS)) {
+            translationLoader.reload();
         }
 
         if (flags.contains(ReloadFlag.DISCORD_COMMANDS) && isReady()) {

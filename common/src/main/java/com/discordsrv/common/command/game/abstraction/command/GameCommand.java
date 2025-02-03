@@ -91,7 +91,7 @@ public class GameCommand {
     private GameCommand redirection = null;
 
     // Permission
-    private String requiredPermission;
+    private Permission requiredPermission;
     private Component noPermissionMessage = null;
 
     // Executor & suggestor
@@ -178,10 +178,6 @@ public class GameCommand {
     }
 
     public GameCommand requiredPermission(Permission permission) {
-        return requiredPermission(permission.permission());
-    }
-
-    public GameCommand requiredPermission(String permission) {
         if (redirection != null) {
             throw new IllegalStateException("Cannot required permissions on a node with a redirection");
         }
@@ -189,7 +185,7 @@ public class GameCommand {
         return this;
     }
 
-    public String getRequiredPermission() {
+    public Permission getRequiredPermission() {
         if (redirection != null) {
             return redirection.getRequiredPermission();
         }
@@ -262,7 +258,7 @@ public class GameCommand {
     }
 
     public boolean hasPermission(ICommandSender sender) {
-        String requiredPermission = getRequiredPermission();
+        Permission requiredPermission = getRequiredPermission();
         return requiredPermission == null || sender.hasPermission(requiredPermission);
     }
 

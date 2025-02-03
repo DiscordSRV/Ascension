@@ -20,6 +20,7 @@ package com.discordsrv.bukkit.command.game.sender;
 
 import com.discordsrv.bukkit.BukkitDiscordSRV;
 import com.discordsrv.common.command.game.abstraction.sender.ICommandSender;
+import com.discordsrv.common.permission.game.Permission;
 import net.kyori.adventure.audience.Audience;
 import org.bukkit.command.CommandSender;
 import org.jetbrains.annotations.NotNull;
@@ -39,8 +40,8 @@ public class BukkitCommandSender implements ICommandSender {
     }
 
     @Override
-    public boolean hasPermission(String permission) {
-        return commandSender.hasPermission(permission);
+    public boolean hasPermission(Permission permission) {
+        return commandSender.hasPermission(permission.permission());
     }
 
     @Override

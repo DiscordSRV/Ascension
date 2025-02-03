@@ -25,7 +25,7 @@ import com.discordsrv.common.abstraction.player.IPlayer;
 import com.discordsrv.common.config.main.channels.MinecraftToDiscordChatConfig;
 import com.discordsrv.common.config.main.channels.base.BaseChannelConfig;
 import com.discordsrv.common.core.module.type.AbstractModule;
-import com.discordsrv.common.permission.game.Permission;
+import com.discordsrv.common.permission.game.Permissions;
 import com.discordsrv.common.util.CompletableFutureUtil;
 import com.github.benmanes.caffeine.cache.Cache;
 import net.dv8tion.jda.api.entities.Guild;
@@ -71,24 +71,6 @@ public class MentionCachingModule extends AbstractModule<DiscordSRV> {
 
     @Override
     public @NotNull Collection<DiscordGatewayIntent> requiredIntents() {
-        boolean anyUserMentions = false;
-        for (BaseChannelConfig channel : discordSRV.channelConfig().getAllChannels()) {
-            MinecraftToDiscordChatConfig config = channel.minecraftToDiscord;
-            if (!config.enabled) {
-                continue;
-            }
-
-            MinecraftToDiscordChatConfig.Mentions mentions = config.mentions;
-            if (mentions.users) {
-                anyUserMentions = true;
-                break;
-            }
-        }
-
-        if (anyUserMentions) {
-            return EnumSet.of(DiscordGatewayIntent.GUILD_MEMBERS);
-        }
-
         return Collections.emptySet();
     }
 
@@ -118,19 +100,24 @@ public class MentionCachingModule extends AbstractModule<DiscordSRV> {
             MinecraftToDiscordChatConfig.Mentions config,
             Guild guild,
             IPlayer player,
-            String messageContent
+            String messageContent,
+            Set<Member> lookedUpMembers
     ) {
         List<CompletableFuture<List<CachedMention>>> futures = new ArrayList<>();
         List<CachedMention> mentions = new ArrayList<>();
 
         if (config.users) {
-            boolean uncached = config.uncachedUsers && player.hasPermission(Permission.MENTION_USER_LOOKUP);
+            boolean uncached = config.uncachedUsers && player.hasPermission(Permissions.MENTION_USER_LOOKUP);
 
             Matcher matcher = USER_MENTION_PATTERN.matcher(messageContent);
             while (matcher.find()) {
                 String username = matcher.group(1);
 
                 List<Member> members = guild.getMembersByName(username, false);
+                if (lookedUpMembers != null) {
+                    lookedUpMembers.addAll(members);
+                }
+
                 boolean any = false;
                 for (Member member : members) {
                     mentions.add(getMemberMention(member));
@@ -139,7 +126,7 @@ public class MentionCachingModule extends AbstractModule<DiscordSRV> {
                 }
 
                 if (!any && uncached) {
-                    futures.add(lookupMemberMentions(guild, username));
+                    futures.add(lookupMemberMentions(guild, username, lookedUpMembers));
                 }
             }
         }
@@ -172,12 +159,20 @@ public class MentionCachingModule extends AbstractModule<DiscordSRV> {
     // Member
     //
 
-    private CompletableFuture<List<CachedMention>> lookupMemberMentions(Guild guild, String username) {
+    private CompletableFuture<List<CachedMention>> lookupMemberMentions(
+            Guild guild,
+            String username,
+            Set<Member> lookedUpMembers
+    ) {
         CompletableFuture<List<Member>> memberFuture = new CompletableFuture<>();
         guild.retrieveMembersByPrefix(username, 100)
                 .onSuccess(memberFuture::complete).onError(memberFuture::completeExceptionally);
 
         return memberFuture.thenApply(members -> {
+            if (lookedUpMembers != null) {
+                lookedUpMembers.addAll(members);
+            }
+
             List<CachedMention> cachedMentions = new ArrayList<>();
             for (Member member : members) {
                 cachedMentions.add(getMemberMention(member));

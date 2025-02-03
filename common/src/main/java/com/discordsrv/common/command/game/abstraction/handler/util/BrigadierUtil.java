@@ -22,6 +22,7 @@ import com.discordsrv.common.command.game.abstraction.command.GameCommand;
 import com.discordsrv.common.command.game.abstraction.command.GameCommandExecutor;
 import com.discordsrv.common.command.game.abstraction.command.GameCommandSuggester;
 import com.discordsrv.common.command.game.abstraction.sender.ICommandSender;
+import com.discordsrv.common.permission.game.Permission;
 import com.mojang.brigadier.Command;
 import com.mojang.brigadier.arguments.*;
 import com.mojang.brigadier.builder.ArgumentBuilder;
@@ -61,7 +62,7 @@ public final class BrigadierUtil {
         GameCommandExecutor executor = commandBuilder.getExecutor();
         GameCommandSuggester suggester = commandBuilder.getSuggester();
         GameCommand redirection = commandBuilder.getRedirection();
-        String requiredPermission = commandBuilder.getRequiredPermission();
+        Permission requiredPermission = commandBuilder.getRequiredPermission();
 
         ArgumentBuilder<S, ?> argumentBuilder;
         if (type == GameCommand.ArgumentType.LITERAL) {

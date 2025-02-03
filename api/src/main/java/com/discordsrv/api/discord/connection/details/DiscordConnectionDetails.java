@@ -54,13 +54,4 @@ public interface DiscordConnectionDetails {
      */
     boolean requestCacheFlag(@NotNull DiscordCacheFlag cacheFlag, @NotNull DiscordCacheFlag... cacheFlags);
 
-    /**
-     * Requests that the provided {@link DiscordMemberCachePolicy}s be passed to the Discord connection.
-     *
-     * @param memberCachePolicy the first member cache policy
-     * @param memberCachePolicies more member cache policies
-     * @return {@code true} if the Discord connection is yet to be created and the intent will become active once it is
-     */
-    boolean requestMemberCachePolicy(@NotNull DiscordMemberCachePolicy memberCachePolicy, @NotNull DiscordMemberCachePolicy... memberCachePolicies);
-
 }

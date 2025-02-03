@@ -21,24 +21,14 @@
  * SOFTWARE.
  */
 
-package com.discordsrv.api.discord.connection.details;
+package com.discordsrv.api.discord.entity.channel;
 
-import com.discordsrv.api.DiscordSRVApi;
-import com.discordsrv.api.discord.entity.guild.DiscordGuildMember;
-import com.discordsrv.api.profile.IProfile;
+import com.discordsrv.api.discord.entity.JDAEntity;
+import com.discordsrv.api.discord.entity.message.SendableDiscordMessage;
+import net.dv8tion.jda.api.entities.channel.concrete.MediaChannel;
 
-/**
- * Represents a Discord member caching policy, a function which dictates if a given {@link DiscordGuildMember} should be cached.
- */
-@FunctionalInterface
-public interface DiscordMemberCachePolicy {
+import java.util.concurrent.CompletableFuture;
 
-    DiscordMemberCachePolicy ALL = member -> true;
-    DiscordMemberCachePolicy LINKED = member -> DiscordSRVApi.optional()
-            .map(api -> api.profileManager().getProfile(member.getUser().getId()))
-            .map(IProfile::isLinked).orElse(false);
-    DiscordMemberCachePolicy VOICE = member -> member.asJDA().getVoiceState() != null;
-    DiscordMemberCachePolicy OWNER = DiscordGuildMember::isOwner;
-
-    boolean isCached(DiscordGuildMember member);
+public interface DiscordMediaChannel extends DiscordChannel, DiscordThreadContainer, JDAEntity<MediaChannel> {
+    CompletableFuture<DiscordThreadChannel> createPost(String name, SendableDiscordMessage message);
 }

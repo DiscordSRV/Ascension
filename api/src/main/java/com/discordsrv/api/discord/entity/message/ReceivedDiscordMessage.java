@@ -37,6 +37,7 @@ import org.jetbrains.annotations.Nullable;
 import org.jetbrains.annotations.Unmodifiable;
 
 import java.util.List;
+import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 
 /**
@@ -141,11 +142,19 @@ public interface ReceivedDiscordMessage extends Snowflake {
      */
     @Nullable
     @Placeholder(value = "server", relookup = "server")
-    default DiscordGuild getGuild() {
-        DiscordTextChannel textChannel = getTextChannel();
+    DiscordGuild getGuild();
 
-        return textChannel != null ? textChannel.getGuild() : null;
-    }
+    /**
+     * Gets the users that were mentioned in this message.
+     * @return a set of unique users that were mentioned
+     */
+    Set<DiscordUser> getMentionedUsers();
+
+    /**
+     * Gets the {@link DiscordGuild} members that were mentioned in this message.
+     * @return a set of unique members that were mentioned
+     */
+    Set<DiscordGuildMember> getMentionedMembers();
 
     /**
      * Deletes this message.

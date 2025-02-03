@@ -219,7 +219,7 @@ public class DiscordChatMessageModule extends AbstractModule<DiscordSRV> {
             return;
         }
 
-        Component messageComponent = discordSRV.componentFactory().minecraftSerialize(guild, channelConfig, regexFilteredMessage);
+        Component messageComponent = discordSRV.componentFactory().minecraftSerialize(discordMessage, channelConfig, regexFilteredMessage);
         if (ComponentUtil.isEmpty(messageComponent) && !attachments) {
             // No sending empty message #3
             logger().debug("Message from " + author + " filtered entirely after serialization");

@@ -29,6 +29,7 @@ import net.kyori.adventure.platform.bukkit.BukkitComponentSerializer;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.player.PlayerQuitEvent;
+import org.jetbrains.annotations.NotNull;
 
 public class BukkitQuitListener extends AbstractBukkitListener<PlayerQuitEvent> {
 
@@ -38,11 +39,11 @@ public class BukkitQuitListener extends AbstractBukkitListener<PlayerQuitEvent> 
 
     @EventHandler(priority = EventPriority.HIGH)
     public void onPlayerQuit(PlayerQuitEvent event) {
-        handleEvent(event);
+        handleEventWithErrorHandling(event);
     }
 
     @Override
-    protected void handleEvent(PlayerQuitEvent event, Void __) {
+    protected void handleEvent(@NotNull PlayerQuitEvent event, Void __) {
         String message = event.getQuitMessage();
         MinecraftComponent component = message == null ? null : ComponentUtil.toAPI(BukkitComponentSerializer.legacy().deserialize(message));
 

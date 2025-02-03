@@ -35,7 +35,7 @@ import com.discordsrv.common.command.game.abstraction.command.GameCommand;
 import com.discordsrv.common.feature.bansync.BanSyncModule;
 import com.discordsrv.common.feature.groupsync.GroupSyncModule;
 import com.discordsrv.common.helper.Someone;
-import com.discordsrv.common.permission.game.Permission;
+import com.discordsrv.common.permission.game.Permissions;
 import com.discordsrv.common.util.CompletableFutureUtil;
 import net.kyori.adventure.text.format.NamedTextColor;
 import org.jetbrains.annotations.Nullable;
@@ -60,10 +60,10 @@ public class ResyncCommand extends CombinedCommand {
         if (GAME == null) {
             ResyncCommand command = getInstance(discordSRV);
             GAME = GameCommand.literal("resync")
-                    .requiredPermission(Permission.COMMAND_RESYNC)
+                    .requiredPermission(Permissions.COMMAND_RESYNC)
                     .then(
                             GameCommand.stringWord("type")
-                                    .requiredPermission(Permission.COMMAND_RESYNC)
+                                    .requiredPermission(Permissions.COMMAND_RESYNC)
                                     .executor(command)
                                     .suggester(command)
                     );

@@ -27,7 +27,7 @@ import com.discordsrv.common.command.combined.abstraction.CommandExecution;
 import com.discordsrv.common.command.combined.abstraction.Text;
 import com.discordsrv.common.command.game.abstraction.command.GameCommand;
 import com.discordsrv.common.feature.debug.data.VersionInfo;
-import com.discordsrv.common.permission.game.Permission;
+import com.discordsrv.common.permission.game.Permissions;
 import net.kyori.adventure.text.format.NamedTextColor;
 import net.kyori.adventure.text.format.TextColor;
 import org.apache.commons.lang3.StringUtils;
@@ -49,7 +49,7 @@ public class VersionCommand extends CombinedCommand {
         if (GAME == null) {
             VersionCommand command = getInstance(discordSRV);
             GAME = GameCommand.literal("version")
-                    .requiredPermission(Permission.COMMAND_VERSION)
+                    .requiredPermission(Permissions.COMMAND_VERSION)
                     .executor(command);
         }
 

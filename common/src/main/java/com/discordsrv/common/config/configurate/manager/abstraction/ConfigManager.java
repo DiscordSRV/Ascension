@@ -19,9 +19,11 @@
 package com.discordsrv.common.config.configurate.manager.abstraction;
 
 import com.discordsrv.common.exception.ConfigException;
+import org.jetbrains.annotations.Nullable;
 import org.spongepowered.configurate.CommentedConfigurationNode;
 import org.spongepowered.configurate.loader.AbstractConfigurationLoader;
 
+import java.nio.file.Path;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 public interface ConfigManager<T> {
@@ -29,6 +31,6 @@ public interface ConfigManager<T> {
     T createConfiguration();
     T config();
 
-    void reload(boolean forceSave, AtomicBoolean anyMissingOptions) throws ConfigException;
+    void reload(boolean forceSave, AtomicBoolean anyMissingOptions, @Nullable Path backupPath) throws ConfigException;
     void save(AbstractConfigurationLoader<CommentedConfigurationNode> loader) throws ConfigException;
 }

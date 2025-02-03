@@ -30,7 +30,7 @@ import com.discordsrv.common.core.logging.Logger;
 import com.discordsrv.common.core.logging.NamedLogger;
 import com.discordsrv.common.feature.linking.LinkProvider;
 import com.discordsrv.common.feature.linking.LinkStore;
-import com.discordsrv.common.permission.game.Permission;
+import com.discordsrv.common.permission.game.Permissions;
 import com.discordsrv.common.util.CommandUtil;
 import net.kyori.adventure.text.format.NamedTextColor;
 
@@ -52,10 +52,10 @@ public class UnlinkCommand extends CombinedCommand {
             GAME = GameCommand.literal("unlink")
                     .then(
                             GameCommand.stringGreedy("target")
-                                    .requiredPermission(Permission.COMMAND_UNLINK_OTHER)
+                                    .requiredPermission(Permissions.COMMAND_UNLINK_OTHER)
                                     .executor(command)
                     )
-                    .requiredPermission(Permission.COMMAND_UNLINK)
+                    .requiredPermission(Permissions.COMMAND_UNLINK)
                     .executor(command);
         }
 
@@ -100,7 +100,7 @@ public class UnlinkCommand extends CombinedCommand {
             return;
         }
 
-        execution.runAsync(() -> CommandUtil.lookupTarget(discordSRV, logger, execution, true, Permission.COMMAND_UNLINK_OTHER)
+        execution.runAsync(() -> CommandUtil.lookupTarget(discordSRV, logger, execution, true, Permissions.COMMAND_UNLINK_OTHER)
                 .whenComplete((result, t) -> {
                     if (t != null) {
                         logger.error("Failed to execute linked command", t);

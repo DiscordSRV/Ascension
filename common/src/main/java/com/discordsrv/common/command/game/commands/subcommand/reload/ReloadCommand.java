@@ -27,7 +27,7 @@ import com.discordsrv.common.command.game.abstraction.command.GameCommandArgumen
 import com.discordsrv.common.command.game.abstraction.command.GameCommandExecutor;
 import com.discordsrv.common.command.game.abstraction.command.GameCommandSuggester;
 import com.discordsrv.common.command.game.abstraction.sender.ICommandSender;
-import com.discordsrv.common.permission.game.Permission;
+import com.discordsrv.common.permission.game.Permissions;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.event.ClickEvent;
 import net.kyori.adventure.text.event.HoverEvent;
@@ -46,7 +46,7 @@ public class ReloadCommand implements GameCommandExecutor, GameCommandSuggester 
         if (INSTANCE == null) {
             ReloadCommand cmd = new ReloadCommand(discordSRV);
             INSTANCE = GameCommand.literal("reload")
-                    .requiredPermission(Permission.COMMAND_RELOAD)
+                    .requiredPermission(Permissions.COMMAND_RELOAD)
                     .executor(cmd)
                     .then(
                             GameCommand.stringGreedy("flags")
