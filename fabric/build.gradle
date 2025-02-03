@@ -1,0 +1,89 @@
+apply from: rootProject.file('buildscript/standalone.gradle')
+apply plugin: 'fabric-loom'
+
+configurations.configureEach {
+    resolutionStrategy {
+        force "org.slf4j:slf4j-api:1.7.36" // Introduced by Minecraft itself
+    }
+}
+
+java {
+    sourceCompatibility = JavaVersion.VERSION_21
+    targetCompatibility = JavaVersion.VERSION_21
+}
+
+processResources {
+    filesMatching('**/fabric.mod.json') {
+        expand 'VERSION': project.version, 'MINECRAFT_VERSION': libs.fabric.minecraft.get().version, 'LOADER_VERSION': libs.fabric.loader.get().version
+    }
+    dependsOn generateRuntimeDownloadResourceForRuntimeDownloadOnly
+}
+
+shadowJar {
+    configurations = [project.configurations.shadow]
+    mergeServiceFiles()
+}
+
+tasks.register('copyRemappedJar', Copy) {
+    from remapJar.archiveFile
+    into rootProject.file('jars')
+}
+
+remapJar {
+    dependsOn shadowJar
+    mustRunAfter shadowJar
+    inputFile = shadowJar.archiveFile
+    archiveBaseName = 'DiscordSRV-Fabric'
+    archiveClassifier = jar.archiveClassifier
+
+    finalizedBy copyRemappedJar
+}
+
+artifacts {
+    archives remapJar
+    shadow shadowJar
+}
+
+loom {
+    serverOnlyMinecraftJar()
+    accessWidenerPath = file('src/main/resources/discordsrv.accesswidener')
+}
+
+repositories {
+    exclusiveContent {
+        forRepository {
+            maven { url = 'https://maven.fabricmc.net/' }
+        }
+        filter {
+            includeGroup 'net.fabricmc'
+        }
+    }
+}
+
+dependencies {
+    // To change the versions see the settings.gradle file
+    minecraft(libs.fabric.minecraft)
+    mappings(variantOf(libs.fabric.yarn) { classifier("v2") })
+    compileOnly(libs.fabric.loader)
+
+    // Fabric API
+    modImplementation(libs.fabric.api)
+    modImplementation(libs.fabric.permissions.api)
+    include(libs.fabric.permissions.api)
+
+    // API
+    annotationProcessor project(':api')
+    shadow project(':common:common-api')
+
+    // Common
+    shadow project(':common')
+
+    // Adventure
+    modImplementation(libs.adventure.platform.fabric)
+    include(libs.adventure.platform.fabric)
+
+    // DependencyDownload
+    shadow(libs.mcdependencydownload.fabric) {
+        exclude module: 'fabric-loader'
+    }
+}

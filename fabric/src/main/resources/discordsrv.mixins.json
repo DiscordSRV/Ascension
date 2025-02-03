@@ -1,0 +1,16 @@
+{
+  "required": true,
+  "package": "com.discordsrv.fabric.mixin",
+  "compatibilityLevel": "JAVA_21",
+  "mixins": [
+    "PlayerAdvancementTrackerMixin",
+    "ban.BanCommandMixin",
+    "ban.PardonCommandMixin",
+    "requiredlinking.CommandManagerMixin",
+    "requiredlinking.PlayerManagerMixin",
+    "requiredlinking.ServerPlayNetworkHandlerMixin"
+  ],
+  "injectors": {
+    "defaultRequire": 1
+  }
+}
