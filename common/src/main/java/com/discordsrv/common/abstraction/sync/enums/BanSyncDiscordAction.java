@@ -18,7 +18,7 @@
 
 package com.discordsrv.common.abstraction.sync.enums;
 
-public enum BanSyncAction {
+public enum BanSyncDiscordAction {
     BAN,
     ROLE
 }

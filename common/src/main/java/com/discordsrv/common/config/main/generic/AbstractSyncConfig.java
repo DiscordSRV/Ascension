@@ -22,7 +22,6 @@ import com.discordsrv.common.DiscordSRV;
 import com.discordsrv.common.abstraction.sync.enums.SyncDirection;
 import com.discordsrv.common.abstraction.sync.enums.SyncSide;
 import com.discordsrv.common.config.configurate.annotation.Constants;
-import com.discordsrv.common.config.configurate.annotation.Order;
 import org.spongepowered.configurate.objectmapping.ConfigSerializable;
 import org.spongepowered.configurate.objectmapping.meta.Comment;
 
@@ -40,7 +39,6 @@ public abstract class AbstractSyncConfig<C extends AbstractSyncConfig<C, G, D>, 
     @Comment("The direction to synchronize in.\n"
             + "Valid options: %1, %2, %3")
     @Constants.Comment({"bidirectional", "minecraft_to_discord", "discord_to_minecraft"})
-    @Order(-5)
     public SyncDirection direction = SyncDirection.BIDIRECTIONAL;
 
     @Comment("Timed resynchronization")
