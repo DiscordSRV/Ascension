@@ -31,6 +31,7 @@ import java.util.UUID;
 
 public class FabricChatModule extends AbstractFabricModule {
     private static FabricChatModule instance;
+
     private final FabricDiscordSRV discordSRV;
     public FabricChatModule(FabricDiscordSRV discordSRV) {
         super(discordSRV);

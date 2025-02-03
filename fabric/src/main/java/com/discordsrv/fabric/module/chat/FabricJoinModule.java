@@ -36,6 +36,7 @@ import net.minecraft.text.Text;
 import java.util.Objects;
 
 public class FabricJoinModule extends AbstractFabricModule {
+
     private final FabricDiscordSRV discordSRV;
 
     public FabricJoinModule(FabricDiscordSRV discordSRV) {
@@ -52,7 +53,7 @@ public class FabricJoinModule extends AbstractFabricModule {
 
         ServerPlayerEntity playerEntity = serverPlayNetworkHandler.player;
         MinecraftComponent component = getJoinMessage(playerEntity);
-        boolean firstJoin = !Objects.requireNonNull(minecraftServer.getUserCache()).findByName(serverPlayNetworkHandler.player.getGameProfile().getName()).isPresent();
+        boolean firstJoin = Objects.requireNonNull(minecraftServer.getUserCache()).findByName(playerEntity.getGameProfile().getName()).isEmpty();
 
         DiscordSRVPlayer player = discordSRV.playerProvider().player(playerEntity);
         discordSRV.eventBus().publish(

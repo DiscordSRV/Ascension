@@ -43,7 +43,9 @@ public class FabricModManager implements PluginManager {
                             id,
                             modContainer.getMetadata().getName(),
                             modContainer.getMetadata().getVersion().toString(),
-                            modContainer.getMetadata().getAuthors().stream().map(Person::getName).collect(Collectors.toList())
+                            modContainer.getMetadata().getAuthors().stream()
+                                    .map(Person::getName)
+                                    .collect(Collectors.toList())
                     );
                 })
                 .collect(Collectors.toList());

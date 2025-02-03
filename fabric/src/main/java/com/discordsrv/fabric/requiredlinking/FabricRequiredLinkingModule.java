@@ -47,6 +47,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArrayList;
 
 public class FabricRequiredLinkingModule extends ServerRequireLinkingModule<FabricDiscordSRV> {
+
     private static FabricRequiredLinkingModule instance;
     private final Cache<UUID, Boolean> linkCheckRateLimit;
     private final Map<UUID, Component> frozen = new ConcurrentHashMap<>();
@@ -109,7 +110,11 @@ public class FabricRequiredLinkingModule extends ServerRequireLinkingModule<Fabr
         }
 
         BlockPos from = player.getBlockPos();
-        BlockPos to = new BlockPos(MathHelper.floor(packet.getX(player.getX())), MathHelper.floor(packet.getY(player.getY())), MathHelper.floor(packet.getZ(player.getZ())));
+        BlockPos to = new BlockPos(
+                MathHelper.floor(packet.getX(player.getX())),
+                MathHelper.floor(packet.getY(player.getY())),
+                MathHelper.floor(packet.getZ(player.getZ()))
+        );
         if (from.getX() == to.getX() && from.getY() >= to.getY() && from.getZ() == to.getZ()) {
             return;
         }
