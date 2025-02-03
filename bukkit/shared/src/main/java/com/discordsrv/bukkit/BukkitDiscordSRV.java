@@ -19,9 +19,6 @@
 package com.discordsrv.bukkit;
 
 import com.discordsrv.api.DiscordSRVApi;
-import com.discordsrv.api.reload.ReloadFlag;
-import com.discordsrv.api.reload.ReloadResult;
-import com.discordsrv.bukkit.component.translation.BukkitTranslationLoader;
 import com.discordsrv.bukkit.config.main.BukkitConfig;
 import com.discordsrv.bukkit.player.BukkitPlayerProvider;
 import com.discordsrv.bukkit.plugin.BukkitPluginManager;
@@ -39,13 +36,10 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.lang.reflect.Field;
-import java.util.List;
-import java.util.Set;
 
 public abstract class BukkitDiscordSRV extends AbstractDiscordSRV<IBukkitBootstrap, BukkitConfig, ConnectionConfig, MessagesConfig> {
 
     private BukkitAudiences audiences;
-    private BukkitTranslationLoader translationLoader;
 
     private final BukkitPluginManager pluginManager;
 
@@ -62,7 +56,6 @@ public abstract class BukkitDiscordSRV extends AbstractDiscordSRV<IBukkitBootstr
 
         // Adventure related stuff
         this.audiences = BukkitAudiences.create(bootstrap.getPlugin());
-        this.translationLoader = new BukkitTranslationLoader(this);
 
         // Integrations
         registerIntegration("com.discordsrv.bukkit.integration.VaultIntegration");
@@ -78,15 +71,6 @@ public abstract class BukkitDiscordSRV extends AbstractDiscordSRV<IBukkitBootstr
         registerIntegration("com.discordsrv.bukkit.integration.chat.VentureChatIntegration");
 
         super.enable();
-    }
-
-    @Override
-    protected List<ReloadResult> reload(Set<ReloadFlag> flags, boolean initial) throws Throwable {
-        if (flags.contains(ReloadFlag.TRANSLATIONS)) {
-            translationLoader.reload();
-        }
-
-        return super.reload(flags, initial);
     }
 
     @Override

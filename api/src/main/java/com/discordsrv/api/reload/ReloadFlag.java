@@ -39,8 +39,6 @@ public enum ReloadFlag {
     STORAGE(true),
     DISCORD_CONNECTION(DiscordSRVApi::isReady),
     DISCORD_COMMANDS(false),
-
-    // Bukkit only
     TRANSLATIONS(false);
 
     public static final Set<ReloadFlag> LOAD = Collections.unmodifiableSet(
