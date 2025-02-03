@@ -22,6 +22,7 @@ import com.discordsrv.common.command.game.abstraction.GameCommandExecutionHelper
 import com.discordsrv.fabric.FabricDiscordSRV;
 import com.mojang.brigadier.CommandDispatcher;
 import com.mojang.brigadier.ParseResults;
+import com.mojang.brigadier.context.ParsedCommandNode;
 import com.mojang.brigadier.suggestion.Suggestions;
 import com.mojang.brigadier.tree.CommandNode;
 import com.mojang.brigadier.tree.RootCommandNode;
@@ -35,6 +36,7 @@ import java.util.concurrent.ExecutionException;
 import java.util.stream.Collectors;
 
 public class FabricGameCommandExecutionHelper implements GameCommandExecutionHelper {
+
     protected final FabricDiscordSRV discordSRV;
     private final CommandDispatcher<ServerCommandSource> dispatcher;
 
@@ -60,8 +62,9 @@ public class FabricGameCommandExecutionHelper implements GameCommandExecutionHel
                 return CompletableFuture.completedFuture(data);
             }
 
-            if (!parse.getContext().getNodes().isEmpty()) {
-                CommandNode<ServerCommandSource> lastNode = parse.getContext().getNodes().getLast().getNode();
+            List<ParsedCommandNode<ServerCommandSource>> nodes = parse.getContext().getNodes();
+            if (!nodes.isEmpty()) {
+                CommandNode<ServerCommandSource> lastNode = nodes.getLast().getNode();
                 if (lastNode.getChildren().isEmpty() && lastNode.getRedirect() == null) {
                     // We reached the end of the command tree. Suggest the full command as a valid command.
                     return CompletableFuture.completedFuture(Collections.singletonList(fullCommand));
@@ -75,7 +78,7 @@ public class FabricGameCommandExecutionHelper implements GameCommandExecutionHel
             if (data.isEmpty()) {
                 // Suggestions are empty, Likely the user is still typing an argument.
                 // If the context is empty, We search all commands from the root.
-                CommandNode<ServerCommandSource> lastNode = !parse.getContext().getNodes().isEmpty() ? parse.getContext().getNodes().getLast().getNode() : parse.getContext().getRootNode();
+                CommandNode<ServerCommandSource> lastNode = !nodes.isEmpty() ? nodes.getLast().getNode() : parse.getContext().getRootNode();
 
                 for (CommandNode<ServerCommandSource> child : lastNode.getChildren()) {
                     if (child.getName().toLowerCase().startsWith(parts.getLast().toLowerCase())) {
@@ -112,7 +115,12 @@ public class FabricGameCommandExecutionHelper implements GameCommandExecutionHel
     }
 
     private CompletableFuture<List<String>> getRootCommands() {
-        return CompletableFuture.completedFuture(dispatcher.getRoot().getChildren().stream().map(CommandNode::getName).collect(Collectors.toList()));
+        return CompletableFuture.completedFuture(
+                dispatcher.getRoot().getChildren()
+                        .stream()
+                        .map(CommandNode::getName)
+                        .collect(Collectors.toList())
+        );
     }
 
     // Split the error message if it's too long on a period or a comma. If the message reached 97 characters, split at that point and continue.
@@ -143,5 +151,4 @@ public class FabricGameCommandExecutionHelper implements GameCommandExecutionHel
 
         return parts;
     }
-
 }

@@ -31,6 +31,7 @@ import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.text.Text;
 
 public class FabricDeathModule extends AbstractFabricModule {
+
     private final FabricDiscordSRV discordSRV;
 
     public FabricDeathModule(FabricDiscordSRV discordSRV) {
@@ -60,5 +61,4 @@ public class FabricDeathModule extends AbstractFabricModule {
             );
         }
     }
-
 }

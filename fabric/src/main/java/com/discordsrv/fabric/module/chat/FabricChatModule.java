@@ -29,6 +29,7 @@ import net.minecraft.network.message.SignedMessage;
 import net.minecraft.server.network.ServerPlayerEntity;
 
 public class FabricChatModule extends AbstractFabricModule {
+
     private final FabricDiscordSRV discordSRV;
 
     public FabricChatModule(FabricDiscordSRV discordSRV) {

@@ -41,7 +41,8 @@ public class FabricConsole extends FabricCommandSender implements Console {
         super(discordSRV, discordSRV.getServer().getCommandSource());
         this.loggingBackend = Log4JLoggerImpl.getRoot();
 
-        Function<Consumer<Component>, ServerCommandSource> commandSenderProvider = consumer -> new FabricCommandFeedbackExecutor(discordSRV.getServer(), consumer).getCommandSource();
+        Function<Consumer<Component>, ServerCommandSource> commandSenderProvider =
+                consumer -> new FabricCommandFeedbackExecutor(discordSRV.getServer(), consumer).getCommandSource();
         this.executorProvider = consumer -> new FabricCommandExecutor(discordSRV, commandSenderProvider.apply(consumer));
     }
 

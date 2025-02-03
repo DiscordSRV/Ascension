@@ -29,6 +29,7 @@ import net.minecraft.advancement.AdvancementEntry;
 import net.minecraft.server.network.ServerPlayerEntity;
 
 public class FabricAdvancementModule extends AbstractFabricModule {
+
     private static FabricAdvancementModule instance;
     private final FabricDiscordSRV discordSRV;
 

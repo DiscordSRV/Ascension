@@ -21,6 +21,7 @@ package com.discordsrv.fabric.module.ban;
 import com.discordsrv.api.component.MinecraftComponent;
 import com.discordsrv.api.module.type.PunishmentModule;
 import com.discordsrv.api.punishment.Punishment;
+import com.discordsrv.common.abstraction.player.IPlayer;
 import com.discordsrv.common.feature.bansync.BanSyncModule;
 import com.discordsrv.common.util.ComponentUtil;
 import com.discordsrv.fabric.FabricDiscordSRV;
@@ -43,6 +44,7 @@ import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 
 public class FabricBanModule extends AbstractFabricModule implements PunishmentModule.Bans {
+
     private static FabricBanModule instance;
 
     public FabricBanModule(FabricDiscordSRV discordSRV) {
@@ -55,13 +57,19 @@ public class FabricBanModule extends AbstractFabricModule implements PunishmentM
         if (instance == null) return;
         FabricDiscordSRV discordSRV = instance.discordSRV;
         BanSyncModule module = discordSRV.getModule(BanSyncModule.class);
-        if (module != null) {
-            instance.getBan(gameProfile.getId())
-                    .whenComplete((punishment, t) -> {
-                        if (punishment != null)
-                            module.notifyBanned(Objects.requireNonNull(discordSRV.playerProvider().player(gameProfile.getId())), punishment);
-                    });
+        if (module == null) return;
+
+        UUID playerUUID = gameProfile.getId();
+        IPlayer player = discordSRV.playerProvider().player(gameProfile.getId());
+        if (player == null) {
+            throw new RuntimeException("Player " + playerUUID + " not present in player provider");
         }
+
+        instance.getBan(playerUUID).whenComplete((punishment, t) -> {
+            if (punishment != null) {
+                module.notifyBanned(player, punishment);
+            }
+        });
     }
 
     public static void onPardon(GameProfile gameProfile) {
@@ -122,7 +130,11 @@ public class FabricBanModule extends AbstractFabricModule implements PunishmentM
 
             ServerPlayerEntity serverPlayerEntity = server.getPlayerManager().getPlayer(playerUUID);
             if (serverPlayerEntity != null) {
-                serverPlayerEntity.networkHandler.disconnect(reason != null ? discordSRV.getAdventure().asNative(reason.asAdventure()) : Text.translatable("multiplayer.disconnect.banned"));
+                serverPlayerEntity.networkHandler.disconnect(
+                        reason != null
+                            ? discordSRV.getAdventure().asNative(reason.asAdventure())
+                            : Text.translatable("multiplayer.disconnect.banned")
+                );
             }
         } catch (Exception e) {
             discordSRV.logger().error("Failed to ban player", e);

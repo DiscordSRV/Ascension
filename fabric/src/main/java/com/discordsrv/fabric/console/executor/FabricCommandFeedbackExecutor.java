@@ -43,7 +43,15 @@ public class FabricCommandFeedbackExecutor implements CommandOutput, Consumer<Co
     public ServerCommandSource getCommandSource() {
         ServerWorld serverWorld = server.getOverworld();
         return new ServerCommandSource(
-                this, serverWorld == null ? Vec3d.ZERO : Vec3d.of(serverWorld.getSpawnPos()), Vec2f.ZERO, serverWorld, 4, "DiscordSRV", Text.literal("DiscordSRV"), server, null
+                this,
+                serverWorld == null ? Vec3d.ZERO : Vec3d.of(serverWorld.getSpawnPos()),
+                Vec2f.ZERO,
+                serverWorld,
+                4,
+                "DiscordSRV",
+                Text.literal("DiscordSRV"),
+                server,
+                null
         );
     }
 

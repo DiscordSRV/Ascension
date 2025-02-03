@@ -22,6 +22,7 @@ import com.discordsrv.common.core.module.type.AbstractModule;
 import com.discordsrv.fabric.FabricDiscordSRV;
 
 public abstract class AbstractFabricModule extends AbstractModule<FabricDiscordSRV> {
+
     protected boolean enabled = false;
 
     public AbstractFabricModule(FabricDiscordSRV discordSRV) {

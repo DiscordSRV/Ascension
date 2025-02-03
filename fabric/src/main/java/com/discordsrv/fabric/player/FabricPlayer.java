@@ -99,5 +99,4 @@ public class FabricPlayer extends FabricCommandSender implements IPlayer {
     public String toString() {
         return "FabricPlayer{" + username() + "}";
     }
-
 }

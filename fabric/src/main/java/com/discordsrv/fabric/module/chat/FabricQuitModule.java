@@ -32,6 +32,7 @@ import net.minecraft.text.Text;
 import net.minecraft.util.Formatting;
 
 public class FabricQuitModule extends AbstractFabricModule {
+
     private final FabricDiscordSRV discordSRV;
 
     public FabricQuitModule(FabricDiscordSRV discordSRV) {
