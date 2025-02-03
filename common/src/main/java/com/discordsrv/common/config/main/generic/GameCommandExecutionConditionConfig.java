@@ -127,9 +127,9 @@ public class GameCommandExecutionConditionConfig {
 
         for (String configCommand : commands) {
             if (isCommandMatch(configCommand, command, suggestions, helper) != blacklist) {
-                return true;
+                return blacklist;
             }
         }
-        return false;
+        return !blacklist;
     }
 }

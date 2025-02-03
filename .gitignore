@@ -41,3 +41,7 @@ hs_err_pid*
 # run-* Gradle tasks
 **/loader/run
 **/velocity/run
+**/fabric/run
+
+# Fabric mapping migration
+**/fabric/remappedSrc
