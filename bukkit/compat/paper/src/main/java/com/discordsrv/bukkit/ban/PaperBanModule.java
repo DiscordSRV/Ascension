@@ -54,7 +54,7 @@ public class PaperBanModule extends AbstractBukkitListener<PlayerKickEvent> impl
 
     @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
     public void onPlayerKick(PlayerKickEvent event) {
-        handleEvent(event);
+        handleEventWithErrorHandling(event);
     }
 
     @Override
