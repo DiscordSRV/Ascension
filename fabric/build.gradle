@@ -98,11 +98,16 @@ dependencies {
             'fabric-lifecycle-events-v1',
             'fabric-entity-events-v1',
             'fabric-networking-api-v1',
-            'fabric-message-api-v1',
     ]
+    if (stonecutter.eval(stonecutter.current.version, ">=1.19.2")) {
+        apiModules.add('fabric-message-api-v1')
+    }
     apiModules.forEach {
         modImplementation(fabricApi.module(it, property("deps.fabric_api")))
     }
+
+    // MixinExtras - Since it's not provided under 1.18.2
+    include(implementation(annotationProcessor("io.github.llamalad7:mixinextras-fabric:0.4.1")))
 
     modImplementation(libs.fabric.permissions.api)
     include(libs.fabric.permissions.api)

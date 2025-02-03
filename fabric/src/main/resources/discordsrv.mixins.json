@@ -7,6 +7,7 @@
     "PlayerAdvancementTrackerMixin",
     "ban.BanCommandMixin",
     "ban.PardonCommandMixin",
+    "message.PlayerManagerMixin",
     "requiredlinking.CommandManagerMixin",
     "requiredlinking.PlayerManagerMixin",
     "requiredlinking.ServerPlayNetworkHandlerMixin"

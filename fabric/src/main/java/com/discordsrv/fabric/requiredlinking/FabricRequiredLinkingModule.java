@@ -27,12 +27,9 @@ import com.discordsrv.fabric.FabricDiscordSRV;
 import com.discordsrv.fabric.player.FabricPlayer;
 import com.github.benmanes.caffeine.cache.Cache;
 import com.mojang.authlib.GameProfile;
-import net.fabricmc.fabric.api.message.v1.ServerMessageEvents;
 import net.fabricmc.fabric.api.networking.v1.PacketSender;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayConnectionEvents;
 import net.kyori.adventure.text.Component;
-import net.minecraft.network.message.MessageType;
-import net.minecraft.network.message.SignedMessage;
 import net.minecraft.network.packet.c2s.play.PlayerMoveC2SPacket;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.command.ServerCommandSource;
@@ -200,7 +197,6 @@ public class FabricRequiredLinkingModule extends ServerRequireLinkingModule<Fabr
     }
 
     public void register() {
-        ServerMessageEvents.ALLOW_CHAT_MESSAGE.register(this::allowChatMessage);
         //? if minecraft: >=1.20.2 {
         ServerConfigurationConnectionEvents.CONFIGURE.register(this::onPlayerPreLogin);
         //?} else {
@@ -256,18 +252,18 @@ public class FabricRequiredLinkingModule extends ServerRequireLinkingModule<Fabr
         frozen.put(player.uniqueId(), blockReason);
         player.sendMessage(blockReason);
     }
-    //? if minecraft: <1.19.2 {
-    /*private boolean allowChatMessage(SignedMessage signedMessage, ServerPlayerEntity player) {
-    *///?} else {
-    private boolean allowChatMessage(SignedMessage signedMessage, ServerPlayerEntity player, MessageType.Parameters parameters) {
-     //?}
+
+    public static boolean allowChatMessage(UUID uuid) {
         // True if the message should be sent
-        Component freezeReason = instance.frozen.get(player.getUuid());
+        Component freezeReason = instance.frozen.get(uuid);
         if (freezeReason == null) {
             return true;
         }
 
-        IPlayer iPlayer = instance.discordSRV.playerProvider().player(player);
+        IPlayer iPlayer = instance.discordSRV.playerProvider().player(uuid);
+        if(iPlayer == null) {
+            throw new IllegalStateException("Player not available: " + uuid);
+        }
         iPlayer.sendMessage(freezeReason);
         return false;
     }
@@ -280,11 +276,6 @@ public class FabricRequiredLinkingModule extends ServerRequireLinkingModule<Fabr
         if (loginsHandled.contains(playerUUID)) return;
         loginsHandled.add(playerUUID);
         handleLogin(playerUUID, handler.getPlayer().getName().getString());
-    }
-    *///?}
-    //? if minecraft: <1.19.2 {
-    /*private boolean allowChatMessage(net.minecraft.server.filter.FilteredMessage<SignedMessage> signedMessageFilteredMessage, ServerPlayerEntity serverPlayerEntity, net.minecraft.util.registry.RegistryKey<MessageType> messageTypeRegistryKey) {
-        return allowChatMessage(signedMessageFilteredMessage.raw(), serverPlayerEntity);
     }
     *///?}
 

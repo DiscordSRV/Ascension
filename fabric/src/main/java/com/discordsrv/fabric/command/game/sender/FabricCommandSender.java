@@ -42,7 +42,11 @@ public class FabricCommandSender implements ICommandSender {
 
     @Override
     public void runCommand(String command) {
+        //? if minecraft: <1.19 {
+        /*discordSRV.getServer().getCommandManager().execute(commandSource, command);
+        *///?} else {
         discordSRV.getServer().getCommandManager().executeWithPrefix(commandSource, command);
+        //?}
     }
 
     @Override

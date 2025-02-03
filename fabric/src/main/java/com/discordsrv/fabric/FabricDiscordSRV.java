@@ -53,7 +53,6 @@ import java.util.jar.JarFile;
 /*import net.kyori.adventure.platform.fabric.FabricServerAudiences;
 *///?} else {
 import net.kyori.adventure.platform.modcommon.MinecraftServerAudiences;
- 
 //?}
 
 public class FabricDiscordSRV extends AbstractDiscordSRV<DiscordSRVFabricBootstrap, FabricConfig, ConnectionConfig, MessagesConfig> {

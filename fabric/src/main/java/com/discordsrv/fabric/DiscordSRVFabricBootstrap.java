@@ -121,7 +121,11 @@ public class DiscordSRVFabricBootstrap implements DedicatedServerModInitializer,
 
     @Override
     public String platformVersion() {
+        //? if minecraft: <1.18 {
+        /*MinecraftVersion version = (MinecraftVersion) MinecraftVersion.GAME_VERSION;
+        *///?} else {
         MinecraftVersion version = (MinecraftVersion) MinecraftVersion.CURRENT;
+         //?}
         return version.getName() + " (from Fabric)"; //TODO: get current build version for Fabric
     }
 

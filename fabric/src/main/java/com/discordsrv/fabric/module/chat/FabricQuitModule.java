@@ -62,7 +62,11 @@ public class FabricQuitModule extends AbstractFabricModule {
     }
 
     public MinecraftComponent getQuitMessage(ServerPlayerEntity player) {
+        //? if minecraft: <1.19 {
+        /*Text message = new net.minecraft.text.TranslatableText("multiplayer.player.left", player.getDisplayName()).formatted(Formatting.YELLOW);
+        *///?} else {
         Text message = Text.translatable("multiplayer.player.left", player.getDisplayName()).formatted(Formatting.YELLOW);
+         //?}
         //? if adventure: <6 {
         /*@SuppressWarnings("removal")
         Component component = discordSRV.getAdventure().toAdventure(message);

@@ -26,6 +26,7 @@ import com.discordsrv.fabric.FabricDiscordSRV;
 import com.mojang.brigadier.tree.LiteralCommandNode;
 import net.minecraft.command.CommandSource;
 import net.minecraft.server.command.ServerCommandSource;
+import net.minecraft.server.network.ServerPlayerEntity;
 
 public class FabricCommandHandler implements ICommandHandler {
 
@@ -37,8 +38,9 @@ public class FabricCommandHandler implements ICommandHandler {
 
     private ICommandSender getSender(CommandSource source) {
         if (source instanceof ServerCommandSource) {
-            if (((ServerCommandSource) source).getPlayer() != null) {
-                return discordSRV.playerProvider().player(((ServerCommandSource) source).getPlayer());
+            ServerPlayerEntity player = getPlayer((ServerCommandSource) source);
+            if (player != null) {
+                return discordSRV.playerProvider().player(player);
             } else {
                 return discordSRV.console();
             }
@@ -50,5 +52,14 @@ public class FabricCommandHandler implements ICommandHandler {
     public void registerCommand(GameCommand command) {
         LiteralCommandNode<ServerCommandSource> node = BrigadierUtil.convertToBrigadier(command, this::getSender);
         discordSRV.getServer().getCommandManager().getDispatcher().getRoot().addChild(node);
+    }
+
+    // This handles 1.18.2 and below where ServerCommandSource#getPlayer() can throw an exception
+    private ServerPlayerEntity getPlayer(ServerCommandSource source) {
+        try {
+            return source.getPlayer();
+        } catch (Exception e) {
+            return null;
+        }
     }
 }

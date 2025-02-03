@@ -97,11 +97,15 @@ public class FabricPlayer extends FabricCommandSender implements IPlayer {
 
     @Override
     public @NotNull Component displayName() {
-        // Use Adventure's Pointer, otherwise username
+        //? if adventure: >=5.3.0 {
         return player.getOrDefaultFrom(
                 Identity.DISPLAY_NAME,
                 () -> Component.text(player.getName().getString())
         );
+        //?} else {
+        /*return Component.text(player.getName().getString());
+        *///?}
+
     }
 
     @Override

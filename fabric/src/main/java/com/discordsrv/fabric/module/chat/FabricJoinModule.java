@@ -70,9 +70,17 @@ public class FabricJoinModule extends AbstractFabricModule {
     private MinecraftComponent getJoinMessage(ServerPlayerEntity playerEntity) {
         MutableText mutableText;
         if (playerEntity.getGameProfile().getName().equalsIgnoreCase(playerEntity.getName().getString())) {
+            //? if minecraft: <1.19 {
+            /*mutableText = new net.minecraft.text.TranslatableText("multiplayer.player.joined", playerEntity.getDisplayName());
+            *///?} else {
             mutableText = Text.translatable("multiplayer.player.joined", playerEntity.getDisplayName());
+             //?}
         } else {
+            //? if minecraft: <1.19 {
+            /*mutableText = new net.minecraft.text.TranslatableText("multiplayer.player.joined.renamed", playerEntity.getDisplayName(), playerEntity.getName());
+            *///?} else {
             mutableText = Text.translatable("multiplayer.player.joined.renamed", playerEntity.getDisplayName(), playerEntity.getName());
+             //?}
         }
         //? if adventure: <6 {
         /*@SuppressWarnings("removal")
