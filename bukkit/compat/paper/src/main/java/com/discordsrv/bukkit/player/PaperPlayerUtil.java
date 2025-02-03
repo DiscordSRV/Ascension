@@ -18,12 +18,16 @@
 
 package com.discordsrv.bukkit.player;
 
+import com.destroystokyo.paper.profile.PlayerProfile;
 import com.discordsrv.api.component.MinecraftComponent;
 import com.discordsrv.bukkit.component.PaperComponentHandle;
+import com.discordsrv.common.abstraction.player.provider.model.SkinInfo;
 import com.discordsrv.common.util.ReflectionUtil;
 import org.bukkit.entity.Player;
+import org.bukkit.profile.PlayerTextures;
 import org.jetbrains.annotations.ApiStatus;
 
+import java.net.URL;
 import java.util.Locale;
 
 public final class PaperPlayerUtil {
@@ -58,6 +62,23 @@ public final class PaperPlayerUtil {
 
     public static Locale locale(Player player) {
         return player.locale();
+    }
+
+    public static boolean SKIN_AVAILABLE = ReflectionUtil.classExists("com.destroystokyo.paper.profile.PlayerProfile");
+
+    public static SkinInfo getSkinInfo(Player player) {
+        PlayerProfile playerProfile = player.getPlayerProfile();
+        if (!playerProfile.hasTextures()) {
+            return null;
+        }
+
+        PlayerTextures textures = playerProfile.getTextures();
+        URL skinURL = textures.getSkin();
+        if (skinURL == null) {
+            return null;
+        }
+
+        return new SkinInfo(skinURL, textures.getSkinModel().name());
     }
 
 }

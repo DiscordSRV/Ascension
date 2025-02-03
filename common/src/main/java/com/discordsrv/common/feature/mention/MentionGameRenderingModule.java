@@ -20,6 +20,7 @@ package com.discordsrv.common.feature.mention;
 
 import com.discordsrv.api.discord.entity.channel.DiscordGuildMessageChannel;
 import com.discordsrv.api.discord.entity.guild.DiscordGuild;
+import com.discordsrv.api.discord.entity.guild.DiscordGuildMember;
 import com.discordsrv.api.eventbus.Subscribe;
 import com.discordsrv.api.events.message.render.GameChatRenderEvent;
 import com.discordsrv.common.DiscordSRV;
@@ -31,13 +32,12 @@ import com.discordsrv.common.config.main.generic.MentionsConfig;
 import com.discordsrv.common.core.logging.NamedLogger;
 import com.discordsrv.common.core.module.type.AbstractModule;
 import com.discordsrv.common.util.ComponentUtil;
+import net.dv8tion.jda.api.entities.Member;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.TextReplacementConfig;
 
-import java.util.ArrayList;
-import java.util.LinkedHashSet;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
+import java.util.concurrent.CopyOnWriteArraySet;
 
 public class MentionGameRenderingModule extends AbstractModule<DiscordSRV> {
 
@@ -89,6 +89,15 @@ public class MentionGameRenderingModule extends AbstractModule<DiscordSRV> {
         Component message = ComponentUtil.fromAPI(event.getMessage());
         String messageContent = discordSRV.componentFactory().plainSerializer().serialize(message);
 
+        DiscordGuild singleGuild;
+        if (guilds.size() == 1) {
+            singleGuild = guilds.iterator().next();
+        } else {
+            singleGuild = null;
+        }
+
+        Set<Member> lookedUpMembers = singleGuild != null ? null : new CopyOnWriteArraySet<>();
+
         List<CachedMention> cachedMentions = new ArrayList<>();
         for (DiscordGuild guild : guilds) {
             cachedMentions.addAll(
@@ -96,30 +105,39 @@ public class MentionGameRenderingModule extends AbstractModule<DiscordSRV> {
                             config.minecraftToDiscord.mentions,
                             guild.asJDA(),
                             (IPlayer) event.getPlayer(),
-                            messageContent
+                            messageContent,
+                            lookedUpMembers
                     ).join()
             );
         }
 
-        MentionsConfig mentionsConfig = config.mentions;
-        DiscordGuild guild = guilds.size() == 1 ? guilds.iterator().next() : null;
+        Set<DiscordGuildMember> members;
+        if (lookedUpMembers != null) {
+            members = new HashSet<>(lookedUpMembers.size());
+            for (Member member : lookedUpMembers) {
+                members.add(discordSRV.discordAPI().getGuildMember(member));
+            }
+        } else {
+            members = Collections.emptySet();
+        }
 
+        MentionsConfig mentionsConfig = config.mentions;
         for (CachedMention cachedMention : cachedMentions) {
             message = message.replaceText(
                     TextReplacementConfig.builder().match(cachedMention.search())
-                            .replacement(() -> replacement(cachedMention, mentionsConfig, guild))
+                            .replacement(() -> replacement(cachedMention, mentionsConfig, singleGuild, members))
                             .build()
             );
         }
         event.process(ComponentUtil.toAPI(message));
     }
 
-    private Component replacement(CachedMention mention, MentionsConfig config, DiscordGuild guild) {
+    private Component replacement(CachedMention mention, MentionsConfig config, DiscordGuild guild, Set<DiscordGuildMember> members) {
         switch (mention.type()) {
             case ROLE:
                 return discordSRV.componentFactory().makeRoleMention(mention.id(), config.role);
             case USER:
-                return discordSRV.componentFactory().makeUserMention(mention.id(), config.user, guild);
+                return discordSRV.componentFactory().makeUserMention(mention.id(), config.user, guild, null, members);
             case CHANNEL:
                 return discordSRV.componentFactory().makeChannelMention(mention.id(), config.channel);
         }

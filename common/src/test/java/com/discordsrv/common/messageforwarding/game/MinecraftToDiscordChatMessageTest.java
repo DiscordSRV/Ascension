@@ -18,10 +18,7 @@
 
 package com.discordsrv.common.messageforwarding.game;
 
-import com.discordsrv.api.discord.entity.channel.DiscordMessageChannel;
-import com.discordsrv.api.discord.entity.channel.DiscordTextChannel;
-import com.discordsrv.api.discord.entity.channel.DiscordThreadChannel;
-import com.discordsrv.api.discord.entity.channel.DiscordVoiceChannel;
+import com.discordsrv.api.discord.entity.channel.*;
 import com.discordsrv.api.discord.entity.message.ReceivedDiscordMessage;
 import com.discordsrv.api.eventbus.EventBus;
 import com.discordsrv.api.eventbus.Subscribe;
@@ -164,23 +161,40 @@ public class MinecraftToDiscordChatMessageTest {
         @Subscribe
         public void onForwarded(GameChatMessageForwardedEvent event) {
             int text = 0;
+            int news = 0;
             int voice = 0;
-            int thread = 0;
+            int stage = 0;
+            int textThread = 0;
+            int forumThread = 0;
+            int mediaThread = 0;
+
             for (ReceivedDiscordMessage message : event.getDiscordMessage().getMessages()) {
                 String content = message.getContent();
                 if (content != null && content.contains(lookFor)) {
                     DiscordMessageChannel channel = message.getChannel();
                     if (channel instanceof DiscordTextChannel) {
                         text++;
+                    } else if (channel instanceof DiscordNewsChannel) {
+                        news++;
                     } else if (channel instanceof DiscordVoiceChannel) {
                         voice++;
+                    } else if (channel instanceof DiscordStageChannel) {
+                        stage++;
                     } else if (channel instanceof DiscordThreadChannel) {
-                        thread++;
+                        DiscordThreadContainer container = ((DiscordThreadChannel) channel).getParentChannel();
+                        if (container instanceof DiscordTextChannel) {
+                            textThread++;
+                        } else if (container instanceof DiscordForumChannel) {
+                            forumThread++;
+                        } else if (container instanceof DiscordMediaChannel) {
+                            mediaThread++;
+                        }
                     }
                 }
             }
 
-            success.complete(text == 1 && voice == 1 && thread == 2);
+            success.complete(text == 1 && news == 1 && voice == 1 && stage == 1
+                                     && textThread == 1 && forumThread == 1 && mediaThread == 1);
         }
     }
 }

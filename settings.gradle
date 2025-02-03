@@ -37,7 +37,7 @@ dependencyResolutionManagement {
             library('bungee', 'net.md-5', 'bungeecord-api').version('1.21-R0.1-SNAPSHOT')
 
             // Velocity
-            library('velocity', 'com.velocitypowered', 'velocity-api').version('3.3.0-SNAPSHOT')
+            library('velocity', 'com.velocitypowered', 'velocity-api').version('3.4.0-SNAPSHOT')
 
             // DependencyDownload
             version('dependencydownload', '2.0.0-SNAPSHOT')

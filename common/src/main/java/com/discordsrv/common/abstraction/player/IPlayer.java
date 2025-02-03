@@ -24,14 +24,11 @@ import com.discordsrv.api.placeholder.annotation.PlaceholderPrefix;
 import com.discordsrv.api.player.DiscordSRVPlayer;
 import com.discordsrv.common.DiscordSRV;
 import com.discordsrv.common.command.game.abstraction.sender.ICommandSender;
-import com.discordsrv.common.config.main.AvatarProviderConfig;
 import com.discordsrv.common.feature.profile.Profile;
 import com.discordsrv.common.util.ComponentUtil;
-import com.discordsrv.common.util.UUIDUtil;
 import net.kyori.adventure.text.Component;
 import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 import java.util.Collection;
 import java.util.UUID;
@@ -74,26 +71,5 @@ public interface IPlayer extends DiscordSRVPlayer, IOfflinePlayer, ICommandSende
     @NotNull
     @Placeholder("display_name")
     Component displayName();
-
-    @Nullable
-    @ApiStatus.NonExtendable
-    @Placeholder("avatar_url")
-    default String getAvatarUrl() {
-        AvatarProviderConfig avatarConfig = discordSRV().config().avatarProvider;
-        String avatarUrlTemplate = avatarConfig.avatarUrlTemplate;
-
-        if (avatarConfig.autoDecideAvatarUrl) {
-            // Offline mode
-            if (UUIDUtil.isOffline(uniqueId())) avatarUrlTemplate = "https://cravatar.eu/helmavatar/%player_name%/128.png#%player_skin_texture_id%";
-            // Bedrock
-            else if (UUIDUtil.isGeyser(uniqueId())) avatarUrlTemplate = "https://api.tydiumcraft.net/skin?uuid=%player_uuid_short%&type=avatar&size=128";
-        }
-
-        if (avatarUrlTemplate == null) {
-            return null;
-        }
-
-        return discordSRV().placeholderService().replacePlaceholders(avatarUrlTemplate, this);
-    }
 
 }

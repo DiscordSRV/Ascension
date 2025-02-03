@@ -44,7 +44,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 
-public class GroupSyncModule extends AbstractSyncModule<DiscordSRV, GroupSyncConfig.PairConfig, String, Long, Boolean> {
+public class GroupSyncModule extends AbstractSyncModule<DiscordSRV, GroupSyncConfig.Entry, String, Long, Boolean> {
 
     private final Cache<Long, Map<Long, Boolean>> expectedDiscordChanges;
     private final Cache<UUID, Map<String, Boolean>> expectedMinecraftChanges;
@@ -81,8 +81,8 @@ public class GroupSyncModule extends AbstractSyncModule<DiscordSRV, GroupSyncCon
     }
 
     @Override
-    public List<GroupSyncConfig.PairConfig> configs() {
-        return discordSRV.config().groupSync.pairs;
+    public List<GroupSyncConfig.Entry> configs() {
+        return discordSRV.config().groupSync.getEntries();
     }
 
     @Override
@@ -97,13 +97,13 @@ public class GroupSyncModule extends AbstractSyncModule<DiscordSRV, GroupSyncCon
     public void onDebugGenerate(DebugGenerateEvent event) {
         StringBuilder builder = new StringBuilder("Active pairs:");
 
-        for (Map.Entry<GroupSyncConfig.PairConfig, Future<?>> entry : syncs.entrySet()) {
-            GroupSyncConfig.PairConfig pair = entry.getKey();
-            builder.append("\n- ").append(pair)
-                    .append(" (tie-breaker: ").append(pair.tieBreaker)
-                    .append(", direction: ").append(pair.direction)
-                    .append(", server context: ").append(pair.serverContext).append(")");
-            if (entry.getValue() != null) {
+        for (Map.Entry<GroupSyncConfig.Entry, Future<?>> sync : syncs.entrySet()) {
+            GroupSyncConfig.Entry entry = sync.getKey();
+            builder.append("\n- ").append(entry)
+                    .append(" (tie-breaker: ").append(entry.tieBreaker)
+                    .append(", direction: ").append(entry.direction)
+                    .append(", server context: ").append(entry.serverContext).append(")");
+            if (sync.getValue() != null) {
                 builder.append(" [Timed]");
             }
         }
@@ -198,7 +198,7 @@ public class GroupSyncModule extends AbstractSyncModule<DiscordSRV, GroupSyncCon
     // Resync
 
     @Override
-    public CompletableFuture<Boolean> getDiscord(GroupSyncConfig.PairConfig config, long userId) {
+    public CompletableFuture<Boolean> getDiscord(GroupSyncConfig.Entry config, long userId) {
         DiscordRole role = discordSRV.discordAPI().getRoleById(config.roleId);
         if (role == null) {
             return CompletableFutureUtil.failed(new SyncFail(GroupSyncResult.ROLE_DOESNT_EXIST));
@@ -218,7 +218,7 @@ public class GroupSyncModule extends AbstractSyncModule<DiscordSRV, GroupSyncCon
     }
 
     @Override
-    public CompletableFuture<Boolean> getGame(GroupSyncConfig.PairConfig config, UUID playerUUID) {
+    public CompletableFuture<Boolean> getGame(GroupSyncConfig.Entry config, UUID playerUUID) {
         PermissionModule.Groups permissionProvider = getPermissionProvider();
         CompletableFuture<Boolean> future;
         if (permissionProvider instanceof PermissionModule.GroupsContext) {
@@ -234,7 +234,7 @@ public class GroupSyncModule extends AbstractSyncModule<DiscordSRV, GroupSyncCon
     }
 
     @Override
-    public CompletableFuture<ISyncResult> applyDiscord(GroupSyncConfig.PairConfig config, long userId, Boolean newState) {
+    public CompletableFuture<ISyncResult> applyDiscord(GroupSyncConfig.Entry config, long userId, Boolean newState) {
         boolean stateToApply = newState != null && newState;
 
         DiscordRole role = discordSRV.discordAPI().getRoleById(config.roleId);
@@ -260,7 +260,7 @@ public class GroupSyncModule extends AbstractSyncModule<DiscordSRV, GroupSyncCon
     }
 
     @Override
-    public CompletableFuture<ISyncResult> applyGame(GroupSyncConfig.PairConfig config, UUID playerUUID, Boolean newState) {
+    public CompletableFuture<ISyncResult> applyGame(GroupSyncConfig.Entry config, UUID playerUUID, Boolean newState) {
         boolean stateToApply = newState != null && newState;
 
         Map<String, Boolean> expected = expectedMinecraftChanges.get(playerUUID, key -> new ConcurrentHashMap<>());
@@ -279,21 +279,21 @@ public class GroupSyncModule extends AbstractSyncModule<DiscordSRV, GroupSyncCon
         });
     }
 
-    private Set<String> context(GroupSyncConfig.PairConfig config) {
+    private Set<String> context(GroupSyncConfig.Entry config) {
         return config.serverContext != null ? Collections.singleton(config.serverContext) : null;
     }
 
     private String context(String groupName, Set<String> serverContext) {
         if (serverContext == null || serverContext.isEmpty()) {
-            return GroupSyncConfig.PairConfig.makeGameId(groupName, Collections.singleton("global"));
+            return GroupSyncConfig.Entry.makeGameId(groupName, Collections.singleton("global"));
         }
         if (serverContext.size() == 1 && serverContext.iterator().next().isEmpty()) {
             return null;
         }
-        return GroupSyncConfig.PairConfig.makeGameId(groupName, serverContext);
+        return GroupSyncConfig.Entry.makeGameId(groupName, serverContext);
     }
 
-    private CompletableFuture<Void> addGroup(UUID player, GroupSyncConfig.PairConfig config) {
+    private CompletableFuture<Void> addGroup(UUID player, GroupSyncConfig.Entry config) {
         PermissionModule.Groups permissionProvider = getPermissionProvider();
         String groupName = config.groupName;
         if (permissionProvider instanceof PermissionModule.GroupsContext) {
@@ -304,7 +304,7 @@ public class GroupSyncModule extends AbstractSyncModule<DiscordSRV, GroupSyncCon
         }
     }
 
-    private CompletableFuture<Void> removeGroup(UUID player, GroupSyncConfig.PairConfig config) {
+    private CompletableFuture<Void> removeGroup(UUID player, GroupSyncConfig.Entry config) {
         PermissionModule.Groups permissionProvider = getPermissionProvider();
         String groupName = config.groupName;
         if (permissionProvider instanceof PermissionModule.GroupsContext) {

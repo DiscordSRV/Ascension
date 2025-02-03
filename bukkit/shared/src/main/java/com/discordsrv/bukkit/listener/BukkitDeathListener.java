@@ -29,6 +29,7 @@ import net.kyori.adventure.platform.bukkit.BukkitComponentSerializer;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.entity.PlayerDeathEvent;
+import org.jetbrains.annotations.NotNull;
 
 public class BukkitDeathListener extends AbstractBukkitListener<PlayerDeathEvent> {
 
@@ -38,11 +39,11 @@ public class BukkitDeathListener extends AbstractBukkitListener<PlayerDeathEvent
 
     @EventHandler(priority = EventPriority.MONITOR)
     public void onPlayerDeath(PlayerDeathEvent event) {
-        handleEvent(event);
+        handleEventWithErrorHandling(event);
     }
 
     @Override
-    protected void handleEvent(PlayerDeathEvent event, Void __) {
+    protected void handleEvent(@NotNull PlayerDeathEvent event, Void __) {
         String message = event.getDeathMessage();
         MinecraftComponent component = message == null ? null : ComponentUtil.toAPI(BukkitComponentSerializer.legacy().deserialize(message));
 

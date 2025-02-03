@@ -20,7 +20,6 @@ package com.discordsrv.common.core.module.type;
 
 import com.discordsrv.api.discord.connection.details.DiscordCacheFlag;
 import com.discordsrv.api.discord.connection.details.DiscordGatewayIntent;
-import com.discordsrv.api.discord.connection.details.DiscordMemberCachePolicy;
 import com.discordsrv.api.module.Module;
 import com.discordsrv.api.reload.ReloadResult;
 import com.discordsrv.common.DiscordSRV;
@@ -56,11 +55,6 @@ public class ModuleDelegate extends AbstractModule<DiscordSRV> {
     @Override
     public @NotNull Collection<DiscordCacheFlag> requiredCacheFlags() {
         return module.requiredCacheFlags();
-    }
-
-    @Override
-    public @NotNull Collection<DiscordMemberCachePolicy> requiredMemberCachingPolicies() {
-        return module.requiredMemberCachingPolicies();
     }
 
     @Override

@@ -48,9 +48,7 @@ import com.discordsrv.common.core.logging.impl.DiscordSRVLogger;
 import com.discordsrv.common.core.module.ModuleManager;
 import com.discordsrv.common.core.module.type.AbstractModule;
 import com.discordsrv.common.core.placeholder.PlaceholderServiceImpl;
-import com.discordsrv.common.core.placeholder.context.DateFormattingContext;
-import com.discordsrv.common.core.placeholder.context.GamePermissionContext;
-import com.discordsrv.common.core.placeholder.context.TextHandlingContext;
+import com.discordsrv.common.core.placeholder.context.*;
 import com.discordsrv.common.core.placeholder.format.DiscordMarkdownFormatImpl;
 import com.discordsrv.common.core.placeholder.result.ComponentResultStringifier;
 import com.discordsrv.common.core.storage.Storage;
@@ -105,9 +103,12 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.lang.reflect.Constructor;
 import java.net.*;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.time.Duration;
+import java.time.LocalDateTime;
 import java.time.ZonedDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
@@ -668,6 +669,9 @@ public abstract class AbstractDiscordSRV<
         placeholderService().addGlobalContext(new TextHandlingContext(this));
         placeholderService().addGlobalContext(new DateFormattingContext(this));
         placeholderService().addGlobalContext(new GamePermissionContext(this));
+        placeholderService().addGlobalContext(new ReceivedDiscordMessageContext(this));
+        placeholderService().addGlobalContext(new DiscordBotContext(this));
+        placeholderService().addGlobalContext(new AvatarProviderContext(this));
         placeholderService().addGlobalContext(UUIDUtil.class);
 
         // Modules
@@ -747,12 +751,19 @@ public abstract class AbstractDiscordSRV<
         }
 
         boolean configUpgrade = flags.contains(ReloadFlag.CONFIG_UPGRADE);
+        Path backupPath = null;
+        if (configUpgrade) {
+            String dateAndTime = DateTimeFormatter.ofPattern("yyyy-MM-dd_HH-mm-ss").format(LocalDateTime.now());
+            backupPath = dataDirectory().resolve("config-migrated").resolve(dateAndTime);
+            Files.createDirectories(backupPath);
+        }
+
         if (flags.contains(ReloadFlag.CONFIG) || configUpgrade) {
             try {
                 AtomicBoolean anyMissingOptions = new AtomicBoolean(false);
-                connectionConfigManager().reload(configUpgrade, anyMissingOptions);
-                configManager().reload(configUpgrade, anyMissingOptions);
-                messagesConfigManager().reload(configUpgrade, anyMissingOptions);
+                connectionConfigManager().reload(configUpgrade, anyMissingOptions, backupPath);
+                configManager().reload(configUpgrade, anyMissingOptions, backupPath);
+                messagesConfigManager().reload(configUpgrade, anyMissingOptions, backupPath);
 
                 if (anyMissingOptions.get()) {
                     logger().info("Use \"/discordsrv reload config_upgrade\" to write the latest configuration");

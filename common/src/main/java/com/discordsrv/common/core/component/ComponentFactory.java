@@ -27,6 +27,7 @@ import com.discordsrv.api.discord.entity.guild.DiscordCustomEmoji;
 import com.discordsrv.api.discord.entity.guild.DiscordGuild;
 import com.discordsrv.api.discord.entity.guild.DiscordGuildMember;
 import com.discordsrv.api.discord.entity.guild.DiscordRole;
+import com.discordsrv.api.discord.entity.message.ReceivedDiscordMessage;
 import com.discordsrv.api.events.message.process.discord.DiscordChatMessageCustomEmojiRenderEvent;
 import com.discordsrv.common.DiscordSRV;
 import com.discordsrv.common.config.main.channels.base.BaseChannelConfig;
@@ -181,13 +182,42 @@ public class ComponentFactory implements MinecraftComponentFactory {
     }
 
     @NotNull
-    public Component makeUserMention(long id, MentionsConfig.FormatUser format, DiscordGuild guild) {
-        DiscordUser user = discordSRV.discordAPI().getUserById(id);
-        DiscordGuildMember member = guild.getMemberById(id);
+    public Component makeUserMention(
+            long id,
+            MentionsConfig.FormatUser formatConfig,
+            @Nullable DiscordGuild guild,
+            @Nullable Set<DiscordUser> users,
+            @Nullable Set<DiscordGuildMember> members
+    ) {
+        DiscordGuildMember member = members == null ? null : members
+                .stream().filter(m -> m.getUser().getId() == id)
+                .findAny().orElse(null);
+        if (member == null && guild != null) {
+            member = guild.getMemberById(id);
+        }
+
+        DiscordUser user = member != null ? member.getUser() : null;
+        if (user == null && users != null) {
+            user = users.stream()
+                    .filter(u -> u.getId() == id)
+                    .findAny().orElse(null);
+        }
+        if (user == null) {
+            user = discordSRV.discordAPI().getUserById(id);
+        }
+
+        String format;
+        if (member != null) {
+            format = formatConfig.format;
+        } else if (user != null) {
+            format = formatConfig.formatGlobal;
+        } else {
+            format = formatConfig.unknownFormat;
+        }
 
         return DiscordContentComponent.of("<@" + Long.toUnsignedString(id) + ">", ComponentUtil.fromAPI(
                 discordSRV.componentFactory()
-                        .textBuilder(user != null ? (member != null ? format.format : format.formatGlobal) : format.unknownFormat)
+                        .textBuilder(format)
                         .addContext(user, member)
                         .applyPlaceholderService()
                         .build()
@@ -228,8 +258,14 @@ public class ComponentFactory implements MinecraftComponentFactory {
         }
     }
 
-    public Component minecraftSerialize(DiscordGuild guild, BaseChannelConfig config, String discordMessage) {
-        return DiscordSRVMinecraftRenderer.getWithContext(guild, config, () -> minecraftSerializer().serialize(discordMessage));
+    public Component minecraftSerialize(ReceivedDiscordMessage message, BaseChannelConfig config, String discordMessage) {
+        return DiscordSRVMinecraftRenderer.getWithContext(
+                message.getGuild(),
+                message.getMentionedUsers(),
+                message.getMentionedMembers(),
+                config,
+                () -> minecraftSerializer().serialize(discordMessage)
+        );
     }
 
     public String discordSerialize(Component component) {

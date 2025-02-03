@@ -29,6 +29,7 @@ import org.bukkit.advancement.Advancement;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.player.PlayerAdvancementDoneEvent;
+import org.jetbrains.annotations.NotNull;
 
 import java.lang.reflect.Method;
 import java.util.Arrays;
@@ -65,11 +66,11 @@ public class BukkitLegacyAdvancementListener extends AbstractBukkitListener<Play
 
     @EventHandler(priority = EventPriority.MONITOR)
     public void onPlayerAdvancementDone(PlayerAdvancementDoneEvent event) {
-        handleEvent(event);
+        handleEventWithErrorHandling(event);
     }
 
     @Override
-    protected void handleEvent(PlayerAdvancementDoneEvent event, Void __) {
+    protected void handleEvent(@NotNull PlayerAdvancementDoneEvent event, Void __) {
         if (nms == null) {
             return;
         }

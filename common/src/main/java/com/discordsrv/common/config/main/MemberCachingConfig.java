@@ -39,6 +39,10 @@ public class MemberCachingConfig {
             + "Requires the \"Server Members Intent\"")
     public boolean chunk = true;
 
+    @Comment("Amount of users to keep in cache based on least-recently-used basis per Discord server\n"
+            + "Set to 0 to disable (always keep in cache)")
+    public int lru = 5_000;
+
     @Comment("Filter for which servers should be cached at startup")
     public GuildFilter chunkingServerFilter = new GuildFilter();
 

@@ -22,6 +22,7 @@ import com.discordsrv.api.component.MinecraftComponent;
 import com.discordsrv.api.events.message.render.GameChatRenderEvent;
 import com.discordsrv.bukkit.BukkitDiscordSRV;
 import com.discordsrv.bukkit.component.PaperComponentHandle;
+import com.discordsrv.bukkit.debug.EventObserver;
 import com.discordsrv.common.abstraction.player.IPlayer;
 import com.discordsrv.common.core.logging.NamedLogger;
 import com.discordsrv.common.feature.channel.global.GlobalChannel;
@@ -29,8 +30,11 @@ import io.papermc.paper.event.player.AsyncChatDecorateEvent;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
+import org.jetbrains.annotations.ApiStatus;
+import org.jetbrains.annotations.NotNull;
 
 @SuppressWarnings("UnstableApiUsage") // Understood
+@ApiStatus.AvailableSince("Paper 1.19.1")
 public class PaperChatRenderListener extends AbstractBukkitListener<AsyncChatDecorateEvent> {
 
     private static final PaperComponentHandle.Get<AsyncChatDecorateEvent> GET_RESULT_HANDLE
@@ -44,11 +48,11 @@ public class PaperChatRenderListener extends AbstractBukkitListener<AsyncChatDec
 
     @EventHandler(priority = EventPriority.NORMAL, ignoreCancelled = true)
     public void onAsyncChatDecorate(AsyncChatDecorateEvent event) {
-        handleEvent(event);
+        handleEventWithErrorHandling(event);
     }
 
     @Override
-    protected void handleEvent(AsyncChatDecorateEvent event, Void __) {
+    protected void handleEvent(@NotNull AsyncChatDecorateEvent event, Void __) {
         Player bukkitPlayer = event.player();
         if (bukkitPlayer == null) {
             return;
@@ -72,7 +76,10 @@ public class PaperChatRenderListener extends AbstractBukkitListener<AsyncChatDec
         }
     }
 
-    // Not important
+    private EventObserver<AsyncChatDecorateEvent, Boolean> observer;
+
     @Override
-    protected void observeEvents(boolean enable) {}
+    protected void observeEvents(boolean enable) {
+        observer = observeEvent(observer, AsyncChatDecorateEvent.class, AsyncChatDecorateEvent::isCancelled, enable);
+    }
 }

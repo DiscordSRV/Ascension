@@ -56,7 +56,7 @@ import static com.discordsrv.common.command.combined.commands.DebugCommand.KEY_E
 
 public class DebugReport {
 
-    private static final int BIG_FILE_SPLIT_SIZE = 50000;
+    private static final int BIG_FILE_SPLIT_SIZE = 100_000;
 
     private final List<DebugFile> files = new ArrayList<>();
     private final DiscordSRV discordSRV;

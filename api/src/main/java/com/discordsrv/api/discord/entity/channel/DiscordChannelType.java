@@ -37,6 +37,7 @@ public enum DiscordChannelType implements JDAEntity<ChannelType> {
     GROUP(ChannelType.GROUP),
     CATEGORY(ChannelType.CATEGORY),
     FORUM(ChannelType.FORUM),
+    MEDIA(ChannelType.MEDIA),
     NEWS(ChannelType.NEWS),
     STAGE(ChannelType.STAGE),
     GUILD_NEWS_THREAD(ChannelType.GUILD_NEWS_THREAD),

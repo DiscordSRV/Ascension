@@ -30,6 +30,7 @@ import io.papermc.paper.event.player.AbstractChatEvent;
 import io.papermc.paper.event.player.AsyncChatEvent;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
+import org.jetbrains.annotations.NotNull;
 
 public class PaperChatListener extends AbstractBukkitListener<AsyncChatEvent> {
 
@@ -42,11 +43,11 @@ public class PaperChatListener extends AbstractBukkitListener<AsyncChatEvent> {
 
     @EventHandler(priority = EventPriority.MONITOR)
     public void onAsyncChat(AsyncChatEvent event) {
-        handleEvent(event);
+        handleEventWithErrorHandling(event);
     }
 
     @Override
-    protected void handleEvent(AsyncChatEvent event, Void __) {
+    protected void handleEvent(@NotNull AsyncChatEvent event, Void __) {
         MinecraftComponent component = MESSAGE_HANDLE.getAPI(event);
 
         IPlayer player = discordSRV.playerProvider().player(event.getPlayer());

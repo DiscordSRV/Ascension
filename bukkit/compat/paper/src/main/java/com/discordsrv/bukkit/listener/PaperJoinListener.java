@@ -28,6 +28,7 @@ import com.discordsrv.common.core.logging.NamedLogger;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.player.PlayerJoinEvent;
+import org.jetbrains.annotations.NotNull;
 
 public class PaperJoinListener extends AbstractBukkitListener<PlayerJoinEvent> {
 
@@ -40,11 +41,11 @@ public class PaperJoinListener extends AbstractBukkitListener<PlayerJoinEvent> {
 
     @EventHandler(priority = EventPriority.MONITOR)
     public void onPlayerJoin(PlayerJoinEvent event) {
-        handleEvent(event);
+        handleEventWithErrorHandling(event);
     }
 
     @Override
-    protected void handleEvent(PlayerJoinEvent event, Void __) {
+    protected void handleEvent(@NotNull PlayerJoinEvent event, Void __) {
         MinecraftComponent message = MESSAGE_HANDLE.getAPI(event);
         boolean firstJoin = !event.getPlayer().hasPlayedBefore();
 

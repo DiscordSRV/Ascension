@@ -18,8 +18,12 @@
 
 package com.discordsrv.common.config.main;
 
+import com.discordsrv.common.abstraction.sync.enums.SyncDirection;
+import com.discordsrv.common.abstraction.sync.enums.SyncSide;
 import com.discordsrv.common.config.configurate.annotation.Constants;
+import com.discordsrv.common.config.configurate.annotation.Order;
 import com.discordsrv.common.config.main.generic.AbstractSyncConfig;
+import com.discordsrv.common.config.main.generic.SyncConfig;
 import org.apache.commons.lang3.StringUtils;
 import org.spongepowered.configurate.objectmapping.ConfigSerializable;
 import org.spongepowered.configurate.objectmapping.meta.Comment;
@@ -32,21 +36,68 @@ public class GroupSyncConfig {
     @Comment("Group-Role pairs for group synchronization\n"
             + "\n"
             + "If you are not using LuckPerms and want to use Minecraft -> Discord synchronization, you must specify timed synchronization")
-    public List<PairConfig> pairs = new ArrayList<>(Collections.singletonList(new PairConfig()));
+    public List<SetConfig> sets = new ArrayList<>(Collections.singletonList(new SetConfig()));
+
+    public List<Entry> getEntries() {
+        List<Entry> entries = new ArrayList<>();
+        for (SetConfig set : sets) {
+            for (PairConfig pair : set.pairs) {
+                entries.add(new Entry(
+                        pair.groupName,
+                        pair.roleId,
+                        set.serverContext,
+                        set.direction,
+                        set.timer,
+                        set.tieBreaker
+                ));
+            }
+        }
+        return entries;
+    }
 
     @ConfigSerializable
-    public static class PairConfig extends AbstractSyncConfig<PairConfig, String, Long> {
-
-        @Comment("The case-sensitive group name from your permissions plugin")
-        public String groupName = "";
-
-        @Comment("The Discord role id")
-        public Long roleId = 0L;
+    public static class SetConfig extends SyncConfig {
 
         @Comment("The LuckPerms \"%1\" context value, used when adding, removing and checking the groups of players.\n"
                 + "Make this blank (\"\") to use the current server's value, or \"%2\" to not use the context")
         @Constants.Comment({"server", "global"})
         public String serverContext = "global";
+
+        @Comment("The pairs of case-sensitive Minecraft group names from your permission plugin, and Discord role ids")
+        @Order(1)
+        public List<PairConfig> pairs = new ArrayList<>(Collections.singletonList(new PairConfig()));
+
+    }
+
+    @ConfigSerializable
+    public static class PairConfig {
+
+        public String groupName = "";
+        public Long roleId = 0L;
+
+    }
+
+    public static class Entry extends AbstractSyncConfig<Entry, String, Long> {
+
+        public final String groupName;
+        public final long roleId;
+        public final String serverContext;
+
+        public Entry(
+                String groupName,
+                long roleId,
+                String serverContext,
+                SyncDirection direction,
+                TimerConfig timer,
+                SyncSide tieBreaker
+        ) {
+            this.groupName = groupName;
+            this.roleId = roleId;
+            this.serverContext = serverContext;
+            this.direction = direction;
+            this.timer = timer;
+            this.tieBreaker = tieBreaker;
+        }
 
         public boolean isSet() {
             return roleId != 0 && StringUtils.isNotEmpty(groupName);
@@ -63,13 +114,13 @@ public class GroupSyncConfig {
         }
 
         @Override
-        public boolean isSameAs(PairConfig config) {
+        public boolean isSameAs(Entry config) {
             return groupName.equals(config.groupName) && Objects.equals(roleId, config.roleId);
         }
 
         @Override
         public String toString() {
-            return "GroupSyncConfig$PairConfig{" + describe() + '}';
+            return "GroupSyncConfig$Entry{" + describe() + '}';
         }
 
         @Override

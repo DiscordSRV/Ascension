@@ -19,29 +19,29 @@
 package com.discordsrv.common.discord.api.entity.channel;
 
 import com.discordsrv.api.discord.entity.channel.DiscordChannelType;
-import com.discordsrv.api.discord.entity.channel.DiscordForumChannel;
+import com.discordsrv.api.discord.entity.channel.DiscordMediaChannel;
 import com.discordsrv.api.discord.entity.channel.DiscordThreadChannel;
 import com.discordsrv.api.discord.entity.message.SendableDiscordMessage;
 import com.discordsrv.common.DiscordSRV;
 import com.discordsrv.common.discord.api.entity.message.util.SendableDiscordMessageUtil;
-import net.dv8tion.jda.api.entities.channel.concrete.ForumChannel;
+import net.dv8tion.jda.api.entities.channel.concrete.MediaChannel;
 import net.dv8tion.jda.api.entities.channel.forums.ForumPost;
 
 import java.util.concurrent.CompletableFuture;
 
-public class DiscordForumChannelImpl extends AbstractDiscordForumChannel<ForumChannel> implements DiscordForumChannel {
+public class DiscordMediaChannelImpl extends AbstractDiscordForumChannel<MediaChannel> implements DiscordMediaChannel {
 
-    public DiscordForumChannelImpl(DiscordSRV discordSRV, ForumChannel channel) {
+    public DiscordMediaChannelImpl(DiscordSRV discordSRV, MediaChannel channel) {
         super(discordSRV, channel);
     }
 
     @Override
     public DiscordChannelType getType() {
-        return DiscordChannelType.FORUM;
+        return DiscordChannelType.MEDIA;
     }
 
     @Override
-    public ForumChannel asJDA() {
+    public MediaChannel asJDA() {
         return channel;
     }
 
@@ -55,6 +55,6 @@ public class DiscordForumChannelImpl extends AbstractDiscordForumChannel<ForumCh
 
     @Override
     public String toString() {
-        return "Forum:" + getName() + "(" + Long.toUnsignedString(getId()) + ")";
+        return "Media:" + getName() + "(" + Long.toUnsignedString(getId()) + ")";
     }
 }

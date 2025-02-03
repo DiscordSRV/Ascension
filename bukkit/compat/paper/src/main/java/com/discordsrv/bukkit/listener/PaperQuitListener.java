@@ -28,6 +28,7 @@ import com.discordsrv.common.core.logging.NamedLogger;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.player.PlayerQuitEvent;
+import org.jetbrains.annotations.NotNull;
 
 public class PaperQuitListener extends AbstractBukkitListener<PlayerQuitEvent> {
 
@@ -40,11 +41,11 @@ public class PaperQuitListener extends AbstractBukkitListener<PlayerQuitEvent> {
 
     @EventHandler(priority = EventPriority.HIGH)
     public void onPlayerQuit(PlayerQuitEvent event) {
-        handleEvent(event);
+        handleEventWithErrorHandling(event);
     }
 
     @Override
-    protected void handleEvent(PlayerQuitEvent event, Void __) {
+    protected void handleEvent(@NotNull PlayerQuitEvent event, Void __) {
         MinecraftComponent message = MESSAGE_HANDLE.getAPI(event);
 
         DiscordSRVPlayer player = discordSRV.playerProvider().player(event.getPlayer());

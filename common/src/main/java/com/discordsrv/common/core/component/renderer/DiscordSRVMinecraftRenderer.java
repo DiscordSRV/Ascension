@@ -18,7 +18,9 @@
 
 package com.discordsrv.common.core.component.renderer;
 
+import com.discordsrv.api.discord.entity.DiscordUser;
 import com.discordsrv.api.discord.entity.guild.DiscordGuild;
+import com.discordsrv.api.discord.entity.guild.DiscordGuildMember;
 import com.discordsrv.common.DiscordSRV;
 import com.discordsrv.common.config.main.channels.base.BaseChannelConfig;
 import com.discordsrv.common.config.main.generic.MentionsConfig;
@@ -30,7 +32,9 @@ import net.dv8tion.jda.api.utils.MiscUtil;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.event.ClickEvent;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
+import java.util.Set;
 import java.util.function.Supplier;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -46,12 +50,14 @@ public class DiscordSRVMinecraftRenderer extends DefaultMinecraftRenderer {
     }
 
     public static <T> T getWithContext(
-            DiscordGuild guild,
+            @Nullable DiscordGuild guild,
+            @Nullable Set<DiscordUser> users,
+            @Nullable Set<DiscordGuildMember> members,
             BaseChannelConfig config,
             Supplier<T> supplier
     ) {
         Context oldValue = CONTEXT.get();
-        CONTEXT.set(new Context(guild, config));
+        CONTEXT.set(new Context(guild, users, members, config));
         T output = supplier.get();
         CONTEXT.set(oldValue);
         return output;
@@ -117,13 +123,12 @@ public class DiscordSRVMinecraftRenderer extends DefaultMinecraftRenderer {
     public @NotNull Component appendUserMention(@NotNull Component component, @NotNull String id) {
         Context context = CONTEXT.get();
         MentionsConfig.FormatUser format = context != null ? context.config.mentions.user : null;
-        DiscordGuild guild = context != null ? context.guild : null;
-        if (format == null || guild == null) {
+        if (context == null || format == null) {
             return component.append(Component.text("<@" + id + ">"));
         }
 
         long userId = MiscUtil.parseLong(id);
-        return component.append(discordSRV.componentFactory().makeUserMention(userId, format, guild));
+        return component.append(discordSRV.componentFactory().makeUserMention(userId, format, context.guild, context.users, context.members));
     }
 
     @Override
@@ -162,10 +167,19 @@ public class DiscordSRVMinecraftRenderer extends DefaultMinecraftRenderer {
     private static class Context {
 
         private final DiscordGuild guild;
+        private final Set<DiscordUser> users;
+        private final Set<DiscordGuildMember> members;
         private final BaseChannelConfig config;
 
-        public Context(DiscordGuild guild, BaseChannelConfig config) {
+        public Context(
+                DiscordGuild guild,
+                Set<DiscordUser> users,
+                Set<DiscordGuildMember> members,
+                BaseChannelConfig config
+        ) {
             this.guild = guild;
+            this.users = users;
+            this.members = members;
             this.config = config;
         }
     }

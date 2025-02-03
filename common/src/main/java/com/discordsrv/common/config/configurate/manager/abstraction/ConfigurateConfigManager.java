@@ -55,6 +55,7 @@ import org.spongepowered.configurate.util.NamingSchemes;
 import org.spongepowered.configurate.yaml.ScalarStyle;
 import org.spongepowered.configurate.yaml.YamlConfigurationLoader;
 
+import java.io.IOException;
 import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
 import java.lang.reflect.Type;
@@ -391,7 +392,7 @@ public abstract class ConfigurateConfigManager<T, LT extends AbstractConfigurati
 
     @SuppressWarnings("unchecked") // Cast to generic
     @Override
-    public void reload(boolean forceSave, AtomicBoolean anyMissingOptions) throws ConfigException {
+    public void reload(boolean forceSave, AtomicBoolean anyMissingOptions, @Nullable Path backupPath) throws ConfigException {
         T defaultConfig = createConfiguration();
         Class<T> defaultConfigClass = (Class<T>) defaultConfig.getClass();
 
@@ -408,6 +409,10 @@ public abstract class ConfigurateConfigManager<T, LT extends AbstractConfigurati
 
                 save(loader());
                 return;
+            }
+
+            if (backupPath != null) {
+                Files.copy(filePath(), backupPath.resolve(fileName()));
             }
 
             // Load existing file & translate
@@ -427,9 +432,9 @@ public abstract class ConfigurateConfigManager<T, LT extends AbstractConfigurati
             if (forceSave) {
                 save(loader);
             }
-        } catch (ConfigurateException e) {
+        } catch (IOException e) {
             Class<?> configClass = defaultConfig.getClass();
-            if (!configClass.isAnnotationPresent(ConfigSerializable.class)) {
+            if (e instanceof ConfigurateException && !configClass.isAnnotationPresent(ConfigSerializable.class)) {
                 // Not very obvious and can easily happen
                 throw new ConfigException(configClass.getName() + " is not annotated with @ConfigSerializable", e);
             }
@@ -448,7 +453,11 @@ public abstract class ConfigurateConfigManager<T, LT extends AbstractConfigurati
         for (CommentedConfigurationNode child : defaultNode.childrenMap().values()) {
             CommentedConfigurationNode value = node.node(child.key());
             if (value.virtual()) {
-                logger.warning("Missing option \"" + child.key() + "\" in " + fileName());
+                List<String> keys = new ArrayList<>();
+                for (Object o : child.path()) {
+                    keys.add(String.valueOf(o));
+                }
+                logger.warning("Missing option \"" + String.join(".", keys) + "\" in " + fileName());
                 anyMissingOptions.set(true);
                 continue;
             }

@@ -140,7 +140,14 @@ public class V1ConfigMigration {
                                            : SyncDirection.BIDIRECTIONAL;
         int groupSyncCycleTime = synchronization.node("GroupRoleSynchronizationCycleTime").getInt();
 
-        mainConfig.groupSync.pairs.clear();
+        GroupSyncConfig.SetConfig groupSyncSet = new GroupSyncConfig.SetConfig();
+        groupSyncSet.pairs.clear();
+        groupSyncSet.direction = groupSyncDirection;
+        groupSyncSet.timer.cycleTime = groupSyncCycleTime;
+
+        mainConfig.groupSync.sets.clear();
+        mainConfig.groupSync.sets.add(groupSyncSet);
+
         synchronization.node("GroupRoleSynchronizationGroupsAndRolesToSync").childrenMap().forEach((key, value) -> {
             String roleId = value.getString();
             if (!(key instanceof String) || roleId == null) {
@@ -148,12 +155,10 @@ public class V1ConfigMigration {
             }
 
             GroupSyncConfig.PairConfig pairConfig = new GroupSyncConfig.PairConfig();
-            pairConfig.roleId = Long.parseUnsignedLong(roleId);
             pairConfig.groupName = (String) key;
-            pairConfig.direction = groupSyncDirection;
-            pairConfig.timer.cycleTime = groupSyncCycleTime;
+            pairConfig.roleId = Long.parseUnsignedLong(roleId);
 
-            mainConfig.groupSync.pairs.add(pairConfig);
+            groupSyncSet.pairs.add(pairConfig);
         });
     }
 

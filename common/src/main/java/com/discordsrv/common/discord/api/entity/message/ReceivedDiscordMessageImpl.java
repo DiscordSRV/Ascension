@@ -29,26 +29,16 @@ import com.discordsrv.api.discord.entity.message.DiscordMessageEmbed;
 import com.discordsrv.api.discord.entity.message.ReceivedDiscordMessage;
 import com.discordsrv.api.discord.entity.message.SendableDiscordMessage;
 import com.discordsrv.api.discord.exception.RestErrorResponseException;
-import com.discordsrv.api.placeholder.annotation.Placeholder;
 import com.discordsrv.api.placeholder.annotation.PlaceholderPrefix;
-import com.discordsrv.api.placeholder.annotation.PlaceholderRemainder;
 import com.discordsrv.common.DiscordSRV;
-import com.discordsrv.common.config.main.channels.base.BaseChannelConfig;
 import com.discordsrv.common.util.CompletableFutureUtil;
-import com.discordsrv.common.util.ComponentUtil;
-import net.dv8tion.jda.api.entities.Member;
-import net.dv8tion.jda.api.entities.Message;
-import net.dv8tion.jda.api.entities.MessageEmbed;
-import net.dv8tion.jda.api.entities.WebhookClient;
+import net.dv8tion.jda.api.entities.*;
 import net.dv8tion.jda.api.requests.ErrorResponse;
-import net.kyori.adventure.text.Component;
-import net.kyori.adventure.text.JoinConfiguration;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.annotations.Unmodifiable;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.util.*;
 import java.util.concurrent.CompletableFuture;
 
 @PlaceholderPrefix("message_")
@@ -63,6 +53,7 @@ public class ReceivedDiscordMessageImpl implements ReceivedDiscordMessage {
         boolean webhookMessage = message.isWebhookMessage();
         DiscordMessageChannel channel = discordSRV.discordAPI().getMessageChannel(message.getChannel());
         DiscordUser user = discordSRV.discordAPI().getUser(message.getAuthor());
+        DiscordGuild guild = discordSRV.discordAPI().getGuild(message.getGuild());
 
         Member member = message.getMember();
         DiscordGuildMember apiMember = member != null ? discordSRV.discordAPI().getGuildMember(member) : null;
@@ -94,6 +85,16 @@ public class ReceivedDiscordMessageImpl implements ReceivedDiscordMessage {
             ));
         }
 
+        Set<DiscordUser> users = new HashSet<>();
+        for (User jdaUser : message.getMentions().getUsers()) {
+            users.add(discordSRV.discordAPI().getUser(jdaUser));
+        }
+
+        Set<DiscordGuildMember> members = new HashSet<>();
+        for (Member jdaMember : message.getMentions().getMembers()) {
+            members.add(discordSRV.discordAPI().getGuildMember(jdaMember));
+        }
+
         Message referencedMessage = message.getReferencedMessage();
         return new ReceivedDiscordMessageImpl(
                 discordSRV,
@@ -102,12 +103,15 @@ public class ReceivedDiscordMessageImpl implements ReceivedDiscordMessage {
                 channel,
                 referencedMessage != null ? fromJDA(discordSRV, referencedMessage) : null,
                 apiMember,
+                guild,
                 user,
                 message.getChannel().getIdLong(),
                 message.getIdLong(),
                 message.getContentRaw(),
                 mappedEmbeds,
-                webhookMessage
+                webhookMessage,
+                users,
+                members
         );
     }
 
@@ -117,12 +121,15 @@ public class ReceivedDiscordMessageImpl implements ReceivedDiscordMessage {
     private final DiscordMessageChannel channel;
     private final ReceivedDiscordMessage replyingTo;
     private final DiscordGuildMember member;
+    private final DiscordGuild guild;
     private final DiscordUser author;
     private final String content;
     private final List<DiscordMessageEmbed> embeds;
     private final boolean webhookMessage;
     private final long channelId;
     private final long id;
+    private final Set<DiscordUser> mentionedUsers;
+    private final Set<DiscordGuildMember> mentionedMembers;
 
     private ReceivedDiscordMessageImpl(
             DiscordSRV discordSRV,
@@ -131,25 +138,31 @@ public class ReceivedDiscordMessageImpl implements ReceivedDiscordMessage {
             DiscordMessageChannel channel,
             ReceivedDiscordMessage replyingTo,
             DiscordGuildMember member,
+            DiscordGuild guild,
             DiscordUser author,
             long channelId,
             long id,
             String content,
             List<DiscordMessageEmbed> embeds,
-            boolean webhookMessage
+            boolean webhookMessage,
+            Set<DiscordUser> mentionedUsers,
+            Set<DiscordGuildMember> mentionedMembers
     ) {
         this.discordSRV = discordSRV;
-        this.attachments = attachments;
+        this.attachments = Collections.unmodifiableList(attachments);
         this.fromSelf = fromSelf;
         this.channel = channel;
         this.replyingTo = replyingTo;
         this.member = member;
+        this.guild = guild;
         this.author = author;
         this.content = content;
-        this.embeds = embeds;
+        this.embeds = Collections.unmodifiableList(embeds);
         this.webhookMessage = webhookMessage;
         this.channelId = channelId;
         this.id = id;
+        this.mentionedUsers = Collections.unmodifiableSet(mentionedUsers);
+        this.mentionedMembers = Collections.unmodifiableSet(mentionedMembers);
     }
 
     @Override
@@ -213,6 +226,21 @@ public class ReceivedDiscordMessageImpl implements ReceivedDiscordMessage {
     }
 
     @Override
+    public @Nullable DiscordGuild getGuild() {
+        return guild;
+    }
+
+    @Override
+    public Set<DiscordUser> getMentionedUsers() {
+        return mentionedUsers;
+    }
+
+    @Override
+    public Set<DiscordGuildMember> getMentionedMembers() {
+        return mentionedMembers;
+    }
+
+    @Override
     public @NotNull DiscordUser getAuthor() {
         return author;
     }
@@ -265,51 +293,6 @@ public class ReceivedDiscordMessageImpl implements ReceivedDiscordMessage {
         }
 
         return messageChannel.sendMessage(message.withReplyingToMessageId(id));
-    }
-
-    //
-    // Placeholders
-    //
-
-    @Placeholder("reply")
-    public Component _reply(BaseChannelConfig config) {
-        if (replyingTo == null) {
-            return null;
-        }
-
-        String content = replyingTo.getContent();
-        if (content == null) {
-            return null;
-        }
-
-        Component component = discordSRV.componentFactory().minecraftSerialize(getGuild(), config, content);
-
-        String replyFormat = config.discordToMinecraft.replyFormat;
-        return ComponentUtil.fromAPI(
-                discordSRV.componentFactory().textBuilder(replyFormat)
-                        .applyPlaceholderService()
-                        .addPlaceholder("message", component)
-                        .addContext(replyingTo.getMember(), replyingTo.getAuthor(), replyingTo)
-                        .build()
-                // TODO: add contentRegexFilters to this
-        );
-    }
-
-    @Placeholder("attachments")
-    public Component _attachments(BaseChannelConfig config, @PlaceholderRemainder String suffix) {
-        String attachmentFormat = config.discordToMinecraft.attachmentFormat;
-        List<Component> components = new ArrayList<>();
-        for (Attachment attachment : attachments) {
-            components.add(ComponentUtil.fromAPI(
-                    discordSRV.componentFactory().textBuilder(attachmentFormat)
-                            .applyPlaceholderService()
-                            .addPlaceholder("file_name", attachment.fileName())
-                            .addPlaceholder("file_url", attachment.url())
-                            .build()
-            ));
-        }
-
-        return Component.join(JoinConfiguration.separator(Component.text(suffix)), components);
     }
 
     @Override
