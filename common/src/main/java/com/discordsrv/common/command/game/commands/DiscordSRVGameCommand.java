@@ -28,7 +28,7 @@ import com.discordsrv.common.command.game.commands.subcommand.BroadcastCommand;
 import com.discordsrv.common.command.game.commands.subcommand.reload.ReloadCommand;
 import com.discordsrv.common.command.game.abstraction.sender.ICommandSender;
 import com.discordsrv.common.feature.linking.LinkStore;
-import com.discordsrv.common.permission.game.Permission;
+import com.discordsrv.common.permission.game.Permissions;
 import com.discordsrv.common.util.ComponentUtil;
 
 import java.util.Map;
@@ -45,7 +45,7 @@ public class DiscordSRVGameCommand implements GameCommandExecutor {
         }
         return INSTANCES.computeIfAbsent(alias, key -> {
             GameCommand command = GameCommand.literal(alias)
-                    .requiredPermission(Permission.COMMAND_ROOT)
+                    .requiredPermission(Permissions.COMMAND_ROOT)
                     .executor(COMMAND)
                     .then(BroadcastCommand.discord(discordSRV))
                     .then(BroadcastCommand.minecraft(discordSRV))

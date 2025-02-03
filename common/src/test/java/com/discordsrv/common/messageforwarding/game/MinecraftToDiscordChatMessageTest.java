@@ -31,6 +31,7 @@ import com.discordsrv.common.abstraction.player.IPlayer;
 import com.discordsrv.common.abstraction.player.provider.model.SkinInfo;
 import com.discordsrv.common.feature.channel.global.GlobalChannel;
 import com.discordsrv.common.helper.TestHelper;
+import com.discordsrv.common.permission.game.Permission;
 import com.discordsrv.common.util.ComponentUtil;
 import net.kyori.adventure.audience.Audience;
 import net.kyori.adventure.identity.Identity;
@@ -118,7 +119,7 @@ public class MinecraftToDiscordChatMessageTest {
                                 }
 
                                 @Override
-                                public boolean hasPermission(String permission) {
+                                public boolean hasPermission(Permission permission) {
                                     return true;
                                 }
 

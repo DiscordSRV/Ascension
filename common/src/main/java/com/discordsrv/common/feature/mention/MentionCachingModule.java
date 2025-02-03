@@ -25,7 +25,7 @@ import com.discordsrv.common.abstraction.player.IPlayer;
 import com.discordsrv.common.config.main.channels.MinecraftToDiscordChatConfig;
 import com.discordsrv.common.config.main.channels.base.BaseChannelConfig;
 import com.discordsrv.common.core.module.type.AbstractModule;
-import com.discordsrv.common.permission.game.Permission;
+import com.discordsrv.common.permission.game.Permissions;
 import com.discordsrv.common.util.CompletableFutureUtil;
 import com.github.benmanes.caffeine.cache.Cache;
 import net.dv8tion.jda.api.entities.Guild;
@@ -107,7 +107,7 @@ public class MentionCachingModule extends AbstractModule<DiscordSRV> {
         List<CachedMention> mentions = new ArrayList<>();
 
         if (config.users) {
-            boolean uncached = config.uncachedUsers && player.hasPermission(Permission.MENTION_USER_LOOKUP);
+            boolean uncached = config.uncachedUsers && player.hasPermission(Permissions.MENTION_USER_LOOKUP);
 
             Matcher matcher = USER_MENTION_PATTERN.matcher(messageContent);
             while (matcher.find()) {

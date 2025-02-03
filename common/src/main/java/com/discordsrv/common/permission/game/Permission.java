@@ -18,44 +18,43 @@
 
 package com.discordsrv.common.permission.game;
 
-public enum Permission {
+public interface Permission {
 
-    // Commands
-    // Admin
-    COMMAND_DEBUG("command.debug"),
-    COMMAND_RELOAD("command.reload"),
-    COMMAND_BROADCAST("command.broadcast"),
-    COMMAND_RESYNC("command.resync"),
-    COMMAND_VERSION("command.version"),
-    COMMAND_LINK_OTHER("command.link.other"),
-    COMMAND_LINKED_OTHER("command.linked.other"),
-    COMMAND_UNLINK_OTHER("command.unlink.other"),
-    // Player
-    COMMAND_ROOT("command.root"),
-    COMMAND_LINK("command.link.self"),
-    COMMAND_LINKED("command.linked.self"),
-    COMMAND_UNLINK("command.unlink.self"),
+    String permission();
 
-    // Mentions
-    MENTION_USER("mention.user.base"),
-    MENTION_USER_LOOKUP("mention.user.lookup"),
-    MENTION_ROLE_MENTIONABLE("mention.role.mentionable"),
-    MENTION_ROLE_ALL("mention.role.all"),
-    MENTION_EVERYONE("mention.everyone"),
+    /**
+     * If a given permission's default should be OP, rather than being granted by default.
+     * @return {@code true} if the permission should be restricted to, at least OPs
+     */
+    boolean requiresOpByDefault();
 
-    // Misc
-    UPDATE_NOTIFICATION("updatenotification"),
-    SILENT_JOIN("silentjoin"),
-    SILENT_QUIT("silentquit"),
-    ;
-
-    private final String permission;
-
-    Permission(String permission) {
-        this.permission = permission;
+    static Permission of(String permission) {
+        return of(permission, true);
     }
 
-    public String permission() {
-        return "discordsrv." + permission;
+    static Permission of(String permission, boolean requiresOpByDefault) {
+        return new Dynamic(permission, requiresOpByDefault);
     }
+
+    class Dynamic implements Permission {
+
+        private final String permission;
+        private final boolean requiresOpByDefault;
+
+        public Dynamic(String permission, boolean requiresOpByDefault) {
+            this.permission = permission;
+            this.requiresOpByDefault = requiresOpByDefault;
+        }
+
+        @Override
+        public String permission() {
+            return permission;
+        }
+
+        @Override
+        public boolean requiresOpByDefault() {
+            return requiresOpByDefault;
+        }
+    }
+
 }

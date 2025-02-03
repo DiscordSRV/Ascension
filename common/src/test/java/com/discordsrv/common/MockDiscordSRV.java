@@ -46,6 +46,7 @@ import com.discordsrv.common.feature.console.Console;
 import com.discordsrv.common.feature.debug.data.OnlineMode;
 import com.discordsrv.common.feature.debug.data.VersionInfo;
 import com.discordsrv.common.feature.messageforwarding.game.MinecraftToDiscordChatModule;
+import com.discordsrv.common.permission.game.Permission;
 import dev.vankka.dependencydownload.classpath.ClasspathAppender;
 import net.kyori.adventure.audience.Audience;
 import org.jetbrains.annotations.NotNull;
@@ -167,7 +168,7 @@ public class MockDiscordSRV extends AbstractDiscordSRV<IBootstrap, MainConfig, C
             }
 
             @Override
-            public boolean hasPermission(String permission) {
+            public boolean hasPermission(Permission permission) {
                 return false;
             }
 

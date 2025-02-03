@@ -29,7 +29,7 @@ import com.discordsrv.common.exception.MessageException;
 import com.discordsrv.common.feature.debug.data.VersionInfo;
 import com.discordsrv.common.feature.update.github.GitHubCompareResponse;
 import com.discordsrv.common.feature.update.github.GithubRelease;
-import com.discordsrv.common.permission.game.Permission;
+import com.discordsrv.common.permission.game.Permissions;
 import com.discordsrv.common.util.HttpUtil;
 import com.fasterxml.jackson.core.type.TypeReference;
 import net.kyori.adventure.text.Component;
@@ -295,7 +295,7 @@ public class UpdateChecker {
         }
 
         IPlayer player = event.player();
-        if (!player.hasPermission(Permission.UPDATE_NOTIFICATION)) {
+        if (!player.hasPermission(Permissions.UPDATE_NOTIFICATION)) {
             return;
         }
 

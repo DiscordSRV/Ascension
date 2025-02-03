@@ -38,7 +38,7 @@ import com.discordsrv.common.config.main.channels.MinecraftToDiscordChatConfig;
 import com.discordsrv.common.config.main.channels.base.BaseChannelConfig;
 import com.discordsrv.common.feature.mention.CachedMention;
 import com.discordsrv.common.feature.mention.MentionCachingModule;
-import com.discordsrv.common.permission.game.Permission;
+import com.discordsrv.common.permission.game.Permissions;
 import com.discordsrv.common.util.ComponentUtil;
 import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.entities.Role;
@@ -140,13 +140,13 @@ public class MinecraftToDiscordChatModule extends AbstractGameMessageModule<Mine
         MinecraftToDiscordChatConfig.Mentions mentionConfig = config.mentions;
 
         List<AllowedMention> allowedMentions = new ArrayList<>();
-        if (mentionConfig.users && player.hasPermission(Permission.MENTION_USER)) {
+        if (mentionConfig.users && player.hasPermission(Permissions.MENTION_USER)) {
             allowedMentions.add(AllowedMention.ALL_USERS);
         }
         if (mentionConfig.roles) {
-            if (player.hasPermission(Permission.MENTION_ROLE_ALL)) {
+            if (player.hasPermission(Permissions.MENTION_ROLE_ALL)) {
                 allowedMentions.add(AllowedMention.ALL_ROLES);
-            } else if (player.hasPermission(Permission.MENTION_ROLE_MENTIONABLE)) {
+            } else if (player.hasPermission(Permissions.MENTION_ROLE_MENTIONABLE)) {
                 for (Role role : guild.getRoles()) {
                     if (role.isMentionable()) {
                         allowedMentions.add(AllowedMention.role(role.getIdLong()));
@@ -155,7 +155,7 @@ public class MinecraftToDiscordChatModule extends AbstractGameMessageModule<Mine
             }
         }
 
-        boolean everyoneMentionAllowed = mentionConfig.everyone && player.hasPermission(Permission.MENTION_EVERYONE);
+        boolean everyoneMentionAllowed = mentionConfig.everyone && player.hasPermission(Permissions.MENTION_EVERYONE);
         if (everyoneMentionAllowed) {
             allowedMentions.add(AllowedMention.EVERYONE);
         }

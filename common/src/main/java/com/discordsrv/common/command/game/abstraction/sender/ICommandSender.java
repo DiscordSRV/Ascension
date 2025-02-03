@@ -24,10 +24,6 @@ import net.kyori.adventure.audience.ForwardingAudience;
 
 public interface ICommandSender extends ForwardingAudience.Single, CommandExecutor {
 
-    default boolean hasPermission(Permission permission) {
-        return hasPermission(permission.permission());
-    }
-
-    boolean hasPermission(String permission);
+    boolean hasPermission(Permission permission);
 
 }

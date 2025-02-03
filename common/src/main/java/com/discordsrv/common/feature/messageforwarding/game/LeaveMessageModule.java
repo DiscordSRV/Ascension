@@ -32,7 +32,7 @@ import com.discordsrv.common.abstraction.player.IPlayer;
 import com.discordsrv.common.config.main.channels.LeaveMessageConfig;
 import com.discordsrv.common.config.main.channels.base.BaseChannelConfig;
 import com.discordsrv.common.events.player.PlayerConnectedEvent;
-import com.discordsrv.common.permission.game.Permission;
+import com.discordsrv.common.permission.game.Permissions;
 import com.discordsrv.common.util.ComponentUtil;
 import net.kyori.adventure.text.Component;
 import org.apache.commons.lang3.tuple.Pair;
@@ -84,7 +84,7 @@ public class LeaveMessageModule extends AbstractGameMessageModule<LeaveMessageCo
         }
 
         DiscordSRVPlayer player = event.getPlayer();
-        boolean silentQuit = player instanceof IPlayer && ((IPlayer) player).hasPermission(Permission.SILENT_QUIT);
+        boolean silentQuit = player instanceof IPlayer && ((IPlayer) player).hasPermission(Permissions.SILENT_QUIT);
         discordSRV.scheduler().run(() -> {
             silentQuitPermission.set(silentQuit);
             process(event, player, event.getGameChannel());

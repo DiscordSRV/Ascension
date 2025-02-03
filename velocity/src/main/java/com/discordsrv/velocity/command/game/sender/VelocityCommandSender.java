@@ -19,8 +19,10 @@
 package com.discordsrv.velocity.command.game.sender;
 
 import com.discordsrv.common.command.game.abstraction.sender.ICommandSender;
+import com.discordsrv.common.permission.game.Permission;
 import com.discordsrv.velocity.VelocityDiscordSRV;
 import com.velocitypowered.api.command.CommandSource;
+import com.velocitypowered.api.permission.Tristate;
 import net.kyori.adventure.audience.Audience;
 import org.jetbrains.annotations.NotNull;
 
@@ -35,8 +37,11 @@ public class VelocityCommandSender implements ICommandSender {
     }
 
     @Override
-    public boolean hasPermission(String permission) {
-        return commandSource.hasPermission(permission);
+    public boolean hasPermission(Permission permission) {
+        Tristate tristate = commandSource.getPermissionValue(permission.permission());
+        return tristate == Tristate.UNDEFINED
+               ? !permission.requiresOpByDefault()
+               : tristate.asBoolean();
     }
 
     @Override
