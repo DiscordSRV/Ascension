@@ -25,14 +25,9 @@ import com.discordsrv.fabric.FabricDiscordSRV;
 import com.discordsrv.fabric.module.AbstractFabricModule;
 import com.discordsrv.fabric.player.FabricPlayer;
 import net.kyori.adventure.text.Component;
-import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.text.Text;
 
 import java.util.UUID;
-
-//? if minecraft: >=1.19 {
-import net.minecraft.network.message.SignedMessage;
-//?}
 
 public class FabricChatModule extends AbstractFabricModule {
     private static FabricChatModule instance;

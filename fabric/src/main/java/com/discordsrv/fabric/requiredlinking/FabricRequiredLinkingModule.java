@@ -46,14 +46,6 @@ import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArrayList;
 
-//? if minecraft: >=1.19.2
-import com.mojang.brigadier.ParseResults;
-
-//? if minecraft: >=1.20.2 {
-import net.fabricmc.fabric.api.networking.v1.ServerConfigurationConnectionEvents;
-import net.minecraft.server.network.ServerConfigurationNetworkHandler;
-//?}
-
 public class FabricRequiredLinkingModule extends ServerRequireLinkingModule<FabricDiscordSRV> {
     private static FabricRequiredLinkingModule instance;
     private final Cache<UUID, Boolean> linkCheckRateLimit;
@@ -136,7 +128,7 @@ public class FabricRequiredLinkingModule extends ServerRequireLinkingModule<Fabr
         }
     }
     *///?} else {
-    public static void onCommandExecute(ParseResults<ServerCommandSource> parseResults, String command, CallbackInfo ci) {
+    public static void onCommandExecute(com.mojang.brigadier.ParseResults<ServerCommandSource> parseResults, String command, CallbackInfo ci) {
         if(parseResults.getContext().getSource().isExecutedByPlayer()) {
             onCommandExecute(parseResults.getContext().getSource().getPlayer(), command, ci);
         }
@@ -198,7 +190,7 @@ public class FabricRequiredLinkingModule extends ServerRequireLinkingModule<Fabr
 
     public void register() {
         //? if minecraft: >=1.20.2 {
-        ServerConfigurationConnectionEvents.CONFIGURE.register(this::onPlayerPreLogin);
+        net.fabricmc.fabric.api.networking.v1.ServerConfigurationConnectionEvents.CONFIGURE.register(this::onPlayerPreLogin);
         //?} else {
         /*ServerPlayConnectionEvents.INIT.register(this::onPlayerPreLogin);
         *///?}
@@ -280,7 +272,7 @@ public class FabricRequiredLinkingModule extends ServerRequireLinkingModule<Fabr
     *///?}
 
     //? if minecraft: >=1.20.2 {
-    private void onPlayerPreLogin(ServerConfigurationNetworkHandler handler, MinecraftServer minecraftServer) {
+    private void onPlayerPreLogin(net.minecraft.server.network.ServerConfigurationNetworkHandler handler, MinecraftServer minecraftServer) {
         if (!enabled) return;
         UUID playerUUID = handler.getDebugProfile().getId();
         loginsHandled.add(playerUUID);

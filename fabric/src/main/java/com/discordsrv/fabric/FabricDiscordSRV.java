@@ -49,12 +49,6 @@ import java.net.URL;
 import java.security.CodeSource;
 import java.util.jar.JarFile;
 
-//? if adventure: <6 {
-/*import net.kyori.adventure.platform.fabric.FabricServerAudiences;
-*///?} else {
-import net.kyori.adventure.platform.modcommon.MinecraftServerAudiences;
-//?}
-
 public class FabricDiscordSRV extends AbstractDiscordSRV<DiscordSRVFabricBootstrap, FabricConfig, ConnectionConfig, MessagesConfig> {
 
     private final StandardScheduler scheduler;
@@ -124,11 +118,11 @@ public class FabricDiscordSRV extends AbstractDiscordSRV<DiscordSRVFabricBootstr
 
     @NotNull
             //? if adventure: <6 {
-    /*public FabricServerAudiences getAdventure() {
+    /*public net.kyori.adventure.platform.fabric.FabricServerAudiences getAdventure() {
         return bootstrap.getAdventure();
     }
     *///?} else {
-     public MinecraftServerAudiences getAdventure() {
+     public net.kyori.adventure.platform.modcommon.MinecraftServerAudiences getAdventure() {
         return bootstrap.getAdventure();
     }//?}
 

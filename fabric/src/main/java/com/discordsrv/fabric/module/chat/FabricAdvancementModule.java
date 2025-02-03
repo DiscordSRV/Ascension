@@ -28,10 +28,6 @@ import net.kyori.adventure.text.Component;
 import net.minecraft.advancement.Advancement;
 import net.minecraft.advancement.AdvancementDisplay;
 import net.minecraft.server.network.ServerPlayerEntity;
-//? if minecraft: >=1.20.2
-import net.minecraft.advancement.AdvancementEntry;
-import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
-
 
 public class FabricAdvancementModule extends AbstractFabricModule {
     private static FabricAdvancementModule instance;
@@ -46,7 +42,7 @@ public class FabricAdvancementModule extends AbstractFabricModule {
     //? if minecraft: <1.20.2 {
     /*public static void onGrant(Advancement advancement, ServerPlayerEntity owner) {
     *///?} else {
-    public static void onGrant(AdvancementEntry advancementEntry, ServerPlayerEntity owner) {
+    public static void onGrant(net.minecraft.advancement.AdvancementEntry advancementEntry, ServerPlayerEntity owner) {
     //?}
         if (instance == null || !instance.enabled) return;
 
