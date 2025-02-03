@@ -151,8 +151,8 @@ public abstract class AbstractDiscordSRV<
     protected final B bootstrap;
     private final Logger platformLogger;
     private final Path dataDirectory;
+    private final DiscordSRVLogger logger;
     private DiscordSRVDependencyManager dependencyManager;
-    private DiscordSRVLogger logger;
     private ModuleManager moduleManager;
     private JDAConnectionManager discordConnectionManager;
     private ChannelConfigHelper channelConfig;
@@ -178,13 +178,13 @@ public abstract class AbstractDiscordSRV<
         this.bootstrap = bootstrap;
         this.platformLogger = bootstrap.logger();
         this.dataDirectory = bootstrap.dataDirectory();
+        this.logger = new DiscordSRVLogger(this);
     }
 
     /**
      * Method that should be called at the end of implementors constructors.
      */
     protected final void load() {
-        this.logger = new DiscordSRVLogger(this);
         this.dependencyManager = new DiscordSRVDependencyManager(this, bootstrap.lifecycleManager() != null ? bootstrap.lifecycleManager().getDependencyLoader() : null);
         this.eventBus = new EventBusImpl(this);
         this.moduleManager = new ModuleManager(this);

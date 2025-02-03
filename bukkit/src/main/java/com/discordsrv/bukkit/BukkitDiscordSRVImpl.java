@@ -70,12 +70,12 @@ public class BukkitDiscordSRVImpl extends BukkitDiscordSRV {
         this.playerProvider = new BukkitPlayerProvider(this, player -> new BukkitPlayerImpl(this, player));
         this.console = new BukkitConsole(this);
 
-        load();
-
         // Config
         this.connectionConfigManager = new ConnectionConfigManager<>(this, ConnectionConfig::new);
         this.configManager = new ServerConfigManager<>(this, BukkitConfig::new);
         this.messagesConfigManager = new MessagesConfigManager<>(this, MessagesConfig::new);
+
+        load();
     }
 
     @Override
