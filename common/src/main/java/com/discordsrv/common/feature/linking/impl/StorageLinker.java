@@ -99,9 +99,9 @@ public class StorageLinker extends CachedLinkProvider.Store {
             discordSRV.storage().storeLinkingCode(playerUUID, username, code);
             return discordSRV.messagesConfig(locale).minecraft.storageLinking.textBuilder()
                     .addContext(additionalContext)
-                    .addPlaceholder("%code%", code)
-                    .addPlaceholder("%player_name%", username)
-                    .addPlaceholder("%player_uuid%", playerUUID)
+                    .addPlaceholder("code", code)
+                    .addPlaceholder("player_name", username)
+                    .addPlaceholder("player_uuid", playerUUID)
                     .applyPlaceholderService()
                     .build();
         });

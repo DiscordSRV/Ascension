@@ -268,8 +268,8 @@ public abstract class ConfigurateConfigManager<T, LT extends AbstractConfigurati
                         return;
                     }
 
-                    String optionValue = destination.getString();
-                    if (optionValue == null) {
+                    Object optionValue = destination.raw();
+                    if (!(optionValue instanceof String)) {
                         return;
                     }
 

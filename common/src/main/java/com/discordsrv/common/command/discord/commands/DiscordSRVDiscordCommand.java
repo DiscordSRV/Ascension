@@ -48,7 +48,7 @@ public class DiscordSRVDiscordCommand {
             if (discordSRV.linkProvider() instanceof LinkStore) {
                 builder = builder
                         .addSubCommand(LinkOtherCommand.getDiscord(discordSRV))
-                        .addSubCommand(UnlinkCommand.getDiscord(discordSRV));
+                        .addSubCommand(UnlinkCommand.getDiscordWithOther(discordSRV));
             }
 
             INSTANCE = builder

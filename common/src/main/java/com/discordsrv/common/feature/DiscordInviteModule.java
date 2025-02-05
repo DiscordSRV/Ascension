@@ -218,6 +218,7 @@ public class DiscordInviteModule extends AbstractModule<DiscordSRV> {
 
     @Placeholder("discord_invite_simple")
     public CharSequence getInviteSimple() {
-        return FormattedText.of(invite != null ? invite.replace("https://", "") : UNKNOWN_INVITE);
+        String inviteInUse = invite != null ? invite : UNKNOWN_INVITE;
+        return FormattedText.of(inviteInUse.replace("https://", ""));
     }
 }
