@@ -181,6 +181,8 @@ public abstract class AbstractDiscordSRV<
         this.platformLogger = bootstrap.logger();
         this.dataDirectory = bootstrap.dataDirectory();
         this.logger = new DiscordSRVLogger(this);
+
+        DependencyLoggerAdapter.setAppender(new DependencyLoggingHandler(this));
     }
 
     /**
@@ -662,9 +664,6 @@ public abstract class AbstractDiscordSRV<
             throw new IllegalStateException("AbstractDiscordSRV#load was not called from the end of "
                     + getClass().getName() + " constructor");
         }
-
-        // Logging
-        DependencyLoggerAdapter.setAppender(new DependencyLoggingHandler(this));
 
         this.translationLoader = new TranslationLoader(this);
 
