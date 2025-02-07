@@ -181,7 +181,7 @@ public class GroupSyncModule extends AbstractSyncModule<DiscordSRV, GroupSyncCon
     }
 
     public boolean noPermissionProvider() {
-        return getPermissionProvider() != null;
+        return getPermissionProvider() == null;
     }
 
     private <T, R> boolean checkExpectation(Cache<T, Map<R, Boolean>> expectations, T key, R mapKey, boolean newState) {
