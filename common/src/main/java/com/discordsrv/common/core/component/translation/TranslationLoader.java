@@ -69,7 +69,7 @@ public class TranslationLoader {
         try (Stream<Path> paths = Files.list(folder)) {
             paths.forEach(path -> {
                 String fileName = path.getFileName().toString();
-                int lastDot = fileName.lastIndexOf("\\.");
+                int lastDot = fileName.lastIndexOf(".");
                 String extension = lastDot == -1 ? null : fileName.substring(lastDot + 1);
                 if (extension == null || !(extension.equals("json") || extension.equals("lang"))) {
                     discordSRV.logger().warning("Unexpected file in game_languages: " + fileName);
@@ -82,9 +82,9 @@ public class TranslationLoader {
                     URL url = path.toUri().toURL();
 
                     Map<String, Translation> translations = null;
-                    if (path.endsWith(".json")) {
+                    if (extension.equalsIgnoreCase("json")) {
                         translations = getFromJson(url);
-                    } else if (path.endsWith(".lang")) {
+                    } else if (extension.equalsIgnoreCase("lang")) {
                         translations = getFromProperties(url);
                     }
                     if (translations != null && !translations.isEmpty()) {
