@@ -18,8 +18,10 @@
 
 package com.discordsrv.common.config.main.channels.server;
 
+import com.discordsrv.api.color.Color;
 import com.discordsrv.api.discord.entity.message.DiscordMessageEmbed;
 import com.discordsrv.api.discord.entity.message.SendableDiscordMessage;
+import com.discordsrv.common.config.configurate.annotation.Constants;
 import com.discordsrv.common.config.configurate.annotation.Untranslated;
 import com.discordsrv.common.config.configurate.manager.abstraction.ConfigurateConfigManager;
 import com.discordsrv.common.config.main.generic.IMessageConfig;
@@ -34,6 +36,9 @@ public class AwardMessageConfig implements IMessageConfig {
 
     public Boolean enabled = true;
 
+    @Constants.Comment("The color of the embed in case there's no color associated with the award.")
+    public Color color = new Color(1);
+
     @Untranslated(Untranslated.Type.VALUE)
     public SendableDiscordMessage.Builder format = SendableDiscordMessage.builder()
             .addEmbed(
@@ -43,13 +48,18 @@ public class AwardMessageConfig implements IMessageConfig {
                                     null,
                                     "%player_avatar_url%"
                             )
-                            .setColor(1)
+                            .setDescription("%award_description%")
                             .build()
             );
 
     @Override
     public boolean enabled() {
         return enabled;
+    }
+
+    @Override
+    public Color color() {
+        return color;
     }
 
     @Override

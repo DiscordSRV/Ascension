@@ -18,6 +18,7 @@
 
 package com.discordsrv.common.config.main.channels;
 
+import com.discordsrv.api.color.Color;
 import com.discordsrv.api.discord.entity.message.DiscordMessageEmbed;
 import com.discordsrv.api.discord.entity.message.SendableDiscordMessage;
 import com.discordsrv.api.events.message.receive.game.JoinMessageReceiveEvent;
@@ -39,12 +40,13 @@ public class JoinMessageConfig implements IMessageConfig {
 
     public Boolean enabled = true;
 
+    public Color color = new Color(0x55FF55);
+
     @Untranslated(Untranslated.Type.VALUE)
     public SendableDiscordMessage.Builder format = SendableDiscordMessage.builder()
             .addEmbed(
                     DiscordMessageEmbed.builder()
                             .setAuthor("%player_display_name% joined", null, "%player_avatar_url%")
-                            .setColor(0x55FF55)
                             .build()
             );
 
@@ -59,6 +61,11 @@ public class JoinMessageConfig implements IMessageConfig {
     @Override
     public boolean enabled() {
         return enabled;
+    }
+
+    @Override
+    public Color color() {
+        return color;
     }
 
     @Override
@@ -82,18 +89,25 @@ public class JoinMessageConfig implements IMessageConfig {
 
         public boolean enabled = true;
 
+        public Color color = new Color(0xFFAA00);
+
         @Untranslated(Untranslated.Type.VALUE)
         public SendableDiscordMessage.Builder format = SendableDiscordMessage.builder()
                 .addEmbed(
                         DiscordMessageEmbed.builder()
                                 .setAuthor("%player_display_name% joined for the first time", null, "%player_avatar_url%")
-                                .setColor(0xFFAA00)
+                                .setColor(color)
                                 .build()
                 );
 
         @Override
         public boolean enabled() {
             return enabled;
+        }
+
+        @Override
+        public Color color() {
+            return color;
         }
 
         @Override

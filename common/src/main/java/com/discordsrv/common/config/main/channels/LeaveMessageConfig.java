@@ -18,6 +18,7 @@
 
 package com.discordsrv.common.config.main.channels;
 
+import com.discordsrv.api.color.Color;
 import com.discordsrv.api.discord.entity.message.DiscordMessageEmbed;
 import com.discordsrv.api.discord.entity.message.SendableDiscordMessage;
 import com.discordsrv.common.config.configurate.annotation.Constants;
@@ -37,12 +38,13 @@ public class LeaveMessageConfig implements IMessageConfig {
 
     public Boolean enabled = true;
 
+    public Color color = new Color(0xFF5555);
+
     @Untranslated(Untranslated.Type.VALUE)
     public SendableDiscordMessage.Builder format = SendableDiscordMessage.builder()
             .addEmbed(
                     DiscordMessageEmbed.builder()
                             .setAuthor("%player_display_name% left", null, "%player_avatar_url%")
-                            .setColor(0xFF5555)
                             .build()
             );
 
@@ -57,6 +59,11 @@ public class LeaveMessageConfig implements IMessageConfig {
     @Override
     public boolean enabled() {
         return enabled;
+    }
+
+    @Override
+    public Color color() {
+        return color;
     }
 
     @Override

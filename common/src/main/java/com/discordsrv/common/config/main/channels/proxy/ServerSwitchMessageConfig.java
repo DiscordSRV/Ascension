@@ -18,6 +18,7 @@
 
 package com.discordsrv.common.config.main.channels.proxy;
 
+import com.discordsrv.api.color.Color;
 import com.discordsrv.api.discord.entity.message.DiscordMessageEmbed;
 import com.discordsrv.api.discord.entity.message.SendableDiscordMessage;
 import com.discordsrv.common.config.configurate.annotation.Untranslated;
@@ -34,6 +35,8 @@ public class ServerSwitchMessageConfig implements IMessageConfig {
 
     public Boolean enabled = false;
 
+    public Color color = new Color(0x5555FF);
+
     @Untranslated(Untranslated.Type.VALUE)
     public SendableDiscordMessage.Builder format = SendableDiscordMessage.builder()
             .addEmbed(
@@ -43,13 +46,17 @@ public class ServerSwitchMessageConfig implements IMessageConfig {
                                     null,
                                     "%player_avatar_url%"
                             )
-                            .setColor(0x5555FF)
                             .build()
             );
 
     @Override
     public boolean enabled() {
         return enabled;
+    }
+
+    @Override
+    public Color color() {
+        return color;
     }
 
     @Override

@@ -18,6 +18,7 @@
 
 package com.discordsrv.common.config.main.channels;
 
+import com.discordsrv.api.color.Color;
 import com.discordsrv.api.discord.entity.message.SendableDiscordMessage;
 import com.discordsrv.common.config.configurate.annotation.Untranslated;
 import com.discordsrv.common.config.configurate.manager.abstraction.ConfigurateConfigManager;
@@ -40,6 +41,11 @@ public class StartMessageConfig implements IMessageConfig {
     @Override
     public boolean enabled() {
         return enabled;
+    }
+
+    @Override
+    public Color color() {
+        return null;
     }
 
     @Override
