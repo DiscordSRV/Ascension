@@ -769,7 +769,19 @@ public abstract class AbstractDiscordSRV<
                 messagesConfigManager().reload(configUpgrade, anyMissingOptions, backupPath);
 
                 if (anyMissingOptions.get()) {
-                    logger().info("Use \"/discordsrv reload config_upgrade\" to write the latest configuration");
+                    if (config().automaticConfigurationUpgrade) {
+                        if (configUpgrade) {
+                            logger().info("Tried to upgrade configuration, but some options are still missing.");
+                        } else {
+                            logger().info("Some configuration options are missing, attempting to upgrade configuration...");
+                            Set<ReloadFlag> reloadFlags = Collections.unmodifiableSet(Arrays.stream(ReloadFlag.values()).collect(Collectors.toSet()));
+                            return reload(reloadFlags, initial); // Retry with all flags including config upgrade
+                        }
+                    } else {
+                        logger().info("Use \"/discordsrv reload config_upgrade\" to write the latest configuration\nOr Set \"automatic-configuration-upgrade\" to true in the config to automatically upgrade the configuration on startup");
+                    }
+                } else if (initial && configUpgrade) {
+                    logger().info("Configuration successfully upgraded");
                 }
 
                 channelConfig().reload();
