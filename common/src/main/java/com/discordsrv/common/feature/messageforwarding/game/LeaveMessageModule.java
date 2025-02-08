@@ -136,6 +136,8 @@ public class LeaveMessageModule extends AbstractGameMessageModule<LeaveMessageCo
         MinecraftComponent messageComponent = event.getMessage();
         Component message = messageComponent != null ? ComponentUtil.fromAPI(messageComponent) : null;
 
-        formatter.addPlaceholder("message", message);
+        formatter
+                .addPlaceholder("message", message)
+                .addContext(config.color());
     }
 }

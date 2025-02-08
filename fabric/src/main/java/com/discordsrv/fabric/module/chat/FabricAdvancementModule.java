@@ -21,12 +21,17 @@ package com.discordsrv.fabric.module.chat;
 import com.discordsrv.api.component.MinecraftComponent;
 import com.discordsrv.api.events.message.receive.game.AwardMessageReceiveEvent;
 import com.discordsrv.common.abstraction.player.IPlayer;
+import com.discordsrv.common.core.logging.NamedLogger;
 import com.discordsrv.common.util.ComponentUtil;
 import com.discordsrv.fabric.FabricDiscordSRV;
 import com.discordsrv.fabric.module.AbstractFabricModule;
 import net.minecraft.advancement.Advancement;
+import net.minecraft.advancement.AdvancementDisplay;
 import net.minecraft.advancement.AdvancementEntry;
+import net.minecraft.advancement.AdvancementFrame;
 import net.minecraft.server.network.ServerPlayerEntity;
+
+import java.util.Optional;
 
 public class FabricAdvancementModule extends AbstractFabricModule {
 
@@ -34,7 +39,7 @@ public class FabricAdvancementModule extends AbstractFabricModule {
     private final FabricDiscordSRV discordSRV;
 
     public FabricAdvancementModule(FabricDiscordSRV discordSRV) {
-        super(discordSRV);
+        super(discordSRV, new NamedLogger(discordSRV, "ADVANCEMENT_LISTENER"));
         this.discordSRV = discordSRV;
         instance = this;
     }
@@ -44,20 +49,30 @@ public class FabricAdvancementModule extends AbstractFabricModule {
 
         FabricDiscordSRV discordSRV = instance.discordSRV;
         Advancement advancement = advancementEntry.value();
-        if (advancement.display().isEmpty() || advancement.name().isEmpty()) return; // Usually a crafting recipe.
-        MinecraftComponent advancementTitle = ComponentUtil.toAPI(discordSRV.getAdventure().asAdventure(advancement.display().get().getTitle()));
 
-        // TODO: Add description to the event. So we can explain how the player got the advancement.
-//        String description = Formatting.strip(advancement.display().get().getDescription().getString());
-//        MinecraftComponent advancementDescription = ComponentUtil.fromPlain(description);
+        Optional<AdvancementDisplay> displayOptional = advancement.display();
+        if (displayOptional.isEmpty() || !displayOptional.get().shouldAnnounceToChat()) {
+            instance.logger().trace("Skipping advancement display of \"" + (advancement.name().isPresent() ? advancement.name().get() : advancement) + "\" for "
+                    + owner + ": advancement display == null or does not broadcast to chat");
+            return;
+        }
+
+        AdvancementDisplay display = displayOptional.get();
+        AdvancementFrame frame = display.getFrame();
+
+        MinecraftComponent name = ComponentUtil.toAPI(discordSRV.getAdventure().asAdventure(display.getTitle()));
+        MinecraftComponent title = ComponentUtil.toAPI(discordSRV.getAdventure().asAdventure(frame.getChatAnnouncementText(advancementEntry, owner)));
+        MinecraftComponent description = ComponentUtil.toAPI(discordSRV.getAdventure().asAdventure(display.getDescription()));
 
         IPlayer player = discordSRV.playerProvider().player(owner);
         discordSRV.eventBus().publish(
                 new AwardMessageReceiveEvent(
                         null,
                         player,
-                        advancementTitle,
-                        null,
+                        name,
+                        title,
+                        description,
+                        AwardMessageReceiveEvent.AdvancementFrame.valueOf(frame.toString()),
                         null,
                         false
                 )
