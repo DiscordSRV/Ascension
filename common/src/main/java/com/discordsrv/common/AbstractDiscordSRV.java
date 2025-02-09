@@ -665,6 +665,9 @@ public abstract class AbstractDiscordSRV<
                     + getClass().getName() + " constructor");
         }
 
+        // Register PlayerProvider listeners
+        playerProvider().subscribe();
+
         this.translationLoader = new TranslationLoader(this);
 
         // Placeholder result stringifiers & global contexts
@@ -732,9 +735,6 @@ public abstract class AbstractDiscordSRV<
         if (serverType() == ServerType.PROXY) {
             runServerStarted().get();
         }
-
-        // Register PlayerProvider listeners
-        playerProvider().subscribe();
     }
 
     @MustBeInvokedByOverriders
