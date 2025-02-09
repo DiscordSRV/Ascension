@@ -104,7 +104,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.lang.reflect.Constructor;
 import java.net.*;
-import java.nio.file.Files;
 import java.nio.file.Path;
 import java.time.Duration;
 import java.time.LocalDateTime;
@@ -755,11 +754,7 @@ public abstract class AbstractDiscordSRV<
 
         boolean configUpgrade = flags.contains(ReloadFlag.CONFIG_UPGRADE);
         Path backupPath = null;
-        if (configUpgrade) {
-            String dateAndTime = DateTimeFormatter.ofPattern("yyyy-MM-dd_HH-mm-ss").format(LocalDateTime.now());
-            backupPath = dataDirectory().resolve("config-migrated").resolve(dateAndTime);
-            Files.createDirectories(backupPath);
-        }
+        if (configUpgrade) backupPath = generateBackupPath();
 
         if (flags.contains(ReloadFlag.CONFIG) || configUpgrade) {
             try {
@@ -769,7 +764,27 @@ public abstract class AbstractDiscordSRV<
                 messagesConfigManager().reload(configUpgrade, anyMissingOptions, backupPath);
 
                 if (anyMissingOptions.get()) {
-                    logger().info("Use \"/discordsrv reload config_upgrade\" to write the latest configuration");
+                    if (config().automaticConfigurationUpgrade) {
+                        logger().info("Some configuration options are missing, attempting to upgrade configuration...");
+
+                        if (backupPath == null) backupPath = generateBackupPath();
+                        AtomicBoolean stillMissingOptions = new AtomicBoolean(false);
+
+                        connectionConfigManager().reload(true, stillMissingOptions, backupPath);
+                        configManager().reload(true, stillMissingOptions, backupPath);
+                        messagesConfigManager().reload(true, stillMissingOptions, backupPath);
+
+                        if (stillMissingOptions.get()) {
+                            logger().warning("Attempted to upgrade configuration automatically, but some options are still missing.");
+                        } else {
+                            logger().info("Configuration successfully upgraded");
+                        }
+                    } else if (configUpgrade) {
+                        logger().warning("Attempted to upgrade configuration by reload command, but some options are still missing.");
+                    } else {
+                        logger().info("Use \"/discordsrv reload config_upgrade\" to write the latest configuration");
+                        logger().info("Or set \"automatic-configuration-upgrade\" to true in the config to automatically upgrade the configuration on startup or reload");
+                    }
                 }
 
                 channelConfig().reload();
@@ -985,5 +1000,10 @@ public abstract class AbstractDiscordSRV<
         }
         temporaryLocalData.save();
         this.status.set(Status.SHUTDOWN);
+    }
+
+    private Path generateBackupPath() {
+        String dateAndTime = DateTimeFormatter.ofPattern("yyyy-MM-dd_HH-mm-ss").format(LocalDateTime.now());
+        return dataDirectory().resolve("config-migrated").resolve(dateAndTime);
     }
 }
