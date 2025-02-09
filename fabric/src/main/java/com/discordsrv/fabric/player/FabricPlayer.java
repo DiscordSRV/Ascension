@@ -83,7 +83,9 @@ public class FabricPlayer extends FabricCommandSender implements IPlayer {
     public @Nullable SkinInfo skinInfo() {
         MinecraftProfileTextures textures = discordSRV.getServer().getSessionService().getTextures(player.getGameProfile());
         if (!textures.equals(MinecraftProfileTextures.EMPTY) && textures.skin() != null) {
-            return new SkinInfo(textures.skin().getHash(), null);
+            String model = textures.skin().getMetadata("model");
+            if (model == null) model = "classic";
+            return new SkinInfo(textures.skin().getHash(), model);
         }
         return null;
     }
