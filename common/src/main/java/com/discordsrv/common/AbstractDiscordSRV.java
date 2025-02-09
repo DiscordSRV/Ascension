@@ -755,10 +755,7 @@ public abstract class AbstractDiscordSRV<
 
         boolean configUpgrade = flags.contains(ReloadFlag.CONFIG_UPGRADE);
         Path backupPath = null;
-        if (configUpgrade || (config() != null && config().automaticConfigurationUpgrade)) {
-            String dateAndTime = DateTimeFormatter.ofPattern("yyyy-MM-dd_HH-mm-ss").format(LocalDateTime.now());
-            backupPath = dataDirectory().resolve("config-migrated").resolve(dateAndTime);
-        }
+        if (configUpgrade) backupPath = generateBackupPath();
 
         if (flags.contains(ReloadFlag.CONFIG) || configUpgrade) {
             try {
@@ -771,7 +768,9 @@ public abstract class AbstractDiscordSRV<
                     if (config().automaticConfigurationUpgrade) {
                         logger().info("Some configuration options are missing, attempting to upgrade configuration...");
 
+                        if(backupPath == null) backupPath = generateBackupPath();
                         AtomicBoolean stillMissingOptions = new AtomicBoolean(false);
+
                         connectionConfigManager().reload(true, stillMissingOptions, backupPath);
                         configManager().reload(true, stillMissingOptions, backupPath);
                         messagesConfigManager().reload(true, stillMissingOptions, backupPath);
@@ -1002,5 +1001,10 @@ public abstract class AbstractDiscordSRV<
         }
         temporaryLocalData.save();
         this.status.set(Status.SHUTDOWN);
+    }
+
+    private Path generateBackupPath() {
+        String dateAndTime = DateTimeFormatter.ofPattern("yyyy-MM-dd_HH-mm-ss").format(LocalDateTime.now());
+        return dataDirectory().resolve("config-migrated").resolve(dateAndTime);
     }
 }
