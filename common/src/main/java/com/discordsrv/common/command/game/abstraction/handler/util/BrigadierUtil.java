@@ -19,6 +19,7 @@
 package com.discordsrv.common.command.game.abstraction.handler.util;
 
 import com.discordsrv.common.command.game.abstraction.command.GameCommand;
+import com.discordsrv.common.command.game.abstraction.command.GameCommandArguments;
 import com.discordsrv.common.command.game.abstraction.command.GameCommandExecutor;
 import com.discordsrv.common.command.game.abstraction.command.GameCommandSuggester;
 import com.discordsrv.common.command.game.abstraction.sender.ICommandSender;
@@ -28,6 +29,7 @@ import com.mojang.brigadier.arguments.*;
 import com.mojang.brigadier.builder.ArgumentBuilder;
 import com.mojang.brigadier.builder.LiteralArgumentBuilder;
 import com.mojang.brigadier.builder.RequiredArgumentBuilder;
+import com.mojang.brigadier.context.CommandContext;
 import com.mojang.brigadier.tree.CommandNode;
 import com.mojang.brigadier.tree.LiteralCommandNode;
 
@@ -92,7 +94,7 @@ public final class BrigadierUtil {
             argumentBuilder.executes(context -> {
                 executor.execute(
                         commandSenderMapper.apply(context.getSource()),
-                        context::getArgument,
+                        getArgumentMapper(context),
                         label
                 );
                 return Command.SINGLE_SUCCESS;
@@ -103,7 +105,7 @@ public final class BrigadierUtil {
                 try {
                     List<?> suggestions =  suggester.suggestValues(
                             commandSenderMapper.apply(context.getSource()),
-                            context::getArgument,
+                            getArgumentMapper(context),
                             builder.getRemaining()
                     );
                     suggestions.forEach(suggestion -> builder.suggest(suggestion.toString()));
@@ -134,5 +136,18 @@ public final class BrigadierUtil {
             case INTEGER: return IntegerArgumentType.integer((int) min, (int) max);
         }
         throw new IllegalStateException();
+    }
+
+    private static GameCommandArguments getArgumentMapper(CommandContext<?> context) {
+        return new GameCommandArguments() {
+            @Override
+            public <T> T get(String label, Class<T> type) {
+                try {
+                    return context.getArgument(label, type);
+                } catch (Throwable t) {
+                    return null;
+                }
+            }
+        };
     }
 }
