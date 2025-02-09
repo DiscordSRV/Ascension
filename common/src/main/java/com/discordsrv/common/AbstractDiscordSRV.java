@@ -104,7 +104,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.lang.reflect.Constructor;
 import java.net.*;
-import java.nio.file.Files;
 import java.nio.file.Path;
 import java.time.Duration;
 import java.time.LocalDateTime;
@@ -768,7 +767,7 @@ public abstract class AbstractDiscordSRV<
                     if (config().automaticConfigurationUpgrade) {
                         logger().info("Some configuration options are missing, attempting to upgrade configuration...");
 
-                        if(backupPath == null) backupPath = generateBackupPath();
+                        if (backupPath == null) backupPath = generateBackupPath();
                         AtomicBoolean stillMissingOptions = new AtomicBoolean(false);
 
                         connectionConfigManager().reload(true, stillMissingOptions, backupPath);
@@ -784,7 +783,7 @@ public abstract class AbstractDiscordSRV<
                         logger().warning("Attempted to upgrade configuration by reload command, but some options are still missing.");
                     } else {
                         logger().info("Use \"/discordsrv reload config_upgrade\" to write the latest configuration");
-                        logger().info("Or Set \"automatic-configuration-upgrade\" to true in the config to automatically upgrade the configuration on startup");
+                        logger().info("Or set \"automatic-configuration-upgrade\" to true in the config to automatically upgrade the configuration on startup or reload");
                     }
                 }
 
