@@ -411,11 +411,6 @@ public abstract class ConfigurateConfigManager<T, LT extends AbstractConfigurati
                 return;
             }
 
-            if (backupPath != null) {
-                if (Files.notExists(backupPath)) Files.createDirectory(backupPath);
-                Files.copy(filePath(), backupPath.resolve(fileName()));
-            }
-
             // Load existing file & translate
             CommentedConfigurationNode node = loader().load();
 
@@ -431,6 +426,10 @@ public abstract class ConfigurateConfigManager<T, LT extends AbstractConfigurati
 
             configuration = objectMapper().get(defaultConfigClass).load(node);
             if (forceSave) {
+                if (backupPath != null) {
+                    if (Files.notExists(backupPath)) Files.createDirectory(backupPath);
+                    Files.copy(filePath(), backupPath.resolve(fileName()));
+                }
                 save(loader);
             }
         } catch (IOException e) {
