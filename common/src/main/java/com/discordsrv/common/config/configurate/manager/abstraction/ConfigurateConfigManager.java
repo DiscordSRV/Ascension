@@ -412,6 +412,7 @@ public abstract class ConfigurateConfigManager<T, LT extends AbstractConfigurati
             }
 
             if (backupPath != null) {
+                if (Files.notExists(backupPath)) Files.createDirectory(backupPath);
                 Files.copy(filePath(), backupPath.resolve(fileName()));
             }
 

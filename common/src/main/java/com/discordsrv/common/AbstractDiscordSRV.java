@@ -758,7 +758,6 @@ public abstract class AbstractDiscordSRV<
         if (configUpgrade || (config() != null && config().automaticConfigurationUpgrade)) {
             String dateAndTime = DateTimeFormatter.ofPattern("yyyy-MM-dd_HH-mm-ss").format(LocalDateTime.now());
             backupPath = dataDirectory().resolve("config-migrated").resolve(dateAndTime);
-            Files.createDirectories(backupPath);
         }
 
         if (flags.contains(ReloadFlag.CONFIG) || configUpgrade) {
