@@ -427,7 +427,6 @@ public abstract class ConfigurateConfigManager<T, LT extends AbstractConfigurati
             configuration = objectMapper().get(defaultConfigClass).load(node);
             if (forceSave) {
                 if (backupPath != null) {
-                    if (Files.notExists(backupPath)) Files.createDirectory(backupPath);
                     Files.copy(filePath(), backupPath.resolve(fileName()));
                 }
                 save(loader);

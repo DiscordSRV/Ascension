@@ -104,6 +104,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.lang.reflect.Constructor;
 import java.net.*;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.time.Duration;
 import java.time.LocalDateTime;
@@ -753,11 +754,14 @@ public abstract class AbstractDiscordSRV<
         }
 
         boolean configUpgrade = flags.contains(ReloadFlag.CONFIG_UPGRADE);
-        Path backupPath = null;
-        if (configUpgrade) backupPath = generateBackupPath();
 
         if (flags.contains(ReloadFlag.CONFIG) || configUpgrade) {
             try {
+                Path backupPath = null;
+                if (configUpgrade) {
+                    backupPath = generateBackupPath();
+                }
+
                 AtomicBoolean anyMissingOptions = new AtomicBoolean(false);
                 connectionConfigManager().reload(configUpgrade, anyMissingOptions, backupPath);
                 configManager().reload(configUpgrade, anyMissingOptions, backupPath);
@@ -767,7 +771,9 @@ public abstract class AbstractDiscordSRV<
                     if (config().automaticConfigurationUpgrade) {
                         logger().info("Some configuration options are missing, attempting to upgrade configuration...");
 
-                        if (backupPath == null) backupPath = generateBackupPath();
+                        if (backupPath == null) {
+                            backupPath = generateBackupPath();
+                        }
                         AtomicBoolean stillMissingOptions = new AtomicBoolean(false);
 
                         connectionConfigManager().reload(true, stillMissingOptions, backupPath);
@@ -1002,8 +1008,13 @@ public abstract class AbstractDiscordSRV<
         this.status.set(Status.SHUTDOWN);
     }
 
-    private Path generateBackupPath() {
+    private Path generateBackupPath() throws IOException {
         String dateAndTime = DateTimeFormatter.ofPattern("yyyy-MM-dd_HH-mm-ss").format(LocalDateTime.now());
-        return dataDirectory().resolve("config-migrated").resolve(dateAndTime);
+        Path backupPath = dataDirectory().resolve("config-migrated").resolve(dateAndTime);
+        if (Files.notExists(backupPath)) {
+            Files.createDirectories(backupPath);
+        }
+
+        return backupPath;
     }
 }
