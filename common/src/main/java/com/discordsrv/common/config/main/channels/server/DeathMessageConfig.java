@@ -35,23 +35,18 @@ public class DeathMessageConfig implements IMessageConfig {
 
     public Boolean enabled = true;
 
-    public Color color = new Color(1);
-
     @Untranslated(Untranslated.Type.VALUE)
     public SendableDiscordMessage.Builder format = SendableDiscordMessage.builder()
             .addEmbed(
                     DiscordMessageEmbed.builder()
                             .setAuthor("%message%", null, "%player_avatar_url%")
+                            .setColor("FF0000")
                             .build()
             );
 
     @Override
     public boolean enabled() {
         return enabled;
-    }
-
-    public Color color() {
-        return color;
     }
 
     @Override

@@ -101,12 +101,12 @@ public class AwardMessageModule extends AbstractGameMessageModule<AwardMessageCo
         MinecraftComponent descriptionComponent = event.getDescription();
         Component description = descriptionComponent != null ? ComponentUtil.fromAPI(descriptionComponent) : null;
 
-        Color color = event.getFrame() != null ? event.getFrame().color() : config.color;
+        Color color = event.getFrame() != null ? event.getFrame().color() : null;
 
         formatter
                 .addPlaceholder("award_name", name)
                 .addPlaceholder("award_title", title)
                 .addPlaceholder("award_description", description)
-                .addContext(color);
+                .addReplacement("award_color", color);
     }
 }

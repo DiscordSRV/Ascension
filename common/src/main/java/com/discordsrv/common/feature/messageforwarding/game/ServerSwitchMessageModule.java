@@ -70,7 +70,6 @@ public class ServerSwitchMessageModule extends AbstractGameMessageModule<ServerS
         Component message = messageComponent != null ? ComponentUtil.fromAPI(messageComponent) : null;
 
         formatter
-                .addPlaceholder("message", message)
-                .addContext(config.color());
+                .addPlaceholder("message", message);
     }
 }

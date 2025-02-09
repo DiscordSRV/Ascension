@@ -67,8 +67,7 @@ public class DeathMessageModule extends AbstractGameMessageModule<DeathMessageCo
     ) {
         MinecraftComponent messageComponent = event.getMessage();
         formatter
-                .addPlaceholder("message", ComponentUtil.fromAPI(messageComponent))
-                .addContext(config.color());
+                .addPlaceholder("message", ComponentUtil.fromAPI(messageComponent));
     }
 
 }

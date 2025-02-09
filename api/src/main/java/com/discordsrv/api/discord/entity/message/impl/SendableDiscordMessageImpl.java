@@ -24,7 +24,6 @@
 package com.discordsrv.api.discord.entity.message.impl;
 
 import com.discordsrv.api.DiscordSRVApi;
-import com.discordsrv.api.color.Color;
 import com.discordsrv.api.discord.entity.interaction.component.actionrow.MessageActionRow;
 import com.discordsrv.api.discord.entity.message.AllowedMention;
 import com.discordsrv.api.discord.entity.message.DiscordMessageEmbed;
@@ -475,11 +474,6 @@ public class SendableDiscordMessageImpl implements SendableDiscordMessage {
                                 ),
                                 field.isInline()
                         ))
-                );
-
-                // Added by Formatter#addContext(Color) under AbstractGameMessageModule#setPlaceholders
-                embedBuilder.setColor(
-                        new Color(placeholders.apply("%color_hex|000001%"))
                 );
 
                 builder.addEmbed(embedBuilder.build());

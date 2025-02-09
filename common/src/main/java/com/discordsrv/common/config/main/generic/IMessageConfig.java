@@ -18,12 +18,10 @@
 
 package com.discordsrv.common.config.main.generic;
 
-import com.discordsrv.api.color.Color;
 import com.discordsrv.api.discord.entity.message.SendableDiscordMessage;
 
 public interface IMessageConfig {
 
     boolean enabled();
     SendableDiscordMessage.Builder format();
-    Color color();
 }

@@ -137,7 +137,6 @@ public class LeaveMessageModule extends AbstractGameMessageModule<LeaveMessageCo
         Component message = messageComponent != null ? ComponentUtil.fromAPI(messageComponent) : null;
 
         formatter
-                .addPlaceholder("message", message)
-                .addContext(config.color());
+                .addPlaceholder("message", message);
     }
 }

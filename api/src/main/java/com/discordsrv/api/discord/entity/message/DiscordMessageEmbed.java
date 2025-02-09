@@ -30,6 +30,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.time.OffsetDateTime;
+import java.time.format.DateTimeParseException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -285,6 +286,17 @@ public class DiscordMessageEmbed {
         }
 
         @NotNull
+        public Builder setColor(@Nullable CharSequence hex) {
+            try {
+                return setColor(new Color(hex != null ? hex.toString() : null));
+            } catch (IllegalArgumentException e) {
+                // Either the hex is invalid or it's a placeholder that still haven't been processed
+                this.color = null;
+                return this;
+            }
+        }
+
+        @NotNull
         public Builder setAuthor(@Nullable CharSequence authorName, @Nullable CharSequence authorUrl) {
             return setAuthor(authorName, authorUrl, null);
         }
@@ -423,6 +435,17 @@ public class DiscordMessageEmbed {
         public Builder setTimestamp(@Nullable OffsetDateTime timestamp) {
             this.timestamp = timestamp;
             return this;
+        }
+
+        @NotNull
+        public Builder setTimestamp(CharSequence timestamp) {
+            try {
+                return setTimestamp(timestamp != null ? OffsetDateTime.parse(timestamp) : null);
+            } catch (DateTimeParseException e) {
+                // Either the timestamp is invalid or it's a placeholder that still haven't been processed
+                this.timestamp = null;
+                return this;
+            }
         }
 
         @NotNull
