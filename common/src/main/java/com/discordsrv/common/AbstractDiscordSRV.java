@@ -755,7 +755,7 @@ public abstract class AbstractDiscordSRV<
 
         boolean configUpgrade = flags.contains(ReloadFlag.CONFIG_UPGRADE);
         Path backupPath = null;
-        if (configUpgrade) {
+        if (configUpgrade || (config() != null && config().automaticConfigurationUpgrade)) {
             String dateAndTime = DateTimeFormatter.ofPattern("yyyy-MM-dd_HH-mm-ss").format(LocalDateTime.now());
             backupPath = dataDirectory().resolve("config-migrated").resolve(dateAndTime);
             Files.createDirectories(backupPath);
@@ -770,18 +770,24 @@ public abstract class AbstractDiscordSRV<
 
                 if (anyMissingOptions.get()) {
                     if (config().automaticConfigurationUpgrade) {
-                        if (configUpgrade) {
-                            logger().info("Tried to upgrade configuration, but some options are still missing.");
+                        logger().info("Some configuration options are missing, attempting to upgrade configuration...");
+
+                        AtomicBoolean stillMissingOptions = new AtomicBoolean(false);
+                        connectionConfigManager().reload(true, stillMissingOptions, backupPath);
+                        configManager().reload(true, stillMissingOptions, backupPath);
+                        messagesConfigManager().reload(true, stillMissingOptions, backupPath);
+
+                        if (stillMissingOptions.get()) {
+                            logger().warning("Attempted to upgrade configuration automatically, but some options are still missing.");
                         } else {
-                            logger().info("Some configuration options are missing, attempting to upgrade configuration...");
-                            Set<ReloadFlag> reloadFlags = Collections.unmodifiableSet(Arrays.stream(ReloadFlag.values()).collect(Collectors.toSet()));
-                            return reload(reloadFlags, initial); // Retry with all flags including config upgrade
+                            logger().info("Configuration successfully upgraded");
                         }
+                    } else if (configUpgrade) {
+                        logger().warning("Attempted to upgrade configuration by reload command, but some options are still missing.");
                     } else {
-                        logger().info("Use \"/discordsrv reload config_upgrade\" to write the latest configuration\nOr Set \"automatic-configuration-upgrade\" to true in the config to automatically upgrade the configuration on startup");
+                        logger().info("Use \"/discordsrv reload config_upgrade\" to write the latest configuration");
+                        logger().info("Or Set \"automatic-configuration-upgrade\" to true in the config to automatically upgrade the configuration on startup");
                     }
-                } else if (initial && configUpgrade) {
-                    logger().info("Configuration successfully upgraded");
                 }
 
                 channelConfig().reload();
