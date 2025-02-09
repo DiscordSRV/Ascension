@@ -23,17 +23,19 @@ import com.discordsrv.common.abstraction.player.IPlayer;
 import com.discordsrv.common.abstraction.player.provider.model.SkinInfo;
 import com.discordsrv.fabric.FabricDiscordSRV;
 import com.discordsrv.fabric.command.game.sender.FabricCommandSender;
+import com.mojang.authlib.minecraft.MinecraftProfileTextures;
 import net.kyori.adventure.identity.Identity;
 import net.kyori.adventure.text.Component;
+import net.minecraft.network.packet.s2c.play.ChatSuggestionsS2CPacket;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.text.Text;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Locale;
 import java.util.concurrent.CompletableFuture;
-
 
 public class FabricPlayer extends FabricCommandSender implements IPlayer {
 
@@ -67,17 +69,24 @@ public class FabricPlayer extends FabricCommandSender implements IPlayer {
 
     @Override
     public void addChatSuggestions(Collection<String> suggestions) {
-        // API not available in Fabric
+        ChatSuggestionsS2CPacket packet = new ChatSuggestionsS2CPacket(ChatSuggestionsS2CPacket.Action.ADD, new ArrayList<>(suggestions));
+        player.networkHandler.sendPacket(packet);
     }
 
     @Override
     public void removeChatSuggestions(Collection<String> suggestions) {
-        // API not available in Fabric
+        ChatSuggestionsS2CPacket packet = new ChatSuggestionsS2CPacket(ChatSuggestionsS2CPacket.Action.REMOVE, new ArrayList<>(suggestions));
+        player.networkHandler.sendPacket(packet);
     }
 
     @Override
     public @Nullable SkinInfo skinInfo() {
-        // Unimplemented
+        MinecraftProfileTextures textures = discordSRV.getServer().getSessionService().getTextures(player.getGameProfile());
+        if (!textures.equals(MinecraftProfileTextures.EMPTY) && textures.skin() != null) {
+            String model = textures.skin().getMetadata("model");
+            if (model == null) model = "classic";
+            return new SkinInfo(textures.skin().getHash(), model);
+        }
         return null;
     }
 
@@ -89,10 +98,7 @@ public class FabricPlayer extends FabricCommandSender implements IPlayer {
     @Override
     public @NotNull Component displayName() {
         // Use Adventure's Pointer, otherwise username
-        return player.getOrDefaultFrom(
-                Identity.DISPLAY_NAME,
-                () -> Component.text(player.getName().getString())
-        );
+        return player.getOrDefaultFrom(Identity.DISPLAY_NAME, () -> Component.text(player.getName().getString()));
     }
 
     @Override
