@@ -35,7 +35,7 @@ import java.util.Objects;
 public class DestinationConfig {
 
     @Setting("channel-ids")
-    @Comment("The text, news, voice and/or stage channel ids this in-game channel will forward to in Discord")
+    @Comment("The text, announcement, voice and/or stage channel ids this in-game channel will forward to in Discord")
     public List<Long> channelIds = new ArrayList<>();
 
     @Setting("threads")
