@@ -40,7 +40,7 @@ public class DeathMessageConfig implements IMessageConfig {
             .addEmbed(
                     DiscordMessageEmbed.builder()
                             .setAuthor("%message%", null, "%player_avatar_url%")
-                            .setColor("FF0000")
+                            .setColor(0xFF0000)
                             .build()
             );
 

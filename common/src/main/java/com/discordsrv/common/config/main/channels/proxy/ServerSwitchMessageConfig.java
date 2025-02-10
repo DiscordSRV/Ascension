@@ -44,7 +44,7 @@ public class ServerSwitchMessageConfig implements IMessageConfig {
                                     null,
                                     "%player_avatar_url%"
                             )
-                            .setColor("FFFF55")
+                            .setColor(0xFFFF55)
                             .build()
             );
 

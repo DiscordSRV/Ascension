@@ -42,7 +42,7 @@ public class LeaveMessageConfig implements IMessageConfig {
             .addEmbed(
                     DiscordMessageEmbed.builder()
                             .setAuthor("%player_display_name% left", null, "%player_avatar_url%")
-                            .setColor("FF5555")
+                            .setColor(0xFF5555)
                             .build()
             );
 

@@ -44,7 +44,7 @@ public class JoinMessageConfig implements IMessageConfig {
             .addEmbed(
                     DiscordMessageEmbed.builder()
                             .setAuthor("%player_display_name% joined", null, "%player_avatar_url%")
-                            .setColor("55FF55")
+                            .setColor(0x55FF55)
                             .build()
             );
 
@@ -87,7 +87,7 @@ public class JoinMessageConfig implements IMessageConfig {
                 .addEmbed(
                         DiscordMessageEmbed.builder()
                                 .setAuthor("%player_display_name% joined for the first time", null, "%player_avatar_url%")
-                                .setColor("FFAA00")
+                                .setColor(0xFFAA00)
                                 .build()
                 );
 

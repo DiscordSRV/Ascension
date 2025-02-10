@@ -27,6 +27,7 @@ import com.discordsrv.api.eventbus.EventPriorities;
 import com.discordsrv.api.eventbus.Subscribe;
 import com.discordsrv.api.events.message.forward.game.AwardMessageForwardedEvent;
 import com.discordsrv.api.events.message.receive.game.AwardMessageReceiveEvent;
+import com.discordsrv.api.placeholder.provider.SinglePlaceholder;
 import com.discordsrv.api.player.DiscordSRVPlayer;
 import com.discordsrv.common.DiscordSRV;
 import com.discordsrv.common.config.main.channels.base.BaseChannelConfig;
@@ -107,6 +108,6 @@ public class AwardMessageModule extends AbstractGameMessageModule<AwardMessageCo
                 .addPlaceholder("award_name", name)
                 .addPlaceholder("award_title", title)
                 .addPlaceholder("award_description", description)
-                .addReplacement("award_color", color);
+                .addPlaceholder("award_color", color, "color");
     }
 }
