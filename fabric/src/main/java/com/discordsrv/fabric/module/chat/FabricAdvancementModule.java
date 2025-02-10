@@ -39,7 +39,7 @@ public class FabricAdvancementModule extends AbstractFabricModule {
     private final FabricDiscordSRV discordSRV;
 
     public FabricAdvancementModule(FabricDiscordSRV discordSRV) {
-        super(discordSRV, new NamedLogger(discordSRV, "ADVANCEMENT_LISTENER"));
+        super(discordSRV, new NamedLogger(discordSRV, "ADVANCEMENT_MODULE"));
         this.discordSRV = discordSRV;
         instance = this;
     }
