@@ -64,10 +64,10 @@ public class MinecraftAuthenticationLinker extends CachedLinkProvider {
                         .map(discord -> Long.parseUnsignedLong(discord.getUserId())),
                 () -> linkStore.getUserId(playerUUID),
                 userId -> linked(playerUUID, userId),
-                userId -> unlinked(playerUUID, userId)
+                userId -> unlinked(playerUUID, userId),
+                playerUUID.toString()
         ).exceptionally(t -> {
-            logger.error("Lookup for uuid " + playerUUID + " failed", t);
-            return Optional.empty();
+            throw new RuntimeException("Failed to lookup user id for " + playerUUID, t);
         });
     }
 
@@ -80,10 +80,10 @@ public class MinecraftAuthenticationLinker extends CachedLinkProvider {
                         .map(MinecraftAccount::getUUID),
                 () -> linkStore.getPlayerUUID(userId),
                 playerUUID -> linked(playerUUID, userId),
-                playerUUID -> unlinked(playerUUID, userId)
+                playerUUID -> unlinked(playerUUID, userId),
+                Long.toUnsignedString(userId)
         ).exceptionally(t -> {
-            logger.error("Lookup for user id " + Long.toUnsignedString(userId) + " failed", t);
-            return Optional.empty();
+            throw new RuntimeException("Failed to lookup Player UUID for " + Long.toUnsignedString(userId), t);
         });
     }
 
@@ -176,22 +176,36 @@ public class MinecraftAuthenticationLinker extends CachedLinkProvider {
         return module;
     }
 
+    @SuppressWarnings({"OptionalUsedAsFieldOrParameterType", "OptionalAssignedToNull"}) // Hack
+    private static final Optional<?> ERROR = null;
+
+    @SuppressWarnings("unchecked") // Cast to the ERROR constant
     private <T> CompletableFuture<Optional<T>> query(
             boolean canCauseLink,
             CheckedSupplier<Optional<T>> authSupplier,
             Supplier<CompletableFuture<Optional<T>>> storageSupplier,
             Consumer<T> linked,
-            Consumer<T> unlinked
+            Consumer<T> unlinked,
+            String identifier
     ) {
-        CompletableFuture<Optional<T>> authService = discordSRV.scheduler().supply(authSupplier);
+        CompletableFuture<Optional<T>> storageFuture = storageSupplier.get();
         if (!canCauseLink) {
-            return authService;
+            // If we can't cause a link, use the current account in storage
+            return storageFuture;
         }
 
-        CompletableFuture<Optional<T>> storageFuture = storageSupplier.get();
+        CompletableFuture<Optional<T>> authService = discordSRV.scheduler().supply(authSupplier).exceptionally(t -> {
+            logger.error("Failed to query \"" + identifier + "\" from auth service", t);
+            return (Optional<T>) ERROR;
+        });
+
         return CompletableFutureUtil.combine(authService, storageFuture).thenApply(results -> {
             Optional<T> auth = authService.join();
             Optional<T> storage = storageFuture.join();
+            if (auth == ERROR) {
+                // If we can't query the auth service, we'll just use the link from storage
+                return storage;
+            }
 
             if (auth.isPresent() && !storage.isPresent()) {
                 // new link

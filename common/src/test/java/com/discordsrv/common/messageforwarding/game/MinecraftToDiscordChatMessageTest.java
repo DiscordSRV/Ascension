@@ -166,6 +166,7 @@ public class MinecraftToDiscordChatMessageTest {
             int voice = 0;
             int stage = 0;
             int textThread = 0;
+            int newsThread = 0;
             int forumThread = 0;
             int mediaThread = 0;
 
@@ -185,6 +186,8 @@ public class MinecraftToDiscordChatMessageTest {
                         DiscordThreadContainer container = ((DiscordThreadChannel) channel).getParentChannel();
                         if (container instanceof DiscordTextChannel) {
                             textThread++;
+                        } else if (container instanceof DiscordNewsChannel) {
+                            newsThread++;
                         } else if (container instanceof DiscordForumChannel) {
                             forumThread++;
                         } else if (container instanceof DiscordMediaChannel) {
@@ -195,7 +198,7 @@ public class MinecraftToDiscordChatMessageTest {
             }
 
             success.complete(text == 1 && news == 1 && voice == 1 && stage == 1
-                                     && textThread == 1 && forumThread == 1 && mediaThread == 1);
+                                     && textThread == 1 && newsThread == 1 && forumThread == 1 && mediaThread == 1);
         }
     }
 }

@@ -60,7 +60,7 @@ public abstract class AbstractSyncConfig<C extends AbstractSyncConfig<C, G, D>, 
             if ((direction == SyncDirection.MINECRAFT_TO_DISCORD) != (minecraft = (tieBreaker == SyncSide.MINECRAFT))) {
                 SyncSide opposite = (minecraft ? SyncSide.DISCORD : SyncSide.MINECRAFT);
                 discordSRV.logger().warning(
-                        label + " with direction " + direction + " with tie-breaker " + tieBreaker + " (should be " + opposite + ")"
+                        label + " with direction " + direction + " has a invalid tie-breaker " + tieBreaker + " (should be " + opposite + ")"
                 );
                 tieBreaker = opposite; // Fix the config
             }

@@ -40,7 +40,8 @@ public class UnlinkCommand extends CombinedCommand {
 
     private static UnlinkCommand INSTANCE;
     private static GameCommand GAME;
-    private static DiscordCommand DISCORD;
+    private static DiscordCommand DISCORD_WITH_OTHER;
+    private static DiscordCommand DISCORD_WITHOUT_OTHER;
 
     private static UnlinkCommand getInstance(DiscordSRV discordSRV) {
         return INSTANCE != null ? INSTANCE : (INSTANCE = new UnlinkCommand(discordSRV));
@@ -62,11 +63,32 @@ public class UnlinkCommand extends CombinedCommand {
         return GAME;
     }
 
-    public static DiscordCommand getDiscord(DiscordSRV discordSRV) {
-        if (DISCORD == null) {
-            UnlinkCommand command = getInstance(discordSRV);
-            DISCORD = DiscordCommand.chatInput(ComponentIdentifier.of("DiscordSRV", "unlink"), "unlink", "Unlink accounts")
-                    .addOption(CommandOption.builder(
+    public static DiscordCommand getDiscordWithOther(DiscordSRV discordSRV) {
+        if (DISCORD_WITHOUT_OTHER == null) {
+            DISCORD_WITHOUT_OTHER = getDiscord(discordSRV, true);
+        }
+        return DISCORD_WITHOUT_OTHER;
+    }
+
+    public static DiscordCommand getDiscordWithoutOther(DiscordSRV discordSRV) {
+        if (DISCORD_WITH_OTHER == null) {
+            DISCORD_WITH_OTHER = getDiscord(discordSRV, false);
+        }
+        return DISCORD_WITH_OTHER;
+    }
+
+    private static DiscordCommand getDiscord(DiscordSRV discordSRV, boolean withOther) {
+        UnlinkCommand command = getInstance(discordSRV);
+
+        DiscordCommand.ChatInputBuilder builder = DiscordCommand.chatInput(
+                ComponentIdentifier.of("DiscordSRV", "unlink"),
+                "unlink",
+                "Unlink accounts"
+        );
+
+        if (withOther) {
+            builder = builder.addOption(
+                    CommandOption.builder(
                             CommandOption.Type.USER,
                             "user",
                             "The Discord user to unlink"
@@ -75,12 +97,10 @@ public class UnlinkCommand extends CombinedCommand {
                             CommandOption.Type.STRING,
                             "player",
                             "The Minecraft player username or UUID to unlink"
-                    ).setRequired(false).build())
-                    .setEventHandler(command)
-                    .build();
+                    ).setRequired(false).build());
         }
 
-        return DISCORD;
+        return builder.setEventHandler(command).build();
     }
 
     private final Logger logger;

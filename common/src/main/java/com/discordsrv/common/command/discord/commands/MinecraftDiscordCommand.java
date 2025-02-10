@@ -40,7 +40,7 @@ public class MinecraftDiscordCommand {
             if (discordSRV.linkProvider() instanceof LinkStore) {
                 builder = builder
                         .addSubCommand(LinkInitDiscordCommand.getInstance(discordSRV))
-                        .addSubCommand(UnlinkCommand.getDiscord(discordSRV)); // TODO: no other user unlinking option
+                        .addSubCommand(UnlinkCommand.getDiscordWithoutOther(discordSRV));
             }
 
             INSTANCE = builder

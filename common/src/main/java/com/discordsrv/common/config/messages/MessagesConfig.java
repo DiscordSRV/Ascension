@@ -328,8 +328,8 @@ public class MessagesConfig implements Config {
         public MinecraftMessage storageLinking = make(
                 "%1Join our %2Discord %1server at "
                         + "[click:open_url:%discord_invite%]%discord_invite_simple%[click]"
-                        + " and link your account by running the "
-                        + "&r[click:copy_to_clipboard:/<todo> link %code%][hover:show_text:Click to copy]/<todo> link %code%"); // TODO
+                        + " %1and link your account by running the "
+                        + "&r[click:copy_to_clipboard:%code%][hover:show_text:Click to copy linking code]/minecraft link %code%"); // TODO
 
         @Untranslated(Untranslated.Type.COMMENT)
         @Comment("/discord unlink")

@@ -53,6 +53,9 @@ public abstract class MainConfig implements Config {
             "List of placeholders %4"
     ));
 
+    @Comment("Automatically upgrade configuration files on startup or reload if any values are missing")
+    public boolean automaticConfigurationUpgrade = true;
+
     @Override
     public final String getFileName() {
         return FILE_NAME;
