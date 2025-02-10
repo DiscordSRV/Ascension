@@ -45,6 +45,7 @@ public class AwardMessageConfig implements IMessageConfig {
                             )
                             .setDescription("%award_description%")
                             .setUnformattedColor("%award_color_hex%")
+                            .setUnformattedTimestamp("%now_time%")
                             .build()
             );
 
