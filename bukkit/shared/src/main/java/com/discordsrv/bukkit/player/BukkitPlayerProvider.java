@@ -40,10 +40,16 @@ import java.util.function.Supplier;
 public class BukkitPlayerProvider extends ServerPlayerProvider<BukkitPlayer, BukkitDiscordSRV> implements Listener {
 
     private final Function<Player, BukkitPlayer> playerConstructor;
+    private final Function<OfflinePlayer, BukkitOfflinePlayer> offlinePlayerConstructor;
 
-    public BukkitPlayerProvider(BukkitDiscordSRV discordSRV, Function<Player, BukkitPlayer> playerConstructor) {
+    public BukkitPlayerProvider(
+            BukkitDiscordSRV discordSRV,
+            Function<Player, BukkitPlayer> playerConstructor,
+            Function<OfflinePlayer, BukkitOfflinePlayer> offlinePlayerConstructor
+    ) {
         super(discordSRV);
         this.playerConstructor = playerConstructor;
+        this.offlinePlayerConstructor = offlinePlayerConstructor;
     }
 
     // IPlayer
@@ -105,7 +111,7 @@ public class BukkitPlayerProvider extends ServerPlayerProvider<BukkitPlayer, Buk
                 return null;
             }
 
-            return new BukkitOfflinePlayer(discordSRV, offlinePlayer);
+            return offlinePlayer(offlinePlayer);
         });
     }
 
@@ -131,6 +137,6 @@ public class BukkitPlayerProvider extends ServerPlayerProvider<BukkitPlayer, Buk
     }
 
     public IOfflinePlayer offlinePlayer(OfflinePlayer offlinePlayer) {
-        return new BukkitOfflinePlayer(discordSRV, offlinePlayer);
+        return offlinePlayerConstructor.apply(offlinePlayer);
     }
 }

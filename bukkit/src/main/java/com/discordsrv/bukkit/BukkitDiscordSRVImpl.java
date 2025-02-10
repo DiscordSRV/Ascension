@@ -26,6 +26,7 @@ import com.discordsrv.bukkit.component.PaperComponentHandle;
 import com.discordsrv.bukkit.config.main.BukkitConfig;
 import com.discordsrv.bukkit.console.BukkitConsole;
 import com.discordsrv.bukkit.listener.*;
+import com.discordsrv.bukkit.player.BukkitOfflinePlayerImpl;
 import com.discordsrv.bukkit.player.BukkitPlayerImpl;
 import com.discordsrv.bukkit.player.BukkitPlayerProvider;
 import com.discordsrv.bukkit.requiredlinking.BukkitRequiredLinkingModule;
@@ -67,7 +68,11 @@ public class BukkitDiscordSRVImpl extends BukkitDiscordSRV {
         this.executionHelper = ReflectionUtil.methodExists(CommandMap.class, "getKnownCommands", new Class[0])
                                ? new PaperGameCommandExecutionHelper(this)
                                : new BukkitGameCommandExecutionHelper(this);
-        this.playerProvider = new BukkitPlayerProvider(this, player -> new BukkitPlayerImpl(this, player));
+        this.playerProvider = new BukkitPlayerProvider(
+                this,
+                player -> new BukkitPlayerImpl(this, player),
+                offlinePlayer -> new BukkitOfflinePlayerImpl(this, offlinePlayer)
+        );
         this.console = new BukkitConsole(this);
 
         // Config

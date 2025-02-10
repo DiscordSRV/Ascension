@@ -49,9 +49,7 @@ import com.discordsrv.common.feature.messageforwarding.game.MinecraftToDiscordCh
 import com.discordsrv.common.permission.game.Permission;
 import dev.vankka.dependencydownload.classpath.ClasspathAppender;
 import net.kyori.adventure.audience.Audience;
-import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.jetbrains.annotations.NotNull;
-import org.junit.jupiter.api.Assumptions;
 
 import java.io.IOException;
 import java.nio.file.Files;
@@ -302,9 +300,7 @@ public class MockDiscordSRV extends AbstractDiscordSRV<IBootstrap, MainConfig, C
             threadConfigs.add(new ThreadConfig() {{
                 channelId = mediaChannelId;
             }});
-        } catch (NumberFormatException e) {
-            Assumptions.abort("ID parsing failed:\n" + ExceptionUtils.getStackTrace(e));
-        }
+        } catch (NumberFormatException ignored) {}
 
         return config;
     }

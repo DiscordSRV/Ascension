@@ -85,7 +85,9 @@ public class FabricPlayer extends FabricCommandSender implements IPlayer {
         if (!textures.equals(MinecraftProfileTextures.EMPTY) && textures.skin() != null) {
             String model = textures.skin().getMetadata("model");
             if (model == null) model = "classic";
-            return new SkinInfo(textures.skin().getHash(), model);
+
+            int playerModelParts = player.getClientOptions().playerModelParts();
+            return new SkinInfo(textures.skin().getHash(), model, new SkinInfo.Parts(playerModelParts));
         }
         return null;
     }

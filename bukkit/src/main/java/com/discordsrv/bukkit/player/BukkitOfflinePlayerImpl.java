@@ -19,36 +19,28 @@
 package com.discordsrv.bukkit.player;
 
 import com.discordsrv.bukkit.BukkitDiscordSRV;
-import com.discordsrv.common.DiscordSRV;
-import com.discordsrv.common.abstraction.player.IOfflinePlayer;
-import net.kyori.adventure.identity.Identity;
+import com.discordsrv.common.abstraction.player.provider.model.SkinInfo;
 import org.bukkit.OfflinePlayer;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
-public abstract class BukkitOfflinePlayer implements IOfflinePlayer {
+public class BukkitOfflinePlayerImpl extends BukkitOfflinePlayer {
 
-    protected final BukkitDiscordSRV discordSRV;
-    protected final OfflinePlayer offlinePlayer;
-    private final Identity identity;
-
-    public BukkitOfflinePlayer(BukkitDiscordSRV discordSRV, @NotNull OfflinePlayer offlinePlayer) {
-        this.discordSRV = discordSRV;
-        this.offlinePlayer = offlinePlayer;
-        this.identity = Identity.identity(offlinePlayer.getUniqueId());
+    public BukkitOfflinePlayerImpl(
+            BukkitDiscordSRV discordSRV,
+            @NotNull OfflinePlayer offlinePlayer
+    ) {
+        super(discordSRV, offlinePlayer);
     }
 
     @Override
-    public DiscordSRV discordSRV() {
-        return discordSRV;
-    }
-
-    @Override
-    public String username() {
-        return offlinePlayer.getName();
-    }
-
-    @Override
-    public @NotNull Identity identity() {
-        return identity;
+    public @Nullable SkinInfo skinInfo() {
+        if (PaperPlayerUtil.SKIN_AVAILABLE) {
+            return PaperPlayerUtil.getSkinInfo(offlinePlayer);
+        }
+        if (SpigotPlayerUtil.SKIN_AVAILABLE) {
+            return SpigotPlayerUtil.getSkinInfo(offlinePlayer);
+        }
+        return null;
     }
 }
