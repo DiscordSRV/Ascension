@@ -756,51 +756,44 @@ public abstract class AbstractDiscordSRV<
         boolean configUpgrade = flags.contains(ReloadFlag.CONFIG_UPGRADE);
 
         if (flags.contains(ReloadFlag.CONFIG) || configUpgrade) {
-            try {
-                Path backupPath = null;
-                if (configUpgrade) {
-                    backupPath = generateBackupPath();
-                }
-
-                AtomicBoolean anyMissingOptions = new AtomicBoolean(false);
-                connectionConfigManager().reload(configUpgrade, anyMissingOptions, backupPath);
-                configManager().reload(configUpgrade, anyMissingOptions, backupPath);
-                messagesConfigManager().reload(configUpgrade, anyMissingOptions, backupPath);
-
-                if (anyMissingOptions.get()) {
-                    if (config().automaticConfigurationUpgrade) {
-                        logger().info("Some configuration options are missing, attempting to upgrade configuration...");
-
-                        if (backupPath == null) {
-                            backupPath = generateBackupPath();
-                        }
-                        AtomicBoolean stillMissingOptions = new AtomicBoolean(false);
-
-                        connectionConfigManager().reload(true, stillMissingOptions, backupPath);
-                        configManager().reload(true, stillMissingOptions, backupPath);
-                        messagesConfigManager().reload(true, stillMissingOptions, backupPath);
-
-                        if (stillMissingOptions.get()) {
-                            logger().warning("Attempted to upgrade configuration automatically, but some options are still missing.");
-                        } else {
-                            logger().info("Configuration successfully upgraded");
-                        }
-                    } else if (configUpgrade) {
-                        logger().warning("Attempted to upgrade configuration by reload command, but some options are still missing.");
-                    } else {
-                        logger().info("Use \"/discordsrv reload config_upgrade\" to write the latest configuration");
-                        logger().info("Or set \"automatic-configuration-upgrade\" to true in the config to automatically upgrade the configuration on startup or reload");
-                    }
-                }
-
-                channelConfig().reload();
-                createHttpClient();
-            } catch (Throwable t) {
-                if (initial) {
-                    setStatus(Status.FAILED_TO_LOAD_CONFIG);
-                }
-                throw t;
+            Path backupPath = null;
+            if (configUpgrade) {
+                backupPath = generateBackupPath();
             }
+
+            AtomicBoolean anyMissingOptions = new AtomicBoolean(false);
+            connectionConfigManager().reload(configUpgrade, anyMissingOptions, backupPath);
+            configManager().reload(configUpgrade, anyMissingOptions, backupPath);
+            messagesConfigManager().reload(configUpgrade, anyMissingOptions, backupPath);
+
+            if (anyMissingOptions.get()) {
+                if (config().automaticConfigurationUpgrade) {
+                    logger().info("Some configuration options are missing, attempting to upgrade configuration...");
+
+                    if (backupPath == null) {
+                        backupPath = generateBackupPath();
+                    }
+                    AtomicBoolean stillMissingOptions = new AtomicBoolean(false);
+
+                    connectionConfigManager().reload(true, stillMissingOptions, backupPath);
+                    configManager().reload(true, stillMissingOptions, backupPath);
+                    messagesConfigManager().reload(true, stillMissingOptions, backupPath);
+
+                    if (stillMissingOptions.get()) {
+                        logger().warning("Attempted to upgrade configuration automatically, but some options are still missing.");
+                    } else {
+                        logger().info("Configuration successfully upgraded");
+                    }
+                } else if (configUpgrade) {
+                    logger().warning("Attempted to upgrade configuration by reload command, but some options are still missing.");
+                } else {
+                    logger().info("Use \"/discordsrv reload config_upgrade\" to write the latest configuration");
+                    logger().info("Or set \"automatic-configuration-upgrade\" to true in the config to automatically upgrade the configuration on startup or reload");
+                }
+            }
+
+            channelConfig().reload();
+            createHttpClient();
         }
 
         List<ReloadResult> results = new ArrayList<>();
@@ -819,6 +812,7 @@ public abstract class AbstractDiscordSRV<
                 logger().info("");
             }
             discordConnectionManager.invalidToken(true);
+            setStatus(Status.NOT_CONFIGURED);
             results.add(ReloadResult.DEFAULT_BOT_TOKEN);
             return results;
         }

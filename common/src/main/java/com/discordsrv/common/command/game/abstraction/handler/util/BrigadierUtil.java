@@ -18,12 +18,14 @@
 
 package com.discordsrv.common.command.game.abstraction.handler.util;
 
+import com.discordsrv.common.DiscordSRV;
 import com.discordsrv.common.command.game.abstraction.command.GameCommand;
 import com.discordsrv.common.command.game.abstraction.command.GameCommandArguments;
 import com.discordsrv.common.command.game.abstraction.command.GameCommandExecutor;
 import com.discordsrv.common.command.game.abstraction.command.GameCommandSuggester;
 import com.discordsrv.common.command.game.abstraction.sender.ICommandSender;
 import com.discordsrv.common.permission.game.Permission;
+import com.discordsrv.common.util.CommandUtil;
 import com.mojang.brigadier.Command;
 import com.mojang.brigadier.arguments.*;
 import com.mojang.brigadier.builder.ArgumentBuilder;
@@ -48,12 +50,12 @@ public final class BrigadierUtil {
 
     private BrigadierUtil() {}
 
-    public static <S> LiteralCommandNode<S> convertToBrigadier(GameCommand command, Function<S, ICommandSender> commandSenderMapper) {
-        return (LiteralCommandNode<S>) convert(command, commandSenderMapper);
+    public static <S> LiteralCommandNode<S> convertToBrigadier(DiscordSRV discordSRV, GameCommand command, Function<S, ICommandSender> commandSenderMapper) {
+        return (LiteralCommandNode<S>) convert(discordSRV, command, commandSenderMapper);
     }
 
     @SuppressWarnings("unchecked")
-    private static <S> CommandNode<S> convert(GameCommand commandBuilder, Function<S, ICommandSender> commandSenderMapper) {
+    private static <S> CommandNode<S> convert(DiscordSRV discordSRV, GameCommand commandBuilder, Function<S, ICommandSender> commandSenderMapper) {
         CommandNode<S> alreadyConverted = (CommandNode<S>) CACHE.get(commandBuilder);
         if (alreadyConverted != null) {
             return alreadyConverted;
@@ -74,12 +76,12 @@ public final class BrigadierUtil {
         }
 
         for (GameCommand child : commandBuilder.getChildren()) {
-            argumentBuilder.then(convert(child, commandSenderMapper));
+            argumentBuilder.then(convert(discordSRV, child, commandSenderMapper));
         }
         if (redirection != null) {
             CommandNode<S> redirectNode = (CommandNode<S>) CACHE.get(redirection);
             if (redirectNode == null) {
-                redirectNode = convert(redirection, commandSenderMapper);
+                redirectNode = convert(discordSRV, redirection, commandSenderMapper);
             }
             argumentBuilder.redirect(redirectNode);
         }
@@ -92,8 +94,11 @@ public final class BrigadierUtil {
         }
         if (executor != null) {
             argumentBuilder.executes(context -> {
+                ICommandSender commandSender = commandSenderMapper.apply(context.getSource());
+                CommandUtil.basicStatusCheck(discordSRV, commandSender);
+
                 executor.execute(
-                        commandSenderMapper.apply(context.getSource()),
+                        commandSender,
                         getArgumentMapper(context),
                         label
                 );

@@ -143,8 +143,8 @@ public class JDAConnectionManager implements DiscordConnectionManager {
     @Subscribe
     public void onStatusChange(StatusChangeEvent event) {
         DiscordSRV.Status currentStatus = discordSRV.status();
-        if (currentStatus.isShutdown() || currentStatus.isStartupError()) {
-            // Don't change the status if it's shutdown or failed to start
+        if (currentStatus.isShutdown()) {
+            // Don't change the status if it's shutdown
             return;
         }
 

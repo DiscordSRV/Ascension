@@ -41,6 +41,7 @@ public class BukkitBasicCommandHandler extends BasicCommandHandler implements IC
     protected final Logger logger;
 
     public BukkitBasicCommandHandler(BukkitDiscordSRV discordSRV) {
+        super(discordSRV);
         this.discordSRV = discordSRV;
         this.logger = new NamedLogger(discordSRV, "COMMAND_HANDLER");
     }

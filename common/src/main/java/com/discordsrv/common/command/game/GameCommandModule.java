@@ -42,7 +42,7 @@ public class GameCommandModule extends AbstractModule<DiscordSRV> {
 
     @Override
     public boolean canEnableBeforeReady() {
-        // Can enable after JDA starts attempting to connect
+        // Can enable after JDA starts attempting to connect or if startup fails
         return discordSRV.config() != null && discordSRV.status() != DiscordSRVApi.Status.INITIALIZED;
     }
 
