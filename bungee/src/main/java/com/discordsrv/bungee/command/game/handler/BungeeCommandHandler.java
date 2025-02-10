@@ -38,6 +38,7 @@ public class BungeeCommandHandler extends BasicCommandHandler {
     private final BungeeDiscordSRV discordSRV;
 
     public BungeeCommandHandler(BungeeDiscordSRV discordSRV) {
+        super(discordSRV);
         this.discordSRV = discordSRV;
     }
 
