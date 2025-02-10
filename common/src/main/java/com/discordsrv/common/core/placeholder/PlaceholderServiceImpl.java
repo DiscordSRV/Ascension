@@ -30,6 +30,7 @@ import com.discordsrv.common.DiscordSRV;
 import com.discordsrv.common.core.logging.Logger;
 import com.discordsrv.common.core.logging.NamedLogger;
 import com.discordsrv.common.core.placeholder.provider.AnnotationPlaceholderProvider;
+import com.discordsrv.common.helper.Timeout;
 import com.github.benmanes.caffeine.cache.CacheLoader;
 import com.github.benmanes.caffeine.cache.LoadingCache;
 import org.apache.commons.lang3.StringUtils;
@@ -40,6 +41,7 @@ import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.lang.reflect.Parameter;
+import java.time.Duration;
 import java.util.*;
 import java.util.concurrent.CopyOnWriteArraySet;
 import java.util.concurrent.TimeUnit;
@@ -54,6 +56,7 @@ public class PlaceholderServiceImpl implements PlaceholderService {
     private final LoadingCache<Class<?>, Set<PlaceholderProvider>> classProviders;
     private final Set<PlaceholderResultMapper> mappers = new CopyOnWriteArraySet<>();
     private final Set<Object> globalContext = new CopyOnWriteArraySet<>();
+    private final Timeout errorLogTimeout = new Timeout(Duration.ofSeconds(20));
 
     public PlaceholderServiceImpl(DiscordSRV discordSRV) {
         this.discordSRV = discordSRV;
@@ -252,7 +255,11 @@ public class PlaceholderServiceImpl implements PlaceholderService {
                         replacement = "Unavailable";
                         break;
                     case LOOKUP_FAILED:
-                        logger.trace("Lookup failed", result.getError());
+                        if (errorLogTimeout.checkAndUpdate()) {
+                            logger.debug("Failed to resolve placeholder \"" + placeholder + "\"", result.getError());
+                        } else {
+                            logger.trace("Failed to resolve placeholder \"" + placeholder + "\"", result.getError());
+                        }
                         replacement = "Error";
                         break;
                     case NEW_LOOKUP:
