@@ -66,8 +66,7 @@ public class DeathMessageModule extends AbstractGameMessageModule<DeathMessageCo
             SendableDiscordMessage.Formatter formatter
     ) {
         MinecraftComponent messageComponent = event.getMessage();
-        formatter
-                .addPlaceholder("message", ComponentUtil.fromAPI(messageComponent));
+        formatter.addPlaceholder("message", ComponentUtil.fromAPI(messageComponent));
     }
 
 }

@@ -34,7 +34,6 @@ public class ServerSwitchMessageConfig implements IMessageConfig {
 
     public Boolean enabled = false;
 
-
     @Untranslated(Untranslated.Type.VALUE)
     public SendableDiscordMessage.Builder format = SendableDiscordMessage.builder()
             .addEmbed(

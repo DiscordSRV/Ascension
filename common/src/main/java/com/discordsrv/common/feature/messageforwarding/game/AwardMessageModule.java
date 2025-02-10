@@ -27,7 +27,6 @@ import com.discordsrv.api.eventbus.EventPriorities;
 import com.discordsrv.api.eventbus.Subscribe;
 import com.discordsrv.api.events.message.forward.game.AwardMessageForwardedEvent;
 import com.discordsrv.api.events.message.receive.game.AwardMessageReceiveEvent;
-import com.discordsrv.api.placeholder.provider.SinglePlaceholder;
 import com.discordsrv.api.player.DiscordSRVPlayer;
 import com.discordsrv.common.DiscordSRV;
 import com.discordsrv.common.config.main.channels.base.BaseChannelConfig;
