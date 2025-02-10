@@ -69,7 +69,6 @@ public class ServerSwitchMessageModule extends AbstractGameMessageModule<ServerS
         MinecraftComponent messageComponent = event.getMessage();
         Component message = messageComponent != null ? ComponentUtil.fromAPI(messageComponent) : null;
 
-        formatter
-                .addPlaceholder("message", message);
+        formatter.addPlaceholder("message", message);
     }
 }
