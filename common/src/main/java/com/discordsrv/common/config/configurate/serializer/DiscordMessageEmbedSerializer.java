@@ -21,7 +21,6 @@ package com.discordsrv.common.config.configurate.serializer;
 import com.discordsrv.api.color.Color;
 import com.discordsrv.api.discord.entity.message.DiscordMessageEmbed;
 import com.discordsrv.common.config.configurate.manager.abstraction.ConfigurateConfigManager;
-import net.dv8tion.jda.api.entities.Role;
 import org.jetbrains.annotations.Nullable;
 import org.spongepowered.configurate.ConfigurationNode;
 import org.spongepowered.configurate.serialize.SerializationException;
@@ -29,6 +28,7 @@ import org.spongepowered.configurate.serialize.TypeSerializer;
 import org.spongepowered.configurate.util.NamingScheme;
 
 import java.lang.reflect.Type;
+import java.time.OffsetDateTime;
 import java.util.Collections;
 import java.util.List;
 
@@ -57,7 +57,12 @@ public class DiscordMessageEmbedSerializer implements TypeSerializer<DiscordMess
         DiscordMessageEmbed.Builder builder = DiscordMessageEmbed.builder();
 
         Color color = node.node(map("Color")).get(Color.class);
-        builder.setColor(color != null ? color.rgb() : Role.DEFAULT_COLOR_RAW);
+        if (color == null) {
+            String unformattedColor = node.node(map("Color")).getString();
+            builder.setUnformattedColor(unformattedColor);
+        } else {
+            builder.setColor(color);
+        }
 
         ConfigurationNode author = node.node(map("Author"));
         builder.setAuthor(
@@ -78,7 +83,13 @@ public class DiscordMessageEmbedSerializer implements TypeSerializer<DiscordMess
         builder.setThumbnailUrl(node.node(map("ThumbnailUrl")).getString());
         builder.setImageUrl(node.node(map("ImageUrl")).getString());
 
-        // TODO: timestamp
+        OffsetDateTime timestamp = node.node(map("Timestamp")).get(OffsetDateTime.class);
+        if (timestamp == null) {
+            String unformattedTimestamp = node.node(map("Timestamp")).getString();
+            builder.setUnformattedTimestamp(unformattedTimestamp);
+        } else {
+            builder.setTimestamp(timestamp);
+        }
 
         ConfigurationNode footer = node.node(map("Footer"));
         builder.setFooter(
@@ -100,7 +111,11 @@ public class DiscordMessageEmbedSerializer implements TypeSerializer<DiscordMess
             return;
         }
 
-        node.node(map("Color")).set(obj.getColor());
+        if (obj.getUnformattedColor() != null) {
+            node.node(map("Color")).set(obj.getUnformattedColor());
+        } else {
+            node.node(map("Color")).set(obj.getColor());
+        }
 
         ConfigurationNode author = node.node(map("Author"));
         author.node(map("Name")).set(obj.getAuthorName());
@@ -119,6 +134,12 @@ public class DiscordMessageEmbedSerializer implements TypeSerializer<DiscordMess
 
         node.node(map("ThumbnailUrl")).set(obj.getThumbnailUrl());
         node.node(map("ImageUrl")).set(obj.getImageUrl());
+
+        if (obj.getUnformattedTimestamp() != null) {
+            node.node(map("Timestamp")).set(obj.getUnformattedTimestamp());
+        } else {
+            node.node(map("Timestamp")).set(obj.getTimestamp());
+        }
 
         ConfigurationNode footer = node.node(map("Footer"));
         footer.node(map("Text")).set(obj.getFooter());

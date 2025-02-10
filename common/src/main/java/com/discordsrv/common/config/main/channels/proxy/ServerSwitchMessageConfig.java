@@ -43,7 +43,8 @@ public class ServerSwitchMessageConfig implements IMessageConfig {
                                     null,
                                     "%player_avatar_url%"
                             )
-                            .setColor(0x5555FF)
+                            .setColor(0xFFFF55)
+                            .setUnformattedTimestamp("%now_time%")
                             .build()
             );
 

@@ -24,6 +24,7 @@
 package com.discordsrv.api.events.message.receive.game;
 
 import com.discordsrv.api.channel.GameChannel;
+import com.discordsrv.api.color.Color;
 import com.discordsrv.api.component.MinecraftComponent;
 import com.discordsrv.api.eventbus.EventPriorities;
 import com.discordsrv.api.events.PlayerEvent;
@@ -40,6 +41,8 @@ public class AwardMessageReceiveEvent extends AbstractGameMessageReceiveEvent im
     private final DiscordSRVPlayer player;
     private MinecraftComponent name;
     private MinecraftComponent title;
+    private MinecraftComponent description;
+    private AdvancementFrame frame;
     private GameChannel gameChannel;
 
     public AwardMessageReceiveEvent(
@@ -47,6 +50,8 @@ public class AwardMessageReceiveEvent extends AbstractGameMessageReceiveEvent im
             @NotNull DiscordSRVPlayer player,
             @Nullable MinecraftComponent name,
             @Nullable MinecraftComponent title,
+            @Nullable MinecraftComponent description,
+            @Nullable AdvancementFrame frame,
             @Nullable GameChannel gameChannel,
             boolean cancelled
     ) {
@@ -54,6 +59,8 @@ public class AwardMessageReceiveEvent extends AbstractGameMessageReceiveEvent im
         this.player = player;
         this.name = name;
         this.title = title;
+        this.description = description;
+        this.frame = frame;
         this.gameChannel = gameChannel;
     }
 
@@ -81,6 +88,23 @@ public class AwardMessageReceiveEvent extends AbstractGameMessageReceiveEvent im
         this.title = title;
     }
 
+    @Nullable
+    public MinecraftComponent getDescription() {
+        return description;
+    }
+
+    public void setDescription(@Nullable MinecraftComponent description) {
+        this.description = description;
+    }
+
+    @Nullable public AdvancementFrame getFrame() {
+        return frame;
+    }
+
+    public void setFrame(@Nullable AdvancementFrame frame) {
+        this.frame = frame;
+    }
+
     public GameChannel getGameChannel() {
         return gameChannel;
     }
@@ -95,5 +119,27 @@ public class AwardMessageReceiveEvent extends AbstractGameMessageReceiveEvent im
                 + "player=" + player + ", "
                 + "gameChannel=" + GameChannel.toString(gameChannel)
                 + '}';
+    }
+
+    public enum AdvancementFrame {
+        TASK("task", new Color(0x55FF55)), // Green
+        GOAL("goal", new Color(0x55FF55)), // Green
+        CHALLENGE("challenge", new Color(0xAA00AA)); // Dark Purple
+
+        private final String name;
+        private final Color color;
+
+        AdvancementFrame(String id, Color color) {
+            this.name = id;
+            this.color = color;
+        }
+
+        public String id() {
+            return name;
+        }
+
+        public Color color() {
+            return color;
+        }
     }
 }

@@ -88,6 +88,7 @@ public class JoinMessageConfig implements IMessageConfig {
                         DiscordMessageEmbed.builder()
                                 .setAuthor("%player_display_name% joined for the first time", null, "%player_avatar_url%")
                                 .setColor(0xFFAA00)
+                                .setUnformattedTimestamp("%now_time%")
                                 .build()
                 );
 

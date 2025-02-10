@@ -40,6 +40,7 @@ public class Color {
     public static final Color BLURPLE = new Color(0x5865F2);
     public static final Color WHITE = new Color(0xFFFFFF);
     public static final Color BLACK = new Color(0);
+    public static final Color DEFAULT = WHITE;
 
     private final int rgb;
 

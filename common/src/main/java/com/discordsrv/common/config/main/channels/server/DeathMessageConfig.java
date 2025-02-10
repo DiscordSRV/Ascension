@@ -39,7 +39,8 @@ public class DeathMessageConfig implements IMessageConfig {
             .addEmbed(
                     DiscordMessageEmbed.builder()
                             .setAuthor("%message%", null, "%player_avatar_url%")
-                            .setColor(1)
+                            .setColor(0xFF0000)
+                            .setUnformattedTimestamp("%now_time%")
                             .build()
             );
 

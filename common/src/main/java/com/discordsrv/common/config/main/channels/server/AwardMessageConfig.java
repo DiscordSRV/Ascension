@@ -43,7 +43,9 @@ public class AwardMessageConfig implements IMessageConfig {
                                     null,
                                     "%player_avatar_url%"
                             )
-                            .setColor(1)
+                            .setDescription("%award_description%")
+                            .setUnformattedColor("%award_color_hex%")
+                            .setUnformattedTimestamp("%now_time%")
                             .build()
             );
 

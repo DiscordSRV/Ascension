@@ -43,6 +43,7 @@ public class LeaveMessageConfig implements IMessageConfig {
                     DiscordMessageEmbed.builder()
                             .setAuthor("%player_display_name% left", null, "%player_avatar_url%")
                             .setColor(0xFF5555)
+                            .setUnformattedTimestamp("%now_time%")
                             .build()
             );
 

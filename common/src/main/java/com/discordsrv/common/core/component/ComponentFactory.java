@@ -57,9 +57,12 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.HashSet;
 import java.util.Set;
+import java.util.regex.Pattern;
 
 public class ComponentFactory implements MinecraftComponentFactory {
 
+    private static final String TRANSLATION_KEY_REGEX = ".+\\..+";
+    private static final Pattern TRANSLATION_KEY_PATTERN = Pattern.compile(TRANSLATION_KEY_REGEX);
     public static final Class<?> UNRELOCATED_ADVENTURE_COMPONENT;
 
     static {
@@ -122,6 +125,12 @@ public class ComponentFactory implements MinecraftComponentFactory {
 
         Translation translation = translationRegistry.lookup(discordSRV.defaultLocale(), key);
         if (translation == null) {
+            // To support datapacks and other mods that don't provide translations but for some reason use the translation component
+            // We check if the key is following the pattern of a translation key. Which is "key.subkey" or "key.subkey.subsubkey" etc.
+            if (!TRANSLATION_KEY_PATTERN.matcher(key).matches()) {
+                return key;
+            }
+
             return null;
         }
 

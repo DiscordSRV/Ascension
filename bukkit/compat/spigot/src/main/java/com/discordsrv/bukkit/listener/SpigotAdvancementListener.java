@@ -64,7 +64,8 @@ public class SpigotAdvancementListener extends AbstractBukkitListener<PlayerAdva
             return;
         }
 
-        MinecraftComponent title = ComponentUtil.toAPI(BukkitComponentSerializer.legacy().deserialize(display.getTitle())) ;
+        MinecraftComponent title = ComponentUtil.toAPI(BukkitComponentSerializer.legacy().deserialize(display.getTitle()));
+        MinecraftComponent description = ComponentUtil.toAPI(BukkitComponentSerializer.legacy().deserialize(display.getDescription()));
         IPlayer srvPlayer = discordSRV.playerProvider().player(event.getPlayer());
         discordSRV.eventBus().publish(
                 new AwardMessageReceiveEvent(
@@ -72,6 +73,8 @@ public class SpigotAdvancementListener extends AbstractBukkitListener<PlayerAdva
                         srvPlayer,
                         null,
                         title,
+                        description,
+                        AwardMessageReceiveEvent.AdvancementFrame.valueOf(display.getType().toString()),
                         null,
                         false
                 )

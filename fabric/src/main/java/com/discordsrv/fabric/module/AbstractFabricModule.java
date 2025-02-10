@@ -18,6 +18,7 @@
 
 package com.discordsrv.fabric.module;
 
+import com.discordsrv.common.core.logging.Logger;
 import com.discordsrv.common.core.module.type.AbstractModule;
 import com.discordsrv.fabric.FabricDiscordSRV;
 
@@ -27,6 +28,10 @@ public abstract class AbstractFabricModule extends AbstractModule<FabricDiscordS
 
     public AbstractFabricModule(FabricDiscordSRV discordSRV) {
         super(discordSRV);
+    }
+
+    public AbstractFabricModule(FabricDiscordSRV discordSRV, Logger logger) {
+        super(discordSRV, logger);
     }
 
     @Override
