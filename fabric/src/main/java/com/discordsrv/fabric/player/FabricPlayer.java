@@ -21,12 +21,11 @@ package com.discordsrv.fabric.player;
 import com.discordsrv.common.DiscordSRV;
 import com.discordsrv.common.abstraction.player.IPlayer;
 import com.discordsrv.common.abstraction.player.provider.model.SkinInfo;
+import com.discordsrv.common.abstraction.player.provider.model.Textures;
 import com.discordsrv.fabric.FabricDiscordSRV;
 import com.discordsrv.fabric.command.game.sender.FabricCommandSender;
-import com.mojang.authlib.minecraft.MinecraftProfileTextures;
 import net.kyori.adventure.identity.Identity;
 import net.kyori.adventure.text.Component;
-import net.minecraft.network.packet.s2c.play.ChatSuggestionsS2CPacket;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.text.Text;
 import org.jetbrains.annotations.NotNull;
@@ -36,6 +35,10 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Locale;
 import java.util.concurrent.CompletableFuture;
+
+//? if minecraft: >1.19 {
+import net.minecraft.network.packet.s2c.play.ChatSuggestionsS2CPacket;
+//?}
 
 public class FabricPlayer extends FabricCommandSender implements IPlayer {
 
@@ -74,25 +77,27 @@ public class FabricPlayer extends FabricCommandSender implements IPlayer {
 
     @Override
     public void addChatSuggestions(Collection<String> suggestions) {
+        //? if minecraft: >1.19 {
         ChatSuggestionsS2CPacket packet = new ChatSuggestionsS2CPacket(ChatSuggestionsS2CPacket.Action.ADD, new ArrayList<>(suggestions));
         player.networkHandler.sendPacket(packet);
+        //?}
     }
 
     @Override
     public void removeChatSuggestions(Collection<String> suggestions) {
+        //? if minecraft: >1.19 {
         ChatSuggestionsS2CPacket packet = new ChatSuggestionsS2CPacket(ChatSuggestionsS2CPacket.Action.REMOVE, new ArrayList<>(suggestions));
         player.networkHandler.sendPacket(packet);
+        //?}
     }
 
     @Override
     public @Nullable SkinInfo skinInfo() {
-        MinecraftProfileTextures textures = discordSRV.getServer().getSessionService().getTextures(player.getGameProfile());
-        if (!textures.equals(MinecraftProfileTextures.EMPTY) && textures.skin() != null) {
-            String model = textures.skin().getMetadata("model");
-            if (model == null) model = "classic";
-            return new SkinInfo(textures.skin().getHash(), model);
-        }
-        return null;
+        //? if minecraft: >1.20.1 {
+        return Textures.getFromBase64(discordSRV, player.getGameProfile().getProperties().get(Textures.KEY).iterator().next().value()).getSkinInfo();
+        //?} else {
+        /*return Textures.getFromBase64(discordSRV, player.getGameProfile().getProperties().get(Textures.KEY).iterator().next().getValue()).getSkinInfo();
+        *///?}
     }
 
     @Override
