@@ -428,7 +428,7 @@ public class SendableDiscordMessageImpl implements SendableDiscordMessage {
                 try {
                     color = new Color(formattedColorHex);
                 } catch (Throwable ignored) {}
-                embedBuilder.setColor(color != null ? color : Color.DEFAULT);
+                embedBuilder.setColor(color);
 
                 embedBuilder.setAuthor(
                         cutToLength(
