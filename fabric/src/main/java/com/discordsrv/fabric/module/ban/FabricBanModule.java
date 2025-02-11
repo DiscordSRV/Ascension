@@ -22,6 +22,7 @@ import com.discordsrv.api.component.MinecraftComponent;
 import com.discordsrv.api.module.type.PunishmentModule;
 import com.discordsrv.api.punishment.Punishment;
 import com.discordsrv.common.abstraction.player.IPlayer;
+import com.discordsrv.common.core.logging.NamedLogger;
 import com.discordsrv.common.feature.bansync.BanSyncModule;
 import com.discordsrv.common.util.ComponentUtil;
 import com.discordsrv.fabric.FabricDiscordSRV;
@@ -48,7 +49,7 @@ public class FabricBanModule extends AbstractFabricModule implements PunishmentM
     private static FabricBanModule instance;
 
     public FabricBanModule(FabricDiscordSRV discordSRV) {
-        super(discordSRV);
+        super(discordSRV, new NamedLogger(discordSRV, "BAN_MODULE"));
 
         instance = this;
     }
