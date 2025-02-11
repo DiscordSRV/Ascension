@@ -32,11 +32,11 @@ jobs:
           DISCORDSRV_AUTOTEST_MEDIA_ID: ${{ secrets.DISCORDSRV_AUTOTEST_MEDIA_ID }}
           DISCORDSRV_AUTOTEST_STAGE_ID: ${{ secrets.DISCORDSRV_AUTOTEST_STAGE_ID }}
       - name: Upload Build Artifacts
-        if: github.event_name == "push"
+        if: github.event_name == 'push'
         uses: actions/upload-artifact@v4
         with:
           name: build-artifacts
           path: "jars/*.jar"
       - name: Generate and submit dependency graph
-        if: github.event_name == "push"
+        if: github.event_name == 'push'
         uses: gradle/actions/dependency-submission@v4
