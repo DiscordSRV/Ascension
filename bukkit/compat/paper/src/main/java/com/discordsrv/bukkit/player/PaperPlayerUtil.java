@@ -38,12 +38,15 @@ public final class PaperPlayerUtil {
     private PaperPlayerUtil() {}
 
     private static final PaperComponentHandle.Set<Player> KICK_HANDLE =
-            PaperComponentHandle.set(Player.class, "kick");
+            PaperComponentHandle.setOrNull(Player.class, "kick");
 
     /**
      * @see com.discordsrv.bukkit.component.PaperComponentHandle#IS_AVAILABLE
      */
     public static void kick(Player player, MinecraftComponent component) {
+        if (KICK_HANDLE == null) {
+            throw new IllegalStateException("Kick handle not available");
+        }
         KICK_HANDLE.call(player, component);
     }
 

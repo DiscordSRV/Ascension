@@ -107,7 +107,7 @@ public class ModuleManager {
             return bestCandidate;
         });
 
-        if (getAbstract(resolvedModule).isCurrentlyDisabled()) {
+        if (resolvedModule == null || getAbstract(resolvedModule).isCurrentlyDisabled()) {
             return null;
         }
         return resolvedModule;
