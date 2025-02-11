@@ -48,6 +48,7 @@ public class DiscordMessageEmbed {
     }
 
     private final Color color;
+    private final String unformattedColor;
     private final String authorName, authorUrl, authorImageUrl;
     private final String title, titleUrl;
     private final String description;
@@ -55,6 +56,7 @@ public class DiscordMessageEmbed {
     private final String thumbnailUrl;
     private final String imageUrl;
     private final OffsetDateTime timestamp;
+    private final String unformattedTimestamp;
     private final String footer, footerImageUrl;
 
     public DiscordMessageEmbed(MessageEmbed embed) {
@@ -69,6 +71,7 @@ public class DiscordMessageEmbed {
         }
 
         this.color = new Color(embed.getColorRaw());
+        this.unformattedColor = String.valueOf(embed.getColorRaw());
         this.authorName = author != null ? author.getName(): null;
         this.authorUrl = author != null ? author.getUrl() : null;
         this.authorImageUrl = author != null ? author.getIconUrl() : null;
@@ -79,14 +82,16 @@ public class DiscordMessageEmbed {
         this.thumbnailUrl = thumbnail != null ? thumbnail.getUrl() : null;
         this.imageUrl = image != null ? image.getUrl() : null;
         this.timestamp = embed.getTimestamp();
+        this.unformattedTimestamp = embed.getTimestamp() != null ? embed.getTimestamp().toString() : null;
         this.footer = footer != null ? footer.getText() : null;
         this.footerImageUrl = footer != null ? footer.getIconUrl() : null;
     }
 
-    public DiscordMessageEmbed(Color color, String authorName, String authorUrl, String authorAvatarUrl, String title,
+    public DiscordMessageEmbed(Color color, String unformattedColor, String authorName, String authorUrl, String authorAvatarUrl, String title,
                                String titleUrl, String description, List<Field> fields, String thumbnailUrl,
-                               String imageUrl, OffsetDateTime timestamp, String footer, String footerImageUrl) {
+                               String imageUrl, OffsetDateTime timestamp, String unformattedTimestamp, String footer, String footerImageUrl) {
         this.color = color;
+        this.unformattedColor = unformattedColor;
         this.authorName = authorName;
         this.authorUrl = authorUrl;
         this.authorImageUrl = authorAvatarUrl;
@@ -97,6 +102,7 @@ public class DiscordMessageEmbed {
         this.thumbnailUrl = thumbnailUrl;
         this.imageUrl = imageUrl;
         this.timestamp = timestamp;
+        this.unformattedTimestamp = unformattedTimestamp;
         this.footer = footer;
         this.footerImageUrl = footerImageUrl;
     }
@@ -104,6 +110,11 @@ public class DiscordMessageEmbed {
     @Nullable
     public Color getColor() {
         return color;
+    }
+
+    @Nullable
+    public String getUnformattedColor() {
+        return unformattedColor;
     }
 
     @Nullable
@@ -154,6 +165,11 @@ public class DiscordMessageEmbed {
     @Nullable
     public OffsetDateTime getTimestamp() {
         return timestamp;
+    }
+
+    @Nullable
+    public String getUnformattedTimestamp() {
+        return unformattedTimestamp;
     }
 
     @Nullable
@@ -221,6 +237,7 @@ public class DiscordMessageEmbed {
     public static class Builder {
 
         private Color color;
+        private String unformattedColor;
         private String authorName, authorUrl, authorImageUrl;
         private String title, titleUrl;
         private String description;
@@ -228,16 +245,18 @@ public class DiscordMessageEmbed {
         private String thumbnailUrl;
         private String imageUrl;
         private OffsetDateTime timestamp;
+        private String unformattedTimestamp;
         private String footer, footerImageUrl;
 
         protected Builder() {
             this.fields = new ArrayList<>();
         }
 
-        protected Builder(Color color, String authorName, String authorUrl, String authorImageUrl, String title,
+        protected Builder(Color color, String unformattedColor, String authorName, String authorUrl, String authorImageUrl, String title,
                        String titleUrl, String description, List<Field> fields, String thumbnailUrl, String imageUrl,
-                       OffsetDateTime timestamp, String footer, String footerImageUrl) {
+                       OffsetDateTime timestamp, String unformattedTimestamp, String footer, String footerImageUrl) {
             this.color = color;
+            this.unformattedColor = unformattedColor;
             this.authorName = authorName;
             this.authorUrl = authorUrl;
             this.authorImageUrl = authorImageUrl;
@@ -248,12 +267,14 @@ public class DiscordMessageEmbed {
             this.thumbnailUrl = thumbnailUrl;
             this.imageUrl = imageUrl;
             this.timestamp = timestamp;
+            this.unformattedTimestamp = unformattedTimestamp;
             this.footer = footer;
             this.footerImageUrl = footerImageUrl;
         }
 
         protected Builder(DiscordMessageEmbed embed) {
             this.color = embed.getColor();
+            this.unformattedColor = embed.getUnformattedColor();
             this.authorName = embed.getAuthorName();
             this.authorUrl = embed.getAuthorUrl();
             this.authorImageUrl = embed.getAuthorImageUrl();
@@ -264,6 +285,7 @@ public class DiscordMessageEmbed {
             this.thumbnailUrl = embed.getThumbnailUrl();
             this.imageUrl = embed.getImageUrl();
             this.timestamp = embed.getTimestamp();
+            this.unformattedTimestamp = embed.getUnformattedTimestamp();
             this.footer = embed.getFooter();
             this.footerImageUrl = embed.getFooterImageUrl();
         }
@@ -282,6 +304,17 @@ public class DiscordMessageEmbed {
         @NotNull
         public Builder setColor(int rgb) {
             return setColor(new Color(rgb));
+        }
+
+        @Nullable
+        public String getUnformattedColor() {
+            return unformattedColor;
+        }
+
+        @NotNull
+        public Builder setUnformattedColor(String unformattedColor) {
+            this.unformattedColor = unformattedColor;
+            return this;
         }
 
         @NotNull
@@ -425,6 +458,17 @@ public class DiscordMessageEmbed {
             return this;
         }
 
+        @Nullable
+        public String getUnformattedTimestamp() {
+            return unformattedTimestamp;
+        }
+
+        @NotNull
+        public Builder setUnformattedTimestamp(String unformattedTimestamp) {
+            this.unformattedTimestamp = unformattedTimestamp;
+            return this;
+        }
+
         @NotNull
         public Builder setFooter(@Nullable CharSequence footer, @Nullable CharSequence footerImageUrl) {
             this.footer = footer != null ? footer.toString() : null;
@@ -456,16 +500,16 @@ public class DiscordMessageEmbed {
 
         @NotNull
         public DiscordMessageEmbed build() {
-            return new DiscordMessageEmbed(color, authorName, authorUrl, authorImageUrl, title, titleUrl, description,
-                    fields, thumbnailUrl, imageUrl, timestamp, footer, footerImageUrl);
+            return new DiscordMessageEmbed(color, unformattedColor, authorName, authorUrl, authorImageUrl, title, titleUrl, description,
+                    fields, thumbnailUrl, imageUrl, timestamp, unformattedTimestamp, footer, footerImageUrl);
         }
 
         @SuppressWarnings({"MethodDoesntCallSuperMethod"})
         @Override
         @NotNull
         public Builder clone() {
-            return new Builder(color, authorName, authorUrl, authorImageUrl, title, titleUrl, description,
-                    fields, thumbnailUrl, imageUrl, timestamp, footer, footerImageUrl);
+            return new Builder(color, unformattedColor, authorName, authorUrl, authorImageUrl, title, titleUrl, description,
+                    fields, thumbnailUrl, imageUrl, timestamp, unformattedTimestamp, footer, footerImageUrl);
         }
     }
 }

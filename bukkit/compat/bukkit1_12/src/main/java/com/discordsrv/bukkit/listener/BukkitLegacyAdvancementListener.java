@@ -96,6 +96,8 @@ public class BukkitLegacyAdvancementListener extends AbstractBukkitListener<Play
                             title,
                             null,
                             null,
+                            null,
+                            null,
                             false
                     )
             );

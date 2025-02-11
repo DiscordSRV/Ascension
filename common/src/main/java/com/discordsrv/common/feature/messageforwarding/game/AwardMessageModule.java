@@ -19,6 +19,7 @@
 package com.discordsrv.common.feature.messageforwarding.game;
 
 import com.discordsrv.api.channel.GameChannel;
+import com.discordsrv.api.color.Color;
 import com.discordsrv.api.component.MinecraftComponent;
 import com.discordsrv.api.discord.entity.message.ReceivedDiscordMessageCluster;
 import com.discordsrv.api.discord.entity.message.SendableDiscordMessage;
@@ -97,8 +98,15 @@ public class AwardMessageModule extends AbstractGameMessageModule<AwardMessageCo
         MinecraftComponent titleComponent = event.getTitle();
         Component title = titleComponent != null ? ComponentUtil.fromAPI(titleComponent) : null;
 
+        MinecraftComponent descriptionComponent = event.getDescription();
+        Component description = descriptionComponent != null ? ComponentUtil.fromAPI(descriptionComponent) : null;
+
+        Color color = event.getFrame() != null ? event.getFrame().color() : null;
+
         formatter
                 .addPlaceholder("award_name", name)
-                .addPlaceholder("award_title", title);
+                .addPlaceholder("award_title", title)
+                .addPlaceholder("award_description", description)
+                .addPlaceholder("award_color", color, "color");
     }
 }
