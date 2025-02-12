@@ -35,8 +35,9 @@ public enum GenericSyncResults implements ISyncResult {
     NOT_LINKED("Accounts not linked"),
 
     // Error
-    MODULE_NOT_FOUND("Game data not available", false, true),
-    GUILD_NOT_FOUND("Discord server not found", false, true),
+    MODULE_NOT_FOUND("Game data not available", false, false),
+    GUILD_NOT_FOUND("Discord server not found", false, false),
+    MEMBER_CANNOT_INTERACT("Cannot interact with the member", false, false),
 
     ;
 
