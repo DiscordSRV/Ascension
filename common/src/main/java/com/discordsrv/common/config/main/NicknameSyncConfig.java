@@ -18,14 +18,29 @@
 
 package com.discordsrv.common.config.main;
 
+import com.discordsrv.common.abstraction.sync.enums.SyncDirection;
 import com.discordsrv.common.config.main.generic.AbstractSyncConfig;
 import com.discordsrv.common.util.Game;
 import org.spongepowered.configurate.objectmapping.meta.Comment;
 
+import java.util.LinkedHashMap;
+import java.util.Map;
+import java.util.regex.Pattern;
+
 public class NicknameSyncConfig extends AbstractSyncConfig<NicknameSyncConfig, Game, Long> {
+
+    public NicknameSyncConfig() {
+        // Change defaults
+        timer.enabled = false;
+        direction = SyncDirection.MINECRAFT_TO_DISCORD;
+    }
 
     @Comment("The id for the Discord server where the nicknames should be synced from/to")
     public long serverId = 0L;
+
+    // TODO: more info on regex pairs (String#replaceAll)
+    @Comment("Regex filters for nicknames")
+    public Map<Pattern, String> nicknameRegexFilters = new LinkedHashMap<>();
 
     @Override
     public boolean isSet() {

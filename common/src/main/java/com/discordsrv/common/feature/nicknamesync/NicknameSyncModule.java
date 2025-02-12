@@ -37,18 +37,20 @@ import com.discordsrv.common.util.Game;
 import net.dv8tion.jda.api.entities.Member;
 import net.dv8tion.jda.api.events.guild.member.update.GuildMemberUpdateNicknameEvent;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.tuple.Pair;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.Collections;
-import java.util.List;
-import java.util.UUID;
+import java.util.*;
 import java.util.concurrent.CompletableFuture;
+import java.util.regex.Pattern;
 
 /**
  * {@code long} is used for the guild id being synced to in Discord.
  * The state is the current
  */
 public class NicknameSyncModule extends AbstractSyncModule<DiscordSRV, NicknameSyncConfig, Game, Long, String> {
+
+    private final Map<NicknameSyncConfig, List<Pair<Pattern, String>>> replacements = new HashMap<>();
 
     public NicknameSyncModule(DiscordSRV discordSRV) {
         super(discordSRV, "NICKNAME_SYNC");
@@ -108,7 +110,10 @@ public class NicknameSyncModule extends AbstractSyncModule<DiscordSRV, NicknameS
         return discordSRV.getModule(NicknameModule.class);
     }
 
-    protected String cleanNickname(String nickname) {
+    protected String cleanNickname(NicknameSyncConfig config, String nickname) {
+        for (Map.Entry<Pattern, String> filter : config.nicknameRegexFilters.entrySet()) {
+            nickname = filter.getKey().matcher(nickname).replaceAll(filter.getValue());
+        }
         return nickname;
     }
 
@@ -121,7 +126,7 @@ public class NicknameSyncModule extends AbstractSyncModule<DiscordSRV, NicknameS
 
         return guild.retrieveMemberById(userId)
                 .thenApply(DiscordGuildMember::getNickname)
-                .thenApply(this::cleanNickname);
+                .thenApply(nickname -> cleanNickname(config, nickname));
     }
 
     @Override
@@ -131,7 +136,8 @@ public class NicknameSyncModule extends AbstractSyncModule<DiscordSRV, NicknameS
             return CompletableFutureUtil.failed(new SyncFail(GenericSyncResults.MODULE_NOT_FOUND));
         }
 
-        return module.getNickname(playerUUID).thenApply(this::cleanNickname);
+        return module.getNickname(playerUUID)
+                .thenApply(nickname -> cleanNickname(config, nickname));
     }
 
     @Override
