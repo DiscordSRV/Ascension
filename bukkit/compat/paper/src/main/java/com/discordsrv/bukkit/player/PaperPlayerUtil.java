@@ -18,11 +18,14 @@
 
 package com.discordsrv.bukkit.player;
 
+import com.destroystokyo.paper.ClientOption;
+import com.destroystokyo.paper.SkinParts;
 import com.destroystokyo.paper.profile.PlayerProfile;
 import com.discordsrv.api.component.MinecraftComponent;
 import com.discordsrv.bukkit.component.PaperComponentHandle;
 import com.discordsrv.common.abstraction.player.provider.model.SkinInfo;
 import com.discordsrv.common.util.ReflectionUtil;
+import org.bukkit.OfflinePlayer;
 import org.bukkit.entity.Player;
 import org.bukkit.profile.PlayerTextures;
 import org.jetbrains.annotations.ApiStatus;
@@ -35,12 +38,15 @@ public final class PaperPlayerUtil {
     private PaperPlayerUtil() {}
 
     private static final PaperComponentHandle.Set<Player> KICK_HANDLE =
-            PaperComponentHandle.set(Player.class, "kick");
+            PaperComponentHandle.setOrNull(Player.class, "kick");
 
     /**
      * @see com.discordsrv.bukkit.component.PaperComponentHandle#IS_AVAILABLE
      */
     public static void kick(Player player, MinecraftComponent component) {
+        if (KICK_HANDLE == null) {
+            throw new IllegalStateException("Kick handle not available");
+        }
         KICK_HANDLE.call(player, component);
     }
 
@@ -66,7 +72,7 @@ public final class PaperPlayerUtil {
 
     public static boolean SKIN_AVAILABLE = ReflectionUtil.classExists("com.destroystokyo.paper.profile.PlayerProfile");
 
-    public static SkinInfo getSkinInfo(Player player) {
+    public static SkinInfo getSkinInfo(OfflinePlayer player) {
         PlayerProfile playerProfile = player.getPlayerProfile();
         if (!playerProfile.hasTextures()) {
             return null;
@@ -78,7 +84,24 @@ public final class PaperPlayerUtil {
             return null;
         }
 
-        return new SkinInfo(skinURL, textures.getSkinModel().name());
+        SkinParts skinParts = player instanceof Player
+                              ? ((Player) player).getClientOption(ClientOption.SKIN_PARTS)
+                              : null;
+
+        SkinInfo.Parts parts = null;
+        if (skinParts != null) {
+            parts = new SkinInfo.Parts(
+                    skinParts.hasCapeEnabled(),
+                    skinParts.hasJacketEnabled(),
+                    skinParts.hasLeftSleeveEnabled(),
+                    skinParts.hasRightSleeveEnabled(),
+                    skinParts.hasLeftPantsEnabled(),
+                    skinParts.hasRightPantsEnabled(),
+                    skinParts.hasHatsEnabled()
+            );
+        }
+
+        return new SkinInfo(skinURL, textures.getSkinModel().name(), parts);
     }
 
 }

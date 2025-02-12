@@ -16,35 +16,31 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package com.discordsrv.fabric.module;
+package com.discordsrv.bukkit.player;
 
-import com.discordsrv.common.core.logging.Logger;
-import com.discordsrv.common.core.module.type.AbstractModule;
-import com.discordsrv.fabric.FabricDiscordSRV;
+import com.discordsrv.bukkit.BukkitDiscordSRV;
+import com.discordsrv.common.abstraction.player.provider.model.SkinInfo;
+import org.bukkit.OfflinePlayer;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
-public abstract class AbstractFabricModule extends AbstractModule<FabricDiscordSRV> {
+public class BukkitOfflinePlayerImpl extends BukkitOfflinePlayer {
 
-    protected boolean enabled = false;
-
-    public AbstractFabricModule(FabricDiscordSRV discordSRV) {
-        super(discordSRV);
-    }
-
-    public AbstractFabricModule(FabricDiscordSRV discordSRV, Logger logger) {
-        super(discordSRV, logger);
-    }
-
-    @Override
-    public void enable() {
-        enabled = true;
-        this.register();
+    public BukkitOfflinePlayerImpl(
+            BukkitDiscordSRV discordSRV,
+            @NotNull OfflinePlayer offlinePlayer
+    ) {
+        super(discordSRV, offlinePlayer);
     }
 
     @Override
-    public void disable() {
-        enabled = false;
-    }
-
-    public void register() {
+    public @Nullable SkinInfo skinInfo() {
+        if (PaperPlayerUtil.SKIN_AVAILABLE) {
+            return PaperPlayerUtil.getSkinInfo(offlinePlayer);
+        }
+        if (SpigotPlayerUtil.SKIN_AVAILABLE) {
+            return SpigotPlayerUtil.getSkinInfo(offlinePlayer);
+        }
+        return null;
     }
 }

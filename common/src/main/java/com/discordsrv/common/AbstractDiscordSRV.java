@@ -665,6 +665,9 @@ public abstract class AbstractDiscordSRV<
                     + getClass().getName() + " constructor");
         }
 
+        // Register PlayerProvider listeners
+        playerProvider().subscribe();
+
         this.translationLoader = new TranslationLoader(this);
 
         // Placeholder result stringifiers & global contexts
@@ -732,9 +735,6 @@ public abstract class AbstractDiscordSRV<
         if (serverType() == ServerType.PROXY) {
             runServerStarted().get();
         }
-
-        // Register PlayerProvider listeners
-        playerProvider().subscribe();
     }
 
     @MustBeInvokedByOverriders
@@ -754,32 +754,46 @@ public abstract class AbstractDiscordSRV<
         }
 
         boolean configUpgrade = flags.contains(ReloadFlag.CONFIG_UPGRADE);
-        Path backupPath = null;
-        if (configUpgrade) {
-            String dateAndTime = DateTimeFormatter.ofPattern("yyyy-MM-dd_HH-mm-ss").format(LocalDateTime.now());
-            backupPath = dataDirectory().resolve("config-migrated").resolve(dateAndTime);
-            Files.createDirectories(backupPath);
-        }
 
         if (flags.contains(ReloadFlag.CONFIG) || configUpgrade) {
-            try {
-                AtomicBoolean anyMissingOptions = new AtomicBoolean(false);
-                connectionConfigManager().reload(configUpgrade, anyMissingOptions, backupPath);
-                configManager().reload(configUpgrade, anyMissingOptions, backupPath);
-                messagesConfigManager().reload(configUpgrade, anyMissingOptions, backupPath);
-
-                if (anyMissingOptions.get()) {
-                    logger().info("Use \"/discordsrv reload config_upgrade\" to write the latest configuration");
-                }
-
-                channelConfig().reload();
-                createHttpClient();
-            } catch (Throwable t) {
-                if (initial) {
-                    setStatus(Status.FAILED_TO_LOAD_CONFIG);
-                }
-                throw t;
+            Path backupPath = null;
+            if (configUpgrade) {
+                backupPath = generateBackupPath();
             }
+
+            AtomicBoolean anyMissingOptions = new AtomicBoolean(false);
+            connectionConfigManager().reload(configUpgrade, anyMissingOptions, backupPath);
+            configManager().reload(configUpgrade, anyMissingOptions, backupPath);
+            messagesConfigManager().reload(configUpgrade, anyMissingOptions, backupPath);
+
+            if (anyMissingOptions.get()) {
+                if (config().automaticConfigurationUpgrade) {
+                    logger().info("Some configuration options are missing, attempting to upgrade configuration...");
+
+                    if (backupPath == null) {
+                        backupPath = generateBackupPath();
+                    }
+                    AtomicBoolean stillMissingOptions = new AtomicBoolean(false);
+
+                    connectionConfigManager().reload(true, stillMissingOptions, backupPath);
+                    configManager().reload(true, stillMissingOptions, backupPath);
+                    messagesConfigManager().reload(true, stillMissingOptions, backupPath);
+
+                    if (stillMissingOptions.get()) {
+                        logger().warning("Attempted to upgrade configuration automatically, but some options are still missing.");
+                    } else {
+                        logger().info("Configuration successfully upgraded");
+                    }
+                } else if (configUpgrade) {
+                    logger().warning("Attempted to upgrade configuration by reload command, but some options are still missing.");
+                } else {
+                    logger().info("Use \"/discordsrv reload config_upgrade\" to write the latest configuration");
+                    logger().info("Or set \"automatic-configuration-upgrade\" to true in the config to automatically upgrade the configuration on startup or reload");
+                }
+            }
+
+            channelConfig().reload();
+            createHttpClient();
         }
 
         List<ReloadResult> results = new ArrayList<>();
@@ -798,6 +812,7 @@ public abstract class AbstractDiscordSRV<
                 logger().info("");
             }
             discordConnectionManager.invalidToken(true);
+            setStatus(Status.NOT_CONFIGURED);
             results.add(ReloadResult.DEFAULT_BOT_TOKEN);
             return results;
         }
@@ -985,5 +1000,15 @@ public abstract class AbstractDiscordSRV<
         }
         temporaryLocalData.save();
         this.status.set(Status.SHUTDOWN);
+    }
+
+    private Path generateBackupPath() throws IOException {
+        String dateAndTime = DateTimeFormatter.ofPattern("yyyy-MM-dd_HH-mm-ss").format(LocalDateTime.now());
+        Path backupPath = dataDirectory().resolve("config-migrated").resolve(dateAndTime);
+        if (Files.notExists(backupPath)) {
+            Files.createDirectories(backupPath);
+        }
+
+        return backupPath;
     }
 }

@@ -38,7 +38,7 @@ public class Textures {
         public String url;
         public Map<String, Object> metadata;
     }
-    public SkinInfo getSkinInfo() {
+    public SkinInfo getSkinInfo(SkinInfo.Parts parts) {
         Textures.Texture texture = textures.get("SKIN");
         if (texture == null) {
             return null;
@@ -48,7 +48,7 @@ public class Textures {
         Map<String, Object> metadata = texture.metadata;
 
         String textureId = url.substring(url.lastIndexOf("/") + 1);
-        return new SkinInfo(textureId, metadata != null ? (String) metadata.get("model") : null);
+        return new SkinInfo(textureId, metadata != null ? (String) metadata.get("model") : null, parts);
     }
 
     public static Textures getFromBase64(DiscordSRV discordSRV, String base64) {

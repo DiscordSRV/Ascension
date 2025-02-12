@@ -208,14 +208,14 @@ public interface DiscordSRVApi {
         CONNECTED,
 
         /**
-         * DiscordSRV failed to load its configuration.
+         * DiscordSRV has not been configured.
          * @see #isError()
          * @see #isStartupError()
          */
-        FAILED_TO_LOAD_CONFIG(true),
+        NOT_CONFIGURED(true),
 
         /**
-         * DiscordSRV failed to start, unless the configuration failed to load, in that case the status will be {@link #FAILED_TO_LOAD_CONFIG}.
+         * DiscordSRV failed to start.
          * @see #isError()
          * @see #isStartupError()
          */
@@ -260,7 +260,7 @@ public interface DiscordSRVApi {
         }
 
         public boolean isStartupError() {
-            return this == FAILED_TO_START || this == FAILED_TO_LOAD_CONFIG;
+            return this == FAILED_TO_START || this == NOT_CONFIGURED;
         }
 
         public boolean isReady() {

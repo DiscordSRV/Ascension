@@ -71,6 +71,10 @@ public abstract class AbstractModule<DT extends DiscordSRV> implements Module {
 
     // Internal
 
+    public boolean isCurrentlyDisabled() {
+        return !isCurrentlyEnabled;
+    }
+
     public final boolean enableModule() {
         if (isCurrentlyEnabled) {
             return false;

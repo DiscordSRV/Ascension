@@ -48,7 +48,7 @@ public class PresenceUpdaterModule extends AbstractModule<DiscordSRV> {
 
     @Override
     public boolean canEnableBeforeReady() {
-        return true;
+        return discordSRV.config() != null;
     }
 
     public void serverStarted() {

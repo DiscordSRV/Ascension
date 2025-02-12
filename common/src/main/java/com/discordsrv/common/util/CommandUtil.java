@@ -18,6 +18,7 @@
 
 package com.discordsrv.common.util;
 
+import com.discordsrv.api.DiscordSRVApi;
 import com.discordsrv.common.DiscordSRV;
 import com.discordsrv.common.abstraction.player.IPlayer;
 import com.discordsrv.common.command.combined.abstraction.CommandExecution;
@@ -27,9 +28,12 @@ import com.discordsrv.common.command.game.abstraction.sender.ICommandSender;
 import com.discordsrv.common.config.messages.MessagesConfig;
 import com.discordsrv.common.core.logging.Logger;
 import com.discordsrv.common.permission.game.Permission;
+import com.discordsrv.common.permission.game.Permissions;
 import net.dv8tion.jda.api.JDA;
 import net.dv8tion.jda.api.entities.User;
 import net.dv8tion.jda.api.utils.MiscUtil;
+import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.format.NamedTextColor;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
@@ -39,6 +43,22 @@ import java.util.concurrent.CompletableFuture;
 public final class CommandUtil {
 
     private CommandUtil() {}
+
+    public static void basicStatusCheck(DiscordSRV discordSRV, ICommandSender sender) {
+        if (discordSRV.status().isError() && sender.hasPermission(Permissions.COMMAND_DEBUG)) {
+            if (discordSRV.status() == DiscordSRVApi.Status.NOT_CONFIGURED) {
+                sender.sendMessage(
+                        Component.text("DiscordSRV has not been fully configured yet, please check your server log for more details")
+                                .color(NamedTextColor.RED)
+                );
+            } else {
+                sender.sendMessage(
+                        Component.text("DiscordSRV did not start correctly, please check your server log for more details")
+                                .color(NamedTextColor.RED)
+                );
+            }
+        }
+    }
 
     public static CompletableFuture<UUID> lookupPlayer(
             DiscordSRV discordSRV,

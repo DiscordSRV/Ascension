@@ -288,17 +288,18 @@ public class MockDiscordSRV extends AbstractDiscordSRV<IBootstrap, MainConfig, C
             List<ThreadConfig> threadConfigs = destination.threads;
             threadConfigs.clear();
 
-            ThreadConfig thread = new ThreadConfig();
-            thread.channelId = textChannelId;
-            threadConfigs.add(thread);
-
-            ThreadConfig forumThread = new ThreadConfig();
-            forumThread.channelId = forumChannelId;
-            threadConfigs.add(forumThread);
-
-            ThreadConfig mediaThread = new ThreadConfig();
-            mediaThread.channelId = mediaChannelId;
-            threadConfigs.add(mediaThread);
+            threadConfigs.add(new ThreadConfig() {{
+                channelId = textChannelId;
+            }});
+            threadConfigs.add(new ThreadConfig() {{
+                channelId = newsChannelId;
+            }});
+            threadConfigs.add(new ThreadConfig() {{
+                channelId = forumChannelId;
+            }});
+            threadConfigs.add(new ThreadConfig() {{
+                channelId = mediaChannelId;
+            }});
         } catch (NumberFormatException ignored) {}
 
         return config;

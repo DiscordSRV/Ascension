@@ -18,9 +18,11 @@
 
 package com.discordsrv.common.command.game.abstraction.handler;
 
+import com.discordsrv.common.DiscordSRV;
 import com.discordsrv.common.command.game.abstraction.command.GameCommand;
 import com.discordsrv.common.command.game.abstraction.command.GameCommandArguments;
 import com.discordsrv.common.command.game.abstraction.sender.ICommandSender;
+import com.discordsrv.common.util.CommandUtil;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 import net.kyori.adventure.text.format.TextDecoration;
@@ -32,7 +34,12 @@ import java.util.stream.Collectors;
 
 public class BasicCommandHandler implements ICommandHandler {
 
+    private final DiscordSRV discordSRV;
     private final Map<String, GameCommand> commands = new HashMap<>();
+
+    public BasicCommandHandler(DiscordSRV discordSRV) {
+        this.discordSRV = discordSRV;
+    }
 
     @Override
     public void registerCommand(GameCommand command) {
@@ -144,6 +151,8 @@ public class BasicCommandHandler implements ICommandHandler {
     }
 
     public void execute(ICommandSender sender, String command, List<String> arguments) {
+        CommandUtil.basicStatusCheck(discordSRV, sender);
+
         useCommand(
                 command,
                 arguments,

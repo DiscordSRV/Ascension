@@ -66,7 +66,7 @@ public class ModuleManager {
         Set<T> details = new HashSet<>();
         for (Module module : modules) {
             try {
-                if (!module.isEnabled()) {
+                if (getAbstract(module).isCurrentlyDisabled()) {
                     continue;
                 }
 
@@ -91,11 +91,11 @@ public class ModuleManager {
 
     @SuppressWarnings("unchecked")
     public <T extends Module> T getModule(Class<T> moduleType) {
-        return (T) moduleLookupTable.computeIfAbsent(moduleType.getName(), key -> {
+        T resolvedModule = (T) moduleLookupTable.computeIfAbsent(moduleType.getName(), key -> {
             Module bestCandidate = null;
             int bestCandidatePriority = Integer.MIN_VALUE;
             for (Module module : modules) {
-                if (!module.isEnabled()) {
+                if (getAbstract(module).isCurrentlyDisabled()) {
                     continue;
                 }
                 int priority;
@@ -106,6 +106,11 @@ public class ModuleManager {
             }
             return bestCandidate;
         });
+
+        if (resolvedModule == null || getAbstract(resolvedModule).isCurrentlyDisabled()) {
+            return null;
+        }
+        return resolvedModule;
     }
 
     private AbstractModule<?> getAbstract(Module module) {
@@ -301,7 +306,7 @@ public class ModuleManager {
         builder.append("Enabled modules:");
         List<Module> disabled = new ArrayList<>();
         for (Module module : modules) {
-            if (!getAbstract(module).isEnabled()) {
+            if (getAbstract(module).isCurrentlyDisabled()) {
                 disabled.add(module);
                 continue;
             }

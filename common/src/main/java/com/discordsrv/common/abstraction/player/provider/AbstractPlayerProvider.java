@@ -150,7 +150,7 @@ public abstract class AbstractPlayerProvider<T extends IPlayer, DT extends Disco
                 }
 
                 Textures textures = Textures.getFromBase64(discordSRV, property.value);
-                skinInfo = textures.getSkinInfo();
+                skinInfo = textures.getSkinInfo(null);
             }
 
             return new OfflinePlayer(discordSRV, response.name, uuid, skinInfo);

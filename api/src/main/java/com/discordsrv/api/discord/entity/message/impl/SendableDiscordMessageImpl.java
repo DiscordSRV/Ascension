@@ -24,6 +24,7 @@
 package com.discordsrv.api.discord.entity.message.impl;
 
 import com.discordsrv.api.DiscordSRVApi;
+import com.discordsrv.api.color.Color;
 import com.discordsrv.api.discord.entity.interaction.component.actionrow.MessageActionRow;
 import com.discordsrv.api.discord.entity.message.AllowedMention;
 import com.discordsrv.api.discord.entity.message.DiscordMessageEmbed;
@@ -38,6 +39,8 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.io.InputStream;
+import java.time.OffsetDateTime;
+import java.time.ZonedDateTime;
 import java.util.*;
 import java.util.function.Function;
 import java.util.regex.Matcher;
@@ -420,6 +423,13 @@ public class SendableDiscordMessageImpl implements SendableDiscordMessage {
             for (DiscordMessageEmbed embed : embeds) {
                 DiscordMessageEmbed.Builder embedBuilder = embed.toBuilder();
 
+                Color color = embedBuilder.getColor();
+                String formattedColorHex = placeholders.apply(embedBuilder.getUnformattedColor());
+                try {
+                    color = new Color(formattedColorHex);
+                } catch (Throwable ignored) {}
+                embedBuilder.setColor(color);
+
                 embedBuilder.setAuthor(
                         cutToLength(
                                 placeholders.apply(embedBuilder.getAuthorName()),
@@ -450,6 +460,12 @@ public class SendableDiscordMessageImpl implements SendableDiscordMessage {
                                 MessageEmbed.TEXT_MAX_LENGTH
                         ),
                         placeholders.apply(embedBuilder.getFooterImageUrl())
+                );
+
+                embedBuilder.setTimestamp(
+                        parseTimestamp(
+                                placeholders.apply(embedBuilder.getUnformattedTimestamp())
+                        )
                 );
 
                 PlainPlaceholderFormat.with(PlainPlaceholderFormat.Formatting.DISCORD, () -> embedBuilder.setDescription(
@@ -493,6 +509,18 @@ public class SendableDiscordMessageImpl implements SendableDiscordMessage {
                 return input.substring(0, maxLength);
             }
             return input;
+        }
+
+        private OffsetDateTime parseTimestamp(String timestamp) {
+            try {
+                return OffsetDateTime.parse(timestamp);
+            } catch (Throwable ignored) {
+                try {
+                    return ZonedDateTime.parse(timestamp).toOffsetDateTime();
+                } catch (Throwable ignoredAgain) {
+                    return null;
+                }
+            }
         }
     }
 }

@@ -25,6 +25,7 @@ import com.discordsrv.common.abstraction.player.provider.model.Textures;
 import com.discordsrv.velocity.VelocityDiscordSRV;
 import com.discordsrv.velocity.command.game.sender.VelocityCommandSender;
 import com.velocitypowered.api.proxy.Player;
+import com.velocitypowered.api.proxy.player.SkinParts;
 import com.velocitypowered.api.util.GameProfile;
 import net.kyori.adventure.identity.Identity;
 import net.kyori.adventure.text.Component;
@@ -72,13 +73,25 @@ public class VelocityPlayer extends VelocityCommandSender implements IPlayer {
 
     @Override
     public @Nullable SkinInfo skinInfo() {
+        Textures textures;
         for (GameProfile.Property property : player.getGameProfile().getProperties()) {
             if (!Textures.KEY.equals(property.getName())) {
                 continue;
             }
 
-            Textures textures = Textures.getFromBase64(discordSRV, property.getValue());
-            return textures.getSkinInfo();
+            SkinParts skinParts = player.getPlayerSettings().getSkinParts();
+            SkinInfo.Parts parts = new SkinInfo.Parts(
+                    skinParts.hasCape(),
+                    skinParts.hasJacket(),
+                    skinParts.hasLeftSleeve(),
+                    skinParts.hasRightSleeve(),
+                    skinParts.hasLeftPants(),
+                    skinParts.hasRightPants(),
+                    skinParts.hasHat()
+            );
+
+            textures = Textures.getFromBase64(discordSRV, property.getValue());
+            return textures.getSkinInfo(parts);
         }
         return null;
     }
