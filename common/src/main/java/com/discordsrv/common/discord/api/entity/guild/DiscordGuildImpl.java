@@ -21,6 +21,7 @@ package com.discordsrv.common.discord.api.entity.guild;
 import com.discordsrv.api.discord.entity.guild.DiscordGuild;
 import com.discordsrv.api.discord.entity.guild.DiscordGuildMember;
 import com.discordsrv.api.discord.entity.guild.DiscordRole;
+import com.discordsrv.api.task.Task;
 import com.discordsrv.common.DiscordSRV;
 import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.entities.Member;
@@ -29,7 +30,6 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
-import java.util.concurrent.CompletableFuture;
 
 public class DiscordGuildImpl implements DiscordGuild {
 
@@ -62,7 +62,7 @@ public class DiscordGuildImpl implements DiscordGuild {
     }
 
     @Override
-    public @NotNull CompletableFuture<DiscordGuildMember> retrieveMemberById(long id) {
+    public @NotNull Task<DiscordGuildMember> retrieveMemberById(long id) {
         return discordSRV.discordAPI().mapExceptions(() -> guild.retrieveMemberById(id)
                 .submit()
                 .thenApply(member -> new DiscordGuildMemberImpl(discordSRV, member))

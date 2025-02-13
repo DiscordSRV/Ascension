@@ -20,6 +20,7 @@ package com.discordsrv.common.helper;
 
 import com.discordsrv.api.discord.entity.DiscordUser;
 import com.discordsrv.api.player.DiscordSRVPlayer;
+import com.discordsrv.api.task.Task;
 import com.discordsrv.common.DiscordSRV;
 import com.discordsrv.common.feature.profile.Profile;
 import org.jetbrains.annotations.NotNull;
@@ -27,7 +28,6 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.Objects;
 import java.util.UUID;
-import java.util.concurrent.CompletableFuture;
 
 /**
  * Represents a subject that is
@@ -79,7 +79,7 @@ public class Someone {
     }
 
     @NotNull
-    public CompletableFuture<@NotNull Profile> profile(DiscordSRV discordSRV) {
+    public Task<@NotNull Profile> profile(DiscordSRV discordSRV) {
         if (playerUUID != null) {
             return discordSRV.profileManager().lookupProfile(playerUUID);
         } else if (userId != null) {
@@ -90,9 +90,9 @@ public class Someone {
     }
 
     @NotNull
-    public CompletableFuture<Someone.@Nullable Resolved> withLinkedAccounts(DiscordSRV discordSRV) {
+    public Task<Someone.@Nullable Resolved> withLinkedAccounts(DiscordSRV discordSRV) {
         if (playerUUID != null && userId != null) {
-            return CompletableFuture.completedFuture(of(playerUUID, userId));
+            return Task.completed(of(playerUUID, userId));
         }
 
         if (playerUUID != null) {
@@ -104,18 +104,18 @@ public class Someone {
         }
     }
 
-    public CompletableFuture<@Nullable Long> withUserId(DiscordSRV discordSRV) {
+    public Task<@Nullable Long> withUserId(DiscordSRV discordSRV) {
         if (userId != null) {
-            return CompletableFuture.completedFuture(userId);
+            return Task.completed(userId);
         } else if (playerUUID == null) {
             return throwIllegal();
         }
         return discordSRV.linkProvider().getUserId(playerUUID).thenApply(opt -> opt.orElse(null));
     }
 
-    public CompletableFuture<@Nullable UUID> withPlayerUUID(DiscordSRV discordSRV) {
+    public Task<@Nullable UUID> withPlayerUUID(DiscordSRV discordSRV) {
         if (playerUUID != null) {
-            return CompletableFuture.completedFuture(playerUUID);
+            return Task.completed(playerUUID);
         } else if (userId == null) {
             return throwIllegal();
         }

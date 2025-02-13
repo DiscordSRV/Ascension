@@ -19,6 +19,7 @@
 package com.discordsrv.common.feature.linking.impl;
 
 import com.discordsrv.api.component.MinecraftComponent;
+import com.discordsrv.api.task.Task;
 import com.discordsrv.common.DiscordSRV;
 import com.discordsrv.common.core.logging.Logger;
 import com.discordsrv.common.core.logging.NamedLogger;
@@ -26,7 +27,6 @@ import com.discordsrv.common.feature.linking.LinkStore;
 import com.discordsrv.common.feature.linking.LinkingModule;
 import com.discordsrv.common.feature.linking.requirelinking.RequiredLinkingModule;
 import com.discordsrv.common.feature.linking.requirelinking.requirement.type.MinecraftAuthRequirementType;
-import com.discordsrv.common.util.CompletableFutureUtil;
 import com.discordsrv.common.util.function.CheckedSupplier;
 import me.minecraftauth.lib.AuthService;
 import me.minecraftauth.lib.account.AccountType;
@@ -38,7 +38,6 @@ import org.jetbrains.annotations.Nullable;
 import java.util.Locale;
 import java.util.Optional;
 import java.util.UUID;
-import java.util.concurrent.CompletableFuture;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
 
@@ -56,7 +55,7 @@ public class MinecraftAuthenticationLinker extends CachedLinkProvider {
     }
 
     @Override
-    public CompletableFuture<Optional<Long>> queryUserId(@NotNull UUID playerUUID, boolean canCauseLink) {
+    public Task<Optional<Long>> queryUserId(@NotNull UUID playerUUID, boolean canCauseLink) {
         return query(
                 canCauseLink,
                 () -> AuthService.lookup(AccountType.MINECRAFT, playerUUID.toString(), AccountType.DISCORD)
@@ -66,13 +65,13 @@ public class MinecraftAuthenticationLinker extends CachedLinkProvider {
                 userId -> linked(playerUUID, userId),
                 userId -> unlinked(playerUUID, userId),
                 playerUUID.toString()
-        ).exceptionally(t -> {
+        ).mapException(t -> {
             throw new RuntimeException("Failed to lookup user id for " + playerUUID, t);
         });
     }
 
     @Override
-    public CompletableFuture<Optional<UUID>> queryPlayerUUID(long userId, boolean canCauseLink) {
+    public Task<Optional<UUID>> queryPlayerUUID(long userId, boolean canCauseLink) {
         return query(
                 canCauseLink,
                 () -> AuthService.lookup(AccountType.DISCORD, Long.toUnsignedString(userId), AccountType.MINECRAFT)
@@ -82,13 +81,13 @@ public class MinecraftAuthenticationLinker extends CachedLinkProvider {
                 playerUUID -> linked(playerUUID, userId),
                 playerUUID -> unlinked(playerUUID, userId),
                 Long.toUnsignedString(userId)
-        ).exceptionally(t -> {
+        ).mapException(t -> {
             throw new RuntimeException("Failed to lookup Player UUID for " + Long.toUnsignedString(userId), t);
         });
     }
 
     @Override
-    public CompletableFuture<MinecraftComponent> getLinkingInstructions(
+    public Task<MinecraftComponent> getLinkingInstructions(
             String username,
             UUID playerUUID,
             Locale locale,
@@ -103,7 +102,7 @@ public class MinecraftAuthenticationLinker extends CachedLinkProvider {
         throw new IllegalStateException("Does not offer codes");
     }
 
-    private CompletableFuture<MinecraftComponent> getInstructions(
+    private Task<MinecraftComponent> getInstructions(
             String playerName,
             UUID playerUUID,
             @Nullable Locale locale,
@@ -140,7 +139,7 @@ public class MinecraftAuthenticationLinker extends CachedLinkProvider {
                 .addPlaceholder("player_uuid", playerUUID)
                 .applyPlaceholderService()
                 .build();
-        return CompletableFuture.completedFuture(component);
+        return Task.completed(component);
     }
 
     private void linked(UUID playerUUID, long userId) {
@@ -180,26 +179,26 @@ public class MinecraftAuthenticationLinker extends CachedLinkProvider {
     private static final Optional<?> ERROR = null;
 
     @SuppressWarnings("unchecked") // Cast to the ERROR constant
-    private <T> CompletableFuture<Optional<T>> query(
+    private <T> Task<Optional<T>> query(
             boolean canCauseLink,
             CheckedSupplier<Optional<T>> authSupplier,
-            Supplier<CompletableFuture<Optional<T>>> storageSupplier,
+            Supplier<Task<Optional<T>>> storageSupplier,
             Consumer<T> linked,
             Consumer<T> unlinked,
             String identifier
     ) {
-        CompletableFuture<Optional<T>> storageFuture = storageSupplier.get();
+        Task<Optional<T>> storageFuture = storageSupplier.get();
         if (!canCauseLink) {
             // If we can't cause a link, use the current account in storage
             return storageFuture;
         }
 
-        CompletableFuture<Optional<T>> authService = discordSRV.scheduler().supply(authSupplier).exceptionally(t -> {
+        Task<Optional<T>> authService = discordSRV.scheduler().supply(authSupplier).mapException(t -> {
             logger.error("Failed to query \"" + identifier + "\" from auth service", t);
             return (Optional<T>) ERROR;
         });
 
-        return CompletableFutureUtil.combine(authService, storageFuture).thenApply(results -> {
+        return Task.allOf(authService, storageFuture).thenApply(results -> {
             Optional<T> auth = authService.join();
             Optional<T> storage = storageFuture.join();
             if (auth == ERROR) {

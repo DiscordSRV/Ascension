@@ -20,6 +20,7 @@ package com.discordsrv.common.abstraction.sync;
 
 import com.discordsrv.api.eventbus.Subscribe;
 import com.discordsrv.api.reload.ReloadResult;
+import com.discordsrv.api.task.Task;
 import com.discordsrv.common.DiscordSRV;
 import com.discordsrv.common.abstraction.player.IPlayer;
 import com.discordsrv.common.abstraction.sync.cause.GenericSyncCauses;
@@ -33,7 +34,6 @@ import com.discordsrv.common.core.logging.NamedLogger;
 import com.discordsrv.common.core.module.type.AbstractModule;
 import com.discordsrv.common.events.player.PlayerConnectedEvent;
 import com.discordsrv.common.helper.Someone;
-import com.discordsrv.common.util.CompletableFutureUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -179,7 +179,7 @@ public abstract class AbstractSyncModule<
      * @param userId the Discord user id
      * @return a future for the state on Discord
      */
-    protected abstract CompletableFuture<S> getDiscord(C config, long userId);
+    protected abstract Task<S> getDiscord(C config, long userId);
 
     /**
      * Gets the current state of the provided config for the specified player on Minecraft.
@@ -188,7 +188,7 @@ public abstract class AbstractSyncModule<
      * @param playerUUID the Minecraft player {@link UUID}
      * @return a future for the state on Minecraft
      */
-    protected abstract CompletableFuture<S> getGame(C config, UUID playerUUID);
+    protected abstract Task<S> getGame(C config, UUID playerUUID);
 
     /**
      * Applies the provided state for the provided config for the provided Discord user.
@@ -198,13 +198,13 @@ public abstract class AbstractSyncModule<
      * @param newState the newState to apply
      * @return a future with the result of the synchronization
      */
-    protected abstract CompletableFuture<ISyncResult> applyDiscord(C config, long userId, @Nullable S newState);
+    protected abstract Task<ISyncResult> applyDiscord(C config, long userId, @Nullable S newState);
 
-    protected CompletableFuture<ISyncResult> applyDiscordIfDoesNotMatch(C config, long userId, @Nullable S newState) {
-        return getDiscord(config, userId).thenCompose(currentState -> {
+    protected Task<ISyncResult> applyDiscordIfDoesNotMatch(C config, long userId, @Nullable S newState) {
+        return getDiscord(config, userId).then(currentState -> {
             ISyncResult result = doesStateMatch(newState, currentState);
             if (result != null) {
-                return CompletableFuture.completedFuture(result);
+                return Task.completed(result);
             } else {
                 return applyDiscord(config, userId, newState);
             }
@@ -219,23 +219,23 @@ public abstract class AbstractSyncModule<
      * @param newState the newState to apply
      * @return a future with the result of the synchronization
      */
-    protected abstract CompletableFuture<ISyncResult> applyGame(C config, UUID playerUUID, @Nullable S newState);
+    protected abstract Task<ISyncResult> applyGame(C config, UUID playerUUID, @Nullable S newState);
 
-    protected CompletableFuture<ISyncResult> applyGameIfDoesNotMatch(C config, UUID playerUUID, @Nullable S newState) {
-        return getGame(config, playerUUID).thenCompose(currentState -> {
+    protected Task<ISyncResult> applyGameIfDoesNotMatch(C config, UUID playerUUID, @Nullable S newState) {
+        return getGame(config, playerUUID).then(currentState -> {
             ISyncResult result = doesStateMatch(currentState, newState);
             if (result != null) {
-                return CompletableFuture.completedFuture(result);
+                return Task.completed(result);
             } else {
                 return applyGame(config, playerUUID, newState);
             }
         });
     }
 
-    protected CompletableFuture<SyncSummary<C>> discordChanged(ISyncCause cause, Someone someone, D discordId, @Nullable S newState) {
+    protected Task<SyncSummary<C>> discordChanged(ISyncCause cause, Someone someone, D discordId, @Nullable S newState) {
         List<C> gameConfigs = configsForDiscord.get(discordId);
         if (gameConfigs == null) {
-            return CompletableFuture.completedFuture(null);
+            return Task.completed(null);
         }
 
         return someone.withLinkedAccounts(discordSRV).thenApply(resolved -> {
@@ -280,10 +280,10 @@ public abstract class AbstractSyncModule<
         });
     }
 
-    protected CompletableFuture<SyncSummary<C>> gameChanged(ISyncCause cause, Someone someone, @NotNull G gameId, @Nullable S newState) {
+    protected Task<SyncSummary<C>> gameChanged(ISyncCause cause, Someone someone, @NotNull G gameId, @Nullable S newState) {
         List<C> discordConfigs = configsForGame.get(gameId);
         if (discordConfigs == null) {
-            return CompletableFuture.completedFuture(null);
+            return Task.completed(null);
         }
 
         return someone.withLinkedAccounts(discordSRV).thenApply(resolved -> {
@@ -328,7 +328,7 @@ public abstract class AbstractSyncModule<
         });
     }
 
-    public CompletableFuture<SyncSummary<C>> resyncAll(ISyncCause cause, Someone someone) {
+    public Task<SyncSummary<C>> resyncAll(ISyncCause cause, Someone someone) {
         return someone.withLinkedAccounts(discordSRV).thenApply(resolved -> {
             if (resolved == null) {
                 return new SyncSummary<>(this, cause, someone).fail(GenericSyncResults.NOT_LINKED);
@@ -363,20 +363,20 @@ public abstract class AbstractSyncModule<
         });
     }
 
-    private CompletableFuture<ISyncResult> resync(C config, Someone.Resolved resolved) {
+    private Task<ISyncResult> resync(C config, Someone.Resolved resolved) {
         UUID playerUUID = resolved.playerUUID();
         long userId = resolved.userId();
 
-        CompletableFuture<S> gameGet = getGame(config, playerUUID);
-        CompletableFuture<S> discordGet = getDiscord(config, userId);
+        Task<S> gameGet = getGame(config, playerUUID);
+        Task<S> discordGet = getDiscord(config, userId);
 
-        return CompletableFutureUtil.combine(gameGet, discordGet).thenCompose((__) -> {
+        return Task.allOf(gameGet, discordGet).then((__) -> {
             S gameState = gameGet.join();
             S discordState = discordGet.join();
 
             ISyncResult alreadyInSyncResult = doesStateMatch(gameState, discordState);
             if (alreadyInSyncResult != null) {
-                return CompletableFuture.completedFuture(alreadyInSyncResult);
+                return Task.completed(alreadyInSyncResult);
             }
 
             SyncSide side = config.tieBreaker;
@@ -385,14 +385,14 @@ public abstract class AbstractSyncModule<
                 if (side == SyncSide.DISCORD) {
                     // Has Discord, add game
                     if (direction == SyncDirection.MINECRAFT_TO_DISCORD) {
-                        return CompletableFuture.completedFuture(GenericSyncResults.WRONG_DIRECTION);
+                        return Task.completed(GenericSyncResults.WRONG_DIRECTION);
                     }
 
                     return applyGame(config, playerUUID, discordState).thenApply(v -> GenericSyncResults.ADD_GAME);
                 } else {
                     // Missing game, remove Discord
                     if (direction == SyncDirection.DISCORD_TO_MINECRAFT) {
-                        return CompletableFuture.completedFuture(GenericSyncResults.WRONG_DIRECTION);
+                        return Task.completed(GenericSyncResults.WRONG_DIRECTION);
                     }
 
                     return applyDiscord(config, userId, null).thenApply(v -> GenericSyncResults.REMOVE_DISCORD);
@@ -401,26 +401,20 @@ public abstract class AbstractSyncModule<
                 if (side == SyncSide.DISCORD) {
                     // Missing Discord, remove game
                     if (direction == SyncDirection.MINECRAFT_TO_DISCORD) {
-                        return CompletableFuture.completedFuture(GenericSyncResults.WRONG_DIRECTION);
+                        return Task.completed(GenericSyncResults.WRONG_DIRECTION);
                     }
 
                     return applyGame(config, playerUUID, null).thenApply(v -> GenericSyncResults.REMOVE_GAME);
                 } else {
                     // Has game, add Discord
                     if (direction == SyncDirection.DISCORD_TO_MINECRAFT) {
-                        return CompletableFuture.completedFuture(GenericSyncResults.WRONG_DIRECTION);
+                        return Task.completed(GenericSyncResults.WRONG_DIRECTION);
                     }
 
                     return applyDiscord(config, userId, gameState).thenApply(v -> GenericSyncResults.ADD_DISCORD);
                 }
             }
-        }).exceptionally(t -> {
-            if (t instanceof SyncFail) {
-                return ((SyncFail) t).getResult();
-            } else {
-                throw (RuntimeException) t;
-            }
-        });
+        }).mapException(SyncFail.class, SyncFail::getResult);
     }
 
     private String formatResults(SyncSummary<C> summary, List<String> results) {

@@ -23,22 +23,22 @@
 
 package com.discordsrv.api.profile;
 
+import com.discordsrv.api.task.Task;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.UUID;
-import java.util.concurrent.CompletableFuture;
 
 public interface IProfileManager {
 
     @NotNull
-    CompletableFuture<? extends IProfile> lookupProfile(UUID playerUUID);
+    Task<? extends IProfile> lookupProfile(UUID playerUUID);
 
     @Nullable
     IProfile getProfile(UUID playerUUID);
 
     @NotNull
-    CompletableFuture<? extends IProfile> lookupProfile(long userId);
+    Task<? extends IProfile> lookupProfile(long userId);
 
     @Nullable
     IProfile getProfile(long userId);

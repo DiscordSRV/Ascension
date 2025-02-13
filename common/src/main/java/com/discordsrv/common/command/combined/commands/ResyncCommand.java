@@ -21,6 +21,7 @@ package com.discordsrv.common.command.combined.commands;
 import com.discordsrv.api.discord.entity.interaction.command.CommandOption;
 import com.discordsrv.api.discord.entity.interaction.command.DiscordCommand;
 import com.discordsrv.api.discord.entity.interaction.component.ComponentIdentifier;
+import com.discordsrv.api.task.Task;
 import com.discordsrv.common.DiscordSRV;
 import com.discordsrv.common.abstraction.player.IPlayer;
 import com.discordsrv.common.abstraction.sync.AbstractSyncModule;
@@ -36,7 +37,6 @@ import com.discordsrv.common.feature.bansync.BanSyncModule;
 import com.discordsrv.common.feature.groupsync.GroupSyncModule;
 import com.discordsrv.common.helper.Someone;
 import com.discordsrv.common.permission.game.Permissions;
-import com.discordsrv.common.util.CompletableFutureUtil;
 import net.kyori.adventure.text.format.NamedTextColor;
 import org.jetbrains.annotations.Nullable;
 
@@ -141,13 +141,13 @@ public class ResyncCommand extends CombinedCommand {
         execution.runAsync(() -> {
             long startTime = System.currentTimeMillis();
 
-            List<CompletableFuture<? extends SyncSummary<?>>> futures = resyncOnlinePlayers(module);
-            CompletableFutureUtil.combineGeneric(futures).thenCompose(result -> {
-                List<CompletableFuture<?>> results = new ArrayList<>();
+            List<Task<? extends SyncSummary<?>>> futures = resyncOnlinePlayers(module);
+            Task.allOfGeneric(futures).thenCompose(result -> {
+                List<Task<?>> results = new ArrayList<>();
                 for (SyncSummary<?> summary : result) {
                     results.add(summary.resultFuture());
                 }
-                return CompletableFutureUtil.combineGeneric(results);
+                return Task.allOfGeneric(results);
             }).whenComplete((__, t) -> {
                 Map<ISyncResult, AtomicInteger> resultCounts = new HashMap<>();
                 int total = 0;
@@ -191,8 +191,8 @@ public class ResyncCommand extends CombinedCommand {
         });
     }
 
-    private List<CompletableFuture<? extends SyncSummary<?>>> resyncOnlinePlayers(AbstractSyncModule<?, ?, ?, ?, ?> module) {
-        List<CompletableFuture<? extends SyncSummary<?>>> summaries = new ArrayList<>();
+    private List<Task<? extends SyncSummary<?>>> resyncOnlinePlayers(AbstractSyncModule<?, ?, ?, ?, ?> module) {
+        List<Task<? extends SyncSummary<?>>> summaries = new ArrayList<>();
         for (IPlayer player : discordSRV.playerProvider().allPlayers()) {
             summaries.add(module.resyncAll(GenericSyncCauses.COMMAND, Someone.of(player)));
         }

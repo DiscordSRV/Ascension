@@ -23,6 +23,7 @@ import com.discordsrv.api.eventbus.Subscribe;
 import com.discordsrv.api.events.discord.member.role.DiscordMemberRoleAddEvent;
 import com.discordsrv.api.events.discord.member.role.DiscordMemberRoleRemoveEvent;
 import com.discordsrv.api.module.type.PermissionModule;
+import com.discordsrv.api.task.Task;
 import com.discordsrv.common.DiscordSRV;
 import com.discordsrv.common.abstraction.sync.AbstractSyncModule;
 import com.discordsrv.common.abstraction.sync.SyncFail;
@@ -198,14 +199,14 @@ public class GroupSyncModule extends AbstractSyncModule<DiscordSRV, GroupSyncCon
     // Resync
 
     @Override
-    public CompletableFuture<Boolean> getDiscord(GroupSyncConfig.Entry config, long userId) {
+    public Task<Boolean> getDiscord(GroupSyncConfig.Entry config, long userId) {
         DiscordRole role = discordSRV.discordAPI().getRoleById(config.roleId);
         if (role == null) {
-            return CompletableFutureUtil.failed(new SyncFail(GroupSyncResult.ROLE_DOESNT_EXIST));
+            return Task.failed(new SyncFail(GroupSyncResult.ROLE_DOESNT_EXIST));
         }
 
         if (!role.getGuild().getSelfMember().canInteract(role)) {
-            return CompletableFutureUtil.failed(new SyncFail(GroupSyncResult.ROLE_CANNOT_INTERACT));
+            return Task.failed(new SyncFail(GroupSyncResult.ROLE_CANNOT_INTERACT));
         }
 
         return role.getGuild().retrieveMemberById(userId).thenApply(member -> {
@@ -218,9 +219,9 @@ public class GroupSyncModule extends AbstractSyncModule<DiscordSRV, GroupSyncCon
     }
 
     @Override
-    public CompletableFuture<Boolean> getGame(GroupSyncConfig.Entry config, UUID playerUUID) {
+    public Task<Boolean> getGame(GroupSyncConfig.Entry config, UUID playerUUID) {
         PermissionModule.Groups permissionProvider = getPermissionProvider();
-        CompletableFuture<Boolean> future;
+        Task<Boolean> future;
         if (permissionProvider instanceof PermissionModule.GroupsContext) {
             future = ((PermissionModule.GroupsContext) permissionProvider)
                     .hasGroup(playerUUID, config.groupName, false, config.serverContext != null ? Collections.singleton(config.serverContext) : null);
@@ -234,12 +235,12 @@ public class GroupSyncModule extends AbstractSyncModule<DiscordSRV, GroupSyncCon
     }
 
     @Override
-    public CompletableFuture<ISyncResult> applyDiscord(GroupSyncConfig.Entry config, long userId, Boolean newState) {
+    public Task<ISyncResult> applyDiscord(GroupSyncConfig.Entry config, long userId, Boolean newState) {
         boolean stateToApply = newState != null && newState;
 
         DiscordRole role = discordSRV.discordAPI().getRoleById(config.roleId);
         if (role == null) {
-            return CompletableFutureUtil.failed(new SyncFail(GroupSyncResult.ROLE_DOESNT_EXIST));
+            return Task.failed(new SyncFail(GroupSyncResult.ROLE_DOESNT_EXIST));
         }
 
         Map<Long, Boolean> expected = expectedDiscordChanges.get(userId, key -> new ConcurrentHashMap<>());
@@ -260,7 +261,7 @@ public class GroupSyncModule extends AbstractSyncModule<DiscordSRV, GroupSyncCon
     }
 
     @Override
-    public CompletableFuture<ISyncResult> applyGame(GroupSyncConfig.Entry config, UUID playerUUID, Boolean newState) {
+    public Task<ISyncResult> applyGame(GroupSyncConfig.Entry config, UUID playerUUID, Boolean newState) {
         boolean stateToApply = newState != null && newState;
 
         Map<String, Boolean> expected = expectedMinecraftChanges.get(playerUUID, key -> new ConcurrentHashMap<>());
@@ -268,7 +269,7 @@ public class GroupSyncModule extends AbstractSyncModule<DiscordSRV, GroupSyncCon
             expected.put(config.groupName, stateToApply);
         }
 
-        CompletableFuture<ISyncResult> future =
+        Task<ISyncResult> future =
                 stateToApply
                     ? addGroup(playerUUID, config).thenApply(v -> GenericSyncResults.ADD_GAME)
                     : removeGroup(playerUUID, config).thenApply(v -> GenericSyncResults.REMOVE_GAME);
@@ -293,7 +294,7 @@ public class GroupSyncModule extends AbstractSyncModule<DiscordSRV, GroupSyncCon
         return GroupSyncConfig.Entry.makeGameId(groupName, serverContext);
     }
 
-    private CompletableFuture<Void> addGroup(UUID player, GroupSyncConfig.Entry config) {
+    private Task<Void> addGroup(UUID player, GroupSyncConfig.Entry config) {
         PermissionModule.Groups permissionProvider = getPermissionProvider();
         String groupName = config.groupName;
         if (permissionProvider instanceof PermissionModule.GroupsContext) {
@@ -304,7 +305,7 @@ public class GroupSyncModule extends AbstractSyncModule<DiscordSRV, GroupSyncCon
         }
     }
 
-    private CompletableFuture<Void> removeGroup(UUID player, GroupSyncConfig.Entry config) {
+    private Task<Void> removeGroup(UUID player, GroupSyncConfig.Entry config) {
         PermissionModule.Groups permissionProvider = getPermissionProvider();
         String groupName = config.groupName;
         if (permissionProvider instanceof PermissionModule.GroupsContext) {

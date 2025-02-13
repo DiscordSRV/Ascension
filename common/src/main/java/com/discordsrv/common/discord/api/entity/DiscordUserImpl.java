@@ -20,14 +20,13 @@ package com.discordsrv.common.discord.api.entity;
 
 import com.discordsrv.api.discord.entity.DiscordUser;
 import com.discordsrv.api.discord.entity.channel.DiscordDMChannel;
+import com.discordsrv.api.task.Task;
 import com.discordsrv.common.DiscordSRV;
 import com.discordsrv.common.discord.api.entity.channel.DiscordDMChannelImpl;
 import net.dv8tion.jda.api.JDA;
 import net.dv8tion.jda.api.entities.User;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-
-import java.util.concurrent.CompletableFuture;
 
 public class DiscordUserImpl implements DiscordUser {
 
@@ -66,7 +65,6 @@ public class DiscordUserImpl implements DiscordUser {
         return user.getEffectiveName();
     }
 
-    @SuppressWarnings("deprecation")
     @Override
     public @NotNull String getDiscriminator() {
         return user.getDiscriminator();
@@ -83,15 +81,14 @@ public class DiscordUserImpl implements DiscordUser {
     }
 
     @Override
-    public CompletableFuture<DiscordDMChannel> openPrivateChannel() {
+    public Task<DiscordDMChannel> openPrivateChannel() {
         JDA jda = discordSRV.jda();
         if (jda == null) {
             return discordSRV.discordAPI().notReady();
         }
 
         return discordSRV.discordAPI().mapExceptions(
-                () -> jda.retrieveUserById(getId())
-                        .submit()
+                Task.of(jda.retrieveUserById(getId()).submit())
                         .thenCompose(user -> user.openPrivateChannel().submit())
                         .thenApply(privateChannel ->  new DiscordDMChannelImpl(discordSRV, privateChannel))
         );

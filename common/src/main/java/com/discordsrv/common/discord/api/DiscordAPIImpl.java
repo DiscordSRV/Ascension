@@ -29,6 +29,7 @@ import com.discordsrv.api.discord.entity.interaction.command.CommandType;
 import com.discordsrv.api.discord.entity.interaction.command.DiscordCommand;
 import com.discordsrv.api.discord.exception.NotReadyException;
 import com.discordsrv.api.discord.exception.RestErrorResponseException;
+import com.discordsrv.api.task.Task;
 import com.discordsrv.common.DiscordSRV;
 import com.discordsrv.common.config.main.channels.base.BaseChannelConfig;
 import com.discordsrv.common.config.main.channels.base.IChannelConfig;
@@ -101,7 +102,7 @@ public class DiscordAPIImpl implements DiscordAPI {
                 ErrorResponseException exception = (ErrorResponseException) t;
                 int code = exception.getErrorCode();
                 ErrorResponse errorResponse = exception.getErrorResponse();
-                throw new RestErrorResponseException(code, errorResponse != null ? errorResponse.getMeaning() : "Unknown", t);
+                throw new RestErrorResponseException(code, errorResponse.getMeaning(), t);
             } else if (t != null) {
                 throw (RuntimeException) t;
             }
@@ -109,8 +110,25 @@ public class DiscordAPIImpl implements DiscordAPI {
         });
     }
 
-    public <T> CompletableFuture<T> notReady() {
-        return CompletableFutureUtil.failed(new NotReadyException());
+    public <T> Task<T> mapExceptions(CheckedSupplier<Task<T>> futureSupplier) {
+        try {
+            return mapExceptions(futureSupplier.get());
+        } catch (Throwable t) {
+            return Task.failed(t);
+        }
+    }
+
+    public <T> Task<T> mapExceptions(Task<T> future) {
+        return future
+                .mapException(ErrorResponseException.class, t -> {
+                    int code = t.getErrorCode();
+                    ErrorResponse errorResponse = t.getErrorResponse();
+                    throw new RestErrorResponseException(code, errorResponse.getMeaning(), t);
+                });
+    }
+
+    public <T> Task<T> notReady() {
+        return Task.failed(new NotReadyException());
     }
 
     @Override
@@ -296,15 +314,14 @@ public class DiscordAPIImpl implements DiscordAPI {
     }
 
     @Override
-    public @NotNull CompletableFuture<DiscordUser> retrieveUserById(long id) {
+    public @NotNull Task<DiscordUser> retrieveUserById(long id) {
         JDA jda = discordSRV.jda();
         if (jda == null) {
             return notReady();
         }
 
         return mapExceptions(
-                jda.retrieveUserById(id)
-                        .submit()
+                Task.of(jda.retrieveUserById(id).submit())
                         .thenApply(this::getUser)
         );
     }
@@ -357,7 +374,7 @@ public class DiscordAPIImpl implements DiscordAPI {
         public @NotNull CompletableFuture<WebhookClient<Message>> asyncLoad(@NotNull Long channelId, @NotNull Executor executor) {
             JDA jda = discordSRV.jda();
             if (jda == null) {
-                return notReady();
+                return CompletableFutureUtil.failed(new NotReadyException());
             }
 
             GuildChannel channel = jda.getGuildChannelById(channelId);

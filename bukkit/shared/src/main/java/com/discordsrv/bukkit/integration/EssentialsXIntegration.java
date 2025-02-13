@@ -28,6 +28,7 @@ import com.discordsrv.api.module.type.NicknameModule;
 import com.discordsrv.api.module.type.PunishmentModule;
 import com.discordsrv.api.player.DiscordSRVPlayer;
 import com.discordsrv.api.punishment.Punishment;
+import com.discordsrv.api.task.Task;
 import com.discordsrv.bukkit.BukkitDiscordSRV;
 import com.discordsrv.bukkit.player.BukkitPlayer;
 import com.discordsrv.common.core.module.type.PluginIntegration;
@@ -47,7 +48,6 @@ import org.jetbrains.annotations.Nullable;
 import java.time.Instant;
 import java.util.Collection;
 import java.util.UUID;
-import java.util.concurrent.CompletableFuture;
 
 public class EssentialsXIntegration
         extends PluginIntegration<BukkitDiscordSRV>
@@ -88,17 +88,17 @@ public class EssentialsXIntegration
         return (Essentials) discordSRV.server().getPluginManager().getPlugin("Essentials");
     }
 
-    private CompletableFuture<User> getUser(UUID playerUUID) {
+    private Task<User> getUser(UUID playerUUID) {
         return discordSRV.scheduler().supply(() -> get().getUsers().loadUncachedUser(playerUUID));
     }
 
     @Override
-    public CompletableFuture<String> getNickname(UUID playerUUID) {
+    public Task<String> getNickname(UUID playerUUID) {
         return getUser(playerUUID).thenApply(UserData::getNickname);
     }
 
     @Override
-    public CompletableFuture<Void> setNickname(UUID playerUUID, String nickname) {
+    public Task<Void> setNickname(UUID playerUUID, String nickname) {
         return getUser(playerUUID).thenApply(user -> {
             user.setNickname(nickname);
             return null;
@@ -106,7 +106,7 @@ public class EssentialsXIntegration
     }
 
     @Override
-    public CompletableFuture<Punishment> getMute(@NotNull UUID playerUUID) {
+    public Task<Punishment> getMute(@NotNull UUID playerUUID) {
         return getUser(playerUUID).thenApply(user -> new Punishment(
                 Instant.ofEpochMilli(user.getMuteTimeout()),
                 ComponentUtil.toAPI(BukkitComponentSerializer.legacy().deserialize(user.getMuteReason())),
@@ -115,7 +115,7 @@ public class EssentialsXIntegration
     }
 
     @Override
-    public CompletableFuture<Void> addMute(@NotNull UUID playerUUID, @Nullable Instant until, @Nullable MinecraftComponent reason, @NotNull MinecraftComponent punisher) {
+    public Task<Void> addMute(@NotNull UUID playerUUID, @Nullable Instant until, @Nullable MinecraftComponent reason, @NotNull MinecraftComponent punisher) {
         String reasonLegacy = reason != null ? BukkitComponentSerializer.legacy().serialize(ComponentUtil.fromAPI(reason)) : null;
         return getUser(playerUUID).thenApply(user -> {
             user.setMuted(true);
@@ -126,7 +126,7 @@ public class EssentialsXIntegration
     }
 
     @Override
-    public CompletableFuture<Void> removeMute(@NotNull UUID playerUUID) {
+    public Task<Void> removeMute(@NotNull UUID playerUUID) {
         return getUser(playerUUID).thenApply(user -> {
             user.setMuted(false);
             user.setMuteTimeout(0);

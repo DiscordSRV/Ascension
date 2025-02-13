@@ -69,7 +69,7 @@ public interface DiscordGuild extends JDAEntity<Guild>, Snowflake {
      * @return a future for the Discord guild member
      */
     @NotNull
-    CompletableFuture<DiscordGuildMember> retrieveMemberById(long id);
+    Task<DiscordGuildMember> retrieveMemberById(long id);
 
     /**
      * Gets a Discord guild member by id from the cache, the provided entity can be cached and will not update if it changes on Discord.

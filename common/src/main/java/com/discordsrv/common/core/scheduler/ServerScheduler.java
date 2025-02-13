@@ -18,7 +18,9 @@
 
 package com.discordsrv.common.core.scheduler;
 
+import com.discordsrv.api.task.Task;
 import com.discordsrv.common.util.CompletableFutureUtil;
+import com.discordsrv.common.util.TaskUtil;
 import com.discordsrv.common.util.function.CheckedRunnable;
 import com.discordsrv.common.util.function.CheckedSupplier;
 import org.jetbrains.annotations.NotNull;
@@ -51,13 +53,13 @@ public interface ServerScheduler extends Scheduler {
     void runOnMainThread(@NotNull Runnable task);
 
     @NotNull
-    default CompletableFuture<Void> supplyOnMainThread(@NotNull CheckedRunnable task) {
-        return CompletableFutureUtil.runAsync(task, this::runOnMainThread);
+    default Task<Void> supplyOnMainThread(@NotNull CheckedRunnable task) {
+        return TaskUtil.runAsync(task, this::runOnMainThread);
     }
 
     @NotNull
-    default <T> CompletableFuture<T> supplyOnMainThread(@NotNull CheckedSupplier<T> task) {
-        return CompletableFutureUtil.supplyAsync(task, this::runOnMainThread);
+    default <T> Task<T> supplyOnMainThread(@NotNull CheckedSupplier<T> task) {
+        return TaskUtil.supplyAsync(task, this::runOnMainThread);
     }
 
     /**

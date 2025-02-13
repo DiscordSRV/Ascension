@@ -19,6 +19,7 @@
 package com.discordsrv.common.feature.profile;
 
 import com.discordsrv.api.profile.IProfileManager;
+import com.discordsrv.api.task.Task;
 import com.discordsrv.common.DiscordSRV;
 import com.discordsrv.common.feature.linking.LinkProvider;
 import org.jetbrains.annotations.NotNull;
@@ -26,13 +27,12 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.Map;
 import java.util.UUID;
-import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
 
 public class ProfileManager implements IProfileManager {
 
     private final DiscordSRV discordSRV;
-    private final Map<UUID, CompletableFuture<Profile>> profileLookups = new ConcurrentHashMap<>();
+    private final Map<UUID, Task<Profile>> profileLookups = new ConcurrentHashMap<>();
     private final Map<UUID, Profile> profiles = new ConcurrentHashMap<>();
     private final Map<Long, Profile> discordUserMap = new ConcurrentHashMap<>();
 
@@ -40,8 +40,8 @@ public class ProfileManager implements IProfileManager {
         this.discordSRV = discordSRV;
     }
 
-    public CompletableFuture<Profile> loadProfile(UUID playerUUID) {
-        CompletableFuture<Profile> lookup = lookupProfile(playerUUID)
+    public Task<Profile> loadProfile(UUID playerUUID) {
+        Task<Profile> lookup = lookupProfile(playerUUID)
                 .thenApply(profile -> {
                     profiles.put(playerUUID, profile);
                     if (profile.isLinked()) {
@@ -55,7 +55,7 @@ public class ProfileManager implements IProfileManager {
     }
 
     public void unloadProfile(UUID playerUUID) {
-        CompletableFuture<Profile> lookup = profileLookups.remove(playerUUID);
+        Task<Profile> lookup = profileLookups.remove(playerUUID);
         if (lookup != null) {
             lookup.cancel(false);
         }
@@ -71,9 +71,9 @@ public class ProfileManager implements IProfileManager {
     }
 
     @Override
-    public @NotNull CompletableFuture<Profile> lookupProfile(UUID playerUUID) {
+    public @NotNull Task<Profile> lookupProfile(UUID playerUUID) {
         LinkProvider linkProvider = discordSRV.linkProvider();
-        if (linkProvider == null) return CompletableFuture.completedFuture(null);
+        if (linkProvider == null) return Task.completed(null);
         return linkProvider.getUserId(playerUUID)
                 .thenApply(opt -> new Profile(playerUUID, opt.orElse(null)));
     }
@@ -84,9 +84,9 @@ public class ProfileManager implements IProfileManager {
     }
 
     @Override
-    public @NotNull CompletableFuture<Profile> lookupProfile(long userId) {
+    public @NotNull Task<Profile> lookupProfile(long userId) {
         LinkProvider linkProvider = discordSRV.linkProvider();
-        if (linkProvider == null) return CompletableFuture.completedFuture(null);
+        if (linkProvider == null) return Task.completed(null);
         return linkProvider.getPlayerUUID(userId)
                 .thenApply(opt -> new Profile(opt.orElse(null), userId));
     }

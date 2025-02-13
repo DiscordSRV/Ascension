@@ -18,6 +18,7 @@
 
 package com.discordsrv.bukkit.player;
 
+import com.discordsrv.api.task.Task;
 import com.discordsrv.bukkit.BukkitDiscordSRV;
 import com.discordsrv.common.abstraction.player.IOfflinePlayer;
 import com.discordsrv.common.abstraction.player.IPlayer;
@@ -33,7 +34,6 @@ import org.bukkit.event.player.PlayerLoginEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
 
 import java.util.UUID;
-import java.util.concurrent.CompletableFuture;
 import java.util.function.Function;
 import java.util.function.Supplier;
 
@@ -104,7 +104,7 @@ public class BukkitPlayerProvider extends ServerPlayerProvider<BukkitPlayer, Buk
 
     // IOfflinePlayer
 
-    private CompletableFuture<IOfflinePlayer> getFuture(Supplier<OfflinePlayer> provider) {
+    private Task<IOfflinePlayer> getFuture(Supplier<OfflinePlayer> provider) {
         return discordSRV.scheduler().supply(() -> {
             OfflinePlayer offlinePlayer = provider.get();
             if (offlinePlayer == null) {
@@ -116,10 +116,10 @@ public class BukkitPlayerProvider extends ServerPlayerProvider<BukkitPlayer, Buk
     }
 
     @Override
-    public CompletableFuture<IOfflinePlayer> lookupOfflinePlayer(UUID uuid) {
+    public Task<IOfflinePlayer> lookupOfflinePlayer(UUID uuid) {
         IPlayer player = player(uuid);
         if (player != null) {
-            return CompletableFuture.completedFuture(player);
+            return Task.completed(player);
         }
 
         return getFuture(() -> discordSRV.server().getOfflinePlayer(uuid));
@@ -127,10 +127,10 @@ public class BukkitPlayerProvider extends ServerPlayerProvider<BukkitPlayer, Buk
 
     @SuppressWarnings("deprecation") // Shut up, I know
     @Override
-    public CompletableFuture<IOfflinePlayer> lookupOfflinePlayer(String username) {
+    public Task<IOfflinePlayer> lookupOfflinePlayer(String username) {
         IPlayer player = player(username);
         if (player != null) {
-            return CompletableFuture.completedFuture(player);
+            return Task.completed(player);
         }
 
         return getFuture(() -> discordSRV.server().getOfflinePlayer(username));

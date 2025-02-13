@@ -254,7 +254,7 @@ public class DestinationLookupHelper {
                         .setArchived(false)
                         .reason("DiscordSRV destination lookup")
                         .submit()
-        ).thenApply(v -> channel).exceptionally(t -> {
+        ).thenApply(v -> channel).handle(t -> {
             if (logFailures) {
                 logger.error("Failed to unarchive thread \"" + channel.getName() + "\" "
                                      + "in channel #" + channel.getParentChannel().getName(), t);

@@ -19,6 +19,7 @@
 package com.discordsrv.common.integration;
 
 import com.discordsrv.api.module.type.PermissionModule;
+import com.discordsrv.api.task.Task;
 import com.discordsrv.common.DiscordSRV;
 import com.discordsrv.common.core.module.type.PluginIntegration;
 import com.discordsrv.common.exception.MessageException;
@@ -51,7 +52,6 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
-import java.util.concurrent.CompletableFuture;
 import java.util.function.BiFunction;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
@@ -101,8 +101,8 @@ public class LuckPermsIntegration extends PluginIntegration<DiscordSRV> implemen
         luckPerms = null;
     }
 
-    private CompletableFuture<User> user(UUID player) {
-        return luckPerms.getUserManager().loadUser(player);
+    private Task<User> user(UUID player) {
+        return Task.of(luckPerms.getUserManager().loadUser(player));
     }
 
     @Override
@@ -116,7 +116,7 @@ public class LuckPermsIntegration extends PluginIntegration<DiscordSRV> implemen
     }
 
     @Override
-    public CompletableFuture<Boolean> hasGroup(@NotNull UUID player, @NotNull String groupName, boolean includeInherited, @Nullable Set<String> serverContext) {
+    public Task<Boolean> hasGroup(@NotNull UUID player, @NotNull String groupName, boolean includeInherited, @Nullable Set<String> serverContext) {
         return user(player).thenApply(user -> {
             MutableContextSet context = luckPerms.getContextManager().getStaticContext().mutableCopy();
             if (serverContext != null) {
@@ -142,19 +142,19 @@ public class LuckPermsIntegration extends PluginIntegration<DiscordSRV> implemen
     }
 
     @Override
-    public CompletableFuture<Void> addGroup(@NotNull UUID player, @NotNull String groupName, @Nullable Set<String> serverContext) {
+    public Task<Void> addGroup(@NotNull UUID player, @NotNull String groupName, @Nullable Set<String> serverContext) {
         return groupMutate(player, groupName, serverContext, NodeMap::add);
     }
 
     @Override
-    public CompletableFuture<Void> removeGroup(@NotNull UUID player, @NotNull String groupName, @Nullable Set<String> serverContext) {
+    public Task<Void> removeGroup(@NotNull UUID player, @NotNull String groupName, @Nullable Set<String> serverContext) {
         return groupMutate(player, groupName, serverContext, NodeMap::remove);
     }
 
-    private CompletableFuture<Void> groupMutate(UUID player, String groupName, Set<String> serverContext, BiFunction<NodeMap, Node, DataMutateResult> function) {
+    private Task<Void> groupMutate(UUID player, String groupName, Set<String> serverContext, BiFunction<NodeMap, Node, DataMutateResult> function) {
         Group group = luckPerms.getGroupManager().getGroup(groupName);
         if (group == null) {
-            return CompletableFutureUtil.failed(new MessageException("Group does not exist"));
+            return Task.failed(new MessageException("Group does not exist"));
         }
         return user(player).thenCompose(user -> {
             ContextSet contexts;
@@ -191,23 +191,23 @@ public class LuckPermsIntegration extends PluginIntegration<DiscordSRV> implemen
     }
 
     @Override
-    public CompletableFuture<Boolean> hasPermission(@NotNull UUID player, @NotNull String permission) {
+    public Task<Boolean> hasPermission(@NotNull UUID player, @NotNull String permission) {
         return user(player).thenApply(
                 user -> user.getCachedData().getPermissionData().checkPermission(permission).asBoolean());
     }
 
     @Override
-    public CompletableFuture<String> getPrefix(@NotNull UUID player) {
+    public Task<String> getPrefix(@NotNull UUID player) {
         return user(player).thenApply(user -> user.getCachedData().getMetaData().getPrefix());
     }
 
     @Override
-    public CompletableFuture<String> getSuffix(@NotNull UUID player) {
+    public Task<String> getSuffix(@NotNull UUID player) {
         return user(player).thenApply(user -> user.getCachedData().getMetaData().getSuffix());
     }
 
     @Override
-    public CompletableFuture<String> getMeta(@NotNull UUID player, @NotNull String key) throws UnsupportedOperationException {
+    public Task<String> getMeta(@NotNull UUID player, @NotNull String key) throws UnsupportedOperationException {
         return user(player).thenApply(user -> user.getCachedData().getMetaData().getMetaValue(key));
     }
 

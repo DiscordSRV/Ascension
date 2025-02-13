@@ -24,6 +24,7 @@ import com.discordsrv.api.eventbus.Subscribe;
 import com.discordsrv.api.events.linking.AccountLinkedEvent;
 import com.discordsrv.api.module.type.PunishmentModule;
 import com.discordsrv.api.punishment.Punishment;
+import com.discordsrv.api.task.Task;
 import com.discordsrv.common.DiscordSRV;
 import com.discordsrv.common.abstraction.player.IPlayer;
 import com.discordsrv.common.abstraction.sync.AbstractSyncModule;
@@ -36,7 +37,6 @@ import com.discordsrv.common.config.main.BanSyncConfig;
 import com.discordsrv.common.feature.bansync.enums.BanSyncCause;
 import com.discordsrv.common.feature.bansync.enums.BanSyncResult;
 import com.discordsrv.common.helper.Someone;
-import com.discordsrv.common.util.CompletableFutureUtil;
 import com.discordsrv.common.util.ComponentUtil;
 import net.dv8tion.jda.api.JDA;
 import net.dv8tion.jda.api.audit.ActionType;
@@ -206,26 +206,26 @@ public class BanSyncModule extends AbstractSyncModule<DiscordSRV, BanSyncConfig,
         }
     }
 
-    private CompletableFuture<Guild.@Nullable Ban> getBan(Guild guild, long userId) {
-        return guild.retrieveBan(UserSnowflake.fromId(userId)).submit().exceptionally(t -> {
+    private Task<Guild.@Nullable Ban> getBan(Guild guild, long userId) {
+        return Task.of(guild.retrieveBan(UserSnowflake.fromId(userId)).submit().exceptionally(t -> {
             if (t instanceof ErrorResponseException && ((ErrorResponseException) t).getErrorResponse() == ErrorResponse.UNKNOWN_BAN) {
                 return null;
             }
             throw (RuntimeException) t;
-        });
+        }));
     }
 
     @Override
-    protected CompletableFuture<Punishment> getDiscord(BanSyncConfig config, long userId) {
+    protected Task<Punishment> getDiscord(BanSyncConfig config, long userId) {
         JDA jda = discordSRV.jda();
         if (jda == null) {
-            return CompletableFutureUtil.failed(new SyncFail(BanSyncResult.NO_DISCORD_CONNECTION));
+            return Task.failed(new SyncFail(BanSyncResult.NO_DISCORD_CONNECTION));
         }
 
         Guild guild = jda.getGuildById(config.serverId);
         if (guild == null) {
             // Server doesn't exist
-            return CompletableFutureUtil.failed(new SyncFail(BanSyncResult.GUILD_DOESNT_EXIST));
+            return Task.failed(new SyncFail(BanSyncResult.GUILD_DOESNT_EXIST));
         }
 
         return getBan(guild, userId).thenApply(this::punishment);
@@ -236,55 +236,55 @@ public class BanSyncModule extends AbstractSyncModule<DiscordSRV, BanSyncConfig,
     }
 
     @Override
-    protected CompletableFuture<Punishment> getGame(BanSyncConfig config, UUID playerUUID) {
+    protected Task<Punishment> getGame(BanSyncConfig config, UUID playerUUID) {
         PunishmentModule.Bans bans = discordSRV.getModule(PunishmentModule.Bans.class);
         if (bans == null) {
-            return CompletableFutureUtil.failed(new SyncFail(BanSyncResult.NO_PUNISHMENT_INTEGRATION));
+            return Task.failed(new SyncFail(BanSyncResult.NO_PUNISHMENT_INTEGRATION));
         }
 
         return bans.getBan(playerUUID);
     }
 
     @Override
-    protected CompletableFuture<ISyncResult> applyDiscord(BanSyncConfig config, long userId, Punishment newState) {
+    protected Task<ISyncResult> applyDiscord(BanSyncConfig config, long userId, Punishment newState) {
         if (config.direction == SyncDirection.DISCORD_TO_MINECRAFT) {
-            return CompletableFuture.completedFuture(GenericSyncResults.WRONG_DIRECTION);
+            return Task.completed(GenericSyncResults.WRONG_DIRECTION);
         }
 
         JDA jda = discordSRV.jda();
         if (jda == null) {
-            return CompletableFuture.completedFuture(BanSyncResult.NO_DISCORD_CONNECTION);
+            return Task.completed(BanSyncResult.NO_DISCORD_CONNECTION);
         }
 
         Guild guild = jda.getGuildById(config.serverId);
         if (guild == null) {
             // Server doesn't exist
-            return CompletableFuture.completedFuture(BanSyncResult.GUILD_DOESNT_EXIST);
+            return Task.completed(BanSyncResult.GUILD_DOESNT_EXIST);
         }
 
         UserSnowflake snowflake = UserSnowflake.fromId(userId);
         if (newState != null) {
-            return guild.ban(snowflake, config.discordMessageHoursToDelete, TimeUnit.HOURS)
+            return Task.of(guild.ban(snowflake, config.discordMessageHoursToDelete, TimeUnit.HOURS)
                     .reason(discordSRV.placeholderService().replacePlaceholders(config.discordBanReasonFormat, newState))
-                    .submit()
+                    .submit())
                     .thenApply(v -> GenericSyncResults.ADD_DISCORD);
         } else {
-            return guild.unban(snowflake)
+            return Task.of(guild.unban(snowflake)
                     .reason(discordSRV.placeholderService().replacePlaceholders(config.discordUnbanReasonFormat))
-                    .submit()
+                    .submit())
                     .thenApply(v -> GenericSyncResults.REMOVE_DISCORD);
         }
     }
 
     @Override
-    protected CompletableFuture<ISyncResult> applyGame(BanSyncConfig config, UUID playerUUID, Punishment newState) {
+    protected Task<ISyncResult> applyGame(BanSyncConfig config, UUID playerUUID, Punishment newState) {
         if (config.direction == SyncDirection.MINECRAFT_TO_DISCORD) {
-            return CompletableFuture.completedFuture(GenericSyncResults.WRONG_DIRECTION);
+            return Task.completed(GenericSyncResults.WRONG_DIRECTION);
         }
 
         PunishmentModule.Bans bans = discordSRV.getModule(PunishmentModule.Bans.class);
         if (bans == null) {
-            return CompletableFuture.completedFuture(BanSyncResult.NO_PUNISHMENT_INTEGRATION);
+            return Task.completed(BanSyncResult.NO_PUNISHMENT_INTEGRATION);
         }
 
         if (newState != null) {

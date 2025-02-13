@@ -18,7 +18,8 @@
 
 package com.discordsrv.common.core.scheduler;
 
-import com.discordsrv.common.util.CompletableFutureUtil;
+import com.discordsrv.api.task.Task;
+import com.discordsrv.common.util.TaskUtil;
 import com.discordsrv.common.util.function.CheckedRunnable;
 import com.discordsrv.common.util.function.CheckedSupplier;
 import org.jetbrains.annotations.CheckReturnValue;
@@ -80,8 +81,8 @@ public interface Scheduler {
      */
     @NotNull
     @CheckReturnValue
-    default CompletableFuture<Void> execute(@NotNull CheckedRunnable task) {
-        return CompletableFutureUtil.runAsync(task, this::run);
+    default Task<Void> execute(@NotNull CheckedRunnable task) {
+        return TaskUtil.runAsync(task, this::run);
     }
 
     /**
@@ -92,8 +93,8 @@ public interface Scheduler {
      */
     @NotNull
     @CheckReturnValue
-    default <T> CompletableFuture<T> supply(@NotNull CheckedSupplier<T> supplier) {
-        return CompletableFutureUtil.supplyAsync(supplier, this::run);
+    default <T> Task<T> supply(@NotNull CheckedSupplier<T> supplier) {
+        return TaskUtil.supplyAsync(supplier, this::run);
     }
 
     /**
@@ -114,8 +115,8 @@ public interface Scheduler {
      */
     @NotNull
     @CheckReturnValue
-    default CompletableFuture<Void> executeLater(@NotNull CheckedRunnable task, @NotNull Duration delay) {
-        return CompletableFutureUtil.runAsync(task, t -> runLater(t, delay));
+    default Task<Void> executeLater(@NotNull CheckedRunnable task, @NotNull Duration delay) {
+        return TaskUtil.runAsync(task, t -> runLater(t, delay));
     }
 
     /**
@@ -127,8 +128,8 @@ public interface Scheduler {
      */
     @NotNull
     @CheckReturnValue
-    default <T> CompletableFuture<T> supplyLater(@NotNull CheckedSupplier<T> supplier, @NotNull Duration delay) {
-        return CompletableFutureUtil.supplyAsync(supplier, task -> runLater(task, delay));
+    default <T> Task<T> supplyLater(@NotNull CheckedSupplier<T> supplier, @NotNull Duration delay) {
+        return TaskUtil.supplyAsync(supplier, task -> runLater(task, delay));
     }
 
     /**
