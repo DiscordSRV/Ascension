@@ -63,10 +63,8 @@ public class DiscordGuildImpl implements DiscordGuild {
 
     @Override
     public @NotNull Task<DiscordGuildMember> retrieveMemberById(long id) {
-        return discordSRV.discordAPI().mapExceptions(() -> guild.retrieveMemberById(id)
-                .submit()
-                .thenApply(member -> new DiscordGuildMemberImpl(discordSRV, member))
-        );
+        return discordSRV.discordAPI().toTask(() -> guild.retrieveMemberById(id))
+                .thenApply(member -> new DiscordGuildMemberImpl(discordSRV, member));
     }
 
     @Override

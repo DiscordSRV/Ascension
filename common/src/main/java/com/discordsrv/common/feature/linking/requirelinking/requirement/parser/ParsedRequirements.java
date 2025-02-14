@@ -18,22 +18,22 @@
 
 package com.discordsrv.common.feature.linking.requirelinking.requirement.parser;
 
+import com.discordsrv.api.task.Task;
 import com.discordsrv.common.feature.linking.requirelinking.requirement.Requirement;
 import com.discordsrv.common.helper.Someone;
 
 import java.util.List;
-import java.util.concurrent.CompletableFuture;
 import java.util.function.Function;
 
 public class ParsedRequirements {
 
     private final String input;
-    private final Function<Someone.Resolved, CompletableFuture<Boolean>> predicate;
+    private final Function<Someone.Resolved, Task<Boolean>> predicate;
     private final List<Requirement<?>> usedRequirements;
 
     public ParsedRequirements(
             String input,
-            Function<Someone.Resolved, CompletableFuture<Boolean>> predicate,
+            Function<Someone.Resolved, Task<Boolean>> predicate,
             List<Requirement<?>> usedRequirements
     ) {
         this.input = input;
@@ -45,7 +45,7 @@ public class ParsedRequirements {
         return input;
     }
 
-    public Function<Someone.Resolved, CompletableFuture<Boolean>> predicate() {
+    public Function<Someone.Resolved, Task<Boolean>> predicate() {
         return predicate;
     }
 

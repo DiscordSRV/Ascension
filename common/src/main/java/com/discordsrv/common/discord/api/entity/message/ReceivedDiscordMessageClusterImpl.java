@@ -21,11 +21,10 @@ package com.discordsrv.common.discord.api.entity.message;
 import com.discordsrv.api.discord.entity.message.ReceivedDiscordMessage;
 import com.discordsrv.api.discord.entity.message.ReceivedDiscordMessageCluster;
 import com.discordsrv.api.discord.entity.message.SendableDiscordMessage;
-import com.discordsrv.common.util.CompletableFutureUtil;
+import com.discordsrv.api.task.Task;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.*;
-import java.util.concurrent.CompletableFuture;
 
 public class ReceivedDiscordMessageClusterImpl implements ReceivedDiscordMessageCluster {
 
@@ -41,22 +40,22 @@ public class ReceivedDiscordMessageClusterImpl implements ReceivedDiscordMessage
     }
 
     @Override
-    public @NotNull CompletableFuture<Void> deleteAll() {
-        List<CompletableFuture<Void>> futures = new ArrayList<>(messages.size());
+    public @NotNull Task<Void> deleteAll() {
+        List<Task<Void>> futures = new ArrayList<>(messages.size());
         for (ReceivedDiscordMessage message : messages) {
             futures.add(message.delete());
         }
 
-        return CompletableFutureUtil.combine(futures).thenApply(v -> null);
+        return Task.allOf(futures).thenApply(v -> null);
     }
 
     @Override
-    public @NotNull CompletableFuture<ReceivedDiscordMessageCluster> editAll(SendableDiscordMessage newMessage) {
-        List<CompletableFuture<ReceivedDiscordMessage>> futures = new ArrayList<>(messages.size());
+    public @NotNull Task<ReceivedDiscordMessageCluster> editAll(SendableDiscordMessage newMessage) {
+        List<Task<ReceivedDiscordMessage>> futures = new ArrayList<>(messages.size());
         for (ReceivedDiscordMessage message : messages) {
             futures.add(message.edit(newMessage));
         }
 
-        return CompletableFutureUtil.combine(futures).thenApply(ReceivedDiscordMessageClusterImpl::new);
+        return Task.allOf(futures).thenApply(ReceivedDiscordMessageClusterImpl::new);
     }
 }

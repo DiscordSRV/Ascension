@@ -27,6 +27,7 @@ import com.discordsrv.api.eventbus.Subscribe;
 import com.discordsrv.api.events.message.forward.game.JoinMessageForwardedEvent;
 import com.discordsrv.api.events.message.receive.game.JoinMessageReceiveEvent;
 import com.discordsrv.api.player.DiscordSRVPlayer;
+import com.discordsrv.api.task.Task;
 import com.discordsrv.common.DiscordSRV;
 import com.discordsrv.common.abstraction.player.IPlayer;
 import com.discordsrv.common.config.main.channels.base.BaseChannelConfig;
@@ -42,7 +43,6 @@ import java.time.Duration;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
-import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Future;
 
 public class JoinMessageModule extends AbstractGameMessageModule<IMessageConfig, JoinMessageReceiveEvent> {
@@ -70,7 +70,7 @@ public class JoinMessageModule extends AbstractGameMessageModule<IMessageConfig,
     }
 
     @Override
-    protected CompletableFuture<Void> forwardToChannel(
+    protected Task<Void> forwardToChannel(
             @Nullable JoinMessageReceiveEvent event,
             @Nullable IPlayer player,
             @NotNull BaseChannelConfig config,
@@ -78,23 +78,22 @@ public class JoinMessageModule extends AbstractGameMessageModule<IMessageConfig,
     ) {
         if (player != null && config.joinMessages().enableSilentPermission && silentJoinPermission.get()) {
             logger().info(player.username() + " is joining silently, join message will not be sent");
-            return CompletableFuture.completedFuture(null);
+            return Task.completed(null);
         }
 
         long delay = config.joinMessages().ignoreIfLeftWithinMS;
         if (player != null && delay > 0) {
             UUID playerUUID = player.uniqueId();
 
-            CompletableFuture<Void> completableFuture = new CompletableFuture<>();
             synchronized (delayedTasks) {
-                CompletableFuture<Void> future = discordSRV.scheduler()
+                Task<Void> future = discordSRV.scheduler()
                         .supplyLater(() -> super.forwardToChannel(event, player, config, channel), Duration.ofMillis(delay))
-                        .thenCompose(r -> r)
+                        .then(r -> r)
                         .whenComplete((v, t) -> delayedTasks.remove(playerUUID));
 
                 delayedTasks.put(playerUUID, future);
+                return future;
             }
-            return completableFuture;
         }
         return super.forwardToChannel(event, player, config, channel);
     }

@@ -21,12 +21,12 @@ package com.discordsrv.common.core.placeholder.context;
 import com.discordsrv.api.module.type.PermissionModule;
 import com.discordsrv.api.placeholder.annotation.Placeholder;
 import com.discordsrv.api.placeholder.format.FormattedText;
+import com.discordsrv.api.task.Task;
 import com.discordsrv.common.DiscordSRV;
 import com.discordsrv.common.abstraction.player.IOfflinePlayer;
 import net.kyori.adventure.text.Component;
 
 import java.util.UUID;
-import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 import java.util.function.Function;
 
@@ -75,7 +75,7 @@ public class GamePermissionContext {
 
     private Component getPermissionMeta(
             String what,
-            Function<PermissionModule.PrefixAndSuffix, CompletableFuture<String>> function
+            Function<PermissionModule.PrefixAndSuffix, Task<String>> function
     ) {
         PermissionModule.PrefixAndSuffix permission = discordSRV.getModule(PermissionModule.PrefixAndSuffix.class);
         if (permission == null) {

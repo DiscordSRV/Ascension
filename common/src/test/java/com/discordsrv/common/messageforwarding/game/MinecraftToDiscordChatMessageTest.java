@@ -24,6 +24,7 @@ import com.discordsrv.api.eventbus.EventBus;
 import com.discordsrv.api.eventbus.Subscribe;
 import com.discordsrv.api.events.message.forward.game.GameChatMessageForwardedEvent;
 import com.discordsrv.api.events.message.receive.game.GameChatMessageReceiveEvent;
+import com.discordsrv.api.task.Task;
 import com.discordsrv.common.DiscordSRV;
 import com.discordsrv.common.FullBootExtension;
 import com.discordsrv.common.MockDiscordSRV;
@@ -93,7 +94,7 @@ public class MinecraftToDiscordChatMessageTest {
                                 }
 
                                 @Override
-                                public CompletableFuture<Void> kick(Component component) {
+                                public Task<Void> kick(Component component) {
                                     return null;
                                 }
 

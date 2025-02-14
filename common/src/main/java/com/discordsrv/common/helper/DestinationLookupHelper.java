@@ -20,6 +20,7 @@ package com.discordsrv.common.helper;
 
 import com.discordsrv.api.discord.entity.channel.*;
 import com.discordsrv.api.discord.entity.message.SendableDiscordMessage;
+import com.discordsrv.api.task.Task;
 import com.discordsrv.common.DiscordSRV;
 import com.discordsrv.common.config.main.generic.DestinationConfig;
 import com.discordsrv.common.config.main.generic.ThreadConfig;
@@ -32,26 +33,26 @@ import net.dv8tion.jda.api.entities.channel.concrete.ThreadChannel;
 import org.apache.commons.lang3.StringUtils;
 
 import java.util.*;
-import java.util.concurrent.CompletableFuture;
+import java.util.stream.Collectors;
 
 public class DestinationLookupHelper {
 
     private final DiscordSRV discordSRV;
     private final Logger logger;
-    private final Map<String, CompletableFuture<DiscordThreadChannel>> threadActions = new HashMap<>();
+    private final Map<String, Task<DiscordThreadChannel>> threadActions = new HashMap<>();
 
     public DestinationLookupHelper(DiscordSRV discordSRV) {
         this.discordSRV = discordSRV;
         this.logger = new NamedLogger(discordSRV, "DESTINATION_LOOKUP");
     }
 
-    public CompletableFuture<List<DiscordGuildMessageChannel>> lookupDestination(
+    public Task<List<DiscordGuildMessageChannel>> lookupDestination(
             DestinationConfig config,
             boolean allowRequests,
             boolean logFailures,
             Object... threadNameContext
     ) {
-        List<CompletableFuture<? extends DiscordGuildMessageChannel>> futures = new ArrayList<>();
+        List<Task<? extends DiscordGuildMessageChannel>> futures = new ArrayList<>();
 
         for (Long channelId : config.channelIds) {
             if (channelId == 0) {
@@ -68,7 +69,7 @@ public class DestinationLookupHelper {
             if (!(channel instanceof DiscordGuildMessageChannel)) {
                 continue;
             }
-            futures.add(CompletableFuture.completedFuture((DiscordGuildMessageChannel) channel));
+            futures.add(Task.completed((DiscordGuildMessageChannel) channel));
         }
 
         for (ThreadConfig threadConfig : config.threads) {
@@ -101,7 +102,7 @@ public class DestinationLookupHelper {
 
             DiscordThreadChannel existingThread = findThread(threadContainer.getActiveThreads(), threadName, privateThread);
             if (existingThread != null && !existingThread.isArchived()) {
-                futures.add(CompletableFuture.completedFuture(existingThread));
+                futures.add(Task.completed(existingThread));
                 continue;
             }
 
@@ -111,9 +112,9 @@ public class DestinationLookupHelper {
 
             String threadKey = Long.toUnsignedString(channelId) + ":" + threadName + "/" + privateThread;
 
-            CompletableFuture<DiscordThreadChannel> future;
+            Task<DiscordThreadChannel> future;
             synchronized (threadActions) {
-                CompletableFuture<DiscordThreadChannel> existingFuture = threadActions.get(threadKey);
+                Task<DiscordThreadChannel> existingFuture = threadActions.get(threadKey);
 
                 if (existingFuture != null) {
                     future = existingFuture;
@@ -125,12 +126,12 @@ public class DestinationLookupHelper {
                     future = unarchiveThread(existingThread, logFailures);
                 } else {
                     // Lookup threads
-                    CompletableFuture<List<DiscordThreadChannel>> threads =
+                    Task<List<DiscordThreadChannel>> threads =
                             privateThread
                             ? threadContainer.retrieveArchivedPrivateThreads()
                             : threadContainer.retrieveArchivedPublicThreads();
 
-                    future = threads.thenCompose(archivedThreads -> {
+                    future = threads.then(archivedThreads -> {
                         DiscordThreadChannel archivedThread = findThread(archivedThreads, threadName, privateThread);
                         if (archivedThread != null) {
                             // Unarchive existing thread
@@ -139,7 +140,7 @@ public class DestinationLookupHelper {
 
                         // Create thread
                         return createThread(threadContainer, threadName, privateThread, logFailures);
-                    }).exceptionally(t -> {
+                    }).mapException(t -> {
                         if (logFailures) {
                             logger.error("Failed to lookup threads in channel #" + threadContainer.getName(), t);
                         }
@@ -155,15 +156,15 @@ public class DestinationLookupHelper {
             futures.add(future);
         }
 
-        return CompletableFuture.allOf(
+        return Task.allOf(
                 futures.stream()
-                        .map(future -> (CompletableFuture<?>) future)
-                        .toArray(CompletableFuture[]::new)
+                        .map(future -> (Task<?>) future)
+                        .collect(Collectors.toList())
         ).thenApply(v -> {
             Set<Long> idsDuplicateCheck = new HashSet<>();
             List<DiscordGuildMessageChannel> channels = new ArrayList<>();
 
-            for (CompletableFuture<? extends DiscordGuildMessageChannel> future : futures) {
+            for (Task<? extends DiscordGuildMessageChannel> future : futures) {
                 DiscordGuildMessageChannel channel = future.join();
                 if (channel != null && idsDuplicateCheck.add(channel.getId())) {
                     channels.add(channel);
@@ -182,7 +183,7 @@ public class DestinationLookupHelper {
         return null;
     }
 
-    private CompletableFuture<DiscordThreadChannel> createThread(
+    private Task<DiscordThreadChannel> createThread(
             DiscordThreadContainer threadContainer,
             String threadName,
             boolean privateThread,
@@ -208,10 +209,10 @@ public class DestinationLookupHelper {
                 logger.error("Failed to create thread \"" + threadName + "\" "
                                      + "in channel #" + threadContainer.getName() + ": " + missingPermissions);
             }
-            return CompletableFuture.completedFuture(null);
+            return Task.completed(null);
         }
 
-        CompletableFuture<DiscordThreadChannel> future;
+        Task<DiscordThreadChannel> future;
         if (forum) {
             SendableDiscordMessage message = SendableDiscordMessage.builder().setContent("\u200B").build(); // zero-width-space
 
@@ -223,7 +224,7 @@ public class DestinationLookupHelper {
         } else {
             future = threadContainer.createThread(threadName, privateThread);
         }
-        return future.exceptionally(t -> {
+        return future.mapException(t -> {
             if (logFailures) {
                 logger.error("Failed to create thread \"" + threadName + "\" "
                                      + "in channel #" + threadContainer.getName(), t);
@@ -232,7 +233,7 @@ public class DestinationLookupHelper {
         });
     }
 
-    private CompletableFuture<DiscordThreadChannel> unarchiveThread(DiscordThreadChannel channel, boolean logFailures) {
+    private Task<DiscordThreadChannel> unarchiveThread(DiscordThreadChannel channel, boolean logFailures) {
         ThreadChannel jdaChannel = channel.asJDA();
 
         EnumSet<Permission> requiredPermissions = EnumSet.of(Permission.VIEW_CHANNEL);
@@ -246,20 +247,18 @@ public class DestinationLookupHelper {
                 logger.error("Cannot unarchive thread \"" + channel.getName() + "\" "
                                      + "in channel #" + channel.getParentChannel().getName() + ": " + missingPermissions);
             }
-            return CompletableFuture.completedFuture(null);
+            return Task.completed(null);
         }
 
-        return discordSRV.discordAPI().mapExceptions(
-                channel.asJDA().getManager()
-                        .setArchived(false)
-                        .reason("DiscordSRV destination lookup")
-                        .submit()
-        ).thenApply(v -> channel).handle(t -> {
-            if (logFailures) {
-                logger.error("Failed to unarchive thread \"" + channel.getName() + "\" "
-                                     + "in channel #" + channel.getParentChannel().getName(), t);
-            }
-            return null;
-        });
+        return discordSRV.discordAPI()
+                .toTask(() -> channel.asJDA().getManager().setArchived(false).reason("DiscordSRV destination lookup"))
+                .thenApply(v -> channel)
+                .mapException(t -> {
+                    if (logFailures) {
+                        logger.error("Failed to unarchive thread \"" + channel.getName() + "\" "
+                                             + "in channel #" + channel.getParentChannel().getName(), t);
+                    }
+                    return null;
+                });
     }
 }

@@ -41,8 +41,6 @@ import com.discordsrv.common.discord.api.entity.guild.DiscordCustomEmojiImpl;
 import com.discordsrv.common.discord.api.entity.guild.DiscordGuildImpl;
 import com.discordsrv.common.discord.api.entity.guild.DiscordGuildMemberImpl;
 import com.discordsrv.common.discord.api.entity.guild.DiscordRoleImpl;
-import com.discordsrv.common.util.CompletableFutureUtil;
-import com.discordsrv.common.util.function.CheckedSupplier;
 import com.github.benmanes.caffeine.cache.AsyncCacheLoader;
 import com.github.benmanes.caffeine.cache.AsyncLoadingCache;
 import com.github.benmanes.caffeine.cache.Expiry;
@@ -56,6 +54,7 @@ import net.dv8tion.jda.api.entities.channel.middleman.MessageChannel;
 import net.dv8tion.jda.api.entities.emoji.CustomEmoji;
 import net.dv8tion.jda.api.exceptions.ErrorResponseException;
 import net.dv8tion.jda.api.requests.ErrorResponse;
+import net.dv8tion.jda.api.requests.RestAction;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -65,6 +64,7 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Executor;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Function;
+import java.util.function.Supplier;
 
 public class DiscordAPIImpl implements DiscordAPI {
 
@@ -80,50 +80,29 @@ public class DiscordAPIImpl implements DiscordAPI {
                 .buildAsync(new WebhookCacheLoader());
     }
 
-    public CompletableFuture<WebhookClient<Message>> queryWebhookClient(long channelId) {
-        return cachedClients.get(channelId);
+    public Task<WebhookClient<Message>> queryWebhookClient(long channelId) {
+        return Task.of(cachedClients.get(channelId));
     }
 
     public AsyncLoadingCache<Long, WebhookClient<Message>> getCachedClients() {
         return cachedClients;
     }
 
-    public <T> CompletableFuture<T> mapExceptions(CheckedSupplier<CompletableFuture<T>> futureSupplier) {
+    public <T> Task<T> toTask(Supplier<RestAction<T>> jdaRestActionSupplier) {
         try {
-            return mapExceptions(futureSupplier.get());
-        } catch (Throwable t) {
-            return CompletableFutureUtil.failed(t);
-        }
-    }
-
-    public <T> CompletableFuture<T> mapExceptions(CompletableFuture<T> future) {
-        return future.handle((response, t) -> {
-            if (t instanceof ErrorResponseException) {
-                ErrorResponseException exception = (ErrorResponseException) t;
-                int code = exception.getErrorCode();
-                ErrorResponse errorResponse = exception.getErrorResponse();
-                throw new RestErrorResponseException(code, errorResponse.getMeaning(), t);
-            } else if (t != null) {
-                throw (RuntimeException) t;
-            }
-            return response;
-        });
-    }
-
-    public <T> Task<T> mapExceptions(CheckedSupplier<Task<T>> futureSupplier) {
-        try {
-            return mapExceptions(futureSupplier.get());
+            RestAction<T> restAction = jdaRestActionSupplier.get();
+            return toTask(restAction);
         } catch (Throwable t) {
             return Task.failed(t);
         }
     }
 
-    public <T> Task<T> mapExceptions(Task<T> future) {
-        return future
-                .mapException(ErrorResponseException.class, t -> {
-                    int code = t.getErrorCode();
-                    ErrorResponse errorResponse = t.getErrorResponse();
-                    throw new RestErrorResponseException(code, errorResponse.getMeaning(), t);
+    public <T> Task<T> toTask(RestAction<T> jdaRestAction) {
+        return Task.of(jdaRestAction.submit())
+                .mapException(ErrorResponseException.class, exception -> {
+                    int code = exception.getErrorCode();
+                    ErrorResponse errorResponse = exception.getErrorResponse();
+                    throw new RestErrorResponseException(code, errorResponse.getMeaning(), exception);
                 });
     }
 
@@ -320,10 +299,7 @@ public class DiscordAPIImpl implements DiscordAPI {
             return notReady();
         }
 
-        return mapExceptions(
-                Task.of(jda.retrieveUserById(id).submit())
-                        .thenApply(this::getUser)
-        );
+        return toTask(() -> jda.retrieveUserById(id)).thenApply(this::getUser);
     }
 
     @Override
@@ -374,13 +350,17 @@ public class DiscordAPIImpl implements DiscordAPI {
         public @NotNull CompletableFuture<WebhookClient<Message>> asyncLoad(@NotNull Long channelId, @NotNull Executor executor) {
             JDA jda = discordSRV.jda();
             if (jda == null) {
-                return CompletableFutureUtil.failed(new NotReadyException());
+                CompletableFuture<WebhookClient<Message>> future = new CompletableFuture<>();
+                future.completeExceptionally(new NotReadyException());
+                return future;
             }
 
             GuildChannel channel = jda.getGuildChannelById(channelId);
             IWebhookContainer webhookContainer = channel instanceof IWebhookContainer ? (IWebhookContainer) channel : null;
             if (webhookContainer == null) {
-                return CompletableFutureUtil.failed(new IllegalArgumentException("Channel could not be found"));
+                CompletableFuture<WebhookClient<Message>> future = new CompletableFuture<>();
+                future.completeExceptionally(new IllegalArgumentException("Channel could not be found"));
+                return future;
             }
 
             return webhookContainer.retrieveWebhooks().submit().thenApply(webhooks -> {

@@ -18,6 +18,7 @@
 
 package com.discordsrv.fabric.player;
 
+import com.discordsrv.api.task.Task;
 import com.discordsrv.common.DiscordSRV;
 import com.discordsrv.common.abstraction.player.IPlayer;
 import com.discordsrv.common.abstraction.player.provider.model.SkinInfo;
@@ -35,7 +36,6 @@ import org.jetbrains.annotations.Nullable;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Locale;
-import java.util.concurrent.CompletableFuture;
 
 public class FabricPlayer extends FabricCommandSender implements IPlayer {
 
@@ -62,9 +62,9 @@ public class FabricPlayer extends FabricCommandSender implements IPlayer {
     }
 
     @Override
-    public CompletableFuture<Void> kick(Component component) {
+    public Task<Void> kick(Component component) {
         player.networkHandler.disconnect(Text.of(component.toString()));
-        return CompletableFuture.completedFuture(null);
+        return Task.completed(null);
     }
 
     @Override

@@ -22,6 +22,7 @@ import com.discordsrv.api.component.MinecraftComponent;
 import com.discordsrv.api.placeholder.annotation.Placeholder;
 import com.discordsrv.api.placeholder.annotation.PlaceholderPrefix;
 import com.discordsrv.api.player.DiscordSRVPlayer;
+import com.discordsrv.api.task.Task;
 import com.discordsrv.common.DiscordSRV;
 import com.discordsrv.common.command.game.abstraction.sender.ICommandSender;
 import com.discordsrv.common.feature.profile.Profile;
@@ -32,7 +33,6 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.Collection;
 import java.util.UUID;
-import java.util.concurrent.CompletableFuture;
 
 @PlaceholderPrefix("player_")
 public interface IPlayer extends DiscordSRVPlayer, IOfflinePlayer, ICommandSender {
@@ -63,7 +63,7 @@ public interface IPlayer extends DiscordSRVPlayer, IOfflinePlayer, ICommandSende
         return identity().uuid();
     }
 
-    CompletableFuture<Void> kick(Component component);
+    Task<Void> kick(Component component);
 
     void addChatSuggestions(Collection<String> suggestions);
     void removeChatSuggestions(Collection<String> suggestions);

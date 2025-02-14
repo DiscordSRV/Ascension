@@ -19,6 +19,7 @@
 package com.discordsrv.common.util;
 
 import com.discordsrv.api.DiscordSRVApi;
+import com.discordsrv.api.task.Task;
 import com.discordsrv.common.DiscordSRV;
 import com.discordsrv.common.abstraction.player.IPlayer;
 import com.discordsrv.common.command.combined.abstraction.CommandExecution;
@@ -38,7 +39,6 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
 import java.util.UUID;
-import java.util.concurrent.CompletableFuture;
 
 public final class CommandUtil {
 
@@ -60,7 +60,7 @@ public final class CommandUtil {
         }
     }
 
-    public static CompletableFuture<UUID> lookupPlayer(
+    public static Task<UUID> lookupPlayer(
             DiscordSRV discordSRV,
             Logger logger,
             CommandExecution execution,
@@ -77,7 +77,7 @@ public final class CommandUtil {
                 });
     }
 
-    public static CompletableFuture<Long> lookupUser(
+    public static Task<Long> lookupUser(
             DiscordSRV discordSRV,
             Logger logger,
             CommandExecution execution,
@@ -94,7 +94,7 @@ public final class CommandUtil {
                 });
     }
 
-    public static CompletableFuture<TargetLookupResult> lookupTarget(
+    public static Task<TargetLookupResult> lookupTarget(
             DiscordSRV discordSRV,
             Logger logger,
             CommandExecution execution,
@@ -111,7 +111,7 @@ public final class CommandUtil {
         return lookupTarget(discordSRV, logger, execution, target, selfPermitted, true, true, otherPermission);
     }
 
-    private static CompletableFuture<TargetLookupResult> lookupTarget(
+    private static Task<TargetLookupResult> lookupTarget(
             DiscordSRV discordSRV,
             Logger logger,
             CommandExecution execution,
@@ -128,7 +128,7 @@ public final class CommandUtil {
             if (target != null) {
                 if (otherPermission != null && !sender.hasPermission(otherPermission)) {
                     sender.sendMessage(discordSRV.messagesConfig(sender).noPermission.asComponent());
-                    return CompletableFuture.completedFuture(TargetLookupResult.INVALID);
+                    return Task.completed(TargetLookupResult.INVALID);
                 }
             } else if (sender instanceof IPlayer && selfPermitted && lookupPlayer) {
                 target = ((IPlayer) sender).uniqueId().toString();
@@ -142,7 +142,7 @@ public final class CommandUtil {
                             messages.minecraft.pleaseSpecifyUser.asComponent(),
                             messages.discord.pleaseSpecifyUser.get()
                     );
-                    return CompletableFuture.completedFuture(TargetLookupResult.INVALID);
+                    return Task.completed(TargetLookupResult.INVALID);
                 }
             }
         } else {
@@ -150,7 +150,7 @@ public final class CommandUtil {
         }
 
         if (target == null) {
-            return CompletableFuture.completedFuture(requireTarget(execution, lookupUser, lookupPlayer, messages));
+            return Task.completed(requireTarget(execution, lookupUser, lookupPlayer, messages));
         }
 
         if (lookupUser) {
@@ -164,10 +164,10 @@ public final class CommandUtil {
                             messages.minecraft.userNotFound.asComponent(),
                             messages.discord.userNotFound.get()
                     );
-                    return CompletableFuture.completedFuture(TargetLookupResult.INVALID);
+                    return Task.completed(TargetLookupResult.INVALID);
                 }
 
-                return CompletableFuture.completedFuture(new TargetLookupResult(true, null, id));
+                return Task.completed(new TargetLookupResult(true, null, id));
             } else if (target.startsWith("@")) {
                 // Discord username
                 String username = target.substring(1);
@@ -176,7 +176,7 @@ public final class CommandUtil {
                     List<User> users = jda.getUsersByName(username, true);
 
                     if (users.size() == 1) {
-                        return CompletableFuture.completedFuture(new TargetLookupResult(true, null, users.get(0).getIdLong()));
+                        return Task.completed(new TargetLookupResult(true, null, users.get(0).getIdLong()));
                     }
                 }
             }
@@ -198,9 +198,9 @@ public final class CommandUtil {
                             messages.minecraft.playerNotFound.asComponent(),
                             messages.discord.playerNotFound.get()
                     );
-                    return CompletableFuture.completedFuture(TargetLookupResult.INVALID);
+                    return Task.completed(TargetLookupResult.INVALID);
                 }
-                return CompletableFuture.completedFuture(new TargetLookupResult(true, uuid, 0L));
+                return Task.completed(new TargetLookupResult(true, uuid, 0L));
             } else if (target.matches("[a-zA-Z0-9_]{1,16}")) {
                 // Player name
                 IPlayer playerByName = discordSRV.playerProvider().player(target);
@@ -209,16 +209,16 @@ public final class CommandUtil {
                 } else {
                     return discordSRV.playerProvider().lookupOfflinePlayer(target)
                             .thenApply(offlinePlayer -> new TargetLookupResult(true, offlinePlayer.uniqueId(), 0L))
-                            .exceptionally(t -> {
+                            .mapException(t -> {
                                 logger.error("Failed to lookup offline player by username", t);
                                 return TargetLookupResult.INVALID;
                             });
                 }
-                return CompletableFuture.completedFuture(new TargetLookupResult(true, uuid, 0L));
+                return Task.completed(new TargetLookupResult(true, uuid, 0L));
             }
         }
 
-        return CompletableFuture.completedFuture(requireTarget(execution, lookupUser, lookupPlayer, messages));
+        return Task.completed(requireTarget(execution, lookupUser, lookupPlayer, messages));
     }
 
     private static TargetLookupResult requireTarget(CommandExecution execution, boolean lookupUser, boolean lookupPlayer, MessagesConfig messages) {

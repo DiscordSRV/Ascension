@@ -24,6 +24,7 @@ import com.discordsrv.api.discord.entity.message.ReceivedDiscordMessage;
 import com.discordsrv.api.discord.entity.message.ReceivedDiscordMessageCluster;
 import com.discordsrv.api.discord.entity.message.SendableDiscordMessage;
 import com.discordsrv.api.events.message.receive.game.AbstractGameMessageReceiveEvent;
+import com.discordsrv.api.task.Task;
 import com.discordsrv.common.DiscordSRV;
 import com.discordsrv.common.abstraction.player.IPlayer;
 import com.discordsrv.common.config.main.channels.StopMessageConfig;
@@ -33,7 +34,6 @@ import org.jetbrains.annotations.NotNull;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
-import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
@@ -58,7 +58,7 @@ public class StopMessageModule extends AbstractGameMessageModule<StopMessageConf
     public void postClusterToEventBus(GameChannel channel, @NotNull ReceivedDiscordMessageCluster cluster) {}
 
     @Override
-    public List<CompletableFuture<ReceivedDiscordMessage>> sendMessageToChannels(
+    public List<Task<ReceivedDiscordMessage>> sendMessageToChannels(
             StopMessageConfig config,
             IPlayer player,
             SendableDiscordMessage.Builder format,

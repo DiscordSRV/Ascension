@@ -25,12 +25,11 @@ import com.discordsrv.api.discord.entity.interaction.DiscordInteractionHook;
 import com.discordsrv.api.discord.entity.interaction.component.ComponentIdentifier;
 import com.discordsrv.api.discord.entity.message.SendableDiscordMessage;
 import com.discordsrv.api.events.discord.interaction.command.DiscordMessageContextInteractionEvent;
+import com.discordsrv.api.task.Task;
 import com.discordsrv.common.DiscordSRV;
 import com.discordsrv.common.discord.api.entity.component.DiscordInteractionHookImpl;
 import com.discordsrv.common.discord.api.entity.message.util.SendableDiscordMessageUtil;
 import net.dv8tion.jda.api.events.interaction.command.MessageContextInteractionEvent;
-
-import java.util.concurrent.CompletableFuture;
 
 public class DiscordMessageContextInteractionEventImpl extends DiscordMessageContextInteractionEvent {
 
@@ -50,18 +49,14 @@ public class DiscordMessageContextInteractionEventImpl extends DiscordMessageCon
     }
 
     @Override
-    public CompletableFuture<DiscordInteractionHook> reply(SendableDiscordMessage message, boolean ephemeral) {
-        return discordSRV.discordAPI().mapExceptions(
-                () -> jdaEvent.reply(SendableDiscordMessageUtil.toJDASend(message)).setEphemeral(ephemeral).submit()
-                        .thenApply(ih -> new DiscordInteractionHookImpl(discordSRV, ih))
-        );
+    public Task<DiscordInteractionHook> reply(SendableDiscordMessage message, boolean ephemeral) {
+        return discordSRV.discordAPI().toTask(() -> jdaEvent.reply(SendableDiscordMessageUtil.toJDASend(message)).setEphemeral(ephemeral))
+                .thenApply(ih -> new DiscordInteractionHookImpl(discordSRV, ih));
     }
 
     @Override
-    public CompletableFuture<DiscordInteractionHook> deferReply(boolean ephemeral) {
-        return discordSRV.discordAPI().mapExceptions(
-                () -> jdaEvent.deferReply(ephemeral).submit()
-                        .thenApply(ih -> new DiscordInteractionHookImpl(discordSRV, ih))
-        );
+    public Task<DiscordInteractionHook> deferReply(boolean ephemeral) {
+        return discordSRV.discordAPI().toTask(() -> jdaEvent.deferReply(ephemeral))
+                .thenApply(ih -> new DiscordInteractionHookImpl(discordSRV, ih));
     }
 }

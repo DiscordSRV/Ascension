@@ -25,6 +25,7 @@ import com.discordsrv.api.events.lifecycle.DiscordSRVShuttingDownEvent;
 import com.discordsrv.api.module.Module;
 import com.discordsrv.api.reload.ReloadFlag;
 import com.discordsrv.api.reload.ReloadResult;
+import com.discordsrv.api.task.Task;
 import com.discordsrv.common.abstraction.bootstrap.IBootstrap;
 import com.discordsrv.common.command.discord.DiscordCommandModule;
 import com.discordsrv.common.command.game.GameCommandModule;
@@ -111,7 +112,6 @@ import java.time.LocalDateTime;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
-import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -614,7 +614,7 @@ public abstract class AbstractDiscordSRV<
      * Must be manually triggered for {@link DiscordSRV.ServerType#SERVER}, automatically triggered in {@link #enable()} for {@link DiscordSRV.ServerType#PROXY}.
      * @return a future running on the {@link #scheduler()}
      */
-    public final CompletableFuture<Void> runServerStarted() {
+    public final Task<Void> runServerStarted() {
         return scheduler().execute(() -> {
             if (status().isShutdown()) {
                 // Already shutdown/shutting down, don't bother
@@ -653,7 +653,7 @@ public abstract class AbstractDiscordSRV<
     }
 
     @Override
-    public final CompletableFuture<Void> runDisable() {
+    public final Task<Void> runDisable() {
         return scheduler().execute(this::disable);
     }
 

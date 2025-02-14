@@ -27,6 +27,7 @@ import com.discordsrv.api.eventbus.Subscribe;
 import com.discordsrv.api.events.message.forward.game.LeaveMessageForwardedEvent;
 import com.discordsrv.api.events.message.receive.game.LeaveMessageReceiveEvent;
 import com.discordsrv.api.player.DiscordSRVPlayer;
+import com.discordsrv.api.task.Task;
 import com.discordsrv.common.DiscordSRV;
 import com.discordsrv.common.abstraction.player.IPlayer;
 import com.discordsrv.common.config.main.channels.LeaveMessageConfig;
@@ -42,7 +43,6 @@ import org.jetbrains.annotations.Nullable;
 import java.time.Duration;
 import java.util.Map;
 import java.util.UUID;
-import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.Future;
 
@@ -93,7 +93,7 @@ public class LeaveMessageModule extends AbstractGameMessageModule<LeaveMessageCo
     }
 
     @Override
-    protected CompletableFuture<Void> forwardToChannel(
+    protected Task<Void> forwardToChannel(
             @Nullable LeaveMessageReceiveEvent event,
             @Nullable IPlayer player,
             @NotNull BaseChannelConfig config,
@@ -105,14 +105,14 @@ public class LeaveMessageModule extends AbstractGameMessageModule<LeaveMessageCo
                 long delta = System.currentTimeMillis() - pair.getKey();
                 if (delta < config.leaveMessages.ignoreIfJoinedWithinMS) {
                     logger().info(player.username() + " joined within timeout period, join message will not be sent");
-                    return CompletableFuture.completedFuture(null);
+                    return Task.completed(null);
                 }
             }
         }
 
         if (player != null && config.leaveMessages.enableSilentPermission && silentQuitPermission.get()) {
             logger().info(player.username() + " is leaving silently, leave message will not be sent");
-            return CompletableFuture.completedFuture(null);
+            return Task.completed(null);
         }
         return super.forwardToChannel(event, player, config, channel);
     }

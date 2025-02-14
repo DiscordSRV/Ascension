@@ -18,6 +18,7 @@
 
 package com.discordsrv.common.command.game;
 
+import com.discordsrv.api.task.Task;
 import com.discordsrv.common.command.game.abstraction.GameCommandExecutionHelper;
 import com.discordsrv.common.config.main.generic.GameCommandExecutionConditionConfig;
 import org.junit.jupiter.api.Assertions;
@@ -26,7 +27,6 @@ import org.junit.jupiter.api.Test;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
-import java.util.concurrent.CompletableFuture;
 
 public class GameCommandFilterTest {
 
@@ -110,7 +110,7 @@ public class GameCommandFilterTest {
         private final List<String> TESTER = Arrays.asList("tester", "plugin2:tester");
 
         @Override
-        public CompletableFuture<List<String>> suggestCommands(List<String> parts) {
+        public Task<List<String>> suggestCommands(List<String> parts) {
             return null;
         }
 

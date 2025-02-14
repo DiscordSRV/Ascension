@@ -18,6 +18,7 @@
 
 package com.discordsrv.common.core.dependency;
 
+import com.discordsrv.api.task.Task;
 import com.discordsrv.common.DiscordSRV;
 import com.discordsrv.common.core.logging.Logger;
 import dev.vankka.dependencydownload.DependencyManager;
@@ -33,7 +34,6 @@ import java.net.URL;
 import java.nio.file.Path;
 import java.util.Arrays;
 import java.util.List;
-import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Executor;
 
 public class DependencyLoader {
@@ -100,12 +100,12 @@ public class DependencyLoader {
         return classLoader;
     }
 
-    public CompletableFuture<Void> downloadRelocateAndLoad() {
+    public Task<Void> downloadRelocateAndLoad() {
         return downloadRelocateAndLoad(classpathAppender);
     }
 
-    private CompletableFuture<Void> downloadRelocateAndLoad(ClasspathAppender appender) {
-        return dependencyManager.downloadAll(executor, REPOSITORIES)
+    private Task<Void> downloadRelocateAndLoad(ClasspathAppender appender) {
+        return Task.of(dependencyManager.downloadAll(executor, REPOSITORIES))
                 .thenCompose(v -> dependencyManager.relocateAll(executor))
                 .thenCompose(v -> dependencyManager.loadAll(executor, appender));
     }

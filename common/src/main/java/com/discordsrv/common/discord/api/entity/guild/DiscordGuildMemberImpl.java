@@ -26,6 +26,7 @@ import com.discordsrv.api.discord.entity.guild.DiscordRole;
 import com.discordsrv.api.placeholder.annotation.Placeholder;
 import com.discordsrv.api.placeholder.annotation.PlaceholderPrefix;
 import com.discordsrv.api.placeholder.annotation.PlaceholderRemainder;
+import com.discordsrv.api.task.Task;
 import com.discordsrv.common.DiscordSRV;
 import net.dv8tion.jda.api.entities.Member;
 import net.dv8tion.jda.api.entities.Role;
@@ -36,10 +37,8 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.time.OffsetDateTime;
-import java.time.ZonedDateTime;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.CompletableFuture;
 
 @PlaceholderPrefix("user_")
 public class DiscordGuildMemberImpl implements DiscordGuildMember {
@@ -101,17 +100,13 @@ public class DiscordGuildMemberImpl implements DiscordGuildMember {
     }
 
     @Override
-    public CompletableFuture<Void> addRole(@NotNull DiscordRole role) {
-        return discordSRV.discordAPI().mapExceptions(() ->
-                guild.asJDA().addRoleToMember(member, role.asJDA()).submit()
-        );
+    public Task<Void> addRole(@NotNull DiscordRole role) {
+        return discordSRV.discordAPI().toTask(() -> guild.asJDA().addRoleToMember(member, role.asJDA()));
     }
 
     @Override
-    public CompletableFuture<Void> removeRole(@NotNull DiscordRole role) {
-        return discordSRV.discordAPI().mapExceptions(() ->
-                guild.asJDA().removeRoleFromMember(member, role.asJDA()).submit()
-        );
+    public Task<Void> removeRole(@NotNull DiscordRole role) {
+        return discordSRV.discordAPI().toTask(() -> guild.asJDA().removeRoleFromMember(member, role.asJDA()));
     }
 
     @Override

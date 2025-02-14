@@ -25,7 +25,6 @@ import com.discordsrv.common.core.module.type.PluginIntegration;
 import com.discordsrv.common.exception.MessageException;
 import com.discordsrv.common.feature.groupsync.GroupSyncModule;
 import com.discordsrv.common.feature.groupsync.enums.GroupSyncCause;
-import com.discordsrv.common.util.CompletableFutureUtil;
 import net.luckperms.api.LuckPerms;
 import net.luckperms.api.LuckPermsProvider;
 import net.luckperms.api.context.ContextSet;
@@ -156,7 +155,7 @@ public class LuckPermsIntegration extends PluginIntegration<DiscordSRV> implemen
         if (group == null) {
             return Task.failed(new MessageException("Group does not exist"));
         }
-        return user(player).thenCompose(user -> {
+        return user(player).then(user -> {
             ContextSet contexts;
             if (serverContext != null) {
                 if (isNotGlobalOnly(serverContext)) {
@@ -179,10 +178,10 @@ public class LuckPermsIntegration extends PluginIntegration<DiscordSRV> implemen
             InheritanceNode node = InheritanceNode.builder(group).context(contexts).build();
             DataMutateResult result = function.apply(user.data(), node);
             if (!result.wasSuccessful()) {
-                return CompletableFutureUtil.failed(new MessageException("Group mutate failed: " + result.name()));
+                return Task.failed(new MessageException("Group mutate failed: " + result.name()));
             }
 
-            return luckPerms.getUserManager().saveUser(user);
+            return Task.of(luckPerms.getUserManager().saveUser(user));
         });
     }
 

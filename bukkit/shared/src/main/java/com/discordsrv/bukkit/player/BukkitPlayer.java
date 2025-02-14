@@ -18,6 +18,7 @@
 
 package com.discordsrv.bukkit.player;
 
+import com.discordsrv.api.task.Task;
 import com.discordsrv.bukkit.BukkitDiscordSRV;
 import com.discordsrv.bukkit.command.game.sender.BukkitCommandSender;
 import com.discordsrv.common.abstraction.player.IPlayer;
@@ -31,7 +32,6 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.Collection;
 import java.util.Locale;
-import java.util.concurrent.CompletableFuture;
 
 public abstract class BukkitPlayer extends BukkitCommandSender implements IPlayer {
 
@@ -55,7 +55,7 @@ public abstract class BukkitPlayer extends BukkitCommandSender implements IPlaye
     }
 
     @Override
-    public CompletableFuture<Void> kick(Component component) {
+    public Task<Void> kick(Component component) {
         String legacy = BukkitComponentSerializer.legacy().serialize(component);
         return discordSRV.scheduler().executeOnMainThread(player, () -> player.kickPlayer(legacy));
     }

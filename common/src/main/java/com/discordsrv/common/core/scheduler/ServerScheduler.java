@@ -19,13 +19,11 @@
 package com.discordsrv.common.core.scheduler;
 
 import com.discordsrv.api.task.Task;
-import com.discordsrv.common.util.CompletableFutureUtil;
 import com.discordsrv.common.util.TaskUtil;
 import com.discordsrv.common.util.function.CheckedRunnable;
 import com.discordsrv.common.util.function.CheckedSupplier;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
 
 @SuppressWarnings("unused") // API
@@ -71,14 +69,12 @@ public interface ServerScheduler extends Scheduler {
      */
     void runOnMainThreadLaterInTicks(@NotNull Runnable task, int ticks);
 
-    @NotNull
-    default CompletableFuture<Void> executeOnMainThreadLaterInTicks(@NotNull CheckedRunnable task, int ticks) {
-        return CompletableFutureUtil.runAsync(task, t -> runOnMainThreadLaterInTicks(t, ticks));
+    default @NotNull Task<Void> executeOnMainThreadLaterInTicks(@NotNull CheckedRunnable task, int ticks) {
+        return TaskUtil.runAsync(task, t -> runOnMainThreadLaterInTicks(t, ticks));
     }
 
-    @NotNull
-    default <T> CompletableFuture<T> supplyOnMainThreadLaterInTicks(@NotNull CheckedSupplier<T> task, int ticks) {
-        return CompletableFutureUtil.supplyAsync(task, t -> runOnMainThreadLaterInTicks(t, ticks));
+    default @NotNull <T> Task<T> supplyOnMainThreadLaterInTicks(@NotNull CheckedSupplier<T> task, int ticks) {
+        return TaskUtil.supplyAsync(task, t -> runOnMainThreadLaterInTicks(t, ticks));
     }
 
     /**

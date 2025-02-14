@@ -22,11 +22,10 @@ import com.discordsrv.api.discord.entity.guild.DiscordRole;
 import com.discordsrv.api.eventbus.Subscribe;
 import com.discordsrv.api.events.discord.member.role.AbstractDiscordMemberRoleChangeEvent;
 import com.discordsrv.api.events.discord.member.role.DiscordMemberRoleAddEvent;
+import com.discordsrv.api.task.Task;
 import com.discordsrv.common.DiscordSRV;
 import com.discordsrv.common.feature.linking.requirelinking.RequiredLinkingModule;
 import com.discordsrv.common.helper.Someone;
-
-import java.util.concurrent.CompletableFuture;
 
 public class DiscordRoleRequirementType extends LongRequirementType {
 
@@ -40,10 +39,10 @@ public class DiscordRoleRequirementType extends LongRequirementType {
     }
 
     @Override
-    public CompletableFuture<Boolean> isMet(Long value, Someone.Resolved someone) {
+    public Task<Boolean> isMet(Long value, Someone.Resolved someone) {
         DiscordRole role = module.discordSRV().discordAPI().getRoleById(value);
         if (role == null) {
-            return CompletableFuture.completedFuture(false);
+            return Task.completed(false);
         }
 
         return role.getGuild()

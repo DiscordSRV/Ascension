@@ -29,6 +29,7 @@ import com.discordsrv.api.eventbus.Subscribe;
 import com.discordsrv.api.events.lifecycle.DiscordSRVShuttingDownEvent;
 import com.discordsrv.api.events.placeholder.PlaceholderLookupEvent;
 import com.discordsrv.api.placeholder.PlaceholderLookupResult;
+import com.discordsrv.api.task.Task;
 import com.discordsrv.common.DiscordSRV;
 import com.discordsrv.common.config.connection.BotConfig;
 import com.discordsrv.common.config.connection.ConnectionConfig;
@@ -96,7 +97,7 @@ public class JDAConnectionManager implements DiscordConnectionManager {
 
     // Bot owner details
     private final Timeout botOwnerTimeout = new Timeout(Duration.ofMinutes(5));
-    private final AtomicReference<CompletableFuture<DiscordUser>> botOwnerRequest = new AtomicReference<>();
+    private final AtomicReference<Task<DiscordUser>> botOwnerRequest = new AtomicReference<>();
 
     // Logging timeouts
     private final Timeout mfaTimeout = new Timeout(Duration.ofSeconds(30));
@@ -168,16 +169,14 @@ public class JDAConnectionManager implements DiscordConnectionManager {
      * @param botOwnerConsumer the consumer that will be passed the bot owner or {@code null}
      */
     private void withBotOwner(@NotNull Consumer<DiscordUser> botOwnerConsumer) {
-        CompletableFuture<DiscordUser> request = botOwnerRequest.get();
+        Task<DiscordUser> request = botOwnerRequest.get();
         if (request != null && !botOwnerTimeout.checkAndUpdate()) {
             request.whenComplete((user, t) -> botOwnerConsumer.accept(t != null ? null : user));
             return;
         }
 
-        CompletableFuture<DiscordUser> future = instance.retrieveApplicationInfo()
-                .timeout(10, TimeUnit.SECONDS)
-                .map(applicationInfo -> (DiscordUser) api().getUser(applicationInfo.getOwner()))
-                .submit();
+        Task<DiscordUser> future = discordSRV.discordAPI().toTask(instance.retrieveApplicationInfo().timeout(10, TimeUnit.SECONDS))
+                .thenApply(applicationInfo -> api().getUser(applicationInfo.getOwner()));
 
         botOwnerRequest.set(future);
         future.whenComplete((user, t) -> botOwnerConsumer.accept(t != null ? null : user));
@@ -211,7 +210,7 @@ public class JDAConnectionManager implements DiscordConnectionManager {
             }
             builder.append("\n");
 
-            CompletableFuture<Long> restPingFuture = instance.getRestPing().timeout(5, TimeUnit.SECONDS).submit();
+            Task<Long> restPingFuture = discordSRV.discordAPI().toTask(instance.getRestPing().timeout(5, TimeUnit.SECONDS));
             builder.append("\nGateway Ping: ").append(instance.getGatewayPing()).append("ms");
 
             String restPing;

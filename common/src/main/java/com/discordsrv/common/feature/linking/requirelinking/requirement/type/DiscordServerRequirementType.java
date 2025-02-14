@@ -20,6 +20,7 @@ package com.discordsrv.common.feature.linking.requirelinking.requirement.type;
 
 import com.discordsrv.api.discord.entity.guild.DiscordGuild;
 import com.discordsrv.api.eventbus.Subscribe;
+import com.discordsrv.api.task.Task;
 import com.discordsrv.common.DiscordSRV;
 import com.discordsrv.common.feature.linking.requirelinking.RequiredLinkingModule;
 import com.discordsrv.common.helper.Someone;
@@ -27,7 +28,6 @@ import net.dv8tion.jda.api.events.guild.member.GuildMemberJoinEvent;
 import net.dv8tion.jda.api.events.guild.member.GuildMemberRemoveEvent;
 
 import java.util.Objects;
-import java.util.concurrent.CompletableFuture;
 
 public class DiscordServerRequirementType extends LongRequirementType {
 
@@ -41,10 +41,10 @@ public class DiscordServerRequirementType extends LongRequirementType {
     }
 
     @Override
-    public CompletableFuture<Boolean> isMet(Long value, Someone.Resolved someone) {
+    public Task<Boolean> isMet(Long value, Someone.Resolved someone) {
         DiscordGuild guild = module.discordSRV().discordAPI().getGuildById(value);
         if (guild == null) {
-            return CompletableFuture.completedFuture(false);
+            return Task.completed(false);
         }
 
         return guild.retrieveMemberById(someone.userId())

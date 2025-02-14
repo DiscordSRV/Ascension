@@ -21,6 +21,7 @@ package com.discordsrv.common.command.combined.commands;
 import com.discordsrv.api.discord.entity.interaction.command.CommandOption;
 import com.discordsrv.api.discord.entity.interaction.command.DiscordCommand;
 import com.discordsrv.api.discord.entity.interaction.component.ComponentIdentifier;
+import com.discordsrv.api.task.Task;
 import com.discordsrv.common.DiscordSRV;
 import com.discordsrv.common.command.combined.abstraction.CombinedCommand;
 import com.discordsrv.common.command.combined.abstraction.CommandExecution;
@@ -39,7 +40,6 @@ import com.discordsrv.common.util.CommandUtil;
 import net.kyori.adventure.text.format.NamedTextColor;
 
 import java.util.UUID;
-import java.util.concurrent.CompletableFuture;
 
 public class LinkOtherCommand extends CombinedCommand {
 
@@ -123,8 +123,8 @@ public class LinkOtherCommand extends CombinedCommand {
             }
         }
 
-        CompletableFuture<UUID> playerUUIDFuture = CommandUtil.lookupPlayer(discordSRV, logger, execution, false, playerArgument, null);
-        CompletableFuture<Long> userIdFuture = CommandUtil.lookupUser(discordSRV, logger, execution, false, userArgument, null);
+        Task<UUID> playerUUIDFuture = CommandUtil.lookupPlayer(discordSRV, logger, execution, false, playerArgument, null);
+        Task<Long> userIdFuture = CommandUtil.lookupUser(discordSRV, logger, execution, false, userArgument, null);
 
         playerUUIDFuture.whenComplete((playerUUID, __) -> userIdFuture.whenComplete((userId, ___) -> {
             if (playerUUID == null) {

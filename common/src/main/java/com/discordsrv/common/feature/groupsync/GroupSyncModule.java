@@ -35,12 +35,10 @@ import com.discordsrv.common.feature.debug.file.TextDebugFile;
 import com.discordsrv.common.feature.groupsync.enums.GroupSyncCause;
 import com.discordsrv.common.feature.groupsync.enums.GroupSyncResult;
 import com.discordsrv.common.helper.Someone;
-import com.discordsrv.common.util.CompletableFutureUtil;
 import com.github.benmanes.caffeine.cache.Cache;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
-import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
@@ -229,7 +227,7 @@ public class GroupSyncModule extends AbstractSyncModule<DiscordSRV, GroupSyncCon
             future = permissionProvider.hasGroup(playerUUID, config.groupName, false);
         }
 
-        return future.exceptionally(t -> {
+        return future.mapException(t -> {
             throw new SyncFail(GroupSyncResult.PERMISSION_BACKEND_FAILED, t);
         });
     }
@@ -249,9 +247,9 @@ public class GroupSyncModule extends AbstractSyncModule<DiscordSRV, GroupSyncCon
         }
 
         return role.getGuild().retrieveMemberById(userId)
-                .thenCompose(member -> stateToApply
-                                       ? member.addRole(role).thenApply(v -> (ISyncResult) GenericSyncResults.ADD_DISCORD)
-                                       : member.removeRole(role).thenApply(v -> GenericSyncResults.REMOVE_DISCORD)
+                .then(member -> stateToApply
+                                ? member.addRole(role).thenApply(v -> (ISyncResult) GenericSyncResults.ADD_DISCORD)
+                                : member.removeRole(role).thenApply(v -> GenericSyncResults.REMOVE_DISCORD)
                 ).whenComplete((r, t) -> {
                     if (t != null) {
                         //noinspection DataFlowIssue
@@ -273,7 +271,7 @@ public class GroupSyncModule extends AbstractSyncModule<DiscordSRV, GroupSyncCon
                 stateToApply
                     ? addGroup(playerUUID, config).thenApply(v -> GenericSyncResults.ADD_GAME)
                     : removeGroup(playerUUID, config).thenApply(v -> GenericSyncResults.REMOVE_GAME);
-        return future.exceptionally(t -> {
+        return future.mapException(t -> {
             //noinspection DataFlowIssue
             expected.remove(config.groupName);
             throw new SyncFail(GroupSyncResult.PERMISSION_BACKEND_FAILED, t);

@@ -20,8 +20,10 @@ package com.discordsrv.common;
 
 import com.discordsrv.api.DiscordSRVApi;
 import com.discordsrv.api.module.Module;
-import com.discordsrv.api.reload.ReloadFlag;
 import com.discordsrv.api.placeholder.format.PlainPlaceholderFormat;
+import com.discordsrv.api.reload.ReloadFlag;
+import com.discordsrv.api.reload.ReloadResult;
+import com.discordsrv.api.task.Task;
 import com.discordsrv.common.abstraction.bootstrap.IBootstrap;
 import com.discordsrv.common.abstraction.player.IPlayer;
 import com.discordsrv.common.abstraction.player.provider.AbstractPlayerProvider;
@@ -29,7 +31,6 @@ import com.discordsrv.common.abstraction.plugin.PluginManager;
 import com.discordsrv.common.command.game.abstraction.GameCommandExecutionHelper;
 import com.discordsrv.common.command.game.abstraction.handler.ICommandHandler;
 import com.discordsrv.common.command.game.abstraction.sender.ICommandSender;
-import com.discordsrv.api.reload.ReloadResult;
 import com.discordsrv.common.config.configurate.manager.ConnectionConfigManager;
 import com.discordsrv.common.config.configurate.manager.MainConfigManager;
 import com.discordsrv.common.config.configurate.manager.MessagesConfigManager;
@@ -68,7 +69,6 @@ import java.time.ZonedDateTime;
 import java.util.List;
 import java.util.Locale;
 import java.util.Set;
-import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
 
 public interface DiscordSRV extends DiscordSRVApi {
@@ -177,7 +177,7 @@ public interface DiscordSRV extends DiscordSRVApi {
     // Lifecycle
     void runEnable();
     List<ReloadResult> runReload(Set<ReloadFlag> flags);
-    CompletableFuture<Void> runDisable();
+    Task<Void> runDisable();
     boolean isServerStarted();
     ZonedDateTime getInitializeTime();
 

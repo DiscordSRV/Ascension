@@ -55,7 +55,6 @@ import org.jetbrains.annotations.Nullable;
 
 import java.time.Duration;
 import java.util.*;
-import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
@@ -297,10 +296,10 @@ public class BanSyncModule extends AbstractSyncModule<DiscordSRV, BanSyncConfig,
                     .applyPlaceholderService()
                     .build();
             return bans.addBan(playerUUID, null, reason, punisher)
-                    .thenCompose(v -> {
+                    .then(v -> {
                         IPlayer player = discordSRV.playerProvider().player(playerUUID);
                         if (player == null) {
-                            return CompletableFuture.completedFuture(null);
+                            return Task.completed(null);
                         }
 
                         MinecraftComponent kickMessage = discordSRV.componentFactory()

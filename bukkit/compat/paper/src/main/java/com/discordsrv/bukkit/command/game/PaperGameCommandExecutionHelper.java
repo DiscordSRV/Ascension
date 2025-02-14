@@ -18,13 +18,13 @@
 
 package com.discordsrv.bukkit.command.game;
 
+import com.discordsrv.api.task.Task;
 import com.discordsrv.bukkit.BukkitDiscordSRV;
 import org.bukkit.command.CommandSender;
 import org.jetbrains.annotations.ApiStatus;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.CompletableFuture;
 
 @ApiStatus.AvailableSince("Paper 1.12")
 public class PaperGameCommandExecutionHelper extends BukkitGameCommandExecutionHelper {
@@ -34,7 +34,7 @@ public class PaperGameCommandExecutionHelper extends BukkitGameCommandExecutionH
     }
 
     @Override
-    public CompletableFuture<List<String>> getRootCommands(CommandSender commandSender) {
+    public Task<List<String>> getRootCommands(CommandSender commandSender) {
         return discordSRV.scheduler().supplyOnMainThread(
                 commandSender,
                 () -> new ArrayList<>(discordSRV.server().getCommandMap().getKnownCommands().keySet())

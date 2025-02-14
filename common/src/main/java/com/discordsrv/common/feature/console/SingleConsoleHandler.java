@@ -30,6 +30,7 @@ import com.discordsrv.api.discord.util.DiscordFormattingUtil;
 import com.discordsrv.api.events.discord.message.DiscordMessageReceiveEvent;
 import com.discordsrv.api.placeholder.format.PlainPlaceholderFormat;
 import com.discordsrv.api.placeholder.provider.SinglePlaceholder;
+import com.discordsrv.api.task.Task;
 import com.discordsrv.common.DiscordSRV;
 import com.discordsrv.common.command.game.abstraction.GameCommandExecutionHelper;
 import com.discordsrv.common.config.main.ConsoleConfig;
@@ -75,7 +76,7 @@ public class SingleConsoleHandler {
 
     // Sending
     private Future<?> queueProcessingFuture;
-    private CompletableFuture<?> sendFuture;
+    private Task<?> sendFuture;
     private Queue<LogEntry> messageQueue;
     private Deque<Pair<SendableDiscordMessage, Boolean>> sendQueue;
     private boolean sentFirstBatch = false;
@@ -545,51 +546,51 @@ public class SingleConsoleHandler {
         return "  ";
     }
 
-    private CompletableFuture<DiscordGuildMessageChannel> rotateToLatestChannel() {
+    private Task<DiscordGuildMessageChannel> rotateToLatestChannel() {
         return discordSRV.destinations().lookupDestination(
                 config.channel.asDestination(),
                 true,
                 true,
                 ZonedDateTime.now()
-                ).thenCompose(channels -> {
-                    if (channels.isEmpty()) {
-                        // Nowhere to send to
-                        return CompletableFuture.completedFuture(null);
+        ).thenApply(channels -> {
+            if (channels.isEmpty()) {
+                // Nowhere to send to
+                return null;
+            }
+
+            DiscordGuildMessageChannel channel = channels.iterator().next();
+
+            int amountOfChannels = config.threadsToKeepInRotation;
+            if (amountOfChannels > 0) {
+                TemporaryLocalData.Model temporaryData = discordSRV.temporaryLocalData().get();
+
+                List<Long> channelsToDelete = null;
+                synchronized (temporaryData) {
+                    Map<String, List<Long>> rotationIds = temporaryData.consoleThreadRotationIds;
+                    List<Long> channelIds = rotationIds.computeIfAbsent(key, k -> new ArrayList<>(amountOfChannels));
+
+                    if (channelIds.isEmpty() || channelIds.get(0) != channel.getId()) {
+                        channelIds.add(0, channel.getId());
                     }
+                    if (channelIds.size() > amountOfChannels) {
+                        rotationIds.put(key, channelIds.subList(0, amountOfChannels));
+                        channelsToDelete = channelIds.subList(amountOfChannels, channelIds.size());
+                    }
+                }
+                discordSRV.temporaryLocalData().saveLater();
 
-                    DiscordGuildMessageChannel channel = channels.iterator().next();
-
-                    int amountOfChannels = config.threadsToKeepInRotation;
-                    if (amountOfChannels > 0) {
-                        TemporaryLocalData.Model temporaryData = discordSRV.temporaryLocalData().get();
-
-                        List<Long> channelsToDelete = null;
-                        synchronized (temporaryData) {
-                            Map<String, List<Long>> rotationIds = temporaryData.consoleThreadRotationIds;
-                            List<Long> channelIds = rotationIds.computeIfAbsent(key, k -> new ArrayList<>(amountOfChannels));
-
-                            if (channelIds.isEmpty() || channelIds.get(0) != channel.getId()) {
-                                channelIds.add(0, channel.getId());
-                            }
-                            if (channelIds.size() > amountOfChannels) {
-                                rotationIds.put(key, channelIds.subList(0, amountOfChannels));
-                                channelsToDelete = channelIds.subList(amountOfChannels, channelIds.size());
-                            }
-                        }
-                        discordSRV.temporaryLocalData().saveLater();
-
-                        if (channelsToDelete != null) {
-                            for (Long channelId : channelsToDelete) {
-                                DiscordChannel channelToDelete = discordSRV.discordAPI().getChannelById(channelId);
-                                if (channelToDelete instanceof DiscordGuildChannel) {
-                                    ((DiscordGuildChannel) channelToDelete).delete();
-                                }
-                            }
+                if (channelsToDelete != null) {
+                    for (Long channelId : channelsToDelete) {
+                        DiscordChannel channelToDelete = discordSRV.discordAPI().getChannelById(channelId);
+                        if (channelToDelete instanceof DiscordGuildChannel) {
+                            ((DiscordGuildChannel) channelToDelete).delete();
                         }
                     }
+                }
+            }
 
-                    return CompletableFuture.completedFuture(channel);
-                });
+            return channel;
+        });
     }
 
     private void processSendQueue() {
@@ -604,25 +605,25 @@ public class SingleConsoleHandler {
             boolean lastEdit = pair.getValue();
 
             if (sendFuture == null) {
-                sendFuture = CompletableFuture.completedFuture(null);
+                sendFuture = Task.completed(null);
             }
 
             sendFuture = sendFuture
-                    .thenCompose(__ -> {
+                    .then(__ -> {
                         if (mostRecentMessageId.get() != 0) {
                             // Don't rotate if editing
                             long channelId = latestChannelId.get();
                             DiscordMessageChannel channel = discordSRV.discordAPI().getMessageChannelById(channelId);
                             if (channel instanceof DiscordGuildMessageChannel) {
-                                return CompletableFuture.completedFuture((DiscordGuildMessageChannel) channel);
+                                return Task.completed((DiscordGuildMessageChannel) channel);
                             }
                         }
 
                         return rotateToLatestChannel();
                     })
-                    .thenCompose(channel -> {
+                    .then(channel -> {
                         if (channel == null) {
-                            return CompletableFuture.completedFuture(null);
+                            return Task.completed(null);
                         }
 
                         synchronized (mostRecentMessageId) {
@@ -647,7 +648,7 @@ public class SingleConsoleHandler {
 
                         sentFirstBatch = true;
                         return msg;
-                    }).exceptionally(ex -> {
+                    }).mapException(ex -> {
                         synchronized (mostRecentMessageId) {
                             mostRecentMessageId.set(0);
                         }

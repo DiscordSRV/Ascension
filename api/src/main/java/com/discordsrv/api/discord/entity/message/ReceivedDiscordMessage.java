@@ -32,13 +32,13 @@ import com.discordsrv.api.discord.entity.guild.DiscordGuild;
 import com.discordsrv.api.discord.entity.guild.DiscordGuildMember;
 import com.discordsrv.api.placeholder.annotation.Placeholder;
 import com.discordsrv.api.placeholder.annotation.PlaceholderPrefix;
+import com.discordsrv.api.task.Task;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.annotations.Unmodifiable;
 
 import java.util.List;
 import java.util.Set;
-import java.util.concurrent.CompletableFuture;
 
 /**
  * A message received from Discord.
@@ -162,26 +162,28 @@ public interface ReceivedDiscordMessage extends Snowflake {
      * @return a future that will fail if the request fails
      */
     @NotNull
-    CompletableFuture<Void> delete();
+    Task<Void> delete();
 
     /**
      * Edits this message to the provided message.
      *
      * @param message the new message
      * @return a future that will fail if the request fails, otherwise the new message provided by the request response
+     *
      * @throws IllegalArgumentException if the message is not a webhook message,
-     * but the provided {@link SendableDiscordMessage} specifies a webhook username.
+     *                                  but the provided {@link SendableDiscordMessage} specifies a webhook username.
      */
-    CompletableFuture<ReceivedDiscordMessage> edit(@NotNull SendableDiscordMessage message);
+    Task<ReceivedDiscordMessage> edit(@NotNull SendableDiscordMessage message);
 
     /**
      * Send the provided message in the channel this message was sent in, replying to this message.
      *
      * @param message the message
      * @return a future that will fail if the request fails, otherwise the new message provided by the request response
+     *
      * @throws IllegalArgumentException if the provided message is a webhook message
      */
-    CompletableFuture<ReceivedDiscordMessage> reply(@NotNull SendableDiscordMessage message);
+    Task<ReceivedDiscordMessage> reply(@NotNull SendableDiscordMessage message);
 
     class Attachment {
 

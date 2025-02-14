@@ -29,13 +29,13 @@ import com.discordsrv.api.discord.entity.JDAEntity;
 import com.discordsrv.api.discord.entity.Mentionable;
 import com.discordsrv.api.placeholder.annotation.Placeholder;
 import com.discordsrv.api.placeholder.annotation.PlaceholderPrefix;
+import com.discordsrv.api.task.Task;
 import net.dv8tion.jda.api.entities.Member;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.time.OffsetDateTime;
 import java.util.List;
-import java.util.concurrent.CompletableFuture;
 
 /**
  * A Discord server member.
@@ -97,14 +97,14 @@ public interface DiscordGuildMember extends JDAEntity<Member>, Mentionable {
      * @param role the role to give
      * @return a future
      */
-    CompletableFuture<Void> addRole(@NotNull DiscordRole role);
+    Task<Void> addRole(@NotNull DiscordRole role);
 
     /**
      * Takes the given role from this member.
      * @param role the role to take
      * @return a future
      */
-    CompletableFuture<Void> removeRole(@NotNull DiscordRole role);
+    Task<Void> removeRole(@NotNull DiscordRole role);
 
     /**
      * Gets the effective name of this Discord server member.

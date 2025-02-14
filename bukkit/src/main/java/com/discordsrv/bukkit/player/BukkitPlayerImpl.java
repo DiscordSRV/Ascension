@@ -19,6 +19,7 @@
 package com.discordsrv.bukkit.player;
 
 import com.discordsrv.api.component.MinecraftComponent;
+import com.discordsrv.api.task.Task;
 import com.discordsrv.bukkit.BukkitDiscordSRV;
 import com.discordsrv.bukkit.component.PaperComponentHandle;
 import com.discordsrv.common.abstraction.player.provider.model.SkinInfo;
@@ -30,7 +31,6 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.Collection;
 import java.util.Locale;
-import java.util.concurrent.CompletableFuture;
 
 public class BukkitPlayerImpl extends BukkitPlayer {
 
@@ -39,7 +39,7 @@ public class BukkitPlayerImpl extends BukkitPlayer {
     }
 
     @Override
-    public CompletableFuture<Void> kick(Component component) {
+    public Task<Void> kick(Component component) {
         if (PaperComponentHandle.IS_AVAILABLE) {
             return discordSRV.scheduler().executeOnMainThread(player, () -> PaperPlayerUtil.kick(player, ComponentUtil.toAPI(component)));
         }

@@ -22,6 +22,7 @@ import com.discordsrv.api.component.MinecraftComponent;
 import com.discordsrv.api.discord.entity.channel.DiscordGuildMessageChannel;
 import com.discordsrv.api.discord.entity.channel.DiscordMessageChannel;
 import com.discordsrv.api.discord.entity.message.SendableDiscordMessage;
+import com.discordsrv.api.task.Task;
 import com.discordsrv.common.DiscordSRV;
 import com.discordsrv.common.command.game.abstraction.command.GameCommand;
 import com.discordsrv.common.command.game.abstraction.command.GameCommandArguments;
@@ -37,7 +38,6 @@ import net.kyori.adventure.text.format.NamedTextColor;
 import net.kyori.adventure.text.serializer.gson.GsonComponentSerializer;
 
 import java.util.*;
-import java.util.concurrent.CompletableFuture;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
@@ -103,7 +103,7 @@ public abstract class BroadcastCommand implements GameCommandExecutor, GameComma
         String content = arguments.getString("content");
 
         Set<DiscordMessageChannel> channels = new HashSet<>();
-        CompletableFuture<List<DiscordGuildMessageChannel>> future = null;
+        Task<List<DiscordGuildMessageChannel>> future = null;
         try {
             long id = Long.parseUnsignedLong(channel);
 

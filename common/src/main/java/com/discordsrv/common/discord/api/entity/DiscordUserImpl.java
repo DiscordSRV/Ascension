@@ -87,11 +87,9 @@ public class DiscordUserImpl implements DiscordUser {
             return discordSRV.discordAPI().notReady();
         }
 
-        return discordSRV.discordAPI().mapExceptions(
-                Task.of(jda.retrieveUserById(getId()).submit())
-                        .thenCompose(user -> user.openPrivateChannel().submit())
-                        .thenApply(privateChannel ->  new DiscordDMChannelImpl(discordSRV, privateChannel))
-        );
+        return discordSRV.discordAPI().toTask(() -> jda.retrieveUserById(getId()))
+                .then(user -> discordSRV.discordAPI().toTask(() -> user.openPrivateChannel()))
+                .thenApply(privateChannel -> new DiscordDMChannelImpl(discordSRV, privateChannel));
     }
 
     @Override

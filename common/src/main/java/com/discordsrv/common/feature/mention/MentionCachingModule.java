@@ -20,13 +20,13 @@ package com.discordsrv.common.feature.mention;
 
 import com.discordsrv.api.discord.connection.details.DiscordGatewayIntent;
 import com.discordsrv.api.eventbus.Subscribe;
+import com.discordsrv.api.task.Task;
 import com.discordsrv.common.DiscordSRV;
 import com.discordsrv.common.abstraction.player.IPlayer;
 import com.discordsrv.common.config.main.channels.MinecraftToDiscordChatConfig;
 import com.discordsrv.common.config.main.channels.base.BaseChannelConfig;
 import com.discordsrv.common.core.module.type.AbstractModule;
 import com.discordsrv.common.permission.game.Permissions;
-import com.discordsrv.common.util.CompletableFutureUtil;
 import com.github.benmanes.caffeine.cache.Cache;
 import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.entities.Member;
@@ -96,14 +96,14 @@ public class MentionCachingModule extends AbstractModule<DiscordSRV> {
         channelMentions.clear();
     }
 
-    public CompletableFuture<List<CachedMention>> lookup(
+    public Task<List<CachedMention>> lookup(
             MinecraftToDiscordChatConfig.Mentions config,
             Guild guild,
             IPlayer player,
             String messageContent,
             Set<Member> lookedUpMembers
     ) {
-        List<CompletableFuture<List<CachedMention>>> futures = new ArrayList<>();
+        List<Task<List<CachedMention>>> futures = new ArrayList<>();
         List<CachedMention> mentions = new ArrayList<>();
 
         if (config.users) {
@@ -137,7 +137,7 @@ public class MentionCachingModule extends AbstractModule<DiscordSRV> {
             mentions.addAll(getChannelMentions(guild).values());
         }
 
-        return CompletableFutureUtil.combine(futures).thenApply(lists -> {
+        return Task.allOf(futures).thenApply(lists -> {
             lists.forEach(mentions::addAll);
 
             // From longest to shortest
@@ -159,7 +159,7 @@ public class MentionCachingModule extends AbstractModule<DiscordSRV> {
     // Member
     //
 
-    private CompletableFuture<List<CachedMention>> lookupMemberMentions(
+    private Task<List<CachedMention>> lookupMemberMentions(
             Guild guild,
             String username,
             Set<Member> lookedUpMembers
@@ -168,7 +168,7 @@ public class MentionCachingModule extends AbstractModule<DiscordSRV> {
         guild.retrieveMembersByPrefix(username, 100)
                 .onSuccess(memberFuture::complete).onError(memberFuture::completeExceptionally);
 
-        return memberFuture.thenApply(members -> {
+        return Task.of(memberFuture).thenApply(members -> {
             if (lookedUpMembers != null) {
                 lookedUpMembers.addAll(members);
             }

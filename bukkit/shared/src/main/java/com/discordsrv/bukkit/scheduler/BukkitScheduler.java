@@ -18,11 +18,13 @@
 
 package com.discordsrv.bukkit.scheduler;
 
+import com.discordsrv.api.task.Task;
 import com.discordsrv.bukkit.BukkitDiscordSRV;
 import com.discordsrv.common.DiscordSRV;
 import com.discordsrv.common.core.scheduler.ServerScheduler;
 import com.discordsrv.common.core.scheduler.StandardScheduler;
-import com.discordsrv.common.util.CompletableFutureUtil;
+import com.discordsrv.common.util.TaskUtil;
+import com.discordsrv.common.util.function.CheckedRunnable;
 import com.discordsrv.common.util.function.CheckedSupplier;
 import org.bukkit.Server;
 import org.bukkit.command.CommandSender;
@@ -30,7 +32,6 @@ import org.bukkit.plugin.Plugin;
 import org.jetbrains.annotations.CheckReturnValue;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.concurrent.CompletableFuture;
 import java.util.function.BiConsumer;
 
 public class BukkitScheduler extends StandardScheduler implements ServerScheduler {
@@ -72,12 +73,12 @@ public class BukkitScheduler extends StandardScheduler implements ServerSchedule
     }
 
     @CheckReturnValue
-    public CompletableFuture<Void> executeOnMainThread(CommandSender sender, Runnable runnable) {
-        return CompletableFuture.runAsync(runnable, task -> runOnMainThread(sender, task));
+    public Task<Void> executeOnMainThread(CommandSender sender, CheckedRunnable runnable) {
+        return TaskUtil.runAsync(runnable, task -> runOnMainThread(sender, task));
     }
 
     @CheckReturnValue
-    public <T> CompletableFuture<T> supplyOnMainThread(CommandSender sender, CheckedSupplier<T> supplier) {
-        return CompletableFutureUtil.supplyAsync(supplier, task -> runOnMainThread(sender, task));
+    public <T> Task<T> supplyOnMainThread(CommandSender sender, CheckedSupplier<T> supplier) {
+        return TaskUtil.supplyAsync(supplier, task -> runOnMainThread(sender, task));
     }
 }

@@ -32,6 +32,7 @@ import com.discordsrv.api.events.message.receive.game.GameChatMessageReceiveEven
 import com.discordsrv.api.placeholder.format.FormattedText;
 import com.discordsrv.api.placeholder.format.PlainPlaceholderFormat;
 import com.discordsrv.api.placeholder.util.Placeholders;
+import com.discordsrv.api.task.Task;
 import com.discordsrv.common.DiscordSRV;
 import com.discordsrv.common.abstraction.player.IPlayer;
 import com.discordsrv.common.config.main.channels.MinecraftToDiscordChatConfig;
@@ -46,7 +47,6 @@ import net.kyori.adventure.text.Component;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.*;
-import java.util.concurrent.CompletableFuture;
 
 public class MinecraftToDiscordChatModule extends AbstractGameMessageModule<MinecraftToDiscordChatConfig, GameChatMessageReceiveEvent> {
 
@@ -75,7 +75,7 @@ public class MinecraftToDiscordChatModule extends AbstractGameMessageModule<Mine
     }
 
     @Override
-    public List<CompletableFuture<ReceivedDiscordMessage>> sendMessageToChannels(
+    public List<Task<ReceivedDiscordMessage>> sendMessageToChannels(
             MinecraftToDiscordChatConfig config,
             IPlayer player,
             SendableDiscordMessage.Builder format,
@@ -92,15 +92,15 @@ public class MinecraftToDiscordChatModule extends AbstractGameMessageModule<Mine
         }
 
         Component message = ComponentUtil.fromAPI(event.getMessage());
-        List<CompletableFuture<ReceivedDiscordMessage>> futures = new ArrayList<>();
+        List<Task<ReceivedDiscordMessage>> futures = new ArrayList<>();
 
         // Format messages per-Guild
         for (Map.Entry<DiscordGuild, Set<DiscordGuildMessageChannel>> entry : channelMap.entrySet()) {
             Guild guild = entry.getKey().asJDA();
-            CompletableFuture<SendableDiscordMessage> messageFuture = getMessageForGuild(config, format, guild, message, player, context);
+            Task<SendableDiscordMessage> messageFuture = getMessageForGuild(config, format, guild, message, player, context);
 
             for (DiscordGuildMessageChannel channel : entry.getValue()) {
-                futures.add(messageFuture.thenCompose(msg -> sendMessageToChannel(channel, msg)));
+                futures.add(messageFuture.then(msg -> sendMessageToChannel(channel, msg)));
             }
         }
 
@@ -110,7 +110,7 @@ public class MinecraftToDiscordChatModule extends AbstractGameMessageModule<Mine
     @Override
     public void setPlaceholders(MinecraftToDiscordChatConfig config, GameChatMessageReceiveEvent event, SendableDiscordMessage.Formatter formatter) {}
 
-    private CompletableFuture<SendableDiscordMessage> getMessageForGuild(
+    private Task<SendableDiscordMessage> getMessageForGuild(
             MinecraftToDiscordChatConfig config,
             SendableDiscordMessage.Builder format,
             Guild guild,
@@ -125,7 +125,7 @@ public class MinecraftToDiscordChatModule extends AbstractGameMessageModule<Mine
                     .thenApply(mentions -> getMessageForGuildWithMentions(config, format, guild, message, player, context, mentions));
         }
 
-        return CompletableFuture.completedFuture(getMessageForGuildWithMentions(config, format, guild, message, player, context, null));
+        return Task.completed(getMessageForGuildWithMentions(config, format, guild, message, player, context, null));
     }
 
     private SendableDiscordMessage getMessageForGuildWithMentions(

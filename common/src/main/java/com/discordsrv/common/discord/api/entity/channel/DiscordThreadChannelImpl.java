@@ -22,6 +22,7 @@ import com.discordsrv.api.discord.entity.channel.DiscordChannelType;
 import com.discordsrv.api.discord.entity.channel.DiscordThreadChannel;
 import com.discordsrv.api.discord.entity.channel.DiscordThreadContainer;
 import com.discordsrv.api.discord.entity.guild.DiscordGuild;
+import com.discordsrv.api.task.Task;
 import com.discordsrv.common.DiscordSRV;
 import net.dv8tion.jda.api.JDA;
 import net.dv8tion.jda.api.JDABuilder;
@@ -34,8 +35,6 @@ import net.dv8tion.jda.api.requests.restaction.WebhookMessageCreateAction;
 import net.dv8tion.jda.api.requests.restaction.WebhookMessageDeleteAction;
 import net.dv8tion.jda.api.requests.restaction.WebhookMessageEditAction;
 import org.jetbrains.annotations.NotNull;
-
-import java.util.concurrent.CompletableFuture;
 
 public class DiscordThreadChannelImpl extends AbstractDiscordGuildMessageChannel<ThreadChannel> implements DiscordThreadChannel {
 
@@ -51,7 +50,7 @@ public class DiscordThreadChannelImpl extends AbstractDiscordGuildMessageChannel
     }
 
     @Override
-    public CompletableFuture<WebhookClient<Message>> queryWebhookClient() {
+    public Task<WebhookClient<Message>> queryWebhookClient() {
         return discordSRV.discordAPI()
                 .queryWebhookClient(getParentChannel().getId());
     }

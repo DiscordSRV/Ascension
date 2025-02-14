@@ -18,6 +18,7 @@
 
 package com.discordsrv.velocity.player;
 
+import com.discordsrv.api.task.Task;
 import com.discordsrv.common.DiscordSRV;
 import com.discordsrv.common.abstraction.player.IPlayer;
 import com.discordsrv.common.abstraction.player.provider.model.SkinInfo;
@@ -34,7 +35,6 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.Collection;
 import java.util.Locale;
-import java.util.concurrent.CompletableFuture;
 
 public class VelocityPlayer extends VelocityCommandSender implements IPlayer {
 
@@ -56,9 +56,9 @@ public class VelocityPlayer extends VelocityCommandSender implements IPlayer {
     }
 
     @Override
-    public CompletableFuture<Void> kick(Component component) {
+    public Task<Void> kick(Component component) {
         player.disconnect(component);
-        return CompletableFuture.completedFuture(null);
+        return Task.completed(null);
     }
 
     @Override

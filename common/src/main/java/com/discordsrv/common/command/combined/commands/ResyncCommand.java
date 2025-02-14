@@ -41,7 +41,6 @@ import net.kyori.adventure.text.format.NamedTextColor;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
-import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -142,7 +141,7 @@ public class ResyncCommand extends CombinedCommand {
             long startTime = System.currentTimeMillis();
 
             List<Task<? extends SyncSummary<?>>> futures = resyncOnlinePlayers(module);
-            Task.allOfGeneric(futures).thenCompose(result -> {
+            Task.allOfGeneric(futures).then(result -> {
                 List<Task<?>> results = new ArrayList<>();
                 for (SyncSummary<?> summary : result) {
                     results.add(summary.resultFuture());
@@ -153,7 +152,7 @@ public class ResyncCommand extends CombinedCommand {
                 int total = 0;
 
                 List<ISyncResult> results = new ArrayList<>();
-                for (CompletableFuture<? extends SyncSummary<?>> future : futures) {
+                for (Task<? extends SyncSummary<?>> future : futures) {
                     SyncSummary<?> summary = future.join();
                     ISyncResult allFailResult = summary.allFailReason();
                     if (allFailResult != null) {

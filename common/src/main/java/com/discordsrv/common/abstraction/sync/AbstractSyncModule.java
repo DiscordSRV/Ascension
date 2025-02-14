@@ -39,7 +39,6 @@ import org.jetbrains.annotations.Nullable;
 
 import java.time.Duration;
 import java.util.*;
-import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionException;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.Future;
@@ -348,7 +347,7 @@ public abstract class AbstractSyncModule<
         });
     }
 
-    protected CompletableFuture<SyncSummary<C>> resync(ISyncCause cause, C config, Someone someone) {
+    protected Task<SyncSummary<C>> resync(ISyncCause cause, C config, Someone someone) {
         return someone.withLinkedAccounts(discordSRV).thenApply(resolved -> {
             if (resolved == null) {
                 return new SyncSummary<>(this, cause, someone).fail(GenericSyncResults.NOT_LINKED);

@@ -21,6 +21,7 @@ package com.discordsrv.common.feature.linking.requirelinking;
 import com.discordsrv.api.eventbus.Subscribe;
 import com.discordsrv.api.events.linking.AccountUnlinkedEvent;
 import com.discordsrv.api.reload.ReloadResult;
+import com.discordsrv.api.task.Task;
 import com.discordsrv.common.DiscordSRV;
 import com.discordsrv.common.abstraction.player.IPlayer;
 import com.discordsrv.common.config.main.linking.RequiredLinkingConfig;
@@ -40,14 +41,10 @@ import com.discordsrv.common.feature.linking.requirelinking.requirement.type.Dis
 import com.discordsrv.common.feature.linking.requirelinking.requirement.type.DiscordServerRequirementType;
 import com.discordsrv.common.feature.linking.requirelinking.requirement.type.MinecraftAuthRequirementType;
 import com.discordsrv.common.helper.Someone;
-import com.discordsrv.common.util.CompletableFutureUtil;
 import com.discordsrv.common.util.ComponentUtil;
 import net.kyori.adventure.text.Component;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Objects;
-import java.util.UUID;
+import java.util.*;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.SynchronousQueue;
 import java.util.concurrent.ThreadPoolExecutor;
@@ -194,7 +191,7 @@ public abstract class RequiredLinkingModule<T extends DiscordSRV> extends Abstra
         return providers;
     }
 
-    public CompletableFuture<Component> getBlockReason(
+    public Task<Component> getBlockReason(
             RequirementsConfig config,
             List<ParsedRequirements> additionalRequirements,
             UUID playerUUID,
@@ -204,7 +201,7 @@ public abstract class RequiredLinkingModule<T extends DiscordSRV> extends Abstra
         if (config.bypassUUIDs.contains(playerUUID.toString())) {
             // Bypasses: let them through
             logger().debug("Player " + playerName + " is bypassing required linking requirements");
-            return CompletableFuture.completedFuture(null);
+            return Task.completed(null);
         }
 
         LinkProvider linkProvider = discordSRV.linkProvider();
@@ -213,10 +210,10 @@ public abstract class RequiredLinkingModule<T extends DiscordSRV> extends Abstra
             Component message = ComponentUtil.fromAPI(
                     discordSRV.messagesConfig().minecraft.unableToCheckLinkingStatus.textBuilder().build()
             );
-            return CompletableFuture.completedFuture(message);
+            return Task.completed(message);
         }
 
-        return linkProvider.queryUserId(playerUUID, true).thenCompose(opt -> {
+        return linkProvider.queryUserId(playerUUID, true).then(opt -> {
             if (!opt.isPresent()) {
                 // User is not linked
                 return linkProvider.getLinkingInstructions(playerName, playerUUID, null, join ? "join" : "freeze")
@@ -227,29 +224,26 @@ public abstract class RequiredLinkingModule<T extends DiscordSRV> extends Abstra
 
             if (additionalRequirements.isEmpty()) {
                 // No additional requirements: let them through
-                return CompletableFuture.completedFuture(null);
+                return Task.completed(null);
             }
 
             CompletableFuture<Void> pass = new CompletableFuture<>();
-            List<CompletableFuture<Boolean>> all = new ArrayList<>();
+            List<Task<Boolean>> all = new ArrayList<>();
 
             for (ParsedRequirements requirement : additionalRequirements) {
-                CompletableFuture<Boolean> future = requirement.predicate().apply(Someone.of(playerUUID, userId));
+                Task<Boolean> future = requirement.predicate().apply(Someone.of(playerUUID, userId));
 
                 all.add(future.thenApply(val -> {
                     if (val) {
                         pass.complete(null);
                     }
                     return val;
-                }).exceptionally(t -> {
-                    logger().debug("Check \"" + requirement.input() + "\" failed for "
-                                           + playerName + " / " + Long.toUnsignedString(userId), t);
-                    return null;
-                }));
+                }).whenFailed(t -> logger().debug("Check \"" + requirement.input() + "\" failed for "
+                                       + playerName + " / " + Long.toUnsignedString(userId), t)));
             }
 
             // Complete when at least one passes or all of them completed
-            return CompletableFuture.anyOf(pass, CompletableFutureUtil.combine(all)).thenApply(v -> {
+            return Task.anyOfGeneric(Arrays.asList(Task.of(pass), Task.allOf(all))).thenApply(v -> {
                 if (pass.isDone()) {
                     // One of the futures passed: let them through
                     return null;
