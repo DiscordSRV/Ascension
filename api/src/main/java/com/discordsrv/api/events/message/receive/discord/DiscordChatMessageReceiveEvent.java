@@ -23,7 +23,8 @@
 
 package com.discordsrv.api.events.message.receive.discord;
 
-import com.discordsrv.api.discord.entity.channel.*;
+import com.discordsrv.api.discord.entity.channel.DiscordGuildMessageChannel;
+import com.discordsrv.api.discord.entity.channel.DiscordMessageChannel;
 import com.discordsrv.api.discord.entity.guild.DiscordGuild;
 import com.discordsrv.api.discord.entity.message.ReceivedDiscordMessage;
 import com.discordsrv.api.events.Cancellable;

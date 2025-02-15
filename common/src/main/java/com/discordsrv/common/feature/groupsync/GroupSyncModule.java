@@ -45,6 +45,9 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 
+/**
+ * The Game id is the group name, the Discord id is the role id and the state indicates if the player or user has the group or role.
+ */
 public class GroupSyncModule extends AbstractSyncModule<DiscordSRV, GroupSyncConfig.Entry, String, Long, Boolean> {
 
     private final Cache<Long, Map<Long, Boolean>> expectedDiscordChanges;
@@ -222,6 +225,10 @@ public class GroupSyncModule extends AbstractSyncModule<DiscordSRV, GroupSyncCon
     @Override
     public Task<Boolean> getGame(GroupSyncConfig.Entry config, UUID playerUUID) {
         PermissionModule.Groups permissionProvider = getPermissionProvider();
+        if (permissionProvider == null) {
+            return Task.failed(new SyncFail(GenericSyncResults.MODULE_NOT_FOUND));
+        }
+
         Task<Boolean> future;
         if (permissionProvider instanceof PermissionModule.GroupsContext) {
             future = ((PermissionModule.GroupsContext) permissionProvider)
@@ -297,6 +304,10 @@ public class GroupSyncModule extends AbstractSyncModule<DiscordSRV, GroupSyncCon
 
     private Task<Void> addGroup(UUID player, GroupSyncConfig.Entry config) {
         PermissionModule.Groups permissionProvider = getPermissionProvider();
+        if (permissionProvider == null) {
+            return Task.failed(new SyncFail(GenericSyncResults.MODULE_NOT_FOUND));
+        }
+
         String groupName = config.groupName;
         if (permissionProvider instanceof PermissionModule.GroupsContext) {
             return ((PermissionModule.GroupsContext) permissionProvider)
@@ -308,6 +319,10 @@ public class GroupSyncModule extends AbstractSyncModule<DiscordSRV, GroupSyncCon
 
     private Task<Void> removeGroup(UUID player, GroupSyncConfig.Entry config) {
         PermissionModule.Groups permissionProvider = getPermissionProvider();
+        if (permissionProvider == null) {
+            return Task.failed(new SyncFail(GenericSyncResults.MODULE_NOT_FOUND));
+        }
+
         String groupName = config.groupName;
         if (permissionProvider instanceof PermissionModule.GroupsContext) {
             return ((PermissionModule.GroupsContext) permissionProvider)

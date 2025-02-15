@@ -18,7 +18,6 @@
 
 package com.discordsrv.common.config.main.channels.server;
 
-import com.discordsrv.api.color.Color;
 import com.discordsrv.api.discord.entity.message.DiscordMessageEmbed;
 import com.discordsrv.api.discord.entity.message.SendableDiscordMessage;
 import com.discordsrv.common.config.configurate.annotation.Untranslated;

@@ -23,11 +23,12 @@
 
 package com.discordsrv.api.module.type;
 
+import com.discordsrv.api.module.Module;
 import com.discordsrv.api.task.Task;
 
 import java.util.UUID;
 
-public interface NicknameModule {
+public interface NicknameModule extends Module {
 
     Task<String> getNickname(UUID playerUUID);
     Task<Void> setNickname(UUID playerUUID, String nickname);
