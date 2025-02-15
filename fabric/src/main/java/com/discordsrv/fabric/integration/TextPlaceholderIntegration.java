@@ -107,7 +107,11 @@ public class TextPlaceholderIntegration extends PluginIntegration<FabricDiscordS
         if (profileResult != null) {
             Text parsed = Placeholders.parseText(Text.of(placeholder), PlaceholderContext.of(profileResult.profile(), discordSRV.getServer()));
             setResult(event, placeholder, parsed.getString());
+            return;
         }
+
+        Text parsed = Placeholders.parseText(Text.of(placeholder), PlaceholderContext.of(discordSRV.getServer()));
+        setResult(event, placeholder, parsed.getString());
     }
 
     private void setResult(PlaceholderLookupEvent event, String placeholder, String result) {
