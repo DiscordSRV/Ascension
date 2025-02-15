@@ -135,7 +135,7 @@ public class TextPlaceholderIntegration extends PluginIntegration<FabricDiscordS
 
             context.add(discordSRV.playerProvider().player(player));
         } else if (placeholderContext.hasGameProfile()) {
-            context = new HashSet<>(1);
+            context = new HashSet<>(2);
 
             GameProfile gameProfile = placeholderContext.gameProfile();
             assert gameProfile != null;
