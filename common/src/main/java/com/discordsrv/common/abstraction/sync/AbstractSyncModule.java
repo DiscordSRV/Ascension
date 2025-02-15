@@ -456,32 +456,19 @@ public abstract class AbstractSyncModule<
                 groupedResults.computeIfAbsent(result, key -> new ArrayList<>()).add(config.describe());
             }
 
-            List<String> successResults = new ArrayList<>();
-            List<String> failResults = new ArrayList<>();
+            List<String> allResults = new ArrayList<>();
             List<String> auditResults = new ArrayList<>();
             for (Map.Entry<ISyncResult, List<String>> entry : groupedResults.entrySet()) {
                 ISyncResult result = entry.getKey();
                 String line = result.format(gameTerm(), discordTerm())
                         + ": [" + String.join(", ", entry.getValue()) + "]";
-                if (result.isError()) {
-                    failResults.add(line);
-                } else {
-                    successResults.add(line);
-                }
+                allResults.add(line);
                 if (result.isUpdate()) {
                     auditResults.add(line);
                 }
             }
 
-            boolean anySuccess = !successResults.isEmpty();
-            boolean anyFail = !failResults.isEmpty();
-            String partially = anySuccess && anyFail ? " partially" : "";
-            if (anySuccess) {
-                logger().debug(syncName() + partially + " succeeded for " + formatResults(summary, successResults));
-            }
-            if (anyFail) {
-                logger().error(syncName() + partially + " failed for " + formatResults(summary, failResults));
-            }
+            logger().debug(syncName() + " performed for " + formatResults(summary, allResults));
             if (!auditResults.isEmpty()) {
                 discordSRV.logger().writeLogForCurrentDay(logFileName(), formatResults(summary, auditResults));
             }

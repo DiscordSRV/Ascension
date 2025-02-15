@@ -18,12 +18,15 @@
 
 package com.discordsrv.common.core.placeholder.provider.util;
 
+import com.discordsrv.api.placeholder.PlaceholderLookupResult;
 import com.discordsrv.api.placeholder.annotation.PlaceholderRemainder;
+import org.jetbrains.annotations.Nullable;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Parameter;
 import java.util.Set;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.BiConsumer;
 
 public final class PlaceholderMethodUtil {
@@ -34,29 +37,34 @@ public final class PlaceholderMethodUtil {
             throws InvocationTargetException, IllegalAccessException {
         Parameter[] parameters = method.getParameters();
         Object[] parameterValues = new Object[parameters.length];
+        AtomicBoolean failed = new AtomicBoolean(false);
 
         apply(parameters, (parameter, i) -> {
-            PlaceholderRemainder annotation = parameter.getAnnotation(PlaceholderRemainder.class);
-            if (annotation != null) {
+            PlaceholderRemainder remainderAnnotation = parameter.getAnnotation(PlaceholderRemainder.class);
+            if (remainderAnnotation != null) {
                 parameters[i] = null;
 
                 if (parameter.getType().isAssignableFrom(String.class)) {
-                    String suffix = remainder;
-                    if (suffix.startsWith(":")) {
-                        suffix = suffix.substring(1);
-                    } else if (!suffix.isEmpty()) {
-                        suffix = "";
-                    }
-                    if (suffix.startsWith("'") && suffix.endsWith("'")) {
-                        suffix = suffix.substring(1, suffix.length() - 1);
+                    String parameterValue = getParameterValueFromRemainder(remainder);
+                    if (parameterValue == null) {
+                        if (!remainderAnnotation.supportsNoValue()) {
+                            failed.set(true);
+                            return;
+                        } else {
+                            parameterValue = "";
+                        }
                     }
 
-                    parameterValues[i] = suffix;
+                    parameterValues[i] = parameterValue;
                 } else {
                     parameterValues[i] = null;
                 }
             }
         });
+        if (failed.get()) {
+            return PlaceholderLookupResult.UNKNOWN_PLACEHOLDER;
+        }
+
         for (Object o : context) {
             Class<?> objectType = o.getClass();
             apply(parameters, (parameter, i) -> {
@@ -73,6 +81,19 @@ public final class PlaceholderMethodUtil {
         }
 
         return method.invoke(instance, parameterValues);
+    }
+
+    private static @Nullable String getParameterValueFromRemainder(String remainder) {
+        if (!remainder.startsWith(":")) {
+            // Missing semicolon, empty value
+            return null;
+        }
+
+        String parameterValue = remainder.substring(1);
+        if (parameterValue.startsWith("'") && parameterValue.endsWith("'")) {
+            parameterValue = parameterValue.substring(1, parameterValue.length() - 1);
+        }
+        return parameterValue;
     }
 
     private static void apply(Parameter[] parameters, BiConsumer<Parameter, Integer> parameterProcessor) {

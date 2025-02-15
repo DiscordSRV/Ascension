@@ -35,7 +35,7 @@ public class BukkitOfflinePlayerImpl extends BukkitOfflinePlayer {
 
     @Override
     public @Nullable SkinInfo skinInfo() {
-        if (PaperPlayerUtil.SKIN_AVAILABLE) {
+        if (PaperPlayerUtil.SKIN_AVAILABLE_OFFLINE) {
             return PaperPlayerUtil.getSkinInfo(offlinePlayer);
         }
         if (SpigotPlayerUtil.SKIN_AVAILABLE) {

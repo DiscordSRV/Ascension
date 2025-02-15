@@ -33,6 +33,7 @@ import org.jetbrains.annotations.NotNull;
 
 import java.lang.reflect.Method;
 import java.util.Arrays;
+import java.util.Locale;
 
 public class BukkitLegacyAdvancementListener extends AbstractBukkitListener<PlayerAdvancementDoneEvent> {
 
@@ -47,15 +48,35 @@ public class BukkitLegacyAdvancementListener extends AbstractBukkitListener<Play
         NMS nms = null;
         try {
             String nmsVersion = server.getClass().getName().split("\\.")[3];
-            if ((version.startsWith("1.19") && !version.matches("1.19.[1-3].*"))
-                    || version.startsWith("1.2")) {
-                // 1.19.4+
-                nms = new NMS("org.bukkit.craftbukkit." + nmsVersion + ".advancement.CraftAdvancement",
-                              "d", "i", "a");
+            String cbClassName = "org.bukkit.craftbukkit." + nmsVersion + ".advancement.CraftAdvancement";
+            if (version.startsWith("1.12")
+                    || version.startsWith("1.13")
+                    || version.startsWith("1.14")
+                    || version.startsWith("1.15")
+                    || version.startsWith("1.16")
+                    || version.startsWith("1.17")
+                    || version.startsWith("1.18")) {
+                nms = new NMS(
+                        cbClassName,
+                        // nms Advancement
+                        "c",
+                        // nms AdvancementDisplay
+                        "i", "a", "b", "e",
+                        // nms AdvancementFrameType
+                        "a"
+                );
+            } else if (version.startsWith("1.19")) {
+                nms = new NMS(
+                        cbClassName,
+                        // nms Advancement
+                        "d",
+                        // nms AdvancementDisplay
+                        "i", "a", "b", "e",
+                        // nms AdvancementFrameType
+                        "a"
+                );
             } else {
-                // <1.19.4
-                nms = new NMS("org.bukkit.craftbukkit." + nmsVersion + ".advancement.CraftAdvancement",
-                              "c", "i", "a");
+                logger().error("Unsupported version for legacy advancements: " + version);
             }
         } catch (Throwable t) {
             logger().error("Could not get NMS methods for advancements.");
@@ -88,15 +109,21 @@ public class BukkitLegacyAdvancementListener extends AbstractBukkitListener<Play
             }
 
             MinecraftComponent title = MinecraftComponent.fromJson(data.titleJson);
+            MinecraftComponent description = MinecraftComponent.fromJson(data.descriptionJson);
+            AwardMessageReceiveEvent.AdvancementFrame frame =
+                    data.frameId != null
+                    ? AwardMessageReceiveEvent.AdvancementFrame.valueOf(data.frameId.toUpperCase(Locale.ROOT))
+                    : null;
+
             IPlayer srvPlayer = discordSRV.playerProvider().player(event.getPlayer());
             discordSRV.eventBus().publish(
                     new AwardMessageReceiveEvent(
                             event,
                             srvPlayer,
+                            null,
                             title,
-                            null,
-                            null,
-                            null,
+                            description,
+                            frame,
                             null,
                             false
                     )
@@ -108,25 +135,50 @@ public class BukkitLegacyAdvancementListener extends AbstractBukkitListener<Play
 
     private static class NMS {
 
+        // CraftAdvancement
         private final Method handleMethod;
+
+        // nms Advancement
         private final Method advancementDisplayMethod;
+
+        // nms AdvancementDisplay
         private final Method broadcastToChatMethod;
         private final Method titleMethod;
+        private final Method descriptionMethod;
+        private final Method frameMethod;
+
+        // nms AdvancementFrameType
+        private final Method idMethod;
+
+        // nms IChatBaseComponent$ChatSerializer
         private final Method toJsonMethod;
 
         public NMS(
                 String craftAdvancementClassName,
+                // nms Advancement
                 String displayMethodName,
+                // nms AdvancementDisplay
                 String broadcastToChatMethodName,
-                String titleMethodName
+                String titleMethodName,
+                String descriptionName,
+                String frameMethodName,
+                // nms AdvancementFrameType
+                String idMethodName
         ) throws ReflectiveOperationException {
             Class<?> clazz = Class.forName(craftAdvancementClassName);
             handleMethod = clazz.getDeclaredMethod("getHandle");
-            Class<?> nmsClass = handleMethod.getReturnType();
-            advancementDisplayMethod = nmsClass.getDeclaredMethod(displayMethodName);
-            Class<?> displayClass = advancementDisplayMethod.getReturnType();
-            broadcastToChatMethod = displayClass.getDeclaredMethod(broadcastToChatMethodName);
-            titleMethod = displayClass.getDeclaredMethod(titleMethodName);
+
+            Class<?> advancementClass = handleMethod.getReturnType();
+            advancementDisplayMethod = advancementClass.getDeclaredMethod(displayMethodName);
+
+            Class<?> advancementDisplayClass = advancementDisplayMethod.getReturnType();
+            broadcastToChatMethod = advancementDisplayClass.getDeclaredMethod(broadcastToChatMethodName);
+            titleMethod = advancementDisplayClass.getDeclaredMethod(titleMethodName);
+            descriptionMethod = advancementDisplayClass.getDeclaredMethod(descriptionName);
+            frameMethod = advancementDisplayClass.getDeclaredMethod(frameMethodName);
+
+            Class<?> advancementFrameTypeClass = frameMethod.getReturnType();
+            idMethod = advancementFrameTypeClass.getDeclaredMethod(idMethodName);
 
             Class<?> serializer = Class.forName(titleMethod.getReturnType().getName() + "$ChatSerializer");
             toJsonMethod = Arrays.stream(serializer.getDeclaredMethods())
@@ -134,23 +186,28 @@ public class BukkitLegacyAdvancementListener extends AbstractBukkitListener<Play
                     .findAny().orElseThrow(() -> new NoSuchMethodException("ChatSerializer toJson"));
         }
 
-        public ReturnData getData(Advancement advancement) throws ReflectiveOperationException {
-            Object nms = handleMethod.invoke(advancement);
-            Object display = advancementDisplayMethod.invoke(nms);
-            if (display == null) {
+        public ReturnData getData(Advancement bukkitAdvancement) throws ReflectiveOperationException {
+            Object advancement = handleMethod.invoke(bukkitAdvancement);
+            Object advancementDisplay = advancementDisplayMethod.invoke(advancement);
+            if (advancementDisplay == null) {
                 // Not something that would be displayed in chat
                 return null;
             }
 
-            boolean broadcastToChat = (boolean) broadcastToChatMethod.invoke(display);
+            boolean broadcastToChat = (boolean) broadcastToChatMethod.invoke(advancementDisplay);
             if (!broadcastToChat) {
                 // Not something that would be displayed in chat
                 return null;
             }
 
-            Object titleChat = titleMethod.invoke(display);
+            Object titleChat = titleMethod.invoke(advancementDisplay);
+            Object descriptionChat = descriptionMethod.invoke(advancementDisplay);
+            Enum<?> enumValue = (Enum<?>) frameMethod.invoke(advancementDisplay);
+            String enumId = enumValue != null ? (String) idMethod.invoke(enumValue) : null;
             return new ReturnData(
-                    toJson(titleChat)
+                    toJson(titleChat),
+                    toJson(descriptionChat),
+                    enumId
             );
         }
 
@@ -162,9 +219,13 @@ public class BukkitLegacyAdvancementListener extends AbstractBukkitListener<Play
     private static class ReturnData {
 
         private final String titleJson;
+        private final String descriptionJson;
+        private final String frameId;
 
-        public ReturnData(String titleJson) {
+        public ReturnData(String titleJson, String descriptionJson, String frameId) {
             this.titleJson = titleJson;
+            this.descriptionJson = descriptionJson;
+            this.frameId = frameId;
         }
     }
 

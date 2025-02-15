@@ -31,4 +31,10 @@ import java.lang.annotation.Target;
 @Retention(RetentionPolicy.RUNTIME)
 @Target(ElementType.PARAMETER)
 public @interface PlaceholderRemainder {
+
+    /**
+     * If the remainder supports providing no value to it.
+     * @return {@code true} if the parameter is not required to be set to a value explicitly
+     */
+    boolean supportsNoValue() default false;
 }

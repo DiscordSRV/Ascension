@@ -32,9 +32,7 @@ import com.discordsrv.common.DiscordSRV;
 import com.discordsrv.common.config.main.channels.base.BaseChannelConfig;
 import com.discordsrv.common.config.main.channels.base.server.ServerBaseChannelConfig;
 import com.discordsrv.common.config.main.channels.server.AwardMessageConfig;
-import com.discordsrv.common.util.ComponentUtil;
 import com.github.benmanes.caffeine.cache.Cache;
-import net.kyori.adventure.text.Component;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -92,20 +90,15 @@ public class AwardMessageModule extends AbstractGameMessageModule<AwardMessageCo
 
     @Override
     public void setPlaceholders(AwardMessageConfig config, AwardMessageReceiveEvent event, SendableDiscordMessage.Formatter formatter) {
-        MinecraftComponent nameComponent = event.getName();
-        Component name = nameComponent != null ? ComponentUtil.fromAPI(nameComponent) : null;
-
-        MinecraftComponent titleComponent = event.getTitle();
-        Component title = titleComponent != null ? ComponentUtil.fromAPI(titleComponent) : null;
-
-        MinecraftComponent descriptionComponent = event.getDescription();
-        Component description = descriptionComponent != null ? ComponentUtil.fromAPI(descriptionComponent) : null;
+        MinecraftComponent message = event.getMessage();
+        MinecraftComponent displayName = event.getTitle();
+        MinecraftComponent description = event.getDescription();
 
         Color color = event.getFrame() != null ? event.getFrame().color() : null;
 
         formatter
-                .addPlaceholder("award_name", name)
-                .addPlaceholder("award_title", title)
+                .addPlaceholder("award_message", message)
+                .addPlaceholder("award_display_name", displayName)
                 .addPlaceholder("award_description", description)
                 .addPlaceholder("award_color", color, "color");
     }

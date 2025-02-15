@@ -60,8 +60,8 @@ public class FabricAdvancementModule extends AbstractFabricModule {
         AdvancementDisplay display = displayOptional.get();
         AdvancementFrame frame = display.getFrame();
 
-        MinecraftComponent name = ComponentUtil.toAPI(discordSRV.getAdventure().asAdventure(display.getTitle()));
-        MinecraftComponent title = ComponentUtil.toAPI(discordSRV.getAdventure().asAdventure(frame.getChatAnnouncementText(advancementEntry, owner)));
+        MinecraftComponent message = ComponentUtil.toAPI(discordSRV.getAdventure().asAdventure(frame.getChatAnnouncementText(advancementEntry, owner)));
+        MinecraftComponent title = ComponentUtil.toAPI(discordSRV.getAdventure().asAdventure(display.getTitle()));
         MinecraftComponent description = ComponentUtil.toAPI(discordSRV.getAdventure().asAdventure(display.getDescription()));
 
         IPlayer player = discordSRV.playerProvider().player(owner);
@@ -69,7 +69,7 @@ public class FabricAdvancementModule extends AbstractFabricModule {
                 new AwardMessageReceiveEvent(
                         null,
                         player,
-                        name,
+                        message,
                         title,
                         description,
                         AwardMessageReceiveEvent.AdvancementFrame.valueOf(frame.toString()),
