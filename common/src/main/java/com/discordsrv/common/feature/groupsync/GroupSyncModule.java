@@ -36,6 +36,8 @@ import com.discordsrv.common.feature.groupsync.enums.GroupSyncCause;
 import com.discordsrv.common.feature.groupsync.enums.GroupSyncResult;
 import com.discordsrv.common.helper.Someone;
 import com.github.benmanes.caffeine.cache.Cache;
+import net.dv8tion.jda.api.exceptions.ErrorResponseException;
+import net.dv8tion.jda.api.requests.ErrorResponse;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
@@ -207,13 +209,14 @@ public class GroupSyncModule extends AbstractSyncModule<DiscordSRV, GroupSyncCon
             return Task.failed(new SyncFail(GroupSyncResult.ROLE_CANNOT_INTERACT));
         }
 
-        return role.getGuild().retrieveMemberById(userId).thenApply(member -> {
-            if (member == null) {
-                throw new SyncFail(GroupSyncResult.NOT_A_GUILD_MEMBER);
-            }
-
-            return member.hasRole(role);
-        });
+        return role.getGuild().retrieveMemberById(userId)
+                .mapException(ErrorResponseException.class, t -> {
+                    if (t.getErrorResponse() == ErrorResponse.UNKNOWN_MEMBER) {
+                        throw new SyncFail(GroupSyncResult.NOT_A_GUILD_MEMBER);
+                    }
+                    throw t;
+                })
+                .thenApply(member -> member.hasRole(role));
     }
 
     @Override

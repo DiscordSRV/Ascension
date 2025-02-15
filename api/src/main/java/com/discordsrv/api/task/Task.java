@@ -53,42 +53,31 @@ public class Task<T> implements Future<T> {
     }
 
     @SuppressWarnings("unchecked")
-    public static <T> Task<T> anyOf(@NotNull Collection<Task<T>> tasks) {
+    public static <T, C extends Collection<? extends Task<? extends T>>> Task<T> anyOf(@NotNull C tasks) {
         return anyOf(tasks.toArray(new Task[0]));
     }
 
     @SuppressWarnings("unchecked")
-    @NotNull
-    public static <T> Task<T> anyOfGeneric(@NotNull Collection<@NotNull Task<? extends T>> futures) {
-        return anyOf(futures.toArray(new Task[0]));
-    }
-
-    @SuppressWarnings("unchecked")
-    public static <T> Task<T> anyOf(@NotNull Task<T>... tasks) {
+    @SafeVarargs
+    public static <T> Task<T> anyOf(@NotNull Task<? extends T>... tasks) {
         CompletableFuture<T>[] futures = new CompletableFuture[tasks.length];
         for (int i = 0; i < tasks.length; i++) {
-            futures[i] = tasks[i].getFuture();
+            futures[i] = (CompletableFuture<T>) tasks[i].getFuture();
         }
         return of(CompletableFuture.anyOf(futures).thenApply(obj -> (T) obj));
     }
 
     @SuppressWarnings("unchecked")
-    public static <T> Task<List<T>> allOf(@NotNull Collection<Task<T>> tasks) {
+    public static <T, C extends Collection<? extends Task<? extends T>>> Task<List<T>> allOf(@NotNull C tasks) {
         return allOf(tasks.toArray(new Task[0]));
     }
 
     @SuppressWarnings("unchecked")
-    @NotNull
-    public static <T> Task<List<T>> allOfGeneric(@NotNull Collection<@NotNull Task<? extends T>> futures) {
-        return allOf(futures.toArray(new Task[0]));
-    }
-
-    @SuppressWarnings("unchecked")
     @SafeVarargs
-    public static <T> Task<List<T>> allOf(@NotNull Task<T>... tasks) {
+    public static <T> Task<List<T>> allOf(@NotNull Task<? extends T>... tasks) {
         CompletableFuture<T>[] futures = new CompletableFuture[tasks.length];
         for (int i = 0; i < tasks.length; i++) {
-            futures[i] = tasks[i].getFuture();
+            futures[i] = (CompletableFuture<T>) tasks[i].getFuture();
         }
         return of(CompletableFuture.allOf(futures).thenApply(v -> {
             List<T> results = new ArrayList<>(futures.length);
@@ -106,6 +95,10 @@ public class Task<T> implements Future<T> {
     }
 
     private final CompletableFuture<T> future;
+
+    public Task() {
+        this(new CompletableFuture<>());
+    }
 
     private Task(@NotNull CompletableFuture<T> future) {
         this.future = future;
@@ -138,6 +131,20 @@ public class Task<T> implements Future<T> {
         return future.cancel(interruptIfRunning);
     }
 
+    /**
+     * {@link CompletableFuture#complete(Object)}.
+     */
+    public void complete(T result) {
+        future.complete(result);
+    }
+
+    /**
+     * {@link CompletableFuture#completeExceptionally(Throwable)}.
+     */
+    public void completeExceptionally(Throwable throwable) {
+        future.completeExceptionally(throwable);
+    }
+
     @Override
     public T get() throws InterruptedException, ExecutionException {
         return future.get();
@@ -152,29 +159,34 @@ public class Task<T> implements Future<T> {
      * {@link CompletableFuture#whenComplete(BiConsumer)} but only when successful.
      */
     public Task<T> whenSuccessful(@NotNull Consumer<T> successConsumer) {
-        return of(future.whenComplete((result, throwable) -> {
+        return whenComplete((result, throwable) -> {
             if (throwable == null) {
                 successConsumer.accept(result);
             }
-        }));
+        });
     }
 
     /**
      * {@link CompletableFuture#whenComplete(BiConsumer)} but only when failed.
      */
     public Task<T> whenFailed(@NotNull Consumer<Throwable> failureConsumer) {
-        return of(future.whenComplete((result, throwable) -> {
+        return whenComplete((result, throwable) -> {
             if (throwable != null) {
                 failureConsumer.accept(throwable);
             }
-        }));
+        });
     }
 
     /**
      * {@link CompletableFuture#whenComplete(BiConsumer)}.
      */
     public Task<T> whenComplete(@NotNull BiConsumer<T, Throwable> consumer) {
-        return of(future.whenComplete(consumer));
+        return of(future.whenComplete((result, throwable) -> {
+            while (throwable instanceof CompletionException) {
+                throwable = throwable.getCause();
+            }
+            consumer.accept(result, throwable);
+        }));
     }
 
     /**
@@ -226,15 +238,20 @@ public class Task<T> implements Future<T> {
     public <E extends Throwable> Task<T> mapException(@NotNull Class<E> type, @NotNull Function<E, T> mappingFunction) {
         Throwable[] error = new Throwable[1];
         return of(future.exceptionally(throwable -> {
+            while (throwable instanceof CompletionException) {
+                throwable = throwable.getCause();
+            }
             error[0] = throwable;
             return null;
         }).thenCompose(result -> {
             E throwable = (E) error[0];
-            if (throwable != null && type.isAssignableFrom(throwable.getClass())) {
+            if (throwable == null) {
+                return CompletableFuture.completedFuture(result);
+            } else if (type.isAssignableFrom(throwable.getClass())) {
                 return map(mappingFunction, throwable);
             }
 
-            return CompletableFuture.completedFuture(result);
+            throw (RuntimeException) throwable;
         }));
     }
 

@@ -206,12 +206,13 @@ public class BanSyncModule extends AbstractSyncModule<DiscordSRV, BanSyncConfig,
     }
 
     private Task<Guild.@Nullable Ban> getBan(Guild guild, long userId) {
-        return Task.of(guild.retrieveBan(UserSnowflake.fromId(userId)).submit().exceptionally(t -> {
-            if (t instanceof ErrorResponseException && ((ErrorResponseException) t).getErrorResponse() == ErrorResponse.UNKNOWN_BAN) {
-                return null;
-            }
-            throw (RuntimeException) t;
-        }));
+        return discordSRV.discordAPI().toTask(guild.retrieveBan(UserSnowflake.fromId(userId)))
+                .mapException(ErrorResponseException.class, t -> {
+                    if (t.getErrorResponse() == ErrorResponse.UNKNOWN_BAN) {
+                        return null;
+                    }
+                    throw t;
+                });
     }
 
     @Override
@@ -263,14 +264,16 @@ public class BanSyncModule extends AbstractSyncModule<DiscordSRV, BanSyncConfig,
 
         UserSnowflake snowflake = UserSnowflake.fromId(userId);
         if (newState != null) {
-            return Task.of(guild.ban(snowflake, config.discordMessageHoursToDelete, TimeUnit.HOURS)
-                    .reason(discordSRV.placeholderService().replacePlaceholders(config.discordBanReasonFormat, newState))
-                    .submit())
+            return discordSRV.discordAPI().toTask(
+                    guild.ban(snowflake, config.discordMessageHoursToDelete, TimeUnit.HOURS)
+                            .reason(discordSRV.placeholderService().replacePlaceholders(config.discordBanReasonFormat, newState))
+                    )
                     .thenApply(v -> GenericSyncResults.ADD_DISCORD);
         } else {
-            return Task.of(guild.unban(snowflake)
-                    .reason(discordSRV.placeholderService().replacePlaceholders(config.discordUnbanReasonFormat))
-                    .submit())
+            return discordSRV.discordAPI().toTask(
+                    guild.unban(snowflake)
+                            .reason(discordSRV.placeholderService().replacePlaceholders(config.discordUnbanReasonFormat))
+                    )
                     .thenApply(v -> GenericSyncResults.REMOVE_DISCORD);
         }
     }

@@ -33,7 +33,6 @@ import net.dv8tion.jda.api.entities.channel.concrete.ThreadChannel;
 import org.apache.commons.lang3.StringUtils;
 
 import java.util.*;
-import java.util.stream.Collectors;
 
 public class DestinationLookupHelper {
 
@@ -156,11 +155,7 @@ public class DestinationLookupHelper {
             futures.add(future);
         }
 
-        return Task.allOf(
-                futures.stream()
-                        .map(future -> (Task<?>) future)
-                        .collect(Collectors.toList())
-        ).thenApply(v -> {
+        return Task.allOf(futures).thenApply(v -> {
             Set<Long> idsDuplicateCheck = new HashSet<>();
             List<DiscordGuildMessageChannel> channels = new ArrayList<>();
 

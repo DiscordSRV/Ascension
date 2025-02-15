@@ -106,7 +106,7 @@ public abstract class AbstractDiscordGuildMessageChannel<T extends GuildMessageC
         }
 
         return createRequest
-                .thenCompose(RestAction::submit)
+                .then(restAction -> discordSRV.discordAPI().toTask(restAction))
                 .thenApply(msg -> ReceivedDiscordMessageImpl.fromJDA(discordSRV, msg));
     }
 

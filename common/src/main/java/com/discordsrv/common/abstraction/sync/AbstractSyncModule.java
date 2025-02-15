@@ -39,7 +39,6 @@ import org.jetbrains.annotations.Nullable;
 
 import java.time.Duration;
 import java.util.*;
-import java.util.concurrent.CompletionException;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.Future;
 import java.util.function.Consumer;
@@ -427,9 +426,6 @@ public abstract class AbstractSyncModule<
         summary.resultFuture().whenComplete((results, t) -> {
             Throwable throwableToLog = null;
             if (t != null) {
-                while (t instanceof CompletionException) {
-                    t = t.getCause();
-                }
                 if (t instanceof SyncFail) {
                     SyncFail fail = (SyncFail) t;
                     summary.fail(fail.getResult());

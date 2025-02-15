@@ -141,12 +141,12 @@ public class ResyncCommand extends CombinedCommand {
             long startTime = System.currentTimeMillis();
 
             List<Task<? extends SyncSummary<?>>> futures = resyncOnlinePlayers(module);
-            Task.allOfGeneric(futures).then(result -> {
+            Task.allOf(futures).then(result -> {
                 List<Task<?>> results = new ArrayList<>();
                 for (SyncSummary<?> summary : result) {
                     results.add(summary.resultFuture());
                 }
-                return Task.allOfGeneric(results);
+                return Task.allOf(results);
             }).whenComplete((__, t) -> {
                 Map<ISyncResult, AtomicInteger> resultCounts = new HashMap<>();
                 int total = 0;

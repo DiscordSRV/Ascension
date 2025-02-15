@@ -45,7 +45,6 @@ import com.discordsrv.common.util.ComponentUtil;
 import net.kyori.adventure.text.Component;
 
 import java.util.*;
-import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.SynchronousQueue;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
@@ -227,7 +226,7 @@ public abstract class RequiredLinkingModule<T extends DiscordSRV> extends Abstra
                 return Task.completed(null);
             }
 
-            CompletableFuture<Void> pass = new CompletableFuture<>();
+            Task<Void> pass = new Task<>();
             List<Task<Boolean>> all = new ArrayList<>();
 
             for (ParsedRequirements requirement : additionalRequirements) {
@@ -243,7 +242,7 @@ public abstract class RequiredLinkingModule<T extends DiscordSRV> extends Abstra
             }
 
             // Complete when at least one passes or all of them completed
-            return Task.anyOfGeneric(Arrays.asList(Task.of(pass), Task.allOf(all))).thenApply(v -> {
+            return Task.anyOf(pass, Task.allOf(all)).thenApply(v -> {
                 if (pass.isDone()) {
                     // One of the futures passed: let them through
                     return null;

@@ -363,7 +363,7 @@ public class DiscordAPIImpl implements DiscordAPI {
                 return future;
             }
 
-            return webhookContainer.retrieveWebhooks().submit().thenApply(webhooks -> {
+            return toTask(webhookContainer.retrieveWebhooks()).thenApply(webhooks -> {
                 Webhook hook = null;
                 for (Webhook webhook : webhooks) {
                     User user = webhook.getOwnerAsUser();
@@ -378,19 +378,19 @@ public class DiscordAPIImpl implements DiscordAPI {
                 }
 
                 return hook;
-            }).thenCompose(webhook -> {
+            }).then(webhook -> {
                 if (webhook != null) {
-                    return CompletableFuture.completedFuture(webhook);
+                    return Task.completed(webhook);
                 }
 
-                return webhookContainer.createWebhook("DSRV").submit();
-            }).thenApply(webhook ->
+                return toTask(webhookContainer.createWebhook("DSRV"));
+            }).thenApply(webhook -> (WebhookClient<Message>)
                     WebhookClient.createClient(
                             webhook.getJDA(),
                             webhook.getId(),
                             Objects.requireNonNull(webhook.getToken())
                     )
-            );
+            ).getFuture();
         }
     }
 

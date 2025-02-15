@@ -48,7 +48,6 @@ import org.jetbrains.annotations.NotNull;
 
 import java.time.Duration;
 import java.util.*;
-import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -164,11 +163,11 @@ public class MentionCachingModule extends AbstractModule<DiscordSRV> {
             String username,
             Set<Member> lookedUpMembers
     ) {
-        CompletableFuture<List<Member>> memberFuture = new CompletableFuture<>();
+        Task<List<Member>> memberFuture = new Task<>();
         guild.retrieveMembersByPrefix(username, 100)
                 .onSuccess(memberFuture::complete).onError(memberFuture::completeExceptionally);
 
-        return Task.of(memberFuture).thenApply(members -> {
+        return memberFuture.thenApply(members -> {
             if (lookedUpMembers != null) {
                 lookedUpMembers.addAll(members);
             }

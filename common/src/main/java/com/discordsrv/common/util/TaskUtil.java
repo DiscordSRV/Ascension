@@ -25,7 +25,6 @@ import com.discordsrv.common.util.function.CheckedSupplier;
 import org.jetbrains.annotations.NotNull;
 
 import java.time.Duration;
-import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Executor;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeoutException;
@@ -36,7 +35,7 @@ public final class TaskUtil {
     public static <T> Task<T> timeout(@NotNull DiscordSRV discordSRV, @NotNull Task<T> future, @NotNull Duration timeout) {
         ScheduledFuture<?> scheduledFuture = discordSRV.scheduler().runLater(() -> {
             if (!future.isDone()) {
-                future.getFuture().completeExceptionally(new TimeoutException());
+                future.completeExceptionally(new TimeoutException());
             }
         }, timeout);
         return future.whenComplete((__, t) -> {
@@ -48,20 +47,18 @@ public final class TaskUtil {
 
     @NotNull
     public static <T> Task<T> supplyAsync(@NotNull CheckedSupplier<T> supplier, @NotNull Executor executor) {
-        CompletableFuture<T> future = new CompletableFuture<>();
+        Task<T> task = new Task<>();
         executor.execute(() -> {
-            if (future.isCancelled()) {
+            if (task.isCancelled()) {
                 return;
             }
             try {
-                future.complete(supplier.get());
-            } catch (InterruptedException ignored) {
-                Thread.currentThread().interrupt();
+                task.complete(supplier.get());
             } catch (Throwable t) {
-                future.completeExceptionally(t);
+                task.completeExceptionally(t);
             }
         });
-        return Task.of(future);
+        return task;
     }
 
     @NotNull
