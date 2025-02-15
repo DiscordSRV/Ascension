@@ -25,14 +25,10 @@ import com.discordsrv.api.discord.entity.guild.DiscordGuildMember;
 import com.discordsrv.api.discord.entity.guild.DiscordRole;
 import com.discordsrv.api.placeholder.annotation.Placeholder;
 import com.discordsrv.api.placeholder.annotation.PlaceholderPrefix;
-import com.discordsrv.api.placeholder.annotation.PlaceholderRemainder;
 import com.discordsrv.api.task.Task;
 import com.discordsrv.common.DiscordSRV;
 import net.dv8tion.jda.api.entities.Member;
 import net.dv8tion.jda.api.entities.Role;
-import net.kyori.adventure.text.Component;
-import net.kyori.adventure.text.JoinConfiguration;
-import net.kyori.adventure.text.format.TextColor;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -146,16 +142,6 @@ public class DiscordGuildMemberImpl implements DiscordGuildMember {
             }
         }
         return null;
-    }
-
-    @Placeholder("roles")
-    public Component _allRoles(@PlaceholderRemainder String suffix) {
-        List<Component> components = new ArrayList<>();
-        for (DiscordRole role : getRoles()) {
-            components.add(Component.text(role.getName()).color(TextColor.color(role.getColor().rgb())));
-        }
-
-        return Component.join(JoinConfiguration.separator(Component.text(suffix)), components);
     }
 
     @Override

@@ -34,8 +34,9 @@ import java.util.Set;
 public class AnnotationPlaceholderProvider implements PlaceholderProvider {
 
     private final Placeholder annotation;
-    private final PlaceholderPrefix prefixAnnotation;
-    private final PlaceholderRemainder remainderAnnotation;
+    private final boolean startsWith;
+    private final String annotationPlaceholder;
+    private final String checkString;
 
     private final Class<?> type;
     private final Method method;
@@ -51,8 +52,10 @@ public class AnnotationPlaceholderProvider implements PlaceholderProvider {
 
     private AnnotationPlaceholderProvider(Placeholder annotation, PlaceholderPrefix prefixAnnotation, PlaceholderRemainder remainderAnnotation, Class<?> type, Method method, Field field) {
         this.annotation = annotation;
-        this.prefixAnnotation = prefixAnnotation;
-        this.remainderAnnotation = remainderAnnotation;
+        this.startsWith = !annotation.relookup().isEmpty() || remainderAnnotation != null;
+        this.annotationPlaceholder = (prefixAnnotation != null ? prefixAnnotation.value() : "") + annotation.value();
+        this.checkString = annotationPlaceholder + (remainderAnnotation != null && !remainderAnnotation.supportsNoValue() ? ":" : "");
+
         this.type = type;
         this.method = method;
         this.field = field;
@@ -60,12 +63,12 @@ public class AnnotationPlaceholderProvider implements PlaceholderProvider {
 
     @Override
     public @NotNull PlaceholderLookupResult lookup(@NotNull String placeholder, @NotNull Set<Object> context) {
-        String annotationPlaceholder = (prefixAnnotation != null ? prefixAnnotation.value() : "") + annotation.value();
-        String reLookup = annotation.relookup();
-        boolean startsWith = !reLookup.isEmpty() || remainderAnnotation != null;
-        if (annotationPlaceholder.isEmpty()
-                || !(startsWith ? placeholder.startsWith(annotationPlaceholder) : placeholder.equals(annotationPlaceholder))
-                || (type != null && context.isEmpty())) {
+        if (this.annotationPlaceholder.isEmpty()) {
+            return PlaceholderLookupResult.UNKNOWN_PLACEHOLDER;
+        }
+
+        boolean correctPlaceholder = startsWith ? placeholder.startsWith(checkString) : placeholder.equals(checkString);
+        if (!correctPlaceholder) {
             return PlaceholderLookupResult.UNKNOWN_PLACEHOLDER;
         }
 
@@ -81,7 +84,7 @@ public class AnnotationPlaceholderProvider implements PlaceholderProvider {
             }
         }
 
-        String remainder = placeholder.substring(annotationPlaceholder.length());
+        String remainder = placeholder.substring(this.annotationPlaceholder.length());
 
         Object result;
         try {
@@ -95,22 +98,19 @@ public class AnnotationPlaceholderProvider implements PlaceholderProvider {
             return PlaceholderLookupResult.lookupFailed(t);
         }
 
-        if (reLookup.isEmpty() && remainderAnnotation == null) {
-            reLookup = annotation.value();
-        }
-        if (!reLookup.isEmpty() && !remainder.isEmpty()) {
-            if (result == null) {
-                return PlaceholderLookupResult.success(null);
-            }
+        PlaceholderLookupResult lookupResult = result instanceof PlaceholderLookupResult
+                ? (PlaceholderLookupResult) result
+                : PlaceholderLookupResult.success(result);
 
+        String reLookup = annotation.relookup();
+        Object rawResult;
+        if (!reLookup.isEmpty() && !remainder.isEmpty() && (rawResult = lookupResult.getValue()) != null) {
             Set<Object> newContext = new HashSet<>(context);
-            newContext.add(result);
+            newContext.add(rawResult);
             String newPlaceholder = reLookup + remainder;
             return PlaceholderLookupResult.newLookup(newPlaceholder, newContext);
         }
 
-        return result instanceof PlaceholderLookupResult
-               ? (PlaceholderLookupResult) result
-               : PlaceholderLookupResult.success(result);
+        return lookupResult;
     }
 }

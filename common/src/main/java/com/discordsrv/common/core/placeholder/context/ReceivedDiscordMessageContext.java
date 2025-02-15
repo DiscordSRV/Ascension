@@ -66,7 +66,11 @@ public class ReceivedDiscordMessageContext {
     }
 
     @Placeholder("attachments")
-    public Component attachments(ReceivedDiscordMessage message, BaseChannelConfig config, @PlaceholderRemainder String suffix) {
+    public Component attachments(
+            ReceivedDiscordMessage message,
+            BaseChannelConfig config,
+            @PlaceholderRemainder(supportsNoValue = true) String suffix
+    ) {
         String attachmentFormat = config.discordToMinecraft.attachmentFormat;
         List<Component> components = new ArrayList<>();
         for (ReceivedDiscordMessage.Attachment attachment : message.getAttachments()) {
