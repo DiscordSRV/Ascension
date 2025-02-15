@@ -58,6 +58,14 @@ repositories {
             includeGroup 'net.fabricmc'
         }
     }
+    exclusiveContent {
+        forRepository {
+            maven { url = 'https://maven.nucleoid.xyz/' }
+        }
+        filter {
+            includeGroup 'eu.pb4'
+        }
+    }
 }
 
 dependencies {
@@ -81,6 +89,9 @@ dependencies {
     // Adventure
     modImplementation(libs.adventure.platform.fabric)
     include(libs.adventure.platform.fabric)
+
+    // Integrations
+    modCompileOnly(libs.textplaceholder.fabric)
 
     // DependencyDownload
     shadow(libs.mcdependencydownload.fabric) {
