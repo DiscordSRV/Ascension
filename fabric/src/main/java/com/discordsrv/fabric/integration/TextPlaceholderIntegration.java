@@ -46,7 +46,8 @@ import java.util.UUID;
 
 public class TextPlaceholderIntegration extends PluginIntegration<FabricDiscordSRV> implements PlaceholderHandler {
 
-    private static final String OPTIONAL_PREFIX = "placeholderapi_"; // "textplaceholder_" doesn't work because of TextHandlingContext
+    private static final Identifier IDENTIFIER = Identifier.of("discordsrv");
+    private static final String OPTIONAL_PREFIX = "textplaceholder_";
 
     public TextPlaceholderIntegration(FabricDiscordSRV discordSRV) {
         super(discordSRV);
@@ -70,12 +71,12 @@ public class TextPlaceholderIntegration extends PluginIntegration<FabricDiscordS
 
     @Override
     public void enable() {
-        Placeholders.register(Identifier.of("discordsrv"), this);
+        Placeholders.register(IDENTIFIER, this);
     }
 
     @Override
     public void disable() {
-        Placeholders.remove(Identifier.of("discordsrv"));
+        Placeholders.remove(IDENTIFIER);
     }
 
     @Subscribe
