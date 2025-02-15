@@ -19,6 +19,7 @@
 package com.discordsrv.common.feature.groupsync;
 
 import com.discordsrv.api.discord.entity.guild.DiscordRole;
+import com.discordsrv.api.discord.exception.RestErrorResponseException;
 import com.discordsrv.api.eventbus.Subscribe;
 import com.discordsrv.api.events.discord.member.role.DiscordMemberRoleAddEvent;
 import com.discordsrv.api.events.discord.member.role.DiscordMemberRoleRemoveEvent;
@@ -36,7 +37,6 @@ import com.discordsrv.common.feature.groupsync.enums.GroupSyncCause;
 import com.discordsrv.common.feature.groupsync.enums.GroupSyncResult;
 import com.discordsrv.common.helper.Someone;
 import com.github.benmanes.caffeine.cache.Cache;
-import net.dv8tion.jda.api.exceptions.ErrorResponseException;
 import net.dv8tion.jda.api.requests.ErrorResponse;
 import org.jetbrains.annotations.Nullable;
 
@@ -210,8 +210,8 @@ public class GroupSyncModule extends AbstractSyncModule<DiscordSRV, GroupSyncCon
         }
 
         return role.getGuild().retrieveMemberById(userId)
-                .mapException(ErrorResponseException.class, t -> {
-                    if (t.getErrorResponse() == ErrorResponse.UNKNOWN_MEMBER) {
+                .mapException(RestErrorResponseException.class, t -> {
+                    if (t.getErrorCode() == ErrorResponse.UNKNOWN_MEMBER.getCode()) {
                         throw new SyncFail(GroupSyncResult.NOT_A_GUILD_MEMBER);
                     }
                     throw t;
