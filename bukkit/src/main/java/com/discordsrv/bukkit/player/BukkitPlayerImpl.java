@@ -62,7 +62,7 @@ public class BukkitPlayerImpl extends BukkitPlayer {
 
     @Override
     public @Nullable SkinInfo skinInfo() {
-        if (PaperPlayerUtil.SKIN_AVAILABLE) {
+        if (PaperPlayerUtil.SKIN_AVAILABLE_ONLINE) {
             return PaperPlayerUtil.getSkinInfo(player);
         }
         if (SpigotPlayerUtil.SKIN_AVAILABLE) {

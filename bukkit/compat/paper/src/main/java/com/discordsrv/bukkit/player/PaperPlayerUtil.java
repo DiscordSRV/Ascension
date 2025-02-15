@@ -64,16 +64,25 @@ public final class PaperPlayerUtil {
     }
 
     @ApiStatus.AvailableSince("Paper 1.16")
-    public static boolean LOCALE_SUPPORTED = ReflectionUtil.methodExists(Player.class, "locale", new Class[0]);
+    public static final boolean LOCALE_SUPPORTED = ReflectionUtil.methodExists(Player.class, "locale", new Class[0]);
 
     public static Locale locale(Player player) {
         return player.locale();
     }
 
-    public static boolean SKIN_AVAILABLE = ReflectionUtil.classExists("com.destroystokyo.paper.profile.PlayerProfile");
+    private static final boolean SKIN_AVAILABLE = ReflectionUtil.classExists("com.destroystokyo.paper.profile.PlayerProfile")
+            && ReflectionUtil.methodExists("com.destroystokyo.paper.profile.PlayerProfile", "getTextures");
+    public static final boolean SKIN_AVAILABLE_ONLINE = SKIN_AVAILABLE && ReflectionUtil.methodExists(Player.class, "getPlayerProfile", new String[0]);
+    public static final boolean SKIN_AVAILABLE_OFFLINE = SKIN_AVAILABLE && ReflectionUtil.methodExists(Player.class, "getPlayerProfile", new String[0]);
 
+    @SuppressWarnings("RedundantCast") // Not redundant
     public static SkinInfo getSkinInfo(OfflinePlayer player) {
-        PlayerProfile playerProfile = player.getPlayerProfile();
+        PlayerProfile playerProfile;
+        if (player instanceof Player) {
+            playerProfile = ((Player) player).getPlayerProfile();
+        } else {
+            playerProfile = player.getPlayerProfile();
+        }
         if (!playerProfile.hasTextures()) {
             return null;
         }

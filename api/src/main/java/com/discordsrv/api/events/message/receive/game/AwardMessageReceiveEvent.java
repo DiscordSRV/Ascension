@@ -39,7 +39,7 @@ import org.jetbrains.annotations.Nullable;
 public class AwardMessageReceiveEvent extends AbstractGameMessageReceiveEvent implements PlayerEvent {
 
     private final DiscordSRVPlayer player;
-    private MinecraftComponent name;
+    private MinecraftComponent message;
     private MinecraftComponent title;
     private MinecraftComponent description;
     private AdvancementFrame frame;
@@ -48,7 +48,7 @@ public class AwardMessageReceiveEvent extends AbstractGameMessageReceiveEvent im
     public AwardMessageReceiveEvent(
             @Nullable Object triggeringEvent,
             @NotNull DiscordSRVPlayer player,
-            @Nullable MinecraftComponent name,
+            @Nullable MinecraftComponent message,
             @Nullable MinecraftComponent title,
             @Nullable MinecraftComponent description,
             @Nullable AdvancementFrame frame,
@@ -57,8 +57,8 @@ public class AwardMessageReceiveEvent extends AbstractGameMessageReceiveEvent im
     ) {
         super(triggeringEvent, cancelled);
         this.player = player;
-        this.name = name;
         this.title = title;
+        this.message = message;
         this.description = description;
         this.frame = frame;
         this.gameChannel = gameChannel;
@@ -71,12 +71,12 @@ public class AwardMessageReceiveEvent extends AbstractGameMessageReceiveEvent im
     }
 
     @Nullable
-    public MinecraftComponent getName() {
-        return name;
+    public MinecraftComponent getMessage() {
+        return message;
     }
 
-    public void setName(@Nullable MinecraftComponent name) {
-        this.name = name;
+    public void setMessage(@Nullable MinecraftComponent message) {
+        this.message = message;
     }
 
     @Nullable
