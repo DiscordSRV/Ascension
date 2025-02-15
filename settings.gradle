@@ -125,6 +125,7 @@ dependencyResolutionManagement {
             library('mcmmo', 'com.gmail.nossr50', 'mcmmo').version('2.1.220')
             library('griefprevention', 'me.ryanhamshire', 'GriefPrevention').version('16.18.1')
             library('essentialsx', 'net.essentialsx', 'EssentialsX').version('2.20.1')
+            library('textplaceholder-fabric', 'eu.pb4', 'placeholder-api').version('2.5.2+1.21.3')
 
             // Logging
             library('slf4j-api', 'org.slf4j', 'slf4j-api').version {
