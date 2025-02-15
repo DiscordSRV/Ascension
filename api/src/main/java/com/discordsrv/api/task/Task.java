@@ -34,6 +34,10 @@ import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 import java.util.function.Function;
 
+/**
+ * {@link CompletableFuture} wrapper, main difference is improved exception handling (no {@link CompletionException}, better exception handling methods).
+ * @param <T> the type of the successful result
+ */
 public class Task<T> implements Future<T> {
 
     public static <T> Task<T> of(@NotNull CompletableFuture<T> future) {
@@ -144,6 +148,9 @@ public class Task<T> implements Future<T> {
         return future.get(timeout, unit);
     }
 
+    /**
+     * {@link CompletableFuture#whenComplete(BiConsumer)} but only when successful.
+     */
     public Task<T> whenSuccessful(@NotNull Consumer<T> successConsumer) {
         return of(future.whenComplete((result, throwable) -> {
             if (throwable == null) {
@@ -152,6 +159,9 @@ public class Task<T> implements Future<T> {
         }));
     }
 
+    /**
+     * {@link CompletableFuture#whenComplete(BiConsumer)} but only when failed.
+     */
     public Task<T> whenFailed(@NotNull Consumer<Throwable> failureConsumer) {
         return of(future.whenComplete((result, throwable) -> {
             if (throwable != null) {
@@ -160,14 +170,24 @@ public class Task<T> implements Future<T> {
         }));
     }
 
+    /**
+     * {@link CompletableFuture#whenComplete(BiConsumer)}.
+     */
     public Task<T> whenComplete(@NotNull BiConsumer<T, Throwable> consumer) {
         return of(future.whenComplete(consumer));
     }
 
+    /**
+     * {@link CompletableFuture#thenApply(Function)}.
+     */
     public <U> Task<U> thenApply(@NotNull Function<T, U> mappingFunction) {
         return of(future.thenCompose(result -> map(mappingFunction, result)));
     }
 
+    /**
+     * {@link CompletableFuture#thenCompose(Function)} but for {@link Task}.
+     * @see #thenCompose(Function)
+     */
     public <U> Task<U> then(@NotNull Function<T, Task<U>> mappingFunction) {
         return of(future.thenCompose(result -> {
             try {
@@ -178,6 +198,10 @@ public class Task<T> implements Future<T> {
         }));
     }
 
+    /**
+     * {@link CompletableFuture#thenCompose(Function)}.
+     * @see #then(Function)
+     */
     public <U> Task<U> thenCompose(@NotNull Function<T, CompletionStage<U>> mappingFunction) {
         return of(future.thenCompose(result -> {
             try {
@@ -188,10 +212,16 @@ public class Task<T> implements Future<T> {
         }));
     }
 
+    /**
+     * {@link CompletableFuture#exceptionally(Function)}.
+     */
     public Task<T> mapException(@NotNull Function<Throwable, T> mappingFunction) {
         return mapException(Throwable.class, mappingFunction);
     }
 
+    /**
+     * {@link CompletableFuture#exceptionally(Function)} but has a built-in exception type filter.
+     */
     @SuppressWarnings("unchecked")
     public <E extends Throwable> Task<T> mapException(@NotNull Class<E> type, @NotNull Function<E, T> mappingFunction) {
         Throwable[] error = new Throwable[1];
