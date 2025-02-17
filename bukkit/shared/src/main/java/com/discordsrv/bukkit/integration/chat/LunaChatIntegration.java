@@ -23,6 +23,7 @@ import com.discordsrv.api.component.MinecraftComponent;
 import com.discordsrv.api.eventbus.Subscribe;
 import com.discordsrv.api.events.channel.GameChannelLookupEvent;
 import com.discordsrv.api.events.message.receive.game.GameChatMessageReceiveEvent;
+import com.discordsrv.api.placeholder.annotation.Placeholder;
 import com.discordsrv.api.player.DiscordSRVPlayer;
 import com.discordsrv.bukkit.BukkitDiscordSRV;
 import com.discordsrv.bukkit.player.BukkitPlayer;
@@ -36,6 +37,8 @@ import com.github.ucchyocean.lc3.channel.Channel;
 import com.github.ucchyocean.lc3.member.ChannelMember;
 import com.github.ucchyocean.lc3.member.ChannelMemberPlayer;
 import net.kyori.adventure.platform.bukkit.BukkitComponentSerializer;
+import net.kyori.adventure.text.TextComponent;
+import net.kyori.adventure.text.format.TextColor;
 import net.kyori.adventure.text.serializer.bungeecord.BungeeComponentSerializer;
 import net.md_5.bungee.api.chat.BaseComponent;
 import org.bukkit.entity.Player;
@@ -123,9 +126,39 @@ public class LunaChatIntegration extends PluginIntegration<BukkitDiscordSRV> imp
     private class LunaChatChannel implements GameChannel {
 
         private final Channel channel;
+        private final TextColor color;
 
         public LunaChatChannel(Channel channel) {
             this.channel = channel;
+
+            TextComponent component = BukkitComponentSerializer.legacy().deserialize(channel.getColorCode() + "a");
+            List<TextColor> colors = ComponentUtil.extractColors(component);
+            this.color = colors.isEmpty() ? null : colors.get(0);
+        }
+
+        @Placeholder("alias")
+        public String getAlias() {
+            return channel.getAlias();
+        }
+
+        @Placeholder("color")
+        public TextColor getColor() {
+            return color;
+        }
+
+        @Placeholder("description")
+        public String getDescription() {
+            return channel.getDescription();
+        }
+
+        @Placeholder("online_members")
+        public int getOnline() {
+            return channel.getOnlineNum();
+        }
+
+        @Placeholder("total_members")
+        public int getTotal() {
+            return channel.getTotalNum();
         }
 
         @Override

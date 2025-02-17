@@ -142,7 +142,7 @@ public abstract class AbstractGameMessageModule<T extends IMessageConfig, E exte
             List<Task<ReceivedDiscordMessage>> messageFutures = sendMessageToChannels(
                     moduleConfig, player, format, messageChannels, event,
                     // Context
-                    config, player
+                    config, player, channel
             );
 
             return Task.allOf(messageFutures).whenComplete((vo, t2) -> {

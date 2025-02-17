@@ -25,7 +25,6 @@ import com.discordsrv.api.discord.entity.DiscordUser;
 import com.discordsrv.api.discord.entity.channel.DiscordChannel;
 import com.discordsrv.api.discord.entity.channel.DiscordGuildMessageChannel;
 import com.discordsrv.api.discord.entity.channel.DiscordMessageChannel;
-import com.discordsrv.api.discord.entity.guild.DiscordGuild;
 import com.discordsrv.api.discord.entity.guild.DiscordGuildMember;
 import com.discordsrv.api.discord.entity.message.ReceivedDiscordMessage;
 import com.discordsrv.api.eventbus.Subscribe;
@@ -182,7 +181,6 @@ public class DiscordChatMessageModule extends AbstractModule<DiscordSRV> {
             return;
         }
 
-        DiscordGuild guild = discordMessage.getGuild();
         DiscordMessageChannel channel = discordMessage.getChannel();
         DiscordUser author = discordMessage.getAuthor();
         DiscordGuildMember member = discordMessage.getMember();
@@ -228,7 +226,7 @@ public class DiscordChatMessageModule extends AbstractModule<DiscordSRV> {
 
         MinecraftComponent component = discordSRV.componentFactory()
                 .textBuilder(format)
-                .addContext(discordMessage, author, member, channel, channelConfig)
+                .addContext(discordMessage, author, member, channel, channelConfig, gameChannel)
                 .applyPlaceholderService()
                 .addPlaceholder("message", messageComponent)
                 .build();

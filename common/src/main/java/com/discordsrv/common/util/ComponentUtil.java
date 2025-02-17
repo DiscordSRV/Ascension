@@ -22,11 +22,18 @@ import com.discordsrv.api.component.MinecraftComponent;
 import com.discordsrv.api.component.MinecraftComponentAdapter;
 import com.discordsrv.common.core.component.MinecraftComponentImpl;
 import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.flattener.ComponentFlattener;
+import net.kyori.adventure.text.flattener.FlattenerListener;
+import net.kyori.adventure.text.format.Style;
+import net.kyori.adventure.text.format.TextColor;
 import net.kyori.adventure.text.serializer.gson.GsonComponentSerializer;
 import net.kyori.adventure.text.serializer.plain.PlainTextComponentSerializer;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * A util class for {@link Component}s and {@link MinecraftComponent}s.
@@ -76,5 +83,22 @@ public final class ComponentUtil {
         } else {
             return component.asAdventure(adapter());
         }
+    }
+
+    public static List<TextColor> extractColors(Component component) {
+        List<TextColor> colors = new ArrayList<>();
+        ComponentFlattener.basic().flatten(component, new FlattenerListener() {
+            @Override
+            public void component(@NotNull String text) {}
+
+            @Override
+            public void popStyle(@NotNull Style style) {
+                TextColor textColor = style.color();
+                if (textColor != null) {
+                    colors.add(textColor);
+                }
+            }
+        });
+        return colors;
     }
 }
