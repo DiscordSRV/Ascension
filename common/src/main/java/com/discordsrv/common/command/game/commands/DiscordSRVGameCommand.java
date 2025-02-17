@@ -40,6 +40,12 @@ public class DiscordSRVGameCommand implements GameCommandExecutor {
     private static DiscordSRVGameCommand COMMAND;
 
     public static GameCommand get(DiscordSRV discordSRV, String alias) {
+        if (discordSRV.config() == null) {
+            return GameCommand.literal(alias)
+                    .then(DebugCommand.getGame(discordSRV))
+                    .then(VersionCommand.getGame(discordSRV))
+                    .then(ReloadCommand.get(discordSRV));
+        }
         if (COMMAND == null) {
             COMMAND = new DiscordSRVGameCommand(discordSRV);
         }

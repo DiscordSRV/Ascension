@@ -229,7 +229,7 @@ public class JDAConnectionManager implements DiscordConnectionManager {
             builder.append("\nRest Ping: ").append(restPing);
         }
 
-        event.addFile(new TextDebugFile("jda_connection_manager.txt", builder));
+        event.addFile("jda_connection_manager.txt", new TextDebugFile(builder));
     }
 
     @Subscribe(priority = EventPriorities.EARLIEST)

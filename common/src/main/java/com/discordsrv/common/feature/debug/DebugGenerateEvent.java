@@ -29,7 +29,11 @@ public class DebugGenerateEvent implements Event {
         this.report = report;
     }
 
-    public void addFile(DebugFile file) {
-        report.addFile(file);
+    public void addFile(String fileName, DebugFile file) {
+        report.addFile(fileName, 0, () -> file);
+    }
+
+    public void addFile(int order, String name, DebugFile file) {
+        report.addFile(name, order, () -> file);
     }
 }

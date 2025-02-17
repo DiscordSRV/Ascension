@@ -20,28 +20,13 @@ package com.discordsrv.common.feature.debug.file;
 
 public class TextDebugFile implements DebugFile {
 
-    private final int order;
-    private final String name;
     private final String content;
 
-    public TextDebugFile(String name, CharSequence content) {
-        this(0, name, content);
-    }
-
-    public TextDebugFile(int order, String name, CharSequence content) {
-        this.order = order;
-        this.name = name;
+    public TextDebugFile(CharSequence content) {
         this.content = content.toString();
     }
 
-    public int order() {
-        return order;
-    }
-
-    public String name() {
-        return name;
-    }
-
+    @Override
     public String content() {
         return content;
     }

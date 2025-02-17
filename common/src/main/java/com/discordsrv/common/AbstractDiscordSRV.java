@@ -557,6 +557,16 @@ public abstract class AbstractDiscordSRV<
                 eventBus.publish(new DiscordSRVReadyEvent());
             }
         }
+
+        switch (status) {
+            case SHUTTING_DOWN:
+            case SHUTDOWN:
+            case FAILED_TO_START:
+            case FAILED_TO_CONNECT:
+            case NOT_CONFIGURED:
+                moduleManager().reload();
+                break;
+        }
     }
 
     @Override

@@ -122,7 +122,7 @@ public class GroupSyncModule extends AbstractSyncModule<DiscordSRV, GroupSyncCon
         } else {
             builder.append("\n\nNo permission provider available");
         }
-        event.addFile(new TextDebugFile("group-sync.txt", builder));
+        event.addFile("group-sync.txt", new TextDebugFile(builder));
     }
 
     // Listeners & methods to indicate something changed

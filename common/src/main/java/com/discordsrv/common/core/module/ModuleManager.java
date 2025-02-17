@@ -319,7 +319,7 @@ public class ModuleManager {
             appendModule(builder, module, false);
         }
 
-        event.addFile(new TextDebugFile("modules.txt", builder));
+        event.addFile("modules.txt", new TextDebugFile(builder));
     }
 
     private void appendModule(StringBuilder builder, Module module, boolean extra) {

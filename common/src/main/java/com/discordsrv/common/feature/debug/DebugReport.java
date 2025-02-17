@@ -30,6 +30,7 @@ import com.discordsrv.common.core.paste.PasteService;
 import com.discordsrv.common.feature.debug.file.DebugFile;
 import com.discordsrv.common.feature.debug.file.KeyValueDebugFile;
 import com.discordsrv.common.feature.debug.file.TextDebugFile;
+import com.discordsrv.common.util.function.CheckedSupplier;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
@@ -58,7 +59,7 @@ public class DebugReport {
 
     private static final int BIG_FILE_SPLIT_SIZE = 100_000;
 
-    private final List<DebugFile> files = new ArrayList<>();
+    private final List<DebugFile.Named> files = new ArrayList<>();
     private final DiscordSRV discordSRV;
 
     public DebugReport(DiscordSRV discordSRV) {
@@ -68,37 +69,37 @@ public class DebugReport {
     public void generate() {
         discordSRV.eventBus().publish(new DebugGenerateEvent(this));
 
-        addFile(environment()); // 100
-        addFile(plugins()); // 90
+        addFile("environment.json", 100, this::environment);
+        addFile("plugins.json", 90, this::plugins);
         for (Path debugLog : discordSRV.logger().getDebugLogs()) {
             addFile(readFile(80, debugLog, null));
         }
-        addFile(config(79, discordSRV.configManager(), null));
-        addFile(rawConfig(79, discordSRV.configManager(), null));
+        addFile(config(71, discordSRV.configManager(), null));
+        addFile(rawConfig(70, discordSRV.configManager(), null));
 
         Locale defaultLocale = discordSRV.defaultLocale();
         for (MessagesConfigSingleManager<? extends MessagesConfig> manager : discordSRV.messagesConfigManager().getAllManagers().values()) {
             if (manager.locale() == defaultLocale) {
-                addFile(config(78, manager, "parsed_messages.yaml"));
-                addFile(rawConfig(78, manager, "messages.yaml"));
+                addFile(config(61, manager, "parsed_messages.yaml"));
+                addFile(rawConfig(60, manager, "messages.yaml"));
             } else {
-                addFile(config(78, manager, "parsed_" + manager.locale() + "_messages.yaml"));
-                addFile(rawConfig(78, manager, manager.locale() + "_messages.yaml"));
+                addFile(config(51, manager, "parsed_" + manager.locale() + "_messages.yaml"));
+                addFile(rawConfig(50, manager, manager.locale() + "_messages.yaml"));
             }
         }
 
-        addFile(activeLimitedConnectionsConfig()); // 77
+        addFile("connections.json", 40, this::activeLimitedConnectionsConfig);
     }
 
     public Paste upload(PasteService service) throws Throwable {
-        files.sort(Comparator.comparing(DebugFile::order).reversed());
+        files.sort(Comparator.comparing(DebugFile.Named::order).reversed());
 
         ArrayNode files = discordSRV.json().createArrayNode();
-        for (DebugFile file : this.files) {
+        for (DebugFile.Named file : this.files) {
             int length = file.content().length();
             if (length >= BIG_FILE_SPLIT_SIZE) {
                 ObjectNode node = discordSRV.json().createObjectNode();
-                node.put("name", file.name());
+                node.put("name", file.fileName());
                 try {
                     Paste paste = service.uploadFile(convertToJson(file).toString().getBytes(StandardCharsets.UTF_8));
                     node.put("url", paste.url());
@@ -120,8 +121,8 @@ public class DebugReport {
     public Path zip() throws Throwable {
         Path zipPath = discordSRV.dataDirectory().resolve("debug-" + System.currentTimeMillis() + ".zip");
         try (ZipOutputStream zipOutputStream = new ZipOutputStream(Files.newOutputStream(zipPath))) {
-            for (DebugFile file : files) {
-                zipOutputStream.putNextEntry(new ZipEntry(file.name()));
+            for (DebugFile.Named file : files) {
+                zipOutputStream.putNextEntry(new ZipEntry(file.fileName()));
 
                 byte[] data = file.content().getBytes(StandardCharsets.UTF_8);
                 zipOutputStream.write(data, 0, data.length);
@@ -132,16 +133,25 @@ public class DebugReport {
         return zipPath;
     }
 
-    private ObjectNode convertToJson(DebugFile file) {
+    private ObjectNode convertToJson(DebugFile.Named file) {
         ObjectNode node = discordSRV.json().createObjectNode();
-        node.put("name", file.name());
+        node.put("name", file.fileName());
         node.put("content", file.content());
         return node;
     }
 
-    public void addFile(DebugFile file) {
-        if (file != null) {
-            files.add(file);
+    public void addFile(DebugFile.Named debugFile) {
+        files.add(debugFile);
+    }
+
+    public void addFile(String fileName, int order, CheckedSupplier<DebugFile> fileSupplier) {
+        try {
+            DebugFile file = fileSupplier.get();
+            if (file != null) {
+                files.add(file.withName(fileName, order));
+            }
+        } catch (Throwable t) {
+            files.add(exception(order, fileName + (fileName.endsWith(".json") ? ".txt" : ""), t));
         }
     }
 
@@ -188,7 +198,7 @@ public class DebugReport {
         } catch (IOException ignored) {}
         values.put("docker", docker);
 
-        return new KeyValueDebugFile(100, "environment.json", values);
+        return new KeyValueDebugFile(values);
     }
 
     private DebugFile plugins() {
@@ -201,13 +211,13 @@ public class DebugReport {
         String fileName = "plugins.json";
         try {
             String json = discordSRV.json().writeValueAsString(plugins);
-            return new TextDebugFile(order, fileName, json);
+            return new TextDebugFile(json);
         } catch (JsonProcessingException e) {
             return exception(order, fileName, e);
         }
     }
 
-    private DebugFile config(int order, ConfigurateConfigManager<?, ?> manager, String overrideFileName) {
+    private DebugFile.Named config(int order, ConfigurateConfigManager<?, ?> manager, String overrideFileName) {
         String fileName = overrideFileName != null ? overrideFileName : "parsed_" + manager.fileName();
         try (StringWriter writer = new StringWriter()) {
             AbstractConfigurationLoader<CommentedConfigurationNode> loader = manager
@@ -216,13 +226,13 @@ public class DebugReport {
                     .build();
             manager.save(loader);
 
-            return new TextDebugFile(order, fileName, writer.toString());
+            return new TextDebugFile(writer.toString()).withName(fileName, order);
         } catch (Exception e) {
-            return exception(order, fileName, e);
+            return exception(order - 2, fileName, e);
         }
     }
 
-    private DebugFile rawConfig(int order, ConfigurateConfigManager<?, ?> manager, String overwriteFileName) {
+    private DebugFile.Named rawConfig(int order, ConfigurateConfigManager<?, ?> manager, String overwriteFileName) {
         return readFile(order, manager.filePath(), overwriteFileName);
     }
 
@@ -249,24 +259,24 @@ public class DebugReport {
         values.put("update.security.enabled", config.update.security.enabled);
         values.put("update.security.force", config.update.security.force);
 
-        return new KeyValueDebugFile(77, "connections.json", values, true);
+        return new KeyValueDebugFile(values, true);
     }
 
-    private DebugFile readFile(int order, Path file, String overwriteFileName) {
+    private DebugFile.Named readFile(int order, Path file, String overwriteFileName) {
         String fileName = overwriteFileName != null ? overwriteFileName : file.getFileName().toString();
         if (!Files.exists(file)) {
-            return new TextDebugFile(order, fileName, "File does not exist");
+            return new TextDebugFile("File does not exist").withName(fileName, order);
         }
 
         try {
             List<String> lines = Files.readAllLines(file, StandardCharsets.UTF_8);
-            return new TextDebugFile(order, fileName, String.join("\n", lines));
+            return new TextDebugFile(String.join("\n", lines)).withName(fileName, order);
         } catch (IOException e) {
             return exception(order, fileName, e);
         }
     }
 
-    private DebugFile exception(int order, String fileName, Throwable throwable) {
-        return new TextDebugFile(order, fileName, ExceptionUtils.getStackTrace(throwable));
+    private DebugFile.Named exception(int order, String fileName, Throwable throwable) {
+        return new TextDebugFile(ExceptionUtils.getStackTrace(throwable)).withName(fileName, order);
     }
 }

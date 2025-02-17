@@ -28,30 +28,16 @@ public class KeyValueDebugFile implements DebugFile {
 
     private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper();
 
-    private final int order;
-    private final String name;
     private final Map<String, Object> values;
     private final boolean prettyPrint;
 
-    public KeyValueDebugFile(int order, String name, Map<String, Object> values) {
-        this(order, name, values, false);
+    public KeyValueDebugFile(Map<String, Object> values) {
+        this(values, false);
     }
 
-    public KeyValueDebugFile(int order, String name, Map<String, Object> values, boolean prettyPrint) {
-        this.order = order;
-        this.name = name;
+    public KeyValueDebugFile(Map<String, Object> values, boolean prettyPrint) {
         this.values = values;
         this.prettyPrint = prettyPrint;
-    }
-
-    @Override
-    public int order() {
-        return order;
-    }
-
-    @Override
-    public String name() {
-        return name;
     }
 
     @Override

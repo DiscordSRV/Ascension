@@ -20,7 +20,38 @@ package com.discordsrv.common.feature.debug.file;
 
 public interface DebugFile {
 
-    int order();
-    String name();
     String content();
+
+    default Named withName(String name) {
+        return new Named(name, 0, this);
+    }
+    default Named withName(String name, int order) {
+        return new Named(name, order, this);
+    }
+
+    class Named implements DebugFile {
+
+        private final String fileName;
+        private final int order;
+        private final DebugFile file;
+
+        public Named(String fileName, int order, DebugFile file) {
+            this.fileName = fileName;
+            this.order = order;
+            this.file = file;
+        }
+
+        public int order() {
+            return order;
+        }
+
+        public String fileName() {
+            return fileName;
+        }
+
+        @Override
+        public String content() {
+            return file.content();
+        }
+    }
 }
