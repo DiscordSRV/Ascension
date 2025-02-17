@@ -1017,7 +1017,7 @@ public abstract class AbstractDiscordSRV<
 
     private Path generateBackupPath() throws IOException {
         String dateAndTime = DateTimeFormatter.ofPattern("yyyy-MM-dd_HH-mm-ss").format(LocalDateTime.now());
-        Path backupPath = dataDirectory().resolve("config-migrated").resolve(dateAndTime);
+        Path backupPath = dataDirectory().resolve("old-config-backups").resolve(dateAndTime);
         if (Files.notExists(backupPath)) {
             Files.createDirectories(backupPath);
         }
