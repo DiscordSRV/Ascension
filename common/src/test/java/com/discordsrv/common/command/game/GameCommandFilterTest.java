@@ -47,6 +47,16 @@ public class GameCommandFilterTest {
     }
 
     @Test
+    public void testNoHelper1() {
+        assertTrue(GameCommandExecutionConditionConfig.isCommandMatch("test", "test", false, null));
+    }
+
+    @Test
+    public void testNoHelper2() {
+        assertFalse(GameCommandExecutionConditionConfig.isCommandMatch("test", "tester", false, null));
+    }
+
+    @Test
     public void argumentTest() {
         assertTrue(GameCommandExecutionConditionConfig.isCommandMatch("test arg", "test arg", false, helper));
     }
@@ -54,6 +64,16 @@ public class GameCommandFilterTest {
     @Test
     public void suggestTest() {
         assertTrue(GameCommandExecutionConditionConfig.isCommandMatch("test arg", "test", true, helper));
+    }
+
+    @Test
+    public void suggestLeadUpArgumentTest() {
+        assertTrue(GameCommandExecutionConditionConfig.isCommandMatch("test arg arg", "test arg", true, helper));
+    }
+
+    @Test
+    public void suggestLeadUpArgumentFailTest() {
+        assertFalse(GameCommandExecutionConditionConfig.isCommandMatch("test arg arg", "test arg2", true, helper));
     }
 
     @Test
@@ -104,6 +124,23 @@ public class GameCommandFilterTest {
     public void regexTest5() {
         assertTrue(
                 GameCommandExecutionConditionConfig.isCommandMatch("/test( argument)?/", "test", true, helper));
+    }
+
+    @Test
+    public void regexMissTest1() {
+        assertFalse(
+                GameCommandExecutionConditionConfig.isCommandMatch("/test argument/", "test", false, helper));
+    }
+
+    @Test
+    public void regexMissTest2() {
+        assertFalse(
+                GameCommandExecutionConditionConfig.isCommandMatch("/test argument/", "argument", false, helper));
+    }
+
+    @Test
+    public void invalidRegexTest() {
+        assertFalse(GameCommandExecutionConditionConfig.isCommandMatch("/test", "test", true, helper));
     }
 
     // Config test: blacklist
@@ -166,6 +203,16 @@ public class GameCommandFilterTest {
         config.roleAndUserIds.add(USER_ID);
 
         assertTrue(config.isAcceptableCommand(Collections.emptyList(), USER_ID, "test", false, helper));
+    }
+
+    @Test
+    public void configWhitelistPassRoleId() {
+        GameCommandExecutionConditionConfig config = new GameCommandExecutionConditionConfig();
+        config.blacklist = false;
+        config.commands.add("test");
+        config.roleAndUserIds.add(USER_ID);
+
+        assertTrue(config.isAcceptableCommand(Collections.singletonList(USER_ID), USER_ID2, "test", false, helper));
     }
 
     @Test

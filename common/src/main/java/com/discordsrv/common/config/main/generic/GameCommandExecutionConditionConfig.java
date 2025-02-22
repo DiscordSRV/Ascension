@@ -139,7 +139,6 @@ public class GameCommandExecutionConditionConfig {
             boolean suggestions,
             GameCommandExecutionHelper helper
     ) {
-
         boolean match = false;
         for (Long id : roleAndUserIds) {
             if (id == userId || roleIds.contains(id)) {
