@@ -75,7 +75,8 @@ public class ExecuteCommand implements Consumer<DiscordChatInputInteractionEvent
         this.logger = new NamedLogger(discordSRV, "EXECUTE_COMMAND");
     }
 
-    public boolean isNotAcceptableCommand(DiscordGuildMember member, DiscordUser user, String command, boolean suggestions) {
+    @SuppressWarnings("BooleanMethodIsAlwaysInverted") // Security important, don't negate unnecessarily
+    public boolean isAcceptableCommand(DiscordGuildMember member, DiscordUser user, String command, boolean suggestions) {
         DiscordCommandConfig.ExecuteConfig config = discordSRV.config().discordCommand.execute;
 
         for (GameCommandExecutionConditionConfig filter : config.executionConditions) {
@@ -100,7 +101,7 @@ public class ExecuteCommand implements Consumer<DiscordChatInputInteractionEvent
             return;
         }
 
-        if (isNotAcceptableCommand(event.getMember(), event.getUser(), command, false)) {
+        if (!isAcceptableCommand(event.getMember(), event.getUser(), command, false)) {
             event.reply(SendableDiscordMessage.builder().setContent("You do not have permission to run that command").build(), true); // TODO: translation
             return;
         }
@@ -168,7 +169,7 @@ public class ExecuteCommand implements Consumer<DiscordChatInputInteractionEvent
             if (event.getChoices().size() >= 25) {
                 break;
             }
-            if (config.filterSuggestions && isNotAcceptableCommand(event.getMember(), event.getUser(), suggestion, true)) {
+            if (config.filterSuggestions && !isAcceptableCommand(event.getMember(), event.getUser(), suggestion, true)) {
                 continue;
             }
 

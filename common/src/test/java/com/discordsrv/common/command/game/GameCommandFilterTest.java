@@ -21,85 +21,172 @@ package com.discordsrv.common.command.game;
 import com.discordsrv.api.task.Task;
 import com.discordsrv.common.command.game.abstraction.GameCommandExecutionHelper;
 import com.discordsrv.common.config.main.generic.GameCommandExecutionConditionConfig;
-import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+
 public class GameCommandFilterTest {
 
+    private static final long USER_ID = 1337L;
+    private static final long USER_ID2 = 1234L;
     private final ExecutionHelper helper = new ExecutionHelper();
 
     @Test
     public void test1() {
-        Assertions.assertTrue(GameCommandExecutionConditionConfig.isCommandMatch("test", "test", false, helper));
+        assertTrue(GameCommandExecutionConditionConfig.isCommandMatch("test", "test", false, helper));
     }
 
     @Test
     public void test2() {
-        Assertions.assertFalse(GameCommandExecutionConditionConfig.isCommandMatch("test", "tester", false, helper));
+        assertFalse(GameCommandExecutionConditionConfig.isCommandMatch("test", "tester", false, helper));
     }
 
     @Test
     public void argumentTest() {
-        Assertions.assertTrue(GameCommandExecutionConditionConfig.isCommandMatch("test arg", "test arg", false, helper));
+        assertTrue(GameCommandExecutionConditionConfig.isCommandMatch("test arg", "test arg", false, helper));
     }
 
     @Test
     public void suggestTest() {
-        Assertions.assertTrue(GameCommandExecutionConditionConfig.isCommandMatch("test arg", "test", true, helper));
+        assertTrue(GameCommandExecutionConditionConfig.isCommandMatch("test arg", "test", true, helper));
     }
 
     @Test
     public void extraTest() {
-        Assertions.assertTrue(
+        assertTrue(
                 GameCommandExecutionConditionConfig.isCommandMatch("test arg", "test arg extra arguments after that", false, helper));
     }
 
     @Test
     public void argumentOverflowTest1() {
-        Assertions.assertFalse(
+        assertFalse(
                 GameCommandExecutionConditionConfig.isCommandMatch("test arg", "test argument", false, helper));
     }
 
     @Test
     public void sameCommandTest1() {
-        Assertions.assertFalse(GameCommandExecutionConditionConfig.isCommandMatch("plugin1:test", "test", false, helper));
+        assertFalse(GameCommandExecutionConditionConfig.isCommandMatch("plugin1:test", "test", false, helper));
     }
 
     @Test
     public void sameCommandTest2() {
-        Assertions.assertTrue(GameCommandExecutionConditionConfig.isCommandMatch("plugin2:test", "test", false, helper));
+        assertTrue(GameCommandExecutionConditionConfig.isCommandMatch("plugin2:test", "test", false, helper));
     }
 
     @Test
     public void regexTest1() {
-        Assertions.assertTrue(GameCommandExecutionConditionConfig.isCommandMatch("/test/", "test", false, helper));
+        assertTrue(GameCommandExecutionConditionConfig.isCommandMatch("/test/", "test", false, helper));
     }
 
     @Test
     public void regexTest2() {
-        Assertions.assertFalse(GameCommandExecutionConditionConfig.isCommandMatch("/test/", "test extra", false, helper));
+        assertFalse(GameCommandExecutionConditionConfig.isCommandMatch("/test/", "test extra", false, helper));
     }
 
     @Test
     public void regexTest3() {
-        Assertions.assertTrue(
+        assertTrue(
                 GameCommandExecutionConditionConfig.isCommandMatch("/test( argument)?/", "test argument", false, helper));
     }
 
     @Test
     public void regexTest4() {
-        Assertions.assertFalse(
+        assertFalse(
                 GameCommandExecutionConditionConfig.isCommandMatch("/test( argument)?/", "test fail", false, helper));
     }
 
     @Test
     public void regexTest5() {
-        Assertions.assertTrue(
+        assertTrue(
                 GameCommandExecutionConditionConfig.isCommandMatch("/test( argument)?/", "test", true, helper));
+    }
+
+    // Config test: blacklist
+
+    @Test
+    public void configEmptyBlacklist() {
+        GameCommandExecutionConditionConfig config = new GameCommandExecutionConditionConfig();
+        config.blacklist = true;
+        config.commands.clear();
+        config.roleAndUserIds.add(USER_ID);
+
+        assertTrue(config.isAcceptableCommand(Collections.emptyList(), USER_ID, "test", false, helper));
+    }
+
+    @Test
+    public void configBlacklistFail() {
+        GameCommandExecutionConditionConfig config = new GameCommandExecutionConditionConfig();
+        config.blacklist = true;
+        config.commands.add("test");
+        config.roleAndUserIds.add(USER_ID);
+
+        assertFalse(config.isAcceptableCommand(Collections.emptyList(), USER_ID, "test", false, helper));
+    }
+
+    @Test
+    public void configBlacklistPass() {
+        GameCommandExecutionConditionConfig config = new GameCommandExecutionConditionConfig();
+        config.blacklist = true;
+        config.commands.add("tester");
+        config.roleAndUserIds.add(USER_ID);
+
+        assertTrue(config.isAcceptableCommand(Collections.emptyList(), USER_ID, "test", false, helper));
+    }
+
+    @Test
+    public void configEmptyWhitelist() {
+        GameCommandExecutionConditionConfig config = new GameCommandExecutionConditionConfig();
+        config.blacklist = false;
+        config.commands.clear();
+        config.roleAndUserIds.add(USER_ID);
+
+        assertFalse(config.isAcceptableCommand(Collections.emptyList(), USER_ID, "test", false, helper));
+    }
+
+    @Test
+    public void configWhitelistFail() {
+        GameCommandExecutionConditionConfig config = new GameCommandExecutionConditionConfig();
+        config.blacklist = false;
+        config.commands.add("tester");
+        config.roleAndUserIds.add(USER_ID);
+
+        assertFalse(config.isAcceptableCommand(Collections.emptyList(), USER_ID, "test", false, helper));
+    }
+
+    @Test
+    public void configWhitelistPass() {
+        GameCommandExecutionConditionConfig config = new GameCommandExecutionConditionConfig();
+        config.blacklist = false;
+        config.commands.add("test");
+        config.roleAndUserIds.add(USER_ID);
+
+        assertTrue(config.isAcceptableCommand(Collections.emptyList(), USER_ID, "test", false, helper));
+    }
+
+    @Test
+    public void configMiss() {
+        GameCommandExecutionConditionConfig config = new GameCommandExecutionConditionConfig();
+        config.blacklist = true;
+        config.commands.clear();
+        config.roleAndUserIds.clear();
+
+        assertFalse(config.isAcceptableCommand(Collections.emptyList(), USER_ID, "test", false, helper));
+    }
+
+    @Test
+    public void configMiss2() {
+        GameCommandExecutionConditionConfig config = new GameCommandExecutionConditionConfig();
+        config.blacklist = true;
+        config.commands.clear();
+        config.roleAndUserIds.clear();
+        config.roleAndUserIds.add(USER_ID2);
+
+        assertFalse(config.isAcceptableCommand(Collections.emptyList(), USER_ID, "test", false, helper));
     }
 
     public static class ExecutionHelper implements GameCommandExecutionHelper {
