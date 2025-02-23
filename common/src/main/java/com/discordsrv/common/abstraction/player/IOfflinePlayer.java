@@ -46,13 +46,13 @@ public interface IOfflinePlayer extends Identified {
     String username();
 
     @ApiStatus.NonExtendable
-    @Placeholder(value = "uuid", relookup = "uuid")
+    @Placeholder("uuid")
     @NotNull
     default UUID uniqueId() {
         return identity().uuid();
     }
 
     @Nullable
-    @Placeholder(value = "skin", relookup = "skin")
+    @Placeholder("skin")
     SkinInfo skinInfo();
 }

@@ -125,17 +125,13 @@ public class DiscordGuildMemberImpl implements DiscordGuildMember {
         return member.getTimeBoosted();
     }
 
-    //
-    // Placeholders
-    //
-
-    @Placeholder(value = "highest_role", relookup = "role")
-    public DiscordRole _highestRole() {
+    @Placeholder("highest_role")
+    public DiscordRole getHighestRole() {
         return !roles.isEmpty() ? roles.get(0) : null;
     }
 
-    @Placeholder(value = "hoisted_role", relookup = "role")
-    public DiscordRole _hoistedRole() {
+    @Placeholder("hoisted_role")
+    public DiscordRole getHoistedRole() {
         for (DiscordRole role : roles) {
             if (role.isHoisted()) {
                 return role;

@@ -53,7 +53,7 @@ public class SkinInfo {
         return model;
     }
 
-    @Placeholder(value = "parts", relookup = "skin_parts")
+    @Placeholder("parts")
     public Parts getParts() {
         return parts;
     }

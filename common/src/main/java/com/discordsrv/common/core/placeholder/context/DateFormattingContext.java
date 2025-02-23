@@ -69,17 +69,17 @@ public class DateFormattingContext {
         }
     }
 
-    @Placeholder(value = "start_date", relookup = "date")
+    @Placeholder("start_date")
     public ZonedDateTime getStartDate() {
         return discordSRV.getInitializeTime();
     }
 
-    @Placeholder(value = "now_date", relookup = "date")
+    @Placeholder("now_date")
     public ZonedDateTime getNowDate() {
         return ZonedDateTime.now();
     }
 
-    @Placeholder(value = "now_time")
+    @Placeholder("now_time")
     public OffsetDateTime getTimeNow() {
         return OffsetDateTime.now();
     }

@@ -100,6 +100,6 @@ public class AwardMessageModule extends AbstractGameMessageModule<AwardMessageCo
                 .addPlaceholder("award_message", message)
                 .addPlaceholder("award_display_name", displayName)
                 .addPlaceholder("award_description", description)
-                .addPlaceholder("award_color", color, "color");
+                .addPlaceholder("award_color", color);
     }
 }

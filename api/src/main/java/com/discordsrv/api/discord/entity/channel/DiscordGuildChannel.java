@@ -45,7 +45,7 @@ public interface DiscordGuildChannel extends DiscordChannel, Snowflake {
      * Gets the Discord server that this channel is in.
      * @return the Discord server that contains this channel
      */
-    @Placeholder(value = "server", relookup = "server")
+    @Placeholder("server")
     @NotNull
     DiscordGuild getGuild();
 

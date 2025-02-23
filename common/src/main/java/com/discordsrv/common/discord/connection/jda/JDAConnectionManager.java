@@ -27,8 +27,7 @@ import com.discordsrv.api.discord.entity.guild.DiscordGuildMember;
 import com.discordsrv.api.eventbus.EventPriorities;
 import com.discordsrv.api.eventbus.Subscribe;
 import com.discordsrv.api.events.lifecycle.DiscordSRVShuttingDownEvent;
-import com.discordsrv.api.events.placeholder.PlaceholderLookupEvent;
-import com.discordsrv.api.placeholder.PlaceholderLookupResult;
+import com.discordsrv.api.events.placeholder.PlaceholderContextMappingEvent;
 import com.discordsrv.api.task.Task;
 import com.discordsrv.common.DiscordSRV;
 import com.discordsrv.common.config.connection.BotConfig;
@@ -233,63 +232,35 @@ public class JDAConnectionManager implements DiscordConnectionManager {
     }
 
     @Subscribe(priority = EventPriorities.EARLIEST)
-    public void onPlaceholderLookup(PlaceholderLookupEvent event) {
-        if (event.isProcessed()) {
-            return;
-        }
-
+    public void onPlaceholderContextMapping(PlaceholderContextMappingEvent event) {
         // Map JDA objects to 1st party API objects
-        Set<Object> newContext = new HashSet<>();
-        boolean contextChanged = false;
-        for (Object o : event.getContexts()) {
-            Object converted;
-            boolean isConversion = true;
-            if (o instanceof Channel) {
-                try {
-                    converted = api().getChannel((Channel) o);
-                } catch (IllegalArgumentException e) {
-                    discordSRV.logger().debug("Failed to map " + o.getClass().getName(), e);
-                    converted = o;
-                }
-            } else if (o instanceof Guild) {
-                converted = api().getGuild((Guild) o);
-            } else if (o instanceof Member) {
-                converted = api().getGuildMember((Member) o);
-            } else if (o instanceof Role) {
-                converted = api().getRole((Role) o);
-            } else if (o instanceof ReceivedMessage) {
-                converted = ReceivedDiscordMessageImpl.fromJDA(discordSRV, (Message) o);
-            } else if (o instanceof User) {
-                converted = api().getUser((User) o);
-            } else {
-                converted = o;
-                isConversion = false;
+        event.map(Channel.class, channel -> {
+            try {
+                return api().getChannel(channel);
+            } catch (IllegalArgumentException e) {
+                discordSRV.logger().debug("Failed to map " + channel.getClass().getName(), e);
+                return channel;
             }
-            if (isConversion) {
-                contextChanged = true;
-            }
-            newContext.add(converted);
-        }
+        });
+        event.map(Guild.class, guild -> api().getGuild(guild));
+        event.map(Member.class, member -> api().getGuildMember(member));
+        event.map(Role.class, role -> api().getRole(role));
+        event.map(ReceivedMessage.class, message -> ReceivedDiscordMessageImpl.fromJDA(discordSRV, message));
+        event.map(User.class, user -> api().getUser(user));
 
         // Add DiscordUser as context if it is missing and DiscordGuildMember is present
-        List<DiscordGuildMember> members = newContext.stream()
+        List<DiscordGuildMember> members = event.getContexts().stream()
                 .filter(context -> context instanceof DiscordGuildMember)
                 .map(context -> (DiscordGuildMember) context)
                 .collect(Collectors.toList());
         for (DiscordGuildMember member : members) {
             DiscordUser user = member.getUser();
-            boolean userMissing = newContext.stream()
+            boolean userMissing = event.getContexts().stream()
                     .filter(context -> context instanceof DiscordUser)
                     .noneMatch(context -> ((DiscordUser) context).getId() == user.getId());
             if (!userMissing) {
-                newContext.add(user);
-                contextChanged = true;
+                event.addContext(user);
             }
-        }
-
-        // Prevent infinite recursion
-        if (contextChanged) {
-            event.process(PlaceholderLookupResult.newLookup(event.getPlaceholder(), newContext));
         }
     }
 

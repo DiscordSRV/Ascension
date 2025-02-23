@@ -23,18 +23,20 @@ import com.discordsrv.api.placeholder.annotation.Placeholder;
 import com.discordsrv.api.placeholder.annotation.PlaceholderPrefix;
 import com.discordsrv.api.placeholder.annotation.PlaceholderRemainder;
 import com.discordsrv.api.placeholder.provider.PlaceholderProvider;
-import com.discordsrv.common.core.placeholder.provider.util.PlaceholderMethodUtil;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.lang.reflect.Field;
+import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
-import java.util.HashSet;
+import java.lang.reflect.Parameter;
 import java.util.Set;
+import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.function.BiConsumer;
 
 public class AnnotationPlaceholderProvider implements PlaceholderProvider {
 
-    private final Placeholder annotation;
-    private final boolean startsWith;
+    private final boolean isRemainder;
     private final String annotationPlaceholder;
     private final String checkString;
 
@@ -51,10 +53,9 @@ public class AnnotationPlaceholderProvider implements PlaceholderProvider {
     }
 
     private AnnotationPlaceholderProvider(Placeholder annotation, PlaceholderPrefix prefixAnnotation, PlaceholderRemainder remainderAnnotation, Class<?> type, Method method, Field field) {
-        this.annotation = annotation;
-        this.startsWith = !annotation.relookup().isEmpty() || remainderAnnotation != null;
+        this.isRemainder = remainderAnnotation != null;
         this.annotationPlaceholder = (prefixAnnotation != null ? prefixAnnotation.value() : "") + annotation.value();
-        this.checkString = annotationPlaceholder + (remainderAnnotation != null && !remainderAnnotation.supportsNoValue() ? ":" : "");
+        this.checkString = annotationPlaceholder + (isRemainder && !remainderAnnotation.supportsNoValue() ? ":" : "");
 
         this.type = type;
         this.method = method;
@@ -67,7 +68,16 @@ public class AnnotationPlaceholderProvider implements PlaceholderProvider {
             return PlaceholderLookupResult.UNKNOWN_PLACEHOLDER;
         }
 
-        boolean correctPlaceholder = startsWith ? placeholder.startsWith(checkString) : placeholder.equals(checkString);
+        boolean perfectMatch = false;
+        boolean correctPlaceholder;
+        if (isRemainder) {
+            correctPlaceholder = placeholder.startsWith(checkString);
+        } else {
+            perfectMatch = placeholder.equals(checkString);
+            correctPlaceholder = perfectMatch
+                    || placeholder.startsWith(checkString + '_')
+                    || placeholder.startsWith(checkString + ':');
+        }
         if (!correctPlaceholder) {
             return PlaceholderLookupResult.UNKNOWN_PLACEHOLDER;
         }
@@ -92,25 +102,91 @@ public class AnnotationPlaceholderProvider implements PlaceholderProvider {
                 result = field.get(instance);
             } else {
                 assert method != null;
-                result = PlaceholderMethodUtil.lookup(method, instance, context, remainder);
+                result = lookupUsingMethod(method, instance, context, remainder);
             }
         } catch (Throwable t) {
             return PlaceholderLookupResult.lookupFailed(t);
         }
 
-        PlaceholderLookupResult lookupResult = result instanceof PlaceholderLookupResult
-                ? (PlaceholderLookupResult) result
-                : PlaceholderLookupResult.success(result);
-
-        String reLookup = annotation.relookup();
-        Object rawResult;
-        if (!reLookup.isEmpty() && !remainder.isEmpty() && (rawResult = lookupResult.getValue()) != null) {
-            Set<Object> newContext = new HashSet<>(context);
-            newContext.add(rawResult);
-            String newPlaceholder = reLookup + remainder;
-            return PlaceholderLookupResult.newLookup(newPlaceholder, newContext);
+        if (result instanceof PlaceholderLookupResult) {
+            return (PlaceholderLookupResult) result;
+        } else if (isRemainder || result == null || perfectMatch) {
+            return PlaceholderLookupResult.success(result);
         }
 
-        return lookupResult;
+        return PlaceholderLookupResult.reLookup(remainder, result);
+    }
+
+    private Object lookupUsingMethod(Method method, Object instance, Set<Object> context, String remainder)
+            throws InvocationTargetException, IllegalAccessException {
+        Parameter[] parameters = method.getParameters();
+        Object[] parameterValues = new Object[parameters.length];
+        AtomicBoolean failed = new AtomicBoolean(false);
+
+        apply(parameters, (parameter, i) -> {
+            PlaceholderRemainder remainderAnnotation = parameter.getAnnotation(PlaceholderRemainder.class);
+            if (remainderAnnotation != null) {
+                parameters[i] = null;
+
+                if (parameter.getType().isAssignableFrom(String.class)) {
+                    String parameterValue = getParameterValueFromRemainder(remainder);
+                    if (parameterValue == null) {
+                        if (!remainderAnnotation.supportsNoValue()) {
+                            failed.set(true);
+                            return;
+                        } else {
+                            parameterValue = "";
+                        }
+                    }
+
+                    parameterValues[i] = parameterValue;
+                } else {
+                    parameterValues[i] = null;
+                }
+            }
+        });
+        if (failed.get()) {
+            return PlaceholderLookupResult.UNKNOWN_PLACEHOLDER;
+        }
+
+        for (Object o : context) {
+            Class<?> objectType = o.getClass();
+            apply(parameters, (parameter, i) -> {
+                if (parameter.getType().isAssignableFrom(objectType)) {
+                    parameters[i] = null;
+                    parameterValues[i] = o;
+                }
+            });
+        }
+        for (Object parameter : parameters) {
+            if (parameter != null) {
+                return null;
+            }
+        }
+
+        return method.invoke(instance, parameterValues);
+    }
+
+    private @Nullable String getParameterValueFromRemainder(String remainder) {
+        if (!remainder.startsWith(":")) {
+            // Missing semicolon, empty value
+            return null;
+        }
+
+        String parameterValue = remainder.substring(1);
+        if (parameterValue.startsWith("'") && parameterValue.endsWith("'")) {
+            parameterValue = parameterValue.substring(1, parameterValue.length() - 1);
+        }
+        return parameterValue;
+    }
+
+    private void apply(Parameter[] parameters, BiConsumer<Parameter, Integer> parameterProcessor) {
+        for (int i = 0; i < parameters.length; i++) {
+            Parameter parameter = parameters[i];
+            if (parameter == null) {
+                continue;
+            }
+            parameterProcessor.accept(parameter, i);
+        }
     }
 }

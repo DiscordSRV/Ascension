@@ -54,7 +54,7 @@ public interface DiscordGuildMember extends JDAEntity<Member>, Mentionable {
      * Gets the Discord server this member is from.
      * @return the Discord server this member is from.
      */
-    @Placeholder(value = "server", relookup = "server")
+    @Placeholder("server")
     @NotNull
     DiscordGuild getGuild();
 
@@ -129,14 +129,14 @@ public interface DiscordGuildMember extends JDAEntity<Member>, Mentionable {
      * Gets the color of this user's highest role that has a color.
      * @return the color that will be used for this user
      */
-    @Placeholder(value = "color", relookup = "color")
+    @Placeholder("color")
     Color getColor();
 
     /**
      * Gets the time the member joined the server.
      * @return the time the member joined the server
      */
-    @Placeholder(value = "time_joined", relookup = "date")
+    @Placeholder("time_joined")
     @NotNull
     OffsetDateTime getTimeJoined();
 
@@ -144,7 +144,7 @@ public interface DiscordGuildMember extends JDAEntity<Member>, Mentionable {
      * Time the member started boosting.
      * @return the time the member started boosting or {@code null}
      */
-    @Placeholder(value = "time_boosted", relookup = "date")
+    @Placeholder("time_boosted")
     @Nullable
     OffsetDateTime getTimeBoosted();
 

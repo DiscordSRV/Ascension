@@ -25,9 +25,7 @@ package com.discordsrv.api.discord.entity.message;
 
 import com.discordsrv.api.discord.entity.DiscordUser;
 import com.discordsrv.api.discord.entity.Snowflake;
-import com.discordsrv.api.discord.entity.channel.DiscordDMChannel;
 import com.discordsrv.api.discord.entity.channel.DiscordMessageChannel;
-import com.discordsrv.api.discord.entity.channel.DiscordTextChannel;
 import com.discordsrv.api.discord.entity.guild.DiscordGuild;
 import com.discordsrv.api.discord.entity.guild.DiscordGuildMember;
 import com.discordsrv.api.placeholder.annotation.Placeholder;
@@ -96,7 +94,7 @@ public interface ReceivedDiscordMessage extends Snowflake {
      * @return the user that sent the message
      */
     @NotNull
-    @Placeholder(value = "user", relookup = "user")
+    @Placeholder("user")
     DiscordUser getAuthor();
 
     /**
@@ -104,7 +102,7 @@ public interface ReceivedDiscordMessage extends Snowflake {
      * @return the channel the message was sent in
      */
     @NotNull
-    @Placeholder(value = "channel", relookup = "channel")
+    @Placeholder("channel")
     DiscordMessageChannel getChannel();
 
     /**
@@ -113,20 +111,6 @@ public interface ReceivedDiscordMessage extends Snowflake {
      */
     @Nullable
     ReceivedDiscordMessage getReplyingTo();
-
-    /**
-     * Gets the text channel the message was sent in. Not present if this message is a dm.
-     * @return an optional potentially containing the text channel the message was sent in
-     */
-    @Nullable
-    DiscordTextChannel getTextChannel();
-
-    /**
-     * Gets the dm channel the message was sent in. Not present if this message was sent in a server.
-     * @return an optional potentially containing the dm channel the message was sent in
-     */
-    @Nullable
-    DiscordDMChannel getDMChannel();
 
     /**
      * Gets the Discord server member that sent this message.
@@ -141,7 +125,7 @@ public interface ReceivedDiscordMessage extends Snowflake {
      * @return an optional potentially containing the Discord server the message was posted in
      */
     @Nullable
-    @Placeholder(value = "server", relookup = "server")
+    @Placeholder("server")
     DiscordGuild getGuild();
 
     /**

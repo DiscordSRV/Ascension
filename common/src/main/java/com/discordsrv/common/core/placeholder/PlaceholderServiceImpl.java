@@ -18,6 +18,7 @@
 
 package com.discordsrv.common.core.placeholder;
 
+import com.discordsrv.api.events.placeholder.PlaceholderContextMappingEvent;
 import com.discordsrv.api.events.placeholder.PlaceholderLookupEvent;
 import com.discordsrv.api.placeholder.PlaceholderLookupResult;
 import com.discordsrv.api.placeholder.PlaceholderService;
@@ -34,6 +35,7 @@ import com.discordsrv.common.helper.Timeout;
 import com.github.benmanes.caffeine.cache.CacheLoader;
 import com.github.benmanes.caffeine.cache.LoadingCache;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.tuple.Pair;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -55,6 +57,7 @@ public class PlaceholderServiceImpl implements PlaceholderService {
     private final Logger logger;
     private final LoadingCache<Class<?>, Set<PlaceholderProvider>> classProviders;
     private final Set<PlaceholderResultMapper> mappers = new CopyOnWriteArraySet<>();
+    private final List<Pair<Class<?>, String>> reLookups = new ArrayList<>();
     private final Set<Object> globalContext = new CopyOnWriteArraySet<>();
     private final Timeout errorLogTimeout = new Timeout(Duration.ofSeconds(20));
 
@@ -75,10 +78,18 @@ public class PlaceholderServiceImpl implements PlaceholderService {
         globalContext.remove(context);
     }
 
+    public void addReLookup(Class<?> type, String reLookupAs) {
+        this.reLookups.add(Pair.of(type, reLookupAs));
+    }
+
+    public void removeReLookup(Class<?> type) {
+        this.reLookups.removeIf(pair -> pair.getKey() == type);
+    }
+
     private static Set<Object> getArrayAsSet(Object[] array) {
         return array.length == 0
                ? Collections.emptySet()
-               : new HashSet<>(Arrays.asList(array));
+               : new LinkedHashSet<>(Arrays.asList(array));
     }
 
     @Override
@@ -88,12 +99,18 @@ public class PlaceholderServiceImpl implements PlaceholderService {
 
     @Override
     public PlaceholderLookupResult lookupPlaceholder(@NotNull String placeholder, @NotNull Set<Object> lookupContexts) {
-        Set<Object> contexts = new HashSet<>(lookupContexts);
+        Set<Object> contexts = new LinkedHashSet<>(lookupContexts);
         contexts.addAll(globalContext);
         contexts.removeIf(Objects::isNull);
+
+        PlaceholderContextMappingEvent contextMappingEvent = new PlaceholderContextMappingEvent(contexts);
+        discordSRV.eventBus().publish(contextMappingEvent);
+        contexts = new LinkedHashSet<>(contextMappingEvent.getContexts());
+
         for (Object context : contexts) {
             if (context instanceof PlaceholderProvider) {
                 PlaceholderLookupResult result = ((PlaceholderProvider) context).lookup(placeholder, contexts);
+                result = mapResult(result, contexts);
                 if (result.getType() != PlaceholderLookupResult.Type.UNKNOWN_PLACEHOLDER) {
                     return result;
                 }
@@ -109,6 +126,7 @@ public class PlaceholderServiceImpl implements PlaceholderService {
 
             for (PlaceholderProvider provider : providers) {
                 PlaceholderLookupResult result = provider.lookup(placeholder, contexts);
+                result = mapResult(result, contexts);
                 if (result.getType() != PlaceholderLookupResult.Type.UNKNOWN_PLACEHOLDER) {
                     return result;
                 }
@@ -123,6 +141,29 @@ public class PlaceholderServiceImpl implements PlaceholderService {
         return lookupEvent.isProcessed()
                 ? lookupEvent.getResultFromProcessing()
                 : PlaceholderLookupResult.UNKNOWN_PLACEHOLDER;
+    }
+
+    private PlaceholderLookupResult mapResult(PlaceholderLookupResult result, Set<Object> contexts) {
+        if (result.getType() == PlaceholderLookupResult.Type.RE_LOOKUP) {
+            Object reLookupResult = result.getResult();
+            boolean foundReLookup = false;
+            for (Pair<Class<?>, String> reLookup : reLookups) {
+                if (reLookup.getKey().isAssignableFrom(reLookupResult.getClass())) {
+                    Set<Object> newContext = new LinkedHashSet<>();
+                    newContext.add(reLookupResult);
+                    newContext.addAll(contexts);
+
+                    String newPlaceholder = reLookup.getValue() + result.getPlaceholder();
+                    result = PlaceholderLookupResult.newLookup(newPlaceholder, newContext);
+                    foundReLookup = true;
+                    break;
+                }
+            }
+            if (!foundReLookup) {
+                result = PlaceholderLookupResult.UNKNOWN_PLACEHOLDER;
+            }
+        }
+        return result;
     }
 
     @Override
@@ -151,8 +192,9 @@ public class PlaceholderServiceImpl implements PlaceholderService {
         String output = input;
         while (matcher.find()) {
             String placeholder = getPlaceholder(matcher);
-            List<PlaceholderLookupResult> results = resolve(placeholder, context);
-            output = updateContent(results, placeholder, matcher, output);
+
+            Object result = getResult(placeholder, context, matcher);
+            output = updateContent(result, placeholder, matcher, output);
         }
         return output;
     }
@@ -164,8 +206,7 @@ public class PlaceholderServiceImpl implements PlaceholderService {
         }
 
         String placeholder = getPlaceholder(matcher);
-        List<PlaceholderLookupResult> results = resolve(placeholder, context);
-        return getResultRepresentation(results, placeholder, matcher);
+        return getResult(placeholder, context, matcher);
     }
 
     private String getPlaceholder(Matcher matcher) {
@@ -204,22 +245,8 @@ public class PlaceholderServiceImpl implements PlaceholderService {
         return output instanceof CharSequence ? (CharSequence) output : String.valueOf(output != null ? output : result);
     }
 
-    private List<PlaceholderLookupResult> resolve(String placeholder, Set<Object> context) {
-        // Recursive
-        placeholder = getReplacement(RECURSIVE_PATTERN, placeholder, context);
-
-        List<PlaceholderLookupResult> results = new ArrayList<>();
-        for (String part : placeholder.split("(?<!\\\\)\\|")) {
-            results.add(lookupPlaceholder(part, context));
-        }
-
-        return results;
-    }
-
-    private String updateContent(List<PlaceholderLookupResult> results, String placeholder, Matcher matcher, String input) {
-        Object representation = getResultRepresentation(results, placeholder, matcher);
-
-        CharSequence output = getResultAsCharSequence(representation);
+    private String updateContent(Object result, String placeholder, Matcher matcher, String input) {
+        CharSequence output = getResultAsCharSequence(result);
         return Pattern.compile(
                 matcher.group(1) + placeholder + matcher.group(3),
                 Pattern.LITERAL
@@ -228,11 +255,14 @@ public class PlaceholderServiceImpl implements PlaceholderService {
                 .replaceFirst(Matcher.quoteReplacement(output.toString()));
     }
 
-    private Object getResultRepresentation(List<PlaceholderLookupResult> results, String placeholder, Matcher matcher) {
+    private Object getResult(String placeholder, Set<Object> context, Matcher matcher) {
         Map<String, AtomicInteger> preventInfiniteLoop = new HashMap<>();
 
         Object best = null;
-        for (PlaceholderLookupResult result : results) {
+        for (String singlePlaceholder : placeholder.split("(?<!\\\\)\\|")) {
+            singlePlaceholder = getReplacement(RECURSIVE_PATTERN, singlePlaceholder, context);
+
+            PlaceholderLookupResult result = lookupPlaceholder(singlePlaceholder, context);
             while (result != null) {
                 PlaceholderLookupResult.Type type = result.getType();
                 if (type == PlaceholderLookupResult.Type.UNKNOWN_PLACEHOLDER) {
@@ -243,7 +273,7 @@ public class PlaceholderServiceImpl implements PlaceholderService {
                 Object replacement = null;
                 switch (type) {
                     case SUCCESS:
-                        replacement = result.getValue();
+                        replacement = result.getResult();
                         if (replacement == null) {
                             replacement = getResultAsCharSequence(null);
                         }
@@ -263,15 +293,15 @@ public class PlaceholderServiceImpl implements PlaceholderService {
                         replacement = "Error";
                         break;
                     case NEW_LOOKUP:
-                        String placeholderKey = (String) result.getValue();
+                        String newPlaceholder = result.getPlaceholder();
 
-                        AtomicInteger infiniteLoop = preventInfiniteLoop.computeIfAbsent(placeholderKey, key -> new AtomicInteger(0));
+                        AtomicInteger infiniteLoop = preventInfiniteLoop.computeIfAbsent(newPlaceholder, key -> new AtomicInteger(0));
                         if (infiniteLoop.incrementAndGet() > 10) {
                             replacement = "Infinite Loop";
                             break;
                         }
 
-                        result = lookupPlaceholder(placeholderKey, result.getExtras());
+                        result = lookupPlaceholder(newPlaceholder, result.getContext());
                         newLookup = true;
                         break;
                 }

@@ -23,6 +23,11 @@
 
 package com.discordsrv.api.placeholder;
 
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+
+import java.util.Arrays;
+import java.util.LinkedHashSet;
 import java.util.Set;
 
 public class PlaceholderLookupResult {
@@ -30,71 +35,95 @@ public class PlaceholderLookupResult {
     public static final PlaceholderLookupResult DATA_NOT_AVAILABLE = new PlaceholderLookupResult(Type.DATA_NOT_AVAILABLE);
     public static final PlaceholderLookupResult UNKNOWN_PLACEHOLDER = new PlaceholderLookupResult(Type.UNKNOWN_PLACEHOLDER);
 
-    public static PlaceholderLookupResult success(Object result) {
+    public static PlaceholderLookupResult success(@Nullable Object result) {
         return new PlaceholderLookupResult(result);
     }
 
-    public static PlaceholderLookupResult newLookup(String placeholder, Set<Object> extras) {
-        return new PlaceholderLookupResult(placeholder, extras);
+    public static PlaceholderLookupResult newLookup(@NotNull String placeholder, @NotNull Set<Object> context) {
+        return new PlaceholderLookupResult(placeholder, context);
     }
 
-    public static PlaceholderLookupResult lookupFailed(Throwable error) {
+    public static PlaceholderLookupResult reLookup(@NotNull String remainder, @NotNull Object result, @NotNull Object... newContext) {
+        return new PlaceholderLookupResult(remainder, result, new LinkedHashSet<>(Arrays.asList(newContext)));
+    }
+
+    public static PlaceholderLookupResult lookupFailed(@NotNull Throwable error) {
         return new PlaceholderLookupResult(error);
     }
 
     private final Type type;
-    private final Object value;
+    private final String placeholder;
+    private final Object result;
     private final Throwable error;
-    private final Set<Object> extras;
+    private final Set<Object> context;
 
     protected PlaceholderLookupResult(Type type) {
         this.type = type;
-        this.value = null;
+        this.placeholder = null;
+        this.result = null;
         this.error = null;
-        this.extras = null;
+        this.context = null;
     }
 
     protected PlaceholderLookupResult(Object value) {
         this.type = Type.SUCCESS;
-        this.value = value;
+        this.placeholder = null;
+        this.result = value;
         this.error = null;
-        this.extras = null;
+        this.context = null;
     }
 
     protected PlaceholderLookupResult(Throwable error) {
         this.type = Type.LOOKUP_FAILED;
-        this.value = null;
+        this.placeholder = null;
+        this.result = null;
         this.error = error;
-        this.extras = null;
+        this.context = null;
     }
 
-    protected PlaceholderLookupResult(String placeholder, Set<Object> extras) {
+    protected PlaceholderLookupResult(String placeholder, Set<Object> context) {
         this.type = Type.NEW_LOOKUP;
-        this.value = placeholder;
+        this.placeholder = placeholder;
+        this.result = null;
         this.error = null;
-        this.extras = extras;
+        this.context = context;
+    }
+
+    protected PlaceholderLookupResult(String placeholder, Object result, Set<Object> newContext) {
+        this.type = Type.RE_LOOKUP;
+        this.placeholder = placeholder;
+        this.result = result;
+        this.error = null;
+        this.context = newContext;
     }
 
     public Type getType() {
         return type;
     }
 
-    public Object getValue() {
-        return value;
+    public String getPlaceholder() {
+        return placeholder;
+    }
+
+    public Object getResult() {
+        return result;
     }
 
     public Throwable getError() {
         return error;
     }
 
-    public Set<Object> getExtras() {
-        return extras;
+    public Set<Object> getContext() {
+        return context;
     }
 
     public enum Type {
 
         SUCCESS,
+        // Completely new placeholder lookup
         NEW_LOOKUP,
+        // Refining a result further
+        RE_LOOKUP,
 
         LOOKUP_FAILED,
         DATA_NOT_AVAILABLE,

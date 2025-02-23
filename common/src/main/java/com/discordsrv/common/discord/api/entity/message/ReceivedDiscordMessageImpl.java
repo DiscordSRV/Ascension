@@ -19,9 +19,7 @@
 package com.discordsrv.common.discord.api.entity.message;
 
 import com.discordsrv.api.discord.entity.DiscordUser;
-import com.discordsrv.api.discord.entity.channel.DiscordDMChannel;
 import com.discordsrv.api.discord.entity.channel.DiscordMessageChannel;
-import com.discordsrv.api.discord.entity.channel.DiscordTextChannel;
 import com.discordsrv.api.discord.entity.channel.DiscordThreadChannel;
 import com.discordsrv.api.discord.entity.guild.DiscordGuild;
 import com.discordsrv.api.discord.entity.guild.DiscordGuildMember;
@@ -204,20 +202,6 @@ public class ReceivedDiscordMessageImpl implements ReceivedDiscordMessage {
     @Override
     public boolean isFromSelf() {
         return fromSelf;
-    }
-
-    @Override
-    public @Nullable DiscordTextChannel getTextChannel() {
-        return channel instanceof DiscordTextChannel
-                ? (DiscordTextChannel) channel
-                : null;
-    }
-
-    @Override
-    public @Nullable DiscordDMChannel getDMChannel() {
-        return channel instanceof DiscordDMChannel
-                ? (DiscordDMChannel) channel
-                : null;
     }
 
     @Override

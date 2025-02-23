@@ -26,7 +26,6 @@ package com.discordsrv.api.placeholder.provider;
 import com.discordsrv.api.placeholder.PlaceholderLookupResult;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.LinkedHashSet;
 import java.util.Set;
 import java.util.function.Supplier;
 
@@ -34,43 +33,30 @@ public class SinglePlaceholder implements PlaceholderProvider {
 
     private final String matchPlaceholder;
     private final Supplier<Object> resultProvider;
-    private final String reLookup;
 
     public SinglePlaceholder(String placeholder, Object result) {
-        this(placeholder, result, null);
-    }
-
-    public SinglePlaceholder(String placeholder, Object result, String reLookup) {
-        this(placeholder, () -> result, reLookup);
+        this(placeholder, () -> result);
     }
 
     public SinglePlaceholder(String placeholder, Supplier<Object> resultProvider) {
-        this(placeholder, resultProvider, null);
-    }
-
-    public SinglePlaceholder(String placeholder, Supplier<Object> resultProvider, String reLookup) {
         this.matchPlaceholder = placeholder;
         this.resultProvider = resultProvider;
-        this.reLookup = reLookup;
     }
 
     @Override
     public @NotNull PlaceholderLookupResult lookup(@NotNull String placeholder, @NotNull Set<Object> context) {
-        if (!(reLookup != null ? placeholder.startsWith(matchPlaceholder) : placeholder.equals(matchPlaceholder))) {
+        boolean perfectMatch = placeholder.equals(matchPlaceholder);
+        if (!perfectMatch && !placeholder.startsWith(matchPlaceholder + '_') && !placeholder.startsWith(matchPlaceholder + ':')) {
             return PlaceholderLookupResult.UNKNOWN_PLACEHOLDER;
         }
 
         try {
             Object result = resultProvider.get();
-            if (reLookup == null) {
+            if (perfectMatch) {
                 return PlaceholderLookupResult.success(result);
             }
 
-            String newPlaceholder = reLookup + (placeholder.substring(matchPlaceholder.length()));
-            Set<Object> newContext = new LinkedHashSet<>();
-            newContext.add(result);
-            newContext.addAll(context);
-            return PlaceholderLookupResult.newLookup(newPlaceholder, newContext);
+            return PlaceholderLookupResult.reLookup(placeholder.substring(matchPlaceholder.length()), result, true);
         } catch (Throwable t) {
             return PlaceholderLookupResult.lookupFailed(t);
         }

@@ -373,16 +373,8 @@ public interface SendableDiscordMessage {
         @NotNull
         Formatter addContext(Object... context);
 
-        default Formatter addPlaceholder(String placeholder, Object replacement, String reLookup) {
-            return addContext(new SinglePlaceholder(placeholder, replacement, reLookup));
-        }
-
         default Formatter addPlaceholder(String placeholder, Object replacement) {
             return addContext(new SinglePlaceholder(placeholder, replacement));
-        }
-
-        default Formatter addPlaceholder(String placeholder, Supplier<Object> replacementSupplier, String reLookup) {
-            return addContext(new SinglePlaceholder(placeholder, replacementSupplier, reLookup));
         }
 
         default Formatter addPlaceholder(String placeholder, Supplier<Object> replacementSupplier) {

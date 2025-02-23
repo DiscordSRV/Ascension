@@ -21,48 +21,43 @@
  * SOFTWARE.
  */
 
-package com.discordsrv.api.player;
+package com.discordsrv.api.events.placeholder;
 
-import com.discordsrv.api.component.MinecraftComponent;
-import com.discordsrv.api.placeholder.annotation.Placeholder;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
+import com.discordsrv.api.events.Event;
 
-import java.util.Locale;
-import java.util.UUID;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+import java.util.Set;
+import java.util.function.Function;
 
-/**
- * A DiscordSRV player.
- */
-public interface DiscordSRVPlayer {
+public class PlaceholderContextMappingEvent implements Event {
 
-    /**
-     * The username of the player.
-     * @return the player's username
-     */
-    @NotNull
-    @Placeholder("name")
-    String username();
+    private final List<Object> contexts;
 
-    /**
-     * The {@link UUID} of the player.
-     * @return the player's unique id
-     */
-    @NotNull
-    @Placeholder("uuid")
-    UUID uniqueId();
+    public PlaceholderContextMappingEvent(Set<Object> contexts) {
+        this.contexts = new ArrayList<>(contexts);
+    }
 
-    /**
-     * Gets the locale of the player.
-     * @return the player's locale, or {@code null} if it isn't known
-     */
-    @Nullable
-    Locale locale();
+    @SuppressWarnings("unchecked") // It is checked
+    public <T> void map(Class<T> type, Function<T, ?> mappingFunction) {
+        for (int i = 0; i < contexts.size(); i++) {
+            Object context = contexts.get(i);
+            if (context.getClass().isAssignableFrom(type)) {
+                contexts.set(i, mappingFunction.apply((T) context));
+            }
+        }
+    }
 
-    /**
-     * Sends the provided message to the player.
-     * @param component the message
-     */
-    void sendMessageFromDiscord(@NotNull MinecraftComponent component);
+    public void addContext(Object context) {
+        this.contexts.add(context);
+    }
 
+    public void removeContext(Object context) {
+        this.contexts.remove(context);
+    }
+
+    public List<Object> getContexts() {
+        return Collections.unmodifiableList(contexts);
+    }
 }

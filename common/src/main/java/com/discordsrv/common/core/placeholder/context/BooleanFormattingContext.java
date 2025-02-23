@@ -18,33 +18,20 @@
 
 package com.discordsrv.common.core.placeholder.context;
 
-import com.discordsrv.api.discord.entity.DiscordUser;
 import com.discordsrv.api.placeholder.annotation.Placeholder;
-import com.discordsrv.api.placeholder.annotation.PlaceholderPrefix;
-import com.discordsrv.common.DiscordSRV;
-import net.dv8tion.jda.api.JDA;
-import net.dv8tion.jda.api.entities.SelfUser;
+import com.discordsrv.api.placeholder.annotation.PlaceholderRemainder;
 
-@PlaceholderPrefix("bot_")
-public class DiscordBotContext {
+public final class BooleanFormattingContext {
 
-    private final DiscordSRV discordSRV;
+    private BooleanFormattingContext() {}
 
-    public DiscordBotContext(DiscordSRV discordSRV) {
-        this.discordSRV = discordSRV;
-    }
-
-    private SelfUser getSelfUser() {
-        JDA jda = discordSRV.jda();
-        if (jda == null) {
-            return null;
+    @Placeholder("boolean")
+    public static String formatBoolean(Boolean value, @PlaceholderRemainder String formats) {
+        String[] parts = formats.split(";", 2);
+        if (value) {
+            return parts[0];
         }
 
-        return jda.getSelfUser();
-    }
-
-    @Placeholder("user")
-    public DiscordUser getUser() {
-        return discordSRV.discordAPI().getUser(getSelfUser());
+        return parts.length > 1 ? parts[1] : "";
     }
 }

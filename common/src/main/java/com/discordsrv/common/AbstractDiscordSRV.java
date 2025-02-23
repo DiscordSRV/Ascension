@@ -18,6 +18,11 @@
 
 package com.discordsrv.common;
 
+import com.discordsrv.api.color.Color;
+import com.discordsrv.api.discord.entity.DiscordUser;
+import com.discordsrv.api.discord.entity.channel.DiscordChannel;
+import com.discordsrv.api.discord.entity.guild.DiscordGuild;
+import com.discordsrv.api.discord.entity.guild.DiscordRole;
 import com.discordsrv.api.events.lifecycle.DiscordSRVConnectedEvent;
 import com.discordsrv.api.events.lifecycle.DiscordSRVReadyEvent;
 import com.discordsrv.api.events.lifecycle.DiscordSRVReloadedEvent;
@@ -27,6 +32,7 @@ import com.discordsrv.api.reload.ReloadFlag;
 import com.discordsrv.api.reload.ReloadResult;
 import com.discordsrv.api.task.Task;
 import com.discordsrv.common.abstraction.bootstrap.IBootstrap;
+import com.discordsrv.common.abstraction.player.provider.model.SkinInfo;
 import com.discordsrv.common.command.discord.DiscordCommandModule;
 import com.discordsrv.common.command.game.GameCommandModule;
 import com.discordsrv.common.config.configurate.manager.ConnectionConfigManager;
@@ -112,6 +118,7 @@ import java.time.Duration;
 import java.time.LocalDateTime;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
+import java.time.temporal.TemporalAccessor;
 import java.util.*;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
@@ -681,8 +688,20 @@ public abstract class AbstractDiscordSRV<
 
         this.translationLoader = new TranslationLoader(this);
 
-        // Placeholder result stringifiers & global contexts
+        // Placeholder service stuff
         placeholderService().addResultMapper(new ComponentResultStringifier(this));
+
+        placeholderService().addReLookup(Boolean.class, "boolean");
+        placeholderService().addReLookup(UUID.class, "uuid");
+        placeholderService().addReLookup(TemporalAccessor.class, "date");
+        placeholderService().addReLookup(Color.class, "color");
+        placeholderService().addReLookup(SkinInfo.class, "skin");
+        placeholderService().addReLookup(SkinInfo.Parts.class, "skin_parts");
+        placeholderService().addReLookup(DiscordGuild.class, "server");
+        placeholderService().addReLookup(DiscordRole.class, "role");
+        placeholderService().addReLookup(DiscordUser.class, "user");
+        placeholderService().addReLookup(DiscordChannel.class, "channel");
+
         placeholderService().addGlobalContext(new TextHandlingContext(this));
         placeholderService().addGlobalContext(new DateFormattingContext(this));
         placeholderService().addGlobalContext(new GamePermissionContext(this));
@@ -691,6 +710,7 @@ public abstract class AbstractDiscordSRV<
         placeholderService().addGlobalContext(new AvatarProviderContext(this));
         placeholderService().addGlobalContext(new DiscordGuildMemberContext());
         placeholderService().addGlobalContext(UUIDUtil.class);
+        placeholderService().addGlobalContext(BooleanFormattingContext.class);
 
         // Modules
         registerModule(BanSyncModule::new);
