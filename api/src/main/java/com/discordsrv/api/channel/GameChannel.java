@@ -35,7 +35,7 @@ import java.util.Collection;
 /**
  * An in-game channel for sending Minecraft messages to.
  */
-@PlaceholderPrefix("channel_")
+@PlaceholderPrefix("gamechannel_")
 public interface GameChannel {
 
     String DEFAULT_NAME = "global";

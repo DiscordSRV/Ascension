@@ -34,7 +34,7 @@ import java.util.List;
 public class DiscordGuildMemberContext {
 
     @Placeholder("roles")
-    public Component _allRoles(DiscordGuildMember member, @PlaceholderRemainder(supportsNoValue = true) String suffix) {
+    public Component allRoles(DiscordGuildMember member, @PlaceholderRemainder(supportsNoValue = true) String suffix) {
         List<Component> components = new ArrayList<>();
         for (DiscordRole role : member.getRoles()) {
             components.add(Component.text(role.getName()).color(TextColor.color(role.getColor().rgb())));
