@@ -27,6 +27,7 @@ import com.discordsrv.api.placeholder.annotation.PlaceholderPrefix;
 import com.discordsrv.api.placeholder.annotation.PlaceholderRemainder;
 import com.discordsrv.api.placeholder.mapper.PlaceholderResultMapper;
 import com.discordsrv.api.placeholder.provider.PlaceholderProvider;
+import com.discordsrv.api.task.Task;
 import com.discordsrv.common.DiscordSRV;
 import com.discordsrv.common.core.logging.Logger;
 import com.discordsrv.common.core.logging.NamedLogger;
@@ -46,7 +47,9 @@ import java.lang.reflect.Parameter;
 import java.time.Duration;
 import java.util.*;
 import java.util.concurrent.CopyOnWriteArraySet;
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -109,8 +112,7 @@ public class PlaceholderServiceImpl implements PlaceholderService {
 
         for (Object context : contexts) {
             if (context instanceof PlaceholderProvider) {
-                PlaceholderLookupResult result = ((PlaceholderProvider) context).lookup(placeholder, contexts);
-                result = mapResult(result, contexts);
+                PlaceholderLookupResult result = getResult((PlaceholderProvider) context, placeholder, contexts);
                 if (result.getType() != PlaceholderLookupResult.Type.UNKNOWN_PLACEHOLDER) {
                     return result;
                 }
@@ -125,8 +127,7 @@ public class PlaceholderServiceImpl implements PlaceholderService {
             }
 
             for (PlaceholderProvider provider : providers) {
-                PlaceholderLookupResult result = provider.lookup(placeholder, contexts);
-                result = mapResult(result, contexts);
+                PlaceholderLookupResult result = getResult(provider, placeholder, contexts);
                 if (result.getType() != PlaceholderLookupResult.Type.UNKNOWN_PLACEHOLDER) {
                     return result;
                 }
@@ -143,21 +144,48 @@ public class PlaceholderServiceImpl implements PlaceholderService {
                 : PlaceholderLookupResult.UNKNOWN_PLACEHOLDER;
     }
 
-    private PlaceholderLookupResult mapResult(PlaceholderLookupResult result, Set<Object> contexts) {
-        if (result.getType() == PlaceholderLookupResult.Type.RE_LOOKUP) {
-            Object reLookupResult = result.getResult();
-            boolean foundReLookup = false;
-            for (Pair<Class<?>, String> reLookup : reLookups) {
-                if (reLookup.getKey().isAssignableFrom(reLookupResult.getClass())) {
-                    Set<Object> newContext = new LinkedHashSet<>();
-                    newContext.add(reLookupResult);
-                    newContext.addAll(contexts);
+    private PlaceholderLookupResult getResult(PlaceholderProvider provider, String placeholder, Set<Object> contexts) {
+        PlaceholderLookupResult result = provider.lookup(placeholder, contexts);
 
-                    String newPlaceholder = reLookup.getValue() + result.getPlaceholder();
-                    result = PlaceholderLookupResult.newLookup(newPlaceholder, newContext);
-                    foundReLookup = true;
-                    break;
+        Object lookupResult = result.getResult();
+        if (lookupResult instanceof Task) {
+            Task<?> task = (Task<?>) lookupResult;
+            if (task.isDone() || !discordSRV.scheduler().isServerThread()) {
+                try {
+                    lookupResult = task.get(5, TimeUnit.SECONDS);
+                } catch (ExecutionException e) {
+                    return PlaceholderLookupResult.lookupFailed(e.getCause());
+                } catch (TimeoutException e) {
+                    return PlaceholderLookupResult.DATA_NOT_AVAILABLE;
+                } catch (InterruptedException ignored) {
+                    Thread.currentThread().interrupt();
                 }
+            } else {
+                return PlaceholderLookupResult.DATA_NOT_AVAILABLE;
+            }
+
+            if (result.getType() == PlaceholderLookupResult.Type.SUCCESS) {
+                return PlaceholderLookupResult.success(lookupResult);
+            }
+        }
+
+        if (result.getType() == PlaceholderLookupResult.Type.RE_LOOKUP) {
+            boolean foundReLookup = false;
+            Class<?> reLookupType = lookupResult.getClass();
+
+            for (Pair<Class<?>, String> reLookup : reLookups) {
+                if (!reLookup.getKey().isAssignableFrom(reLookupType)) {
+                    continue;
+                }
+
+                Set<Object> newContext = new LinkedHashSet<>();
+                newContext.add(lookupResult);
+                newContext.addAll(contexts);
+
+                String newPlaceholder = reLookup.getValue() + result.getPlaceholder();
+                result = PlaceholderLookupResult.newLookup(newPlaceholder, newContext);
+                foundReLookup = true;
+                break;
             }
             if (!foundReLookup) {
                 result = PlaceholderLookupResult.UNKNOWN_PLACEHOLDER;

@@ -25,6 +25,7 @@ import com.discordsrv.api.discord.entity.guild.DiscordGuildMember;
 import com.discordsrv.api.discord.entity.guild.DiscordRole;
 import com.discordsrv.api.placeholder.annotation.Placeholder;
 import com.discordsrv.api.placeholder.annotation.PlaceholderPrefix;
+import com.discordsrv.api.placeholder.format.FormattedText;
 import com.discordsrv.api.task.Task;
 import com.discordsrv.common.DiscordSRV;
 import net.dv8tion.jda.api.entities.Member;
@@ -146,8 +147,8 @@ public class DiscordGuildMemberImpl implements DiscordGuildMember {
     }
 
     @Override
-    public String getAsMention() {
-        return member.getAsMention();
+    public FormattedText getAsMention() {
+        return FormattedText.of(member.getAsMention());
     }
 
     @Override

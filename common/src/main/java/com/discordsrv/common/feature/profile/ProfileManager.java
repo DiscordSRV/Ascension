@@ -40,7 +40,7 @@ public class ProfileManager implements IProfileManager {
         this.discordSRV = discordSRV;
     }
 
-    public Task<Profile> loadProfile(UUID playerUUID) {
+    public Task<Profile> loadProfile(@NotNull UUID playerUUID) {
         Task<Profile> lookup = lookupProfile(playerUUID)
                 .thenApply(profile -> {
                     profiles.put(playerUUID, profile);
@@ -54,7 +54,7 @@ public class ProfileManager implements IProfileManager {
         return lookup;
     }
 
-    public void unloadProfile(UUID playerUUID) {
+    public void unloadProfile(@NotNull UUID playerUUID) {
         Task<Profile> lookup = profileLookups.remove(playerUUID);
         if (lookup != null) {
             lookup.cancel(false);
@@ -71,11 +71,11 @@ public class ProfileManager implements IProfileManager {
     }
 
     @Override
-    public @NotNull Task<Profile> lookupProfile(UUID playerUUID) {
+    public @NotNull Task<@NotNull Profile> lookupProfile(UUID playerUUID) {
         LinkProvider linkProvider = discordSRV.linkProvider();
         if (linkProvider == null) return Task.completed(null);
         return linkProvider.getUserId(playerUUID)
-                .thenApply(opt -> new Profile(playerUUID, opt.orElse(null)));
+                .thenApply(opt -> new Profile(discordSRV, playerUUID, opt.orElse(null)));
     }
 
     @Override
@@ -84,11 +84,11 @@ public class ProfileManager implements IProfileManager {
     }
 
     @Override
-    public @NotNull Task<Profile> lookupProfile(long userId) {
+    public @NotNull Task<@NotNull Profile> lookupProfile(long userId) {
         LinkProvider linkProvider = discordSRV.linkProvider();
         if (linkProvider == null) return Task.completed(null);
         return linkProvider.getPlayerUUID(userId)
-                .thenApply(opt -> new Profile(opt.orElse(null), userId));
+                .thenApply(opt -> new Profile(discordSRV, opt.orElse(null), userId));
     }
 
     @Override

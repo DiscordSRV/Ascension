@@ -86,7 +86,7 @@ public interface DiscordSRV extends DiscordSRVApi {
     OnlineMode onlineMode();
     DiscordSRVDependencyManager dependencyManager();
     ICommandHandler commandHandler();
-    @NotNull AbstractPlayerProvider<?, ?> playerProvider();
+    @NotNull AbstractPlayerProvider<? extends IPlayer, ? extends DiscordSRV> playerProvider();
 
     // DiscordSRVApi
     @Override

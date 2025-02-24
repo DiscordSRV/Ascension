@@ -22,6 +22,7 @@ import com.discordsrv.api.discord.entity.channel.DiscordGuildMessageChannel;
 import com.discordsrv.api.discord.entity.guild.DiscordGuild;
 import com.discordsrv.api.discord.entity.message.ReceivedDiscordMessage;
 import com.discordsrv.api.discord.entity.message.SendableDiscordMessage;
+import com.discordsrv.api.placeholder.format.FormattedText;
 import com.discordsrv.api.task.Task;
 import com.discordsrv.common.DiscordSRV;
 import com.discordsrv.common.discord.api.entity.message.ReceivedDiscordMessageImpl;
@@ -61,8 +62,8 @@ public abstract class AbstractDiscordGuildMessageChannel<T extends GuildMessageC
     }
 
     @Override
-    public String getAsMention() {
-        return channel.getAsMention();
+    public FormattedText getAsMention() {
+        return FormattedText.of(channel.getAsMention());
     }
 
     @Override

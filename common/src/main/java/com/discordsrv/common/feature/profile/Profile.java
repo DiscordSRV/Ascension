@@ -18,28 +18,65 @@
 
 package com.discordsrv.common.feature.profile;
 
+import com.discordsrv.api.discord.entity.DiscordUser;
+import com.discordsrv.api.placeholder.annotation.Placeholder;
+import com.discordsrv.api.placeholder.annotation.PlaceholderPrefix;
 import com.discordsrv.api.profile.IProfile;
+import com.discordsrv.api.task.Task;
+import com.discordsrv.common.DiscordSRV;
+import com.discordsrv.common.abstraction.player.IOfflinePlayer;
+import com.discordsrv.common.abstraction.player.IPlayer;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.UUID;
 
+@PlaceholderPrefix("profile_")
 public class Profile implements IProfile {
 
+    private final DiscordSRV discordSRV;
     private final UUID playerUUID;
     private final Long userId;
 
-    public Profile(UUID playerUUID, Long userId) {
+    public Profile(DiscordSRV discordSRV, UUID playerUUID, Long userId) {
+        this.discordSRV = discordSRV;
         this.playerUUID = playerUUID;
         this.userId = userId;
     }
 
+    @Placeholder("player_uuid")
     @Override
     public @Nullable UUID playerUUID() {
         return playerUUID;
     }
 
+    @Placeholder("user_id")
     @Override
     public @Nullable Long userId() {
         return userId;
+    }
+
+    @Placeholder("player")
+    @Nullable
+    public IPlayer player() {
+        if (playerUUID == null) {
+            return null;
+        }
+        return discordSRV.playerProvider().player(playerUUID);
+    }
+
+    @Placeholder("offline_player")
+    public Task<@Nullable IOfflinePlayer> linkedOfflinePlayer() {
+        if (playerUUID == null) {
+            return Task.completed(null);
+        }
+        return discordSRV.playerProvider().lookupOfflinePlayer(playerUUID);
+    }
+
+    @Placeholder("user")
+    public Task<@Nullable DiscordUser> linkedUser() {
+        if (userId == null) {
+            return Task.completed(null);
+        }
+        return discordSRV.discordAPI().retrieveUserById(userId);
     }
 }

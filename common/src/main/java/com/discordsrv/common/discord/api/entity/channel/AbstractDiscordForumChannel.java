@@ -18,6 +18,7 @@
 
 package com.discordsrv.common.discord.api.entity.channel;
 
+import com.discordsrv.api.discord.entity.Mentionable;
 import com.discordsrv.api.discord.entity.channel.DiscordChannel;
 import com.discordsrv.api.discord.entity.channel.DiscordThreadChannel;
 import com.discordsrv.api.discord.entity.channel.DiscordThreadContainer;
@@ -36,7 +37,8 @@ import java.util.List;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
-public abstract class AbstractDiscordForumChannel<PC extends IPostContainer> implements DiscordChannel, DiscordThreadContainer {
+public abstract class AbstractDiscordForumChannel<PC extends IPostContainer>
+        implements DiscordChannel, DiscordThreadContainer, Mentionable {
 
     protected final DiscordSRV discordSRV;
     protected final PC channel;
@@ -51,6 +53,11 @@ public abstract class AbstractDiscordForumChannel<PC extends IPostContainer> imp
     @Override
     public long getId() {
         return channel.getIdLong();
+    }
+
+    @Override
+    public String getAsMention() {
+        return channel.getAsMention();
     }
 
     @Override

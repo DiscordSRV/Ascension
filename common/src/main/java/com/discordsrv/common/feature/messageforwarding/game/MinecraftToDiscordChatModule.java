@@ -163,6 +163,7 @@ public class MinecraftToDiscordChatModule extends AbstractGameMessageModule<Mine
         return format.setAllowedMentions(allowedMentions)
                 .toFormatter()
                 .addContext(context)
+                .addContext(guild)
                 .addPlaceholder("message", () -> {
                     String content = PlainPlaceholderFormat.supplyWith(
                             PlainPlaceholderFormat.Formatting.DISCORD,

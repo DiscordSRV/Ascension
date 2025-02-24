@@ -24,11 +24,12 @@
 package com.discordsrv.api.discord.entity.channel;
 
 import com.discordsrv.api.discord.entity.JDAEntity;
+import com.discordsrv.api.discord.entity.Mentionable;
 import com.discordsrv.api.discord.entity.message.SendableDiscordMessage;
 import com.discordsrv.api.task.Task;
 import net.dv8tion.jda.api.entities.channel.concrete.ForumChannel;
 
-public interface DiscordForumChannel extends DiscordChannel, DiscordThreadContainer, JDAEntity<ForumChannel> {
+public interface DiscordForumChannel extends DiscordChannel, DiscordThreadContainer, Mentionable, JDAEntity<ForumChannel> {
 
     Task<DiscordThreadChannel> createPost(String name, SendableDiscordMessage message);
 }

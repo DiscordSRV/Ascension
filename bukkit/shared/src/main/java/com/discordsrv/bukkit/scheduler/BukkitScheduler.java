@@ -68,6 +68,11 @@ public class BukkitScheduler extends StandardScheduler implements ServerSchedule
         checkDisable(task, (server, plugin) -> server.getScheduler().runTaskTimer(plugin, task, initialTicks, rateTicks));
     }
 
+    @Override
+    public boolean isServerThread() {
+        return discordSRV.server().isPrimaryThread();
+    }
+
     public void runOnMainThread(CommandSender sender, Runnable task) {
         runOnMainThread(task);
     }

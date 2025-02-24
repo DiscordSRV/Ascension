@@ -96,5 +96,4 @@ public interface ServerScheduler extends Scheduler {
      */
     void runOnMainThreadAtFixedRateInTicks(@NotNull Runnable task, int initialTicks, int rateTicks);
 
-
 }

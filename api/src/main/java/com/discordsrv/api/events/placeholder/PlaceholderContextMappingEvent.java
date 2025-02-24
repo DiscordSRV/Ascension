@@ -43,7 +43,7 @@ public class PlaceholderContextMappingEvent implements Event {
     public <T> void map(Class<T> type, Function<T, ?> mappingFunction) {
         for (int i = 0; i < contexts.size(); i++) {
             Object context = contexts.get(i);
-            if (context.getClass().isAssignableFrom(type)) {
+            if (type.isAssignableFrom(context.getClass())) {
                 contexts.set(i, mappingFunction.apply((T) context));
             }
         }

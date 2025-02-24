@@ -21,6 +21,7 @@ package com.discordsrv.common.discord.api.entity.guild;
 import com.discordsrv.api.color.Color;
 import com.discordsrv.api.discord.entity.guild.DiscordGuild;
 import com.discordsrv.api.discord.entity.guild.DiscordRole;
+import com.discordsrv.api.placeholder.format.FormattedText;
 import com.discordsrv.common.DiscordSRV;
 import net.dv8tion.jda.api.entities.Role;
 import org.jetbrains.annotations.NotNull;
@@ -65,8 +66,8 @@ public class DiscordRoleImpl implements DiscordRole {
     }
 
     @Override
-    public String getAsMention() {
-        return role.getAsMention();
+    public FormattedText getAsMention() {
+        return FormattedText.of(role.getAsMention());
     }
 
     @Override

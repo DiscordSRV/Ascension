@@ -20,14 +20,21 @@ package com.discordsrv.common.discord.api.entity;
 
 import com.discordsrv.api.discord.entity.DiscordUser;
 import com.discordsrv.api.discord.entity.channel.DiscordDMChannel;
+import com.discordsrv.api.placeholder.annotation.Placeholder;
+import com.discordsrv.api.placeholder.annotation.PlaceholderPrefix;
+import com.discordsrv.api.placeholder.format.FormattedText;
 import com.discordsrv.api.task.Task;
 import com.discordsrv.common.DiscordSRV;
+import com.discordsrv.common.abstraction.player.IOfflinePlayer;
+import com.discordsrv.common.abstraction.player.IPlayer;
 import com.discordsrv.common.discord.api.entity.channel.DiscordDMChannelImpl;
+import com.discordsrv.common.feature.profile.Profile;
 import net.dv8tion.jda.api.JDA;
 import net.dv8tion.jda.api.entities.User;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+@PlaceholderPrefix("user_")
 public class DiscordUserImpl implements DiscordUser {
 
     protected final DiscordSRV discordSRV;
@@ -38,6 +45,23 @@ public class DiscordUserImpl implements DiscordUser {
         this.discordSRV = discordSRV;
         this.user = user;
         this.self = user.getIdLong() == user.getJDA().getSelfUser().getIdLong();
+    }
+
+    @Placeholder("profile")
+    public Task<@NotNull Profile> profile() {
+        return discordSRV.profileManager().lookupProfile(user.getIdLong());
+    }
+
+    @Placeholder("linked_player")
+    public Task<@Nullable IPlayer> linkedPlayer() {
+        return profile().thenApply(profile -> profile.isLinked() ? profile.playerUUID() : null)
+                .thenApply(playerUUID -> discordSRV.playerProvider().player(playerUUID));
+    }
+
+    @Placeholder("linked_offline_player")
+    public Task<@Nullable IOfflinePlayer> linkedOfflinePlayer() {
+        return profile().thenApply(profile -> profile.isLinked() ? profile.playerUUID() : null)
+                .then(playerUUID -> discordSRV.playerProvider().lookupOfflinePlayer(playerUUID));
     }
 
     @Override
@@ -88,13 +112,13 @@ public class DiscordUserImpl implements DiscordUser {
         }
 
         return discordSRV.discordAPI().toTask(() -> jda.retrieveUserById(getId()))
-                .then(user -> discordSRV.discordAPI().toTask(() -> user.openPrivateChannel()))
+                .then(user -> discordSRV.discordAPI().toTask(user::openPrivateChannel))
                 .thenApply(privateChannel -> new DiscordDMChannelImpl(discordSRV, privateChannel));
     }
 
     @Override
-    public String getAsMention() {
-        return user.getAsMention();
+    public FormattedText getAsMention() {
+        return FormattedText.of(user.getAsMention());
     }
 
     @Override

@@ -153,4 +153,11 @@ public interface Scheduler {
     @NotNull
     ScheduledFuture<?> runAtFixedRate(@NotNull Runnable task, Duration initialDelay, Duration rate);
 
+    /**
+     * Is the current thread server thread.
+     *
+     * @return {@code true} if the current thread is a server thread
+     */
+    boolean isServerThread();
+
 }
