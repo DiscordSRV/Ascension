@@ -90,6 +90,7 @@ import com.discordsrv.common.feature.messageforwarding.discord.DiscordChatMessag
 import com.discordsrv.common.feature.messageforwarding.discord.DiscordMessageMirroringModule;
 import com.discordsrv.common.feature.messageforwarding.game.*;
 import com.discordsrv.common.feature.nicknamesync.NicknameSyncModule;
+import com.discordsrv.common.feature.onlinesync.OnlineSyncModule;
 import com.discordsrv.common.feature.profile.Profile;
 import com.discordsrv.common.feature.profile.ProfileManager;
 import com.discordsrv.common.feature.update.UpdateChecker;
@@ -739,6 +740,7 @@ public abstract class AbstractDiscordSRV<
         registerModule(MentionGameRenderingModule::new);
         registerModule(CustomCommandModule::new);
         registerModule(NicknameSyncModule::new);
+        registerModule(OnlineSyncModule::new);
 
         if (serverType() == ServerType.PROXY) {
             registerModule(ServerSwitchMessageModule::new);
