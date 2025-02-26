@@ -73,6 +73,11 @@ public abstract class BukkitPlayer extends BukkitCommandSender implements IPlaye
     public abstract Locale locale();
 
     @Override
+    public @NotNull String world() {
+        return player.getWorld().getName();
+    }
+
+    @Override
     public @NotNull Component displayName() {
         return BukkitComponentSerializer.legacy().deserialize(player.getDisplayName());
     }
