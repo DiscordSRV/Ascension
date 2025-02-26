@@ -117,8 +117,10 @@ public class OnlineSyncModule extends AbstractSyncModule<DiscordSRV, OnlineSyncC
             return Task.failed(new SyncFail(OnlineSyncResult.PLAYER_NOT_ONLINE));
         }
 
-        if (config.conditionName.equalsIgnoreCase("online")) return Task.completed(!discordSRV.isShutdown());
-        else return Task.completed(config.conditionName.equalsIgnoreCase(player.world()));
+        return Task.completed(config.conditionName.equalsIgnoreCase("online")
+                ? !discordSRV.isShutdown()
+                : config.conditionName.equalsIgnoreCase(player.world())
+        );
     }
 
     @Override
@@ -133,7 +135,9 @@ public class OnlineSyncModule extends AbstractSyncModule<DiscordSRV, OnlineSyncC
         }
 
         return role.getGuild().retrieveMemberById(userId)
-                .then(member -> Boolean.TRUE.equals(newState) ? member.addRole(role).thenApply(v -> (ISyncResult) GenericSyncResults.ADD_DISCORD) : member.removeRole(role).thenApply(v -> GenericSyncResults.REMOVE_DISCORD))
+                .then(member -> Boolean.TRUE.equals(newState)
+                        ? member.addRole(role).thenApply(v -> (ISyncResult) GenericSyncResults.ADD_DISCORD)
+                        : member.removeRole(role).thenApply(v -> GenericSyncResults.REMOVE_DISCORD))
                 .mapException(RestErrorResponseException.class, t -> {
                     if (t.getErrorCode() == ErrorResponse.UNKNOWN_MEMBER.getCode()) {
                         throw new SyncFail(OnlineSyncResult.NOT_A_GUILD_MEMBER);
