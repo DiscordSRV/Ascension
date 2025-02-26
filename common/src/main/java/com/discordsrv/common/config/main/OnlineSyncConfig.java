@@ -19,46 +19,87 @@
 package com.discordsrv.common.config.main;
 
 import com.discordsrv.common.abstraction.sync.enums.SyncDirection;
+import com.discordsrv.common.config.configurate.annotation.Order;
 import com.discordsrv.common.config.main.generic.AbstractSyncConfig;
-import com.discordsrv.common.util.Game;
+import com.discordsrv.common.config.main.generic.SyncConfig;
+import org.spongepowered.configurate.objectmapping.ConfigSerializable;
 import org.spongepowered.configurate.objectmapping.meta.Comment;
 
-public class OnlineSyncConfig extends AbstractSyncConfig<OnlineSyncConfig, Game, Long> {
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 
-    public OnlineSyncConfig() {
-        // Change defaults
-        timer.enabled = false;
-        direction = SyncDirection.MINECRAFT_TO_DISCORD;
+@ConfigSerializable
+public class OnlineSyncConfig {
+
+    @Comment("Condition-Role pairs for online synchronization")
+    public List<SetConfig> sets = new ArrayList<>(Collections.singletonList(new SetConfig()));
+
+    public List<Entry> getEntries() {
+        List<Entry> entries = new ArrayList<>();
+        for (SetConfig set : sets) {
+            for (PairConfig pair : set.pairs) {
+                entries.add(new Entry(
+                        pair.conditionName,
+                        pair.roleId
+                ));
+            }
+        }
+        return entries;
     }
 
-    @Comment("The id for the Discord server where the online role should be synced to")
-    public long serverId = 0L;
+    @ConfigSerializable
+    public static class SetConfig extends SyncConfig {
 
-    @Comment("The id for the Discord role that should be synced to the online linked players")
-    public long roleId = 0L;
-
-    @Override
-    public boolean isSet() {
-        return serverId != 0L && roleId != 0L;
+        @Comment("The pairs of case-sensitive condition (online or world name) names and Discord role ids")
+        @Order(1)
+        public List<PairConfig> pairs = new ArrayList<>(Collections.singletonList(new PairConfig()));
     }
 
-    @Override
-    public Game gameId() {
-        return Game.INSTANCE;
+    @ConfigSerializable
+    public static class PairConfig {
+
+        public String conditionName = "online";
+        public Long roleId = 0L;
     }
 
-    @Override
-    public Long discordId() {
-        return serverId;
-    }
+    public static class Entry extends AbstractSyncConfig<Entry, String, Long> {
 
-    @Override
-    public boolean isSameAs(OnlineSyncConfig otherConfig) {
-        return false;
-    }
+        public final String conditionName;
+        public final long roleId;
 
-    @Override
-    public String describe() {
-        return Long.toUnsignedString(serverId);
+        public Entry(String conditionName, long roleId) {
+            // Change defaults
+            timer.enabled = false;
+            direction = SyncDirection.MINECRAFT_TO_DISCORD;
+
+            this.conditionName = conditionName;
+            this.roleId = roleId;
+        }
+
+        @Override
+        public boolean isSet() {
+            return roleId != 0L && !conditionName.isEmpty();
+        }
+
+        @Override
+        public String gameId() {
+            return conditionName;
+        }
+
+        @Override
+        public Long discordId() {
+            return roleId;
+        }
+
+        @Override
+        public boolean isSameAs(Entry otherConfig) {
+            return false;
+        }
+
+        @Override
+        public String describe() {
+            return Long.toUnsignedString(roleId);
+        }
     }
 }

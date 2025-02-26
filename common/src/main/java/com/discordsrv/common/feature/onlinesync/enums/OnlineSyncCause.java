@@ -23,6 +23,7 @@ import com.discordsrv.common.abstraction.sync.cause.ISyncCause;
 public enum OnlineSyncCause implements ISyncCause {
 
     PLAYER_LEFT_SERVER("Player left the server"),
+    PLAYER_CHANGED_WORLD("Player changed world"),
     PLAYER_JOINED_SERVER("Player joined the server"),
     SERVER_STARTUP("Server is starting up"),
     SERVER_SHUTDOWN("Server is shutting down"),
