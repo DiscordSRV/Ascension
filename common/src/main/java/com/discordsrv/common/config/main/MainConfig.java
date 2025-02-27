@@ -102,7 +102,7 @@ public abstract class MainConfig implements Config {
     public BanSyncConfig banSync = new BanSyncConfig();
 
     @Comment("Configuration options for online role synchronization")
-    public OnlineSyncConfig onlineSync = new OnlineSyncConfig();
+    public OnlineRoleConfig onlineSync = new OnlineRoleConfig();
 
     @Comment("In-game command configuration")
     public GameCommandConfig gameCommand = new GameCommandConfig();

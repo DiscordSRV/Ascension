@@ -30,7 +30,7 @@ import java.util.Collections;
 import java.util.List;
 
 @ConfigSerializable
-public class OnlineSyncConfig {
+public class OnlineRoleConfig {
 
     public List<Entry> getEntries() {
         List<Entry> entries = new ArrayList<>();

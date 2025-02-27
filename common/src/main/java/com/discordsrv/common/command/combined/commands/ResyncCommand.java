@@ -36,7 +36,7 @@ import com.discordsrv.common.command.game.abstraction.command.GameCommand;
 import com.discordsrv.common.feature.bansync.BanSyncModule;
 import com.discordsrv.common.feature.groupsync.GroupSyncModule;
 import com.discordsrv.common.feature.nicknamesync.NicknameSyncModule;
-import com.discordsrv.common.feature.onlinesync.OnlineSyncModule;
+import com.discordsrv.common.feature.onlinerole.OnlineRoleModule;
 import com.discordsrv.common.helper.Someone;
 import com.discordsrv.common.permission.game.Permissions;
 import net.kyori.adventure.text.format.NamedTextColor;
@@ -131,7 +131,7 @@ public class ResyncCommand extends CombinedCommand {
                 module = discordSRV.getModule(NicknameSyncModule.class);
                 break;
             case "online":
-                module = discordSRV.getModule(OnlineSyncModule.class);
+                module = discordSRV.getModule(OnlineRoleModule.class);
                 break;
             default:
                 execution.send(new Text("Unexpected type"));

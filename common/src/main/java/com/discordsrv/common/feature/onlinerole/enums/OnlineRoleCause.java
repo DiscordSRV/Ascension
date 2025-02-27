@@ -16,11 +16,11 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package com.discordsrv.common.feature.onlinesync.enums;
+package com.discordsrv.common.feature.onlinerole.enums;
 
 import com.discordsrv.common.abstraction.sync.cause.ISyncCause;
 
-public enum OnlineSyncCause implements ISyncCause {
+public enum OnlineRoleCause implements ISyncCause {
 
     PLAYER_LEFT_SERVER("Player left the server"),
     PLAYER_CHANGED_WORLD("Player changed world"),
@@ -31,7 +31,7 @@ public enum OnlineSyncCause implements ISyncCause {
 
     private final String prettyCause;
 
-    OnlineSyncCause(String prettyCause) {
+    OnlineRoleCause(String prettyCause) {
         this.prettyCause = prettyCause;
     }
 

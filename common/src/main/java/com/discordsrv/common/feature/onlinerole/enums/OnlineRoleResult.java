@@ -16,11 +16,11 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package com.discordsrv.common.feature.onlinesync.enums;
+package com.discordsrv.common.feature.onlinerole.enums;
 
 import com.discordsrv.common.abstraction.sync.result.ISyncResult;
 
-public enum OnlineSyncResult implements ISyncResult {
+public enum OnlineRoleResult implements ISyncResult {
 
     // Fail
     NOT_A_GUILD_MEMBER("User is not part of the server the role is in", true),
@@ -35,11 +35,11 @@ public enum OnlineSyncResult implements ISyncResult {
     private final String format;
     private final boolean success;
 
-    OnlineSyncResult(String format) {
+    OnlineRoleResult(String format) {
         this(format, false);
     }
 
-    OnlineSyncResult(String format, boolean success) {
+    OnlineRoleResult(String format, boolean success) {
         this.format = format;
         this.success = success;
     }

@@ -16,7 +16,7 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package com.discordsrv.common.feature.onlinesync;
+package com.discordsrv.common.feature.onlinerole;
 
 import com.discordsrv.api.discord.entity.guild.DiscordRole;
 import com.discordsrv.api.discord.exception.RestErrorResponseException;
@@ -31,12 +31,12 @@ import com.discordsrv.common.abstraction.sync.AbstractSyncModule;
 import com.discordsrv.common.abstraction.sync.SyncFail;
 import com.discordsrv.common.abstraction.sync.result.GenericSyncResults;
 import com.discordsrv.common.abstraction.sync.result.ISyncResult;
-import com.discordsrv.common.config.main.OnlineSyncConfig;
+import com.discordsrv.common.config.main.OnlineRoleConfig;
 import com.discordsrv.common.events.player.PlayerChangedWorldEvent;
 import com.discordsrv.common.events.player.PlayerConnectedEvent;
 import com.discordsrv.common.events.player.PlayerDisconnectedEvent;
-import com.discordsrv.common.feature.onlinesync.enums.OnlineSyncCause;
-import com.discordsrv.common.feature.onlinesync.enums.OnlineSyncResult;
+import com.discordsrv.common.feature.onlinerole.enums.OnlineRoleCause;
+import com.discordsrv.common.feature.onlinerole.enums.OnlineRoleResult;
 import com.discordsrv.common.feature.profile.Profile;
 import com.discordsrv.common.helper.Someone;
 import net.dv8tion.jda.api.JDA;
@@ -55,9 +55,9 @@ import java.util.stream.Collectors;
 /**
  * The game id is the condition name. The long is the user ID of the Discord user, the boolean is if they meet the condition in Minecraft.
  */
-public class OnlineSyncModule extends AbstractSyncModule<DiscordSRV, OnlineSyncConfig.Entry, String, Long, Boolean> {
+public class OnlineRoleModule extends AbstractSyncModule<DiscordSRV, OnlineRoleConfig.Entry, String, Long, Boolean> {
 
-    public OnlineSyncModule(DiscordSRV discordSRV) {
+    public OnlineRoleModule(DiscordSRV discordSRV) {
         super(discordSRV, "ONLINE_SYNC");
     }
 
@@ -82,7 +82,7 @@ public class OnlineSyncModule extends AbstractSyncModule<DiscordSRV, OnlineSyncC
     }
 
     @Override
-    protected List<OnlineSyncConfig.Entry> configs() {
+    protected List<OnlineRoleConfig.Entry> configs() {
         return discordSRV.config().onlineSync.getEntries();
     }
 
@@ -95,20 +95,20 @@ public class OnlineSyncModule extends AbstractSyncModule<DiscordSRV, OnlineSyncC
     }
 
     @Override
-    protected Task<Boolean> getDiscord(OnlineSyncConfig.Entry config, long userId) {
+    protected Task<Boolean> getDiscord(OnlineRoleConfig.Entry config, long userId) {
         DiscordRole role = discordSRV.discordAPI().getRoleById(config.roleId);
         if (role == null) {
-            return Task.failed(new SyncFail(OnlineSyncResult.ROLE_DOESNT_EXIST));
+            return Task.failed(new SyncFail(OnlineRoleResult.ROLE_DOESNT_EXIST));
         }
 
         if (!role.getGuild().getSelfMember().canInteract(role)) {
-            return Task.failed(new SyncFail(OnlineSyncResult.ROLE_CANNOT_INTERACT));
+            return Task.failed(new SyncFail(OnlineRoleResult.ROLE_CANNOT_INTERACT));
         }
 
         return role.getGuild().retrieveMemberById(userId)
                 .mapException(RestErrorResponseException.class, t -> {
                     if (t.getErrorCode() == ErrorResponse.UNKNOWN_MEMBER.getCode()) {
-                        throw new SyncFail(OnlineSyncResult.NOT_A_GUILD_MEMBER);
+                        throw new SyncFail(OnlineRoleResult.NOT_A_GUILD_MEMBER);
                     }
                     throw t;
                 })
@@ -116,11 +116,11 @@ public class OnlineSyncModule extends AbstractSyncModule<DiscordSRV, OnlineSyncC
     }
 
     @Override
-    protected Task<Boolean> getGame(OnlineSyncConfig.Entry config, UUID playerUUID) {
+    protected Task<Boolean> getGame(OnlineRoleConfig.Entry config, UUID playerUUID) {
         DiscordSRVPlayer player = discordSRV.playerProvider().player(playerUUID);
         
         if (player == null) {
-            return Task.failed(new SyncFail(OnlineSyncResult.PLAYER_NOT_ONLINE));
+            return Task.failed(new SyncFail(OnlineRoleResult.PLAYER_NOT_ONLINE));
         }
 
         return Task.completed(config.conditionName.equalsIgnoreCase("online")
@@ -130,14 +130,14 @@ public class OnlineSyncModule extends AbstractSyncModule<DiscordSRV, OnlineSyncC
     }
 
     @Override
-    protected Task<ISyncResult> applyDiscord(OnlineSyncConfig.Entry config, long userId, @Nullable Boolean newState) {
+    protected Task<ISyncResult> applyDiscord(OnlineRoleConfig.Entry config, long userId, @Nullable Boolean newState) {
         DiscordRole role = discordSRV.discordAPI().getRoleById(config.roleId);
         if (role == null) {
-            return Task.completed(OnlineSyncResult.ROLE_DOESNT_EXIST);
+            return Task.completed(OnlineRoleResult.ROLE_DOESNT_EXIST);
         }
 
         if (!role.getGuild().getSelfMember().canInteract(role)) {
-            return Task.completed(OnlineSyncResult.ROLE_CANNOT_INTERACT);
+            return Task.completed(OnlineRoleResult.ROLE_CANNOT_INTERACT);
         }
 
         return role.getGuild().retrieveMemberById(userId)
@@ -146,7 +146,7 @@ public class OnlineSyncModule extends AbstractSyncModule<DiscordSRV, OnlineSyncC
                         : member.removeRole(role).thenApply(v -> GenericSyncResults.REMOVE_DISCORD))
                 .mapException(RestErrorResponseException.class, t -> {
                     if (t.getErrorCode() == ErrorResponse.UNKNOWN_MEMBER.getCode()) {
-                        throw new SyncFail(OnlineSyncResult.NOT_A_GUILD_MEMBER);
+                        throw new SyncFail(OnlineRoleResult.NOT_A_GUILD_MEMBER);
                     }
                     if (t.getErrorCode() == ErrorResponse.MISSING_PERMISSIONS.getCode()) {
                         throw new SyncFail(GenericSyncResults.MEMBER_CANNOT_INTERACT);
@@ -156,23 +156,23 @@ public class OnlineSyncModule extends AbstractSyncModule<DiscordSRV, OnlineSyncC
     }
 
     @Override
-    protected Task<ISyncResult> applyGame(OnlineSyncConfig.Entry config, UUID playerUUID, @Nullable Boolean newState) {
+    protected Task<ISyncResult> applyGame(OnlineRoleConfig.Entry config, UUID playerUUID, @Nullable Boolean newState) {
         return Task.completed(GenericSyncResults.WRONG_DIRECTION);
     }
 
     @Override
     public void onPlayerConnected(PlayerConnectedEvent event) {
-        resyncAll(OnlineSyncCause.PLAYER_JOINED_SERVER, Someone.of(event.player().uniqueId()));
+        resyncAll(OnlineRoleCause.PLAYER_JOINED_SERVER, Someone.of(event.player().uniqueId()));
     }
 
     @Subscribe
     public void onPlayerChangeWorld(PlayerChangedWorldEvent event) {
-        resyncAll(OnlineSyncCause.PLAYER_CHANGED_WORLD, Someone.of(event.player().uniqueId()));
+        resyncAll(OnlineRoleCause.PLAYER_CHANGED_WORLD, Someone.of(event.player().uniqueId()));
     }
 
     @Subscribe
     public void onPlayerDisconnected(PlayerDisconnectedEvent event) {
-        resyncAll(OnlineSyncCause.PLAYER_LEFT_SERVER, Someone.of(event.player().uniqueId()));
+        resyncAll(OnlineRoleCause.PLAYER_LEFT_SERVER, Someone.of(event.player().uniqueId()));
     }
 
     @Subscribe
@@ -183,7 +183,7 @@ public class OnlineSyncModule extends AbstractSyncModule<DiscordSRV, OnlineSyncC
         }
 
         HashMap<Member, ArrayList<Role>> pairs = new HashMap<>();
-        for (OnlineSyncConfig.Entry config : configs()) {
+        for (OnlineRoleConfig.Entry config : configs()) {
             DiscordRole role = discordSRV.discordAPI().getRoleById(config.roleId);
             if (role == null) {
                 return;
@@ -219,7 +219,7 @@ public class OnlineSyncModule extends AbstractSyncModule<DiscordSRV, OnlineSyncC
             }
         }
 
-        for (OnlineSyncConfig.Entry config : configs()) {
+        for (OnlineRoleConfig.Entry config : configs()) {
             DiscordRole role = discordSRV.discordAPI().getRoleById(config.roleId);
             if (role == null) {
                 return;
@@ -229,7 +229,7 @@ public class OnlineSyncModule extends AbstractSyncModule<DiscordSRV, OnlineSyncC
             role.getGuild().asJDA().getMembersWithRoles(role.asJDA()).stream().map(Member::getIdLong).filter(
                     userId -> onlineProfiles.stream().noneMatch(profile -> Objects.equals(profile.userId(), userId))
             ).forEach(userId -> gameChanged(
-                    OnlineSyncCause.SERVER_STARTUP,
+                    OnlineRoleCause.SERVER_STARTUP,
                     Someone.of(userId),
                     config.conditionName,
                     false
