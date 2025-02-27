@@ -39,12 +39,18 @@ import com.discordsrv.common.feature.onlinesync.enums.OnlineSyncCause;
 import com.discordsrv.common.feature.onlinesync.enums.OnlineSyncResult;
 import com.discordsrv.common.feature.profile.Profile;
 import com.discordsrv.common.helper.Someone;
+import net.dv8tion.jda.api.JDA;
 import net.dv8tion.jda.api.entities.Member;
+import net.dv8tion.jda.api.entities.Role;
 import net.dv8tion.jda.api.requests.ErrorResponse;
+import net.dv8tion.jda.api.requests.RestAction;
+import net.dv8tion.jda.api.utils.Result;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
+import java.util.concurrent.CompletableFuture;
 import java.util.function.Consumer;
+import java.util.stream.Collectors;
 
 /**
  * The game id is the condition name. The long is the user ID of the Discord user, the boolean is if they meet the condition in Minecraft.
@@ -171,23 +177,45 @@ public class OnlineSyncModule extends AbstractSyncModule<DiscordSRV, OnlineSyncC
 
     @Subscribe
     public void onShutdown(DiscordSRVShuttingDownEvent event) {
-        serverChanged(OnlineSyncCause.SERVER_SHUTDOWN, true);
+        JDA jda = discordSRV.jda();
+        if (jda == null) {
+            return;
+        }
+
+        HashMap<Member, ArrayList<Role>> pairs = new HashMap<>();
+        for (OnlineSyncConfig.Entry config : configs()) {
+            DiscordRole role = discordSRV.discordAPI().getRoleById(config.roleId);
+            if (role == null) {
+                return;
+            }
+
+            role.getGuild().asJDA().getMembersWithRoles(role.asJDA()).forEach(member ->
+                    pairs.computeIfAbsent(member, __ -> new ArrayList<>()).add(role.asJDA())
+            );
+        }
+
+        CompletableFuture<Result<List<Void>>> future = RestAction.allOf(pairs.entrySet().stream().map(entry ->
+                entry.getKey().getGuild().modifyMemberRoles(entry.getKey(), Collections.emptyList(), entry.getValue())
+        ).collect(Collectors.toList())).mapToResult().submit();
+
+        try {
+            Result<List<Void>> result = future.get();
+            if (result.isFailure()) throw Objects.requireNonNull(result.getFailure());
+        } catch (Throwable e) {
+            discordSRV.logger().error("Failed to remove online sync roles from all users for server shutdown", e);
+        } finally {
+            discordSRV.logger().info("Removed all online sync roles from all users for server shutdown");
+        }
     }
 
     @Override
     public void reload(Consumer<ReloadResult> resultConsumer) {
         super.reload(resultConsumer);
-        serverChanged(OnlineSyncCause.SERVER_STARTUP, false);
-    }
-
-    protected void serverChanged(OnlineSyncCause cause, boolean skipOnlineCheck) {
         List<Profile> onlineProfiles = new ArrayList<>();
-        if (!skipOnlineCheck) {
-            for (IPlayer player : discordSRV.playerProvider().allPlayers()) {
-                Profile profile = discordSRV.profileManager().getProfile(player.uniqueId());
-                if (profile != null) {
-                    onlineProfiles.add(profile);
-                }
+        for (IPlayer player : discordSRV.playerProvider().allPlayers()) {
+            Profile profile = discordSRV.profileManager().getProfile(player.uniqueId());
+            if (profile != null) {
+                onlineProfiles.add(profile);
             }
         }
 
@@ -201,7 +229,7 @@ public class OnlineSyncModule extends AbstractSyncModule<DiscordSRV, OnlineSyncC
             role.getGuild().asJDA().getMembersWithRoles(role.asJDA()).stream().map(Member::getIdLong).filter(
                     userId -> onlineProfiles.stream().noneMatch(profile -> Objects.equals(profile.userId(), userId))
             ).forEach(userId -> gameChanged(
-                    cause,
+                    OnlineSyncCause.SERVER_STARTUP,
                     Someone.of(userId),
                     config.conditionName,
                     false
