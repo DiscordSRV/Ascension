@@ -45,8 +45,11 @@ public class OnlineSyncConfig {
     }
 
     @Comment("The pairs of case-insensitive condition and Discord role ids\n"
-            + "Valid conditions: %1, %2, %3, %4 and any other custom world names")
-    @Constants.Comment({"online", "overworld", "the_nether", "the_end"})
+            + "Bukkit valid conditions: %1, %2, %3, %4\n"
+            + "Fabric valid conditions: %1, %5, %6, %7\n"
+            + "And any other custom dimension names"
+    )
+    @Constants.Comment({"online", "world", "world_nether", "world_the_end", "overworld", "the_nether", "the_end"})
     @Order(1)
     public List<PairConfig> pairs = new ArrayList<>(Collections.singletonList(new PairConfig()));
 
