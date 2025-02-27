@@ -19,9 +19,9 @@
 package com.discordsrv.common.config.main;
 
 import com.discordsrv.common.abstraction.sync.enums.SyncDirection;
+import com.discordsrv.common.config.configurate.annotation.Constants;
 import com.discordsrv.common.config.configurate.annotation.Order;
 import com.discordsrv.common.config.main.generic.AbstractSyncConfig;
-import com.discordsrv.common.config.main.generic.SyncConfig;
 import org.spongepowered.configurate.objectmapping.ConfigSerializable;
 import org.spongepowered.configurate.objectmapping.meta.Comment;
 
@@ -32,29 +32,23 @@ import java.util.List;
 @ConfigSerializable
 public class OnlineSyncConfig {
 
-    @Comment("Condition-Role pairs for online synchronization")
-    public List<SetConfig> sets = new ArrayList<>(Collections.singletonList(new SetConfig()));
-
     public List<Entry> getEntries() {
         List<Entry> entries = new ArrayList<>();
-        for (SetConfig set : sets) {
-            for (PairConfig pair : set.pairs) {
-                entries.add(new Entry(
-                        pair.conditionName,
-                        pair.roleId
-                ));
-            }
+        for (PairConfig pair : pairs) {
+            entries.add(new Entry(
+                    pair.conditionName,
+                    pair.roleId
+            ));
         }
+
         return entries;
     }
 
-    @ConfigSerializable
-    public static class SetConfig extends SyncConfig {
-
-        @Comment("The pairs of case-sensitive condition (online or world name) names and Discord role ids")
-        @Order(1)
-        public List<PairConfig> pairs = new ArrayList<>(Collections.singletonList(new PairConfig()));
-    }
+    @Comment("The pairs of case-insensitive condition and Discord role ids\n"
+            + "Valid conditions: %1, %2, %3, %4 and any other custom world names")
+    @Constants.Comment({"online", "overworld", "the_nether", "the_end"})
+    @Order(1)
+    public List<PairConfig> pairs = new ArrayList<>(Collections.singletonList(new PairConfig()));
 
     @ConfigSerializable
     public static class PairConfig {
