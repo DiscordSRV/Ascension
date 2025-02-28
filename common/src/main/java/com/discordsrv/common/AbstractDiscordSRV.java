@@ -715,6 +715,7 @@ public abstract class AbstractDiscordSRV<
         placeholderService().addGlobalContext(new DiscordBotContext(this));
         placeholderService().addGlobalContext(new AvatarProviderContext(this));
         placeholderService().addGlobalContext(new DiscordGuildMemberContext());
+        placeholderService().addGlobalContext(new DebugContext(this));
         placeholderService().addGlobalContext(UUIDUtil.class);
         placeholderService().addGlobalContext(BooleanFormattingContext.class);
 
