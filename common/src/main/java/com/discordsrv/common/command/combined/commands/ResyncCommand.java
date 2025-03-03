@@ -35,6 +35,8 @@ import com.discordsrv.common.command.combined.abstraction.Text;
 import com.discordsrv.common.command.game.abstraction.command.GameCommand;
 import com.discordsrv.common.feature.bansync.BanSyncModule;
 import com.discordsrv.common.feature.groupsync.GroupSyncModule;
+import com.discordsrv.common.feature.nicknamesync.NicknameSyncModule;
+import com.discordsrv.common.feature.onlinesync.OnlineSyncModule;
 import com.discordsrv.common.helper.Someone;
 import com.discordsrv.common.permission.game.Permissions;
 import net.kyori.adventure.text.format.NamedTextColor;
@@ -83,6 +85,8 @@ public class ResyncCommand extends CombinedCommand {
                             CommandOption.builder(CommandOption.Type.STRING, "type", "The type of sync to run")
                                     .addChoice("Group Sync", "group")
                                     .addChoice("Ban Sync", "ban")
+                                    .addChoice("Nickname Sync", "nickname")
+                                    .addChoice("Online Sync", "online")
                                     .build()
                     )
                     .setEventHandler(command)
@@ -102,7 +106,7 @@ public class ResyncCommand extends CombinedCommand {
             return Collections.emptyList();
         }
 
-        return Stream.of("ban", "group")
+        return Stream.of("ban", "group", "nickname", "online")
                 .filter(command -> command.toLowerCase(Locale.ROOT).startsWith(input.toLowerCase(Locale.ROOT)))
                 .collect(Collectors.toList());
     }
@@ -122,6 +126,12 @@ public class ResyncCommand extends CombinedCommand {
                 break;
             case "ban":
                 module = discordSRV.getModule(BanSyncModule.class);
+                break;
+            case "nickname":
+                module = discordSRV.getModule(NicknameSyncModule.class);
+                break;
+            case "online":
+                module = discordSRV.getModule(OnlineSyncModule.class);
                 break;
             default:
                 execution.send(new Text("Unexpected type"));

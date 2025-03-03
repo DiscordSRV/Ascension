@@ -60,6 +60,13 @@ public interface DiscordSRVPlayer {
     Locale locale();
 
     /**
+     * The world the player is currently in.
+     * @return the player's world, or {@code null} if it isn't known
+     */
+    @Nullable
+    String world();
+
+    /**
      * Sends the provided message to the player.
      * @param component the message
      */
