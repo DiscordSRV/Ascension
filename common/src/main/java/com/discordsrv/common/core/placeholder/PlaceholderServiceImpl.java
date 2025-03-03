@@ -217,14 +217,17 @@ public class PlaceholderServiceImpl implements PlaceholderService {
     private String getReplacement(Pattern pattern, String input, Set<Object> context) {
         Matcher matcher = pattern.matcher(input);
 
-        String output = input;
+        StringBuffer output = new StringBuffer();
+        int lastEnd = -1;
         while (matcher.find()) {
             String placeholder = getPlaceholder(matcher);
-
             Object result = getResult(placeholder, context, matcher);
-            output = updateContent(result, placeholder, matcher, output);
+            String resultAsString = getResultAsCharSequence(result).toString();
+
+            matcher.appendReplacement(output, Matcher.quoteReplacement(resultAsString));
+            lastEnd = matcher.end();
         }
-        return output;
+        return lastEnd == -1 ? input : output.toString();
     }
 
     @Override
@@ -271,16 +274,6 @@ public class PlaceholderServiceImpl implements PlaceholderService {
         }
 
         return output instanceof CharSequence ? (CharSequence) output : String.valueOf(output != null ? output : result);
-    }
-
-    private String updateContent(Object result, String placeholder, Matcher matcher, String input) {
-        CharSequence output = getResultAsCharSequence(result);
-        return Pattern.compile(
-                matcher.group(1) + placeholder + matcher.group(3),
-                Pattern.LITERAL
-        )
-                .matcher(input)
-                .replaceFirst(Matcher.quoteReplacement(output.toString()));
     }
 
     private Object getResult(String placeholder, Set<Object> context, Matcher matcher) {

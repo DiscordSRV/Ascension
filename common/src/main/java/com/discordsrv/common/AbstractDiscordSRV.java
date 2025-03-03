@@ -695,7 +695,9 @@ public abstract class AbstractDiscordSRV<
         placeholderService().addResultMapper(new ComponentResultStringifier(this));
 
         placeholderService().addReLookup(Boolean.class, "boolean");
+        placeholderService().addReLookup(CharSequence.class, "stringformat");
         placeholderService().addReLookup(UUID.class, "uuid");
+        placeholderService().addReLookup(Number.class, "numberformat");
         placeholderService().addReLookup(TemporalAccessor.class, "date");
         placeholderService().addReLookup(Color.class, "color");
         placeholderService().addReLookup(Profile.class, "profile");
@@ -710,14 +712,16 @@ public abstract class AbstractDiscordSRV<
 
         placeholderService().addGlobalContext(new TextHandlingContext(this));
         placeholderService().addGlobalContext(new DateFormattingContext(this));
+        placeholderService().addGlobalContext(new NumberFormattingContext(this));
         placeholderService().addGlobalContext(new GamePermissionContext(this));
         placeholderService().addGlobalContext(new ReceivedDiscordMessageContext(this));
         placeholderService().addGlobalContext(new DiscordBotContext(this));
         placeholderService().addGlobalContext(new AvatarProviderContext(this));
         placeholderService().addGlobalContext(new DiscordGuildMemberContext());
         placeholderService().addGlobalContext(new DebugContext(this));
-        placeholderService().addGlobalContext(UUIDUtil.class);
         placeholderService().addGlobalContext(BooleanFormattingContext.class);
+        placeholderService().addGlobalContext(StringFormattingContext.class);
+        placeholderService().addGlobalContext(UUIDUtil.class);
 
         // Modules
         registerModule(BanSyncModule::new);

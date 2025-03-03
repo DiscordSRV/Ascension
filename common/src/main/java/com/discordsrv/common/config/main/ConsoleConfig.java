@@ -45,7 +45,7 @@ public class ConsoleConfig {
     public static class Appender {
 
         @Comment("The format for log lines")
-        public String lineFormat = "[%log_time:'ccc HH:mm:ss zzz'%] [%log_level%] [%logger_name%] %message%";
+        public String lineFormat = "[%log_time:'ccc HH:mm:ss zzz'%] [%log_level%]%logger_name:' [\\%s]'% %message%";
 
         @Comment("The mode for the console output, available options are:\n"
                 + "- off: Turn off console appending\n"
