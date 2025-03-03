@@ -62,6 +62,11 @@ public class AnnotationPlaceholderProvider implements PlaceholderProvider {
         this.field = field;
     }
 
+    public int priority() {
+        // Longer placeholders will be checked first, to avoid conflicts with placeholders that start with the same string
+        return -checkString.length();
+    }
+
     @Override
     public @NotNull PlaceholderLookupResult lookup(@NotNull String placeholder, @NotNull Set<Object> context) {
         if (this.annotationPlaceholder.isEmpty()) {

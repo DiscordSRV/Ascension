@@ -58,7 +58,7 @@ public class PlaceholderServiceImpl implements PlaceholderService {
 
     private final DiscordSRV discordSRV;
     private final Logger logger;
-    private final LoadingCache<Class<?>, Set<PlaceholderProvider>> classProviders;
+    private final LoadingCache<Class<?>, List<AnnotationPlaceholderProvider>> classProviders;
     private final Set<PlaceholderResultMapper> mappers = new CopyOnWriteArraySet<>();
     private final List<Pair<Class<?>, String>> reLookups = new ArrayList<>();
     private final Set<Object> globalContext = new CopyOnWriteArraySet<>();
@@ -118,7 +118,7 @@ public class PlaceholderServiceImpl implements PlaceholderService {
                 }
             }
 
-            Set<PlaceholderProvider> providers = classProviders
+            List<AnnotationPlaceholderProvider> providers = classProviders
                     .get(context instanceof Class
                          ? (Class<?>) context
                          : context.getClass());
@@ -227,7 +227,12 @@ public class PlaceholderServiceImpl implements PlaceholderService {
             matcher.appendReplacement(output, Matcher.quoteReplacement(resultAsString));
             lastEnd = matcher.end();
         }
-        return lastEnd == -1 ? input : output.toString();
+        if (lastEnd == -1) {
+            return input;
+        }
+
+        output.append(input.substring(lastEnd));
+        return output.toString();
     }
 
     @Override
@@ -340,10 +345,10 @@ public class PlaceholderServiceImpl implements PlaceholderService {
                : matcher.group(1) + placeholder + matcher.group(3);
     }
 
-    private static class ClassProviderLoader implements CacheLoader<Class<?>, Set<PlaceholderProvider>> {
+    private static class ClassProviderLoader implements CacheLoader<Class<?>, List<AnnotationPlaceholderProvider>> {
 
-        private Set<PlaceholderProvider> loadProviders(Class<?> clazz, PlaceholderPrefix prefix) {
-            Set<PlaceholderProvider> providers = new LinkedHashSet<>();
+        private List<AnnotationPlaceholderProvider> loadProviders(Class<?> clazz, PlaceholderPrefix prefix) {
+            List<AnnotationPlaceholderProvider> providers = new ArrayList<>();
 
             Class<?> currentClass = clazz;
             while (currentClass != null) {
@@ -399,8 +404,10 @@ public class PlaceholderServiceImpl implements PlaceholderService {
         }
 
         @Override
-        public @Nullable Set<PlaceholderProvider> load(@NotNull Class<?> key) {
-            return loadProviders(key, null);
+        public @Nullable List<AnnotationPlaceholderProvider> load(@NotNull Class<?> key) {
+            List<AnnotationPlaceholderProvider> providers = loadProviders(key, null);
+            providers.sort(Comparator.comparingInt(AnnotationPlaceholderProvider::priority));
+            return providers;
         }
     }
 }
