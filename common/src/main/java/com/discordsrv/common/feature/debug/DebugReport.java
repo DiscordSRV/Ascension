@@ -119,6 +119,8 @@ public class DebugReport {
     }
 
     public Path zip() throws Throwable {
+        files.sort(Comparator.comparing(DebugFile.Named::order).reversed());
+
         Path zipPath = discordSRV.dataDirectory().resolve("debug-" + System.currentTimeMillis() + ".zip");
         try (ZipOutputStream zipOutputStream = new ZipOutputStream(Files.newOutputStream(zipPath))) {
             for (DebugFile.Named file : files) {
