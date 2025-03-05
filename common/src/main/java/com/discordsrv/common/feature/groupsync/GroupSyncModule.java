@@ -106,7 +106,7 @@ public class GroupSyncModule extends AbstractSyncModule<DiscordSRV, GroupSyncCon
             builder.append("\n- ").append(entry)
                     .append(" (tie-breaker: ").append(entry.tieBreaker)
                     .append(", direction: ").append(entry.direction)
-                    .append(", server context: ").append(entry.serverContext).append(")");
+                    .append(", context: ").append(entry.contexts).append(")");
             if (sync.getValue() != null) {
                 builder.append(" [Timed]");
             }
@@ -137,12 +137,12 @@ public class GroupSyncModule extends AbstractSyncModule<DiscordSRV, GroupSyncCon
         event.getRoles().forEach(role -> roleChanged(event.getMember().getUser().getId(), role.getId(), false));
     }
 
-    public void groupAdded(UUID player, String groupName, @Nullable Set<String> serverContext, GroupSyncCause cause) {
-        groupChanged(player, groupName, serverContext, cause, true);
+    public void groupAdded(UUID player, String groupName, @Nullable Map<String, Set<String>> contexts, GroupSyncCause cause) {
+        groupChanged(player, groupName, contexts, cause, true);
     }
 
-    public void groupRemoved(UUID player, String groupName, @Nullable Set<String> serverContext, GroupSyncCause cause) {
-        groupChanged(player, groupName, serverContext, cause, false);
+    public void groupRemoved(UUID player, String groupName, @Nullable Map<String, Set<String>> contexts, GroupSyncCause cause) {
+        groupChanged(player, groupName, contexts, cause, false);
     }
 
     private void roleChanged(long userId, long roleId, boolean newState) {
@@ -162,7 +162,7 @@ public class GroupSyncModule extends AbstractSyncModule<DiscordSRV, GroupSyncCon
     private void groupChanged(
             UUID playerUUID,
             String groupName,
-            Set<String> serverContext,
+            Map<String, Set<String>> contexts,
             GroupSyncCause cause,
             boolean state
     ) {
@@ -176,7 +176,7 @@ public class GroupSyncModule extends AbstractSyncModule<DiscordSRV, GroupSyncCon
             return;
         }
 
-        gameChanged(cause, Someone.of(playerUUID), context(groupName, serverContext), state);
+        gameChanged(cause, Someone.of(playerUUID), GroupSyncConfig.Entry.makeGameId(groupName, contexts), state);
     }
 
     private PermissionModule.Groups getPermissionProvider() {
@@ -232,7 +232,7 @@ public class GroupSyncModule extends AbstractSyncModule<DiscordSRV, GroupSyncCon
         Task<Boolean> future;
         if (permissionProvider instanceof PermissionModule.GroupsContext) {
             future = ((PermissionModule.GroupsContext) permissionProvider)
-                    .hasGroup(playerUUID, config.groupName, false, config.serverContext != null ? Collections.singleton(config.serverContext) : null);
+                    .hasGroup(playerUUID, config.groupName, false, config.contexts());
         } else {
             future = permissionProvider.hasGroup(playerUUID, config.groupName, false);
         }
@@ -288,20 +288,6 @@ public class GroupSyncModule extends AbstractSyncModule<DiscordSRV, GroupSyncCon
         });
     }
 
-    private Set<String> context(GroupSyncConfig.Entry config) {
-        return config.serverContext != null ? Collections.singleton(config.serverContext) : null;
-    }
-
-    private String context(String groupName, Set<String> serverContext) {
-        if (serverContext == null || serverContext.isEmpty()) {
-            return GroupSyncConfig.Entry.makeGameId(groupName, Collections.singleton("global"));
-        }
-        if (serverContext.size() == 1 && serverContext.iterator().next().isEmpty()) {
-            return null;
-        }
-        return GroupSyncConfig.Entry.makeGameId(groupName, serverContext);
-    }
-
     private Task<Void> addGroup(UUID player, GroupSyncConfig.Entry config) {
         PermissionModule.Groups permissionProvider = getPermissionProvider();
         if (permissionProvider == null) {
@@ -311,7 +297,7 @@ public class GroupSyncModule extends AbstractSyncModule<DiscordSRV, GroupSyncCon
         String groupName = config.groupName;
         if (permissionProvider instanceof PermissionModule.GroupsContext) {
             return ((PermissionModule.GroupsContext) permissionProvider)
-                    .addGroup(player, groupName, context(config));
+                    .addGroup(player, groupName, config.contexts());
         } else {
             return permissionProvider.addGroup(player, groupName);
         }
@@ -326,7 +312,7 @@ public class GroupSyncModule extends AbstractSyncModule<DiscordSRV, GroupSyncCon
         String groupName = config.groupName;
         if (permissionProvider instanceof PermissionModule.GroupsContext) {
             return ((PermissionModule.GroupsContext) permissionProvider)
-                    .removeGroup(player, groupName, context(config));
+                    .removeGroup(player, groupName, config.contexts());
         } else {
             return permissionProvider.removeGroup(player, groupName);
         }
