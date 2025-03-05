@@ -58,7 +58,8 @@ public class GroupSyncConfig {
     @ConfigSerializable
     public static class SetConfig extends SyncConfig {
 
-        @Comment("LuckPerms context values, used when adding, removing and checking the groups of players.")
+        @Comment("LuckPerms context values, used when adding, removing and checking the groups of players.\n"
+                + "The format is: {\"context\": [\"value\"]}")
         public Map<String, List<String>> contexts = new LinkedHashMap<>();
 
         @Comment("The pairs of case-sensitive Minecraft group names from your permission plugin, and Discord role ids")
