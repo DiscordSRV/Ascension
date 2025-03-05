@@ -42,7 +42,6 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 
 /**
@@ -101,14 +100,13 @@ public class GroupSyncModule extends AbstractSyncModule<DiscordSRV, GroupSyncCon
     public void onDebugGenerate(DebugGenerateEvent event) {
         StringBuilder builder = new StringBuilder("Active pairs:");
 
-        for (Map.Entry<GroupSyncConfig.Entry, Future<?>> sync : syncs.entrySet()) {
-            GroupSyncConfig.Entry entry = sync.getKey();
-            builder.append("\n- ").append(entry)
-                    .append(" (tie-breaker: ").append(entry.tieBreaker)
-                    .append(", direction: ").append(entry.direction)
-                    .append(", context: ").append(entry.contexts).append(")");
-            if (sync.getValue() != null) {
-                builder.append(" [Timed]");
+        for (GroupSyncConfig.Entry sync : syncs) {
+            builder.append("\n- ").append(sync)
+                    .append(" (tie-breaker: ").append(sync.tieBreaker)
+                    .append(", direction: ").append(sync.direction)
+                    .append(", context: ").append(sync.contexts).append(")");
+            if (sync.timer != null && sync.timer.enabled) {
+                builder.append(" [On timer]");
             }
         }
 
