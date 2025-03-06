@@ -155,6 +155,10 @@ public class JDAConnectionManager implements DiscordConnectionManager {
         if (ordinal < JDA.Status.CONNECTED.ordinal()) {
             newStatus = DiscordSRV.Status.ATTEMPTING_TO_CONNECT;
         } else if (status == JDA.Status.DISCONNECTED || ordinal >= JDA.Status.SHUTTING_DOWN.ordinal()) {
+            if (currentStatus.isError() && !currentStatus.isStartupError()) {
+                return;
+            }
+
             newStatus = DiscordSRV.Status.FAILED_TO_CONNECT;
         } else {
             newStatus = DiscordSRV.Status.CONNECTED;
@@ -209,23 +213,25 @@ public class JDAConnectionManager implements DiscordConnectionManager {
             }
             builder.append("\n");
 
-            Task<Long> restPingFuture = discordSRV.discordAPI().toTask(instance.getRestPing().timeout(5, TimeUnit.SECONDS));
-            builder.append("\nGateway Ping: ").append(instance.getGatewayPing()).append("ms");
+            if (instance.getStatus().ordinal() < JDA.Status.SHUTTING_DOWN.ordinal()) {
+                Task<Long> restPingFuture = discordSRV.discordAPI().toTask(instance.getRestPing().timeout(5, TimeUnit.SECONDS));
+                builder.append("\nGateway Ping: ").append(instance.getGatewayPing()).append("ms");
 
-            String restPing;
-            try {
-                restPing = restPingFuture.get() + "ms";
-            } catch (ExecutionException e) {
-                if (e.getCause() instanceof TimeoutException) {
-                    restPing = ">5s";
-                } else {
-                    restPing = ExceptionUtils.getMessage(e);
+                String restPing;
+                try {
+                    restPing = restPingFuture.get() + "ms";
+                } catch (ExecutionException e) {
+                    if (e.getCause() instanceof TimeoutException) {
+                        restPing = ">5s";
+                    } else {
+                        restPing = ExceptionUtils.getMessage(e);
+                    }
+                } catch (Throwable t) {
+                    restPing = ExceptionUtils.getMessage(t);
                 }
-            } catch (Throwable t) {
-                restPing = ExceptionUtils.getMessage(t);
-            }
 
-            builder.append("\nRest Ping: ").append(restPing);
+                builder.append("\nRest Ping: ").append(restPing);
+            }
         }
 
         event.addFile("jda_connection_manager.txt", new TextDebugFile(builder));
@@ -550,7 +556,7 @@ public class JDAConnectionManager implements DiscordConnectionManager {
             discordSRV.logger().error("| 4. Make sure the intents listed above are all enabled");
             discordSRV.logger().error("| 5. Run the \"/discordsrv reload config discord_connection\" command");
             discordSRV.logger().error("+-------------------------------------->");
-            discordSRV.setStatus(DiscordSRVApi.Status.FAILED_TO_CONNECT);
+            discordSRV.setStatus(DiscordSRVApi.Status.DISALLOWED_INTENTS);
             return true;
         } else if (closeCode == CloseCode.AUTHENTICATION_FAILED) {
             invalidToken(false);
@@ -586,7 +592,7 @@ public class JDAConnectionManager implements DiscordConnectionManager {
         } else {
             lines.forEach(line -> discordSRV.logger().error(line));
         }
-        discordSRV.setStatus(DiscordSRVApi.Status.FAILED_TO_CONNECT);
+        discordSRV.setStatus(DiscordSRVApi.Status.INVALID_TOKEN);
     }
 
     private class FailureCallback implements Consumer<Throwable> {

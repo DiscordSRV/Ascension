@@ -27,6 +27,7 @@ import com.discordsrv.api.component.MinecraftComponentFactory;
 import com.discordsrv.api.discord.DiscordAPI;
 import com.discordsrv.api.discord.connection.details.DiscordConnectionDetails;
 import com.discordsrv.api.eventbus.EventBus;
+import com.discordsrv.api.module.Module;
 import com.discordsrv.api.placeholder.PlaceholderService;
 import com.discordsrv.api.placeholder.format.PlainPlaceholderFormat;
 import com.discordsrv.api.player.DiscordSRVPlayer;
@@ -94,6 +95,18 @@ public interface DiscordSRVApi {
      */
     @NotNull
     EventBus eventBus();
+
+    /**
+     * Registers the given module.
+     * @param module the module
+     */
+    void registerModule(@NotNull Module module);
+
+    /**
+     * Unregisters the given module.
+     * @param module the module
+     */
+    void unregisterModule(@NotNull Module module);
 
     /**
      * The profile manager, access the profiles of players and/or users.
@@ -207,25 +220,13 @@ public interface DiscordSRVApi {
          */
         CONNECTED,
 
-        /**
-         * DiscordSRV has not been configured.
-         * @see #isError()
-         * @see #isStartupError()
-         */
-        NOT_CONFIGURED(true),
+        NOT_CONFIGURED(true, true),
+        FAILED_TO_START(true, true),
+        FAILED_TO_CONNECT_TO_STORAGE(true, true),
 
-        /**
-         * DiscordSRV failed to start.
-         * @see #isError()
-         * @see #isStartupError()
-         */
-        FAILED_TO_START(true),
-
-        /**
-         * DiscordSRV failed to connect to Discord.
-         * @see #isError()
-         */
-        FAILED_TO_CONNECT(true),
+        INVALID_TOKEN(true, false),
+        DISALLOWED_INTENTS(true, false),
+        FAILED_TO_CONNECT(true, false),
 
         /**
          * DiscordSRV is shutting down.
@@ -242,25 +243,27 @@ public interface DiscordSRVApi {
         ;
 
         private final boolean error;
+        private final boolean startupError;
 
         Status() {
-            this(false);
+            this(false, false);
         }
 
-        Status(boolean error) {
-            this.error = error;
+        Status(boolean error, boolean startupError) {
+            this.error = true;
+            this.startupError = startupError;
         }
 
         public boolean isError() {
             return error;
         }
 
-        public boolean isShutdown() {
-            return this == SHUTDOWN || this == SHUTTING_DOWN;
+        public boolean isStartupError() {
+            return startupError;
         }
 
-        public boolean isStartupError() {
-            return this == FAILED_TO_START || this == NOT_CONFIGURED;
+        public boolean isShutdown() {
+            return this == SHUTDOWN || this == SHUTTING_DOWN;
         }
 
         public boolean isReady() {
