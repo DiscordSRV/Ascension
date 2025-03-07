@@ -250,7 +250,7 @@ public interface DiscordSRVApi {
         }
 
         Status(boolean error, boolean startupError) {
-            this.error = true;
+            this.error = error;
             this.startupError = startupError;
         }
 
