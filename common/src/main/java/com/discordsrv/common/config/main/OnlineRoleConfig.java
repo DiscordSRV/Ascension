@@ -18,17 +18,19 @@
 
 package com.discordsrv.common.config.main;
 
+import com.discordsrv.common.abstraction.sync.enums.SyncDirection;
+import com.discordsrv.common.abstraction.sync.enums.SyncSide;
 import com.discordsrv.common.config.main.generic.AbstractSyncConfig;
 import com.discordsrv.common.util.Game;
 import org.spongepowered.configurate.objectmapping.meta.Comment;
 
-import java.util.Collections;
-import java.util.List;
-
 public class OnlineRoleConfig extends AbstractSyncConfig<OnlineRoleConfig, Game, Long> {
 
-    public List<OnlineRoleConfig> getEntries() {
-        return Collections.singletonList(this);
+    public OnlineRoleConfig() {
+        // Overriding defaults
+        timer.enabled = false;
+        direction = SyncDirection.MINECRAFT_TO_DISCORD;
+        tieBreaker = SyncSide.MINECRAFT;
     }
 
     @Comment("The ID of the role to sync to the linked online players in game.")

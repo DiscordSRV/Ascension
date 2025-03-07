@@ -84,7 +84,7 @@ public class OnlineRoleModule extends AbstractSyncModule<DiscordSRV, OnlineRoleC
 
     @Override
     protected List<OnlineRoleConfig> configs() {
-        return discordSRV.config().onlineSync.getEntries();
+        return Collections.singletonList(discordSRV.config().onlineRole);
     }
 
     @Override
