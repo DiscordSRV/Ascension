@@ -54,7 +54,8 @@ public class BukkitQuitListener extends AbstractBukkitListener<PlayerQuitEvent> 
                         player,
                         component,
                         null,
-                        component == null
+                        component == null,
+                        false
                 )
         );
     }

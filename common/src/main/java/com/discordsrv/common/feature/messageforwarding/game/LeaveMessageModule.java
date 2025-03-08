@@ -19,7 +19,6 @@
 package com.discordsrv.common.feature.messageforwarding.game;
 
 import com.discordsrv.api.channel.GameChannel;
-import com.discordsrv.api.component.MinecraftComponent;
 import com.discordsrv.api.discord.entity.message.ReceivedDiscordMessageCluster;
 import com.discordsrv.api.discord.entity.message.SendableDiscordMessage;
 import com.discordsrv.api.eventbus.EventPriorities;
@@ -34,8 +33,6 @@ import com.discordsrv.common.config.main.channels.LeaveMessageConfig;
 import com.discordsrv.common.config.main.channels.base.BaseChannelConfig;
 import com.discordsrv.common.events.player.PlayerConnectedEvent;
 import com.discordsrv.common.permission.game.Permissions;
-import com.discordsrv.common.util.ComponentUtil;
-import net.kyori.adventure.text.Component;
 import org.apache.commons.lang3.tuple.Pair;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -72,7 +69,7 @@ public class LeaveMessageModule extends AbstractGameMessageModule<LeaveMessageCo
         }
         if (maxMS > 0) {
             long currentTime = System.currentTimeMillis();
-            Future<?> removeFuture = discordSRV.scheduler().runLater(() -> playersJoinedRecently.remove(playerUUID), Duration.ofMillis(maxMS));
+            Future<?> removeFuture = discordSRV.scheduler().runLater(() -> playersJoinedRecently.remove(playerUUID), Duration.ofMillis(maxMS + 100));
             playersJoinedRecently.put(playerUUID, Pair.of(currentTime, removeFuture));
         }
     }
@@ -110,8 +107,15 @@ public class LeaveMessageModule extends AbstractGameMessageModule<LeaveMessageCo
             }
         }
 
+        if (event != null && event.isMessageCancelled() && !config.leaveMessages.sendEvenIfCancelled) {
+            return Task.completed(null);
+        }
         if (player != null && config.leaveMessages.enableSilentPermission && silentQuitPermission.get()) {
             logger().info(player.username() + " is leaving silently, leave message will not be sent");
+            return Task.completed(null);
+        }
+        if (player != null && player.isVanished()) {
+            logger().info(player.username() + " left while vanished, leave message will not be sent");
             return Task.completed(null);
         }
         return super.forwardToChannel(event, player, config, channel);
@@ -133,10 +137,6 @@ public class LeaveMessageModule extends AbstractGameMessageModule<LeaveMessageCo
             LeaveMessageReceiveEvent event,
             SendableDiscordMessage.Formatter formatter
     ) {
-        MinecraftComponent messageComponent = event.getMessage();
-        Component message = messageComponent != null ? ComponentUtil.fromAPI(messageComponent) : null;
-
-        formatter
-                .addPlaceholder("message", message);
+        formatter.addPlaceholder("message", event.getMessage());
     }
 }

@@ -102,6 +102,11 @@ public class VelocityPlayer extends VelocityCommandSender implements IPlayer {
     }
 
     @Override
+    public boolean isVanished() {
+        return false;
+    }
+
+    @Override
     public @NotNull Identity identity() {
         return player.identity();
     }

@@ -28,6 +28,7 @@ import com.discordsrv.api.component.MinecraftComponent;
 import com.discordsrv.api.eventbus.EventPriorities;
 import com.discordsrv.api.events.PlayerEvent;
 import com.discordsrv.api.player.DiscordSRVPlayer;
+import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -41,19 +42,34 @@ public class JoinMessageReceiveEvent extends AbstractGameMessageReceiveEvent imp
     private MinecraftComponent message;
     private GameChannel gameChannel;
     private final boolean firstJoin;
+    private final boolean messageCancelled;
 
     public JoinMessageReceiveEvent(
             @Nullable Object triggeringEvent,
             @NotNull DiscordSRVPlayer player,
             @Nullable MinecraftComponent message,
             @Nullable GameChannel gameChannel,
+            boolean firstJoin
+    ) {
+        this(triggeringEvent, player, message, gameChannel, firstJoin, false, false);
+    }
+
+    @ApiStatus.Experimental
+    public JoinMessageReceiveEvent(
+            @Nullable Object triggeringEvent,
+            @NotNull DiscordSRVPlayer player,
+            @Nullable MinecraftComponent message,
+            @Nullable GameChannel gameChannel,
             boolean firstJoin,
-            boolean cancelled) {
+            boolean messageCancelled,
+            boolean cancelled
+    ) {
         super(triggeringEvent, cancelled);
         this.player = player;
         this.message = message;
         this.gameChannel = gameChannel;
         this.firstJoin = firstJoin;
+        this.messageCancelled = messageCancelled;
     }
 
     @Override
@@ -82,6 +98,11 @@ public class JoinMessageReceiveEvent extends AbstractGameMessageReceiveEvent imp
 
     public boolean isFirstJoin() {
         return firstJoin;
+    }
+
+    @ApiStatus.Experimental
+    public boolean isMessageCancelled() {
+        return messageCancelled;
     }
 
     @Override

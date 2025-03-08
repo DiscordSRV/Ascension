@@ -55,7 +55,8 @@ public class PaperQuitListener extends AbstractBukkitListener<PlayerQuitEvent> {
                         player,
                         message,
                         null,
-                        message == null
+                        message == null,
+                        false
                 )
         );
     }

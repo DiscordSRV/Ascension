@@ -60,6 +60,12 @@ public interface DiscordSRVPlayer {
     Locale locale();
 
     /**
+     * If the player is not visible to other players.
+     * @return {@code true} if the player is vanished
+     */
+    boolean isVanished();
+
+    /**
      * Sends the provided message to the player.
      * @param component the message
      */

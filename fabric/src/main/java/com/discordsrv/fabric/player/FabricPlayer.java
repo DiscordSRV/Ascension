@@ -62,6 +62,11 @@ public class FabricPlayer extends FabricCommandSender implements IPlayer {
     }
 
     @Override
+    public boolean isVanished() {
+        return false;
+    }
+
+    @Override
     public Task<Void> kick(Component component) {
         player.networkHandler.disconnect(Text.of(component.toString()));
         return Task.completed(null);
