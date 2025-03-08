@@ -41,6 +41,7 @@ public class CommodoreHandler extends BukkitBasicCommandHandler implements IComm
         super.registerPluginCommand(command, gameCommand);
 
         LiteralCommandNode<?> commandNode = BrigadierUtil.convertToBrigadier(discordSRV, gameCommand, null);
-        commodore.register(command, commandNode);
+        commodore.register(command, commandNode, sender -> gameCommand.hasPermission(discordSRV.playerProvider().player(sender)));
+        logger.debug(command.getName() + " registered to Commodore");
     }
 }
