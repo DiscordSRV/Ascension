@@ -115,6 +115,11 @@ public class MinecraftToDiscordChatMessageTest {
                                 }
 
                                 @Override
+                                public boolean isVanished() {
+                                    return false;
+                                }
+
+                                @Override
                                 public @NotNull Component displayName() {
                                     return Component.text("Vankka");
                                 }
