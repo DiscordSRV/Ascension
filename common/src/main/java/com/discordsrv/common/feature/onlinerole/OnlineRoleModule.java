@@ -44,12 +44,9 @@ import net.dv8tion.jda.api.JDA;
 import net.dv8tion.jda.api.entities.Member;
 import net.dv8tion.jda.api.entities.Role;
 import net.dv8tion.jda.api.requests.ErrorResponse;
-import net.dv8tion.jda.api.requests.RestAction;
-import net.dv8tion.jda.api.utils.Result;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
-import java.util.concurrent.CompletableFuture;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
@@ -173,6 +170,11 @@ public class OnlineRoleModule extends AbstractSyncModule<DiscordSRV, OnlineRoleC
         resyncAll(OnlineRoleCause.PLAYER_LEFT_SERVER, Someone.of(event.player().uniqueId()));
     }
 
+    private Task<List<Void>> removeRoleFromList(List<Member> members, Role role) {
+        List<Task<Void>> futures = members.stream().map(member -> Task.of(member.getGuild().removeRoleFromMember(member, role).submit())).collect(Collectors.toList());
+        return Task.allOf(futures);
+    }
+
     @Subscribe
     public void onShutdown(DiscordSRVShuttingDownEvent event) {
         JDA jda = discordSRV.jda();
@@ -180,30 +182,15 @@ public class OnlineRoleModule extends AbstractSyncModule<DiscordSRV, OnlineRoleC
             return;
         }
 
-        HashMap<Member, ArrayList<Role>> pairs = new HashMap<>();
-        for (OnlineRoleConfig config : configs()) {
-            DiscordRole role = discordSRV.discordAPI().getRoleById(config.roleId);
-            if (role == null) {
-                return;
-            }
-
-            role.getGuild().asJDA().getMembersWithRoles(role.asJDA()).forEach(member ->
-                    pairs.computeIfAbsent(member, __ -> new ArrayList<>()).add(role.asJDA())
-            );
+        Role role = jda.getRoleById(discordSRV.config().onlineRole.roleId);
+        if (role == null) {
+            return;
         }
 
-        CompletableFuture<Result<List<Void>>> future = RestAction.allOf(pairs.entrySet().stream().map(entry ->
-                entry.getKey().getGuild().modifyMemberRoles(entry.getKey(), Collections.emptyList(), entry.getValue())
-        ).collect(Collectors.toList())).mapToResult().submit();
-
-        try {
-            Result<List<Void>> result = future.get();
-            if (result.isFailure()) throw Objects.requireNonNull(result.getFailure());
-        } catch (Throwable e) {
-            discordSRV.logger().error("Failed to remove online sync roles from all users for server shutdown", e);
-        } finally {
-            discordSRV.logger().info("Removed all online sync roles from all users for server shutdown");
-        }
+        List<Member> members = role.getGuild().getMembersWithRoles(role);
+        removeRoleFromList(members, role)
+                .whenFailed(e -> discordSRV.logger().error("Failed to remove online sync roles from all users for server shutdown", e))
+                .whenSuccessful(__ -> discordSRV.logger().info("Removed all online sync roles from all users for server shutdown"));
     }
 
     @Override
@@ -217,21 +204,17 @@ public class OnlineRoleModule extends AbstractSyncModule<DiscordSRV, OnlineRoleC
             }
         }
 
-        for (OnlineRoleConfig config : configs()) {
-            DiscordRole role = discordSRV.discordAPI().getRoleById(config.roleId);
-            if (role == null) {
-                return;
-            }
-
-            // Remove the role from everyone who has it but isn't online
-            role.getGuild().asJDA().getMembersWithRoles(role.asJDA()).stream().map(Member::getIdLong).filter(
-                    userId -> onlineProfiles.stream().noneMatch(profile -> Objects.equals(profile.userId(), userId))
-            ).forEach(userId -> gameChanged(
-                    OnlineRoleCause.SERVER_STARTUP,
-                    Someone.of(userId),
-                    Game.INSTANCE,
-                    false
-            ));
+        Role role = discordSRV.discordAPI().getRoleById(discordSRV.config().onlineRole.roleId).asJDA();
+        if (role == null) {
+            return;
         }
+
+        List<Member> membersToRemove = role.getGuild().getMembersWithRoles(role).stream().filter(
+                member -> onlineProfiles.stream().noneMatch(profile -> Objects.equals(profile.userId(), member.getIdLong()))
+        ).collect(Collectors.toList());
+
+        removeRoleFromList(membersToRemove, role)
+            .whenFailed(e -> discordSRV.logger().error("Failed to remove online sync roles from all users for reload", e))
+            .whenSuccessful(__ -> discordSRV.logger().info("Removed all online sync roles from all users for reload"));
     }
 }
