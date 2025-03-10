@@ -44,10 +44,6 @@ public class BukkitWorldChangeListener extends AbstractBukkitListener<PlayerChan
         discordSRV.eventBus().publish(new com.discordsrv.common.events.player.PlayerChangedWorldEvent(player));
     }
 
-    private EventObserver<PlayerChangedWorldEvent, Boolean> observer;
-
     @Override
-    protected void observeEvents(boolean enable) {
-        observer = observeEvent(observer, PlayerChangedWorldEvent.class, event -> event.getFrom() == null , enable);
-    }
+    protected void observeEvents(boolean enable) {}
 }
