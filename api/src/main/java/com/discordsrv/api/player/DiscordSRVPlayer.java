@@ -66,6 +66,7 @@ public interface DiscordSRVPlayer {
     @Nullable
     String world();
 
+    /**
      * If the player is not visible to other players.
      * @return {@code true} if the player is vanished
      */
