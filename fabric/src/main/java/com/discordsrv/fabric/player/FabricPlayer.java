@@ -62,6 +62,10 @@ public class FabricPlayer extends FabricCommandSender implements IPlayer {
     }
 
     @Override
+    public @NotNull String world() {
+        return player.getWorld().getRegistryKey().getValue().getPath();
+    }
+
     public boolean isVanished() {
         return false;
     }
