@@ -62,6 +62,7 @@ public class FabricJoinModule extends AbstractFabricModule {
                         component,
                         null,
                         firstJoin,
+                        component == null,
                         false
                 )
         );

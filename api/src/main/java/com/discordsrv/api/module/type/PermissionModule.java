@@ -29,6 +29,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 
@@ -61,10 +62,9 @@ public interface PermissionModule extends Module {
 
     interface GroupsContext extends Groups {
 
-        Set<String> getDefaultServerContext();
-        Task<Boolean> hasGroup(@NotNull UUID player, @NotNull String groupName, boolean includeInherited, @Nullable Set<String> serverContext);
-        Task<Void> addGroup(@NotNull UUID player, @NotNull String groupName, @Nullable Set<String> serverContext);
-        Task<Void> removeGroup(@NotNull UUID player, @NotNull String groupName, @Nullable Set<String> serverContext);
+        Task<Boolean> hasGroup(@NotNull UUID player, @NotNull String groupName, boolean includeInherited, @Nullable Map<String, Set<String>> contexts);
+        Task<Void> addGroup(@NotNull UUID player, @NotNull String groupName, @Nullable Map<String, Set<String>> contexts);
+        Task<Void> removeGroup(@NotNull UUID player, @NotNull String groupName, @Nullable Map<String, Set<String>> contexts);
 
         @Override
         default Task<Boolean> hasGroup(@NotNull UUID player, @NotNull String groupName, boolean includeInherited) {

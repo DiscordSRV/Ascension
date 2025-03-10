@@ -19,21 +19,14 @@
 package com.discordsrv.common.abstraction.player;
 
 import com.discordsrv.api.component.MinecraftComponent;
-import com.discordsrv.api.discord.entity.DiscordUser;
-import com.discordsrv.api.discord.entity.guild.DiscordGuild;
-import com.discordsrv.api.discord.entity.guild.DiscordGuildMember;
 import com.discordsrv.api.placeholder.annotation.Placeholder;
 import com.discordsrv.api.placeholder.annotation.PlaceholderPrefix;
 import com.discordsrv.api.player.DiscordSRVPlayer;
 import com.discordsrv.api.task.Task;
-import com.discordsrv.common.DiscordSRV;
 import com.discordsrv.common.command.game.abstraction.sender.ICommandSender;
-import com.discordsrv.common.feature.profile.Profile;
 import com.discordsrv.common.util.ComponentUtil;
 import net.kyori.adventure.text.Component;
-import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 import java.util.Collection;
 import java.util.UUID;
@@ -47,30 +40,10 @@ public interface IPlayer extends DiscordSRVPlayer, IOfflinePlayer, ICommandSende
     }
 
     @Override
-    DiscordSRV discordSRV();
-
-    @Placeholder("profile")
-    default Task<@NotNull Profile> profile() {
-        return discordSRV().profileManager().lookupProfile(uniqueId());
-    }
-
-    @Placeholder("linked_user")
-    default Task<@Nullable DiscordUser> linkedUser() {
-        return profile().thenApply(profile -> profile.isLinked() ? profile.userId() : null)
-                .then(userId -> discordSRV().discordAPI().retrieveUserById(userId));
-    }
-
-    @Placeholder("linked_server_member")
-    default Task<@Nullable DiscordGuildMember> linkedMember(DiscordGuild guild) {
-        return profile().thenApply(profile -> profile.isLinked() ? profile.userId() : null)
-                .then(guild::retrieveMemberById);
-    }
-
     @NotNull
     String username();
 
     @Override
-    @ApiStatus.NonExtendable
     default @NotNull UUID uniqueId() {
         return identity().uuid();
     }

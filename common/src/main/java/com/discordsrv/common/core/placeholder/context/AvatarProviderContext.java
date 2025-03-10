@@ -20,7 +20,7 @@ package com.discordsrv.common.core.placeholder.context;
 
 import com.discordsrv.api.placeholder.annotation.Placeholder;
 import com.discordsrv.common.DiscordSRV;
-import com.discordsrv.common.abstraction.player.IPlayer;
+import com.discordsrv.common.abstraction.player.IOfflinePlayer;
 import com.discordsrv.common.abstraction.player.provider.model.SkinInfo;
 import com.discordsrv.common.config.main.AvatarProviderConfig;
 import com.discordsrv.common.util.UUIDUtil;
@@ -40,12 +40,12 @@ public class AvatarProviderContext {
         return discordSRV.config().avatarProvider;
     }
 
-    private String getDefaultAvatarUrl(IPlayer player) {
+    private String getDefaultAvatarUrl(IOfflinePlayer player) {
         AvatarProviderConfig config = config();
         return discordSRV.placeholderService().replacePlaceholders(config.defaultUrl, player);
     }
 
-    private String getUrlByTemplate(IPlayer player) {
+    private String getUrlByTemplate(IOfflinePlayer player) {
         AvatarProviderConfig.Services config = config().services;
 
         UUID playerUUID = player.uniqueId();
@@ -74,7 +74,7 @@ public class AvatarProviderContext {
     }
 
     @Placeholder("player_avatar_url")
-    public String getAvatarUrl(IPlayer player) {
+    public String getAvatarUrl(IOfflinePlayer player) {
         AvatarProviderConfig config = discordSRV.config().avatarProvider;
 
         if (config.provider != AvatarProviderConfig.Provider.OFF) {

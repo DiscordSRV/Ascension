@@ -27,6 +27,7 @@ import net.kyori.adventure.identity.Identity;
 import net.kyori.adventure.platform.bukkit.BukkitComponentSerializer;
 import net.kyori.adventure.text.Component;
 import org.bukkit.entity.Player;
+import org.bukkit.metadata.MetadataValue;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -75,6 +76,15 @@ public abstract class BukkitPlayer extends BukkitCommandSender implements IPlaye
     @Override
     public @NotNull String world() {
         return player.getWorld().getName();
+    }
+ 
+    public boolean isVanished() {
+        for (MetadataValue metadata : player.getMetadata("vanished")) {
+            if (metadata.asBoolean()) {
+                return true;
+            }
+        }
+        return false;
     }
 
     @Override

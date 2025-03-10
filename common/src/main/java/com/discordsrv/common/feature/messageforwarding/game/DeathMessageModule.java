@@ -19,7 +19,6 @@
 package com.discordsrv.common.feature.messageforwarding.game;
 
 import com.discordsrv.api.channel.GameChannel;
-import com.discordsrv.api.component.MinecraftComponent;
 import com.discordsrv.api.discord.entity.message.ReceivedDiscordMessageCluster;
 import com.discordsrv.api.discord.entity.message.SendableDiscordMessage;
 import com.discordsrv.api.eventbus.EventPriorities;
@@ -30,7 +29,6 @@ import com.discordsrv.common.DiscordSRV;
 import com.discordsrv.common.config.main.channels.base.BaseChannelConfig;
 import com.discordsrv.common.config.main.channels.base.server.ServerBaseChannelConfig;
 import com.discordsrv.common.config.main.channels.server.DeathMessageConfig;
-import com.discordsrv.common.util.ComponentUtil;
 import org.jetbrains.annotations.NotNull;
 
 public class DeathMessageModule extends AbstractGameMessageModule<DeathMessageConfig, DeathMessageReceiveEvent> {
@@ -65,8 +63,7 @@ public class DeathMessageModule extends AbstractGameMessageModule<DeathMessageCo
             DeathMessageReceiveEvent event,
             SendableDiscordMessage.Formatter formatter
     ) {
-        MinecraftComponent messageComponent = event.getMessage();
-        formatter.addPlaceholder("message", ComponentUtil.fromAPI(messageComponent));
+        formatter.addPlaceholder("message", event.getMessage());
     }
 
 }

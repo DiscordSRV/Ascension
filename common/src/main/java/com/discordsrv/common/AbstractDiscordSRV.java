@@ -500,7 +500,7 @@ public abstract class AbstractDiscordSRV<
     }
 
     @Override
-    public void registerModule(AbstractModule<?> module) {
+    public void registerModule(@NotNull Module module) {
         moduleManager.register(module);
     }
 
@@ -532,7 +532,7 @@ public abstract class AbstractDiscordSRV<
     }
 
     @Override
-    public void unregisterModule(AbstractModule<?> module) {
+    public void unregisterModule(@NotNull Module module) {
         moduleManager.unregister(module);
     }
 
@@ -569,14 +569,8 @@ public abstract class AbstractDiscordSRV<
             }
         }
 
-        switch (status) {
-            case SHUTTING_DOWN:
-            case SHUTDOWN:
-            case FAILED_TO_START:
-            case FAILED_TO_CONNECT:
-            case NOT_CONFIGURED:
-                moduleManager().reload();
-                break;
+        if (status.isError() || status.isShutdown()) {
+            moduleManager().reload();
         }
     }
 
@@ -696,7 +690,9 @@ public abstract class AbstractDiscordSRV<
         placeholderService().addResultMapper(new ComponentResultStringifier(this));
 
         placeholderService().addReLookup(Boolean.class, "boolean");
+        placeholderService().addReLookup(CharSequence.class, "stringformat");
         placeholderService().addReLookup(UUID.class, "uuid");
+        placeholderService().addReLookup(Number.class, "numberformat");
         placeholderService().addReLookup(TemporalAccessor.class, "date");
         placeholderService().addReLookup(Color.class, "color");
         placeholderService().addReLookup(Profile.class, "profile");
@@ -711,13 +707,16 @@ public abstract class AbstractDiscordSRV<
 
         placeholderService().addGlobalContext(new TextHandlingContext(this));
         placeholderService().addGlobalContext(new DateFormattingContext(this));
+        placeholderService().addGlobalContext(new NumberFormattingContext(this));
         placeholderService().addGlobalContext(new GamePermissionContext(this));
         placeholderService().addGlobalContext(new ReceivedDiscordMessageContext(this));
         placeholderService().addGlobalContext(new DiscordBotContext(this));
         placeholderService().addGlobalContext(new AvatarProviderContext(this));
         placeholderService().addGlobalContext(new DiscordGuildMemberContext());
-        placeholderService().addGlobalContext(UUIDUtil.class);
+        placeholderService().addGlobalContext(new DebugContext(this));
         placeholderService().addGlobalContext(BooleanFormattingContext.class);
+        placeholderService().addGlobalContext(StringFormattingContext.class);
+        placeholderService().addGlobalContext(UUIDUtil.class);
 
         // Modules
         registerModule(BanSyncModule::new);
@@ -909,7 +908,7 @@ public abstract class AbstractDiscordSRV<
                 e.log(this);
                 logger().error("Failed to connect to storage");
                 if (initial) {
-                    setStatus(Status.FAILED_TO_START);
+                    setStatus(Status.FAILED_TO_CONNECT_TO_STORAGE);
                 }
                 return Collections.singletonList(ReloadResult.STORAGE_CONNECTION_FAILED);
             }

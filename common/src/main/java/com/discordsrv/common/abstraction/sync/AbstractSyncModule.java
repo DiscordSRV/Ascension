@@ -60,7 +60,8 @@ public abstract class AbstractSyncModule<
         S
 > extends AbstractModule<DT> {
 
-    protected final Map<C, Future<?>> syncs = new LinkedHashMap<>();
+    protected final Set<C> syncs = new LinkedHashSet<>();
+    protected final List<Future<?>> timers = new ArrayList<>();
     protected final Map<G, List<C>> configsForGame = new ConcurrentHashMap<>();
     protected final Map<D, List<C>> configsForDiscord = new ConcurrentHashMap<>();
 
@@ -99,23 +100,22 @@ public abstract class AbstractSyncModule<
     @Override
     public void reload(Consumer<ReloadResult> resultConsumer) {
         synchronized (syncs) {
-            syncs.values().forEach(future -> {
-                if (future != null) {
-                    future.cancel(false);
-                }
-            });
+            timers.forEach(future -> future.cancel(false));
+            timers.clear();
             syncs.clear();
             configsForGame.clear();
             configsForDiscord.clear();
 
             String syncName = syncName();
+
+            Map<Integer, Set<C>> timerIntervals = new HashMap<>();
             for (C config : configs()) {
                 if (!config.isSet() || !config.validate(syncName, discordSRV)) {
                     continue;
                 }
 
                 boolean failed = false;
-                for (C existingConfig : syncs.keySet()) {
+                for (C existingConfig : syncs) {
                     if (existingConfig.isSameAs(config)) {
                         failed = true;
                         break;
@@ -126,18 +126,12 @@ public abstract class AbstractSyncModule<
                     continue;
                 }
 
-                Future<?> future = null;
                 AbstractSyncConfig.TimerConfig timer = config.timer;
                 if (timer != null && timer.enabled) {
-                    int cycleTime = timer.cycleTime;
-                    future = discordSRV.scheduler().runAtFixedRate(
-                            () -> resyncTimer(config),
-                            Duration.ofMinutes(cycleTime),
-                            Duration.ofMinutes(cycleTime)
-                    );
+                    timerIntervals.computeIfAbsent(timer.cycleTime, key -> new LinkedHashSet<>()).add(config);
                 }
 
-                syncs.put(config, future);
+                syncs.add(config);
 
                 G game = config.gameId();
                 if (game != null) {
@@ -149,12 +143,22 @@ public abstract class AbstractSyncModule<
                     configsForDiscord.computeIfAbsent(discord, key -> new ArrayList<>()).add(config);
                 }
             }
+
+            for (Map.Entry<Integer, Set<C>> entry : timerIntervals.entrySet()) {
+                int cycleTime = entry.getKey();
+                Future<?> future = discordSRV.scheduler().runAtFixedRate(
+                        () -> resyncTimer(entry.getValue()),
+                        Duration.ofMinutes(cycleTime),
+                        Duration.ofMinutes(cycleTime)
+                );
+                timers.add(future);
+            }
         }
     }
 
-    private void resyncTimer(C config) {
+    private void resyncTimer(Set<C> configs) {
         for (IPlayer player : discordSRV.playerProvider().allPlayers()) {
-            resync(GenericSyncCauses.TIMER, config, Someone.of(player.uniqueId()));
+            resync(GenericSyncCauses.TIMER, Someone.of(player.uniqueId()), configs);
         }
     }
 
@@ -327,33 +331,21 @@ public abstract class AbstractSyncModule<
     }
 
     public Task<SyncSummary<C>> resyncAll(ISyncCause cause, Someone someone) {
+        return resync(cause, someone, syncs);
+    }
+
+    public Task<SyncSummary<C>> resync(ISyncCause cause, Someone someone, Set<C> configs) {
         return someone.withLinkedAccounts(discordSRV).thenApply(resolved -> {
             if (resolved == null) {
                 return new SyncSummary<>(this, cause, someone).fail(GenericSyncResults.NOT_LINKED);
             }
 
             SyncSummary<C> summary = new SyncSummary<>(this, cause, resolved);
-            Set<C> configs = syncs.keySet();
 
             for (C config : configs) {
                 summary.appendResult(config, resync(config, resolved));
             }
             return summary;
-        }).whenComplete((summary, t) -> {
-            if (summary != null) {
-                logSummary(summary);
-            }
-        });
-    }
-
-    protected Task<SyncSummary<C>> resync(ISyncCause cause, C config, Someone someone) {
-        return someone.withLinkedAccounts(discordSRV).thenApply(resolved -> {
-            if (resolved == null) {
-                return new SyncSummary<>(this, cause, someone).fail(GenericSyncResults.NOT_LINKED);
-            }
-
-            return new SyncSummary<>(this, cause, resolved)
-                    .appendResult(config, resync(config, resolved));
         }).whenComplete((summary, t) -> {
             if (summary != null) {
                 logSummary(summary);

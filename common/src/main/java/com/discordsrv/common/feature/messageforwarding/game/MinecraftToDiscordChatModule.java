@@ -100,7 +100,12 @@ public class MinecraftToDiscordChatModule extends AbstractGameMessageModule<Mine
             Task<SendableDiscordMessage> messageFuture = getMessageForGuild(config, format, guild, message, player, context);
 
             for (DiscordGuildMessageChannel channel : entry.getValue()) {
-                futures.add(messageFuture.then(msg -> sendMessageToChannel(channel, msg)));
+                futures.add(messageFuture.then(msg -> {
+                    if (msg.isEmpty()) {
+                        return Task.completed(null);
+                    }
+                    return sendMessageToChannel(channel, msg);
+                }));
             }
         }
 

@@ -83,6 +83,11 @@ public class BungeePlayer extends BungeeCommandSender implements IPlayer {
     }
 
     @Override
+    public boolean isVanished() {
+        return false;
+    }
+
+    @Override
     public @NotNull Identity identity() {
         return identity;
     }

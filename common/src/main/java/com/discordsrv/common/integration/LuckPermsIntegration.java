@@ -28,9 +28,7 @@ import com.discordsrv.common.feature.groupsync.enums.GroupSyncCause;
 import net.luckperms.api.LuckPerms;
 import net.luckperms.api.LuckPermsProvider;
 import net.luckperms.api.context.ContextSet;
-import net.luckperms.api.context.DefaultContextKeys;
 import net.luckperms.api.context.ImmutableContextSet;
-import net.luckperms.api.context.MutableContextSet;
 import net.luckperms.api.event.EventSubscription;
 import net.luckperms.api.event.LuckPermsEvent;
 import net.luckperms.api.event.node.NodeAddEvent;
@@ -45,6 +43,7 @@ import net.luckperms.api.model.user.User;
 import net.luckperms.api.node.Node;
 import net.luckperms.api.node.NodeType;
 import net.luckperms.api.node.types.InheritanceNode;
+import net.luckperms.api.query.Flag;
 import net.luckperms.api.query.QueryMode;
 import net.luckperms.api.query.QueryOptions;
 import org.jetbrains.annotations.NotNull;
@@ -109,73 +108,55 @@ public class LuckPermsIntegration extends PluginIntegration<DiscordSRV> implemen
         return true;
     }
 
-    @Override
-    public Set<String> getDefaultServerContext() {
-        return luckPerms.getContextManager().getStaticContext().getValues(DefaultContextKeys.SERVER_KEY);
+    private ContextSet contextSet(Map<String, Set<String>> contexts) {
+        if (contexts == null) {
+            return ImmutableContextSet.empty();
+        }
+
+        ImmutableContextSet.Builder contextSetBuilder = ImmutableContextSet.builder();
+        for (Map.Entry<String, Set<String>> entry : contexts.entrySet()) {
+            for (String value : entry.getValue()) {
+                contextSetBuilder.add(entry.getKey(), value);
+            }
+        }
+
+        return contextSetBuilder.build();
     }
 
     @Override
-    public Task<Boolean> hasGroup(@NotNull UUID player, @NotNull String groupName, boolean includeInherited, @Nullable Set<String> serverContext) {
+    public Task<Boolean> hasGroup(@NotNull UUID player, @NotNull String groupName, boolean includeInherited, @Nullable Map<String, Set<String>> contexts) {
         return user(player).thenApply(user -> {
-            MutableContextSet context = luckPerms.getContextManager().getStaticContext().mutableCopy();
-            if (serverContext != null) {
-                context.removeAll(DefaultContextKeys.SERVER_KEY);
-                if (isNotGlobalOnly(serverContext)) {
-                    for (String ctx : serverContext) {
-                        context.add(DefaultContextKeys.SERVER_KEY, ctx);
-                    }
-                }
-            }
+            QueryOptions options = QueryOptions.builder(QueryMode.CONTEXTUAL)
+                    .flag(Flag.RESOLVE_INHERITANCE, includeInherited)
+                    .context(contextSet(contexts))
+                    .build();
 
-            return (
-                includeInherited
-                    ? user.getInheritedGroups(QueryOptions.builder(QueryMode.CONTEXTUAL).context(context).build())
-                        .stream()
-                        .map(Group::getName)
-                    : user.getNodes(NodeType.INHERITANCE)
-                        .stream()
-                        .filter(node -> context.isSatisfiedBy(node.getContexts()))
-                        .map(InheritanceNode::getGroupName)
-            ).anyMatch(name -> name.equalsIgnoreCase(groupName));
+            return user.getInheritedGroups(options)
+                    .stream()
+                    .anyMatch(group -> group.getName().equalsIgnoreCase(groupName));
         });
     }
 
     @Override
-    public Task<Void> addGroup(@NotNull UUID player, @NotNull String groupName, @Nullable Set<String> serverContext) {
-        return groupMutate(player, groupName, serverContext, NodeMap::add);
+    public Task<Void> addGroup(@NotNull UUID player, @NotNull String groupName, @Nullable Map<String, Set<String>> contexts) {
+        return groupMutate(player, groupName, contexts, NodeMap::add);
     }
 
     @Override
-    public Task<Void> removeGroup(@NotNull UUID player, @NotNull String groupName, @Nullable Set<String> serverContext) {
-        return groupMutate(player, groupName, serverContext, NodeMap::remove);
+    public Task<Void> removeGroup(@NotNull UUID player, @NotNull String groupName, @Nullable Map<String, Set<String>> contexts) {
+        return groupMutate(player, groupName, contexts, NodeMap::remove);
     }
 
-    private Task<Void> groupMutate(UUID player, String groupName, Set<String> serverContext, BiFunction<NodeMap, Node, DataMutateResult> function) {
+    private Task<Void> groupMutate(UUID player, String groupName, Map<String, Set<String>> contexts, BiFunction<NodeMap, Node, DataMutateResult> function) {
         Group group = luckPerms.getGroupManager().getGroup(groupName);
         if (group == null) {
             return Task.failed(new MessageException("Group does not exist"));
         }
         return user(player).then(user -> {
-            ContextSet contexts;
-            if (serverContext != null) {
-                if (isNotGlobalOnly(serverContext)) {
-                    ImmutableContextSet.Builder builder = ImmutableContextSet.builder();
-                    for (String ctx : serverContext) {
-                        builder.add(DefaultContextKeys.SERVER_KEY, ctx);
-                    }
-                    contexts = builder.build();
-                } else {
-                    contexts = ImmutableContextSet.empty();
-                }
-            } else {
-                MutableContextSet contextSet = MutableContextSet.create();
-                for (String value : getDefaultServerContext()) {
-                    contextSet.add(DefaultContextKeys.SERVER_KEY, value);
-                }
-                contexts = contextSet;
-            }
+            InheritanceNode node = InheritanceNode.builder(group)
+                    .context(contextSet(contexts))
+                    .build();
 
-            InheritanceNode node = InheritanceNode.builder(group).context(contexts).build();
             DataMutateResult result = function.apply(user.data(), node);
             if (!result.wasSuccessful()) {
                 return Task.failed(new MessageException("Group mutate failed: " + result.name()));
@@ -183,10 +164,6 @@ public class LuckPermsIntegration extends PluginIntegration<DiscordSRV> implemen
 
             return Task.of(luckPerms.getUserManager().saveUser(user));
         });
-    }
-
-    private boolean isNotGlobalOnly(Set<String> context) {
-        return context.size() != 1 || !context.iterator().next().equals("global");
     }
 
     @Override
@@ -227,8 +204,8 @@ public class LuckPermsIntegration extends PluginIntegration<DiscordSRV> implemen
 
     private void onUserTrack(UserTrackEvent event) {
         User user = event.getUser();
-        event.getGroupFrom().ifPresent(group -> groupUpdate(user, group, Collections.emptySet(), true, true));
-        event.getGroupTo().ifPresent(group -> groupUpdate(user, group, Collections.emptySet(), false, true));
+        event.getGroupFrom().ifPresent(group -> groupUpdate(user, group, Collections.emptyMap(), true, true));
+        event.getGroupTo().ifPresent(group -> groupUpdate(user, group, Collections.emptyMap(), false, true));
     }
 
     private void nodeUpdate(PermissionHolder holder, Node node, boolean remove) {
@@ -238,12 +215,10 @@ public class LuckPermsIntegration extends PluginIntegration<DiscordSRV> implemen
 
         InheritanceNode inheritanceNode = NodeType.INHERITANCE.cast(node);
         String groupName = inheritanceNode.getGroupName();
-        Set<String> serverContext = inheritanceNode.getContexts().getValues(DefaultContextKeys.SERVER_KEY);
-
-        groupUpdate((User) holder, groupName, serverContext, remove, false);
+        groupUpdate((User) holder, groupName, inheritanceNode.getContexts().toMap(), remove, false);
     }
 
-    private void groupUpdate(User user, String groupName, Set<String> serverContext, boolean remove, boolean track) {
+    private void groupUpdate(User user, String groupName, Map<String, Set<String>> contexts, boolean remove, boolean track) {
         GroupSyncModule module = discordSRV.getModule(GroupSyncModule.class);
         if (module == null || !module.isEnabled()) {
             return;
@@ -252,9 +227,9 @@ public class LuckPermsIntegration extends PluginIntegration<DiscordSRV> implemen
         GroupSyncCause cause = track ? GroupSyncCause.LUCKPERMS_TRACK : GroupSyncCause.LUCKPERMS_NODE_CHANGE;
         UUID uuid = user.getUniqueId();
         if (remove) {
-            module.groupRemoved(uuid, groupName, serverContext, cause);
+            module.groupRemoved(uuid, groupName, contexts, cause);
         } else {
-            module.groupAdded(uuid, groupName, serverContext, cause);
+            module.groupAdded(uuid, groupName, contexts, cause);
         }
     }
 

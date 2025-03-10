@@ -29,22 +29,23 @@ import com.discordsrv.common.command.combined.abstraction.CombinedCommand;
 import com.discordsrv.common.command.combined.abstraction.CommandExecution;
 import com.discordsrv.common.command.combined.abstraction.Text;
 import com.discordsrv.common.command.game.abstraction.command.GameCommand;
+import com.discordsrv.common.core.logging.Logger;
+import com.discordsrv.common.core.logging.NamedLogger;
 import com.discordsrv.common.core.paste.Paste;
 import com.discordsrv.common.core.paste.PasteService;
 import com.discordsrv.common.core.paste.service.AESEncryptedPasteService;
 import com.discordsrv.common.core.paste.service.BytebinPasteService;
+import com.discordsrv.common.feature.debug.DebugGenerateEvent;
 import com.discordsrv.common.feature.debug.DebugObservabilityEvent;
 import com.discordsrv.common.feature.debug.DebugReport;
+import com.discordsrv.common.feature.debug.file.KeyValueDebugFile;
 import com.discordsrv.common.permission.game.Permissions;
 import com.discordsrv.common.util.ExceptionUtil;
 import net.kyori.adventure.text.format.NamedTextColor;
 
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Path;
-import java.util.Arrays;
-import java.util.Base64;
-import java.util.List;
-import java.util.Locale;
+import java.util.*;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.stream.Collectors;
 
@@ -104,20 +105,28 @@ public class DebugCommand extends CombinedCommand {
     private static final String URL_FORMAT = DiscordSRV.WEBSITE + "/debug/%s#%s";
     public static final Base64.Encoder KEY_ENCODER = Base64.getUrlEncoder().withoutPadding();
 
-    private final PasteService pasteService;
     private final AtomicBoolean debugObserving = new AtomicBoolean(false);
+    private final Logger logger;
+    private final PasteService pasteService;
 
     public DebugCommand(DiscordSRV discordSRV) {
         super(discordSRV);
+        this.logger = new NamedLogger(discordSRV, "DEBUG_COMMAND");
         this.pasteService = new AESEncryptedPasteService(new BytebinPasteService(discordSRV, "https://bytebin.lucko.me") /* TODO: final store tbd */, 128);
         discordSRV.eventBus().subscribe(this);
     }
 
     @Subscribe(priority = EventPriorities.EARLIEST)
     public void onDiscordSRVShuttingDown(DiscordSRVShuttingDownEvent event) {
-        if (debugObserving.compareAndSet(true, false)) {
-            discordSRV.eventBus().publish(new DebugObservabilityEvent(false));
-        }
+        compareAndSetDebugObservability(false);
+    }
+
+    @Subscribe
+    public void onDebugGenerate(DebugGenerateEvent event) {
+        Map<String, Object> values = new LinkedHashMap<>();
+        values.put("observing", debugObserving.get());
+
+        event.addFile(-100, "debug.json", new KeyValueDebugFile(values));
     }
 
     @Override
@@ -129,53 +138,64 @@ public class DebugCommand extends CombinedCommand {
             return;
         }
 
-        execution.runAsync(() -> {
-            if ("start".equals(subCommand)) {
-                if (!debugObserving.compareAndSet(false, true)) {
-                    execution.send(new Text("Already debugging").withGameColor(NamedTextColor.RED));
-                    return;
-                }
+        execution.runAsync(() -> handle(execution, subCommand));
+    }
 
-                discordSRV.eventBus().publish(new DebugObservabilityEvent(true));
-                execution.send(new Text("Debugging started").withGameColor(NamedTextColor.GREEN));
+    private void handle(CommandExecution execution, String subCommand) {
+        if ("start".equals(subCommand)) {
+            if (!compareAndSetDebugObservability(true)) {
+                execution.send(new Text("Debug observing is already enabled").withGameColor(NamedTextColor.RED));
                 return;
             }
 
-            boolean useUpload = subCommand == null || "upload".equals(subCommand);
-            boolean useZip = subCommand == null || "zip".equals(subCommand);
-            if (useUpload || useZip) {
-                DebugReport report = new DebugReport(discordSRV);
-                report.generate();
+            execution.send(new Text("Debug observing started").withGameColor(NamedTextColor.GREEN));
+            return;
+        }
 
-                Throwable pasteError = useUpload ? paste(execution, report) : null;
-                if (useUpload && pasteError == null) {
-                    useZip = false;
-                }
+        boolean useUpload = subCommand == null || "upload".equals(subCommand);
+        boolean useZip = subCommand == null || "zip".equals(subCommand);
+        if (useUpload || useZip) {
+            DebugReport report = new DebugReport(discordSRV);
+            report.generate();
 
-                Throwable zipError = useZip ? zip(execution, report) : null;
-                if (pasteError != null || zipError != null) {
-                    // Failed
-                    RuntimeException exception = ExceptionUtil.minifyException(new RuntimeException("Failed to save debug"));
-                    if (pasteError != null) {
-                        exception.addSuppressed(pasteError);
-                    }
-                    if (zipError != null) {
-                        exception.addSuppressed(zipError);
-                    }
-
-                    discordSRV.logger().error("Failed to save debug", exception);
-                    execution.send(new Text("Failed to save debug").withGameColor(NamedTextColor.DARK_RED));
-                    return;
-                }
+            Throwable pasteError = useUpload ? paste(execution, report) : null;
+            if (useUpload && pasteError == null) {
+                useZip = false;
             }
 
-            if (debugObserving.compareAndSet(true, false)) {
-                discordSRV.eventBus().publish(new DebugObservabilityEvent(false));
-                execution.send(new Text("Debugging stopped").withGameColor(NamedTextColor.GREEN));
-            } else if ("stop".equals(subCommand)) {
-                execution.send(new Text("Not debugging").withGameColor(NamedTextColor.RED));
+            Throwable zipError = useZip ? zip(execution, report) : null;
+            if (pasteError != null || zipError != null) {
+                // Failed
+                RuntimeException exception = ExceptionUtil.minifyException(new RuntimeException("Failed to save debug"));
+                if (pasteError != null) {
+                    exception.addSuppressed(pasteError);
+                }
+                if (zipError != null) {
+                    exception.addSuppressed(zipError);
+                }
+
+                logger.error("Failed to save debug", exception);
+                execution.send(new Text("Failed to save debug").withGameColor(NamedTextColor.DARK_RED));
+                return;
             }
-        });
+        }
+
+        if (compareAndSetDebugObservability(false)) {
+            execution.send(new Text("Debug observing stopped").withGameColor(NamedTextColor.GREEN));
+        } else if ("stop".equals(subCommand)) {
+            execution.send(new Text("Not debug observing").withGameColor(NamedTextColor.RED));
+        }
+    }
+
+    private boolean compareAndSetDebugObservability(boolean newValue) {
+        boolean changed = debugObserving.compareAndSet(!newValue, newValue);
+        if (!changed) {
+            return false;
+        }
+
+        logger.debug("Debug observability changed to " + newValue);
+        discordSRV.eventBus().publish(new DebugObservabilityEvent(newValue));
+        return true;
     }
 
     private Throwable paste(CommandExecution execution, DebugReport report) {

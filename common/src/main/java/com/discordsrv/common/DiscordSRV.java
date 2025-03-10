@@ -42,7 +42,6 @@ import com.discordsrv.common.core.dependency.DiscordSRVDependencyManager;
 import com.discordsrv.common.core.logging.Logger;
 import com.discordsrv.common.core.logging.impl.DiscordSRVLogger;
 import com.discordsrv.common.core.module.ModuleManager;
-import com.discordsrv.common.core.module.type.AbstractModule;
 import com.discordsrv.common.core.placeholder.PlaceholderServiceImpl;
 import com.discordsrv.common.core.scheduler.Scheduler;
 import com.discordsrv.common.core.storage.Storage;
@@ -152,8 +151,9 @@ public interface DiscordSRV extends DiscordSRVApi {
     // Modules
     @Nullable
     <T extends Module> T getModule(Class<T> moduleType);
-    void registerModule(AbstractModule<?> module);
-    void unregisterModule(AbstractModule<?> module);
+
+    void registerModule(@NotNull Module module);
+    void unregisterModule(@NotNull Module module);
     ModuleManager moduleManager();
 
     Locale defaultLocale();

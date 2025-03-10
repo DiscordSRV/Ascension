@@ -43,10 +43,12 @@ public class ConsoleMessage {
             // ANSI
             ANSI_ESCAPE
                     + "\\["
-                    + "(?<ansi>[0-9]{1,3}"
+                    + "(?<ansi>"
+                    + "([0-9]{1,3}"
                     + "(;[0-9]{1,3}"
-                    + "(;[0-9]{1,3}"
+                    + "([;:][0-9]{1,3}"
                     + "(?:(?:;[0-9]{1,3}){2})?"
+                    + ")?"
                     + ")?"
                     + ")?"
                     + ")"
@@ -118,70 +120,112 @@ public class ConsoleMessage {
     }
 
     private void parseAnsi(String ansiEscape, Style.Builder style) {
+        // https://en.wikipedia.org/wiki/ANSI_escape_code#Select_Graphic_Rendition_parameters
+        if (ansiEscape.isEmpty()) {
+            ansiEscape = "0";
+        }
+
         String[] ansiParts = ansiEscape.split(";");
         int amount = ansiParts.length;
         if (amount == 1 || amount == 2) {
-            int number = Integer.parseInt(ansiParts[0]);
+            for (String ansiPart : ansiParts) {
+                int parameter = Integer.parseInt(ansiPart);
 
-            if ((number >= 30 && number <= 37) || (number >= 90 && number <= 97)) {
-                style.color(fourBitAnsiColor(number));
-                return;
-            }
-
-            switch (number) {
-                case 0:
-                    style.color(null).decorations(EnumSet.allOf(TextDecoration.class), false);
-                    break;
-                case 1:
-                    style.decoration(TextDecoration.BOLD, true);
-                    break;
-                case 3:
-                    style.decoration(TextDecoration.ITALIC, true);
-                    break;
-                case 4:
-                    style.decoration(TextDecoration.UNDERLINED, true);
-                    break;
-                case 8:
-                    style.decoration(TextDecoration.OBFUSCATED, true);
-                    break;
-                case 9:
-                    style.decoration(TextDecoration.STRIKETHROUGH, true);
-                    break;
-                case 22:
-                    style.decoration(TextDecoration.BOLD, false);
-                    break;
-                case 23:
-                    style.decoration(TextDecoration.ITALIC, false);
-                    break;
-                case 24:
-                    style.decoration(TextDecoration.UNDERLINED, false);
-                    break;
-                case 28:
-                    style.decoration(TextDecoration.OBFUSCATED, false);
-                    break;
-                case 29:
-                    style.decoration(TextDecoration.STRIKETHROUGH, false);
-                    break;
-                case 39:
+                // 3 & 4 bit color
+                // https://en.wikipedia.org/wiki/ANSI_escape_code#3-bit_and_4-bit
+                if ((parameter >= 30 && parameter <= 37) || (parameter >= 90 && parameter <= 97)) {
+                    style.color(fourBitAnsiColor(parameter));
+                } else if (parameter == 39) {
                     style.color(null);
-                    break;
+                }
+
+                if ((parameter >= 40 && parameter <= 47) || (parameter >= 100 && parameter <= 107)) {
+                    TextColor textColor = fourBitAnsiColor(parameter - 10);
+                    style.shadowColor(textColor != null ? ShadowColor.shadowColor(textColor, 1) : null);
+                } else if (parameter == 49) {
+                    style.shadowColor(null);
+                }
+
+                // https://en.wikipedia.org/wiki/ANSI_escape_code#Select_Graphic_Rendition_parameters
+                switch (parameter) {
+                    case 0:
+                        style.color(null).shadowColor(null).decorations(EnumSet.allOf(TextDecoration.class), false);
+                        break;
+                    case 1:
+                    case 2:
+                        style.decoration(TextDecoration.BOLD, true);
+                        break;
+                    case 3:
+                        style.decoration(TextDecoration.ITALIC, true);
+                        break;
+                    case 4:
+                        style.decoration(TextDecoration.UNDERLINED, true);
+                        break;
+                    case 8:
+                        style.decoration(TextDecoration.OBFUSCATED, true);
+                        break;
+                    case 9:
+                        style.decoration(TextDecoration.STRIKETHROUGH, true);
+                        break;
+                    case 22:
+                        style.decoration(TextDecoration.BOLD, false);
+                        break;
+                    case 23:
+                        style.decoration(TextDecoration.ITALIC, false);
+                        break;
+                    case 24:
+                        style.decoration(TextDecoration.UNDERLINED, false);
+                        break;
+                    case 28:
+                        style.decoration(TextDecoration.OBFUSCATED, false);
+                        break;
+                    case 29:
+                        style.decoration(TextDecoration.STRIKETHROUGH, false);
+                        break;
+                    case 39:
+                        style.color(null);
+                        break;
+                }
             }
         } else if (amount == 3 || amount == 5) {
-            if (Integer.parseInt(ansiParts[0]) != 36 || Integer.parseInt(ansiParts[1]) != 5) {
+            int parameter = Integer.parseInt(ansiParts[0]);
+            boolean foreground = parameter == 38;
+            if (!foreground && parameter != 48) {
                 return;
             }
 
-            if (amount == 5)  {
-                int red = Integer.parseInt(ansiParts[2]);
-                int green = Integer.parseInt(ansiParts[3]);
-                int blue = Integer.parseInt(ansiParts[4]);
+            int secondParameter = Integer.parseInt(ansiParts[1]);
+            if (amount == 3 && secondParameter == 5) {
+                // 8-bit
+                // https://en.wikipedia.org/wiki/ANSI_escape_code#8-bit
 
-                style.color(TextColor.color(red, green, blue));
+                int number = Integer.parseInt(ansiParts[2]);
+                TextColor textColor = eightBitAnsiColor(number);
+                if (foreground) {
+                    style.color(textColor);
+                    return;
+                }
+
+                style.shadowColor(textColor != null ? ShadowColor.shadowColor(textColor, 1) : null);
+                return;
+            }
+            if (amount != 5 || secondParameter != 2) {
+                return;
+            }
+            // 24-bit
+            // https://en.wikipedia.org/wiki/ANSI_escape_code#24-bit
+
+            int red = Integer.parseInt(ansiParts[2]);
+            int green = Integer.parseInt(ansiParts[3]);
+            int blue = Integer.parseInt(ansiParts[4]);
+
+            TextColor textColor = TextColor.color(red, green, blue);
+            if (foreground) {
+                style.color(textColor);
                 return;
             }
 
-            int number = Integer.parseInt(ansiParts[2]);
-            style.color(eightBitAnsiColor(number));
+            style.shadowColor(ShadowColor.shadowColor(textColor, 1));
         }
     }
 

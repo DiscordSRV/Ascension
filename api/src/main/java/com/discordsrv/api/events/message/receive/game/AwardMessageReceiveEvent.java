@@ -29,6 +29,7 @@ import com.discordsrv.api.component.MinecraftComponent;
 import com.discordsrv.api.eventbus.EventPriorities;
 import com.discordsrv.api.events.PlayerEvent;
 import com.discordsrv.api.player.DiscordSRVPlayer;
+import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -45,6 +46,19 @@ public class AwardMessageReceiveEvent extends AbstractGameMessageReceiveEvent im
     private AdvancementFrame frame;
     private GameChannel gameChannel;
 
+    public AwardMessageReceiveEvent(
+            @Nullable Object triggeringEvent,
+            @NotNull DiscordSRVPlayer player,
+            @Nullable MinecraftComponent message,
+            @Nullable MinecraftComponent title,
+            @Nullable MinecraftComponent description,
+            @Nullable AdvancementFrame frame,
+            @Nullable GameChannel gameChannel
+    ) {
+        this(triggeringEvent, player, message, title, description, frame, gameChannel, false);
+    }
+
+    @ApiStatus.Experimental
     public AwardMessageReceiveEvent(
             @Nullable Object triggeringEvent,
             @NotNull DiscordSRVPlayer player,
