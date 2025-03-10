@@ -47,6 +47,7 @@ import net.dv8tion.jda.api.requests.ErrorResponse;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
+import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
@@ -116,7 +117,7 @@ public class OnlineRoleModule extends AbstractSyncModule<DiscordSRV, OnlineRoleC
     @Override
     protected Task<Boolean> getGame(OnlineRoleConfig config, UUID playerUUID) {
         DiscordSRVPlayer player = discordSRV.playerProvider().player(playerUUID);
-        
+
         if (player == null) {
             return Task.failed(new SyncFail(OnlineRoleResult.PLAYER_NOT_ONLINE));
         }
@@ -170,8 +171,8 @@ public class OnlineRoleModule extends AbstractSyncModule<DiscordSRV, OnlineRoleC
         resyncAll(OnlineRoleCause.PLAYER_LEFT_SERVER, Someone.of(event.player().uniqueId()));
     }
 
-    private Task<List<Void>> removeRoleFromList(List<Member> members, Role role) {
-        List<Task<Void>> futures = members.stream().map(member -> Task.of(member.getGuild().removeRoleFromMember(member, role).submit())).collect(Collectors.toList());
+    private Task<List<Void>> removeRoleFromList(List<Member> members, Role role, long timeout, TimeUnit unit) {
+        List<Task<Void>> futures = members.stream().map(member -> Task.of(member.getGuild().removeRoleFromMember(member, role).timeout(timeout, unit).submit())).collect(Collectors.toList());
         return Task.allOf(futures);
     }
 
@@ -188,7 +189,7 @@ public class OnlineRoleModule extends AbstractSyncModule<DiscordSRV, OnlineRoleC
         }
 
         List<Member> members = role.getGuild().getMembersWithRoles(role);
-        removeRoleFromList(members, role)
+        removeRoleFromList(members, role, 10, TimeUnit.SECONDS)
                 .whenFailed(e -> discordSRV.logger().error("Failed to remove online sync roles from all users for server shutdown", e))
                 .whenSuccessful(__ -> discordSRV.logger().info("Removed all online sync roles from all users for server shutdown"));
     }
@@ -204,7 +205,12 @@ public class OnlineRoleModule extends AbstractSyncModule<DiscordSRV, OnlineRoleC
             }
         }
 
-        Role role = discordSRV.discordAPI().getRoleById(discordSRV.config().onlineRole.roleId).asJDA();
+        JDA jda = discordSRV.jda();
+        if (jda == null) {
+            return;
+        }
+
+        Role role = jda.getRoleById(discordSRV.config().onlineRole.roleId);
         if (role == null) {
             return;
         }
@@ -213,8 +219,8 @@ public class OnlineRoleModule extends AbstractSyncModule<DiscordSRV, OnlineRoleC
                 member -> onlineProfiles.stream().noneMatch(profile -> Objects.equals(profile.userId(), member.getIdLong()))
         ).collect(Collectors.toList());
 
-        removeRoleFromList(membersToRemove, role)
-            .whenFailed(e -> discordSRV.logger().error("Failed to remove online sync roles from all users for reload", e))
-            .whenSuccessful(__ -> discordSRV.logger().info("Removed all online sync roles from all users for reload"));
+        removeRoleFromList(membersToRemove, role, 1, TimeUnit.MINUTES)
+                .whenFailed(e -> discordSRV.logger().error("Failed to remove online sync roles from all users for reload", e))
+                .whenSuccessful(__ -> discordSRV.logger().info("Removed all online sync roles from all users for reload"));
     }
 }
