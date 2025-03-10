@@ -215,6 +215,9 @@ public class PlaceholderServiceImpl implements PlaceholderService {
     }
 
     private String getReplacement(Pattern pattern, String input, Set<Object> context) {
+        if (input.isEmpty()) {
+            return input;
+        }
         Matcher matcher = pattern.matcher(input);
 
         StringBuffer output = new StringBuffer();

@@ -31,6 +31,7 @@ import java.util.List;
 public class DiscordCommandConfig {
 
     public ExecuteConfig execute = new ExecuteConfig();
+    public PlayerListCommand playerList = new PlayerListCommand();
 
     @ConfigSerializable
     public static class ExecuteConfig {
@@ -78,5 +79,21 @@ public class DiscordCommandConfig {
         PLAIN,
         CODEBLOCK,
         OFF
+    }
+
+    @ConfigSerializable
+    public static class PlayerListCommand {
+
+        public String header = "";
+        public String footer = "";
+
+        public String sortBy = "%player_name%";
+        public String groupBy = "%player_primary_group%";
+
+        public String groupingHeader = "%group%\n";
+        public String groupSeparator = "\n\n";
+        public String playerFormat = "%player_name%";
+        public String playerSeparator = ", ";
+
     }
 }

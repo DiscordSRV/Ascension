@@ -239,4 +239,9 @@ public class LuckPermsIntegration extends PluginIntegration<DiscordSRV> implemen
                 .map(Group::getName)
                 .collect(Collectors.toList());
     }
+
+    @Override
+    public Task<String> getPrimaryGroup(@NotNull UUID player) {
+        return user(player).thenApply(User::getPrimaryGroup);
+    }
 }

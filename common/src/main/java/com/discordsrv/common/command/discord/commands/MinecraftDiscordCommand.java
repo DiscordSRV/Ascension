@@ -23,6 +23,7 @@ import com.discordsrv.api.discord.entity.interaction.component.ComponentIdentifi
 import com.discordsrv.common.DiscordSRV;
 import com.discordsrv.common.command.combined.commands.UnlinkCommand;
 import com.discordsrv.common.command.discord.commands.subcommand.LinkInitDiscordCommand;
+import com.discordsrv.common.command.discord.commands.subcommand.PlayerListCommand;
 import com.discordsrv.common.config.main.DiscordCommandConfig;
 import com.discordsrv.common.feature.linking.LinkStore;
 
@@ -35,7 +36,8 @@ public class MinecraftDiscordCommand {
             DiscordCommandConfig config = discordSRV.config().discordCommand;
 
             ComponentIdentifier identifier = ComponentIdentifier.of("DiscordSRV", "minecraft");
-            DiscordCommand.ChatInputBuilder builder = DiscordCommand.chatInput(identifier, "minecraft", "Minecraft server commands");
+            DiscordCommand.ChatInputBuilder builder = DiscordCommand.chatInput(identifier, "minecraft", "Minecraft server commands")
+                    .addSubCommand(PlayerListCommand.get(discordSRV));
 
             if (discordSRV.linkProvider() instanceof LinkStore) {
                 builder = builder
