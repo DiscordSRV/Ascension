@@ -18,14 +18,70 @@
 
 package com.discordsrv.bukkit.loader;
 
+import com.google.common.graph.MutableGraph;
 import dev.vankka.dependencydownload.jarinjar.loader.exception.LoadingException;
 import dev.vankka.mcdependencydownload.bukkit.loader.BukkitLoader;
+import org.bukkit.plugin.PluginDescriptionFile;
+import org.bukkit.plugin.PluginManager;
 import org.jetbrains.annotations.NotNull;
 
+import java.lang.reflect.Field;
 import java.net.URL;
+import java.util.Arrays;
+import java.util.List;
 import java.util.logging.Level;
 
 public class DiscordSRVBukkitLoader extends BukkitLoader {
+
+    private static final List<String> SOFT_DEPENDS = Arrays.asList(
+            // Permissions
+            "Vault",
+            "LuckPerms",
+            // Chat
+            "Chatty",
+            "GriefPrevention",
+            "LunaChat",
+            "McMMO",
+            "TownyChat",
+            "VentureChat",
+            // Other
+            "PlaceholderAPI",
+            "Essentials",
+            // Used by Adventure
+            "ViaVersion"
+    );
+
+    @SuppressWarnings({"UnstableApiUsage", "unchecked"}) // Required
+    private void addSoftDepends() {
+        try {
+            Class.forName("io.papermc.paper.plugin.storage.SimpleProviderStorage");
+            // Paper circular dependency detection: don't add soft depends
+            return;
+        } catch (ClassNotFoundException ignored) {}
+
+        // As far as DiscordSRV is concerned, the load order does not matter.
+        // but Spigot's PluginClassLoader cares
+        PluginDescriptionFile descriptionFile = getDescription();
+        if (descriptionFile.getSoftDepend().contains("disable-auto-depend")) {
+            return;
+        }
+
+        try {
+            PluginManager pluginManager = getServer().getPluginManager();
+            Class<?> pluginManagerClass = pluginManager.getClass();
+
+            Field dependencyGraphField = pluginManagerClass.getDeclaredField("dependencyGraph");
+            dependencyGraphField.setAccessible(true);
+            Object dependencyGraph = dependencyGraphField.get(pluginManager);
+            if (!(dependencyGraph instanceof MutableGraph<?>)) {
+                return;
+            }
+
+            for (String dependency : SOFT_DEPENDS) {
+                ((MutableGraph<String>) dependencyGraph).putEdge(descriptionFile.getName(), dependency);
+            }
+        } catch (Throwable ignored) {}
+    }
 
     @Override
     public @NotNull String getBootstrapClassName() {
@@ -34,6 +90,8 @@ public class DiscordSRVBukkitLoader extends BukkitLoader {
 
     @Override
     public @NotNull URL getJarInJarResource() {
+        addSoftDepends();
+
         URL resource = getClassLoader().getResource("bukkit.jarinjar");
         if (resource == null) {
             throw new IllegalStateException("Jar does not contain jarinjar");
