@@ -211,7 +211,7 @@ public class EventObserver<E extends Event, P> implements AutoCloseable {
             this.observer = observer;
         }
 
-        @SuppressWarnings("unchecked") // Cast to generic
+        @SuppressWarnings("unchecked")
         @Override
         public void callEvent(Event event) {
             if (event == null || !observer.eventClass.isAssignableFrom(event.getClass())) {

@@ -33,7 +33,6 @@ import java.util.Collection;
 /**
  * DiscordSRV's event bus, handling all events extending {@link Event}s and {@link GenericEvent}s.
  */
-@SuppressWarnings("unused") // API
 public interface EventBus {
 
     /**

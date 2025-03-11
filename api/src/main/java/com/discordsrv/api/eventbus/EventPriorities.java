@@ -26,7 +26,6 @@ package com.discordsrv.api.eventbus;
 /**
  * A simple list of priorities for use in {@link Subscribe#priority()}, listeners may be assigned to any value of {@code byte}.
  */
-@SuppressWarnings("unused") // "API"
 public final class EventPriorities {
 
     /**

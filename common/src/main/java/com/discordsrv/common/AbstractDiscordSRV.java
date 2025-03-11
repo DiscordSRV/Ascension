@@ -1001,7 +1001,7 @@ public abstract class AbstractDiscordSRV<
         throw new StorageException("Unknown storage backend \"" + backend + "\"");
     }
 
-    @SuppressWarnings("resource") //
+    @SuppressWarnings("resource") // Closed instantly
     @MustBeInvokedByOverriders
     protected void disable() {
         Status status = this.status.get();

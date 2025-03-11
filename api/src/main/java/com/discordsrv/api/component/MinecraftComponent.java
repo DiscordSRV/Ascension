@@ -37,7 +37,6 @@ import org.jetbrains.annotations.Nullable;
  * but is compatible with anything able to handle Minecraft's json format.
  * Legacy is <b>not supported</b>.
  */
-@SuppressWarnings("unused") // API
 @ApiStatus.NonExtendable
 public interface MinecraftComponent {
 
@@ -112,7 +111,7 @@ public interface MinecraftComponent {
      * @throws IllegalArgumentException if the provided class is not an Adventure {@code GsonComponentSerializer}
      * or if the provided {@code Component} class isn't the one returned by the serializer
      */
-    @SuppressWarnings("unchecked")
+    @SuppressWarnings({"unchecked", "unused"}) // Makes the API more usable
     @NotNull
     default <T> T asAdventure(@NotNull Class<?> gsonSerializerClass, Class<T> componentClass) {
         return (T) MinecraftComponentAdapter.create(gsonSerializerClass).toAdventure(this);

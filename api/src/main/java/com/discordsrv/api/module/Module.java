@@ -64,7 +64,7 @@ public interface Module {
      * This defaults to determining intents based on the events listened to in this class via {@link Subscribe} methods.
      * @return the collection of gateway intents required by this module at the time this method is called
      */
-    @SuppressWarnings("unchecked") // Class generic cast
+    @SuppressWarnings("unchecked")
     @NotNull
     default Collection<DiscordGatewayIntent> requiredIntents() {
         DiscordSRVApi api = DiscordSRVApi.get();
@@ -124,7 +124,6 @@ public interface Module {
      * @param type the type being looked up this could be an interface
      * @return the priority of this module, higher is more important. Default is 0
      */
-    @SuppressWarnings("unused") // API
     default int priority(Class<?> type) {
         return 0;
     }

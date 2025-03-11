@@ -46,7 +46,6 @@ import java.util.Optional;
  * <p>
  * Use your platform's service provider or {@link #get()} / {@link #optional()} to get the instance.
  */
-@SuppressWarnings("unused") // API
 public interface DiscordSRVApi {
 
     /**
@@ -273,7 +272,7 @@ public interface DiscordSRVApi {
     }
 
     @ApiStatus.Internal
-    @SuppressWarnings("unused") // API, Reflection
+    @SuppressWarnings("unused") // Reflection
     final class InstanceHolder {
 
         static DiscordSRVApi API;

@@ -174,7 +174,7 @@ public abstract class ConfigurateConfigManager<T, LT extends AbstractConfigurati
         return new IChannelConfig.Serializer(mapperFactory, BaseChannelConfig.class, ChannelConfig.class);
     }
 
-    @SuppressWarnings("unchecked") // Special Class cast
+    @SuppressWarnings("unchecked")
     public ConfigurationOptions configurationOptions(ObjectMapper.Factory objectMapper, boolean headerSubstitutions) {
         String header = header();
         if (header != null && headerSubstitutions) {
@@ -390,7 +390,7 @@ public abstract class ConfigurateConfigManager<T, LT extends AbstractConfigurati
 
     protected void translate(CommentedConfigurationNode node) throws ConfigurateException {}
 
-    @SuppressWarnings("unchecked") // Cast to generic
+    @SuppressWarnings("unchecked")
     @Override
     public void reload(boolean forceSave, AtomicBoolean anyMissingOptions, @Nullable Path backupPath) throws ConfigException {
         T defaultConfig = createConfiguration();

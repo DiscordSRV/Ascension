@@ -32,7 +32,6 @@ import org.jetbrains.annotations.NotNull;
  * A helper class to provide {@link DiscordGatewayIntent}s and {@link DiscordCacheFlag}s for the Discord connection.
  * @see DiscordSRVApi#discordConnectionDetails()
  */
-@SuppressWarnings("unused") // API
 public interface DiscordConnectionDetails {
 
     /**

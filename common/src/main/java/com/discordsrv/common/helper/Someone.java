@@ -137,7 +137,7 @@ public class Someone {
         return playerUUID != null ? playerUUID.toString() : Long.toUnsignedString(Objects.requireNonNull(userId));
     }
 
-    @SuppressWarnings("DataFlowIssue")
+    @SuppressWarnings("DataFlowIssue") // Guaranteed to not be null
     public static class Resolved extends Someone {
 
         private Resolved(@NotNull UUID playerUUID, @NotNull Long userId) {

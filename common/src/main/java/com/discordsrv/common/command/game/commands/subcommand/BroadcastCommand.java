@@ -97,7 +97,7 @@ public abstract class BroadcastCommand implements GameCommandExecutor, GameComma
         doExecute(sender, arguments);
     }
 
-    @SuppressWarnings("unchecked") // Wacky generics
+    @SuppressWarnings("unchecked")
     private <CC extends BaseChannelConfig & IChannelConfig> void doExecute(ICommandSender sender, GameCommandArguments arguments) {
         String channel = arguments.getString("channel");
         String content = arguments.getString("content");
