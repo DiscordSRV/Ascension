@@ -31,7 +31,7 @@ import java.util.UUID;
 /**
  * A provider for {@link DiscordSRVPlayer} instances.
  */
-public interface IPlayerProvider {
+public interface PlayerProvider {
 
     /**
      * Gets a player from the cache of online players.

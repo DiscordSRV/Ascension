@@ -31,8 +31,8 @@ import com.discordsrv.api.module.Module;
 import com.discordsrv.api.placeholder.PlaceholderService;
 import com.discordsrv.api.placeholder.format.PlainPlaceholderFormat;
 import com.discordsrv.api.player.DiscordSRVPlayer;
-import com.discordsrv.api.player.IPlayerProvider;
-import com.discordsrv.api.profile.IProfileManager;
+import com.discordsrv.api.player.PlayerProvider;
+import com.discordsrv.api.profile.ProfileManager;
 import net.dv8tion.jda.api.JDA;
 import net.dv8tion.jda.api.JDAInfo;
 import org.jetbrains.annotations.ApiStatus;
@@ -46,17 +46,17 @@ import java.util.Optional;
  * <p>
  * Use your platform's service provider or {@link #get()} / {@link #optional()} to get the instance.
  */
-public interface DiscordSRVApi {
+public interface DiscordSRV {
 
     /**
-     * Gets the instance of {@link DiscordSRVApi}.
+     * Gets the instance of {@link DiscordSRV}.
      * @return the DiscordSRV api
      * @see #isAvailable()
      * @throws IllegalStateException if DiscordSRV has not been initialized yet
      */
     @NotNull
-    static DiscordSRVApi get() {
-        DiscordSRVApi api = InstanceHolder.API;
+    static DiscordSRV get() {
+        DiscordSRV api = InstanceHolder.API;
         if (api == null) {
             throw new IllegalStateException("DiscordSRV has not been initialized yet");
         }
@@ -64,12 +64,12 @@ public interface DiscordSRVApi {
     }
 
     /**
-     * Returns a {@link Optional} of {@link DiscordSRVApi}.
+     * Returns a {@link Optional} of {@link DiscordSRV}.
      * @return the DiscordSRV api in an optional
      * @see #isAvailable()
      */
     @NotNull
-    static Optional<DiscordSRVApi> optional() {
+    static Optional<DiscordSRV> optional() {
         return Optional.ofNullable(InstanceHolder.API);
     }
 
@@ -109,10 +109,10 @@ public interface DiscordSRVApi {
 
     /**
      * The profile manager, access the profiles of players and/or users.
-     * @return the instance of {@link IProfileManager}
+     * @return the instance of {@link ProfileManager}
      */
     @NotNull
-    IProfileManager profileManager();
+    ProfileManager profileManager();
 
     /**
      * DiscordSRV's own placeholder service.
@@ -137,10 +137,10 @@ public interface DiscordSRVApi {
 
     /**
      * A provider for {@link DiscordSRVPlayer} instances.
-     * @return the {@link IPlayerProvider} instance
+     * @return the {@link PlayerProvider} instance
      */
     @NotNull
-    IPlayerProvider playerProvider();
+    PlayerProvider playerProvider();
 
     /**
      * Gets DiscordSRV's first party API wrapper for Discord. This contains limited methods but is less likely to break compared to {@link #jda()}.
@@ -275,11 +275,11 @@ public interface DiscordSRVApi {
     @SuppressWarnings("unused") // Reflection
     final class InstanceHolder {
 
-        static DiscordSRVApi API;
+        static DiscordSRV API;
 
         private InstanceHolder() {}
 
-        private static void provide(DiscordSRVApi api) {
+        private static void provide(DiscordSRV api) {
             InstanceHolder.API = api;
         }
     }

@@ -23,7 +23,7 @@
 
 package com.discordsrv.api.events.discord.interaction.command;
 
-import com.discordsrv.api.DiscordSRVApi;
+import com.discordsrv.api.DiscordSRV;
 import com.discordsrv.api.discord.entity.DiscordUser;
 import com.discordsrv.api.discord.entity.channel.DiscordMessageChannel;
 import com.discordsrv.api.discord.entity.guild.DiscordGuildMember;
@@ -34,7 +34,7 @@ import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEve
 public abstract class DiscordChatInputInteractionEvent extends AbstractCommandInteractionEvent<SlashCommandInteractionEvent> {
 
     public DiscordChatInputInteractionEvent(
-            DiscordSRVApi discordSRV,
+            DiscordSRV discordSRV,
             SlashCommandInteractionEvent jdaEvent,
             ComponentIdentifier identifier,
             DiscordUser user,

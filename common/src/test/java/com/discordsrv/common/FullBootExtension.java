@@ -18,7 +18,7 @@
 
 package com.discordsrv.common;
 
-import com.discordsrv.api.DiscordSRVApi;
+import com.discordsrv.api.DiscordSRV;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Assumptions;
 import org.junit.jupiter.api.extension.BeforeAllCallback;
@@ -53,7 +53,7 @@ public class FullBootExtension implements BeforeAllCallback, ExtensionContext.St
         try {
             System.out.println("Enabling...");
             MockDiscordSRV.getInstance().enable();
-            MockDiscordSRV.getInstance().waitForStatus(DiscordSRVApi.Status.CONNECTED);
+            MockDiscordSRV.getInstance().waitForStatus(DiscordSRV.Status.CONNECTED);
             System.out.println("Enabled successfully");
         } catch (Throwable e) {
             Assertions.fail(e);

@@ -18,7 +18,6 @@
 
 package com.discordsrv.common.util;
 
-import com.discordsrv.api.DiscordSRVApi;
 import com.discordsrv.api.task.Task;
 import com.discordsrv.common.DiscordSRV;
 import com.discordsrv.common.abstraction.player.IPlayer;
@@ -46,7 +45,7 @@ public final class CommandUtil {
 
     public static void basicStatusCheck(DiscordSRV discordSRV, ICommandSender sender) {
         if (discordSRV.status().isError() && sender.hasPermission(Permissions.COMMAND_DEBUG)) {
-            if (discordSRV.status() == DiscordSRVApi.Status.NOT_CONFIGURED) {
+            if (discordSRV.status() == DiscordSRV.Status.NOT_CONFIGURED) {
                 sender.sendMessage(
                         Component.text("DiscordSRV has not been fully configured yet, please check your server log for more details")
                                 .color(NamedTextColor.RED)

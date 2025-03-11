@@ -24,7 +24,7 @@
 package com.discordsrv.api.events.linking;
 
 import com.discordsrv.api.events.Event;
-import com.discordsrv.api.profile.IProfile;
+import com.discordsrv.api.profile.Profile;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.UUID;
@@ -34,9 +34,9 @@ import java.util.UUID;
  */
 public class AccountLinkedEvent implements Event {
 
-    private final IProfile profile;
+    private final Profile profile;
 
-    public AccountLinkedEvent(@NotNull IProfile profile) {
+    public AccountLinkedEvent(@NotNull Profile profile) {
         if (!profile.isLinked()) {
             throw new IllegalStateException("Profile is not linked");
         }
@@ -48,7 +48,7 @@ public class AccountLinkedEvent implements Event {
      * @return the profile
      */
     @NotNull
-    public IProfile getProfile() {
+    public Profile getProfile() {
         return profile;
     }
 

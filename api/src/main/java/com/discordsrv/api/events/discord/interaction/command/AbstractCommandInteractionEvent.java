@@ -23,7 +23,7 @@
 
 package com.discordsrv.api.events.discord.interaction.command;
 
-import com.discordsrv.api.DiscordSRVApi;
+import com.discordsrv.api.DiscordSRV;
 import com.discordsrv.api.discord.entity.DiscordUser;
 import com.discordsrv.api.discord.entity.channel.DiscordChannel;
 import com.discordsrv.api.discord.entity.channel.DiscordMessageChannel;
@@ -41,10 +41,10 @@ import org.jetbrains.annotations.Nullable;
 public abstract class AbstractCommandInteractionEvent<E extends GenericCommandInteractionEvent>
         extends AbstractInteractionWithHookEvent<E> {
 
-    private final DiscordSRVApi discordSRV;
+    private final DiscordSRV discordSRV;
 
     public AbstractCommandInteractionEvent(
-            DiscordSRVApi discordSRV,
+            DiscordSRV discordSRV,
             E jdaEvent,
             ComponentIdentifier identifier,
             DiscordUser user,

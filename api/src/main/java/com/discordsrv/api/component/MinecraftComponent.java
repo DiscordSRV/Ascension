@@ -23,7 +23,7 @@
 
 package com.discordsrv.api.component;
 
-import com.discordsrv.api.DiscordSRVApi;
+import com.discordsrv.api.DiscordSRV;
 import com.discordsrv.unrelocate.net.kyori.adventure.text.Component;
 import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.Contract;
@@ -31,7 +31,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 /**
- * A Minecraft json text component. Use {@link DiscordSRVApi#componentFactory()} to get an instance.<br/>
+ * A Minecraft json text component. Use {@link DiscordSRV#componentFactory()} to get an instance.<br/>
  * <br/>
  * This is designed to work with Adventure, see {@link #asAdventure(Class, Class)} and {@link #asAdventure(MinecraftComponentAdapter)}
  * but is compatible with anything able to handle Minecraft's json format.
@@ -48,7 +48,7 @@ public interface MinecraftComponent {
      */
     @NotNull
     static MinecraftComponent fromJson(@NotNull String json) {
-        return DiscordSRVApi.get()
+        return DiscordSRV.get()
                 .componentFactory()
                 .fromJson(json);
     }

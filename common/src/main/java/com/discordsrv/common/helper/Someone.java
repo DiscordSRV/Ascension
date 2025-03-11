@@ -22,7 +22,7 @@ import com.discordsrv.api.discord.entity.DiscordUser;
 import com.discordsrv.api.player.DiscordSRVPlayer;
 import com.discordsrv.api.task.Task;
 import com.discordsrv.common.DiscordSRV;
-import com.discordsrv.common.feature.profile.Profile;
+import com.discordsrv.common.feature.profile.ProfileImpl;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -79,7 +79,7 @@ public class Someone {
     }
 
     @NotNull
-    public Task<@NotNull Profile> profile(DiscordSRV discordSRV) {
+    public Task<@NotNull ProfileImpl> profile(DiscordSRV discordSRV) {
         if (playerUUID != null) {
             return discordSRV.profileManager().lookupProfile(playerUUID);
         } else if (userId != null) {
