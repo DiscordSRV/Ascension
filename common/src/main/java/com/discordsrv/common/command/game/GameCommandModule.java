@@ -18,8 +18,8 @@
 
 package com.discordsrv.common.command.game;
 
-import com.discordsrv.common.DiscordSRV;
 import com.discordsrv.api.reload.ReloadResult;
+import com.discordsrv.common.DiscordSRV;
 import com.discordsrv.common.command.combined.commands.LinkOtherCommand;
 import com.discordsrv.common.command.game.abstraction.command.GameCommand;
 import com.discordsrv.common.command.game.abstraction.handler.ICommandHandler;

@@ -91,7 +91,6 @@ import com.discordsrv.common.feature.messageforwarding.discord.DiscordChatMessag
 import com.discordsrv.common.feature.messageforwarding.discord.DiscordMessageMirroringModule;
 import com.discordsrv.common.feature.messageforwarding.game.*;
 import com.discordsrv.common.feature.nicknamesync.NicknameSyncModule;
-import com.discordsrv.common.feature.profile.ProfileImpl;
 import com.discordsrv.common.feature.profile.ProfileManagerImpl;
 import com.discordsrv.common.feature.update.UpdateChecker;
 import com.discordsrv.common.helper.ChannelConfigHelper;
