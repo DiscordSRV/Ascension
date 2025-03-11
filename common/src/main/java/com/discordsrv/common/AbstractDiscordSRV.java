@@ -1037,6 +1037,8 @@ public abstract class AbstractDiscordSRV<
             logger().error("Failed to close storage connection", t);
         }
         temporaryLocalData.save();
+
+        logger().shutdown();
         this.status.set(Status.SHUTDOWN);
     }
 

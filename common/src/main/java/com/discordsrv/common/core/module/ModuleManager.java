@@ -196,6 +196,12 @@ public class ModuleManager {
                 logger.debug(module + " disabled");
             }
         } catch (Throwable t) {
+            if (module instanceof PluginIntegration<?>
+                    && discordSRV.status().isShutdown()
+                    && (t instanceof NoClassDefFoundError || t instanceof ClassNotFoundException)) {
+                // PluginIntegration already unloaded at shutdown
+                return;
+            }
             discordSRV.logger().error("Failed to disable " + getName(module), t);
         }
     }
