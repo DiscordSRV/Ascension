@@ -50,7 +50,7 @@ public interface PlainPlaceholderFormat {
 
     enum Formatting {
         PLAIN,
-        DISCORD,
+        DISCORD_MARKDOWN,
         ANSI,
         LEGACY
     }

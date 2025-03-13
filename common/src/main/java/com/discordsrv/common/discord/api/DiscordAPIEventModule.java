@@ -31,7 +31,6 @@ import com.discordsrv.api.eventbus.Subscribe;
 import com.discordsrv.api.events.Event;
 import com.discordsrv.api.events.discord.interaction.DiscordModalInteractionEvent;
 import com.discordsrv.api.events.discord.interaction.command.*;
-import com.discordsrv.api.events.discord.interaction.component.DiscordButtonInteractionEvent;
 import com.discordsrv.api.events.discord.interaction.component.DiscordSelectMenuInteractionEvent;
 import com.discordsrv.api.events.discord.member.role.DiscordMemberRoleAddEvent;
 import com.discordsrv.api.events.discord.member.role.DiscordMemberRoleRemoveEvent;
@@ -46,6 +45,7 @@ import com.discordsrv.common.discord.api.entity.message.ReceivedDiscordMessageIm
 import com.discordsrv.common.events.discord.interaction.command.DiscordChatInputInteractionEventImpl;
 import com.discordsrv.common.events.discord.interaction.command.DiscordMessageContextInteractionEventImpl;
 import com.discordsrv.common.events.discord.interaction.command.DiscordUserContextInteractionEventImpl;
+import com.discordsrv.common.events.discord.interaction.component.DiscordButtonInteractionEventImpl;
 import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.entities.Member;
 import net.dv8tion.jda.api.events.guild.member.GuildMemberRoleAddEvent;
@@ -267,8 +267,15 @@ public class DiscordAPIEventModule extends AbstractModule<DiscordSRV> {
             }
 
             if (event instanceof ButtonInteractionEvent) {
-                newEvent = new DiscordButtonInteractionEvent(
-                        (ButtonInteractionEvent) event, identifier, user, guildMember, channel, hook);
+                newEvent = new DiscordButtonInteractionEventImpl(
+                        discordSRV,
+                        (ButtonInteractionEvent) event,
+                        identifier,
+                        user,
+                        guildMember,
+                        channel,
+                        hook
+                );
             } else if (event instanceof GenericSelectMenuInteractionEvent) {
                 newEvent = new DiscordSelectMenuInteractionEvent(
                         (GenericSelectMenuInteractionEvent<?, ?>) event, identifier, user, guildMember, channel, hook);

@@ -368,7 +368,7 @@ public class SendableDiscordMessageImpl implements SendableDiscordMessage {
         private Function<Matcher, Object> wrapFunction(Function<Matcher, Object> function) {
             return matcher -> {
                 Object result = function.apply(matcher);
-                if (result instanceof FormattedText || PlainPlaceholderFormat.FORMATTING.get() != PlainPlaceholderFormat.Formatting.DISCORD) {
+                if (result instanceof FormattedText || PlainPlaceholderFormat.FORMATTING.get() != PlainPlaceholderFormat.Formatting.DISCORD_MARKDOWN) {
                     // Process as regular text
                     return result.toString();
                 } else if (result instanceof CharSequence) {
@@ -413,7 +413,7 @@ public class SendableDiscordMessageImpl implements SendableDiscordMessage {
 
 
             PlainPlaceholderFormat.with(
-                    PlainPlaceholderFormat.Formatting.DISCORD,
+                    PlainPlaceholderFormat.Formatting.DISCORD_MARKDOWN,
                     () -> builder.setContent(markdownPlaceholders.apply(builder.getContent()))
             );
 
@@ -468,7 +468,7 @@ public class SendableDiscordMessageImpl implements SendableDiscordMessage {
                         )
                 );
 
-                PlainPlaceholderFormat.with(PlainPlaceholderFormat.Formatting.DISCORD, () -> embedBuilder.setDescription(
+                PlainPlaceholderFormat.with(PlainPlaceholderFormat.Formatting.DISCORD_MARKDOWN, () -> embedBuilder.setDescription(
                         cutToLength(
                                 markdownPlaceholders.apply(embedBuilder.getDescription()),
                                 MessageEmbed.DESCRIPTION_MAX_LENGTH
@@ -478,7 +478,7 @@ public class SendableDiscordMessageImpl implements SendableDiscordMessage {
                 List<DiscordMessageEmbed.Field> fields = new ArrayList<>(embedBuilder.getFields());
                 embedBuilder.getFields().clear();
 
-                PlainPlaceholderFormat.with(PlainPlaceholderFormat.Formatting.DISCORD, () ->
+                PlainPlaceholderFormat.with(PlainPlaceholderFormat.Formatting.DISCORD_MARKDOWN, () ->
                         fields.forEach(field -> embedBuilder.addField(
                                 cutToLength(
                                         placeholders.apply(field.getTitle()),

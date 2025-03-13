@@ -57,7 +57,7 @@ public class DiscordMarkdownFormatImpl implements PlainPlaceholderFormat {
             } else if (node instanceof StyleNode) {
                 String content = text.toString();
                 text.setLength(0);
-                PlainPlaceholderFormat.with(Formatting.DISCORD, () -> finalText.append(placeholders.apply(content)));
+                PlainPlaceholderFormat.with(Formatting.DISCORD_MARKDOWN, () -> finalText.append(placeholders.apply(content)));
 
                 for (Object style : ((StyleNode<?, ?>) node).getStyles()) {
                     if (!(style instanceof StyleNode.Style)) {

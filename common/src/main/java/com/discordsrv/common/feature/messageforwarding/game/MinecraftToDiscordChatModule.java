@@ -171,7 +171,7 @@ public class MinecraftToDiscordChatModule extends AbstractGameMessageModule<Mine
                 .addContext(guild)
                 .addPlaceholder("message", () -> {
                     String content = PlainPlaceholderFormat.supplyWith(
-                            PlainPlaceholderFormat.Formatting.DISCORD,
+                            PlainPlaceholderFormat.Formatting.DISCORD_MARKDOWN,
                             () -> discordSRV.placeholderService().getResultAsCharSequence(message).toString()
                     );
                     Placeholders messagePlaceholders = new Placeholders(content);

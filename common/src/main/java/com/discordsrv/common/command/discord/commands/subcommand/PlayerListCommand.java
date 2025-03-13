@@ -27,10 +27,14 @@ import com.discordsrv.api.eventbus.Subscribe;
 import com.discordsrv.api.events.discord.interaction.command.DiscordChatInputInteractionEvent;
 import com.discordsrv.api.events.discord.interaction.component.DiscordButtonInteractionEvent;
 import com.discordsrv.api.placeholder.PlaceholderService;
+import com.discordsrv.api.placeholder.format.PlainPlaceholderFormat;
 import com.discordsrv.api.placeholder.provider.SinglePlaceholder;
 import com.discordsrv.common.DiscordSRV;
 import com.discordsrv.common.abstraction.player.IPlayer;
-import com.discordsrv.common.config.main.DiscordCommandConfig;
+import com.discordsrv.common.config.main.PlayerListConfig;
+import com.discordsrv.common.config.main.generic.DiscordOutputMode;
+import com.discordsrv.common.core.logging.Logger;
+import com.discordsrv.common.core.logging.NamedLogger;
 import com.github.benmanes.caffeine.cache.Cache;
 import net.dv8tion.jda.api.entities.Message;
 import org.apache.commons.lang3.RandomStringUtils;
@@ -63,10 +67,12 @@ public class PlayerListCommand implements Consumer<DiscordChatInputInteractionEv
     }
 
     private final DiscordSRV discordSRV;
+    private final Logger logger;
     private final Cache<String, List<String>> pages;
 
     public PlayerListCommand(DiscordSRV discordSRV) {
         this.discordSRV = discordSRV;
+        this.logger = new NamedLogger(discordSRV, "PLAYER_LIST");
         this.pages = discordSRV.caffeineBuilder()
                 .expireAfterWrite(Duration.ofMinutes(3))
                 .expireAfterAccess(Duration.ofMinutes(1))
@@ -77,7 +83,20 @@ public class PlayerListCommand implements Consumer<DiscordChatInputInteractionEv
 
     @Override
     public void accept(DiscordChatInputInteractionEvent event) {
-        DiscordCommandConfig.PlayerListCommand config = discordSRV.config().discordCommand.playerList;
+        event.reply(generatePagination(0), true)
+                .whenFailed(t -> logger.debug("Failed to send create pagination", t));
+    }
+
+    private SendableDiscordMessage generatePagination(int preferredIndex) {
+        List<String> formattedPages = generatePlayerList(DiscordOutputMode.CODE_BLOCK, false);
+        String identifier = RandomStringUtils.randomAlphanumeric(24);
+
+        pages.put(identifier, formattedPages);
+        return constructMessage(identifier, Math.min(preferredIndex, formattedPages.size() - 1), formattedPages);
+    }
+
+    private List<String> generatePlayerList(DiscordOutputMode outputMode, boolean splitGroups) {
+        PlayerListConfig config = discordSRV.config().playerList;
 
         PlaceholderService placeholderService = discordSRV.placeholderService();
         List<IPlayer> onlinePlayers = new ArrayList<>(discordSRV.playerProvider().allPlayers());
@@ -91,59 +110,74 @@ public class PlayerListCommand implements Consumer<DiscordChatInputInteractionEv
         Map<String, List<IPlayer>> players = onlinePlayers.stream()
                 .filter(player -> !player.isVanished())
                 .sorted(Comparator.comparing(player -> placeholderService.replacePlaceholders(config.sortBy, player)))
-                .collect(Collectors.groupingBy(player -> placeholderService.replacePlaceholders(config.groupBy, player)));
+                .collect(Collectors.groupingBy(player -> PlainPlaceholderFormat.supplyWith(
+                        outputMode.plainFormat(),
+                        () -> placeholderService.replacePlaceholders(config.groupBy, player))
+                ));
 
         List<String> formattedPages = new ArrayList<>();
         StringBuilder currentPage = new StringBuilder(MESSAGE_MAX_LENGTH);
-        currentPage.append(placeholderService.replacePlaceholders(config.header));
         String playerSeparator = placeholderService.replacePlaceholders(config.playerSeparator);
         String groupSeparator = placeholderService.replacePlaceholders(config.groupSeparator);
 
         List<Map.Entry<String, List<IPlayer>>> entries = new ArrayList<>(players.entrySet());
-        for (int i = 0; i < entries.size(); i++) {
-            Map.Entry<String, List<IPlayer>> group = entries.get(i);
+        String header = "";
+        String footer = "";
+        for (int groupIndex = 0; groupIndex < entries.size(); groupIndex++) {
+            Map.Entry<String, List<IPlayer>> group = entries.get(groupIndex);
             List<String> formattedPlayers = group.getValue().stream()
-                    .map(player -> placeholderService.replacePlaceholders(config.playerFormat, player))
+                    .map(player -> PlainPlaceholderFormat.supplyWith(
+                            outputMode.plainFormat(),
+                            () -> placeholderService.replacePlaceholders(config.playerFormat, player)
+                    ))
                     .collect(Collectors.toList());
 
-            String footer = i == entries.size() - 1 ? placeholderService.replacePlaceholders(config.footer) : "";
+            header = (groupIndex == 0 ? placeholderService.replacePlaceholders(config.header) : "");
+            footer = (groupIndex == entries.size() - 1 ? placeholderService.replacePlaceholders(config.footer) : "");
 
             StringBuilder currentGroup = new StringBuilder();
-            if (i != 0) {
+            if (groupIndex != 0) {
                 currentGroup.append(groupSeparator);
             }
             currentGroup.append(placeholderService.replacePlaceholders(config.groupingHeader, new SinglePlaceholder("group", group.getKey())));
 
             boolean first = true;
             for (String formattedPlayer : formattedPlayers) {
-                String playerPrefix = first ? "" : playerSeparator;
+                String valuePrefix = first ? "" : playerSeparator;
                 first = false;
 
-                if (playerPrefix.length() + currentGroup.length() + formattedPlayer.length() + footer.length() > MESSAGE_MAX_LENGTH) {
-                    if (currentPage.length() != 0) {
-                        formattedPages.add(currentPage.toString());
+                int length = currentPage.length() + currentGroup.length()
+                        + valuePrefix.length() + formattedPlayer.length()
+                        + header.length() + footer.length()
+                        + outputMode.blockLength();
+                if (length > MESSAGE_MAX_LENGTH) {
+                    int adjustAmount = 0;
+                    if (!splitGroups && currentPage.length() != 0) {
+                        formattedPages.add(header + outputMode.prefix() + currentPage + outputMode.suffix());
+                        adjustAmount = currentPage.length();
+                        currentPage.setLength(0);
                     }
-                    currentPage.setLength(0);
 
-                    formattedPages.add(currentGroup.toString());
-                    currentGroup.setLength(0);
-                    playerPrefix = "";
+                    if (length - adjustAmount > MESSAGE_MAX_LENGTH) {
+                        currentPage.append(currentGroup);
+                        currentGroup.setLength(0);
+
+                        formattedPages.add(header + outputMode.prefix() + currentPage + outputMode.suffix());
+                        header = "";
+
+                        currentPage.setLength(0);
+                        valuePrefix = "";
+                    }
                 }
 
-                currentGroup.append(playerPrefix).append(formattedPlayer);
+                currentGroup.append(valuePrefix).append(formattedPlayer);
             }
 
-            currentGroup.append(footer);
-            currentPage.append(currentGroup);
+            currentPage.append(header).append(currentGroup);
         }
 
-        formattedPages.add(currentPage.toString());
-
-        String identifier = RandomStringUtils.randomAlphanumeric(24);
-        pages.put(identifier, formattedPages);
-
-        event.reply(constructMessage(identifier, 0, formattedPages))
-                .whenFailed(t -> discordSRV.logger().debug("Failed to send playerlist response", t));
+        formattedPages.add(header + outputMode.prefix() + currentPage + outputMode.suffix() + footer);
+        return formattedPages;
     }
 
     @Subscribe
@@ -165,7 +199,9 @@ public class PlayerListCommand implements Consumer<DiscordChatInputInteractionEv
         String id = parts[1];
         List<String> pages = this.pages.getIfPresent(id);
         if (pages == null) {
-            // expired
+            // expired, re-generate
+            event.editMessage(generatePagination(selectedIndex))
+                    .whenFailed(t -> logger.error("Failed to re-generate pagination", t));
             return;
         }
 
@@ -174,10 +210,16 @@ public class PlayerListCommand implements Consumer<DiscordChatInputInteractionEv
             return;
         }
 
-        event.hook().sendMessage(constructMessage(id, selectedIndex, pages));
+        event.editMessage(constructMessage(id, selectedIndex, pages))
+                .whenFailed(t -> logger.debug("Failed to handle pagination", t));
     }
 
-    private SendableDiscordMessage constructMessage(@Subst("63cc4a8f15f142aaafa26050") String identifier, @Subst("12") int index, List<String> pages) {
+    private SendableDiscordMessage constructMessage(
+            @Subst("63cc4a8f15f142aaafa26050") String identifier,
+            @Subst("12") int index,
+            List<String> pages
+    ) {
+        PlayerListConfig config = discordSRV.config().playerList;
         ComponentIdentifier previousIdentifier = ComponentIdentifier.of("DiscordSRV", PREFIX + identifier + "-" + (index - 1));
         ComponentIdentifier nextIdentifier = ComponentIdentifier.of("DiscordSRV", PREFIX + identifier + "-" + (index + 1));
 
@@ -185,11 +227,11 @@ public class PlayerListCommand implements Consumer<DiscordChatInputInteractionEv
         if (pages.size() != 1) {
             builder.addActionRow(MessageActionRow.of(
                     Button.builder(previousIdentifier, Button.Style.PRIMARY)
-                            .setLabel("⬅")
+                            .setLabel(config.previousLabel)
                             .setDisabled(index == 0)
                             .build(),
                     Button.builder(nextIdentifier, Button.Style.PRIMARY)
-                            .setLabel("➡")
+                            .setLabel(config.nextLabel)
                             .setDisabled(index == pages.size() - 1)
                             .build()
             ));

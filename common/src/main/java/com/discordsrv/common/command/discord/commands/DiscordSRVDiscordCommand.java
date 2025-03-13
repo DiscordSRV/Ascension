@@ -23,7 +23,6 @@ import com.discordsrv.api.discord.entity.interaction.component.ComponentIdentifi
 import com.discordsrv.common.DiscordSRV;
 import com.discordsrv.common.command.combined.commands.*;
 import com.discordsrv.common.command.discord.commands.subcommand.ExecuteCommand;
-import com.discordsrv.common.config.main.DiscordCommandConfig;
 import com.discordsrv.common.feature.linking.LinkStore;
 
 public class DiscordSRVDiscordCommand {
@@ -34,15 +33,13 @@ public class DiscordSRVDiscordCommand {
 
     public static DiscordCommand get(DiscordSRV discordSRV) {
         if (INSTANCE == null) {
-            DiscordCommandConfig config = discordSRV.config().discordCommand;
-
             DiscordCommand.ChatInputBuilder builder = DiscordCommand.chatInput(IDENTIFIER, "discordsrv", "DiscordSRV related commands")
                     .addSubCommand(DebugCommand.getDiscord(discordSRV))
                     .addSubCommand(VersionCommand.getDiscord(discordSRV))
                     .addSubCommand(ResyncCommand.getDiscord(discordSRV))
                     .addSubCommand(LinkedCommand.getDiscord(discordSRV));
 
-            if (config.execute.enabled) {
+            if (discordSRV.config().executeCommand.enabled) {
                 builder = builder.addSubCommand(ExecuteCommand.get(discordSRV));
             }
             if (discordSRV.linkProvider() instanceof LinkStore) {

@@ -28,10 +28,12 @@ import com.discordsrv.api.discord.entity.channel.DiscordMessageChannel;
 import com.discordsrv.api.discord.entity.guild.DiscordGuildMember;
 import com.discordsrv.api.discord.entity.interaction.DiscordInteractionHook;
 import com.discordsrv.api.discord.entity.interaction.component.ComponentIdentifier;
+import com.discordsrv.api.discord.entity.message.SendableDiscordMessage;
 import com.discordsrv.api.events.discord.interaction.AbstractInteractionWithHookEvent;
+import com.discordsrv.api.task.Task;
 import net.dv8tion.jda.api.events.interaction.component.ButtonInteractionEvent;
 
-public class DiscordButtonInteractionEvent extends AbstractInteractionWithHookEvent<ButtonInteractionEvent> {
+public abstract class DiscordButtonInteractionEvent extends AbstractInteractionWithHookEvent<ButtonInteractionEvent> {
 
     public DiscordButtonInteractionEvent(
             ButtonInteractionEvent jdaEvent,
@@ -43,4 +45,14 @@ public class DiscordButtonInteractionEvent extends AbstractInteractionWithHookEv
     ) {
         super(jdaEvent, identifier, user, member, channel, hook);
     }
+
+    public abstract Task<DiscordInteractionHook> sendMessage(SendableDiscordMessage message, boolean ephemeral);
+    public Task<DiscordInteractionHook> sendMessage(SendableDiscordMessage message) {
+        return sendMessage(message, false);
+    }
+
+    public abstract Task<DiscordInteractionHook> editMessage(SendableDiscordMessage message);
+
+    public abstract Task<DiscordInteractionHook> deferReply();
+    public abstract Task<DiscordInteractionHook> deferEdit();
 }

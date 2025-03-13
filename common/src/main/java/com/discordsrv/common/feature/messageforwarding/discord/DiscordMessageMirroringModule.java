@@ -419,7 +419,7 @@ public class DiscordMessageMirroringModule extends AbstractModule<DiscordSRV> {
             ) : replyMessage.getJumpUrl();
 
             finalContent = PlainPlaceholderFormat.supplyWith(
-                    PlainPlaceholderFormat.Formatting.DISCORD,
+                    PlainPlaceholderFormat.Formatting.DISCORD_MARKDOWN,
                     () -> discordSRV.placeholderService()
                             .replacePlaceholders(
                                     config.replyFormat,

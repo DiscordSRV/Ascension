@@ -251,7 +251,7 @@ public class Task<T> implements Future<T> {
                 return map(mappingFunction, throwable);
             }
 
-            throw (RuntimeException) throwable;
+            throw new CompletionException(throwable);
         }));
     }
 
