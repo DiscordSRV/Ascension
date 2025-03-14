@@ -47,7 +47,10 @@ public class DiscordMarkdownFormatImpl implements PlainPlaceholderFormat {
 
     @Override
     public String map(String input, Function<String, String> placeholders) {
-        List<Node<Object>> nodes = parser.parse(input);
+        List<Node<Object>> nodes;
+        synchronized (parser) {
+            nodes = parser.parse(input);
+        }
 
         StringBuilder finalText = new StringBuilder();
         StringBuilder text = new StringBuilder();
