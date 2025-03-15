@@ -371,38 +371,18 @@ public abstract class AbstractSyncModule<
 
             SyncSide side = config.tieBreaker;
             SyncDirection direction = config.direction;
-            if (discordState != null) {
-                if (side == SyncSide.DISCORD) {
-                    // Has Discord, add game
-                    if (direction == SyncDirection.MINECRAFT_TO_DISCORD) {
-                        return Task.completed(GenericSyncResults.WRONG_DIRECTION);
-                    }
-
-                    return applyGame(config, playerUUID, discordState).thenApply(v -> GenericSyncResults.ADD_GAME);
-                } else {
-                    // Missing game, remove Discord
-                    if (direction == SyncDirection.DISCORD_TO_MINECRAFT) {
-                        return Task.completed(GenericSyncResults.WRONG_DIRECTION);
-                    }
-
-                    return applyDiscord(config, userId, null).thenApply(v -> GenericSyncResults.REMOVE_DISCORD);
+            if (side == SyncSide.DISCORD) {
+                if (direction == SyncDirection.MINECRAFT_TO_DISCORD) {
+                    return Task.completed(GenericSyncResults.WRONG_DIRECTION);
                 }
+
+                return applyGame(config, playerUUID, discordState);
             } else {
-                if (side == SyncSide.DISCORD) {
-                    // Missing Discord, remove game
-                    if (direction == SyncDirection.MINECRAFT_TO_DISCORD) {
-                        return Task.completed(GenericSyncResults.WRONG_DIRECTION);
-                    }
-
-                    return applyGame(config, playerUUID, null).thenApply(v -> GenericSyncResults.REMOVE_GAME);
-                } else {
-                    // Has game, add Discord
-                    if (direction == SyncDirection.DISCORD_TO_MINECRAFT) {
-                        return Task.completed(GenericSyncResults.WRONG_DIRECTION);
-                    }
-
-                    return applyDiscord(config, userId, gameState).thenApply(v -> GenericSyncResults.ADD_DISCORD);
+                if (direction == SyncDirection.DISCORD_TO_MINECRAFT) {
+                    return Task.completed(GenericSyncResults.WRONG_DIRECTION);
                 }
+
+                return applyDiscord(config, userId, gameState);
             }
         }).mapException(SyncFail.class, SyncFail::getResult);
     }
