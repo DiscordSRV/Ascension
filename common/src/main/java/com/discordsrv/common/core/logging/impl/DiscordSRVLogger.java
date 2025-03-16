@@ -187,7 +187,7 @@ public class DiscordSRVLogger implements Logger {
             LogLevel consoleLevel = logLevel;
             if (debugOrTrace) {
                 // Normally DEBUG/TRACE logging isn't enabled, so we convert it to INFO and add the level
-                consoleMessage = "[" + logLevel.name() + "]" + (message != null ? " " + message : "");
+                consoleMessage = "[" + logLevel.name() + "]" + (loggerName != null ? " [" + loggerName + "]" : "") + (message != null ? " " + message : "");
                 consoleLevel = LogLevel.INFO;
             }
             discordSRV.platformLogger().log(null, consoleLevel, consoleMessage, throwable);

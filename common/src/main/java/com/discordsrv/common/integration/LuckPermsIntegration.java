@@ -41,6 +41,7 @@ import net.luckperms.api.model.data.DataMutateResult;
 import net.luckperms.api.model.data.NodeMap;
 import net.luckperms.api.model.group.Group;
 import net.luckperms.api.model.user.User;
+import net.luckperms.api.model.user.UserManager;
 import net.luckperms.api.node.Node;
 import net.luckperms.api.node.NodeType;
 import net.luckperms.api.node.types.InheritanceNode;
@@ -50,7 +51,9 @@ import net.luckperms.api.query.QueryOptions;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.time.Duration;
 import java.util.*;
+import java.util.concurrent.Future;
 import java.util.function.BiFunction;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
@@ -59,6 +62,8 @@ public class LuckPermsIntegration extends PluginIntegration<DiscordSRV> implemen
 
     private LuckPerms luckPerms;
     private final List<EventSubscription<?>> subscriptions = new ArrayList<>();
+    private final Map<UUID, Task<User>> userLoads = new HashMap<>();
+    private final Map<UUID, Future<?>> userCleanup = new HashMap<>();
 
     public LuckPermsIntegration(DiscordSRV discordSRV) {
         super(discordSRV, new NamedLogger(discordSRV, "LUCKPERMS"));
@@ -101,7 +106,43 @@ public class LuckPermsIntegration extends PluginIntegration<DiscordSRV> implemen
     }
 
     private Task<User> user(UUID player) {
-        return Task.of(luckPerms.getUserManager().loadUser(player));
+        UserManager userManager = luckPerms.getUserManager();
+        User user = userManager.getUser(player);
+        if (user != null) {
+            logger().trace("User in cache: " + player);
+            return Task.completed(user);
+        }
+
+        synchronized (userLoads) {
+            Task<User> task = userLoads.get(player);
+            if (task != null) {
+                logger().trace("Re-using load future: " + player);
+                return task;
+            }
+
+            task = Task.of(userManager.loadUser(player));
+            task.whenComplete((loadedUser, ___) -> {
+                synchronized (userLoads) {
+                    userLoads.remove(player);
+                }
+
+                synchronized (userCleanup) {
+                    Future<?> future = userCleanup.put(player, discordSRV.scheduler().runLater(
+                            () -> {
+                                logger().trace("Cleaning up " + player);
+                                userManager.cleanupUser(loadedUser);
+                            },
+                            Duration.ofSeconds(10))
+                    );
+                    if (future != null) {
+                        future.cancel(false);
+                    }
+                }
+            });
+            logger().trace("Loading " + player);
+            userLoads.put(player, task);
+            return task;
+        }
     }
 
     @Override
