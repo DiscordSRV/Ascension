@@ -132,7 +132,7 @@ public class LuckPermsIntegration extends PluginIntegration<DiscordSRV> implemen
                                 logger().trace("Cleaning up " + player);
                                 userManager.cleanupUser(loadedUser);
                             },
-                            Duration.ofSeconds(10))
+                            Duration.ofMinutes(1))
                     );
                     if (future != null) {
                         future.cancel(false);
