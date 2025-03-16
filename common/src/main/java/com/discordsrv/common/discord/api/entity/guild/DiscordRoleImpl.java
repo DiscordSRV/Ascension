@@ -78,9 +78,9 @@ public class DiscordRoleImpl implements DiscordRole {
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
-        DiscordRoleImpl that = (DiscordRoleImpl) o;
-        return Objects.equals(role.getId(), that.role.getId());
+        if (!(o instanceof DiscordRole)) return false;
+        DiscordRole that = (DiscordRole) o;
+        return Objects.equals(getId(), that.getId());
     }
 
     @Override

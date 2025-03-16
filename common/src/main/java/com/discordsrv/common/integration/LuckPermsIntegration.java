@@ -21,6 +21,7 @@ package com.discordsrv.common.integration;
 import com.discordsrv.api.module.type.PermissionModule;
 import com.discordsrv.api.task.Task;
 import com.discordsrv.common.DiscordSRV;
+import com.discordsrv.common.core.logging.NamedLogger;
 import com.discordsrv.common.core.module.type.PluginIntegration;
 import com.discordsrv.common.exception.MessageException;
 import com.discordsrv.common.feature.groupsync.GroupSyncModule;
@@ -60,7 +61,7 @@ public class LuckPermsIntegration extends PluginIntegration<DiscordSRV> implemen
     private final List<EventSubscription<?>> subscriptions = new ArrayList<>();
 
     public LuckPermsIntegration(DiscordSRV discordSRV) {
-        super(discordSRV);
+        super(discordSRV, new NamedLogger(discordSRV, "LUCKPERMS"));
     }
 
     @Override
@@ -131,9 +132,9 @@ public class LuckPermsIntegration extends PluginIntegration<DiscordSRV> implemen
                     .context(contextSet(contexts))
                     .build();
 
-            return user.getInheritedGroups(options)
-                    .stream()
-                    .anyMatch(group -> group.getName().equalsIgnoreCase(groupName));
+            Set<String> groupNames = user.getInheritedGroups(options).stream().map(Group::getName).collect(Collectors.toSet());
+            logger().trace(player + " groups in context " + contexts + ": " + groupNames);
+            return groupNames.stream().anyMatch(group -> group.equalsIgnoreCase(groupName));
         });
     }
 

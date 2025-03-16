@@ -53,11 +53,11 @@ public class DiscordServerRequirementType extends LongRequirementType {
 
     @Subscribe
     public void onGuildMemberJoin(GuildMemberJoinEvent event) {
-        stateChanged(Someone.of(event.getUser().getIdLong()), event.getGuild().getIdLong(), true);
+        stateChanged(Someone.of(discordSRV, event.getUser().getIdLong()), event.getGuild().getIdLong(), true);
     }
 
     @Subscribe
     public void onGuildMemberRemove(GuildMemberRemoveEvent event) {
-        stateChanged(Someone.of(event.getUser().getIdLong()), event.getGuild().getIdLong(), false);
+        stateChanged(Someone.of(discordSRV, event.getUser().getIdLong()), event.getGuild().getIdLong(), false);
     }
 }
