@@ -28,7 +28,7 @@ public enum DiscordOutputMode {
     LOG("```accesslog\n", "```", PlainPlaceholderFormat.Formatting.PLAIN),
     CODE_BLOCK("```\n", "```", PlainPlaceholderFormat.Formatting.PLAIN),
     DIFF("```diff\n", "```", PlainPlaceholderFormat.Formatting.PLAIN),
-    OFF(null, null, null);
+    OFF("", "", null);
 
     private final String prefix;
     private final String suffix;

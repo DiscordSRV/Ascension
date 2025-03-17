@@ -26,27 +26,21 @@ import com.discordsrv.api.discord.entity.message.SendableDiscordMessage;
 import com.discordsrv.api.eventbus.Subscribe;
 import com.discordsrv.api.events.discord.interaction.command.DiscordChatInputInteractionEvent;
 import com.discordsrv.api.events.discord.interaction.component.DiscordButtonInteractionEvent;
-import com.discordsrv.api.placeholder.PlaceholderService;
 import com.discordsrv.api.placeholder.format.PlainPlaceholderFormat;
-import com.discordsrv.api.placeholder.provider.SinglePlaceholder;
 import com.discordsrv.common.DiscordSRV;
-import com.discordsrv.common.abstraction.player.IPlayer;
 import com.discordsrv.common.config.main.PlayerListConfig;
 import com.discordsrv.common.config.main.generic.DiscordOutputMode;
 import com.discordsrv.common.core.logging.Logger;
 import com.discordsrv.common.core.logging.NamedLogger;
+import com.discordsrv.common.feature.PlayerListModule;
 import com.github.benmanes.caffeine.cache.Cache;
 import net.dv8tion.jda.api.entities.Message;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.intellij.lang.annotations.Subst;
 
 import java.time.Duration;
-import java.util.ArrayList;
-import java.util.Comparator;
 import java.util.List;
-import java.util.Map;
 import java.util.function.Consumer;
-import java.util.stream.Collectors;
 
 public class PlayerListCommand implements Consumer<DiscordChatInputInteractionEvent> {
 
@@ -81,6 +75,10 @@ public class PlayerListCommand implements Consumer<DiscordChatInputInteractionEv
         discordSRV.eventBus().subscribe(this);
     }
 
+    private PlayerListModule module() {
+        return discordSRV.getModule(PlayerListModule.class);
+    }
+
     @Override
     public void accept(DiscordChatInputInteractionEvent event) {
         event.reply(generatePagination(0), true)
@@ -88,96 +86,15 @@ public class PlayerListCommand implements Consumer<DiscordChatInputInteractionEv
     }
 
     private SendableDiscordMessage generatePagination(int preferredIndex) {
-        List<String> formattedPages = generatePlayerList(DiscordOutputMode.CODE_BLOCK, false);
+        DiscordOutputMode outputMode = discordSRV.config().playerList.command.outputMode;
+        List<String> formattedPages = PlainPlaceholderFormat.supplyWith(
+                outputMode.plainFormat(),
+                () -> module().generatePlayerList(outputMode, false, MESSAGE_MAX_LENGTH, true)
+        );
         String identifier = RandomStringUtils.randomAlphanumeric(24);
 
         pages.put(identifier, formattedPages);
         return constructMessage(identifier, Math.min(preferredIndex, formattedPages.size() - 1), formattedPages);
-    }
-
-    private List<String> generatePlayerList(DiscordOutputMode outputMode, boolean splitGroups) {
-        PlayerListConfig config = discordSRV.config().playerList;
-
-        PlaceholderService placeholderService = discordSRV.placeholderService();
-        List<IPlayer> onlinePlayers = new ArrayList<>(discordSRV.playerProvider().allPlayers());
-        int originalSize = onlinePlayers.size();
-        for (int j = 0; j < 200; j++) {
-            for (int i = 0; i < originalSize; i++) {
-                onlinePlayers.add(onlinePlayers.get(i));
-            }
-        }
-
-        Map<String, List<IPlayer>> players = onlinePlayers.stream()
-                .filter(player -> !player.isVanished())
-                .sorted(Comparator.comparing(player -> placeholderService.replacePlaceholders(config.sortBy, player)))
-                .collect(Collectors.groupingBy(player -> PlainPlaceholderFormat.supplyWith(
-                        outputMode.plainFormat(),
-                        () -> placeholderService.replacePlaceholders(config.groupBy, player))
-                ));
-
-        List<String> formattedPages = new ArrayList<>();
-        StringBuilder currentPage = new StringBuilder(MESSAGE_MAX_LENGTH);
-        String playerSeparator = placeholderService.replacePlaceholders(config.playerSeparator);
-        String groupSeparator = placeholderService.replacePlaceholders(config.groupSeparator);
-
-        List<Map.Entry<String, List<IPlayer>>> entries = new ArrayList<>(players.entrySet());
-        String header = "";
-        String footer = "";
-        for (int groupIndex = 0; groupIndex < entries.size(); groupIndex++) {
-            Map.Entry<String, List<IPlayer>> group = entries.get(groupIndex);
-            List<String> formattedPlayers = group.getValue().stream()
-                    .map(player -> PlainPlaceholderFormat.supplyWith(
-                            outputMode.plainFormat(),
-                            () -> placeholderService.replacePlaceholders(config.playerFormat, player)
-                    ))
-                    .collect(Collectors.toList());
-
-            header = (groupIndex == 0 ? placeholderService.replacePlaceholders(config.header) : "");
-            footer = (groupIndex == entries.size() - 1 ? placeholderService.replacePlaceholders(config.footer) : "");
-
-            StringBuilder currentGroup = new StringBuilder();
-            if (groupIndex != 0) {
-                currentGroup.append(groupSeparator);
-            }
-            currentGroup.append(placeholderService.replacePlaceholders(config.groupingHeader, new SinglePlaceholder("group", group.getKey())));
-
-            boolean first = true;
-            for (String formattedPlayer : formattedPlayers) {
-                String valuePrefix = first ? "" : playerSeparator;
-                first = false;
-
-                int length = currentPage.length() + currentGroup.length()
-                        + valuePrefix.length() + formattedPlayer.length()
-                        + header.length() + footer.length()
-                        + outputMode.blockLength();
-                if (length > MESSAGE_MAX_LENGTH) {
-                    int adjustAmount = 0;
-                    if (!splitGroups && currentPage.length() != 0) {
-                        formattedPages.add(header + outputMode.prefix() + currentPage + outputMode.suffix());
-                        adjustAmount = currentPage.length();
-                        currentPage.setLength(0);
-                    }
-
-                    if (length - adjustAmount > MESSAGE_MAX_LENGTH) {
-                        currentPage.append(currentGroup);
-                        currentGroup.setLength(0);
-
-                        formattedPages.add(header + outputMode.prefix() + currentPage + outputMode.suffix());
-                        header = "";
-
-                        currentPage.setLength(0);
-                        valuePrefix = "";
-                    }
-                }
-
-                currentGroup.append(valuePrefix).append(formattedPlayer);
-            }
-
-            currentPage.append(header).append(currentGroup);
-        }
-
-        formattedPages.add(header + outputMode.prefix() + currentPage + outputMode.suffix() + footer);
-        return formattedPages;
     }
 
     @Subscribe
@@ -227,11 +144,11 @@ public class PlayerListCommand implements Consumer<DiscordChatInputInteractionEv
         if (pages.size() != 1) {
             builder.addActionRow(MessageActionRow.of(
                     Button.builder(previousIdentifier, Button.Style.PRIMARY)
-                            .setLabel(config.previousLabel)
+                            .setLabel(config.command.previousLabel)
                             .setDisabled(index == 0)
                             .build(),
                     Button.builder(nextIdentifier, Button.Style.PRIMARY)
-                            .setLabel(config.nextLabel)
+                            .setLabel(config.command.nextLabel)
                             .setDisabled(index == pages.size() - 1)
                             .build()
             ));

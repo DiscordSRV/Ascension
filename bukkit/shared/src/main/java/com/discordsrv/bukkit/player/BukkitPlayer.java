@@ -89,6 +89,11 @@ public abstract class BukkitPlayer extends BukkitCommandSender implements IPlaye
     }
 
     @Override
+    public @NotNull Component teamDisplayName() {
+        return Component.text(player.getName());
+    }
+
+    @Override
     public @NotNull Identity identity() {
         return identity;
     }

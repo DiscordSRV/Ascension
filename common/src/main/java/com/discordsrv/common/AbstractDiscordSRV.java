@@ -72,6 +72,7 @@ import com.discordsrv.common.discord.connection.details.DiscordConnectionDetails
 import com.discordsrv.common.discord.connection.jda.JDAConnectionManager;
 import com.discordsrv.common.exception.StorageException;
 import com.discordsrv.common.feature.DiscordInviteModule;
+import com.discordsrv.common.feature.PlayerListModule;
 import com.discordsrv.common.feature.PresenceUpdaterModule;
 import com.discordsrv.common.feature.bansync.BanSyncModule;
 import com.discordsrv.common.feature.channel.ChannelLockingModule;
@@ -738,6 +739,7 @@ public abstract class AbstractDiscordSRV<
         registerModule(MentionGameRenderingModule::new);
         registerModule(CustomCommandModule::new);
         registerModule(NicknameSyncModule::new);
+        registerModule(PlayerListModule::new);
 
         if (serverType() == ServerType.PROXY) {
             registerModule(ServerSwitchMessageModule::new);

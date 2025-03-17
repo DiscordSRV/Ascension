@@ -18,19 +18,33 @@
 
 package com.discordsrv.common.config.main;
 
+import com.discordsrv.common.config.main.generic.DiscordOutputMode;
+
 public class PlayerListConfig {
 
-    public String header = "";
-    public String footer = "";
+    public String noPlayersFormat = "No players";
 
     public String sortBy = "%player_name%";
-    public String groupBy = "%player_primary_group%";
 
+    public boolean group = false;
+    public String groupBy = "%player_primary_group%";
     public String groupingHeader = "%group%\n";
     public String groupSeparator = "\n\n";
-    public String playerFormat = "%player_name%";
+
+    public String playerFormat = "%player_team_display_name%";
     public String playerSeparator = ", ";
 
-    public String previousLabel = "⬅";
-    public String nextLabel = "➡";
+    public Command command = new Command();
+
+    public static class Command {
+
+        public DiscordOutputMode outputMode = DiscordOutputMode.ANSI;
+
+        public String header = "";
+        public String footer = "";
+
+        public String previousLabel = "⬅";
+        public String nextLabel = "➡";
+
+    }
 }

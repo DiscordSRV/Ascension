@@ -28,8 +28,8 @@ import com.mojang.authlib.minecraft.MinecraftProfileTextures;
 import net.kyori.adventure.identity.Identity;
 import net.kyori.adventure.text.Component;
 import net.minecraft.network.packet.s2c.play.ChatSuggestionsS2CPacket;
+import net.minecraft.scoreboard.Team;
 import net.minecraft.server.network.ServerPlayerEntity;
-import net.minecraft.text.Text;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -68,7 +68,7 @@ public class FabricPlayer extends FabricCommandSender implements IPlayer {
 
     @Override
     public Task<Void> kick(Component component) {
-        player.networkHandler.disconnect(Text.of(component.toString()));
+        player.networkHandler.disconnect(discordSRV.getAdventure().asNative(component));
         return Task.completed(null);
     }
 
@@ -105,7 +105,19 @@ public class FabricPlayer extends FabricCommandSender implements IPlayer {
     @Override
     public @NotNull Component displayName() {
         // Use Adventure's Pointer, otherwise username
-        return player.getOrDefaultFrom(Identity.DISPLAY_NAME, () -> Component.text(player.getName().getString()));
+        return player.getOrDefaultFrom(
+                Identity.DISPLAY_NAME,
+                () -> discordSRV.getAdventure().asAdventure(player.getName())
+        );
+    }
+
+    @Override
+    public @NotNull Component teamDisplayName() {
+        Team team = player.getScoreboardTeam();
+        if (team == null) {
+            return Component.text(player.getName().getString());
+        }
+        return discordSRV.getAdventure().asAdventure(team.decorateName(player.getName()));
     }
 
     @Override

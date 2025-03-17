@@ -45,7 +45,7 @@ public final class PaperPlayerUtil {
      */
     public static void kick(Player player, MinecraftComponent component) {
         if (KICK_HANDLE == null) {
-            throw new IllegalStateException("Kick handle not available");
+            throw new IllegalStateException("Not available");
         }
         KICK_HANDLE.call(player, component);
     }
@@ -58,9 +58,23 @@ public final class PaperPlayerUtil {
      */
     public static MinecraftComponent displayName(Player player) {
         if (DISPLAY_NAME_HANDLE == null) {
-            return null;
+            throw new IllegalStateException("Not available");
         }
         return DISPLAY_NAME_HANDLE.getAPI(player);
+    }
+
+    private static final PaperComponentHandle.Get<Player> TEAM_DISPLAY_NAME_HANDLE =
+            PaperComponentHandle.getOrNull(Player.class, "teamDisplayName");
+    public static final boolean TEAM_DISPLAY_NAME_AVAILABLE = TEAM_DISPLAY_NAME_HANDLE != null;
+
+    /**
+     * @see #TEAM_DISPLAY_NAME_AVAILABLE
+     */
+    public static MinecraftComponent teamDisplayName(Player player) {
+        if (TEAM_DISPLAY_NAME_HANDLE == null) {
+            throw new IllegalStateException("Not available");
+        }
+        return TEAM_DISPLAY_NAME_HANDLE.getAPI(player);
     }
 
     @ApiStatus.AvailableSince("Paper 1.16")
