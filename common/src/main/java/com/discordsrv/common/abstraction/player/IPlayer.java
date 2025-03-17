@@ -59,6 +59,8 @@ public interface IPlayer extends DiscordSRVPlayer, IOfflinePlayer, ICommandSende
 
     @NotNull
     @Placeholder("team_display_name")
-    Component teamDisplayName();
+    default Component teamDisplayName() {
+        return Component.text(username());
+    }
 
 }

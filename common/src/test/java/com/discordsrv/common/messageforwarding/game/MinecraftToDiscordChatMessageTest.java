@@ -125,11 +125,6 @@ public class MinecraftToDiscordChatMessageTest {
                                 }
 
                                 @Override
-                                public @NotNull Component teamDisplayName() {
-                                    return displayName();
-                                }
-
-                                @Override
                                 public boolean hasPermission(Permission permission) {
                                     return true;
                                 }

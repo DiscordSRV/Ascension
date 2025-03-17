@@ -115,8 +115,9 @@ public class FabricPlayer extends FabricCommandSender implements IPlayer {
     public @NotNull Component teamDisplayName() {
         Team team = player.getScoreboardTeam();
         if (team == null) {
-            return Component.text(player.getName().getString());
+            return IPlayer.super.teamDisplayName();
         }
+
         return discordSRV.getAdventure().asAdventure(team.decorateName(player.getName()));
     }
 
