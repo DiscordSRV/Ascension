@@ -228,9 +228,9 @@ public abstract class AbstractGameMessageModule<T extends IMessageConfig, E exte
 
     private String describeDestination(DiscordGuildChannel channel) {
         if (channel instanceof DiscordThreadChannel) {
-            return "\"" + channel.getName() + "\" in #" + ((DiscordThreadChannel) channel).getParentChannel().getName();
+            return channel.toString();
         }
-        return "#" + channel.getName();
+        return channel.toString();
     }
 
     public abstract void setPlaceholders(T config, E event, SendableDiscordMessage.Formatter formatter);

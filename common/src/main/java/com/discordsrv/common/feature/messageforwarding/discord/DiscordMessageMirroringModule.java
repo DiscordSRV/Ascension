@@ -261,10 +261,10 @@ public class DiscordMessageMirroringModule extends AbstractModule<DiscordSRV> {
 
     private String describeChannel(DiscordGuildMessageChannel channel) {
         if (channel instanceof DiscordThreadChannel) {
-            return "\"" + channel.getName() + "\" in #" + ((DiscordThreadChannel) channel).getParentChannel().getName();
+            return channel.toString();
         }
 
-        return "#" + channel.getName();
+        return channel.toString();
     }
 
     @Subscribe

@@ -191,7 +191,7 @@ public class DiscordChatMessageModule extends AbstractModule<DiscordSRV> {
         DiscordIgnoresConfig ignores = chatConfig.ignores;
         if (ignores != null && ignores.shouldBeIgnored(webhookMessage, author, member)) {
             if (!author.isBot()) {
-                logger().debug(author + " users message is being ignored");
+                logger().debug(author + " users message is being ignored" + describeChannel(gameChannel));
                 // TODO: response for humans
             }
             return;
@@ -200,7 +200,7 @@ public class DiscordChatMessageModule extends AbstractModule<DiscordSRV> {
         String format = webhookMessage ? chatConfig.webhookFormat : chatConfig.format;
         if (StringUtils.isBlank(format)) {
             // No sending empty message #1
-            logger().debug("Message from " + author + " not being sent, format is blank");
+            logger().debug("Message from " + author + " not being sent, format is blank" + describeChannel(gameChannel));
             return;
         }
 
@@ -215,14 +215,14 @@ public class DiscordChatMessageModule extends AbstractModule<DiscordSRV> {
         String regexFilteredMessage = message.toString();
         if (regexFilteredMessage.trim().isEmpty() && !attachments) {
             // No sending empty message #2
-            logger().debug("Message from " + author + " filtered entirely after regex filtering");
+            logger().debug("Message from " + author + " filtered entirely after regex filtering" + describeChannel(gameChannel));
             return;
         }
 
         Component messageComponent = discordSRV.componentFactory().minecraftSerialize(discordMessage, channelConfig, regexFilteredMessage);
         if (ComponentUtil.isEmpty(messageComponent) && !attachments) {
             // No sending empty message #3
-            logger().debug("Message from " + author + " filtered entirely after serialization");
+            logger().debug("Message from " + author + " filtered entirely after serialization" + describeChannel(gameChannel));
             return;
         }
 
@@ -233,7 +233,7 @@ public class DiscordChatMessageModule extends AbstractModule<DiscordSRV> {
                 .addPlaceholder("message", messageComponent)
                 .build();
         if (ComponentUtil.isEmpty(component)) {
-            logger().debug("Message from " + author + " filtered entirely after building message");
+            logger().debug("Message from " + author + " filtered entirely after building message" + describeChannel(gameChannel));
             // No sending empty message #4
             return;
         }
@@ -249,6 +249,10 @@ public class DiscordChatMessageModule extends AbstractModule<DiscordSRV> {
                                + players.size() + " players directly");
 
         discordSRV.eventBus().publish(new DiscordChatMessageForwardedEvent(component, gameChannel));
+    }
+
+    private String describeChannel(GameChannel gameChannel) {
+        return "GameChannel (" + GameChannel.toString(gameChannel) + ")";
     }
 
     public static class MessageSend {
