@@ -200,8 +200,8 @@ public class DiscordMessageMirroringModule extends AbstractModule<DiscordSRV> {
                             channel,
                             Permission.VIEW_CHANNEL,
                             Permission.MANAGE_WEBHOOKS,
-                            embedAttachments ? Permission.MESSAGE_EMBED_LINKS : null,
-                            attachAttachments ? Permission.MESSAGE_ATTACH_FILES : null
+                            hasAttachments && embedAttachments ? Permission.MESSAGE_EMBED_LINKS : null,
+                            hasAttachments && attachAttachments ? Permission.MESSAGE_ATTACH_FILES : null
                     );
                     if (missingPermissions != null) {
                         logger().error("Failed to mirror message to " + describeChannel(mirrorChannel) + ": " + missingPermissions);
