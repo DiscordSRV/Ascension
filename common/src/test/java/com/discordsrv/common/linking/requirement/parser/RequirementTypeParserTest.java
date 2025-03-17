@@ -96,7 +96,7 @@ public class RequirementTypeParserTest {
     private boolean parse(String input) {
         return requirementParser.parse(input, requirementTypes)
                 .predicate()
-                .apply(Someone.of(UUID.randomUUID(), 0L))
+                .apply(Someone.of(MockDiscordSRV.getInstance(), UUID.randomUUID(), 0L))
                 .join();
     }
 

@@ -66,6 +66,10 @@ public abstract class AbstractPlayerProvider<T extends IPlayer, DT extends Disco
     public abstract void unsubscribe();
 
     protected void addPlayer(UUID uuid, T player, boolean initial) {
+        if (this.players.containsKey(uuid)) {
+            return;
+        }
+
         this.players.put(uuid, player);
         this.allPlayers.add(player);
         discordSRV.scheduler().run(() -> discordSRV.eventBus().publish(new PlayerConnectedEvent(player, initial)));

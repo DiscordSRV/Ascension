@@ -33,7 +33,6 @@ import org.jetbrains.annotations.Nullable;
 /**
  * A {@link Event} that can be cancelled.
  */
-@SuppressWarnings("unused") // API
 public interface Cancellable extends Event {
 
     /**

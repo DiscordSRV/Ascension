@@ -18,7 +18,7 @@
 
 package com.discordsrv.common.feature.profile;
 
-import com.discordsrv.api.profile.IProfileManager;
+import com.discordsrv.api.profile.ProfileManager;
 import com.discordsrv.api.task.Task;
 import com.discordsrv.common.DiscordSRV;
 import com.discordsrv.common.feature.linking.LinkProvider;
@@ -29,19 +29,19 @@ import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 
-public class ProfileManager implements IProfileManager {
+public class ProfileManagerImpl implements ProfileManager {
 
     private final DiscordSRV discordSRV;
-    private final Map<UUID, Task<Profile>> profileLookups = new ConcurrentHashMap<>();
-    private final Map<UUID, Profile> profiles = new ConcurrentHashMap<>();
-    private final Map<Long, Profile> discordUserMap = new ConcurrentHashMap<>();
+    private final Map<UUID, Task<ProfileImpl>> profileLookups = new ConcurrentHashMap<>();
+    private final Map<UUID, ProfileImpl> profiles = new ConcurrentHashMap<>();
+    private final Map<Long, ProfileImpl> discordUserMap = new ConcurrentHashMap<>();
 
-    public ProfileManager(DiscordSRV discordSRV) {
+    public ProfileManagerImpl(DiscordSRV discordSRV) {
         this.discordSRV = discordSRV;
     }
 
-    public Task<Profile> loadProfile(@NotNull UUID playerUUID) {
-        Task<Profile> lookup = lookupProfile(playerUUID)
+    public Task<ProfileImpl> loadProfile(@NotNull UUID playerUUID) {
+        Task<ProfileImpl> lookup = lookupProfile(playerUUID)
                 .thenApply(profile -> {
                     profiles.put(playerUUID, profile);
                     if (profile.isLinked()) {
@@ -55,12 +55,12 @@ public class ProfileManager implements IProfileManager {
     }
 
     public void unloadProfile(@NotNull UUID playerUUID) {
-        Task<Profile> lookup = profileLookups.remove(playerUUID);
+        Task<ProfileImpl> lookup = profileLookups.remove(playerUUID);
         if (lookup != null) {
             lookup.cancel(false);
         }
 
-        Profile profile = profiles.remove(playerUUID);
+        ProfileImpl profile = profiles.remove(playerUUID);
         if (profile == null) {
             return;
         }
@@ -71,28 +71,28 @@ public class ProfileManager implements IProfileManager {
     }
 
     @Override
-    public @NotNull Task<@NotNull Profile> lookupProfile(UUID playerUUID) {
+    public @NotNull Task<@NotNull ProfileImpl> lookupProfile(UUID playerUUID) {
         LinkProvider linkProvider = discordSRV.linkProvider();
         if (linkProvider == null) return Task.completed(null);
         return linkProvider.getUserId(playerUUID)
-                .thenApply(opt -> new Profile(discordSRV, playerUUID, opt.orElse(null)));
+                .thenApply(opt -> new ProfileImpl(discordSRV, playerUUID, opt.orElse(null)));
     }
 
     @Override
-    public @Nullable Profile getProfile(UUID playerUUID) {
+    public @Nullable ProfileImpl getProfile(UUID playerUUID) {
         return profiles.get(playerUUID);
     }
 
     @Override
-    public @NotNull Task<@NotNull Profile> lookupProfile(long userId) {
+    public @NotNull Task<@NotNull ProfileImpl> lookupProfile(long userId) {
         LinkProvider linkProvider = discordSRV.linkProvider();
         if (linkProvider == null) return Task.completed(null);
         return linkProvider.getPlayerUUID(userId)
-                .thenApply(opt -> new Profile(discordSRV, opt.orElse(null), userId));
+                .thenApply(opt -> new ProfileImpl(discordSRV, opt.orElse(null), userId));
     }
 
     @Override
-    public @Nullable Profile getProfile(long userId) {
+    public @Nullable ProfileImpl getProfile(long userId) {
         return discordUserMap.get(userId);
     }
 }

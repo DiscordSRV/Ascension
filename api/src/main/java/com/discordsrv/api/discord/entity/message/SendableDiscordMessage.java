@@ -44,7 +44,6 @@ import java.util.regex.Pattern;
 /**
  * A message that can be sent to Discord.
  */
-@SuppressWarnings("unused") // API
 public interface SendableDiscordMessage {
 
     /**

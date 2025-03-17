@@ -29,6 +29,7 @@ import com.discordsrv.api.events.lifecycle.DiscordSRVReadyEvent;
 import com.discordsrv.api.events.lifecycle.DiscordSRVReloadedEvent;
 import com.discordsrv.api.events.lifecycle.DiscordSRVShuttingDownEvent;
 import com.discordsrv.api.module.Module;
+import com.discordsrv.api.profile.Profile;
 import com.discordsrv.api.reload.ReloadFlag;
 import com.discordsrv.api.reload.ReloadResult;
 import com.discordsrv.api.task.Task;
@@ -90,8 +91,7 @@ import com.discordsrv.common.feature.messageforwarding.discord.DiscordChatMessag
 import com.discordsrv.common.feature.messageforwarding.discord.DiscordMessageMirroringModule;
 import com.discordsrv.common.feature.messageforwarding.game.*;
 import com.discordsrv.common.feature.nicknamesync.NicknameSyncModule;
-import com.discordsrv.common.feature.profile.Profile;
-import com.discordsrv.common.feature.profile.ProfileManager;
+import com.discordsrv.common.feature.profile.ProfileManagerImpl;
 import com.discordsrv.common.feature.update.UpdateChecker;
 import com.discordsrv.common.helper.ChannelConfigHelper;
 import com.discordsrv.common.helper.DestinationLookupHelper;
@@ -152,7 +152,7 @@ public abstract class AbstractDiscordSRV<
 
     // DiscordSRVApi
     private EventBusImpl eventBus;
-    private ProfileManager profileManager;
+    private ProfileManagerImpl profileManager;
     private PlaceholderServiceImpl placeholderService;
     private DiscordMarkdownFormatImpl discordMarkdownFormat;
     private ComponentFactory componentFactory;
@@ -203,7 +203,7 @@ public abstract class AbstractDiscordSRV<
         this.dependencyManager = new DiscordSRVDependencyManager(this, bootstrap.lifecycleManager() != null ? bootstrap.lifecycleManager().getDependencyLoader() : null);
         this.eventBus = new EventBusImpl(this);
         this.moduleManager = new ModuleManager(this);
-        this.profileManager = new ProfileManager(this);
+        this.profileManager = new ProfileManagerImpl(this);
         this.placeholderService = new PlaceholderServiceImpl(this);
         this.discordMarkdownFormat = new DiscordMarkdownFormatImpl();
         this.componentFactory = new ComponentFactory(this);
@@ -353,7 +353,7 @@ public abstract class AbstractDiscordSRV<
     }
 
     @Override
-    public final @NotNull ProfileManager profileManager() {
+    public final @NotNull ProfileManagerImpl profileManager() {
         return profileManager;
     }
 
@@ -1001,7 +1001,7 @@ public abstract class AbstractDiscordSRV<
         throw new StorageException("Unknown storage backend \"" + backend + "\"");
     }
 
-    @SuppressWarnings("resource") //
+    @SuppressWarnings("resource") // Closed instantly
     @MustBeInvokedByOverriders
     protected void disable() {
         Status status = this.status.get();
@@ -1037,6 +1037,8 @@ public abstract class AbstractDiscordSRV<
             logger().error("Failed to close storage connection", t);
         }
         temporaryLocalData.save();
+
+        logger().shutdown();
         this.status.set(Status.SHUTDOWN);
     }
 

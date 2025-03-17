@@ -23,7 +23,7 @@
 
 package com.discordsrv.api.discord.entity.message.impl;
 
-import com.discordsrv.api.DiscordSRVApi;
+import com.discordsrv.api.DiscordSRV;
 import com.discordsrv.api.color.Color;
 import com.discordsrv.api.discord.entity.interaction.component.actionrow.MessageActionRow;
 import com.discordsrv.api.discord.entity.message.AllowedMention;
@@ -357,10 +357,10 @@ public class SendableDiscordMessageImpl implements SendableDiscordMessage {
 
         @Override
         public @NotNull Formatter applyPlaceholderService() {
-            DiscordSRVApi api = DiscordSRVApi.get();
+            DiscordSRV discordSRV = DiscordSRV.get();
             this.replacements.put(
                     PlaceholderService.PATTERN,
-                    wrapFunction(matcher -> api.placeholderService().getResultAsCharSequence(matcher, context))
+                    wrapFunction(matcher -> discordSRV.placeholderService().getResultAsCharSequence(matcher, context))
             );
             return this;
         }
@@ -383,7 +383,7 @@ public class SendableDiscordMessageImpl implements SendableDiscordMessage {
 
         @Override
         public @NotNull SendableDiscordMessage build() {
-            DiscordSRVApi api = DiscordSRVApi.get();
+            DiscordSRV discordSRV = DiscordSRV.get();
 
             Function<String, String> placeholders = input -> {
                 if (input == null) {
@@ -403,7 +403,7 @@ public class SendableDiscordMessageImpl implements SendableDiscordMessage {
                 }
 
                 // Empty string -> null (so we don't provide empty strings to random fields)
-                String output = api.discordMarkdownFormat().map(input, in -> {
+                String output = discordSRV.discordMarkdownFormat().map(input, in -> {
                     // Since this will be processed in parts, we don't want parts to return null, only the full output
                     String out = placeholders.apply(in);
                     return out == null ? "" : out;

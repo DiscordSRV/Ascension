@@ -21,6 +21,7 @@ package com.discordsrv.common.core.paste.service;
 import com.discordsrv.common.DiscordSRV;
 import com.discordsrv.common.core.paste.Paste;
 import com.discordsrv.common.core.paste.PasteService;
+import com.discordsrv.common.util.HttpUtil;
 import com.fasterxml.jackson.databind.JsonNode;
 import okhttp3.*;
 
@@ -43,10 +44,7 @@ public class BytebinPasteService implements PasteService {
                 .build();
 
         try (Response response = discordSRV.httpClient().newCall(request).execute()) {
-            ResponseBody responseBody = response.body();
-            if (responseBody == null) {
-                return null;
-            }
+            ResponseBody responseBody = HttpUtil.checkIfResponseSuccessful(request, response);
 
             JsonNode responseNode = discordSRV.json().readTree(responseBody.string());
             String key = responseNode.get("key").asText();

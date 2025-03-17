@@ -18,7 +18,6 @@
 
 package com.discordsrv.common;
 
-import com.discordsrv.api.DiscordSRVApi;
 import com.discordsrv.api.module.Module;
 import com.discordsrv.api.placeholder.format.PlainPlaceholderFormat;
 import com.discordsrv.api.reload.ReloadFlag;
@@ -52,7 +51,7 @@ import com.discordsrv.common.feature.console.Console;
 import com.discordsrv.common.feature.debug.data.OnlineMode;
 import com.discordsrv.common.feature.debug.data.VersionInfo;
 import com.discordsrv.common.feature.linking.LinkProvider;
-import com.discordsrv.common.feature.profile.ProfileManager;
+import com.discordsrv.common.feature.profile.ProfileManagerImpl;
 import com.discordsrv.common.helper.ChannelConfigHelper;
 import com.discordsrv.common.helper.DestinationLookupHelper;
 import com.discordsrv.common.helper.TemporaryLocalData;
@@ -70,7 +69,7 @@ import java.util.Locale;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
 
-public interface DiscordSRV extends DiscordSRVApi {
+public interface DiscordSRV extends com.discordsrv.api.DiscordSRV {
 
     String WEBSITE = "https://discordsrv.vankka.dev";
 
@@ -94,7 +93,7 @@ public interface DiscordSRV extends DiscordSRVApi {
 
     @Override
     @NotNull
-    ProfileManager profileManager();
+    ProfileManagerImpl profileManager();
 
     @Override
     @NotNull

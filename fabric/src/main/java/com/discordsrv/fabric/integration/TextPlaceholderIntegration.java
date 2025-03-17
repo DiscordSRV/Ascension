@@ -23,7 +23,7 @@ import com.discordsrv.api.events.placeholder.PlaceholderLookupEvent;
 import com.discordsrv.api.placeholder.PlaceholderLookupResult;
 import com.discordsrv.api.placeholder.format.PlainPlaceholderFormat;
 import com.discordsrv.api.player.DiscordSRVPlayer;
-import com.discordsrv.api.profile.IProfile;
+import com.discordsrv.api.profile.Profile;
 import com.discordsrv.common.abstraction.player.IOfflinePlayer;
 import com.discordsrv.common.core.module.type.PluginIntegration;
 import com.discordsrv.fabric.FabricDiscordSRV;
@@ -95,7 +95,7 @@ public class TextPlaceholderIntegration extends PluginIntegration<FabricDiscordS
             return;
         }
 
-        IProfile profile = event.getContext(IProfile.class);
+        Profile profile = event.getContext(Profile.class);
         UUID uuid = profile != null ? profile.playerUUID() : null;
         if (uuid == null) {
             IOfflinePlayer offlinePlayer = event.getContext(IOfflinePlayer.class);
@@ -133,7 +133,7 @@ public class TextPlaceholderIntegration extends PluginIntegration<FabricDiscordS
             ServerPlayerEntity player = placeholderContext.player();
             assert player != null;
 
-            IProfile profile = discordSRV.profileManager().getProfile(player.getUuid());
+            Profile profile = discordSRV.profileManager().getProfile(player.getUuid());
             if (profile != null) {
                 context.add(profile);
             }
@@ -145,7 +145,7 @@ public class TextPlaceholderIntegration extends PluginIntegration<FabricDiscordS
             GameProfile gameProfile = placeholderContext.gameProfile();
             assert gameProfile != null;
 
-            IProfile profile = discordSRV.profileManager().getProfile(gameProfile.getId());
+            Profile profile = discordSRV.profileManager().getProfile(gameProfile.getId());
             if (profile != null) {
                 context.add(profile);
             }

@@ -23,7 +23,7 @@
 
 package com.discordsrv.api.eventbus;
 
-import com.discordsrv.api.DiscordSRVApi;
+import com.discordsrv.api.DiscordSRV;
 import com.discordsrv.api.events.Cancellable;
 import com.discordsrv.api.events.Event;
 import com.discordsrv.api.events.Processable;
@@ -37,7 +37,7 @@ import java.lang.annotation.Target;
  * Placed on a public non-abstract non-static method that has only 1 parameter,
  * being an event extending {@link Event} or {@link net.dv8tion.jda.api.events.GenericEvent}.
  * <p>
- * You can register a listener through {@link EventBus#subscribe(Object)}, {@link DiscordSRVApi#eventBus()} to get the event bus.
+ * You can register a listener through {@link EventBus#subscribe(Object)}, {@link DiscordSRV#eventBus()} to get the event bus.
  * Registered {@link com.discordsrv.api.module.Module}s are automatically registered to the event bus.
  */
 @Retention(RetentionPolicy.RUNTIME)

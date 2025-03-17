@@ -31,7 +31,6 @@ import java.lang.reflect.Method;
 /**
  * An event listener.
  */
-@SuppressWarnings("unused") // API
 public interface EventListener {
 
     /**

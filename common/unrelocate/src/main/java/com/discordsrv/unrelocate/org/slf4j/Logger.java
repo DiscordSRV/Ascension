@@ -18,11 +18,4 @@
 
 package com.discordsrv.unrelocate.org.slf4j;
 
-/**
- * A fake org.slf4j.Logger that is compileOnly scoped and relocated back to the real org.slf4j package.
- * This is required as we want to relocate 'org.slf4j'
- * but we also need the non-relocated version for Velocity's logging.
- *
- * Could be fixed by https://github.com/johnrengelman/shadow/issues/727
- */
 public interface Logger extends org.slf4j.Logger {}

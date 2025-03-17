@@ -26,7 +26,7 @@ import com.discordsrv.api.placeholder.annotation.PlaceholderPrefix;
 import com.discordsrv.api.task.Task;
 import com.discordsrv.common.DiscordSRV;
 import com.discordsrv.common.abstraction.player.provider.model.SkinInfo;
-import com.discordsrv.common.feature.profile.Profile;
+import com.discordsrv.common.feature.profile.ProfileImpl;
 import net.kyori.adventure.identity.Identified;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -39,7 +39,7 @@ public interface IOfflinePlayer extends Identified {
     DiscordSRV discordSRV();
 
     @Placeholder("profile")
-    default Task<Profile> profile() {
+    default Task<ProfileImpl> profile() {
         return discordSRV().profileManager().lookupProfile(uniqueId());
     }
 

@@ -9,16 +9,8 @@ load: STARTUP
 # This does not mean that the plugin only supports 1.13
 api-version: 1.13
 
-softdepend: [
-  # Permission + group providers
-  Vault, LuckPerms,
-  # Chat
-  Chatty, LunaChat, TownyChat, VentureChat,
-  # Other integrations
-  PlaceholderAPI, Essentials,
-  # Adventure
-  ViaVersion
-]
+# Dependencies are added in code, and only if needed, unless the below line is uncommented
+# softdepend: [disable-auto-depend]
 
 commands:
   discordsrv:

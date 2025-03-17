@@ -254,7 +254,7 @@ public class SingleConsoleHandler {
         });
     }
 
-    @SuppressWarnings({"BusyWait"})
+    @SuppressWarnings("BusyWait") // Known
     public void shutdown() {
         shutdown = true;
         queueProcessingFuture.cancel(false);

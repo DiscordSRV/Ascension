@@ -23,7 +23,7 @@
 
 package com.discordsrv.api.discord.entity;
 
-import com.discordsrv.api.DiscordSRVApi;
+import com.discordsrv.api.DiscordSRV;
 import org.jetbrains.annotations.ApiStatus;
 
 /**
@@ -36,7 +36,7 @@ public interface JDAEntity<T> {
      * Gets the JDA entity this API object wraps.
      *
      * <p>
-     * Please read {@link DiscordSRVApi#jda()} before using.
+     * Please read {@link DiscordSRV#jda()} before using.
      *
      * @return the JDA representation of this object.
      */

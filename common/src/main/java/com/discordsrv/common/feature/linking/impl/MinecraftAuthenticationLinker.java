@@ -178,7 +178,7 @@ public class MinecraftAuthenticationLinker extends CachedLinkProvider {
     @SuppressWarnings({"OptionalUsedAsFieldOrParameterType", "OptionalAssignedToNull"}) // Hack
     private static final Optional<?> ERROR = null;
 
-    @SuppressWarnings("unchecked") // Cast to the ERROR constant
+    @SuppressWarnings("unchecked")
     private <T> Task<Optional<T>> query(
             boolean canCauseLink,
             CheckedSupplier<Optional<T>> authSupplier,

@@ -20,7 +20,7 @@ package com.discordsrv.common.feature.linking;
 
 import com.discordsrv.api.events.linking.AccountLinkedEvent;
 import com.discordsrv.api.events.linking.AccountUnlinkedEvent;
-import com.discordsrv.api.profile.IProfile;
+import com.discordsrv.api.profile.Profile;
 import com.discordsrv.common.DiscordSRV;
 import com.discordsrv.common.core.logging.NamedLogger;
 import com.discordsrv.common.core.module.type.AbstractModule;
@@ -34,7 +34,7 @@ public class LinkingModule extends AbstractModule<DiscordSRV> {
     }
 
     public void linked(UUID playerUUID, long userId) {
-        IProfile profile = discordSRV.profileManager().getProfile(playerUUID);
+        Profile profile = discordSRV.profileManager().getProfile(playerUUID);
         if (profile == null || !profile.isLinked()) {
             throw new IllegalStateException("Notified that account linked, but profile is null or unlinked");
         }

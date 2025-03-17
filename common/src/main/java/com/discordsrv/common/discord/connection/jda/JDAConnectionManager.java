@@ -18,7 +18,6 @@
 
 package com.discordsrv.common.discord.connection.jda;
 
-import com.discordsrv.api.DiscordSRVApi;
 import com.discordsrv.api.discord.connection.details.DiscordCacheFlag;
 import com.discordsrv.api.discord.connection.details.DiscordGatewayIntent;
 import com.discordsrv.api.discord.connection.jda.errorresponse.ErrorCallbackContext;
@@ -288,7 +287,7 @@ public class JDAConnectionManager implements DiscordConnectionManager {
             return;
         }
 
-        discordSRV.setStatus(DiscordSRVApi.Status.ATTEMPTING_TO_CONNECT);
+        discordSRV.setStatus(DiscordSRV.Status.ATTEMPTING_TO_CONNECT);
         this.gatewayPool = new ScheduledThreadPoolExecutor(
                 1,
                 r -> new Thread(r, Scheduler.THREAD_NAME_PREFIX + "JDA Gateway")
@@ -556,7 +555,7 @@ public class JDAConnectionManager implements DiscordConnectionManager {
             discordSRV.logger().error("| 4. Make sure the intents listed above are all enabled");
             discordSRV.logger().error("| 5. Run the \"/discordsrv reload config discord_connection\" command");
             discordSRV.logger().error("+-------------------------------------->");
-            discordSRV.setStatus(DiscordSRVApi.Status.DISALLOWED_INTENTS);
+            discordSRV.setStatus(DiscordSRV.Status.DISALLOWED_INTENTS);
             return true;
         } else if (closeCode == CloseCode.AUTHENTICATION_FAILED) {
             invalidToken(false);
@@ -592,7 +591,7 @@ public class JDAConnectionManager implements DiscordConnectionManager {
         } else {
             lines.forEach(line -> discordSRV.logger().error(line));
         }
-        discordSRV.setStatus(DiscordSRVApi.Status.INVALID_TOKEN);
+        discordSRV.setStatus(DiscordSRV.Status.INVALID_TOKEN);
     }
 
     private class FailureCallback implements Consumer<Throwable> {

@@ -19,7 +19,6 @@
 package com.discordsrv.common.abstraction.player.provider;
 
 import com.discordsrv.api.player.DiscordSRVPlayer;
-import com.discordsrv.api.player.IPlayerProvider;
 import com.discordsrv.api.task.Task;
 import com.discordsrv.common.abstraction.player.IOfflinePlayer;
 import com.discordsrv.common.abstraction.player.IPlayer;
@@ -29,7 +28,7 @@ import org.jetbrains.annotations.Nullable;
 import java.util.Collection;
 import java.util.UUID;
 
-public interface PlayerProvider<T extends IPlayer> extends IPlayerProvider {
+public interface PlayerProvider<T extends IPlayer> extends com.discordsrv.api.player.PlayerProvider {
 
     /**
      * Gets an online player by {@link UUID}.

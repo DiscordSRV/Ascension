@@ -23,7 +23,7 @@
 
 package com.discordsrv.api.reload;
 
-import com.discordsrv.api.DiscordSRVApi;
+import com.discordsrv.api.DiscordSRV;
 
 import java.util.Arrays;
 import java.util.Collections;
@@ -37,7 +37,7 @@ public enum ReloadFlag {
     CONFIG_UPGRADE(false),
     LINKED_ACCOUNT_PROVIDER(false),
     STORAGE(true),
-    DISCORD_CONNECTION(DiscordSRVApi::isReady),
+    DISCORD_CONNECTION(DiscordSRV::isReady),
     DISCORD_COMMANDS(false),
     TRANSLATIONS(false);
 
@@ -46,17 +46,17 @@ public enum ReloadFlag {
     public static final Set<ReloadFlag> DEFAULT_FLAGS = Collections.unmodifiableSet(
             new LinkedHashSet<>(Collections.singletonList(CONFIG)));
 
-    private final Predicate<DiscordSRVApi> requiresConfirm;
+    private final Predicate<DiscordSRV> requiresConfirm;
 
     ReloadFlag(boolean requiresConfirm) {
         this(__ -> requiresConfirm);
     }
 
-    ReloadFlag(Predicate<DiscordSRVApi> requiresConfirm) {
+    ReloadFlag(Predicate<DiscordSRV> requiresConfirm) {
         this.requiresConfirm = requiresConfirm;
     }
 
-    public boolean requiresConfirm(DiscordSRVApi discordSRV) {
+    public boolean requiresConfirm(DiscordSRV discordSRV) {
         return requiresConfirm.test(discordSRV);
     }
 }

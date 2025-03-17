@@ -23,7 +23,7 @@
 
 package com.discordsrv.api.discord.entity.channel;
 
-import com.discordsrv.api.DiscordSRVApi;
+import com.discordsrv.api.DiscordSRV;
 import com.discordsrv.api.discord.entity.message.ReceivedDiscordMessage;
 import com.discordsrv.api.discord.entity.message.SendableDiscordMessage;
 import com.discordsrv.api.task.Task;
@@ -66,7 +66,7 @@ public interface DiscordMessageChannel extends DiscordChannel {
     /**
      * Returns the JDA representation of this object. This should not be used if it can be avoided.
      * @return the JDA representation of this object
-     * @see DiscordSRVApi#jda()
+     * @see DiscordSRV#jda()
      */
     MessageChannel getAsJDAMessageChannel();
 }
