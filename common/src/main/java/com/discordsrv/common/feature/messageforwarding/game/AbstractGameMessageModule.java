@@ -227,9 +227,6 @@ public abstract class AbstractGameMessageModule<T extends IMessageConfig, E exte
     }
 
     private String describeDestination(DiscordGuildChannel channel) {
-        if (channel instanceof DiscordThreadChannel) {
-            return channel.toString();
-        }
         return channel.toString();
     }
 

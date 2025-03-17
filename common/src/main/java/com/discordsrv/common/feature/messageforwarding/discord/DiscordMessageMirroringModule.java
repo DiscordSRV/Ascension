@@ -260,10 +260,6 @@ public class DiscordMessageMirroringModule extends AbstractModule<DiscordSRV> {
     }
 
     private String describeChannel(DiscordGuildMessageChannel channel) {
-        if (channel instanceof DiscordThreadChannel) {
-            return channel.toString();
-        }
-
         return channel.toString();
     }
 
