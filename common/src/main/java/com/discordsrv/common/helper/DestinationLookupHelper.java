@@ -141,7 +141,7 @@ public class DestinationLookupHelper {
                         return createThread(threadContainer, threadName, privateThread, logFailures);
                     }).mapException(t -> {
                         if (logFailures) {
-                            logger.error("Failed to lookup threads in channel #" + threadContainer, t);
+                            logger.error("Failed to lookup threads in " + threadContainer, t);
                         }
                         return null;
                     });
@@ -239,7 +239,7 @@ public class DestinationLookupHelper {
         String missingPermissions = DiscordPermissionUtil.missingPermissionsString(jdaChannel, requiredPermissions);
         if (missingPermissions != null) {
             if (logFailures) {
-                logger.error("Cannot unarchive thread " + channel + " : " + missingPermissions);
+                logger.error("Cannot unarchive thread " + channel + ": " + missingPermissions);
             }
             return Task.completed(null);
         }

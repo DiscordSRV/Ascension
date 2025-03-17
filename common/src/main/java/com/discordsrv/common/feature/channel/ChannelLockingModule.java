@@ -125,7 +125,7 @@ public class ChannelLockingModule extends AbstractModule<DiscordSRV> {
         Guild guild = messageChannel.getGuild();
         String missingPermissions = DiscordPermissionUtil.missingPermissionsString(messageChannel, Permission.VIEW_CHANNEL, Permission.MANAGE_PERMISSIONS);
         if (missingPermissions != null) {
-            logger().error("Cannot lock " + channel + " : " + missingPermissions);
+            logger().error("Cannot lock " + channel + ": " + missingPermissions);
             return;
         }
 
