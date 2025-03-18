@@ -106,24 +106,52 @@ public abstract class AbstractSyncModule<
             configsForGame.clear();
             configsForDiscord.clear();
 
-            String syncName = syncName();
-
+            Map<G, C> oneWayToGame = new HashMap<>();
+            Map<D, C> oneWayToDiscord = new HashMap<>();
             Map<Integer, Set<C>> timerIntervals = new HashMap<>();
             for (C config : configs()) {
-                if (!config.isSet() || !config.validate(syncName, discordSRV)) {
+                if (!config.isSet() || !config.validate(syncName(), discordSRV)) {
                     continue;
                 }
 
-                boolean failed = false;
+                boolean duplicateFound = false;
                 for (C existingConfig : syncs) {
                     if (existingConfig.isSameAs(config)) {
-                        failed = true;
+                        duplicateFound = true;
                         break;
                     }
                 }
-                if (failed) {
-                    discordSRV.logger().error("Duplicate " + syncName + " (" + config.describe() + ")");
+                if (duplicateFound) {
+                    discordSRV.logger().error("Duplicate " + syncName() + " (" + config.describe() + ")");
                     continue;
+                }
+
+                G gameId = config.gameId();
+                D discordId = config.discordId();
+
+                // This implementation does not support multiple one-way synchronizations to the same entity
+                // For example A->X, B->X: as there is no logic to deal with multiple states on the left side
+                SyncDirection direction = config.direction;
+                if (direction == SyncDirection.DISCORD_TO_MINECRAFT && gameId != null) {
+                    C conflict = oneWayToGame.get(gameId);
+                    if (conflict != null) {
+                        discordSRV.logger().error(
+                                "Conflicting one-way " + syncName()
+                                        + " to the same Minecraft " + gameTerm()
+                                        + ": " + conflict + " and " + config);
+                        continue;
+                    }
+                    oneWayToGame.put(gameId, config);
+                } else if (direction == SyncDirection.MINECRAFT_TO_DISCORD && discordId != null) {
+                    C conflict = oneWayToDiscord.get(discordId);
+                    if (conflict != null) {
+                        discordSRV.logger().error(
+                                "Conflicting one-way " + syncName()
+                                        + " to the same Discord " + discordTerm()
+                                        + ": " + conflict + " and " + config);
+                        continue;
+                    }
+                    oneWayToDiscord.put(discordId, config);
                 }
 
                 AbstractSyncConfig.TimerConfig timer = config.timer;
@@ -132,15 +160,11 @@ public abstract class AbstractSyncModule<
                 }
 
                 syncs.add(config);
-
-                G game = config.gameId();
-                if (game != null) {
-                    configsForGame.computeIfAbsent(game, key -> new ArrayList<>()).add(config);
+                if (gameId != null) {
+                    configsForGame.computeIfAbsent(gameId, key -> new ArrayList<>()).add(config);
                 }
-
-                D discord = config.discordId();
-                if (discord != null) {
-                    configsForDiscord.computeIfAbsent(discord, key -> new ArrayList<>()).add(config);
+                if (discordId != null) {
+                    configsForDiscord.computeIfAbsent(discordId, key -> new ArrayList<>()).add(config);
                 }
             }
 
