@@ -234,9 +234,9 @@ public class GroupSyncModule extends AbstractSyncModule<DiscordSRV, GroupSyncCon
         Task<Boolean> future;
         if (permissionProvider instanceof PermissionModule.GroupsContext) {
             future = ((PermissionModule.GroupsContext) permissionProvider)
-                    .hasGroup(playerUUID, config.groupName, false, config.contexts());
+                    .hasGroup(playerUUID, config.groupName, config.includeInherited(), config.contexts());
         } else {
-            future = permissionProvider.hasGroup(playerUUID, config.groupName, false);
+            future = permissionProvider.hasGroup(playerUUID, config.groupName, config.includeInherited());
         }
 
         return future.mapException(t -> {
