@@ -28,6 +28,7 @@ import com.discordsrv.api.component.MinecraftComponent;
 import com.discordsrv.api.eventbus.EventPriorities;
 import com.discordsrv.api.events.PlayerEvent;
 import com.discordsrv.api.player.DiscordSRVPlayer;
+import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -40,17 +41,31 @@ public class LeaveMessageReceiveEvent extends AbstractGameMessageReceiveEvent im
     private final DiscordSRVPlayer player;
     private MinecraftComponent message;
     private GameChannel gameChannel;
+    private final boolean messageCancelled;
 
     public LeaveMessageReceiveEvent(
             @Nullable Object triggeringEvent,
             @NotNull DiscordSRVPlayer player,
             @Nullable MinecraftComponent message,
+            @Nullable GameChannel gameChannel
+    ) {
+        this(triggeringEvent, player, message, gameChannel, false, false);
+    }
+
+    @ApiStatus.Experimental
+    public LeaveMessageReceiveEvent(
+            @Nullable Object triggeringEvent,
+            @NotNull DiscordSRVPlayer player,
+            @Nullable MinecraftComponent message,
             @Nullable GameChannel gameChannel,
-            boolean cancelled) {
+            boolean messageCancelled,
+            boolean cancelled
+    ) {
         super(triggeringEvent, cancelled);
         this.player = player;
         this.message = message;
         this.gameChannel = gameChannel;
+        this.messageCancelled = messageCancelled;
     }
 
     @Override
@@ -75,6 +90,11 @@ public class LeaveMessageReceiveEvent extends AbstractGameMessageReceiveEvent im
 
     public void setGameChannel(@Nullable GameChannel gameChannel) {
         this.gameChannel = gameChannel;
+    }
+
+    @ApiStatus.Experimental
+    public boolean isMessageCancelled() {
+        return messageCancelled;
     }
 
     @Override

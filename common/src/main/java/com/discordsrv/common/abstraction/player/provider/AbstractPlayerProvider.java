@@ -18,6 +18,7 @@
 
 package com.discordsrv.common.abstraction.player.provider;
 
+import com.discordsrv.api.task.Task;
 import com.discordsrv.common.DiscordSRV;
 import com.discordsrv.common.abstraction.player.IOfflinePlayer;
 import com.discordsrv.common.abstraction.player.IPlayer;
@@ -38,7 +39,6 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
-import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -66,6 +66,10 @@ public abstract class AbstractPlayerProvider<T extends IPlayer, DT extends Disco
     public abstract void unsubscribe();
 
     protected void addPlayer(UUID uuid, T player, boolean initial) {
+        if (this.players.containsKey(uuid)) {
+            return;
+        }
+
         this.players.put(uuid, player);
         this.allPlayers.add(player);
         discordSRV.scheduler().run(() -> discordSRV.eventBus().publish(new PlayerConnectedEvent(player, initial)));
@@ -115,10 +119,10 @@ public abstract class AbstractPlayerProvider<T extends IPlayer, DT extends Disco
     }
 
     @Override
-    public CompletableFuture<UUID> lookupUUIDForUsername(String username) {
+    public Task<UUID> lookupUUIDForUsername(String username) {
         IPlayer player = player(username);
         if (player != null) {
-            return CompletableFuture.completedFuture(player.uniqueId());
+            return Task.completed(player.uniqueId());
         }
 
         Request request = new Request.Builder()
@@ -131,10 +135,10 @@ public abstract class AbstractPlayerProvider<T extends IPlayer, DT extends Disco
     }
 
     @Override
-    public CompletableFuture<IOfflinePlayer> lookupOfflinePlayer(UUID uuid) {
+    public Task<IOfflinePlayer> lookupOfflinePlayer(UUID uuid) {
         IPlayer player = player(uuid);
         if (player != null) {
-            return CompletableFuture.completedFuture(player);
+            return Task.completed(player);
         }
 
         Request request = new Request.Builder()
@@ -150,7 +154,7 @@ public abstract class AbstractPlayerProvider<T extends IPlayer, DT extends Disco
                 }
 
                 Textures textures = Textures.getFromBase64(discordSRV, property.value);
-                skinInfo = textures.getSkinInfo();
+                skinInfo = textures.getSkinInfo(null);
             }
 
             return new OfflinePlayer(discordSRV, response.name, uuid, skinInfo);

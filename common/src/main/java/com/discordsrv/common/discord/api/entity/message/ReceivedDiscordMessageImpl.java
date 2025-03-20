@@ -19,9 +19,7 @@
 package com.discordsrv.common.discord.api.entity.message;
 
 import com.discordsrv.api.discord.entity.DiscordUser;
-import com.discordsrv.api.discord.entity.channel.DiscordDMChannel;
 import com.discordsrv.api.discord.entity.channel.DiscordMessageChannel;
-import com.discordsrv.api.discord.entity.channel.DiscordTextChannel;
 import com.discordsrv.api.discord.entity.channel.DiscordThreadChannel;
 import com.discordsrv.api.discord.entity.guild.DiscordGuild;
 import com.discordsrv.api.discord.entity.guild.DiscordGuildMember;
@@ -30,8 +28,8 @@ import com.discordsrv.api.discord.entity.message.ReceivedDiscordMessage;
 import com.discordsrv.api.discord.entity.message.SendableDiscordMessage;
 import com.discordsrv.api.discord.exception.RestErrorResponseException;
 import com.discordsrv.api.placeholder.annotation.PlaceholderPrefix;
+import com.discordsrv.api.task.Task;
 import com.discordsrv.common.DiscordSRV;
-import com.discordsrv.common.util.CompletableFutureUtil;
 import net.dv8tion.jda.api.entities.*;
 import net.dv8tion.jda.api.requests.ErrorResponse;
 import org.jetbrains.annotations.NotNull;
@@ -207,20 +205,6 @@ public class ReceivedDiscordMessageImpl implements ReceivedDiscordMessage {
     }
 
     @Override
-    public @Nullable DiscordTextChannel getTextChannel() {
-        return channel instanceof DiscordTextChannel
-                ? (DiscordTextChannel) channel
-                : null;
-    }
-
-    @Override
-    public @Nullable DiscordDMChannel getDMChannel() {
-        return channel instanceof DiscordDMChannel
-                ? (DiscordDMChannel) channel
-                : null;
-    }
-
-    @Override
     public @Nullable DiscordGuildMember getMember() {
         return member;
     }
@@ -256,17 +240,17 @@ public class ReceivedDiscordMessageImpl implements ReceivedDiscordMessage {
     }
 
     @Override
-    public @NotNull CompletableFuture<Void> delete() {
+    public @NotNull Task<Void> delete() {
         DiscordMessageChannel messageChannel = discordSRV.discordAPI().getMessageChannelById(channelId);
         if (messageChannel == null) {
-            return CompletableFutureUtil.failed(new RestErrorResponseException(ErrorResponse.UNKNOWN_CHANNEL));
+            return Task.failed(new RestErrorResponseException(ErrorResponse.UNKNOWN_CHANNEL));
         }
 
         return messageChannel.deleteMessageById(getId(), fromSelf && webhookMessage);
     }
 
     @Override
-    public @NotNull CompletableFuture<ReceivedDiscordMessage> edit(
+    public Task<ReceivedDiscordMessage> edit(
             @NotNull SendableDiscordMessage message
     ) {
         if (!webhookMessage && message.isWebhookMessage()) {
@@ -275,21 +259,21 @@ public class ReceivedDiscordMessageImpl implements ReceivedDiscordMessage {
 
         DiscordMessageChannel messageChannel = discordSRV.discordAPI().getMessageChannelById(channelId);
         if (messageChannel == null) {
-            return CompletableFutureUtil.failed(new RestErrorResponseException(ErrorResponse.UNKNOWN_CHANNEL));
+            return Task.failed(new RestErrorResponseException(ErrorResponse.UNKNOWN_CHANNEL));
         }
 
         return messageChannel.editMessageById(getId(), message);
     }
 
     @Override
-    public CompletableFuture<ReceivedDiscordMessage> reply(@NotNull SendableDiscordMessage message) {
+    public Task<ReceivedDiscordMessage> reply(@NotNull SendableDiscordMessage message) {
         if (message.isWebhookMessage()) {
             throw new IllegalStateException("Webhook messages cannot be used as replies");
         }
 
         DiscordMessageChannel messageChannel = discordSRV.discordAPI().getMessageChannelById(channelId);
         if (messageChannel == null) {
-            return CompletableFutureUtil.failed(new RestErrorResponseException(ErrorResponse.UNKNOWN_CHANNEL));
+            return Task.failed(new RestErrorResponseException(ErrorResponse.UNKNOWN_CHANNEL));
         }
 
         return messageChannel.sendMessage(message.withReplyingToMessageId(id));

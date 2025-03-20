@@ -25,6 +25,7 @@ import com.discordsrv.common.DiscordSRV;
 import com.github.benmanes.caffeine.cache.LoadingCache;
 
 import java.time.DateTimeException;
+import java.time.OffsetDateTime;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 import java.time.temporal.ChronoField;
@@ -68,9 +69,18 @@ public class DateFormattingContext {
         }
     }
 
-    @Placeholder(value = "start_date", relookup = "date")
+    @Placeholder("start_date")
     public ZonedDateTime getStartDate() {
         return discordSRV.getInitializeTime();
     }
 
+    @Placeholder("now_date")
+    public ZonedDateTime getNowDate() {
+        return ZonedDateTime.now();
+    }
+
+    @Placeholder("now_time")
+    public OffsetDateTime getTimeNow() {
+        return OffsetDateTime.now();
+    }
 }

@@ -27,6 +27,7 @@ import com.discordsrv.common.config.main.PresenceUpdaterConfig;
 import com.discordsrv.common.core.logging.NamedLogger;
 import com.discordsrv.common.core.module.type.AbstractModule;
 import net.dv8tion.jda.api.JDA;
+import net.dv8tion.jda.api.entities.Activity;
 import net.dv8tion.jda.api.events.StatusChangeEvent;
 
 import java.time.Duration;
@@ -48,16 +49,18 @@ public class PresenceUpdaterModule extends AbstractModule<DiscordSRV> {
 
     @Override
     public boolean canEnableBeforeReady() {
-        return true;
+        return discordSRV.config() != null;
     }
 
     public void serverStarted() {
+        logger().debug("Server started");
         serverState.set(ServerState.STARTED);
         setPresenceOrSchedule();
     }
 
     @Subscribe(priority = EventPriorities.EARLIEST)
     public void onDiscordSRVShuttingDown(DiscordSRVShuttingDownEvent event) {
+        logger().debug("Plugin shutting down");
         serverState.set(ServerState.STOPPING);
         setPresenceOrSchedule();
     }
@@ -89,13 +92,21 @@ public class PresenceUpdaterModule extends AbstractModule<DiscordSRV> {
             // Guess not
             return;
         }
-        jda.getPresence().setPresence(config.status, config.activity(null, discordSRV));
+
+        Activity newActivity = config.activity(null, discordSRV);
+        logger().debug("Changing activity to " + newActivity);
+        jda.getPresence().setPresence(config.status, newActivity);
     }
 
     private void setPresenceOrSchedule() {
         boolean alreadyScheduled = future != null;
         if (future != null) {
             future.cancel(true);
+        }
+
+        if (discordSRV.isServerStarted() && serverState.get() == ServerState.PRE_START) {
+            logger().debug("Server is started, changing to STARTED state");
+            serverState.set(ServerState.STARTED);
         }
 
         PresenceUpdaterConfig config = discordSRV.config().presenceUpdater;

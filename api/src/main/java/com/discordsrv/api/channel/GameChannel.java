@@ -24,6 +24,8 @@
 package com.discordsrv.api.channel;
 
 import com.discordsrv.api.component.MinecraftComponent;
+import com.discordsrv.api.placeholder.annotation.Placeholder;
+import com.discordsrv.api.placeholder.annotation.PlaceholderPrefix;
 import com.discordsrv.api.player.DiscordSRVPlayer;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -33,6 +35,7 @@ import java.util.Collection;
 /**
  * An in-game channel for sending Minecraft messages to.
  */
+@PlaceholderPrefix("gamechannel_")
 public interface GameChannel {
 
     String DEFAULT_NAME = "global";
@@ -48,6 +51,7 @@ public interface GameChannel {
      * Gets the name of this channel.
      * @return the channel name
      */
+    @Placeholder("name")
     @NotNull
     String getChannelName();
 

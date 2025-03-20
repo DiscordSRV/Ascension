@@ -22,6 +22,7 @@ import com.discordsrv.api.discord.entity.DiscordUser;
 import com.discordsrv.api.discord.entity.channel.DiscordDMChannel;
 import com.discordsrv.api.discord.entity.message.ReceivedDiscordMessage;
 import com.discordsrv.api.discord.entity.message.SendableDiscordMessage;
+import com.discordsrv.api.task.Task;
 import com.discordsrv.common.DiscordSRV;
 import com.discordsrv.common.discord.api.entity.message.ReceivedDiscordMessageImpl;
 import com.discordsrv.common.discord.api.entity.message.util.SendableDiscordMessageUtil;
@@ -31,7 +32,6 @@ import net.dv8tion.jda.api.requests.restaction.MessageCreateAction;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Objects;
-import java.util.concurrent.CompletableFuture;
 
 public class DiscordDMChannelImpl extends AbstractDiscordMessageChannel<PrivateChannel> implements DiscordDMChannel {
 
@@ -49,7 +49,7 @@ public class DiscordDMChannelImpl extends AbstractDiscordMessageChannel<PrivateC
     }
 
     @Override
-    public @NotNull CompletableFuture<ReceivedDiscordMessage> sendMessage(@NotNull SendableDiscordMessage message) {
+    public @NotNull Task<ReceivedDiscordMessage> sendMessage(@NotNull SendableDiscordMessage message) {
         if (message.isWebhookMessage()) {
             throw new IllegalArgumentException("Cannot send webhook messages to DMChannels");
         }
@@ -61,21 +61,21 @@ public class DiscordDMChannelImpl extends AbstractDiscordMessageChannel<PrivateC
             action = action.setMessageReference(referencedMessageId);
         }
 
-        CompletableFuture<ReceivedDiscordMessage> future = action.submit()
+        return discordSRV.discordAPI().toTask(action)
                 .thenApply(msg -> ReceivedDiscordMessageImpl.fromJDA(discordSRV, msg));
-        return discordSRV.discordAPI().mapExceptions(future);
     }
 
     @Override
-    public CompletableFuture<Void> deleteMessageById(long id, boolean webhookMessage) {
+    public Task<Void> deleteMessageById(long id, boolean webhookMessage) {
         if (webhookMessage) {
             throw new IllegalArgumentException("DMChannels do not contain webhook messages");
         }
-        return discordSRV.discordAPI().mapExceptions(channel.deleteMessageById(id).submit());
+
+        return discordSRV.discordAPI().toTask(() -> channel.deleteMessageById(id));
     }
 
     @Override
-    public @NotNull CompletableFuture<ReceivedDiscordMessage> editMessageById(
+    public @NotNull Task<ReceivedDiscordMessage> editMessageById(
             long id,
             @NotNull SendableDiscordMessage message
     ) {
@@ -83,12 +83,9 @@ public class DiscordDMChannelImpl extends AbstractDiscordMessageChannel<PrivateC
             throw new IllegalArgumentException("Cannot send webhook messages to DMChannels");
         }
 
-        CompletableFuture<ReceivedDiscordMessage> future = channel
-                .editMessageById(id, SendableDiscordMessageUtil.toJDAEdit(message))
-                .submit()
+        return discordSRV.discordAPI()
+                .toTask(channel.editMessageById(id, SendableDiscordMessageUtil.toJDAEdit(message)))
                 .thenApply(msg -> ReceivedDiscordMessageImpl.fromJDA(discordSRV, msg));
-
-        return discordSRV.discordAPI().mapExceptions(future);
     }
 
     @Override

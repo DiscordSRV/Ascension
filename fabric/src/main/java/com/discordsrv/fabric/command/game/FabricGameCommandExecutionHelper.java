@@ -18,6 +18,7 @@
 
 package com.discordsrv.fabric.command.game;
 
+import com.discordsrv.api.task.Task;
 import com.discordsrv.common.command.game.abstraction.GameCommandExecutionHelper;
 import com.discordsrv.fabric.FabricDiscordSRV;
 import com.mojang.brigadier.CommandDispatcher;
@@ -31,7 +32,6 @@ import net.minecraft.server.command.ServerCommandSource;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 import java.util.stream.Collectors;
 
@@ -46,7 +46,7 @@ public class FabricGameCommandExecutionHelper implements GameCommandExecutionHel
     }
 
     @Override
-    public CompletableFuture<List<String>> suggestCommands(List<String> parts) {
+    public Task<List<String>> suggestCommands(List<String> parts) {
         String fullCommand = String.join(" ", parts);
         if (parts.isEmpty() || fullCommand.isBlank()) {
             return getRootCommands();
@@ -59,7 +59,7 @@ public class FabricGameCommandExecutionHelper implements GameCommandExecutionHel
                 data.add(fullCommand);
                 parse.getExceptions().values().stream().map(Exception::getMessage).map(this::splitErrorMessage).forEach(data::addAll);
 
-                return CompletableFuture.completedFuture(data);
+                return Task.completed(data);
             }
 
             List<ParsedCommandNode<ServerCommandSource>> nodes = parse.getContext().getNodes();
@@ -67,7 +67,7 @@ public class FabricGameCommandExecutionHelper implements GameCommandExecutionHel
                 CommandNode<ServerCommandSource> lastNode = nodes.getLast().getNode();
                 if (lastNode.getChildren().isEmpty() && lastNode.getRedirect() == null) {
                     // We reached the end of the command tree. Suggest the full command as a valid command.
-                    return CompletableFuture.completedFuture(Collections.singletonList(fullCommand));
+                    return Task.completed(Collections.singletonList(fullCommand));
                 }
             }
 
@@ -93,9 +93,9 @@ public class FabricGameCommandExecutionHelper implements GameCommandExecutionHel
                 }
             }
             data = data.stream().map(String::trim).distinct().collect(Collectors.toList());
-            return CompletableFuture.completedFuture(data);
+            return Task.completed(data);
         } catch (InterruptedException | ExecutionException e) {
-            return CompletableFuture.completedFuture(Collections.emptyList());
+            return Task.completed(Collections.emptyList());
         }
     }
 
@@ -114,8 +114,8 @@ public class FabricGameCommandExecutionHelper implements GameCommandExecutionHel
         return false;
     }
 
-    private CompletableFuture<List<String>> getRootCommands() {
-        return CompletableFuture.completedFuture(
+    private Task<List<String>> getRootCommands() {
+        return Task.completed(
                 dispatcher.getRoot().getChildren()
                         .stream()
                         .map(CommandNode::getName)

@@ -19,10 +19,10 @@
 package com.discordsrv.bukkit.integration;
 
 import com.discordsrv.api.module.type.PermissionModule;
+import com.discordsrv.api.task.Task;
 import com.discordsrv.bukkit.BukkitDiscordSRV;
 import com.discordsrv.common.core.module.type.PluginIntegration;
 import com.discordsrv.common.exception.MessageException;
-import com.discordsrv.common.util.CompletableFutureUtil;
 import com.discordsrv.common.util.function.CheckedSupplier;
 import net.milkbowl.vault.chat.Chat;
 import net.milkbowl.vault.permission.Permission;
@@ -36,7 +36,6 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.UUID;
-import java.util.concurrent.CompletableFuture;
 
 public class VaultIntegration extends PluginIntegration<BukkitDiscordSRV> implements PermissionModule.Basic {
 
@@ -107,15 +106,15 @@ public class VaultIntegration extends PluginIntegration<BukkitDiscordSRV> implem
         return true;
     }
 
-    private <T> CompletableFuture<T> unsupported(@Nullable Object vault) {
-        return CompletableFutureUtil.failed(new MessageException(
+    private <T> Task<T> unsupported(@Nullable Object vault) {
+        return Task.failed(new MessageException(
                 vault != null
                 ? "Vault backend " + vault.getClass().getName() + " unable to complete request"
                 : "No vault backend available"
         ));
     }
 
-    private <T> CompletableFuture<T> supply(CheckedSupplier<T> supplier, boolean async) {
+    private <T> Task<T> supply(CheckedSupplier<T> supplier, boolean async) {
         if (async) {
             return discordSRV.scheduler().supply(supplier);
         } else {
@@ -134,7 +133,7 @@ public class VaultIntegration extends PluginIntegration<BukkitDiscordSRV> implem
     }
 
     @Override
-    public CompletableFuture<Boolean> hasGroup(@NotNull UUID player, @NotNull String groupName, boolean includeInherited) {
+    public Task<Boolean> hasGroup(@NotNull UUID player, @NotNull String groupName, boolean includeInherited) {
         if (permission == null || !permission.isEnabled() || !permission.hasGroupSupport()) {
             return unsupported(permission);
         }
@@ -146,7 +145,7 @@ public class VaultIntegration extends PluginIntegration<BukkitDiscordSRV> implem
     }
 
     @Override
-    public CompletableFuture<Void> addGroup(@NotNull UUID player, @NotNull String groupName) {
+    public Task<Void> addGroup(@NotNull UUID player, @NotNull String groupName) {
         if (permission == null || !permission.isEnabled() || !permission.hasGroupSupport()) {
             return unsupported(permission);
         }
@@ -159,7 +158,7 @@ public class VaultIntegration extends PluginIntegration<BukkitDiscordSRV> implem
     }
 
     @Override
-    public CompletableFuture<Void> removeGroup(@NotNull UUID player, @NotNull String groupName) {
+    public Task<Void> removeGroup(@NotNull UUID player, @NotNull String groupName) {
         if (permission == null || !permission.isEnabled() || !permission.hasGroupSupport()) {
             return unsupported(permission);
         }
@@ -172,7 +171,19 @@ public class VaultIntegration extends PluginIntegration<BukkitDiscordSRV> implem
     }
 
     @Override
-    public CompletableFuture<Boolean> hasPermission(@NotNull UUID player, @NotNull String permissionNode) {
+    public Task<String> getPrimaryGroup(@NotNull UUID player) {
+        if (permission == null || !permission.isEnabled() || !permission.hasGroupSupport()) {
+            return unsupported(permission);
+        }
+
+        return supply(() -> {
+            OfflinePlayer offlinePlayer = offlinePlayer(player);
+            return permission.getPrimaryGroup(null, offlinePlayer);
+        }, permissionAsync);
+    }
+
+    @Override
+    public Task<Boolean> hasPermission(@NotNull UUID player, @NotNull String permissionNode) {
         if (permission == null || !permission.isEnabled()) {
             return unsupported(permission);
         }
@@ -184,7 +195,7 @@ public class VaultIntegration extends PluginIntegration<BukkitDiscordSRV> implem
     }
 
     @Override
-    public CompletableFuture<String> getPrefix(@NotNull UUID player) {
+    public Task<String> getPrefix(@NotNull UUID player) {
         if (chat == null || !chat.isEnabled()) {
             return unsupported(chat);
         }
@@ -196,7 +207,7 @@ public class VaultIntegration extends PluginIntegration<BukkitDiscordSRV> implem
     }
 
     @Override
-    public CompletableFuture<String> getSuffix(@NotNull UUID player) {
+    public Task<String> getSuffix(@NotNull UUID player) {
         if (chat == null || !chat.isEnabled()) {
             return unsupported(chat);
         }

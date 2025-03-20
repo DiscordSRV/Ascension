@@ -18,6 +18,7 @@
 
 package com.discordsrv.bukkit.player;
 
+import com.discordsrv.api.task.Task;
 import com.discordsrv.bukkit.BukkitDiscordSRV;
 import com.discordsrv.common.abstraction.player.IOfflinePlayer;
 import com.discordsrv.common.abstraction.player.IPlayer;
@@ -33,17 +34,22 @@ import org.bukkit.event.player.PlayerLoginEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
 
 import java.util.UUID;
-import java.util.concurrent.CompletableFuture;
 import java.util.function.Function;
 import java.util.function.Supplier;
 
 public class BukkitPlayerProvider extends ServerPlayerProvider<BukkitPlayer, BukkitDiscordSRV> implements Listener {
 
     private final Function<Player, BukkitPlayer> playerConstructor;
+    private final Function<OfflinePlayer, BukkitOfflinePlayer> offlinePlayerConstructor;
 
-    public BukkitPlayerProvider(BukkitDiscordSRV discordSRV, Function<Player, BukkitPlayer> playerConstructor) {
+    public BukkitPlayerProvider(
+            BukkitDiscordSRV discordSRV,
+            Function<Player, BukkitPlayer> playerConstructor,
+            Function<OfflinePlayer, BukkitOfflinePlayer> offlinePlayerConstructor
+    ) {
         super(discordSRV);
         this.playerConstructor = playerConstructor;
+        this.offlinePlayerConstructor = offlinePlayerConstructor;
     }
 
     // IPlayer
@@ -73,9 +79,10 @@ public class BukkitPlayerProvider extends ServerPlayerProvider<BukkitPlayer, Buk
 
     @EventHandler(priority = EventPriority.LOWEST)
     public void onPlayerJoin(PlayerJoinEvent event) {
-        if (player(event.getPlayer()) == null) {
+        Player player = event.getPlayer();
+        if (player(player.getUniqueId()) == null) {
             // The player wasn't loaded at PlayerLoginEvent (offline mode)
-            addPlayer(event.getPlayer(), false);
+            addPlayer(player, false);
         }
     }
 
@@ -98,22 +105,22 @@ public class BukkitPlayerProvider extends ServerPlayerProvider<BukkitPlayer, Buk
 
     // IOfflinePlayer
 
-    private CompletableFuture<IOfflinePlayer> getFuture(Supplier<OfflinePlayer> provider) {
+    private Task<IOfflinePlayer> getFuture(Supplier<OfflinePlayer> provider) {
         return discordSRV.scheduler().supply(() -> {
             OfflinePlayer offlinePlayer = provider.get();
             if (offlinePlayer == null) {
                 return null;
             }
 
-            return new BukkitOfflinePlayer(discordSRV, offlinePlayer);
+            return offlinePlayer(offlinePlayer);
         });
     }
 
     @Override
-    public CompletableFuture<IOfflinePlayer> lookupOfflinePlayer(UUID uuid) {
+    public Task<IOfflinePlayer> lookupOfflinePlayer(UUID uuid) {
         IPlayer player = player(uuid);
         if (player != null) {
-            return CompletableFuture.completedFuture(player);
+            return Task.completed(player);
         }
 
         return getFuture(() -> discordSRV.server().getOfflinePlayer(uuid));
@@ -121,16 +128,16 @@ public class BukkitPlayerProvider extends ServerPlayerProvider<BukkitPlayer, Buk
 
     @SuppressWarnings("deprecation") // Shut up, I know
     @Override
-    public CompletableFuture<IOfflinePlayer> lookupOfflinePlayer(String username) {
+    public Task<IOfflinePlayer> lookupOfflinePlayer(String username) {
         IPlayer player = player(username);
         if (player != null) {
-            return CompletableFuture.completedFuture(player);
+            return Task.completed(player);
         }
 
         return getFuture(() -> discordSRV.server().getOfflinePlayer(username));
     }
 
     public IOfflinePlayer offlinePlayer(OfflinePlayer offlinePlayer) {
-        return new BukkitOfflinePlayer(discordSRV, offlinePlayer);
+        return offlinePlayerConstructor.apply(offlinePlayer);
     }
 }

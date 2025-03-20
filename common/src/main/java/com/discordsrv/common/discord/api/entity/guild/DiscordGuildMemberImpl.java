@@ -25,21 +25,17 @@ import com.discordsrv.api.discord.entity.guild.DiscordGuildMember;
 import com.discordsrv.api.discord.entity.guild.DiscordRole;
 import com.discordsrv.api.placeholder.annotation.Placeholder;
 import com.discordsrv.api.placeholder.annotation.PlaceholderPrefix;
-import com.discordsrv.api.placeholder.annotation.PlaceholderRemainder;
+import com.discordsrv.api.placeholder.format.FormattedText;
+import com.discordsrv.api.task.Task;
 import com.discordsrv.common.DiscordSRV;
 import net.dv8tion.jda.api.entities.Member;
 import net.dv8tion.jda.api.entities.Role;
-import net.kyori.adventure.text.Component;
-import net.kyori.adventure.text.JoinConfiguration;
-import net.kyori.adventure.text.format.TextColor;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.time.OffsetDateTime;
-import java.time.ZonedDateTime;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.CompletableFuture;
 
 @PlaceholderPrefix("user_")
 public class DiscordGuildMemberImpl implements DiscordGuildMember {
@@ -101,17 +97,13 @@ public class DiscordGuildMemberImpl implements DiscordGuildMember {
     }
 
     @Override
-    public CompletableFuture<Void> addRole(@NotNull DiscordRole role) {
-        return discordSRV.discordAPI().mapExceptions(() ->
-                guild.asJDA().addRoleToMember(member, role.asJDA()).submit()
-        );
+    public Task<Void> addRole(@NotNull DiscordRole role) {
+        return discordSRV.discordAPI().toTask(() -> guild.asJDA().addRoleToMember(member, role.asJDA()));
     }
 
     @Override
-    public CompletableFuture<Void> removeRole(@NotNull DiscordRole role) {
-        return discordSRV.discordAPI().mapExceptions(() ->
-                guild.asJDA().removeRoleFromMember(member, role.asJDA()).submit()
-        );
+    public Task<Void> removeRole(@NotNull DiscordRole role) {
+        return discordSRV.discordAPI().toTask(() -> guild.asJDA().removeRoleFromMember(member, role.asJDA()));
     }
 
     @Override
@@ -134,17 +126,13 @@ public class DiscordGuildMemberImpl implements DiscordGuildMember {
         return member.getTimeBoosted();
     }
 
-    //
-    // Placeholders
-    //
-
-    @Placeholder(value = "highest_role", relookup = "role")
-    public DiscordRole _highestRole() {
+    @Placeholder("highest_role")
+    public DiscordRole getHighestRole() {
         return !roles.isEmpty() ? roles.get(0) : null;
     }
 
-    @Placeholder(value = "hoisted_role", relookup = "role")
-    public DiscordRole _hoistedRole() {
+    @Placeholder("hoisted_role")
+    public DiscordRole getHoistedRole() {
         for (DiscordRole role : roles) {
             if (role.isHoisted()) {
                 return role;
@@ -153,24 +141,14 @@ public class DiscordGuildMemberImpl implements DiscordGuildMember {
         return null;
     }
 
-    @Placeholder("roles")
-    public Component _allRoles(@PlaceholderRemainder String suffix) {
-        List<Component> components = new ArrayList<>();
-        for (DiscordRole role : getRoles()) {
-            components.add(Component.text(role.getName()).color(TextColor.color(role.getColor().rgb())));
-        }
-
-        return Component.join(JoinConfiguration.separator(Component.text(suffix)), components);
-    }
-
     @Override
     public String toString() {
         return "ServerMember:" + super.toString() + "/" + getGuild();
     }
 
     @Override
-    public String getAsMention() {
-        return member.getAsMention();
+    public FormattedText getAsMention() {
+        return FormattedText.of(member.getAsMention());
     }
 
     @Override

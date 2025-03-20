@@ -25,6 +25,7 @@ import com.discordsrv.api.reload.ReloadResult;
 import com.discordsrv.common.DiscordSRV;
 import com.discordsrv.common.config.main.ConsoleConfig;
 import com.discordsrv.common.config.main.generic.DestinationConfig;
+import com.discordsrv.common.config.main.generic.DiscordOutputMode;
 import com.discordsrv.common.core.logging.NamedLogger;
 import com.discordsrv.common.core.logging.backend.LoggingBackend;
 import com.discordsrv.common.core.module.type.AbstractModule;
@@ -99,7 +100,7 @@ public class ConsoleModule extends AbstractModule<DiscordSRV> implements LogAppe
                 logger().debug("Skipping a console handler due to lack of channel");
                 continue;
             }
-            if (config.appender.outputMode == ConsoleConfig.OutputMode.OFF && !config.commandExecution.enabled) {
+            if (config.appender.outputMode == DiscordOutputMode.OFF && !config.commandExecution.enabled) {
                 logger().debug("Skipping console handler because output mode is OFF and command execution is disabled");
                 continue;
             }

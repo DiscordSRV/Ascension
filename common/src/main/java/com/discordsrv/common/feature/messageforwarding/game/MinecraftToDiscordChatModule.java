@@ -32,13 +32,14 @@ import com.discordsrv.api.events.message.receive.game.GameChatMessageReceiveEven
 import com.discordsrv.api.placeholder.format.FormattedText;
 import com.discordsrv.api.placeholder.format.PlainPlaceholderFormat;
 import com.discordsrv.api.placeholder.util.Placeholders;
+import com.discordsrv.api.task.Task;
 import com.discordsrv.common.DiscordSRV;
 import com.discordsrv.common.abstraction.player.IPlayer;
 import com.discordsrv.common.config.main.channels.MinecraftToDiscordChatConfig;
 import com.discordsrv.common.config.main.channels.base.BaseChannelConfig;
 import com.discordsrv.common.feature.mention.CachedMention;
 import com.discordsrv.common.feature.mention.MentionCachingModule;
-import com.discordsrv.common.permission.game.Permission;
+import com.discordsrv.common.permission.game.Permissions;
 import com.discordsrv.common.util.ComponentUtil;
 import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.entities.Role;
@@ -46,7 +47,6 @@ import net.kyori.adventure.text.Component;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.*;
-import java.util.concurrent.CompletableFuture;
 
 public class MinecraftToDiscordChatModule extends AbstractGameMessageModule<MinecraftToDiscordChatConfig, GameChatMessageReceiveEvent> {
 
@@ -75,7 +75,7 @@ public class MinecraftToDiscordChatModule extends AbstractGameMessageModule<Mine
     }
 
     @Override
-    public List<CompletableFuture<ReceivedDiscordMessage>> sendMessageToChannels(
+    public List<Task<ReceivedDiscordMessage>> sendMessageToChannels(
             MinecraftToDiscordChatConfig config,
             IPlayer player,
             SendableDiscordMessage.Builder format,
@@ -92,15 +92,20 @@ public class MinecraftToDiscordChatModule extends AbstractGameMessageModule<Mine
         }
 
         Component message = ComponentUtil.fromAPI(event.getMessage());
-        List<CompletableFuture<ReceivedDiscordMessage>> futures = new ArrayList<>();
+        List<Task<ReceivedDiscordMessage>> futures = new ArrayList<>();
 
         // Format messages per-Guild
         for (Map.Entry<DiscordGuild, Set<DiscordGuildMessageChannel>> entry : channelMap.entrySet()) {
             Guild guild = entry.getKey().asJDA();
-            CompletableFuture<SendableDiscordMessage> messageFuture = getMessageForGuild(config, format, guild, message, player, context);
+            Task<SendableDiscordMessage> messageFuture = getMessageForGuild(config, format, guild, message, player, context);
 
             for (DiscordGuildMessageChannel channel : entry.getValue()) {
-                futures.add(messageFuture.thenCompose(msg -> sendMessageToChannel(channel, msg)));
+                futures.add(messageFuture.then(msg -> {
+                    if (msg.isEmpty()) {
+                        return Task.completed(null);
+                    }
+                    return sendMessageToChannel(channel, msg);
+                }));
             }
         }
 
@@ -110,7 +115,7 @@ public class MinecraftToDiscordChatModule extends AbstractGameMessageModule<Mine
     @Override
     public void setPlaceholders(MinecraftToDiscordChatConfig config, GameChatMessageReceiveEvent event, SendableDiscordMessage.Formatter formatter) {}
 
-    private CompletableFuture<SendableDiscordMessage> getMessageForGuild(
+    private Task<SendableDiscordMessage> getMessageForGuild(
             MinecraftToDiscordChatConfig config,
             SendableDiscordMessage.Builder format,
             Guild guild,
@@ -125,7 +130,7 @@ public class MinecraftToDiscordChatModule extends AbstractGameMessageModule<Mine
                     .thenApply(mentions -> getMessageForGuildWithMentions(config, format, guild, message, player, context, mentions));
         }
 
-        return CompletableFuture.completedFuture(getMessageForGuildWithMentions(config, format, guild, message, player, context, null));
+        return Task.completed(getMessageForGuildWithMentions(config, format, guild, message, player, context, null));
     }
 
     private SendableDiscordMessage getMessageForGuildWithMentions(
@@ -140,13 +145,13 @@ public class MinecraftToDiscordChatModule extends AbstractGameMessageModule<Mine
         MinecraftToDiscordChatConfig.Mentions mentionConfig = config.mentions;
 
         List<AllowedMention> allowedMentions = new ArrayList<>();
-        if (mentionConfig.users && player.hasPermission(Permission.MENTION_USER)) {
+        if (mentionConfig.users && player.hasPermission(Permissions.MENTION_USER)) {
             allowedMentions.add(AllowedMention.ALL_USERS);
         }
         if (mentionConfig.roles) {
-            if (player.hasPermission(Permission.MENTION_ROLE_ALL)) {
+            if (player.hasPermission(Permissions.MENTION_ROLE_ALL)) {
                 allowedMentions.add(AllowedMention.ALL_ROLES);
-            } else if (player.hasPermission(Permission.MENTION_ROLE_MENTIONABLE)) {
+            } else if (player.hasPermission(Permissions.MENTION_ROLE_MENTIONABLE)) {
                 for (Role role : guild.getRoles()) {
                     if (role.isMentionable()) {
                         allowedMentions.add(AllowedMention.role(role.getIdLong()));
@@ -155,7 +160,7 @@ public class MinecraftToDiscordChatModule extends AbstractGameMessageModule<Mine
             }
         }
 
-        boolean everyoneMentionAllowed = mentionConfig.everyone && player.hasPermission(Permission.MENTION_EVERYONE);
+        boolean everyoneMentionAllowed = mentionConfig.everyone && player.hasPermission(Permissions.MENTION_EVERYONE);
         if (everyoneMentionAllowed) {
             allowedMentions.add(AllowedMention.EVERYONE);
         }
@@ -163,9 +168,10 @@ public class MinecraftToDiscordChatModule extends AbstractGameMessageModule<Mine
         return format.setAllowedMentions(allowedMentions)
                 .toFormatter()
                 .addContext(context)
+                .addContext(guild)
                 .addPlaceholder("message", () -> {
                     String content = PlainPlaceholderFormat.supplyWith(
-                            PlainPlaceholderFormat.Formatting.DISCORD,
+                            PlainPlaceholderFormat.Formatting.DISCORD_MARKDOWN,
                             () -> discordSRV.placeholderService().getResultAsCharSequence(message).toString()
                     );
                     Placeholders messagePlaceholders = new Placeholders(content);

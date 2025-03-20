@@ -18,6 +18,7 @@
 
 package com.discordsrv.bukkit.player;
 
+import com.discordsrv.api.task.Task;
 import com.discordsrv.bukkit.BukkitDiscordSRV;
 import com.discordsrv.bukkit.command.game.sender.BukkitCommandSender;
 import com.discordsrv.common.abstraction.player.IPlayer;
@@ -26,12 +27,12 @@ import net.kyori.adventure.identity.Identity;
 import net.kyori.adventure.platform.bukkit.BukkitComponentSerializer;
 import net.kyori.adventure.text.Component;
 import org.bukkit.entity.Player;
+import org.bukkit.metadata.MetadataValue;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.Collection;
 import java.util.Locale;
-import java.util.concurrent.CompletableFuture;
 
 public abstract class BukkitPlayer extends BukkitCommandSender implements IPlayer {
 
@@ -55,7 +56,7 @@ public abstract class BukkitPlayer extends BukkitCommandSender implements IPlaye
     }
 
     @Override
-    public CompletableFuture<Void> kick(Component component) {
+    public Task<Void> kick(Component component) {
         String legacy = BukkitComponentSerializer.legacy().serialize(component);
         return discordSRV.scheduler().executeOnMainThread(player, () -> player.kickPlayer(legacy));
     }
@@ -71,6 +72,16 @@ public abstract class BukkitPlayer extends BukkitCommandSender implements IPlaye
 
     @Override
     public abstract Locale locale();
+
+    @Override
+    public boolean isVanished() {
+        for (MetadataValue metadata : player.getMetadata("vanished")) {
+            if (metadata.asBoolean()) {
+                return true;
+            }
+        }
+        return false;
+    }
 
     @Override
     public @NotNull Component displayName() {

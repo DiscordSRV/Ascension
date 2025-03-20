@@ -18,12 +18,11 @@
 
 package com.discordsrv.common.feature.linking.requirelinking.requirement;
 
+import com.discordsrv.api.task.Task;
 import com.discordsrv.common.DiscordSRV;
 import com.discordsrv.common.core.module.type.AbstractModule;
 import com.discordsrv.common.feature.linking.requirelinking.RequiredLinkingModule;
 import com.discordsrv.common.helper.Someone;
-
-import java.util.concurrent.CompletableFuture;
 
 public abstract class RequirementType<T> extends AbstractModule<DiscordSRV> {
 
@@ -40,6 +39,6 @@ public abstract class RequirementType<T> extends AbstractModule<DiscordSRV> {
 
     public abstract String name();
     public abstract T parse(String input);
-    public abstract CompletableFuture<Boolean> isMet(T value, Someone.Resolved someone);
+    public abstract Task<Boolean> isMet(T value, Someone.Resolved someone);
 
 }

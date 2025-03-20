@@ -52,9 +52,13 @@ public class JoinMessageConfig implements IMessageConfig {
     @Constants.Comment("discordsrv.silentjoin")
     public Boolean enableSilentPermission = true;
 
-    @Comment("Ignore if the player leaves within the given number of milliseconds. This will delay sending the join message")
+    @Comment("Ignore if the player leaves or vanishes within the given number of milliseconds. This will delay sending the join message")
     @Setting("ignore-if-left-within-ms")
     public Long ignoreIfLeftWithinMS = 250L;
+
+    @Comment("If messages should be sent even if they are cancelled\n"
+            + "This option may be removed in the future, fixing other plugins to not cancel messages is recommended")
+    public boolean sendEvenIfCancelled = false;
 
     @Override
     public boolean enabled() {

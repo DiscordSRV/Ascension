@@ -91,7 +91,8 @@ public class GameCommand {
     private GameCommand redirection = null;
 
     // Permission
-    private String requiredPermission;
+    private Permission requiredPermission;
+    private boolean requiredPermissionSetExplicitly = false;
     private Component noPermissionMessage = null;
 
     // Executor & suggestor
@@ -150,12 +151,22 @@ public class GameCommand {
                 throw new IllegalStateException("Cannot add non-literal when another child is already present");
             }
         }
-        if (child.getNoPermissionMessage() == null && noPermissionMessage != null) {
-            child.noPermissionMessage(noPermissionMessage);
-        }
         child.parent = this;
+        applyToChildren(child);
         this.children.add(child);
         return this;
+    }
+
+    private void applyToChildren(GameCommand command) {
+        if (command.getNoPermissionMessage() == null && noPermissionMessage != null) {
+            command.noPermissionMessage(noPermissionMessage);
+        }
+        if (!command.requiredPermissionSetExplicitly) {
+            command.requiredPermission = this.requiredPermission;
+        }
+        for (GameCommand child : command.getChildren()) {
+            command.applyToChildren(child);
+        }
     }
 
     public List<GameCommand> getChildren() {
@@ -177,19 +188,21 @@ public class GameCommand {
         return redirection;
     }
 
+    /**
+     * If permission is not set explicitly, permission will be inherited from any parent command this may have.
+     * @param permission the new required permission for this command
+     * @return the required permission or {@code null} to not require any permission
+     */
     public GameCommand requiredPermission(Permission permission) {
-        return requiredPermission(permission.permission());
-    }
-
-    public GameCommand requiredPermission(String permission) {
         if (redirection != null) {
             throw new IllegalStateException("Cannot required permissions on a node with a redirection");
         }
         this.requiredPermission = permission;
+        this.requiredPermissionSetExplicitly = true;
         return this;
     }
 
-    public String getRequiredPermission() {
+    public Permission getRequiredPermission() {
         if (redirection != null) {
             return redirection.getRequiredPermission();
         }
@@ -262,7 +275,7 @@ public class GameCommand {
     }
 
     public boolean hasPermission(ICommandSender sender) {
-        String requiredPermission = getRequiredPermission();
+        Permission requiredPermission = getRequiredPermission();
         return requiredPermission == null || sender.hasPermission(requiredPermission);
     }
 

@@ -24,13 +24,14 @@
 package com.discordsrv.api.module.type;
 
 import com.discordsrv.api.module.Module;
+import com.discordsrv.api.task.Task;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
-import java.util.concurrent.CompletableFuture;
 
 public interface PermissionModule extends Module {
 
@@ -41,43 +42,43 @@ public interface PermissionModule extends Module {
 
     interface Groups extends PermissionModule {
         List<String> getGroups();
-        CompletableFuture<Boolean> hasGroup(@NotNull UUID player, @NotNull String groupName, boolean includeInherited);
-        CompletableFuture<Void> addGroup(@NotNull UUID player, @NotNull String groupName);
-        CompletableFuture<Void> removeGroup(@NotNull UUID player, @NotNull String groupName);
+        Task<Boolean> hasGroup(@NotNull UUID player, @NotNull String groupName, boolean includeInherited);
+        Task<Void> addGroup(@NotNull UUID player, @NotNull String groupName);
+        Task<Void> removeGroup(@NotNull UUID player, @NotNull String groupName);
+        Task<String> getPrimaryGroup(@NotNull UUID player);
     }
 
     interface Permissions extends PermissionModule {
-        CompletableFuture<Boolean> hasPermission(@NotNull UUID player, @NotNull String permission);
+        Task<Boolean> hasPermission(@NotNull UUID player, @NotNull String permission);
     }
 
     interface PrefixAndSuffix extends PermissionModule {
-        CompletableFuture<String> getPrefix(@NotNull UUID player);
-        CompletableFuture<String> getSuffix(@NotNull UUID player);
+        Task<String> getPrefix(@NotNull UUID player);
+        Task<String> getSuffix(@NotNull UUID player);
     }
 
     interface Meta extends PermissionModule {
-        CompletableFuture<String> getMeta(@NotNull UUID player, @NotNull String key);
+        Task<String> getMeta(@NotNull UUID player, @NotNull String key);
     }
 
     interface GroupsContext extends Groups {
 
-        Set<String> getDefaultServerContext();
-        CompletableFuture<Boolean> hasGroup(@NotNull UUID player, @NotNull String groupName, boolean includeInherited, @Nullable Set<String> serverContext);
-        CompletableFuture<Void> addGroup(@NotNull UUID player, @NotNull String groupName, @Nullable Set<String> serverContext);
-        CompletableFuture<Void> removeGroup(@NotNull UUID player, @NotNull String groupName, @Nullable Set<String> serverContext);
+        Task<Boolean> hasGroup(@NotNull UUID player, @NotNull String groupName, boolean includeInherited, @Nullable Map<String, Set<String>> contexts);
+        Task<Void> addGroup(@NotNull UUID player, @NotNull String groupName, @Nullable Map<String, Set<String>> contexts);
+        Task<Void> removeGroup(@NotNull UUID player, @NotNull String groupName, @Nullable Map<String, Set<String>> contexts);
 
         @Override
-        default CompletableFuture<Boolean> hasGroup(@NotNull UUID player, @NotNull String groupName, boolean includeInherited) {
+        default Task<Boolean> hasGroup(@NotNull UUID player, @NotNull String groupName, boolean includeInherited) {
             return hasGroup(player, groupName, includeInherited, null);
         }
 
         @Override
-        default CompletableFuture<Void> addGroup(@NotNull UUID player, @NotNull String groupName) {
+        default Task<Void> addGroup(@NotNull UUID player, @NotNull String groupName) {
             return addGroup(player, groupName, null);
         }
 
         @Override
-        default CompletableFuture<Void> removeGroup(@NotNull UUID player, @NotNull String groupName) {
+        default Task<Void> removeGroup(@NotNull UUID player, @NotNull String groupName) {
             return removeGroup(player, groupName, null);
         }
     }

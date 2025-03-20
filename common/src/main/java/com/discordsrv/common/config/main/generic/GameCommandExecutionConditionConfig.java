@@ -52,6 +52,15 @@ public class GameCommandExecutionConditionConfig {
             "If the command starts and ends with /, the input will be treated as a regular expression (regex) and it will pass if it matches the entire command")
     public List<String> commands = new ArrayList<>();
 
+    /**
+     * Security check for matching console commands.
+     *
+     * @param configCommand the allowed pattern
+     * @param command the input to be checked
+     * @param suggestions Enables suggesting the commands leading up to allowed commands for example "discord" if "discord link" were an allowed command
+     * @param helper command helper for root command aliases handling
+     * @return {@code true} if the input command is accepted with the given input parameters
+     */
     public static boolean isCommandMatch(String configCommand, String command, boolean suggestions, GameCommandExecutionHelper helper) {
         if (configCommand.startsWith("/") && configCommand.endsWith("/")) {
             // Regex handling
@@ -105,7 +114,13 @@ public class GameCommandExecutionConditionConfig {
         return false;
     }
 
-    public boolean isAcceptableCommand(DiscordGuildMember member, DiscordUser user, String command, boolean suggestions, GameCommandExecutionHelper helper) {
+    public boolean isAcceptableCommand(
+            DiscordGuildMember member,
+            DiscordUser user,
+            String command,
+            boolean suggestions,
+            GameCommandExecutionHelper helper
+    ) {
         long userId = user.getId();
         List<Long> roleIds = new ArrayList<>();
         if (member != null) {
@@ -114,6 +129,16 @@ public class GameCommandExecutionConditionConfig {
             }
         }
 
+        return isAcceptableCommand(roleIds, userId, command, suggestions, helper);
+    }
+
+    public boolean isAcceptableCommand(
+            List<Long> roleIds,
+            long userId,
+            String command,
+            boolean suggestions,
+            GameCommandExecutionHelper helper
+    ) {
         boolean match = false;
         for (Long id : roleAndUserIds) {
             if (id == userId || roleIds.contains(id)) {
@@ -126,10 +151,13 @@ public class GameCommandExecutionConditionConfig {
         }
 
         for (String configCommand : commands) {
-            if (isCommandMatch(configCommand, command, suggestions, helper) != blacklist) {
-                return blacklist;
+            boolean anyMatch = isCommandMatch(configCommand, command, suggestions, helper);
+            if (anyMatch) {
+                return !blacklist;
             }
         }
-        return !blacklist;
+
+        // none match
+        return blacklist;
     }
 }

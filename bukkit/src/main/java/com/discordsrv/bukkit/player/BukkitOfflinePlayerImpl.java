@@ -16,30 +16,31 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package com.discordsrv.common.feature.profile;
+package com.discordsrv.bukkit.player;
 
-import com.discordsrv.api.profile.IProfile;
+import com.discordsrv.bukkit.BukkitDiscordSRV;
+import com.discordsrv.common.abstraction.player.provider.model.SkinInfo;
+import org.bukkit.OfflinePlayer;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.UUID;
+public class BukkitOfflinePlayerImpl extends BukkitOfflinePlayer {
 
-public class Profile implements IProfile {
-
-    private final UUID playerUUID;
-    private final Long userId;
-
-    public Profile(UUID playerUUID, Long userId) {
-        this.playerUUID = playerUUID;
-        this.userId = userId;
+    public BukkitOfflinePlayerImpl(
+            BukkitDiscordSRV discordSRV,
+            @NotNull OfflinePlayer offlinePlayer
+    ) {
+        super(discordSRV, offlinePlayer);
     }
 
     @Override
-    public @Nullable UUID playerUUID() {
-        return playerUUID;
-    }
-
-    @Override
-    public @Nullable Long userId() {
-        return userId;
+    public @Nullable SkinInfo skinInfo() {
+        if (PaperPlayerUtil.SKIN_AVAILABLE_OFFLINE) {
+            return PaperPlayerUtil.getSkinInfo(offlinePlayer);
+        }
+        if (SpigotPlayerUtil.SKIN_AVAILABLE) {
+            return SpigotPlayerUtil.getSkinInfo(offlinePlayer);
+        }
+        return null;
     }
 }

@@ -23,16 +23,20 @@ import com.discordsrv.api.component.MinecraftComponent;
 import com.discordsrv.api.eventbus.Subscribe;
 import com.discordsrv.api.events.channel.GameChannelLookupEvent;
 import com.discordsrv.api.events.message.receive.game.GameChatMessageReceiveEvent;
+import com.discordsrv.api.placeholder.annotation.Placeholder;
 import com.discordsrv.api.player.DiscordSRVPlayer;
 import com.discordsrv.bukkit.BukkitDiscordSRV;
 import com.discordsrv.bukkit.player.BukkitPlayer;
 import com.discordsrv.common.core.logging.NamedLogger;
 import com.discordsrv.common.core.module.type.PluginIntegration;
+import com.discordsrv.common.permission.game.Permission;
 import com.discordsrv.common.util.ComponentUtil;
 import com.palmergames.bukkit.TownyChat.Chat;
 import com.palmergames.bukkit.TownyChat.channels.Channel;
 import com.palmergames.bukkit.TownyChat.events.AsyncChatHookEvent;
 import net.kyori.adventure.platform.bukkit.BukkitComponentSerializer;
+import net.kyori.adventure.text.TextComponent;
+import net.kyori.adventure.text.format.TextColor;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
@@ -42,6 +46,7 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.Collection;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 
 public class TownyChatIntegration extends PluginIntegration<BukkitDiscordSRV> implements Listener {
@@ -114,9 +119,24 @@ public class TownyChatIntegration extends PluginIntegration<BukkitDiscordSRV> im
     private class TownyChatChannel implements GameChannel {
 
         private final Channel channel;
+        private final TextColor messageColor;
 
         public TownyChatChannel(Channel channel) {
             this.channel = channel;
+
+            TextComponent component = BukkitComponentSerializer.legacy().deserialize(channel.getMessageColour() + "a");
+            List<TextColor> colors = ComponentUtil.extractColors(component);
+            this.messageColor = colors.isEmpty() ? null : colors.get(0);
+        }
+
+        @Placeholder("tag")
+        public String getTag() {
+            return channel.getChannelTag();
+        }
+
+        @Placeholder("message_color")
+        public TextColor getChannelColor() {
+            return messageColor;
         }
 
         @Override
@@ -145,7 +165,7 @@ public class TownyChatIntegration extends PluginIntegration<BukkitDiscordSRV> im
                 }
 
                 String permission = channel.getPermission();
-                if (permission != null && !player.hasPermission(permission)) {
+                if (permission != null && !player.hasPermission(Permission.of(permission))) {
                     continue;
                 }
 

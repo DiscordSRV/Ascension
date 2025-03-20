@@ -47,7 +47,10 @@ public class DiscordMarkdownFormatImpl implements PlainPlaceholderFormat {
 
     @Override
     public String map(String input, Function<String, String> placeholders) {
-        List<Node<Object>> nodes = parser.parse(input);
+        List<Node<Object>> nodes;
+        synchronized (parser) {
+            nodes = parser.parse(input);
+        }
 
         StringBuilder finalText = new StringBuilder();
         StringBuilder text = new StringBuilder();
@@ -57,7 +60,7 @@ public class DiscordMarkdownFormatImpl implements PlainPlaceholderFormat {
             } else if (node instanceof StyleNode) {
                 String content = text.toString();
                 text.setLength(0);
-                PlainPlaceholderFormat.with(Formatting.DISCORD, () -> finalText.append(placeholders.apply(content)));
+                PlainPlaceholderFormat.with(Formatting.DISCORD_MARKDOWN, () -> finalText.append(placeholders.apply(content)));
 
                 for (Object style : ((StyleNode<?, ?>) node).getStyles()) {
                     if (!(style instanceof StyleNode.Style)) {

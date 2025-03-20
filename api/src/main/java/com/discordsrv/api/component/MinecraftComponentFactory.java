@@ -23,13 +23,13 @@
 
 package com.discordsrv.api.component;
 
-import com.discordsrv.api.DiscordSRVApi;
+import com.discordsrv.api.DiscordSRV;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 /**
  * A factory for creating {@link MinecraftComponent}s.
- * @see DiscordSRVApi#componentFactory()
+ * @see DiscordSRV#componentFactory()
  */
 public interface MinecraftComponentFactory {
 

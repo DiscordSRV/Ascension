@@ -100,6 +100,9 @@ public class FabricDiscordSRV extends AbstractDiscordSRV<DiscordSRVFabricBootstr
 
         // Punishments
         registerModule(FabricBanModule::new);
+
+        // Integrations
+        registerIntegration("com.discordsrv.fabric.integration.TextPlaceholderIntegration");
     }
 
     @Override

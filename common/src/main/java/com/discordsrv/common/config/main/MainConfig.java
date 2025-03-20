@@ -53,6 +53,9 @@ public abstract class MainConfig implements Config {
             "List of placeholders %4"
     ));
 
+    @Comment("Automatically upgrade configuration files on startup or reload if any values are missing")
+    public boolean automaticConfigurationUpgrade = true;
+
     @Override
     public final String getFileName() {
         return FILE_NAME;
@@ -92,14 +95,20 @@ public abstract class MainConfig implements Config {
     @Comment("Configuration options for group-role synchronization")
     public GroupSyncConfig groupSync = new GroupSyncConfig();
 
+    @Comment("Configuration options for nickname synchronization")
+    public NicknameSyncConfig nicknameSync = new NicknameSyncConfig();
+
     @Comment("Configuration options for ban synchronization")
     public BanSyncConfig banSync = new BanSyncConfig();
 
     @Comment("In-game command configuration")
     public GameCommandConfig gameCommand = new GameCommandConfig();
 
-    @Comment("Discord command configuration")
-    public DiscordCommandConfig discordCommand = new DiscordCommandConfig();
+    @Comment("Configuration for the /discordsrv execute Discord command")
+    public ExecuteCommandConfig executeCommand = new ExecuteCommandConfig();
+
+    @Comment("Configuration for the /minecraft playerlist Discord command and %playerlist% placeholder")
+    public PlayerListConfig playerList = new PlayerListConfig();
 
     @Comment("Options for console channel(s) and/or thread(s)")
     public List<ConsoleConfig> console = new ArrayList<>(Collections.singleton(new ConsoleConfig()));

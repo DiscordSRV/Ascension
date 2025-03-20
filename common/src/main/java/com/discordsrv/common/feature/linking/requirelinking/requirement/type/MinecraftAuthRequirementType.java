@@ -18,6 +18,7 @@
 
 package com.discordsrv.common.feature.linking.requirelinking.requirement.type;
 
+import com.discordsrv.api.task.Task;
 import com.discordsrv.common.DiscordSRV;
 import com.discordsrv.common.feature.linking.requirelinking.RequiredLinkingModule;
 import com.discordsrv.common.feature.linking.requirelinking.requirement.RequirementType;
@@ -30,7 +31,6 @@ import org.apache.commons.lang3.StringUtils;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
-import java.util.concurrent.CompletableFuture;
 import java.util.function.Function;
 
 public class MinecraftAuthRequirementType<T> extends RequirementType<MinecraftAuthRequirementType.Reference<T>> {
@@ -163,7 +163,7 @@ public class MinecraftAuthRequirementType<T> extends RequirementType<MinecraftAu
     }
 
     @Override
-    public CompletableFuture<Boolean> isMet(Reference<T> atomicReference, Someone.Resolved someone) {
+    public Task<Boolean> isMet(Reference<T> atomicReference, Someone.Resolved someone) {
         String token = module.discordSRV().connectionConfig().minecraftAuth.token;
         T value = atomicReference.getValue();
         return module.discordSRV().scheduler().supply(() -> {

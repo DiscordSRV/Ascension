@@ -33,7 +33,6 @@ public class JDAEventManager implements IEventManager {
         this.discordSRV = discordSRV;
     }
 
-    @SuppressWarnings("UnusedReturnValue")
     private <T> T illegalUse() {
         throw new RuntimeException("The JDA event manager may not be used while using DiscordSRV. "
                                            + "Please use DiscordSRV's own event bus to listen for JDA events");

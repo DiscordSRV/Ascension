@@ -20,6 +20,7 @@ package com.discordsrv.bukkit.player;
 
 import com.discordsrv.common.abstraction.player.provider.model.SkinInfo;
 import com.discordsrv.common.util.ReflectionUtil;
+import org.bukkit.OfflinePlayer;
 import org.bukkit.entity.Player;
 import org.bukkit.profile.PlayerTextures;
 import org.jetbrains.annotations.ApiStatus;
@@ -34,14 +35,14 @@ public final class SpigotPlayerUtil {
     @ApiStatus.AvailableSince("Spigot 1.18.1")
     public static boolean SKIN_AVAILABLE = ReflectionUtil.classExists("org.bukkit.profile.PlayerTextures");
 
-    public static SkinInfo getSkinInfo(Player player) {
+    public static SkinInfo getSkinInfo(OfflinePlayer player) {
         PlayerTextures textures = player.getPlayerProfile().getTextures();
         URL skinUrl = textures.getSkin();
         if (skinUrl == null) {
             return null;
         }
 
-        return new SkinInfo(skinUrl, textures.getSkinModel().name());
+        return new SkinInfo(skinUrl, textures.getSkinModel().name(), null);
     }
 
     @ApiStatus.AvailableSince("Spigot 1.19")

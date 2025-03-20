@@ -22,6 +22,7 @@ import com.destroystokyo.paper.profile.PlayerProfile;
 import com.discordsrv.api.component.MinecraftComponent;
 import com.discordsrv.api.module.type.PunishmentModule;
 import com.discordsrv.api.punishment.Punishment;
+import com.discordsrv.api.task.Task;
 import com.discordsrv.bukkit.BukkitDiscordSRV;
 import com.discordsrv.bukkit.debug.EventObserver;
 import com.discordsrv.bukkit.listener.AbstractBukkitListener;
@@ -43,7 +44,6 @@ import org.jetbrains.annotations.Nullable;
 import java.time.Instant;
 import java.util.Date;
 import java.util.UUID;
-import java.util.concurrent.CompletableFuture;
 
 @ApiStatus.AvailableSince("Paper 1.21.1")
 public class PaperBanModule extends AbstractBukkitListener<PlayerKickEvent> implements PunishmentModule.Bans {
@@ -86,7 +86,7 @@ public class PaperBanModule extends AbstractBukkitListener<PlayerKickEvent> impl
     }
 
     @Override
-    public CompletableFuture<@Nullable Punishment> getBan(@NotNull UUID playerUUID) {
+    public Task<@Nullable Punishment> getBan(@NotNull UUID playerUUID) {
         ProfileBanList banList = discordSRV.server().getBanList(BanListType.PROFILE);
         PlayerProfile profile = discordSRV.server().createProfile(playerUUID);
 
@@ -97,7 +97,7 @@ public class PaperBanModule extends AbstractBukkitListener<PlayerKickEvent> impl
         Date expiration = ban.getExpiration();
         String reason = ban.getReason();
 
-        return CompletableFuture.completedFuture(new Punishment(
+        return Task.completed(new Punishment(
                 expiration != null ? expiration.toInstant() : null,
                 reason != null ? ComponentUtil.toAPI(BukkitComponentSerializer.legacy().deserialize(reason)) : null,
                 ComponentUtil.toAPI(BukkitComponentSerializer.legacy().deserialize(ban.getSource()))
@@ -105,7 +105,7 @@ public class PaperBanModule extends AbstractBukkitListener<PlayerKickEvent> impl
     }
 
     @Override
-    public CompletableFuture<Void> addBan(
+    public Task<Void> addBan(
             @NotNull UUID playerUUID,
             @Nullable Instant until,
             @Nullable MinecraftComponent reason,
@@ -117,14 +117,14 @@ public class PaperBanModule extends AbstractBukkitListener<PlayerKickEvent> impl
         String reasonLegacy = reason != null ? BukkitComponentSerializer.legacy().serialize(ComponentUtil.fromAPI(reason)) : null;
         String punisherLegacy = BukkitComponentSerializer.legacy().serialize(ComponentUtil.fromAPI(punisher));
         banList.addBan(profile, reasonLegacy, until != null ? Date.from(until) : null, punisherLegacy);
-        return CompletableFuture.completedFuture(null);
+        return Task.completed(null);
     }
 
     @Override
-    public CompletableFuture<Void> removeBan(@NotNull UUID playerUUID) {
+    public Task<Void> removeBan(@NotNull UUID playerUUID) {
         ProfileBanList banList = discordSRV.server().getBanList(BanListType.PROFILE);
         PlayerProfile profile = discordSRV.server().createProfile(playerUUID);
         banList.pardon(profile);
-        return CompletableFuture.completedFuture(null);
+        return Task.completed(null);
     }
 }

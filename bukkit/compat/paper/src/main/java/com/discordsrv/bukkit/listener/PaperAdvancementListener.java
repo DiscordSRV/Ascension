@@ -41,8 +41,10 @@ public class PaperAdvancementListener extends AbstractBukkitListener<PlayerAdvan
 
     private static final PaperComponentHandle.Get<PlayerAdvancementDoneEvent> MESSAGE_HANDLE
             = PaperComponentHandle.get(PlayerAdvancementDoneEvent.class, "message");
-    private static final PaperComponentHandle.Get<Advancement> ADVANCEMENT_DISPLAY_NAME_HANDLE
-            = PaperComponentHandle.get(Advancement.class, "displayName");
+    private static final PaperComponentHandle.Get<AdvancementDisplay> ADVANCEMENT_TITLE_HANDLE
+            = PaperComponentHandle.get(AdvancementDisplay.class, "title");
+    private static final PaperComponentHandle.Get<AdvancementDisplay> ADVANCEMENT_DESCRIPTION_HANDLE
+            = PaperComponentHandle.get(AdvancementDisplay.class, "description");
 
     public PaperAdvancementListener(BukkitDiscordSRV discordSRV) {
         super(discordSRV, new NamedLogger(discordSRV, "ADVANCEMENT_LISTENER"));
@@ -70,7 +72,8 @@ public class PaperAdvancementListener extends AbstractBukkitListener<PlayerAdvan
         }
 
         MinecraftComponent message = MESSAGE_HANDLE.getAPI(event);
-        MinecraftComponent displayName = ADVANCEMENT_DISPLAY_NAME_HANDLE.getAPI(advancement);
+        MinecraftComponent title = ADVANCEMENT_TITLE_HANDLE.getAPI(display);
+        MinecraftComponent description = ADVANCEMENT_DESCRIPTION_HANDLE.getAPI(display);
 
         IPlayer player = discordSRV.playerProvider().player(event.getPlayer());
         discordSRV.eventBus().publish(
@@ -78,7 +81,9 @@ public class PaperAdvancementListener extends AbstractBukkitListener<PlayerAdvan
                         event,
                         player,
                         message,
-                        displayName,
+                        title,
+                        description,
+                        AwardMessageReceiveEvent.AdvancementFrame.valueOf(display.frame().toString()),
                         null,
                         message == null
                 )

@@ -60,7 +60,7 @@ public class LogEntry {
         return throwable;
     }
 
-    @Placeholder(value = "log_time", relookup = "date")
+    @Placeholder("log_time")
     public ZonedDateTime logTime() {
         return logTime;
     }

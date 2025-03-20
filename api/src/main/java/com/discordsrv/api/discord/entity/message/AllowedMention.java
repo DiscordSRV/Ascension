@@ -28,7 +28,6 @@ import net.dv8tion.jda.api.entities.Message;
 /**
  * An allowed mention that can be used with {@link com.discordsrv.api.discord.entity.message.SendableDiscordMessage.Builder#addAllowedMention(AllowedMention)}.
  */
-@SuppressWarnings("unused") // API
 public interface AllowedMention {
 
     /**

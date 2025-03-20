@@ -19,10 +19,12 @@
 package com.discordsrv.common.feature.groupsync;
 
 import com.discordsrv.api.discord.entity.guild.DiscordRole;
+import com.discordsrv.api.discord.exception.RestErrorResponseException;
 import com.discordsrv.api.eventbus.Subscribe;
 import com.discordsrv.api.events.discord.member.role.DiscordMemberRoleAddEvent;
 import com.discordsrv.api.events.discord.member.role.DiscordMemberRoleRemoveEvent;
 import com.discordsrv.api.module.type.PermissionModule;
+import com.discordsrv.api.task.Task;
 import com.discordsrv.common.DiscordSRV;
 import com.discordsrv.common.abstraction.sync.AbstractSyncModule;
 import com.discordsrv.common.abstraction.sync.SyncFail;
@@ -34,16 +36,17 @@ import com.discordsrv.common.feature.debug.file.TextDebugFile;
 import com.discordsrv.common.feature.groupsync.enums.GroupSyncCause;
 import com.discordsrv.common.feature.groupsync.enums.GroupSyncResult;
 import com.discordsrv.common.helper.Someone;
-import com.discordsrv.common.util.CompletableFutureUtil;
 import com.github.benmanes.caffeine.cache.Cache;
+import net.dv8tion.jda.api.requests.ErrorResponse;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
-import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 
+/**
+ * The Game id is the group name, the Discord id is the role id and the state indicates if the player or user has the group or role.
+ */
 public class GroupSyncModule extends AbstractSyncModule<DiscordSRV, GroupSyncConfig.Entry, String, Long, Boolean> {
 
     private final Cache<Long, Map<Long, Boolean>> expectedDiscordChanges;
@@ -97,14 +100,13 @@ public class GroupSyncModule extends AbstractSyncModule<DiscordSRV, GroupSyncCon
     public void onDebugGenerate(DebugGenerateEvent event) {
         StringBuilder builder = new StringBuilder("Active pairs:");
 
-        for (Map.Entry<GroupSyncConfig.Entry, Future<?>> sync : syncs.entrySet()) {
-            GroupSyncConfig.Entry entry = sync.getKey();
-            builder.append("\n- ").append(entry)
-                    .append(" (tie-breaker: ").append(entry.tieBreaker)
-                    .append(", direction: ").append(entry.direction)
-                    .append(", server context: ").append(entry.serverContext).append(")");
-            if (sync.getValue() != null) {
-                builder.append(" [Timed]");
+        for (GroupSyncConfig.Entry sync : syncs) {
+            builder.append("\n- ").append(sync)
+                    .append(" (tie-breaker: ").append(sync.tieBreaker)
+                    .append(", direction: ").append(sync.direction)
+                    .append(", context: ").append(sync.contexts).append(")");
+            if (sync.timer != null && sync.timer.enabled) {
+                builder.append(" [On timer]");
             }
         }
 
@@ -118,7 +120,7 @@ public class GroupSyncModule extends AbstractSyncModule<DiscordSRV, GroupSyncCon
         } else {
             builder.append("\n\nNo permission provider available");
         }
-        event.addFile(new TextDebugFile("group-sync.txt", builder));
+        event.addFile("group-sync.txt", new TextDebugFile(builder));
     }
 
     // Listeners & methods to indicate something changed
@@ -133,12 +135,12 @@ public class GroupSyncModule extends AbstractSyncModule<DiscordSRV, GroupSyncCon
         event.getRoles().forEach(role -> roleChanged(event.getMember().getUser().getId(), role.getId(), false));
     }
 
-    public void groupAdded(UUID player, String groupName, @Nullable Set<String> serverContext, GroupSyncCause cause) {
-        groupChanged(player, groupName, serverContext, cause, true);
+    public void groupAdded(UUID player, String groupName, @Nullable Map<String, Set<String>> contexts, GroupSyncCause cause) {
+        groupChanged(player, groupName, contexts, cause, true);
     }
 
-    public void groupRemoved(UUID player, String groupName, @Nullable Set<String> serverContext, GroupSyncCause cause) {
-        groupChanged(player, groupName, serverContext, cause, false);
+    public void groupRemoved(UUID player, String groupName, @Nullable Map<String, Set<String>> contexts, GroupSyncCause cause) {
+        groupChanged(player, groupName, contexts, cause, false);
     }
 
     private void roleChanged(long userId, long roleId, boolean newState) {
@@ -152,13 +154,13 @@ public class GroupSyncModule extends AbstractSyncModule<DiscordSRV, GroupSyncCon
             return;
         }
 
-        discordChanged(GroupSyncCause.DISCORD_ROLE_CHANGE, Someone.of(userId), roleId, newState);
+        discordChanged(GroupSyncCause.DISCORD_ROLE_CHANGE, Someone.of(discordSRV, userId), roleId, newState);
     }
 
     private void groupChanged(
             UUID playerUUID,
             String groupName,
-            Set<String> serverContext,
+            Map<String, Set<String>> contexts,
             GroupSyncCause cause,
             boolean state
     ) {
@@ -172,7 +174,7 @@ public class GroupSyncModule extends AbstractSyncModule<DiscordSRV, GroupSyncCon
             return;
         }
 
-        gameChanged(cause, Someone.of(playerUUID), context(groupName, serverContext), state);
+        gameChanged(cause, Someone.of(discordSRV, playerUUID), GroupSyncConfig.Entry.makeGameId(groupName, contexts), state);
     }
 
     private PermissionModule.Groups getPermissionProvider() {
@@ -181,7 +183,7 @@ public class GroupSyncModule extends AbstractSyncModule<DiscordSRV, GroupSyncCon
     }
 
     public boolean noPermissionProvider() {
-        return getPermissionProvider() != null;
+        return getPermissionProvider() == null;
     }
 
     private <T, R> boolean checkExpectation(Cache<T, Map<R, Boolean>> expectations, T key, R mapKey, boolean newState) {
@@ -198,118 +200,115 @@ public class GroupSyncModule extends AbstractSyncModule<DiscordSRV, GroupSyncCon
     // Resync
 
     @Override
-    public CompletableFuture<Boolean> getDiscord(GroupSyncConfig.Entry config, long userId) {
+    public Task<Boolean> getDiscord(GroupSyncConfig.Entry config, Someone.Resolved someone) {
         DiscordRole role = discordSRV.discordAPI().getRoleById(config.roleId);
         if (role == null) {
-            return CompletableFutureUtil.failed(new SyncFail(GroupSyncResult.ROLE_DOESNT_EXIST));
+            return Task.failed(new SyncFail(GroupSyncResult.ROLE_DOESNT_EXIST));
         }
 
         if (!role.getGuild().getSelfMember().canInteract(role)) {
-            return CompletableFutureUtil.failed(new SyncFail(GroupSyncResult.ROLE_CANNOT_INTERACT));
+            return Task.failed(new SyncFail(GroupSyncResult.ROLE_CANNOT_INTERACT));
         }
 
-        return role.getGuild().retrieveMemberById(userId).thenApply(member -> {
-            if (member == null) {
-                throw new SyncFail(GroupSyncResult.NOT_A_GUILD_MEMBER);
-            }
-
-            return member.hasRole(role);
-        });
+        return someone.guildMember(role.getGuild())
+                .mapException(RestErrorResponseException.class, t -> {
+                    if (t.getErrorCode() == ErrorResponse.UNKNOWN_MEMBER.getCode()) {
+                        throw new SyncFail(GroupSyncResult.NOT_A_GUILD_MEMBER);
+                    }
+                    throw t;
+                })
+                .thenApply(member -> {
+                    logger().trace(someone + " roles: " + member.getRoles());
+                    return member.hasRole(role);
+                });
     }
 
     @Override
-    public CompletableFuture<Boolean> getGame(GroupSyncConfig.Entry config, UUID playerUUID) {
+    public Task<Boolean> getGame(GroupSyncConfig.Entry config, Someone.Resolved someone) {
         PermissionModule.Groups permissionProvider = getPermissionProvider();
-        CompletableFuture<Boolean> future;
-        if (permissionProvider instanceof PermissionModule.GroupsContext) {
-            future = ((PermissionModule.GroupsContext) permissionProvider)
-                    .hasGroup(playerUUID, config.groupName, false, config.serverContext != null ? Collections.singleton(config.serverContext) : null);
-        } else {
-            future = permissionProvider.hasGroup(playerUUID, config.groupName, false);
+        if (permissionProvider == null) {
+            return Task.failed(new SyncFail(GenericSyncResults.MODULE_NOT_FOUND));
         }
 
-        return future.exceptionally(t -> {
+        UUID playerUUID = someone.playerUUID();
+        Task<Boolean> future;
+        if (permissionProvider instanceof PermissionModule.GroupsContext) {
+            future = ((PermissionModule.GroupsContext) permissionProvider)
+                    .hasGroup(playerUUID, config.groupName, config.includeInherited(), config.contexts());
+        } else {
+            future = permissionProvider.hasGroup(playerUUID, config.groupName, config.includeInherited());
+        }
+
+        return future.mapException(t -> {
             throw new SyncFail(GroupSyncResult.PERMISSION_BACKEND_FAILED, t);
         });
     }
 
     @Override
-    public CompletableFuture<ISyncResult> applyDiscord(GroupSyncConfig.Entry config, long userId, Boolean newState) {
+    public Task<ISyncResult> applyDiscord(GroupSyncConfig.Entry config, Someone.Resolved someone, Boolean newState) {
         boolean stateToApply = newState != null && newState;
 
         DiscordRole role = discordSRV.discordAPI().getRoleById(config.roleId);
         if (role == null) {
-            return CompletableFutureUtil.failed(new SyncFail(GroupSyncResult.ROLE_DOESNT_EXIST));
+            return Task.failed(new SyncFail(GroupSyncResult.ROLE_DOESNT_EXIST));
         }
 
-        Map<Long, Boolean> expected = expectedDiscordChanges.get(userId, key -> new ConcurrentHashMap<>());
-        if (expected != null) {
-            expected.put(config.roleId, stateToApply);
-        }
+        Map<Long, Boolean> expected = Objects.requireNonNull(expectedDiscordChanges.get(someone.userId(), key -> new ConcurrentHashMap<>()));
+        expected.put(config.roleId, stateToApply);
 
-        return role.getGuild().retrieveMemberById(userId)
-                .thenCompose(member -> stateToApply
-                                       ? member.addRole(role).thenApply(v -> (ISyncResult) GenericSyncResults.ADD_DISCORD)
-                                       : member.removeRole(role).thenApply(v -> GenericSyncResults.REMOVE_DISCORD)
-                ).whenComplete((r, t) -> {
-                    if (t != null) {
-                        //noinspection DataFlowIssue
-                        expected.remove(config.roleId);
-                    }
-                });
+        return someone.guildMember(role.getGuild())
+                .then(member -> stateToApply
+                                ? member.addRole(role).thenApply(v -> (ISyncResult) GenericSyncResults.ADD_DISCORD)
+                                : member.removeRole(role).thenApply(v -> GenericSyncResults.REMOVE_DISCORD)
+                ).whenFailed((t) -> expected.remove(config.roleId));
     }
 
     @Override
-    public CompletableFuture<ISyncResult> applyGame(GroupSyncConfig.Entry config, UUID playerUUID, Boolean newState) {
+    public Task<ISyncResult> applyGame(GroupSyncConfig.Entry config, Someone.Resolved someone, Boolean newState) {
         boolean stateToApply = newState != null && newState;
+        UUID playerUUID = someone.playerUUID();
 
         Map<String, Boolean> expected = expectedMinecraftChanges.get(playerUUID, key -> new ConcurrentHashMap<>());
         if (expected != null) {
             expected.put(config.groupName, stateToApply);
         }
 
-        CompletableFuture<ISyncResult> future =
+        Task<ISyncResult> future =
                 stateToApply
                     ? addGroup(playerUUID, config).thenApply(v -> GenericSyncResults.ADD_GAME)
                     : removeGroup(playerUUID, config).thenApply(v -> GenericSyncResults.REMOVE_GAME);
-        return future.exceptionally(t -> {
+        return future.mapException(t -> {
             //noinspection DataFlowIssue
             expected.remove(config.groupName);
             throw new SyncFail(GroupSyncResult.PERMISSION_BACKEND_FAILED, t);
         });
     }
 
-    private Set<String> context(GroupSyncConfig.Entry config) {
-        return config.serverContext != null ? Collections.singleton(config.serverContext) : null;
-    }
-
-    private String context(String groupName, Set<String> serverContext) {
-        if (serverContext == null || serverContext.isEmpty()) {
-            return GroupSyncConfig.Entry.makeGameId(groupName, Collections.singleton("global"));
-        }
-        if (serverContext.size() == 1 && serverContext.iterator().next().isEmpty()) {
-            return null;
-        }
-        return GroupSyncConfig.Entry.makeGameId(groupName, serverContext);
-    }
-
-    private CompletableFuture<Void> addGroup(UUID player, GroupSyncConfig.Entry config) {
+    private Task<Void> addGroup(UUID player, GroupSyncConfig.Entry config) {
         PermissionModule.Groups permissionProvider = getPermissionProvider();
+        if (permissionProvider == null) {
+            return Task.failed(new SyncFail(GenericSyncResults.MODULE_NOT_FOUND));
+        }
+
         String groupName = config.groupName;
         if (permissionProvider instanceof PermissionModule.GroupsContext) {
             return ((PermissionModule.GroupsContext) permissionProvider)
-                    .addGroup(player, groupName, context(config));
+                    .addGroup(player, groupName, config.contexts());
         } else {
             return permissionProvider.addGroup(player, groupName);
         }
     }
 
-    private CompletableFuture<Void> removeGroup(UUID player, GroupSyncConfig.Entry config) {
+    private Task<Void> removeGroup(UUID player, GroupSyncConfig.Entry config) {
         PermissionModule.Groups permissionProvider = getPermissionProvider();
+        if (permissionProvider == null) {
+            return Task.failed(new SyncFail(GenericSyncResults.MODULE_NOT_FOUND));
+        }
+
         String groupName = config.groupName;
         if (permissionProvider instanceof PermissionModule.GroupsContext) {
             return ((PermissionModule.GroupsContext) permissionProvider)
-                    .removeGroup(player, groupName, context(config));
+                    .removeGroup(player, groupName, config.contexts());
         } else {
             return permissionProvider.removeGroup(player, groupName);
         }

@@ -121,7 +121,7 @@ public class Button implements MessageComponent {
         ).withDisabled(disabled);
     }
 
-    private static class Builder {
+    public static class Builder {
 
         private final String id;
         private final Style style;

@@ -29,13 +29,13 @@ import com.discordsrv.api.discord.entity.JDAEntity;
 import com.discordsrv.api.discord.entity.Mentionable;
 import com.discordsrv.api.placeholder.annotation.Placeholder;
 import com.discordsrv.api.placeholder.annotation.PlaceholderPrefix;
+import com.discordsrv.api.task.Task;
 import net.dv8tion.jda.api.entities.Member;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.time.OffsetDateTime;
 import java.util.List;
-import java.util.concurrent.CompletableFuture;
 
 /**
  * A Discord server member.
@@ -54,7 +54,7 @@ public interface DiscordGuildMember extends JDAEntity<Member>, Mentionable {
      * Gets the Discord server this member is from.
      * @return the Discord server this member is from.
      */
-    @Placeholder(value = "server", relookup = "server")
+    @Placeholder("server")
     @NotNull
     DiscordGuild getGuild();
 
@@ -97,14 +97,14 @@ public interface DiscordGuildMember extends JDAEntity<Member>, Mentionable {
      * @param role the role to give
      * @return a future
      */
-    CompletableFuture<Void> addRole(@NotNull DiscordRole role);
+    Task<Void> addRole(@NotNull DiscordRole role);
 
     /**
      * Takes the given role from this member.
      * @param role the role to take
      * @return a future
      */
-    CompletableFuture<Void> removeRole(@NotNull DiscordRole role);
+    Task<Void> removeRole(@NotNull DiscordRole role);
 
     /**
      * Gets the effective name of this Discord server member.
@@ -129,14 +129,14 @@ public interface DiscordGuildMember extends JDAEntity<Member>, Mentionable {
      * Gets the color of this user's highest role that has a color.
      * @return the color that will be used for this user
      */
-    @Placeholder(value = "color", relookup = "color")
+    @Placeholder("color")
     Color getColor();
 
     /**
      * Gets the time the member joined the server.
      * @return the time the member joined the server
      */
-    @Placeholder(value = "time_joined", relookup = "date")
+    @Placeholder("time_joined")
     @NotNull
     OffsetDateTime getTimeJoined();
 
@@ -144,7 +144,7 @@ public interface DiscordGuildMember extends JDAEntity<Member>, Mentionable {
      * Time the member started boosting.
      * @return the time the member started boosting or {@code null}
      */
-    @Placeholder(value = "time_boosted", relookup = "date")
+    @Placeholder("time_boosted")
     @Nullable
     OffsetDateTime getTimeBoosted();
 

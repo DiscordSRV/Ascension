@@ -42,15 +42,19 @@ public interface PlainPlaceholderFormat {
 
     static <T> T supplyWith(Formatting formatting, Supplier<T> supplier) {
         Formatting before = FORMATTING.get();
-        FORMATTING.set(formatting);
-        T value = supplier.get();
-        FORMATTING.set(before);
+        T value;
+        try {
+            FORMATTING.set(formatting);
+            value = supplier.get();
+        } finally {
+            FORMATTING.set(before);
+        }
         return value;
     }
 
     enum Formatting {
         PLAIN,
-        DISCORD,
+        DISCORD_MARKDOWN,
         ANSI,
         LEGACY
     }

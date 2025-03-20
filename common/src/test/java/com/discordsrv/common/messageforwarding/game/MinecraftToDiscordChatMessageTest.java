@@ -24,6 +24,7 @@ import com.discordsrv.api.eventbus.EventBus;
 import com.discordsrv.api.eventbus.Subscribe;
 import com.discordsrv.api.events.message.forward.game.GameChatMessageForwardedEvent;
 import com.discordsrv.api.events.message.receive.game.GameChatMessageReceiveEvent;
+import com.discordsrv.api.task.Task;
 import com.discordsrv.common.DiscordSRV;
 import com.discordsrv.common.FullBootExtension;
 import com.discordsrv.common.MockDiscordSRV;
@@ -31,6 +32,7 @@ import com.discordsrv.common.abstraction.player.IPlayer;
 import com.discordsrv.common.abstraction.player.provider.model.SkinInfo;
 import com.discordsrv.common.feature.channel.global.GlobalChannel;
 import com.discordsrv.common.helper.TestHelper;
+import com.discordsrv.common.permission.game.Permission;
 import com.discordsrv.common.util.ComponentUtil;
 import net.kyori.adventure.audience.Audience;
 import net.kyori.adventure.identity.Identity;
@@ -92,7 +94,7 @@ public class MinecraftToDiscordChatMessageTest {
                                 }
 
                                 @Override
-                                public CompletableFuture<Void> kick(Component component) {
+                                public Task<Void> kick(Component component) {
                                     return null;
                                 }
 
@@ -113,12 +115,17 @@ public class MinecraftToDiscordChatMessageTest {
                                 }
 
                                 @Override
+                                public boolean isVanished() {
+                                    return false;
+                                }
+
+                                @Override
                                 public @NotNull Component displayName() {
                                     return Component.text("Vankka");
                                 }
 
                                 @Override
-                                public boolean hasPermission(String permission) {
+                                public boolean hasPermission(Permission permission) {
                                     return true;
                                 }
 
@@ -165,6 +172,7 @@ public class MinecraftToDiscordChatMessageTest {
             int voice = 0;
             int stage = 0;
             int textThread = 0;
+            int newsThread = 0;
             int forumThread = 0;
             int mediaThread = 0;
 
@@ -184,6 +192,8 @@ public class MinecraftToDiscordChatMessageTest {
                         DiscordThreadContainer container = ((DiscordThreadChannel) channel).getParentChannel();
                         if (container instanceof DiscordTextChannel) {
                             textThread++;
+                        } else if (container instanceof DiscordNewsChannel) {
+                            newsThread++;
                         } else if (container instanceof DiscordForumChannel) {
                             forumThread++;
                         } else if (container instanceof DiscordMediaChannel) {
@@ -194,7 +204,7 @@ public class MinecraftToDiscordChatMessageTest {
             }
 
             success.complete(text == 1 && news == 1 && voice == 1 && stage == 1
-                                     && textThread == 1 && forumThread == 1 && mediaThread == 1);
+                                     && textThread == 1 && newsThread == 1 && forumThread == 1 && mediaThread == 1);
         }
     }
 }

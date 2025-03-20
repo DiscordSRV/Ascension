@@ -27,13 +27,13 @@ import com.discordsrv.api.discord.entity.JDAEntity;
 import com.discordsrv.api.discord.entity.Snowflake;
 import com.discordsrv.api.placeholder.annotation.Placeholder;
 import com.discordsrv.api.placeholder.annotation.PlaceholderPrefix;
+import com.discordsrv.api.task.Task;
 import net.dv8tion.jda.api.entities.Guild;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
 import java.util.Set;
-import java.util.concurrent.CompletableFuture;
 
 /**
  * A Discord server.
@@ -69,7 +69,7 @@ public interface DiscordGuild extends JDAEntity<Guild>, Snowflake {
      * @return a future for the Discord guild member
      */
     @NotNull
-    CompletableFuture<DiscordGuildMember> retrieveMemberById(long id);
+    Task<DiscordGuildMember> retrieveMemberById(long id);
 
     /**
      * Gets a Discord guild member by id from the cache, the provided entity can be cached and will not update if it changes on Discord.

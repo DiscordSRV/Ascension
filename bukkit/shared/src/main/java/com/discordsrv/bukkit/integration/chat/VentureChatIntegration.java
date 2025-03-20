@@ -23,6 +23,7 @@ import com.discordsrv.api.component.MinecraftComponent;
 import com.discordsrv.api.eventbus.Subscribe;
 import com.discordsrv.api.events.channel.GameChannelLookupEvent;
 import com.discordsrv.api.events.message.receive.game.GameChatMessageReceiveEvent;
+import com.discordsrv.api.placeholder.annotation.Placeholder;
 import com.discordsrv.api.player.DiscordSRVPlayer;
 import com.discordsrv.bukkit.BukkitDiscordSRV;
 import com.discordsrv.bukkit.player.BukkitPlayer;
@@ -35,7 +36,9 @@ import mineverse.Aust1n46.chat.api.events.VentureChatEvent;
 import mineverse.Aust1n46.chat.channel.ChatChannel;
 import mineverse.Aust1n46.chat.utilities.Format;
 import net.kyori.adventure.platform.bukkit.BukkitComponentSerializer;
+import net.kyori.adventure.text.TextComponent;
 import net.kyori.adventure.text.TextReplacementConfig;
+import net.kyori.adventure.text.format.TextColor;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.HandlerList;
@@ -44,6 +47,7 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.Collection;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 import java.util.regex.Pattern;
 
@@ -117,9 +121,39 @@ public class VentureChatIntegration extends PluginIntegration<BukkitDiscordSRV> 
     private class VentureChatChannel implements GameChannel {
 
         private final ChatChannel channel;
+        private final TextColor color;
+        private final TextColor chatColor;
 
         public VentureChatChannel(ChatChannel channel) {
             this.channel = channel;
+
+            TextComponent colorComponent = BukkitComponentSerializer.legacy().deserialize(channel.getColor() + "a");
+            List<TextColor> colors = ComponentUtil.extractColors(colorComponent);
+            this.color = colors.isEmpty() ? null : colors.get(0);
+
+            TextComponent chatColorComponent = BukkitComponentSerializer.legacy().deserialize(channel.getChatColor() + "a");
+            List<TextColor> chatColors = ComponentUtil.extractColors(chatColorComponent);
+            this.chatColor = chatColors.isEmpty() ? null : chatColors.get(0);
+        }
+
+        @Placeholder("color")
+        public TextColor getColor() {
+            return color;
+        }
+
+        @Placeholder("chat_color")
+        public TextColor getChatColor() {
+            return chatColor;
+        }
+
+        @Placeholder("alias")
+        public String getAlias() {
+            return channel.getAlias();
+        }
+
+        @Placeholder("prefix")
+        public String getPrefix() {
+            return channel.getPrefix();
         }
 
         @Override

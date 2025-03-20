@@ -18,12 +18,12 @@
 
 package com.discordsrv.common.core.scheduler;
 
-import com.discordsrv.common.util.CompletableFutureUtil;
+import com.discordsrv.api.task.Task;
+import com.discordsrv.common.util.TaskUtil;
 import com.discordsrv.common.util.function.CheckedRunnable;
 import com.discordsrv.common.util.function.CheckedSupplier;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
 
 @SuppressWarnings("unused") // API
@@ -51,13 +51,13 @@ public interface ServerScheduler extends Scheduler {
     void runOnMainThread(@NotNull Runnable task);
 
     @NotNull
-    default CompletableFuture<Void> supplyOnMainThread(@NotNull CheckedRunnable task) {
-        return CompletableFutureUtil.runAsync(task, this::runOnMainThread);
+    default Task<Void> supplyOnMainThread(@NotNull CheckedRunnable task) {
+        return TaskUtil.runAsync(task, this::runOnMainThread);
     }
 
     @NotNull
-    default <T> CompletableFuture<T> supplyOnMainThread(@NotNull CheckedSupplier<T> task) {
-        return CompletableFutureUtil.supplyAsync(task, this::runOnMainThread);
+    default <T> Task<T> supplyOnMainThread(@NotNull CheckedSupplier<T> task) {
+        return TaskUtil.supplyAsync(task, this::runOnMainThread);
     }
 
     /**
@@ -69,14 +69,12 @@ public interface ServerScheduler extends Scheduler {
      */
     void runOnMainThreadLaterInTicks(@NotNull Runnable task, int ticks);
 
-    @NotNull
-    default CompletableFuture<Void> executeOnMainThreadLaterInTicks(@NotNull CheckedRunnable task, int ticks) {
-        return CompletableFutureUtil.runAsync(task, t -> runOnMainThreadLaterInTicks(t, ticks));
+    default @NotNull Task<Void> executeOnMainThreadLaterInTicks(@NotNull CheckedRunnable task, int ticks) {
+        return TaskUtil.runAsync(task, t -> runOnMainThreadLaterInTicks(t, ticks));
     }
 
-    @NotNull
-    default <T> CompletableFuture<T> supplyOnMainThreadLaterInTicks(@NotNull CheckedSupplier<T> task, int ticks) {
-        return CompletableFutureUtil.supplyAsync(task, t -> runOnMainThreadLaterInTicks(t, ticks));
+    default @NotNull <T> Task<T> supplyOnMainThreadLaterInTicks(@NotNull CheckedSupplier<T> task, int ticks) {
+        return TaskUtil.supplyAsync(task, t -> runOnMainThreadLaterInTicks(t, ticks));
     }
 
     /**
@@ -97,6 +95,5 @@ public interface ServerScheduler extends Scheduler {
      * @param rateTicks the rate in ticks
      */
     void runOnMainThreadAtFixedRateInTicks(@NotNull Runnable task, int initialTicks, int rateTicks);
-
 
 }

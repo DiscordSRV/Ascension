@@ -54,6 +54,10 @@ public class LeaveMessageConfig implements IMessageConfig {
     @Setting("ignore-if-joined-within-ms")
     public Long ignoreIfJoinedWithinMS = 250L;
 
+    @Comment("If messages should be sent even if they are cancelled.\n"
+            + "This option may be removed in the future, fixing other plugins to not cancel messages is recommended")
+    public boolean sendEvenIfCancelled = false;
+
     @Override
     public boolean enabled() {
         return enabled;

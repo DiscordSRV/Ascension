@@ -30,7 +30,7 @@ import com.discordsrv.common.core.logging.Logger;
 import com.discordsrv.common.core.logging.NamedLogger;
 import com.discordsrv.common.feature.linking.LinkProvider;
 import com.discordsrv.common.feature.linking.LinkStore;
-import com.discordsrv.common.permission.game.Permission;
+import com.discordsrv.common.permission.game.Permissions;
 import com.discordsrv.common.util.CommandUtil;
 import net.kyori.adventure.text.format.NamedTextColor;
 
@@ -40,7 +40,8 @@ public class UnlinkCommand extends CombinedCommand {
 
     private static UnlinkCommand INSTANCE;
     private static GameCommand GAME;
-    private static DiscordCommand DISCORD;
+    private static DiscordCommand DISCORD_WITH_OTHER;
+    private static DiscordCommand DISCORD_WITHOUT_OTHER;
 
     private static UnlinkCommand getInstance(DiscordSRV discordSRV) {
         return INSTANCE != null ? INSTANCE : (INSTANCE = new UnlinkCommand(discordSRV));
@@ -52,21 +53,42 @@ public class UnlinkCommand extends CombinedCommand {
             GAME = GameCommand.literal("unlink")
                     .then(
                             GameCommand.stringGreedy("target")
-                                    .requiredPermission(Permission.COMMAND_UNLINK_OTHER)
+                                    .requiredPermission(Permissions.COMMAND_UNLINK_OTHER)
                                     .executor(command)
                     )
-                    .requiredPermission(Permission.COMMAND_UNLINK)
+                    .requiredPermission(Permissions.COMMAND_UNLINK)
                     .executor(command);
         }
 
         return GAME;
     }
 
-    public static DiscordCommand getDiscord(DiscordSRV discordSRV) {
-        if (DISCORD == null) {
-            UnlinkCommand command = getInstance(discordSRV);
-            DISCORD = DiscordCommand.chatInput(ComponentIdentifier.of("DiscordSRV", "unlink"), "unlink", "Unlink accounts")
-                    .addOption(CommandOption.builder(
+    public static DiscordCommand getDiscordWithOther(DiscordSRV discordSRV) {
+        if (DISCORD_WITHOUT_OTHER == null) {
+            DISCORD_WITHOUT_OTHER = getDiscord(discordSRV, true);
+        }
+        return DISCORD_WITHOUT_OTHER;
+    }
+
+    public static DiscordCommand getDiscordWithoutOther(DiscordSRV discordSRV) {
+        if (DISCORD_WITH_OTHER == null) {
+            DISCORD_WITH_OTHER = getDiscord(discordSRV, false);
+        }
+        return DISCORD_WITH_OTHER;
+    }
+
+    private static DiscordCommand getDiscord(DiscordSRV discordSRV, boolean withOther) {
+        UnlinkCommand command = getInstance(discordSRV);
+
+        DiscordCommand.ChatInputBuilder builder = DiscordCommand.chatInput(
+                ComponentIdentifier.of("DiscordSRV", "unlink"),
+                "unlink",
+                "Unlink accounts"
+        );
+
+        if (withOther) {
+            builder = builder.addOption(
+                    CommandOption.builder(
                             CommandOption.Type.USER,
                             "user",
                             "The Discord user to unlink"
@@ -75,12 +97,10 @@ public class UnlinkCommand extends CombinedCommand {
                             CommandOption.Type.STRING,
                             "player",
                             "The Minecraft player username or UUID to unlink"
-                    ).setRequired(false).build())
-                    .setEventHandler(command)
-                    .build();
+                    ).setRequired(false).build());
         }
 
-        return DISCORD;
+        return builder.setEventHandler(command).build();
     }
 
     private final Logger logger;
@@ -100,7 +120,7 @@ public class UnlinkCommand extends CombinedCommand {
             return;
         }
 
-        execution.runAsync(() -> CommandUtil.lookupTarget(discordSRV, logger, execution, true, Permission.COMMAND_UNLINK_OTHER)
+        execution.runAsync(() -> CommandUtil.lookupTarget(discordSRV, logger, execution, true, Permissions.COMMAND_UNLINK_OTHER)
                 .whenComplete((result, t) -> {
                     if (t != null) {
                         logger.error("Failed to execute linked command", t);

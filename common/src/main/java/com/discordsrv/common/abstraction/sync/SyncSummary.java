@@ -18,17 +18,15 @@
 
 package com.discordsrv.common.abstraction.sync;
 
+import com.discordsrv.api.task.Task;
 import com.discordsrv.common.DiscordSRV;
 import com.discordsrv.common.abstraction.sync.cause.ISyncCause;
 import com.discordsrv.common.abstraction.sync.result.ISyncResult;
 import com.discordsrv.common.config.main.generic.AbstractSyncConfig;
 import com.discordsrv.common.helper.Someone;
-import com.discordsrv.common.util.CompletableFutureUtil;
 
 import java.util.HashMap;
 import java.util.Map;
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.CompletionException;
 import java.util.concurrent.ConcurrentHashMap;
 
 public class SyncSummary<C extends AbstractSyncConfig<C, ?, ?>> {
@@ -37,7 +35,7 @@ public class SyncSummary<C extends AbstractSyncConfig<C, ?, ?>> {
     private final ISyncCause cause;
     private final Someone who;
     private ISyncResult allFailReason;
-    private final Map<C, CompletableFuture<ISyncResult>> results = new ConcurrentHashMap<>();
+    private final Map<C, Task<ISyncResult>> results = new ConcurrentHashMap<>();
 
     public SyncSummary(AbstractSyncModule<? extends DiscordSRV, C, ?, ?, ?> syncModule, ISyncCause cause, Someone who) {
         this.syncModule = syncModule;
@@ -63,24 +61,21 @@ public class SyncSummary<C extends AbstractSyncConfig<C, ?, ?>> {
     }
 
     public SyncSummary<C> appendResult(C config, ISyncResult result) {
-        return appendResult(config, CompletableFuture.completedFuture(result));
+        return appendResult(config, Task.completed(result));
     }
 
-    public SyncSummary<C> appendResult(C config, CompletableFuture<ISyncResult> result) {
+    public SyncSummary<C> appendResult(C config, Task<ISyncResult> result) {
         this.results.put(config, result);
         return this;
     }
 
-    public CompletableFuture<Map<C, ISyncResult>> resultFuture() {
-        return CompletableFutureUtil.combine(results.values())
-                .exceptionally(t -> null)
+    public Task<Map<C, ISyncResult>> resultFuture() {
+        return Task.allOf(results.values())
+                .mapException(t -> null)
                 .thenApply((__) -> {
                     Map<C, ISyncResult> results = new HashMap<>();
-                    for (Map.Entry<C, CompletableFuture<ISyncResult>> entry : this.results.entrySet()) {
-                        results.put(entry.getKey(), entry.getValue().exceptionally(t -> {
-                            while (t instanceof CompletionException) {
-                                t = t.getCause();
-                            }
+                    for (Map.Entry<C, Task<ISyncResult>> entry : this.results.entrySet()) {
+                        results.put(entry.getKey(), entry.getValue().mapException(t -> {
                             Throwable throwableToLog = t;
                             ISyncResult result = null;
                             if (t instanceof SyncFail) {

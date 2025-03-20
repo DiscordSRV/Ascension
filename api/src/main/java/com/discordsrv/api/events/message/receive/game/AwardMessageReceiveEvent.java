@@ -24,10 +24,12 @@
 package com.discordsrv.api.events.message.receive.game;
 
 import com.discordsrv.api.channel.GameChannel;
+import com.discordsrv.api.color.Color;
 import com.discordsrv.api.component.MinecraftComponent;
 import com.discordsrv.api.eventbus.EventPriorities;
 import com.discordsrv.api.events.PlayerEvent;
 import com.discordsrv.api.player.DiscordSRVPlayer;
+import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -38,22 +40,41 @@ import org.jetbrains.annotations.Nullable;
 public class AwardMessageReceiveEvent extends AbstractGameMessageReceiveEvent implements PlayerEvent {
 
     private final DiscordSRVPlayer player;
-    private MinecraftComponent name;
+    private MinecraftComponent message;
     private MinecraftComponent title;
+    private MinecraftComponent description;
+    private AdvancementFrame frame;
     private GameChannel gameChannel;
 
     public AwardMessageReceiveEvent(
             @Nullable Object triggeringEvent,
             @NotNull DiscordSRVPlayer player,
-            @Nullable MinecraftComponent name,
+            @Nullable MinecraftComponent message,
             @Nullable MinecraftComponent title,
+            @Nullable MinecraftComponent description,
+            @Nullable AdvancementFrame frame,
+            @Nullable GameChannel gameChannel
+    ) {
+        this(triggeringEvent, player, message, title, description, frame, gameChannel, false);
+    }
+
+    @ApiStatus.Experimental
+    public AwardMessageReceiveEvent(
+            @Nullable Object triggeringEvent,
+            @NotNull DiscordSRVPlayer player,
+            @Nullable MinecraftComponent message,
+            @Nullable MinecraftComponent title,
+            @Nullable MinecraftComponent description,
+            @Nullable AdvancementFrame frame,
             @Nullable GameChannel gameChannel,
             boolean cancelled
     ) {
         super(triggeringEvent, cancelled);
         this.player = player;
-        this.name = name;
         this.title = title;
+        this.message = message;
+        this.description = description;
+        this.frame = frame;
         this.gameChannel = gameChannel;
     }
 
@@ -64,12 +85,12 @@ public class AwardMessageReceiveEvent extends AbstractGameMessageReceiveEvent im
     }
 
     @Nullable
-    public MinecraftComponent getName() {
-        return name;
+    public MinecraftComponent getMessage() {
+        return message;
     }
 
-    public void setName(@Nullable MinecraftComponent name) {
-        this.name = name;
+    public void setMessage(@Nullable MinecraftComponent message) {
+        this.message = message;
     }
 
     @Nullable
@@ -79,6 +100,23 @@ public class AwardMessageReceiveEvent extends AbstractGameMessageReceiveEvent im
 
     public void setTitle(@Nullable MinecraftComponent title) {
         this.title = title;
+    }
+
+    @Nullable
+    public MinecraftComponent getDescription() {
+        return description;
+    }
+
+    public void setDescription(@Nullable MinecraftComponent description) {
+        this.description = description;
+    }
+
+    @Nullable public AdvancementFrame getFrame() {
+        return frame;
+    }
+
+    public void setFrame(@Nullable AdvancementFrame frame) {
+        this.frame = frame;
     }
 
     public GameChannel getGameChannel() {
@@ -95,5 +133,27 @@ public class AwardMessageReceiveEvent extends AbstractGameMessageReceiveEvent im
                 + "player=" + player + ", "
                 + "gameChannel=" + GameChannel.toString(gameChannel)
                 + '}';
+    }
+
+    public enum AdvancementFrame {
+        TASK("task", new Color(0x55FF55)), // Green
+        GOAL("goal", new Color(0x55FF55)), // Green
+        CHALLENGE("challenge", new Color(0xAA00AA)); // Dark Purple
+
+        private final String name;
+        private final Color color;
+
+        AdvancementFrame(String id, Color color) {
+            this.name = id;
+            this.color = color;
+        }
+
+        public String id() {
+            return name;
+        }
+
+        public Color color() {
+            return color;
+        }
     }
 }

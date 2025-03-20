@@ -18,10 +18,11 @@
 
 package com.discordsrv.common;
 
-import com.discordsrv.api.DiscordSRVApi;
 import com.discordsrv.api.module.Module;
-import com.discordsrv.api.reload.ReloadFlag;
 import com.discordsrv.api.placeholder.format.PlainPlaceholderFormat;
+import com.discordsrv.api.reload.ReloadFlag;
+import com.discordsrv.api.reload.ReloadResult;
+import com.discordsrv.api.task.Task;
 import com.discordsrv.common.abstraction.bootstrap.IBootstrap;
 import com.discordsrv.common.abstraction.player.IPlayer;
 import com.discordsrv.common.abstraction.player.provider.AbstractPlayerProvider;
@@ -29,7 +30,6 @@ import com.discordsrv.common.abstraction.plugin.PluginManager;
 import com.discordsrv.common.command.game.abstraction.GameCommandExecutionHelper;
 import com.discordsrv.common.command.game.abstraction.handler.ICommandHandler;
 import com.discordsrv.common.command.game.abstraction.sender.ICommandSender;
-import com.discordsrv.api.reload.ReloadResult;
 import com.discordsrv.common.config.configurate.manager.ConnectionConfigManager;
 import com.discordsrv.common.config.configurate.manager.MainConfigManager;
 import com.discordsrv.common.config.configurate.manager.MessagesConfigManager;
@@ -41,7 +41,6 @@ import com.discordsrv.common.core.dependency.DiscordSRVDependencyManager;
 import com.discordsrv.common.core.logging.Logger;
 import com.discordsrv.common.core.logging.impl.DiscordSRVLogger;
 import com.discordsrv.common.core.module.ModuleManager;
-import com.discordsrv.common.core.module.type.AbstractModule;
 import com.discordsrv.common.core.placeholder.PlaceholderServiceImpl;
 import com.discordsrv.common.core.scheduler.Scheduler;
 import com.discordsrv.common.core.storage.Storage;
@@ -52,7 +51,7 @@ import com.discordsrv.common.feature.console.Console;
 import com.discordsrv.common.feature.debug.data.OnlineMode;
 import com.discordsrv.common.feature.debug.data.VersionInfo;
 import com.discordsrv.common.feature.linking.LinkProvider;
-import com.discordsrv.common.feature.profile.ProfileManager;
+import com.discordsrv.common.feature.profile.ProfileManagerImpl;
 import com.discordsrv.common.helper.ChannelConfigHelper;
 import com.discordsrv.common.helper.DestinationLookupHelper;
 import com.discordsrv.common.helper.TemporaryLocalData;
@@ -68,10 +67,9 @@ import java.time.ZonedDateTime;
 import java.util.List;
 import java.util.Locale;
 import java.util.Set;
-import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
 
-public interface DiscordSRV extends DiscordSRVApi {
+public interface DiscordSRV extends com.discordsrv.api.DiscordSRV {
 
     String WEBSITE = "https://discordsrv.vankka.dev";
 
@@ -86,7 +84,7 @@ public interface DiscordSRV extends DiscordSRVApi {
     OnlineMode onlineMode();
     DiscordSRVDependencyManager dependencyManager();
     ICommandHandler commandHandler();
-    @NotNull AbstractPlayerProvider<?, ?> playerProvider();
+    @NotNull AbstractPlayerProvider<? extends IPlayer, ? extends DiscordSRV> playerProvider();
 
     // DiscordSRVApi
     @Override
@@ -95,7 +93,7 @@ public interface DiscordSRV extends DiscordSRVApi {
 
     @Override
     @NotNull
-    ProfileManager profileManager();
+    ProfileManagerImpl profileManager();
 
     @Override
     @NotNull
@@ -152,8 +150,9 @@ public interface DiscordSRV extends DiscordSRVApi {
     // Modules
     @Nullable
     <T extends Module> T getModule(Class<T> moduleType);
-    void registerModule(AbstractModule<?> module);
-    void unregisterModule(AbstractModule<?> module);
+
+    void registerModule(@NotNull Module module);
+    void unregisterModule(@NotNull Module module);
     ModuleManager moduleManager();
 
     Locale defaultLocale();
@@ -177,7 +176,7 @@ public interface DiscordSRV extends DiscordSRVApi {
     // Lifecycle
     void runEnable();
     List<ReloadResult> runReload(Set<ReloadFlag> flags);
-    CompletableFuture<Void> runDisable();
+    Task<Void> runDisable();
     boolean isServerStarted();
     ZonedDateTime getInitializeTime();
 

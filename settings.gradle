@@ -125,6 +125,7 @@ dependencyResolutionManagement {
             library('mcmmo', 'com.gmail.nossr50', 'mcmmo').version('2.1.220')
             library('griefprevention', 'me.ryanhamshire', 'GriefPrevention').version('16.18.1')
             library('essentialsx', 'net.essentialsx', 'EssentialsX').version('2.20.1')
+            library('textplaceholder-fabric', 'eu.pb4', 'placeholder-api').version('2.5.2+1.21.3')
 
             // Logging
             library('slf4j-api', 'org.slf4j', 'slf4j-api').version {
@@ -134,7 +135,7 @@ dependencyResolutionManagement {
             library('log4j-core', 'org.apache.logging.log4j', 'log4j-core').version('2.0-beta9')
 
             // Adventure
-            version('adventure', '4.15.0')
+            version('adventure', '4.19.0')
             library('adventure-api', 'net.kyori', 'adventure-api').versionRef('adventure')
             library('adventure-serializer-plain', 'net.kyori', 'adventure-text-serializer-plain').versionRef('adventure')
             library('adventure-serializer-legacy', 'net.kyori', 'adventure-text-serializer-legacy').versionRef('adventure')
@@ -149,7 +150,7 @@ dependencyResolutionManagement {
             library('adventure-platform-fabric', 'net.kyori', 'adventure-platform-fabric').versionRef('adventure-platform-mod')
             library('adventure-serializer-bungee', 'net.kyori', 'adventure-text-serializer-bungeecord').versionRef('adventure-platform')
 
-            // Upgrade ansi (used by ansi serializer)
+            // Downgrade ansi (jar-relocator incompatibility)
             library('kyori-ansi', 'net.kyori', 'ansi').version('1.1.0')
 
             // MCDiscordReserializer & EnhancedLegacyText

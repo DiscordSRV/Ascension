@@ -229,19 +229,15 @@ public class CustomCommandModule extends AbstractModule<DiscordSRV> {
                 String optionName = option.name;
 
                 Object context;
-                String reLookup = null;
                 switch (option.type) {
                     case CHANNEL:
                         context = event.getOptionAsChannel(optionName);
-                        reLookup = "channel";
                         break;
                     case USER:
                         context = event.getOptionAsUser(optionName);
-                        reLookup = "user";
                         break;
                     case ROLE:
                         context = event.getOptionAsRole(optionName);
-                        reLookup = "role";
                         break;
                     case MENTIONABLE:
                         Long id = event.getOptionAsLong(optionName);
@@ -253,21 +249,18 @@ public class CustomCommandModule extends AbstractModule<DiscordSRV> {
                         DiscordUser user = discordSRV.discordAPI().getUserById(id);
                         if (user != null) {
                             context = user;
-                            reLookup = "user";
                             break;
                         }
 
                         DiscordRole role = discordSRV.discordAPI().getRoleById(id);
                         if (role != null) {
                             context = role;
-                            reLookup = "role";
                             break;
                         }
 
                         DiscordChannel channel = discordSRV.discordAPI().getChannelById(id);
                         if (channel != null) {
                             context = channel;
-                            reLookup = "channel";
                             break;
                         }
 
@@ -277,7 +270,7 @@ public class CustomCommandModule extends AbstractModule<DiscordSRV> {
                         context = event.getOptionAsString(optionName);
                         break;
                 }
-                formatter = formatter.addPlaceholder("option_" + optionName, context, reLookup);
+                formatter = formatter.addPlaceholder("option_" + optionName, context);
             }
         }
     }

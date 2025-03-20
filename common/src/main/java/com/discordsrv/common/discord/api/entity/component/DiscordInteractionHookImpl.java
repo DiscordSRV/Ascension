@@ -21,12 +21,11 @@ package com.discordsrv.common.discord.api.entity.component;
 import com.discordsrv.api.discord.entity.interaction.DiscordInteractionHook;
 import com.discordsrv.api.discord.entity.message.ReceivedDiscordMessage;
 import com.discordsrv.api.discord.entity.message.SendableDiscordMessage;
+import com.discordsrv.api.task.Task;
 import com.discordsrv.common.DiscordSRV;
 import com.discordsrv.common.discord.api.entity.message.ReceivedDiscordMessageImpl;
 import com.discordsrv.common.discord.api.entity.message.util.SendableDiscordMessageUtil;
 import net.dv8tion.jda.api.interactions.InteractionHook;
-
-import java.util.concurrent.CompletableFuture;
 
 public class DiscordInteractionHookImpl implements DiscordInteractionHook {
 
@@ -54,14 +53,14 @@ public class DiscordInteractionHookImpl implements DiscordInteractionHook {
     }
 
     @Override
-    public CompletableFuture<ReceivedDiscordMessage> editOriginal(SendableDiscordMessage message) {
-        return hook.editOriginal(SendableDiscordMessageUtil.toJDAEdit(message)).submit()
+    public Task<ReceivedDiscordMessage> editOriginal(SendableDiscordMessage message) {
+        return discordSRV.discordAPI().toTask(() -> hook.editOriginal(SendableDiscordMessageUtil.toJDAEdit(message)))
                 .thenApply(msg -> ReceivedDiscordMessageImpl.fromJDA(discordSRV, msg));
     }
 
     @Override
-    public CompletableFuture<ReceivedDiscordMessage> sendMessage(SendableDiscordMessage message, boolean ephemeral) {
-        return hook.sendMessage(SendableDiscordMessageUtil.toJDASend(message)).setEphemeral(ephemeral).submit()
+    public Task<ReceivedDiscordMessage> sendMessage(SendableDiscordMessage message, boolean ephemeral) {
+        return discordSRV.discordAPI().toTask(() -> hook.sendMessage(SendableDiscordMessageUtil.toJDASend(message)).setEphemeral(ephemeral))
                 .thenApply(msg -> ReceivedDiscordMessageImpl.fromJDA(discordSRV, msg));
     }
 }

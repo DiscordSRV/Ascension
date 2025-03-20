@@ -21,7 +21,9 @@ package com.discordsrv.fabric.module.ban;
 import com.discordsrv.api.component.MinecraftComponent;
 import com.discordsrv.api.module.type.PunishmentModule;
 import com.discordsrv.api.punishment.Punishment;
+import com.discordsrv.api.task.Task;
 import com.discordsrv.common.abstraction.player.IPlayer;
+import com.discordsrv.common.core.logging.NamedLogger;
 import com.discordsrv.common.feature.bansync.BanSyncModule;
 import com.discordsrv.common.util.ComponentUtil;
 import com.discordsrv.fabric.FabricDiscordSRV;
@@ -41,14 +43,13 @@ import java.util.Date;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.UUID;
-import java.util.concurrent.CompletableFuture;
 
 public class FabricBanModule extends AbstractFabricModule implements PunishmentModule.Bans {
 
     private static FabricBanModule instance;
 
     public FabricBanModule(FabricDiscordSRV discordSRV) {
-        super(discordSRV);
+        super(discordSRV, new NamedLogger(discordSRV, "BAN_MODULE"));
 
         instance = this;
     }
@@ -76,7 +77,7 @@ public class FabricBanModule extends AbstractFabricModule implements PunishmentM
         if (instance == null) return;
         FabricDiscordSRV discordSRV = instance.discordSRV;
         BanSyncModule module = discordSRV.getModule(BanSyncModule.class);
-        if (module != null) instance.removeBan(gameProfile.getId()).complete(null);
+        if (module != null) instance.removeBan(gameProfile.getId());
     }
 
     @Override
@@ -85,21 +86,21 @@ public class FabricBanModule extends AbstractFabricModule implements PunishmentM
     }
 
     @Override
-    public CompletableFuture<@Nullable Punishment> getBan(@NotNull UUID playerUUID) {
+    public Task<@Nullable Punishment> getBan(@NotNull UUID playerUUID) {
         BannedPlayerList banList = discordSRV.getServer().getPlayerManager().getUserBanList();
 
         Optional<GameProfile> gameProfile = Objects.requireNonNull(discordSRV.getServer().getUserCache()).getByUuid(playerUUID);
         if (gameProfile.isEmpty()) {
-            return CompletableFuture.completedFuture(null);
+            return Task.completed(null);
         }
 
         BannedPlayerEntry banEntry = banList.get(gameProfile.get());
         if (banEntry == null) {
-            return CompletableFuture.completedFuture(null);
+            return Task.completed(null);
         }
         Date expiration = banEntry.getExpiryDate();
 
-        return CompletableFuture.completedFuture(new Punishment(
+        return Task.completed(new Punishment(
                 expiration != null ? expiration.toInstant() : null,
                 ComponentUtil.fromPlain(banEntry.getReason()),
                 ComponentUtil.fromPlain(banEntry.getSource())
@@ -107,7 +108,7 @@ public class FabricBanModule extends AbstractFabricModule implements PunishmentM
     }
 
     @Override
-    public CompletableFuture<Void> addBan(
+    public Task<Void> addBan(
             @NotNull UUID playerUUID,
             @Nullable Instant until,
             @Nullable MinecraftComponent reason,
@@ -140,19 +141,19 @@ public class FabricBanModule extends AbstractFabricModule implements PunishmentM
             discordSRV.logger().error("Failed to ban player", e);
         }
 
-        return CompletableFuture.completedFuture(null);
+        return Task.completed(null);
     }
 
     @Override
-    public CompletableFuture<Void> removeBan(@NotNull UUID playerUUID) {
+    public Task<Void> removeBan(@NotNull UUID playerUUID) {
         BannedPlayerList banList = discordSRV.getServer().getPlayerManager().getUserBanList();
 
         Optional<GameProfile> gameProfile = Objects.requireNonNull(discordSRV.getServer().getUserCache()).getByUuid(playerUUID);
         if (gameProfile.isEmpty()) {
-            return CompletableFuture.completedFuture(null);
+            return Task.completed(null);
         }
 
         banList.remove(gameProfile.get());
-        return CompletableFuture.completedFuture(null);
+        return Task.completed(null);
     }
 }

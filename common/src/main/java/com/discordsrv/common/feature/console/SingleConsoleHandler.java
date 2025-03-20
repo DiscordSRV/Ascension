@@ -30,10 +30,12 @@ import com.discordsrv.api.discord.util.DiscordFormattingUtil;
 import com.discordsrv.api.events.discord.message.DiscordMessageReceiveEvent;
 import com.discordsrv.api.placeholder.format.PlainPlaceholderFormat;
 import com.discordsrv.api.placeholder.provider.SinglePlaceholder;
+import com.discordsrv.api.task.Task;
 import com.discordsrv.common.DiscordSRV;
 import com.discordsrv.common.command.game.abstraction.GameCommandExecutionHelper;
 import com.discordsrv.common.config.main.ConsoleConfig;
 import com.discordsrv.common.config.main.generic.DestinationConfig;
+import com.discordsrv.common.config.main.generic.DiscordOutputMode;
 import com.discordsrv.common.config.main.generic.GameCommandExecutionConditionConfig;
 import com.discordsrv.common.core.logging.Logger;
 import com.discordsrv.common.feature.console.entry.LogEntry;
@@ -51,7 +53,10 @@ import org.apache.commons.lang3.tuple.Pair;
 import java.time.Duration;
 import java.time.ZonedDateTime;
 import java.util.*;
-import java.util.concurrent.*;
+import java.util.concurrent.Future;
+import java.util.concurrent.LinkedBlockingDeque;
+import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicLong;
 
 /**
@@ -75,7 +80,7 @@ public class SingleConsoleHandler {
 
     // Sending
     private Future<?> queueProcessingFuture;
-    private CompletableFuture<?> sendFuture;
+    private Task<?> sendFuture;
     private Queue<LogEntry> messageQueue;
     private Deque<Pair<SendableDiscordMessage, Boolean>> sendQueue;
     private boolean sentFirstBatch = false;
@@ -199,7 +204,7 @@ public class SingleConsoleHandler {
                 + "-" + destination.thread.threadName
                 + "-" + config.channel.thread.privateThread;
 
-        boolean sendOn = config.appender.outputMode != ConsoleConfig.OutputMode.OFF;
+        boolean sendOn = config.appender.outputMode != DiscordOutputMode.OFF;
         if (sendOn) {
             if (messageQueue == null) {
                 this.messageQueue = new LinkedBlockingQueue<>();
@@ -249,7 +254,7 @@ public class SingleConsoleHandler {
         });
     }
 
-    @SuppressWarnings({"BusyWait"})
+    @SuppressWarnings("BusyWait") // Known
     public void shutdown() {
         shutdown = true;
         queueProcessingFuture.cancel(false);
@@ -283,7 +288,7 @@ public class SingleConsoleHandler {
         if (shutdown) {
             return;
         }
-        if (config.appender.outputMode == ConsoleConfig.OutputMode.OFF) {
+        if (config.appender.outputMode == DiscordOutputMode.OFF) {
             return;
         }
         this.queueProcessingFuture = discordSRV.scheduler().runLater(this::processQueue, Duration.ofMillis(1500));
@@ -327,7 +332,7 @@ public class SingleConsoleHandler {
 
     private void processMessageQueue() {
         ConsoleConfig.Appender appenderConfig = config.appender;
-        ConsoleConfig.OutputMode outputMode = appenderConfig.outputMode;
+        DiscordOutputMode outputMode = appenderConfig.outputMode;
 
         Queue<LogMessage> currentBuffer = new LinkedBlockingQueue<>();
         LogEntry entry;
@@ -373,7 +378,7 @@ public class SingleConsoleHandler {
         clearBuffer(currentBuffer, outputMode);
     }
 
-    private void clearBuffer(Queue<LogMessage> currentBuffer, ConsoleConfig.OutputMode outputMode) {
+    private void clearBuffer(Queue<LogMessage> currentBuffer, DiscordOutputMode outputMode) {
         if (currentBuffer.isEmpty()) {
             return;
         }
@@ -409,7 +414,7 @@ public class SingleConsoleHandler {
         }
     }
 
-    private void queueMessage(String message, boolean lastEdit, ConsoleConfig.OutputMode outputMode) {
+    private void queueMessage(String message, boolean lastEdit, DiscordOutputMode outputMode) {
         SendableDiscordMessage sendableMessage = SendableDiscordMessage.builder()
                 .setContent(outputMode.prefix() + message + outputMode.suffix())
                 .setSuppressedNotifications(config.appender.silentMessages)
@@ -419,14 +424,14 @@ public class SingleConsoleHandler {
         sendQueue.offer(Pair.of(sendableMessage, lastEdit));
     }
 
-    private List<String> formatEntry(LogEntry entry, String throwable, ConsoleConfig.OutputMode outputMode, boolean diffExceptions) {
+    private List<String> formatEntry(LogEntry entry, String throwable, DiscordOutputMode outputMode, boolean diffExceptions) {
         int blockLength = outputMode.blockLength();
         int maximumPart = MESSAGE_MAX_LENGTH - blockLength - "\n".length();
 
         // Escape content
         String plainMessage = entry.message();
-        if (outputMode != ConsoleConfig.OutputMode.MARKDOWN) {
-            if (outputMode == ConsoleConfig.OutputMode.PLAIN_CONTENT) {
+        if (outputMode != DiscordOutputMode.MARKDOWN) {
+            if (outputMode == DiscordOutputMode.PLAIN) {
                 plainMessage = DiscordFormattingUtil.escapeContent(plainMessage);
             } else {
                 plainMessage = plainMessage.replace("``", "`\u200B`"); // zero-width-space
@@ -448,8 +453,8 @@ public class SingleConsoleHandler {
         }
 
         String message = PlainPlaceholderFormat.supplyWith(
-                outputMode == ConsoleConfig.OutputMode.PLAIN_CONTENT
-                    ? PlainPlaceholderFormat.Formatting.DISCORD
+                outputMode == DiscordOutputMode.MARKDOWN
+                    ? PlainPlaceholderFormat.Formatting.DISCORD_MARKDOWN
                     : PlainPlaceholderFormat.Formatting.PLAIN,
                 () ->
                         discordSRV.placeholderService().replacePlaceholders(
@@ -459,7 +464,7 @@ public class SingleConsoleHandler {
                         )
         );
 
-        if (outputMode == ConsoleConfig.OutputMode.DIFF) {
+        if (outputMode == DiscordOutputMode.DIFF) {
             String diff = getLogLevelDiffCharacter(entry.level());
             if (!message.isEmpty()) {
                 message = diff + message.replace("\n", "\n" + diff);
@@ -545,51 +550,51 @@ public class SingleConsoleHandler {
         return "  ";
     }
 
-    private CompletableFuture<DiscordGuildMessageChannel> rotateToLatestChannel() {
+    private Task<DiscordGuildMessageChannel> rotateToLatestChannel() {
         return discordSRV.destinations().lookupDestination(
                 config.channel.asDestination(),
                 true,
                 true,
                 ZonedDateTime.now()
-                ).thenCompose(channels -> {
-                    if (channels.isEmpty()) {
-                        // Nowhere to send to
-                        return CompletableFuture.completedFuture(null);
+        ).thenApply(channels -> {
+            if (channels.isEmpty()) {
+                // Nowhere to send to
+                return null;
+            }
+
+            DiscordGuildMessageChannel channel = channels.iterator().next();
+
+            int amountOfChannels = config.threadsToKeepInRotation;
+            if (amountOfChannels > 0) {
+                TemporaryLocalData.Model temporaryData = discordSRV.temporaryLocalData().get();
+
+                List<Long> channelsToDelete = null;
+                synchronized (temporaryData) {
+                    Map<String, List<Long>> rotationIds = temporaryData.consoleThreadRotationIds;
+                    List<Long> channelIds = rotationIds.computeIfAbsent(key, k -> new ArrayList<>(amountOfChannels));
+
+                    if (channelIds.isEmpty() || channelIds.get(0) != channel.getId()) {
+                        channelIds.add(0, channel.getId());
                     }
+                    if (channelIds.size() > amountOfChannels) {
+                        rotationIds.put(key, channelIds.subList(0, amountOfChannels));
+                        channelsToDelete = channelIds.subList(amountOfChannels, channelIds.size());
+                    }
+                }
+                discordSRV.temporaryLocalData().saveLater();
 
-                    DiscordGuildMessageChannel channel = channels.iterator().next();
-
-                    int amountOfChannels = config.threadsToKeepInRotation;
-                    if (amountOfChannels > 0) {
-                        TemporaryLocalData.Model temporaryData = discordSRV.temporaryLocalData().get();
-
-                        List<Long> channelsToDelete = null;
-                        synchronized (temporaryData) {
-                            Map<String, List<Long>> rotationIds = temporaryData.consoleThreadRotationIds;
-                            List<Long> channelIds = rotationIds.computeIfAbsent(key, k -> new ArrayList<>(amountOfChannels));
-
-                            if (channelIds.isEmpty() || channelIds.get(0) != channel.getId()) {
-                                channelIds.add(0, channel.getId());
-                            }
-                            if (channelIds.size() > amountOfChannels) {
-                                rotationIds.put(key, channelIds.subList(0, amountOfChannels));
-                                channelsToDelete = channelIds.subList(amountOfChannels, channelIds.size());
-                            }
-                        }
-                        discordSRV.temporaryLocalData().saveLater();
-
-                        if (channelsToDelete != null) {
-                            for (Long channelId : channelsToDelete) {
-                                DiscordChannel channelToDelete = discordSRV.discordAPI().getChannelById(channelId);
-                                if (channelToDelete instanceof DiscordGuildChannel) {
-                                    ((DiscordGuildChannel) channelToDelete).delete();
-                                }
-                            }
+                if (channelsToDelete != null) {
+                    for (Long channelId : channelsToDelete) {
+                        DiscordChannel channelToDelete = discordSRV.discordAPI().getChannelById(channelId);
+                        if (channelToDelete instanceof DiscordGuildChannel) {
+                            ((DiscordGuildChannel) channelToDelete).delete();
                         }
                     }
+                }
+            }
 
-                    return CompletableFuture.completedFuture(channel);
-                });
+            return channel;
+        });
     }
 
     private void processSendQueue() {
@@ -604,25 +609,25 @@ public class SingleConsoleHandler {
             boolean lastEdit = pair.getValue();
 
             if (sendFuture == null) {
-                sendFuture = CompletableFuture.completedFuture(null);
+                sendFuture = Task.completed(null);
             }
 
             sendFuture = sendFuture
-                    .thenCompose(__ -> {
+                    .then(__ -> {
                         if (mostRecentMessageId.get() != 0) {
                             // Don't rotate if editing
                             long channelId = latestChannelId.get();
                             DiscordMessageChannel channel = discordSRV.discordAPI().getMessageChannelById(channelId);
                             if (channel instanceof DiscordGuildMessageChannel) {
-                                return CompletableFuture.completedFuture((DiscordGuildMessageChannel) channel);
+                                return Task.completed((DiscordGuildMessageChannel) channel);
                             }
                         }
 
                         return rotateToLatestChannel();
                     })
-                    .thenCompose(channel -> {
+                    .then(channel -> {
                         if (channel == null) {
-                            return CompletableFuture.completedFuture(null);
+                            return Task.completed(null);
                         }
 
                         synchronized (mostRecentMessageId) {
@@ -647,7 +652,7 @@ public class SingleConsoleHandler {
 
                         sentFirstBatch = true;
                         return msg;
-                    }).exceptionally(ex -> {
+                    }).mapException(ex -> {
                         synchronized (mostRecentMessageId) {
                             mostRecentMessageId.set(0);
                         }

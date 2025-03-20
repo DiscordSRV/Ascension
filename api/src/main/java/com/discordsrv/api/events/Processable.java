@@ -32,7 +32,6 @@ import org.jetbrains.annotations.Nullable;
 /**
  * A {@link Event} that can be processed.
  */
-@SuppressWarnings("unused") // API
 public interface Processable extends Event {
 
     /**

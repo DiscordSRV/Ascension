@@ -27,9 +27,8 @@ import com.discordsrv.api.discord.entity.Snowflake;
 import com.discordsrv.api.discord.entity.guild.DiscordGuild;
 import com.discordsrv.api.placeholder.annotation.Placeholder;
 import com.discordsrv.api.placeholder.annotation.PlaceholderPrefix;
+import com.discordsrv.api.task.Task;
 import org.jetbrains.annotations.NotNull;
-
-import java.util.concurrent.CompletableFuture;
 
 @PlaceholderPrefix("channel_")
 public interface DiscordGuildChannel extends DiscordChannel, Snowflake {
@@ -46,7 +45,7 @@ public interface DiscordGuildChannel extends DiscordChannel, Snowflake {
      * Gets the Discord server that this channel is in.
      * @return the Discord server that contains this channel
      */
-    @Placeholder(value = "server", relookup = "server")
+    @Placeholder("server")
     @NotNull
     DiscordGuild getGuild();
 
@@ -62,5 +61,5 @@ public interface DiscordGuildChannel extends DiscordChannel, Snowflake {
      * Deletes the channel.
      * @return a future completing upon deletion
      */
-    CompletableFuture<Void> delete();
+    Task<Void> delete();
 }

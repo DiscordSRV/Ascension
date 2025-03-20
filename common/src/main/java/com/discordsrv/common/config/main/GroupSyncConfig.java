@@ -20,7 +20,6 @@ package com.discordsrv.common.config.main;
 
 import com.discordsrv.common.abstraction.sync.enums.SyncDirection;
 import com.discordsrv.common.abstraction.sync.enums.SyncSide;
-import com.discordsrv.common.config.configurate.annotation.Constants;
 import com.discordsrv.common.config.configurate.annotation.Order;
 import com.discordsrv.common.config.main.generic.AbstractSyncConfig;
 import com.discordsrv.common.config.main.generic.SyncConfig;
@@ -29,6 +28,7 @@ import org.spongepowered.configurate.objectmapping.ConfigSerializable;
 import org.spongepowered.configurate.objectmapping.meta.Comment;
 
 import java.util.*;
+import java.util.stream.Collectors;
 
 @ConfigSerializable
 public class GroupSyncConfig {
@@ -45,7 +45,8 @@ public class GroupSyncConfig {
                 entries.add(new Entry(
                         pair.groupName,
                         pair.roleId,
-                        set.serverContext,
+                        set.contexts,
+                        set.includeInherited,
                         set.direction,
                         set.timer,
                         set.tieBreaker
@@ -58,10 +59,12 @@ public class GroupSyncConfig {
     @ConfigSerializable
     public static class SetConfig extends SyncConfig {
 
-        @Comment("The LuckPerms \"%1\" context value, used when adding, removing and checking the groups of players.\n"
-                + "Make this blank (\"\") to use the current server's value, or \"%2\" to not use the context")
-        @Constants.Comment({"server", "global"})
-        public String serverContext = "global";
+        @Comment("LuckPerms context values, used when adding, removing and checking the groups of players.\n"
+                + "The format is: {\"context\": [\"value\"]}")
+        public Map<String, List<String>> contexts = new LinkedHashMap<>();
+
+        @Comment("If inherited groups should be included when checking if the Player has a group. Only works with LuckPerms")
+        public boolean includeInherited = false;
 
         @Comment("The pairs of case-sensitive Minecraft group names from your permission plugin, and Discord role ids")
         @Order(1)
@@ -81,19 +84,22 @@ public class GroupSyncConfig {
 
         public final String groupName;
         public final long roleId;
-        public final String serverContext;
+        public final Map<String, List<String>> contexts;
+        private final boolean includeInherited;
 
         public Entry(
                 String groupName,
                 long roleId,
-                String serverContext,
+                Map<String, List<String>> contexts,
+                boolean includeInherited,
                 SyncDirection direction,
                 TimerConfig timer,
                 SyncSide tieBreaker
         ) {
             this.groupName = groupName;
             this.roleId = roleId;
-            this.serverContext = serverContext;
+            this.contexts = contexts;
+            this.includeInherited = includeInherited;
             this.direction = direction;
             this.timer = timer;
             this.tieBreaker = tieBreaker;
@@ -105,7 +111,7 @@ public class GroupSyncConfig {
 
         @Override
         public String gameId() {
-            return makeGameId(groupName, serverContext != null ? Collections.singleton(serverContext) : null);
+            return makeGameId(groupName, contexts);
         }
 
         @Override
@@ -128,8 +134,29 @@ public class GroupSyncConfig {
             return groupName + direction.arrow() + Long.toUnsignedString(roleId);
         }
 
-        public static String makeGameId(String groupName, Set<String> serverContext) {
-            return groupName + (serverContext != null ? String.join(" ", serverContext) : "");
+        public Map<String, Set<String>> contexts() {
+            Map<String, Set<String>> contexts = new LinkedHashMap<>();
+            for (Map.Entry<String, List<String>> entry : this.contexts.entrySet()) {
+                Set<String> values = new LinkedHashSet<>(entry.getValue());
+                contexts.put(entry.getKey(), values);
+            }
+            return contexts;
+        }
+
+        public boolean includeInherited() {
+            return includeInherited;
+        }
+
+        public static String makeGameId(String groupName, Map<String, ? extends Collection<String>> contexts) {
+            String joinedContexts = contexts.entrySet().stream()
+                    .sorted(Map.Entry.comparingByKey())
+                    .map(entry -> {
+                        List<String> values = new ArrayList<>(entry.getValue());
+                        Collections.sort(values);
+                        return entry.getKey() + "=" + String.join(",", values);
+                    })
+                    .collect(Collectors.joining(";"));
+            return groupName + ">" + joinedContexts;
         }
     }
 

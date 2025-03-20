@@ -18,6 +18,7 @@
 
 package com.discordsrv.common.feature.linking.requirelinking;
 
+import com.discordsrv.api.task.Task;
 import com.discordsrv.common.DiscordSRV;
 import com.discordsrv.common.config.main.linking.ServerRequiredLinkingConfig;
 import com.discordsrv.common.feature.linking.requirelinking.requirement.parser.ParsedRequirements;
@@ -25,7 +26,6 @@ import net.kyori.adventure.text.Component;
 
 import java.util.List;
 import java.util.UUID;
-import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CopyOnWriteArrayList;
 
 public abstract class ServerRequireLinkingModule<T extends DiscordSRV> extends RequiredLinkingModule<T> {
@@ -52,7 +52,7 @@ public abstract class ServerRequireLinkingModule<T extends DiscordSRV> extends R
         return additionalRequirements;
     }
 
-    public CompletableFuture<Component> getBlockReason(UUID playerUUID, String playerName, boolean join) {
+    public Task<Component> getBlockReason(UUID playerUUID, String playerName, boolean join) {
         List<ParsedRequirements> additionalRequirements;
         synchronized (this.additionalRequirements) {
             additionalRequirements = this.additionalRequirements;

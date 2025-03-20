@@ -19,7 +19,6 @@
 package com.discordsrv.common.feature.messageforwarding.game;
 
 import com.discordsrv.api.channel.GameChannel;
-import com.discordsrv.api.component.MinecraftComponent;
 import com.discordsrv.api.discord.entity.message.ReceivedDiscordMessageCluster;
 import com.discordsrv.api.discord.entity.message.SendableDiscordMessage;
 import com.discordsrv.api.eventbus.EventPriorities;
@@ -27,14 +26,13 @@ import com.discordsrv.api.eventbus.Subscribe;
 import com.discordsrv.api.events.message.forward.game.JoinMessageForwardedEvent;
 import com.discordsrv.api.events.message.receive.game.JoinMessageReceiveEvent;
 import com.discordsrv.api.player.DiscordSRVPlayer;
+import com.discordsrv.api.task.Task;
 import com.discordsrv.common.DiscordSRV;
 import com.discordsrv.common.abstraction.player.IPlayer;
 import com.discordsrv.common.config.main.channels.base.BaseChannelConfig;
 import com.discordsrv.common.config.main.generic.IMessageConfig;
 import com.discordsrv.common.events.player.PlayerDisconnectedEvent;
-import com.discordsrv.common.permission.game.Permission;
-import com.discordsrv.common.util.ComponentUtil;
-import net.kyori.adventure.text.Component;
+import com.discordsrv.common.permission.game.Permissions;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -42,7 +40,6 @@ import java.time.Duration;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
-import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Future;
 
 public class JoinMessageModule extends AbstractGameMessageModule<IMessageConfig, JoinMessageReceiveEvent> {
@@ -61,7 +58,7 @@ public class JoinMessageModule extends AbstractGameMessageModule<IMessageConfig,
         }
 
         DiscordSRVPlayer player = event.getPlayer();
-        boolean silentJoin = player instanceof IPlayer && ((IPlayer) player).hasPermission(Permission.SILENT_JOIN);
+        boolean silentJoin = player instanceof IPlayer && ((IPlayer) player).hasPermission(Permissions.SILENT_JOIN);
         discordSRV.scheduler().run(() -> {
             silentJoinPermission.set(silentJoin);
             process(event, event.getPlayer(), event.getGameChannel());
@@ -70,31 +67,45 @@ public class JoinMessageModule extends AbstractGameMessageModule<IMessageConfig,
     }
 
     @Override
-    protected CompletableFuture<Void> forwardToChannel(
+    protected Task<Void> forwardToChannel(
             @Nullable JoinMessageReceiveEvent event,
             @Nullable IPlayer player,
             @NotNull BaseChannelConfig config,
             @Nullable GameChannel channel
     ) {
+        if (event != null && event.isMessageCancelled() && !config.joinMessages().sendEvenIfCancelled) {
+            return Task.completed(null);
+        }
         if (player != null && config.joinMessages().enableSilentPermission && silentJoinPermission.get()) {
             logger().info(player.username() + " is joining silently, join message will not be sent");
-            return CompletableFuture.completedFuture(null);
+            return Task.completed(null);
         }
 
         long delay = config.joinMessages().ignoreIfLeftWithinMS;
         if (player != null && delay > 0) {
             UUID playerUUID = player.uniqueId();
 
-            CompletableFuture<Void> completableFuture = new CompletableFuture<>();
             synchronized (delayedTasks) {
-                CompletableFuture<Void> future = discordSRV.scheduler()
-                        .supplyLater(() -> super.forwardToChannel(event, player, config, channel), Duration.ofMillis(delay))
-                        .thenCompose(r -> r)
+                Task<Void> future = discordSRV.scheduler()
+                        .supplyLater(() -> {
+                            if (player.isVanished()) {
+                                logger().info(player.username() + " is vanished while joining, join message will not be sent");
+                                return Task.completed((Void) null);
+                            }
+
+                            return super.forwardToChannel(event, player, config, channel);
+                        }, Duration.ofMillis(delay))
+                        .then(r -> r)
                         .whenComplete((v, t) -> delayedTasks.remove(playerUUID));
 
                 delayedTasks.put(playerUUID, future);
+                return future;
             }
-            return completableFuture;
+        }
+
+        if (player != null && player.isVanished()) {
+            logger().info(player.username() + " is vanished while joining, join message will not be sent");
+            return Task.completed(null);
         }
         return super.forwardToChannel(event, player, config, channel);
     }
@@ -130,9 +141,6 @@ public class JoinMessageModule extends AbstractGameMessageModule<IMessageConfig,
             JoinMessageReceiveEvent event,
             SendableDiscordMessage.Formatter formatter
     ) {
-        MinecraftComponent messageComponent = event.getMessage();
-        Component message = messageComponent != null ? ComponentUtil.fromAPI(messageComponent) : null;
-
-        formatter.addPlaceholder("message", message);
+        formatter.addPlaceholder("message", event.getMessage());
     }
 }

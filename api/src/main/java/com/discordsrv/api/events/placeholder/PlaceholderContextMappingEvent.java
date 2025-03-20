@@ -21,32 +21,43 @@
  * SOFTWARE.
  */
 
-package com.discordsrv.api.player;
+package com.discordsrv.api.events.placeholder;
 
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
+import com.discordsrv.api.events.Event;
 
-import java.util.UUID;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+import java.util.Set;
+import java.util.function.Function;
 
-/**
- * A provider for {@link DiscordSRVPlayer} instances.
- */
-public interface IPlayerProvider {
+public class PlaceholderContextMappingEvent implements Event {
 
-    /**
-     * Gets a player from the cache of online players.
-     * @param player the uuid for the player
-     * @return the {@link DiscordSRVPlayer} instance for the player, if available
-     */
-    @Nullable
-    DiscordSRVPlayer player(@NotNull UUID player);
+    private final List<Object> contexts;
 
-    /**
-     * Gets a player from the cache of online players.
-     * @param username case-insensitive username for the player
-     * @return the {@link DiscordSRVPlayer} instance for the player, if available
-     */
-    @Nullable
-    DiscordSRVPlayer player(@NotNull String username);
+    public PlaceholderContextMappingEvent(Set<Object> contexts) {
+        this.contexts = new ArrayList<>(contexts);
+    }
 
+    @SuppressWarnings("unchecked") // It is checked
+    public <T> void map(Class<T> type, Function<T, ?> mappingFunction) {
+        for (int i = 0; i < contexts.size(); i++) {
+            Object context = contexts.get(i);
+            if (type.isAssignableFrom(context.getClass())) {
+                contexts.set(i, mappingFunction.apply((T) context));
+            }
+        }
+    }
+
+    public void addContext(Object context) {
+        this.contexts.add(context);
+    }
+
+    public void removeContext(Object context) {
+        this.contexts.remove(context);
+    }
+
+    public List<Object> getContexts() {
+        return Collections.unmodifiableList(contexts);
+    }
 }

@@ -25,6 +25,7 @@ import com.discordsrv.api.discord.entity.interaction.command.DiscordCommand;
 import com.discordsrv.api.discord.entity.interaction.component.ComponentIdentifier;
 import com.discordsrv.api.discord.entity.message.SendableDiscordMessage;
 import com.discordsrv.api.events.discord.interaction.command.DiscordChatInputInteractionEvent;
+import com.discordsrv.api.task.Task;
 import com.discordsrv.common.DiscordSRV;
 import com.discordsrv.common.abstraction.player.IPlayer;
 import com.discordsrv.common.config.messages.MessagesConfig;
@@ -37,7 +38,6 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.Pair;
 
 import java.util.UUID;
-import java.util.concurrent.CompletableFuture;
 import java.util.function.Consumer;
 
 public class LinkInitDiscordCommand implements Consumer<DiscordChatInputInteractionEvent> {
@@ -120,7 +120,7 @@ public class LinkInitDiscordCommand implements Consumer<DiscordChatInputInteract
                 }
 
                 linkStore.getCodeLinking(user.getId(), code)
-                        .thenCompose(player -> linkStore.createLink(player.getKey(), user.getId()).thenApply(__ -> player))
+                        .then(player -> linkStore.createLink(player.getKey(), user.getId()).thenApply(__ -> player))
                         .whenComplete((player, t3) -> {
                             if (t3 != null) {
                                 logger.error("Failed to link", t3);
@@ -144,14 +144,15 @@ public class LinkInitDiscordCommand implements Consumer<DiscordChatInputInteract
         UUID playerUUID = pair.getKey();
         String username = pair.getValue();
 
-        linkStore.removeLinkingCode(playerUUID).exceptionally(t -> {
-            logger.error("Failed to remove linking code from storage", t);
-            return null;
+        linkStore.removeLinkingCode(playerUUID).whenComplete((v, t) -> {
+            if (t != null) {
+                logger.error("Failed to remove linking code from storage", t);
+            }
         });
 
         IPlayer onlinePlayer = discordSRV.playerProvider().player(playerUUID);
         (onlinePlayer != null
-            ? CompletableFuture.completedFuture(onlinePlayer)
+            ? Task.completed(onlinePlayer)
             : discordSRV.playerProvider().lookupOfflinePlayer(playerUUID)
         ).whenComplete((player, __) -> interactionHook
                 .editOriginal(

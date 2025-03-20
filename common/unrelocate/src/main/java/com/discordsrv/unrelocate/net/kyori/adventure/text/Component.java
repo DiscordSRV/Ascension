@@ -18,6 +18,6 @@
 
 package com.discordsrv.unrelocate.net.kyori.adventure.text;
 
-@SuppressWarnings("NonExtendableApiUsage")
+@SuppressWarnings("NonExtendableApiUsage") // Not present at runtime
 public interface Component extends net.kyori.adventure.text.Component {
 }

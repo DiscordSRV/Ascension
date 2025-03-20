@@ -20,6 +20,7 @@ package com.discordsrv.common.config.messages;
 
 import com.discordsrv.api.discord.entity.DiscordUser;
 import com.discordsrv.api.discord.entity.message.SendableDiscordMessage;
+import com.discordsrv.api.task.Task;
 import com.discordsrv.common.DiscordSRV;
 import com.discordsrv.common.abstraction.player.IOfflinePlayer;
 import com.discordsrv.common.command.combined.abstraction.CommandExecution;
@@ -28,13 +29,12 @@ import com.discordsrv.common.config.configurate.annotation.Constants;
 import com.discordsrv.common.config.configurate.annotation.Untranslated;
 import com.discordsrv.common.config.helper.DiscordMessage;
 import com.discordsrv.common.config.helper.MinecraftMessage;
-import com.discordsrv.common.util.CompletableFutureUtil;
+import com.discordsrv.common.util.TaskUtil;
 import org.spongepowered.configurate.objectmapping.ConfigSerializable;
 import org.spongepowered.configurate.objectmapping.meta.Comment;
 
 import java.time.Duration;
 import java.util.UUID;
-import java.util.concurrent.CompletableFuture;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 
@@ -51,7 +51,7 @@ public class MessagesConfig implements Config {
     // Helper methods
 
     private void withPlayer(DiscordSRV discordSRV, UUID playerUUID, Consumer<IOfflinePlayer> playerConsumer) {
-        CompletableFuture<IOfflinePlayer> playerFuture = CompletableFutureUtil.timeout(
+        Task<IOfflinePlayer> playerFuture = TaskUtil.timeout(
                 discordSRV,
                 discordSRV.playerProvider().lookupOfflinePlayer(playerUUID),
                 Duration.ofSeconds(5)
@@ -61,7 +61,7 @@ public class MessagesConfig implements Config {
     }
 
     private void withUser(DiscordSRV discordSRV, long userId, Consumer<DiscordUser> userConsumer) {
-        CompletableFuture<DiscordUser> userFuture = CompletableFutureUtil.timeout(
+        Task<DiscordUser> userFuture = TaskUtil.timeout(
                 discordSRV,
                 discordSRV.discordAPI().retrieveUserById(userId),
                 Duration.ofSeconds(5)
@@ -76,12 +76,12 @@ public class MessagesConfig implements Config {
             long userId,
             BiConsumer<IOfflinePlayer, DiscordUser> playerAndUserConsumer
     ) {
-        CompletableFuture<IOfflinePlayer> playerFuture = CompletableFutureUtil.timeout(
+        Task<IOfflinePlayer> playerFuture = TaskUtil.timeout(
                 discordSRV,
                 discordSRV.playerProvider().lookupOfflinePlayer(playerUUID),
                 Duration.ofSeconds(5)
         );
-        CompletableFuture<DiscordUser> userFuture = CompletableFutureUtil.timeout(
+        Task<DiscordUser> userFuture = TaskUtil.timeout(
                 discordSRV,
                 discordSRV.discordAPI().retrieveUserById(userId),
                 Duration.ofSeconds(5)
@@ -328,8 +328,8 @@ public class MessagesConfig implements Config {
         public MinecraftMessage storageLinking = make(
                 "%1Join our %2Discord %1server at "
                         + "[click:open_url:%discord_invite%]%discord_invite_simple%[click]"
-                        + " and link your account by running the "
-                        + "&r[click:copy_to_clipboard:/<todo> link %code%][hover:show_text:Click to copy]/<todo> link %code%"); // TODO
+                        + " %1and link your account by running the "
+                        + "&r[click:copy_to_clipboard:%code%][hover:show_text:Click to copy linking code]/minecraft link %code%"); // TODO
 
         @Untranslated(Untranslated.Type.COMMENT)
         @Comment("/discord unlink")

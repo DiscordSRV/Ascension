@@ -23,7 +23,7 @@
 
 package com.discordsrv.api.events.discord.interaction.command;
 
-import com.discordsrv.api.DiscordSRVApi;
+import com.discordsrv.api.DiscordSRV;
 import com.discordsrv.api.discord.entity.DiscordUser;
 import com.discordsrv.api.discord.entity.channel.DiscordChannel;
 import com.discordsrv.api.discord.entity.channel.DiscordMessageChannel;
@@ -33,19 +33,18 @@ import com.discordsrv.api.discord.entity.interaction.DiscordInteractionHook;
 import com.discordsrv.api.discord.entity.interaction.component.ComponentIdentifier;
 import com.discordsrv.api.discord.entity.message.SendableDiscordMessage;
 import com.discordsrv.api.events.discord.interaction.AbstractInteractionWithHookEvent;
+import com.discordsrv.api.task.Task;
 import net.dv8tion.jda.api.events.interaction.command.GenericCommandInteractionEvent;
 import net.dv8tion.jda.api.interactions.commands.OptionMapping;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.concurrent.CompletableFuture;
-
 public abstract class AbstractCommandInteractionEvent<E extends GenericCommandInteractionEvent>
         extends AbstractInteractionWithHookEvent<E> {
 
-    private final DiscordSRVApi discordSRV;
+    private final DiscordSRV discordSRV;
 
     public AbstractCommandInteractionEvent(
-            DiscordSRVApi discordSRV,
+            DiscordSRV discordSRV,
             E jdaEvent,
             ComponentIdentifier identifier,
             DiscordUser user,
@@ -57,13 +56,13 @@ public abstract class AbstractCommandInteractionEvent<E extends GenericCommandIn
         this.discordSRV = discordSRV;
     }
 
-    public abstract CompletableFuture<DiscordInteractionHook> reply(SendableDiscordMessage message, boolean ephemeral);
+    public abstract Task<DiscordInteractionHook> reply(SendableDiscordMessage message, boolean ephemeral);
 
-    public CompletableFuture<DiscordInteractionHook> reply(SendableDiscordMessage message) {
+    public Task<DiscordInteractionHook> reply(SendableDiscordMessage message) {
         return reply(message, false);
     }
 
-    public abstract CompletableFuture<DiscordInteractionHook> deferReply(boolean ephemeral);
+    public abstract Task<DiscordInteractionHook> deferReply(boolean ephemeral);
 
     @Nullable
     public String getOptionAsString(String name) {

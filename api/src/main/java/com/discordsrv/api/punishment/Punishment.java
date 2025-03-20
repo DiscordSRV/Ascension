@@ -44,7 +44,7 @@ public class Punishment {
         this.punisher = punisher;
     }
 
-    @Placeholder(value = "until", relookup = "date")
+    @Placeholder("until")
     public Instant until() {
         return until;
     }

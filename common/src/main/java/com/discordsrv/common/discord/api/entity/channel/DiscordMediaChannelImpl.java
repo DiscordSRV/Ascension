@@ -22,12 +22,11 @@ import com.discordsrv.api.discord.entity.channel.DiscordChannelType;
 import com.discordsrv.api.discord.entity.channel.DiscordMediaChannel;
 import com.discordsrv.api.discord.entity.channel.DiscordThreadChannel;
 import com.discordsrv.api.discord.entity.message.SendableDiscordMessage;
+import com.discordsrv.api.task.Task;
 import com.discordsrv.common.DiscordSRV;
 import com.discordsrv.common.discord.api.entity.message.util.SendableDiscordMessageUtil;
 import net.dv8tion.jda.api.entities.channel.concrete.MediaChannel;
 import net.dv8tion.jda.api.entities.channel.forums.ForumPost;
-
-import java.util.concurrent.CompletableFuture;
 
 public class DiscordMediaChannelImpl extends AbstractDiscordForumChannel<MediaChannel> implements DiscordMediaChannel {
 
@@ -46,7 +45,7 @@ public class DiscordMediaChannelImpl extends AbstractDiscordForumChannel<MediaCh
     }
 
     @Override
-    public CompletableFuture<DiscordThreadChannel> createPost(String name, SendableDiscordMessage message) {
+    public Task<DiscordThreadChannel> createPost(String name, SendableDiscordMessage message) {
         return thread(
                 channel -> channel.createForumPost(name, SendableDiscordMessageUtil.toJDASend(message)),
                 ForumPost::getThreadChannel

@@ -43,7 +43,7 @@ public class DiscordBotContext {
         return jda.getSelfUser();
     }
 
-    @Placeholder(value = "user", relookup = "user")
+    @Placeholder("user")
     public DiscordUser getUser() {
         return discordSRV.discordAPI().getUser(getSelfUser());
     }

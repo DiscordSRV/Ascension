@@ -19,6 +19,7 @@
 package com.discordsrv.common.config.main;
 
 import com.discordsrv.common.config.main.generic.DestinationConfig;
+import com.discordsrv.common.config.main.generic.DiscordOutputMode;
 import com.discordsrv.common.config.main.generic.GameCommandExecutionConditionConfig;
 import org.spongepowered.configurate.objectmapping.ConfigSerializable;
 import org.spongepowered.configurate.objectmapping.meta.Comment;
@@ -45,7 +46,7 @@ public class ConsoleConfig {
     public static class Appender {
 
         @Comment("The format for log lines")
-        public String lineFormat = "[%log_time:'ccc HH:mm:ss zzz'%] [%log_level%] [%logger_name%] %message%";
+        public String lineFormat = "[%log_time:'ccc HH:mm:ss zzz'%] [%log_level%]%logger_name:' [\\%s]'% %message%";
 
         @Comment("The mode for the console output, available options are:\n"
                 + "- off: Turn off console appending\n"
@@ -53,9 +54,9 @@ public class ConsoleConfig {
                 + "- log: An \"accesslog\" code block\n"
                 + "- diff: A \"diff\" code block highlighting warnings and errors with different colors\n"
                 + "- markdown: Plain text with bold, italics, strikethrough and underlining\n"
-                + "- plain: Plain text code block\n"
-                + "- plain_content: Plain text")
-        public OutputMode outputMode = OutputMode.ANSI;
+                + "- code_block: Plain text code block\n"
+                + "- plain: Plain text")
+        public DiscordOutputMode outputMode = DiscordOutputMode.ANSI;
 
         @Comment("In \"diff\" mode, should exception lines have the prefix character as well")
         public boolean diffExceptions = true;
@@ -135,35 +136,5 @@ public class ConsoleConfig {
         @Comment("If a command is inputted starting with /, a warning response will be given if this is enabled")
         public boolean enableSlashWarning = true;
 
-    }
-
-    public enum OutputMode {
-        OFF(null, null),
-        ANSI("```ansi\n", "```"),
-        LOG("```accesslog\n", "```"),
-        DIFF("```diff\n", "```"),
-        MARKDOWN("", ""),
-        PLAIN("```\n", "```"),
-        PLAIN_CONTENT("", "");
-
-        private final String prefix;
-        private final String suffix;
-
-        OutputMode(String prefix, String suffix) {
-            this.prefix = prefix;
-            this.suffix = suffix;
-        }
-
-        public String prefix() {
-            return prefix;
-        }
-
-        public String suffix() {
-            return suffix;
-        }
-
-        public int blockLength() {
-            return prefix().length() + suffix().length();
-        }
     }
 }

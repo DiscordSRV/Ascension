@@ -89,7 +89,10 @@ dependencies {
     runtimeDownloadApi(libs.adventure.serializer.plain)
     runtimeDownloadApi(libs.adventure.serializer.legacy)
     runtimeDownloadApi(libs.adventure.serializer.gson)
-    runtimeDownloadApi(libs.adventure.serializer.ansi)
+    runtimeDownloadApi(libs.adventure.serializer.ansi) {
+        // Downgrade due to jar-relocator incompatibility
+        exclude module: 'ansi'
+    }
     runtimeDownloadApi(libs.kyori.ansi)
     runtimeDownloadApi(libs.mcdiscordreserializer)
     runtimeDownloadApi(libs.enhancedlegacytext)

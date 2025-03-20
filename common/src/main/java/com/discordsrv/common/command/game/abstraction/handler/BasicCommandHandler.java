@@ -18,9 +18,11 @@
 
 package com.discordsrv.common.command.game.abstraction.handler;
 
+import com.discordsrv.common.DiscordSRV;
 import com.discordsrv.common.command.game.abstraction.command.GameCommand;
 import com.discordsrv.common.command.game.abstraction.command.GameCommandArguments;
 import com.discordsrv.common.command.game.abstraction.sender.ICommandSender;
+import com.discordsrv.common.util.CommandUtil;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 import net.kyori.adventure.text.format.TextDecoration;
@@ -32,7 +34,12 @@ import java.util.stream.Collectors;
 
 public class BasicCommandHandler implements ICommandHandler {
 
+    private final DiscordSRV discordSRV;
     private final Map<String, GameCommand> commands = new HashMap<>();
+
+    public BasicCommandHandler(DiscordSRV discordSRV) {
+        this.discordSRV = discordSRV;
+    }
 
     @Override
     public void registerCommand(GameCommand command) {
@@ -40,12 +47,13 @@ public class BasicCommandHandler implements ICommandHandler {
     }
 
     private GameCommand processCommand(
+            ICommandSender sender,
             GameCommand command,
             List<String> arguments,
             Arguments argumentValues,
             BiConsumer<GameCommand, Arguments> tooManyArguments,
             BiConsumer<GameCommand, Arguments> unclosedQuote,
-            List<String> literalOptions
+            List<String> literalSuggestions
     ) {
         GameCommand redirection = command.getRedirection();
         if (redirection != null) {
@@ -53,9 +61,12 @@ public class BasicCommandHandler implements ICommandHandler {
         }
 
         if (!arguments.isEmpty()) {
-            List<String> currentOptions = new ArrayList<>();
+            List<String> currentOptions = literalSuggestions != null ? new ArrayList<>() : null;
             for (GameCommand child : command.getChildren()) {
-                if (child.getArgumentType() == GameCommand.ArgumentType.LITERAL) {
+                boolean missingPermissionToSuggest = literalSuggestions != null && !child.hasPermission(sender);
+                if (currentOptions != null
+                        && child.getArgumentType() == GameCommand.ArgumentType.LITERAL
+                        && !missingPermissionToSuggest) {
                     currentOptions.add(child.getLabel());
                 }
 
@@ -64,6 +75,10 @@ public class BasicCommandHandler implements ICommandHandler {
                 if (matchResult == GameCommand.MatchResult.NO_MATCH) {
                     continue;
                 }
+                if (missingPermissionToSuggest) {
+                    return null;
+                }
+
                 arguments.remove(0);
 
                 Object value;
@@ -103,12 +118,12 @@ public class BasicCommandHandler implements ICommandHandler {
                 }
 
                 argumentValues.put(child.getLabel(), value);
-                return processCommand(child, arguments, argumentValues, tooManyArguments, unclosedQuote, literalOptions);
+                return processCommand(sender, child, arguments, argumentValues, tooManyArguments, unclosedQuote, literalSuggestions);
             }
 
-            if (literalOptions != null) {
-                literalOptions.addAll(currentOptions);
-                return command;
+            if (literalSuggestions != null) {
+                literalSuggestions.addAll(currentOptions);
+                return command.hasPermission(sender) ? command : null;
             }
         }
 
@@ -117,15 +132,19 @@ public class BasicCommandHandler implements ICommandHandler {
             return null;
         }
 
+        if (literalSuggestions != null && !command.hasPermission(sender)) {
+            return null;
+        }
         return command;
     }
 
-    private <T> T useCommand(
+    private List<String> useCommand(
+            ICommandSender sender,
             String command,
             List<String> arguments,
             BiConsumer<GameCommand, Arguments> tooManyArguments,
             BiConsumer<GameCommand, Arguments> unclosedQuote,
-            BiFunction<GameCommand, Arguments, T> function,
+            BiFunction<GameCommand, Arguments, List<String>> function,
             List<String> literalOptions
     ) {
         command = command.substring(command.lastIndexOf(':') + 1);
@@ -135,7 +154,7 @@ public class BasicCommandHandler implements ICommandHandler {
         }
 
         Arguments args = new Arguments();
-        GameCommand subCommand = processCommand(commandBuilder, new ArrayList<>(arguments), args, tooManyArguments, unclosedQuote, literalOptions);
+        GameCommand subCommand = processCommand(sender, commandBuilder, new ArrayList<>(arguments), args, tooManyArguments, unclosedQuote, literalOptions);
         if (subCommand == null) {
             return null;
         }
@@ -144,7 +163,10 @@ public class BasicCommandHandler implements ICommandHandler {
     }
 
     public void execute(ICommandSender sender, String command, List<String> arguments) {
+        CommandUtil.basicStatusCheck(discordSRV, sender);
+
         useCommand(
+                sender,
                 command,
                 arguments,
                 (cmd, args) -> {
@@ -192,6 +214,7 @@ public class BasicCommandHandler implements ICommandHandler {
     public List<String> suggest(ICommandSender sender, String command, List<String> arguments) {
         List<String> suggestions = new ArrayList<>();
         return useCommand(
+                sender,
                 command,
                 arguments,
                 null,

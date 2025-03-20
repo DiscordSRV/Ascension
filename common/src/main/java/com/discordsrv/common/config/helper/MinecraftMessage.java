@@ -18,7 +18,7 @@
 
 package com.discordsrv.common.config.helper;
 
-import com.discordsrv.api.DiscordSRVApi;
+import com.discordsrv.api.DiscordSRV;
 import com.discordsrv.api.component.GameTextBuilder;
 import com.discordsrv.api.component.MinecraftComponent;
 import com.discordsrv.common.util.ComponentUtil;
@@ -37,7 +37,7 @@ public class MinecraftMessage {
     }
 
     public GameTextBuilder textBuilder() {
-        return DiscordSRVApi.get().componentFactory().textBuilder(rawFormat);
+        return DiscordSRV.get().componentFactory().textBuilder(rawFormat);
     }
 
     public MinecraftComponent make() {

@@ -28,6 +28,7 @@ import com.discordsrv.api.discord.entity.message.ReceivedDiscordMessageCluster;
 import com.discordsrv.api.discord.entity.message.SendableDiscordMessage;
 import com.discordsrv.api.events.message.receive.game.AbstractGameMessageReceiveEvent;
 import com.discordsrv.api.player.DiscordSRVPlayer;
+import com.discordsrv.api.task.Task;
 import com.discordsrv.common.DiscordSRV;
 import com.discordsrv.common.abstraction.player.IPlayer;
 import com.discordsrv.common.config.main.channels.base.BaseChannelConfig;
@@ -37,7 +38,6 @@ import com.discordsrv.common.core.logging.NamedLogger;
 import com.discordsrv.common.core.module.type.AbstractModule;
 import com.discordsrv.common.discord.api.entity.message.ReceivedDiscordMessageClusterImpl;
 import com.discordsrv.common.helper.TestHelper;
-import com.discordsrv.common.util.CompletableFutureUtil;
 import com.discordsrv.common.util.DiscordPermissionUtil;
 import net.dv8tion.jda.api.Permission;
 import net.dv8tion.jda.api.entities.channel.concrete.ThreadChannel;
@@ -47,7 +47,6 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
-import java.util.concurrent.CompletableFuture;
 
 /**
  * An abstracted flow to send in-game messages to a given destination and publish the results to the event bus.
@@ -86,7 +85,7 @@ public abstract class AbstractGameMessageModule<T extends IMessageConfig, E exte
     public abstract T mapConfig(BaseChannelConfig channelConfig);
     public abstract void postClusterToEventBus(@Nullable GameChannel channel, @NotNull ReceivedDiscordMessageCluster cluster);
 
-    public final CompletableFuture<?> process(
+    public final Task<?> process(
             @Nullable E event,
             @Nullable DiscordSRVPlayer player,
             @Nullable GameChannel channel
@@ -98,26 +97,26 @@ public abstract class AbstractGameMessageModule<T extends IMessageConfig, E exte
 
         if (channel == null) {
             // Send to all channels due to lack of specified channel
-            List<CompletableFuture<Void>> futures = new ArrayList<>();
+            List<Task<Void>> futures = new ArrayList<>();
             for (BaseChannelConfig channelConfig : discordSRV.channelConfig().getAllChannels()) {
-                CompletableFuture<Void> future = forwardToChannel(event, srvPlayer, channelConfig, null);
+                Task<Void> future = forwardToChannel(event, srvPlayer, channelConfig, null);
                 if (future != null) {
                     futures.add(future);
                 }
             }
-            return CompletableFutureUtil.combine(futures);
+            return Task.allOf(futures);
         }
 
         BaseChannelConfig channelConfig = discordSRV.channelConfig().get(channel);
         if (channelConfig == null) {
-            return CompletableFuture.completedFuture(null);
+            return Task.completed(null);
         }
 
         return forwardToChannel(event, srvPlayer, channelConfig, channel);
     }
 
-    @SuppressWarnings("unchecked") // Wacky generis
-    protected <CC extends BaseChannelConfig & IChannelConfig> CompletableFuture<Void> forwardToChannel(
+    @SuppressWarnings("unchecked")
+    protected <CC extends BaseChannelConfig & IChannelConfig> Task<Void> forwardToChannel(
             @Nullable E event,
             @Nullable IPlayer player,
             @NotNull BaseChannelConfig config,
@@ -133,22 +132,22 @@ public abstract class AbstractGameMessageModule<T extends IMessageConfig, E exte
             return null;
         }
 
-        return discordSRV.destinations().lookupDestination(channelConfig.destination(), true, true).thenCompose(messageChannels -> {
+        return discordSRV.destinations().lookupDestination(channelConfig.destination(), true, true).then(messageChannels -> {
             SendableDiscordMessage.Builder format = moduleConfig.format();
             if (format == null || format.isEmpty()) {
                 logger().debug("Message from " + player + " skipped, format is empty");
-                return CompletableFuture.completedFuture(null);
+                return Task.completed(null);
             }
 
-            List<CompletableFuture<ReceivedDiscordMessage>> messageFutures = sendMessageToChannels(
+            List<Task<ReceivedDiscordMessage>> messageFutures = sendMessageToChannels(
                     moduleConfig, player, format, messageChannels, event,
                     // Context
-                    config, player
+                    config, player, channel
             );
 
-            return CompletableFutureUtil.combine(messageFutures).whenComplete((vo, t2) -> {
+            return Task.allOf(messageFutures).whenComplete((vo, t2) -> {
                 Set<ReceivedDiscordMessage> messages = new LinkedHashSet<>();
-                for (CompletableFuture<ReceivedDiscordMessage> future : messageFutures) {
+                for (Task<ReceivedDiscordMessage> future : messageFutures) {
                     ReceivedDiscordMessage message = future.join();
                     if (message != null) {
                         messages.add(message);
@@ -161,19 +160,17 @@ public abstract class AbstractGameMessageModule<T extends IMessageConfig, E exte
                 }
 
                 postClusterToEventBus(channel, new ReceivedDiscordMessageClusterImpl(messages));
-            }).exceptionally(t -> {
+            }).whenFailed(t -> {
                 discordSRV.logger().error("Failed to publish to event bus", t);
                 TestHelper.fail(t);
-                return null;
             }).thenApply(v -> (Void) null);
-        }).exceptionally(t -> {
+        }).whenFailed(t -> {
             discordSRV.logger().error("Error in forwarding message", t);
             TestHelper.fail(t);
-            return null;
         });
     }
 
-    public List<CompletableFuture<ReceivedDiscordMessage>> sendMessageToChannels(
+    public List<Task<ReceivedDiscordMessage>> sendMessageToChannels(
             T config,
             IPlayer player,
             SendableDiscordMessage.Builder format,
@@ -194,7 +191,7 @@ public abstract class AbstractGameMessageModule<T extends IMessageConfig, E exte
             return Collections.emptyList();
         }
 
-        List<CompletableFuture<ReceivedDiscordMessage>> futures = new ArrayList<>();
+        List<Task<ReceivedDiscordMessage>> futures = new ArrayList<>();
         for (DiscordGuildMessageChannel channel : channels) {
             futures.add(sendMessageToChannel(channel, discordMessage));
         }
@@ -202,7 +199,7 @@ public abstract class AbstractGameMessageModule<T extends IMessageConfig, E exte
         return futures;
     }
 
-    protected final @NotNull CompletableFuture<ReceivedDiscordMessage> sendMessageToChannel(DiscordGuildMessageChannel channel, SendableDiscordMessage message) {
+    protected final @NotNull Task<ReceivedDiscordMessage> sendMessageToChannel(DiscordGuildMessageChannel channel, SendableDiscordMessage message) {
         GuildChannel permissionChannel = (GuildMessageChannel) channel.getAsJDAMessageChannel();
 
         Permission sendPermission;
@@ -220,21 +217,17 @@ public abstract class AbstractGameMessageModule<T extends IMessageConfig, E exte
         String missingPermissions = DiscordPermissionUtil.missingPermissionsString(permissionChannel, Permission.VIEW_CHANNEL, sendPermission);
         if (missingPermissions != null) {
             logger().error("Failed to send message to " + describeDestination(channel) + ": " + missingPermissions);
-            return CompletableFuture.completedFuture(null);
+            return Task.completed(null);
         }
 
-        return channel.sendMessage(message).exceptionally(t -> {
+        return channel.sendMessage(message).whenFailed(t -> {
             ErrorCallbackContext.context("Failed to deliver a message to " + describeDestination(channel)).accept(t);
             TestHelper.fail(t);
-            return null;
         });
     }
 
     private String describeDestination(DiscordGuildChannel channel) {
-        if (channel instanceof DiscordThreadChannel) {
-            return "\"" + channel.getName() + "\" in #" + ((DiscordThreadChannel) channel).getParentChannel().getName();
-        }
-        return "#" + channel.getName();
+        return channel.toString();
     }
 
     public abstract void setPlaceholders(T config, E event, SendableDiscordMessage.Formatter formatter);

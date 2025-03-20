@@ -49,7 +49,7 @@ public interface DiscordSRVPlayer {
      * @return the player's unique id
      */
     @NotNull
-    @Placeholder(value = "uuid", relookup = "uuid")
+    @Placeholder("uuid")
     UUID uniqueId();
 
     /**
@@ -58,6 +58,12 @@ public interface DiscordSRVPlayer {
      */
     @Nullable
     Locale locale();
+
+    /**
+     * If the player is not visible to other players.
+     * @return {@code true} if the player is vanished
+     */
+    boolean isVanished();
 
     /**
      * Sends the provided message to the player.

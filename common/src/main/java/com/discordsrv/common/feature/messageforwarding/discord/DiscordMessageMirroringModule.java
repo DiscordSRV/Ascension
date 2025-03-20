@@ -36,6 +36,7 @@ import com.discordsrv.api.events.message.forward.game.AbstractGameMessageForward
 import com.discordsrv.api.events.message.receive.discord.DiscordChatMessageReceiveEvent;
 import com.discordsrv.api.placeholder.format.PlainPlaceholderFormat;
 import com.discordsrv.api.placeholder.provider.SinglePlaceholder;
+import com.discordsrv.api.task.Task;
 import com.discordsrv.common.DiscordSRV;
 import com.discordsrv.common.config.main.channels.MirroringConfig;
 import com.discordsrv.common.config.main.channels.base.BaseChannelConfig;
@@ -43,7 +44,6 @@ import com.discordsrv.common.config.main.channels.base.IChannelConfig;
 import com.discordsrv.common.config.main.generic.DiscordIgnoresConfig;
 import com.discordsrv.common.core.logging.NamedLogger;
 import com.discordsrv.common.core.module.type.AbstractModule;
-import com.discordsrv.common.util.CompletableFutureUtil;
 import com.discordsrv.common.util.DiscordPermissionUtil;
 import com.github.benmanes.caffeine.cache.Cache;
 import net.dv8tion.jda.api.Permission;
@@ -59,8 +59,6 @@ import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.*;
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.CompletionException;
 import java.util.concurrent.TimeUnit;
 
 public class DiscordMessageMirroringModule extends AbstractModule<DiscordSRV> {
@@ -90,7 +88,7 @@ public class DiscordMessageMirroringModule extends AbstractModule<DiscordSRV> {
         return EnumSet.of(DiscordGatewayIntent.GUILD_MESSAGES, DiscordGatewayIntent.MESSAGE_CONTENT);
     }
 
-    @SuppressWarnings("unchecked") // Wacky generics
+    @SuppressWarnings("unchecked")
     @Subscribe(ignoreCancelled = false)
     public <CC extends BaseChannelConfig & IChannelConfig> void onDiscordChatMessageProcessing(DiscordChatMessageReceiveEvent event) {
         if (checkCancellation(event)) {
@@ -104,7 +102,7 @@ public class DiscordMessageMirroringModule extends AbstractModule<DiscordSRV> {
 
         ReceivedDiscordMessage message = event.getMessage();
 
-        List<CompletableFuture<MirrorOperation>> futures = new ArrayList<>();
+        List<Task<MirrorOperation>> futures = new ArrayList<>();
         Map<ReceivedDiscordMessage.Attachment, byte[]> attachments = new LinkedHashMap<>();
         DiscordMessageEmbed.Builder attachmentEmbed = DiscordMessageEmbed.builder().setDescription("Attachments");
 
@@ -175,10 +173,10 @@ public class DiscordMessageMirroringModule extends AbstractModule<DiscordSRV> {
             );
         }
 
-        CompletableFutureUtil.combine(futures).whenComplete((lists, v) -> {
+        Task.allOf(futures).whenComplete((lists, v) -> {
             Set<Long> channelIdsHandled = new HashSet<>();
             for (MirrorOperation operation : lists) {
-                List<CompletableFuture<MirroredMessage>> mirrorFutures = new ArrayList<>();
+                List<Task<MirroredMessage>> mirrorFutures = new ArrayList<>();
 
                 for (MirrorTarget target : operation.targets) {
                     DiscordGuildMessageChannel mirrorChannel = target.targetChannel;
@@ -202,8 +200,8 @@ public class DiscordMessageMirroringModule extends AbstractModule<DiscordSRV> {
                             channel,
                             Permission.VIEW_CHANNEL,
                             Permission.MANAGE_WEBHOOKS,
-                            embedAttachments ? Permission.MESSAGE_EMBED_LINKS : null,
-                            attachAttachments ? Permission.MESSAGE_ATTACH_FILES : null
+                            hasAttachments && embedAttachments ? Permission.MESSAGE_EMBED_LINKS : null,
+                            hasAttachments && attachAttachments ? Permission.MESSAGE_ATTACH_FILES : null
                     );
                     if (missingPermissions != null) {
                         logger().error("Failed to mirror message to " + describeChannel(mirrorChannel) + ": " + missingPermissions);
@@ -231,26 +229,22 @@ public class DiscordMessageMirroringModule extends AbstractModule<DiscordSRV> {
                         });
                     }
 
-                    CompletableFuture<MirroredMessage> future =
+                    Task<MirroredMessage> future =
                             mirrorChannel.sendMessage(messageBuilder.build())
                                     .thenApply(msg -> new MirroredMessage(msg, config));
 
                     mirrorFutures.add(future);
-                    future.exceptionally(t -> {
-                        if (t instanceof CompletionException) {
-                            t = t.getCause();
-                        }
+                    future.whenFailed(t -> {
                         logger().error("Failed to mirror message to " + describeChannel(mirrorChannel), t);
                         for (InputStream stream : streams) {
                             try {
                                 stream.close();
                             } catch (IOException ignored) {}
                         }
-                        return null;
                     });
                 }
 
-                CompletableFutureUtil.combine(mirrorFutures).whenComplete((messages, t2) -> {
+                Task.allOf(mirrorFutures).whenComplete((messages, t2) -> {
                     MessageReference reference = getReference(operation.originalMessage, operation.configForOriginalMessage);
 
                     Map<ReceivedDiscordMessage, MessageReference> references = new LinkedHashMap<>();
@@ -262,21 +256,11 @@ public class DiscordMessageMirroringModule extends AbstractModule<DiscordSRV> {
                     putIntoCache(reference, references);
                 });
             }
-        }).exceptionally(t -> {
-            if (t instanceof CompletionException) {
-                t = t.getCause();
-            }
-            logger().error("Failed to mirror message", t);
-            return null;
-        });
+        }).whenFailed(t -> logger().error("Failed to mirror message", t));
     }
 
     private String describeChannel(DiscordGuildMessageChannel channel) {
-        if (channel instanceof DiscordThreadChannel) {
-            return "\"" + channel.getName() + "\" in #" + ((DiscordThreadChannel) channel).getParentChannel().getName();
-        }
-
-        return "#" + channel.getName();
+        return channel.toString();
     }
 
     @Subscribe
@@ -299,10 +283,8 @@ public class DiscordMessageMirroringModule extends AbstractModule<DiscordSRV> {
             }
 
             SendableDiscordMessage sendableMessage = convert(message, channel, reference.config).build();
-            channel.editMessageById(reference.messageId, sendableMessage).exceptionally(t -> {
-                logger().error("Failed to update mirrored message in " + channel);
-                return null;
-            });
+            channel.editMessageById(reference.messageId, sendableMessage)
+                    .whenFailed(t -> logger().error("Failed to update mirrored message in " + channel));
         }
     }
 
@@ -325,10 +307,8 @@ public class DiscordMessageMirroringModule extends AbstractModule<DiscordSRV> {
                 continue;
             }
 
-            channel.deleteMessageById(reference.messageId, reference.webhookMessage).exceptionally(t -> {
-                logger().error("Failed to delete mirrored message in " + describeChannel(channel));
-                return null;
-            });
+            channel.deleteMessageById(reference.messageId, reference.webhookMessage)
+                    .whenFailed(t -> logger().error("Failed to delete mirrored message in " + describeChannel(channel)));
         }
     }
 
@@ -435,7 +415,7 @@ public class DiscordMessageMirroringModule extends AbstractModule<DiscordSRV> {
             ) : replyMessage.getJumpUrl();
 
             finalContent = PlainPlaceholderFormat.supplyWith(
-                    PlainPlaceholderFormat.Formatting.DISCORD,
+                    PlainPlaceholderFormat.Formatting.DISCORD_MARKDOWN,
                     () -> discordSRV.placeholderService()
                             .replacePlaceholders(
                                     config.replyFormat,

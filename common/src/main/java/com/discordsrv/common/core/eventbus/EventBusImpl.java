@@ -326,7 +326,7 @@ public class EventBusImpl implements EventBus {
             }
         }
 
-        event.addFile(new TextDebugFile("event-bus.txt", builder));
+        event.addFile(0, "event-bus.txt", new TextDebugFile(builder));
     }
 
     private static class State<T> {
@@ -335,7 +335,7 @@ public class EventBusImpl implements EventBus {
         private final Predicate<Object> statePredicate;
         private final ThreadLocal<EventListener> stateHolder;
 
-        @SuppressWarnings("unchecked") // Converting generic to Object is easier down the line
+        @SuppressWarnings("unchecked")
         public State(Class<T> eventClass, Predicate<T> statePredicate, ThreadLocal<EventListener> stateHolder) {
             this.eventClass = eventClass;
             this.statePredicate = (Predicate<Object>) statePredicate;

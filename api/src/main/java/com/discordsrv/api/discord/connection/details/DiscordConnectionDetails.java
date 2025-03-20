@@ -23,16 +23,15 @@
 
 package com.discordsrv.api.discord.connection.details;
 
-import com.discordsrv.api.DiscordSRVApi;
+import com.discordsrv.api.DiscordSRV;
 import net.dv8tion.jda.api.requests.GatewayIntent;
 import net.dv8tion.jda.api.utils.cache.CacheFlag;
 import org.jetbrains.annotations.NotNull;
 
 /**
  * A helper class to provide {@link DiscordGatewayIntent}s and {@link DiscordCacheFlag}s for the Discord connection.
- * @see DiscordSRVApi#discordConnectionDetails()
+ * @see DiscordSRV#discordConnectionDetails()
  */
-@SuppressWarnings("unused") // API
 public interface DiscordConnectionDetails {
 
     /**

@@ -16,11 +16,9 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package com.discordsrv.bukkit.component.translation;
+package com.discordsrv.common.core.component.translation;
 
-import com.discordsrv.bukkit.BukkitDiscordSRV;
-import com.discordsrv.common.core.component.translation.Translation;
-import com.discordsrv.common.core.component.translation.TranslationRegistry;
+import com.discordsrv.common.DiscordSRV;
 import com.discordsrv.common.core.logging.NamedLogger;
 import com.fasterxml.jackson.databind.JsonNode;
 
@@ -36,12 +34,12 @@ import java.util.Properties;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.stream.Stream;
 
-public class BukkitTranslationLoader {
+public class TranslationLoader {
 
-    private final BukkitDiscordSRV discordSRV;
+    private final DiscordSRV discordSRV;
     private final NamedLogger logger;
 
-    public BukkitTranslationLoader(BukkitDiscordSRV discordSRV) {
+    public TranslationLoader(DiscordSRV discordSRV) {
         this.discordSRV = discordSRV;
         this.logger = new NamedLogger(discordSRV, "TRANSLATION_LOADER");
     }
@@ -71,7 +69,7 @@ public class BukkitTranslationLoader {
         try (Stream<Path> paths = Files.list(folder)) {
             paths.forEach(path -> {
                 String fileName = path.getFileName().toString();
-                int lastDot = fileName.lastIndexOf("\\.");
+                int lastDot = fileName.lastIndexOf(".");
                 String extension = lastDot == -1 ? null : fileName.substring(lastDot + 1);
                 if (extension == null || !(extension.equals("json") || extension.equals("lang"))) {
                     discordSRV.logger().warning("Unexpected file in game_languages: " + fileName);
@@ -84,9 +82,9 @@ public class BukkitTranslationLoader {
                     URL url = path.toUri().toURL();
 
                     Map<String, Translation> translations = null;
-                    if (path.endsWith(".json")) {
+                    if (extension.equalsIgnoreCase("json")) {
                         translations = getFromJson(url);
-                    } else if (path.endsWith(".lang")) {
+                    } else if (extension.equalsIgnoreCase("lang")) {
                         translations = getFromProperties(url);
                     }
                     if (translations != null && !translations.isEmpty()) {

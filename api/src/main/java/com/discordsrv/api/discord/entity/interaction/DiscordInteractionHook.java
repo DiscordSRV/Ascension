@@ -26,18 +26,17 @@ package com.discordsrv.api.discord.entity.interaction;
 import com.discordsrv.api.discord.entity.JDAEntity;
 import com.discordsrv.api.discord.entity.message.ReceivedDiscordMessage;
 import com.discordsrv.api.discord.entity.message.SendableDiscordMessage;
+import com.discordsrv.api.task.Task;
 import net.dv8tion.jda.api.interactions.InteractionHook;
-
-import java.util.concurrent.CompletableFuture;
 
 public interface DiscordInteractionHook extends JDAEntity<InteractionHook> {
 
     long getExpiryTime();
     boolean isExpired();
 
-    CompletableFuture<ReceivedDiscordMessage> editOriginal(SendableDiscordMessage message);
-    CompletableFuture<ReceivedDiscordMessage> sendMessage(SendableDiscordMessage message, boolean ephemeral);
-    default CompletableFuture<ReceivedDiscordMessage> sendMessage(SendableDiscordMessage message) {
+    Task<ReceivedDiscordMessage> editOriginal(SendableDiscordMessage message);
+    Task<ReceivedDiscordMessage> sendMessage(SendableDiscordMessage message, boolean ephemeral);
+    default Task<ReceivedDiscordMessage> sendMessage(SendableDiscordMessage message) {
         return sendMessage(message, false);
     }
 }

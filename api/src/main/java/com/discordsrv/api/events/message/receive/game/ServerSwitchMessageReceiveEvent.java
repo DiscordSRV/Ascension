@@ -27,6 +27,7 @@ import com.discordsrv.api.component.MinecraftComponent;
 import com.discordsrv.api.eventbus.EventPriorities;
 import com.discordsrv.api.events.PlayerEvent;
 import com.discordsrv.api.player.DiscordSRVPlayer;
+import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -39,6 +40,15 @@ public class ServerSwitchMessageReceiveEvent extends AbstractGameMessageReceiveE
     private final DiscordSRVPlayer player;
     private MinecraftComponent message;
 
+    public ServerSwitchMessageReceiveEvent(
+            @Nullable Object triggeringEvent,
+            @NotNull DiscordSRVPlayer player,
+            @Nullable MinecraftComponent message
+    ) {
+        this(triggeringEvent, player, message, false);
+    }
+
+    @ApiStatus.Experimental
     public ServerSwitchMessageReceiveEvent(
             @Nullable Object triggeringEvent,
             @NotNull DiscordSRVPlayer player,

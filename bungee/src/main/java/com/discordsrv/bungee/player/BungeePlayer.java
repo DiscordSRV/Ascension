@@ -18,6 +18,7 @@
 
 package com.discordsrv.bungee.player;
 
+import com.discordsrv.api.task.Task;
 import com.discordsrv.bungee.BungeeDiscordSRV;
 import com.discordsrv.bungee.command.game.sender.BungeeCommandSender;
 import com.discordsrv.bungee.component.util.BungeeComponentUtil;
@@ -33,7 +34,6 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.Collection;
 import java.util.Locale;
-import java.util.concurrent.CompletableFuture;
 
 public class BungeePlayer extends BungeeCommandSender implements IPlayer {
 
@@ -57,9 +57,9 @@ public class BungeePlayer extends BungeeCommandSender implements IPlayer {
     }
 
     @Override
-    public CompletableFuture<Void> kick(Component component) {
+    public Task<Void> kick(Component component) {
         player.disconnect(BungeeComponentSerializer.get().serialize(component));
-        return CompletableFuture.completedFuture(null);
+        return Task.completed(null);
     }
 
     @Override
@@ -80,6 +80,11 @@ public class BungeePlayer extends BungeeCommandSender implements IPlayer {
     @Override
     public @Nullable Locale locale() {
         return player.getLocale();
+    }
+
+    @Override
+    public boolean isVanished() {
+        return false;
     }
 
     @Override

@@ -21,6 +21,7 @@ package com.discordsrv.common.command.combined.commands;
 import com.discordsrv.api.discord.entity.interaction.command.CommandOption;
 import com.discordsrv.api.discord.entity.interaction.command.DiscordCommand;
 import com.discordsrv.api.discord.entity.interaction.component.ComponentIdentifier;
+import com.discordsrv.api.task.Task;
 import com.discordsrv.common.DiscordSRV;
 import com.discordsrv.common.abstraction.player.IPlayer;
 import com.discordsrv.common.abstraction.sync.AbstractSyncModule;
@@ -35,13 +36,11 @@ import com.discordsrv.common.command.game.abstraction.command.GameCommand;
 import com.discordsrv.common.feature.bansync.BanSyncModule;
 import com.discordsrv.common.feature.groupsync.GroupSyncModule;
 import com.discordsrv.common.helper.Someone;
-import com.discordsrv.common.permission.game.Permission;
-import com.discordsrv.common.util.CompletableFutureUtil;
+import com.discordsrv.common.permission.game.Permissions;
 import net.kyori.adventure.text.format.NamedTextColor;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
-import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -60,10 +59,10 @@ public class ResyncCommand extends CombinedCommand {
         if (GAME == null) {
             ResyncCommand command = getInstance(discordSRV);
             GAME = GameCommand.literal("resync")
-                    .requiredPermission(Permission.COMMAND_RESYNC)
+                    .requiredPermission(Permissions.COMMAND_RESYNC)
                     .then(
                             GameCommand.stringWord("type")
-                                    .requiredPermission(Permission.COMMAND_RESYNC)
+                                    .requiredPermission(Permissions.COMMAND_RESYNC)
                                     .executor(command)
                                     .suggester(command)
                     );
@@ -141,19 +140,19 @@ public class ResyncCommand extends CombinedCommand {
         execution.runAsync(() -> {
             long startTime = System.currentTimeMillis();
 
-            List<CompletableFuture<? extends SyncSummary<?>>> futures = resyncOnlinePlayers(module);
-            CompletableFutureUtil.combineGeneric(futures).thenCompose(result -> {
-                List<CompletableFuture<?>> results = new ArrayList<>();
+            List<Task<? extends SyncSummary<?>>> futures = resyncOnlinePlayers(module);
+            Task.allOf(futures).then(result -> {
+                List<Task<?>> results = new ArrayList<>();
                 for (SyncSummary<?> summary : result) {
                     results.add(summary.resultFuture());
                 }
-                return CompletableFutureUtil.combineGeneric(results);
+                return Task.allOf(results);
             }).whenComplete((__, t) -> {
                 Map<ISyncResult, AtomicInteger> resultCounts = new HashMap<>();
                 int total = 0;
 
                 List<ISyncResult> results = new ArrayList<>();
-                for (CompletableFuture<? extends SyncSummary<?>> future : futures) {
+                for (Task<? extends SyncSummary<?>> future : futures) {
                     SyncSummary<?> summary = future.join();
                     ISyncResult allFailResult = summary.allFailReason();
                     if (allFailResult != null) {
@@ -191,10 +190,10 @@ public class ResyncCommand extends CombinedCommand {
         });
     }
 
-    private List<CompletableFuture<? extends SyncSummary<?>>> resyncOnlinePlayers(AbstractSyncModule<?, ?, ?, ?, ?> module) {
-        List<CompletableFuture<? extends SyncSummary<?>>> summaries = new ArrayList<>();
+    private List<Task<? extends SyncSummary<?>>> resyncOnlinePlayers(AbstractSyncModule<?, ?, ?, ?, ?> module) {
+        List<Task<? extends SyncSummary<?>>> summaries = new ArrayList<>();
         for (IPlayer player : discordSRV.playerProvider().allPlayers()) {
-            summaries.add(module.resyncAll(GenericSyncCauses.COMMAND, Someone.of(player)));
+            summaries.add(module.resyncAll(GenericSyncCauses.COMMAND, Someone.of(discordSRV, player)));
         }
         return summaries;
     }

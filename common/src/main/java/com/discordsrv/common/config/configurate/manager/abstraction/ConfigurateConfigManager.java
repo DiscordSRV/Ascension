@@ -174,7 +174,7 @@ public abstract class ConfigurateConfigManager<T, LT extends AbstractConfigurati
         return new IChannelConfig.Serializer(mapperFactory, BaseChannelConfig.class, ChannelConfig.class);
     }
 
-    @SuppressWarnings("unchecked") // Special Class cast
+    @SuppressWarnings("unchecked")
     public ConfigurationOptions configurationOptions(ObjectMapper.Factory objectMapper, boolean headerSubstitutions) {
         String header = header();
         if (header != null && headerSubstitutions) {
@@ -268,8 +268,8 @@ public abstract class ConfigurateConfigManager<T, LT extends AbstractConfigurati
                         return;
                     }
 
-                    String optionValue = destination.getString();
-                    if (optionValue == null) {
+                    Object optionValue = destination.raw();
+                    if (!(optionValue instanceof String)) {
                         return;
                     }
 
@@ -390,7 +390,7 @@ public abstract class ConfigurateConfigManager<T, LT extends AbstractConfigurati
 
     protected void translate(CommentedConfigurationNode node) throws ConfigurateException {}
 
-    @SuppressWarnings("unchecked") // Cast to generic
+    @SuppressWarnings("unchecked")
     @Override
     public void reload(boolean forceSave, AtomicBoolean anyMissingOptions, @Nullable Path backupPath) throws ConfigException {
         T defaultConfig = createConfiguration();
@@ -411,10 +411,6 @@ public abstract class ConfigurateConfigManager<T, LT extends AbstractConfigurati
                 return;
             }
 
-            if (backupPath != null) {
-                Files.copy(filePath(), backupPath.resolve(fileName()));
-            }
-
             // Load existing file & translate
             CommentedConfigurationNode node = loader().load();
 
@@ -430,6 +426,9 @@ public abstract class ConfigurateConfigManager<T, LT extends AbstractConfigurati
 
             configuration = objectMapper().get(defaultConfigClass).load(node);
             if (forceSave) {
+                if (backupPath != null) {
+                    Files.copy(filePath(), backupPath.resolve(fileName()));
+                }
                 save(loader);
             }
         } catch (IOException e) {

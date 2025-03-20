@@ -50,7 +50,7 @@ public class VelocityCommandHandler implements ICommandHandler {
 
     @Override
     public void registerCommand(GameCommand command) {
-        LiteralCommandNode<CommandSource> node = BrigadierUtil.convertToBrigadier(command, this::getSender);
+        LiteralCommandNode<CommandSource> node = BrigadierUtil.convertToBrigadier(discordSRV, command, this::getSender);
         discordSRV.proxy().getCommandManager().register(
                 discordSRV.proxy().getCommandManager().getCommandMeta(command.getLabel()),
                 new BrigadierCommand(node)

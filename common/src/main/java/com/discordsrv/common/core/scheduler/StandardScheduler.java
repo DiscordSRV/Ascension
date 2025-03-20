@@ -134,6 +134,11 @@ public class StandardScheduler implements Scheduler {
         return scheduledExecutorService.scheduleAtFixedRate(wrap(task), initialDelay.toMillis(), rate.toMillis(), TimeUnit.MILLISECONDS);
     }
 
+    @Override
+    public boolean isServerThread() {
+        return Thread.currentThread().getName().equals("Server thread");
+    }
+
     public class ExceptionHandlingExecutor implements Executor {
 
         @Override

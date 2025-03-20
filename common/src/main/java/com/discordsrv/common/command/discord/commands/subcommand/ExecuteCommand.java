@@ -29,7 +29,8 @@ import com.discordsrv.api.events.discord.interaction.command.DiscordChatInputInt
 import com.discordsrv.api.events.discord.interaction.command.DiscordCommandAutoCompleteInteractionEvent;
 import com.discordsrv.common.DiscordSRV;
 import com.discordsrv.common.command.game.abstraction.GameCommandExecutionHelper;
-import com.discordsrv.common.config.main.DiscordCommandConfig;
+import com.discordsrv.common.config.main.ExecuteCommandConfig;
+import com.discordsrv.common.config.main.generic.DiscordOutputMode;
 import com.discordsrv.common.config.main.generic.GameCommandExecutionConditionConfig;
 import com.discordsrv.common.core.logging.Logger;
 import com.discordsrv.common.core.logging.NamedLogger;
@@ -47,7 +48,7 @@ public class ExecuteCommand implements Consumer<DiscordChatInputInteractionEvent
 
     public static DiscordCommand get(DiscordSRV discordSRV) {
         if (INSTANCE == null) {
-            DiscordCommandConfig.ExecuteConfig config = discordSRV.config().discordCommand.execute;
+            ExecuteCommandConfig config = discordSRV.config().executeCommand;
 
             ExecuteCommand command = new ExecuteCommand(discordSRV);
             INSTANCE = DiscordCommand.chatInput(ComponentIdentifier.of("DiscordSRV", "execute"), "execute", "Run a Minecraft console command")
@@ -75,8 +76,9 @@ public class ExecuteCommand implements Consumer<DiscordChatInputInteractionEvent
         this.logger = new NamedLogger(discordSRV, "EXECUTE_COMMAND");
     }
 
-    public boolean isNotAcceptableCommand(DiscordGuildMember member, DiscordUser user, String command, boolean suggestions) {
-        DiscordCommandConfig.ExecuteConfig config = discordSRV.config().discordCommand.execute;
+    @SuppressWarnings("BooleanMethodIsAlwaysInverted") // Security important, don't negate unnecessarily
+    public boolean isAcceptableCommand(DiscordGuildMember member, DiscordUser user, String command, boolean suggestions) {
+        ExecuteCommandConfig config = discordSRV.config().executeCommand;
 
         for (GameCommandExecutionConditionConfig filter : config.executionConditions) {
             if (!filter.isAcceptableCommand(member, user, command, suggestions, helper)) {
@@ -88,7 +90,7 @@ public class ExecuteCommand implements Consumer<DiscordChatInputInteractionEvent
 
     @Override
     public void accept(DiscordChatInputInteractionEvent event) {
-        DiscordCommandConfig.ExecuteConfig config = discordSRV.config().discordCommand.execute;
+        ExecuteCommandConfig config = discordSRV.config().executeCommand;
         boolean ephemeral = config.ephemeral;
         if (!config.enabled) {
             event.reply(SendableDiscordMessage.builder().setContent("The execute command is disabled").build(), true); // TODO: translation
@@ -100,7 +102,7 @@ public class ExecuteCommand implements Consumer<DiscordChatInputInteractionEvent
             return;
         }
 
-        if (isNotAcceptableCommand(event.getMember(), event.getUser(), command, false)) {
+        if (!isAcceptableCommand(event.getMember(), event.getUser(), command, false)) {
             event.reply(SendableDiscordMessage.builder().setContent("You do not have permission to run that command").build(), true); // TODO: translation
             return;
         }
@@ -121,7 +123,7 @@ public class ExecuteCommand implements Consumer<DiscordChatInputInteractionEvent
             return;
         }
 
-        DiscordCommandConfig.ExecuteConfig config = discordSRV.config().discordCommand.execute;
+        ExecuteCommandConfig config = discordSRV.config().executeCommand;
         if (!config.suggest) {
             return;
         }
@@ -168,7 +170,7 @@ public class ExecuteCommand implements Consumer<DiscordChatInputInteractionEvent
             if (event.getChoices().size() >= 25) {
                 break;
             }
-            if (config.filterSuggestions && isNotAcceptableCommand(event.getMember(), event.getUser(), suggestion, true)) {
+            if (config.filterSuggestions && !isAcceptableCommand(event.getMember(), event.getUser(), suggestion, true)) {
                 continue;
             }
 
@@ -197,7 +199,7 @@ public class ExecuteCommand implements Consumer<DiscordChatInputInteractionEvent
 
         private final DiscordSRV discordSRV;
         private final DiscordInteractionHook hook;
-        private final DiscordCommandConfig.OutputMode outputMode;
+        private final DiscordOutputMode outputMode;
         private final boolean ephemeral;
         private ScheduledFuture<?> future;
         private final Queue<Component> queued = new LinkedBlockingQueue<>();
@@ -205,7 +207,7 @@ public class ExecuteCommand implements Consumer<DiscordChatInputInteractionEvent
         public ExecutionContext(
                 DiscordSRV discordSRV,
                 DiscordInteractionHook hook,
-                DiscordCommandConfig.OutputMode outputMode,
+                DiscordOutputMode outputMode,
                 boolean ephemeral
         ) {
             this.discordSRV = discordSRV;
@@ -221,7 +223,7 @@ public class ExecuteCommand implements Consumer<DiscordChatInputInteractionEvent
         }
 
         private void consumeComponent(Component component) {
-            if (outputMode == DiscordCommandConfig.OutputMode.OFF) {
+            if (outputMode == DiscordOutputMode.OFF) {
                 return;
             }
             synchronized (queued) {
@@ -233,10 +235,8 @@ public class ExecuteCommand implements Consumer<DiscordChatInputInteractionEvent
         }
 
         private void send() {
-            boolean ansi = outputMode == DiscordCommandConfig.OutputMode.ANSI;
-            boolean plainBlock = outputMode == DiscordCommandConfig.OutputMode.CODEBLOCK;
-            String prefix = ansi ? "```ansi\n" : (plainBlock ? "```\n" : "");
-            String suffix = ansi ? "```" : (plainBlock ? "```" : "");
+            String prefix = outputMode.prefix();
+            String suffix = outputMode.suffix();
 
             String delimiter = "\n";
             StringJoiner joiner = new StringJoiner(delimiter);
@@ -246,7 +246,6 @@ public class ExecuteCommand implements Consumer<DiscordChatInputInteractionEvent
                 while ((component = queued.poll()) != null) {
                     String discord;
                     switch (outputMode) {
-                        default:
                         case MARKDOWN:
                             discord = discordSRV.componentFactory().discordSerialize(component);
                             break;
@@ -254,7 +253,8 @@ public class ExecuteCommand implements Consumer<DiscordChatInputInteractionEvent
                             discord = discordSRV.componentFactory().ansiSerializer().serialize(component);
                             break;
                         case PLAIN:
-                        case CODEBLOCK:
+                        case CODE_BLOCK:
+                        default:
                             discord = discordSRV.componentFactory().plainSerializer().serialize(component);
                             break;
                     }

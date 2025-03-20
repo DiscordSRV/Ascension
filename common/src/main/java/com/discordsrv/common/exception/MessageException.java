@@ -22,7 +22,6 @@ import com.discordsrv.common.util.ExceptionUtil;
 
 public class MessageException extends RuntimeException {
 
-    @SuppressWarnings("ThrowableNotThrown")
     public MessageException(String message) {
         super(message);
         ExceptionUtil.minifyException(this);

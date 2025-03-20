@@ -19,6 +19,7 @@
 package com.discordsrv.common.feature.linking.impl;
 
 import com.discordsrv.api.eventbus.Subscribe;
+import com.discordsrv.api.task.Task;
 import com.discordsrv.common.DiscordSRV;
 import com.discordsrv.common.events.player.PlayerConnectedEvent;
 import com.discordsrv.common.feature.linking.LinkProvider;
@@ -85,7 +86,9 @@ public abstract class CachedLinkProvider implements LinkProvider {
                 .buildAsync(new AsyncCacheLoader<UUID, Long>() {
                     @Override
                     public @NotNull CompletableFuture<Long> asyncLoad(@NotNull UUID key, @NotNull Executor executor) {
-                        return queryUserId(key, linkingAllowed.remove(key)).thenApply(opt -> opt.orElse(UNLINKED_USER));
+                        return queryUserId(key, linkingAllowed.remove(key))
+                                .thenApply(opt -> opt.orElse(UNLINKED_USER))
+                                .getFuture();
                     }
 
                     @Override
@@ -106,13 +109,13 @@ public abstract class CachedLinkProvider implements LinkProvider {
     }
 
     @Override
-    public CompletableFuture<Optional<Long>> getUserId(@NotNull UUID playerUUID) {
-        return playerToUser.get(playerUUID).thenApply(value -> {
+    public Task<Optional<Long>> getUserId(@NotNull UUID playerUUID) {
+        return Task.of(playerToUser.get(playerUUID).thenApply(value -> {
             if (value == UNLINKED_USER) {
                 return Optional.empty();
             }
             return Optional.of(value);
-        });
+        }));
     }
 
     @Override
@@ -122,10 +125,10 @@ public abstract class CachedLinkProvider implements LinkProvider {
     }
 
     @Override
-    public CompletableFuture<Optional<UUID>> getPlayerUUID(long userId) {
+    public Task<Optional<UUID>> getPlayerUUID(long userId) {
         UUID player = userToPlayer.getIfPresent(userId);
         if (player != null) {
-            return CompletableFuture.completedFuture(player == UNLINKED_UUID ? Optional.empty() : Optional.of(player));
+            return Task.completed(player == UNLINKED_UUID ? Optional.empty() : Optional.of(player));
         }
 
         return queryPlayerUUID(userId).thenApply(optional -> {
@@ -169,11 +172,11 @@ public abstract class CachedLinkProvider implements LinkProvider {
             super(discordSRV);
         }
 
-        public abstract CompletableFuture<Void> link(@NotNull UUID playerUUID, long userId);
-        public abstract CompletableFuture<Void> unlink(@NotNull UUID playerUUID, long userId);
+        public abstract Task<Void> link(@NotNull UUID playerUUID, long userId);
+        public abstract Task<Void> unlink(@NotNull UUID playerUUID, long userId);
 
         @Override
-        public final CompletableFuture<Void> createLink(@NotNull UUID playerUUID, long userId) {
+        public final Task<Void> createLink(@NotNull UUID playerUUID, long userId) {
             return link(playerUUID, userId).thenApply(v -> {
                 addToCache(playerUUID, userId);
                 return null;
@@ -181,7 +184,7 @@ public abstract class CachedLinkProvider implements LinkProvider {
         }
 
         @Override
-        public CompletableFuture<Void> removeLink(@NotNull UUID playerUUID, long userId) {
+        public Task<Void> removeLink(@NotNull UUID playerUUID, long userId) {
             return unlink(playerUUID, userId).thenApply(v -> {
                 evictFromCache(playerUUID);
                 return null;

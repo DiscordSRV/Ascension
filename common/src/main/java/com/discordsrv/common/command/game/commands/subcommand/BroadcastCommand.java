@@ -22,6 +22,7 @@ import com.discordsrv.api.component.MinecraftComponent;
 import com.discordsrv.api.discord.entity.channel.DiscordGuildMessageChannel;
 import com.discordsrv.api.discord.entity.channel.DiscordMessageChannel;
 import com.discordsrv.api.discord.entity.message.SendableDiscordMessage;
+import com.discordsrv.api.task.Task;
 import com.discordsrv.common.DiscordSRV;
 import com.discordsrv.common.command.game.abstraction.command.GameCommand;
 import com.discordsrv.common.command.game.abstraction.command.GameCommandArguments;
@@ -30,14 +31,13 @@ import com.discordsrv.common.command.game.abstraction.command.GameCommandSuggest
 import com.discordsrv.common.command.game.abstraction.sender.ICommandSender;
 import com.discordsrv.common.config.main.channels.base.BaseChannelConfig;
 import com.discordsrv.common.config.main.channels.base.IChannelConfig;
-import com.discordsrv.common.permission.game.Permission;
+import com.discordsrv.common.permission.game.Permissions;
 import com.discordsrv.common.util.ComponentUtil;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 import net.kyori.adventure.text.serializer.gson.GsonComponentSerializer;
 
 import java.util.*;
-import java.util.concurrent.CompletableFuture;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
@@ -70,7 +70,7 @@ public abstract class BroadcastCommand implements GameCommandExecutor, GameComma
             BroadcastCommand command = executor.get();
             consumer.accept(
                     GameCommand.literal(label)
-                            .requiredPermission(Permission.COMMAND_BROADCAST)
+                            .requiredPermission(Permissions.COMMAND_BROADCAST)
                             .then(
                                     GameCommand.string("channel")
                                             .suggester(command)
@@ -97,13 +97,13 @@ public abstract class BroadcastCommand implements GameCommandExecutor, GameComma
         doExecute(sender, arguments);
     }
 
-    @SuppressWarnings("unchecked") // Wacky generics
+    @SuppressWarnings("unchecked")
     private <CC extends BaseChannelConfig & IChannelConfig> void doExecute(ICommandSender sender, GameCommandArguments arguments) {
         String channel = arguments.getString("channel");
         String content = arguments.getString("content");
 
         Set<DiscordMessageChannel> channels = new HashSet<>();
-        CompletableFuture<List<DiscordGuildMessageChannel>> future = null;
+        Task<List<DiscordGuildMessageChannel>> future = null;
         try {
             long id = Long.parseUnsignedLong(channel);
 
