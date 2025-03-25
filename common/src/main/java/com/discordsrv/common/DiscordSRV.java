@@ -115,6 +115,7 @@ public interface DiscordSRV extends com.discordsrv.api.DiscordSRV {
     TemporaryLocalData temporaryLocalData();
 
     // Link Provider
+    @Nullable
     LinkProvider linkProvider();
 
     // Version

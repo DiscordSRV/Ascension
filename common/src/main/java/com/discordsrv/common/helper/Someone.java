@@ -26,14 +26,12 @@ import com.discordsrv.api.task.Task;
 import com.discordsrv.common.DiscordSRV;
 import com.discordsrv.common.abstraction.player.IOfflinePlayer;
 import com.discordsrv.common.abstraction.player.IPlayer;
+import com.discordsrv.common.feature.linking.LinkProvider;
 import com.discordsrv.common.feature.profile.ProfileImpl;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Objects;
-import java.util.UUID;
+import java.util.*;
 
 /**
  * Represents a subject that is
@@ -136,7 +134,13 @@ public class Someone {
         } else if (playerUUID == null) {
             return throwIllegal();
         }
-        return discordSRV.linkProvider().getUserId(playerUUID).thenApply(opt -> opt.orElse(null));
+
+        LinkProvider linkProvider = discordSRV.linkProvider();
+        if (linkProvider == null) {
+            return Task.completed(null);
+        }
+
+        return linkProvider.getUserId(playerUUID).thenApply(opt -> opt.orElse(null));
     }
 
     public Task<@Nullable UUID> withPlayerUUID() {
@@ -145,7 +149,13 @@ public class Someone {
         } else if (userId == null) {
             return throwIllegal();
         }
-        return discordSRV.linkProvider().getPlayerUUID(userId).thenApply(opt -> opt.orElse(null));
+
+        LinkProvider linkProvider = discordSRV.linkProvider();
+        if (linkProvider == null) {
+            return Task.completed(null);
+        }
+
+        return linkProvider.getPlayerUUID(userId).thenApply(opt -> opt.orElse(null));
     }
 
     @Nullable

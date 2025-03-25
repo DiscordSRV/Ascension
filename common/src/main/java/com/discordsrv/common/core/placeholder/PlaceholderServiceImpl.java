@@ -145,7 +145,7 @@ public class PlaceholderServiceImpl implements PlaceholderService {
     }
 
     private PlaceholderLookupResult getResult(PlaceholderProvider provider, String placeholder, Set<Object> contexts) {
-        PlaceholderLookupResult result = provider.lookup(placeholder, contexts);
+        PlaceholderLookupResult result = provider.lookup(placeholder, Collections.unmodifiableSet(contexts));
 
         Object lookupResult = result.getResult();
         if (lookupResult instanceof Task) {

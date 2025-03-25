@@ -34,7 +34,7 @@ import com.discordsrv.common.command.game.commands.subcommand.LinkInitGameComman
 import com.discordsrv.common.core.logging.Logger;
 import com.discordsrv.common.core.logging.NamedLogger;
 import com.discordsrv.common.feature.linking.LinkProvider;
-import com.discordsrv.common.feature.linking.LinkStore;
+import com.discordsrv.common.feature.linking.LinkingModule;
 import com.discordsrv.common.permission.game.Permissions;
 import com.discordsrv.common.util.CommandUtil;
 import net.kyori.adventure.text.format.NamedTextColor;
@@ -53,20 +53,23 @@ public class LinkOtherCommand extends CombinedCommand {
 
     public static GameCommand getGame(DiscordSRV discordSRV) {
         if (GAME == null) {
+            LinkProvider linkProvider = discordSRV.linkProvider();
             GameCommandExecutor initCommand = LinkInitGameCommand.getExecutor(discordSRV);
-            LinkOtherCommand otherCommand = getInstance(discordSRV);
 
             GAME = GameCommand.literal("link")
-                    .then(
-                            GameCommand.stringWord("player")
-                                    .then(
-                                            GameCommand.stringWord("user")
-                                                    .requiredPermission(Permissions.COMMAND_LINK_OTHER)
-                                                    .executor(otherCommand)
-                                    )
-                    )
                     .requiredPermission(Permissions.COMMAND_LINK)
                     .executor(initCommand);
+
+            if (linkProvider != null && !linkProvider.usesLocalLinking()) {
+                GAME = GAME.then(
+                        GameCommand.stringWord("player")
+                                .then(
+                                        GameCommand.stringWord("user")
+                                                .requiredPermission(Permissions.COMMAND_LINK_OTHER)
+                                                .executor(getInstance(discordSRV))
+                                )
+                );
+            }
         }
 
         return GAME;
@@ -108,8 +111,14 @@ public class LinkOtherCommand extends CombinedCommand {
     @Override
     public void execute(CommandExecution execution) {
         LinkProvider linkProvider = discordSRV.linkProvider();
-        if (!(linkProvider instanceof LinkStore)) {
+        if (linkProvider == null || !linkProvider.usesLocalLinking()) {
             execution.send(new Text("Cannot create links using this link provider").withGameColor(NamedTextColor.DARK_RED));
+            return;
+        }
+
+        LinkingModule module = discordSRV.getModule(LinkingModule.class);
+        if (module == null) {
+            execution.send(new Text("Unable to link at this time").withGameColor(NamedTextColor.DARK_RED));
             return;
         }
 
@@ -156,7 +165,7 @@ public class LinkOtherCommand extends CombinedCommand {
                         return;
                     }
 
-                    ((LinkStore) linkProvider).createLink(playerUUID, userId).whenComplete((v, t3) -> {
+                    module.link(playerUUID, userId).whenComplete((v, t3) -> {
                         if (t3 != null) {
                             logger.error("Failed to create link", t3);
                             execution.send(

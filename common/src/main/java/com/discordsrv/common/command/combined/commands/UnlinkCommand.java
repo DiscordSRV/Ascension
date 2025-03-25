@@ -29,7 +29,7 @@ import com.discordsrv.common.command.game.abstraction.command.GameCommand;
 import com.discordsrv.common.core.logging.Logger;
 import com.discordsrv.common.core.logging.NamedLogger;
 import com.discordsrv.common.feature.linking.LinkProvider;
-import com.discordsrv.common.feature.linking.LinkStore;
+import com.discordsrv.common.feature.linking.LinkingModule;
 import com.discordsrv.common.permission.game.Permissions;
 import com.discordsrv.common.util.CommandUtil;
 import net.kyori.adventure.text.format.NamedTextColor;
@@ -115,8 +115,14 @@ public class UnlinkCommand extends CombinedCommand {
         execution.setEphemeral(true);
 
         LinkProvider linkProvider = discordSRV.linkProvider();
-        if (!(linkProvider instanceof LinkStore)) {
+        if (linkProvider == null || !linkProvider.usesLocalLinking()) {
             execution.send(new Text("Cannot remove links with this link provider").withGameColor(NamedTextColor.DARK_RED));
+            return;
+        }
+
+        LinkingModule module = discordSRV.getModule(LinkingModule.class);
+        if (module == null) {
+            execution.send(new Text("Unable to unlink at this time").withGameColor(NamedTextColor.DARK_RED));
             return;
         }
 
@@ -127,7 +133,7 @@ public class UnlinkCommand extends CombinedCommand {
                         return;
                     }
                     if (result.isValid()) {
-                        processResult(result, execution, (LinkStore) linkProvider);
+                        processResult(result, execution, linkProvider, module);
                     } else {
                         execution.send(new Text("Invalid target"));
                     }
@@ -135,10 +141,15 @@ public class UnlinkCommand extends CombinedCommand {
         );
     }
 
-    private void processResult(CommandUtil.TargetLookupResult result, CommandExecution execution, LinkStore linkStore) {
+    private void processResult(
+            CommandUtil.TargetLookupResult result,
+            CommandExecution execution,
+            LinkProvider linkProvider,
+            LinkingModule module
+    ) {
         if (result.isPlayer()) {
             UUID playerUUID = result.getPlayerUUID();
-            discordSRV.linkProvider().queryUserId(playerUUID)
+            linkProvider.queryUserId(playerUUID)
                     .whenComplete((user, t) -> {
                         if (t != null) {
                             logger.error("Failed to query user", t);
@@ -150,11 +161,11 @@ public class UnlinkCommand extends CombinedCommand {
                             return;
                         }
 
-                        handleUnlinkForPair(playerUUID, user.get(), execution, linkStore);
+                        handleUnlinkForPair(playerUUID, user.get(), execution, module);
                     });
         } else {
             long userId = result.getUserId();
-            discordSRV.linkProvider().queryPlayerUUID(result.getUserId())
+            linkProvider.queryPlayerUUID(result.getUserId())
                     .whenComplete((player, t) -> {
                         if (t != null) {
                             logger.error("Failed to query player", t);
@@ -166,15 +177,15 @@ public class UnlinkCommand extends CombinedCommand {
                             return;
                         }
 
-                        handleUnlinkForPair(player.get(), userId, execution, linkStore);
+                        handleUnlinkForPair(player.get(), userId, execution, module);
                     });
         }
     }
 
-    private void handleUnlinkForPair(UUID player, Long user, CommandExecution execution, LinkStore linkStore) {
-        linkStore.removeLink(player, user).whenComplete((v, t2) -> {
-            if (t2 != null) {
-                logger.error("Failed to remove link", t2);
+    private void handleUnlinkForPair(UUID player, Long user, CommandExecution execution, LinkingModule module) {
+        module.unlink(player, user).whenComplete((v, t) -> {
+            if (t != null) {
+                logger.error("Failed to remove link", t);
                 execution.send(
                         execution.messages().minecraft.unableToLinkAtThisTime.asComponent(),
                         execution.messages().discord.unableToCheckLinkingStatus.get()

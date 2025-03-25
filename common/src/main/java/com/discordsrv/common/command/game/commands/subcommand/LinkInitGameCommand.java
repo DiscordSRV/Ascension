@@ -68,6 +68,11 @@ public class LinkInitGameCommand implements GameCommandExecutor {
         MessagesConfig.Minecraft messages = discordSRV.messagesConfig(player);
 
         LinkProvider linkProvider = discordSRV.linkProvider();
+        if (linkProvider == null) {
+            player.sendMessage(messages.unableToLinkAtThisTime.asComponent());
+            return;
+        }
+
         if (linkProvider.getCachedUserId(player.uniqueId()).isPresent()) {
             // Check cache first
             player.sendMessage(messages.alreadyLinked1st.asComponent());
