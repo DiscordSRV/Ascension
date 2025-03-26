@@ -54,7 +54,7 @@ public class DiscordRoleRequirementType extends LongRequirementType {
     public void onDiscordMemberRoleChange(AbstractDiscordMemberRoleChangeEvent<?> event) {
         boolean add = event instanceof DiscordMemberRoleAddEvent;
 
-        Someone someone = Someone.of(event.getMember().getUser().getId());
+        Someone someone = Someone.of(discordSRV, event.getMember().getUser().getId());
         for (DiscordRole role : event.getRoles()) {
             stateChanged(someone, role.getId(), add);
         }

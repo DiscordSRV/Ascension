@@ -78,4 +78,11 @@ public interface LinkProvider {
             Object... additionalContext
     );
     boolean isValidCode(@NotNull String code);
+
+    @NotNull
+    LinkStore store();
+
+    default boolean usesLocalLinking() {
+        return this instanceof LinkStore;
+    }
 }

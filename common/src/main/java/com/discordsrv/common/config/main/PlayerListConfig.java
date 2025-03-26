@@ -16,35 +16,35 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package com.discordsrv.common.config.helper;
+package com.discordsrv.common.config.main;
 
-import com.discordsrv.api.DiscordSRV;
-import com.discordsrv.api.component.GameTextBuilder;
-import com.discordsrv.api.component.MinecraftComponent;
-import com.discordsrv.common.util.ComponentUtil;
-import net.kyori.adventure.text.Component;
+import com.discordsrv.common.config.main.generic.DiscordOutputMode;
 
-public class MinecraftMessage {
+public class PlayerListConfig {
 
-    private final String rawFormat;
+    public String noPlayersFormat = "No players";
 
-    public MinecraftMessage(String rawFormat) {
-        this.rawFormat = rawFormat;
-    }
+    public String sortBy = "%player_name%";
 
-    public String rawFormat() {
-        return rawFormat;
-    }
+    public boolean group = false;
+    public String groupBy = "%player_primary_group%";
+    public String groupingHeader = "%group%\n";
+    public String groupSeparator = "\n\n";
 
-    public GameTextBuilder textBuilder() {
-        return DiscordSRV.get().componentFactory().textBuilder(rawFormat);
-    }
+    public String playerFormat = "%player_team_display_name%";
+    public String playerSeparator = ", ";
 
-    public MinecraftComponent make() {
-        return textBuilder().build();
-    }
+    public Command command = new Command();
 
-    public Component asComponent() {
-        return ComponentUtil.fromAPI(make());
+    public static class Command {
+
+        public DiscordOutputMode outputMode = DiscordOutputMode.ANSI;
+
+        public String header = "";
+        public String footer = "";
+
+        public String previousLabel = "⬅";
+        public String nextLabel = "➡";
+
     }
 }

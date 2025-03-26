@@ -23,7 +23,7 @@
 
 package com.discordsrv.api.component;
 
-import com.discordsrv.api.DiscordSRVApi;
+import com.discordsrv.api.DiscordSRV;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -57,7 +57,7 @@ public interface MinecraftComponentAdapter<Component> {
      */
     @NotNull
     static <T> MinecraftComponentAdapter<T> create(Class<?> gsonSerializerClass, Class<T> componentClass) {
-        return DiscordSRVApi.get()
+        return DiscordSRV.get()
                 .componentFactory()
                 .makeAdapter(gsonSerializerClass, componentClass);
     }

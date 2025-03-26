@@ -23,7 +23,7 @@
 
 package com.discordsrv.api.discord.entity.channel;
 
-import com.discordsrv.api.DiscordSRVApi;
+import com.discordsrv.api.DiscordSRV;
 import com.discordsrv.api.task.Task;
 import net.dv8tion.jda.api.entities.channel.attribute.IThreadContainer;
 import org.jetbrains.annotations.NotNull;
@@ -48,7 +48,7 @@ public interface DiscordThreadContainer extends DiscordGuildChannel {
     /**
      * Returns the JDA representation of this object. This should not be used if it can be avoided.
      * @return the JDA representation of this object
-     * @see DiscordSRVApi#jda()
+     * @see DiscordSRV#jda()
      */
     IThreadContainer getAsJDAThreadContainer();
 }

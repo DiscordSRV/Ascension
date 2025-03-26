@@ -29,7 +29,7 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.function.Consumer;
 
-@SuppressWarnings({"UnstableApiUsage", "deprecation"})
+@SuppressWarnings({"UnstableApiUsage", "deprecation"}) // Backwards compatability
 @Proxy(value = Audience.class, className = "AdventureCommandExecutorProxy")
 public abstract class AdventureCommandExecutorProxyTemplate implements Audience {
 

@@ -82,6 +82,11 @@ public class DiscordSRVLogger implements Logger {
         this.debugLogs = rotateLog("debug", 3);
     }
 
+    public void shutdown() {
+        lineProcessingFuture.cancel(false);
+        flushLines();
+    }
+
     public List<Path> getDebugLogs() {
         return debugLogs;
     }
@@ -182,7 +187,7 @@ public class DiscordSRVLogger implements Logger {
             LogLevel consoleLevel = logLevel;
             if (debugOrTrace) {
                 // Normally DEBUG/TRACE logging isn't enabled, so we convert it to INFO and add the level
-                consoleMessage = "[" + logLevel.name() + "]" + (message != null ? " " + message : "");
+                consoleMessage = "[" + logLevel.name() + "]" + (loggerName != null ? " [" + loggerName + "]" : "") + (message != null ? " " + message : "");
                 consoleLevel = LogLevel.INFO;
             }
             discordSRV.platformLogger().log(null, consoleLevel, consoleMessage, throwable);
@@ -200,12 +205,12 @@ public class DiscordSRVLogger implements Logger {
         linesToWrite.add(entry);
         synchronized (lineProcessingLock) {
             if (lineProcessingFuture == null || lineProcessingFuture.isDone()) {
-                lineProcessingFuture = discordSRV.scheduler().runLater(this::processLines, Duration.ofSeconds(2));
+                lineProcessingFuture = discordSRV.scheduler().runLater(this::flushLines, Duration.ofSeconds(2));
             }
         }
     }
 
-    private void processLines() {
+    private void flushLines() {
         LogEntry entry;
         while ((entry = linesToWrite.poll()) != null) {
             writeToFile(entry.log(), entry.loggerName(), entry.time(), entry.logLevel(), entry.message(), entry.throwable());

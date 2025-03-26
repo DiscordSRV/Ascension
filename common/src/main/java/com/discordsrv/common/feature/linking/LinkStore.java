@@ -43,4 +43,9 @@ public interface LinkStore extends LinkProvider {
     Task<Void> removeLinkingCode(@NotNull UUID playerUUID);
 
     Task<Integer> getLinkedAccountCount();
+
+    @Override
+    default @NotNull LinkStore store() {
+        return this;
+    }
 }

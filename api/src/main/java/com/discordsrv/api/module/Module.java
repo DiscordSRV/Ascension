@@ -23,7 +23,7 @@
 
 package com.discordsrv.api.module;
 
-import com.discordsrv.api.DiscordSRVApi;
+import com.discordsrv.api.DiscordSRV;
 import com.discordsrv.api.discord.connection.details.DiscordCacheFlag;
 import com.discordsrv.api.discord.connection.details.DiscordGatewayIntent;
 import com.discordsrv.api.eventbus.EventListener;
@@ -43,7 +43,7 @@ import java.util.function.Consumer;
 public interface Module {
 
     /**
-     * Determined if this {@link Module} can be enabled before {@link DiscordSRVApi#isReady()}.
+     * Determined if this {@link Module} can be enabled before {@link DiscordSRV#isReady()}.
      * @return {@code true} to allow this {@link Module} to be enabled before DiscordSRV is ready
      */
     default boolean canEnableBeforeReady() {
@@ -64,10 +64,10 @@ public interface Module {
      * This defaults to determining intents based on the events listened to in this class via {@link Subscribe} methods.
      * @return the collection of gateway intents required by this module at the time this method is called
      */
-    @SuppressWarnings("unchecked") // Class generic cast
+    @SuppressWarnings("unchecked")
     @NotNull
     default Collection<DiscordGatewayIntent> requiredIntents() {
-        DiscordSRVApi api = DiscordSRVApi.get();
+        DiscordSRV api = DiscordSRV.get();
 
         Collection<? extends EventListener> listeners = api.eventBus().getListeners(this);
         EnumSet<DiscordGatewayIntent> intents = EnumSet.noneOf(DiscordGatewayIntent.class);
@@ -124,7 +124,6 @@ public interface Module {
      * @param type the type being looked up this could be an interface
      * @return the priority of this module, higher is more important. Default is 0
      */
-    @SuppressWarnings("unused") // API
     default int priority(Class<?> type) {
         return 0;
     }

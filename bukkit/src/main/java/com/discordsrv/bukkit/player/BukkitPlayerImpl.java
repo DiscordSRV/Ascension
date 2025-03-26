@@ -18,7 +18,6 @@
 
 package com.discordsrv.bukkit.player;
 
-import com.discordsrv.api.component.MinecraftComponent;
 import com.discordsrv.api.task.Task;
 import com.discordsrv.bukkit.BukkitDiscordSRV;
 import com.discordsrv.bukkit.component.PaperComponentHandle;
@@ -85,11 +84,16 @@ public class BukkitPlayerImpl extends BukkitPlayer {
     @Override
     public @NotNull Component displayName() {
         if (PaperComponentHandle.IS_AVAILABLE) {
-            MinecraftComponent displayName = PaperPlayerUtil.displayName(player);
-            if (displayName != null) {
-                return ComponentUtil.fromAPI(displayName);
-            }
+            return ComponentUtil.fromAPI(PaperPlayerUtil.displayName(player));
         }
         return super.displayName();
+    }
+
+    @Override
+    public @NotNull Component teamDisplayName() {
+        if (PaperPlayerUtil.TEAM_DISPLAY_NAME_AVAILABLE) {
+            return ComponentUtil.fromAPI(PaperPlayerUtil.teamDisplayName(player));
+        }
+        return super.teamDisplayName();
     }
 }

@@ -23,23 +23,27 @@
 
 package com.discordsrv.api.profile;
 
-import com.discordsrv.api.task.Task;
-import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.UUID;
 
-public interface IProfileManager {
-
-    @NotNull
-    Task<? extends IProfile> lookupProfile(UUID playerUUID);
-
-    @Nullable
-    IProfile getProfile(UUID playerUUID);
-
-    @NotNull
-    Task<? extends IProfile> lookupProfile(long userId);
+/**
+ * A profile for a Minecraft player, Discord user or linked pair.
+ */
+public interface Profile {
 
     @Nullable
-    IProfile getProfile(long userId);
+    UUID playerUUID();
+
+    @Nullable
+    Long userId();
+
+    /**
+     * If this profile belongs to a linked Player and User pair.
+     * @return {@code true} if this profile is for a linked player/user
+     */
+    default boolean isLinked() {
+        return playerUUID() != null && userId() != null;
+    }
+
 }

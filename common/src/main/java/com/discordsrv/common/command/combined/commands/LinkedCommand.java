@@ -24,11 +24,14 @@ import com.discordsrv.api.discord.entity.interaction.component.ComponentIdentifi
 import com.discordsrv.common.DiscordSRV;
 import com.discordsrv.common.command.combined.abstraction.CombinedCommand;
 import com.discordsrv.common.command.combined.abstraction.CommandExecution;
+import com.discordsrv.common.command.combined.abstraction.Text;
 import com.discordsrv.common.command.game.abstraction.command.GameCommand;
 import com.discordsrv.common.core.logging.Logger;
 import com.discordsrv.common.core.logging.NamedLogger;
+import com.discordsrv.common.feature.linking.LinkProvider;
 import com.discordsrv.common.permission.game.Permissions;
 import com.discordsrv.common.util.CommandUtil;
+import net.kyori.adventure.text.format.NamedTextColor;
 
 import java.util.UUID;
 
@@ -90,6 +93,12 @@ public class LinkedCommand extends CombinedCommand {
     public void execute(CommandExecution execution) {
         execution.setEphemeral(true);
 
+        LinkProvider linkProvider = discordSRV.linkProvider();
+        if (linkProvider == null) {
+            execution.send(new Text("Cannot check linking status using this link provider").withGameColor(NamedTextColor.DARK_RED));
+            return;
+        }
+
         execution.runAsync(() -> CommandUtil.lookupTarget(discordSRV, logger, execution, true, Permissions.COMMAND_LINKED_OTHER)
                 .whenComplete((result, t) -> {
                     if (t != null) {
@@ -97,17 +106,21 @@ public class LinkedCommand extends CombinedCommand {
                         return;
                     }
                     if (result.isValid()) {
-                        processResult(result, execution);
+                        processResult(result, execution, linkProvider);
                     }
                 })
         );
     }
 
-    private void processResult(CommandUtil.TargetLookupResult result, CommandExecution execution) {
+    private void processResult(
+            CommandUtil.TargetLookupResult result,
+            CommandExecution execution,
+            LinkProvider linkProvider
+    ) {
         if (result.isPlayer()) {
             UUID playerUUID = result.getPlayerUUID();
 
-            discordSRV.linkProvider().getUserId(playerUUID).whenComplete((optUserId, t) -> {
+            linkProvider.getUserId(playerUUID).whenComplete((optUserId, t) -> {
                 if (t != null) {
                     logger.error("Failed to check linking status during linked command", t);
                     execution.messages().unableToCheckLinkingStatus(execution);
@@ -124,7 +137,7 @@ public class LinkedCommand extends CombinedCommand {
         } else {
             long userId = result.getUserId();
 
-            discordSRV.linkProvider().getPlayerUUID(userId).whenComplete((optPlayerUUID, t) -> {
+            linkProvider.getPlayerUUID(userId).whenComplete((optPlayerUUID, t) -> {
                 if (t != null) {
                     logger.error("Failed to check linking status during linked command", t);
                     execution.send(

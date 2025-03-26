@@ -45,6 +45,7 @@ public interface PermissionModule extends Module {
         Task<Boolean> hasGroup(@NotNull UUID player, @NotNull String groupName, boolean includeInherited);
         Task<Void> addGroup(@NotNull UUID player, @NotNull String groupName);
         Task<Void> removeGroup(@NotNull UUID player, @NotNull String groupName);
+        Task<String> getPrimaryGroup(@NotNull UUID player);
     }
 
     interface Permissions extends PermissionModule {

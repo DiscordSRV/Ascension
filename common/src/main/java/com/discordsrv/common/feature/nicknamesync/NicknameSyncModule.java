@@ -90,7 +90,7 @@ public class NicknameSyncModule extends AbstractSyncModule<DiscordSRV, NicknameS
         DiscordUser user = discordSRV.discordAPI().getUser(event.getUser());
         discordChanged(
                 NicknameSyncCause.DISCORD_NICKNAME_CHANGED,
-                Someone.of(user),
+                Someone.of(discordSRV, user),
                 event.getGuild().getIdLong(),
                 event.getNewNickname()
         );
@@ -99,7 +99,7 @@ public class NicknameSyncModule extends AbstractSyncModule<DiscordSRV, NicknameS
     public void newGameNickname(UUID playerUUID, String newNickname) {
         gameChanged(
                 NicknameSyncCause.GAME_NICKNAME_CHANGED,
-                Someone.of(playerUUID),
+                Someone.of(discordSRV, playerUUID),
                 Game.INSTANCE,
                 newNickname
         );
@@ -117,32 +117,32 @@ public class NicknameSyncModule extends AbstractSyncModule<DiscordSRV, NicknameS
     }
 
     @Override
-    protected Task<String> getDiscord(NicknameSyncConfig config, long userId) {
+    protected Task<String> getDiscord(NicknameSyncConfig config, Someone.Resolved someone) {
         DiscordGuild guild = discordSRV.discordAPI().getGuildById(config.serverId);
         if (guild == null) {
             return Task.failed(new SyncFail(GenericSyncResults.GUILD_NOT_FOUND));
         }
 
-        return guild.retrieveMemberById(userId)
+        return someone.guildMember(guild)
                 .thenApply(DiscordGuildMember::getNickname)
                 .thenApply(nickname -> cleanNickname(config, nickname));
     }
 
     @Override
-    protected Task<String> getGame(NicknameSyncConfig config, UUID playerUUID) {
+    protected Task<String> getGame(NicknameSyncConfig config, Someone.Resolved someone) {
         NicknameModule module = getModule();
         if (module == null) {
             return Task.failed(new SyncFail(GenericSyncResults.MODULE_NOT_FOUND));
         }
 
-        return module.getNickname(playerUUID)
+        return module.getNickname(someone.playerUUID())
                 .thenApply(nickname -> cleanNickname(config, nickname));
     }
 
     @Override
     protected Task<ISyncResult> applyDiscord(
             NicknameSyncConfig config,
-            long userId,
+            Someone.Resolved someone,
             @Nullable String newNickname
     ) {
         DiscordGuild guild = discordSRV.discordAPI().getGuildById(config.serverId);
@@ -150,7 +150,7 @@ public class NicknameSyncModule extends AbstractSyncModule<DiscordSRV, NicknameS
             return Task.completed(GenericSyncResults.GUILD_NOT_FOUND);
         }
 
-        return guild.retrieveMemberById(userId)
+        return someone.guildMember(guild)
                 .thenApply(member -> {
                     Member jdaMember = member.asJDA();
                     if (!jdaMember.getGuild().getSelfMember().canInteract(jdaMember)) {
@@ -165,7 +165,7 @@ public class NicknameSyncModule extends AbstractSyncModule<DiscordSRV, NicknameS
     @Override
     protected Task<ISyncResult> applyGame(
             NicknameSyncConfig config,
-            UUID playerUUID,
+            Someone.Resolved someone,
             @Nullable String newNickname
     ) {
         NicknameModule module = getModule();
@@ -173,6 +173,6 @@ public class NicknameSyncModule extends AbstractSyncModule<DiscordSRV, NicknameS
             return Task.failed(new SyncFail(GenericSyncResults.MODULE_NOT_FOUND));
         }
 
-        return module.setNickname(playerUUID, newNickname).thenApply(v -> NicknameSyncResult.SET_GAME);
+        return module.setNickname(someone.playerUUID(), newNickname).thenApply(v -> NicknameSyncResult.SET_GAME);
     }
 }

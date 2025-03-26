@@ -108,8 +108,11 @@ public abstract class MainConfig implements Config {
     @Comment("In-game command configuration")
     public GameCommandConfig gameCommand = new GameCommandConfig();
 
-    @Comment("Discord command configuration")
-    public DiscordCommandConfig discordCommand = new DiscordCommandConfig();
+    @Comment("Configuration for the /discordsrv execute Discord command")
+    public ExecuteCommandConfig executeCommand = new ExecuteCommandConfig();
+
+    @Comment("Configuration for the /minecraft playerlist Discord command and %playerlist% placeholder")
+    public PlayerListConfig playerList = new PlayerListConfig();
 
     @Comment("Options for console channel(s) and/or thread(s)")
     public List<ConsoleConfig> console = new ArrayList<>(Collections.singleton(new ConsoleConfig()));

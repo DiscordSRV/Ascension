@@ -62,8 +62,8 @@ public class MinecraftAuthenticationLinker extends CachedLinkProvider {
                         .map(account -> (DiscordAccount) account)
                         .map(discord -> Long.parseUnsignedLong(discord.getUserId())),
                 () -> linkStore.getUserId(playerUUID),
-                userId -> linked(playerUUID, userId),
-                userId -> unlinked(playerUUID, userId),
+                userId -> module().link(playerUUID, userId),
+                userId -> module().unlink(playerUUID, userId),
                 playerUUID.toString()
         ).mapException(t -> {
             throw new RuntimeException("Failed to lookup user id for " + playerUUID, t);
@@ -78,8 +78,8 @@ public class MinecraftAuthenticationLinker extends CachedLinkProvider {
                         .map(account -> (MinecraftAccount) account)
                         .map(MinecraftAccount::getUUID),
                 () -> linkStore.getPlayerUUID(userId),
-                playerUUID -> linked(playerUUID, userId),
-                playerUUID -> unlinked(playerUUID, userId),
+                playerUUID -> module().link(playerUUID, userId),
+                playerUUID -> module().unlink(playerUUID, userId),
                 Long.toUnsignedString(userId)
         ).mapException(t -> {
             throw new RuntimeException("Failed to lookup Player UUID for " + Long.toUnsignedString(userId), t);
@@ -100,6 +100,11 @@ public class MinecraftAuthenticationLinker extends CachedLinkProvider {
     @Override
     public boolean isValidCode(@NotNull String code) {
         throw new IllegalStateException("Does not offer codes");
+    }
+
+    @Override
+    public @NotNull LinkStore store() {
+        return linkStore;
     }
 
     private Task<MinecraftComponent> getInstructions(
@@ -142,31 +147,6 @@ public class MinecraftAuthenticationLinker extends CachedLinkProvider {
         return Task.completed(component);
     }
 
-    private void linked(UUID playerUUID, long userId) {
-        logger.debug("New link: " + playerUUID + " & " + Long.toUnsignedString(userId));
-        linkStore.createLink(playerUUID, userId).whenComplete((v, t) -> {
-            if (t != null) {
-                logger.error("Failed to link player persistently", t);
-                return;
-            }
-
-            module().linked(playerUUID, userId);
-        });
-
-    }
-
-    private void unlinked(UUID playerUUID, long userId) {
-        logger.debug("Unlink: " + playerUUID + " & " + Long.toUnsignedString(userId));
-        linkStore.removeLink(playerUUID, userId).whenComplete((v, t) -> {
-            if (t != null) {
-                logger.error("Failed to unlink player in persistent storage", t);
-                return;
-            }
-
-            module().unlinked(playerUUID, userId);
-        });
-    }
-
     private LinkingModule module() {
         LinkingModule module = discordSRV.getModule(LinkingModule.class);
         if (module == null) {
@@ -178,7 +158,7 @@ public class MinecraftAuthenticationLinker extends CachedLinkProvider {
     @SuppressWarnings({"OptionalUsedAsFieldOrParameterType", "OptionalAssignedToNull"}) // Hack
     private static final Optional<?> ERROR = null;
 
-    @SuppressWarnings("unchecked") // Cast to the ERROR constant
+    @SuppressWarnings("unchecked")
     private <T> Task<Optional<T>> query(
             boolean canCauseLink,
             CheckedSupplier<Optional<T>> authSupplier,

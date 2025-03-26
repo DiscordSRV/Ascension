@@ -171,6 +171,18 @@ public class VaultIntegration extends PluginIntegration<BukkitDiscordSRV> implem
     }
 
     @Override
+    public Task<String> getPrimaryGroup(@NotNull UUID player) {
+        if (permission == null || !permission.isEnabled() || !permission.hasGroupSupport()) {
+            return unsupported(permission);
+        }
+
+        return supply(() -> {
+            OfflinePlayer offlinePlayer = offlinePlayer(player);
+            return permission.getPrimaryGroup(null, offlinePlayer);
+        }, permissionAsync);
+    }
+
+    @Override
     public Task<Boolean> hasPermission(@NotNull UUID player, @NotNull String permissionNode) {
         if (permission == null || !permission.isEnabled()) {
             return unsupported(permission);

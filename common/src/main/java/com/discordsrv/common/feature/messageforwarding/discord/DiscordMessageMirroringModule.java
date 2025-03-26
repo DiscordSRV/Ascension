@@ -88,7 +88,7 @@ public class DiscordMessageMirroringModule extends AbstractModule<DiscordSRV> {
         return EnumSet.of(DiscordGatewayIntent.GUILD_MESSAGES, DiscordGatewayIntent.MESSAGE_CONTENT);
     }
 
-    @SuppressWarnings("unchecked") // Wacky generics
+    @SuppressWarnings("unchecked")
     @Subscribe(ignoreCancelled = false)
     public <CC extends BaseChannelConfig & IChannelConfig> void onDiscordChatMessageProcessing(DiscordChatMessageReceiveEvent event) {
         if (checkCancellation(event)) {
@@ -200,8 +200,8 @@ public class DiscordMessageMirroringModule extends AbstractModule<DiscordSRV> {
                             channel,
                             Permission.VIEW_CHANNEL,
                             Permission.MANAGE_WEBHOOKS,
-                            embedAttachments ? Permission.MESSAGE_EMBED_LINKS : null,
-                            attachAttachments ? Permission.MESSAGE_ATTACH_FILES : null
+                            hasAttachments && embedAttachments ? Permission.MESSAGE_EMBED_LINKS : null,
+                            hasAttachments && attachAttachments ? Permission.MESSAGE_ATTACH_FILES : null
                     );
                     if (missingPermissions != null) {
                         logger().error("Failed to mirror message to " + describeChannel(mirrorChannel) + ": " + missingPermissions);
@@ -260,11 +260,7 @@ public class DiscordMessageMirroringModule extends AbstractModule<DiscordSRV> {
     }
 
     private String describeChannel(DiscordGuildMessageChannel channel) {
-        if (channel instanceof DiscordThreadChannel) {
-            return "\"" + channel.getName() + "\" in #" + ((DiscordThreadChannel) channel).getParentChannel().getName();
-        }
-
-        return "#" + channel.getName();
+        return channel.toString();
     }
 
     @Subscribe
@@ -419,7 +415,7 @@ public class DiscordMessageMirroringModule extends AbstractModule<DiscordSRV> {
             ) : replyMessage.getJumpUrl();
 
             finalContent = PlainPlaceholderFormat.supplyWith(
-                    PlainPlaceholderFormat.Formatting.DISCORD,
+                    PlainPlaceholderFormat.Formatting.DISCORD_MARKDOWN,
                     () -> discordSRV.placeholderService()
                             .replacePlaceholders(
                                     config.replyFormat,

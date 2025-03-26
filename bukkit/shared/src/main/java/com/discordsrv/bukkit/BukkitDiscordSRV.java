@@ -18,7 +18,7 @@
 
 package com.discordsrv.bukkit;
 
-import com.discordsrv.api.DiscordSRVApi;
+import com.discordsrv.api.DiscordSRV;
 import com.discordsrv.bukkit.config.main.BukkitConfig;
 import com.discordsrv.bukkit.player.BukkitPlayerProvider;
 import com.discordsrv.bukkit.plugin.BukkitPluginManager;
@@ -52,7 +52,7 @@ public abstract class BukkitDiscordSRV extends AbstractDiscordSRV<IBukkitBootstr
     @Override
     protected void enable() throws Throwable {
         // Service provider
-        server().getServicesManager().register(DiscordSRVApi.class, this, plugin(), ServicePriority.Normal);
+        server().getServicesManager().register(DiscordSRV.class, this, plugin(), ServicePriority.Normal);
 
         // Adventure related stuff
         this.audiences = BukkitAudiences.create(bootstrap.getPlugin());

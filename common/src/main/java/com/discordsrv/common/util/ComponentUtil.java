@@ -73,7 +73,7 @@ public final class ComponentUtil {
         return new MinecraftComponentImpl(component);
     }
 
-    @Contract("null -> null")
+    @Contract("null -> null; _ -> _")
     public static Component fromAPI(@Nullable MinecraftComponent component) {
         if (component == null) {
             return null;

@@ -46,6 +46,7 @@ public class GroupSyncConfig {
                         pair.groupName,
                         pair.roleId,
                         set.contexts,
+                        set.includeInherited,
                         set.direction,
                         set.timer,
                         set.tieBreaker
@@ -61,6 +62,9 @@ public class GroupSyncConfig {
         @Comment("LuckPerms context values, used when adding, removing and checking the groups of players.\n"
                 + "The format is: {\"context\": [\"value\"]}")
         public Map<String, List<String>> contexts = new LinkedHashMap<>();
+
+        @Comment("If inherited groups should be included when checking if the Player has a group. Only works with LuckPerms")
+        public boolean includeInherited = false;
 
         @Comment("The pairs of case-sensitive Minecraft group names from your permission plugin, and Discord role ids")
         @Order(1)
@@ -81,11 +85,13 @@ public class GroupSyncConfig {
         public final String groupName;
         public final long roleId;
         public final Map<String, List<String>> contexts;
+        private final boolean includeInherited;
 
         public Entry(
                 String groupName,
                 long roleId,
                 Map<String, List<String>> contexts,
+                boolean includeInherited,
                 SyncDirection direction,
                 TimerConfig timer,
                 SyncSide tieBreaker
@@ -93,6 +99,7 @@ public class GroupSyncConfig {
             this.groupName = groupName;
             this.roleId = roleId;
             this.contexts = contexts;
+            this.includeInherited = includeInherited;
             this.direction = direction;
             this.timer = timer;
             this.tieBreaker = tieBreaker;
@@ -134,6 +141,10 @@ public class GroupSyncConfig {
                 contexts.put(entry.getKey(), values);
             }
             return contexts;
+        }
+
+        public boolean includeInherited() {
+            return includeInherited;
         }
 
         public static String makeGameId(String groupName, Map<String, ? extends Collection<String>> contexts) {

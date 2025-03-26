@@ -35,6 +35,7 @@ import com.discordsrv.common.DiscordSRV;
 import com.discordsrv.common.command.game.abstraction.GameCommandExecutionHelper;
 import com.discordsrv.common.config.main.ConsoleConfig;
 import com.discordsrv.common.config.main.generic.DestinationConfig;
+import com.discordsrv.common.config.main.generic.DiscordOutputMode;
 import com.discordsrv.common.config.main.generic.GameCommandExecutionConditionConfig;
 import com.discordsrv.common.core.logging.Logger;
 import com.discordsrv.common.feature.console.entry.LogEntry;
@@ -203,7 +204,7 @@ public class SingleConsoleHandler {
                 + "-" + destination.thread.threadName
                 + "-" + config.channel.thread.privateThread;
 
-        boolean sendOn = config.appender.outputMode != ConsoleConfig.OutputMode.OFF;
+        boolean sendOn = config.appender.outputMode != DiscordOutputMode.OFF;
         if (sendOn) {
             if (messageQueue == null) {
                 this.messageQueue = new LinkedBlockingQueue<>();
@@ -253,7 +254,7 @@ public class SingleConsoleHandler {
         });
     }
 
-    @SuppressWarnings({"BusyWait"})
+    @SuppressWarnings("BusyWait") // Known
     public void shutdown() {
         shutdown = true;
         queueProcessingFuture.cancel(false);
@@ -287,7 +288,7 @@ public class SingleConsoleHandler {
         if (shutdown) {
             return;
         }
-        if (config.appender.outputMode == ConsoleConfig.OutputMode.OFF) {
+        if (config.appender.outputMode == DiscordOutputMode.OFF) {
             return;
         }
         this.queueProcessingFuture = discordSRV.scheduler().runLater(this::processQueue, Duration.ofMillis(1500));
@@ -331,7 +332,7 @@ public class SingleConsoleHandler {
 
     private void processMessageQueue() {
         ConsoleConfig.Appender appenderConfig = config.appender;
-        ConsoleConfig.OutputMode outputMode = appenderConfig.outputMode;
+        DiscordOutputMode outputMode = appenderConfig.outputMode;
 
         Queue<LogMessage> currentBuffer = new LinkedBlockingQueue<>();
         LogEntry entry;
@@ -377,7 +378,7 @@ public class SingleConsoleHandler {
         clearBuffer(currentBuffer, outputMode);
     }
 
-    private void clearBuffer(Queue<LogMessage> currentBuffer, ConsoleConfig.OutputMode outputMode) {
+    private void clearBuffer(Queue<LogMessage> currentBuffer, DiscordOutputMode outputMode) {
         if (currentBuffer.isEmpty()) {
             return;
         }
@@ -413,7 +414,7 @@ public class SingleConsoleHandler {
         }
     }
 
-    private void queueMessage(String message, boolean lastEdit, ConsoleConfig.OutputMode outputMode) {
+    private void queueMessage(String message, boolean lastEdit, DiscordOutputMode outputMode) {
         SendableDiscordMessage sendableMessage = SendableDiscordMessage.builder()
                 .setContent(outputMode.prefix() + message + outputMode.suffix())
                 .setSuppressedNotifications(config.appender.silentMessages)
@@ -423,14 +424,14 @@ public class SingleConsoleHandler {
         sendQueue.offer(Pair.of(sendableMessage, lastEdit));
     }
 
-    private List<String> formatEntry(LogEntry entry, String throwable, ConsoleConfig.OutputMode outputMode, boolean diffExceptions) {
+    private List<String> formatEntry(LogEntry entry, String throwable, DiscordOutputMode outputMode, boolean diffExceptions) {
         int blockLength = outputMode.blockLength();
         int maximumPart = MESSAGE_MAX_LENGTH - blockLength - "\n".length();
 
         // Escape content
         String plainMessage = entry.message();
-        if (outputMode != ConsoleConfig.OutputMode.MARKDOWN) {
-            if (outputMode == ConsoleConfig.OutputMode.PLAIN_CONTENT) {
+        if (outputMode != DiscordOutputMode.MARKDOWN) {
+            if (outputMode == DiscordOutputMode.PLAIN) {
                 plainMessage = DiscordFormattingUtil.escapeContent(plainMessage);
             } else {
                 plainMessage = plainMessage.replace("``", "`\u200B`"); // zero-width-space
@@ -452,8 +453,8 @@ public class SingleConsoleHandler {
         }
 
         String message = PlainPlaceholderFormat.supplyWith(
-                outputMode == ConsoleConfig.OutputMode.PLAIN_CONTENT
-                    ? PlainPlaceholderFormat.Formatting.DISCORD
+                outputMode == DiscordOutputMode.MARKDOWN
+                    ? PlainPlaceholderFormat.Formatting.DISCORD_MARKDOWN
                     : PlainPlaceholderFormat.Formatting.PLAIN,
                 () ->
                         discordSRV.placeholderService().replacePlaceholders(
@@ -463,7 +464,7 @@ public class SingleConsoleHandler {
                         )
         );
 
-        if (outputMode == ConsoleConfig.OutputMode.DIFF) {
+        if (outputMode == DiscordOutputMode.DIFF) {
             String diff = getLogLevelDiffCharacter(entry.level());
             if (!message.isEmpty()) {
                 message = diff + message.replace("\n", "\n" + diff);

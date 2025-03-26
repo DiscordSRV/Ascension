@@ -21,7 +21,7 @@ package com.discordsrv.common.feature.profile;
 import com.discordsrv.api.discord.entity.DiscordUser;
 import com.discordsrv.api.placeholder.annotation.Placeholder;
 import com.discordsrv.api.placeholder.annotation.PlaceholderPrefix;
-import com.discordsrv.api.profile.IProfile;
+import com.discordsrv.api.profile.Profile;
 import com.discordsrv.api.task.Task;
 import com.discordsrv.common.DiscordSRV;
 import com.discordsrv.common.abstraction.player.IOfflinePlayer;
@@ -31,13 +31,13 @@ import org.jetbrains.annotations.Nullable;
 import java.util.UUID;
 
 @PlaceholderPrefix("profile_")
-public class Profile implements IProfile {
+public class ProfileImpl implements Profile {
 
     private final DiscordSRV discordSRV;
     private final UUID playerUUID;
     private final Long userId;
 
-    public Profile(DiscordSRV discordSRV, UUID playerUUID, Long userId) {
+    public ProfileImpl(DiscordSRV discordSRV, UUID playerUUID, Long userId) {
         this.discordSRV = discordSRV;
         this.playerUUID = playerUUID;
         this.userId = userId;

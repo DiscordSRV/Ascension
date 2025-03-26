@@ -70,7 +70,7 @@ public class ComponentIdentifier {
         discordIdentifier = discordIdentifier.substring(ID_PREFIX.length());
 
         @Subst("Example:Test")
-        String[] parts = discordIdentifier.split(Pattern.quote(ID_PREFIX));
+        String[] parts = discordIdentifier.split(Pattern.quote(":"), 2);
         if (parts.length != 2) {
             return null;
         }

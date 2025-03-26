@@ -134,7 +134,7 @@ public abstract class RequiredLinkingModule<T extends DiscordSRV> extends Abstra
     public abstract void recheck(IPlayer player);
 
     private void recheck(Someone someone) {
-        someone.withPlayerUUID(discordSRV).thenApply(uuid -> {
+        someone.withPlayerUUID().thenApply(uuid -> {
             if (uuid == null) {
                 return null;
             }
@@ -166,7 +166,7 @@ public abstract class RequiredLinkingModule<T extends DiscordSRV> extends Abstra
 
     @Subscribe
     public void onAccountUnlinked(AccountUnlinkedEvent event) {
-        recheck(Someone.of(event.getPlayerUUID()));
+        recheck(Someone.of(discordSRV, event.getPlayerUUID()));
     }
 
     protected List<ParsedRequirements> compile(List<String> additionalRequirements) {
@@ -233,7 +233,7 @@ public abstract class RequiredLinkingModule<T extends DiscordSRV> extends Abstra
             List<Task<Boolean>> all = new ArrayList<>();
 
             for (ParsedRequirements requirement : additionalRequirements) {
-                Task<Boolean> future = requirement.predicate().apply(Someone.of(playerUUID, userId));
+                Task<Boolean> future = requirement.predicate().apply(Someone.of(discordSRV, playerUUID, userId));
 
                 all.add(future.thenApply(val -> {
                     if (val) {

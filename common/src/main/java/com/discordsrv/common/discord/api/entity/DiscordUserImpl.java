@@ -28,7 +28,7 @@ import com.discordsrv.common.DiscordSRV;
 import com.discordsrv.common.abstraction.player.IOfflinePlayer;
 import com.discordsrv.common.abstraction.player.IPlayer;
 import com.discordsrv.common.discord.api.entity.channel.DiscordDMChannelImpl;
-import com.discordsrv.common.feature.profile.Profile;
+import com.discordsrv.common.feature.profile.ProfileImpl;
 import net.dv8tion.jda.api.JDA;
 import net.dv8tion.jda.api.entities.User;
 import org.jetbrains.annotations.NotNull;
@@ -48,7 +48,7 @@ public class DiscordUserImpl implements DiscordUser {
     }
 
     @Placeholder("profile")
-    public Task<@NotNull Profile> profile() {
+    public Task<@NotNull ProfileImpl> profile() {
         return discordSRV.profileManager().lookupProfile(user.getIdLong());
     }
 

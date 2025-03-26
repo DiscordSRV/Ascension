@@ -20,29 +20,61 @@ package com.discordsrv.common.feature.linking;
 
 import com.discordsrv.api.events.linking.AccountLinkedEvent;
 import com.discordsrv.api.events.linking.AccountUnlinkedEvent;
-import com.discordsrv.api.profile.IProfile;
+import com.discordsrv.api.task.Task;
 import com.discordsrv.common.DiscordSRV;
 import com.discordsrv.common.core.logging.NamedLogger;
 import com.discordsrv.common.core.module.type.AbstractModule;
+import com.discordsrv.common.feature.profile.ProfileImpl;
+import com.github.benmanes.caffeine.cache.Cache;
 
 import java.util.UUID;
 
 public class LinkingModule extends AbstractModule<DiscordSRV> {
 
+    private final Cache<Object, Boolean> linkCheckRateLimit;
+
     public LinkingModule(DiscordSRV discordSRV) {
         super(discordSRV, new NamedLogger(discordSRV, "LINKING"));
+        this.linkCheckRateLimit = discordSRV.caffeineBuilder()
+                .expireAfterWrite(LinkStore.LINKING_CODE_RATE_LIMIT)
+                .build();
     }
 
-    public void linked(UUID playerUUID, long userId) {
-        IProfile profile = discordSRV.profileManager().getProfile(playerUUID);
-        if (profile == null || !profile.isLinked()) {
-            throw new IllegalStateException("Notified that account linked, but profile is null or unlinked");
+    public boolean rateLimit(Object identifier) {
+        synchronized (linkCheckRateLimit) {
+            boolean rateLimited = linkCheckRateLimit.getIfPresent(identifier) != null;
+            if (!rateLimited) {
+                linkCheckRateLimit.put(identifier, true);
+            }
+            return rateLimited;
+        }
+    }
+
+    private LinkStore store() {
+        LinkProvider provider = discordSRV.linkProvider();
+        if (provider == null) {
+            throw new IllegalStateException("LinkProvider is null");
         }
 
-        discordSRV.eventBus().publish(new AccountLinkedEvent(profile));
+        return provider.store();
     }
 
-    public void unlinked(UUID playerUUID, long userId) {
-        discordSRV.eventBus().publish(new AccountUnlinkedEvent(playerUUID, userId));
+    public Task<ProfileImpl> link(UUID playerUUID, long userId) {
+        return store().createLink(playerUUID, userId)
+                .then(v -> discordSRV.profileManager().loadProfile(playerUUID))
+                .whenSuccessful(profile -> {
+                    logger().debug("Linked: " + playerUUID + " & " + Long.toUnsignedString(userId));
+                    discordSRV.eventBus().publish(new AccountLinkedEvent(profile));
+                })
+                .whenFailed(t -> logger().error("Failed to link " + playerUUID + " and " + Long.toUnsignedString(userId), t));
+    }
+
+    public Task<Void> unlink(UUID playerUUID, long userId) {
+        return store().removeLink(playerUUID, userId)
+                .whenComplete((v, t) -> {
+                    logger().debug("Unlinked: " + playerUUID + " & " + Long.toUnsignedString(userId));
+                    discordSRV.eventBus().publish(new AccountUnlinkedEvent(playerUUID, userId));
+                })
+                .whenFailed(t -> logger().error("Failed to unlink " + playerUUID + " and " + Long.toUnsignedString(userId), t));
     }
 }

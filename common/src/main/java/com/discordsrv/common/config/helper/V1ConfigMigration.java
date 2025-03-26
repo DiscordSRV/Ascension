@@ -27,6 +27,7 @@ import com.discordsrv.common.config.main.MainConfig;
 import com.discordsrv.common.config.main.channels.DiscordToMinecraftChatConfig;
 import com.discordsrv.common.config.main.channels.base.BaseChannelConfig;
 import com.discordsrv.common.config.main.channels.base.ChannelConfig;
+import com.discordsrv.common.config.main.generic.DiscordOutputMode;
 import org.spongepowered.configurate.ConfigurateException;
 import org.spongepowered.configurate.ConfigurationNode;
 import org.spongepowered.configurate.serialize.SerializationException;
@@ -112,7 +113,7 @@ public class V1ConfigMigration {
         if (!consoleChannelId.replace("0", "").isEmpty()) {
             ConsoleConfig consoleConfig = new ConsoleConfig();
             consoleConfig.channel.channelId = Long.parseUnsignedLong(consoleChannelId);
-            consoleConfig.appender.outputMode = config.node("DiscordConsoleChannelUseCodeBlocks").getBoolean() ? ConsoleConfig.OutputMode.DIFF : ConsoleConfig.OutputMode.PLAIN_CONTENT;
+            consoleConfig.appender.outputMode = config.node("DiscordConsoleChannelUseCodeBlocks").getBoolean() ? DiscordOutputMode.DIFF : DiscordOutputMode.PLAIN;
             consoleConfig.appender.levels.levels = config.node("DiscordConsoleChannelLevels").getList(String.class, Collections.emptyList())
                     .stream().map(level -> level.toUpperCase(Locale.ROOT)).collect(Collectors.toList());
             consoleConfig.appender.levels.blacklist = false;

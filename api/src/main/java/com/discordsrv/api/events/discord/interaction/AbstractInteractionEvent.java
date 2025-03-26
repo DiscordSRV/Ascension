@@ -56,6 +56,10 @@ public abstract class AbstractInteractionEvent<T extends GenericInteractionCreat
         this.channel = channel;
     }
 
+    public ComponentIdentifier getIdentifier() {
+        return identifier;
+    }
+
     public boolean isFor(ComponentIdentifier identifier) {
         return this.identifier.equals(identifier);
     }

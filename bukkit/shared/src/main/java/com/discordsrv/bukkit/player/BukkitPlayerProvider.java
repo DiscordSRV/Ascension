@@ -79,9 +79,10 @@ public class BukkitPlayerProvider extends ServerPlayerProvider<BukkitPlayer, Buk
 
     @EventHandler(priority = EventPriority.LOWEST)
     public void onPlayerJoin(PlayerJoinEvent event) {
-        if (player(event.getPlayer()) == null) {
+        Player player = event.getPlayer();
+        if (player(player.getUniqueId()) == null) {
             // The player wasn't loaded at PlayerLoginEvent (offline mode)
-            addPlayer(event.getPlayer(), false);
+            addPlayer(player, false);
         }
     }
 

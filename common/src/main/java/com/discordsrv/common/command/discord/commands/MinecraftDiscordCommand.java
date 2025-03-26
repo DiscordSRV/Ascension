@@ -23,8 +23,8 @@ import com.discordsrv.api.discord.entity.interaction.component.ComponentIdentifi
 import com.discordsrv.common.DiscordSRV;
 import com.discordsrv.common.command.combined.commands.UnlinkCommand;
 import com.discordsrv.common.command.discord.commands.subcommand.LinkInitDiscordCommand;
-import com.discordsrv.common.config.main.DiscordCommandConfig;
-import com.discordsrv.common.feature.linking.LinkStore;
+import com.discordsrv.common.command.discord.commands.subcommand.PlayerListCommand;
+import com.discordsrv.common.feature.linking.LinkProvider;
 
 public class MinecraftDiscordCommand {
 
@@ -32,15 +32,17 @@ public class MinecraftDiscordCommand {
 
     public static DiscordCommand get(DiscordSRV discordSRV) {
         if (INSTANCE == null) {
-            DiscordCommandConfig config = discordSRV.config().discordCommand;
-
             ComponentIdentifier identifier = ComponentIdentifier.of("DiscordSRV", "minecraft");
-            DiscordCommand.ChatInputBuilder builder = DiscordCommand.chatInput(identifier, "minecraft", "Minecraft server commands");
+            DiscordCommand.ChatInputBuilder builder = DiscordCommand.chatInput(identifier, "minecraft", "Minecraft server commands")
+                    .addSubCommand(PlayerListCommand.get(discordSRV));
 
-            if (discordSRV.linkProvider() instanceof LinkStore) {
-                builder = builder
-                        .addSubCommand(LinkInitDiscordCommand.getInstance(discordSRV))
-                        .addSubCommand(UnlinkCommand.getDiscordWithoutOther(discordSRV));
+            LinkProvider linkProvider = discordSRV.linkProvider();
+            if (linkProvider != null) {
+                if (linkProvider.usesLocalLinking()) {
+                    builder = builder
+                            .addSubCommand(LinkInitDiscordCommand.getInstance(discordSRV))
+                            .addSubCommand(UnlinkCommand.getDiscordWithoutOther(discordSRV));
+                }
             }
 
             INSTANCE = builder

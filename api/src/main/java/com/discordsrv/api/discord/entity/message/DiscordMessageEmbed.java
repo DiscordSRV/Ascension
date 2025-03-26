@@ -36,7 +36,6 @@ import java.util.List;
 /**
  * A Discord embed.
  */
-@SuppressWarnings("unused") // API
 public class DiscordMessageEmbed {
 
     /**
@@ -233,7 +232,7 @@ public class DiscordMessageEmbed {
         }
     }
 
-    @SuppressWarnings("UnusedReturnValue") // API
+    @SuppressWarnings({"UnusedReturnValue", "unused"}) // API
     public static class Builder {
 
         private Color color;
@@ -504,7 +503,7 @@ public class DiscordMessageEmbed {
                     fields, thumbnailUrl, imageUrl, timestamp, unformattedTimestamp, footer, footerImageUrl);
         }
 
-        @SuppressWarnings({"MethodDoesntCallSuperMethod"})
+        @SuppressWarnings("MethodDoesntCallSuperMethod")
         @Override
         @NotNull
         public Builder clone() {

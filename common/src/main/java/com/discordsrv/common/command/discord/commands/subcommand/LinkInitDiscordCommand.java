@@ -33,6 +33,7 @@ import com.discordsrv.common.core.logging.Logger;
 import com.discordsrv.common.core.logging.NamedLogger;
 import com.discordsrv.common.feature.linking.LinkProvider;
 import com.discordsrv.common.feature.linking.LinkStore;
+import com.discordsrv.common.feature.linking.LinkingModule;
 import com.github.benmanes.caffeine.cache.Cache;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.Pair;
@@ -79,11 +80,22 @@ public class LinkInitDiscordCommand implements Consumer<DiscordChatInputInteract
         MessagesConfig.Discord messagesConfig = discordSRV.messagesConfig(event.getUserLocale()).discord;
 
         LinkProvider linkProvider = discordSRV.linkProvider();
-        if (!(linkProvider instanceof LinkStore)) {
+        if (linkProvider == null || !linkProvider.usesLocalLinking()) {
             event.reply(SendableDiscordMessage.builder().setContent("Cannot create links using this link provider").build());
             return;
         }
-        LinkStore linkStore = (LinkStore) linkProvider;
+        LinkStore linkStore = linkProvider.store();
+
+        LinkingModule module = discordSRV.getModule(LinkingModule.class);
+        if (module == null) {
+            event.reply(SendableDiscordMessage.builder().setContent("Unable to link at this time").build());
+            return;
+        }
+
+        if (module.rateLimit(event.getUser().getId())) {
+            event.reply(messagesConfig.pleaseWaitBeforeRunningThatCommandAgain.get());
+            return;
+        }
 
         String code = event.getOptionAsString("code");
         if (StringUtils.isEmpty(code) || !linkStore.isValidCode(code)) {
@@ -120,7 +132,7 @@ public class LinkInitDiscordCommand implements Consumer<DiscordChatInputInteract
                 }
 
                 linkStore.getCodeLinking(user.getId(), code)
-                        .then(player -> linkStore.createLink(player.getKey(), user.getId()).thenApply(__ -> player))
+                        .then(player -> module.link(player.getKey(), user.getId()).thenApply(__ -> player))
                         .whenComplete((player, t3) -> {
                             if (t3 != null) {
                                 logger.error("Failed to link", t3);

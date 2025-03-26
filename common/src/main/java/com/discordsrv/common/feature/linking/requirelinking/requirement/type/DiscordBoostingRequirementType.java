@@ -50,6 +50,6 @@ public class DiscordBoostingRequirementType extends LongRequirementType {
 
     @Subscribe
     public void onGuildMemberUpdateBoostTime(GuildMemberUpdateBoostTimeEvent event) {
-        stateChanged(Someone.of(event.getMember().getIdLong()), null, event.getNewTimeBoosted() != null);
+        stateChanged(Someone.of(discordSRV, event.getMember().getIdLong()), null, event.getNewTimeBoosted() != null);
     }
 }

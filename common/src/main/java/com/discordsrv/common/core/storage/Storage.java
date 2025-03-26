@@ -18,6 +18,7 @@
 
 package com.discordsrv.common.core.storage;
 
+import com.discordsrv.common.exception.StorageException;
 import com.discordsrv.common.feature.linking.LinkStore;
 import org.apache.commons.lang3.tuple.Pair;
 import org.jetbrains.annotations.Blocking;
@@ -30,7 +31,7 @@ import java.util.UUID;
 public interface Storage {
 
     void initialize();
-    void close();
+    void close() throws StorageException;
 
     @Nullable
     Long getUserId(@NotNull UUID player);

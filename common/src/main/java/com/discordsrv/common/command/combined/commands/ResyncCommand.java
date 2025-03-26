@@ -203,7 +203,7 @@ public class ResyncCommand extends CombinedCommand {
     private List<Task<? extends SyncSummary<?>>> resyncOnlinePlayers(AbstractSyncModule<?, ?, ?, ?, ?> module) {
         List<Task<? extends SyncSummary<?>>> summaries = new ArrayList<>();
         for (IPlayer player : discordSRV.playerProvider().allPlayers()) {
-            summaries.add(module.resyncAll(GenericSyncCauses.COMMAND, Someone.of(player)));
+            summaries.add(module.resyncAll(GenericSyncCauses.COMMAND, Someone.of(discordSRV, player)));
         }
         return summaries;
     }

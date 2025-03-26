@@ -115,7 +115,7 @@ public abstract class AbstractGameMessageModule<T extends IMessageConfig, E exte
         return forwardToChannel(event, srvPlayer, channelConfig, channel);
     }
 
-    @SuppressWarnings("unchecked") // Wacky generis
+    @SuppressWarnings("unchecked")
     protected <CC extends BaseChannelConfig & IChannelConfig> Task<Void> forwardToChannel(
             @Nullable E event,
             @Nullable IPlayer player,
@@ -227,10 +227,7 @@ public abstract class AbstractGameMessageModule<T extends IMessageConfig, E exte
     }
 
     private String describeDestination(DiscordGuildChannel channel) {
-        if (channel instanceof DiscordThreadChannel) {
-            return "\"" + channel.getName() + "\" in #" + ((DiscordThreadChannel) channel).getParentChannel().getName();
-        }
-        return "#" + channel.getName();
+        return channel.toString();
     }
 
     public abstract void setPlaceholders(T config, E event, SendableDiscordMessage.Formatter formatter);
