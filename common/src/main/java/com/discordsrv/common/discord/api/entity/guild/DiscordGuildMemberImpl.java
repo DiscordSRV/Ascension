@@ -97,6 +97,11 @@ public class DiscordGuildMemberImpl implements DiscordGuildMember {
     }
 
     @Override
+    public boolean canInteract(@NotNull DiscordGuildMember member) {
+        return this.member.canInteract(member.asJDA());
+    }
+
+    @Override
     public Task<Void> addRole(@NotNull DiscordRole role) {
         return discordSRV.discordAPI().toTask(() -> guild.asJDA().addRoleToMember(member, role.asJDA()));
     }
