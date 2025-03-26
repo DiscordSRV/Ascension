@@ -23,6 +23,7 @@ import com.discordsrv.api.discord.exception.RestErrorResponseException;
 import com.discordsrv.api.eventbus.Subscribe;
 import com.discordsrv.api.events.lifecycle.DiscordSRVShuttingDownEvent;
 import com.discordsrv.api.player.DiscordSRVPlayer;
+import com.discordsrv.api.profile.Profile;
 import com.discordsrv.api.reload.ReloadResult;
 import com.discordsrv.api.task.Task;
 import com.discordsrv.common.DiscordSRV;
@@ -37,7 +38,6 @@ import com.discordsrv.common.events.player.PlayerConnectedEvent;
 import com.discordsrv.common.events.player.PlayerDisconnectedEvent;
 import com.discordsrv.common.feature.onlinerole.enums.OnlineRoleCause;
 import com.discordsrv.common.feature.onlinerole.enums.OnlineRoleResult;
-import com.discordsrv.common.feature.profile.Profile;
 import com.discordsrv.common.helper.Someone;
 import com.discordsrv.common.util.Game;
 import net.dv8tion.jda.api.JDA;
@@ -94,7 +94,7 @@ public class OnlineRoleModule extends AbstractSyncModule<DiscordSRV, OnlineRoleC
     }
 
     @Override
-    protected Task<Boolean> getDiscord(OnlineRoleConfig config, long userId) {
+    protected Task<Boolean> getDiscord(OnlineRoleConfig config, Someone.Resolved someone) {
         DiscordRole role = discordSRV.discordAPI().getRoleById(config.roleId);
         if (role == null) {
             return Task.failed(new SyncFail(OnlineRoleResult.ROLE_DOESNT_EXIST));
@@ -104,7 +104,7 @@ public class OnlineRoleModule extends AbstractSyncModule<DiscordSRV, OnlineRoleC
             return Task.failed(new SyncFail(OnlineRoleResult.ROLE_CANNOT_INTERACT));
         }
 
-        return role.getGuild().retrieveMemberById(userId)
+        return role.getGuild().retrieveMemberById(someone.userId())
                 .mapException(RestErrorResponseException.class, t -> {
                     if (t.getErrorCode() == ErrorResponse.UNKNOWN_MEMBER.getCode()) {
                         throw new SyncFail(OnlineRoleResult.NOT_A_GUILD_MEMBER);
@@ -115,13 +115,13 @@ public class OnlineRoleModule extends AbstractSyncModule<DiscordSRV, OnlineRoleC
     }
 
     @Override
-    protected Task<Boolean> getGame(OnlineRoleConfig config, UUID playerUUID) {
-        DiscordSRVPlayer player = discordSRV.playerProvider().player(playerUUID);
+    protected Task<Boolean> getGame(OnlineRoleConfig config, Someone.Resolved someone) {
+        DiscordSRVPlayer player = discordSRV.playerProvider().player(someone.playerUUID());
         return Task.completed(!discordSRV.isShutdown() && player != null);
     }
 
     @Override
-    protected Task<ISyncResult> applyDiscord(OnlineRoleConfig config, long userId, @Nullable Boolean newState) {
+    protected Task<ISyncResult> applyDiscord(OnlineRoleConfig config, Someone.Resolved someone, @Nullable Boolean newState) {
         DiscordRole role = discordSRV.discordAPI().getRoleById(config.roleId);
         if (role == null) {
             return Task.completed(OnlineRoleResult.ROLE_DOESNT_EXIST);
@@ -131,7 +131,7 @@ public class OnlineRoleModule extends AbstractSyncModule<DiscordSRV, OnlineRoleC
             return Task.completed(OnlineRoleResult.ROLE_CANNOT_INTERACT);
         }
 
-        return role.getGuild().retrieveMemberById(userId)
+        return role.getGuild().retrieveMemberById(someone.userId())
                 .then(member -> Boolean.TRUE.equals(newState)
                         ? member.addRole(role).thenApply(v -> (ISyncResult) GenericSyncResults.ADD_DISCORD)
                         : member.removeRole(role).thenApply(v -> GenericSyncResults.REMOVE_DISCORD))
@@ -144,23 +144,23 @@ public class OnlineRoleModule extends AbstractSyncModule<DiscordSRV, OnlineRoleC
     }
 
     @Override
-    protected Task<ISyncResult> applyGame(OnlineRoleConfig config, UUID playerUUID, @Nullable Boolean newState) {
+    protected Task<ISyncResult> applyGame(OnlineRoleConfig config, Someone.Resolved someone, @Nullable Boolean newState) {
         return Task.completed(GenericSyncResults.WRONG_DIRECTION);
     }
 
     @Override
     public void onPlayerConnected(PlayerConnectedEvent event) {
-        resyncAll(OnlineRoleCause.PLAYER_JOINED_SERVER, Someone.of(event.player().uniqueId()));
+        resyncAll(OnlineRoleCause.PLAYER_JOINED_SERVER, Someone.of(discordSRV, event.player().uniqueId()));
     }
 
     @Subscribe
     public void onPlayerChangeWorld(PlayerChangedWorldEvent event) {
-        resyncAll(OnlineRoleCause.PLAYER_CHANGED_WORLD, Someone.of(event.player().uniqueId()));
+        resyncAll(OnlineRoleCause.PLAYER_CHANGED_WORLD, Someone.of(discordSRV, event.player().uniqueId()));
     }
 
     @Subscribe
     public void onPlayerDisconnected(PlayerDisconnectedEvent event) {
-        resyncAll(OnlineRoleCause.PLAYER_LEFT_SERVER, Someone.of(event.player().uniqueId()));
+        resyncAll(OnlineRoleCause.PLAYER_LEFT_SERVER, Someone.of(discordSRV, event.player().uniqueId()));
     }
 
     private Task<List<Void>> removeRoleFromList(List<Member> members, Role role, long timeout, TimeUnit unit) {
