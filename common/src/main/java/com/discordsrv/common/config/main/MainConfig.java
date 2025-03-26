@@ -101,8 +101,7 @@ public abstract class MainConfig implements Config {
     @Comment("Configuration options for ban synchronization")
     public BanSyncConfig banSync = new BanSyncConfig();
 
-    @Comment("Configuration options for online role synchronization\n"
-    + "The direction will always be overridden to Minecraft to Discord and timer will be disabled.")
+    @Comment("Configuration options for online role synchronization")
     public OnlineRoleConfig onlineRole = new OnlineRoleConfig();
 
     @Comment("In-game command configuration")

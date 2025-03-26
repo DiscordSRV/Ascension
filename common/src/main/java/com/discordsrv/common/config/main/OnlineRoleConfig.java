@@ -33,7 +33,7 @@ public class OnlineRoleConfig extends AbstractSyncConfig<OnlineRoleConfig, Game,
         tieBreaker = SyncSide.MINECRAFT;
     }
 
-    @Comment("The ID of the role to sync to the linked online players in game.")
+    @Comment("The ID of the role to sync to the linked Discord users of online players")
     public long roleId;
 
     public boolean isSet() {

@@ -86,7 +86,7 @@ public class ResyncCommand extends CombinedCommand {
                                     .addChoice("Group Sync", "group")
                                     .addChoice("Ban Sync", "ban")
                                     .addChoice("Nickname Sync", "nickname")
-                                    .addChoice("Online Sync", "online")
+                                    .addChoice("Online Role Sync", "onlinerole")
                                     .build()
                     )
                     .setEventHandler(command)
@@ -106,7 +106,7 @@ public class ResyncCommand extends CombinedCommand {
             return Collections.emptyList();
         }
 
-        return Stream.of("ban", "group", "nickname", "online")
+        return Stream.of("ban", "group", "nickname", "onlinerole")
                 .filter(command -> command.toLowerCase(Locale.ROOT).startsWith(input.toLowerCase(Locale.ROOT)))
                 .collect(Collectors.toList());
     }
@@ -130,7 +130,7 @@ public class ResyncCommand extends CombinedCommand {
             case "nickname":
                 module = discordSRV.getModule(NicknameSyncModule.class);
                 break;
-            case "online":
+            case "onlinerole":
                 module = discordSRV.getModule(OnlineRoleModule.class);
                 break;
             default:

@@ -67,7 +67,7 @@ public class OnlineRoleModule extends AbstractSyncModule<DiscordSRV, OnlineRoleC
 
     @Override
     protected String logFileName() {
-        return "onlinerole";
+        return "";
     }
 
     @Override
@@ -117,12 +117,7 @@ public class OnlineRoleModule extends AbstractSyncModule<DiscordSRV, OnlineRoleC
     @Override
     protected Task<Boolean> getGame(OnlineRoleConfig config, UUID playerUUID) {
         DiscordSRVPlayer player = discordSRV.playerProvider().player(playerUUID);
-
-        if (player == null) {
-            return Task.failed(new SyncFail(OnlineRoleResult.PLAYER_NOT_ONLINE));
-        }
-
-        return Task.completed(!discordSRV.isShutdown());
+        return Task.completed(!discordSRV.isShutdown() && player != null);
     }
 
     @Override
@@ -143,9 +138,6 @@ public class OnlineRoleModule extends AbstractSyncModule<DiscordSRV, OnlineRoleC
                 .mapException(RestErrorResponseException.class, t -> {
                     if (t.getErrorCode() == ErrorResponse.UNKNOWN_MEMBER.getCode()) {
                         throw new SyncFail(OnlineRoleResult.NOT_A_GUILD_MEMBER);
-                    }
-                    if (t.getErrorCode() == ErrorResponse.MISSING_PERMISSIONS.getCode()) {
-                        throw new SyncFail(GenericSyncResults.MEMBER_CANNOT_INTERACT);
                     }
                     throw t;
                 });
