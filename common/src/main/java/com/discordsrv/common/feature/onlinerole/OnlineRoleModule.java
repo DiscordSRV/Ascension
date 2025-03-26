@@ -18,6 +18,7 @@
 
 package com.discordsrv.common.feature.onlinerole;
 
+import com.discordsrv.api.discord.entity.guild.DiscordGuildMember;
 import com.discordsrv.api.discord.entity.guild.DiscordRole;
 import com.discordsrv.api.discord.exception.RestErrorResponseException;
 import com.discordsrv.api.eventbus.Subscribe;
@@ -127,14 +128,21 @@ public class OnlineRoleModule extends AbstractSyncModule<DiscordSRV, OnlineRoleC
             return Task.completed(OnlineRoleResult.ROLE_DOESNT_EXIST);
         }
 
+        DiscordGuildMember member = someone.guildMember(role.getGuild()).join();
+        if (member == null) {
+            return Task.completed(OnlineRoleResult.NOT_A_GUILD_MEMBER);
+        }
+
         if (!role.getGuild().getSelfMember().canInteract(role)) {
             return Task.completed(OnlineRoleResult.ROLE_CANNOT_INTERACT);
         }
 
-        return role.getGuild().retrieveMemberById(someone.userId())
-                .then(member -> Boolean.TRUE.equals(newState)
-                        ? member.addRole(role).thenApply(v -> (ISyncResult) GenericSyncResults.ADD_DISCORD)
-                        : member.removeRole(role).thenApply(v -> GenericSyncResults.REMOVE_DISCORD))
+        if (!role.getGuild().getSelfMember().canInteract(member)) {
+            return Task.completed(GenericSyncResults.MEMBER_CANNOT_INTERACT);
+        }
+
+        return (Boolean.TRUE.equals(newState) ? member.addRole(role) : member.removeRole(role))
+                .thenApply(v -> Boolean.TRUE.equals(newState) ? (ISyncResult) GenericSyncResults.ADD_DISCORD : GenericSyncResults.REMOVE_DISCORD)
                 .mapException(RestErrorResponseException.class, t -> {
                     if (t.getErrorCode() == ErrorResponse.UNKNOWN_MEMBER.getCode()) {
                         throw new SyncFail(OnlineRoleResult.NOT_A_GUILD_MEMBER);
