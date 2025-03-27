@@ -68,7 +68,7 @@ public class OnlineRoleModule extends AbstractSyncModule<DiscordSRV, OnlineRoleC
 
     @Override
     protected String logFileName() {
-        return "";
+        return null;
     }
 
     @Override

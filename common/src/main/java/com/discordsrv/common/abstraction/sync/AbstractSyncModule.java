@@ -70,6 +70,8 @@ public abstract class AbstractSyncModule<
     }
 
     protected abstract String syncName();
+
+    @Nullable
     protected abstract String logFileName();
 
     protected abstract String gameTerm();
@@ -465,8 +467,10 @@ public abstract class AbstractSyncModule<
             }
 
             logger().debug(syncName() + " performed for " + formatResults(summary, allResults));
-            if (!auditResults.isEmpty()) {
-                discordSRV.logger().writeLogForCurrentDay(logFileName(), formatResults(summary, auditResults));
+
+            String logFileName = logFileName();
+            if (logFileName != null && !auditResults.isEmpty()) {
+                discordSRV.logger().writeLogForCurrentDay(logFileName, formatResults(summary, auditResults));
             }
         });
     }
