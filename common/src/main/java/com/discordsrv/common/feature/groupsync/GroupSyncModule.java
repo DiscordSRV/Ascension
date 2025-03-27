@@ -36,7 +36,10 @@ import com.discordsrv.common.feature.debug.file.TextDebugFile;
 import com.discordsrv.common.feature.groupsync.enums.GroupSyncCause;
 import com.discordsrv.common.feature.groupsync.enums.GroupSyncResult;
 import com.discordsrv.common.helper.Someone;
+import com.discordsrv.common.util.DiscordPermissionUtil;
 import com.github.benmanes.caffeine.cache.Cache;
+import net.dv8tion.jda.api.Permission;
+import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.requests.ErrorResponse;
 import org.jetbrains.annotations.Nullable;
 
@@ -251,6 +254,12 @@ public class GroupSyncModule extends AbstractSyncModule<DiscordSRV, GroupSyncCon
         DiscordRole role = discordSRV.discordAPI().getRoleById(config.roleId);
         if (role == null) {
             return Task.failed(new SyncFail(GroupSyncResult.ROLE_DOESNT_EXIST));
+        }
+
+        Guild jdaGuild = role.getGuild().asJDA();
+        EnumSet<Permission> missingPermissions = DiscordPermissionUtil.getMissingPermissions(jdaGuild, Collections.singleton(Permission.MANAGE_ROLES));
+        if (!missingPermissions.isEmpty()) {
+            return Task.completed(DiscordPermissionResult.of(jdaGuild, missingPermissions));
         }
 
         Map<Long, Boolean> expected = Objects.requireNonNull(expectedDiscordChanges.get(someone.userId(), key -> new ConcurrentHashMap<>()));

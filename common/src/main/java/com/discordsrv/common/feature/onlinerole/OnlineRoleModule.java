@@ -18,6 +18,7 @@
 
 package com.discordsrv.common.feature.onlinerole;
 
+import com.discordsrv.api.discord.entity.guild.DiscordGuild;
 import com.discordsrv.api.discord.entity.guild.DiscordGuildMember;
 import com.discordsrv.api.discord.entity.guild.DiscordRole;
 import com.discordsrv.api.discord.exception.RestErrorResponseException;
@@ -37,11 +38,14 @@ import com.discordsrv.common.config.main.OnlineRoleConfig;
 import com.discordsrv.common.events.player.PlayerChangedWorldEvent;
 import com.discordsrv.common.events.player.PlayerConnectedEvent;
 import com.discordsrv.common.events.player.PlayerDisconnectedEvent;
+import com.discordsrv.common.feature.groupsync.DiscordPermissionResult;
 import com.discordsrv.common.feature.onlinerole.enums.OnlineRoleCause;
 import com.discordsrv.common.feature.onlinerole.enums.OnlineRoleResult;
 import com.discordsrv.common.helper.Someone;
+import com.discordsrv.common.util.DiscordPermissionUtil;
 import com.discordsrv.common.util.Game;
 import net.dv8tion.jda.api.JDA;
+import net.dv8tion.jda.api.Permission;
 import net.dv8tion.jda.api.entities.Member;
 import net.dv8tion.jda.api.entities.Role;
 import net.dv8tion.jda.api.requests.ErrorResponse;
@@ -101,11 +105,12 @@ public class OnlineRoleModule extends AbstractSyncModule<DiscordSRV, OnlineRoleC
             return Task.failed(new SyncFail(OnlineRoleResult.ROLE_DOESNT_EXIST));
         }
 
-        if (!role.getGuild().getSelfMember().canInteract(role)) {
+        DiscordGuild guild = role.getGuild();
+        if (!guild.getSelfMember().canInteract(role)) {
             return Task.failed(new SyncFail(OnlineRoleResult.ROLE_CANNOT_INTERACT));
         }
 
-        return role.getGuild().retrieveMemberById(someone.userId())
+        return someone.guildMember(guild)
                 .mapException(RestErrorResponseException.class, t -> {
                     if (t.getErrorCode() == ErrorResponse.UNKNOWN_MEMBER.getCode()) {
                         throw new SyncFail(OnlineRoleResult.NOT_A_GUILD_MEMBER);
@@ -128,17 +133,22 @@ public class OnlineRoleModule extends AbstractSyncModule<DiscordSRV, OnlineRoleC
             return Task.completed(OnlineRoleResult.ROLE_DOESNT_EXIST);
         }
 
-        DiscordGuildMember member = someone.guildMember(role.getGuild()).join();
+        DiscordGuild guild = role.getGuild();
+        DiscordGuildMember member = someone.guildMember(guild).join();
         if (member == null) {
             return Task.completed(OnlineRoleResult.NOT_A_GUILD_MEMBER);
         }
 
-        if (!role.getGuild().getSelfMember().canInteract(role)) {
+        DiscordGuildMember selfMember = guild.getSelfMember();
+        if (!selfMember.canInteract(role)) {
             return Task.completed(OnlineRoleResult.ROLE_CANNOT_INTERACT);
+        } else if (!selfMember.canInteract(member)) {
+            return Task.completed(GenericSyncResults.MEMBER_CANNOT_INTERACT);
         }
 
-        if (!role.getGuild().getSelfMember().canInteract(member)) {
-            return Task.completed(GenericSyncResults.MEMBER_CANNOT_INTERACT);
+        EnumSet<Permission> missingPermissions = DiscordPermissionUtil.getMissingPermissions(guild.asJDA(), Collections.singleton(Permission.MANAGE_ROLES));
+        if (!missingPermissions.isEmpty()) {
+            return Task.completed(DiscordPermissionResult.of(guild.asJDA(), missingPermissions));
         }
 
         return (Boolean.TRUE.equals(newState) ? member.addRole(role) : member.removeRole(role))
