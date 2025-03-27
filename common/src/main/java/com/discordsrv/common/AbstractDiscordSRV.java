@@ -93,6 +93,7 @@ import com.discordsrv.common.feature.messageforwarding.discord.DiscordMessageMir
 import com.discordsrv.common.feature.messageforwarding.game.*;
 import com.discordsrv.common.feature.nicknamesync.NicknameSyncModule;
 import com.discordsrv.common.feature.profile.ProfileManagerImpl;
+import com.discordsrv.common.feature.onlinerole.OnlineRoleModule;
 import com.discordsrv.common.feature.update.UpdateChecker;
 import com.discordsrv.common.helper.ChannelConfigHelper;
 import com.discordsrv.common.helper.DestinationLookupHelper;
@@ -740,6 +741,7 @@ public abstract class AbstractDiscordSRV<
         registerModule(CustomCommandModule::new);
         registerModule(NicknameSyncModule::new);
         registerModule(PlayerListModule::new);
+        registerModule(OnlineRoleModule::new);
 
         if (serverType() == ServerType.PROXY) {
             registerModule(ServerSwitchMessageModule::new);

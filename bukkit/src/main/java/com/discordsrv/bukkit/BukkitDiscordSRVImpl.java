@@ -138,6 +138,8 @@ public class BukkitDiscordSRVImpl extends BukkitDiscordSRV {
             registerModule(BukkitJoinListener::new);
             registerModule(BukkitQuitListener::new);
         }
+
+        registerModule(BukkitWorldChangeListener::new);
     }
 
     @Override

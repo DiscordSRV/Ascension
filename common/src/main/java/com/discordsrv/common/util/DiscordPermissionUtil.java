@@ -42,7 +42,7 @@ public final class DiscordPermissionUtil {
             channel = ((ThreadChannel) channel).getParentChannel();
         }
         EnumSet<Permission> missingPermissions = getMissingPermissions(channel, permissions);
-        return createErrorMessage(channel, missingPermissions, "#" + channel.getName());
+        return createErrorMessage(channel, null, missingPermissions);
     }
 
     public static EnumSet<Permission> getMissingPermissions(GuildChannel channel, Collection<Permission> permissions) {
@@ -65,7 +65,7 @@ public final class DiscordPermissionUtil {
 
     public static String missingPermissionsString(Guild guild, Collection<Permission> permissions) {
         EnumSet<Permission> missingPermissions = getMissingPermissions(guild, permissions);
-        return createErrorMessage(null, missingPermissions, guild.getName());
+        return createErrorMessage(null, guild, missingPermissions);
     }
 
     public static EnumSet<Permission> getMissingPermissions(Guild guild, Collection<Permission> permissions) {
@@ -79,9 +79,18 @@ public final class DiscordPermissionUtil {
         return missingPermissions;
     }
 
-    public static String createErrorMessage(GuildChannel channel, EnumSet<Permission> permissions, String where) {
+    public static String createErrorMessage(GuildChannel channel, Guild guild, EnumSet<Permission> permissions) {
         if (permissions.isEmpty()) {
             return null;
+        }
+
+        String where;
+        if (channel != null) {
+            where = channel.toString();
+        } else if (guild != null) {
+            where = guild.toString();
+        } else {
+            where = "Unknown";
         }
 
         return "the bot is lacking permissions in " + where + ": " + permissions.stream()
