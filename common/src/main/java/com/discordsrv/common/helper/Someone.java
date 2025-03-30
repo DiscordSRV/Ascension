@@ -26,8 +26,9 @@ import com.discordsrv.api.task.Task;
 import com.discordsrv.common.DiscordSRV;
 import com.discordsrv.common.abstraction.player.IOfflinePlayer;
 import com.discordsrv.common.abstraction.player.IPlayer;
+import com.discordsrv.common.feature.linking.AccountLink;
 import com.discordsrv.common.feature.linking.LinkProvider;
-import com.discordsrv.common.feature.profile.ProfileImpl;
+import com.discordsrv.common.core.profile.ProfileImpl;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -40,9 +41,8 @@ import java.util.*;
  * - a Minecraft player and their linked Discord user
  * with helper methods. Not to be stored persistently.
  *
- * @see #withLinkedAccounts()
- * @see #withUserId()
- * @see #withPlayerUUID()
+ * @see #resolve()
+ * @see #getAccountLink()
  * @see #profile()
  * @see #user()
  * @see #guildMember(DiscordGuild)
@@ -57,6 +57,10 @@ public class Someone {
 
     public static Someone.Resolved of(@NotNull DiscordSRV discordSRV, @NotNull UUID playerUUID, long userId) {
         return new Someone.Resolved(discordSRV, playerUUID, userId);
+    }
+
+    public static Someone.Resolved of(@NotNull DiscordSRV discordSRV, @NotNull AccountLink accountLink) {
+        return new Someone.Resolved(discordSRV, accountLink.playerUUID(), accountLink.userId());
     }
 
     public static Someone of(@NotNull DiscordSRV discordSRV, @NotNull DiscordSRVPlayer player) {
@@ -114,24 +118,16 @@ public class Someone {
     }
 
     @NotNull
-    public Task<Someone.@Nullable Resolved> withLinkedAccounts() {
+    public Task<Someone.@Nullable Resolved> resolve() {
         if (playerUUID != null && userId != null) {
             return Task.completed(of(discordSRV, playerUUID, userId));
         }
 
-        if (playerUUID != null) {
-            return withUserId().thenApply(userId -> userId != null ? of(discordSRV, playerUUID, userId) : null);
-        } else if (userId != null) {
-            return withPlayerUUID().thenApply(playerUUID -> playerUUID != null ? of(discordSRV, playerUUID, userId) : null);
-        } else {
-            return throwIllegal();
-        }
+        return getAccountLink().thenApply(link -> link != null ? of(discordSRV, link.playerUUID(), link.userId()) : null);
     }
 
-    public Task<@Nullable Long> withUserId() {
-        if (userId != null) {
-            return Task.completed(userId);
-        } else if (playerUUID == null) {
+    public Task<@Nullable AccountLink> getAccountLink() {
+        if (playerUUID == null && userId == null) {
             return throwIllegal();
         }
 
@@ -140,22 +136,10 @@ public class Someone {
             return Task.completed(null);
         }
 
-        return linkProvider.getUserId(playerUUID).thenApply(opt -> opt.orElse(null));
-    }
-
-    public Task<@Nullable UUID> withPlayerUUID() {
         if (playerUUID != null) {
-            return Task.completed(playerUUID);
-        } else if (userId == null) {
-            return throwIllegal();
+            return linkProvider.get(playerUUID).thenApply(link -> link.orElse(null));
         }
-
-        LinkProvider linkProvider = discordSRV.linkProvider();
-        if (linkProvider == null) {
-            return Task.completed(null);
-        }
-
-        return linkProvider.getPlayerUUID(userId).thenApply(opt -> opt.orElse(null));
+        return linkProvider.get(userId).thenApply(link -> link.orElse(null));
     }
 
     @Nullable

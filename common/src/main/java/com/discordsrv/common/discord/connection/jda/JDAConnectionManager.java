@@ -42,8 +42,8 @@ import com.discordsrv.common.discord.api.DiscordAPIImpl;
 import com.discordsrv.common.discord.api.entity.message.ReceivedDiscordMessageImpl;
 import com.discordsrv.common.discord.connection.DiscordConnectionManager;
 import com.discordsrv.common.discord.connection.details.DiscordConnectionDetailsImpl;
-import com.discordsrv.common.feature.debug.DebugGenerateEvent;
-import com.discordsrv.common.feature.debug.file.TextDebugFile;
+import com.discordsrv.common.core.debug.DebugGenerateEvent;
+import com.discordsrv.common.core.debug.file.TextDebugFile;
 import com.discordsrv.common.feature.linking.LinkProvider;
 import com.discordsrv.common.helper.Timeout;
 import com.neovisionaries.ws.client.ProxySettings;
@@ -336,7 +336,7 @@ public class JDAConnectionManager implements DiscordConnectionManager {
                 if (provider == null) {
                     return false;
                 }
-                return provider.getCachedPlayerUUID(member.getIdLong()).isPresent();
+                return provider.getCached(member.getIdLong()).isPresent();
             };
         } else {
             memberCachingPolicy = MemberCachePolicy.NONE;

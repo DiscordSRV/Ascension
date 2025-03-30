@@ -84,6 +84,8 @@ public abstract class MainConfig implements Config {
 
     public LinkedAccountConfig linkedAccounts = new LinkedAccountConfig();
 
+    public RewardsConfig rewards = new RewardsConfig();
+
     public PresenceUpdaterConfig presenceUpdater = defaultPresenceUpdater();
 
     protected PresenceUpdaterConfig defaultPresenceUpdater() {

@@ -149,35 +149,35 @@ public class UnlinkCommand extends CombinedCommand {
     ) {
         if (result.isPlayer()) {
             UUID playerUUID = result.getPlayerUUID();
-            linkProvider.queryUserId(playerUUID)
-                    .whenComplete((user, t) -> {
+            linkProvider.query(playerUUID)
+                    .whenComplete((link, t) -> {
                         if (t != null) {
                             logger.error("Failed to query user", t);
                             execution.messages().unableToCheckLinkingStatus(execution);
                             return;
                         }
-                        if (!user.isPresent()) {
+                        if (!link.isPresent()) {
                             execution.messages().minecraftPlayerUnlinked(discordSRV, execution, playerUUID);
                             return;
                         }
 
-                        handleUnlinkForPair(playerUUID, user.get(), execution, module);
+                        handleUnlinkForPair(playerUUID, link.get().userId(), execution, module);
                     });
         } else {
             long userId = result.getUserId();
-            linkProvider.queryPlayerUUID(result.getUserId())
-                    .whenComplete((player, t) -> {
+            linkProvider.query(result.getUserId())
+                    .whenComplete((link, t) -> {
                         if (t != null) {
                             logger.error("Failed to query player", t);
                             execution.messages().unableToCheckLinkingStatus(execution);
                             return;
                         }
-                        if (!player.isPresent()) {
+                        if (!link.isPresent()) {
                             execution.messages().discordUserUnlinked(discordSRV, execution, userId);
                             return;
                         }
 
-                        handleUnlinkForPair(player.get(), userId, execution, module);
+                        handleUnlinkForPair(link.get().playerUUID(), userId, execution, module);
                     });
         }
     }

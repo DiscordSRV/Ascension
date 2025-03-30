@@ -22,6 +22,7 @@ import com.discordsrv.api.eventbus.Subscribe;
 import com.discordsrv.api.task.Task;
 import com.discordsrv.common.DiscordSRV;
 import com.discordsrv.common.events.player.PlayerConnectedEvent;
+import com.discordsrv.common.feature.linking.AccountLink;
 import com.discordsrv.common.feature.linking.LinkProvider;
 import com.discordsrv.common.feature.linking.LinkStore;
 import com.github.benmanes.caffeine.cache.AsyncCacheLoader;
@@ -30,6 +31,7 @@ import com.github.benmanes.caffeine.cache.Cache;
 import com.github.benmanes.caffeine.cache.Expiry;
 import org.jetbrains.annotations.NotNull;
 
+import java.time.LocalDateTime;
 import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
@@ -40,28 +42,27 @@ import java.util.concurrent.TimeUnit;
 
 public abstract class CachedLinkProvider implements LinkProvider {
 
-    private static final long UNLINKED_USER = -1L;
-    private static final UUID UNLINKED_UUID = new UUID(0, 0);
+    private static final AccountLink UNLINKED = new AccountLink(new UUID(0, 0), -1L, LocalDateTime.now(), LocalDateTime.now());
 
     protected final DiscordSRV discordSRV;
-    private final Cache<Long, UUID> userToPlayer;
-    private final AsyncLoadingCache<UUID, Long> playerToUser;
+    private final Cache<Long, AccountLink> userToPlayer;
+    private final AsyncLoadingCache<UUID, AccountLink> playerToUser;
     private final Set<UUID> linkingAllowed = new CopyOnWriteArraySet<>();
 
     public CachedLinkProvider(DiscordSRV discordSRV) {
         this.discordSRV = discordSRV;
         this.userToPlayer = discordSRV.caffeineBuilder().build();
         this.playerToUser = discordSRV.caffeineBuilder()
-                .expireAfter(new Expiry<UUID, Long>() {
+                .expireAfter(new Expiry<UUID, AccountLink>() {
                     @Override
-                    public long expireAfterCreate(@NotNull UUID key, @NotNull Long value, long currentTime) {
+                    public long expireAfterCreate(@NotNull UUID key, @NotNull AccountLink value, long currentTime) {
                         return TimeUnit.MINUTES.toNanos(5);
                     }
 
                     @Override
                     public long expireAfterUpdate(
                             @NotNull UUID key,
-                            @NotNull Long value,
+                            @NotNull AccountLink value,
                             long currentTime,
                             long currentDuration
                     ) {
@@ -71,7 +72,7 @@ public abstract class CachedLinkProvider implements LinkProvider {
                     @Override
                     public long expireAfterRead(
                             @NotNull UUID key,
-                            @NotNull Long value,
+                            @NotNull AccountLink value,
                             long currentTime,
                             long currentDuration
                     ) {
@@ -83,18 +84,18 @@ public abstract class CachedLinkProvider implements LinkProvider {
                         userToPlayer.invalidate(value);
                     }
                 })
-                .buildAsync(new AsyncCacheLoader<UUID, Long>() {
+                .buildAsync(new AsyncCacheLoader<UUID, AccountLink>() {
                     @Override
-                    public @NotNull CompletableFuture<Long> asyncLoad(@NotNull UUID key, @NotNull Executor executor) {
-                        return queryUserId(key, linkingAllowed.remove(key))
-                                .thenApply(opt -> opt.orElse(UNLINKED_USER))
+                    public @NotNull CompletableFuture<AccountLink> asyncLoad(@NotNull UUID key, @NotNull Executor executor) {
+                        return query(key, linkingAllowed.remove(key))
+                                .thenApply(opt -> opt.orElse(UNLINKED))
                                 .getFuture();
                     }
 
                     @Override
-                    public @NotNull CompletableFuture<Long> asyncReload(
+                    public @NotNull CompletableFuture<AccountLink> asyncReload(
                             @NotNull UUID key,
-                            @NotNull Long oldValue,
+                            @NotNull AccountLink oldValue,
                             @NotNull Executor executor
                     ) {
                         if (discordSRV.playerProvider().player(key) == null) {
@@ -109,9 +110,9 @@ public abstract class CachedLinkProvider implements LinkProvider {
     }
 
     @Override
-    public Task<Optional<Long>> getUserId(@NotNull UUID playerUUID) {
+    public Task<Optional<AccountLink>> get(@NotNull UUID playerUUID) {
         return Task.of(playerToUser.get(playerUUID).thenApply(value -> {
-            if (value == UNLINKED_USER) {
+            if (value == UNLINKED) {
                 return Optional.empty();
             }
             return Optional.of(value);
@@ -119,34 +120,33 @@ public abstract class CachedLinkProvider implements LinkProvider {
     }
 
     @Override
-    public Optional<Long> getCachedUserId(@NotNull UUID player) {
-        Long value = playerToUser.synchronous().getIfPresent(player);
-        return Optional.ofNullable(value == null || value == UNLINKED_USER ? null : value);
+    public Optional<AccountLink> getCached(@NotNull UUID player) {
+        AccountLink value = playerToUser.synchronous().getIfPresent(player);
+        return Optional.ofNullable(value == null || value == UNLINKED ? null : value);
     }
 
     @Override
-    public Task<Optional<UUID>> getPlayerUUID(long userId) {
-        UUID player = userToPlayer.getIfPresent(userId);
-        if (player != null) {
-            return Task.completed(player == UNLINKED_UUID ? Optional.empty() : Optional.of(player));
+    public Task<Optional<AccountLink>> get(long userId) {
+        AccountLink cached = userToPlayer.getIfPresent(userId);
+        if (cached != null) {
+            return Task.completed(cached == UNLINKED ? Optional.empty() : Optional.of(cached));
         }
 
-        return queryPlayerUUID(userId).thenApply(optional -> {
-            if (!optional.isPresent()) {
-                userToPlayer.put(userId, UNLINKED_UUID);
-                return optional;
+        return query(userId).thenApply(link -> {
+            if (!link.isPresent()) {
+                userToPlayer.put(userId, UNLINKED);
+                return link;
             }
 
-            UUID uuid = optional.get();
-            userToPlayer.put(userId, uuid);
-            return optional;
+            userToPlayer.put(userId, link.get());
+            return link;
         });
     }
 
     @Override
-    public Optional<UUID> getCachedPlayerUUID(long discordId) {
-        UUID value = userToPlayer.getIfPresent(discordId);
-        return Optional.ofNullable(value == null || value == UNLINKED_UUID ? null : value);
+    public Optional<AccountLink> getCached(long discordId) {
+        AccountLink value = userToPlayer.getIfPresent(discordId);
+        return Optional.ofNullable(value == null || value == UNLINKED ? null : value);
     }
 
     @Subscribe
@@ -158,8 +158,8 @@ public abstract class CachedLinkProvider implements LinkProvider {
         linkingAllowed.remove(uuid);
     }
 
-    protected void addToCache(UUID playerUUID, long userId) {
-        playerToUser.put(playerUUID, CompletableFuture.completedFuture(userId));
+    protected void addToCache(AccountLink link) {
+        playerToUser.put(link.playerUUID(), CompletableFuture.completedFuture(link));
     }
 
     protected void evictFromCache(UUID playerUUID) {
@@ -172,13 +172,13 @@ public abstract class CachedLinkProvider implements LinkProvider {
             super(discordSRV);
         }
 
-        public abstract Task<Void> link(@NotNull UUID playerUUID, long userId);
+        public abstract Task<Void> link(@NotNull AccountLink link);
         public abstract Task<Void> unlink(@NotNull UUID playerUUID, long userId);
 
         @Override
-        public final Task<Void> createLink(@NotNull UUID playerUUID, long userId) {
-            return link(playerUUID, userId).thenApply(v -> {
-                addToCache(playerUUID, userId);
+        public final Task<Void> createLink(@NotNull AccountLink link) {
+            return link(link).thenApply(v -> {
+                addToCache(link);
                 return null;
             });
         }

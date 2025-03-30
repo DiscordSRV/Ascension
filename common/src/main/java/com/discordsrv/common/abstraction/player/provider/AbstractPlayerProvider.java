@@ -74,8 +74,6 @@ public abstract class AbstractPlayerProvider<T extends IPlayer, DT extends Disco
         this.allPlayers.add(player);
         discordSRV.scheduler().run(() -> discordSRV.eventBus().publish(new PlayerConnectedEvent(player, initial)));
 
-        discordSRV.profileManager().loadProfile(player.uniqueId());
-
         if (UUIDUtil.isOffline(uuid)) {
             anyOffline.set(true);
         }
@@ -87,8 +85,6 @@ public abstract class AbstractPlayerProvider<T extends IPlayer, DT extends Disco
             allPlayers.remove(player);
             discordSRV.scheduler().run(() -> discordSRV.eventBus().publish(new PlayerDisconnectedEvent(player)));
         }
-
-        discordSRV.profileManager().unloadProfile(uuid);
     }
 
     @Override
@@ -109,13 +105,6 @@ public abstract class AbstractPlayerProvider<T extends IPlayer, DT extends Disco
     @Override
     public @NotNull Collection<T> allPlayers() {
         return allPlayers;
-    }
-
-    @Override
-    public void loadAllProfilesAsync() {
-        for (T player : allPlayers()) {
-            discordSRV.profileManager().loadProfile(player.uniqueId());
-        }
     }
 
     @Override

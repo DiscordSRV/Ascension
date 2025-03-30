@@ -53,8 +53,6 @@ public interface PlayerProvider<T extends IPlayer> extends com.discordsrv.api.pl
     @NotNull
     Collection<T> allPlayers();
 
-    void loadAllProfilesAsync();
-
     Task<UUID> lookupUUIDForUsername(String username);
 
     default Task<IOfflinePlayer> lookupOfflinePlayer(String username) {

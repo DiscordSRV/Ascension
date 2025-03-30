@@ -16,24 +16,42 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package com.discordsrv.common.feature.debug;
+package com.discordsrv.common.core.debug.file;
 
-import com.discordsrv.api.events.Event;
-import com.discordsrv.common.feature.debug.file.DebugFile;
+public interface DebugFile {
 
-public class DebugGenerateEvent implements Event {
+    String content();
 
-    private final DebugReport report;
-
-    public DebugGenerateEvent(DebugReport report) {
-        this.report = report;
+    default Named withName(String name) {
+        return new Named(name, 0, this);
+    }
+    default Named withName(String name, int order) {
+        return new Named(name, order, this);
     }
 
-    public void addFile(String fileName, DebugFile file) {
-        report.addFile(fileName, 0, () -> file);
-    }
+    class Named implements DebugFile {
 
-    public void addFile(int order, String name, DebugFile file) {
-        report.addFile(name, order, () -> file);
+        private final String fileName;
+        private final int order;
+        private final DebugFile file;
+
+        public Named(String fileName, int order, DebugFile file) {
+            this.fileName = fileName;
+            this.order = order;
+            this.file = file;
+        }
+
+        public int order() {
+            return order;
+        }
+
+        public String fileName() {
+            return fileName;
+        }
+
+        @Override
+        public String content() {
+            return file.content();
+        }
     }
 }

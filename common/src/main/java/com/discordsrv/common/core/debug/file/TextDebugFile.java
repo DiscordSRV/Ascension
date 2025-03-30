@@ -16,27 +16,19 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package com.discordsrv.common.feature.debug.data;
+package com.discordsrv.common.core.debug.file;
 
-public enum OnlineMode {
+public class TextDebugFile implements DebugFile {
 
-    ONLINE(true),
-    OFFLINE(false),
-    BUNGEE(true),
-    VELOCITY(true);
+    private final String content;
 
-    private final boolean online;
-
-    OnlineMode(boolean online) {
-        this.online = online;
+    public TextDebugFile(CharSequence content) {
+        this.content = content.toString();
     }
 
-    public boolean isOnline() {
-        return online;
-    }
-
-    public static OnlineMode of(boolean onlineMode) {
-        return onlineMode ? OnlineMode.ONLINE : OnlineMode.OFFLINE;
+    @Override
+    public String content() {
+        return content;
     }
 
 }

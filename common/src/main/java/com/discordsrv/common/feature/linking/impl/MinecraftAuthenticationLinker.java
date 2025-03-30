@@ -23,6 +23,7 @@ import com.discordsrv.api.task.Task;
 import com.discordsrv.common.DiscordSRV;
 import com.discordsrv.common.core.logging.Logger;
 import com.discordsrv.common.core.logging.NamedLogger;
+import com.discordsrv.common.feature.linking.AccountLink;
 import com.discordsrv.common.feature.linking.LinkStore;
 import com.discordsrv.common.feature.linking.LinkingModule;
 import com.discordsrv.common.feature.linking.requirelinking.RequiredLinkingModule;
@@ -39,6 +40,7 @@ import java.util.Locale;
 import java.util.Optional;
 import java.util.UUID;
 import java.util.function.Consumer;
+import java.util.function.Function;
 import java.util.function.Supplier;
 
 public class MinecraftAuthenticationLinker extends CachedLinkProvider {
@@ -55,13 +57,14 @@ public class MinecraftAuthenticationLinker extends CachedLinkProvider {
     }
 
     @Override
-    public Task<Optional<Long>> queryUserId(@NotNull UUID playerUUID, boolean canCauseLink) {
+    public Task<Optional<AccountLink>> query(@NotNull UUID playerUUID, boolean canCauseLink) {
         return query(
                 canCauseLink,
                 () -> AuthService.lookup(AccountType.MINECRAFT, playerUUID.toString(), AccountType.DISCORD)
                         .map(account -> (DiscordAccount) account)
                         .map(discord -> Long.parseUnsignedLong(discord.getUserId())),
-                () -> linkStore.getUserId(playerUUID),
+                () -> linkStore.get(playerUUID),
+                AccountLink::userId,
                 userId -> module().link(playerUUID, userId),
                 userId -> module().unlink(playerUUID, userId),
                 playerUUID.toString()
@@ -71,13 +74,14 @@ public class MinecraftAuthenticationLinker extends CachedLinkProvider {
     }
 
     @Override
-    public Task<Optional<UUID>> queryPlayerUUID(long userId, boolean canCauseLink) {
+    public Task<Optional<AccountLink>> query(long userId, boolean canCauseLink) {
         return query(
                 canCauseLink,
                 () -> AuthService.lookup(AccountType.DISCORD, Long.toUnsignedString(userId), AccountType.MINECRAFT)
                         .map(account -> (MinecraftAccount) account)
                         .map(MinecraftAccount::getUUID),
-                () -> linkStore.getPlayerUUID(userId),
+                () -> linkStore.get(userId),
+                AccountLink::playerUUID,
                 playerUUID -> module().link(playerUUID, userId),
                 playerUUID -> module().unlink(playerUUID, userId),
                 Long.toUnsignedString(userId)
@@ -159,15 +163,16 @@ public class MinecraftAuthenticationLinker extends CachedLinkProvider {
     private static final Optional<?> ERROR = null;
 
     @SuppressWarnings("unchecked")
-    private <T> Task<Optional<T>> query(
+    private <T> Task<Optional<AccountLink>> query(
             boolean canCauseLink,
             CheckedSupplier<Optional<T>> authSupplier,
-            Supplier<Task<Optional<T>>> storageSupplier,
+            Supplier<Task<Optional<AccountLink>>> storageSupplier,
+            Function<AccountLink, T> linkMap,
             Consumer<T> linked,
             Consumer<T> unlinked,
             String identifier
     ) {
-        Task<Optional<T>> storageFuture = storageSupplier.get();
+        Task<Optional<AccountLink>> storageFuture = storageSupplier.get();
         if (!canCauseLink) {
             // If we can't cause a link, use the current account in storage
             return storageFuture;
@@ -180,7 +185,7 @@ public class MinecraftAuthenticationLinker extends CachedLinkProvider {
 
         return Task.allOf(authService, storageFuture).thenApply(results -> {
             Optional<T> auth = authService.join();
-            Optional<T> storage = storageFuture.join();
+            Optional<AccountLink> storage = storageFuture.join();
             if (auth == ERROR) {
                 // If we can't query the auth service, we'll just use the link from storage
                 return storage;
@@ -192,15 +197,15 @@ public class MinecraftAuthenticationLinker extends CachedLinkProvider {
             }
             if (!auth.isPresent() && storage.isPresent()) {
                 // unlink
-                unlinked.accept(storage.get());
+                unlinked.accept(linkMap.apply(storage.get()));
             }
             if (auth.isPresent() && storage.isPresent() && !auth.get().equals(storage.get())) {
                 // linked account changed
-                unlinked.accept(storage.get());
+                unlinked.accept(linkMap.apply(storage.get()));
                 linked.accept(auth.get());
             }
 
-            return auth;
+            return storage;
         });
     }
 }

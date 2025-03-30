@@ -16,9 +16,19 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package com.discordsrv.common.feature.update.github;
+package com.discordsrv.common.core.debug;
 
-public class GithubRelease {
+import com.discordsrv.api.events.Event;
 
-    public String tag_name;
+public class DebugObservabilityEvent implements Event {
+
+    private final boolean enable;
+
+    public DebugObservabilityEvent(boolean enable) {
+        this.enable = enable;
+    }
+
+    public boolean isEnable() {
+        return enable;
+    }
 }

@@ -16,7 +16,7 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package com.discordsrv.common.feature.profile;
+package com.discordsrv.common.core.profile;
 
 import com.discordsrv.api.discord.entity.DiscordUser;
 import com.discordsrv.api.placeholder.annotation.Placeholder;
@@ -28,6 +28,7 @@ import com.discordsrv.common.abstraction.player.IOfflinePlayer;
 import com.discordsrv.common.abstraction.player.IPlayer;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.Set;
 import java.util.UUID;
 
 @PlaceholderPrefix("profile_")
@@ -36,11 +37,21 @@ public class ProfileImpl implements Profile {
     private final DiscordSRV discordSRV;
     private final UUID playerUUID;
     private final Long userId;
+    private final GameProfileData gameData;
+    private final DiscordProfileData discordData;
 
-    public ProfileImpl(DiscordSRV discordSRV, UUID playerUUID, Long userId) {
+    public ProfileImpl(
+            DiscordSRV discordSRV,
+            UUID playerUUID,
+            Long userId,
+            GameProfileData gameData,
+            DiscordProfileData discordData
+    ) {
         this.discordSRV = discordSRV;
         this.playerUUID = playerUUID;
         this.userId = userId;
+        this.gameData = gameData;
+        this.discordData = discordData;
     }
 
     @Placeholder("player_uuid")
@@ -78,5 +89,29 @@ public class ProfileImpl implements Profile {
             return Task.completed(null);
         }
         return discordSRV.discordAPI().retrieveUserById(userId);
+    }
+
+    @Nullable
+    public Set<String> getGameGrantedRewards() {
+        if (gameData == null) {
+            return null;
+        }
+        return gameData.getGrantedRewards();
+    }
+
+    @Nullable
+    public Set<String> getDiscordGrantedRewards() {
+        if (discordData == null) {
+            return null;
+        }
+        return discordData.getGrantedRewards();
+    }
+
+    public GameProfileData getGameData() {
+        return gameData;
+    }
+
+    public DiscordProfileData getDiscordData() {
+        return discordData;
     }
 }

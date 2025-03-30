@@ -16,19 +16,28 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package com.discordsrv.common.feature.debug;
+package com.discordsrv.common.core.update;
 
-import com.discordsrv.api.events.Event;
+import java.util.List;
 
-public class DebugObservabilityEvent implements Event {
+public class VersionCheck {
 
-    private final boolean enable;
+    public Status status;
 
-    public DebugObservabilityEvent(boolean enable) {
-        this.enable = enable;
+    public int amount;
+    public AmountSource amountSource;
+    public String amountType;
+
+    public boolean insecure;
+    public List<String> securityIssues;
+
+    public enum Status {
+        UP_TO_DATE,
+        OUTDATED,
+        UNKNOWN
     }
 
-    public boolean isEnable() {
-        return enable;
+    public enum AmountSource {
+        GITHUB
     }
 }

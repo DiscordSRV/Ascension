@@ -16,7 +16,7 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package com.discordsrv.common.feature.debug;
+package com.discordsrv.common.core.debug;
 
 import com.discordsrv.common.DiscordSRV;
 import com.discordsrv.common.abstraction.plugin.Plugin;
@@ -27,9 +27,9 @@ import com.discordsrv.common.config.connection.StorageConfig;
 import com.discordsrv.common.config.messages.MessagesConfig;
 import com.discordsrv.common.core.paste.Paste;
 import com.discordsrv.common.core.paste.PasteService;
-import com.discordsrv.common.feature.debug.file.DebugFile;
-import com.discordsrv.common.feature.debug.file.KeyValueDebugFile;
-import com.discordsrv.common.feature.debug.file.TextDebugFile;
+import com.discordsrv.common.core.debug.file.DebugFile;
+import com.discordsrv.common.core.debug.file.KeyValueDebugFile;
+import com.discordsrv.common.core.debug.file.TextDebugFile;
 import com.discordsrv.common.util.function.CheckedSupplier;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.node.ArrayNode;

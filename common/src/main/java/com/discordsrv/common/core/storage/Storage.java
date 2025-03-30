@@ -18,7 +18,10 @@
 
 package com.discordsrv.common.core.storage;
 
+import com.discordsrv.common.core.profile.DiscordProfileData;
+import com.discordsrv.common.core.profile.GameProfileData;
 import com.discordsrv.common.exception.StorageException;
+import com.discordsrv.common.feature.linking.AccountLink;
 import com.discordsrv.common.feature.linking.LinkStore;
 import org.apache.commons.lang3.tuple.Pair;
 import org.jetbrains.annotations.Blocking;
@@ -33,22 +36,32 @@ public interface Storage {
     void initialize();
     void close() throws StorageException;
 
-    @Nullable
-    Long getUserId(@NotNull UUID player);
+    // AccountLink
 
     @Nullable
-    UUID getPlayerUUID(long userId);
+    AccountLink getLinkByPlayerUUID(@NotNull UUID playerUUID);
 
-    void createLink(@NotNull UUID player, long userId);
-    void removeLink(@NotNull UUID player, long userId);
+    @Nullable
+    AccountLink getLinkByUserId(long userId);
+
+    void createLink(@NotNull AccountLink link);
+    void removeLink(@NotNull UUID playerUUID, long userId);
 
     /**
      * Inserts the given code for the given player, removing any existing code if any, with a {@link LinkStore#LINKING_CODE_EXPIRY_TIME} expiry.
      */
-    void storeLinkingCode(@NotNull UUID player, String username, String code);
+    void storeLinkingCode(@NotNull UUID playerUUID, String username, String code);
     Pair<UUID, String> getLinkingCode(String code);
-    void removeLinkingCode(@NotNull UUID player);
+    void removeLinkingCode(@NotNull UUID playerUUID);
 
     int getLinkedAccountCount();
+
+    // Profile
+
+    GameProfileData getGameProfileData(@NotNull UUID playerUUID);
+    void saveGameProfileData(@NotNull GameProfileData profile);
+
+    DiscordProfileData getDiscordProfileData(long userId);
+    void saveDiscordProfileData(@NotNull DiscordProfileData profile);
 
 }

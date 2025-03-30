@@ -24,9 +24,9 @@ import com.discordsrv.api.task.Task;
 import com.discordsrv.common.DiscordSRV;
 import com.discordsrv.common.core.logging.NamedLogger;
 import com.discordsrv.common.core.module.type.AbstractModule;
-import com.discordsrv.common.feature.profile.ProfileImpl;
 import com.github.benmanes.caffeine.cache.Cache;
 
+import java.time.LocalDateTime;
 import java.util.UUID;
 
 public class LinkingModule extends AbstractModule<DiscordSRV> {
@@ -59,12 +59,11 @@ public class LinkingModule extends AbstractModule<DiscordSRV> {
         return provider.store();
     }
 
-    public Task<ProfileImpl> link(UUID playerUUID, long userId) {
-        return store().createLink(playerUUID, userId)
-                .then(v -> discordSRV.profileManager().loadProfile(playerUUID))
-                .whenSuccessful(profile -> {
+    public Task<Void> link(UUID playerUUID, long userId) {
+        return store().createLink(new AccountLink(playerUUID, userId, LocalDateTime.now(), LocalDateTime.now()))
+                .whenSuccessful(v -> {
                     logger().debug("Linked: " + playerUUID + " & " + Long.toUnsignedString(userId));
-                    discordSRV.eventBus().publish(new AccountLinkedEvent(profile));
+                    discordSRV.eventBus().publish(new AccountLinkedEvent(playerUUID, userId));
                 })
                 .whenFailed(t -> logger().error("Failed to link " + playerUUID + " and " + Long.toUnsignedString(userId), t));
     }

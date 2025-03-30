@@ -28,7 +28,7 @@ import com.discordsrv.common.config.connection.ConnectionConfig;
 import com.discordsrv.common.config.main.MainConfig;
 import com.discordsrv.common.config.messages.MessagesConfig;
 import com.discordsrv.common.core.scheduler.StandardScheduler;
-import com.discordsrv.common.feature.debug.data.OnlineMode;
+import com.discordsrv.common.core.debug.data.OnlineMode;
 import com.discordsrv.velocity.command.game.handler.VelocityCommandHandler;
 import com.discordsrv.velocity.console.VelocityConsole;
 import com.discordsrv.velocity.player.VelocityPlayerProvider;

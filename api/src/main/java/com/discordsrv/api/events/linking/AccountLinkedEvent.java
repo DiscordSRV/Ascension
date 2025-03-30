@@ -24,7 +24,6 @@
 package com.discordsrv.api.events.linking;
 
 import com.discordsrv.api.events.Event;
-import com.discordsrv.api.profile.Profile;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.UUID;
@@ -34,22 +33,12 @@ import java.util.UUID;
  */
 public class AccountLinkedEvent implements Event {
 
-    private final Profile profile;
+    private final UUID playerUUID;
+    private final long userId;
 
-    public AccountLinkedEvent(@NotNull Profile profile) {
-        if (!profile.isLinked()) {
-            throw new IllegalStateException("Profile is not linked");
-        }
-        this.profile = profile;
-    }
-
-    /**
-     * The profile of the linked account pair.
-     * @return the profile
-     */
-    @NotNull
-    public Profile getProfile() {
-        return profile;
+    public AccountLinkedEvent(@NotNull UUID playerUUID, long userId) {
+        this.playerUUID = playerUUID;
+        this.userId = userId;
     }
 
     /**
@@ -58,11 +47,7 @@ public class AccountLinkedEvent implements Event {
      */
     @NotNull
     public UUID getPlayerUUID() {
-        UUID uuid = profile.playerUUID();
-        if (uuid == null) {
-            throw new IllegalStateException("playerUUID is null");
-        }
-        return uuid;
+        return playerUUID;
     }
 
     /**
@@ -70,10 +55,6 @@ public class AccountLinkedEvent implements Event {
      * @return the user's Discord user id
      */
     public long getUserId() {
-        Long userId = profile.userId();
-        if (userId == null) {
-            throw new IllegalStateException("userId is null");
-        }
         return userId;
     }
 }

@@ -34,8 +34,8 @@ import com.discordsrv.common.core.module.type.ModuleDelegate;
 import com.discordsrv.common.core.module.type.PluginIntegration;
 import com.discordsrv.common.discord.connection.jda.JDAConnectionManager;
 import com.discordsrv.common.events.integration.IntegrationLifecycleEvent;
-import com.discordsrv.common.feature.debug.DebugGenerateEvent;
-import com.discordsrv.common.feature.debug.file.TextDebugFile;
+import com.discordsrv.common.core.debug.DebugGenerateEvent;
+import com.discordsrv.common.core.debug.file.TextDebugFile;
 import com.discordsrv.common.util.function.CheckedFunction;
 
 import java.util.*;

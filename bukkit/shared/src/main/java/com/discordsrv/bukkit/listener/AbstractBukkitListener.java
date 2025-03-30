@@ -23,7 +23,7 @@ import com.discordsrv.bukkit.BukkitDiscordSRV;
 import com.discordsrv.bukkit.debug.EventObserver;
 import com.discordsrv.common.core.logging.Logger;
 import com.discordsrv.common.core.module.type.AbstractModule;
-import com.discordsrv.common.feature.debug.DebugObservabilityEvent;
+import com.discordsrv.common.core.debug.DebugObservabilityEvent;
 import org.bukkit.event.Event;
 import org.bukkit.event.HandlerList;
 import org.bukkit.event.Listener;

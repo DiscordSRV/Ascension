@@ -73,7 +73,7 @@ public class LinkInitGameCommand implements GameCommandExecutor {
             return;
         }
 
-        if (linkProvider.getCachedUserId(player.uniqueId()).isPresent()) {
+        if (linkProvider.getCached(player.uniqueId()).isPresent()) {
             // Check cache first
             player.sendMessage(messages.alreadyLinked1st.asComponent());
             return;
@@ -86,7 +86,7 @@ public class LinkInitGameCommand implements GameCommandExecutor {
         linkCheckRateLimit.put(player.uniqueId(), true);
 
         player.sendMessage(discordSRV.messagesConfig(player).checkingLinkStatus.asComponent());
-        linkProvider.queryUserId(player.uniqueId(), true).whenComplete((userId, t1) -> {
+        linkProvider.query(player.uniqueId(), true).whenComplete((userId, t1) -> {
             if (t1 != null) {
                 logger.error("Failed to check linking status", t1);
                 player.sendMessage(messages.unableToLinkAtThisTime.asComponent());

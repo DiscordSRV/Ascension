@@ -103,7 +103,7 @@ public class LinkInitDiscordCommand implements Consumer<DiscordChatInputInteract
             return;
         }
 
-        if (linkProvider.getCachedPlayerUUID(user.getId()).isPresent()) {
+        if (linkProvider.getCached(user.getId()).isPresent()) {
             event.reply(messagesConfig.alreadyLinked1st.get(), true);
             return;
         }
@@ -120,13 +120,13 @@ public class LinkInitDiscordCommand implements Consumer<DiscordChatInputInteract
                 return;
             }
 
-            linkProvider.queryPlayerUUID(user.getId()).whenComplete((linkedPlayer, t2) -> {
+            linkProvider.query(user.getId()).whenComplete((existingLink, t2) -> {
                 if (t2 != null) {
                     logger.error("Failed to check linking status", t2);
                     interactionHook.editOriginal(messagesConfig.unableToCheckLinkingStatus.get());
                     return;
                 }
-                if (linkedPlayer.isPresent()) {
+                if (existingLink.isPresent()) {
                     interactionHook.editOriginal(messagesConfig.alreadyLinked1st.get());
                     return;
                 }

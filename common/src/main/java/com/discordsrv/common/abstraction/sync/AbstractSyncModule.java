@@ -266,7 +266,7 @@ public abstract class AbstractSyncModule<
             return Task.completed(null);
         }
 
-        return someone.withLinkedAccounts().thenApply(resolved -> {
+        return someone.resolve().thenApply(resolved -> {
             if (resolved == null) {
                 return new SyncSummary<>(this, cause, someone).fail(GenericSyncResults.NOT_LINKED);
             }
@@ -314,7 +314,7 @@ public abstract class AbstractSyncModule<
             return Task.completed(null);
         }
 
-        return someone.withLinkedAccounts().thenApply(resolved -> {
+        return someone.resolve().thenApply(resolved -> {
             if (resolved == null) {
                 return new SyncSummary<>(this, cause, someone).fail(GenericSyncResults.NOT_LINKED);
             }
@@ -361,7 +361,7 @@ public abstract class AbstractSyncModule<
     }
 
     public Task<SyncSummary<C>> resync(ISyncCause cause, Someone someone, Set<C> configs) {
-        return someone.withLinkedAccounts().thenApply(resolved -> {
+        return someone.resolve().thenApply(resolved -> {
             if (resolved == null) {
                 return new SyncSummary<>(this, cause, someone).fail(GenericSyncResults.NOT_LINKED);
             }

@@ -30,7 +30,7 @@ public interface LinkStore extends LinkProvider {
     Duration LINKING_CODE_EXPIRY_TIME = Duration.ofMinutes(5);
     Duration LINKING_CODE_RATE_LIMIT = Duration.ofSeconds(5);
 
-    Task<Void> createLink(@NotNull UUID playerUUID, long userId);
+    Task<Void> createLink(@NotNull AccountLink link);
     Task<Void> removeLink(@NotNull UUID playerUUID, long userId);
 
     /**

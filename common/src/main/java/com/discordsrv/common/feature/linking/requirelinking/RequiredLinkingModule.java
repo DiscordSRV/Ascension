@@ -134,12 +134,12 @@ public abstract class RequiredLinkingModule<T extends DiscordSRV> extends Abstra
     public abstract void recheck(IPlayer player);
 
     private void recheck(Someone someone) {
-        someone.withPlayerUUID().thenApply(uuid -> {
-            if (uuid == null) {
+        someone.resolve().thenApply(resolved -> {
+            if (resolved == null) {
                 return null;
             }
 
-            return discordSRV.playerProvider().player(uuid);
+            return discordSRV.playerProvider().player(resolved.playerUUID());
         }).whenComplete((onlinePlayer, t) -> {
             if (t != null) {
                 logger().error("Failed to get linked account for " + someone, t);
@@ -215,15 +215,14 @@ public abstract class RequiredLinkingModule<T extends DiscordSRV> extends Abstra
             return Task.completed(message);
         }
 
-        return linkProvider.queryUserId(playerUUID, true).then(opt -> {
-            if (!opt.isPresent()) {
+        return linkProvider.query(playerUUID, true).then(link -> {
+            if (!link.isPresent()) {
                 // User is not linked
                 return linkProvider.getLinkingInstructions(playerName, playerUUID, null, join ? "join" : "freeze")
                         .thenApply(ComponentUtil::fromAPI);
             }
 
-            long userId = opt.get();
-
+            long userId = link.get().userId();
             if (additionalRequirements.isEmpty()) {
                 // No additional requirements: let them through
                 return Task.completed(null);

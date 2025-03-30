@@ -120,24 +120,23 @@ public class LinkedCommand extends CombinedCommand {
         if (result.isPlayer()) {
             UUID playerUUID = result.getPlayerUUID();
 
-            linkProvider.getUserId(playerUUID).whenComplete((optUserId, t) -> {
+            linkProvider.get(playerUUID).whenComplete((link, t) -> {
                 if (t != null) {
                     logger.error("Failed to check linking status during linked command", t);
                     execution.messages().unableToCheckLinkingStatus(execution);
                     return;
                 }
-                if (!optUserId.isPresent()) {
+                if (!link.isPresent()) {
                     execution.messages().minecraftPlayerUnlinked(discordSRV, execution, playerUUID);
                     return;
                 }
 
-                long userId = optUserId.get();
-                execution.messages().minecraftPlayerLinkedTo(discordSRV, execution, playerUUID, userId);
+                execution.messages().minecraftPlayerLinkedTo(discordSRV, execution, playerUUID, link.get().userId());
             });
         } else {
             long userId = result.getUserId();
 
-            linkProvider.getPlayerUUID(userId).whenComplete((optPlayerUUID, t) -> {
+            linkProvider.get(userId).whenComplete((link, t) -> {
                 if (t != null) {
                     logger.error("Failed to check linking status during linked command", t);
                     execution.send(
@@ -146,13 +145,12 @@ public class LinkedCommand extends CombinedCommand {
                     );
                     return;
                 }
-                if (!optPlayerUUID.isPresent()) {
+                if (!link.isPresent()) {
                     execution.messages().discordUserUnlinked(discordSRV, execution, userId);
                     return;
                 }
 
-                UUID playerUUID = optPlayerUUID.get();
-                execution.messages().discordUserLinkedTo(discordSRV, execution, playerUUID, userId);
+                execution.messages().discordUserLinkedTo(discordSRV, execution, link.get().playerUUID(), userId);
             });
         }
     }

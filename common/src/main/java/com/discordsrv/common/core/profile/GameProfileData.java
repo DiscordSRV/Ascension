@@ -16,11 +16,29 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package com.discordsrv.common.feature.update.github;
+package com.discordsrv.common.core.profile;
 
-public class GitHubCompareResponse {
+import java.util.*;
 
-    public String status;
-    public int behind_by;
+public class GameProfileData {
 
+    private final UUID playerUUID;
+    private final Set<String> grantedRewards;
+
+    public GameProfileData(UUID playerUUID) {
+        this(playerUUID, new HashSet<>());
+    }
+
+    public GameProfileData(UUID playerUUID, Set<String> grantedRewards) {
+        this.playerUUID = playerUUID;
+        this.grantedRewards = grantedRewards;
+    }
+
+    public UUID getPlayerUUID() {
+        return playerUUID;
+    }
+
+    public Set<String> getGrantedRewards() {
+        return grantedRewards;
+    }
 }

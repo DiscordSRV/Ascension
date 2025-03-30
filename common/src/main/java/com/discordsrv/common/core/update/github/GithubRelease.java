@@ -16,28 +16,9 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package com.discordsrv.common.feature.update;
+package com.discordsrv.common.core.update.github;
 
-import java.util.List;
+public class GithubRelease {
 
-public class VersionCheck {
-
-    public Status status;
-
-    public int amount;
-    public AmountSource amountSource;
-    public String amountType;
-
-    public boolean insecure;
-    public List<String> securityIssues;
-
-    public enum Status {
-        UP_TO_DATE,
-        OUTDATED,
-        UNKNOWN
-    }
-
-    public enum AmountSource {
-        GITHUB
-    }
+    public String tag_name;
 }

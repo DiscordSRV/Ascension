@@ -21,6 +21,7 @@ package com.discordsrv.common.feature.linking.impl;
 import com.discordsrv.api.component.MinecraftComponent;
 import com.discordsrv.api.task.Task;
 import com.discordsrv.common.DiscordSRV;
+import com.discordsrv.common.feature.linking.AccountLink;
 import org.apache.commons.lang3.tuple.Pair;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -37,24 +38,24 @@ public class StorageLinker extends CachedLinkProvider.Store {
     }
 
     @Override
-    public Task<Optional<Long>> queryUserId(@NotNull UUID playerUUID, boolean canCauseLink) {
+    public Task<Optional<AccountLink>> query(@NotNull UUID playerUUID, boolean canCauseLink) {
         return discordSRV.scheduler().supply(() -> {
-            Long value = discordSRV.storage().getUserId(playerUUID);
+            AccountLink value = discordSRV.storage().getLinkByPlayerUUID(playerUUID);
             return Optional.ofNullable(value);
         });
     }
 
     @Override
-    public Task<Optional<UUID>> queryPlayerUUID(long userId, boolean canCauseLink) {
+    public Task<Optional<AccountLink>> query(long userId, boolean canCauseLink) {
         return discordSRV.scheduler().supply(() -> {
-            UUID value = discordSRV.storage().getPlayerUUID(userId);
+            AccountLink value = discordSRV.storage().getLinkByUserId(userId);
             return Optional.ofNullable(value);
         });
     }
 
     @Override
-    public Task<Void> link(@NotNull UUID playerUUID, long userId) {
-        return discordSRV.scheduler().execute(() -> discordSRV.storage().createLink(playerUUID, userId));
+    public Task<Void> link(@NotNull AccountLink link) {
+        return discordSRV.scheduler().execute(() -> discordSRV.storage().createLink(link));
     }
 
     @Override

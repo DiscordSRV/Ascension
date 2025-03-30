@@ -18,9 +18,10 @@
 
 package com.discordsrv.common.core.storage.impl;
 
+import com.discordsrv.common.core.profile.DiscordProfileData;
+import com.discordsrv.common.core.profile.GameProfileData;
 import com.discordsrv.common.core.storage.Storage;
-import org.apache.commons.collections4.BidiMap;
-import org.apache.commons.collections4.bidimap.DualHashBidiMap;
+import com.discordsrv.common.feature.linking.AccountLink;
 import org.apache.commons.lang3.tuple.Pair;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -33,8 +34,12 @@ public class MemoryStorage implements Storage {
 
     public static String IDENTIFIER = UUID.randomUUID().toString();
 
-    private final BidiMap<UUID, Long> linkedAccounts = new DualHashBidiMap<>();
+    private final Map<UUID, AccountLink> gameLinks = new ConcurrentHashMap<>();
+    private final Map<Long, AccountLink> discordLinks = new ConcurrentHashMap<>();
     private final Map<String, Pair<UUID, String>> linkingCodes = new ConcurrentHashMap<>();
+
+    private final Map<UUID, GameProfileData> gameProfiles = new ConcurrentHashMap<>();
+    private final Map<Long, DiscordProfileData> discordProfiles = new ConcurrentHashMap<>();
 
     public MemoryStorage() {}
 
@@ -43,32 +48,35 @@ public class MemoryStorage implements Storage {
 
     @Override
     public void close() {
-        linkedAccounts.clear();
+        gameLinks.clear();
+        discordLinks.clear();
     }
 
     @Override
-    public @Nullable Long getUserId(@NotNull UUID player) {
-        return linkedAccounts.get(player);
+    public @Nullable AccountLink getLinkByPlayerUUID(@NotNull UUID playerUUID) {
+        return gameLinks.get(playerUUID);
     }
 
     @Override
-    public @Nullable UUID getPlayerUUID(long userId) {
-        return linkedAccounts.getKey(userId);
+    public @Nullable AccountLink getLinkByUserId(long userId) {
+        return discordLinks.get(userId);
     }
 
     @Override
-    public void createLink(@NotNull UUID player, long userId) {
-        linkedAccounts.put(player, userId);
+    public void createLink(@NotNull AccountLink link) {
+        gameLinks.put(link.playerUUID(), link);
+        discordLinks.put(link.userId(), link);
     }
 
     @Override
-    public void removeLink(@NotNull UUID player, long userId) {
-        linkedAccounts.remove(player, userId);
+    public void removeLink(@NotNull UUID playerUUID, long userId) {
+        gameLinks.remove(playerUUID);
+        discordLinks.remove(userId);
     }
 
     @Override
-    public void storeLinkingCode(@NotNull UUID player, @NotNull String username, String code) {
-        linkingCodes.put(code, Pair.of(player, username));
+    public void storeLinkingCode(@NotNull UUID playerUUID, @NotNull String username, String code) {
+        linkingCodes.put(code, Pair.of(playerUUID, username));
     }
 
     @Override
@@ -77,13 +85,33 @@ public class MemoryStorage implements Storage {
     }
 
     @Override
-    public void removeLinkingCode(@NotNull UUID player) {
-        linkingCodes.values().removeIf(code -> code.getKey() == player);
+    public void removeLinkingCode(@NotNull UUID playerUUID) {
+        linkingCodes.values().removeIf(code -> code.getKey() == playerUUID);
     }
 
     @Override
     public int getLinkedAccountCount() {
-        return linkedAccounts.size();
+        return gameLinks.size();
+    }
+
+    @Override
+    public GameProfileData getGameProfileData(@NotNull UUID playerUUID) {
+        return gameProfiles.get(playerUUID);
+    }
+
+    @Override
+    public void saveGameProfileData(@NotNull GameProfileData profile) {
+        gameProfiles.put(profile.getPlayerUUID(), profile);
+    }
+
+    @Override
+    public DiscordProfileData getDiscordProfileData(long userId) {
+        return discordProfiles.get(userId);
+    }
+
+    @Override
+    public void saveDiscordProfileData(@NotNull DiscordProfileData profile) {
+        discordProfiles.put(profile.getUserId(), profile);
     }
 
 }

@@ -145,7 +145,7 @@ public class LinkOtherCommand extends CombinedCommand {
                 return;
             }
 
-            linkProvider.queryUserId(playerUUID).whenComplete((linkedUser, t) -> {
+            linkProvider.query(playerUUID).whenComplete((linkedUser, t) -> {
                 if (t != null) {
                     logger.error("Failed to check linking status", t);
                     execution.messages().unableToCheckLinkingStatus(execution);
@@ -155,13 +155,13 @@ public class LinkOtherCommand extends CombinedCommand {
                     return;
                 }
 
-                linkProvider.queryPlayerUUID(userId).whenComplete((linkedPlayer, t2) -> {
+                linkProvider.query(userId).whenComplete((existingLink, t2) -> {
                     if (t2 != null) {
                         logger.error("Failed to check linking status", t2);
                         execution.messages().unableToCheckLinkingStatus(execution);
                         return;
                     }
-                    if (linkedPlayer.isPresent()) {
+                    if (existingLink.isPresent()) {
                         return;
                     }
 

@@ -80,10 +80,11 @@ import com.discordsrv.common.feature.channel.TimedUpdaterModule;
 import com.discordsrv.common.feature.channel.global.GlobalChannelLookupModule;
 import com.discordsrv.common.feature.console.ConsoleModule;
 import com.discordsrv.common.feature.customcommands.CustomCommandModule;
-import com.discordsrv.common.feature.debug.data.VersionInfo;
+import com.discordsrv.common.core.debug.data.VersionInfo;
 import com.discordsrv.common.feature.groupsync.GroupSyncModule;
 import com.discordsrv.common.feature.linking.LinkProvider;
 import com.discordsrv.common.feature.linking.LinkingModule;
+import com.discordsrv.common.feature.linking.LinkingRewardsModule;
 import com.discordsrv.common.feature.linking.impl.MinecraftAuthenticationLinker;
 import com.discordsrv.common.feature.linking.impl.StorageLinker;
 import com.discordsrv.common.feature.mention.MentionCachingModule;
@@ -92,9 +93,9 @@ import com.discordsrv.common.feature.messageforwarding.discord.DiscordChatMessag
 import com.discordsrv.common.feature.messageforwarding.discord.DiscordMessageMirroringModule;
 import com.discordsrv.common.feature.messageforwarding.game.*;
 import com.discordsrv.common.feature.nicknamesync.NicknameSyncModule;
-import com.discordsrv.common.feature.profile.ProfileManagerImpl;
+import com.discordsrv.common.core.profile.ProfileManagerImpl;
 import com.discordsrv.common.feature.onlinerole.OnlineRoleModule;
-import com.discordsrv.common.feature.update.UpdateChecker;
+import com.discordsrv.common.core.update.UpdateChecker;
 import com.discordsrv.common.helper.ChannelConfigHelper;
 import com.discordsrv.common.helper.DestinationLookupHelper;
 import com.discordsrv.common.helper.TemporaryLocalData;
@@ -742,6 +743,7 @@ public abstract class AbstractDiscordSRV<
         registerModule(NicknameSyncModule::new);
         registerModule(PlayerListModule::new);
         registerModule(OnlineRoleModule::new);
+        registerModule(LinkingRewardsModule::new);
 
         if (serverType() == ServerType.PROXY) {
             registerModule(ServerSwitchMessageModule::new);
@@ -954,7 +956,9 @@ public abstract class AbstractDiscordSRV<
             }
 
             if (linkProviderMissing && linkProvider != null) {
-                playerProvider().loadAllProfilesAsync();
+                for (IPlayer player : playerProvider().allPlayers()) {
+                    profileManager().loadProfile(player.uniqueId());
+                }
             }
         }
 
