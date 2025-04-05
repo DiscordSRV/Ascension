@@ -23,7 +23,6 @@ import com.discordsrv.api.discord.entity.guild.DiscordGuildMember;
 import com.discordsrv.api.discord.entity.guild.DiscordRole;
 import com.discordsrv.api.discord.exception.RestErrorResponseException;
 import com.discordsrv.api.eventbus.Subscribe;
-import com.discordsrv.api.events.lifecycle.DiscordSRVShuttingDownEvent;
 import com.discordsrv.api.player.DiscordSRVPlayer;
 import com.discordsrv.api.profile.Profile;
 import com.discordsrv.api.reload.ReloadResult;
@@ -186,8 +185,8 @@ public class OnlineRoleModule extends AbstractSyncModule<DiscordSRV, OnlineRoleC
         return Task.allOf(futures);
     }
 
-    @Subscribe
-    public void onShutdown(DiscordSRVShuttingDownEvent event) {
+    @Override
+    public void serverShuttingDown() {
         JDA jda = discordSRV.jda();
         if (jda == null) {
             return;

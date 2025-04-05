@@ -27,6 +27,8 @@ import com.discordsrv.api.events.lifecycle.DiscordSRVShuttingDownEvent;
 import com.discordsrv.api.module.Module;
 import com.discordsrv.api.reload.ReloadResult;
 import com.discordsrv.common.DiscordSRV;
+import com.discordsrv.common.core.debug.DebugGenerateEvent;
+import com.discordsrv.common.core.debug.file.TextDebugFile;
 import com.discordsrv.common.core.logging.Logger;
 import com.discordsrv.common.core.logging.NamedLogger;
 import com.discordsrv.common.core.module.type.AbstractModule;
@@ -34,8 +36,7 @@ import com.discordsrv.common.core.module.type.ModuleDelegate;
 import com.discordsrv.common.core.module.type.PluginIntegration;
 import com.discordsrv.common.discord.connection.jda.JDAConnectionManager;
 import com.discordsrv.common.events.integration.IntegrationLifecycleEvent;
-import com.discordsrv.common.core.debug.DebugGenerateEvent;
-import com.discordsrv.common.core.debug.file.TextDebugFile;
+import com.discordsrv.common.events.lifecycle.ServerStartedEvent;
 import com.discordsrv.common.util.function.CheckedFunction;
 
 import java.util.*;
@@ -43,6 +44,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArraySet;
 import java.util.function.BiConsumer;
 import java.util.function.Function;
+import java.util.stream.Stream;
 
 public class ModuleManager {
 
@@ -206,11 +208,18 @@ public class ModuleManager {
         }
     }
 
+    private Stream<Module> modulesInShutdownOrder() {
+        return modules.stream().sorted(Comparator.comparing(Module::shutdownOrder));
+    }
+
+    @Subscribe(priority = EventPriorities.EARLIEST)
+    public void onShuttingDownEarliest(DiscordSRVShuttingDownEvent event) {
+        modulesInShutdownOrder().forEachOrdered(Module::serverShuttingDown);
+    }
+
     @Subscribe(priority = EventPriorities.EARLY)
-    public void onShuttingDown(DiscordSRVShuttingDownEvent event) {
-        modules.stream()
-                .sorted((m1, m2) -> Integer.compare(m2.shutdownOrder(), m1.shutdownOrder()))
-                .forEachOrdered(module -> disable(getAbstract(module)));
+    public void onShuttingDownEarly(DiscordSRVShuttingDownEvent event) {
+        modulesInShutdownOrder().forEachOrdered(module -> disable(getAbstract(module)));
     }
 
     @Subscribe
@@ -234,7 +243,8 @@ public class ModuleManager {
         return reloadAndEnableModules(true);
     }
 
-    public void enableModules() {
+    @Subscribe
+    public void onServerStarted(ServerStartedEvent event) {
         reloadAndEnableModules(false);
     }
 
@@ -261,6 +271,7 @@ public class ModuleManager {
 
     private List<ReloadResult> enableOrDisableAsNeeded(AbstractModule<?> module, boolean isReady, boolean mayReload) {
         boolean canBeEnabled = isReady || module.canEnableBeforeReady();
+        boolean serverStarted = isReady && discordSRV.isServerStarted();
         if (!canBeEnabled) {
             return Collections.emptyList();
         }
@@ -268,6 +279,9 @@ public class ModuleManager {
         boolean enabled = module.isEnabled();
         if (!enabled) {
             disable(module);
+            if (serverStarted) {
+                module.serverStartedForModule();
+            }
             return Collections.emptyList();
         }
 
@@ -299,6 +313,10 @@ public class ModuleManager {
                 reloadResults.addAll(results);
             } else if (mayReload) {
                 reloadResults.addAll(reload(module));
+            }
+
+            if (serverStarted) {
+                module.serverStartedForModule();
             }
         }
 

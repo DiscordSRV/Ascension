@@ -19,21 +19,14 @@
 package com.discordsrv.common.feature.messageforwarding.game;
 
 import com.discordsrv.api.channel.GameChannel;
-import com.discordsrv.api.discord.entity.channel.DiscordGuildMessageChannel;
-import com.discordsrv.api.discord.entity.message.ReceivedDiscordMessage;
 import com.discordsrv.api.discord.entity.message.ReceivedDiscordMessageCluster;
 import com.discordsrv.api.discord.entity.message.SendableDiscordMessage;
 import com.discordsrv.api.events.message.receive.game.AbstractGameMessageReceiveEvent;
-import com.discordsrv.api.task.Task;
 import com.discordsrv.common.DiscordSRV;
-import com.discordsrv.common.abstraction.player.IPlayer;
 import com.discordsrv.common.config.main.channels.StopMessageConfig;
 import com.discordsrv.common.config.main.channels.base.BaseChannelConfig;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.Collection;
-import java.util.Collections;
-import java.util.List;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
@@ -45,11 +38,6 @@ public class StopMessageModule extends AbstractGameMessageModule<StopMessageConf
     }
 
     @Override
-    public boolean isEnabled() {
-        return true;
-    }
-
-    @Override
     public StopMessageConfig mapConfig(BaseChannelConfig channelConfig) {
         return channelConfig.stopMessage;
     }
@@ -58,25 +46,10 @@ public class StopMessageModule extends AbstractGameMessageModule<StopMessageConf
     public void postClusterToEventBus(GameChannel channel, @NotNull ReceivedDiscordMessageCluster cluster) {}
 
     @Override
-    public List<Task<ReceivedDiscordMessage>> sendMessageToChannels(
-            StopMessageConfig config,
-            IPlayer player,
-            SendableDiscordMessage.Builder format,
-            Collection<DiscordGuildMessageChannel> channels,
-            AbstractGameMessageReceiveEvent event,
-            Object... context
-    ) {
-        if (!config.enabled) {
-            return Collections.emptyList();
-        }
-        return super.sendMessageToChannels(config, player, format, channels, event, context);
-    }
-
-    @Override
     public void setPlaceholders(StopMessageConfig config, AbstractGameMessageReceiveEvent event, SendableDiscordMessage.Formatter formatter) {}
 
     @Override
-    public void disable() {
+    public void serverShuttingDown() {
         try {
             process(null, null, null).get(5, TimeUnit.SECONDS);
         } catch (TimeoutException e) {

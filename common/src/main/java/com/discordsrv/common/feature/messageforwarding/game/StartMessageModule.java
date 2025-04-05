@@ -19,31 +19,18 @@
 package com.discordsrv.common.feature.messageforwarding.game;
 
 import com.discordsrv.api.channel.GameChannel;
-import com.discordsrv.api.discord.entity.channel.DiscordGuildMessageChannel;
-import com.discordsrv.api.discord.entity.message.ReceivedDiscordMessage;
 import com.discordsrv.api.discord.entity.message.ReceivedDiscordMessageCluster;
 import com.discordsrv.api.discord.entity.message.SendableDiscordMessage;
 import com.discordsrv.api.events.message.receive.game.AbstractGameMessageReceiveEvent;
-import com.discordsrv.api.task.Task;
 import com.discordsrv.common.DiscordSRV;
-import com.discordsrv.common.abstraction.player.IPlayer;
 import com.discordsrv.common.config.main.channels.StartMessageConfig;
 import com.discordsrv.common.config.main.channels.base.BaseChannelConfig;
 import org.jetbrains.annotations.NotNull;
-
-import java.util.Collection;
-import java.util.Collections;
-import java.util.List;
 
 public class StartMessageModule extends AbstractGameMessageModule<StartMessageConfig, AbstractGameMessageReceiveEvent> {
 
     public StartMessageModule(DiscordSRV discordSRV) {
         super(discordSRV, "START_MESSAGE");
-    }
-
-    @Override
-    public boolean isEnabled() {
-        return true;
     }
 
     @Override
@@ -55,25 +42,10 @@ public class StartMessageModule extends AbstractGameMessageModule<StartMessageCo
     public void postClusterToEventBus(GameChannel channel, @NotNull ReceivedDiscordMessageCluster cluster) {}
 
     @Override
-    public List<Task<ReceivedDiscordMessage>> sendMessageToChannels(
-            StartMessageConfig config,
-            IPlayer player,
-            SendableDiscordMessage.Builder format,
-            Collection<DiscordGuildMessageChannel> channels,
-            AbstractGameMessageReceiveEvent event,
-            Object... context
-    ) {
-        if (!config.enabled) {
-            return Collections.emptyList();
-        }
-        return super.sendMessageToChannels(config, player, format, channels, event, context);
-    }
-
-    @Override
     public void setPlaceholders(StartMessageConfig config, AbstractGameMessageReceiveEvent event, SendableDiscordMessage.Formatter formatter) {}
 
     @Override
-    public void enable() {
+    public void serverStarted() {
         process(null, null, null);
     }
 }

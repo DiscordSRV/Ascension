@@ -147,6 +147,16 @@ public interface Module {
     default void disable() {}
 
     /**
+     * Called by DiscordSRV once when the server is started.
+     */
+    default void serverStarted() {}
+
+    /**
+     * Called when the server is shutting down.
+     */
+    default void serverShuttingDown() {}
+
+    /**
      * Called by DiscordSRV to reload this module. This is called when the module is enabled as well.
      * @param resultConsumer a consumer to supply results to, if any apply
      */

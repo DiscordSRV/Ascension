@@ -58,6 +58,7 @@ public class TimedUpdaterConfig {
 
         @Comment("The format for the channel name(s), placeholders are supported.")
         public String nameFormat = "";
+        public String shutdownNameFormat = "";
 
         @Comment("The time between updates in minutes.\n"
                 + "Minimum value: %1")
@@ -91,10 +92,12 @@ public class TimedUpdaterConfig {
         @Comment("The format for the channel name(s), placeholders are supported.\n"
                 + "If this is blank, the name will not be updated")
         public String nameFormat = "";
+        public String shutdownNameFormat = "";
 
         @Comment("The format for the channel topic(s), placeholders are supported.\n"
                 + "If this is blank, the topic will not be updated")
         public String topicFormat = "";
+        public String shutdownTopicFormat = "";
 
         @Comment("The time between updates in minutes.\n"
                 + "Minimum value: %1")

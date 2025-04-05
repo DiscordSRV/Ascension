@@ -32,16 +32,14 @@ import net.dv8tion.jda.api.managers.channel.concrete.TextChannelManager;
 import org.apache.commons.lang3.StringUtils;
 
 import java.time.Duration;
-import java.util.LinkedHashSet;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
 
 public class TimedUpdaterModule extends AbstractModule<DiscordSRV> {
 
-    private final Set<ScheduledFuture<?>> futures = new LinkedHashSet<>();
+    private final Map<TimedUpdaterConfig.UpdaterConfig, ScheduledFuture<?>> activeUpdaters = new LinkedHashMap<>();
     private boolean firstReload = true;
 
     public TimedUpdaterModule(DiscordSRV discordSRV) {
@@ -66,43 +64,65 @@ public class TimedUpdaterModule extends AbstractModule<DiscordSRV> {
         return super.isEnabled() && discordSRV.isReady() && discordSRV.isServerStarted();
     }
 
+    private Set<TimedUpdaterConfig.UpdaterConfig> cancelFutures() {
+        Set<TimedUpdaterConfig.UpdaterConfig> activeConfigs = new LinkedHashSet<>(activeUpdaters.size());
+        for (Map.Entry<TimedUpdaterConfig.UpdaterConfig, ScheduledFuture<?>> entry : activeUpdaters.entrySet()) {
+            activeConfigs.add(entry.getKey());
+
+            entry.getValue().cancel(false);
+        }
+
+        return activeConfigs;
+    }
+
+    @Override
+    public void serverShuttingDown() {
+        Set<TimedUpdaterConfig.UpdaterConfig> configs = cancelFutures();
+        for (TimedUpdaterConfig.UpdaterConfig updater : configs) {
+            update(updater, true);
+        }
+    }
+
     @Override
     public void reload(Consumer<ReloadResult> resultConsumer) {
-        futures.forEach(future -> future.cancel(false));
-        futures.clear();
+        cancelFutures();
 
         TimedUpdaterConfig config = discordSRV.config().timedUpdater;
         for (TimedUpdaterConfig.UpdaterConfig updaterConfig : config.getConfigs()) {
             long time = Math.max(updaterConfig.timeSeconds(), updaterConfig.minimumSeconds());
-
-            futures.add(discordSRV.scheduler().runAtFixedRate(
-                    () -> update(updaterConfig),
-                    firstReload ? Duration.ZERO : Duration.ofSeconds(time),
-                    Duration.ofSeconds(time)
-            ));
+            activeUpdaters.put(
+                    updaterConfig,
+                    discordSRV.scheduler().runAtFixedRate(
+                            () -> update(updaterConfig, false),
+                            firstReload ? Duration.ZERO : Duration.ofSeconds(time),
+                            Duration.ofSeconds(time)
+                    )
+            );
         }
         firstReload = false;
     }
 
-    public void update(TimedUpdaterConfig.UpdaterConfig config) {
+    public void update(TimedUpdaterConfig.UpdaterConfig config, boolean shutdown) {
         JDA jda = discordSRV.jda();
         if (jda == null) {
             return;
         }
 
         if (config instanceof TimedUpdaterConfig.VoiceChannelConfig) {
+            TimedUpdaterConfig.VoiceChannelConfig voiceConfig = (TimedUpdaterConfig.VoiceChannelConfig) config;
             updateChannel(
                     jda,
-                    ((TimedUpdaterConfig.VoiceChannelConfig) config).channelIds,
-                    ((TimedUpdaterConfig.VoiceChannelConfig) config).nameFormat,
+                    voiceConfig.channelIds,
+                    shutdown ? voiceConfig.shutdownNameFormat : voiceConfig.nameFormat,
                     null
             );
         } else if (config instanceof TimedUpdaterConfig.TextChannelConfig) {
+            TimedUpdaterConfig.TextChannelConfig textConfig = (TimedUpdaterConfig.TextChannelConfig) config;
             updateChannel(
                     jda,
-                    ((TimedUpdaterConfig.TextChannelConfig) config).channelIds,
-                    ((TimedUpdaterConfig.TextChannelConfig) config).nameFormat,
-                    ((TimedUpdaterConfig.TextChannelConfig) config).topicFormat
+                    textConfig.channelIds,
+                    shutdown ? textConfig.shutdownNameFormat : textConfig.nameFormat,
+                    shutdown ? textConfig.shutdownTopicFormat : textConfig.topicFormat
             );
         }
     }

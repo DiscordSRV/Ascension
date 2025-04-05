@@ -70,6 +70,7 @@ import com.discordsrv.common.discord.api.DiscordAPIImpl;
 import com.discordsrv.common.discord.connection.DiscordConnectionManager;
 import com.discordsrv.common.discord.connection.details.DiscordConnectionDetailsImpl;
 import com.discordsrv.common.discord.connection.jda.JDAConnectionManager;
+import com.discordsrv.common.events.lifecycle.ServerStartedEvent;
 import com.discordsrv.common.exception.StorageException;
 import com.discordsrv.common.feature.DiscordInviteModule;
 import com.discordsrv.common.feature.PlayerListModule;
@@ -744,6 +745,8 @@ public abstract class AbstractDiscordSRV<
         registerModule(PlayerListModule::new);
         registerModule(OnlineRoleModule::new);
         registerModule(LinkingRewardsModule::new);
+        registerModule(StartMessageModule::new);
+        registerModule(StopMessageModule::new);
 
         if (serverType() == ServerType.PROXY) {
             registerModule(ServerSwitchMessageModule::new);
@@ -784,11 +787,8 @@ public abstract class AbstractDiscordSRV<
     @MustBeInvokedByOverriders
     protected void serverStarted() {
         serverStarted = true;
-        moduleManager().enableModules();
-
-        registerModule(StartMessageModule::new);
-        registerModule(StopMessageModule::new);
-        Optional.ofNullable(getModule(PresenceUpdaterModule.class)).ifPresent(PresenceUpdaterModule::serverStarted);
+        eventBus().publish(new ServerStartedEvent());
+        logger().debug("Server started");
     }
 
     @MustBeInvokedByOverriders
@@ -1047,6 +1047,7 @@ public abstract class AbstractDiscordSRV<
         temporaryLocalData.save();
 
         logger().shutdown();
+        scheduler().shutdown();
         this.status.set(Status.SHUTDOWN);
     }
 
