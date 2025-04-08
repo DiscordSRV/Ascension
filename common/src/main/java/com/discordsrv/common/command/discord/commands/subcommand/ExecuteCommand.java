@@ -80,12 +80,14 @@ public class ExecuteCommand implements Consumer<DiscordChatInputInteractionEvent
     public boolean isAcceptableCommand(DiscordGuildMember member, DiscordUser user, String command, boolean suggestions) {
         ExecuteCommandConfig config = discordSRV.config().executeCommand;
 
+        boolean anyAcceptable = false;
         for (GameCommandExecutionConditionConfig filter : config.executionConditions) {
-            if (!filter.isAcceptableCommand(member, user, command, suggestions, helper)) {
-                return true;
+            if (filter.isAcceptableCommand(member, user, command, suggestions, helper)) {
+                anyAcceptable = true;
+                break;
             }
         }
-        return false;
+        return anyAcceptable;
     }
 
     @Override
