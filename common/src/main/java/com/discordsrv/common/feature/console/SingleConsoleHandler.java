@@ -65,7 +65,7 @@ import java.util.concurrent.atomic.AtomicLong;
 public class SingleConsoleHandler {
 
     private static final int MESSAGE_MAX_LENGTH = Message.MAX_CONTENT_LENGTH;
-    private static final int SEND_QUEUE_MAX_SIZE = 6;
+    private static final int SEND_QUEUE_MAX_SIZE = 40;
 
     private final DiscordSRV discordSRV;
     private final Logger logger;
