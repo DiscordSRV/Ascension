@@ -335,7 +335,7 @@ public class SendableDiscordMessageImpl implements SendableDiscordMessage {
     public static class FormatterImpl implements Formatter {
 
         private final Set<Object> context = new HashSet<>();
-        private final Map<Pattern, Function<Matcher, Object>> replacements = new LinkedHashMap<>();
+        private final Map<Pattern, Function<@NotNull Matcher, @Nullable Object>> replacements = new LinkedHashMap<>();
 
         private final SendableDiscordMessage.Builder builder;
 
@@ -350,7 +350,7 @@ public class SendableDiscordMessageImpl implements SendableDiscordMessage {
         }
 
         @Override
-        public SendableDiscordMessage.@NotNull Formatter addReplacement(Pattern target, Function<Matcher, Object> replacement) {
+        public SendableDiscordMessage.@NotNull Formatter addReplacement(@NotNull Pattern target, @NotNull Function<@NotNull Matcher, @Nullable Object> replacement) {
             this.replacements.put(target, wrapFunction(replacement));
             return this;
         }

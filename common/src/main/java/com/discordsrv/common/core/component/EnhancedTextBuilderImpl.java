@@ -29,6 +29,7 @@ import dev.vankka.enhancedlegacytext.EnhancedLegacyText;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.TextColor;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.HashSet;
 import java.util.LinkedHashMap;
@@ -41,7 +42,7 @@ import java.util.regex.Pattern;
 public class EnhancedTextBuilderImpl implements GameTextBuilder {
 
     private final Set<Object> context = new HashSet<>();
-    private final Map<Pattern, Function<Matcher, Object>> replacements = new LinkedHashMap<>();
+    private final Map<Pattern, Function<@NotNull Matcher, @Nullable Object>> replacements = new LinkedHashMap<>();
 
     private final DiscordSRV discordSRV;
     private final String enhancedFormat;
@@ -63,7 +64,7 @@ public class EnhancedTextBuilderImpl implements GameTextBuilder {
     }
 
     @Override
-    public @NotNull GameTextBuilder addReplacement(Pattern target, Function<Matcher, Object> replacement) {
+    public @NotNull GameTextBuilder addReplacement(@NotNull Pattern target, @NotNull Function<@NotNull Matcher, @Nullable Object> replacement) {
         this.replacements.put(target, wrapFunction(replacement));
         return this;
     }

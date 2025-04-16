@@ -25,6 +25,7 @@ package com.discordsrv.api.placeholder.provider;
 
 import com.discordsrv.api.placeholder.PlaceholderLookupResult;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.Set;
 import java.util.function.Supplier;
@@ -32,13 +33,13 @@ import java.util.function.Supplier;
 public class SinglePlaceholder implements PlaceholderProvider {
 
     private final String matchPlaceholder;
-    private final Supplier<Object> resultProvider;
+    private final Supplier<@Nullable Object> resultProvider;
 
-    public SinglePlaceholder(String placeholder, Object result) {
+    public SinglePlaceholder(@NotNull String placeholder, @Nullable Object result) {
         this(placeholder, () -> result);
     }
 
-    public SinglePlaceholder(String placeholder, Supplier<Object> resultProvider) {
+    public SinglePlaceholder(@NotNull String placeholder, Supplier<@Nullable Object> resultProvider) {
         this.matchPlaceholder = placeholder;
         this.resultProvider = resultProvider;
     }
@@ -52,7 +53,7 @@ public class SinglePlaceholder implements PlaceholderProvider {
 
         try {
             Object result = resultProvider.get();
-            if (perfectMatch) {
+            if (perfectMatch || result == null) {
                 return PlaceholderLookupResult.success(result);
             }
 
