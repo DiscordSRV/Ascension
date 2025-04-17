@@ -24,9 +24,7 @@ import com.discordsrv.api.placeholder.format.FormattedText;
 import com.discordsrv.common.DiscordSRV;
 import com.github.benmanes.caffeine.cache.LoadingCache;
 
-import java.time.DateTimeException;
-import java.time.OffsetDateTime;
-import java.time.ZonedDateTime;
+import java.time.*;
 import java.time.format.DateTimeFormatter;
 import java.time.temporal.ChronoField;
 import java.time.temporal.TemporalAccessor;
@@ -69,6 +67,17 @@ public class DateFormattingContext {
         }
     }
 
+    @Placeholder("date_relative_to_now")
+    public Duration getDurationRelativeToNow(TemporalAccessor time) {
+        if (!time.isSupported(ChronoField.INSTANT_SECONDS)) {
+            return null;
+        }
+
+        long seconds = time.getLong(ChronoField.INSTANT_SECONDS);
+        Instant instant = Instant.ofEpochSecond(seconds);
+        return Duration.between(instant, Instant.now());
+    }
+
     @Placeholder("start_date")
     public ZonedDateTime getStartDate() {
         return discordSRV.getInitializeTime();
@@ -79,8 +88,8 @@ public class DateFormattingContext {
         return ZonedDateTime.now();
     }
 
-    @Placeholder("now_time")
-    public OffsetDateTime getTimeNow() {
-        return OffsetDateTime.now();
+    @Placeholder("date_offset")
+    public OffsetDateTime toOffset(ZonedDateTime date) {
+        return date.toOffsetDateTime();
     }
 }

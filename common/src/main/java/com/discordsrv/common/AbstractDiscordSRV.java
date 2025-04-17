@@ -697,6 +697,7 @@ public abstract class AbstractDiscordSRV<
         placeholderService().addReLookup(UUID.class, "uuid");
         placeholderService().addReLookup(Number.class, "numberformat");
         placeholderService().addReLookup(TemporalAccessor.class, "date");
+        placeholderService().addReLookup(Duration.class, "duration");
         placeholderService().addReLookup(Color.class, "color");
         placeholderService().addReLookup(Profile.class, "profile");
         placeholderService().addReLookup(IPlayer.class, "player");
@@ -717,6 +718,7 @@ public abstract class AbstractDiscordSRV<
         placeholderService().addGlobalContext(new AvatarProviderContext(this));
         placeholderService().addGlobalContext(new DiscordGuildMemberContext());
         placeholderService().addGlobalContext(new DebugContext(this));
+        placeholderService().addGlobalContext(DurationFormattingContext.class);
         placeholderService().addGlobalContext(BooleanFormattingContext.class);
         placeholderService().addGlobalContext(StringFormattingContext.class);
         placeholderService().addGlobalContext(UUIDUtil.class);
