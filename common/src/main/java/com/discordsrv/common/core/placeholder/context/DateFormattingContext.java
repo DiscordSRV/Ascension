@@ -67,17 +67,6 @@ public class DateFormattingContext {
         }
     }
 
-    @Placeholder("date_relative_to_now")
-    public Duration getDurationRelativeToNow(TemporalAccessor time) {
-        if (!time.isSupported(ChronoField.INSTANT_SECONDS)) {
-            return null;
-        }
-
-        long seconds = time.getLong(ChronoField.INSTANT_SECONDS);
-        Instant instant = Instant.ofEpochSecond(seconds);
-        return Duration.between(instant, Instant.now());
-    }
-
     @Placeholder("start_date")
     public ZonedDateTime getStartDate() {
         return discordSRV.getInitializeTime();

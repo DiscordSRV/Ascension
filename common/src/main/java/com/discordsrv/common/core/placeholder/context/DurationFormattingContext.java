@@ -23,10 +23,23 @@ import com.discordsrv.api.placeholder.annotation.PlaceholderRemainder;
 import org.apache.commons.lang3.time.DurationFormatUtils;
 
 import java.time.Duration;
+import java.time.Instant;
+import java.time.temporal.ChronoField;
 
 public final class DurationFormattingContext {
 
     private DurationFormattingContext() {}
+
+    @Placeholder("date_relative_to_now")
+    public static Duration getDurationRelativeToNow(TemporalAccessor time) {
+        if (!time.isSupported(ChronoField.INSTANT_SECONDS)) {
+            return null;
+        }
+
+        long seconds = time.getLong(ChronoField.INSTANT_SECONDS);
+        Instant instant = Instant.ofEpochSecond(seconds);
+        return Duration.between(instant, Instant.now());
+    }
 
     @Placeholder("duration")
     public static String formatDuration(Duration duration, @PlaceholderRemainder String format) {
