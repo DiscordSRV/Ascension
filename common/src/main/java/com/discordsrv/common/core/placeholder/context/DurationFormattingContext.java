@@ -25,6 +25,7 @@ import org.apache.commons.lang3.time.DurationFormatUtils;
 import java.time.Duration;
 import java.time.Instant;
 import java.time.temporal.ChronoField;
+import java.time.temporal.TemporalAccessor;
 
 public final class DurationFormattingContext {
 
