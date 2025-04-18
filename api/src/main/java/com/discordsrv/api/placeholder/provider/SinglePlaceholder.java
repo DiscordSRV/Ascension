@@ -57,7 +57,7 @@ public class SinglePlaceholder implements PlaceholderProvider {
                 return PlaceholderLookupResult.success(result);
             }
 
-            return PlaceholderLookupResult.reLookup(placeholder.substring(matchPlaceholder.length()), result, true);
+            return PlaceholderLookupResult.reLookup(placeholder.substring(matchPlaceholder.length()), result);
         } catch (Throwable t) {
             return PlaceholderLookupResult.lookupFailed(t);
         }
