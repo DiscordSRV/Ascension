@@ -28,6 +28,7 @@ import com.discordsrv.common.command.game.abstraction.sender.ICommandSender;
 import com.discordsrv.common.command.game.commands.subcommand.BroadcastCommand;
 import com.discordsrv.common.command.game.commands.subcommand.reload.ReloadCommand;
 import com.discordsrv.common.feature.linking.LinkProvider;
+import com.discordsrv.common.feature.linking.requirelinking.RequiredLinkingModule;
 import com.discordsrv.common.permission.game.Permissions;
 import com.discordsrv.common.util.ComponentUtil;
 
@@ -42,6 +43,7 @@ public class DiscordSRVGameCommand implements GameCommandExecutor {
 
     public static GameCommand get(DiscordSRV discordSRV, String alias) {
         if (discordSRV.config() == null) {
+            // Barebones commands if config fails to load
             return GameCommand.literal(alias)
                     .then(DebugCommand.getGame(discordSRV))
                     .then(VersionCommand.getGame(discordSRV))
@@ -68,6 +70,10 @@ public class DiscordSRVGameCommand implements GameCommandExecutor {
                     .then(ReloadCommand.get(discordSRV))
                     .then(ResyncCommand.getGame(discordSRV))
                     .then(VersionCommand.getGame(discordSRV));
+
+            if (discordSRV.getModule(RequiredLinkingModule.class) != null) {
+                command = command.then(BypassCommand.getGame(discordSRV));
+            }
 
             if (linkProvider != null) {
                 command = command

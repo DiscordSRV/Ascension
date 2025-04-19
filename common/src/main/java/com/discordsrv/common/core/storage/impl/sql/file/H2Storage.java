@@ -133,5 +133,8 @@ public class H2Storage extends SQLStorage {
 
         // Profile
         createRewardsTablesGeneric(connection, tablePrefix);
+
+        // Linking bypass
+        createLinkingBypassTableGeneric(connection, tablePrefix);
     }
 }

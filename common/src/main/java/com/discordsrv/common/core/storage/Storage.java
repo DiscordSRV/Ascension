@@ -28,6 +28,7 @@ import org.jetbrains.annotations.Blocking;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.Set;
 import java.util.UUID;
 
 @Blocking
@@ -63,5 +64,9 @@ public interface Storage {
 
     DiscordProfileData getDiscordProfileData(long userId);
     void saveDiscordProfileData(@NotNull DiscordProfileData profile);
+
+    void addRequiredLinkingBypass(UUID playerUUID);
+    void removeRequiredLinkingBypass(UUID playerUUID);
+    Set<UUID> getRequiredLinkingBypass();
 
 }

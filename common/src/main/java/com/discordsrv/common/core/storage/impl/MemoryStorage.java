@@ -26,7 +26,9 @@ import org.apache.commons.lang3.tuple.Pair;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.HashSet;
 import java.util.Map;
+import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -40,6 +42,8 @@ public class MemoryStorage implements Storage {
 
     private final Map<UUID, GameProfileData> gameProfiles = new ConcurrentHashMap<>();
     private final Map<Long, DiscordProfileData> discordProfiles = new ConcurrentHashMap<>();
+
+    private final Set<UUID> requiredLinkingBypass = new HashSet<>();
 
     public MemoryStorage() {}
 
@@ -114,4 +118,18 @@ public class MemoryStorage implements Storage {
         discordProfiles.put(profile.getUserId(), profile);
     }
 
+    @Override
+    public void addRequiredLinkingBypass(UUID playerUUID) {
+        requiredLinkingBypass.add(playerUUID);
+    }
+
+    @Override
+    public void removeRequiredLinkingBypass(UUID playerUUID) {
+        requiredLinkingBypass.remove(playerUUID);
+    }
+
+    @Override
+    public Set<UUID> getRequiredLinkingBypass() {
+        return requiredLinkingBypass;
+    }
 }

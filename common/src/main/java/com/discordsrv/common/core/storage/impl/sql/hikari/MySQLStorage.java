@@ -84,6 +84,9 @@ public class MySQLStorage extends HikariStorage {
 
         // Profile
         createRewardsTablesGeneric(connection, tablePrefix);
+
+        // Linking bypass
+        createLinkingBypassTableGeneric(connection, tablePrefix);
     }
 
     @Override

@@ -45,6 +45,7 @@ public abstract class SQLStorage implements Storage {
     protected static final String REWARD_TABLE_NAME = "reward";
     protected static final String GAME_GRANTED_REWARDS_TABLE_NAME = "game_granted_rewards";
     protected static final String DISCORD_GRANTED_REWARDS_TABLE_NAME = "discord_granted_rewards";
+    protected static final String LINKING_BYPASS_TABLE_NAME = "linking_bypass";
 
     protected final DiscordSRV discordSRV;
 
@@ -55,6 +56,19 @@ public abstract class SQLStorage implements Storage {
     public abstract Connection getConnection();
     public abstract boolean isAutoCloseConnections();
     public abstract void createTables(Connection connection, String tablePrefix) throws SQLException;
+
+    protected static void createLinkingBypassTableGeneric(Connection connection, String tablePrefix) throws SQLException {
+        try (Statement statement = connection.createStatement()) {
+            statement.execute(
+                    "create table if not exists " + tablePrefix + LINKING_BYPASS_TABLE_NAME + " ("
+                            + "ID int not null auto_increment,"
+                            + "PLAYER_UUID varchar(36),"
+                            + "constraint LINKING_BYPASS_PK primary key (ID),"
+                            + "constraint LINKING_BYPASS_UQ unique (PLAYER_UUID)"
+                            + ");"
+            );
+        }
+    }
 
     protected static void createRewardsTablesGeneric(Connection connection, String tablePrefix) throws SQLException {
         try (Statement statement = connection.createStatement()) {
@@ -136,7 +150,7 @@ public abstract class SQLStorage implements Storage {
         }
     }
 
-    private void exceptEffectedRows(int rows, int expect) {
+    private void expectEffectedRows(int rows, int expect) {
         if (rows != expect) {
             throw new StorageException("Excepted to effect " + expect + " rows, actually effected " + rows);
         }
@@ -208,7 +222,7 @@ public abstract class SQLStorage implements Storage {
                 statement.setObject(3, link.created());
                 statement.setObject(4, link.lastSeen());
 
-                exceptEffectedRows(statement.executeUpdate(), 1);
+                expectEffectedRows(statement.executeUpdate(), 1);
             }
         });
     }
@@ -218,7 +232,7 @@ public abstract class SQLStorage implements Storage {
         useConnection(connection -> {
             try (PreparedStatement statement = connection.prepareStatement("delete from " + tablePrefix() + LINKED_ACCOUNTS_TABLE_NAME + " where PLAYER_UUID = ?;")) {
                 statement.setString(1, playerUUID.toString());
-                exceptEffectedRows(statement.executeUpdate(), 1);
+                expectEffectedRows(statement.executeUpdate(), 1);
             }
         });
     }
@@ -284,7 +298,7 @@ public abstract class SQLStorage implements Storage {
                 statement.setString(2, username);
                 statement.setString(3, code);
                 statement.setLong(4, getTimeMS() + LinkStore.LINKING_CODE_EXPIRY_TIME.toMillis());
-                exceptEffectedRows(statement.executeUpdate(), 1);
+                expectEffectedRows(statement.executeUpdate(), 1);
             }
         });
     }
@@ -321,7 +335,7 @@ public abstract class SQLStorage implements Storage {
         for (String missingReward : missingRewards) {
             try (PreparedStatement statement = connection.prepareStatement("insert into " + tablePrefix() + REWARD_TABLE_NAME + " (REWARD) VALUES (?);")) {
                 statement.setString(1, missingReward);
-                exceptEffectedRows(statement.executeUpdate(), 1);
+                expectEffectedRows(statement.executeUpdate(), 1);
             }
             try (PreparedStatement statement = connection.prepareStatement("select ID from " + tablePrefix() + REWARD_TABLE_NAME + " where REWARD = ?;")) {
                 statement.setString(1, missingReward);
@@ -363,7 +377,7 @@ public abstract class SQLStorage implements Storage {
             )) {
                 statement.setInt(1, profileId);
                 statement.setInt(2, missingRewardId);
-                exceptEffectedRows(statement.executeUpdate(), 1);
+                expectEffectedRows(statement.executeUpdate(), 1);
             }
         }
 
@@ -376,7 +390,7 @@ public abstract class SQLStorage implements Storage {
             )) {
                 statement.setInt(1, profileId);
                 statement.setInt(2, removedRewardId);
-                exceptEffectedRows(statement.executeUpdate(), 1);
+                expectEffectedRows(statement.executeUpdate(), 1);
             }
         }
     }
@@ -431,7 +445,7 @@ public abstract class SQLStorage implements Storage {
                         "insert into " + tablePrefix() + GAME_PROFILE_TABLE_NAME + " (PLAYER_UUID) VALUES (?);"
                 )) {
                     statement.setString(1, playerUUID.toString());
-                    exceptEffectedRows(statement.executeUpdate(), 1);
+                    expectEffectedRows(statement.executeUpdate(), 1);
                 }
 
                 profileId = getGameProfile(connection, playerUUID);
@@ -494,7 +508,7 @@ public abstract class SQLStorage implements Storage {
                         "insert into " + tablePrefix() + DISCORD_PROFILE_TABLE_NAME + " (USER_ID) VALUES (?);"
                 )) {
                     statement.setLong(1, userId);
-                    exceptEffectedRows(statement.executeUpdate(), 1);
+                    expectEffectedRows(statement.executeUpdate(), 1);
                 }
 
                 profileId = getDiscordProfile(connection, userId);
@@ -504,6 +518,47 @@ public abstract class SQLStorage implements Storage {
             }
 
             alterRewardTable(connection, DISCORD_GRANTED_REWARDS_TABLE_NAME, profileId, profile.getGrantedRewards());
+        });
+    }
+
+    @Override
+    public void addRequiredLinkingBypass(UUID playerUUID) {
+        useConnection(connection -> {
+            try (PreparedStatement statement = connection.prepareStatement(
+                    "insert into " + tablePrefix() + LINKING_BYPASS_TABLE_NAME + " (PLAYER_UUID) values (?);"
+            )) {
+                statement.setString(1, playerUUID.toString());
+                expectEffectedRows(statement.executeUpdate(), 1);
+            }
+        });
+    }
+
+    @Override
+    public void removeRequiredLinkingBypass(UUID playerUUID) {
+        useConnection(connection -> {
+            try (PreparedStatement statement = connection.prepareStatement(
+                    "delete from " + tablePrefix() + LINKING_BYPASS_TABLE_NAME + " where PLAYER_UUID = ?;"
+            )) {
+                statement.setString(1, playerUUID.toString());
+                expectEffectedRows(statement.executeUpdate(), 1);
+            }
+        });
+    }
+
+    @Override
+    public Set<UUID> getRequiredLinkingBypass() {
+        return useConnection(connection -> {
+            Set<UUID> players = new HashSet<>();
+            try (PreparedStatement statement = connection.prepareStatement(
+                    "select PLAYER_UUID from " + tablePrefix() + LINKING_BYPASS_TABLE_NAME
+            )) {
+                try (ResultSet resultSet = statement.executeQuery()) {
+                    while (resultSet.next()) {
+                        players.add(UUID.fromString(resultSet.getString("PLAYER_UUID")));
+                    }
+                }
+            }
+            return players;
         });
     }
 }
