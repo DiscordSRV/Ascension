@@ -199,10 +199,14 @@ public class MinecraftAuthenticationLinker extends CachedLinkProvider {
                 // unlink
                 unlinked.accept(linkMap.apply(storage.get()));
             }
-            if (auth.isPresent() && storage.isPresent() && !auth.get().equals(storage.get())) {
-                // linked account changed
-                unlinked.accept(linkMap.apply(storage.get()));
-                linked.accept(auth.get());
+            if (auth.isPresent() && storage.isPresent()) {
+                T authValue = auth.get();
+                T storageValue = linkMap.apply(storage.get());
+                if (!authValue.equals(storageValue)) {
+                    // linked account changed
+                    unlinked.accept(linkMap.apply(storage.get()));
+                    linked.accept(auth.get());
+                }
             }
 
             return storage;
