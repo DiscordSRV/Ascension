@@ -142,7 +142,7 @@ public class FabricRequiredLinkingModule extends ServerRequireLinkingModule<Fabr
 
             LinkingModule module = discordSRV.getModule(LinkingModule.class);
             if (module == null || module.rateLimit(player.uniqueId())) {
-                player.sendMessage(discordSRV.messagesConfig(player).pleaseWaitBeforeRunningThatCommandAgain.asComponent());
+                player.sendMessage(discordSRV.messagesConfig(player).pleaseWaitBeforeRunningThatCommandAgain.minecraft().asComponent());
                 return;
             }
 

@@ -86,8 +86,11 @@ public class GameCommandExecution implements CommandExecution {
     }
 
     @Override
-    public void send(Component minecraft, SendableDiscordMessage discord) {
-        sender.sendMessage(minecraft);
+    public void send(Component minecraftComponent, SendableDiscordMessage discord) {
+        if (minecraftComponent == null) {
+            return;
+        }
+        sender.sendMessage(minecraftComponent);
     }
 
     private TextComponent.Builder render(Collection<Text> texts) {

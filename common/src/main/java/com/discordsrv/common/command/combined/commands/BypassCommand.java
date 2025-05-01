@@ -143,7 +143,7 @@ public class BypassCommand {
     private RequiredLinkingModule<?> module(CommandExecution execution) {
         RequiredLinkingModule<?> module = discordSRV.getModule(RequiredLinkingModule.class);
         if (module == null) {
-            execution.send(new Text("Not using required linking").withGameColor(NamedTextColor.RED)); // TODO: translate
+            execution.send(new Text("Not using required linking").withGameColor(NamedTextColor.RED));
         }
         return module;
     }
@@ -155,10 +155,6 @@ public class BypassCommand {
         }
 
         CommandUtil.lookupTarget(discordSRV, logger, execution, false, null)
-                .whenFailed(t -> {
-                    logger.error("Failed to lookup player", t);
-                    execution.send(new Text("Failed to lookup player").withGameColor(NamedTextColor.RED)); // TODO: translate
-                })
                 .then(lookupResult -> {
                     if (!lookupResult.isValid()) {
                         // Executor already notified via lookupTarget
@@ -171,7 +167,7 @@ public class BypassCommand {
 
                     LinkProvider linkProvider = discordSRV.linkProvider();
                     if (linkProvider == null) {
-                        // TODO: notify & translate
+                        execution.messages().unableToCheckLinkingStatus.sendTo(execution);
                         return Task.completed(null);
                     }
 
@@ -183,20 +179,21 @@ public class BypassCommand {
                         return;
                     }
                     if (module.isBypassingLinkingByConfig(uuid)) {
-                        execution.send(new Text("Bypassing via config, cannot alter via command")); // TODO: translate
+                        execution.messages().cannotAlterBypassAlreadyInConfig.sendTo(execution);
                         return;
                     }
                     if (module.isBypassingLinking(uuid) == add) {
-                        execution.send(new Text(add ? "Already bypassing" : "Not bypassing").withGameColor(NamedTextColor.RED)); // TODO: translate
+                        (add ? execution.messages().alreadyBypassing : execution.messages().notBypassing).sendTo(execution);
                         return;
                     }
 
                     if (add) {
                         module.addLinkingBypass(uuid);
+                        execution.messages().bypassAdded.sendTo(execution, discordSRV, null, uuid);
                     } else {
                         module.removeLinkingBypass(uuid);
+                        execution.messages().bypassRemoved.sendTo(execution, discordSRV, null, uuid);
                     }
-                    execution.send(new Text("Success").withGameColor(NamedTextColor.GREEN)); // TODO: better message
 
                     IPlayer player = discordSRV.playerProvider().player(uuid);
                     if (player != null) {

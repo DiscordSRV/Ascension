@@ -122,21 +122,21 @@ public class UnlinkCommand extends CombinedCommand {
 
         LinkingModule module = discordSRV.getModule(LinkingModule.class);
         if (module == null) {
-            execution.send(new Text("Unable to unlink at this time").withGameColor(NamedTextColor.DARK_RED));
+            execution.messages().unableToLinkAccountsAtThisTime.sendTo(execution);
             return;
         }
 
         execution.runAsync(() -> CommandUtil.lookupTarget(discordSRV, logger, execution, true, Permissions.COMMAND_UNLINK_OTHER)
                 .whenComplete((result, t) -> {
                     if (t != null) {
-                        logger.error("Failed to execute linked command", t);
+                        logger.error("Failed to execute unlink command", t);
                         return;
                     }
-                    if (result.isValid()) {
-                        processResult(result, execution, linkProvider, module);
-                    } else {
-                        execution.send(new Text("Invalid target"));
+                    if (!result.isValid()) {
+                        return;
                     }
+
+                    processResult(result, execution, linkProvider, module);
                 })
         );
     }
@@ -153,11 +153,11 @@ public class UnlinkCommand extends CombinedCommand {
                     .whenComplete((link, t) -> {
                         if (t != null) {
                             logger.error("Failed to query user", t);
-                            execution.messages().unableToCheckLinkingStatus(execution);
+                            execution.messages().unableToCheckLinkingStatus.sendTo(execution);
                             return;
                         }
                         if (!link.isPresent()) {
-                            execution.messages().minecraftPlayerUnlinked(discordSRV, execution, playerUUID);
+                            execution.messages().minecraftPlayerUnlinked.sendTo(execution, discordSRV, null, playerUUID);
                             return;
                         }
 
@@ -169,11 +169,11 @@ public class UnlinkCommand extends CombinedCommand {
                     .whenComplete((link, t) -> {
                         if (t != null) {
                             logger.error("Failed to query player", t);
-                            execution.messages().unableToCheckLinkingStatus(execution);
+                            execution.messages().unableToCheckLinkingStatus.sendTo(execution);
                             return;
                         }
                         if (!link.isPresent()) {
-                            execution.messages().discordUserUnlinked(discordSRV, execution, userId);
+                            execution.messages().discordUserUnlinked.sendTo(execution, discordSRV, userId, null);
                             return;
                         }
 
@@ -186,14 +186,11 @@ public class UnlinkCommand extends CombinedCommand {
         module.unlink(player, user).whenComplete((v, t) -> {
             if (t != null) {
                 logger.error("Failed to remove link", t);
-                execution.send(
-                        execution.messages().minecraft.unableToLinkAtThisTime.asComponent(),
-                        execution.messages().discord.unableToCheckLinkingStatus.get()
-                );
+                execution.messages().unableToLinkAccountsAtThisTime.sendTo(execution);
                 return;
             }
 
-            execution.messages().unlinked(execution);
+            execution.messages().unlinked.sendTo(execution);
         });
     }
 }

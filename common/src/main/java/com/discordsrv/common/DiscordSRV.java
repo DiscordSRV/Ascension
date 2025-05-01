@@ -131,11 +131,11 @@ public interface DiscordSRV extends com.discordsrv.api.DiscordSRV {
     default MessagesConfig messagesConfig() {
         return messagesConfig((Locale) null);
     }
-    default MessagesConfig.Minecraft messagesConfig(@Nullable ICommandSender sender) {
-        return sender instanceof IPlayer ? messagesConfig((IPlayer) sender) : messagesConfig((Locale) null).minecraft;
+    default MessagesConfig messagesConfig(@Nullable ICommandSender sender) {
+        return sender instanceof IPlayer ? messagesConfig((IPlayer) sender) : messagesConfig((Locale) null);
     }
-    default MessagesConfig.Minecraft messagesConfig(@Nullable IPlayer player) {
-        return messagesConfig(player != null ? player.locale() : null).minecraft;
+    default MessagesConfig messagesConfig(@Nullable IPlayer player) {
+        return messagesConfig(player != null ? player.locale() : null);
     }
     MessagesConfig messagesConfig(@Nullable Locale locale);
 

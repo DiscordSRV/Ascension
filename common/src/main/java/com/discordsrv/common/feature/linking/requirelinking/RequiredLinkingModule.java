@@ -253,7 +253,7 @@ public abstract class RequiredLinkingModule<T extends DiscordSRV> extends Abstra
         if (linkProvider == null) {
             // Link provider unavailable but required linking enabled: error message
             Component message = ComponentUtil.fromAPI(
-                    discordSRV.messagesConfig().minecraft.unableToCheckLinkingStatus.textBuilder().build()
+                    discordSRV.messagesConfig().unableToCheckLinkingStatus.minecraft().textBuilder().build()
             );
             return Task.completed(message);
         }

@@ -18,32 +18,29 @@
 
 package com.discordsrv.common.config.helper;
 
-import com.discordsrv.api.discord.entity.message.SendableDiscordMessage;
 import com.discordsrv.common.command.combined.abstraction.CommandExecution;
-import net.kyori.adventure.text.Component;
 
-public class DiscordMessage extends ConfigMessage {
+public class BothMessage extends ConfigMessage {
 
-    private final SendableDiscordMessage.Builder builder;
+    private final MinecraftMessage minecraft;
+    private final DiscordMessage discord;
 
-    public DiscordMessage(SendableDiscordMessage.Builder builder) {
-        this.builder = builder;
+    public BothMessage(MinecraftMessage minecraft, DiscordMessage discord) {
+        this.minecraft = minecraft;
+        this.discord = discord;
     }
 
-    public SendableDiscordMessage get() {
-        return builder.build();
+    public MinecraftMessage minecraft() {
+        return minecraft;
     }
 
-    public SendableDiscordMessage.Builder builder() {
-        return builder.clone();
-    }
-
-    public SendableDiscordMessage.Formatter format() {
-        return builder.toFormatter();
+    public DiscordMessage discord() {
+        return discord;
     }
 
     @Override
     protected void sendTo(CommandExecution execution, Object... context) {
-        execution.send((Component) null, format().addContext(context).applyPlaceholderService().build());
+        minecraft.sendTo(execution, context);
+        discord.sendTo(execution, context);
     }
 }

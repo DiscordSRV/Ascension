@@ -77,7 +77,7 @@ public class LinkInitDiscordCommand implements Consumer<DiscordChatInputInteract
     @Override
     public void accept(DiscordChatInputInteractionEvent event) {
         DiscordUser user = event.getUser();
-        MessagesConfig.Discord messagesConfig = discordSRV.messagesConfig(event.getUserLocale()).discord;
+        MessagesConfig messagesConfig = discordSRV.messagesConfig(event.getUserLocale());
 
         LinkProvider linkProvider = discordSRV.linkProvider();
         if (linkProvider == null || !linkProvider.usesLocalLinking()) {
@@ -93,7 +93,7 @@ public class LinkInitDiscordCommand implements Consumer<DiscordChatInputInteract
         }
 
         if (module.rateLimit(event.getUser().getId())) {
-            event.reply(messagesConfig.pleaseWaitBeforeRunningThatCommandAgain.get());
+            event.reply(messagesConfig.pleaseWaitBeforeRunningThatCommandAgain.discord().get());
             return;
         }
 
@@ -104,12 +104,12 @@ public class LinkInitDiscordCommand implements Consumer<DiscordChatInputInteract
         }
 
         if (linkProvider.getCached(user.getId()).isPresent()) {
-            event.reply(messagesConfig.alreadyLinked1st.get(), true);
+            event.reply(messagesConfig.alreadyLinked1st.discord().get(), true);
             return;
         }
 
         if (linkCheckRateLimit.getIfPresent(user.getId()) != null) {
-            event.reply(messagesConfig.pleaseWaitBeforeRunningThatCommandAgain.get(), true);
+            event.reply(messagesConfig.pleaseWaitBeforeRunningThatCommandAgain.discord().get(), true);
             return;
         }
         linkCheckRateLimit.put(user.getId(), true);
@@ -123,11 +123,11 @@ public class LinkInitDiscordCommand implements Consumer<DiscordChatInputInteract
             linkProvider.query(user.getId()).whenComplete((existingLink, t2) -> {
                 if (t2 != null) {
                     logger.error("Failed to check linking status", t2);
-                    interactionHook.editOriginal(messagesConfig.unableToCheckLinkingStatus.get());
+                    interactionHook.editOriginal(messagesConfig.unableToCheckLinkingStatus.discord().get());
                     return;
                 }
                 if (existingLink.isPresent()) {
-                    interactionHook.editOriginal(messagesConfig.alreadyLinked1st.get());
+                    interactionHook.editOriginal(messagesConfig.alreadyLinked1st.discord().get());
                     return;
                 }
 
@@ -136,7 +136,7 @@ public class LinkInitDiscordCommand implements Consumer<DiscordChatInputInteract
                         .whenComplete((player, t3) -> {
                             if (t3 != null) {
                                 logger.error("Failed to link", t3);
-                                interactionHook.editOriginal(messagesConfig.unableToCheckLinkingStatus.get());
+                                interactionHook.editOriginal(messagesConfig.unableToCheckLinkingStatus.discord().get());
                                 return;
                             }
 
@@ -150,7 +150,7 @@ public class LinkInitDiscordCommand implements Consumer<DiscordChatInputInteract
     private void linkSuccess(
             DiscordInteractionHook interactionHook,
             LinkStore linkStore,
-            MessagesConfig.Discord messagesConfig,
+            MessagesConfig messagesConfig,
             Pair<UUID, String> pair
     ) {
         UUID playerUUID = pair.getKey();

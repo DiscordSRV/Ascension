@@ -123,15 +123,15 @@ public class LinkedCommand extends CombinedCommand {
             linkProvider.get(playerUUID).whenComplete((link, t) -> {
                 if (t != null) {
                     logger.error("Failed to check linking status during linked command", t);
-                    execution.messages().unableToCheckLinkingStatus(execution);
+                    execution.messages().unableToCheckLinkingStatus.sendTo(execution);
                     return;
                 }
                 if (!link.isPresent()) {
-                    execution.messages().minecraftPlayerUnlinked(discordSRV, execution, playerUUID);
+                    execution.messages().minecraftPlayerUnlinked.sendTo(execution, discordSRV, null, playerUUID);
                     return;
                 }
 
-                execution.messages().minecraftPlayerLinkedTo(discordSRV, execution, playerUUID, link.get().userId());
+                execution.messages().minecraftPlayerLinkedTo.sendTo(execution, discordSRV, link.get().userId(), playerUUID);
             });
         } else {
             long userId = result.getUserId();
@@ -139,18 +139,15 @@ public class LinkedCommand extends CombinedCommand {
             linkProvider.get(userId).whenComplete((link, t) -> {
                 if (t != null) {
                     logger.error("Failed to check linking status during linked command", t);
-                    execution.send(
-                            execution.messages().minecraft.unableToCheckLinkingStatus.asComponent(),
-                            execution.messages().discord.unableToCheckLinkingStatus.get()
-                    );
+                    execution.messages().unableToCheckLinkingStatus.sendTo(execution);
                     return;
                 }
                 if (!link.isPresent()) {
-                    execution.messages().discordUserUnlinked(discordSRV, execution, userId);
+                    execution.messages().discordUserUnlinked.sendTo(execution, discordSRV, userId, null);
                     return;
                 }
 
-                execution.messages().discordUserLinkedTo(discordSRV, execution, link.get().playerUUID(), userId);
+                execution.messages().discordUserLinkedTo.sendTo(execution, discordSRV, userId, link.get().playerUUID());
             });
         }
     }
