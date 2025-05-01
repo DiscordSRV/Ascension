@@ -22,6 +22,7 @@ public enum Permissions implements Permission {
 
     // Commands
     // Admin
+    COMMAND_BYPASS("command.bypass", true),
     COMMAND_DEBUG("command.debug", true),
     COMMAND_RELOAD("command.reload", true),
     COMMAND_BROADCAST("command.broadcast", true),

@@ -24,6 +24,7 @@ import com.discordsrv.common.DiscordSRV;
 import com.discordsrv.common.command.combined.commands.*;
 import com.discordsrv.common.command.discord.commands.subcommand.ExecuteCommand;
 import com.discordsrv.common.feature.linking.LinkProvider;
+import com.discordsrv.common.feature.linking.requirelinking.RequiredLinkingModule;
 
 public class DiscordSRVDiscordCommand {
 
@@ -41,6 +42,7 @@ public class DiscordSRVDiscordCommand {
             if (discordSRV.config().executeCommand.enabled) {
                 builder = builder.addSubCommand(ExecuteCommand.get(discordSRV));
             }
+
             LinkProvider linkProvider = discordSRV.linkProvider();
             if (linkProvider != null) {
                 builder = builder.addSubCommand(LinkedCommand.getDiscord(discordSRV));
@@ -50,6 +52,13 @@ public class DiscordSRVDiscordCommand {
                             .addSubCommand(LinkOtherCommand.getDiscord(discordSRV))
                             .addSubCommand(UnlinkCommand.getDiscordWithOther(discordSRV));
                 }
+            }
+
+            RequiredLinkingModule<?> requiredLinking = discordSRV.getModule(RequiredLinkingModule.class);
+            if (requiredLinking != null && requiredLinking.isEnabled()) {
+                builder = builder
+                        .addSubCommand(BypassCommand.getDiscordList(discordSRV))
+                        .addSubCommand(BypassCommand.getDiscordModify(discordSRV));
             }
 
             INSTANCE = builder

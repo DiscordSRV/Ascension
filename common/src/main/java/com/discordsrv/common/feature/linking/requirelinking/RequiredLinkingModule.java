@@ -127,6 +127,10 @@ public abstract class RequiredLinkingModule<T extends DiscordSRV> extends Abstra
         }
     }
 
+    public boolean isBypassingLinkingByConfig(UUID playerUUID) {
+        return false;
+    }
+
     public boolean isBypassingLinking(UUID playerUUID) {
         return storageBypass.contains(playerUUID);
     }
