@@ -35,7 +35,7 @@ dependencyResolutionManagement {
             library('folia', 'dev.folia', 'folia-api').version('1.21.4-R0.1-SNAPSHOT')
 
             // Bungee
-            library('bungee', 'net.md-5', 'bungeecord-api').version('1.21-R0.1-SNAPSHOT')
+            library('bungee', 'net.md-5', 'bungeecord-api').version('1.21-R0.3-SNAPSHOT')
 
             // Velocity
             library('velocity', 'com.velocitypowered', 'velocity-api').version('3.4.0-SNAPSHOT')
