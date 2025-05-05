@@ -183,7 +183,7 @@ public class PlaceholderServiceImpl implements PlaceholderService {
 
                 return reLookupResult(reLookup.getValue(), lookupResult, result, contexts);
             }
-            if (!CharSequence.class.isAssignableFrom(reLookupType) && charSequenceReLookup != null) {
+            if (result.getPlaceholder().startsWith(":") && !CharSequence.class.isAssignableFrom(reLookupType) && charSequenceReLookup != null) {
                 return reLookupResult(charSequenceReLookup, getResultAsCharSequence(lookupResult), result, contexts);
             }
             return PlaceholderLookupResult.UNKNOWN_PLACEHOLDER;
