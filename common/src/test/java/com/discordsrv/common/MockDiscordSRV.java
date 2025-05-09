@@ -32,7 +32,8 @@ import com.discordsrv.common.config.configurate.manager.MessagesConfigManager;
 import com.discordsrv.common.config.configurate.manager.abstraction.ServerConfigManager;
 import com.discordsrv.common.config.connection.ConnectionConfig;
 import com.discordsrv.common.config.main.MainConfig;
-import com.discordsrv.common.config.main.channels.base.BaseChannelConfig;
+import com.discordsrv.common.config.main.channels.StartMessageConfig;
+import com.discordsrv.common.config.main.channels.StopMessageConfig;
 import com.discordsrv.common.config.main.channels.base.ChannelConfig;
 import com.discordsrv.common.config.main.generic.DestinationConfig;
 import com.discordsrv.common.config.main.generic.ThreadConfig;
@@ -268,10 +269,6 @@ public class MockDiscordSRV extends AbstractDiscordSRV<IBootstrap, MainConfig, C
     public MainConfig config() {
         MainConfig config = new MainConfig() {};
 
-        BaseChannelConfig defaultChannelConfig = config.channels.get(ChannelConfig.DEFAULT_KEY);
-        defaultChannelConfig.startMessage.enabled = false;
-        defaultChannelConfig.stopMessage.enabled = false;
-
         try {
             long textChannelId = Long.parseLong(FullBootExtension.TEXT_CHANNEL_ID);
             long newsChannelId = Long.parseLong(FullBootExtension.NEWS_CHANNEL_ID);
@@ -282,6 +279,11 @@ public class MockDiscordSRV extends AbstractDiscordSRV<IBootstrap, MainConfig, C
 
             ChannelConfig global = (ChannelConfig) config.channels.get(GameChannel.DEFAULT_NAME);
             DestinationConfig destination = global.destination = new DestinationConfig();
+
+            global.startMessage = new StartMessageConfig();
+            global.startMessage.enabled = false;
+            global.stopMessage = new StopMessageConfig();
+            global.stopMessage.enabled = false;
 
             List<Long> channelIds = destination.channelIds;
             channelIds.clear();
