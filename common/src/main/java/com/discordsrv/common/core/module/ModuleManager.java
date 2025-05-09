@@ -214,7 +214,9 @@ public class ModuleManager {
 
     @Subscribe(priority = EventPriorities.EARLIEST)
     public void onShuttingDownEarliest(DiscordSRVShuttingDownEvent event) {
-        modulesInShutdownOrder().forEachOrdered(Module::serverShuttingDown);
+        modulesInShutdownOrder()
+                .filter(module -> !getAbstract(module).isCurrentlyDisabled())
+                .forEachOrdered(Module::serverShuttingDown);
     }
 
     @Subscribe(priority = EventPriorities.EARLY)
