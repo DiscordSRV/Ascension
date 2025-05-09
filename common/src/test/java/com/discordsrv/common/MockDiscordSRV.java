@@ -32,10 +32,13 @@ import com.discordsrv.common.config.configurate.manager.MessagesConfigManager;
 import com.discordsrv.common.config.configurate.manager.abstraction.ServerConfigManager;
 import com.discordsrv.common.config.connection.ConnectionConfig;
 import com.discordsrv.common.config.main.MainConfig;
+import com.discordsrv.common.config.main.channels.base.BaseChannelConfig;
 import com.discordsrv.common.config.main.channels.base.ChannelConfig;
 import com.discordsrv.common.config.main.generic.DestinationConfig;
 import com.discordsrv.common.config.main.generic.ThreadConfig;
 import com.discordsrv.common.config.messages.MessagesConfig;
+import com.discordsrv.common.core.debug.data.OnlineMode;
+import com.discordsrv.common.core.debug.data.VersionInfo;
 import com.discordsrv.common.core.logging.Logger;
 import com.discordsrv.common.core.logging.backend.LoggingBackend;
 import com.discordsrv.common.core.logging.backend.impl.JavaLoggerImpl;
@@ -43,10 +46,7 @@ import com.discordsrv.common.core.scheduler.Scheduler;
 import com.discordsrv.common.core.scheduler.StandardScheduler;
 import com.discordsrv.common.core.storage.impl.MemoryStorage;
 import com.discordsrv.common.feature.console.Console;
-import com.discordsrv.common.core.debug.data.OnlineMode;
-import com.discordsrv.common.core.debug.data.VersionInfo;
 import com.discordsrv.common.feature.messageforwarding.game.MinecraftToDiscordChatModule;
-import com.discordsrv.common.feature.messageforwarding.game.StopMessageModule;
 import com.discordsrv.common.permission.game.Permission;
 import dev.vankka.dependencydownload.classpath.ClasspathAppender;
 import net.kyori.adventure.audience.Audience;
@@ -261,17 +261,16 @@ public class MockDiscordSRV extends AbstractDiscordSRV<IBootstrap, MainConfig, C
     protected void enable() throws Throwable {
         super.enable();
 
-        StopMessageModule stopMessageModule = getModule(StopMessageModule.class);
-        if (stopMessageModule != null) {
-            unregisterModule(stopMessageModule);
-        }
-
         registerModule(MinecraftToDiscordChatModule::new);
     }
 
     @Override
     public MainConfig config() {
         MainConfig config = new MainConfig() {};
+
+        BaseChannelConfig defaultChannelConfig = config.channels.get(ChannelConfig.DEFAULT_KEY);
+        defaultChannelConfig.startMessage.enabled = false;
+        defaultChannelConfig.stopMessage.enabled = false;
 
         try {
             long textChannelId = Long.parseLong(FullBootExtension.TEXT_CHANNEL_ID);
