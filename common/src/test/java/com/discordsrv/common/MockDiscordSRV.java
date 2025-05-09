@@ -46,6 +46,7 @@ import com.discordsrv.common.feature.console.Console;
 import com.discordsrv.common.core.debug.data.OnlineMode;
 import com.discordsrv.common.core.debug.data.VersionInfo;
 import com.discordsrv.common.feature.messageforwarding.game.MinecraftToDiscordChatModule;
+import com.discordsrv.common.feature.messageforwarding.game.StopMessageModule;
 import com.discordsrv.common.permission.game.Permission;
 import dev.vankka.dependencydownload.classpath.ClasspathAppender;
 import net.kyori.adventure.audience.Audience;
@@ -259,6 +260,11 @@ public class MockDiscordSRV extends AbstractDiscordSRV<IBootstrap, MainConfig, C
     @Override
     protected void enable() throws Throwable {
         super.enable();
+
+        StopMessageModule stopMessageModule = getModule(StopMessageModule.class);
+        if (stopMessageModule != null) {
+            unregisterModule(stopMessageModule);
+        }
 
         registerModule(MinecraftToDiscordChatModule::new);
     }
