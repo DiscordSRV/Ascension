@@ -126,7 +126,7 @@ public final class CommandUtil {
             ICommandSender sender = ((GameCommandExecution) execution).getSender();
             if (target != null) {
                 if (otherPermission != null && !sender.hasPermission(otherPermission)) {
-                    sender.sendMessage(discordSRV.messagesConfig(sender).noPermission.asComponent());
+                    execution.messages().noPermission.sendTo(execution);
                     return Task.completed(TargetLookupResult.INVALID);
                 }
             } else if (sender instanceof IPlayer && selfPermitted && lookupPlayer) {
@@ -137,10 +137,7 @@ public final class CommandUtil {
                 if (selfPermitted && lookupUser) {
                     target = Long.toUnsignedString(((DiscordCommandExecution) execution).getUser().getId());
                 } else {
-                    execution.send(
-                            messages.minecraft.pleaseSpecifyUser.asComponent(),
-                            messages.discord.pleaseSpecifyUser.get()
-                    );
+                    messages.pleaseSpecifyUser.sendTo(execution);
                     return Task.completed(TargetLookupResult.INVALID);
                 }
             }
@@ -159,10 +156,7 @@ public final class CommandUtil {
                 try {
                     id = MiscUtil.parseLong(target);
                 } catch (IllegalArgumentException ignored) {
-                    execution.send(
-                            messages.minecraft.userNotFound.asComponent(),
-                            messages.discord.userNotFound.get()
-                    );
+                    messages.userNotFound.sendTo(execution);
                     return Task.completed(TargetLookupResult.INVALID);
                 }
 
@@ -193,10 +187,7 @@ public final class CommandUtil {
                         uuid = UUID.fromString(target);
                     }
                 } catch (IllegalArgumentException ignored) {
-                    execution.send(
-                            messages.minecraft.playerNotFound.asComponent(),
-                            messages.discord.playerNotFound.get()
-                    );
+                    messages.playerNotFound.sendTo(execution);
                     return Task.completed(TargetLookupResult.INVALID);
                 }
                 return Task.completed(new TargetLookupResult(true, uuid, 0L));
@@ -210,6 +201,7 @@ public final class CommandUtil {
                             .thenApply(offlinePlayer -> new TargetLookupResult(true, offlinePlayer.uniqueId(), 0L))
                             .mapException(t -> {
                                 logger.error("Failed to lookup offline player by username", t);
+                                messages.playerLookupFailed.sendTo(execution);
                                 return TargetLookupResult.INVALID;
                             });
                 }
@@ -222,22 +214,13 @@ public final class CommandUtil {
 
     private static TargetLookupResult requireTarget(CommandExecution execution, boolean lookupUser, boolean lookupPlayer, MessagesConfig messages) {
         if (lookupPlayer && lookupUser) {
-            execution.send(
-                    messages.minecraft.pleaseSpecifyPlayerOrUser.asComponent(),
-                    messages.discord.pleaseSpecifyPlayerOrUser.get()
-            );
+            messages.pleaseSpecifyPlayerOrUser.sendTo(execution);
             return TargetLookupResult.INVALID;
         } else if (lookupPlayer) {
-            execution.send(
-                    messages.minecraft.pleaseSpecifyPlayer.asComponent(),
-                    messages.discord.pleaseSpecifyPlayer.get()
-            );
+            messages.pleaseSpecifyPlayer.sendTo(execution);
             return TargetLookupResult.INVALID;
         } else if (lookupUser) {
-            execution.send(
-                    messages.minecraft.pleaseSpecifyUser.asComponent(),
-                    messages.discord.pleaseSpecifyUser.get()
-            );
+            messages.pleaseSpecifyUser.sendTo(execution);
             return TargetLookupResult.INVALID;
         } else {
             throw new IllegalStateException("lookupPlayer & lookupUser are false");

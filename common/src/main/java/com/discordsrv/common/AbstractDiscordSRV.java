@@ -70,6 +70,7 @@ import com.discordsrv.common.discord.api.DiscordAPIImpl;
 import com.discordsrv.common.discord.connection.DiscordConnectionManager;
 import com.discordsrv.common.discord.connection.details.DiscordConnectionDetailsImpl;
 import com.discordsrv.common.discord.connection.jda.JDAConnectionManager;
+import com.discordsrv.common.events.lifecycle.ServerStartedEvent;
 import com.discordsrv.common.exception.StorageException;
 import com.discordsrv.common.feature.DiscordInviteModule;
 import com.discordsrv.common.feature.PlayerListModule;
@@ -80,10 +81,11 @@ import com.discordsrv.common.feature.channel.TimedUpdaterModule;
 import com.discordsrv.common.feature.channel.global.GlobalChannelLookupModule;
 import com.discordsrv.common.feature.console.ConsoleModule;
 import com.discordsrv.common.feature.customcommands.CustomCommandModule;
-import com.discordsrv.common.feature.debug.data.VersionInfo;
+import com.discordsrv.common.core.debug.data.VersionInfo;
 import com.discordsrv.common.feature.groupsync.GroupSyncModule;
 import com.discordsrv.common.feature.linking.LinkProvider;
 import com.discordsrv.common.feature.linking.LinkingModule;
+import com.discordsrv.common.feature.linking.LinkingRewardsModule;
 import com.discordsrv.common.feature.linking.impl.MinecraftAuthenticationLinker;
 import com.discordsrv.common.feature.linking.impl.StorageLinker;
 import com.discordsrv.common.feature.mention.MentionCachingModule;
@@ -92,8 +94,9 @@ import com.discordsrv.common.feature.messageforwarding.discord.DiscordChatMessag
 import com.discordsrv.common.feature.messageforwarding.discord.DiscordMessageMirroringModule;
 import com.discordsrv.common.feature.messageforwarding.game.*;
 import com.discordsrv.common.feature.nicknamesync.NicknameSyncModule;
-import com.discordsrv.common.feature.profile.ProfileManagerImpl;
-import com.discordsrv.common.feature.update.UpdateChecker;
+import com.discordsrv.common.core.profile.ProfileManagerImpl;
+import com.discordsrv.common.feature.onlinerole.OnlineRoleModule;
+import com.discordsrv.common.core.update.UpdateChecker;
 import com.discordsrv.common.helper.ChannelConfigHelper;
 import com.discordsrv.common.helper.DestinationLookupHelper;
 import com.discordsrv.common.helper.TemporaryLocalData;
@@ -694,6 +697,7 @@ public abstract class AbstractDiscordSRV<
         placeholderService().addReLookup(UUID.class, "uuid");
         placeholderService().addReLookup(Number.class, "numberformat");
         placeholderService().addReLookup(TemporalAccessor.class, "date");
+        placeholderService().addReLookup(Duration.class, "duration");
         placeholderService().addReLookup(Color.class, "color");
         placeholderService().addReLookup(Profile.class, "profile");
         placeholderService().addReLookup(IPlayer.class, "player");
@@ -714,6 +718,7 @@ public abstract class AbstractDiscordSRV<
         placeholderService().addGlobalContext(new AvatarProviderContext(this));
         placeholderService().addGlobalContext(new DiscordGuildMemberContext());
         placeholderService().addGlobalContext(new DebugContext(this));
+        placeholderService().addGlobalContext(DurationFormattingContext.class);
         placeholderService().addGlobalContext(BooleanFormattingContext.class);
         placeholderService().addGlobalContext(StringFormattingContext.class);
         placeholderService().addGlobalContext(UUIDUtil.class);
@@ -740,6 +745,10 @@ public abstract class AbstractDiscordSRV<
         registerModule(CustomCommandModule::new);
         registerModule(NicknameSyncModule::new);
         registerModule(PlayerListModule::new);
+        registerModule(OnlineRoleModule::new);
+        registerModule(LinkingRewardsModule::new);
+        registerModule(StartMessageModule::new);
+        registerModule(StopMessageModule::new);
 
         if (serverType() == ServerType.PROXY) {
             registerModule(ServerSwitchMessageModule::new);
@@ -780,11 +789,8 @@ public abstract class AbstractDiscordSRV<
     @MustBeInvokedByOverriders
     protected void serverStarted() {
         serverStarted = true;
-        moduleManager().enableModules();
-
-        registerModule(StartMessageModule::new);
-        registerModule(StopMessageModule::new);
-        Optional.ofNullable(getModule(PresenceUpdaterModule.class)).ifPresent(PresenceUpdaterModule::serverStarted);
+        eventBus().publish(new ServerStartedEvent());
+        logger().debug("Server started");
     }
 
     @MustBeInvokedByOverriders
@@ -952,7 +958,9 @@ public abstract class AbstractDiscordSRV<
             }
 
             if (linkProviderMissing && linkProvider != null) {
-                playerProvider().loadAllProfilesAsync();
+                for (IPlayer player : playerProvider().allPlayers()) {
+                    profileManager().loadProfile(player.uniqueId());
+                }
             }
         }
 
@@ -1041,6 +1049,7 @@ public abstract class AbstractDiscordSRV<
         temporaryLocalData.save();
 
         logger().shutdown();
+        scheduler().shutdown();
         this.status.set(Status.SHUTDOWN);
     }
 

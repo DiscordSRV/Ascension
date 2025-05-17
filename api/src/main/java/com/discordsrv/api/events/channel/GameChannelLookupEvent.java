@@ -54,7 +54,7 @@ public class GameChannelLookupEvent implements Processable.Argument<GameChannel>
      * @return if this lookup is for the default channel
      */
     public boolean isDefault() {
-        return GameChannel.DEFAULT_NAME.equals(channelName);
+        return GameChannel.DEFAULT_NAME.equals(getChannelName());
     }
 
     /**

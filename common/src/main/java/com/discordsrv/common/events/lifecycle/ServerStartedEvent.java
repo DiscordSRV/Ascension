@@ -16,9 +16,9 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package com.discordsrv.common.feature.update.github;
+package com.discordsrv.common.events.lifecycle;
 
-public class GithubRelease {
+import com.discordsrv.api.events.Event;
 
-    public String tag_name;
+public class ServerStartedEvent implements Event {
 }

@@ -372,41 +372,41 @@ public interface SendableDiscordMessage {
         @NotNull
         Formatter addContext(Object... context);
 
-        default Formatter addPlaceholder(String placeholder, Object replacement) {
+        default Formatter addPlaceholder(@NotNull String placeholder, @Nullable Object replacement) {
             return addContext(new SinglePlaceholder(placeholder, replacement));
         }
 
-        default Formatter addPlaceholder(String placeholder, Supplier<Object> replacementSupplier) {
+        default Formatter addPlaceholder(@NotNull String placeholder, @NotNull Supplier<@Nullable Object> replacementSupplier) {
             return addContext(new SinglePlaceholder(placeholder, replacementSupplier));
         }
 
         @NotNull
-        default Formatter addReplacement(String target, Object replacement) {
+        default Formatter addReplacement(@NotNull String target, @Nullable Object replacement) {
             return addReplacement(Pattern.compile(target, Pattern.LITERAL), replacement);
         }
 
         @NotNull
-        default Formatter addReplacement(Pattern target, Object replacement) {
+        default Formatter addReplacement(@NotNull Pattern target, @Nullable Object replacement) {
             return addReplacement(target, matcher -> replacement);
         }
 
         @NotNull
-        default Formatter addReplacement(String target, Supplier<Object> replacement) {
+        default Formatter addReplacement(@NotNull String target, @NotNull Supplier<@Nullable Object> replacement) {
             return addReplacement(Pattern.compile(target, Pattern.LITERAL), replacement);
         }
 
         @NotNull
-        default Formatter addReplacement(Pattern target, Supplier<Object> replacement) {
+        default Formatter addReplacement(@NotNull Pattern target, @NotNull Supplier<@Nullable Object> replacement) {
             return addReplacement(target, matcher -> replacement.get());
         }
 
         @NotNull
-        default Formatter addReplacement(String target, Function<Matcher, Object> replacement) {
+        default Formatter addReplacement(@NotNull String target, @NotNull Function<@NotNull Matcher, @Nullable Object> replacement) {
             return addReplacement(Pattern.compile(target, Pattern.LITERAL), replacement);
         }
 
         @NotNull
-        Formatter addReplacement(Pattern target, Function<Matcher, Object> replacement);
+        Formatter addReplacement(@NotNull Pattern target, @NotNull Function<@NotNull Matcher, @Nullable Object> replacement);
 
         @NotNull
         Formatter applyPlaceholderService();

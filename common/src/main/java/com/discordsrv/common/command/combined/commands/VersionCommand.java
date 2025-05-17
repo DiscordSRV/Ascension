@@ -26,7 +26,7 @@ import com.discordsrv.common.command.combined.abstraction.CombinedCommand;
 import com.discordsrv.common.command.combined.abstraction.CommandExecution;
 import com.discordsrv.common.command.combined.abstraction.Text;
 import com.discordsrv.common.command.game.abstraction.command.GameCommand;
-import com.discordsrv.common.feature.debug.data.VersionInfo;
+import com.discordsrv.common.core.debug.data.VersionInfo;
 import com.discordsrv.common.permission.game.Permissions;
 import net.kyori.adventure.text.format.NamedTextColor;
 import net.kyori.adventure.text.format.TextColor;

@@ -80,12 +80,14 @@ public class ExecuteCommand implements Consumer<DiscordChatInputInteractionEvent
     public boolean isAcceptableCommand(DiscordGuildMember member, DiscordUser user, String command, boolean suggestions) {
         ExecuteCommandConfig config = discordSRV.config().executeCommand;
 
+        boolean anyAcceptable = false;
         for (GameCommandExecutionConditionConfig filter : config.executionConditions) {
-            if (!filter.isAcceptableCommand(member, user, command, suggestions, helper)) {
-                return true;
+            if (filter.isAcceptableCommand(member, user, command, suggestions, helper)) {
+                anyAcceptable = true;
+                break;
             }
         }
-        return false;
+        return anyAcceptable;
     }
 
     @Override
@@ -93,7 +95,7 @@ public class ExecuteCommand implements Consumer<DiscordChatInputInteractionEvent
         ExecuteCommandConfig config = discordSRV.config().executeCommand;
         boolean ephemeral = config.ephemeral;
         if (!config.enabled) {
-            event.reply(SendableDiscordMessage.builder().setContent("The execute command is disabled").build(), true); // TODO: translation
+            event.reply(SendableDiscordMessage.builder().setContent("The execute command is disabled").build(), true);
             return;
         }
 
@@ -103,7 +105,7 @@ public class ExecuteCommand implements Consumer<DiscordChatInputInteractionEvent
         }
 
         if (!isAcceptableCommand(event.getMember(), event.getUser(), command, false)) {
-            event.reply(SendableDiscordMessage.builder().setContent("You do not have permission to run that command").build(), true); // TODO: translation
+            event.reply(discordSRV.messagesConfig(event.getUserLocale()).noPermission.discord().get(), true);
             return;
         }
 

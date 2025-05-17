@@ -28,7 +28,7 @@ import com.discordsrv.common.DiscordSRV;
 import com.discordsrv.common.abstraction.player.IOfflinePlayer;
 import com.discordsrv.common.abstraction.player.IPlayer;
 import com.discordsrv.common.discord.api.entity.channel.DiscordDMChannelImpl;
-import com.discordsrv.common.feature.profile.ProfileImpl;
+import com.discordsrv.common.core.profile.ProfileImpl;
 import net.dv8tion.jda.api.JDA;
 import net.dv8tion.jda.api.entities.User;
 import org.jetbrains.annotations.NotNull;

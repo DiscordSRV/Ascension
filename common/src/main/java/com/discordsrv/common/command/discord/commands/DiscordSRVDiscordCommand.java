@@ -23,7 +23,8 @@ import com.discordsrv.api.discord.entity.interaction.component.ComponentIdentifi
 import com.discordsrv.common.DiscordSRV;
 import com.discordsrv.common.command.combined.commands.*;
 import com.discordsrv.common.command.discord.commands.subcommand.ExecuteCommand;
-import com.discordsrv.common.feature.linking.LinkStore;
+import com.discordsrv.common.feature.linking.LinkProvider;
+import com.discordsrv.common.feature.linking.requirelinking.RequiredLinkingModule;
 
 public class DiscordSRVDiscordCommand {
 
@@ -36,16 +37,28 @@ public class DiscordSRVDiscordCommand {
             DiscordCommand.ChatInputBuilder builder = DiscordCommand.chatInput(IDENTIFIER, "discordsrv", "DiscordSRV related commands")
                     .addSubCommand(DebugCommand.getDiscord(discordSRV))
                     .addSubCommand(VersionCommand.getDiscord(discordSRV))
-                    .addSubCommand(ResyncCommand.getDiscord(discordSRV))
-                    .addSubCommand(LinkedCommand.getDiscord(discordSRV));
+                    .addSubCommand(ResyncCommand.getDiscord(discordSRV));
 
             if (discordSRV.config().executeCommand.enabled) {
                 builder = builder.addSubCommand(ExecuteCommand.get(discordSRV));
             }
-            if (discordSRV.linkProvider() instanceof LinkStore) {
+
+            LinkProvider linkProvider = discordSRV.linkProvider();
+            if (linkProvider != null) {
+                builder = builder.addSubCommand(LinkedCommand.getDiscord(discordSRV));
+
+                if (linkProvider.usesLocalLinking()) {
+                    builder = builder
+                            .addSubCommand(LinkOtherCommand.getDiscord(discordSRV))
+                            .addSubCommand(UnlinkCommand.getDiscordWithOther(discordSRV));
+                }
+            }
+
+            RequiredLinkingModule<?> requiredLinking = discordSRV.getModule(RequiredLinkingModule.class);
+            if (requiredLinking != null && requiredLinking.isEnabled()) {
                 builder = builder
-                        .addSubCommand(LinkOtherCommand.getDiscord(discordSRV))
-                        .addSubCommand(UnlinkCommand.getDiscordWithOther(discordSRV));
+                        .addSubCommand(BypassCommand.getDiscordList(discordSRV))
+                        .addSubCommand(BypassCommand.getDiscordModify(discordSRV));
             }
 
             INSTANCE = builder

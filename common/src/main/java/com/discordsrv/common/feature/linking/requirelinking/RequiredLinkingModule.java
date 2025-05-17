@@ -44,10 +44,7 @@ import com.discordsrv.common.helper.Someone;
 import com.discordsrv.common.util.ComponentUtil;
 import net.kyori.adventure.text.Component;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Objects;
-import java.util.UUID;
+import java.util.*;
 import java.util.concurrent.SynchronousQueue;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
@@ -56,6 +53,7 @@ import java.util.function.Consumer;
 public abstract class RequiredLinkingModule<T extends DiscordSRV> extends AbstractModule<T> {
 
     private final List<RequirementType<?>> availableRequirementTypes = new ArrayList<>();
+    private final Set<UUID> storageBypass = new HashSet<>();
     private ThreadPoolExecutor executor;
 
     public RequiredLinkingModule(T discordSRV) {
@@ -125,6 +123,51 @@ public abstract class RequiredLinkingModule<T extends DiscordSRV> extends Abstra
 
         if (discordSRV.config() != null) {
             reload();
+            updateBypassFromStorage();
+        }
+    }
+
+    public boolean isBypassingLinkingByConfig(UUID playerUUID) {
+        return false;
+    }
+
+    public boolean isBypassingLinking(UUID playerUUID) {
+        return storageBypass.contains(playerUUID);
+    }
+
+    public Set<UUID> getBypassingPlayers() {
+        return storageBypass;
+    }
+
+    public void addLinkingBypass(UUID playerUUID) {
+        updateBypassFromStorage();
+        synchronized (storageBypass) {
+            if (storageBypass.contains(playerUUID)) {
+                return;
+            }
+
+            discordSRV.storage().addRequiredLinkingBypass(playerUUID);
+            storageBypass.add(playerUUID);
+        }
+    }
+
+    public void removeLinkingBypass(UUID playerUUID) {
+        updateBypassFromStorage();
+        synchronized (storageBypass) {
+            if (!storageBypass.contains(playerUUID)) {
+                return;
+            }
+
+            discordSRV.storage().removeRequiredLinkingBypass(playerUUID);
+            storageBypass.remove(playerUUID);
+        }
+    }
+
+    private void updateBypassFromStorage() {
+        Set<UUID> bypass = discordSRV.storage().getRequiredLinkingBypass();
+        synchronized (this.storageBypass) {
+            storageBypass.clear();
+            storageBypass.addAll(bypass);
         }
     }
 
@@ -134,12 +177,12 @@ public abstract class RequiredLinkingModule<T extends DiscordSRV> extends Abstra
     public abstract void recheck(IPlayer player);
 
     private void recheck(Someone someone) {
-        someone.withPlayerUUID().thenApply(uuid -> {
-            if (uuid == null) {
+        someone.resolve().thenApply(resolved -> {
+            if (resolved == null) {
                 return null;
             }
 
-            return discordSRV.playerProvider().player(uuid);
+            return discordSRV.playerProvider().player(resolved.playerUUID());
         }).whenComplete((onlinePlayer, t) -> {
             if (t != null) {
                 logger().error("Failed to get linked account for " + someone, t);
@@ -200,7 +243,7 @@ public abstract class RequiredLinkingModule<T extends DiscordSRV> extends Abstra
             String playerName,
             boolean join
     ) {
-        if (config.bypassUUIDs.contains(playerUUID.toString())) {
+        if (storageBypass.contains(playerUUID) || config.bypassUUIDs.contains(playerUUID.toString())) {
             // Bypasses: let them through
             logger().debug("Player " + playerName + " is bypassing required linking requirements");
             return Task.completed(null);
@@ -210,20 +253,19 @@ public abstract class RequiredLinkingModule<T extends DiscordSRV> extends Abstra
         if (linkProvider == null) {
             // Link provider unavailable but required linking enabled: error message
             Component message = ComponentUtil.fromAPI(
-                    discordSRV.messagesConfig().minecraft.unableToCheckLinkingStatus.textBuilder().build()
+                    discordSRV.messagesConfig().unableToCheckLinkingStatus.minecraft().textBuilder().build()
             );
             return Task.completed(message);
         }
 
-        return linkProvider.queryUserId(playerUUID, true).then(opt -> {
-            if (!opt.isPresent()) {
+        return linkProvider.query(playerUUID, true).then(link -> {
+            if (!link.isPresent()) {
                 // User is not linked
                 return linkProvider.getLinkingInstructions(playerName, playerUUID, null, join ? "join" : "freeze")
                         .thenApply(ComponentUtil::fromAPI);
             }
 
-            long userId = opt.get();
-
+            long userId = link.get().userId();
             if (additionalRequirements.isEmpty()) {
                 // No additional requirements: let them through
                 return Task.completed(null);

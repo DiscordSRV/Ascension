@@ -136,22 +136,9 @@ public class DiscordSRVLogger implements Logger {
 
             JDA jda = discordSRV.jda();
             GuildChannel guildChannel = jda != null ? exception.getChannel(jda) : null;
-            long channelId = exception.getChannelId();
             Guild guild = jda != null ? exception.getGuild(jda) : null;
-            long guildId = exception.getGuildId();
 
-            String where;
-            if (guildChannel != null) {
-                where = "#" + guildChannel.getName();
-            } else if (channelId != 0) {
-                where = "Channel ID " + Long.toUnsignedString(channelId);
-            } else if (guild != null) {
-                where = guild.getName();
-            } else {
-                where = "Server ID " + Long.toUnsignedString(guildId);
-            }
-
-            String msg = DiscordPermissionUtil.createErrorMessage(guildChannel, EnumSet.of(permission), where);
+            String msg = DiscordPermissionUtil.createErrorMessage(guildChannel, guild, EnumSet.of(permission));
             if (message == null) {
                 message = msg;
             } else {

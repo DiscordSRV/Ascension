@@ -34,7 +34,6 @@ import com.discordsrv.common.config.main.channels.base.IChannelConfig;
 import com.discordsrv.common.permission.game.Permissions;
 import com.discordsrv.common.util.ComponentUtil;
 import net.kyori.adventure.text.Component;
-import net.kyori.adventure.text.format.NamedTextColor;
 import net.kyori.adventure.text.serializer.gson.GsonComponentSerializer;
 
 import java.util.*;
@@ -122,8 +121,6 @@ public abstract class BroadcastCommand implements GameCommandExecutor, GameComma
 
         if (future != null) {
             future.whenComplete((messageChannels, t) -> doBroadcast(sender, content, channel, messageChannels));
-        } else if (channels.isEmpty()) {
-            // TODO: please specify target
         } else {
             doBroadcast(sender, content, channel, channels);
         }
@@ -142,22 +139,22 @@ public abstract class BroadcastCommand implements GameCommandExecutor, GameComma
     }
 
     private void doBroadcast(ICommandSender sender, String content, String channel, Collection<? extends DiscordMessageChannel> channels) {
-        if (channels.isEmpty()) {
-            sender.sendMessage(
-                    Component.text()
-                            .append(Component.text("Channel ", NamedTextColor.RED))
-                            .append(Component.text(channel, NamedTextColor.GRAY))
-                            .append(Component.text(" not found", NamedTextColor.RED))
-            );
+        if (channels == null || channels.isEmpty()) {
+            sender.sendMessage(ComponentUtil.fromAPI(
+                    discordSRV.messagesConfig(sender).channelNotFound
+                            .textBuilder()
+                            .addPlaceholder("channel", channel)
+                            .applyPlaceholderService()
+                            .build()
+            ));
             return;
         }
-
 
         SendableDiscordMessage message = getDiscordContent(content);
         for (DiscordMessageChannel messageChannel : channels) {
             messageChannel.sendMessage(message);
         }
-        sender.sendMessage(Component.text("Broadcasted!", NamedTextColor.GRAY));
+        sender.sendMessage(discordSRV.messagesConfig(sender).broadcasted.asComponent());
     }
 
     public SendableDiscordMessage getDiscordContent(String content) {

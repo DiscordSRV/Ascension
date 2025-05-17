@@ -24,7 +24,7 @@ import com.discordsrv.common.DiscordSRV;
 import com.discordsrv.common.command.combined.commands.UnlinkCommand;
 import com.discordsrv.common.command.discord.commands.subcommand.LinkInitDiscordCommand;
 import com.discordsrv.common.command.discord.commands.subcommand.PlayerListCommand;
-import com.discordsrv.common.feature.linking.LinkStore;
+import com.discordsrv.common.feature.linking.LinkProvider;
 
 public class MinecraftDiscordCommand {
 
@@ -36,10 +36,13 @@ public class MinecraftDiscordCommand {
             DiscordCommand.ChatInputBuilder builder = DiscordCommand.chatInput(identifier, "minecraft", "Minecraft server commands")
                     .addSubCommand(PlayerListCommand.get(discordSRV));
 
-            if (discordSRV.linkProvider() instanceof LinkStore) {
-                builder = builder
-                        .addSubCommand(LinkInitDiscordCommand.getInstance(discordSRV))
-                        .addSubCommand(UnlinkCommand.getDiscordWithoutOther(discordSRV));
+            LinkProvider linkProvider = discordSRV.linkProvider();
+            if (linkProvider != null) {
+                if (linkProvider.usesLocalLinking()) {
+                    builder = builder
+                            .addSubCommand(LinkInitDiscordCommand.getInstance(discordSRV))
+                            .addSubCommand(UnlinkCommand.getDiscordWithoutOther(discordSRV));
+                }
             }
 
             INSTANCE = builder

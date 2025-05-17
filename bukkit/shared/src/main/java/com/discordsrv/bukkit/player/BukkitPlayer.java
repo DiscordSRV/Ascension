@@ -74,6 +74,10 @@ public abstract class BukkitPlayer extends BukkitCommandSender implements IPlaye
     public abstract Locale locale();
 
     @Override
+    public @NotNull String world() {
+        return player.getWorld().getName();
+    }
+ 
     public boolean isVanished() {
         for (MetadataValue metadata : player.getMetadata("vanished")) {
             if (metadata.asBoolean()) {

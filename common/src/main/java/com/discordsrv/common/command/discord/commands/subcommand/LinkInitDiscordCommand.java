@@ -33,6 +33,7 @@ import com.discordsrv.common.core.logging.Logger;
 import com.discordsrv.common.core.logging.NamedLogger;
 import com.discordsrv.common.feature.linking.LinkProvider;
 import com.discordsrv.common.feature.linking.LinkStore;
+import com.discordsrv.common.feature.linking.LinkingModule;
 import com.github.benmanes.caffeine.cache.Cache;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.Pair;
@@ -76,14 +77,25 @@ public class LinkInitDiscordCommand implements Consumer<DiscordChatInputInteract
     @Override
     public void accept(DiscordChatInputInteractionEvent event) {
         DiscordUser user = event.getUser();
-        MessagesConfig.Discord messagesConfig = discordSRV.messagesConfig(event.getUserLocale()).discord;
+        MessagesConfig messagesConfig = discordSRV.messagesConfig(event.getUserLocale());
 
         LinkProvider linkProvider = discordSRV.linkProvider();
-        if (!(linkProvider instanceof LinkStore)) {
+        if (linkProvider == null || !linkProvider.usesLocalLinking()) {
             event.reply(SendableDiscordMessage.builder().setContent("Cannot create links using this link provider").build());
             return;
         }
-        LinkStore linkStore = (LinkStore) linkProvider;
+        LinkStore linkStore = linkProvider.store();
+
+        LinkingModule module = discordSRV.getModule(LinkingModule.class);
+        if (module == null) {
+            event.reply(SendableDiscordMessage.builder().setContent("Unable to link at this time").build());
+            return;
+        }
+
+        if (module.rateLimit(event.getUser().getId())) {
+            event.reply(messagesConfig.pleaseWaitBeforeRunningThatCommandAgain.discord().get());
+            return;
+        }
 
         String code = event.getOptionAsString("code");
         if (StringUtils.isEmpty(code) || !linkStore.isValidCode(code)) {
@@ -91,13 +103,13 @@ public class LinkInitDiscordCommand implements Consumer<DiscordChatInputInteract
             return;
         }
 
-        if (linkProvider.getCachedPlayerUUID(user.getId()).isPresent()) {
-            event.reply(messagesConfig.alreadyLinked1st.get(), true);
+        if (linkProvider.getCached(user.getId()).isPresent()) {
+            event.reply(messagesConfig.alreadyLinked1st.discord().get(), true);
             return;
         }
 
         if (linkCheckRateLimit.getIfPresent(user.getId()) != null) {
-            event.reply(messagesConfig.pleaseWaitBeforeRunningThatCommandAgain.get(), true);
+            event.reply(messagesConfig.pleaseWaitBeforeRunningThatCommandAgain.discord().get(), true);
             return;
         }
         linkCheckRateLimit.put(user.getId(), true);
@@ -108,23 +120,23 @@ public class LinkInitDiscordCommand implements Consumer<DiscordChatInputInteract
                 return;
             }
 
-            linkProvider.queryPlayerUUID(user.getId()).whenComplete((linkedPlayer, t2) -> {
+            linkProvider.query(user.getId()).whenComplete((existingLink, t2) -> {
                 if (t2 != null) {
                     logger.error("Failed to check linking status", t2);
-                    interactionHook.editOriginal(messagesConfig.unableToCheckLinkingStatus.get());
+                    interactionHook.editOriginal(messagesConfig.unableToCheckLinkingStatus.discord().get());
                     return;
                 }
-                if (linkedPlayer.isPresent()) {
-                    interactionHook.editOriginal(messagesConfig.alreadyLinked1st.get());
+                if (existingLink.isPresent()) {
+                    interactionHook.editOriginal(messagesConfig.alreadyLinked1st.discord().get());
                     return;
                 }
 
                 linkStore.getCodeLinking(user.getId(), code)
-                        .then(player -> linkStore.createLink(player.getKey(), user.getId()).thenApply(__ -> player))
+                        .then(player -> module.link(player.getKey(), user.getId()).thenApply(__ -> player))
                         .whenComplete((player, t3) -> {
                             if (t3 != null) {
                                 logger.error("Failed to link", t3);
-                                interactionHook.editOriginal(messagesConfig.unableToCheckLinkingStatus.get());
+                                interactionHook.editOriginal(messagesConfig.unableToCheckLinkingStatus.discord().get());
                                 return;
                             }
 
@@ -138,7 +150,7 @@ public class LinkInitDiscordCommand implements Consumer<DiscordChatInputInteract
     private void linkSuccess(
             DiscordInteractionHook interactionHook,
             LinkStore linkStore,
-            MessagesConfig.Discord messagesConfig,
+            MessagesConfig messagesConfig,
             Pair<UUID, String> pair
     ) {
         UUID playerUUID = pair.getKey();

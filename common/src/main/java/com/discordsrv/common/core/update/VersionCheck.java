@@ -16,11 +16,28 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package com.discordsrv.common.feature.update.github;
+package com.discordsrv.common.core.update;
 
-public class GitHubCompareResponse {
+import java.util.List;
 
-    public String status;
-    public int behind_by;
+public class VersionCheck {
 
+    public Status status;
+
+    public int amount;
+    public AmountSource amountSource;
+    public String amountType;
+
+    public boolean insecure;
+    public List<String> securityIssues;
+
+    public enum Status {
+        UP_TO_DATE,
+        OUTDATED,
+        UNKNOWN
+    }
+
+    public enum AmountSource {
+        GITHUB
+    }
 }

@@ -29,7 +29,7 @@ import com.discordsrv.common.config.configurate.manager.abstraction.ServerConfig
 import com.discordsrv.common.config.connection.ConnectionConfig;
 import com.discordsrv.common.config.messages.MessagesConfig;
 import com.discordsrv.common.core.scheduler.StandardScheduler;
-import com.discordsrv.common.feature.debug.data.OnlineMode;
+import com.discordsrv.common.core.debug.data.OnlineMode;
 import com.discordsrv.common.feature.messageforwarding.game.MinecraftToDiscordChatModule;
 import com.discordsrv.fabric.command.game.FabricGameCommandExecutionHelper;
 import com.discordsrv.fabric.command.game.handler.FabricCommandHandler;
@@ -37,6 +37,7 @@ import com.discordsrv.fabric.config.main.FabricConfig;
 import com.discordsrv.fabric.console.FabricConsole;
 import com.discordsrv.fabric.module.ban.FabricBanModule;
 import com.discordsrv.fabric.module.chat.*;
+import com.discordsrv.fabric.module.listener.FabricWorldChangeModule;
 import com.discordsrv.fabric.player.FabricPlayerProvider;
 import com.discordsrv.fabric.plugin.FabricModManager;
 import com.discordsrv.fabric.requiredlinking.FabricRequiredLinkingModule;
@@ -86,6 +87,9 @@ public class FabricDiscordSRV extends AbstractDiscordSRV<DiscordSRVFabricBootstr
     @Override
     protected void enable() throws Throwable {
         super.enable();
+
+        // Listeners
+        registerModule(FabricWorldChangeModule::new);
 
         // Chat
         registerModule(MinecraftToDiscordChatModule::new);

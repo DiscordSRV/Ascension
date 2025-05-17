@@ -30,39 +30,39 @@ import java.util.UUID;
 
 public interface LinkProvider {
 
-    default Task<Optional<Long>> queryUserId(@NotNull UUID playerUUID) {
-        return queryUserId(playerUUID, false);
+    default Task<Optional<AccountLink>> query(@NotNull UUID playerUUID) {
+        return query(playerUUID, false);
     }
 
-    Task<Optional<Long>> queryUserId(@NotNull UUID playerUUID, boolean canCauseLink);
+    Task<Optional<AccountLink>> query(@NotNull UUID playerUUID, boolean canCauseLink);
 
-    default Task<Optional<Long>> getUserId(@NotNull UUID playerUUID) {
-        Optional<Long> userId = getCachedUserId(playerUUID);
+    default Task<Optional<AccountLink>> get(@NotNull UUID playerUUID) {
+        Optional<AccountLink> userId = getCached(playerUUID);
         if (userId.isPresent()) {
             return Task.completed(userId);
         }
-        return queryUserId(playerUUID);
+        return query(playerUUID);
     }
 
-    default Optional<Long> getCachedUserId(@NotNull UUID playerUUID) {
+    default Optional<AccountLink> getCached(@NotNull UUID playerUUID) {
         return Optional.empty();
     }
 
-    default Task<Optional<UUID>> queryPlayerUUID(long userId) {
-        return queryPlayerUUID(userId, false);
+    default Task<Optional<AccountLink>> query(long userId) {
+        return query(userId, false);
     }
 
-    Task<Optional<UUID>> queryPlayerUUID(long userId, boolean canCauseLink);
+    Task<Optional<AccountLink>> query(long userId, boolean canCauseLink);
 
-    default Task<Optional<UUID>> getPlayerUUID(long userId) {
-        Optional<UUID> playerUUID = getCachedPlayerUUID(userId);
+    default Task<Optional<AccountLink>> get(long userId) {
+        Optional<AccountLink> playerUUID = getCached(userId);
         if (playerUUID.isPresent()) {
             return Task.completed(playerUUID);
         }
-        return queryPlayerUUID(userId);
+        return query(userId);
     }
 
-    default Optional<UUID> getCachedPlayerUUID(long userId) {
+    default Optional<AccountLink> getCached(long userId) {
         return Optional.empty();
     }
 
@@ -78,4 +78,11 @@ public interface LinkProvider {
             Object... additionalContext
     );
     boolean isValidCode(@NotNull String code);
+
+    @NotNull
+    LinkStore store();
+
+    default boolean usesLocalLinking() {
+        return this instanceof LinkStore;
+    }
 }

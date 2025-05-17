@@ -16,19 +16,11 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package com.discordsrv.common.feature.debug.file;
+package com.discordsrv.common.core.update.github;
 
-public class TextDebugFile implements DebugFile {
+public class GitHubCompareResponse {
 
-    private final String content;
-
-    public TextDebugFile(CharSequence content) {
-        this.content = content.toString();
-    }
-
-    @Override
-    public String content() {
-        return content;
-    }
+    public String status;
+    public int behind_by;
 
 }

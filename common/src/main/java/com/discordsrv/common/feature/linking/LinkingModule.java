@@ -20,29 +20,115 @@ package com.discordsrv.common.feature.linking;
 
 import com.discordsrv.api.events.linking.AccountLinkedEvent;
 import com.discordsrv.api.events.linking.AccountUnlinkedEvent;
-import com.discordsrv.api.profile.Profile;
+import com.discordsrv.api.task.Task;
 import com.discordsrv.common.DiscordSRV;
 import com.discordsrv.common.core.logging.NamedLogger;
 import com.discordsrv.common.core.module.type.AbstractModule;
+import com.github.benmanes.caffeine.cache.Cache;
 
+import java.time.LocalDateTime;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.UUID;
+import java.util.concurrent.Semaphore;
+import java.util.function.Supplier;
 
 public class LinkingModule extends AbstractModule<DiscordSRV> {
 
+    private final Cache<Object, Boolean> linkCheckRateLimit;
+    private final Map<UUID, Semaphore> playerLinkingLock = new HashMap<>();
+    private final Map<Long, Semaphore> userLinkingLock = new HashMap<>();
+
     public LinkingModule(DiscordSRV discordSRV) {
         super(discordSRV, new NamedLogger(discordSRV, "LINKING"));
+        this.linkCheckRateLimit = discordSRV.caffeineBuilder()
+                .expireAfterWrite(LinkStore.LINKING_CODE_RATE_LIMIT)
+                .build();
     }
 
-    public void linked(UUID playerUUID, long userId) {
-        Profile profile = discordSRV.profileManager().getProfile(playerUUID);
-        if (profile == null || !profile.isLinked()) {
-            throw new IllegalStateException("Notified that account linked, but profile is null or unlinked");
+    public boolean rateLimit(Object identifier) {
+        synchronized (linkCheckRateLimit) {
+            boolean rateLimited = linkCheckRateLimit.getIfPresent(identifier) != null;
+            if (!rateLimited) {
+                linkCheckRateLimit.put(identifier, true);
+            }
+            return rateLimited;
+        }
+    }
+
+    private LinkStore store() {
+        LinkProvider provider = discordSRV.linkProvider();
+        if (provider == null) {
+            throw new IllegalStateException("LinkProvider is null");
         }
 
-        discordSRV.eventBus().publish(new AccountLinkedEvent(profile));
+        return provider.store();
     }
 
-    public void unlinked(UUID playerUUID, long userId) {
-        discordSRV.eventBus().publish(new AccountUnlinkedEvent(playerUUID, userId));
+    private <T> T locking(UUID playerUUID, long userId, Supplier<T> operation) {
+        Semaphore playerSemaphore = null, userSemaphore = null;
+
+        try {
+            synchronized (playerLinkingLock) {
+                playerSemaphore = playerLinkingLock.computeIfAbsent(playerUUID, k -> new Semaphore(1));
+            }
+            playerSemaphore.acquire();
+
+            try {
+                synchronized (userLinkingLock) {
+                    userSemaphore = userLinkingLock.computeIfAbsent(userId, k -> new Semaphore(1));
+                }
+                userSemaphore.acquire();
+
+                return operation.get();
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
+            } finally {
+                if (userSemaphore != null) {
+                    synchronized (userLinkingLock) {
+                        boolean empty = !userSemaphore.hasQueuedThreads();
+                        userSemaphore.release();
+
+                        if (empty) {
+                            // If there are no queued threads, cleanup the memory
+                            userLinkingLock.remove(userId);
+                        }
+                    }
+                }
+            }
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+        } finally {
+            if (playerSemaphore != null) {
+                synchronized (playerLinkingLock) {
+                    boolean empty = !playerSemaphore.hasQueuedThreads();
+                    playerSemaphore.release();
+
+                    if (empty) {
+                        // If there are no queued threads, cleanup the memory
+                        playerLinkingLock.remove(playerUUID);
+                    }
+                }
+            }
+        }
+        return null;
+    }
+
+    public Task<Void> link(UUID playerUUID, long userId) {
+        return locking(playerUUID, userId, () -> store().createLink(new AccountLink(playerUUID, userId, LocalDateTime.now(), LocalDateTime.now()))
+                .whenSuccessful(v -> {
+                    logger().debug("Linked: " + playerUUID + " & " + Long.toUnsignedString(userId));
+                    discordSRV.eventBus().publish(new AccountLinkedEvent(playerUUID, userId));
+                })
+                .whenFailed(t -> logger().error("Failed to link " + playerUUID + " and " + Long.toUnsignedString(userId), t)));
+    }
+
+    public Task<Void> unlink(UUID playerUUID, long userId) {
+        return locking(playerUUID, userId, () -> store().removeLink(playerUUID, userId)
+                .whenComplete((v, t) -> {
+                    logger().debug("Unlinked: " + playerUUID + " & " + Long.toUnsignedString(userId));
+                    discordSRV.eventBus().publish(new AccountUnlinkedEvent(playerUUID, userId));
+                })
+                .whenFailed(t -> logger().error("Failed to unlink " + playerUUID + " and " + Long.toUnsignedString(userId), t)));
     }
 }

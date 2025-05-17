@@ -26,7 +26,7 @@ import com.discordsrv.api.placeholder.annotation.PlaceholderPrefix;
 import com.discordsrv.api.task.Task;
 import com.discordsrv.common.DiscordSRV;
 import com.discordsrv.common.abstraction.player.provider.model.SkinInfo;
-import com.discordsrv.common.feature.profile.ProfileImpl;
+import com.discordsrv.common.core.profile.ProfileImpl;
 import net.kyori.adventure.identity.Identified;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;

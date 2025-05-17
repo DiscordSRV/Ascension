@@ -50,12 +50,12 @@ public class ChannelLockingModule extends AbstractModule<DiscordSRV> {
     }
 
     @Override
-    public void enable() {
+    public void serverStarted() {
         run(true);
     }
 
     @Override
-    public void disable() {
+    public void serverShuttingDown() {
         run(false);
     }
 

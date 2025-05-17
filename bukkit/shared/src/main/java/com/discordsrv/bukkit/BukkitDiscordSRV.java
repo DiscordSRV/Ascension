@@ -27,7 +27,7 @@ import com.discordsrv.common.AbstractDiscordSRV;
 import com.discordsrv.common.command.game.abstraction.GameCommandExecutionHelper;
 import com.discordsrv.common.config.connection.ConnectionConfig;
 import com.discordsrv.common.config.messages.MessagesConfig;
-import com.discordsrv.common.feature.debug.data.OnlineMode;
+import com.discordsrv.common.core.debug.data.OnlineMode;
 import net.kyori.adventure.platform.bukkit.BukkitAudiences;
 import org.bukkit.Server;
 import org.bukkit.plugin.ServicePriority;

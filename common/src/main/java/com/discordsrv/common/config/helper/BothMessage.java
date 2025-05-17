@@ -16,24 +16,31 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package com.discordsrv.common.feature.debug;
+package com.discordsrv.common.config.helper;
 
-import com.discordsrv.api.events.Event;
-import com.discordsrv.common.feature.debug.file.DebugFile;
+import com.discordsrv.common.command.combined.abstraction.CommandExecution;
 
-public class DebugGenerateEvent implements Event {
+public class BothMessage extends ConfigMessage {
 
-    private final DebugReport report;
+    private final MinecraftMessage minecraft;
+    private final DiscordMessage discord;
 
-    public DebugGenerateEvent(DebugReport report) {
-        this.report = report;
+    public BothMessage(MinecraftMessage minecraft, DiscordMessage discord) {
+        this.minecraft = minecraft;
+        this.discord = discord;
     }
 
-    public void addFile(String fileName, DebugFile file) {
-        report.addFile(fileName, 0, () -> file);
+    public MinecraftMessage minecraft() {
+        return minecraft;
     }
 
-    public void addFile(int order, String name, DebugFile file) {
-        report.addFile(name, order, () -> file);
+    public DiscordMessage discord() {
+        return discord;
+    }
+
+    @Override
+    protected void sendTo(CommandExecution execution, Object... context) {
+        minecraft.sendTo(execution, context);
+        discord.sendTo(execution, context);
     }
 }

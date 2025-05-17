@@ -87,7 +87,7 @@ public final class PaperPlayerUtil {
     private static final boolean SKIN_AVAILABLE = ReflectionUtil.classExists("com.destroystokyo.paper.profile.PlayerProfile")
             && ReflectionUtil.methodExists("com.destroystokyo.paper.profile.PlayerProfile", "getTextures");
     public static final boolean SKIN_AVAILABLE_ONLINE = SKIN_AVAILABLE && ReflectionUtil.methodExists(Player.class, "getPlayerProfile", new String[0]);
-    public static final boolean SKIN_AVAILABLE_OFFLINE = SKIN_AVAILABLE && ReflectionUtil.methodExists(Player.class, "getPlayerProfile", new String[0]);
+    public static final boolean SKIN_AVAILABLE_OFFLINE = SKIN_AVAILABLE && ReflectionUtil.methodExists(OfflinePlayer.class, "getPlayerProfile", new String[0]);
 
     @SuppressWarnings("RedundantCast") // Not redundant
     public static SkinInfo getSkinInfo(OfflinePlayer player) {

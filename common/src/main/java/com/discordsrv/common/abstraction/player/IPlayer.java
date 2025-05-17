@@ -27,6 +27,7 @@ import com.discordsrv.common.command.game.abstraction.sender.ICommandSender;
 import com.discordsrv.common.util.ComponentUtil;
 import net.kyori.adventure.text.Component;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.Collection;
 import java.util.UUID;
@@ -61,6 +62,12 @@ public interface IPlayer extends DiscordSRVPlayer, IOfflinePlayer, ICommandSende
     @Placeholder("team_display_name")
     default Component teamDisplayName() {
         return Component.text(username());
+    }
+
+    @Nullable
+    @Placeholder("world_name")
+    default String world() {
+        return null;
     }
 
 }

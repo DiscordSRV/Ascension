@@ -145,7 +145,7 @@ public class PlaceholderServiceImpl implements PlaceholderService {
     }
 
     private PlaceholderLookupResult getResult(PlaceholderProvider provider, String placeholder, Set<Object> contexts) {
-        PlaceholderLookupResult result = provider.lookup(placeholder, contexts);
+        PlaceholderLookupResult result = provider.lookup(placeholder, Collections.unmodifiableSet(contexts));
 
         Object lookupResult = result.getResult();
         if (lookupResult instanceof Task) {
@@ -170,28 +170,34 @@ public class PlaceholderServiceImpl implements PlaceholderService {
         }
 
         if (result.getType() == PlaceholderLookupResult.Type.RE_LOOKUP) {
-            boolean foundReLookup = false;
             Class<?> reLookupType = lookupResult.getClass();
 
+            String charSequenceReLookup = null;
             for (Pair<Class<?>, String> reLookup : reLookups) {
+                if (CharSequence.class.isAssignableFrom(reLookup.getKey())) {
+                    charSequenceReLookup = reLookup.getValue();
+                }
                 if (!reLookup.getKey().isAssignableFrom(reLookupType)) {
                     continue;
                 }
 
-                Set<Object> newContext = new LinkedHashSet<>();
-                newContext.add(lookupResult);
-                newContext.addAll(contexts);
-
-                String newPlaceholder = reLookup.getValue() + result.getPlaceholder();
-                result = PlaceholderLookupResult.newLookup(newPlaceholder, newContext);
-                foundReLookup = true;
-                break;
+                return reLookupResult(reLookup.getValue(), lookupResult, result, contexts);
             }
-            if (!foundReLookup) {
-                result = PlaceholderLookupResult.UNKNOWN_PLACEHOLDER;
+            if (result.getPlaceholder().startsWith(":") && !CharSequence.class.isAssignableFrom(reLookupType) && charSequenceReLookup != null) {
+                return reLookupResult(charSequenceReLookup, getResultAsCharSequence(lookupResult), result, contexts);
             }
+            return PlaceholderLookupResult.UNKNOWN_PLACEHOLDER;
         }
         return result;
+    }
+
+    private PlaceholderLookupResult reLookupResult(String reLookup, Object lookupResult, PlaceholderLookupResult result, Set<Object> contexts) {
+        Set<Object> newContext = new LinkedHashSet<>();
+        newContext.add(lookupResult);
+        newContext.addAll(contexts);
+
+        String newPlaceholder = reLookup + result.getPlaceholder();
+        return PlaceholderLookupResult.newLookup(newPlaceholder, newContext);
     }
 
     @Override

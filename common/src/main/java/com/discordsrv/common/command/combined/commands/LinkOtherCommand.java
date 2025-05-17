@@ -34,7 +34,7 @@ import com.discordsrv.common.command.game.commands.subcommand.LinkInitGameComman
 import com.discordsrv.common.core.logging.Logger;
 import com.discordsrv.common.core.logging.NamedLogger;
 import com.discordsrv.common.feature.linking.LinkProvider;
-import com.discordsrv.common.feature.linking.LinkStore;
+import com.discordsrv.common.feature.linking.LinkingModule;
 import com.discordsrv.common.permission.game.Permissions;
 import com.discordsrv.common.util.CommandUtil;
 import net.kyori.adventure.text.format.NamedTextColor;
@@ -53,20 +53,23 @@ public class LinkOtherCommand extends CombinedCommand {
 
     public static GameCommand getGame(DiscordSRV discordSRV) {
         if (GAME == null) {
+            LinkProvider linkProvider = discordSRV.linkProvider();
             GameCommandExecutor initCommand = LinkInitGameCommand.getExecutor(discordSRV);
-            LinkOtherCommand otherCommand = getInstance(discordSRV);
 
             GAME = GameCommand.literal("link")
-                    .then(
-                            GameCommand.stringWord("player")
-                                    .then(
-                                            GameCommand.stringWord("user")
-                                                    .requiredPermission(Permissions.COMMAND_LINK_OTHER)
-                                                    .executor(otherCommand)
-                                    )
-                    )
                     .requiredPermission(Permissions.COMMAND_LINK)
                     .executor(initCommand);
+
+            if (linkProvider != null && !linkProvider.usesLocalLinking()) {
+                GAME = GAME.then(
+                        GameCommand.stringWord("player")
+                                .then(
+                                        GameCommand.stringWord("user")
+                                                .requiredPermission(Permissions.COMMAND_LINK_OTHER)
+                                                .executor(getInstance(discordSRV))
+                                )
+                );
+            }
         }
 
         return GAME;
@@ -108,8 +111,14 @@ public class LinkOtherCommand extends CombinedCommand {
     @Override
     public void execute(CommandExecution execution) {
         LinkProvider linkProvider = discordSRV.linkProvider();
-        if (!(linkProvider instanceof LinkStore)) {
+        if (linkProvider == null || !linkProvider.usesLocalLinking()) {
             execution.send(new Text("Cannot create links using this link provider").withGameColor(NamedTextColor.DARK_RED));
+            return;
+        }
+
+        LinkingModule module = discordSRV.getModule(LinkingModule.class);
+        if (module == null) {
+            execution.messages().unableToLinkAccountsAtThisTime.sendTo(execution);
             return;
         }
 
@@ -118,7 +127,7 @@ public class LinkOtherCommand extends CombinedCommand {
         if (execution instanceof GameCommandExecution) {
             ICommandSender sender = ((GameCommandExecution) execution).getSender();
             if (!sender.hasPermission(Permissions.COMMAND_LINK_OTHER)) {
-                sender.sendMessage(discordSRV.messagesConfig(sender).noPermission.asComponent());
+                execution.messages().noPermission.sendTo(execution);
                 return;
             }
         }
@@ -128,45 +137,44 @@ public class LinkOtherCommand extends CombinedCommand {
 
         playerUUIDFuture.whenComplete((playerUUID, __) -> userIdFuture.whenComplete((userId, ___) -> {
             if (playerUUID == null) {
-                execution.messages().playerNotFound(execution);
+                execution.messages().playerNotFound.sendTo(execution);
                 return;
             }
             if (userId == null) {
-                execution.messages().userNotFound(execution);
+                execution.messages().userNotFound.sendTo(execution);
                 return;
             }
 
-            linkProvider.queryUserId(playerUUID).whenComplete((linkedUser, t) -> {
+            linkProvider.query(playerUUID).whenComplete((linkedUser, t) -> {
                 if (t != null) {
                     logger.error("Failed to check linking status", t);
-                    execution.messages().unableToCheckLinkingStatus(execution);
+                    execution.messages().unableToCheckLinkingStatus.sendTo(execution);
                     return;
                 }
                 if (linkedUser.isPresent()) {
+                    execution.messages().playerAlreadyLinked3rd.sendTo(execution);
                     return;
                 }
 
-                linkProvider.queryPlayerUUID(userId).whenComplete((linkedPlayer, t2) -> {
+                linkProvider.query(userId).whenComplete((existingLink, t2) -> {
                     if (t2 != null) {
                         logger.error("Failed to check linking status", t2);
-                        execution.messages().unableToCheckLinkingStatus(execution);
+                        execution.messages().unableToCheckLinkingStatus.sendTo(execution);
                         return;
                     }
-                    if (linkedPlayer.isPresent()) {
+                    if (existingLink.isPresent()) {
+                        execution.messages().userAlreadyLinked3rd.sendTo(execution);
                         return;
                     }
 
-                    ((LinkStore) linkProvider).createLink(playerUUID, userId).whenComplete((v, t3) -> {
+                    module.link(playerUUID, userId).whenComplete((v, t3) -> {
                         if (t3 != null) {
                             logger.error("Failed to create link", t3);
-                            execution.send(
-                                    execution.messages().minecraft.unableToLinkAtThisTime.asComponent(),
-                                    execution.messages().discord.unableToCheckLinkingStatus.get()
-                            );
+                            execution.messages().unableToLinkAccountsAtThisTime.sendTo(execution);
                             return;
                         }
 
-                        execution.messages().nowLinked3rd(discordSRV, execution, playerUUID, userId);
+                        execution.messages().nowLinked3rd.sendTo(execution, discordSRV, userId, playerUUID);
                     });
                 });
             });

@@ -112,7 +112,10 @@ public class DiscordCommandExecution implements CommandExecution {
     }
 
     @Override
-    public void send(Component minecraft, SendableDiscordMessage discord) {
+    public void send(Component minecraftComponent, SendableDiscordMessage discord) {
+        if (discord == null) {
+            return;
+        }
         sendResponse(discord);
     }
 

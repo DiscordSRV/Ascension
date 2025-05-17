@@ -40,6 +40,11 @@ public abstract class ServerRequireLinkingModule<T extends DiscordSRV> extends R
     public abstract ServerRequiredLinkingConfig config();
 
     @Override
+    public boolean isBypassingLinkingByConfig(UUID playerUUID) {
+        return config().requirements.bypassUUIDs.contains(playerUUID.toString());
+    }
+
+    @Override
     public void reload() {
         synchronized (additionalRequirements) {
             additionalRequirements.clear();

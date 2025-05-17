@@ -25,6 +25,7 @@ package com.discordsrv.api.component;
 
 import com.discordsrv.api.placeholder.provider.SinglePlaceholder;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.function.Function;
 import java.util.function.Supplier;
@@ -39,41 +40,41 @@ public interface GameTextBuilder {
     @NotNull
     GameTextBuilder addContext(Object... context);
 
-    default GameTextBuilder addPlaceholder(String placeholder, Object replacement) {
+    default GameTextBuilder addPlaceholder(@NotNull String placeholder, Object replacement) {
         return addContext(new SinglePlaceholder(placeholder, replacement));
     }
 
-    default GameTextBuilder addPlaceholder(String placeholder, Supplier<Object> replacementSupplier) {
+    default GameTextBuilder addPlaceholder(@NotNull String placeholder, Supplier<Object> replacementSupplier) {
         return addContext(new SinglePlaceholder(placeholder, replacementSupplier));
     }
 
     @NotNull
-    default GameTextBuilder addReplacement(String target, Object replacement) {
+    default GameTextBuilder addReplacement(@NotNull String target, @Nullable Object replacement) {
         return addReplacement(Pattern.compile(target, Pattern.LITERAL), replacement);
     }
 
     @NotNull
-    default GameTextBuilder addReplacement(Pattern target, Object replacement) {
+    default GameTextBuilder addReplacement(@NotNull Pattern target, @Nullable Object replacement) {
         return addReplacement(target, matcher -> replacement);
     }
 
     @NotNull
-    default GameTextBuilder addReplacement(String target, Supplier<Object> replacement) {
+    default GameTextBuilder addReplacement(@NotNull String target, @NotNull Supplier<@Nullable Object> replacement) {
         return addReplacement(Pattern.compile(target, Pattern.LITERAL), replacement);
     }
 
     @NotNull
-    default GameTextBuilder addReplacement(Pattern target, Supplier<Object> replacement) {
+    default GameTextBuilder addReplacement(@NotNull Pattern target, @NotNull Supplier<@Nullable Object> replacement) {
         return addReplacement(target, matcher -> replacement.get());
     }
 
     @NotNull
-    default GameTextBuilder addReplacement(String target, Function<Matcher, Object> replacement) {
+    default GameTextBuilder addReplacement(@NotNull String target, @NotNull Function<@NotNull Matcher, @Nullable Object> replacement) {
         return addReplacement(Pattern.compile(target, Pattern.LITERAL), replacement);
     }
 
     @NotNull
-    GameTextBuilder addReplacement(Pattern target, Function<Matcher, Object> replacement);
+    GameTextBuilder addReplacement(@NotNull Pattern target, @NotNull Function<@NotNull Matcher, @Nullable Object> replacement);
 
     @NotNull
     GameTextBuilder applyPlaceholderService();

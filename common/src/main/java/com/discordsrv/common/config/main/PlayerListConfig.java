@@ -22,11 +22,11 @@ import com.discordsrv.common.config.main.generic.DiscordOutputMode;
 
 public class PlayerListConfig {
 
-    public String noPlayersFormat = "No players";
+    public String noPlayersFormat = "No players online";
 
     public String sortBy = "%player_name%";
 
-    public boolean group = false;
+    public boolean groupPlayers = false;
     public String groupBy = "%player_primary_group%";
     public String groupingHeader = "%group%\n";
     public String groupSeparator = "\n\n";
@@ -40,7 +40,7 @@ public class PlayerListConfig {
 
         public DiscordOutputMode outputMode = DiscordOutputMode.ANSI;
 
-        public String header = "";
+        public String header = "%playerlist_count% players online";
         public String footer = "";
 
         public String previousLabel = "⬅";

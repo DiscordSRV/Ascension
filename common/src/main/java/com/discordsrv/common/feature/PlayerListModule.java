@@ -32,6 +32,7 @@ import org.apache.commons.collections4.map.LinkedMap;
 
 import java.util.*;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 public class PlayerListModule extends AbstractModule<DiscordSRV> {
 
@@ -39,6 +40,17 @@ public class PlayerListModule extends AbstractModule<DiscordSRV> {
         super(discordSRV, new NamedLogger(discordSRV, "PLAYER_LIST"));
 
         discordSRV.placeholderService().addGlobalContext(this);
+    }
+
+    private Stream<IPlayer> onlinePlayers() {
+        return discordSRV.playerProvider().allPlayers().stream()
+                .map(player -> (IPlayer) player)
+                .filter(player -> !player.isVanished());
+    }
+
+    @Placeholder("playerlist_count")
+    public long getPlayerCount() {
+        return onlinePlayers().count();
     }
 
     @Placeholder("playerlist")
@@ -52,15 +64,12 @@ public class PlayerListModule extends AbstractModule<DiscordSRV> {
 
     public List<String> generatePlayerList(DiscordOutputMode outputMode, boolean splitGroups, int maxLength, boolean command) {
         PlayerListConfig config = discordSRV.config().playerList;
-
         PlaceholderService placeholderService = discordSRV.placeholderService();
-        List<IPlayer> onlinePlayers = new ArrayList<>(discordSRV.playerProvider().allPlayers());
 
-        Map<String, List<IPlayer>> players = onlinePlayers.stream()
-                .filter(player -> !player.isVanished())
+        Map<String, List<IPlayer>> players = onlinePlayers()
                 .sorted(Comparator.comparing(player -> placeholderService.replacePlaceholders(config.sortBy, player)))
                 .collect(Collectors.groupingBy(
-                        player -> !config.group ? "" : placeholderService.replacePlaceholders(config.groupBy, player),
+                        player -> !config.groupPlayers ? "" : placeholderService.replacePlaceholders(config.groupBy, player),
                         LinkedMap::new,
                         Collectors.toList())
                 );
@@ -87,7 +96,7 @@ public class PlayerListModule extends AbstractModule<DiscordSRV> {
             footer = (command && groupIndex == entries.size() - 1 ? placeholderService.replacePlaceholders(config.command.footer) : "");
 
             StringBuilder currentGroup = new StringBuilder();
-            if (config.group) {
+            if (config.groupPlayers) {
                 if (groupIndex != 0) {
                     currentGroup.append(groupSeparator);
                 }

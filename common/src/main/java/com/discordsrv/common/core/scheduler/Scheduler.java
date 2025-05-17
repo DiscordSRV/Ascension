@@ -160,4 +160,6 @@ public interface Scheduler {
      */
     boolean isServerThread();
 
+    void shutdown();
+
 }

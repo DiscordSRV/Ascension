@@ -21,11 +21,10 @@ package com.discordsrv.fabric.requiredlinking;
 import com.discordsrv.common.DiscordSRV;
 import com.discordsrv.common.abstraction.player.IPlayer;
 import com.discordsrv.common.config.main.linking.ServerRequiredLinkingConfig;
-import com.discordsrv.common.feature.linking.LinkStore;
+import com.discordsrv.common.feature.linking.LinkingModule;
 import com.discordsrv.common.feature.linking.requirelinking.ServerRequireLinkingModule;
 import com.discordsrv.fabric.FabricDiscordSRV;
 import com.discordsrv.fabric.player.FabricPlayer;
-import com.github.benmanes.caffeine.cache.Cache;
 import com.mojang.authlib.GameProfile;
 import com.mojang.brigadier.ParseResults;
 import net.fabricmc.fabric.api.message.v1.ServerMessageEvents;
@@ -57,16 +56,12 @@ import java.util.concurrent.CopyOnWriteArrayList;
 public class FabricRequiredLinkingModule extends ServerRequireLinkingModule<FabricDiscordSRV> {
 
     private static FabricRequiredLinkingModule instance;
-    private final Cache<UUID, Boolean> linkCheckRateLimit;
     private final Map<UUID, Component> frozen = new ConcurrentHashMap<>();
     private final List<UUID> loginsHandled = new CopyOnWriteArrayList<>();
     private boolean enabled = false;
 
     public FabricRequiredLinkingModule(FabricDiscordSRV discordSRV) {
         super(discordSRV);
-        this.linkCheckRateLimit = discordSRV.caffeineBuilder()
-                .expireAfterWrite(LinkStore.LINKING_CODE_RATE_LIMIT)
-                .build();
 
         register();
 
@@ -142,16 +137,14 @@ public class FabricRequiredLinkingModule extends ServerRequireLinkingModule<Fabr
 
         if (command.startsWith("/")) command = command.substring(1);
         if (command.equals("discord link") || command.equals("link")) {
-
             FabricPlayer player = discordSRV.playerProvider().player(playerEntity);
-
             UUID uuid = player.uniqueId();
 
-            if (instance.linkCheckRateLimit.getIfPresent(uuid) != null) {
-                player.sendMessage(discordSRV.messagesConfig(player).pleaseWaitBeforeRunningThatCommandAgain.asComponent());
+            LinkingModule module = discordSRV.getModule(LinkingModule.class);
+            if (module == null || module.rateLimit(player.uniqueId())) {
+                player.sendMessage(discordSRV.messagesConfig(player).pleaseWaitBeforeRunningThatCommandAgain.minecraft().asComponent());
                 return;
             }
-            instance.linkCheckRateLimit.put(uuid, true);
 
             player.sendMessage(discordSRV.messagesConfig(player).checkingLinkStatus.asComponent());
 

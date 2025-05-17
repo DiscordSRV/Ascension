@@ -179,7 +179,7 @@ public class AnnotationPlaceholderProvider implements PlaceholderProvider {
         }
 
         String parameterValue = remainder.substring(1);
-        if (parameterValue.startsWith("'") && parameterValue.endsWith("'")) {
+        if (parameterValue.length() > 1 && parameterValue.startsWith("'") && parameterValue.endsWith("'")) {
             parameterValue = parameterValue.substring(1, parameterValue.length() - 1);
         }
         return parameterValue;

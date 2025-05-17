@@ -18,9 +18,7 @@
 
 package com.discordsrv.common.feature;
 
-import com.discordsrv.api.eventbus.EventPriorities;
 import com.discordsrv.api.eventbus.Subscribe;
-import com.discordsrv.api.events.lifecycle.DiscordSRVShuttingDownEvent;
 import com.discordsrv.api.reload.ReloadResult;
 import com.discordsrv.common.DiscordSRV;
 import com.discordsrv.common.config.main.PresenceUpdaterConfig;
@@ -52,14 +50,15 @@ public class PresenceUpdaterModule extends AbstractModule<DiscordSRV> {
         return discordSRV.config() != null;
     }
 
+    @Override
     public void serverStarted() {
         logger().debug("Server started");
         serverState.set(ServerState.STARTED);
         setPresenceOrSchedule();
     }
 
-    @Subscribe(priority = EventPriorities.EARLIEST)
-    public void onDiscordSRVShuttingDown(DiscordSRVShuttingDownEvent event) {
+    @Override
+    public void serverShuttingDown() {
         logger().debug("Plugin shutting down");
         serverState.set(ServerState.STOPPING);
         setPresenceOrSchedule();

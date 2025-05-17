@@ -29,7 +29,7 @@ import com.discordsrv.common.command.game.abstraction.command.GameCommand;
 import com.discordsrv.common.core.logging.Logger;
 import com.discordsrv.common.core.logging.NamedLogger;
 import com.discordsrv.common.feature.linking.LinkProvider;
-import com.discordsrv.common.feature.linking.LinkStore;
+import com.discordsrv.common.feature.linking.LinkingModule;
 import com.discordsrv.common.permission.game.Permissions;
 import com.discordsrv.common.util.CommandUtil;
 import net.kyori.adventure.text.format.NamedTextColor;
@@ -115,74 +115,82 @@ public class UnlinkCommand extends CombinedCommand {
         execution.setEphemeral(true);
 
         LinkProvider linkProvider = discordSRV.linkProvider();
-        if (!(linkProvider instanceof LinkStore)) {
+        if (linkProvider == null || !linkProvider.usesLocalLinking()) {
             execution.send(new Text("Cannot remove links with this link provider").withGameColor(NamedTextColor.DARK_RED));
+            return;
+        }
+
+        LinkingModule module = discordSRV.getModule(LinkingModule.class);
+        if (module == null) {
+            execution.messages().unableToLinkAccountsAtThisTime.sendTo(execution);
             return;
         }
 
         execution.runAsync(() -> CommandUtil.lookupTarget(discordSRV, logger, execution, true, Permissions.COMMAND_UNLINK_OTHER)
                 .whenComplete((result, t) -> {
                     if (t != null) {
-                        logger.error("Failed to execute linked command", t);
+                        logger.error("Failed to execute unlink command", t);
                         return;
                     }
-                    if (result.isValid()) {
-                        processResult(result, execution, (LinkStore) linkProvider);
-                    } else {
-                        execution.send(new Text("Invalid target"));
+                    if (!result.isValid()) {
+                        return;
                     }
+
+                    processResult(result, execution, linkProvider, module);
                 })
         );
     }
 
-    private void processResult(CommandUtil.TargetLookupResult result, CommandExecution execution, LinkStore linkStore) {
+    private void processResult(
+            CommandUtil.TargetLookupResult result,
+            CommandExecution execution,
+            LinkProvider linkProvider,
+            LinkingModule module
+    ) {
         if (result.isPlayer()) {
             UUID playerUUID = result.getPlayerUUID();
-            discordSRV.linkProvider().queryUserId(playerUUID)
-                    .whenComplete((user, t) -> {
+            linkProvider.query(playerUUID)
+                    .whenComplete((link, t) -> {
                         if (t != null) {
                             logger.error("Failed to query user", t);
-                            execution.messages().unableToCheckLinkingStatus(execution);
+                            execution.messages().unableToCheckLinkingStatus.sendTo(execution);
                             return;
                         }
-                        if (!user.isPresent()) {
-                            execution.messages().minecraftPlayerUnlinked(discordSRV, execution, playerUUID);
+                        if (!link.isPresent()) {
+                            execution.messages().minecraftPlayerUnlinked.sendTo(execution, discordSRV, null, playerUUID);
                             return;
                         }
 
-                        handleUnlinkForPair(playerUUID, user.get(), execution, linkStore);
+                        handleUnlinkForPair(playerUUID, link.get().userId(), execution, module);
                     });
         } else {
             long userId = result.getUserId();
-            discordSRV.linkProvider().queryPlayerUUID(result.getUserId())
-                    .whenComplete((player, t) -> {
+            linkProvider.query(result.getUserId())
+                    .whenComplete((link, t) -> {
                         if (t != null) {
                             logger.error("Failed to query player", t);
-                            execution.messages().unableToCheckLinkingStatus(execution);
+                            execution.messages().unableToCheckLinkingStatus.sendTo(execution);
                             return;
                         }
-                        if (!player.isPresent()) {
-                            execution.messages().discordUserUnlinked(discordSRV, execution, userId);
+                        if (!link.isPresent()) {
+                            execution.messages().discordUserUnlinked.sendTo(execution, discordSRV, userId, null);
                             return;
                         }
 
-                        handleUnlinkForPair(player.get(), userId, execution, linkStore);
+                        handleUnlinkForPair(link.get().playerUUID(), userId, execution, module);
                     });
         }
     }
 
-    private void handleUnlinkForPair(UUID player, Long user, CommandExecution execution, LinkStore linkStore) {
-        linkStore.removeLink(player, user).whenComplete((v, t2) -> {
-            if (t2 != null) {
-                logger.error("Failed to remove link", t2);
-                execution.send(
-                        execution.messages().minecraft.unableToLinkAtThisTime.asComponent(),
-                        execution.messages().discord.unableToCheckLinkingStatus.get()
-                );
+    private void handleUnlinkForPair(UUID player, Long user, CommandExecution execution, LinkingModule module) {
+        module.unlink(player, user).whenComplete((v, t) -> {
+            if (t != null) {
+                logger.error("Failed to remove link", t);
+                execution.messages().unableToLinkAccountsAtThisTime.sendTo(execution);
                 return;
             }
 
-            execution.messages().unlinked(execution);
+            execution.messages().unlinked.sendTo(execution);
         });
     }
 }

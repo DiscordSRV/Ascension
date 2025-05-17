@@ -36,6 +36,7 @@ public abstract class AbstractModule<DT extends DiscordSRV> implements Module {
     protected final DT discordSRV;
     private final Logger logger;
     private boolean isCurrentlyEnabled = false;
+    private boolean serverHasStarted = false;
 
     private final List<DiscordGatewayIntent> requestedIntents = new ArrayList<>();
     private final List<DiscordCacheFlag> requestedCacheFlags = new ArrayList<>();
@@ -88,6 +89,13 @@ public abstract class AbstractModule<DT extends DiscordSRV> implements Module {
             // Ignore not having listener methods exception
         } catch (IllegalArgumentException ignored) {}
         return true;
+    }
+
+    public final void serverStartedForModule() {
+        if (!serverHasStarted && isCurrentlyEnabled) {
+            serverStarted();
+        }
+        serverHasStarted = true;
     }
 
     public final boolean disableModule() {

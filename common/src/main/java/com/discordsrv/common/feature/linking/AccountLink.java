@@ -16,42 +16,38 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package com.discordsrv.common.feature.debug.file;
+package com.discordsrv.common.feature.linking;
 
-public interface DebugFile {
+import java.time.LocalDateTime;
+import java.util.UUID;
 
-    String content();
+public class AccountLink {
 
-    default Named withName(String name) {
-        return new Named(name, 0, this);
+    private final UUID playerUUID;
+    private final long userId;
+    private final LocalDateTime created;
+    private final LocalDateTime lastSeen;
+
+    public AccountLink(UUID playerUUID, long userId, LocalDateTime created, LocalDateTime lastSeen) {
+        this.playerUUID = playerUUID;
+        this.userId = userId;
+        this.created = created;
+        this.lastSeen = lastSeen;
     }
-    default Named withName(String name, int order) {
-        return new Named(name, order, this);
+
+    public UUID playerUUID() {
+        return playerUUID;
     }
 
-    class Named implements DebugFile {
+    public long userId() {
+        return userId;
+    }
 
-        private final String fileName;
-        private final int order;
-        private final DebugFile file;
+    public LocalDateTime created() {
+        return created;
+    }
 
-        public Named(String fileName, int order, DebugFile file) {
-            this.fileName = fileName;
-            this.order = order;
-            this.file = file;
-        }
-
-        public int order() {
-            return order;
-        }
-
-        public String fileName() {
-            return fileName;
-        }
-
-        @Override
-        public String content() {
-            return file.content();
-        }
+    public LocalDateTime lastSeen() {
+        return lastSeen;
     }
 }

@@ -16,28 +16,20 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package com.discordsrv.common.feature.update;
+package com.discordsrv.common.events.player;
 
-import java.util.List;
+import com.discordsrv.api.events.Event;
+import com.discordsrv.common.abstraction.player.IPlayer;
 
-public class VersionCheck {
+public class PlayerChangedWorldEvent implements Event {
 
-    public Status status;
+    private final IPlayer player;
 
-    public int amount;
-    public AmountSource amountSource;
-    public String amountType;
-
-    public boolean insecure;
-    public List<String> securityIssues;
-
-    public enum Status {
-        UP_TO_DATE,
-        OUTDATED,
-        UNKNOWN
+    public PlayerChangedWorldEvent(IPlayer player) {
+        this.player = player;
     }
 
-    public enum AmountSource {
-        GITHUB
+    public IPlayer player() {
+        return player;
     }
 }

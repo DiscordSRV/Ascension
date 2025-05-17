@@ -75,6 +75,18 @@ public class MySQLStorage extends HikariStorage {
         try (Statement statement = connection.createStatement()) {
             statement.execute("alter table " + tablePrefix + LINKING_CODES_TABLE_NAME + " add column if not exists PLAYERUSERNAME varchar(32);");
         }
+        try (Statement statement = connection.createStatement()) {
+            statement.execute("alter table " + tablePrefix + LINKED_ACCOUNTS_TABLE_NAME + " add column if not exists CREATED datetime;");
+        }
+        try (Statement statement = connection.createStatement()) {
+            statement.execute("alter table " + tablePrefix + LINKED_ACCOUNTS_TABLE_NAME + " add column if not exists LASTSEEN datetime;");
+        }
+
+        // Profile
+        createRewardsTablesGeneric(connection, tablePrefix);
+
+        // Linking bypass
+        createLinkingBypassTableGeneric(connection, tablePrefix);
     }
 
     @Override

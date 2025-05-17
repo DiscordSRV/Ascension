@@ -29,8 +29,10 @@ import com.discordsrv.common.config.configurate.fielddiscoverer.FieldValueDiscov
 import com.discordsrv.common.config.configurate.fielddiscoverer.OrderedFieldDiscovererProxy;
 import com.discordsrv.common.config.configurate.manager.loader.ConfigLoaderProvider;
 import com.discordsrv.common.config.configurate.serializer.*;
+import com.discordsrv.common.config.configurate.serializer.helper.BothMessageSerializer;
 import com.discordsrv.common.config.configurate.serializer.helper.DiscordMessageSerializer;
 import com.discordsrv.common.config.configurate.serializer.helper.MinecraftMessageSerializer;
+import com.discordsrv.common.config.helper.BothMessage;
 import com.discordsrv.common.config.helper.DiscordMessage;
 import com.discordsrv.common.config.helper.MinecraftMessage;
 import com.discordsrv.common.config.main.channels.base.BaseChannelConfig;
@@ -216,6 +218,7 @@ public abstract class ConfigurateConfigManager<T, LT extends AbstractConfigurati
                     builder.register(SendableDiscordMessage.Builder.class, new SendableDiscordMessageSerializer(NAMING_SCHEME, false));
                     builder.register(MinecraftMessage.class, new MinecraftMessageSerializer());
                     builder.register(DiscordMessage.class, new DiscordMessageSerializer(NAMING_SCHEME));
+                    builder.register(BothMessage.class, new BothMessageSerializer(NAMING_SCHEME));
 
                     // give Configurate' serializers the ObjectMapper mapper
                     builder.register(type -> {
@@ -263,22 +266,29 @@ public abstract class ConfigurateConfigManager<T, LT extends AbstractConfigurati
                     }
                 })
                 .addProcessor(Constants.class, (data, fieldType) -> (value, destination) -> {
-                    String[] values = getValues(data.value(), data.intValue());
-                    if (values.length == 0) {
+                    String[] constants = getValues(data.value(), data.intValue());
+                    if (constants.length == 0) {
                         return;
                     }
-
-                    Object optionValue = destination.raw();
-                    if (!(optionValue instanceof String)) {
-                        return;
-                    }
-
-                    try {
-                        destination.set(doSubstitution(destination.getString(), values));
-                    } catch (SerializationException e) {
-                        throw new RuntimeException(e);
-                    }
+                    applyConstantsRecursively(constants, destination);
                 });
+    }
+
+    private void applyConstantsRecursively(String[] constants, ConfigurationNode destination) {
+        Object optionValue = destination.raw();
+        if (optionValue instanceof String) {
+            try {
+                destination.set(doSubstitution(destination.getString(), constants));
+            } catch (SerializationException e) {
+                throw new RuntimeException(e);
+            }
+            return;
+        }
+
+        Map<Object, ? extends ConfigurationNode> children = destination.childrenMap();
+        for (ConfigurationNode value : children.values()) {
+            applyConstantsRecursively(constants, value);
+        }
     }
 
     private String[] getValues(String[] value, int[] intValue) {

@@ -16,7 +16,7 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package com.discordsrv.common.feature.update;
+package com.discordsrv.common.core.update;
 
 import com.discordsrv.api.eventbus.Subscribe;
 import com.discordsrv.common.DiscordSRV;
@@ -26,9 +26,9 @@ import com.discordsrv.common.config.connection.UpdateConfig;
 import com.discordsrv.common.core.logging.NamedLogger;
 import com.discordsrv.common.events.player.PlayerConnectedEvent;
 import com.discordsrv.common.exception.MessageException;
-import com.discordsrv.common.feature.debug.data.VersionInfo;
-import com.discordsrv.common.feature.update.github.GitHubCompareResponse;
-import com.discordsrv.common.feature.update.github.GithubRelease;
+import com.discordsrv.common.core.debug.data.VersionInfo;
+import com.discordsrv.common.core.update.github.GitHubCompareResponse;
+import com.discordsrv.common.core.update.github.GithubRelease;
 import com.discordsrv.common.permission.game.Permissions;
 import com.discordsrv.common.util.HttpUtil;
 import com.fasterxml.jackson.core.type.TypeReference;

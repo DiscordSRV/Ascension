@@ -23,9 +23,8 @@ import com.discordsrv.bukkit.config.main.BukkitRequiredLinkingConfig;
 import com.discordsrv.common.DiscordSRV;
 import com.discordsrv.common.abstraction.player.IPlayer;
 import com.discordsrv.common.config.main.linking.ServerRequiredLinkingConfig;
-import com.discordsrv.common.feature.linking.LinkStore;
+import com.discordsrv.common.feature.linking.LinkingModule;
 import com.discordsrv.common.feature.linking.requirelinking.ServerRequireLinkingModule;
-import com.github.benmanes.caffeine.cache.Cache;
 import net.kyori.adventure.platform.bukkit.BukkitComponentSerializer;
 import net.kyori.adventure.text.Component;
 import org.bukkit.Location;
@@ -44,13 +43,8 @@ import java.util.function.Supplier;
 
 public class BukkitRequiredLinkingModule extends ServerRequireLinkingModule<BukkitDiscordSRV> implements Listener {
 
-    private final Cache<UUID, Boolean> linkCheckRateLimit;
-
     public BukkitRequiredLinkingModule(BukkitDiscordSRV discordSRV) {
         super(discordSRV);
-        this.linkCheckRateLimit = discordSRV.caffeineBuilder()
-                .expireAfterWrite(LinkStore.LINKING_CODE_RATE_LIMIT)
-                .build();
     }
 
     @Override
@@ -316,11 +310,11 @@ public class BukkitRequiredLinkingModule extends ServerRequireLinkingModule<Bukk
         if (message.equals("discord link") || message.equals("link")) {
             IPlayer player = discordSRV.playerProvider().player(event.getPlayer());
 
-            if (linkCheckRateLimit.getIfPresent(player.uniqueId()) != null) {
-                player.sendMessage(discordSRV.messagesConfig(player).pleaseWaitBeforeRunningThatCommandAgain.asComponent());
+            LinkingModule module = discordSRV.getModule(LinkingModule.class);
+            if (module == null || module.rateLimit(player.uniqueId())) {
+                player.sendMessage(discordSRV.messagesConfig(player).pleaseWaitBeforeRunningThatCommandAgain.minecraft().asComponent());
                 return;
             }
-            linkCheckRateLimit.put(player.uniqueId(), true);
 
             player.sendMessage(Component.text("Checking..."));
 

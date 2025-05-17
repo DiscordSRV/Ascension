@@ -18,13 +18,13 @@
 
 package com.discordsrv.common.config.helper;
 
-import com.discordsrv.api.DiscordSRV;
 import com.discordsrv.api.component.GameTextBuilder;
 import com.discordsrv.api.component.MinecraftComponent;
+import com.discordsrv.common.command.combined.abstraction.CommandExecution;
 import com.discordsrv.common.util.ComponentUtil;
 import net.kyori.adventure.text.Component;
 
-public class MinecraftMessage {
+public class MinecraftMessage extends ConfigMessage {
 
     private final String rawFormat;
 
@@ -37,14 +37,19 @@ public class MinecraftMessage {
     }
 
     public GameTextBuilder textBuilder() {
-        return DiscordSRV.get().componentFactory().textBuilder(rawFormat);
+        return com.discordsrv.api.DiscordSRV.get().componentFactory().textBuilder(rawFormat);
     }
 
     public MinecraftComponent make() {
-        return textBuilder().build();
+        return textBuilder().applyPlaceholderService().build();
     }
 
     public Component asComponent() {
         return ComponentUtil.fromAPI(make());
+    }
+
+    @Override
+    protected void sendTo(CommandExecution execution, Object... context) {
+        execution.send(textBuilder().addContext(context).applyPlaceholderService().build(), null);
     }
 }

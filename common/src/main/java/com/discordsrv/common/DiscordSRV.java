@@ -48,10 +48,10 @@ import com.discordsrv.common.discord.api.DiscordAPIImpl;
 import com.discordsrv.common.discord.connection.details.DiscordConnectionDetailsImpl;
 import com.discordsrv.common.discord.connection.jda.JDAConnectionManager;
 import com.discordsrv.common.feature.console.Console;
-import com.discordsrv.common.feature.debug.data.OnlineMode;
-import com.discordsrv.common.feature.debug.data.VersionInfo;
+import com.discordsrv.common.core.debug.data.OnlineMode;
+import com.discordsrv.common.core.debug.data.VersionInfo;
 import com.discordsrv.common.feature.linking.LinkProvider;
-import com.discordsrv.common.feature.profile.ProfileManagerImpl;
+import com.discordsrv.common.core.profile.ProfileManagerImpl;
 import com.discordsrv.common.helper.ChannelConfigHelper;
 import com.discordsrv.common.helper.DestinationLookupHelper;
 import com.discordsrv.common.helper.TemporaryLocalData;
@@ -115,6 +115,7 @@ public interface DiscordSRV extends com.discordsrv.api.DiscordSRV {
     TemporaryLocalData temporaryLocalData();
 
     // Link Provider
+    @Nullable
     LinkProvider linkProvider();
 
     // Version
@@ -130,11 +131,11 @@ public interface DiscordSRV extends com.discordsrv.api.DiscordSRV {
     default MessagesConfig messagesConfig() {
         return messagesConfig((Locale) null);
     }
-    default MessagesConfig.Minecraft messagesConfig(@Nullable ICommandSender sender) {
-        return sender instanceof IPlayer ? messagesConfig((IPlayer) sender) : messagesConfig((Locale) null).minecraft;
+    default MessagesConfig messagesConfig(@Nullable ICommandSender sender) {
+        return sender instanceof IPlayer ? messagesConfig((IPlayer) sender) : messagesConfig((Locale) null);
     }
-    default MessagesConfig.Minecraft messagesConfig(@Nullable IPlayer player) {
-        return messagesConfig(player != null ? player.locale() : null).minecraft;
+    default MessagesConfig messagesConfig(@Nullable IPlayer player) {
+        return messagesConfig(player != null ? player.locale() : null);
     }
     MessagesConfig messagesConfig(@Nullable Locale locale);
 
