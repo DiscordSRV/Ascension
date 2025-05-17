@@ -143,7 +143,7 @@ public class BanSyncModule extends AbstractSyncModule<DiscordSRV, BanSyncConfig,
             }
             discordChanged(
                     cause,
-                    Someone.of(userId),
+                    Someone.of(discordSRV, userId),
                     guildId,
                     punishment
             );
@@ -243,9 +243,9 @@ public class BanSyncModule extends AbstractSyncModule<DiscordSRV, BanSyncConfig,
         else logger().debug(String.format("Not handling Discord ban/unban for %s because doing so is disabled in the config", user.getAsTag()));
     }
 
-    private CompletableFuture<@Nullable Punishment> getBanOrBanRoled(Guild guild, long userId, BanSyncConfig config) {
+    private Task<@Nullable Punishment> getBanOrBanRoled(Guild guild, long userId, BanSyncConfig config) {
         UserSnowflake snowflake = UserSnowflake.fromId(userId);
-        return guild.retrieveBan(snowflake)
+        return Task.of(guild.retrieveBan(snowflake)
                 .submit()
                 .handle((ban, t) -> {
                     if (t instanceof ErrorResponseException && ((ErrorResponseException) t).getErrorResponse() == ErrorResponse.UNKNOWN_BAN || !shouldHandleDiscordBanChanges()) {
@@ -265,11 +265,12 @@ public class BanSyncModule extends AbstractSyncModule<DiscordSRV, BanSyncConfig,
                                 });
                     }
 
-                    if (t == null) return CompletableFuture.completedFuture(this.punishment(ban));
+                    if (t == null) return Task.completed(this.punishment(ban));
 
                     throw (RuntimeException) t;
                 })
-                .thenCompose(future -> future); // composes the CompletableFuture returned from handle 
+                .thenCompose(future -> future)
+        ); // composes the CompletableFuture returned from handle
     }
 
     @Override
