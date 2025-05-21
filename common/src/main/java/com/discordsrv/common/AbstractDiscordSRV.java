@@ -90,7 +90,7 @@ import com.discordsrv.common.feature.linking.impl.MinecraftAuthenticationLinker;
 import com.discordsrv.common.feature.linking.impl.StorageLinker;
 import com.discordsrv.common.feature.mention.MentionCachingModule;
 import com.discordsrv.common.feature.mention.MentionGameRenderingModule;
-import com.discordsrv.common.feature.messageforwarding.discord.DiscordChatMessageModule;
+import com.discordsrv.common.feature.messageforwarding.discord.DiscordToMinecraftChatModule;
 import com.discordsrv.common.feature.messageforwarding.discord.DiscordMessageMirroringModule;
 import com.discordsrv.common.feature.messageforwarding.game.*;
 import com.discordsrv.common.feature.nicknamesync.NicknameSyncModule;
@@ -733,7 +733,7 @@ public abstract class AbstractDiscordSRV<
         registerModule(GlobalChannelLookupModule::new);
         registerModule(DiscordAPIEventModule::new);
         registerModule(GroupSyncModule::new);
-        registerModule(DiscordChatMessageModule::new);
+        registerModule(DiscordToMinecraftChatModule::new);
         registerModule(DiscordMessageMirroringModule::new);
         registerModule(JoinMessageModule::new);
         registerModule(LeaveMessageModule::new);

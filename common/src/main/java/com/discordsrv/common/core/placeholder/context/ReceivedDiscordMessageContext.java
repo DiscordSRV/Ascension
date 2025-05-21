@@ -23,7 +23,9 @@ import com.discordsrv.api.placeholder.annotation.Placeholder;
 import com.discordsrv.api.placeholder.annotation.PlaceholderPrefix;
 import com.discordsrv.api.placeholder.annotation.PlaceholderRemainder;
 import com.discordsrv.common.DiscordSRV;
+import com.discordsrv.common.config.main.channels.DiscordToMinecraftChatConfig;
 import com.discordsrv.common.config.main.channels.base.BaseChannelConfig;
+import com.discordsrv.common.feature.messageforwarding.discord.DiscordToMinecraftChatModule;
 import com.discordsrv.common.util.ComponentUtil;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.JoinConfiguration;
@@ -42,26 +44,30 @@ public class ReceivedDiscordMessageContext {
 
     @Placeholder("reply")
     public Component reply(ReceivedDiscordMessage message, BaseChannelConfig config) {
-        ReceivedDiscordMessage replyingTo = message.getReplyingTo();
-        if (replyingTo == null) {
+        return anotherMessage(message.getReplyingTo(), config, config.discordToMinecraft.replyFormat);
+    }
+
+    private Component anotherMessage(ReceivedDiscordMessage message, BaseChannelConfig config, String format) {
+        if (message == null) {
             return null;
         }
 
-        String content = replyingTo.getContent();
+        DiscordToMinecraftChatConfig chatConfig = config.discordToMinecraft;
+
+        String content = message.getContent();
         if (content == null) {
             return null;
         }
 
-        Component component = discordSRV.componentFactory().minecraftSerialize(message, config, content);
+        String filteredContent = DiscordToMinecraftChatModule.filterMessage(content, chatConfig);
+        Component component = discordSRV.componentFactory().minecraftSerialize(message, config, filteredContent);
 
-        String replyFormat = config.discordToMinecraft.replyFormat;
         return ComponentUtil.fromAPI(
-                discordSRV.componentFactory().textBuilder(replyFormat)
+                discordSRV.componentFactory().textBuilder(format)
                         .applyPlaceholderService()
                         .addPlaceholder("message", component)
-                        .addContext(replyingTo.getMember(), replyingTo.getAuthor(), replyingTo)
+                        .addContext(message.getMember(), message.getAuthor(), message)
                         .build()
-                // TODO: add contentRegexFilters to this
         );
     }
 

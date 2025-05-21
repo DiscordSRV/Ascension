@@ -56,7 +56,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ScheduledFuture;
 import java.util.regex.Pattern;
 
-public class DiscordChatMessageModule extends AbstractModule<DiscordSRV> {
+public class DiscordToMinecraftChatModule extends AbstractModule<DiscordSRV> {
 
     // Filter for ASCII control characters which have no use being displayed, but might be misinterpreted somewhere
     // Notably this excludes, 0x09 HT (\t), 0x0A LF (\n), 0x0B VT (\v) and 0x0D CR (\r) (which may be used for text formatting)
@@ -68,7 +68,7 @@ public class DiscordChatMessageModule extends AbstractModule<DiscordSRV> {
 
     private final Map<String, MessageSend> sends = new ConcurrentHashMap<>();
 
-    public DiscordChatMessageModule(DiscordSRV discordSRV) {
+    public DiscordToMinecraftChatModule(DiscordSRV discordSRV) {
         super(discordSRV, new NamedLogger(discordSRV, "DISCORD_TO_MINECRAFT"));
     }
 
@@ -170,6 +170,16 @@ public class DiscordChatMessageModule extends AbstractModule<DiscordSRV> {
         }
     }
 
+    public static String filterMessage(String message, DiscordToMinecraftChatConfig config) {
+        Placeholders placeholders = new Placeholders(message);
+        placeholders.replaceAll(ASCII_CONTROL_FILTER, "");
+        if (config.unicodeEmojiBehaviour == DiscordToMinecraftChatConfig.EmojiBehaviour.HIDE) {
+            placeholders.replaceAll(EMOJI_FILTER, "");
+        }
+        config.contentRegexFilters.forEach(placeholders::replaceAll);
+        return placeholders.toString();
+    }
+
     private void process(ReceivedDiscordMessage discordMessage, GameChannel gameChannel, BaseChannelConfig channelConfig) {
         DiscordChatMessageProcessEvent event = new DiscordChatMessageProcessEvent(discordMessage, gameChannel);
         discordSRV.eventBus().publish(event);
@@ -204,22 +214,15 @@ public class DiscordChatMessageModule extends AbstractModule<DiscordSRV> {
             return;
         }
 
-        Placeholders message = new Placeholders(event.getContent());
-        message.replaceAll(ASCII_CONTROL_FILTER, "");
-        if (chatConfig.unicodeEmojiBehaviour == DiscordToMinecraftChatConfig.EmojiBehaviour.HIDE) {
-            message.replaceAll(EMOJI_FILTER, "");
-        }
-        chatConfig.contentRegexFilters.forEach(message::replaceAll);
-
         boolean attachments = !discordMessage.getAttachments().isEmpty() && format.contains("message_attachments");
-        String regexFilteredMessage = message.toString();
-        if (regexFilteredMessage.trim().isEmpty() && !attachments) {
+        String filteredMessage = filterMessage(event.getContent(), chatConfig);
+        if (filteredMessage.trim().isEmpty() && !attachments) {
             // No sending empty message #2
             logger().debug("Message from " + author + " in " + describeChannel(gameChannel) + " filtered entirely after regex filtering");
             return;
         }
 
-        Component messageComponent = discordSRV.componentFactory().minecraftSerialize(discordMessage, channelConfig, regexFilteredMessage);
+        Component messageComponent = discordSRV.componentFactory().minecraftSerialize(discordMessage, channelConfig, filteredMessage);
         if (ComponentUtil.isEmpty(messageComponent) && !attachments) {
             // No sending empty message #3
             logger().debug("Message from " + author + " in " + describeChannel(gameChannel) + " filtered entirely after serialization");

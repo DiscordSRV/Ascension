@@ -36,6 +36,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.annotations.Unmodifiable;
 
+import java.time.OffsetDateTime;
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
 
@@ -109,7 +110,9 @@ public class ReceivedDiscordMessageImpl implements ReceivedDiscordMessage {
                 mappedEmbeds,
                 webhookMessage,
                 users,
-                members
+                members,
+                message.getTimeCreated(),
+                message.getTimeEdited()
         );
     }
 
@@ -128,6 +131,8 @@ public class ReceivedDiscordMessageImpl implements ReceivedDiscordMessage {
     private final long id;
     private final Set<DiscordUser> mentionedUsers;
     private final Set<DiscordGuildMember> mentionedMembers;
+    private final OffsetDateTime dateCreated;
+    private final OffsetDateTime dateEdited;
 
     private ReceivedDiscordMessageImpl(
             DiscordSRV discordSRV,
@@ -144,7 +149,9 @@ public class ReceivedDiscordMessageImpl implements ReceivedDiscordMessage {
             List<DiscordMessageEmbed> embeds,
             boolean webhookMessage,
             Set<DiscordUser> mentionedUsers,
-            Set<DiscordGuildMember> mentionedMembers
+            Set<DiscordGuildMember> mentionedMembers,
+            OffsetDateTime dateCreated,
+            OffsetDateTime dateEdited
     ) {
         this.discordSRV = discordSRV;
         this.attachments = Collections.unmodifiableList(attachments);
@@ -161,6 +168,8 @@ public class ReceivedDiscordMessageImpl implements ReceivedDiscordMessage {
         this.id = id;
         this.mentionedUsers = Collections.unmodifiableSet(mentionedUsers);
         this.mentionedMembers = Collections.unmodifiableSet(mentionedMembers);
+        this.dateCreated = dateCreated;
+        this.dateEdited = dateEdited;
     }
 
     @Override
@@ -222,6 +231,16 @@ public class ReceivedDiscordMessageImpl implements ReceivedDiscordMessage {
     @Override
     public Set<DiscordGuildMember> getMentionedMembers() {
         return mentionedMembers;
+    }
+
+    @Override
+    public @NotNull OffsetDateTime getDateCreated() {
+        return dateCreated;
+    }
+
+    @Override
+    public @Nullable OffsetDateTime getDateEdited() {
+        return dateEdited;
     }
 
     @Override
