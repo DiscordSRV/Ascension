@@ -34,6 +34,8 @@ import com.discordsrv.common.config.connection.ConnectionConfig;
 import com.discordsrv.common.config.connection.HttpProxyConfig;
 import com.discordsrv.common.config.documentation.DocumentationURLs;
 import com.discordsrv.common.config.main.MemberCachingConfig;
+import com.discordsrv.common.core.debug.DebugGenerateEvent;
+import com.discordsrv.common.core.debug.file.TextDebugFile;
 import com.discordsrv.common.core.logging.Logger;
 import com.discordsrv.common.core.logging.NamedLogger;
 import com.discordsrv.common.core.scheduler.Scheduler;
@@ -42,8 +44,6 @@ import com.discordsrv.common.discord.api.DiscordAPIImpl;
 import com.discordsrv.common.discord.api.entity.message.ReceivedDiscordMessageImpl;
 import com.discordsrv.common.discord.connection.DiscordConnectionManager;
 import com.discordsrv.common.discord.connection.details.DiscordConnectionDetailsImpl;
-import com.discordsrv.common.core.debug.DebugGenerateEvent;
-import com.discordsrv.common.core.debug.file.TextDebugFile;
 import com.discordsrv.common.feature.linking.LinkProvider;
 import com.discordsrv.common.helper.Timeout;
 import com.neovisionaries.ws.client.ProxySettings;
@@ -65,7 +65,6 @@ import net.dv8tion.jda.api.utils.MemberCachePolicy;
 import net.dv8tion.jda.api.utils.cache.CacheFlag;
 import net.dv8tion.jda.api.utils.messages.MessageRequest;
 import net.dv8tion.jda.internal.entities.ReceivedMessage;
-import net.dv8tion.jda.internal.hooks.EventManagerProxy;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.jetbrains.annotations.NotNull;
@@ -381,13 +380,14 @@ public class JDAConnectionManager implements DiscordConnectionManager {
         jdaBuilder.setEventPassthrough(true);
 
         // Custom event manager to forward to the DiscordSRV event bus & block using JDA's event listeners
-        jdaBuilder.setEventManager(new EventManagerProxy(new JDAEventManager(discordSRV), discordSRV.scheduler().forkJoinPool()));
+        jdaBuilder.setEventManager(new JDAEventManager(discordSRV));
 
         // Our own (named) threads
         jdaBuilder.setCallbackPool(discordSRV.scheduler().forkJoinPool());
         jdaBuilder.setGatewayPool(gatewayPool);
         jdaBuilder.setRateLimitScheduler(rateLimitSchedulerPool);
         jdaBuilder.setRateLimitElastic(rateLimitElasticPool, true);
+        jdaBuilder.setEventPool(discordSRV.scheduler().forkJoinPool());
         jdaBuilder.setHttpClient(discordSRV.httpClient());
 
         WebSocketFactory webSocketFactory = new WebSocketFactory();
