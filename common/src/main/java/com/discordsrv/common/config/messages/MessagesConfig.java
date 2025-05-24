@@ -38,7 +38,8 @@ public class MessagesConfig implements Config {
     }
 
     private static final String DISCORD_USER = "**%user_name%** (<@%user_id%>)";
-    private static final String DISCORD_PLAYER = "**%player_name%** (%player_uuid%)";
+    private static final String DISCORD_PLAYER = "**%player_name|text:'<Unknown>'%** (%player_uuid%)";
+    private static final String DISCORD_PLAYER_SIMPLE = "**%player_name|text:'<Unknown>'%**";
 
     private static final String DISCORD_SUCCESS_PREFIX = "✅ ";
     private static final String DISCORD_INPUT_ERROR_PREFIX = "\uD83D\uDDD2️ ";
@@ -123,10 +124,13 @@ public class MessagesConfig implements Config {
             DISCORD_SUCCESS_PREFIX + DISCORD_USER,
             DISCORD_PLAYER
     })
-    public BothMessage discordUserLinkedTo = both(
+    public BothMessage discordUserLinkedTo3rd = both(
             "%1 %2is linked to %3",
             "%4 is linked to %5"
     );
+
+    @Constants({DISCORD_SUCCESS_PREFIX, DISCORD_PLAYER})
+    public DiscordMessage discordUserLinkedTo1st = discord("%1You are linked to %2");
 
     @Constants({
             MINECRAFT_SUCCESS_COLOR + MINECRAFT_USER,
@@ -148,10 +152,16 @@ public class MessagesConfig implements Config {
             DISCORD_PLAYER,
             DISCORD_USER
     })
-    public BothMessage minecraftPlayerLinkedTo = both(
+    public BothMessage minecraftPlayerLinkedTo3rd = both(
             "%1 %2is linked to %3",
             "%4%5 is linked to %6"
     );
+
+    @Constants({
+            MINECRAFT_NEUTRAL_COLOR,
+            MINECRAFT_SUCCESS_COLOR + MINECRAFT_USER
+    })
+    public MinecraftMessage minecraftPlayerLinkedTo1st = minecraft("%1You are linked to %2");
 
     @Constants({
             MINECRAFT_SUCCESS_COLOR + MINECRAFT_PLAYER,
@@ -252,8 +262,11 @@ public class MessagesConfig implements Config {
     public MinecraftMessage pleaseSpecifyPlayerAndUserToLink = minecraft("%1Please specify the Minecraft player and the Discord user to link");
     @Constants(MINECRAFT_NEUTRAL_COLOR)
     public MinecraftMessage checkingLinkStatus = minecraft("%1Checking linking status...");
-    @Constants(MINECRAFT_SUCCESS_COLOR)
-    public MinecraftMessage nowLinked1st = minecraft("%1You are now linked!");
+    @Constants({
+            MINECRAFT_SUCCESS_COLOR,
+            MINECRAFT_BLURPLE_COLOR + MINECRAFT_USER
+    })
+    public MinecraftMessage nowLinked1st = minecraft("%1You are now linked to %2!");
     @Constants({
             MINECRAFT_NEUTRAL_COLOR,
             "&f[click:open_url:%minecraftauth_link%][hover:show_text:Click to open]%minecraftauth_link_simple%[click]" + MINECRAFT_NEUTRAL_COLOR,
@@ -281,7 +294,7 @@ public class MessagesConfig implements Config {
     @Comment("Discord only messages")
     @Constants(DISCORD_ERROR_PREFIX)
     public DiscordMessage invalidLinkingCode = discord("%1Invalid linking code");
-    @Constants({DISCORD_SUCCESS_PREFIX, "**%player_name%**"})
+    @Constants({DISCORD_SUCCESS_PREFIX, DISCORD_PLAYER_SIMPLE})
     public DiscordMessage accountLinked = discord("%1Account linked to %2 successfully");
 
 }

@@ -28,8 +28,6 @@ import com.discordsrv.common.util.TaskUtil;
 import org.jetbrains.annotations.Nullable;
 
 import java.time.Duration;
-import java.util.ArrayList;
-import java.util.List;
 import java.util.UUID;
 
 public abstract class ConfigMessage {
@@ -40,7 +38,11 @@ public abstract class ConfigMessage {
 
     public void sendTo(CommandExecution execution, @Nullable DiscordSRV discordSRV, @Nullable Long userId, @Nullable UUID playerUUID) {
         if (discordSRV == null) {
-            sendTo(execution, null, userId, null, playerUUID, null);
+            sendTo(
+                    execution,
+                    new SinglePlaceholder("user_id", userId),
+                    new SinglePlaceholder("player_uuid", playerUUID)
+            );
             return;
         }
 
@@ -55,15 +57,13 @@ public abstract class ConfigMessage {
                 Duration.ofSeconds(5)
         );
 
-        playerFuture.whenComplete((player, __) -> userFuture.whenComplete((user, ___) -> {
-            List<Object> context = new ArrayList<>(4);
-            context.add(new SinglePlaceholder("user_id", userId));
-            context.add(new SinglePlaceholder("player_uuid", playerUUID));
-            context.add(user);
-            context.add(player);
-
-            sendTo(execution, discordSRV, context);
-        }));
+        playerFuture.whenComplete((player, __) -> userFuture.whenComplete((user, ___) -> sendTo(
+                execution,
+                new SinglePlaceholder("user_id", userId),
+                new SinglePlaceholder("player_uuid", playerUUID),
+                user,
+                player
+        )));
     }
 
     protected abstract void sendTo(CommandExecution execution, Object... context);

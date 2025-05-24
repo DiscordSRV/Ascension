@@ -131,7 +131,12 @@ public class LinkedCommand extends CombinedCommand {
                     return;
                 }
 
-                execution.messages().minecraftPlayerLinkedTo.sendTo(execution, discordSRV, link.get().userId(), playerUUID);
+                long userId = link.get().userId();
+                if (result.isSelf()) {
+                    execution.messages().minecraftPlayerLinkedTo1st.sendTo(execution, discordSRV, userId, playerUUID);
+                } else {
+                    execution.messages().minecraftPlayerLinkedTo3rd.sendTo(execution, discordSRV, userId, playerUUID);
+                }
             });
         } else {
             long userId = result.getUserId();
@@ -147,7 +152,12 @@ public class LinkedCommand extends CombinedCommand {
                     return;
                 }
 
-                execution.messages().discordUserLinkedTo.sendTo(execution, discordSRV, userId, link.get().playerUUID());
+                UUID playerUUID = link.get().playerUUID();
+                if (result.isSelf()) {
+                    execution.messages().discordUserLinkedTo1st.sendTo(execution, discordSRV, userId, playerUUID);
+                } else {
+                    execution.messages().discordUserLinkedTo3rd.sendTo(execution, discordSRV, userId, playerUUID);
+                }
             });
         }
     }

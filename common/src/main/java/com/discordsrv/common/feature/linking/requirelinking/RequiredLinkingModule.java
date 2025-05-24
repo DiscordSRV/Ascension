@@ -177,20 +177,22 @@ public abstract class RequiredLinkingModule<T extends DiscordSRV> extends Abstra
     public abstract void recheck(IPlayer player);
 
     private void recheck(Someone someone) {
-        someone.resolve().thenApply(resolved -> {
-            if (resolved == null) {
-                return null;
-            }
+        IPlayer player = someone.onlinePlayer();
+        if (player != null) {
+            recheck(player);
+            return;
+        }
 
-            return discordSRV.playerProvider().player(resolved.playerUUID());
-        }).whenComplete((onlinePlayer, t) -> {
-            if (t != null) {
-                logger().error("Failed to get linked account for " + someone, t);
-            }
-            if (onlinePlayer != null) {
-                recheck(onlinePlayer);
-            }
-        });
+        someone.resolve()
+                .thenApply(resolved -> resolved != null ? resolved.onlinePlayer() : null)
+                .whenComplete((onlinePlayer, t) -> {
+                    if (t != null) {
+                        logger().error("Failed to get linked account for " + someone, t);
+                    }
+                    if (onlinePlayer != null) {
+                        recheck(onlinePlayer);
+                    }
+                });
     }
 
     public <RT> void stateChanged(Someone someone, RequirementType<RT> requirementType, RT value, boolean newState) {

@@ -93,7 +93,6 @@ public class LinkInitGameCommand implements GameCommandExecutor {
                 return;
             }
             if (userId.isPresent()) {
-                player.sendMessage(messages.nowLinked1st.asComponent());
                 return;
             }
 

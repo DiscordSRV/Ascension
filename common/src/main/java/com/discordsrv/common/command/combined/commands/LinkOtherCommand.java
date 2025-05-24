@@ -60,7 +60,7 @@ public class LinkOtherCommand extends CombinedCommand {
                     .requiredPermission(Permissions.COMMAND_LINK)
                     .executor(initCommand);
 
-            if (linkProvider != null && !linkProvider.usesLocalLinking()) {
+            if (linkProvider != null && linkProvider.usesLocalLinking()) {
                 GAME = GAME.then(
                         GameCommand.stringWord("player")
                                 .then(

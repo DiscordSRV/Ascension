@@ -18,6 +18,8 @@
 
 package com.discordsrv.bukkit.requiredlinking;
 
+import com.discordsrv.api.eventbus.Subscribe;
+import com.discordsrv.api.events.linking.AccountLinkedEvent;
 import com.discordsrv.bukkit.BukkitDiscordSRV;
 import com.discordsrv.bukkit.config.main.BukkitRequiredLinkingConfig;
 import com.discordsrv.common.DiscordSRV;
@@ -27,16 +29,15 @@ import com.discordsrv.common.feature.linking.LinkingModule;
 import com.discordsrv.common.feature.linking.requirelinking.ServerRequireLinkingModule;
 import net.kyori.adventure.platform.bukkit.BukkitComponentSerializer;
 import net.kyori.adventure.text.Component;
+import org.bukkit.GameMode;
 import org.bukkit.Location;
 import org.bukkit.entity.Player;
 import org.bukkit.event.*;
 import org.bukkit.event.player.*;
 
-import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
@@ -50,6 +51,10 @@ public class BukkitRequiredLinkingModule extends ServerRequireLinkingModule<Bukk
     @Override
     public BukkitRequiredLinkingConfig config() {
         return discordSRV.config().requiredLinking;
+    }
+
+    public ServerRequiredLinkingConfig.Action action() {
+        return config().action;
     }
 
     @Override
@@ -86,24 +91,28 @@ public class BukkitRequiredLinkingModule extends ServerRequireLinkingModule<Bukk
 
     @Override
     public void recheck(IPlayer player) {
-        getBlockReason(player.uniqueId(), player.username(), false).whenComplete((component, throwable) -> {
-            if (component != null) {
-                switch (action()) {
-                    case KICK:
-                        player.kick(component);
-                        break;
-                    case FREEZE:
-                        freeze(player, component);
-                        break;
-                }
-            } else if (action() == ServerRequiredLinkingConfig.Action.FREEZE) {
-                frozen.remove(player.uniqueId());
-            }
-        });
+        getBlockReason(player.uniqueId(), player.username(), false)
+                .whenComplete((component, throwable) -> handleBlock(player, component));
     }
 
-    public ServerRequiredLinkingConfig.Action action() {
-        return config().action;
+    private void handleBlock(IPlayer player, Component component) {
+        if (component != null) {
+            switch (action()) {
+                case KICK:
+                    player.kick(component);
+                    break;
+                case SPECTATOR:
+                    Player bukkitPlayer = discordSRV.server().getPlayer(player.uniqueId());
+                    if (bukkitPlayer != null) {
+                        discordSRV.scheduler().runOnMainThread(bukkitPlayer, () -> bukkitPlayer.setGameMode(GameMode.SPECTATOR));
+                    }
+                case FREEZE:
+                    freeze(player, component);
+                    break;
+            }
+        } else if (action() != ServerRequiredLinkingConfig.Action.KICK) {
+            frozen.remove(player.uniqueId());
+        }
     }
 
     //
@@ -154,7 +163,7 @@ public class BukkitRequiredLinkingModule extends ServerRequireLinkingModule<Bukk
             Consumer<String> disallow
     ) {
         BukkitRequiredLinkingConfig config = config();
-        if (!config.enabled || config.action != ServerRequiredLinkingConfig.Action.KICK
+        if (!config.enabled || action() != ServerRequiredLinkingConfig.Action.KICK
                 || !eventType.equals(config.kick.event) || !priority.name().equals(config.kick.priority)) {
             return;
         }
@@ -172,19 +181,41 @@ public class BukkitRequiredLinkingModule extends ServerRequireLinkingModule<Bukk
     }
 
     //
-    // Freeze
+    // Freeze & Spectator
     //
 
     private final Map<UUID, Component> frozen = new ConcurrentHashMap<>();
-    private final List<UUID> loginsHandled = new CopyOnWriteArrayList<>();
+    private final Map<UUID, Boolean> loginsHandled = new ConcurrentHashMap<>();
 
     private boolean isFrozen(Player player) {
         return frozen.containsKey(player.getUniqueId());
     }
 
+    @Subscribe
+    public void onAccountLinked(AccountLinkedEvent event) {
+        UUID playerUUID = event.getPlayerUUID();
+        Player player = discordSRV.server().getPlayer(playerUUID);
+        if (player == null) {
+            return;
+        }
+
+        unfreeze(player);
+    }
+
     private void freeze(IPlayer player, Component blockReason) {
         frozen.put(player.uniqueId(), blockReason);
         player.sendMessage(blockReason);
+    }
+
+    private void unfreeze(Player player) {
+        frozen.remove(player.getUniqueId());
+
+        if (action() == ServerRequiredLinkingConfig.Action.SPECTATOR) {
+            discordSRV.scheduler().runOnMainThread(
+                    player,
+                    () -> player.setGameMode(discordSRV.server().getDefaultGameMode())
+            );
+        }
     }
 
     @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
@@ -194,8 +225,7 @@ public class BukkitRequiredLinkingModule extends ServerRequireLinkingModule<Bukk
         }
 
         UUID playerUUID = event.getUniqueId();
-        loginsHandled.add(playerUUID);
-        handleLogin(playerUUID, event.getName());
+        loginsHandled.put(playerUUID, handleFreezeLogin(playerUUID, event.getName()));
     }
 
     @EventHandler(priority = EventPriority.MONITOR)
@@ -209,14 +239,20 @@ public class BukkitRequiredLinkingModule extends ServerRequireLinkingModule<Bukk
     public void onPlayerJoinLowest(PlayerJoinEvent event) {
         Player player = event.getPlayer();
         UUID playerUUID = player.getUniqueId();
-        if (!loginsHandled.remove(playerUUID)) {
-            handleLogin(playerUUID, player.getName());
+
+        Boolean unfreeze = loginsHandled.remove(playerUUID);
+        if (unfreeze == null) {
+            unfreeze = handleFreezeLogin(playerUUID, player.getName());
+        }
+        if (unfreeze) {
+            unfreeze(player);
         }
     }
 
     @EventHandler(priority = EventPriority.MONITOR)
     public void onPlayerJoinMonitor(PlayerJoinEvent event) {
-        UUID playerUUID = event.getPlayer().getUniqueId();
+        Player player = event.getPlayer();
+        UUID playerUUID = player.getUniqueId();
 
         Component blockReason = frozen.get(playerUUID);
         if (blockReason == null) {
@@ -228,12 +264,15 @@ public class BukkitRequiredLinkingModule extends ServerRequireLinkingModule<Bukk
             throw new IllegalStateException("Player not available: " + playerUUID);
         }
 
-        srvPlayer.sendMessage(blockReason);
+        handleBlock(srvPlayer, blockReason);
     }
 
-    private void handleLogin(UUID playerUUID, String username) {
+    /**
+     * @return if this Player needs to be unfrozen
+     */
+    private boolean handleFreezeLogin(UUID playerUUID, String username) {
         if (discordSRV.isShutdown()) {
-            return;
+            return false;
         } else if (!discordSRV.isReady()) {
             try {
                 discordSRV.waitForStatus(DiscordSRV.Status.CONNECTED);
@@ -242,21 +281,23 @@ public class BukkitRequiredLinkingModule extends ServerRequireLinkingModule<Bukk
             }
         }
 
-        BukkitRequiredLinkingConfig config = config();
-        if (!config.enabled || config.action != ServerRequiredLinkingConfig.Action.FREEZE) {
-            return;
+        if (!config().enabled || action() == ServerRequiredLinkingConfig.Action.KICK) {
+            return false;
         }
 
         Component blockReason = getBlockReason(playerUUID, username, false).join();
-        if (blockReason != null) {
-            frozen.put(playerUUID, blockReason);
+        if (blockReason == null) {
+            return true;
         }
+
+        frozen.put(playerUUID, blockReason);
+        return false;
     }
 
     @EventHandler(priority = EventPriority.LOWEST, ignoreCancelled = true)
     public void onPlayerMove(PlayerMoveEvent event) {
         Component freezeReason = frozen.get(event.getPlayer().getUniqueId());
-        if (freezeReason == null) {
+        if (freezeReason == null || action() == ServerRequiredLinkingConfig.Action.SPECTATOR) {
             return;
         }
 
@@ -265,6 +306,7 @@ public class BukkitRequiredLinkingModule extends ServerRequireLinkingModule<Bukk
                 && from.getBlockX() == to.getBlockX()
                 && from.getBlockZ() == to.getBlockZ()
                 && from.getBlockY() >= to.getBlockY()) {
+            // Don't block falling down or moving within the block
             return;
         }
 
@@ -299,7 +341,8 @@ public class BukkitRequiredLinkingModule extends ServerRequireLinkingModule<Bukk
 
     @EventHandler(priority = EventPriority.LOWEST, ignoreCancelled = true)
     public void onPlayerCommandPreprocess(PlayerCommandPreprocessEvent event) {
-        if (!isFrozen(event.getPlayer())) {
+        Player bukkitPlayer = event.getPlayer();
+        if (!isFrozen(bukkitPlayer)) {
             return;
         }
 
@@ -316,16 +359,16 @@ public class BukkitRequiredLinkingModule extends ServerRequireLinkingModule<Bukk
                 return;
             }
 
-            player.sendMessage(Component.text("Checking..."));
+            player.sendMessage(discordSRV.messagesConfig(player).checkingLinkStatus.asComponent());
 
-            UUID uuid = player.uniqueId();
-            getBlockReason(uuid, player.username(), false).whenComplete((reason, t) -> {
+            UUID playerUUID = player.uniqueId();
+            getBlockReason(playerUUID, player.username(), false).whenComplete((reason, t) -> {
                 if (t != null) {
                     return;
                 }
 
                 if (reason == null) {
-                    frozen.remove(uuid);
+                    unfreeze(bukkitPlayer);
                 } else {
                     freeze(player, reason);
                 }

@@ -122,6 +122,7 @@ public final class CommandUtil {
     ) {
         MessagesConfig messages = discordSRV.messagesConfig(execution.locale());
 
+        boolean self = false;
         if (execution instanceof GameCommandExecution) {
             ICommandSender sender = ((GameCommandExecution) execution).getSender();
             if (target != null) {
@@ -131,11 +132,13 @@ public final class CommandUtil {
                 }
             } else if (sender instanceof IPlayer && selfPermitted && lookupPlayer) {
                 target = ((IPlayer) sender).uniqueId().toString();
+                self = true;
             }
         } else if (execution instanceof DiscordCommandExecution) {
             if (target == null) {
                 if (selfPermitted && lookupUser) {
                     target = Long.toUnsignedString(((DiscordCommandExecution) execution).getUser().getId());
+                    self = true;
                 } else {
                     messages.pleaseSpecifyUser.sendTo(execution);
                     return Task.completed(TargetLookupResult.INVALID);
@@ -149,6 +152,7 @@ public final class CommandUtil {
             return Task.completed(requireTarget(execution, lookupUser, lookupPlayer, messages));
         }
 
+        boolean isSelf = self;
         if (lookupUser) {
             if (target.matches("\\d{17,22}")) {
                 // Discord user id
@@ -160,7 +164,7 @@ public final class CommandUtil {
                     return Task.completed(TargetLookupResult.INVALID);
                 }
 
-                return Task.completed(new TargetLookupResult(true, null, id));
+                return Task.completed(new TargetLookupResult(isSelf, null, id));
             } else if (target.startsWith("@")) {
                 // Discord username
                 String username = target.substring(1);
@@ -169,7 +173,7 @@ public final class CommandUtil {
                     List<User> users = jda.getUsersByName(username, true);
 
                     if (users.size() == 1) {
-                        return Task.completed(new TargetLookupResult(true, null, users.get(0).getIdLong()));
+                        return Task.completed(new TargetLookupResult(isSelf, null, users.get(0).getIdLong()));
                     }
                 }
             }
@@ -190,7 +194,7 @@ public final class CommandUtil {
                     messages.playerNotFound.sendTo(execution);
                     return Task.completed(TargetLookupResult.INVALID);
                 }
-                return Task.completed(new TargetLookupResult(true, uuid, 0L));
+                return Task.completed(new TargetLookupResult(isSelf, uuid, 0L));
             } else if (target.matches("[a-zA-Z0-9_]{1,16}")) {
                 // Player name
                 IPlayer playerByName = discordSRV.playerProvider().player(target);
@@ -198,14 +202,14 @@ public final class CommandUtil {
                     uuid = playerByName.uniqueId();
                 } else {
                     return discordSRV.playerProvider().lookupOfflinePlayer(target)
-                            .thenApply(offlinePlayer -> new TargetLookupResult(true, offlinePlayer.uniqueId(), 0L))
+                            .thenApply(offlinePlayer -> new TargetLookupResult(isSelf, offlinePlayer.uniqueId(), 0L))
                             .mapException(t -> {
                                 logger.error("Failed to lookup offline player by username", t);
                                 messages.playerLookupFailed.sendTo(execution);
                                 return TargetLookupResult.INVALID;
                             });
                 }
-                return Task.completed(new TargetLookupResult(true, uuid, 0L));
+                return Task.completed(new TargetLookupResult(isSelf, uuid, 0L));
             }
         }
 
@@ -229,20 +233,34 @@ public final class CommandUtil {
 
     public static class TargetLookupResult {
 
-        public static TargetLookupResult INVALID = new TargetLookupResult(false, null, 0L);
+        public static TargetLookupResult INVALID = new TargetLookupResult(false);
 
         private final boolean valid;
+        private final boolean self;
         private final UUID playerUUID;
         private final long userId;
 
-        public TargetLookupResult(boolean valid, UUID playerUUID, long userId) {
+        private TargetLookupResult(boolean valid) {
+            this(valid, false, null, 0L);
+        }
+
+        public TargetLookupResult(boolean self, UUID playerUUID, long userId) {
+            this(true, self, playerUUID, userId);
+        }
+
+        private TargetLookupResult(boolean valid, boolean self, UUID playerUUID, long userId) {
             this.valid = valid;
+            this.self = self;
             this.playerUUID = playerUUID;
             this.userId = userId;
         }
 
         public boolean isValid() {
             return valid;
+        }
+
+        public boolean isSelf() {
+            return self;
         }
 
         public boolean isPlayer() {

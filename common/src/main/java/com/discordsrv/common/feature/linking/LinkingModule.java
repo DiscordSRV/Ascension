@@ -18,14 +18,20 @@
 
 package com.discordsrv.common.feature.linking;
 
+import com.discordsrv.api.component.MinecraftComponent;
+import com.discordsrv.api.discord.entity.DiscordUser;
 import com.discordsrv.api.events.linking.AccountLinkedEvent;
 import com.discordsrv.api.events.linking.AccountUnlinkedEvent;
 import com.discordsrv.api.task.Task;
 import com.discordsrv.common.DiscordSRV;
+import com.discordsrv.common.abstraction.player.IPlayer;
 import com.discordsrv.common.core.logging.NamedLogger;
 import com.discordsrv.common.core.module.type.AbstractModule;
+import com.discordsrv.common.util.ComponentUtil;
+import com.discordsrv.common.util.TaskUtil;
 import com.github.benmanes.caffeine.cache.Cache;
 
+import java.time.Duration;
 import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.Map;
@@ -119,6 +125,27 @@ public class LinkingModule extends AbstractModule<DiscordSRV> {
                 .whenSuccessful(v -> {
                     logger().debug("Linked: " + playerUUID + " & " + Long.toUnsignedString(userId));
                     discordSRV.eventBus().publish(new AccountLinkedEvent(playerUUID, userId));
+
+                    IPlayer player = discordSRV.playerProvider().player(playerUUID);
+                    if (player == null) {
+                        return;
+                    }
+
+                    Task<DiscordUser> userFuture = TaskUtil.timeout(
+                            discordSRV,
+                            discordSRV.discordAPI().retrieveUserById(userId),
+                            Duration.ofSeconds(5)
+                    );
+
+                    userFuture.whenComplete((user, __) -> {
+                        MinecraftComponent linkedMessage = discordSRV.messagesConfig(player).nowLinked1st.textBuilder()
+                                .addContext(player, user)
+                                .addPlaceholder("user_id", userId)
+                                .addPlaceholder("player_uuid", player)
+                                .applyPlaceholderService()
+                                .build();
+                        player.sendMessage(ComponentUtil.fromAPI(linkedMessage));
+                    });
                 })
                 .whenFailed(t -> logger().error("Failed to link " + playerUUID + " and " + Long.toUnsignedString(userId), t)));
     }
