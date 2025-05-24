@@ -18,6 +18,7 @@
 
 package com.discordsrv.fabric.requiredlinking;
 
+import com.discordsrv.api.task.Task;
 import com.discordsrv.common.DiscordSRV;
 import com.discordsrv.common.abstraction.player.IPlayer;
 import com.discordsrv.common.config.main.linking.ServerRequiredLinkingConfig;
@@ -86,10 +87,7 @@ public class FabricRequiredLinkingModule extends ServerRequireLinkingModule<Fabr
             return null;
         }
 
-        UUID playerUUID = profile.getId();
-        String playerName = profile.getName();
-
-        Component kickReason = instance.getBlockReason(playerUUID, playerName, true).join();
+        Component kickReason = instance.getBlockReason(profile, true).join();
         if (kickReason != null) {
             return discordSRV.getAdventure().asNative(kickReason);
         }
@@ -148,7 +146,7 @@ public class FabricRequiredLinkingModule extends ServerRequireLinkingModule<Fabr
 
             player.sendMessage(discordSRV.messagesConfig(player).checkingLinkStatus.asComponent());
 
-            instance.getBlockReason(uuid, player.username(), false).whenComplete((reason, t) -> {
+            instance.getBlockReason(playerEntity.getGameProfile(), false).whenComplete((reason, t) -> {
                 if (t != null) {
                     return;
                 }
@@ -193,7 +191,13 @@ public class FabricRequiredLinkingModule extends ServerRequireLinkingModule<Fabr
 
     @Override
     public void recheck(IPlayer player) {
-        getBlockReason(player.uniqueId(), player.username(), false).whenComplete((component, throwable) -> {
+        ServerPlayerEntity playerEntity = discordSRV.getServer().getPlayerManager().getPlayer(player.uniqueId());
+        if (playerEntity == null) {
+            return;
+        }
+
+        GameProfile gameProfile = playerEntity.getGameProfile();
+        getBlockReason(gameProfile, false).whenComplete((component, throwable) -> {
             if (component != null) {
                 switch (action()) {
                     case KICK:
@@ -245,17 +249,20 @@ public class FabricRequiredLinkingModule extends ServerRequireLinkingModule<Fabr
 
     private void onPlayerPreLogin(ServerConfigurationNetworkHandler handler, MinecraftServer minecraftServer) {
         if (!enabled) return;
-        UUID playerUUID = handler.getDebugProfile().getId();
-        loginsHandled.add(playerUUID);
-        handleLogin(playerUUID, handler.getDebugProfile().getName());
+
+        GameProfile gameProfile = handler.getDebugProfile();
+        loginsHandled.add(gameProfile.getId());
+        handleLogin(gameProfile);
     }
 
     private void onPlayerJoin(ServerPlayNetworkHandler serverPlayNetworkHandler, PacketSender packetSender, MinecraftServer minecraftServer) {
         if (!enabled) return;
-        UUID playerUUID = serverPlayNetworkHandler.player.getUuid();
+
+        ServerPlayerEntity player = serverPlayNetworkHandler.player;
+        UUID playerUUID = player.getUuid();
 
         if (!loginsHandled.contains(playerUUID)) {
-            handleLogin(playerUUID, serverPlayNetworkHandler.player.getName().getString());
+            handleLogin(player.getGameProfile());
         }
 
         Component blockReason = frozen.get(playerUUID);
@@ -278,7 +285,7 @@ public class FabricRequiredLinkingModule extends ServerRequireLinkingModule<Fabr
         frozen.remove(playerUUID);
     }
 
-    private void handleLogin(UUID playerUUID, String username) {
+    private void handleLogin(GameProfile gameProfile) {
         if (discordSRV.isShutdown()) {
             return;
         } else if (!discordSRV.isReady()) {
@@ -294,9 +301,23 @@ public class FabricRequiredLinkingModule extends ServerRequireLinkingModule<Fabr
             return;
         }
 
-        Component blockReason = getBlockReason(playerUUID, username, false).join();
+        Component blockReason = getBlockReason(gameProfile, false).join();
         if (blockReason != null) {
-            frozen.put(playerUUID, blockReason);
+            frozen.put(gameProfile.getId(), blockReason);
         }
+    }
+
+    public Task<Component> getBlockReason(GameProfile gameProfile, boolean join) {
+        if (instance.config().whitelistedPlayersCanBypass
+                && instance.discordSRV.getServer().getPlayerManager().getWhitelist().isAllowed(gameProfile)) {
+            return Task.completed(null);
+        }
+
+        return getBlockReason(gameProfile.getId(), gameProfile.getName(), join);
+    }
+
+    @Override
+    public Task<Component> getBlockReason(UUID playerUUID, String playerName, boolean join) {
+        return super.getBlockReason(playerUUID, playerName, join);
     }
 }

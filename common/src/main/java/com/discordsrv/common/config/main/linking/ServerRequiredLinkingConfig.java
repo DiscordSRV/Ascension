@@ -35,6 +35,8 @@ public class ServerRequiredLinkingConfig extends RequiredLinkingConfig {
         SPECTATOR
     }
 
+    public boolean whitelistedPlayersCanBypass = true;
+
     @Setting(nodeFromParent = true)
     @Order(10)
     public RequirementsConfig requirements = new RequirementsConfig();

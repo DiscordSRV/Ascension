@@ -20,6 +20,7 @@ package com.discordsrv.bukkit.requiredlinking;
 
 import com.discordsrv.api.eventbus.Subscribe;
 import com.discordsrv.api.events.linking.AccountLinkedEvent;
+import com.discordsrv.api.task.Task;
 import com.discordsrv.bukkit.BukkitDiscordSRV;
 import com.discordsrv.bukkit.config.main.BukkitRequiredLinkingConfig;
 import com.discordsrv.common.DiscordSRV;
@@ -31,6 +32,7 @@ import net.kyori.adventure.platform.bukkit.BukkitComponentSerializer;
 import net.kyori.adventure.text.Component;
 import org.bukkit.GameMode;
 import org.bukkit.Location;
+import org.bukkit.OfflinePlayer;
 import org.bukkit.entity.Player;
 import org.bukkit.event.*;
 import org.bukkit.event.player.*;
@@ -87,6 +89,19 @@ public class BukkitRequiredLinkingModule extends ServerRequireLinkingModule<Bukk
                     true
             );
         }
+    }
+
+    @Override
+    public Task<Component> getBlockReason(UUID playerUUID, String playerName, boolean join) {
+        if (config().whitelistedPlayersCanBypass) {
+            for (OfflinePlayer player : discordSRV.server().getWhitelistedPlayers()) {
+                if (player.getUniqueId().equals(playerUUID)) {
+                    return Task.completed(null);
+                }
+            }
+        }
+
+        return super.getBlockReason(playerUUID, playerName, join);
     }
 
     @Override
@@ -242,6 +257,7 @@ public class BukkitRequiredLinkingModule extends ServerRequireLinkingModule<Bukk
 
         Boolean unfreeze = loginsHandled.remove(playerUUID);
         if (unfreeze == null) {
+            // AsyncPlayerPreLoginEvent might never get called
             unfreeze = handleFreezeLogin(playerUUID, player.getName());
         }
         if (unfreeze) {
