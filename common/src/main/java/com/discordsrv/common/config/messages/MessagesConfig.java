@@ -43,7 +43,7 @@ public class MessagesConfig implements Config {
 
     private static final String DISCORD_USER = "**%user_name%** (<@%user_id%>)";
     private static final String DISCORD_PLAYER = "**%player_name|text:'<Unknown>'%** (%player_uuid%)";
-    private static final String DISCORD_PLAYER_SIMPLE = "**%player_name|text:'<Unknown>'%**";
+    private static final String DISCORD_PLAYER_SIMPLE = "**%player_name|player_uuid|text:'<Unknown>'%**";
 
     private static final String MINECRAFT_ERROR_COLOR = "&c";
     private static final String MINECRAFT_SUCCESS_COLOR = "&a";
