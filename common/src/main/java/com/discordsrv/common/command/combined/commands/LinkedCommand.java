@@ -127,16 +127,17 @@ public class LinkedCommand extends CombinedCommand {
                     return;
                 }
                 if (!link.isPresent()) {
-                    execution.messages().minecraftPlayerUnlinked.sendTo(execution, discordSRV, null, playerUUID);
+                    (result.isSelf()
+                     ? execution.messages().alreadyUnlinked1st
+                     : execution.messages().minecraftPlayerUnlinked3rd
+                    ).sendTo(execution, discordSRV, null, playerUUID);
                     return;
                 }
 
-                long userId = link.get().userId();
-                if (result.isSelf()) {
-                    execution.messages().minecraftPlayerLinkedTo1st.sendTo(execution, discordSRV, userId, playerUUID);
-                } else {
-                    execution.messages().minecraftPlayerLinkedTo3rd.sendTo(execution, discordSRV, userId, playerUUID);
-                }
+                (result.isSelf()
+                 ? execution.messages().linkedTo1st
+                 : execution.messages().minecraftPlayerLinkedTo3rd
+                ).sendTo(execution, discordSRV, link.get().userId(), playerUUID);
             });
         } else {
             long userId = result.getUserId();
@@ -148,16 +149,17 @@ public class LinkedCommand extends CombinedCommand {
                     return;
                 }
                 if (!link.isPresent()) {
-                    execution.messages().discordUserUnlinked.sendTo(execution, discordSRV, userId, null);
+                    (result.isSelf()
+                     ? execution.messages().alreadyUnlinked1st
+                     : execution.messages().discordUserUnlinked3rd
+                    ).sendTo(execution, discordSRV, userId, null);
                     return;
                 }
 
-                UUID playerUUID = link.get().playerUUID();
-                if (result.isSelf()) {
-                    execution.messages().discordUserLinkedTo1st.sendTo(execution, discordSRV, userId, playerUUID);
-                } else {
-                    execution.messages().discordUserLinkedTo3rd.sendTo(execution, discordSRV, userId, playerUUID);
-                }
+                (result.isSelf()
+                 ? execution.messages().linkedTo1st
+                 : execution.messages().discordUserLinkedTo3rd
+                ).sendTo(execution, discordSRV, userId, link.get().playerUUID());
             });
         }
     }

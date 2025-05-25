@@ -137,32 +137,30 @@ public class LinkOtherCommand extends CombinedCommand {
 
         playerUUIDFuture.whenComplete((playerUUID, __) -> userIdFuture.whenComplete((userId, ___) -> {
             if (playerUUID == null) {
-                execution.messages().playerNotFound.sendTo(execution);
                 return;
             }
             if (userId == null) {
-                execution.messages().userNotFound.sendTo(execution);
                 return;
             }
 
-            linkProvider.query(playerUUID).whenComplete((linkedUser, t) -> {
-                if (t != null) {
-                    logger.error("Failed to check linking status", t);
+            linkProvider.query(playerUUID).whenComplete((existingPlayerLink, t1) -> {
+                if (t1 != null) {
+                    logger.error("Failed to check linking status", t1);
                     execution.messages().unableToCheckLinkingStatus.sendTo(execution);
                     return;
                 }
-                if (linkedUser.isPresent()) {
+                if (existingPlayerLink.isPresent()) {
                     execution.messages().playerAlreadyLinked3rd.sendTo(execution);
                     return;
                 }
 
-                linkProvider.query(userId).whenComplete((existingLink, t2) -> {
+                linkProvider.query(userId).whenComplete((existingUserLink, t2) -> {
                     if (t2 != null) {
                         logger.error("Failed to check linking status", t2);
                         execution.messages().unableToCheckLinkingStatus.sendTo(execution);
                         return;
                     }
-                    if (existingLink.isPresent()) {
+                    if (existingUserLink.isPresent()) {
                         execution.messages().userAlreadyLinked3rd.sendTo(execution);
                         return;
                     }

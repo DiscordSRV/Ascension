@@ -138,7 +138,7 @@ public class LinkingModule extends AbstractModule<DiscordSRV> {
                     );
 
                     userFuture.whenComplete((user, __) -> {
-                        MinecraftComponent linkedMessage = discordSRV.messagesConfig(player).nowLinked1st.textBuilder()
+                        MinecraftComponent linkedMessage = discordSRV.messagesConfig(player).nowLinked1st.minecraft().textBuilder()
                                 .addContext(player, user)
                                 .addPlaceholder("user_id", userId)
                                 .addPlaceholder("player_uuid", player)

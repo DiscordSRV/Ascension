@@ -157,7 +157,10 @@ public class UnlinkCommand extends CombinedCommand {
                             return;
                         }
                         if (!link.isPresent()) {
-                            execution.messages().minecraftPlayerUnlinked.sendTo(execution, discordSRV, null, playerUUID);
+                            (result.isSelf()
+                             ? execution.messages().alreadyUnlinked1st
+                             : execution.messages().minecraftPlayerUnlinked3rd
+                            ).sendTo(execution, discordSRV, null, playerUUID);
                             return;
                         }
 
@@ -173,7 +176,10 @@ public class UnlinkCommand extends CombinedCommand {
                             return;
                         }
                         if (!link.isPresent()) {
-                            execution.messages().discordUserUnlinked.sendTo(execution, discordSRV, userId, null);
+                            (result.isSelf()
+                             ? execution.messages().alreadyUnlinked1st
+                             : execution.messages().discordUserUnlinked3rd
+                            ).sendTo(execution, discordSRV, userId, null);
                             return;
                         }
 
@@ -190,7 +196,7 @@ public class UnlinkCommand extends CombinedCommand {
                 return;
             }
 
-            execution.messages().unlinked.sendTo(execution);
+            execution.messages().unlinkSuccess.sendTo(execution);
         });
     }
 }

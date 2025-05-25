@@ -140,14 +140,14 @@ public class LinkInitDiscordCommand implements Consumer<DiscordChatInputInteract
                                 return;
                             }
 
-                            linkSuccess(interactionHook, linkStore, messagesConfig, player);
+                            linkSuccess(user, interactionHook, linkStore, messagesConfig, player);
                         });
             });
         });
-
     }
 
     private void linkSuccess(
+            DiscordUser user,
             DiscordInteractionHook interactionHook,
             LinkStore linkStore,
             MessagesConfig messagesConfig,
@@ -168,8 +168,8 @@ public class LinkInitDiscordCommand implements Consumer<DiscordChatInputInteract
             : discordSRV.playerProvider().lookupOfflinePlayer(playerUUID)
         ).whenComplete((player, __) -> interactionHook
                 .editOriginal(
-                        messagesConfig.accountLinked.format()
-                                .addContext(player)
+                        messagesConfig.nowLinked1st.discord().format()
+                                .addContext(user, player)
                                 .addPlaceholder("%player_name%", username)
                                 .addPlaceholder("%player_uuid%", playerUUID)
                                 .applyPlaceholderService()

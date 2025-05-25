@@ -219,16 +219,14 @@ public final class CommandUtil {
     private static TargetLookupResult requireTarget(CommandExecution execution, boolean lookupUser, boolean lookupPlayer, MessagesConfig messages) {
         if (lookupPlayer && lookupUser) {
             messages.pleaseSpecifyPlayerOrUser.sendTo(execution);
-            return TargetLookupResult.INVALID;
         } else if (lookupPlayer) {
             messages.pleaseSpecifyPlayer.sendTo(execution);
-            return TargetLookupResult.INVALID;
         } else if (lookupUser) {
             messages.pleaseSpecifyUser.sendTo(execution);
-            return TargetLookupResult.INVALID;
         } else {
             throw new IllegalStateException("lookupPlayer & lookupUser are false");
         }
+        return TargetLookupResult.INVALID;
     }
 
     public static class TargetLookupResult {
