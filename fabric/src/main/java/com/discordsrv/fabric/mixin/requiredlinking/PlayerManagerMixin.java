@@ -33,7 +33,7 @@ public class PlayerManagerMixin {
 
     @Inject(method = "checkCanJoin", at = @At("TAIL"), cancellable = true)
     public void checkCanJoin(SocketAddress address, GameProfile profile, CallbackInfoReturnable<Text> cir) {
-        Text kickReason = FabricRequiredLinkingModule.checkCanJoin(profile);
+        Text kickReason = FabricRequiredLinkingModule.canJoin(profile);
 
         cir.setReturnValue(kickReason);
     }

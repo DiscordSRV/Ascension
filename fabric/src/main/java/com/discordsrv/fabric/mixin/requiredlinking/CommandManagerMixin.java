@@ -32,6 +32,6 @@ public class CommandManagerMixin {
 
     @Inject(method = "execute", at = @At("HEAD"), cancellable = true)
     private void execute(ParseResults<ServerCommandSource> parseResults, String command, CallbackInfo ci) {
-        FabricRequiredLinkingModule.onCommandExecute(parseResults, command, ci);
+        FabricRequiredLinkingModule.withInstance(module -> module.onCommandExecute(parseResults, command, ci));
     }
 }

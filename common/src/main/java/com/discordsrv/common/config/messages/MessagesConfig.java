@@ -264,7 +264,7 @@ public class MessagesConfig implements Config {
     public MinecraftMessage checkingLinkStatus = minecraft("%1Checking linking status...");
     @Constants({
             MINECRAFT_SUCCESS_COLOR,
-            MINECRAFT_BLURPLE_COLOR + MINECRAFT_USER
+            MINECRAFT_BLURPLE_COLOR + MINECRAFT_USER + MINECRAFT_SUCCESS_COLOR
     })
     public MinecraftMessage nowLinked1st = minecraft("%1You are now linked to %2!");
     @Constants({

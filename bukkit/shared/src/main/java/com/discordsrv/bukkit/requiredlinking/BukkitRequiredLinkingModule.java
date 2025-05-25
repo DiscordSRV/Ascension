@@ -18,15 +18,11 @@
 
 package com.discordsrv.bukkit.requiredlinking;
 
-import com.discordsrv.api.eventbus.Subscribe;
-import com.discordsrv.api.events.linking.AccountLinkedEvent;
 import com.discordsrv.api.task.Task;
 import com.discordsrv.bukkit.BukkitDiscordSRV;
 import com.discordsrv.bukkit.config.main.BukkitRequiredLinkingConfig;
-import com.discordsrv.common.DiscordSRV;
 import com.discordsrv.common.abstraction.player.IPlayer;
 import com.discordsrv.common.config.main.linking.ServerRequiredLinkingConfig;
-import com.discordsrv.common.feature.linking.LinkingModule;
 import com.discordsrv.common.feature.linking.requirelinking.ServerRequireLinkingModule;
 import net.kyori.adventure.platform.bukkit.BukkitComponentSerializer;
 import net.kyori.adventure.text.Component;
@@ -55,10 +51,6 @@ public class BukkitRequiredLinkingModule extends ServerRequireLinkingModule<Bukk
         return discordSRV.config().requiredLinking;
     }
 
-    public ServerRequiredLinkingConfig.Action action() {
-        return config().action;
-    }
-
     @Override
     public void enable() {
         super.enable();
@@ -71,6 +63,7 @@ public class BukkitRequiredLinkingModule extends ServerRequireLinkingModule<Bukk
 
     public void disable() {
         HandlerList.unregisterAll(this);
+        super.disable();
     }
 
     @SuppressWarnings("unchecked")
@@ -108,26 +101,6 @@ public class BukkitRequiredLinkingModule extends ServerRequireLinkingModule<Bukk
     public void recheck(IPlayer player) {
         getBlockReason(player.uniqueId(), player.username(), false)
                 .whenComplete((component, throwable) -> handleBlock(player, component));
-    }
-
-    private void handleBlock(IPlayer player, Component component) {
-        if (component != null) {
-            switch (action()) {
-                case KICK:
-                    player.kick(component);
-                    break;
-                case SPECTATOR:
-                    Player bukkitPlayer = discordSRV.server().getPlayer(player.uniqueId());
-                    if (bukkitPlayer != null) {
-                        discordSRV.scheduler().runOnMainThread(bukkitPlayer, () -> bukkitPlayer.setGameMode(GameMode.SPECTATOR));
-                    }
-                case FREEZE:
-                    freeze(player, component);
-                    break;
-            }
-        } else if (action() != ServerRequiredLinkingConfig.Action.KICK) {
-            frozen.remove(player.uniqueId());
-        }
     }
 
     //
@@ -178,6 +151,11 @@ public class BukkitRequiredLinkingModule extends ServerRequireLinkingModule<Bukk
             Consumer<String> disallow
     ) {
         BukkitRequiredLinkingConfig config = config();
+        if (config == null) {
+            disallow.accept(NOT_READY_MESSAGE);
+            return;
+        }
+
         if (!config.enabled || action() != ServerRequiredLinkingConfig.Action.KICK
                 || !eventType.equals(config.kick.event) || !priority.name().equals(config.kick.priority)) {
             return;
@@ -199,38 +177,28 @@ public class BukkitRequiredLinkingModule extends ServerRequireLinkingModule<Bukk
     // Freeze & Spectator
     //
 
-    private final Map<UUID, Component> frozen = new ConcurrentHashMap<>();
-    private final Map<UUID, Boolean> loginsHandled = new ConcurrentHashMap<>();
+    private final Map<UUID, Consumer<IPlayer>> loginsHandled = new ConcurrentHashMap<>();
 
     private boolean isFrozen(Player player) {
         return frozen.containsKey(player.getUniqueId());
     }
 
-    @Subscribe
-    public void onAccountLinked(AccountLinkedEvent event) {
-        UUID playerUUID = event.getPlayerUUID();
-        Player player = discordSRV.server().getPlayer(playerUUID);
-        if (player == null) {
-            return;
-        }
-
-        unfreeze(player);
+    @Override
+    public void changeToSpectator(IPlayer player) {
+        Player bukkitPlayer = discordSRV.server().getPlayer(player.uniqueId());
+        discordSRV.scheduler().runOnMainThread(
+                bukkitPlayer,
+                () -> bukkitPlayer.setGameMode(GameMode.SPECTATOR)
+        );
     }
 
-    private void freeze(IPlayer player, Component blockReason) {
-        frozen.put(player.uniqueId(), blockReason);
-        player.sendMessage(blockReason);
-    }
-
-    private void unfreeze(Player player) {
-        frozen.remove(player.getUniqueId());
-
-        if (action() == ServerRequiredLinkingConfig.Action.SPECTATOR) {
-            discordSRV.scheduler().runOnMainThread(
-                    player,
-                    () -> player.setGameMode(discordSRV.server().getDefaultGameMode())
-            );
-        }
+    @Override
+    public void removeFromSpectator(IPlayer player) {
+        Player bukkitPlayer = discordSRV.server().getPlayer(player.uniqueId());
+        discordSRV.scheduler().runOnMainThread(
+                bukkitPlayer,
+                () -> bukkitPlayer.setGameMode(discordSRV.server().getDefaultGameMode())
+        );
     }
 
     @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
@@ -240,12 +208,13 @@ public class BukkitRequiredLinkingModule extends ServerRequireLinkingModule<Bukk
         }
 
         UUID playerUUID = event.getUniqueId();
-        loginsHandled.put(playerUUID, handleFreezeLogin(playerUUID, event.getName()));
+        loginsHandled.put(playerUUID, handleFreezeLogin(playerUUID, () -> getBlockReason(playerUUID, event.getName(), false).join()));
     }
 
     @EventHandler(priority = EventPriority.MONITOR)
     public void onPlayerLogin(PlayerLoginEvent event) {
         if (event.getResult() != PlayerLoginEvent.Result.ALLOWED) {
+            // Blocked by something else, cleanup memory
             frozen.remove(event.getPlayer().getUniqueId());
         }
     }
@@ -255,14 +224,13 @@ public class BukkitRequiredLinkingModule extends ServerRequireLinkingModule<Bukk
         Player player = event.getPlayer();
         UUID playerUUID = player.getUniqueId();
 
-        Boolean unfreeze = loginsHandled.remove(playerUUID);
-        if (unfreeze == null) {
+        Consumer<IPlayer> callback = loginsHandled.remove(playerUUID);
+        if (callback == null) {
             // AsyncPlayerPreLoginEvent might never get called
-            unfreeze = handleFreezeLogin(playerUUID, player.getName());
+            callback = handleFreezeLogin(playerUUID, () -> getBlockReason(playerUUID, player.getName(), false).join());
         }
-        if (unfreeze) {
-            unfreeze(player);
-        }
+
+        callback.accept(discordSRV.playerProvider().player(player));
     }
 
     @EventHandler(priority = EventPriority.MONITOR)
@@ -281,33 +249,6 @@ public class BukkitRequiredLinkingModule extends ServerRequireLinkingModule<Bukk
         }
 
         handleBlock(srvPlayer, blockReason);
-    }
-
-    /**
-     * @return if this Player needs to be unfrozen
-     */
-    private boolean handleFreezeLogin(UUID playerUUID, String username) {
-        if (discordSRV.isShutdown()) {
-            return false;
-        } else if (!discordSRV.isReady()) {
-            try {
-                discordSRV.waitForStatus(DiscordSRV.Status.CONNECTED);
-            } catch (InterruptedException e) {
-                Thread.currentThread().interrupt();
-            }
-        }
-
-        if (!config().enabled || action() == ServerRequiredLinkingConfig.Action.KICK) {
-            return false;
-        }
-
-        Component blockReason = getBlockReason(playerUUID, username, false).join();
-        if (blockReason == null) {
-            return true;
-        }
-
-        frozen.put(playerUUID, blockReason);
-        return false;
     }
 
     @EventHandler(priority = EventPriority.LOWEST, ignoreCancelled = true)
@@ -357,38 +298,14 @@ public class BukkitRequiredLinkingModule extends ServerRequireLinkingModule<Bukk
 
     @EventHandler(priority = EventPriority.LOWEST, ignoreCancelled = true)
     public void onPlayerCommandPreprocess(PlayerCommandPreprocessEvent event) {
-        Player bukkitPlayer = event.getPlayer();
-        if (!isFrozen(bukkitPlayer)) {
+        Player player = event.getPlayer();
+        if (!isFrozen(player)) {
             return;
         }
 
         event.setCancelled(true);
 
-        String message = event.getMessage();
-        if (message.startsWith("/")) message = message.substring(1);
-        if (message.equals("discord link") || message.equals("link")) {
-            IPlayer player = discordSRV.playerProvider().player(event.getPlayer());
-
-            LinkingModule module = discordSRV.getModule(LinkingModule.class);
-            if (module == null || module.rateLimit(player.uniqueId())) {
-                player.sendMessage(discordSRV.messagesConfig(player).pleaseWaitBeforeRunningThatCommandAgain.minecraft().asComponent());
-                return;
-            }
-
-            player.sendMessage(discordSRV.messagesConfig(player).checkingLinkStatus.asComponent());
-
-            UUID playerUUID = player.uniqueId();
-            getBlockReason(playerUUID, player.username(), false).whenComplete((reason, t) -> {
-                if (t != null) {
-                    return;
-                }
-
-                if (reason == null) {
-                    unfreeze(bukkitPlayer);
-                } else {
-                    freeze(player, reason);
-                }
-            });
-        }
+        IPlayer srvPlayer = discordSRV.playerProvider().player(player);
+        checkCommand(srvPlayer, event.getMessage(), () -> getBlockReason(srvPlayer.uniqueId(), srvPlayer.username(), false));
     }
 }

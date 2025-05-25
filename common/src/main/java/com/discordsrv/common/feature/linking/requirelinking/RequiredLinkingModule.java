@@ -43,6 +43,7 @@ import com.discordsrv.common.feature.linking.requirelinking.requirement.type.Min
 import com.discordsrv.common.helper.Someone;
 import com.discordsrv.common.util.ComponentUtil;
 import net.kyori.adventure.text.Component;
+import org.jetbrains.annotations.MustBeInvokedByOverriders;
 
 import java.util.*;
 import java.util.concurrent.SynchronousQueue;
@@ -51,6 +52,8 @@ import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
 
 public abstract class RequiredLinkingModule<T extends DiscordSRV> extends AbstractModule<T> {
+
+    public static String NOT_READY_MESSAGE = "The server is still connecting to Discord, please try again in a moment";
 
     private final List<RequirementType<?>> availableRequirementTypes = new ArrayList<>();
     private final Set<UUID> storageBypass = new HashSet<>();
@@ -76,6 +79,7 @@ public abstract class RequiredLinkingModule<T extends DiscordSRV> extends Abstra
         return discordSRV.config() == null || config().enabled;
     }
 
+    @MustBeInvokedByOverriders
     @Override
     public void enable() {
         executor = new DynamicCachingThreadPoolExecutor(
@@ -86,10 +90,9 @@ public abstract class RequiredLinkingModule<T extends DiscordSRV> extends Abstra
                 new SynchronousQueue<>(),
                 new CountingThreadFactory(Scheduler.THREAD_NAME_PREFIX + "RequiredLinking #%s")
         );
-
-        super.enable();
     }
 
+    @MustBeInvokedByOverriders
     @Override
     public void disable() {
         if (executor != null) {
