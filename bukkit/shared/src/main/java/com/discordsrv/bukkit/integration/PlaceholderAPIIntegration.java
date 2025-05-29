@@ -74,7 +74,13 @@ public class PlaceholderAPIIntegration extends PluginIntegration<BukkitDiscordSR
     @Override
     public void disable() {
         if (expansion != null) {
-            discordSRV.scheduler().runOnMainThread(() -> expansion.unregister());
+            discordSRV.scheduler().runOnMainThread(() -> {
+                try {
+                    expansion.unregister();
+                } catch (NullPointerException ignored) {
+                    // If PlaceholderAPI unloads before DiscordSRV, this may be thrown
+                }
+            });
         }
     }
 
