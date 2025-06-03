@@ -202,6 +202,10 @@ public class DiscordSRVLogger implements Logger {
     }
 
     private void scheduleWrite(LogEntry entry) {
+        if (discordSRV.isShutdown()) {
+            return;
+        }
+
         linesToWrite.add(entry);
         synchronized (lineProcessingLock) {
             if (lineProcessingFuture == null || lineProcessingFuture.isDone()) {
