@@ -31,6 +31,7 @@ import com.discordsrv.common.config.main.channels.base.IChannelConfig;
 import com.discordsrv.common.config.main.generic.MentionsConfig;
 import com.discordsrv.common.core.logging.NamedLogger;
 import com.discordsrv.common.core.module.type.AbstractModule;
+import com.discordsrv.common.helper.DestinationLookupHelper;
 import com.discordsrv.common.util.ComponentUtil;
 import net.dv8tion.jda.api.entities.Member;
 import net.kyori.adventure.text.Component;
@@ -78,11 +79,11 @@ public class MentionGameRenderingModule extends AbstractModule<DiscordSRV> {
             return;
         }
 
-        List<DiscordGuildMessageChannel> channels = discordSRV.destinations()
-                .lookupDestination(((IChannelConfig) config).destination(), true, true)
+        DestinationLookupHelper.LookupResult lookupResult = discordSRV.destinations()
+                .lookupDestination(((IChannelConfig) config).destination(), false, false)
                 .join();
         Set<DiscordGuild> guilds = new LinkedHashSet<>();
-        for (DiscordGuildMessageChannel channel : channels) {
+        for (DiscordGuildMessageChannel channel : lookupResult.channels()) {
             guilds.add(channel.getGuild());
         }
 

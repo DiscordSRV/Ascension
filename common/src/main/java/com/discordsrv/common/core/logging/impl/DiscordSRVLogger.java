@@ -22,6 +22,7 @@ import com.discordsrv.common.DiscordSRV;
 import com.discordsrv.common.config.main.DebugConfig;
 import com.discordsrv.common.config.main.MainConfig;
 import com.discordsrv.common.core.logging.Logger;
+import com.discordsrv.common.exception.MessageException;
 import com.discordsrv.common.logging.LogLevel;
 import com.discordsrv.common.util.DiscordPermissionUtil;
 import net.dv8tion.jda.api.JDA;
@@ -124,10 +125,22 @@ public class DiscordSRVLogger implements Logger {
 
     @Override
     public void log(@Nullable String loggerName, @NotNull LogLevel logLevel, @Nullable String message, @Nullable Throwable throwable) {
-        if (throwable != null && throwable.getMessage() != null
-                && (throwable.getStackTrace() == null || throwable.getStackTrace().length == 0)) {
+        StringBuilder stringBuilder = new StringBuilder(message != null ? message : "");
+
+        if (throwable != null && throwable.getMessage() != null && throwable instanceof MessageException) {
             // Empty stack trace
-            message = (message != null ? message + ": " : "") + throwable.getMessage();
+            if (stringBuilder.length() > 0) {
+                stringBuilder.append(": ");
+            }
+            stringBuilder.append(throwable.getMessage());
+
+            for (Throwable suppressed : throwable.getSuppressed()) {
+                stringBuilder.append("\n\t- ").append(
+                        suppressed instanceof MessageException
+                        ? suppressed.getMessage()
+                        : ExceptionUtils.getStackTrace(suppressed)
+                );
+            }
             throwable = null;
         }
         if (throwable instanceof InsufficientPermissionException) {
@@ -139,17 +152,17 @@ public class DiscordSRVLogger implements Logger {
             Guild guild = jda != null ? exception.getGuild(jda) : null;
 
             String msg = DiscordPermissionUtil.createErrorMessage(guildChannel, guild, EnumSet.of(permission));
-            if (message == null) {
-                message = msg;
-            } else {
-                message += ": " + msg;
+            if (stringBuilder.length() > 0) {
+                stringBuilder.append(": ");
             }
-            doLog(loggerName, logLevel, message, null);
+            stringBuilder.append(msg);
+
+            doLog(loggerName, logLevel, stringBuilder.toString(), null);
             doLog(loggerName, LogLevel.DEBUG, null, throwable);
             return;
         }
 
-        doLog(loggerName, logLevel, message, throwable);
+        doLog(loggerName, logLevel, stringBuilder.toString(), throwable);
     }
 
     private void doLog(String loggerName, LogLevel logLevel, String message, Throwable throwable) {

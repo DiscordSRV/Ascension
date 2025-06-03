@@ -22,7 +22,6 @@ import com.discordsrv.api.channel.GameChannel;
 import com.discordsrv.api.discord.connection.jda.errorresponse.ErrorCallbackContext;
 import com.discordsrv.api.discord.entity.channel.DiscordGuildChannel;
 import com.discordsrv.api.discord.entity.channel.DiscordGuildMessageChannel;
-import com.discordsrv.api.discord.entity.channel.DiscordThreadChannel;
 import com.discordsrv.api.discord.entity.message.ReceivedDiscordMessage;
 import com.discordsrv.api.discord.entity.message.ReceivedDiscordMessageCluster;
 import com.discordsrv.api.discord.entity.message.SendableDiscordMessage;
@@ -95,6 +94,7 @@ public abstract class AbstractGameMessageModule<T extends IMessageConfig, E exte
         }
         IPlayer srvPlayer = (IPlayer) player;
 
+        logger().debug("Processing message from " + (channel != null ? GameChannel.toString(channel) : "*all* channel"));
         if (channel == null) {
             // Send to all channels due to lack of specified channel
             List<Task<Void>> futures = new ArrayList<>();
@@ -132,15 +132,20 @@ public abstract class AbstractGameMessageModule<T extends IMessageConfig, E exte
             return null;
         }
 
-        return discordSRV.destinations().lookupDestination(channelConfig.destination(), true, true).then(messageChannels -> {
-            SendableDiscordMessage.Builder format = moduleConfig.format();
-            if (format == null || format.isEmpty()) {
-                logger().debug("Message from " + player + " skipped, format is empty");
-                return Task.completed(null);
+        SendableDiscordMessage.Builder format = moduleConfig.format();
+        if (format == null || format.isEmpty()) {
+            logger().debug("Message" + (channel != null ? " from " + GameChannel.toString(channel) : "") + " skipped, format is empty");
+            return Task.completed(null);
+        }
+
+        return discordSRV.destinations().lookupDestination(channelConfig.destination(), true, false).then(result -> {
+            if (result.anyErrors()) {
+                logger().error(result.compositeError(
+                        "Failed to forward message" + (channel != null ? " from " + GameChannel.toString(channel) : "") + " to some channels"));
             }
 
             List<Task<ReceivedDiscordMessage>> messageFutures = sendMessageToChannels(
-                    moduleConfig, player, format, messageChannels, event,
+                    moduleConfig, player, format, result.channels(), event,
                     // Context
                     config, player, channel
             );
@@ -159,6 +164,7 @@ public abstract class AbstractGameMessageModule<T extends IMessageConfig, E exte
                     return;
                 }
 
+                logger().debug(messages.size() + " messages delivered");
                 postClusterToEventBus(channel, new ReceivedDiscordMessageClusterImpl(messages));
             }).whenFailed(t -> {
                 discordSRV.logger().error("Failed to publish to event bus", t);

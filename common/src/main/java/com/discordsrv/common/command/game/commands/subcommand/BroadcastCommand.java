@@ -31,12 +31,15 @@ import com.discordsrv.common.command.game.abstraction.command.GameCommandSuggest
 import com.discordsrv.common.command.game.abstraction.sender.ICommandSender;
 import com.discordsrv.common.config.main.channels.base.BaseChannelConfig;
 import com.discordsrv.common.config.main.channels.base.IChannelConfig;
+import com.discordsrv.common.helper.DestinationLookupHelper;
 import com.discordsrv.common.permission.game.Permissions;
 import com.discordsrv.common.util.ComponentUtil;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.serializer.gson.GsonComponentSerializer;
 
-import java.util.*;
+import java.util.Collections;
+import java.util.List;
+import java.util.Locale;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
@@ -101,14 +104,16 @@ public abstract class BroadcastCommand implements GameCommandExecutor, GameComma
         String channel = arguments.getString("channel");
         String content = arguments.getString("content");
 
-        Set<DiscordMessageChannel> channels = new HashSet<>();
-        Task<List<DiscordGuildMessageChannel>> future = null;
+        Task<DestinationLookupHelper.LookupResult> future = null;
         try {
             long id = Long.parseUnsignedLong(channel);
 
             DiscordMessageChannel messageChannel = discordSRV.discordAPI().getMessageChannelById(id);
-            if (messageChannel != null) {
-                channels.add(messageChannel);
+            if (messageChannel instanceof DiscordGuildMessageChannel) {
+                future = Task.completed(new DestinationLookupHelper.LookupResult(
+                        Collections.singletonList((DiscordGuildMessageChannel) messageChannel),
+                        Collections.emptyList()
+                ));
             }
         } catch (IllegalArgumentException ignored) {
             BaseChannelConfig channelConfig = discordSRV.channelConfig().resolve(channel);
@@ -119,11 +124,11 @@ public abstract class BroadcastCommand implements GameCommandExecutor, GameComma
             }
         }
 
-        if (future != null) {
-            future.whenComplete((messageChannels, t) -> doBroadcast(sender, content, channel, messageChannels));
-        } else {
-            doBroadcast(sender, content, channel, channels);
+        if (future == null) {
+            future = Task.completed(null);
         }
+
+        future.whenComplete((pair, t) -> doBroadcast(sender, content, channel, pair.channels(), pair.errors()));
     }
 
     @Override
@@ -138,8 +143,9 @@ public abstract class BroadcastCommand implements GameCommandExecutor, GameComma
                 .collect(Collectors.toList());
     }
 
-    private void doBroadcast(ICommandSender sender, String content, String channel, Collection<? extends DiscordMessageChannel> channels) {
-        if (channels == null || channels.isEmpty()) {
+    private void doBroadcast(ICommandSender sender, String content, String channel, List<DiscordGuildMessageChannel> channels, List<Throwable> errors) {
+        boolean noChannels = channels == null || channels.isEmpty();
+        if (noChannels || !errors.isEmpty()) {
             sender.sendMessage(ComponentUtil.fromAPI(
                     discordSRV.messagesConfig(sender).channelNotFound
                             .textBuilder()
@@ -147,19 +153,21 @@ public abstract class BroadcastCommand implements GameCommandExecutor, GameComma
                             .applyPlaceholderService()
                             .build()
             ));
+        }
+        if (noChannels) {
             return;
         }
 
-        SendableDiscordMessage message = getDiscordContent(content);
+        content = getContent(content);
+        SendableDiscordMessage message = SendableDiscordMessage.builder()
+                .setContent(content)
+                .toFormatter()
+                .applyPlaceholderService()
+                .build();
         for (DiscordMessageChannel messageChannel : channels) {
             messageChannel.sendMessage(message);
         }
         sender.sendMessage(discordSRV.messagesConfig(sender).broadcasted.asComponent());
-    }
-
-    public SendableDiscordMessage getDiscordContent(String content) {
-        content = getContent(content);
-        return SendableDiscordMessage.builder().setContent(content).build();
     }
 
     public abstract String getContent(String content);
@@ -171,19 +179,8 @@ public abstract class BroadcastCommand implements GameCommandExecutor, GameComma
         }
 
         @Override
-        public SendableDiscordMessage getDiscordContent(String content) {
-            return SendableDiscordMessage.builder()
-                    // Keep as is, allow newlines though
-                    .setContent(content.replace("\\n", "\n"))
-                    .toFormatter()
-                    .applyPlaceholderService()
-                    .build();
-        }
-
-        // See above
-        @Override
         public String getContent(String content) {
-            return null;
+            return content.replace("\\n", "\n");
         }
     }
 

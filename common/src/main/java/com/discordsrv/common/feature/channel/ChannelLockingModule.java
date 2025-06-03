@@ -74,9 +74,13 @@ public class ChannelLockingModule extends AbstractModule<DiscordSRV> {
             boolean isThreads = threads.archive || threads.lock;
 
             discordSRV.destinations()
-                    .lookupDestination(channelConfig.destination(), false, true)
-                    .whenComplete((destinations, t) -> {
-                        for (DiscordGuildMessageChannel destination : destinations) {
+                    .lookupDestination(channelConfig.destination(), false, false)
+                    .whenComplete((result, t) -> {
+                        if (result.anyErrors()) {
+                            logger().warning(result.compositeError("Failed to " + (unlocked ? "un" : "") + "lock some channels"));
+                        }
+
+                        for (DiscordGuildMessageChannel destination : result.channels()) {
                             if (isThreads && destination instanceof DiscordThreadChannel) {
                                 ThreadChannelManager manager = ((DiscordThreadChannel) destination).asJDA().getManager();
                                 if (threads.archive) {

@@ -55,4 +55,8 @@ public class Timeout {
         }
         return false;
     }
+
+    public void reset() {
+        last.set(0);
+    }
 }

@@ -162,10 +162,14 @@ public class DiscordMessageMirroringModule extends AbstractModule<DiscordSRV> {
             }
 
             futures.add(
-                    discordSRV.destinations().lookupDestination(channelConfig.destination(), true, true)
-                            .thenApply(messageChannels -> {
+                    discordSRV.destinations().lookupDestination(channelConfig.destination(), true, false)
+                            .thenApply(lookupResult -> {
+                                if (lookupResult.anyErrors()) {
+                                    logger().warning(lookupResult.compositeError("Failed to mirror message to some channels"));
+                                }
+
                                 List<MirrorTarget> targets = new ArrayList<>();
-                                for (DiscordGuildMessageChannel messageChannel : messageChannels) {
+                                for (DiscordGuildMessageChannel messageChannel : lookupResult.channels()) {
                                     targets.add(new MirrorTarget(messageChannel, config));
                                 }
                                 return new MirrorOperation(message, config, targets);
