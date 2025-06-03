@@ -201,8 +201,9 @@ public class DiscordSRVLogger implements Logger {
         scheduleWrite(new LogEntry(debugLog, loggerName, time, logLevel, message, throwable));
     }
 
+    @SuppressWarnings("resource")
     private void scheduleWrite(LogEntry entry) {
-        if (discordSRV.isShutdown()) {
+        if (discordSRV.scheduler().scheduledExecutorService().isShutdown()) {
             return;
         }
 
