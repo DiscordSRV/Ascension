@@ -24,6 +24,7 @@ import com.discordsrv.api.events.message.receive.game.JoinMessageReceiveEvent;
 import com.discordsrv.common.config.configurate.annotation.Constants;
 import com.discordsrv.common.config.configurate.annotation.Untranslated;
 import com.discordsrv.common.config.configurate.manager.abstraction.ConfigurateConfigManager;
+import com.discordsrv.common.config.documentation.DocumentationURLs;
 import com.discordsrv.common.config.main.generic.IMessageConfig;
 import org.jetbrains.annotations.Nullable;
 import org.spongepowered.configurate.objectmapping.ConfigSerializable;
@@ -39,6 +40,17 @@ public class JoinMessageConfig implements IMessageConfig {
 
     public Boolean enabled = true;
 
+    @Comment("Suggested placeholders:\n"
+            + "%message% - The join message (this may not always be available)\n"
+            + "%player_prefix% - The player's prefix (LuckPerms meta \"discordsrv_prefix\", otherwise their in-game prefix)\n"
+            + "%player_meta_prefix% - The player's prefix from the LuckPerms meta \"discordsrv_prefix\" only\n"
+            + "%player_suffix% - The player's suffix (LuckPerms meta \"discordsrv_suffix\", otherwise their in-game suffix)\n"
+            + "%player_meta_suffix% - The player's suffix from the LuckPerms meta \"discordsrv_suffix\" only\n"
+            + "%player_display_name% - The player's display name\n"
+            + "%player_name% - The player's username\n"
+            + "%player_avatar_url% - The player's avatar url based on the \"avatar-provider\" configuration\n"
+            + "More placeholders at %1 (Player)")
+    @Constants.Comment(DocumentationURLs.PLACEHOLDERS)
     @Untranslated(Untranslated.Type.VALUE)
     public SendableDiscordMessage.Builder format = SendableDiscordMessage.builder()
             .addEmbed(

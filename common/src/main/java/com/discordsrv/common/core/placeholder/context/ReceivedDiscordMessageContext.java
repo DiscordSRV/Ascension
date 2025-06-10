@@ -83,6 +83,7 @@ public class ReceivedDiscordMessageContext {
             components.add(ComponentUtil.fromAPI(
                     discordSRV.componentFactory().textBuilder(attachmentFormat)
                             .applyPlaceholderService()
+                            .addContext(message)
                             .addPlaceholder("file_name", attachment.fileName())
                             .addPlaceholder("file_url", attachment.url())
                             .build()

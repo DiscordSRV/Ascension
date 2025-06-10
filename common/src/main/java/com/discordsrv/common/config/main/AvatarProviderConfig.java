@@ -45,6 +45,7 @@ public class AvatarProviderConfig {
             + "%player_uuid% - Full UUID for the player\n"
             + "%player_uuid_short% - The UUID for the player without dashes\n"
             + "%player_name% - The player's username\n"
+            + "\n"
             + "More placeholders at %1")
     @Constants.Comment(DocumentationURLs.PLACEHOLDERS)
     public Services services = new Services();

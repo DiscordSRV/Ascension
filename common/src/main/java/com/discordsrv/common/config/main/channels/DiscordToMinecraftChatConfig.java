@@ -42,6 +42,7 @@ public class DiscordToMinecraftChatConfig {
 
     @Comment("The Discord to Minecraft message format for regular users and bots\n"
             + "Suggested placeholders:\n"
+            + "%message% - The content of the Discord message after %4 are applied\n"
             + "%user_effective_server_name% - The Discord user's name as seen in the server the message was sent in\n"
             + "%user_effective_name% - The Discord user's name as seen in direct messages\n"
             + "%user_name% - The Discord user's username (the one below their display name when you click in their profile)\n"
@@ -49,8 +50,8 @@ public class DiscordToMinecraftChatConfig {
             + "%user_roles% - The Discord user's roles\n"
             + "%message_reply% - The value from %2 if the Discord message is in reply to another message\n"
             + "%message_attachments% - The value from %3 for each attachment the Discord message\n"
-            + "%message% - The content of the Discord message after %4 are applied\n"
-            + "More placeholders at %1")
+            + "\n"
+            + "More placeholders at %1 (User, User (Server Member), Server, Channel, GameChannel)")
     @Constants.Comment({
             DocumentationURLs.PLACEHOLDERS,
             "reply-format",
@@ -62,10 +63,18 @@ public class DiscordToMinecraftChatConfig {
             + "[insert:@%user_tag%]%user_color%%user_effective_server_name%[color][insert]"
             + "[hover]%message_reply% » %message%%message_attachments%";
 
-    @Comment("The Discord to Minecraft message format for webhook messages (if enabled)")
+    @Comment("The Discord to Minecraft message format for webhook messages (if enabled)\n"
+            + "The same placeholders as the regular \"%1\" are available, apart from User (Server Member) placeholders")
+    @Constants.Comment("format")
     public String webhookFormat = "[[color:#5865F2]Discord[color]] [hover:show_text:Bot message]%user_effective_name%[hover] » %message%%message_attachments%";
 
-    @Comment("Format for a single attachment in the %message_attachments% placeholder")
+    @Comment("Format for a single attachment in the %message_attachments% placeholder\n"
+            + "Placeholders:\n"
+            + "%file_name% - The name of the attachment file\n"
+            + "%file_url% - The link to the attachment file\n"
+            + "\n"
+            + "More placeholders at %1 (User, User (Server Member), Server, Channel, GameChannel)")
+    @Constants.Comment(DocumentationURLs.PLACEHOLDERS)
     public String attachmentFormat = " [hover:show_text:Open %file_name% in browser][click:open_url:%file_url%][color:green][[color:white]%file_name%[color:green]][color][click][hover]";
 
     @Comment("Format for the %message_reply% placeholder, when the message is a reply to another message")

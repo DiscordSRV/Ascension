@@ -18,7 +18,9 @@
 
 package com.discordsrv.common.config.main.channels;
 
+import com.discordsrv.common.config.configurate.annotation.Constants;
 import com.discordsrv.common.config.configurate.manager.abstraction.ConfigurateConfigManager;
+import com.discordsrv.common.config.documentation.DocumentationURLs;
 import com.discordsrv.common.config.main.generic.DiscordIgnoresConfig;
 import org.spongepowered.configurate.objectmapping.ConfigSerializable;
 import org.spongepowered.configurate.objectmapping.meta.Comment;
@@ -38,12 +40,25 @@ public class MirroringConfig {
 
     @Comment("The format of the username of mirrored messages\n"
             + "It's recommended to include some special character if in-game messages use webhooks,\n"
-            + "in order to prevent Discord users and in-game players with the same name being grouped together")
+            + "in order to prevent Discord users and in-game players with the same name being grouped together\n"
+            + "\n"
+            + "Suggested placeholders:\n"
+            + "%user_effective_server_name% - The name of the Discord user in the server\n"
+            + "%user_effective_name% - The name of the Discord user globally\n"
+            + "\n"
+            + "More placeholders at %1 (Message, User, User (Server Member))\n"
+            + "User (Server Member) placeholders are not available for webhook messages")
+    @Constants.Comment(DocumentationURLs.PLACEHOLDERS)
     public String usernameFormat = "%user_effective_server_name|user_effective_name% \uD83D\uDD03";
 
     @Comment("The format when a message is a reply.\n"
-            + "%message% will be replaced with the message content\n"
-            + "%message_jump_url% will be replaced with the url to the replied message in the channel the message is sent in")
+            + "Suggested placeholders:\n"
+            + "%message% - the formatted message content\n"
+            + "%message_jump_url% - the message link\n"
+            + "\n"
+            + "More placeholders at %1 (Message, User, User (Server Member))\n"
+            + "User (Server Member) placeholders are not available for webhook messages")
+    @Constants.Comment(DocumentationURLs.PLACEHOLDERS)
     public String replyFormat = "[In reply to %user_effective_server_name|user_effective_name%](%message_jump_url%)\n%message%";
 
     @Comment("Attachment related options")

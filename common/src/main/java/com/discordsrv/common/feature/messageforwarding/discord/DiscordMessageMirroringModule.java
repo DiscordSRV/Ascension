@@ -391,7 +391,7 @@ public class DiscordMessageMirroringModule extends AbstractModule<DiscordSRV> {
     ) {
         DiscordGuildMember member = message.getMember();
         DiscordUser user = message.getAuthor();
-        String username = discordSRV.placeholderService().replacePlaceholders(config.usernameFormat, member, user);
+        String username = discordSRV.placeholderService().replacePlaceholders(config.usernameFormat, member, user, message);
         if (username.length() > 32) {
             username = username.substring(0, 32);
         }
@@ -423,6 +423,7 @@ public class DiscordMessageMirroringModule extends AbstractModule<DiscordSRV> {
                     () -> discordSRV.placeholderService()
                             .replacePlaceholders(
                                     config.replyFormat,
+                                    replyMessage,
                                     replyMessage.getMember(),
                                     replyMessage.getAuthor(),
                                     new SinglePlaceholder("message_jump_url", jumpUrl),
