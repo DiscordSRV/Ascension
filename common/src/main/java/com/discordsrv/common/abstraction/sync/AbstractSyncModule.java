@@ -260,6 +260,10 @@ public abstract class AbstractSyncModule<
         });
     }
 
+    protected boolean isApplicableForProactiveSync(C config) {
+        return true;
+    }
+
     protected Task<SyncSummary<C>> discordChanged(ISyncCause cause, Someone someone, D discordId, @Nullable S newState) {
         List<C> gameConfigs = configsForDiscord.get(discordId);
         if (gameConfigs == null) {
@@ -273,6 +277,10 @@ public abstract class AbstractSyncModule<
 
             SyncSummary<C> summary = new SyncSummary<>(this, cause, resolved);
             for (C config : gameConfigs) {
+                if (!isApplicableForProactiveSync(config)) {
+                    continue;
+                }
+
                 SyncDirection direction = config.direction;
                 if (direction == SyncDirection.MINECRAFT_TO_DISCORD) {
                     // Not going Discord -> Minecraft
@@ -321,6 +329,10 @@ public abstract class AbstractSyncModule<
 
             SyncSummary<C> summary = new SyncSummary<>(this, cause, resolved);
             for (C config : discordConfigs) {
+                if (!isApplicableForProactiveSync(config)) {
+                    continue;
+                }
+
                 SyncDirection direction = config.direction;
                 if (direction == SyncDirection.DISCORD_TO_MINECRAFT) {
                     // Not going Minecraft -> Discord

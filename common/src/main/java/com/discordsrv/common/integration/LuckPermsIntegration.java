@@ -276,6 +276,21 @@ public class LuckPermsIntegration extends PluginIntegration<DiscordSRV> implemen
         } else {
             module.groupAdded(uuid, groupName, contexts, cause);
         }
+
+        Group group = luckPerms.getGroupManager().getGroup(groupName);
+        if (group == null) {
+            return;
+        }
+
+        Collection<Group> groups = group.getInheritedGroups(QueryOptions.nonContextual());
+
+        Set<String> allGroupNames = new LinkedHashSet<>();
+        allGroupNames.add(group.getName());
+        for (Group inheritedGroup : groups) {
+            allGroupNames.add(inheritedGroup.getName());
+        }
+
+        module.groupsMaybeChanged(uuid, allGroupNames, cause);
     }
 
     @Override

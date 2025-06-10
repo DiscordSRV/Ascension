@@ -146,6 +146,20 @@ public class GroupSyncModule extends AbstractSyncModule<DiscordSRV, GroupSyncCon
         groupChanged(player, groupName, contexts, cause, false);
     }
 
+    public void groupsMaybeChanged(UUID player, Set<String> groupNames, GroupSyncCause cause) {
+        Set<GroupSyncConfig.Entry> entries = new LinkedHashSet<>();
+        for (GroupSyncConfig.Entry config : configs()) {
+            if (!config.includeInherited()) {
+                continue;
+            }
+
+            if (groupNames.stream().anyMatch(config.groupName::equals)) {
+                entries.add(config);
+            }
+        }
+        resync(cause, Someone.of(discordSRV, player), entries);
+    }
+
     private void roleChanged(long userId, long roleId, boolean newState) {
         if (checkExpectation(expectedDiscordChanges, userId, roleId, newState)) {
             return;
@@ -178,6 +192,11 @@ public class GroupSyncModule extends AbstractSyncModule<DiscordSRV, GroupSyncCon
         }
 
         gameChanged(cause, Someone.of(discordSRV, playerUUID), GroupSyncConfig.Entry.makeGameId(groupName, contexts), state);
+    }
+
+    @Override
+    protected boolean isApplicableForProactiveSync(GroupSyncConfig.Entry config) {
+        return !config.includeInherited();
     }
 
     private PermissionModule.Groups getPermissionProvider() {
