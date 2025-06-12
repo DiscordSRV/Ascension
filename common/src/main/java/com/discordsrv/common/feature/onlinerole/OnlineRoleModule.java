@@ -34,7 +34,6 @@ import com.discordsrv.common.abstraction.sync.SyncFail;
 import com.discordsrv.common.abstraction.sync.result.GenericSyncResults;
 import com.discordsrv.common.abstraction.sync.result.ISyncResult;
 import com.discordsrv.common.config.main.OnlineRoleConfig;
-import com.discordsrv.common.events.player.PlayerChangedWorldEvent;
 import com.discordsrv.common.events.player.PlayerConnectedEvent;
 import com.discordsrv.common.events.player.PlayerDisconnectedEvent;
 import com.discordsrv.common.feature.groupsync.DiscordPermissionResult;
@@ -168,11 +167,6 @@ public class OnlineRoleModule extends AbstractSyncModule<DiscordSRV, OnlineRoleC
     @Override
     public void onPlayerConnected(PlayerConnectedEvent event) {
         resyncAll(OnlineRoleCause.PLAYER_JOINED_SERVER, Someone.of(discordSRV, event.player().uniqueId()));
-    }
-
-    @Subscribe
-    public void onPlayerChangeWorld(PlayerChangedWorldEvent event) {
-        resyncAll(OnlineRoleCause.PLAYER_CHANGED_WORLD, Someone.of(discordSRV, event.player().uniqueId()));
     }
 
     @Subscribe
