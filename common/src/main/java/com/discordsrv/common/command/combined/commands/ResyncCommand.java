@@ -142,6 +142,11 @@ public class ResyncCommand extends CombinedCommand {
             return;
         }
 
+        if (module.disabledOnAllConfigs(config -> config.tieBreakers.resyncCommand)) {
+            execution.send(new Text("Command disabled for this sync type").withGameColor(NamedTextColor.RED));
+            return;
+        }
+
         if (execution instanceof GameCommandExecution) {
             // Acknowledge for in-game runs
             execution.send(new Text("Synchronizing online players").withGameColor(NamedTextColor.GRAY));
@@ -203,7 +208,7 @@ public class ResyncCommand extends CombinedCommand {
     private List<Task<? extends SyncSummary<?>>> resyncOnlinePlayers(AbstractSyncModule<?, ?, ?, ?, ?> module) {
         List<Task<? extends SyncSummary<?>>> summaries = new ArrayList<>();
         for (IPlayer player : discordSRV.playerProvider().allPlayers()) {
-            summaries.add(module.resyncAll(GenericSyncCauses.COMMAND, Someone.of(discordSRV, player)));
+            summaries.add(module.resyncAll(GenericSyncCauses.COMMAND, Someone.of(discordSRV, player), config -> config.tieBreakers.resyncCommand));
         }
         return summaries;
     }

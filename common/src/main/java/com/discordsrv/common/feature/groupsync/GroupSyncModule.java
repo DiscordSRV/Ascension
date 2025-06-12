@@ -28,6 +28,7 @@ import com.discordsrv.api.task.Task;
 import com.discordsrv.common.DiscordSRV;
 import com.discordsrv.common.abstraction.sync.AbstractSyncModule;
 import com.discordsrv.common.abstraction.sync.SyncFail;
+import com.discordsrv.common.abstraction.sync.enums.SyncSide;
 import com.discordsrv.common.abstraction.sync.result.GenericSyncResults;
 import com.discordsrv.common.abstraction.sync.result.ISyncResult;
 import com.discordsrv.common.config.main.GroupSyncConfig;
@@ -105,12 +106,10 @@ public class GroupSyncModule extends AbstractSyncModule<DiscordSRV, GroupSyncCon
 
         for (GroupSyncConfig.Entry sync : syncs) {
             builder.append("\n- ").append(sync)
-                    .append(" (tie-breaker: ").append(sync.tieBreaker)
+                    .append(" (tie-breakers: ").append(sync.tieBreakers)
+                    .append(", timer: ").append(sync.timer)
                     .append(", direction: ").append(sync.direction)
                     .append(", context: ").append(sync.contexts).append(")");
-            if (sync.timer != null && sync.timer.enabled) {
-                builder.append(" [On timer]");
-            }
         }
 
         PermissionModule.Groups groups = getPermissionProvider();
@@ -157,7 +156,7 @@ public class GroupSyncModule extends AbstractSyncModule<DiscordSRV, GroupSyncCon
                 entries.add(config);
             }
         }
-        resync(cause, Someone.of(discordSRV, player), entries);
+        resync(cause, Someone.of(discordSRV, player), __ -> SyncSide.MINECRAFT, entries);
     }
 
     private void roleChanged(long userId, long roleId, boolean newState) {

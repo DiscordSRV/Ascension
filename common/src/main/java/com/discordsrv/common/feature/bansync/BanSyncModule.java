@@ -21,7 +21,6 @@ package com.discordsrv.common.feature.bansync;
 import com.discordsrv.api.component.MinecraftComponent;
 import com.discordsrv.api.discord.connection.details.DiscordGatewayIntent;
 import com.discordsrv.api.eventbus.Subscribe;
-import com.discordsrv.api.events.linking.AccountLinkedEvent;
 import com.discordsrv.api.module.type.PunishmentModule;
 import com.discordsrv.api.punishment.Punishment;
 import com.discordsrv.api.task.Task;
@@ -194,14 +193,6 @@ public class BanSyncModule extends AbstractSyncModule<DiscordSRV, BanSyncConfig,
             ));
         } else {
             upsertEvent(guildId, bannedUserId, false).applyPunishment(null);
-        }
-    }
-
-    @Subscribe
-    public void onAccountLinked(AccountLinkedEvent event) {
-        BanSyncConfig config = discordSRV.config().banSync;
-        if (config.resyncUponLinking) {
-            resyncAll(GenericSyncCauses.LINK, Someone.of(discordSRV, event.getPlayerUUID(), event.getUserId()));
         }
     }
 

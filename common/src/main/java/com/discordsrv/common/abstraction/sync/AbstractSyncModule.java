@@ -19,6 +19,7 @@
 package com.discordsrv.common.abstraction.sync;
 
 import com.discordsrv.api.eventbus.Subscribe;
+import com.discordsrv.api.events.linking.AccountLinkedEvent;
 import com.discordsrv.api.reload.ReloadResult;
 import com.discordsrv.api.task.Task;
 import com.discordsrv.common.DiscordSRV;
@@ -42,6 +43,7 @@ import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.Future;
 import java.util.function.Consumer;
+import java.util.function.Function;
 
 /**
  * Abstraction for synchronization between Minecraft and Discord.
@@ -157,7 +159,7 @@ public abstract class AbstractSyncModule<
                 }
 
                 AbstractSyncConfig.TimerConfig timer = config.timer;
-                if (timer != null && timer.enabled) {
+                if (timer != null && timer.side != SyncSide.DISABLED) {
                     timerIntervals.computeIfAbsent(timer.cycleTime, key -> new LinkedHashSet<>()).add(config);
                 }
 
@@ -184,13 +186,18 @@ public abstract class AbstractSyncModule<
 
     private void resyncTimer(Set<C> configs) {
         for (IPlayer player : discordSRV.playerProvider().allPlayers()) {
-            resync(GenericSyncCauses.TIMER, Someone.of(discordSRV, player.uniqueId()), configs);
+            resync(GenericSyncCauses.TIMER, Someone.of(discordSRV, player.uniqueId()), config -> config.timer.side, configs);
         }
     }
 
     @Subscribe
     public void onPlayerConnected(PlayerConnectedEvent event) {
-        resyncAll(GenericSyncCauses.GAME_JOIN, Someone.of(discordSRV, event.player()));
+        resyncAll(GenericSyncCauses.GAME_JOIN, Someone.of(discordSRV, event.player()), config -> config.tieBreakers.join);
+    }
+
+    @Subscribe
+    public void onAccountLinked(AccountLinkedEvent event) {
+        resyncAll(GenericSyncCauses.LINK, Someone.of(discordSRV, event.getPlayerUUID()), config -> config.tieBreakers.link);
     }
 
     /**
@@ -368,20 +375,38 @@ public abstract class AbstractSyncModule<
         });
     }
 
-    public Task<SyncSummary<C>> resyncAll(ISyncCause cause, Someone someone) {
-        return resync(cause, someone, syncs);
+    public boolean disabledOnAllConfigs(Function<C, SyncSide> sideDecider) {
+        for (C config : configs()) {
+            SyncSide side = sideDecider.apply(config);
+            if (side != SyncSide.DISABLED) {
+                return false;
+            }
+        }
+        return true;
     }
 
-    public Task<SyncSummary<C>> resync(ISyncCause cause, Someone someone, Set<C> configs) {
+    public Task<SyncSummary<C>> resyncAll(ISyncCause cause, Someone someone, Function<C, SyncSide> sideDecider) {
+        return resync(cause, someone, sideDecider, syncs);
+    }
+
+    public Task<SyncSummary<C>> resync(ISyncCause cause, Someone someone, Function<C, SyncSide> sideDecider, Set<C> configs) {
+        if (disabledOnAllConfigs(sideDecider)) {
+            return Task.completed(new SyncSummary<>(this, cause, someone).fail(GenericSyncResults.SIDE_DISABLED));
+        }
+
         return someone.resolve().thenApply(resolved -> {
             if (resolved == null) {
                 return new SyncSummary<>(this, cause, someone).fail(GenericSyncResults.NOT_LINKED);
             }
 
             SyncSummary<C> summary = new SyncSummary<>(this, cause, resolved);
-
             for (C config : configs) {
-                summary.appendResult(config, resync(config, resolved));
+                SyncSide side = sideDecider.apply(config);
+                if (side == SyncSide.DISABLED) {
+                    continue;
+                }
+
+                summary.appendResult(config, resync(config, resolved, side));
             }
             return summary;
         }).whenComplete((summary, t) -> {
@@ -391,7 +416,7 @@ public abstract class AbstractSyncModule<
         });
     }
 
-    private Task<ISyncResult> resync(C config, Someone.Resolved resolved) {
+    private Task<ISyncResult> resync(C config, Someone.Resolved resolved, SyncSide side) {
         Task<S> gameGet = getGame(config, resolved);
         Task<S> discordGet = getDiscord(config, resolved);
 
@@ -407,7 +432,6 @@ public abstract class AbstractSyncModule<
                 return Task.completed(alreadyInSyncResult);
             }
 
-            SyncSide side = config.tieBreaker;
             SyncDirection direction = config.direction;
             if (side == SyncSide.DISCORD) {
                 if (direction == SyncDirection.MINECRAFT_TO_DISCORD) {

@@ -19,6 +19,7 @@
 package com.discordsrv.common.config.main;
 
 import com.discordsrv.common.abstraction.sync.enums.SyncDirection;
+import com.discordsrv.common.abstraction.sync.enums.SyncSide;
 import com.discordsrv.common.config.main.generic.AbstractSyncConfig;
 import com.discordsrv.common.util.Game;
 import org.spongepowered.configurate.objectmapping.meta.Comment;
@@ -31,7 +32,7 @@ public class NicknameSyncConfig extends AbstractSyncConfig<NicknameSyncConfig, G
 
     public NicknameSyncConfig() {
         // Change defaults
-        timer.enabled = false;
+        timer.side = SyncSide.DISABLED;
         direction = SyncDirection.MINECRAFT_TO_DISCORD;
     }
 

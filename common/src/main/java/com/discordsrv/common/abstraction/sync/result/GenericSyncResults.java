@@ -30,6 +30,7 @@ public enum GenericSyncResults implements ISyncResult {
     BOTH_TRUE("Both true"),
     BOTH_FALSE("Both false"),
     WRONG_DIRECTION("Wrong direction"),
+    SIDE_DISABLED("Disabled"),
 
     // Fail
     NOT_LINKED("Accounts not linked"),

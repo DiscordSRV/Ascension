@@ -21,6 +21,7 @@ package com.discordsrv.common.abstraction.sync.enums;
 public enum SyncSide {
 
     MINECRAFT,
-    DISCORD
+    DISCORD,
+    DISABLED
 
 }

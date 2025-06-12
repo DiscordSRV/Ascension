@@ -31,6 +31,7 @@ import com.discordsrv.common.DiscordSRV;
 import com.discordsrv.common.abstraction.player.IPlayer;
 import com.discordsrv.common.abstraction.sync.AbstractSyncModule;
 import com.discordsrv.common.abstraction.sync.SyncFail;
+import com.discordsrv.common.abstraction.sync.enums.SyncSide;
 import com.discordsrv.common.abstraction.sync.result.GenericSyncResults;
 import com.discordsrv.common.abstraction.sync.result.ISyncResult;
 import com.discordsrv.common.config.main.OnlineRoleConfig;
@@ -57,7 +58,7 @@ import java.util.stream.Collectors;
 /**
  * The long is the user ID of the Discord user, the boolean is if they meet the condition in Minecraft.
  */
-public class OnlineRoleModule extends AbstractSyncModule<DiscordSRV, OnlineRoleConfig, Game, Long, Boolean> {
+public class OnlineRoleModule extends AbstractSyncModule<DiscordSRV, OnlineRoleConfig.SyncConfig, Game, Long, Boolean> {
 
     public OnlineRoleModule(DiscordSRV discordSRV) {
         super(discordSRV, "ONLINE_ROLE");
@@ -84,8 +85,8 @@ public class OnlineRoleModule extends AbstractSyncModule<DiscordSRV, OnlineRoleC
     }
 
     @Override
-    protected List<OnlineRoleConfig> configs() {
-        return Collections.singletonList(discordSRV.config().onlineRole);
+    protected List<OnlineRoleConfig.SyncConfig> configs() {
+        return Collections.singletonList(discordSRV.config().onlineRole.syncConfig());
     }
 
     @Override
@@ -97,7 +98,7 @@ public class OnlineRoleModule extends AbstractSyncModule<DiscordSRV, OnlineRoleC
     }
 
     @Override
-    protected Task<Boolean> getDiscord(OnlineRoleConfig config, Someone.Resolved someone) {
+    protected Task<Boolean> getDiscord(OnlineRoleConfig.SyncConfig config, Someone.Resolved someone) {
         DiscordRole role = discordSRV.discordAPI().getRoleById(config.roleId);
         if (role == null) {
             return Task.failed(new SyncFail(OnlineRoleResult.ROLE_DOESNT_EXIST));
@@ -119,13 +120,13 @@ public class OnlineRoleModule extends AbstractSyncModule<DiscordSRV, OnlineRoleC
     }
 
     @Override
-    protected Task<Boolean> getGame(OnlineRoleConfig config, Someone.Resolved someone) {
+    protected Task<Boolean> getGame(OnlineRoleConfig.SyncConfig config, Someone.Resolved someone) {
         DiscordSRVPlayer player = discordSRV.playerProvider().player(someone.playerUUID());
         return Task.completed(!discordSRV.isShutdown() && player != null);
     }
 
     @Override
-    protected Task<ISyncResult> applyDiscord(OnlineRoleConfig config, Someone.Resolved someone, @Nullable Boolean newState) {
+    protected Task<ISyncResult> applyDiscord(OnlineRoleConfig.SyncConfig config, Someone.Resolved someone, @Nullable Boolean newState) {
         DiscordRole role = discordSRV.discordAPI().getRoleById(config.roleId);
         if (role == null) {
             return Task.completed(OnlineRoleResult.ROLE_DOESNT_EXIST);
@@ -160,18 +161,18 @@ public class OnlineRoleModule extends AbstractSyncModule<DiscordSRV, OnlineRoleC
     }
 
     @Override
-    protected Task<ISyncResult> applyGame(OnlineRoleConfig config, Someone.Resolved someone, @Nullable Boolean newState) {
+    protected Task<ISyncResult> applyGame(OnlineRoleConfig.SyncConfig config, Someone.Resolved someone, @Nullable Boolean newState) {
         return Task.completed(GenericSyncResults.WRONG_DIRECTION);
     }
 
     @Override
     public void onPlayerConnected(PlayerConnectedEvent event) {
-        resyncAll(OnlineRoleCause.PLAYER_JOINED_SERVER, Someone.of(discordSRV, event.player().uniqueId()));
+        resyncAll(OnlineRoleCause.PLAYER_JOINED_SERVER, Someone.of(discordSRV, event.player().uniqueId()), __ -> SyncSide.MINECRAFT);
     }
 
     @Subscribe
     public void onPlayerDisconnected(PlayerDisconnectedEvent event) {
-        resyncAll(OnlineRoleCause.PLAYER_LEFT_SERVER, Someone.of(discordSRV, event.player().uniqueId()));
+        resyncAll(OnlineRoleCause.PLAYER_LEFT_SERVER, Someone.of(discordSRV, event.player().uniqueId()), __ -> SyncSide.MINECRAFT);
     }
 
     private Task<List<Void>> removeRoleFromList(List<Member> members, Role role, long timeout, TimeUnit unit) {

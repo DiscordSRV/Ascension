@@ -24,35 +24,54 @@ import com.discordsrv.common.config.main.generic.AbstractSyncConfig;
 import com.discordsrv.common.util.Game;
 import org.spongepowered.configurate.objectmapping.meta.Comment;
 
-public class OnlineRoleConfig extends AbstractSyncConfig<OnlineRoleConfig, Game, Long> {
-
-    public OnlineRoleConfig() {
-        // Overriding defaults
-        timer.enabled = false;
-        direction = SyncDirection.MINECRAFT_TO_DISCORD;
-        tieBreaker = SyncSide.MINECRAFT;
-    }
+public class OnlineRoleConfig {
 
     @Comment("The ID of the role to sync to the linked Discord users of online players")
     public long roleId;
 
-    public boolean isSet() {
-        return roleId != 0L;
+    public SyncConfig syncConfig() {
+        return new SyncConfig(roleId);
     }
 
-    public Game gameId() {
-        return Game.INSTANCE;
-    }
+    public static class SyncConfig extends AbstractSyncConfig<OnlineRoleConfig.SyncConfig, Game, Long> {
 
-    public Long discordId() {
-        return roleId;
-    }
+        public final long roleId;
 
-    public boolean isSameAs(OnlineRoleConfig otherConfig) {
-        return false;
-    }
+        public SyncConfig(long roleId) {
+            this.roleId = roleId;
 
-    public String describe() {
-        return Long.toUnsignedString(roleId);
+            // Overriding defaults
+            timer.side = SyncSide.DISABLED;
+            tieBreakers.join = SyncSide.DISABLED; // Handled separately
+
+            direction = SyncDirection.MINECRAFT_TO_DISCORD;
+            tieBreakers.link = SyncSide.MINECRAFT;
+            tieBreakers.resyncCommand = SyncSide.MINECRAFT;
+        }
+
+        @Override
+        public boolean isSet() {
+            return roleId != 0L;
+        }
+
+        @Override
+        public Game gameId() {
+            return Game.INSTANCE;
+        }
+
+        @Override
+        public Long discordId() {
+            return roleId;
+        }
+
+        @Override
+        public boolean isSameAs(OnlineRoleConfig.SyncConfig otherConfig) {
+            return false;
+        }
+
+        @Override
+        public String describe() {
+            return Long.toUnsignedString(roleId);
+        }
     }
 }

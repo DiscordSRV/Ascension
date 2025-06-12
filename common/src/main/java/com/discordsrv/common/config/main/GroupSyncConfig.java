@@ -19,7 +19,6 @@
 package com.discordsrv.common.config.main;
 
 import com.discordsrv.common.abstraction.sync.enums.SyncDirection;
-import com.discordsrv.common.abstraction.sync.enums.SyncSide;
 import com.discordsrv.common.config.configurate.annotation.Order;
 import com.discordsrv.common.config.main.generic.AbstractSyncConfig;
 import com.discordsrv.common.config.main.generic.SyncConfig;
@@ -49,7 +48,7 @@ public class GroupSyncConfig {
                         set.includeInherited,
                         set.direction,
                         set.timer,
-                        set.tieBreaker
+                        set.tieBreakers
                 ));
             }
         }
@@ -94,7 +93,7 @@ public class GroupSyncConfig {
                 boolean includeInherited,
                 SyncDirection direction,
                 TimerConfig timer,
-                SyncSide tieBreaker
+                TieBreakers tieBreakers
         ) {
             this.groupName = groupName;
             this.roleId = roleId;
@@ -102,7 +101,7 @@ public class GroupSyncConfig {
             this.includeInherited = includeInherited;
             this.direction = direction;
             this.timer = timer;
-            this.tieBreaker = tieBreaker;
+            this.tieBreakers = tieBreakers;
         }
 
         public boolean isSet() {

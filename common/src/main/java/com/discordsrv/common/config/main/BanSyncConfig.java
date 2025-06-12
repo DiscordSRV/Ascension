@@ -47,9 +47,6 @@ public class BanSyncConfig extends AbstractSyncConfig<BanSyncConfig, BanSyncModu
     @Comment("The amount of hours to delete Discord messages, when syncing bans from Minecraft to Discord")
     public int discordMessageHoursToDelete = 0;
 
-    @Comment("Resync upon linking")
-    public boolean resyncUponLinking = true;
-
     @Override
     public boolean isSet() {
         return serverId != 0;

@@ -24,8 +24,11 @@ import com.discordsrv.common.config.configurate.annotation.Constants;
 import org.spongepowered.configurate.objectmapping.ConfigSerializable;
 import org.spongepowered.configurate.objectmapping.meta.Comment;
 
+import java.util.Arrays;
+import java.util.List;
+
 @ConfigSerializable
-public class SyncConfig {
+public abstract class SyncConfig {
 
     @Comment("The direction to synchronize in.\n"
             + "Valid options: %1, %2, %3")
@@ -38,15 +41,45 @@ public class SyncConfig {
     @ConfigSerializable
     public static class TimerConfig {
 
-        @Comment("If timed synchronization is enabled")
-        public boolean enabled = true;
+        @Comment("The direction which takes priority for determining for synchronization\n"
+                + "Valid options: %1, %2, %3")
+        @Constants.Comment({"minecraft", "discord", "disabled"})
+        public SyncSide side = SyncSide.MINECRAFT;
 
         @Comment("The number of minutes between timed synchronization cycles")
         public int cycleTime = 5;
+
+        @Override
+        public String toString() {
+            return "TimerConfig{" +
+                    "side=" + side +
+                    ", cycleTime=" + cycleTime +
+                    '}';
+        }
     }
 
-    @Comment("Decides which side takes priority when using timed synchronization or the resync command and there are differences\n"
-            + "Valid options: %1, %2")
-    @Constants.Comment({"minecraft", "discord"})
-    public SyncSide tieBreaker = SyncSide.MINECRAFT;
+    @Comment("Decides which side takes priority when synchronizing and there are differences. Also allows disabling synchronization on these events\n"
+            + "Valid options: %1, %2, %3")
+    @Constants.Comment({"minecraft", "discord", "disabled"})
+    public TieBreakers tieBreakers = new TieBreakers();
+
+    public static class TieBreakers {
+
+        public SyncSide join = SyncSide.MINECRAFT;
+        public SyncSide link = SyncSide.MINECRAFT;
+        public SyncSide resyncCommand = SyncSide.MINECRAFT;
+
+        public List<SyncSide> all() {
+            return Arrays.asList(join, link, resyncCommand);
+        }
+
+        @Override
+        public String toString() {
+            return "TieBreakers{" +
+                    "join=" + join +
+                    ", link=" + link +
+                    ", resyncCommand=" + resyncCommand +
+                    '}';
+        }
+    }
 }
