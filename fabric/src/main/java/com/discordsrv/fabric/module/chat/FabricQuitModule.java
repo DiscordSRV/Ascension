@@ -56,6 +56,7 @@ public class FabricQuitModule extends AbstractFabricModule {
                         new FabricPlayer(discordSRV, player),
                         component,
                         null,
+                        false,
                         component == null,
                         false
                 )

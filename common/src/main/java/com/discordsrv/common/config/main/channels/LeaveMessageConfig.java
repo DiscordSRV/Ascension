@@ -62,6 +62,12 @@ public class LeaveMessageConfig implements IMessageConfig {
     @Constants.Comment("discordsrv.silentquit")
     public Boolean enableSilentPermission = true;
 
+    @Comment("If fake leave messages should be sent when players vanish")
+    public boolean sendFakeMessages = true;
+
+    @Comment("Send message if player is vanished")
+    public boolean sendMessageForVanishedPlayers = false;
+
     @Comment("Ignore if the player joined within the given number of milliseconds")
     @Setting("ignore-if-joined-within-ms")
     public Long ignoreIfJoinedWithinMS = 250L;

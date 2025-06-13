@@ -62,7 +62,13 @@ public class JoinMessageConfig implements IMessageConfig {
 
     @Comment("If the \"%1\" permission should determine whether join messages are sent")
     @Constants.Comment("discordsrv.silentjoin")
-    public Boolean enableSilentPermission = true;
+    public boolean enableSilentPermission = true;
+
+    @Comment("If fake join messages should be sent when players unvanish")
+    public boolean sendFakeJoinMessages = true;
+
+    @Comment("Send message if player is vanished")
+    public boolean sendMessageForVanishedPlayers = false;
 
     @Comment("Ignore if the player leaves or vanishes within the given number of milliseconds. This will delay sending the join message")
     @Setting("ignore-if-left-within-ms")

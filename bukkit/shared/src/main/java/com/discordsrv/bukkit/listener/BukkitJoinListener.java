@@ -56,6 +56,7 @@ public class BukkitJoinListener extends AbstractBukkitListener<PlayerJoinEvent> 
                         component,
                         null,
                         firstJoin,
+                        false,
                         component == null,
                         false
                 )

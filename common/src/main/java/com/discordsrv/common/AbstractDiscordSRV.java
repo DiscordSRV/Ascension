@@ -100,6 +100,7 @@ import com.discordsrv.common.core.update.UpdateChecker;
 import com.discordsrv.common.helper.ChannelConfigHelper;
 import com.discordsrv.common.helper.DestinationLookupHelper;
 import com.discordsrv.common.helper.TemporaryLocalData;
+import com.discordsrv.common.helper.VanishStatusTrackingModule;
 import com.discordsrv.common.logging.adapter.DependencyLoggerAdapter;
 import com.discordsrv.common.util.ApiInstanceUtil;
 import com.discordsrv.common.util.UUIDUtil;
@@ -749,6 +750,7 @@ public abstract class AbstractDiscordSRV<
         registerModule(LinkingRewardsModule::new);
         registerModule(StartMessageModule::new);
         registerModule(StopMessageModule::new);
+        registerModule(VanishStatusTrackingModule::new);
 
         if (serverType() == ServerType.PROXY) {
             registerModule(ServerSwitchMessageModule::new);

@@ -25,6 +25,7 @@ import com.discordsrv.api.eventbus.EventPriorities;
 import com.discordsrv.api.eventbus.Subscribe;
 import com.discordsrv.api.events.message.forward.game.JoinMessageForwardedEvent;
 import com.discordsrv.api.events.message.receive.game.JoinMessageReceiveEvent;
+import com.discordsrv.api.events.vanish.PlayerVanishStatusChangeEvent;
 import com.discordsrv.api.player.DiscordSRVPlayer;
 import com.discordsrv.api.task.Task;
 import com.discordsrv.common.DiscordSRV;
@@ -41,6 +42,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.Future;
+import java.util.function.Supplier;
 
 public class JoinMessageModule extends AbstractGameMessageModule<IMessageConfig, JoinMessageReceiveEvent> {
 
@@ -66,6 +68,25 @@ public class JoinMessageModule extends AbstractGameMessageModule<IMessageConfig,
         event.markAsProcessed();
     }
 
+    @Subscribe(priority = EventPriorities.LAST)
+    public void onPlayerVanishStatusChange(PlayerVanishStatusChangeEvent event) {
+        if (event.isNewStatus()) {
+            return;
+        }
+
+        // Player unvanished
+        discordSRV.eventBus().publish(new JoinMessageReceiveEvent(
+                event,
+                event.getPlayer(),
+                event.getFakeMessage(),
+                null,
+                false,
+                true,
+                false,
+                false
+        ));
+    }
+
     @Override
     protected Task<Void> forwardToChannel(
             @Nullable JoinMessageReceiveEvent event,
@@ -80,6 +101,25 @@ public class JoinMessageModule extends AbstractGameMessageModule<IMessageConfig,
             logger().info(player.username() + " is joining silently, join message will not be sent");
             return Task.completed(null);
         }
+        if (player != null && event != null && event.isFakeJoin()) {
+            if (!config.joinMessages().sendFakeJoinMessages) {
+                logger().debug("Not sending fake join message for " + player.username() + ", disabled in config");
+                return Task.completed(null);
+            } else {
+                logger().info(player.username() + " unvanished, sending fake join message");
+            }
+        }
+
+        Supplier<Boolean> vanishCheck = () -> {
+            if (!config.joinMessages().sendMessageForVanishedPlayers
+                    && player != null && player.isVanished()
+                    && (event == null || !event.isFakeJoin())) {
+                logger().info(player.username() + " is vanished while joining, join message will not be sent");
+                return true;
+            }
+
+            return false;
+        };
 
         long delay = config.joinMessages().ignoreIfLeftWithinMS;
         if (player != null && delay > 0) {
@@ -88,8 +128,7 @@ public class JoinMessageModule extends AbstractGameMessageModule<IMessageConfig,
             synchronized (delayedTasks) {
                 Task<Void> future = discordSRV.scheduler()
                         .supplyLater(() -> {
-                            if (player.isVanished()) {
-                                logger().info(player.username() + " is vanished while joining, join message will not be sent");
+                            if (vanishCheck.get()) {
                                 return Task.completed((Void) null);
                             }
 
@@ -103,8 +142,7 @@ public class JoinMessageModule extends AbstractGameMessageModule<IMessageConfig,
             }
         }
 
-        if (player != null && player.isVanished()) {
-            logger().info(player.username() + " is vanished while joining, join message will not be sent");
+        if (vanishCheck.get()) {
             return Task.completed(null);
         }
         return super.forwardToChannel(event, player, config, channel);

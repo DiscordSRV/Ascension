@@ -29,6 +29,12 @@ public class OnlineRoleConfig {
     @Comment("The ID of the role to sync to the linked Discord users of online players")
     public long roleId;
 
+    @Comment("How long after joining should the role be added")
+    public long delayAddingRoleByMs = 2000;
+
+    @Comment("Should the role be given to vanished players as well, when false vanished players will not have the role")
+    public boolean giveRoleToVanishedPlayers = false;
+
     public SyncConfig syncConfig() {
         return new SyncConfig(roleId);
     }

@@ -23,6 +23,7 @@ import com.discordsrv.api.discord.entity.guild.DiscordGuildMember;
 import com.discordsrv.api.discord.entity.guild.DiscordRole;
 import com.discordsrv.api.discord.exception.RestErrorResponseException;
 import com.discordsrv.api.eventbus.Subscribe;
+import com.discordsrv.api.events.vanish.PlayerVanishStatusChangeEvent;
 import com.discordsrv.api.player.DiscordSRVPlayer;
 import com.discordsrv.api.profile.Profile;
 import com.discordsrv.api.reload.ReloadResult;
@@ -31,7 +32,6 @@ import com.discordsrv.common.DiscordSRV;
 import com.discordsrv.common.abstraction.player.IPlayer;
 import com.discordsrv.common.abstraction.sync.AbstractSyncModule;
 import com.discordsrv.common.abstraction.sync.SyncFail;
-import com.discordsrv.common.abstraction.sync.enums.SyncSide;
 import com.discordsrv.common.abstraction.sync.result.GenericSyncResults;
 import com.discordsrv.common.abstraction.sync.result.ISyncResult;
 import com.discordsrv.common.config.main.OnlineRoleConfig;
@@ -50,7 +50,10 @@ import net.dv8tion.jda.api.entities.Role;
 import net.dv8tion.jda.api.requests.ErrorResponse;
 import org.jetbrains.annotations.Nullable;
 
+import java.time.Duration;
 import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
@@ -59,6 +62,8 @@ import java.util.stream.Collectors;
  * The long is the user ID of the Discord user, the boolean is if they meet the condition in Minecraft.
  */
 public class OnlineRoleModule extends AbstractSyncModule<DiscordSRV, OnlineRoleConfig.SyncConfig, Game, Long, Boolean> {
+
+    private final Map<UUID, Future<?>> roleAddFutures = new ConcurrentHashMap<>();
 
     public OnlineRoleModule(DiscordSRV discordSRV) {
         super(discordSRV, "ONLINE_ROLE");
@@ -84,9 +89,13 @@ public class OnlineRoleModule extends AbstractSyncModule<DiscordSRV, OnlineRoleC
         return "role";
     }
 
+    private OnlineRoleConfig config() {
+        return discordSRV.config().onlineRole;
+    }
+
     @Override
     protected List<OnlineRoleConfig.SyncConfig> configs() {
-        return Collections.singletonList(discordSRV.config().onlineRole.syncConfig());
+        return Collections.singletonList(config().syncConfig());
     }
 
     @Override
@@ -122,7 +131,11 @@ public class OnlineRoleModule extends AbstractSyncModule<DiscordSRV, OnlineRoleC
     @Override
     protected Task<Boolean> getGame(OnlineRoleConfig.SyncConfig config, Someone.Resolved someone) {
         DiscordSRVPlayer player = discordSRV.playerProvider().player(someone.playerUUID());
-        return Task.completed(!discordSRV.isShutdown() && player != null);
+        return Task.completed(
+                !discordSRV.isShutdown()
+                        && player != null
+                        && (config().giveRoleToVanishedPlayers || !player.isVanished())
+        );
     }
 
     @Override
@@ -141,8 +154,6 @@ public class OnlineRoleModule extends AbstractSyncModule<DiscordSRV, OnlineRoleC
         DiscordGuildMember selfMember = guild.getSelfMember();
         if (!selfMember.canInteract(role)) {
             return Task.completed(OnlineRoleResult.ROLE_CANNOT_INTERACT);
-        } else if (!selfMember.canInteract(member)) {
-            return Task.completed(GenericSyncResults.MEMBER_CANNOT_INTERACT);
         }
 
         EnumSet<Permission> missingPermissions = DiscordPermissionUtil.getMissingPermissions(guild.asJDA(), Collections.singleton(Permission.MANAGE_ROLES));
@@ -167,12 +178,50 @@ public class OnlineRoleModule extends AbstractSyncModule<DiscordSRV, OnlineRoleC
 
     @Override
     public void onPlayerConnected(PlayerConnectedEvent event) {
-        resyncAll(OnlineRoleCause.PLAYER_JOINED_SERVER, Someone.of(discordSRV, event.player().uniqueId()), __ -> SyncSide.MINECRAFT);
+        DiscordSRVPlayer player = event.player();
+        long delayMs = config().delayAddingRoleByMs;
+        if (delayMs <= 0) {
+            addRole(player);
+            return;
+        }
+
+        roleAddFutures.put(
+                player.uniqueId(),
+                discordSRV.scheduler().runLater(
+                        () -> {
+                            addRole(player);
+                            roleAddFutures.remove(player.uniqueId());
+                        },
+                        Duration.ofMillis(delayMs)
+                )
+        );
+    }
+
+    private void addRole(DiscordSRVPlayer player) {
+        if (!config().giveRoleToVanishedPlayers && player.isVanished()) {
+            return;
+        }
+
+        gameChanged(OnlineRoleCause.PLAYER_JOINED_SERVER, Someone.of(discordSRV, player), Game.INSTANCE, true);
     }
 
     @Subscribe
     public void onPlayerDisconnected(PlayerDisconnectedEvent event) {
-        resyncAll(OnlineRoleCause.PLAYER_LEFT_SERVER, Someone.of(discordSRV, event.player().uniqueId()), __ -> SyncSide.MINECRAFT);
+        Future<?> addFuture = roleAddFutures.remove(event.player().uniqueId());
+        if (addFuture != null && addFuture.cancel(false)) {
+            // Don't try to remove the role if it was never added in the first place
+            return;
+        }
+
+        gameChanged(OnlineRoleCause.PLAYER_LEFT_SERVER, Someone.of(discordSRV, event.player()), Game.INSTANCE, false);
+    }
+
+    @Subscribe
+    public void onPlayerVanishStatusChange(PlayerVanishStatusChangeEvent event) {
+        if (config().giveRoleToVanishedPlayers) {
+            return;
+        }
+        gameChanged(OnlineRoleCause.PLAYER_VANISH_STATUS_CHANGED, Someone.of(discordSRV, event.getPlayer()), Game.INSTANCE, !event.isNewStatus());
     }
 
     private Task<List<Void>> removeRoleFromList(List<Member> members, Role role, long timeout, TimeUnit unit) {
@@ -187,7 +236,7 @@ public class OnlineRoleModule extends AbstractSyncModule<DiscordSRV, OnlineRoleC
             return;
         }
 
-        Role role = jda.getRoleById(discordSRV.config().onlineRole.roleId);
+        Role role = jda.getRoleById(config().roleId);
         if (role == null) {
             return;
         }
@@ -214,7 +263,7 @@ public class OnlineRoleModule extends AbstractSyncModule<DiscordSRV, OnlineRoleC
             return;
         }
 
-        Role role = jda.getRoleById(discordSRV.config().onlineRole.roleId);
+        Role role = jda.getRoleById(config().roleId);
         if (role == null) {
             return;
         }

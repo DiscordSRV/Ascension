@@ -77,7 +77,8 @@ public abstract class BukkitPlayer extends BukkitCommandSender implements IPlaye
     public @NotNull String world() {
         return player.getWorld().getName();
     }
- 
+
+    @Override
     public boolean isVanished() {
         for (MetadataValue metadata : player.getMetadata("vanished")) {
             if (metadata.asBoolean()) {

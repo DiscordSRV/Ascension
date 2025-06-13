@@ -66,10 +66,6 @@ public class FabricPlayer extends FabricCommandSender implements IPlayer {
         return player.getWorld().getRegistryKey().getValue().getPath();
     }
 
-    public boolean isVanished() {
-        return false;
-    }
-
     @Override
     public Task<Void> kick(Component component) {
         player.networkHandler.disconnect(discordSRV.getAdventure().asNative(component));

@@ -41,15 +41,17 @@ public class LeaveMessageReceiveEvent extends AbstractGameMessageReceiveEvent im
     private final DiscordSRVPlayer player;
     private MinecraftComponent message;
     private GameChannel gameChannel;
+    private final boolean fakeLeave;
     private final boolean messageCancelled;
 
     public LeaveMessageReceiveEvent(
             @Nullable Object triggeringEvent,
             @NotNull DiscordSRVPlayer player,
             @Nullable MinecraftComponent message,
-            @Nullable GameChannel gameChannel
+            @Nullable GameChannel gameChannel,
+            boolean fakeLeave
     ) {
-        this(triggeringEvent, player, message, gameChannel, false, false);
+        this(triggeringEvent, player, message, gameChannel, fakeLeave, false, false);
     }
 
     @ApiStatus.Experimental
@@ -58,6 +60,7 @@ public class LeaveMessageReceiveEvent extends AbstractGameMessageReceiveEvent im
             @NotNull DiscordSRVPlayer player,
             @Nullable MinecraftComponent message,
             @Nullable GameChannel gameChannel,
+            boolean fakeLeave,
             boolean messageCancelled,
             boolean cancelled
     ) {
@@ -65,6 +68,7 @@ public class LeaveMessageReceiveEvent extends AbstractGameMessageReceiveEvent im
         this.player = player;
         this.message = message;
         this.gameChannel = gameChannel;
+        this.fakeLeave = fakeLeave;
         this.messageCancelled = messageCancelled;
     }
 
@@ -90,6 +94,10 @@ public class LeaveMessageReceiveEvent extends AbstractGameMessageReceiveEvent im
 
     public void setGameChannel(@Nullable GameChannel gameChannel) {
         this.gameChannel = gameChannel;
+    }
+
+    public boolean isFakeLeave() {
+        return fakeLeave;
     }
 
     @ApiStatus.Experimental

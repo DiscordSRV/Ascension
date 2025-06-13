@@ -25,6 +25,7 @@ import com.discordsrv.api.eventbus.EventPriorities;
 import com.discordsrv.api.eventbus.Subscribe;
 import com.discordsrv.api.events.message.forward.game.LeaveMessageForwardedEvent;
 import com.discordsrv.api.events.message.receive.game.LeaveMessageReceiveEvent;
+import com.discordsrv.api.events.vanish.PlayerVanishStatusChangeEvent;
 import com.discordsrv.api.player.DiscordSRVPlayer;
 import com.discordsrv.api.task.Task;
 import com.discordsrv.common.DiscordSRV;
@@ -89,6 +90,24 @@ public class LeaveMessageModule extends AbstractGameMessageModule<LeaveMessageCo
         event.markAsProcessed();
     }
 
+    @Subscribe(priority = EventPriorities.LAST)
+    public void onPlayerVanishStatusChange(PlayerVanishStatusChangeEvent event) {
+        if (!event.isNewStatus()) {
+            return;
+        }
+
+        // Player vanished
+        discordSRV.eventBus().publish(new LeaveMessageReceiveEvent(
+                event,
+                event.getPlayer(),
+                event.getFakeMessage(),
+                null,
+                true,
+                false,
+                false
+        ));
+    }
+
     @Override
     protected Task<Void> forwardToChannel(
             @Nullable LeaveMessageReceiveEvent event,
@@ -114,7 +133,17 @@ public class LeaveMessageModule extends AbstractGameMessageModule<LeaveMessageCo
             logger().info(player.username() + " is leaving silently, leave message will not be sent");
             return Task.completed(null);
         }
-        if (player != null && player.isVanished()) {
+        if (player != null && event != null && event.isFakeLeave()) {
+            if (!config.leaveMessages.sendFakeMessages) {
+                logger().debug("Not sending fake leave message for " + player.username() + ", disabled in config");
+                return Task.completed(null);
+            } else {
+                logger().info(player.username() + " vanished, sending fake leave message");
+            }
+        }
+        if (!config.leaveMessages.sendMessageForVanishedPlayers
+                && player != null && player.isVanished()
+                && (event == null || !event.isFakeLeave())) {
             logger().info(player.username() + " left while vanished, leave message will not be sent");
             return Task.completed(null);
         }

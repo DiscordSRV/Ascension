@@ -41,6 +41,7 @@ public class JoinMessageReceiveEvent extends AbstractGameMessageReceiveEvent imp
     private final DiscordSRVPlayer player;
     private MinecraftComponent message;
     private GameChannel gameChannel;
+    private final boolean fakeJoin;
     private final boolean firstJoin;
     private final boolean messageCancelled;
 
@@ -49,9 +50,10 @@ public class JoinMessageReceiveEvent extends AbstractGameMessageReceiveEvent imp
             @NotNull DiscordSRVPlayer player,
             @Nullable MinecraftComponent message,
             @Nullable GameChannel gameChannel,
+            boolean fakeJoin,
             boolean firstJoin
     ) {
-        this(triggeringEvent, player, message, gameChannel, firstJoin, false, false);
+        this(triggeringEvent, player, message, gameChannel, firstJoin, fakeJoin, false, false);
     }
 
     @ApiStatus.Experimental
@@ -61,6 +63,7 @@ public class JoinMessageReceiveEvent extends AbstractGameMessageReceiveEvent imp
             @Nullable MinecraftComponent message,
             @Nullable GameChannel gameChannel,
             boolean firstJoin,
+            boolean fakeJoin,
             boolean messageCancelled,
             boolean cancelled
     ) {
@@ -69,6 +72,7 @@ public class JoinMessageReceiveEvent extends AbstractGameMessageReceiveEvent imp
         this.message = message;
         this.gameChannel = gameChannel;
         this.firstJoin = firstJoin;
+        this.fakeJoin = fakeJoin;
         this.messageCancelled = messageCancelled;
     }
 
@@ -94,6 +98,10 @@ public class JoinMessageReceiveEvent extends AbstractGameMessageReceiveEvent imp
 
     public void setGameChannel(@Nullable GameChannel gameChannel) {
         this.gameChannel = gameChannel;
+    }
+
+    public boolean isFakeJoin() {
+        return fakeJoin;
     }
 
     public boolean isFirstJoin() {

@@ -57,6 +57,7 @@ public class PaperJoinListener extends AbstractBukkitListener<PlayerJoinEvent> {
                         message,
                         null,
                         firstJoin,
+                        false,
                         message == null,
                         false
                 )
