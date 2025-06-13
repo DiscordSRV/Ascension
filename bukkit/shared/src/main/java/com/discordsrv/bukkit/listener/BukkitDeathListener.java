@@ -44,6 +44,12 @@ public class BukkitDeathListener extends AbstractBukkitListener<PlayerDeathEvent
 
     @Override
     protected void handleEvent(@NotNull PlayerDeathEvent event, Void __) {
+        String gameRuleValue = event.getEntity().getWorld().getGameRuleValue("showDeathMessages");
+        if ("false".equals(gameRuleValue)) {
+            logger().debug("Skipping displaying death message, disabled by gamerule");
+            return;
+        }
+
         String message = event.getDeathMessage();
         MinecraftComponent component = message == null ? null : ComponentUtil.toAPI(BukkitComponentSerializer.legacy().deserialize(message));
 
