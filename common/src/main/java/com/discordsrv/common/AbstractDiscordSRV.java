@@ -77,7 +77,7 @@ import com.discordsrv.common.feature.PlayerListModule;
 import com.discordsrv.common.feature.PresenceUpdaterModule;
 import com.discordsrv.common.feature.bansync.BanSyncModule;
 import com.discordsrv.common.feature.channel.ChannelLockingModule;
-import com.discordsrv.common.feature.channel.TimedUpdaterModule;
+import com.discordsrv.common.feature.channel.ChannelUpdaterModule;
 import com.discordsrv.common.feature.channel.global.GlobalChannelLookupModule;
 import com.discordsrv.common.feature.console.ConsoleModule;
 import com.discordsrv.common.feature.customcommands.CustomCommandModule;
@@ -728,7 +728,7 @@ public abstract class AbstractDiscordSRV<
         registerModule(BanSyncModule::new);
         registerModule(ConsoleModule::new);
         registerModule(ChannelLockingModule::new);
-        registerModule(TimedUpdaterModule::new);
+        registerModule(ChannelUpdaterModule::new);
         registerModule(DiscordCommandModule::new);
         registerModule(GameCommandModule::new);
         registerModule(GlobalChannelLookupModule::new);

@@ -92,7 +92,7 @@ public abstract class MainConfig implements Config {
         return new PresenceUpdaterConfig();
     }
 
-    public TimedUpdaterConfig timedUpdater = new TimedUpdaterConfig();
+    public ChannelUpdaterConfig channelUpdater = new ChannelUpdaterConfig();
 
     @Comment("Configuration options for group-role synchronization")
     public GroupSyncConfig groupSync = new GroupSyncConfig();

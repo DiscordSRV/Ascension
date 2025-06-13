@@ -21,7 +21,7 @@ package com.discordsrv.common.feature.channel;
 import com.discordsrv.api.discord.connection.jda.errorresponse.ErrorCallbackContext;
 import com.discordsrv.api.reload.ReloadResult;
 import com.discordsrv.common.DiscordSRV;
-import com.discordsrv.common.config.main.TimedUpdaterConfig;
+import com.discordsrv.common.config.main.ChannelUpdaterConfig;
 import com.discordsrv.common.core.logging.NamedLogger;
 import com.discordsrv.common.core.module.type.AbstractModule;
 import net.dv8tion.jda.api.JDA;
@@ -37,12 +37,12 @@ import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
 
-public class TimedUpdaterModule extends AbstractModule<DiscordSRV> {
+public class ChannelUpdaterModule extends AbstractModule<DiscordSRV> {
 
-    private final Map<TimedUpdaterConfig.UpdaterConfig, ScheduledFuture<?>> activeUpdaters = new LinkedHashMap<>();
+    private final Map<ChannelUpdaterConfig.UpdaterConfig, ScheduledFuture<?>> activeUpdaters = new LinkedHashMap<>();
     private boolean firstReload = true;
 
-    public TimedUpdaterModule(DiscordSRV discordSRV) {
+    public ChannelUpdaterModule(DiscordSRV discordSRV) {
         super(discordSRV, new NamedLogger(discordSRV, "CHANNEL_UPDATER"));
     }
 
@@ -50,8 +50,8 @@ public class TimedUpdaterModule extends AbstractModule<DiscordSRV> {
     public boolean isEnabled() {
         boolean any = false;
 
-        TimedUpdaterConfig config = discordSRV.config().timedUpdater;
-        for (TimedUpdaterConfig.UpdaterConfig updaterConfig : config.getConfigs()) {
+        ChannelUpdaterConfig config = discordSRV.config().channelUpdater;
+        for (ChannelUpdaterConfig.UpdaterConfig updaterConfig : config.getConfigs()) {
             if (updaterConfig.any()) {
                 any = true;
                 break;
@@ -64,9 +64,9 @@ public class TimedUpdaterModule extends AbstractModule<DiscordSRV> {
         return super.isEnabled() && discordSRV.isReady() && discordSRV.isServerStarted();
     }
 
-    private Set<TimedUpdaterConfig.UpdaterConfig> cancelFutures() {
-        Set<TimedUpdaterConfig.UpdaterConfig> activeConfigs = new LinkedHashSet<>(activeUpdaters.size());
-        for (Map.Entry<TimedUpdaterConfig.UpdaterConfig, ScheduledFuture<?>> entry : activeUpdaters.entrySet()) {
+    private Set<ChannelUpdaterConfig.UpdaterConfig> cancelFutures() {
+        Set<ChannelUpdaterConfig.UpdaterConfig> activeConfigs = new LinkedHashSet<>(activeUpdaters.size());
+        for (Map.Entry<ChannelUpdaterConfig.UpdaterConfig, ScheduledFuture<?>> entry : activeUpdaters.entrySet()) {
             activeConfigs.add(entry.getKey());
 
             entry.getValue().cancel(false);
@@ -77,8 +77,8 @@ public class TimedUpdaterModule extends AbstractModule<DiscordSRV> {
 
     @Override
     public void serverShuttingDown() {
-        Set<TimedUpdaterConfig.UpdaterConfig> configs = cancelFutures();
-        for (TimedUpdaterConfig.UpdaterConfig updater : configs) {
+        Set<ChannelUpdaterConfig.UpdaterConfig> configs = cancelFutures();
+        for (ChannelUpdaterConfig.UpdaterConfig updater : configs) {
             update(updater, true);
         }
     }
@@ -87,8 +87,8 @@ public class TimedUpdaterModule extends AbstractModule<DiscordSRV> {
     public void reload(Consumer<ReloadResult> resultConsumer) {
         cancelFutures();
 
-        TimedUpdaterConfig config = discordSRV.config().timedUpdater;
-        for (TimedUpdaterConfig.UpdaterConfig updaterConfig : config.getConfigs()) {
+        ChannelUpdaterConfig config = discordSRV.config().channelUpdater;
+        for (ChannelUpdaterConfig.UpdaterConfig updaterConfig : config.getConfigs()) {
             long time = Math.max(updaterConfig.timeSeconds(), updaterConfig.minimumSeconds());
             activeUpdaters.put(
                     updaterConfig,
@@ -102,22 +102,22 @@ public class TimedUpdaterModule extends AbstractModule<DiscordSRV> {
         firstReload = false;
     }
 
-    public void update(TimedUpdaterConfig.UpdaterConfig config, boolean shutdown) {
+    public void update(ChannelUpdaterConfig.UpdaterConfig config, boolean shutdown) {
         JDA jda = discordSRV.jda();
         if (jda == null) {
             return;
         }
 
-        if (config instanceof TimedUpdaterConfig.VoiceChannelConfig) {
-            TimedUpdaterConfig.VoiceChannelConfig voiceConfig = (TimedUpdaterConfig.VoiceChannelConfig) config;
+        if (config instanceof ChannelUpdaterConfig.VoiceChannelConfig) {
+            ChannelUpdaterConfig.VoiceChannelConfig voiceConfig = (ChannelUpdaterConfig.VoiceChannelConfig) config;
             updateChannel(
                     jda,
                     voiceConfig.channelIds,
                     shutdown ? voiceConfig.shutdownNameFormat : voiceConfig.nameFormat,
                     null
             );
-        } else if (config instanceof TimedUpdaterConfig.TextChannelConfig) {
-            TimedUpdaterConfig.TextChannelConfig textConfig = (TimedUpdaterConfig.TextChannelConfig) config;
+        } else if (config instanceof ChannelUpdaterConfig.TextChannelConfig) {
+            ChannelUpdaterConfig.TextChannelConfig textConfig = (ChannelUpdaterConfig.TextChannelConfig) config;
             updateChannel(
                     jda,
                     textConfig.channelIds,

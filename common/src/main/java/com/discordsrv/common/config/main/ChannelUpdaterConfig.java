@@ -28,7 +28,7 @@ import java.util.List;
 import java.util.concurrent.TimeUnit;
 
 @ConfigSerializable
-public class TimedUpdaterConfig {
+public class ChannelUpdaterConfig {
 
     public List<VoiceChannelConfig> voiceChannels = new ArrayList<>(Collections.singletonList(new VoiceChannelConfig()));
     public List<TextChannelConfig> textChannels = new ArrayList<>(Collections.singletonList(new TextChannelConfig()));
