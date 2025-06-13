@@ -48,6 +48,8 @@ public class DestinationConfig {
         @Setting("channel-id")
         public Long channelId = 0L;
 
+        public boolean useThread = true;
+
         @Setting(nodeFromParent = true)
         public ThreadConfig thread = new ThreadConfig("");
 
@@ -55,13 +57,14 @@ public class DestinationConfig {
         public Single() {}
 
         public Single(String threadName, boolean privateThread) {
+            this.useThread = threadName != null && !threadName.isEmpty();
             this.thread.threadName = threadName;
             this.thread.privateThread = privateThread;
         }
 
         public DestinationConfig asDestination() {
             DestinationConfig config = new DestinationConfig();
-            if (thread == null || StringUtils.isEmpty(thread.threadName)) {
+            if (thread == null || StringUtils.isEmpty(thread.threadName) || !useThread) {
                 config.channelIds.add(channelId);
             } else {
                 config.threads.add(thread);
@@ -73,13 +76,15 @@ public class DestinationConfig {
         public boolean equals(Object o) {
             if (this == o) return true;
             if (o == null || getClass() != o.getClass()) return false;
-            Single single = (Single) o;
-            return Objects.equals(channelId, single.channelId) && Objects.equals(thread, single.thread);
+            Single other = (Single) o;
+            return Objects.equals(channelId, other.channelId)
+                    && Objects.equals(useThread, other.useThread)
+                    && Objects.equals(thread, other.thread);
         }
 
         @Override
         public int hashCode() {
-            return Objects.hash(channelId, thread);
+            return Objects.hash(channelId, useThread, thread);
         }
     }
 
