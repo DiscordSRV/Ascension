@@ -147,7 +147,7 @@ public class JavaLoggerImpl implements Logger, LoggingBackend {
         @Override
         public boolean isLoggable(LogRecord record) {
             if (filters.isEmpty()) {
-                return true;
+                return parent == null || parent.isLoggable(record);
             }
 
             Level level = record.getLevel();
