@@ -23,6 +23,7 @@ import com.discordsrv.api.events.vanish.PlayerVanishStatusChangeEvent;
 import com.discordsrv.api.reload.ReloadResult;
 import com.discordsrv.common.DiscordSRV;
 import com.discordsrv.common.abstraction.player.IPlayer;
+import com.discordsrv.common.config.main.PluginIntegrationConfig;
 import com.discordsrv.common.core.logging.NamedLogger;
 import com.discordsrv.common.core.module.type.AbstractModule;
 import com.discordsrv.common.events.player.PlayerConnectedEvent;
@@ -50,7 +51,13 @@ public class VanishStatusTrackingModule extends AbstractModule<DiscordSRV> {
     }
 
     @Override
+    public boolean isEnabled() {
+        return discordSRV.config().integrations.vanishTracking != PluginIntegrationConfig.VanishTracking.EVENT_ONLY;
+    }
+
+    @Override
     public void enable() {
+        receivingVanishEvents.set(false);
         updateVanishStatuses();
     }
 
