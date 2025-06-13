@@ -70,7 +70,7 @@ public class JoinMessageModule extends AbstractGameMessageModule<IMessageConfig,
 
     @Subscribe(priority = EventPriorities.LAST)
     public void onPlayerVanishStatusChange(PlayerVanishStatusChangeEvent event) {
-        if (event.isNewStatus()) {
+        if (event.isNewStatus() || !event.isSendFakeMessage()) {
             return;
         }
 
