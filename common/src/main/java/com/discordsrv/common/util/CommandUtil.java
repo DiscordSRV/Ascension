@@ -24,9 +24,11 @@ import com.discordsrv.common.abstraction.player.IPlayer;
 import com.discordsrv.common.command.combined.abstraction.CommandExecution;
 import com.discordsrv.common.command.combined.abstraction.DiscordCommandExecution;
 import com.discordsrv.common.command.combined.abstraction.GameCommandExecution;
+import com.discordsrv.common.command.game.abstraction.command.GameCommandSuggester;
 import com.discordsrv.common.command.game.abstraction.sender.ICommandSender;
 import com.discordsrv.common.config.messages.MessagesConfig;
 import com.discordsrv.common.core.logging.Logger;
+import com.discordsrv.common.core.profile.ProfileImpl;
 import com.discordsrv.common.permission.game.Permission;
 import com.discordsrv.common.permission.game.Permissions;
 import net.dv8tion.jda.api.JDA;
@@ -36,12 +38,63 @@ import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.List;
-import java.util.UUID;
+import java.util.*;
+import java.util.function.Predicate;
+import java.util.stream.Collectors;
 
 public final class CommandUtil {
 
     private CommandUtil() {}
+
+    public static GameCommandSuggester targetSuggestions(DiscordSRV discordSRV, boolean users, boolean players, boolean linked) {
+        return CommandUtil.targetSuggestions(discordSRV,  users ? user -> {
+            ProfileImpl profile = discordSRV.profileManager().getProfile(user.getIdLong());
+            return profile == null || profile.isLinked() == linked;
+        } : null, players ? player -> {
+            ProfileImpl profile = discordSRV.profileManager().getProfile(player.uniqueId());
+            return profile == null || profile.isLinked() == linked;
+        } : null);
+    }
+
+    public static GameCommandSuggester targetSuggestions(
+            DiscordSRV discordSRV,
+            @Nullable Predicate<User> userPredicate,
+            @Nullable Predicate<IPlayer> playerPredicate) {
+        return (sender, previousArguments, input) -> {
+            List<String> suggestions = new ArrayList<>();
+            input = input.toLowerCase(Locale.ROOT);
+
+            if (userPredicate != null) {
+                JDA jda = discordSRV.jda();
+                if (jda != null && (input.startsWith("@") || playerPredicate == null)) {
+                    String inputCheck = input.isEmpty() ? input : input.substring(1);
+                    List<String> usernames = jda.getUserCache().stream()
+                            .filter(userPredicate)
+                            .filter(user -> !user.isBot())
+                            .map(User::getName)
+                            .filter(username -> username.toLowerCase(Locale.ROOT).startsWith(inputCheck))
+                            .limit(100)
+                            .map(username -> "@" + username)
+                            .collect(Collectors.toList());
+
+                    suggestions.addAll(usernames);
+                }
+            }
+            if (playerPredicate != null && !input.startsWith("@")) {
+                for (IPlayer player : discordSRV.playerProvider().allPlayers()) {
+                    if (!playerPredicate.test(player)) {
+                        continue;
+                    }
+
+                    String playerName = player.username();
+                    if (playerName.toLowerCase(Locale.ROOT).startsWith(input)) {
+                        suggestions.add(playerName);
+                    }
+                }
+            }
+            return suggestions;
+        };
+    }
 
     public static void basicStatusCheck(DiscordSRV discordSRV, ICommandSender sender) {
         if (discordSRV.status().isError() && sender.hasPermission(Permissions.COMMAND_DEBUG)) {
@@ -181,7 +234,18 @@ public final class CommandUtil {
                 if (jda != null) {
                     List<User> users = jda.getUsersByName(username, true);
 
+                    User matchingUser = null;
                     if (users.size() == 1) {
+                        matchingUser = users.get(0);
+                    } else {
+                        for (User user : users) {
+                            if (target.equalsIgnoreCase("@" + user.getAsTag())) {
+                                matchingUser = user;
+                                break;
+                            }
+                        }
+                    }
+                    if (matchingUser != null) {
                         return Task.completed(new TargetLookupResult(isSelf, null, users.get(0).getIdLong()));
                     }
                 }

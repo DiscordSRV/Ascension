@@ -28,6 +28,7 @@ import com.discordsrv.common.command.combined.abstraction.Text;
 import com.discordsrv.common.command.game.abstraction.command.GameCommand;
 import com.discordsrv.common.core.logging.Logger;
 import com.discordsrv.common.core.logging.NamedLogger;
+import com.discordsrv.common.core.profile.ProfileImpl;
 import com.discordsrv.common.feature.linking.LinkProvider;
 import com.discordsrv.common.permission.game.Permissions;
 import com.discordsrv.common.util.CommandUtil;
@@ -49,10 +50,10 @@ public class LinkedCommand extends CombinedCommand {
         if (GAME == null) {
             LinkedCommand command = getInstance(discordSRV);
             GAME = GameCommand.literal("linked")
-                    .then(
-                            GameCommand.stringGreedy("target")
-                                    .requiredPermission(Permissions.COMMAND_LINKED_OTHER)
-                                    .executor(command)
+                    .then(GameCommand.stringGreedy("target")
+                                  .suggester(CommandUtil.targetSuggestions(discordSRV, true, true, true))
+                                  .requiredPermission(Permissions.COMMAND_LINKED_OTHER)
+                                  .executor(command)
                     )
                     .requiredPermission(Permissions.COMMAND_LINKED)
                     .executor(command);
@@ -70,11 +71,10 @@ public class LinkedCommand extends CombinedCommand {
                             "user",
                             "The Discord user to check the linking status of"
                     ).setRequired(false).build())
-                    .addOption(CommandOption.builder(
-                            CommandOption.Type.STRING,
-                            "player",
-                            "The Minecraft player username or UUID to check the linking status of"
-                    ).setRequired(false).build())
+                    .addOption(CommandOption.player(player -> {
+                        ProfileImpl profile = discordSRV.profileManager().getProfile(player.uniqueId());
+                        return profile == null || profile.isLinked();
+                    }).setRequired(false).build())
                     .setEventHandler(command)
                     .build();
         }

@@ -49,6 +49,7 @@ public class ParseCommand extends CombinedCommand {
             GAME = GameCommand.literal("parse")
                     .requiredPermission(Permissions.COMMAND_PARSE)
                     .then(GameCommand.stringWord("target")
+                                  .suggester(CommandUtil.targetSuggestions(discordSRV, user -> true, player -> true))
                                   .then(GameCommand.stringGreedy("input").executor(command))
                     );
         }
@@ -60,10 +61,10 @@ public class ParseCommand extends CombinedCommand {
         if (DISCORD == null) {
             ParseCommand command = getInstance(discordSRV);
 
-            DISCORD = DiscordCommand.chatInput(ComponentIdentifier.of("DiscordSRV", "parse"), "parse", "Parses input through DiscordSRV's PlaceholderService")
+            DISCORD = DiscordCommand.chatInput(ComponentIdentifier.of("DiscordSRV", "parse"), "parse", "Parses input through DiscordSRV's PlaceholderService (only specify user or player)")
                     .addOption(CommandOption.builder(CommandOption.Type.STRING, "input", "The input to parse").setRequired(true).build())
-                    .addOption(CommandOption.builder(CommandOption.Type.STRING, "player", "Context player (only one of player or user)").setRequired(false).build())
-                    .addOption(CommandOption.builder(CommandOption.Type.USER, "user", "Context user (only one of player or user)").setRequired(false).build())
+                    .addOption(CommandOption.player(player -> true).setRequired(false).build())
+                    .addOption(CommandOption.builder(CommandOption.Type.USER, "user", "Discord user").setRequired(false).build())
                     .setEventHandler(command)
                     .build();
         }

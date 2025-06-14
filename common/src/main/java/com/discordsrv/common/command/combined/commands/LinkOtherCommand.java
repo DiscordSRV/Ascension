@@ -33,6 +33,7 @@ import com.discordsrv.common.command.game.abstraction.sender.ICommandSender;
 import com.discordsrv.common.command.game.commands.subcommand.LinkInitGameCommand;
 import com.discordsrv.common.core.logging.Logger;
 import com.discordsrv.common.core.logging.NamedLogger;
+import com.discordsrv.common.core.profile.ProfileImpl;
 import com.discordsrv.common.feature.linking.LinkProvider;
 import com.discordsrv.common.feature.linking.LinkingModule;
 import com.discordsrv.common.permission.game.Permissions;
@@ -63,8 +64,10 @@ public class LinkOtherCommand extends CombinedCommand {
             if (linkProvider != null && linkProvider.usesLocalLinking()) {
                 GAME = GAME.then(
                         GameCommand.stringWord("player")
+                                .suggester(CommandUtil.targetSuggestions(discordSRV, false, true, false))
                                 .then(
                                         GameCommand.stringWord("user")
+                                                .suggester(CommandUtil.targetSuggestions(discordSRV, true, false, false))
                                                 .requiredPermission(Permissions.COMMAND_LINK_OTHER)
                                                 .executor(getInstance(discordSRV))
                                 )
@@ -86,12 +89,10 @@ public class LinkOtherCommand extends CombinedCommand {
                                     .setRequired(true)
                                     .build()
                     )
-                    .addOption(
-                            CommandOption.builder(CommandOption.Type.STRING, "player", "The player to link")
-                                    .setRequired(true)
-                                    .build()
-                    )
-                    .setAutoCompleteHandler(command)
+                    .addOption(CommandOption.player(player -> {
+                        ProfileImpl profile = discordSRV.profileManager().getProfile(player.uniqueId());
+                        return profile == null || !profile.isLinked();
+                    }).setRequired(true).build())
                     .setEventHandler(command)
                     .build();
         }

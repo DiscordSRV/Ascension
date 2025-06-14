@@ -87,11 +87,7 @@ public class BypassCommand {
                                     .build()
                     )
                     .addOption(
-                            CommandOption.builder(
-                                    CommandOption.Type.STRING,
-                                    "player",
-                                    "The player name or UUID to add"
-                            ).build()
+                            CommandOption.player(player -> true).setRequired(false).build()
                     )
                     .addOption(
                             CommandOption.builder(

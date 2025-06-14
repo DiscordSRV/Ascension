@@ -42,7 +42,7 @@ import java.util.*;
 import java.util.concurrent.*;
 import java.util.function.Consumer;
 
-public class ExecuteCommand implements Consumer<DiscordChatInputInteractionEvent>, DiscordCommand.AutoCompleteHandler {
+public class ExecuteCommand implements Consumer<DiscordChatInputInteractionEvent>, CommandOption.AutoCompleteHandler {
 
     private static DiscordCommand INSTANCE;
 
@@ -54,11 +54,10 @@ public class ExecuteCommand implements Consumer<DiscordChatInputInteractionEvent
             INSTANCE = DiscordCommand.chatInput(ComponentIdentifier.of("DiscordSRV", "execute"), "execute", "Run a Minecraft console command")
                     .addOption(
                             CommandOption.builder(CommandOption.Type.STRING, "command", "The command to execute")
-                                    .setAutoComplete(config.suggest)
+                                    .setAutoCompleteHandler(config.suggest ? command : null)
                                     .setRequired(true)
                                     .build()
                     )
-                    .setAutoCompleteHandler(command)
                     .setEventHandler(command)
                     .build();
         }

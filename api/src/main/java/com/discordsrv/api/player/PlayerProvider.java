@@ -26,6 +26,7 @@ package com.discordsrv.api.player;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.Collection;
 import java.util.UUID;
 
 /**
@@ -48,5 +49,7 @@ public interface PlayerProvider {
      */
     @Nullable
     DiscordSRVPlayer player(@NotNull String username);
+
+    @NotNull Collection<? extends DiscordSRVPlayer> allPlayers();
 
 }

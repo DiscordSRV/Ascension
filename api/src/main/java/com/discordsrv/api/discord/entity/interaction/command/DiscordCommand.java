@@ -102,11 +102,11 @@ public class DiscordCommand implements JDAEntity<CommandData> {
     private final List<SubCommandGroup> subCommandGroups;
     private final List<DiscordCommand> subCommands;
     private final List<CommandOption> options;
+    private final Map<String, CommandOption> optionMap;
     private final Long guildId;
     private final boolean guildOnly;
     private final DefaultPermission defaultPermission;
     private final Consumer<? extends AbstractCommandInteractionEvent<?>> eventHandler;
-    private final AutoCompleteHandler autoCompleteHandler;
 
     private DiscordCommand(
             ComponentIdentifier id,
@@ -119,8 +119,7 @@ public class DiscordCommand implements JDAEntity<CommandData> {
             Long guildId,
             boolean guildOnly,
             DefaultPermission defaultPermission,
-            Consumer<? extends AbstractCommandInteractionEvent<?>> eventHandler,
-            AutoCompleteHandler autoCompleteHandler
+            Consumer<? extends AbstractCommandInteractionEvent<?>> eventHandler
     ) {
         this.id = id;
         this.type = type;
@@ -129,11 +128,14 @@ public class DiscordCommand implements JDAEntity<CommandData> {
         this.subCommandGroups = subCommandGroups;
         this.subCommands = subCommands;
         this.options = options;
+        this.optionMap = new HashMap<>(options.size());
+        for (CommandOption option : options) {
+            optionMap.put(option.getName(), option);
+        }
         this.guildId = guildId;
         this.guildOnly = guildOnly;
         this.defaultPermission = defaultPermission;
         this.eventHandler = eventHandler;
-        this.autoCompleteHandler = autoCompleteHandler;
     }
 
     @NotNull
@@ -191,6 +193,11 @@ public class DiscordCommand implements JDAEntity<CommandData> {
         return Collections.unmodifiableList(options);
     }
 
+    @Nullable
+    public CommandOption getOption(String name) {
+        return optionMap.get(name);
+    }
+
     public boolean isGuildOnly() {
         return guildOnly;
     }
@@ -208,11 +215,6 @@ public class DiscordCommand implements JDAEntity<CommandData> {
         }
 
         return (Consumer<T>) eventHandler;
-    }
-
-    @Nullable
-    public AutoCompleteHandler getAutoCompleteHandler() {
-        return autoCompleteHandler;
     }
 
     @Override
@@ -255,7 +257,6 @@ public class DiscordCommand implements JDAEntity<CommandData> {
         private final List<SubCommandGroup> subCommandGroups = new ArrayList<>();
         private final List<DiscordCommand> subCommands = new ArrayList<>();
         private final List<CommandOption> options = new ArrayList<>();
-        private AutoCompleteHandler autoCompleteHandler;
 
         private ChatInputBuilder(ComponentIdentifier id, String name, String description) {
             super(id, CommandType.CHAT_INPUT, name);
@@ -314,17 +315,6 @@ public class DiscordCommand implements JDAEntity<CommandData> {
             return this;
         }
 
-        /**
-         * Sets the auto complete handler for this command, this can be used instead of listening to the {@link DiscordCommandAutoCompleteInteractionEvent}.
-         * @param autoCompleteHandler the auto complete handler, only receives events for this command
-         * @return this builder, useful for chaining
-         */
-        @NotNull
-        public ChatInputBuilder setAutoCompleteHandler(AutoCompleteHandler autoCompleteHandler) {
-            this.autoCompleteHandler = autoCompleteHandler;
-            return this;
-        }
-
         @Override
         public DiscordCommand build() {
             return new DiscordCommand(
@@ -338,17 +328,9 @@ public class DiscordCommand implements JDAEntity<CommandData> {
                     guildId,
                     guildOnly,
                     defaultPermission,
-                    eventHandler,
-                    autoCompleteHandler
+                    eventHandler
             );
         }
-    }
-
-    @FunctionalInterface
-    public interface AutoCompleteHandler {
-
-        void autoComplete(DiscordCommandAutoCompleteInteractionEvent event);
-
     }
 
     public static class Builder<E extends AbstractCommandInteractionEvent<?>> {
@@ -434,8 +416,7 @@ public class DiscordCommand implements JDAEntity<CommandData> {
                     guildId,
                     guildOnly,
                     defaultPermission,
-                    eventHandler,
-                    null
+                    eventHandler
             );
         }
     }

@@ -30,6 +30,7 @@ import com.discordsrv.api.discord.entity.interaction.component.ComponentIdentifi
 import com.discordsrv.api.events.discord.interaction.AbstractInteractionEvent;
 import net.dv8tion.jda.api.events.interaction.command.CommandAutoCompleteInteractionEvent;
 import net.dv8tion.jda.api.interactions.commands.OptionMapping;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.LinkedHashMap;
 import java.util.Map;
@@ -37,15 +38,23 @@ import java.util.Map;
 public class DiscordCommandAutoCompleteInteractionEvent extends AbstractInteractionEvent<CommandAutoCompleteInteractionEvent> {
 
     private final Map<String, Object> choices = new LinkedHashMap<>();
+    private final String focusedOptionName;
 
     public DiscordCommandAutoCompleteInteractionEvent(
             CommandAutoCompleteInteractionEvent jdaEvent,
             ComponentIdentifier identifier,
             DiscordUser user,
             DiscordGuildMember member,
-            DiscordMessageChannel channel
+            DiscordMessageChannel channel,
+            String focusedOptionName
     ) {
         super(jdaEvent, identifier, user, member, channel);
+        this.focusedOptionName = focusedOptionName;
+    }
+
+    @NotNull
+    public String getFocusedOptionName() {
+        return focusedOptionName;
     }
 
     public String getOption(String name) {

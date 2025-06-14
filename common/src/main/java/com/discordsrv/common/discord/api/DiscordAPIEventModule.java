@@ -23,6 +23,7 @@ import com.discordsrv.api.discord.entity.DiscordUser;
 import com.discordsrv.api.discord.entity.channel.DiscordMessageChannel;
 import com.discordsrv.api.discord.entity.guild.DiscordGuildMember;
 import com.discordsrv.api.discord.entity.interaction.DiscordInteractionHook;
+import com.discordsrv.api.discord.entity.interaction.command.CommandOption;
 import com.discordsrv.api.discord.entity.interaction.command.CommandType;
 import com.discordsrv.api.discord.entity.interaction.command.DiscordCommand;
 import com.discordsrv.api.discord.entity.interaction.command.SubCommandGroup;
@@ -158,12 +159,17 @@ public class DiscordAPIEventModule extends AbstractModule<DiscordSRV> {
                     ((CommandAutoCompleteInteractionEvent) event).getSubcommandName()
             );
 
+            String focusedOptionName = ((CommandAutoCompleteInteractionEvent) event).getFocusedOption().getName();
             DiscordCommandAutoCompleteInteractionEvent autoComplete = new DiscordCommandAutoCompleteInteractionEvent(
-                    (CommandAutoCompleteInteractionEvent) event, command.getId(), user, guildMember, channel);
+                    (CommandAutoCompleteInteractionEvent) event, command.getId(), user, guildMember, channel, focusedOptionName);
             discordSRV.eventBus().publish(autoComplete);
-            DiscordCommand.AutoCompleteHandler autoCompleteHandler = command.getAutoCompleteHandler();
-            if (autoCompleteHandler != null) {
-                autoCompleteHandler.autoComplete(autoComplete);
+
+            CommandOption option = command.getOption(focusedOptionName);
+            if (option != null) {
+                CommandOption.AutoCompleteHandler handler = option.getAutoCompleteHandler();
+                if (handler != null) {
+                    handler.autoComplete(autoComplete);
+                }
             }
 
             List<Command.Choice> choices = new ArrayList<>();

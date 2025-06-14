@@ -28,6 +28,7 @@ import com.discordsrv.common.command.combined.abstraction.Text;
 import com.discordsrv.common.command.game.abstraction.command.GameCommand;
 import com.discordsrv.common.core.logging.Logger;
 import com.discordsrv.common.core.logging.NamedLogger;
+import com.discordsrv.common.core.profile.ProfileImpl;
 import com.discordsrv.common.feature.linking.LinkProvider;
 import com.discordsrv.common.feature.linking.LinkingModule;
 import com.discordsrv.common.permission.game.Permissions;
@@ -53,6 +54,7 @@ public class UnlinkCommand extends CombinedCommand {
             GAME = GameCommand.literal("unlink")
                     .then(
                             GameCommand.stringGreedy("target")
+                                    .suggester(CommandUtil.targetSuggestions(discordSRV, true, true, true))
                                     .requiredPermission(Permissions.COMMAND_UNLINK_OTHER)
                                     .executor(command)
                     )
@@ -83,7 +85,7 @@ public class UnlinkCommand extends CombinedCommand {
         DiscordCommand.ChatInputBuilder builder = DiscordCommand.chatInput(
                 ComponentIdentifier.of("DiscordSRV", "unlink"),
                 "unlink",
-                "Unlink accounts"
+                "Unlink accounts (only specify user or player)"
         );
 
         if (withOther) {
@@ -93,11 +95,10 @@ public class UnlinkCommand extends CombinedCommand {
                             "user",
                             "The Discord user to unlink"
                     ).setRequired(false).build())
-                    .addOption(CommandOption.builder(
-                            CommandOption.Type.STRING,
-                            "player",
-                            "The Minecraft player username or UUID to unlink"
-                    ).setRequired(false).build());
+                    .addOption(CommandOption.player(player -> {
+                        ProfileImpl profile = discordSRV.profileManager().getProfile(player.uniqueId());
+                        return profile == null || profile.isLinked();
+                    }).setRequired(false).build());
         }
 
         return builder.setEventHandler(command).build();

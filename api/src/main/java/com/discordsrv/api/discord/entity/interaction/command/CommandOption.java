@@ -23,9 +23,11 @@
 
 package com.discordsrv.api.discord.entity.interaction.command;
 
+import com.discordsrv.api.DiscordSRV;
 import com.discordsrv.api.discord.entity.JDAEntity;
 import com.discordsrv.api.discord.entity.channel.DiscordChannelType;
 import com.discordsrv.api.events.discord.interaction.command.DiscordCommandAutoCompleteInteractionEvent;
+import com.discordsrv.api.player.DiscordSRVPlayer;
 import net.dv8tion.jda.api.interactions.commands.OptionType;
 import net.dv8tion.jda.api.interactions.commands.build.OptionData;
 import org.jetbrains.annotations.NotNull;
@@ -33,6 +35,7 @@ import org.jetbrains.annotations.Nullable;
 import org.jetbrains.annotations.Unmodifiable;
 
 import java.util.*;
+import java.util.function.Predicate;
 
 public class CommandOption implements JDAEntity<OptionData> {
 
@@ -49,15 +52,37 @@ public class CommandOption implements JDAEntity<OptionData> {
         return new Builder(type, name, description);
     }
 
+    @NotNull
+    public static Builder player(Predicate<DiscordSRVPlayer> playerPredicate) {
+        return builder(Type.STRING, "player", "Player name or UUID")
+                .setMaxLength(36)
+                .setAutoCompleteHandler(event -> {
+                    DiscordSRV discordSRV = DiscordSRV.get();
+                    String input = event.getOption("player").toLowerCase(Locale.ROOT);
+
+                    for (DiscordSRVPlayer player : discordSRV.playerProvider().allPlayers()) {
+                        String username = player.username();
+                        if (!username.toUpperCase(Locale.ROOT).startsWith(input) || !playerPredicate.test(player)) {
+                            continue;
+                        }
+
+                        event.addChoice(username, username);
+                    }
+                });
+    }
+
     private final Type type;
     private final String name;
     private final String description;
     private final Map<String, Object> choices;
     private final boolean required;
     private final boolean autoComplete;
+    private final AutoCompleteHandler autoCompleteHandler;
     private final Set<DiscordChannelType> channelTypes;
     private final Number minValue;
     private final Number maxValue;
+    private final Integer minLength;
+    private final Integer maxLength;
 
     public CommandOption(
             Type type,
@@ -66,9 +91,12 @@ public class CommandOption implements JDAEntity<OptionData> {
             Map<String, Object> choices,
             boolean required,
             boolean autoComplete,
+            AutoCompleteHandler autoCompleteHandler,
             Set<DiscordChannelType> channelTypes,
             Number minValue,
-            Number maxValue
+            Number maxValue,
+            Integer minLength,
+            Integer maxLength
     ) {
         this.type = type;
         this.name = name;
@@ -76,9 +104,12 @@ public class CommandOption implements JDAEntity<OptionData> {
         this.choices = choices;
         this.required = required;
         this.autoComplete = autoComplete;
+        this.autoCompleteHandler = autoCompleteHandler;
         this.channelTypes = channelTypes;
         this.minValue = minValue;
         this.maxValue = maxValue;
+        this.minLength = minLength;
+        this.maxLength = maxLength;
     }
 
     @NotNull
@@ -110,6 +141,11 @@ public class CommandOption implements JDAEntity<OptionData> {
         return autoComplete;
     }
 
+    @Nullable
+    public AutoCompleteHandler getAutoCompleteHandler() {
+        return autoCompleteHandler;
+    }
+
     @NotNull
     @Unmodifiable
     public Set<DiscordChannelType> getChannelTypes() {
@@ -124,6 +160,16 @@ public class CommandOption implements JDAEntity<OptionData> {
     @Nullable
     public Number getMaxValue() {
         return maxValue;
+    }
+
+    @Nullable
+    public Integer getMinLength() {
+        return minLength;
+    }
+
+    @Nullable
+    public Integer getMaxLength() {
+        return maxLength;
     }
 
     @Override
@@ -151,6 +197,16 @@ public class CommandOption implements JDAEntity<OptionData> {
                 data.setMinValue(max.doubleValue());
             }
         }
+        if (type == Type.STRING) {
+            Integer min = getMinLength();
+            if (min != null) {
+                data.setMinLength(min);
+            }
+            Integer max = getMaxLength();
+            if (max != null) {
+                data.setMaxLength(max);
+            }
+        }
         for (Map.Entry<String, Object> entry : choices.entrySet()) {
             String key = entry.getKey();
             Object value = entry.getValue();
@@ -167,21 +223,35 @@ public class CommandOption implements JDAEntity<OptionData> {
         return data;
     }
 
+    @FunctionalInterface
+    public interface AutoCompleteHandler {
+
+        void autoComplete(DiscordCommandAutoCompleteInteractionEvent event);
+
+    }
+
     public static class Builder {
 
         private final Type type;
         private final String name;
-        private final String description;
+        private String description;
         private final Map<String, Object> choices = new LinkedHashMap<>();
         private boolean required = false;
         private boolean autoComplete = false;
+        private AutoCompleteHandler autoCompleteHandler;
         private final Set<DiscordChannelType> channelTypes = new LinkedHashSet<>();
         private Number minValue;
         private Number maxValue;
+        private Integer minLength;
+        private Integer maxLength;
 
         private Builder(Type type, String name, String description) {
             this.type = type;
             this.name = name;
+            this.description = description;
+        }
+
+        public void setDescription(String description) {
             this.description = description;
         }
 
@@ -243,6 +313,16 @@ public class CommandOption implements JDAEntity<OptionData> {
         }
 
         /**
+         * Sets the auto complete handler, or clears it. This also does the equivalent {@link #setAutoComplete(boolean)} operation.
+         * @param autoCompleteHandler the auto complete handler, or {@code null} to clear
+         */
+        public Builder setAutoCompleteHandler(@Nullable AutoCompleteHandler autoCompleteHandler) {
+            this.autoCompleteHandler = autoCompleteHandler;
+            this.autoComplete = autoCompleteHandler != null;
+            return this;
+        }
+
+        /**
          * Sets the accepted channel types for this option. The type must be {@link Type#CHANNEL} or {@link Type#MENTIONABLE}.
          *
          * @param types the channel types
@@ -286,15 +366,29 @@ public class CommandOption implements JDAEntity<OptionData> {
             return this;
         }
 
+        public Builder setMinLength(Integer minLength) {
+            this.minLength = minLength;
+            return this;
+        }
+
+        public Builder setMaxLength(Integer maxLength) {
+            this.maxLength = maxLength;
+            return this;
+        }
+
         @NotNull
         public CommandOption build() {
             if (minValue != null && maxValue != null && minValue.doubleValue() >= maxValue.doubleValue()) {
                 throw new IllegalStateException("Minimum value cannot be greater than or equal to maximum value");
             }
+            if (minLength != null && maxLength != null && minLength > maxLength) {
+                throw new IllegalStateException("Minimum length cannot be greater than to maximum length");
+            }
             if (!choices.isEmpty() && autoComplete) {
                 throw new IllegalStateException("Cannot use auto complete and specify choices at the same time");
             }
-            return new CommandOption(type, name, description, choices, required, autoComplete, channelTypes, minValue, maxValue);
+            return new CommandOption(type, name, description, choices, required, autoComplete, autoCompleteHandler,
+                                     channelTypes, minValue, maxValue, minLength, maxLength);
         }
     }
 

@@ -40,7 +40,7 @@ import com.discordsrv.common.feature.onlinerole.OnlineRoleModule;
 import com.discordsrv.common.helper.Someone;
 import com.discordsrv.common.permission.game.Permissions;
 import net.kyori.adventure.text.format.NamedTextColor;
-import org.jetbrains.annotations.Nullable;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -101,11 +101,7 @@ public class ResyncCommand extends CombinedCommand {
     }
 
     @Override
-    public List<String> suggest(CommandExecution execution, @Nullable String input) {
-        if (input == null) {
-            return Collections.emptyList();
-        }
-
+    public List<String> suggest(CommandExecution execution, @NotNull String input) {
         return Stream.of("ban", "group", "nickname", "onlinerole")
                 .filter(command -> command.toLowerCase(Locale.ROOT).startsWith(input.toLowerCase(Locale.ROOT)))
                 .collect(Collectors.toList());
