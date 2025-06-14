@@ -65,9 +65,10 @@ public final class CommandUtil {
             CommandExecution execution,
             boolean selfPermitted,
             String target,
-            @Nullable Permission otherPermission
+            @Nullable Permission otherPermission,
+            boolean optional
     ) {
-        return lookupTarget(discordSRV, logger, execution, target, selfPermitted, true, false, otherPermission)
+        return lookupTarget(discordSRV, logger, execution, target, selfPermitted, true, false, otherPermission, optional)
                 .thenApply((result) -> {
                     if (result != null && result.isValid()) {
                         return result.getPlayerUUID();
@@ -82,9 +83,10 @@ public final class CommandUtil {
             CommandExecution execution,
             boolean selfPermitted,
             String target,
-            @Nullable Permission otherPermission
+            @Nullable Permission otherPermission,
+            boolean optional
     ) {
-        return lookupTarget(discordSRV, logger, execution, target, selfPermitted, false, true, otherPermission)
+        return lookupTarget(discordSRV, logger, execution, target, selfPermitted, false, true, otherPermission, optional)
                 .thenApply(result -> {
                     if (result != null && result.isValid()) {
                         return result.getUserId();
@@ -98,7 +100,8 @@ public final class CommandUtil {
             Logger logger,
             CommandExecution execution,
             boolean selfPermitted,
-            @Nullable Permission otherPermission
+            @Nullable Permission otherPermission,
+            boolean optional
     ) {
         String target = execution.getString("target");
         if (target == null) {
@@ -107,7 +110,10 @@ public final class CommandUtil {
         if (target == null) {
             target = execution.getString("player");
         }
-        return lookupTarget(discordSRV, logger, execution, target, selfPermitted, true, true, otherPermission);
+        if (target != null && target.equals("--null")) {
+            target = null;
+        }
+        return lookupTarget(discordSRV, logger, execution, target, selfPermitted, true, true, otherPermission, optional);
     }
 
     private static Task<TargetLookupResult> lookupTarget(
@@ -118,7 +124,8 @@ public final class CommandUtil {
             boolean selfPermitted,
             boolean lookupPlayer,
             boolean lookupUser,
-            @Nullable Permission otherPermission
+            @Nullable Permission otherPermission,
+            boolean optional
     ) {
         MessagesConfig messages = discordSRV.messagesConfig(execution.locale());
 
@@ -140,7 +147,9 @@ public final class CommandUtil {
                     target = Long.toUnsignedString(((DiscordCommandExecution) execution).getUser().getId());
                     self = true;
                 } else {
-                    messages.pleaseSpecifyUser.sendTo(execution);
+                    if (!optional) {
+                        messages.pleaseSpecifyUser.sendTo(execution);
+                    }
                     return Task.completed(TargetLookupResult.INVALID);
                 }
             }
@@ -149,7 +158,7 @@ public final class CommandUtil {
         }
 
         if (target == null) {
-            return Task.completed(requireTarget(execution, lookupUser, lookupPlayer, messages));
+            return Task.completed(requireTarget(execution, lookupUser, lookupPlayer, messages, optional));
         }
 
         boolean isSelf = self;
@@ -213,10 +222,14 @@ public final class CommandUtil {
             }
         }
 
-        return Task.completed(requireTarget(execution, lookupUser, lookupPlayer, messages));
+        return Task.completed(requireTarget(execution, lookupUser, lookupPlayer, messages, optional));
     }
 
-    private static TargetLookupResult requireTarget(CommandExecution execution, boolean lookupUser, boolean lookupPlayer, MessagesConfig messages) {
+    private static TargetLookupResult requireTarget(CommandExecution execution, boolean lookupUser, boolean lookupPlayer, MessagesConfig messages, boolean optional) {
+        if (optional) {
+            return TargetLookupResult.INVALID;
+        }
+
         if (lookupPlayer && lookupUser) {
             messages.pleaseSpecifyPlayerOrUser.sendTo(execution);
         } else if (lookupPlayer) {

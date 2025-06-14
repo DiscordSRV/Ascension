@@ -132,8 +132,8 @@ public class LinkOtherCommand extends CombinedCommand {
             }
         }
 
-        Task<UUID> playerUUIDFuture = CommandUtil.lookupPlayer(discordSRV, logger, execution, false, playerArgument, null);
-        Task<Long> userIdFuture = CommandUtil.lookupUser(discordSRV, logger, execution, false, userArgument, null);
+        Task<UUID> playerUUIDFuture = CommandUtil.lookupPlayer(discordSRV, logger, execution, false, playerArgument, null, false);
+        Task<Long> userIdFuture = CommandUtil.lookupUser(discordSRV, logger, execution, false, userArgument, null, false);
 
         playerUUIDFuture.whenComplete((playerUUID, __) -> userIdFuture.whenComplete((userId, ___) -> {
             if (playerUUID == null) {

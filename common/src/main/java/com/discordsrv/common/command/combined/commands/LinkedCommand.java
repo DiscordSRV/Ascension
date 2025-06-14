@@ -99,7 +99,7 @@ public class LinkedCommand extends CombinedCommand {
             return;
         }
 
-        execution.runAsync(() -> CommandUtil.lookupTarget(discordSRV, logger, execution, true, Permissions.COMMAND_LINKED_OTHER)
+        execution.runAsync(() -> CommandUtil.lookupTarget(discordSRV, logger, execution, true, Permissions.COMMAND_LINKED_OTHER, false)
                 .whenComplete((result, t) -> {
                     if (t != null) {
                         logger.error("Failed to execute linked command", t);

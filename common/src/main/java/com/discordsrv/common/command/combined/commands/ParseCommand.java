@@ -21,10 +21,17 @@ package com.discordsrv.common.command.combined.commands;
 import com.discordsrv.api.discord.entity.interaction.command.CommandOption;
 import com.discordsrv.api.discord.entity.interaction.command.DiscordCommand;
 import com.discordsrv.api.discord.entity.interaction.component.ComponentIdentifier;
+import com.discordsrv.api.task.Task;
 import com.discordsrv.common.DiscordSRV;
-import com.discordsrv.common.command.combined.abstraction.*;
+import com.discordsrv.common.abstraction.player.IPlayer;
+import com.discordsrv.common.command.combined.abstraction.CombinedCommand;
+import com.discordsrv.common.command.combined.abstraction.CommandExecution;
+import com.discordsrv.common.command.combined.abstraction.Text;
 import com.discordsrv.common.command.game.abstraction.command.GameCommand;
+import com.discordsrv.common.core.logging.Logger;
+import com.discordsrv.common.core.logging.NamedLogger;
 import com.discordsrv.common.permission.game.Permissions;
+import com.discordsrv.common.util.CommandUtil;
 
 public class ParseCommand extends CombinedCommand {
 
@@ -41,12 +48,8 @@ public class ParseCommand extends CombinedCommand {
             ParseCommand command = getInstance(discordSRV);
             GAME = GameCommand.literal("parse")
                     .requiredPermission(Permissions.COMMAND_PARSE)
-                    .then(
-                            GameCommand.booleanArgument("self")
-                                            .then(
-                                                    GameCommand.stringGreedy("input")
-                                                            .executor(command)
-                                            )
+                    .then(GameCommand.stringWord("target")
+                                  .then(GameCommand.stringGreedy("input").executor(command))
                     );
         }
 
@@ -58,8 +61,9 @@ public class ParseCommand extends CombinedCommand {
             ParseCommand command = getInstance(discordSRV);
 
             DISCORD = DiscordCommand.chatInput(ComponentIdentifier.of("DiscordSRV", "parse"), "parse", "Parses input through DiscordSRV's PlaceholderService")
-                    .addOption(CommandOption.builder(CommandOption.Type.BOOLEAN, "self", "Include self as context").setRequired(true).build())
                     .addOption(CommandOption.builder(CommandOption.Type.STRING, "input", "The input to parse").setRequired(true).build())
+                    .addOption(CommandOption.builder(CommandOption.Type.STRING, "player", "Context player (only one of player or user)").setRequired(false).build())
+                    .addOption(CommandOption.builder(CommandOption.Type.USER, "user", "Context user (only one of player or user)").setRequired(false).build())
                     .setEventHandler(command)
                     .build();
         }
@@ -67,27 +71,41 @@ public class ParseCommand extends CombinedCommand {
         return DISCORD;
     }
 
+    private final Logger logger;
+
     public ParseCommand(DiscordSRV discordSRV) {
         super(discordSRV);
+        this.logger = new NamedLogger(discordSRV, "PARSE_COMMAND");
     }
 
     @Override
     public void execute(CommandExecution execution) {
-        boolean self = execution.getBoolean("self");
         String input = execution.getString("input");
 
-        Object context;
-        if (self) {
-            context = execution instanceof GameCommandExecution
-                      ? ((GameCommandExecution) execution).getSender()
-                      : ((DiscordCommandExecution) execution).getUser();
-        } else {
-            context = null;
-        }
+        Task<Object> result = CommandUtil.lookupTarget(discordSRV, logger, execution, true, null, true)
+                .then(lookup -> {
+                    if (!lookup.isValid()) {
+                        return Task.completed(null);
+                    } else if (lookup.isPlayer()) {
+                        IPlayer player = discordSRV.playerProvider().player(lookup.getPlayerUUID());
+                        if (player != null) {
+                            return Task.completed(player);
+                        }
 
-        execution.runAsync(() -> {
-            String output = discordSRV.placeholderService().replacePlaceholders(input, context);
-            execution.send(new Text(output));
-        });
+                        return discordSRV.playerProvider().lookupOfflinePlayer(lookup.getPlayerUUID()).thenApply(offlinePlayer -> offlinePlayer);
+                    } else {
+                        return discordSRV.discordAPI().retrieveUserById(lookup.getUserId()).thenApply(user -> user);
+                    }
+                });
+        execution.runAsync(() -> result
+                .whenComplete((context, t) -> {
+                    if (t != null) {
+                        logger.error("Failed to lookup target", t);
+                    }
+
+                    String output = discordSRV.placeholderService().replacePlaceholders(input, context);
+                    execution.send(new Text(output));
+                })
+        );
     }
 }

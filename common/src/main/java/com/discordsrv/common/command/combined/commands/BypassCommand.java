@@ -154,7 +154,7 @@ public class BypassCommand {
             return;
         }
 
-        CommandUtil.lookupTarget(discordSRV, logger, execution, false, null)
+        CommandUtil.lookupTarget(discordSRV, logger, execution, false, null, false)
                 .then(lookupResult -> {
                     if (!lookupResult.isValid()) {
                         // Executor already notified via lookupTarget
