@@ -33,15 +33,15 @@ public class BaseChannelConfig {
     @Order(0)
     public DiscordToMinecraftChatConfig discordToMinecraft = new DiscordToMinecraftChatConfig();
 
-    @Comment("The representations of Discord mentions in-game")
-    public MentionsConfig mentions = new MentionsConfig();
-
+    // joinMessages
     public JoinMessageConfig joinMessages() {
         return new JoinMessageConfig();
     }
 
     @Order(2)
     public LeaveMessageConfig leaveMessages = new LeaveMessageConfig();
+
+    // Award, death, server switching
 
     @Order(20)
     public StartMessageConfig startMessage = new StartMessageConfig();
@@ -54,4 +54,8 @@ public class BaseChannelConfig {
 
     @Order(50)
     public ChannelLockingConfig channelLocking = new ChannelLockingConfig();
+
+    @Comment("The representations of Discord mentions in-game")
+    @Order(100)
+    public MentionsConfig mentions = new MentionsConfig();
 }
