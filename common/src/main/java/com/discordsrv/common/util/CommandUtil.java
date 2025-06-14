@@ -100,12 +100,12 @@ public final class CommandUtil {
             boolean selfPermitted,
             @Nullable Permission otherPermission
     ) {
-        String target = execution.getArgument("target");
+        String target = execution.getString("target");
         if (target == null) {
-            target = execution.getArgument("user");
+            target = execution.getString("user");
         }
         if (target == null) {
-            target = execution.getArgument("player");
+            target = execution.getString("player");
         }
         return lookupTarget(discordSRV, logger, execution, target, selfPermitted, true, true, otherPermission);
     }

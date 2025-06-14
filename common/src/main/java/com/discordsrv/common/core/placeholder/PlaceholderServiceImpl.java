@@ -136,6 +136,7 @@ public class PlaceholderServiceImpl implements PlaceholderService {
 
         // Only go through this if a placeholder couldn't be looked up from lookup/global contexts
         // API users are here as to not interfere with DiscordSRV's own placeholders
+        logger.trace("Requesting " + placeholder + " (" + contexts + ") from API");
         PlaceholderLookupEvent lookupEvent = new PlaceholderLookupEvent(placeholder, contexts);
         discordSRV.eventBus().publish(lookupEvent);
 
@@ -299,6 +300,7 @@ public class PlaceholderServiceImpl implements PlaceholderService {
 
             PlaceholderLookupResult result = lookupPlaceholder(singlePlaceholder, context);
             while (result != null) {
+                logger.trace(singlePlaceholder + ": " + result);
                 PlaceholderLookupResult.Type type = result.getType();
                 if (type == PlaceholderLookupResult.Type.UNKNOWN_PLACEHOLDER) {
                     break;

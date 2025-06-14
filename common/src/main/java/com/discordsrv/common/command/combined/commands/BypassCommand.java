@@ -210,7 +210,7 @@ public class BypassCommand {
 
         @Override
         public void execute(CommandExecution execution) {
-            String operation = execution.getArgument("operation");
+            String operation = execution.getString("operation");
             mutate(execution, "add".equals(operation));
         }
     }

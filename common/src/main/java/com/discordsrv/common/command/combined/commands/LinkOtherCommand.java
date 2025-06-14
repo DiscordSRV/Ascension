@@ -122,8 +122,8 @@ public class LinkOtherCommand extends CombinedCommand {
             return;
         }
 
-        String playerArgument = execution.getArgument("player");
-        String userArgument = execution.getArgument("user");
+        String playerArgument = execution.getString("player");
+        String userArgument = execution.getString("user");
         if (execution instanceof GameCommandExecution) {
             ICommandSender sender = ((GameCommandExecution) execution).getSender();
             if (!sender.hasPermission(Permissions.COMMAND_LINK_OTHER)) {

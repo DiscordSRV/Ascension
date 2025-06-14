@@ -67,6 +67,7 @@ public class DiscordSRVGameCommand implements GameCommandExecutor {
                     .then(BroadcastCommand.minecraft(discordSRV))
                     .then(BroadcastCommand.json(discordSRV))
                     .then(DebugCommand.getGame(discordSRV))
+                    .then(ParseCommand.getGame(discordSRV))
                     .then(ReloadCommand.get(discordSRV))
                     .then(ResyncCommand.getGame(discordSRV))
                     .then(VersionCommand.getGame(discordSRV));

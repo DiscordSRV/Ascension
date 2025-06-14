@@ -37,7 +37,8 @@ public interface CommandExecution {
 
     void setEphemeral(boolean ephemeral);
 
-    String getArgument(String label);
+    String getString(String label);
+    Boolean getBoolean(String label);
 
     default void send(Text... texts) {
         send(Arrays.asList(texts));

@@ -72,8 +72,13 @@ public class GameCommandExecution implements CommandExecution {
     }
 
     @Override
-    public String getArgument(String label) {
+    public String getString(String label) {
         return arguments.getString(label);
+    }
+
+    @Override
+    public Boolean getBoolean(String label) {
+        return arguments.getBoolean(label);
     }
 
     @Override

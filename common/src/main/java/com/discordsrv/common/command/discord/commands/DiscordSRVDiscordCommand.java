@@ -36,6 +36,7 @@ public class DiscordSRVDiscordCommand {
         if (INSTANCE == null) {
             DiscordCommand.ChatInputBuilder builder = DiscordCommand.chatInput(IDENTIFIER, "discordsrv", "DiscordSRV related commands")
                     .addSubCommand(DebugCommand.getDiscord(discordSRV))
+                    .addSubCommand(ParseCommand.getDiscord(discordSRV))
                     .addSubCommand(VersionCommand.getDiscord(discordSRV))
                     .addSubCommand(ResyncCommand.getDiscord(discordSRV));
 

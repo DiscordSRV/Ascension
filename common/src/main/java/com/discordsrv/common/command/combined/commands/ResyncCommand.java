@@ -114,7 +114,7 @@ public class ResyncCommand extends CombinedCommand {
     @Override
     public void execute(CommandExecution execution) {
         AbstractSyncModule<?, ?, ?, ?, ?> module;
-        switch (execution.getArgument("type")) {
+        switch (execution.getString("type")) {
             case "group":
                 GroupSyncModule groupSyncModule = discordSRV.getModule(GroupSyncModule.class);
                 if (groupSyncModule != null && groupSyncModule.noPermissionProvider()) {

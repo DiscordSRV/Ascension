@@ -117,6 +117,17 @@ public class PlaceholderLookupResult {
         return context;
     }
 
+    @Override
+    public String toString() {
+        return "PlaceholderLookupResult{" +
+                "type=" + type +
+                ", placeholder='" + placeholder + '\'' +
+                ", result=" + result +
+                ", error=" + error +
+                ", context=" + context +
+                '}';
+    }
+
     public enum Type {
 
         SUCCESS,

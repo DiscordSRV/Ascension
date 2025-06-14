@@ -131,7 +131,7 @@ public class DebugCommand extends CombinedCommand {
 
     @Override
     public void execute(CommandExecution execution) {
-        String argument = execution.getArgument("subcommand");
+        String argument = execution.getString("subcommand");
         String subCommand = argument != null ? argument.toLowerCase(Locale.ROOT) : null;
         if (subCommand != null && !SUBCOMMANDS.contains(subCommand)) {
             execution.send(new Text("Unknown subcommand").withGameColor(NamedTextColor.RED));

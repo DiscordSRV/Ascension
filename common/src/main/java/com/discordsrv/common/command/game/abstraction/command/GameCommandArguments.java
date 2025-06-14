@@ -38,4 +38,8 @@ public interface GameCommandArguments {
     default Integer getInt(String label) {
         return get(label, Integer.class);
     }
+
+    default Boolean getBoolean(String label) {
+        return get(label, Boolean.class);
+    }
 }

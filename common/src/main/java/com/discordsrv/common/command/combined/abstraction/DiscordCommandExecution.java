@@ -85,9 +85,15 @@ public class DiscordCommandExecution implements CommandExecution {
     }
 
     @Override
-    public String getArgument(String label) {
+    public String getString(String label) {
         OptionMapping mapping = interactionPayload.getOption(label);
         return mapping != null ? mapping.getAsString() : null;
+    }
+
+    @Override
+    public Boolean getBoolean(String label) {
+        OptionMapping mapping = interactionPayload.getOption(label);
+        return mapping != null ? mapping.getAsBoolean() : null;
     }
 
     @Override
