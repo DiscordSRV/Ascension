@@ -274,6 +274,6 @@ public class OnlineRoleModule extends AbstractSyncModule<DiscordSRV, OnlineRoleC
 
         removeRoleFromList(membersToRemove, role, 1, TimeUnit.MINUTES)
                 .whenFailed(e -> discordSRV.logger().error("Failed to remove online sync roles from all users for reload", e))
-                .whenSuccessful(__ -> discordSRV.logger().info("Removed all online sync roles from all users for reload"));
+                .whenSuccessful(__ -> discordSRV.logger().debug("Removed all online sync roles from all users for reload"));
     }
 }
