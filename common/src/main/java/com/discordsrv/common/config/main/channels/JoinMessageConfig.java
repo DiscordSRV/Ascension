@@ -22,6 +22,7 @@ import com.discordsrv.api.discord.entity.message.DiscordMessageEmbed;
 import com.discordsrv.api.discord.entity.message.SendableDiscordMessage;
 import com.discordsrv.api.events.message.receive.game.JoinMessageReceiveEvent;
 import com.discordsrv.common.config.configurate.annotation.Constants;
+import com.discordsrv.common.config.configurate.annotation.Order;
 import com.discordsrv.common.config.configurate.annotation.Untranslated;
 import com.discordsrv.common.config.configurate.manager.abstraction.ConfigurateConfigManager;
 import com.discordsrv.common.config.documentation.DocumentationURLs;
@@ -38,6 +39,7 @@ public class JoinMessageConfig implements IMessageConfig {
         ConfigurateConfigManager.nullAllFields(this);
     }
 
+    @Order(-3)
     public Boolean enabled = true;
 
     @Comment("Suggested placeholders:\n"
@@ -52,6 +54,7 @@ public class JoinMessageConfig implements IMessageConfig {
             + "More placeholders at %1 (Player)")
     @Constants.Comment(DocumentationURLs.PLACEHOLDERS)
     @Untranslated(Untranslated.Type.VALUE)
+    @Order(-2) // Above first-join
     public SendableDiscordMessage.Builder format = SendableDiscordMessage.builder()
             .addEmbed(
                     DiscordMessageEmbed.builder()

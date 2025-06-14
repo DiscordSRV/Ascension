@@ -18,13 +18,14 @@
 
 package com.discordsrv.bukkit.config.main;
 
+import com.discordsrv.common.config.configurate.annotation.Order;
 import com.discordsrv.common.config.main.MainConfig;
 import com.discordsrv.common.config.main.PresenceUpdaterConfig;
 import com.discordsrv.common.config.main.channels.base.BaseChannelConfig;
 import com.discordsrv.common.config.main.channels.base.server.ServerBaseChannelConfig;
 import com.discordsrv.common.config.main.channels.base.server.ServerChannelConfig;
-import com.discordsrv.common.config.main.linking.RequiredLinkingConfig;
 import org.spongepowered.configurate.objectmapping.ConfigSerializable;
+import org.spongepowered.configurate.objectmapping.meta.Comment;
 
 @ConfigSerializable
 public class BukkitConfig extends MainConfig {
@@ -39,10 +40,9 @@ public class BukkitConfig extends MainConfig {
         return new ServerChannelConfig();
     }
 
-    @Override
-    protected RequiredLinkingConfig defaultRequiredLinking() {
-        return new BukkitRequiredLinkingConfig();
-    }
+    @Comment("Options for requiring players to link (and optionally meet other requirements) before being able to play")
+    @Order(41)
+    public BukkitRequiredLinkingConfig requiredLinking = new BukkitRequiredLinkingConfig();
 
     @Override
     public PresenceUpdaterConfig defaultPresenceUpdater() {

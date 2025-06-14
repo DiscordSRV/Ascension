@@ -28,8 +28,6 @@ import com.discordsrv.common.config.documentation.DocumentationURLs;
 import com.discordsrv.common.config.main.channels.base.BaseChannelConfig;
 import com.discordsrv.common.config.main.channels.base.ChannelConfig;
 import com.discordsrv.common.config.main.linking.LinkedAccountConfig;
-import com.discordsrv.common.config.main.linking.RequiredLinkingConfig;
-import com.discordsrv.common.config.main.linking.ServerRequiredLinkingConfig;
 import org.spongepowered.configurate.objectmapping.ConfigSerializable;
 import org.spongepowered.configurate.objectmapping.meta.Comment;
 
@@ -67,6 +65,7 @@ public abstract class MainConfig implements Config {
     // Automatic migration toggle
 
     @Comment("Automatically upgrade configuration files on startup or reload if any values are missing")
+    @Order(100)
     public boolean automaticConfigurationUpgrade = true;
 
     // Channels
@@ -86,12 +85,14 @@ public abstract class MainConfig implements Config {
             + "\"%2\" is a special section which has the default values for all channels unless they are specified (overridden) under the channel's own section\n"
             + "So if you don't specify a certain option under a channel's own section, the option will take its value from the \"%2\" section")
     @Constants.Comment({GameChannel.DEFAULT_NAME, ChannelConfig.DEFAULT_KEY, "channel-ids", "threads"})
+    @Order(200)
     public Map<String, BaseChannelConfig> channels = new LinkedHashMap<String, BaseChannelConfig>() {{
         put(GameChannel.DEFAULT_NAME, createDefaultChannel());
         put(ChannelConfig.DEFAULT_KEY, createDefaultBaseChannel());
     }};
 
     // Presence Updater & Invite
+    @Order(300)
     public PresenceUpdaterConfig presenceUpdater = defaultPresenceUpdater();
     protected PresenceUpdaterConfig defaultPresenceUpdater() {
         return new PresenceUpdaterConfig();
@@ -99,19 +100,18 @@ public abstract class MainConfig implements Config {
 
     @Comment("Configuration for the %1 placeholder. The below options will be attempted in the order they are in")
     @Constants.Comment("%discord_invite%")
+    @Order(310)
     public DiscordInviteConfig invite = new DiscordInviteConfig();
 
     // Linked accounts, required linking & rewards
     @Comment("Options for linking Discord and Minecraft accounts together")
+    @Order(400)
     public LinkedAccountConfig linkedAccounts = new LinkedAccountConfig();
 
-    @Comment("Options for requiring players to link (and optionally meet other requirements) before being able to play")
-    public RequiredLinkingConfig requiredLinking = defaultRequiredLinking();
-    protected RequiredLinkingConfig defaultRequiredLinking() {
-        return new ServerRequiredLinkingConfig();
-    }
+    // RequiredLinking goes here
 
     @Comment("Rewards granted for linking accounts and boosting")
+    @Order(420)
     public RewardsConfig rewards = new RewardsConfig();
 
     // Console
@@ -124,37 +124,46 @@ public abstract class MainConfig implements Config {
             + "\n"
             + "Be careful of who you let view and run commands in your console channels!\n"
             + "Configuring this incorrectly can lead to sensitive information being exposed and your server being hacked!")
+    @Order(500)
     public List<ConsoleConfig> console = new ArrayList<>(Collections.singleton(new ConsoleConfig()));
 
     // "Sync" features
 
     @Comment("Configuration options for group-role synchronization\n"
             + PLAYERS_NEED_TO_BE_LINKED)
+    @Order(610)
     public GroupSyncConfig groupSync = new GroupSyncConfig();
 
     @Comment("Configuration options for nickname synchronization\n"
             + PLAYERS_NEED_TO_BE_LINKED)
+    @Order(620)
     public NicknameSyncConfig nicknameSync = new NicknameSyncConfig();
 
     @Comment("Configuration options for ban synchronization\n"
             + PLAYERS_NEED_TO_BE_LINKED)
+    @Order(630)
     public BanSyncConfig banSync = new BanSyncConfig();
 
     @Comment("Options for granting players that are currently online a role in Discord\n"
             + PLAYERS_NEED_TO_BE_LINKED)
+    @Order(640)
     public OnlineRoleConfig onlineRole = new OnlineRoleConfig();
 
     // Commands
     @Comment("In-game command configuration")
+    @Order(700)
     public GameCommandConfig gameCommand = new GameCommandConfig();
 
     @Comment("Configuration for the /discordsrv execute Discord command")
+    @Order(710)
     public ExecuteCommandConfig executeCommand = new ExecuteCommandConfig();
 
     @Comment("Configuration for the /minecraft playerlist Discord command and %playerlist% placeholder")
+    @Order(720)
     public PlayerListConfig playerList = new PlayerListConfig();
 
     @Comment("Custom commands that can trigger console commands and provide a customized output when executed in Discord")
+    @Order(730)
     public List<CustomCommandConfig> customCommands = new ArrayList<>(Arrays.asList(
             CustomCommandConfig.defaultIp(),
             CustomCommandConfig.defaultHelloWorld()
@@ -163,31 +172,33 @@ public abstract class MainConfig implements Config {
     // Channel updater, Discord doesn't like these very much so they're quite low in the config to discourage usage
 
     @Comment("Timed updating for channel names and/or topics")
+    @Order(900)
     public ChannelUpdaterConfig channelUpdater = new ChannelUpdaterConfig();
 
     // "One-time" configuration options
 
     @Comment("Configuration for the %1 placeholder")
     @Constants.Comment("%player_avatar_url%")
+    @Order(5000)
     public AvatarProviderConfig avatarProvider = new AvatarProviderConfig();
 
     @Comment("Configuration for internationalization and localization (i18n/l10n)")
+    @Order(5001)
     public MessagesMainConfig messages = new MessagesMainConfig();
 
     // "Fine-tuning" and debugging options
 
-    @Order(100)
+    @Order(6000)
     public PluginIntegrationConfig integrations = defaultIntegrations();
-
     protected PluginIntegrationConfig defaultIntegrations() {
         return new PluginIntegrationConfig();
     }
 
-    @Order(1000)
+    @Order(6001)
     @Comment("These options are for fine-tuning, only touch them if you know what you're doing")
     public MemberCachingConfig memberCaching = new MemberCachingConfig();
 
-    @Order(5000)
+    @Order(100_000)
     @Comment("Options for diagnosing DiscordSRV, you do not need to touch these options during normal operation")
     public DebugConfig debug = new DebugConfig();
 }
