@@ -32,7 +32,7 @@ import java.util.List;
 @ConfigSerializable
 public class ConsoleConfig {
 
-    @Comment("The console channel or thread")
+    @Comment("The channel or thread that will be used for forwarding output and/or running commands in")
     public DestinationConfig.Single channel = new DestinationConfig.Single("DiscordSRV Console #%date:'w'%", true);
 
     @Comment("The number of threads to keep. Rotation interval is based on placeholders in the thread name")
@@ -45,9 +45,6 @@ public class ConsoleConfig {
     @ConfigSerializable
     public static class Appender {
 
-        @Comment("The format for log lines")
-        public String lineFormat = "[%log_time:'ccc HH:mm:ss zzz'%] [%log_level%]%logger_name:' [\\%s]'% %message%";
-
         @Comment("The mode for the console output, available options are:\n"
                 + "- off: Turn off console appending\n"
                 + "- ansi: A colored ansi code block\n"
@@ -58,10 +55,13 @@ public class ConsoleConfig {
                 + "- plain: Plain text")
         public DiscordOutputMode outputMode = DiscordOutputMode.ANSI;
 
-        @Comment("In \"diff\" mode, should exception lines have the prefix character as well")
+        @Comment("How individual log lines will be formatted")
+        public String lineFormat = "[%log_time:'ccc HH:mm:ss zzz'%] [%log_level%]%logger_name:' [\\%s]'% %message%";
+
+        @Comment("In \"diff\" mode, should exception (stack trace) lines have the prefix character as well, as opposed to only the first line")
         public boolean diffExceptions = true;
 
-        @Comment("If urls should have embeds disabled")
+        @Comment("If urls should have embeds disabled (in \"plain\" output-mode)")
         public boolean disableLinkEmbeds = true;
 
         @Comment("Avoids sending new messages by editing the most recent message until it reaches it's maximum length")

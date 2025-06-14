@@ -18,12 +18,12 @@
 
 package com.discordsrv.bukkit.config.main;
 
-import com.discordsrv.common.config.configurate.annotation.Order;
 import com.discordsrv.common.config.main.MainConfig;
 import com.discordsrv.common.config.main.PresenceUpdaterConfig;
 import com.discordsrv.common.config.main.channels.base.BaseChannelConfig;
 import com.discordsrv.common.config.main.channels.base.server.ServerBaseChannelConfig;
 import com.discordsrv.common.config.main.channels.base.server.ServerChannelConfig;
+import com.discordsrv.common.config.main.linking.RequiredLinkingConfig;
 import org.spongepowered.configurate.objectmapping.ConfigSerializable;
 
 @ConfigSerializable
@@ -39,8 +39,10 @@ public class BukkitConfig extends MainConfig {
         return new ServerChannelConfig();
     }
 
-    @Order(5)
-    public BukkitRequiredLinkingConfig requiredLinking = new BukkitRequiredLinkingConfig();
+    @Override
+    protected RequiredLinkingConfig defaultRequiredLinking() {
+        return new BukkitRequiredLinkingConfig();
+    }
 
     @Override
     public PresenceUpdaterConfig defaultPresenceUpdater() {

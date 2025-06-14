@@ -95,7 +95,7 @@ public class FabricRequiredLinkingModule extends ServerRequireLinkingModule<Fabr
 
     @Override
     public ServerRequiredLinkingConfig config() {
-        return discordSRV.config().requiredLinking;
+        return (ServerRequiredLinkingConfig) discordSRV.config().requiredLinking;
     }
 
     @Override

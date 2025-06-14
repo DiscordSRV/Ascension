@@ -18,20 +18,15 @@
 
 package com.discordsrv.fabric.config.main;
 
-import com.discordsrv.common.config.configurate.annotation.Order;
 import com.discordsrv.common.config.main.MainConfig;
 import com.discordsrv.common.config.main.PresenceUpdaterConfig;
 import com.discordsrv.common.config.main.channels.base.BaseChannelConfig;
 import com.discordsrv.common.config.main.channels.base.server.ServerBaseChannelConfig;
 import com.discordsrv.common.config.main.channels.base.server.ServerChannelConfig;
-import com.discordsrv.common.config.main.linking.ServerRequiredLinkingConfig;
 import org.spongepowered.configurate.objectmapping.ConfigSerializable;
 
 @ConfigSerializable
 public class FabricConfig extends MainConfig {
-
-    @Order(5)
-    public ServerRequiredLinkingConfig requiredLinking = new ServerRequiredLinkingConfig();
 
     @Override
     public BaseChannelConfig createDefaultBaseChannel() {

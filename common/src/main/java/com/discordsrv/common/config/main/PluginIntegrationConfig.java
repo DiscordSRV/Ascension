@@ -18,6 +18,7 @@
 
 package com.discordsrv.common.config.main;
 
+import com.discordsrv.common.config.configurate.annotation.Constants;
 import org.spongepowered.configurate.objectmapping.ConfigSerializable;
 import org.spongepowered.configurate.objectmapping.meta.Comment;
 
@@ -27,13 +28,14 @@ import java.util.List;
 @ConfigSerializable
 public class PluginIntegrationConfig {
 
-    @Comment("Plugin integrations that should be disabled. Specify the names or ids of plugins to disable integrations for")
+    @Comment("Plugin/mod integrations that should be disabled. Specify the names or ids of plugins/mods to disable integrations for")
     public List<String> disabledIntegrations = new ArrayList<>();
 
     @Comment("Specify how vanish should be tracked for players.\n"
             + "\"%1\" to automatically determine if timed tracking should be used\n"
             + "\"%2\" to always use timed checking for vanish status\n"
             + "\"%3\" to only use events for vanish status tracking")
+    @Constants.Comment({"auto", "timer", "event_only"})
     public VanishTracking vanishTracking = VanishTracking.AUTO;
     public int vanishTrackingTimerSeconds = 15;
 

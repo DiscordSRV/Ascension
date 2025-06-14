@@ -39,6 +39,7 @@ public class AvatarProviderConfig {
     }
 
     @Comment("Bring your own avatar url templates, empty templates will be skipped\n"
+            + "\n"
             + "Suggested Placeholders:\n"
             + "%player_skin_texture_id% - The texture ID for the player\n"
             + "%player_skin_model% - The skin model (classic, slim) for the player\n"

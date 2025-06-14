@@ -41,6 +41,7 @@ public class DiscordToMinecraftChatConfig {
     public Boolean enabled = true;
 
     @Comment("The Discord to Minecraft message format for regular users and bots\n"
+            + "\n"
             + "Suggested placeholders:\n"
             + "%message% - The content of the Discord message after %4 are applied\n"
             + "%user_effective_server_name% - The Discord user's name as seen in the server the message was sent in\n"

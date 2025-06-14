@@ -18,6 +18,7 @@
 
 package com.discordsrv.common.config.main;
 
+import com.discordsrv.api.placeholder.annotation.Placeholder;
 import org.spongepowered.configurate.objectmapping.meta.Comment;
 
 import java.util.ArrayList;
@@ -26,14 +27,20 @@ import java.util.List;
 
 public class RewardsConfig {
 
-    public List<LinkingReward> linkingRewards = new ArrayList<>(Collections.singleton(new LinkingReward()));
-    public List<BoostingReward> boostingRewards = new ArrayList<>(Collections.singleton(new BoostingReward()));
+    public List<LinkingReward> linkingRewards = new ArrayList<>(Collections.singleton(new LinkingReward() {{
+        rewardId = "first-link";
+    }}));
+
+    @Placeholder("Boosting rewards can only be granted to players that are also linked")
+    public List<BoostingReward> boostingRewards = new ArrayList<>(Collections.singleton(new BoostingReward() {{
+        rewardId = "first-boost";
+    }}));
 
     public static class Reward {
 
         @Comment("The reward id determines if the player and/or user has already been granted the reward.\n"
                 + "It should be unique for each reward. Please do not use the same reward ids on multiple servers at once")
-        public String rewardId = "firstlink";
+        public String rewardId = "";
 
         @Comment("Determines on when the reward can be granted.\n"
                 + "Valid values are: once_per_player, once_per_user, once_per_both, always")

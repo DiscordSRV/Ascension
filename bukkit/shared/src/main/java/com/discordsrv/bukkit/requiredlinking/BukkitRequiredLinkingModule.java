@@ -48,7 +48,7 @@ public class BukkitRequiredLinkingModule extends ServerRequireLinkingModule<Bukk
 
     @Override
     public BukkitRequiredLinkingConfig config() {
-        return discordSRV.config().requiredLinking;
+        return (BukkitRequiredLinkingConfig) discordSRV.config().requiredLinking;
     }
 
     @Override

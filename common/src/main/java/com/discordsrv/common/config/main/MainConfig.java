@@ -28,6 +28,8 @@ import com.discordsrv.common.config.documentation.DocumentationURLs;
 import com.discordsrv.common.config.main.channels.base.BaseChannelConfig;
 import com.discordsrv.common.config.main.channels.base.ChannelConfig;
 import com.discordsrv.common.config.main.linking.LinkedAccountConfig;
+import com.discordsrv.common.config.main.linking.RequiredLinkingConfig;
+import com.discordsrv.common.config.main.linking.ServerRequiredLinkingConfig;
 import org.spongepowered.configurate.objectmapping.ConfigSerializable;
 import org.spongepowered.configurate.objectmapping.meta.Comment;
 
@@ -37,6 +39,15 @@ import java.util.*;
 public abstract class MainConfig implements Config {
 
     public static final String FILE_NAME = "config.yaml";
+
+    @Override
+    public final String getFileName() {
+        return FILE_NAME;
+    }
+
+    private static final String PLAYERS_NEED_TO_BE_LINKED = "Requires players to be linked";
+
+    // File header
 
     @Constants({
             ConnectionConfig.FILE_NAME,
@@ -53,25 +64,23 @@ public abstract class MainConfig implements Config {
             "List of placeholders %4"
     ));
 
+    // Automatic migration toggle
+
     @Comment("Automatically upgrade configuration files on startup or reload if any values are missing")
     public boolean automaticConfigurationUpgrade = true;
 
-    @Override
-    public final String getFileName() {
-        return FILE_NAME;
-    }
+    // Channels
 
     public BaseChannelConfig createDefaultChannel() {
         return new ChannelConfig();
     }
-
     public BaseChannelConfig createDefaultBaseChannel() {
         return new BaseChannelConfig();
     }
 
     @DefaultOnly(ChannelConfig.DEFAULT_KEY)
     @Comment("Channels configuration\n\n"
-            + "This is where everything related to in-game chat channels is configured.\n"
+            + "This is where everything related to in-game chat channel synchronization to Discord is configured.\n"
             + "The key of this option is the in-game channel name (the default keys are \"%1\" and \"%2\")\n"
             + "%3 and %4 can be configured for all channels except \"%2\"\n"
             + "\"%2\" is a special section which has the default values for all channels unless they are specified (overridden) under the channel's own section\n"
@@ -82,30 +91,60 @@ public abstract class MainConfig implements Config {
         put(ChannelConfig.DEFAULT_KEY, createDefaultBaseChannel());
     }};
 
-    public LinkedAccountConfig linkedAccounts = new LinkedAccountConfig();
-
-    public RewardsConfig rewards = new RewardsConfig();
-
+    // Presence Updater & Invite
     public PresenceUpdaterConfig presenceUpdater = defaultPresenceUpdater();
-
     protected PresenceUpdaterConfig defaultPresenceUpdater() {
         return new PresenceUpdaterConfig();
     }
 
-    public ChannelUpdaterConfig channelUpdater = new ChannelUpdaterConfig();
+    @Comment("Configuration for the %1 placeholder. The below options will be attempted in the order they are in")
+    @Constants.Comment("%discord_invite%")
+    public DiscordInviteConfig invite = new DiscordInviteConfig();
 
-    @Comment("Configuration options for group-role synchronization")
+    // Linked accounts, required linking & rewards
+    @Comment("Options for linking Discord and Minecraft accounts together")
+    public LinkedAccountConfig linkedAccounts = new LinkedAccountConfig();
+
+    @Comment("Options for requiring players to link (and optionally meet other requirements) before being able to play")
+    public RequiredLinkingConfig requiredLinking = defaultRequiredLinking();
+    protected RequiredLinkingConfig defaultRequiredLinking() {
+        return new ServerRequiredLinkingConfig();
+    }
+
+    @Comment("Rewards granted for linking accounts and boosting")
+    public RewardsConfig rewards = new RewardsConfig();
+
+    // Console
+    @Comment("Allows for creating channels and/or threads that act like the Minecraft server console\n"
+            + "Multiple configurations are allowed for forwarding different portions of logs into different places,\n"
+            + "configuring the entire console output to be forwarded to multiple places is discouraged.\n"
+            + "\n"
+            + "Using this feature as your primary way to view log history is not recommended.\n"
+            + "The default configuration uses thread rotation, where a new thread will be created every week, and only 3 weeks are kept.\n"
+            + "\n"
+            + "Be careful of who you let view and run commands in your console channels!\n"
+            + "Configuring this incorrectly can lead to sensitive information being exposed and your server being hacked!")
+    public List<ConsoleConfig> console = new ArrayList<>(Collections.singleton(new ConsoleConfig()));
+
+    // "Sync" features
+
+    @Comment("Configuration options for group-role synchronization\n"
+            + PLAYERS_NEED_TO_BE_LINKED)
     public GroupSyncConfig groupSync = new GroupSyncConfig();
 
-    @Comment("Configuration options for nickname synchronization")
+    @Comment("Configuration options for nickname synchronization\n"
+            + PLAYERS_NEED_TO_BE_LINKED)
     public NicknameSyncConfig nicknameSync = new NicknameSyncConfig();
 
-    @Comment("Configuration options for ban synchronization")
+    @Comment("Configuration options for ban synchronization\n"
+            + PLAYERS_NEED_TO_BE_LINKED)
     public BanSyncConfig banSync = new BanSyncConfig();
 
-    @Comment("Configuration options for online role synchronization")
+    @Comment("Options for granting players that are currently online a role in Discord\n"
+            + PLAYERS_NEED_TO_BE_LINKED)
     public OnlineRoleConfig onlineRole = new OnlineRoleConfig();
 
+    // Commands
     @Comment("In-game command configuration")
     public GameCommandConfig gameCommand = new GameCommandConfig();
 
@@ -115,24 +154,27 @@ public abstract class MainConfig implements Config {
     @Comment("Configuration for the /minecraft playerlist Discord command and %playerlist% placeholder")
     public PlayerListConfig playerList = new PlayerListConfig();
 
-    @Comment("Options for console channel(s) and/or thread(s)")
-    public List<ConsoleConfig> console = new ArrayList<>(Collections.singleton(new ConsoleConfig()));
-
+    @Comment("Custom commands that can trigger console commands and provide a customized output when executed in Discord")
     public List<CustomCommandConfig> customCommands = new ArrayList<>(Arrays.asList(
             CustomCommandConfig.defaultIp(),
             CustomCommandConfig.defaultHelloWorld()
     ));
 
-    @Comment("Configuration for the %1 placeholder. The below options will be attempted in the order they are in")
-    @Constants.Comment("%discord_invite%")
-    public DiscordInviteConfig invite = new DiscordInviteConfig();
+    // Channel updater, Discord doesn't like these very much so they're quite low in the config to discourage usage
 
-    public MessagesMainConfig messages = new MessagesMainConfig();
+    @Comment("Timed updating for channel names and/or topics")
+    public ChannelUpdaterConfig channelUpdater = new ChannelUpdaterConfig();
 
-    @Order(10) // To go below required linking config @ 5
+    // "One-time" configuration options
+
     @Comment("Configuration for the %1 placeholder")
     @Constants.Comment("%player_avatar_url%")
     public AvatarProviderConfig avatarProvider = new AvatarProviderConfig();
+
+    @Comment("Configuration for internationalization and localization (i18n/l10n)")
+    public MessagesMainConfig messages = new MessagesMainConfig();
+
+    // "Fine-tuning" and debugging options
 
     @Order(100)
     public PluginIntegrationConfig integrations = defaultIntegrations();

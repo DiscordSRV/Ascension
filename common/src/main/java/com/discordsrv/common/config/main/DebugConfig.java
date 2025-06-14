@@ -33,7 +33,7 @@ public class DebugConfig {
     public boolean logToConsole = false;
 
     @Comment("Additional levels to log\nExample value: %1")
-    @Constants.Comment("{\"AWARD_LISTENER\":[\"TRACE\"]}")
+    @Constants.Comment("{\"LOGGER_NAME\":[\"TRACE\"]}")
     public Map<String, List<String>> additionalLevels = new HashMap<>();
 
 }

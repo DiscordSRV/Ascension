@@ -61,6 +61,10 @@ public class CustomCommandModule extends AbstractModule<DiscordSRV> {
         List<LayerCommand> layeredCommands = new ArrayList<>();
         int i = 0;
         for (CustomCommandConfig config : configs) {
+            if (!config.enabled) {
+                continue;
+            }
+
             List<String> commandParts = Arrays.asList(config.command.split(" "));
             int parts = commandParts.size();
             if (parts > 3) {

@@ -51,6 +51,8 @@ public class CustomCommandConfig {
         return config;
     }
 
+    public boolean enabled = false;
+
     @Comment("The command in Discord, this can be in up to 3 parts (separated by spaces).\n"
             + "You cannot specify commands on the 2nd and 3rd layer for the same main command at once.\n"
             + "You cannot specify an action for the main command if you specify something for the same main command on the 2nd or 3rd layer")
@@ -80,7 +82,7 @@ public class CustomCommandConfig {
     public static class OptionConfig {
 
         @Comment("Acceptable options are: %1")
-        @Constants.Comment("STRING, LONG, DOUBLE, BOOLEAN, USER, CHANNEL, ROLE, MENTIONABLE, ATTACHMENT")
+        @Constants.Comment("string, long, double, boolean, user, channel, role, mentionable, attachment")
         public CommandOption.Type type = CommandOption.Type.USER;
 
         @Comment("The name of this option, will be shown to the user")

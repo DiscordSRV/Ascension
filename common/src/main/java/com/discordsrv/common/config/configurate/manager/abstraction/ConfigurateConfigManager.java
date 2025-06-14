@@ -473,6 +473,12 @@ public abstract class ConfigurateConfigManager<T, LT extends AbstractConfigurati
 
             checkIfValuesMissing(value, child, anyMissingOptions);
         }
+        List<CommentedConfigurationNode> children = defaultNode.childrenList();
+        if (!children.isEmpty()) {
+            for (CommentedConfigurationNode childNode : node.childrenList()) {
+                checkIfValuesMissing(childNode, children.get(0), anyMissingOptions);
+            }
+        }
     }
 
     @SuppressWarnings("unchecked")
