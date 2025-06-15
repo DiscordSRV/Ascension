@@ -74,6 +74,7 @@ public class H2Storage extends SQLStorage {
 
     @Override
     public void close() {
+        super.close();
         if (connection != null) {
             try {
                 connection.close();
