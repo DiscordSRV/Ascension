@@ -18,16 +18,17 @@
 
 package com.discordsrv.common.config.main;
 
+import com.discordsrv.common.config.configurate.annotation.Constants;
+import com.discordsrv.common.config.configurate.annotation.DefaultOnly;
+import com.discordsrv.common.config.configurate.annotation.Untranslated;
 import com.discordsrv.common.config.main.generic.DestinationConfig;
 import com.discordsrv.common.config.main.generic.DiscordOutputMode;
 import com.discordsrv.common.config.main.generic.GameCommandExecutionConditionConfig;
 import org.spongepowered.configurate.objectmapping.ConfigSerializable;
 import org.spongepowered.configurate.objectmapping.meta.Comment;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.List;
+import java.util.*;
+import java.util.regex.Pattern;
 
 @ConfigSerializable
 public class ConsoleConfig {
@@ -69,6 +70,20 @@ public class ConsoleConfig {
 
         @Comment("If console messages should be silent, not causing a notification")
         public boolean silentMessages = true;
+
+        // TODO: more info on regex pairs (String#replaceAll)
+        @Comment("Regex filters to apply to the console message (%1) and stacktrace (applied separately), applied before DiscordSRV touches them.\n"
+                + "Please keep in mind they may contain color codes.\n\n"
+                + "If the entire message is filtered out by these filters the log message (and it's exception stacktrace) will be ignored.\n"
+                + "The plain version of the log message will also be checked for ignoring the entire log message")
+        @Constants.Comment("%message%")
+        @Untranslated(Untranslated.Type.VALUE)
+        @DefaultOnly
+        public Map<Pattern, String> contentRegexFilters = new LinkedHashMap<Pattern, String>() {{
+            // Multicraft panel's automated crash detection (https://www.multicraft.org/site/docs/settings#crash_detection)
+            // with the vanilla and default Essentials text
+            put(Pattern.compile("There are \\d+ (?:of a max of|out of maximum) \\d+ players online.*"), "");
+        }};
 
         @Comment("A list of log levels to whitelist or blacklist")
         public Levels levels = new Levels();
