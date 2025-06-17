@@ -216,7 +216,7 @@ public abstract class ConfigurateConfigManager<T, LT extends AbstractConfigurati
                     builder.register(DiscordMessageEmbed.Builder.class, new DiscordMessageEmbedSerializer(NAMING_SCHEME));
                     builder.register(DiscordMessageEmbed.Field.class, new DiscordMessageEmbedSerializer.FieldSerializer(NAMING_SCHEME));
                     builder.register(SendableDiscordMessage.Builder.class, new SendableDiscordMessageSerializer(NAMING_SCHEME, false));
-                    builder.register(MinecraftMessage.class, new MinecraftMessageSerializer());
+                    builder.register(MinecraftMessage.class, new MinecraftMessageSerializer(NAMING_SCHEME));
                     builder.register(DiscordMessage.class, new DiscordMessageSerializer(NAMING_SCHEME));
                     builder.register(BothMessage.class, new BothMessageSerializer(NAMING_SCHEME));
 

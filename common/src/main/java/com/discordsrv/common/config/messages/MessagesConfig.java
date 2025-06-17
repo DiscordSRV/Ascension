@@ -25,7 +25,6 @@ import com.discordsrv.common.config.helper.BothMessage;
 import com.discordsrv.common.config.helper.DiscordMessage;
 import com.discordsrv.common.config.helper.MinecraftMessage;
 import org.spongepowered.configurate.objectmapping.ConfigSerializable;
-import org.spongepowered.configurate.objectmapping.meta.Comment;
 
 @ConfigSerializable
 public class MessagesConfig implements Config {
@@ -69,7 +68,6 @@ public class MessagesConfig implements Config {
         return new DiscordMessage(SendableDiscordMessage.builder().setContent(rawFormat));
     }
 
-    @Comment("Generic")
     @Constants({MINECRAFT_ERROR_COLOR, DISCORD_ERROR_PREFIX})
     public BothMessage noPermission = both(
             "%1Sorry, but you do not have permission to use that command",

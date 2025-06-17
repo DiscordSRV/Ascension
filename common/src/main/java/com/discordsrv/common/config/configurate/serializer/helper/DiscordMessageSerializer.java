@@ -31,18 +31,20 @@ import java.lang.reflect.Type;
 public class DiscordMessageSerializer implements TypeSerializer<DiscordMessage> {
 
     private final SendableDiscordMessageSerializer serializer;
+    private final NamingScheme namingScheme;
 
     public DiscordMessageSerializer(NamingScheme namingScheme) {
         this.serializer = new SendableDiscordMessageSerializer(namingScheme, true);
+        this.namingScheme = namingScheme;
     }
 
     @Override
     public DiscordMessage deserialize(Type type, ConfigurationNode node) throws SerializationException {
-        return new DiscordMessage(serializer.deserialize(type, node));
+        return new DiscordMessage(serializer.deserialize(type, node.node(namingScheme.coerce("discord"))));
     }
 
     @Override
     public void serialize(Type type, @Nullable DiscordMessage obj, ConfigurationNode node) throws SerializationException {
-        serializer.serialize(type, obj != null ? obj.builder() : null, node);
+        serializer.serialize(type, obj != null ? obj.builder() : null, node.node(namingScheme.coerce("discord")));
     }
 }
