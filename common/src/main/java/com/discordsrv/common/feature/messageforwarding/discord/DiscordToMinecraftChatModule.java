@@ -243,6 +243,18 @@ public class DiscordToMinecraftChatModule extends AbstractModule<DiscordSRV> {
 
         gameChannel.sendMessage(component);
 
+        if (chatConfig.logToConsole) {
+            Component consoleComponent = ComponentUtil.fromAPI(
+                    discordSRV.componentFactory().textBuilder(chatConfig.consoleFormat)
+                            .applyPlaceholderService()
+                            .addContext(author, member, guild, channel, channelConfig, gameChannel)
+                            .addPlaceholder("message", messageComponent)
+                            .addPlaceholder("formatted_message", component)
+                            .build()
+            );
+            discordSRV.console().sendMessage(consoleComponent);
+        }
+
         Collection<? extends DiscordSRVPlayer> players = gameChannel.getRecipients();
         for (DiscordSRVPlayer player : players) {
             gameChannel.sendMessageToPlayer(player, component);

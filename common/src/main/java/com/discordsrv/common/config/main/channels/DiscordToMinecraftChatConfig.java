@@ -52,6 +52,7 @@ public class DiscordToMinecraftChatConfig {
             + "%user_roles% - The Discord user's roles\n"
             + "%message_reply% - The value from %2 if the Discord message is in reply to another message\n"
             + "%message_attachments% - The value from %3 for each attachment the Discord message\n"
+            + "%gamechannel_name% - The name of the in-game chat channel the message was sent to\n"
             + "\n"
             + "More placeholders at %1 (User, User (Server Member), Server, Channel, GameChannel)")
     @Constants.Comment({
@@ -109,5 +110,17 @@ public class DiscordToMinecraftChatConfig {
     @Comment("The number of milliseconds by which to delay processing Discord messages, if the message is deleted in that time it will not be processed.\n"
             + "This can be used together with Discord moderation bots, to filter forwarded messages")
     public Long delayMillis = 0L;
+
+    @Comment("If messages from Discord should be logged to the console\n"
+            + "\n"
+            + "Suggested placeholders:\n"
+            + "%formatted_message% - The entire message sent in-game as configured above\n"
+            + "%message% - The content of the Discord message\n"
+            + "%user_name% - The username of the Discord user\n"
+            + "%gamechannel_name% - The name of the in-game chat channel the message was sent to\n"
+            + "More placeholders at %1 (User, User (Server Member), Server, Channel, GameChannel)")
+    @Constants.Comment(DocumentationURLs.PLACEHOLDERS)
+    public boolean logToConsole = true;
+    public String consoleFormat = "[%gamechannel_name%] %formatted_message%";
 
 }
