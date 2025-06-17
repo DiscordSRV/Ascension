@@ -42,7 +42,7 @@ public class FabricConfig extends MainConfig {
     }
 
     @Comment("Options for requiring players to link (and optionally meet other requirements) before being able to play")
-    @Order(41)
+    @Order(410)
     public ServerRequiredLinkingConfig requiredLinking = new ServerRequiredLinkingConfig();
 
     @Override
