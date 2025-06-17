@@ -31,6 +31,12 @@ import java.lang.annotation.Target;
 public @interface DefaultOnly {
 
     /**
+     * If the entire option should be default only instead of just certain children.
+     * @return {@code true} to exclude the entire option from the default node
+     */
+    boolean entireOption() default false;
+
+    /**
      * The children that are whitelisted/blacklisted based on {@link #whitelist()},
      * if this is empty the entire option will be blacklisted from being merged into existing configs.
      */

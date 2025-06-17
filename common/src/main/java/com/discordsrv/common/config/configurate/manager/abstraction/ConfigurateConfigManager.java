@@ -327,10 +327,7 @@ public abstract class ConfigurateConfigManager<T, LT extends AbstractConfigurati
     protected ObjectMapper.Factory.Builder cleanObjectMapperBuilder() {
         return commonObjectMapperBuilder(true)
                 .addProcessor(DefaultOnly.class, (data, value) -> (value1, destination) -> {
-                    String[] children = data.value();
-                    boolean whitelist = data.whitelist();
-
-                    if (children.length == 0) {
+                    if (data.entireOption()) {
                         try {
                             destination.set(null);
                         } catch (SerializationException e) {
@@ -338,6 +335,10 @@ public abstract class ConfigurateConfigManager<T, LT extends AbstractConfigurati
                         }
                         return;
                     }
+
+                    // Children which will be excluded/included from the default node
+                    String[] children = data.value();
+                    boolean whitelist = data.whitelist();
 
                     List<String> list = Arrays.asList(children);
                     for (Map.Entry<Object, ? extends ConfigurationNode> entry : destination.childrenMap().entrySet()) {

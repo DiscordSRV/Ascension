@@ -20,6 +20,7 @@ package com.discordsrv.common.config.main.channels;
 
 import com.discordsrv.api.discord.entity.message.SendableDiscordMessage;
 import com.discordsrv.common.config.configurate.annotation.Constants;
+import com.discordsrv.common.config.configurate.annotation.DefaultOnly;
 import com.discordsrv.common.config.configurate.annotation.Untranslated;
 import com.discordsrv.common.config.configurate.manager.abstraction.ConfigurateConfigManager;
 import com.discordsrv.common.config.documentation.DocumentationURLs;
@@ -59,6 +60,8 @@ public class MinecraftToDiscordChatConfig implements IMessageConfig {
 
     // TODO: more info on regex pairs (String#replaceAll)
     @Comment("Regex filters for Minecraft message contents (this is the %message% part of the \"format\" option)")
+    @Untranslated(Untranslated.Type.VALUE)
+    @DefaultOnly
     public Map<Pattern, String> contentRegexFilters = new LinkedHashMap<>();
 
     public Mentions mentions = new Mentions();
