@@ -91,7 +91,7 @@ public class ReloadCommand implements GameCommandExecutor, GameCommandSuggester 
                 case ERROR: {
                     sender.sendMessage(
                             Component.text()
-                                    .append(Component.text("Reload failed.", NamedTextColor.DARK_RED, TextDecoration.BOLD))
+                                    .append(Component.text("Reload failed. ", NamedTextColor.DARK_RED, TextDecoration.BOLD))
                                     .append(Component.text("Please check the server console/log for more details."))
                     );
                     break;
