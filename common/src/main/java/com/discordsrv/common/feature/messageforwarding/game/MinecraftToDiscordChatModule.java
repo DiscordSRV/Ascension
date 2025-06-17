@@ -37,14 +37,18 @@ import com.discordsrv.common.DiscordSRV;
 import com.discordsrv.common.abstraction.player.IPlayer;
 import com.discordsrv.common.config.main.channels.MinecraftToDiscordChatConfig;
 import com.discordsrv.common.config.main.channels.base.BaseChannelConfig;
+import com.discordsrv.common.core.component.DiscordMentionComponent;
 import com.discordsrv.common.feature.mention.CachedMention;
 import com.discordsrv.common.feature.mention.MentionCachingModule;
+import com.discordsrv.common.permission.game.Permission;
 import com.discordsrv.common.permission.game.Permissions;
 import com.discordsrv.common.util.ComponentUtil;
 import net.dv8tion.jda.api.entities.Guild;
-import net.dv8tion.jda.api.entities.Role;
+import net.dv8tion.jda.api.entities.Message;
 import net.kyori.adventure.text.Component;
+import org.apache.commons.lang3.tuple.Pair;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
 
@@ -125,6 +129,12 @@ public class MinecraftToDiscordChatModule extends AbstractGameMessageModule<Mine
     ) {
         MentionCachingModule mentionCaching = discordSRV.getModule(MentionCachingModule.class);
         if (mentionCaching != null) {
+            List<Pair<Message.MentionType, String>> preResolvedMentions = DiscordMentionComponent.digValues(message);
+            if (!preResolvedMentions.isEmpty()) {
+                return mentionCaching.lookup(config.mentions, guild, player, preResolvedMentions)
+                        .thenApply(mentions -> getMessageForGuildWithMentions(config, format, guild, message, player, context, mentions));
+            }
+
             String messageContent = discordSRV.componentFactory().plainSerializer().serialize(message);
             return mentionCaching.lookup(config.mentions, guild, player, messageContent, null)
                     .thenApply(mentions -> getMessageForGuildWithMentions(config, format, guild, message, player, context, mentions));
@@ -142,28 +152,8 @@ public class MinecraftToDiscordChatModule extends AbstractGameMessageModule<Mine
             Object[] context,
             List<CachedMention> mentions
     ) {
-        MinecraftToDiscordChatConfig.Mentions mentionConfig = config.mentions;
-
-        List<AllowedMention> allowedMentions = new ArrayList<>();
-        if (mentionConfig.users && player.hasPermission(Permissions.MENTION_USER)) {
-            allowedMentions.add(AllowedMention.ALL_USERS);
-        }
-        if (mentionConfig.roles) {
-            if (player.hasPermission(Permissions.MENTION_ROLE_ALL)) {
-                allowedMentions.add(AllowedMention.ALL_ROLES);
-            } else if (player.hasPermission(Permissions.MENTION_ROLE_MENTIONABLE)) {
-                for (Role role : guild.getRoles()) {
-                    if (role.isMentionable()) {
-                        allowedMentions.add(AllowedMention.role(role.getIdLong()));
-                    }
-                }
-            }
-        }
-
-        boolean everyoneMentionAllowed = mentionConfig.everyone && player.hasPermission(Permissions.MENTION_EVERYONE);
-        if (everyoneMentionAllowed) {
-            allowedMentions.add(AllowedMention.EVERYONE);
-        }
+        boolean everyoneMentionAllowed = config.mentions.everyone && player.hasPermission(Permissions.MENTION_EVERYONE);
+        List<AllowedMention> allowedMentions = getAllowedMentions(config.mentions, player, everyoneMentionAllowed, mentions);
 
         return format.setAllowedMentions(allowedMentions)
                 .toFormatter()
@@ -186,6 +176,56 @@ public class MinecraftToDiscordChatModule extends AbstractGameMessageModule<Mine
                 })
                 .applyPlaceholderService()
                 .build();
+    }
+
+    private List<AllowedMention> getAllowedMentions(
+            MinecraftToDiscordChatConfig.Mentions config,
+            IPlayer player,
+            boolean everyoneMentionAllowed,
+            @Nullable List<CachedMention> mentions
+    ) {
+        List<AllowedMention> allowedMentions = new ArrayList<>();
+
+        boolean users = config.users;
+        boolean allUsers = users && player.hasPermission(Permissions.MENTION_USER_ALL);
+        if (allUsers) {
+            allowedMentions.add(AllowedMention.ALL_USERS);
+        }
+
+        boolean roles = config.roles;
+        boolean allRoles = roles && player.hasPermission(Permissions.MENTION_ROLE_ALL);
+        boolean mentionableRoles = roles && player.hasPermission(Permissions.MENTION_ROLE_MENTIONABLE);
+        if (allRoles) {
+            allowedMentions.add(AllowedMention.ALL_ROLES);
+        }
+
+        if (everyoneMentionAllowed) {
+            allowedMentions.add(AllowedMention.EVERYONE);
+        }
+
+        if (mentions == null) {
+            return allowedMentions;
+        }
+
+        for (CachedMention mention : mentions) {
+            CachedMention.Type type = mention.type();
+            if (users && type == CachedMention.Type.USER && !allUsers) {
+                if (player.hasPermission(Permission.of("mention.user." + Long.toUnsignedString(mention.id())))) {
+                    allowedMentions.add(AllowedMention.user(mention.id()));
+                }
+            } else if (roles && type == CachedMention.Type.ROLE && !allRoles) {
+                if (mention.mentionable() && mentionableRoles) {
+                    allowedMentions.add(AllowedMention.role(mention.id()));
+                    continue;
+                }
+
+                if (player.hasPermission(Permission.of("mention.role." + Long.toUnsignedString(mention.id())))) {
+                    allowedMentions.add(AllowedMention.role(mention.id()));
+                }
+            }
+        }
+
+        return allowedMentions;
     }
 
     private String preventEveryoneMentions(boolean everyoneAllowed, String message) {

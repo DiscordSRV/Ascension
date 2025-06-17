@@ -39,7 +39,7 @@ public enum Permissions implements Permission {
     COMMAND_UNLINK("command.unlink.self", false),
 
     // Mentions
-    MENTION_USER("mention.user.base", true),
+    MENTION_USER_ALL("mention.user.all", true),
     MENTION_USER_LOOKUP("mention.user.lookup", true),
     MENTION_ROLE_MENTIONABLE("mention.role.mentionable", true),
     MENTION_ROLE_ALL("mention.role.all", true),
@@ -59,14 +59,16 @@ public enum Permissions implements Permission {
         this.requiresOpByDefault = requiresOpByDefault;
     }
 
+    @Override
     public String permission() {
-        return "discordsrv." + permission;
+        return PERMISSION_PREFIX + permission;
     }
 
     /**
      * If a given permission's default should be OP, rather than being granted by default.
      * @return {@code true} if the permission should be restricted to, at least OPs
      */
+    @Override
     public boolean requiresOpByDefault() {
         return requiresOpByDefault;
     }

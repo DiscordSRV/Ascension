@@ -165,7 +165,7 @@ public class TownyChatIntegration extends PluginIntegration<BukkitDiscordSRV> im
                 }
 
                 String permission = channel.getPermission();
-                if (permission != null && !player.hasPermission(Permission.of(permission))) {
+                if (permission != null && !player.hasPermission(Permission.ofGeneric(permission))) {
                     continue;
                 }
 

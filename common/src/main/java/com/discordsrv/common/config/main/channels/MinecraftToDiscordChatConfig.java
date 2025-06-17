@@ -84,15 +84,19 @@ public class MinecraftToDiscordChatConfig implements IMessageConfig {
 
         @Comment("If role mentions should be rendered on Discord\n\n"
                 + "The player needs one of the below permission to trigger notifications:\n"
-                + "- discordsrv.mention.roles.mentionable (for roles which have \"Allow anyone to @mention this role\" enabled)\n"
-                + "- discordsrv.mention.roles.all (to mention ALL roles except @everyone)")
+                + "- discordsrv.mention.role.<role id> (to mention a specific role)\n"
+                + "- discordsrv.mention.role.mentionable (for roles which have \"Allow anyone to @mention this role\" enabled)\n"
+                + "- discordsrv.mention.role.all (to mention ALL roles except @everyone)\n"
+                + "The roles need to have \"Allow anyone to @mention this role\" enabled or the bot needs to have the \"Mention @everyone, @here and All Roles\" permission")
         public boolean roles = true;
 
         @Comment("If channel mentions should be rendered on Discord")
         public boolean channels = true;
 
         @Comment("If user mentions should be rendered on Discord\n"
-                + "The player needs the discordsrv.mention.user permission to trigger a notification\n"
+                + "The player needs one of the following permissions to trigger notifications:\n"
+                + "- discordsrv.mention.user.<user id> (to mention a specific user)\n"
+                + "- discordsrv.mention.user.all (to mention ALL user)\n"
                 + "Requires the \"Server Members Intent\"")
         public boolean users = true;
 

@@ -20,6 +20,8 @@ package com.discordsrv.common.permission.game;
 
 public interface Permission {
 
+    String PERMISSION_PREFIX = "discordsrv.";
+
     String permission();
 
     /**
@@ -33,6 +35,14 @@ public interface Permission {
     }
 
     static Permission of(String permission, boolean requiresOpByDefault) {
+        return ofGeneric(PERMISSION_PREFIX + permission, requiresOpByDefault);
+    }
+
+    static Permission ofGeneric(String permission) {
+        return ofGeneric(permission, true);
+    }
+
+    static Permission ofGeneric(String permission, boolean requiresOpByDefault) {
         return new Dynamic(permission, requiresOpByDefault);
     }
 
