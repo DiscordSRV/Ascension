@@ -101,7 +101,6 @@ public class DiscordSRVGameCommand implements GameCommandExecutor {
         MinecraftComponent component = discordSRV.componentFactory()
                 .textBuilder(discordSRV.config().gameCommand.discordFormat)
                 .addContext(sender)
-                .applyPlaceholderService()
                 .build();
 
         sender.sendMessage(ComponentUtil.fromAPI(component));

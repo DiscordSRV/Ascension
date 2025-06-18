@@ -186,7 +186,6 @@ public class ComponentFactory implements MinecraftComponentFactory {
                 discordSRV.componentFactory()
                         .textBuilder(guildChannel != null ? format.format : format.unknownFormat)
                         .addContext(guildChannel)
-                        .applyPlaceholderService()
                         .build()
         ));
     }
@@ -229,7 +228,6 @@ public class ComponentFactory implements MinecraftComponentFactory {
                 discordSRV.componentFactory()
                         .textBuilder(format)
                         .addContext(user, member)
-                        .applyPlaceholderService()
                         .build()
         ));
     }
@@ -241,7 +239,6 @@ public class ComponentFactory implements MinecraftComponentFactory {
                 discordSRV.componentFactory()
                         .textBuilder(role != null ? format.format : format.unknownFormat)
                         .addContext(role)
-                        .applyPlaceholderService()
                         .build()
         ));
     }

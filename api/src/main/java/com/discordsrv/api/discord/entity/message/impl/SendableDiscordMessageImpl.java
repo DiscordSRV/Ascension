@@ -336,6 +336,7 @@ public class SendableDiscordMessageImpl implements SendableDiscordMessage {
 
         private final Set<Object> context = new HashSet<>();
         private final Map<Pattern, Function<@NotNull Matcher, @Nullable Object>> replacements = new LinkedHashMap<>();
+        private boolean placeholderServiceApplied = false;
 
         private final SendableDiscordMessage.Builder builder;
 
@@ -344,9 +345,14 @@ public class SendableDiscordMessageImpl implements SendableDiscordMessage {
         }
 
         @Override
-        public SendableDiscordMessage.@NotNull Formatter addContext(Object... context) {
-            this.context.addAll(Arrays.asList(context));
-            return this;
+        public @NotNull Formatter addContext(@NotNull Collection<Object> context) {
+            for (Object o : context) {
+                if (o == null) {
+                    continue;
+                }
+                this.context.add(o);
+            }
+            return applyPlaceholderService();
         }
 
         @Override
@@ -357,11 +363,16 @@ public class SendableDiscordMessageImpl implements SendableDiscordMessage {
 
         @Override
         public @NotNull Formatter applyPlaceholderService() {
+            if (placeholderServiceApplied) {
+                return this;
+            }
+
             DiscordSRV discordSRV = DiscordSRV.get();
             this.replacements.put(
                     PlaceholderService.PATTERN,
                     wrapFunction(matcher -> discordSRV.placeholderService().getResultAsCharSequence(matcher, context))
             );
+            this.placeholderServiceApplied = true;
             return this;
         }
 

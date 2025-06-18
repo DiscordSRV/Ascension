@@ -179,7 +179,6 @@ public class BanSyncModule extends AbstractSyncModule<DiscordSRV, BanSyncConfig,
 
         MinecraftComponent punisherName = discordSRV.componentFactory().textBuilder(config.gamePunisherFormat)
                 .addContext(punisher, punisherMember)
-                .applyPlaceholderService()
                 .build();
 
         long bannedUserId = entry.getTargetIdLong();
@@ -284,11 +283,9 @@ public class BanSyncModule extends AbstractSyncModule<DiscordSRV, BanSyncConfig,
         if (newState != null) {
             MinecraftComponent reason = discordSRV.componentFactory().textBuilder(config.gameBanReasonFormat)
                     .addContext(newState)
-                    .applyPlaceholderService()
                     .build();
             MinecraftComponent punisher = discordSRV.componentFactory().textBuilder(config.gamePunisherFormat)
                     .addContext(newState)
-                    .applyPlaceholderService()
                     .build();
 
             return bans.addBan(playerUUID, null, reason, punisher)
@@ -301,7 +298,6 @@ public class BanSyncModule extends AbstractSyncModule<DiscordSRV, BanSyncConfig,
                         MinecraftComponent kickMessage = discordSRV.componentFactory()
                                 .textBuilder(config.gameKickReason)
                                 .addContext(newState)
-                                .applyPlaceholderService()
                                 .build();
 
                         return player.kick(ComponentUtil.fromAPI(kickMessage));

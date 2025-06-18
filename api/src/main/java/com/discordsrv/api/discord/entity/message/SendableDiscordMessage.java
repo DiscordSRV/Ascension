@@ -32,10 +32,7 @@ import org.jetbrains.annotations.Nullable;
 import org.jetbrains.annotations.Unmodifiable;
 
 import java.io.InputStream;
-import java.util.Collection;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 import java.util.function.Function;
 import java.util.function.Supplier;
 import java.util.regex.Matcher;
@@ -370,7 +367,17 @@ public interface SendableDiscordMessage {
          * @return the formatted, useful for chaining
          */
         @NotNull
-        Formatter addContext(Object... context);
+        default Formatter addContext(@NotNull Object... context) {
+            return addContext(Arrays.asList(context));
+        }
+
+        /**
+         * Adds context for replacing placeholders via DiscordSRV's {@link com.discordsrv.api.placeholder.PlaceholderService}.
+         * @param context the context to add
+         * @return the formatted, useful for chaining
+         */
+        @NotNull
+        Formatter addContext(@NotNull Collection<Object> context);
 
         default Formatter addPlaceholder(@NotNull String placeholder, @Nullable Object replacement) {
             return addContext(new SinglePlaceholder(placeholder, replacement));
@@ -379,6 +386,9 @@ public interface SendableDiscordMessage {
         default Formatter addPlaceholder(@NotNull String placeholder, @NotNull Supplier<@Nullable Object> replacementSupplier) {
             return addContext(new SinglePlaceholder(placeholder, replacementSupplier));
         }
+
+        @NotNull
+        Formatter applyPlaceholderService();
 
         @NotNull
         default Formatter addReplacement(@NotNull String target, @Nullable Object replacement) {
@@ -407,9 +417,6 @@ public interface SendableDiscordMessage {
 
         @NotNull
         Formatter addReplacement(@NotNull Pattern target, @NotNull Function<@NotNull Matcher, @Nullable Object> replacement);
-
-        @NotNull
-        Formatter applyPlaceholderService();
 
         @NotNull
         SendableDiscordMessage build();

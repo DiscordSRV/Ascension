@@ -103,7 +103,6 @@ public class StorageLinker extends CachedLinkProvider.Store {
                     .addPlaceholder("code", code)
                     .addPlaceholder("player_name", username)
                     .addPlaceholder("player_uuid", playerUUID)
-                    .applyPlaceholderService()
                     .build();
         });
     }

@@ -150,7 +150,6 @@ public abstract class BroadcastCommand implements GameCommandExecutor, GameComma
                     discordSRV.messagesConfig(sender).channelNotFound
                             .textBuilder()
                             .addPlaceholder("channel", channel)
-                            .applyPlaceholderService()
                             .build()
             ));
         }

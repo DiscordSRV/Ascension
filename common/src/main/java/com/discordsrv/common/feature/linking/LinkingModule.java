@@ -142,7 +142,6 @@ public class LinkingModule extends AbstractModule<DiscordSRV> {
                                 .addContext(player, user)
                                 .addPlaceholder("user_id", userId)
                                 .addPlaceholder("player_uuid", player)
-                                .applyPlaceholderService()
                                 .build();
                         player.sendMessage(ComponentUtil.fromAPI(linkedMessage));
                     });

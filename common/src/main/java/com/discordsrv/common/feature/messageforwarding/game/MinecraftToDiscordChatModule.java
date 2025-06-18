@@ -79,11 +79,11 @@ public class MinecraftToDiscordChatModule extends AbstractGameMessageModule<Mine
     @Override
     public Task<Void> sendMessageToChannels(
             MinecraftToDiscordChatConfig config,
+            GameChatMessagePreProcessEvent event,
             IPlayer player,
             SendableDiscordMessage.Builder format,
             List<DiscordGuildMessageChannel> allChannels,
-            GameChatMessagePreProcessEvent event,
-            Object... context
+            List<Object> context
     ) {
         Map<DiscordGuild, List<DiscordGuildMessageChannel>> channelMap = new LinkedHashMap<>();
         for (DiscordGuildMessageChannel channel : allChannels) {
@@ -153,7 +153,7 @@ public class MinecraftToDiscordChatModule extends AbstractGameMessageModule<Mine
             Guild guild,
             Component message,
             IPlayer player,
-            Object[] context
+            List<Object> context
     ) {
         MentionCachingModule mentionCaching = discordSRV.getModule(MentionCachingModule.class);
         if (mentionCaching != null) {
@@ -177,7 +177,7 @@ public class MinecraftToDiscordChatModule extends AbstractGameMessageModule<Mine
             Guild guild,
             Component message,
             IPlayer player,
-            Object[] context,
+            List<Object> context,
             List<CachedMention> mentions
     ) {
         boolean everyoneMentionAllowed = config.mentions.everyone && player.hasPermission(Permissions.MENTION_EVERYONE);
@@ -202,7 +202,6 @@ public class MinecraftToDiscordChatModule extends AbstractGameMessageModule<Mine
                     String finalMessage = messagePlaceholders.toString();
                     return FormattedText.of(preventEveryoneMentions(everyoneMentionAllowed, finalMessage));
                 })
-                .applyPlaceholderService()
                 .build();
     }
 

@@ -25,11 +25,18 @@ package com.discordsrv.api.events.message.preprocess.game;
 
 import com.discordsrv.api.events.Cancellable;
 import com.discordsrv.api.events.Processable;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.jetbrains.annotations.Unmodifiable;
+
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.Set;
 
 public abstract class AbstractGameMessagePreProcessEvent implements Cancellable, Processable.NoArgument {
 
     private final Object triggeringEvent;
+    private final Set<Object> additonalContexts = new HashSet<>();
     private boolean cancelled;
     private boolean processed;
 
@@ -45,6 +52,32 @@ public abstract class AbstractGameMessagePreProcessEvent implements Cancellable,
     @Nullable
     public Object getTriggeringEvent() {
         return triggeringEvent;
+    }
+
+    /**
+     * Additional contexts that will be passed to the PlaceholderService when formatting this message.
+     * @return an unmodifiable list of contexts, not including ones provided by DiscordSRV
+     */
+    @NotNull
+    @Unmodifiable
+    public Set<Object> getAdditonalContexts() {
+        return Collections.unmodifiableSet(additonalContexts);
+    }
+
+    /**
+     * Add a PlaceholderService context for formatting this message.
+     * @param context the context to add
+     */
+    public void addAdditonalContext(@NotNull Object context) {
+        this.additonalContexts.add(context);
+    }
+
+    /**
+     * Remove a PlaceholderService context for formatting this message.
+     * @param context the context to remove
+     */
+    public void removeAdditonalContext(@NotNull Object context) {
+        this.additonalContexts.remove(context);
     }
 
     @Override

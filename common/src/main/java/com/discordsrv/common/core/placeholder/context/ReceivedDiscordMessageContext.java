@@ -64,7 +64,6 @@ public class ReceivedDiscordMessageContext {
 
         return ComponentUtil.fromAPI(
                 discordSRV.componentFactory().textBuilder(format)
-                        .applyPlaceholderService()
                         .addPlaceholder("message", component)
                         .addContext(message.getMember(), message.getAuthor(), message)
                         .build()
@@ -82,7 +81,6 @@ public class ReceivedDiscordMessageContext {
         for (ReceivedDiscordMessage.Attachment attachment : message.getAttachments()) {
             components.add(ComponentUtil.fromAPI(
                     discordSRV.componentFactory().textBuilder(attachmentFormat)
-                            .applyPlaceholderService()
                             .addContext(message)
                             .addPlaceholder("file_name", attachment.fileName())
                             .addPlaceholder("file_url", attachment.url())

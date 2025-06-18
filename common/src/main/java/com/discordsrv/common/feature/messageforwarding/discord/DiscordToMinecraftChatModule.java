@@ -218,7 +218,6 @@ public class DiscordToMinecraftChatModule extends AbstractModule<DiscordSRV> {
         MinecraftComponent message = discordSRV.componentFactory()
                 .textBuilder(format)
                 .addContext(discordMessage, author, member, guild, channel, channelConfig, gameChannel)
-                .applyPlaceholderService()
                 .addPlaceholder("message", messageComponent)
                 .build();
         if (ComponentUtil.isEmpty(message)) {
@@ -242,7 +241,6 @@ public class DiscordToMinecraftChatModule extends AbstractModule<DiscordSRV> {
         if (chatConfig.logToConsole) {
             Component consoleComponent = ComponentUtil.fromAPI(
                     discordSRV.componentFactory().textBuilder(chatConfig.consoleFormat)
-                            .applyPlaceholderService()
                             .addContext(author, member, guild, channel, channelConfig, gameChannel)
                             .addPlaceholder("message", messageComponent)
                             .addPlaceholder("formatted_message", message)

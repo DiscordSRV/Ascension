@@ -172,7 +172,6 @@ public class LinkInitDiscordCommand implements Consumer<DiscordChatInputInteract
                                 .addContext(user, player)
                                 .addPlaceholder("%player_name%", username)
                                 .addPlaceholder("%player_uuid%", playerUUID)
-                                .applyPlaceholderService()
                                 .build()
                 )
         );

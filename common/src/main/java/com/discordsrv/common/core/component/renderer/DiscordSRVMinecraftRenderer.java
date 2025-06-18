@@ -101,7 +101,6 @@ public class DiscordSRVMinecraftRenderer extends DefaultMinecraftRenderer {
                                         .textBuilder(format)
                                         .addContext(guildChannel)
                                         .addPlaceholder("jump_url", link)
-                                        .applyPlaceholderService()
                                         .build()
                         )
                 )

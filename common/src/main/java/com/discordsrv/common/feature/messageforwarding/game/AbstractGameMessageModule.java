@@ -164,11 +164,15 @@ public abstract class AbstractGameMessageModule<
                         "Failed to forward message" + (channel != null ? " from " + GameChannel.toString(channel) : "") + " to some channels"));
             }
 
-            return sendMessageToChannels(
-                    moduleConfig, player, format, result.channels(), event,
-                    // Context
-                    config, player, channel
-            );
+            List<Object> contexts = new ArrayList<>();
+            contexts.add(config);
+            contexts.add(player);
+            contexts.add(channel);
+            if (event != null) {
+                contexts.addAll(event.getAdditonalContexts());
+            }
+
+            return sendMessageToChannels(moduleConfig, event, player, format, result.channels(), contexts);
         }).whenFailed(t -> {
             discordSRV.logger().error("Error in forwarding message", t);
             TestHelper.fail(t);
@@ -180,15 +184,14 @@ public abstract class AbstractGameMessageModule<
      */
     public Task<Void> sendMessageToChannels(
             T config,
+            PRE event,
             IPlayer player,
             SendableDiscordMessage.Builder format,
             List<DiscordGuildMessageChannel> channels,
-            PRE event,
-            Object... context
+            List<Object> context
     ) {
         SendableDiscordMessage.Formatter formatter = format.toFormatter()
-                .addContext(context)
-                .applyPlaceholderService();
+                .addContext(context);
 
         setPlaceholders(config, event, formatter);
 
