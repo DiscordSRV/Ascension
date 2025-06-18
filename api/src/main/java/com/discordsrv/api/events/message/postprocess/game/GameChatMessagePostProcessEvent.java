@@ -36,9 +36,11 @@ import java.util.List;
  * <b>Unlike other game chat postprocess and post events, this will be called once per Discord server</b>
  * <p>
  * Order of events:
- * <li> {@link com.discordsrv.api.events.message.preprocess.game.GameChatMessagePreProcessEvent}
- * <li> {@link com.discordsrv.api.events.message.postprocess.game.GameChatMessagePostProcessEvent} (this event)
- * <li> {@link com.discordsrv.api.events.message.post.game.GameChatMessagePostEvent}
+ * <ul>
+ * <li>{@link com.discordsrv.api.events.message.preprocess.game.GameChatMessagePreProcessEvent}</li>
+ * <li>{@link com.discordsrv.api.events.message.postprocess.game.GameChatMessagePostProcessEvent} (this event)</li>
+ * <li>{@link com.discordsrv.api.events.message.post.game.GameChatMessagePostEvent}</li>
+ * </ul>
  */
 public class GameChatMessagePostProcessEvent extends AbstractGameMessagePostProcessEvent<GameChatMessagePreProcessEvent> {
 

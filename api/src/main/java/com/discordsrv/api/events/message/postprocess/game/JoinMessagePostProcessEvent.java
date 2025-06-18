@@ -36,9 +36,11 @@ import java.util.List;
  * A join message was processed by DiscordSRV and is about to be forwarded.
  * <p>
  * Order of events:
- * <li> {@link com.discordsrv.api.events.message.preprocess.game.JoinMessagePreProcessEvent}
- * <li> {@link com.discordsrv.api.events.message.postprocess.game.JoinMessagePostProcessEvent} (this event)
- * <li> {@link com.discordsrv.api.events.message.post.game.JoinMessagePostEvent}
+ * <ul>
+ * <li>{@link com.discordsrv.api.events.message.preprocess.game.JoinMessagePreProcessEvent}</li>
+ * <li>{@link com.discordsrv.api.events.message.postprocess.game.JoinMessagePostProcessEvent} (this event)</li>
+ * <li>{@link com.discordsrv.api.events.message.post.game.JoinMessagePostEvent}</li>
+ * </ul>
  */
 public class JoinMessagePostProcessEvent extends AbstractGameMessagePostProcessEvent<JoinMessagePreProcessEvent> {
 

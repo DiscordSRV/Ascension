@@ -36,9 +36,11 @@ import java.util.List;
  * A server switch message was processed by DiscordSRV and is about to be forwarded.
  * <p>
  * Order of events:
- * <li> {@link com.discordsrv.api.events.message.preprocess.game.ServerSwitchMessagePreProcessEvent}
- * <li> {@link com.discordsrv.api.events.message.postprocess.game.ServerSwitchMessagePostProcessEvent} (this event)
- * <li> {@link com.discordsrv.api.events.message.post.game.ServerSwitchMessagePostEvent}
+ * <ul>
+ * <li>{@link com.discordsrv.api.events.message.preprocess.game.ServerSwitchMessagePreProcessEvent}</li>
+ * <li>{@link com.discordsrv.api.events.message.postprocess.game.ServerSwitchMessagePostProcessEvent} (this event)</li>
+ * <li>{@link com.discordsrv.api.events.message.post.game.ServerSwitchMessagePostEvent}</li>
+ * </ul>
  */
 public class ServerSwitchMessagePostProcessEvent extends AbstractGameMessagePostProcessEvent<ServerSwitchMessagePreProcessEvent> {
 

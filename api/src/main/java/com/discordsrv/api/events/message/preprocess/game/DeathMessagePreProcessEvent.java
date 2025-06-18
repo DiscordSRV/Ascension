@@ -36,9 +36,11 @@ import org.jetbrains.annotations.Nullable;
  * DiscordSRV will process it (if enabled, not already processed and not cancelled) at priority {@link com.discordsrv.api.eventbus.EventPriorities#DEFAULT}.
  * <p>
  * Order of events:
- * <li> {@link com.discordsrv.api.events.message.preprocess.game.DeathMessagePreProcessEvent} (this event)
- * <li> {@link com.discordsrv.api.events.message.postprocess.game.DeathMessagePostProcessEvent}
- * <li> {@link com.discordsrv.api.events.message.post.game.DeathMessagePostEvent}
+ * <ul>
+ * <li>{@link com.discordsrv.api.events.message.preprocess.game.DeathMessagePreProcessEvent} (this event)</li>
+ * <li>{@link com.discordsrv.api.events.message.postprocess.game.DeathMessagePostProcessEvent}</li>
+ * <li>{@link com.discordsrv.api.events.message.post.game.DeathMessagePostEvent}</li>
+ * </ul>
  */
 public class DeathMessagePreProcessEvent extends AbstractGameMessagePreProcessEvent implements PlayerEvent {
 

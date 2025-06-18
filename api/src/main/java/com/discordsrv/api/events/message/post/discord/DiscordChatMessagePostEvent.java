@@ -33,9 +33,11 @@ import org.jetbrains.annotations.NotNull;
  * Indicates that a message from Discord was forwarded to the provided {@link GameChannel}.
  * <p>
  * Order of events:
- * <li> {@link com.discordsrv.api.events.message.preprocess.discord.DiscordChatMessagePreProcessEvent}
- * <li> {@link com.discordsrv.api.events.message.postprocess.discord.DiscordChatMessagePostProcessEvent}
- * <li> {@link com.discordsrv.api.events.message.post.discord.DiscordChatMessagePostEvent} (this event)
+ * <ul>
+ * <li>{@link com.discordsrv.api.events.message.preprocess.discord.DiscordChatMessagePreProcessEvent}</li>
+ * <li>{@link com.discordsrv.api.events.message.postprocess.discord.DiscordChatMessagePostProcessEvent}</li>
+ * <li>{@link com.discordsrv.api.events.message.post.discord.DiscordChatMessagePostEvent} (this event)</li>
+ * </ul>
  */
 public class DiscordChatMessagePostEvent implements Event {
 

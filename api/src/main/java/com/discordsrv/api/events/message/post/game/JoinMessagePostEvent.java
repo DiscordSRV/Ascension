@@ -31,9 +31,11 @@ import org.jetbrains.annotations.NotNull;
  * Indicates that a join message was forwarded to Discord.
  * <p>
  * Order of events:
- * <li> {@link com.discordsrv.api.events.message.preprocess.game.JoinMessagePreProcessEvent}
- * <li> {@link com.discordsrv.api.events.message.postprocess.game.JoinMessagePostProcessEvent}
- * <li> {@link com.discordsrv.api.events.message.post.game.JoinMessagePostEvent} (this event)
+ * <ul>
+ * <li>{@link com.discordsrv.api.events.message.preprocess.game.JoinMessagePreProcessEvent}</li>
+ * <li>{@link com.discordsrv.api.events.message.postprocess.game.JoinMessagePostProcessEvent}</li>
+ * <li>{@link com.discordsrv.api.events.message.post.game.JoinMessagePostEvent} (this event)</li>
+ * </ul>
  */
 public class JoinMessagePostEvent extends AbstractGameMessagePostEvent<JoinMessagePostProcessEvent> {
 

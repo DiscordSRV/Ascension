@@ -36,9 +36,11 @@ import java.util.List;
  * A leave message was processed by DiscordSRV and is about to be forwarded.
  * <p>
  * Order of events:
- * <li> {@link com.discordsrv.api.events.message.preprocess.game.LeaveMessagePreProcessEvent}
- * <li> {@link com.discordsrv.api.events.message.postprocess.game.LeaveMessagePostProcessEvent} (this event)
- * <li> {@link com.discordsrv.api.events.message.post.game.LeaveMessagePostEvent}
+ * <ul>
+ * <li>{@link com.discordsrv.api.events.message.preprocess.game.LeaveMessagePreProcessEvent}</li>
+ * <li>{@link com.discordsrv.api.events.message.postprocess.game.LeaveMessagePostProcessEvent} (this event)</li>
+ * <li>{@link com.discordsrv.api.events.message.post.game.LeaveMessagePostEvent}</li>
+ * </ul>
  */
 public class LeaveMessagePostProcessEvent extends AbstractGameMessagePostProcessEvent<LeaveMessagePreProcessEvent> {
 

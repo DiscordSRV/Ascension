@@ -31,9 +31,11 @@ import org.jetbrains.annotations.NotNull;
  * Indicates that a server switch message was forwarded to Discord.
  * <p>
  * Order of events:
- * <li> {@link com.discordsrv.api.events.message.preprocess.game.ServerSwitchMessagePreProcessEvent}
- * <li> {@link com.discordsrv.api.events.message.postprocess.game.ServerSwitchMessagePostProcessEvent}
- * <li> {@link com.discordsrv.api.events.message.post.game.ServerSwitchMessagePostEvent} (this event)
+ * <ul>
+ * <li>{@link com.discordsrv.api.events.message.preprocess.game.ServerSwitchMessagePreProcessEvent}</li>
+ * <li>{@link com.discordsrv.api.events.message.postprocess.game.ServerSwitchMessagePostProcessEvent}</li>
+ * <li>{@link com.discordsrv.api.events.message.post.game.ServerSwitchMessagePostEvent} (this event)</li>
+ * </ul>
  */
 public class ServerSwitchMessagePostEvent extends AbstractGameMessagePostEvent<ServerSwitchMessagePostProcessEvent> {
 

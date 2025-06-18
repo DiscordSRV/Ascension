@@ -31,9 +31,11 @@ import org.jetbrains.annotations.NotNull;
  * Indicates that an advancement or achievement message was forwarded to Discord.
  * <p>
  * Order of events:
- * <li> {@link com.discordsrv.api.events.message.preprocess.game.AwardMessagePreProcessEvent}
- * <li> {@link com.discordsrv.api.events.message.postprocess.game.AwardMessagePostProcessEvent}
- * <li> {@link com.discordsrv.api.events.message.post.game.AwardMessagePostEvent} (this event)
+ * <ul>
+ * <li>{@link com.discordsrv.api.events.message.preprocess.game.AwardMessagePreProcessEvent}</li>
+ * <li>{@link com.discordsrv.api.events.message.postprocess.game.AwardMessagePostProcessEvent}</li>
+ * <li>{@link com.discordsrv.api.events.message.post.game.AwardMessagePostEvent} (this event)</li>
+ * </ul>
  */
 public class AwardMessagePostEvent extends AbstractGameMessagePostEvent<AwardMessagePostProcessEvent> {
 

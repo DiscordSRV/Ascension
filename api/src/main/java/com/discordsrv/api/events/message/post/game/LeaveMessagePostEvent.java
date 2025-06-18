@@ -31,9 +31,11 @@ import org.jetbrains.annotations.NotNull;
  * Indicates that a leave message was forwarded to Discord.
  * <p>
  * Order of events:
- * <li> {@link com.discordsrv.api.events.message.preprocess.game.LeaveMessagePreProcessEvent}
- * <li> {@link com.discordsrv.api.events.message.postprocess.game.LeaveMessagePostProcessEvent}
- * <li> {@link com.discordsrv.api.events.message.post.game.LeaveMessagePostEvent} (this event)
+ * <ul>
+ * <li>{@link com.discordsrv.api.events.message.preprocess.game.LeaveMessagePreProcessEvent}</li>
+ * <li>{@link com.discordsrv.api.events.message.postprocess.game.LeaveMessagePostProcessEvent}</li>
+ * <li>{@link com.discordsrv.api.events.message.post.game.LeaveMessagePostEvent} (this event)</li>
+ * </ul>
  */
 public class LeaveMessagePostEvent extends AbstractGameMessagePostEvent<LeaveMessagePostProcessEvent> {
 

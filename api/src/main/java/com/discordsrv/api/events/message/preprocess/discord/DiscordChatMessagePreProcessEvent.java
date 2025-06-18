@@ -35,9 +35,11 @@ import org.jetbrains.annotations.NotNull;
  * Indicates that a Discord message has been received and will be processed unless cancelled.
  * <p>
  * Order of events:
- * <li> {@link com.discordsrv.api.events.message.preprocess.discord.DiscordChatMessagePreProcessEvent} (this event)
- * <li> {@link com.discordsrv.api.events.message.postprocess.discord.DiscordChatMessagePostProcessEvent}
- * <li> {@link com.discordsrv.api.events.message.post.discord.DiscordChatMessagePostEvent}
+ * <ul>
+ * <li>{@link com.discordsrv.api.events.message.preprocess.discord.DiscordChatMessagePreProcessEvent} (this event)</li>
+ * <li>{@link com.discordsrv.api.events.message.postprocess.discord.DiscordChatMessagePostProcessEvent}</li>
+ * <li>{@link com.discordsrv.api.events.message.post.discord.DiscordChatMessagePostEvent}</li>
+ * </ul>
  */
 public class DiscordChatMessagePreProcessEvent implements Cancellable, Processable.NoArgument {
 

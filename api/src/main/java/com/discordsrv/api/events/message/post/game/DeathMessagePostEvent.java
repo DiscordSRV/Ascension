@@ -31,9 +31,11 @@ import org.jetbrains.annotations.NotNull;
  * Indicates that a death message was forwarded to Discord.
  * <p>
  * Order of events:
- * <li> {@link com.discordsrv.api.events.message.preprocess.game.DeathMessagePreProcessEvent}
- * <li> {@link com.discordsrv.api.events.message.postprocess.game.DeathMessagePostProcessEvent}
- * <li> {@link com.discordsrv.api.events.message.post.game.DeathMessagePostEvent} (this event)
+ * <ul>
+ * <li>{@link com.discordsrv.api.events.message.preprocess.game.DeathMessagePreProcessEvent}</li>
+ * <li>{@link com.discordsrv.api.events.message.postprocess.game.DeathMessagePostProcessEvent}</li>
+ * <li>{@link com.discordsrv.api.events.message.post.game.DeathMessagePostEvent} (this event)</li>
+ * </ul>
  */
 public class DeathMessagePostEvent extends AbstractGameMessagePostEvent<DeathMessagePostProcessEvent> {
 

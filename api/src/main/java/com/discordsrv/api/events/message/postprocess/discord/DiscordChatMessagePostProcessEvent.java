@@ -37,9 +37,11 @@ import java.util.List;
 /**
  * <p>
  * Order of events:
- * <li> {@link com.discordsrv.api.events.message.preprocess.discord.DiscordChatMessagePreProcessEvent}
- * <li> {@link com.discordsrv.api.events.message.postprocess.discord.DiscordChatMessagePostProcessEvent} (this event)
- * <li> {@link com.discordsrv.api.events.message.post.discord.DiscordChatMessagePostEvent}
+ * <ul>
+ * <li>{@link com.discordsrv.api.events.message.preprocess.discord.DiscordChatMessagePreProcessEvent}</li>
+ * <li>{@link com.discordsrv.api.events.message.postprocess.discord.DiscordChatMessagePostProcessEvent} (this event)</li>
+ * <li>{@link com.discordsrv.api.events.message.post.discord.DiscordChatMessagePostEvent}</li>
+ * </ul>
  */
 public class DiscordChatMessagePostProcessEvent implements Event, Cancellable {
 

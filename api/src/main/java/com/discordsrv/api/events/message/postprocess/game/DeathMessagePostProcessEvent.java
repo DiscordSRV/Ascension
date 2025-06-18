@@ -36,9 +36,11 @@ import java.util.List;
  * A death message was processed by DiscordSRV and is about to be forwarded.
  * <p>
  * Order of events:
- * <li> {@link com.discordsrv.api.events.message.preprocess.game.DeathMessagePreProcessEvent}
- * <li> {@link com.discordsrv.api.events.message.postprocess.game.DeathMessagePostProcessEvent} (this event)
- * <li> {@link com.discordsrv.api.events.message.post.game.DeathMessagePostEvent}
+ * <ul>
+ * <li>{@link com.discordsrv.api.events.message.preprocess.game.DeathMessagePreProcessEvent}</li>
+ * <li>{@link com.discordsrv.api.events.message.postprocess.game.DeathMessagePostProcessEvent} (this event)</li>
+ * <li>{@link com.discordsrv.api.events.message.post.game.DeathMessagePostEvent}</li>
+ * </ul>
  */
 public class DeathMessagePostProcessEvent extends AbstractGameMessagePostProcessEvent<DeathMessagePreProcessEvent> {
 

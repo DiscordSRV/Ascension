@@ -36,9 +36,11 @@ import java.util.List;
  * An advancement or achievement message was processed by DiscordSRV and is about to be forwarded.
  * <p>
  * Order of events:
- * <li> {@link com.discordsrv.api.events.message.preprocess.game.AwardMessagePreProcessEvent}
- * <li> {@link com.discordsrv.api.events.message.postprocess.game.AwardMessagePostProcessEvent} (this event)
- * <li> {@link com.discordsrv.api.events.message.post.game.AwardMessagePostEvent}
+ * <ul>
+ * <li>{@link com.discordsrv.api.events.message.preprocess.game.AwardMessagePreProcessEvent}</li>
+ * <li>{@link com.discordsrv.api.events.message.postprocess.game.AwardMessagePostProcessEvent} (this event)</li>
+ * <li>{@link com.discordsrv.api.events.message.post.game.AwardMessagePostEvent}</li>
+ * </ul>
  */
 public class AwardMessagePostProcessEvent extends AbstractGameMessagePostProcessEvent<AwardMessagePreProcessEvent> {
 
