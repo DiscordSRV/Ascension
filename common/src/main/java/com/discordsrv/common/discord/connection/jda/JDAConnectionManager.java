@@ -262,7 +262,7 @@ public class JDAConnectionManager implements DiscordConnectionManager {
             boolean userMissing = event.getContexts().stream()
                     .filter(context -> context instanceof DiscordUser)
                     .noneMatch(context -> ((DiscordUser) context).getId() == user.getId());
-            if (!userMissing) {
+            if (userMissing) {
                 event.addContext(user);
             }
         }

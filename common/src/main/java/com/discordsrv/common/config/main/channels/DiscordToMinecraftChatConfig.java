@@ -44,8 +44,7 @@ public class DiscordToMinecraftChatConfig {
             + "\n"
             + "Suggested placeholders:\n"
             + "%message% - The content of the Discord message after %4 are applied\n"
-            + "%user_effective_server_name% - The Discord user's name as seen in the server the message was sent in\n"
-            + "%user_effective_name% - The Discord user's name as seen in direct messages\n"
+            + "%user_effective_name% - The Discord user's display name\n"
             + "%user_name% - The Discord user's username (the one below their display name when you click in their profile)\n"
             + "%user_tag% - The Discord user's username and possible discriminator (mostly useful with bots)\n"
             + "%user_selected_roles% - The Discord user's roles\n"
@@ -62,7 +61,7 @@ public class DiscordToMinecraftChatConfig {
     })
     public String format = "[[color:#5865F2]Discord[color]] "
             + "[hover:show_text:Username: @%user_tag% [italics:on][color:gray](Shift+Click to mention)[color][italics:off]\nRoles: %user_selected_roles:', '|text:'[color:gray][italics:on]None[color][italics]'%]"
-            + "[insert:@%user_tag%]%user_color%%user_effective_server_name%[color][insert]"
+            + "[insert:@%user_tag%]%user_color%%user_effective_name%[color][insert]"
             + "[hover]%message_reply% » %message%%message_attachments%";
 
     @Comment("The Discord to Minecraft message format for webhook messages (if enabled)\n"
@@ -80,7 +79,7 @@ public class DiscordToMinecraftChatConfig {
     public String attachmentFormat = " [hover:show_text:Open %file_name% in browser][click:open_url:%file_url%][color:green][[color:white]%file_name%[color:green]][color][click][hover]";
 
     @Comment("Format for the %message_reply% placeholder, when the message is a reply to another message")
-    public String replyFormat = " [hover:show_text:%message%][click:open_url:%message_jump_url%]replying to %user_color|text:''%%user_effective_server_name|user_effective_name%[color][click][hover]";
+    public String replyFormat = " [hover:show_text:%message%][click:open_url:%message_jump_url%]replying to %user_color|text:''%%user_effective_name%[color][click][hover]";
 
     // TODO: more info on regex pairs (String#replaceAll)
     @Comment("Regex filters for Discord message contents (this is the %message% part of the \"format\" option)")

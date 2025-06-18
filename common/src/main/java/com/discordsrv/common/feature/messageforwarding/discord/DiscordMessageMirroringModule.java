@@ -434,7 +434,7 @@ public class DiscordMessageMirroringModule extends AbstractModule<DiscordSRV> {
                 .setWebhookUsername(username)
                 .setWebhookAvatarUrl(
                         member != null
-                            ? member.getEffectiveServerAvatarUrl()
+                            ? member.getEffectiveAvatarUrl()
                             : user.getEffectiveAvatarUrl()
                 );
         for (DiscordMessageEmbed embed : message.getEmbeds()) {

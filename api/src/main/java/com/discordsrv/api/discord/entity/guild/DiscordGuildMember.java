@@ -117,9 +117,9 @@ public interface DiscordGuildMember extends JDAEntity<Member>, Mentionable {
      * Gets the effective name of this Discord server member.
      * @return the Discord server member's effective name
      */
-    @Placeholder("effective_server_name")
+    @Placeholder("effective_name")
     @NotNull
-    default String getEffectiveServerName() {
+    default String getEffectiveName() {
         String nickname = getNickname();
         return nickname != null ? nickname : getUser().getEffectiveName();
     }
@@ -128,9 +128,9 @@ public interface DiscordGuildMember extends JDAEntity<Member>, Mentionable {
      * Gets the avatar url that is active for this user in this server.
      * @return the user's avatar url in this server
      */
-    @Placeholder("effective_server_avatar_url")
+    @Placeholder("effective_avatar_url")
     @NotNull
-    String getEffectiveServerAvatarUrl();
+    String getEffectiveAvatarUrl();
 
     /**
      * Gets the color of this user's highest role that has a color.

@@ -36,7 +36,7 @@ public class MentionsConfig {
     public FormatUser user = new FormatUser(
             "[hover:show_text:Username: @%user_tag% [italics:on][color:gray](Shift+Click to mention)[color][italics:off]\nRoles: %user_selected_roles:', '|text:'[color:gray][italics:on]None[color][italics]'%]"
                     + "[insert:@%user_tag%][color:#5865F2]"
-                    + "@%user_effective_server_name|user_effective_name%",
+                    + "@%user_effective_name%",
             "[color:#5865F2]@Unknown user",
             "[hover:show_text:Username: @%user_tag% [italics:on][color:gray](Shift+Click to mention)[color][italics:off]]"
                     + "[insert:@%user_tag%][color:#5865F2]"

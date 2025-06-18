@@ -43,13 +43,12 @@ public class MirroringConfig {
             + "in order to prevent Discord users and in-game players with the same name being grouped together\n"
             + "\n"
             + "Suggested placeholders:\n"
-            + "%user_effective_server_name% - The name of the Discord user in the server\n"
             + "%user_effective_name% - The name of the Discord user globally\n"
             + "\n"
             + "More placeholders at %1 (Message, User, User (Server Member))\n"
             + "User (Server Member) placeholders are not available for webhook messages")
     @Constants.Comment(DocumentationURLs.PLACEHOLDERS)
-    public String usernameFormat = "%user_effective_server_name|user_effective_name% \uD83D\uDD03";
+    public String usernameFormat = "%user_effective_name% \uD83D\uDD03";
 
     @Comment("The format when a message is a reply.\n"
             + "Suggested placeholders:\n"
@@ -59,7 +58,7 @@ public class MirroringConfig {
             + "More placeholders at %1 (Message, User, User (Server Member))\n"
             + "User (Server Member) placeholders are not available for webhook messages")
     @Constants.Comment(DocumentationURLs.PLACEHOLDERS)
-    public String replyFormat = "[In reply to %user_effective_server_name|user_effective_name%](%message_jump_url%)\n%message%";
+    public String replyFormat = "[In reply to %user_effective_name%](%message_jump_url%)\n%message%";
 
     @Comment("Attachment related options")
     public AttachmentConfig attachments = new AttachmentConfig();
