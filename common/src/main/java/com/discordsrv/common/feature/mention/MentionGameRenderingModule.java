@@ -28,7 +28,6 @@ import com.discordsrv.common.abstraction.player.IPlayer;
 import com.discordsrv.common.config.main.channels.MinecraftToDiscordChatConfig;
 import com.discordsrv.common.config.main.channels.base.BaseChannelConfig;
 import com.discordsrv.common.config.main.channels.base.IChannelConfig;
-import com.discordsrv.common.config.main.generic.MentionsConfig;
 import com.discordsrv.common.core.logging.NamedLogger;
 import com.discordsrv.common.core.module.type.AbstractModule;
 import com.discordsrv.common.helper.DestinationLookupHelper;
@@ -70,7 +69,7 @@ public class MentionGameRenderingModule extends AbstractModule<DiscordSRV> {
         }
 
         BaseChannelConfig config = discordSRV.channelConfig().get(event.getChannel());
-        if (!(config instanceof IChannelConfig) || !config.minecraftToDiscord.mentions.renderMentionsInGame) {
+        if (config == null || !(config instanceof IChannelConfig) || !config.minecraftToDiscord.mentions.renderMentionsInGame) {
             return;
         }
 
@@ -122,25 +121,24 @@ public class MentionGameRenderingModule extends AbstractModule<DiscordSRV> {
             members = Collections.emptySet();
         }
 
-        MentionsConfig mentionsConfig = config.mentions;
         for (CachedMention cachedMention : cachedMentions) {
             message = message.replaceText(
                     TextReplacementConfig.builder().match(cachedMention.search())
-                            .replacement(() -> replacement(cachedMention, mentionsConfig, singleGuild, members))
+                            .replacement(() -> replacement(cachedMention, config, singleGuild, members))
                             .build()
             );
         }
         event.process(ComponentUtil.toAPI(message));
     }
 
-    private Component replacement(CachedMention mention, MentionsConfig config, DiscordGuild guild, Set<DiscordGuildMember> members) {
+    private Component replacement(CachedMention mention, BaseChannelConfig config, DiscordGuild guild, Set<DiscordGuildMember> members) {
         switch (mention.type()) {
             case ROLE:
-                return discordSRV.componentFactory().makeRoleMention(mention.id(), config.role);
+                return discordSRV.componentFactory().makeRoleMention(mention.id(), config);
             case USER:
-                return discordSRV.componentFactory().makeUserMention(mention.id(), config.user, guild, null, members);
+                return discordSRV.componentFactory().makeUserMention(mention.id(), config, guild, null, members);
             case CHANNEL:
-                return discordSRV.componentFactory().makeChannelMention(mention.id(), config.channel);
+                return discordSRV.componentFactory().makeChannelMention(mention.id(), config);
         }
         return Component.text(mention.plain());
     }

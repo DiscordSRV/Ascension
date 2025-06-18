@@ -88,11 +88,12 @@ public class DiscordSRVMinecraftRenderer extends DefaultMinecraftRenderer {
         GuildChannel guildChannel = jda.getGuildChannelById(channel);
 
         Context context = CONTEXT.get();
-        String format = context != null ? context.config.mentions.messageUrl : null;
-        if (format == null || guildChannel == null) {
+        BaseChannelConfig config = context != null ? context.config : null;
+        if (config == null || guildChannel == null) {
             return null;
         }
 
+        String format = config.mentions.messageUrl;
         return Component.text()
                 .clickEvent(ClickEvent.openUrl(link))
                 .append(
@@ -110,36 +111,36 @@ public class DiscordSRVMinecraftRenderer extends DefaultMinecraftRenderer {
     @Override
     public @NotNull Component appendChannelMention(@NotNull Component component, @NotNull String id) {
         Context context = CONTEXT.get();
-        MentionsConfig.Format format = context != null ? context.config.mentions.channel : null;
-        if (format == null) {
+        BaseChannelConfig config = context != null ? context.config : null;
+        if (config == null) {
             return component.append(Component.text("<#" + id + ">"));
         }
 
-        return component.append(discordSRV.componentFactory().makeChannelMention(MiscUtil.parseLong(id), format));
+        return component.append(discordSRV.componentFactory().makeChannelMention(MiscUtil.parseLong(id), config));
     }
 
     @Override
     public @NotNull Component appendUserMention(@NotNull Component component, @NotNull String id) {
         Context context = CONTEXT.get();
-        MentionsConfig.FormatUser format = context != null ? context.config.mentions.user : null;
-        if (context == null || format == null) {
+        BaseChannelConfig config = context != null ? context.config : null;
+        if (config == null) {
             return component.append(Component.text("<@" + id + ">"));
         }
 
         long userId = MiscUtil.parseLong(id);
-        return component.append(discordSRV.componentFactory().makeUserMention(userId, format, context.guild, context.users, context.members));
+        return component.append(discordSRV.componentFactory().makeUserMention(userId, config, context.guild, context.users, context.members));
     }
 
     @Override
     public @NotNull Component appendRoleMention(@NotNull Component component, @NotNull String id) {
         Context context = CONTEXT.get();
-        MentionsConfig.Format format = context != null ? context.config.mentions.role : null;
-        if (format == null) {
+        BaseChannelConfig config = context != null ? context.config : null;
+        if (config == null) {
             return component.append(Component.text("<#" + id + ">"));
         }
 
         long roleId = MiscUtil.parseLong(id);
-        return component.append(discordSRV.componentFactory().makeRoleMention(roleId, format));
+        return component.append(discordSRV.componentFactory().makeRoleMention(roleId, config));
     }
 
     @Override
@@ -149,8 +150,13 @@ public class DiscordSRVMinecraftRenderer extends DefaultMinecraftRenderer {
             @NotNull String id
     ) {
         Context context = CONTEXT.get();
-        MentionsConfig.EmoteBehaviour behaviour = context != null ? context.config.mentions.customEmojiBehaviour : null;
-        if (behaviour == null || behaviour == MentionsConfig.EmoteBehaviour.HIDE) {
+        BaseChannelConfig config = context != null ? context.config : null;
+        if (config == null) {
+            return component;
+        }
+
+        MentionsConfig.EmoteBehaviour behaviour = config.mentions.customEmojiBehaviour;
+        if (behaviour == MentionsConfig.EmoteBehaviour.HIDE) {
             return component;
         }
 

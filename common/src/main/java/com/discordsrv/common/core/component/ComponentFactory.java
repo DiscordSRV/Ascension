@@ -178,14 +178,16 @@ public class ComponentFactory implements MinecraftComponentFactory {
     // Mentions
 
     @NotNull
-    public Component makeChannelMention(long id, MentionsConfig.Format format) {
+    public Component makeChannelMention(long id, BaseChannelConfig config) {
+        MentionsConfig.Format format = config.mentions.channel;
+
         JDA jda = discordSRV.jda();
         GuildChannel guildChannel = jda != null ? jda.getGuildChannelById(id) : null;
 
         return DiscordMentionComponent.of(Message.MentionType.CHANNEL, Long.toUnsignedString(id), ComponentUtil.fromAPI(
                 discordSRV.componentFactory()
                         .textBuilder(guildChannel != null ? format.format : format.unknownFormat)
-                        .addContext(guildChannel)
+                        .addContext(guildChannel, config)
                         .build()
         ));
     }
@@ -193,11 +195,13 @@ public class ComponentFactory implements MinecraftComponentFactory {
     @NotNull
     public Component makeUserMention(
             long id,
-            MentionsConfig.FormatUser formatConfig,
+            BaseChannelConfig config,
             @Nullable DiscordGuild guild,
             @Nullable Set<DiscordUser> users,
             @Nullable Set<DiscordGuildMember> members
     ) {
+        MentionsConfig.FormatUser formatConfig = config.mentions.user;
+
         DiscordGuildMember member = members == null ? null : members
                 .stream().filter(m -> m.getUser().getId() == id)
                 .findAny().orElse(null);
@@ -227,18 +231,19 @@ public class ComponentFactory implements MinecraftComponentFactory {
         return DiscordMentionComponent.of(Message.MentionType.USER, Long.toUnsignedString(id), ComponentUtil.fromAPI(
                 discordSRV.componentFactory()
                         .textBuilder(format)
-                        .addContext(user, member)
+                        .addContext(user, member, config)
                         .build()
         ));
     }
 
-    public Component makeRoleMention(long id, MentionsConfig.Format format) {
+    public Component makeRoleMention(long id, BaseChannelConfig config) {
+        MentionsConfig.Format format = config.mentions.role;
         DiscordRole role = discordSRV.discordAPI().getRoleById(id);
 
         return DiscordMentionComponent.of(Message.MentionType.ROLE, Long.toUnsignedString(id), ComponentUtil.fromAPI(
                 discordSRV.componentFactory()
                         .textBuilder(role != null ? format.format : format.unknownFormat)
-                        .addContext(role)
+                        .addContext(role, config)
                         .build()
         ));
     }

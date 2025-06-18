@@ -27,8 +27,7 @@ import com.discordsrv.common.config.main.generic.DiscordIgnoresConfig;
 import org.spongepowered.configurate.objectmapping.ConfigSerializable;
 import org.spongepowered.configurate.objectmapping.meta.Comment;
 
-import java.util.LinkedHashMap;
-import java.util.Map;
+import java.util.*;
 import java.util.regex.Pattern;
 
 @ConfigSerializable
@@ -49,7 +48,7 @@ public class DiscordToMinecraftChatConfig {
             + "%user_effective_name% - The Discord user's name as seen in direct messages\n"
             + "%user_name% - The Discord user's username (the one below their display name when you click in their profile)\n"
             + "%user_tag% - The Discord user's username and possible discriminator (mostly useful with bots)\n"
-            + "%user_roles% - The Discord user's roles\n"
+            + "%user_selected_roles% - The Discord user's roles\n"
             + "%message_reply% - The value from %2 if the Discord message is in reply to another message\n"
             + "%message_attachments% - The value from %3 for each attachment the Discord message\n"
             + "%gamechannel_name% - The name of the in-game chat channel the message was sent to\n"
@@ -62,7 +61,7 @@ public class DiscordToMinecraftChatConfig {
             "content-regex-filters"
     })
     public String format = "[[color:#5865F2]Discord[color]] "
-            + "[hover:show_text:Username: @%user_tag% [italics:on][color:gray](Shift+Click to mention)[color][italics:off]\nRoles: %user_roles:', '|text:'[color:gray][italics:on]None[color][italics]'%]"
+            + "[hover:show_text:Username: @%user_tag% [italics:on][color:gray](Shift+Click to mention)[color][italics:off]\nRoles: %user_selected_roles:', '|text:'[color:gray][italics:on]None[color][italics]'%]"
             + "[insert:@%user_tag%]%user_color%%user_effective_server_name%[color][insert]"
             + "[hover]%message_reply% » %message%%message_attachments%";
 

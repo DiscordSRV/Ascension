@@ -24,6 +24,9 @@ import com.discordsrv.common.config.main.generic.MentionsConfig;
 import org.spongepowered.configurate.objectmapping.ConfigSerializable;
 import org.spongepowered.configurate.objectmapping.meta.Comment;
 
+import java.util.ArrayList;
+import java.util.List;
+
 @ConfigSerializable
 public class BaseChannelConfig {
 
@@ -54,6 +57,15 @@ public class BaseChannelConfig {
 
     @Order(50)
     public ChannelLockingConfig channelLocking = new ChannelLockingConfig();
+
+    @Order(80)
+    @Comment("Selection for roles which should be shown in-game")
+    public RoleSelection roleSelection = new RoleSelection();
+
+    public static class RoleSelection {
+        public List<Long> ids = new ArrayList<>();
+        public boolean blacklist = true;
+    }
 
     @Comment("The representations of Discord mentions in-game")
     @Order(100)
