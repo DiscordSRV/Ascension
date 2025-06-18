@@ -32,7 +32,10 @@ import org.jetbrains.annotations.Nullable;
 import java.util.Set;
 
 /**
- * An event for converting a placeholder's name and context into a {@link PlaceholderLookupResult}.
+ * Used by DiscordSRV to lookup placeholders if none of DiscordSRV's own contexts can provide a value.
+ * @see #getPlaceholder()
+ * @see #getContext(Class)
+ * @see #process(PlaceholderLookupResult)
  */
 public class PlaceholderLookupEvent implements Event, Processable.Argument<PlaceholderLookupResult> {
 

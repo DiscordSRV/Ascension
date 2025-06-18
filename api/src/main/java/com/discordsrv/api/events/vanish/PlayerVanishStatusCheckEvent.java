@@ -27,8 +27,8 @@ import com.discordsrv.api.events.Event;
 import com.discordsrv.api.player.DiscordSRVPlayer;
 
 /**
- * An event to check if a given player is vanished.
- * This is only used on platforms where there is no better way to check if players are vanished.
+ * An event DiscordSRV uses to check if a given player is vanished.
+ * <b>This is only used on platforms where there is no better way to check if players are vanished.</b>
  */
 public class PlayerVanishStatusCheckEvent implements Event {
 

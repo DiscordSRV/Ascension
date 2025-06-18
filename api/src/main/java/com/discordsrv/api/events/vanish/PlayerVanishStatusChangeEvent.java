@@ -31,6 +31,7 @@ import org.jetbrains.annotations.Nullable;
 
 /**
  * An event to indicate that the given {@link DiscordSRVPlayer Players} vanish status has changed.
+ * DiscordSRV listens to this event.
  */
 public class PlayerVanishStatusChangeEvent implements Event {
 
