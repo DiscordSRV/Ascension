@@ -21,22 +21,32 @@
  * SOFTWARE.
  */
 
-package com.discordsrv.api.events.message.forward.game;
+package com.discordsrv.api.events.message.postprocess.game;
 
-import com.discordsrv.api.channel.GameChannel;
-import com.discordsrv.api.discord.entity.message.ReceivedDiscordMessageCluster;
+import com.discordsrv.api.discord.entity.channel.DiscordGuildMessageChannel;
+import com.discordsrv.api.discord.entity.message.SendableDiscordMessage;
+import com.discordsrv.api.events.message.preprocess.game.DeathMessagePreProcessEvent;
+import com.discordsrv.api.player.DiscordSRVPlayer;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-/**
- * Indicates that a death message was forwarded to Discord.
- */
-public class DeathMessageForwardedEvent extends AbstractGameMessageForwardedEvent {
+import java.util.List;
 
-    public DeathMessageForwardedEvent(
-            @Nullable GameChannel originGameChannel,
-            @NotNull ReceivedDiscordMessageCluster discordMessage
-    ) {
-        super(originGameChannel, discordMessage);
+/**
+ * A death message was processed by DiscordSRV and is about to be forwarded.
+ * <p>
+ * Order of events:
+ * <li> {@link com.discordsrv.api.events.message.preprocess.game.DeathMessagePreProcessEvent}
+ * <li> {@link com.discordsrv.api.events.message.postprocess.game.DeathMessagePostProcessEvent} (this event)
+ * <li> {@link com.discordsrv.api.events.message.post.game.DeathMessagePostEvent}
+ */
+public class DeathMessagePostProcessEvent extends AbstractGameMessagePostProcessEvent<DeathMessagePreProcessEvent> {
+
+    public DeathMessagePostProcessEvent(
+            @NotNull DeathMessagePreProcessEvent preEvent,
+            @Nullable DiscordSRVPlayer player,
+            @NotNull List<DiscordGuildMessageChannel> channels,
+            @NotNull SendableDiscordMessage message) {
+        super(preEvent, player, channels, message);
     }
 }

@@ -19,7 +19,7 @@
 package com.discordsrv.bukkit.listener;
 
 import com.discordsrv.api.component.MinecraftComponent;
-import com.discordsrv.api.events.message.receive.game.DeathMessageReceiveEvent;
+import com.discordsrv.api.events.message.preprocess.game.DeathMessagePreProcessEvent;
 import com.discordsrv.api.player.DiscordSRVPlayer;
 import com.discordsrv.bukkit.BukkitDiscordSRV;
 import com.discordsrv.bukkit.debug.EventObserver;
@@ -55,7 +55,7 @@ public class BukkitDeathListener extends AbstractBukkitListener<PlayerDeathEvent
 
         DiscordSRVPlayer player = discordSRV.playerProvider().player(event.getEntity());
         discordSRV.eventBus().publish(
-                new DeathMessageReceiveEvent(
+                new DeathMessagePreProcessEvent(
                         event,
                         player,
                         component,

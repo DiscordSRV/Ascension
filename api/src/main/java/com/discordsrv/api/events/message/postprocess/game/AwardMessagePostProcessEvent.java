@@ -21,37 +21,32 @@
  * SOFTWARE.
  */
 
-package com.discordsrv.api.events.message.forward.game;
+package com.discordsrv.api.events.message.postprocess.game;
 
-import com.discordsrv.api.channel.GameChannel;
-import com.discordsrv.api.discord.entity.message.ReceivedDiscordMessageCluster;
-import com.discordsrv.api.events.Event;
+import com.discordsrv.api.discord.entity.channel.DiscordGuildMessageChannel;
+import com.discordsrv.api.discord.entity.message.SendableDiscordMessage;
+import com.discordsrv.api.events.message.preprocess.game.AwardMessagePreProcessEvent;
+import com.discordsrv.api.player.DiscordSRVPlayer;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-public abstract class AbstractGameMessageForwardedEvent implements Event {
+import java.util.List;
 
-    private final GameChannel originGameChannel;
-    private final ReceivedDiscordMessageCluster discordMessage;
+/**
+ * An advancement or achievement message was processed by DiscordSRV and is about to be forwarded.
+ * <p>
+ * Order of events:
+ * <li> {@link com.discordsrv.api.events.message.preprocess.game.AwardMessagePreProcessEvent}
+ * <li> {@link com.discordsrv.api.events.message.postprocess.game.AwardMessagePostProcessEvent} (this event)
+ * <li> {@link com.discordsrv.api.events.message.post.game.AwardMessagePostEvent}
+ */
+public class AwardMessagePostProcessEvent extends AbstractGameMessagePostProcessEvent<AwardMessagePreProcessEvent> {
 
-    public AbstractGameMessageForwardedEvent(
-            @Nullable GameChannel originGameChannel,
-            @NotNull ReceivedDiscordMessageCluster discordMessage
-    ) {
-        this.originGameChannel = originGameChannel;
-        this.discordMessage = discordMessage;
+    public AwardMessagePostProcessEvent(
+            @NotNull AwardMessagePreProcessEvent preEvent,
+            @Nullable DiscordSRVPlayer player,
+            @NotNull List<DiscordGuildMessageChannel> channels,
+            @NotNull SendableDiscordMessage message) {
+        super(preEvent, player, channels, message);
     }
-
-    public GameChannel getOriginGameChannel() {
-        return originGameChannel;
-    }
-
-    /**
-     * Gets the {@link ReceivedDiscordMessageCluster} containing the sent message(s).
-     * @return the message cluster
-     */
-    public ReceivedDiscordMessageCluster getDiscordMessage() {
-        return discordMessage;
-    }
-
 }

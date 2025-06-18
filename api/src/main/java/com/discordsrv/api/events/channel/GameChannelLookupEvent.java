@@ -93,9 +93,7 @@ public class GameChannelLookupEvent implements Processable.Argument<GameChannel>
      */
     @Override
     public void process(@NotNull GameChannel channel) {
-        if (processed) {
-            throw new IllegalStateException("Already processed");
-        }
+        Processable.Argument.super.process(channel);
         if (pluginName != null && !pluginName.equalsIgnoreCase(channel.getOwnerName())) {
             // Not the plugin we're looking for, ignore
             return;

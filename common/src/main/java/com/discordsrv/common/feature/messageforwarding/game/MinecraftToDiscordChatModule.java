@@ -18,7 +18,6 @@
 
 package com.discordsrv.common.feature.messageforwarding.game;
 
-import com.discordsrv.api.channel.GameChannel;
 import com.discordsrv.api.discord.entity.channel.DiscordGuildMessageChannel;
 import com.discordsrv.api.discord.entity.guild.DiscordGuild;
 import com.discordsrv.api.discord.entity.message.AllowedMention;
@@ -27,8 +26,10 @@ import com.discordsrv.api.discord.entity.message.ReceivedDiscordMessageCluster;
 import com.discordsrv.api.discord.entity.message.SendableDiscordMessage;
 import com.discordsrv.api.eventbus.EventPriorities;
 import com.discordsrv.api.eventbus.Subscribe;
-import com.discordsrv.api.events.message.forward.game.GameChatMessageForwardedEvent;
-import com.discordsrv.api.events.message.receive.game.GameChatMessageReceiveEvent;
+import com.discordsrv.api.events.message.post.game.AbstractGameMessagePostEvent;
+import com.discordsrv.api.events.message.post.game.GameChatMessagePostEvent;
+import com.discordsrv.api.events.message.postprocess.game.GameChatMessagePostProcessEvent;
+import com.discordsrv.api.events.message.preprocess.game.GameChatMessagePreProcessEvent;
 import com.discordsrv.api.placeholder.format.FormattedText;
 import com.discordsrv.api.placeholder.format.PlainPlaceholderFormat;
 import com.discordsrv.api.placeholder.util.Placeholders;
@@ -47,19 +48,21 @@ import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.entities.Message;
 import net.kyori.adventure.text.Component;
 import org.apache.commons.lang3.tuple.Pair;
-import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
 
-public class MinecraftToDiscordChatModule extends AbstractGameMessageModule<MinecraftToDiscordChatConfig, GameChatMessageReceiveEvent> {
+public class MinecraftToDiscordChatModule extends AbstractGameMessageModule<MinecraftToDiscordChatConfig, GameChatMessagePreProcessEvent, GameChatMessagePostProcessEvent> {
 
     public MinecraftToDiscordChatModule(DiscordSRV discordSRV) {
         super(discordSRV, "MINECRAFT_TO_DISCORD");
     }
 
     @Subscribe(priority = EventPriorities.LAST, ignoreCancelled = false, ignoreProcessed = false)
-    public void onChatReceive(GameChatMessageReceiveEvent event) {
+    public void onChatReceive(GameChatMessagePreProcessEvent event) {
         if (checkProcessor(event) || checkCancellation(event)) {
             return;
         }
@@ -74,50 +77,75 @@ public class MinecraftToDiscordChatModule extends AbstractGameMessageModule<Mine
     }
 
     @Override
-    public void postClusterToEventBus(GameChannel channel, @NotNull ReceivedDiscordMessageCluster cluster) {
-        discordSRV.eventBus().publish(new GameChatMessageForwardedEvent(channel, cluster));
-    }
-
-    @Override
-    public List<Task<ReceivedDiscordMessage>> sendMessageToChannels(
+    public Task<Void> sendMessageToChannels(
             MinecraftToDiscordChatConfig config,
             IPlayer player,
             SendableDiscordMessage.Builder format,
-            Collection<DiscordGuildMessageChannel> channels,
-            GameChatMessageReceiveEvent event,
+            List<DiscordGuildMessageChannel> allChannels,
+            GameChatMessagePreProcessEvent event,
             Object... context
     ) {
-        Map<DiscordGuild, Set<DiscordGuildMessageChannel>> channelMap = new LinkedHashMap<>();
-        for (DiscordGuildMessageChannel channel : channels) {
+        Map<DiscordGuild, List<DiscordGuildMessageChannel>> channelMap = new LinkedHashMap<>();
+        for (DiscordGuildMessageChannel channel : allChannels) {
             DiscordGuild guild = channel.getGuild();
 
-            channelMap.computeIfAbsent(guild, key -> new LinkedHashSet<>())
-                    .add(channel);
-        }
-
-        Component message = ComponentUtil.fromAPI(event.getMessage());
-        List<Task<ReceivedDiscordMessage>> futures = new ArrayList<>();
-
-        // Format messages per-Guild
-        for (Map.Entry<DiscordGuild, Set<DiscordGuildMessageChannel>> entry : channelMap.entrySet()) {
-            Guild guild = entry.getKey().asJDA();
-            Task<SendableDiscordMessage> messageFuture = getMessageForGuild(config, format, guild, message, player, context);
-
-            for (DiscordGuildMessageChannel channel : entry.getValue()) {
-                futures.add(messageFuture.then(msg -> {
-                    if (msg.isEmpty()) {
-                        return Task.completed(null);
-                    }
-                    return sendMessageToChannel(channel, msg);
-                }));
+            List<DiscordGuildMessageChannel> guildChannels = channelMap.computeIfAbsent(guild, key -> new ArrayList<>());
+            if (!guildChannels.contains(channel)) {
+                guildChannels.add(channel);
             }
         }
 
-        return futures;
+        Component message = ComponentUtil.fromAPI(event.getMessage());
+        List<Task<Void>> futures = new ArrayList<>();
+
+        // Format messages per-Guild
+        for (Map.Entry<DiscordGuild, List<DiscordGuildMessageChannel>> entry : channelMap.entrySet()) {
+            Guild guild = entry.getKey().asJDA();
+            Task<SendableDiscordMessage> messageFuture = getMessageForGuild(config, format, guild, message, player, context);
+
+            futures.add(messageFuture.then(discordMessage -> {
+                if (discordMessage.isEmpty()) {
+                    return Task.completed(null);
+                }
+                List<DiscordGuildMessageChannel> channels = entry.getValue();
+
+                GameChatMessagePostProcessEvent postProcessEvent = createPostProcessEvent(event, player, channels, discordMessage);
+                discordSRV.eventBus().publish(postProcessEvent);
+                if (checkCancellation(postProcessEvent)) {
+                    return Task.completed(null);
+                }
+                discordMessage = postProcessEvent.getMessage();
+
+                List<Task<ReceivedDiscordMessage>> messageFutures = new ArrayList<>(channels.size());
+                for (DiscordGuildMessageChannel channel : channels) {
+                    messageFutures.add(sendMessageToChannel(channel, discordMessage));
+                }
+                return messageSent(postProcessEvent, Task.allOf(messageFutures));
+            }));
+        }
+
+        return Task.allOf(futures).thenApply(__ -> null);
     }
 
     @Override
-    public void setPlaceholders(MinecraftToDiscordChatConfig config, GameChatMessageReceiveEvent event, SendableDiscordMessage.Formatter formatter) {}
+    protected GameChatMessagePostProcessEvent createPostProcessEvent(
+            GameChatMessagePreProcessEvent preEvent,
+            IPlayer player,
+            List<DiscordGuildMessageChannel> channels,
+            SendableDiscordMessage discordMessage) {
+        return new GameChatMessagePostProcessEvent(preEvent, player, channels, discordMessage);
+    }
+
+    @Override
+    protected AbstractGameMessagePostEvent<GameChatMessagePostProcessEvent> createPostEvent(
+            GameChatMessagePostProcessEvent preEvent,
+            ReceivedDiscordMessageCluster cluster
+    ) {
+        return new GameChatMessagePostEvent(preEvent, cluster);
+    }
+
+    @Override
+    public void setPlaceholders(MinecraftToDiscordChatConfig config, GameChatMessagePreProcessEvent event, SendableDiscordMessage.Formatter formatter) {}
 
     private Task<SendableDiscordMessage> getMessageForGuild(
             MinecraftToDiscordChatConfig config,

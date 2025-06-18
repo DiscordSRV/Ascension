@@ -20,7 +20,7 @@ package com.discordsrv.common.config.main.channels;
 
 import com.discordsrv.api.discord.entity.message.DiscordMessageEmbed;
 import com.discordsrv.api.discord.entity.message.SendableDiscordMessage;
-import com.discordsrv.api.events.message.receive.game.JoinMessageReceiveEvent;
+import com.discordsrv.api.events.message.preprocess.game.JoinMessagePreProcessEvent;
 import com.discordsrv.common.config.configurate.annotation.Constants;
 import com.discordsrv.common.config.configurate.annotation.Order;
 import com.discordsrv.common.config.configurate.annotation.Untranslated;
@@ -97,7 +97,7 @@ public class JoinMessageConfig implements IMessageConfig {
         return null;
     }
 
-    public final IMessageConfig getForEvent(JoinMessageReceiveEvent event) {
+    public final IMessageConfig getForEvent(JoinMessagePreProcessEvent event) {
         FirstJoin firstJoin = firstJoin();
         return firstJoin != null && event.isFirstJoin() ? firstJoin : this;
     }

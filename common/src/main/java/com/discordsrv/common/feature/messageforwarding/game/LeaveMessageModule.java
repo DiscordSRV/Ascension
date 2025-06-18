@@ -19,12 +19,15 @@
 package com.discordsrv.common.feature.messageforwarding.game;
 
 import com.discordsrv.api.channel.GameChannel;
+import com.discordsrv.api.discord.entity.channel.DiscordGuildMessageChannel;
 import com.discordsrv.api.discord.entity.message.ReceivedDiscordMessageCluster;
 import com.discordsrv.api.discord.entity.message.SendableDiscordMessage;
 import com.discordsrv.api.eventbus.EventPriorities;
 import com.discordsrv.api.eventbus.Subscribe;
-import com.discordsrv.api.events.message.forward.game.LeaveMessageForwardedEvent;
-import com.discordsrv.api.events.message.receive.game.LeaveMessageReceiveEvent;
+import com.discordsrv.api.events.message.post.game.AbstractGameMessagePostEvent;
+import com.discordsrv.api.events.message.post.game.LeaveMessagePostEvent;
+import com.discordsrv.api.events.message.postprocess.game.LeaveMessagePostProcessEvent;
+import com.discordsrv.api.events.message.preprocess.game.LeaveMessagePreProcessEvent;
 import com.discordsrv.api.events.vanish.PlayerVanishStatusChangeEvent;
 import com.discordsrv.api.player.DiscordSRVPlayer;
 import com.discordsrv.api.task.Task;
@@ -39,12 +42,13 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.time.Duration;
+import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.Future;
 
-public class LeaveMessageModule extends AbstractGameMessageModule<LeaveMessageConfig, LeaveMessageReceiveEvent> {
+public class LeaveMessageModule extends AbstractGameMessageModule<LeaveMessageConfig, LeaveMessagePreProcessEvent, LeaveMessagePostProcessEvent> {
 
     private final Map<UUID, Pair<Long, Future<?>>> playersJoinedRecently = new ConcurrentHashMap<>();
     private final ThreadLocal<Boolean> silentQuitPermission = new ThreadLocal<>();
@@ -76,7 +80,7 @@ public class LeaveMessageModule extends AbstractGameMessageModule<LeaveMessageCo
     }
 
     @Subscribe(priority = EventPriorities.LAST, ignoreCancelled = false, ignoreProcessed = false)
-    public void onLeaveMessageReceive(LeaveMessageReceiveEvent event) {
+    public void onLeaveMessageReceive(LeaveMessagePreProcessEvent event) {
         if (checkCancellation(event) || checkProcessor(event)) {
             return;
         }
@@ -97,7 +101,7 @@ public class LeaveMessageModule extends AbstractGameMessageModule<LeaveMessageCo
         }
 
         // Player vanished
-        discordSRV.eventBus().publish(new LeaveMessageReceiveEvent(
+        discordSRV.eventBus().publish(new LeaveMessagePreProcessEvent(
                 event,
                 event.getPlayer(),
                 event.getFakeMessage(),
@@ -110,7 +114,7 @@ public class LeaveMessageModule extends AbstractGameMessageModule<LeaveMessageCo
 
     @Override
     protected Task<Void> forwardToChannel(
-            @Nullable LeaveMessageReceiveEvent event,
+            @Nullable LeaveMessagePreProcessEvent event,
             @Nullable IPlayer player,
             @NotNull BaseChannelConfig config,
             @Nullable GameChannel channel
@@ -156,14 +160,27 @@ public class LeaveMessageModule extends AbstractGameMessageModule<LeaveMessageCo
     }
 
     @Override
-    public void postClusterToEventBus(GameChannel channel, @NotNull ReceivedDiscordMessageCluster cluster) {
-        discordSRV.eventBus().publish(new LeaveMessageForwardedEvent(channel, cluster));
+    protected LeaveMessagePostProcessEvent createPostProcessEvent(
+            LeaveMessagePreProcessEvent preEvent,
+            IPlayer player,
+            List<DiscordGuildMessageChannel> channels,
+            SendableDiscordMessage discordMessage
+    ) {
+        return new LeaveMessagePostProcessEvent(preEvent, player, channels, discordMessage);
+    }
+
+    @Override
+    protected AbstractGameMessagePostEvent<LeaveMessagePostProcessEvent> createPostEvent(
+            LeaveMessagePostProcessEvent preEvent,
+            ReceivedDiscordMessageCluster cluster
+    ) {
+        return new LeaveMessagePostEvent(preEvent, cluster);
     }
 
     @Override
     public void setPlaceholders(
             LeaveMessageConfig config,
-            LeaveMessageReceiveEvent event,
+            LeaveMessagePreProcessEvent event,
             SendableDiscordMessage.Formatter formatter
     ) {
         formatter.addPlaceholder("message", event.getMessage());

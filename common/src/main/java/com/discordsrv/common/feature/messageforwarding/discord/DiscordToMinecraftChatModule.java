@@ -22,8 +22,6 @@ import com.discordsrv.api.channel.GameChannel;
 import com.discordsrv.api.component.MinecraftComponent;
 import com.discordsrv.api.discord.connection.details.DiscordGatewayIntent;
 import com.discordsrv.api.discord.entity.DiscordUser;
-import com.discordsrv.api.discord.entity.channel.DiscordChannel;
-import com.discordsrv.api.discord.entity.channel.DiscordGuildMessageChannel;
 import com.discordsrv.api.discord.entity.channel.DiscordMessageChannel;
 import com.discordsrv.api.discord.entity.guild.DiscordGuild;
 import com.discordsrv.api.discord.entity.guild.DiscordGuildMember;
@@ -32,9 +30,9 @@ import com.discordsrv.api.eventbus.Subscribe;
 import com.discordsrv.api.events.discord.message.DiscordMessageDeleteEvent;
 import com.discordsrv.api.events.discord.message.DiscordMessageReceiveEvent;
 import com.discordsrv.api.events.discord.message.DiscordMessageUpdateEvent;
-import com.discordsrv.api.events.message.forward.discord.DiscordChatMessageForwardedEvent;
-import com.discordsrv.api.events.message.process.discord.DiscordChatMessageProcessEvent;
-import com.discordsrv.api.events.message.receive.discord.DiscordChatMessageReceiveEvent;
+import com.discordsrv.api.events.message.post.discord.DiscordChatMessagePostEvent;
+import com.discordsrv.api.events.message.postprocess.discord.DiscordChatMessagePostProcessEvent;
+import com.discordsrv.api.events.message.preprocess.discord.DiscordChatMessagePreProcessEvent;
 import com.discordsrv.api.placeholder.util.Placeholders;
 import com.discordsrv.api.player.DiscordSRVPlayer;
 import com.discordsrv.common.DiscordSRV;
@@ -49,9 +47,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.jetbrains.annotations.NotNull;
 
 import java.time.Duration;
-import java.util.Collection;
-import java.util.EnumSet;
-import java.util.Map;
+import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ScheduledFuture;
 import java.util.regex.Pattern;
@@ -97,34 +93,12 @@ public class DiscordToMinecraftChatModule extends AbstractModule<DiscordSRV> {
 
     @Subscribe
     public void onDiscordMessageReceived(DiscordMessageReceiveEvent event) {
-        if (!discordSRV.isReady() || event.getMessage().isFromSelf()) {
-            return;
-        }
-
-        DiscordChannel channel = event.getChannel();
-        if (!(channel instanceof DiscordGuildMessageChannel)) {
-            return;
-        }
-
-        discordSRV.eventBus().publish(new DiscordChatMessageReceiveEvent(
-                event.getMessage(),
-                (DiscordGuildMessageChannel) channel
-        ));
-    }
-
-    @Subscribe(ignoreCancelled = false)
-    public void onDiscordChatMessageReceive(DiscordChatMessageReceiveEvent event) {
-        if (checkCancellation(event)) {
+        ReceivedDiscordMessage message = event.getMessage();
+        if (!discordSRV.isReady() || message.isFromSelf()) {
             return;
         }
 
         Map<GameChannel, BaseChannelConfig> channels = discordSRV.channelConfig().resolve(event.getChannel());
-        if (channels == null || channels.isEmpty()) {
-            return;
-        }
-
-        ReceivedDiscordMessage message = event.getMessage();
-
         for (Map.Entry<GameChannel, BaseChannelConfig> entry : channels.entrySet()) {
             GameChannel gameChannel = entry.getKey();
             BaseChannelConfig config = entry.getValue();
@@ -134,7 +108,7 @@ public class DiscordToMinecraftChatModule extends AbstractModule<DiscordSRV> {
 
             long delayMillis = config.discordToMinecraft.delayMillis;
             if (delayMillis <= 0) {
-                process(message, gameChannel, config);
+                publishEvent(gameChannel, message);
                 return;
             }
 
@@ -149,8 +123,12 @@ public class DiscordToMinecraftChatModule extends AbstractModule<DiscordSRV> {
     private void processSend(String key) {
         MessageSend send = sends.remove(key);
         if (send != null) {
-            process(send.getMessage(), send.getGameChannel(), send.getConfig());
+            publishEvent(send.getGameChannel(), send.getMessage());
         }
+    }
+
+    private void publishEvent(GameChannel gameChannel, ReceivedDiscordMessage message) {
+        discordSRV.eventBus().publish(new DiscordChatMessagePreProcessEvent(gameChannel, message));
     }
 
     @Subscribe
@@ -180,10 +158,18 @@ public class DiscordToMinecraftChatModule extends AbstractModule<DiscordSRV> {
         return placeholders.toString();
     }
 
-    private void process(ReceivedDiscordMessage discordMessage, GameChannel gameChannel, BaseChannelConfig channelConfig) {
-        DiscordChatMessageProcessEvent event = new DiscordChatMessageProcessEvent(discordMessage, gameChannel);
-        discordSRV.eventBus().publish(event);
+    @Subscribe(ignoreCancelled = false, ignoreProcessed = false)
+    public void onDiscordChatMessagePreProcess(DiscordChatMessagePreProcessEvent event) {
         if (checkCancellation(event) || checkProcessor(event)) {
+            return;
+        }
+
+        GameChannel gameChannel = event.getGameChannel();
+        ReceivedDiscordMessage discordMessage = event.getMessage();
+
+        BaseChannelConfig channelConfig = discordSRV.channelConfig().get(gameChannel);
+        if (channelConfig == null) {
+            logger().error("Cannot lookup config in receiving message (" + GameChannel.toString(gameChannel) + ")");
             return;
         }
 
@@ -229,19 +215,29 @@ public class DiscordToMinecraftChatModule extends AbstractModule<DiscordSRV> {
             return;
         }
 
-        MinecraftComponent component = discordSRV.componentFactory()
+        MinecraftComponent message = discordSRV.componentFactory()
                 .textBuilder(format)
                 .addContext(discordMessage, author, member, guild, channel, channelConfig, gameChannel)
                 .applyPlaceholderService()
                 .addPlaceholder("message", messageComponent)
                 .build();
-        if (ComponentUtil.isEmpty(component)) {
+        if (ComponentUtil.isEmpty(message)) {
             logger().debug("Message from " + author + " in " + describeChannel(gameChannel) + " filtered entirely after building message");
             // No sending empty message #4
             return;
         }
 
-        gameChannel.sendMessage(component);
+        Collection<? extends DiscordSRVPlayer> channelRecipients = gameChannel.getRecipients();
+        List<DiscordSRVPlayer> recipients = channelRecipients != null ? new ArrayList<>(channelRecipients) : null;
+
+        DiscordChatMessagePostProcessEvent postProcessEvent = new DiscordChatMessagePostProcessEvent(event, gameChannel, message, recipients);
+        discordSRV.eventBus().publish(postProcessEvent);
+        if (checkCancellation(postProcessEvent)) {
+            return;
+        }
+        message = postProcessEvent.getMessage();
+
+        gameChannel.sendMessage(message);
 
         if (chatConfig.logToConsole) {
             Component consoleComponent = ComponentUtil.fromAPI(
@@ -249,21 +245,22 @@ public class DiscordToMinecraftChatModule extends AbstractModule<DiscordSRV> {
                             .applyPlaceholderService()
                             .addContext(author, member, guild, channel, channelConfig, gameChannel)
                             .addPlaceholder("message", messageComponent)
-                            .addPlaceholder("formatted_message", component)
+                            .addPlaceholder("formatted_message", message)
                             .build()
             );
             discordSRV.console().sendMessage(consoleComponent);
         }
 
-        Collection<? extends DiscordSRVPlayer> players = gameChannel.getRecipients();
-        for (DiscordSRVPlayer player : players) {
-            gameChannel.sendMessageToPlayer(player, component);
+        if (recipients != null) {
+            for (DiscordSRVPlayer player : recipients) {
+                gameChannel.sendMessageToPlayer(player, message);
+            }
         }
         logger().debug("Sending message from " + author + " to "
                                + GameChannel.toString(gameChannel) + " and "
-                               + players.size() + " players directly");
+                               + (recipients != null ? recipients.size() : 0) + " players directly");
 
-        discordSRV.eventBus().publish(new DiscordChatMessageForwardedEvent(component, gameChannel));
+        discordSRV.eventBus().publish(new DiscordChatMessagePostEvent(postProcessEvent, message, gameChannel));
     }
 
     private String describeChannel(GameChannel gameChannel) {

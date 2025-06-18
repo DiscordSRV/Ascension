@@ -21,24 +21,40 @@
  * SOFTWARE.
  */
 
-package com.discordsrv.api.events.message.forward.discord;
+package com.discordsrv.api.events.message.post.discord;
 
 import com.discordsrv.api.channel.GameChannel;
 import com.discordsrv.api.component.MinecraftComponent;
 import com.discordsrv.api.events.Event;
+import com.discordsrv.api.events.message.postprocess.discord.DiscordChatMessagePostProcessEvent;
 import org.jetbrains.annotations.NotNull;
 
 /**
  * Indicates that a message from Discord was forwarded to the provided {@link GameChannel}.
+ * <p>
+ * Order of events:
+ * <li> {@link com.discordsrv.api.events.message.preprocess.discord.DiscordChatMessagePreProcessEvent}
+ * <li> {@link com.discordsrv.api.events.message.postprocess.discord.DiscordChatMessagePostProcessEvent}
+ * <li> {@link com.discordsrv.api.events.message.post.discord.DiscordChatMessagePostEvent} (this event)
  */
-public class DiscordChatMessageForwardedEvent implements Event {
+public class DiscordChatMessagePostEvent implements Event {
 
+    private final DiscordChatMessagePostProcessEvent preEvent;
     private final MinecraftComponent message;
     private final GameChannel channel;
 
-    public DiscordChatMessageForwardedEvent(@NotNull MinecraftComponent message, @NotNull GameChannel channel) {
+    public DiscordChatMessagePostEvent(
+            @NotNull DiscordChatMessagePostProcessEvent preEvent,
+            @NotNull MinecraftComponent message,
+            @NotNull GameChannel channel
+    ) {
+        this.preEvent = preEvent;
         this.message = message;
         this.channel = channel;
+    }
+
+    public DiscordChatMessagePostProcessEvent getPreEvent() {
+        return preEvent;
     }
 
     public MinecraftComponent getMessage() {

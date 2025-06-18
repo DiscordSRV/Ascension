@@ -22,7 +22,7 @@ import com.discordsrv.api.channel.GameChannel;
 import com.discordsrv.api.component.MinecraftComponent;
 import com.discordsrv.api.eventbus.Subscribe;
 import com.discordsrv.api.events.channel.GameChannelLookupEvent;
-import com.discordsrv.api.events.message.receive.game.GameChatMessageReceiveEvent;
+import com.discordsrv.api.events.message.preprocess.game.GameChatMessagePreProcessEvent;
 import com.discordsrv.api.player.DiscordSRVPlayer;
 import com.discordsrv.bukkit.BukkitDiscordSRV;
 import com.discordsrv.bukkit.player.BukkitPlayer;
@@ -85,7 +85,7 @@ public class ChattyChatIntegration extends PluginIntegration<BukkitDiscordSRV> i
 
         BukkitPlayer srvPlayer = discordSRV.playerProvider().player(player);
         discordSRV.scheduler().run(() -> discordSRV.eventBus().publish(
-                new GameChatMessageReceiveEvent(event, srvPlayer, component, new ChattyChannel(chat), false)
+                new GameChatMessagePreProcessEvent(event, srvPlayer, component, new ChattyChannel(chat), false)
         ));
     }
 

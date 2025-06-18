@@ -21,11 +21,10 @@
  * SOFTWARE.
  */
 
-package com.discordsrv.api.events.message.receive.game;
+package com.discordsrv.api.events.message.preprocess.game;
 
 import com.discordsrv.api.channel.GameChannel;
 import com.discordsrv.api.component.MinecraftComponent;
-import com.discordsrv.api.eventbus.EventPriorities;
 import com.discordsrv.api.events.PlayerEvent;
 import com.discordsrv.api.player.DiscordSRVPlayer;
 import org.jetbrains.annotations.ApiStatus;
@@ -33,64 +32,86 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 /**
- * Indicates that a chat message was received and will be processed
- * at {@link EventPriorities#DEFAULT} unless cancelled or processed by a 3rd party.
+ * A leave message was received,
+ * DiscordSRV will process it (if enabled, not already processed and not cancelled) at priority {@link com.discordsrv.api.eventbus.EventPriorities#DEFAULT}.
+ * <p>
+ * Order of events:
+ * <li> {@link com.discordsrv.api.events.message.preprocess.game.LeaveMessagePreProcessEvent} (this event)
+ * <li> {@link com.discordsrv.api.events.message.postprocess.game.LeaveMessagePostProcessEvent}
+ * <li> {@link com.discordsrv.api.events.message.post.game.LeaveMessagePostEvent}
  */
-public class GameChatMessageReceiveEvent extends AbstractGameMessageReceiveEvent implements PlayerEvent {
+public class LeaveMessagePreProcessEvent extends AbstractGameMessagePreProcessEvent implements PlayerEvent {
 
     private final DiscordSRVPlayer player;
     private MinecraftComponent message;
     private GameChannel gameChannel;
+    private final boolean fakeLeave;
+    private final boolean messageCancelled;
 
-    public GameChatMessageReceiveEvent(
+    public LeaveMessagePreProcessEvent(
             @Nullable Object triggeringEvent,
             @NotNull DiscordSRVPlayer player,
-            @NotNull MinecraftComponent message,
-            @NotNull GameChannel gameChannel
+            @Nullable MinecraftComponent message,
+            @Nullable GameChannel gameChannel,
+            boolean fakeLeave
     ) {
-        this(triggeringEvent, player, message, gameChannel, false);
+        this(triggeringEvent, player, message, gameChannel, fakeLeave, false, false);
     }
 
     @ApiStatus.Experimental
-    public GameChatMessageReceiveEvent(
+    public LeaveMessagePreProcessEvent(
             @Nullable Object triggeringEvent,
             @NotNull DiscordSRVPlayer player,
-            @NotNull MinecraftComponent message,
-            @NotNull GameChannel gameChannel,
+            @Nullable MinecraftComponent message,
+            @Nullable GameChannel gameChannel,
+            boolean fakeLeave,
+            boolean messageCancelled,
             boolean cancelled
     ) {
         super(triggeringEvent, cancelled);
         this.player = player;
         this.message = message;
         this.gameChannel = gameChannel;
+        this.fakeLeave = fakeLeave;
+        this.messageCancelled = messageCancelled;
     }
 
+    @Override
     @NotNull
+    public DiscordSRVPlayer getPlayer() {
+        return player;
+    }
+
+    @Nullable
     public MinecraftComponent getMessage() {
         return message;
     }
 
-    public void setMessage(@NotNull MinecraftComponent message) {
+    public void setMessage(@Nullable MinecraftComponent message) {
         this.message = message;
     }
 
-    @NotNull
+    @Nullable
     public GameChannel getGameChannel() {
         return gameChannel;
     }
 
-    public void setGameChannel(@NotNull GameChannel gameChannel) {
+    public void setGameChannel(@Nullable GameChannel gameChannel) {
         this.gameChannel = gameChannel;
     }
 
-    @Override
-    public @NotNull DiscordSRVPlayer getPlayer() {
-        return player;
+    public boolean isFakeLeave() {
+        return fakeLeave;
+    }
+
+    @ApiStatus.Experimental
+    public boolean isMessageCancelled() {
+        return messageCancelled;
     }
 
     @Override
     public String toString() {
-        return "GameChatMessageReceiveEvent{"
+        return "LeaveMessageReceiveEvent{"
                 + "player=" + player + ", "
                 + "gameChannel=" + GameChannel.toString(gameChannel)
                 + '}';

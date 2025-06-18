@@ -19,7 +19,7 @@
 package com.discordsrv.fabric.module.chat;
 
 import com.discordsrv.api.component.MinecraftComponent;
-import com.discordsrv.api.events.message.receive.game.DeathMessageReceiveEvent;
+import com.discordsrv.api.events.message.preprocess.game.DeathMessagePreProcessEvent;
 import com.discordsrv.api.player.DiscordSRVPlayer;
 import com.discordsrv.common.util.ComponentUtil;
 import com.discordsrv.fabric.FabricDiscordSRV;
@@ -60,7 +60,7 @@ public class FabricDeathModule extends AbstractFabricModule {
 
         DiscordSRVPlayer player = discordSRV.playerProvider().player(playerEntity);
         discordSRV.eventBus().publish(
-                new DeathMessageReceiveEvent(
+                new DeathMessagePreProcessEvent(
                         damageSource,
                         player,
                         minecraftComponent,

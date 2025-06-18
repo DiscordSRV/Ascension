@@ -19,7 +19,7 @@
 package com.discordsrv.fabric.module.chat;
 
 import com.discordsrv.api.component.MinecraftComponent;
-import com.discordsrv.api.events.message.receive.game.AwardMessageReceiveEvent;
+import com.discordsrv.api.events.message.preprocess.game.AwardMessagePreProcessEvent;
 import com.discordsrv.common.abstraction.player.IPlayer;
 import com.discordsrv.common.core.logging.NamedLogger;
 import com.discordsrv.common.util.ComponentUtil;
@@ -66,13 +66,13 @@ public class FabricAdvancementModule extends AbstractFabricModule {
 
         IPlayer player = discordSRV.playerProvider().player(owner);
         discordSRV.eventBus().publish(
-                new AwardMessageReceiveEvent(
+                new AwardMessagePreProcessEvent(
                         null,
                         player,
                         message,
                         title,
                         description,
-                        AwardMessageReceiveEvent.AdvancementFrame.valueOf(frame.toString()),
+                        AwardMessagePreProcessEvent.AdvancementFrame.valueOf(frame.toString()),
                         null,
                         false
                 )

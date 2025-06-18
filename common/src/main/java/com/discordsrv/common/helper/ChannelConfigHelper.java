@@ -252,6 +252,7 @@ public class ChannelConfigHelper {
         return gameChannel != null ? get(gameChannel) : null;
     }
 
+    @NotNull
     public Map<GameChannel, BaseChannelConfig> resolve(DiscordMessageChannel channel) {
         Map<String, BaseChannelConfig> pairs = get(channel);
         if (pairs == null || pairs.isEmpty()) {

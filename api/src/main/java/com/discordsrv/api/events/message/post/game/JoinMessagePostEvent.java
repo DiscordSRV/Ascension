@@ -21,22 +21,26 @@
  * SOFTWARE.
  */
 
-package com.discordsrv.api.events.message.forward.game;
+package com.discordsrv.api.events.message.post.game;
 
-import com.discordsrv.api.channel.GameChannel;
 import com.discordsrv.api.discord.entity.message.ReceivedDiscordMessageCluster;
+import com.discordsrv.api.events.message.postprocess.game.JoinMessagePostProcessEvent;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 /**
- * Indicates that an advancement or achievement message was forwarded to Discord.
+ * Indicates that a join message was forwarded to Discord.
+ * <p>
+ * Order of events:
+ * <li> {@link com.discordsrv.api.events.message.preprocess.game.JoinMessagePreProcessEvent}
+ * <li> {@link com.discordsrv.api.events.message.postprocess.game.JoinMessagePostProcessEvent}
+ * <li> {@link com.discordsrv.api.events.message.post.game.JoinMessagePostEvent} (this event)
  */
-public class AwardMessageForwardedEvent extends AbstractGameMessageForwardedEvent {
+public class JoinMessagePostEvent extends AbstractGameMessagePostEvent<JoinMessagePostProcessEvent> {
 
-    public AwardMessageForwardedEvent(
-            @Nullable GameChannel originGameChannel,
+    public JoinMessagePostEvent(
+            @NotNull JoinMessagePostProcessEvent preEvent,
             @NotNull ReceivedDiscordMessageCluster discordMessage
     ) {
-        super(originGameChannel, discordMessage);
+        super(preEvent, discordMessage);
     }
 }

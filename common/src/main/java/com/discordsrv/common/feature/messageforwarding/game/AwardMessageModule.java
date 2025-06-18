@@ -18,29 +18,31 @@
 
 package com.discordsrv.common.feature.messageforwarding.game;
 
-import com.discordsrv.api.channel.GameChannel;
 import com.discordsrv.api.color.Color;
 import com.discordsrv.api.component.MinecraftComponent;
+import com.discordsrv.api.discord.entity.channel.DiscordGuildMessageChannel;
 import com.discordsrv.api.discord.entity.message.ReceivedDiscordMessageCluster;
 import com.discordsrv.api.discord.entity.message.SendableDiscordMessage;
 import com.discordsrv.api.eventbus.EventPriorities;
 import com.discordsrv.api.eventbus.Subscribe;
-import com.discordsrv.api.events.message.forward.game.AwardMessageForwardedEvent;
-import com.discordsrv.api.events.message.receive.game.AwardMessageReceiveEvent;
+import com.discordsrv.api.events.message.post.game.AbstractGameMessagePostEvent;
+import com.discordsrv.api.events.message.post.game.AwardMessagePostEvent;
+import com.discordsrv.api.events.message.postprocess.game.AwardMessagePostProcessEvent;
+import com.discordsrv.api.events.message.preprocess.game.AwardMessagePreProcessEvent;
 import com.discordsrv.api.player.DiscordSRVPlayer;
 import com.discordsrv.common.DiscordSRV;
+import com.discordsrv.common.abstraction.player.IPlayer;
 import com.discordsrv.common.config.main.channels.base.BaseChannelConfig;
 import com.discordsrv.common.config.main.channels.base.server.ServerBaseChannelConfig;
 import com.discordsrv.common.config.main.channels.server.AwardMessageConfig;
 import com.github.benmanes.caffeine.cache.Cache;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
+import java.util.List;
 import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 
-public class AwardMessageModule extends AbstractGameMessageModule<AwardMessageConfig, AwardMessageReceiveEvent> {
+public class AwardMessageModule extends AbstractGameMessageModule<AwardMessageConfig, AwardMessagePreProcessEvent, AwardMessagePostProcessEvent> {
 
     private final Cache<UUID, AtomicInteger> advancementCount;
 
@@ -65,7 +67,7 @@ public class AwardMessageModule extends AbstractGameMessageModule<AwardMessageCo
     }
 
     @Subscribe(priority = EventPriorities.LAST, ignoreCancelled = false, ignoreProcessed = false)
-    public void onAwardMessageReceive(AwardMessageReceiveEvent event) {
+    public void onAwardMessageReceive(AwardMessagePreProcessEvent event) {
         if (checkCancellation(event) || checkProcessor(event)) {
             return;
         }
@@ -84,12 +86,25 @@ public class AwardMessageModule extends AbstractGameMessageModule<AwardMessageCo
     }
 
     @Override
-    public void postClusterToEventBus(@Nullable GameChannel channel, @NotNull ReceivedDiscordMessageCluster cluster) {
-        discordSRV.eventBus().publish(new AwardMessageForwardedEvent(channel, cluster));
+    protected AwardMessagePostProcessEvent createPostProcessEvent(
+            AwardMessagePreProcessEvent preEvent,
+            IPlayer player,
+            List<DiscordGuildMessageChannel> channels,
+            SendableDiscordMessage discordMessage
+    ) {
+        return new AwardMessagePostProcessEvent(preEvent, player, channels, discordMessage);
     }
 
     @Override
-    public void setPlaceholders(AwardMessageConfig config, AwardMessageReceiveEvent event, SendableDiscordMessage.Formatter formatter) {
+    protected AbstractGameMessagePostEvent<AwardMessagePostProcessEvent> createPostEvent(
+            AwardMessagePostProcessEvent preEvent,
+            ReceivedDiscordMessageCluster cluster
+    ) {
+        return new AwardMessagePostEvent(preEvent, cluster);
+    }
+
+    @Override
+    public void setPlaceholders(AwardMessageConfig config, AwardMessagePreProcessEvent event, SendableDiscordMessage.Formatter formatter) {
         MinecraftComponent message = event.getMessage();
         MinecraftComponent displayName = event.getTitle();
         MinecraftComponent description = event.getDescription();

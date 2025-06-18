@@ -21,41 +21,65 @@
  * SOFTWARE.
  */
 
-package com.discordsrv.api.events.message.receive.discord;
+package com.discordsrv.api.events.message.postprocess.game;
 
 import com.discordsrv.api.discord.entity.channel.DiscordGuildMessageChannel;
-import com.discordsrv.api.discord.entity.channel.DiscordMessageChannel;
-import com.discordsrv.api.discord.entity.guild.DiscordGuild;
-import com.discordsrv.api.discord.entity.message.ReceivedDiscordMessage;
+import com.discordsrv.api.discord.entity.message.SendableDiscordMessage;
 import com.discordsrv.api.events.Cancellable;
-import com.discordsrv.api.events.message.process.discord.DiscordChatMessageProcessEvent;
+import com.discordsrv.api.events.Event;
+import com.discordsrv.api.events.message.preprocess.game.AbstractGameMessagePreProcessEvent;
+import com.discordsrv.api.player.DiscordSRVPlayer;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+import org.jetbrains.annotations.Unmodifiable;
 
-/**
- * Indicates that a Discord message has been received and will be processed unless cancelled.
- * This runs once per Discord message, before {@link DiscordChatMessageProcessEvent}(s).
- */
-public class DiscordChatMessageReceiveEvent implements Cancellable {
+import java.util.Collections;
+import java.util.List;
 
-    private final ReceivedDiscordMessage message;
-    private final DiscordGuildMessageChannel channel;
+public abstract class AbstractGameMessagePostProcessEvent<PE extends AbstractGameMessagePreProcessEvent>
+        implements Event, Cancellable {
+
+    private final PE preEvent;
+    private final DiscordSRVPlayer player;
+    private final List<DiscordGuildMessageChannel> channels;
+    private SendableDiscordMessage message;
     private boolean cancelled;
 
-    public DiscordChatMessageReceiveEvent(@NotNull ReceivedDiscordMessage discordMessage, @NotNull DiscordGuildMessageChannel channel) {
-        this.message = discordMessage;
-        this.channel = channel;
+    public AbstractGameMessagePostProcessEvent(
+            @NotNull PE preEvent,
+            @Nullable DiscordSRVPlayer player,
+            @NotNull List<DiscordGuildMessageChannel> channels,
+            @NotNull SendableDiscordMessage message
+    ) {
+        this.preEvent = preEvent;
+        this.player = player;
+        this.channels = Collections.unmodifiableList(channels);
+        this.message = message;
     }
 
-    public ReceivedDiscordMessage getMessage() {
+    @NotNull
+    public PE getPreEvent() {
+        return preEvent;
+    }
+
+    @NotNull
+    public DiscordSRVPlayer getPlayer() {
+        return player;
+    }
+
+    @NotNull
+    @Unmodifiable
+    public List<DiscordGuildMessageChannel> getChannels() {
+        return channels;
+    }
+
+    @NotNull
+    public SendableDiscordMessage getMessage() {
         return message;
     }
 
-    public DiscordMessageChannel getChannel() {
-        return channel;
-    }
-
-    public DiscordGuild getGuild() {
-        return channel.getGuild();
+    public void setMessage(@NotNull SendableDiscordMessage message) {
+        this.message = message;
     }
 
     @Override
@@ -66,13 +90,5 @@ public class DiscordChatMessageReceiveEvent implements Cancellable {
     @Override
     public void setCancelled(boolean cancelled) {
         this.cancelled = cancelled;
-    }
-
-    @Override
-    public String toString() {
-        return "DiscordChatMessageReceiveEvent{"
-                + "message.author=" + message.getAuthor() + ", "
-                + "channel=" + channel
-                + '}';
     }
 }

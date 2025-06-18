@@ -21,30 +21,68 @@
  * SOFTWARE.
  */
 
-package com.discordsrv.api.events.message.receive.game;
+package com.discordsrv.api.events.message.render.game;
 
+import com.discordsrv.api.channel.GameChannel;
+import com.discordsrv.api.component.MinecraftComponent;
 import com.discordsrv.api.events.Cancellable;
+import com.discordsrv.api.events.PlayerEvent;
 import com.discordsrv.api.events.Processable;
+import com.discordsrv.api.player.DiscordSRVPlayer;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-public abstract class AbstractGameMessageReceiveEvent implements Cancellable, Processable.NoArgument {
+public class GameChatRenderEvent implements PlayerEvent, Processable.Argument<MinecraftComponent>, Cancellable {
 
     private final Object triggeringEvent;
-    private boolean cancelled;
-    private boolean processed;
+    private final DiscordSRVPlayer player;
+    private final GameChannel channel;
+    private final MinecraftComponent message;
+    private MinecraftComponent annotatedMessage;
+    private boolean cancelled = false;
 
-    public AbstractGameMessageReceiveEvent(@Nullable Object triggeringEvent, boolean cancelled) {
+    public GameChatRenderEvent(
+            @Nullable Object triggeringEvent,
+            @NotNull DiscordSRVPlayer player,
+            @NotNull GameChannel channel,
+            @NotNull MinecraftComponent message
+    ) {
         this.triggeringEvent = triggeringEvent;
-        this.cancelled = cancelled;
+        this.player = player;
+        this.channel = channel;
+        this.message = message;
     }
 
-    /**
-     * Gets the event that triggered this event to occur. This varies depending on platform and different plugin integrations.
-     * @return an event object, that isn't guaranteed to be of the same type every time, or {@code null}
-     */
-    @Nullable
     public Object getTriggeringEvent() {
         return triggeringEvent;
+    }
+
+    @Override
+    public @NotNull DiscordSRVPlayer getPlayer() {
+        return player;
+    }
+
+    public GameChannel getChannel() {
+        return channel;
+    }
+
+    public MinecraftComponent getMessage() {
+        return message;
+    }
+
+    public MinecraftComponent getAnnotatedMessage() {
+        return annotatedMessage;
+    }
+
+    @Override
+    public boolean isProcessed() {
+        return annotatedMessage != null;
+    }
+
+    @Override
+    public void process(MinecraftComponent annotatedMessage) {
+        Processable.Argument.super.process(annotatedMessage);
+        this.annotatedMessage = annotatedMessage;
     }
 
     @Override
@@ -55,18 +93,5 @@ public abstract class AbstractGameMessageReceiveEvent implements Cancellable, Pr
     @Override
     public void setCancelled(boolean cancelled) {
         this.cancelled = cancelled;
-    }
-
-    @Override
-    public boolean isProcessed() {
-        return processed;
-    }
-
-    @Override
-    public void markAsProcessed() {
-        if (isCancelled()) {
-            throw new IllegalStateException("Cannot process cancelled event");
-        }
-        this.processed = true;
     }
 }

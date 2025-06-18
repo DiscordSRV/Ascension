@@ -21,7 +21,7 @@
  * SOFTWARE.
  */
 
-package com.discordsrv.api.events.message.process.discord;
+package com.discordsrv.api.events.message.render.discord;
 
 import com.discordsrv.api.component.MinecraftComponent;
 import com.discordsrv.api.discord.entity.guild.DiscordCustomEmoji;
@@ -68,10 +68,7 @@ public class DiscordChatMessageCustomEmojiRenderEvent implements Event, Processa
      */
     @Override
     public void process(@NotNull MinecraftComponent renderedEmote) {
-        if (rendered != null) {
-            throw new IllegalStateException("Cannot process an already processed event");
-        }
-
+        Processable.Argument.super.process(renderedEmote);
         rendered = renderedEmote;
     }
 }

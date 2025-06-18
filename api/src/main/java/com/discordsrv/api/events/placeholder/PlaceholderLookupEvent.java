@@ -103,9 +103,7 @@ public class PlaceholderLookupEvent implements Event, Processable.Argument<Place
      * @throws IllegalStateException if the event is already processed
      */
     public void process(@NotNull PlaceholderLookupResult result) {
-        if (processed) {
-            throw new IllegalStateException("Already processed");
-        }
+        Processable.Argument.super.process(result);
         if (result.getType() == PlaceholderLookupResult.Type.UNKNOWN_PLACEHOLDER) {
             // Ignore unknown
             return;

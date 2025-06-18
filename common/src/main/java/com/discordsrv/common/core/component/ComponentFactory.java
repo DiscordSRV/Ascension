@@ -28,7 +28,7 @@ import com.discordsrv.api.discord.entity.guild.DiscordGuild;
 import com.discordsrv.api.discord.entity.guild.DiscordGuildMember;
 import com.discordsrv.api.discord.entity.guild.DiscordRole;
 import com.discordsrv.api.discord.entity.message.ReceivedDiscordMessage;
-import com.discordsrv.api.events.message.process.discord.DiscordChatMessageCustomEmojiRenderEvent;
+import com.discordsrv.api.events.message.render.discord.DiscordChatMessageCustomEmojiRenderEvent;
 import com.discordsrv.common.DiscordSRV;
 import com.discordsrv.common.config.main.channels.base.BaseChannelConfig;
 import com.discordsrv.common.config.main.generic.MentionsConfig;

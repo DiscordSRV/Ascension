@@ -25,7 +25,9 @@ import com.discordsrv.api.discord.entity.channel.DiscordGuildMessageChannel;
 import com.discordsrv.api.discord.entity.message.ReceivedDiscordMessage;
 import com.discordsrv.api.discord.entity.message.ReceivedDiscordMessageCluster;
 import com.discordsrv.api.discord.entity.message.SendableDiscordMessage;
-import com.discordsrv.api.events.message.receive.game.AbstractGameMessageReceiveEvent;
+import com.discordsrv.api.events.message.post.game.AbstractGameMessagePostEvent;
+import com.discordsrv.api.events.message.postprocess.game.AbstractGameMessagePostProcessEvent;
+import com.discordsrv.api.events.message.preprocess.game.AbstractGameMessagePreProcessEvent;
 import com.discordsrv.api.player.DiscordSRVPlayer;
 import com.discordsrv.api.task.Task;
 import com.discordsrv.common.DiscordSRV;
@@ -45,23 +47,31 @@ import net.dv8tion.jda.api.entities.channel.middleman.GuildMessageChannel;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.LinkedHashSet;
+import java.util.List;
+import java.util.Set;
 
 /**
  * An abstracted flow to send in-game messages to a given destination and publish the results to the event bus.
  * <p>
  * Order of operations:
- * - Event (E generic) is received, implementation calls {@link #process(AbstractGameMessageReceiveEvent, DiscordSRVPlayer, GameChannel)}
- * - {@link IPlayer} and {@link BaseChannelConfig} (uses {@link #mapConfig(AbstractGameMessageReceiveEvent, BaseChannelConfig)} are resolved, then {@link #forwardToChannel(AbstractGameMessageReceiveEvent, IPlayer, BaseChannelConfig, GameChannel)} is called
- * - Destinations are looked up and {@link #sendMessageToChannels} gets called
- * - {@link #setPlaceholders(IMessageConfig, AbstractGameMessageReceiveEvent, SendableDiscordMessage.Formatter)} is called to set any additional placeholders
+ * - Event (E generic) is received, implementation calls {@link #process(AbstractGameMessagePreProcessEvent, DiscordSRVPlayer, GameChannel)}
+ * - {@link IPlayer} and {@link BaseChannelConfig} (uses {@link #mapConfig(AbstractGameMessagePreProcessEvent, BaseChannelConfig)} are resolved, then {@link #forwardToChannel(AbstractGameMessagePreProcessEvent, IPlayer, BaseChannelConfig, GameChannel)} is called
+ * - Destinations are looked up and {@link #sendMessageToChannels} gets called ({@link #createPostProcessEvent(AbstractGameMessagePreProcessEvent, IPlayer, List, SendableDiscordMessage)} is called to create the post process event)
+ * - {@link #setPlaceholders(IMessageConfig, AbstractGameMessagePreProcessEvent, SendableDiscordMessage.Formatter)} is called to set any additional placeholders
  * - {@link #sendMessageToChannel(DiscordGuildMessageChannel, SendableDiscordMessage)} is called (once per channel) to send messages to individual channels
- * - {@link #postClusterToEventBus(GameChannel, ReceivedDiscordMessageCluster)} is called with all messages that were sent (if any messages were sent)
+ * - {@link #messageSent(AbstractGameMessagePostProcessEvent, Task)} is called with all messages that were sent (if any messages were sent) ({@link #createPostEvent(AbstractGameMessagePostProcessEvent, ReceivedDiscordMessageCluster)} is called to create the post event)
  *
  * @param <T> config model
- * @param <E> the event indicating a message was received from in-game, of type {@link AbstractGameMessageReceiveEvent}
+ * @param <PRE> the event indicating a message was received from in-game, of type {@link AbstractGameMessagePreProcessEvent}
+ * @param <POST> the event indicating a message was sent processed, of type {@link AbstractGameMessagePostProcessEvent}
  */
-public abstract class AbstractGameMessageModule<T extends IMessageConfig, E extends AbstractGameMessageReceiveEvent> extends AbstractModule<DiscordSRV> {
+public abstract class AbstractGameMessageModule<
+        T extends IMessageConfig,
+        PRE extends AbstractGameMessagePreProcessEvent,
+        POST extends AbstractGameMessagePostProcessEvent<PRE>
+> extends AbstractModule<DiscordSRV> {
 
     public AbstractGameMessageModule(DiscordSRV discordSRV, String loggerName) {
         super(discordSRV, new NamedLogger(discordSRV, loggerName));
@@ -77,15 +87,25 @@ public abstract class AbstractGameMessageModule<T extends IMessageConfig, E exte
         return false;
     }
 
-    public T mapConfig(E event, BaseChannelConfig channelConfig) {
+    public T mapConfig(PRE event, BaseChannelConfig channelConfig) {
         return mapConfig(channelConfig);
     }
 
     public abstract T mapConfig(BaseChannelConfig channelConfig);
-    public abstract void postClusterToEventBus(@Nullable GameChannel channel, @NotNull ReceivedDiscordMessageCluster cluster);
+
+    protected abstract POST createPostProcessEvent(
+            PRE preEvent,
+            IPlayer player,
+            List<DiscordGuildMessageChannel> channels,
+            SendableDiscordMessage discordMessage
+    );
+    protected abstract AbstractGameMessagePostEvent<POST> createPostEvent(
+            POST preEvent,
+            ReceivedDiscordMessageCluster cluster
+    );
 
     public final Task<?> process(
-            @Nullable E event,
+            @Nullable PRE event,
             @Nullable DiscordSRVPlayer player,
             @Nullable GameChannel channel
     ) {
@@ -117,7 +137,7 @@ public abstract class AbstractGameMessageModule<T extends IMessageConfig, E exte
 
     @SuppressWarnings("unchecked")
     protected <CC extends BaseChannelConfig & IChannelConfig> Task<Void> forwardToChannel(
-            @Nullable E event,
+            @Nullable PRE event,
             @Nullable IPlayer player,
             @NotNull BaseChannelConfig config,
             @Nullable GameChannel channel
@@ -144,44 +164,28 @@ public abstract class AbstractGameMessageModule<T extends IMessageConfig, E exte
                         "Failed to forward message" + (channel != null ? " from " + GameChannel.toString(channel) : "") + " to some channels"));
             }
 
-            List<Task<ReceivedDiscordMessage>> messageFutures = sendMessageToChannels(
+            return sendMessageToChannels(
                     moduleConfig, player, format, result.channels(), event,
                     // Context
                     config, player, channel
             );
 
-            return Task.allOf(messageFutures).whenComplete((vo, t2) -> {
-                Set<ReceivedDiscordMessage> messages = new LinkedHashSet<>();
-                for (Task<ReceivedDiscordMessage> future : messageFutures) {
-                    ReceivedDiscordMessage message = future.join();
-                    if (message != null) {
-                        messages.add(message);
-                    }
-                }
 
-                if (messages.isEmpty()) {
-                    // Nothing was delivered
-                    return;
-                }
-
-                logger().debug(messages.size() + " messages delivered");
-                postClusterToEventBus(channel, new ReceivedDiscordMessageClusterImpl(messages));
-            }).whenFailed(t -> {
-                discordSRV.logger().error("Failed to publish to event bus", t);
-                TestHelper.fail(t);
-            }).thenApply(v -> (Void) null);
         }).whenFailed(t -> {
             discordSRV.logger().error("Error in forwarding message", t);
             TestHelper.fail(t);
         });
     }
 
-    public List<Task<ReceivedDiscordMessage>> sendMessageToChannels(
+    /**
+     * Should call {@link #messageSent(AbstractGameMessagePostProcessEvent, Task)}.
+     */
+    public Task<Void> sendMessageToChannels(
             T config,
             IPlayer player,
             SendableDiscordMessage.Builder format,
-            Collection<DiscordGuildMessageChannel> channels,
-            E event,
+            List<DiscordGuildMessageChannel> channels,
+            PRE event,
             Object... context
     ) {
         SendableDiscordMessage.Formatter formatter = format.toFormatter()
@@ -194,7 +198,16 @@ public abstract class AbstractGameMessageModule<T extends IMessageConfig, E exte
                 .build();
         if (discordMessage.isEmpty()) {
             logger().debug("Message from " + player + " skipped, empty after formatting");
-            return Collections.emptyList();
+            return Task.completed(null);
+        }
+
+        POST postProcessEvent = createPostProcessEvent(event, player, channels, discordMessage);
+        if (postProcessEvent != null) {
+            discordSRV.eventBus().publish(postProcessEvent);
+            if (checkCancellation(postProcessEvent)) {
+                return Task.completed(null);
+            }
+            discordMessage = postProcessEvent.getMessage();
         }
 
         List<Task<ReceivedDiscordMessage>> futures = new ArrayList<>();
@@ -202,7 +215,7 @@ public abstract class AbstractGameMessageModule<T extends IMessageConfig, E exte
             futures.add(sendMessageToChannel(channel, discordMessage));
         }
 
-        return futures;
+        return messageSent(postProcessEvent, Task.allOf(futures));
     }
 
     protected final @NotNull Task<ReceivedDiscordMessage> sendMessageToChannel(DiscordGuildMessageChannel channel, SendableDiscordMessage message) {
@@ -232,9 +245,32 @@ public abstract class AbstractGameMessageModule<T extends IMessageConfig, E exte
         });
     }
 
+    protected Task<Void> messageSent(POST preEvent, Task<List<ReceivedDiscordMessage>> messageFuture) {
+        return Task.allOf(messageFuture).whenSuccessful((messageLists) -> {
+            Set<ReceivedDiscordMessage> messages = new LinkedHashSet<>();
+            for (List<ReceivedDiscordMessage> message : messageLists) {
+                messages.addAll(message);
+            }
+
+            if (messages.isEmpty()) {
+                // Nothing was delivered
+                return;
+            }
+
+            logger().debug(messages.size() + " messages delivered");
+            AbstractGameMessagePostEvent<POST> postEvent = createPostEvent(preEvent, new ReceivedDiscordMessageClusterImpl(messages));
+            if (postEvent != null) {
+                discordSRV.eventBus().publish(postEvent);
+            }
+        }).whenFailed(t -> {
+            discordSRV.logger().error("Failed to publish to event bus", t);
+            TestHelper.fail(t);
+        }).thenApply(v -> (Void) null);
+    }
+
     private String describeDestination(DiscordGuildChannel channel) {
         return channel.toString();
     }
 
-    public abstract void setPlaceholders(T config, E event, SendableDiscordMessage.Formatter formatter);
+    public abstract void setPlaceholders(T config, PRE event, SendableDiscordMessage.Formatter formatter);
 }

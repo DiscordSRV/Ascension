@@ -21,70 +21,72 @@
  * SOFTWARE.
  */
 
-package com.discordsrv.api.events.message.render;
+package com.discordsrv.api.events.message.postprocess.discord;
 
 import com.discordsrv.api.channel.GameChannel;
 import com.discordsrv.api.component.MinecraftComponent;
 import com.discordsrv.api.events.Cancellable;
-import com.discordsrv.api.events.PlayerEvent;
-import com.discordsrv.api.events.Processable;
+import com.discordsrv.api.events.Event;
+import com.discordsrv.api.events.message.preprocess.discord.DiscordChatMessagePreProcessEvent;
 import com.discordsrv.api.player.DiscordSRVPlayer;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-public class GameChatRenderEvent implements PlayerEvent, Processable.Argument<MinecraftComponent>, Cancellable {
+import java.util.List;
 
-    private final Object triggeringEvent;
-    private final DiscordSRVPlayer player;
-    private final GameChannel channel;
-    private final MinecraftComponent message;
-    private MinecraftComponent annotatedMessage;
-    private boolean cancelled = false;
+/**
+ * <p>
+ * Order of events:
+ * <li> {@link com.discordsrv.api.events.message.preprocess.discord.DiscordChatMessagePreProcessEvent}
+ * <li> {@link com.discordsrv.api.events.message.postprocess.discord.DiscordChatMessagePostProcessEvent} (this event)
+ * <li> {@link com.discordsrv.api.events.message.post.discord.DiscordChatMessagePostEvent}
+ */
+public class DiscordChatMessagePostProcessEvent implements Event, Cancellable {
 
-    public GameChatRenderEvent(
-            @Nullable Object triggeringEvent,
-            @NotNull DiscordSRVPlayer player,
-            @NotNull GameChannel channel,
-            @NotNull MinecraftComponent message
+    private final DiscordChatMessagePreProcessEvent preEvent;
+    private final GameChannel gameChannel;
+    private MinecraftComponent message;
+    private final List<DiscordSRVPlayer> recipients;
+    private boolean cancelled;
+
+    public DiscordChatMessagePostProcessEvent(
+            @NotNull DiscordChatMessagePreProcessEvent preEvent,
+            @NotNull GameChannel gameChannel,
+            @NotNull MinecraftComponent message,
+            @Nullable List<DiscordSRVPlayer> recipients
     ) {
-        this.triggeringEvent = triggeringEvent;
-        this.player = player;
-        this.channel = channel;
+        this.preEvent = preEvent;
+        this.gameChannel = gameChannel;
         this.message = message;
+        this.recipients = recipients;
     }
 
-    public Object getTriggeringEvent() {
-        return triggeringEvent;
+    @NotNull
+    public DiscordChatMessagePreProcessEvent getPreEvent() {
+        return preEvent;
     }
 
-    @Override
-    public @NotNull DiscordSRVPlayer getPlayer() {
-        return player;
+    @NotNull
+    public GameChannel getGameChannel() {
+        return gameChannel;
     }
 
-    public GameChannel getChannel() {
-        return channel;
-    }
-
+    @NotNull
     public MinecraftComponent getMessage() {
         return message;
     }
 
-    public MinecraftComponent getAnnotatedMessage() {
-        return annotatedMessage;
+    public void setMessage(@NotNull MinecraftComponent message) {
+        this.message = message;
     }
 
-    @Override
-    public boolean isProcessed() {
-        return annotatedMessage != null;
-    }
-
-    @Override
-    public void process(MinecraftComponent annotatedMessage) {
-        if (isProcessed()) {
-            throw new IllegalStateException("Already processed");
-        }
-        this.annotatedMessage = annotatedMessage;
+    /**
+     * Returns the list of recipients, in a modifiable list. This will be {@code null} if recipients cannot be modified.
+     * @return the modifiable list of recipients or {@code null}
+     */
+    @Nullable
+    public List<DiscordSRVPlayer> getRecipients() {
+        return recipients;
     }
 
     @Override

@@ -19,12 +19,15 @@
 package com.discordsrv.common.feature.messageforwarding.game;
 
 import com.discordsrv.api.channel.GameChannel;
+import com.discordsrv.api.discord.entity.channel.DiscordGuildMessageChannel;
 import com.discordsrv.api.discord.entity.message.ReceivedDiscordMessageCluster;
 import com.discordsrv.api.discord.entity.message.SendableDiscordMessage;
 import com.discordsrv.api.eventbus.EventPriorities;
 import com.discordsrv.api.eventbus.Subscribe;
-import com.discordsrv.api.events.message.forward.game.JoinMessageForwardedEvent;
-import com.discordsrv.api.events.message.receive.game.JoinMessageReceiveEvent;
+import com.discordsrv.api.events.message.post.game.AbstractGameMessagePostEvent;
+import com.discordsrv.api.events.message.post.game.JoinMessagePostEvent;
+import com.discordsrv.api.events.message.postprocess.game.JoinMessagePostProcessEvent;
+import com.discordsrv.api.events.message.preprocess.game.JoinMessagePreProcessEvent;
 import com.discordsrv.api.events.vanish.PlayerVanishStatusChangeEvent;
 import com.discordsrv.api.player.DiscordSRVPlayer;
 import com.discordsrv.api.task.Task;
@@ -39,12 +42,13 @@ import org.jetbrains.annotations.Nullable;
 
 import java.time.Duration;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.Future;
 import java.util.function.Supplier;
 
-public class JoinMessageModule extends AbstractGameMessageModule<IMessageConfig, JoinMessageReceiveEvent> {
+public class JoinMessageModule extends AbstractGameMessageModule<IMessageConfig, JoinMessagePreProcessEvent, JoinMessagePostProcessEvent> {
 
     private final Map<UUID, Future<?>> delayedTasks = new HashMap<>();
     private final ThreadLocal<Boolean> silentJoinPermission = new ThreadLocal<>();
@@ -54,7 +58,7 @@ public class JoinMessageModule extends AbstractGameMessageModule<IMessageConfig,
     }
 
     @Subscribe(priority = EventPriorities.LAST, ignoreCancelled = false, ignoreProcessed = false)
-    public void onJoinMessageReceive(JoinMessageReceiveEvent event) {
+    public void onJoinMessageReceive(JoinMessagePreProcessEvent event) {
         if (checkCancellation(event) || checkProcessor(event)) {
             return;
         }
@@ -75,7 +79,7 @@ public class JoinMessageModule extends AbstractGameMessageModule<IMessageConfig,
         }
 
         // Player unvanished
-        discordSRV.eventBus().publish(new JoinMessageReceiveEvent(
+        discordSRV.eventBus().publish(new JoinMessagePreProcessEvent(
                 event,
                 event.getPlayer(),
                 event.getFakeMessage(),
@@ -89,7 +93,7 @@ public class JoinMessageModule extends AbstractGameMessageModule<IMessageConfig,
 
     @Override
     protected Task<Void> forwardToChannel(
-            @Nullable JoinMessageReceiveEvent event,
+            @Nullable JoinMessagePreProcessEvent event,
             @Nullable IPlayer player,
             @NotNull BaseChannelConfig config,
             @Nullable GameChannel channel
@@ -159,7 +163,7 @@ public class JoinMessageModule extends AbstractGameMessageModule<IMessageConfig,
     }
 
     @Override
-    public IMessageConfig mapConfig(JoinMessageReceiveEvent event, BaseChannelConfig channelConfig) {
+    public IMessageConfig mapConfig(JoinMessagePreProcessEvent event, BaseChannelConfig channelConfig) {
         return channelConfig.joinMessages().getForEvent(event);
     }
 
@@ -169,14 +173,27 @@ public class JoinMessageModule extends AbstractGameMessageModule<IMessageConfig,
     }
 
     @Override
-    public void postClusterToEventBus(GameChannel channel, @NotNull ReceivedDiscordMessageCluster cluster) {
-        discordSRV.eventBus().publish(new JoinMessageForwardedEvent(channel, cluster));
+    protected JoinMessagePostProcessEvent createPostProcessEvent(
+            JoinMessagePreProcessEvent preEvent,
+            IPlayer player,
+            List<DiscordGuildMessageChannel> channels,
+            SendableDiscordMessage discordMessage
+    ) {
+        return new JoinMessagePostProcessEvent(preEvent, player, channels, discordMessage);
+    }
+
+    @Override
+    protected AbstractGameMessagePostEvent<JoinMessagePostProcessEvent> createPostEvent(
+            JoinMessagePostProcessEvent preEvent,
+            ReceivedDiscordMessageCluster cluster
+    ) {
+        return new JoinMessagePostEvent(preEvent, cluster);
     }
 
     @Override
     public void setPlaceholders(
             IMessageConfig config,
-            JoinMessageReceiveEvent event,
+            JoinMessagePreProcessEvent event,
             SendableDiscordMessage.Formatter formatter
     ) {
         formatter.addPlaceholder("message", event.getMessage());

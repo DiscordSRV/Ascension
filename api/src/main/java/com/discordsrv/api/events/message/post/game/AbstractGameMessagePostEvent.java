@@ -21,22 +21,37 @@
  * SOFTWARE.
  */
 
-package com.discordsrv.api.events.message.forward.game;
+package com.discordsrv.api.events.message.post.game;
 
-import com.discordsrv.api.channel.GameChannel;
 import com.discordsrv.api.discord.entity.message.ReceivedDiscordMessageCluster;
+import com.discordsrv.api.events.Event;
+import com.discordsrv.api.events.message.postprocess.game.AbstractGameMessagePostProcessEvent;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
-/**
- * Indicates that a chat message was forwarded to Discord.
- */
-public class GameChatMessageForwardedEvent extends AbstractGameMessageForwardedEvent {
+public abstract class AbstractGameMessagePostEvent<PE extends AbstractGameMessagePostProcessEvent<?>> implements Event {
 
-    public GameChatMessageForwardedEvent(
-            @Nullable GameChannel originGameChannel,
+    private final PE preEvent;
+    private final ReceivedDiscordMessageCluster discordMessage;
+
+    public AbstractGameMessagePostEvent(
+            @NotNull PE preEvent,
             @NotNull ReceivedDiscordMessageCluster discordMessage
     ) {
-        super(originGameChannel, discordMessage);
+        this.preEvent = preEvent;
+        this.discordMessage = discordMessage;
     }
+
+    @NotNull
+    public PE getPreEvent() {
+        return preEvent;
+    }
+
+    /**
+     * Gets the {@link ReceivedDiscordMessageCluster} containing the sent message(s).
+     * @return the message cluster
+     */
+    public ReceivedDiscordMessageCluster getDiscordMessage() {
+        return discordMessage;
+    }
+
 }

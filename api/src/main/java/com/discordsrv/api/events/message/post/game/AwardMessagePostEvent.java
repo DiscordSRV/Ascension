@@ -21,22 +21,26 @@
  * SOFTWARE.
  */
 
-package com.discordsrv.api.events.message.forward.game;
+package com.discordsrv.api.events.message.post.game;
 
-import com.discordsrv.api.channel.GameChannel;
 import com.discordsrv.api.discord.entity.message.ReceivedDiscordMessageCluster;
+import com.discordsrv.api.events.message.postprocess.game.AwardMessagePostProcessEvent;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 /**
- * Indicates that a leave message was forwarded to Discord.
+ * Indicates that an advancement or achievement message was forwarded to Discord.
+ * <p>
+ * Order of events:
+ * <li> {@link com.discordsrv.api.events.message.preprocess.game.AwardMessagePreProcessEvent}
+ * <li> {@link com.discordsrv.api.events.message.postprocess.game.AwardMessagePostProcessEvent}
+ * <li> {@link com.discordsrv.api.events.message.post.game.AwardMessagePostEvent} (this event)
  */
-public class LeaveMessageForwardedEvent extends AbstractGameMessageForwardedEvent {
+public class AwardMessagePostEvent extends AbstractGameMessagePostEvent<AwardMessagePostProcessEvent> {
 
-    public LeaveMessageForwardedEvent(
-            @Nullable GameChannel originGameChannel,
+    public AwardMessagePostEvent(
+            @NotNull AwardMessagePostProcessEvent preEvent,
             @NotNull ReceivedDiscordMessageCluster discordMessage
     ) {
-        super(originGameChannel, discordMessage);
+        super(preEvent, discordMessage);
     }
 }

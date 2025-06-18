@@ -21,22 +21,32 @@
  * SOFTWARE.
  */
 
-package com.discordsrv.api.events.message.forward.game;
+package com.discordsrv.api.events.message.postprocess.game;
 
-import com.discordsrv.api.channel.GameChannel;
-import com.discordsrv.api.discord.entity.message.ReceivedDiscordMessageCluster;
+import com.discordsrv.api.discord.entity.channel.DiscordGuildMessageChannel;
+import com.discordsrv.api.discord.entity.message.SendableDiscordMessage;
+import com.discordsrv.api.events.message.preprocess.game.ServerSwitchMessagePreProcessEvent;
+import com.discordsrv.api.player.DiscordSRVPlayer;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-/**
- * Indicates that a server switch message was forwarded to Discord.
- */
-public class ServerSwitchMessageForwardedEvent extends AbstractGameMessageForwardedEvent {
+import java.util.List;
 
-    public ServerSwitchMessageForwardedEvent(
-            @Nullable GameChannel originGameChannel,
-            @NotNull ReceivedDiscordMessageCluster discordMessage
-    ) {
-        super(originGameChannel, discordMessage);
+/**
+ * A server switch message was processed by DiscordSRV and is about to be forwarded.
+ * <p>
+ * Order of events:
+ * <li> {@link com.discordsrv.api.events.message.preprocess.game.ServerSwitchMessagePreProcessEvent}
+ * <li> {@link com.discordsrv.api.events.message.postprocess.game.ServerSwitchMessagePostProcessEvent} (this event)
+ * <li> {@link com.discordsrv.api.events.message.post.game.ServerSwitchMessagePostEvent}
+ */
+public class ServerSwitchMessagePostProcessEvent extends AbstractGameMessagePostProcessEvent<ServerSwitchMessagePreProcessEvent> {
+
+    public ServerSwitchMessagePostProcessEvent(
+            @NotNull ServerSwitchMessagePreProcessEvent preEvent,
+            @Nullable DiscordSRVPlayer player,
+            @NotNull List<DiscordGuildMessageChannel> channels,
+            @NotNull SendableDiscordMessage message) {
+        super(preEvent, player, channels, message);
     }
 }

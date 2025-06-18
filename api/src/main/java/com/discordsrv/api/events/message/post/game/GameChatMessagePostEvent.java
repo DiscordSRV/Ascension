@@ -21,22 +21,27 @@
  * SOFTWARE.
  */
 
-package com.discordsrv.api.events.message.forward.game;
+package com.discordsrv.api.events.message.post.game;
 
-import com.discordsrv.api.channel.GameChannel;
 import com.discordsrv.api.discord.entity.message.ReceivedDiscordMessageCluster;
+import com.discordsrv.api.events.message.postprocess.game.GameChatMessagePostProcessEvent;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 /**
- * Indicates that a join message was forwarded to Discord.
+ * Indicates that a game chat message was forwarded to Discord.
+ * <b>Unlike other game chat postprocess and post events, this will be called once per Discord server</b>
+ * <p>
+ * Order of events:
+ * <li> {@link com.discordsrv.api.events.message.preprocess.game.GameChatMessagePreProcessEvent}
+ * <li> {@link com.discordsrv.api.events.message.postprocess.game.GameChatMessagePostProcessEvent}
+ * <li> {@link com.discordsrv.api.events.message.post.game.GameChatMessagePostEvent} (this event)
  */
-public class JoinMessageForwardedEvent extends AbstractGameMessageForwardedEvent {
+public class GameChatMessagePostEvent extends AbstractGameMessagePostEvent<GameChatMessagePostProcessEvent> {
 
-    public JoinMessageForwardedEvent(
-            @Nullable GameChannel originGameChannel,
+    public GameChatMessagePostEvent(
+            @NotNull GameChatMessagePostProcessEvent preEvent,
             @NotNull ReceivedDiscordMessageCluster discordMessage
     ) {
-        super(originGameChannel, discordMessage);
+        super(preEvent, discordMessage);
     }
 }

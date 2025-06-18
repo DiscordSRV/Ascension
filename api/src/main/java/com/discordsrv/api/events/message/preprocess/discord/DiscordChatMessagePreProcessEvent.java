@@ -21,39 +21,43 @@
  * SOFTWARE.
  */
 
-package com.discordsrv.api.events.message.process.discord;
+package com.discordsrv.api.events.message.preprocess.discord;
 
 import com.discordsrv.api.channel.GameChannel;
 import com.discordsrv.api.discord.entity.channel.DiscordMessageChannel;
+import com.discordsrv.api.discord.entity.guild.DiscordGuild;
 import com.discordsrv.api.discord.entity.message.ReceivedDiscordMessage;
 import com.discordsrv.api.events.Cancellable;
 import com.discordsrv.api.events.Processable;
-import com.discordsrv.api.events.message.receive.discord.DiscordChatMessageReceiveEvent;
 import org.jetbrains.annotations.NotNull;
 
 /**
- * Indicates that a Discord message is about to be processed, this will run once per {@link GameChannel} destination,
- * meaning it could run multiple times for a single Discord message. This runs after {@link DiscordChatMessageReceiveEvent}.
+ * Indicates that a Discord message has been received and will be processed unless cancelled.
+ * <p>
+ * Order of events:
+ * <li> {@link com.discordsrv.api.events.message.preprocess.discord.DiscordChatMessagePreProcessEvent} (this event)
+ * <li> {@link com.discordsrv.api.events.message.postprocess.discord.DiscordChatMessagePostProcessEvent}
+ * <li> {@link com.discordsrv.api.events.message.post.discord.DiscordChatMessagePostEvent}
  */
-public class DiscordChatMessageProcessEvent implements Cancellable, Processable.NoArgument {
+public class DiscordChatMessagePreProcessEvent implements Cancellable, Processable.NoArgument {
 
+    private final GameChannel gameChannel;
     private final ReceivedDiscordMessage message;
     private String content;
-    private final GameChannel destinationChannel;
     private boolean cancelled;
     private boolean processed;
 
-    public DiscordChatMessageProcessEvent(
-            @NotNull ReceivedDiscordMessage message,
-            @NotNull GameChannel destinationChannel
+    public DiscordChatMessagePreProcessEvent(
+            @NotNull GameChannel gameChannel,
+            @NotNull ReceivedDiscordMessage discordMessage
     ) {
-        this.message = message;
-        this.content = message.getContent();
-        this.destinationChannel = destinationChannel;
+        this.gameChannel = gameChannel;
+        this.message = discordMessage;
+        this.content = discordMessage.getContent();
     }
 
-    public DiscordMessageChannel getChannel() {
-        return message.getChannel();
+    public GameChannel getGameChannel() {
+        return gameChannel;
     }
 
     public ReceivedDiscordMessage getMessage() {
@@ -68,8 +72,12 @@ public class DiscordChatMessageProcessEvent implements Cancellable, Processable.
         this.content = content;
     }
 
-    public GameChannel getDestinationChannel() {
-        return destinationChannel;
+    public DiscordMessageChannel getChannel() {
+        return message.getChannel();
+    }
+
+    public DiscordGuild getGuild() {
+        return message.getGuild();
     }
 
     @Override
@@ -83,27 +91,21 @@ public class DiscordChatMessageProcessEvent implements Cancellable, Processable.
     }
 
     @Override
+    public void markAsProcessed() {
+        Processable.NoArgument.super.markAsProcessed();
+        this.processed = true;
+    }
+
+    @Override
     public boolean isProcessed() {
         return processed;
     }
 
     @Override
-    public void markAsProcessed() {
-        if (cancelled) {
-            throw new IllegalStateException("Cannot process cancelled event");
-        }
-        if (processed) {
-            throw new IllegalStateException("Cannot process already processed event");
-        }
-        this.processed = true;
-    }
-
-    @Override
     public String toString() {
-        return "DiscordChatMessageProcessEvent{"
-                + "message.channel=" + message.getChannel() + ", "
+        return "DiscordChatMessageReceiveEvent{"
                 + "message.author=" + message.getAuthor() + ", "
-                + "destinationChannel=" + destinationChannel
+                + "gameChannel=" + GameChannel.toString(gameChannel)
                 + '}';
     }
 }
