@@ -30,9 +30,15 @@ import com.discordsrv.api.discord.entity.message.ReceivedDiscordMessage;
 import com.discordsrv.api.events.Cancellable;
 import com.discordsrv.api.events.Processable;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Unmodifiable;
+
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.Set;
 
 /**
- * Indicates that a Discord message has been received and will be processed unless cancelled.
+ * Indicates that a Discord message has been received and will be processed by DiscordSRV (if not already processed or cancelled).
+ * This event may be called multiple times for the same message if the message is being forwarded to multiple {@link GameChannel GameChannels}.
  * <p>
  * Order of events:
  * <ul>
@@ -45,6 +51,7 @@ public class DiscordChatMessagePreProcessEvent implements Cancellable, Processab
 
     private final GameChannel gameChannel;
     private final ReceivedDiscordMessage message;
+    private final Set<Object> additonalContexts = new HashSet<>();
     private String content;
     private boolean cancelled;
     private boolean processed;
@@ -58,18 +65,61 @@ public class DiscordChatMessagePreProcessEvent implements Cancellable, Processab
         this.content = discordMessage.getContent();
     }
 
+    /**
+     * The {@link GameChannel} this message will be forwarded to.
+     * @return the game channel
+     */
     public GameChannel getGameChannel() {
         return gameChannel;
     }
 
+    /**
+     * The Discord message that will be processed.
+     * @return the Discord message
+     */
+    @NotNull
     public ReceivedDiscordMessage getMessage() {
         return message;
     }
 
+    /**
+     * Additional contexts that will be passed to the PlaceholderService when formatting this message.
+     * @return an unmodifiable list of contexts, not including ones provided by DiscordSRV
+     */
+    @NotNull
+    @Unmodifiable
+    public Set<Object> getAdditonalContexts() {
+        return Collections.unmodifiableSet(additonalContexts);
+    }
+
+    /**
+     * Add a PlaceholderService context for formatting this message.
+     * @param context the context to add
+     */
+    public void addAdditonalContext(@NotNull Object context) {
+        this.additonalContexts.add(context);
+    }
+
+    /**
+     * Remove a PlaceholderService context for formatting this message.
+     * @param context the context to remove
+     */
+    public void removeAdditonalContext(@NotNull Object context) {
+        this.additonalContexts.remove(context);
+    }
+
+    /**
+     * The content of the Discord message that will be passed to DiscordSRV for processing.
+     * @return the Discord message content
+     */
     public String getContent() {
         return content;
     }
 
+    /**
+     * Change the Discord message content that will be passed to DiscordSRV for processing.
+     * @param content the new Discord message content
+     */
     public void setContent(String content) {
         this.content = content;
     }

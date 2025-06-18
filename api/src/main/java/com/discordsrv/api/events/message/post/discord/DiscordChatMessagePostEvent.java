@@ -31,6 +31,7 @@ import org.jetbrains.annotations.NotNull;
 
 /**
  * Indicates that a message from Discord was forwarded to the provided {@link GameChannel}.
+ * This event may be called multiple times for the same message if the message is being forwarded to multiple {@link GameChannel GameChannels}.
  * <p>
  * Order of events:
  * <ul>

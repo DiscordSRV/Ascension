@@ -169,8 +169,6 @@ public abstract class AbstractGameMessageModule<
                     // Context
                     config, player, channel
             );
-
-
         }).whenFailed(t -> {
             discordSRV.logger().error("Error in forwarding message", t);
             TestHelper.fail(t);

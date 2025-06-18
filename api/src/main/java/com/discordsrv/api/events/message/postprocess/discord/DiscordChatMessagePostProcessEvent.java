@@ -35,6 +35,8 @@ import org.jetbrains.annotations.Nullable;
 import java.util.List;
 
 /**
+ * A Discord message was processed by DiscordSRV and is about to be forwarded.
+ * This event may be called multiple times for the same message if the message is being forwarded to multiple {@link GameChannel GameChannels}.
  * <p>
  * Order of events:
  * <ul>
