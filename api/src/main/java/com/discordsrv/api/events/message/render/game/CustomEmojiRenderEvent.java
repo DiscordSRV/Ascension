@@ -21,7 +21,7 @@
  * SOFTWARE.
  */
 
-package com.discordsrv.api.events.message.render.discord;
+package com.discordsrv.api.events.message.render.game;
 
 import com.discordsrv.api.component.MinecraftComponent;
 import com.discordsrv.api.discord.entity.guild.DiscordCustomEmoji;
@@ -32,14 +32,16 @@ import org.jetbrains.annotations.Nullable;
 
 /**
  * Renders a given {@link DiscordCustomEmoji} into a {@link MinecraftComponent} that can be displayed in Minecraft.
+ * This event is used by DiscordSRV (if emoji rendering is enabled in the config).
+ * @see #getEmoji()
  * @see #process(MinecraftComponent)
  */
-public class DiscordChatMessageCustomEmojiRenderEvent implements Event, Processable.Argument<MinecraftComponent> {
+public class CustomEmojiRenderEvent implements Event, Processable.Argument<MinecraftComponent> {
 
     private final DiscordCustomEmoji emoji;
     private MinecraftComponent rendered = null;
 
-    public DiscordChatMessageCustomEmojiRenderEvent(@NotNull DiscordCustomEmoji emoji) {
+    public CustomEmojiRenderEvent(@NotNull DiscordCustomEmoji emoji) {
         this.emoji = emoji;
     }
 

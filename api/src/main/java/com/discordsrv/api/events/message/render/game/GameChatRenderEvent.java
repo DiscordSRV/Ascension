@@ -32,6 +32,11 @@ import com.discordsrv.api.player.DiscordSRVPlayer;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+/**
+ * Renders mentions in a given Minecraft chat message. This event is handled by DiscordSRV (if enabled in the config).
+ * @see #getMessage()
+ * @see #process(MinecraftComponent)
+ */
 public class GameChatRenderEvent implements PlayerEvent, Processable.Argument<MinecraftComponent>, Cancellable {
 
     private final Object triggeringEvent;
