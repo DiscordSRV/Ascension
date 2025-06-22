@@ -84,6 +84,11 @@ public class NicknameSyncModule extends AbstractSyncModule<DiscordSRV, NicknameS
         return StringUtils.equals(one, two) ? NicknameSyncResult.MATCH : null;
     }
 
+    @Override
+    public String getRemovedState() {
+        return null;
+    }
+
     @Subscribe
     public void onGuildMemberUpdateNickname(GuildMemberUpdateNicknameEvent event) {
         DiscordUser user = discordSRV.discordAPI().getUser(event.getUser());
@@ -108,7 +113,11 @@ public class NicknameSyncModule extends AbstractSyncModule<DiscordSRV, NicknameS
         return discordSRV.getModule(NicknameModule.class);
     }
 
-    protected String cleanNickname(NicknameSyncConfig config, String nickname) {
+    @Nullable
+    protected String cleanNickname(NicknameSyncConfig config, @Nullable String nickname) {
+        if (nickname == null) {
+            return nickname;
+        }
         for (Map.Entry<Pattern, String> filter : config.nicknameRegexFilters.entrySet()) {
             nickname = filter.getKey().matcher(nickname).replaceAll(filter.getValue());
         }

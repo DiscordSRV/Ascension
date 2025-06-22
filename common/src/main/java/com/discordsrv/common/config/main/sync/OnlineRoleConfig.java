@@ -46,13 +46,15 @@ public class OnlineRoleConfig {
         public SyncConfig(long roleId) {
             this.roleId = roleId;
 
-            // Overriding defaults
+            // Forced values
             timer.side = SyncSide.DISABLED;
             tieBreakers.join = SyncSide.DISABLED; // Handled separately
 
             direction = SyncDirection.MINECRAFT_TO_DISCORD;
             tieBreakers.link = SyncSide.MINECRAFT;
             tieBreakers.resyncCommand = SyncSide.MINECRAFT;
+
+            unlinkBehaviour = UnlinkBehaviour.REMOVE_DISCORD;
         }
 
         @Override

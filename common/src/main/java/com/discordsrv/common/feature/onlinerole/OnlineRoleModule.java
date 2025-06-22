@@ -103,6 +103,11 @@ public class OnlineRoleModule extends AbstractSyncModule<DiscordSRV, OnlineRoleC
     }
 
     @Override
+    public Boolean getRemovedState() {
+        return false;
+    }
+
+    @Override
     protected Task<Boolean> getDiscord(OnlineRoleConfig.SyncConfig config, Someone.Resolved someone) {
         DiscordRole role = discordSRV.discordAPI().getRoleById(config.roleId);
         if (role == null) {

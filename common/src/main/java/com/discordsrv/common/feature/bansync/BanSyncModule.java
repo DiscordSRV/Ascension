@@ -108,6 +108,11 @@ public class BanSyncModule extends AbstractSyncModule<DiscordSRV, BanSyncConfig,
         return (oneActive == twoActive) ? GenericSyncResults.both(oneActive) : null;
     }
 
+    @Override
+    public Punishment getRemovedState() {
+        return null;
+    }
+
     private PunishmentEvent upsertEvent(long guildId, long userId, boolean newState) {
         return events.computeIfAbsent(userId, key -> new PunishmentEvent(guildId, userId, newState));
     }

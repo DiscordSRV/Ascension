@@ -44,11 +44,14 @@ public class LinkedRoleConfig {
 
         public SyncConfig(long roleId) {
             this.roleId = roleId;
-            this.direction = SyncDirection.MINECRAFT_TO_DISCORD;
+
+            // Forced values
             this.timer.side = SyncSide.DISABLED;
+            this.direction = SyncDirection.MINECRAFT_TO_DISCORD;
             this.tieBreakers.link = SyncSide.MINECRAFT;
             this.tieBreakers.join = SyncSide.MINECRAFT;
             this.tieBreakers.resyncCommand = SyncSide.MINECRAFT;
+            this.unlinkBehaviour = UnlinkBehaviour.REMOVE_DISCORD;
         }
 
         public long roleId() {

@@ -77,6 +77,11 @@ public class LinkedRoleModule extends AbstractSyncModule<DiscordSRV, LinkedRoleC
     }
 
     @Override
+    public Boolean getRemovedState() {
+        return false;
+    }
+
+    @Override
     protected Task<Boolean> getDiscord(LinkedRoleConfig.SyncConfig config, Someone.Resolved someone) {
         DiscordRole role = discordSRV.discordAPI().getRoleById(config.roleId());
         if (role == null) {

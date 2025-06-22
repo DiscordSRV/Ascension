@@ -26,6 +26,11 @@ import org.spongepowered.configurate.objectmapping.meta.Comment;
 @ConfigSerializable
 public class BanSyncConfig extends AbstractSyncConfig<BanSyncConfig, Game, Long> {
 
+    public BanSyncConfig() {
+        // Changed default
+        unlinkBehaviour = UnlinkBehaviour.DO_NOTHING;
+    }
+
     @Comment("The id for the Discord server where the bans should be synced from/to")
     public long serverId = 0L;
 

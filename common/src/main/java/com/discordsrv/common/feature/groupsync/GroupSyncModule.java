@@ -97,6 +97,11 @@ public class GroupSyncModule extends AbstractSyncModule<DiscordSRV, GroupSyncCon
         return one == two ? GenericSyncResults.both(one) : null;
     }
 
+    @Override
+    public Boolean getRemovedState() {
+        return false;
+    }
+
     @Subscribe
     public void onDebugGenerate(DebugGenerateEvent event) {
         StringBuilder builder = new StringBuilder("Active pairs:");

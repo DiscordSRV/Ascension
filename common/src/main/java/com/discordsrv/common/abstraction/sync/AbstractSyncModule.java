@@ -20,6 +20,7 @@ package com.discordsrv.common.abstraction.sync;
 
 import com.discordsrv.api.eventbus.Subscribe;
 import com.discordsrv.api.events.linking.AccountLinkedEvent;
+import com.discordsrv.api.events.linking.AccountUnlinkedEvent;
 import com.discordsrv.api.reload.ReloadResult;
 import com.discordsrv.api.task.Task;
 import com.discordsrv.common.DiscordSRV;
@@ -31,6 +32,7 @@ import com.discordsrv.common.abstraction.sync.enums.SyncSide;
 import com.discordsrv.common.abstraction.sync.result.GenericSyncResults;
 import com.discordsrv.common.abstraction.sync.result.ISyncResult;
 import com.discordsrv.common.config.main.generic.AbstractSyncConfig;
+import com.discordsrv.common.config.main.generic.SyncConfig;
 import com.discordsrv.common.core.logging.NamedLogger;
 import com.discordsrv.common.core.module.type.AbstractModule;
 import com.discordsrv.common.events.player.PlayerConnectedEvent;
@@ -200,12 +202,30 @@ public abstract class AbstractSyncModule<
         resyncAll(GenericSyncCauses.LINK, Someone.of(discordSRV, event.getPlayerUUID()), config -> config.tieBreakers.link);
     }
 
+    @Subscribe
+    public void onAccountUnlinked(AccountUnlinkedEvent event) {
+        Someone.Resolved someone = Someone.of(discordSRV, event.getPlayerUUID(), event.getUserId());
+        SyncSummary<C> summary = new SyncSummary<>(this, GenericSyncCauses.UNLINK, someone);
+        for (C config : configs()) {
+            SyncConfig.UnlinkBehaviour unlinkBehaviour = config.unlinkBehaviour;
+            if (unlinkBehaviour.isGame()) {
+                summary.appendResult(config, removeGame(config, someone));
+            }
+            if (unlinkBehaviour.isDiscord()) {
+                summary.appendResult(config, removeDiscord(config, someone));
+            }
+        }
+        logSummary(summary);
+    }
+
     /**
      * Checks if the given new and current state are the same, basically meaning that no update is necessary.
      * @return the result stating the states are the same, otherwise {@code null} to state they are not
      */
     @Nullable
     protected abstract ISyncResult doesStateMatch(S one, S two);
+
+    public abstract S getRemovedState();
 
     /**
      * Gets the current state of the provided config for the specified user on Discord.
@@ -246,6 +266,10 @@ public abstract class AbstractSyncModule<
         });
     }
 
+    protected Task<ISyncResult> removeDiscord(C config, Someone.Resolved someone) {
+        return applyDiscordIfDoesNotMatch(config, someone, getRemovedState());
+    }
+
     /**
      * Applies the provided state for the provided config for the provided Minecraft player.
      *
@@ -265,6 +289,10 @@ public abstract class AbstractSyncModule<
                 return applyGame(config, someone, newState);
             }
         });
+    }
+
+    protected Task<ISyncResult> removeGame(C config, Someone.Resolved someone) {
+        return applyGameIfDoesNotMatch(config, someone, getRemovedState());
     }
 
     protected boolean isApplicableForProactiveSync(C config) {

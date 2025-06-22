@@ -119,6 +119,9 @@ public class Someone {
 
     @NotNull
     public Task<Someone.@Nullable Resolved> resolve() {
+        if (this instanceof Resolved) {
+            return Task.completed((Resolved) this);
+        }
         if (playerUUID != null && userId != null) {
             return Task.completed(of(discordSRV, playerUUID, userId));
         }

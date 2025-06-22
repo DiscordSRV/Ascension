@@ -82,4 +82,32 @@ public abstract class SyncConfig {
                     '}';
         }
     }
+
+    @Comment("Behaviour when account is unlinked\n"
+            + "Valid options: %1, %2, %3, %4")
+    @Constants.Comment({"do_nothing", "remove_discord", "remove_game", "remove_both"})
+    public UnlinkBehaviour unlinkBehaviour = UnlinkBehaviour.REMOVE_DISCORD;
+
+    public enum UnlinkBehaviour {
+        DO_NOTHING(false, false),
+        REMOVE_DISCORD(false, true),
+        REMOVE_GAME(true, false),
+        REMOVE_BOTH(true, true);
+
+        private final boolean game;
+        private final boolean discord;
+
+        UnlinkBehaviour(boolean game, boolean discord) {
+            this.game = game;
+            this.discord = discord;
+        }
+
+        public boolean isGame() {
+            return game;
+        }
+
+        public boolean isDiscord() {
+            return discord;
+        }
+    }
 }
