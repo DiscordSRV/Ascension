@@ -69,6 +69,7 @@ public class BukkitPlayerProvider extends ServerPlayerProvider<BukkitPlayer, Buk
         HandlerList.unregisterAll(this);
     }
 
+    // This event is not called in offline mode
     @EventHandler(priority = EventPriority.MONITOR)
     public void onPlayerLogin(PlayerLoginEvent event) {
         if (event.getResult() != PlayerLoginEvent.Result.ALLOWED) {
@@ -80,14 +81,15 @@ public class BukkitPlayerProvider extends ServerPlayerProvider<BukkitPlayer, Buk
     @EventHandler(priority = EventPriority.LOWEST)
     public void onPlayerJoin(PlayerJoinEvent event) {
         Player player = event.getPlayer();
-        if (player(player.getUniqueId()) == null) {
-            // The player wasn't loaded at PlayerLoginEvent (offline mode)
-            addPlayer(player, false);
-        }
+        addPlayer(player, false);
     }
 
     private void addPlayer(Player player, boolean initial) {
-        addPlayer(player.getUniqueId(), playerConstructor.apply(player), initial);
+        BukkitPlayer existingPlayer = addPlayer(player.getUniqueId(), playerConstructor.apply(player), initial);
+        if (existingPlayer != null) {
+            // Replace Player instance we're keeping
+            existingPlayer.setPlayer(player);
+        }
     }
 
     @EventHandler(priority = EventPriority.MONITOR)

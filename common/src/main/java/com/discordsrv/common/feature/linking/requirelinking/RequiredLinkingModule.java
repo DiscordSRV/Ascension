@@ -214,7 +214,7 @@ public abstract class RequiredLinkingModule<T extends DiscordSRV> extends Abstra
 
     @Subscribe
     public void onAccountUnlinked(AccountUnlinkedEvent event) {
-        recheck(Someone.of(discordSRV, event.getPlayerUUID()));
+        recheck(Someone.of(discordSRV, event.getPlayerUUID(), event.getUserId()));
     }
 
     protected List<ParsedRequirements> compile(List<String> additionalRequirements) {
