@@ -23,12 +23,7 @@ import com.discordsrv.common.abstraction.sync.result.ISyncResult;
 public enum OnlineRoleResult implements ISyncResult {
 
     // Fail
-    NOT_A_GUILD_MEMBER("User is not part of the server the role is in", true),
     PLAYER_NOT_ONLINE("Player is not online", true),
-
-    // Error
-    ROLE_DOESNT_EXIST("Role doesn't exist"),
-    ROLE_CANNOT_INTERACT("Bot doesn't have a role above the synced role (cannot interact)"),
 
     ;
 

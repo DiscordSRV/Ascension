@@ -39,7 +39,6 @@ import com.discordsrv.common.events.player.PlayerConnectedEvent;
 import com.discordsrv.common.events.player.PlayerDisconnectedEvent;
 import com.discordsrv.common.feature.groupsync.DiscordPermissionResult;
 import com.discordsrv.common.feature.onlinerole.enums.OnlineRoleCause;
-import com.discordsrv.common.feature.onlinerole.enums.OnlineRoleResult;
 import com.discordsrv.common.helper.Someone;
 import com.discordsrv.common.util.DiscordPermissionUtil;
 import com.discordsrv.common.util.Game;
@@ -59,7 +58,7 @@ import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
 /**
- * The long is the user ID of the Discord user, the boolean is if they meet the condition in Minecraft.
+ * One way sync being online on the server (and unvanished) -> Discord role.
  */
 public class OnlineRoleModule extends AbstractSyncModule<DiscordSRV, OnlineRoleConfig.SyncConfig, Game, Long, Boolean> {
 
@@ -81,7 +80,7 @@ public class OnlineRoleModule extends AbstractSyncModule<DiscordSRV, OnlineRoleC
 
     @Override
     protected String gameTerm() {
-        return "online";
+        return "online status";
     }
 
     @Override
@@ -100,28 +99,25 @@ public class OnlineRoleModule extends AbstractSyncModule<DiscordSRV, OnlineRoleC
 
     @Override
     protected @Nullable ISyncResult doesStateMatch(Boolean one, Boolean two) {
-        if (one == two) {
-            return GenericSyncResults.both(one);
-        }
-        return null;
+        return one == two ? GenericSyncResults.both(one) : null;
     }
 
     @Override
     protected Task<Boolean> getDiscord(OnlineRoleConfig.SyncConfig config, Someone.Resolved someone) {
         DiscordRole role = discordSRV.discordAPI().getRoleById(config.roleId);
         if (role == null) {
-            return Task.failed(new SyncFail(OnlineRoleResult.ROLE_DOESNT_EXIST));
+            return Task.failed(new SyncFail(GenericSyncResults.ROLE_DOESNT_EXIST));
         }
 
         DiscordGuild guild = role.getGuild();
         if (!guild.getSelfMember().canInteract(role)) {
-            return Task.failed(new SyncFail(OnlineRoleResult.ROLE_CANNOT_INTERACT));
+            return Task.failed(new SyncFail(GenericSyncResults.ROLE_CANNOT_INTERACT));
         }
 
         return someone.guildMember(guild)
                 .mapException(RestErrorResponseException.class, t -> {
                     if (t.getErrorCode() == ErrorResponse.UNKNOWN_MEMBER.getCode()) {
-                        throw new SyncFail(OnlineRoleResult.NOT_A_GUILD_MEMBER);
+                        throw new SyncFail(GenericSyncResults.NOT_A_GUILD_MEMBER);
                     }
                     throw t;
                 })
@@ -142,18 +138,18 @@ public class OnlineRoleModule extends AbstractSyncModule<DiscordSRV, OnlineRoleC
     protected Task<ISyncResult> applyDiscord(OnlineRoleConfig.SyncConfig config, Someone.Resolved someone, @Nullable Boolean newState) {
         DiscordRole role = discordSRV.discordAPI().getRoleById(config.roleId);
         if (role == null) {
-            return Task.completed(OnlineRoleResult.ROLE_DOESNT_EXIST);
+            return Task.completed(GenericSyncResults.ROLE_DOESNT_EXIST);
         }
 
         DiscordGuild guild = role.getGuild();
         DiscordGuildMember member = someone.guildMember(guild).join();
         if (member == null) {
-            return Task.completed(OnlineRoleResult.NOT_A_GUILD_MEMBER);
+            return Task.completed(GenericSyncResults.NOT_A_GUILD_MEMBER);
         }
 
         DiscordGuildMember selfMember = guild.getSelfMember();
         if (!selfMember.canInteract(role)) {
-            return Task.completed(OnlineRoleResult.ROLE_CANNOT_INTERACT);
+            return Task.completed(GenericSyncResults.ROLE_CANNOT_INTERACT);
         }
 
         EnumSet<Permission> missingPermissions = DiscordPermissionUtil.getMissingPermissions(guild.asJDA(), Collections.singleton(Permission.MANAGE_ROLES));
@@ -165,7 +161,7 @@ public class OnlineRoleModule extends AbstractSyncModule<DiscordSRV, OnlineRoleC
                 .thenApply(v -> Boolean.TRUE.equals(newState) ? (ISyncResult) GenericSyncResults.ADD_DISCORD : GenericSyncResults.REMOVE_DISCORD)
                 .mapException(RestErrorResponseException.class, t -> {
                     if (t.getErrorCode() == ErrorResponse.UNKNOWN_MEMBER.getCode()) {
-                        throw new SyncFail(OnlineRoleResult.NOT_A_GUILD_MEMBER);
+                        throw new SyncFail(GenericSyncResults.NOT_A_GUILD_MEMBER);
                     }
                     throw t;
                 });

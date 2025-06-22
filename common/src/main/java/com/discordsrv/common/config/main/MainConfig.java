@@ -32,10 +32,7 @@ import com.discordsrv.common.config.main.command.ExecuteCommandConfig;
 import com.discordsrv.common.config.main.command.GameCommandConfig;
 import com.discordsrv.common.config.main.command.PlayerListConfig;
 import com.discordsrv.common.config.main.linking.LinkedAccountConfig;
-import com.discordsrv.common.config.main.sync.BanSyncConfig;
-import com.discordsrv.common.config.main.sync.GroupSyncConfig;
-import com.discordsrv.common.config.main.sync.NicknameSyncConfig;
-import com.discordsrv.common.config.main.sync.OnlineRoleConfig;
+import com.discordsrv.common.config.main.sync.*;
 import org.spongepowered.configurate.objectmapping.ConfigSerializable;
 import org.spongepowered.configurate.objectmapping.meta.Comment;
 
@@ -164,12 +161,19 @@ public abstract class MainConfig implements Config {
     @Order(630)
     public BanSyncConfig banSync = new BanSyncConfig();
 
+    @Comment("Options for granting players roles for being linked\n"
+            + "\n"
+            + "The bot needs to have a role above the linked roles\n"
+            + "The bot needs the \"Manage Roles\" permission")
+    @Order(640)
+    public LinkedRoleConfig linkedRole = new LinkedRoleConfig();
+
     @Comment("Options for granting players that are currently online a role in Discord\n"
             + "\n"
             + PLAYERS_NEED_TO_BE_LINKED + "\n"
             + "The bot needs to have a role above the online role\n"
             + "The bot needs the \"Manage Roles\" permission")
-    @Order(640)
+    @Order(650)
     public OnlineRoleConfig onlineRole = new OnlineRoleConfig();
 
     // Commands

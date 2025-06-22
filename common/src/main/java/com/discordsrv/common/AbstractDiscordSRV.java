@@ -84,6 +84,7 @@ import com.discordsrv.common.feature.customcommands.CustomCommandModule;
 import com.discordsrv.common.core.debug.data.VersionInfo;
 import com.discordsrv.common.feature.groupsync.GroupSyncModule;
 import com.discordsrv.common.feature.linking.LinkProvider;
+import com.discordsrv.common.feature.linking.LinkedRoleModule;
 import com.discordsrv.common.feature.linking.LinkingModule;
 import com.discordsrv.common.feature.linking.LinkingRewardsModule;
 import com.discordsrv.common.feature.linking.impl.MinecraftAuthenticationLinker;
@@ -751,6 +752,7 @@ public abstract class AbstractDiscordSRV<
         registerModule(StartMessageModule::new);
         registerModule(StopMessageModule::new);
         registerModule(VanishStatusTrackingModule::new);
+        registerModule(LinkedRoleModule::new);
 
         if (serverType() == ServerType.PROXY) {
             registerModule(ServerSwitchMessageModule::new);

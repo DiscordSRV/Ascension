@@ -78,7 +78,7 @@ public class BanSyncModule extends AbstractSyncModule<DiscordSRV, BanSyncConfig,
 
     @Override
     public String syncName() {
-        return "Ban sync";
+        return "Ban Sync";
     }
 
     @Override

@@ -69,7 +69,7 @@ public class GroupSyncModule extends AbstractSyncModule<DiscordSRV, GroupSyncCon
 
     @Override
     public String syncName() {
-        return "Group sync";
+        return "Group Sync";
     }
 
     @Override
@@ -94,10 +94,7 @@ public class GroupSyncModule extends AbstractSyncModule<DiscordSRV, GroupSyncCon
 
     @Override
     protected @Nullable ISyncResult doesStateMatch(Boolean one, Boolean two) {
-        if (one == two) {
-            return GenericSyncResults.both(one);
-        }
-        return null;
+        return one == two ? GenericSyncResults.both(one) : null;
     }
 
     @Subscribe
@@ -224,17 +221,17 @@ public class GroupSyncModule extends AbstractSyncModule<DiscordSRV, GroupSyncCon
     public Task<Boolean> getDiscord(GroupSyncConfig.Entry config, Someone.Resolved someone) {
         DiscordRole role = discordSRV.discordAPI().getRoleById(config.roleId);
         if (role == null) {
-            return Task.failed(new SyncFail(GroupSyncResult.ROLE_DOESNT_EXIST));
+            return Task.failed(new SyncFail(GenericSyncResults.ROLE_DOESNT_EXIST));
         }
 
         if (!role.getGuild().getSelfMember().canInteract(role)) {
-            return Task.failed(new SyncFail(GroupSyncResult.ROLE_CANNOT_INTERACT));
+            return Task.failed(new SyncFail(GenericSyncResults.ROLE_CANNOT_INTERACT));
         }
 
         return someone.guildMember(role.getGuild())
                 .mapException(RestErrorResponseException.class, t -> {
                     if (t.getErrorCode() == ErrorResponse.UNKNOWN_MEMBER.getCode()) {
-                        throw new SyncFail(GroupSyncResult.NOT_A_GUILD_MEMBER);
+                        throw new SyncFail(GenericSyncResults.NOT_A_GUILD_MEMBER);
                     }
                     throw t;
                 })
@@ -271,7 +268,7 @@ public class GroupSyncModule extends AbstractSyncModule<DiscordSRV, GroupSyncCon
 
         DiscordRole role = discordSRV.discordAPI().getRoleById(config.roleId);
         if (role == null) {
-            return Task.failed(new SyncFail(GroupSyncResult.ROLE_DOESNT_EXIST));
+            return Task.failed(new SyncFail(GenericSyncResults.ROLE_DOESNT_EXIST));
         }
 
         Guild jdaGuild = role.getGuild().asJDA();
