@@ -28,7 +28,7 @@ import com.discordsrv.api.events.discord.interaction.command.DiscordChatInputInt
 import com.discordsrv.api.events.discord.interaction.component.DiscordButtonInteractionEvent;
 import com.discordsrv.api.placeholder.format.PlainPlaceholderFormat;
 import com.discordsrv.common.DiscordSRV;
-import com.discordsrv.common.config.main.PlayerListConfig;
+import com.discordsrv.common.config.main.command.PlayerListConfig;
 import com.discordsrv.common.config.main.generic.DiscordOutputMode;
 import com.discordsrv.common.core.logging.Logger;
 import com.discordsrv.common.core.logging.NamedLogger;

@@ -16,7 +16,7 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package com.discordsrv.common.config.main;
+package com.discordsrv.common.config.main.command;
 
 import com.discordsrv.common.config.configurate.annotation.Constants;
 import com.discordsrv.common.config.main.generic.DiscordOutputMode;

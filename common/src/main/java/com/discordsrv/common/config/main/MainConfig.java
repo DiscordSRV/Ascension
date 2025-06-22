@@ -27,7 +27,15 @@ import com.discordsrv.common.config.connection.ConnectionConfig;
 import com.discordsrv.common.config.documentation.DocumentationURLs;
 import com.discordsrv.common.config.main.channels.base.BaseChannelConfig;
 import com.discordsrv.common.config.main.channels.base.ChannelConfig;
+import com.discordsrv.common.config.main.command.CustomCommandConfig;
+import com.discordsrv.common.config.main.command.ExecuteCommandConfig;
+import com.discordsrv.common.config.main.command.GameCommandConfig;
+import com.discordsrv.common.config.main.command.PlayerListConfig;
 import com.discordsrv.common.config.main.linking.LinkedAccountConfig;
+import com.discordsrv.common.config.main.sync.BanSyncConfig;
+import com.discordsrv.common.config.main.sync.GroupSyncConfig;
+import com.discordsrv.common.config.main.sync.NicknameSyncConfig;
+import com.discordsrv.common.config.main.sync.OnlineRoleConfig;
 import org.spongepowered.configurate.objectmapping.ConfigSerializable;
 import org.spongepowered.configurate.objectmapping.meta.Comment;
 

@@ -31,7 +31,7 @@ import com.discordsrv.common.abstraction.sync.SyncFail;
 import com.discordsrv.common.abstraction.sync.enums.SyncSide;
 import com.discordsrv.common.abstraction.sync.result.GenericSyncResults;
 import com.discordsrv.common.abstraction.sync.result.ISyncResult;
-import com.discordsrv.common.config.main.GroupSyncConfig;
+import com.discordsrv.common.config.main.sync.GroupSyncConfig;
 import com.discordsrv.common.core.debug.DebugGenerateEvent;
 import com.discordsrv.common.core.debug.file.TextDebugFile;
 import com.discordsrv.common.feature.groupsync.enums.GroupSyncCause;

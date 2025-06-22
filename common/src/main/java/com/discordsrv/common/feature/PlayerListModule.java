@@ -24,7 +24,7 @@ import com.discordsrv.api.placeholder.annotation.PlaceholderRemainder;
 import com.discordsrv.api.placeholder.provider.SinglePlaceholder;
 import com.discordsrv.common.DiscordSRV;
 import com.discordsrv.common.abstraction.player.IPlayer;
-import com.discordsrv.common.config.main.PlayerListConfig;
+import com.discordsrv.common.config.main.command.PlayerListConfig;
 import com.discordsrv.common.config.main.generic.DiscordOutputMode;
 import com.discordsrv.common.core.logging.NamedLogger;
 import com.discordsrv.common.core.module.type.AbstractModule;

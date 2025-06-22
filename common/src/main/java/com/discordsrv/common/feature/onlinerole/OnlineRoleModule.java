@@ -34,7 +34,7 @@ import com.discordsrv.common.abstraction.sync.AbstractSyncModule;
 import com.discordsrv.common.abstraction.sync.SyncFail;
 import com.discordsrv.common.abstraction.sync.result.GenericSyncResults;
 import com.discordsrv.common.abstraction.sync.result.ISyncResult;
-import com.discordsrv.common.config.main.OnlineRoleConfig;
+import com.discordsrv.common.config.main.sync.OnlineRoleConfig;
 import com.discordsrv.common.events.player.PlayerConnectedEvent;
 import com.discordsrv.common.events.player.PlayerDisconnectedEvent;
 import com.discordsrv.common.feature.groupsync.DiscordPermissionResult;

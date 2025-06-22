@@ -32,7 +32,7 @@ import com.discordsrv.common.abstraction.sync.cause.GenericSyncCauses;
 import com.discordsrv.common.abstraction.sync.enums.SyncDirection;
 import com.discordsrv.common.abstraction.sync.result.GenericSyncResults;
 import com.discordsrv.common.abstraction.sync.result.ISyncResult;
-import com.discordsrv.common.config.main.BanSyncConfig;
+import com.discordsrv.common.config.main.sync.BanSyncConfig;
 import com.discordsrv.common.feature.bansync.enums.BanSyncCause;
 import com.discordsrv.common.feature.bansync.enums.BanSyncResult;
 import com.discordsrv.common.helper.Someone;

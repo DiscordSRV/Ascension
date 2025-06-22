@@ -29,7 +29,7 @@ import com.discordsrv.api.events.discord.interaction.command.DiscordChatInputInt
 import com.discordsrv.api.events.discord.interaction.command.DiscordCommandAutoCompleteInteractionEvent;
 import com.discordsrv.common.DiscordSRV;
 import com.discordsrv.common.command.game.abstraction.GameCommandExecutionHelper;
-import com.discordsrv.common.config.main.ExecuteCommandConfig;
+import com.discordsrv.common.config.main.command.ExecuteCommandConfig;
 import com.discordsrv.common.config.main.generic.DiscordOutputMode;
 import com.discordsrv.common.config.main.generic.GameCommandExecutionConditionConfig;
 import com.discordsrv.common.core.logging.Logger;

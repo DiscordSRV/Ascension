@@ -16,7 +16,7 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package com.discordsrv.common.config.main;
+package com.discordsrv.common.config.main.sync;
 
 import com.discordsrv.common.abstraction.sync.enums.SyncDirection;
 import com.discordsrv.common.config.configurate.annotation.Order;
