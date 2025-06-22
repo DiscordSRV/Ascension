@@ -19,12 +19,12 @@
 package com.discordsrv.common.config.main.sync;
 
 import com.discordsrv.common.config.main.generic.AbstractSyncConfig;
-import com.discordsrv.common.feature.bansync.BanSyncModule;
+import com.discordsrv.common.util.Game;
 import org.spongepowered.configurate.objectmapping.ConfigSerializable;
 import org.spongepowered.configurate.objectmapping.meta.Comment;
 
 @ConfigSerializable
-public class BanSyncConfig extends AbstractSyncConfig<BanSyncConfig, BanSyncModule.Game, Long> {
+public class BanSyncConfig extends AbstractSyncConfig<BanSyncConfig, Game, Long> {
 
     @Comment("The id for the Discord server where the bans should be synced from/to")
     public long serverId = 0L;
@@ -53,8 +53,8 @@ public class BanSyncConfig extends AbstractSyncConfig<BanSyncConfig, BanSyncModu
     }
 
     @Override
-    public BanSyncModule.Game gameId() {
-        return BanSyncModule.Game.INSTANCE;
+    public Game gameId() {
+        return Game.INSTANCE;
     }
 
     @Override

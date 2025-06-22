@@ -37,6 +37,7 @@ import com.discordsrv.common.feature.bansync.enums.BanSyncCause;
 import com.discordsrv.common.feature.bansync.enums.BanSyncResult;
 import com.discordsrv.common.helper.Someone;
 import com.discordsrv.common.util.ComponentUtil;
+import com.discordsrv.common.util.Game;
 import net.dv8tion.jda.api.JDA;
 import net.dv8tion.jda.api.audit.ActionType;
 import net.dv8tion.jda.api.audit.AuditLogEntry;
@@ -58,7 +59,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 
-public class BanSyncModule extends AbstractSyncModule<DiscordSRV, BanSyncConfig, BanSyncModule.Game, Long, Punishment> {
+public class BanSyncModule extends AbstractSyncModule<DiscordSRV, BanSyncConfig, Game, Long, Punishment> {
 
     private final Map<Long, PunishmentEvent> events = new ConcurrentHashMap<>();
 
@@ -306,10 +307,6 @@ public class BanSyncModule extends AbstractSyncModule<DiscordSRV, BanSyncConfig,
         } else {
             return bans.removeBan(playerUUID).thenApply(v -> GenericSyncResults.REMOVE_GAME);
         }
-    }
-
-    public enum Game {
-        INSTANCE
     }
 
 }
