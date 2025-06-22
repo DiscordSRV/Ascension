@@ -34,13 +34,14 @@ import com.discordsrv.common.feature.nicknamesync.enums.NicknameSyncCause;
 import com.discordsrv.common.feature.nicknamesync.enums.NicknameSyncResult;
 import com.discordsrv.common.helper.Someone;
 import com.discordsrv.common.util.Game;
-import net.dv8tion.jda.api.entities.Member;
 import net.dv8tion.jda.api.events.guild.member.update.GuildMemberUpdateNicknameEvent;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.commons.lang3.tuple.Pair;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.*;
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
+import java.util.UUID;
 import java.util.regex.Pattern;
 
 /**
@@ -48,8 +49,6 @@ import java.util.regex.Pattern;
  * The state is the current
  */
 public class NicknameSyncModule extends AbstractSyncModule<DiscordSRV, NicknameSyncConfig, Game, Long, String> {
-
-    private final Map<NicknameSyncConfig, List<Pair<Pattern, String>>> replacements = new HashMap<>();
 
     public NicknameSyncModule(DiscordSRV discordSRV) {
         super(discordSRV, "NICKNAME_SYNC");
@@ -152,13 +151,12 @@ public class NicknameSyncModule extends AbstractSyncModule<DiscordSRV, NicknameS
 
         return someone.guildMember(guild)
                 .thenApply(member -> {
-                    Member jdaMember = member.asJDA();
-                    if (!jdaMember.getGuild().getSelfMember().canInteract(jdaMember)) {
+                    if (!member.getGuild().getSelfMember().canInteract(member)) {
                         throw new SyncFail(GenericSyncResults.MEMBER_CANNOT_INTERACT);
                     }
-                    return jdaMember;
+                    return member;
                 })
-                .thenCompose(member -> member.modifyNickname(newNickname).submit())
+                .thenCompose(member -> member.asJDA().modifyNickname(newNickname).submit())
                 .thenApply(v -> NicknameSyncResult.SET_DISCORD);
     }
 

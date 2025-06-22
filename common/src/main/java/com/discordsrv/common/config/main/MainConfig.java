@@ -129,23 +129,38 @@ public abstract class MainConfig implements Config {
 
     // "Sync" features
 
-    @Comment("Configuration options for group-role synchronization\n"
-            + PLAYERS_NEED_TO_BE_LINKED)
+    @Comment("Configuration options for Minecraft group and Discord role synchronization\n"
+            + "\n"
+            + PLAYERS_NEED_TO_BE_LINKED + "\n"
+            + "For Minecraft to Discord synchronization:\n"
+            + "- The bot needs a role above all roles that are synchronized\n"
+            + "- The bot needs the \"Manage Roles\" permission")
     @Order(610)
     public GroupSyncConfig groupSync = new GroupSyncConfig();
 
     @Comment("Configuration options for nickname synchronization\n"
-            + PLAYERS_NEED_TO_BE_LINKED)
+            + "\n"
+            + PLAYERS_NEED_TO_BE_LINKED + "\n"
+            + "For Minecraft to Discord synchronization:\n"
+            + "- The bot needs a role above all users that you want to synchronize, the Discord server owner cannot be synchronized. "
+            + "- The bot needs the \"Manage Nicknames\" permission")
     @Order(620)
     public NicknameSyncConfig nicknameSync = new NicknameSyncConfig();
 
     @Comment("Configuration options for ban synchronization\n"
-            + PLAYERS_NEED_TO_BE_LINKED)
+            + "\n"
+            + PLAYERS_NEED_TO_BE_LINKED + "\n"
+            + "For Minecraft to Discord synchronization:\n"
+            + "- The bot needs a role above all users that you want to synchronize, the Discord server owner cannot be synchronized.\n"
+            + "- The bot needs the \"Ban Members\" permission")
     @Order(630)
     public BanSyncConfig banSync = new BanSyncConfig();
 
     @Comment("Options for granting players that are currently online a role in Discord\n"
-            + PLAYERS_NEED_TO_BE_LINKED)
+            + "\n"
+            + PLAYERS_NEED_TO_BE_LINKED + "\n"
+            + "The bot needs to have a role above the online role\n"
+            + "The bot needs the \"Manage Roles\" permission")
     @Order(640)
     public OnlineRoleConfig onlineRole = new OnlineRoleConfig();
 

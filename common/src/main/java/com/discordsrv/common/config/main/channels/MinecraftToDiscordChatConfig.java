@@ -87,7 +87,7 @@ public class MinecraftToDiscordChatConfig implements IMessageConfig {
                 + "- discordsrv.mention.role.<role id> (to mention a specific role)\n"
                 + "- discordsrv.mention.role.mentionable (for roles which have \"Allow anyone to @mention this role\" enabled)\n"
                 + "- discordsrv.mention.role.all (to mention ALL roles except @everyone)\n"
-                + "The roles need to have \"Allow anyone to @mention this role\" enabled or the bot needs to have the \"Mention @everyone, @here and All Roles\" permission")
+                + "The roles need to have \"Allow anyone to @mention this role\" enabled or the bot needs to have the \"Mention @everyone, @here and All Roles\" permission for notifications to be triggered")
         public boolean roles = true;
 
         @Comment("If channel mentions should be rendered on Discord")
@@ -106,7 +106,8 @@ public class MinecraftToDiscordChatConfig implements IMessageConfig {
         public boolean uncachedUsers = false;
 
         @Comment("If @everyone and @here mentions should be enabled\n"
-                + "The player needs the discordsrv.mention.everyone permission to render the mention and trigger a notification")
+                + "The player needs the discordsrv.mention.everyone permission to render the mention and trigger a notification\n"
+                + "The bot needs to have the \"Mention @everyone, @here and All Roles\" permission to trigger a notification")
         public boolean everyone = false;
 
         public boolean any() {

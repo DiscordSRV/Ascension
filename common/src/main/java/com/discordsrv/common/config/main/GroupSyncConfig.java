@@ -32,9 +32,6 @@ import java.util.stream.Collectors;
 @ConfigSerializable
 public class GroupSyncConfig {
 
-    @Comment("Group-Role pairs for group synchronization\n"
-            + "\n"
-            + "If you are not using LuckPerms and want to use Minecraft -> Discord synchronization, you must specify timed synchronization")
     public List<SetConfig> sets = new ArrayList<>(Collections.singletonList(new SetConfig()));
 
     public List<Entry> getEntries() {
