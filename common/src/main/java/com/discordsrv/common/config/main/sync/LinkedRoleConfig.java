@@ -40,7 +40,7 @@ public class LinkedRoleConfig {
 
     public static class SyncConfig extends AbstractSyncConfig<SyncConfig, Game, Long> {
 
-        private final long roleId;
+        public final long roleId;
 
         public SyncConfig(long roleId) {
             this.roleId = roleId;
@@ -52,10 +52,6 @@ public class LinkedRoleConfig {
             this.tieBreakers.join = SyncSide.MINECRAFT;
             this.tieBreakers.resyncCommand = SyncSide.MINECRAFT;
             this.unlinkBehaviour = UnlinkBehaviour.REMOVE_DISCORD;
-        }
-
-        public long roleId() {
-            return roleId;
         }
 
         @Override

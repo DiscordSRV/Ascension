@@ -18,10 +18,6 @@
 
 package com.discordsrv.common.feature.onlinerole;
 
-import com.discordsrv.api.discord.entity.guild.DiscordGuild;
-import com.discordsrv.api.discord.entity.guild.DiscordGuildMember;
-import com.discordsrv.api.discord.entity.guild.DiscordRole;
-import com.discordsrv.api.discord.exception.RestErrorResponseException;
 import com.discordsrv.api.eventbus.Subscribe;
 import com.discordsrv.api.events.vanish.PlayerVanishStatusChangeEvent;
 import com.discordsrv.api.player.DiscordSRVPlayer;
@@ -31,22 +27,18 @@ import com.discordsrv.api.task.Task;
 import com.discordsrv.common.DiscordSRV;
 import com.discordsrv.common.abstraction.player.IPlayer;
 import com.discordsrv.common.abstraction.sync.AbstractSyncModule;
-import com.discordsrv.common.abstraction.sync.SyncFail;
+import com.discordsrv.common.abstraction.sync.RoleSyncModuleUtil;
 import com.discordsrv.common.abstraction.sync.result.GenericSyncResults;
 import com.discordsrv.common.abstraction.sync.result.ISyncResult;
 import com.discordsrv.common.config.main.sync.OnlineRoleConfig;
 import com.discordsrv.common.events.player.PlayerConnectedEvent;
 import com.discordsrv.common.events.player.PlayerDisconnectedEvent;
-import com.discordsrv.common.feature.groupsync.DiscordPermissionResult;
 import com.discordsrv.common.feature.onlinerole.enums.OnlineRoleCause;
 import com.discordsrv.common.helper.Someone;
-import com.discordsrv.common.util.DiscordPermissionUtil;
 import com.discordsrv.common.util.Game;
 import net.dv8tion.jda.api.JDA;
-import net.dv8tion.jda.api.Permission;
 import net.dv8tion.jda.api.entities.Member;
 import net.dv8tion.jda.api.entities.Role;
-import net.dv8tion.jda.api.requests.ErrorResponse;
 import org.jetbrains.annotations.Nullable;
 
 import java.time.Duration;
@@ -109,24 +101,7 @@ public class OnlineRoleModule extends AbstractSyncModule<DiscordSRV, OnlineRoleC
 
     @Override
     protected Task<Boolean> getDiscord(OnlineRoleConfig.SyncConfig config, Someone.Resolved someone) {
-        DiscordRole role = discordSRV.discordAPI().getRoleById(config.roleId);
-        if (role == null) {
-            return Task.failed(new SyncFail(GenericSyncResults.ROLE_DOESNT_EXIST));
-        }
-
-        DiscordGuild guild = role.getGuild();
-        if (!guild.getSelfMember().canInteract(role)) {
-            return Task.failed(new SyncFail(GenericSyncResults.ROLE_CANNOT_INTERACT));
-        }
-
-        return someone.guildMember(guild)
-                .mapException(RestErrorResponseException.class, t -> {
-                    if (t.getErrorCode() == ErrorResponse.UNKNOWN_MEMBER.getCode()) {
-                        throw new SyncFail(GenericSyncResults.NOT_A_GUILD_MEMBER);
-                    }
-                    throw t;
-                })
-                .thenApply(member -> member.hasRole(role) ? true : null);
+        return RoleSyncModuleUtil.hasRole(discordSRV, someone, config.roleId);
     }
 
     @Override
@@ -141,39 +116,12 @@ public class OnlineRoleModule extends AbstractSyncModule<DiscordSRV, OnlineRoleC
 
     @Override
     protected Task<ISyncResult> applyDiscord(OnlineRoleConfig.SyncConfig config, Someone.Resolved someone, @Nullable Boolean newState) {
-        DiscordRole role = discordSRV.discordAPI().getRoleById(config.roleId);
-        if (role == null) {
-            return Task.completed(GenericSyncResults.ROLE_DOESNT_EXIST);
-        }
-
-        DiscordGuild guild = role.getGuild();
-        DiscordGuildMember member = someone.guildMember(guild).join();
-        if (member == null) {
-            return Task.completed(GenericSyncResults.NOT_A_GUILD_MEMBER);
-        }
-
-        DiscordGuildMember selfMember = guild.getSelfMember();
-        if (!selfMember.canInteract(role)) {
-            return Task.completed(GenericSyncResults.ROLE_CANNOT_INTERACT);
-        }
-
-        EnumSet<Permission> missingPermissions = DiscordPermissionUtil.getMissingPermissions(guild.asJDA(), Collections.singleton(Permission.MANAGE_ROLES));
-        if (!missingPermissions.isEmpty()) {
-            return Task.completed(DiscordPermissionResult.of(guild.asJDA(), missingPermissions));
-        }
-
-        return (Boolean.TRUE.equals(newState) ? member.addRole(role) : member.removeRole(role))
-                .thenApply(v -> Boolean.TRUE.equals(newState) ? (ISyncResult) GenericSyncResults.ADD_DISCORD : GenericSyncResults.REMOVE_DISCORD)
-                .mapException(RestErrorResponseException.class, t -> {
-                    if (t.getErrorCode() == ErrorResponse.UNKNOWN_MEMBER.getCode()) {
-                        throw new SyncFail(GenericSyncResults.NOT_A_GUILD_MEMBER);
-                    }
-                    throw t;
-                });
+        return RoleSyncModuleUtil.doRoleChange(discordSRV, someone, config.roleId, newState);
     }
 
     @Override
     protected Task<ISyncResult> applyGame(OnlineRoleConfig.SyncConfig config, Someone.Resolved someone, @Nullable Boolean newState) {
+        // One-way sync
         return Task.completed(GenericSyncResults.WRONG_DIRECTION);
     }
 

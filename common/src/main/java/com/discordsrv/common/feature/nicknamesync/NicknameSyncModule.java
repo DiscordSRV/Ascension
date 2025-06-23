@@ -27,6 +27,7 @@ import com.discordsrv.api.task.Task;
 import com.discordsrv.common.DiscordSRV;
 import com.discordsrv.common.abstraction.sync.AbstractSyncModule;
 import com.discordsrv.common.abstraction.sync.SyncFail;
+import com.discordsrv.common.abstraction.sync.result.DiscordPermissionResult;
 import com.discordsrv.common.abstraction.sync.result.GenericSyncResults;
 import com.discordsrv.common.abstraction.sync.result.ISyncResult;
 import com.discordsrv.common.config.main.sync.NicknameSyncConfig;
@@ -34,6 +35,7 @@ import com.discordsrv.common.feature.nicknamesync.enums.NicknameSyncCause;
 import com.discordsrv.common.feature.nicknamesync.enums.NicknameSyncResult;
 import com.discordsrv.common.helper.Someone;
 import com.discordsrv.common.util.Game;
+import net.dv8tion.jda.api.Permission;
 import net.dv8tion.jda.api.events.guild.member.update.GuildMemberUpdateNicknameEvent;
 import org.apache.commons.lang3.StringUtils;
 import org.jetbrains.annotations.Nullable;
@@ -156,6 +158,11 @@ public class NicknameSyncModule extends AbstractSyncModule<DiscordSRV, NicknameS
         DiscordGuild guild = discordSRV.discordAPI().getGuildById(config.serverId);
         if (guild == null) {
             return Task.completed(GenericSyncResults.GUILD_NOT_FOUND);
+        }
+
+        ISyncResult permissionFailResult = DiscordPermissionResult.check(guild.asJDA(), Collections.singleton(Permission.NICKNAME_MANAGE));
+        if (permissionFailResult != null) {
+            return Task.completed(permissionFailResult);
         }
 
         return someone.guildMember(guild)

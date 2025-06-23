@@ -16,24 +16,35 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package com.discordsrv.common.feature.groupsync;
+package com.discordsrv.common.abstraction.sync.result;
 
-import com.discordsrv.common.abstraction.sync.result.ISyncResult;
 import com.discordsrv.common.util.DiscordPermissionUtil;
 import net.dv8tion.jda.api.Permission;
 import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.entities.channel.middleman.GuildChannel;
+import org.jetbrains.annotations.Nullable;
 
+import java.util.Collection;
 import java.util.EnumSet;
 
 public class DiscordPermissionResult implements ISyncResult {
 
-    public static DiscordPermissionResult of(Guild guild, EnumSet<Permission> permissions) {
-        return new DiscordPermissionResult(guild, null, permissions);
+    @Nullable
+    public static DiscordPermissionResult check(Guild guild, Collection<Permission> permissions) {
+        EnumSet<Permission> missingPermissions = DiscordPermissionUtil.getMissingPermissions(guild, permissions);
+        if (missingPermissions.isEmpty()) {
+            return null;
+        }
+        return new DiscordPermissionResult(guild, null, missingPermissions);
     }
 
-    public static DiscordPermissionResult of(GuildChannel channel, EnumSet<Permission> permissions) {
-        return new DiscordPermissionResult(null, channel, permissions);
+    @Nullable
+    public static DiscordPermissionResult check(GuildChannel channel, Collection<Permission> permissions) {
+        EnumSet<Permission> missingPermissions = DiscordPermissionUtil.getMissingPermissions(channel, permissions);
+        if (missingPermissions.isEmpty()) {
+            return null;
+        }
+        return new DiscordPermissionResult(null, channel, missingPermissions);
     }
 
     private final Guild guild;

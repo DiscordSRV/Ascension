@@ -20,6 +20,7 @@ package com.discordsrv.common.feature.bansync;
 
 import com.discordsrv.api.component.MinecraftComponent;
 import com.discordsrv.api.discord.connection.details.DiscordGatewayIntent;
+import com.discordsrv.api.discord.entity.guild.DiscordGuild;
 import com.discordsrv.api.eventbus.Subscribe;
 import com.discordsrv.api.module.type.PunishmentModule;
 import com.discordsrv.api.punishment.Punishment;
@@ -30,6 +31,7 @@ import com.discordsrv.common.abstraction.sync.AbstractSyncModule;
 import com.discordsrv.common.abstraction.sync.SyncFail;
 import com.discordsrv.common.abstraction.sync.cause.GenericSyncCauses;
 import com.discordsrv.common.abstraction.sync.enums.SyncDirection;
+import com.discordsrv.common.abstraction.sync.result.DiscordPermissionResult;
 import com.discordsrv.common.abstraction.sync.result.GenericSyncResults;
 import com.discordsrv.common.abstraction.sync.result.ISyncResult;
 import com.discordsrv.common.config.main.sync.BanSyncConfig;
@@ -38,7 +40,7 @@ import com.discordsrv.common.feature.bansync.enums.BanSyncResult;
 import com.discordsrv.common.helper.Someone;
 import com.discordsrv.common.util.ComponentUtil;
 import com.discordsrv.common.util.Game;
-import net.dv8tion.jda.api.JDA;
+import net.dv8tion.jda.api.Permission;
 import net.dv8tion.jda.api.audit.ActionType;
 import net.dv8tion.jda.api.audit.AuditLogEntry;
 import net.dv8tion.jda.api.entities.Guild;
@@ -213,18 +215,13 @@ public class BanSyncModule extends AbstractSyncModule<DiscordSRV, BanSyncConfig,
 
     @Override
     protected Task<Punishment> getDiscord(BanSyncConfig config, Someone.Resolved someone) {
-        JDA jda = discordSRV.jda();
-        if (jda == null) {
-            return Task.failed(new SyncFail(BanSyncResult.NO_DISCORD_CONNECTION));
-        }
-
-        Guild guild = jda.getGuildById(config.serverId);
+        DiscordGuild guild = discordSRV.discordAPI().getGuildById(config.serverId);
         if (guild == null) {
             // Server doesn't exist
             return Task.failed(new SyncFail(BanSyncResult.GUILD_DOESNT_EXIST));
         }
 
-        return getBan(guild, someone.userId()).thenApply(this::punishment);
+        return getBan(guild.asJDA(), someone.userId()).thenApply(this::punishment);
     }
 
     private Punishment punishment(Guild.Ban ban) {
@@ -247,27 +244,26 @@ public class BanSyncModule extends AbstractSyncModule<DiscordSRV, BanSyncConfig,
             return Task.completed(GenericSyncResults.WRONG_DIRECTION);
         }
 
-        JDA jda = discordSRV.jda();
-        if (jda == null) {
-            return Task.completed(BanSyncResult.NO_DISCORD_CONNECTION);
+        DiscordGuild guild = discordSRV.discordAPI().getGuildById(config.serverId);
+        if (guild == null) {
+            return Task.completed(BanSyncResult.GUILD_DOESNT_EXIST);
         }
 
-        Guild guild = jda.getGuildById(config.serverId);
-        if (guild == null) {
-            // Server doesn't exist
-            return Task.completed(BanSyncResult.GUILD_DOESNT_EXIST);
+        ISyncResult permissionFailResult = DiscordPermissionResult.check(guild.asJDA(), Collections.singleton(Permission.BAN_MEMBERS));
+        if (permissionFailResult != null) {
+            return Task.completed(permissionFailResult);
         }
 
         UserSnowflake snowflake = UserSnowflake.fromId(someone.userId());
         if (newState != null) {
             return discordSRV.discordAPI().toTask(
-                    guild.ban(snowflake, config.discordMessageHoursToDelete, TimeUnit.HOURS)
+                    guild.asJDA().ban(snowflake, config.discordMessageHoursToDelete, TimeUnit.HOURS)
                             .reason(discordSRV.placeholderService().replacePlaceholders(config.discordBanReasonFormat, newState))
                     )
                     .thenApply(v -> GenericSyncResults.ADD_DISCORD);
         } else {
             return discordSRV.discordAPI().toTask(
-                    guild.unban(snowflake)
+                    guild.asJDA().unban(snowflake)
                             .reason(discordSRV.placeholderService().replacePlaceholders(config.discordUnbanReasonFormat))
                     )
                     .thenApply(v -> GenericSyncResults.REMOVE_DISCORD);

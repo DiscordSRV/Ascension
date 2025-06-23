@@ -18,24 +18,19 @@
 
 package com.discordsrv.common.feature.linking;
 
-import com.discordsrv.api.discord.entity.guild.DiscordGuild;
-import com.discordsrv.api.discord.entity.guild.DiscordRole;
-import com.discordsrv.api.discord.exception.RestErrorResponseException;
 import com.discordsrv.api.task.Task;
 import com.discordsrv.common.DiscordSRV;
 import com.discordsrv.common.abstraction.sync.AbstractSyncModule;
-import com.discordsrv.common.abstraction.sync.SyncFail;
+import com.discordsrv.common.abstraction.sync.RoleSyncModuleUtil;
 import com.discordsrv.common.abstraction.sync.result.GenericSyncResults;
 import com.discordsrv.common.abstraction.sync.result.ISyncResult;
 import com.discordsrv.common.config.main.sync.LinkedRoleConfig;
 import com.discordsrv.common.helper.Someone;
 import com.discordsrv.common.util.Game;
-import net.dv8tion.jda.api.requests.ErrorResponse;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
 import java.util.Objects;
-import java.util.concurrent.CompletionException;
 
 /**
  * One-way sync linking status -> Discord roles.
@@ -83,46 +78,23 @@ public class LinkedRoleModule extends AbstractSyncModule<DiscordSRV, LinkedRoleC
 
     @Override
     protected Task<Boolean> getDiscord(LinkedRoleConfig.SyncConfig config, Someone.Resolved someone) {
-        DiscordRole role = discordSRV.discordAPI().getRoleById(config.roleId());
-        if (role == null) {
-            return Task.failed(new SyncFail(GenericSyncResults.ROLE_DOESNT_EXIST));
-        }
-
-        DiscordGuild guild = role.getGuild();
-        if (!guild.getSelfMember().canInteract(role)) {
-            return Task.failed(new SyncFail(GenericSyncResults.ROLE_CANNOT_INTERACT));
-        }
-
-        return someone.guildMember(guild).mapException(RestErrorResponseException.class, ex -> {
-            if (ex.getErrorCode() == ErrorResponse.UNKNOWN_MEMBER.getCode()) {
-                throw new SyncFail(GenericSyncResults.NOT_A_GUILD_MEMBER);
-            }
-            throw new CompletionException(ex);
-        }).thenApply(member -> member.getRoles().stream().anyMatch(r -> r.getId() == role.getId()));
+        return RoleSyncModuleUtil.hasRole(discordSRV, someone, config.roleId);
     }
 
     @Override
     protected Task<Boolean> getGame(LinkedRoleConfig.SyncConfig config, Someone.Resolved someone) {
+        // Checks that the user is linked
         return someone.resolve().thenApply(Objects::nonNull);
     }
 
     @Override
     protected Task<ISyncResult> applyDiscord(LinkedRoleConfig.SyncConfig config, Someone.Resolved someone, Boolean newState) {
-        DiscordRole role = discordSRV.discordAPI().getRoleById(config.roleId());
-        if (role == null) {
-            return Task.failed(new SyncFail(GenericSyncResults.ROLE_DOESNT_EXIST));
-        }
-
-        DiscordGuild guild = role.getGuild();
-        return someone.guildMember(guild)
-                .then(member -> newState
-                                     ? member.addRole(role).thenApply(v -> GenericSyncResults.ADD_DISCORD)
-                                     : member.removeRole(role).thenApply(v -> GenericSyncResults.REMOVE_DISCORD)
-                );
+        return RoleSyncModuleUtil.doRoleChange(discordSRV, someone, config.roleId, newState);
     }
 
     @Override
     protected Task<ISyncResult> applyGame(LinkedRoleConfig.SyncConfig config, Someone.Resolved someone, Boolean newState) {
+        // One-way sync
         return Task.completed(GenericSyncResults.WRONG_DIRECTION);
     }
 }
