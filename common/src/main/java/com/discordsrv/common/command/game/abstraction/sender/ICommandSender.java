@@ -21,9 +21,17 @@ package com.discordsrv.common.command.game.abstraction.sender;
 import com.discordsrv.common.command.game.abstraction.executor.CommandExecutor;
 import com.discordsrv.common.permission.game.Permission;
 import net.kyori.adventure.audience.ForwardingAudience;
+import org.jetbrains.annotations.Nullable;
+
+import java.util.Locale;
 
 public interface ICommandSender extends ForwardingAudience.Single, CommandExecutor {
 
     boolean hasPermission(Permission permission);
+
+    @Nullable
+    default Locale locale() {
+        return null;
+    }
 
 }

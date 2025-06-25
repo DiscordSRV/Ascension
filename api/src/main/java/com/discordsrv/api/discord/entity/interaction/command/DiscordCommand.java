@@ -27,6 +27,7 @@ import com.discordsrv.api.discord.entity.JDAEntity;
 import com.discordsrv.api.discord.entity.interaction.component.ComponentIdentifier;
 import com.discordsrv.api.events.discord.interaction.command.*;
 import net.dv8tion.jda.api.Permission;
+import net.dv8tion.jda.api.interactions.DiscordLocale;
 import net.dv8tion.jda.api.interactions.commands.DefaultMemberPermissions;
 import net.dv8tion.jda.api.interactions.commands.build.*;
 import org.jetbrains.annotations.NotNull;
@@ -219,36 +220,83 @@ public class DiscordCommand implements JDAEntity<CommandData> {
 
     @Override
     public CommandData asJDA() {
-        CommandData commandData;
+        CommandData data;
         switch (type) {
             case USER:
-                commandData = Commands.user(getName());
+                data = Commands.user(getName());
                 break;
             case MESSAGE:
-                commandData = Commands.message(getName());
+                data = Commands.message(getName());
                 break;
             case CHAT_INPUT:
                 SlashCommandData slashCommandData = Commands.slash(getName(), Objects.requireNonNull(getDescription()));
-                slashCommandData.addSubcommandGroups(subCommandGroups.stream().map(JDAEntity::asJDA).toArray(SubcommandGroupData[]::new));
-                slashCommandData.addSubcommands(subCommands.stream().map(
-                        DiscordCommand::asJDASubcommand).toArray(SubcommandData[]::new));
-                slashCommandData.addOptions(options.stream().map(JDAEntity::asJDA).toArray(OptionData[]::new));
-                commandData = slashCommandData;
+                slashCommandData.addSubcommandGroups(getSubCommandGroups().stream().map(JDAEntity::asJDA).toArray(SubcommandGroupData[]::new));
+                slashCommandData.addSubcommands(getSubCommands().stream().map(DiscordCommand::asJDASubcommand).toArray(SubcommandData[]::new));
+                slashCommandData.addOptions(getOptions().stream().map(JDAEntity::asJDA).toArray(OptionData[]::new));
+
+                for (Map.Entry<Locale, String> entry : getDescriptionTranslations().entrySet()) {
+                    DiscordLocale locale = getJDALocale(entry.getKey());
+                    if (locale != null) {
+                        slashCommandData.setDescriptionLocalization(locale, entry.getValue());
+                    }
+                }
+
+                data = slashCommandData;
                 break;
             default:
                 throw new IllegalStateException("Missing switch case");
         }
 
-        commandData.setGuildOnly(guildOnly);
-        commandData.setDefaultPermissions(defaultPermission.asJDA());
+        data.setGuildOnly(isGuildOnly()); // TODO: deal with deprecation
+        data.setDefaultPermissions(getDefaultPermission().asJDA());
 
-        return commandData;
+        for (Map.Entry<Locale, String> entry : getNameTranslations().entrySet()) {
+            DiscordLocale locale = getJDALocale(entry.getKey());
+            if (locale != null) {
+                data.setNameLocalization(locale, entry.getValue());
+            }
+        }
+
+        return data;
     }
 
     public SubcommandData asJDASubcommand() {
-        SubcommandData data = new SubcommandData(nameTranslations.get(Locale.ROOT), descriptionTranslations.get(Locale.ROOT));
-        data.addOptions(options.stream().map(JDAEntity::asJDA).toArray(OptionData[]::new));
+        SubcommandData data = new SubcommandData(getName(), getDescription());
+        data.setDescription(getDescription());
+        data.addOptions(getOptions().stream().map(JDAEntity::asJDA).toArray(OptionData[]::new));
+
+        for (Map.Entry<Locale, String> entry : getNameTranslations().entrySet()) {
+            DiscordLocale locale = getJDALocale(entry.getKey());
+            if (locale != null) {
+                data.setNameLocalization(locale, entry.getValue());
+            }
+        }
+        for (Map.Entry<Locale, String> entry : getDescriptionTranslations().entrySet()) {
+            DiscordLocale locale = getJDALocale(entry.getKey());
+            if (locale != null) {
+                data.setDescriptionLocalization(locale, entry.getValue());
+            }
+        }
+
         return data;
+    }
+
+    @Nullable
+    public static DiscordLocale getJDALocale(Locale locale) {
+        if (locale == Locale.ROOT) {
+            return null;
+        }
+
+        DiscordLocale discordLocale = DiscordLocale.from(locale.getLanguage() + "-" + locale.getCountry());
+        if (discordLocale != DiscordLocale.UNKNOWN) {
+            return discordLocale;
+        }
+
+        discordLocale = DiscordLocale.from(locale.getLanguage());
+        if (discordLocale != DiscordLocale.UNKNOWN) {
+            return discordLocale;
+        }
+        return null;
     }
 
     public static class ChatInputBuilder extends Builder<DiscordChatInputInteractionEvent> {

@@ -95,7 +95,7 @@ public abstract class BroadcastCommand implements GameCommandExecutor, GameComma
     }
 
     @Override
-    public void execute(ICommandSender sender, GameCommandArguments arguments, String label) {
+    public void execute(ICommandSender sender, GameCommandArguments arguments, GameCommand command) {
         doExecute(sender, arguments);
     }
 

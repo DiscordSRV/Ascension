@@ -38,10 +38,7 @@ import com.discordsrv.common.permission.game.Permissions;
 import com.discordsrv.common.util.CommandUtil;
 import net.kyori.adventure.text.format.NamedTextColor;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Set;
-import java.util.UUID;
+import java.util.*;
 
 public class BypassCommand {
 
@@ -59,8 +56,14 @@ public class BypassCommand {
             BypassCommand command = getInstance(discordSRV);
             GAME = GameCommand.literal("bypass")
                     .requiredPermission(Permissions.COMMAND_BYPASS)
-                    .then(GameCommand.literal("add").then(GameCommand.stringWord("player").executor(command.add)))
-                    .then(GameCommand.literal("remove").then(GameCommand.stringWord("player").executor(command.remove)))
+                    .then(GameCommand.literal("add").then(
+                            GameCommand.stringWord("player")
+                                    .executor(command.add)
+                                    .suggester(CommandUtil.targetSuggestions(discordSRV, null, player -> true, false))))
+                    .then(GameCommand.literal("remove").then(
+                            GameCommand.stringWord("player")
+                                    .executor(command.remove)
+                                    .suggester(CommandUtil.targetSuggestions(discordSRV, null, player -> true, false))))
                     .then(GameCommand.literal("list").executor(command.list));
         }
 

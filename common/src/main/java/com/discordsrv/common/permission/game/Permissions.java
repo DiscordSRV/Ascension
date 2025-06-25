@@ -34,6 +34,7 @@ public enum Permissions implements Permission {
     COMMAND_UNLINK_OTHER("command.unlink.other", true),
     // Player
     COMMAND_ROOT("command.root", false),
+    COMMAND_HELP("command.help", false),
     COMMAND_LINK("command.link.self", false),
     COMMAND_LINKED("command.linked.self", false),
     COMMAND_UNLINK("command.unlink.self", false),

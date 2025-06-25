@@ -49,7 +49,7 @@ public class ParseCommand extends CombinedCommand {
             GAME = GameCommand.literal("parse")
                     .requiredPermission(Permissions.COMMAND_PARSE)
                     .then(GameCommand.stringWord("target")
-                                  .suggester(CommandUtil.targetSuggestions(discordSRV, user -> true, player -> true))
+                                  .suggester(CommandUtil.targetSuggestions(discordSRV, user -> true, player -> true, true))
                                   .then(GameCommand.stringGreedy("input").executor(command))
                     );
         }

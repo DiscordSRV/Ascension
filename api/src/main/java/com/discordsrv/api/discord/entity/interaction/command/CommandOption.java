@@ -28,6 +28,7 @@ import com.discordsrv.api.discord.entity.JDAEntity;
 import com.discordsrv.api.discord.entity.channel.DiscordChannelType;
 import com.discordsrv.api.events.discord.interaction.command.DiscordCommandAutoCompleteInteractionEvent;
 import com.discordsrv.api.player.DiscordSRVPlayer;
+import net.dv8tion.jda.api.interactions.DiscordLocale;
 import net.dv8tion.jda.api.interactions.commands.OptionType;
 import net.dv8tion.jda.api.interactions.commands.build.OptionData;
 import org.jetbrains.annotations.NotNull;
@@ -72,8 +73,8 @@ public class CommandOption implements JDAEntity<OptionData> {
     }
 
     private final Type type;
-    private final String name;
-    private final String description;
+    private final Map<Locale, String> nameTranslations;
+    private final Map<Locale, String> descriptionTranslations;
     private final Map<String, Object> choices;
     private final boolean required;
     private final boolean autoComplete;
@@ -86,8 +87,8 @@ public class CommandOption implements JDAEntity<OptionData> {
 
     public CommandOption(
             Type type,
-            String name,
-            String description,
+            Map<Locale, String> nameTranslations,
+            Map<Locale, String> descriptionTranslations,
             Map<String, Object> choices,
             boolean required,
             boolean autoComplete,
@@ -99,8 +100,8 @@ public class CommandOption implements JDAEntity<OptionData> {
             Integer maxLength
     ) {
         this.type = type;
-        this.name = name;
-        this.description = description;
+        this.nameTranslations = nameTranslations;
+        this.descriptionTranslations = descriptionTranslations;
         this.choices = choices;
         this.required = required;
         this.autoComplete = autoComplete;
@@ -119,12 +120,24 @@ public class CommandOption implements JDAEntity<OptionData> {
 
     @NotNull
     public String getName() {
-        return name;
+        return nameTranslations.get(Locale.ROOT);
+    }
+
+    @NotNull
+    @Unmodifiable
+    public Map<Locale, String> getNameTranslations() {
+        return Collections.unmodifiableMap(nameTranslations);
     }
 
     @NotNull
     public String getDescription() {
-        return description;
+        return descriptionTranslations.get(Locale.ROOT);
+    }
+
+    @NotNull
+    @Unmodifiable
+    public Map<Locale, String> getDescriptionTranslations() {
+        return Collections.unmodifiableMap(descriptionTranslations);
     }
 
     @NotNull
@@ -174,10 +187,10 @@ public class CommandOption implements JDAEntity<OptionData> {
 
     @Override
     public OptionData asJDA() {
-        OptionData data = new OptionData(type.asJDA(), name, description)
-                .setRequired(required)
-                .setAutoComplete(autoComplete);
-        if (type == Type.LONG) {
+        OptionData data = new OptionData(getType().asJDA(), getName(), getDescription())
+                .setRequired(isRequired())
+                .setAutoComplete(isAutoComplete());
+        if (getType() == Type.LONG) {
             Number min = getMinValue();
             if (min != null) {
                 data.setMinValue(min.longValue());
@@ -187,7 +200,7 @@ public class CommandOption implements JDAEntity<OptionData> {
                 data.setMinValue(max.longValue());
             }
         }
-        if (type == Type.DOUBLE) {
+        if (getType() == Type.DOUBLE) {
             Number min = getMinValue();
             if (min != null) {
                 data.setMinValue(min.doubleValue());
@@ -197,7 +210,7 @@ public class CommandOption implements JDAEntity<OptionData> {
                 data.setMinValue(max.doubleValue());
             }
         }
-        if (type == Type.STRING) {
+        if (getType() == Type.STRING) {
             Integer min = getMinLength();
             if (min != null) {
                 data.setMinLength(min);
@@ -207,19 +220,33 @@ public class CommandOption implements JDAEntity<OptionData> {
                 data.setMaxLength(max);
             }
         }
-        for (Map.Entry<String, Object> entry : choices.entrySet()) {
+        for (Map.Entry<String, Object> entry : getChoices().entrySet()) {
             String key = entry.getKey();
             Object value = entry.getValue();
             if (value instanceof String) {
                 data.addChoice(key, (String) value);
-            } else if (value instanceof Number && type == Type.LONG) {
+            } else if (value instanceof Number && getType() == Type.LONG) {
                 data.addChoice(key, ((Number) value).longValue());
-            } else if (value instanceof Number && type == Type.DOUBLE) {
+            } else if (value instanceof Number && getType() == Type.DOUBLE) {
                 data.addChoice(key, ((Number) value).doubleValue());
             } else {
                 throw new IllegalStateException("Not a String, Integer or Double choice value");
             }
         }
+
+        for (Map.Entry<Locale, String> entry : getNameTranslations().entrySet()) {
+            DiscordLocale locale = DiscordCommand.getJDALocale(entry.getKey());
+            if (locale != null) {
+                data.setNameLocalization(locale, entry.getValue());
+            }
+        }
+        for (Map.Entry<Locale, String> entry : getDescriptionTranslations().entrySet()) {
+            DiscordLocale locale = DiscordCommand.getJDALocale(entry.getKey());
+            if (locale != null) {
+                data.setDescriptionLocalization(locale, entry.getValue());
+            }
+        }
+
         return data;
     }
 
@@ -233,8 +260,8 @@ public class CommandOption implements JDAEntity<OptionData> {
     public static class Builder {
 
         private final Type type;
-        private final String name;
-        private String description;
+        protected final Map<Locale, String> nameTranslations = new LinkedHashMap<>();
+        protected final Map<Locale, String> descriptionTranslations = new LinkedHashMap<>();
         private final Map<String, Object> choices = new LinkedHashMap<>();
         private boolean required = false;
         private boolean autoComplete = false;
@@ -247,12 +274,36 @@ public class CommandOption implements JDAEntity<OptionData> {
 
         private Builder(Type type, String name, String description) {
             this.type = type;
-            this.name = name;
-            this.description = description;
+            this.nameTranslations.put(Locale.ROOT, name);
+            this.descriptionTranslations.put(Locale.ROOT, description);
         }
 
         public void setDescription(String description) {
-            this.description = description;
+            this.descriptionTranslations.put(Locale.ROOT, description);
+        }
+
+        /**
+         * Adds a name translation for this command option.
+         * @param locale the language
+         * @param translation the translation
+         * @return this builder, useful for chaining
+         */
+        @NotNull
+        public CommandOption.Builder addNameTranslation(@NotNull Locale locale, @NotNull String translation) {
+            this.nameTranslations.put(locale, translation);
+            return this;
+        }
+
+        /**
+         * Adds a description translation for this command option.
+         * @param locale the language
+         * @param translation the translation
+         * @return this builder, useful for chaining
+         */
+        @NotNull
+        public CommandOption.Builder addDescriptionTranslation(@NotNull Locale locale, @NotNull String translation) {
+            this.descriptionTranslations.put(locale, translation);
+            return this;
         }
 
         /**
@@ -387,8 +438,9 @@ public class CommandOption implements JDAEntity<OptionData> {
             if (!choices.isEmpty() && autoComplete) {
                 throw new IllegalStateException("Cannot use auto complete and specify choices at the same time");
             }
-            return new CommandOption(type, name, description, choices, required, autoComplete, autoCompleteHandler,
-                                     channelTypes, minValue, maxValue, minLength, maxLength);
+            return new CommandOption(type, nameTranslations, descriptionTranslations, choices, required,
+                                     autoComplete, autoCompleteHandler, channelTypes,
+                                     minValue, maxValue, minLength, maxLength);
         }
     }
 

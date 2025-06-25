@@ -22,13 +22,16 @@ import com.discordsrv.common.command.game.abstraction.sender.ICommandSender;
 import com.discordsrv.common.permission.game.Permission;
 import com.discordsrv.common.util.function.CheckedFunction;
 import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.JoinConfiguration;
 import net.kyori.adventure.text.TextComponent;
+import net.kyori.adventure.text.event.ClickEvent;
+import net.kyori.adventure.text.event.HoverEvent;
 import net.kyori.adventure.text.format.NamedTextColor;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+import org.jetbrains.annotations.Unmodifiable;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.List;
+import java.util.*;
 
 public class GameCommand {
 
@@ -87,6 +90,7 @@ public class GameCommand {
     private GameCommand parent = null;
     private final String label;
     private final ArgumentType argumentType;
+    private final Map<Locale, String> descriptionTranslations;
     private final List<GameCommand> children;
     private GameCommand redirection = null;
 
@@ -95,7 +99,7 @@ public class GameCommand {
     private boolean requiredPermissionSetExplicitly = false;
     private Component noPermissionMessage = null;
 
-    // Executor & suggestor
+    // Executor & suggester
     private GameCommandExecutor commandExecutor = null;
     private GameCommandSuggester commandSuggester = null;
 
@@ -107,20 +111,12 @@ public class GameCommand {
         this.label = label;
         this.argumentType = argumentType;
         this.children = new ArrayList<>();
+        this.descriptionTranslations = new HashMap<>();
     }
 
-    private GameCommand(GameCommand original) {
-        this.parent = original.parent;
-        this.label = original.label;
-        this.argumentType = original.argumentType;
-        this.children = original.children;
-        this.redirection = original.redirection;
-        this.requiredPermission = original.requiredPermission;
-        this.noPermissionMessage = original.noPermissionMessage;
-        this.commandExecutor = original.commandExecutor;
-        this.commandSuggester = original.commandSuggester;
-        this.maxValue = original.maxValue;
-        this.minValue = original.minValue;
+    @Nullable
+    public GameCommand getParent() {
+        return parent;
     }
 
     public String getLabel() {
@@ -129,6 +125,16 @@ public class GameCommand {
 
     public ArgumentType getArgumentType() {
         return argumentType;
+    }
+
+    public GameCommand addDescriptionTranslation(Locale locale, String description) {
+        this.descriptionTranslations.put(locale, description);
+        return this;
+    }
+
+    @Unmodifiable
+    public Map<Locale, String> getDescriptionTranslations() {
+        return Collections.unmodifiableMap(descriptionTranslations);
     }
 
     /**
@@ -223,6 +229,7 @@ public class GameCommand {
         return this;
     }
 
+    @NotNull
     public GameCommandExecutor getExecutor() {
         return executorProxy;
     }
@@ -238,6 +245,7 @@ public class GameCommand {
         return this;
     }
 
+    @NotNull
     public GameCommandSuggester getSuggester() {
         return suggesterProxy;
     }
@@ -315,49 +323,92 @@ public class GameCommand {
     public String getArgumentLabel() {
         if (argumentType == ArgumentType.LITERAL) {
             return label;
+        } else if (parent.commandExecutor != null) {
+            // Parent has an executor, this parameter is optional
+            return "[" + label + "]";
         } else {
             return "<" + label + ">";
         }
     }
 
-    public Component describe() {
-        StringBuilder stringBuilder = new StringBuilder();
+    public Component describe(@Nullable Locale locale, GameCommandArguments arguments) {
+        List<GameCommand> commandHierarchyInOrder = new ArrayList<>();
         GameCommand current = this;
         while (current != null) {
-            stringBuilder.insert(0, current.getArgumentLabel() + " ");
+            commandHierarchyInOrder.add(0, current);
             current = current.parent;
         }
 
-        String command = "/" + stringBuilder.substring(0, stringBuilder.length() - 1);
-        return Component.text(command, NamedTextColor.AQUA);
+        List<Component> commandHierarchyWithDescriptions = new ArrayList<>(commandHierarchyInOrder.size());
+        boolean allLiteral = true;
+        List<String> literalParts = new ArrayList<>();
+
+        for (GameCommand command : commandHierarchyInOrder) {
+            TextComponent.Builder component = Component.text().content(command.getArgumentLabel());
+
+            String label = command.getLabel();
+            String argumentLabel = command.getArgumentLabel();
+            if (command.getArgumentType() == ArgumentType.LITERAL) {
+                component.content(argumentLabel);
+                if (allLiteral) {
+                    literalParts.add(argumentLabel);
+                }
+            } else if (arguments.has(label)) {
+                String value = String.valueOf(arguments.get(label, Object.class));
+                component.content(value);
+                if (allLiteral) {
+                    literalParts.add(value);
+                }
+            } else {
+                component.content(argumentLabel);
+                allLiteral = false;
+            }
+
+            if (locale != null) {
+                String description = command.getDescriptionTranslations().get(locale);
+                if (description == null) {
+                    description = command.getDescriptionTranslations().get(Locale.ROOT);
+                }
+                if (description != null) {
+                    component.hoverEvent(HoverEvent.showText(Component.text(description)));
+                }
+            }
+            commandHierarchyWithDescriptions.add(component.build());
+        }
+
+        return Component.text()
+                .content("/")
+                .color(NamedTextColor.AQUA)
+                .clickEvent(ClickEvent.suggestCommand("/" + String.join(" ", literalParts) + (allLiteral ? "" : " ")))
+                .append(Component.join(JoinConfiguration.spaces(), commandHierarchyWithDescriptions))
+                .build();
     }
 
-    public void sendCommandInstructions(ICommandSender sender) {
+    public void sendCommandInstructions(ICommandSender sender, GameCommandArguments arguments) {
         if (children.isEmpty()) {
             throw new IllegalStateException("No children");
         }
 
         TextComponent.Builder builder = Component.text();
-        builder.append(describe().color(NamedTextColor.GRAY).append(Component.text(" available subcommands:")));
+        builder.append(describe(sender.locale(), arguments).color(NamedTextColor.GRAY).append(Component.text(" available subcommands:")));
         boolean anyAvailable = false;
         for (GameCommand child : children) {
             if (!child.hasPermission(sender)) {
                 continue;
             }
             anyAvailable = true;
-            builder.append(Component.newline()).append(child.describe());
+
+            // If the child has exactly one child of its own, go deeper
+            while (child.getChildren().size() == 1) {
+                child = child.getChildren().get(0);
+            }
+            builder.append(Component.newline()).append(child.describe(sender.locale(), arguments));
         }
         if (!anyAvailable) {
             builder.append(Component.newline())
                     .append(Component.text("No available subcommands", NamedTextColor.RED));
         }
         sender.sendMessage(builder.build());
-    }
-
-    @SuppressWarnings({"CloneDoesntDeclareCloneNotSupportedException", "MethodDoesntCallSuperMethod"})
-    @Override
-    protected GameCommand clone() {
-        return new GameCommand(this);
     }
 
     public static class ArgumentResult {
@@ -453,16 +504,16 @@ public class GameCommand {
     private class ExecutorProxy implements GameCommandExecutor {
 
         @Override
-        public void execute(ICommandSender sender, GameCommandArguments arguments, String label) {
+        public void execute(ICommandSender sender, GameCommandArguments arguments, GameCommand command) {
             if (!hasPermission(sender)) {
                 sendNoPermission(sender);
                 return;
             }
 
             if (commandExecutor != null) {
-                commandExecutor.execute(sender, arguments, label);
+                commandExecutor.execute(sender, arguments, command);
             } else if (!children.isEmpty()) {
-                sendCommandInstructions(sender);
+                sendCommandInstructions(sender, arguments);
             } else {
                 throw new IllegalStateException("Command (" + GameCommand.this + ") doesn't have children and has no executor");
             }

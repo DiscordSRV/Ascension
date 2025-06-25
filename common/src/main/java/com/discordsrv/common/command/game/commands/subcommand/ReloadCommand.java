@@ -16,7 +16,7 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package com.discordsrv.common.command.game.commands.subcommand.reload;
+package com.discordsrv.common.command.game.commands.subcommand;
 
 import com.discordsrv.api.reload.ReloadFlag;
 import com.discordsrv.api.reload.ReloadResult;
@@ -64,7 +64,7 @@ public class ReloadCommand implements GameCommandExecutor, GameCommandSuggester 
     }
 
     @Override
-    public void execute(ICommandSender sender, GameCommandArguments arguments, String label) {
+    public void execute(ICommandSender sender, GameCommandArguments arguments, GameCommand command) {
         AtomicBoolean dangerousFlags = new AtomicBoolean(false);
         Set<ReloadFlag> flags = getFlagsFromArguments(sender, arguments, dangerousFlags);
         if (flags == null) {
@@ -115,15 +115,15 @@ public class ReloadCommand implements GameCommandExecutor, GameCommandSuggester 
                     break;
                 }
                 case DISCORD_CONNECTION_RELOAD_REQUIRED: {
-                    String command = "discordsrv reload " + ReloadFlag.DISCORD_CONNECTION.name().toLowerCase(Locale.ROOT) + " -confirm";
+                    String commandSuggestion = "discordsrv reload " + ReloadFlag.DISCORD_CONNECTION.name().toLowerCase(Locale.ROOT) + " -confirm";
                     Component child;
                     if (sender instanceof IPlayer) {
                         child = Component.text("[Click to reload Discord connection]", NamedTextColor.DARK_RED)
-                                .clickEvent(ClickEvent.runCommand("/" + command))
-                                .hoverEvent(HoverEvent.showText(Component.text("/" + command)));
+                                .clickEvent(ClickEvent.runCommand("/" + commandSuggestion))
+                                .hoverEvent(HoverEvent.showText(Component.text("/" + commandSuggestion)));
                     } else {
                         child = Component.text("Run ", NamedTextColor.DARK_RED)
-                                .append(Component.text(command, NamedTextColor.GRAY))
+                                .append(Component.text(commandSuggestion, NamedTextColor.GRAY))
                                 .append(Component.text(" to reload the Discord connection"));
                     }
 

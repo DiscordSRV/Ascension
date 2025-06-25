@@ -44,6 +44,8 @@ import java.util.stream.Collectors;
 
 public final class CommandUtil {
 
+    private static final String NONE = "--null";
+
     private CommandUtil() {}
 
     public static GameCommandSuggester targetSuggestions(DiscordSRV discordSRV, boolean users, boolean players, boolean linked) {
@@ -53,15 +55,19 @@ public final class CommandUtil {
         } : null, players ? player -> {
             ProfileImpl profile = discordSRV.profileManager().getProfile(player.uniqueId());
             return profile == null || profile.isLinked() == linked;
-        } : null);
+        } : null, false);
     }
 
     public static GameCommandSuggester targetSuggestions(
             DiscordSRV discordSRV,
             @Nullable Predicate<User> userPredicate,
-            @Nullable Predicate<IPlayer> playerPredicate) {
+            @Nullable Predicate<IPlayer> playerPredicate,
+            boolean includeNoneSuggestion) {
         return (sender, previousArguments, input) -> {
             List<String> suggestions = new ArrayList<>();
+            if (includeNoneSuggestion) {
+                suggestions.add(NONE);
+            }
             input = input.toLowerCase(Locale.ROOT);
 
             if (userPredicate != null) {
@@ -163,7 +169,7 @@ public final class CommandUtil {
         if (target == null) {
             target = execution.getString("player");
         }
-        if (target != null && target.equals("--null")) {
+        if (target != null && target.equals(NONE)) {
             target = null;
         }
         return lookupTarget(discordSRV, logger, execution, target, selfPermitted, true, true, otherPermission, optional);

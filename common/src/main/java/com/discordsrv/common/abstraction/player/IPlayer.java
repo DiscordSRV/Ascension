@@ -31,6 +31,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.Collection;
+import java.util.Locale;
 import java.util.UUID;
 
 @PlaceholderPrefix("player_")
@@ -77,4 +78,7 @@ public interface IPlayer extends DiscordSRVPlayer, IOfflinePlayer, ICommandSende
         discordSRV().eventBus().publish(event);
         return event.getStatus();
     }
+
+    @Override
+    @Nullable Locale locale();
 }

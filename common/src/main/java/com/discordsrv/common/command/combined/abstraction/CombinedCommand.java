@@ -20,6 +20,7 @@ package com.discordsrv.common.command.combined.abstraction;
 
 import com.discordsrv.api.events.discord.interaction.command.DiscordChatInputInteractionEvent;
 import com.discordsrv.common.DiscordSRV;
+import com.discordsrv.common.command.game.abstraction.command.GameCommand;
 import com.discordsrv.common.command.game.abstraction.command.GameCommandArguments;
 import com.discordsrv.common.command.game.abstraction.command.GameCommandExecutor;
 import com.discordsrv.common.command.game.abstraction.command.GameCommandSuggester;
@@ -44,8 +45,8 @@ public abstract class CombinedCommand
     }
 
     @Override
-    public void execute(ICommandSender sender, GameCommandArguments arguments, String label) {
-        execute(new GameCommandExecution(discordSRV, sender, arguments, label));
+    public void execute(ICommandSender sender, GameCommandArguments arguments, GameCommand command) {
+        execute(new GameCommandExecution(discordSRV, sender, arguments, command.getLabel()));
     }
 
     @Override

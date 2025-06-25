@@ -20,6 +20,7 @@ package com.discordsrv.common.command.game.commands.subcommand;
 
 import com.discordsrv.common.DiscordSRV;
 import com.discordsrv.common.abstraction.player.IPlayer;
+import com.discordsrv.common.command.game.abstraction.command.GameCommand;
 import com.discordsrv.common.command.game.abstraction.command.GameCommandArguments;
 import com.discordsrv.common.command.game.abstraction.command.GameCommandExecutor;
 import com.discordsrv.common.command.game.abstraction.sender.ICommandSender;
@@ -58,7 +59,7 @@ public class LinkInitGameCommand implements GameCommandExecutor {
     }
 
     @Override
-    public void execute(ICommandSender sender, GameCommandArguments arguments, String label) {
+    public void execute(ICommandSender sender, GameCommandArguments arguments, GameCommand command) {
         if (!(sender instanceof IPlayer)) {
             sender.sendMessage(discordSRV.messagesConfig(sender).pleaseSpecifyPlayerAndUserToLink.asComponent());
             return;
@@ -96,7 +97,7 @@ public class LinkInitGameCommand implements GameCommandExecutor {
                 return;
             }
 
-            linkProvider.getLinkingInstructions(player, label).whenComplete((comp, t2) -> {
+            linkProvider.getLinkingInstructions(player, command.getLabel()).whenComplete((comp, t2) -> {
                 if (t2 != null) {
                     logger.error("Failed to link account", t2);
                     player.sendMessage(messages.unableToLinkAccountsAtThisTime.minecraft().asComponent());

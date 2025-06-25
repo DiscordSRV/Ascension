@@ -26,7 +26,8 @@ import com.discordsrv.common.command.game.abstraction.command.GameCommandArgumen
 import com.discordsrv.common.command.game.abstraction.command.GameCommandExecutor;
 import com.discordsrv.common.command.game.abstraction.sender.ICommandSender;
 import com.discordsrv.common.command.game.commands.subcommand.BroadcastCommand;
-import com.discordsrv.common.command.game.commands.subcommand.reload.ReloadCommand;
+import com.discordsrv.common.command.game.commands.subcommand.HelpCommand;
+import com.discordsrv.common.command.game.commands.subcommand.ReloadCommand;
 import com.discordsrv.common.feature.linking.LinkProvider;
 import com.discordsrv.common.feature.linking.requirelinking.RequiredLinkingModule;
 import com.discordsrv.common.permission.game.Permissions;
@@ -63,6 +64,7 @@ public class DiscordSRVGameCommand implements GameCommandExecutor {
             GameCommand command = GameCommand.literal(alias)
                     .requiredPermission(Permissions.COMMAND_ROOT)
                     .executor(COMMAND)
+                    .then(HelpCommand.get())
                     .then(BroadcastCommand.discord(discordSRV))
                     .then(BroadcastCommand.minecraft(discordSRV))
                     .then(BroadcastCommand.json(discordSRV))
@@ -97,7 +99,7 @@ public class DiscordSRVGameCommand implements GameCommandExecutor {
     }
 
     @Override
-    public void execute(ICommandSender sender, GameCommandArguments arguments, String label) {
+    public void execute(ICommandSender sender, GameCommandArguments arguments, GameCommand command) {
         MinecraftComponent component = discordSRV.componentFactory()
                 .textBuilder(discordSRV.config().gameCommand.discordFormat)
                 .addContext(sender)

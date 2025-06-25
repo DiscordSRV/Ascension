@@ -92,7 +92,7 @@ public final class BrigadierUtil {
                 return commandSender.hasPermission(requiredPermission);
             });
         }
-        if (executor != null) {
+        if (executor != null) { // TODO: check if null check needed
             argumentBuilder.executes(context -> {
                 ICommandSender commandSender = commandSenderMapper.apply(context.getSource());
                 CommandUtil.basicStatusCheck(discordSRV, commandSender);
@@ -100,12 +100,12 @@ public final class BrigadierUtil {
                 executor.execute(
                         commandSender,
                         getArgumentMapper(context),
-                        label
+                        commandBuilder
                 );
                 return Command.SINGLE_SUCCESS;
             });
         }
-        if (suggester != null && argumentBuilder instanceof RequiredArgumentBuilder) {
+        if (suggester != null && argumentBuilder instanceof RequiredArgumentBuilder) { // TODO: check if null check needed
             ((RequiredArgumentBuilder<S, ?>) argumentBuilder).suggests((context, builder) -> {
                 try {
                     List<?> suggestions =  suggester.suggestValues(
