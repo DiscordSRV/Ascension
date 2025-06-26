@@ -132,10 +132,7 @@ public interface DiscordSRV extends com.discordsrv.api.DiscordSRV {
         return messagesConfig((Locale) null);
     }
     default MessagesConfig messagesConfig(@Nullable ICommandSender sender) {
-        return sender instanceof IPlayer ? messagesConfig((IPlayer) sender) : messagesConfig((Locale) null);
-    }
-    default MessagesConfig messagesConfig(@Nullable IPlayer player) {
-        return messagesConfig(player != null ? player.locale() : null);
+        return messagesConfig(sender != null ? sender.locale() : null);
     }
     MessagesConfig messagesConfig(@Nullable Locale locale);
     default <T> Map<Locale, T> getAllTranslations(Function<MessagesConfig, T> translationFunction) {

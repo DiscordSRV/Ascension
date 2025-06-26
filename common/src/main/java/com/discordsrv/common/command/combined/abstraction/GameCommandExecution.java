@@ -20,7 +20,6 @@ package com.discordsrv.common.command.combined.abstraction;
 
 import com.discordsrv.api.discord.entity.message.SendableDiscordMessage;
 import com.discordsrv.common.DiscordSRV;
-import com.discordsrv.common.abstraction.player.IPlayer;
 import com.discordsrv.common.command.game.abstraction.command.GameCommand;
 import com.discordsrv.common.command.game.abstraction.command.GameCommandArguments;
 import com.discordsrv.common.command.game.abstraction.sender.ICommandSender;
@@ -59,7 +58,7 @@ public class GameCommandExecution implements CommandExecution {
 
     @Override
     public Locale locale() {
-        return sender instanceof IPlayer ? ((IPlayer) sender).locale() : null;
+        return sender.locale();
     }
 
     @Override
