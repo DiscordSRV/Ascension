@@ -50,7 +50,7 @@ public class HelpCommand implements GameCommandExecutor {
     }
 
     @Override
-    public void execute(ICommandSender sender, GameCommandArguments arguments, GameCommand command) {
+    public void execute(ICommandSender sender, GameCommandArguments arguments, GameCommand command, String rootAlias) {
         command = Objects.requireNonNull(command.getParent()); // Go up one level
 
         if (arguments.has(COMMAND_ARGUMENT)) {
@@ -71,6 +71,6 @@ public class HelpCommand implements GameCommandExecutor {
             }
         }
 
-        command.sendCommandInstructions(sender, GameCommandArguments.NONE);
+        command.sendCommandInstructions(sender, GameCommandArguments.NONE, rootAlias);
     }
 }

@@ -79,11 +79,7 @@ public final class BrigadierUtil {
             argumentBuilder.then(convert(discordSRV, child, commandSenderMapper));
         }
         if (redirection != null) {
-            CommandNode<S> redirectNode = (CommandNode<S>) CACHE.get(redirection);
-            if (redirectNode == null) {
-                redirectNode = convert(discordSRV, redirection, commandSenderMapper);
-            }
-            argumentBuilder.redirect(redirectNode);
+            argumentBuilder.redirect(convert(discordSRV, redirection, commandSenderMapper));
         }
 
         if (requiredPermission != null) {
@@ -92,23 +88,22 @@ public final class BrigadierUtil {
                 return commandSender.hasPermission(requiredPermission);
             });
         }
-        if (executor != null) { // TODO: check if null check needed
-            argumentBuilder.executes(context -> {
-                ICommandSender commandSender = commandSenderMapper.apply(context.getSource());
-                CommandUtil.basicStatusCheck(discordSRV, commandSender);
+        argumentBuilder.executes(context -> {
+            ICommandSender commandSender = commandSenderMapper.apply(context.getSource());
+            CommandUtil.basicStatusCheck(discordSRV, commandSender);
 
-                executor.execute(
-                        commandSender,
-                        getArgumentMapper(context),
-                        commandBuilder
-                );
-                return Command.SINGLE_SUCCESS;
-            });
-        }
-        if (suggester != null && argumentBuilder instanceof RequiredArgumentBuilder) { // TODO: check if null check needed
+            executor.execute(
+                    commandSender,
+                    getArgumentMapper(context),
+                    commandBuilder,
+                    context.getInput().split(" ", 2)[0]
+            );
+            return Command.SINGLE_SUCCESS;
+        });
+        if (argumentBuilder instanceof RequiredArgumentBuilder) {
             ((RequiredArgumentBuilder<S, ?>) argumentBuilder).suggests((context, builder) -> {
                 try {
-                    List<?> suggestions =  suggester.suggestValues(
+                    List<?> suggestions = suggester.suggestValues(
                             commandSenderMapper.apply(context.getSource()),
                             getArgumentMapper(context),
                             builder.getRemaining()

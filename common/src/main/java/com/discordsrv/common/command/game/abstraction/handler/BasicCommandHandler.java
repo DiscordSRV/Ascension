@@ -186,7 +186,7 @@ public class BasicCommandHandler implements ICommandHandler {
                     error(sender, command, arguments, args, "Unclosed quoted string");
                 },
                 (cmd, args) -> {
-                    cmd.getExecutor().execute(sender, args, cmd);
+                    cmd.getExecutor().execute(sender, args, cmd, command);
                     return null;
                 },
                 null);

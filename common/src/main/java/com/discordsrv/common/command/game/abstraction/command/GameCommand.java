@@ -357,7 +357,7 @@ public class GameCommand {
         }
     }
 
-    public Component describe(@Nullable Locale locale, GameCommandArguments arguments) {
+    public Component describe(@Nullable Locale locale, GameCommandArguments arguments, String rootAlias) {
         List<GameCommand> commandHierarchyInOrder = new ArrayList<>();
         GameCommand current = this;
         while (current != null) {
@@ -375,6 +375,11 @@ public class GameCommand {
 
             String label = command.getLabel();
             String argumentLabel = command.getArgumentLabel();
+            if (command.getParent() == null) {
+                label = rootAlias;
+                argumentLabel = rootAlias;
+            }
+
             boolean literal = command.getArgumentType() == ArgumentType.LITERAL;
             if (literal) {
                 component.content(argumentLabel);
@@ -419,9 +424,14 @@ public class GameCommand {
         return builder.build();
     }
 
-    public void sendCommandInstructions(ICommandSender sender, GameCommandArguments arguments) {
+    public void sendCommandInstructions(ICommandSender sender, GameCommandArguments arguments, String rootAlias) {
+        if (getRedirection() != null) {
+            getRedirection().sendCommandInstructions(sender, arguments, rootAlias);
+            return;
+        }
+
         TextComponent.Builder builder = Component.text();
-        builder.append(describe(sender.locale(), arguments).color(NamedTextColor.GOLD));
+        builder.append(describe(sender.locale(), arguments, rootAlias).color(NamedTextColor.GOLD));
 
         boolean anySubCommands = false, anyAvailable = false;
         for (GameCommand child : children) {
@@ -438,7 +448,7 @@ public class GameCommand {
             while (child.getChildren().size() == 1) {
                 child = child.getChildren().get(0);
             }
-            builder.append(Component.newline()).append(child.describe(sender.locale(), arguments));
+            builder.append(Component.newline()).append(child.describe(sender.locale(), arguments, rootAlias));
         }
         if (anySubCommands && !anyAvailable) {
             builder.append(Component.newline())
@@ -540,16 +550,17 @@ public class GameCommand {
     private class ExecutorProxy implements GameCommandExecutor {
 
         @Override
-        public void execute(ICommandSender sender, GameCommandArguments arguments, GameCommand command) {
+        public void execute(ICommandSender sender, GameCommandArguments arguments, GameCommand command, String rootAlias) {
             if (!hasPermission(sender)) {
                 sendNoPermission(sender);
                 return;
             }
 
-            if (commandExecutor != null) {
-                commandExecutor.execute(sender, arguments, command);
+            GameCommandExecutor executor = (getRedirection() != null ? getRedirection().commandExecutor : commandExecutor);
+            if (executor != null) {
+                executor.execute(sender, arguments, command, rootAlias);
             } else if (!children.isEmpty()) {
-                sendCommandInstructions(sender, arguments);
+                sendCommandInstructions(sender, arguments, rootAlias);
             } else {
                 throw new IllegalStateException("Command (" + GameCommand.this + ") doesn't have children and has no executor");
             }

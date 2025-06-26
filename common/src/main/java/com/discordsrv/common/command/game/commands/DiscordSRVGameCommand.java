@@ -102,7 +102,7 @@ public class DiscordSRVGameCommand implements GameCommandExecutor {
     }
 
     @Override
-    public void execute(ICommandSender sender, GameCommandArguments arguments, GameCommand command) {
+    public void execute(ICommandSender sender, GameCommandArguments arguments, GameCommand command, String rootAlias) {
         MinecraftComponent component = discordSRV.componentFactory()
                 .textBuilder(discordSRV.config().gameCommand.discordFormat)
                 .addContext(sender)

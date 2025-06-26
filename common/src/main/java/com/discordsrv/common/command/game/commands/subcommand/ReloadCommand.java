@@ -67,7 +67,7 @@ public class ReloadCommand implements GameCommandExecutor, GameCommandSuggester 
     }
 
     @Override
-    public void execute(ICommandSender sender, GameCommandArguments arguments, GameCommand command) {
+    public void execute(ICommandSender sender, GameCommandArguments arguments, GameCommand command, String rootAlias) {
         AtomicBoolean dangerousFlags = new AtomicBoolean(false);
         Set<ReloadFlag> flags = getFlagsFromArguments(sender, arguments, dangerousFlags);
         if (flags == null) {
