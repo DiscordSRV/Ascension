@@ -18,24 +18,32 @@
 
 package com.discordsrv.common.command.game.commands.subcommand;
 
+import com.discordsrv.common.DiscordSRV;
 import com.discordsrv.common.command.game.abstraction.command.GameCommand;
 import com.discordsrv.common.command.game.abstraction.command.GameCommandArguments;
 import com.discordsrv.common.command.game.abstraction.command.GameCommandExecutor;
 import com.discordsrv.common.command.game.abstraction.sender.ICommandSender;
 import com.discordsrv.common.permission.game.Permissions;
+import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.format.NamedTextColor;
 
 import java.util.Objects;
 
 public class HelpCommand implements GameCommandExecutor {
 
+    private static final String LABEL = "help";
+    private static final String COMMAND_ARGUMENT = "command";
+
     private static GameCommand INSTANCE;
 
-    public static GameCommand get() {
+    public static GameCommand get(DiscordSRV discordSRV) {
         if (INSTANCE == null) {
             HelpCommand cmd = new HelpCommand();
-            INSTANCE = GameCommand.literal("help")
+            INSTANCE = GameCommand.literal(LABEL)
+                    .addDescriptionTranslations(discordSRV.getAllTranslations(config -> config.helpCommandDescription))
                     .requiredPermission(Permissions.COMMAND_HELP)
-                    .executor(cmd);
+                    .executor(cmd)
+                    .then(GameCommand.stringWord(COMMAND_ARGUMENT).executor(cmd));
         }
 
         return INSTANCE;
@@ -43,6 +51,26 @@ public class HelpCommand implements GameCommandExecutor {
 
     @Override
     public void execute(ICommandSender sender, GameCommandArguments arguments, GameCommand command) {
-        Objects.requireNonNull(command.getParent()).sendCommandInstructions(sender, arguments);
+        command = Objects.requireNonNull(command.getParent()); // Go up one level
+
+        if (arguments.has(COMMAND_ARGUMENT)) {
+            command = Objects.requireNonNull(command.getParent()); // If it has the argument we need to go up 2 levels
+
+            String subCommand = arguments.getString(COMMAND_ARGUMENT);
+            boolean found = false;
+            for (GameCommand child : command.getChildren()) {
+                if (child.getLabel().equals(subCommand)) {
+                    found = true;
+                    command = child;
+                    break;
+                }
+            }
+            if (!found) {
+                sender.sendMessage(Component.text("Unknown command", NamedTextColor.RED));
+                return;
+            }
+        }
+
+        command.sendCommandInstructions(sender, GameCommandArguments.NONE);
     }
 }

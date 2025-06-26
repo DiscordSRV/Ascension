@@ -327,6 +327,11 @@ public class DiscordCommand implements JDAEntity<CommandData> {
             return this;
         }
 
+        public ChatInputBuilder addDescriptionTranslations(@NotNull Map<Locale, String> translations) {
+            translations.forEach(this::addDescriptionTranslation);
+            return this;
+        }
+
         /**
          * Adds a sub command group to this command.
          *
@@ -406,6 +411,11 @@ public class DiscordCommand implements JDAEntity<CommandData> {
         @NotNull
         public Builder<E> addNameTranslation(@NotNull Locale locale, @NotNull String translation) {
             this.nameTranslations.put(locale, translation);
+            return this;
+        }
+
+        public Builder<E> addNameTranslations(@NotNull Map<Locale, String> translations) {
+            translations.forEach(this::addNameTranslation);
             return this;
         }
 

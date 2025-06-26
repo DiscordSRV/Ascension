@@ -18,13 +18,13 @@
 
 package com.discordsrv.common.command.combined.commands;
 
-import com.discordsrv.api.discord.entity.interaction.command.CommandOption;
 import com.discordsrv.api.discord.entity.interaction.command.DiscordCommand;
 import com.discordsrv.api.discord.entity.interaction.component.ComponentIdentifier;
 import com.discordsrv.common.DiscordSRV;
 import com.discordsrv.common.command.combined.abstraction.CombinedCommand;
 import com.discordsrv.common.command.combined.abstraction.CommandExecution;
 import com.discordsrv.common.command.combined.abstraction.Text;
+import com.discordsrv.common.command.discord.DiscordCommandOptions;
 import com.discordsrv.common.command.game.abstraction.command.GameCommand;
 import com.discordsrv.common.core.logging.Logger;
 import com.discordsrv.common.core.logging.NamedLogger;
@@ -39,6 +39,9 @@ import java.util.UUID;
 
 public class UnlinkCommand extends CombinedCommand {
 
+    private static final String LABEL = "unlink";
+    private static final ComponentIdentifier IDENTIFIER = ComponentIdentifier.of("DiscordSRV", "unlink");
+
     private static UnlinkCommand INSTANCE;
     private static GameCommand GAME;
     private static DiscordCommand DISCORD_WITH_OTHER;
@@ -51,10 +54,10 @@ public class UnlinkCommand extends CombinedCommand {
     public static GameCommand getGame(DiscordSRV discordSRV) {
         if (GAME == null) {
             UnlinkCommand command = getInstance(discordSRV);
-            GAME = GameCommand.literal("unlink")
+            GAME = GameCommand.literal(LABEL)
+                    .addDescriptionTranslations(discordSRV.getAllTranslations(config -> config.unlinkCommandDescription.minecraft()))
                     .then(
-                            GameCommand.stringGreedy("target")
-                                    .suggester(CommandUtil.targetSuggestions(discordSRV, true, true, true))
+                            GameCommand.target(discordSRV, CommandUtil.targetSuggestions(discordSRV, true, true, true))
                                     .requiredPermission(Permissions.COMMAND_UNLINK_OTHER)
                                     .executor(command)
                     )
@@ -83,19 +86,16 @@ public class UnlinkCommand extends CombinedCommand {
         UnlinkCommand command = getInstance(discordSRV);
 
         DiscordCommand.ChatInputBuilder builder = DiscordCommand.chatInput(
-                ComponentIdentifier.of("DiscordSRV", "unlink"),
-                "unlink",
-                "Unlink accounts (only specify user or player)"
+                IDENTIFIER,
+                LABEL,
+                ""
         );
+        builder.addDescriptionTranslations(discordSRV.getAllTranslations(config -> config.unlinkCommandDescription.discord().content()));
 
         if (withOther) {
-            builder = builder.addOption(
-                    CommandOption.builder(
-                            CommandOption.Type.USER,
-                            "user",
-                            "The Discord user to unlink"
-                    ).setRequired(false).build())
-                    .addOption(CommandOption.player(player -> {
+            builder = builder
+                    .addOption(DiscordCommandOptions.user(discordSRV).setRequired(false).build())
+                    .addOption(DiscordCommandOptions.player(discordSRV, player -> {
                         ProfileImpl profile = discordSRV.profileManager().getProfile(player.uniqueId());
                         return profile == null || profile.isLinked();
                     }).setRequired(false).build());

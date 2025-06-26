@@ -43,14 +43,17 @@ import java.util.function.Consumer;
 
 public class LinkInitDiscordCommand implements Consumer<DiscordChatInputInteractionEvent> {
 
+    private static final String LABEL = "link";
+    private static final ComponentIdentifier IDENTIFIER = ComponentIdentifier.of("DiscordSRV", "link-init");
+
     private static DiscordCommand INSTANCE;
 
     public static DiscordCommand getInstance(DiscordSRV discordSRV) {
         if (INSTANCE == null) {
             LinkInitDiscordCommand command = new LinkInitDiscordCommand(discordSRV);
-            ComponentIdentifier identifier = ComponentIdentifier.of("DiscordSRV", "link-init");
 
-            INSTANCE = DiscordCommand.chatInput(identifier, "link", "Link your Minecraft account to your Discord account")
+            INSTANCE = DiscordCommand.chatInput(IDENTIFIER, LABEL, "")
+                    .addDescriptionTranslations(discordSRV.getAllTranslations(config -> config.linkCommandDescription.discord().content()))
                     .addOption(
                             CommandOption.builder(CommandOption.Type.STRING, "code", "The code provided by the in-game command")
                                     .setRequired(true)

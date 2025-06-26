@@ -22,7 +22,6 @@ import com.discordsrv.api.discord.entity.DiscordUser;
 import com.discordsrv.api.discord.entity.message.SendableDiscordMessage;
 import com.discordsrv.api.events.discord.interaction.AbstractInteractionEvent;
 import com.discordsrv.api.events.discord.interaction.command.DiscordChatInputInteractionEvent;
-import com.discordsrv.api.events.discord.interaction.command.DiscordCommandAutoCompleteInteractionEvent;
 import com.discordsrv.common.DiscordSRV;
 import com.discordsrv.common.config.messages.MessagesConfig;
 import com.discordsrv.common.discord.api.entity.message.util.SendableDiscordMessageUtil;
@@ -56,13 +55,6 @@ public class DiscordCommandExecution implements CommandExecution {
         this.event = event;
         this.interactionPayload = event.asJDA();
         this.replyCallback = event.asJDA();
-    }
-
-    public DiscordCommandExecution(DiscordSRV discordSRV, DiscordCommandAutoCompleteInteractionEvent event) {
-        this.discordSRV = discordSRV;
-        this.event = event;
-        this.interactionPayload = event.asJDA();
-        this.replyCallback = null;
     }
 
     public DiscordUser getUser() {
@@ -126,10 +118,6 @@ public class DiscordCommandExecution implements CommandExecution {
     }
 
     private void sendResponse(SendableDiscordMessage message) {
-        if (replyCallback == null) {
-            throw new IllegalStateException("May not be used on auto completions");
-        }
-
         InteractionHook interactionHook = hook.get();
         boolean ephemeral = isEphemeral.get();
         MessageCreateData data = SendableDiscordMessageUtil.toJDASend(message);

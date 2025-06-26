@@ -294,6 +294,11 @@ public class CommandOption implements JDAEntity<OptionData> {
             return this;
         }
 
+        public CommandOption.Builder addNameTranslations(@NotNull Map<Locale, String> translations) {
+            translations.forEach(this::addNameTranslation);
+            return this;
+        }
+
         /**
          * Adds a description translation for this command option.
          * @param locale the language
@@ -303,6 +308,11 @@ public class CommandOption implements JDAEntity<OptionData> {
         @NotNull
         public CommandOption.Builder addDescriptionTranslation(@NotNull Locale locale, @NotNull String translation) {
             this.descriptionTranslations.put(locale, translation);
+            return this;
+        }
+
+        public CommandOption.Builder addDescriptionTranslations(@NotNull Map<Locale, String> translations) {
+            translations.forEach(this::addDescriptionTranslation);
             return this;
         }
 

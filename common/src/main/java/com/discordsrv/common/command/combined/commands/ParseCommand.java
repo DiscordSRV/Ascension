@@ -27,6 +27,7 @@ import com.discordsrv.common.abstraction.player.IPlayer;
 import com.discordsrv.common.command.combined.abstraction.CombinedCommand;
 import com.discordsrv.common.command.combined.abstraction.CommandExecution;
 import com.discordsrv.common.command.combined.abstraction.Text;
+import com.discordsrv.common.command.discord.DiscordCommandOptions;
 import com.discordsrv.common.command.game.abstraction.command.GameCommand;
 import com.discordsrv.common.core.logging.Logger;
 import com.discordsrv.common.core.logging.NamedLogger;
@@ -34,6 +35,10 @@ import com.discordsrv.common.permission.game.Permissions;
 import com.discordsrv.common.util.CommandUtil;
 
 public class ParseCommand extends CombinedCommand {
+
+    private static final String LABEL = "parse";
+    private static final ComponentIdentifier IDENTIFIER = ComponentIdentifier.of("DiscordSRV", "parse");
+    private static final String INPUT_LABEL = "input";
 
     private static ParseCommand INSTANCE;
     private static GameCommand GAME;
@@ -46,11 +51,13 @@ public class ParseCommand extends CombinedCommand {
     public static GameCommand getGame(DiscordSRV discordSRV) {
         if (GAME == null) {
             ParseCommand command = getInstance(discordSRV);
-            GAME = GameCommand.literal("parse")
+            GAME = GameCommand.literal(LABEL)
+                    .addDescriptionTranslations(discordSRV.getAllTranslations(config -> config.parseCommandDescription.minecraft()))
                     .requiredPermission(Permissions.COMMAND_PARSE)
-                    .then(GameCommand.stringWord("target")
-                                  .suggester(CommandUtil.targetSuggestions(discordSRV, user -> true, player -> true, true))
-                                  .then(GameCommand.stringGreedy("input").executor(command))
+                    .then(GameCommand.target(discordSRV, CommandUtil.targetSuggestions(discordSRV, user -> true, player -> true, true))
+                                  .then(GameCommand.stringGreedy(INPUT_LABEL)
+                                                .addDescriptionTranslations(discordSRV.getAllTranslations(config -> config.parseInputCommandDescription.minecraft()))
+                                                .executor(command))
                     );
         }
 
@@ -61,10 +68,13 @@ public class ParseCommand extends CombinedCommand {
         if (DISCORD == null) {
             ParseCommand command = getInstance(discordSRV);
 
-            DISCORD = DiscordCommand.chatInput(ComponentIdentifier.of("DiscordSRV", "parse"), "parse", "Parses input through DiscordSRV's PlaceholderService (only specify user or player)")
-                    .addOption(CommandOption.builder(CommandOption.Type.STRING, "input", "The input to parse").setRequired(true).build())
-                    .addOption(CommandOption.player(player -> true).setRequired(false).build())
-                    .addOption(CommandOption.builder(CommandOption.Type.USER, "user", "Discord user").setRequired(false).build())
+            DISCORD = DiscordCommand.chatInput(IDENTIFIER, LABEL, "")
+                    .addDescriptionTranslations(discordSRV.getAllTranslations(config -> config.parseCommandDescription.discord().content()))
+                    .addOption(CommandOption.builder(CommandOption.Type.STRING, INPUT_LABEL, "")
+                                       .addDescriptionTranslations(discordSRV.getAllTranslations(config -> config.parseInputCommandDescription.discord().content()))
+                                       .setRequired(true).build())
+                    .addOption(DiscordCommandOptions.player(discordSRV, player -> true).setRequired(false).build())
+                    .addOption(DiscordCommandOptions.user(discordSRV).setRequired(false).build())
                     .setEventHandler(command)
                     .build();
         }
@@ -81,9 +91,9 @@ public class ParseCommand extends CombinedCommand {
 
     @Override
     public void execute(CommandExecution execution) {
-        String input = execution.getString("input");
+        String input = execution.getString(INPUT_LABEL);
 
-        Task<Object> result = CommandUtil.lookupTarget(discordSRV, logger, execution, true, null, true)
+        Task<Object> result = CommandUtil.lookupTarget(discordSRV, logger, execution, false, null, true)
                 .then(lookup -> {
                     if (!lookup.isValid()) {
                         return Task.completed(null);

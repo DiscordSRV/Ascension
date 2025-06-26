@@ -21,6 +21,7 @@ package com.discordsrv.common.command.combined.abstraction;
 import com.discordsrv.api.discord.entity.message.SendableDiscordMessage;
 import com.discordsrv.common.DiscordSRV;
 import com.discordsrv.common.abstraction.player.IPlayer;
+import com.discordsrv.common.command.game.abstraction.command.GameCommand;
 import com.discordsrv.common.command.game.abstraction.command.GameCommandArguments;
 import com.discordsrv.common.command.game.abstraction.sender.ICommandSender;
 import com.discordsrv.common.config.messages.MessagesConfig;
@@ -47,13 +48,13 @@ public class GameCommandExecution implements CommandExecution {
     private final DiscordSRV discordSRV;
     private final ICommandSender sender;
     private final GameCommandArguments arguments;
-    private final String label;
+    private final GameCommand command;
 
-    public GameCommandExecution(DiscordSRV discordSRV, ICommandSender sender, GameCommandArguments arguments, String label) {
+    public GameCommandExecution(DiscordSRV discordSRV, ICommandSender sender, GameCommandArguments arguments, GameCommand command) {
         this.discordSRV = discordSRV;
         this.sender = sender;
         this.arguments = arguments;
-        this.label = label;
+        this.command = command;
     }
 
     @Override
@@ -119,7 +120,7 @@ public class GameCommandExecution implements CommandExecution {
         return sender;
     }
 
-    public String getLabel() {
-        return label;
+    public GameCommand getCommand() {
+        return command;
     }
 }

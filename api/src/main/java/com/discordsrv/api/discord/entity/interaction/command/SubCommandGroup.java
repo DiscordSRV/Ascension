@@ -24,47 +24,55 @@
 package com.discordsrv.api.discord.entity.interaction.command;
 
 import com.discordsrv.api.discord.entity.JDAEntity;
+import net.dv8tion.jda.api.interactions.DiscordLocale;
 import net.dv8tion.jda.api.interactions.commands.build.SubcommandData;
 import net.dv8tion.jda.api.interactions.commands.build.SubcommandGroupData;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Unmodifiable;
 
-import java.util.Arrays;
-import java.util.List;
+import java.util.*;
 
 public class SubCommandGroup implements JDAEntity<SubcommandGroupData> {
 
-    /**
-     * Creates a sub command group.
-     *
-     * @param name the sub command group name
-     * @param description the sub command group description
-     * @param commands the commands within the sub command group
-     * @return a new sub command group
-     */
     @NotNull
-    public static SubCommandGroup of(@NotNull String name, @NotNull String description, @NotNull DiscordCommand... commands) {
-        return new SubCommandGroup(name, description, Arrays.asList(commands));
+    public static SubCommandGroup.Builder builder(@NotNull String name, @NotNull String description) {
+        return new SubCommandGroup.Builder(name, description);
     }
 
-    private final String name;
-    private final String description;
+    private final Map<Locale, String> nameTranslations;
+    private final Map<Locale, String> descriptionTranslations;
     private final List<DiscordCommand> commands;
 
-    private SubCommandGroup(String name, String description, List<DiscordCommand> commands) {
-        this.name = name;
-        this.description = description;
+    private SubCommandGroup(
+            Map<Locale, String> nameTranslations,
+            Map<Locale, String> descriptionTranslations,
+            List<DiscordCommand> commands
+    ) {
+        this.nameTranslations = nameTranslations;
+        this.descriptionTranslations = descriptionTranslations;
         this.commands = commands;
     }
 
     @NotNull
     public String getName() {
-        return name;
+        return nameTranslations.get(Locale.ROOT);
+    }
+
+    @NotNull
+    @Unmodifiable
+    public Map<Locale, String> getNameTranslations() {
+        return Collections.unmodifiableMap(nameTranslations);
     }
 
     @NotNull
     public String getDescription() {
-        return description;
+        return descriptionTranslations.get(Locale.ROOT);
+    }
+
+    @NotNull
+    @Unmodifiable
+    public Map<Locale, String> getDescriptionTranslations() {
+        return Collections.unmodifiableMap(descriptionTranslations);
     }
 
     @NotNull
@@ -75,7 +83,83 @@ public class SubCommandGroup implements JDAEntity<SubcommandGroupData> {
 
     @Override
     public SubcommandGroupData asJDA() {
-        return new SubcommandGroupData(name, description)
-                .addSubcommands(commands.stream().map(DiscordCommand::asJDASubcommand).toArray(SubcommandData[]::new));
+        SubcommandGroupData data = new SubcommandGroupData(getName(), getDescription())
+                .addSubcommands(getCommands().stream().map(DiscordCommand::asJDASubcommand).toArray(SubcommandData[]::new));
+
+        for (Map.Entry<Locale, String> entry : getNameTranslations().entrySet()) {
+            DiscordLocale locale = DiscordCommand.getJDALocale(entry.getKey());
+            if (locale != null) {
+                data.setNameLocalization(locale, entry.getValue());
+            }
+        }
+        for (Map.Entry<Locale, String> entry : getDescriptionTranslations().entrySet()) {
+            DiscordLocale locale = DiscordCommand.getJDALocale(entry.getKey());
+            if (locale != null) {
+                data.setDescriptionLocalization(locale, entry.getValue());
+            }
+        }
+
+        return data;
+    }
+
+
+    public static class Builder {
+
+        protected final Map<Locale, String> nameTranslations = new LinkedHashMap<>();
+        protected final Map<Locale, String> descriptionTranslations = new LinkedHashMap<>();
+        protected final List<DiscordCommand> commands = new ArrayList<>();
+
+        private Builder(String name, String description) {
+            this.nameTranslations.put(Locale.ROOT, name);
+            this.descriptionTranslations.put(Locale.ROOT, description);
+        }
+
+        public SubCommandGroup.Builder addCommand(@NotNull DiscordCommand command) {
+            this.commands.add(command);
+            return this;
+        }
+
+        public void setDescription(String description) {
+            this.descriptionTranslations.put(Locale.ROOT, description);
+        }
+
+        /**
+         * Adds a name translation for this command option.
+         * @param locale the language
+         * @param translation the translation
+         * @return this builder, useful for chaining
+         */
+        @NotNull
+        public SubCommandGroup.Builder addNameTranslation(@NotNull Locale locale, @NotNull String translation) {
+            this.nameTranslations.put(locale, translation);
+            return this;
+        }
+
+        public SubCommandGroup.Builder addNameTranslations(@NotNull Map<Locale, String> translations) {
+            translations.forEach(this::addNameTranslation);
+            return this;
+        }
+
+        /**
+         * Adds a description translation for this subcommand group.
+         * @param locale the language
+         * @param translation the translation
+         * @return this builder, useful for chaining
+         */
+        @NotNull
+        public SubCommandGroup.Builder addDescriptionTranslation(@NotNull Locale locale, @NotNull String translation) {
+            this.descriptionTranslations.put(locale, translation);
+            return this;
+        }
+
+        public SubCommandGroup.Builder addDescriptionTranslations(@NotNull Map<Locale, String> translations) {
+            translations.forEach(this::addDescriptionTranslation);
+            return this;
+        }
+
+        @NotNull
+        public SubCommandGroup build() {
+            return new SubCommandGroup(nameTranslations, descriptionTranslations, commands);
+        }
     }
 }

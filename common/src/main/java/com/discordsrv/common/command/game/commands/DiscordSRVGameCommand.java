@@ -61,10 +61,13 @@ public class DiscordSRVGameCommand implements GameCommandExecutor {
             COMMAND = new DiscordSRVGameCommand(discordSRV);
         }
         return INSTANCES.computeIfAbsent(alias, key -> {
+            GameCommand helpCommand = HelpCommand.get(discordSRV);
+
             GameCommand command = GameCommand.literal(alias)
                     .requiredPermission(Permissions.COMMAND_ROOT)
                     .executor(COMMAND)
-                    .then(HelpCommand.get())
+                    .then(helpCommand)
+                    .then(GameCommand.literal("?").redirect(helpCommand))
                     .then(BroadcastCommand.discord(discordSRV))
                     .then(BroadcastCommand.minecraft(discordSRV))
                     .then(BroadcastCommand.json(discordSRV))
@@ -81,7 +84,7 @@ public class DiscordSRVGameCommand implements GameCommandExecutor {
             if (linkProvider != null) {
                 command = command
                         .then(LinkedCommand.getGame(discordSRV))
-                        .then(LinkOtherCommand.getGame(discordSRV));
+                        .then(LinkOtherCommand.getGame(discordSRV)); // only includes other linking on local linking
 
                 if (linkProvider.usesLocalLinking()) {
                     command = command.then(UnlinkCommand.getGame(discordSRV));

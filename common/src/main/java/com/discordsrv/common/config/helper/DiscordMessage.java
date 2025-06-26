@@ -42,6 +42,10 @@ public class DiscordMessage extends ConfigMessage {
         return builder.toFormatter();
     }
 
+    public String content() {
+        return builder.getContent();
+    }
+
     @Override
     protected void sendTo(CommandExecution execution, Object... context) {
         execution.send((Component) null, format().addContext(context).applyPlaceholderService().build());

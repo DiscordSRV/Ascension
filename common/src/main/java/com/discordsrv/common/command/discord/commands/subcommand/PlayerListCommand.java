@@ -44,6 +44,9 @@ import java.util.function.Consumer;
 
 public class PlayerListCommand implements Consumer<DiscordChatInputInteractionEvent> {
 
+    private static final String LABEL = "playerlist";
+    private static final ComponentIdentifier IDENTIFIER = ComponentIdentifier.of("DiscordSRV", "playerlist");
+
     private static final int MESSAGE_MAX_LENGTH = Message.MAX_CONTENT_LENGTH;
     private static final String PREFIX = "playerlist-";
 
@@ -52,7 +55,8 @@ public class PlayerListCommand implements Consumer<DiscordChatInputInteractionEv
     public static DiscordCommand get(DiscordSRV discordSRV) {
         if (INSTANCE == null) {
             PlayerListCommand command = new PlayerListCommand(discordSRV);
-            INSTANCE = DiscordCommand.chatInput(ComponentIdentifier.of("DiscordSRV", "playerlist"), "playerlist", "Show the players online on the server")
+            INSTANCE = DiscordCommand.chatInput(IDENTIFIER, LABEL, "")
+                    .addDescriptionTranslations(discordSRV.getAllTranslations(config -> config.playerListCommandDescription.content()))
                     .setEventHandler(command)
                     .build();
         }

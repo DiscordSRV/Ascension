@@ -35,6 +35,7 @@ import com.discordsrv.common.command.combined.abstraction.Text;
 import com.discordsrv.common.command.game.abstraction.command.GameCommand;
 import com.discordsrv.common.feature.bansync.BanSyncModule;
 import com.discordsrv.common.feature.groupsync.GroupSyncModule;
+import com.discordsrv.common.feature.linking.LinkedRoleModule;
 import com.discordsrv.common.feature.nicknamesync.NicknameSyncModule;
 import com.discordsrv.common.feature.onlinerole.OnlineRoleModule;
 import com.discordsrv.common.helper.Someone;
@@ -49,6 +50,10 @@ import java.util.stream.Stream;
 
 public class ResyncCommand extends CombinedCommand {
 
+    private static final String LABEL = "resync";
+    private static final ComponentIdentifier IDENTIFIER = ComponentIdentifier.of("DiscordSRV", "resync");
+    private static final String TYPE_LABEL = "type";
+
     private static ResyncCommand INSTANCE;
     private static GameCommand GAME;
     private static DiscordCommand DISCORD;
@@ -60,10 +65,11 @@ public class ResyncCommand extends CombinedCommand {
     public static GameCommand getGame(DiscordSRV discordSRV) {
         if (GAME == null) {
             ResyncCommand command = getInstance(discordSRV);
-            GAME = GameCommand.literal("resync")
+            GAME = GameCommand.literal(LABEL)
+                    .addDescriptionTranslations(discordSRV.getAllTranslations(config -> config.resyncCommandDescription.minecraft()))
                     .requiredPermission(Permissions.COMMAND_RESYNC)
                     .then(
-                            GameCommand.stringWord("type")
+                            GameCommand.stringWord(TYPE_LABEL)
                                     .requiredPermission(Permissions.COMMAND_RESYNC)
                                     .executor(command)
                                     .suggester(command)
@@ -76,17 +82,15 @@ public class ResyncCommand extends CombinedCommand {
     public static DiscordCommand getDiscord(DiscordSRV discordSRV) {
         if (DISCORD == null) {
             ResyncCommand command = getInstance(discordSRV);
-            DISCORD = DiscordCommand.chatInput(
-                        ComponentIdentifier.of("DiscordSRV", "resync"),
-                        "resync",
-                        "Perform group resync for online players"
-                    )
+            DISCORD = DiscordCommand.chatInput(IDENTIFIER, LABEL, "")
+                    .addDescriptionTranslations(discordSRV.getAllTranslations(config -> config.resyncCommandDescription.discord().content()))
                     .addOption(
-                            CommandOption.builder(CommandOption.Type.STRING, "type", "The type of sync to run")
+                            CommandOption.builder(CommandOption.Type.STRING, TYPE_LABEL, "The type of sync to run")
                                     .addChoice("Group Sync", "group")
                                     .addChoice("Ban Sync", "ban")
                                     .addChoice("Nickname Sync", "nickname")
-                                    .addChoice("Online Role Sync", "onlinerole")
+                                    .addChoice("Online Role", "onlinerole")
+                                    .addChoice("Linked Role", "linkedrole")
                                     .build()
                     )
                     .setEventHandler(command)
@@ -110,7 +114,7 @@ public class ResyncCommand extends CombinedCommand {
     @Override
     public void execute(CommandExecution execution) {
         AbstractSyncModule<?, ?, ?, ?, ?> module;
-        switch (execution.getString("type")) {
+        switch (execution.getString(TYPE_LABEL)) {
             case "group":
                 GroupSyncModule groupSyncModule = discordSRV.getModule(GroupSyncModule.class);
                 if (groupSyncModule != null && groupSyncModule.noPermissionProvider()) {
@@ -128,6 +132,9 @@ public class ResyncCommand extends CombinedCommand {
                 break;
             case "onlinerole":
                 module = discordSRV.getModule(OnlineRoleModule.class);
+                break;
+            case "linkedrole":
+                module = discordSRV.getModule(LinkedRoleModule.class);
                 break;
             default:
                 execution.send(new Text("Unexpected type"));

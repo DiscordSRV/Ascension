@@ -29,8 +29,10 @@ import com.discordsrv.common.command.game.abstraction.command.GameCommandArgumen
 import com.discordsrv.common.command.game.abstraction.command.GameCommandExecutor;
 import com.discordsrv.common.command.game.abstraction.command.GameCommandSuggester;
 import com.discordsrv.common.command.game.abstraction.sender.ICommandSender;
+import com.discordsrv.common.config.helper.MinecraftMessage;
 import com.discordsrv.common.config.main.channels.base.BaseChannelConfig;
 import com.discordsrv.common.config.main.channels.base.IChannelConfig;
+import com.discordsrv.common.config.messages.MessagesConfig;
 import com.discordsrv.common.helper.DestinationLookupHelper;
 import com.discordsrv.common.permission.game.Permissions;
 import com.discordsrv.common.util.ComponentUtil;
@@ -41,6 +43,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Locale;
 import java.util.function.Consumer;
+import java.util.function.Function;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
@@ -51,18 +54,23 @@ public abstract class BroadcastCommand implements GameCommandExecutor, GameComma
     private static GameCommand JSON;
 
     public static GameCommand discord(DiscordSRV discordSRV) {
-        return make("broadcastd", () -> new Discord(discordSRV), () -> DISCORD, cmd -> DISCORD = cmd);
+        return make(discordSRV, config -> config.broadcastDiscordCommandDescription, "broadcastd",
+                    () -> new Discord(discordSRV), () -> DISCORD, cmd -> DISCORD = cmd);
     }
 
     public static GameCommand minecraft(DiscordSRV discordSRV) {
-        return make("broadcast", () -> new Minecraft(discordSRV), () -> MINECRAFT, cmd -> MINECRAFT = cmd);
+        return make(discordSRV, config -> config.broadcastMinecraftCommandDescription, "broadcast",
+                    () -> new Minecraft(discordSRV), () -> MINECRAFT, cmd -> MINECRAFT = cmd);
     }
 
     public static GameCommand json(DiscordSRV discordSRV) {
-        return make("broadcastraw", () -> new Json(discordSRV), () -> JSON, cmd -> JSON = cmd);
+        return make(discordSRV, config -> config.broadcastRawCommandDescription, "broadcastraw",
+                    () -> new Json(discordSRV), () -> JSON, cmd -> JSON = cmd);
     }
 
     private static GameCommand make(
+            DiscordSRV discordSRV,
+            Function<MessagesConfig, MinecraftMessage> translationFunction,
             String label,
             Supplier<? extends BroadcastCommand> executor,
             Supplier<GameCommand> supplier,
@@ -72,12 +80,15 @@ public abstract class BroadcastCommand implements GameCommandExecutor, GameComma
             BroadcastCommand command = executor.get();
             consumer.accept(
                     GameCommand.literal(label)
+                            .addDescriptionTranslations(discordSRV.getAllTranslations(translationFunction))
                             .requiredPermission(Permissions.COMMAND_BROADCAST)
                             .then(
                                     GameCommand.string("channel")
+                                            .addDescriptionTranslations(discordSRV.getAllTranslations(config -> config.broadcastChannelParameterCommandDescription))
                                             .suggester(command)
                                             .then(
                                                     GameCommand.stringGreedy("content")
+                                                            .addDescriptionTranslations(discordSRV.getAllTranslations(config -> config.broadcastMessageParameterCommandDescription))
                                                             .suggester((__, ___, ____) -> Collections.emptyList())
                                                             .executor(command)
                                             )

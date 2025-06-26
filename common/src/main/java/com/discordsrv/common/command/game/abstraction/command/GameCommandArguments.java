@@ -21,6 +21,13 @@ package com.discordsrv.common.command.game.abstraction.command;
 @FunctionalInterface
 public interface GameCommandArguments {
 
+    GameCommandArguments NONE = new GameCommandArguments() {
+        @Override
+        public <T> T get(String label, Class<T> type) {
+            return null;
+        }
+    };
+
     <T> T get(String label, Class<T> type);
 
     default boolean has(String label) {

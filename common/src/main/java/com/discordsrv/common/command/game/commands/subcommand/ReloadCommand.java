@@ -46,11 +46,14 @@ public class ReloadCommand implements GameCommandExecutor, GameCommandSuggester 
         if (INSTANCE == null) {
             ReloadCommand cmd = new ReloadCommand(discordSRV);
             INSTANCE = GameCommand.literal("reload")
+                    .addDescriptionTranslations(discordSRV.getAllTranslations(config -> config.reloadCommandDescription))
                     .requiredPermission(Permissions.COMMAND_RELOAD)
                     .executor(cmd)
                     .then(
                             GameCommand.stringGreedy("flags")
-                                    .executor(cmd).suggester(cmd)
+                                    .addDescriptionTranslations(discordSRV.getAllTranslations(config -> config.reloadParameterCommandDescription))
+                                    .executor(cmd)
+                                    .suggester(cmd)
                     );
         }
 

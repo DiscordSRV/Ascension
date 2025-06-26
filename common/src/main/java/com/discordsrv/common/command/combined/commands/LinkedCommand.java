@@ -18,13 +18,13 @@
 
 package com.discordsrv.common.command.combined.commands;
 
-import com.discordsrv.api.discord.entity.interaction.command.CommandOption;
 import com.discordsrv.api.discord.entity.interaction.command.DiscordCommand;
 import com.discordsrv.api.discord.entity.interaction.component.ComponentIdentifier;
 import com.discordsrv.common.DiscordSRV;
 import com.discordsrv.common.command.combined.abstraction.CombinedCommand;
 import com.discordsrv.common.command.combined.abstraction.CommandExecution;
 import com.discordsrv.common.command.combined.abstraction.Text;
+import com.discordsrv.common.command.discord.DiscordCommandOptions;
 import com.discordsrv.common.command.game.abstraction.command.GameCommand;
 import com.discordsrv.common.core.logging.Logger;
 import com.discordsrv.common.core.logging.NamedLogger;
@@ -38,6 +38,9 @@ import java.util.UUID;
 
 public class LinkedCommand extends CombinedCommand {
 
+    private static final String LABEL = "linked";
+    private static final ComponentIdentifier IDENTIFIER = ComponentIdentifier.of("DiscordSRV", "linked");
+
     private static LinkedCommand INSTANCE;
     private static GameCommand GAME;
     private static DiscordCommand DISCORD;
@@ -49,12 +52,11 @@ public class LinkedCommand extends CombinedCommand {
     public static GameCommand getGame(DiscordSRV discordSRV) {
         if (GAME == null) {
             LinkedCommand command = getInstance(discordSRV);
-            GAME = GameCommand.literal("linked")
-                    .then(GameCommand.stringGreedy("target")
-                                  .suggester(CommandUtil.targetSuggestions(discordSRV, true, true, true))
+            GAME = GameCommand.literal(LABEL)
+                    .addDescriptionTranslations(discordSRV.getAllTranslations(config -> config.linkedCommandDescription.minecraft()))
+                    .then(GameCommand.target(discordSRV, CommandUtil.targetSuggestions(discordSRV, true, true, true))
                                   .requiredPermission(Permissions.COMMAND_LINKED_OTHER)
-                                  .executor(command)
-                    )
+                                  .executor(command))
                     .requiredPermission(Permissions.COMMAND_LINKED)
                     .executor(command);
         }
@@ -65,13 +67,10 @@ public class LinkedCommand extends CombinedCommand {
     public static DiscordCommand getDiscord(DiscordSRV discordSRV) {
         if (DISCORD == null) {
             LinkedCommand command = getInstance(discordSRV);
-            DISCORD = DiscordCommand.chatInput(ComponentIdentifier.of("DiscordSRV", "linked"), "linked", "Check the linking status of accounts")
-                    .addOption(CommandOption.builder(
-                            CommandOption.Type.USER,
-                            "user",
-                            "The Discord user to check the linking status of"
-                    ).setRequired(false).build())
-                    .addOption(CommandOption.player(player -> {
+            DISCORD = DiscordCommand.chatInput(IDENTIFIER, LABEL, "")
+                    .addDescriptionTranslations(discordSRV.getAllTranslations(config -> config.linkedCommandDescription.discord().content()))
+                    .addOption(DiscordCommandOptions.user(discordSRV).setRequired(false).build())
+                    .addOption(DiscordCommandOptions.player(discordSRV, player -> {
                         ProfileImpl profile = discordSRV.profileManager().getProfile(player.uniqueId());
                         return profile == null || profile.isLinked();
                     }).setRequired(false).build())

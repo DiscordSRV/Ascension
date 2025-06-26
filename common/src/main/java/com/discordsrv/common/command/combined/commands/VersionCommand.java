@@ -37,6 +37,9 @@ import java.util.List;
 
 public class VersionCommand extends CombinedCommand {
 
+    private static final String LABEL = "version";
+    private static final ComponentIdentifier IDENTIFIER = ComponentIdentifier.of("DiscordSRV", "version");
+
     private static VersionCommand INSTANCE;
     private static GameCommand GAME;
     private static DiscordCommand DISCORD;
@@ -48,7 +51,8 @@ public class VersionCommand extends CombinedCommand {
     public static GameCommand getGame(DiscordSRV discordSRV) {
         if (GAME == null) {
             VersionCommand command = getInstance(discordSRV);
-            GAME = GameCommand.literal("version")
+            GAME = GameCommand.literal(LABEL)
+                    .addDescriptionTranslations(discordSRV.getAllTranslations(config -> config.versionCommandDescription.minecraft()))
                     .requiredPermission(Permissions.COMMAND_VERSION)
                     .executor(command);
         }
@@ -59,7 +63,8 @@ public class VersionCommand extends CombinedCommand {
     public static DiscordCommand getDiscord(DiscordSRV discordSRV) {
         if (DISCORD == null) {
             VersionCommand command = getInstance(discordSRV);
-            DISCORD = DiscordCommand.chatInput(ComponentIdentifier.of("DiscordSRV", "version"), "version", "Get the DiscordSRV version")
+            DISCORD = DiscordCommand.chatInput(IDENTIFIER, LABEL, "")
+                    .addDescriptionTranslations(discordSRV.getAllTranslations(config -> config.versionCommandDescription.discord().content()))
                     .setEventHandler(command)
                     .build();
         }

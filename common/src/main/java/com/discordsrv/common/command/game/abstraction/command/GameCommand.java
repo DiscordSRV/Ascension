@@ -18,8 +18,11 @@
 
 package com.discordsrv.common.command.game.abstraction.command;
 
+import com.discordsrv.common.DiscordSRV;
 import com.discordsrv.common.command.game.abstraction.sender.ICommandSender;
+import com.discordsrv.common.config.helper.MinecraftMessage;
 import com.discordsrv.common.permission.game.Permission;
+import com.discordsrv.common.util.CommandUtil;
 import com.discordsrv.common.util.function.CheckedFunction;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.JoinConfiguration;
@@ -83,6 +86,24 @@ public class GameCommand {
         return new GameCommand(label, ArgumentType.STRING_GREEDY);
     }
 
+    public static GameCommand player(DiscordSRV discordSRV, @Nullable GameCommandSuggester suggester) {
+        return GameCommand.stringWord("player")
+                .addDescriptionTranslations(discordSRV.getAllTranslations(config -> config.playerCommandArgumentDescription.minecraft()))
+                .suggester(suggester != null ? suggester : CommandUtil.targetSuggestions(discordSRV, null, player -> true, false));
+    }
+
+    public static GameCommand user(DiscordSRV discordSRV, @Nullable GameCommandSuggester suggester) {
+        return GameCommand.stringWord("user")
+                .addDescriptionTranslations(discordSRV.getAllTranslations(config -> config.discordUserCommandArgumentDescription.minecraft()))
+                .suggester(suggester != null ? suggester : CommandUtil.targetSuggestions(discordSRV, user -> true, null, false));
+    }
+
+    public static GameCommand target(DiscordSRV discordSRV, @Nullable GameCommandSuggester suggester) {
+        return GameCommand.stringWord("target")
+                .addDescriptionTranslations(discordSRV.getAllTranslations(config -> config.targetCommandArgumentDescription))
+                .suggester(suggester != null ? suggester : CommandUtil.targetSuggestions(discordSRV, user -> true, player -> true, false));
+    }
+
     private final ExecutorProxy executorProxy = new ExecutorProxy();
     private final SuggesterProxy suggesterProxy = new SuggesterProxy();
 
@@ -90,7 +111,7 @@ public class GameCommand {
     private GameCommand parent = null;
     private final String label;
     private final ArgumentType argumentType;
-    private final Map<Locale, String> descriptionTranslations;
+    private final Map<Locale, Component> descriptionTranslations;
     private final List<GameCommand> children;
     private GameCommand redirection = null;
 
@@ -127,13 +148,18 @@ public class GameCommand {
         return argumentType;
     }
 
-    public GameCommand addDescriptionTranslation(Locale locale, String description) {
+    public GameCommand addDescriptionTranslation(Locale locale, Component description) {
         this.descriptionTranslations.put(locale, description);
         return this;
     }
 
+    public GameCommand addDescriptionTranslations(Map<Locale, MinecraftMessage> descriptions) {
+        descriptions.forEach((locale, message) -> addDescriptionTranslation(locale, message.asComponent()));
+        return this;
+    }
+
     @Unmodifiable
-    public Map<Locale, String> getDescriptionTranslations() {
+    public Map<Locale, Component> getDescriptionTranslations() {
         return Collections.unmodifiableMap(descriptionTranslations);
     }
 
@@ -342,13 +368,15 @@ public class GameCommand {
         List<Component> commandHierarchyWithDescriptions = new ArrayList<>(commandHierarchyInOrder.size());
         boolean allLiteral = true;
         List<String> literalParts = new ArrayList<>();
+        Component lastLiteralDescription = null;
 
         for (GameCommand command : commandHierarchyInOrder) {
             TextComponent.Builder component = Component.text().content(command.getArgumentLabel());
 
             String label = command.getLabel();
             String argumentLabel = command.getArgumentLabel();
-            if (command.getArgumentType() == ArgumentType.LITERAL) {
+            boolean literal = command.getArgumentType() == ArgumentType.LITERAL;
+            if (literal) {
                 component.content(argumentLabel);
                 if (allLiteral) {
                     literalParts.add(argumentLabel);
@@ -364,37 +392,45 @@ public class GameCommand {
                 allLiteral = false;
             }
 
-            if (locale != null) {
-                String description = command.getDescriptionTranslations().get(locale);
-                if (description == null) {
-                    description = command.getDescriptionTranslations().get(Locale.ROOT);
-                }
-                if (description != null) {
-                    component.hoverEvent(HoverEvent.showText(Component.text(description)));
-                }
+            Component description = locale != null ? command.getDescriptionTranslations().get(locale) : null;
+            if (description == null) {
+                description = command.getDescriptionTranslations().get(Locale.ROOT);
             }
+            if (description != null) {
+                component.hoverEvent(HoverEvent.showText(description));
+            }
+            if (literal) {
+                lastLiteralDescription = description;
+            }
+
             commandHierarchyWithDescriptions.add(component.build());
         }
 
-        return Component.text()
-                .content("/")
-                .color(NamedTextColor.AQUA)
-                .clickEvent(ClickEvent.suggestCommand("/" + String.join(" ", literalParts) + (allLiteral ? "" : " ")))
-                .append(Component.join(JoinConfiguration.spaces(), commandHierarchyWithDescriptions))
-                .build();
+        TextComponent.Builder builder = Component.text()
+                .append(
+                        Component.text()
+                                .content("/")
+                                .clickEvent(ClickEvent.suggestCommand("/" + String.join(" ", literalParts) + (allLiteral ? "" : " ")))
+                                .append(Component.join(JoinConfiguration.spaces(), commandHierarchyWithDescriptions))
+                );
+        if (lastLiteralDescription != null) {
+            builder.append(Component.space()).append(lastLiteralDescription.color(NamedTextColor.GRAY));
+        }
+        return builder.build();
     }
 
     public void sendCommandInstructions(ICommandSender sender, GameCommandArguments arguments) {
-        if (children.isEmpty()) {
-            throw new IllegalStateException("No children");
-        }
-
         TextComponent.Builder builder = Component.text();
-        builder.append(describe(sender.locale(), arguments).color(NamedTextColor.GRAY).append(Component.text(" available subcommands:")));
-        boolean anyAvailable = false;
+        builder.append(describe(sender.locale(), arguments).color(NamedTextColor.GOLD));
+
+        boolean anySubCommands = false, anyAvailable = false;
         for (GameCommand child : children) {
-            if (!child.hasPermission(sender)) {
+            anySubCommands = true;
+            if (child.getRedirection() != null || !child.hasPermission(sender)) {
                 continue;
+            }
+            if (!anyAvailable) {
+                builder.append(Component.newline()).append(Component.text("Available subcommands:", NamedTextColor.AQUA));
             }
             anyAvailable = true;
 
@@ -404,7 +440,7 @@ public class GameCommand {
             }
             builder.append(Component.newline()).append(child.describe(sender.locale(), arguments));
         }
-        if (!anyAvailable) {
+        if (anySubCommands && !anyAvailable) {
             builder.append(Component.newline())
                     .append(Component.text("No available subcommands", NamedTextColor.RED));
         }

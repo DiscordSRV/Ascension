@@ -53,6 +53,7 @@ public class GameCommandModule extends AbstractModule<com.discordsrv.common.Disc
     @Override
     public void reload(Consumer<ReloadResult> resultConsumer) {
         registerCommand(DiscordSRVGameCommand.get(discordSRV, "discordsrv"));
+        registerCommand(DiscordSRVGameCommand.get(discordSRV, "dsrv"));
 
         GameCommandConfig config = discordSRV.config() != null ? discordSRV.config().gameCommand : null;
         if (config == null) {

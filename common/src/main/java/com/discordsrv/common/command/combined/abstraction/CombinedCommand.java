@@ -46,7 +46,7 @@ public abstract class CombinedCommand
 
     @Override
     public void execute(ICommandSender sender, GameCommandArguments arguments, GameCommand command) {
-        execute(new GameCommandExecution(discordSRV, sender, arguments, command.getLabel()));
+        execute(new GameCommandExecution(discordSRV, sender, arguments, command));
     }
 
     @Override

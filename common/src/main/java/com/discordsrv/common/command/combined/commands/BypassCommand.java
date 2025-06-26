@@ -18,8 +18,8 @@
 
 package com.discordsrv.common.command.combined.commands;
 
-import com.discordsrv.api.discord.entity.interaction.command.CommandOption;
 import com.discordsrv.api.discord.entity.interaction.command.DiscordCommand;
+import com.discordsrv.api.discord.entity.interaction.command.SubCommandGroup;
 import com.discordsrv.api.discord.entity.interaction.component.ComponentIdentifier;
 import com.discordsrv.api.task.Task;
 import com.discordsrv.common.DiscordSRV;
@@ -38,14 +38,24 @@ import com.discordsrv.common.permission.game.Permissions;
 import com.discordsrv.common.util.CommandUtil;
 import net.kyori.adventure.text.format.NamedTextColor;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Set;
+import java.util.UUID;
 
 public class BypassCommand {
 
+    private static final String LABEL = "bypass";
+    private static final ComponentIdentifier IDENTIFIER_ADD = ComponentIdentifier.of("DiscordSRV", "bypass-add");
+    private static final ComponentIdentifier IDENTIFIER_REMOVE = ComponentIdentifier.of("DiscordSRV", "bypass-remove");
+    private static final ComponentIdentifier IDENTIFIER_LIST = ComponentIdentifier.of("DiscordSRV", "bypass-list");
+    private static final String ADD_LABEL = "add";
+    private static final String REMOVE_LABEL = "remove";
+    private static final String LIST_LABEL = "list";
+
     private static BypassCommand INSTANCE;
     private static GameCommand GAME;
-    private static DiscordCommand DISCORD_MODIFY;
-    private static DiscordCommand DISCORD_LIST;
+    private static SubCommandGroup DISCORD;
 
     private static BypassCommand getInstance(DiscordSRV discordSRV) {
         return INSTANCE != null ? INSTANCE : (INSTANCE = new BypassCommand(discordSRV));
@@ -54,77 +64,49 @@ public class BypassCommand {
     public static GameCommand getGame(DiscordSRV discordSRV) {
         if (GAME == null) {
             BypassCommand command = getInstance(discordSRV);
-            GAME = GameCommand.literal("bypass")
+            GAME = GameCommand.literal(LABEL)
+                    .addDescriptionTranslations(discordSRV.getAllTranslations(config -> config.bypassCommandDescription.minecraft()))
                     .requiredPermission(Permissions.COMMAND_BYPASS)
-                    .then(GameCommand.literal("add").then(
-                            GameCommand.stringWord("player")
-                                    .executor(command.add)
-                                    .suggester(CommandUtil.targetSuggestions(discordSRV, null, player -> true, false))))
-                    .then(GameCommand.literal("remove").then(
-                            GameCommand.stringWord("player")
-                                    .executor(command.remove)
-                                    .suggester(CommandUtil.targetSuggestions(discordSRV, null, player -> true, false))))
-                    .then(GameCommand.literal("list").executor(command.list));
+                    .then(GameCommand.literal(ADD_LABEL)
+                                  .addDescriptionTranslations(discordSRV.getAllTranslations(config -> config.bypassAddCommandDescription.minecraft()))
+                                  .then(GameCommand.player(discordSRV, null).executor(command.add)))
+                    .then(GameCommand.literal(REMOVE_LABEL)
+                                  .addDescriptionTranslations(discordSRV.getAllTranslations(config -> config.bypassRemoveCommandDescription.minecraft()))
+                                  .then(GameCommand.player(discordSRV, null).executor(command.remove)))
+                    .then(GameCommand.literal(LIST_LABEL)
+                                  .addDescriptionTranslations(discordSRV.getAllTranslations(config -> config.bypassListCommandDescription.minecraft()))
+                                  .executor(command.list));
         }
 
         return GAME;
     }
 
-    public static DiscordCommand getDiscordModify(DiscordSRV discordSRV) {
-        if (DISCORD_MODIFY == null) {
+    public static SubCommandGroup getDiscord(DiscordSRV discordSRV) {
+        if (DISCORD == null) {
             BypassCommand command = getInstance(discordSRV);
-            DISCORD_MODIFY = DiscordCommand.chatInput(
-                    ComponentIdentifier.of("DiscordSRV", "bypass"),
-                    "bypass",
-                    "Add or remove players to required linking bypass"
-                    )
-                    .addOption(
-                            CommandOption.builder(
-                                    CommandOption.Type.STRING,
-                                    "operation",
-                                    "The operation to perform"
-                            )
-                                    .addChoice("Add", "add")
-                                    .addChoice("Remove", "remove")
-                                    .setRequired(true)
-                                    .build()
-                    )
-                    .addOption(
-                            CommandOption.player(player -> true).setRequired(false).build()
-                    )
-                    .addOption(
-                            CommandOption.builder(
-                                    CommandOption.Type.USER,
-                                    "user",
-                                    "The user whose linked Player to add"
-                            ).build()
-                    )
-                    .setEventHandler(command.modify)
+            DISCORD = SubCommandGroup.builder(LABEL, "")
+                    .addDescriptionTranslations(discordSRV.getAllTranslations(config -> config.bypassCommandDescription.discord().content()))
+                    .addCommand(DiscordCommand.chatInput(IDENTIFIER_ADD, ADD_LABEL, "")
+                                        .addDescriptionTranslations(discordSRV.getAllTranslations(config -> config.bypassAddCommandDescription.discord().content()))
+                                        .setEventHandler(command.add)
+                                        .build())
+                    .addCommand(DiscordCommand.chatInput(IDENTIFIER_REMOVE, REMOVE_LABEL, "")
+                                        .addDescriptionTranslations(discordSRV.getAllTranslations(config -> config.bypassRemoveCommandDescription.discord().content()))
+                                        .setEventHandler(command.remove)
+                                        .build())
+                    .addCommand(DiscordCommand.chatInput(IDENTIFIER_LIST, LIST_LABEL, "")
+                                        .addDescriptionTranslations(discordSRV.getAllTranslations(config -> config.bypassListCommandDescription.discord().content()))
+                                        .setEventHandler(command.list)
+                                        .build())
                     .build();
         }
 
-        return DISCORD_MODIFY;
-    }
-
-    public static DiscordCommand getDiscordList(DiscordSRV discordSRV) {
-        if (DISCORD_LIST == null) {
-            BypassCommand command = getInstance(discordSRV);
-            DISCORD_LIST = DiscordCommand.chatInput(
-                    ComponentIdentifier.of("DiscordSRV", "bypasslist"),
-                    "bypasslist",
-                    "List players bypassing required linking requirements"
-                    )
-                    .setEventHandler(command.list)
-                    .build();
-        }
-
-        return DISCORD_LIST;
+        return DISCORD;
     }
 
     private final DiscordSRV discordSRV;
     private final Logger logger;
 
-    protected final ModifyCommand modify;
     protected final AddCommand add;
     protected final RemoveCommand remove;
     protected final ListCommand list;
@@ -133,7 +115,6 @@ public class BypassCommand {
         this.discordSRV = discordSRV;
         this.logger = new NamedLogger(discordSRV, "BYPASS_COMMAND");
 
-        this.modify = new ModifyCommand(discordSRV);
         this.add = new AddCommand(discordSRV);
         this.remove = new RemoveCommand(discordSRV);
         this.list = new ListCommand(discordSRV);
@@ -199,19 +180,6 @@ public class BypassCommand {
                         module.recheck(player);
                     }
                 });
-    }
-
-    public class ModifyCommand extends CombinedCommand {
-
-        public ModifyCommand(DiscordSRV discordSRV) {
-            super(discordSRV);
-        }
-
-        @Override
-        public void execute(CommandExecution execution) {
-            String operation = execution.getString("operation");
-            mutate(execution, "add".equals(operation));
-        }
     }
 
     public class AddCommand extends CombinedCommand {

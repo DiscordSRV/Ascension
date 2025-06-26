@@ -18,7 +18,6 @@
 
 package com.discordsrv.common.command.combined.commands;
 
-import com.discordsrv.api.discord.entity.interaction.command.CommandOption;
 import com.discordsrv.api.discord.entity.interaction.command.DiscordCommand;
 import com.discordsrv.api.discord.entity.interaction.component.ComponentIdentifier;
 import com.discordsrv.api.task.Task;
@@ -27,6 +26,7 @@ import com.discordsrv.common.command.combined.abstraction.CombinedCommand;
 import com.discordsrv.common.command.combined.abstraction.CommandExecution;
 import com.discordsrv.common.command.combined.abstraction.GameCommandExecution;
 import com.discordsrv.common.command.combined.abstraction.Text;
+import com.discordsrv.common.command.discord.DiscordCommandOptions;
 import com.discordsrv.common.command.game.abstraction.command.GameCommand;
 import com.discordsrv.common.command.game.abstraction.command.GameCommandExecutor;
 import com.discordsrv.common.command.game.abstraction.sender.ICommandSender;
@@ -44,6 +44,9 @@ import java.util.UUID;
 
 public class LinkOtherCommand extends CombinedCommand {
 
+    private static final String LABEL = "link";
+    private static final ComponentIdentifier IDENTIFIER = ComponentIdentifier.of("DiscordSRV", "link-other");
+
     private static LinkOtherCommand INSTANCE;
     private static GameCommand GAME;
     private static DiscordCommand DISCORD;
@@ -57,17 +60,16 @@ public class LinkOtherCommand extends CombinedCommand {
             LinkProvider linkProvider = discordSRV.linkProvider();
             GameCommandExecutor initCommand = LinkInitGameCommand.getExecutor(discordSRV);
 
-            GAME = GameCommand.literal("link")
+            GAME = GameCommand.literal(LABEL)
+                    .addDescriptionTranslations(discordSRV.getAllTranslations(config -> config.linkCommandDescription.minecraft()))
                     .requiredPermission(Permissions.COMMAND_LINK)
                     .executor(initCommand);
 
             if (linkProvider != null && linkProvider.usesLocalLinking()) {
                 GAME = GAME.then(
-                        GameCommand.stringWord("player")
-                                .suggester(CommandUtil.targetSuggestions(discordSRV, false, true, false))
+                        GameCommand.player(discordSRV, CommandUtil.targetSuggestions(discordSRV, false, true, false))
                                 .then(
-                                        GameCommand.stringWord("user")
-                                                .suggester(CommandUtil.targetSuggestions(discordSRV, true, false, false))
+                                        GameCommand.user(discordSRV, CommandUtil.targetSuggestions(discordSRV, true, false, false))
                                                 .requiredPermission(Permissions.COMMAND_LINK_OTHER)
                                                 .executor(getInstance(discordSRV))
                                 )
@@ -81,15 +83,11 @@ public class LinkOtherCommand extends CombinedCommand {
     public static DiscordCommand getDiscord(DiscordSRV discordSRV) {
         if (DISCORD == null) {
             LinkOtherCommand command = getInstance(discordSRV);
-            ComponentIdentifier identifier = ComponentIdentifier.of("DiscordSRV", "link-other");
 
-            DISCORD = DiscordCommand.chatInput(identifier, "link", "Link players")
-                    .addOption(
-                            CommandOption.builder(CommandOption.Type.USER, "user", "The user to link")
-                                    .setRequired(true)
-                                    .build()
-                    )
-                    .addOption(CommandOption.player(player -> {
+            DISCORD = DiscordCommand.chatInput(IDENTIFIER, LABEL, "")
+                    .addDescriptionTranslations(discordSRV.getAllTranslations(config -> config.linkOtherCommandDescription.content()))
+                    .addOption(DiscordCommandOptions.user(discordSRV).setRequired(true).build())
+                    .addOption(DiscordCommandOptions.player(discordSRV, player -> {
                         ProfileImpl profile = discordSRV.profileManager().getProfile(player.uniqueId());
                         return profile == null || !profile.isLinked();
                     }).setRequired(true).build())
