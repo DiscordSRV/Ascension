@@ -28,6 +28,7 @@ import com.discordsrv.common.abstraction.player.IPlayer;
 import com.discordsrv.common.command.combined.abstraction.CombinedCommand;
 import com.discordsrv.common.command.combined.abstraction.CommandExecution;
 import com.discordsrv.common.command.combined.abstraction.Text;
+import com.discordsrv.common.command.discord.DiscordCommandOptions;
 import com.discordsrv.common.command.game.abstraction.command.GameCommand;
 import com.discordsrv.common.core.logging.Logger;
 import com.discordsrv.common.core.logging.NamedLogger;
@@ -88,10 +89,12 @@ public class BypassCommand {
                     .addDescriptionTranslations(discordSRV.getAllTranslations(config -> config.bypassCommandDescription.discord().content()))
                     .addCommand(DiscordCommand.chatInput(IDENTIFIER_ADD, ADD_LABEL, "")
                                         .addDescriptionTranslations(discordSRV.getAllTranslations(config -> config.bypassAddCommandDescription.discord().content()))
+                                        .addOption(DiscordCommandOptions.player(discordSRV, player -> true).setRequired(true).build())
                                         .setEventHandler(command.add)
                                         .build())
                     .addCommand(DiscordCommand.chatInput(IDENTIFIER_REMOVE, REMOVE_LABEL, "")
                                         .addDescriptionTranslations(discordSRV.getAllTranslations(config -> config.bypassRemoveCommandDescription.discord().content()))
+                                        .addOption(DiscordCommandOptions.player(discordSRV, player -> true).setRequired(true).build())
                                         .setEventHandler(command.remove)
                                         .build())
                     .addCommand(DiscordCommand.chatInput(IDENTIFIER_LIST, LIST_LABEL, "")
