@@ -96,7 +96,7 @@ public class UnlinkCommand extends CombinedCommand {
             builder = builder
                     .addOption(DiscordCommandOptions.user(discordSRV).setRequired(false).build())
                     .addOption(DiscordCommandOptions.player(discordSRV, player -> {
-                        ProfileImpl profile = discordSRV.profileManager().getProfile(player.uniqueId());
+                        ProfileImpl profile = discordSRV.profileManager().getCachedProfile(player.uniqueId());
                         return profile == null || profile.isLinked();
                     }).setRequired(false).build());
         }

@@ -88,7 +88,7 @@ public class LinkOtherCommand extends CombinedCommand {
                     .addDescriptionTranslations(discordSRV.getAllTranslations(config -> config.linkOtherCommandDescription.content()))
                     .addOption(DiscordCommandOptions.user(discordSRV).setRequired(true).build())
                     .addOption(DiscordCommandOptions.player(discordSRV, player -> {
-                        ProfileImpl profile = discordSRV.profileManager().getProfile(player.uniqueId());
+                        ProfileImpl profile = discordSRV.profileManager().getCachedProfile(player.uniqueId());
                         return profile == null || !profile.isLinked();
                     }).setRequired(true).build())
                     .setEventHandler(command)

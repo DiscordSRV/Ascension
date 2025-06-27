@@ -23,10 +23,10 @@ import com.discordsrv.api.discord.entity.guild.DiscordGuild;
 import com.discordsrv.api.discord.entity.guild.DiscordGuildMember;
 import com.discordsrv.api.placeholder.annotation.Placeholder;
 import com.discordsrv.api.placeholder.annotation.PlaceholderPrefix;
+import com.discordsrv.api.profile.Profile;
 import com.discordsrv.api.task.Task;
 import com.discordsrv.common.DiscordSRV;
 import com.discordsrv.common.abstraction.player.provider.model.SkinInfo;
-import com.discordsrv.common.core.profile.ProfileImpl;
 import net.kyori.adventure.identity.Identified;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -39,20 +39,22 @@ public interface IOfflinePlayer extends Identified {
     DiscordSRV discordSRV();
 
     @Placeholder("profile")
-    default Task<ProfileImpl> profile() {
-        return discordSRV().profileManager().lookupProfile(uniqueId());
+    default Task<Profile> profile() {
+        return discordSRV().profileManager()
+                .getProfile(uniqueId())
+                .thenApply(profile -> profile);
     }
 
     @Placeholder("linked_user")
     default Task<@Nullable DiscordUser> linkedUser() {
         return profile().thenApply(profile -> profile.isLinked() ? profile.userId() : null)
-                .then(userId -> discordSRV().discordAPI().retrieveUserById(userId));
+                .then(userId -> userId == null ? Task.completed(null) : discordSRV().discordAPI().retrieveUserById(userId));
     }
 
     @Placeholder("linked_server_member")
     default Task<@Nullable DiscordGuildMember> linkedMember(DiscordGuild guild) {
         return profile().thenApply(profile -> profile.isLinked() ? profile.userId() : null)
-                .then(guild::retrieveMemberById);
+                .then(userId -> userId == null ? Task.completed(null) : guild.retrieveMemberById(userId));
     }
 
     @Placeholder("name")

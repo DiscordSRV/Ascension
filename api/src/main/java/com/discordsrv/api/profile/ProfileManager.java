@@ -32,14 +32,30 @@ import java.util.UUID;
 public interface ProfileManager {
 
     @NotNull
-    Task<? extends Profile> lookupProfile(UUID playerUUID);
-
-    @Nullable
-    Profile getProfile(UUID playerUUID);
+    default Task<? extends @NotNull Profile> getProfile(UUID playerUUID) {
+        Profile profile = getCachedProfile(playerUUID);
+        if (profile != null) {
+            return Task.completed(profile);
+        }
+        return queryProfile(playerUUID);
+    }
 
     @NotNull
-    Task<? extends Profile> lookupProfile(long userId);
-
+    Task<? extends Profile> queryProfile(UUID playerUUID);
     @Nullable
-    Profile getProfile(long userId);
+    Profile getCachedProfile(UUID playerUUID);
+
+    @NotNull
+    default Task<? extends @NotNull Profile> getProfile(long userId) {
+        Profile profile = getCachedProfile(userId);
+        if (profile != null) {
+            return Task.completed(profile);
+        }
+        return queryProfile(userId);
+    }
+
+    @NotNull
+    Task<? extends Profile> queryProfile(long userId);
+    @Nullable
+    Profile getCachedProfile(long userId);
 }

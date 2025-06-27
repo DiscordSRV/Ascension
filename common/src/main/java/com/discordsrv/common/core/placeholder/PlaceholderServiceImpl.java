@@ -56,6 +56,8 @@ import java.util.regex.Pattern;
 
 public class PlaceholderServiceImpl implements PlaceholderService {
 
+    private static final Pattern ADDITIONAL_CONTEXT_PATTERN = Pattern.compile("^\\[([^]]+)]");
+
     private final DiscordSRV discordSRV;
     private final Logger logger;
     private final LoadingCache<Class<?>, List<AnnotationPlaceholderProvider>> classProviders;
@@ -103,8 +105,19 @@ public class PlaceholderServiceImpl implements PlaceholderService {
     @Override
     public PlaceholderLookupResult lookupPlaceholder(@NotNull String placeholder, @NotNull Set<Object> lookupContexts) {
         Set<Object> contexts = new LinkedHashSet<>(lookupContexts);
-        contexts.addAll(globalContext);
         contexts.removeIf(Objects::isNull);
+        contexts.addAll(globalContext);
+
+        Matcher additionaContextMatcher = ADDITIONAL_CONTEXT_PATTERN.matcher(placeholder);
+        while (additionaContextMatcher.find()) {
+            String contextPlaceholder = additionaContextMatcher.group(1);
+            PlaceholderLookupResult result = lookupPlaceholder(contextPlaceholder, contexts);
+            if (result.getResult() != null) {
+                contexts.add(result.getResult());
+            }
+
+            placeholder = placeholder.substring(additionaContextMatcher.end());
+        }
 
         PlaceholderContextMappingEvent contextMappingEvent = new PlaceholderContextMappingEvent(contexts);
         discordSRV.eventBus().publish(contextMappingEvent);
@@ -227,7 +240,7 @@ public class PlaceholderServiceImpl implements PlaceholderService {
         }
         Matcher matcher = pattern.matcher(input);
 
-        StringBuffer output = new StringBuffer();
+        StringBuffer output = new StringBuffer(input.length() * 2);
         int lastEnd = -1;
         while (matcher.find()) {
             String placeholder = getPlaceholder(matcher);

@@ -158,7 +158,7 @@ public class PlaceholderAPIIntegration extends PluginIntegration<BukkitDiscordSR
             Set<Object> context;
             if (player != null) {
                 context = new HashSet<>(2);
-                Profile profile = discordSRV.profileManager().getProfile(player.getUniqueId());
+                Profile profile = discordSRV.profileManager().getCachedProfile(player.getUniqueId());
                 if (profile != null) {
                     context.add(profile);
                 }

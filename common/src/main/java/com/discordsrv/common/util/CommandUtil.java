@@ -50,10 +50,10 @@ public final class CommandUtil {
 
     public static GameCommandSuggester targetSuggestions(DiscordSRV discordSRV, boolean users, boolean players, boolean linked) {
         return CommandUtil.targetSuggestions(discordSRV,  users ? user -> {
-            ProfileImpl profile = discordSRV.profileManager().getProfile(user.getIdLong());
+            ProfileImpl profile = discordSRV.profileManager().getCachedProfile(user.getIdLong());
             return profile == null || profile.isLinked() == linked;
         } : null, players ? player -> {
-            ProfileImpl profile = discordSRV.profileManager().getProfile(player.uniqueId());
+            ProfileImpl profile = discordSRV.profileManager().getCachedProfile(player.uniqueId());
             return profile == null || profile.isLinked() == linked;
         } : null, false);
     }

@@ -128,6 +128,9 @@ public class AnnotationPlaceholderProvider implements PlaceholderProvider {
         Object[] parameterValues = new Object[parameters.length];
         AtomicBoolean failed = new AtomicBoolean(false);
 
+        // The below will fill out the parameter values:
+        // - apply calls the provided function for every (remaining) parameter
+        // - the function is responsible for: assigning parameters[i] to null and [parameterValues[i] to the appropriate value (when it finds a match)
         apply(parameters, (parameter, i) -> {
             PlaceholderRemainder remainderAnnotation = parameter.getAnnotation(PlaceholderRemainder.class);
             if (remainderAnnotation != null) {
@@ -163,9 +166,11 @@ public class AnnotationPlaceholderProvider implements PlaceholderProvider {
                 }
             });
         }
+
+        // Check that all parameters have been handled, if not -> unknown placeholder
         for (Object parameter : parameters) {
             if (parameter != null) {
-                return null;
+                return PlaceholderLookupResult.UNKNOWN_PLACEHOLDER;
             }
         }
 

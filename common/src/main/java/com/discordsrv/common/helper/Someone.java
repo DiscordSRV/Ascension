@@ -22,17 +22,20 @@ import com.discordsrv.api.discord.entity.DiscordUser;
 import com.discordsrv.api.discord.entity.guild.DiscordGuild;
 import com.discordsrv.api.discord.entity.guild.DiscordGuildMember;
 import com.discordsrv.api.player.DiscordSRVPlayer;
+import com.discordsrv.api.profile.Profile;
 import com.discordsrv.api.task.Task;
 import com.discordsrv.common.DiscordSRV;
 import com.discordsrv.common.abstraction.player.IOfflinePlayer;
 import com.discordsrv.common.abstraction.player.IPlayer;
 import com.discordsrv.common.feature.linking.AccountLink;
 import com.discordsrv.common.feature.linking.LinkProvider;
-import com.discordsrv.common.core.profile.ProfileImpl;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.*;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Objects;
+import java.util.UUID;
 
 /**
  * Represents a subject that is
@@ -107,11 +110,11 @@ public class Someone {
     }
 
     @NotNull
-    public Task<@NotNull ProfileImpl> profile() {
+    public Task<@NotNull Profile> profile() {
         if (playerUUID != null) {
-            return discordSRV.profileManager().lookupProfile(playerUUID);
+            return discordSRV.profileManager().getProfile(playerUUID).thenApply(profile -> profile);
         } else if (userId != null) {
-            return discordSRV.profileManager().lookupProfile(userId);
+            return discordSRV.profileManager().getProfile(userId).thenApply(profile -> profile);
         } else {
             return throwIllegal();
         }

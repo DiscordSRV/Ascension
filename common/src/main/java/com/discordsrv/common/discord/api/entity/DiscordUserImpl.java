@@ -49,7 +49,7 @@ public class DiscordUserImpl implements DiscordUser {
 
     @Placeholder("profile")
     public Task<@NotNull ProfileImpl> profile() {
-        return discordSRV.profileManager().lookupProfile(user.getIdLong());
+        return discordSRV.profileManager().queryProfile(user.getIdLong());
     }
 
     @Placeholder("linked_player")

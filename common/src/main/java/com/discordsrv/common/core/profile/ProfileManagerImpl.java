@@ -70,7 +70,7 @@ public class ProfileManagerImpl implements ProfileManager {
     }
 
     public Task<ProfileImpl> loadProfile(@NotNull UUID playerUUID) {
-        Task<ProfileImpl> lookup = lookupProfile(playerUUID)
+        Task<ProfileImpl> lookup = queryProfile(playerUUID)
                 .thenApply(profile -> {
                     profiles.put(playerUUID, profile);
                     if (profile.isLinked()) {
@@ -120,7 +120,7 @@ public class ProfileManagerImpl implements ProfileManager {
     }
 
     @Override
-    public @NotNull Task<@NotNull ProfileImpl> lookupProfile(UUID playerUUID) {
+    public @NotNull Task<@NotNull ProfileImpl> queryProfile(UUID playerUUID) {
         LinkProvider linkProvider = discordSRV.linkProvider();
         Task<Optional<AccountLink>> linkLookup = linkProvider != null ? linkProvider.get(playerUUID) : Task.completed(Optional.empty());
 
@@ -139,12 +139,12 @@ public class ProfileManagerImpl implements ProfileManager {
     }
 
     @Override
-    public @Nullable ProfileImpl getProfile(UUID playerUUID) {
+    public @Nullable ProfileImpl getCachedProfile(UUID playerUUID) {
         return profiles.get(playerUUID);
     }
 
     @Override
-    public @NotNull Task<@NotNull ProfileImpl> lookupProfile(long userId) {
+    public @NotNull Task<@NotNull ProfileImpl> queryProfile(long userId) {
         LinkProvider linkProvider = discordSRV.linkProvider();
         Task<Optional<AccountLink>> linkLookup = linkProvider != null ? linkProvider.get(userId) : Task.completed(Optional.empty());
 
@@ -163,7 +163,7 @@ public class ProfileManagerImpl implements ProfileManager {
     }
 
     @Override
-    public @Nullable ProfileImpl getProfile(long userId) {
+    public @Nullable ProfileImpl getCachedProfile(long userId) {
         return discordUserMap.get(userId);
     }
 }

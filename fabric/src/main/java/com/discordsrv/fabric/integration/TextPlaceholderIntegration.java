@@ -133,7 +133,7 @@ public class TextPlaceholderIntegration extends PluginIntegration<FabricDiscordS
             ServerPlayerEntity player = placeholderContext.player();
             assert player != null;
 
-            Profile profile = discordSRV.profileManager().getProfile(player.getUuid());
+            Profile profile = discordSRV.profileManager().getCachedProfile(player.getUuid());
             if (profile != null) {
                 context.add(profile);
             }
@@ -145,7 +145,7 @@ public class TextPlaceholderIntegration extends PluginIntegration<FabricDiscordS
             GameProfile gameProfile = placeholderContext.gameProfile();
             assert gameProfile != null;
 
-            Profile profile = discordSRV.profileManager().getProfile(gameProfile.getId());
+            Profile profile = discordSRV.profileManager().getCachedProfile(gameProfile.getId());
             if (profile != null) {
                 context.add(profile);
             }

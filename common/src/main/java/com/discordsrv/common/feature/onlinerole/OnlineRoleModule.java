@@ -201,7 +201,7 @@ public class OnlineRoleModule extends AbstractSyncModule<DiscordSRV, OnlineRoleC
         super.reload(resultConsumer);
         List<Profile> onlineProfiles = new ArrayList<>();
         for (IPlayer player : discordSRV.playerProvider().allPlayers()) {
-            Profile profile = discordSRV.profileManager().getProfile(player.uniqueId());
+            Profile profile = discordSRV.profileManager().getCachedProfile(player.uniqueId());
             if (profile != null) {
                 onlineProfiles.add(profile);
             }

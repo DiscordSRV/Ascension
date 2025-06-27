@@ -42,7 +42,7 @@ public class LinkingRewardsModule extends AbstractModule<DiscordSRV> {
 
     @Subscribe
     public void onPlayerConnected(PlayerConnectedEvent event) {
-        discordSRV.profileManager().lookupProfile(event.player().uniqueId())
+        discordSRV.profileManager().queryProfile(event.player().uniqueId())
                 .whenSuccessful(profile -> {
                     Long userId = profile.userId();
                     if (!profile.isLinked() || userId == null) {
@@ -75,13 +75,13 @@ public class LinkingRewardsModule extends AbstractModule<DiscordSRV> {
 
     @Subscribe
     public void onAccountLinked(AccountLinkedEvent event) {
-        discordSRV.profileManager().lookupProfile(event.getPlayerUUID())
+        discordSRV.profileManager().queryProfile(event.getPlayerUUID())
                 .whenSuccessful(profile -> triggerRewards(profile, RewardsConfig.LinkingReward.Type.LINKED));
     }
 
     @Subscribe
     public void onAccountUnlinked(AccountUnlinkedEvent event) {
-        discordSRV.profileManager().lookupProfile(event.getPlayerUUID())
+        discordSRV.profileManager().queryProfile(event.getPlayerUUID())
                 .whenSuccessful(profile -> triggerRewards(profile, RewardsConfig.LinkingReward.Type.UNLINKED));
     }
 
@@ -93,7 +93,7 @@ public class LinkingRewardsModule extends AbstractModule<DiscordSRV> {
             return;
         }
 
-        discordSRV.profileManager().lookupProfile(event.getMember().getIdLong())
+        discordSRV.profileManager().queryProfile(event.getMember().getIdLong())
                 .whenSuccessful(profile -> triggerRewards(
                         profile,
                         isBoosting ? RewardsConfig.BoostingReward.Type.BOOSTED : RewardsConfig.BoostingReward.Type.UNBOOSTED,
