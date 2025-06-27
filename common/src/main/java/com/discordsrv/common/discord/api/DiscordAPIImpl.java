@@ -110,6 +110,19 @@ public class DiscordAPIImpl implements DiscordAPI {
         return Task.failed(new NotReadyException());
     }
 
+    private JDA jda() {
+        JDA jda = discordSRV.jda();
+        if (jda == null) {
+            throw new NotReadyException();
+        }
+        return jda;
+    }
+
+    @Override
+    public @NotNull DiscordUser getSelfUser() {
+        return getUser(jda().getSelfUser());
+    }
+
     @Override
     public DiscordChannel getChannelById(long id) {
         DiscordForumChannel forumChannel = getForumChannelById(id);
@@ -185,12 +198,7 @@ public class DiscordAPIImpl implements DiscordAPI {
     }
 
     private <T, J> T mapJDAEntity(Function<JDA, J> get, Function<J, T> map) {
-        JDA jda = discordSRV.jda();
-        if (jda == null) {
-            return null;
-        }
-
-        J entity = get.apply(jda);
+        J entity = get.apply(jda());
         if (entity == null) {
             return null;
         }

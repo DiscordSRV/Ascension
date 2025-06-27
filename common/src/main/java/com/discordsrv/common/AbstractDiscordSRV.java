@@ -716,7 +716,6 @@ public abstract class AbstractDiscordSRV<
         placeholderService().addGlobalContext(new NumberFormattingContext(this));
         placeholderService().addGlobalContext(new GamePermissionContext(this));
         placeholderService().addGlobalContext(new ReceivedDiscordMessageContext(this));
-        placeholderService().addGlobalContext(new DiscordBotContext(this));
         placeholderService().addGlobalContext(new AvatarProviderContext(this));
         placeholderService().addGlobalContext(new DiscordEntityContext(this));
         placeholderService().addGlobalContext(new DiscordGuildMemberContext());

@@ -29,6 +29,8 @@ import com.discordsrv.api.placeholder.annotation.Placeholder;
 import com.discordsrv.api.placeholder.annotation.PlaceholderRemainder;
 import com.discordsrv.api.task.Task;
 import com.discordsrv.common.DiscordSRV;
+import net.dv8tion.jda.api.JDA;
+import net.dv8tion.jda.api.entities.SelfUser;
 import net.dv8tion.jda.api.utils.MiscUtil;
 
 import java.util.function.BiFunction;
@@ -39,6 +41,20 @@ public class DiscordEntityContext {
 
     public DiscordEntityContext(DiscordSRV discordSRV) {
         this.discordSRV = discordSRV;
+    }
+
+    private SelfUser getSelfUser() {
+        JDA jda = discordSRV.jda();
+        if (jda == null) {
+            return null;
+        }
+
+        return jda.getSelfUser();
+    }
+
+    @Placeholder("bot_user")
+    public DiscordUser selfUser() {
+        return discordSRV.discordAPI().getUser(getSelfUser());
     }
 
     private <T> T entity(String plainId, BiFunction<DiscordAPI, Long, T> apiFunction) {

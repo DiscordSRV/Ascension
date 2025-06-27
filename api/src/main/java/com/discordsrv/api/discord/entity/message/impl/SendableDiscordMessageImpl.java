@@ -34,6 +34,7 @@ import com.discordsrv.api.placeholder.PlaceholderService;
 import com.discordsrv.api.placeholder.format.FormattedText;
 import com.discordsrv.api.placeholder.format.PlainPlaceholderFormat;
 import com.discordsrv.api.placeholder.util.Placeholders;
+import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.entities.MessageEmbed;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -446,23 +447,24 @@ public class SendableDiscordMessageImpl implements SendableDiscordMessage {
                                 placeholders.apply(embedBuilder.getAuthorName()),
                                 MessageEmbed.AUTHOR_MAX_LENGTH
                         ),
-                        placeholders.apply(embedBuilder.getAuthorUrl()),
-                        placeholders.apply(embedBuilder.getAuthorImageUrl()));
+                        url(placeholders.apply(embedBuilder.getAuthorUrl())),
+                        url(placeholders.apply(embedBuilder.getAuthorImageUrl()))
+                );
 
                 embedBuilder.setTitle(
                         cutToLength(
                                 placeholders.apply(embedBuilder.getTitle()),
                                 MessageEmbed.TITLE_MAX_LENGTH
                         ),
-                        placeholders.apply(embedBuilder.getTitleUrl())
+                        url(placeholders.apply(embedBuilder.getTitleUrl()))
                 );
 
                 embedBuilder.setThumbnailUrl(
-                        placeholders.apply(embedBuilder.getThumbnailUrl())
+                        url(placeholders.apply(embedBuilder.getThumbnailUrl()))
                 );
 
                 embedBuilder.setImageUrl(
-                        placeholders.apply(embedBuilder.getImageUrl())
+                        url(placeholders.apply(embedBuilder.getImageUrl()))
                 );
 
                 embedBuilder.setFooter(
@@ -507,9 +509,19 @@ public class SendableDiscordMessageImpl implements SendableDiscordMessage {
             }
 
             builder.setWebhookUsername(placeholders.apply(builder.getWebhookUsername()));
-            builder.setWebhookAvatarUrl(placeholders.apply(builder.getWebhookAvatarUrl()));
+            builder.setWebhookAvatarUrl(url(placeholders.apply(builder.getWebhookAvatarUrl())));
 
             return builder.build();
+        }
+
+        private String url(String url) {
+            if (url == null) {
+                return null;
+            }
+            if (!EmbedBuilder.URL_PATTERN.matcher(url).matches()) {
+                return null;
+            }
+            return cutToLength(url, MessageEmbed.URL_MAX_LENGTH);
         }
 
         private String cutToLength(String input, int maxLength) {
