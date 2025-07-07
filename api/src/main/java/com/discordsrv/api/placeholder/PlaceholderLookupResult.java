@@ -44,7 +44,7 @@ public class PlaceholderLookupResult {
         return new PlaceholderLookupResult(placeholder, context);
     }
 
-    public static PlaceholderLookupResult reLookup(@NotNull String remainder, @NotNull Object result, @NotNull Object... newContext) {
+    public static PlaceholderLookupResult reLookup(@NotNull String remainder, @Nullable Object result, @NotNull Object... newContext) {
         return new PlaceholderLookupResult(remainder, result, new LinkedHashSet<>(Arrays.asList(newContext)));
     }
 
@@ -90,10 +90,10 @@ public class PlaceholderLookupResult {
         this.context = Objects.requireNonNull(context);
     }
 
-    protected PlaceholderLookupResult(@NotNull String placeholder, @NotNull Object result, @NotNull Set<Object> newContext) {
+    protected PlaceholderLookupResult(@NotNull String placeholder, @Nullable Object result, @NotNull Set<Object> newContext) {
         this.type = Type.RE_LOOKUP;
         this.placeholder = Objects.requireNonNull(placeholder);
-        this.result = Objects.requireNonNull(result);
+        this.result = result;
         this.error = null;
         this.context = Objects.requireNonNull(newContext);
     }

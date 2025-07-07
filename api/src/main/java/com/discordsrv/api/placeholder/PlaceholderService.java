@@ -52,10 +52,10 @@ public interface PlaceholderService {
     PlaceholderLookupResult lookupPlaceholder(@NotNull String placeholder, @NotNull Set<Object> context);
     PlaceholderLookupResult lookupPlaceholder(@NotNull String placeholder, @NotNull Object... context);
 
-    Object getResult(@NotNull Matcher matcher, @NotNull Set<Object> context);
+    Object getReplacement(@NotNull Matcher matcher, @NotNull Set<Object> context);
     @NotNull
-    CharSequence getResultAsCharSequence(@NotNull Matcher matcher, @NotNull Set<Object> context);
+    CharSequence convertReplacementToCharSequence(@NotNull Matcher matcher, @NotNull Set<Object> context);
     @NotNull
-    CharSequence getResultAsCharSequence(@Nullable Object result);
+    CharSequence convertReplacementToCharSequence(@Nullable Object result);
 
 }

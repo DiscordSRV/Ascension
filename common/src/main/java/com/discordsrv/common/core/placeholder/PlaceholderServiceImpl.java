@@ -125,7 +125,7 @@ public class PlaceholderServiceImpl implements PlaceholderService {
 
         for (Object context : contexts) {
             if (context instanceof PlaceholderProvider) {
-                PlaceholderLookupResult result = getResult((PlaceholderProvider) context, placeholder, contexts);
+                PlaceholderLookupResult result = getResultFromProvider((PlaceholderProvider) context, placeholder, contexts);
                 if (result.getType() != PlaceholderLookupResult.Type.UNKNOWN_PLACEHOLDER) {
                     return result;
                 }
@@ -140,7 +140,7 @@ public class PlaceholderServiceImpl implements PlaceholderService {
             }
 
             for (PlaceholderProvider provider : providers) {
-                PlaceholderLookupResult result = getResult(provider, placeholder, contexts);
+                PlaceholderLookupResult result = getResultFromProvider(provider, placeholder, contexts);
                 if (result.getType() != PlaceholderLookupResult.Type.UNKNOWN_PLACEHOLDER) {
                     return result;
                 }
@@ -158,7 +158,7 @@ public class PlaceholderServiceImpl implements PlaceholderService {
                 : PlaceholderLookupResult.UNKNOWN_PLACEHOLDER;
     }
 
-    private PlaceholderLookupResult getResult(PlaceholderProvider provider, String placeholder, Set<Object> contexts) {
+    private PlaceholderLookupResult getResultFromProvider(PlaceholderProvider provider, String placeholder, Set<Object> contexts) {
         PlaceholderLookupResult result = provider.lookup(placeholder, Collections.unmodifiableSet(contexts));
 
         Object lookupResult = result.getResult();
@@ -184,6 +184,11 @@ public class PlaceholderServiceImpl implements PlaceholderService {
         }
 
         if (result.getType() == PlaceholderLookupResult.Type.RE_LOOKUP) {
+            if (lookupResult == null) {
+                // Re-lookup but there's no data to base the re-lookup off from: null success
+                return PlaceholderLookupResult.success(null);
+            }
+
             Class<?> reLookupType = lookupResult.getClass();
 
             String charSequenceReLookup = null;
@@ -198,7 +203,7 @@ public class PlaceholderServiceImpl implements PlaceholderService {
                 return reLookupResult(reLookup.getValue(), lookupResult, result, contexts);
             }
             if (result.getPlaceholder().startsWith(":") && !CharSequence.class.isAssignableFrom(reLookupType) && charSequenceReLookup != null) {
-                return reLookupResult(charSequenceReLookup, getResultAsCharSequence(lookupResult), result, contexts);
+                return reLookupResult(charSequenceReLookup, convertReplacementToCharSequence(lookupResult), result, contexts);
             }
             return PlaceholderLookupResult.UNKNOWN_PLACEHOLDER;
         }
@@ -231,10 +236,10 @@ public class PlaceholderServiceImpl implements PlaceholderService {
 
     @Override
     public String replacePlaceholders(@NotNull String input, @NotNull Set<Object> context) {
-        return getReplacement(PATTERN, input, context);
+        return replacePlaceholders(PATTERN, input, context);
     }
 
-    private String getReplacement(Pattern pattern, String input, Set<Object> context) {
+    private String replacePlaceholders(Pattern pattern, String input, Set<Object> context) {
         if (input.isEmpty()) {
             return input;
         }
@@ -244,8 +249,8 @@ public class PlaceholderServiceImpl implements PlaceholderService {
         int lastEnd = -1;
         while (matcher.find()) {
             String placeholder = getPlaceholder(matcher);
-            Object result = getResult(placeholder, context, matcher);
-            String resultAsString = getResultAsCharSequence(result).toString();
+            Object result = getReplacement(placeholder, context, matcher);
+            String resultAsString = convertReplacementToCharSequence(result).toString();
 
             matcher.appendReplacement(output, Matcher.quoteReplacement(resultAsString));
             lastEnd = matcher.end();
@@ -259,13 +264,13 @@ public class PlaceholderServiceImpl implements PlaceholderService {
     }
 
     @Override
-    public Object getResult(@NotNull Matcher matcher, @NotNull Set<Object> context) {
+    public Object getReplacement(@NotNull Matcher matcher, @NotNull Set<Object> context) {
         if (matcher.groupCount() < 3) {
             throw new IllegalStateException("Matcher must have at least 3 groups");
         }
 
         String placeholder = getPlaceholder(matcher);
-        return getResult(placeholder, context, matcher);
+        return getReplacement(placeholder, context, matcher);
     }
 
     private String getPlaceholder(Matcher matcher) {
@@ -280,13 +285,13 @@ public class PlaceholderServiceImpl implements PlaceholderService {
     }
 
     @Override
-    public @NotNull CharSequence getResultAsCharSequence(@NotNull Matcher matcher, @NotNull Set<Object> context) {
-        Object result = getResult(matcher, context);
-        return getResultAsCharSequence(result);
+    public @NotNull CharSequence convertReplacementToCharSequence(@NotNull Matcher matcher, @NotNull Set<Object> context) {
+        Object result = getReplacement(matcher, context);
+        return convertReplacementToCharSequence(result);
     }
 
     @Override
-    public @NotNull CharSequence getResultAsCharSequence(@Nullable Object result) {
+    public @NotNull CharSequence convertReplacementToCharSequence(@Nullable Object result) {
         if (result == null) {
             return "";
         } else if (result instanceof CharSequence) {
@@ -304,12 +309,12 @@ public class PlaceholderServiceImpl implements PlaceholderService {
         return output instanceof CharSequence ? (CharSequence) output : String.valueOf(output != null ? output : result);
     }
 
-    private Object getResult(String placeholder, Set<Object> context, Matcher matcher) {
+    private Object getReplacement(String placeholder, Set<Object> context, Matcher matcher) {
         Map<String, AtomicInteger> preventInfiniteLoop = new HashMap<>();
 
         Object best = null;
         for (String singlePlaceholder : placeholder.split("(?<!\\\\)\\|")) {
-            singlePlaceholder = getReplacement(RECURSIVE_PATTERN, singlePlaceholder, context);
+            singlePlaceholder = replacePlaceholders(RECURSIVE_PATTERN, singlePlaceholder, context);
 
             PlaceholderLookupResult result = lookupPlaceholder(singlePlaceholder, context);
             while (result != null) {
@@ -325,9 +330,9 @@ public class PlaceholderServiceImpl implements PlaceholderService {
                     case SUCCESS:
                         replacement = result.getResult();
                         if (replacement == null) {
-                            replacement = getResultAsCharSequence(null);
+                            replacement = convertReplacementToCharSequence(null);
                         }
-                        if (StringUtils.isNotBlank(getResultAsCharSequence(replacement))) {
+                        if (StringUtils.isNotBlank(convertReplacementToCharSequence(replacement))) {
                             return replacement;
                         }
                         break;

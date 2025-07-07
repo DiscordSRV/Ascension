@@ -36,7 +36,7 @@ import java.util.function.BiConsumer;
 
 public class AnnotationPlaceholderProvider implements PlaceholderProvider {
 
-    private final boolean isRemainder;
+    private final boolean remainderConsumedByProvider;
     private final String annotationPlaceholder;
     private final String checkString;
 
@@ -53,9 +53,9 @@ public class AnnotationPlaceholderProvider implements PlaceholderProvider {
     }
 
     private AnnotationPlaceholderProvider(Placeholder annotation, PlaceholderPrefix prefixAnnotation, PlaceholderRemainder remainderAnnotation, Class<?> type, Method method, Field field) {
-        this.isRemainder = remainderAnnotation != null;
+        this.remainderConsumedByProvider = remainderAnnotation != null;
         this.annotationPlaceholder = (prefixAnnotation != null ? prefixAnnotation.value() : "") + annotation.value();
-        this.checkString = annotationPlaceholder + (isRemainder && !remainderAnnotation.supportsNoValue() ? ":" : "");
+        this.checkString = annotationPlaceholder + (remainderConsumedByProvider && !remainderAnnotation.supportsNoValue() ? ":" : "");
 
         this.type = type;
         this.method = method;
@@ -75,7 +75,7 @@ public class AnnotationPlaceholderProvider implements PlaceholderProvider {
 
         boolean perfectMatch = false;
         boolean correctPlaceholder;
-        if (isRemainder) {
+        if (remainderConsumedByProvider) {
             correctPlaceholder = placeholder.startsWith(checkString);
         } else {
             perfectMatch = placeholder.equals(checkString);
@@ -115,7 +115,7 @@ public class AnnotationPlaceholderProvider implements PlaceholderProvider {
 
         if (result instanceof PlaceholderLookupResult) {
             return (PlaceholderLookupResult) result;
-        } else if (isRemainder || result == null || perfectMatch) {
+        } else if (remainderConsumedByProvider || perfectMatch) {
             return PlaceholderLookupResult.success(result);
         }
 

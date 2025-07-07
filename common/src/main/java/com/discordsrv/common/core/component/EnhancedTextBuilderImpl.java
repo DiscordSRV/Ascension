@@ -75,7 +75,7 @@ public class EnhancedTextBuilderImpl implements GameTextBuilder {
 
         this.replacements.put(
                 PlaceholderService.PATTERN,
-                wrapFunction(matcher -> discordSRV.placeholderService().getResult(matcher, context))
+                wrapFunction(matcher -> discordSRV.placeholderService().getReplacement(matcher, context))
         );
         this.placeholderServiceApplied = true;
         return this;

@@ -190,7 +190,7 @@ public class MinecraftToDiscordChatModule extends AbstractGameMessageModule<Mine
                 .addPlaceholder("message", () -> {
                     String content = PlainPlaceholderFormat.supplyWith(
                             PlainPlaceholderFormat.Formatting.DISCORD_MARKDOWN,
-                            () -> discordSRV.placeholderService().getResultAsCharSequence(message).toString()
+                            () -> discordSRV.placeholderService().convertReplacementToCharSequence(message).toString()
                     );
                     Placeholders messagePlaceholders = new Placeholders(content);
                     config.contentRegexFilters.forEach(messagePlaceholders::replaceAll);

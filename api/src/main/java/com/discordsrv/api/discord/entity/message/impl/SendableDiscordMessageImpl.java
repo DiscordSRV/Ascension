@@ -371,7 +371,7 @@ public class SendableDiscordMessageImpl implements SendableDiscordMessage {
             DiscordSRV discordSRV = DiscordSRV.get();
             this.replacements.put(
                     PlaceholderService.PATTERN,
-                    wrapFunction(matcher -> discordSRV.placeholderService().getResultAsCharSequence(matcher, context))
+                    wrapFunction(matcher -> discordSRV.placeholderService().convertReplacementToCharSequence(matcher, context))
             );
             this.placeholderServiceApplied = true;
             return this;
