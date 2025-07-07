@@ -28,6 +28,7 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.Arrays;
 import java.util.LinkedHashSet;
+import java.util.Objects;
 import java.util.Set;
 
 public class PlaceholderLookupResult {
@@ -57,15 +58,15 @@ public class PlaceholderLookupResult {
     private final Throwable error;
     private final Set<Object> context;
 
-    protected PlaceholderLookupResult(Type type) {
-        this.type = type;
+    protected PlaceholderLookupResult(@NotNull Type type) {
+        this.type = Objects.requireNonNull(type);
         this.placeholder = null;
         this.result = null;
         this.error = null;
         this.context = null;
     }
 
-    protected PlaceholderLookupResult(Object value) {
+    protected PlaceholderLookupResult(@Nullable Object value) {
         this.type = Type.SUCCESS;
         this.placeholder = null;
         this.result = value;
@@ -73,28 +74,28 @@ public class PlaceholderLookupResult {
         this.context = null;
     }
 
-    protected PlaceholderLookupResult(Throwable error) {
+    protected PlaceholderLookupResult(@NotNull Throwable error) {
         this.type = Type.LOOKUP_FAILED;
         this.placeholder = null;
         this.result = null;
-        this.error = error;
+        this.error = Objects.requireNonNull(error);
         this.context = null;
     }
 
-    protected PlaceholderLookupResult(String placeholder, Set<Object> context) {
+    protected PlaceholderLookupResult(@NotNull String placeholder, @NotNull Set<Object> context) {
         this.type = Type.NEW_LOOKUP;
-        this.placeholder = placeholder;
+        this.placeholder = Objects.requireNonNull(placeholder);
         this.result = null;
         this.error = null;
-        this.context = context;
+        this.context = Objects.requireNonNull(context);
     }
 
-    protected PlaceholderLookupResult(String placeholder, Object result, Set<Object> newContext) {
+    protected PlaceholderLookupResult(@NotNull String placeholder, @NotNull Object result, @NotNull Set<Object> newContext) {
         this.type = Type.RE_LOOKUP;
-        this.placeholder = placeholder;
-        this.result = result;
+        this.placeholder = Objects.requireNonNull(placeholder);
+        this.result = Objects.requireNonNull(result);
         this.error = null;
-        this.context = newContext;
+        this.context = Objects.requireNonNull(newContext);
     }
 
     public Type getType() {
