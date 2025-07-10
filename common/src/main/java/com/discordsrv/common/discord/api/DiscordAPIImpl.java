@@ -29,6 +29,7 @@ import com.discordsrv.api.discord.entity.interaction.command.CommandType;
 import com.discordsrv.api.discord.entity.interaction.command.DiscordCommand;
 import com.discordsrv.api.discord.exception.NotReadyException;
 import com.discordsrv.api.discord.exception.RestErrorResponseException;
+import com.discordsrv.api.eventbus.Subscribe;
 import com.discordsrv.api.task.Task;
 import com.discordsrv.common.DiscordSRV;
 import com.discordsrv.common.config.main.channels.base.BaseChannelConfig;
@@ -52,6 +53,7 @@ import net.dv8tion.jda.api.entities.channel.concrete.*;
 import net.dv8tion.jda.api.entities.channel.middleman.GuildChannel;
 import net.dv8tion.jda.api.entities.channel.middleman.MessageChannel;
 import net.dv8tion.jda.api.entities.emoji.CustomEmoji;
+import net.dv8tion.jda.api.events.session.ShutdownEvent;
 import net.dv8tion.jda.api.exceptions.ErrorResponseException;
 import net.dv8tion.jda.api.requests.ErrorResponse;
 import net.dv8tion.jda.api.requests.RestAction;
@@ -78,6 +80,8 @@ public class DiscordAPIImpl implements DiscordAPI {
         this.cachedClients = discordSRV.caffeineBuilder()
                 .expireAfter(new WebhookCacheExpiry())
                 .buildAsync(new WebhookCacheLoader());
+
+        discordSRV.eventBus().subscribe(this);
     }
 
     public Task<WebhookClient<Message>> queryWebhookClient(long channelId) {
@@ -350,6 +354,14 @@ public class DiscordAPIImpl implements DiscordAPI {
 
     public DiscordCommandRegistry commandRegistry() {
         return commandRegistry;
+    }
+
+    @Subscribe
+    public void onJDAShutdown(ShutdownEvent event) {
+        // Clear cache of clients
+        for (Long key : cachedClients.asMap().keySet()) {
+            cachedClients.synchronous().invalidate(key);
+        }
     }
 
     private class WebhookCacheLoader implements AsyncCacheLoader<Long, WebhookClient<Message>> {
