@@ -25,11 +25,10 @@ import com.discordsrv.common.core.logging.NamedLogger;
 import com.discordsrv.common.util.ComponentUtil;
 import com.discordsrv.fabric.FabricDiscordSRV;
 import com.discordsrv.fabric.module.AbstractFabricModule;
-import net.kyori.adventure.text.Component;
 import net.minecraft.advancement.Advancement;
 import net.minecraft.advancement.AdvancementDisplay;
-import net.minecraft.advancement.AdvancementEntry;
 import net.minecraft.advancement.AdvancementFrame;
+import net.minecraft.text.Text;
 import net.minecraft.server.network.ServerPlayerEntity;
 
 public class FabricAdvancementModule extends AbstractFabricModule {
@@ -59,15 +58,16 @@ public class FabricAdvancementModule extends AbstractFabricModule {
         //?}
 
         if (display == null || !display.shouldAnnounceToChat()) {
-            instance.logger().trace("Skipping advancement display of \"" + (advancement.name().isPresent() ? advancement.name().get() : advancement) + "\" for "
+            instance.logger().trace("Skipping advancement display of \"" + (advancement) + "\" for "
                     + owner + ": advancement display == null or does not broadcast to chat");
             return;
         }
 
         AdvancementFrame frame = display.getFrame();
-        Object rawChat = frame.getChatAnnouncementText(advancementEntry, owner);
-        Object rawTitle = display.getTitle();
-        Object rawDesc  = display.getDescription();
+
+        Text rawChat = Text.translatable("chat.type.advancement." + frame.getId(), owner.getDisplayName(), display.getTitle());
+        Text rawTitle = display.getTitle();
+        Text rawDesc  = display.getDescription();
 
         MinecraftComponent message, title, description;
         //? if adventure: <6 {

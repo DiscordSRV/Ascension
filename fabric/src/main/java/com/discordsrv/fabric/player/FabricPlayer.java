@@ -27,7 +27,6 @@ import com.discordsrv.fabric.FabricDiscordSRV;
 import com.discordsrv.fabric.command.game.sender.FabricCommandSender;
 import net.kyori.adventure.identity.Identity;
 import net.kyori.adventure.text.Component;
-import net.minecraft.network.packet.s2c.play.ChatSuggestionsS2CPacket;
 import net.minecraft.scoreboard.Team;
 import net.minecraft.server.network.ServerPlayerEntity;
 import org.jetbrains.annotations.NotNull;
@@ -77,7 +76,11 @@ public class FabricPlayer extends FabricCommandSender implements IPlayer {
 
     @Override
     public Task<Void> kick(Component component) {
-        player.networkHandler.disconnect(discordSRV.getAdventure().asNative(component));
+        //? if adventure: <6 {
+        player.networkHandler.disconnect(discordSRV.getAdventure().toNative(component));
+        //?} else {
+        /*player.networkHandler.disconnect(discordSRV.getAdventure().asNative(component));
+         *///?}
         return Task.completed(null);
     }
 
@@ -106,13 +109,13 @@ public class FabricPlayer extends FabricCommandSender implements IPlayer {
         /*textures = Textures.getFromBase64(discordSRV, player.getGameProfile().getProperties().get(Textures.KEY).iterator().next().getValue());
         *///?}
 
-        if (!textures.equals(MinecraftProfileTextures.EMPTY) && textures.skin() != null) {
-            String model = textures.skin().getMetadata("model");
-            if (model == null) model = "classic";
-
-            int playerModelParts = player.getClientOptions().playerModelParts();
-            return new SkinInfo(textures.skin().getHash(), model, new SkinInfo.Parts(playerModelParts));
-        }
+//        if (!textures.equals(MinecraftProfileTextures.EMPTY) && textures.skin() != null) {
+//            String model = textures.skin().getMetadata("model");
+//            if (model == null) model = "classic";
+//
+//            int playerModelParts = player.getClientOptions().playerModelParts();
+//            return new SkinInfo(textures.skin().getHash(), model, new SkinInfo.Parts(playerModelParts));
+//        }
         return null;
     }
 
@@ -125,12 +128,17 @@ public class FabricPlayer extends FabricCommandSender implements IPlayer {
         *///?}
     }
 
+    @SuppressWarnings("removal")
     @Override
     public @NotNull Component displayName() {
         //? if adventure: >=5.3.0 {
         return player.getOrDefaultFrom(
                 Identity.DISPLAY_NAME,
+                //? if adventure: <6 {
+                () -> discordSRV.getAdventure().toAdventure(player.getName())
+                //?} else {
                 () -> discordSRV.getAdventure().asAdventure(player.getName())
+                //?}
         );
         //?} else {
         /*return Component.text(player.getName().getString());
@@ -140,12 +148,16 @@ public class FabricPlayer extends FabricCommandSender implements IPlayer {
 
     @Override
     public @NotNull Component teamDisplayName() {
-        Team team = player.getScoreboardTeam();
+        Team team = (Team) player.getScoreboardTeam();
         if (team == null) {
             return IPlayer.super.teamDisplayName();
         }
 
-        return discordSRV.getAdventure().asAdventure(team.decorateName(player.getName()));
+        //? if adventure: <6 {
+        return discordSRV.getAdventure().toAdventure(team.decorateName(player.getName()));
+        //?} else {
+        /*return discordSRV.getAdventure().asAdventure(team.decorateName(player.getName()));
+        *///?}
     }
 
     @Override

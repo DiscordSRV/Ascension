@@ -45,11 +45,13 @@ public class PlayerManagerMixin {
             cancellable = true
     )
     private void onSendChatMessage(Text message, net.minecraft.network.MessageType type, UUID senderUuid, CallbackInfo ci) {
-        if (!(FabricRequiredLinkingModule.allowChatMessage(senderUuid))) {
-            ci.cancel();
-        } else {
-            FabricChatModule.onChatMessage(message, senderUuid);
-        }
+        FabricRequiredLinkingModule.withInstance(module -> {
+            if (!module.allowChatMessage(senderUuid)) {
+                ci.cancel();
+            } else {
+//                FabricChatModule.onChatMessage(message, senderUuid);
+            }
+        });
     }
     *///?} else if minecraft: <1.19.2 {
     /*@Inject(
@@ -58,17 +60,20 @@ public class PlayerManagerMixin {
             cancellable = true
     )
     private void onSendChatMessage(net.minecraft.network.message.SignedMessage message, Function<ServerPlayerEntity, net.minecraft.network.message.SignedMessage> playerMessageFactory, net.minecraft.network.message.MessageSender sender, net.minecraft.util.registry.RegistryKey<net.minecraft.network.message.MessageType> typeKey, CallbackInfo ci) {
-        if (!(FabricRequiredLinkingModule.allowChatMessage(sender.uuid()))) {
-            ci.cancel();
-        } else {
-            FabricChatModule.onChatMessage(message.getContent(), sender.uuid());
-        }
+        FabricRequiredLinkingModule.withInstance(module -> {
+            if (!module.allowChatMessage(sender.uuid())) {
+                ci.cancel();
+            } else {
+                FabricChatModule.onChatMessage(message.getContent(), sender.uuid());
+            }
+        });
     }
     *///?} else if minecraft: >=1.19.2 {
     // Use fabric message api
     static {
-        net.fabricmc.fabric.api.message.v1.ServerMessageEvents.ALLOW_CHAT_MESSAGE.register((message, player, type) -> FabricRequiredLinkingModule.allowChatMessage(player.getUuid()));
+        FabricRequiredLinkingModule.withInstance(module -> net.fabricmc.fabric.api.message.v1.ServerMessageEvents.ALLOW_CHAT_MESSAGE.register((message, player, type) -> module.allowChatMessage(player.getUuid())));
         net.fabricmc.fabric.api.message.v1.ServerMessageEvents.CHAT_MESSAGE.register((message, player, type) -> FabricChatModule.onChatMessage(message.getContent(), player.getUuid()));
+    // use FabricRequiredLinkingModule.withInstance instead of static registration
     }
     //?}
 }

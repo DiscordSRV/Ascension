@@ -124,7 +124,6 @@ subprojects {
     }
     clean.dependsOn deleteJarsDir
 
-    defaultTasks 'build'
     jar {
         duplicatesStrategy = DuplicatesStrategy.INCLUDE
 

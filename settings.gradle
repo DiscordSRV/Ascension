@@ -8,12 +8,13 @@ pluginManagement {
 }
 
 plugins {
-    id("dev.kikugie.stonecutter") version "0.5.1"
+    id("dev.kikugie.stonecutter") version "0.7"
 }
 
 stonecutter {
+    kotlinController = false
     create("fabric") {
-        versions /*"1.16.4",*/ "1.17.1", "1.18.1", "1.18.2", "1.19", "1.19.2", "1.19.3", "1.19.4", "1.20.1", "1.20.2", "1.20.4", "1.20.6", "1.21.1", "1.21.4"
+        versions /*"1.16.4", "1.17.1", "1.18.1", "1.18.2",*/ "1.19", "1.19.2", "1.19.3", "1.19.4", "1.20.1", "1.20.2", "1.20.4", "1.20.6", "1.21.1", "1.21.4"
         vcsVersion = "1.21.4"
     }
 }
@@ -52,7 +53,7 @@ dependencyResolutionManagement {
             library('velocity', 'com.velocitypowered', 'velocity-api').version('3.4.0-SNAPSHOT')
 
             // Fabric
-            version('fabric-loom', '1.10-SNAPSHOT')
+            version('fabric-loom', '1.11-SNAPSHOT')
             plugin('fabric-loom', 'fabric-loom').versionRef('fabric-loom')
             library('fabric-permissions-api', 'me.lucko', 'fabric-permissions-api').version('0.3.3')
 
@@ -132,7 +133,6 @@ dependencyResolutionManagement {
             library('mcmmo', 'com.gmail.nossr50', 'mcmmo').version('2.1.220')
             library('griefprevention', 'me.ryanhamshire', 'GriefPrevention').version('16.18.1')
             library('essentialsx', 'net.essentialsx', 'EssentialsX').version('2.20.1')
-            library('textplaceholder-fabric', 'eu.pb4', 'placeholder-api').version('2.5.2+1.21.3')
 
             // Logging
             library('slf4j-api', 'org.slf4j', 'slf4j-api').version {

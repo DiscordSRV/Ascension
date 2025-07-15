@@ -30,15 +30,18 @@ import java.util.UUID;
 
 public class FabricChatModule extends AbstractFabricModule {
 
+    private static FabricChatModule instance;
     private final FabricDiscordSRV discordSRV;
 
     public FabricChatModule(FabricDiscordSRV discordSRV) {
         super(discordSRV);
         this.discordSRV = discordSRV;
+        instance = this;
     }
 
     public static void onChatMessage(Text text, UUID uuid) {
-        if (!enabled) return;
+        if (instance == null || !instance.enabled) return;
+        FabricDiscordSRV discordSRV = instance.discordSRV;
 
         //? if adventure: <6 {
         /*@SuppressWarnings("removal")
@@ -48,7 +51,7 @@ public class FabricChatModule extends AbstractFabricModule {
          //?}
         discordSRV.eventBus().publish(new GameChatMessagePreProcessEvent(
                 null,
-                discordSRV.playerProvider().player(serverPlayerEntity),
+                discordSRV.playerProvider().player(uuid),
                 ComponentUtil.toAPI(component),
                 new GlobalChannel(discordSRV),
                 false

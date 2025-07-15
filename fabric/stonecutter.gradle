@@ -1,15 +1,16 @@
 plugins.apply "dev.kikugie.stonecutter"
 stonecutter.active "1.21.4" /* [SC] DO NOT EDIT */
 
-stonecutter.registerChiseled tasks.register("buildAll", stonecutter.chiseled) {
-    setGroup "stonecutter-build"
-    ofTask "build"
+tasks.register("build-fabric-all") {
+    group = "stonecutter-build"
+    dependsOn stonecutter.tasks.named("build", { true }) // Select all "build" tasks
 }
 
 for (ver in stonecutter.versions) {
-    stonecutter.registerChiseled tasks.register("build-fabric-${ver.project}", stonecutter.chiseled) {
-        versions { br, ite -> ite == ver }
-        setGroup("stonecutter-build")
-        ofTask("build")
+    tasks.register("build-fabric-${ver.project}") {
+        group = "stonecutter-build"
+        dependsOn stonecutter.tasks.named("build", {
+            it.metadata.project == ver.project
+        })
     }
 }

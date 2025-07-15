@@ -69,10 +69,14 @@ public class FabricRequiredLinkingModule extends ServerRequireLinkingModule<Fabr
         super(discordSRV);
         INSTANCE = this;
 
-        ServerMessageEvents.ALLOW_CHAT_MESSAGE.register(this::allowChatMessage);
-        ServerConfigurationConnectionEvents.CONFIGURE.register(this::onPlayerPreLogin);
         ServerPlayConnectionEvents.JOIN.register(this::onPlayerJoin);
         ServerPlayConnectionEvents.DISCONNECT.register(this::onPlayerQuit);
+
+        //? if minecraft: >=1.20.2 {
+        net.fabricmc.fabric.api.networking.v1.ServerConfigurationConnectionEvents.CONFIGURE.register(this::onPlayerPreLogin);
+        //?} else {
+        /*ServerPlayConnectionEvents.INIT.register(this::onPlayerPreLogin);
+         *///?}
     }
 
     @Override
@@ -167,7 +171,7 @@ public class FabricRequiredLinkingModule extends ServerRequireLinkingModule<Fabr
     //? if minecraft: <1.19.2 {
     public void onCommandExecute(ServerCommandSource source, String command, CallbackInfo ci) {
         if (source.getEntity() instanceof ServerPlayerEntity) {
-            ServerPlayerEntity playerEntity = source.getEntity();
+            ServerPlayerEntity playerEntity = (ServerPlayerEntity) source.getEntity();
 
             IPlayer srvPlayer = discordSRV.playerProvider().player(playerEntity);
             INSTANCE.checkCommand(srvPlayer, command, () -> INSTANCE.getBlockReason(playerEntity.getGameProfile(), false));
@@ -215,16 +219,16 @@ public class FabricRequiredLinkingModule extends ServerRequireLinkingModule<Fabr
         }
     }
 
-    private boolean allowChatMessage(UUID uuid) {
+    public boolean allowChatMessage(UUID uuid) {
         if (!enabled) return true;
 
         // True if the message should be sent
-        Component freezeReason = instance.frozen.get(uuid);
+        Component freezeReason = frozen.get(uuid);
         if (freezeReason == null) {
             return true;
         }
 
-        IPlayer iPlayer = instance.discordSRV.playerProvider().player(uuid);
+        IPlayer iPlayer = discordSRV.playerProvider().player(uuid);
         iPlayer.sendMessage(freezeReason);
         return false;
     }
@@ -234,6 +238,8 @@ public class FabricRequiredLinkingModule extends ServerRequireLinkingModule<Fabr
         if (!enabled) return;
 
         UUID playerUUID = handler.getPlayer().getUuid();
+        GameProfile gameProfile = handler.getPlayer().getGameProfile();
+
         loginsHandled.put(playerUUID, handleFreezeLogin(playerUUID, () -> getBlockReason(gameProfile, false).join()));
     }
     *///?}
@@ -243,6 +249,8 @@ public class FabricRequiredLinkingModule extends ServerRequireLinkingModule<Fabr
         if (!enabled) return;
 
         UUID playerUUID = handler.getDebugProfile().getId();
+        GameProfile gameProfile = handler.getPlayer().getGameProfile();
+
         loginsHandled.put(playerUUID, handleFreezeLogin(playerUUID, () -> getBlockReason(gameProfile, false).join()));
     }
     //?}
