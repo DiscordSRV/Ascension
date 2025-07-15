@@ -28,7 +28,6 @@ import com.discordsrv.api.placeholder.annotation.Placeholder;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.Locale;
 import java.util.UUID;
 
 /**
@@ -49,15 +48,21 @@ public interface DiscordSRVPlayer {
      * @return the player's unique id
      */
     @NotNull
-    @Placeholder(value = "uuid", relookup = "uuid")
+    @Placeholder("uuid")
     UUID uniqueId();
 
     /**
-     * Gets the locale of the player.
-     * @return the player's locale, or {@code null} if it isn't known
+     * The world the player is currently in.
+     * @return the player's world, or {@code null} if it isn't known
      */
     @Nullable
-    Locale locale();
+    String world();
+
+    /**
+     * If the player is not visible to other players.
+     * @return {@code true} if the player is vanished
+     */
+    boolean isVanished();
 
     /**
      * Sends the provided message to the player.

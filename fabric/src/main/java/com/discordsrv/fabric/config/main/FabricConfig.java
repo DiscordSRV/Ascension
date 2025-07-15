@@ -26,12 +26,10 @@ import com.discordsrv.common.config.main.channels.base.server.ServerBaseChannelC
 import com.discordsrv.common.config.main.channels.base.server.ServerChannelConfig;
 import com.discordsrv.common.config.main.linking.ServerRequiredLinkingConfig;
 import org.spongepowered.configurate.objectmapping.ConfigSerializable;
+import org.spongepowered.configurate.objectmapping.meta.Comment;
 
 @ConfigSerializable
 public class FabricConfig extends MainConfig {
-
-    @Order(5)
-    public ServerRequiredLinkingConfig requiredLinking = new ServerRequiredLinkingConfig();
 
     @Override
     public BaseChannelConfig createDefaultBaseChannel() {
@@ -42,6 +40,10 @@ public class FabricConfig extends MainConfig {
     public BaseChannelConfig createDefaultChannel() {
         return new ServerChannelConfig();
     }
+
+    @Comment("Options for requiring players to link (and optionally meet other requirements) before being able to play")
+    @Order(410)
+    public ServerRequiredLinkingConfig requiredLinking = new ServerRequiredLinkingConfig();
 
     @Override
     public PresenceUpdaterConfig defaultPresenceUpdater() {

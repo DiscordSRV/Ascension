@@ -18,7 +18,6 @@
 
 package com.discordsrv.common.util;
 
-import com.discordsrv.api.DiscordSRVApi;
 import com.discordsrv.common.DiscordSRV;
 import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
@@ -35,8 +34,8 @@ public final class ApiInstanceUtil {
     public static void setInstance(@NotNull DiscordSRV discordSRV) {
         // Avoids illegal access
         try {
-            Class<?> apiProviderClass = Class.forName("com.discordsrv.api.DiscordSRVApi$InstanceHolder");
-            Method provideMethod = apiProviderClass.getDeclaredMethod("provide", DiscordSRVApi.class);
+            Class<?> apiProviderClass = Class.forName("com.discordsrv.api.DiscordSRV$InstanceHolder");
+            Method provideMethod = apiProviderClass.getDeclaredMethod("provide", com.discordsrv.api.DiscordSRV.class);
             provideMethod.setAccessible(true);
             provideMethod.invoke(null, discordSRV);
         } catch (ClassNotFoundException | IllegalAccessException | NoSuchMethodException | InvocationTargetException e) {

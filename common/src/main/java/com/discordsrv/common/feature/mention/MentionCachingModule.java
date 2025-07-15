@@ -20,16 +20,17 @@ package com.discordsrv.common.feature.mention;
 
 import com.discordsrv.api.discord.connection.details.DiscordGatewayIntent;
 import com.discordsrv.api.eventbus.Subscribe;
+import com.discordsrv.api.task.Task;
 import com.discordsrv.common.DiscordSRV;
 import com.discordsrv.common.abstraction.player.IPlayer;
 import com.discordsrv.common.config.main.channels.MinecraftToDiscordChatConfig;
 import com.discordsrv.common.config.main.channels.base.BaseChannelConfig;
 import com.discordsrv.common.core.module.type.AbstractModule;
 import com.discordsrv.common.permission.game.Permissions;
-import com.discordsrv.common.util.CompletableFutureUtil;
 import com.github.benmanes.caffeine.cache.Cache;
 import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.entities.Member;
+import net.dv8tion.jda.api.entities.Message;
 import net.dv8tion.jda.api.entities.Role;
 import net.dv8tion.jda.api.entities.channel.concrete.Category;
 import net.dv8tion.jda.api.entities.channel.middleman.GuildChannel;
@@ -48,8 +49,8 @@ import org.jetbrains.annotations.NotNull;
 
 import java.time.Duration;
 import java.util.*;
-import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.function.Supplier;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
@@ -96,18 +97,91 @@ public class MentionCachingModule extends AbstractModule<DiscordSRV> {
         channelMentions.clear();
     }
 
-    public CompletableFuture<List<CachedMention>> lookup(
+    private boolean canLookupUncached(MinecraftToDiscordChatConfig.Mentions config, IPlayer player) {
+        return config.uncachedUsers && player.hasPermission(Permissions.MENTION_USER_LOOKUP);
+    }
+
+    public Task<List<CachedMention>> lookup(
+            MinecraftToDiscordChatConfig.Mentions config,
+            Guild guild,
+            IPlayer player,
+            List<Pair<Message.MentionType, String>> preResolvedMentions
+    ) {
+        List<Long> userIds = new ArrayList<>();
+        List<Long> roleIds = new ArrayList<>();
+        List<Long> channelIds = new ArrayList<>();
+        for (Pair<Message.MentionType, String> mention : preResolvedMentions) {
+            Message.MentionType mentionType = mention.getKey();
+            try {
+                switch (mentionType) {
+                    case USER: {
+                        userIds.add(Long.parseLong(mention.getValue()));
+                        break;
+                    }
+                    case ROLE: {
+                        roleIds.add(Long.parseLong(mention.getValue()));
+                        break;
+                    }
+                    case CHANNEL: {
+                        channelIds.add(Long.parseLong(mention.getValue()));
+                        break;
+                    }
+                    default: {
+                        break;
+                    }
+                }
+            } catch (NumberFormatException ignored) {}
+        }
+
+        List<CachedMention> cachedMentions = new ArrayList<>();
+        addAllIds(cachedMentions, () -> getChannelMentions(guild), channelIds);
+        addAllIds(cachedMentions, () -> getRoleMentions(guild), roleIds);
+
+        List<Task<CachedMention>> futures = new ArrayList<>();
+        if (canLookupUncached(config, player)) {
+            for (Long userId : userIds) {
+                futures.add(discordSRV.discordAPI().toTask(guild.retrieveMemberById(userId)).thenApply(this::getMemberMention));
+            }
+        } else {
+            for (Long userId : userIds) {
+                Member member = guild.getMemberById(userId);
+                if (member != null) {
+                    cachedMentions.add(getMemberMention(member));
+                }
+            }
+        }
+
+        return Task.allOf(futures).thenApply(userMentions -> {
+            cachedMentions.addAll(userMentions);
+            return cachedMentions;
+        });
+    }
+
+    private void addAllIds(List<CachedMention> cachedMentions, Supplier<Map<Long, CachedMention>> mentionsSupplier, List<Long> ids) {
+        if (ids.isEmpty()) {
+            return;
+        }
+        Map<Long, CachedMention> data = mentionsSupplier.get();
+        for (Long id : ids) {
+            CachedMention mention = data.get(id);
+            if (mention != null) {
+                cachedMentions.add(mention);
+            }
+        }
+    }
+
+    public Task<List<CachedMention>> lookup(
             MinecraftToDiscordChatConfig.Mentions config,
             Guild guild,
             IPlayer player,
             String messageContent,
             Set<Member> lookedUpMembers
     ) {
-        List<CompletableFuture<List<CachedMention>>> futures = new ArrayList<>();
+        List<Task<List<CachedMention>>> futures = new ArrayList<>();
         List<CachedMention> mentions = new ArrayList<>();
 
         if (config.users) {
-            boolean uncached = config.uncachedUsers && player.hasPermission(Permissions.MENTION_USER_LOOKUP);
+            boolean uncached = canLookupUncached(config, player);
 
             Matcher matcher = USER_MENTION_PATTERN.matcher(messageContent);
             while (matcher.find()) {
@@ -137,7 +211,7 @@ public class MentionCachingModule extends AbstractModule<DiscordSRV> {
             mentions.addAll(getChannelMentions(guild).values());
         }
 
-        return CompletableFutureUtil.combine(futures).thenApply(lists -> {
+        return Task.allOf(futures).thenApply(lists -> {
             lists.forEach(mentions::addAll);
 
             // From longest to shortest
@@ -159,12 +233,12 @@ public class MentionCachingModule extends AbstractModule<DiscordSRV> {
     // Member
     //
 
-    private CompletableFuture<List<CachedMention>> lookupMemberMentions(
+    private Task<List<CachedMention>> lookupMemberMentions(
             Guild guild,
             String username,
             Set<Member> lookedUpMembers
     ) {
-        CompletableFuture<List<Member>> memberFuture = new CompletableFuture<>();
+        Task<List<Member>> memberFuture = new Task<>();
         guild.retrieveMembersByPrefix(username, 100)
                 .onSuccess(memberFuture::complete).onError(memberFuture::completeExceptionally);
 
@@ -197,7 +271,8 @@ public class MentionCachingModule extends AbstractModule<DiscordSRV> {
                 "@" + member.getUser().getName(),
                 member.getAsMention(),
                 CachedMention.Type.USER,
-                member.getIdLong()
+                member.getIdLong(),
+                false
         );
     }
 
@@ -252,7 +327,8 @@ public class MentionCachingModule extends AbstractModule<DiscordSRV> {
                 "@" + role.getName(),
                 role.getAsMention(),
                 CachedMention.Type.ROLE,
-                role.getIdLong()
+                role.getIdLong(),
+                role.isMentionable()
         );
     }
 
@@ -298,7 +374,8 @@ public class MentionCachingModule extends AbstractModule<DiscordSRV> {
                 "#" + channel.getName(),
                 channel.getAsMention(),
                 CachedMention.Type.CHANNEL,
-                channel.getIdLong()
+                channel.getIdLong(),
+                false
         );
     }
 

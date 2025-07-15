@@ -19,7 +19,7 @@
 package com.discordsrv.bukkit.listener;
 
 import com.discordsrv.api.component.MinecraftComponent;
-import com.discordsrv.api.events.message.receive.game.GameChatMessageReceiveEvent;
+import com.discordsrv.api.events.message.preprocess.game.GameChatMessagePreProcessEvent;
 import com.discordsrv.bukkit.BukkitDiscordSRV;
 import com.discordsrv.bukkit.component.PaperComponentHandle;
 import com.discordsrv.bukkit.debug.EventObserver;
@@ -52,7 +52,7 @@ public class PaperChatListener extends AbstractBukkitListener<AsyncChatEvent> {
 
         IPlayer player = discordSRV.playerProvider().player(event.getPlayer());
         discordSRV.eventBus().publish(
-                new GameChatMessageReceiveEvent(
+                new GameChatMessagePreProcessEvent(
                         event,
                         player,
                         component,

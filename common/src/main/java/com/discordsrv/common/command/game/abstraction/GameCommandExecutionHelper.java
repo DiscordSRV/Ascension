@@ -18,12 +18,13 @@
 
 package com.discordsrv.common.command.game.abstraction;
 
+import com.discordsrv.api.task.Task;
+
 import java.util.List;
-import java.util.concurrent.CompletableFuture;
 
 public interface GameCommandExecutionHelper {
 
-    CompletableFuture<List<String>> suggestCommands(List<String> parts);
+    Task<List<String>> suggestCommands(List<String> parts);
     List<String> getAliases(String command);
     boolean isSameCommand(String command1, String command2);
 

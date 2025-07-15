@@ -20,25 +20,27 @@ package com.discordsrv.common.feature.bansync;
 
 import com.discordsrv.api.component.MinecraftComponent;
 import com.discordsrv.api.discord.connection.details.DiscordGatewayIntent;
+import com.discordsrv.api.discord.entity.guild.DiscordGuild;
 import com.discordsrv.api.eventbus.Subscribe;
-import com.discordsrv.api.events.linking.AccountLinkedEvent;
 import com.discordsrv.api.module.type.PunishmentModule;
 import com.discordsrv.api.punishment.Punishment;
+import com.discordsrv.api.task.Task;
 import com.discordsrv.common.DiscordSRV;
 import com.discordsrv.common.abstraction.player.IPlayer;
 import com.discordsrv.common.abstraction.sync.AbstractSyncModule;
 import com.discordsrv.common.abstraction.sync.SyncFail;
 import com.discordsrv.common.abstraction.sync.cause.GenericSyncCauses;
 import com.discordsrv.common.abstraction.sync.enums.SyncDirection;
+import com.discordsrv.common.abstraction.sync.result.DiscordPermissionResult;
 import com.discordsrv.common.abstraction.sync.result.GenericSyncResults;
 import com.discordsrv.common.abstraction.sync.result.ISyncResult;
-import com.discordsrv.common.config.main.BanSyncConfig;
+import com.discordsrv.common.config.main.sync.BanSyncConfig;
 import com.discordsrv.common.feature.bansync.enums.BanSyncCause;
 import com.discordsrv.common.feature.bansync.enums.BanSyncResult;
 import com.discordsrv.common.helper.Someone;
-import com.discordsrv.common.util.CompletableFutureUtil;
 import com.discordsrv.common.util.ComponentUtil;
-import net.dv8tion.jda.api.JDA;
+import com.discordsrv.common.util.Game;
+import net.dv8tion.jda.api.Permission;
 import net.dv8tion.jda.api.audit.ActionType;
 import net.dv8tion.jda.api.audit.AuditLogEntry;
 import net.dv8tion.jda.api.entities.Guild;
@@ -55,12 +57,11 @@ import org.jetbrains.annotations.Nullable;
 
 import java.time.Duration;
 import java.util.*;
-import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 
-public class BanSyncModule extends AbstractSyncModule<DiscordSRV, BanSyncConfig, BanSyncModule.Game, Long, Punishment> {
+public class BanSyncModule extends AbstractSyncModule<DiscordSRV, BanSyncConfig, Game, Long, Punishment> {
 
     private final Map<Long, PunishmentEvent> events = new ConcurrentHashMap<>();
 
@@ -74,12 +75,12 @@ public class BanSyncModule extends AbstractSyncModule<DiscordSRV, BanSyncConfig,
     }
 
     public void notifyBanned(IPlayer player, @Nullable Punishment punishment) {
-        gameChanged(BanSyncCause.PLAYER_BANNED, Someone.of(player.uniqueId()), Game.INSTANCE, punishment);
+        gameChanged(BanSyncCause.PLAYER_BANNED, Someone.of(discordSRV, player.uniqueId()), Game.INSTANCE, punishment);
     }
 
     @Override
     public String syncName() {
-        return "Ban sync";
+        return "Ban Sync";
     }
 
     @Override
@@ -107,6 +108,11 @@ public class BanSyncModule extends AbstractSyncModule<DiscordSRV, BanSyncConfig,
         boolean oneActive = one != null;
         boolean twoActive = two != null;
         return (oneActive == twoActive) ? GenericSyncResults.both(oneActive) : null;
+    }
+
+    @Override
+    public Punishment getRemovedState() {
+        return null;
     }
 
     private PunishmentEvent upsertEvent(long guildId, long userId, boolean newState) {
@@ -139,7 +145,7 @@ public class BanSyncModule extends AbstractSyncModule<DiscordSRV, BanSyncConfig,
             }
             discordChanged(
                     GenericSyncCauses.LINK,
-                    Someone.of(userId),
+                    Someone.of(discordSRV, userId),
                     guildId,
                     punishment
             );
@@ -181,7 +187,6 @@ public class BanSyncModule extends AbstractSyncModule<DiscordSRV, BanSyncConfig,
 
         MinecraftComponent punisherName = discordSRV.componentFactory().textBuilder(config.gamePunisherFormat)
                 .addContext(punisher, punisherMember)
-                .applyPlaceholderService()
                 .build();
 
         long bannedUserId = entry.getTargetIdLong();
@@ -198,37 +203,25 @@ public class BanSyncModule extends AbstractSyncModule<DiscordSRV, BanSyncConfig,
         }
     }
 
-    @Subscribe
-    public void onAccountLinked(AccountLinkedEvent event) {
-        BanSyncConfig config = discordSRV.config().banSync;
-        if (config.resyncUponLinking) {
-            resyncAll(GenericSyncCauses.LINK, Someone.of(event.getPlayerUUID(), event.getUserId()));
-        }
-    }
-
-    private CompletableFuture<Guild.@Nullable Ban> getBan(Guild guild, long userId) {
-        return guild.retrieveBan(UserSnowflake.fromId(userId)).submit().exceptionally(t -> {
-            if (t instanceof ErrorResponseException && ((ErrorResponseException) t).getErrorResponse() == ErrorResponse.UNKNOWN_BAN) {
-                return null;
-            }
-            throw (RuntimeException) t;
-        });
+    private Task<Guild.@Nullable Ban> getBan(Guild guild, long userId) {
+        return discordSRV.discordAPI().toTask(guild.retrieveBan(UserSnowflake.fromId(userId)))
+                .mapException(ErrorResponseException.class, t -> {
+                    if (t.getErrorResponse() == ErrorResponse.UNKNOWN_BAN) {
+                        return null;
+                    }
+                    throw t;
+                });
     }
 
     @Override
-    protected CompletableFuture<Punishment> getDiscord(BanSyncConfig config, long userId) {
-        JDA jda = discordSRV.jda();
-        if (jda == null) {
-            return CompletableFutureUtil.failed(new SyncFail(BanSyncResult.NO_DISCORD_CONNECTION));
-        }
-
-        Guild guild = jda.getGuildById(config.serverId);
+    protected Task<Punishment> getDiscord(BanSyncConfig config, Someone.Resolved someone) {
+        DiscordGuild guild = discordSRV.discordAPI().getGuildById(config.serverId);
         if (guild == null) {
             // Server doesn't exist
-            return CompletableFutureUtil.failed(new SyncFail(BanSyncResult.GUILD_DOESNT_EXIST));
+            return Task.failed(new SyncFail(BanSyncResult.GUILD_DOESNT_EXIST));
         }
 
-        return getBan(guild, userId).thenApply(this::punishment);
+        return getBan(guild.asJDA(), someone.userId()).thenApply(this::punishment);
     }
 
     private Punishment punishment(Guild.Ban ban) {
@@ -236,77 +229,77 @@ public class BanSyncModule extends AbstractSyncModule<DiscordSRV, BanSyncConfig,
     }
 
     @Override
-    protected CompletableFuture<Punishment> getGame(BanSyncConfig config, UUID playerUUID) {
+    protected Task<Punishment> getGame(BanSyncConfig config, Someone.Resolved someone) {
         PunishmentModule.Bans bans = discordSRV.getModule(PunishmentModule.Bans.class);
         if (bans == null) {
-            return CompletableFutureUtil.failed(new SyncFail(BanSyncResult.NO_PUNISHMENT_INTEGRATION));
+            return Task.failed(new SyncFail(BanSyncResult.NO_PUNISHMENT_INTEGRATION));
         }
 
-        return bans.getBan(playerUUID);
+        return bans.getBan(someone.playerUUID());
     }
 
     @Override
-    protected CompletableFuture<ISyncResult> applyDiscord(BanSyncConfig config, long userId, Punishment newState) {
+    protected Task<ISyncResult> applyDiscord(BanSyncConfig config, Someone.Resolved someone, Punishment newState) {
         if (config.direction == SyncDirection.DISCORD_TO_MINECRAFT) {
-            return CompletableFuture.completedFuture(GenericSyncResults.WRONG_DIRECTION);
+            return Task.completed(GenericSyncResults.WRONG_DIRECTION);
         }
 
-        JDA jda = discordSRV.jda();
-        if (jda == null) {
-            return CompletableFuture.completedFuture(BanSyncResult.NO_DISCORD_CONNECTION);
-        }
-
-        Guild guild = jda.getGuildById(config.serverId);
+        DiscordGuild guild = discordSRV.discordAPI().getGuildById(config.serverId);
         if (guild == null) {
-            // Server doesn't exist
-            return CompletableFuture.completedFuture(BanSyncResult.GUILD_DOESNT_EXIST);
+            return Task.completed(BanSyncResult.GUILD_DOESNT_EXIST);
         }
 
-        UserSnowflake snowflake = UserSnowflake.fromId(userId);
+        ISyncResult permissionFailResult = DiscordPermissionResult.check(guild.asJDA(), Collections.singleton(Permission.BAN_MEMBERS));
+        if (permissionFailResult != null) {
+            return Task.completed(permissionFailResult);
+        }
+
+        UserSnowflake snowflake = UserSnowflake.fromId(someone.userId());
         if (newState != null) {
-            return guild.ban(snowflake, config.discordMessageHoursToDelete, TimeUnit.HOURS)
-                    .reason(discordSRV.placeholderService().replacePlaceholders(config.discordBanReasonFormat, newState))
-                    .submit()
+            return discordSRV.discordAPI().toTask(
+                    guild.asJDA().ban(snowflake, config.discordMessageHoursToDelete, TimeUnit.HOURS)
+                            .reason(discordSRV.placeholderService().replacePlaceholders(config.discordBanReasonFormat, newState))
+                    )
                     .thenApply(v -> GenericSyncResults.ADD_DISCORD);
         } else {
-            return guild.unban(snowflake)
-                    .reason(discordSRV.placeholderService().replacePlaceholders(config.discordUnbanReasonFormat))
-                    .submit()
+            return discordSRV.discordAPI().toTask(
+                    guild.asJDA().unban(snowflake)
+                            .reason(discordSRV.placeholderService().replacePlaceholders(config.discordUnbanReasonFormat))
+                    )
                     .thenApply(v -> GenericSyncResults.REMOVE_DISCORD);
         }
     }
 
     @Override
-    protected CompletableFuture<ISyncResult> applyGame(BanSyncConfig config, UUID playerUUID, Punishment newState) {
+    protected Task<ISyncResult> applyGame(BanSyncConfig config, Someone.Resolved someone, Punishment newState) {
         if (config.direction == SyncDirection.MINECRAFT_TO_DISCORD) {
-            return CompletableFuture.completedFuture(GenericSyncResults.WRONG_DIRECTION);
+            return Task.completed(GenericSyncResults.WRONG_DIRECTION);
         }
 
         PunishmentModule.Bans bans = discordSRV.getModule(PunishmentModule.Bans.class);
         if (bans == null) {
-            return CompletableFuture.completedFuture(BanSyncResult.NO_PUNISHMENT_INTEGRATION);
+            return Task.completed(BanSyncResult.NO_PUNISHMENT_INTEGRATION);
         }
 
+        UUID playerUUID = someone.playerUUID();
         if (newState != null) {
             MinecraftComponent reason = discordSRV.componentFactory().textBuilder(config.gameBanReasonFormat)
                     .addContext(newState)
-                    .applyPlaceholderService()
                     .build();
             MinecraftComponent punisher = discordSRV.componentFactory().textBuilder(config.gamePunisherFormat)
                     .addContext(newState)
-                    .applyPlaceholderService()
                     .build();
+
             return bans.addBan(playerUUID, null, reason, punisher)
-                    .thenCompose(v -> {
+                    .then(v -> {
                         IPlayer player = discordSRV.playerProvider().player(playerUUID);
                         if (player == null) {
-                            return CompletableFuture.completedFuture(null);
+                            return Task.completed(null);
                         }
 
                         MinecraftComponent kickMessage = discordSRV.componentFactory()
                                 .textBuilder(config.gameKickReason)
                                 .addContext(newState)
-                                .applyPlaceholderService()
                                 .build();
 
                         return player.kick(ComponentUtil.fromAPI(kickMessage));
@@ -315,10 +308,6 @@ public class BanSyncModule extends AbstractSyncModule<DiscordSRV, BanSyncConfig,
         } else {
             return bans.removeBan(playerUUID).thenApply(v -> GenericSyncResults.REMOVE_GAME);
         }
-    }
-
-    public enum Game {
-        INSTANCE
     }
 
 }

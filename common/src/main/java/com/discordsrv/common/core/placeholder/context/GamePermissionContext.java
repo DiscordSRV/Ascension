@@ -21,13 +21,12 @@ package com.discordsrv.common.core.placeholder.context;
 import com.discordsrv.api.module.type.PermissionModule;
 import com.discordsrv.api.placeholder.annotation.Placeholder;
 import com.discordsrv.api.placeholder.format.FormattedText;
+import com.discordsrv.api.task.Task;
 import com.discordsrv.common.DiscordSRV;
 import com.discordsrv.common.abstraction.player.IOfflinePlayer;
 import net.kyori.adventure.text.Component;
 
 import java.util.UUID;
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ExecutionException;
 import java.util.function.Function;
 
 public class GamePermissionContext {
@@ -42,69 +41,72 @@ public class GamePermissionContext {
     }
 
     @Placeholder("player_prefix")
-    public Object getPrefix(IOfflinePlayer player) {
-        FormattedText meta = getMetaPrefix(player);
-        return meta != null ? meta : getPermissionPrefix(player);
+    public Task<?> getPrefix(IOfflinePlayer player) {
+        return getMetaPrefix(player)
+                .then(metaValue -> (Task<?>) (metaValue != null ? Task.completed(metaValue) : getPermissionPrefix(player)));
     }
 
     @Placeholder("player_suffix")
-    public Object getSuffix(IOfflinePlayer player) {
-        FormattedText meta = getMetaSuffix(player);
-        return meta != null ? meta : getPermissionSuffix(player);
+    public Task<?> getSuffix(IOfflinePlayer player) {
+        return getMetaSuffix(player)
+                .then(metaValue -> (Task<?>) (metaValue != null ? Task.completed(metaValue) : getPermissionSuffix(player)));
     }
 
-    private FormattedText getMeta(UUID uuid, String metaKey) {
+    @Placeholder("player_primary_group")
+    public Task<String> getPrimaryGroup(IOfflinePlayer player) {
+        PermissionModule.Groups permission = discordSRV.getModule(PermissionModule.Groups.class);
+        return permission != null ? permission.getPrimaryGroup(player.uniqueId()) : null;
+    }
+
+    private Task<FormattedText> getMeta(UUID uuid, String metaKey) {
         PermissionModule.Meta meta = discordSRV.getModule(PermissionModule.Meta.class);
         if (meta == null) {
-            return null;
+            return Task.completed(null);
         }
 
-        String data = meta.getMeta(uuid, metaKey).join();
-        return FormattedText.of(data);
+        return meta.getMeta(uuid, metaKey).thenApply(FormattedText::of);
     }
 
     @Placeholder("player_meta_prefix")
-    public FormattedText getMetaPrefix(IOfflinePlayer player) {
+    public Task<FormattedText> getMetaPrefix(IOfflinePlayer player) {
         return getMeta(player.uniqueId(), PREFIX_META_KEY);
     }
 
     @Placeholder("player_meta_suffix")
-    public FormattedText getMetaSuffix(IOfflinePlayer player) {
+    public Task<FormattedText> getMetaSuffix(IOfflinePlayer player) {
         return getMeta(player.uniqueId(), SUFFIX_META_KEY);
     }
 
-    private Component getPermissionMeta(
+    private Task<Component> getPermissionMeta(
             String what,
-            Function<PermissionModule.PrefixAndSuffix, CompletableFuture<String>> function
+            Function<PermissionModule.PrefixAndSuffix, Task<String>> function
     ) {
         PermissionModule.PrefixAndSuffix permission = discordSRV.getModule(PermissionModule.PrefixAndSuffix.class);
         if (permission == null) {
-            return null;
+            return Task.completed(null);
         }
 
-        String data = null;
-        try {
-            data = function.apply(permission).get();
-        } catch (InterruptedException ignored) {
-            Thread.currentThread().interrupt();
-        } catch (ExecutionException e) {
-            discordSRV.logger().debug("Failed to lookup " + what, e.getCause());
-        }
+        return function.apply(permission)
+                .mapException(Throwable.class, t -> {
+                    discordSRV.logger().debug("Failed to lookup " + what, t);
+                    return null;
+                })
+                .thenApply(data -> {
+                    if (data == null) {
+                        return null;
+                    }
 
-        if (data == null) {
-            return null;
-        }
-
-        return discordSRV.componentFactory().parse(data);
+                    return discordSRV.componentFactory().parse(data);
+                });
     }
 
     @Placeholder("player_permission_prefix")
-    public Component getPermissionPrefix(IOfflinePlayer player) {
+    public Task<Component> getPermissionPrefix(IOfflinePlayer player) {
         return getPermissionMeta("prefix", permissions -> permissions.getPrefix(player.uniqueId()));
     }
 
     @Placeholder("player_permission_suffix")
-    public Component getPermissionSuffix(IOfflinePlayer player) {
+    public Task<Component> getPermissionSuffix(IOfflinePlayer player) {
         return getPermissionMeta("suffix", permissions -> permissions.getSuffix(player.uniqueId()));
     }
 }

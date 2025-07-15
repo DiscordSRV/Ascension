@@ -22,6 +22,8 @@ import com.discordsrv.api.discord.entity.channel.DiscordGuildMessageChannel;
 import com.discordsrv.api.discord.entity.guild.DiscordGuild;
 import com.discordsrv.api.discord.entity.message.ReceivedDiscordMessage;
 import com.discordsrv.api.discord.entity.message.SendableDiscordMessage;
+import com.discordsrv.api.placeholder.format.FormattedText;
+import com.discordsrv.api.task.Task;
 import com.discordsrv.common.DiscordSRV;
 import com.discordsrv.common.discord.api.entity.message.ReceivedDiscordMessageImpl;
 import com.discordsrv.common.discord.api.entity.message.util.SendableDiscordMessageUtil;
@@ -39,8 +41,6 @@ import net.dv8tion.jda.api.utils.messages.MessageEditData;
 import net.dv8tion.jda.api.utils.messages.MessageEditRequest;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.concurrent.CompletableFuture;
-
 public abstract class AbstractDiscordGuildMessageChannel<T extends GuildMessageChannel>
         extends AbstractDiscordMessageChannel<T>
         implements DiscordGuildMessageChannel {
@@ -52,7 +52,7 @@ public abstract class AbstractDiscordGuildMessageChannel<T extends GuildMessageC
         this.guild = discordSRV.discordAPI().getGuild(channel.getGuild());
     }
 
-    public CompletableFuture<WebhookClient<Message>> queryWebhookClient() {
+    public Task<WebhookClient<Message>> queryWebhookClient() {
         return discordSRV.discordAPI().queryWebhookClient(getId());
     }
 
@@ -62,8 +62,8 @@ public abstract class AbstractDiscordGuildMessageChannel<T extends GuildMessageC
     }
 
     @Override
-    public String getAsMention() {
-        return channel.getAsMention();
+    public FormattedText getAsMention() {
+        return FormattedText.of(channel.getAsMention());
     }
 
     @Override
@@ -77,7 +77,7 @@ public abstract class AbstractDiscordGuildMessageChannel<T extends GuildMessageC
     }
 
     @Override
-    public @NotNull CompletableFuture<ReceivedDiscordMessage> sendMessage(@NotNull SendableDiscordMessage message) {
+    public @NotNull Task<ReceivedDiscordMessage> sendMessage(@NotNull SendableDiscordMessage message) {
         return sendInternal(message);
     }
 
@@ -86,10 +86,10 @@ public abstract class AbstractDiscordGuildMessageChannel<T extends GuildMessageC
     }
 
     @SuppressWarnings("unchecked") // Generics
-    private <R extends MessageCreateRequest<? extends MessageCreateRequest<?>> & RestAction<Message>> CompletableFuture<ReceivedDiscordMessage> sendInternal(SendableDiscordMessage message) {
+    private <R extends MessageCreateRequest<? extends MessageCreateRequest<?>> & RestAction<Message>> Task<ReceivedDiscordMessage> sendInternal(SendableDiscordMessage message) {
         MessageCreateData createData = SendableDiscordMessageUtil.toJDASend(message);
 
-        CompletableFuture<R> createRequest;
+        Task<R> createRequest;
         if (message.isWebhookMessage()) {
             createRequest = queryWebhookClient()
                     .thenApply(client -> (R) mapAction(client.sendMessage(createData))
@@ -103,16 +103,16 @@ public abstract class AbstractDiscordGuildMessageChannel<T extends GuildMessageC
             if (referencedMessageId != null) {
                 action = action.setMessageReference(referencedMessageId);
             }
-            createRequest = CompletableFuture.completedFuture((R) action);
+            createRequest = Task.completed((R) action);
         }
 
         return createRequest
-                .thenCompose(RestAction::submit)
+                .then(restAction -> discordSRV.discordAPI().toTask(restAction))
                 .thenApply(msg -> ReceivedDiscordMessageImpl.fromJDA(discordSRV, msg));
     }
 
     @Override
-    public @NotNull CompletableFuture<ReceivedDiscordMessage> editMessageById(
+    public @NotNull Task<ReceivedDiscordMessage> editMessageById(
             long id,
             @NotNull SendableDiscordMessage message
     ) {
@@ -124,21 +124,21 @@ public abstract class AbstractDiscordGuildMessageChannel<T extends GuildMessageC
     }
 
     @SuppressWarnings("unchecked") // Generics
-    private <R extends MessageEditRequest<? extends MessageEditRequest<?>> & RestAction<Message>> CompletableFuture<ReceivedDiscordMessage> editInternal(
+    private <R extends MessageEditRequest<? extends MessageEditRequest<?>> & RestAction<Message>> Task<ReceivedDiscordMessage> editInternal(
             long id,
             SendableDiscordMessage message
     ) {
         MessageEditData editData = SendableDiscordMessageUtil.toJDAEdit(message);
 
-        CompletableFuture<R> editRequest;
+        Task<R> editRequest;
         if (message.isWebhookMessage()) {
             editRequest = queryWebhookClient().thenApply(client -> (R) mapAction(client.editMessageById(id, editData)));
         } else {
-            editRequest = CompletableFuture.completedFuture(((R) channel.editMessageById(id, editData)));
+            editRequest = Task.completed(((R) channel.editMessageById(id, editData)));
         }
 
         return editRequest
-                .thenCompose(RestAction::submit)
+                .then(restAction -> discordSRV.discordAPI().toTask(restAction))
                 .thenApply(msg -> ReceivedDiscordMessageImpl.fromJDA(discordSRV, msg));
     }
 
@@ -147,18 +147,19 @@ public abstract class AbstractDiscordGuildMessageChannel<T extends GuildMessageC
     }
 
     @Override
-    public CompletableFuture<Void> deleteMessageById(long id, boolean webhookMessage) {
-        CompletableFuture<Void> future;
+    public Task<Void> deleteMessageById(long id, boolean webhookMessage) {
+        Task<Void> future;
         if (webhookMessage) {
-            future = queryWebhookClient().thenCompose(client -> mapAction(client.deleteMessageById(id)).submit());
+            future = queryWebhookClient()
+                    .then(client -> discordSRV.discordAPI().toTask(() -> mapAction(client.deleteMessageById(id))));
         } else {
-            future = channel.deleteMessageById(id).submit();
+            future = discordSRV.discordAPI().toTask(() -> channel.deleteMessageById(id));
         }
-        return discordSRV.discordAPI().mapExceptions(future);
+        return future;
     }
 
     @Override
-    public CompletableFuture<Void> delete() {
-        return discordSRV.discordAPI().mapExceptions(() -> channel.delete().submit());
+    public Task<Void> delete() {
+        return discordSRV.discordAPI().toTask(channel::delete);
     }
 }

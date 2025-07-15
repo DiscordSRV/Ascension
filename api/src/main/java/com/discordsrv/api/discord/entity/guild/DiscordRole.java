@@ -47,7 +47,7 @@ public interface DiscordRole extends JDAEntity<Role>, Snowflake, Mentionable {
      * The Discord server this role is from.
      * @return the Discord server
      */
-    @Placeholder(value = "server", relookup = "server")
+    @Placeholder("server")
     @NotNull
     DiscordGuild getGuild();
 
@@ -72,7 +72,7 @@ public interface DiscordRole extends JDAEntity<Role>, Snowflake, Mentionable {
      * @return the color of this role, or {@link #DEFAULT_COLOR} if there is no color set
      * @see #hasColor()
      */
-    @Placeholder(value = "color", relookup = "color")
+    @Placeholder("color")
     @NotNull
     Color getColor();
 

@@ -23,7 +23,8 @@
 
 package com.discordsrv.api.discord.entity.message.impl;
 
-import com.discordsrv.api.DiscordSRVApi;
+import com.discordsrv.api.DiscordSRV;
+import com.discordsrv.api.color.Color;
 import com.discordsrv.api.discord.entity.interaction.component.actionrow.MessageActionRow;
 import com.discordsrv.api.discord.entity.message.AllowedMention;
 import com.discordsrv.api.discord.entity.message.DiscordMessageEmbed;
@@ -33,11 +34,14 @@ import com.discordsrv.api.placeholder.PlaceholderService;
 import com.discordsrv.api.placeholder.format.FormattedText;
 import com.discordsrv.api.placeholder.format.PlainPlaceholderFormat;
 import com.discordsrv.api.placeholder.util.Placeholders;
+import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.entities.MessageEmbed;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.io.InputStream;
+import java.time.OffsetDateTime;
+import java.time.ZonedDateTime;
 import java.util.*;
 import java.util.function.Function;
 import java.util.regex.Matcher;
@@ -332,7 +336,8 @@ public class SendableDiscordMessageImpl implements SendableDiscordMessage {
     public static class FormatterImpl implements Formatter {
 
         private final Set<Object> context = new HashSet<>();
-        private final Map<Pattern, Function<Matcher, Object>> replacements = new LinkedHashMap<>();
+        private final Map<Pattern, Function<@NotNull Matcher, @Nullable Object>> replacements = new LinkedHashMap<>();
+        private boolean placeholderServiceApplied = false;
 
         private final SendableDiscordMessage.Builder builder;
 
@@ -341,31 +346,41 @@ public class SendableDiscordMessageImpl implements SendableDiscordMessage {
         }
 
         @Override
-        public SendableDiscordMessage.@NotNull Formatter addContext(Object... context) {
-            this.context.addAll(Arrays.asList(context));
-            return this;
+        public @NotNull Formatter addContext(@NotNull Collection<Object> context) {
+            for (Object o : context) {
+                if (o == null) {
+                    continue;
+                }
+                this.context.add(o);
+            }
+            return applyPlaceholderService();
         }
 
         @Override
-        public SendableDiscordMessage.@NotNull Formatter addReplacement(Pattern target, Function<Matcher, Object> replacement) {
+        public SendableDiscordMessage.@NotNull Formatter addReplacement(@NotNull Pattern target, @NotNull Function<@NotNull Matcher, @Nullable Object> replacement) {
             this.replacements.put(target, wrapFunction(replacement));
             return this;
         }
 
         @Override
         public @NotNull Formatter applyPlaceholderService() {
-            DiscordSRVApi api = DiscordSRVApi.get();
+            if (placeholderServiceApplied) {
+                return this;
+            }
+
+            DiscordSRV discordSRV = DiscordSRV.get();
             this.replacements.put(
                     PlaceholderService.PATTERN,
-                    wrapFunction(matcher -> api.placeholderService().getResultAsCharSequence(matcher, context))
+                    wrapFunction(matcher -> discordSRV.placeholderService().convertReplacementToCharSequence(matcher, context))
             );
+            this.placeholderServiceApplied = true;
             return this;
         }
 
         private Function<Matcher, Object> wrapFunction(Function<Matcher, Object> function) {
             return matcher -> {
                 Object result = function.apply(matcher);
-                if (result instanceof FormattedText || PlainPlaceholderFormat.FORMATTING.get() != PlainPlaceholderFormat.Formatting.DISCORD) {
+                if (result instanceof FormattedText || PlainPlaceholderFormat.FORMATTING.get() != PlainPlaceholderFormat.Formatting.DISCORD_MARKDOWN) {
                     // Process as regular text
                     return result.toString();
                 } else if (result instanceof CharSequence) {
@@ -380,7 +395,7 @@ public class SendableDiscordMessageImpl implements SendableDiscordMessage {
 
         @Override
         public @NotNull SendableDiscordMessage build() {
-            DiscordSRVApi api = DiscordSRVApi.get();
+            DiscordSRV discordSRV = DiscordSRV.get();
 
             Function<String, String> placeholders = input -> {
                 if (input == null) {
@@ -400,7 +415,7 @@ public class SendableDiscordMessageImpl implements SendableDiscordMessage {
                 }
 
                 // Empty string -> null (so we don't provide empty strings to random fields)
-                String output = api.discordMarkdownFormat().map(input, in -> {
+                String output = discordSRV.discordMarkdownFormat().map(input, in -> {
                     // Since this will be processed in parts, we don't want parts to return null, only the full output
                     String out = placeholders.apply(in);
                     return out == null ? "" : out;
@@ -410,7 +425,7 @@ public class SendableDiscordMessageImpl implements SendableDiscordMessage {
 
 
             PlainPlaceholderFormat.with(
-                    PlainPlaceholderFormat.Formatting.DISCORD,
+                    PlainPlaceholderFormat.Formatting.DISCORD_MARKDOWN,
                     () -> builder.setContent(markdownPlaceholders.apply(builder.getContent()))
             );
 
@@ -420,28 +435,36 @@ public class SendableDiscordMessageImpl implements SendableDiscordMessage {
             for (DiscordMessageEmbed embed : embeds) {
                 DiscordMessageEmbed.Builder embedBuilder = embed.toBuilder();
 
+                Color color = embedBuilder.getColor();
+                String formattedColorHex = placeholders.apply(embedBuilder.getUnformattedColor());
+                try {
+                    color = new Color(formattedColorHex);
+                } catch (Throwable ignored) {}
+                embedBuilder.setColor(color);
+
                 embedBuilder.setAuthor(
                         cutToLength(
                                 placeholders.apply(embedBuilder.getAuthorName()),
                                 MessageEmbed.AUTHOR_MAX_LENGTH
                         ),
-                        placeholders.apply(embedBuilder.getAuthorUrl()),
-                        placeholders.apply(embedBuilder.getAuthorImageUrl()));
+                        url(placeholders.apply(embedBuilder.getAuthorUrl())),
+                        url(placeholders.apply(embedBuilder.getAuthorImageUrl()))
+                );
 
                 embedBuilder.setTitle(
                         cutToLength(
                                 placeholders.apply(embedBuilder.getTitle()),
                                 MessageEmbed.TITLE_MAX_LENGTH
                         ),
-                        placeholders.apply(embedBuilder.getTitleUrl())
+                        url(placeholders.apply(embedBuilder.getTitleUrl()))
                 );
 
                 embedBuilder.setThumbnailUrl(
-                        placeholders.apply(embedBuilder.getThumbnailUrl())
+                        url(placeholders.apply(embedBuilder.getThumbnailUrl()))
                 );
 
                 embedBuilder.setImageUrl(
-                        placeholders.apply(embedBuilder.getImageUrl())
+                        url(placeholders.apply(embedBuilder.getImageUrl()))
                 );
 
                 embedBuilder.setFooter(
@@ -452,7 +475,13 @@ public class SendableDiscordMessageImpl implements SendableDiscordMessage {
                         placeholders.apply(embedBuilder.getFooterImageUrl())
                 );
 
-                PlainPlaceholderFormat.with(PlainPlaceholderFormat.Formatting.DISCORD, () -> embedBuilder.setDescription(
+                embedBuilder.setTimestamp(
+                        parseTimestamp(
+                                placeholders.apply(embedBuilder.getUnformattedTimestamp())
+                        )
+                );
+
+                PlainPlaceholderFormat.with(PlainPlaceholderFormat.Formatting.DISCORD_MARKDOWN, () -> embedBuilder.setDescription(
                         cutToLength(
                                 markdownPlaceholders.apply(embedBuilder.getDescription()),
                                 MessageEmbed.DESCRIPTION_MAX_LENGTH
@@ -462,7 +491,7 @@ public class SendableDiscordMessageImpl implements SendableDiscordMessage {
                 List<DiscordMessageEmbed.Field> fields = new ArrayList<>(embedBuilder.getFields());
                 embedBuilder.getFields().clear();
 
-                PlainPlaceholderFormat.with(PlainPlaceholderFormat.Formatting.DISCORD, () ->
+                PlainPlaceholderFormat.with(PlainPlaceholderFormat.Formatting.DISCORD_MARKDOWN, () ->
                         fields.forEach(field -> embedBuilder.addField(
                                 cutToLength(
                                         placeholders.apply(field.getTitle()),
@@ -480,9 +509,19 @@ public class SendableDiscordMessageImpl implements SendableDiscordMessage {
             }
 
             builder.setWebhookUsername(placeholders.apply(builder.getWebhookUsername()));
-            builder.setWebhookAvatarUrl(placeholders.apply(builder.getWebhookAvatarUrl()));
+            builder.setWebhookAvatarUrl(url(placeholders.apply(builder.getWebhookAvatarUrl())));
 
             return builder.build();
+        }
+
+        private String url(String url) {
+            if (url == null) {
+                return null;
+            }
+            if (!EmbedBuilder.URL_PATTERN.matcher(url).matches()) {
+                return null;
+            }
+            return cutToLength(url, MessageEmbed.URL_MAX_LENGTH);
         }
 
         private String cutToLength(String input, int maxLength) {
@@ -493,6 +532,18 @@ public class SendableDiscordMessageImpl implements SendableDiscordMessage {
                 return input.substring(0, maxLength);
             }
             return input;
+        }
+
+        private OffsetDateTime parseTimestamp(String timestamp) {
+            try {
+                return OffsetDateTime.parse(timestamp);
+            } catch (Throwable ignored) {
+                try {
+                    return ZonedDateTime.parse(timestamp).toOffsetDateTime();
+                } catch (Throwable ignoredAgain) {
+                    return null;
+                }
+            }
         }
     }
 }

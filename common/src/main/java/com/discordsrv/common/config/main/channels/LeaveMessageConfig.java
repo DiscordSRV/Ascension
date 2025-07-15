@@ -23,6 +23,7 @@ import com.discordsrv.api.discord.entity.message.SendableDiscordMessage;
 import com.discordsrv.common.config.configurate.annotation.Constants;
 import com.discordsrv.common.config.configurate.annotation.Untranslated;
 import com.discordsrv.common.config.configurate.manager.abstraction.ConfigurateConfigManager;
+import com.discordsrv.common.config.documentation.DocumentationURLs;
 import com.discordsrv.common.config.main.generic.IMessageConfig;
 import org.spongepowered.configurate.objectmapping.ConfigSerializable;
 import org.spongepowered.configurate.objectmapping.meta.Comment;
@@ -37,6 +38,17 @@ public class LeaveMessageConfig implements IMessageConfig {
 
     public Boolean enabled = true;
 
+    @Comment("Suggested placeholders:\n"
+            + "%message% - The leave message (this may not always be available)\n"
+            + "%player_prefix% - The player's prefix (LuckPerms meta \"discordsrv_prefix\", otherwise their in-game prefix)\n"
+            + "%player_meta_prefix% - The player's prefix from the LuckPerms meta \"discordsrv_prefix\" only\n"
+            + "%player_suffix% - The player's suffix (LuckPerms meta \"discordsrv_suffix\", otherwise their in-game suffix)\n"
+            + "%player_meta_suffix% - The player's suffix from the LuckPerms meta \"discordsrv_suffix\" only\n"
+            + "%player_display_name% - The player's display name\n"
+            + "%player_name% - The player's username\n"
+            + "%player_avatar_url% - The player's avatar url based on the \"avatar-provider\" configuration\n"
+            + "More placeholders at %1 (Player)")
+    @Constants.Comment(DocumentationURLs.PLACEHOLDERS)
     @Untranslated(Untranslated.Type.VALUE)
     public SendableDiscordMessage.Builder format = SendableDiscordMessage.builder()
             .addEmbed(
@@ -50,9 +62,19 @@ public class LeaveMessageConfig implements IMessageConfig {
     @Constants.Comment("discordsrv.silentquit")
     public Boolean enableSilentPermission = true;
 
+    @Comment("If fake leave messages should be sent when players vanish")
+    public boolean sendFakeMessages = true;
+
+    @Comment("Send message if player is vanished")
+    public boolean sendMessageForVanishedPlayers = false;
+
     @Comment("Ignore if the player joined within the given number of milliseconds")
     @Setting("ignore-if-joined-within-ms")
     public Long ignoreIfJoinedWithinMS = 250L;
+
+    @Comment("If messages should be sent even if they are cancelled.\n"
+            + "This option may be removed in the future, fixing other plugins to not cancel messages is recommended")
+    public boolean sendEvenIfCancelled = false;
 
     @Override
     public boolean enabled() {

@@ -18,20 +18,20 @@
 
 package com.discordsrv.common.feature.linking;
 
+import com.discordsrv.api.task.Task;
 import org.apache.commons.lang3.tuple.Pair;
 import org.jetbrains.annotations.NotNull;
 
 import java.time.Duration;
 import java.util.UUID;
-import java.util.concurrent.CompletableFuture;
 
 public interface LinkStore extends LinkProvider {
 
     Duration LINKING_CODE_EXPIRY_TIME = Duration.ofMinutes(5);
     Duration LINKING_CODE_RATE_LIMIT = Duration.ofSeconds(5);
 
-    CompletableFuture<Void> createLink(@NotNull UUID playerUUID, long userId);
-    CompletableFuture<Void> removeLink(@NotNull UUID playerUUID, long userId);
+    Task<Void> createLink(@NotNull AccountLink link);
+    Task<Void> removeLink(@NotNull UUID playerUUID, long userId);
 
     /**
      * Gets the linking code information for the given code.
@@ -39,8 +39,13 @@ public interface LinkStore extends LinkProvider {
      * @param code the code
      * @return a part with the Player's {@link UUID} and username
      */
-    CompletableFuture<Pair<UUID, String>> getCodeLinking(long userId, @NotNull String code);
-    CompletableFuture<Void> removeLinkingCode(@NotNull UUID playerUUID);
+    Task<Pair<UUID, String>> getCodeLinking(long userId, @NotNull String code);
+    Task<Void> removeLinkingCode(@NotNull UUID playerUUID);
 
-    CompletableFuture<Integer> getLinkedAccountCount();
+    Task<Integer> getLinkedAccountCount();
+
+    @Override
+    default @NotNull LinkStore store() {
+        return this;
+    }
 }

@@ -18,10 +18,12 @@
 
 package com.discordsrv.common.discord.api.entity.channel;
 
+import com.discordsrv.api.discord.entity.Mentionable;
 import com.discordsrv.api.discord.entity.channel.DiscordChannel;
 import com.discordsrv.api.discord.entity.channel.DiscordThreadChannel;
 import com.discordsrv.api.discord.entity.channel.DiscordThreadContainer;
 import com.discordsrv.api.discord.entity.guild.DiscordGuild;
+import com.discordsrv.api.task.Task;
 import com.discordsrv.common.DiscordSRV;
 import net.dv8tion.jda.api.entities.channel.attribute.IPostContainer;
 import net.dv8tion.jda.api.entities.channel.attribute.IThreadContainer;
@@ -32,11 +34,11 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.CompletableFuture;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
-public abstract class AbstractDiscordForumChannel<PC extends IPostContainer> implements DiscordChannel, DiscordThreadContainer {
+public abstract class AbstractDiscordForumChannel<PC extends IPostContainer>
+        implements DiscordChannel, DiscordThreadContainer, Mentionable {
 
     protected final DiscordSRV discordSRV;
     protected final PC channel;
@@ -51,6 +53,11 @@ public abstract class AbstractDiscordForumChannel<PC extends IPostContainer> imp
     @Override
     public long getId() {
         return channel.getIdLong();
+    }
+
+    @Override
+    public String getAsMention() {
+        return channel.getAsMention();
     }
 
     @Override
@@ -69,8 +76,8 @@ public abstract class AbstractDiscordForumChannel<PC extends IPostContainer> imp
     }
 
     @Override
-    public CompletableFuture<Void> delete() {
-        return discordSRV.discordAPI().mapExceptions(() -> channel.delete().submit());
+    public Task<Void> delete() {
+        return discordSRV.discordAPI().toTask(channel::delete);
     }
 
     @Override
@@ -84,40 +91,35 @@ public abstract class AbstractDiscordForumChannel<PC extends IPostContainer> imp
     }
 
     @Override
-    public CompletableFuture<List<DiscordThreadChannel>> retrieveArchivedPrivateThreads() {
+    public Task<List<DiscordThreadChannel>> retrieveArchivedPrivateThreads() {
         return threads(IThreadContainer::retrieveArchivedPrivateThreadChannels);
     }
 
     @Override
-    public CompletableFuture<List<DiscordThreadChannel>> retrieveArchivedJoinedPrivateThreads() {
+    public Task<List<DiscordThreadChannel>> retrieveArchivedJoinedPrivateThreads() {
         return threads(IThreadContainer::retrieveArchivedPrivateJoinedThreadChannels);
     }
 
     @Override
-    public CompletableFuture<List<DiscordThreadChannel>> retrieveArchivedPublicThreads() {
+    public Task<List<DiscordThreadChannel>> retrieveArchivedPublicThreads() {
         return threads(IThreadContainer::retrieveArchivedPublicThreadChannels);
     }
 
-    @SuppressWarnings("CodeBlock2Expr")
-    private CompletableFuture<List<DiscordThreadChannel>> threads(
-            Function<IThreadContainer, ThreadChannelPaginationAction> action) {
-        return discordSRV.discordAPI().mapExceptions(() -> {
-            return action.apply(channel)
-                    .submit()
-                    .thenApply(channels -> channels.stream()
-                            .map(channel -> discordSRV.discordAPI().getThreadChannel(channel))
-                            .collect(Collectors.toList())
-                    );
-        });
+    private Task<List<DiscordThreadChannel>> threads(Function<IThreadContainer, ThreadChannelPaginationAction> action) {
+        return discordSRV.discordAPI().toTask(() -> action.apply(channel))
+                .thenApply(channels -> channels.stream()
+                        .map(channel -> discordSRV.discordAPI().getThreadChannel(channel))
+                        .collect(Collectors.toList())
+                );
     }
 
     @Override
-    public CompletableFuture<DiscordThreadChannel> createThread(String name, boolean privateThread) {
+    public Task<DiscordThreadChannel> createThread(String name, boolean privateThread) {
         throw new IllegalStateException("Cannot create Threads in Forums without a message");
     }
 
     @Override
-    public CompletableFuture<DiscordThreadChannel> createThread(String name, long messageId) {
+    public Task<DiscordThreadChannel> createThread(String name, long messageId) {
         return thread(channel -> channel.createThreadChannel(name, messageId), result -> result);
     }
 
@@ -126,16 +128,12 @@ public abstract class AbstractDiscordForumChannel<PC extends IPostContainer> imp
         return channel;
     }
 
-    @SuppressWarnings("CodeBlock2Expr")
-    protected <R> CompletableFuture<DiscordThreadChannel> thread(
+    protected <R> Task<DiscordThreadChannel> thread(
             Function<PC, AbstractThreadCreateAction<R, ?>> action,
             Function<R, ThreadChannel> resultMapper
     ) {
-        return discordSRV.discordAPI().mapExceptions(() -> {
-            return action.apply(channel)
-                    .submit()
+        return discordSRV.discordAPI().toTask(() -> action.apply(channel))
                     .thenApply(result -> discordSRV.discordAPI().getThreadChannel(resultMapper.apply(result)));
-        });
     }
 
 }

@@ -30,7 +30,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 /**
- * This event is used to lookup {@link GameChannel}s by their name (and optionally plugin name).
+ * This event is used by DiscordSRV to lookup {@link GameChannel}s by their name (and optionally plugin name).
  * This is also used to determine which plugin's channel should take priority when multiple plugins
  * define channels with the same name ({@link EventPriorities}).
  *
@@ -54,7 +54,7 @@ public class GameChannelLookupEvent implements Processable.Argument<GameChannel>
      * @return if this lookup is for the default channel
      */
     public boolean isDefault() {
-        return GameChannel.DEFAULT_NAME.equals(channelName);
+        return GameChannel.DEFAULT_NAME.equals(getChannelName());
     }
 
     /**
@@ -93,9 +93,7 @@ public class GameChannelLookupEvent implements Processable.Argument<GameChannel>
      */
     @Override
     public void process(@NotNull GameChannel channel) {
-        if (processed) {
-            throw new IllegalStateException("Already processed");
-        }
+        Processable.Argument.super.process(channel);
         if (pluginName != null && !pluginName.equalsIgnoreCase(channel.getOwnerName())) {
             // Not the plugin we're looking for, ignore
             return;

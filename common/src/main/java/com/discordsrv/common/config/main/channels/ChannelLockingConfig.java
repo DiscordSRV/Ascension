@@ -44,11 +44,11 @@ public class ChannelLockingConfig {
         @Comment("Role ids for roles that should have the permissions taken while the server is offline")
         public List<Long> roleIds = new ArrayList<>();
 
-        @Comment("If the \"View Channel\" permission should be taken from the specified roles")
+        @Comment("If the \"View Channel\" permission should be taken from the roles specified above")
         public boolean read = false;
-        @Comment("If the \"Send Messages\" permission should be taken from the specified roles")
+        @Comment("If the \"Send Messages\" permission should be taken from the roles specified above")
         public boolean write = true;
-        @Comment("If the \"Add Reactions\" permission should be taken from the specified roles")
+        @Comment("If the \"Add Reactions\" permission should be taken from the roles specified above")
         public boolean addReactions = true;
 
     }
@@ -56,7 +56,7 @@ public class ChannelLockingConfig {
     @ConfigSerializable
     public static class Threads {
 
-        @Comment("If the configured threads should be archived while the server is shutdown")
+        @Comment("If the configured threads should be archived when the server is shutdown")
         public boolean archive = false;
 
         @Comment("If the configured threads should be locked while the server is shutdown")

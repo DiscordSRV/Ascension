@@ -18,9 +18,9 @@
   ],
   "accessWidener": "discordsrv.accesswidener",
   "depends": {
-    "fabricloader": ">=${LOADER_VERSION}",
+    "fabricloader": "*",
     "fabric": "*",
-    "minecraft": "${MINECRAFT_VERSION}",
+    "minecraft": "*",
     "fabric-permissions-api-v0": "*"
   }
 }

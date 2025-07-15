@@ -41,6 +41,7 @@ public class BukkitBasicCommandHandler extends BasicCommandHandler implements IC
     protected final Logger logger;
 
     public BukkitBasicCommandHandler(BukkitDiscordSRV discordSRV) {
+        super(discordSRV);
         this.discordSRV = discordSRV;
         this.logger = new NamedLogger(discordSRV, "COMMAND_HANDLER");
     }
@@ -103,7 +104,11 @@ public class BukkitBasicCommandHandler extends BasicCommandHandler implements IC
 
     @Override
     public List<String> onTabComplete(CommandSender sender, Command command, String alias, String[] args) {
-        return suggest(sender(sender), alias, Arrays.asList(args));
+        List<String> suggestions = suggest(sender(sender), alias, Arrays.asList(args));
+        if (suggestions == null) {
+            return Collections.emptyList();
+        }
+        return suggestions;
     }
 
     public class BukkitCommand extends Command {

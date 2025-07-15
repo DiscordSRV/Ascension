@@ -50,7 +50,7 @@ public class FabricCommandHandler implements ICommandHandler {
 
     @Override
     public void registerCommand(GameCommand command) {
-        LiteralCommandNode<ServerCommandSource> node = BrigadierUtil.convertToBrigadier(command, this::getSender);
+        LiteralCommandNode<ServerCommandSource> node = BrigadierUtil.convertToBrigadier(discordSRV, command, this::getSender);
         discordSRV.getServer().getCommandManager().getDispatcher().getRoot().addChild(node);
     }
 

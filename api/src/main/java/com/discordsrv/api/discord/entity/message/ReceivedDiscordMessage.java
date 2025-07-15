@@ -25,20 +25,19 @@ package com.discordsrv.api.discord.entity.message;
 
 import com.discordsrv.api.discord.entity.DiscordUser;
 import com.discordsrv.api.discord.entity.Snowflake;
-import com.discordsrv.api.discord.entity.channel.DiscordDMChannel;
 import com.discordsrv.api.discord.entity.channel.DiscordMessageChannel;
-import com.discordsrv.api.discord.entity.channel.DiscordTextChannel;
 import com.discordsrv.api.discord.entity.guild.DiscordGuild;
 import com.discordsrv.api.discord.entity.guild.DiscordGuildMember;
 import com.discordsrv.api.placeholder.annotation.Placeholder;
 import com.discordsrv.api.placeholder.annotation.PlaceholderPrefix;
+import com.discordsrv.api.task.Task;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.annotations.Unmodifiable;
 
+import java.time.OffsetDateTime;
 import java.util.List;
 import java.util.Set;
-import java.util.concurrent.CompletableFuture;
 
 /**
  * A message received from Discord.
@@ -96,7 +95,7 @@ public interface ReceivedDiscordMessage extends Snowflake {
      * @return the user that sent the message
      */
     @NotNull
-    @Placeholder(value = "user", relookup = "user")
+    @Placeholder("user")
     DiscordUser getAuthor();
 
     /**
@@ -104,29 +103,15 @@ public interface ReceivedDiscordMessage extends Snowflake {
      * @return the channel the message was sent in
      */
     @NotNull
-    @Placeholder(value = "channel", relookup = "channel")
+    @Placeholder("channel")
     DiscordMessageChannel getChannel();
 
     /**
-     * Gets the messages this message is replying to.
-     * @return the messages this message is replying to or a empty optional
+     * Gets the message this message is replying to.
+     * @return the message this message is replying to or {@code null}
      */
     @Nullable
     ReceivedDiscordMessage getReplyingTo();
-
-    /**
-     * Gets the text channel the message was sent in. Not present if this message is a dm.
-     * @return an optional potentially containing the text channel the message was sent in
-     */
-    @Nullable
-    DiscordTextChannel getTextChannel();
-
-    /**
-     * Gets the dm channel the message was sent in. Not present if this message was sent in a server.
-     * @return an optional potentially containing the dm channel the message was sent in
-     */
-    @Nullable
-    DiscordDMChannel getDMChannel();
 
     /**
      * Gets the Discord server member that sent this message.
@@ -141,7 +126,7 @@ public interface ReceivedDiscordMessage extends Snowflake {
      * @return an optional potentially containing the Discord server the message was posted in
      */
     @Nullable
-    @Placeholder(value = "server", relookup = "server")
+    @Placeholder("server")
     DiscordGuild getGuild();
 
     /**
@@ -157,31 +142,49 @@ public interface ReceivedDiscordMessage extends Snowflake {
     Set<DiscordGuildMember> getMentionedMembers();
 
     /**
+     * When this message was sent.
+     * @return the time the message was created
+     */
+    @NotNull
+    @Placeholder("created")
+    OffsetDateTime getDateCreated();
+
+    /**
+     * When this message was last edited.
+     * @return the time the message was last edited or {@code null} if it hasn't been edited
+     */
+    @Nullable
+    @Placeholder("edited")
+    OffsetDateTime getDateEdited();
+
+    /**
      * Deletes this message.
      *
      * @return a future that will fail if the request fails
      */
     @NotNull
-    CompletableFuture<Void> delete();
+    Task<Void> delete();
 
     /**
      * Edits this message to the provided message.
      *
      * @param message the new message
      * @return a future that will fail if the request fails, otherwise the new message provided by the request response
+     *
      * @throws IllegalArgumentException if the message is not a webhook message,
-     * but the provided {@link SendableDiscordMessage} specifies a webhook username.
+     *                                  but the provided {@link SendableDiscordMessage} specifies a webhook username.
      */
-    CompletableFuture<ReceivedDiscordMessage> edit(@NotNull SendableDiscordMessage message);
+    Task<ReceivedDiscordMessage> edit(@NotNull SendableDiscordMessage message);
 
     /**
      * Send the provided message in the channel this message was sent in, replying to this message.
      *
      * @param message the message
      * @return a future that will fail if the request fails, otherwise the new message provided by the request response
+     *
      * @throws IllegalArgumentException if the provided message is a webhook message
      */
-    CompletableFuture<ReceivedDiscordMessage> reply(@NotNull SendableDiscordMessage message);
+    Task<ReceivedDiscordMessage> reply(@NotNull SendableDiscordMessage message);
 
     class Attachment {
 

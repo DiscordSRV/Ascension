@@ -23,7 +23,7 @@
 
 package com.discordsrv.api.module;
 
-import com.discordsrv.api.DiscordSRVApi;
+import com.discordsrv.api.DiscordSRV;
 import com.discordsrv.api.discord.connection.details.DiscordCacheFlag;
 import com.discordsrv.api.discord.connection.details.DiscordGatewayIntent;
 import com.discordsrv.api.eventbus.EventListener;
@@ -43,7 +43,7 @@ import java.util.function.Consumer;
 public interface Module {
 
     /**
-     * Determined if this {@link Module} can be enabled before {@link DiscordSRVApi#isReady()}.
+     * Determined if this {@link Module} can be enabled before {@link DiscordSRV#isReady()}.
      * @return {@code true} to allow this {@link Module} to be enabled before DiscordSRV is ready
      */
     default boolean canEnableBeforeReady() {
@@ -53,6 +53,7 @@ public interface Module {
     /**
      * Determines if this {@link Module} should be enabled at the instant this method is called, this will be used
      * to determine when modules should be enabled or disabled when DiscordSRV enabled, disables and reloads.
+     * <b>This method must not require a Discord connection and has to be callable when {@link #canEnableBeforeReady()} return {@code true} and when DiscordSRV is ready</b>
      * @return the current enabled status the module should be in currently
      */
     default boolean isEnabled() {
@@ -64,10 +65,10 @@ public interface Module {
      * This defaults to determining intents based on the events listened to in this class via {@link Subscribe} methods.
      * @return the collection of gateway intents required by this module at the time this method is called
      */
-    @SuppressWarnings("unchecked") // Class generic cast
+    @SuppressWarnings("unchecked")
     @NotNull
     default Collection<DiscordGatewayIntent> requiredIntents() {
-        DiscordSRVApi api = DiscordSRVApi.get();
+        DiscordSRV api = DiscordSRV.get();
 
         Collection<? extends EventListener> listeners = api.eventBus().getListeners(this);
         EnumSet<DiscordGatewayIntent> intents = EnumSet.noneOf(DiscordGatewayIntent.class);
@@ -124,7 +125,6 @@ public interface Module {
      * @param type the type being looked up this could be an interface
      * @return the priority of this module, higher is more important. Default is 0
      */
-    @SuppressWarnings("unused") // API
     default int priority(Class<?> type) {
         return 0;
     }
@@ -146,6 +146,16 @@ public interface Module {
      * Called by DiscordSRV to disable this module.
      */
     default void disable() {}
+
+    /**
+     * Called by DiscordSRV once when the server is started.
+     */
+    default void serverStarted() {}
+
+    /**
+     * Called when the server is shutting down.
+     */
+    default void serverShuttingDown() {}
 
     /**
      * Called by DiscordSRV to reload this module. This is called when the module is enabled as well.

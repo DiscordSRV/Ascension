@@ -19,6 +19,7 @@
 package com.discordsrv.common.feature.linking;
 
 import com.discordsrv.api.component.MinecraftComponent;
+import com.discordsrv.api.task.Task;
 import com.discordsrv.common.abstraction.player.IPlayer;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -26,51 +27,50 @@ import org.jetbrains.annotations.Nullable;
 import java.util.Locale;
 import java.util.Optional;
 import java.util.UUID;
-import java.util.concurrent.CompletableFuture;
 
 public interface LinkProvider {
 
-    default CompletableFuture<Optional<Long>> queryUserId(@NotNull UUID playerUUID) {
-        return queryUserId(playerUUID, false);
+    default Task<Optional<AccountLink>> query(@NotNull UUID playerUUID) {
+        return query(playerUUID, false);
     }
 
-    CompletableFuture<Optional<Long>> queryUserId(@NotNull UUID playerUUID, boolean canCauseLink);
+    Task<Optional<AccountLink>> query(@NotNull UUID playerUUID, boolean canCauseLink);
 
-    default CompletableFuture<Optional<Long>> getUserId(@NotNull UUID playerUUID) {
-        Optional<Long> userId = getCachedUserId(playerUUID);
+    default Task<Optional<AccountLink>> get(@NotNull UUID playerUUID) {
+        Optional<AccountLink> userId = getCached(playerUUID);
         if (userId.isPresent()) {
-            return CompletableFuture.completedFuture(userId);
+            return Task.completed(userId);
         }
-        return queryUserId(playerUUID);
+        return query(playerUUID);
     }
 
-    default Optional<Long> getCachedUserId(@NotNull UUID playerUUID) {
+    default Optional<AccountLink> getCached(@NotNull UUID playerUUID) {
         return Optional.empty();
     }
 
-    default CompletableFuture<Optional<UUID>> queryPlayerUUID(long userId) {
-        return queryPlayerUUID(userId, false);
+    default Task<Optional<AccountLink>> query(long userId) {
+        return query(userId, false);
     }
 
-    CompletableFuture<Optional<UUID>> queryPlayerUUID(long userId, boolean canCauseLink);
+    Task<Optional<AccountLink>> query(long userId, boolean canCauseLink);
 
-    default CompletableFuture<Optional<UUID>> getPlayerUUID(long userId) {
-        Optional<UUID> playerUUID = getCachedPlayerUUID(userId);
+    default Task<Optional<AccountLink>> get(long userId) {
+        Optional<AccountLink> playerUUID = getCached(userId);
         if (playerUUID.isPresent()) {
-            return CompletableFuture.completedFuture(playerUUID);
+            return Task.completed(playerUUID);
         }
-        return queryPlayerUUID(userId);
+        return query(userId);
     }
 
-    default Optional<UUID> getCachedPlayerUUID(long userId) {
+    default Optional<AccountLink> getCached(long userId) {
         return Optional.empty();
     }
 
-    default CompletableFuture<MinecraftComponent> getLinkingInstructions(@NotNull IPlayer player, @Nullable String requestReason) {
+    default Task<MinecraftComponent> getLinkingInstructions(@NotNull IPlayer player, @Nullable String requestReason) {
         return getLinkingInstructions(player.username(), player.uniqueId(), player.locale(), requestReason);
     }
 
-    CompletableFuture<MinecraftComponent> getLinkingInstructions(
+    Task<MinecraftComponent> getLinkingInstructions(
             String username,
             UUID playerUUID,
             @Nullable Locale locale,
@@ -78,4 +78,11 @@ public interface LinkProvider {
             Object... additionalContext
     );
     boolean isValidCode(@NotNull String code);
+
+    @NotNull
+    LinkStore store();
+
+    default boolean usesLocalLinking() {
+        return this instanceof LinkStore;
+    }
 }

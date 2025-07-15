@@ -30,14 +30,14 @@ import com.discordsrv.api.events.Event;
  * Indicates that DiscordSRV is shutting down.
  * <p>
  * DiscordSRV's own systems will shut down at the following times:
+ * {@link EventPriorities#EARLIEST}<br/>
+ * - DiscordSRV's own modules do shut down actions<br/>
+ *
  * {@link EventPriorities#EARLY}<br/>
- *  - DiscordSRV's own modules shutdown<br/>
+ *  - Modules shutdown<br/>
  *
  * {@link EventPriorities#LATE}<br/>
  *  - Discord connections are shutdown<br/>
- *
- * {@link EventPriorities#LAST}<br/>
- *  - DiscordSRV's scheduler is shutdown<br/>
  */
 public class DiscordSRVShuttingDownEvent implements Event {
 }

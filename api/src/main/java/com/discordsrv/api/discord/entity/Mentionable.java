@@ -23,7 +23,10 @@
 
 package com.discordsrv.api.discord.entity;
 
+import com.discordsrv.api.placeholder.annotation.Placeholder;
+
 public interface Mentionable {
 
-    String getAsMention();
+    @Placeholder("mention")
+    CharSequence getAsMention();
 }

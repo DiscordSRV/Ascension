@@ -25,6 +25,7 @@ import com.discordsrv.api.discord.entity.interaction.command.DiscordCommand;
 import com.discordsrv.api.discord.entity.interaction.component.ComponentIdentifier;
 import com.discordsrv.api.discord.entity.message.SendableDiscordMessage;
 import com.discordsrv.api.events.discord.interaction.command.DiscordChatInputInteractionEvent;
+import com.discordsrv.api.task.Task;
 import com.discordsrv.common.DiscordSRV;
 import com.discordsrv.common.abstraction.player.IPlayer;
 import com.discordsrv.common.config.messages.MessagesConfig;
@@ -32,24 +33,27 @@ import com.discordsrv.common.core.logging.Logger;
 import com.discordsrv.common.core.logging.NamedLogger;
 import com.discordsrv.common.feature.linking.LinkProvider;
 import com.discordsrv.common.feature.linking.LinkStore;
+import com.discordsrv.common.feature.linking.LinkingModule;
 import com.github.benmanes.caffeine.cache.Cache;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.Pair;
 
 import java.util.UUID;
-import java.util.concurrent.CompletableFuture;
 import java.util.function.Consumer;
 
 public class LinkInitDiscordCommand implements Consumer<DiscordChatInputInteractionEvent> {
+
+    private static final String LABEL = "link";
+    private static final ComponentIdentifier IDENTIFIER = ComponentIdentifier.of("DiscordSRV", "link-init");
 
     private static DiscordCommand INSTANCE;
 
     public static DiscordCommand getInstance(DiscordSRV discordSRV) {
         if (INSTANCE == null) {
             LinkInitDiscordCommand command = new LinkInitDiscordCommand(discordSRV);
-            ComponentIdentifier identifier = ComponentIdentifier.of("DiscordSRV", "link-init");
 
-            INSTANCE = DiscordCommand.chatInput(identifier, "link", "Link your Minecraft account to your Discord account")
+            INSTANCE = DiscordCommand.chatInput(IDENTIFIER, LABEL, "")
+                    .addDescriptionTranslations(discordSRV.getAllTranslations(config -> config.linkCommandDescription.discord().content()))
                     .addOption(
                             CommandOption.builder(CommandOption.Type.STRING, "code", "The code provided by the in-game command")
                                     .setRequired(true)
@@ -76,14 +80,25 @@ public class LinkInitDiscordCommand implements Consumer<DiscordChatInputInteract
     @Override
     public void accept(DiscordChatInputInteractionEvent event) {
         DiscordUser user = event.getUser();
-        MessagesConfig.Discord messagesConfig = discordSRV.messagesConfig(event.getUserLocale()).discord;
+        MessagesConfig messagesConfig = discordSRV.messagesConfig(event.getUserLocale());
 
         LinkProvider linkProvider = discordSRV.linkProvider();
-        if (!(linkProvider instanceof LinkStore)) {
+        if (linkProvider == null || !linkProvider.usesLocalLinking()) {
             event.reply(SendableDiscordMessage.builder().setContent("Cannot create links using this link provider").build());
             return;
         }
-        LinkStore linkStore = (LinkStore) linkProvider;
+        LinkStore linkStore = linkProvider.store();
+
+        LinkingModule module = discordSRV.getModule(LinkingModule.class);
+        if (module == null) {
+            event.reply(SendableDiscordMessage.builder().setContent("Unable to link at this time").build());
+            return;
+        }
+
+        if (module.rateLimit(event.getUser().getId())) {
+            event.reply(messagesConfig.pleaseWaitBeforeRunningThatCommandAgain.discord().get());
+            return;
+        }
 
         String code = event.getOptionAsString("code");
         if (StringUtils.isEmpty(code) || !linkStore.isValidCode(code)) {
@@ -91,13 +106,13 @@ public class LinkInitDiscordCommand implements Consumer<DiscordChatInputInteract
             return;
         }
 
-        if (linkProvider.getCachedPlayerUUID(user.getId()).isPresent()) {
-            event.reply(messagesConfig.alreadyLinked1st.get(), true);
+        if (linkProvider.getCached(user.getId()).isPresent()) {
+            event.reply(messagesConfig.alreadyLinked1st.discord().get(), true);
             return;
         }
 
         if (linkCheckRateLimit.getIfPresent(user.getId()) != null) {
-            event.reply(messagesConfig.pleaseWaitBeforeRunningThatCommandAgain.get(), true);
+            event.reply(messagesConfig.pleaseWaitBeforeRunningThatCommandAgain.discord().get(), true);
             return;
         }
         linkCheckRateLimit.put(user.getId(), true);
@@ -108,58 +123,58 @@ public class LinkInitDiscordCommand implements Consumer<DiscordChatInputInteract
                 return;
             }
 
-            linkProvider.queryPlayerUUID(user.getId()).whenComplete((linkedPlayer, t2) -> {
+            linkProvider.query(user.getId()).whenComplete((existingLink, t2) -> {
                 if (t2 != null) {
                     logger.error("Failed to check linking status", t2);
-                    interactionHook.editOriginal(messagesConfig.unableToCheckLinkingStatus.get());
+                    interactionHook.editOriginal(messagesConfig.unableToCheckLinkingStatus.discord().get());
                     return;
                 }
-                if (linkedPlayer.isPresent()) {
-                    interactionHook.editOriginal(messagesConfig.alreadyLinked1st.get());
+                if (existingLink.isPresent()) {
+                    interactionHook.editOriginal(messagesConfig.alreadyLinked1st.discord().get());
                     return;
                 }
 
                 linkStore.getCodeLinking(user.getId(), code)
-                        .thenCompose(player -> linkStore.createLink(player.getKey(), user.getId()).thenApply(__ -> player))
+                        .then(player -> module.link(player.getKey(), user.getId()).thenApply(__ -> player))
                         .whenComplete((player, t3) -> {
                             if (t3 != null) {
                                 logger.error("Failed to link", t3);
-                                interactionHook.editOriginal(messagesConfig.unableToCheckLinkingStatus.get());
+                                interactionHook.editOriginal(messagesConfig.unableToCheckLinkingStatus.discord().get());
                                 return;
                             }
 
-                            linkSuccess(interactionHook, linkStore, messagesConfig, player);
+                            linkSuccess(user, interactionHook, linkStore, messagesConfig, player);
                         });
             });
         });
-
     }
 
     private void linkSuccess(
+            DiscordUser user,
             DiscordInteractionHook interactionHook,
             LinkStore linkStore,
-            MessagesConfig.Discord messagesConfig,
+            MessagesConfig messagesConfig,
             Pair<UUID, String> pair
     ) {
         UUID playerUUID = pair.getKey();
         String username = pair.getValue();
 
-        linkStore.removeLinkingCode(playerUUID).exceptionally(t -> {
-            logger.error("Failed to remove linking code from storage", t);
-            return null;
+        linkStore.removeLinkingCode(playerUUID).whenComplete((v, t) -> {
+            if (t != null) {
+                logger.error("Failed to remove linking code from storage", t);
+            }
         });
 
         IPlayer onlinePlayer = discordSRV.playerProvider().player(playerUUID);
         (onlinePlayer != null
-            ? CompletableFuture.completedFuture(onlinePlayer)
+            ? Task.completed(onlinePlayer)
             : discordSRV.playerProvider().lookupOfflinePlayer(playerUUID)
         ).whenComplete((player, __) -> interactionHook
                 .editOriginal(
-                        messagesConfig.accountLinked.format()
-                                .addContext(player)
+                        messagesConfig.nowLinked1st.discord().format()
+                                .addContext(user, player)
                                 .addPlaceholder("%player_name%", username)
                                 .addPlaceholder("%player_uuid%", playerUUID)
-                                .applyPlaceholderService()
                                 .build()
                 )
         );

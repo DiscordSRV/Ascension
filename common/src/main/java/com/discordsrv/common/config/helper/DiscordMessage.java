@@ -19,8 +19,10 @@
 package com.discordsrv.common.config.helper;
 
 import com.discordsrv.api.discord.entity.message.SendableDiscordMessage;
+import com.discordsrv.common.command.combined.abstraction.CommandExecution;
+import net.kyori.adventure.text.Component;
 
-public class DiscordMessage {
+public class DiscordMessage extends ConfigMessage {
 
     private final SendableDiscordMessage.Builder builder;
 
@@ -38,5 +40,14 @@ public class DiscordMessage {
 
     public SendableDiscordMessage.Formatter format() {
         return builder.toFormatter();
+    }
+
+    public String content() {
+        return builder.getContent();
+    }
+
+    @Override
+    protected void sendTo(CommandExecution execution, Object... context) {
+        execution.send((Component) null, format().addContext(context).applyPlaceholderService().build());
     }
 }

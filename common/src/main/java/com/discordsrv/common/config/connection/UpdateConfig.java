@@ -19,7 +19,7 @@
 package com.discordsrv.common.config.connection;
 
 import com.discordsrv.common.config.configurate.annotation.Constants;
-import com.discordsrv.common.feature.update.UpdateChecker;
+import com.discordsrv.common.core.update.UpdateChecker;
 import org.spongepowered.configurate.objectmapping.ConfigSerializable;
 import org.spongepowered.configurate.objectmapping.meta.Comment;
 import org.spongepowered.configurate.objectmapping.meta.Setting;

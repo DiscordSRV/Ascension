@@ -18,9 +18,6 @@
 
 package com.discordsrv.common.core.scheduler;
 
-import com.discordsrv.api.eventbus.EventPriorities;
-import com.discordsrv.api.eventbus.Subscribe;
-import com.discordsrv.api.events.lifecycle.DiscordSRVShuttingDownEvent;
 import com.discordsrv.common.DiscordSRV;
 import com.discordsrv.common.core.scheduler.executor.DynamicCachingThreadPoolExecutor;
 import com.discordsrv.common.core.scheduler.threadfactory.CountingForkJoinWorkerThreadFactory;
@@ -82,13 +79,6 @@ public class StandardScheduler implements Scheduler {
         this.forkJoinPool = forkJoinPool;
     }
 
-    @Subscribe(priority = EventPriorities.LAST)
-    public void onShuttingDown(DiscordSRVShuttingDownEvent event) {
-        executorService.shutdownNow();
-        scheduledExecutorService.shutdownNow();
-        forkJoinPool.shutdownNow();
-    }
-
     private Runnable wrap(Runnable runnable) {
         return () -> {
             try {
@@ -132,6 +122,18 @@ public class StandardScheduler implements Scheduler {
     @Override
     public @NotNull ScheduledFuture<?> runAtFixedRate(@NotNull Runnable task, Duration initialDelay, Duration rate) {
         return scheduledExecutorService.scheduleAtFixedRate(wrap(task), initialDelay.toMillis(), rate.toMillis(), TimeUnit.MILLISECONDS);
+    }
+
+    @Override
+    public boolean isServerThread() {
+        return Thread.currentThread().getName().equals("Server thread");
+    }
+
+    @Override
+    public void shutdown() {
+        executorService.shutdownNow();
+        scheduledExecutorService.shutdownNow();
+        forkJoinPool.shutdownNow();
     }
 
     public class ExceptionHandlingExecutor implements Executor {

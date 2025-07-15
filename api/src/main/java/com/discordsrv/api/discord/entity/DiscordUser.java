@@ -26,11 +26,10 @@ package com.discordsrv.api.discord.entity;
 import com.discordsrv.api.discord.entity.channel.DiscordDMChannel;
 import com.discordsrv.api.placeholder.annotation.Placeholder;
 import com.discordsrv.api.placeholder.annotation.PlaceholderPrefix;
+import com.discordsrv.api.task.Task;
 import net.dv8tion.jda.api.entities.User;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-
-import java.util.concurrent.CompletableFuture;
 
 /**
  * A Discord user.
@@ -109,6 +108,6 @@ public interface DiscordUser extends JDAEntity<User>, Snowflake, Mentionable {
      * Opens a private channel with the user or instantly returns the already cached private channel for this user.
      * @return a future for the private channel with this Discord user
      */
-    CompletableFuture<DiscordDMChannel> openPrivateChannel();
+    Task<DiscordDMChannel> openPrivateChannel();
 
 }

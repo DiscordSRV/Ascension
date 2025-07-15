@@ -29,15 +29,21 @@ import com.discordsrv.api.discord.entity.guild.DiscordCustomEmoji;
 import com.discordsrv.api.discord.entity.guild.DiscordGuild;
 import com.discordsrv.api.discord.entity.guild.DiscordRole;
 import com.discordsrv.api.discord.entity.interaction.command.DiscordCommand;
+import com.discordsrv.api.task.Task;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-
-import java.util.concurrent.CompletableFuture;
 
 /**
  * A basic Discord API wrapper for a limited amount of functions, with a minimal amount of breaking changes.
  */
 public interface DiscordAPI {
+
+    /**
+     * Gets the {@link DiscordUser} instance for the bot itself.
+     * @return the self user
+     */
+    @NotNull
+    DiscordUser getSelfUser();
 
     /**
      * Gets a Discord channel by id, the provided entity should not be stored for long periods of time.
@@ -142,7 +148,7 @@ public interface DiscordAPI {
      * @return a future that will result in a {@link DiscordUser} for the id or throw a
      */
     @NotNull
-    CompletableFuture<DiscordUser> retrieveUserById(long id);
+    Task<DiscordUser> retrieveUserById(long id);
 
     /**
      * Gets if user caching is enabled.

@@ -19,7 +19,7 @@
 package com.discordsrv.bukkit.listener;
 
 import com.discordsrv.api.component.MinecraftComponent;
-import com.discordsrv.api.events.message.render.GameChatRenderEvent;
+import com.discordsrv.api.events.message.render.game.GameChatRenderEvent;
 import com.discordsrv.bukkit.BukkitDiscordSRV;
 import com.discordsrv.common.abstraction.player.IPlayer;
 import com.discordsrv.common.core.logging.NamedLogger;

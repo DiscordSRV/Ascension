@@ -18,20 +18,22 @@
 
 package com.discordsrv.common.config.main;
 
+import com.discordsrv.common.config.configurate.annotation.Constants;
+import com.discordsrv.common.config.configurate.annotation.DefaultOnly;
+import com.discordsrv.common.config.configurate.annotation.Untranslated;
 import com.discordsrv.common.config.main.generic.DestinationConfig;
+import com.discordsrv.common.config.main.generic.DiscordOutputMode;
 import com.discordsrv.common.config.main.generic.GameCommandExecutionConditionConfig;
 import org.spongepowered.configurate.objectmapping.ConfigSerializable;
 import org.spongepowered.configurate.objectmapping.meta.Comment;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.List;
+import java.util.*;
+import java.util.regex.Pattern;
 
 @ConfigSerializable
 public class ConsoleConfig {
 
-    @Comment("The console channel or thread")
+    @Comment("The channel or thread that will be used for forwarding output and/or running commands in")
     public DestinationConfig.Single channel = new DestinationConfig.Single("DiscordSRV Console #%date:'w'%", true);
 
     @Comment("The number of threads to keep. Rotation interval is based on placeholders in the thread name")
@@ -44,23 +46,23 @@ public class ConsoleConfig {
     @ConfigSerializable
     public static class Appender {
 
-        @Comment("The format for log lines")
-        public String lineFormat = "[%log_time:'ccc HH:mm:ss zzz'%] [%log_level%] [%logger_name%] %message%";
-
         @Comment("The mode for the console output, available options are:\n"
                 + "- off: Turn off console appending\n"
                 + "- ansi: A colored ansi code block\n"
                 + "- log: An \"accesslog\" code block\n"
                 + "- diff: A \"diff\" code block highlighting warnings and errors with different colors\n"
                 + "- markdown: Plain text with bold, italics, strikethrough and underlining\n"
-                + "- plain: Plain text code block\n"
-                + "- plain_content: Plain text")
-        public OutputMode outputMode = OutputMode.ANSI;
+                + "- code_block: Plain text code block\n"
+                + "- plain: Plain text")
+        public DiscordOutputMode outputMode = DiscordOutputMode.ANSI;
 
-        @Comment("In \"diff\" mode, should exception lines have the prefix character as well")
+        @Comment("How individual log lines will be formatted")
+        public String lineFormat = "[%log_time:'ccc HH:mm:ss zzz'%] [%log_level%]%logger_name:' [\\%s]'% %message%";
+
+        @Comment("In \"diff\" mode, should exception (stack trace) lines have the prefix character as well, as opposed to only the first line")
         public boolean diffExceptions = true;
 
-        @Comment("If urls should have embeds disabled")
+        @Comment("If urls should have embeds disabled (in \"plain\" output-mode)")
         public boolean disableLinkEmbeds = true;
 
         @Comment("Avoids sending new messages by editing the most recent message until it reaches it's maximum length")
@@ -68,6 +70,20 @@ public class ConsoleConfig {
 
         @Comment("If console messages should be silent, not causing a notification")
         public boolean silentMessages = true;
+
+        // TODO: more info on regex pairs (String#replaceAll)
+        @Comment("Regex filters to apply to the console message (%1) and stacktrace (applied separately), applied before DiscordSRV touches them.\n"
+                + "Please keep in mind they may contain color codes.\n\n"
+                + "If the entire message is filtered out by these filters the log message (and it's exception stacktrace) will be ignored.\n"
+                + "The plain version of the log message will also be checked for ignoring the entire log message")
+        @Constants.Comment("%message%")
+        @Untranslated(Untranslated.Type.VALUE)
+        @DefaultOnly
+        public Map<Pattern, String> contentRegexFilters = new LinkedHashMap<Pattern, String>() {{
+            // Multicraft panel's automated crash detection (https://www.multicraft.org/site/docs/settings#crash_detection)
+            // with the vanilla and default Essentials text
+            put(Pattern.compile("There are \\d+ (?:of a max of|out of maximum) \\d+ players online.*"), "");
+        }};
 
         @Comment("A list of log levels to whitelist or blacklist")
         public Levels levels = new Levels();
@@ -135,35 +151,5 @@ public class ConsoleConfig {
         @Comment("If a command is inputted starting with /, a warning response will be given if this is enabled")
         public boolean enableSlashWarning = true;
 
-    }
-
-    public enum OutputMode {
-        OFF(null, null),
-        ANSI("```ansi\n", "```"),
-        LOG("```accesslog\n", "```"),
-        DIFF("```diff\n", "```"),
-        MARKDOWN("", ""),
-        PLAIN("```\n", "```"),
-        PLAIN_CONTENT("", "");
-
-        private final String prefix;
-        private final String suffix;
-
-        OutputMode(String prefix, String suffix) {
-            this.prefix = prefix;
-            this.suffix = suffix;
-        }
-
-        public String prefix() {
-            return prefix;
-        }
-
-        public String suffix() {
-            return suffix;
-        }
-
-        public int blockLength() {
-            return prefix().length() + suffix().length();
-        }
     }
 }

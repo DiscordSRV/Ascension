@@ -18,15 +18,14 @@
 
 package com.discordsrv.common.command.combined.abstraction;
 
-import com.discordsrv.api.discord.entity.interaction.command.DiscordCommand;
 import com.discordsrv.api.events.discord.interaction.command.DiscordChatInputInteractionEvent;
-import com.discordsrv.api.events.discord.interaction.command.DiscordCommandAutoCompleteInteractionEvent;
 import com.discordsrv.common.DiscordSRV;
+import com.discordsrv.common.command.game.abstraction.command.GameCommand;
 import com.discordsrv.common.command.game.abstraction.command.GameCommandArguments;
 import com.discordsrv.common.command.game.abstraction.command.GameCommandExecutor;
 import com.discordsrv.common.command.game.abstraction.command.GameCommandSuggester;
 import com.discordsrv.common.command.game.abstraction.sender.ICommandSender;
-import org.jetbrains.annotations.Nullable;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.Collections;
 import java.util.List;
@@ -36,8 +35,7 @@ public abstract class CombinedCommand
         implements
         GameCommandExecutor,
         GameCommandSuggester,
-        Consumer<DiscordChatInputInteractionEvent>,
-        DiscordCommand.AutoCompleteHandler
+        Consumer<DiscordChatInputInteractionEvent>
 {
 
     protected final DiscordSRV discordSRV;
@@ -47,8 +45,8 @@ public abstract class CombinedCommand
     }
 
     @Override
-    public void execute(ICommandSender sender, GameCommandArguments arguments, String label) {
-        execute(new GameCommandExecution(discordSRV, sender, arguments, label));
+    public void execute(ICommandSender sender, GameCommandArguments arguments, GameCommand command, String rootAlias) {
+        execute(new GameCommandExecution(discordSRV, sender, arguments, command));
     }
 
     @Override
@@ -63,13 +61,10 @@ public abstract class CombinedCommand
         return suggest(new GameCommandExecution(discordSRV, sender, previousArguments, null), currentInput);
     }
 
-    @Override
-    public void autoComplete(DiscordCommandAutoCompleteInteractionEvent event) {
-        List<String> suggestions = suggest(new DiscordCommandExecution(discordSRV, event), null);
-        suggestions.forEach(suggestion -> event.addChoice(suggestion, suggestion));
-    }
-
-    public List<String> suggest(CommandExecution execution, @Nullable String input) {
+    /**
+     * Only for Minecraft command suggestions.
+     */
+    public List<String> suggest(CommandExecution execution, @NotNull String input) {
         return Collections.emptyList();
     }
 }

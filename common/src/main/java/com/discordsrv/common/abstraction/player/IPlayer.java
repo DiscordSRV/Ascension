@@ -19,20 +19,20 @@
 package com.discordsrv.common.abstraction.player;
 
 import com.discordsrv.api.component.MinecraftComponent;
+import com.discordsrv.api.events.vanish.PlayerVanishStatusCheckEvent;
 import com.discordsrv.api.placeholder.annotation.Placeholder;
 import com.discordsrv.api.placeholder.annotation.PlaceholderPrefix;
 import com.discordsrv.api.player.DiscordSRVPlayer;
-import com.discordsrv.common.DiscordSRV;
+import com.discordsrv.api.task.Task;
 import com.discordsrv.common.command.game.abstraction.sender.ICommandSender;
-import com.discordsrv.common.feature.profile.Profile;
 import com.discordsrv.common.util.ComponentUtil;
 import net.kyori.adventure.text.Component;
-import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.Collection;
+import java.util.Locale;
 import java.util.UUID;
-import java.util.concurrent.CompletableFuture;
 
 @PlaceholderPrefix("player_")
 public interface IPlayer extends DiscordSRVPlayer, IOfflinePlayer, ICommandSender {
@@ -43,27 +43,15 @@ public interface IPlayer extends DiscordSRVPlayer, IOfflinePlayer, ICommandSende
     }
 
     @Override
-    DiscordSRV discordSRV();
-
-    @ApiStatus.NonExtendable
-    default Profile profile() {
-        Profile profile = discordSRV().profileManager().getProfile(uniqueId());
-        if (profile == null) {
-            throw new IllegalStateException("Profile does not exist");
-        }
-        return profile;
-    }
-
     @NotNull
     String username();
 
     @Override
-    @ApiStatus.NonExtendable
     default @NotNull UUID uniqueId() {
         return identity().uuid();
     }
 
-    CompletableFuture<Void> kick(Component component);
+    Task<Void> kick(Component component);
 
     void addChatSuggestions(Collection<String> suggestions);
     void removeChatSuggestions(Collection<String> suggestions);
@@ -72,4 +60,25 @@ public interface IPlayer extends DiscordSRVPlayer, IOfflinePlayer, ICommandSende
     @Placeholder("display_name")
     Component displayName();
 
+    @NotNull
+    @Placeholder("team_display_name")
+    default Component teamDisplayName() {
+        return Component.text(username());
+    }
+
+    @Nullable
+    @Placeholder("world_name")
+    default String world() {
+        return null;
+    }
+
+    @Override
+    default boolean isVanished() {
+        PlayerVanishStatusCheckEvent event = new PlayerVanishStatusCheckEvent(this, false);
+        discordSRV().eventBus().publish(event);
+        return event.getStatus();
+    }
+
+    @Override
+    @Nullable Locale locale();
 }

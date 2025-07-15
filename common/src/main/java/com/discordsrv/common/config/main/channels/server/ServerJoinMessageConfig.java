@@ -29,7 +29,7 @@ public class ServerJoinMessageConfig extends JoinMessageConfig {
         ConfigurateConfigManager.nullAllFields(this);
     }
 
-    @Order(10)
+    @Order(-1)
     public FirstJoin firstJoin = new FirstJoin();
 
     @Override

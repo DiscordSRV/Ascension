@@ -18,41 +18,56 @@
 
 package com.discordsrv.common.abstraction.player;
 
+import com.discordsrv.api.discord.entity.DiscordUser;
+import com.discordsrv.api.discord.entity.guild.DiscordGuild;
+import com.discordsrv.api.discord.entity.guild.DiscordGuildMember;
 import com.discordsrv.api.placeholder.annotation.Placeholder;
 import com.discordsrv.api.placeholder.annotation.PlaceholderPrefix;
+import com.discordsrv.api.profile.Profile;
+import com.discordsrv.api.task.Task;
 import com.discordsrv.common.DiscordSRV;
 import com.discordsrv.common.abstraction.player.provider.model.SkinInfo;
-import com.discordsrv.common.feature.profile.Profile;
 import net.kyori.adventure.identity.Identified;
-import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.UUID;
-import java.util.concurrent.CompletableFuture;
 
 @PlaceholderPrefix("player_")
 public interface IOfflinePlayer extends Identified {
 
     DiscordSRV discordSRV();
 
-    @ApiStatus.NonExtendable
-    default CompletableFuture<Profile> lookupProfile() {
-        return discordSRV().profileManager().lookupProfile(uniqueId());
+    @Placeholder("profile")
+    default Task<Profile> profile() {
+        return discordSRV().profileManager()
+                .getProfile(uniqueId())
+                .thenApply(profile -> profile);
+    }
+
+    @Placeholder("linked_user")
+    default Task<@Nullable DiscordUser> linkedUser() {
+        return profile().thenApply(profile -> profile.isLinked() ? profile.userId() : null)
+                .then(userId -> userId == null ? Task.completed(null) : discordSRV().discordAPI().retrieveUserById(userId));
+    }
+
+    @Placeholder("linked_server_member")
+    default Task<@Nullable DiscordGuildMember> linkedMember(DiscordGuild guild) {
+        return profile().thenApply(profile -> profile.isLinked() ? profile.userId() : null)
+                .then(userId -> userId == null ? Task.completed(null) : guild.retrieveMemberById(userId));
     }
 
     @Placeholder("name")
     @Nullable
     String username();
 
-    @ApiStatus.NonExtendable
-    @Placeholder(value = "uuid", relookup = "uuid")
+    @Placeholder("uuid")
     @NotNull
     default UUID uniqueId() {
         return identity().uuid();
     }
 
     @Nullable
-    @Placeholder(value = "skin", relookup = "skin")
+    @Placeholder("skin")
     SkinInfo skinInfo();
 }

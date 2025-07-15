@@ -36,6 +36,6 @@ public class ServerPlayNetworkHandlerMixin {
 
     @Inject(method = "onPlayerMove", at = @At(value = "INVOKE", target = "Lnet/minecraft/server/network/ServerPlayerEntity;getServerWorld()Lnet/minecraft/server/world/ServerWorld;", ordinal = 1), cancellable = true)
     private void onPlayerMove(PlayerMoveC2SPacket packet, CallbackInfo ci) {
-        FabricRequiredLinkingModule.onPlayerMove(player, packet, ci);
+        FabricRequiredLinkingModule.withInstance(module -> module.onPlayerMove(player, packet, ci));
     }
 }

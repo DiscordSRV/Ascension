@@ -25,6 +25,7 @@ import com.discordsrv.common.config.main.channels.base.BaseChannelConfig;
 import com.discordsrv.common.config.main.channels.base.server.ServerBaseChannelConfig;
 import com.discordsrv.common.config.main.channels.base.server.ServerChannelConfig;
 import org.spongepowered.configurate.objectmapping.ConfigSerializable;
+import org.spongepowered.configurate.objectmapping.meta.Comment;
 
 @ConfigSerializable
 public class BukkitConfig extends MainConfig {
@@ -39,7 +40,8 @@ public class BukkitConfig extends MainConfig {
         return new ServerChannelConfig();
     }
 
-    @Order(5)
+    @Comment("Options for requiring players to link (and optionally meet other requirements) before being able to play")
+    @Order(410)
     public BukkitRequiredLinkingConfig requiredLinking = new BukkitRequiredLinkingConfig();
 
     @Override

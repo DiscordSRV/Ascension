@@ -22,7 +22,6 @@ import com.discordsrv.api.discord.entity.DiscordUser;
 import com.discordsrv.api.discord.entity.message.SendableDiscordMessage;
 import com.discordsrv.api.events.discord.interaction.AbstractInteractionEvent;
 import com.discordsrv.api.events.discord.interaction.command.DiscordChatInputInteractionEvent;
-import com.discordsrv.api.events.discord.interaction.command.DiscordCommandAutoCompleteInteractionEvent;
 import com.discordsrv.common.DiscordSRV;
 import com.discordsrv.common.config.messages.MessagesConfig;
 import com.discordsrv.common.discord.api.entity.message.util.SendableDiscordMessageUtil;
@@ -58,13 +57,6 @@ public class DiscordCommandExecution implements CommandExecution {
         this.replyCallback = event.asJDA();
     }
 
-    public DiscordCommandExecution(DiscordSRV discordSRV, DiscordCommandAutoCompleteInteractionEvent event) {
-        this.discordSRV = discordSRV;
-        this.event = event;
-        this.interactionPayload = event.asJDA();
-        this.replyCallback = null;
-    }
-
     public DiscordUser getUser() {
         return event.getUser();
     }
@@ -85,9 +77,15 @@ public class DiscordCommandExecution implements CommandExecution {
     }
 
     @Override
-    public String getArgument(String label) {
+    public String getString(String label) {
         OptionMapping mapping = interactionPayload.getOption(label);
         return mapping != null ? mapping.getAsString() : null;
+    }
+
+    @Override
+    public Boolean getBoolean(String label) {
+        OptionMapping mapping = interactionPayload.getOption(label);
+        return mapping != null ? mapping.getAsBoolean() : null;
     }
 
     @Override
@@ -112,15 +110,14 @@ public class DiscordCommandExecution implements CommandExecution {
     }
 
     @Override
-    public void send(Component minecraft, SendableDiscordMessage discord) {
+    public void send(Component minecraftComponent, SendableDiscordMessage discord) {
+        if (discord == null) {
+            return;
+        }
         sendResponse(discord);
     }
 
     private void sendResponse(SendableDiscordMessage message) {
-        if (replyCallback == null) {
-            throw new IllegalStateException("May not be used on auto completions");
-        }
-
         InteractionHook interactionHook = hook.get();
         boolean ephemeral = isEphemeral.get();
         MessageCreateData data = SendableDiscordMessageUtil.toJDASend(message);

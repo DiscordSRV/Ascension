@@ -29,8 +29,8 @@ import com.discordsrv.common.DiscordSRV;
 import com.discordsrv.common.core.logging.Logger;
 import com.discordsrv.common.core.logging.NamedLogger;
 import com.discordsrv.common.exception.InvalidListenerMethodException;
-import com.discordsrv.common.feature.debug.DebugGenerateEvent;
-import com.discordsrv.common.feature.debug.file.TextDebugFile;
+import com.discordsrv.common.core.debug.DebugGenerateEvent;
+import com.discordsrv.common.core.debug.file.TextDebugFile;
 import com.discordsrv.common.helper.TestHelper;
 import net.dv8tion.jda.api.events.GenericEvent;
 import org.apache.commons.lang3.tuple.Pair;
@@ -326,7 +326,7 @@ public class EventBusImpl implements EventBus {
             }
         }
 
-        event.addFile(new TextDebugFile("event-bus.txt", builder));
+        event.addFile(0, "event-bus.txt", new TextDebugFile(builder));
     }
 
     private static class State<T> {
@@ -335,7 +335,7 @@ public class EventBusImpl implements EventBus {
         private final Predicate<Object> statePredicate;
         private final ThreadLocal<EventListener> stateHolder;
 
-        @SuppressWarnings("unchecked") // Converting generic to Object is easier down the line
+        @SuppressWarnings("unchecked")
         public State(Class<T> eventClass, Predicate<T> statePredicate, ThreadLocal<EventListener> stateHolder) {
             this.eventClass = eventClass;
             this.statePredicate = (Predicate<Object>) statePredicate;

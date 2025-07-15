@@ -27,12 +27,12 @@ import com.discordsrv.api.eventbus.EventBus;
 import com.discordsrv.api.eventbus.EventListener;
 import com.discordsrv.api.eventbus.internal.EventStateHolder;
 import org.jetbrains.annotations.ApiStatus;
+import org.jetbrains.annotations.MustBeInvokedByOverriders;
 import org.jetbrains.annotations.Nullable;
 
 /**
  * A {@link Event} that can be processed.
  */
-@SuppressWarnings("unused") // API
 public interface Processable extends Event {
 
     /**
@@ -64,18 +64,36 @@ public interface Processable extends Event {
 
         /**
          * Marks this event as processed. This cannot be reversed.
+         * Must call {@code Processable.NoArgument.super.markAsProcessed()} at the beginning of the method.
          * @see #isProcessed()
          */
-        void markAsProcessed();
+        @MustBeInvokedByOverriders
+        default void markAsProcessed() {
+            if (isProcessed()) {
+                throw new IllegalStateException("Cannot process an already processed event");
+            }
+            if (this instanceof Cancellable && ((Cancellable) this).isCancelled()) {
+                throw new IllegalStateException("Cannot process cancelled event");
+            }
+        }
     }
 
     interface Argument<T> extends Processable {
 
         /**
          * Marks this event as processed with the given argument. This cannot be reversed.
+         * Must call {@code Processable.Argument.super.process(input)} at the beginning of the method.
          * @param input the argument for processing the event
          * @see #isProcessed()
          */
-        void process(T input);
+        @MustBeInvokedByOverriders
+        default void process(T input) {
+            if (isProcessed()) {
+                throw new IllegalStateException("Cannot process an already processed event");
+            }
+            if (this instanceof Cancellable && ((Cancellable) this).isCancelled()) {
+                throw new IllegalStateException("Cannot process cancelled event");
+            }
+        }
     }
 }

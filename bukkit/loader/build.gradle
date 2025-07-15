@@ -18,6 +18,13 @@ processResources {
     filter(ReplaceTokens, tokens: ['VERSION': project.version])
 }
 
+jar {
+    manifest {
+        // Skip remapping on Paper 1.20.5+
+        attributes(["paperweight-mappings-namespace": "mojang"])
+    }
+}
+
 shadowJar {
     archiveBaseName = 'DiscordSRV-Bukkit'
 }

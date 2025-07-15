@@ -21,6 +21,7 @@ package com.discordsrv.bukkit.ban;
 import com.discordsrv.api.component.MinecraftComponent;
 import com.discordsrv.api.module.type.PunishmentModule;
 import com.discordsrv.api.punishment.Punishment;
+import com.discordsrv.api.task.Task;
 import com.discordsrv.bukkit.BukkitDiscordSRV;
 import com.discordsrv.common.core.module.type.AbstractModule;
 import com.discordsrv.common.feature.bansync.BanSyncModule;
@@ -39,7 +40,6 @@ import org.jetbrains.annotations.Nullable;
 import java.time.Instant;
 import java.util.Date;
 import java.util.UUID;
-import java.util.concurrent.CompletableFuture;
 
 public class BukkitBanModule extends AbstractModule<BukkitDiscordSRV> implements Listener, PunishmentModule.Bans {
 
@@ -72,7 +72,7 @@ public class BukkitBanModule extends AbstractModule<BukkitDiscordSRV> implements
     }
 
     @Override
-    public CompletableFuture<@Nullable Punishment> getBan(@NotNull UUID playerUUID) {
+    public Task<@Nullable Punishment> getBan(@NotNull UUID playerUUID) {
         BanList banList = discordSRV.server().getBanList(BanList.Type.NAME);
         return discordSRV.playerProvider().lookupOfflinePlayer(playerUUID)
                 .thenApply(offlinePlayer -> banList.getBanEntry(offlinePlayer.username()))
@@ -90,7 +90,7 @@ public class BukkitBanModule extends AbstractModule<BukkitDiscordSRV> implements
     }
 
     @Override
-    public CompletableFuture<Void> addBan(
+    public Task<Void> addBan(
             @NotNull UUID playerUUID,
             @Nullable Instant until,
             @Nullable MinecraftComponent reason,
@@ -107,7 +107,7 @@ public class BukkitBanModule extends AbstractModule<BukkitDiscordSRV> implements
     }
 
     @Override
-    public CompletableFuture<Void> removeBan(@NotNull UUID playerUUID) {
+    public Task<Void> removeBan(@NotNull UUID playerUUID) {
         BanList banList = discordSRV.server().getBanList(BanList.Type.NAME);
         return discordSRV.playerProvider().lookupOfflinePlayer(playerUUID).thenApply(offlinePlayer -> {
             banList.pardon(offlinePlayer.username());

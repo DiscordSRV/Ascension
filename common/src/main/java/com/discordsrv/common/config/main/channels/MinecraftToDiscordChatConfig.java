@@ -19,8 +19,11 @@
 package com.discordsrv.common.config.main.channels;
 
 import com.discordsrv.api.discord.entity.message.SendableDiscordMessage;
+import com.discordsrv.common.config.configurate.annotation.Constants;
+import com.discordsrv.common.config.configurate.annotation.DefaultOnly;
 import com.discordsrv.common.config.configurate.annotation.Untranslated;
 import com.discordsrv.common.config.configurate.manager.abstraction.ConfigurateConfigManager;
+import com.discordsrv.common.config.documentation.DocumentationURLs;
 import com.discordsrv.common.config.main.generic.IMessageConfig;
 import org.spongepowered.configurate.objectmapping.ConfigSerializable;
 import org.spongepowered.configurate.objectmapping.meta.Comment;
@@ -38,14 +41,27 @@ public class MinecraftToDiscordChatConfig implements IMessageConfig {
 
     public Boolean enabled = true;
 
+    @Comment("Suggested placeholders:\n"
+            + "%message% - The formatted message content\n"
+            + "%player_prefix% - The player's prefix (LuckPerms meta \"discordsrv_prefix\", otherwise their in-game prefix)\n"
+            + "%player_meta_prefix% - The player's prefix from the LuckPerms meta \"discordsrv_prefix\" only\n"
+            + "%player_suffix% - The player's suffix (LuckPerms meta \"discordsrv_suffix\", otherwise their in-game suffix)\n"
+            + "%player_meta_suffix% - The player's suffix from the LuckPerms meta \"discordsrv_suffix\" only\n"
+            + "%player_display_name% - The player's display name\n"
+            + "%player_name% - The player's username\n"
+            + "%player_avatar_url% - The player's avatar url based on the \"avatar-provider\" configuration\n"
+            + "More placeholders at %1 (Server, Player, GameChannel)")
+    @Constants.Comment(DocumentationURLs.PLACEHOLDERS)
     @Untranslated(Untranslated.Type.VALUE)
     public SendableDiscordMessage.Builder format = SendableDiscordMessage.builder()
-            .setWebhookUsername("%player_prefix%%player_display_name|player_name%%player_suffix%")
+            .setWebhookUsername("%player_prefix%%player_display_name%%player_suffix%")
             .setWebhookAvatarUrl("%player_avatar_url%")
             .setContent("%message%");
 
     // TODO: more info on regex pairs (String#replaceAll)
     @Comment("Regex filters for Minecraft message contents (this is the %message% part of the \"format\" option)")
+    @Untranslated(Untranslated.Type.VALUE)
+    @DefaultOnly
     public Map<Pattern, String> contentRegexFilters = new LinkedHashMap<>();
 
     public Mentions mentions = new Mentions();
@@ -68,15 +84,19 @@ public class MinecraftToDiscordChatConfig implements IMessageConfig {
 
         @Comment("If role mentions should be rendered on Discord\n\n"
                 + "The player needs one of the below permission to trigger notifications:\n"
-                + "- discordsrv.mention.roles.mentionable (for roles which have \"Allow anyone to @mention this role\" enabled)\n"
-                + "- discordsrv.mention.roles.all (to mention ALL roles except @everyone)")
+                + "- discordsrv.mention.role.<role id> (to mention a specific role)\n"
+                + "- discordsrv.mention.role.mentionable (for roles which have \"Allow anyone to @mention this role\" enabled)\n"
+                + "- discordsrv.mention.role.all (to mention ALL roles except @everyone)\n"
+                + "The roles need to have \"Allow anyone to @mention this role\" enabled or the bot needs to have the \"Mention @everyone, @here and All Roles\" permission for notifications to be triggered")
         public boolean roles = true;
 
         @Comment("If channel mentions should be rendered on Discord")
         public boolean channels = true;
 
         @Comment("If user mentions should be rendered on Discord\n"
-                + "The player needs the discordsrv.mention.user permission to trigger a notification\n"
+                + "The player needs one of the following permissions to trigger notifications:\n"
+                + "- discordsrv.mention.user.<user id> (to mention a specific user)\n"
+                + "- discordsrv.mention.user.all (to mention ALL user)\n"
                 + "Requires the \"Server Members Intent\"")
         public boolean users = true;
 
@@ -86,7 +106,8 @@ public class MinecraftToDiscordChatConfig implements IMessageConfig {
         public boolean uncachedUsers = false;
 
         @Comment("If @everyone and @here mentions should be enabled\n"
-                + "The player needs the discordsrv.mention.everyone permission to render the mention and trigger a notification")
+                + "The player needs the discordsrv.mention.everyone permission to render the mention and trigger a notification\n"
+                + "The bot needs to have the \"Mention @everyone, @here and All Roles\" permission to trigger a notification")
         public boolean everyone = false;
 
         public boolean any() {

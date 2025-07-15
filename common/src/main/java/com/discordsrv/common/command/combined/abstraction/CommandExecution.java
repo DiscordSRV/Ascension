@@ -23,6 +23,7 @@ import com.discordsrv.api.discord.entity.message.SendableDiscordMessage;
 import com.discordsrv.common.config.messages.MessagesConfig;
 import com.discordsrv.common.util.ComponentUtil;
 import net.kyori.adventure.text.Component;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.Arrays;
 import java.util.Collection;
@@ -36,7 +37,8 @@ public interface CommandExecution {
 
     void setEphemeral(boolean ephemeral);
 
-    String getArgument(String label);
+    String getString(String label);
+    Boolean getBoolean(String label);
 
     default void send(Text... texts) {
         send(Arrays.asList(texts));
@@ -48,11 +50,11 @@ public interface CommandExecution {
 
     void send(Collection<Text> texts, Collection<Text> extra);
 
-    default void send(MinecraftComponent minecraft, SendableDiscordMessage discord) {
-        send(ComponentUtil.fromAPI(minecraft), discord);
+    default void send(@Nullable MinecraftComponent minecraftComponent, @Nullable SendableDiscordMessage discordMessage) {
+        send(ComponentUtil.fromAPI(minecraftComponent), discordMessage);
     }
 
-    void send(Component minecraft, SendableDiscordMessage discord);
+    void send(@Nullable Component minecraftComponent, @Nullable SendableDiscordMessage discordMessage);
 
     void runAsync(Runnable runnable);
 }

@@ -23,13 +23,12 @@
 
 package com.discordsrv.api.discord.entity.channel;
 
-import com.discordsrv.api.DiscordSRVApi;
+import com.discordsrv.api.DiscordSRV;
 import com.discordsrv.api.discord.entity.message.ReceivedDiscordMessage;
 import com.discordsrv.api.discord.entity.message.SendableDiscordMessage;
+import com.discordsrv.api.task.Task;
 import net.dv8tion.jda.api.entities.channel.middleman.MessageChannel;
 import org.jetbrains.annotations.NotNull;
-
-import java.util.concurrent.CompletableFuture;
 
 /**
  * A Discord channel that can send/receive messages.
@@ -43,7 +42,7 @@ public interface DiscordMessageChannel extends DiscordChannel {
      * @return a future returning the message after being sent
      */
     @NotNull
-    CompletableFuture<ReceivedDiscordMessage> sendMessage(@NotNull SendableDiscordMessage message);
+    Task<ReceivedDiscordMessage> sendMessage(@NotNull SendableDiscordMessage message);
 
     /**
      * Deletes the message identified by the id.
@@ -52,7 +51,7 @@ public interface DiscordMessageChannel extends DiscordChannel {
      * @param webhookMessage if the message is a webhook message or not
      * @return a future that will fail if the request fails
      */
-    CompletableFuture<Void> deleteMessageById(long id, boolean webhookMessage);
+    Task<Void> deleteMessageById(long id, boolean webhookMessage);
 
     /**
      * Edits the message identified by the id.
@@ -62,12 +61,12 @@ public interface DiscordMessageChannel extends DiscordChannel {
      * @return a future returning the message after being edited
      */
     @NotNull
-    CompletableFuture<ReceivedDiscordMessage> editMessageById(long id, @NotNull SendableDiscordMessage message);
+    Task<ReceivedDiscordMessage> editMessageById(long id, @NotNull SendableDiscordMessage message);
 
     /**
      * Returns the JDA representation of this object. This should not be used if it can be avoided.
      * @return the JDA representation of this object
-     * @see DiscordSRVApi#jda()
+     * @see DiscordSRV#jda()
      */
     MessageChannel getAsJDAMessageChannel();
 }

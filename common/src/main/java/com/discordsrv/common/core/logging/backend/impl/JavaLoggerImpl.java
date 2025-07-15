@@ -30,7 +30,10 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.logging.*;
+import java.util.logging.Filter;
+import java.util.logging.Handler;
+import java.util.logging.Level;
+import java.util.logging.LogRecord;
 
 public class JavaLoggerImpl implements Logger, LoggingBackend {
 
@@ -144,7 +147,7 @@ public class JavaLoggerImpl implements Logger, LoggingBackend {
         @Override
         public boolean isLoggable(LogRecord record) {
             if (filters.isEmpty()) {
-                return true;
+                return parent == null || parent.isLoggable(record);
             }
 
             Level level = record.getLevel();

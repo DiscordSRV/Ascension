@@ -18,30 +18,31 @@
 
 package com.discordsrv.common.feature.messageforwarding.game;
 
-import com.discordsrv.api.channel.GameChannel;
-import com.discordsrv.api.component.MinecraftComponent;
+import com.discordsrv.api.discord.entity.channel.DiscordGuildMessageChannel;
 import com.discordsrv.api.discord.entity.message.ReceivedDiscordMessageCluster;
 import com.discordsrv.api.discord.entity.message.SendableDiscordMessage;
 import com.discordsrv.api.eventbus.EventPriorities;
 import com.discordsrv.api.eventbus.Subscribe;
-import com.discordsrv.api.events.message.forward.game.ServerSwitchMessageForwardedEvent;
-import com.discordsrv.api.events.message.receive.game.ServerSwitchMessageReceiveEvent;
+import com.discordsrv.api.events.message.post.game.AbstractGameMessagePostEvent;
+import com.discordsrv.api.events.message.post.game.ServerSwitchMessagePostEvent;
+import com.discordsrv.api.events.message.postprocess.game.ServerSwitchMessagePostProcessEvent;
+import com.discordsrv.api.events.message.preprocess.game.ServerSwitchMessagePreProcessEvent;
 import com.discordsrv.common.DiscordSRV;
+import com.discordsrv.common.abstraction.player.IPlayer;
 import com.discordsrv.common.config.main.channels.base.BaseChannelConfig;
 import com.discordsrv.common.config.main.channels.base.proxy.ProxyBaseChannelConfig;
 import com.discordsrv.common.config.main.channels.proxy.ServerSwitchMessageConfig;
-import com.discordsrv.common.util.ComponentUtil;
-import net.kyori.adventure.text.Component;
-import org.jetbrains.annotations.NotNull;
 
-public class ServerSwitchMessageModule extends AbstractGameMessageModule<ServerSwitchMessageConfig, ServerSwitchMessageReceiveEvent> {
+import java.util.List;
+
+public class ServerSwitchMessageModule extends AbstractGameMessageModule<ServerSwitchMessageConfig, ServerSwitchMessagePreProcessEvent, ServerSwitchMessagePostProcessEvent> {
 
     public ServerSwitchMessageModule(DiscordSRV discordSRV) {
         super(discordSRV, "SERVER_SWITCH_MESSAGES");
     }
 
     @Subscribe(priority = EventPriorities.LAST, ignoreCancelled = false, ignoreProcessed = false)
-    public void onServerSwitchMessageReceive(ServerSwitchMessageReceiveEvent event) {
+    public void onServerSwitchMessageReceive(ServerSwitchMessagePreProcessEvent event) {
         if (checkCancellation(event) || checkProcessor(event)) {
             return;
         }
@@ -56,19 +57,27 @@ public class ServerSwitchMessageModule extends AbstractGameMessageModule<ServerS
     }
 
     @Override
-    public void postClusterToEventBus(GameChannel channel, @NotNull ReceivedDiscordMessageCluster cluster) {
-        discordSRV.eventBus().publish(new ServerSwitchMessageForwardedEvent(channel, cluster));
+    protected ServerSwitchMessagePostProcessEvent createPostProcessEvent(
+            ServerSwitchMessagePreProcessEvent preEvent,
+            IPlayer player,
+            List<DiscordGuildMessageChannel> channels,
+            SendableDiscordMessage discordMessage
+    ) {
+        return new ServerSwitchMessagePostProcessEvent(preEvent, player, channels, discordMessage);
+    }
+
+    @Override
+    protected AbstractGameMessagePostEvent<ServerSwitchMessagePostProcessEvent> createPostEvent(
+            ServerSwitchMessagePostProcessEvent preEvent, ReceivedDiscordMessageCluster cluster) {
+        return new ServerSwitchMessagePostEvent(preEvent, cluster);
     }
 
     @Override
     public void setPlaceholders(
             ServerSwitchMessageConfig config,
-            ServerSwitchMessageReceiveEvent event,
+            ServerSwitchMessagePreProcessEvent event,
             SendableDiscordMessage.Formatter formatter
     ) {
-        MinecraftComponent messageComponent = event.getMessage();
-        Component message = messageComponent != null ? ComponentUtil.fromAPI(messageComponent) : null;
-
-        formatter.addPlaceholder("message", message);
+        formatter.addPlaceholder("message", event.getMessage());
     }
 }

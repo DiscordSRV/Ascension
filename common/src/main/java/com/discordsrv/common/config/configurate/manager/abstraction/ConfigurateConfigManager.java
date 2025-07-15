@@ -29,8 +29,10 @@ import com.discordsrv.common.config.configurate.fielddiscoverer.FieldValueDiscov
 import com.discordsrv.common.config.configurate.fielddiscoverer.OrderedFieldDiscovererProxy;
 import com.discordsrv.common.config.configurate.manager.loader.ConfigLoaderProvider;
 import com.discordsrv.common.config.configurate.serializer.*;
+import com.discordsrv.common.config.configurate.serializer.helper.BothMessageSerializer;
 import com.discordsrv.common.config.configurate.serializer.helper.DiscordMessageSerializer;
 import com.discordsrv.common.config.configurate.serializer.helper.MinecraftMessageSerializer;
+import com.discordsrv.common.config.helper.BothMessage;
 import com.discordsrv.common.config.helper.DiscordMessage;
 import com.discordsrv.common.config.helper.MinecraftMessage;
 import com.discordsrv.common.config.main.channels.base.BaseChannelConfig;
@@ -174,7 +176,7 @@ public abstract class ConfigurateConfigManager<T, LT extends AbstractConfigurati
         return new IChannelConfig.Serializer(mapperFactory, BaseChannelConfig.class, ChannelConfig.class);
     }
 
-    @SuppressWarnings("unchecked") // Special Class cast
+    @SuppressWarnings("unchecked")
     public ConfigurationOptions configurationOptions(ObjectMapper.Factory objectMapper, boolean headerSubstitutions) {
         String header = header();
         if (header != null && headerSubstitutions) {
@@ -214,8 +216,9 @@ public abstract class ConfigurateConfigManager<T, LT extends AbstractConfigurati
                     builder.register(DiscordMessageEmbed.Builder.class, new DiscordMessageEmbedSerializer(NAMING_SCHEME));
                     builder.register(DiscordMessageEmbed.Field.class, new DiscordMessageEmbedSerializer.FieldSerializer(NAMING_SCHEME));
                     builder.register(SendableDiscordMessage.Builder.class, new SendableDiscordMessageSerializer(NAMING_SCHEME, false));
-                    builder.register(MinecraftMessage.class, new MinecraftMessageSerializer());
+                    builder.register(MinecraftMessage.class, new MinecraftMessageSerializer(NAMING_SCHEME));
                     builder.register(DiscordMessage.class, new DiscordMessageSerializer(NAMING_SCHEME));
+                    builder.register(BothMessage.class, new BothMessageSerializer(NAMING_SCHEME));
 
                     // give Configurate' serializers the ObjectMapper mapper
                     builder.register(type -> {
@@ -263,22 +266,29 @@ public abstract class ConfigurateConfigManager<T, LT extends AbstractConfigurati
                     }
                 })
                 .addProcessor(Constants.class, (data, fieldType) -> (value, destination) -> {
-                    String[] values = getValues(data.value(), data.intValue());
-                    if (values.length == 0) {
+                    String[] constants = getValues(data.value(), data.intValue());
+                    if (constants.length == 0) {
                         return;
                     }
-
-                    Object optionValue = destination.raw();
-                    if (!(optionValue instanceof String)) {
-                        return;
-                    }
-
-                    try {
-                        destination.set(doSubstitution(destination.getString(), values));
-                    } catch (SerializationException e) {
-                        throw new RuntimeException(e);
-                    }
+                    applyConstantsRecursively(constants, destination);
                 });
+    }
+
+    private void applyConstantsRecursively(String[] constants, ConfigurationNode destination) {
+        Object optionValue = destination.raw();
+        if (optionValue instanceof String) {
+            try {
+                destination.set(doSubstitution(destination.getString(), constants));
+            } catch (SerializationException e) {
+                throw new RuntimeException(e);
+            }
+            return;
+        }
+
+        Map<Object, ? extends ConfigurationNode> children = destination.childrenMap();
+        for (ConfigurationNode value : children.values()) {
+            applyConstantsRecursively(constants, value);
+        }
     }
 
     private String[] getValues(String[] value, int[] intValue) {
@@ -317,10 +327,7 @@ public abstract class ConfigurateConfigManager<T, LT extends AbstractConfigurati
     protected ObjectMapper.Factory.Builder cleanObjectMapperBuilder() {
         return commonObjectMapperBuilder(true)
                 .addProcessor(DefaultOnly.class, (data, value) -> (value1, destination) -> {
-                    String[] children = data.value();
-                    boolean whitelist = data.whitelist();
-
-                    if (children.length == 0) {
+                    if (data.entireOption()) {
                         try {
                             destination.set(null);
                         } catch (SerializationException e) {
@@ -328,6 +335,10 @@ public abstract class ConfigurateConfigManager<T, LT extends AbstractConfigurati
                         }
                         return;
                     }
+
+                    // Children which will be excluded/included from the default node
+                    String[] children = data.value();
+                    boolean whitelist = data.whitelist();
 
                     List<String> list = Arrays.asList(children);
                     for (Map.Entry<Object, ? extends ConfigurationNode> entry : destination.childrenMap().entrySet()) {
@@ -390,7 +401,7 @@ public abstract class ConfigurateConfigManager<T, LT extends AbstractConfigurati
 
     protected void translate(CommentedConfigurationNode node) throws ConfigurateException {}
 
-    @SuppressWarnings("unchecked") // Cast to generic
+    @SuppressWarnings("unchecked")
     @Override
     public void reload(boolean forceSave, AtomicBoolean anyMissingOptions, @Nullable Path backupPath) throws ConfigException {
         T defaultConfig = createConfiguration();
@@ -462,6 +473,12 @@ public abstract class ConfigurateConfigManager<T, LT extends AbstractConfigurati
             }
 
             checkIfValuesMissing(value, child, anyMissingOptions);
+        }
+        List<CommentedConfigurationNode> children = defaultNode.childrenList();
+        if (!children.isEmpty()) {
+            for (CommentedConfigurationNode childNode : node.childrenList()) {
+                checkIfValuesMissing(childNode, children.get(0), anyMissingOptions);
+            }
         }
     }
 

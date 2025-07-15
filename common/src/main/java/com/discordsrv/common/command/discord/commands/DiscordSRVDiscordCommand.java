@@ -23,32 +23,43 @@ import com.discordsrv.api.discord.entity.interaction.component.ComponentIdentifi
 import com.discordsrv.common.DiscordSRV;
 import com.discordsrv.common.command.combined.commands.*;
 import com.discordsrv.common.command.discord.commands.subcommand.ExecuteCommand;
-import com.discordsrv.common.config.main.DiscordCommandConfig;
-import com.discordsrv.common.feature.linking.LinkStore;
+import com.discordsrv.common.feature.linking.LinkProvider;
+import com.discordsrv.common.feature.linking.requirelinking.RequiredLinkingModule;
 
 public class DiscordSRVDiscordCommand {
 
+    private static final String LABEL = "discordsrv";
     private static final ComponentIdentifier IDENTIFIER = ComponentIdentifier.of("DiscordSRV", "discordsrv");
 
     private static DiscordCommand INSTANCE;
 
     public static DiscordCommand get(DiscordSRV discordSRV) {
         if (INSTANCE == null) {
-            DiscordCommandConfig config = discordSRV.config().discordCommand;
-
-            DiscordCommand.ChatInputBuilder builder = DiscordCommand.chatInput(IDENTIFIER, "discordsrv", "DiscordSRV related commands")
-                    .addSubCommand(DebugCommand.getDiscord(discordSRV))
+            DiscordCommand.ChatInputBuilder builder = DiscordCommand.chatInput(IDENTIFIER, LABEL, "")
+                    .addDescriptionTranslations(discordSRV.getAllTranslations(config -> config.discordsrvCommandDescription.content()))
+                    .addSubCommandGroup(DebugCommand.getDiscord(discordSRV))
+                    .addSubCommand(ParseCommand.getDiscord(discordSRV))
                     .addSubCommand(VersionCommand.getDiscord(discordSRV))
-                    .addSubCommand(ResyncCommand.getDiscord(discordSRV))
-                    .addSubCommand(LinkedCommand.getDiscord(discordSRV));
+                    .addSubCommand(ResyncCommand.getDiscord(discordSRV));
 
-            if (config.execute.enabled) {
+            if (discordSRV.config().executeCommand.enabled) {
                 builder = builder.addSubCommand(ExecuteCommand.get(discordSRV));
             }
-            if (discordSRV.linkProvider() instanceof LinkStore) {
-                builder = builder
-                        .addSubCommand(LinkOtherCommand.getDiscord(discordSRV))
-                        .addSubCommand(UnlinkCommand.getDiscordWithOther(discordSRV));
+
+            LinkProvider linkProvider = discordSRV.linkProvider();
+            if (linkProvider != null) {
+                builder = builder.addSubCommand(LinkedCommand.getDiscord(discordSRV));
+
+                if (linkProvider.usesLocalLinking()) {
+                    builder = builder
+                            .addSubCommand(LinkOtherCommand.getDiscord(discordSRV))
+                            .addSubCommand(UnlinkCommand.getDiscordWithOther(discordSRV));
+                }
+            }
+
+            RequiredLinkingModule<?> requiredLinking = discordSRV.getModule(RequiredLinkingModule.class);
+            if (requiredLinking != null && requiredLinking.isEnabled()) {
+                builder = builder.addSubCommandGroup(BypassCommand.getDiscord(discordSRV));
             }
 
             INSTANCE = builder

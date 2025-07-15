@@ -18,12 +18,14 @@
 
 package com.discordsrv.common.command.game.abstraction.handler.util;
 
+import com.discordsrv.common.DiscordSRV;
 import com.discordsrv.common.command.game.abstraction.command.GameCommand;
 import com.discordsrv.common.command.game.abstraction.command.GameCommandArguments;
 import com.discordsrv.common.command.game.abstraction.command.GameCommandExecutor;
 import com.discordsrv.common.command.game.abstraction.command.GameCommandSuggester;
 import com.discordsrv.common.command.game.abstraction.sender.ICommandSender;
 import com.discordsrv.common.permission.game.Permission;
+import com.discordsrv.common.util.CommandUtil;
 import com.mojang.brigadier.Command;
 import com.mojang.brigadier.arguments.*;
 import com.mojang.brigadier.builder.ArgumentBuilder;
@@ -48,12 +50,12 @@ public final class BrigadierUtil {
 
     private BrigadierUtil() {}
 
-    public static <S> LiteralCommandNode<S> convertToBrigadier(GameCommand command, Function<S, ICommandSender> commandSenderMapper) {
-        return (LiteralCommandNode<S>) convert(command, commandSenderMapper);
+    public static <S> LiteralCommandNode<S> convertToBrigadier(DiscordSRV discordSRV, GameCommand command, Function<S, ICommandSender> commandSenderMapper) {
+        return (LiteralCommandNode<S>) convert(discordSRV, command, commandSenderMapper);
     }
 
     @SuppressWarnings("unchecked")
-    private static <S> CommandNode<S> convert(GameCommand commandBuilder, Function<S, ICommandSender> commandSenderMapper) {
+    private static <S> CommandNode<S> convert(DiscordSRV discordSRV, GameCommand commandBuilder, Function<S, ICommandSender> commandSenderMapper) {
         CommandNode<S> alreadyConverted = (CommandNode<S>) CACHE.get(commandBuilder);
         if (alreadyConverted != null) {
             return alreadyConverted;
@@ -74,14 +76,10 @@ public final class BrigadierUtil {
         }
 
         for (GameCommand child : commandBuilder.getChildren()) {
-            argumentBuilder.then(convert(child, commandSenderMapper));
+            argumentBuilder.then(convert(discordSRV, child, commandSenderMapper));
         }
         if (redirection != null) {
-            CommandNode<S> redirectNode = (CommandNode<S>) CACHE.get(redirection);
-            if (redirectNode == null) {
-                redirectNode = convert(redirection, commandSenderMapper);
-            }
-            argumentBuilder.redirect(redirectNode);
+            argumentBuilder.redirect(convert(discordSRV, redirection, commandSenderMapper));
         }
 
         if (requiredPermission != null) {
@@ -90,20 +88,22 @@ public final class BrigadierUtil {
                 return commandSender.hasPermission(requiredPermission);
             });
         }
-        if (executor != null) {
-            argumentBuilder.executes(context -> {
-                executor.execute(
-                        commandSenderMapper.apply(context.getSource()),
-                        getArgumentMapper(context),
-                        label
-                );
-                return Command.SINGLE_SUCCESS;
-            });
-        }
-        if (suggester != null && argumentBuilder instanceof RequiredArgumentBuilder) {
+        argumentBuilder.executes(context -> {
+            ICommandSender commandSender = commandSenderMapper.apply(context.getSource());
+            CommandUtil.basicStatusCheck(discordSRV, commandSender);
+
+            executor.execute(
+                    commandSender,
+                    getArgumentMapper(context),
+                    commandBuilder,
+                    context.getInput().split(" ", 2)[0]
+            );
+            return Command.SINGLE_SUCCESS;
+        });
+        if (argumentBuilder instanceof RequiredArgumentBuilder) {
             ((RequiredArgumentBuilder<S, ?>) argumentBuilder).suggests((context, builder) -> {
                 try {
-                    List<?> suggestions =  suggester.suggestValues(
+                    List<?> suggestions = suggester.suggestValues(
                             commandSenderMapper.apply(context.getSource()),
                             getArgumentMapper(context),
                             builder.getRemaining()

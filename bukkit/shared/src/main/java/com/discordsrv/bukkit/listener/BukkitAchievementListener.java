@@ -19,7 +19,7 @@
 package com.discordsrv.bukkit.listener;
 
 import com.discordsrv.api.component.MinecraftComponent;
-import com.discordsrv.api.events.message.receive.game.AwardMessageReceiveEvent;
+import com.discordsrv.api.events.message.preprocess.game.AwardMessagePreProcessEvent;
 import com.discordsrv.bukkit.BukkitDiscordSRV;
 import com.discordsrv.bukkit.debug.EventObserver;
 import com.discordsrv.common.abstraction.player.IPlayer;
@@ -50,10 +50,12 @@ public class BukkitAchievementListener extends AbstractBukkitListener<PlayerAchi
 
         IPlayer player = discordSRV.playerProvider().player(event.getPlayer());
         discordSRV.eventBus().publish(
-                new AwardMessageReceiveEvent(
+                new AwardMessagePreProcessEvent(
                         event,
                         player,
+                        null,
                         achievementName,
+                        null,
                         null,
                         null,
                         event.isCancelled()

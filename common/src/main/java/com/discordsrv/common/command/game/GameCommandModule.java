@@ -18,21 +18,20 @@
 
 package com.discordsrv.common.command.game;
 
-import com.discordsrv.api.DiscordSRVApi;
 import com.discordsrv.api.reload.ReloadResult;
 import com.discordsrv.common.DiscordSRV;
 import com.discordsrv.common.command.combined.commands.LinkOtherCommand;
 import com.discordsrv.common.command.game.abstraction.command.GameCommand;
 import com.discordsrv.common.command.game.abstraction.handler.ICommandHandler;
 import com.discordsrv.common.command.game.commands.DiscordSRVGameCommand;
-import com.discordsrv.common.config.main.GameCommandConfig;
+import com.discordsrv.common.config.main.command.GameCommandConfig;
 import com.discordsrv.common.core.module.type.AbstractModule;
 
 import java.util.HashSet;
 import java.util.Set;
 import java.util.function.Consumer;
 
-public class GameCommandModule extends AbstractModule<DiscordSRV> {
+public class GameCommandModule extends AbstractModule<com.discordsrv.common.DiscordSRV> {
 
     private final Set<GameCommand> commands = new HashSet<>();
 
@@ -42,18 +41,25 @@ public class GameCommandModule extends AbstractModule<DiscordSRV> {
 
     @Override
     public boolean canEnableBeforeReady() {
-        // Can enable after JDA starts attempting to connect
-        return discordSRV.config() != null && discordSRV.status() != DiscordSRVApi.Status.INITIALIZED;
+        // Can enable after JDA starts attempting to connect or if startup fails
+        return discordSRV.status() != DiscordSRV.Status.INITIALIZED;
+    }
+
+    @Override
+    public boolean isEnabled() {
+        return discordSRV.isReady() || canEnableBeforeReady();
     }
 
     @Override
     public void reload(Consumer<ReloadResult> resultConsumer) {
-        GameCommandConfig config = discordSRV.config().gameCommand;
+        registerCommand(DiscordSRVGameCommand.get(discordSRV, "discordsrv"));
+        registerCommand(DiscordSRVGameCommand.get(discordSRV, "dsrv"));
+
+        GameCommandConfig config = discordSRV.config() != null ? discordSRV.config().gameCommand : null;
         if (config == null) {
             return;
         }
 
-        registerCommand(DiscordSRVGameCommand.get(discordSRV, "discordsrv"));
         if (config.useDiscordCommand) {
             registerCommand(DiscordSRVGameCommand.get(discordSRV, "discord"));
         }

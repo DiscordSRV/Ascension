@@ -21,6 +21,7 @@ package com.discordsrv.common.feature.linking.requirelinking;
 import com.discordsrv.api.eventbus.Subscribe;
 import com.discordsrv.api.events.linking.AccountUnlinkedEvent;
 import com.discordsrv.api.reload.ReloadResult;
+import com.discordsrv.api.task.Task;
 import com.discordsrv.common.DiscordSRV;
 import com.discordsrv.common.abstraction.player.IPlayer;
 import com.discordsrv.common.config.main.linking.RequiredLinkingConfig;
@@ -40,15 +41,11 @@ import com.discordsrv.common.feature.linking.requirelinking.requirement.type.Dis
 import com.discordsrv.common.feature.linking.requirelinking.requirement.type.DiscordServerRequirementType;
 import com.discordsrv.common.feature.linking.requirelinking.requirement.type.MinecraftAuthRequirementType;
 import com.discordsrv.common.helper.Someone;
-import com.discordsrv.common.util.CompletableFutureUtil;
 import com.discordsrv.common.util.ComponentUtil;
 import net.kyori.adventure.text.Component;
+import org.jetbrains.annotations.MustBeInvokedByOverriders;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Objects;
-import java.util.UUID;
-import java.util.concurrent.CompletableFuture;
+import java.util.*;
 import java.util.concurrent.SynchronousQueue;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
@@ -56,7 +53,10 @@ import java.util.function.Consumer;
 
 public abstract class RequiredLinkingModule<T extends DiscordSRV> extends AbstractModule<T> {
 
+    public static String NOT_READY_MESSAGE = "The server is still connecting to Discord, please try again in a moment";
+
     private final List<RequirementType<?>> availableRequirementTypes = new ArrayList<>();
+    private final Set<UUID> storageBypass = new HashSet<>();
     private ThreadPoolExecutor executor;
 
     public RequiredLinkingModule(T discordSRV) {
@@ -79,6 +79,7 @@ public abstract class RequiredLinkingModule<T extends DiscordSRV> extends Abstra
         return discordSRV.config() == null || config().enabled;
     }
 
+    @MustBeInvokedByOverriders
     @Override
     public void enable() {
         executor = new DynamicCachingThreadPoolExecutor(
@@ -89,10 +90,9 @@ public abstract class RequiredLinkingModule<T extends DiscordSRV> extends Abstra
                 new SynchronousQueue<>(),
                 new CountingThreadFactory(Scheduler.THREAD_NAME_PREFIX + "RequiredLinking #%s")
         );
-
-        super.enable();
     }
 
+    @MustBeInvokedByOverriders
     @Override
     public void disable() {
         if (executor != null) {
@@ -126,6 +126,51 @@ public abstract class RequiredLinkingModule<T extends DiscordSRV> extends Abstra
 
         if (discordSRV.config() != null) {
             reload();
+            updateBypassFromStorage();
+        }
+    }
+
+    public boolean isBypassingLinkingByConfig(UUID playerUUID) {
+        return false;
+    }
+
+    public boolean isBypassingLinking(UUID playerUUID) {
+        return storageBypass.contains(playerUUID);
+    }
+
+    public Set<UUID> getBypassingPlayers() {
+        return storageBypass;
+    }
+
+    public void addLinkingBypass(UUID playerUUID) {
+        updateBypassFromStorage();
+        synchronized (storageBypass) {
+            if (storageBypass.contains(playerUUID)) {
+                return;
+            }
+
+            discordSRV.storage().addRequiredLinkingBypass(playerUUID);
+            storageBypass.add(playerUUID);
+        }
+    }
+
+    public void removeLinkingBypass(UUID playerUUID) {
+        updateBypassFromStorage();
+        synchronized (storageBypass) {
+            if (!storageBypass.contains(playerUUID)) {
+                return;
+            }
+
+            discordSRV.storage().removeRequiredLinkingBypass(playerUUID);
+            storageBypass.remove(playerUUID);
+        }
+    }
+
+    private void updateBypassFromStorage() {
+        Set<UUID> bypass = discordSRV.storage().getRequiredLinkingBypass();
+        synchronized (this.storageBypass) {
+            storageBypass.clear();
+            storageBypass.addAll(bypass);
         }
     }
 
@@ -135,20 +180,22 @@ public abstract class RequiredLinkingModule<T extends DiscordSRV> extends Abstra
     public abstract void recheck(IPlayer player);
 
     private void recheck(Someone someone) {
-        someone.withPlayerUUID(discordSRV).thenApply(uuid -> {
-            if (uuid == null) {
-                return null;
-            }
+        IPlayer player = someone.onlinePlayer();
+        if (player != null) {
+            recheck(player);
+            return;
+        }
 
-            return discordSRV.playerProvider().player(uuid);
-        }).whenComplete((onlinePlayer, t) -> {
-            if (t != null) {
-                logger().error("Failed to get linked account for " + someone, t);
-            }
-            if (onlinePlayer != null) {
-                recheck(onlinePlayer);
-            }
-        });
+        someone.resolve()
+                .thenApply(resolved -> resolved != null ? resolved.onlinePlayer() : null)
+                .whenComplete((onlinePlayer, t) -> {
+                    if (t != null) {
+                        logger().error("Failed to get linked account for " + someone, t);
+                    }
+                    if (onlinePlayer != null) {
+                        recheck(onlinePlayer);
+                    }
+                });
     }
 
     public <RT> void stateChanged(Someone someone, RequirementType<RT> requirementType, RT value, boolean newState) {
@@ -167,7 +214,7 @@ public abstract class RequiredLinkingModule<T extends DiscordSRV> extends Abstra
 
     @Subscribe
     public void onAccountUnlinked(AccountUnlinkedEvent event) {
-        recheck(Someone.of(event.getPlayerUUID()));
+        recheck(Someone.of(discordSRV, event.getPlayerUUID(), event.getUserId()));
     }
 
     protected List<ParsedRequirements> compile(List<String> additionalRequirements) {
@@ -194,62 +241,58 @@ public abstract class RequiredLinkingModule<T extends DiscordSRV> extends Abstra
         return providers;
     }
 
-    public CompletableFuture<Component> getBlockReason(
+    public Task<Component> getBlockReason(
             RequirementsConfig config,
             List<ParsedRequirements> additionalRequirements,
             UUID playerUUID,
             String playerName,
             boolean join
     ) {
-        if (config.bypassUUIDs.contains(playerUUID.toString())) {
+        if (storageBypass.contains(playerUUID) || config.bypassUUIDs.contains(playerUUID.toString())) {
             // Bypasses: let them through
             logger().debug("Player " + playerName + " is bypassing required linking requirements");
-            return CompletableFuture.completedFuture(null);
+            return Task.completed(null);
         }
 
         LinkProvider linkProvider = discordSRV.linkProvider();
         if (linkProvider == null) {
             // Link provider unavailable but required linking enabled: error message
             Component message = ComponentUtil.fromAPI(
-                    discordSRV.messagesConfig().minecraft.unableToCheckLinkingStatus.textBuilder().build()
+                    discordSRV.messagesConfig().unableToCheckLinkingStatus.minecraft().textBuilder().build()
             );
-            return CompletableFuture.completedFuture(message);
+            return Task.completed(message);
         }
 
-        return linkProvider.queryUserId(playerUUID, true).thenCompose(opt -> {
-            if (!opt.isPresent()) {
+        return linkProvider.query(playerUUID, true).then(link -> {
+            if (!link.isPresent()) {
                 // User is not linked
                 return linkProvider.getLinkingInstructions(playerName, playerUUID, null, join ? "join" : "freeze")
                         .thenApply(ComponentUtil::fromAPI);
             }
 
-            long userId = opt.get();
-
+            long userId = link.get().userId();
             if (additionalRequirements.isEmpty()) {
                 // No additional requirements: let them through
-                return CompletableFuture.completedFuture(null);
+                return Task.completed(null);
             }
 
-            CompletableFuture<Void> pass = new CompletableFuture<>();
-            List<CompletableFuture<Boolean>> all = new ArrayList<>();
+            Task<Void> pass = new Task<>();
+            List<Task<Boolean>> all = new ArrayList<>();
 
             for (ParsedRequirements requirement : additionalRequirements) {
-                CompletableFuture<Boolean> future = requirement.predicate().apply(Someone.of(playerUUID, userId));
+                Task<Boolean> future = requirement.predicate().apply(Someone.of(discordSRV, playerUUID, userId));
 
                 all.add(future.thenApply(val -> {
                     if (val) {
                         pass.complete(null);
                     }
                     return val;
-                }).exceptionally(t -> {
-                    logger().debug("Check \"" + requirement.input() + "\" failed for "
-                                           + playerName + " / " + Long.toUnsignedString(userId), t);
-                    return null;
-                }));
+                }).whenFailed(t -> logger().debug("Check \"" + requirement.input() + "\" failed for "
+                                       + playerName + " / " + Long.toUnsignedString(userId), t)));
             }
 
             // Complete when at least one passes or all of them completed
-            return CompletableFuture.anyOf(pass, CompletableFutureUtil.combine(all)).thenApply(v -> {
+            return Task.anyOf(pass, Task.allOf(all)).thenApply(v -> {
                 if (pass.isDone()) {
                     // One of the futures passed: let them through
                     return null;

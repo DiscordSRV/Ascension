@@ -19,7 +19,7 @@
 package com.discordsrv.fabric.module.chat;
 
 import com.discordsrv.api.component.MinecraftComponent;
-import com.discordsrv.api.events.message.receive.game.DeathMessageReceiveEvent;
+import com.discordsrv.api.events.message.preprocess.game.DeathMessagePreProcessEvent;
 import com.discordsrv.api.player.DiscordSRVPlayer;
 import com.discordsrv.common.util.ComponentUtil;
 import com.discordsrv.fabric.FabricDiscordSRV;
@@ -29,40 +29,50 @@ import net.minecraft.entity.LivingEntity;
 import net.minecraft.entity.damage.DamageSource;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.text.Text;
+import net.minecraft.world.GameRules;
 
 public class FabricDeathModule extends AbstractFabricModule {
-    private static FabricDeathModule instance;
+
     private final FabricDiscordSRV discordSRV;
 
     public FabricDeathModule(FabricDiscordSRV discordSRV) {
         super(discordSRV);
         this.discordSRV = discordSRV;
-        instance = this;
     }
 
-    public static void onDeath(LivingEntity livingEntity, DamageSource damageSource) {
-        if (instance == null || !instance.enabled) return;
-        if (livingEntity instanceof ServerPlayerEntity) {
-            FabricDiscordSRV discordSRV = instance.discordSRV;
-            Text message = damageSource.getDeathMessage(livingEntity);
-            //? if adventure: <6 {
+    public void register() {
+        ServerLivingEntityEvents.AFTER_DEATH.register(this::onDeath);
+    }
+
+    private void onDeath(LivingEntity livingEntity, DamageSource damageSource) {
+        if (!enabled) return;
+        if (!(livingEntity instanceof ServerPlayerEntity playerEntity)) {
+            return;
+        }
+
+        if (!playerEntity.getServerWorld().getGameRules().get(GameRules.SHOW_DEATH_MESSAGES).get()) {
+            logger().debug("Skipping displaying death message, disabled by gamerule");
+            return;
+        }
+
+        Text message = damageSource.getDeathMessage(livingEntity);
+        //? if adventure: <6 {
             /*@SuppressWarnings("removal")
             Component component = discordSRV.getAdventure().toAdventure(message);
             *///?} else {
-            Component component = discordSRV.getAdventure().asAdventure(message);
-             //?}
-            MinecraftComponent minecraftComponent = ComponentUtil.toAPI(component);
+        Component component = discordSRV.getAdventure().asAdventure(message);
+        //?}
+        MinecraftComponent minecraftComponent = ComponentUtil.toAPI(component);
 
-            DiscordSRVPlayer player = discordSRV.playerProvider().player((ServerPlayerEntity) livingEntity);
-            discordSRV.eventBus().publish(
-                    new DeathMessageReceiveEvent(
-                            damageSource,
-                            player,
-                            minecraftComponent,
-                            null,
-                            false
-                    )
-            );
-        }
+        DiscordSRVPlayer player = discordSRV.playerProvider().player(playerEntity);
+        discordSRV.eventBus().publish(
+                new DeathMessagePreProcessEvent(
+                        damageSource,
+                        player,
+                        minecraftComponent,
+                        null,
+                        false
+                )
+        );
     }
 }

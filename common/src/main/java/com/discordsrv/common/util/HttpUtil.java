@@ -18,6 +18,7 @@
 
 package com.discordsrv.common.util;
 
+import com.discordsrv.api.task.Task;
 import com.discordsrv.common.DiscordSRV;
 import com.discordsrv.common.exception.MessageException;
 import okhttp3.Request;
@@ -26,7 +27,6 @@ import okhttp3.ResponseBody;
 import org.apache.commons.lang3.StringUtils;
 
 import java.io.IOException;
-import java.util.concurrent.CompletableFuture;
 
 public final class HttpUtil {
 
@@ -43,7 +43,7 @@ public final class HttpUtil {
         return responseBody;
     }
 
-    public static <T> CompletableFuture<T> readJson(DiscordSRV discordSRV, Request request, Class<T> type) {
+    public static <T> Task<T> readJson(DiscordSRV discordSRV, Request request, Class<T> type) {
         return discordSRV.scheduler().supply(() -> {
             try (Response response = discordSRV.httpClient().newCall(request).execute()) {
                 ResponseBody responseBody = checkIfResponseSuccessful(request, response);

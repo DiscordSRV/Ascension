@@ -23,22 +23,31 @@ import com.discordsrv.api.component.MinecraftComponent;
 import com.discordsrv.api.eventbus.EventPriorities;
 import com.discordsrv.api.eventbus.Subscribe;
 import com.discordsrv.api.events.channel.GameChannelLookupEvent;
-import com.discordsrv.api.events.message.receive.game.GameChatMessageReceiveEvent;
+import com.discordsrv.api.events.message.preprocess.game.GameChatMessagePreProcessEvent;
+import com.discordsrv.api.events.vanish.PlayerVanishStatusChangeEvent;
 import com.discordsrv.api.module.type.NicknameModule;
 import com.discordsrv.api.module.type.PunishmentModule;
 import com.discordsrv.api.player.DiscordSRVPlayer;
 import com.discordsrv.api.punishment.Punishment;
+import com.discordsrv.api.task.Task;
 import com.discordsrv.bukkit.BukkitDiscordSRV;
 import com.discordsrv.bukkit.player.BukkitPlayer;
+import com.discordsrv.common.core.logging.NamedLogger;
 import com.discordsrv.common.core.module.type.PluginIntegration;
+import com.discordsrv.common.feature.nicknamesync.NicknameSyncModule;
 import com.discordsrv.common.util.ComponentUtil;
 import com.earth2me.essentials.Essentials;
 import com.earth2me.essentials.User;
 import com.earth2me.essentials.UserData;
+import net.ess3.api.IUser;
+import net.ess3.api.events.MuteStatusChangeEvent;
+import net.ess3.api.events.NickChangeEvent;
+import net.ess3.api.events.VanishStatusChangeEvent;
 import net.essentialsx.api.v2.events.chat.GlobalChatEvent;
 import net.kyori.adventure.platform.bukkit.BukkitComponentSerializer;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
+import org.bukkit.event.EventPriority;
 import org.bukkit.event.HandlerList;
 import org.bukkit.event.Listener;
 import org.jetbrains.annotations.NotNull;
@@ -47,16 +56,13 @@ import org.jetbrains.annotations.Nullable;
 import java.time.Instant;
 import java.util.Collection;
 import java.util.UUID;
-import java.util.concurrent.CompletableFuture;
 
 public class EssentialsXIntegration
         extends PluginIntegration<BukkitDiscordSRV>
-        implements Listener, PunishmentModule.Mutes, NicknameModule {
-
-    private final GlobalChannel channel = new GlobalChannel();
+        implements Listener, NicknameModule, PunishmentModule.Mutes {
 
     public EssentialsXIntegration(BukkitDiscordSRV discordSRV) {
-        super(discordSRV);
+        super(discordSRV, new NamedLogger(discordSRV, "ESSENTIALSX_INTEGRATION"));
     }
 
     @Override
@@ -68,6 +74,9 @@ public class EssentialsXIntegration
     public boolean isEnabled() {
         try {
             Class.forName("net.essentialsx.api.v2.events.chat.GlobalChatEvent");
+            Class.forName("net.ess3.api.events.MuteStatusChangeEvent");
+            Class.forName("net.ess3.api.events.NickChangeEvent");
+            Class.forName("net.ess3.api.events.VanishStatusChangeEvent");
         } catch (ClassNotFoundException ignored) {
             return false;
         }
@@ -84,56 +93,17 @@ public class EssentialsXIntegration
         HandlerList.unregisterAll(this);
     }
 
-    private Essentials get() {
+    protected Essentials get() {
         return (Essentials) discordSRV.server().getPluginManager().getPlugin("Essentials");
     }
 
-    private CompletableFuture<User> getUser(UUID playerUUID) {
+    protected Task<User> getUser(UUID playerUUID) {
         return discordSRV.scheduler().supply(() -> get().getUsers().loadUncachedUser(playerUUID));
     }
 
-    @Override
-    public CompletableFuture<String> getNickname(UUID playerUUID) {
-        return getUser(playerUUID).thenApply(UserData::getNickname);
-    }
+    // Chat
 
-    @Override
-    public CompletableFuture<Void> setNickname(UUID playerUUID, String nickname) {
-        return getUser(playerUUID).thenApply(user -> {
-            user.setNickname(nickname);
-            return null;
-        });
-    }
-
-    @Override
-    public CompletableFuture<Punishment> getMute(@NotNull UUID playerUUID) {
-        return getUser(playerUUID).thenApply(user -> new Punishment(
-                Instant.ofEpochMilli(user.getMuteTimeout()),
-                ComponentUtil.toAPI(BukkitComponentSerializer.legacy().deserialize(user.getMuteReason())),
-                null
-        ));
-    }
-
-    @Override
-    public CompletableFuture<Void> addMute(@NotNull UUID playerUUID, @Nullable Instant until, @Nullable MinecraftComponent reason, @NotNull MinecraftComponent punisher) {
-        String reasonLegacy = reason != null ? BukkitComponentSerializer.legacy().serialize(ComponentUtil.fromAPI(reason)) : null;
-        return getUser(playerUUID).thenApply(user -> {
-            user.setMuted(true);
-            user.setMuteTimeout(until != null ? until.toEpochMilli() : 0);
-            user.setMuteReason(reasonLegacy);
-            return null;
-        });
-    }
-
-    @Override
-    public CompletableFuture<Void> removeMute(@NotNull UUID playerUUID) {
-        return getUser(playerUUID).thenApply(user -> {
-            user.setMuted(false);
-            user.setMuteTimeout(0);
-            user.setMuteReason(null);
-            return null;
-        });
-    }
+    private final GlobalChannel channel = new GlobalChannel();
 
     @EventHandler(priority = org.bukkit.event.EventPriority.MONITOR)
     public void onGlobalChat(GlobalChatEvent event) {
@@ -145,7 +115,7 @@ public class EssentialsXIntegration
         BukkitPlayer srvPlayer = discordSRV.playerProvider().player(player);
         boolean cancelled = event.isCancelled();
         discordSRV.scheduler().run(() -> discordSRV.eventBus().publish(
-                new GameChatMessageReceiveEvent(event, srvPlayer, component, channel, cancelled)
+                new GameChatMessagePreProcessEvent(event, srvPlayer, component, channel, cancelled)
         ));
     }
 
@@ -181,5 +151,75 @@ public class EssentialsXIntegration
         public @NotNull Collection<? extends DiscordSRVPlayer> getRecipients() {
             return discordSRV.playerProvider().allPlayers();
         }
+    }
+
+    // Mute
+
+    @EventHandler(ignoreCancelled = true)
+    public void onMuteStatusChange(MuteStatusChangeEvent event) {
+
+    }
+
+    @Override
+    public Task<Punishment> getMute(@NotNull UUID playerUUID) {
+        return getUser(playerUUID).thenApply(user -> new Punishment(
+                Instant.ofEpochMilli(user.getMuteTimeout()),
+                ComponentUtil.toAPI(BukkitComponentSerializer.legacy().deserialize(user.getMuteReason())),
+                null
+        ));
+    }
+
+    @Override
+    public Task<Void> addMute(@NotNull UUID playerUUID, @Nullable Instant until, @Nullable MinecraftComponent reason, @NotNull MinecraftComponent punisher) {
+        String reasonLegacy = reason != null ? BukkitComponentSerializer.legacy().serialize(ComponentUtil.fromAPI(reason)) : null;
+        return getUser(playerUUID).thenApply(user -> {
+            user.setMuted(true);
+            user.setMuteTimeout(until != null ? until.toEpochMilli() : 0);
+            user.setMuteReason(reasonLegacy);
+            return null;
+        });
+    }
+
+    @Override
+    public Task<Void> removeMute(@NotNull UUID playerUUID) {
+        return getUser(playerUUID).thenApply(user -> {
+            user.setMuted(false);
+            user.setMuteTimeout(0);
+            user.setMuteReason(null);
+            return null;
+        });
+    }
+
+    // Nickname
+
+    @EventHandler(ignoreCancelled = true)
+    public void onNickChange(NickChangeEvent event) {
+        NicknameSyncModule module = discordSRV.getModule(NicknameSyncModule.class);
+        if (module != null) {
+            module.newGameNickname(event.getAffected().getUUID(), event.getValue());
+        }
+    }
+
+    @Override
+    public Task<String> getNickname(UUID playerUUID) {
+        return getUser(playerUUID).thenApply(UserData::getNickname);
+    }
+
+    @Override
+    public Task<Void> setNickname(UUID playerUUID, String nickname) {
+        return getUser(playerUUID).thenApply(user -> {
+            user.setNickname(nickname);
+            return null;
+        });
+    }
+
+    // Vanish
+
+    @EventHandler(priority = EventPriority.MONITOR)
+    public void onVanishStatusChange(VanishStatusChangeEvent event) {
+        IUser user = event.getAffected();
+        DiscordSRVPlayer player = discordSRV.playerProvider().player(user.getBase());
+
+        discordSRV.eventBus().publish(new PlayerVanishStatusChangeEvent(player, event.getValue(), false, null));
     }
 }

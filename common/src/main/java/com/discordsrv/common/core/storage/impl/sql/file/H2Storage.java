@@ -74,6 +74,7 @@ public class H2Storage extends SQLStorage {
 
     @Override
     public void close() {
+        super.close();
         if (connection != null) {
             try {
                 connection.close();
@@ -124,5 +125,17 @@ public class H2Storage extends SQLStorage {
         try (Statement statement = connection.createStatement()) {
             statement.execute("alter table " + tablePrefix + LINKING_CODES_TABLE_NAME + " add column if not exists PLAYERUSERNAME varchar(32);");
         }
+        try (Statement statement = connection.createStatement()) {
+            statement.execute("alter table " + tablePrefix + LINKED_ACCOUNTS_TABLE_NAME + " add column if not exists CREATED timestamp(0);");
+        }
+        try (Statement statement = connection.createStatement()) {
+            statement.execute("alter table " + tablePrefix + LINKED_ACCOUNTS_TABLE_NAME + " add column if not exists LASTSEEN timestamp(0);");
+        }
+
+        // Profile
+        createRewardsTablesGeneric(connection, tablePrefix);
+
+        // Linking bypass
+        createLinkingBypassTableGeneric(connection, tablePrefix);
     }
 }

@@ -39,11 +39,12 @@ public class AwardMessageConfig implements IMessageConfig {
             .addEmbed(
                     DiscordMessageEmbed.builder()
                             .setAuthor(
-                                    "%award_title|text:'{player_name} made the advancement {award_name}'%",
+                                    "%award_message|text:'{player_name} made the advancement {award_display_name}'%",
                                     null,
                                     "%player_avatar_url%"
                             )
-                            .setColor(1)
+                            .setDescription("%award_description%")
+                            .setUnformattedColor("%award_color_hex%")
                             .build()
             );
 

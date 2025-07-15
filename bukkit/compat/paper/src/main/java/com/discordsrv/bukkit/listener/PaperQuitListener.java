@@ -19,7 +19,7 @@
 package com.discordsrv.bukkit.listener;
 
 import com.discordsrv.api.component.MinecraftComponent;
-import com.discordsrv.api.events.message.receive.game.LeaveMessageReceiveEvent;
+import com.discordsrv.api.events.message.preprocess.game.LeaveMessagePreProcessEvent;
 import com.discordsrv.api.player.DiscordSRVPlayer;
 import com.discordsrv.bukkit.BukkitDiscordSRV;
 import com.discordsrv.bukkit.component.PaperComponentHandle;
@@ -50,12 +50,14 @@ public class PaperQuitListener extends AbstractBukkitListener<PlayerQuitEvent> {
 
         DiscordSRVPlayer player = discordSRV.playerProvider().player(event.getPlayer());
         discordSRV.eventBus().publish(
-                new LeaveMessageReceiveEvent(
+                new LeaveMessagePreProcessEvent(
                         event,
                         player,
                         message,
                         null,
-                        message == null
+                        false,
+                        message == null,
+                        false
                 )
         );
     }

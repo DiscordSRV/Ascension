@@ -19,7 +19,9 @@
 package com.discordsrv.common.feature.linking.impl;
 
 import com.discordsrv.api.component.MinecraftComponent;
+import com.discordsrv.api.task.Task;
 import com.discordsrv.common.DiscordSRV;
+import com.discordsrv.common.feature.linking.AccountLink;
 import org.apache.commons.lang3.tuple.Pair;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -28,7 +30,6 @@ import java.security.SecureRandom;
 import java.util.Locale;
 import java.util.Optional;
 import java.util.UUID;
-import java.util.concurrent.CompletableFuture;
 
 public class StorageLinker extends CachedLinkProvider.Store {
 
@@ -37,50 +38,50 @@ public class StorageLinker extends CachedLinkProvider.Store {
     }
 
     @Override
-    public CompletableFuture<Optional<Long>> queryUserId(@NotNull UUID playerUUID, boolean canCauseLink) {
+    public Task<Optional<AccountLink>> query(@NotNull UUID playerUUID, boolean canCauseLink) {
         return discordSRV.scheduler().supply(() -> {
-            Long value = discordSRV.storage().getUserId(playerUUID);
+            AccountLink value = discordSRV.storage().getLinkByPlayerUUID(playerUUID);
             return Optional.ofNullable(value);
         });
     }
 
     @Override
-    public CompletableFuture<Optional<UUID>> queryPlayerUUID(long userId, boolean canCauseLink) {
+    public Task<Optional<AccountLink>> query(long userId, boolean canCauseLink) {
         return discordSRV.scheduler().supply(() -> {
-            UUID value = discordSRV.storage().getPlayerUUID(userId);
+            AccountLink value = discordSRV.storage().getLinkByUserId(userId);
             return Optional.ofNullable(value);
         });
     }
 
     @Override
-    public CompletableFuture<Void> link(@NotNull UUID playerUUID, long userId) {
-        return discordSRV.scheduler().execute(() -> discordSRV.storage().createLink(playerUUID, userId));
+    public Task<Void> link(@NotNull AccountLink link) {
+        return discordSRV.scheduler().execute(() -> discordSRV.storage().createLink(link));
     }
 
     @Override
-    public CompletableFuture<Void> unlink(@NotNull UUID playerUUID, long userId) {
+    public Task<Void> unlink(@NotNull UUID playerUUID, long userId) {
         return discordSRV.scheduler().execute(() -> discordSRV.storage().removeLink(playerUUID, userId));
     }
 
     @Override
-    public CompletableFuture<Pair<UUID, String>> getCodeLinking(long userId, @NotNull String code) {
+    public Task<Pair<UUID, String>> getCodeLinking(long userId, @NotNull String code) {
         return discordSRV.scheduler().supply(() -> discordSRV.storage().getLinkingCode(code));
     }
 
     @Override
-    public CompletableFuture<Void> removeLinkingCode(@NotNull UUID playerUUID) {
+    public Task<Void> removeLinkingCode(@NotNull UUID playerUUID) {
         return discordSRV.scheduler().execute(() -> discordSRV.storage().removeLinkingCode(playerUUID));
     }
 
     @Override
-    public CompletableFuture<Integer> getLinkedAccountCount() {
+    public Task<Integer> getLinkedAccountCount() {
         return discordSRV.scheduler().supply(() -> discordSRV.storage().getLinkedAccountCount());
     }
 
     private final SecureRandom secureRandom = new SecureRandom();
 
     @Override
-    public CompletableFuture<MinecraftComponent> getLinkingInstructions(
+    public Task<MinecraftComponent> getLinkingInstructions(
             String username,
             UUID playerUUID,
             @Nullable Locale locale,
@@ -97,12 +98,11 @@ public class StorageLinker extends CachedLinkProvider.Store {
             }
 
             discordSRV.storage().storeLinkingCode(playerUUID, username, code);
-            return discordSRV.messagesConfig(locale).minecraft.storageLinking.textBuilder()
+            return discordSRV.messagesConfig(locale).storageLinking.textBuilder()
                     .addContext(additionalContext)
                     .addPlaceholder("code", code)
                     .addPlaceholder("player_name", username)
                     .addPlaceholder("player_uuid", playerUUID)
-                    .applyPlaceholderService()
                     .build();
         });
     }

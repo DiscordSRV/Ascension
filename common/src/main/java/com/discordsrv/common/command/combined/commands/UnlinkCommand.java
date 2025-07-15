@@ -18,18 +18,19 @@
 
 package com.discordsrv.common.command.combined.commands;
 
-import com.discordsrv.api.discord.entity.interaction.command.CommandOption;
 import com.discordsrv.api.discord.entity.interaction.command.DiscordCommand;
 import com.discordsrv.api.discord.entity.interaction.component.ComponentIdentifier;
 import com.discordsrv.common.DiscordSRV;
 import com.discordsrv.common.command.combined.abstraction.CombinedCommand;
 import com.discordsrv.common.command.combined.abstraction.CommandExecution;
 import com.discordsrv.common.command.combined.abstraction.Text;
+import com.discordsrv.common.command.discord.DiscordCommandOptions;
 import com.discordsrv.common.command.game.abstraction.command.GameCommand;
 import com.discordsrv.common.core.logging.Logger;
 import com.discordsrv.common.core.logging.NamedLogger;
+import com.discordsrv.common.core.profile.ProfileImpl;
 import com.discordsrv.common.feature.linking.LinkProvider;
-import com.discordsrv.common.feature.linking.LinkStore;
+import com.discordsrv.common.feature.linking.LinkingModule;
 import com.discordsrv.common.permission.game.Permissions;
 import com.discordsrv.common.util.CommandUtil;
 import net.kyori.adventure.text.format.NamedTextColor;
@@ -37,6 +38,9 @@ import net.kyori.adventure.text.format.NamedTextColor;
 import java.util.UUID;
 
 public class UnlinkCommand extends CombinedCommand {
+
+    private static final String LABEL = "unlink";
+    private static final ComponentIdentifier IDENTIFIER = ComponentIdentifier.of("DiscordSRV", "unlink");
 
     private static UnlinkCommand INSTANCE;
     private static GameCommand GAME;
@@ -50,9 +54,10 @@ public class UnlinkCommand extends CombinedCommand {
     public static GameCommand getGame(DiscordSRV discordSRV) {
         if (GAME == null) {
             UnlinkCommand command = getInstance(discordSRV);
-            GAME = GameCommand.literal("unlink")
+            GAME = GameCommand.literal(LABEL)
+                    .addDescriptionTranslations(discordSRV.getAllTranslations(config -> config.unlinkCommandDescription.minecraft()))
                     .then(
-                            GameCommand.stringGreedy("target")
+                            GameCommand.target(discordSRV, CommandUtil.targetSuggestions(discordSRV, true, true, true))
                                     .requiredPermission(Permissions.COMMAND_UNLINK_OTHER)
                                     .executor(command)
                     )
@@ -81,23 +86,19 @@ public class UnlinkCommand extends CombinedCommand {
         UnlinkCommand command = getInstance(discordSRV);
 
         DiscordCommand.ChatInputBuilder builder = DiscordCommand.chatInput(
-                ComponentIdentifier.of("DiscordSRV", "unlink"),
-                "unlink",
-                "Unlink accounts"
+                IDENTIFIER,
+                LABEL,
+                ""
         );
+        builder.addDescriptionTranslations(discordSRV.getAllTranslations(config -> config.unlinkCommandDescription.discord().content()));
 
         if (withOther) {
-            builder = builder.addOption(
-                    CommandOption.builder(
-                            CommandOption.Type.USER,
-                            "user",
-                            "The Discord user to unlink"
-                    ).setRequired(false).build())
-                    .addOption(CommandOption.builder(
-                            CommandOption.Type.STRING,
-                            "player",
-                            "The Minecraft player username or UUID to unlink"
-                    ).setRequired(false).build());
+            builder = builder
+                    .addOption(DiscordCommandOptions.user(discordSRV).setRequired(false).build())
+                    .addOption(DiscordCommandOptions.player(discordSRV, player -> {
+                        ProfileImpl profile = discordSRV.profileManager().getCachedProfile(player.uniqueId());
+                        return profile == null || profile.isLinked();
+                    }).setRequired(false).build());
         }
 
         return builder.setEventHandler(command).build();
@@ -115,74 +116,88 @@ public class UnlinkCommand extends CombinedCommand {
         execution.setEphemeral(true);
 
         LinkProvider linkProvider = discordSRV.linkProvider();
-        if (!(linkProvider instanceof LinkStore)) {
+        if (linkProvider == null || !linkProvider.usesLocalLinking()) {
             execution.send(new Text("Cannot remove links with this link provider").withGameColor(NamedTextColor.DARK_RED));
             return;
         }
 
-        execution.runAsync(() -> CommandUtil.lookupTarget(discordSRV, logger, execution, true, Permissions.COMMAND_UNLINK_OTHER)
+        LinkingModule module = discordSRV.getModule(LinkingModule.class);
+        if (module == null) {
+            execution.messages().unableToLinkAccountsAtThisTime.sendTo(execution);
+            return;
+        }
+
+        execution.runAsync(() -> CommandUtil.lookupTarget(discordSRV, logger, execution, true, Permissions.COMMAND_UNLINK_OTHER, false)
                 .whenComplete((result, t) -> {
                     if (t != null) {
-                        logger.error("Failed to execute linked command", t);
+                        logger.error("Failed to execute unlink command", t);
                         return;
                     }
-                    if (result.isValid()) {
-                        processResult(result, execution, (LinkStore) linkProvider);
-                    } else {
-                        execution.send(new Text("Invalid target"));
+                    if (!result.isValid()) {
+                        return;
                     }
+
+                    processResult(result, execution, linkProvider, module);
                 })
         );
     }
 
-    private void processResult(CommandUtil.TargetLookupResult result, CommandExecution execution, LinkStore linkStore) {
+    private void processResult(
+            CommandUtil.TargetLookupResult result,
+            CommandExecution execution,
+            LinkProvider linkProvider,
+            LinkingModule module
+    ) {
         if (result.isPlayer()) {
             UUID playerUUID = result.getPlayerUUID();
-            discordSRV.linkProvider().queryUserId(playerUUID)
-                    .whenComplete((user, t) -> {
+            linkProvider.query(playerUUID)
+                    .whenComplete((link, t) -> {
                         if (t != null) {
                             logger.error("Failed to query user", t);
-                            execution.messages().unableToCheckLinkingStatus(execution);
+                            execution.messages().unableToCheckLinkingStatus.sendTo(execution);
                             return;
                         }
-                        if (!user.isPresent()) {
-                            execution.messages().minecraftPlayerUnlinked(discordSRV, execution, playerUUID);
+                        if (!link.isPresent()) {
+                            (result.isSelf()
+                             ? execution.messages().alreadyUnlinked1st
+                             : execution.messages().minecraftPlayerUnlinked3rd
+                            ).sendTo(execution, discordSRV, null, playerUUID);
                             return;
                         }
 
-                        handleUnlinkForPair(playerUUID, user.get(), execution, linkStore);
+                        handleUnlinkForPair(playerUUID, link.get().userId(), execution, module);
                     });
         } else {
             long userId = result.getUserId();
-            discordSRV.linkProvider().queryPlayerUUID(result.getUserId())
-                    .whenComplete((player, t) -> {
+            linkProvider.query(result.getUserId())
+                    .whenComplete((link, t) -> {
                         if (t != null) {
                             logger.error("Failed to query player", t);
-                            execution.messages().unableToCheckLinkingStatus(execution);
+                            execution.messages().unableToCheckLinkingStatus.sendTo(execution);
                             return;
                         }
-                        if (!player.isPresent()) {
-                            execution.messages().discordUserUnlinked(discordSRV, execution, userId);
+                        if (!link.isPresent()) {
+                            (result.isSelf()
+                             ? execution.messages().alreadyUnlinked1st
+                             : execution.messages().discordUserUnlinked3rd
+                            ).sendTo(execution, discordSRV, userId, null);
                             return;
                         }
 
-                        handleUnlinkForPair(player.get(), userId, execution, linkStore);
+                        handleUnlinkForPair(link.get().playerUUID(), userId, execution, module);
                     });
         }
     }
 
-    private void handleUnlinkForPair(UUID player, Long user, CommandExecution execution, LinkStore linkStore) {
-        linkStore.removeLink(player, user).whenComplete((v, t2) -> {
-            if (t2 != null) {
-                logger.error("Failed to remove link", t2);
-                execution.send(
-                        execution.messages().minecraft.unableToLinkAtThisTime.asComponent(),
-                        execution.messages().discord.unableToCheckLinkingStatus.get()
-                );
+    private void handleUnlinkForPair(UUID player, Long user, CommandExecution execution, LinkingModule module) {
+        module.unlink(player, user).whenComplete((v, t) -> {
+            if (t != null) {
+                logger.error("Failed to remove link", t);
+                execution.messages().unableToLinkAccountsAtThisTime.sendTo(execution);
                 return;
             }
 
-            execution.messages().unlinked(execution);
+            execution.messages().unlinkSuccess.sendTo(execution);
         });
     }
 }

@@ -27,6 +27,8 @@ import dev.vankka.mcdependencydownload.fabric.classpath.FabricClasspathAppender;
 import net.fabricmc.api.DedicatedServerModInitializer;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents;
 import net.fabricmc.loader.api.FabricLoader;
+import net.fabricmc.loader.api.ModContainer;
+import net.fabricmc.loader.impl.FabricLoaderImpl;
 import net.minecraft.MinecraftVersion;
 import net.minecraft.server.MinecraftServer;
 import org.apache.logging.log4j.LogManager;
@@ -34,6 +36,7 @@ import org.apache.logging.log4j.LogManager;
 import java.io.IOException;
 import java.nio.file.Path;
 import java.util.Collections;
+import java.util.Optional;
 
 //? if adventure: <6 {
 /*import net.kyori.adventure.platform.fabric.FabricServerAudiences;
@@ -126,7 +129,9 @@ public class DiscordSRVFabricBootstrap implements DedicatedServerModInitializer,
         *///?} else {
         MinecraftVersion version = (MinecraftVersion) MinecraftVersion.CURRENT;
          //?}
-        return version.getName() + " (from Fabric)"; //TODO: get current build version for Fabric
+        String loader_version = FabricLoaderImpl.VERSION;
+        Optional<ModContainer> fabricApi = FabricLoader.getInstance().getModContainer("fabric-api");
+        return "Minecraft "+ version.getName() + " with Fabric Loader " + loader_version + (fabricApi.map(modContainer -> " (Fabric API: " + modContainer.getMetadata().getVersion().getFriendlyString() + ")").orElse(""));
     }
 
     public MinecraftServer getServer() {

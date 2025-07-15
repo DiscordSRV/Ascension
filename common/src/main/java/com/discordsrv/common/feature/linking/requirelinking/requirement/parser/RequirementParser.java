@@ -18,15 +18,14 @@
 
 package com.discordsrv.common.feature.linking.requirelinking.requirement.parser;
 
+import com.discordsrv.api.task.Task;
 import com.discordsrv.common.feature.linking.requirelinking.requirement.Requirement;
 import com.discordsrv.common.feature.linking.requirelinking.requirement.RequirementType;
 import com.discordsrv.common.helper.Someone;
-import com.discordsrv.common.util.CompletableFutureUtil;
 import org.apache.commons.lang3.StringUtils;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.BiFunction;
 import java.util.function.Function;
@@ -203,7 +202,7 @@ public class RequirementParser {
 
     @FunctionalInterface
     private interface Func {
-        CompletableFuture<Boolean> test(Someone.Resolved someone);
+        Task<Boolean> test(Someone.Resolved someone);
     }
 
     private enum Operator {
@@ -220,7 +219,7 @@ public class RequirementParser {
         }
 
         private static Func apply(Func one, Func two, BiFunction<Boolean, Boolean, Boolean> function) {
-            return someone -> CompletableFutureUtil.combine(one.test(someone), two.test(someone))
+            return someone -> Task.allOf(one.test(someone), two.test(someone))
                     .thenApply(bools -> function.apply(bools.get(0), bools.get(1)));
         }
     }

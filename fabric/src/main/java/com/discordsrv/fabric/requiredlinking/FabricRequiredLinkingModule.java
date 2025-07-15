@@ -18,14 +18,11 @@
 
 package com.discordsrv.fabric.requiredlinking;
 
-import com.discordsrv.common.DiscordSRV;
+import com.discordsrv.api.task.Task;
 import com.discordsrv.common.abstraction.player.IPlayer;
 import com.discordsrv.common.config.main.linking.ServerRequiredLinkingConfig;
-import com.discordsrv.common.feature.linking.LinkStore;
 import com.discordsrv.common.feature.linking.requirelinking.ServerRequireLinkingModule;
 import com.discordsrv.fabric.FabricDiscordSRV;
-import com.discordsrv.fabric.player.FabricPlayer;
-import com.github.benmanes.caffeine.cache.Cache;
 import com.mojang.authlib.GameProfile;
 import net.fabricmc.fabric.api.networking.v1.PacketSender;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayConnectionEvents;
@@ -38,31 +35,79 @@ import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.text.Text;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.MathHelper;
+import net.minecraft.world.GameMode;
 import org.jetbrains.annotations.Nullable;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
-import java.util.List;
+
 import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.CopyOnWriteArrayList;
+import java.util.function.Consumer;
 
 public class FabricRequiredLinkingModule extends ServerRequireLinkingModule<FabricDiscordSRV> {
 
-    private static FabricRequiredLinkingModule instance;
-    private final Cache<UUID, Boolean> linkCheckRateLimit;
-    private final Map<UUID, Component> frozen = new ConcurrentHashMap<>();
-    private final List<UUID> loginsHandled = new CopyOnWriteArrayList<>();
+    private static FabricRequiredLinkingModule INSTANCE;
+
+    public static void withInstance(Consumer<FabricRequiredLinkingModule> consumer) {
+        if (INSTANCE != null && INSTANCE.enabled) {
+            consumer.accept(INSTANCE);
+        }
+    }
+
+    public static Text canJoin(GameProfile profile) {
+        if (INSTANCE == null || INSTANCE.config() == null) {
+            return Text.of(NOT_READY_MESSAGE);
+        }
+
+        return INSTANCE.checkCanJoin(profile);
+    }
+
+    private final Map<UUID, Consumer<IPlayer>> loginsHandled = new ConcurrentHashMap<>();
     private boolean enabled = false;
 
     public FabricRequiredLinkingModule(FabricDiscordSRV discordSRV) {
         super(discordSRV);
-        this.linkCheckRateLimit = discordSRV.caffeineBuilder()
-                .expireAfterWrite(LinkStore.LINKING_CODE_RATE_LIMIT)
-                .build();
+        INSTANCE = this;
 
-        register();
+        ServerMessageEvents.ALLOW_CHAT_MESSAGE.register(this::allowChatMessage);
+        ServerConfigurationConnectionEvents.CONFIGURE.register(this::onPlayerPreLogin);
+        ServerPlayConnectionEvents.JOIN.register(this::onPlayerJoin);
+        ServerPlayConnectionEvents.DISCONNECT.register(this::onPlayerQuit);
+    }
 
-        instance = this;
+    @Override
+    public void enable() {
+        super.enable();
+        this.enabled = true;
+    }
+
+    @Override
+    public void disable() {
+        this.enabled = false;
+        super.disable();
+    }
+
+    @Override
+    public ServerRequiredLinkingConfig config() {
+        return discordSRV.config().requiredLinking;
+    }
+    @Override
+    public void recheck(IPlayer player) {
+        ServerPlayerEntity playerEntity = discordSRV.getServer().getPlayerManager().getPlayer(player.uniqueId());
+        if (playerEntity == null) {
+            return;
+        }
+        GameProfile gameProfile = playerEntity.getGameProfile();
+        getBlockReason(gameProfile, false).whenComplete((component, throwable) -> handleBlock(player, component));
+    }
+
+    public Task<Component> getBlockReason(GameProfile gameProfile, boolean join) {
+        if (config().whitelistedPlayersCanBypass
+                && discordSRV.getServer().getPlayerManager().getWhitelist().isAllowed(gameProfile)) {
+            return Task.completed(null);
+        }
+
+        return getBlockReason(gameProfile.getId(), gameProfile.getName(), join);
     }
 
     //
@@ -70,23 +115,15 @@ public class FabricRequiredLinkingModule extends ServerRequireLinkingModule<Fabr
     //
 
     @Nullable
-    public static Text checkCanJoin(GameProfile profile) {
-        if (instance == null || (instance.discordSRV != null && instance.discordSRV.status() != DiscordSRV.Status.CONNECTED)) {
-            return Text.of("Currently unavailable to check link status because the server is still connecting to Discord.\n\nTry again in a minute.");
-        }
-        if (!instance.enabled) return null;
+    public Text checkCanJoin(GameProfile profile) {
+        if (!enabled) return null;
 
-        FabricDiscordSRV discordSRV = instance.discordSRV;
-        assert discordSRV != null;
-        ServerRequiredLinkingConfig config = instance.config();
-        if (!config.enabled || config.action != ServerRequiredLinkingConfig.Action.KICK) {
+        ServerRequiredLinkingConfig config = config();
+        if (!config.enabled || action() != ServerRequiredLinkingConfig.Action.KICK) {
             return null;
         }
 
-        UUID playerUUID = profile.getId();
-        String playerName = profile.getName();
-
-        Component kickReason = instance.getBlockReason(playerUUID, playerName, true).join();
+        Component kickReason = getBlockReason(profile, true).join();
         if (kickReason != null) {
             //? if adventure: <6 {
             /*return discordSRV.getAdventure().toNative(kickReason);
@@ -102,9 +139,10 @@ public class FabricRequiredLinkingModule extends ServerRequireLinkingModule<Fabr
     // Freeze
     //
 
-    public static void onPlayerMove(ServerPlayerEntity player, PlayerMoveC2SPacket packet, CallbackInfo ci) {
-        if (instance == null || !instance.enabled) return;
-        Component freezeReason = instance.frozen.get(player.getUuid());
+    public void onPlayerMove(ServerPlayerEntity player, PlayerMoveC2SPacket packet, CallbackInfo ci) {
+        if (!enabled) return;
+
+        Component freezeReason = frozen.get(player.getUuid());
         if (freezeReason == null) {
             return;
         }
@@ -120,137 +158,66 @@ public class FabricRequiredLinkingModule extends ServerRequireLinkingModule<Fabr
         }
 
         player.requestTeleport(from.getX() + 0.5, from.getY(), from.getZ() + 0.5);
-        IPlayer iPlayer = instance.discordSRV.playerProvider().player(player);
-        iPlayer.sendMessage(freezeReason);
+        IPlayer srvPlayer = discordSRV.playerProvider().player(player);
+        srvPlayer.sendMessage(freezeReason);
 
         ci.cancel();
     }
 
     //? if minecraft: <1.19.2 {
-    /*public static void onCommandExecute(ServerCommandSource source, String command, CallbackInfo ci) {
+    public void onCommandExecute(ServerCommandSource source, String command, CallbackInfo ci) {
         if (source.getEntity() instanceof ServerPlayerEntity) {
-            onCommandExecute((ServerPlayerEntity) source.getEntity(), command, ci);
+            ServerPlayerEntity playerEntity = source.getEntity();
+
+            IPlayer srvPlayer = discordSRV.playerProvider().player(playerEntity);
+            INSTANCE.checkCommand(srvPlayer, command, () -> INSTANCE.getBlockReason(playerEntity.getGameProfile(), false));
+
+            ci.cancel();
         }
     }
-    *///?} else {
-    public static void onCommandExecute(com.mojang.brigadier.ParseResults<ServerCommandSource> parseResults, String command, CallbackInfo ci) {
-        if(parseResults.getContext().getSource().isExecutedByPlayer()) {
-            onCommandExecute(parseResults.getContext().getSource().getPlayer(), command, ci);
-        }
-    }
-    //?}
+    //?} else {
+    public void onCommandExecute(com.mojang.brigadier.ParseResults<ServerCommandSource> parseResults, String command, CallbackInfo ci) {
+        if (!enabled) return;
 
-
-    public static void onCommandExecute(ServerPlayerEntity playerEntity, String command, CallbackInfo ci) {
-        if (instance == null || !instance.enabled) return;
-        FabricDiscordSRV discordSRV = instance.discordSRV;
-
-        if (!instance.isFrozen(playerEntity)) {
+        ServerPlayerEntity playerEntity = parseResults.getContext().getSource().getPlayer();
+        if (playerEntity == null || !isFrozen(playerEntity)) {
             return;
         }
 
-        if (command.startsWith("/")) command = command.substring(1);
-        if (command.equals("discord link") || command.equals("link")) {
-
-            FabricPlayer player = discordSRV.playerProvider().player(playerEntity);
-
-            UUID uuid = player.uniqueId();
-
-            if (instance.linkCheckRateLimit.getIfPresent(uuid) != null) {
-                player.sendMessage(discordSRV.messagesConfig(player).pleaseWaitBeforeRunningThatCommandAgain.asComponent());
-                return;
-            }
-            instance.linkCheckRateLimit.put(uuid, true);
-
-            player.sendMessage(discordSRV.messagesConfig(player).checkingLinkStatus.asComponent());
-
-            instance.getBlockReason(uuid, player.username(), false).whenComplete((reason, t) -> {
-                if (t != null) {
-                    return;
-                }
-
-                if (reason == null) {
-                    instance.frozen.remove(uuid);
-                    player.sendMessage(discordSRV.messagesConfig(player).nowLinked1st.asComponent());
-                } else {
-                    instance.freeze(player, reason);
-                }
-            });
-        }
+        IPlayer srvPlayer = discordSRV.playerProvider().player(playerEntity);
+        INSTANCE.checkCommand(srvPlayer, command, () -> INSTANCE.getBlockReason(playerEntity.getGameProfile(), false));
 
         ci.cancel();
     }
-
-    @Override
-    public ServerRequiredLinkingConfig config() {
-        return discordSRV.config().requiredLinking;
-    }
-
-    @Override
-    public void enable() {
-        super.enable();
-
-        this.enabled = true;
-    }
-
-    public void register() {
-        //? if minecraft: >=1.20.2 {
-        net.fabricmc.fabric.api.networking.v1.ServerConfigurationConnectionEvents.CONFIGURE.register(this::onPlayerPreLogin);
-        //?} else {
-        /*ServerPlayConnectionEvents.INIT.register(this::onPlayerPreLogin);
-        *///?}
-        ServerPlayConnectionEvents.JOIN.register(this::onPlayerJoin);
-        ServerPlayConnectionEvents.DISCONNECT.register(this::onPlayerQuit);
-    }
-
-    @Override
-    public void disable() {
-        super.disable();
-
-        this.enabled = false;
-    }
-
-    @Override
-    public void recheck(IPlayer player) {
-        getBlockReason(player.uniqueId(), player.username(), false).whenComplete((component, throwable) -> {
-            if (component != null) {
-                switch (action()) {
-                    case KICK:
-                        player.kick(component);
-                        break;
-                    case FREEZE:
-                        freeze(player, component);
-                        break;
-                }
-            } else if (action() == ServerRequiredLinkingConfig.Action.FREEZE) {
-                frozen.remove(player.uniqueId());
-            }
-        });
-    }
-
-    public ServerRequiredLinkingConfig.Action action() {
-        return config().action;
-    }
+    //?}
 
     //
     // Freeze
     //
 
     private boolean isFrozen(ServerPlayerEntity player) {
-        Component freezeReason = frozen.get(player.getUuid());
-        if (freezeReason == null) {
-            frozen.remove(player.getUuid());
-            return false;
+        return frozen.get(player.getUuid()) != null;
+    }
+
+    @Override
+    protected void changeToSpectator(IPlayer player) {
+        ServerPlayerEntity playerEntity = discordSRV.getServer().getPlayerManager().getPlayer(player.uniqueId());
+        if (playerEntity != null) {
+            discordSRV.getServer().execute(() -> playerEntity.changeGameMode(GameMode.SPECTATOR));
         }
-        return true;
     }
 
-    private void freeze(IPlayer player, Component blockReason) {
-        frozen.put(player.uniqueId(), blockReason);
-        player.sendMessage(blockReason);
+    @Override
+    public void removeFromSpectator(IPlayer player) {
+        ServerPlayerEntity playerEntity = discordSRV.getServer().getPlayerManager().getPlayer(player.uniqueId());
+        if (playerEntity != null) {
+            discordSRV.getServer().execute(() -> playerEntity.changeGameMode(discordSRV.getServer().getDefaultGameMode()));
+        }
     }
 
-    public static boolean allowChatMessage(UUID uuid) {
+    private boolean allowChatMessage(UUID uuid) {
+        if (!enabled) return true;
+
         // True if the message should be sent
         Component freezeReason = instance.frozen.get(uuid);
         if (freezeReason == null) {
@@ -258,80 +225,48 @@ public class FabricRequiredLinkingModule extends ServerRequireLinkingModule<Fabr
         }
 
         IPlayer iPlayer = instance.discordSRV.playerProvider().player(uuid);
-        if(iPlayer == null) {
-            throw new IllegalStateException("Player not available: " + uuid);
-        }
         iPlayer.sendMessage(freezeReason);
         return false;
     }
 
-
     //? if minecraft: <1.20.2 {
     /*private void onPlayerPreLogin(ServerPlayNetworkHandler handler, MinecraftServer minecraftServer) {
         if (!enabled) return;
+
         UUID playerUUID = handler.getPlayer().getUuid();
-        if (loginsHandled.contains(playerUUID)) return;
-        loginsHandled.add(playerUUID);
-        handleLogin(playerUUID, handler.getPlayer().getName().getString());
+        loginsHandled.put(playerUUID, handleFreezeLogin(playerUUID, () -> getBlockReason(gameProfile, false).join()));
     }
     *///?}
 
     //? if minecraft: >=1.20.2 {
     private void onPlayerPreLogin(net.minecraft.server.network.ServerConfigurationNetworkHandler handler, MinecraftServer minecraftServer) {
         if (!enabled) return;
+
         UUID playerUUID = handler.getDebugProfile().getId();
-        loginsHandled.add(playerUUID);
-        handleLogin(playerUUID, handler.getDebugProfile().getName());
+        loginsHandled.put(playerUUID, handleFreezeLogin(playerUUID, () -> getBlockReason(gameProfile, false).join()));
     }
     //?}
 
     private void onPlayerJoin(ServerPlayNetworkHandler serverPlayNetworkHandler, PacketSender packetSender, MinecraftServer minecraftServer) {
         if (!enabled) return;
-        UUID playerUUID = serverPlayNetworkHandler.player.getUuid();
 
-        if (!loginsHandled.contains(playerUUID)) {
-            handleLogin(playerUUID, serverPlayNetworkHandler.player.getName().getString());
+        ServerPlayerEntity player = serverPlayNetworkHandler.player;
+        UUID playerUUID = player.getUuid();
+
+        Consumer<IPlayer> callback = loginsHandled.remove(playerUUID);
+        if (callback == null) {
+            callback = handleFreezeLogin(playerUUID, () -> getBlockReason(player.getGameProfile(), false).join());
         }
 
-        Component blockReason = frozen.get(playerUUID);
-        if (blockReason == null) {
-            return;
-        }
-
-        IPlayer srvPlayer = discordSRV.playerProvider().player(playerUUID);
-        if (srvPlayer == null) {
-            throw new IllegalStateException("Player not available: " + playerUUID);
-        }
-
-        srvPlayer.sendMessage(blockReason);
+        IPlayer srvPlayer = discordSRV.playerProvider().player(player);
+        callback.accept(srvPlayer);
     }
 
     private void onPlayerQuit(ServerPlayNetworkHandler serverPlayNetworkHandler, MinecraftServer minecraftServer) {
         if (!enabled) return;
+
         UUID playerUUID = serverPlayNetworkHandler.player.getUuid();
         loginsHandled.remove(playerUUID);
         frozen.remove(playerUUID);
-    }
-
-    private void handleLogin(UUID playerUUID, String username) {
-        if (discordSRV.isShutdown()) {
-            return;
-        } else if (!discordSRV.isReady()) {
-            try {
-                discordSRV.waitForStatus(DiscordSRV.Status.CONNECTED);
-            } catch (InterruptedException e) {
-                Thread.currentThread().interrupt();
-            }
-        }
-
-        ServerRequiredLinkingConfig config = config();
-        if (!config.enabled || config.action != ServerRequiredLinkingConfig.Action.FREEZE) {
-            return;
-        }
-
-        Component blockReason = getBlockReason(playerUUID, username, false).join();
-        if (blockReason != null) {
-            frozen.put(playerUUID, blockReason);
-        }
     }
 }

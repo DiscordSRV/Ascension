@@ -18,29 +18,31 @@
 
 package com.discordsrv.common.feature.messageforwarding.game;
 
-import com.discordsrv.api.channel.GameChannel;
-import com.discordsrv.api.component.MinecraftComponent;
+import com.discordsrv.api.discord.entity.channel.DiscordGuildMessageChannel;
 import com.discordsrv.api.discord.entity.message.ReceivedDiscordMessageCluster;
 import com.discordsrv.api.discord.entity.message.SendableDiscordMessage;
 import com.discordsrv.api.eventbus.EventPriorities;
 import com.discordsrv.api.eventbus.Subscribe;
-import com.discordsrv.api.events.message.forward.game.DeathMessageForwardedEvent;
-import com.discordsrv.api.events.message.receive.game.DeathMessageReceiveEvent;
+import com.discordsrv.api.events.message.post.game.AbstractGameMessagePostEvent;
+import com.discordsrv.api.events.message.post.game.DeathMessagePostEvent;
+import com.discordsrv.api.events.message.postprocess.game.DeathMessagePostProcessEvent;
+import com.discordsrv.api.events.message.preprocess.game.DeathMessagePreProcessEvent;
 import com.discordsrv.common.DiscordSRV;
+import com.discordsrv.common.abstraction.player.IPlayer;
 import com.discordsrv.common.config.main.channels.base.BaseChannelConfig;
 import com.discordsrv.common.config.main.channels.base.server.ServerBaseChannelConfig;
 import com.discordsrv.common.config.main.channels.server.DeathMessageConfig;
-import com.discordsrv.common.util.ComponentUtil;
-import org.jetbrains.annotations.NotNull;
 
-public class DeathMessageModule extends AbstractGameMessageModule<DeathMessageConfig, DeathMessageReceiveEvent> {
+import java.util.List;
+
+public class DeathMessageModule extends AbstractGameMessageModule<DeathMessageConfig, DeathMessagePreProcessEvent, DeathMessagePostProcessEvent> {
 
     public DeathMessageModule(DiscordSRV discordSRV) {
         super(discordSRV, "DEATH_MESSAGES");
     }
 
     @Subscribe(priority = EventPriorities.LAST, ignoreCancelled = false, ignoreProcessed = false)
-    public void onDeathMessageReceive(DeathMessageReceiveEvent event) {
+    public void onDeathMessageReceive(DeathMessagePreProcessEvent event) {
         if (checkCancellation(event) || checkProcessor(event)) {
             return;
         }
@@ -55,18 +57,30 @@ public class DeathMessageModule extends AbstractGameMessageModule<DeathMessageCo
     }
 
     @Override
-    public void postClusterToEventBus(GameChannel channel, @NotNull ReceivedDiscordMessageCluster cluster) {
-        discordSRV.eventBus().publish(new DeathMessageForwardedEvent(channel, cluster));
+    protected DeathMessagePostProcessEvent createPostProcessEvent(
+            DeathMessagePreProcessEvent preEvent,
+            IPlayer player,
+            List<DiscordGuildMessageChannel> channels,
+            SendableDiscordMessage discordMessage
+    ) {
+        return new DeathMessagePostProcessEvent(preEvent, player, channels, discordMessage);
+    }
+
+    @Override
+    protected AbstractGameMessagePostEvent<DeathMessagePostProcessEvent> createPostEvent(
+            DeathMessagePostProcessEvent preEvent,
+            ReceivedDiscordMessageCluster cluster
+    ) {
+        return new DeathMessagePostEvent(preEvent, cluster);
     }
 
     @Override
     public void setPlaceholders(
             DeathMessageConfig config,
-            DeathMessageReceiveEvent event,
+            DeathMessagePreProcessEvent event,
             SendableDiscordMessage.Formatter formatter
     ) {
-        MinecraftComponent messageComponent = event.getMessage();
-        formatter.addPlaceholder("message", ComponentUtil.fromAPI(messageComponent));
+        formatter.addPlaceholder("message", event.getMessage());
     }
 
 }

@@ -127,7 +127,7 @@ public class DiscordInviteModule extends AbstractModule<DiscordSRV> {
 
         if (botPublic == null) {
             if (appInfoFuture == null) {
-                appInfoFuture = jda.retrieveApplicationInfo().submit().whenComplete((appInfo, t) -> {
+                appInfoFuture = discordSRV.discordAPI().toTask(jda.retrieveApplicationInfo()).whenComplete((appInfo, t) -> {
                     botPublic = appInfo.isBotPublic();
                     logger().debug("The bot is " + (botPublic ? "public" : "private"));
                     appInfoFuture = null;

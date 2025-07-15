@@ -18,6 +18,7 @@
 
 package com.discordsrv.bukkit.command.game;
 
+import com.discordsrv.api.task.Task;
 import com.discordsrv.bukkit.BukkitDiscordSRV;
 import com.discordsrv.common.command.game.abstraction.GameCommandExecutionHelper;
 import org.bukkit.command.Command;
@@ -28,7 +29,6 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Locale;
-import java.util.concurrent.CompletableFuture;
 
 public class BukkitGameCommandExecutionHelper implements GameCommandExecutionHelper {
 
@@ -38,12 +38,12 @@ public class BukkitGameCommandExecutionHelper implements GameCommandExecutionHel
         this.discordSRV = discordSRV;
     }
 
-    public CompletableFuture<List<String>> getRootCommands(CommandSender commandSender) {
-        return CompletableFuture.completedFuture(Collections.emptyList());
+    public Task<List<String>> getRootCommands(CommandSender commandSender) {
+        return Task.completed(Collections.emptyList());
     }
 
     @Override
-    public CompletableFuture<List<String>> suggestCommands(List<String> parts) {
+    public Task<List<String>> suggestCommands(List<String> parts) {
         CommandSender commandSender = discordSRV.server().getConsoleSender();
 
         String commandName = !parts.isEmpty() ? parts.remove(0) : null;
@@ -51,7 +51,7 @@ public class BukkitGameCommandExecutionHelper implements GameCommandExecutionHel
         if (command == null) {
             if (parts.size() > 1) {
                 // Command is not known but there are arguments, nothing to auto complete...
-                return CompletableFuture.completedFuture(Collections.emptyList());
+                return Task.completed(Collections.emptyList());
             } else {
                 return getRootCommands(commandSender).thenApply(commands -> {
                     List<String> suggestions = new ArrayList<>(commands.size());

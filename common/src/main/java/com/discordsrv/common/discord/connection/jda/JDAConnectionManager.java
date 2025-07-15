@@ -18,7 +18,6 @@
 
 package com.discordsrv.common.discord.connection.jda;
 
-import com.discordsrv.api.DiscordSRVApi;
 import com.discordsrv.api.discord.connection.details.DiscordCacheFlag;
 import com.discordsrv.api.discord.connection.details.DiscordGatewayIntent;
 import com.discordsrv.api.discord.connection.jda.errorresponse.ErrorCallbackContext;
@@ -27,14 +26,16 @@ import com.discordsrv.api.discord.entity.guild.DiscordGuildMember;
 import com.discordsrv.api.eventbus.EventPriorities;
 import com.discordsrv.api.eventbus.Subscribe;
 import com.discordsrv.api.events.lifecycle.DiscordSRVShuttingDownEvent;
-import com.discordsrv.api.events.placeholder.PlaceholderLookupEvent;
-import com.discordsrv.api.placeholder.PlaceholderLookupResult;
+import com.discordsrv.api.events.placeholder.PlaceholderContextMappingEvent;
+import com.discordsrv.api.task.Task;
 import com.discordsrv.common.DiscordSRV;
 import com.discordsrv.common.config.connection.BotConfig;
 import com.discordsrv.common.config.connection.ConnectionConfig;
 import com.discordsrv.common.config.connection.HttpProxyConfig;
 import com.discordsrv.common.config.documentation.DocumentationURLs;
 import com.discordsrv.common.config.main.MemberCachingConfig;
+import com.discordsrv.common.core.debug.DebugGenerateEvent;
+import com.discordsrv.common.core.debug.file.TextDebugFile;
 import com.discordsrv.common.core.logging.Logger;
 import com.discordsrv.common.core.logging.NamedLogger;
 import com.discordsrv.common.core.scheduler.Scheduler;
@@ -43,8 +44,6 @@ import com.discordsrv.common.discord.api.DiscordAPIImpl;
 import com.discordsrv.common.discord.api.entity.message.ReceivedDiscordMessageImpl;
 import com.discordsrv.common.discord.connection.DiscordConnectionManager;
 import com.discordsrv.common.discord.connection.details.DiscordConnectionDetailsImpl;
-import com.discordsrv.common.feature.debug.DebugGenerateEvent;
-import com.discordsrv.common.feature.debug.file.TextDebugFile;
 import com.discordsrv.common.feature.linking.LinkProvider;
 import com.discordsrv.common.helper.Timeout;
 import com.neovisionaries.ws.client.ProxySettings;
@@ -66,7 +65,6 @@ import net.dv8tion.jda.api.utils.MemberCachePolicy;
 import net.dv8tion.jda.api.utils.cache.CacheFlag;
 import net.dv8tion.jda.api.utils.messages.MessageRequest;
 import net.dv8tion.jda.internal.entities.ReceivedMessage;
-import net.dv8tion.jda.internal.hooks.EventManagerProxy;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.jetbrains.annotations.NotNull;
@@ -96,7 +94,7 @@ public class JDAConnectionManager implements DiscordConnectionManager {
 
     // Bot owner details
     private final Timeout botOwnerTimeout = new Timeout(Duration.ofMinutes(5));
-    private final AtomicReference<CompletableFuture<DiscordUser>> botOwnerRequest = new AtomicReference<>();
+    private final AtomicReference<Task<DiscordUser>> botOwnerRequest = new AtomicReference<>();
 
     // Logging timeouts
     private final Timeout mfaTimeout = new Timeout(Duration.ofSeconds(30));
@@ -143,8 +141,8 @@ public class JDAConnectionManager implements DiscordConnectionManager {
     @Subscribe
     public void onStatusChange(StatusChangeEvent event) {
         DiscordSRV.Status currentStatus = discordSRV.status();
-        if (currentStatus.isShutdown() || currentStatus.isStartupError()) {
-            // Don't change the status if it's shutdown or failed to start
+        if (currentStatus.isShutdown()) {
+            // Don't change the status if it's shutdown
             return;
         }
 
@@ -155,6 +153,10 @@ public class JDAConnectionManager implements DiscordConnectionManager {
         if (ordinal < JDA.Status.CONNECTED.ordinal()) {
             newStatus = DiscordSRV.Status.ATTEMPTING_TO_CONNECT;
         } else if (status == JDA.Status.DISCONNECTED || ordinal >= JDA.Status.SHUTTING_DOWN.ordinal()) {
+            if (currentStatus.isError() && !currentStatus.isStartupError()) {
+                return;
+            }
+
             newStatus = DiscordSRV.Status.FAILED_TO_CONNECT;
         } else {
             newStatus = DiscordSRV.Status.CONNECTED;
@@ -168,16 +170,14 @@ public class JDAConnectionManager implements DiscordConnectionManager {
      * @param botOwnerConsumer the consumer that will be passed the bot owner or {@code null}
      */
     private void withBotOwner(@NotNull Consumer<DiscordUser> botOwnerConsumer) {
-        CompletableFuture<DiscordUser> request = botOwnerRequest.get();
+        Task<DiscordUser> request = botOwnerRequest.get();
         if (request != null && !botOwnerTimeout.checkAndUpdate()) {
             request.whenComplete((user, t) -> botOwnerConsumer.accept(t != null ? null : user));
             return;
         }
 
-        CompletableFuture<DiscordUser> future = instance.retrieveApplicationInfo()
-                .timeout(10, TimeUnit.SECONDS)
-                .map(applicationInfo -> (DiscordUser) api().getUser(applicationInfo.getOwner()))
-                .submit();
+        Task<DiscordUser> future = discordSRV.discordAPI().toTask(instance.retrieveApplicationInfo().timeout(10, TimeUnit.SECONDS))
+                .thenApply(applicationInfo -> api().getUser(applicationInfo.getOwner()));
 
         botOwnerRequest.set(future);
         future.whenComplete((user, t) -> botOwnerConsumer.accept(t != null ? null : user));
@@ -211,86 +211,60 @@ public class JDAConnectionManager implements DiscordConnectionManager {
             }
             builder.append("\n");
 
-            CompletableFuture<Long> restPingFuture = instance.getRestPing().timeout(5, TimeUnit.SECONDS).submit();
-            builder.append("\nGateway Ping: ").append(instance.getGatewayPing()).append("ms");
+            if (instance.getStatus().ordinal() < JDA.Status.SHUTTING_DOWN.ordinal()) {
+                Task<Long> restPingFuture = discordSRV.discordAPI().toTask(instance.getRestPing().timeout(5, TimeUnit.SECONDS));
+                builder.append("\nGateway Ping: ").append(instance.getGatewayPing()).append("ms");
 
-            String restPing;
-            try {
-                restPing = restPingFuture.get() + "ms";
-            } catch (ExecutionException e) {
-                if (e.getCause() instanceof TimeoutException) {
-                    restPing = ">5s";
-                } else {
-                    restPing = ExceptionUtils.getMessage(e);
+                String restPing;
+                try {
+                    restPing = restPingFuture.get() + "ms";
+                } catch (ExecutionException e) {
+                    if (e.getCause() instanceof TimeoutException) {
+                        restPing = ">5s";
+                    } else {
+                        restPing = ExceptionUtils.getMessage(e);
+                    }
+                } catch (Throwable t) {
+                    restPing = ExceptionUtils.getMessage(t);
                 }
-            } catch (Throwable t) {
-                restPing = ExceptionUtils.getMessage(t);
-            }
 
-            builder.append("\nRest Ping: ").append(restPing);
+                builder.append("\nRest Ping: ").append(restPing);
+            }
         }
 
-        event.addFile(new TextDebugFile("jda_connection_manager.txt", builder));
+        event.addFile("jda_connection_manager.txt", new TextDebugFile(builder));
     }
 
     @Subscribe(priority = EventPriorities.EARLIEST)
-    public void onPlaceholderLookup(PlaceholderLookupEvent event) {
-        if (event.isProcessed()) {
-            return;
-        }
-
+    public void onPlaceholderContextMapping(PlaceholderContextMappingEvent event) {
         // Map JDA objects to 1st party API objects
-        Set<Object> newContext = new HashSet<>();
-        boolean contextChanged = false;
-        for (Object o : event.getContexts()) {
-            Object converted;
-            boolean isConversion = true;
-            if (o instanceof Channel) {
-                try {
-                    converted = api().getChannel((Channel) o);
-                } catch (IllegalArgumentException e) {
-                    discordSRV.logger().debug("Failed to map " + o.getClass().getName(), e);
-                    converted = o;
-                }
-            } else if (o instanceof Guild) {
-                converted = api().getGuild((Guild) o);
-            } else if (o instanceof Member) {
-                converted = api().getGuildMember((Member) o);
-            } else if (o instanceof Role) {
-                converted = api().getRole((Role) o);
-            } else if (o instanceof ReceivedMessage) {
-                converted = ReceivedDiscordMessageImpl.fromJDA(discordSRV, (Message) o);
-            } else if (o instanceof User) {
-                converted = api().getUser((User) o);
-            } else {
-                converted = o;
-                isConversion = false;
+        event.map(Channel.class, channel -> {
+            try {
+                return api().getChannel(channel);
+            } catch (IllegalArgumentException e) {
+                discordSRV.logger().debug("Failed to map " + channel.getClass().getName(), e);
+                return channel;
             }
-            if (isConversion) {
-                contextChanged = true;
-            }
-            newContext.add(converted);
-        }
+        });
+        event.map(Guild.class, guild -> api().getGuild(guild));
+        event.map(Member.class, member -> api().getGuildMember(member));
+        event.map(Role.class, role -> api().getRole(role));
+        event.map(ReceivedMessage.class, message -> ReceivedDiscordMessageImpl.fromJDA(discordSRV, message));
+        event.map(User.class, user -> api().getUser(user));
 
         // Add DiscordUser as context if it is missing and DiscordGuildMember is present
-        List<DiscordGuildMember> members = newContext.stream()
+        List<DiscordGuildMember> members = event.getContexts().stream()
                 .filter(context -> context instanceof DiscordGuildMember)
                 .map(context -> (DiscordGuildMember) context)
                 .collect(Collectors.toList());
         for (DiscordGuildMember member : members) {
             DiscordUser user = member.getUser();
-            boolean userMissing = newContext.stream()
+            boolean userMissing = event.getContexts().stream()
                     .filter(context -> context instanceof DiscordUser)
                     .noneMatch(context -> ((DiscordUser) context).getId() == user.getId());
-            if (!userMissing) {
-                newContext.add(user);
-                contextChanged = true;
+            if (userMissing) {
+                event.addContext(user);
             }
-        }
-
-        // Prevent infinite recursion
-        if (contextChanged) {
-            event.process(PlaceholderLookupResult.newLookup(event.getPlaceholder(), newContext));
         }
     }
 
@@ -312,7 +286,7 @@ public class JDAConnectionManager implements DiscordConnectionManager {
             return;
         }
 
-        discordSRV.setStatus(DiscordSRVApi.Status.ATTEMPTING_TO_CONNECT);
+        discordSRV.setStatus(DiscordSRV.Status.ATTEMPTING_TO_CONNECT);
         this.gatewayPool = new ScheduledThreadPoolExecutor(
                 1,
                 r -> new Thread(r, Scheduler.THREAD_NAME_PREFIX + "JDA Gateway")
@@ -361,7 +335,7 @@ public class JDAConnectionManager implements DiscordConnectionManager {
                 if (provider == null) {
                     return false;
                 }
-                return provider.getCachedPlayerUUID(member.getIdLong()).isPresent();
+                return provider.getCached(member.getIdLong()).isPresent();
             };
         } else {
             memberCachingPolicy = MemberCachePolicy.NONE;
@@ -406,13 +380,14 @@ public class JDAConnectionManager implements DiscordConnectionManager {
         jdaBuilder.setEventPassthrough(true);
 
         // Custom event manager to forward to the DiscordSRV event bus & block using JDA's event listeners
-        jdaBuilder.setEventManager(new EventManagerProxy(new JDAEventManager(discordSRV), discordSRV.scheduler().forkJoinPool()));
+        jdaBuilder.setEventManager(new JDAEventManager(discordSRV));
 
         // Our own (named) threads
         jdaBuilder.setCallbackPool(discordSRV.scheduler().forkJoinPool());
         jdaBuilder.setGatewayPool(gatewayPool);
         jdaBuilder.setRateLimitScheduler(rateLimitSchedulerPool);
         jdaBuilder.setRateLimitElastic(rateLimitElasticPool, true);
+        jdaBuilder.setEventPool(discordSRV.scheduler().forkJoinPool());
         jdaBuilder.setHttpClient(discordSRV.httpClient());
 
         WebSocketFactory webSocketFactory = new WebSocketFactory();
@@ -580,7 +555,7 @@ public class JDAConnectionManager implements DiscordConnectionManager {
             discordSRV.logger().error("| 4. Make sure the intents listed above are all enabled");
             discordSRV.logger().error("| 5. Run the \"/discordsrv reload config discord_connection\" command");
             discordSRV.logger().error("+-------------------------------------->");
-            discordSRV.setStatus(DiscordSRVApi.Status.FAILED_TO_CONNECT);
+            discordSRV.setStatus(DiscordSRV.Status.DISALLOWED_INTENTS);
             return true;
         } else if (closeCode == CloseCode.AUTHENTICATION_FAILED) {
             invalidToken(false);
@@ -616,7 +591,7 @@ public class JDAConnectionManager implements DiscordConnectionManager {
         } else {
             lines.forEach(line -> discordSRV.logger().error(line));
         }
-        discordSRV.setStatus(DiscordSRVApi.Status.FAILED_TO_CONNECT);
+        discordSRV.setStatus(DiscordSRV.Status.INVALID_TOKEN);
     }
 
     private class FailureCallback implements Consumer<Throwable> {

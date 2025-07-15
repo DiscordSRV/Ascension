@@ -19,7 +19,7 @@
 package com.discordsrv.fabric.module.chat;
 
 import com.discordsrv.api.component.MinecraftComponent;
-import com.discordsrv.api.events.message.receive.game.LeaveMessageReceiveEvent;
+import com.discordsrv.api.events.message.preprocess.game.LeaveMessagePreProcessEvent;
 import com.discordsrv.common.util.ComponentUtil;
 import com.discordsrv.fabric.FabricDiscordSRV;
 import com.discordsrv.fabric.module.AbstractFabricModule;
@@ -52,12 +52,14 @@ public class FabricQuitModule extends AbstractFabricModule {
         MinecraftComponent component = getQuitMessage(player);
 
         discordSRV.eventBus().publish(
-                new LeaveMessageReceiveEvent(
+                new LeaveMessagePreProcessEvent(
                         serverPlayNetworkHandler,
                         new FabricPlayer(discordSRV, player),
                         component,
                         null,
-                        component == null
+                        false,
+                        component == null,
+                        false
                 )
         );
     }

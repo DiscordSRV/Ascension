@@ -18,14 +18,24 @@
 
 package com.discordsrv.common;
 
+import com.discordsrv.api.color.Color;
+import com.discordsrv.api.discord.entity.DiscordUser;
+import com.discordsrv.api.discord.entity.channel.DiscordChannel;
+import com.discordsrv.api.discord.entity.guild.DiscordGuild;
+import com.discordsrv.api.discord.entity.guild.DiscordGuildMember;
+import com.discordsrv.api.discord.entity.guild.DiscordRole;
 import com.discordsrv.api.events.lifecycle.DiscordSRVConnectedEvent;
 import com.discordsrv.api.events.lifecycle.DiscordSRVReadyEvent;
 import com.discordsrv.api.events.lifecycle.DiscordSRVReloadedEvent;
 import com.discordsrv.api.events.lifecycle.DiscordSRVShuttingDownEvent;
 import com.discordsrv.api.module.Module;
+import com.discordsrv.api.profile.Profile;
 import com.discordsrv.api.reload.ReloadFlag;
 import com.discordsrv.api.reload.ReloadResult;
+import com.discordsrv.api.task.Task;
 import com.discordsrv.common.abstraction.bootstrap.IBootstrap;
+import com.discordsrv.common.abstraction.player.IPlayer;
+import com.discordsrv.common.abstraction.player.provider.model.SkinInfo;
 import com.discordsrv.common.command.discord.DiscordCommandModule;
 import com.discordsrv.common.command.game.GameCommandModule;
 import com.discordsrv.common.config.configurate.manager.ConnectionConfigManager;
@@ -60,31 +70,38 @@ import com.discordsrv.common.discord.api.DiscordAPIImpl;
 import com.discordsrv.common.discord.connection.DiscordConnectionManager;
 import com.discordsrv.common.discord.connection.details.DiscordConnectionDetailsImpl;
 import com.discordsrv.common.discord.connection.jda.JDAConnectionManager;
+import com.discordsrv.common.events.lifecycle.ServerStartedEvent;
 import com.discordsrv.common.exception.StorageException;
 import com.discordsrv.common.feature.DiscordInviteModule;
+import com.discordsrv.common.feature.PlayerListModule;
 import com.discordsrv.common.feature.PresenceUpdaterModule;
 import com.discordsrv.common.feature.bansync.BanSyncModule;
 import com.discordsrv.common.feature.channel.ChannelLockingModule;
-import com.discordsrv.common.feature.channel.TimedUpdaterModule;
+import com.discordsrv.common.feature.channel.ChannelUpdaterModule;
 import com.discordsrv.common.feature.channel.global.GlobalChannelLookupModule;
 import com.discordsrv.common.feature.console.ConsoleModule;
 import com.discordsrv.common.feature.customcommands.CustomCommandModule;
-import com.discordsrv.common.feature.debug.data.VersionInfo;
+import com.discordsrv.common.core.debug.data.VersionInfo;
 import com.discordsrv.common.feature.groupsync.GroupSyncModule;
 import com.discordsrv.common.feature.linking.LinkProvider;
+import com.discordsrv.common.feature.linking.LinkedRoleModule;
 import com.discordsrv.common.feature.linking.LinkingModule;
+import com.discordsrv.common.feature.linking.LinkingRewardsModule;
 import com.discordsrv.common.feature.linking.impl.MinecraftAuthenticationLinker;
 import com.discordsrv.common.feature.linking.impl.StorageLinker;
 import com.discordsrv.common.feature.mention.MentionCachingModule;
 import com.discordsrv.common.feature.mention.MentionGameRenderingModule;
-import com.discordsrv.common.feature.messageforwarding.discord.DiscordChatMessageModule;
+import com.discordsrv.common.feature.messageforwarding.discord.DiscordToMinecraftChatModule;
 import com.discordsrv.common.feature.messageforwarding.discord.DiscordMessageMirroringModule;
 import com.discordsrv.common.feature.messageforwarding.game.*;
-import com.discordsrv.common.feature.profile.ProfileManager;
-import com.discordsrv.common.feature.update.UpdateChecker;
+import com.discordsrv.common.feature.nicknamesync.NicknameSyncModule;
+import com.discordsrv.common.core.profile.ProfileManagerImpl;
+import com.discordsrv.common.feature.onlinerole.OnlineRoleModule;
+import com.discordsrv.common.core.update.UpdateChecker;
 import com.discordsrv.common.helper.ChannelConfigHelper;
 import com.discordsrv.common.helper.DestinationLookupHelper;
 import com.discordsrv.common.helper.TemporaryLocalData;
+import com.discordsrv.common.helper.VanishStatusTrackingModule;
 import com.discordsrv.common.logging.adapter.DependencyLoggerAdapter;
 import com.discordsrv.common.util.ApiInstanceUtil;
 import com.discordsrv.common.util.UUIDUtil;
@@ -110,8 +127,8 @@ import java.time.Duration;
 import java.time.LocalDateTime;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
+import java.time.temporal.TemporalAccessor;
 import java.util.*;
-import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -141,7 +158,7 @@ public abstract class AbstractDiscordSRV<
 
     // DiscordSRVApi
     private EventBusImpl eventBus;
-    private ProfileManager profileManager;
+    private ProfileManagerImpl profileManager;
     private PlaceholderServiceImpl placeholderService;
     private DiscordMarkdownFormatImpl discordMarkdownFormat;
     private ComponentFactory componentFactory;
@@ -192,7 +209,7 @@ public abstract class AbstractDiscordSRV<
         this.dependencyManager = new DiscordSRVDependencyManager(this, bootstrap.lifecycleManager() != null ? bootstrap.lifecycleManager().getDependencyLoader() : null);
         this.eventBus = new EventBusImpl(this);
         this.moduleManager = new ModuleManager(this);
-        this.profileManager = new ProfileManager(this);
+        this.profileManager = new ProfileManagerImpl(this);
         this.placeholderService = new PlaceholderServiceImpl(this);
         this.discordMarkdownFormat = new DiscordMarkdownFormatImpl();
         this.componentFactory = new ComponentFactory(this);
@@ -342,7 +359,7 @@ public abstract class AbstractDiscordSRV<
     }
 
     @Override
-    public final @NotNull ProfileManager profileManager() {
+    public final @NotNull ProfileManagerImpl profileManager() {
         return profileManager;
     }
 
@@ -488,7 +505,7 @@ public abstract class AbstractDiscordSRV<
     }
 
     @Override
-    public void registerModule(AbstractModule<?> module) {
+    public void registerModule(@NotNull Module module) {
         moduleManager.register(module);
     }
 
@@ -520,7 +537,7 @@ public abstract class AbstractDiscordSRV<
     }
 
     @Override
-    public void unregisterModule(AbstractModule<?> module) {
+    public void unregisterModule(@NotNull Module module) {
         moduleManager.unregister(module);
     }
 
@@ -555,6 +572,10 @@ public abstract class AbstractDiscordSRV<
             if (beenReady.compareAndSet(false, true)) {
                 eventBus.publish(new DiscordSRVReadyEvent());
             }
+        }
+
+        if (status.isError() || status.isShutdown()) {
+            moduleManager().reload();
         }
     }
 
@@ -614,7 +635,7 @@ public abstract class AbstractDiscordSRV<
      * Must be manually triggered for {@link DiscordSRV.ServerType#SERVER}, automatically triggered in {@link #enable()} for {@link DiscordSRV.ServerType#PROXY}.
      * @return a future running on the {@link #scheduler()}
      */
-    public final CompletableFuture<Void> runServerStarted() {
+    public final Task<Void> runServerStarted() {
         return scheduler().execute(() -> {
             if (status().isShutdown()) {
                 // Already shutdown/shutting down, don't bother
@@ -653,7 +674,7 @@ public abstract class AbstractDiscordSRV<
     }
 
     @Override
-    public final CompletableFuture<Void> runDisable() {
+    public final Task<Void> runDisable() {
         return scheduler().execute(this::disable);
     }
 
@@ -670,27 +691,51 @@ public abstract class AbstractDiscordSRV<
 
         this.translationLoader = new TranslationLoader(this);
 
-        // Placeholder result stringifiers & global contexts
+        // Placeholder service stuff
         placeholderService().addResultMapper(new ComponentResultStringifier(this));
+
+        placeholderService().addReLookup(Boolean.class, "boolean");
+        placeholderService().addReLookup(CharSequence.class, "stringformat");
+        placeholderService().addReLookup(UUID.class, "uuid");
+        placeholderService().addReLookup(Number.class, "numberformat");
+        placeholderService().addReLookup(TemporalAccessor.class, "date");
+        placeholderService().addReLookup(Duration.class, "duration");
+        placeholderService().addReLookup(Color.class, "color");
+        placeholderService().addReLookup(Profile.class, "profile");
+        placeholderService().addReLookup(IPlayer.class, "player");
+        placeholderService().addReLookup(SkinInfo.class, "skin");
+        placeholderService().addReLookup(SkinInfo.Parts.class, "skin_parts");
+        placeholderService().addReLookup(DiscordUser.class, "user");
+        placeholderService().addReLookup(DiscordChannel.class, "channel");
+        placeholderService().addReLookup(DiscordGuild.class, "server");
+        placeholderService().addReLookup(DiscordRole.class, "role");
+        placeholderService().addReLookup(DiscordGuildMember.class, "user");
+
         placeholderService().addGlobalContext(new TextHandlingContext(this));
         placeholderService().addGlobalContext(new DateFormattingContext(this));
+        placeholderService().addGlobalContext(new NumberFormattingContext(this));
         placeholderService().addGlobalContext(new GamePermissionContext(this));
         placeholderService().addGlobalContext(new ReceivedDiscordMessageContext(this));
-        placeholderService().addGlobalContext(new DiscordBotContext(this));
         placeholderService().addGlobalContext(new AvatarProviderContext(this));
+        placeholderService().addGlobalContext(new DiscordEntityContext(this));
+        placeholderService().addGlobalContext(new DiscordGuildMemberContext());
+        placeholderService().addGlobalContext(new DebugContext(this));
+        placeholderService().addGlobalContext(DurationFormattingContext.class);
+        placeholderService().addGlobalContext(BooleanFormattingContext.class);
+        placeholderService().addGlobalContext(StringFormattingContext.class);
         placeholderService().addGlobalContext(UUIDUtil.class);
 
         // Modules
         registerModule(BanSyncModule::new);
         registerModule(ConsoleModule::new);
         registerModule(ChannelLockingModule::new);
-        registerModule(TimedUpdaterModule::new);
+        registerModule(ChannelUpdaterModule::new);
         registerModule(DiscordCommandModule::new);
         registerModule(GameCommandModule::new);
         registerModule(GlobalChannelLookupModule::new);
         registerModule(DiscordAPIEventModule::new);
         registerModule(GroupSyncModule::new);
-        registerModule(DiscordChatMessageModule::new);
+        registerModule(DiscordToMinecraftChatModule::new);
         registerModule(DiscordMessageMirroringModule::new);
         registerModule(JoinMessageModule::new);
         registerModule(LeaveMessageModule::new);
@@ -700,6 +745,14 @@ public abstract class AbstractDiscordSRV<
         registerModule(PresenceUpdaterModule::new);
         registerModule(MentionGameRenderingModule::new);
         registerModule(CustomCommandModule::new);
+        registerModule(NicknameSyncModule::new);
+        registerModule(PlayerListModule::new);
+        registerModule(OnlineRoleModule::new);
+        registerModule(LinkingRewardsModule::new);
+        registerModule(StartMessageModule::new);
+        registerModule(StopMessageModule::new);
+        registerModule(VanishStatusTrackingModule::new);
+        registerModule(LinkedRoleModule::new);
 
         if (serverType() == ServerType.PROXY) {
             registerModule(ServerSwitchMessageModule::new);
@@ -740,11 +793,8 @@ public abstract class AbstractDiscordSRV<
     @MustBeInvokedByOverriders
     protected void serverStarted() {
         serverStarted = true;
-        moduleManager().enableModules();
-
-        registerModule(StartMessageModule::new);
-        registerModule(StopMessageModule::new);
-        Optional.ofNullable(getModule(PresenceUpdaterModule.class)).ifPresent(PresenceUpdaterModule::serverStarted);
+        eventBus().publish(new ServerStartedEvent());
+        logger().debug("Server started");
     }
 
     @MustBeInvokedByOverriders
@@ -756,51 +806,44 @@ public abstract class AbstractDiscordSRV<
         boolean configUpgrade = flags.contains(ReloadFlag.CONFIG_UPGRADE);
 
         if (flags.contains(ReloadFlag.CONFIG) || configUpgrade) {
-            try {
-                Path backupPath = null;
-                if (configUpgrade) {
-                    backupPath = generateBackupPath();
-                }
-
-                AtomicBoolean anyMissingOptions = new AtomicBoolean(false);
-                connectionConfigManager().reload(configUpgrade, anyMissingOptions, backupPath);
-                configManager().reload(configUpgrade, anyMissingOptions, backupPath);
-                messagesConfigManager().reload(configUpgrade, anyMissingOptions, backupPath);
-
-                if (anyMissingOptions.get()) {
-                    if (config().automaticConfigurationUpgrade) {
-                        logger().info("Some configuration options are missing, attempting to upgrade configuration...");
-
-                        if (backupPath == null) {
-                            backupPath = generateBackupPath();
-                        }
-                        AtomicBoolean stillMissingOptions = new AtomicBoolean(false);
-
-                        connectionConfigManager().reload(true, stillMissingOptions, backupPath);
-                        configManager().reload(true, stillMissingOptions, backupPath);
-                        messagesConfigManager().reload(true, stillMissingOptions, backupPath);
-
-                        if (stillMissingOptions.get()) {
-                            logger().warning("Attempted to upgrade configuration automatically, but some options are still missing.");
-                        } else {
-                            logger().info("Configuration successfully upgraded");
-                        }
-                    } else if (configUpgrade) {
-                        logger().warning("Attempted to upgrade configuration by reload command, but some options are still missing.");
-                    } else {
-                        logger().info("Use \"/discordsrv reload config_upgrade\" to write the latest configuration");
-                        logger().info("Or set \"automatic-configuration-upgrade\" to true in the config to automatically upgrade the configuration on startup or reload");
-                    }
-                }
-
-                channelConfig().reload();
-                createHttpClient();
-            } catch (Throwable t) {
-                if (initial) {
-                    setStatus(Status.FAILED_TO_LOAD_CONFIG);
-                }
-                throw t;
+            Path backupPath = null;
+            if (configUpgrade) {
+                backupPath = generateBackupPath();
             }
+
+            AtomicBoolean anyMissingOptions = new AtomicBoolean(false);
+            connectionConfigManager().reload(configUpgrade, anyMissingOptions, backupPath);
+            configManager().reload(configUpgrade, anyMissingOptions, backupPath);
+            messagesConfigManager().reload(configUpgrade, anyMissingOptions, backupPath);
+
+            if (anyMissingOptions.get()) {
+                if (config().automaticConfigurationUpgrade) {
+                    logger().info("Some configuration options are missing, attempting to upgrade configuration...");
+
+                    if (backupPath == null) {
+                        backupPath = generateBackupPath();
+                    }
+                    AtomicBoolean stillMissingOptions = new AtomicBoolean(false);
+
+                    connectionConfigManager().reload(true, stillMissingOptions, backupPath);
+                    configManager().reload(true, stillMissingOptions, backupPath);
+                    messagesConfigManager().reload(true, stillMissingOptions, backupPath);
+
+                    if (stillMissingOptions.get()) {
+                        logger().warning("Attempted to upgrade configuration automatically, but some options are still missing.");
+                    } else {
+                        logger().info("Configuration successfully upgraded");
+                    }
+                } else if (configUpgrade) {
+                    logger().warning("Attempted to upgrade configuration by reload command, but some options are still missing.");
+                } else {
+                    logger().info("Use \"/discordsrv reload config_upgrade\" to write the latest configuration");
+                    logger().info("Or set \"automatic-configuration-upgrade\" to true in the config to automatically upgrade the configuration on startup or reload");
+                }
+            }
+
+            channelConfig().reload();
+            createHttpClient();
         }
 
         List<ReloadResult> results = new ArrayList<>();
@@ -819,6 +862,7 @@ public abstract class AbstractDiscordSRV<
                 logger().info("");
             }
             discordConnectionManager.invalidToken(true);
+            setStatus(Status.NOT_CONFIGURED);
             results.add(ReloadResult.DEFAULT_BOT_TOKEN);
             return results;
         }
@@ -874,7 +918,7 @@ public abstract class AbstractDiscordSRV<
                 e.log(this);
                 logger().error("Failed to connect to storage");
                 if (initial) {
-                    setStatus(Status.FAILED_TO_START);
+                    setStatus(Status.FAILED_TO_CONNECT_TO_STORAGE);
                 }
                 return Collections.singletonList(ReloadResult.STORAGE_CONNECTION_FAILED);
             }
@@ -918,7 +962,9 @@ public abstract class AbstractDiscordSRV<
             }
 
             if (linkProviderMissing && linkProvider != null) {
-                playerProvider().loadAllProfilesAsync();
+                for (IPlayer player : playerProvider().allPlayers()) {
+                    profileManager().loadProfile(player.uniqueId());
+                }
             }
         }
 
@@ -969,7 +1015,7 @@ public abstract class AbstractDiscordSRV<
         throw new StorageException("Unknown storage backend \"" + backend + "\"");
     }
 
-    @SuppressWarnings("resource") //
+    @SuppressWarnings("resource") // Closed instantly
     @MustBeInvokedByOverriders
     protected void disable() {
         Status status = this.status.get();
@@ -1005,12 +1051,15 @@ public abstract class AbstractDiscordSRV<
             logger().error("Failed to close storage connection", t);
         }
         temporaryLocalData.save();
+
+        logger().shutdown();
+        scheduler().shutdown();
         this.status.set(Status.SHUTDOWN);
     }
 
     private Path generateBackupPath() throws IOException {
         String dateAndTime = DateTimeFormatter.ofPattern("yyyy-MM-dd_HH-mm-ss").format(LocalDateTime.now());
-        Path backupPath = dataDirectory().resolve("config-migrated").resolve(dateAndTime);
+        Path backupPath = dataDirectory().resolve("old-config-backups").resolve(dateAndTime);
         if (Files.notExists(backupPath)) {
             Files.createDirectories(backupPath);
         }

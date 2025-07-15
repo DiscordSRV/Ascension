@@ -46,6 +46,9 @@ public class PaperComponentHandle<T> {
             || ReflectionUtil.classExists("io.papermc.paper.adventure.PaperAdventure"));
 
     public static <T> PaperComponentHandle.Get<T> getOrNull(Class<T> targetClass, String methodName) {
+        if (!IS_AVAILABLE) {
+            return null;
+        }
         try {
             return new Get<>(targetClass, methodName);
         } catch (ReflectiveOperationException ignored) {
@@ -54,14 +57,20 @@ public class PaperComponentHandle<T> {
     }
 
     public static <T> PaperComponentHandle.Get<T> get(Class<T> targetClass, String methodName) {
+        if (!IS_AVAILABLE) {
+            throw new IllegalStateException("Paper components not available");
+        }
         try {
             return new Get<>(targetClass, methodName);
         } catch (ReflectiveOperationException e) {
-            throw new RuntimeException("Failed to get component method", e);
+            throw new RuntimeException("Failed to get component handle", e);
         }
     }
 
     public static <T> PaperComponentHandle.Set<T> setOrNull(Class<T> targetClass, String methodName) {
+        if (!IS_AVAILABLE) {
+            return null;
+        }
         try {
             return new Set<>(targetClass, methodName);
         } catch (ReflectiveOperationException e) {
@@ -70,10 +79,13 @@ public class PaperComponentHandle<T> {
     }
 
     public static <T> PaperComponentHandle.Set<T> set(Class<T> targetClass, String methodName) {
+        if (!IS_AVAILABLE) {
+            throw new IllegalStateException("Paper components not available");
+        }
         try {
             return new Set<>(targetClass, methodName);
         } catch (ReflectiveOperationException e) {
-            throw new RuntimeException("Failed to set component method", e);
+            throw new RuntimeException("Failed to get component handle", e);
         }
     }
 

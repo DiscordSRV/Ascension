@@ -18,6 +18,7 @@
 
 package com.discordsrv.common.linking.requirement.parser;
 
+import com.discordsrv.api.task.Task;
 import com.discordsrv.common.DiscordSRV;
 import com.discordsrv.common.MockDiscordSRV;
 import com.discordsrv.common.abstraction.player.IPlayer;
@@ -34,7 +35,6 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.UUID;
-import java.util.concurrent.CompletableFuture;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -71,8 +71,8 @@ public class RequirementTypeParserTest {
                 }
 
                 @Override
-                public CompletableFuture<Boolean> isMet(Boolean value, Someone.Resolved someone) {
-                    return CompletableFuture.completedFuture(value);
+                public Task<Boolean> isMet(Boolean value, Someone.Resolved someone) {
+                    return Task.completed(value);
                 }
             },
             new RequirementType<Object>(module) {
@@ -87,7 +87,7 @@ public class RequirementTypeParserTest {
                 }
 
                 @Override
-                public CompletableFuture<Boolean> isMet(Object value, Someone.Resolved someone) {
+                public Task<Boolean> isMet(Object value, Someone.Resolved someone) {
                     return null;
                 }
             }
@@ -96,7 +96,7 @@ public class RequirementTypeParserTest {
     private boolean parse(String input) {
         return requirementParser.parse(input, requirementTypes)
                 .predicate()
-                .apply(Someone.of(UUID.randomUUID(), 0L))
+                .apply(Someone.of(MockDiscordSRV.getInstance(), UUID.randomUUID(), 0L))
                 .join();
     }
 

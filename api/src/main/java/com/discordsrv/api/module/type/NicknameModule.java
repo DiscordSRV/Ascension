@@ -23,12 +23,14 @@
 
 package com.discordsrv.api.module.type;
 
+import com.discordsrv.api.module.Module;
+import com.discordsrv.api.task.Task;
+
 import java.util.UUID;
-import java.util.concurrent.CompletableFuture;
 
-public interface NicknameModule {
+public interface NicknameModule extends Module {
 
-    CompletableFuture<String> getNickname(UUID playerUUID);
-    CompletableFuture<Void> setNickname(UUID playerUUID, String nickname);
+    Task<String> getNickname(UUID playerUUID);
+    Task<Void> setNickname(UUID playerUUID, String nickname);
 
 }

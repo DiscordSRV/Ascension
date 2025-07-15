@@ -19,34 +19,36 @@
 package com.discordsrv.common.feature.messageforwarding.game;
 
 import com.discordsrv.api.channel.GameChannel;
-import com.discordsrv.api.component.MinecraftComponent;
+import com.discordsrv.api.discord.entity.channel.DiscordGuildMessageChannel;
 import com.discordsrv.api.discord.entity.message.ReceivedDiscordMessageCluster;
 import com.discordsrv.api.discord.entity.message.SendableDiscordMessage;
 import com.discordsrv.api.eventbus.EventPriorities;
 import com.discordsrv.api.eventbus.Subscribe;
-import com.discordsrv.api.events.message.forward.game.LeaveMessageForwardedEvent;
-import com.discordsrv.api.events.message.receive.game.LeaveMessageReceiveEvent;
+import com.discordsrv.api.events.message.post.game.AbstractGameMessagePostEvent;
+import com.discordsrv.api.events.message.post.game.LeaveMessagePostEvent;
+import com.discordsrv.api.events.message.postprocess.game.LeaveMessagePostProcessEvent;
+import com.discordsrv.api.events.message.preprocess.game.LeaveMessagePreProcessEvent;
+import com.discordsrv.api.events.vanish.PlayerVanishStatusChangeEvent;
 import com.discordsrv.api.player.DiscordSRVPlayer;
+import com.discordsrv.api.task.Task;
 import com.discordsrv.common.DiscordSRV;
 import com.discordsrv.common.abstraction.player.IPlayer;
 import com.discordsrv.common.config.main.channels.LeaveMessageConfig;
 import com.discordsrv.common.config.main.channels.base.BaseChannelConfig;
 import com.discordsrv.common.events.player.PlayerConnectedEvent;
 import com.discordsrv.common.permission.game.Permissions;
-import com.discordsrv.common.util.ComponentUtil;
-import net.kyori.adventure.text.Component;
 import org.apache.commons.lang3.tuple.Pair;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.time.Duration;
+import java.util.List;
 import java.util.Map;
 import java.util.UUID;
-import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.Future;
 
-public class LeaveMessageModule extends AbstractGameMessageModule<LeaveMessageConfig, LeaveMessageReceiveEvent> {
+public class LeaveMessageModule extends AbstractGameMessageModule<LeaveMessageConfig, LeaveMessagePreProcessEvent, LeaveMessagePostProcessEvent> {
 
     private final Map<UUID, Pair<Long, Future<?>>> playersJoinedRecently = new ConcurrentHashMap<>();
     private final ThreadLocal<Boolean> silentQuitPermission = new ThreadLocal<>();
@@ -72,13 +74,13 @@ public class LeaveMessageModule extends AbstractGameMessageModule<LeaveMessageCo
         }
         if (maxMS > 0) {
             long currentTime = System.currentTimeMillis();
-            Future<?> removeFuture = discordSRV.scheduler().runLater(() -> playersJoinedRecently.remove(playerUUID), Duration.ofMillis(maxMS));
+            Future<?> removeFuture = discordSRV.scheduler().runLater(() -> playersJoinedRecently.remove(playerUUID), Duration.ofMillis(maxMS + 100));
             playersJoinedRecently.put(playerUUID, Pair.of(currentTime, removeFuture));
         }
     }
 
     @Subscribe(priority = EventPriorities.LAST, ignoreCancelled = false, ignoreProcessed = false)
-    public void onLeaveMessageReceive(LeaveMessageReceiveEvent event) {
+    public void onLeaveMessageReceive(LeaveMessagePreProcessEvent event) {
         if (checkCancellation(event) || checkProcessor(event)) {
             return;
         }
@@ -92,9 +94,27 @@ public class LeaveMessageModule extends AbstractGameMessageModule<LeaveMessageCo
         event.markAsProcessed();
     }
 
+    @Subscribe(priority = EventPriorities.LAST)
+    public void onPlayerVanishStatusChange(PlayerVanishStatusChangeEvent event) {
+        if (!event.isNewStatus() || !event.isSendFakeMessage()) {
+            return;
+        }
+
+        // Player vanished
+        discordSRV.eventBus().publish(new LeaveMessagePreProcessEvent(
+                event,
+                event.getPlayer(),
+                event.getFakeMessage(),
+                null,
+                true,
+                false,
+                false
+        ));
+    }
+
     @Override
-    protected CompletableFuture<Void> forwardToChannel(
-            @Nullable LeaveMessageReceiveEvent event,
+    protected Task<Void> forwardToChannel(
+            @Nullable LeaveMessagePreProcessEvent event,
             @Nullable IPlayer player,
             @NotNull BaseChannelConfig config,
             @Nullable GameChannel channel
@@ -105,14 +125,31 @@ public class LeaveMessageModule extends AbstractGameMessageModule<LeaveMessageCo
                 long delta = System.currentTimeMillis() - pair.getKey();
                 if (delta < config.leaveMessages.ignoreIfJoinedWithinMS) {
                     logger().info(player.username() + " joined within timeout period, join message will not be sent");
-                    return CompletableFuture.completedFuture(null);
+                    return Task.completed(null);
                 }
             }
         }
 
+        if (event != null && event.isMessageCancelled() && !config.leaveMessages.sendEvenIfCancelled) {
+            return Task.completed(null);
+        }
         if (player != null && config.leaveMessages.enableSilentPermission && silentQuitPermission.get()) {
             logger().info(player.username() + " is leaving silently, leave message will not be sent");
-            return CompletableFuture.completedFuture(null);
+            return Task.completed(null);
+        }
+        if (player != null && event != null && event.isFakeLeave()) {
+            if (!config.leaveMessages.sendFakeMessages) {
+                logger().debug("Not sending fake leave message for " + player.username() + ", disabled in config");
+                return Task.completed(null);
+            } else {
+                logger().info(player.username() + " vanished, sending fake leave message");
+            }
+        }
+        if (!config.leaveMessages.sendMessageForVanishedPlayers
+                && player != null && player.isVanished()
+                && (event == null || !event.isFakeLeave())) {
+            logger().info(player.username() + " left while vanished, leave message will not be sent");
+            return Task.completed(null);
         }
         return super.forwardToChannel(event, player, config, channel);
     }
@@ -123,19 +160,29 @@ public class LeaveMessageModule extends AbstractGameMessageModule<LeaveMessageCo
     }
 
     @Override
-    public void postClusterToEventBus(GameChannel channel, @NotNull ReceivedDiscordMessageCluster cluster) {
-        discordSRV.eventBus().publish(new LeaveMessageForwardedEvent(channel, cluster));
+    protected LeaveMessagePostProcessEvent createPostProcessEvent(
+            LeaveMessagePreProcessEvent preEvent,
+            IPlayer player,
+            List<DiscordGuildMessageChannel> channels,
+            SendableDiscordMessage discordMessage
+    ) {
+        return new LeaveMessagePostProcessEvent(preEvent, player, channels, discordMessage);
+    }
+
+    @Override
+    protected AbstractGameMessagePostEvent<LeaveMessagePostProcessEvent> createPostEvent(
+            LeaveMessagePostProcessEvent preEvent,
+            ReceivedDiscordMessageCluster cluster
+    ) {
+        return new LeaveMessagePostEvent(preEvent, cluster);
     }
 
     @Override
     public void setPlaceholders(
             LeaveMessageConfig config,
-            LeaveMessageReceiveEvent event,
+            LeaveMessagePreProcessEvent event,
             SendableDiscordMessage.Formatter formatter
     ) {
-        MinecraftComponent messageComponent = event.getMessage();
-        Component message = messageComponent != null ? ComponentUtil.fromAPI(messageComponent) : null;
-
-        formatter.addPlaceholder("message", message);
+        formatter.addPlaceholder("message", event.getMessage());
     }
 }

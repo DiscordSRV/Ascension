@@ -19,6 +19,7 @@
 package com.discordsrv.common.abstraction.bootstrap;
 
 import com.discordsrv.api.reload.ReloadFlag;
+import com.discordsrv.api.task.Task;
 import com.discordsrv.common.DiscordSRV;
 import com.discordsrv.common.core.dependency.DependencyLoader;
 import com.discordsrv.common.core.logging.Logger;
@@ -28,7 +29,6 @@ import java.io.IOException;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -42,7 +42,7 @@ public class LifecycleManager {
     private final Logger logger;
     private final ExecutorService taskPool;
     private final DependencyLoader dependencyLoader;
-    private CompletableFuture<?> dependencyLoadFuture;
+    private Task<?> dependencyLoadFuture;
 
     public LifecycleManager(
             Logger logger,

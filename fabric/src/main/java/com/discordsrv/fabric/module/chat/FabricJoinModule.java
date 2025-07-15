@@ -19,7 +19,7 @@
 package com.discordsrv.fabric.module.chat;
 
 import com.discordsrv.api.component.MinecraftComponent;
-import com.discordsrv.api.events.message.receive.game.JoinMessageReceiveEvent;
+import com.discordsrv.api.events.message.preprocess.game.JoinMessagePreProcessEvent;
 import com.discordsrv.api.player.DiscordSRVPlayer;
 import com.discordsrv.common.util.ComponentUtil;
 import com.discordsrv.fabric.FabricDiscordSRV;
@@ -57,12 +57,14 @@ public class FabricJoinModule extends AbstractFabricModule {
 
         DiscordSRVPlayer player = discordSRV.playerProvider().player(playerEntity);
         discordSRV.eventBus().publish(
-                new JoinMessageReceiveEvent(
+                new JoinMessagePreProcessEvent(
                         serverPlayNetworkHandler,
                         player,
                         component,
                         null,
                         firstJoin,
+                        false,
+                        component == null,
                         false
                 )
         );

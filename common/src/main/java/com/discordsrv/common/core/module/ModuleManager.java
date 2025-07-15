@@ -27,6 +27,8 @@ import com.discordsrv.api.events.lifecycle.DiscordSRVShuttingDownEvent;
 import com.discordsrv.api.module.Module;
 import com.discordsrv.api.reload.ReloadResult;
 import com.discordsrv.common.DiscordSRV;
+import com.discordsrv.common.core.debug.DebugGenerateEvent;
+import com.discordsrv.common.core.debug.file.TextDebugFile;
 import com.discordsrv.common.core.logging.Logger;
 import com.discordsrv.common.core.logging.NamedLogger;
 import com.discordsrv.common.core.module.type.AbstractModule;
@@ -34,8 +36,7 @@ import com.discordsrv.common.core.module.type.ModuleDelegate;
 import com.discordsrv.common.core.module.type.PluginIntegration;
 import com.discordsrv.common.discord.connection.jda.JDAConnectionManager;
 import com.discordsrv.common.events.integration.IntegrationLifecycleEvent;
-import com.discordsrv.common.feature.debug.DebugGenerateEvent;
-import com.discordsrv.common.feature.debug.file.TextDebugFile;
+import com.discordsrv.common.events.lifecycle.ServerStartedEvent;
 import com.discordsrv.common.util.function.CheckedFunction;
 
 import java.util.*;
@@ -43,6 +44,8 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArraySet;
 import java.util.function.BiConsumer;
 import java.util.function.Function;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 public class ModuleManager {
 
@@ -62,24 +65,58 @@ public class ModuleManager {
         return logger;
     }
 
+    // Helper methods
+
+    private Iterable<AbstractModule<?>> modules() {
+        return modules.stream().map(this::getAbstract).collect(Collectors.toList());
+    }
+
+    private AbstractModule<?> getAbstract(Module module) {
+        return module instanceof AbstractModule
+               ? (AbstractModule<?>) module
+               : delegates.computeIfAbsent(module, mod -> new ModuleDelegate(discordSRV, mod));
+    }
+
+    private String getName(AbstractModule<?> abstractModule) {
+        return abstractModule instanceof ModuleDelegate
+               ? ((ModuleDelegate) abstractModule).getBase().getClass().getName()
+               : abstractModule.getClass().getSimpleName();
+    }
+
+    private Stream<Module> modulesInShutdownOrder() {
+        return modules.stream().sorted(Comparator.comparing(Module::shutdownOrder));
+    }
+
+    private boolean isModuleEnabled(AbstractModule<?> module) {
+        try {
+            return module.isEnabled();
+        } catch (Exception e) {
+            logger().error("Could not check if module should be enabled due to an error " + getName(module), e);
+            return false;
+        }
+    }
+
     private <T> Set<T> getModuleDetails(Function<Module, Collection<T>> detailFunction, BiConsumer<AbstractModule<?>, Collection<T>> setRequested) {
+        if (discordSRV.config() == null) throw new IllegalStateException("Cannot query module details while config is not loaded");
         Set<T> details = new HashSet<>();
-        for (Module module : modules) {
+        for (AbstractModule<?> module : modules()) {
             try {
-                if (!module.isEnabled()) {
+                if (!isModuleEnabled(module)) {
                     continue;
                 }
 
                 Collection<T> values = detailFunction.apply(module);
                 details.addAll(values);
 
-                setRequested.accept(getAbstract(module), values);
+                setRequested.accept(module, values);
             } catch (Throwable t) {
                 logger.debug("Failed to get details from " + module.getClass(), t);
             }
         }
         return details;
     }
+
+    // API
 
     public Set<DiscordGatewayIntent> requiredIntents() {
         return getModuleDetails(Module::requiredIntents, AbstractModule::setRequestedIntents);
@@ -91,11 +128,11 @@ public class ModuleManager {
 
     @SuppressWarnings("unchecked")
     public <T extends Module> T getModule(Class<T> moduleType) {
-        return (T) moduleLookupTable.computeIfAbsent(moduleType.getName(), key -> {
+        T resolvedModule = (T) moduleLookupTable.computeIfAbsent(moduleType.getName(), key -> {
             Module bestCandidate = null;
             int bestCandidatePriority = Integer.MIN_VALUE;
             for (Module module : modules) {
-                if (!module.isEnabled()) {
+                if (getAbstract(module).isCurrentlyDisabled()) {
                     continue;
                 }
                 int priority;
@@ -106,18 +143,11 @@ public class ModuleManager {
             }
             return bestCandidate;
         });
-    }
 
-    private AbstractModule<?> getAbstract(Module module) {
-        return module instanceof AbstractModule
-            ? (AbstractModule<?>) module
-            : delegates.computeIfAbsent(module, mod -> new ModuleDelegate(discordSRV, mod));
-    }
-
-    private String getName(AbstractModule<?> abstractModule) {
-        return abstractModule instanceof ModuleDelegate
-                ? ((ModuleDelegate) abstractModule).getBase().getClass().getName()
-               : abstractModule.getClass().getSimpleName();
+        if (resolvedModule == null || getAbstract(resolvedModule).isCurrentlyDisabled()) {
+            return null;
+        }
+        return resolvedModule;
     }
 
     public <DT extends DiscordSRV> void registerModule(DT discordSRV, CheckedFunction<DT, AbstractModule<?>> function) {
@@ -191,31 +221,13 @@ public class ModuleManager {
                 logger.debug(module + " disabled");
             }
         } catch (Throwable t) {
-            discordSRV.logger().error("Failed to disable " + getName(module), t);
-        }
-    }
-
-    @Subscribe(priority = EventPriorities.EARLY)
-    public void onShuttingDown(DiscordSRVShuttingDownEvent event) {
-        modules.stream()
-                .sorted((m1, m2) -> Integer.compare(m2.shutdownOrder(), m1.shutdownOrder()))
-                .forEachOrdered(module -> disable(getAbstract(module)));
-    }
-
-    @Subscribe
-    public void onDiscordSRVReady(DiscordSRVReadyEvent event) {
-        reload();
-    }
-
-    @Subscribe
-    public void onIntegrationLifecycle(IntegrationLifecycleEvent event) {
-        String integrationIdentifier = event.integrationIdentifier();
-        for (Module module : modules) {
-            AbstractModule<?> abstractModule = getAbstract(module);
-            if (abstractModule instanceof PluginIntegration
-                    && ((PluginIntegration<?>) abstractModule).getIntegrationId().equals(integrationIdentifier)) {
-                enableOrDisableAsNeeded(abstractModule, discordSRV.isReady(), true);
+            if (module instanceof PluginIntegration<?>
+                    && discordSRV.status().isShutdown()
+                    && (t instanceof NoClassDefFoundError || t instanceof ClassNotFoundException)) {
+                // PluginIntegration already unloaded at shutdown
+                return;
             }
+            discordSRV.logger().error("Failed to disable " + getName(module), t);
         }
     }
 
@@ -223,17 +235,13 @@ public class ModuleManager {
         return reloadAndEnableModules(true);
     }
 
-    public void enableModules() {
-        reloadAndEnableModules(false);
-    }
-
     private synchronized List<ReloadResult> reloadAndEnableModules(boolean reload) {
         boolean isReady = discordSRV.isReady();
         logger().debug((reload ? "Reloading" : "Enabling") + " modules (DiscordSRV ready = " + isReady + ")");
 
         Set<ReloadResult> reloadResults = new HashSet<>();
-        for (Module module : modules) {
-            reloadResults.addAll(enableOrDisableAsNeeded(getAbstract(module), isReady, reload));
+        for (AbstractModule<?> module : modules()) {
+            reloadResults.addAll(enableOrDisableAsNeeded(module, isReady, reload));
         }
 
         List<ReloadResult> results = new ArrayList<>();
@@ -250,13 +258,17 @@ public class ModuleManager {
 
     private List<ReloadResult> enableOrDisableAsNeeded(AbstractModule<?> module, boolean isReady, boolean mayReload) {
         boolean canBeEnabled = isReady || module.canEnableBeforeReady();
+        boolean serverStarted = isReady && discordSRV.isServerStarted();
         if (!canBeEnabled) {
             return Collections.emptyList();
         }
 
-        boolean enabled = module.isEnabled();
+        boolean enabled = isModuleEnabled(module);
         if (!enabled) {
             disable(module);
+            if (serverStarted) {
+                module.serverStartedForModule();
+            }
             return Collections.emptyList();
         }
 
@@ -289,9 +301,48 @@ public class ModuleManager {
             } else if (mayReload) {
                 reloadResults.addAll(reload(module));
             }
+
+            if (serverStarted) {
+                module.serverStartedForModule();
+            }
         }
 
         return reloadResults;
+    }
+
+    // Event listeners
+
+    @Subscribe(priority = EventPriorities.EARLIEST)
+    public void onShuttingDownEarliest(DiscordSRVShuttingDownEvent event) {
+        modulesInShutdownOrder()
+                .filter(module -> !getAbstract(module).isCurrentlyDisabled())
+                .forEachOrdered(Module::serverShuttingDown);
+    }
+
+    @Subscribe(priority = EventPriorities.EARLY)
+    public void onShuttingDownEarly(DiscordSRVShuttingDownEvent event) {
+        modulesInShutdownOrder().forEachOrdered(module -> disable(getAbstract(module)));
+    }
+
+    @Subscribe
+    public void onDiscordSRVReady(DiscordSRVReadyEvent event) {
+        reload();
+    }
+
+    @Subscribe
+    public void onIntegrationLifecycle(IntegrationLifecycleEvent event) {
+        String integrationIdentifier = event.integrationIdentifier();
+        for (AbstractModule<?> module : modules()) {
+            if (module instanceof PluginIntegration
+                    && ((PluginIntegration<?>) module).getIntegrationId().equals(integrationIdentifier)) {
+                enableOrDisableAsNeeded(module, discordSRV.isReady(), true);
+            }
+        }
+    }
+
+    @Subscribe
+    public void onServerStarted(ServerStartedEvent event) {
+        reloadAndEnableModules(false);
     }
 
     @Subscribe
@@ -301,7 +352,7 @@ public class ModuleManager {
         builder.append("Enabled modules:");
         List<Module> disabled = new ArrayList<>();
         for (Module module : modules) {
-            if (!getAbstract(module).isEnabled()) {
+            if (getAbstract(module).isCurrentlyDisabled()) {
                 disabled.add(module);
                 continue;
             }
@@ -314,7 +365,7 @@ public class ModuleManager {
             appendModule(builder, module, false);
         }
 
-        event.addFile(new TextDebugFile("modules.txt", builder));
+        event.addFile("modules.txt", new TextDebugFile(builder));
     }
 
     private void appendModule(StringBuilder builder, Module module, boolean extra) {

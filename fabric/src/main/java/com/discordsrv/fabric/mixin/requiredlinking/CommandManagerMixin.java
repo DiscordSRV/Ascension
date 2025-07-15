@@ -31,13 +31,13 @@ public class CommandManagerMixin {
     //? if minecraft: <1.19.2 {
     /*@Inject(method = "execute", at = @At("HEAD"), cancellable = true)
     private void execute(ServerCommandSource commandSource, String command, org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable<Integer> cir) {
-        FabricRequiredLinkingModule.onCommandExecute(commandSource, command, cir);
+        FabricRequiredLinkingModule.withInstance(module -> module.onCommandExecute(commandSource, command, cir));
         if(cir.isCancelled()) cir.setReturnValue(0);
     }
     *///?} else {
     @Inject(method = "execute", at = @At("HEAD"), cancellable = true)
     private void execute(com.mojang.brigadier.ParseResults<ServerCommandSource> parseResults, String command, org.spongepowered.asm.mixin.injection.callback.CallbackInfo ci) {
-        FabricRequiredLinkingModule.onCommandExecute(parseResults, command, ci);
+        FabricRequiredLinkingModule.withInstance(module -> module.onCommandExecute(parseResults, command, ci));
     }
     //?}
 }

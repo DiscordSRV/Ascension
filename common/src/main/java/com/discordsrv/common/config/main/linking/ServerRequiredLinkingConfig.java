@@ -26,13 +26,16 @@ import org.spongepowered.configurate.objectmapping.meta.Setting;
 @ConfigSerializable
 public class ServerRequiredLinkingConfig extends RequiredLinkingConfig {
 
-    @Comment("How the player should be blocked from joining the server.\nAvailable options: kick, freeze")
+    @Comment("How the player should be blocked from joining the server.\nAvailable options: kick, freeze, spectator")
     public Action action = Action.KICK;
 
     public enum Action {
         KICK,
-        FREEZE
+        FREEZE,
+        SPECTATOR
     }
+
+    public boolean whitelistedPlayersCanBypass = true;
 
     @Setting(nodeFromParent = true)
     @Order(10)

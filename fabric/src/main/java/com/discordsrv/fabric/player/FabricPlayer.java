@@ -18,6 +18,7 @@
 
 package com.discordsrv.fabric.player;
 
+import com.discordsrv.api.task.Task;
 import com.discordsrv.common.DiscordSRV;
 import com.discordsrv.common.abstraction.player.IPlayer;
 import com.discordsrv.common.abstraction.player.provider.model.SkinInfo;
@@ -26,15 +27,15 @@ import com.discordsrv.fabric.FabricDiscordSRV;
 import com.discordsrv.fabric.command.game.sender.FabricCommandSender;
 import net.kyori.adventure.identity.Identity;
 import net.kyori.adventure.text.Component;
+import net.minecraft.network.packet.s2c.play.ChatSuggestionsS2CPacket;
+import net.minecraft.scoreboard.Team;
 import net.minecraft.server.network.ServerPlayerEntity;
-import net.minecraft.text.Text;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Locale;
-import java.util.concurrent.CompletableFuture;
 
 //? if minecraft: >1.19 {
 import net.minecraft.network.packet.s2c.play.ChatSuggestionsS2CPacket;
@@ -70,9 +71,14 @@ public class FabricPlayer extends FabricCommandSender implements IPlayer {
     }
 
     @Override
-    public CompletableFuture<Void> kick(Component component) {
-        player.networkHandler.disconnect(Text.of(component.toString()));
-        return CompletableFuture.completedFuture(null);
+    public @NotNull String world() {
+        return player.getWorld().getRegistryKey().getValue().getPath();
+    }
+
+    @Override
+    public Task<Void> kick(Component component) {
+        player.networkHandler.disconnect(discordSRV.getAdventure().asNative(component));
+        return Task.completed(null);
     }
 
     @Override
@@ -93,11 +99,21 @@ public class FabricPlayer extends FabricCommandSender implements IPlayer {
 
     @Override
     public @Nullable SkinInfo skinInfo() {
+        Textures textures = null;
         //? if minecraft: >1.20.1 {
-        return Textures.getFromBase64(discordSRV, player.getGameProfile().getProperties().get(Textures.KEY).iterator().next().value()).getSkinInfo();
+        textures = Textures.getFromBase64(discordSRV, player.getGameProfile().getProperties().get(Textures.KEY).iterator().next().value());
         //?} else {
-        /*return Textures.getFromBase64(discordSRV, player.getGameProfile().getProperties().get(Textures.KEY).iterator().next().getValue()).getSkinInfo();
+        /*textures = Textures.getFromBase64(discordSRV, player.getGameProfile().getProperties().get(Textures.KEY).iterator().next().getValue());
         *///?}
+
+        if (!textures.equals(MinecraftProfileTextures.EMPTY) && textures.skin() != null) {
+            String model = textures.skin().getMetadata("model");
+            if (model == null) model = "classic";
+
+            int playerModelParts = player.getClientOptions().playerModelParts();
+            return new SkinInfo(textures.skin().getHash(), model, new SkinInfo.Parts(playerModelParts));
+        }
+        return null;
     }
 
     @Override
@@ -114,12 +130,22 @@ public class FabricPlayer extends FabricCommandSender implements IPlayer {
         //? if adventure: >=5.3.0 {
         return player.getOrDefaultFrom(
                 Identity.DISPLAY_NAME,
-                () -> Component.text(player.getName().getString())
+                () -> discordSRV.getAdventure().asAdventure(player.getName())
         );
         //?} else {
         /*return Component.text(player.getName().getString());
         *///?}
 
+    }
+
+    @Override
+    public @NotNull Component teamDisplayName() {
+        Team team = player.getScoreboardTeam();
+        if (team == null) {
+            return IPlayer.super.teamDisplayName();
+        }
+
+        return discordSRV.getAdventure().asAdventure(team.decorateName(player.getName()));
     }
 
     @Override

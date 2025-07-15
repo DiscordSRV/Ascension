@@ -18,31 +18,27 @@
 
 package com.discordsrv.fabric.module.chat;
 
-import com.discordsrv.api.events.message.receive.game.GameChatMessageReceiveEvent;
+import com.discordsrv.api.events.message.preprocess.game.GameChatMessagePreProcessEvent;
 import com.discordsrv.common.feature.channel.global.GlobalChannel;
 import com.discordsrv.common.util.ComponentUtil;
 import com.discordsrv.fabric.FabricDiscordSRV;
 import com.discordsrv.fabric.module.AbstractFabricModule;
-import com.discordsrv.fabric.player.FabricPlayer;
 import net.kyori.adventure.text.Component;
 import net.minecraft.text.Text;
 
 import java.util.UUID;
 
 public class FabricChatModule extends AbstractFabricModule {
-    private static FabricChatModule instance;
 
     private final FabricDiscordSRV discordSRV;
+
     public FabricChatModule(FabricDiscordSRV discordSRV) {
         super(discordSRV);
         this.discordSRV = discordSRV;
-        instance = this;
     }
 
     public static void onChatMessage(Text text, UUID uuid) {
-        if (instance == null || !instance.enabled) return;
-        FabricDiscordSRV discordSRV = instance.discordSRV;
-        FabricPlayer player = discordSRV.playerProvider().player(uuid);
+        if (!enabled) return;
 
         //? if adventure: <6 {
         /*@SuppressWarnings("removal")
@@ -50,9 +46,9 @@ public class FabricChatModule extends AbstractFabricModule {
         *///?} else {
         Component component = discordSRV.getAdventure().asAdventure(text);
          //?}
-        discordSRV.eventBus().publish(new GameChatMessageReceiveEvent(
+        discordSRV.eventBus().publish(new GameChatMessagePreProcessEvent(
                 null,
-                player,
+                discordSRV.playerProvider().player(serverPlayerEntity),
                 ComponentUtil.toAPI(component),
                 new GlobalChannel(discordSRV),
                 false

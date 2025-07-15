@@ -69,13 +69,18 @@ public final class SendableDiscordMessageUtil {
             uploads.add(FileUpload.fromData(attachment.getKey(), attachment.getValue()));
         }
 
+        if (!allowedUsers.isEmpty()) {
+            builder = (T) builder.mentionUsers(allowedUsers.stream().mapToLong(l -> l).toArray());
+        }
+        if (!allowedRoles.isEmpty()) {
+            builder = (T) builder.mentionRoles(allowedRoles.stream().mapToLong(l -> l).toArray());
+        }
+
         return (T) builder
                 .setContent(message.getContent())
                 .setEmbeds(embeds)
                 .setAllowedMentions(allowedTypes)
                 .setSuppressEmbeds(message.isSuppressedEmbeds())
-                .mentionUsers(allowedUsers.stream().mapToLong(l -> l).toArray())
-                .mentionRoles(allowedRoles.stream().mapToLong(l -> l).toArray())
                 .setFiles(uploads);
     }
 

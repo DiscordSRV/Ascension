@@ -29,7 +29,7 @@ import com.discordsrv.common.config.configurate.manager.abstraction.ServerConfig
 import com.discordsrv.common.config.connection.ConnectionConfig;
 import com.discordsrv.common.config.messages.MessagesConfig;
 import com.discordsrv.common.core.scheduler.StandardScheduler;
-import com.discordsrv.common.feature.debug.data.OnlineMode;
+import com.discordsrv.common.core.debug.data.OnlineMode;
 import com.discordsrv.common.feature.messageforwarding.game.MinecraftToDiscordChatModule;
 import com.discordsrv.fabric.command.game.FabricGameCommandExecutionHelper;
 import com.discordsrv.fabric.command.game.handler.FabricCommandHandler;
@@ -98,6 +98,9 @@ public class FabricDiscordSRV extends AbstractDiscordSRV<DiscordSRVFabricBootstr
 
         // Punishments
         registerModule(FabricBanModule::new);
+
+        // Integrations
+        registerIntegration("com.discordsrv.fabric.integration.TextPlaceholderIntegration");
     }
 
     @Override

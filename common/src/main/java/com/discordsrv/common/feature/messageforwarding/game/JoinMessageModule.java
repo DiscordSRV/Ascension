@@ -19,33 +19,36 @@
 package com.discordsrv.common.feature.messageforwarding.game;
 
 import com.discordsrv.api.channel.GameChannel;
-import com.discordsrv.api.component.MinecraftComponent;
+import com.discordsrv.api.discord.entity.channel.DiscordGuildMessageChannel;
 import com.discordsrv.api.discord.entity.message.ReceivedDiscordMessageCluster;
 import com.discordsrv.api.discord.entity.message.SendableDiscordMessage;
 import com.discordsrv.api.eventbus.EventPriorities;
 import com.discordsrv.api.eventbus.Subscribe;
-import com.discordsrv.api.events.message.forward.game.JoinMessageForwardedEvent;
-import com.discordsrv.api.events.message.receive.game.JoinMessageReceiveEvent;
+import com.discordsrv.api.events.message.post.game.AbstractGameMessagePostEvent;
+import com.discordsrv.api.events.message.post.game.JoinMessagePostEvent;
+import com.discordsrv.api.events.message.postprocess.game.JoinMessagePostProcessEvent;
+import com.discordsrv.api.events.message.preprocess.game.JoinMessagePreProcessEvent;
+import com.discordsrv.api.events.vanish.PlayerVanishStatusChangeEvent;
 import com.discordsrv.api.player.DiscordSRVPlayer;
+import com.discordsrv.api.task.Task;
 import com.discordsrv.common.DiscordSRV;
 import com.discordsrv.common.abstraction.player.IPlayer;
 import com.discordsrv.common.config.main.channels.base.BaseChannelConfig;
 import com.discordsrv.common.config.main.generic.IMessageConfig;
 import com.discordsrv.common.events.player.PlayerDisconnectedEvent;
 import com.discordsrv.common.permission.game.Permissions;
-import com.discordsrv.common.util.ComponentUtil;
-import net.kyori.adventure.text.Component;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.time.Duration;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.UUID;
-import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Future;
+import java.util.function.Supplier;
 
-public class JoinMessageModule extends AbstractGameMessageModule<IMessageConfig, JoinMessageReceiveEvent> {
+public class JoinMessageModule extends AbstractGameMessageModule<IMessageConfig, JoinMessagePreProcessEvent, JoinMessagePostProcessEvent> {
 
     private final Map<UUID, Future<?>> delayedTasks = new HashMap<>();
     private final ThreadLocal<Boolean> silentJoinPermission = new ThreadLocal<>();
@@ -55,7 +58,7 @@ public class JoinMessageModule extends AbstractGameMessageModule<IMessageConfig,
     }
 
     @Subscribe(priority = EventPriorities.LAST, ignoreCancelled = false, ignoreProcessed = false)
-    public void onJoinMessageReceive(JoinMessageReceiveEvent event) {
+    public void onJoinMessageReceive(JoinMessagePreProcessEvent event) {
         if (checkCancellation(event) || checkProcessor(event)) {
             return;
         }
@@ -69,32 +72,82 @@ public class JoinMessageModule extends AbstractGameMessageModule<IMessageConfig,
         event.markAsProcessed();
     }
 
+    @Subscribe(priority = EventPriorities.LAST)
+    public void onPlayerVanishStatusChange(PlayerVanishStatusChangeEvent event) {
+        if (event.isNewStatus() || !event.isSendFakeMessage()) {
+            return;
+        }
+
+        // Player unvanished
+        discordSRV.eventBus().publish(new JoinMessagePreProcessEvent(
+                event,
+                event.getPlayer(),
+                event.getFakeMessage(),
+                null,
+                false,
+                true,
+                false,
+                false
+        ));
+    }
+
     @Override
-    protected CompletableFuture<Void> forwardToChannel(
-            @Nullable JoinMessageReceiveEvent event,
+    protected Task<Void> forwardToChannel(
+            @Nullable JoinMessagePreProcessEvent event,
             @Nullable IPlayer player,
             @NotNull BaseChannelConfig config,
             @Nullable GameChannel channel
     ) {
+        if (event != null && event.isMessageCancelled() && !config.joinMessages().sendEvenIfCancelled) {
+            return Task.completed(null);
+        }
         if (player != null && config.joinMessages().enableSilentPermission && silentJoinPermission.get()) {
             logger().info(player.username() + " is joining silently, join message will not be sent");
-            return CompletableFuture.completedFuture(null);
+            return Task.completed(null);
         }
+        if (player != null && event != null && event.isFakeJoin()) {
+            if (!config.joinMessages().sendFakeJoinMessages) {
+                logger().debug("Not sending fake join message for " + player.username() + ", disabled in config");
+                return Task.completed(null);
+            } else {
+                logger().info(player.username() + " unvanished, sending fake join message");
+            }
+        }
+
+        Supplier<Boolean> vanishCheck = () -> {
+            if (!config.joinMessages().sendMessageForVanishedPlayers
+                    && player != null && player.isVanished()
+                    && (event == null || !event.isFakeJoin())) {
+                logger().info(player.username() + " is vanished while joining, join message will not be sent");
+                return true;
+            }
+
+            return false;
+        };
 
         long delay = config.joinMessages().ignoreIfLeftWithinMS;
         if (player != null && delay > 0) {
             UUID playerUUID = player.uniqueId();
 
-            CompletableFuture<Void> completableFuture = new CompletableFuture<>();
             synchronized (delayedTasks) {
-                CompletableFuture<Void> future = discordSRV.scheduler()
-                        .supplyLater(() -> super.forwardToChannel(event, player, config, channel), Duration.ofMillis(delay))
-                        .thenCompose(r -> r)
+                Task<Void> future = discordSRV.scheduler()
+                        .supplyLater(() -> {
+                            if (vanishCheck.get()) {
+                                return Task.completed((Void) null);
+                            }
+
+                            return super.forwardToChannel(event, player, config, channel);
+                        }, Duration.ofMillis(delay))
+                        .then(r -> r)
                         .whenComplete((v, t) -> delayedTasks.remove(playerUUID));
 
                 delayedTasks.put(playerUUID, future);
+                return future;
             }
-            return completableFuture;
+        }
+
+        if (vanishCheck.get()) {
+            return Task.completed(null);
         }
         return super.forwardToChannel(event, player, config, channel);
     }
@@ -110,7 +163,7 @@ public class JoinMessageModule extends AbstractGameMessageModule<IMessageConfig,
     }
 
     @Override
-    public IMessageConfig mapConfig(JoinMessageReceiveEvent event, BaseChannelConfig channelConfig) {
+    public IMessageConfig mapConfig(JoinMessagePreProcessEvent event, BaseChannelConfig channelConfig) {
         return channelConfig.joinMessages().getForEvent(event);
     }
 
@@ -120,19 +173,29 @@ public class JoinMessageModule extends AbstractGameMessageModule<IMessageConfig,
     }
 
     @Override
-    public void postClusterToEventBus(GameChannel channel, @NotNull ReceivedDiscordMessageCluster cluster) {
-        discordSRV.eventBus().publish(new JoinMessageForwardedEvent(channel, cluster));
+    protected JoinMessagePostProcessEvent createPostProcessEvent(
+            JoinMessagePreProcessEvent preEvent,
+            IPlayer player,
+            List<DiscordGuildMessageChannel> channels,
+            SendableDiscordMessage discordMessage
+    ) {
+        return new JoinMessagePostProcessEvent(preEvent, player, channels, discordMessage);
+    }
+
+    @Override
+    protected AbstractGameMessagePostEvent<JoinMessagePostProcessEvent> createPostEvent(
+            JoinMessagePostProcessEvent preEvent,
+            ReceivedDiscordMessageCluster cluster
+    ) {
+        return new JoinMessagePostEvent(preEvent, cluster);
     }
 
     @Override
     public void setPlaceholders(
             IMessageConfig config,
-            JoinMessageReceiveEvent event,
+            JoinMessagePreProcessEvent event,
             SendableDiscordMessage.Formatter formatter
     ) {
-        MinecraftComponent messageComponent = event.getMessage();
-        Component message = messageComponent != null ? ComponentUtil.fromAPI(messageComponent) : null;
-
-        formatter.addPlaceholder("message", message);
+        formatter.addPlaceholder("message", event.getMessage());
     }
 }

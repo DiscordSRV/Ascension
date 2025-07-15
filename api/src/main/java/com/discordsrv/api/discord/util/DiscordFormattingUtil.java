@@ -31,15 +31,16 @@ import java.util.stream.Collectors;
 
 public final class DiscordFormattingUtil {
 
-    // If first group is present the match will be ignored
     private static final List<Character> FORMATTING_CHARACTERS = Arrays.asList('*', '_', '|', '`', '~', ':', '[');
     private static final Pattern FORMATTING_PATTERN = Pattern.compile(
+            // Group 1 is for picking up if the character is part of a URL, in which case escaping will not occur
             "(https?://.*\\.[^ ]*)?"
-                    + "(["
-                    + FORMATTING_CHARACTERS.stream()
-                    .map(character -> Pattern.quote(String.valueOf(character)))
-                    .collect(Collectors.joining())
-                    + "])"
+            // Group 2 the formatting character
+            + "(["
+            + FORMATTING_CHARACTERS.stream()
+            .map(character -> Pattern.quote(String.valueOf(character)))
+            .collect(Collectors.joining())
+            + "])"
     );
     private static final Pattern QUOTE_PATTERN = Pattern.compile("(^|\n)>");
     private static final Pattern MENTION_PATTERN = Pattern.compile("(<[@#][0-9]{16,20}>)");
@@ -47,10 +48,15 @@ public final class DiscordFormattingUtil {
     private DiscordFormattingUtil() {}
 
     public static String escapeContent(String content) {
+        content = escapeEscapes(content);
         content = escapeFormatting(content);
         content = escapeQuotes(content);
         content = escapeMentions(content);
         return content;
+    }
+
+    public static String escapeEscapes(String content) {
+        return content.replace("\\", "\\\\");
     }
 
     public static String escapeFormatting(String content) {
@@ -58,10 +64,11 @@ public final class DiscordFormattingUtil {
         StringBuffer output = new StringBuffer();
         int lastEnd = 0;
         while (matcher.find()) {
-            if (matcher.group(1) == null) {
-                matcher.appendReplacement(output, Matcher.quoteReplacement("\\" + matcher.group(2)));
-                lastEnd = matcher.end();
+            if (matcher.group(1) != null) {
+                continue;
             }
+            matcher.appendReplacement(output, Matcher.quoteReplacement("\\" + matcher.group(2)));
+            lastEnd = matcher.end();
         }
         output.append(content.substring(lastEnd));
         return output.toString();

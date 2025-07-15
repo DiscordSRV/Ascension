@@ -46,13 +46,13 @@ dependencyResolutionManagement {
             library('folia', 'dev.folia', 'folia-api').version('1.21.4-R0.1-SNAPSHOT')
 
             // Bungee
-            library('bungee', 'net.md-5', 'bungeecord-api').version('1.21-R0.1-SNAPSHOT')
+            library('bungee', 'net.md-5', 'bungeecord-api').version('1.21-R0.3-SNAPSHOT')
 
             // Velocity
             library('velocity', 'com.velocitypowered', 'velocity-api').version('3.4.0-SNAPSHOT')
 
             // Fabric
-            version('fabric-loom', '1.9-SNAPSHOT')
+            version('fabric-loom', '1.10-SNAPSHOT')
             plugin('fabric-loom', 'fabric-loom').versionRef('fabric-loom')
             library('fabric-permissions-api', 'me.lucko', 'fabric-permissions-api').version('0.3.3')
 
@@ -76,7 +76,7 @@ dependencyResolutionManagement {
             library('jetbrains-annotations', 'org.jetbrains', 'annotations').version('24.1.0')
 
             // JDA
-            library('jda', 'net.dv8tion', 'JDA').version('5.2.1')
+            library('jda', 'net.dv8tion', 'JDA').version('5.5.1')
 
             // OkHTTP
             library('okhttp', 'com.squareup.okhttp3', 'okhttp').version('4.12.0')
@@ -132,6 +132,7 @@ dependencyResolutionManagement {
             library('mcmmo', 'com.gmail.nossr50', 'mcmmo').version('2.1.220')
             library('griefprevention', 'me.ryanhamshire', 'GriefPrevention').version('16.18.1')
             library('essentialsx', 'net.essentialsx', 'EssentialsX').version('2.20.1')
+            library('textplaceholder-fabric', 'eu.pb4', 'placeholder-api').version('2.5.2+1.21.3')
 
             // Logging
             library('slf4j-api', 'org.slf4j', 'slf4j-api').version {
@@ -141,7 +142,7 @@ dependencyResolutionManagement {
             library('log4j-core', 'org.apache.logging.log4j', 'log4j-core').version('2.0-beta9')
 
             // Adventure
-            version('adventure', '4.15.0')
+            version('adventure', '4.19.0')
             library('adventure-api', 'net.kyori', 'adventure-api').versionRef('adventure')
             library('adventure-serializer-plain', 'net.kyori', 'adventure-text-serializer-plain').versionRef('adventure')
             library('adventure-serializer-legacy', 'net.kyori', 'adventure-text-serializer-legacy').versionRef('adventure')
@@ -154,7 +155,7 @@ dependencyResolutionManagement {
             library('adventure-platform-bungee', 'net.kyori', 'adventure-platform-bungeecord').versionRef('adventure-platform')
             library('adventure-serializer-bungee', 'net.kyori', 'adventure-text-serializer-bungeecord').versionRef('adventure-platform')
 
-            // Upgrade ansi (used by ansi serializer)
+            // Downgrade ansi (jar-relocator incompatibility)
             library('kyori-ansi', 'net.kyori', 'ansi').version('1.1.0')
 
             // MCDiscordReserializer & EnhancedLegacyText

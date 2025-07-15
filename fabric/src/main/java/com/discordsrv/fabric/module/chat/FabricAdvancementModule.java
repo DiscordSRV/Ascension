@@ -19,14 +19,17 @@
 package com.discordsrv.fabric.module.chat;
 
 import com.discordsrv.api.component.MinecraftComponent;
-import com.discordsrv.api.events.message.receive.game.AwardMessageReceiveEvent;
+import com.discordsrv.api.events.message.preprocess.game.AwardMessagePreProcessEvent;
 import com.discordsrv.common.abstraction.player.IPlayer;
+import com.discordsrv.common.core.logging.NamedLogger;
 import com.discordsrv.common.util.ComponentUtil;
 import com.discordsrv.fabric.FabricDiscordSRV;
 import com.discordsrv.fabric.module.AbstractFabricModule;
 import net.kyori.adventure.text.Component;
 import net.minecraft.advancement.Advancement;
 import net.minecraft.advancement.AdvancementDisplay;
+import net.minecraft.advancement.AdvancementEntry;
+import net.minecraft.advancement.AdvancementFrame;
 import net.minecraft.server.network.ServerPlayerEntity;
 
 public class FabricAdvancementModule extends AbstractFabricModule {
@@ -35,7 +38,7 @@ public class FabricAdvancementModule extends AbstractFabricModule {
     private final FabricDiscordSRV discordSRV;
 
     public FabricAdvancementModule(FabricDiscordSRV discordSRV) {
-        super(discordSRV);
+        super(discordSRV, new NamedLogger(discordSRV, "ADVANCEMENT_MODULE"));
         this.discordSRV = discordSRV;
         instance = this;
     }
@@ -50,27 +53,42 @@ public class FabricAdvancementModule extends AbstractFabricModule {
         FabricDiscordSRV discordSRV = instance.discordSRV;
         //? if minecraft: <1.20.2 {
         /*AdvancementDisplay display = advancement.getDisplay();
-        *///?} else {
+         *///?} else {
         Advancement advancement = advancementEntry.value();
         AdvancementDisplay display = advancement.display().get();
         //?}
 
-        if (display == null || !display.shouldAnnounceToChat()) return; // Usually a crafting recipe.
+        if (display == null || !display.shouldAnnounceToChat()) {
+            instance.logger().trace("Skipping advancement display of \"" + (advancement.name().isPresent() ? advancement.name().get() : advancement) + "\" for "
+                    + owner + ": advancement display == null or does not broadcast to chat");
+            return;
+        }
+
+        AdvancementFrame frame = display.getFrame();
+        Object rawChat = frame.getChatAnnouncementText(advancementEntry, owner);
+        Object rawTitle = display.getTitle();
+        Object rawDesc  = display.getDescription();
+
+        MinecraftComponent message, title, description;
         //? if adventure: <6 {
-        /*@SuppressWarnings("removal")
-        Component component = discordSRV.getAdventure().toAdventure(display.getTitle());
-        *///?} else {
-        Component component = discordSRV.getAdventure().asAdventure(display.getTitle());
-         //?}
-        MinecraftComponent advancementTitle = ComponentUtil.toAPI(component);
+        message     = ComponentUtil.toAPI(discordSRV.getAdventure().toAdventure(rawChat));
+        title       = ComponentUtil.toAPI(discordSRV.getAdventure().toAdventure(rawTitle));
+        description = ComponentUtil.toAPI(discordSRV.getAdventure().toAdventure(rawDesc));
+        //?} else {
+        message     = ComponentUtil.toAPI(discordSRV.getAdventure().asAdventure(rawChat));
+        title       = ComponentUtil.toAPI(discordSRV.getAdventure().asAdventure(rawTitle));
+        description = ComponentUtil.toAPI(discordSRV.getAdventure().asAdventure(rawDesc));
+        //?}
 
         IPlayer player = discordSRV.playerProvider().player(owner);
         discordSRV.eventBus().publish(
-                new AwardMessageReceiveEvent(
+                new AwardMessagePreProcessEvent(
                         null,
                         player,
-                        advancementTitle,
-                        null,
+                        message,
+                        title,
+                        description,
+                        AwardMessagePreProcessEvent.AdvancementFrame.valueOf(frame.toString()),
                         null,
                         false
                 )

@@ -18,6 +18,7 @@
 
 package com.discordsrv.common.core.placeholder;
 
+import com.discordsrv.api.events.placeholder.PlaceholderContextMappingEvent;
 import com.discordsrv.api.events.placeholder.PlaceholderLookupEvent;
 import com.discordsrv.api.placeholder.PlaceholderLookupResult;
 import com.discordsrv.api.placeholder.PlaceholderService;
@@ -26,13 +27,16 @@ import com.discordsrv.api.placeholder.annotation.PlaceholderPrefix;
 import com.discordsrv.api.placeholder.annotation.PlaceholderRemainder;
 import com.discordsrv.api.placeholder.mapper.PlaceholderResultMapper;
 import com.discordsrv.api.placeholder.provider.PlaceholderProvider;
+import com.discordsrv.api.task.Task;
 import com.discordsrv.common.DiscordSRV;
 import com.discordsrv.common.core.logging.Logger;
 import com.discordsrv.common.core.logging.NamedLogger;
 import com.discordsrv.common.core.placeholder.provider.AnnotationPlaceholderProvider;
+import com.discordsrv.common.helper.Timeout;
 import com.github.benmanes.caffeine.cache.CacheLoader;
 import com.github.benmanes.caffeine.cache.LoadingCache;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.tuple.Pair;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -40,20 +44,27 @@ import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.lang.reflect.Parameter;
+import java.time.Duration;
 import java.util.*;
 import java.util.concurrent.CopyOnWriteArraySet;
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 public class PlaceholderServiceImpl implements PlaceholderService {
 
+    private static final Pattern ADDITIONAL_CONTEXT_PATTERN = Pattern.compile("^\\[([^]]+)]");
+
     private final DiscordSRV discordSRV;
     private final Logger logger;
-    private final LoadingCache<Class<?>, Set<PlaceholderProvider>> classProviders;
+    private final LoadingCache<Class<?>, List<AnnotationPlaceholderProvider>> classProviders;
     private final Set<PlaceholderResultMapper> mappers = new CopyOnWriteArraySet<>();
+    private final List<Pair<Class<?>, String>> reLookups = new ArrayList<>();
     private final Set<Object> globalContext = new CopyOnWriteArraySet<>();
+    private final Timeout errorLogTimeout = new Timeout(Duration.ofSeconds(20));
 
     public PlaceholderServiceImpl(DiscordSRV discordSRV) {
         this.discordSRV = discordSRV;
@@ -72,10 +83,18 @@ public class PlaceholderServiceImpl implements PlaceholderService {
         globalContext.remove(context);
     }
 
+    public void addReLookup(Class<?> type, String reLookupAs) {
+        this.reLookups.add(Pair.of(type, reLookupAs));
+    }
+
+    public void removeReLookup(Class<?> type) {
+        this.reLookups.removeIf(pair -> pair.getKey() == type);
+    }
+
     private static Set<Object> getArrayAsSet(Object[] array) {
         return array.length == 0
                ? Collections.emptySet()
-               : new HashSet<>(Arrays.asList(array));
+               : new LinkedHashSet<>(Arrays.asList(array));
     }
 
     @Override
@@ -85,18 +104,34 @@ public class PlaceholderServiceImpl implements PlaceholderService {
 
     @Override
     public PlaceholderLookupResult lookupPlaceholder(@NotNull String placeholder, @NotNull Set<Object> lookupContexts) {
-        Set<Object> contexts = new HashSet<>(lookupContexts);
-        contexts.addAll(globalContext);
+        Set<Object> contexts = new LinkedHashSet<>(lookupContexts);
         contexts.removeIf(Objects::isNull);
+        contexts.addAll(globalContext);
+
+        Matcher additionaContextMatcher = ADDITIONAL_CONTEXT_PATTERN.matcher(placeholder);
+        while (additionaContextMatcher.find()) {
+            String contextPlaceholder = additionaContextMatcher.group(1);
+            PlaceholderLookupResult result = lookupPlaceholder(contextPlaceholder, contexts);
+            if (result.getResult() != null) {
+                contexts.add(result.getResult());
+            }
+
+            placeholder = placeholder.substring(additionaContextMatcher.end());
+        }
+
+        PlaceholderContextMappingEvent contextMappingEvent = new PlaceholderContextMappingEvent(contexts);
+        discordSRV.eventBus().publish(contextMappingEvent);
+        contexts = new LinkedHashSet<>(contextMappingEvent.getContexts());
+
         for (Object context : contexts) {
             if (context instanceof PlaceholderProvider) {
-                PlaceholderLookupResult result = ((PlaceholderProvider) context).lookup(placeholder, contexts);
+                PlaceholderLookupResult result = getResultFromProvider((PlaceholderProvider) context, placeholder, contexts);
                 if (result.getType() != PlaceholderLookupResult.Type.UNKNOWN_PLACEHOLDER) {
                     return result;
                 }
             }
 
-            Set<PlaceholderProvider> providers = classProviders
+            List<AnnotationPlaceholderProvider> providers = classProviders
                     .get(context instanceof Class
                          ? (Class<?>) context
                          : context.getClass());
@@ -105,7 +140,7 @@ public class PlaceholderServiceImpl implements PlaceholderService {
             }
 
             for (PlaceholderProvider provider : providers) {
-                PlaceholderLookupResult result = provider.lookup(placeholder, contexts);
+                PlaceholderLookupResult result = getResultFromProvider(provider, placeholder, contexts);
                 if (result.getType() != PlaceholderLookupResult.Type.UNKNOWN_PLACEHOLDER) {
                     return result;
                 }
@@ -114,12 +149,74 @@ public class PlaceholderServiceImpl implements PlaceholderService {
 
         // Only go through this if a placeholder couldn't be looked up from lookup/global contexts
         // API users are here as to not interfere with DiscordSRV's own placeholders
+        logger.trace("Requesting " + placeholder + " (" + contexts + ") from API");
         PlaceholderLookupEvent lookupEvent = new PlaceholderLookupEvent(placeholder, contexts);
         discordSRV.eventBus().publish(lookupEvent);
 
         return lookupEvent.isProcessed()
                 ? lookupEvent.getResultFromProcessing()
                 : PlaceholderLookupResult.UNKNOWN_PLACEHOLDER;
+    }
+
+    private PlaceholderLookupResult getResultFromProvider(PlaceholderProvider provider, String placeholder, Set<Object> contexts) {
+        PlaceholderLookupResult result = provider.lookup(placeholder, Collections.unmodifiableSet(contexts));
+
+        Object lookupResult = result.getResult();
+        if (lookupResult instanceof Task) {
+            Task<?> task = (Task<?>) lookupResult;
+            if (task.isDone() || !discordSRV.scheduler().isServerThread()) {
+                try {
+                    lookupResult = task.get(5, TimeUnit.SECONDS);
+                } catch (ExecutionException e) {
+                    return PlaceholderLookupResult.lookupFailed(e.getCause());
+                } catch (TimeoutException e) {
+                    return PlaceholderLookupResult.DATA_NOT_AVAILABLE;
+                } catch (InterruptedException ignored) {
+                    Thread.currentThread().interrupt();
+                }
+            } else {
+                return PlaceholderLookupResult.DATA_NOT_AVAILABLE;
+            }
+
+            if (result.getType() == PlaceholderLookupResult.Type.SUCCESS) {
+                return PlaceholderLookupResult.success(lookupResult);
+            }
+        }
+
+        if (result.getType() == PlaceholderLookupResult.Type.RE_LOOKUP) {
+            if (lookupResult == null) {
+                // Re-lookup but there's no data to base the re-lookup off from: null success
+                return PlaceholderLookupResult.success(null);
+            }
+
+            Class<?> reLookupType = lookupResult.getClass();
+
+            String charSequenceReLookup = null;
+            for (Pair<Class<?>, String> reLookup : reLookups) {
+                if (CharSequence.class.isAssignableFrom(reLookup.getKey())) {
+                    charSequenceReLookup = reLookup.getValue();
+                }
+                if (!reLookup.getKey().isAssignableFrom(reLookupType)) {
+                    continue;
+                }
+
+                return reLookupResult(reLookup.getValue(), lookupResult, result, contexts);
+            }
+            if (result.getPlaceholder().startsWith(":") && !CharSequence.class.isAssignableFrom(reLookupType) && charSequenceReLookup != null) {
+                return reLookupResult(charSequenceReLookup, convertReplacementToCharSequence(lookupResult), result, contexts);
+            }
+            return PlaceholderLookupResult.UNKNOWN_PLACEHOLDER;
+        }
+        return result;
+    }
+
+    private PlaceholderLookupResult reLookupResult(String reLookup, Object lookupResult, PlaceholderLookupResult result, Set<Object> contexts) {
+        Set<Object> newContext = new LinkedHashSet<>();
+        newContext.add(lookupResult);
+        newContext.addAll(contexts);
+
+        String newPlaceholder = reLookup + result.getPlaceholder();
+        return PlaceholderLookupResult.newLookup(newPlaceholder, newContext);
     }
 
     @Override
@@ -139,30 +236,41 @@ public class PlaceholderServiceImpl implements PlaceholderService {
 
     @Override
     public String replacePlaceholders(@NotNull String input, @NotNull Set<Object> context) {
-        return getReplacement(PATTERN, input, context);
+        return replacePlaceholders(PATTERN, input, context);
     }
 
-    private String getReplacement(Pattern pattern, String input, Set<Object> context) {
+    private String replacePlaceholders(Pattern pattern, String input, Set<Object> context) {
+        if (input.isEmpty()) {
+            return input;
+        }
         Matcher matcher = pattern.matcher(input);
 
-        String output = input;
+        StringBuffer output = new StringBuffer(input.length() * 2);
+        int lastEnd = -1;
         while (matcher.find()) {
             String placeholder = getPlaceholder(matcher);
-            List<PlaceholderLookupResult> results = resolve(placeholder, context);
-            output = updateContent(results, placeholder, matcher, output);
+            Object result = getReplacement(placeholder, context, matcher);
+            String resultAsString = convertReplacementToCharSequence(result).toString();
+
+            matcher.appendReplacement(output, Matcher.quoteReplacement(resultAsString));
+            lastEnd = matcher.end();
         }
-        return output;
+        if (lastEnd == -1) {
+            return input;
+        }
+
+        output.append(input.substring(lastEnd));
+        return output.toString();
     }
 
     @Override
-    public Object getResult(@NotNull Matcher matcher, @NotNull Set<Object> context) {
+    public Object getReplacement(@NotNull Matcher matcher, @NotNull Set<Object> context) {
         if (matcher.groupCount() < 3) {
             throw new IllegalStateException("Matcher must have at least 3 groups");
         }
 
         String placeholder = getPlaceholder(matcher);
-        List<PlaceholderLookupResult> results = resolve(placeholder, context);
-        return getResultRepresentation(results, placeholder, matcher);
+        return getReplacement(placeholder, context, matcher);
     }
 
     private String getPlaceholder(Matcher matcher) {
@@ -177,13 +285,13 @@ public class PlaceholderServiceImpl implements PlaceholderService {
     }
 
     @Override
-    public @NotNull CharSequence getResultAsCharSequence(@NotNull Matcher matcher, @NotNull Set<Object> context) {
-        Object result = getResult(matcher, context);
-        return getResultAsCharSequence(result);
+    public @NotNull CharSequence convertReplacementToCharSequence(@NotNull Matcher matcher, @NotNull Set<Object> context) {
+        Object result = getReplacement(matcher, context);
+        return convertReplacementToCharSequence(result);
     }
 
     @Override
-    public @NotNull CharSequence getResultAsCharSequence(@Nullable Object result) {
+    public @NotNull CharSequence convertReplacementToCharSequence(@Nullable Object result) {
         if (result == null) {
             return "";
         } else if (result instanceof CharSequence) {
@@ -201,36 +309,16 @@ public class PlaceholderServiceImpl implements PlaceholderService {
         return output instanceof CharSequence ? (CharSequence) output : String.valueOf(output != null ? output : result);
     }
 
-    private List<PlaceholderLookupResult> resolve(String placeholder, Set<Object> context) {
-        // Recursive
-        placeholder = getReplacement(RECURSIVE_PATTERN, placeholder, context);
-
-        List<PlaceholderLookupResult> results = new ArrayList<>();
-        for (String part : placeholder.split("(?<!\\\\)\\|")) {
-            results.add(lookupPlaceholder(part, context));
-        }
-
-        return results;
-    }
-
-    private String updateContent(List<PlaceholderLookupResult> results, String placeholder, Matcher matcher, String input) {
-        Object representation = getResultRepresentation(results, placeholder, matcher);
-
-        CharSequence output = getResultAsCharSequence(representation);
-        return Pattern.compile(
-                matcher.group(1) + placeholder + matcher.group(3),
-                Pattern.LITERAL
-        )
-                .matcher(input)
-                .replaceFirst(Matcher.quoteReplacement(output.toString()));
-    }
-
-    private Object getResultRepresentation(List<PlaceholderLookupResult> results, String placeholder, Matcher matcher) {
+    private Object getReplacement(String placeholder, Set<Object> context, Matcher matcher) {
         Map<String, AtomicInteger> preventInfiniteLoop = new HashMap<>();
 
         Object best = null;
-        for (PlaceholderLookupResult result : results) {
+        for (String singlePlaceholder : placeholder.split("(?<!\\\\)\\|")) {
+            singlePlaceholder = replacePlaceholders(RECURSIVE_PATTERN, singlePlaceholder, context);
+
+            PlaceholderLookupResult result = lookupPlaceholder(singlePlaceholder, context);
             while (result != null) {
+                logger.trace(singlePlaceholder + ": " + result);
                 PlaceholderLookupResult.Type type = result.getType();
                 if (type == PlaceholderLookupResult.Type.UNKNOWN_PLACEHOLDER) {
                     break;
@@ -240,11 +328,11 @@ public class PlaceholderServiceImpl implements PlaceholderService {
                 Object replacement = null;
                 switch (type) {
                     case SUCCESS:
-                        replacement = result.getValue();
+                        replacement = result.getResult();
                         if (replacement == null) {
-                            replacement = getResultAsCharSequence(null);
+                            replacement = convertReplacementToCharSequence(null);
                         }
-                        if (StringUtils.isNotBlank(getResultAsCharSequence(replacement))) {
+                        if (StringUtils.isNotBlank(convertReplacementToCharSequence(replacement))) {
                             return replacement;
                         }
                         break;
@@ -252,19 +340,23 @@ public class PlaceholderServiceImpl implements PlaceholderService {
                         replacement = "Unavailable";
                         break;
                     case LOOKUP_FAILED:
-                        logger.trace("Lookup failed", result.getError());
+                        if (errorLogTimeout.checkAndUpdate()) {
+                            logger.debug("Failed to resolve placeholder \"" + placeholder + "\"", result.getError());
+                        } else {
+                            logger.trace("Failed to resolve placeholder \"" + placeholder + "\"", result.getError());
+                        }
                         replacement = "Error";
                         break;
                     case NEW_LOOKUP:
-                        String placeholderKey = (String) result.getValue();
+                        String newPlaceholder = result.getPlaceholder();
 
-                        AtomicInteger infiniteLoop = preventInfiniteLoop.computeIfAbsent(placeholderKey, key -> new AtomicInteger(0));
+                        AtomicInteger infiniteLoop = preventInfiniteLoop.computeIfAbsent(newPlaceholder, key -> new AtomicInteger(0));
                         if (infiniteLoop.incrementAndGet() > 10) {
                             replacement = "Infinite Loop";
                             break;
                         }
 
-                        result = lookupPlaceholder(placeholderKey, result.getExtras());
+                        result = lookupPlaceholder(newPlaceholder, result.getContext());
                         newLookup = true;
                         break;
                 }
@@ -282,10 +374,10 @@ public class PlaceholderServiceImpl implements PlaceholderService {
                : matcher.group(1) + placeholder + matcher.group(3);
     }
 
-    private static class ClassProviderLoader implements CacheLoader<Class<?>, Set<PlaceholderProvider>> {
+    private static class ClassProviderLoader implements CacheLoader<Class<?>, List<AnnotationPlaceholderProvider>> {
 
-        private Set<PlaceholderProvider> loadProviders(Class<?> clazz, PlaceholderPrefix prefix) {
-            Set<PlaceholderProvider> providers = new LinkedHashSet<>();
+        private List<AnnotationPlaceholderProvider> loadProviders(Class<?> clazz, PlaceholderPrefix prefix) {
+            List<AnnotationPlaceholderProvider> providers = new ArrayList<>();
 
             Class<?> currentClass = clazz;
             while (currentClass != null) {
@@ -341,8 +433,10 @@ public class PlaceholderServiceImpl implements PlaceholderService {
         }
 
         @Override
-        public @Nullable Set<PlaceholderProvider> load(@NotNull Class<?> key) {
-            return loadProviders(key, null);
+        public @Nullable List<AnnotationPlaceholderProvider> load(@NotNull Class<?> key) {
+            List<AnnotationPlaceholderProvider> providers = loadProviders(key, null);
+            providers.sort(Comparator.comparingInt(AnnotationPlaceholderProvider::priority));
+            return providers;
         }
     }
 }

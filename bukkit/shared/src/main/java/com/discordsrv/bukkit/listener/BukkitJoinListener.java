@@ -19,7 +19,7 @@
 package com.discordsrv.bukkit.listener;
 
 import com.discordsrv.api.component.MinecraftComponent;
-import com.discordsrv.api.events.message.receive.game.JoinMessageReceiveEvent;
+import com.discordsrv.api.events.message.preprocess.game.JoinMessagePreProcessEvent;
 import com.discordsrv.api.player.DiscordSRVPlayer;
 import com.discordsrv.bukkit.BukkitDiscordSRV;
 import com.discordsrv.bukkit.debug.EventObserver;
@@ -50,13 +50,15 @@ public class BukkitJoinListener extends AbstractBukkitListener<PlayerJoinEvent> 
 
         DiscordSRVPlayer player = discordSRV.playerProvider().player(event.getPlayer());
         discordSRV.eventBus().publish(
-                new JoinMessageReceiveEvent(
+                new JoinMessagePreProcessEvent(
                         event,
                         player,
                         component,
                         null,
                         firstJoin,
-                        component == null
+                        false,
+                        component == null,
+                        false
                 )
         );
     }

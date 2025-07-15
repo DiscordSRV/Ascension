@@ -38,7 +38,7 @@ public class EnumSerializer implements TypeSerializer<Enum<?>> {
         this.logger = logger;
     }
 
-    @SuppressWarnings("unchecked") // Enum generic
+    @SuppressWarnings("unchecked")
     @Override
     public Enum<?> deserialize(Type type, ConfigurationNode node) throws SerializationException {
         Class<? extends Enum<?>> theEnum = (Class<? extends Enum<?>>) GenericTypeReflector.erase(type).asSubclass(Enum.class);

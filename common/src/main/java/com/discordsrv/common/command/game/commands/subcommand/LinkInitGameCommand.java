@@ -20,6 +20,7 @@ package com.discordsrv.common.command.game.commands.subcommand;
 
 import com.discordsrv.common.DiscordSRV;
 import com.discordsrv.common.abstraction.player.IPlayer;
+import com.discordsrv.common.command.game.abstraction.command.GameCommand;
 import com.discordsrv.common.command.game.abstraction.command.GameCommandArguments;
 import com.discordsrv.common.command.game.abstraction.command.GameCommandExecutor;
 import com.discordsrv.common.command.game.abstraction.sender.ICommandSender;
@@ -58,44 +59,48 @@ public class LinkInitGameCommand implements GameCommandExecutor {
     }
 
     @Override
-    public void execute(ICommandSender sender, GameCommandArguments arguments, String label) {
+    public void execute(ICommandSender sender, GameCommandArguments arguments, GameCommand command, String rootAlias) {
         if (!(sender instanceof IPlayer)) {
             sender.sendMessage(discordSRV.messagesConfig(sender).pleaseSpecifyPlayerAndUserToLink.asComponent());
             return;
         }
 
         IPlayer player = (IPlayer) sender;
-        MessagesConfig.Minecraft messages = discordSRV.messagesConfig(player);
+        MessagesConfig messages = discordSRV.messagesConfig(player);
 
         LinkProvider linkProvider = discordSRV.linkProvider();
-        if (linkProvider.getCachedUserId(player.uniqueId()).isPresent()) {
+        if (linkProvider == null) {
+            player.sendMessage(messages.unableToLinkAccountsAtThisTime.minecraft().asComponent());
+            return;
+        }
+
+        if (linkProvider.getCached(player.uniqueId()).isPresent()) {
             // Check cache first
-            player.sendMessage(messages.alreadyLinked1st.asComponent());
+            player.sendMessage(messages.alreadyLinked1st.minecraft().asComponent());
             return;
         }
 
         if (linkCheckRateLimit.getIfPresent(player.uniqueId()) != null) {
-            player.sendMessage(messages.pleaseWaitBeforeRunningThatCommandAgain.asComponent());
+            player.sendMessage(messages.pleaseWaitBeforeRunningThatCommandAgain.minecraft().asComponent());
             return;
         }
         linkCheckRateLimit.put(player.uniqueId(), true);
 
         player.sendMessage(discordSRV.messagesConfig(player).checkingLinkStatus.asComponent());
-        linkProvider.queryUserId(player.uniqueId(), true).whenComplete((userId, t1) -> {
+        linkProvider.query(player.uniqueId(), true).whenComplete((userId, t1) -> {
             if (t1 != null) {
                 logger.error("Failed to check linking status", t1);
-                player.sendMessage(messages.unableToLinkAtThisTime.asComponent());
+                player.sendMessage(messages.unableToLinkAccountsAtThisTime.minecraft().asComponent());
                 return;
             }
             if (userId.isPresent()) {
-                player.sendMessage(messages.nowLinked1st.asComponent());
                 return;
             }
 
-            linkProvider.getLinkingInstructions(player, label).whenComplete((comp, t2) -> {
+            linkProvider.getLinkingInstructions(player, command.getLabel()).whenComplete((comp, t2) -> {
                 if (t2 != null) {
                     logger.error("Failed to link account", t2);
-                    player.sendMessage(messages.unableToLinkAtThisTime.asComponent());
+                    player.sendMessage(messages.unableToLinkAccountsAtThisTime.minecraft().asComponent());
                     return;
                 }
 

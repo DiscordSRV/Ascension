@@ -18,25 +18,13 @@
 
 package com.discordsrv.common.config.messages;
 
-import com.discordsrv.api.discord.entity.DiscordUser;
 import com.discordsrv.api.discord.entity.message.SendableDiscordMessage;
-import com.discordsrv.common.DiscordSRV;
-import com.discordsrv.common.abstraction.player.IOfflinePlayer;
-import com.discordsrv.common.command.combined.abstraction.CommandExecution;
 import com.discordsrv.common.config.Config;
 import com.discordsrv.common.config.configurate.annotation.Constants;
-import com.discordsrv.common.config.configurate.annotation.Untranslated;
+import com.discordsrv.common.config.helper.BothMessage;
 import com.discordsrv.common.config.helper.DiscordMessage;
 import com.discordsrv.common.config.helper.MinecraftMessage;
-import com.discordsrv.common.util.CompletableFutureUtil;
 import org.spongepowered.configurate.objectmapping.ConfigSerializable;
-import org.spongepowered.configurate.objectmapping.meta.Comment;
-
-import java.time.Duration;
-import java.util.UUID;
-import java.util.concurrent.CompletableFuture;
-import java.util.function.BiConsumer;
-import java.util.function.Consumer;
 
 @ConfigSerializable
 public class MessagesConfig implements Config {
@@ -48,374 +36,466 @@ public class MessagesConfig implements Config {
         return FILE_NAME;
     }
 
-    // Helper methods
+    private static final String DISCORD_SUCCESS_PREFIX = "✅ ";
+    private static final String DISCORD_INPUT_ERROR_PREFIX = "\uD83D\uDDD2️ ";
+    private static final String DISCORD_ERROR_PREFIX = "❌ ";
 
-    private void withPlayer(DiscordSRV discordSRV, UUID playerUUID, Consumer<IOfflinePlayer> playerConsumer) {
-        CompletableFuture<IOfflinePlayer> playerFuture = CompletableFutureUtil.timeout(
-                discordSRV,
-                discordSRV.playerProvider().lookupOfflinePlayer(playerUUID),
-                Duration.ofSeconds(5)
-        );
+    private static final String DISCORD_USER = "**%user_name%** (<@%user_id%>)";
+    private static final String DISCORD_PLAYER = "**%player_name|text:'<Unknown>'%** (%player_uuid%)";
+    private static final String DISCORD_PLAYER_SIMPLE = "**%player_name|player_uuid|text:'<Unknown>'%**";
 
-        playerFuture.whenComplete((player, __) -> playerConsumer.accept(player));
+    private static final String MINECRAFT_ERROR_COLOR = "&c";
+    private static final String MINECRAFT_SUCCESS_COLOR = "&a";
+    private static final String MINECRAFT_NEUTRAL_COLOR = "&b";
+    private static final String MINECRAFT_BLURPLE_COLOR = "&#5865F2";
+
+    private static final String MINECRAFT_USER = MINECRAFT_BLURPLE_COLOR + "[hover:show_text:%user_id%][click:copy_to_clipboard:%user_id%]@%user_name%[click][hover]";
+    private static final String MINECRAFT_PLAYER = "&f[hover:show_text:%player_uuid%][click:copy_to_clipboard:%player_uuid%]%player_name|text:'<Unknown>'%[click][hover]";
+
+    private static BothMessage both(String minecraftRawFormat, String discordRawFormat) {
+        return new BothMessage(minecraft(minecraftRawFormat), discord(discordRawFormat));
     }
 
-    private void withUser(DiscordSRV discordSRV, long userId, Consumer<DiscordUser> userConsumer) {
-        CompletableFuture<DiscordUser> userFuture = CompletableFutureUtil.timeout(
-                discordSRV,
-                discordSRV.discordAPI().retrieveUserById(userId),
-                Duration.ofSeconds(5)
-        );
-
-        userFuture.whenComplete((player, __) -> userConsumer.accept(player));
+    private static BothMessage both(String minecraftRawFormat, SendableDiscordMessage.Builder discordFormat) {
+        return new BothMessage(minecraft(minecraftRawFormat), new DiscordMessage(discordFormat));
     }
 
-    private void withPlayerAndUser(
-            DiscordSRV discordSRV,
-            UUID playerUUID,
-            long userId,
-            BiConsumer<IOfflinePlayer, DiscordUser> playerAndUserConsumer
-    ) {
-        CompletableFuture<IOfflinePlayer> playerFuture = CompletableFutureUtil.timeout(
-                discordSRV,
-                discordSRV.playerProvider().lookupOfflinePlayer(playerUUID),
-                Duration.ofSeconds(5)
-        );
-        CompletableFuture<DiscordUser> userFuture = CompletableFutureUtil.timeout(
-                discordSRV,
-                discordSRV.discordAPI().retrieveUserById(userId),
-                Duration.ofSeconds(5)
-        );
-
-        playerFuture.whenComplete((player, __) -> userFuture.whenComplete((user, ___) -> playerAndUserConsumer.accept(player, user)));
+    private static MinecraftMessage minecraft(String rawFormat) {
+        return new MinecraftMessage(rawFormat);
     }
 
-    // Methods for responding directly to CommandExecutions
-
-    public void playerNotFound(CommandExecution execution) {
-        execution.send(
-                minecraft.playerNotFound.asComponent(),
-                discord.playerNotFound.get()
-        );
+    private static DiscordMessage discord(String rawFormat) {
+        return new DiscordMessage(SendableDiscordMessage.builder().setContent(rawFormat));
     }
 
-    public void userNotFound(CommandExecution execution) {
-        execution.send(
-                minecraft.userNotFound.asComponent(),
-                discord.userNotFound.get()
-        );
-    }
+    @Constants({MINECRAFT_ERROR_COLOR, DISCORD_ERROR_PREFIX})
+    public BothMessage noPermission = both(
+            "%1Sorry, but you do not have permission to use that command",
+            "%2Sorry, but you do not have permission to use that command"
+    );
 
-    public void unableToCheckLinkingStatus(CommandExecution execution) {
-        execution.send(
-                minecraft.unableToCheckLinkingStatus.asComponent(),
-                discord.unableToCheckLinkingStatus.get()
-        );
-    }
+    @Constants({MINECRAFT_ERROR_COLOR, DISCORD_ERROR_PREFIX})
+    public BothMessage playerNotFound = both(
+            "%1Minecraft player not found",
+            "%2Minecraft player not found"
+    );
 
-    public void playerAlreadyLinked3rd(CommandExecution execution) {
-        execution.send(
-                minecraft.playerAlreadyLinked3rd.asComponent(),
-                discord.playerAlreadyLinked3rd.get()
-        );
-    }
+    @Constants({MINECRAFT_ERROR_COLOR, DISCORD_ERROR_PREFIX})
+    public BothMessage playerLookupFailed = both(
+            "%1Failed to lookup player",
+            "%2Failed to lookup player"
+    );
 
-    public void userAlreadyLinked3rd(CommandExecution execution) {
-        execution.send(
-                minecraft.userAlreadyLinked3rd.asComponent(),
-                discord.userAlreadyLinked3rd.get()
-        );
-    }
+    @Constants({MINECRAFT_ERROR_COLOR, DISCORD_ERROR_PREFIX})
+    public BothMessage userNotFound = both(
+            "%1Discord user not found",
+            "%2Discord user not found"
+    );
 
-    public void nowLinked3rd(DiscordSRV discordSRV, CommandExecution execution, UUID playerUUID, long userId) {
-        withPlayerAndUser(discordSRV, playerUUID, userId, (player, user) -> execution.send(
-                minecraft.nowLinked3rd.textBuilder()
-                        .applyPlaceholderService()
-                        .addContext(user, player)
-                        .addPlaceholder("user_id", userId)
-                        .addPlaceholder("player_uuid", playerUUID)
-                        .build(),
-                execution.messages().discord.nowLinked3rd.format()
-                        .addContext(user, player)
-                        .addPlaceholder("user_id", userId)
-                        .addPlaceholder("player_uuid", playerUUID)
-                        .applyPlaceholderService()
-                        .build()
-        ));
-    }
+    @Constants({MINECRAFT_ERROR_COLOR, DISCORD_ERROR_PREFIX})
+    public BothMessage unableToCheckLinkingStatus = both(
+            "%1Unable to check linking status, please try again later",
+            "%2Unable to check linking status, please try again later"
+    );
 
-    public void discordUserLinkedTo(
-            DiscordSRV discordSRV,
-            CommandExecution execution,
-            UUID playerUUID,
-            long userId
-    ) {
-        withPlayerAndUser(discordSRV, playerUUID, userId, (player, user) -> execution.send(
-                minecraft.discordUserLinkedTo
-                        .textBuilder()
-                        .applyPlaceholderService()
-                        .addContext(user, player)
-                        .addPlaceholder("user_id", userId)
-                        .addPlaceholder("player_uuid", playerUUID)
-                        .build(),
-                discord.discordUserLinkedTo.format()
-                        .addContext(user, player)
-                        .addPlaceholder("user_id", userId)
-                        .addPlaceholder("player_uuid", playerUUID)
-                        .applyPlaceholderService()
-                        .build()
-        ));
-    }
+    @Constants({MINECRAFT_ERROR_COLOR, DISCORD_ERROR_PREFIX})
+    public BothMessage unableToLinkAccountsAtThisTime = both(
+            "%1Unable to link accounts at this time, please try again later",
+            "%2Unable to link accounts at this time, please try again later"
+    );
 
-    public void discordUserUnlinked(
-            DiscordSRV discordSRV,
-            CommandExecution execution,
-            long userId
-    ) {
-        withUser(discordSRV, userId, (user) -> execution.send(
-                minecraft.discordUserUnlinked
-                        .textBuilder()
-                        .applyPlaceholderService()
-                        .addContext(user)
-                        .addPlaceholder("user_id", userId)
-                        .build(),
-                discord.discordUserUnlinked.format()
-                        .addContext(user)
-                        .addPlaceholder("user_id", userId)
-                        .applyPlaceholderService()
-                        .build()
-        ));
-    }
+    @Constants({MINECRAFT_ERROR_COLOR, DISCORD_INPUT_ERROR_PREFIX})
+    public BothMessage pleaseSpecifyPlayer = both(
+            "%1Please specify the Minecraft player",
+            "%2Please specify the Minecraft player"
+    );
 
-    public void minecraftPlayerLinkedTo(
-            DiscordSRV discordSRV,
-            CommandExecution execution,
-            UUID playerUUID,
-            long userId
-    ) {
-        withPlayerAndUser(discordSRV, playerUUID, userId, (player, user) -> execution.send(
-                minecraft.minecraftPlayerLinkedTo
-                        .textBuilder()
-                        .applyPlaceholderService()
-                        .addContext(player, user)
-                        .addPlaceholder("player_uuid", playerUUID)
-                        .addPlaceholder("user_id", userId)
-                        .build(),
-                discord.minecraftPlayerLinkedTo.format()
-                        .addContext(player, user)
-                        .addPlaceholder("player_uuid", playerUUID)
-                        .addPlaceholder("user_id", userId)
-                        .applyPlaceholderService()
-                        .build()
-        ));
-    }
+    @Constants({MINECRAFT_ERROR_COLOR, DISCORD_INPUT_ERROR_PREFIX})
+    public BothMessage pleaseSpecifyUser = both(
+            "%1Please specify the Discord user",
+            "%2Please specify the Discord user"
+    );
 
-    public void minecraftPlayerUnlinked(
-            DiscordSRV discordSRV,
-            CommandExecution execution,
-            UUID playerUUID
-    ) {
-        withPlayer(discordSRV, playerUUID, (player) -> execution.send(
-                minecraft.minecraftPlayerUnlinked
-                        .textBuilder()
-                        .applyPlaceholderService()
-                        .addContext(player)
-                        .addPlaceholder("player_uuid", playerUUID)
-                        .build(),
-                discord.minecraftPlayerUnlinked.format()
-                        .addPlaceholder("player_uuid", playerUUID)
-                        .applyPlaceholderService()
-                        .build()
-        ));
-    }
+    @Constants({MINECRAFT_ERROR_COLOR, DISCORD_INPUT_ERROR_PREFIX})
+    public BothMessage pleaseSpecifyPlayerOrUser = both(
+            "%1Please specify the Minecraft player or Discord user",
+            "%2Please specify the Minecraft player or Discord user"
+    );
 
-    public void unlinked(CommandExecution execution) {
-        execution.send(
-                minecraft.unlinked.asComponent(),
-                discord.unlinked.get()
-        );
-    }
+    @Constants({MINECRAFT_ERROR_COLOR, DISCORD_INPUT_ERROR_PREFIX})
+    public BothMessage pleaseWaitBeforeRunningThatCommandAgain = both(
+            "%1Please wait before running that command again",
+            "%2Please wait before running that command again"
+    );
 
-    public Minecraft minecraft = new Minecraft();
+    public MinecraftMessage targetCommandArgumentDescription = minecraft(
+            "Minecraft player username or UUID or Discord user username or user id"
+    );
 
-    @ConfigSerializable
-    public static class Minecraft {
-        private static final String ERROR_COLOR = "&c";
-        private static final String SUCCESS_COLOR = "&a";
-        private static final String NEUTRAL_COLOR = "&b";
-        private static final String BLURPLE_COLOR = "&#5865F2";
+    public BothMessage playerCommandArgumentDescription = both(
+            "Minecraft player username or UUID",
+            "Minecraft player username or UUID"
+    );
 
-        private MinecraftMessage make(String rawFormat) {
-            return new MinecraftMessage(rawFormat);
-        }
+    public BothMessage discordUserCommandArgumentDescription = both(
+            "Discord user username or user id",
+            "Discord user"
+    );
 
-        @Comment("Generic")
-        @Constants(ERROR_COLOR)
-        public MinecraftMessage noPermission = make("%1Sorry, but you do not have permission to use that command");
-        @Constants(ERROR_COLOR)
-        public MinecraftMessage pleaseSpecifyPlayer = make("%1Please specify the Minecraft player");
-        @Constants(ERROR_COLOR)
-        public MinecraftMessage pleaseSpecifyUser = make("%1Please specify the Discord user");
-        @Constants(ERROR_COLOR)
-        public MinecraftMessage pleaseSpecifyPlayerOrUser = make("%1Please specify the Minecraft player or Discord user");
-        @Constants(ERROR_COLOR)
-        public MinecraftMessage playerNotFound = make("%1Minecraft player not found");
-        @Constants(ERROR_COLOR)
-        public MinecraftMessage userNotFound = make("%1Discord user not found");
-        @Constants(ERROR_COLOR)
-        public MinecraftMessage unableToCheckLinkingStatus = make("%1Unable to check linking status, please try again later");
+    // DiscordSRV command
 
-        @Constants({
-                SUCCESS_COLOR + "[hover:show_text:%user_id%][click:copy_to_clipboard:%user_id%]@%user_name%[click][hover]",
-                NEUTRAL_COLOR,
-                SUCCESS_COLOR + "[hover:show_text:%player_uuid%][click:copy_to_clipboard:%player_uuid%]%player_name|text:'<Unknown>'%[click][hover]"
-        })
-        public MinecraftMessage discordUserLinkedTo = make("%1 %2is linked to %3");
+    public DiscordMessage discordsrvCommandDescription = discord(
+            "DiscordSRV Commands"
+    );
 
-        @Constants({
-                SUCCESS_COLOR + "[hover:show_text:%user_id%][click:copy_to_clipboard:%user_id%]@%user_name%[click][hover]",
-                NEUTRAL_COLOR,
-                ERROR_COLOR
-        })
-        public MinecraftMessage discordUserUnlinked = make("%1 %2is %3unlinked");
+    // Minecraft command
 
-        @Constants({
-                SUCCESS_COLOR + "[hover:show_text:%player_uuid%][click:copy_to_clipboard:%player_uuid%]%player_name|text:'<Unknown>'%[click][hover]",
-                NEUTRAL_COLOR,
-                SUCCESS_COLOR + "[hover:show_text:%user_id%][click:copy_to_clipboard:%user_id%]@%user_name%[click][hover]"
-        })
-        public MinecraftMessage minecraftPlayerLinkedTo = make("%1 %2is linked to %3");
+    public DiscordMessage minecraftCommandDescription = discord(
+            "Minecraft Server Commands"
+    );
 
-        @Constants({
-                SUCCESS_COLOR + "[hover:show_text:%player_uuid%][click:copy_to_clipboard:%player_uuid%]%player_name|text:'<Unknown>'%[click][hover]",
-                NEUTRAL_COLOR,
-                ERROR_COLOR
-        })
-        public MinecraftMessage minecraftPlayerUnlinked = make("%1 %2is %3unlinked");
+    // Help command
 
-        @Untranslated(Untranslated.Type.COMMENT)
-        @Comment("/discord link")
-        @Constants(ERROR_COLOR)
-        public MinecraftMessage alreadyLinked1st = make("%1You are already linked");
-        @Constants(ERROR_COLOR)
-        public MinecraftMessage pleaseSpecifyPlayerAndUserToLink = make("%1Please specify the Minecraft player and the Discord user to link");
-        @Constants(ERROR_COLOR)
-        public MinecraftMessage playerAlreadyLinked3rd = make("%1That player is already linked");
-        @Constants(ERROR_COLOR)
-        public MinecraftMessage userAlreadyLinked3rd = make("%1That player is already linked");
-        @Constants(ERROR_COLOR)
-        public MinecraftMessage pleaseWaitBeforeRunningThatCommandAgain = make("%1Please wait before running that command again");
-        @Constants(ERROR_COLOR)
-        public MinecraftMessage unableToLinkAtThisTime = make("%1Unable to check linking status, please try again later");
-        @Constants(NEUTRAL_COLOR)
-        public MinecraftMessage checkingLinkStatus = make("%1Checking linking status...");
-        @Constants(SUCCESS_COLOR)
-        public MinecraftMessage nowLinked1st = make("%1You are now linked!");
-        @Constants({
-                SUCCESS_COLOR,
-                NEUTRAL_COLOR,
-                SUCCESS_COLOR + "[hover:show_text:%player_uuid%][click:copy_to_clipboard:%player_uuid%]%player_name|text:'<Unknown>'%[click][hover]" + NEUTRAL_COLOR,
-                SUCCESS_COLOR + "[hover:show_text:%user_id%][click:copy_to_clipboard:%user_id%]@%user_name%[click][hover]" + NEUTRAL_COLOR
-        })
-        public MinecraftMessage nowLinked3rd = make("%1Link created successfully %2(%3 and %4)");
-        @Constants({
-                NEUTRAL_COLOR,
-                "&f[click:open_url:%minecraftauth_link%][hover:show_text:Click to open]%minecraftauth_link_simple%[click]" + NEUTRAL_COLOR,
-                "&fMinecraftAuth"
-        })
-        public MinecraftMessage minecraftAuthLinking = make("%1Please visit %2 to link your account through %3");
-        @Constants({NEUTRAL_COLOR, BLURPLE_COLOR})
-        public MinecraftMessage storageLinking = make(
-                "%1Join our %2Discord %1server at "
-                        + "[click:open_url:%discord_invite%]%discord_invite_simple%[click]"
-                        + " %1and link your account by running the "
-                        + "&r[click:copy_to_clipboard:%code%][hover:show_text:Click to copy linking code]/minecraft link %code%"); // TODO
+    public MinecraftMessage helpCommandDescription = minecraft(
+            "View command help"
+    );
 
-        @Untranslated(Untranslated.Type.COMMENT)
-        @Comment("/discord unlink")
-        @Constants({SUCCESS_COLOR})
-        public MinecraftMessage unlinked = make("%1Accounts unlinked");
+    // PlayerList command
 
-    }
+    public DiscordMessage playerListCommandDescription = discord(
+            "View players that are online on the server"
+    );
 
-    public Discord discord = new Discord();
+    // Linked command
 
-    @ConfigSerializable
-    public static class Discord {
+    @Constants({
+            MINECRAFT_USER,
+            MINECRAFT_NEUTRAL_COLOR,
+            MINECRAFT_PLAYER,
+            DISCORD_SUCCESS_PREFIX + DISCORD_USER,
+            DISCORD_PLAYER
+    })
+    public BothMessage discordUserLinkedTo3rd = both(
+            "%1 %2is linked to %3",
+            "%4 is linked to %5"
+    );
 
-        private static final String SUCCESS_PREFIX = "✅ ";
-        private static final String INPUT_ERROR_PREFIX = "\uD83D\uDDD2️ ";
-        private static final String ERROR_PREFIX = "❌ ";
+    @Constants({
+            MINECRAFT_PLAYER,
+            MINECRAFT_NEUTRAL_COLOR,
+            MINECRAFT_USER,
+            DISCORD_SUCCESS_PREFIX,
+            DISCORD_PLAYER,
+            DISCORD_USER
+    })
+    public BothMessage minecraftPlayerLinkedTo3rd = both(
+            "%1 %2is linked to %3",
+            "%4%5 is linked to %6"
+    );
 
-        private DiscordMessage make(String rawFormat) {
-            return new DiscordMessage(SendableDiscordMessage.builder().setContent(rawFormat));
-        }
+    @Constants({
+            MINECRAFT_NEUTRAL_COLOR,
+            MINECRAFT_SUCCESS_COLOR + MINECRAFT_USER,
+            DISCORD_SUCCESS_PREFIX,
+            DISCORD_PLAYER
+    })
+    public BothMessage linkedTo1st = both(
+            "%1You are linked to %2",
+            "%3You are linked to %4"
+    );
 
-        @Comment("Generic")
-        @Constants(INPUT_ERROR_PREFIX)
-        public DiscordMessage pleaseSpecifyPlayer = make("%1Please specify the Minecraft player");
-        @Constants(INPUT_ERROR_PREFIX)
-        public DiscordMessage pleaseSpecifyUser = make("%1Please specify the Discord user");
-        @Constants(INPUT_ERROR_PREFIX)
-        public DiscordMessage pleaseSpecifyPlayerOrUser = make("%1Please specify the Minecraft player or Discord user");
-        @Constants(ERROR_PREFIX)
-        public DiscordMessage playerNotFound = make("%1Minecraft player not found");
-        @Constants(ERROR_PREFIX)
-        public DiscordMessage userNotFound = make("%1Discord user not found");
-        @Constants(ERROR_PREFIX)
-        public DiscordMessage unableToCheckLinkingStatus = make("%1Unable to check linking status, please try again later");
+    // Unlink command
 
-        @Constants({
-                SUCCESS_PREFIX,
-                "**%user_name%** (<@%user_id%>)",
-                "**%player_name%** (%player_uuid%)"
-        })
-        public DiscordMessage discordUserLinkedTo = make("%1%2 is linked to %3");
+    @Constants({MINECRAFT_SUCCESS_COLOR, DISCORD_SUCCESS_PREFIX})
+    public BothMessage unlinkSuccess = both(
+            "%1Accounts unlinked",
+            "%2Accounts unlinked"
+    );
 
-        @Constants({
-                ERROR_PREFIX,
-                "**%user_name%** (<@%user_id%>)"
-        })
-        public DiscordMessage discordUserUnlinked = make("%1%2 is __unlinked__");
+    public BothMessage unlinkCommandDescription = both(
+            "Unlink accounts",
+            "Unlink a Minecraft player's or Discord user's account (only specify one)"
+    );
 
-        @Constants({
-                SUCCESS_PREFIX,
-                "**%player_name%** (%player_uuid%)",
-                "**%user_name%** (<@%user_id%>)"
-        })
-        public DiscordMessage minecraftPlayerLinkedTo = make("%1%2 is linked to %3");
+    // Linked & Unlink command
 
-        @Constants({
-                ERROR_PREFIX,
-                "**%player_name%** (%player_uuid%)"
-        })
-        public DiscordMessage minecraftPlayerUnlinked = make("%1%2 is __unlinked__");
+    @Constants({
+            MINECRAFT_USER,
+            MINECRAFT_NEUTRAL_COLOR,
+            MINECRAFT_ERROR_COLOR,
+            DISCORD_ERROR_PREFIX,
+            DISCORD_USER
+    })
+    public BothMessage discordUserUnlinked3rd = both(
+            "%1 %2is %3unlinked",
+            "%4%5 is __unlinked__"
+    );
 
-        @Untranslated(Untranslated.Type.COMMENT)
-        @Comment("/discord link")
-        @Constants(ERROR_PREFIX)
-        public DiscordMessage playerAlreadyLinked3rd = make("%1That Minecraft player is already linked");
-        @Constants(ERROR_PREFIX)
-        public DiscordMessage userAlreadyLinked3rd = make("%1That Discord user is already linked");
-        @Constants(ERROR_PREFIX)
-        public DiscordMessage alreadyLinked1st = make("%1You are already linked");
-        @Constants({
-                SUCCESS_PREFIX,
-                "**%player_name%** (%player_uuid%)",
-                "**%user_name%** (<@%user_id%>)"
-        })
-        public DiscordMessage nowLinked3rd = make("%1Link created successfully\n%2 and %3");
-        @Constants(ERROR_PREFIX)
-        public DiscordMessage pleaseWaitBeforeRunningThatCommandAgain = make("%1Please wait before running that command again");
-        @Constants(ERROR_PREFIX)
-        public DiscordMessage invalidLinkingCode = make("%1Invalid linking code");
-        @Constants({SUCCESS_PREFIX, "**%player_name%**"})
-        public DiscordMessage accountLinked = make("%1Account linked to %2 successfully");
+    @Constants({
+            MINECRAFT_PLAYER,
+            MINECRAFT_NEUTRAL_COLOR,
+            MINECRAFT_ERROR_COLOR,
+            DISCORD_ERROR_PREFIX,
+            DISCORD_PLAYER
+    })
+    public BothMessage minecraftPlayerUnlinked3rd = both(
+            "%1 %2is %3unlinked",
+            "%4%5 is __unlinked__"
+    );
 
-        @Untranslated(Untranslated.Type.COMMENT)
-        @Comment("/discord unlink")
-        @Constants({SUCCESS_PREFIX})
-        public DiscordMessage unlinked = make("%1Accounts unlinked");
+    @Constants({
+            MINECRAFT_NEUTRAL_COLOR,
+            MINECRAFT_ERROR_COLOR,
+            DISCORD_ERROR_PREFIX,
+    })
+    public BothMessage alreadyUnlinked1st = both(
+            "%1You are %2unlinked",
+            "%3You are unlinked"
+    );
 
-    }
+    public BothMessage linkedCommandDescription = both(
+            "Check the account a Minecraft Player or Discord User is linked to",
+            "Check the account a Minecraft Player or Discord user is linked to"
+    );
+
+    // Link (self) command
+
+    @Constants(MINECRAFT_ERROR_COLOR)
+    public MinecraftMessage pleaseSpecifyPlayerAndUserToLink = minecraft("%1Please specify the Minecraft player and the Discord user to link");
+
+    @Constants({MINECRAFT_ERROR_COLOR, DISCORD_ERROR_PREFIX})
+    public BothMessage alreadyLinked1st = both(
+            "%1You are already linked",
+            "%2You are already linked"
+    );
+
+    @Constants({
+            MINECRAFT_SUCCESS_COLOR,
+            MINECRAFT_USER + MINECRAFT_SUCCESS_COLOR,
+            DISCORD_SUCCESS_PREFIX,
+            DISCORD_PLAYER_SIMPLE
+    })
+    public BothMessage nowLinked1st = both(
+            "%1You are now linked to %2!",
+            "%3You are now linked to %4"
+    );
+
+    @Constants(MINECRAFT_NEUTRAL_COLOR)
+    public MinecraftMessage checkingLinkStatus = minecraft("%1Checking linking status...");
+
+    @Constants({
+            MINECRAFT_NEUTRAL_COLOR,
+            "&f[click:open_url:%minecraftauth_link%][hover:show_text:Click to open]%minecraftauth_link_simple%[click]" + MINECRAFT_NEUTRAL_COLOR,
+            "&fMinecraftAuth"
+    })
+    public MinecraftMessage minecraftAuthLinking = minecraft("%1Please visit %2 to link your account through %3");
+
+    @Constants({
+            MINECRAFT_NEUTRAL_COLOR,
+            MINECRAFT_BLURPLE_COLOR,
+            "[click:open_url:%discord_invite%]%discord_invite_simple%[click]",
+            "[click:copy_to_clipboard:%code%][hover:show_text:Click to copy linking code]/minecraft link %code%" // TODO
+    })
+    public MinecraftMessage storageLinking = minecraft(
+            "%1Join our %2Discord %1server at %3 %1and link your account by running the &r%4"
+    );
+
+    @Constants(DISCORD_ERROR_PREFIX)
+    public DiscordMessage invalidLinkingCode = discord("%1Invalid linking code");
+
+    public BothMessage linkCommandDescription = both(
+            "Link accounts",
+            "Link accounts"
+    );
+
+    // Link (other) command
+
+    @Constants({MINECRAFT_ERROR_COLOR, DISCORD_ERROR_PREFIX})
+    public BothMessage playerAlreadyLinked3rd = both(
+            "%1That player is already linked",
+            "%2That Minecraft player is already linked"
+    );
+
+    @Constants({MINECRAFT_ERROR_COLOR, DISCORD_ERROR_PREFIX})
+    public BothMessage userAlreadyLinked3rd = both(
+            "%1That Discord user is already linked",
+            "%2That Discord user is already linked"
+    );
+
+    @Constants({
+            MINECRAFT_SUCCESS_COLOR,
+            MINECRAFT_NEUTRAL_COLOR,
+            MINECRAFT_PLAYER + MINECRAFT_NEUTRAL_COLOR,
+            MINECRAFT_USER + MINECRAFT_NEUTRAL_COLOR,
+            DISCORD_SUCCESS_PREFIX,
+            DISCORD_PLAYER,
+            DISCORD_USER
+    })
+    public BothMessage nowLinked3rd = both(
+            "%1Link created successfully %2(%3 and %4)",
+            "%5Link created successfully\n%6 and %7"
+    );
+
+    public DiscordMessage linkOtherCommandDescription = discord(
+            "Manually link accounts"
+    );
+
+    // Bypass command
+
+    public BothMessage bypassCommandDescription = both(
+            "Manage players which bypass required linking requirements",
+            "Manage players which bypass required linking requirements"
+    );
+    public BothMessage bypassAddCommandDescription = both(
+            "Add a player to the list of players who bypass required linking requirements",
+            "Add a player to the list of players who bypass required linking requirements"
+    );
+    public BothMessage bypassRemoveCommandDescription = both(
+            "Remove a player to the list of players who bypass required linking requirements",
+            "Remove a player to the list of players who bypass required linking requirements"
+    );
+    public BothMessage bypassListCommandDescription = both(
+            "List players who bypass required linking requirements",
+            "List players who bypass required linking requirements"
+    );
+
+    @Constants({MINECRAFT_SUCCESS_COLOR, DISCORD_SUCCESS_PREFIX})
+    public BothMessage cannotAlterBypassAlreadyInConfig = both(
+            "%1That player is bypassing via the configuration file",
+            "%2That player is bypassing via the configuration file"
+    );
+
+    @Constants({MINECRAFT_ERROR_COLOR, DISCORD_ERROR_PREFIX})
+    public BothMessage alreadyBypassing = both(
+            "%1Already bypassing",
+            "%2Already bypassing"
+    );
+
+    @Constants({MINECRAFT_ERROR_COLOR, DISCORD_ERROR_PREFIX})
+    public BothMessage notBypassing = both(
+            "%1Not bypassing",
+            "%2Not bypassing"
+    );
+
+    @Constants({
+            MINECRAFT_PLAYER + MINECRAFT_NEUTRAL_COLOR,
+            DISCORD_PLAYER
+    })
+    public BothMessage bypassAdded = both(
+            "%1 has been added to the bypass list",
+            "%2 has been added to the bypass list"
+    );
+
+    @Constants({
+            MINECRAFT_PLAYER + MINECRAFT_NEUTRAL_COLOR,
+            DISCORD_PLAYER
+    })
+    public BothMessage bypassRemoved = both(
+            "%1 has been removed from the bypass list",
+            "%2 has been removed from the bypass list"
+    );
+
+    // Broadcast command
+
+    @Constants({MINECRAFT_ERROR_COLOR, MINECRAFT_NEUTRAL_COLOR, MINECRAFT_ERROR_COLOR})
+    public MinecraftMessage channelNotFound = minecraft("%1Channel %2%channel% %3not found");
+
+    @Constants(MINECRAFT_SUCCESS_COLOR)
+    public MinecraftMessage broadcasted = minecraft("%1Broadcasted");
+
+    public MinecraftMessage broadcastMinecraftCommandDescription = minecraft(
+            "Broadcast a Minecraft formatted message to the specified Discord channel(s)"
+    );
+    public MinecraftMessage broadcastRawCommandDescription = minecraft(
+            "Broadcast a raw json message to the specified Discord channel(s)"
+    );
+    public MinecraftMessage broadcastDiscordCommandDescription = minecraft(
+            "Broadcast a plain message with Discord formatting to the specified Discord channel(s)"
+    );
+    public MinecraftMessage broadcastChannelParameterCommandDescription = minecraft(
+            "The Discord channel id or in-game channel name to resolve Discord channels from the configuration"
+    );
+    public MinecraftMessage broadcastMessageParameterCommandDescription = minecraft(
+            "The message to broadcast to Discord"
+    );
+
+    // Debug commands
+
+    public BothMessage debugCommandDescription = both(
+            "Diagnostic reporting commands",
+            "Diagnostic reporting commands"
+    );
+    public BothMessage debugStartCommandDescription = both(
+            "Start debug observation",
+            "Start debug observation"
+    );
+    public BothMessage debugStopCommandDescription = both(
+            "Stop debug observation",
+            "Stop debug observation"
+    );
+    public BothMessage debugUploadCommandDescription = both(
+            "Upload a debug report for easy sharing",
+            "Upload a debug report for easy sharing"
+    );
+    public BothMessage debugZipCommandDescription = both(
+            "Create a debug report into a local zip",
+            "Create a debug report into a local zip"
+    );
+
+    // Parse command
+
+    public BothMessage parseCommandDescription = both(
+            "Parse placeholders through DiscordSRV's placeholder service",
+            "Parse placeholders through DiscordSRV's placeholder service"
+    );
+
+    public BothMessage parseInputCommandDescription = both(
+            "The content to pass to the placeholder service",
+            "The content to pass to the placeholder service"
+    );
+
+    // Version command
+
+    public BothMessage versionCommandDescription = both(
+            "Show the version of DiscordSRV",
+            "Show the version of DiscordSRV"
+    );
+
+    // Resync command
+
+    public MinecraftMessage reloadCommandDescription = minecraft(
+            "Reloads the specified DiscordSRV functions"
+    );
+
+    public MinecraftMessage reloadParameterCommandDescription = minecraft(
+            "The functions to reload"
+    );
+
+    // Resync command
+
+    public BothMessage resyncCommandDescription = both(
+            "Resync online players",
+            "Resync online players"
+    );
+
+    // Execute command
+
+    @Constants(DISCORD_ERROR_PREFIX)
+    public DiscordMessage executeCommandDisabled = discord(
+            "%1The execute command is disabled"
+    );
+
+    @Constants(DISCORD_ERROR_PREFIX)
+    public DiscordMessage executing = discord(
+            "Executing `%command%` command"
+    );
+
+    public DiscordMessage executeCommandDescription = discord(
+            "Run Minecraft console commands"
+    );
+
+    public DiscordMessage executeParameterCommandDescription = discord(
+            "The command to run"
+    );
+
 }

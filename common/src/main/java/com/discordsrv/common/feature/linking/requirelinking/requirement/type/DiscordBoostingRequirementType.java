@@ -20,12 +20,11 @@ package com.discordsrv.common.feature.linking.requirelinking.requirement.type;
 
 import com.discordsrv.api.discord.entity.guild.DiscordGuild;
 import com.discordsrv.api.eventbus.Subscribe;
+import com.discordsrv.api.task.Task;
 import com.discordsrv.common.DiscordSRV;
 import com.discordsrv.common.feature.linking.requirelinking.RequiredLinkingModule;
 import com.discordsrv.common.helper.Someone;
 import net.dv8tion.jda.api.events.guild.member.update.GuildMemberUpdateBoostTimeEvent;
-
-import java.util.concurrent.CompletableFuture;
 
 public class DiscordBoostingRequirementType extends LongRequirementType {
 
@@ -39,10 +38,10 @@ public class DiscordBoostingRequirementType extends LongRequirementType {
     }
 
     @Override
-    public CompletableFuture<Boolean> isMet(Long value, Someone.Resolved someone) {
+    public Task<Boolean> isMet(Long value, Someone.Resolved someone) {
         DiscordGuild guild = module.discordSRV().discordAPI().getGuildById(value);
         if (guild == null) {
-            return CompletableFuture.completedFuture(false);
+            return Task.completed(false);
         }
 
         return guild.retrieveMemberById(someone.userId())
@@ -51,6 +50,6 @@ public class DiscordBoostingRequirementType extends LongRequirementType {
 
     @Subscribe
     public void onGuildMemberUpdateBoostTime(GuildMemberUpdateBoostTimeEvent event) {
-        stateChanged(Someone.of(event.getMember().getIdLong()), null, event.getNewTimeBoosted() != null);
+        stateChanged(Someone.of(discordSRV, event.getMember().getIdLong()), null, event.getNewTimeBoosted() != null);
     }
 }

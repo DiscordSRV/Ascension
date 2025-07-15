@@ -18,7 +18,6 @@
 
 package com.discordsrv.common.feature.messageforwarding.game;
 
-import com.discordsrv.api.channel.GameChannel;
 import com.discordsrv.api.discord.entity.channel.DiscordGuildMessageChannel;
 import com.discordsrv.api.discord.entity.guild.DiscordGuild;
 import com.discordsrv.api.discord.entity.message.AllowedMention;
@@ -27,35 +26,43 @@ import com.discordsrv.api.discord.entity.message.ReceivedDiscordMessageCluster;
 import com.discordsrv.api.discord.entity.message.SendableDiscordMessage;
 import com.discordsrv.api.eventbus.EventPriorities;
 import com.discordsrv.api.eventbus.Subscribe;
-import com.discordsrv.api.events.message.forward.game.GameChatMessageForwardedEvent;
-import com.discordsrv.api.events.message.receive.game.GameChatMessageReceiveEvent;
+import com.discordsrv.api.events.message.post.game.AbstractGameMessagePostEvent;
+import com.discordsrv.api.events.message.post.game.GameChatMessagePostEvent;
+import com.discordsrv.api.events.message.postprocess.game.GameChatMessagePostProcessEvent;
+import com.discordsrv.api.events.message.preprocess.game.GameChatMessagePreProcessEvent;
 import com.discordsrv.api.placeholder.format.FormattedText;
 import com.discordsrv.api.placeholder.format.PlainPlaceholderFormat;
 import com.discordsrv.api.placeholder.util.Placeholders;
+import com.discordsrv.api.task.Task;
 import com.discordsrv.common.DiscordSRV;
 import com.discordsrv.common.abstraction.player.IPlayer;
 import com.discordsrv.common.config.main.channels.MinecraftToDiscordChatConfig;
 import com.discordsrv.common.config.main.channels.base.BaseChannelConfig;
+import com.discordsrv.common.core.component.DiscordMentionComponent;
 import com.discordsrv.common.feature.mention.CachedMention;
 import com.discordsrv.common.feature.mention.MentionCachingModule;
+import com.discordsrv.common.permission.game.Permission;
 import com.discordsrv.common.permission.game.Permissions;
 import com.discordsrv.common.util.ComponentUtil;
 import net.dv8tion.jda.api.entities.Guild;
-import net.dv8tion.jda.api.entities.Role;
+import net.dv8tion.jda.api.entities.Message;
 import net.kyori.adventure.text.Component;
-import org.jetbrains.annotations.NotNull;
+import org.apache.commons.lang3.tuple.Pair;
+import org.jetbrains.annotations.Nullable;
 
-import java.util.*;
-import java.util.concurrent.CompletableFuture;
+import java.util.ArrayList;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
 
-public class MinecraftToDiscordChatModule extends AbstractGameMessageModule<MinecraftToDiscordChatConfig, GameChatMessageReceiveEvent> {
+public class MinecraftToDiscordChatModule extends AbstractGameMessageModule<MinecraftToDiscordChatConfig, GameChatMessagePreProcessEvent, GameChatMessagePostProcessEvent> {
 
     public MinecraftToDiscordChatModule(DiscordSRV discordSRV) {
         super(discordSRV, "MINECRAFT_TO_DISCORD");
     }
 
     @Subscribe(priority = EventPriorities.LAST, ignoreCancelled = false, ignoreProcessed = false)
-    public void onChatReceive(GameChatMessageReceiveEvent event) {
+    public void onChatReceive(GameChatMessagePreProcessEvent event) {
         if (checkProcessor(event) || checkCancellation(event)) {
             return;
         }
@@ -70,62 +77,98 @@ public class MinecraftToDiscordChatModule extends AbstractGameMessageModule<Mine
     }
 
     @Override
-    public void postClusterToEventBus(GameChannel channel, @NotNull ReceivedDiscordMessageCluster cluster) {
-        discordSRV.eventBus().publish(new GameChatMessageForwardedEvent(channel, cluster));
-    }
-
-    @Override
-    public List<CompletableFuture<ReceivedDiscordMessage>> sendMessageToChannels(
+    public Task<Void> sendMessageToChannels(
             MinecraftToDiscordChatConfig config,
+            GameChatMessagePreProcessEvent event,
             IPlayer player,
             SendableDiscordMessage.Builder format,
-            Collection<DiscordGuildMessageChannel> channels,
-            GameChatMessageReceiveEvent event,
-            Object... context
+            List<DiscordGuildMessageChannel> allChannels,
+            List<Object> context
     ) {
-        Map<DiscordGuild, Set<DiscordGuildMessageChannel>> channelMap = new LinkedHashMap<>();
-        for (DiscordGuildMessageChannel channel : channels) {
+        Map<DiscordGuild, List<DiscordGuildMessageChannel>> channelMap = new LinkedHashMap<>();
+        for (DiscordGuildMessageChannel channel : allChannels) {
             DiscordGuild guild = channel.getGuild();
 
-            channelMap.computeIfAbsent(guild, key -> new LinkedHashSet<>())
-                    .add(channel);
-        }
-
-        Component message = ComponentUtil.fromAPI(event.getMessage());
-        List<CompletableFuture<ReceivedDiscordMessage>> futures = new ArrayList<>();
-
-        // Format messages per-Guild
-        for (Map.Entry<DiscordGuild, Set<DiscordGuildMessageChannel>> entry : channelMap.entrySet()) {
-            Guild guild = entry.getKey().asJDA();
-            CompletableFuture<SendableDiscordMessage> messageFuture = getMessageForGuild(config, format, guild, message, player, context);
-
-            for (DiscordGuildMessageChannel channel : entry.getValue()) {
-                futures.add(messageFuture.thenCompose(msg -> sendMessageToChannel(channel, msg)));
+            List<DiscordGuildMessageChannel> guildChannels = channelMap.computeIfAbsent(guild, key -> new ArrayList<>());
+            if (!guildChannels.contains(channel)) {
+                guildChannels.add(channel);
             }
         }
 
-        return futures;
+        Component message = ComponentUtil.fromAPI(event.getMessage());
+        List<Task<Void>> futures = new ArrayList<>();
+
+        // Format messages per-Guild
+        for (Map.Entry<DiscordGuild, List<DiscordGuildMessageChannel>> entry : channelMap.entrySet()) {
+            Guild guild = entry.getKey().asJDA();
+            Task<SendableDiscordMessage> messageFuture = getMessageForGuild(config, format, guild, message, player, context);
+
+            futures.add(messageFuture.then(discordMessage -> {
+                if (discordMessage.isEmpty()) {
+                    return Task.completed(null);
+                }
+                List<DiscordGuildMessageChannel> channels = entry.getValue();
+
+                GameChatMessagePostProcessEvent postProcessEvent = createPostProcessEvent(event, player, channels, discordMessage);
+                discordSRV.eventBus().publish(postProcessEvent);
+                if (checkCancellation(postProcessEvent)) {
+                    return Task.completed(null);
+                }
+                discordMessage = postProcessEvent.getMessage();
+
+                List<Task<ReceivedDiscordMessage>> messageFutures = new ArrayList<>(channels.size());
+                for (DiscordGuildMessageChannel channel : channels) {
+                    messageFutures.add(sendMessageToChannel(channel, discordMessage));
+                }
+                return messageSent(postProcessEvent, Task.allOf(messageFutures));
+            }));
+        }
+
+        return Task.allOf(futures).thenApply(__ -> null);
     }
 
     @Override
-    public void setPlaceholders(MinecraftToDiscordChatConfig config, GameChatMessageReceiveEvent event, SendableDiscordMessage.Formatter formatter) {}
+    protected GameChatMessagePostProcessEvent createPostProcessEvent(
+            GameChatMessagePreProcessEvent preEvent,
+            IPlayer player,
+            List<DiscordGuildMessageChannel> channels,
+            SendableDiscordMessage discordMessage) {
+        return new GameChatMessagePostProcessEvent(preEvent, player, channels, discordMessage);
+    }
 
-    private CompletableFuture<SendableDiscordMessage> getMessageForGuild(
+    @Override
+    protected AbstractGameMessagePostEvent<GameChatMessagePostProcessEvent> createPostEvent(
+            GameChatMessagePostProcessEvent preEvent,
+            ReceivedDiscordMessageCluster cluster
+    ) {
+        return new GameChatMessagePostEvent(preEvent, cluster);
+    }
+
+    @Override
+    public void setPlaceholders(MinecraftToDiscordChatConfig config, GameChatMessagePreProcessEvent event, SendableDiscordMessage.Formatter formatter) {}
+
+    private Task<SendableDiscordMessage> getMessageForGuild(
             MinecraftToDiscordChatConfig config,
             SendableDiscordMessage.Builder format,
             Guild guild,
             Component message,
             IPlayer player,
-            Object[] context
+            List<Object> context
     ) {
         MentionCachingModule mentionCaching = discordSRV.getModule(MentionCachingModule.class);
         if (mentionCaching != null) {
+            List<Pair<Message.MentionType, String>> preResolvedMentions = DiscordMentionComponent.digValues(message);
+            if (!preResolvedMentions.isEmpty()) {
+                return mentionCaching.lookup(config.mentions, guild, player, preResolvedMentions)
+                        .thenApply(mentions -> getMessageForGuildWithMentions(config, format, guild, message, player, context, mentions));
+            }
+
             String messageContent = discordSRV.componentFactory().plainSerializer().serialize(message);
             return mentionCaching.lookup(config.mentions, guild, player, messageContent, null)
                     .thenApply(mentions -> getMessageForGuildWithMentions(config, format, guild, message, player, context, mentions));
         }
 
-        return CompletableFuture.completedFuture(getMessageForGuildWithMentions(config, format, guild, message, player, context, null));
+        return Task.completed(getMessageForGuildWithMentions(config, format, guild, message, player, context, null));
     }
 
     private SendableDiscordMessage getMessageForGuildWithMentions(
@@ -134,39 +177,20 @@ public class MinecraftToDiscordChatModule extends AbstractGameMessageModule<Mine
             Guild guild,
             Component message,
             IPlayer player,
-            Object[] context,
+            List<Object> context,
             List<CachedMention> mentions
     ) {
-        MinecraftToDiscordChatConfig.Mentions mentionConfig = config.mentions;
-
-        List<AllowedMention> allowedMentions = new ArrayList<>();
-        if (mentionConfig.users && player.hasPermission(Permissions.MENTION_USER)) {
-            allowedMentions.add(AllowedMention.ALL_USERS);
-        }
-        if (mentionConfig.roles) {
-            if (player.hasPermission(Permissions.MENTION_ROLE_ALL)) {
-                allowedMentions.add(AllowedMention.ALL_ROLES);
-            } else if (player.hasPermission(Permissions.MENTION_ROLE_MENTIONABLE)) {
-                for (Role role : guild.getRoles()) {
-                    if (role.isMentionable()) {
-                        allowedMentions.add(AllowedMention.role(role.getIdLong()));
-                    }
-                }
-            }
-        }
-
-        boolean everyoneMentionAllowed = mentionConfig.everyone && player.hasPermission(Permissions.MENTION_EVERYONE);
-        if (everyoneMentionAllowed) {
-            allowedMentions.add(AllowedMention.EVERYONE);
-        }
+        boolean everyoneMentionAllowed = config.mentions.everyone && player.hasPermission(Permissions.MENTION_EVERYONE);
+        List<AllowedMention> allowedMentions = getAllowedMentions(config.mentions, player, everyoneMentionAllowed, mentions);
 
         return format.setAllowedMentions(allowedMentions)
                 .toFormatter()
                 .addContext(context)
+                .addContext(guild)
                 .addPlaceholder("message", () -> {
                     String content = PlainPlaceholderFormat.supplyWith(
-                            PlainPlaceholderFormat.Formatting.DISCORD,
-                            () -> discordSRV.placeholderService().getResultAsCharSequence(message).toString()
+                            PlainPlaceholderFormat.Formatting.DISCORD_MARKDOWN,
+                            () -> discordSRV.placeholderService().convertReplacementToCharSequence(message).toString()
                     );
                     Placeholders messagePlaceholders = new Placeholders(content);
                     config.contentRegexFilters.forEach(messagePlaceholders::replaceAll);
@@ -178,8 +202,57 @@ public class MinecraftToDiscordChatModule extends AbstractGameMessageModule<Mine
                     String finalMessage = messagePlaceholders.toString();
                     return FormattedText.of(preventEveryoneMentions(everyoneMentionAllowed, finalMessage));
                 })
-                .applyPlaceholderService()
                 .build();
+    }
+
+    private List<AllowedMention> getAllowedMentions(
+            MinecraftToDiscordChatConfig.Mentions config,
+            IPlayer player,
+            boolean everyoneMentionAllowed,
+            @Nullable List<CachedMention> mentions
+    ) {
+        List<AllowedMention> allowedMentions = new ArrayList<>();
+
+        boolean users = config.users;
+        boolean allUsers = users && player.hasPermission(Permissions.MENTION_USER_ALL);
+        if (allUsers) {
+            allowedMentions.add(AllowedMention.ALL_USERS);
+        }
+
+        boolean roles = config.roles;
+        boolean allRoles = roles && player.hasPermission(Permissions.MENTION_ROLE_ALL);
+        boolean mentionableRoles = roles && player.hasPermission(Permissions.MENTION_ROLE_MENTIONABLE);
+        if (allRoles) {
+            allowedMentions.add(AllowedMention.ALL_ROLES);
+        }
+
+        if (everyoneMentionAllowed) {
+            allowedMentions.add(AllowedMention.EVERYONE);
+        }
+
+        if (mentions == null) {
+            return allowedMentions;
+        }
+
+        for (CachedMention mention : mentions) {
+            CachedMention.Type type = mention.type();
+            if (users && type == CachedMention.Type.USER && !allUsers) {
+                if (player.hasPermission(Permission.of("mention.user." + Long.toUnsignedString(mention.id())))) {
+                    allowedMentions.add(AllowedMention.user(mention.id()));
+                }
+            } else if (roles && type == CachedMention.Type.ROLE && !allRoles) {
+                if (mention.mentionable() && mentionableRoles) {
+                    allowedMentions.add(AllowedMention.role(mention.id()));
+                    continue;
+                }
+
+                if (player.hasPermission(Permission.of("mention.role." + Long.toUnsignedString(mention.id())))) {
+                    allowedMentions.add(AllowedMention.role(mention.id()));
+                }
+            }
+        }
+
+        return allowedMentions;
     }
 
     private String preventEveryoneMentions(boolean everyoneAllowed, String message) {

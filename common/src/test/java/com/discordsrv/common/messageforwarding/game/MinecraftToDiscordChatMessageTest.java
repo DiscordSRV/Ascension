@@ -22,8 +22,9 @@ import com.discordsrv.api.discord.entity.channel.*;
 import com.discordsrv.api.discord.entity.message.ReceivedDiscordMessage;
 import com.discordsrv.api.eventbus.EventBus;
 import com.discordsrv.api.eventbus.Subscribe;
-import com.discordsrv.api.events.message.forward.game.GameChatMessageForwardedEvent;
-import com.discordsrv.api.events.message.receive.game.GameChatMessageReceiveEvent;
+import com.discordsrv.api.events.message.post.game.GameChatMessagePostEvent;
+import com.discordsrv.api.events.message.preprocess.game.GameChatMessagePreProcessEvent;
+import com.discordsrv.api.task.Task;
 import com.discordsrv.common.DiscordSRV;
 import com.discordsrv.common.FullBootExtension;
 import com.discordsrv.common.MockDiscordSRV;
@@ -68,7 +69,7 @@ public class MinecraftToDiscordChatMessageTest {
             TestHelper.set(future::completeExceptionally);
 
             discordSRV.eventBus().publish(
-                    new GameChatMessageReceiveEvent(
+                    new GameChatMessagePreProcessEvent(
                             null,
                             new IPlayer() {
 
@@ -93,7 +94,7 @@ public class MinecraftToDiscordChatMessageTest {
                                 }
 
                                 @Override
-                                public CompletableFuture<Void> kick(Component component) {
+                                public Task<Void> kick(Component component) {
                                     return null;
                                 }
 
@@ -160,7 +161,7 @@ public class MinecraftToDiscordChatMessageTest {
         }
 
         @Subscribe
-        public void onForwarded(GameChatMessageForwardedEvent event) {
+        public void onForwarded(GameChatMessagePostEvent event) {
             int text = 0;
             int news = 0;
             int voice = 0;

@@ -18,12 +18,12 @@
 
 package com.discordsrv.common.abstraction.player.provider;
 
+import com.discordsrv.api.task.Task;
 import com.discordsrv.common.DiscordSRV;
 import com.discordsrv.common.abstraction.player.IOfflinePlayer;
 import com.discordsrv.common.abstraction.player.IPlayer;
 
 import java.util.UUID;
-import java.util.concurrent.CompletableFuture;
 
 public abstract class ServerPlayerProvider<T extends IPlayer, DT extends DiscordSRV> extends AbstractPlayerProvider<T, DT> {
 
@@ -32,13 +32,13 @@ public abstract class ServerPlayerProvider<T extends IPlayer, DT extends Discord
     }
 
     @Override
-    public CompletableFuture<UUID> lookupUUIDForUsername(String username) {
+    public Task<UUID> lookupUUIDForUsername(String username) {
         return lookupOfflinePlayer(username).thenApply(IOfflinePlayer::uniqueId);
     }
 
     @Override
-    public abstract CompletableFuture<IOfflinePlayer> lookupOfflinePlayer(String username);
+    public abstract Task<IOfflinePlayer> lookupOfflinePlayer(String username);
 
     @Override
-    public abstract CompletableFuture<IOfflinePlayer> lookupOfflinePlayer(UUID uuid);
+    public abstract Task<IOfflinePlayer> lookupOfflinePlayer(UUID uuid);
 }

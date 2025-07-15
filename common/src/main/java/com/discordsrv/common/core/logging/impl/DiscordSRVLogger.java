@@ -22,6 +22,7 @@ import com.discordsrv.common.DiscordSRV;
 import com.discordsrv.common.config.main.DebugConfig;
 import com.discordsrv.common.config.main.MainConfig;
 import com.discordsrv.common.core.logging.Logger;
+import com.discordsrv.common.exception.MessageException;
 import com.discordsrv.common.logging.LogLevel;
 import com.discordsrv.common.util.DiscordPermissionUtil;
 import net.dv8tion.jda.api.JDA;
@@ -82,6 +83,11 @@ public class DiscordSRVLogger implements Logger {
         this.debugLogs = rotateLog("debug", 3);
     }
 
+    public void shutdown() {
+        lineProcessingFuture.cancel(false);
+        flushLines();
+    }
+
     public List<Path> getDebugLogs() {
         return debugLogs;
     }
@@ -119,10 +125,22 @@ public class DiscordSRVLogger implements Logger {
 
     @Override
     public void log(@Nullable String loggerName, @NotNull LogLevel logLevel, @Nullable String message, @Nullable Throwable throwable) {
-        if (throwable != null && throwable.getMessage() != null
-                && (throwable.getStackTrace() == null || throwable.getStackTrace().length == 0)) {
+        StringBuilder stringBuilder = new StringBuilder(message != null ? message : "");
+
+        if (throwable != null && throwable.getMessage() != null && throwable instanceof MessageException) {
             // Empty stack trace
-            message = (message != null ? message + ": " : "") + throwable.getMessage();
+            if (stringBuilder.length() > 0) {
+                stringBuilder.append(": ");
+            }
+            stringBuilder.append(throwable.getMessage());
+
+            for (Throwable suppressed : throwable.getSuppressed()) {
+                stringBuilder.append("\n\t- ").append(
+                        suppressed instanceof MessageException
+                        ? suppressed.getMessage()
+                        : ExceptionUtils.getStackTrace(suppressed)
+                );
+            }
             throwable = null;
         }
         if (throwable instanceof InsufficientPermissionException) {
@@ -131,33 +149,20 @@ public class DiscordSRVLogger implements Logger {
 
             JDA jda = discordSRV.jda();
             GuildChannel guildChannel = jda != null ? exception.getChannel(jda) : null;
-            long channelId = exception.getChannelId();
             Guild guild = jda != null ? exception.getGuild(jda) : null;
-            long guildId = exception.getGuildId();
 
-            String where;
-            if (guildChannel != null) {
-                where = "#" + guildChannel.getName();
-            } else if (channelId != 0) {
-                where = "Channel ID " + Long.toUnsignedString(channelId);
-            } else if (guild != null) {
-                where = guild.getName();
-            } else {
-                where = "Server ID " + Long.toUnsignedString(guildId);
+            String msg = DiscordPermissionUtil.createErrorMessage(guildChannel, guild, EnumSet.of(permission));
+            if (stringBuilder.length() > 0) {
+                stringBuilder.append(": ");
             }
+            stringBuilder.append(msg);
 
-            String msg = DiscordPermissionUtil.createErrorMessage(guildChannel, EnumSet.of(permission), where);
-            if (message == null) {
-                message = msg;
-            } else {
-                message += ": " + msg;
-            }
-            doLog(loggerName, logLevel, message, null);
+            doLog(loggerName, logLevel, stringBuilder.toString(), null);
             doLog(loggerName, LogLevel.DEBUG, null, throwable);
             return;
         }
 
-        doLog(loggerName, logLevel, message, throwable);
+        doLog(loggerName, logLevel, stringBuilder.toString(), throwable);
     }
 
     private void doLog(String loggerName, LogLevel logLevel, String message, Throwable throwable) {
@@ -182,7 +187,7 @@ public class DiscordSRVLogger implements Logger {
             LogLevel consoleLevel = logLevel;
             if (debugOrTrace) {
                 // Normally DEBUG/TRACE logging isn't enabled, so we convert it to INFO and add the level
-                consoleMessage = "[" + logLevel.name() + "]" + (message != null ? " " + message : "");
+                consoleMessage = "[" + logLevel.name() + "]" + (loggerName != null ? " [" + loggerName + "]" : "") + (message != null ? " " + message : "");
                 consoleLevel = LogLevel.INFO;
             }
             discordSRV.platformLogger().log(null, consoleLevel, consoleMessage, throwable);
@@ -196,16 +201,21 @@ public class DiscordSRVLogger implements Logger {
         scheduleWrite(new LogEntry(debugLog, loggerName, time, logLevel, message, throwable));
     }
 
+    @SuppressWarnings("resource")
     private void scheduleWrite(LogEntry entry) {
+        if (discordSRV.scheduler().scheduledExecutorService().isShutdown()) {
+            return;
+        }
+
         linesToWrite.add(entry);
         synchronized (lineProcessingLock) {
             if (lineProcessingFuture == null || lineProcessingFuture.isDone()) {
-                lineProcessingFuture = discordSRV.scheduler().runLater(this::processLines, Duration.ofSeconds(2));
+                lineProcessingFuture = discordSRV.scheduler().runLater(this::flushLines, Duration.ofSeconds(2));
             }
         }
     }
 
-    private void processLines() {
+    private void flushLines() {
         LogEntry entry;
         while ((entry = linesToWrite.poll()) != null) {
             writeToFile(entry.log(), entry.loggerName(), entry.time(), entry.logLevel(), entry.message(), entry.throwable());

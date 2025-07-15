@@ -22,7 +22,9 @@ public enum Permissions implements Permission {
 
     // Commands
     // Admin
+    COMMAND_BYPASS("command.bypass", true),
     COMMAND_DEBUG("command.debug", true),
+    COMMAND_PARSE("command.parse", true),
     COMMAND_RELOAD("command.reload", true),
     COMMAND_BROADCAST("command.broadcast", true),
     COMMAND_RESYNC("command.resync", true),
@@ -32,12 +34,13 @@ public enum Permissions implements Permission {
     COMMAND_UNLINK_OTHER("command.unlink.other", true),
     // Player
     COMMAND_ROOT("command.root", false),
+    COMMAND_HELP("command.help", false),
     COMMAND_LINK("command.link.self", false),
     COMMAND_LINKED("command.linked.self", false),
     COMMAND_UNLINK("command.unlink.self", false),
 
     // Mentions
-    MENTION_USER("mention.user.base", true),
+    MENTION_USER_ALL("mention.user.all", true),
     MENTION_USER_LOOKUP("mention.user.lookup", true),
     MENTION_ROLE_MENTIONABLE("mention.role.mentionable", true),
     MENTION_ROLE_ALL("mention.role.all", true),
@@ -57,14 +60,16 @@ public enum Permissions implements Permission {
         this.requiresOpByDefault = requiresOpByDefault;
     }
 
+    @Override
     public String permission() {
-        return "discordsrv." + permission;
+        return PERMISSION_PREFIX + permission;
     }
 
     /**
      * If a given permission's default should be OP, rather than being granted by default.
      * @return {@code true} if the permission should be restricted to, at least OPs
      */
+    @Override
     public boolean requiresOpByDefault() {
         return requiresOpByDefault;
     }
