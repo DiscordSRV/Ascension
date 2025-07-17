@@ -28,6 +28,7 @@ import net.kyori.adventure.text.Component;
 import net.minecraft.entity.LivingEntity;
 import net.minecraft.entity.damage.DamageSource;
 import net.minecraft.server.network.ServerPlayerEntity;
+import net.minecraft.server.world.ServerWorld;
 import net.minecraft.text.Text;
 import net.minecraft.world.GameRules;
 
@@ -44,15 +45,16 @@ public class FabricDeathModule extends AbstractFabricModule {
 
     public static void onDeath(LivingEntity livingEntity, DamageSource damageSource) {
         if (instance == null || !instance.enabled) return;
-        if (!(livingEntity instanceof ServerPlayerEntity playerEntity)) {
+        if (!(livingEntity instanceof ServerPlayerEntity)) {
             return;
         }
+        ServerPlayerEntity playerEntity = (ServerPlayerEntity) livingEntity;
         FabricDiscordSRV discordSRV = instance.discordSRV;
 
-//        if (!playerEntity.getServerWorld().getGameRules().get(GameRules.SHOW_DEATH_MESSAGES).get()) {
-//            logger().debug("Skipping displaying death message, disabled by gamerule");
-//            return;
-//        }
+        if (!((ServerWorld) playerEntity.getWorld()).getGameRules().get(GameRules.SHOW_DEATH_MESSAGES).get()) {
+            instance.logger().debug("Skipping displaying death message, disabled by gamerule");
+            return;
+        }
 
         Text message = damageSource.getDeathMessage(livingEntity);
         //? if adventure: <6 {

@@ -65,16 +65,16 @@ public class FabricAdvancementModule extends AbstractFabricModule {
 
         AdvancementFrame frame = display.getFrame();
 
-        Text rawChat = Text.translatable("chat.type.advancement." + frame.getId(), owner.getDisplayName(), display.getTitle());
+        Text rawChat = Text.translatable("chat." + frame.getToastText().getString(), owner.getDisplayName(), display.getTitle());
         Text rawTitle = display.getTitle();
         Text rawDesc  = display.getDescription();
 
         MinecraftComponent message, title, description;
         //? if adventure: <6 {
-        message     = ComponentUtil.toAPI(discordSRV.getAdventure().toAdventure(rawChat));
+        /*message     = ComponentUtil.toAPI(discordSRV.getAdventure().toAdventure(rawChat));
         title       = ComponentUtil.toAPI(discordSRV.getAdventure().toAdventure(rawTitle));
         description = ComponentUtil.toAPI(discordSRV.getAdventure().toAdventure(rawDesc));
-        //?} else {
+        *///?} else {
         message     = ComponentUtil.toAPI(discordSRV.getAdventure().asAdventure(rawChat));
         title       = ComponentUtil.toAPI(discordSRV.getAdventure().asAdventure(rawTitle));
         description = ComponentUtil.toAPI(discordSRV.getAdventure().asAdventure(rawDesc));

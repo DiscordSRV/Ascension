@@ -1,17 +1,3 @@
 plugins.apply "dev.kikugie.stonecutter"
 
 stonecutter.active "1.21.4" /* [SC] DO NOT EDIT */
-
-tasks.register("build-fabric-all") {
-    group = "stonecutter-build"
-    dependsOn stonecutter.tasks.named("build", { true }) // Select all "build" tasks
-}
-
-for (ver in stonecutter.versions) {
-    tasks.register("build-fabric-${ver.project}") {
-        group = "stonecutter-build"
-        dependsOn stonecutter.tasks.named("build", {
-            it.metadata.project == ver.project
-        })
-    }
-}

@@ -77,10 +77,10 @@ public class FabricPlayer extends FabricCommandSender implements IPlayer {
     @Override
     public Task<Void> kick(Component component) {
         //? if adventure: <6 {
-        player.networkHandler.disconnect(discordSRV.getAdventure().toNative(component));
-        //?} else {
-        /*player.networkHandler.disconnect(discordSRV.getAdventure().asNative(component));
-         *///?}
+        /*player.networkHandler.disconnect(discordSRV.getAdventure().toNative(component));
+        *///?} else {
+        player.networkHandler.disconnect(discordSRV.getAdventure().asNative(component));
+         //?}
         return Task.completed(null);
     }
 
@@ -135,8 +135,8 @@ public class FabricPlayer extends FabricCommandSender implements IPlayer {
         return player.getOrDefaultFrom(
                 Identity.DISPLAY_NAME,
                 //? if adventure: <6 {
-                () -> discordSRV.getAdventure().toAdventure(player.getName())
-                //?} else {
+                /*() -> discordSRV.getAdventure().toAdventure(player.getName())
+                *///?} else {
                 () -> discordSRV.getAdventure().asAdventure(player.getName())
                 //?}
         );
@@ -154,10 +154,10 @@ public class FabricPlayer extends FabricCommandSender implements IPlayer {
         }
 
         //? if adventure: <6 {
-        return discordSRV.getAdventure().toAdventure(team.decorateName(player.getName()));
-        //?} else {
-        /*return discordSRV.getAdventure().asAdventure(team.decorateName(player.getName()));
-        *///?}
+        /*return discordSRV.getAdventure().toAdventure(team.decorateName(player.getName()));
+        *///?} else {
+        return discordSRV.getAdventure().asAdventure(team.decorateName(player.getName()));
+        //?}
     }
 
     @Override

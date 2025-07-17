@@ -55,7 +55,6 @@ dependencyResolutionManagement {
             // Fabric
             version('fabric-loom', '1.11-SNAPSHOT')
             plugin('fabric-loom', 'fabric-loom').versionRef('fabric-loom')
-            library('fabric-permissions-api', 'me.lucko', 'fabric-permissions-api').version('0.3.3')
 
             // DependencyDownload
             version('dependencydownload', '2.0.0-SNAPSHOT')

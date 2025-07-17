@@ -169,7 +169,7 @@ public class FabricRequiredLinkingModule extends ServerRequireLinkingModule<Fabr
     }
 
     //? if minecraft: <1.19.2 {
-    public void onCommandExecute(ServerCommandSource source, String command, CallbackInfo ci) {
+    /*public void onCommandExecute(ServerCommandSource source, String command, CallbackInfo ci) {
         if (source.getEntity() instanceof ServerPlayerEntity) {
             ServerPlayerEntity playerEntity = (ServerPlayerEntity) source.getEntity();
 
@@ -179,7 +179,7 @@ public class FabricRequiredLinkingModule extends ServerRequireLinkingModule<Fabr
             ci.cancel();
         }
     }
-    //?} else {
+    *///?} else {
     public void onCommandExecute(com.mojang.brigadier.ParseResults<ServerCommandSource> parseResults, String command, CallbackInfo ci) {
         if (!enabled) return;
 
@@ -248,10 +248,10 @@ public class FabricRequiredLinkingModule extends ServerRequireLinkingModule<Fabr
     private void onPlayerPreLogin(net.minecraft.server.network.ServerConfigurationNetworkHandler handler, MinecraftServer minecraftServer) {
         if (!enabled) return;
 
-        UUID playerUUID = handler.getDebugProfile().getId();
-        GameProfile gameProfile = handler.getPlayer().getGameProfile();
-
-        loginsHandled.put(playerUUID, handleFreezeLogin(playerUUID, () -> getBlockReason(gameProfile, false).join()));
+//        UUID playerUUID = handler.getDebugProfile().getId();
+//        GameProfile gameProfile = handler.getPlayer().getGameProfile();
+//
+//        loginsHandled.put(playerUUID, handleFreezeLogin(playerUUID, () -> getBlockReason(gameProfile, false).join()));
     }
     //?}
 

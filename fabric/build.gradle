@@ -19,7 +19,7 @@ java {
 processResources {
     def version = project.version
     def loaderVersion = project.property("deps.fabric_loader")
-    def minecraftVersion = ">=${project.property('mod.min_target')}- <=${project.property('mod.max_target')}"
+    def minecraftVersion = stonecutter.current.project
 
     inputs.property("version", version)
     inputs.property("loaderVersion", loaderVersion)
@@ -57,11 +57,8 @@ remapJar {
     dependsOn shadowJar
     mustRunAfter shadowJar
     inputFile = shadowJar.archiveFile
-    if (project.property('mod.min_target') == project.property('mod.max_target')) {
-        archiveBaseName = "DiscordSRV-Fabric-${project.property('mod.min_target')}"
-    } else {
-        archiveBaseName = "DiscordSRV-Fabric-${project.property('mod.min_target')}-${project.property('mod.max_target')}"
-    }
+
+    archiveBaseName = "DiscordSRV-Fabric-${stonecutter.current.project}"
     archiveClassifier = jar.archiveClassifier
 
     finalizedBy copyRemappedJar
@@ -128,8 +125,12 @@ dependencies {
     // MixinExtras - Since it's not provided under 1.18.2
     include(implementation(annotationProcessor("io.github.llamalad7:mixinextras-fabric:0.4.1")))
 
-    modImplementation(libs.fabric.permissions.api)
-    include(libs.fabric.permissions.api)
+    // Minecraft versions under 1.21.6 should use 0.3.3, while 1.21.6 and above should use 0.4.1
+    modImplementation("me.lucko:fabric-permissions-api:${stonecutter.eval(stonecutter.current.version, ">=1.21.6") ? '0.4.1' : '0.3.3'}") {
+        exclude group: 'net.fabricmc.fabric-api', module: 'fabric-api-base'
+        exclude group: 'net.fabricmc.fabric-api', module: 'fabric-api-bom'
+    }
+    include ("me.lucko:fabric-permissions-api:${stonecutter.eval(stonecutter.current.version, ">=1.21.6") ? '0.4.1' : '0.3.3'}")
 
     // API
     annotationProcessor project(':api')
