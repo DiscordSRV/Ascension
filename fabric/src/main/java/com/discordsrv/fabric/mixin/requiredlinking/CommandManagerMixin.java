@@ -24,21 +24,20 @@ import net.minecraft.server.command.ServerCommandSource;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
-import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
 @Mixin(CommandManager.class)
 public class CommandManagerMixin {
 
-    //? if minecraft: <1.19.2 {
+    //? if minecraft: <1.20.3 {
     /*@Inject(method = "execute", at = @At("HEAD"), cancellable = true)
-    private void execute(ServerCommandSource commandSource, String command, CallbackInfoReturnable<Integer> cir) {
+    private void execute(ServerCommandSource commandSource, String command, org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable<Integer> cir) {
         FabricRequiredLinkingModule.withInstance(module -> module.onCommandExecute(commandSource, command, cir));
         if(cir.isCancelled()) cir.setReturnValue(0);
     }
     *///?} else {
     @Inject(method = "execute", at = @At("HEAD"), cancellable = true)
-    private void execute(com.mojang.brigadier.ParseResults<ServerCommandSource> parseResults, String command, CallbackInfoReturnable<Integer> cir) {
-        FabricRequiredLinkingModule.withInstance(module -> module.onCommandExecute(parseResults, command, cir));
+    private void execute(com.mojang.brigadier.ParseResults<ServerCommandSource> parseResults, String command, org.spongepowered.asm.mixin.injection.callback.CallbackInfo ci) {
+        FabricRequiredLinkingModule.withInstance(module -> module.onCommandExecute(parseResults, command, ci));
     }
     //?}
 }
