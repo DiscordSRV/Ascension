@@ -38,6 +38,7 @@ import net.minecraft.util.math.MathHelper;
 import net.minecraft.world.GameMode;
 import org.jetbrains.annotations.Nullable;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
+import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
 import java.util.Map;
 import java.util.UUID;
@@ -169,7 +170,7 @@ public class FabricRequiredLinkingModule extends ServerRequireLinkingModule<Fabr
     }
 
     //? if minecraft: <1.19.2 {
-    /*public void onCommandExecute(ServerCommandSource source, String command, CallbackInfo ci) {
+    /*public void onCommandExecute(ServerCommandSource source, String command, CallbackInfoReturnable ci) {
         if (source.getEntity() instanceof ServerPlayerEntity) {
             ServerPlayerEntity playerEntity = (ServerPlayerEntity) source.getEntity();
 
@@ -180,7 +181,7 @@ public class FabricRequiredLinkingModule extends ServerRequireLinkingModule<Fabr
         }
     }
     *///?} else {
-    public void onCommandExecute(com.mojang.brigadier.ParseResults<ServerCommandSource> parseResults, String command, CallbackInfo ci) {
+    public void onCommandExecute(com.mojang.brigadier.ParseResults<ServerCommandSource> parseResults, String command, CallbackInfoReturnable ci) {
         if (!enabled) return;
 
         ServerPlayerEntity playerEntity = parseResults.getContext().getSource().getPlayer();
