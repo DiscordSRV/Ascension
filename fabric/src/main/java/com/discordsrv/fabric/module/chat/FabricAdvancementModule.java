@@ -65,19 +65,25 @@ public class FabricAdvancementModule extends AbstractFabricModule {
 
         AdvancementFrame frame = display.getFrame();
 
-        Text rawChat = Text.translatable("chat." + frame.getToastText().getString(), owner.getDisplayName(), display.getTitle());
+        //? if minecraft: <1.20.2 {
+        /*Text rawChat = Text.translatable("chat.type.advancement." + frame.getId(), owner.getDisplayName(), display.getTitle());
+        *///?} else {
+        Text rawChat = frame.getChatAnnouncementText(advancementEntry, owner);
+        //?}
         Text rawTitle = display.getTitle();
         Text rawDesc  = display.getDescription();
 
-        MinecraftComponent message, title, description;
         //? if adventure: <6 {
-        /*message     = ComponentUtil.toAPI(discordSRV.getAdventure().toAdventure(rawChat));
-        title       = ComponentUtil.toAPI(discordSRV.getAdventure().toAdventure(rawTitle));
-        description = ComponentUtil.toAPI(discordSRV.getAdventure().toAdventure(rawDesc));
+        /*@SuppressWarnings("removal")
+        MinecraftComponent message = ComponentUtil.toAPI(discordSRV.getAdventure().toAdventure(rawChat));
+        @SuppressWarnings("removal")
+        MinecraftComponent title = ComponentUtil.toAPI(discordSRV.getAdventure().toAdventure(rawTitle));
+        @SuppressWarnings("removal")
+        MinecraftComponent description = ComponentUtil.toAPI(discordSRV.getAdventure().toAdventure(rawDesc));
         *///?} else {
-        message     = ComponentUtil.toAPI(discordSRV.getAdventure().asAdventure(rawChat));
-        title       = ComponentUtil.toAPI(discordSRV.getAdventure().asAdventure(rawTitle));
-        description = ComponentUtil.toAPI(discordSRV.getAdventure().asAdventure(rawDesc));
+        MinecraftComponent message = ComponentUtil.toAPI(discordSRV.getAdventure().asAdventure(rawChat));
+        MinecraftComponent title = ComponentUtil.toAPI(discordSRV.getAdventure().asAdventure(rawTitle));
+        MinecraftComponent description = ComponentUtil.toAPI(discordSRV.getAdventure().asAdventure(rawDesc));
         //?}
 
         IPlayer player = discordSRV.playerProvider().player(owner);
