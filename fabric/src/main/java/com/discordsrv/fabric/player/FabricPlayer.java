@@ -55,6 +55,10 @@ public class FabricPlayer extends FabricCommandSender implements IPlayer {
         return discordSRV;
     }
 
+    public @NotNull ServerPlayerEntity getPlayer() {
+        return player;
+    }
+
     @Override
     public @NotNull String username() {
         return player.getName().getString();
