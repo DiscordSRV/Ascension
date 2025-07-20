@@ -105,8 +105,8 @@ repositories {
 
 dependencies {
     minecraft("com.mojang:minecraft:${stonecutter.current.project}")
-    mappings("net.fabricmc:yarn:${property("deps.yarn_mappings")}:v2")
-    compileOnly("net.fabricmc:fabric-loader:${property("deps.fabric_loader")}")
+    mappings("net.fabricmc:yarn:${project.property("deps.yarn_mappings")}:v2")
+    compileOnly("net.fabricmc:fabric-loader:${project.property("deps.fabric_loader")}")
 
     // Fabric API
     Set<String> apiModules = [
@@ -119,7 +119,7 @@ dependencies {
         apiModules.add('fabric-message-api-v1')
     }
     apiModules.forEach {
-        modImplementation(fabricApi.module(it, property("deps.fabric_api")))
+        modImplementation(fabricApi.module(it, project.property("deps.fabric_api")))
     }
 
     // MixinExtras - Since it's not provided under 1.18.2
@@ -140,11 +140,11 @@ dependencies {
     shadow project(':common')
 
     // Adventure
-    modImplementation("net.kyori:adventure-platform-fabric:${property("deps.adventure_platform_fabric")}")
-    include("net.kyori:adventure-platform-fabric:${property("deps.adventure_platform_fabric")}")
+    modImplementation("net.kyori:adventure-platform-fabric:${project.property("deps.adventure_platform_fabric")}")
+    include("net.kyori:adventure-platform-fabric:${project.property("deps.adventure_platform_fabric")}")
 
     // Integrations
-    modCompileOnly("eu.pb4:placeholder-api:${property("deps.text_placeholder_api")}")
+    modCompileOnly("eu.pb4:placeholder-api:${project.property("deps.text_placeholder_api")}")
 
     // DependencyDownload
     shadow(libs.mcdependencydownload.fabric) {
