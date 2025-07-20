@@ -24,6 +24,7 @@ import com.discordsrv.api.player.DiscordSRVPlayer;
 import com.discordsrv.common.util.ComponentUtil;
 import com.discordsrv.fabric.FabricDiscordSRV;
 import com.discordsrv.fabric.module.AbstractFabricModule;
+import net.fabricmc.fabric.api.entity.event.v1.ServerLivingEntityEvents;
 import net.kyori.adventure.text.Component;
 import net.minecraft.entity.LivingEntity;
 import net.minecraft.entity.damage.DamageSource;
@@ -34,25 +35,25 @@ import net.minecraft.world.GameRules;
 
 public class FabricDeathModule extends AbstractFabricModule {
 
-    private static FabricDeathModule instance;
     private final FabricDiscordSRV discordSRV;
 
     public FabricDeathModule(FabricDiscordSRV discordSRV) {
         super(discordSRV);
         this.discordSRV = discordSRV;
-        instance = this;
     }
 
-    public static void onDeath(LivingEntity livingEntity, DamageSource damageSource) {
-        if (instance == null || !instance.enabled) return;
-        if (!(livingEntity instanceof ServerPlayerEntity)) {
+    public void register() {
+        ServerLivingEntityEvents.AFTER_DEATH.register(this::onDeath);
+    }
+
+    private void onDeath(LivingEntity livingEntity, DamageSource damageSource) {
+        if (!enabled || !(livingEntity instanceof ServerPlayerEntity)) {
             return;
         }
         ServerPlayerEntity playerEntity = (ServerPlayerEntity) livingEntity;
-        FabricDiscordSRV discordSRV = instance.discordSRV;
 
         if (!((ServerWorld) playerEntity.getWorld()).getGameRules().get(GameRules.SHOW_DEATH_MESSAGES).get()) {
-            instance.logger().debug("Skipping displaying death message, disabled by gamerule");
+            logger().debug("Skipping displaying death message, disabled by gamerule");
             return;
         }
 
