@@ -1,5 +1,5 @@
 plugins {
-    id("dev.kikugie.stonecutter") version "0.7"
+    id("dev.kikugie.stonecutter") version "0.7.1"
     id("fabric-loom")
 }
 apply from: rootProject.file('buildscript/standalone.gradle')
