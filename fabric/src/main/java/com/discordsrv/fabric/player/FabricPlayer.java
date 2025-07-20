@@ -35,6 +35,7 @@ import org.jetbrains.annotations.Nullable;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Locale;
+import java.util.function.Supplier;
 
 //? if minecraft: >1.19 {
 import net.minecraft.network.packet.s2c.play.ChatSuggestionsS2CPacket;
@@ -128,11 +129,11 @@ public class FabricPlayer extends FabricCommandSender implements IPlayer {
         *///?}
     }
 
-    @SuppressWarnings("removal")
     @Override
     public @NotNull Component displayName() {
         //? if adventure: >=5.3.0 {
-        return player.getOrDefaultFrom(
+        @SuppressWarnings("removal")
+        Component displayName = player.getOrDefaultFrom(
                 Identity.DISPLAY_NAME,
                 //? if adventure: <6 {
                 /*() -> discordSRV.getAdventure().toAdventure(player.getName())
@@ -141,9 +142,9 @@ public class FabricPlayer extends FabricCommandSender implements IPlayer {
                 //?}
         );
         //?} else {
-        /*return Component.text(player.getName().getString());
+        /*Component displayName = Component.text(player.getName().getString());
         *///?}
-
+        return displayName;
     }
 
     @Override
@@ -154,10 +155,13 @@ public class FabricPlayer extends FabricCommandSender implements IPlayer {
         }
 
         //? if adventure: <6 {
-        /*return discordSRV.getAdventure().toAdventure(team.decorateName(player.getName()));
+        /*@SuppressWarnings("removal")
+        Component component = discordSRV.getAdventure().toAdventure(team.decorateName(player.getName()));
         *///?} else {
-        return discordSRV.getAdventure().asAdventure(team.decorateName(player.getName()));
+        Component component =  discordSRV.getAdventure().asAdventure(team.decorateName(player.getName()));
         //?}
+        return component;
+
     }
 
     @Override
