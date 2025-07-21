@@ -47,7 +47,7 @@ import java.util.Optional;
 
 
 public class DiscordSRVFabricBootstrap implements DedicatedServerModInitializer, IBootstrap {
-    private final static String DEPENDENCIES_RUNTIME = /*$ dependencies_file*/"dependencies/runtimeDownload-1.21.4.txt";
+    private final static String DEPENDENCIES_RUNTIME = /*$ dependencies_file*/"dependencies/runtimeDownload-1.21.6.txt";
 
     private final Logger logger;
     private final ClasspathAppender classpathAppender;
@@ -126,10 +126,10 @@ public class DiscordSRVFabricBootstrap implements DedicatedServerModInitializer,
     @Override
     public String platformVersion() {
         //? if minecraft: >=1.21.6 {
-        /*String minecraftVersion = MinecraftVersion.CURRENT.name();
-         *///?} else {
-        String minecraftVersion = MinecraftVersion.CURRENT.getName();
-         //?}
+        String minecraftVersion = MinecraftVersion.CURRENT.name();
+         //?} else {
+        /*String minecraftVersion = MinecraftVersion.CURRENT.getName();
+         *///?}
 
         String loader_version = FabricLoaderImpl.VERSION;
         Optional<ModContainer> fabricApi = FabricLoader.getInstance().getModContainer("fabric-api");
