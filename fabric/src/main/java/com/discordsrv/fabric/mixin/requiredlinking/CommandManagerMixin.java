@@ -28,10 +28,10 @@ import org.spongepowered.asm.mixin.injection.Inject;
 @Mixin(CommandManager.class)
 public class CommandManagerMixin {
 
-    //? if minecraft: <1.20.3 {
+    //? if minecraft: <1.20.3 && >=1.19.1 {
     /*@Inject(method = "execute", at = @At("HEAD"), cancellable = true)
-    private void execute(ServerCommandSource commandSource, String command, org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable<Integer> cir) {
-        FabricRequiredLinkingModule.withInstance(module -> module.onCommandExecute(commandSource, command, cir));
+    private void execute(com.mojang.brigadier.ParseResults<ServerCommandSource> parseResults, String command, org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable<Integer> cir) {
+        FabricRequiredLinkingModule.withInstance(module -> module.onCommandExecute(parseResults, command, cir));
         if(cir.isCancelled()) cir.setReturnValue(0);
     }
     *///?} else {

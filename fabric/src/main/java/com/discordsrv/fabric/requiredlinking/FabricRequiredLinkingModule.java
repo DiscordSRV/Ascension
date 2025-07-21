@@ -169,18 +169,6 @@ public class FabricRequiredLinkingModule extends ServerRequireLinkingModule<Fabr
         ci.cancel();
     }
 
-    //? if minecraft: <1.19.2 {
-    /*public void onCommandExecute(ServerCommandSource source, String command, CallbackInfoReturnable ci) {
-        if (source.getEntity() instanceof ServerPlayerEntity) {
-            ServerPlayerEntity playerEntity = (ServerPlayerEntity) source.getEntity();
-
-            IPlayer srvPlayer = discordSRV.playerProvider().player(playerEntity);
-            INSTANCE.checkCommand(srvPlayer, command, () -> INSTANCE.getBlockReason(playerEntity.getGameProfile(), false));
-
-            ci.cancel();
-        }
-    }
-    *///?} else {
     public void onCommandExecute(com.mojang.brigadier.ParseResults<ServerCommandSource> parseResults, String command, CallbackInfo ci) {
         if (!enabled) return;
 
@@ -194,7 +182,6 @@ public class FabricRequiredLinkingModule extends ServerRequireLinkingModule<Fabr
 
         ci.cancel();
     }
-    //?}
 
     //
     // Freeze

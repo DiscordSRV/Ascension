@@ -31,6 +31,7 @@ import net.fabricmc.loader.api.ModContainer;
 import net.fabricmc.loader.impl.FabricLoaderImpl;
 import net.minecraft.MinecraftVersion;
 import net.minecraft.server.MinecraftServer;
+import net.minecraft.GameVersion;
 import org.apache.logging.log4j.LogManager;
 
 import java.io.IOException;
@@ -124,14 +125,15 @@ public class DiscordSRVFabricBootstrap implements DedicatedServerModInitializer,
 
     @Override
     public String platformVersion() {
-        //? if minecraft: <1.18 {
-        /*MinecraftVersion version = (MinecraftVersion) MinecraftVersion.GAME_VERSION;
-        *///?} else {
-        MinecraftVersion version = (MinecraftVersion) MinecraftVersion.CURRENT;
+        //? if minecraft: >=1.21.6 {
+        /*String minecraftVersion = MinecraftVersion.CURRENT.name();
+         *///?} else {
+        String minecraftVersion = MinecraftVersion.CURRENT.getName();
          //?}
+
         String loader_version = FabricLoaderImpl.VERSION;
         Optional<ModContainer> fabricApi = FabricLoader.getInstance().getModContainer("fabric-api");
-        return "Minecraft "+ version.getName() + " with Fabric Loader " + loader_version + (fabricApi.map(modContainer -> " (Fabric API: " + modContainer.getMetadata().getVersion().getFriendlyString() + ")").orElse(""));
+        return "Minecraft " + minecraftVersion + " with Fabric Loader " + loader_version + (fabricApi.map(modContainer -> " (Fabric API: " + modContainer.getMetadata().getVersion().getFriendlyString() + ")").orElse(""));
     }
 
     public MinecraftServer getServer() {

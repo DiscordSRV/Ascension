@@ -54,7 +54,7 @@ public class FabricAdvancementModule extends AbstractFabricModule {
         /*AdvancementDisplay display = advancement.getDisplay();
          *///?} else {
         Advancement advancement = advancementEntry.value();
-        AdvancementDisplay display = advancement.display().get();
+        AdvancementDisplay display = advancement.display().orElse(null);
         //?}
 
         if (display == null || !display.shouldAnnounceToChat()) {
@@ -65,7 +65,7 @@ public class FabricAdvancementModule extends AbstractFabricModule {
 
         AdvancementFrame frame = display.getFrame();
 
-        //? if minecraft: <1.20.2 {
+        //? if minecraft: <1.20.3 {
         /*Text rawChat = Text.translatable("chat.type.advancement." + frame.getId(), owner.getDisplayName(), display.getTitle());
         *///?} else {
         Text rawChat = frame.getChatAnnouncementText(advancementEntry, owner);

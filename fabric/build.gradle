@@ -41,7 +41,7 @@ shadowJar {
 }
 
 stonecutter {
-    def adventure = project.property("deps.adventure_platform_fabric")
+    def adventure = project.property("deps.adventure_platform_fabric").replace("-SNAPSHOT", "")
     dependency("adventure", adventure)
     dependency("java", project.property("deps.java"))
 
@@ -59,6 +59,9 @@ remapJar {
     inputFile = shadowJar.archiveFile
 
     archiveBaseName = "DiscordSRV-Fabric-${stonecutter.current.project}"
+    if (stonecutter.current.version == "1.21.6") {
+        archiveBaseName = "DiscordSRV-Fabric-${stonecutter.current.project}-1.21.8"
+    }
     archiveClassifier = jar.archiveClassifier
 
     finalizedBy copyRemappedJar
