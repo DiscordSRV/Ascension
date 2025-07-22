@@ -8,13 +8,13 @@ if (-not ([Security.Principal.WindowsPrincipal] [Security.Principal.WindowsIdent
 }
 
 # Set base paths
-$basePath = "D:\Coding\Ascension\fabric\versions"
-$srcPath = "D:\Coding\Ascension\fabric\src"
+$basePath = "$PSScriptRoot\..\versions"
+$srcPath = "$PSScriptRoot\..\src"
 
 # Loop through each version folder
 Get-ChildItem -Directory $basePath | ForEach-Object {
     $versionPath = $_.FullName
-    $linkPath = Join-Path $versionPath "mappedSrc"
+    $linkPath = Join-Path $versionPath "src"
 
     # Remove existing link if it exists
     if (Test-Path $linkPath) {

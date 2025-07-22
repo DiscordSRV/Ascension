@@ -45,3 +45,6 @@ hs_err_pid*
 
 # Fabric mapping migration
 **/fabric/remappedSrc
+
+# Fabric src links
+/fabric/versions/*/src
