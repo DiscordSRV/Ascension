@@ -31,7 +31,6 @@ import net.fabricmc.loader.api.ModContainer;
 import net.fabricmc.loader.impl.FabricLoaderImpl;
 import net.minecraft.MinecraftVersion;
 import net.minecraft.server.MinecraftServer;
-import net.minecraft.GameVersion;
 import org.apache.logging.log4j.LogManager;
 
 import java.io.IOException;
