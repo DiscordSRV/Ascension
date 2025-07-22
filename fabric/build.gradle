@@ -165,11 +165,3 @@ dependencies {
         exclude module: 'fabric-loader'
     }
 }
-
-//idea {
-//    module {
-//        println(sourceDirs)
-//        sourceDirs += file("${rootProject.projectDir}/versions/${stonecutter.current.project}/src/main/java")
-//        println(sourceDirs)
-//    }
-//}
