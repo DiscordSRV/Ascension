@@ -107,16 +107,9 @@ public class TextPlaceholderIntegration extends PluginIntegration<FabricDiscordS
             }
         }
 
-        //? if minecraft: >1.20.1 {
-        net.minecraft.util.profiler.ProfileResult profileResult = uuid != null ? discordSRV.getServer().getSessionService().fetchProfile(uuid, true) : null;
-        if (profileResult != null) {
-            Text parsed = Placeholders.parseText(Text.of(placeholder), PlaceholderContext.of(profileResult.profile(), discordSRV.getServer()));
-        //?} else {
-        /*GameProfile gameProfile = uuid != null ? discordSRV.getServer().getSessionService().fillProfileProperties(new GameProfile(uuid, null), false) : null;
-        if (gameProfile != null) {
-            Text parsed = Placeholders.parseText(Text.of(placeholder), PlaceholderContext.of(gameProfile, discordSRV.getServer()));
-        *///?}
-            setResult(event, placeholder, parsed.getString());
+        Text parsedUser = parseUserPlaceholder(placeholder, uuid);
+        if (parsedUser != null) {
+            setResult(event, placeholder, parsedUser.getString());
             return;
         }
 
@@ -176,5 +169,26 @@ public class TextPlaceholderIntegration extends PluginIntegration<FabricDiscordS
                 () -> discordSRV.placeholderService().replacePlaceholders(placeholder, context)
         );
         return placeholder.equals(result) ? PlaceholderResult.invalid() : PlaceholderResult.value(result);
+    }
+
+    private Text parseUserPlaceholder(String placeholder, UUID uuid) {
+        GameProfile gameProfile = null;
+
+        //? if minecraft: <=1.20.1 {
+        /*gameProfile = discordSRV.getServer().getSessionService().fillProfileProperties(new GameProfile(uuid, null), true);
+
+        *///?} else {
+        com.mojang.authlib.yggdrasil.ProfileResult profileResult = discordSRV.getServer().getSessionService().fetchProfile(uuid, true);
+        if (profileResult != null) {
+            gameProfile = profileResult.profile();
+        }
+        //?}
+
+        if (gameProfile != null) {
+            Text parsed = Placeholders.parseText(Text.of(placeholder), PlaceholderContext.of(gameProfile, discordSRV.getServer()));
+            return parsed;
+        }
+
+        return null;
     }
 }
