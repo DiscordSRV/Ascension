@@ -24,6 +24,7 @@ import com.discordsrv.common.abstraction.player.IPlayer;
 import com.discordsrv.common.abstraction.player.provider.model.SkinInfo;
 import com.discordsrv.fabric.FabricDiscordSRV;
 import com.discordsrv.fabric.command.game.sender.FabricCommandSender;
+import com.discordsrv.fabric.mixin.ServerPlayerEntityAccessor;
 import net.kyori.adventure.identity.Identity;
 import net.kyori.adventure.text.Component;
 import net.minecraft.scoreboard.Team;
@@ -34,7 +35,6 @@ import org.jetbrains.annotations.Nullable;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Locale;
-import java.util.Map;
 
 //? if minecraft: >1.19 {
 import net.minecraft.network.packet.s2c.play.ChatSuggestionsS2CPacket;
@@ -47,6 +47,7 @@ public class FabricPlayer extends FabricCommandSender implements IPlayer {
     public FabricPlayer(FabricDiscordSRV discordSRV, ServerPlayerEntity player) {
         super(discordSRV, player.getCommandSource());
         this.player = player;
+        discordSRV.logger().error("FabricPlayer " + player.getName().getString() + " created. Locale: " + ((ServerPlayerEntityAccessor) player).discordsrv$getLocale());
     }
 
     @Override
@@ -65,11 +66,7 @@ public class FabricPlayer extends FabricCommandSender implements IPlayer {
 
     @Override
     public @Nullable Locale locale() {
-        //? if java: >19 || minecraft: <1.20.2 {
-        return Locale.getDefault();
-        //?} else {
-        /*return Locale.of(player.getClientOptions().language());
-        *///?}
+        return Locale.forLanguageTag(((ServerPlayerEntityAccessor) player).discordsrv$getLocale());
     }
 
     @Override
@@ -111,7 +108,7 @@ public class FabricPlayer extends FabricCommandSender implements IPlayer {
             return new SkinInfo(textures.skin().getHash(), model, new SkinInfo.Parts(playerModelParts));
         }
         //?} else {
-        /*Map<com.mojang.authlib.minecraft.MinecraftProfileTexture.Type, com.mojang.authlib.minecraft.MinecraftProfileTexture> texturesMap = discordSRV.getServer().getSessionService().getTextures(player.getGameProfile(), true);
+        /*java.util.Map<com.mojang.authlib.minecraft.MinecraftProfileTexture.Type, com.mojang.authlib.minecraft.MinecraftProfileTexture> texturesMap = discordSRV.getServer().getSessionService().getTextures(player.getGameProfile(), true);
         com.mojang.authlib.minecraft.MinecraftProfileTexture skinTexture = texturesMap.get(com.mojang.authlib.minecraft.MinecraftProfileTexture.Type.SKIN);
         String model;
         if (skinTexture != null) {
