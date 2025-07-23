@@ -63,8 +63,9 @@ public class FabricAdventureUtil {
 
     public Component fromNative(Text text) {
         //? if adventure: <6 {
-        // return adventure.toAdventure(text);
-        //?} else {
+        /*@SuppressWarnings("removal")
+        return adventure.toAdventure(text);
+        *///?} else {
         return adventure.asAdventure(text);
         //?}
     }
