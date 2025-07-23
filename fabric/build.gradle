@@ -136,9 +136,6 @@ dependencies {
         modImplementation(fabricApi.module(it, project.property("deps.fabric_api")))
     }
 
-    // MixinExtras - Since it's not provided under 1.18.2
-    include(implementation(annotationProcessor("io.github.llamalad7:mixinextras-fabric:0.4.1")))
-
     // Minecraft versions under 1.21.6 should use 0.3.3, while 1.21.6 and above should use 0.4.1
     modImplementation("me.lucko:fabric-permissions-api:${stonecutter.eval(stonecutter.current.version, ">=1.21.6") ? '0.4.1' : '0.3.3'}") {
         exclude group: 'net.fabricmc.fabric-api', module: 'fabric-api-base'
