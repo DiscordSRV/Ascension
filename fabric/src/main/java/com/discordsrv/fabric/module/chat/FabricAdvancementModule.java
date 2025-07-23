@@ -22,7 +22,6 @@ import com.discordsrv.api.component.MinecraftComponent;
 import com.discordsrv.api.events.message.preprocess.game.AwardMessagePreProcessEvent;
 import com.discordsrv.common.abstraction.player.IPlayer;
 import com.discordsrv.common.core.logging.NamedLogger;
-import com.discordsrv.common.util.ComponentUtil;
 import com.discordsrv.fabric.FabricDiscordSRV;
 import com.discordsrv.fabric.module.AbstractFabricModule;
 import net.minecraft.advancement.Advancement;
@@ -70,21 +69,10 @@ public class FabricAdvancementModule extends AbstractFabricModule {
         *///?} else {
         Text rawChat = frame.getChatAnnouncementText(advancementEntry, owner);
         //?}
-        Text rawTitle = display.getTitle();
-        Text rawDesc  = display.getDescription();
 
-        //? if adventure: <6 {
-        /*@SuppressWarnings("removal")
-        MinecraftComponent message = ComponentUtil.toAPI(discordSRV.getAdventure().toAdventure(rawChat));
-        @SuppressWarnings("removal")
-        MinecraftComponent title = ComponentUtil.toAPI(discordSRV.getAdventure().toAdventure(rawTitle));
-        @SuppressWarnings("removal")
-        MinecraftComponent description = ComponentUtil.toAPI(discordSRV.getAdventure().toAdventure(rawDesc));
-        *///?} else {
-        MinecraftComponent message = ComponentUtil.toAPI(discordSRV.getAdventure().asAdventure(rawChat));
-        MinecraftComponent title = ComponentUtil.toAPI(discordSRV.getAdventure().asAdventure(rawTitle));
-        MinecraftComponent description = ComponentUtil.toAPI(discordSRV.getAdventure().asAdventure(rawDesc));
-        //?}
+        MinecraftComponent message = discordSRV.adventureUtil().toAPI(rawChat);
+        MinecraftComponent title = discordSRV.adventureUtil().toAPI(display.getTitle());
+        MinecraftComponent description = discordSRV.adventureUtil().toAPI(display.getDescription());
 
         IPlayer player = discordSRV.playerProvider().player(owner);
         discordSRV.eventBus().publish(

@@ -20,17 +20,18 @@ package com.discordsrv.fabric.module.chat;
 
 import com.discordsrv.api.component.MinecraftComponent;
 import com.discordsrv.api.events.message.preprocess.game.LeaveMessagePreProcessEvent;
-import com.discordsrv.common.util.ComponentUtil;
 import com.discordsrv.fabric.FabricDiscordSRV;
 import com.discordsrv.fabric.module.AbstractFabricModule;
 import com.discordsrv.fabric.player.FabricPlayer;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayConnectionEvents;
 import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.format.TextColor;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.network.ServerPlayNetworkHandler;
 import net.minecraft.server.network.ServerPlayerEntity;
-import net.minecraft.text.Text;
 import net.minecraft.util.Formatting;
+
+import java.util.Objects;
 
 public class FabricQuitModule extends AbstractFabricModule {
 
@@ -49,8 +50,12 @@ public class FabricQuitModule extends AbstractFabricModule {
         if (!enabled) return;
 
         ServerPlayerEntity player = serverPlayNetworkHandler.player;
-        MinecraftComponent component = getQuitMessage(player);
 
+        Component message = Component.translatable(
+                "multiplayer.player.left",
+                discordSRV.adventureUtil().fromNative(player.getDisplayName()).color(TextColor.color(Objects.requireNonNull(Formatting.YELLOW.getColorValue())))
+        );
+        MinecraftComponent component = discordSRV.adventureUtil().toAPI(message);
         discordSRV.eventBus().publish(
                 new LeaveMessagePreProcessEvent(
                         serverPlayNetworkHandler,
@@ -62,21 +67,5 @@ public class FabricQuitModule extends AbstractFabricModule {
                         false
                 )
         );
-    }
-
-    public MinecraftComponent getQuitMessage(ServerPlayerEntity player) {
-        //? if minecraft: <1.19 {
-        /*Text message = new net.minecraft.text.TranslatableText("multiplayer.player.left", player.getDisplayName()).formatted(Formatting.YELLOW);
-        *///?} else {
-        Text message = Text.translatable("multiplayer.player.left", player.getDisplayName()).formatted(Formatting.YELLOW);
-         //?}
-        //? if adventure: <6 {
-        /*@SuppressWarnings("removal")
-        Component component = discordSRV.getAdventure().toAdventure(message);
-        *///?} else {
-        Component component = discordSRV.getAdventure().asAdventure(message);
-        //?}
-
-        return ComponentUtil.toAPI(component);
     }
 }

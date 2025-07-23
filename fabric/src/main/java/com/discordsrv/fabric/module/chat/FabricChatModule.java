@@ -43,12 +43,7 @@ public class FabricChatModule extends AbstractFabricModule {
         if (instance == null || !instance.enabled) return;
         FabricDiscordSRV discordSRV = instance.discordSRV;
 
-        //? if adventure: <6 {
-        /*@SuppressWarnings("removal")
-        Component component = discordSRV.getAdventure().toAdventure(text);
-        *///?} else {
-        Component component = discordSRV.getAdventure().asAdventure(text);
-         //?}
+        Component component = discordSRV.adventureUtil().fromNative(text);
         discordSRV.eventBus().publish(new GameChatMessagePreProcessEvent(
                 null,
                 discordSRV.playerProvider().player(uuid),

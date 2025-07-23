@@ -56,6 +56,7 @@ public class FabricDiscordSRV extends AbstractDiscordSRV<DiscordSRVFabricBootstr
     private final FabricPlayerProvider playerProvider;
     private final FabricModManager modManager;
     private final FabricCommandHandler commandHandler;
+    private final FabricAdventureUtil adventureUtil;
 
     private final ConnectionConfigManager<ConnectionConfig> connectionConfigManager;
     private final MainConfigManager<FabricConfig> configManager;
@@ -72,6 +73,7 @@ public class FabricDiscordSRV extends AbstractDiscordSRV<DiscordSRVFabricBootstr
         this.modManager = new FabricModManager();
         this.commandHandler = new FabricCommandHandler(this);
         this.executionHelper = new FabricGameCommandExecutionHelper(this);
+        this.adventureUtil = new FabricAdventureUtil(this);
 
         // Config
         this.connectionConfigManager = new ConnectionConfigManager<>(this, ConnectionConfig::new);
@@ -118,16 +120,6 @@ public class FabricDiscordSRV extends AbstractDiscordSRV<DiscordSRVFabricBootstr
     public MinecraftServer getServer() {
         return bootstrap.getServer();
     }
-
-    @NotNull
-            //? if adventure: <6 {
-    /*public net.kyori.adventure.platform.fabric.FabricServerAudiences getAdventure() {
-        return bootstrap.getAdventure();
-    }
-    *///?} else {
-     public net.kyori.adventure.platform.modcommon.MinecraftServerAudiences getAdventure() {
-        return bootstrap.getAdventure();
-    }//?}
 
     @Override
     public ServerType serverType() {
@@ -182,5 +174,9 @@ public class FabricDiscordSRV extends AbstractDiscordSRV<DiscordSRVFabricBootstr
     @Override
     public @Nullable GameCommandExecutionHelper executeHelper() {
         return executionHelper;
+    }
+
+    public @NotNull FabricAdventureUtil adventureUtil() {
+        return adventureUtil;
     }
 }

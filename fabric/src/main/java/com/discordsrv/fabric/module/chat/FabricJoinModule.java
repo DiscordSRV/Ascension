@@ -21,7 +21,6 @@ package com.discordsrv.fabric.module.chat;
 import com.discordsrv.api.component.MinecraftComponent;
 import com.discordsrv.api.events.message.preprocess.game.JoinMessagePreProcessEvent;
 import com.discordsrv.api.player.DiscordSRVPlayer;
-import com.discordsrv.common.util.ComponentUtil;
 import com.discordsrv.fabric.FabricDiscordSRV;
 import com.discordsrv.fabric.module.AbstractFabricModule;
 import net.fabricmc.fabric.api.networking.v1.PacketSender;
@@ -30,8 +29,6 @@ import net.kyori.adventure.text.Component;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.network.ServerPlayNetworkHandler;
 import net.minecraft.server.network.ServerPlayerEntity;
-import net.minecraft.text.MutableText;
-import net.minecraft.text.Text;
 
 import java.util.Objects;
 
@@ -52,8 +49,18 @@ public class FabricJoinModule extends AbstractFabricModule {
         if (!enabled) return;
 
         ServerPlayerEntity playerEntity = serverPlayNetworkHandler.player;
-        MinecraftComponent component = getJoinMessage(playerEntity);
         boolean firstJoin = Objects.requireNonNull(minecraftServer.getUserCache()).findByName(playerEntity.getGameProfile().getName()).isEmpty();
+
+        MinecraftComponent component;
+        if (playerEntity.getGameProfile().getName().equalsIgnoreCase(playerEntity.getName().getString())) {
+            component = discordSRV.adventureUtil().toAPI(Component.translatable("multiplayer.player.joined", discordSRV.adventureUtil().fromNative(playerEntity.getDisplayName())));
+        } else {
+            component = discordSRV.adventureUtil().toAPI(Component.translatable(
+                    "multiplayer.player.joined.renamed",
+                    discordSRV.adventureUtil().fromNative(playerEntity.getDisplayName()),
+                    Component.text(playerEntity.getGameProfile().getName())
+            ));
+        }
 
         DiscordSRVPlayer player = discordSRV.playerProvider().player(playerEntity);
         discordSRV.eventBus().publish(
@@ -68,29 +75,5 @@ public class FabricJoinModule extends AbstractFabricModule {
                         false
                 )
         );
-    }
-
-    private MinecraftComponent getJoinMessage(ServerPlayerEntity playerEntity) {
-        MutableText mutableText;
-        if (playerEntity.getGameProfile().getName().equalsIgnoreCase(playerEntity.getName().getString())) {
-            //? if minecraft: <1.19 {
-            /*mutableText = new net.minecraft.text.TranslatableText("multiplayer.player.joined", playerEntity.getDisplayName());
-            *///?} else {
-            mutableText = Text.translatable("multiplayer.player.joined", playerEntity.getDisplayName());
-             //?}
-        } else {
-            //? if minecraft: <1.19 {
-            /*mutableText = new net.minecraft.text.TranslatableText("multiplayer.player.joined.renamed", playerEntity.getDisplayName(), playerEntity.getName());
-            *///?} else {
-            mutableText = Text.translatable("multiplayer.player.joined.renamed", playerEntity.getDisplayName(), playerEntity.getName());
-             //?}
-        }
-        //? if adventure: <6 {
-        /*@SuppressWarnings("removal")
-        Component component = discordSRV.getAdventure().toAdventure(mutableText);
-        *///?} else {
-        Component component = discordSRV.getAdventure().asAdventure(mutableText);
-        //?}
-        return ComponentUtil.toAPI(component);
     }
 }

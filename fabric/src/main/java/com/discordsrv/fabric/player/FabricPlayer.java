@@ -35,7 +35,6 @@ import org.jetbrains.annotations.Nullable;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Locale;
-import java.util.function.Supplier;
 
 //? if minecraft: >1.19 {
 import net.minecraft.network.packet.s2c.play.ChatSuggestionsS2CPacket;
@@ -66,7 +65,6 @@ public class FabricPlayer extends FabricCommandSender implements IPlayer {
 
     @Override
     public @Nullable Locale locale() {
-        // if java lower than 19
         //? if java: >19 || minecraft: <1.20.2 {
         return Locale.getDefault();
         //?} else {
@@ -81,11 +79,7 @@ public class FabricPlayer extends FabricCommandSender implements IPlayer {
 
     @Override
     public Task<Void> kick(Component component) {
-        //? if adventure: <6 {
-        /*player.networkHandler.disconnect(discordSRV.getAdventure().toNative(component));
-        *///?} else {
-        player.networkHandler.disconnect(discordSRV.getAdventure().asNative(component));
-         //?}
+        player.networkHandler.disconnect(discordSRV.adventureUtil().toNative(component));
         return Task.completed(null);
     }
 
@@ -136,14 +130,9 @@ public class FabricPlayer extends FabricCommandSender implements IPlayer {
     @Override
     public @NotNull Component displayName() {
         //? if adventure: >=5.3.0 {
-        @SuppressWarnings("removal")
         Component displayName = player.getOrDefaultFrom(
                 Identity.DISPLAY_NAME,
-                //? if adventure: <6 {
-                /*() -> discordSRV.getAdventure().toAdventure(player.getName())
-                *///?} else {
-                () -> discordSRV.getAdventure().asAdventure(player.getName())
-                //?}
+                () -> discordSRV.adventureUtil().fromNative(player.getName())
         );
         //?} else {
         /*Component displayName = Component.text(player.getName().getString());
@@ -158,13 +147,7 @@ public class FabricPlayer extends FabricCommandSender implements IPlayer {
             return IPlayer.super.teamDisplayName();
         }
 
-        //? if adventure: <6 {
-        /*@SuppressWarnings("removal")
-        Component component = discordSRV.getAdventure().toAdventure(team.decorateName(player.getName()));
-        *///?} else {
-        Component component =  discordSRV.getAdventure().asAdventure(team.decorateName(player.getName()));
-        //?}
-        return component;
+        return discordSRV.adventureUtil().fromNative(team.decorateName(player.getName()));
 
     }
 

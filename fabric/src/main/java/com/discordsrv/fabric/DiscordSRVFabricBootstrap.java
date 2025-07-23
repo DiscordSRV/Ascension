@@ -54,11 +54,6 @@ public class DiscordSRVFabricBootstrap implements DedicatedServerModInitializer,
     private final Path dataDirectory;
     private MinecraftServer minecraftServer;
     private FabricDiscordSRV discordSRV;
-    //? if adventure: <6 {
-    /*private FabricServerAudiences adventure;
-    *///?} else {
-    private MinecraftServerAudiences adventure;
-     //?}
 
     public DiscordSRVFabricBootstrap() {
         this.logger = new Log4JLoggerImpl(LogManager.getLogger("DiscordSRV"));
@@ -75,18 +70,12 @@ public class DiscordSRVFabricBootstrap implements DedicatedServerModInitializer,
             throw new RuntimeException(e);
         }
         this.minecraftServer = null;
-        this.adventure = null;
     }
 
     @Override
     public void onInitializeServer() {
         ServerLifecycleEvents.SERVER_STARTING.register(minecraftServer -> {
             this.minecraftServer = minecraftServer;
-            //? if adventure: <6 {
-            /*this.adventure = FabricServerAudiences.of(minecraftServer);
-            *///?} else {
-            this.adventure = MinecraftServerAudiences.of(minecraftServer);
-             //?}
             lifecycleManager.loadAndEnable(() -> this.discordSRV = new FabricDiscordSRV(this));
         });
 
@@ -142,13 +131,4 @@ public class DiscordSRVFabricBootstrap implements DedicatedServerModInitializer,
     public FabricDiscordSRV getDiscordSRV() {
         return discordSRV;
     }
-
-    //? if adventure: <6 {
-    /*public FabricServerAudiences getAdventure() {
-        return adventure;
-    }
-    *///?} else {
-     public MinecraftServerAudiences getAdventure() {
-        return adventure;
-    }//?}
 }
