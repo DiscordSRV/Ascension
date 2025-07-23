@@ -22,7 +22,6 @@ import com.discordsrv.api.task.Task;
 import com.discordsrv.common.DiscordSRV;
 import com.discordsrv.common.abstraction.player.IPlayer;
 import com.discordsrv.common.abstraction.player.provider.model.SkinInfo;
-import com.discordsrv.common.abstraction.player.provider.model.Textures;
 import com.discordsrv.fabric.FabricDiscordSRV;
 import com.discordsrv.fabric.command.game.sender.FabricCommandSender;
 import net.kyori.adventure.identity.Identity;
@@ -35,6 +34,7 @@ import org.jetbrains.annotations.Nullable;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Locale;
+import java.util.Map;
 
 //? if minecraft: >1.19 {
 import net.minecraft.network.packet.s2c.play.ChatSuggestionsS2CPacket;
@@ -101,20 +101,28 @@ public class FabricPlayer extends FabricCommandSender implements IPlayer {
 
     @Override
     public @Nullable SkinInfo skinInfo() {
-        Textures textures = null;
-        //? if minecraft: >1.20.1 {
-        textures = Textures.getFromBase64(discordSRV, player.getGameProfile().getProperties().get(Textures.KEY).iterator().next().value());
-        //?} else {
-        /*textures = Textures.getFromBase64(discordSRV, player.getGameProfile().getProperties().get(Textures.KEY).iterator().next().getValue());
-        *///?}
+        //? if minecraft: >1.20.2 {
+        com.mojang.authlib.minecraft.MinecraftProfileTextures textures = discordSRV.getServer().getSessionService().getTextures(player.getGameProfile());
+        if (!textures.equals(com.mojang.authlib.minecraft.MinecraftProfileTextures.EMPTY) && textures.skin() != null) {
+            String model = textures.skin().getMetadata("model");
+            if (model == null) model = "classic";
 
-//        if (!textures.equals(MinecraftProfileTextures.EMPTY) && textures.skin() != null) {
-//            String model = textures.skin().getMetadata("model");
-//            if (model == null) model = "classic";
-//
-//            int playerModelParts = player.getClientOptions().playerModelParts();
-//            return new SkinInfo(textures.skin().getHash(), model, new SkinInfo.Parts(playerModelParts));
-//        }
+            int playerModelParts = player.getClientOptions().playerModelParts();
+            return new SkinInfo(textures.skin().getHash(), model, new SkinInfo.Parts(playerModelParts));
+        }
+        //?} else {
+        /*Map<com.mojang.authlib.minecraft.MinecraftProfileTexture.Type, com.mojang.authlib.minecraft.MinecraftProfileTexture> texturesMap = discordSRV.getServer().getSessionService().getTextures(player.getGameProfile(), true);
+        com.mojang.authlib.minecraft.MinecraftProfileTexture skinTexture = texturesMap.get(com.mojang.authlib.minecraft.MinecraftProfileTexture.Type.SKIN);
+        String model;
+        if (skinTexture != null) {
+            model = skinTexture.getMetadata("model");
+            if (model == null) model = "classic";
+
+            boolean hasCape = texturesMap.containsKey(com.mojang.authlib.minecraft.MinecraftProfileTexture.Type.CAPE);
+            boolean hasJacket = texturesMap.containsKey(com.mojang.authlib.minecraft.MinecraftProfileTexture.Type.ELYTRA);
+            return new SkinInfo(skinTexture.getHash(), model, new SkinInfo.Parts(hasCape, hasJacket, false, false, false, false, false));
+        }
+        *///?}
         return null;
     }
 
