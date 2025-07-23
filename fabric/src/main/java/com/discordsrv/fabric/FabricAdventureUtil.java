@@ -61,13 +61,14 @@ public class FabricAdventureUtil {
         return adventure;
     }//?}
 
+    //? if adventure: <6 {
+    /*@SuppressWarnings("removal")
     public Component fromNative(Text text) {
-        //? if adventure: <6 {
-        /*@SuppressWarnings("removal")
         return adventure.toAdventure(text);
-        *///?} else {
+    *///?} else {
+    public Component fromNative(Text text) {
         return adventure.asAdventure(text);
-        //?}
+    //?}
     }
 
     public Component toAdventure(Text text) {
