@@ -38,13 +38,6 @@ import java.nio.file.Path;
 import java.util.Collections;
 import java.util.Optional;
 
-//? if adventure: <6 {
-/*import net.kyori.adventure.platform.fabric.FabricServerAudiences;
-*///?} else {
- import net.kyori.adventure.platform.modcommon.MinecraftServerAudiences;
- //?}
-
-
 public class DiscordSRVFabricBootstrap implements DedicatedServerModInitializer, IBootstrap {
     private final static String DEPENDENCIES_RUNTIME = /*$ dependencies_file*/"dependencies/runtimeDownload-1.21.6.txt";
 

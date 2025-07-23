@@ -21,14 +21,20 @@ package com.discordsrv.fabric;
 import com.discordsrv.api.component.MinecraftComponent;
 import com.discordsrv.common.util.ComponentUtil;
 import net.kyori.adventure.audience.Audience;
-import net.kyori.adventure.platform.modcommon.AdventureCommandSourceStack;
-import net.kyori.adventure.platform.modcommon.MinecraftServerAudiences;
 import net.kyori.adventure.text.Component;
 import net.minecraft.server.command.CommandOutput;
 import net.minecraft.server.command.ServerCommandSource;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.text.Text;
 import org.jetbrains.annotations.NotNull;
+
+//? if adventure: <6 {
+/*import net.kyori.adventure.platform.fabric.FabricServerAudiences;
+import net.kyori.adventure.platform.fabric.AdventureCommandSourceStack;
+ *///?} else {
+import net.kyori.adventure.platform.modcommon.MinecraftServerAudiences;
+import net.kyori.adventure.platform.modcommon.AdventureCommandSourceStack;
+//?}
 
 public class FabricAdventureUtil {
 
