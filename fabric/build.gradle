@@ -16,6 +16,14 @@ java {
     sourceCompatibility = javaVersion
 }
 
+if(project.path.startsWith(":fabric:")) {
+    tasks.register('deleteMappedSrc', Delete) {
+        delete project.file("src")
+    }
+
+    clean.dependsOn deleteMappedSrc
+}
+
 sourceSets {
     main {
         java {
