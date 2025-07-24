@@ -18,6 +18,7 @@
 
 package com.discordsrv.fabric.mixin;
 
+import com.discordsrv.fabric.accessor.ServerPlayerEntityAccessor;
 import net.minecraft.server.network.ServerPlayerEntity;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Unique;
@@ -26,14 +27,14 @@ import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 @Mixin(ServerPlayerEntity.class)
-public class ServerPlayerEntityMixin implements ServerPlayerEntityAccessor{
+public class ServerPlayerEntityMixin implements ServerPlayerEntityAccessor {
     //? if minecraft: <1.20.2 {
     /*@Unique
     private String discordsrv$locale = "";
 
     @Unique
     public String discordsrv$getLocale() {
-        return "DiscordSRV";
+        return discordsrv$locale;
     }
 
     @Inject(method = "setClientSettings", at = @At("TAIL"))

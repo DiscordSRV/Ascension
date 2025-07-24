@@ -59,7 +59,8 @@ public class FabricAdventureUtil {
     *///?} else {
     public MinecraftServerAudiences getAdventure() {
         return adventure;
-    }//?}
+    }
+    //?}
 
     //? if adventure: <6 {
     /*@SuppressWarnings("removal")

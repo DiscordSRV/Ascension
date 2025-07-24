@@ -24,7 +24,7 @@ import com.discordsrv.common.abstraction.player.IPlayer;
 import com.discordsrv.common.abstraction.player.provider.model.SkinInfo;
 import com.discordsrv.fabric.FabricDiscordSRV;
 import com.discordsrv.fabric.command.game.sender.FabricCommandSender;
-import com.discordsrv.fabric.mixin.ServerPlayerEntityAccessor;
+import com.discordsrv.fabric.accessor.ServerPlayerEntityAccessor;
 import net.kyori.adventure.identity.Identity;
 import net.kyori.adventure.text.Component;
 import net.minecraft.scoreboard.Team;
@@ -47,7 +47,6 @@ public class FabricPlayer extends FabricCommandSender implements IPlayer {
     public FabricPlayer(FabricDiscordSRV discordSRV, ServerPlayerEntity player) {
         super(discordSRV, player.getCommandSource());
         this.player = player;
-        discordSRV.logger().error("FabricPlayer " + player.getName().getString() + " created. Locale: " + ((ServerPlayerEntityAccessor) player).discordsrv$getLocale());
     }
 
     @Override

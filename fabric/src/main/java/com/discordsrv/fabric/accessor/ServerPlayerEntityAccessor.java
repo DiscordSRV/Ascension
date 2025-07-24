@@ -16,7 +16,7 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package com.discordsrv.fabric.mixin;
+package com.discordsrv.fabric.accessor;
 
 public interface ServerPlayerEntityAccessor {
 
