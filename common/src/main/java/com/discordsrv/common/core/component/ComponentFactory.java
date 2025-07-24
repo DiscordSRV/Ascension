@@ -105,7 +105,7 @@ public class ComponentFactory implements MinecraftComponentFactory {
                 .flattener(flattener)
                 .build();
         this.ansiSerializer = ANSIComponentSerializer.builder()
-                .colorLevel(ColorLevel.INDEXED_8)
+                .colorLevel(ColorLevel.INDEXED_16)
                 .flattener(flattener)
                 .build();
     }
