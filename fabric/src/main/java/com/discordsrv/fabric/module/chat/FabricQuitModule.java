@@ -29,8 +29,6 @@ import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.network.ServerPlayNetworkHandler;
 import net.minecraft.server.network.ServerPlayerEntity;
 
-import java.util.Objects;
-
 public class FabricQuitModule extends AbstractFabricModule {
 
     private final FabricDiscordSRV discordSRV;
