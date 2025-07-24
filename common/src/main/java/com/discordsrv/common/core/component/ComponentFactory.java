@@ -105,12 +105,13 @@ public class ComponentFactory implements MinecraftComponentFactory {
                 .flattener(flattener)
                 .build();
         this.ansiSerializer = ANSIComponentSerializer.builder()
-                .colorLevel(ColorLevel.INDEXED_8)
+                .colorLevel(ColorLevel.INDEXED_16)
                 .flattener(flattener)
                 .build();
     }
 
     private final ThreadLocal<Set<String>> translationHistory = new ThreadLocal<>();
+    @SuppressWarnings("deprecation")
     private String provideTranslation(TranslatableComponent component) {
         Set<String> history = translationHistory.get();
         if (history == null) {
@@ -140,7 +141,7 @@ public class ComponentFactory implements MinecraftComponentFactory {
             translationHistory.set(history);
 
             return translation.translate(
-                    component.arguments()
+                    component.args()
                             .stream()
                             .map(argument -> plainSerializer().serialize(argument.asComponent()))
                             .toArray(Object[]::new)

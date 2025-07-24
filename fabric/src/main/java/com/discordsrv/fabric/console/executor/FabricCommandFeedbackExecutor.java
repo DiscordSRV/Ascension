@@ -28,6 +28,7 @@ import net.minecraft.util.Formatting;
 import net.minecraft.util.math.Vec2f;
 import net.minecraft.util.math.Vec3d;
 
+import java.util.UUID;
 import java.util.function.Consumer;
 
 public class FabricCommandFeedbackExecutor implements CommandOutput, Consumer<Component> {
@@ -42,22 +43,22 @@ public class FabricCommandFeedbackExecutor implements CommandOutput, Consumer<Co
 
     public ServerCommandSource getCommandSource() {
         ServerWorld serverWorld = server.getOverworld();
+        //? if minecraft: <1.19 {
+        /*Text text = Text.of("DiscordSRV");
+        *///?} else {
+        Text text = Text.literal("DiscordSRV");
+         //?}
         return new ServerCommandSource(
-                this,
-                serverWorld == null ? Vec3d.ZERO : Vec3d.of(serverWorld.getSpawnPos()),
-                Vec2f.ZERO,
-                serverWorld,
-                4,
-                "DiscordSRV",
-                Text.literal("DiscordSRV"),
-                server,
-                null
+                this, serverWorld == null ? Vec3d.ZERO : Vec3d.of(serverWorld.getSpawnPos()), Vec2f.ZERO, serverWorld, 4, "DiscordSRV", text, server, null
         );
     }
-
     @Override
+    //? if minecraft: <1.19 {
+    /*public void sendSystemMessage(Text message, UUID sender) {
+    *///?} else {
     public void sendMessage(Text message) {
-        accept(Component.text(Formatting.strip(message.getString())));
+     //?}
+            accept(Component.text(Formatting.strip(message.getString())));
     }
 
     @Override

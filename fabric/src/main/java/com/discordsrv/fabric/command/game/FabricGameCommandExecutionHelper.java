@@ -82,7 +82,7 @@ public class FabricGameCommandExecutionHelper implements GameCommandExecutionHel
 
                 for (CommandNode<ServerCommandSource> child : lastNode.getChildren()) {
                     if (child.getName().toLowerCase().startsWith(parts.getLast().toLowerCase())) {
-                        if (lastNode instanceof RootCommandNode<ServerCommandSource>) {
+                        if (lastNode instanceof RootCommandNode) {
                             data.add(child.getName());
                             continue;
                         }
