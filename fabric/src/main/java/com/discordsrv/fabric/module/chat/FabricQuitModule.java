@@ -25,11 +25,9 @@ import com.discordsrv.fabric.module.AbstractFabricModule;
 import com.discordsrv.fabric.player.FabricPlayer;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayConnectionEvents;
 import net.kyori.adventure.text.Component;
-import net.kyori.adventure.text.format.TextColor;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.network.ServerPlayNetworkHandler;
 import net.minecraft.server.network.ServerPlayerEntity;
-import net.minecraft.util.Formatting;
 
 import java.util.Objects;
 
@@ -53,7 +51,7 @@ public class FabricQuitModule extends AbstractFabricModule {
 
         Component message = Component.translatable(
                 "multiplayer.player.left",
-                discordSRV.adventureUtil().fromNative(player.getDisplayName()).color(TextColor.color(Objects.requireNonNull(Formatting.YELLOW.getColorValue())))
+                discordSRV.adventureUtil().fromNative(player.getDisplayName())
         );
         MinecraftComponent component = discordSRV.adventureUtil().toAPI(message);
         discordSRV.eventBus().publish(
