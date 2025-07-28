@@ -33,19 +33,33 @@ public class ServerPlayerEntityMixin implements ServerPlayerEntityAccessor {
     private String discordsrv$locale = "";
 
     @Unique
+    private int discordsrv$playerModelParts = 0;
+
+    @Unique
     public String discordsrv$getLocale() {
         return discordsrv$locale;
+    }
+
+    @Unique
+    public int discordsrv$getPlayerModelParts() {
+        return discordsrv$playerModelParts;
     }
 
     @Inject(method = "setClientSettings", at = @At("TAIL"))
     public void setClientSettings(net.minecraft.network.packet.c2s.play.ClientSettingsC2SPacket packet, CallbackInfo ci) {
         this.discordsrv$locale = packet.language();
+        this.discordsrv$playerModelParts = packet.playerModelBitMask();
+
     }
     *///?} else {
     @Unique
     public String discordsrv$getLocale() {
         return ((ServerPlayerEntity) (Object) this).getClientOptions().language();
     }
-    //?}
+
+    @Unique
+    public int discordsrv$getPlayerModelParts() {
+        return ((ServerPlayerEntity) (Object) this).getClientOptions().playerModelParts();
+    }//?}
 
 }

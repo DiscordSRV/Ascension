@@ -21,4 +21,5 @@ package com.discordsrv.fabric.accessor;
 public interface ServerPlayerEntityAccessor {
 
     String discordsrv$getLocale();
+    int discordsrv$getPlayerModelParts();
 }

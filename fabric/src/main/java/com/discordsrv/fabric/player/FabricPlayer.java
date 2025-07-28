@@ -97,26 +97,25 @@ public class FabricPlayer extends FabricCommandSender implements IPlayer {
 
     @Override
     public @Nullable SkinInfo skinInfo() {
+        int playerModelParts = ((ServerPlayerEntityAccessor) player).discordsrv$getPlayerModelParts();
+
         //? if minecraft: >1.20.2 {
         com.mojang.authlib.minecraft.MinecraftProfileTextures textures = discordSRV.getServer().getSessionService().getTextures(player.getGameProfile());
         if (!textures.equals(com.mojang.authlib.minecraft.MinecraftProfileTextures.EMPTY) && textures.skin() != null) {
             String model = textures.skin().getMetadata("model");
             if (model == null) model = "classic";
 
-            int playerModelParts = player.getClientOptions().playerModelParts();
             return new SkinInfo(textures.skin().getHash(), model, new SkinInfo.Parts(playerModelParts));
         }
         //?} else {
-        /*java.util.Map<com.mojang.authlib.minecraft.MinecraftProfileTexture.Type, com.mojang.authlib.minecraft.MinecraftProfileTexture> texturesMap = discordSRV.getServer().getSessionService().getTextures(player.getGameProfile(), true);
+        /*java.util.Map<com.mojang.authlib.minecraft.MinecraftProfileTexture.Type, com.mojang.authlib.minecraft.MinecraftProfileTexture> texturesMap = discordSRV.getServer().getSessionService().getTextures(player.getGameProfile(), false);
         com.mojang.authlib.minecraft.MinecraftProfileTexture skinTexture = texturesMap.get(com.mojang.authlib.minecraft.MinecraftProfileTexture.Type.SKIN);
         String model;
         if (skinTexture != null) {
             model = skinTexture.getMetadata("model");
             if (model == null) model = "classic";
 
-            boolean hasCape = texturesMap.containsKey(com.mojang.authlib.minecraft.MinecraftProfileTexture.Type.CAPE);
-            boolean hasJacket = texturesMap.containsKey(com.mojang.authlib.minecraft.MinecraftProfileTexture.Type.ELYTRA);
-            return new SkinInfo(skinTexture.getHash(), model, new SkinInfo.Parts(hasCape, hasJacket, false, false, false, false, false));
+            return new SkinInfo(skinTexture.getHash(), model, new SkinInfo.Parts(playerModelParts));
         }
         *///?}
         return null;
