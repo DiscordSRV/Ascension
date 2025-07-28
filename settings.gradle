@@ -35,7 +35,7 @@ dependencyResolutionManagement {
             library('folia', 'dev.folia', 'folia-api').version('1.21.4-R0.1-SNAPSHOT')
 
             // Bungee
-            library('bungee', 'net.md-5', 'bungeecord-api').version('1.21-R0.3-SNAPSHOT')
+            library('bungee', 'net.md-5', 'bungeecord-api').version('1.21-R0.4-SNAPSHOT')
 
             // Velocity
             library('velocity', 'com.velocitypowered', 'velocity-api').version('3.4.0-SNAPSHOT')
@@ -50,7 +50,7 @@ dependencyResolutionManagement {
             library('fabric-permissions-api', 'me.lucko', 'fabric-permissions-api').version('0.3.3')
 
             // DependencyDownload
-            version('dependencydownload', '2.0.0-SNAPSHOT')
+            version('dependencydownload', '2.0.0')
             plugin('dependencydownload-plugin', 'dev.vankka.dependencydownload.plugin').versionRef('dependencydownload')
             library('dependencydownload-runtime', 'dev.vankka', 'dependencydownload-runtime').versionRef('dependencydownload')
             library('dependencydownload-jarinjar-bootstrap', 'dev.vankka', 'dependencydownload-jarinjar-bootstrap').versionRef('dependencydownload')
@@ -85,7 +85,7 @@ dependencyResolutionManagement {
             }
 
             // DynamicProxy
-            version('dynamicproxy', '1.0.1-SNAPSHOT')
+            version('dynamicproxy', '1.0.1')
             library('dynamicproxy-api', 'dev.vankka', 'dynamicproxy').versionRef('dynamicproxy')
             library('dynamicproxy-runtime', 'dev.vankka', 'dynamicproxy-runtime').versionRef('dynamicproxy')
 
