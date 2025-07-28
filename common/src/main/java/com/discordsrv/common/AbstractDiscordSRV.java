@@ -374,7 +374,7 @@ public abstract class AbstractDiscordSRV<
     }
 
     @Override
-    public final @NotNull ComponentFactory componentFactory() {
+    public @NotNull ComponentFactory componentFactory() {
         return componentFactory;
     }
 

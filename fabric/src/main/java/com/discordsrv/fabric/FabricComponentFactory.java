@@ -19,6 +19,7 @@
 package com.discordsrv.fabric;
 
 import com.discordsrv.api.component.MinecraftComponent;
+import com.discordsrv.common.core.component.ComponentFactory;
 import com.discordsrv.common.util.ComponentUtil;
 import net.kyori.adventure.audience.Audience;
 import net.kyori.adventure.text.Component;
@@ -36,7 +37,7 @@ import net.kyori.adventure.platform.modcommon.MinecraftServerAudiences;
 import net.kyori.adventure.platform.modcommon.AdventureCommandSourceStack;
 //?}
 
-public class FabricAdventureUtil {
+public class FabricComponentFactory extends ComponentFactory {
 
     //? if adventure: <6 {
     /*private final FabricServerAudiences adventure;
@@ -44,7 +45,8 @@ public class FabricAdventureUtil {
     private final MinecraftServerAudiences adventure;
     //?}
 
-    public FabricAdventureUtil(FabricDiscordSRV discordSRV) {
+    public FabricComponentFactory(FabricDiscordSRV discordSRV) {
+        super(discordSRV);
         //? if adventure: <6 {
         /*this.adventure = FabricServerAudiences.of(discordSRV.getServer());
          *///?} else {

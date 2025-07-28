@@ -130,7 +130,7 @@ public class FabricRequiredLinkingModule extends ServerRequireLinkingModule<Fabr
 
         Component kickReason = getBlockReason(profile, true).join();
         if (kickReason != null) {
-            return discordSRV.adventureUtil().toNative(kickReason);
+            return discordSRV.componentFactory().toNative(kickReason);
         }
 
         return null;

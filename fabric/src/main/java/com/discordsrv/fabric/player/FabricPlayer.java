@@ -75,7 +75,7 @@ public class FabricPlayer extends FabricCommandSender implements IPlayer {
 
     @Override
     public Task<Void> kick(Component component) {
-        player.networkHandler.disconnect(discordSRV.adventureUtil().toNative(component));
+        player.networkHandler.disconnect(discordSRV.componentFactory().toNative(component));
         return Task.completed(null);
     }
 
@@ -136,7 +136,7 @@ public class FabricPlayer extends FabricCommandSender implements IPlayer {
         //? if adventure: >=5.3.0 {
         Component displayName = player.getOrDefaultFrom(
                 Identity.DISPLAY_NAME,
-                () -> discordSRV.adventureUtil().fromNative(player.getName())
+                () -> discordSRV.componentFactory().fromNative(player.getName())
         );
         //?} else {
         /*Component displayName = Component.text(player.getName().getString());
@@ -151,7 +151,7 @@ public class FabricPlayer extends FabricCommandSender implements IPlayer {
             return IPlayer.super.teamDisplayName();
         }
 
-        return discordSRV.adventureUtil().fromNative(team.decorateName(player.getName()));
+        return discordSRV.componentFactory().fromNative(team.decorateName(player.getName()));
 
     }
 

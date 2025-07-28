@@ -56,7 +56,7 @@ public class FabricDiscordSRV extends AbstractDiscordSRV<DiscordSRVFabricBootstr
     private final FabricPlayerProvider playerProvider;
     private final FabricModManager modManager;
     private final FabricCommandHandler commandHandler;
-    private final FabricAdventureUtil adventureUtil;
+    private final FabricComponentFactory componentFactory;
 
     private final ConnectionConfigManager<ConnectionConfig> connectionConfigManager;
     private final MainConfigManager<FabricConfig> configManager;
@@ -73,7 +73,7 @@ public class FabricDiscordSRV extends AbstractDiscordSRV<DiscordSRVFabricBootstr
         this.modManager = new FabricModManager();
         this.commandHandler = new FabricCommandHandler(this);
         this.executionHelper = new FabricGameCommandExecutionHelper(this);
-        this.adventureUtil = new FabricAdventureUtil(this);
+        this.componentFactory = new FabricComponentFactory(this);
 
         // Config
         this.connectionConfigManager = new ConnectionConfigManager<>(this, ConnectionConfig::new);
@@ -176,7 +176,8 @@ public class FabricDiscordSRV extends AbstractDiscordSRV<DiscordSRVFabricBootstr
         return executionHelper;
     }
 
-    public @NotNull FabricAdventureUtil adventureUtil() {
-        return adventureUtil;
+    @Override
+    public @NotNull FabricComponentFactory componentFactory() {
+        return componentFactory;
     }
 }

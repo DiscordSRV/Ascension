@@ -53,6 +53,6 @@ public class FabricCommandSender implements ICommandSender {
 
     @Override
     public @NotNull Audience audience() {
-        return discordSRV.adventureUtil().audience(commandSource);
+        return discordSRV.componentFactory().audience(commandSource);
     }
 }

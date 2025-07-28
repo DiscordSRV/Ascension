@@ -53,11 +53,11 @@ public class FabricJoinModule extends AbstractFabricModule {
 
         MinecraftComponent component;
         if (playerEntity.getGameProfile().getName().equalsIgnoreCase(playerEntity.getName().getString())) {
-            component = discordSRV.adventureUtil().toAPI(Component.translatable("multiplayer.player.joined", discordSRV.adventureUtil().fromNative(playerEntity.getDisplayName())));
+            component = discordSRV.componentFactory().toAPI(Component.translatable("multiplayer.player.joined", discordSRV.componentFactory().fromNative(playerEntity.getDisplayName())));
         } else {
-            component = discordSRV.adventureUtil().toAPI(Component.translatable(
+            component = discordSRV.componentFactory().toAPI(Component.translatable(
                     "multiplayer.player.joined.renamed",
-                    discordSRV.adventureUtil().fromNative(playerEntity.getDisplayName()),
+                    discordSRV.componentFactory().fromNative(playerEntity.getDisplayName()),
                     Component.text(playerEntity.getGameProfile().getName())
             ));
         }

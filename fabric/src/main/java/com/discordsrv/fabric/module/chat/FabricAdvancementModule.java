@@ -70,9 +70,9 @@ public class FabricAdvancementModule extends AbstractFabricModule {
         Text rawChat = frame.getChatAnnouncementText(advancementEntry, owner);
         //?}
 
-        MinecraftComponent message = discordSRV.adventureUtil().toAPI(rawChat);
-        MinecraftComponent title = discordSRV.adventureUtil().toAPI(display.getTitle());
-        MinecraftComponent description = discordSRV.adventureUtil().toAPI(display.getDescription());
+        MinecraftComponent message = discordSRV.componentFactory().toAPI(rawChat);
+        MinecraftComponent title = discordSRV.componentFactory().toAPI(display.getTitle());
+        MinecraftComponent description = discordSRV.componentFactory().toAPI(display.getDescription());
 
         IPlayer player = discordSRV.playerProvider().player(owner);
         discordSRV.eventBus().publish(

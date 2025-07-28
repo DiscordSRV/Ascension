@@ -53,7 +53,7 @@ public class FabricDeathModule extends AbstractFabricModule {
             return;
         }
 
-        MinecraftComponent minecraftComponent = discordSRV.adventureUtil().toAPI(damageSource.getDeathMessage(livingEntity));
+        MinecraftComponent minecraftComponent = discordSRV.componentFactory().toAPI(damageSource.getDeathMessage(livingEntity));
         DiscordSRVPlayer player = discordSRV.playerProvider().player(playerEntity);
 
         discordSRV.eventBus().publish(

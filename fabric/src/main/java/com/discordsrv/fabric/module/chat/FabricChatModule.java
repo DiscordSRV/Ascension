@@ -43,7 +43,7 @@ public class FabricChatModule extends AbstractFabricModule {
         if (instance == null || !instance.enabled) return;
         FabricDiscordSRV discordSRV = instance.discordSRV;
 
-        Component component = discordSRV.adventureUtil().fromNative(text);
+        Component component = discordSRV.componentFactory().fromNative(text);
         discordSRV.eventBus().publish(new GameChatMessagePreProcessEvent(
                 null,
                 discordSRV.playerProvider().player(uuid),

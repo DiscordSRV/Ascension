@@ -49,9 +49,9 @@ public class FabricQuitModule extends AbstractFabricModule {
 
         Component message = Component.translatable(
                 "multiplayer.player.left",
-                discordSRV.adventureUtil().fromNative(player.getDisplayName())
+                discordSRV.componentFactory().fromNative(player.getDisplayName())
         );
-        MinecraftComponent component = discordSRV.adventureUtil().toAPI(message);
+        MinecraftComponent component = discordSRV.componentFactory().toAPI(message);
         discordSRV.eventBus().publish(
                 new LeaveMessagePreProcessEvent(
                         serverPlayNetworkHandler,
