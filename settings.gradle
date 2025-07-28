@@ -57,7 +57,7 @@ dependencyResolutionManagement {
             plugin('fabric-loom', 'fabric-loom').versionRef('fabric-loom')
 
             // DependencyDownload
-            version('dependencydownload', '2.0.0-SNAPSHOT')
+            version('dependencydownload', '2.0.0')
             plugin('dependencydownload-plugin', 'dev.vankka.dependencydownload.plugin').versionRef('dependencydownload')
             library('dependencydownload-runtime', 'dev.vankka', 'dependencydownload-runtime').versionRef('dependencydownload')
             library('dependencydownload-jarinjar-bootstrap', 'dev.vankka', 'dependencydownload-jarinjar-bootstrap').versionRef('dependencydownload')
@@ -92,7 +92,7 @@ dependencyResolutionManagement {
             }
 
             // DynamicProxy
-            version('dynamicproxy', '1.0.1-SNAPSHOT')
+            version('dynamicproxy', '1.0.1')
             library('dynamicproxy-api', 'dev.vankka', 'dynamicproxy').versionRef('dynamicproxy')
             library('dynamicproxy-runtime', 'dev.vankka', 'dynamicproxy-runtime').versionRef('dynamicproxy')
 
