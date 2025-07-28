@@ -159,8 +159,13 @@ dependencies {
     shadow project(':common')
 
     // Adventure
-    modImplementation("net.kyori:adventure-platform-fabric:${project.property("deps.adventure_platform_fabric")}")
+    modImplementation("net.kyori:adventure-platform-fabric:${project.property("deps.adventure_platform_fabric")}") {
+        exclude group: 'net.kyori', module: 'ansi'
+    }
     include("net.kyori:adventure-platform-fabric:${project.property("deps.adventure_platform_fabric")}")
+
+    implementation(libs.kyori.ansi)
+    include(libs.kyori.ansi)
 
     // Integrations
     modCompileOnly("eu.pb4:placeholder-api:${project.property("deps.text_placeholder_api")}")
