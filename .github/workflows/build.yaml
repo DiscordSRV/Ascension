@@ -36,7 +36,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: build-artifacts
-          path: "jars/*.jar"
+          path: "jars/**/*.jar"
       - name: Generate and submit dependency graph
         if: github.event_name == 'push'
         uses: gradle/actions/dependency-submission@v4
