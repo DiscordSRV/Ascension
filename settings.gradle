@@ -7,6 +7,18 @@ pluginManagement {
     }
 }
 
+plugins {
+    id("dev.kikugie.stonecutter") version "0.7.4"
+}
+
+stonecutter {
+    kotlinController = false
+    create("fabric") {
+        versions /*"1.16.4", "1.17.1", "1.18.1", "1.18.2", "1.19",*/ "1.19.2", "1.19.3", "1.19.4", "1.20.1", "1.20.2", "1.20.4", "1.20.6", "1.21.1", "1.21.4", "1.21.5", "1.21.6"
+        vcsVersion = "1.21.6"
+    }
+}
+
 dependencyResolutionManagement {
     versionCatalogs {
         libs {
@@ -41,13 +53,8 @@ dependencyResolutionManagement {
             library('velocity', 'com.velocitypowered', 'velocity-api').version('3.4.0-SNAPSHOT')
 
             // Fabric
-            version('fabric-loom', '1.10-SNAPSHOT')
+            version('fabric-loom', '1.11-SNAPSHOT')
             plugin('fabric-loom', 'fabric-loom').versionRef('fabric-loom')
-            library('fabric-minecraft', 'com.mojang', 'minecraft').version('1.21.5')
-            library('fabric-yarn', 'net.fabricmc', 'yarn').version('1.21.5+build.1')
-            library('fabric-loader', 'net.fabricmc', 'fabric-loader').version('0.16.14')
-            library('fabric-api', 'net.fabricmc.fabric-api', 'fabric-api').version('0.123.2+1.21.5')
-            library('fabric-permissions-api', 'me.lucko', 'fabric-permissions-api').version('0.3.3')
 
             // DependencyDownload
             version('dependencydownload', '2.0.0')
@@ -125,7 +132,6 @@ dependencyResolutionManagement {
             library('mcmmo', 'com.gmail.nossr50', 'mcmmo').version('2.1.220')
             library('griefprevention', 'me.ryanhamshire', 'GriefPrevention').version('16.18.1')
             library('essentialsx', 'net.essentialsx', 'EssentialsX').version('2.20.1')
-            library('textplaceholder-fabric', 'eu.pb4', 'placeholder-api').version('2.5.2+1.21.3')
 
             // Logging
             library('slf4j-api', 'org.slf4j', 'slf4j-api').version {
@@ -144,10 +150,8 @@ dependencyResolutionManagement {
 
             // Adventure Platform
             version('adventure-platform', '4.3.4')
-            version('adventure-platform-mod', '6.4.0')
             library('adventure-platform-bukkit', 'net.kyori', 'adventure-platform-bukkit').versionRef('adventure-platform')
             library('adventure-platform-bungee', 'net.kyori', 'adventure-platform-bungeecord').versionRef('adventure-platform')
-            library('adventure-platform-fabric', 'net.kyori', 'adventure-platform-fabric').versionRef('adventure-platform-mod')
             library('adventure-serializer-bungee', 'net.kyori', 'adventure-text-serializer-bungeecord').versionRef('adventure-platform')
 
             // Downgrade ansi (jar-relocator incompatibility)
@@ -176,8 +180,7 @@ rootProject.name = 'DiscordSRV-Ascension'
         'bungee', 'bungee:loader',
         // Velocity
         'velocity',
-        // Fabric
-        'fabric'
+        // Fabric is included by stonecutter
 ].each {
     include it
     findProject(':' + it).name = String.join('-', it.split(':'))

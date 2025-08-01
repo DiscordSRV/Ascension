@@ -24,10 +24,9 @@ import com.discordsrv.common.abstraction.player.IPlayer;
 import com.discordsrv.common.abstraction.player.provider.model.SkinInfo;
 import com.discordsrv.fabric.FabricDiscordSRV;
 import com.discordsrv.fabric.command.game.sender.FabricCommandSender;
-import com.mojang.authlib.minecraft.MinecraftProfileTextures;
+import com.discordsrv.fabric.accessor.ServerPlayerEntityAccessor;
 import net.kyori.adventure.identity.Identity;
 import net.kyori.adventure.text.Component;
-import net.minecraft.network.packet.s2c.play.ChatSuggestionsS2CPacket;
 import net.minecraft.scoreboard.Team;
 import net.minecraft.server.network.ServerPlayerEntity;
 import org.jetbrains.annotations.NotNull;
@@ -36,6 +35,10 @@ import org.jetbrains.annotations.Nullable;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Locale;
+
+//? if minecraft: >1.19 {
+import net.minecraft.network.packet.s2c.play.ChatSuggestionsS2CPacket;
+//?}
 
 public class FabricPlayer extends FabricCommandSender implements IPlayer {
 
@@ -51,6 +54,10 @@ public class FabricPlayer extends FabricCommandSender implements IPlayer {
         return discordSRV;
     }
 
+    public @NotNull ServerPlayerEntity getPlayer() {
+        return player;
+    }
+
     @Override
     public @NotNull String username() {
         return player.getName().getString();
@@ -58,7 +65,7 @@ public class FabricPlayer extends FabricCommandSender implements IPlayer {
 
     @Override
     public @Nullable Locale locale() {
-        return Locale.of(player.getClientOptions().language());
+        return Locale.forLanguageTag(((ServerPlayerEntityAccessor) player).discordsrv$getLocale());
     }
 
     @Override
@@ -68,57 +75,83 @@ public class FabricPlayer extends FabricCommandSender implements IPlayer {
 
     @Override
     public Task<Void> kick(Component component) {
-        player.networkHandler.disconnect(discordSRV.getAdventure().asNative(component));
+        player.networkHandler.disconnect(discordSRV.componentFactory().toNative(component));
         return Task.completed(null);
     }
 
     @Override
     public void addChatSuggestions(Collection<String> suggestions) {
+        //? if minecraft: >1.19 {
         ChatSuggestionsS2CPacket packet = new ChatSuggestionsS2CPacket(ChatSuggestionsS2CPacket.Action.ADD, new ArrayList<>(suggestions));
         player.networkHandler.sendPacket(packet);
+        //?}
     }
 
     @Override
     public void removeChatSuggestions(Collection<String> suggestions) {
+        //? if minecraft: >1.19 {
         ChatSuggestionsS2CPacket packet = new ChatSuggestionsS2CPacket(ChatSuggestionsS2CPacket.Action.REMOVE, new ArrayList<>(suggestions));
         player.networkHandler.sendPacket(packet);
+        //?}
     }
 
     @Override
     public @Nullable SkinInfo skinInfo() {
-        MinecraftProfileTextures textures = discordSRV.getServer().getSessionService().getTextures(player.getGameProfile());
-        if (!textures.equals(MinecraftProfileTextures.EMPTY) && textures.skin() != null) {
+        int playerModelParts = ((ServerPlayerEntityAccessor) player).discordsrv$getPlayerModelParts();
+
+        //? if minecraft: >1.20.2 {
+        com.mojang.authlib.minecraft.MinecraftProfileTextures textures = discordSRV.getServer().getSessionService().getTextures(player.getGameProfile());
+        if (!textures.equals(com.mojang.authlib.minecraft.MinecraftProfileTextures.EMPTY) && textures.skin() != null) {
             String model = textures.skin().getMetadata("model");
             if (model == null) model = "classic";
 
-            int playerModelParts = player.getClientOptions().playerModelParts();
             return new SkinInfo(textures.skin().getHash(), model, new SkinInfo.Parts(playerModelParts));
         }
+        //?} else {
+        /*java.util.Map<com.mojang.authlib.minecraft.MinecraftProfileTexture.Type, com.mojang.authlib.minecraft.MinecraftProfileTexture> texturesMap = discordSRV.getServer().getSessionService().getTextures(player.getGameProfile(), false);
+        com.mojang.authlib.minecraft.MinecraftProfileTexture skinTexture = texturesMap.get(com.mojang.authlib.minecraft.MinecraftProfileTexture.Type.SKIN);
+        String model;
+        if (skinTexture != null) {
+            model = skinTexture.getMetadata("model");
+            if (model == null) model = "classic";
+
+            return new SkinInfo(skinTexture.getHash(), model, new SkinInfo.Parts(playerModelParts));
+        }
+        *///?}
         return null;
     }
 
     @Override
     public @NotNull Identity identity() {
+        //? if adventure: >=5.11.0 {
         return player.identity();
+        //?} else {
+        /*return Identity.identity(player.getUuid());
+        *///?}
     }
 
     @Override
     public @NotNull Component displayName() {
-        // Use Adventure's Pointer, otherwise username
-        return player.getOrDefaultFrom(
+        //? if adventure: >=5.3.0 {
+        Component displayName = player.getOrDefaultFrom(
                 Identity.DISPLAY_NAME,
-                () -> discordSRV.getAdventure().asAdventure(player.getName())
+                () -> discordSRV.componentFactory().fromNative(player.getName())
         );
+        //?} else {
+        /*Component displayName = Component.text(player.getName().getString());
+        *///?}
+        return displayName;
     }
 
     @Override
     public @NotNull Component teamDisplayName() {
-        Team team = player.getScoreboardTeam();
+        Team team = (Team) player.getScoreboardTeam();
         if (team == null) {
             return IPlayer.super.teamDisplayName();
         }
 
-        return discordSRV.getAdventure().asAdventure(team.decorateName(player.getName()));
+        return discordSRV.componentFactory().fromNative(team.decorateName(player.getName()));
+
     }
 
     @Override

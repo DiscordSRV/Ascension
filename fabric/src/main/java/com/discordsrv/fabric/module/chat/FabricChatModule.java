@@ -23,31 +23,31 @@ import com.discordsrv.common.feature.channel.global.GlobalChannel;
 import com.discordsrv.common.util.ComponentUtil;
 import com.discordsrv.fabric.FabricDiscordSRV;
 import com.discordsrv.fabric.module.AbstractFabricModule;
-import net.fabricmc.fabric.api.message.v1.ServerMessageEvents;
-import net.minecraft.network.message.MessageType;
-import net.minecraft.network.message.SignedMessage;
-import net.minecraft.server.network.ServerPlayerEntity;
+import net.kyori.adventure.text.Component;
+import net.minecraft.text.Text;
+
+import java.util.UUID;
 
 public class FabricChatModule extends AbstractFabricModule {
 
+    private static FabricChatModule instance;
     private final FabricDiscordSRV discordSRV;
 
     public FabricChatModule(FabricDiscordSRV discordSRV) {
         super(discordSRV);
         this.discordSRV = discordSRV;
+        instance = this;
     }
 
-    public void register() {
-        ServerMessageEvents.CHAT_MESSAGE.register(this::onChatMessage);
-    }
+    public static void onChatMessage(Text text, UUID uuid) {
+        if (instance == null || !instance.enabled) return;
+        FabricDiscordSRV discordSRV = instance.discordSRV;
 
-    private void onChatMessage(SignedMessage signedMessage, ServerPlayerEntity serverPlayerEntity, MessageType.Parameters parameters) {
-        if (!enabled) return;
-
+        Component component = discordSRV.componentFactory().fromNative(text);
         discordSRV.eventBus().publish(new GameChatMessagePreProcessEvent(
                 null,
-                discordSRV.playerProvider().player(serverPlayerEntity),
-                ComponentUtil.toAPI(discordSRV.getAdventure().asAdventure(signedMessage.getContent())),
+                discordSRV.playerProvider().player(uuid),
+                ComponentUtil.toAPI(component),
                 new GlobalChannel(discordSRV),
                 false
         ));

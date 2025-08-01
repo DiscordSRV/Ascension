@@ -28,7 +28,6 @@ import com.discordsrv.common.abstraction.player.IOfflinePlayer;
 import com.discordsrv.common.core.module.type.PluginIntegration;
 import com.discordsrv.fabric.FabricDiscordSRV;
 import com.mojang.authlib.GameProfile;
-import com.mojang.authlib.yggdrasil.ProfileResult;
 import eu.pb4.placeholders.api.PlaceholderContext;
 import eu.pb4.placeholders.api.PlaceholderHandler;
 import eu.pb4.placeholders.api.PlaceholderResult;
@@ -46,7 +45,11 @@ import java.util.UUID;
 
 public class TextPlaceholderIntegration extends PluginIntegration<FabricDiscordSRV> implements PlaceholderHandler {
 
-    private static final Identifier IDENTIFIER = Identifier.of("discordsrv");
+    //? if minecraft: >=1.21 {
+    private static final Identifier IDENTIFIER = Identifier.of("discordsrv", "textplaceholder");
+    //?} else {
+    /*private static final Identifier IDENTIFIER = new Identifier("discordsrv", "textplaceholder");
+    *///?}
     private static final String OPTIONAL_PREFIX = "textplaceholder_";
 
     public TextPlaceholderIntegration(FabricDiscordSRV discordSRV) {
@@ -104,10 +107,9 @@ public class TextPlaceholderIntegration extends PluginIntegration<FabricDiscordS
             }
         }
 
-        ProfileResult profileResult = uuid != null ? discordSRV.getServer().getSessionService().fetchProfile(uuid, true) : null;
-        if (profileResult != null) {
-            Text parsed = Placeholders.parseText(Text.of(placeholder), PlaceholderContext.of(profileResult.profile(), discordSRV.getServer()));
-            setResult(event, placeholder, parsed.getString());
+        Text parsedUser = parseUserPlaceholder(placeholder, uuid);
+        if (parsedUser != null) {
+            setResult(event, placeholder, parsedUser.getString());
             return;
         }
 
@@ -167,5 +169,26 @@ public class TextPlaceholderIntegration extends PluginIntegration<FabricDiscordS
                 () -> discordSRV.placeholderService().replacePlaceholders(placeholder, context)
         );
         return placeholder.equals(result) ? PlaceholderResult.invalid() : PlaceholderResult.value(result);
+    }
+
+    private Text parseUserPlaceholder(String placeholder, UUID uuid) {
+        GameProfile gameProfile = null;
+
+        //? if minecraft: <=1.20.1 {
+        /*gameProfile = discordSRV.getServer().getSessionService().fillProfileProperties(new GameProfile(uuid, null), true);
+
+        *///?} else {
+        com.mojang.authlib.yggdrasil.ProfileResult profileResult = discordSRV.getServer().getSessionService().fetchProfile(uuid, true);
+        if (profileResult != null) {
+            gameProfile = profileResult.profile();
+        }
+        //?}
+
+        if (gameProfile != null) {
+            Text parsed = Placeholders.parseText(Text.of(placeholder), PlaceholderContext.of(gameProfile, discordSRV.getServer()));
+            return parsed;
+        }
+
+        return null;
     }
 }

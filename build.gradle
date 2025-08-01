@@ -30,6 +30,16 @@ subprojects {
         targetCompatibility = JavaVersion.VERSION_1_8
     }
 
+    if (project.path == ":fabric") {
+        compileJava.configure {
+            doFirst {
+                throw new StopExecutionException(
+                        "The 'compileJava' task is disabled in fabric root project."
+                )
+            }
+        }
+    }
+
     configurations {
         // Exclude dependencies from being included in jars
         runtimeExclude {
@@ -121,7 +131,6 @@ subprojects {
     }
     clean.dependsOn deleteJarsDir
 
-    defaultTasks 'build'
     jar {
         duplicatesStrategy = DuplicatesStrategy.INCLUDE
 
