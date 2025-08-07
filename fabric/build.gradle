@@ -11,7 +11,11 @@ configurations.configureEach {
 }
 
 java {
-    def javaVersion = project.property("deps.java") == 17 ? JavaVersion.VERSION_17 : project.property("deps.java") == 21 ? JavaVersion.VERSION_21 : null
+    def version = Integer.parseInt(project.property("deps.java"))
+    def javaVersion = version > 10
+            ? JavaVersion.valueOf("VERSION_" + version)
+            : JavaVersion.valueOf("VERSION_1_" + version)
+
     targetCompatibility = javaVersion
     sourceCompatibility = javaVersion
 }
