@@ -247,29 +247,31 @@ public class BanSyncModule extends AbstractSyncModule<DiscordSRV, BanSyncConfig,
         UserSnowflake snowflake = UserSnowflake.fromId(userId);
         return Task.of(guild.retrieveBan(snowflake)
                 .submit()
-                .handle((ban, t) -> {
+                .thenApply(this::punishment)
+                .exceptionally(t -> {
                     if (t instanceof ErrorResponseException && ((ErrorResponseException) t).getErrorResponse() == ErrorResponse.UNKNOWN_BAN || !shouldHandleDiscordBanChanges()) {
                         // Not banned/we're ignoring if they are, but they might still have some of the banned roles
                         return guild.retrieveMember(snowflake)
                                 .submit()
-                                .handle((member, throwable) -> {
-                                    if (throwable instanceof ErrorResponseException && ((ErrorResponseException) throwable).getErrorResponse() == ErrorResponse.UNKNOWN_MEMBER)
-                                        return null;
-                                    else if (throwable != null) throw new RuntimeException(throwable);
-
+                                .thenApply(member -> {
                                     if (config.minecraftToDiscord.action == BanSyncDiscordAction.ROLE && member.getRoles().stream().anyMatch(role -> config.bannedRoleId == role.getIdLong())) {
                                         return new Punishment(null, null, null);
                                     }
 
                                     return null;
-                                });
-                    }
+                                })
+                                .exceptionally(throwable -> {
+                                    if (throwable instanceof ErrorResponseException && ((ErrorResponseException) throwable).getErrorResponse() == ErrorResponse.UNKNOWN_MEMBER)
+                                        return null;
+                                    else if (throwable != null) throw new RuntimeException(throwable);
 
-                    if (t == null) return Task.completed(this.punishment(ban));
+                                    return null;
+                                })
+                                .thenApply(f -> f);
+                    }
 
                     throw (RuntimeException) t;
                 })
-                .thenCompose(future -> future)
         ); // composes the CompletableFuture returned from handle
     }
 
@@ -286,7 +288,7 @@ public class BanSyncModule extends AbstractSyncModule<DiscordSRV, BanSyncConfig,
             return Task.failed(new SyncFail(BanSyncResult.GUILD_DOESNT_EXIST));
         }
 
-        return getBanOrBanRoled(guild, userId, config);
+        return getBanOrBanRoled(guild, someone.userId(), config);
     }
 
     private Punishment punishment(Guild.Ban ban) {
@@ -321,23 +323,23 @@ public class BanSyncModule extends AbstractSyncModule<DiscordSRV, BanSyncConfig,
         }
 
         PlaceholderService placeholderService = discordSRV.placeholderService();
-        UserSnowflake snowflake = UserSnowflake.fromId(userId);
+        UserSnowflake snowflake = UserSnowflake.fromId(someone.userId());
         switch (config.minecraftToDiscord.action) {
             case BAN:
                 if (newState != null) {
-                    return guild.ban(snowflake, config.minecraftToDiscord.messageHoursToDelete, TimeUnit.HOURS)
+                    return Task.of(guild.ban(snowflake, config.minecraftToDiscord.messageHoursToDelete, TimeUnit.HOURS)
                             .reason(placeholderService.replacePlaceholders(config.minecraftToDiscord.banReasonFormat, newState))
                             .submit()
-                            .thenApply(v -> GenericSyncResults.ADD_DISCORD);
+                            .thenApply(v -> GenericSyncResults.ADD_DISCORD));
                 } else {
-                    return guild.unban(snowflake)
+                    return Task.of(guild.unban(snowflake)
                             .reason(placeholderService.replacePlaceholders(config.minecraftToDiscord.unbanReasonFormat))
                             .submit()
-                            .thenApply(v -> GenericSyncResults.REMOVE_DISCORD);
+                            .thenApply(v -> GenericSyncResults.REMOVE_DISCORD));
                 }
             case ROLE:
                 boolean isBan = newState != null;
-                return guild.retrieveMember(snowflake)
+                return Task.of(guild.retrieveMember(snowflake)
                         .submit()
                         .handle((member, t) -> {
                             if (t instanceof ErrorResponseException && ((ErrorResponseException) t).getErrorResponse() == ErrorResponse.UNKNOWN_MEMBER)
@@ -357,9 +359,9 @@ public class BanSyncModule extends AbstractSyncModule<DiscordSRV, BanSyncConfig,
                                     .submit();
                         })
                         .thenCompose(r -> r) // Flatten the completablefuture
-                        .thenApply(v -> isBan ? GenericSyncResults.ADD_DISCORD : GenericSyncResults.REMOVE_DISCORD);
+                        .thenApply(v -> isBan ? GenericSyncResults.ADD_DISCORD : GenericSyncResults.REMOVE_DISCORD));
             default:
-                return CompletableFutureUtil.failed(new SyncFail(BanSyncResult.INVALID_CONFIG));
+                return Task.failed(new SyncFail(BanSyncResult.INVALID_CONFIG));
         }
     }
 
@@ -373,7 +375,7 @@ public class BanSyncModule extends AbstractSyncModule<DiscordSRV, BanSyncConfig,
         if (newState != null && newState.punisher() == null && newState.until() == null && newState.reason() == null) {
             // This punishment is a role, not a ban
             if (config.discordToMinecraft.trigger == BanSyncDiscordTrigger.BAN) { // Role change should not cause game change
-                return CompletableFuture.completedFuture(BanSyncResult.ROLE_CHANGE_CANNOT_CHANGE_GAME);
+                return Task.completed(BanSyncResult.ROLE_CHANGE_CANNOT_CHANGE_GAME);
             }
         }
 
