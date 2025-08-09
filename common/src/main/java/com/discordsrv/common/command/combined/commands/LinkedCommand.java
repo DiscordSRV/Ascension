@@ -18,16 +18,17 @@
 
 package com.discordsrv.common.command.combined.commands;
 
-import com.discordsrv.api.discord.entity.interaction.command.CommandOption;
 import com.discordsrv.api.discord.entity.interaction.command.DiscordCommand;
 import com.discordsrv.api.discord.entity.interaction.component.ComponentIdentifier;
 import com.discordsrv.common.DiscordSRV;
 import com.discordsrv.common.command.combined.abstraction.CombinedCommand;
 import com.discordsrv.common.command.combined.abstraction.CommandExecution;
 import com.discordsrv.common.command.combined.abstraction.Text;
+import com.discordsrv.common.command.discord.DiscordCommandOptions;
 import com.discordsrv.common.command.game.abstraction.command.GameCommand;
 import com.discordsrv.common.core.logging.Logger;
 import com.discordsrv.common.core.logging.NamedLogger;
+import com.discordsrv.common.core.profile.ProfileImpl;
 import com.discordsrv.common.feature.linking.LinkProvider;
 import com.discordsrv.common.permission.game.Permissions;
 import com.discordsrv.common.util.CommandUtil;
@@ -36,6 +37,9 @@ import net.kyori.adventure.text.format.NamedTextColor;
 import java.util.UUID;
 
 public class LinkedCommand extends CombinedCommand {
+
+    private static final String LABEL = "linked";
+    private static final ComponentIdentifier IDENTIFIER = ComponentIdentifier.of("DiscordSRV", "linked");
 
     private static LinkedCommand INSTANCE;
     private static GameCommand GAME;
@@ -48,12 +52,11 @@ public class LinkedCommand extends CombinedCommand {
     public static GameCommand getGame(DiscordSRV discordSRV) {
         if (GAME == null) {
             LinkedCommand command = getInstance(discordSRV);
-            GAME = GameCommand.literal("linked")
-                    .then(
-                            GameCommand.stringGreedy("target")
-                                    .requiredPermission(Permissions.COMMAND_LINKED_OTHER)
-                                    .executor(command)
-                    )
+            GAME = GameCommand.literal(LABEL)
+                    .addDescriptionTranslations(discordSRV.getAllTranslations(config -> config.linkedCommandDescription.minecraft()))
+                    .then(GameCommand.target(discordSRV, CommandUtil.targetSuggestions(discordSRV, true, true, true))
+                                  .requiredPermission(Permissions.COMMAND_LINKED_OTHER)
+                                  .executor(command))
                     .requiredPermission(Permissions.COMMAND_LINKED)
                     .executor(command);
         }
@@ -64,17 +67,13 @@ public class LinkedCommand extends CombinedCommand {
     public static DiscordCommand getDiscord(DiscordSRV discordSRV) {
         if (DISCORD == null) {
             LinkedCommand command = getInstance(discordSRV);
-            DISCORD = DiscordCommand.chatInput(ComponentIdentifier.of("DiscordSRV", "linked"), "linked", "Check the linking status of accounts")
-                    .addOption(CommandOption.builder(
-                            CommandOption.Type.USER,
-                            "user",
-                            "The Discord user to check the linking status of"
-                    ).setRequired(false).build())
-                    .addOption(CommandOption.builder(
-                            CommandOption.Type.STRING,
-                            "player",
-                            "The Minecraft player username or UUID to check the linking status of"
-                    ).setRequired(false).build())
+            DISCORD = DiscordCommand.chatInput(IDENTIFIER, LABEL, "")
+                    .addDescriptionTranslations(discordSRV.getAllTranslations(config -> config.linkedCommandDescription.discord().content()))
+                    .addOption(DiscordCommandOptions.user(discordSRV).setRequired(false).build())
+                    .addOption(DiscordCommandOptions.player(discordSRV, player -> {
+                        ProfileImpl profile = discordSRV.profileManager().getCachedProfile(player.uniqueId());
+                        return profile == null || profile.isLinked();
+                    }).setRequired(false).build())
                     .setEventHandler(command)
                     .build();
         }
@@ -99,7 +98,7 @@ public class LinkedCommand extends CombinedCommand {
             return;
         }
 
-        execution.runAsync(() -> CommandUtil.lookupTarget(discordSRV, logger, execution, true, Permissions.COMMAND_LINKED_OTHER)
+        execution.runAsync(() -> CommandUtil.lookupTarget(discordSRV, logger, execution, true, Permissions.COMMAND_LINKED_OTHER, false)
                 .whenComplete((result, t) -> {
                     if (t != null) {
                         logger.error("Failed to execute linked command", t);
@@ -127,11 +126,17 @@ public class LinkedCommand extends CombinedCommand {
                     return;
                 }
                 if (!link.isPresent()) {
-                    execution.messages().minecraftPlayerUnlinked.sendTo(execution, discordSRV, null, playerUUID);
+                    (result.isSelf()
+                     ? execution.messages().alreadyUnlinked1st
+                     : execution.messages().minecraftPlayerUnlinked3rd
+                    ).sendTo(execution, discordSRV, null, playerUUID);
                     return;
                 }
 
-                execution.messages().minecraftPlayerLinkedTo.sendTo(execution, discordSRV, link.get().userId(), playerUUID);
+                (result.isSelf()
+                 ? execution.messages().linkedTo1st
+                 : execution.messages().minecraftPlayerLinkedTo3rd
+                ).sendTo(execution, discordSRV, link.get().userId(), playerUUID);
             });
         } else {
             long userId = result.getUserId();
@@ -143,11 +148,17 @@ public class LinkedCommand extends CombinedCommand {
                     return;
                 }
                 if (!link.isPresent()) {
-                    execution.messages().discordUserUnlinked.sendTo(execution, discordSRV, userId, null);
+                    (result.isSelf()
+                     ? execution.messages().alreadyUnlinked1st
+                     : execution.messages().discordUserUnlinked3rd
+                    ).sendTo(execution, discordSRV, userId, null);
                     return;
                 }
 
-                execution.messages().discordUserLinkedTo.sendTo(execution, discordSRV, userId, link.get().playerUUID());
+                (result.isSelf()
+                 ? execution.messages().linkedTo1st
+                 : execution.messages().discordUserLinkedTo3rd
+                ).sendTo(execution, discordSRV, userId, link.get().playerUUID());
             });
         }
     }

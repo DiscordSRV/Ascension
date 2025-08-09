@@ -33,25 +33,26 @@ import com.discordsrv.common.command.game.abstraction.sender.ICommandSender;
 import com.discordsrv.common.config.configurate.manager.ConnectionConfigManager;
 import com.discordsrv.common.config.configurate.manager.MainConfigManager;
 import com.discordsrv.common.config.configurate.manager.MessagesConfigManager;
+import com.discordsrv.common.config.configurate.manager.MessagesConfigSingleManager;
 import com.discordsrv.common.config.connection.ConnectionConfig;
 import com.discordsrv.common.config.main.MainConfig;
 import com.discordsrv.common.config.messages.MessagesConfig;
 import com.discordsrv.common.core.component.ComponentFactory;
+import com.discordsrv.common.core.debug.data.OnlineMode;
+import com.discordsrv.common.core.debug.data.VersionInfo;
 import com.discordsrv.common.core.dependency.DiscordSRVDependencyManager;
 import com.discordsrv.common.core.logging.Logger;
 import com.discordsrv.common.core.logging.impl.DiscordSRVLogger;
 import com.discordsrv.common.core.module.ModuleManager;
 import com.discordsrv.common.core.placeholder.PlaceholderServiceImpl;
+import com.discordsrv.common.core.profile.ProfileManagerImpl;
 import com.discordsrv.common.core.scheduler.Scheduler;
 import com.discordsrv.common.core.storage.Storage;
 import com.discordsrv.common.discord.api.DiscordAPIImpl;
 import com.discordsrv.common.discord.connection.details.DiscordConnectionDetailsImpl;
 import com.discordsrv.common.discord.connection.jda.JDAConnectionManager;
 import com.discordsrv.common.feature.console.Console;
-import com.discordsrv.common.core.debug.data.OnlineMode;
-import com.discordsrv.common.core.debug.data.VersionInfo;
 import com.discordsrv.common.feature.linking.LinkProvider;
-import com.discordsrv.common.core.profile.ProfileManagerImpl;
 import com.discordsrv.common.helper.ChannelConfigHelper;
 import com.discordsrv.common.helper.DestinationLookupHelper;
 import com.discordsrv.common.helper.TemporaryLocalData;
@@ -64,10 +65,9 @@ import org.jetbrains.annotations.Nullable;
 
 import java.nio.file.Path;
 import java.time.ZonedDateTime;
-import java.util.List;
-import java.util.Locale;
-import java.util.Set;
+import java.util.*;
 import java.util.concurrent.TimeUnit;
+import java.util.function.Function;
 
 public interface DiscordSRV extends com.discordsrv.api.DiscordSRV {
 
@@ -132,12 +132,18 @@ public interface DiscordSRV extends com.discordsrv.api.DiscordSRV {
         return messagesConfig((Locale) null);
     }
     default MessagesConfig messagesConfig(@Nullable ICommandSender sender) {
-        return sender instanceof IPlayer ? messagesConfig((IPlayer) sender) : messagesConfig((Locale) null);
-    }
-    default MessagesConfig messagesConfig(@Nullable IPlayer player) {
-        return messagesConfig(player != null ? player.locale() : null);
+        return messagesConfig(sender != null ? sender.locale() : null);
     }
     MessagesConfig messagesConfig(@Nullable Locale locale);
+    default <T> Map<Locale, T> getAllTranslations(Function<MessagesConfig, T> translationFunction) {
+        Map<Locale, MessagesConfigSingleManager<?>> managers = new LinkedHashMap<>(messagesConfigManager().getAllManagers());
+        managers.put(Locale.ROOT, messagesConfigManager().getManager(defaultLocale()));
+
+        Map<Locale, T> values = new LinkedHashMap<>();
+        managers.forEach((locale, manager) ->
+                                 values.put(locale, translationFunction.apply(manager.config())));
+        return values;
+    }
 
     // Config helper
     ChannelConfigHelper channelConfig();

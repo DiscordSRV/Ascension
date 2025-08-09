@@ -85,6 +85,7 @@ public abstract class HikariStorage extends SQLStorage {
 
     @Override
     public void close() {
+        super.close();
         if (hikariDataSource != null) {
             hikariDataSource.close();
         }

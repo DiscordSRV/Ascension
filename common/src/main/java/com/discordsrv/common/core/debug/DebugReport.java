@@ -30,6 +30,7 @@ import com.discordsrv.common.core.paste.PasteService;
 import com.discordsrv.common.core.debug.file.DebugFile;
 import com.discordsrv.common.core.debug.file.KeyValueDebugFile;
 import com.discordsrv.common.core.debug.file.TextDebugFile;
+import com.discordsrv.common.core.scheduler.Scheduler;
 import com.discordsrv.common.util.function.CheckedSupplier;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.node.ArrayNode;
@@ -49,6 +50,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.*;
+import java.util.concurrent.*;
 import java.util.stream.Collectors;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
@@ -89,6 +91,9 @@ public class DebugReport {
         }
 
         addFile("connections.json", 40, this::activeLimitedConnectionsConfig);
+
+        addFile("thread-info.txt", -100, this::threadInfo);
+        addFile("thread-dumps.txt", -110, this::threadStacks);
     }
 
     public Paste upload(PasteService service) throws Throwable {
@@ -201,6 +206,76 @@ public class DebugReport {
         values.put("docker", docker);
 
         return new KeyValueDebugFile(values);
+    }
+
+    private DebugFile threadInfo() {
+        StringBuilder builder = new StringBuilder();
+
+        Scheduler scheduler = discordSRV.scheduler();
+        List<ThreadPoolExecutor> executors = new ArrayList<>();
+
+        ExecutorService executorService = scheduler.executorService();
+        if (executorService instanceof ThreadPoolExecutor) {
+            executors.add((ThreadPoolExecutor) executorService);
+        }
+        ScheduledExecutorService scheduledExecutorService = scheduler.scheduledExecutorService();
+        if (scheduledExecutorService instanceof ScheduledThreadPoolExecutor) {
+            executors.add((ScheduledThreadPoolExecutor) scheduledExecutorService);
+        }
+
+        for (ThreadPoolExecutor executor : executors) {
+            builder.append(executor.getClass().getName()).append(":\n")
+                    .append("- Thread Pool: ").append("\n")
+                    .append(" * Current: ").append(executor.getPoolSize()).append("\n")
+                    .append(" * Largest: ").append(executor.getLargestPoolSize()).append("\n")
+                    .append(" * Max: ").append(executor.getMaximumPoolSize()).append("\n")
+                    .append("- Queued: ").append(executor.getQueue().size()).append("\n")
+                    .append("- Executing: ").append(executor.getActiveCount()).append("\n")
+                    .append("- Completed: ").append(executor.getCompletedTaskCount()).append("\n")
+                    .append("\n");
+        }
+
+        ForkJoinPool forkJoinPool = scheduler.forkJoinPool();
+        builder.append(forkJoinPool.getClass().getName()).append(":\n")
+                .append("- Thread Pool: ").append("\n")
+                .append(" * Active: ").append(forkJoinPool.getActiveThreadCount()).append("\n")
+                .append(" * Size: ").append(forkJoinPool.getPoolSize()).append("\n")
+                .append(" * Parallelism: ").append(forkJoinPool.getParallelism()).append("\n")
+                .append("- Queued Submissions: ").append(forkJoinPool.getQueuedSubmissionCount()).append("\n")
+                .append("- Queued Tasks: ").append(forkJoinPool.getQueuedTaskCount()).append("\n")
+                .append("- Running: ").append(forkJoinPool.getRunningThreadCount()).append("\n")
+                .append("- Stolen: ").append(forkJoinPool.getStealCount()).append("\n")
+                .append("\n");
+
+        builder.append("JVM:\n")
+                .append("- Active Threads: ").append(Thread.activeCount());
+
+        return new TextDebugFile(builder.toString());
+    }
+
+    private DebugFile threadStacks() {
+        StringBuilder builder = new StringBuilder(1_000_000);
+
+        Map<Thread, StackTraceElement[]> stacks = Thread.getAllStackTraces();
+        builder.append("Thread stack traces for relevant threads (").append(stacks.size()).append(" stack traces including filtered):\n\n");
+
+        for (Map.Entry<Thread, StackTraceElement[]> entry : stacks.entrySet()) {
+            Thread thread = entry.getKey();
+            String threadName = thread.getName();
+            String loweredThreadName = threadName.toLowerCase(Locale.ROOT);
+            if (!loweredThreadName.equals("server thread")
+                    && !loweredThreadName.contains("jda")
+                    && !threadName.startsWith(Scheduler.THREAD_NAME_PREFIX)) {
+                continue;
+            }
+
+            builder.append(threadName).append(":\n");
+            for (StackTraceElement element : entry.getValue()) {
+                builder.append("- ").append(element.toString()).append("\n");
+            }
+            builder.append("\n");
+        }
+        return new TextDebugFile(builder.toString());
     }
 
     private DebugFile plugins() {

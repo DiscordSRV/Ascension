@@ -63,10 +63,10 @@ public interface GameChannel {
 
     /**
      * Players that will receive messages for this channel, these players must not be included in {@link #sendMessage(MinecraftComponent)}.
-     * @return the recipients for this channel
+     * @return the recipients for this channel, or {@code null} if per-recipient sending is not supported
      * @see #sendMessage(MinecraftComponent)
      */
-    @NotNull
+    @Nullable
     Collection<? extends DiscordSRVPlayer> getRecipients();
 
     /**

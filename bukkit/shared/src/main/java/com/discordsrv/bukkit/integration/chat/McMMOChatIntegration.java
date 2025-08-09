@@ -23,7 +23,7 @@ import com.discordsrv.api.component.MinecraftComponent;
 import com.discordsrv.api.eventbus.EventPriorities;
 import com.discordsrv.api.eventbus.Subscribe;
 import com.discordsrv.api.events.channel.GameChannelLookupEvent;
-import com.discordsrv.api.events.message.receive.game.GameChatMessageReceiveEvent;
+import com.discordsrv.api.events.message.preprocess.game.GameChatMessagePreProcessEvent;
 import com.discordsrv.api.player.DiscordSRVPlayer;
 import com.discordsrv.bukkit.BukkitDiscordSRV;
 import com.discordsrv.bukkit.player.BukkitPlayer;
@@ -42,8 +42,8 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.event.HandlerList;
 import org.bukkit.event.Listener;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
-import java.util.Collections;
 import java.util.Set;
 
 public class McMMOChatIntegration extends PluginIntegration<BukkitDiscordSRV> implements Listener {
@@ -81,7 +81,7 @@ public class McMMOChatIntegration extends PluginIntegration<BukkitDiscordSRV> im
     }
 
     @Subscribe(priority = EventPriorities.EARLY)
-    public void onGameChatMessageReceive(GameChatMessageReceiveEvent event) {
+    public void onGameChatMessageReceive(GameChatMessagePreProcessEvent event) {
         Player player = discordSRV.server().getPlayer(event.getPlayer().uniqueId());
         if (!player.hasMetadata("mcMMO: Player Data")) {
             return;
@@ -111,7 +111,7 @@ public class McMMOChatIntegration extends PluginIntegration<BukkitDiscordSRV> im
         BukkitPlayer srvPlayer = discordSRV.playerProvider().player(player);
         boolean cancelled = event.isCancelled();
         discordSRV.scheduler().run(() -> discordSRV.eventBus().publish(
-                new GameChatMessageReceiveEvent(event, srvPlayer, component, adminChannel, cancelled)
+                new GameChatMessagePreProcessEvent(event, srvPlayer, component, adminChannel, cancelled)
         ));
     }
 
@@ -140,8 +140,8 @@ public class McMMOChatIntegration extends PluginIntegration<BukkitDiscordSRV> im
         }
 
         @Override
-        public @NotNull Set<DiscordSRVPlayer> getRecipients() {
-            return Collections.emptySet();
+        public @Nullable Set<DiscordSRVPlayer> getRecipients() {
+            return null;
         }
 
         @Override

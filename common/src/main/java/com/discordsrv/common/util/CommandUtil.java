@@ -24,9 +24,11 @@ import com.discordsrv.common.abstraction.player.IPlayer;
 import com.discordsrv.common.command.combined.abstraction.CommandExecution;
 import com.discordsrv.common.command.combined.abstraction.DiscordCommandExecution;
 import com.discordsrv.common.command.combined.abstraction.GameCommandExecution;
+import com.discordsrv.common.command.game.abstraction.command.GameCommandSuggester;
 import com.discordsrv.common.command.game.abstraction.sender.ICommandSender;
 import com.discordsrv.common.config.messages.MessagesConfig;
 import com.discordsrv.common.core.logging.Logger;
+import com.discordsrv.common.core.profile.ProfileImpl;
 import com.discordsrv.common.permission.game.Permission;
 import com.discordsrv.common.permission.game.Permissions;
 import net.dv8tion.jda.api.JDA;
@@ -36,12 +38,69 @@ import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.List;
-import java.util.UUID;
+import java.util.*;
+import java.util.function.Predicate;
+import java.util.stream.Collectors;
 
 public final class CommandUtil {
 
+    private static final String NONE = "--null";
+
     private CommandUtil() {}
+
+    public static GameCommandSuggester targetSuggestions(DiscordSRV discordSRV, boolean users, boolean players, boolean linked) {
+        return CommandUtil.targetSuggestions(discordSRV,  users ? user -> {
+            ProfileImpl profile = discordSRV.profileManager().getCachedProfile(user.getIdLong());
+            return profile == null || profile.isLinked() == linked;
+        } : null, players ? player -> {
+            ProfileImpl profile = discordSRV.profileManager().getCachedProfile(player.uniqueId());
+            return profile == null || profile.isLinked() == linked;
+        } : null, false);
+    }
+
+    public static GameCommandSuggester targetSuggestions(
+            DiscordSRV discordSRV,
+            @Nullable Predicate<User> userPredicate,
+            @Nullable Predicate<IPlayer> playerPredicate,
+            boolean includeNoneSuggestion) {
+        return (sender, previousArguments, input) -> {
+            List<String> suggestions = new ArrayList<>();
+            if (includeNoneSuggestion) {
+                suggestions.add(NONE);
+            }
+            input = input.toLowerCase(Locale.ROOT);
+
+            if (userPredicate != null) {
+                JDA jda = discordSRV.jda();
+                if (jda != null && (input.startsWith("@") || playerPredicate == null)) {
+                    String inputCheck = input.isEmpty() ? input : input.substring(1);
+                    List<String> usernames = jda.getUserCache().stream()
+                            .filter(userPredicate)
+                            .filter(user -> !user.isBot())
+                            .map(User::getName)
+                            .filter(username -> username.toLowerCase(Locale.ROOT).startsWith(inputCheck))
+                            .limit(100)
+                            .map(username -> "@" + username)
+                            .collect(Collectors.toList());
+
+                    suggestions.addAll(usernames);
+                }
+            }
+            if (playerPredicate != null && !input.startsWith("@")) {
+                for (IPlayer player : discordSRV.playerProvider().allPlayers()) {
+                    if (!playerPredicate.test(player)) {
+                        continue;
+                    }
+
+                    String playerName = player.username();
+                    if (playerName.toLowerCase(Locale.ROOT).startsWith(input)) {
+                        suggestions.add(playerName);
+                    }
+                }
+            }
+            return suggestions;
+        };
+    }
 
     public static void basicStatusCheck(DiscordSRV discordSRV, ICommandSender sender) {
         if (discordSRV.status().isError() && sender.hasPermission(Permissions.COMMAND_DEBUG)) {
@@ -65,9 +124,10 @@ public final class CommandUtil {
             CommandExecution execution,
             boolean selfPermitted,
             String target,
-            @Nullable Permission otherPermission
+            @Nullable Permission otherPermission,
+            boolean optional
     ) {
-        return lookupTarget(discordSRV, logger, execution, target, selfPermitted, true, false, otherPermission)
+        return lookupTarget(discordSRV, logger, execution, target, selfPermitted, true, false, otherPermission, optional)
                 .thenApply((result) -> {
                     if (result != null && result.isValid()) {
                         return result.getPlayerUUID();
@@ -82,9 +142,10 @@ public final class CommandUtil {
             CommandExecution execution,
             boolean selfPermitted,
             String target,
-            @Nullable Permission otherPermission
+            @Nullable Permission otherPermission,
+            boolean optional
     ) {
-        return lookupTarget(discordSRV, logger, execution, target, selfPermitted, false, true, otherPermission)
+        return lookupTarget(discordSRV, logger, execution, target, selfPermitted, false, true, otherPermission, optional)
                 .thenApply(result -> {
                     if (result != null && result.isValid()) {
                         return result.getUserId();
@@ -98,16 +159,20 @@ public final class CommandUtil {
             Logger logger,
             CommandExecution execution,
             boolean selfPermitted,
-            @Nullable Permission otherPermission
+            @Nullable Permission otherPermission,
+            boolean optional
     ) {
-        String target = execution.getArgument("target");
+        String target = execution.getString("target");
         if (target == null) {
-            target = execution.getArgument("user");
+            target = execution.getString("user");
         }
         if (target == null) {
-            target = execution.getArgument("player");
+            target = execution.getString("player");
         }
-        return lookupTarget(discordSRV, logger, execution, target, selfPermitted, true, true, otherPermission);
+        if (target != null && target.equals(NONE)) {
+            target = null;
+        }
+        return lookupTarget(discordSRV, logger, execution, target, selfPermitted, true, true, otherPermission, optional);
     }
 
     private static Task<TargetLookupResult> lookupTarget(
@@ -118,10 +183,12 @@ public final class CommandUtil {
             boolean selfPermitted,
             boolean lookupPlayer,
             boolean lookupUser,
-            @Nullable Permission otherPermission
+            @Nullable Permission otherPermission,
+            boolean optional
     ) {
         MessagesConfig messages = discordSRV.messagesConfig(execution.locale());
 
+        boolean self = false;
         if (execution instanceof GameCommandExecution) {
             ICommandSender sender = ((GameCommandExecution) execution).getSender();
             if (target != null) {
@@ -131,13 +198,17 @@ public final class CommandUtil {
                 }
             } else if (sender instanceof IPlayer && selfPermitted && lookupPlayer) {
                 target = ((IPlayer) sender).uniqueId().toString();
+                self = true;
             }
         } else if (execution instanceof DiscordCommandExecution) {
             if (target == null) {
                 if (selfPermitted && lookupUser) {
                     target = Long.toUnsignedString(((DiscordCommandExecution) execution).getUser().getId());
+                    self = true;
                 } else {
-                    messages.pleaseSpecifyUser.sendTo(execution);
+                    if (!optional) {
+                        messages.pleaseSpecifyUser.sendTo(execution);
+                    }
                     return Task.completed(TargetLookupResult.INVALID);
                 }
             }
@@ -146,9 +217,10 @@ public final class CommandUtil {
         }
 
         if (target == null) {
-            return Task.completed(requireTarget(execution, lookupUser, lookupPlayer, messages));
+            return Task.completed(requireTarget(execution, lookupUser, lookupPlayer, messages, optional));
         }
 
+        boolean isSelf = self;
         if (lookupUser) {
             if (target.matches("\\d{17,22}")) {
                 // Discord user id
@@ -160,7 +232,7 @@ public final class CommandUtil {
                     return Task.completed(TargetLookupResult.INVALID);
                 }
 
-                return Task.completed(new TargetLookupResult(true, null, id));
+                return Task.completed(new TargetLookupResult(isSelf, null, id));
             } else if (target.startsWith("@")) {
                 // Discord username
                 String username = target.substring(1);
@@ -168,8 +240,19 @@ public final class CommandUtil {
                 if (jda != null) {
                     List<User> users = jda.getUsersByName(username, true);
 
+                    User matchingUser = null;
                     if (users.size() == 1) {
-                        return Task.completed(new TargetLookupResult(true, null, users.get(0).getIdLong()));
+                        matchingUser = users.get(0);
+                    } else {
+                        for (User user : users) {
+                            if (target.equalsIgnoreCase("@" + user.getAsTag())) {
+                                matchingUser = user;
+                                break;
+                            }
+                        }
+                    }
+                    if (matchingUser != null) {
+                        return Task.completed(new TargetLookupResult(isSelf, null, users.get(0).getIdLong()));
                     }
                 }
             }
@@ -190,7 +273,7 @@ public final class CommandUtil {
                     messages.playerNotFound.sendTo(execution);
                     return Task.completed(TargetLookupResult.INVALID);
                 }
-                return Task.completed(new TargetLookupResult(true, uuid, 0L));
+                return Task.completed(new TargetLookupResult(isSelf, uuid, 0L));
             } else if (target.matches("[a-zA-Z0-9_]{1,16}")) {
                 // Player name
                 IPlayer playerByName = discordSRV.playerProvider().player(target);
@@ -198,51 +281,67 @@ public final class CommandUtil {
                     uuid = playerByName.uniqueId();
                 } else {
                     return discordSRV.playerProvider().lookupOfflinePlayer(target)
-                            .thenApply(offlinePlayer -> new TargetLookupResult(true, offlinePlayer.uniqueId(), 0L))
+                            .thenApply(offlinePlayer -> new TargetLookupResult(isSelf, offlinePlayer.uniqueId(), 0L))
                             .mapException(t -> {
                                 logger.error("Failed to lookup offline player by username", t);
                                 messages.playerLookupFailed.sendTo(execution);
                                 return TargetLookupResult.INVALID;
                             });
                 }
-                return Task.completed(new TargetLookupResult(true, uuid, 0L));
+                return Task.completed(new TargetLookupResult(isSelf, uuid, 0L));
             }
         }
 
-        return Task.completed(requireTarget(execution, lookupUser, lookupPlayer, messages));
+        return Task.completed(requireTarget(execution, lookupUser, lookupPlayer, messages, optional));
     }
 
-    private static TargetLookupResult requireTarget(CommandExecution execution, boolean lookupUser, boolean lookupPlayer, MessagesConfig messages) {
+    private static TargetLookupResult requireTarget(CommandExecution execution, boolean lookupUser, boolean lookupPlayer, MessagesConfig messages, boolean optional) {
+        if (optional) {
+            return TargetLookupResult.INVALID;
+        }
+
         if (lookupPlayer && lookupUser) {
             messages.pleaseSpecifyPlayerOrUser.sendTo(execution);
-            return TargetLookupResult.INVALID;
         } else if (lookupPlayer) {
             messages.pleaseSpecifyPlayer.sendTo(execution);
-            return TargetLookupResult.INVALID;
         } else if (lookupUser) {
             messages.pleaseSpecifyUser.sendTo(execution);
-            return TargetLookupResult.INVALID;
         } else {
             throw new IllegalStateException("lookupPlayer & lookupUser are false");
         }
+        return TargetLookupResult.INVALID;
     }
 
     public static class TargetLookupResult {
 
-        public static TargetLookupResult INVALID = new TargetLookupResult(false, null, 0L);
+        public static TargetLookupResult INVALID = new TargetLookupResult(false);
 
         private final boolean valid;
+        private final boolean self;
         private final UUID playerUUID;
         private final long userId;
 
-        public TargetLookupResult(boolean valid, UUID playerUUID, long userId) {
+        private TargetLookupResult(boolean valid) {
+            this(valid, false, null, 0L);
+        }
+
+        public TargetLookupResult(boolean self, UUID playerUUID, long userId) {
+            this(true, self, playerUUID, userId);
+        }
+
+        private TargetLookupResult(boolean valid, boolean self, UUID playerUUID, long userId) {
             this.valid = valid;
+            this.self = self;
             this.playerUUID = playerUUID;
             this.userId = userId;
         }
 
         public boolean isValid() {
             return valid;
+        }
+
+        public boolean isSelf() {
+            return self;
         }
 
         public boolean isPlayer() {

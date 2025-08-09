@@ -52,6 +52,21 @@ public class EventObserver<E extends Event, P> implements AutoCloseable {
         inject();
     }
 
+    private void inject() {
+        HandlerList handlerList = getHandlerList();
+        EnumMap<EventPriority, ArrayList<RegisteredListener>> slots = getSlots(handlerList);
+        originalMap = slots.clone();
+
+        for (EventPriority eventPriority : slots.keySet()) {
+            List<RegisteredListener> original = originalMap.get(eventPriority);
+            EventObserverList<E, P> proxy = new EventObserverList<>(original, eventPriority, this);
+
+            slots.put(eventPriority, proxy);
+            proxies.put(eventPriority, proxy);
+        }
+        resetHandlers(handlerList);
+    }
+
     @Override
     public void close() {
         if (originalMap == null) {
@@ -66,12 +81,8 @@ public class EventObserver<E extends Event, P> implements AutoCloseable {
             }
 
             HandlerList handlerList = getHandlerList();
-            setSlots(handlerList, originalMap);
-
-            // Reset the handlers so it gets them again
-            Field handlers = handlerList.getClass().getDeclaredField("handlers");
-            handlers.setAccessible(true);
-            handlers.set(handlerList, null);
+            getSlotsField().set(handlerList, originalMap);
+            resetHandlers(handlerList);
         } catch (Exception e) {
             throw new RuntimeException("Unable to clean up handler list.", e);
         }
@@ -79,17 +90,13 @@ public class EventObserver<E extends Event, P> implements AutoCloseable {
         originalMap = null;
     }
 
-    private void inject() {
-        HandlerList handlerList = getHandlerList();
-        EnumMap<EventPriority, ArrayList<RegisteredListener>> slots = getSlots(handlerList);
-        originalMap = slots.clone();
-
-        for (EventPriority eventPriority : slots.keySet()) {
-            List<RegisteredListener> original = originalMap.get(eventPriority);
-            EventObserverList<E, P> proxy = new EventObserverList<>(original, this);
-
-            slots.put(eventPriority, proxy);
-            proxies.put(eventPriority, proxy);
+    private void resetHandlers(HandlerList handlerList) {
+        try {
+            Field handlers = handlerList.getClass().getDeclaredField("handlers");
+            handlers.setAccessible(true);
+            handlers.set(handlerList, null);
+        } catch (ReflectiveOperationException e) {
+            throw new RuntimeException("Failed to reset handlers for handerlist", e);
         }
     }
 
@@ -109,14 +116,6 @@ public class EventObserver<E extends Event, P> implements AutoCloseable {
         throw new RuntimeException("Unable to find HandlerList");
     }
 
-    public void setSlots(HandlerList handlerList, EnumMap<EventPriority, ArrayList<RegisteredListener>> slots) {
-        try {
-            getSlotsField().set(handlerList, slots);
-        } catch (IllegalAccessException | NoSuchFieldException e) {
-            throw new RuntimeException("Unable to set handlerslots field", e);
-        }
-    }
-
     @SuppressWarnings("unchecked")
     public EnumMap<EventPriority, ArrayList<RegisteredListener>> getSlots(HandlerList handlerList) {
         try {
@@ -134,34 +133,59 @@ public class EventObserver<E extends Event, P> implements AutoCloseable {
 
     public static class EventObserverList<E extends Event, P> extends ArrayList<RegisteredListener> {
 
+        private final EventPriority priority;
         private final EventObserver<E, P> observer;
 
-        public EventObserverList(Collection<RegisteredListener> original, EventObserver<E, P> observer) {
+        public EventObserverList(Collection<RegisteredListener> original, EventPriority eventPriority, EventObserver<E, P> observer) {
             super(original);
+            this.priority = eventPriority;
             this.observer = observer;
         }
 
         private List<RegisteredListener> getRaw() {
-            // Avoid #toArray
-            Iterator<RegisteredListener> iterator = iterator();
-            List<RegisteredListener> listeners = new ArrayList<>();
-            while (iterator.hasNext()) {
-                listeners.add(iterator.next());
-            }
+            RegisteredListener[] rawListeners = super.toArray(new RegisteredListener[0]);
+
+            List<RegisteredListener> listeners = new ArrayList<>(rawListeners.length);
+            listeners.addAll(Arrays.asList(rawListeners));
             return listeners;
         }
 
         private List<RegisteredListener> getListeners() {
+            RegisteredListener[] rawListeners = super.toArray(new RegisteredListener[0]);
+
             List<RegisteredListener> listeners = new ArrayList<>();
-            listeners.add(new ObservingListener<>(null, observer));
-            for (RegisteredListener listener : this) {
+            if (priority == EventPriority.LOWEST) {
+                // "null listener" before everything to get the initial state
+                listeners.add(new ObservingListener<>(null, observer));
+            }
+            for (RegisteredListener listener : rawListeners) {
                 listeners.add(listener);
                 listeners.add(new ObservingListener<>(listener, observer));
             }
             return listeners;
         }
 
-        // toArray is used by Bukkit to get listeners
+        // All the usual getters will get proxies included
+        @Override
+        public @NotNull Iterator<RegisteredListener> iterator() {
+            return getListeners().iterator();
+        }
+
+        @Override
+        public @NotNull Spliterator<RegisteredListener> spliterator() {
+            return getListeners().spliterator();
+        }
+
+        @Override
+        public @NotNull ListIterator<RegisteredListener> listIterator() {
+            return getListeners().listIterator();
+        }
+
+        @Override
+        public @NotNull ListIterator<RegisteredListener> listIterator(int index) {
+            return getListeners().listIterator(index);
+        }
+
         @Override
         public Object @NotNull [] toArray() {
             return getListeners().toArray();

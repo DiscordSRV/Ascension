@@ -33,7 +33,8 @@ public class MinecraftDiscordCommand {
     public static DiscordCommand get(DiscordSRV discordSRV) {
         if (INSTANCE == null) {
             ComponentIdentifier identifier = ComponentIdentifier.of("DiscordSRV", "minecraft");
-            DiscordCommand.ChatInputBuilder builder = DiscordCommand.chatInput(identifier, "minecraft", "Minecraft server commands")
+            DiscordCommand.ChatInputBuilder builder = DiscordCommand.chatInput(identifier, "minecraft", "")
+                    .addDescriptionTranslations(discordSRV.getAllTranslations(config -> config.minecraftCommandDescription.content()))
                     .addSubCommand(PlayerListCommand.get(discordSRV));
 
             LinkProvider linkProvider = discordSRV.linkProvider();

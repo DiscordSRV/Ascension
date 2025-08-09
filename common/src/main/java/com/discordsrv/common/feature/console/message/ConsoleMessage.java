@@ -64,6 +64,8 @@ public class ConsoleMessage {
     );
 
     private final TextComponent.Builder builder = Component.text();
+    private Component component;
+    private String plain;
     private final DiscordSRV discordSRV;
 
     public ConsoleMessage(DiscordSRV discordSRV, String input) {
@@ -71,19 +73,25 @@ public class ConsoleMessage {
         parse(input);
     }
 
+    private Component component() {
+        return component != null
+               ? component
+               : (component = builder.build());
+    }
+
     public String asMarkdown() {
-        Component component = builder.build();
-        return discordSRV.componentFactory().discordSerialize(component);
+        return discordSRV.componentFactory().discordSerialize(component());
     }
 
     public String asAnsi() {
-        Component component = builder.build();
-        return discordSRV.componentFactory().ansiSerializer().serialize(component) + (ANSI_ESCAPE + "[0m");
+        return discordSRV.componentFactory().ansiSerializer().serialize(component()) + (ANSI_ESCAPE + "[0m");
     }
 
     public String asPlain() {
-        Component component = builder.build();
-        return discordSRV.componentFactory().plainSerializer().serialize(component);
+        if (plain == null) {
+            plain = discordSRV.componentFactory().plainSerializer().serialize(component());
+        }
+        return plain;
     }
 
     private void parse(String input) {

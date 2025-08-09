@@ -43,6 +43,7 @@ import com.discordsrv.common.feature.linking.requirelinking.requirement.type.Min
 import com.discordsrv.common.helper.Someone;
 import com.discordsrv.common.util.ComponentUtil;
 import net.kyori.adventure.text.Component;
+import org.jetbrains.annotations.MustBeInvokedByOverriders;
 
 import java.util.*;
 import java.util.concurrent.SynchronousQueue;
@@ -51,6 +52,8 @@ import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
 
 public abstract class RequiredLinkingModule<T extends DiscordSRV> extends AbstractModule<T> {
+
+    public static String NOT_READY_MESSAGE = "The server is still connecting to Discord, please try again in a moment";
 
     private final List<RequirementType<?>> availableRequirementTypes = new ArrayList<>();
     private final Set<UUID> storageBypass = new HashSet<>();
@@ -76,6 +79,7 @@ public abstract class RequiredLinkingModule<T extends DiscordSRV> extends Abstra
         return discordSRV.config() == null || config().enabled;
     }
 
+    @MustBeInvokedByOverriders
     @Override
     public void enable() {
         executor = new DynamicCachingThreadPoolExecutor(
@@ -86,10 +90,9 @@ public abstract class RequiredLinkingModule<T extends DiscordSRV> extends Abstra
                 new SynchronousQueue<>(),
                 new CountingThreadFactory(Scheduler.THREAD_NAME_PREFIX + "RequiredLinking #%s")
         );
-
-        super.enable();
     }
 
+    @MustBeInvokedByOverriders
     @Override
     public void disable() {
         if (executor != null) {
@@ -177,20 +180,22 @@ public abstract class RequiredLinkingModule<T extends DiscordSRV> extends Abstra
     public abstract void recheck(IPlayer player);
 
     private void recheck(Someone someone) {
-        someone.resolve().thenApply(resolved -> {
-            if (resolved == null) {
-                return null;
-            }
+        IPlayer player = someone.onlinePlayer();
+        if (player != null) {
+            recheck(player);
+            return;
+        }
 
-            return discordSRV.playerProvider().player(resolved.playerUUID());
-        }).whenComplete((onlinePlayer, t) -> {
-            if (t != null) {
-                logger().error("Failed to get linked account for " + someone, t);
-            }
-            if (onlinePlayer != null) {
-                recheck(onlinePlayer);
-            }
-        });
+        someone.resolve()
+                .thenApply(resolved -> resolved != null ? resolved.onlinePlayer() : null)
+                .whenComplete((onlinePlayer, t) -> {
+                    if (t != null) {
+                        logger().error("Failed to get linked account for " + someone, t);
+                    }
+                    if (onlinePlayer != null) {
+                        recheck(onlinePlayer);
+                    }
+                });
     }
 
     public <RT> void stateChanged(Someone someone, RequirementType<RT> requirementType, RT value, boolean newState) {
@@ -209,7 +214,7 @@ public abstract class RequiredLinkingModule<T extends DiscordSRV> extends Abstra
 
     @Subscribe
     public void onAccountUnlinked(AccountUnlinkedEvent event) {
-        recheck(Someone.of(discordSRV, event.getPlayerUUID()));
+        recheck(Someone.of(discordSRV, event.getPlayerUUID(), event.getUserId()));
     }
 
     protected List<ParsedRequirements> compile(List<String> additionalRequirements) {

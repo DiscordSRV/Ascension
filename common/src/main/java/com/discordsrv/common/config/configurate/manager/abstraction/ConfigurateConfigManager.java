@@ -216,7 +216,7 @@ public abstract class ConfigurateConfigManager<T, LT extends AbstractConfigurati
                     builder.register(DiscordMessageEmbed.Builder.class, new DiscordMessageEmbedSerializer(NAMING_SCHEME));
                     builder.register(DiscordMessageEmbed.Field.class, new DiscordMessageEmbedSerializer.FieldSerializer(NAMING_SCHEME));
                     builder.register(SendableDiscordMessage.Builder.class, new SendableDiscordMessageSerializer(NAMING_SCHEME, false));
-                    builder.register(MinecraftMessage.class, new MinecraftMessageSerializer());
+                    builder.register(MinecraftMessage.class, new MinecraftMessageSerializer(NAMING_SCHEME));
                     builder.register(DiscordMessage.class, new DiscordMessageSerializer(NAMING_SCHEME));
                     builder.register(BothMessage.class, new BothMessageSerializer(NAMING_SCHEME));
 
@@ -327,10 +327,7 @@ public abstract class ConfigurateConfigManager<T, LT extends AbstractConfigurati
     protected ObjectMapper.Factory.Builder cleanObjectMapperBuilder() {
         return commonObjectMapperBuilder(true)
                 .addProcessor(DefaultOnly.class, (data, value) -> (value1, destination) -> {
-                    String[] children = data.value();
-                    boolean whitelist = data.whitelist();
-
-                    if (children.length == 0) {
+                    if (data.entireOption()) {
                         try {
                             destination.set(null);
                         } catch (SerializationException e) {
@@ -338,6 +335,10 @@ public abstract class ConfigurateConfigManager<T, LT extends AbstractConfigurati
                         }
                         return;
                     }
+
+                    // Children which will be excluded/included from the default node
+                    String[] children = data.value();
+                    boolean whitelist = data.whitelist();
 
                     List<String> list = Arrays.asList(children);
                     for (Map.Entry<Object, ? extends ConfigurationNode> entry : destination.childrenMap().entrySet()) {
@@ -472,6 +473,12 @@ public abstract class ConfigurateConfigManager<T, LT extends AbstractConfigurati
             }
 
             checkIfValuesMissing(value, child, anyMissingOptions);
+        }
+        List<CommentedConfigurationNode> children = defaultNode.childrenList();
+        if (!children.isEmpty()) {
+            for (CommentedConfigurationNode childNode : node.childrenList()) {
+                checkIfValuesMissing(childNode, children.get(0), anyMissingOptions);
+            }
         }
     }
 

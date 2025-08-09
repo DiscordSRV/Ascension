@@ -28,7 +28,7 @@ import com.discordsrv.api.events.discord.interaction.command.DiscordChatInputInt
 import com.discordsrv.api.events.discord.interaction.component.DiscordButtonInteractionEvent;
 import com.discordsrv.api.placeholder.format.PlainPlaceholderFormat;
 import com.discordsrv.common.DiscordSRV;
-import com.discordsrv.common.config.main.PlayerListConfig;
+import com.discordsrv.common.config.main.command.PlayerListConfig;
 import com.discordsrv.common.config.main.generic.DiscordOutputMode;
 import com.discordsrv.common.core.logging.Logger;
 import com.discordsrv.common.core.logging.NamedLogger;
@@ -44,6 +44,9 @@ import java.util.function.Consumer;
 
 public class PlayerListCommand implements Consumer<DiscordChatInputInteractionEvent> {
 
+    private static final String LABEL = "playerlist";
+    private static final ComponentIdentifier IDENTIFIER = ComponentIdentifier.of("DiscordSRV", "playerlist");
+
     private static final int MESSAGE_MAX_LENGTH = Message.MAX_CONTENT_LENGTH;
     private static final String PREFIX = "playerlist-";
 
@@ -52,7 +55,8 @@ public class PlayerListCommand implements Consumer<DiscordChatInputInteractionEv
     public static DiscordCommand get(DiscordSRV discordSRV) {
         if (INSTANCE == null) {
             PlayerListCommand command = new PlayerListCommand(discordSRV);
-            INSTANCE = DiscordCommand.chatInput(ComponentIdentifier.of("DiscordSRV", "playerlist"), "playerlist", "Show the players online on the server")
+            INSTANCE = DiscordCommand.chatInput(IDENTIFIER, LABEL, "")
+                    .addDescriptionTranslations(discordSRV.getAllTranslations(config -> config.playerListCommandDescription.content()))
                     .setEventHandler(command)
                     .build();
         }

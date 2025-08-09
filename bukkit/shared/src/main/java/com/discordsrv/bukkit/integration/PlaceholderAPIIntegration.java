@@ -74,7 +74,13 @@ public class PlaceholderAPIIntegration extends PluginIntegration<BukkitDiscordSR
     @Override
     public void disable() {
         if (expansion != null) {
-            discordSRV.scheduler().runOnMainThread(() -> expansion.unregister());
+            discordSRV.scheduler().runOnMainThread(() -> {
+                try {
+                    expansion.unregister();
+                } catch (NullPointerException ignored) {
+                    // If PlaceholderAPI unloads before DiscordSRV, this may be thrown
+                }
+            });
         }
     }
 
@@ -152,7 +158,7 @@ public class PlaceholderAPIIntegration extends PluginIntegration<BukkitDiscordSR
             Set<Object> context;
             if (player != null) {
                 context = new HashSet<>(2);
-                Profile profile = discordSRV.profileManager().getProfile(player.getUniqueId());
+                Profile profile = discordSRV.profileManager().getCachedProfile(player.getUniqueId());
                 if (profile != null) {
                     context.add(profile);
                 }

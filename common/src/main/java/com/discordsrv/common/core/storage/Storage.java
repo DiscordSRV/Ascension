@@ -50,6 +50,7 @@ public interface Storage {
 
     /**
      * Inserts the given code for the given player, removing any existing code if any, with a {@link LinkStore#LINKING_CODE_EXPIRY_TIME} expiry.
+     * The implementation is responsible for cleaning up expired entries.
      */
     void storeLinkingCode(@NotNull UUID playerUUID, String username, String code);
     Pair<UUID, String> getLinkingCode(String code);

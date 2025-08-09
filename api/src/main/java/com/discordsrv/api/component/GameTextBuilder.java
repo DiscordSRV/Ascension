@@ -27,6 +27,8 @@ import com.discordsrv.api.placeholder.provider.SinglePlaceholder;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.Arrays;
+import java.util.Collection;
 import java.util.function.Function;
 import java.util.function.Supplier;
 import java.util.regex.Matcher;
@@ -38,7 +40,12 @@ import java.util.regex.Pattern;
 public interface GameTextBuilder {
 
     @NotNull
-    GameTextBuilder addContext(Object... context);
+    default GameTextBuilder addContext(Object... context) {
+        return addContext(Arrays.asList(context));
+    }
+
+    @NotNull
+    GameTextBuilder addContext(Collection<Object> context);
 
     default GameTextBuilder addPlaceholder(@NotNull String placeholder, Object replacement) {
         return addContext(new SinglePlaceholder(placeholder, replacement));
@@ -47,6 +54,9 @@ public interface GameTextBuilder {
     default GameTextBuilder addPlaceholder(@NotNull String placeholder, Supplier<Object> replacementSupplier) {
         return addContext(new SinglePlaceholder(placeholder, replacementSupplier));
     }
+
+    @NotNull
+    GameTextBuilder applyPlaceholderService();
 
     @NotNull
     default GameTextBuilder addReplacement(@NotNull String target, @Nullable Object replacement) {
@@ -75,9 +85,6 @@ public interface GameTextBuilder {
 
     @NotNull
     GameTextBuilder addReplacement(@NotNull Pattern target, @NotNull Function<@NotNull Matcher, @Nullable Object> replacement);
-
-    @NotNull
-    GameTextBuilder applyPlaceholderService();
 
     @NotNull
     MinecraftComponent build();

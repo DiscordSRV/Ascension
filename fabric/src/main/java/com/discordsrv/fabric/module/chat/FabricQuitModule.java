@@ -19,17 +19,15 @@
 package com.discordsrv.fabric.module.chat;
 
 import com.discordsrv.api.component.MinecraftComponent;
-import com.discordsrv.api.events.message.receive.game.LeaveMessageReceiveEvent;
-import com.discordsrv.common.util.ComponentUtil;
+import com.discordsrv.api.events.message.preprocess.game.LeaveMessagePreProcessEvent;
 import com.discordsrv.fabric.FabricDiscordSRV;
 import com.discordsrv.fabric.module.AbstractFabricModule;
 import com.discordsrv.fabric.player.FabricPlayer;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayConnectionEvents;
+import net.kyori.adventure.text.Component;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.network.ServerPlayNetworkHandler;
 import net.minecraft.server.network.ServerPlayerEntity;
-import net.minecraft.text.Text;
-import net.minecraft.util.Formatting;
 
 public class FabricQuitModule extends AbstractFabricModule {
 
@@ -48,23 +46,22 @@ public class FabricQuitModule extends AbstractFabricModule {
         if (!enabled) return;
 
         ServerPlayerEntity player = serverPlayNetworkHandler.player;
-        MinecraftComponent component = getQuitMessage(player);
 
+        Component message = Component.translatable(
+                "multiplayer.player.left",
+                discordSRV.componentFactory().fromNative(player.getDisplayName())
+        );
+        MinecraftComponent component = discordSRV.componentFactory().toAPI(message);
         discordSRV.eventBus().publish(
-                new LeaveMessageReceiveEvent(
+                new LeaveMessagePreProcessEvent(
                         serverPlayNetworkHandler,
                         new FabricPlayer(discordSRV, player),
                         component,
                         null,
+                        false,
                         component == null,
                         false
                 )
         );
-    }
-
-    public MinecraftComponent getQuitMessage(ServerPlayerEntity player) {
-        Text message = Text.translatable("multiplayer.player.left", player.getDisplayName()).formatted(Formatting.YELLOW);
-
-        return ComponentUtil.toAPI(discordSRV.getAdventure().asAdventure(message));
     }
 }

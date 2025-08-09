@@ -29,7 +29,7 @@ import com.discordsrv.api.discord.entity.message.SendableDiscordMessage;
 import com.discordsrv.api.events.discord.interaction.command.AbstractCommandInteractionEvent;
 import com.discordsrv.api.reload.ReloadResult;
 import com.discordsrv.common.DiscordSRV;
-import com.discordsrv.common.config.main.CustomCommandConfig;
+import com.discordsrv.common.config.main.command.CustomCommandConfig;
 import com.discordsrv.common.core.logging.NamedLogger;
 import com.discordsrv.common.core.module.type.AbstractModule;
 import org.apache.commons.lang3.StringUtils;
@@ -61,6 +61,10 @@ public class CustomCommandModule extends AbstractModule<DiscordSRV> {
         List<LayerCommand> layeredCommands = new ArrayList<>();
         int i = 0;
         for (CustomCommandConfig config : configs) {
+            if (!config.enabled) {
+                continue;
+            }
+
             List<String> commandParts = Arrays.asList(config.command.split(" "));
             int parts = commandParts.size();
             if (parts > 3) {

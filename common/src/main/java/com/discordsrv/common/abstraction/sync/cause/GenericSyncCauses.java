@@ -24,6 +24,7 @@ public enum GenericSyncCauses implements ISyncCause {
     COMMAND("Command"),
     GAME_JOIN("Joined game"),
     LINK("Linked account"),
+    UNLINK("Unlinked account"),
     TIMER("Timed synchronization"),
 
     ;

@@ -50,6 +50,6 @@ public class MinecraftMessage extends ConfigMessage {
 
     @Override
     protected void sendTo(CommandExecution execution, Object... context) {
-        execution.send(textBuilder().addContext(context).applyPlaceholderService().build(), null);
+        execution.send(textBuilder().addContext(context).build(), null);
     }
 }

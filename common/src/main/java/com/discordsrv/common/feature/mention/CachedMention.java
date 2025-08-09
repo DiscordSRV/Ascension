@@ -28,13 +28,15 @@ public class CachedMention {
     private final String mention;
     private final Type type;
     private final long id;
+    private final boolean mentionable;
 
-    public CachedMention(String search, String mention, Type type, long id) {
+    public CachedMention(String search, String mention, Type type, long id, boolean mentionable) {
         this.search = Pattern.compile(search, Pattern.LITERAL);
         this.searchLength = search.length();
         this.mention = mention;
         this.type = type;
         this.id = id;
+        this.mentionable = mentionable;
     }
 
     public String plain() {
@@ -59,6 +61,10 @@ public class CachedMention {
 
     public long id() {
         return id;
+    }
+
+    public boolean mentionable() {
+        return mentionable;
     }
 
     @Override

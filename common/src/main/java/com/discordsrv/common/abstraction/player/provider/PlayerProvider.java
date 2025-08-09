@@ -50,6 +50,7 @@ public interface PlayerProvider<T extends IPlayer> extends com.discordsrv.api.pl
      * Gets all online players.
      * @return all players that are currently online
      */
+    @Override
     @NotNull
     Collection<T> allPlayers();
 

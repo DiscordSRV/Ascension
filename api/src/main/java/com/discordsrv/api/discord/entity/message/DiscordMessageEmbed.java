@@ -188,6 +188,12 @@ public class DiscordMessageEmbed {
 
     @NotNull
     public MessageEmbed toJDA() {
+        checkUrl(authorUrl);
+        checkUrl(authorImageUrl);
+        checkUrl(titleUrl);
+        checkUrl(thumbnailUrl);
+        checkUrl(imageUrl);
+
         EmbedBuilder embedBuilder = new EmbedBuilder();
         if (color != null) {
             embedBuilder.setColor(color.rgb());
@@ -203,6 +209,15 @@ public class DiscordMessageEmbed {
         embedBuilder.setTimestamp(timestamp);
         embedBuilder.setFooter(footer, footerImageUrl);
         return embedBuilder.build();
+    }
+
+    private void checkUrl(String url) {
+        if (url == null) {
+            return;
+        }
+        if (!EmbedBuilder.URL_PATTERN.matcher(url).matches() || url.length() > MessageEmbed.URL_MAX_LENGTH) {
+            throw new IllegalArgumentException("Invalid url: " + url);
+        }
     }
 
     public static class Field {

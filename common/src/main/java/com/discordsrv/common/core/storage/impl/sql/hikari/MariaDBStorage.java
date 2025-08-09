@@ -34,11 +34,6 @@ public class MariaDBStorage extends HikariStorage {
     }
 
     @Override
-    public void close() {
-        super.close();
-    }
-
-    @Override
     public void initialize() {
         try {
             discordSRV.dependencyManager().mariadb().downloadRelocateAndLoad().join();

@@ -18,8 +18,6 @@
 
 package com.discordsrv.common.feature.groupsync;
 
-import com.discordsrv.api.discord.entity.guild.DiscordRole;
-import com.discordsrv.api.discord.exception.RestErrorResponseException;
 import com.discordsrv.api.eventbus.Subscribe;
 import com.discordsrv.api.events.discord.member.role.DiscordMemberRoleAddEvent;
 import com.discordsrv.api.events.discord.member.role.DiscordMemberRoleRemoveEvent;
@@ -27,20 +25,18 @@ import com.discordsrv.api.module.type.PermissionModule;
 import com.discordsrv.api.task.Task;
 import com.discordsrv.common.DiscordSRV;
 import com.discordsrv.common.abstraction.sync.AbstractSyncModule;
+import com.discordsrv.common.abstraction.sync.RoleSyncModuleUtil;
 import com.discordsrv.common.abstraction.sync.SyncFail;
+import com.discordsrv.common.abstraction.sync.enums.SyncSide;
 import com.discordsrv.common.abstraction.sync.result.GenericSyncResults;
 import com.discordsrv.common.abstraction.sync.result.ISyncResult;
-import com.discordsrv.common.config.main.GroupSyncConfig;
+import com.discordsrv.common.config.main.sync.GroupSyncConfig;
 import com.discordsrv.common.core.debug.DebugGenerateEvent;
 import com.discordsrv.common.core.debug.file.TextDebugFile;
 import com.discordsrv.common.feature.groupsync.enums.GroupSyncCause;
 import com.discordsrv.common.feature.groupsync.enums.GroupSyncResult;
 import com.discordsrv.common.helper.Someone;
-import com.discordsrv.common.util.DiscordPermissionUtil;
 import com.github.benmanes.caffeine.cache.Cache;
-import net.dv8tion.jda.api.Permission;
-import net.dv8tion.jda.api.entities.Guild;
-import net.dv8tion.jda.api.requests.ErrorResponse;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
@@ -68,7 +64,7 @@ public class GroupSyncModule extends AbstractSyncModule<DiscordSRV, GroupSyncCon
 
     @Override
     public String syncName() {
-        return "Group sync";
+        return "Group Sync";
     }
 
     @Override
@@ -93,10 +89,12 @@ public class GroupSyncModule extends AbstractSyncModule<DiscordSRV, GroupSyncCon
 
     @Override
     protected @Nullable ISyncResult doesStateMatch(Boolean one, Boolean two) {
-        if (one == two) {
-            return GenericSyncResults.both(one);
-        }
-        return null;
+        return one == two ? GenericSyncResults.both(one) : null;
+    }
+
+    @Override
+    public Boolean getRemovedState() {
+        return false;
     }
 
     @Subscribe
@@ -105,12 +103,10 @@ public class GroupSyncModule extends AbstractSyncModule<DiscordSRV, GroupSyncCon
 
         for (GroupSyncConfig.Entry sync : syncs) {
             builder.append("\n- ").append(sync)
-                    .append(" (tie-breaker: ").append(sync.tieBreaker)
+                    .append(" (tie-breakers: ").append(sync.tieBreakers)
+                    .append(", timer: ").append(sync.timer)
                     .append(", direction: ").append(sync.direction)
                     .append(", context: ").append(sync.contexts).append(")");
-            if (sync.timer != null && sync.timer.enabled) {
-                builder.append(" [On timer]");
-            }
         }
 
         PermissionModule.Groups groups = getPermissionProvider();
@@ -144,6 +140,20 @@ public class GroupSyncModule extends AbstractSyncModule<DiscordSRV, GroupSyncCon
 
     public void groupRemoved(UUID player, String groupName, @Nullable Map<String, Set<String>> contexts, GroupSyncCause cause) {
         groupChanged(player, groupName, contexts, cause, false);
+    }
+
+    public void groupsMaybeChanged(UUID player, Set<String> groupNames, GroupSyncCause cause) {
+        Set<GroupSyncConfig.Entry> entries = new LinkedHashSet<>();
+        for (GroupSyncConfig.Entry config : configs()) {
+            if (!config.includeInherited()) {
+                continue;
+            }
+
+            if (groupNames.stream().anyMatch(config.groupName::equals)) {
+                entries.add(config);
+            }
+        }
+        resync(cause, Someone.of(discordSRV, player), __ -> SyncSide.MINECRAFT, entries);
     }
 
     private void roleChanged(long userId, long roleId, boolean newState) {
@@ -180,6 +190,11 @@ public class GroupSyncModule extends AbstractSyncModule<DiscordSRV, GroupSyncCon
         gameChanged(cause, Someone.of(discordSRV, playerUUID), GroupSyncConfig.Entry.makeGameId(groupName, contexts), state);
     }
 
+    @Override
+    protected boolean isApplicableForProactiveSync(GroupSyncConfig.Entry config) {
+        return !config.includeInherited();
+    }
+
     private PermissionModule.Groups getPermissionProvider() {
         PermissionModule.GroupsContext groupsContext = discordSRV.getModule(PermissionModule.GroupsContext.class);
         return groupsContext != null ? groupsContext : discordSRV.getModule(PermissionModule.Groups.class);
@@ -204,26 +219,7 @@ public class GroupSyncModule extends AbstractSyncModule<DiscordSRV, GroupSyncCon
 
     @Override
     public Task<Boolean> getDiscord(GroupSyncConfig.Entry config, Someone.Resolved someone) {
-        DiscordRole role = discordSRV.discordAPI().getRoleById(config.roleId);
-        if (role == null) {
-            return Task.failed(new SyncFail(GroupSyncResult.ROLE_DOESNT_EXIST));
-        }
-
-        if (!role.getGuild().getSelfMember().canInteract(role)) {
-            return Task.failed(new SyncFail(GroupSyncResult.ROLE_CANNOT_INTERACT));
-        }
-
-        return someone.guildMember(role.getGuild())
-                .mapException(RestErrorResponseException.class, t -> {
-                    if (t.getErrorCode() == ErrorResponse.UNKNOWN_MEMBER.getCode()) {
-                        throw new SyncFail(GroupSyncResult.NOT_A_GUILD_MEMBER);
-                    }
-                    throw t;
-                })
-                .thenApply(member -> {
-                    logger().trace(someone + " roles: " + member.getRoles());
-                    return member.hasRole(role);
-                });
+        return RoleSyncModuleUtil.hasRole(discordSRV, someone, config.roleId);
     }
 
     @Override
@@ -249,27 +245,16 @@ public class GroupSyncModule extends AbstractSyncModule<DiscordSRV, GroupSyncCon
 
     @Override
     public Task<ISyncResult> applyDiscord(GroupSyncConfig.Entry config, Someone.Resolved someone, Boolean newState) {
-        boolean stateToApply = newState != null && newState;
+        return RoleSyncModuleUtil.checkRoleChangePreconditions(discordSRV, config.roleId)
+                .then(role -> {
+                    boolean stateToApply = newState != null && newState;
 
-        DiscordRole role = discordSRV.discordAPI().getRoleById(config.roleId);
-        if (role == null) {
-            return Task.failed(new SyncFail(GroupSyncResult.ROLE_DOESNT_EXIST));
-        }
+                    Map<Long, Boolean> expected = Objects.requireNonNull(expectedDiscordChanges.get(someone.userId(), key -> new ConcurrentHashMap<>()));
+                    expected.put(config.roleId, stateToApply);
 
-        Guild jdaGuild = role.getGuild().asJDA();
-        EnumSet<Permission> missingPermissions = DiscordPermissionUtil.getMissingPermissions(jdaGuild, Collections.singleton(Permission.MANAGE_ROLES));
-        if (!missingPermissions.isEmpty()) {
-            return Task.completed(DiscordPermissionResult.of(jdaGuild, missingPermissions));
-        }
-
-        Map<Long, Boolean> expected = Objects.requireNonNull(expectedDiscordChanges.get(someone.userId(), key -> new ConcurrentHashMap<>()));
-        expected.put(config.roleId, stateToApply);
-
-        return someone.guildMember(role.getGuild())
-                .then(member -> stateToApply
-                                ? member.addRole(role).thenApply(v -> (ISyncResult) GenericSyncResults.ADD_DISCORD)
-                                : member.removeRole(role).thenApply(v -> GenericSyncResults.REMOVE_DISCORD)
-                ).whenFailed((t) -> expected.remove(config.roleId));
+                    return RoleSyncModuleUtil.doRoleChange(someone, role, newState)
+                            .whenFailed((t) -> expected.remove(config.roleId));
+                });
     }
 
     @Override

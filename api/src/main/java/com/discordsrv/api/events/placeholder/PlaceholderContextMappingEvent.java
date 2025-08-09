@@ -31,6 +31,9 @@ import java.util.List;
 import java.util.Set;
 import java.util.function.Function;
 
+/**
+ * Used to map contexts into different objects by DiscordSRV's PlaceholderService.
+ */
 public class PlaceholderContextMappingEvent implements Event {
 
     private final List<Object> contexts;

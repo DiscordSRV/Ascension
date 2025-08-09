@@ -18,7 +18,6 @@
 
 package com.discordsrv.common.command.combined.commands;
 
-import com.discordsrv.api.discord.entity.interaction.command.CommandOption;
 import com.discordsrv.api.discord.entity.interaction.command.DiscordCommand;
 import com.discordsrv.api.discord.entity.interaction.component.ComponentIdentifier;
 import com.discordsrv.api.task.Task;
@@ -27,12 +26,14 @@ import com.discordsrv.common.command.combined.abstraction.CombinedCommand;
 import com.discordsrv.common.command.combined.abstraction.CommandExecution;
 import com.discordsrv.common.command.combined.abstraction.GameCommandExecution;
 import com.discordsrv.common.command.combined.abstraction.Text;
+import com.discordsrv.common.command.discord.DiscordCommandOptions;
 import com.discordsrv.common.command.game.abstraction.command.GameCommand;
 import com.discordsrv.common.command.game.abstraction.command.GameCommandExecutor;
 import com.discordsrv.common.command.game.abstraction.sender.ICommandSender;
 import com.discordsrv.common.command.game.commands.subcommand.LinkInitGameCommand;
 import com.discordsrv.common.core.logging.Logger;
 import com.discordsrv.common.core.logging.NamedLogger;
+import com.discordsrv.common.core.profile.ProfileImpl;
 import com.discordsrv.common.feature.linking.LinkProvider;
 import com.discordsrv.common.feature.linking.LinkingModule;
 import com.discordsrv.common.permission.game.Permissions;
@@ -42,6 +43,9 @@ import net.kyori.adventure.text.format.NamedTextColor;
 import java.util.UUID;
 
 public class LinkOtherCommand extends CombinedCommand {
+
+    private static final String LABEL = "link";
+    private static final ComponentIdentifier IDENTIFIER = ComponentIdentifier.of("DiscordSRV", "link-other");
 
     private static LinkOtherCommand INSTANCE;
     private static GameCommand GAME;
@@ -56,15 +60,16 @@ public class LinkOtherCommand extends CombinedCommand {
             LinkProvider linkProvider = discordSRV.linkProvider();
             GameCommandExecutor initCommand = LinkInitGameCommand.getExecutor(discordSRV);
 
-            GAME = GameCommand.literal("link")
+            GAME = GameCommand.literal(LABEL)
+                    .addDescriptionTranslations(discordSRV.getAllTranslations(config -> config.linkCommandDescription.minecraft()))
                     .requiredPermission(Permissions.COMMAND_LINK)
                     .executor(initCommand);
 
-            if (linkProvider != null && !linkProvider.usesLocalLinking()) {
+            if (linkProvider != null && linkProvider.usesLocalLinking()) {
                 GAME = GAME.then(
-                        GameCommand.stringWord("player")
+                        GameCommand.player(discordSRV, CommandUtil.targetSuggestions(discordSRV, false, true, false))
                                 .then(
-                                        GameCommand.stringWord("user")
+                                        GameCommand.user(discordSRV, CommandUtil.targetSuggestions(discordSRV, true, false, false))
                                                 .requiredPermission(Permissions.COMMAND_LINK_OTHER)
                                                 .executor(getInstance(discordSRV))
                                 )
@@ -78,20 +83,14 @@ public class LinkOtherCommand extends CombinedCommand {
     public static DiscordCommand getDiscord(DiscordSRV discordSRV) {
         if (DISCORD == null) {
             LinkOtherCommand command = getInstance(discordSRV);
-            ComponentIdentifier identifier = ComponentIdentifier.of("DiscordSRV", "link-other");
 
-            DISCORD = DiscordCommand.chatInput(identifier, "link", "Link players")
-                    .addOption(
-                            CommandOption.builder(CommandOption.Type.USER, "user", "The user to link")
-                                    .setRequired(true)
-                                    .build()
-                    )
-                    .addOption(
-                            CommandOption.builder(CommandOption.Type.STRING, "player", "The player to link")
-                                    .setRequired(true)
-                                    .build()
-                    )
-                    .setAutoCompleteHandler(command)
+            DISCORD = DiscordCommand.chatInput(IDENTIFIER, LABEL, "")
+                    .addDescriptionTranslations(discordSRV.getAllTranslations(config -> config.linkOtherCommandDescription.content()))
+                    .addOption(DiscordCommandOptions.user(discordSRV).setRequired(true).build())
+                    .addOption(DiscordCommandOptions.player(discordSRV, player -> {
+                        ProfileImpl profile = discordSRV.profileManager().getCachedProfile(player.uniqueId());
+                        return profile == null || !profile.isLinked();
+                    }).setRequired(true).build())
                     .setEventHandler(command)
                     .build();
         }
@@ -122,8 +121,8 @@ public class LinkOtherCommand extends CombinedCommand {
             return;
         }
 
-        String playerArgument = execution.getArgument("player");
-        String userArgument = execution.getArgument("user");
+        String playerArgument = execution.getString("player");
+        String userArgument = execution.getString("user");
         if (execution instanceof GameCommandExecution) {
             ICommandSender sender = ((GameCommandExecution) execution).getSender();
             if (!sender.hasPermission(Permissions.COMMAND_LINK_OTHER)) {
@@ -132,37 +131,35 @@ public class LinkOtherCommand extends CombinedCommand {
             }
         }
 
-        Task<UUID> playerUUIDFuture = CommandUtil.lookupPlayer(discordSRV, logger, execution, false, playerArgument, null);
-        Task<Long> userIdFuture = CommandUtil.lookupUser(discordSRV, logger, execution, false, userArgument, null);
+        Task<UUID> playerUUIDFuture = CommandUtil.lookupPlayer(discordSRV, logger, execution, false, playerArgument, null, false);
+        Task<Long> userIdFuture = CommandUtil.lookupUser(discordSRV, logger, execution, false, userArgument, null, false);
 
         playerUUIDFuture.whenComplete((playerUUID, __) -> userIdFuture.whenComplete((userId, ___) -> {
             if (playerUUID == null) {
-                execution.messages().playerNotFound.sendTo(execution);
                 return;
             }
             if (userId == null) {
-                execution.messages().userNotFound.sendTo(execution);
                 return;
             }
 
-            linkProvider.query(playerUUID).whenComplete((linkedUser, t) -> {
-                if (t != null) {
-                    logger.error("Failed to check linking status", t);
+            linkProvider.query(playerUUID).whenComplete((existingPlayerLink, t1) -> {
+                if (t1 != null) {
+                    logger.error("Failed to check linking status", t1);
                     execution.messages().unableToCheckLinkingStatus.sendTo(execution);
                     return;
                 }
-                if (linkedUser.isPresent()) {
+                if (existingPlayerLink.isPresent()) {
                     execution.messages().playerAlreadyLinked3rd.sendTo(execution);
                     return;
                 }
 
-                linkProvider.query(userId).whenComplete((existingLink, t2) -> {
+                linkProvider.query(userId).whenComplete((existingUserLink, t2) -> {
                     if (t2 != null) {
                         logger.error("Failed to check linking status", t2);
                         execution.messages().unableToCheckLinkingStatus.sendTo(execution);
                         return;
                     }
-                    if (existingLink.isPresent()) {
+                    if (existingUserLink.isPresent()) {
                         execution.messages().userAlreadyLinked3rd.sendTo(execution);
                         return;
                     }

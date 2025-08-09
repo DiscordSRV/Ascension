@@ -1,5 +1,8 @@
+plugins {
+    id("dev.kikugie.stonecutter") version "0.7.4"
+    id("fabric-loom")
+}
 apply from: rootProject.file('buildscript/standalone.gradle')
-apply plugin: 'fabric-loom'
 
 configurations.configureEach {
     resolutionStrategy {
@@ -8,13 +11,49 @@ configurations.configureEach {
 }
 
 java {
-    sourceCompatibility = JavaVersion.VERSION_21
-    targetCompatibility = JavaVersion.VERSION_21
+    def version = Integer.parseInt(project.property("deps.java"))
+    def javaVersion = version > 10
+            ? JavaVersion.valueOf("VERSION_" + version)
+            : JavaVersion.valueOf("VERSION_1_" + version)
+
+    targetCompatibility = javaVersion
+    sourceCompatibility = javaVersion
+}
+
+if(project.path.startsWith(":fabric:")) {
+    tasks.register('deleteMappedSrc', Delete) {
+        delete project.file("src")
+    }
+
+    clean.dependsOn deleteMappedSrc
+}
+
+sourceSets {
+    main {
+        java {
+            srcDirs("versions/${stonecutter.current.project}/src/main/java")
+        }
+        resources {
+            srcDirs("versions/${stonecutter.current.project}/src/main/resources")
+        }
+    }
 }
 
 processResources {
-    filesMatching('**/fabric.mod.json') {
-        expand 'VERSION': project.version, 'MINECRAFT_VERSION': libs.fabric.minecraft.get().version, 'LOADER_VERSION': libs.fabric.loader.get().version
+    def version = project.version
+    def loaderVersion = project.property("deps.fabric_loader")
+    def minecraftVersion = stonecutter.current.project
+
+    inputs.property("version", version)
+    inputs.property("loaderVersion", loaderVersion)
+    inputs.property("minecraftVersion", minecraftVersion)
+
+    filesMatching("fabric.mod.json") {
+        expand(
+            VERSION:          version,
+            LOADER_VERSION:   loaderVersion,
+            MINECRAFT_VERSION: minecraftVersion
+        )
     }
     dependsOn generateRuntimeDownloadResourceForRuntimeDownloadOnly
 }
@@ -24,19 +63,38 @@ shadowJar {
     mergeServiceFiles()
 }
 
+stonecutter {
+    def adventure = project.property("deps.adventure_platform_fabric").replace("-SNAPSHOT", "")
+    dependency("adventure", adventure)
+    dependency("java", project.property("deps.java"))
+
+    swap("dependencies_file", "\"dependencies/runtimeDownload-${stonecutter.current.version}.txt\";")
+}
+
 tasks.register('copyRemappedJar', Copy) {
     from remapJar.archiveFile
-    into rootProject.file('jars')
+    into rootProject.file('jars/fabric')
 }
 
 remapJar {
     dependsOn shadowJar
     mustRunAfter shadowJar
     inputFile = shadowJar.archiveFile
-    archiveBaseName = 'DiscordSRV-Fabric'
+
+    archiveBaseName = "DiscordSRV-Fabric-${stonecutter.current.project}"
+    if (stonecutter.current.version == "1.21.6") {
+        archiveBaseName = "DiscordSRV-Fabric-${stonecutter.current.project}-1.21.8"
+    }
     archiveClassifier = jar.archiveClassifier
 
     finalizedBy copyRemappedJar
+}
+
+spotless {
+    java {
+        if (stonecutter.current.isActive)
+            target("src/main/java/")
+    }
 }
 
 artifacts {
@@ -46,7 +104,10 @@ artifacts {
 
 loom {
     serverOnlyMinecraftJar()
-    accessWidenerPath = file('src/main/resources/discordsrv.accesswidener')
+    runConfigs.all {
+        ideConfigGenerated(true) // Run configurations are not created for subprojects by default
+        runDir = "../../run" // Use a shared run folder and create separate worlds
+    }
 }
 
 repositories {
@@ -69,15 +130,30 @@ repositories {
 }
 
 dependencies {
-    // To change the versions see the settings.gradle file
-    minecraft(libs.fabric.minecraft)
-    mappings(variantOf(libs.fabric.yarn) { classifier("v2") })
-    compileOnly(libs.fabric.loader)
+    minecraft("com.mojang:minecraft:${stonecutter.current.project}")
+    mappings("net.fabricmc:yarn:${project.property("deps.yarn_mappings")}:v2")
+    compileOnly("net.fabricmc:fabric-loader:${project.property("deps.fabric_loader")}")
 
     // Fabric API
-    modImplementation(libs.fabric.api)
-    modImplementation(libs.fabric.permissions.api)
-    include(libs.fabric.permissions.api)
+    Set<String> apiModules = [
+            'fabric-api-base',
+            'fabric-lifecycle-events-v1',
+            'fabric-entity-events-v1',
+            'fabric-networking-api-v1',
+    ]
+    if (stonecutter.eval(stonecutter.current.version, ">=1.19.2")) {
+        apiModules.add('fabric-message-api-v1')
+    }
+    apiModules.forEach {
+        modImplementation(fabricApi.module(it, project.property("deps.fabric_api")))
+    }
+
+    // Minecraft versions under 1.21.6 should use 0.3.3, while 1.21.6 and above should use 0.4.1
+    modImplementation("me.lucko:fabric-permissions-api:${stonecutter.eval(stonecutter.current.version, ">=1.21.6") ? '0.4.1' : '0.3.3'}") {
+        exclude group: 'net.fabricmc.fabric-api', module: 'fabric-api-base'
+        exclude group: 'net.fabricmc.fabric-api', module: 'fabric-api-bom'
+    }
+    include ("me.lucko:fabric-permissions-api:${stonecutter.eval(stonecutter.current.version, ">=1.21.6") ? '0.4.1' : '0.3.3'}")
 
     // API
     annotationProcessor project(':api')
@@ -87,11 +163,16 @@ dependencies {
     shadow project(':common')
 
     // Adventure
-    modImplementation(libs.adventure.platform.fabric)
-    include(libs.adventure.platform.fabric)
+    modImplementation("net.kyori:adventure-platform-fabric:${project.property("deps.adventure_platform_fabric")}") {
+        exclude group: 'net.kyori', module: 'ansi'
+    }
+    include("net.kyori:adventure-platform-fabric:${project.property("deps.adventure_platform_fabric")}")
+
+    implementation(libs.kyori.ansi)
+    include(libs.kyori.ansi)
 
     // Integrations
-    modCompileOnly(libs.textplaceholder.fabric)
+    modCompileOnly("eu.pb4:placeholder-api:${project.property("deps.text_placeholder_api")}")
 
     // DependencyDownload
     shadow(libs.mcdependencydownload.fabric) {

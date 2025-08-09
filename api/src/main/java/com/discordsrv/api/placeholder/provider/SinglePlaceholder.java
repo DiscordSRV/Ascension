@@ -53,7 +53,7 @@ public class SinglePlaceholder implements PlaceholderProvider {
 
         try {
             Object result = resultProvider.get();
-            if (perfectMatch || result == null) {
+            if (perfectMatch) {
                 return PlaceholderLookupResult.success(result);
             }
 

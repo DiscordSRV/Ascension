@@ -41,8 +41,7 @@ public class DependencyLoader {
     private static final List<Repository> REPOSITORIES = Arrays.asList(
             // TODO
             new MavenRepository("https://repo1.maven.org/maven2"),
-            new MavenRepository("https://oss.sonatype.org/content/repositories/snapshots"),
-            new MavenRepository("https://s01.oss.sonatype.org/content/repositories/snapshots"),
+            new MavenRepository("https://central.sonatype.com/repository/maven-snapshots"),
             new MavenRepository("https://nexus.scarsz.me/content/groups/public")
     );
 

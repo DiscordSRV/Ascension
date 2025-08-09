@@ -28,7 +28,7 @@ import com.discordsrv.api.discord.entity.guild.DiscordGuild;
 import com.discordsrv.api.discord.entity.guild.DiscordGuildMember;
 import com.discordsrv.api.discord.entity.guild.DiscordRole;
 import com.discordsrv.api.discord.entity.message.ReceivedDiscordMessage;
-import com.discordsrv.api.events.message.process.discord.DiscordChatMessageCustomEmojiRenderEvent;
+import com.discordsrv.api.events.message.render.game.CustomEmojiRenderEvent;
 import com.discordsrv.common.DiscordSRV;
 import com.discordsrv.common.config.main.channels.base.BaseChannelConfig;
 import com.discordsrv.common.config.main.generic.MentionsConfig;
@@ -44,6 +44,7 @@ import dev.vankka.mcdiscordreserializer.discord.DiscordSerializerOptions;
 import dev.vankka.mcdiscordreserializer.minecraft.MinecraftSerializer;
 import dev.vankka.mcdiscordreserializer.minecraft.MinecraftSerializerOptions;
 import net.dv8tion.jda.api.JDA;
+import net.dv8tion.jda.api.entities.Message;
 import net.dv8tion.jda.api.entities.channel.middleman.GuildChannel;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.TranslatableComponent;
@@ -110,6 +111,7 @@ public class ComponentFactory implements MinecraftComponentFactory {
     }
 
     private final ThreadLocal<Set<String>> translationHistory = new ThreadLocal<>();
+    @SuppressWarnings("deprecation")
     private String provideTranslation(TranslatableComponent component) {
         Set<String> history = translationHistory.get();
         if (history == null) {
@@ -139,7 +141,7 @@ public class ComponentFactory implements MinecraftComponentFactory {
             translationHistory.set(history);
 
             return translation.translate(
-                    component.arguments()
+                    component.args()
                             .stream()
                             .map(argument -> plainSerializer().serialize(argument.asComponent()))
                             .toArray(Object[]::new)
@@ -177,15 +179,16 @@ public class ComponentFactory implements MinecraftComponentFactory {
     // Mentions
 
     @NotNull
-    public Component makeChannelMention(long id, MentionsConfig.Format format) {
+    public Component makeChannelMention(long id, BaseChannelConfig config) {
+        MentionsConfig.Format format = config.mentions.channel;
+
         JDA jda = discordSRV.jda();
         GuildChannel guildChannel = jda != null ? jda.getGuildChannelById(id) : null;
 
-        return DiscordContentComponent.of("<#" + Long.toUnsignedString(id) + ">", ComponentUtil.fromAPI(
+        return DiscordMentionComponent.of(Message.MentionType.CHANNEL, Long.toUnsignedString(id), ComponentUtil.fromAPI(
                 discordSRV.componentFactory()
                         .textBuilder(guildChannel != null ? format.format : format.unknownFormat)
-                        .addContext(guildChannel)
-                        .applyPlaceholderService()
+                        .addContext(guildChannel, config)
                         .build()
         ));
     }
@@ -193,11 +196,13 @@ public class ComponentFactory implements MinecraftComponentFactory {
     @NotNull
     public Component makeUserMention(
             long id,
-            MentionsConfig.FormatUser formatConfig,
+            BaseChannelConfig config,
             @Nullable DiscordGuild guild,
             @Nullable Set<DiscordUser> users,
             @Nullable Set<DiscordGuildMember> members
     ) {
+        MentionsConfig.FormatUser formatConfig = config.mentions.user;
+
         DiscordGuildMember member = members == null ? null : members
                 .stream().filter(m -> m.getUser().getId() == id)
                 .findAny().orElse(null);
@@ -224,23 +229,22 @@ public class ComponentFactory implements MinecraftComponentFactory {
             format = formatConfig.unknownFormat;
         }
 
-        return DiscordContentComponent.of("<@" + Long.toUnsignedString(id) + ">", ComponentUtil.fromAPI(
+        return DiscordMentionComponent.of(Message.MentionType.USER, Long.toUnsignedString(id), ComponentUtil.fromAPI(
                 discordSRV.componentFactory()
                         .textBuilder(format)
-                        .addContext(user, member)
-                        .applyPlaceholderService()
+                        .addContext(user, member, config)
                         .build()
         ));
     }
 
-    public Component makeRoleMention(long id, MentionsConfig.Format format) {
+    public Component makeRoleMention(long id, BaseChannelConfig config) {
+        MentionsConfig.Format format = config.mentions.role;
         DiscordRole role = discordSRV.discordAPI().getRoleById(id);
 
-        return DiscordContentComponent.of("<@&" + Long.toUnsignedString(id) + ">", ComponentUtil.fromAPI(
+        return DiscordMentionComponent.of(Message.MentionType.ROLE, Long.toUnsignedString(id), ComponentUtil.fromAPI(
                 discordSRV.componentFactory()
                         .textBuilder(role != null ? format.format : format.unknownFormat)
-                        .addContext(role)
-                        .applyPlaceholderService()
+                        .addContext(role, config)
                         .build()
         ));
     }
@@ -251,16 +255,16 @@ public class ComponentFactory implements MinecraftComponentFactory {
             return null;
         }
 
-        DiscordChatMessageCustomEmojiRenderEvent event = new DiscordChatMessageCustomEmojiRenderEvent(emoji);
+        CustomEmojiRenderEvent event = new CustomEmojiRenderEvent(emoji);
         discordSRV.eventBus().publish(event);
 
         if (event.isProcessed()) {
-            return DiscordContentComponent.of(emoji.asJDA().getAsMention(), ComponentUtil.fromAPI(event.getRenderedEmojiFromProcessing()));
+            return DiscordMentionComponent.of(Message.MentionType.EMOJI, emoji.asJDA().getAsMention(), ComponentUtil.fromAPI(event.getRenderedEmojiFromProcessing()));
         }
 
         switch (behaviour) {
             case NAME:
-                return DiscordContentComponent.of(emoji.asJDA().getAsMention(), Component.text(":" + emoji.getName() + ":"));
+                return DiscordMentionComponent.of(Message.MentionType.EMOJI, emoji.asJDA().getAsMention(), Component.text(":" + emoji.getName() + ":"));
             case BLANK:
             default:
                 return null;
@@ -278,7 +282,7 @@ public class ComponentFactory implements MinecraftComponentFactory {
     }
 
     public String discordSerialize(Component component) {
-        Component mapped = DiscordContentComponent.remapToDiscord(component);
+        Component mapped = DiscordMentionComponent.remapToDiscord(component);
         return discordSerializer().serialize(mapped);
     }
 

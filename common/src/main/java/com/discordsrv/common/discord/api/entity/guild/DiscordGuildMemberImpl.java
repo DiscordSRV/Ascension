@@ -112,7 +112,7 @@ public class DiscordGuildMemberImpl implements DiscordGuildMember {
     }
 
     @Override
-    public @NotNull String getEffectiveServerAvatarUrl() {
+    public @NotNull String getEffectiveAvatarUrl() {
         return member.getEffectiveAvatarUrl();
     }
 

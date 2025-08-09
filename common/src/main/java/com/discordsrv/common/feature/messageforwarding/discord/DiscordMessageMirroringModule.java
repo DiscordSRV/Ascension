@@ -32,8 +32,8 @@ import com.discordsrv.api.discord.entity.message.SendableDiscordMessage;
 import com.discordsrv.api.eventbus.Subscribe;
 import com.discordsrv.api.events.discord.message.DiscordMessageDeleteEvent;
 import com.discordsrv.api.events.discord.message.DiscordMessageUpdateEvent;
-import com.discordsrv.api.events.message.forward.game.AbstractGameMessageForwardedEvent;
-import com.discordsrv.api.events.message.receive.discord.DiscordChatMessageReceiveEvent;
+import com.discordsrv.api.events.message.post.game.AbstractGameMessagePostEvent;
+import com.discordsrv.api.events.message.preprocess.discord.DiscordChatMessagePreProcessEvent;
 import com.discordsrv.api.placeholder.format.PlainPlaceholderFormat;
 import com.discordsrv.api.placeholder.provider.SinglePlaceholder;
 import com.discordsrv.api.task.Task;
@@ -90,13 +90,13 @@ public class DiscordMessageMirroringModule extends AbstractModule<DiscordSRV> {
 
     @SuppressWarnings("unchecked")
     @Subscribe(ignoreCancelled = false)
-    public <CC extends BaseChannelConfig & IChannelConfig> void onDiscordChatMessageProcessing(DiscordChatMessageReceiveEvent event) {
+    public <CC extends BaseChannelConfig & IChannelConfig> void onDiscordChatMessageProcessing(DiscordChatMessagePreProcessEvent event) {
         if (checkCancellation(event)) {
             return;
         }
 
         Map<GameChannel, BaseChannelConfig> channels = discordSRV.channelConfig().resolve(event.getChannel());
-        if (channels == null || channels.isEmpty()) {
+        if (channels.isEmpty()) {
             return;
         }
 
@@ -162,10 +162,14 @@ public class DiscordMessageMirroringModule extends AbstractModule<DiscordSRV> {
             }
 
             futures.add(
-                    discordSRV.destinations().lookupDestination(channelConfig.destination(), true, true)
-                            .thenApply(messageChannels -> {
+                    discordSRV.destinations().lookupDestination(channelConfig.destination(), true, false)
+                            .thenApply(lookupResult -> {
+                                if (lookupResult.anyErrors()) {
+                                    logger().warning(lookupResult.compositeError("Failed to mirror message to some channels"));
+                                }
+
                                 List<MirrorTarget> targets = new ArrayList<>();
-                                for (DiscordGuildMessageChannel messageChannel : messageChannels) {
+                                for (DiscordGuildMessageChannel messageChannel : lookupResult.channels()) {
                                     targets.add(new MirrorTarget(messageChannel, config));
                                 }
                                 return new MirrorOperation(message, config, targets);
@@ -313,26 +317,20 @@ public class DiscordMessageMirroringModule extends AbstractModule<DiscordSRV> {
     }
 
     @Subscribe
-    public void onGameMessageForwarded(AbstractGameMessageForwardedEvent event) {
+    public void onGameMessageForwarded(AbstractGameMessagePostEvent<?> event) {
         Set<? extends ReceivedDiscordMessage> messages = event.getDiscordMessage().getMessages();
-
-        GameChannel gameChannel = event.getOriginGameChannel();
-        BaseChannelConfig gameChannelConfig = gameChannel != null ? discordSRV.channelConfig().get(gameChannel) : null;
 
         Map<ReceivedDiscordMessage, MessageReference> references = new LinkedHashMap<>();
         for (ReceivedDiscordMessage message : messages) {
-            BaseChannelConfig channelConfig = gameChannelConfig;
-            if (channelConfig == null) {
-                DiscordMessageChannel channel = message.getChannel();
+            DiscordMessageChannel channel = message.getChannel();
 
-                channelConfig = discordSRV.channelConfig()
-                        .resolve(channel)
-                        .values()
-                        .stream()
-                        .filter(config -> config instanceof IChannelConfig && ((IChannelConfig) config).destination().contains(channel))
-                        .findAny()
-                        .orElse(null);
-            }
+            BaseChannelConfig channelConfig = discordSRV.channelConfig()
+                    .resolve(channel)
+                    .values()
+                    .stream()
+                    .filter(config -> config instanceof IChannelConfig && ((IChannelConfig) config).destination().contains(channel))
+                    .findAny()
+                    .orElse(null);
             if (channelConfig == null) {
                 continue;
             }
@@ -387,7 +385,7 @@ public class DiscordMessageMirroringModule extends AbstractModule<DiscordSRV> {
     ) {
         DiscordGuildMember member = message.getMember();
         DiscordUser user = message.getAuthor();
-        String username = discordSRV.placeholderService().replacePlaceholders(config.usernameFormat, member, user);
+        String username = discordSRV.placeholderService().replacePlaceholders(config.usernameFormat, member, user, message);
         if (username.length() > 32) {
             username = username.substring(0, 32);
         }
@@ -419,6 +417,7 @@ public class DiscordMessageMirroringModule extends AbstractModule<DiscordSRV> {
                     () -> discordSRV.placeholderService()
                             .replacePlaceholders(
                                     config.replyFormat,
+                                    replyMessage,
                                     replyMessage.getMember(),
                                     replyMessage.getAuthor(),
                                     new SinglePlaceholder("message_jump_url", jumpUrl),
@@ -435,7 +434,7 @@ public class DiscordMessageMirroringModule extends AbstractModule<DiscordSRV> {
                 .setWebhookUsername(username)
                 .setWebhookAvatarUrl(
                         member != null
-                            ? member.getEffectiveServerAvatarUrl()
+                            ? member.getEffectiveAvatarUrl()
                             : user.getEffectiveAvatarUrl()
                 );
         for (DiscordMessageEmbed embed : message.getEmbeds()) {

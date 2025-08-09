@@ -30,14 +30,18 @@ public enum GenericSyncResults implements ISyncResult {
     BOTH_TRUE("Both true"),
     BOTH_FALSE("Both false"),
     WRONG_DIRECTION("Wrong direction"),
+    SIDE_DISABLED("Disabled"),
 
     // Fail
     NOT_LINKED("Accounts not linked"),
+    NOT_A_GUILD_MEMBER("User is not part of the server the role is in", true),
 
     // Error
     MODULE_NOT_FOUND("Game data not available", false, false),
     GUILD_NOT_FOUND("Discord server not found", false, false),
     MEMBER_CANNOT_INTERACT("Cannot interact with the member", false, false),
+    ROLE_DOESNT_EXIST("Role doesn't exist", false, false),
+    ROLE_CANNOT_INTERACT("Bot doesn't have a role above the synced role (cannot interact)", false, false),
 
     ;
 

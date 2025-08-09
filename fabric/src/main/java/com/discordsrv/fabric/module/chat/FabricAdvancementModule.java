@@ -19,19 +19,16 @@
 package com.discordsrv.fabric.module.chat;
 
 import com.discordsrv.api.component.MinecraftComponent;
-import com.discordsrv.api.events.message.receive.game.AwardMessageReceiveEvent;
+import com.discordsrv.api.events.message.preprocess.game.AwardMessagePreProcessEvent;
 import com.discordsrv.common.abstraction.player.IPlayer;
 import com.discordsrv.common.core.logging.NamedLogger;
-import com.discordsrv.common.util.ComponentUtil;
 import com.discordsrv.fabric.FabricDiscordSRV;
 import com.discordsrv.fabric.module.AbstractFabricModule;
 import net.minecraft.advancement.Advancement;
 import net.minecraft.advancement.AdvancementDisplay;
-import net.minecraft.advancement.AdvancementEntry;
 import net.minecraft.advancement.AdvancementFrame;
+import net.minecraft.text.Text;
 import net.minecraft.server.network.ServerPlayerEntity;
-
-import java.util.Optional;
 
 public class FabricAdvancementModule extends AbstractFabricModule {
 
@@ -44,35 +41,48 @@ public class FabricAdvancementModule extends AbstractFabricModule {
         instance = this;
     }
 
-    public static void onGrant(AdvancementEntry advancementEntry, ServerPlayerEntity owner) {
+    //? if minecraft: <1.20.2 {
+    /*public static void onGrant(Advancement advancement, ServerPlayerEntity owner) {
+    *///?} else {
+    public static void onGrant(net.minecraft.advancement.AdvancementEntry advancementEntry, ServerPlayerEntity owner) {
+    //?}
         if (instance == null || !instance.enabled) return;
 
         FabricDiscordSRV discordSRV = instance.discordSRV;
+        //? if minecraft: <1.20.2 {
+        /*AdvancementDisplay display = advancement.getDisplay();
+         *///?} else {
         Advancement advancement = advancementEntry.value();
+        AdvancementDisplay display = advancement.display().orElse(null);
+        //?}
 
-        Optional<AdvancementDisplay> displayOptional = advancement.display();
-        if (displayOptional.isEmpty() || !displayOptional.get().shouldAnnounceToChat()) {
-            instance.logger().trace("Skipping advancement display of \"" + (advancement.name().isPresent() ? advancement.name().get() : advancement) + "\" for "
+        if (display == null || !display.shouldAnnounceToChat()) {
+            instance.logger().trace("Skipping advancement display of \"" + (advancement) + "\" for "
                     + owner + ": advancement display == null or does not broadcast to chat");
             return;
         }
 
-        AdvancementDisplay display = displayOptional.get();
         AdvancementFrame frame = display.getFrame();
 
-        MinecraftComponent message = ComponentUtil.toAPI(discordSRV.getAdventure().asAdventure(frame.getChatAnnouncementText(advancementEntry, owner)));
-        MinecraftComponent title = ComponentUtil.toAPI(discordSRV.getAdventure().asAdventure(display.getTitle()));
-        MinecraftComponent description = ComponentUtil.toAPI(discordSRV.getAdventure().asAdventure(display.getDescription()));
+        //? if minecraft: <1.20.3 {
+        /*Text rawChat = Text.translatable("chat.type.advancement." + frame.getId(), owner.getDisplayName(), display.getTitle());
+        *///?} else {
+        Text rawChat = frame.getChatAnnouncementText(advancementEntry, owner);
+        //?}
+
+        MinecraftComponent message = discordSRV.componentFactory().toAPI(rawChat);
+        MinecraftComponent title = discordSRV.componentFactory().toAPI(display.getTitle());
+        MinecraftComponent description = discordSRV.componentFactory().toAPI(display.getDescription());
 
         IPlayer player = discordSRV.playerProvider().player(owner);
         discordSRV.eventBus().publish(
-                new AwardMessageReceiveEvent(
+                new AwardMessagePreProcessEvent(
                         null,
                         player,
                         message,
                         title,
                         description,
-                        AwardMessageReceiveEvent.AdvancementFrame.valueOf(frame.toString()),
+                        AwardMessagePreProcessEvent.AdvancementFrame.valueOf(frame.toString()),
                         null,
                         false
                 )

@@ -29,8 +29,6 @@ import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents;
 import net.fabricmc.loader.api.FabricLoader;
 import net.fabricmc.loader.api.ModContainer;
 import net.fabricmc.loader.impl.FabricLoaderImpl;
-import net.kyori.adventure.platform.modcommon.MinecraftServerAudiences;
-import net.minecraft.GameVersion;
 import net.minecraft.MinecraftVersion;
 import net.minecraft.server.MinecraftServer;
 import org.apache.logging.log4j.LogManager;
@@ -41,6 +39,7 @@ import java.util.Collections;
 import java.util.Optional;
 
 public class DiscordSRVFabricBootstrap implements DedicatedServerModInitializer, IBootstrap {
+    private final static String DEPENDENCIES_RUNTIME = /*$ dependencies_file*/"dependencies/runtimeDownload-1.21.6.txt";
 
     private final Logger logger;
     private final ClasspathAppender classpathAppender;
@@ -48,7 +47,6 @@ public class DiscordSRVFabricBootstrap implements DedicatedServerModInitializer,
     private final Path dataDirectory;
     private MinecraftServer minecraftServer;
     private FabricDiscordSRV discordSRV;
-    private MinecraftServerAudiences adventure;
 
     public DiscordSRVFabricBootstrap() {
         this.logger = new Log4JLoggerImpl(LogManager.getLogger("DiscordSRV"));
@@ -58,25 +56,30 @@ public class DiscordSRVFabricBootstrap implements DedicatedServerModInitializer,
             this.lifecycleManager = new LifecycleManager(
                     this.logger,
                     dataDirectory,
-                    Collections.singletonList("dependencies/runtimeDownload-fabric.txt"),
+                    Collections.singletonList(DEPENDENCIES_RUNTIME),
                     classpathAppender
             );
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
         this.minecraftServer = null;
-        this.adventure = null;
     }
 
     @Override
     public void onInitializeServer() {
         ServerLifecycleEvents.SERVER_STARTING.register(minecraftServer -> {
             this.minecraftServer = minecraftServer;
-            this.adventure = MinecraftServerAudiences.of(minecraftServer);
             lifecycleManager.loadAndEnable(() -> this.discordSRV = new FabricDiscordSRV(this));
         });
 
-        ServerLifecycleEvents.SERVER_STARTED.register(minecraftServer -> this.discordSRV.runServerStarted());
+        ServerLifecycleEvents.SERVER_STARTED.register(minecraftServer -> {
+            if (this.discordSRV == null) {
+                this.logger.error("Server started but FabricDiscordSRV hasn't initialized properly.\n" +
+                        "This is likely due to an error during the loading process. Please check the full logs for more details.");
+                return;
+            }
+            this.discordSRV.runServerStarted();
+        });
 
         ServerLifecycleEvents.SERVER_STOPPING.register(minecraftServer -> {
             if (this.discordSRV != null) this.discordSRV.runDisable();
@@ -110,10 +113,15 @@ public class DiscordSRVFabricBootstrap implements DedicatedServerModInitializer,
 
     @Override
     public String platformVersion() {
-        GameVersion version = MinecraftVersion.CURRENT;
+        //? if minecraft: >=1.21.6 {
+        String minecraftVersion = MinecraftVersion.CURRENT.name();
+         //?} else {
+        /*String minecraftVersion = MinecraftVersion.CURRENT.getName();
+         *///?}
+
         String loader_version = FabricLoaderImpl.VERSION;
         Optional<ModContainer> fabricApi = FabricLoader.getInstance().getModContainer("fabric-api");
-        return "Minecraft "+ version.getName() + " with Fabric Loader " + loader_version + (fabricApi.map(modContainer -> " (Fabric API: " + modContainer.getMetadata().getVersion().getFriendlyString() + ")").orElse(""));
+        return "Minecraft " + minecraftVersion + " with Fabric Loader " + loader_version + (fabricApi.map(modContainer -> " (Fabric API: " + modContainer.getMetadata().getVersion().getFriendlyString() + ")").orElse(""));
     }
 
     public MinecraftServer getServer() {
@@ -122,9 +130,5 @@ public class DiscordSRVFabricBootstrap implements DedicatedServerModInitializer,
 
     public FabricDiscordSRV getDiscordSRV() {
         return discordSRV;
-    }
-
-    public MinecraftServerAudiences getAdventure() {
-        return adventure;
     }
 }

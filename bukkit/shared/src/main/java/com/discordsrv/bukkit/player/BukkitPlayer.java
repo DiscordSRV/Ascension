@@ -36,13 +36,17 @@ import java.util.Locale;
 
 public abstract class BukkitPlayer extends BukkitCommandSender implements IPlayer {
 
-    protected final Player player;
+    protected Player player;
     private final Identity identity;
 
     public BukkitPlayer(BukkitDiscordSRV discordSRV, Player player) {
         super(discordSRV, player, () -> discordSRV.audiences().player(player));
         this.player = player;
         this.identity = Identity.identity(player.getUniqueId());
+    }
+
+    protected void setPlayer(Player player) {
+        this.player = player;
     }
 
     @Override
@@ -77,7 +81,8 @@ public abstract class BukkitPlayer extends BukkitCommandSender implements IPlaye
     public @NotNull String world() {
         return player.getWorld().getName();
     }
- 
+
+    @Override
     public boolean isVanished() {
         for (MetadataValue metadata : player.getMetadata("vanished")) {
             if (metadata.asBoolean()) {

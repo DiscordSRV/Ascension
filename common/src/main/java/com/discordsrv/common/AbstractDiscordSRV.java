@@ -77,20 +77,21 @@ import com.discordsrv.common.feature.PlayerListModule;
 import com.discordsrv.common.feature.PresenceUpdaterModule;
 import com.discordsrv.common.feature.bansync.BanSyncModule;
 import com.discordsrv.common.feature.channel.ChannelLockingModule;
-import com.discordsrv.common.feature.channel.TimedUpdaterModule;
+import com.discordsrv.common.feature.channel.ChannelUpdaterModule;
 import com.discordsrv.common.feature.channel.global.GlobalChannelLookupModule;
 import com.discordsrv.common.feature.console.ConsoleModule;
 import com.discordsrv.common.feature.customcommands.CustomCommandModule;
 import com.discordsrv.common.core.debug.data.VersionInfo;
 import com.discordsrv.common.feature.groupsync.GroupSyncModule;
 import com.discordsrv.common.feature.linking.LinkProvider;
+import com.discordsrv.common.feature.linking.LinkedRoleModule;
 import com.discordsrv.common.feature.linking.LinkingModule;
 import com.discordsrv.common.feature.linking.LinkingRewardsModule;
 import com.discordsrv.common.feature.linking.impl.MinecraftAuthenticationLinker;
 import com.discordsrv.common.feature.linking.impl.StorageLinker;
 import com.discordsrv.common.feature.mention.MentionCachingModule;
 import com.discordsrv.common.feature.mention.MentionGameRenderingModule;
-import com.discordsrv.common.feature.messageforwarding.discord.DiscordChatMessageModule;
+import com.discordsrv.common.feature.messageforwarding.discord.DiscordToMinecraftChatModule;
 import com.discordsrv.common.feature.messageforwarding.discord.DiscordMessageMirroringModule;
 import com.discordsrv.common.feature.messageforwarding.game.*;
 import com.discordsrv.common.feature.nicknamesync.NicknameSyncModule;
@@ -100,6 +101,7 @@ import com.discordsrv.common.core.update.UpdateChecker;
 import com.discordsrv.common.helper.ChannelConfigHelper;
 import com.discordsrv.common.helper.DestinationLookupHelper;
 import com.discordsrv.common.helper.TemporaryLocalData;
+import com.discordsrv.common.helper.VanishStatusTrackingModule;
 import com.discordsrv.common.logging.adapter.DependencyLoggerAdapter;
 import com.discordsrv.common.util.ApiInstanceUtil;
 import com.discordsrv.common.util.UUIDUtil;
@@ -372,7 +374,7 @@ public abstract class AbstractDiscordSRV<
     }
 
     @Override
-    public final @NotNull ComponentFactory componentFactory() {
+    public @NotNull ComponentFactory componentFactory() {
         return componentFactory;
     }
 
@@ -714,8 +716,8 @@ public abstract class AbstractDiscordSRV<
         placeholderService().addGlobalContext(new NumberFormattingContext(this));
         placeholderService().addGlobalContext(new GamePermissionContext(this));
         placeholderService().addGlobalContext(new ReceivedDiscordMessageContext(this));
-        placeholderService().addGlobalContext(new DiscordBotContext(this));
         placeholderService().addGlobalContext(new AvatarProviderContext(this));
+        placeholderService().addGlobalContext(new DiscordEntityContext(this));
         placeholderService().addGlobalContext(new DiscordGuildMemberContext());
         placeholderService().addGlobalContext(new DebugContext(this));
         placeholderService().addGlobalContext(DurationFormattingContext.class);
@@ -727,13 +729,13 @@ public abstract class AbstractDiscordSRV<
         registerModule(BanSyncModule::new);
         registerModule(ConsoleModule::new);
         registerModule(ChannelLockingModule::new);
-        registerModule(TimedUpdaterModule::new);
+        registerModule(ChannelUpdaterModule::new);
         registerModule(DiscordCommandModule::new);
         registerModule(GameCommandModule::new);
         registerModule(GlobalChannelLookupModule::new);
         registerModule(DiscordAPIEventModule::new);
         registerModule(GroupSyncModule::new);
-        registerModule(DiscordChatMessageModule::new);
+        registerModule(DiscordToMinecraftChatModule::new);
         registerModule(DiscordMessageMirroringModule::new);
         registerModule(JoinMessageModule::new);
         registerModule(LeaveMessageModule::new);
@@ -749,6 +751,8 @@ public abstract class AbstractDiscordSRV<
         registerModule(LinkingRewardsModule::new);
         registerModule(StartMessageModule::new);
         registerModule(StopMessageModule::new);
+        registerModule(VanishStatusTrackingModule::new);
+        registerModule(LinkedRoleModule::new);
 
         if (serverType() == ServerType.PROXY) {
             registerModule(ServerSwitchMessageModule::new);

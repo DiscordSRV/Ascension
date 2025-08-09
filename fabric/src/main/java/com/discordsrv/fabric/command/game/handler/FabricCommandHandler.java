@@ -25,7 +25,9 @@ import com.discordsrv.common.command.game.abstraction.sender.ICommandSender;
 import com.discordsrv.fabric.FabricDiscordSRV;
 import com.mojang.brigadier.tree.LiteralCommandNode;
 import net.minecraft.command.CommandSource;
+import net.minecraft.entity.Entity;
 import net.minecraft.server.command.ServerCommandSource;
+import net.minecraft.server.network.ServerPlayerEntity;
 
 public class FabricCommandHandler implements ICommandHandler {
 
@@ -37,8 +39,9 @@ public class FabricCommandHandler implements ICommandHandler {
 
     private ICommandSender getSender(CommandSource source) {
         if (source instanceof ServerCommandSource) {
-            if (((ServerCommandSource) source).getPlayer() != null) {
-                return discordSRV.playerProvider().player(((ServerCommandSource) source).getPlayer());
+            Entity playerEntity = ((ServerCommandSource) source).getEntity();
+            if (playerEntity != null && playerEntity instanceof ServerPlayerEntity player) {
+                return discordSRV.playerProvider().player(player);
             } else {
                 return discordSRV.console();
             }

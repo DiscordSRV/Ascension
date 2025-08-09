@@ -18,16 +18,20 @@
 
 package com.discordsrv.common.feature.messageforwarding.game;
 
-import com.discordsrv.api.channel.GameChannel;
+import com.discordsrv.api.discord.entity.channel.DiscordGuildMessageChannel;
 import com.discordsrv.api.discord.entity.message.ReceivedDiscordMessageCluster;
 import com.discordsrv.api.discord.entity.message.SendableDiscordMessage;
-import com.discordsrv.api.events.message.receive.game.AbstractGameMessageReceiveEvent;
+import com.discordsrv.api.events.message.post.game.AbstractGameMessagePostEvent;
+import com.discordsrv.api.events.message.postprocess.game.AbstractGameMessagePostProcessEvent;
+import com.discordsrv.api.events.message.preprocess.game.AbstractGameMessagePreProcessEvent;
 import com.discordsrv.common.DiscordSRV;
+import com.discordsrv.common.abstraction.player.IPlayer;
 import com.discordsrv.common.config.main.channels.StartMessageConfig;
 import com.discordsrv.common.config.main.channels.base.BaseChannelConfig;
-import org.jetbrains.annotations.NotNull;
 
-public class StartMessageModule extends AbstractGameMessageModule<StartMessageConfig, AbstractGameMessageReceiveEvent> {
+import java.util.List;
+
+public class StartMessageModule extends AbstractGameMessageModule<StartMessageConfig, AbstractGameMessagePreProcessEvent, AbstractGameMessagePostProcessEvent<AbstractGameMessagePreProcessEvent>> {
 
     public StartMessageModule(DiscordSRV discordSRV) {
         super(discordSRV, "START_MESSAGE");
@@ -39,10 +43,25 @@ public class StartMessageModule extends AbstractGameMessageModule<StartMessageCo
     }
 
     @Override
-    public void postClusterToEventBus(GameChannel channel, @NotNull ReceivedDiscordMessageCluster cluster) {}
+    protected AbstractGameMessagePostProcessEvent<AbstractGameMessagePreProcessEvent> createPostProcessEvent(
+            AbstractGameMessagePreProcessEvent preEvent,
+            IPlayer player,
+            List<DiscordGuildMessageChannel> channels,
+            SendableDiscordMessage discordMessage
+    ) {
+        return null;
+    }
 
     @Override
-    public void setPlaceholders(StartMessageConfig config, AbstractGameMessageReceiveEvent event, SendableDiscordMessage.Formatter formatter) {}
+    protected AbstractGameMessagePostEvent<AbstractGameMessagePostProcessEvent<AbstractGameMessagePreProcessEvent>> createPostEvent(
+            AbstractGameMessagePostProcessEvent<AbstractGameMessagePreProcessEvent> preEvent,
+            ReceivedDiscordMessageCluster cluster
+    ) {
+        return null;
+    }
+
+    @Override
+    public void setPlaceholders(StartMessageConfig config, AbstractGameMessagePreProcessEvent event, SendableDiscordMessage.Formatter formatter) {}
 
     @Override
     public void serverStarted() {

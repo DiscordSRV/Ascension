@@ -61,6 +61,7 @@ public interface DiscordGuild extends JDAEntity<Guild>, Snowflake {
      * @return the connected bot's member
      */
     @NotNull
+    @Placeholder("self_member")
     DiscordGuildMember getSelfMember();
 
     /**

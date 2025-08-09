@@ -44,27 +44,42 @@ public abstract class AbstractSyncConfig<C extends AbstractSyncConfig<C, G, D>, 
 
     public boolean validate(String syncName, DiscordSRV discordSRV) {
         String label = syncName + " (" + describe() + ")";
-        boolean invalidTieBreaker, invalidDirection = false;
-        if ((invalidTieBreaker = (tieBreaker == null)) || (invalidDirection = (direction == null))) {
-            if (invalidTieBreaker) {
-                discordSRV.logger().error(label + " has invalid tie-breaker: " + tieBreaker
-                                                  + ", should be one of " + Arrays.toString(SyncSide.values()));
+        boolean invalidTieBreaker = false, invalidDirection = false;
+        for (SyncSide tieBreaker : tieBreakers.all()) {
+            if (tieBreaker == null) {
+                invalidTieBreaker = true;
+                discordSRV.logger().error(label + " has invalid tie-breaker, "
+                                                  + "should be one of " + Arrays.toString(SyncSide.values()));
             }
+        }
+        if (invalidTieBreaker || (invalidDirection = (direction == null))) {
             if (invalidDirection) {
                 discordSRV.logger().error(label + " has invalid direction: " + direction
                                                   + ", should be one of " + Arrays.toString(SyncDirection.values()));
             }
             return false;
-        } else if (direction != SyncDirection.BIDIRECTIONAL) {
-            boolean minecraft;
-            if ((direction == SyncDirection.MINECRAFT_TO_DISCORD) != (minecraft = (tieBreaker == SyncSide.MINECRAFT))) {
+        }
+
+        if (direction != SyncDirection.BIDIRECTIONAL) {
+            boolean directionIsMinecraft = direction == SyncDirection.MINECRAFT_TO_DISCORD;
+
+            for (SyncSide tieBreaker : tieBreakers.all()) {
+                if (tieBreaker == SyncSide.DISABLED) {
+                    continue;
+                }
+
+                boolean minecraft = tieBreaker == SyncSide.MINECRAFT;
+                if (directionIsMinecraft == minecraft) {
+                    continue;
+                }
+
                 SyncSide opposite = (minecraft ? SyncSide.DISCORD : SyncSide.MINECRAFT);
                 discordSRV.logger().warning(
-                        label + " with direction " + direction + " has a invalid tie-breaker " + tieBreaker + " (should be " + opposite + ")"
+                        label + " with direction " + direction + " has an invalid tie-breaker " + tieBreaker + " (should be " + opposite + ")"
                 );
-                tieBreaker = opposite; // Fix the config
             }
         }
+
         return true;
     }
 

@@ -28,14 +28,17 @@ import com.discordsrv.common.feature.linking.requirelinking.RequiredLinkingModul
 
 public class DiscordSRVDiscordCommand {
 
+    private static final String LABEL = "discordsrv";
     private static final ComponentIdentifier IDENTIFIER = ComponentIdentifier.of("DiscordSRV", "discordsrv");
 
     private static DiscordCommand INSTANCE;
 
     public static DiscordCommand get(DiscordSRV discordSRV) {
         if (INSTANCE == null) {
-            DiscordCommand.ChatInputBuilder builder = DiscordCommand.chatInput(IDENTIFIER, "discordsrv", "DiscordSRV related commands")
-                    .addSubCommand(DebugCommand.getDiscord(discordSRV))
+            DiscordCommand.ChatInputBuilder builder = DiscordCommand.chatInput(IDENTIFIER, LABEL, "")
+                    .addDescriptionTranslations(discordSRV.getAllTranslations(config -> config.discordsrvCommandDescription.content()))
+                    .addSubCommandGroup(DebugCommand.getDiscord(discordSRV))
+                    .addSubCommand(ParseCommand.getDiscord(discordSRV))
                     .addSubCommand(VersionCommand.getDiscord(discordSRV))
                     .addSubCommand(ResyncCommand.getDiscord(discordSRV));
 
@@ -56,9 +59,7 @@ public class DiscordSRVDiscordCommand {
 
             RequiredLinkingModule<?> requiredLinking = discordSRV.getModule(RequiredLinkingModule.class);
             if (requiredLinking != null && requiredLinking.isEnabled()) {
-                builder = builder
-                        .addSubCommand(BypassCommand.getDiscordList(discordSRV))
-                        .addSubCommand(BypassCommand.getDiscordModify(discordSRV));
+                builder = builder.addSubCommandGroup(BypassCommand.getDiscord(discordSRV));
             }
 
             INSTANCE = builder

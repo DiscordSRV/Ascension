@@ -39,6 +39,13 @@ import org.jetbrains.annotations.Nullable;
 public interface DiscordAPI {
 
     /**
+     * Gets the {@link DiscordUser} instance for the bot itself.
+     * @return the self user
+     */
+    @NotNull
+    DiscordUser getSelfUser();
+
+    /**
      * Gets a Discord channel by id, the provided entity should not be stored for long periods of time.
      * @param id the id for the channel
      * @return the channel

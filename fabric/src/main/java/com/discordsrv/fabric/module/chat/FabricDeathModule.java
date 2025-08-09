@@ -19,16 +19,16 @@
 package com.discordsrv.fabric.module.chat;
 
 import com.discordsrv.api.component.MinecraftComponent;
-import com.discordsrv.api.events.message.receive.game.DeathMessageReceiveEvent;
+import com.discordsrv.api.events.message.preprocess.game.DeathMessagePreProcessEvent;
 import com.discordsrv.api.player.DiscordSRVPlayer;
-import com.discordsrv.common.util.ComponentUtil;
 import com.discordsrv.fabric.FabricDiscordSRV;
 import com.discordsrv.fabric.module.AbstractFabricModule;
 import net.fabricmc.fabric.api.entity.event.v1.ServerLivingEntityEvents;
 import net.minecraft.entity.LivingEntity;
 import net.minecraft.entity.damage.DamageSource;
 import net.minecraft.server.network.ServerPlayerEntity;
-import net.minecraft.text.Text;
+import net.minecraft.server.world.ServerWorld;
+import net.minecraft.world.GameRules;
 
 public class FabricDeathModule extends AbstractFabricModule {
 
@@ -44,21 +44,26 @@ public class FabricDeathModule extends AbstractFabricModule {
     }
 
     private void onDeath(LivingEntity livingEntity, DamageSource damageSource) {
-        if (!enabled) return;
-        if (livingEntity instanceof ServerPlayerEntity) {
-            Text message = damageSource.getDeathMessage(livingEntity);
-            MinecraftComponent minecraftComponent = ComponentUtil.toAPI(discordSRV.getAdventure().asAdventure(message));
-
-            DiscordSRVPlayer player = discordSRV.playerProvider().player((ServerPlayerEntity) livingEntity);
-            discordSRV.eventBus().publish(
-                    new DeathMessageReceiveEvent(
-                            damageSource,
-                            player,
-                            minecraftComponent,
-                            null,
-                            false
-                    )
-            );
+        if (!enabled || !(livingEntity instanceof ServerPlayerEntity playerEntity)) {
+            return;
         }
+
+        if (!((ServerWorld) playerEntity.getWorld()).getGameRules().get(GameRules.SHOW_DEATH_MESSAGES).get()) {
+            logger().debug("Skipping displaying death message, disabled by gamerule");
+            return;
+        }
+
+        MinecraftComponent minecraftComponent = discordSRV.componentFactory().toAPI(damageSource.getDeathMessage(livingEntity));
+        DiscordSRVPlayer player = discordSRV.playerProvider().player(playerEntity);
+
+        discordSRV.eventBus().publish(
+                new DeathMessagePreProcessEvent(
+                        damageSource,
+                        player,
+                        minecraftComponent,
+                        null,
+                        false
+                )
+        );
     }
 }

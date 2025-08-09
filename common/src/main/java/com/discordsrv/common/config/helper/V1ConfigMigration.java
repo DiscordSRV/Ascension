@@ -22,7 +22,7 @@ import com.discordsrv.common.DiscordSRV;
 import com.discordsrv.common.abstraction.sync.enums.SyncDirection;
 import com.discordsrv.common.config.connection.ConnectionConfig;
 import com.discordsrv.common.config.main.ConsoleConfig;
-import com.discordsrv.common.config.main.GroupSyncConfig;
+import com.discordsrv.common.config.main.sync.GroupSyncConfig;
 import com.discordsrv.common.config.main.MainConfig;
 import com.discordsrv.common.config.main.channels.DiscordToMinecraftChatConfig;
 import com.discordsrv.common.config.main.channels.base.BaseChannelConfig;

@@ -23,18 +23,26 @@ import org.jetbrains.annotations.Nullable;
 import org.spongepowered.configurate.ConfigurationNode;
 import org.spongepowered.configurate.serialize.SerializationException;
 import org.spongepowered.configurate.serialize.TypeSerializer;
+import org.spongepowered.configurate.util.NamingScheme;
 
 import java.lang.reflect.Type;
 
 public class MinecraftMessageSerializer implements TypeSerializer<MinecraftMessage> {
 
+    private final NamingScheme namingScheme;
+
+    public MinecraftMessageSerializer(NamingScheme namingScheme) {
+        this.namingScheme = namingScheme;
+    }
+
     @Override
     public MinecraftMessage deserialize(Type type, ConfigurationNode node) throws SerializationException {
-        return new MinecraftMessage(node.getString());
+        return new MinecraftMessage(node.node(namingScheme.coerce("minecraft")).getString());
     }
 
     @Override
     public void serialize(Type type, @Nullable MinecraftMessage obj, ConfigurationNode node) throws SerializationException {
+        node = node.node(namingScheme.coerce("minecraft"));
         if (obj == null) {
             node.set(null);
             return;

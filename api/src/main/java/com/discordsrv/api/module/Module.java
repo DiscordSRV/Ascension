@@ -53,6 +53,7 @@ public interface Module {
     /**
      * Determines if this {@link Module} should be enabled at the instant this method is called, this will be used
      * to determine when modules should be enabled or disabled when DiscordSRV enabled, disables and reloads.
+     * <b>This method must not require a Discord connection and has to be callable when {@link #canEnableBeforeReady()} return {@code true} and when DiscordSRV is ready</b>
      * @return the current enabled status the module should be in currently
      */
     default boolean isEnabled() {

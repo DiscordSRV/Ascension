@@ -28,12 +28,15 @@ import com.discordsrv.common.feature.linking.LinkStore;
 import com.discordsrv.common.util.function.CheckedConsumer;
 import com.discordsrv.common.util.function.CheckedFunction;
 import org.apache.commons.lang3.tuple.Pair;
+import org.jetbrains.annotations.MustBeInvokedByOverriders;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.sql.*;
+import java.time.Duration;
 import java.time.LocalDateTime;
 import java.util.*;
+import java.util.concurrent.Future;
 import java.util.stream.Collectors;
 
 public abstract class SQLStorage implements Storage {
@@ -48,6 +51,7 @@ public abstract class SQLStorage implements Storage {
     protected static final String LINKING_BYPASS_TABLE_NAME = "linking_bypass";
 
     protected final DiscordSRV discordSRV;
+    private Future<?> cleanupTask;
 
     public SQLStorage(DiscordSRV discordSRV) {
         this.discordSRV = discordSRV;
@@ -171,6 +175,25 @@ public abstract class SQLStorage implements Storage {
                 connection,
                 tablePrefix()
         ));
+        this.cleanupTask = discordSRV.scheduler().runAtFixedRate(this::cleanupDatabase, Duration.ofMinutes(1), Duration.ofMinutes(30));
+    }
+
+    @Override
+    @MustBeInvokedByOverriders
+    public void close() throws StorageException {
+        if (this.cleanupTask != null) {
+            this.cleanupTask.cancel(false);
+        }
+    }
+
+    public void cleanupDatabase() {
+        useConnection(connection -> {
+            // Cleanup expired linking codes
+            try (PreparedStatement statement = connection.prepareStatement("delete from " + tablePrefix() + LINKING_CODES_TABLE_NAME + " WHERE EXPIRY < ?;")) {
+                statement.setLong(1, getTimeMS());
+                statement.executeUpdate();
+            }
+        });
     }
 
     @Override

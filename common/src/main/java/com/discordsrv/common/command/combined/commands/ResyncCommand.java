@@ -35,12 +35,13 @@ import com.discordsrv.common.command.combined.abstraction.Text;
 import com.discordsrv.common.command.game.abstraction.command.GameCommand;
 import com.discordsrv.common.feature.bansync.BanSyncModule;
 import com.discordsrv.common.feature.groupsync.GroupSyncModule;
+import com.discordsrv.common.feature.linking.LinkedRoleModule;
 import com.discordsrv.common.feature.nicknamesync.NicknameSyncModule;
 import com.discordsrv.common.feature.onlinerole.OnlineRoleModule;
 import com.discordsrv.common.helper.Someone;
 import com.discordsrv.common.permission.game.Permissions;
 import net.kyori.adventure.text.format.NamedTextColor;
-import org.jetbrains.annotations.Nullable;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -48,6 +49,10 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 public class ResyncCommand extends CombinedCommand {
+
+    private static final String LABEL = "resync";
+    private static final ComponentIdentifier IDENTIFIER = ComponentIdentifier.of("DiscordSRV", "resync");
+    private static final String TYPE_LABEL = "type";
 
     private static ResyncCommand INSTANCE;
     private static GameCommand GAME;
@@ -60,10 +65,11 @@ public class ResyncCommand extends CombinedCommand {
     public static GameCommand getGame(DiscordSRV discordSRV) {
         if (GAME == null) {
             ResyncCommand command = getInstance(discordSRV);
-            GAME = GameCommand.literal("resync")
+            GAME = GameCommand.literal(LABEL)
+                    .addDescriptionTranslations(discordSRV.getAllTranslations(config -> config.resyncCommandDescription.minecraft()))
                     .requiredPermission(Permissions.COMMAND_RESYNC)
                     .then(
-                            GameCommand.stringWord("type")
+                            GameCommand.stringWord(TYPE_LABEL)
                                     .requiredPermission(Permissions.COMMAND_RESYNC)
                                     .executor(command)
                                     .suggester(command)
@@ -76,17 +82,15 @@ public class ResyncCommand extends CombinedCommand {
     public static DiscordCommand getDiscord(DiscordSRV discordSRV) {
         if (DISCORD == null) {
             ResyncCommand command = getInstance(discordSRV);
-            DISCORD = DiscordCommand.chatInput(
-                        ComponentIdentifier.of("DiscordSRV", "resync"),
-                        "resync",
-                        "Perform group resync for online players"
-                    )
+            DISCORD = DiscordCommand.chatInput(IDENTIFIER, LABEL, "")
+                    .addDescriptionTranslations(discordSRV.getAllTranslations(config -> config.resyncCommandDescription.discord().content()))
                     .addOption(
-                            CommandOption.builder(CommandOption.Type.STRING, "type", "The type of sync to run")
+                            CommandOption.builder(CommandOption.Type.STRING, TYPE_LABEL, "The type of sync to run")
                                     .addChoice("Group Sync", "group")
                                     .addChoice("Ban Sync", "ban")
                                     .addChoice("Nickname Sync", "nickname")
-                                    .addChoice("Online Role Sync", "onlinerole")
+                                    .addChoice("Online Role", "onlinerole")
+                                    .addChoice("Linked Role", "linkedrole")
                                     .build()
                     )
                     .setEventHandler(command)
@@ -101,11 +105,7 @@ public class ResyncCommand extends CombinedCommand {
     }
 
     @Override
-    public List<String> suggest(CommandExecution execution, @Nullable String input) {
-        if (input == null) {
-            return Collections.emptyList();
-        }
-
+    public List<String> suggest(CommandExecution execution, @NotNull String input) {
         return Stream.of("ban", "group", "nickname", "onlinerole")
                 .filter(command -> command.toLowerCase(Locale.ROOT).startsWith(input.toLowerCase(Locale.ROOT)))
                 .collect(Collectors.toList());
@@ -114,7 +114,7 @@ public class ResyncCommand extends CombinedCommand {
     @Override
     public void execute(CommandExecution execution) {
         AbstractSyncModule<?, ?, ?, ?, ?> module;
-        switch (execution.getArgument("type")) {
+        switch (execution.getString(TYPE_LABEL)) {
             case "group":
                 GroupSyncModule groupSyncModule = discordSRV.getModule(GroupSyncModule.class);
                 if (groupSyncModule != null && groupSyncModule.noPermissionProvider()) {
@@ -133,12 +133,20 @@ public class ResyncCommand extends CombinedCommand {
             case "onlinerole":
                 module = discordSRV.getModule(OnlineRoleModule.class);
                 break;
+            case "linkedrole":
+                module = discordSRV.getModule(LinkedRoleModule.class);
+                break;
             default:
                 execution.send(new Text("Unexpected type"));
                 return;
         }
         if (module == null) {
             execution.send(new Text("Module has not initialized correctly.").withGameColor(NamedTextColor.RED));
+            return;
+        }
+
+        if (module.disabledOnAllConfigs(config -> config.tieBreakers.resyncCommand)) {
+            execution.send(new Text("Command disabled for this sync type").withGameColor(NamedTextColor.RED));
             return;
         }
 
@@ -203,7 +211,7 @@ public class ResyncCommand extends CombinedCommand {
     private List<Task<? extends SyncSummary<?>>> resyncOnlinePlayers(AbstractSyncModule<?, ?, ?, ?, ?> module) {
         List<Task<? extends SyncSummary<?>>> summaries = new ArrayList<>();
         for (IPlayer player : discordSRV.playerProvider().allPlayers()) {
-            summaries.add(module.resyncAll(GenericSyncCauses.COMMAND, Someone.of(discordSRV, player)));
+            summaries.add(module.resyncAll(GenericSyncCauses.COMMAND, Someone.of(discordSRV, player), config -> config.tieBreakers.resyncCommand));
         }
         return summaries;
     }

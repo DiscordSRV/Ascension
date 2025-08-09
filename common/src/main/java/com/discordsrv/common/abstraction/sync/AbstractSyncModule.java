@@ -19,6 +19,8 @@
 package com.discordsrv.common.abstraction.sync;
 
 import com.discordsrv.api.eventbus.Subscribe;
+import com.discordsrv.api.events.linking.AccountLinkedEvent;
+import com.discordsrv.api.events.linking.AccountUnlinkedEvent;
 import com.discordsrv.api.reload.ReloadResult;
 import com.discordsrv.api.task.Task;
 import com.discordsrv.common.DiscordSRV;
@@ -30,6 +32,7 @@ import com.discordsrv.common.abstraction.sync.enums.SyncSide;
 import com.discordsrv.common.abstraction.sync.result.GenericSyncResults;
 import com.discordsrv.common.abstraction.sync.result.ISyncResult;
 import com.discordsrv.common.config.main.generic.AbstractSyncConfig;
+import com.discordsrv.common.config.main.generic.SyncConfig;
 import com.discordsrv.common.core.logging.NamedLogger;
 import com.discordsrv.common.core.module.type.AbstractModule;
 import com.discordsrv.common.events.player.PlayerConnectedEvent;
@@ -42,6 +45,7 @@ import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.Future;
 import java.util.function.Consumer;
+import java.util.function.Function;
 
 /**
  * Abstraction for synchronization between Minecraft and Discord.
@@ -157,7 +161,7 @@ public abstract class AbstractSyncModule<
                 }
 
                 AbstractSyncConfig.TimerConfig timer = config.timer;
-                if (timer != null && timer.enabled) {
+                if (timer != null && timer.side != SyncSide.DISABLED) {
                     timerIntervals.computeIfAbsent(timer.cycleTime, key -> new LinkedHashSet<>()).add(config);
                 }
 
@@ -184,13 +188,34 @@ public abstract class AbstractSyncModule<
 
     private void resyncTimer(Set<C> configs) {
         for (IPlayer player : discordSRV.playerProvider().allPlayers()) {
-            resync(GenericSyncCauses.TIMER, Someone.of(discordSRV, player.uniqueId()), configs);
+            resync(GenericSyncCauses.TIMER, Someone.of(discordSRV, player.uniqueId()), config -> config.timer.side, configs);
         }
     }
 
     @Subscribe
     public void onPlayerConnected(PlayerConnectedEvent event) {
-        resyncAll(GenericSyncCauses.GAME_JOIN, Someone.of(discordSRV, event.player()));
+        resyncAll(GenericSyncCauses.GAME_JOIN, Someone.of(discordSRV, event.player()), config -> config.tieBreakers.join);
+    }
+
+    @Subscribe
+    public void onAccountLinked(AccountLinkedEvent event) {
+        resyncAll(GenericSyncCauses.LINK, Someone.of(discordSRV, event.getPlayerUUID()), config -> config.tieBreakers.link);
+    }
+
+    @Subscribe
+    public void onAccountUnlinked(AccountUnlinkedEvent event) {
+        Someone.Resolved someone = Someone.of(discordSRV, event.getPlayerUUID(), event.getUserId());
+        SyncSummary<C> summary = new SyncSummary<>(this, GenericSyncCauses.UNLINK, someone);
+        for (C config : configs()) {
+            SyncConfig.UnlinkBehaviour unlinkBehaviour = config.unlinkBehaviour;
+            if (unlinkBehaviour.isGame()) {
+                summary.appendResult(config, removeGame(config, someone));
+            }
+            if (unlinkBehaviour.isDiscord()) {
+                summary.appendResult(config, removeDiscord(config, someone));
+            }
+        }
+        logSummary(summary);
     }
 
     /**
@@ -199,6 +224,8 @@ public abstract class AbstractSyncModule<
      */
     @Nullable
     protected abstract ISyncResult doesStateMatch(S one, S two);
+
+    public abstract S getRemovedState();
 
     /**
      * Gets the current state of the provided config for the specified user on Discord.
@@ -239,6 +266,10 @@ public abstract class AbstractSyncModule<
         });
     }
 
+    protected Task<ISyncResult> removeDiscord(C config, Someone.Resolved someone) {
+        return applyDiscordIfDoesNotMatch(config, someone, getRemovedState());
+    }
+
     /**
      * Applies the provided state for the provided config for the provided Minecraft player.
      *
@@ -260,6 +291,14 @@ public abstract class AbstractSyncModule<
         });
     }
 
+    protected Task<ISyncResult> removeGame(C config, Someone.Resolved someone) {
+        return applyGameIfDoesNotMatch(config, someone, getRemovedState());
+    }
+
+    protected boolean isApplicableForProactiveSync(C config) {
+        return true;
+    }
+
     protected Task<SyncSummary<C>> discordChanged(ISyncCause cause, Someone someone, D discordId, @Nullable S newState) {
         List<C> gameConfigs = configsForDiscord.get(discordId);
         if (gameConfigs == null) {
@@ -273,6 +312,10 @@ public abstract class AbstractSyncModule<
 
             SyncSummary<C> summary = new SyncSummary<>(this, cause, resolved);
             for (C config : gameConfigs) {
+                if (!isApplicableForProactiveSync(config)) {
+                    continue;
+                }
+
                 SyncDirection direction = config.direction;
                 if (direction == SyncDirection.MINECRAFT_TO_DISCORD) {
                     // Not going Discord -> Minecraft
@@ -321,6 +364,10 @@ public abstract class AbstractSyncModule<
 
             SyncSummary<C> summary = new SyncSummary<>(this, cause, resolved);
             for (C config : discordConfigs) {
+                if (!isApplicableForProactiveSync(config)) {
+                    continue;
+                }
+
                 SyncDirection direction = config.direction;
                 if (direction == SyncDirection.DISCORD_TO_MINECRAFT) {
                     // Not going Minecraft -> Discord
@@ -356,20 +403,38 @@ public abstract class AbstractSyncModule<
         });
     }
 
-    public Task<SyncSummary<C>> resyncAll(ISyncCause cause, Someone someone) {
-        return resync(cause, someone, syncs);
+    public boolean disabledOnAllConfigs(Function<C, SyncSide> sideDecider) {
+        for (C config : configs()) {
+            SyncSide side = sideDecider.apply(config);
+            if (side != SyncSide.DISABLED) {
+                return false;
+            }
+        }
+        return true;
     }
 
-    public Task<SyncSummary<C>> resync(ISyncCause cause, Someone someone, Set<C> configs) {
+    public Task<SyncSummary<C>> resyncAll(ISyncCause cause, Someone someone, Function<C, SyncSide> sideDecider) {
+        return resync(cause, someone, sideDecider, syncs);
+    }
+
+    public Task<SyncSummary<C>> resync(ISyncCause cause, Someone someone, Function<C, SyncSide> sideDecider, Set<C> configs) {
+        if (disabledOnAllConfigs(sideDecider)) {
+            return Task.completed(new SyncSummary<>(this, cause, someone).fail(GenericSyncResults.SIDE_DISABLED));
+        }
+
         return someone.resolve().thenApply(resolved -> {
             if (resolved == null) {
                 return new SyncSummary<>(this, cause, someone).fail(GenericSyncResults.NOT_LINKED);
             }
 
             SyncSummary<C> summary = new SyncSummary<>(this, cause, resolved);
-
             for (C config : configs) {
-                summary.appendResult(config, resync(config, resolved));
+                SyncSide side = sideDecider.apply(config);
+                if (side == SyncSide.DISABLED) {
+                    continue;
+                }
+
+                summary.appendResult(config, resync(config, resolved, side));
             }
             return summary;
         }).whenComplete((summary, t) -> {
@@ -379,7 +444,7 @@ public abstract class AbstractSyncModule<
         });
     }
 
-    private Task<ISyncResult> resync(C config, Someone.Resolved resolved) {
+    private Task<ISyncResult> resync(C config, Someone.Resolved resolved, SyncSide side) {
         Task<S> gameGet = getGame(config, resolved);
         Task<S> discordGet = getDiscord(config, resolved);
 
@@ -395,7 +460,6 @@ public abstract class AbstractSyncModule<
                 return Task.completed(alreadyInSyncResult);
             }
 
-            SyncSide side = config.tieBreaker;
             SyncDirection direction = config.direction;
             if (side == SyncSide.DISCORD) {
                 if (direction == SyncDirection.MINECRAFT_TO_DISCORD) {

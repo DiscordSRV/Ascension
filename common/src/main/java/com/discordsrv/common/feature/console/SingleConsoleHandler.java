@@ -42,6 +42,7 @@ import com.discordsrv.common.feature.console.entry.LogEntry;
 import com.discordsrv.common.feature.console.entry.LogMessage;
 import com.discordsrv.common.feature.console.message.ConsoleMessage;
 import com.discordsrv.common.helper.TemporaryLocalData;
+import com.discordsrv.common.helper.Timeout;
 import com.discordsrv.common.logging.LogLevel;
 import com.github.benmanes.caffeine.cache.Cache;
 import com.github.benmanes.caffeine.cache.Caffeine;
@@ -57,7 +58,10 @@ import java.util.concurrent.Future;
 import java.util.concurrent.LinkedBlockingDeque;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicLong;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 /**
  * The log appending and command handling for a single console channel.
@@ -73,10 +77,12 @@ public class SingleConsoleHandler {
     private String key;
     private boolean shutdown = false;
     private final AtomicLong latestChannelId = new AtomicLong(0);
+    private final Timeout lookupErrorTimeout = new Timeout(Duration.ofMinutes(5));
 
     // Editing
     private List<LogMessage> messageCache;
     private final AtomicLong mostRecentMessageId = new AtomicLong(0);
+    private final AtomicBoolean splitMessage = new AtomicBoolean(false);
 
     // Sending
     private Future<?> queueProcessingFuture;
@@ -85,6 +91,7 @@ public class SingleConsoleHandler {
     private Deque<Pair<SendableDiscordMessage, Boolean>> sendQueue;
     private boolean sentFirstBatch = false;
     private Cache<Integer, Boolean> exceptions;
+    private final List<Pair<Matcher, String>> replacements = new ArrayList<>();
 
     // Don't annoy console users twice about using /
     private final Set<Long> warnedSlashUsageUserIds = new HashSet<>();
@@ -119,6 +126,8 @@ public class SingleConsoleHandler {
         if (!config.channel.asDestination().contains(channel) && latestChannelId.get() != channel.getId()) {
             return;
         }
+
+        splitIfEditing();
 
         DiscordUser user = message.getAuthor();
         DiscordGuildMember member = message.getMember();
@@ -164,16 +173,15 @@ public class SingleConsoleHandler {
             return;
         }
 
-        // Split message when editing
-        if (messageCache != null) {
-            messageCache.clear();
-        }
+        // Run the command
+        discordSRV.console().runCommandWithLogging(discordSRV, user, command);
+    }
+
+    private void splitIfEditing() {
+        splitMessage.set(true);
         synchronized (mostRecentMessageId) {
             mostRecentMessageId.set(0);
         }
-
-        // Run the command
-        discordSRV.console().runCommandWithLogging(discordSRV, user, command);
     }
 
     public void queue(LogEntry entry) {
@@ -240,6 +248,14 @@ public class SingleConsoleHandler {
             this.exceptions = null;
         }
 
+        synchronized (replacements) {
+            replacements.clear();
+            for (Map.Entry<Pattern, String> entry : config.appender.contentRegexFilters.entrySet()) {
+                replacements.add(Pair.of(entry.getKey().matcher(""), entry.getValue()));
+            }
+        }
+
+        lookupErrorTimeout.reset();
         timeQueueProcess();
     }
 
@@ -365,6 +381,10 @@ public class SingleConsoleHandler {
             }
 
             List<String> messages = formatEntry(entry, throwable, outputMode, config.appender.diffExceptions);
+            if (messages == null) {
+                continue;
+            }
+
             if (messages.size() == 1) {
                 LogMessage message = new LogMessage(entry, messages.get(0));
                 currentBuffer.add(message);
@@ -395,7 +415,7 @@ public class SingleConsoleHandler {
         LogMessage current;
         while ((current = currentBuffer.poll()) != null) {
             String formatted = current.formatted();
-            if (formatted.length() + builder.length() + blockLength > MESSAGE_MAX_LENGTH) {
+            if (splitMessage.compareAndSet(true, false) || formatted.length() + builder.length() + blockLength > MESSAGE_MAX_LENGTH) {
                 queueMessage(builder.toString(), true, outputMode);
                 builder.setLength(0);
                 if (messageCache != null) {
@@ -424,18 +444,27 @@ public class SingleConsoleHandler {
         sendQueue.offer(Pair.of(sendableMessage, lastEdit));
     }
 
+    private String applyReplacements(String content) {
+        synchronized (replacements) {
+            for (Pair<Matcher, String> replacement : replacements) {
+                content = replacement.getKey()
+                        .reset(content)
+                        .replaceAll(replacement.getValue());
+            }
+        }
+        return content;
+    }
+
     private List<String> formatEntry(LogEntry entry, String throwable, DiscordOutputMode outputMode, boolean diffExceptions) {
         int blockLength = outputMode.blockLength();
         int maximumPart = MESSAGE_MAX_LENGTH - blockLength - "\n".length();
 
-        // Escape content
+        // Regex replacements
         String plainMessage = entry.message();
-        if (outputMode != DiscordOutputMode.MARKDOWN) {
-            if (outputMode == DiscordOutputMode.PLAIN) {
-                plainMessage = DiscordFormattingUtil.escapeContent(plainMessage);
-            } else {
-                plainMessage = plainMessage.replace("``", "`\u200B`"); // zero-width-space
-            }
+        plainMessage = applyReplacements(plainMessage);
+        if (plainMessage.isEmpty()) {
+            // Cleared out by regex filter(s)
+            return null;
         }
 
         String parsedMessage;
@@ -452,6 +481,31 @@ public class SingleConsoleHandler {
                 break;
         }
 
+        // Check if the entire message would be filtered out, if it was plain
+        if (applyReplacements(consoleMessage.asPlain()).isEmpty()) {
+            // Cleared out by regex filter(s)
+            return null;
+        }
+
+        // Apply regex filters to the stacktrace
+        throwable = applyReplacements(throwable);
+
+        String finalMessage;
+        switch (outputMode) {
+            case MARKDOWN:
+                // This serializer used deals with markdown that may have been in the input
+                finalMessage = parsedMessage;
+                break;
+            case PLAIN:
+                // Not inside a code block, escape all special chars
+                finalMessage = DiscordFormattingUtil.escapeContent(parsedMessage);
+                break;
+            default:
+                // Inside a code block, prevent ending the code block
+                finalMessage = parsedMessage.replace("``", "`\u200B`"); // zero-width-space
+                break;
+        }
+
         String message = PlainPlaceholderFormat.supplyWith(
                 outputMode == DiscordOutputMode.MARKDOWN
                     ? PlainPlaceholderFormat.Formatting.DISCORD_MARKDOWN
@@ -460,7 +514,7 @@ public class SingleConsoleHandler {
                         discordSRV.placeholderService().replacePlaceholders(
                                 config.appender.lineFormat,
                                 entry,
-                                new SinglePlaceholder("message", parsedMessage)
+                                new SinglePlaceholder("message", finalMessage)
                         )
         );
 
@@ -556,7 +610,8 @@ public class SingleConsoleHandler {
                 true,
                 true,
                 ZonedDateTime.now()
-        ).thenApply(channels -> {
+        ).thenApply(result -> {
+            List<DiscordGuildMessageChannel> channels = result.channels();
             if (channels.isEmpty()) {
                 // Nowhere to send to
                 return null;
@@ -594,6 +649,11 @@ public class SingleConsoleHandler {
             }
 
             return channel;
+        }).mapException(t -> {
+            if (lookupErrorTimeout.checkAndUpdate()) {
+                logger.error("Failed to get console channel", t);
+            }
+            return null;
         });
     }
 
@@ -606,7 +666,7 @@ public class SingleConsoleHandler {
                 continue;
             }
             SendableDiscordMessage sendableMessage = pair.getKey();
-            boolean lastEdit = pair.getValue();
+            boolean resetMessageId = pair.getValue();
 
             if (sendFuture == null) {
                 sendFuture = Task.completed(null);
@@ -633,7 +693,7 @@ public class SingleConsoleHandler {
                         synchronized (mostRecentMessageId) {
                             long messageId = mostRecentMessageId.get();
                             if (messageId != 0) {
-                                if (lastEdit) {
+                                if (resetMessageId) {
                                     mostRecentMessageId.set(0);
                                 }
                                 return channel.editMessageById(messageId, sendableMessage);
@@ -644,7 +704,7 @@ public class SingleConsoleHandler {
 
                         return channel.sendMessage(sendableMessage);
                     }).thenApply(msg -> {
-                        if (!lastEdit && msg != null && messageCache != null) {
+                        if (!resetMessageId && msg != null && messageCache != null) {
                             synchronized (mostRecentMessageId) {
                                 mostRecentMessageId.set(msg.getId());
                             }
@@ -653,9 +713,7 @@ public class SingleConsoleHandler {
                         sentFirstBatch = true;
                         return msg;
                     }).mapException(ex -> {
-                        synchronized (mostRecentMessageId) {
-                            mostRecentMessageId.set(0);
-                        }
+                        splitIfEditing();
 
                         String error = "Failed to send message to console channel";
                         String messageContent = sendableMessage.getContent();

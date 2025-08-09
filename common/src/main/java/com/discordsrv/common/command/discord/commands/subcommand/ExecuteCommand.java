@@ -29,7 +29,7 @@ import com.discordsrv.api.events.discord.interaction.command.DiscordChatInputInt
 import com.discordsrv.api.events.discord.interaction.command.DiscordCommandAutoCompleteInteractionEvent;
 import com.discordsrv.common.DiscordSRV;
 import com.discordsrv.common.command.game.abstraction.GameCommandExecutionHelper;
-import com.discordsrv.common.config.main.ExecuteCommandConfig;
+import com.discordsrv.common.config.main.command.ExecuteCommandConfig;
 import com.discordsrv.common.config.main.generic.DiscordOutputMode;
 import com.discordsrv.common.config.main.generic.GameCommandExecutionConditionConfig;
 import com.discordsrv.common.core.logging.Logger;
@@ -42,23 +42,28 @@ import java.util.*;
 import java.util.concurrent.*;
 import java.util.function.Consumer;
 
-public class ExecuteCommand implements Consumer<DiscordChatInputInteractionEvent>, DiscordCommand.AutoCompleteHandler {
+public class ExecuteCommand implements Consumer<DiscordChatInputInteractionEvent>, CommandOption.AutoCompleteHandler {
+
+    private static final String LABEL = "execute";
+    private static final ComponentIdentifier IDENTIFIER = ComponentIdentifier.of("DiscordSRV", "execute");
+    private static final String COMMAND_LABEL = "command";
 
     private static DiscordCommand INSTANCE;
 
     public static DiscordCommand get(DiscordSRV discordSRV) {
         if (INSTANCE == null) {
-            ExecuteCommandConfig config = discordSRV.config().executeCommand;
+            ExecuteCommandConfig executeConfig = discordSRV.config().executeCommand;
 
             ExecuteCommand command = new ExecuteCommand(discordSRV);
-            INSTANCE = DiscordCommand.chatInput(ComponentIdentifier.of("DiscordSRV", "execute"), "execute", "Run a Minecraft console command")
+            INSTANCE = DiscordCommand.chatInput(IDENTIFIER, LABEL, "")
+                    .addDescriptionTranslations(discordSRV.getAllTranslations(config -> config.executeCommandDescription.content()))
                     .addOption(
-                            CommandOption.builder(CommandOption.Type.STRING, "command", "The command to execute")
-                                    .setAutoComplete(config.suggest)
+                            CommandOption.builder(CommandOption.Type.STRING, COMMAND_LABEL, "")
+                                    .addDescriptionTranslations(discordSRV.getAllTranslations(config -> config.executeParameterCommandDescription.content()))
+                                    .setAutoCompleteHandler(executeConfig.suggest ? command : null)
                                     .setRequired(true)
                                     .build()
                     )
-                    .setAutoCompleteHandler(command)
                     .setEventHandler(command)
                     .build();
         }
@@ -95,11 +100,11 @@ public class ExecuteCommand implements Consumer<DiscordChatInputInteractionEvent
         ExecuteCommandConfig config = discordSRV.config().executeCommand;
         boolean ephemeral = config.ephemeral;
         if (!config.enabled) {
-            event.reply(SendableDiscordMessage.builder().setContent("The execute command is disabled").build(), true);
+            event.reply(discordSRV.messagesConfig(event.getUserLocale()).executeCommandDisabled.get(), true);
             return;
         }
 
-        String command = event.getOptionAsString("command");
+        String command = event.getOptionAsString(COMMAND_LABEL);
         if (command == null) {
             return;
         }
@@ -109,7 +114,12 @@ public class ExecuteCommand implements Consumer<DiscordChatInputInteractionEvent
             return;
         }
 
-        event.reply(SendableDiscordMessage.builder().setContent("Executing command `" + command + "`").build(), ephemeral)
+        SendableDiscordMessage message = discordSRV.messagesConfig(event.getUserLocale()).executing
+                .format()
+                .addPlaceholder("command", command)
+                .build();
+
+        event.reply(message, ephemeral)
                 .whenComplete((ih, t) -> {
                     if (t != null) {
                         return;
@@ -130,7 +140,7 @@ public class ExecuteCommand implements Consumer<DiscordChatInputInteractionEvent
             return;
         }
 
-        String command = event.getOption("command");
+        String command = event.getOption(COMMAND_LABEL);
         if (command == null) {
             return;
         }

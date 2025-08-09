@@ -29,6 +29,7 @@ import com.discordsrv.common.util.ComponentUtil;
 import com.discordsrv.fabric.FabricDiscordSRV;
 import com.discordsrv.fabric.module.AbstractFabricModule;
 import com.mojang.authlib.GameProfile;
+import net.kyori.adventure.text.Component;
 import net.minecraft.server.BannedPlayerEntry;
 import net.minecraft.server.BannedPlayerList;
 import net.minecraft.server.MinecraftServer;
@@ -131,11 +132,11 @@ public class FabricBanModule extends AbstractFabricModule implements PunishmentM
 
             ServerPlayerEntity serverPlayerEntity = server.getPlayerManager().getPlayer(playerUUID);
             if (serverPlayerEntity != null) {
-                serverPlayerEntity.networkHandler.disconnect(
-                        reason != null
-                            ? discordSRV.getAdventure().asNative(reason.asAdventure())
-                            : Text.translatable("multiplayer.disconnect.banned")
-                );
+                Text text = discordSRV.componentFactory().toNative(reason != null ? reason.asAdventure() : Component.empty());
+                if (reason == null || reason.asPlainString().isEmpty()) {
+                    text = discordSRV.componentFactory().toNative(Component.translatable("multiplayer.disconnect.banned"));
+                }
+                serverPlayerEntity.networkHandler.disconnect(text);
             }
         } catch (Exception e) {
             discordSRV.logger().error("Failed to ban player", e);

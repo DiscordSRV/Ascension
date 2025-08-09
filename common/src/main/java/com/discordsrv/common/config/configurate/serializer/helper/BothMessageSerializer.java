@@ -31,29 +31,27 @@ import java.lang.reflect.Type;
 
 public class BothMessageSerializer implements TypeSerializer<BothMessage> {
 
-    private final NamingScheme namingScheme;
     private final MinecraftMessageSerializer minecraftSerializer;
     private final DiscordMessageSerializer discordSerializer;
 
     public BothMessageSerializer(NamingScheme namingScheme) {
-        this.namingScheme = namingScheme;
-        this.minecraftSerializer = new MinecraftMessageSerializer();
+        this.minecraftSerializer = new MinecraftMessageSerializer(namingScheme);
         this.discordSerializer = new DiscordMessageSerializer(namingScheme);
     }
 
     @Override
     public BothMessage deserialize(Type type, ConfigurationNode node) throws SerializationException {
-        MinecraftMessage minecraftMessage = minecraftSerializer.deserialize(type, node.node(namingScheme.coerce("minecraft")));
-        DiscordMessage discordMessage = discordSerializer.deserialize(type, node.node(namingScheme.coerce("discord")));
+        MinecraftMessage minecraftMessage = minecraftSerializer.deserialize(type, node);
+        DiscordMessage discordMessage = discordSerializer.deserialize(type, node);
         return new BothMessage(minecraftMessage, discordMessage);
     }
 
     @Override
     public void serialize(Type type, @Nullable BothMessage obj, ConfigurationNode node) throws SerializationException {
         MinecraftMessage minecraftMessage = obj != null ? obj.minecraft() : null;
-        minecraftSerializer.serialize(type, minecraftMessage, node.node(namingScheme.coerce("minecraft")));
+        minecraftSerializer.serialize(type, minecraftMessage, node);
 
         DiscordMessage discordMessage = obj != null ? obj.discord() : null;
-        discordSerializer.serialize(type, discordMessage, node.node(namingScheme.coerce("discord")));
+        discordSerializer.serialize(type, discordMessage, node);
     }
 }

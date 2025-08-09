@@ -43,14 +43,17 @@ import java.util.function.Consumer;
 
 public class LinkInitDiscordCommand implements Consumer<DiscordChatInputInteractionEvent> {
 
+    private static final String LABEL = "link";
+    private static final ComponentIdentifier IDENTIFIER = ComponentIdentifier.of("DiscordSRV", "link-init");
+
     private static DiscordCommand INSTANCE;
 
     public static DiscordCommand getInstance(DiscordSRV discordSRV) {
         if (INSTANCE == null) {
             LinkInitDiscordCommand command = new LinkInitDiscordCommand(discordSRV);
-            ComponentIdentifier identifier = ComponentIdentifier.of("DiscordSRV", "link-init");
 
-            INSTANCE = DiscordCommand.chatInput(identifier, "link", "Link your Minecraft account to your Discord account")
+            INSTANCE = DiscordCommand.chatInput(IDENTIFIER, LABEL, "")
+                    .addDescriptionTranslations(discordSRV.getAllTranslations(config -> config.linkCommandDescription.discord().content()))
                     .addOption(
                             CommandOption.builder(CommandOption.Type.STRING, "code", "The code provided by the in-game command")
                                     .setRequired(true)
@@ -140,14 +143,14 @@ public class LinkInitDiscordCommand implements Consumer<DiscordChatInputInteract
                                 return;
                             }
 
-                            linkSuccess(interactionHook, linkStore, messagesConfig, player);
+                            linkSuccess(user, interactionHook, linkStore, messagesConfig, player);
                         });
             });
         });
-
     }
 
     private void linkSuccess(
+            DiscordUser user,
             DiscordInteractionHook interactionHook,
             LinkStore linkStore,
             MessagesConfig messagesConfig,
@@ -168,11 +171,10 @@ public class LinkInitDiscordCommand implements Consumer<DiscordChatInputInteract
             : discordSRV.playerProvider().lookupOfflinePlayer(playerUUID)
         ).whenComplete((player, __) -> interactionHook
                 .editOriginal(
-                        messagesConfig.accountLinked.format()
-                                .addContext(player)
+                        messagesConfig.nowLinked1st.discord().format()
+                                .addContext(user, player)
                                 .addPlaceholder("%player_name%", username)
                                 .addPlaceholder("%player_uuid%", playerUUID)
-                                .applyPlaceholderService()
                                 .build()
                 )
         );

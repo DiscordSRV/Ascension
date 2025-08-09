@@ -146,7 +146,6 @@ public class MinecraftAuthenticationLinker extends CachedLinkProvider {
                 .addPlaceholder("minecraftauth_link_simple", simple)
                 .addPlaceholder("player_name", playerName)
                 .addPlaceholder("player_uuid", playerUUID)
-                .applyPlaceholderService()
                 .build();
         return Task.completed(component);
     }

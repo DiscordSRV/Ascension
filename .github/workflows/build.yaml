@@ -17,7 +17,7 @@ jobs:
         uses: actions/setup-java@v4
         with:
           distribution: 'temurin'
-          java-version: 22
+          java-version: 21
           cache: 'gradle'
       - name: Setup Gradle
         uses: gradle/actions/setup-gradle@v3
@@ -36,7 +36,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: build-artifacts
-          path: "jars/*.jar"
+          path: "jars/**/*.jar"
       - name: Generate and submit dependency graph
         if: github.event_name == 'push'
         uses: gradle/actions/dependency-submission@v4

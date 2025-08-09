@@ -65,9 +65,10 @@ public abstract class AbstractPlayerProvider<T extends IPlayer, DT extends Disco
     public abstract void subscribe();
     public abstract void unsubscribe();
 
-    protected void addPlayer(UUID uuid, T player, boolean initial) {
-        if (this.players.containsKey(uuid)) {
-            return;
+    protected T addPlayer(UUID uuid, T player, boolean initial) {
+        T existingPlayer = this.players.get(uuid);
+        if (existingPlayer != null) {
+            return existingPlayer;
         }
 
         this.players.put(uuid, player);
@@ -77,6 +78,7 @@ public abstract class AbstractPlayerProvider<T extends IPlayer, DT extends Disco
         if (UUIDUtil.isOffline(uuid)) {
             anyOffline.set(true);
         }
+        return null;
     }
 
     protected void removePlayer(UUID uuid) {

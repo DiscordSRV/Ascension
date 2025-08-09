@@ -27,20 +27,23 @@ import com.discordsrv.api.task.Task;
 import com.discordsrv.common.DiscordSRV;
 import com.discordsrv.common.abstraction.sync.AbstractSyncModule;
 import com.discordsrv.common.abstraction.sync.SyncFail;
+import com.discordsrv.common.abstraction.sync.result.DiscordPermissionResult;
 import com.discordsrv.common.abstraction.sync.result.GenericSyncResults;
 import com.discordsrv.common.abstraction.sync.result.ISyncResult;
-import com.discordsrv.common.config.main.NicknameSyncConfig;
+import com.discordsrv.common.config.main.sync.NicknameSyncConfig;
 import com.discordsrv.common.feature.nicknamesync.enums.NicknameSyncCause;
 import com.discordsrv.common.feature.nicknamesync.enums.NicknameSyncResult;
 import com.discordsrv.common.helper.Someone;
 import com.discordsrv.common.util.Game;
-import net.dv8tion.jda.api.entities.Member;
+import net.dv8tion.jda.api.Permission;
 import net.dv8tion.jda.api.events.guild.member.update.GuildMemberUpdateNicknameEvent;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.commons.lang3.tuple.Pair;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.*;
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
+import java.util.UUID;
 import java.util.regex.Pattern;
 
 /**
@@ -48,8 +51,6 @@ import java.util.regex.Pattern;
  * The state is the current
  */
 public class NicknameSyncModule extends AbstractSyncModule<DiscordSRV, NicknameSyncConfig, Game, Long, String> {
-
-    private final Map<NicknameSyncConfig, List<Pair<Pattern, String>>> replacements = new HashMap<>();
 
     public NicknameSyncModule(DiscordSRV discordSRV) {
         super(discordSRV, "NICKNAME_SYNC");
@@ -85,6 +86,11 @@ public class NicknameSyncModule extends AbstractSyncModule<DiscordSRV, NicknameS
         return StringUtils.equals(one, two) ? NicknameSyncResult.MATCH : null;
     }
 
+    @Override
+    public String getRemovedState() {
+        return null;
+    }
+
     @Subscribe
     public void onGuildMemberUpdateNickname(GuildMemberUpdateNicknameEvent event) {
         DiscordUser user = discordSRV.discordAPI().getUser(event.getUser());
@@ -109,7 +115,11 @@ public class NicknameSyncModule extends AbstractSyncModule<DiscordSRV, NicknameS
         return discordSRV.getModule(NicknameModule.class);
     }
 
-    protected String cleanNickname(NicknameSyncConfig config, String nickname) {
+    @Nullable
+    protected String cleanNickname(NicknameSyncConfig config, @Nullable String nickname) {
+        if (nickname == null) {
+            return nickname;
+        }
         for (Map.Entry<Pattern, String> filter : config.nicknameRegexFilters.entrySet()) {
             nickname = filter.getKey().matcher(nickname).replaceAll(filter.getValue());
         }
@@ -150,15 +160,19 @@ public class NicknameSyncModule extends AbstractSyncModule<DiscordSRV, NicknameS
             return Task.completed(GenericSyncResults.GUILD_NOT_FOUND);
         }
 
+        ISyncResult permissionFailResult = DiscordPermissionResult.check(guild.asJDA(), Collections.singleton(Permission.NICKNAME_MANAGE));
+        if (permissionFailResult != null) {
+            return Task.completed(permissionFailResult);
+        }
+
         return someone.guildMember(guild)
                 .thenApply(member -> {
-                    Member jdaMember = member.asJDA();
-                    if (!jdaMember.getGuild().getSelfMember().canInteract(jdaMember)) {
+                    if (!member.getGuild().getSelfMember().canInteract(member)) {
                         throw new SyncFail(GenericSyncResults.MEMBER_CANNOT_INTERACT);
                     }
-                    return jdaMember;
+                    return member;
                 })
-                .thenCompose(member -> member.modifyNickname(newNickname).submit())
+                .thenCompose(member -> member.asJDA().modifyNickname(newNickname).submit())
                 .thenApply(v -> NicknameSyncResult.SET_DISCORD);
     }
 

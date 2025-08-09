@@ -19,19 +19,25 @@
 package com.discordsrv.fabric.mixin.requiredlinking;
 
 import com.discordsrv.fabric.requiredlinking.FabricRequiredLinkingModule;
-import com.mojang.brigadier.ParseResults;
 import net.minecraft.server.command.CommandManager;
 import net.minecraft.server.command.ServerCommandSource;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
-import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 @Mixin(CommandManager.class)
 public class CommandManagerMixin {
 
-    @Inject(method = "execute", at = @At("HEAD"), cancellable = true)
-    private void execute(ParseResults<ServerCommandSource> parseResults, String command, CallbackInfo ci) {
-        FabricRequiredLinkingModule.onCommandExecute(parseResults, command, ci);
+    //? if minecraft: <1.20.3 && >=1.19.1 {
+    /*@Inject(method = "execute", at = @At("HEAD"), cancellable = true)
+    private void execute(com.mojang.brigadier.ParseResults<ServerCommandSource> parseResults, String command, org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable<Integer> cir) {
+        FabricRequiredLinkingModule.withInstance(module -> module.onCommandExecute(parseResults, command, cir));
+        if(cir.isCancelled()) cir.setReturnValue(0);
     }
+    *///?} else {
+    @Inject(method = "execute", at = @At("HEAD"), cancellable = true)
+    private void execute(com.mojang.brigadier.ParseResults<ServerCommandSource> parseResults, String command, org.spongepowered.asm.mixin.injection.callback.CallbackInfo ci) {
+        FabricRequiredLinkingModule.withInstance(module -> module.onCommandExecute(parseResults, command, ci));
+    }
+    //?}
 }

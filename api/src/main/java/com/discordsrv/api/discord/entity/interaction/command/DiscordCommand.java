@@ -27,6 +27,7 @@ import com.discordsrv.api.discord.entity.JDAEntity;
 import com.discordsrv.api.discord.entity.interaction.component.ComponentIdentifier;
 import com.discordsrv.api.events.discord.interaction.command.*;
 import net.dv8tion.jda.api.Permission;
+import net.dv8tion.jda.api.interactions.DiscordLocale;
 import net.dv8tion.jda.api.interactions.commands.DefaultMemberPermissions;
 import net.dv8tion.jda.api.interactions.commands.build.*;
 import org.jetbrains.annotations.NotNull;
@@ -102,11 +103,11 @@ public class DiscordCommand implements JDAEntity<CommandData> {
     private final List<SubCommandGroup> subCommandGroups;
     private final List<DiscordCommand> subCommands;
     private final List<CommandOption> options;
+    private final Map<String, CommandOption> optionMap;
     private final Long guildId;
     private final boolean guildOnly;
     private final DefaultPermission defaultPermission;
     private final Consumer<? extends AbstractCommandInteractionEvent<?>> eventHandler;
-    private final AutoCompleteHandler autoCompleteHandler;
 
     private DiscordCommand(
             ComponentIdentifier id,
@@ -119,8 +120,7 @@ public class DiscordCommand implements JDAEntity<CommandData> {
             Long guildId,
             boolean guildOnly,
             DefaultPermission defaultPermission,
-            Consumer<? extends AbstractCommandInteractionEvent<?>> eventHandler,
-            AutoCompleteHandler autoCompleteHandler
+            Consumer<? extends AbstractCommandInteractionEvent<?>> eventHandler
     ) {
         this.id = id;
         this.type = type;
@@ -129,11 +129,14 @@ public class DiscordCommand implements JDAEntity<CommandData> {
         this.subCommandGroups = subCommandGroups;
         this.subCommands = subCommands;
         this.options = options;
+        this.optionMap = new HashMap<>(options.size());
+        for (CommandOption option : options) {
+            optionMap.put(option.getName(), option);
+        }
         this.guildId = guildId;
         this.guildOnly = guildOnly;
         this.defaultPermission = defaultPermission;
         this.eventHandler = eventHandler;
-        this.autoCompleteHandler = autoCompleteHandler;
     }
 
     @NotNull
@@ -191,6 +194,11 @@ public class DiscordCommand implements JDAEntity<CommandData> {
         return Collections.unmodifiableList(options);
     }
 
+    @Nullable
+    public CommandOption getOption(String name) {
+        return optionMap.get(name);
+    }
+
     public boolean isGuildOnly() {
         return guildOnly;
     }
@@ -210,43 +218,85 @@ public class DiscordCommand implements JDAEntity<CommandData> {
         return (Consumer<T>) eventHandler;
     }
 
-    @Nullable
-    public AutoCompleteHandler getAutoCompleteHandler() {
-        return autoCompleteHandler;
-    }
-
     @Override
     public CommandData asJDA() {
-        CommandData commandData;
+        CommandData data;
         switch (type) {
             case USER:
-                commandData = Commands.user(getName());
+                data = Commands.user(getName());
                 break;
             case MESSAGE:
-                commandData = Commands.message(getName());
+                data = Commands.message(getName());
                 break;
             case CHAT_INPUT:
                 SlashCommandData slashCommandData = Commands.slash(getName(), Objects.requireNonNull(getDescription()));
-                slashCommandData.addSubcommandGroups(subCommandGroups.stream().map(JDAEntity::asJDA).toArray(SubcommandGroupData[]::new));
-                slashCommandData.addSubcommands(subCommands.stream().map(
-                        DiscordCommand::asJDASubcommand).toArray(SubcommandData[]::new));
-                slashCommandData.addOptions(options.stream().map(JDAEntity::asJDA).toArray(OptionData[]::new));
-                commandData = slashCommandData;
+                slashCommandData.addSubcommandGroups(getSubCommandGroups().stream().map(JDAEntity::asJDA).toArray(SubcommandGroupData[]::new));
+                slashCommandData.addSubcommands(getSubCommands().stream().map(DiscordCommand::asJDASubcommand).toArray(SubcommandData[]::new));
+                slashCommandData.addOptions(getOptions().stream().map(JDAEntity::asJDA).toArray(OptionData[]::new));
+
+                for (Map.Entry<Locale, String> entry : getDescriptionTranslations().entrySet()) {
+                    DiscordLocale locale = getJDALocale(entry.getKey());
+                    if (locale != null) {
+                        slashCommandData.setDescriptionLocalization(locale, entry.getValue());
+                    }
+                }
+
+                data = slashCommandData;
                 break;
             default:
                 throw new IllegalStateException("Missing switch case");
         }
 
-        commandData.setGuildOnly(guildOnly);
-        commandData.setDefaultPermissions(defaultPermission.asJDA());
+        data.setGuildOnly(isGuildOnly()); // TODO: deal with deprecation
+        data.setDefaultPermissions(getDefaultPermission().asJDA());
 
-        return commandData;
+        for (Map.Entry<Locale, String> entry : getNameTranslations().entrySet()) {
+            DiscordLocale locale = getJDALocale(entry.getKey());
+            if (locale != null) {
+                data.setNameLocalization(locale, entry.getValue());
+            }
+        }
+
+        return data;
     }
 
     public SubcommandData asJDASubcommand() {
-        SubcommandData data = new SubcommandData(nameTranslations.get(Locale.ROOT), descriptionTranslations.get(Locale.ROOT));
-        data.addOptions(options.stream().map(JDAEntity::asJDA).toArray(OptionData[]::new));
+        SubcommandData data = new SubcommandData(getName(), getDescription());
+        data.setDescription(getDescription());
+        data.addOptions(getOptions().stream().map(JDAEntity::asJDA).toArray(OptionData[]::new));
+
+        for (Map.Entry<Locale, String> entry : getNameTranslations().entrySet()) {
+            DiscordLocale locale = getJDALocale(entry.getKey());
+            if (locale != null) {
+                data.setNameLocalization(locale, entry.getValue());
+            }
+        }
+        for (Map.Entry<Locale, String> entry : getDescriptionTranslations().entrySet()) {
+            DiscordLocale locale = getJDALocale(entry.getKey());
+            if (locale != null) {
+                data.setDescriptionLocalization(locale, entry.getValue());
+            }
+        }
+
         return data;
+    }
+
+    @Nullable
+    public static DiscordLocale getJDALocale(Locale locale) {
+        if (locale == Locale.ROOT) {
+            return null;
+        }
+
+        DiscordLocale discordLocale = DiscordLocale.from(locale.getLanguage() + "-" + locale.getCountry());
+        if (discordLocale != DiscordLocale.UNKNOWN) {
+            return discordLocale;
+        }
+
+        discordLocale = DiscordLocale.from(locale.getLanguage());
+        if (discordLocale != DiscordLocale.UNKNOWN) {
+            return discordLocale;
+        }
+        return null;
     }
 
     public static class ChatInputBuilder extends Builder<DiscordChatInputInteractionEvent> {
@@ -255,7 +305,6 @@ public class DiscordCommand implements JDAEntity<CommandData> {
         private final List<SubCommandGroup> subCommandGroups = new ArrayList<>();
         private final List<DiscordCommand> subCommands = new ArrayList<>();
         private final List<CommandOption> options = new ArrayList<>();
-        private AutoCompleteHandler autoCompleteHandler;
 
         private ChatInputBuilder(ComponentIdentifier id, String name, String description) {
             super(id, CommandType.CHAT_INPUT, name);
@@ -275,6 +324,11 @@ public class DiscordCommand implements JDAEntity<CommandData> {
                 throw new IllegalStateException("Descriptions are only available for CHAT_INPUT commands");
             }
             this.descriptionTranslations.put(locale, translation);
+            return this;
+        }
+
+        public ChatInputBuilder addDescriptionTranslations(@NotNull Map<Locale, String> translations) {
+            translations.forEach(this::addDescriptionTranslation);
             return this;
         }
 
@@ -314,17 +368,6 @@ public class DiscordCommand implements JDAEntity<CommandData> {
             return this;
         }
 
-        /**
-         * Sets the auto complete handler for this command, this can be used instead of listening to the {@link DiscordCommandAutoCompleteInteractionEvent}.
-         * @param autoCompleteHandler the auto complete handler, only receives events for this command
-         * @return this builder, useful for chaining
-         */
-        @NotNull
-        public ChatInputBuilder setAutoCompleteHandler(AutoCompleteHandler autoCompleteHandler) {
-            this.autoCompleteHandler = autoCompleteHandler;
-            return this;
-        }
-
         @Override
         public DiscordCommand build() {
             return new DiscordCommand(
@@ -338,17 +381,9 @@ public class DiscordCommand implements JDAEntity<CommandData> {
                     guildId,
                     guildOnly,
                     defaultPermission,
-                    eventHandler,
-                    autoCompleteHandler
+                    eventHandler
             );
         }
-    }
-
-    @FunctionalInterface
-    public interface AutoCompleteHandler {
-
-        void autoComplete(DiscordCommandAutoCompleteInteractionEvent event);
-
     }
 
     public static class Builder<E extends AbstractCommandInteractionEvent<?>> {
@@ -376,6 +411,11 @@ public class DiscordCommand implements JDAEntity<CommandData> {
         @NotNull
         public Builder<E> addNameTranslation(@NotNull Locale locale, @NotNull String translation) {
             this.nameTranslations.put(locale, translation);
+            return this;
+        }
+
+        public Builder<E> addNameTranslations(@NotNull Map<Locale, String> translations) {
+            translations.forEach(this::addNameTranslation);
             return this;
         }
 
@@ -434,8 +474,7 @@ public class DiscordCommand implements JDAEntity<CommandData> {
                     guildId,
                     guildOnly,
                     defaultPermission,
-                    eventHandler,
-                    null
+                    eventHandler
             );
         }
     }

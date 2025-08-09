@@ -81,7 +81,7 @@ public abstract class CachedLinkProvider implements LinkProvider {
                 })
                 .removalListener((key, value, cause) -> {
                     if (value != null) {
-                        userToPlayer.invalidate(value);
+                        userToPlayer.invalidate(value.userId());
                     }
                 })
                 .buildAsync(new AsyncCacheLoader<UUID, AccountLink>() {

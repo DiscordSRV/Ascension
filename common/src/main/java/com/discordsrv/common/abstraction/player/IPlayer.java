@@ -19,6 +19,7 @@
 package com.discordsrv.common.abstraction.player;
 
 import com.discordsrv.api.component.MinecraftComponent;
+import com.discordsrv.api.events.vanish.PlayerVanishStatusCheckEvent;
 import com.discordsrv.api.placeholder.annotation.Placeholder;
 import com.discordsrv.api.placeholder.annotation.PlaceholderPrefix;
 import com.discordsrv.api.player.DiscordSRVPlayer;
@@ -30,6 +31,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.Collection;
+import java.util.Locale;
 import java.util.UUID;
 
 @PlaceholderPrefix("player_")
@@ -70,4 +72,13 @@ public interface IPlayer extends DiscordSRVPlayer, IOfflinePlayer, ICommandSende
         return null;
     }
 
+    @Override
+    default boolean isVanished() {
+        PlayerVanishStatusCheckEvent event = new PlayerVanishStatusCheckEvent(this, false);
+        discordSRV().eventBus().publish(event);
+        return event.getStatus();
+    }
+
+    @Override
+    @Nullable Locale locale();
 }

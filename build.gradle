@@ -30,6 +30,16 @@ subprojects {
         targetCompatibility = JavaVersion.VERSION_1_8
     }
 
+    if (project.path == ":fabric") {
+        compileJava.configure {
+            doFirst {
+                throw new StopExecutionException(
+                        "The 'compileJava' task is disabled in fabric root project."
+                )
+            }
+        }
+    }
+
     configurations {
         // Exclude dependencies from being included in jars
         runtimeExclude {
@@ -67,9 +77,7 @@ subprojects {
 
     repositories {
         // Snapshot repositories
-        //maven { url 'https://oss.sonatype.org/content/repositories/snapshots/' }
-        //mavenLocal()
-        maven { url = 'https://s01.oss.sonatype.org/content/repositories/snapshots/' }
+        maven { url = 'https://central.sonatype.com/repository/maven-snapshots/' }
 
         maven {
             url = 'https://nexus.scarsz.me/content/groups/public/'
@@ -79,7 +87,6 @@ subprojects {
                 includeGroup 'me.minecraftauth'
 
                 includeGroup 'org.spongepowered' // SpongePowered/Configurate feature/yaml-improvements branch
-                includeGroup 'net.dv8tion' // DiscordSRV/JDA v5-webhooks branch
             }
         }
         maven {
@@ -124,7 +131,6 @@ subprojects {
     }
     clean.dependsOn deleteJarsDir
 
-    defaultTasks 'build'
     jar {
         duplicatesStrategy = DuplicatesStrategy.INCLUDE
 

@@ -22,12 +22,7 @@ import com.discordsrv.common.abstraction.sync.result.ISyncResult;
 
 public enum GroupSyncResult implements ISyncResult {
 
-    // Fail
-    NOT_A_GUILD_MEMBER("User is not part of the server the role is in", true),
-
     // Error
-    ROLE_DOESNT_EXIST("Role doesn't exist"),
-    ROLE_CANNOT_INTERACT("Bot doesn't have a role above the synced role (cannot interact)"),
     PERMISSION_BACKEND_FAILED("Failed to interact with permission backend, error printed"),
 
     ;

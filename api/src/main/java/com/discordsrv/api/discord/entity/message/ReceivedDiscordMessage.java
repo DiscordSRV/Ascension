@@ -35,6 +35,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.annotations.Unmodifiable;
 
+import java.time.OffsetDateTime;
 import java.util.List;
 import java.util.Set;
 
@@ -106,8 +107,8 @@ public interface ReceivedDiscordMessage extends Snowflake {
     DiscordMessageChannel getChannel();
 
     /**
-     * Gets the messages this message is replying to.
-     * @return the messages this message is replying to or a empty optional
+     * Gets the message this message is replying to.
+     * @return the message this message is replying to or {@code null}
      */
     @Nullable
     ReceivedDiscordMessage getReplyingTo();
@@ -139,6 +140,22 @@ public interface ReceivedDiscordMessage extends Snowflake {
      * @return a set of unique members that were mentioned
      */
     Set<DiscordGuildMember> getMentionedMembers();
+
+    /**
+     * When this message was sent.
+     * @return the time the message was created
+     */
+    @NotNull
+    @Placeholder("created")
+    OffsetDateTime getDateCreated();
+
+    /**
+     * When this message was last edited.
+     * @return the time the message was last edited or {@code null} if it hasn't been edited
+     */
+    @Nullable
+    @Placeholder("edited")
+    OffsetDateTime getDateEdited();
 
     /**
      * Deletes this message.

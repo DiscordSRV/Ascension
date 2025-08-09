@@ -18,8 +18,8 @@
 
 package com.discordsrv.common.command.combined.commands;
 
-import com.discordsrv.api.discord.entity.interaction.command.CommandOption;
 import com.discordsrv.api.discord.entity.interaction.command.DiscordCommand;
+import com.discordsrv.api.discord.entity.interaction.command.SubCommandGroup;
 import com.discordsrv.api.discord.entity.interaction.component.ComponentIdentifier;
 import com.discordsrv.api.eventbus.EventPriorities;
 import com.discordsrv.api.eventbus.Subscribe;
@@ -29,33 +29,42 @@ import com.discordsrv.common.command.combined.abstraction.CombinedCommand;
 import com.discordsrv.common.command.combined.abstraction.CommandExecution;
 import com.discordsrv.common.command.combined.abstraction.Text;
 import com.discordsrv.common.command.game.abstraction.command.GameCommand;
+import com.discordsrv.common.core.debug.DebugGenerateEvent;
+import com.discordsrv.common.core.debug.DebugObservabilityEvent;
+import com.discordsrv.common.core.debug.DebugReport;
+import com.discordsrv.common.core.debug.file.KeyValueDebugFile;
 import com.discordsrv.common.core.logging.Logger;
 import com.discordsrv.common.core.logging.NamedLogger;
 import com.discordsrv.common.core.paste.Paste;
 import com.discordsrv.common.core.paste.PasteService;
 import com.discordsrv.common.core.paste.service.AESEncryptedPasteService;
 import com.discordsrv.common.core.paste.service.BytebinPasteService;
-import com.discordsrv.common.core.debug.DebugGenerateEvent;
-import com.discordsrv.common.core.debug.DebugObservabilityEvent;
-import com.discordsrv.common.core.debug.DebugReport;
-import com.discordsrv.common.core.debug.file.KeyValueDebugFile;
 import com.discordsrv.common.permission.game.Permissions;
 import com.discordsrv.common.util.ExceptionUtil;
 import net.kyori.adventure.text.format.NamedTextColor;
 
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Path;
-import java.util.*;
+import java.util.Base64;
+import java.util.LinkedHashMap;
+import java.util.Map;
 import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.stream.Collectors;
 
-public class DebugCommand extends CombinedCommand {
+public class DebugCommand {
 
-    private static final List<String> SUBCOMMANDS = Arrays.asList("start", "stop", "upload", "zip");
+    private static final String LABEL = "debug";
+    private static final ComponentIdentifier IDENTIFIER_START = ComponentIdentifier.of("DiscordSRV", "debug-start");
+    private static final ComponentIdentifier IDENTIFIER_STOP = ComponentIdentifier.of("DiscordSRV", "debug-stop");
+    private static final ComponentIdentifier IDENTIFIER_UPLOAD = ComponentIdentifier.of("DiscordSRV", "debug-upload");
+    private static final ComponentIdentifier IDENTIFIER_ZIP = ComponentIdentifier.of("DiscordSRV", "debug-zip");
+    private static final String START_LABEL = "start";
+    private static final String STOP_LABEL = "stop";
+    private static final String UPLOAD_LABEL = "upload";
+    private static final String ZIP_LABEL = "zip";
 
     private static DebugCommand INSTANCE;
     private static GameCommand GAME;
-    private static DiscordCommand DISCORD;
+    private static SubCommandGroup DISCORD;
 
     private static DebugCommand getInstance(DiscordSRV discordSRV) {
         return INSTANCE != null ? INSTANCE : (INSTANCE = new DebugCommand(discordSRV));
@@ -64,38 +73,52 @@ public class DebugCommand extends CombinedCommand {
     public static GameCommand getGame(DiscordSRV discordSRV) {
         if (GAME == null) {
             DebugCommand command = getInstance(discordSRV);
-            GAME = GameCommand.literal("debug")
+            GAME = GameCommand.literal(LABEL)
+                    .addDescriptionTranslations(discordSRV.getAllTranslations(config -> config.debugCommandDescription.minecraft()))
                     .requiredPermission(Permissions.COMMAND_DEBUG)
-                    .executor(command)
-                    .then(
-                            GameCommand.stringWord("subcommand")
-                                    .suggester((sender, previousArguments, currentInput) ->
-                                                       SUBCOMMANDS.stream()
-                                                               .filter(cmd -> cmd.startsWith(currentInput.toLowerCase(Locale.ROOT)))
-                                                               .collect(Collectors.toList())
-                                    )
-                                    .executor(command)
-                    );
+                    .executor(command.base)
+                    .then(GameCommand.literal(START_LABEL)
+                                  .addDescriptionTranslations(discordSRV.getAllTranslations(config -> config.debugStartCommandDescription.minecraft()))
+                                  .executor(command.start))
+                    .then(GameCommand.literal(STOP_LABEL)
+                                  .addDescriptionTranslations(discordSRV.getAllTranslations(config -> config.debugStopCommandDescription.minecraft()))
+                                  .executor(command.stop))
+                    .then(GameCommand.literal(UPLOAD_LABEL)
+                                  .addDescriptionTranslations(discordSRV.getAllTranslations(config -> config.debugUploadCommandDescription.minecraft()))
+                                  .executor(command.upload))
+                    .then(GameCommand.literal(ZIP_LABEL)
+                                  .addDescriptionTranslations(discordSRV.getAllTranslations(config -> config.debugZipCommandDescription.minecraft()))
+                                  .executor(command.zip));
         }
 
         return GAME;
     }
 
-    public static DiscordCommand getDiscord(DiscordSRV discordSRV) {
+    public static SubCommandGroup getDiscord(DiscordSRV discordSRV) {
         if (DISCORD == null) {
             DebugCommand command = getInstance(discordSRV);
-            CommandOption.Builder optionBuilder = CommandOption.builder(
-                    CommandOption.Type.STRING,
-                    "subcommand",
-                    String.join("/", SUBCOMMANDS)
-            ).setRequired(false);
-            for (String subCommand : SUBCOMMANDS) {
-                optionBuilder = optionBuilder.addChoice(subCommand, subCommand);
-            }
 
-            DISCORD = DiscordCommand.chatInput(ComponentIdentifier.of("DiscordSRV", "debug"), "debug", "Create a debug report")
-                    .addOption(optionBuilder.build())
-                    .setEventHandler(command)
+            DISCORD = SubCommandGroup.builder(
+                            LABEL,
+                    ""
+            )
+                    .addDescriptionTranslations(discordSRV.getAllTranslations(config -> config.debugCommandDescription.discord().content()))
+                    .addCommand(DiscordCommand.chatInput(IDENTIFIER_START, START_LABEL, "")
+                                        .addDescriptionTranslations(discordSRV.getAllTranslations(config -> config.debugStartCommandDescription.discord().content()))
+                                        .setEventHandler(command.start)
+                                        .build())
+                    .addCommand(DiscordCommand.chatInput(IDENTIFIER_STOP, STOP_LABEL, "")
+                                        .addDescriptionTranslations(discordSRV.getAllTranslations(config -> config.debugStopCommandDescription.discord().content()))
+                                        .setEventHandler(command.stop)
+                                        .build())
+                    .addCommand(DiscordCommand.chatInput(IDENTIFIER_UPLOAD, UPLOAD_LABEL, "")
+                                        .addDescriptionTranslations(discordSRV.getAllTranslations(config -> config.debugUploadCommandDescription.discord().content()))
+                                        .setEventHandler(command.upload)
+                                        .build())
+                    .addCommand(DiscordCommand.chatInput(IDENTIFIER_ZIP, ZIP_LABEL, "")
+                                        .addDescriptionTranslations(discordSRV.getAllTranslations(config -> config.debugZipCommandDescription.discord().content()))
+                                        .setEventHandler(command.zip)
+                                        .build())
                     .build();
         }
 
@@ -106,13 +129,27 @@ public class DebugCommand extends CombinedCommand {
     public static final Base64.Encoder KEY_ENCODER = Base64.getUrlEncoder().withoutPadding();
 
     private final AtomicBoolean debugObserving = new AtomicBoolean(false);
+    private final DiscordSRV discordSRV;
     private final Logger logger;
     private final PasteService pasteService;
 
+    private final BaseCommand base;
+    private final StartCommand start;
+    private final StopCommand stop;
+    private final UploadCommand upload;
+    private final ZipCommand zip;
+
     public DebugCommand(DiscordSRV discordSRV) {
-        super(discordSRV);
+        this.discordSRV = discordSRV;
         this.logger = new NamedLogger(discordSRV, "DEBUG_COMMAND");
         this.pasteService = new AESEncryptedPasteService(new BytebinPasteService(discordSRV, "https://bytebin.lucko.me") /* TODO: final store tbd */, 128);
+
+        this.base = new BaseCommand(this);
+        this.start = new StartCommand(this);
+        this.stop = new StopCommand(this);
+        this.upload = new UploadCommand(this);
+        this.zip = new ZipCommand(this);
+
         discordSRV.eventBus().subscribe(this);
     }
 
@@ -129,20 +166,12 @@ public class DebugCommand extends CombinedCommand {
         event.addFile(-100, "debug.json", new KeyValueDebugFile(values));
     }
 
-    @Override
-    public void execute(CommandExecution execution) {
-        String argument = execution.getArgument("subcommand");
-        String subCommand = argument != null ? argument.toLowerCase(Locale.ROOT) : null;
-        if (subCommand != null && !SUBCOMMANDS.contains(subCommand)) {
-            execution.send(new Text("Unknown subcommand").withGameColor(NamedTextColor.RED));
-            return;
-        }
-
-        execution.runAsync(() -> handle(execution, subCommand));
+    public void execute(String label, CommandExecution execution) {
+        execution.runAsync(() -> handle(execution, label));
     }
 
     private void handle(CommandExecution execution, String subCommand) {
-        if ("start".equals(subCommand)) {
+        if (START_LABEL.equals(subCommand)) {
             if (!compareAndSetDebugObservability(true)) {
                 execution.send(new Text("Debug observing is already enabled").withGameColor(NamedTextColor.RED));
                 return;
@@ -152,8 +181,8 @@ public class DebugCommand extends CombinedCommand {
             return;
         }
 
-        boolean useUpload = subCommand == null || "upload".equals(subCommand);
-        boolean useZip = subCommand == null || "zip".equals(subCommand);
+        boolean useUpload = subCommand == null || UPLOAD_LABEL.equals(subCommand);
+        boolean useZip = subCommand == null || ZIP_LABEL.equals(subCommand);
         if (useUpload || useZip) {
             DebugReport report = new DebugReport(discordSRV);
             report.generate();
@@ -182,7 +211,7 @@ public class DebugCommand extends CombinedCommand {
 
         if (compareAndSetDebugObservability(false)) {
             execution.send(new Text("Debug observing stopped").withGameColor(NamedTextColor.GREEN));
-        } else if ("stop".equals(subCommand)) {
+        } else if (STOP_LABEL.equals(subCommand)) {
             execution.send(new Text("Not debug observing").withGameColor(NamedTextColor.RED));
         }
     }
@@ -225,6 +254,81 @@ public class DebugCommand extends CombinedCommand {
             return null;
         } catch (Throwable e) {
             return e;
+        }
+    }
+
+    public static class BaseCommand extends CombinedCommand {
+
+        private final DebugCommand parent;
+
+        public BaseCommand(DebugCommand parent) {
+            super(parent.discordSRV);
+            this.parent = parent;
+        }
+
+        @Override
+        public void execute(CommandExecution execution) {
+            parent.execute(null, execution);
+        }
+    }
+
+    public static class StartCommand extends CombinedCommand {
+
+        private final DebugCommand parent;
+
+        public StartCommand(DebugCommand parent) {
+            super(parent.discordSRV);
+            this.parent = parent;
+        }
+
+        @Override
+        public void execute(CommandExecution execution) {
+            parent.execute(START_LABEL, execution);
+        }
+    }
+
+    public static class StopCommand extends CombinedCommand {
+
+        private final DebugCommand parent;
+
+        public StopCommand(DebugCommand parent) {
+            super(parent.discordSRV);
+            this.parent = parent;
+        }
+
+        @Override
+        public void execute(CommandExecution execution) {
+            parent.execute(STOP_LABEL, execution);
+        }
+    }
+
+    public static class UploadCommand extends CombinedCommand {
+
+        private final DebugCommand parent;
+
+        public UploadCommand(DebugCommand parent) {
+            super(parent.discordSRV);
+            this.parent = parent;
+        }
+
+        @Override
+        public void execute(CommandExecution execution) {
+            parent.execute(UPLOAD_LABEL, execution);
+        }
+    }
+
+    public static class ZipCommand extends CombinedCommand {
+
+        private final DebugCommand parent;
+
+        public ZipCommand(DebugCommand parent) {
+            super(parent.discordSRV);
+            this.parent = parent;
+        }
+
+        @Override
+        public void execute(CommandExecution execution) {
+            parent.execute(ZIP_LABEL, execution);
         }
     }
 
