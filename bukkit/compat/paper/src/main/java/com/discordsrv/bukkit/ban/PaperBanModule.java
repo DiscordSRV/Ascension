@@ -92,7 +92,7 @@ public class PaperBanModule extends AbstractBukkitListener<PlayerKickEvent> impl
 
         BanEntry<PlayerProfile> ban = banList.getBanEntry(profile);
         if (ban == null) {
-            return CompletableFuture.completedFuture(null);
+            return Task.completed(null);
         }
         Date expiration = ban.getExpiration();
         String reason = ban.getReason();

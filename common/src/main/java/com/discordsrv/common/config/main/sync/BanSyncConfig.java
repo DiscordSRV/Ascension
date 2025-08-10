@@ -76,7 +76,6 @@ public class BanSyncConfig extends AbstractSyncConfig<BanSyncConfig, Game, Long>
     @ConfigSerializable
     public static class DiscordToMinecraftConfig {
 
-        // TODO make ROLE ignore bans entirely
         @Comment("What action(s) on Discord should trigger a ban/unban in Minecraft. Valid options:\n"
                 + "ban:     A ban/unban on the Discord Server\n"
                 + "role:    Addition/removal of the banned role (specified above) to the user on Discord\n"
@@ -86,13 +85,13 @@ public class BanSyncConfig extends AbstractSyncConfig<BanSyncConfig, Game, Long>
         public BanSyncDiscordTrigger trigger = BanSyncDiscordTrigger.BAN;
 
         @Comment("The reason used when creating new bans in Minecraft")
-        public String banReasonFormat = "%punishment_reason%";
+        public String banReasonFormat = "Banned on Discord: %punishment_reason%";
 
         @Comment("The punisher shown when creating new bans in Minecraft")
         public String punisherFormat = "%user_color%@%user_name%";
 
-        @Comment("The kick reason when a ban is applied to a online player")
-        public String kickReason = "&cYou have been banned for &f%punishment_reason% &cby &f%punishment_punisher%";
+        @Comment("The kick reason when a ban is applied to an online player")
+        public String kickReason = "&cYou have been banned on Discord for &f%punishment_reason% &cby &f%punishment_punisher%";
     }
 
     @ConfigSerializable
