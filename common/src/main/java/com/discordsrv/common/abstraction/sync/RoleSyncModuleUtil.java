@@ -84,6 +84,12 @@ public final class RoleSyncModuleUtil {
 
     public static Task<ISyncResult> doRoleChange(Someone.Resolved someone, DiscordRole role, @Nullable Boolean newState) {
         return someone.guildMember(role.getGuild())
+                .mapException(RestErrorResponseException.class, t -> {
+                    if (t.getErrorCode() == ErrorResponse.UNKNOWN_MEMBER.getCode()) {
+                        throw new SyncFail(GenericSyncResults.NOT_A_GUILD_MEMBER);
+                    }
+                    throw t;
+                })
                 .then(member -> (newState != null && newState)
                                 ? member.addRole(role).thenApply(v -> GenericSyncResults.ADD_DISCORD)
                                 : member.removeRole(role).thenApply(v -> GenericSyncResults.REMOVE_DISCORD)
