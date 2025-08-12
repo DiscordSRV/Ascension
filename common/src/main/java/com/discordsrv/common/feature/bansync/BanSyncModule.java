@@ -361,9 +361,11 @@ public class BanSyncModule extends AbstractSyncModule<DiscordSRV, BanSyncConfig,
             MinecraftComponent reason = discordSRV.componentFactory().textBuilder(config.discordToMinecraft.banReasonFormat)
                     .addContext(newState)
                     .build();
-            MinecraftComponent punisher = discordSRV.componentFactory().textBuilder(config.discordToMinecraft.punisherFormat)
-                    .addContext(newState)
-                    .build();
+            MinecraftComponent punisher = newState.punisher() != null
+                    ? newState.punisher() // has contexts for user and member so ideally we should use this
+                    : discordSRV.componentFactory().textBuilder(config.discordToMinecraft.punisherFormat)
+                        .addContext(newState)
+                        .build();
 
             return bans.addBan(playerUUID, null, reason, punisher)
                     .then(v -> {
