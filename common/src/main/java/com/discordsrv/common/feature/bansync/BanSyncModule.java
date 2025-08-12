@@ -223,12 +223,14 @@ public class BanSyncModule extends AbstractSyncModule<DiscordSRV, BanSyncConfig,
     private void handleRoleChanges(DiscordGuildMember member, List<DiscordRole> roles, boolean added) {
         BanSyncConfig config = discordSRV.config().banSync;
         if (config.minecraftToDiscord.action == BanSyncDiscordAction.ROLE && roles.stream().anyMatch(role -> config.bannedRoleId == role.getId())) {
-            if (config.discordToMinecraft.trigger != BanSyncDiscordTrigger.BAN)
+            if (config.discordToMinecraft.trigger != BanSyncDiscordTrigger.BAN) {
                 upsertEvent(roles.getFirst().getGuild().getId(), member.getUser().getId(), added).applyPunishment(added ? new Punishment(null, null, null) : null, BanSyncCause.BANNED_ROLE_CHANGED);
-            else logger().debug(String.format(
+            } else {
+                logger().debug(String.format(
                     "Ignoring banned role change for %s because role changes are not configured to affect the game ban status.",
                     member.getUser().getAsTag()
-            ));
+                ));
+            }
         }
     }
 
@@ -237,8 +239,12 @@ public class BanSyncModule extends AbstractSyncModule<DiscordSRV, BanSyncConfig,
     }
 
     private void handleDiscordBanChange(Guild guild, User user, boolean newState) {
-        if (shouldHandleDiscordBanChanges()) upsertEvent(guild.getIdLong(), user.getIdLong(), newState);
-        else logger().debug(String.format("Not handling Discord ban/unban for %s because doing so is disabled in the config", user.getAsTag()));
+        if (!shouldHandleDiscordBanChanges()) {
+            logger().debug(String.format("Not handling Discord ban/unban for %s because doing so is disabled in the config", user.getAsTag()));
+            return;
+        }
+        
+        upsertEvent(guild.getIdLong(), user.getIdLong(), newState);
     }
 
     private Task<@Nullable Punishment> getBanOrBanRoled(Guild guild, long userId, BanSyncConfig config) {
@@ -249,8 +255,9 @@ public class BanSyncModule extends AbstractSyncModule<DiscordSRV, BanSyncConfig,
         return discordSRV.discordAPI().toTask(guild.retrieveBan(snowflake))
                 .thenApply(this::punishment)
                 .mapException(RestErrorResponseException.class, t -> {
-                    if (t.getErrorCode() == ErrorResponse.UNKNOWN_BAN.getCode()) // Unknown Ban
+                    if (t.getErrorCode() == ErrorResponse.UNKNOWN_BAN.getCode()) {
                         return null;
+                    }
 
                     throw t;
                 })
@@ -267,9 +274,11 @@ public class BanSyncModule extends AbstractSyncModule<DiscordSRV, BanSyncConfig,
                     return null;
                 })
                 .mapException(RestErrorResponseException.class, t -> {
-                    if (t.getErrorCode() == ErrorResponse.UNKNOWN_MEMBER.getCode()) // Unknown member
+                    if (t.getErrorCode() == ErrorResponse.UNKNOWN_MEMBER.getCode()) {
                         return null;
-                    else throw new RuntimeException(t);
+                    }
+                    
+                    throw new CompletionException(t);
                 });
     }
 
