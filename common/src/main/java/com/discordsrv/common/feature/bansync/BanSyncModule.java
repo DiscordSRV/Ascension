@@ -278,7 +278,7 @@ public class BanSyncModule extends AbstractSyncModule<DiscordSRV, BanSyncConfig,
                         return null;
                     }
                     
-                    throw new CompletionException(t);
+                    throw t;
                 });
     }
 
