@@ -1,12 +1,14 @@
 package com.discordsrv.fabric;
 
 import com.discordsrv.common.DiscordSRV;
+import com.discordsrv.common.core.component.translation.Translation;
 import com.discordsrv.common.core.component.translation.TranslationLoader;
-import net.minecraft.util.Language;
 
-import java.net.URL;
+import java.util.HashMap;
+import java.util.Locale;
+import java.util.Map;
+import java.util.concurrent.atomic.AtomicBoolean;
 
-//TODO: Pull translations from mods and datapacks
 public class FabricTranslationLoader extends TranslationLoader {
 
     public FabricTranslationLoader(DiscordSRV discordSRV) {
@@ -14,13 +16,21 @@ public class FabricTranslationLoader extends TranslationLoader {
     }
 
     @Override
-    protected URL findResource(String name) {
-        ClassLoader classLoader = Language.class.getClassLoader();
-        URL url = null;
-        while (classLoader != null && url == null) {
-            url = classLoader.getResource(name);
-            classLoader = classLoader.getParent();
+    protected void loadMCTranslations(AtomicBoolean any) {
+        Map<String, Translation> translations = new HashMap<>();
+
+        getClass().getClassLoader().resources("assets/minecraft/lang/en_us.json").forEach(url -> {
+            try {
+                translations.putAll(getFromJson(url));
+            } catch (Throwable t) {
+                logger.debug("Failed to load translations from " + url, t);
+            }
+        });
+
+        if (!translations.isEmpty()) {
+            discordSRV.componentFactory().translationRegistry().register(Locale.US, translations);
+            logger.debug("Found " + translations.size() + " Minecraft translations for en_us");
+            any.set(true);
         }
-        return url;
     }
 }

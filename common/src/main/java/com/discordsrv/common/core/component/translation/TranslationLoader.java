@@ -65,7 +65,7 @@ public class TranslationLoader {
         }
     }
 
-    private void loadFromFiles(Path folder, TranslationRegistry registry, AtomicBoolean any) throws IOException {
+    protected void loadFromFiles(Path folder, TranslationRegistry registry, AtomicBoolean any) throws IOException {
         try (Stream<Path> paths = Files.list(folder)) {
             paths.forEach(path -> {
                 String fileName = path.getFileName().toString();
@@ -99,7 +99,7 @@ public class TranslationLoader {
         }
     }
 
-    private Map<String, Translation> getFromProperties(URL url) throws IOException {
+    protected Map<String, Translation> getFromProperties(URL url) throws IOException {
         Map<String, Translation> translations = new HashMap<>();
 
         Properties properties = new Properties();
@@ -112,7 +112,7 @@ public class TranslationLoader {
         return translations;
     }
 
-    private Map<String, Translation> getFromJson(URL url) throws IOException {
+    protected Map<String, Translation> getFromJson(URL url) throws IOException {
         Map<String, Translation> translations = new HashMap<>();
 
         JsonNode node = discordSRV.json().readTree(url);
@@ -134,7 +134,7 @@ public class TranslationLoader {
         return url;
     }
 
-    private void loadMCTranslations(AtomicBoolean any) {
+    protected void loadMCTranslations(AtomicBoolean any) {
         Map<String, Translation> translations = new HashMap<>();
         try {
             URL enUS = findResource("assets/minecraft/lang/en_US.lang");
