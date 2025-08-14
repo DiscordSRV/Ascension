@@ -36,8 +36,8 @@ import java.util.stream.Stream;
 
 public class TranslationLoader {
 
-    private final DiscordSRV discordSRV;
-    private final NamedLogger logger;
+    protected final DiscordSRV discordSRV;
+    protected final NamedLogger logger;
 
     public TranslationLoader(DiscordSRV discordSRV) {
         this.discordSRV = discordSRV;
@@ -124,7 +124,7 @@ public class TranslationLoader {
         return translations;
     }
 
-    private URL findResource(String name) {
+    protected URL findResource(String name) {
         ClassLoader classLoader = getClass().getClassLoader();
         URL url = null;
         while (classLoader != null && url == null) {

@@ -176,7 +176,7 @@ public abstract class AbstractDiscordSRV<
     private ChannelConfigHelper channelConfig;
     private DestinationLookupHelper destinationLookupHelper;
     private TemporaryLocalData temporaryLocalData;
-    private TranslationLoader translationLoader;
+    protected TranslationLoader translationLoader;
 
     private Storage storage;
     private LinkProvider linkProvider;

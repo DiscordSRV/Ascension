@@ -74,6 +74,7 @@ public class FabricDiscordSRV extends AbstractDiscordSRV<DiscordSRVFabricBootstr
         this.commandHandler = new FabricCommandHandler(this);
         this.executionHelper = new FabricGameCommandExecutionHelper(this);
         this.componentFactory = new FabricComponentFactory(this);
+        this.translationLoader = new FabricTranslationLoader(this);
 
         // Config
         this.connectionConfigManager = new ConnectionConfigManager<>(this, ConnectionConfig::new);
