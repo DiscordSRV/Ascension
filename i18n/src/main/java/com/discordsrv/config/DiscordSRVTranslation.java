@@ -18,19 +18,21 @@
 
 package com.discordsrv.config;
 
+import com.discordsrv.bukkit.config.main.BukkitConfig;
 import com.discordsrv.common.config.Config;
 import com.discordsrv.common.config.configurate.annotation.Untranslated;
-import com.discordsrv.common.config.configurate.manager.ConnectionConfigManager;
+import com.discordsrv.common.config.configurate.fielddiscoverer.FieldValueDiscovererProxy;
 import com.discordsrv.common.config.configurate.manager.abstraction.ConfigurateConfigManager;
-import com.discordsrv.common.config.configurate.manager.abstraction.ServerConfigManager;
-import com.discordsrv.common.config.configurate.manager.abstraction.TranslatedConfigManager;
 import com.discordsrv.common.config.connection.ConnectionConfig;
-import com.discordsrv.common.config.main.MainConfig;
+import com.discordsrv.common.config.messages.MessagesConfig;
 import com.discordsrv.common.core.logging.backend.impl.JavaLoggerImpl;
+import com.discordsrv.fabric.config.main.FabricConfig;
 import org.spongepowered.configurate.CommentedConfigurationNode;
 import org.spongepowered.configurate.ConfigurateException;
 import org.spongepowered.configurate.ConfigurationNode;
 import org.spongepowered.configurate.jackson.JacksonConfigurationLoader;
+import org.spongepowered.configurate.loader.AbstractConfigurationLoader;
+import org.spongepowered.configurate.objectmapping.FieldDiscoverer;
 import org.spongepowered.configurate.objectmapping.ObjectMapper;
 import org.spongepowered.configurate.objectmapping.meta.Processor;
 import org.spongepowered.configurate.serialize.SerializationException;
@@ -42,6 +44,8 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 
+import static com.discordsrv.common.config.configurate.manager.abstraction.ConfigurateConfigManager.NAMING_SCHEME;
+
 /**
  * A java application to generate a translation file that has comments as options.
  */
@@ -49,9 +53,11 @@ public final class DiscordSRVTranslation {
 
     private static final Path DATA_DIRECTORY = Paths.get(".");
 
-    private static final List<TranslatedConfigManager<? extends Config, ?>> CONFIGS = Arrays.asList(
-            new ServerConfigManager<MainConfig>(DATA_DIRECTORY, () -> new MainConfig() {}),
-            new ConnectionConfigManager<ConnectionConfig>(DATA_DIRECTORY, ConnectionConfig::new)
+    private static final List<Config> CONFIGS = Arrays.asList(
+            new BukkitConfig(),
+            new FabricConfig(),
+            new ConnectionConfig(),
+            new MessagesConfig()
     );
 
     public static void main(String[] args) throws ConfigurateException {
@@ -60,6 +66,7 @@ public final class DiscordSRVTranslation {
 
     private DiscordSRVTranslation() {}
 
+    @SuppressWarnings({"rawtypes", "unchecked"})
     public void run() throws ConfigurateException {
         Processor.Factory<Untranslated, Object> untranslatedProcessorFactory = (data, v1) -> (v2, destination) -> {
             try {
@@ -80,19 +87,43 @@ public final class DiscordSRVTranslation {
         };
 
         CommentedConfigurationNode node = CommentedConfigurationNode.root();
-        for (ConfigurateConfigManager<?, ?> configManager : CONFIGS) {
-            Config config = (Config) configManager.createConfiguration();
-            String fileIdentifier = config.getFileName();
+        for (Config config : CONFIGS) {
+            ObjectMapper.Factory mapperFactory = ObjectMapper.factoryBuilder()
+                    .defaultNamingScheme(NAMING_SCHEME)
+                    .addDiscoverer((FieldDiscoverer<Object>) (Object) FieldValueDiscovererProxy.EMPTY_CONSTRUCTOR_INSTANCE)
+                    .addDiscoverer(FieldDiscoverer.record())
+                    .addProcessor(Untranslated.class, untranslatedProcessorFactory)
+                    .build();
+
+            ConfigurateConfigManager configManager = new ConfigurateConfigManager(DATA_DIRECTORY, null) {
+                @Override
+                public String fileName() {
+                    return config.getFileName();
+                }
+
+                @Override
+                public Object createConfiguration() {
+                    return config;
+                }
+
+                @Override
+                public AbstractConfigurationLoader.Builder createBuilder() {
+                    return null;
+                }
+
+                @Override
+                public ObjectMapper.Factory objectMapper() {
+                    return mapperFactory;
+                }
+            };
+
+            String fileIdentifier = config.getClass().getSimpleName() + "_" + config.getFileName();
             ConfigurationNode commentSection = node.node(fileIdentifier + "_comments");
             
             String header = configManager.nodeOptions(false).header();
             if (header != null) {
                 commentSection.node("$header").set(header);
             }
-
-            ObjectMapper.Factory mapperFactory = configManager.objectMapperBuilder(false)
-                    .addProcessor(Untranslated.class, untranslatedProcessorFactory)
-                    .build();
 
             TranslationConfigManagerProxy<?> configManagerProxy = new TranslationConfigManagerProxy<>(DATA_DIRECTORY, JavaLoggerImpl.getRoot(), mapperFactory, configManager);
             CommentedConfigurationNode configurationNode = configManagerProxy.getDefaultNode(mapperFactory);

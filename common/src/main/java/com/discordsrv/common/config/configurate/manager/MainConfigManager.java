@@ -25,7 +25,6 @@ import com.discordsrv.common.config.main.MainConfig;
 import org.spongepowered.configurate.yaml.YamlConfigurationLoader;
 
 import java.lang.reflect.Field;
-import java.nio.file.Path;
 import java.util.function.Supplier;
 
 public abstract class MainConfigManager<C extends MainConfig>
@@ -36,11 +35,6 @@ public abstract class MainConfigManager<C extends MainConfig>
 
     public MainConfigManager(DiscordSRV discordSRV, Supplier<C> configSupplier) {
         super(discordSRV);
-        this.configSupplier = configSupplier;
-    }
-
-    protected MainConfigManager(Path dataDirectory, Supplier<C> configSupplier) {
-        super(dataDirectory);
         this.configSupplier = configSupplier;
     }
 

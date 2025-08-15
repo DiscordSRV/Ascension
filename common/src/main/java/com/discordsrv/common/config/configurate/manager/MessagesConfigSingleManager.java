@@ -24,19 +24,23 @@ import com.discordsrv.common.config.configurate.manager.loader.YamlConfigLoaderP
 import com.discordsrv.common.config.messages.MessagesConfig;
 import org.spongepowered.configurate.yaml.YamlConfigurationLoader;
 
+import java.nio.file.Path;
 import java.util.Locale;
+import java.util.function.Supplier;
 
 public class MessagesConfigSingleManager<C extends MessagesConfig>
         extends TranslatedConfigManager<C, YamlConfigurationLoader>
         implements YamlConfigLoaderProvider {
 
     private final MessagesConfigManager<C> aggregateManager;
+    private final Supplier<C> configProvider;
     private final Locale locale;
     private final boolean multi;
 
     protected MessagesConfigSingleManager(DiscordSRV discordSRV, MessagesConfigManager<C> aggregateManager, Locale locale, boolean multi) {
         super(discordSRV);
         this.aggregateManager = aggregateManager;
+        this.configProvider = aggregateManager::createConfiguration;
         this.locale = locale;
         this.multi = multi;
     }
@@ -57,6 +61,6 @@ public class MessagesConfigSingleManager<C extends MessagesConfig>
 
     @Override
     public C createConfiguration() {
-        return aggregateManager.createConfiguration();
+        return configProvider.get();
     }
 }

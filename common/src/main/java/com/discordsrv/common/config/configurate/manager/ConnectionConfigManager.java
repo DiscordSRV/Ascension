@@ -25,7 +25,6 @@ import com.discordsrv.common.config.connection.ConnectionConfig;
 import org.spongepowered.configurate.yaml.YamlConfigurationLoader;
 
 import java.lang.reflect.Field;
-import java.nio.file.Path;
 import java.util.function.Supplier;
 
 public class ConnectionConfigManager<C extends ConnectionConfig>
@@ -36,11 +35,6 @@ public class ConnectionConfigManager<C extends ConnectionConfig>
 
     public ConnectionConfigManager(DiscordSRV discordSRV, Supplier<C> configSupplier) {
         super(discordSRV);
-        this.configSupplier = configSupplier;
-    }
-
-    public ConnectionConfigManager(Path dataDirectory, Supplier<C> configSupplier) {
-        super(dataDirectory);
         this.configSupplier = configSupplier;
     }
 

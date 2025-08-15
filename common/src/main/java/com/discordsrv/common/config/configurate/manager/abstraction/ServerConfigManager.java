@@ -26,17 +26,12 @@ import com.discordsrv.common.config.main.channels.base.server.ServerBaseChannelC
 import com.discordsrv.common.config.main.channels.base.server.ServerChannelConfig;
 import org.spongepowered.configurate.objectmapping.ObjectMapper;
 
-import java.nio.file.Path;
 import java.util.function.Supplier;
 
 public class ServerConfigManager<C extends MainConfig> extends MainConfigManager<C> {
 
     public ServerConfigManager(DiscordSRV discordSRV, Supplier<C> configSupplier) {
         super(discordSRV, configSupplier);
-    }
-
-    public ServerConfigManager(Path dataDirectory, Supplier<C> configSupplier) {
-        super(dataDirectory, configSupplier);
     }
 
     @Override

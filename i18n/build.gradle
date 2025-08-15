@@ -10,9 +10,10 @@ dependencies {
     implementation(project(':common'))
 
     // Depend on all platforms for configs
-    implementation(project(':bukkit')) { transitive = false }
+    implementation(project(':bukkit:bukkit-shared')) { transitive = false }
     implementation(project(':bungee')) { transitive = false }
     implementation(project(':velocity')) { transitive = false }
+    implementation(project(':fabric:1.21.6')) { transitive = false }
 
     api(libs.configurate.yaml)
     api(libs.configurate.jackson)

@@ -239,7 +239,7 @@ public abstract class ConfigurateConfigManager<T, LT extends AbstractConfigurati
     }
 
     @SuppressWarnings("unchecked")
-    public ObjectMapper.Factory.Builder commonObjectMapperBuilder(boolean commentSubstitutions) {
+    public ObjectMapper.Factory.Builder commonObjectMapperBuilder(boolean substitutions) {
         Comparator<OrderedFieldDiscovererProxy.FieldCollectorData<Object, ?>> fieldOrder = Comparator.comparingInt(data -> {
             Order order = data.annotations().getAnnotation(Order.class);
             return order != null ? order.value() : 0;
@@ -251,7 +251,7 @@ public abstract class ConfigurateConfigManager<T, LT extends AbstractConfigurati
                 .addDiscoverer(new OrderedFieldDiscovererProxy<>((FieldDiscoverer<Object>) FieldDiscoverer.record(), fieldOrder))
                 .addProcessor(Constants.Comment.class, (data, fieldType) -> (value, destination) -> {
                     // This needs to go before comment processing.
-                    if (commentSubstitutions && destination instanceof CommentedConfigurationNode) {
+                    if (substitutions && destination instanceof CommentedConfigurationNode) {
                         String comment = ((CommentedConfigurationNode) destination).comment();
                         if (StringUtils.isEmpty(comment)) {
                             logger.error(
@@ -266,6 +266,10 @@ public abstract class ConfigurateConfigManager<T, LT extends AbstractConfigurati
                     }
                 })
                 .addProcessor(Constants.class, (data, fieldType) -> (value, destination) -> {
+                    if (!substitutions) {
+                        return;
+                    }
+
                     String[] constants = getValues(data.value(), data.intValue());
                     if (constants.length == 0) {
                         return;
@@ -306,14 +310,14 @@ public abstract class ConfigurateConfigManager<T, LT extends AbstractConfigurati
         return input;
     }
 
-    public ObjectMapper.Factory.Builder objectMapperBuilder(boolean commentSubstitutions) {
-        return commonObjectMapperBuilder(commentSubstitutions)
+    public ObjectMapper.Factory.Builder objectMapperBuilder(boolean substitutions) {
+        return commonObjectMapperBuilder(substitutions)
                 .addProcessor(Comment.class, (data, fieldType) -> {
                     Processor<Object> processor = Processor.comments().make(data, fieldType);
 
                     return (value, destination) -> {
                         processor.process(value, destination);
-                        if (commentSubstitutions && destination instanceof CommentedConfigurationNode) {
+                        if (substitutions && destination instanceof CommentedConfigurationNode) {
                             String comment = ((CommentedConfigurationNode) destination).comment();
                             if (comment != null) {
                                 // Yaml doesn't render empty lines correctly, so we add a space when there are double line breaks

@@ -45,11 +45,6 @@ public abstract class TranslatedConfigManager<T extends Config, LT extends Abstr
         this.discordSRV = discordSRV;
     }
 
-    protected TranslatedConfigManager(Path dataDirectory) {
-        super(dataDirectory, null);
-        this.discordSRV = null;
-    }
-
     public Locale locale() {
         return discordSRV.defaultLocale();
     }
