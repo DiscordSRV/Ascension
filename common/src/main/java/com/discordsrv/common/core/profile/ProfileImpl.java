@@ -91,6 +91,13 @@ public class ProfileImpl implements Profile {
         return discordSRV.discordAPI().retrieveUserById(userId);
     }
 
+    @Placeholder("is_online")
+    public boolean isOnline() {
+        return discordSRV.playerProvider().allPlayers()
+                .stream()
+                .anyMatch(player -> player.uniqueId().equals(playerUUID));
+    }
+
     @Nullable
     public Set<String> getGameGrantedRewards() {
         if (gameData == null) {
