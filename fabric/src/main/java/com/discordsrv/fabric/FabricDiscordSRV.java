@@ -85,6 +85,8 @@ public class FabricDiscordSRV extends AbstractDiscordSRV<DiscordSRVFabricBootstr
 
     @Override
     protected void enable() throws Throwable {
+        this.translationLoader = new FabricTranslationLoader(this);
+
         super.enable();
 
         // Chat

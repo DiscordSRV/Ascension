@@ -176,7 +176,7 @@ public abstract class AbstractDiscordSRV<
     private ChannelConfigHelper channelConfig;
     private DestinationLookupHelper destinationLookupHelper;
     private TemporaryLocalData temporaryLocalData;
-    private TranslationLoader translationLoader;
+    protected TranslationLoader translationLoader;
 
     private Storage storage;
     private LinkProvider linkProvider;
@@ -689,7 +689,7 @@ public abstract class AbstractDiscordSRV<
         // Register PlayerProvider listeners
         playerProvider().subscribe();
 
-        this.translationLoader = new TranslationLoader(this);
+        if (this.translationLoader == null) this.translationLoader = new TranslationLoader(this);
 
         // Placeholder service stuff
         placeholderService().addResultMapper(new ComponentResultStringifier(this));

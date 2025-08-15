@@ -29,6 +29,7 @@ import net.kyori.adventure.text.Component;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.network.ServerPlayNetworkHandler;
 import net.minecraft.server.network.ServerPlayerEntity;
+import net.minecraft.stat.Stats;
 
 import java.util.Objects;
 
@@ -49,7 +50,7 @@ public class FabricJoinModule extends AbstractFabricModule {
         if (!enabled) return;
 
         ServerPlayerEntity playerEntity = serverPlayNetworkHandler.player;
-        boolean firstJoin = Objects.requireNonNull(minecraftServer.getUserCache()).findByName(playerEntity.getGameProfile().getName()).isEmpty();
+        boolean firstJoin = playerEntity.getStatHandler().getStat(Stats.CUSTOM.getOrCreateStat(Stats.LEAVE_GAME)) == 0;
 
         MinecraftComponent component;
         if (playerEntity.getGameProfile().getName().equalsIgnoreCase(playerEntity.getName().getString())) {

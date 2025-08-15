@@ -23,27 +23,37 @@ import com.discordsrv.api.events.message.preprocess.game.DeathMessagePreProcessE
 import com.discordsrv.api.player.DiscordSRVPlayer;
 import com.discordsrv.fabric.FabricDiscordSRV;
 import com.discordsrv.fabric.module.AbstractFabricModule;
+import com.discordsrv.fabric.requiredlinking.FabricRequiredLinkingModule;
 import net.fabricmc.fabric.api.entity.event.v1.ServerLivingEntityEvents;
 import net.minecraft.entity.LivingEntity;
 import net.minecraft.entity.damage.DamageSource;
+import net.minecraft.entity.damage.DamageTracker;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.server.world.ServerWorld;
 import net.minecraft.world.GameRules;
 
+import java.util.function.Consumer;
+
 public class FabricDeathModule extends AbstractFabricModule {
+
+    private static FabricDeathModule INSTANCE;
+
+    public static void withInstance(Consumer<FabricDeathModule> consumer) {
+        if (INSTANCE != null && INSTANCE.enabled) {
+            consumer.accept(INSTANCE);
+        }
+    }
 
     private final FabricDiscordSRV discordSRV;
 
     public FabricDeathModule(FabricDiscordSRV discordSRV) {
         super(discordSRV);
         this.discordSRV = discordSRV;
+
+        INSTANCE = this;
     }
 
-    public void register() {
-        ServerLivingEntityEvents.AFTER_DEATH.register(this::onDeath);
-    }
-
-    private void onDeath(LivingEntity livingEntity, DamageSource damageSource) {
+    public void onDeath(LivingEntity livingEntity, DamageTracker damageTracker) {
         if (!enabled || !(livingEntity instanceof ServerPlayerEntity playerEntity)) {
             return;
         }
@@ -53,12 +63,12 @@ public class FabricDeathModule extends AbstractFabricModule {
             return;
         }
 
-        MinecraftComponent minecraftComponent = discordSRV.componentFactory().toAPI(damageSource.getDeathMessage(livingEntity));
+        MinecraftComponent minecraftComponent = discordSRV.componentFactory().toAPI(damageTracker.getDeathMessage());
         DiscordSRVPlayer player = discordSRV.playerProvider().player(playerEntity);
 
         discordSRV.eventBus().publish(
                 new DeathMessagePreProcessEvent(
-                        damageSource,
+                        damageTracker,
                         player,
                         minecraftComponent,
                         null,

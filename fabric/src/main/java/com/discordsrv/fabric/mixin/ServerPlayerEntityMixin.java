@@ -19,6 +19,10 @@
 package com.discordsrv.fabric.mixin;
 
 import com.discordsrv.fabric.accessor.ServerPlayerEntityAccessor;
+import com.discordsrv.fabric.module.chat.FabricDeathModule;
+import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
+import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
+import net.minecraft.entity.damage.DamageTracker;
 import net.minecraft.server.network.ServerPlayerEntity;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Unique;
@@ -62,4 +66,9 @@ public class ServerPlayerEntityMixin implements ServerPlayerEntityAccessor {
         return ((ServerPlayerEntity) (Object) this).getClientOptions().playerModelParts();
     }//?}
 
+    @WrapOperation(method = "onDeath", at = @At(value = "INVOKE", target = "Lnet/minecraft/entity/damage/DamageTracker;update()V"))
+    public void onDeath(DamageTracker instance, Operation<Void> original) {
+        FabricDeathModule.withInstance(module -> module.onDeath(((ServerPlayerEntity) (Object) this), instance));
+        original.call(instance);
+    }
 }
