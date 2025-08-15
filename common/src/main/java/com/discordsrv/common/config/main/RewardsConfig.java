@@ -46,6 +46,9 @@ public class RewardsConfig {
                 + "Valid values are: once_per_player, once_per_user, once_per_both, always")
         public GrantType grantType = GrantType.ONCE_PER_BOTH;
 
+        @Comment("If true, the reward will only be granted if the player is online. Otherwise, postpone till they're online.")
+        public boolean needsOnline = false;
+
         @Comment("Profile placeholders can be used")
         public List<String> consoleCommandsToRun = new ArrayList<>();
     }

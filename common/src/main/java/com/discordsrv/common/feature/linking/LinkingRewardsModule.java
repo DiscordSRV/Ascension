@@ -143,7 +143,7 @@ public class LinkingRewardsModule extends AbstractModule<DiscordSRV> {
 
         List<RewardsConfig.Reward> rewards = new ArrayList<>();
         for (RewardsConfig.LinkingReward reward : discordSRV.config().rewards.linkingRewards) {
-            if (!types.contains(reward.type) || doesProfileAlreadyHave(profile, reward)) {
+            if (!types.contains(reward.type) || doesProfileAlreadyHave(profile, reward) || (reward.needsOnline && !profile.isOnline())) {
                 continue;
             }
 
@@ -161,7 +161,7 @@ public class LinkingRewardsModule extends AbstractModule<DiscordSRV> {
 
         List<RewardsConfig.Reward> rewards = new ArrayList<>();
         for (RewardsConfig.BoostingReward reward : discordSRV.config().rewards.boostingRewards) {
-            if (!types.contains(reward.type) || reward.serverId != guildId || doesProfileAlreadyHave(profile, reward)) {
+            if (!types.contains(reward.type) || reward.serverId != guildId || doesProfileAlreadyHave(profile, reward) || (reward.needsOnline && !profile.isOnline())) {
                 continue;
             }
 
