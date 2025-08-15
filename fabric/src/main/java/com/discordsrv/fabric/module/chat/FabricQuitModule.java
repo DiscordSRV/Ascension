@@ -28,6 +28,8 @@ import net.kyori.adventure.text.Component;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.network.ServerPlayNetworkHandler;
 import net.minecraft.server.network.ServerPlayerEntity;
+import net.minecraft.text.Text;
+import net.minecraft.util.Formatting;
 
 public class FabricQuitModule extends AbstractFabricModule {
 
@@ -47,11 +49,7 @@ public class FabricQuitModule extends AbstractFabricModule {
 
         ServerPlayerEntity player = serverPlayNetworkHandler.player;
 
-        Component message = Component.translatable(
-                "multiplayer.player.left",
-                discordSRV.componentFactory().fromNative(player.getDisplayName())
-        );
-        MinecraftComponent component = discordSRV.componentFactory().toAPI(message);
+        MinecraftComponent component = discordSRV.componentFactory().toAPI(Text.translatable("multiplayer.player.left", player.getDisplayName()).formatted(Formatting.YELLOW));
         discordSRV.eventBus().publish(
                 new LeaveMessagePreProcessEvent(
                         serverPlayNetworkHandler,
