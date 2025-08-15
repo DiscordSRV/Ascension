@@ -689,7 +689,7 @@ public abstract class AbstractDiscordSRV<
         // Register PlayerProvider listeners
         playerProvider().subscribe();
 
-        this.translationLoader = new TranslationLoader(this);
+        if (this.translationLoader == null) this.translationLoader = new TranslationLoader(this);
 
         // Placeholder service stuff
         placeholderService().addResultMapper(new ComponentResultStringifier(this));

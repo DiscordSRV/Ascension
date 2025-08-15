@@ -85,9 +85,9 @@ public class FabricDiscordSRV extends AbstractDiscordSRV<DiscordSRVFabricBootstr
 
     @Override
     protected void enable() throws Throwable {
-        super.enable();
-
         this.translationLoader = new FabricTranslationLoader(this);
+
+        super.enable();
 
         // Chat
         registerModule(MinecraftToDiscordChatModule::new);
