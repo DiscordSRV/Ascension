@@ -112,7 +112,7 @@ public abstract class SQLStorage implements Storage {
                             + "ID int not null auto_increment,"
                             + "PROFILE_ID int,"
                             + "REWARD_ID int,"
-                            + "PENDING tinyint(1) default 0,"
+                            + "PENDING tinyint default 0,"
                             + "constraint GAME_GRANTED_REWARD_PK primary key (ID),"
                             + "constraint GAME_GRANTED_REWARD_UQ unique (PROFILE_ID, REWARD_ID),"
                             + "foreign key (PROFILE_ID) references " + tablePrefix + GAME_PROFILE_TABLE_NAME + "(ID),"
@@ -120,14 +120,14 @@ public abstract class SQLStorage implements Storage {
                             + ");"
             );
         }
-        addColumnIfMissing(connection, tablePrefix + GAME_GRANTED_REWARDS_TABLE_NAME, "PENDING", "TINYINT(1) DEFAULT 0");
+        addColumnIfMissing(connection, tablePrefix + GAME_GRANTED_REWARDS_TABLE_NAME, "PENDING", "tinyint default 0");
         try (Statement statement = connection.createStatement()) {
             statement.execute(
                     "create table if not exists " + tablePrefix + DISCORD_GRANTED_REWARDS_TABLE_NAME + " ("
                             + "ID int not null auto_increment,"
                             + "PROFILE_ID int,"
                             + "REWARD_ID int,"
-                            + "PENDING tinyint(1) default 0,"
+                            + "PENDING tinyint default 0,"
                             + "constraint DISCORD_GRANTED_REWARD_PK primary key (ID),"
                             + "constraint DISCORD_GRANTED_REWARD_UQ unique (PROFILE_ID, REWARD_ID),"
                             + "foreign key (PROFILE_ID) references " + tablePrefix + DISCORD_PROFILE_TABLE_NAME + "(ID),"
@@ -135,32 +135,13 @@ public abstract class SQLStorage implements Storage {
                             + ");"
             );
         }
-        addColumnIfMissing(connection, tablePrefix + DISCORD_GRANTED_REWARDS_TABLE_NAME, "PENDING", "TINYINT(1) DEFAULT 0");
+        addColumnIfMissing(connection, tablePrefix + DISCORD_GRANTED_REWARDS_TABLE_NAME, "PENDING", "tinyint default 0");
     }
 
     protected static void addColumnIfMissing(Connection connection, String tableName, String columnName, String columnDefinition) throws SQLException {
-        boolean columnExists = false;
-
-        try (PreparedStatement ps = connection.prepareStatement(
-                "SELECT COUNT(*) FROM information_schema.columns WHERE table_name = ? AND column_name = ?"
-        )) {
-            ps.setString(1, tableName);
-            ps.setString(2, columnName);
-
-            try (ResultSet rs = ps.executeQuery()) {
-                if (rs.next()) {
-                    columnExists = rs.getInt(1) > 0;
-                }
-            }
-        }
-
-        if (!columnExists) {
-            try (Statement columnStatement = connection.createStatement()) {
-                columnStatement.execute(
-                        "ALTER TABLE " + tableName + " ADD COLUMN " + columnName + " " + columnDefinition
-                );
-            }
-        }
+        connection.createStatement().execute(
+                "alter table " + tableName + " add column if not exists " + columnName + " " + columnDefinition
+        );
     }
     private void useConnection(CheckedConsumer<Connection> connectionConsumer) throws StorageException {
         useConnection(connection -> {
