@@ -407,7 +407,8 @@ public abstract class SQLStorage implements Storage {
             }
         }
 
-        List<Integer> missingRewards = rewardIds.stream()
+        Set<Integer> allRewardIds = Stream.concat(rewardIds.stream(), pendingRewardIds.stream()).collect(Collectors.toSet());
+        List<Integer> missingRewards = allRewardIds.stream()
                 .filter(rewardId -> !currentRewardIds.contains(rewardId) && !currentPendingRewardIds.contains(rewardId))
                 .collect(Collectors.toList());
         for (Integer missingRewardId : missingRewards) {
