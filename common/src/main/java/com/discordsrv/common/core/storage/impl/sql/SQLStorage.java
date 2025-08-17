@@ -460,7 +460,7 @@ public abstract class SQLStorage implements Storage {
             Set<String> grantedRewards = new HashSet<>();
             Set<String> pendingRewards = new HashSet<>();
             try (PreparedStatement statement = connection.prepareStatement(
-                    "select r.REWARD, r.PENDING from " + tablePrefix() + GAME_GRANTED_REWARDS_TABLE_NAME + " gr"
+                    "select r.REWARD, gr.PENDING from " + tablePrefix() + GAME_GRANTED_REWARDS_TABLE_NAME + " gr"
                             + " inner join " + tablePrefix() + REWARD_TABLE_NAME + " r on r.ID = gr.REWARD_ID"
                             + " where gr.PROFILE_ID = ?"
             )) {
@@ -527,7 +527,7 @@ public abstract class SQLStorage implements Storage {
             Set<String> grantedRewards = new HashSet<>();
             Set<String> pendingRewards = new HashSet<>();
             try (PreparedStatement statement = connection.prepareStatement(
-                    "select r.REWARD, r.PENDING from " + tablePrefix() + DISCORD_GRANTED_REWARDS_TABLE_NAME + " dr"
+                    "select r.REWARD, gr.PENDING from " + tablePrefix() + DISCORD_GRANTED_REWARDS_TABLE_NAME + " dr"
                             + " inner join " + tablePrefix() + REWARD_TABLE_NAME + " r on r.ID = dr.REWARD_ID"
                             + " where dr.PROFILE_ID = ?"
             )) {
