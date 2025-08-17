@@ -213,7 +213,6 @@ public class LinkingRewardsModule extends AbstractModule<DiscordSRV> {
             }
             if (isPending && grantType == RewardsConfig.GrantType.ALWAYS) {
                 addRewardToProfile(profile, true, reward, isPending);
-                addRewardToProfile(profile, false, reward, isPending);
                 gameRewards = true;
                 discordRewards = true;
             } else {
