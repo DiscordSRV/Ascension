@@ -527,7 +527,7 @@ public abstract class SQLStorage implements Storage {
             Set<String> grantedRewards = new HashSet<>();
             Set<String> pendingRewards = new HashSet<>();
             try (PreparedStatement statement = connection.prepareStatement(
-                    "select r.REWARD, gr.PENDING from " + tablePrefix() + DISCORD_GRANTED_REWARDS_TABLE_NAME + " dr"
+                    "select r.REWARD, dr.PENDING from " + tablePrefix() + DISCORD_GRANTED_REWARDS_TABLE_NAME + " dr"
                             + " inner join " + tablePrefix() + REWARD_TABLE_NAME + " r on r.ID = dr.REWARD_ID"
                             + " where dr.PROFILE_ID = ?"
             )) {
