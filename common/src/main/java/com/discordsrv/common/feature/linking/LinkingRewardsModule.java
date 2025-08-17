@@ -143,7 +143,7 @@ public class LinkingRewardsModule extends AbstractModule<DiscordSRV> {
             }
             gameRewards.add(reward.rewardId);
         } else {
-            Set<String> discordRewards = pending ? profile.getDiscordData().getPendingRewards() : profile.getDiscordData().getGrantedRewards();
+            Set<String> discordRewards = pending ? profile.getDiscordPendingRewards() : profile.getDiscordGrantedRewards();
             if (discordRewards == null) {
                 throw new IllegalStateException("Discord profile not available");
             }
