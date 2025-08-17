@@ -422,8 +422,26 @@ public abstract class SQLStorage implements Storage {
             }
         }
 
-        List<Integer> removedRewards = currentRewardIds.stream()
-                .filter(rewardId -> !rewardIds.contains(rewardId))
+        Set<Integer> currentAllRewardIds = Stream.concat(currentRewardIds.stream(), currentPendingRewardIds.stream()).collect(Collectors.toSet());
+        for (Integer rewardId : currentAllRewardIds) {
+            boolean shouldBePending = pendingRewardIds.contains(rewardId);
+            boolean currentlyPending = currentPendingRewardIds.contains(rewardId);
+            if (shouldBePending != currentlyPending) {
+                try (PreparedStatement statement = connection.prepareStatement(
+                        "update " + tablePrefix() + tableName + " set PENDING = ? where PROFILE_ID = ? and REWARD_ID = ?;"
+                )) {
+                    statement.setBoolean(1, shouldBePending);
+                    statement.setInt(2, profileId);
+                    statement.setInt(3, rewardId);
+                    expectEffectedRows(statement.executeUpdate(), 1);
+                }
+            }
+        }
+
+        Set<Integer> currentDbRewardIds = Stream.concat(currentRewardIds.stream(), currentPendingRewardIds.stream()).collect(Collectors.toSet());
+        Set<Integer> newRewards = Stream.concat(rewardIds.stream(), pendingRewardIds.stream()).collect(Collectors.toSet());
+        List<Integer> removedRewards = currentDbRewardIds.stream()
+                .filter(rewardId -> !newRewards.contains(rewardId))
                 .collect(Collectors.toList());
         for (Integer removedRewardId : removedRewards) {
             try (PreparedStatement statement = connection.prepareStatement(
