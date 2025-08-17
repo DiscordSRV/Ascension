@@ -73,7 +73,7 @@ public class LinkingRewardsModule extends AbstractModule<DiscordSRV> {
                         });
                     }
 
-                    List<RewardsConfig.Reward> pendingRewards = new ArrayList<>();
+                    Set<RewardsConfig.Reward> pendingRewards = new HashSet<>();
                     for (RewardsConfig.Reward reward : Stream.concat(discordSRV.config().rewards.linkingRewards.stream(), discordSRV.config().rewards.boostingRewards.stream()).collect(Collectors.toSet())) {
                         if (doesProfileAlreadyHave(profile, reward)) {
                             continue;
@@ -85,7 +85,7 @@ public class LinkingRewardsModule extends AbstractModule<DiscordSRV> {
                     }
 
                     if (!pendingRewards.isEmpty()) {
-                        triggerRewards(profile, pendingRewards);
+                        triggerRewards(profile, new ArrayList<>(pendingRewards));
                     }
                 });
     }
@@ -211,7 +211,14 @@ public class LinkingRewardsModule extends AbstractModule<DiscordSRV> {
                 addRewardToProfile(profile, false, reward, isPending);
                 discordRewards = true;
             }
-            if (!isPending) commands.addAll(commandsToRun);
+            if (isPending && grantType == RewardsConfig.GrantType.ALWAYS) {
+                addRewardToProfile(profile, true, reward, isPending);
+                addRewardToProfile(profile, false, reward, isPending);
+                gameRewards = true;
+                discordRewards = true;
+            } else {
+                commands.addAll(commandsToRun);
+            }
         }
 
         if (gameRewards) {
