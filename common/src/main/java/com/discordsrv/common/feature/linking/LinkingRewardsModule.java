@@ -46,6 +46,21 @@ public class LinkingRewardsModule extends AbstractModule<DiscordSRV> {
     public void onPlayerConnected(PlayerConnectedEvent event) {
         discordSRV.profileManager().queryProfile(event.player().uniqueId())
                 .whenSuccessful(profile -> {
+                    Set<RewardsConfig.Reward> pendingRewards = new HashSet<>();
+                    for (RewardsConfig.Reward reward : Stream.concat(discordSRV.config().rewards.linkingRewards.stream(), discordSRV.config().rewards.boostingRewards.stream()).collect(Collectors.toSet())) {
+                        if (doesProfileAlreadyHave(profile, reward)) {
+                            continue;
+                        }
+
+                        if ((profile.getGamePendingRewards() != null && (profile.getGamePendingRewards().contains(reward.rewardId))) ||
+                                (profile.getDiscordPendingRewards() != null && profile.getDiscordPendingRewards().contains(reward.rewardId)))
+                            pendingRewards.add(reward);
+                    }
+
+                    if (!pendingRewards.isEmpty()) {
+                        triggerRewards(profile, new ArrayList<>(pendingRewards));
+                    }
+
                     Long userId = profile.userId();
                     if (!profile.isLinked() || userId == null) {
                         return;
@@ -71,21 +86,6 @@ public class LinkingRewardsModule extends AbstractModule<DiscordSRV> {
                                 triggerRewards(profile, RewardsConfig.BoostingReward.Type.IS_BOOSTING, guildId);
                             }
                         });
-                    }
-
-                    Set<RewardsConfig.Reward> pendingRewards = new HashSet<>();
-                    for (RewardsConfig.Reward reward : Stream.concat(discordSRV.config().rewards.linkingRewards.stream(), discordSRV.config().rewards.boostingRewards.stream()).collect(Collectors.toSet())) {
-                        if (doesProfileAlreadyHave(profile, reward)) {
-                            continue;
-                        }
-
-                        if ((profile.getGamePendingRewards() != null && (profile.getGamePendingRewards().contains(reward.rewardId))) ||
-                                (profile.getDiscordPendingRewards() != null && profile.getDiscordPendingRewards().contains(reward.rewardId)))
-                            pendingRewards.add(reward);
-                    }
-
-                    if (!pendingRewards.isEmpty()) {
-                        triggerRewards(profile, new ArrayList<>(pendingRewards));
                     }
                 });
     }
