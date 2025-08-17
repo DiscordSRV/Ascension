@@ -74,8 +74,8 @@ public class LinkingRewardsModule extends AbstractModule<DiscordSRV> {
                     }
 
                     List<RewardsConfig.Reward> pendingRewards = new ArrayList<>();
-                    for (RewardsConfig.LinkingReward reward : discordSRV.config().rewards.linkingRewards) {
-                        if (reward.type == RewardsConfig.LinkingReward.Type.IS_LINKED || doesProfileAlreadyHave(profile, reward)) {
+                    for (RewardsConfig.Reward reward : Stream.concat(discordSRV.config().rewards.linkingRewards.stream(), discordSRV.config().rewards.boostingRewards.stream()).collect(Collectors.toSet())) {
+                        if (doesProfileAlreadyHave(profile, reward)) {
                             continue;
                         }
 
