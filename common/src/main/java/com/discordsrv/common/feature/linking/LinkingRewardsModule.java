@@ -79,7 +79,7 @@ public class LinkingRewardsModule extends AbstractModule<DiscordSRV> {
                             continue;
                         }
 
-                        if (profile.getGamePendingRewards() != null && (profile.getGamePendingRewards().contains(reward.rewardId)) ||
+                        if ((profile.getGamePendingRewards() != null && (profile.getGamePendingRewards().contains(reward.rewardId))) ||
                                 (profile.getDiscordPendingRewards() != null && profile.getDiscordPendingRewards().contains(reward.rewardId)))
                             pendingRewards.add(reward);
                     }
