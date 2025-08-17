@@ -33,6 +33,8 @@ import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 public class LinkingRewardsModule extends AbstractModule<DiscordSRV> {
 
@@ -69,6 +71,21 @@ public class LinkingRewardsModule extends AbstractModule<DiscordSRV> {
                                 triggerRewards(profile, RewardsConfig.BoostingReward.Type.IS_BOOSTING, guildId);
                             }
                         });
+                    }
+
+                    List<RewardsConfig.Reward> pendingRewards = new ArrayList<>();
+                    for (RewardsConfig.LinkingReward reward : discordSRV.config().rewards.linkingRewards) {
+                        if (reward.type == RewardsConfig.LinkingReward.Type.IS_LINKED || doesProfileAlreadyHave(profile, reward)) {
+                            continue;
+                        }
+
+                        if (profile.getGamePendingRewards() != null && (profile.getGamePendingRewards().contains(reward.rewardId)) ||
+                                (profile.getDiscordPendingRewards() != null && profile.getDiscordPendingRewards().contains(reward.rewardId)))
+                            pendingRewards.add(reward);
+                    }
+
+                    if (!pendingRewards.isEmpty()) {
+                        triggerRewards(profile, pendingRewards);
                     }
                 });
     }
@@ -118,15 +135,15 @@ public class LinkingRewardsModule extends AbstractModule<DiscordSRV> {
         }
     }
 
-    private void addRewardToProfile(ProfileImpl profile, boolean game, RewardsConfig.Reward reward) {
+    private void addRewardToProfile(ProfileImpl profile, boolean game, RewardsConfig.Reward reward, boolean pending) {
         if (game) {
-            Set<String> gameRewards = profile.getGameGrantedRewards();
+            Set<String> gameRewards = pending ? profile.getGamePendingRewards() : profile.getGameGrantedRewards();
             if (gameRewards == null) {
                 throw new IllegalStateException("Game profile not available");
             }
             gameRewards.add(reward.rewardId);
         } else {
-            Set<String> discordRewards = profile.getDiscordGrantedRewards();
+            Set<String> discordRewards = pending ? profile.getDiscordData().getPendingRewards() : profile.getDiscordData().getGrantedRewards();
             if (discordRewards == null) {
                 throw new IllegalStateException("Discord profile not available");
             }
@@ -134,16 +151,16 @@ public class LinkingRewardsModule extends AbstractModule<DiscordSRV> {
         }
     }
 
-    private void triggerRewards(ProfileImpl profile, RewardsConfig.LinkingReward.Type type) {
+    private void triggerRewards(ProfileImpl profile, com.discordsrv.common.config.main.RewardsConfig.LinkingReward.Type type) {
         List<RewardsConfig.LinkingReward.Type> types = new ArrayList<>(2);
         types.add(type);
-        if (type == RewardsConfig.LinkingReward.Type.LINKED) {
+        if (type == com.discordsrv.common.config.main.RewardsConfig.LinkingReward.Type.LINKED) {
             types.add(RewardsConfig.LinkingReward.Type.IS_LINKED);
         }
 
         List<RewardsConfig.Reward> rewards = new ArrayList<>();
         for (RewardsConfig.LinkingReward reward : discordSRV.config().rewards.linkingRewards) {
-            if (!types.contains(reward.type) || doesProfileAlreadyHave(profile, reward) || (reward.needsOnline && !profile.isOnline())) {
+            if (!types.contains(reward.type) || doesProfileAlreadyHave(profile, reward)) {
                 continue;
             }
 
@@ -152,16 +169,16 @@ public class LinkingRewardsModule extends AbstractModule<DiscordSRV> {
         triggerRewards(profile, rewards);
     }
 
-    private void triggerRewards(ProfileImpl profile, RewardsConfig.BoostingReward.Type type, long guildId) {
+    private void triggerRewards(ProfileImpl profile, com.discordsrv.common.config.main.RewardsConfig.BoostingReward.Type type, long guildId) {
         List<RewardsConfig.BoostingReward.Type> types = new ArrayList<>(2);
         types.add(type);
-        if (type == RewardsConfig.BoostingReward.Type.BOOSTED) {
+        if (type == com.discordsrv.common.config.main.RewardsConfig.BoostingReward.Type.BOOSTED) {
             types.add(RewardsConfig.BoostingReward.Type.IS_BOOSTING);
         }
 
         List<RewardsConfig.Reward> rewards = new ArrayList<>();
         for (RewardsConfig.BoostingReward reward : discordSRV.config().rewards.boostingRewards) {
-            if (!types.contains(reward.type) || reward.serverId != guildId || doesProfileAlreadyHave(profile, reward) || (reward.needsOnline && !profile.isOnline())) {
+            if (!types.contains(reward.type) || reward.serverId != guildId || doesProfileAlreadyHave(profile, reward)) {
                 continue;
             }
 
@@ -170,7 +187,7 @@ public class LinkingRewardsModule extends AbstractModule<DiscordSRV> {
         triggerRewards(profile, rewards);
     }
 
-    private void triggerRewards(ProfileImpl profile, List<RewardsConfig.Reward> rewards) {
+    private void triggerRewards(ProfileImpl profile, List< com.discordsrv.common.config.main.RewardsConfig.Reward> rewards) {
         if (rewards.isEmpty()) {
             return;
         }
@@ -185,15 +202,16 @@ public class LinkingRewardsModule extends AbstractModule<DiscordSRV> {
 
             RewardsConfig.GrantType grantType = reward.grantType;
             boolean both = grantType == RewardsConfig.GrantType.ONCE_PER_BOTH;
+            boolean isPending = reward.needsOnline && !profile.isOnline();
             if (both || grantType == RewardsConfig.GrantType.ONCE_PER_PLAYER) {
-                addRewardToProfile(profile, true, reward);
+                addRewardToProfile(profile, true, reward, isPending);
                 gameRewards = true;
             }
             if (both || grantType == RewardsConfig.GrantType.ONCE_PER_USER) {
-                addRewardToProfile(profile, false, reward);
+                addRewardToProfile(profile, false, reward, isPending);
                 discordRewards = true;
             }
-            commands.addAll(commandsToRun);
+            if (!isPending) commands.addAll(commandsToRun);
         }
 
         if (gameRewards) {

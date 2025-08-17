@@ -38,6 +38,7 @@ import java.time.LocalDateTime;
 import java.util.*;
 import java.util.concurrent.Future;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 public abstract class SQLStorage implements Storage {
 
@@ -111,6 +112,7 @@ public abstract class SQLStorage implements Storage {
                             + "ID int not null auto_increment,"
                             + "PROFILE_ID int,"
                             + "REWARD_ID int,"
+                            + "PENDING tinyint(1) default 0,"
                             + "constraint GAME_GRANTED_REWARD_PK primary key (ID),"
                             + "constraint GAME_GRANTED_REWARD_UQ unique (PROFILE_ID, REWARD_ID),"
                             + "foreign key (PROFILE_ID) references " + tablePrefix + GAME_PROFILE_TABLE_NAME + "(ID),"
@@ -124,6 +126,7 @@ public abstract class SQLStorage implements Storage {
                             + "ID int not null auto_increment,"
                             + "PROFILE_ID int,"
                             + "REWARD_ID int,"
+                            + "PENDING tinyint(1) default 0,"
                             + "constraint DISCORD_GRANTED_REWARD_PK primary key (ID),"
                             + "constraint DISCORD_GRANTED_REWARD_UQ unique (PROFILE_ID, REWARD_ID),"
                             + "foreign key (PROFILE_ID) references " + tablePrefix + DISCORD_PROFILE_TABLE_NAME + "(ID),"
@@ -377,29 +380,36 @@ public abstract class SQLStorage implements Storage {
         return rewardIds;
     }
 
-    private void alterRewardTable(Connection connection, String tableName, int profileId, Set<String> rewards) throws SQLException {
+    private void alterRewardTable(Connection connection, String tableName, int profileId, Set<String> rewards, Set<String> pending) throws SQLException {
         List<Integer> rewardIds = getOrCreateRewards(connection, rewards);
+        List<Integer> pendingRewardIds = getOrCreateRewards(connection, pending);
         List<Integer> currentRewardIds = new ArrayList<>();
+        List<Integer> currentPendingRewardIds = new ArrayList<>();
         try (PreparedStatement statement = connection.prepareStatement(
-                "select REWARD_ID from " + tablePrefix() + tableName + " where PROFILE_ID = ?"
+                "select REWARD_ID, PENDING from " + tablePrefix() + tableName + " where PROFILE_ID = ?"
         )) {
             statement.setInt(1, profileId);
             try (ResultSet resultSet = statement.executeQuery()) {
                 while (resultSet.next()) {
-                    currentRewardIds.add(resultSet.getInt("REWARD_ID"));
+                    if (resultSet.getBoolean("PENDING")) {
+                        currentPendingRewardIds.add(resultSet.getInt("REWARD_ID"));
+                    } else {
+                        currentRewardIds.add(resultSet.getInt("REWARD_ID"));
+                    }
                 }
             }
         }
 
         List<Integer> missingRewards = rewardIds.stream()
-                .filter(rewardId -> !currentRewardIds.contains(rewardId))
+                .filter(rewardId -> !currentRewardIds.contains(rewardId) && !currentPendingRewardIds.contains(rewardId))
                 .collect(Collectors.toList());
         for (Integer missingRewardId : missingRewards) {
             try (PreparedStatement statement = connection.prepareStatement(
-                    "insert into " + tablePrefix() + tableName + " (PROFILE_ID, REWARD_ID) VALUES (?, ?);"
+                    "insert into " + tablePrefix() + tableName + " (PROFILE_ID, REWARD_ID, PENDING) VALUES (?, ?, ?);"
             )) {
                 statement.setInt(1, profileId);
                 statement.setInt(2, missingRewardId);
+                statement.setBoolean(3, pendingRewardIds.contains(missingRewardId));
                 expectEffectedRows(statement.executeUpdate(), 1);
             }
         }
@@ -441,20 +451,24 @@ public abstract class SQLStorage implements Storage {
             }
 
             Set<String> grantedRewards = new HashSet<>();
+            Set<String> pendingRewards = new HashSet<>();
             try (PreparedStatement statement = connection.prepareStatement(
-                    "select r.REWARD from " + tablePrefix() + GAME_GRANTED_REWARDS_TABLE_NAME + " gr"
+                    "select r.REWARD, r.PENDING from " + tablePrefix() + GAME_GRANTED_REWARDS_TABLE_NAME + " gr"
                             + " inner join " + tablePrefix() + REWARD_TABLE_NAME + " r on r.ID = gr.REWARD_ID"
                             + " where gr.PROFILE_ID = ?"
             )) {
                 statement.setInt(1, profileId);
                 try (ResultSet resultSet = statement.executeQuery()) {
                     while (resultSet.next()) {
-                        grantedRewards.add(resultSet.getString("REWARD"));
+                        if (resultSet.getBoolean("PENDING")) {
+                            pendingRewards.add(resultSet.getString("REWARD"));
+                        } else {
+                            grantedRewards.add(resultSet.getString("REWARD"));
+                        }
                     }
                 }
             }
-
-            return new GameProfileData(playerUUID, grantedRewards);
+            return new GameProfileData(playerUUID, grantedRewards, pendingRewards);
         });
     }
 
@@ -477,7 +491,7 @@ public abstract class SQLStorage implements Storage {
                 }
             }
 
-            alterRewardTable(connection, GAME_GRANTED_REWARDS_TABLE_NAME, profileId, profile.getGrantedRewards());
+            alterRewardTable(connection, GAME_GRANTED_REWARDS_TABLE_NAME, profileId, profile.getGrantedRewards(), profile.getPendingRewards());
         });
     }
 
@@ -504,20 +518,25 @@ public abstract class SQLStorage implements Storage {
             }
 
             Set<String> grantedRewards = new HashSet<>();
+            Set<String> pendingRewards = new HashSet<>();
             try (PreparedStatement statement = connection.prepareStatement(
-                    "select r.REWARD from " + tablePrefix() + DISCORD_GRANTED_REWARDS_TABLE_NAME + " dr"
+                    "select r.REWARD, r.PENDING from " + tablePrefix() + DISCORD_GRANTED_REWARDS_TABLE_NAME + " dr"
                             + " inner join " + tablePrefix() + REWARD_TABLE_NAME + " r on r.ID = dr.REWARD_ID"
                             + " where dr.PROFILE_ID = ?"
             )) {
                 statement.setInt(1, profileId);
                 try (ResultSet resultSet = statement.executeQuery()) {
                     while (resultSet.next()) {
-                        grantedRewards.add(resultSet.getString("REWARD"));
+                        if (resultSet.getBoolean("PENDING")) {
+                            pendingRewards.add(resultSet.getString("REWARD"));
+                        } else {
+                            grantedRewards.add(resultSet.getString("REWARD"));
+                        }
                     }
                 }
             }
 
-            return new DiscordProfileData(userId, grantedRewards);
+            return new DiscordProfileData(userId, grantedRewards, pendingRewards);
         });
     }
 
@@ -540,7 +559,7 @@ public abstract class SQLStorage implements Storage {
                 }
             }
 
-            alterRewardTable(connection, DISCORD_GRANTED_REWARDS_TABLE_NAME, profileId, profile.getGrantedRewards());
+            alterRewardTable(connection, DISCORD_GRANTED_REWARDS_TABLE_NAME, profileId, profile.getGrantedRewards(), profile.getPendingRewards());
         });
     }
 

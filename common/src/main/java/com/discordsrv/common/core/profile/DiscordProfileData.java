@@ -25,14 +25,16 @@ public class DiscordProfileData {
 
     private final long userId;
     private final Set<String> grantedRewards;
+    private final Set<String> pendingRewards;
 
     public DiscordProfileData(long userId) {
-        this(userId, new HashSet<>());
+        this(userId, new HashSet<>(), new HashSet<>());
     }
 
-    public DiscordProfileData(long userId, Set<String> grantedRewards) {
+    public DiscordProfileData(long userId, Set<String> grantedRewards, Set<String> pendingRewards) {
         this.userId = userId;
         this.grantedRewards = grantedRewards;
+        this.pendingRewards = pendingRewards;
     }
 
     public long getUserId() {
@@ -41,5 +43,9 @@ public class DiscordProfileData {
 
     public Set<String> getGrantedRewards() {
         return grantedRewards;
+    }
+
+    public Set<String> getPendingRewards() {
+        return pendingRewards;
     }
 }

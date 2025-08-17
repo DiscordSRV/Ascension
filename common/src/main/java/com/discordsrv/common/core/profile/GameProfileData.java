@@ -24,14 +24,16 @@ public class GameProfileData {
 
     private final UUID playerUUID;
     private final Set<String> grantedRewards;
+    private final Set<String> pendingRewards;
 
     public GameProfileData(UUID playerUUID) {
-        this(playerUUID, new HashSet<>());
+        this(playerUUID, new HashSet<>(), new HashSet<>());
     }
 
-    public GameProfileData(UUID playerUUID, Set<String> grantedRewards) {
+    public GameProfileData(UUID playerUUID, Set<String> grantedRewards, Set<String> pendingRewards) {
         this.playerUUID = playerUUID;
         this.grantedRewards = grantedRewards;
+        this.pendingRewards = pendingRewards;
     }
 
     public UUID getPlayerUUID() {
@@ -40,5 +42,9 @@ public class GameProfileData {
 
     public Set<String> getGrantedRewards() {
         return grantedRewards;
+    }
+
+    public Set<String> getPendingRewards() {
+        return pendingRewards;
     }
 }
