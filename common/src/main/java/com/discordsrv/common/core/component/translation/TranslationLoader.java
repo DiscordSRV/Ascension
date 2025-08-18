@@ -124,6 +124,18 @@ public class TranslationLoader {
         return translations;
     }
 
+    protected Map<String, Translation> getFromJson(InputStream inputStream) throws IOException {
+        Map<String, Translation> translations = new HashMap<>();
+
+        JsonNode node = discordSRV.json().readTree(inputStream);
+        node.fields().forEachRemaining(entry -> translations.put(
+                entry.getKey(),
+                Translation.stringFormat(entry.getValue().textValue()))
+        );
+
+        return translations;
+    }
+
     protected URL findResource(String name) {
         ClassLoader classLoader = getClass().getClassLoader();
         URL url = null;
