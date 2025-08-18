@@ -100,15 +100,12 @@ public class FabricTranslationLoader extends TranslationLoader {
 
             try {
                 String langId = matcher.group(1);
-
                 Locale locale = Locale.forLanguageTag(langId.replace('_', '-'));
-                logger.debug("Found language " + locale + " in jar: " + zip.getName());
 
                 Map<String, Translation> translations = getFromJson(zip.getInputStream(entry));
                 discordSRV.componentFactory().translationRegistry().register(locale, translations);
 
                 any.set(true);
-                logger.debug("Found " + translations.size() + " translations for language " + locale + " in jar: " + zip.getName());
             } catch (IOException e) {
                 logger.error("Failed to read language file from jar: " + zip.getName(), e);
             }
@@ -126,13 +123,11 @@ public class FabricTranslationLoader extends TranslationLoader {
                 for (ModContainer mod : FabricLoader.getInstance().getAllMods()) {
                     String modId = mod.getMetadata().getId();
 
-                    logger.debug("Checking mod " + modId + " for language resources");
                     Enumeration<URL> modUrls = getClass().getClassLoader().getResources("assets/" + modId + "/lang/");
                     while (modUrls.hasMoreElements()) {
                         URL url = modUrls.nextElement();
                         if (url.getProtocol().equals("jar") && url.getPath().contains("!")) {
                             urls.add(url);
-                            logger.debug("Found language resource URL: " + url);
                         }
                     }
                 }
@@ -142,7 +137,6 @@ public class FabricTranslationLoader extends TranslationLoader {
                     URL url = urlEnumeration.nextElement();
                     if (url.getProtocol().equals("jar") && url.getPath().contains("!")) {
                         urls.add(url);
-                        logger.debug("Found language resource URL: " + url);
                     }
                 }
 
@@ -166,7 +160,6 @@ public class FabricTranslationLoader extends TranslationLoader {
             }
 
             for (Identifier id : manager.findAllResources("lang", _id -> _id.getPath().endsWith(".json")).keySet()) {
-                logger.debug("Loading language file from resource manager: " + id);
                 Resource resource = manager.getResource(id).orElse(null);
 
                 if (resource == null) {
@@ -179,18 +172,14 @@ public class FabricTranslationLoader extends TranslationLoader {
                 if (langId.equals("deprecated")) return;
                 Locale locale = Locale.forLanguageTag(langId.replace('_', '-'));
 
-                int count = 0;
                 try {
                     Map<String, Translation> translations = getFromJson(resource.getInputStream());
                     discordSRV.componentFactory().translationRegistry().register(locale, translations);
 
                     any.set(true);
-                    count = translations.size();
                 } catch (IOException e) {
                     logger.debug("Failed to read language file from resource manager: " + langPath, e);
                 }
-
-                logger.debug("Loaded " + count + " translations for language " + locale + " from resource manager file: " + id);
             }
         });
     }
