@@ -122,11 +122,11 @@ public class FabricComponentFactory extends ComponentFactory implements Identifi
     }
 
     @Override
-    //? if <=1.21.1 {
+    //? if >1.21.1 {
     public CompletableFuture<Void> reload(Synchronizer synchronizer, ResourceManager manager, Executor prepareExecutor, Executor applyExecutor) {
-        //? } else {
-    //public CompletableFuture<Void> reload(Synchronizer synchronizer, ResourceManager manager, Profiler prepareProfiler, Profiler applyProfiler, Executor prepareExecutor, Executor applyExecutor) {
-        //? }
+    //?} else {
+     /*public CompletableFuture<Void> reload(Synchronizer synchronizer, ResourceManager manager, Profiler prepareProfiler, Profiler applyProfiler, Executor prepareExecutor, Executor applyExecutor) {
+    *///?}
         return ((FabricDiscordSRV) discordSRV)
                 .translationLoader()
                 .reload(manager)
