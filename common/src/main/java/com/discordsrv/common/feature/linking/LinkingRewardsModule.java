@@ -135,20 +135,35 @@ public class LinkingRewardsModule extends AbstractModule<DiscordSRV> {
         }
     }
 
+    /**
+     * Adds a reward to the profile's granted or pending rewards, depending on whether the reward is pending. And removes it from the opposite set.
+     *
+     * @param profile The profile to add the reward to.
+     * @param game    Whether the reward is for the game or Discord. True for game, false for Discord.
+     * @param reward  The reward to add.
+     * @param pending Whether the reward is pending or already granted.
+     */
     private void addRewardToProfile(ProfileImpl profile, boolean game, RewardsConfig.Reward reward, boolean pending) {
+        Set<String> targetRewards;
+        Set<String> oppositeRewards;
+
         if (game) {
-            Set<String> gameRewards = pending ? profile.getGamePendingRewards() : profile.getGameGrantedRewards();
-            if (gameRewards == null) {
-                throw new IllegalStateException("Game profile not available");
-            }
-            gameRewards.add(reward.rewardId);
+            targetRewards = pending ? profile.getGamePendingRewards() : profile.getGameGrantedRewards();
+            oppositeRewards = pending ? profile.getGameGrantedRewards() : profile.getGamePendingRewards();
         } else {
-            Set<String> discordRewards = pending ? profile.getDiscordPendingRewards() : profile.getDiscordGrantedRewards();
-            if (discordRewards == null) {
-                throw new IllegalStateException("Discord profile not available");
-            }
-            discordRewards.add(reward.rewardId);
+            targetRewards = pending ? profile.getDiscordPendingRewards() : profile.getDiscordGrantedRewards();
+            oppositeRewards = pending ? profile.getDiscordGrantedRewards() : profile.getDiscordPendingRewards();
         }
+
+        if (targetRewards == null) {
+            throw new IllegalStateException((game ? "Game" : "Discord") + " profile not available");
+        }
+
+        targetRewards.add(reward.rewardId);
+        if (oppositeRewards == null) {
+            oppositeRewards = new HashSet<>();
+        }
+        oppositeRewards.remove(reward.rewardId);
     }
 
     private void triggerRewards(ProfileImpl profile, com.discordsrv.common.config.main.RewardsConfig.LinkingReward.Type type) {
@@ -215,9 +230,15 @@ public class LinkingRewardsModule extends AbstractModule<DiscordSRV> {
                 addRewardToProfile(profile, true, reward, isPending);
                 gameRewards = true;
                 discordRewards = true;
-            } else {
-                commands.addAll(commandsToRun);
+                continue;
             }
+            if ((profile.getGamePendingRewards() != null && profile.getGamePendingRewards().contains(reward.rewardId)) ||
+                    (profile.getDiscordPendingRewards() != null && profile.getDiscordPendingRewards().contains(reward.rewardId))) {
+                addRewardToProfile(profile, true, reward, false);
+                gameRewards = true;
+            }
+
+            commands.addAll(commandsToRun);
         }
 
         if (gameRewards) {
