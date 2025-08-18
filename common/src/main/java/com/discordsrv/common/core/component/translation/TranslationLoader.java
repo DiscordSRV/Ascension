@@ -147,7 +147,7 @@ public class TranslationLoader {
                     translations.put(
                             entry.getKey(),
                             Translation.stringFormat(entry.getValue().textValue())
-                    )
+                    );
                 } catch (Exception e) {
                     logger.debug("Skipping invalid translation entry: " + entry + " — " + e.getMessage());
                 }
