@@ -136,7 +136,7 @@ public class TranslationLoader {
             try {
                 root = discordSRV.json().readTree(reader);
             } catch (JsonProcessingException e) {
-                logger.debug("Skipping JSON file due to parse error: " + e.getMessage());
+                logger.debug("Skipping JSON file due to parse error - " + e.getMessage());
                 return translations;
             }
 
@@ -149,7 +149,7 @@ public class TranslationLoader {
                             Translation.stringFormat(entry.getValue().textValue())
                     );
                 } catch (Exception e) {
-                    logger.debug("Skipping invalid translation entry: " + entry + " — " + e.getMessage());
+                    logger.debug("Skipping invalid translation entry: " + entry, e);
                 }
             }
         }
