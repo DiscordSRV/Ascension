@@ -20,18 +20,21 @@ package com.discordsrv.common.core.component.translation;
 
 import com.discordsrv.common.DiscordSRV;
 import com.discordsrv.common.core.logging.NamedLogger;
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 
+import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.net.URL;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.HashMap;
-import java.util.Locale;
-import java.util.Map;
-import java.util.Properties;
+import java.util.*;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 public class TranslationLoader {
@@ -127,11 +130,29 @@ public class TranslationLoader {
     protected Map<String, Translation> getFromJson(InputStream inputStream) throws IOException {
         Map<String, Translation> translations = new HashMap<>();
 
-        JsonNode node = discordSRV.json().readTree(inputStream);
-        node.fields().forEachRemaining(entry -> translations.put(
-                entry.getKey(),
-                Translation.stringFormat(entry.getValue().textValue()))
-        );
+        try (BufferedReader reader = new BufferedReader(new InputStreamReader(inputStream, StandardCharsets.UTF_8))) {
+            JsonNode root;
+
+            try {
+                root = discordSRV.json().readTree(reader);
+            } catch (JsonProcessingException e) {
+                logger.debug("Skipping JSON file due to parse error: " + e.getMessage());
+                return translations;
+            }
+
+            Iterator<Map.Entry<String, JsonNode>> fields = root.fields();
+            while (fields.hasNext()) {
+                Map.Entry<String, JsonNode> entry = fields.next();
+                try {
+                    translations.put(
+                            entry.getKey(),
+                            Translation.stringFormat(entry.getValue().textValue())
+                    )
+                } catch (Exception e) {
+                    logger.debug("Skipping invalid translation entry: " + entry + " — " + e.getMessage());
+                }
+            }
+        }
 
         return translations;
     }
