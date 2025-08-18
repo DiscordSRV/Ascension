@@ -154,10 +154,6 @@ public class FabricTranslationLoader extends TranslationLoader {
                     String jarUriString = spec.substring(0, separator);
                     URI jarUri = URI.create(jarUriString);
 
-                    if (url.getPath().contains("farmer")){
-                        logger.debug(url.getPath() + " found farmer");
-                    }
-
                     File jarFile = Paths.get(jarUri).toFile();
                     try (ZipFile zip = new ZipFile(jarFile)) {
                         readFromZipfile(zip, any);
