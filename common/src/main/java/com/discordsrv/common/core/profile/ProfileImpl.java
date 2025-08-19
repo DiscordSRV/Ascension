@@ -99,6 +99,14 @@ public class ProfileImpl implements Profile {
     }
 
     @Nullable
+    public Set<PlayerRewardData> getGameRewards() {
+        if (gameData == null) {
+            return null;
+        }
+        return gameData.getRewards();
+    }
+
+    @Nullable
     public Set<String> getGameGrantedRewards() {
         if (gameData == null) {
             return null;
@@ -112,6 +120,14 @@ public class ProfileImpl implements Profile {
             return null;
         }
         return gameData.getPendingRewards();
+    }
+
+    @Nullable
+    public Set<PlayerRewardData> getDiscordRewards() {
+        if (discordData == null) {
+            return null;
+        }
+        return discordData.getRewards();
     }
 
     @Nullable
