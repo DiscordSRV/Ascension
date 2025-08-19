@@ -51,6 +51,7 @@ public class FabricComponentFactory extends ComponentFactory implements Identifi
      *///?} else {
     private final MinecraftServerAudiences adventure;
     //?}
+    private final FabricDiscordSRV discordSRV;
 
     public FabricComponentFactory(FabricDiscordSRV discordSRV) {
         super(discordSRV);
@@ -59,6 +60,7 @@ public class FabricComponentFactory extends ComponentFactory implements Identifi
          *///?} else {
         this.adventure = MinecraftServerAudiences.of(discordSRV.getServer());
         //?}
+        this.discordSRV = discordSRV;
     }
 
     //? if adventure: <6 {
@@ -127,7 +129,7 @@ public class FabricComponentFactory extends ComponentFactory implements Identifi
     //?} else {
      /*public CompletableFuture<Void> reload(Synchronizer synchronizer, ResourceManager manager, Profiler prepareProfiler, Profiler applyProfiler, Executor prepareExecutor, Executor applyExecutor) {
     *///?}
-        return ((FabricDiscordSRV) discordSRV)
+        return discordSRV
                 .translationLoader()
                 .reload(manager)
                 .thenCompose(synchronizer::whenPrepared);

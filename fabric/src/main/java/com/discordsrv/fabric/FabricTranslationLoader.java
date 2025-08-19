@@ -117,7 +117,7 @@ public class FabricTranslationLoader extends TranslationLoader {
     }
 
     public CompletableFuture<Void> reload(ResourceManager manager, AtomicBoolean any) {
-        return CompletableFuture.runAsync(() -> {
+        return discordSRV.scheduler().execute(() -> {
             try {
                 Set<URL> urls = new HashSet<>();
                 for (ModContainer mod : FabricLoader.getInstance().getAllMods()) {
@@ -169,7 +169,7 @@ public class FabricTranslationLoader extends TranslationLoader {
 
                 String langPath = id.getPath();
                 String langId = langPath.replaceAll("[.+]?lang/", "").replaceAll("\\.json$", "");
-                if (langId.equals("deprecated")) return;
+                if (langId.equals("deprecated")) continue;
                 Locale locale = Locale.forLanguageTag(langId.replace('_', '-'));
 
                 try {
@@ -181,6 +181,6 @@ public class FabricTranslationLoader extends TranslationLoader {
                     logger.debug("Failed to read language file from resource manager: " + langPath, e);
                 }
             }
-        });
+        }).getFuture();
     }
 }
