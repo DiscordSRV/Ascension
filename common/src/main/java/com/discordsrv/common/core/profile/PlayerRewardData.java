@@ -4,9 +4,13 @@ import java.util.Objects;
 
 public class PlayerRewardData {
 
-    private final int id;
     private final String name;
+    private int id;
     private boolean pending;
+
+    public PlayerRewardData(String name, boolean pending) {
+        this(-1, name, pending);
+    }
 
     public PlayerRewardData(int id, String name, boolean pending) {
         this.id = id;
@@ -16,6 +20,13 @@ public class PlayerRewardData {
 
     public int getId() {
         return id;
+    }
+
+    public void setId(int rewardId) {
+        if (id != -1) {
+            throw new IllegalStateException("Cannot change ID of an already initialized PlayerRewardData");
+        }
+        this.id = rewardId;
     }
 
     public String getName() {

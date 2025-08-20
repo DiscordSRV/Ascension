@@ -400,15 +400,30 @@ public abstract class SQLStorage implements Storage {
         List<Integer> currentRewardIds = new ArrayList<>();
         List<Integer> currentPendingRewardIds = new ArrayList<>();
         try (PreparedStatement statement = connection.prepareStatement(
-                "select REWARD_ID from " + tablePrefix() + tableName + " where PROFILE_ID = ?"
+                "SELECT r.ID, r.REWARD, t.PENDING " +
+                        "FROM " + tablePrefix() + tableName + " t " +
+                        "INNER JOIN " + tablePrefix() + REWARD_TABLE_NAME + " r ON r.ID = t.REWARD_ID " +
+                        "WHERE t.PROFILE_ID = ?"
         )) {
             statement.setInt(1, profileId);
             try (ResultSet resultSet = statement.executeQuery()) {
                 while (resultSet.next()) {
-                    if (resultSet.getBoolean("PENDING")) {
-                        currentPendingRewardIds.add(resultSet.getInt("REWARD_ID"));
+                    int rewardId = resultSet.getInt("ID");
+                    String rewardName = resultSet.getString("REWARD");
+                    boolean isPending = resultSet.getBoolean("PENDING");
+
+                    // Update PlayerRewardData if the ID is empty
+                    rewards.stream()
+                            .filter(reward -> reward.getName().equals(rewardName))
+                            .findFirst()
+                            .ifPresent(reward -> {
+                                if (reward.getId() == -1) reward.setId(rewardId);
+                            });
+
+                    if (isPending) {
+                        currentPendingRewardIds.add(rewardId);
                     } else {
-                        currentRewardIds.add(resultSet.getInt("REWARD_ID"));
+                        currentRewardIds.add(rewardId);
                     }
                 }
             }
