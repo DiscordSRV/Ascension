@@ -107,43 +107,11 @@ public class ProfileImpl implements Profile {
     }
 
     @Nullable
-    public Set<String> getGameGrantedRewards() {
-        if (gameData == null) {
-            return null;
-        }
-        return gameData.getGrantedRewards();
-    }
-
-    @Nullable
-    public Set<String> getGamePendingRewards() {
-        if (gameData == null) {
-            return null;
-        }
-        return gameData.getPendingRewards();
-    }
-
-    @Nullable
     public Set<PlayerRewardData> getDiscordRewards() {
         if (discordData == null) {
             return null;
         }
         return discordData.getRewards();
-    }
-
-    @Nullable
-    public Set<String> getDiscordGrantedRewards() {
-        if (discordData == null) {
-            return null;
-        }
-        return discordData.getGrantedRewards();
-    }
-
-    @Nullable
-    public Set<String> getDiscordPendingRewards() {
-        if (discordData == null) {
-            return null;
-        }
-        return discordData.getPendingRewards();
     }
 
     public GameProfileData getGameData() {
