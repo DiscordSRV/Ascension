@@ -53,6 +53,7 @@ public class LinkingRewardsModule extends AbstractModule<DiscordSRV> {
                         if (profile.getGameRewards() != null && profile.getGameRewards().stream().filter(PlayerRewardData::isPending).anyMatch(r -> r.getName().equals(reward.rewardId)) ||
                                 profile.getDiscordRewards() != null && profile.getDiscordRewards().stream().filter(PlayerRewardData::isPending).anyMatch(r -> r.getName().equals(reward.rewardId))) {
                             pendingRewards.add(reward);
+                        }
                     }
 
                     if (!pendingRewards.isEmpty()) {
