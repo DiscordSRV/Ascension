@@ -208,18 +208,18 @@ public class LinkingRewardsModule extends AbstractModule<DiscordSRV> {
             }
 
             RewardsConfig.GrantType grantType = reward.grantType;
-            boolean both = grantType == ONCE_PER_BOTH;
+            boolean both = grantType == RewardsConfig.GrantType.ONCE_PER_BOTH;
             boolean isPending = reward.needsOnline && !profile.isOnline();
             if (isPending) {
                 addRewardToProfile(profile, true, reward, true);
                 gameRewards = true;
                 continue;
             } else {
-                if (both || grantType == ONCE_PER_PLAYER) {
+                if (both || grantType == RewardsConfig.GrantType.ONCE_PER_PLAYER) {
                     addRewardToProfile(profile, true, reward, false);
                     gameRewards = true;
                 }
-                if (both || grantType == ONCE_PER_USER) {
+                if (both || grantType == RewardsConfig.GrantType.ONCE_PER_USER) {
                     addRewardToProfile(profile, false, reward, false);
                     discordRewards = true;
                 }
