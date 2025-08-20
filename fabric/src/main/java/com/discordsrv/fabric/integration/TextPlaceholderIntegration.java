@@ -45,11 +45,7 @@ import java.util.UUID;
 
 public class TextPlaceholderIntegration extends PluginIntegration<FabricDiscordSRV> implements PlaceholderHandler {
 
-    //? if minecraft: >=1.21 {
-    private static final Identifier IDENTIFIER = Identifier.of("discordsrv", "textplaceholder");
-    //?} else {
-    /*private static final Identifier IDENTIFIER = new Identifier("discordsrv", "textplaceholder");
-    *///?}
+    private static final Identifier IDENTIFIER = FabricDiscordSRV.id("discordsrv", "textplaceholder");
     private static final String OPTIONAL_PREFIX = "textplaceholder_";
 
     public TextPlaceholderIntegration(FabricDiscordSRV discordSRV) {

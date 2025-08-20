@@ -21,13 +21,20 @@ package com.discordsrv.fabric;
 import com.discordsrv.api.component.MinecraftComponent;
 import com.discordsrv.common.core.component.ComponentFactory;
 import com.discordsrv.common.util.ComponentUtil;
+import net.fabricmc.fabric.api.resource.IdentifiableResourceReloadListener;
 import net.kyori.adventure.audience.Audience;
 import net.kyori.adventure.text.Component;
+import net.minecraft.resource.ResourceManager;
 import net.minecraft.server.command.CommandOutput;
 import net.minecraft.server.command.ServerCommandSource;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.text.Text;
+import net.minecraft.util.Identifier;
+import net.minecraft.util.profiler.Profiler;
 import org.jetbrains.annotations.NotNull;
+
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.Executor;
 
 //? if adventure: <6 {
 /*import net.kyori.adventure.platform.fabric.FabricServerAudiences;
@@ -37,13 +44,14 @@ import net.kyori.adventure.platform.modcommon.MinecraftServerAudiences;
 import net.kyori.adventure.platform.modcommon.AdventureCommandSourceStack;
 //?}
 
-public class FabricComponentFactory extends ComponentFactory {
+public class FabricComponentFactory extends ComponentFactory implements IdentifiableResourceReloadListener {
 
     //? if adventure: <6 {
     /*private final FabricServerAudiences adventure;
      *///?} else {
     private final MinecraftServerAudiences adventure;
     //?}
+    private final FabricDiscordSRV discordSRV;
 
     public FabricComponentFactory(FabricDiscordSRV discordSRV) {
         super(discordSRV);
@@ -52,6 +60,7 @@ public class FabricComponentFactory extends ComponentFactory {
          *///?} else {
         this.adventure = MinecraftServerAudiences.of(discordSRV.getServer());
         //?}
+        this.discordSRV = discordSRV;
     }
 
     //? if adventure: <6 {
@@ -112,5 +121,22 @@ public class FabricComponentFactory extends ComponentFactory {
 
     public @NotNull Audience audience(@NotNull Iterable<ServerPlayerEntity> players) {
         return adventure.audience(players);
+    }
+
+    @Override
+    //? if >1.21.1 {
+    public CompletableFuture<Void> reload(Synchronizer synchronizer, ResourceManager manager, Executor prepareExecutor, Executor applyExecutor) {
+    //?} else {
+     /*public CompletableFuture<Void> reload(Synchronizer synchronizer, ResourceManager manager, Profiler prepareProfiler, Profiler applyProfiler, Executor prepareExecutor, Executor applyExecutor) {
+    *///?}
+        return discordSRV
+                .translationLoader()
+                .reload(manager)
+                .thenCompose(synchronizer::whenPrepared);
+    }
+
+    @Override
+    public Identifier getFabricId() {
+        return FabricDiscordSRV.id("discordsrv", "component_factory");
     }
 }

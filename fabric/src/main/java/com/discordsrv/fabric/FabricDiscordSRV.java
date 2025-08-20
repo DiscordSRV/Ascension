@@ -40,7 +40,10 @@ import com.discordsrv.fabric.module.chat.*;
 import com.discordsrv.fabric.player.FabricPlayerProvider;
 import com.discordsrv.fabric.plugin.FabricModManager;
 import com.discordsrv.fabric.requiredlinking.FabricRequiredLinkingModule;
+import net.fabricmc.fabric.api.resource.ResourceManagerHelper;
+import net.minecraft.resource.ResourceType;
 import net.minecraft.server.MinecraftServer;
+import net.minecraft.util.Identifier;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import java.net.MalformedURLException;
@@ -105,6 +108,9 @@ public class FabricDiscordSRV extends AbstractDiscordSRV<DiscordSRVFabricBootstr
 
         // Integrations
         registerIntegration("com.discordsrv.fabric.integration.TextPlaceholderIntegration");
+
+        this.translationLoader.reload();
+        ResourceManagerHelper.get(ResourceType.SERVER_DATA).registerReloadListener(componentFactory);
     }
 
     @Override
@@ -181,5 +187,19 @@ public class FabricDiscordSRV extends AbstractDiscordSRV<DiscordSRVFabricBootstr
     @Override
     public @NotNull FabricComponentFactory componentFactory() {
         return componentFactory;
+    }
+
+    public @NotNull FabricTranslationLoader translationLoader() {
+        return (FabricTranslationLoader) translationLoader;
+    }
+
+    /**
+     * Adapts to the {@link Identifier} changes introduced in 1.21.
+     */
+    public static Identifier id(String namespace, String path) {
+        //? if <1.21 {
+        /*return new Identifier(namespace, path);
+         *///?} else
+        return Identifier.of(namespace, path);
     }
 }

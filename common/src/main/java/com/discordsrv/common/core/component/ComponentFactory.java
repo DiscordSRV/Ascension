@@ -74,8 +74,8 @@ public class ComponentFactory implements MinecraftComponentFactory {
         UNRELOCATED_ADVENTURE_COMPONENT = clazz;
     }
 
-    private final DiscordSRV discordSRV;
-    private final Logger logger;
+    protected final DiscordSRV discordSRV;
+    protected final Logger logger;
 
     private final MinecraftSerializer minecraftSerializer;
     private final DiscordSerializer discordSerializer;
