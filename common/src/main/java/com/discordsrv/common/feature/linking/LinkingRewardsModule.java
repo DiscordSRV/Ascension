@@ -218,24 +218,19 @@ public class LinkingRewardsModule extends AbstractModule<DiscordSRV> {
             RewardsConfig.GrantType grantType = reward.grantType;
             boolean both = grantType == RewardsConfig.GrantType.ONCE_PER_BOTH;
             boolean isPending = reward.needsOnline && !profile.isOnline();
-            if (both || grantType == RewardsConfig.GrantType.ONCE_PER_PLAYER) {
-                addRewardToProfile(profile, true, reward, isPending);
+            if (isPending) {
+                addRewardToProfile(profile, true, reward, true);
                 gameRewards = true;
-            }
-            if (both || grantType == RewardsConfig.GrantType.ONCE_PER_USER) {
-                addRewardToProfile(profile, false, reward, isPending);
-                discordRewards = true;
-            }
-            if (isPending && grantType == RewardsConfig.GrantType.ALWAYS) {
-                addRewardToProfile(profile, true, reward, isPending);
-                gameRewards = true;
-                discordRewards = true;
                 continue;
-            }
-            if ((profile.getGamePendingRewards() != null && profile.getGamePendingRewards().contains(reward.rewardId)) ||
-                    (profile.getDiscordPendingRewards() != null && profile.getDiscordPendingRewards().contains(reward.rewardId))) {
-                addRewardToProfile(profile, true, reward, false);
-                gameRewards = true;
+            } else {
+                if (both || grantType == RewardsConfig.GrantType.ONCE_PER_PLAYER) {
+                    addRewardToProfile(profile, true, reward, false);
+                    gameRewards = true;
+                }
+                if (both || grantType == RewardsConfig.GrantType.ONCE_PER_USER) {
+                    addRewardToProfile(profile, false, reward, false);
+                    discordRewards = true;
+                }
             }
 
             commands.addAll(commandsToRun);
