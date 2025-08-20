@@ -25,14 +25,12 @@ import com.discordsrv.api.events.linking.AccountUnlinkedEvent;
 import com.discordsrv.common.DiscordSRV;
 import com.discordsrv.common.config.main.RewardsConfig;
 import com.discordsrv.common.core.module.type.AbstractModule;
+import com.discordsrv.common.core.profile.PlayerRewardData;
 import com.discordsrv.common.core.profile.ProfileImpl;
 import com.discordsrv.common.events.player.PlayerConnectedEvent;
 import net.dv8tion.jda.api.events.guild.member.update.GuildMemberUpdateBoostTimeEvent;
 
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -136,7 +134,7 @@ public class LinkingRewardsModule extends AbstractModule<DiscordSRV> {
     }
 
     /**
-     * Adds a reward to the profile's granted or pending rewards, depending on whether the reward is pending. And removes it from the opposite set.
+     * Adds a reward to the profile's granted or pending rewards by updating the reward's pending state.
      *
      * @param profile The profile to add the reward to.
      * @param game    Whether the reward is for the game or Discord. True for game, false for Discord.
@@ -144,32 +142,25 @@ public class LinkingRewardsModule extends AbstractModule<DiscordSRV> {
      * @param pending Whether the reward is pending or already granted.
      */
     private void addRewardToProfile(ProfileImpl profile, boolean game, RewardsConfig.Reward reward, boolean pending) {
-        Set<String> targetRewards;
-        Set<String> oppositeRewards;
+        Set<PlayerRewardData> rewards = game ? profile.getGameRewards() : profile.getDiscordRewards();
 
-        if (game) {
-            targetRewards = pending ? profile.getGamePendingRewards() : profile.getGameGrantedRewards();
-            oppositeRewards = pending ? profile.getGameGrantedRewards() : profile.getGamePendingRewards();
-        } else {
-            targetRewards = pending ? profile.getDiscordPendingRewards() : profile.getDiscordGrantedRewards();
-            oppositeRewards = pending ? profile.getDiscordGrantedRewards() : profile.getDiscordPendingRewards();
-        }
-
-        if (targetRewards == null) {
+        if (rewards == null) {
             throw new IllegalStateException((game ? "Game" : "Discord") + " profile not available");
         }
 
-        targetRewards.add(reward.rewardId);
-        if (oppositeRewards == null) {
-            oppositeRewards = new HashSet<>();
-        }
-        oppositeRewards.remove(reward.rewardId);
+        rewards.stream()
+                .filter(r -> r.getName().equals(reward.rewardId))
+                .findFirst()
+                .ifPresentOrElse(
+                        r -> r.setPending(pending),
+                        () -> rewards.add(new PlayerRewardData(reward.rewardId, pending))
+                );
     }
 
-    private void triggerRewards(ProfileImpl profile, com.discordsrv.common.config.main.RewardsConfig.LinkingReward.Type type) {
+    private void triggerRewards(ProfileImpl profile, RewardsConfig.LinkingReward.Type type) {
         List<RewardsConfig.LinkingReward.Type> types = new ArrayList<>(2);
         types.add(type);
-        if (type == com.discordsrv.common.config.main.RewardsConfig.LinkingReward.Type.LINKED) {
+        if (type == RewardsConfig.LinkingReward.Type.LINKED) {
             types.add(RewardsConfig.LinkingReward.Type.IS_LINKED);
         }
 
