@@ -158,10 +158,10 @@ public class LinkingRewardsModule extends AbstractModule<DiscordSRV> {
                 );
     }
 
-    private void triggerRewards(ProfileImpl profile, com.discordsrv.common.config.main.RewardsConfig.LinkingReward.Type type) {
+    private void triggerRewards(ProfileImpl profile, RewardsConfig.LinkingReward.Type type) {
         List<RewardsConfig.LinkingReward.Type> types = new ArrayList<>(2);
         types.add(type);
-        if (type == com.discordsrv.common.config.main.RewardsConfig.LinkingReward.Type.LINKED) {
+        if (type == RewardsConfig.LinkingReward.Type.LINKED) {
             types.add(RewardsConfig.LinkingReward.Type.IS_LINKED);
         }
 
@@ -176,10 +176,10 @@ public class LinkingRewardsModule extends AbstractModule<DiscordSRV> {
         triggerRewards(profile, rewards);
     }
 
-    private void triggerRewards(ProfileImpl profile, com.discordsrv.common.config.main.RewardsConfig.BoostingReward.Type type, long guildId) {
+    private void triggerRewards(ProfileImpl profile, RewardsConfig.BoostingReward.Type type, long guildId) {
         List<RewardsConfig.BoostingReward.Type> types = new ArrayList<>(2);
         types.add(type);
-        if (type == com.discordsrv.common.config.main.RewardsConfig.BoostingReward.Type.BOOSTED) {
+        if (type == RewardsConfig.BoostingReward.Type.BOOSTED) {
             types.add(RewardsConfig.BoostingReward.Type.IS_BOOSTING);
         }
 
@@ -194,7 +194,7 @@ public class LinkingRewardsModule extends AbstractModule<DiscordSRV> {
         triggerRewards(profile, rewards);
     }
 
-    private void triggerRewards(ProfileImpl profile, List< com.discordsrv.common.config.main.RewardsConfig.Reward> rewards) {
+    private void triggerRewards(ProfileImpl profile, List< RewardsConfig.Reward> rewards) {
         if (rewards.isEmpty()) {
             return;
         }
