@@ -24,22 +24,22 @@ import java.util.Set;
 public class DiscordProfileData {
 
     private final long userId;
-    private final Set<String> grantedRewards;
+    private final Set<PlayerRewardData> rewards;
 
     public DiscordProfileData(long userId) {
         this(userId, new HashSet<>());
     }
 
-    public DiscordProfileData(long userId, Set<String> grantedRewards) {
+    public DiscordProfileData(long userId, Set<PlayerRewardData> rewards) {
         this.userId = userId;
-        this.grantedRewards = grantedRewards;
+        this.rewards = rewards;
     }
 
     public long getUserId() {
         return userId;
     }
 
-    public Set<String> getGrantedRewards() {
-        return grantedRewards;
+    public Set<PlayerRewardData> getRewards() {
+        return rewards;
     }
 }

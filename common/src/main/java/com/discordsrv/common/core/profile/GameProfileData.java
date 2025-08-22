@@ -23,22 +23,22 @@ import java.util.*;
 public class GameProfileData {
 
     private final UUID playerUUID;
-    private final Set<String> grantedRewards;
+    private final Set<PlayerRewardData> rewards;
 
     public GameProfileData(UUID playerUUID) {
         this(playerUUID, new HashSet<>());
     }
 
-    public GameProfileData(UUID playerUUID, Set<String> grantedRewards) {
+    public GameProfileData(UUID playerUUID, Set<PlayerRewardData> rewards) {
         this.playerUUID = playerUUID;
-        this.grantedRewards = grantedRewards;
+        this.rewards = rewards;
     }
 
     public UUID getPlayerUUID() {
         return playerUUID;
     }
 
-    public Set<String> getGrantedRewards() {
-        return grantedRewards;
+    public Set<PlayerRewardData> getRewards() {
+        return rewards;
     }
 }
