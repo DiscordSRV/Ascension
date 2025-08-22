@@ -93,9 +93,7 @@ public class ProfileImpl implements Profile {
 
     @Placeholder("is_online")
     public boolean isOnline() {
-        return discordSRV.playerProvider().allPlayers()
-                .stream()
-                .anyMatch(player -> player.uniqueId().equals(playerUUID));
+        return player() != null;
     }
 
     @Nullable

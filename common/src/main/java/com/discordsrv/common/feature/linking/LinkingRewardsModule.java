@@ -44,7 +44,7 @@ public class LinkingRewardsModule extends AbstractModule<DiscordSRV> {
     public void onPlayerConnected(PlayerConnectedEvent event) {
         discordSRV.profileManager().queryProfile(event.player().uniqueId())
                 .whenSuccessful(profile -> {
-                    Set<RewardsConfig.Reward> pendingRewards = new HashSet<>();
+                    Set<RewardsConfig.Reward> pendingRewards = new LinkedHashSet<>();
                     for (RewardsConfig.Reward reward : Stream.concat(discordSRV.config().rewards.linkingRewards.stream(), discordSRV.config().rewards.boostingRewards.stream()).collect(Collectors.toSet())) {
                         if (doesProfileAlreadyHave(profile, reward)) {
                             continue;
