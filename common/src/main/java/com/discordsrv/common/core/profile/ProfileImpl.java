@@ -91,20 +91,25 @@ public class ProfileImpl implements Profile {
         return discordSRV.discordAPI().retrieveUserById(userId);
     }
 
-    @Nullable
-    public Set<String> getGameGrantedRewards() {
-        if (gameData == null) {
-            return null;
-        }
-        return gameData.getGrantedRewards();
+    @Placeholder("is_online")
+    public boolean isOnline() {
+        return player() != null;
     }
 
     @Nullable
-    public Set<String> getDiscordGrantedRewards() {
+    public Set<PlayerRewardData> getGameRewards() {
+        if (gameData == null) {
+            return null;
+        }
+        return gameData.getRewards();
+    }
+
+    @Nullable
+    public Set<PlayerRewardData> getDiscordRewards() {
         if (discordData == null) {
             return null;
         }
-        return discordData.getGrantedRewards();
+        return discordData.getRewards();
     }
 
     public GameProfileData getGameData() {

@@ -122,15 +122,9 @@ public class H2Storage extends SQLStorage {
                             + "constraint LINKING_CODES_UQ unique (CODE)"
                             + ");");
         }
-        try (Statement statement = connection.createStatement()) {
-            statement.execute("alter table " + tablePrefix + LINKING_CODES_TABLE_NAME + " add column if not exists PLAYERUSERNAME varchar(32);");
-        }
-        try (Statement statement = connection.createStatement()) {
-            statement.execute("alter table " + tablePrefix + LINKED_ACCOUNTS_TABLE_NAME + " add column if not exists CREATED timestamp(0);");
-        }
-        try (Statement statement = connection.createStatement()) {
-            statement.execute("alter table " + tablePrefix + LINKED_ACCOUNTS_TABLE_NAME + " add column if not exists LASTSEEN timestamp(0);");
-        }
+        addColumnIfMissing(connection, tablePrefix + LINKING_CODES_TABLE_NAME, "PLAYERUSERNAME", "varchar(32)");
+        addColumnIfMissing(connection, tablePrefix + LINKED_ACCOUNTS_TABLE_NAME, "CREATED", "timestamp(0)");
+        addColumnIfMissing(connection, tablePrefix + LINKED_ACCOUNTS_TABLE_NAME, "LASTSEEN", "timestamp(0)");
 
         // Profile
         createRewardsTablesGeneric(connection, tablePrefix);

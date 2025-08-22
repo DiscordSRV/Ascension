@@ -21,6 +21,7 @@ package com.discordsrv.common.core.storage.impl.sql;
 import com.discordsrv.common.DiscordSRV;
 import com.discordsrv.common.core.profile.DiscordProfileData;
 import com.discordsrv.common.core.profile.GameProfileData;
+import com.discordsrv.common.core.profile.PlayerRewardData;
 import com.discordsrv.common.core.storage.Storage;
 import com.discordsrv.common.exception.StorageException;
 import com.discordsrv.common.feature.linking.AccountLink;
@@ -38,6 +39,7 @@ import java.time.LocalDateTime;
 import java.util.*;
 import java.util.concurrent.Future;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 public abstract class SQLStorage implements Storage {
 
@@ -111,6 +113,7 @@ public abstract class SQLStorage implements Storage {
                             + "ID int not null auto_increment,"
                             + "PROFILE_ID int,"
                             + "REWARD_ID int,"
+                            + "PENDING tinyint default 0,"
                             + "constraint GAME_GRANTED_REWARD_PK primary key (ID),"
                             + "constraint GAME_GRANTED_REWARD_UQ unique (PROFILE_ID, REWARD_ID),"
                             + "foreign key (PROFILE_ID) references " + tablePrefix + GAME_PROFILE_TABLE_NAME + "(ID),"
@@ -118,12 +121,14 @@ public abstract class SQLStorage implements Storage {
                             + ");"
             );
         }
+        addColumnIfMissing(connection, tablePrefix + GAME_GRANTED_REWARDS_TABLE_NAME, "PENDING", "tinyint default 0");
         try (Statement statement = connection.createStatement()) {
             statement.execute(
                     "create table if not exists " + tablePrefix + DISCORD_GRANTED_REWARDS_TABLE_NAME + " ("
                             + "ID int not null auto_increment,"
                             + "PROFILE_ID int,"
                             + "REWARD_ID int,"
+                            + "PENDING tinyint default 0,"
                             + "constraint DISCORD_GRANTED_REWARD_PK primary key (ID),"
                             + "constraint DISCORD_GRANTED_REWARD_UQ unique (PROFILE_ID, REWARD_ID),"
                             + "foreign key (PROFILE_ID) references " + tablePrefix + DISCORD_PROFILE_TABLE_NAME + "(ID),"
@@ -131,8 +136,14 @@ public abstract class SQLStorage implements Storage {
                             + ");"
             );
         }
+        addColumnIfMissing(connection, tablePrefix + DISCORD_GRANTED_REWARDS_TABLE_NAME, "PENDING", "tinyint default 0");
     }
 
+    protected static void addColumnIfMissing(Connection connection, String tableName, String columnName, String columnDefinition) throws SQLException {
+        connection.createStatement().execute(
+                "alter table " + tableName + " add column if not exists " + columnName + " " + columnDefinition
+        );
+    }
     private void useConnection(CheckedConsumer<Connection> connectionConsumer) throws StorageException {
         useConnection(connection -> {
             connectionConsumer.accept(connection);
@@ -326,7 +337,7 @@ public abstract class SQLStorage implements Storage {
         });
     }
 
-    private List<Integer> getOrCreateRewards(Connection connection, Set<String> rewards) throws SQLException {
+    private List<Integer> getOrCreateRewards(Connection connection, Set<PlayerRewardData> rewards) throws SQLException {
         Map<String, Integer> rewardMap = new HashMap<>();
         connection.setTransactionIsolation(Connection.TRANSACTION_SERIALIZABLE);
         try (Statement statement = connection.createStatement()) {
@@ -345,7 +356,7 @@ public abstract class SQLStorage implements Storage {
 
         List<Integer> rewardIds = new ArrayList<>();
         Set<String> missingRewards = new LinkedHashSet<>();
-        for (String reward : rewards) {
+        for (String reward : rewards.stream().map(PlayerRewardData::getName).collect(Collectors.toSet())) {
             Integer rewardId = rewardMap.get(reward);
             if (rewardId == null) {
                 missingRewards.add(reward);
@@ -377,36 +388,82 @@ public abstract class SQLStorage implements Storage {
         return rewardIds;
     }
 
-    private void alterRewardTable(Connection connection, String tableName, int profileId, Set<String> rewards) throws SQLException {
-        List<Integer> rewardIds = getOrCreateRewards(connection, rewards);
+    private boolean isRewardPending(Set<PlayerRewardData> rewards, int rewardId) {
+        return rewards.stream()
+                .filter(reward -> reward.getId() == rewardId)
+                .findFirst()
+                .map(PlayerRewardData::isPending)
+                .orElse(false);
+    }
+
+    private void alterRewardTable(Connection connection, String tableName, int profileId, Set<PlayerRewardData> rewards) throws SQLException {
         List<Integer> currentRewardIds = new ArrayList<>();
+        List<Integer> currentPendingRewardIds = new ArrayList<>();
         try (PreparedStatement statement = connection.prepareStatement(
-                "select REWARD_ID from " + tablePrefix() + tableName + " where PROFILE_ID = ?"
+                "SELECT r.ID, r.REWARD, t.PENDING " +
+                        "FROM " + tablePrefix() + tableName + " t " +
+                        "INNER JOIN " + tablePrefix() + REWARD_TABLE_NAME + " r ON r.ID = t.REWARD_ID " +
+                        "WHERE t.PROFILE_ID = ?"
         )) {
             statement.setInt(1, profileId);
             try (ResultSet resultSet = statement.executeQuery()) {
                 while (resultSet.next()) {
-                    currentRewardIds.add(resultSet.getInt("REWARD_ID"));
+                    int rewardId = resultSet.getInt("ID");
+                    String rewardName = resultSet.getString("REWARD");
+                    boolean isPending = resultSet.getBoolean("PENDING");
+
+                    // Update PlayerRewardData if the ID is empty
+                    rewards.stream()
+                            .filter(reward -> reward.getName().equals(rewardName))
+                            .findFirst()
+                            .ifPresent(reward -> {
+                                if (reward.getId() == -1) reward.setId(rewardId);
+                            });
+
+                    if (isPending) {
+                        currentPendingRewardIds.add(rewardId);
+                    } else {
+                        currentRewardIds.add(rewardId);
+                    }
                 }
             }
         }
 
-        List<Integer> missingRewards = rewardIds.stream()
-                .filter(rewardId -> !currentRewardIds.contains(rewardId))
-                .collect(Collectors.toList());
+        Set<Integer> missingRewards = rewards.stream()
+                .map(PlayerRewardData::getId)
+                .filter(id -> !currentRewardIds.contains(id) && !currentPendingRewardIds.contains(id))
+                .collect(Collectors.toSet());
         for (Integer missingRewardId : missingRewards) {
             try (PreparedStatement statement = connection.prepareStatement(
-                    "insert into " + tablePrefix() + tableName + " (PROFILE_ID, REWARD_ID) VALUES (?, ?);"
+                    "insert into " + tablePrefix() + tableName + " (PROFILE_ID, REWARD_ID, PENDING) VALUES (?, ?, ?);"
             )) {
                 statement.setInt(1, profileId);
                 statement.setInt(2, missingRewardId);
+                statement.setBoolean(3, isRewardPending(rewards, missingRewardId));
                 expectEffectedRows(statement.executeUpdate(), 1);
             }
         }
 
-        List<Integer> removedRewards = currentRewardIds.stream()
-                .filter(rewardId -> !rewardIds.contains(rewardId))
-                .collect(Collectors.toList());
+        Set<Integer> currentAllRewardIds = Stream.concat(currentRewardIds.stream(), currentPendingRewardIds.stream()).collect(Collectors.toSet());
+        for (Integer rewardId : currentAllRewardIds) {
+            boolean shouldBePending = isRewardPending(rewards, rewardId);
+            boolean currentlyPending = currentPendingRewardIds.contains(rewardId);
+            if (shouldBePending != currentlyPending) {
+                try (PreparedStatement statement = connection.prepareStatement(
+                        "update " + tablePrefix() + tableName + " set PENDING = ? where PROFILE_ID = ? and REWARD_ID = ?;"
+                )) {
+                    statement.setBoolean(1, shouldBePending);
+                    statement.setInt(2, profileId);
+                    statement.setInt(3, rewardId);
+                    expectEffectedRows(statement.executeUpdate(), 1);
+                }
+            }
+        }
+
+        Set<Integer> removedRewards = currentRewardIds.stream()
+                .filter(id -> rewards.stream().map(PlayerRewardData::getId)
+                        .noneMatch(reward -> reward.equals(id)))
+                .collect(Collectors.toSet());
         for (Integer removedRewardId : removedRewards) {
             try (PreparedStatement statement = connection.prepareStatement(
                     "delete from " + tablePrefix() + tableName + " where PROFILE_ID = ? and REWARD_ID = ?;"
@@ -440,21 +497,20 @@ public abstract class SQLStorage implements Storage {
                 return null;
             }
 
-            Set<String> grantedRewards = new HashSet<>();
+            Set<PlayerRewardData> rewards = new HashSet<>();
             try (PreparedStatement statement = connection.prepareStatement(
-                    "select r.REWARD from " + tablePrefix() + GAME_GRANTED_REWARDS_TABLE_NAME + " gr"
+                    "select r.ID, r.REWARD, gr.PENDING from " + tablePrefix() + GAME_GRANTED_REWARDS_TABLE_NAME + " gr"
                             + " inner join " + tablePrefix() + REWARD_TABLE_NAME + " r on r.ID = gr.REWARD_ID"
                             + " where gr.PROFILE_ID = ?"
             )) {
                 statement.setInt(1, profileId);
                 try (ResultSet resultSet = statement.executeQuery()) {
                     while (resultSet.next()) {
-                        grantedRewards.add(resultSet.getString("REWARD"));
+                        rewards.add(new PlayerRewardData(resultSet.getInt("ID"), resultSet.getString("REWARD"), resultSet.getBoolean("PENDING")));
                     }
                 }
             }
-
-            return new GameProfileData(playerUUID, grantedRewards);
+            return new GameProfileData(playerUUID, rewards);
         });
     }
 
@@ -477,7 +533,7 @@ public abstract class SQLStorage implements Storage {
                 }
             }
 
-            alterRewardTable(connection, GAME_GRANTED_REWARDS_TABLE_NAME, profileId, profile.getGrantedRewards());
+            alterRewardTable(connection, GAME_GRANTED_REWARDS_TABLE_NAME, profileId, profile.getRewards());
         });
     }
 
@@ -503,21 +559,21 @@ public abstract class SQLStorage implements Storage {
                 return null;
             }
 
-            Set<String> grantedRewards = new HashSet<>();
+            Set<PlayerRewardData> rewards = new HashSet<>();
             try (PreparedStatement statement = connection.prepareStatement(
-                    "select r.REWARD from " + tablePrefix() + DISCORD_GRANTED_REWARDS_TABLE_NAME + " dr"
+                    "select r.ID, r.REWARD, dr.PENDING from " + tablePrefix() + DISCORD_GRANTED_REWARDS_TABLE_NAME + " dr"
                             + " inner join " + tablePrefix() + REWARD_TABLE_NAME + " r on r.ID = dr.REWARD_ID"
                             + " where dr.PROFILE_ID = ?"
             )) {
                 statement.setInt(1, profileId);
                 try (ResultSet resultSet = statement.executeQuery()) {
                     while (resultSet.next()) {
-                        grantedRewards.add(resultSet.getString("REWARD"));
+                        rewards.add(new PlayerRewardData(resultSet.getInt("ID"), resultSet.getString("REWARD"), resultSet.getBoolean("PENDING")));
                     }
                 }
             }
 
-            return new DiscordProfileData(userId, grantedRewards);
+            return new DiscordProfileData(userId, rewards);
         });
     }
 
@@ -540,7 +596,7 @@ public abstract class SQLStorage implements Storage {
                 }
             }
 
-            alterRewardTable(connection, DISCORD_GRANTED_REWARDS_TABLE_NAME, profileId, profile.getGrantedRewards());
+            alterRewardTable(connection, DISCORD_GRANTED_REWARDS_TABLE_NAME, profileId, profile.getRewards());
         });
     }
 

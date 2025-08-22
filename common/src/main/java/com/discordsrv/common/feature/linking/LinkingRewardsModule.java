@@ -25,14 +25,14 @@ import com.discordsrv.api.events.linking.AccountUnlinkedEvent;
 import com.discordsrv.common.DiscordSRV;
 import com.discordsrv.common.config.main.RewardsConfig;
 import com.discordsrv.common.core.module.type.AbstractModule;
+import com.discordsrv.common.core.profile.PlayerRewardData;
 import com.discordsrv.common.core.profile.ProfileImpl;
 import com.discordsrv.common.events.player.PlayerConnectedEvent;
 import net.dv8tion.jda.api.events.guild.member.update.GuildMemberUpdateBoostTimeEvent;
 
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 public class LinkingRewardsModule extends AbstractModule<DiscordSRV> {
 
@@ -44,6 +44,22 @@ public class LinkingRewardsModule extends AbstractModule<DiscordSRV> {
     public void onPlayerConnected(PlayerConnectedEvent event) {
         discordSRV.profileManager().queryProfile(event.player().uniqueId())
                 .whenSuccessful(profile -> {
+                    Set<RewardsConfig.Reward> pendingRewards = new LinkedHashSet<>();
+                    for (RewardsConfig.Reward reward : Stream.concat(discordSRV.config().rewards.linkingRewards.stream(), discordSRV.config().rewards.boostingRewards.stream()).collect(Collectors.toSet())) {
+                        if (doesProfileAlreadyHave(profile, reward)) {
+                            continue;
+                        }
+
+                        if (profile.getGameRewards() != null && profile.getGameRewards().stream().filter(PlayerRewardData::isPending).anyMatch(r -> r.getName().equals(reward.rewardId)) ||
+                                profile.getDiscordRewards() != null && profile.getDiscordRewards().stream().filter(PlayerRewardData::isPending).anyMatch(r -> r.getName().equals(reward.rewardId))) {
+                            pendingRewards.add(reward);
+                        }
+                    }
+
+                    if (!pendingRewards.isEmpty()) {
+                        triggerRewards(profile, new ArrayList<>(pendingRewards));
+                    }
+
                     Long userId = profile.userId();
                     if (!profile.isLinked() || userId == null) {
                         return;
@@ -102,36 +118,44 @@ public class LinkingRewardsModule extends AbstractModule<DiscordSRV> {
     }
 
     private boolean doesProfileAlreadyHave(ProfileImpl profile, RewardsConfig.Reward reward) {
-        Set<String> gameRewards = profile.getGameGrantedRewards();
-        Set<String> discordRewards = profile.getDiscordGrantedRewards();
+        Set<PlayerRewardData> gameRewards = profile.getGameRewards() != null ? profile.getGameRewards().stream().filter(r -> !r.isPending()).collect(Collectors.toSet()) : Collections.emptySet();
+        Set<PlayerRewardData> discordRewards = profile.getDiscordRewards() != null ? profile.getDiscordRewards().stream().filter(r -> !r.isPending()).collect(Collectors.toSet()) : Collections.emptySet();
         switch (reward.grantType) {
             case ONCE_PER_BOTH:
-                return gameRewards == null || gameRewards.contains(reward.rewardId) ||
-                        discordRewards == null || discordRewards.contains(reward.rewardId);
+                return gameRewards.stream().anyMatch(r -> r.getName().equals(reward.rewardId)) ||
+                        discordRewards.stream().anyMatch(r -> r.getName().equals(reward.rewardId));
             case ONCE_PER_PLAYER:
-                return gameRewards == null || gameRewards.contains(reward.rewardId);
+                return gameRewards.stream().anyMatch(r -> r.getName().equals(reward.rewardId));
             case ONCE_PER_USER:
-                return discordRewards == null || discordRewards.contains(reward.rewardId);
+                return discordRewards.stream().anyMatch(r -> r.getName().equals(reward.rewardId));
             case ALWAYS:
             default:
                 return false;
         }
     }
 
-    private void addRewardToProfile(ProfileImpl profile, boolean game, RewardsConfig.Reward reward) {
-        if (game) {
-            Set<String> gameRewards = profile.getGameGrantedRewards();
-            if (gameRewards == null) {
-                throw new IllegalStateException("Game profile not available");
-            }
-            gameRewards.add(reward.rewardId);
-        } else {
-            Set<String> discordRewards = profile.getDiscordGrantedRewards();
-            if (discordRewards == null) {
-                throw new IllegalStateException("Discord profile not available");
-            }
-            discordRewards.add(reward.rewardId);
+    /**
+     * Adds a reward to the profile's granted or pending rewards by updating the reward's pending state.
+     *
+     * @param profile The profile to add the reward to.
+     * @param game    Whether the reward is for the game or Discord. True for game, false for Discord.
+     * @param reward  The reward to add.
+     * @param pending Whether the reward is pending or already granted.
+     */
+    private void addRewardToProfile(ProfileImpl profile, boolean game, RewardsConfig.Reward reward, boolean pending) {
+        Set<PlayerRewardData> rewards = game ? profile.getGameRewards() : profile.getDiscordRewards();
+
+        if (rewards == null) {
+            throw new IllegalStateException((game ? "Game" : "Discord") + " profile not available");
         }
+
+        rewards.stream()
+                .filter(r -> r.getName().equals(reward.rewardId))
+                .findFirst()
+                .ifPresentOrElse(
+                        r -> r.setPending(pending),
+                        () -> rewards.add(new PlayerRewardData(reward.rewardId, pending))
+                );
     }
 
     private void triggerRewards(ProfileImpl profile, RewardsConfig.LinkingReward.Type type) {
@@ -170,7 +194,7 @@ public class LinkingRewardsModule extends AbstractModule<DiscordSRV> {
         triggerRewards(profile, rewards);
     }
 
-    private void triggerRewards(ProfileImpl profile, List<RewardsConfig.Reward> rewards) {
+    private void triggerRewards(ProfileImpl profile, List< RewardsConfig.Reward> rewards) {
         if (rewards.isEmpty()) {
             return;
         }
@@ -185,14 +209,22 @@ public class LinkingRewardsModule extends AbstractModule<DiscordSRV> {
 
             RewardsConfig.GrantType grantType = reward.grantType;
             boolean both = grantType == RewardsConfig.GrantType.ONCE_PER_BOTH;
-            if (both || grantType == RewardsConfig.GrantType.ONCE_PER_PLAYER) {
-                addRewardToProfile(profile, true, reward);
+            boolean isPending = reward.needsOnline && !profile.isOnline();
+            if (isPending) {
+                addRewardToProfile(profile, true, reward, true);
                 gameRewards = true;
+                continue;
+            } else {
+                if (both || grantType == RewardsConfig.GrantType.ONCE_PER_PLAYER) {
+                    addRewardToProfile(profile, true, reward, false);
+                    gameRewards = true;
+                }
+                if (both || grantType == RewardsConfig.GrantType.ONCE_PER_USER) {
+                    addRewardToProfile(profile, false, reward, false);
+                    discordRewards = true;
+                }
             }
-            if (both || grantType == RewardsConfig.GrantType.ONCE_PER_USER) {
-                addRewardToProfile(profile, false, reward);
-                discordRewards = true;
-            }
+
             commands.addAll(commandsToRun);
         }
 
