@@ -85,7 +85,7 @@ public abstract class AbstractModule<DT extends DiscordSRV> implements Module {
         enable();
 
         try {
-            discordSRV.eventBus().subscribe(this);
+            discordSRV.eventBus().subscribe(getEventBusListener());
             // Ignore not having listener methods exception
         } catch (IllegalArgumentException ignored) {}
         return true;
@@ -103,14 +103,18 @@ public abstract class AbstractModule<DT extends DiscordSRV> implements Module {
             return false;
         }
 
-        disable();
-        isCurrentlyEnabled = false;
-
         try {
             discordSRV.eventBus().unsubscribe(this);
             // Ignore not having listener methods exception
         } catch (IllegalArgumentException ignored) {}
+
+        disable();
+        isCurrentlyEnabled = false;
         return true;
+    }
+
+    protected Object getEventBusListener() {
+        return this;
     }
 
     public final void setRequestedIntents(Collection<DiscordGatewayIntent> intents) {

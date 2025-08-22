@@ -33,8 +33,19 @@ import java.util.Locale;
 
 public class BukkitPlayerImpl extends BukkitPlayer {
 
+    private final PaperComponentHandle.Set<Player> SEND_MESSAGE_HANDLE = PaperComponentHandle.setOrNull(Player.class, "sendMessage");
+
     public BukkitPlayerImpl(BukkitDiscordSRV discordSRV, Player player) {
         super(discordSRV, player);
+    }
+
+    @Override
+    public void sendMessage(@NotNull Component message) {
+        if (SEND_MESSAGE_HANDLE != null) {
+            SEND_MESSAGE_HANDLE.call(player, ComponentUtil.toAPI(message));
+            return;
+        }
+        super.sendMessage(message);
     }
 
     @Override

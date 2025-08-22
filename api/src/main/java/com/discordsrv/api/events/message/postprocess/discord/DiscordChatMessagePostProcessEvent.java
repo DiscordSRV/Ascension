@@ -24,6 +24,7 @@
 package com.discordsrv.api.events.message.postprocess.discord;
 
 import com.discordsrv.api.channel.GameChannel;
+import com.discordsrv.api.component.DiscordTranslator;
 import com.discordsrv.api.component.MinecraftComponent;
 import com.discordsrv.api.events.Cancellable;
 import com.discordsrv.api.events.Event;
@@ -31,8 +32,12 @@ import com.discordsrv.api.events.message.preprocess.discord.DiscordChatMessagePr
 import com.discordsrv.api.player.DiscordSRVPlayer;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.jetbrains.annotations.Unmodifiable;
 
+import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 /**
  * A Discord message was processed by DiscordSRV and is about to be forwarded.
@@ -51,6 +56,7 @@ public class DiscordChatMessagePostProcessEvent implements Event, Cancellable {
     private final GameChannel gameChannel;
     private MinecraftComponent message;
     private final List<DiscordSRVPlayer> recipients;
+    private final Map<String, DiscordTranslator> translators = new HashMap<>();
     private boolean cancelled;
 
     public DiscordChatMessagePostProcessEvent(
@@ -91,6 +97,25 @@ public class DiscordChatMessagePostProcessEvent implements Event, Cancellable {
     @Nullable
     public List<DiscordSRVPlayer> getRecipients() {
         return recipients;
+    }
+
+    /**
+     * Adds a {@link DiscordTranslator} supporting per-Player translation for Translatable components for keys starting with `discordsrv.[integration name].`
+     * where `[integration name]` is the value of the first argument.
+     *
+     * @param integrationName the integration name (the name of your plugin/mod)
+     * @param translator the translator
+     */
+    public void registerTranslator(@NotNull String integrationName, @NotNull DiscordTranslator translator) {
+        if (this.translators.containsKey(integrationName)) {
+            throw new IllegalArgumentException("A translator for this integration name (" + integrationName + ") has already been registered");
+        }
+        this.translators.put(integrationName, translator);
+    }
+
+    @Unmodifiable
+    public Map<String, DiscordTranslator> getTranslators() {
+        return Collections.unmodifiableMap(translators);
     }
 
     @Override

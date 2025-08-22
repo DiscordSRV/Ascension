@@ -19,6 +19,7 @@
 package com.discordsrv.common.feature.messageforwarding.discord;
 
 import com.discordsrv.api.channel.GameChannel;
+import com.discordsrv.api.component.DiscordTranslator;
 import com.discordsrv.api.component.MinecraftComponent;
 import com.discordsrv.api.discord.connection.details.DiscordGatewayIntent;
 import com.discordsrv.api.discord.entity.DiscordUser;
@@ -36,6 +37,7 @@ import com.discordsrv.api.events.message.preprocess.discord.DiscordChatMessagePr
 import com.discordsrv.api.placeholder.util.Placeholders;
 import com.discordsrv.api.player.DiscordSRVPlayer;
 import com.discordsrv.common.DiscordSRV;
+import com.discordsrv.common.abstraction.player.IPlayer;
 import com.discordsrv.common.config.main.channels.DiscordToMinecraftChatConfig;
 import com.discordsrv.common.config.main.channels.base.BaseChannelConfig;
 import com.discordsrv.common.config.main.generic.DiscordIgnoresConfig;
@@ -43,6 +45,9 @@ import com.discordsrv.common.core.logging.NamedLogger;
 import com.discordsrv.common.core.module.type.AbstractModule;
 import com.discordsrv.common.util.ComponentUtil;
 import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.TextComponent;
+import net.kyori.adventure.text.TranslatableComponent;
+import net.kyori.adventure.text.renderer.TranslatableComponentRenderer;
 import org.apache.commons.lang3.StringUtils;
 import org.jetbrains.annotations.NotNull;
 
@@ -235,16 +240,19 @@ public class DiscordToMinecraftChatModule extends AbstractModule<DiscordSRV> {
         if (checkCancellation(postProcessEvent)) {
             return;
         }
-        message = postProcessEvent.getMessage();
 
-        gameChannel.sendMessage(message);
+        Component sourceMessage = ComponentUtil.fromAPI(postProcessEvent.getMessage());
+        DiscordTranslationRenderer translationRenderer = new DiscordTranslationRenderer(postProcessEvent.getTranslators());
+
+        Component genericMessage = translationRenderer.render(sourceMessage, this /* context is non-null */);
+        gameChannel.sendMessage(ComponentUtil.toAPI(genericMessage));
 
         if (chatConfig.logToConsole) {
             Component consoleComponent = ComponentUtil.fromAPI(
                     discordSRV.componentFactory().textBuilder(chatConfig.consoleFormat)
                             // Member before User
                             .addContext(discordMessage, member, author, guild, channel, channelConfig, gameChannel)
-                            .addPlaceholder("message", messageComponent)
+                            .addPlaceholder("message", genericMessage)
                             .addPlaceholder("formatted_message", message)
                             .build()
             );
@@ -253,7 +261,8 @@ public class DiscordToMinecraftChatModule extends AbstractModule<DiscordSRV> {
 
         if (recipients != null) {
             for (DiscordSRVPlayer player : recipients) {
-                gameChannel.sendMessageToPlayer(player, message);
+                Component component = translationRenderer.render(sourceMessage, player);
+                gameChannel.sendMessageToPlayer(player, ComponentUtil.toAPI(component));
             }
         }
         logger().debug("Sending message from " + author + " to "
@@ -261,6 +270,49 @@ public class DiscordToMinecraftChatModule extends AbstractModule<DiscordSRV> {
                                + (recipients != null ? recipients.size() : 0) + " players directly");
 
         discordSRV.eventBus().publish(new DiscordChatMessagePostEvent(postProcessEvent, message, gameChannel));
+    }
+
+    public static class DiscordTranslationRenderer extends TranslatableComponentRenderer<Object> {
+
+        private final Map<String, DiscordTranslator> translators;
+
+        public DiscordTranslationRenderer(Map<String, DiscordTranslator> translators) {
+            this.translators = translators;
+        }
+
+        @Override
+        public @NotNull Component render(@NotNull Component component, @NotNull Object context) {
+            if (translators.isEmpty()) {
+                return component;
+            }
+            return super.render(component, context);
+        }
+
+        @Override
+        protected @NotNull Component renderTranslatable(
+                @NotNull TranslatableComponent component,
+                @NotNull Object context
+        ) {
+            String key = component.key();
+            String[] parts = key.split("\\.", 3);
+            if (parts.length != 3 || !parts[0].equals("discordsrv")) {
+                return super.renderTranslatable(component, context);
+            }
+
+            IPlayer player = context instanceof IPlayer ? (IPlayer) context : null;
+            DiscordTranslator translator = translators.get(parts[1]);
+            MinecraftComponent translation = translator != null ? translator.translate(ComponentUtil.toAPI(component), player) : null;
+            if (translation != null) {
+                return ComponentUtil.fromAPI(translation);
+            }
+
+            String fallback = component.fallback();
+            if (fallback != null) {
+                TextComponent.Builder builder = Component.text().content(fallback);
+                return this.mergeStyleAndOptionallyDeepRender(component, builder, context);
+            }
+            return super.renderTranslatable(component, context);
+        }
     }
 
     private String describeChannel(GameChannel gameChannel) {

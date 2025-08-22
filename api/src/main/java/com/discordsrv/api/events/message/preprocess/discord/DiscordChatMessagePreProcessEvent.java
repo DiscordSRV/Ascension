@@ -51,7 +51,7 @@ public class DiscordChatMessagePreProcessEvent implements Cancellable, Processab
 
     private final GameChannel gameChannel;
     private final ReceivedDiscordMessage message;
-    private final Set<Object> additonalContexts = new HashSet<>();
+    private final Set<Object> additionalContexts = new HashSet<>();
     private String content;
     private boolean cancelled;
     private boolean processed;
@@ -88,24 +88,24 @@ public class DiscordChatMessagePreProcessEvent implements Cancellable, Processab
      */
     @NotNull
     @Unmodifiable
-    public Set<Object> getAdditonalContexts() {
-        return Collections.unmodifiableSet(additonalContexts);
+    public Set<Object> getAdditionalContexts() {
+        return Collections.unmodifiableSet(additionalContexts);
     }
 
     /**
      * Add a PlaceholderService context for formatting this message.
      * @param context the context to add
      */
-    public void addAdditonalContext(@NotNull Object context) {
-        this.additonalContexts.add(context);
+    public void addAdditionalContext(@NotNull Object context) {
+        this.additionalContexts.add(context);
     }
 
     /**
      * Remove a PlaceholderService context for formatting this message.
      * @param context the context to remove
      */
-    public void removeAdditonalContext(@NotNull Object context) {
-        this.additonalContexts.remove(context);
+    public void removeAdditionalContext(@NotNull Object context) {
+        this.additionalContexts.remove(context);
     }
 
     /**

@@ -43,6 +43,11 @@ public class ModuleDelegate extends AbstractModule<DiscordSRV> {
     }
 
     @Override
+    protected Object getEventBusListener() {
+        return getBase();
+    }
+
+    @Override
     public boolean isEnabled() {
         return module.isEnabled();
     }
