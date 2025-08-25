@@ -18,6 +18,8 @@
 
 package com.discordsrv.common.integration;
 
+import com.discordsrv.api.discord.entity.guild.DiscordGuildMember;
+import com.discordsrv.api.discord.entity.guild.DiscordRole;
 import com.discordsrv.api.module.type.PermissionModule;
 import com.discordsrv.api.task.Task;
 import com.discordsrv.common.DiscordSRV;
@@ -26,10 +28,13 @@ import com.discordsrv.common.core.module.type.PluginIntegration;
 import com.discordsrv.common.exception.MessageException;
 import com.discordsrv.common.feature.groupsync.GroupSyncModule;
 import com.discordsrv.common.feature.groupsync.enums.GroupSyncCause;
+import com.discordsrv.common.feature.linking.AccountLink;
+import com.discordsrv.common.feature.linking.LinkProvider;
+import net.dv8tion.jda.api.JDA;
+import net.dv8tion.jda.api.entities.*;
 import net.luckperms.api.LuckPerms;
 import net.luckperms.api.LuckPermsProvider;
-import net.luckperms.api.context.ContextSet;
-import net.luckperms.api.context.ImmutableContextSet;
+import net.luckperms.api.context.*;
 import net.luckperms.api.event.EventSubscription;
 import net.luckperms.api.event.LuckPermsEvent;
 import net.luckperms.api.event.node.NodeAddEvent;
@@ -48,8 +53,10 @@ import net.luckperms.api.node.types.InheritanceNode;
 import net.luckperms.api.query.Flag;
 import net.luckperms.api.query.QueryMode;
 import net.luckperms.api.query.QueryOptions;
+import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.jspecify.annotations.NonNull;
 
 import java.time.Duration;
 import java.util.*;
@@ -58,7 +65,7 @@ import java.util.function.BiFunction;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
-public class LuckPermsIntegration extends PluginIntegration<DiscordSRV> implements PermissionModule.All {
+public class LuckPermsIntegration<T> extends PluginIntegration<DiscordSRV> implements PermissionModule.All, ContextCalculator<T> {
 
     private LuckPerms luckPerms;
     private final List<EventSubscription<?>> subscriptions = new ArrayList<>();
@@ -88,6 +95,7 @@ public class LuckPermsIntegration extends PluginIntegration<DiscordSRV> implemen
     @Override
     public void enable() {
         luckPerms = LuckPermsProvider.get();
+        luckPerms.getContextManager().registerCalculator(this);
         subscribe(NodeAddEvent.class, this::onNodeAdd);
         subscribe(NodeRemoveEvent.class, this::onNodeRemove);
         subscribe(NodeClearEvent.class, this::onNodeClear);
@@ -102,6 +110,7 @@ public class LuckPermsIntegration extends PluginIntegration<DiscordSRV> implemen
     public void disable() {
         subscriptions.forEach(EventSubscription::close);
         subscriptions.clear();
+        luckPerms.getContextManager().unregisterCalculator(this);
         luckPerms = null;
     }
 
@@ -303,5 +312,74 @@ public class LuckPermsIntegration extends PluginIntegration<DiscordSRV> implemen
     @Override
     public Task<String> getPrimaryGroup(@NotNull UUID player) {
         return user(player).thenApply(User::getPrimaryGroup);
+    }
+
+    @ApiStatus.OverrideOnly
+    public void calculate(@NonNull T target, @NonNull ContextConsumer consumer) {}
+
+    public void calculate(@NotNull UUID target, @NonNull ContextConsumer consumer) {
+        LinkProvider linkProvider = discordSRV.linkProvider();
+        if (linkProvider == null) {
+            return;
+        }
+
+        linkProvider.get(target).then(optionalLink -> {
+            MutableContextSet contextSet = MutableContextSet.create();
+            if (!optionalLink.isPresent()) {
+                contextSet.add("discordsrv:linked", "false");
+                return Task.completed(contextSet);
+            }
+
+            AccountLink link = optionalLink.get();
+            contextSet.add("discordsrv:linked", "true");
+
+            JDA jda = discordSRV.jda();
+            if (jda == null) {
+                return Task.completed(contextSet);
+            }
+
+            for (Guild guild : jda.getGuilds()) {
+                Member member = guild.getMemberById(link.userId());
+                if (member != null) {
+                    DiscordGuildMember discordGuildMember = discordSRV.discordAPI().getGuildMember(member);
+
+                    contextSet.add("discordsrv:server_id", guild.getId());
+                    if (discordGuildMember.isBoosting()) {
+                        contextSet.add("discordsrv:boosting", guild.getId());
+                    }
+
+                    for (DiscordRole role : discordGuildMember.getRoles()) {
+                        contextSet.add("discordsrv:role_id", String.valueOf(role.getId()));
+                        contextSet.add("discordsrv:role", role.getName());
+                    }
+                }
+            }
+
+            return Task.completed(contextSet);
+        }).whenSuccessful(consumer::accept);
+    }
+
+    @NonNull
+    public ContextSet estimatePotentialContexts() {
+        MutableContextSet contextSet = MutableContextSet.create();
+        contextSet.add("discordsrv:linked", "true");
+        contextSet.add("discordsrv:linked", "false");
+
+        JDA jda = discordSRV.jda();
+        if (jda == null) {
+            return contextSet;
+        }
+
+        for (Guild guild : jda.getGuilds()) {
+            contextSet.add("discordsrv:server_id", guild.getId());
+            contextSet.add("discordsrv:boosting", guild.getId());
+
+            for (Role role : guild.getRoles()) {
+                contextSet.add("discordsrv:role_id", role.getId());
+                contextSet.add("discordsrv:role", role.getName());
+            }
+        }
+
+        return contextSet;
     }
 }

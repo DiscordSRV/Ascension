@@ -58,6 +58,7 @@ public abstract class BukkitDiscordSRV extends AbstractDiscordSRV<IBukkitBootstr
         this.audiences = BukkitAudiences.create(bootstrap.getPlugin());
 
         // Integrations
+        registerIntegration("com.discordsrv.bukkit.integration.BukkitLuckPermsIntegration");
         registerIntegration("com.discordsrv.bukkit.integration.VaultIntegration");
         registerIntegration("com.discordsrv.bukkit.integration.PlaceholderAPIIntegration");
         registerIntegration("com.discordsrv.bukkit.integration.EssentialsXIntegration");
