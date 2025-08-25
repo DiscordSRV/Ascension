@@ -13,7 +13,7 @@ public class FabricLuckPermsIntegration extends LuckPermsIntegration<ServerPlaye
     }
 
     @Override
-    public void calculate(ServerPlayerEntity target, @NonNull ContextConsumer consumer) {
+    public void calculate(@NonNull ServerPlayerEntity target, @NonNull ContextConsumer consumer) {
         calculate(target.getUuid(), consumer);
     }
 }
