@@ -59,7 +59,7 @@ public class VelocityDiscordSRV extends AbstractDiscordSRV<DiscordSRVVelocityBoo
         this.commandHandler = new VelocityCommandHandler(this);
 
         // Integrations
-        registerIntegration("com.discordsrv.bungee.integration.BungeeLuckPermsIntegration");
+        registerIntegration("com.discordsrv.velocity.integration.VelocityLuckPermsIntegration");
 
         load();
     }
