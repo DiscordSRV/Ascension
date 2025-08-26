@@ -351,7 +351,7 @@ public class LuckPermsIntegration<T> extends PluginIntegration<DiscordSRV> imple
     @ApiStatus.OverrideOnly
     public void calculate(@NonNull T target, @NonNull ContextConsumer consumer) {}
 
-    public void calculate(@NotNull UUID target, @NonNull ContextConsumer consumer) {
+    public void calculate(@NonNull UUID target, @NonNull ContextConsumer consumer) {
             consumer.accept(getContext(target));
     }
 
@@ -378,11 +378,11 @@ public class LuckPermsIntegration<T> extends PluginIntegration<DiscordSRV> imple
         return contextSet;
     }
 
-    public ContextSet getContext(@NotNull UUID target) {
+    public ContextSet getContext(@NonNull UUID target) {
         return contextCache.get(target, this::buildContext);
     }
 
-    private ContextSet buildContext(@NotNull UUID target) {
+    private ContextSet buildContext(@NonNull UUID target) {
         MutableContextSet contextSet = MutableContextSet.create();
         LinkProvider linkProvider = discordSRV.linkProvider();
         if (linkProvider == null) {
