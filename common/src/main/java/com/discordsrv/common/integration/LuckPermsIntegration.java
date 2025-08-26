@@ -20,6 +20,9 @@ package com.discordsrv.common.integration;
 
 import com.discordsrv.api.discord.entity.guild.DiscordGuildMember;
 import com.discordsrv.api.discord.entity.guild.DiscordRole;
+import com.discordsrv.api.eventbus.Subscribe;
+import com.discordsrv.api.events.linking.AccountLinkedEvent;
+import com.discordsrv.api.events.linking.AccountUnlinkedEvent;
 import com.discordsrv.api.module.type.PermissionModule;
 import com.discordsrv.api.task.Task;
 import com.discordsrv.common.DiscordSRV;
@@ -30,8 +33,10 @@ import com.discordsrv.common.feature.groupsync.GroupSyncModule;
 import com.discordsrv.common.feature.groupsync.enums.GroupSyncCause;
 import com.discordsrv.common.feature.linking.AccountLink;
 import com.discordsrv.common.feature.linking.LinkProvider;
+import com.github.benmanes.caffeine.cache.Cache;
 import net.dv8tion.jda.api.JDA;
 import net.dv8tion.jda.api.entities.*;
+import net.dv8tion.jda.api.events.guild.member.GenericGuildMemberEvent;
 import net.luckperms.api.LuckPerms;
 import net.luckperms.api.LuckPermsProvider;
 import net.luckperms.api.context.*;
@@ -71,6 +76,10 @@ public class LuckPermsIntegration<T> extends PluginIntegration<DiscordSRV> imple
     private final List<EventSubscription<?>> subscriptions = new ArrayList<>();
     private final Map<UUID, Task<User>> userLoads = new HashMap<>();
     private final Map<UUID, Future<?>> userCleanup = new HashMap<>();
+    private final Cache<UUID, ContextSet> contextCache = discordSRV
+            .caffeineBuilder()
+            .refreshAfterWrite(Duration.ofMinutes(1))
+            .build(this::buildContext);
 
     public LuckPermsIntegration(DiscordSRV discordSRV) {
         super(discordSRV, new NamedLogger(discordSRV, "LUCKPERMS"));
@@ -314,49 +323,36 @@ public class LuckPermsIntegration<T> extends PluginIntegration<DiscordSRV> imple
         return user(player).thenApply(User::getPrimaryGroup);
     }
 
-    @ApiStatus.OverrideOnly
-    public void calculate(@NonNull T target, @NonNull ContextConsumer consumer) {}
+    @Subscribe
+    public void onAccountLinked(AccountLinkedEvent event) {
+        contextCache.put(event.getPlayerUUID(), buildContext(event.getPlayerUUID()));
+    }
 
-    public void calculate(@NotNull UUID target, @NonNull ContextConsumer consumer) {
+    @Subscribe
+    public void onAccountUnlinked(AccountUnlinkedEvent event) {
+        contextCache.put(event.getPlayerUUID(), buildContext(event.getPlayerUUID()));
+    }
+
+    @Subscribe
+    public void onMemberUpdate(GenericGuildMemberEvent event) {
         LinkProvider linkProvider = discordSRV.linkProvider();
         if (linkProvider == null) {
             return;
         }
 
-        linkProvider.get(target).then(optionalLink -> {
-            MutableContextSet contextSet = MutableContextSet.create();
-            if (!optionalLink.isPresent()) {
-                contextSet.add("discordsrv:linked", "false");
-                return Task.completed(contextSet);
-            }
+        Optional<AccountLink> optionalLink = linkProvider.getCached(event.getUser().getIdLong());
+        if (!optionalLink.isPresent()) {
+            return;
+        }
 
-            AccountLink link = optionalLink.get();
-            contextSet.add("discordsrv:linked", "true");
+        contextCache.put(optionalLink.get().playerUUID(), buildContext(optionalLink.get().playerUUID()));
+    }
 
-            JDA jda = discordSRV.jda();
-            if (jda == null) {
-                return Task.completed(contextSet);
-            }
+    @ApiStatus.OverrideOnly
+    public void calculate(@NonNull T target, @NonNull ContextConsumer consumer) {}
 
-            for (Guild guild : jda.getGuilds()) {
-                Member member = guild.getMemberById(link.userId());
-                if (member != null) {
-                    DiscordGuildMember discordGuildMember = discordSRV.discordAPI().getGuildMember(member);
-
-                    contextSet.add("discordsrv:server_id", guild.getId());
-                    if (discordGuildMember.isBoosting()) {
-                        contextSet.add("discordsrv:boosting", guild.getId());
-                    }
-
-                    for (DiscordRole role : discordGuildMember.getRoles()) {
-                        contextSet.add("discordsrv:role_id", String.valueOf(role.getId()));
-                        contextSet.add("discordsrv:role", role.getName());
-                    }
-                }
-            }
-
-            return Task.completed(contextSet);
-        }).whenSuccessful(consumer::accept);
+    public void calculate(@NotNull UUID target, @NonNull ContextConsumer consumer) {
+            consumer.accept(getContext(target));
     }
 
     @NonNull
@@ -374,9 +370,52 @@ public class LuckPermsIntegration<T> extends PluginIntegration<DiscordSRV> imple
             contextSet.add("discordsrv:server_id", guild.getId());
             contextSet.add("discordsrv:boosting", guild.getId());
 
-            for (Role role : guild.getRoles()) {
-                contextSet.add("discordsrv:role_id", role.getId());
-                contextSet.add("discordsrv:role", role.getName());
+            guild.getRoles().stream()
+                    .map(Role::getId)
+                    .forEach(id -> contextSet.add("discordsrv:role_id", id));
+        }
+
+        return contextSet;
+    }
+
+    public ContextSet getContext(@NotNull UUID target) {
+        return contextCache.get(target, this::buildContext);
+    }
+
+    private ContextSet buildContext(@NotNull UUID target) {
+        MutableContextSet contextSet = MutableContextSet.create();
+        LinkProvider linkProvider = discordSRV.linkProvider();
+        if (linkProvider == null) {
+            return contextSet;
+        }
+
+        Optional<AccountLink> optionalLink = linkProvider.getCached(target);
+        if (!optionalLink.isPresent()) {
+            contextSet.add("discordsrv:linked", "false");
+            return contextSet;
+        }
+
+        AccountLink link = optionalLink.get();
+        contextSet.add("discordsrv:linked", "true");
+
+        JDA jda = discordSRV.jda();
+        if (jda == null) {
+            return contextSet;
+        }
+
+        for (Guild guild : jda.getGuilds()) {
+            Member member = guild.getMemberById(link.userId());
+            if (member != null) {
+                DiscordGuildMember discordGuildMember = discordSRV.discordAPI().getGuildMember(member);
+
+                contextSet.add("discordsrv:server_id", guild.getId());
+                if (discordGuildMember.isBoosting()) {
+                    contextSet.add("discordsrv:boosting", guild.getId());
+                }
+
+                discordGuildMember.getRoles().stream()
+                        .map(DiscordRole::getId)
+                        .forEach(id -> contextSet.add("discordsrv:role_id", String.valueOf(id)));
             }
         }
 
