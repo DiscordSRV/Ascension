@@ -762,9 +762,6 @@ public abstract class AbstractDiscordSRV<
             registerModule(DeathMessageModule::new);
         }
 
-        // Integrations
-        registerIntegration("com.discordsrv.common.integration.LuckPermsIntegration");
-
         // Check if the system has working DNS
         try {
             String discordDomain = "discord.com";

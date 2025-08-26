@@ -56,6 +56,9 @@ public class BungeeDiscordSRV extends AbstractDiscordSRV<DiscordSRVBungeeBootstr
         this.playerProvider = new BungeePlayerProvider(this);
         this.pluginManager = new BungeePluginManager(this);
 
+        // Integrations
+        registerIntegration("com.discordsrv.bungee.integration.BungeeLuckPermsIntegration");
+
         load();
     }
 
