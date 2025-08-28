@@ -58,6 +58,9 @@ public class VelocityDiscordSRV extends AbstractDiscordSRV<DiscordSRVVelocityBoo
         this.pluginManager = new VelocityPluginManager(this);
         this.commandHandler = new VelocityCommandHandler(this);
 
+        // Integrations
+        registerIntegration("com.discordsrv.velocity.integration.VelocityLuckPermsIntegration");
+
         load();
     }
 

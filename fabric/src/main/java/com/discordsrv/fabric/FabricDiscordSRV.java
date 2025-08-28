@@ -107,6 +107,7 @@ public class FabricDiscordSRV extends AbstractDiscordSRV<DiscordSRVFabricBootstr
         registerModule(FabricBanModule::new);
 
         // Integrations
+        registerIntegration("com.discordsrv.fabric.integration.FabricLuckPermsIntegration");
         registerIntegration("com.discordsrv.fabric.integration.TextPlaceholderIntegration");
 
         this.translationLoader.reload();
