@@ -27,7 +27,7 @@ import com.discordsrv.api.placeholder.PlaceholderLookupResult;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.Set;
+import java.util.List;
 import java.util.function.Supplier;
 
 public class SinglePlaceholder implements PlaceholderProvider {
@@ -45,7 +45,7 @@ public class SinglePlaceholder implements PlaceholderProvider {
     }
 
     @Override
-    public @NotNull PlaceholderLookupResult lookup(@NotNull String placeholder, @NotNull Set<Object> context) {
+    public @NotNull PlaceholderLookupResult lookup(@NotNull String placeholder, @NotNull List<Object> context) {
         boolean perfectMatch = placeholder.equals(matchPlaceholder);
         if (!perfectMatch && !placeholder.startsWith(matchPlaceholder + '_') && !placeholder.startsWith(matchPlaceholder + ':')) {
             return PlaceholderLookupResult.UNKNOWN_PLACEHOLDER;

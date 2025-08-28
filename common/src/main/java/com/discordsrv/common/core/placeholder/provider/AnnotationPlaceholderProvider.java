@@ -30,7 +30,7 @@ import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Parameter;
-import java.util.Set;
+import java.util.List;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.BiConsumer;
 
@@ -68,7 +68,7 @@ public class AnnotationPlaceholderProvider implements PlaceholderProvider {
     }
 
     @Override
-    public @NotNull PlaceholderLookupResult lookup(@NotNull String placeholder, @NotNull Set<Object> context) {
+    public @NotNull PlaceholderLookupResult lookup(@NotNull String placeholder, @NotNull List<Object> context) {
         if (this.annotationPlaceholder.isEmpty()) {
             return PlaceholderLookupResult.UNKNOWN_PLACEHOLDER;
         }
@@ -122,7 +122,7 @@ public class AnnotationPlaceholderProvider implements PlaceholderProvider {
         return PlaceholderLookupResult.reLookup(remainder, result);
     }
 
-    private Object lookupUsingMethod(Method method, Object instance, Set<Object> context, String remainder)
+    private Object lookupUsingMethod(Method method, Object instance, List<Object> context, String remainder)
             throws InvocationTargetException, IllegalAccessException {
         Parameter[] parameters = method.getParameters();
         Object[] parameterValues = new Object[parameters.length];

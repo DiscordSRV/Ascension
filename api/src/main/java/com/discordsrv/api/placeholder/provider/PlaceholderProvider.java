@@ -28,7 +28,7 @@ import com.discordsrv.api.placeholder.PlaceholderLookupResult;
 import com.discordsrv.api.placeholder.annotation.Placeholder;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.Set;
+import java.util.List;
 
 /**
  * A placeholder provider used internally by DiscordSRV for {@link Placeholder}.
@@ -37,5 +37,5 @@ import java.util.Set;
 public interface PlaceholderProvider {
 
     @NotNull
-    PlaceholderLookupResult lookup(@NotNull String placeholder, @NotNull Set<Object> context);
+    PlaceholderLookupResult lookup(@NotNull String placeholder, @NotNull List<Object> context);
 }

@@ -26,10 +26,7 @@ package com.discordsrv.api.placeholder;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.Arrays;
-import java.util.LinkedHashSet;
-import java.util.Objects;
-import java.util.Set;
+import java.util.*;
 
 public class PlaceholderLookupResult {
 
@@ -40,12 +37,12 @@ public class PlaceholderLookupResult {
         return new PlaceholderLookupResult(result);
     }
 
-    public static PlaceholderLookupResult newLookup(@NotNull String placeholder, @NotNull Set<Object> context) {
+    public static PlaceholderLookupResult newLookup(@NotNull String placeholder, @NotNull List<Object> context) {
         return new PlaceholderLookupResult(placeholder, context);
     }
 
     public static PlaceholderLookupResult reLookup(@NotNull String remainder, @Nullable Object result, @NotNull Object... newContext) {
-        return new PlaceholderLookupResult(remainder, result, new LinkedHashSet<>(Arrays.asList(newContext)));
+        return new PlaceholderLookupResult(remainder, result, new ArrayList<>(Arrays.asList(newContext)));
     }
 
     public static PlaceholderLookupResult lookupFailed(@NotNull Throwable error) {
@@ -56,7 +53,7 @@ public class PlaceholderLookupResult {
     private final String placeholder;
     private final Object result;
     private final Throwable error;
-    private final Set<Object> context;
+    private final List<Object> context;
 
     protected PlaceholderLookupResult(@NotNull Type type) {
         this.type = Objects.requireNonNull(type);
@@ -82,7 +79,7 @@ public class PlaceholderLookupResult {
         this.context = null;
     }
 
-    protected PlaceholderLookupResult(@NotNull String placeholder, @NotNull Set<Object> context) {
+    protected PlaceholderLookupResult(@NotNull String placeholder, @NotNull List<Object> context) {
         this.type = Type.NEW_LOOKUP;
         this.placeholder = Objects.requireNonNull(placeholder);
         this.result = null;
@@ -90,7 +87,7 @@ public class PlaceholderLookupResult {
         this.context = Objects.requireNonNull(context);
     }
 
-    protected PlaceholderLookupResult(@NotNull String placeholder, @Nullable Object result, @NotNull Set<Object> newContext) {
+    protected PlaceholderLookupResult(@NotNull String placeholder, @Nullable Object result, @NotNull List<Object> newContext) {
         this.type = Type.RE_LOOKUP;
         this.placeholder = Objects.requireNonNull(placeholder);
         this.result = result;
@@ -114,7 +111,7 @@ public class PlaceholderLookupResult {
         return error;
     }
 
-    public Set<Object> getContext() {
+    public List<Object> getContext() {
         return context;
     }
 

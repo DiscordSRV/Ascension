@@ -23,6 +23,7 @@ import com.discordsrv.api.component.GameTextBuilder;
 import com.discordsrv.api.component.MinecraftComponent;
 import com.discordsrv.api.placeholder.PlaceholderService;
 import com.discordsrv.common.DiscordSRV;
+import com.discordsrv.common.core.placeholder.PlaceholderServiceImpl;
 import com.discordsrv.common.util.ComponentUtil;
 import dev.vankka.enhancedlegacytext.EnhancedComponentBuilder;
 import dev.vankka.enhancedlegacytext.EnhancedLegacyText;
@@ -31,14 +32,17 @@ import net.kyori.adventure.text.format.TextColor;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.*;
+import java.util.Collection;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.function.Function;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 public class EnhancedTextBuilderImpl implements GameTextBuilder {
 
-    private final Set<Object> context = new HashSet<>();
+    private final List<Object> context = PlaceholderServiceImpl.contextList(8);
     private final Map<Pattern, Function<@NotNull Matcher, @Nullable Object>> replacements = new LinkedHashMap<>();
     private boolean placeholderServiceApplied = false;
 

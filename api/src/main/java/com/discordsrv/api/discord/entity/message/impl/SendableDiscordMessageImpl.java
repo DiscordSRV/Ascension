@@ -36,6 +36,7 @@ import com.discordsrv.api.placeholder.format.PlainPlaceholderFormat;
 import com.discordsrv.api.placeholder.util.Placeholders;
 import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.entities.MessageEmbed;
+import org.apache.commons.collections4.list.SetUniqueList;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -335,7 +336,7 @@ public class SendableDiscordMessageImpl implements SendableDiscordMessage {
 
     public static class FormatterImpl implements Formatter {
 
-        private final Set<Object> context = new HashSet<>();
+        private final List<Object> context = SetUniqueList.setUniqueList(new ArrayList<>());
         private final Map<Pattern, Function<@NotNull Matcher, @Nullable Object>> replacements = new LinkedHashMap<>();
         private boolean placeholderServiceApplied = false;
 

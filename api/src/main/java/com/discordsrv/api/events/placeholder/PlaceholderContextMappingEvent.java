@@ -25,10 +25,8 @@ package com.discordsrv.api.events.placeholder;
 
 import com.discordsrv.api.events.Event;
 
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-import java.util.Set;
 import java.util.function.Function;
 
 /**
@@ -38,8 +36,8 @@ public class PlaceholderContextMappingEvent implements Event {
 
     private final List<Object> contexts;
 
-    public PlaceholderContextMappingEvent(Set<Object> contexts) {
-        this.contexts = new ArrayList<>(contexts);
+    public PlaceholderContextMappingEvent(List<Object> contexts) {
+        this.contexts = contexts;
     }
 
     @SuppressWarnings("unchecked") // It is checked

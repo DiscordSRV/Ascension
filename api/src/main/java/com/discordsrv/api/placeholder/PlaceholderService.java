@@ -27,7 +27,7 @@ import com.discordsrv.api.placeholder.mapper.PlaceholderResultMapper;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.Set;
+import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -46,15 +46,15 @@ public interface PlaceholderService {
     void addResultMapper(@NotNull PlaceholderResultMapper resultMapper);
     void removeResultMapper(@NotNull PlaceholderResultMapper resultMapper);
 
-    String replacePlaceholders(@NotNull String placeholder, @NotNull Set<Object> context);
+    String replacePlaceholders(@NotNull String placeholder, @NotNull List<Object> context);
     String replacePlaceholders(@NotNull String placeholder, @NotNull Object... context);
 
-    PlaceholderLookupResult lookupPlaceholder(@NotNull String placeholder, @NotNull Set<Object> context);
+    PlaceholderLookupResult lookupPlaceholder(@NotNull String placeholder, @NotNull List<Object> context);
     PlaceholderLookupResult lookupPlaceholder(@NotNull String placeholder, @NotNull Object... context);
 
-    Object getReplacement(@NotNull Matcher matcher, @NotNull Set<Object> context);
+    Object getReplacement(@NotNull Matcher matcher, @NotNull List<Object> context);
     @NotNull
-    CharSequence convertReplacementToCharSequence(@NotNull Matcher matcher, @NotNull Set<Object> context);
+    CharSequence convertReplacementToCharSequence(@NotNull Matcher matcher, @NotNull List<Object> context);
     @NotNull
     CharSequence convertReplacementToCharSequence(@Nullable Object result);
 

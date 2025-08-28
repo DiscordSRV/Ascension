@@ -35,6 +35,7 @@ import com.discordsrv.common.core.placeholder.provider.AnnotationPlaceholderProv
 import com.discordsrv.common.helper.Timeout;
 import com.github.benmanes.caffeine.cache.CacheLoader;
 import com.github.benmanes.caffeine.cache.LoadingCache;
+import org.apache.commons.collections4.list.SetUniqueList;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.Pair;
 import org.jetbrains.annotations.NotNull;
@@ -46,7 +47,6 @@ import java.lang.reflect.Modifier;
 import java.lang.reflect.Parameter;
 import java.time.Duration;
 import java.util.*;
-import java.util.concurrent.CopyOnWriteArraySet;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
@@ -61,9 +61,9 @@ public class PlaceholderServiceImpl implements PlaceholderService {
     private final DiscordSRV discordSRV;
     private final Logger logger;
     private final LoadingCache<Class<?>, List<AnnotationPlaceholderProvider>> classProviders;
-    private final Set<PlaceholderResultMapper> mappers = new CopyOnWriteArraySet<>();
+    private final List<PlaceholderResultMapper> mappers = SetUniqueList.setUniqueList(new ArrayList<>());
     private final List<Pair<Class<?>, String>> reLookups = new ArrayList<>();
-    private final Set<Object> globalContext = new CopyOnWriteArraySet<>();
+    private final List<Object> globalContext = contextList(0);
     private final Timeout errorLogTimeout = new Timeout(Duration.ofSeconds(20));
 
     public PlaceholderServiceImpl(DiscordSRV discordSRV) {
@@ -75,12 +75,24 @@ public class PlaceholderServiceImpl implements PlaceholderService {
                 .build(new ClassProviderLoader());
     }
 
+    public static SetUniqueList<Object> contextList(Collection<Object> contexts) {
+        return SetUniqueList.setUniqueList(new ArrayList<>(contexts));
+    }
+
+    public static SetUniqueList<Object> contextList(int capacity) {
+        return SetUniqueList.setUniqueList(new ArrayList<>(capacity));
+    }
+
     public void addGlobalContext(@NotNull Object context) {
-        globalContext.add(context);
+        synchronized (globalContext) {
+            globalContext.add(context);
+        }
     }
 
     public void removeGlobalContext(@NotNull Object context) {
-        globalContext.remove(context);
+        synchronized (globalContext) {
+            globalContext.remove(context);
+        }
     }
 
     public void addReLookup(Class<?> type, String reLookupAs) {
@@ -91,22 +103,25 @@ public class PlaceholderServiceImpl implements PlaceholderService {
         this.reLookups.removeIf(pair -> pair.getKey() == type);
     }
 
-    private static Set<Object> getArrayAsSet(Object[] array) {
+    private static List<Object> getArrayAsList(Object[] array) {
         return array.length == 0
-               ? Collections.emptySet()
-               : new LinkedHashSet<>(Arrays.asList(array));
+               ? Collections.emptyList()
+               : new ArrayList<>(Arrays.asList(array));
     }
 
     @Override
     public PlaceholderLookupResult lookupPlaceholder(@NotNull String placeholder, Object... context) {
-        return lookupPlaceholder(placeholder, getArrayAsSet(context));
+        return lookupPlaceholder(placeholder, getArrayAsList(context));
     }
 
     @Override
-    public PlaceholderLookupResult lookupPlaceholder(@NotNull String placeholder, @NotNull Set<Object> lookupContexts) {
-        Set<Object> contexts = new LinkedHashSet<>(lookupContexts);
+    public PlaceholderLookupResult lookupPlaceholder(@NotNull String placeholder, @NotNull List<Object> lookupContexts) {
+        List<Object> contexts = contextList(lookupContexts.size() + globalContext.size());
+        contexts.addAll(lookupContexts);
         contexts.removeIf(Objects::isNull);
-        contexts.addAll(globalContext);
+        synchronized (globalContext) {
+            contexts.addAll(globalContext);
+        }
 
         Matcher additionaContextMatcher = ADDITIONAL_CONTEXT_PATTERN.matcher(placeholder);
         while (additionaContextMatcher.find()) {
@@ -121,7 +136,7 @@ public class PlaceholderServiceImpl implements PlaceholderService {
 
         PlaceholderContextMappingEvent contextMappingEvent = new PlaceholderContextMappingEvent(contexts);
         discordSRV.eventBus().publish(contextMappingEvent);
-        contexts = new LinkedHashSet<>(contextMappingEvent.getContexts());
+        contexts = contextList(contextMappingEvent.getContexts());
 
         for (Object context : contexts) {
             if (context instanceof PlaceholderProvider) {
@@ -158,8 +173,8 @@ public class PlaceholderServiceImpl implements PlaceholderService {
                 : PlaceholderLookupResult.UNKNOWN_PLACEHOLDER;
     }
 
-    private PlaceholderLookupResult getResultFromProvider(PlaceholderProvider provider, String placeholder, Set<Object> contexts) {
-        PlaceholderLookupResult result = provider.lookup(placeholder, Collections.unmodifiableSet(contexts));
+    private PlaceholderLookupResult getResultFromProvider(PlaceholderProvider provider, String placeholder, List<Object> contexts) {
+        PlaceholderLookupResult result = provider.lookup(placeholder, Collections.unmodifiableList(contexts));
 
         Object lookupResult = result.getResult();
         if (lookupResult instanceof Task) {
@@ -210,8 +225,8 @@ public class PlaceholderServiceImpl implements PlaceholderService {
         return result;
     }
 
-    private PlaceholderLookupResult reLookupResult(String reLookup, Object lookupResult, PlaceholderLookupResult result, Set<Object> contexts) {
-        Set<Object> newContext = new LinkedHashSet<>();
+    private PlaceholderLookupResult reLookupResult(String reLookup, Object lookupResult, PlaceholderLookupResult result, List<Object> contexts) {
+        List<Object> newContext = contextList(contexts.size() + 1);
         newContext.add(lookupResult);
         newContext.addAll(contexts);
 
@@ -221,7 +236,7 @@ public class PlaceholderServiceImpl implements PlaceholderService {
 
     @Override
     public String replacePlaceholders(@NotNull String input, Object... context) {
-        return replacePlaceholders(input, getArrayAsSet(context));
+        return replacePlaceholders(input, getArrayAsList(context));
     }
 
     @Override
@@ -235,11 +250,11 @@ public class PlaceholderServiceImpl implements PlaceholderService {
     }
 
     @Override
-    public String replacePlaceholders(@NotNull String input, @NotNull Set<Object> context) {
+    public String replacePlaceholders(@NotNull String input, @NotNull List<Object> context) {
         return replacePlaceholders(PATTERN, input, context);
     }
 
-    private String replacePlaceholders(Pattern pattern, String input, Set<Object> context) {
+    private String replacePlaceholders(Pattern pattern, String input, List<Object> context) {
         if (input.isEmpty()) {
             return input;
         }
@@ -264,7 +279,7 @@ public class PlaceholderServiceImpl implements PlaceholderService {
     }
 
     @Override
-    public Object getReplacement(@NotNull Matcher matcher, @NotNull Set<Object> context) {
+    public Object getReplacement(@NotNull Matcher matcher, @NotNull List<Object> context) {
         if (matcher.groupCount() < 3) {
             throw new IllegalStateException("Matcher must have at least 3 groups");
         }
@@ -285,7 +300,7 @@ public class PlaceholderServiceImpl implements PlaceholderService {
     }
 
     @Override
-    public @NotNull CharSequence convertReplacementToCharSequence(@NotNull Matcher matcher, @NotNull Set<Object> context) {
+    public @NotNull CharSequence convertReplacementToCharSequence(@NotNull Matcher matcher, @NotNull List<Object> context) {
         Object result = getReplacement(matcher, context);
         return convertReplacementToCharSequence(result);
     }
@@ -309,7 +324,7 @@ public class PlaceholderServiceImpl implements PlaceholderService {
         return output instanceof CharSequence ? (CharSequence) output : String.valueOf(output != null ? output : result);
     }
 
-    private Object getReplacement(String placeholder, Set<Object> context, Matcher matcher) {
+    private Object getReplacement(String placeholder, List<Object> context, Matcher matcher) {
         Map<String, AtomicInteger> preventInfiniteLoop = new HashMap<>();
 
         Object best = null;

@@ -29,7 +29,7 @@ import com.discordsrv.api.placeholder.PlaceholderLookupResult;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.Set;
+import java.util.List;
 
 /**
  * Used by DiscordSRV to lookup placeholders if none of DiscordSRV's own contexts can provide a value.
@@ -40,12 +40,12 @@ import java.util.Set;
 public class PlaceholderLookupEvent implements Event, Processable.Argument<PlaceholderLookupResult> {
 
     private final String placeholder;
-    private final Set<Object> contexts;
+    private final List<Object> contexts;
 
     private boolean processed;
     private PlaceholderLookupResult result;
 
-    public PlaceholderLookupEvent(String placeholder, Set<Object> contexts) {
+    public PlaceholderLookupEvent(String placeholder, List<Object> contexts) {
         this.placeholder = placeholder;
         this.contexts = contexts;
     }
@@ -62,7 +62,7 @@ public class PlaceholderLookupEvent implements Event, Processable.Argument<Place
      * Gets all contexts provided for this lookup, this may be things like {@link com.discordsrv.api.player.DiscordSRVPlayer} or {@link com.discordsrv.api.discord.entity.DiscordUser}.
      * @return all contexts for this request
      */
-    public Set<Object> getContexts() {
+    public List<Object> getContexts() {
         return contexts;
     }
 
