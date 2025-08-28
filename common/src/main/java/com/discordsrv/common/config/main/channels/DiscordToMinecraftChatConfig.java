@@ -94,15 +94,13 @@ public class DiscordToMinecraftChatConfig {
 
     @Comment("How should unicode emoji be shown in-game:\n"
             + "- hide: hides emojis in-game\n"
-            + "- show: shows emojis in-game as is (emojis may not be visible without resource packs)\n"
-            //+ "- name: shows the name of the emoji in-game (for example :smiley:)"
-            )
-    public EmojiBehaviour unicodeEmojiBehaviour = EmojiBehaviour.HIDE;
+            + "- show: shows emojis in-game as is (emojis may not be visible without resource packs)"
+    )
+    public EmojiBehaviour unicodeEmojiBehaviour = EmojiBehaviour.SHOW;
 
     public enum EmojiBehaviour {
         HIDE,
         SHOW
-        // TODO: add and implement name
     }
 
     @Comment("The number of milliseconds by which to delay processing Discord messages, if the message is deleted in that time it will not be processed.\n"
