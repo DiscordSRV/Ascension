@@ -122,7 +122,8 @@ public class ComponentFactory implements MinecraftComponentFactory {
         if (history.contains(key)) {
             // Prevent infinite loop here
             logger.debug("Preventing recursive translation: " + key);
-            return key;
+            String fallback = component.fallback();
+            return fallback != null ? fallback : key;
         }
 
         Translation translation = translationRegistry.lookup(discordSRV.defaultLocale(), key);
@@ -130,7 +131,8 @@ public class ComponentFactory implements MinecraftComponentFactory {
             // To support datapacks and other mods that don't provide translations but for some reason use the translation component
             // We check if the key is following the pattern of a translation key. Which is "key.subkey" or "key.subkey.subsubkey" etc.
             if (!TRANSLATION_KEY_PATTERN.matcher(key).matches()) {
-                return key;
+                String fallback = component.fallback();
+                return fallback != null ? fallback : key;
             }
 
             return null;
