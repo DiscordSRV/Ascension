@@ -303,7 +303,9 @@ public class DiscordToMinecraftChatModule extends AbstractModule<DiscordSRV> {
             DiscordTranslator translator = translators.get(parts[1]);
             MinecraftComponent translation = translator != null ? translator.translate(ComponentUtil.toAPI(component), player) : null;
             if (translation != null) {
-                return ComponentUtil.fromAPI(translation);
+                TextComponent.Builder builder = Component.text();
+                builder.append(ComponentUtil.fromAPI(translation));
+                return super.mergeStyleAndOptionallyDeepRender(component, builder, context);
             }
 
             String fallback = component.fallback();
