@@ -224,6 +224,7 @@ public class DiscordToMinecraftChatModule extends AbstractModule<DiscordSRV> {
                 .textBuilder(format)
                 // Member before User
                 .addContext(discordMessage, member, author, guild, channel, channelConfig, gameChannel)
+                .addContext(event.getAdditionalContexts())
                 .addPlaceholder("message", messageComponent)
                 .build();
         if (ComponentUtil.isEmpty(message)) {

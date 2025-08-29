@@ -35,10 +35,7 @@ import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.Set;
-import java.util.UUID;
+import java.util.*;
 
 public class PlaceholderAPIIntegration extends PluginIntegration<BukkitDiscordSRV> {
 
@@ -155,9 +152,9 @@ public class PlaceholderAPIIntegration extends PluginIntegration<BukkitDiscordSR
 
         @Override
         public @Nullable String onRequest(OfflinePlayer player, @NotNull String params) {
-            Set<Object> context;
+            List<Object> context;
             if (player != null) {
-                context = new HashSet<>(2);
+                context = new ArrayList<>(2);
                 Profile profile = discordSRV.profileManager().getCachedProfile(player.getUniqueId());
                 if (profile != null) {
                     context.add(profile);
@@ -168,7 +165,7 @@ public class PlaceholderAPIIntegration extends PluginIntegration<BukkitDiscordSR
                     context.add(discordSRV.playerProvider().offlinePlayer(player));
                 }
             } else {
-                context = Collections.emptySet();
+                context = Collections.emptyList();
             }
 
             String placeholder = "%" + params + "%";

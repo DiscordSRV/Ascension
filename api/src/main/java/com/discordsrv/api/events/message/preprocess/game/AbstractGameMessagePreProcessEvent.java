@@ -25,18 +25,17 @@ package com.discordsrv.api.events.message.preprocess.game;
 
 import com.discordsrv.api.events.Cancellable;
 import com.discordsrv.api.events.Processable;
+import org.apache.commons.collections4.list.SetUniqueList;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.annotations.Unmodifiable;
 
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.Set;
+import java.util.*;
 
 public abstract class AbstractGameMessagePreProcessEvent implements Cancellable, Processable.NoArgument {
 
     private final Object triggeringEvent;
-    private final Set<Object> additonalContexts = new HashSet<>();
+    private final List<Object> additionalContexts = SetUniqueList.setUniqueList(new ArrayList<>());
     private boolean cancelled;
     private boolean processed;
 
@@ -60,24 +59,24 @@ public abstract class AbstractGameMessagePreProcessEvent implements Cancellable,
      */
     @NotNull
     @Unmodifiable
-    public Set<Object> getAdditonalContexts() {
-        return Collections.unmodifiableSet(additonalContexts);
+    public List<Object> getAdditionalContexts() {
+        return Collections.unmodifiableList(additionalContexts);
     }
 
     /**
      * Add a PlaceholderService context for formatting this message.
      * @param context the context to add
      */
-    public void addAdditonalContext(@NotNull Object context) {
-        this.additonalContexts.add(context);
+    public void addAdditionalContext(@NotNull Object context) {
+        this.additionalContexts.add(context);
     }
 
     /**
      * Remove a PlaceholderService context for formatting this message.
      * @param context the context to remove
      */
-    public void removeAdditonalContext(@NotNull Object context) {
-        this.additonalContexts.remove(context);
+    public void removeAdditionalContext(@NotNull Object context) {
+        this.additionalContexts.remove(context);
     }
 
     @Override

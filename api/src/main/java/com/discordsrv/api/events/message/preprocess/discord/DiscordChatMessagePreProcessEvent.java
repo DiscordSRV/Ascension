@@ -29,12 +29,11 @@ import com.discordsrv.api.discord.entity.guild.DiscordGuild;
 import com.discordsrv.api.discord.entity.message.ReceivedDiscordMessage;
 import com.discordsrv.api.events.Cancellable;
 import com.discordsrv.api.events.Processable;
+import org.apache.commons.collections4.list.SetUniqueList;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Unmodifiable;
 
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.Set;
+import java.util.*;
 
 /**
  * Indicates that a Discord message has been received and will be processed by DiscordSRV (if not already processed or cancelled).
@@ -51,7 +50,7 @@ public class DiscordChatMessagePreProcessEvent implements Cancellable, Processab
 
     private final GameChannel gameChannel;
     private final ReceivedDiscordMessage message;
-    private final Set<Object> additionalContexts = new HashSet<>();
+    private final List<Object> additionalContexts = SetUniqueList.setUniqueList(new ArrayList<>());
     private String content;
     private boolean cancelled;
     private boolean processed;
@@ -88,8 +87,8 @@ public class DiscordChatMessagePreProcessEvent implements Cancellable, Processab
      */
     @NotNull
     @Unmodifiable
-    public Set<Object> getAdditionalContexts() {
-        return Collections.unmodifiableSet(additionalContexts);
+    public List<Object> getAdditionalContexts() {
+        return Collections.unmodifiableList(additionalContexts);
     }
 
     /**

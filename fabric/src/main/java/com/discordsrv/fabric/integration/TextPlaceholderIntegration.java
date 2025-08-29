@@ -38,10 +38,7 @@ import net.minecraft.util.Identifier;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.Set;
-import java.util.UUID;
+import java.util.*;
 
 public class TextPlaceholderIntegration extends PluginIntegration<FabricDiscordSRV> implements PlaceholderHandler {
 
@@ -124,9 +121,9 @@ public class TextPlaceholderIntegration extends PluginIntegration<FabricDiscordS
 
     @Override
     public PlaceholderResult onPlaceholderRequest(PlaceholderContext placeholderContext, @Nullable String s) {
-        Set<Object> context;
+        List<Object> context;
         if (placeholderContext.hasPlayer()) {
-            context = new HashSet<>(2);
+            context = new ArrayList<>(2);
 
             ServerPlayerEntity player = placeholderContext.player();
             assert player != null;
@@ -138,7 +135,7 @@ public class TextPlaceholderIntegration extends PluginIntegration<FabricDiscordS
 
             context.add(discordSRV.playerProvider().player(player));
         } else if (placeholderContext.hasGameProfile()) {
-            context = new HashSet<>(2);
+            context = new ArrayList<>(2);
 
             GameProfile gameProfile = placeholderContext.gameProfile();
             assert gameProfile != null;
@@ -156,7 +153,7 @@ public class TextPlaceholderIntegration extends PluginIntegration<FabricDiscordS
                 discordSRV.playerProvider().lookupOfflinePlayer(gameProfile.getId()).thenApply(context::add);
             }
         } else {
-            context = Collections.emptySet();
+            context = Collections.emptyList();
         }
 
         String placeholder = "%" + s + "%";

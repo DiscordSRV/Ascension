@@ -115,7 +115,7 @@ public class PlaceholderServiceImpl implements PlaceholderService {
     }
 
     @Override
-    public PlaceholderLookupResult lookupPlaceholder(@NotNull String placeholder, @NotNull List<Object> lookupContexts) {
+    public PlaceholderLookupResult lookupPlaceholder(@NotNull String placeholder, @NotNull Collection<Object> lookupContexts) {
         List<Object> contexts = contextList(lookupContexts.size() + globalContext.size());
         contexts.addAll(lookupContexts);
         contexts.removeIf(Objects::isNull);
@@ -250,11 +250,11 @@ public class PlaceholderServiceImpl implements PlaceholderService {
     }
 
     @Override
-    public String replacePlaceholders(@NotNull String input, @NotNull List<Object> context) {
+    public String replacePlaceholders(@NotNull String input, @NotNull Collection<Object> context) {
         return replacePlaceholders(PATTERN, input, context);
     }
 
-    private String replacePlaceholders(Pattern pattern, String input, List<Object> context) {
+    private String replacePlaceholders(Pattern pattern, String input, Collection<Object> context) {
         if (input.isEmpty()) {
             return input;
         }
@@ -279,7 +279,7 @@ public class PlaceholderServiceImpl implements PlaceholderService {
     }
 
     @Override
-    public Object getReplacement(@NotNull Matcher matcher, @NotNull List<Object> context) {
+    public Object getReplacement(@NotNull Matcher matcher, @NotNull Collection<Object> context) {
         if (matcher.groupCount() < 3) {
             throw new IllegalStateException("Matcher must have at least 3 groups");
         }
@@ -324,7 +324,7 @@ public class PlaceholderServiceImpl implements PlaceholderService {
         return output instanceof CharSequence ? (CharSequence) output : String.valueOf(output != null ? output : result);
     }
 
-    private Object getReplacement(String placeholder, List<Object> context, Matcher matcher) {
+    private Object getReplacement(String placeholder, Collection<Object> context, Matcher matcher) {
         Map<String, AtomicInteger> preventInfiniteLoop = new HashMap<>();
 
         Object best = null;

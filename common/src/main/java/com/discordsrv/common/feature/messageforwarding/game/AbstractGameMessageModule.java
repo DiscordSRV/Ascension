@@ -169,7 +169,7 @@ public abstract class AbstractGameMessageModule<
             contexts.add(player);
             contexts.add(channel);
             if (event != null) {
-                contexts.addAll(event.getAdditonalContexts());
+                contexts.addAll(event.getAdditionalContexts());
             }
 
             return sendMessageToChannels(moduleConfig, event, player, format, result.channels(), contexts);
