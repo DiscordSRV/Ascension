@@ -127,10 +127,6 @@ public class PresenceUpdaterModule extends AbstractModule<DiscordSRV> {
 
         List<PresenceUpdaterConfig.Presence> presences = config.presences;
         int count = config.presences.size();
-        if (count == 1) {
-            setPresence(presences.get(0));
-            return;
-        }
 
         Duration duration = Duration.ofSeconds(Math.max(config.updaterRateInSeconds, 30));
         future = discordSRV.scheduler().runAtFixedRate(() -> {
