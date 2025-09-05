@@ -44,6 +44,10 @@ public class BukkitJoinListener extends AbstractBukkitListener<PlayerJoinEvent> 
 
     @Override
     protected void handleEvent(@NotNull PlayerJoinEvent event, Void __) {
+        if (!event.getPlayer().isOnline()) {
+            return;
+        }
+
         String message = event.getJoinMessage();
         MinecraftComponent component = message == null ? null : ComponentUtil.toAPI(BukkitComponentSerializer.legacy().deserialize(message));
         boolean firstJoin = !event.getPlayer().hasPlayedBefore();

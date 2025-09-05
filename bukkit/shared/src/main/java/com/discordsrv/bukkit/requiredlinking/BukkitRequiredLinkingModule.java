@@ -21,29 +21,37 @@ package com.discordsrv.bukkit.requiredlinking;
 import com.discordsrv.api.task.Task;
 import com.discordsrv.bukkit.BukkitDiscordSRV;
 import com.discordsrv.bukkit.config.main.BukkitRequiredLinkingConfig;
+import com.discordsrv.bukkit.requiredlinking.listener.BukkitRequiredLinkingAsyncPreLoginListener;
+import com.discordsrv.bukkit.requiredlinking.listener.BukkitRequiredLinkingJoinListener;
+import com.discordsrv.bukkit.requiredlinking.listener.BukkitRequiredLinkingListener;
+import com.discordsrv.bukkit.requiredlinking.listener.BukkitRequiredLinkingLoginListener;
 import com.discordsrv.common.abstraction.player.IPlayer;
 import com.discordsrv.common.config.main.linking.ServerRequiredLinkingConfig;
 import com.discordsrv.common.feature.linking.requirelinking.ServerRequireLinkingModule;
-import net.kyori.adventure.platform.bukkit.BukkitComponentSerializer;
 import net.kyori.adventure.text.Component;
 import org.bukkit.GameMode;
 import org.bukkit.Location;
 import org.bukkit.OfflinePlayer;
 import org.bukkit.entity.Player;
-import org.bukkit.event.*;
+import org.bukkit.event.EventHandler;
+import org.bukkit.event.EventPriority;
+import org.bukkit.event.HandlerList;
+import org.bukkit.event.Listener;
 import org.bukkit.event.player.*;
 
 import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.function.BiConsumer;
 import java.util.function.Consumer;
-import java.util.function.Supplier;
 
 public class BukkitRequiredLinkingModule extends ServerRequireLinkingModule<BukkitDiscordSRV> implements Listener {
 
+    private final BukkitDiscordSRV discordSRV;
+    private BukkitRequiredLinkingListener<?> kickListener;
+
     public BukkitRequiredLinkingModule(BukkitDiscordSRV discordSRV) {
         super(discordSRV);
+        this.discordSRV = discordSRV;
     }
 
     @Override
@@ -52,36 +60,71 @@ public class BukkitRequiredLinkingModule extends ServerRequireLinkingModule<Bukk
     }
 
     @Override
+    public BukkitDiscordSRV discordSRV() {
+        return discordSRV;
+    }
+
+    @Override
     public void enable() {
         super.enable();
-
-        register(AsyncPlayerPreLoginEvent.class, this::handle);
-        register(PlayerLoginEvent.class, this::handle);
-        register(PlayerJoinEvent.class, this::handle);
         discordSRV.server().getPluginManager().registerEvents(this, discordSRV.plugin());
     }
 
-    public void disable() {
-        HandlerList.unregisterAll(this);
-        super.disable();
+    @Override
+    public void reload() {
+        boolean useKick = false;
+        String kickEvent = null;
+        EventPriority eventPriority = EventPriority.HIGHEST;
+        if (discordSRV.config() == null) {
+            useKick = true;
+        } else if (discordSRV.config() != null) {
+            useKick = true;
+
+            BukkitRequiredLinkingConfig.KickOptions kickOptions = config().kick;
+            kickEvent = kickOptions.event;
+            try {
+                eventPriority = EventPriority.valueOf(kickOptions.priority);
+            } catch (IllegalArgumentException ignored) {
+                logger().error("Invalid event priority: " + kickOptions.priority);
+            }
+        }
+
+        BukkitRequiredLinkingListener<?> newKickListener = null;
+        if (useKick) {
+            final String asyncPlayerPreLoginEvent = "AsyncPlayerPreLoginEvent";
+            if (kickEvent == null) {
+                kickEvent = asyncPlayerPreLoginEvent;
+            }
+            switch (kickEvent) {
+                case "PlayerLoginEvent":
+                    newKickListener = new BukkitRequiredLinkingLoginListener(this, eventPriority);
+                    break;
+                case "PlayerJoinEvent":
+                    newKickListener = new BukkitRequiredLinkingJoinListener(this, eventPriority);
+                    break;
+                case asyncPlayerPreLoginEvent:
+                default:
+                    if (!kickEvent.equals(asyncPlayerPreLoginEvent)) {
+                        logger().error("Invalid kick event: " + kickEvent);
+                    }
+                    newKickListener = new BukkitRequiredLinkingAsyncPreLoginListener(this, eventPriority);
+                    break;
+            }
+        }
+        if (this.kickListener != null) {
+            this.kickListener.close();
+        }
+        this.kickListener = newKickListener;
     }
 
-    @SuppressWarnings("unchecked")
-    private <T extends Event> void register(Class<T> eventType, BiConsumer<T, EventPriority> eventConsumer) {
-        for (EventPriority priority : EventPriority.values()) {
-            if (priority == EventPriority.MONITOR) {
-                continue;
-            }
-
-            discordSRV.server().getPluginManager().registerEvent(
-                    eventType,
-                    this,
-                    priority,
-                    (listener, event) -> eventConsumer.accept((T) event, priority),
-                    discordSRV.plugin(),
-                    true
-            );
+    @Override
+    public void disable() {
+        if (kickListener != null) {
+            kickListener.close();
+            kickListener = null;
         }
+        HandlerList.unregisterAll(this);
+        super.disable();
     }
 
     @Override
@@ -101,76 +144,6 @@ public class BukkitRequiredLinkingModule extends ServerRequireLinkingModule<Bukk
     public void recheck(IPlayer player) {
         getBlockReason(player.uniqueId(), player.username(), false)
                 .whenComplete((component, throwable) -> handleBlock(player, component));
-    }
-
-    //
-    // Kick
-    //
-
-    private void handle(AsyncPlayerPreLoginEvent event, EventPriority priority) {
-        handle(
-                "AsyncPlayerPreLoginEvent",
-                priority,
-                event.getUniqueId(),
-                event.getName(),
-                () -> event.getLoginResult() != AsyncPlayerPreLoginEvent.Result.ALLOWED ? event.getLoginResult().name() : null,
-                text -> event.disallow(AsyncPlayerPreLoginEvent.Result.KICK_OTHER, text)
-        );
-    }
-
-    private void handle(PlayerLoginEvent event, EventPriority priority) {
-        Player player = event.getPlayer();
-        handle(
-                "PlayerLoginEvent",
-                priority,
-                player.getUniqueId(),
-                player.getName(),
-                () -> event.getResult() != PlayerLoginEvent.Result.ALLOWED ? event.getResult().name() : null,
-                text -> event.disallow(PlayerLoginEvent.Result.KICK_OTHER, text)
-        );
-    }
-
-    private void handle(PlayerJoinEvent event, EventPriority priority) {
-        Player player = event.getPlayer();
-        handle(
-                "PlayerJoinEvent",
-                priority,
-                player.getUniqueId(),
-                player.getName(),
-                () -> null,
-                player::kickPlayer
-        );
-    }
-
-    private void handle(
-            String eventType,
-            EventPriority priority,
-            UUID playerUUID,
-            String playerName,
-            Supplier<String> alreadyBlocked,
-            Consumer<String> disallow
-    ) {
-        BukkitRequiredLinkingConfig config = config();
-        if (config == null) {
-            disallow.accept(NOT_READY_MESSAGE);
-            return;
-        }
-
-        if (!config.enabled || action() != ServerRequiredLinkingConfig.Action.KICK
-                || !eventType.equals(config.kick.event) || !priority.name().equals(config.kick.priority)) {
-            return;
-        }
-
-        String blockType = alreadyBlocked.get();
-        if (blockType != null) {
-            discordSRV.logger().debug(playerName + " is already blocked for " + eventType + "/" + priority + " (" + blockType + ")");
-            return;
-        }
-
-        Component kickReason = getBlockReason(playerUUID, playerName, true).join();
-        if (kickReason != null) {
-            disallow.accept(BukkitComponentSerializer.legacy().serialize(kickReason));
-        }
     }
 
     //
@@ -209,14 +182,6 @@ public class BukkitRequiredLinkingModule extends ServerRequireLinkingModule<Bukk
 
         UUID playerUUID = event.getUniqueId();
         loginsHandled.put(playerUUID, handleFreezeLogin(playerUUID, () -> getBlockReason(playerUUID, event.getName(), false).join()));
-    }
-
-    @EventHandler(priority = EventPriority.MONITOR)
-    public void onPlayerLogin(PlayerLoginEvent event) {
-        if (event.getResult() != PlayerLoginEvent.Result.ALLOWED) {
-            // Blocked by something else, cleanup memory
-            frozen.remove(event.getPlayer().getUniqueId());
-        }
     }
 
     @EventHandler(priority = EventPriority.LOWEST)

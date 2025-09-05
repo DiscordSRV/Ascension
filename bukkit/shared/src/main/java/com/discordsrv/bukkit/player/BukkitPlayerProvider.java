@@ -30,7 +30,6 @@ import org.bukkit.event.EventPriority;
 import org.bukkit.event.HandlerList;
 import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerJoinEvent;
-import org.bukkit.event.player.PlayerLoginEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
 
 import java.util.UUID;
@@ -67,15 +66,6 @@ public class BukkitPlayerProvider extends ServerPlayerProvider<BukkitPlayer, Buk
     @Override
     public void unsubscribe() {
         HandlerList.unregisterAll(this);
-    }
-
-    // This event is not called in offline mode
-    @EventHandler(priority = EventPriority.MONITOR)
-    public void onPlayerLogin(PlayerLoginEvent event) {
-        if (event.getResult() != PlayerLoginEvent.Result.ALLOWED) {
-            return;
-        }
-        addPlayer(event.getPlayer(), false);
     }
 
     @EventHandler(priority = EventPriority.LOWEST)

@@ -46,6 +46,10 @@ public class PaperJoinListener extends AbstractBukkitListener<PlayerJoinEvent> {
 
     @Override
     protected void handleEvent(@NotNull PlayerJoinEvent event, Void __) {
+        if (!event.getPlayer().isOnline()) {
+            return;
+        }
+
         MinecraftComponent message = MESSAGE_HANDLE.getAPI(event);
         boolean firstJoin = !event.getPlayer().hasPlayedBefore();
 
