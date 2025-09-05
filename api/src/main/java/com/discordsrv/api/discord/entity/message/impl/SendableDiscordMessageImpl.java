@@ -25,7 +25,9 @@ package com.discordsrv.api.discord.entity.message.impl;
 
 import com.discordsrv.api.DiscordSRV;
 import com.discordsrv.api.color.Color;
-import com.discordsrv.api.discord.entity.interaction.component.actionrow.MessageActionRow;
+import com.discordsrv.api.discord.entity.JDAEntity;
+import com.discordsrv.api.discord.entity.interaction.component.component.ActionRowComponent;
+import com.discordsrv.api.discord.entity.interaction.component.component.MessageComponent;
 import com.discordsrv.api.discord.entity.message.AllowedMention;
 import com.discordsrv.api.discord.entity.message.DiscordMessageEmbed;
 import com.discordsrv.api.discord.entity.message.SendableDiscordMessage;
@@ -35,6 +37,8 @@ import com.discordsrv.api.placeholder.format.FormattedText;
 import com.discordsrv.api.placeholder.format.PlainPlaceholderFormat;
 import com.discordsrv.api.placeholder.util.Placeholders;
 import net.dv8tion.jda.api.EmbedBuilder;
+import net.dv8tion.jda.api.components.actionrow.ActionRow;
+import net.dv8tion.jda.api.components.actionrow.ActionRowChildComponent;
 import net.dv8tion.jda.api.entities.MessageEmbed;
 import org.apache.commons.collections4.list.SetUniqueList;
 import org.jetbrains.annotations.NotNull;
@@ -47,12 +51,13 @@ import java.util.*;
 import java.util.function.Function;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 
 public class SendableDiscordMessageImpl implements SendableDiscordMessage {
 
     private final String content;
     private final List<DiscordMessageEmbed> embeds;
-    private final List<MessageActionRow> actionRows;
+    private final List<MessageComponent<?>> components;
     private final Set<AllowedMention> allowedMentions;
     private final String webhookUsername;
     private final String webhookAvatarUrl;
@@ -64,7 +69,7 @@ public class SendableDiscordMessageImpl implements SendableDiscordMessage {
     protected SendableDiscordMessageImpl(
             String content,
             List<DiscordMessageEmbed> embeds,
-            List<MessageActionRow> actionRows,
+            List<MessageComponent<?>> actionRows,
             Set<AllowedMention> allowedMentions,
             String webhookUsername,
             String webhookAvatarUrl,
@@ -75,7 +80,7 @@ public class SendableDiscordMessageImpl implements SendableDiscordMessage {
     ) {
         this.content = content;
         this.embeds = Collections.unmodifiableList(embeds);
-        this.actionRows = Collections.unmodifiableList(actionRows);
+        this.components = Collections.unmodifiableList(actionRows);
         this.allowedMentions = Collections.unmodifiableSet(allowedMentions);
         this.webhookUsername = webhookUsername;
         this.webhookAvatarUrl = webhookAvatarUrl;
@@ -89,7 +94,7 @@ public class SendableDiscordMessageImpl implements SendableDiscordMessage {
         return new SendableDiscordMessageImpl(
                 content,
                 embeds,
-                actionRows,
+                components,
                 allowedMentions,
                 webhookUsername,
                 webhookAvatarUrl,
@@ -102,7 +107,7 @@ public class SendableDiscordMessageImpl implements SendableDiscordMessage {
 
     @Override
     public boolean isEmpty() {
-        return (content == null || content.isEmpty()) && embeds.isEmpty() && attachments.isEmpty() && actionRows.isEmpty();
+        return (content == null || content.isEmpty()) && embeds.isEmpty() && attachments.isEmpty() && components.isEmpty();
     }
 
     @Override
@@ -117,8 +122,8 @@ public class SendableDiscordMessageImpl implements SendableDiscordMessage {
 
     @NotNull
     @Override
-    public List<MessageActionRow> getActionRows() {
-        return actionRows;
+    public List<MessageComponent<?>> getComponents() {
+        return components;
     }
 
     @Override
@@ -160,7 +165,7 @@ public class SendableDiscordMessageImpl implements SendableDiscordMessage {
 
         private String content;
         private final List<DiscordMessageEmbed> embeds = new ArrayList<>();
-        private final List<MessageActionRow> actionRows = new ArrayList<>();
+        private final List<MessageComponent<?>> components = new ArrayList<>();
         private final Set<AllowedMention> allowedMentions = new LinkedHashSet<>();
         private String webhookUsername;
         private String webhookAvatarUrl;
@@ -198,26 +203,14 @@ public class SendableDiscordMessageImpl implements SendableDiscordMessage {
         }
 
         @Override
-        public List<MessageActionRow> getActionRows() {
-            return actionRows;
-        }
-
-        @Override
-        public Builder setActionRows(MessageActionRow... rows) {
-            this.actionRows.clear();
-            this.actionRows.addAll(Arrays.asList(rows));
+        public Builder addActionRow(ActionRowComponent<?>... row) {
+            components.add(() -> ActionRow.of(Arrays.stream(row).map(JDAEntity::asJDA).map(entity -> (ActionRowChildComponent) entity).collect(Collectors.toList())));
             return this;
         }
 
         @Override
-        public Builder addActionRow(MessageActionRow row) {
-            this.actionRows.add(row);
-            return this;
-        }
-
-        @Override
-        public Builder removeActionRow(MessageActionRow row) {
-            this.actionRows.remove(row);
+        public Builder addComponent(MessageComponent<?> component) {
+            components.add(component);
             return this;
         }
 
@@ -275,7 +268,7 @@ public class SendableDiscordMessageImpl implements SendableDiscordMessage {
 
         @Override
         public boolean isEmpty() {
-            return (content == null || content.isEmpty()) && embeds.isEmpty() && attachments.isEmpty() && actionRows.isEmpty();
+            return (content == null || content.isEmpty()) && embeds.isEmpty() && attachments.isEmpty() && components.isEmpty();
         }
 
         @Override
@@ -313,7 +306,7 @@ public class SendableDiscordMessageImpl implements SendableDiscordMessage {
 
         @Override
         public @NotNull SendableDiscordMessage build() {
-            return new SendableDiscordMessageImpl(content, embeds, actionRows, allowedMentions, webhookUsername, webhookAvatarUrl, attachments, suppressedNotifications, suppressedEmbeds, replyingToMessageId);
+            return new SendableDiscordMessageImpl(content, embeds, components, allowedMentions, webhookUsername, webhookAvatarUrl, attachments, suppressedNotifications, suppressedEmbeds, replyingToMessageId);
         }
 
         @Override

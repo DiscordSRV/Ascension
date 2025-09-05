@@ -64,7 +64,7 @@ public class DiscordSRVDiscordCommand {
 
             INSTANCE = builder
                     .setGuildOnly(false)
-                    .setDefaultPermission(DiscordCommand.DefaultPermission.ADMINISTRATOR)
+                    .setDefaultPermission(DiscordCommand.DefaultAccess.ADMINISTRATOR)
                     .build();
         }
 

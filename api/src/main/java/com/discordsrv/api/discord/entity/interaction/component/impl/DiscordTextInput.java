@@ -23,17 +23,17 @@
 
 package com.discordsrv.api.discord.entity.interaction.component.impl;
 
+import com.discordsrv.api.discord.entity.JDAEntity;
 import com.discordsrv.api.discord.entity.interaction.component.ComponentIdentifier;
-import com.discordsrv.api.discord.entity.interaction.component.ModalComponent;
-import net.dv8tion.jda.api.interactions.components.ItemComponent;
-import net.dv8tion.jda.api.interactions.components.text.TextInputStyle;
+import net.dv8tion.jda.api.components.textinput.TextInput;
+import net.dv8tion.jda.api.components.textinput.TextInputStyle;
 import org.jetbrains.annotations.NotNull;
 
 /**
  * A Discord text input, a modal component.
  * @see #builder(ComponentIdentifier, String, Style)
  */
-public class TextInput implements ModalComponent {
+public class DiscordTextInput implements JDAEntity<TextInput> {
 
     /**
      * Creates a new text input builder with the given label and style.
@@ -57,7 +57,7 @@ public class TextInput implements ModalComponent {
     private final boolean required;
     private final String defaultValue;
 
-    public TextInput(
+    private DiscordTextInput(
             String id,
             String label,
             Style style,
@@ -106,16 +106,14 @@ public class TextInput implements ModalComponent {
     }
 
     @Override
-    public ItemComponent asJDA() {
-        net.dv8tion.jda.api.interactions.components.text.TextInput.Builder builder =
-                net.dv8tion.jda.api.interactions.components.text.TextInput.create(id, label, style.getJda())
-                        .setMinLength(minLength)
-                        .setMaxLength(maxLength)
-                        .setPlaceholder(placeholder)
-                        .setRequired(required)
-                        .setValue(defaultValue);
-
-        return builder.build();
+    public TextInput asJDA() {
+        return TextInput.create(id, style.asJDA())
+                .setMinLength(minLength)
+                .setMaxLength(maxLength)
+                .setPlaceholder(placeholder)
+                .setRequired(required)
+                .setValue(defaultValue)
+                .build();
     }
 
     public static class Builder {
@@ -159,8 +157,8 @@ public class TextInput implements ModalComponent {
             this.defaultValue = defaultValue;
         }
 
-        public TextInput build() {
-            return new TextInput(
+        public DiscordTextInput build() {
+            return new DiscordTextInput(
                     id,
                     label,
                     style,
@@ -173,7 +171,7 @@ public class TextInput implements ModalComponent {
         }
     }
 
-    public enum Style {
+    public enum Style implements JDAEntity<TextInputStyle> {
         PARAGRAPH(TextInputStyle.PARAGRAPH),
         SHORT(TextInputStyle.SHORT);
 
@@ -183,7 +181,8 @@ public class TextInput implements ModalComponent {
             this.jda = jda;
         }
 
-        public TextInputStyle getJda() {
+        @Override
+        public TextInputStyle asJDA() {
             return jda;
         }
     }

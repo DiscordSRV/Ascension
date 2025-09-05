@@ -24,9 +24,11 @@
 package com.discordsrv.api.discord.entity.message;
 
 import com.discordsrv.api.component.GameTextBuilder;
-import com.discordsrv.api.discord.entity.interaction.component.actionrow.MessageActionRow;
+import com.discordsrv.api.discord.entity.interaction.component.component.ActionRowComponent;
+import com.discordsrv.api.discord.entity.interaction.component.component.MessageComponent;
 import com.discordsrv.api.discord.entity.message.impl.SendableDiscordMessageImpl;
 import com.discordsrv.api.placeholder.provider.SinglePlaceholder;
+import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.annotations.Unmodifiable;
@@ -73,7 +75,8 @@ public interface SendableDiscordMessage {
      */
     @NotNull
     @Unmodifiable
-    List<MessageActionRow> getActionRows();
+    @ApiStatus.Internal
+    List<MessageComponent<?>> getComponents();
 
     /**
      * Gets the allowed mentions of the message.
@@ -184,32 +187,9 @@ public interface SendableDiscordMessage {
         @NotNull
         Builder removeEmbed(DiscordMessageEmbed embed);
 
-        /**
-         * Gets the action rows for this builder.
-         * @return the action rows
-         */
-        List<MessageActionRow> getActionRows();
+        Builder addComponent(MessageComponent<?> component);
 
-        /**
-         * Sets the action rows for this builder.
-         * @param rows the action rows
-         * @return the builder, useful for chaining
-         */
-        Builder setActionRows(MessageActionRow... rows);
-
-        /**
-         * Adds an action row to this builder.
-         * @param row the action row
-         * @return the builder, useful for chaining
-         */
-        Builder addActionRow(MessageActionRow row);
-
-        /**
-         * Removes an action row from this builder.
-         * @param row the action row
-         * @return the builder, useful for chaining
-         */
-        Builder removeActionRow(MessageActionRow row);
+        Builder addActionRow(ActionRowComponent<?>... row);
 
         /**
          * Gets the allowed mentions in this builder.

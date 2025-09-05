@@ -23,12 +23,12 @@
 
 package com.discordsrv.api.discord.entity.interaction.component.impl;
 
+import com.discordsrv.api.discord.entity.JDAEntity;
 import com.discordsrv.api.discord.entity.guild.DiscordCustomEmoji;
 import com.discordsrv.api.discord.entity.interaction.component.ComponentIdentifier;
-import com.discordsrv.api.discord.entity.interaction.component.MessageComponent;
 import com.discordsrv.api.events.discord.interaction.component.DiscordSelectMenuInteractionEvent;
+import net.dv8tion.jda.api.components.selections.SelectMenu;
 import net.dv8tion.jda.api.entities.emoji.Emoji;
-import net.dv8tion.jda.api.interactions.components.ItemComponent;
 import org.jetbrains.annotations.CheckReturnValue;
 import org.jetbrains.annotations.NotNull;
 
@@ -42,7 +42,7 @@ import java.util.List;
  * @see DiscordSelectMenuInteractionEvent
  */
 // TODO: newest changes
-public class SelectMenu implements MessageComponent {
+public class DiscordSelectMenu implements JDAEntity<SelectMenu> {
 
     /**
      * Creates a selection menu builder.
@@ -61,7 +61,7 @@ public class SelectMenu implements MessageComponent {
     private final int minValues;
     private final int maxValues;
 
-    private SelectMenu(String id, List<Option> options, boolean disabled, String placeholder, int minValues, int maxValues) {
+    private DiscordSelectMenu(String id, List<Option> options, boolean disabled, String placeholder, int minValues, int maxValues) {
         this.id = id;
         this.options = options;
         this.disabled = disabled;
@@ -71,29 +71,8 @@ public class SelectMenu implements MessageComponent {
     }
 
     @Override
-    public ItemComponent asJDA() {
+    public SelectMenu asJDA() {
         return null;
-//        net.dv8tion.jda.api.interactions.components.selections.SelectMenu.Builder<?, ?> builder =
-//                new net.dv8tion.jda.api.interactions.components.selections.SelectMenu.Builder<>(id)
-//                        .setDisabled(disabled)
-//                        .setPlaceholder(placeholder)
-//                        .setMinValues(minValues)
-//                        .setMaxValues(maxValues);
-//
-//        Set<SelectOption> defaultOptions = new HashSet<>();
-//        for (Option option : options) {
-//            SelectOption selectOption = SelectOption.of(option.getLabel(), option.getValue())
-//                    .withEmoji(option.getEmoji())
-//                    .withDescription(option.getDescription());
-//
-//            builder.addOptions(selectOption);
-//            if (option.isDefault()) {
-//                defaultOptions.add(selectOption);
-//            }
-//        }
-//        builder.setDefaultOptions(defaultOptions);
-//
-//        return builder.build();
     }
 
     /**
@@ -268,8 +247,8 @@ public class SelectMenu implements MessageComponent {
          * Builds the selection menu.
          * @return a new selection menu
          */
-        public SelectMenu build() {
-            return new SelectMenu(id, options, disabled, placeholder, minValues, maxValues);
+        public DiscordSelectMenu build() {
+            return new DiscordSelectMenu(id, options, disabled, placeholder, minValues, maxValues);
         }
     }
 }

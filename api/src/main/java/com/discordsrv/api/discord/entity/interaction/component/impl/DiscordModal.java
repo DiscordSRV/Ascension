@@ -25,9 +25,10 @@ package com.discordsrv.api.discord.entity.interaction.component.impl;
 
 import com.discordsrv.api.discord.entity.JDAEntity;
 import com.discordsrv.api.discord.entity.interaction.component.ComponentIdentifier;
-import com.discordsrv.api.discord.entity.interaction.component.actionrow.ActionRow;
-import com.discordsrv.api.discord.entity.interaction.component.actionrow.ModalActionRow;
+import com.discordsrv.api.discord.entity.interaction.component.component.ModalComponent;
 import com.discordsrv.api.events.discord.interaction.DiscordModalInteractionEvent;
+import net.dv8tion.jda.api.components.ModalTopLevelComponent;
+import net.dv8tion.jda.api.modals.Modal;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
@@ -40,7 +41,7 @@ import java.util.stream.Collectors;
  * @see #builder(ComponentIdentifier, String)
  * @see DiscordModalInteractionEvent
  */
-public class Modal implements JDAEntity<net.dv8tion.jda.api.interactions.modals.Modal> {
+public class DiscordModal implements JDAEntity<Modal> {
 
     /**
      * Creates a new modal builder.
@@ -56,39 +57,34 @@ public class Modal implements JDAEntity<net.dv8tion.jda.api.interactions.modals.
 
     private final String id;
     private final String title;
-    private final List<ModalActionRow> rows;
+    private final List<ModalComponent<?>> components;
 
-    private Modal(String id, String title, List<ModalActionRow> rows) {
+    private DiscordModal(String id, String title, List<ModalComponent<?>> components) {
         this.id = id;
         this.title = title;
-        this.rows = rows;
+        this.components = components;
     }
 
     public String getTitle() {
         return title;
     }
 
-    public List<ModalActionRow> getRows() {
-        return rows;
-    }
-
-    public Modal addRow(ModalActionRow row) {
-        this.rows.add(row);
-        return this;
+    public List<ModalComponent<?>> getComponents() {
+        return components;
     }
 
     @Override
-    public net.dv8tion.jda.api.interactions.modals.Modal asJDA() {
-        return net.dv8tion.jda.api.interactions.modals.Modal.create(id, title)
-                .addComponents(rows.stream().map(ActionRow::asJDA).collect(Collectors.toList()))
+    public Modal asJDA() {
+        return Modal.create(id, title)
+                .addComponents(components.stream().map(JDAEntity::asJDA).map(entity -> (ModalTopLevelComponent) entity).collect(Collectors.toList()))
                 .build();
     }
 
-    private static class Builder {
+    public static class Builder {
 
         private final String id;
         private final String title;
-        private final List<ModalActionRow> rows = new ArrayList<>();
+        private final List<ModalComponent<?>> components = new ArrayList<>();
 
         public Builder(String id, String title) {
             this.id = id;
@@ -96,24 +92,23 @@ public class Modal implements JDAEntity<net.dv8tion.jda.api.interactions.modals.
         }
 
         /**
-         * Adds an action row to this modal.
-         * @param row the row to add
+         * Adds a component to this modal.
+         * @param component the component to add
          * @return this builder, useful for chaining
          */
         @NotNull
-        public Builder addRow(ModalActionRow row) {
-            this.rows.add(row);
-            return this;
+        public Builder addComponent(ModalComponent<?> component) {
+            return addComponents(component);
         }
 
         /**
-         * Adds multiple action rows to this modal.
-         * @param rows the rows to add
+         * Adds multiple components to this modal.
+         * @param components the components to add
          * @return this builder, useful for chaining
          */
         @NotNull
-        public Builder addRows(ModalActionRow... rows) {
-            this.rows.addAll(Arrays.asList(rows));
+        public Builder addComponents(ModalComponent<?>... components) {
+            this.components.addAll(Arrays.asList(components));
             return this;
         }
 
@@ -121,8 +116,8 @@ public class Modal implements JDAEntity<net.dv8tion.jda.api.interactions.modals.
          * Builds the modal.
          * @return a new modal
          */
-        public Modal build() {
-            return new Modal(id, title, rows);
+        public DiscordModal build() {
+            return new DiscordModal(id, title, components);
         }
     }
 }

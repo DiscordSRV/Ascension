@@ -20,8 +20,7 @@ package com.discordsrv.common.command.discord.commands.subcommand;
 
 import com.discordsrv.api.discord.entity.interaction.command.DiscordCommand;
 import com.discordsrv.api.discord.entity.interaction.component.ComponentIdentifier;
-import com.discordsrv.api.discord.entity.interaction.component.actionrow.MessageActionRow;
-import com.discordsrv.api.discord.entity.interaction.component.impl.Button;
+import com.discordsrv.api.discord.entity.interaction.component.impl.DiscordButton;
 import com.discordsrv.api.discord.entity.message.SendableDiscordMessage;
 import com.discordsrv.api.eventbus.Subscribe;
 import com.discordsrv.api.events.discord.interaction.command.DiscordChatInputInteractionEvent;
@@ -146,16 +145,16 @@ public class PlayerListCommand implements Consumer<DiscordChatInputInteractionEv
 
         SendableDiscordMessage.Builder builder = SendableDiscordMessage.builder();
         if (pages.size() != 1) {
-            builder.addActionRow(MessageActionRow.of(
-                    Button.builder(previousIdentifier, Button.Style.PRIMARY)
+            builder.addActionRow(
+                    DiscordButton.builder(previousIdentifier, DiscordButton.Style.PRIMARY)
                             .setLabel(config.command.previousLabel)
                             .setDisabled(index == 0)
                             .build(),
-                    Button.builder(nextIdentifier, Button.Style.PRIMARY)
+                    DiscordButton.builder(nextIdentifier, DiscordButton.Style.PRIMARY)
                             .setLabel(config.command.nextLabel)
                             .setDisabled(index == pages.size() - 1)
                             .build()
-            ));
+            );
         }
         return builder.setContent(pages.get(index)).build();
     }

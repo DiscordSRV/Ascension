@@ -21,9 +21,13 @@
  * SOFTWARE.
  */
 
-package com.discordsrv.api.discord.entity.interaction.component;
+package com.discordsrv.api.discord.entity.interaction.component.component;
 
 import com.discordsrv.api.discord.entity.JDAEntity;
-import net.dv8tion.jda.api.interactions.components.ItemComponent;
+import net.dv8tion.jda.api.components.ModalTopLevelComponent;
+import org.jetbrains.annotations.ApiStatus;
 
-public interface DiscordComponent<T extends ItemComponent> extends JDAEntity<T> {}
+@ApiStatus.NonExtendable
+@ApiStatus.Internal
+public interface ModalComponent<T extends ModalTopLevelComponent> extends JDAEntity<T> {
+}

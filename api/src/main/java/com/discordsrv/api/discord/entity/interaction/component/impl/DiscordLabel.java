@@ -21,30 +21,33 @@
  * SOFTWARE.
  */
 
-package com.discordsrv.api.discord.entity.interaction.component.actionrow;
+package com.discordsrv.api.discord.entity.interaction.component.impl;
 
-import com.discordsrv.api.discord.entity.interaction.component.ModalComponent;
+import com.discordsrv.api.discord.entity.JDAEntity;
+import com.discordsrv.api.discord.entity.interaction.component.component.LabelComponent;
+import net.dv8tion.jda.api.components.label.Label;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
-import java.util.Arrays;
-import java.util.List;
+public class DiscordLabel implements JDAEntity<Label> {
 
-public class ModalActionRow implements ActionRow<ModalComponent> {
-
-    public static ModalActionRow of(ModalComponent... components) {
-        if (components.length == 0) {
-            throw new IllegalArgumentException("Must include at least one component");
-        }
-        return new ModalActionRow(Arrays.asList(components));
+    @NotNull
+    public static DiscordLabel of(@NotNull String label, @Nullable String description, @NotNull LabelComponent<?> child) {
+        return new DiscordLabel(label, description, child);
     }
 
-    private final List<ModalComponent> components;
+    private final String label;
+    private final String description;
+    private final LabelComponent<?> child;
 
-    private ModalActionRow(List<ModalComponent> components) {
-        this.components = components;
+    private DiscordLabel(String label, String description, LabelComponent<?> child) {
+        this.label = label;
+        this.description = description;
+        this.child = child;
     }
 
     @Override
-    public List<ModalComponent> components() {
-        return components;
+    public Label asJDA() {
+        return Label.of(label, description, child.asJDA());
     }
 }

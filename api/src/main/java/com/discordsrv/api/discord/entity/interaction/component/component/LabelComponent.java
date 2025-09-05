@@ -21,30 +21,13 @@
  * SOFTWARE.
  */
 
-package com.discordsrv.api.discord.entity.interaction.component.actionrow;
+package com.discordsrv.api.discord.entity.interaction.component.component;
 
-import com.discordsrv.api.discord.entity.interaction.component.MessageComponent;
+import com.discordsrv.api.discord.entity.JDAEntity;
+import net.dv8tion.jda.api.components.label.LabelChildComponent;
+import org.jetbrains.annotations.ApiStatus;
 
-import java.util.Arrays;
-import java.util.List;
-
-public class MessageActionRow implements ActionRow<MessageComponent> {
-
-    public static MessageActionRow of(MessageComponent... components) {
-        if (components.length == 0) {
-            throw new IllegalArgumentException("Must include at least one component");
-        }
-        return new MessageActionRow(Arrays.asList(components));
-    }
-
-    private final List<MessageComponent> components;
-
-    private MessageActionRow(List<MessageComponent> components) {
-        this.components = components;
-    }
-
-    @Override
-    public List<MessageComponent> components() {
-        return components;
-    }
+@ApiStatus.NonExtendable
+@ApiStatus.Internal
+public interface LabelComponent<T extends LabelChildComponent> extends JDAEntity<T> {
 }

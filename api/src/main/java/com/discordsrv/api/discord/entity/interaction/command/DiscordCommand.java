@@ -23,11 +23,15 @@
 
 package com.discordsrv.api.discord.entity.interaction.command;
 
+import com.discordsrv.api.discord.entity.DiscordPermission;
 import com.discordsrv.api.discord.entity.JDAEntity;
 import com.discordsrv.api.discord.entity.interaction.component.ComponentIdentifier;
-import com.discordsrv.api.events.discord.interaction.command.*;
-import net.dv8tion.jda.api.Permission;
+import com.discordsrv.api.events.discord.interaction.command.AbstractCommandInteractionEvent;
+import com.discordsrv.api.events.discord.interaction.command.DiscordChatInputInteractionEvent;
+import com.discordsrv.api.events.discord.interaction.command.DiscordMessageContextInteractionEvent;
+import com.discordsrv.api.events.discord.interaction.command.DiscordUserContextInteractionEvent;
 import net.dv8tion.jda.api.interactions.DiscordLocale;
+import net.dv8tion.jda.api.interactions.InteractionContextType;
 import net.dv8tion.jda.api.interactions.commands.DefaultMemberPermissions;
 import net.dv8tion.jda.api.interactions.commands.build.*;
 import org.jetbrains.annotations.NotNull;
@@ -37,6 +41,7 @@ import org.jetbrains.annotations.Unmodifiable;
 import java.util.*;
 import java.util.function.Consumer;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 
 /**
  * A Discord command.
@@ -105,8 +110,8 @@ public class DiscordCommand implements JDAEntity<CommandData> {
     private final List<CommandOption> options;
     private final Map<String, CommandOption> optionMap;
     private final Long guildId;
-    private final boolean guildOnly;
-    private final DefaultPermission defaultPermission;
+    private final Boolean guildOnly;
+    private final DefaultAccess defaultAccess;
     private final Consumer<? extends AbstractCommandInteractionEvent<?>> eventHandler;
 
     private DiscordCommand(
@@ -118,8 +123,8 @@ public class DiscordCommand implements JDAEntity<CommandData> {
             List<DiscordCommand> subCommands,
             List<CommandOption> options,
             Long guildId,
-            boolean guildOnly,
-            DefaultPermission defaultPermission,
+            Boolean guildOnly,
+            DefaultAccess defaultAccess,
             Consumer<? extends AbstractCommandInteractionEvent<?>> eventHandler
     ) {
         this.id = id;
@@ -135,7 +140,7 @@ public class DiscordCommand implements JDAEntity<CommandData> {
         }
         this.guildId = guildId;
         this.guildOnly = guildOnly;
-        this.defaultPermission = defaultPermission;
+        this.defaultAccess = defaultAccess;
         this.eventHandler = eventHandler;
     }
 
@@ -199,13 +204,14 @@ public class DiscordCommand implements JDAEntity<CommandData> {
         return optionMap.get(name);
     }
 
-    public boolean isGuildOnly() {
+    @Nullable
+    public Boolean isGuildOnly() {
         return guildOnly;
     }
 
     @NotNull
-    public DefaultPermission getDefaultPermission() {
-        return defaultPermission;
+    public DiscordCommand.DefaultAccess getDefaultPermission() {
+        return defaultAccess;
     }
 
     @Nullable
@@ -247,7 +253,14 @@ public class DiscordCommand implements JDAEntity<CommandData> {
                 throw new IllegalStateException("Missing switch case");
         }
 
-        data.setGuildOnly(isGuildOnly()); // TODO: deal with deprecation
+        Boolean guildOnly = isGuildOnly();
+        if (guildOnly == null) {
+            data.setContexts(InteractionContextType.BOT_DM, InteractionContextType.GUILD);
+        } else if (guildOnly) {
+            data.setContexts(InteractionContextType.GUILD);
+        } else {
+            data.setContexts(InteractionContextType.BOT_DM);
+        }
         data.setDefaultPermissions(getDefaultPermission().asJDA());
 
         for (Map.Entry<Locale, String> entry : getNameTranslations().entrySet()) {
@@ -380,7 +393,7 @@ public class DiscordCommand implements JDAEntity<CommandData> {
                     options,
                     guildId,
                     guildOnly,
-                    defaultPermission,
+                    defaultAccess,
                     eventHandler
             );
         }
@@ -392,8 +405,8 @@ public class DiscordCommand implements JDAEntity<CommandData> {
         protected final CommandType type;
         protected final Map<Locale, String> nameTranslations = new LinkedHashMap<>();
         protected Long guildId = null;
-        protected boolean guildOnly = true;
-        protected DefaultPermission defaultPermission = DefaultPermission.EVERYONE;
+        protected Boolean guildOnly = true;
+        protected DefaultAccess defaultAccess = DefaultAccess.EVERYONE;
         protected Consumer<? extends AbstractCommandInteractionEvent<?>> eventHandler;
 
         private Builder(ComponentIdentifier id, CommandType type, String name) {
@@ -426,28 +439,40 @@ public class DiscordCommand implements JDAEntity<CommandData> {
          */
         public Builder<E> setGuildId(Long guildId) {
             this.guildId = guildId;
+            this.guildOnly = true;
             return this;
         }
 
-        /**
-         * Sets if this command is limited to Discord servers.
-         * @param guildOnly if this command is limited to Discord servers
-         * @return this builder, useful for chaining
-         */
-        @NotNull
         public Builder<E> setGuildOnly(boolean guildOnly) {
-            this.guildOnly = guildOnly;
+            return setContexts(guildOnly, this.guildOnly == false);
+        }
+
+        public Builder<E> setDMOnly(boolean dmOnly) {
+            return setContexts(guildOnly == true, dmOnly);
+        }
+
+        public Builder<E> setContexts(boolean guild, boolean dm) {
+            if (guild && dm) {
+                this.guildOnly = null;
+            } else if (guild) {
+                this.guildOnly = true;
+            } else if (dm) {
+                if (guildId != null) {
+                    throw new IllegalStateException("Cannot set to dm only when a guild id is set");
+                }
+                this.guildOnly = false;
+            }
             return this;
         }
 
         /**
          * Sets the permission level required to use the command by default.
-         * @param defaultPermission the permission level
+         * @param defaultAccess the permission level
          * @return this builder, useful for chaining
          */
         @NotNull
-        public Builder<E> setDefaultPermission(@NotNull DefaultPermission defaultPermission) {
-            this.defaultPermission = defaultPermission;
+        public Builder<E> setDefaultPermission(@NotNull DiscordCommand.DefaultAccess defaultAccess) {
+            this.defaultAccess = defaultAccess;
             return this;
         }
 
@@ -473,52 +498,49 @@ public class DiscordCommand implements JDAEntity<CommandData> {
                     Collections.emptyList(),
                     guildId,
                     guildOnly,
-                    defaultPermission,
+                    defaultAccess,
                     eventHandler
             );
         }
     }
 
-    public interface DefaultPermission extends JDAEntity<DefaultMemberPermissions> {
+    public interface DefaultAccess extends JDAEntity<DefaultMemberPermissions> {
 
-        DefaultPermission EVERYONE = new Simple(true);
-        DefaultPermission ADMINISTRATOR = new Simple(false);
+        DefaultAccess EVERYONE = new DefaultAccessSimple(true);
+        DefaultAccess ADMINISTRATOR = new DefaultAccessSimple(false);
 
-        DefaultPermission BAN_MEMBERS = Permissions.fromJDA(Permission.BAN_MEMBERS);
-        DefaultPermission MODERATE_MEMBERS = Permissions.fromJDA(Permission.MODERATE_MEMBERS);
-        DefaultPermission MANAGE_PERMISSIONS = Permissions.fromJDA(Permission.MANAGE_PERMISSIONS);
-        DefaultPermission MESSAGE_MANAGE = Permissions.fromJDA(Permission.MESSAGE_MANAGE);
+        static DefaultAccess permission(Collection<DiscordPermission> permission) {
+            return new DefaultAccessPermission(permission);
+        }
+    }
 
-        class Simple implements DefaultPermission {
+    private static class DefaultAccessSimple implements DefaultAccess {
 
-            private final boolean value;
+        private final boolean value;
 
-            private Simple(boolean value) {
-                this.value = value;
-            }
-
-            @Override
-            public DefaultMemberPermissions asJDA() {
-                return value ? DefaultMemberPermissions.ENABLED : DefaultMemberPermissions.DISABLED;
-            }
+        private DefaultAccessSimple(boolean value) {
+            this.value = value;
         }
 
-        class Permissions implements DefaultPermission {
+        @Override
+        public DefaultMemberPermissions asJDA() {
+            return value ? DefaultMemberPermissions.ENABLED : DefaultMemberPermissions.DISABLED;
+        }
+    }
 
-            public static Permissions fromJDA(Permission... permissions) {
-                return new Permissions(Permission.getRaw(permissions));
-            }
+    private static class DefaultAccessPermission implements DefaultAccess {
 
-            private final long permissions;
+        private final Collection<DiscordPermission> permissions;
 
-            public Permissions(long permissions) {
-                this.permissions = permissions;
-            }
+        public DefaultAccessPermission(Collection<DiscordPermission> permissions) {
+            this.permissions = permissions;
+        }
 
-            @Override
-            public DefaultMemberPermissions asJDA() {
-                return DefaultMemberPermissions.enabledFor(permissions);
-            }
+        @Override
+        public DefaultMemberPermissions asJDA() {
+            return DefaultMemberPermissions.enabledFor(
+                    permissions.stream().map(JDAEntity::asJDA).collect(Collectors.toList())
+            );
         }
     }
 

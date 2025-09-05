@@ -23,13 +23,15 @@
 
 package com.discordsrv.api.discord.entity.interaction.component.impl;
 
+import com.discordsrv.api.discord.entity.JDAEntity;
 import com.discordsrv.api.discord.entity.guild.DiscordCustomEmoji;
 import com.discordsrv.api.discord.entity.interaction.component.ComponentIdentifier;
-import com.discordsrv.api.discord.entity.interaction.component.MessageComponent;
+import com.discordsrv.api.discord.entity.interaction.component.component.ActionRowComponent;
 import com.discordsrv.api.events.discord.interaction.component.DiscordButtonInteractionEvent;
+import net.dv8tion.jda.api.components.buttons.Button;
+import net.dv8tion.jda.api.components.buttons.ButtonStyle;
 import net.dv8tion.jda.api.entities.emoji.Emoji;
-import net.dv8tion.jda.api.interactions.components.ItemComponent;
-import net.dv8tion.jda.api.interactions.components.buttons.ButtonStyle;
+import org.jetbrains.annotations.CheckReturnValue;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -41,7 +43,7 @@ import java.util.UUID;
  * @see #urlBuilder(String)
  * @see DiscordButtonInteractionEvent
  */
-public class Button implements MessageComponent {
+public class DiscordButton implements ActionRowComponent<Button> {
 
     /**
      * Creates a new Button builder.
@@ -51,7 +53,7 @@ public class Button implements MessageComponent {
      * @return a new button builder
      */
     @NotNull
-    public static Builder builder(@NotNull ComponentIdentifier id, @NotNull Button.Style style) {
+    public static Builder builder(@NotNull ComponentIdentifier id, @NotNull DiscordButton.Style style) {
         return new Builder(id.getDiscordIdentifier(), style);
     }
 
@@ -72,7 +74,7 @@ public class Button implements MessageComponent {
     private final Emoji emoji;
     private final boolean disabled;
 
-    private Button(
+    private DiscordButton(
             String id,
             Style buttonStyle,
             String url,
@@ -112,15 +114,16 @@ public class Button implements MessageComponent {
     }
 
     @Override
-    public ItemComponent asJDA() {
-        return net.dv8tion.jda.api.interactions.components.buttons.Button.of(
-                buttonStyle.getJDA(),
+    public Button asJDA() {
+        return Button.of(
+                buttonStyle.asJDA(),
                 idOrUrl,
                 label,
                 emoji
         ).withDisabled(disabled);
     }
 
+    @CheckReturnValue
     public static class Builder {
 
         private final String id;
@@ -198,11 +201,11 @@ public class Button implements MessageComponent {
          * Creates the button.
          * @return a new button
          */
-        public Button build() {
+        public DiscordButton build() {
             if (style == null) {
                 throw new IllegalStateException("No style set");
             }
-            return new Button(
+            return new DiscordButton(
                     id,
                     style,
                     style == Style.LINK ? url : UUID.randomUUID().toString(),
@@ -213,7 +216,7 @@ public class Button implements MessageComponent {
         }
     }
 
-    public enum Style {
+    public enum Style implements JDAEntity<ButtonStyle> {
         PRIMARY(ButtonStyle.PRIMARY),
         SECONDARY(ButtonStyle.SECONDARY),
         SUCCESS(ButtonStyle.SUCCESS),
@@ -226,7 +229,8 @@ public class Button implements MessageComponent {
             this.style = style;
         }
 
-        public ButtonStyle getJDA() {
+        @Override
+        public ButtonStyle asJDA() {
             return style;
         }
     }
