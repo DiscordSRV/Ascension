@@ -417,7 +417,6 @@ public class SendableDiscordMessageImpl implements SendableDiscordMessage {
                 return output.isEmpty() ? null : output;
             };
 
-
             PlainPlaceholderFormat.with(
                     PlainPlaceholderFormat.Formatting.DISCORD_MARKDOWN,
                     () -> builder.setContent(markdownPlaceholders.apply(builder.getContent()))

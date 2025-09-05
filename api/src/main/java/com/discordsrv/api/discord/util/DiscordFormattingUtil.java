@@ -31,6 +31,8 @@ import java.util.stream.Collectors;
 
 public final class DiscordFormattingUtil {
 
+    private static final Pattern CODE_STRING_REGEX_PREFIX = Pattern.compile("^`");
+    private static final Pattern CODE_STRING_REGEX_SUFFIX = Pattern.compile("`(?=`)|`$");
     private static final List<Character> FORMATTING_CHARACTERS = Arrays.asList('*', '_', '|', '`', '~', ':', '[');
     private static final Pattern FORMATTING_PATTERN = Pattern.compile(
             // Group 1 is for picking up if the character is part of a URL, in which case escaping will not occur
@@ -80,5 +82,17 @@ public final class DiscordFormattingUtil {
 
     public static String escapeMentions(String input) {
         return MENTION_PATTERN.matcher(input).replaceAll(Matcher.quoteReplacement("\\") + "$1");
+    }
+
+    public static String escapeCodeBlockContent(String input) {
+        return input.replace("``", "`\u200B`"); // zero-width-space
+    }
+
+    public static String makeCodeString(String content) {
+        // Add zero width spaces to prevent double backticks inside the block,
+        // and single backticks at the beginning and end of the block
+        content = CODE_STRING_REGEX_PREFIX.matcher(content).replaceAll("\u200B`"); // zero-width-space
+        content = CODE_STRING_REGEX_SUFFIX.matcher(content).replaceAll("`\u200B"); // zero-width-space
+        return "``" + content + "``";
     }
 }

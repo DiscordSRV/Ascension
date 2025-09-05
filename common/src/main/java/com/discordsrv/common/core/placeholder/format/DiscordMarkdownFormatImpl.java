@@ -18,6 +18,7 @@
 
 package com.discordsrv.common.core.placeholder.format;
 
+import com.discordsrv.api.discord.util.DiscordFormattingUtil;
 import com.discordsrv.api.placeholder.format.PlainPlaceholderFormat;
 import dev.vankka.mcdiscordreserializer.rules.DiscordMarkdownRules;
 import dev.vankka.mcdiscordreserializer.rules.StyleNode;
@@ -71,9 +72,9 @@ public class DiscordMarkdownFormatImpl implements PlainPlaceholderFormat {
                     String childText = ((TextNode<?>) node.getChildren().get(0)).getContent();
 
                     if (textStyle == StyleNode.Styles.CODE_STRING) {
-                        String blockContent = placeholders.apply(childText);
+                        String blockContent = PlainPlaceholderFormat.supplyWith(Formatting.PLAIN, () -> placeholders.apply(childText));
                         if (blockContent != null && !blockContent.isEmpty()) {
-                            finalText.append("`").append(blockContent).append("`");
+                            finalText.append(DiscordFormattingUtil.makeCodeString(blockContent));
                         }
                     } else if (textStyle instanceof StyleNode.CodeBlockStyle) {
                         String language = ((StyleNode.CodeBlockStyle) textStyle).getLanguage();
@@ -81,11 +82,13 @@ public class DiscordMarkdownFormatImpl implements PlainPlaceholderFormat {
                         if (language != null && language.equals("ansi")) {
                             String blockContent = PlainPlaceholderFormat.supplyWith(Formatting.ANSI, () -> placeholders.apply(childText));
                             if (blockContent != null && !blockContent.isEmpty()) {
+                                blockContent = DiscordFormattingUtil.escapeCodeBlockContent(blockContent);
                                 finalText.append("```ansi\n").append(blockContent).append("```");
                             }
                         } else {
                             String blockContent = PlainPlaceholderFormat.supplyWith(Formatting.PLAIN, () -> placeholders.apply(childText));
                             if (blockContent != null && !blockContent.isEmpty()) {
+                                blockContent = DiscordFormattingUtil.escapeCodeBlockContent(blockContent);
                                 finalText
                                         .append("```")
                                         .append(language != null ? language : "")

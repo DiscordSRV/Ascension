@@ -502,7 +502,7 @@ public class SingleConsoleHandler {
                 break;
             default:
                 // Inside a code block, prevent ending the code block
-                finalMessage = parsedMessage.replace("``", "`\u200B`"); // zero-width-space
+                finalMessage = DiscordFormattingUtil.escapeCodeBlockContent(parsedMessage);
                 break;
         }
 
