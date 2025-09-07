@@ -274,7 +274,7 @@ public class DiscordToMinecraftChatModule extends AbstractModule<DiscordSRV> {
                                + GameChannel.toString(gameChannel) + " and "
                                + (recipients != null ? recipients.size() : 0) + " players directly");
 
-        discordSRV.eventBus().publish(new DiscordChatMessagePostEvent(postProcessEvent, message, gameChannel));
+        discordSRV.eventBus().publish(new DiscordChatMessagePostEvent(postProcessEvent, message, gameChannel, recipients));
     }
 
     public static class DiscordTranslationRenderer extends TranslatableComponentRenderer<Object> {

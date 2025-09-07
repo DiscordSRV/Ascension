@@ -27,7 +27,13 @@ import com.discordsrv.api.channel.GameChannel;
 import com.discordsrv.api.component.MinecraftComponent;
 import com.discordsrv.api.events.Event;
 import com.discordsrv.api.events.message.postprocess.discord.DiscordChatMessagePostProcessEvent;
+import com.discordsrv.api.player.DiscordSRVPlayer;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+import org.jetbrains.annotations.Unmodifiable;
+
+import java.util.Collections;
+import java.util.List;
 
 /**
  * Indicates that a message from Discord was forwarded to the provided {@link GameChannel}.
@@ -45,26 +51,38 @@ public class DiscordChatMessagePostEvent implements Event {
     private final DiscordChatMessagePostProcessEvent preEvent;
     private final MinecraftComponent message;
     private final GameChannel channel;
+    private final List<DiscordSRVPlayer> recipients;
 
     public DiscordChatMessagePostEvent(
             @NotNull DiscordChatMessagePostProcessEvent preEvent,
             @NotNull MinecraftComponent message,
-            @NotNull GameChannel channel
+            @NotNull GameChannel channel,
+            @Nullable List<DiscordSRVPlayer> recipients
     ) {
         this.preEvent = preEvent;
         this.message = message;
         this.channel = channel;
+        this.recipients = recipients != null ? Collections.unmodifiableList(recipients) : null;
     }
 
+    @NotNull
     public DiscordChatMessagePostProcessEvent getPreEvent() {
         return preEvent;
     }
 
+    @NotNull
     public MinecraftComponent getMessage() {
         return message;
     }
 
+    @NotNull
     public GameChannel getChannel() {
         return channel;
+    }
+
+    @Nullable
+    @Unmodifiable
+    public List<DiscordSRVPlayer> getRecipients() {
+        return recipients;
     }
 }
