@@ -107,4 +107,12 @@ public class BukkitPlayerImpl extends BukkitPlayer {
         }
         return super.teamDisplayName();
     }
+
+    @Override
+    public boolean isChatVisible() {
+        if (!PaperPlayerUtil.CLIENT_OPTION_SUPPORTED) {
+            return true;
+        }
+        return PaperPlayerUtil.isChatVisible(player);
+    }
 }

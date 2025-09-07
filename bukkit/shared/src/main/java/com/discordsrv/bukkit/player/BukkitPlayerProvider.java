@@ -74,12 +74,13 @@ public class BukkitPlayerProvider extends ServerPlayerProvider<BukkitPlayer, Buk
         addPlayer(player, false);
     }
 
-    private void addPlayer(Player player, boolean initial) {
-        BukkitPlayer existingPlayer = addPlayer(player.getUniqueId(), playerConstructor.apply(player), initial);
-        if (existingPlayer != null) {
+    private BukkitPlayer addPlayer(Player player, boolean initial) {
+        BukkitPlayer srvPlayer = addPlayer(player.getUniqueId(), playerConstructor.apply(player), initial);
+        if (srvPlayer != null) {
             // Replace Player instance we're keeping
-            existingPlayer.setPlayer(player);
+            srvPlayer.setPlayer(player);
         }
+        return srvPlayer;
     }
 
     @EventHandler(priority = EventPriority.MONITOR)
@@ -89,6 +90,10 @@ public class BukkitPlayerProvider extends ServerPlayerProvider<BukkitPlayer, Buk
 
     public BukkitPlayer player(Player player) {
         BukkitPlayer srvPlayer = player(player.getUniqueId());
+        if (srvPlayer == null && player.isOnline()) {
+            // Something super early wants the online player, so we need to create it
+            srvPlayer = addPlayer(player, false);
+        }
         if (srvPlayer == null) {
             throw new IllegalStateException("Player not available");
         }

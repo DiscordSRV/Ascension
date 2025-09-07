@@ -80,5 +80,10 @@ public interface IPlayer extends DiscordSRVPlayer, IOfflinePlayer, ICommandSende
     }
 
     @Override
+    default boolean isChatVisible() {
+        return true;
+    }
+
+    @Override
     @Nullable Locale locale();
 }

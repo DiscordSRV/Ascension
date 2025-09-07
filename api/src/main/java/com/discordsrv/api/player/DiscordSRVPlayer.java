@@ -65,6 +65,13 @@ public interface DiscordSRVPlayer {
     boolean isVanished();
 
     /**
+     * If the player has chat visibility set to "Full".
+     * Some messages will not be sent to the player if this isn't {@code true}.
+     * @return {@code false} if chat visibility isn't "Full"
+     */
+    boolean isChatVisible();
+
+    /**
      * Sends the provided message to the player.
      * @param component the message
      */

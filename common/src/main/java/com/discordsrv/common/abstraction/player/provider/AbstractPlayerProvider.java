@@ -78,7 +78,7 @@ public abstract class AbstractPlayerProvider<T extends IPlayer, DT extends Disco
         if (UUIDUtil.isOffline(uuid)) {
             anyOffline.set(true);
         }
-        return null;
+        return player;
     }
 
     protected void removePlayer(UUID uuid) {

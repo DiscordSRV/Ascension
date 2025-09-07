@@ -23,8 +23,8 @@ import com.discordsrv.common.DiscordSRV;
 import com.discordsrv.common.abstraction.player.IPlayer;
 import com.discordsrv.common.abstraction.player.provider.model.SkinInfo;
 import com.discordsrv.fabric.FabricDiscordSRV;
-import com.discordsrv.fabric.command.game.sender.FabricCommandSender;
 import com.discordsrv.fabric.accessor.ServerPlayerEntityAccessor;
+import com.discordsrv.fabric.command.game.sender.FabricCommandSender;
 import net.kyori.adventure.identity.Identity;
 import net.kyori.adventure.text.Component;
 import net.minecraft.scoreboard.Team;
@@ -35,10 +35,6 @@ import org.jetbrains.annotations.Nullable;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Locale;
-
-//? if minecraft: >1.19 {
-import net.minecraft.network.packet.s2c.play.ChatSuggestionsS2CPacket;
-//?}
 
 public class FabricPlayer extends FabricCommandSender implements IPlayer {
 
@@ -82,7 +78,10 @@ public class FabricPlayer extends FabricCommandSender implements IPlayer {
     @Override
     public void addChatSuggestions(Collection<String> suggestions) {
         //? if minecraft: >1.19 {
-        ChatSuggestionsS2CPacket packet = new ChatSuggestionsS2CPacket(ChatSuggestionsS2CPacket.Action.ADD, new ArrayList<>(suggestions));
+        net.minecraft.network.packet.s2c.play.ChatSuggestionsS2CPacket packet = new net.minecraft.network.packet.s2c.play.ChatSuggestionsS2CPacket(
+                net.minecraft.network.packet.s2c.play.ChatSuggestionsS2CPacket.Action.ADD,
+                new ArrayList<>(suggestions)
+        );
         player.networkHandler.sendPacket(packet);
         //?}
     }
@@ -90,7 +89,10 @@ public class FabricPlayer extends FabricCommandSender implements IPlayer {
     @Override
     public void removeChatSuggestions(Collection<String> suggestions) {
         //? if minecraft: >1.19 {
-        ChatSuggestionsS2CPacket packet = new ChatSuggestionsS2CPacket(ChatSuggestionsS2CPacket.Action.REMOVE, new ArrayList<>(suggestions));
+        net.minecraft.network.packet.s2c.play.ChatSuggestionsS2CPacket packet = new net.minecraft.network.packet.s2c.play.ChatSuggestionsS2CPacket(
+                net.minecraft.network.packet.s2c.play.ChatSuggestionsS2CPacket.Action.REMOVE,
+                new ArrayList<>(suggestions)
+        );
         player.networkHandler.sendPacket(packet);
         //?}
     }
@@ -133,14 +135,13 @@ public class FabricPlayer extends FabricCommandSender implements IPlayer {
     @Override
     public @NotNull Component displayName() {
         //? if adventure: >=5.3.0 {
-        Component displayName = player.getOrDefaultFrom(
+        return player.getOrDefaultFrom(
                 Identity.DISPLAY_NAME,
                 () -> discordSRV.componentFactory().fromNative(player.getName())
         );
         //?} else {
-        /*Component displayName = Component.text(player.getName().getString());
+        /*return Component.text(player.getName().getString());
         *///?}
-        return displayName;
     }
 
     @Override
@@ -151,7 +152,19 @@ public class FabricPlayer extends FabricCommandSender implements IPlayer {
         }
 
         return discordSRV.componentFactory().fromNative(team.decorateName(player.getName()));
+    }
 
+    @Override
+    public boolean isChatVisible() {
+        //? if minecraft: >1.20.1 {
+        net.minecraft.network.message.ChatVisibility chatVisibility = player.getClientOptions().chatVisibility();
+        return chatVisibility != net.minecraft.network.message.ChatVisibility.SYSTEM
+                && chatVisibility != net.minecraft.network.message.ChatVisibility.HIDDEN;
+        //?} else {
+        /*net.minecraft.client.option.ChatVisibility chatVisibility = player.getClientChatVisibility();
+        return chatVisibility != net.minecraft.client.option.ChatVisibility.SYSTEM
+                && chatVisibility != net.minecraft.client.option.ChatVisibility.HIDDEN;
+        *///?}
     }
 
     @Override

@@ -26,6 +26,7 @@ import com.discordsrv.common.abstraction.player.provider.model.Textures;
 import com.discordsrv.velocity.VelocityDiscordSRV;
 import com.discordsrv.velocity.command.game.sender.VelocityCommandSender;
 import com.velocitypowered.api.proxy.Player;
+import com.velocitypowered.api.proxy.player.PlayerSettings;
 import com.velocitypowered.api.proxy.player.SkinParts;
 import com.velocitypowered.api.util.GameProfile;
 import net.kyori.adventure.identity.Identity;
@@ -113,6 +114,13 @@ public class VelocityPlayer extends VelocityCommandSender implements IPlayer {
                 Identity.DISPLAY_NAME,
                 () -> Component.text(player.getUsername())
         );
+    }
+
+    @Override
+    public boolean isChatVisible() {
+        PlayerSettings.ChatMode chatMode = player.getPlayerSettings().getChatMode();
+        return chatMode != PlayerSettings.ChatMode.COMMANDS_ONLY
+                && chatMode != PlayerSettings.ChatMode.HIDDEN;
     }
 
     @Override

@@ -84,6 +84,18 @@ public final class PaperPlayerUtil {
         return player.locale();
     }
 
+    @ApiStatus.AvailableSince("Paper 1.15")
+    public static final boolean CLIENT_OPTION_SUPPORTED = ReflectionUtil.classExists("com.destroystokyo.paper.ClientOption");
+
+    public static boolean isChatVisible(Player player) {
+        if (!CLIENT_OPTION_SUPPORTED) {
+            return true;
+        }
+        ClientOption.ChatVisibility chatVisibility = player.getClientOption(ClientOption.CHAT_VISIBILITY);
+        return chatVisibility != ClientOption.ChatVisibility.SYSTEM
+                && chatVisibility != ClientOption.ChatVisibility.HIDDEN;
+    }
+
     private static final boolean SKIN_AVAILABLE = ReflectionUtil.classExists("com.destroystokyo.paper.profile.PlayerProfile")
             && ReflectionUtil.methodExists("com.destroystokyo.paper.profile.PlayerProfile", "getTextures");
     public static final boolean SKIN_AVAILABLE_ONLINE = SKIN_AVAILABLE && ReflectionUtil.methodExists(Player.class, "getPlayerProfile", new String[0]);

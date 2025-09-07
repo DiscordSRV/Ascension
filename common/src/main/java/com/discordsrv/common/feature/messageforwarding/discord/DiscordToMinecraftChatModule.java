@@ -236,6 +236,10 @@ public class DiscordToMinecraftChatModule extends AbstractModule<DiscordSRV> {
         Collection<? extends DiscordSRVPlayer> channelRecipients = gameChannel.getRecipients();
         List<DiscordSRVPlayer> recipients = channelRecipients != null ? new ArrayList<>(channelRecipients) : null;
 
+        if (recipients != null) {
+            recipients.removeIf(player -> !player.isChatVisible());
+        }
+
         DiscordChatMessagePostProcessEvent postProcessEvent = new DiscordChatMessagePostProcessEvent(event, gameChannel, message, recipients);
         discordSRV.eventBus().publish(postProcessEvent);
         if (checkCancellation(postProcessEvent)) {
