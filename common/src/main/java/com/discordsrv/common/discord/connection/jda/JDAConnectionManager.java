@@ -44,7 +44,6 @@ import com.discordsrv.common.discord.api.DiscordAPIImpl;
 import com.discordsrv.common.discord.api.entity.message.ReceivedDiscordMessageImpl;
 import com.discordsrv.common.discord.connection.DiscordConnectionManager;
 import com.discordsrv.common.discord.connection.details.DiscordConnectionDetailsImpl;
-import com.discordsrv.common.feature.linking.LinkProvider;
 import com.discordsrv.common.helper.Timeout;
 import com.neovisionaries.ws.client.ProxySettings;
 import com.neovisionaries.ws.client.WebSocketFactory;
@@ -326,20 +325,9 @@ public class JDAConnectionManager implements DiscordConnectionManager {
             }
         });
 
-        MemberCachePolicy memberCachingPolicy;
-        if (memberCachingConfig.all) {
-            memberCachingPolicy = MemberCachePolicy.ALL;
-        } else if (memberCachingConfig.linkedUsers) {
-            memberCachingPolicy = member -> {
-                LinkProvider provider = discordSRV.linkProvider();
-                if (provider == null) {
-                    return false;
-                }
-                return provider.getCached(member.getIdLong()).isPresent();
-            };
-        } else {
-            memberCachingPolicy = MemberCachePolicy.NONE;
-        }
+        MemberCachePolicy memberCachingPolicy = memberCachingConfig.enable
+                ? MemberCachePolicy.ALL
+                : MemberCachePolicy.NONE;
 
         boolean cacheAnyMembers = memberCachingPolicy != MemberCachePolicy.NONE;
         int lruAmount = memberCachingConfig.lru;
