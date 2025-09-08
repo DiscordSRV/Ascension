@@ -28,13 +28,13 @@ import com.discordsrv.api.placeholder.annotation.PlaceholderPrefix;
 import net.dv8tion.jda.api.entities.User;
 
 /**
- * A Discord user's primary guild (server).
+ * A Discord user's primary server.
  */
-@PlaceholderPrefix("primary_guild_")
+@PlaceholderPrefix("primary_server_")
 public interface DiscordUserPrimaryGuild extends JDAEntity<User.PrimaryGuild>, Snowflake {
 
     /**
-     * Gets the Discord user associated with this primary guild.
+     * Gets the Discord user associated with this primary server.
      *
      * @return The Discord user.
      */
@@ -42,7 +42,7 @@ public interface DiscordUserPrimaryGuild extends JDAEntity<User.PrimaryGuild>, S
     DiscordUser getUser();
 
     /**
-     * Checks if the user has identity enabled for this primary guild.
+     * Checks if the user has identity enabled for this primary server.
      *
      * @return True if identity is enabled, false otherwise.
      */
@@ -50,17 +50,17 @@ public interface DiscordUserPrimaryGuild extends JDAEntity<User.PrimaryGuild>, S
     boolean identityEnabled();
 
     /**
-     * Gets the tag of the primary guild.
+     * Gets the tag of the primary server.
      *
-     * @return The primary guild tag
+     * @return The primary server tag
      */
     @Placeholder("tag")
     String getTag();
 
     /**
-     * Gets the badge of the primary guild.
+     * Gets the badge of the primary server.
      *
-     * @return The primary guild badge URL.
+     * @return The primary server badge URL.
      */
     @Placeholder("badge_url")
     String getBadgeUrl();

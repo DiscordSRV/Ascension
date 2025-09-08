@@ -38,10 +38,10 @@ import org.jetbrains.annotations.Nullable;
 public interface DiscordUser extends JDAEntity<User>, Snowflake, Mentionable {
 
     /**
-     * Gets the user's primary guild or null if they don't any.
-     * @return the user's primary guild or null
+     * Gets the user's primary server or null if they don't any.
+     * @return the user's primary server or null
      */
-    @Placeholder("primary_guild")
+    @Placeholder("primary_server")
     @Nullable
     DiscordUserPrimaryGuild getPrimaryGuild();
 
