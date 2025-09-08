@@ -72,6 +72,10 @@ public class DiscordUserImpl implements DiscordUser {
 
     @Override
     public DiscordUserPrimaryGuild getPrimaryGuild() {
+        if (user.getPrimaryGuild() == null) {
+            return null;
+        }
+
         return discordSRV.discordAPI().getUserPrimaryGuild(user);
     }
 
