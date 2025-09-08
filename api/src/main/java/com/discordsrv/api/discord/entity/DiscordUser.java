@@ -38,6 +38,14 @@ import org.jetbrains.annotations.Nullable;
 public interface DiscordUser extends JDAEntity<User>, Snowflake, Mentionable {
 
     /**
+     * Gets the user's primary guild or null if they don't any.
+     * @return the user's primary guild or null
+     */
+    @Placeholder("primary_guild")
+    @Nullable
+    DiscordUserPrimaryGuild getPrimaryGuild();
+
+    /**
      * Gets if this user is the bot this DiscordSRV instance is connected.
      * @return true if this user is the bot connected to this DiscordSRV instance
      */
