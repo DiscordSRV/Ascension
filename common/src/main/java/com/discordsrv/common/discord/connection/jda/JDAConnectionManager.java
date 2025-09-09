@@ -325,7 +325,7 @@ public class JDAConnectionManager implements DiscordConnectionManager {
             }
         });
 
-        MemberCachePolicy memberCachingPolicy = memberCachingConfig.enable
+        MemberCachePolicy memberCachingPolicy = memberCachingConfig.enabled
                 ? MemberCachePolicy.ALL
                 : MemberCachePolicy.NONE;
 
