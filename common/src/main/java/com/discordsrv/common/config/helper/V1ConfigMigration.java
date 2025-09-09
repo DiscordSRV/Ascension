@@ -22,12 +22,16 @@ import com.discordsrv.common.DiscordSRV;
 import com.discordsrv.common.abstraction.sync.enums.SyncDirection;
 import com.discordsrv.common.config.connection.ConnectionConfig;
 import com.discordsrv.common.config.main.ConsoleConfig;
-import com.discordsrv.common.config.main.sync.GroupSyncConfig;
 import com.discordsrv.common.config.main.MainConfig;
 import com.discordsrv.common.config.main.channels.DiscordToMinecraftChatConfig;
+import com.discordsrv.common.config.main.channels.JoinMessageConfig;
 import com.discordsrv.common.config.main.channels.base.BaseChannelConfig;
 import com.discordsrv.common.config.main.channels.base.ChannelConfig;
+import com.discordsrv.common.config.main.channels.base.server.ServerBaseChannelConfig;
 import com.discordsrv.common.config.main.generic.DiscordOutputMode;
+import com.discordsrv.common.config.main.generic.GameCommandExecutionConditionConfig;
+import com.discordsrv.common.config.main.sync.GroupSyncConfig;
+import net.dv8tion.jda.api.utils.MiscUtil;
 import org.spongepowered.configurate.ConfigurateException;
 import org.spongepowered.configurate.ConfigurationNode;
 import org.spongepowered.configurate.serialize.SerializationException;
@@ -35,9 +39,8 @@ import org.spongepowered.configurate.yaml.YamlConfigurationLoader;
 
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.Collections;
-import java.util.List;
-import java.util.Locale;
+import java.util.*;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 public class V1ConfigMigration {
@@ -69,11 +72,28 @@ public class V1ConfigMigration {
         }
     }
 
-    public void migrate(MainConfig mainConfig) throws SerializationException {
+    public void migrate(MainConfig mainConfig, boolean recommendedOnly) throws SerializationException {
         mainConfig.channels.remove("global");
         BaseChannelConfig defaultChannel = mainConfig.channels.get("default");
         if (defaultChannel != null) {
             defaultChannel.discordToMinecraft.enabled = config.node("DiscordChatChannelDiscordToMinecraft").getBoolean(true);
+            defaultChannel.minecraftToDiscord.enabled = config.node("DiscordChatChannelMinecraftToDiscord").getBoolean(true);
+
+            if (!recommendedOnly) {
+                int truncateLength = config.node("DiscordChatChannelTruncateLength").getInt(-1);
+                if (truncateLength > 0 && truncateLength < 4000) {
+                    defaultChannel.discordToMinecraft.contentRegexFilters.put(Pattern.compile("(.{" + truncateLength + "}).*"), "$1");
+                }
+            }
+
+            boolean mentionsEnabled = config.node("DiscordChatChannelTranslateMentions").getBoolean(true);
+            List<String> allowedMentions = mentionsEnabled
+                                           ? config.node("DiscordChatChannelAllowedMentions").getList(String.class, Collections.emptyList())
+                                           : Collections.emptyList();
+            defaultChannel.minecraftToDiscord.mentions.channels = allowedMentions.contains("channel");
+            defaultChannel.minecraftToDiscord.mentions.everyone = allowedMentions.contains("everyone");
+            defaultChannel.minecraftToDiscord.mentions.roles = allowedMentions.contains("role");
+            defaultChannel.minecraftToDiscord.mentions.users = allowedMentions.contains("user");
 
             String emojiBehaviour = config.node("DiscordChatChannelEmojiBehavior").getString();
             if ("show".equalsIgnoreCase(emojiBehaviour)) {
@@ -81,6 +101,38 @@ public class V1ConfigMigration {
             } else if ("hide".equalsIgnoreCase(emojiBehaviour)) {
                 defaultChannel.discordToMinecraft.unicodeEmojiBehaviour = DiscordToMinecraftChatConfig.EmojiBehaviour.HIDE;
             }
+            // Missing: DiscordChatChannelEmojiBehavior = name
+            // Missing: DiscordChatChannelEmoteBehavior
+
+
+            if (!recommendedOnly) {
+                String requiredPrefix = config.node("DiscordChatChannelPrefixRequiredToProcessMessage").getString();
+                boolean blacklist = config.node("DiscordChatChannelPrefixActsAsBlacklist").getBoolean(true);
+                if (requiredPrefix != null && blacklist) {
+                    // Remove messages starting with the prefix
+                    defaultChannel.minecraftToDiscord.contentRegexFilters.put(
+                            Pattern.compile("^" + Pattern.quote(requiredPrefix) + "[\\w\\W]*"),
+                            ""
+                    );
+                } else if (requiredPrefix != null) {
+                    // Remove anything except messages that start with the prefix
+                    defaultChannel.minecraftToDiscord.contentRegexFilters.put(
+                            Pattern.compile("^(?!" + Pattern.quote(requiredPrefix) + ")[\\w\\W]*"),
+                            ""
+                    );
+                    // Remove the prefix
+                    defaultChannel.minecraftToDiscord.contentRegexFilters.put(
+                            Pattern.compile("^" + Pattern.quote(requiredPrefix) + "([\\w\\W]*)"),
+                            "$1"
+                    );
+                }
+            }
+
+            // Missing: DiscordChatChannelRolesAllowedToUseColorCodesInChat
+
+            defaultChannel.discordToMinecraft.logToConsole = config.node("DiscordChatChannelBroadcastDiscordMessagesToConsole").getBoolean(true);
+
+            // Missing: DiscordChatChannelRequireLinkedAccount
 
             defaultChannel.discordToMinecraft.ignores.bots = config.node("DiscordChatChannelBlockBots").getBoolean(false);
             defaultChannel.discordToMinecraft.ignores.webhooks = config.node("DiscordChatChannelWebhooks").getBoolean(true);
@@ -89,22 +141,49 @@ public class V1ConfigMigration {
             defaultChannel.discordToMinecraft.ignores.roleIds.whitelist = config.node("DiscordChatChannelBlockedRolesAsWhitelist").getBoolean(false);
             defaultChannel.discordToMinecraft.ignores.roleIds.ids = config.node("DiscordChatChannelBlockedRolesIds").getList(Long.class);
 
-            defaultChannel.minecraftToDiscord.enabled = config.node("DiscordChatChannelMinecraftToDiscord").getBoolean(true);
-            List<String> allowedMentions = config.node("DiscordChatChannelAllowedMentions").getList(String.class, Collections.emptyList());
-            defaultChannel.minecraftToDiscord.mentions.channels = allowedMentions.contains("channel");
-            defaultChannel.minecraftToDiscord.mentions.everyone = allowedMentions.contains("everyone");
-            defaultChannel.minecraftToDiscord.mentions.roles = allowedMentions.contains("role");
-            defaultChannel.minecraftToDiscord.mentions.users = allowedMentions.contains("user");
+            defaultChannel.roleSelection.blacklist = !config.node("DiscordChatChannelRolesSelectionAsWhitelist").getBoolean(false);
+            defaultChannel.roleSelection.ids = config.node("DiscordChatChannelRolesSelection").getList(String.class, Collections.emptyList())
+                    .stream().map(value -> {
+                        try {
+                            return MiscUtil.parseLong(value);
+                        } catch (NumberFormatException ignored) {
+                            return null;
+                        }
+                    }).filter(Objects::nonNull).collect(Collectors.toList());
+
+            // Missing: DiscordChatChannelRoleAliases
+
+            // Missing: DiscordChatChannelGameFilters
+            // Missing: DiscordChatChannelDiscordFilters
+
+            defaultChannel.joinMessages().enabled = config.node("MinecraftPlayerJoinMessage").node("Enabled").getBoolean(true);
+            JoinMessageConfig.FirstJoin firstJoinMessages = defaultChannel.joinMessages().firstJoin();
+            if (firstJoinMessages != null) {
+                firstJoinMessages.enabled = config.node("MinecraftPlayerFirstJoinMessage").node("Enabled").getBoolean(true);
+            }
+
+            defaultChannel.leaveMessages.enabled = config.node("MinecraftPlayerLeaveMessage").node("Enabled").getBoolean(true);
+            if (defaultChannel instanceof ServerBaseChannelConfig) {
+                ((ServerBaseChannelConfig)defaultChannel).deathMessages.enabled = config.node("MinecraftPlayerDeathMessage").node("Enabled").getBoolean(true);
+                ((ServerBaseChannelConfig)defaultChannel).awardMessages.enabled = config.node("MinecraftPlayerAchievementMessage").node("Enabled").getBoolean(true);
+            }
+
+            defaultChannel.startMessage.enabled = !config.node("DiscordChatChannelServerStartupMessage").getString("").isEmpty();
+            defaultChannel.stopMessage.enabled = !config.node("DiscordChatChannelServerShutdownMessage").getString("").isEmpty();
         }
 
+        List<Long> channelIds = new ArrayList<>();
         config.node("Channels").childrenMap().forEach((key, value) -> {
             String channelId = value.getString();
             if (!(key instanceof String) || channelId == null) {
                 return;
             }
 
+            long id = MiscUtil.parseLong(channelId);
+            channelIds.add(id);
+
             ChannelConfig channelConfig = new ChannelConfig();
-            channelConfig.destination.channelIds = Collections.singletonList(Long.parseUnsignedLong(channelId));
+            channelConfig.destination.channelIds = Collections.singletonList(id);
             channelConfig.destination.threads = Collections.emptyList();
             mainConfig.channels.put((String) key, channelConfig);
         });
@@ -112,32 +191,62 @@ public class V1ConfigMigration {
         String consoleChannelId = config.node("DiscordConsoleChannelId").getString("");
         if (!consoleChannelId.replace("0", "").isEmpty()) {
             ConsoleConfig consoleConfig = new ConsoleConfig();
-            consoleConfig.channel.channelId = Long.parseUnsignedLong(consoleChannelId);
-            consoleConfig.appender.outputMode = config.node("DiscordConsoleChannelUseCodeBlocks").getBoolean() ? DiscordOutputMode.DIFF : DiscordOutputMode.PLAIN;
+            consoleConfig.channel.channelId = MiscUtil.parseLong(consoleChannelId);
+
+            GameCommandExecutionConditionConfig condition = new GameCommandExecutionConditionConfig();
+            consoleConfig.commandExecution.executionConditions.clear();
+            condition.commands.addAll(config.node("DiscordConsoleChannelBlacklistedCommands").getList(String.class, Collections.emptyList()));
+            condition.blacklist = !config.node("DiscordConsoleChannelBlacklistActsAsWhitelist").getBoolean(true);
+
+            // Missing: DiscordConsoleChannelFilters
+
             consoleConfig.appender.levels.levels = config.node("DiscordConsoleChannelLevels").getList(String.class, Collections.emptyList())
                     .stream().map(level -> level.toUpperCase(Locale.ROOT)).collect(Collectors.toList());
             consoleConfig.appender.levels.blacklist = false;
+
+            consoleConfig.appender.outputMode = config.node("DiscordConsoleChannelUseCodeBlocks").getBoolean()
+                                                ? DiscordOutputMode.DIFF : DiscordOutputMode.PLAIN;
 
             mainConfig.console.clear();
             mainConfig.console.add(consoleConfig);
         }
 
-        boolean toMinecraft = synchronization.node("BanSynchronizationDiscordToMinecraft").getBoolean(true);
-        boolean toDiscord = synchronization.node("BanSynchronizationMinecraftToDiscord").getBoolean(true);
+        // Missing: DiscordChatChannelListCommandEnabled
+
+        mainConfig.channelUpdater.textChannels.clear();
+        // Missing: all topic options
+
+        mainConfig.channelUpdater.voiceChannels.clear();
+        // Missing: ChannelUpdater
+
+        // Missing: DiscordCannedResponses
+
+        // Missing: MinecraftDiscordAccountLinkedConsoleCommands
+        // Missing: MinecraftDiscordAccountUnlinkedConsoleCommands
+
+        try {
+            long roleId = config.node("MinecraftDiscordAccountLinkedRoleNameToAddUserTo").getLong(0);
+            if (roleId != 0) {
+                mainConfig.linkedRole.roleIds.clear();
+                mainConfig.linkedRole.roleIds.add(roleId);
+            }
+        } catch (NumberFormatException ignored) {}
+
+        boolean bansToMinecraft = synchronization.node("BanSynchronizationDiscordToMinecraft").getBoolean(true);
+        boolean bansToDiscord = synchronization.node("BanSynchronizationMinecraftToDiscord").getBoolean(true);
         SyncDirection banSyncDirection = SyncDirection.BIDIRECTIONAL;
-        if (toMinecraft && !toDiscord) {
+        if (bansToMinecraft && !bansToDiscord) {
             banSyncDirection = SyncDirection.DISCORD_TO_MINECRAFT;
-        } else if (!toMinecraft && toDiscord) {
+        } else if (!bansToMinecraft && bansToDiscord) {
             banSyncDirection = SyncDirection.MINECRAFT_TO_DISCORD;
         }
 
         mainConfig.banSync.direction = banSyncDirection;
 
-
-        boolean minecraftIsTieBreaker = synchronization.node("GroupRoleSynchronizationMinecraftIsAuthoritative").getBoolean(true);
-        boolean oneWay = synchronization.node("GroupRoleSynchronizationOneWay").getBoolean(false);
-        SyncDirection groupSyncDirection = oneWay
-                                           ? (minecraftIsTieBreaker ? SyncDirection.MINECRAFT_TO_DISCORD : SyncDirection.DISCORD_TO_MINECRAFT)
+        boolean groupSyncMinecraftIsTieBreaker = synchronization.node("GroupRoleSynchronizationMinecraftIsAuthoritative").getBoolean(true);
+        boolean groupSyncOneWay = synchronization.node("GroupRoleSynchronizationOneWay").getBoolean(false);
+        SyncDirection groupSyncDirection = groupSyncOneWay
+                                           ? (groupSyncMinecraftIsTieBreaker ? SyncDirection.MINECRAFT_TO_DISCORD : SyncDirection.DISCORD_TO_MINECRAFT)
                                            : SyncDirection.BIDIRECTIONAL;
         int groupSyncCycleTime = synchronization.node("GroupRoleSynchronizationCycleTime").getInt();
 
@@ -157,10 +266,16 @@ public class V1ConfigMigration {
 
             GroupSyncConfig.PairConfig pairConfig = new GroupSyncConfig.PairConfig();
             pairConfig.groupName = (String) key;
-            pairConfig.roleId = Long.parseUnsignedLong(roleId);
+            pairConfig.roleId = MiscUtil.parseLong(roleId);
 
             groupSyncSet.pairs.add(pairConfig);
         });
+
+        // Missing: NicknameSynchronizationEnabled
+        mainConfig.nicknameSync.timer.cycleTime = config.node("NicknameSynchronizationCycleTime").getInt(3);
+        // Missing: NicknameSynchronizationFormat
+
+        // Missing: Require linked account to play
     }
 
     public void migrate(ConnectionConfig connectionConfig) {
