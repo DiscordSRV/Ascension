@@ -4,6 +4,10 @@ This is a temporary repository for developing the next major version of DiscordS
 if you are interested in more details, contributing or testing builds join our [Discord server](https://discord.discordsrv.com), 
 opt-in to the `Tester` role in `Channels & Roles` and check out the `#ascension-testing` forum.
 
+### API
+
+We do not recommend using the API yet. No API stability guaranteed, breaking changes WILL happen.
+
 ### License
 
 DiscordSRV is dual licensed
