@@ -114,10 +114,10 @@ public class MentionGameRenderingModule extends AbstractModule<DiscordSRV> {
         for (DiscordGuild discordGuild : guilds) {
             Guild guild = discordGuild.asJDA();
             if (guilds.size() == 1) {
-                mentions.addAll(module.getMemberMentions(guild).values());
+                mentions.addAll(module.getMemberCache().getGuildCache(guild).values());
             }
-            mentions.addAll(module.getRoleMentions(guild).values());
-            mentions.addAll(module.getChannelMentions(guild).values());
+            mentions.addAll(module.getRoleCache().getGuildCache(guild).values());
+            mentions.addAll(module.getChannelCache().getGuildCache(guild).values());
         }
 
         List<String> newMentionSuggestions = mentions.stream()
@@ -215,10 +215,7 @@ public class MentionGameRenderingModule extends AbstractModule<DiscordSRV> {
         for (CachedMention cachedMention : cachedMentions) {
             message = message.replaceText(
                     TextReplacementConfig.builder().match(cachedMention.search())
-                            .replacement((builder) -> {
-                                Component component = replacement(cachedMention, config, singleGuild, members);
-                                return component;
-                            })
+                            .replacement((builder) -> replacement(cachedMention, config, singleGuild, members))
                             .build()
             );
         }
