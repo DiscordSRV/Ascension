@@ -53,6 +53,14 @@ public interface DiscordAPI {
     DiscordChannel getChannelById(long id);
 
     /**
+     * Gets a Discord category by id, the provided entity should not be stored for long periods of time.
+     * @param id the id for the category
+     * @return the category
+     */
+    @Nullable
+    DiscordCategory getCategoryById(long id);
+
+    /**
      * Gets a Discord message channel by id, the provided entity should not be stored for long periods of time.
      * @param id the id for the message channel
      * @return the message channel

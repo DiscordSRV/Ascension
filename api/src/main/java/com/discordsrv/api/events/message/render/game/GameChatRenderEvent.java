@@ -49,7 +49,7 @@ public class GameChatRenderEvent implements PlayerEvent, Processable.Argument<Mi
     public GameChatRenderEvent(
             @Nullable Object triggeringEvent,
             @NotNull DiscordSRVPlayer player,
-            @NotNull GameChannel channel,
+            @Nullable GameChannel channel,
             @NotNull MinecraftComponent message
     ) {
         this.triggeringEvent = triggeringEvent;
@@ -67,6 +67,7 @@ public class GameChatRenderEvent implements PlayerEvent, Processable.Argument<Mi
         return player;
     }
 
+    @Nullable
     public GameChannel getChannel() {
         return channel;
     }

@@ -25,6 +25,7 @@ package com.discordsrv.api.discord.entity.guild;
 
 import com.discordsrv.api.discord.entity.JDAEntity;
 import com.discordsrv.api.discord.entity.Snowflake;
+import com.discordsrv.api.discord.entity.channel.DiscordGuildChannel;
 import com.discordsrv.api.placeholder.annotation.Placeholder;
 import com.discordsrv.api.placeholder.annotation.PlaceholderPrefix;
 import com.discordsrv.api.task.Task;
@@ -101,5 +102,7 @@ public interface DiscordGuild extends JDAEntity<Guild>, Snowflake {
      */
     @NotNull
     List<DiscordRole> getRoles();
+
+    List<DiscordGuildChannel> getChannels();
 
 }

@@ -724,6 +724,7 @@ public abstract class AbstractDiscordSRV<
         placeholderService().addGlobalContext(BooleanFormattingContext.class);
         placeholderService().addGlobalContext(StringFormattingContext.class);
         placeholderService().addGlobalContext(UUIDUtil.class);
+        placeholderService().addGlobalContext(Color.class);
 
         // Modules
         registerModule(BanSyncModule::new);

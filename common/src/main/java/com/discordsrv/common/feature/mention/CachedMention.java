@@ -51,7 +51,7 @@ public class CachedMention {
         return searchLength;
     }
 
-    public String mention() {
+    public String discordMention() {
         return mention;
     }
 
@@ -63,6 +63,9 @@ public class CachedMention {
         return id;
     }
 
+    /**
+     * For roles if the role can be mentioned by anyone.
+     */
     public boolean mentionable() {
         return mentionable;
     }

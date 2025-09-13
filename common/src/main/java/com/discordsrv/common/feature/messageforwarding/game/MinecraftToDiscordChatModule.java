@@ -196,7 +196,7 @@ public class MinecraftToDiscordChatModule extends AbstractGameMessageModule<Mine
                     config.contentRegexFilters.forEach(messagePlaceholders::replaceAll);
 
                     if (mentions != null) {
-                        mentions.forEach(mention -> messagePlaceholders.replaceAll(mention.search(), mention.mention()));
+                        mentions.forEach(mention -> messagePlaceholders.replaceAll(mention.search(), mention.discordMention()));
                     }
 
                     String finalMessage = messagePlaceholders.toString();

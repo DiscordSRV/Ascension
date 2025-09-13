@@ -25,6 +25,8 @@ package com.discordsrv.api.color;
 
 import com.discordsrv.api.placeholder.annotation.Placeholder;
 import com.discordsrv.api.placeholder.annotation.PlaceholderPrefix;
+import com.discordsrv.api.placeholder.annotation.PlaceholderRemainder;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.Objects;
 
@@ -40,6 +42,18 @@ public class Color {
     public static final Color BLURPLE = new Color(0x5865F2);
     public static final Color WHITE = new Color(0xFFFFFF);
     public static final Color BLACK = new Color(0);
+
+    @Placeholder("hex")
+    @NotNull
+    public static Color fromHex(@PlaceholderRemainder String hex) {
+        if (hex.length() == 7 && hex.startsWith("#")) {
+            hex = hex.substring(1);
+        }
+        if (hex.length() != 6) {
+            throw new IllegalArgumentException("Invalid length hex");
+        }
+        return new Color(Integer.parseInt(hex, 16));
+    }
 
     private final int rgb;
 

@@ -82,6 +82,9 @@ public class MinecraftToDiscordChatConfig implements IMessageConfig {
         @Comment("Should mentions be rendered in Minecraft when sent in Minecraft")
         public boolean renderMentionsInGame = true;
 
+        @Comment("Suggest mentions as chat completions in-game")
+        public boolean suggestMentionsCompletionsInGame = true;
+
         @Comment("If role mentions should be rendered on Discord\n\n"
                 + "The player needs one of the below permission to trigger notifications:\n"
                 + "- discordsrv.mention.role.<role id> (to mention a specific role)\n"

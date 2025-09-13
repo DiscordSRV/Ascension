@@ -137,6 +137,10 @@ public class DiscordAPIImpl implements DiscordAPI {
         if (mediaChannel != null) {
             return mediaChannel;
         }
+        DiscordCategory category = getCategoryById(id);
+        if (category != null) {
+            return category;
+        }
 
         return getMessageChannelById(id);
     }
@@ -178,6 +182,8 @@ public class DiscordAPIImpl implements DiscordAPI {
             return getMediaChannel((MediaChannel) jda);
         } else if (jda instanceof MessageChannel) {
             return getMessageChannel((MessageChannel) jda);
+        } else if (jda instanceof Category) {
+            return getCategory((Category) jda);
         } else {
             throw new IllegalArgumentException("Unmappable Channel type: " + jda.getClass().getName());
         }
@@ -208,6 +214,15 @@ public class DiscordAPIImpl implements DiscordAPI {
         }
 
         return map.apply(entity);
+    }
+
+    @Override
+    public @Nullable DiscordCategory getCategoryById(long id) {
+        return mapJDAEntity(jda -> jda.getCategoryById(id), this::getCategory);
+    }
+
+    public DiscordCategoryImpl getCategory(Category jda) {
+        return new DiscordCategoryImpl(discordSRV, jda);
     }
 
     @Override

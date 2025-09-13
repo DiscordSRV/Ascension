@@ -19,15 +19,18 @@
 package com.discordsrv.common.feature.mention;
 
 import com.discordsrv.api.discord.connection.details.DiscordGatewayIntent;
+import com.discordsrv.api.discord.entity.guild.DiscordGuild;
 import com.discordsrv.api.eventbus.Subscribe;
+import com.discordsrv.api.reload.ReloadResult;
 import com.discordsrv.api.task.Task;
 import com.discordsrv.common.DiscordSRV;
 import com.discordsrv.common.abstraction.player.IPlayer;
 import com.discordsrv.common.config.main.channels.MinecraftToDiscordChatConfig;
 import com.discordsrv.common.config.main.channels.base.BaseChannelConfig;
+import com.discordsrv.common.config.main.channels.base.IChannelConfig;
+import com.discordsrv.common.config.main.generic.DestinationConfig;
 import com.discordsrv.common.core.module.type.AbstractModule;
 import com.discordsrv.common.permission.game.Permissions;
-import com.github.benmanes.caffeine.cache.Cache;
 import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.entities.Member;
 import net.dv8tion.jda.api.entities.Message;
@@ -40,16 +43,17 @@ import net.dv8tion.jda.api.events.channel.update.ChannelUpdateNameEvent;
 import net.dv8tion.jda.api.events.guild.GuildLeaveEvent;
 import net.dv8tion.jda.api.events.guild.member.GuildMemberJoinEvent;
 import net.dv8tion.jda.api.events.guild.member.GuildMemberRemoveEvent;
-import net.dv8tion.jda.api.events.guild.member.update.GuildMemberUpdateNicknameEvent;
+import net.dv8tion.jda.api.events.guild.member.GuildMemberUpdateEvent;
 import net.dv8tion.jda.api.events.role.RoleCreateEvent;
 import net.dv8tion.jda.api.events.role.RoleDeleteEvent;
 import net.dv8tion.jda.api.events.role.update.RoleUpdateNameEvent;
 import org.apache.commons.lang3.tuple.Pair;
 import org.jetbrains.annotations.NotNull;
 
-import java.time.Duration;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.function.Consumer;
+import java.util.function.Predicate;
 import java.util.function.Supplier;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -59,15 +63,12 @@ public class MentionCachingModule extends AbstractModule<DiscordSRV> {
 
     private static final Pattern USER_MENTION_PATTERN = Pattern.compile("(?<!<)@([a-z0-9_.]{2,32})");
 
-    private final Cache<Pair<Long, Long>, CachedMention> memberMentionsCache;
+    private final Map<Long, Map<Long, CachedMention>> memberMentions = new ConcurrentHashMap<>();
     private final Map<Long, Map<Long, CachedMention>> roleMentions = new ConcurrentHashMap<>();
     private final Map<Long, Map<Long, CachedMention>> channelMentions = new ConcurrentHashMap<>();
 
     public MentionCachingModule(DiscordSRV discordSRV) {
         super(discordSRV);
-        this.memberMentionsCache = discordSRV.caffeineBuilder()
-                .expireAfterWrite(Duration.ofMinutes(5))
-                .build();
     }
 
     @Override
@@ -91,10 +92,57 @@ public class MentionCachingModule extends AbstractModule<DiscordSRV> {
     }
 
     @Override
+    public void reload(Consumer<ReloadResult> resultConsumer) {
+        for (Long guildId : new HashSet<>(memberMentions.keySet())) {
+            if (shouldNotCache(guildId, config -> config.users)) {
+                memberMentions.remove(guildId);
+            }
+        }
+        for (Long guildId : new HashSet<>(roleMentions.keySet())) {
+            if (shouldNotCache(guildId, config -> config.roles)) {
+                memberMentions.remove(guildId);
+            }
+        }
+        for (Long guildId : new HashSet<>(channelMentions.keySet())) {
+            if (shouldNotCache(guildId, config -> config.channels)) {
+                memberMentions.remove(guildId);
+            }
+        }
+    }
+
+    @Override
     public void disable() {
-        memberMentionsCache.invalidateAll();
+        memberMentions.clear();
         roleMentions.clear();
         channelMentions.clear();
+    }
+
+    private boolean shouldNotCache(long guildId, Predicate<MinecraftToDiscordChatConfig.Mentions> predicate) {
+        DiscordGuild guild = discordSRV.discordAPI().getGuildById(guildId);
+        if (guild == null) {
+            return false;
+        }
+
+        for (BaseChannelConfig config : discordSRV.channelConfig().getAllChannels()) {
+            if (!(config instanceof IChannelConfig)) {
+                continue;
+            }
+
+            DestinationConfig destination = ((IChannelConfig) config).destination();
+            if (!destination.contains(guild)) {
+                continue;
+            }
+
+            MinecraftToDiscordChatConfig chatConfig = config.minecraftToDiscord;
+            if (!chatConfig.enabled) {
+                continue;
+            }
+
+            if (predicate.test(chatConfig.mentions)) {
+                return false;
+            }
+        }
+        return true;
     }
 
     private boolean canLookupUncached(MinecraftToDiscordChatConfig.Mentions config, IPlayer player) {
@@ -140,7 +188,11 @@ public class MentionCachingModule extends AbstractModule<DiscordSRV> {
         List<Task<CachedMention>> futures = new ArrayList<>();
         if (canLookupUncached(config, player)) {
             for (Long userId : userIds) {
-                futures.add(discordSRV.discordAPI().toTask(guild.retrieveMemberById(userId)).thenApply(this::getMemberMention));
+                futures.add(
+                        discordSRV.discordAPI()
+                                .toTask(guild.retrieveMemberById(userId))
+                                .thenApply(this::getMemberMention)
+                );
             }
         } else {
             for (Long userId : userIds) {
@@ -224,7 +276,7 @@ public class MentionCachingModule extends AbstractModule<DiscordSRV> {
     @Subscribe
     public void onGuildDelete(GuildLeaveEvent event) {
         long guildId = event.getGuild().getIdLong();
-        memberMentionsCache.asMap().keySet().removeIf(pair -> pair.getKey() == guildId);
+        memberMentions.remove(guildId);
         roleMentions.remove(guildId);
         channelMentions.remove(guildId);
     }
@@ -255,15 +307,25 @@ public class MentionCachingModule extends AbstractModule<DiscordSRV> {
         });
     }
 
-    private Pair<Long, Long> getMemberKey(Member member) {
-        return Pair.of(member.getGuild().getIdLong(), member.getIdLong());
+    private CachedMention getMemberMention(Member member) {
+        CachedMention cachedMention = getMemberMentions(member.getGuild()).get(member.getIdLong());
+        if (cachedMention == null) {
+            cachedMention = convertMember(member);
+        }
+        return cachedMention;
     }
 
-    private CachedMention getMemberMention(Member member) {
-        return memberMentionsCache.get(
-                getMemberKey(member),
-                key -> convertMember(member)
-        );
+    public Map<Long, CachedMention> getMemberMentions(Guild guild) {
+        if (shouldNotCache(guild.getIdLong(), config -> config.users)) {
+            return Collections.emptyMap();
+        }
+        return memberMentions.computeIfAbsent(guild.getIdLong(), key -> {
+            Map<Long, CachedMention> mentions = new LinkedHashMap<>();
+            for (Member member : guild.getMembers()) {
+                mentions.put(member.getIdLong(), convertMember(member));
+            }
+            return mentions;
+        });
     }
 
     private CachedMention convertMember(Member member) {
@@ -278,41 +340,56 @@ public class MentionCachingModule extends AbstractModule<DiscordSRV> {
 
     @Subscribe
     public void onMemberAdd(GuildMemberJoinEvent event) {
+        if (shouldNotCache(event.getGuild().getIdLong(), config -> config.users)) {
+            return;
+        }
+
         Member member = event.getMember();
         if (member.getGuild().getMemberCache().getElementById(member.getIdLong()) == null) {
             // Member is not cached
             return;
         }
 
-        memberMentionsCache.put(getMemberKey(member), convertMember(member));
+        getMemberMentions(event.getGuild()).put(member.getIdLong(), convertMember(member));
     }
 
     @Subscribe
-    public void onMemberUpdate(GuildMemberUpdateNicknameEvent event) {
+    public void onMemberUpdate(GuildMemberUpdateEvent event) {
+        if (shouldNotCache(event.getGuild().getIdLong(), config -> config.users)) {
+            return;
+        }
+
         Member member = event.getMember();
         if (member.getGuild().getMemberCache().getElementById(member.getIdLong()) == null) {
             // Member is not cached
             return;
         }
 
-        memberMentionsCache.put(getMemberKey(member), convertMember(member));
+        getMemberMentions(event.getGuild()).put(member.getIdLong(), convertMember(member));
     }
 
     @Subscribe
     public void onMemberDelete(GuildMemberRemoveEvent event) {
+        if (shouldNotCache(event.getGuild().getIdLong(), config -> config.users)) {
+            return;
+        }
+
         Member member = event.getMember();
         if (member == null) {
             return;
         }
 
-        memberMentionsCache.invalidate(getMemberKey(member));
+        getMemberMentions(event.getGuild()).remove(member.getIdLong());
     }
 
     //
     // Role
     //
 
-    private Map<Long, CachedMention> getRoleMentions(Guild guild) {
+    public Map<Long, CachedMention> getRoleMentions(Guild guild) {
+        if (shouldNotCache(guild.getIdLong(), config -> config.roles)) {
+            return Collections.emptyMap();
+        }
         return roleMentions.computeIfAbsent(guild.getIdLong(), key -> {
             Map<Long, CachedMention> mentions = new LinkedHashMap<>();
             for (Role role : guild.getRoles()) {
@@ -334,18 +411,30 @@ public class MentionCachingModule extends AbstractModule<DiscordSRV> {
 
     @Subscribe
     public void onRoleCreate(RoleCreateEvent event) {
+        if (shouldNotCache(event.getGuild().getIdLong(), config -> config.roles)) {
+            return;
+        }
+
         Role role = event.getRole();
         getRoleMentions(event.getGuild()).put(role.getIdLong(), convertRole(role));
     }
 
     @Subscribe
     public void onRoleUpdate(RoleUpdateNameEvent event) {
+        if (shouldNotCache(event.getGuild().getIdLong(), config -> config.roles)) {
+            return;
+        }
+
         Role role = event.getRole();
         getRoleMentions(event.getGuild()).put(role.getIdLong(), convertRole(role));
     }
 
     @Subscribe
     public void onRoleDelete(RoleDeleteEvent event) {
+        if (shouldNotCache(event.getGuild().getIdLong(), config -> config.roles)) {
+            return;
+        }
+
         Role role = event.getRole();
         getRoleMentions(event.getGuild()).remove(role.getIdLong());
     }
@@ -354,7 +443,10 @@ public class MentionCachingModule extends AbstractModule<DiscordSRV> {
     // Channel
     //
 
-    private Map<Long, CachedMention> getChannelMentions(Guild guild) {
+    public Map<Long, CachedMention> getChannelMentions(Guild guild) {
+        if (shouldNotCache(guild.getIdLong(), config -> config.channels)) {
+            return Collections.emptyMap();
+        }
         return channelMentions.computeIfAbsent(guild.getIdLong(), key -> {
             Map<Long, CachedMention> mentions = new LinkedHashMap<>();
             for (GuildChannel channel : guild.getChannels()) {
@@ -381,6 +473,9 @@ public class MentionCachingModule extends AbstractModule<DiscordSRV> {
 
     @Subscribe
     public void onChannelCreate(ChannelCreateEvent event) {
+        if (shouldNotCache(event.getGuild().getIdLong(), config -> config.channels)) {
+            return;
+        }
         if (!event.getChannelType().isGuild()) {
             return;
         }
@@ -391,6 +486,9 @@ public class MentionCachingModule extends AbstractModule<DiscordSRV> {
 
     @Subscribe
     public void onChannelUpdate(ChannelUpdateNameEvent event) {
+        if (shouldNotCache(event.getGuild().getIdLong(), config -> config.channels)) {
+            return;
+        }
         if (!event.getChannelType().isGuild()) {
             return;
         }
@@ -401,6 +499,9 @@ public class MentionCachingModule extends AbstractModule<DiscordSRV> {
 
     @Subscribe
     public void onChannelDelete(ChannelDeleteEvent event) {
+        if (shouldNotCache(event.getGuild().getIdLong(), config -> config.channels)) {
+            return;
+        }
         if (!event.getChannelType().isGuild()) {
             return;
         }

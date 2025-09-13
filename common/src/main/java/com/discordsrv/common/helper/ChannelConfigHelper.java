@@ -252,6 +252,11 @@ public class ChannelConfigHelper {
         return gameChannel != null ? get(gameChannel) : null;
     }
 
+    @Nullable
+    public BaseChannelConfig resolveDefault() {
+        return resolve(null, GameChannel.DEFAULT_NAME);
+    }
+
     @NotNull
     public Map<GameChannel, BaseChannelConfig> resolve(DiscordMessageChannel channel) {
         Map<String, BaseChannelConfig> pairs = get(channel);

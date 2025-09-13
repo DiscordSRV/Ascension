@@ -63,14 +63,14 @@ public interface DiscordRole extends JDAEntity<Role>, Snowflake, Mentionable {
      * Does this role have a color.
      * @return true if this role has a set color
      */
-    default boolean hasColor() {
+    default boolean hasCustomColor() {
         return !DEFAULT_COLOR.equals(getColor());
     }
 
     /**
      * The color of this rule.
      * @return the color of this role, or {@link #DEFAULT_COLOR} if there is no color set
-     * @see #hasColor()
+     * @see #hasCustomColor()
      */
     @Placeholder("color")
     @NotNull

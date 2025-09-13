@@ -18,6 +18,8 @@
 
 package com.discordsrv.common.discord.api.entity.guild;
 
+import com.discordsrv.api.discord.entity.channel.DiscordChannel;
+import com.discordsrv.api.discord.entity.channel.DiscordGuildChannel;
 import com.discordsrv.api.discord.entity.guild.DiscordGuild;
 import com.discordsrv.api.discord.entity.guild.DiscordGuildMember;
 import com.discordsrv.api.discord.entity.guild.DiscordRole;
@@ -26,6 +28,7 @@ import com.discordsrv.common.DiscordSRV;
 import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.entities.Member;
 import net.dv8tion.jda.api.entities.Role;
+import net.dv8tion.jda.api.entities.channel.middleman.GuildChannel;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -103,6 +106,23 @@ public class DiscordGuildImpl implements DiscordGuild {
             roles.add(discordSRV.discordAPI().getRole(role));
         }
         return roles;
+    }
+
+    @Override
+    public List<DiscordGuildChannel> getChannels() {
+        List<DiscordGuildChannel> channels = new ArrayList<>();
+        for (GuildChannel channel : guild.getChannels()) {
+            DiscordChannel discordChannel;
+            try {
+                discordChannel = discordSRV.discordAPI().getChannel(channel);
+            } catch (IllegalArgumentException ignored) {
+                continue;
+            }
+            if (discordChannel instanceof DiscordGuildChannel) {
+                channels.add((DiscordGuildChannel) discordChannel);
+            }
+        }
+        return channels;
     }
 
     @Override

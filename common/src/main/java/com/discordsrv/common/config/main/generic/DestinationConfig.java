@@ -19,17 +19,16 @@
 package com.discordsrv.common.config.main.generic;
 
 import com.discordsrv.api.discord.entity.channel.DiscordChannel;
+import com.discordsrv.api.discord.entity.channel.DiscordGuildChannel;
 import com.discordsrv.api.discord.entity.channel.DiscordThreadChannel;
+import com.discordsrv.api.discord.entity.guild.DiscordGuild;
 import com.discordsrv.common.config.configurate.annotation.Constants;
 import org.apache.commons.lang3.StringUtils;
 import org.spongepowered.configurate.objectmapping.ConfigSerializable;
 import org.spongepowered.configurate.objectmapping.meta.Comment;
 import org.spongepowered.configurate.objectmapping.meta.Setting;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.Objects;
+import java.util.*;
 
 @ConfigSerializable
 public class DestinationConfig {
@@ -101,6 +100,19 @@ public class DestinationConfig {
         }
 
         return channelIds.contains(channel.getId());
+    }
+
+    public boolean contains(DiscordGuild guild) {
+        Set<Long> allChannelIds = new HashSet<>(channelIds.size() + threads.size());
+        allChannelIds.addAll(channelIds);
+        threads.forEach(thread -> allChannelIds.add(thread.channelId));
+
+        for (DiscordGuildChannel channel : guild.getChannels()) {
+            if (allChannelIds.contains(channel.getId())) {
+                return true;
+            }
+        }
+        return false;
     }
 
     @Override
