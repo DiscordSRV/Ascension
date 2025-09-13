@@ -37,6 +37,7 @@ import com.discordsrv.common.config.main.channels.base.IChannelConfig;
 import com.discordsrv.common.config.main.generic.DestinationConfig;
 import com.discordsrv.common.config.main.generic.ThreadConfig;
 import com.discordsrv.common.discord.api.entity.DiscordUserImpl;
+import com.discordsrv.common.discord.api.entity.DiscordUserPrimaryGuildImpl;
 import com.discordsrv.common.discord.api.entity.channel.*;
 import com.discordsrv.common.discord.api.entity.guild.DiscordCustomEmojiImpl;
 import com.discordsrv.common.discord.api.entity.guild.DiscordGuildImpl;
@@ -317,6 +318,10 @@ public class DiscordAPIImpl implements DiscordAPI {
 
     public DiscordUserImpl getUser(User jda) {
         return new DiscordUserImpl(discordSRV, jda);
+    }
+
+    public DiscordUserPrimaryGuildImpl getUserPrimaryGuild(User jda) {
+        return new DiscordUserPrimaryGuildImpl(discordSRV, jda);
     }
 
     @Override

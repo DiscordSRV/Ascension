@@ -19,6 +19,7 @@
 package com.discordsrv.common.discord.api.entity;
 
 import com.discordsrv.api.discord.entity.DiscordUser;
+import com.discordsrv.api.discord.entity.DiscordUserPrimaryGuild;
 import com.discordsrv.api.discord.entity.channel.DiscordDMChannel;
 import com.discordsrv.api.placeholder.annotation.Placeholder;
 import com.discordsrv.api.placeholder.annotation.PlaceholderPrefix;
@@ -67,6 +68,15 @@ public class DiscordUserImpl implements DiscordUser {
     @Override
     public long getId() {
         return user.getIdLong();
+    }
+
+    @Override
+    public DiscordUserPrimaryGuild getPrimaryGuild() {
+        if (user.getPrimaryGuild() == null) {
+            return null;
+        }
+
+        return discordSRV.discordAPI().getUserPrimaryGuild(user);
     }
 
     @Override

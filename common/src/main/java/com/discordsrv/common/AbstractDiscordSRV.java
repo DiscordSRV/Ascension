@@ -20,6 +20,7 @@ package com.discordsrv.common;
 
 import com.discordsrv.api.color.Color;
 import com.discordsrv.api.discord.entity.DiscordUser;
+import com.discordsrv.api.discord.entity.DiscordUserPrimaryGuild;
 import com.discordsrv.api.discord.entity.channel.DiscordChannel;
 import com.discordsrv.api.discord.entity.guild.DiscordGuild;
 import com.discordsrv.api.discord.entity.guild.DiscordGuildMember;
@@ -706,6 +707,7 @@ public abstract class AbstractDiscordSRV<
         placeholderService().addReLookup(SkinInfo.class, "skin");
         placeholderService().addReLookup(SkinInfo.Parts.class, "skin_parts");
         placeholderService().addReLookup(DiscordUser.class, "user");
+        placeholderService().addReLookup(DiscordUserPrimaryGuild.class, "primary_server");
         placeholderService().addReLookup(DiscordChannel.class, "channel");
         placeholderService().addReLookup(DiscordGuild.class, "server");
         placeholderService().addReLookup(DiscordRole.class, "role");

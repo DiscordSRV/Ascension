@@ -18,6 +18,7 @@
 
 package com.discordsrv.common.integration;
 
+import com.discordsrv.api.discord.entity.DiscordUser;
 import com.discordsrv.api.discord.entity.guild.DiscordGuildMember;
 import com.discordsrv.api.discord.entity.guild.DiscordRole;
 import com.discordsrv.api.eventbus.Subscribe;
@@ -367,6 +368,7 @@ public class LuckPermsIntegration<T> extends PluginIntegration<DiscordSRV> imple
         }
 
         for (Guild guild : jda.getGuilds()) {
+            contextSet.add("discordsrv:primary_server_id", guild.getId());
             contextSet.add("discordsrv:server_id", guild.getId());
             contextSet.add("discordsrv:boosting", guild.getId());
 
@@ -403,8 +405,17 @@ public class LuckPermsIntegration<T> extends PluginIntegration<DiscordSRV> imple
             return contextSet;
         }
 
+        DiscordUser user = discordSRV.discordAPI().getUserById(link.userId());
+        if (user == null) {
+            return contextSet;
+        }
+
+        if (user.getPrimaryGuild() != null) {
+            contextSet.add("discordsrv:primary_server_id", String.valueOf(user.getPrimaryGuild().getId()));
+        }
+
         for (Guild guild : jda.getGuilds()) {
-            Member member = guild.getMemberById(link.userId());
+            Member member = guild.getMemberById(user.getId());
             if (member != null) {
                 DiscordGuildMember discordGuildMember = discordSRV.discordAPI().getGuildMember(member);
 
