@@ -30,6 +30,7 @@ import com.discordsrv.api.discord.entity.guild.DiscordRole;
 import com.discordsrv.api.discord.entity.message.ReceivedDiscordMessage;
 import com.discordsrv.api.events.message.render.game.CustomEmojiRenderEvent;
 import com.discordsrv.common.DiscordSRV;
+import com.discordsrv.common.config.main.channels.DiscordToMinecraftChatConfig;
 import com.discordsrv.common.config.main.channels.base.BaseChannelConfig;
 import com.discordsrv.common.config.main.generic.MentionsConfig;
 import com.discordsrv.common.core.component.renderer.DiscordSRVMinecraftRenderer;
@@ -274,11 +275,30 @@ public class ComponentFactory implements MinecraftComponentFactory {
     }
 
     public Component minecraftSerialize(ReceivedDiscordMessage message, BaseChannelConfig config, String discordMessage) {
+        DiscordToMinecraftChatConfig.FormattingLimitConfig formattingLimit = config.discordToMinecraft.formattingLimit;
+        DiscordUser user = message.getAuthor();
+        DiscordGuildMember member = message.getMember();
+        boolean allowed = formattingLimit.roleAndUserIds.stream().anyMatch(id -> {
+            if (id == user.getId()) {
+                return true;
+            }
+            if (member == null) {
+                return false;
+            }
+            for (DiscordRole role : member.getRoles()) {
+                if (role.getId() == id) {
+                    return true;
+                }
+            }
+            return false;
+        }) != formattingLimit.blacklist;
+
         return DiscordSRVMinecraftRenderer.getWithContext(
                 message.getGuild(),
                 message.getMentionedUsers(),
                 message.getMentionedMembers(),
                 config,
+                allowed,
                 () -> minecraftSerializer().serialize(discordMessage)
         );
     }

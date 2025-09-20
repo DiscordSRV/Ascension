@@ -54,13 +54,83 @@ public class DiscordSRVMinecraftRenderer extends DefaultMinecraftRenderer {
             @Nullable Set<DiscordUser> users,
             @Nullable Set<DiscordGuildMember> members,
             BaseChannelConfig config,
+            boolean canUseFormatting,
             Supplier<T> supplier
     ) {
         Context oldValue = CONTEXT.get();
-        CONTEXT.set(new Context(guild, users, members, config));
-        T output = supplier.get();
-        CONTEXT.set(oldValue);
+        T output;
+        try {
+            CONTEXT.set(new Context(guild, users, members, config, canUseFormatting));
+            output = supplier.get();
+        } finally {
+            CONTEXT.set(oldValue);
+        }
         return output;
+    }
+
+    private boolean preventUseOfFormatting() {
+        Context context = CONTEXT.get();
+        if (context == null) {
+            return false;
+        }
+
+        return !context.canUseFormatting;
+    }
+
+    @Override
+    public @NotNull Component strikethrough(@NotNull Component component) {
+        if (preventUseOfFormatting()) {
+            return component;
+        }
+        return super.strikethrough(component);
+    }
+
+    @Override
+    public @NotNull Component underline(@NotNull Component component) {
+        if (preventUseOfFormatting()) {
+            return component;
+        }
+        return super.underline(component);
+    }
+
+    @Override
+    public @NotNull Component italics(@NotNull Component component) {
+        if (preventUseOfFormatting()) {
+            return component;
+        }
+        return super.italics(component);
+    }
+
+    @Override
+    public @NotNull Component bold(@NotNull Component component) {
+        if (preventUseOfFormatting()) {
+            return component;
+        }
+        return super.bold(component);
+    }
+
+    @Override
+    public @NotNull Component codeString(@NotNull Component component) {
+        if (preventUseOfFormatting()) {
+            return component;
+        }
+        return super.codeString(component);
+    }
+
+    @Override
+    public @NotNull Component codeBlock(@NotNull Component component) {
+        if (preventUseOfFormatting()) {
+            return component;
+        }
+        return super.codeBlock(component);
+    }
+
+    @Override
+    public @NotNull Component appendQuote(@NotNull Component component, @NotNull Component content) {
+        if (preventUseOfFormatting()) {
+            return component;
+        }
+        return super.appendQuote(component, content);
     }
 
     @Override
@@ -175,17 +245,20 @@ public class DiscordSRVMinecraftRenderer extends DefaultMinecraftRenderer {
         private final Set<DiscordUser> users;
         private final Set<DiscordGuildMember> members;
         private final BaseChannelConfig config;
+        private final boolean canUseFormatting;
 
         public Context(
                 DiscordGuild guild,
                 Set<DiscordUser> users,
                 Set<DiscordGuildMember> members,
-                BaseChannelConfig config
+                BaseChannelConfig config,
+                boolean canUseFormatting
         ) {
             this.guild = guild;
             this.users = users;
             this.members = members;
             this.config = config;
+            this.canUseFormatting = canUseFormatting;
         }
     }
 }

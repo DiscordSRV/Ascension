@@ -103,6 +103,18 @@ public class DiscordToMinecraftChatConfig {
         SHOW
     }
 
+    public FormattingLimitConfig formattingLimit = new FormattingLimitConfig();
+
+    @ConfigSerializable
+    public static class FormattingLimitConfig {
+
+        @Comment("The role and user ids that should/should not have their markdown formatting converted in Minecraft")
+        public List<Long> roleAndUserIds = new ArrayList<>();
+
+        @Comment("true for blacklisting the specified roles and users, false for whitelisting")
+        public boolean blacklist = true;
+    }
+
     @Comment("The number of milliseconds by which to delay processing Discord messages, if the message is deleted in that time it will not be processed.\n"
             + "This can be used together with Discord moderation bots, to filter forwarded messages")
     public Long delayMillis = 0L;
