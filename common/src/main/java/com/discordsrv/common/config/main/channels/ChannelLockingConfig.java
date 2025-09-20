@@ -32,6 +32,7 @@ public class ChannelLockingConfig {
         ConfigurateConfigManager.nullAllFields(this);
     }
 
+    @Comment("The bot needs to have the \"Mention Permissions\" permission in the channels to change permissions of channels")
     public Channels channels = new Channels();
     public Threads threads = new Threads();
 
@@ -59,7 +60,8 @@ public class ChannelLockingConfig {
         @Comment("If the configured threads should be archived when the server is shutdown")
         public boolean archive = false;
 
-        @Comment("If the configured threads should be locked while the server is shutdown")
+        @Comment("If the configured threads should be locked while the server is shutdown\n"
+                + "The bot needs to have the \"Mention Threads\" permission to do this")
         public boolean lock = true;
 
     }

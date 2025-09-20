@@ -34,17 +34,43 @@ import java.util.*;
 public class DestinationConfig {
 
     @Setting("channel-ids")
-    @Comment("The text, announcement, voice and/or stage channel ids this in-game channel will forward to in Discord")
+    @Comment("The text, announcement, voice and/or stage channel ids this in-game channel will forward to in Discord\n"
+            + "The bot needs to have the following permissions in these channels:\n"
+            + "- \"View Channel\"\n"
+            + "- \"Send Messages\" to non-webhook messages\n"
+            + "- \"Manage Webhooks\" to send webhook messages"
+    )
     public List<Long> channelIds = new ArrayList<>();
 
     @Setting("threads")
-    @Comment("The threads that this in-game channel will forward to in Discord (this can be used with or instead of the %1 option)")
-    @Constants.Comment("channel-ids")
+    @Comment("The threads that this in-game channel will forward to in Discord (this can be used with or instead of the %1 option)\n"
+            + "The bot needs to have the following permissions in these channels:\n"
+            + "- \"View Channel\"\n"
+            + "- \"Create Public Threads\" to automatically create the thread (when \"%2\" is %3)\n"
+            + "- \"Create Private Threads\" to automatically create the thread (when \"%2\" is %4)\n"
+            + "- \"Manage Threads\" to send messages into a manually created private thread that wasn't created by the bot\n"
+            + "- \"Send Messages in Threads\" to send non-webhook messages\n"
+            + "- \"Manage Webhooks\" to send webhook messages"
+    )
+    @Constants.Comment({"channel-ids", "private-thread", "false", "true"})
     public List<ThreadConfig> threads = new ArrayList<>(Collections.singletonList(new ThreadConfig()));
 
     @ConfigSerializable
     public static class Single {
         @Setting("channel-id")
+        @Comment("The text, announcement, voice or stage channel id (or text, announcement, forum or stage channel id if using a thread)\n"
+                + "The bot needs to have the following permissions in these channels:\n"
+                + "- \"View Channel\"\n"
+                + "- \"Manage Webhooks\" to send webhook messages\n"
+                + "When \"%1\" is %3:\n"
+                + "- \"Send Messages\" to send non-webhook messages\n"
+                + "When \"%1\" is %4:\n"
+                + "- \"Create Public Threads\" to automatically create the thread (when \"%2\" is %3)\n"
+                + "- \"Create Private Threads\" to automatically create the thread (when \"%2\" is %4)\n"
+                + "- \"Manage Threads\" to send messages into a manually created private thread that wasn't created by the bot\n"
+                + "- \"Send Messages in Threads\" to non-webhook messages in the thread"
+        )
+        @Constants.Comment({"use-thread", "private-thread", "false", "true"})
         public Long channelId = 0L;
 
         public boolean useThread = true;

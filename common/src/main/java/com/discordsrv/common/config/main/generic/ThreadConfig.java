@@ -32,15 +32,14 @@ public class ThreadConfig {
         this.threadName = name;
     }
 
-    @Comment("Specify the text, announcement, forum or media channel id and the name of the thread (the thread will be automatically created if it doesn't exist)")
+    @Comment("The text, announcement, forum or media channel id and the name of the thread (the thread will be automatically created if it doesn't exist)")
     public Long channelId = 0L;
-
     public String threadName = "Minecraft Server chat bridge";
 
-    @Comment("Should an existing thread with the same name be unarchived instead of creating a new thread every time")
+    @Comment("Should an existing thread with the same name be unarchived instead of creating a new thread if no unarchived thread exists")
     public boolean unarchiveExisting = true;
 
-    @Comment("Does not affect forum or media channels")
+    @Comment("Forum and media channels do not have private threads, and this will have no effect on them")
     public boolean privateThread = false;
 
     @Override
