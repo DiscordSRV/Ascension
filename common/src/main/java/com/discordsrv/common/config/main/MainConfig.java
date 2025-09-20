@@ -27,10 +27,7 @@ import com.discordsrv.common.config.connection.ConnectionConfig;
 import com.discordsrv.common.config.documentation.DocumentationURLs;
 import com.discordsrv.common.config.main.channels.base.BaseChannelConfig;
 import com.discordsrv.common.config.main.channels.base.ChannelConfig;
-import com.discordsrv.common.config.main.command.CustomCommandConfig;
-import com.discordsrv.common.config.main.command.ExecuteCommandConfig;
-import com.discordsrv.common.config.main.command.GameCommandConfig;
-import com.discordsrv.common.config.main.command.PlayerListConfig;
+import com.discordsrv.common.config.main.command.*;
 import com.discordsrv.common.config.main.linking.LinkedAccountConfig;
 import com.discordsrv.common.config.main.sync.*;
 import org.spongepowered.configurate.objectmapping.ConfigSerializable;
@@ -181,16 +178,20 @@ public abstract class MainConfig implements Config {
     @Order(700)
     public GameCommandConfig gameCommand = new GameCommandConfig();
 
-    @Comment("Configuration for the /discordsrv execute Discord command")
+    @Comment("Discord command configuration")
     @Order(710)
+    public DiscordCommandConfig discordCommand = new DiscordCommandConfig();
+
+    @Comment("Configuration for the /discordsrv execute Discord command")
+    @Order(720)
     public ExecuteCommandConfig executeCommand = new ExecuteCommandConfig();
 
     @Comment("Configuration for the /minecraft playerlist Discord command and %playerlist% placeholder")
-    @Order(720)
+    @Order(730)
     public PlayerListConfig playerList = new PlayerListConfig();
 
     @Comment("Custom commands that can trigger console commands and provide a customized output when executed in Discord")
-    @Order(730)
+    @Order(740)
     public List<CustomCommandConfig> customCommands = new ArrayList<>(Arrays.asList(
             CustomCommandConfig.defaultIp(),
             CustomCommandConfig.defaultHelloWorld()

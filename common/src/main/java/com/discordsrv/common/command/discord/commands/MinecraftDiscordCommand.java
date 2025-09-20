@@ -24,7 +24,9 @@ import com.discordsrv.common.DiscordSRV;
 import com.discordsrv.common.command.combined.commands.UnlinkCommand;
 import com.discordsrv.common.command.discord.commands.subcommand.LinkInitDiscordCommand;
 import com.discordsrv.common.command.discord.commands.subcommand.PlayerListCommand;
+import com.discordsrv.common.config.main.command.DiscordCommandConfig;
 import com.discordsrv.common.feature.linking.LinkProvider;
+import org.intellij.lang.annotations.Subst;
 
 public class MinecraftDiscordCommand {
 
@@ -33,7 +35,11 @@ public class MinecraftDiscordCommand {
     public static DiscordCommand get(DiscordSRV discordSRV) {
         if (INSTANCE == null) {
             ComponentIdentifier identifier = ComponentIdentifier.of("DiscordSRV", "minecraft");
-            DiscordCommand.ChatInputBuilder builder = DiscordCommand.chatInput(identifier, "minecraft", "")
+
+            DiscordCommandConfig commandConfig = discordSRV.config().discordCommand;
+            @Subst("minecraft") String alias = commandConfig.userCommandAlias;
+
+            DiscordCommand.ChatInputBuilder builder = DiscordCommand.chatInput(identifier, alias, "")
                     .addDescriptionTranslations(discordSRV.getAllTranslations(config -> config.minecraftCommandDescription.content()))
                     .addSubCommand(PlayerListCommand.get(discordSRV));
 
@@ -46,8 +52,11 @@ public class MinecraftDiscordCommand {
                 }
             }
 
+            Long guildId = commandConfig.userCommandServerId > 0 ? commandConfig.userCommandServerId : null;
             INSTANCE = builder
-                    .setGuildOnly(false)
+                    .setContexts(true, guildId == null && !commandConfig.enableUserCommandGlobally)
+                    .setGuildId(guildId)
+                    .setContexts(true, commandConfig.enableUserCommandGlobally)
                     .build();
         }
 

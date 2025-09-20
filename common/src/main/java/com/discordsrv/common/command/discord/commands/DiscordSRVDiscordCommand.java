@@ -23,6 +23,7 @@ import com.discordsrv.api.discord.entity.interaction.component.ComponentIdentifi
 import com.discordsrv.common.DiscordSRV;
 import com.discordsrv.common.command.combined.commands.*;
 import com.discordsrv.common.command.discord.commands.subcommand.ExecuteCommand;
+import com.discordsrv.common.config.main.command.DiscordCommandConfig;
 import com.discordsrv.common.feature.linking.LinkProvider;
 import com.discordsrv.common.feature.linking.requirelinking.RequiredLinkingModule;
 
@@ -35,6 +36,7 @@ public class DiscordSRVDiscordCommand {
 
     public static DiscordCommand get(DiscordSRV discordSRV) {
         if (INSTANCE == null) {
+            DiscordCommandConfig commandConfig = discordSRV.config().discordCommand;
             DiscordCommand.ChatInputBuilder builder = DiscordCommand.chatInput(IDENTIFIER, LABEL, "")
                     .addDescriptionTranslations(discordSRV.getAllTranslations(config -> config.discordsrvCommandDescription.content()))
                     .addSubCommandGroup(DebugCommand.getDiscord(discordSRV))
@@ -62,8 +64,10 @@ public class DiscordSRVDiscordCommand {
                 builder = builder.addSubCommandGroup(BypassCommand.getDiscord(discordSRV));
             }
 
+            Long guildId = commandConfig.managementCommandServerId > 0 ? commandConfig.managementCommandServerId : null;
             INSTANCE = builder
-                    .setGuildOnly(false)
+                    .setContexts(true, guildId == null && !commandConfig.enableManagementCommandGlobally)
+                    .setGuildId(guildId)
                     .setDefaultPermission(DiscordCommand.DefaultAccess.ADMINISTRATOR)
                     .build();
         }

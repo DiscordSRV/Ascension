@@ -443,23 +443,15 @@ public class DiscordCommand implements JDAEntity<CommandData> {
             return this;
         }
 
-        public Builder<E> setGuildOnly(boolean guildOnly) {
-            return setContexts(guildOnly, this.guildOnly == false);
-        }
-
-        public Builder<E> setDMOnly(boolean dmOnly) {
-            return setContexts(guildOnly == true, dmOnly);
-        }
-
         public Builder<E> setContexts(boolean guild, boolean dm) {
+            if (dm && guildId != null) {
+                throw new IllegalStateException("Cannot set to dm only when a guild id is set");
+            }
             if (guild && dm) {
                 this.guildOnly = null;
             } else if (guild) {
                 this.guildOnly = true;
             } else if (dm) {
-                if (guildId != null) {
-                    throw new IllegalStateException("Cannot set to dm only when a guild id is set");
-                }
                 this.guildOnly = false;
             }
             return this;
