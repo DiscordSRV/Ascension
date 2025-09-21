@@ -22,6 +22,7 @@ import com.discordsrv.api.task.Task;
 import com.discordsrv.common.abstraction.player.IPlayer;
 import com.discordsrv.common.config.main.linking.ServerRequiredLinkingConfig;
 import com.discordsrv.common.feature.linking.requirelinking.ServerRequireLinkingModule;
+import com.discordsrv.fabric.FabricComponentFactory;
 import com.discordsrv.fabric.FabricDiscordSRV;
 import com.discordsrv.fabric.player.FabricPlayer;
 import com.mojang.authlib.GameProfile;
@@ -56,6 +57,15 @@ public class FabricRequiredLinkingModule extends ServerRequireLinkingModule<Fabr
         }
     }
 
+    //? if minecraft: >= 1.21.9 {
+    public static Text canJoin(PlayerConfigEntry configEntry) {
+        if (INSTANCE == null || INSTANCE.config() == null) {
+            return Text.of(NOT_READY_MESSAGE);
+        }
+
+        return INSTANCE.checkCanJoin(new GameProfile(configEntry.id(), configEntry.name()));
+    }
+    //?} else {
     public static Text canJoin(GameProfile profile) {
         if (INSTANCE == null || INSTANCE.config() == null) {
             return Text.of(NOT_READY_MESSAGE);
@@ -63,6 +73,7 @@ public class FabricRequiredLinkingModule extends ServerRequireLinkingModule<Fabr
 
         return INSTANCE.checkCanJoin(profile);
     }
+    //?}
 
     private final Map<UUID, Consumer<IPlayer>> loginsHandled = new ConcurrentHashMap<>();
     private boolean enabled = false;

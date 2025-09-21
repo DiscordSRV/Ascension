@@ -56,13 +56,23 @@ public class FabricBanModule extends AbstractFabricModule implements PunishmentM
         instance = this;
     }
 
-    public static void onBan(GameProfile gameProfile) {
+    //? if minecraft: >=1.21.9 {
+    public static void onBan(PlayerConfigEntry playerConfigEntry) {
+        if (instance == null) return;
+        FabricDiscordSRV discordSRV = instance.discordSRV;
+        BanSyncModule module = discordSRV.getModule(BanSyncModule.class);
+        if (module == null) return;
+
+        UUID playerUUID = playerConfigEntry.id();
+    //? } else {
+    /*public static void onBan(GameProfile gameProfile) {
         if (instance == null) return;
         FabricDiscordSRV discordSRV = instance.discordSRV;
         BanSyncModule module = discordSRV.getModule(BanSyncModule.class);
         if (module == null) return;
 
         UUID playerUUID = discordSRV.componentFactory().getId(gameProfile);
+    *///? }
         IPlayer player = discordSRV.playerProvider().player(playerUUID);
         if (player == null) {
             throw new RuntimeException("Player " + playerUUID + " not present in player provider");
@@ -75,12 +85,21 @@ public class FabricBanModule extends AbstractFabricModule implements PunishmentM
         });
     }
 
+    //? if minecraft: >=1.21.9 {
+    public static void onPardon(PlayerConfigEntry entry) {
+        if (instance == null) return;
+        FabricDiscordSRV discordSRV = instance.discordSRV;
+        BanSyncModule module = discordSRV.getModule(BanSyncModule.class);
+        if (module != null) instance.removeBan(entry.id());
+    }
+    //? } else {
     public static void onPardon(GameProfile gameProfile) {
         if (instance == null) return;
         FabricDiscordSRV discordSRV = instance.discordSRV;
         BanSyncModule module = discordSRV.getModule(BanSyncModule.class);
         if (module != null) instance.removeBan(discordSRV.componentFactory().getId(gameProfile));
     }
+    //? }
 
     @Override
     public void enable() {
