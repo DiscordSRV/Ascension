@@ -30,6 +30,7 @@ import net.fabricmc.fabric.api.networking.v1.ServerPlayConnectionEvents;
 import net.kyori.adventure.text.Component;
 import net.minecraft.network.packet.c2s.play.PlayerMoveC2SPacket;
 import net.minecraft.server.MinecraftServer;
+import net.minecraft.server.PlayerConfigEntry;
 import net.minecraft.server.command.ServerCommandSource;
 import net.minecraft.server.network.ServerPlayNetworkHandler;
 import net.minecraft.server.network.ServerPlayerEntity;
@@ -107,12 +108,16 @@ public class FabricRequiredLinkingModule extends ServerRequireLinkingModule<Fabr
     }
 
     public Task<Component> getBlockReason(GameProfile gameProfile, boolean join) {
-        if (config().whitelistedPlayersCanBypass
-                && discordSRV.getServer().getPlayerManager().getWhitelist().isAllowed(gameProfile)) {
+        //? if minecraft: >=1.21.9 {
+        boolean allowed = config().whitelistedPlayersCanBypass && discordSRV.getServer().getPlayerManager().getWhitelist().isAllowed(PlayerConfigEntry.fromNickname(discordSRV.componentFactory().getName(gameProfile)));
+        //? } else {
+        boolean allowed = config().whitelistedPlayersCanBypass && discordSRV.getServer().getPlayerManager().getWhitelist().isAllowed(gameProfile);
+        //? }
+        if (allowed) {
             return Task.completed(null);
         }
 
-        return getBlockReason(gameProfile.getId(), gameProfile.getName(), join);
+        return getBlockReason(discordSRV.componentFactory().getId(gameProfile), discordSRV.componentFactory().getName(gameProfile), join);
     }
 
     //
@@ -230,7 +235,7 @@ public class FabricRequiredLinkingModule extends ServerRequireLinkingModule<Fabr
         if (!enabled) return;
 
         GameProfile gameProfile = handler.getDebugProfile();
-        UUID playerUUID = handler.getDebugProfile().getId();
+        UUID playerUUID = discordSRV.componentFactory().getId(handler.getDebugProfile());
 
         loginsHandled.put(playerUUID, handleFreezeLogin(playerUUID, () -> getBlockReason(gameProfile, true).join()));
     }

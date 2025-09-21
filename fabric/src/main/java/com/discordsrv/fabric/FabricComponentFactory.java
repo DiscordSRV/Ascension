@@ -21,6 +21,7 @@ package com.discordsrv.fabric;
 import com.discordsrv.api.component.MinecraftComponent;
 import com.discordsrv.common.core.component.ComponentFactory;
 import com.discordsrv.common.util.ComponentUtil;
+import com.mojang.authlib.GameProfile;
 import net.fabricmc.fabric.api.resource.IdentifiableResourceReloadListener;
 import net.kyori.adventure.audience.Audience;
 import net.kyori.adventure.text.Component;
@@ -30,9 +31,10 @@ import net.minecraft.server.command.ServerCommandSource;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.text.Text;
 import net.minecraft.util.Identifier;
-import net.minecraft.util.profiler.Profiler;
 import org.jetbrains.annotations.NotNull;
 
+import java.util.Optional;
+import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Executor;
 
@@ -124,8 +126,11 @@ public class FabricComponentFactory extends ComponentFactory implements Identifi
     }
 
     @Override
-    //? if >1.21.1 {
-    public CompletableFuture<Void> reload(Synchronizer synchronizer, ResourceManager manager, Executor prepareExecutor, Executor applyExecutor) {
+    //? if minecraft: >=1.21.9 {
+    public CompletableFuture<Void> reload(Store store, Executor prepareExecutor, Synchronizer synchronizer, Executor applyExecutor) {
+        ResourceManager manager = store.getResourceManager();
+    //?} else if minecraft: >1.21.1 {
+    //public CompletableFuture<Void> reload(Synchronizer synchronizer, ResourceManager manager, Executor prepareExecutor, Executor applyExecutor) {
     //?} else {
      /*public CompletableFuture<Void> reload(Synchronizer synchronizer, ResourceManager manager, Profiler prepareProfiler, Profiler applyProfiler, Executor prepareExecutor, Executor applyExecutor) {
     *///?}
@@ -133,6 +138,22 @@ public class FabricComponentFactory extends ComponentFactory implements Identifi
                 .translationLoader()
                 .reload(manager)
                 .thenCompose(synchronizer::whenPrepared);
+    }
+
+    public @NotNull UUID getId(GameProfile profile) {
+        //? if minecraft: >=1.21.9 {
+        return profile.id();
+        //? } else {
+        return profile.getId();
+        //? }
+    }
+
+    public @NotNull String getName(GameProfile profile) {
+        //? if minecraft: >=1.21.9 {
+        return profile.name();
+        //? } else {
+        return profile.getName();
+        //? }
     }
 
     @Override

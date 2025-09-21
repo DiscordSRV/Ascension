@@ -140,17 +140,17 @@ public class TextPlaceholderIntegration extends PluginIntegration<FabricDiscordS
             GameProfile gameProfile = placeholderContext.gameProfile();
             assert gameProfile != null;
 
-            Profile profile = discordSRV.profileManager().getCachedProfile(gameProfile.getId());
+            Profile profile = discordSRV.profileManager().getCachedProfile(discordSRV.componentFactory().getId(gameProfile));
             if (profile != null) {
                 context.add(profile);
             }
 
             // Check if the player is online
-            ServerPlayerEntity player = discordSRV.getServer().getPlayerManager().getPlayer(gameProfile.getId());
+            ServerPlayerEntity player = discordSRV.getServer().getPlayerManager().getPlayer(discordSRV.componentFactory().getId(gameProfile));
             if (player != null) {
                 context.add(discordSRV.playerProvider().player(player));
             } else {
-                discordSRV.playerProvider().lookupOfflinePlayer(gameProfile.getId()).thenApply(context::add);
+                discordSRV.playerProvider().lookupOfflinePlayer(discordSRV.componentFactory().getId(gameProfile)).thenApply(context::add);
             }
         } else {
             context = Collections.emptyList();
@@ -169,9 +169,12 @@ public class TextPlaceholderIntegration extends PluginIntegration<FabricDiscordS
 
         //? if minecraft: <=1.20.1 {
         /*gameProfile = discordSRV.getServer().getSessionService().fillProfileProperties(new GameProfile(uuid, null), true);
-
         *///?} else {
+        //? if minecraft: >=1.21.9 {
+        com.mojang.authlib.yggdrasil.ProfileResult profileResult = discordSRV.getServer().getApiServices().sessionService().fetchProfile(uuid, true);
+        //? } else {
         com.mojang.authlib.yggdrasil.ProfileResult profileResult = discordSRV.getServer().getSessionService().fetchProfile(uuid, true);
+        //? }
         if (profileResult != null) {
             gameProfile = profileResult.profile();
         }

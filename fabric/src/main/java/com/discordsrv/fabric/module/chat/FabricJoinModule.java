@@ -53,13 +53,13 @@ public class FabricJoinModule extends AbstractFabricModule {
         boolean firstJoin = playerEntity.getStatHandler().getStat(Stats.CUSTOM.getOrCreateStat(Stats.LEAVE_GAME)) == 0;
 
         MinecraftComponent component;
-        if (playerEntity.getGameProfile().getName().equalsIgnoreCase(playerEntity.getName().getString())) {
+        if (discordSRV.componentFactory().getName(playerEntity.getGameProfile()).equalsIgnoreCase(playerEntity.getName().getString())) {
             component = discordSRV.componentFactory().toAPI(Component.translatable("multiplayer.player.joined", discordSRV.componentFactory().fromNative(playerEntity.getDisplayName())));
         } else {
             component = discordSRV.componentFactory().toAPI(Component.translatable(
                     "multiplayer.player.joined.renamed",
                     discordSRV.componentFactory().fromNative(playerEntity.getDisplayName()),
-                    Component.text(playerEntity.getGameProfile().getName())
+                    Component.text(discordSRV.componentFactory().getName(playerEntity.getGameProfile()))
             ));
         }
 
