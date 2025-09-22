@@ -41,12 +41,10 @@ public abstract class BukkitDiscordSRV extends AbstractDiscordSRV<IBukkitBootstr
 
     private BukkitAudiences audiences;
 
-    private final BukkitPluginManager pluginManager;
+    private BukkitPluginManager pluginManager;
 
     public BukkitDiscordSRV(IBukkitBootstrap bootstrap) {
         super(bootstrap);
-
-        this.pluginManager = new BukkitPluginManager(this);
     }
 
     @Override
@@ -56,6 +54,8 @@ public abstract class BukkitDiscordSRV extends AbstractDiscordSRV<IBukkitBootstr
 
         // Adventure related stuff
         this.audiences = BukkitAudiences.create(bootstrap.getPlugin());
+
+        this.pluginManager = new BukkitPluginManager(this);
 
         // Integrations
         registerIntegration("com.discordsrv.bukkit.integration.BukkitLuckPermsIntegration");
@@ -72,6 +72,16 @@ public abstract class BukkitDiscordSRV extends AbstractDiscordSRV<IBukkitBootstr
         registerIntegration("com.discordsrv.bukkit.integration.chat.VentureChatIntegration");
 
         super.enable();
+    }
+
+    @Override
+    protected void disable() {
+        super.disable();
+
+        if (pluginManager != null) {
+            pluginManager.disable();
+            pluginManager = null;
+        }
     }
 
     @Override
