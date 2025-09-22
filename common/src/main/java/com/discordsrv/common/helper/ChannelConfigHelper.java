@@ -21,7 +21,10 @@ package com.discordsrv.common.helper;
 import com.discordsrv.api.channel.GameChannel;
 import com.discordsrv.api.discord.entity.channel.DiscordMessageChannel;
 import com.discordsrv.api.discord.entity.channel.DiscordThreadChannel;
+import com.discordsrv.api.eventbus.Subscribe;
 import com.discordsrv.api.events.channel.GameChannelLookupEvent;
+import com.discordsrv.api.events.lifecycle.DiscordSRVShuttingDownEvent;
+import com.discordsrv.api.task.Task;
 import com.discordsrv.common.DiscordSRV;
 import com.discordsrv.common.config.configurate.manager.MainConfigManager;
 import com.discordsrv.common.config.main.channels.base.BaseChannelConfig;
@@ -29,10 +32,14 @@ import com.discordsrv.common.config.main.channels.base.ChannelConfig;
 import com.discordsrv.common.config.main.channels.base.IChannelConfig;
 import com.discordsrv.common.config.main.generic.DestinationConfig;
 import com.discordsrv.common.config.main.generic.ThreadConfig;
+import com.discordsrv.common.core.debug.DebugGenerateEvent;
+import com.discordsrv.common.core.debug.file.TextDebugFile;
 import com.discordsrv.common.core.logging.Logger;
 import com.discordsrv.common.core.logging.NamedLogger;
+import com.discordsrv.common.util.TaskUtil;
 import com.github.benmanes.caffeine.cache.CacheLoader;
 import com.github.benmanes.caffeine.cache.LoadingCache;
+import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.apache.commons.lang3.tuple.Pair;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -40,6 +47,7 @@ import org.spongepowered.configurate.CommentedConfigurationNode;
 import org.spongepowered.configurate.objectmapping.ObjectMapper;
 import org.spongepowered.configurate.serialize.SerializationException;
 
+import java.time.Duration;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
 
@@ -72,20 +80,31 @@ public class ChannelConfigHelper {
                     public @Nullable GameChannel load(@NotNull String channelAtom) {
                         Pair<String, String> channelPair = parseOwnerAndChannel(channelAtom);
 
+                        long startTime = System.nanoTime();
                         GameChannelLookupEvent event = new GameChannelLookupEvent(channelPair.getKey(), channelPair.getValue());
                         discordSRV.eventBus().publish(event);
                         if (!event.isProcessed()) {
                             return null;
                         }
+                        long time = System.nanoTime() - startTime;
 
                         GameChannel channel = event.getChannelFromProcessing();
-                        logger.trace(channelAtom + " looked up to " + GameChannel.toString(channel));
+                        logger.trace(channelAtom + " looked up to " + GameChannel.toString(channel) + " in " + time + "ns");
                         return channel;
                     }
                 });
-        this.configs = new HashMap<>();
+        this.configs = new LinkedHashMap<>();
         this.messageChannelToConfigMap = new HashMap<>();
         this.threadToConfigMap = new LinkedHashMap<>();
+        discordSRV.eventBus().subscribe(this);
+    }
+
+    @Subscribe
+    public void onDiscordSRVShuttingDown(DiscordSRVShuttingDownEvent event) {
+        this.nameToChannelCache.invalidateAll();
+        this.configs.clear();
+        this.messageChannelToConfigMap.clear();
+        this.threadToConfigMap.clear();
     }
 
     private Pair<String, String> parseOwnerAndChannel(String channelAtom) {
@@ -299,5 +318,62 @@ public class ChannelConfigHelper {
         synchronized (threadToConfigMap) {
             return threadToConfigMap.get(pair);
         }
+    }
+
+    @Subscribe
+    public void onDebugGenerate(DebugGenerateEvent event) {
+        StringBuilder stringBuilder = new StringBuilder("Cached channels:\n");
+        for (Map.Entry<String, GameChannel> entry : nameToChannelCache.asMap().entrySet()) {
+            appendChannel(entry, stringBuilder);
+        }
+
+        Map<String, GameChannel> resolvedChannels = new HashMap<>();
+        Task<Void> task = discordSRV.scheduler().execute(() -> {
+            for (String key : getKeys()) {
+                GameChannel gameChannel = nameToChannelCache.get(key);
+                resolvedChannels.put(key, gameChannel);
+            }
+        });
+        try {
+            TaskUtil.timeout(discordSRV, task, Duration.ofSeconds(5)).join();
+        } catch (Throwable t) {
+            logger.debug("Failed to resolve channels while generating debug report", t);
+        }
+
+        stringBuilder.append("\nResolved channels:\n");
+        for (Map.Entry<String, GameChannel> entry : resolvedChannels.entrySet()) {
+            appendChannel(entry, stringBuilder);
+        }
+
+        event.addFile(5, "channel-helper.txt", new TextDebugFile(stringBuilder.toString()));
+    }
+
+    private void appendChannel(Map.Entry<String, GameChannel> entry, StringBuilder stringBuilder) {
+        String channelAtom = entry.getKey();
+        GameChannel channel = entry.getValue();
+
+        if (channel == null) {
+            stringBuilder.append(channelAtom).append(": null\n");
+            return;
+        }
+
+        String channelName, ownerName;
+        try {
+            channelName = channel.getChannelName();
+            ownerName = channel.getOwnerName();
+        } catch (Throwable t) {
+            stringBuilder.append(channelAtom)
+                    .append(": ")
+                    .append(channel.getClass().getName())
+                    .append(" THREW: ")
+                    .append(ExceptionUtils.getStackTrace(t))
+                    .append("\n");
+            return;
+        }
+
+        stringBuilder.append(channelAtom).append(":\n")
+                .append(" - Name: ").append(channelName).append("\n")
+                .append(" - Owner: ").append(ownerName).append("\n")
+                .append(" - Class name: ").append(channel.getClass().getName()).append("\n");
     }
 }
