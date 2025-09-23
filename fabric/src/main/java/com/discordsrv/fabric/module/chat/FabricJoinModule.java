@@ -31,8 +31,6 @@ import net.minecraft.server.network.ServerPlayNetworkHandler;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.stat.Stats;
 
-import java.util.Objects;
-
 public class FabricJoinModule extends AbstractFabricModule {
 
     private final FabricDiscordSRV discordSRV;
@@ -53,13 +51,13 @@ public class FabricJoinModule extends AbstractFabricModule {
         boolean firstJoin = playerEntity.getStatHandler().getStat(Stats.CUSTOM.getOrCreateStat(Stats.LEAVE_GAME)) == 0;
 
         MinecraftComponent component;
-        if (discordSRV.componentFactory().getName(playerEntity.getGameProfile()).equalsIgnoreCase(playerEntity.getName().getString())) {
+        if (discordSRV.getNameFromGameProfile(playerEntity.getGameProfile()).equalsIgnoreCase(playerEntity.getName().getString())) {
             component = discordSRV.componentFactory().toAPI(Component.translatable("multiplayer.player.joined", discordSRV.componentFactory().fromNative(playerEntity.getDisplayName())));
         } else {
             component = discordSRV.componentFactory().toAPI(Component.translatable(
                     "multiplayer.player.joined.renamed",
                     discordSRV.componentFactory().fromNative(playerEntity.getDisplayName()),
-                    Component.text(discordSRV.componentFactory().getName(playerEntity.getGameProfile()))
+                    Component.text(discordSRV.getNameFromGameProfile(playerEntity.getGameProfile()))
             ));
         }
 

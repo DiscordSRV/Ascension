@@ -120,7 +120,7 @@ public class FabricRequiredLinkingModule extends ServerRequireLinkingModule<Fabr
 
     public Task<Component> getBlockReason(GameProfile gameProfile, boolean join) {
         //? if minecraft: >=1.21.9 {
-        boolean allowed = config().whitelistedPlayersCanBypass && discordSRV.getServer().getPlayerManager().getWhitelist().isAllowed(PlayerConfigEntry.fromNickname(discordSRV.componentFactory().getName(gameProfile)));
+        boolean allowed = config().whitelistedPlayersCanBypass && discordSRV.getServer().getPlayerManager().getWhitelist().isAllowed(PlayerConfigEntry.fromNickname(discordSRV.getNameFromGameProfile(gameProfile)));
         //? } else {
         boolean allowed = config().whitelistedPlayersCanBypass && discordSRV.getServer().getPlayerManager().getWhitelist().isAllowed(gameProfile);
         //? }
@@ -128,7 +128,7 @@ public class FabricRequiredLinkingModule extends ServerRequireLinkingModule<Fabr
             return Task.completed(null);
         }
 
-        return getBlockReason(discordSRV.componentFactory().getId(gameProfile), discordSRV.componentFactory().getName(gameProfile), join);
+        return getBlockReason(discordSRV.getIdFromGameProfile(gameProfile), discordSRV.getNameFromGameProfile(gameProfile), join);
     }
 
     //
@@ -246,7 +246,7 @@ public class FabricRequiredLinkingModule extends ServerRequireLinkingModule<Fabr
         if (!enabled) return;
 
         GameProfile gameProfile = handler.getDebugProfile();
-        UUID playerUUID = discordSRV.componentFactory().getId(handler.getDebugProfile());
+        UUID playerUUID = discordSRV.getIdFromGameProfile(handler.getDebugProfile());
 
         loginsHandled.put(playerUUID, handleFreezeLogin(playerUUID, () -> getBlockReason(gameProfile, true).join()));
     }

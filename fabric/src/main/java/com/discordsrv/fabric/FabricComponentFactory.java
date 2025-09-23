@@ -21,7 +21,6 @@ package com.discordsrv.fabric;
 import com.discordsrv.api.component.MinecraftComponent;
 import com.discordsrv.common.core.component.ComponentFactory;
 import com.discordsrv.common.util.ComponentUtil;
-import com.mojang.authlib.GameProfile;
 import net.fabricmc.fabric.api.resource.IdentifiableResourceReloadListener;
 import net.kyori.adventure.audience.Audience;
 import net.kyori.adventure.text.Component;
@@ -33,8 +32,6 @@ import net.minecraft.text.Text;
 import net.minecraft.util.Identifier;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.Optional;
-import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Executor;
 
@@ -138,22 +135,6 @@ public class FabricComponentFactory extends ComponentFactory implements Identifi
                 .translationLoader()
                 .reload(manager)
                 .thenCompose(synchronizer::whenPrepared);
-    }
-
-    public @NotNull UUID getId(GameProfile profile) {
-        //? if minecraft: >=1.21.9 {
-        return profile.id();
-        //? } else {
-        return profile.getId();
-        //? }
-    }
-
-    public @NotNull String getName(GameProfile profile) {
-        //? if minecraft: >=1.21.9 {
-        return profile.name();
-        //? } else {
-        return profile.getName();
-        //? }
     }
 
     @Override

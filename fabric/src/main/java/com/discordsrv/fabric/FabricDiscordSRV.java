@@ -40,6 +40,7 @@ import com.discordsrv.fabric.module.chat.*;
 import com.discordsrv.fabric.player.FabricPlayerProvider;
 import com.discordsrv.fabric.plugin.FabricModManager;
 import com.discordsrv.fabric.requiredlinking.FabricRequiredLinkingModule;
+import com.mojang.authlib.GameProfile;
 import net.fabricmc.fabric.api.resource.ResourceManagerHelper;
 import net.minecraft.resource.ResourceType;
 import net.minecraft.server.MinecraftServer;
@@ -50,6 +51,7 @@ import java.net.MalformedURLException;
 import java.net.URI;
 import java.net.URL;
 import java.security.CodeSource;
+import java.util.UUID;
 import java.util.jar.JarFile;
 
 public class FabricDiscordSRV extends AbstractDiscordSRV<DiscordSRVFabricBootstrap, FabricConfig, ConnectionConfig, MessagesConfig> {
@@ -202,5 +204,24 @@ public class FabricDiscordSRV extends AbstractDiscordSRV<DiscordSRVFabricBootstr
         /*return new Identifier(namespace, path);
          *///?} else
         return Identifier.of(namespace, path);
+    }
+
+    /**
+     * Adapts to the {@link GameProfile} changes introduced in 1.21.9
+     */
+    public @NotNull UUID getIdFromGameProfile(GameProfile profile) {
+        //? if minecraft: >=1.21.9 {
+        return profile.id();
+        //? } else {
+        return profile.getId();
+        //? }
+    }
+
+    public @NotNull String getNameFromGameProfile(GameProfile profile) {
+        //? if minecraft: >=1.21.9 {
+        return profile.name();
+        //? } else {
+        return profile.getName();
+        //? }
     }
 }

@@ -140,17 +140,17 @@ public class TextPlaceholderIntegration extends PluginIntegration<FabricDiscordS
             GameProfile gameProfile = placeholderContext.gameProfile();
             assert gameProfile != null;
 
-            Profile profile = discordSRV.profileManager().getCachedProfile(discordSRV.componentFactory().getId(gameProfile));
+            Profile profile = discordSRV.profileManager().getCachedProfile(discordSRV.getIdFromGameProfile(gameProfile));
             if (profile != null) {
                 context.add(profile);
             }
 
             // Check if the player is online
-            ServerPlayerEntity player = discordSRV.getServer().getPlayerManager().getPlayer(discordSRV.componentFactory().getId(gameProfile));
+            ServerPlayerEntity player = discordSRV.getServer().getPlayerManager().getPlayer(discordSRV.getIdFromGameProfile(gameProfile));
             if (player != null) {
                 context.add(discordSRV.playerProvider().player(player));
             } else {
-                discordSRV.playerProvider().lookupOfflinePlayer(discordSRV.componentFactory().getId(gameProfile)).thenApply(context::add);
+                discordSRV.playerProvider().lookupOfflinePlayer(discordSRV.getIdFromGameProfile(gameProfile)).thenApply(context::add);
             }
         } else {
             context = Collections.emptyList();

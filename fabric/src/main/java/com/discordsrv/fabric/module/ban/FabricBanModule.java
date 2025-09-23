@@ -71,7 +71,7 @@ public class FabricBanModule extends AbstractFabricModule implements PunishmentM
         BanSyncModule module = discordSRV.getModule(BanSyncModule.class);
         if (module == null) return;
 
-        UUID playerUUID = discordSRV.componentFactory().getId(gameProfile);
+        UUID playerUUID = discordSRV.getIdFromGameProfile(gameProfile);
     *///? }
         IPlayer player = discordSRV.playerProvider().player(playerUUID);
         if (player == null) {
@@ -97,7 +97,7 @@ public class FabricBanModule extends AbstractFabricModule implements PunishmentM
         if (instance == null) return;
         FabricDiscordSRV discordSRV = instance.discordSRV;
         BanSyncModule module = discordSRV.getModule(BanSyncModule.class);
-        if (module != null) instance.removeBan(discordSRV.componentFactory().getId(gameProfile));
+        if (module != null) instance.removeBan(discordSRV.getIdFromGameProfile(gameProfile));
     }
     //? }
 
