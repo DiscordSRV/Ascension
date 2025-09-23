@@ -212,16 +212,16 @@ public class FabricDiscordSRV extends AbstractDiscordSRV<DiscordSRVFabricBootstr
     public @NotNull UUID getIdFromGameProfile(GameProfile profile) {
         //? if minecraft: >=1.21.9 {
         return profile.id();
-        //? } else {
-        return profile.getId();
-        //? }
+        //?} else {
+        /*return profile.getId();
+        *///?}
     }
 
     public @NotNull String getNameFromGameProfile(GameProfile profile) {
         //? if minecraft: >=1.21.9 {
         return profile.name();
-        //? } else {
-        return profile.getName();
-        //? }
+        //?} else {
+        /*return profile.getName();
+        *///?}
     }
 }

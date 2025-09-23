@@ -37,7 +37,7 @@ public class PlayerManagerMixin {
     public void checkCanJoin(SocketAddress address, PlayerConfigEntry entry, CallbackInfoReturnable<Text> cir) {
     //?} else {
     /*public void checkCanJoin(SocketAddress address, GameProfile entry, CallbackInfoReturnable<Text> cir) {
-    *///? }
+    *///?}
         Text kickReason = FabricRequiredLinkingModule.canJoin(entry);
 
         cir.setReturnValue(kickReason);

@@ -60,9 +60,9 @@ public class FabricDeathModule extends AbstractFabricModule {
 
         //? if minecraft: >=1.21.9 {
         ServerWorld world = playerEntity.getEntityWorld();
-        //? } else {
-        ServerWorld world = (ServerWorld) playerEntity.getWorld();
-        //? }
+        //?} else {
+        /*ServerWorld world = (ServerWorld) playerEntity.getWorld();
+        *///?}
         if (!world.getGameRules().get(GameRules.SHOW_DEATH_MESSAGES).get()) {
             logger().debug("Skipping displaying death message, disabled by gamerule");
             return;

@@ -52,8 +52,8 @@ public class FabricCommandFeedbackExecutor implements CommandOutput, Consumer<Co
         //? if minecraft: >=1.21.9 {
         Vec3d spawnPos = serverWorld == null ? Vec3d.ZERO : serverWorld.getSpawnPoint().getPos().toCenterPos();
         //?} else {
-        //Vec3d spawnPos = serverWorld == null ? Vec3i.ZERO : serverWorld.getSpawnPos();
-        //?}
+        /*Vec3d spawnPos = serverWorld == null ? Vec3i.ZERO : serverWorld.getSpawnPos();
+        *///?}
         return new ServerCommandSource(
                 this, spawnPos, Vec2f.ZERO, serverWorld, 4, "DiscordSRV", text, server, null
         );

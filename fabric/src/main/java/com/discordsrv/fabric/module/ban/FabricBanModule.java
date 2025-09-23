@@ -64,7 +64,7 @@ public class FabricBanModule extends AbstractFabricModule implements PunishmentM
         if (module == null) return;
 
         UUID playerUUID = playerConfigEntry.id();
-    //? } else {
+    //?} else {
     /*public static void onBan(GameProfile gameProfile) {
         if (instance == null) return;
         FabricDiscordSRV discordSRV = instance.discordSRV;
@@ -72,7 +72,7 @@ public class FabricBanModule extends AbstractFabricModule implements PunishmentM
         if (module == null) return;
 
         UUID playerUUID = discordSRV.getIdFromGameProfile(gameProfile);
-    *///? }
+    *///?}
         IPlayer player = discordSRV.playerProvider().player(playerUUID);
         if (player == null) {
             throw new RuntimeException("Player " + playerUUID + " not present in player provider");
@@ -92,14 +92,14 @@ public class FabricBanModule extends AbstractFabricModule implements PunishmentM
         BanSyncModule module = discordSRV.getModule(BanSyncModule.class);
         if (module != null) instance.removeBan(entry.id());
     }
-    //? } else {
-    public static void onPardon(GameProfile gameProfile) {
+    //?} else {
+    /*public static void onPardon(GameProfile gameProfile) {
         if (instance == null) return;
         FabricDiscordSRV discordSRV = instance.discordSRV;
         BanSyncModule module = discordSRV.getModule(BanSyncModule.class);
         if (module != null) instance.removeBan(discordSRV.getIdFromGameProfile(gameProfile));
     }
-    //? }
+    *///?}
 
     @Override
     public void enable() {
@@ -116,19 +116,19 @@ public class FabricBanModule extends AbstractFabricModule implements PunishmentM
             return Task.completed(null);
         }
         BannedPlayerEntry banEntry = banList.get(playerConfigEntry.get());
-        //? } else {
-        Optional<GameProfile> gameProfile = Objects.requireNonNull(discordSRV.getServer().getUserCache()).getByUuid(playerUUID);
+        //?} else {
+        /*Optional<GameProfile> gameProfile = Objects.requireNonNull(discordSRV.getServer().getUserCache()).getByUuid(playerUUID);
         if (gameProfile.isEmpty()) {
             return Task.completed(null);
         }
 
         //? if minecraft: >=1.21.9 {
         BannedPlayerEntry banEntry = banList.get(PlayerConfigEntry.fromNickname(gameProfile.get().name()));
-        //? } else {
-        BannedPlayerEntry banEntry = banList.get(gameProfile.get());
-        //? }
+        //?} else {
+        /^BannedPlayerEntry banEntry = banList.get(gameProfile.get());
+        ^///?}
 
-        //? }
+        *///?}
         if (banEntry == null) {
             return Task.completed(null);
         }
@@ -156,14 +156,14 @@ public class FabricBanModule extends AbstractFabricModule implements PunishmentM
             if (entryOptional.isPresent()) {
                 entry = entryOptional.get();
             }
-            //? } else {
+            //?} else {
             /*UserCache userCache = server.getUserCache();
 
             GameProfile entry = null;
             if (userCache != null) {
                 entry = userCache.getByUuid(playerUUID).orElse(null);
             }
-            *///? }
+            *///?}
 
             String reasonProvided = reason != null ? reason.asPlainString() : null;
             Date expiration = until != null ? Date.from(until) : null;
@@ -194,14 +194,14 @@ public class FabricBanModule extends AbstractFabricModule implements PunishmentM
         discordSRV.getServer().getApiServices().nameToIdCache().getByUuid(playerUUID).ifPresent(name -> {
             banList.remove(name);
         });
-        //? } else {
-        Optional<GameProfile> gameProfile = Objects.requireNonNull(discordSRV.getServer().getUserCache()).getByUuid(playerUUID);
+        //?} else {
+        /*Optional<GameProfile> gameProfile = Objects.requireNonNull(discordSRV.getServer().getUserCache()).getByUuid(playerUUID);
         if (gameProfile.isEmpty()) {
             return Task.completed(null);
         }
 
         banList.remove(gameProfile.get());
-        //? }
+        *///?}
         return Task.completed(null);
     }
 }

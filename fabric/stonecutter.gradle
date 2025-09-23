@@ -1,3 +1,3 @@
 plugins.apply "dev.kikugie.stonecutter"
 
-stonecutter.active "1.21.6" /* [SC] DO NOT EDIT */
+stonecutter.active "1.21.9-pre3" /* [SC] DO NOT EDIT */

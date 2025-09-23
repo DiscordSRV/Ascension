@@ -66,14 +66,14 @@ public class FabricRequiredLinkingModule extends ServerRequireLinkingModule<Fabr
         return INSTANCE.checkCanJoin(new GameProfile(configEntry.id(), configEntry.name()));
     }
     //?} else {
-    public static Text canJoin(GameProfile profile) {
+    /*public static Text canJoin(GameProfile profile) {
         if (INSTANCE == null || INSTANCE.config() == null) {
             return Text.of(NOT_READY_MESSAGE);
         }
 
         return INSTANCE.checkCanJoin(profile);
     }
-    //?}
+    *///?}
 
     private final Map<UUID, Consumer<IPlayer>> loginsHandled = new ConcurrentHashMap<>();
     private boolean enabled = false;
@@ -121,9 +121,9 @@ public class FabricRequiredLinkingModule extends ServerRequireLinkingModule<Fabr
     public Task<Component> getBlockReason(GameProfile gameProfile, boolean join) {
         //? if minecraft: >=1.21.9 {
         boolean allowed = config().whitelistedPlayersCanBypass && discordSRV.getServer().getPlayerManager().getWhitelist().isAllowed(PlayerConfigEntry.fromNickname(discordSRV.getNameFromGameProfile(gameProfile)));
-        //? } else {
-        boolean allowed = config().whitelistedPlayersCanBypass && discordSRV.getServer().getPlayerManager().getWhitelist().isAllowed(gameProfile);
-        //? }
+        //?} else {
+        /*boolean allowed = config().whitelistedPlayersCanBypass && discordSRV.getServer().getPlayerManager().getWhitelist().isAllowed(gameProfile);
+        *///?}
         if (allowed) {
             return Task.completed(null);
         }

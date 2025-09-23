@@ -172,9 +172,9 @@ public class TextPlaceholderIntegration extends PluginIntegration<FabricDiscordS
         *///?} else {
         //? if minecraft: >=1.21.9 {
         com.mojang.authlib.yggdrasil.ProfileResult profileResult = discordSRV.getServer().getApiServices().sessionService().fetchProfile(uuid, true);
-        //? } else {
-        com.mojang.authlib.yggdrasil.ProfileResult profileResult = discordSRV.getServer().getSessionService().fetchProfile(uuid, true);
-        //? }
+        //?} else {
+        /*com.mojang.authlib.yggdrasil.ProfileResult profileResult = discordSRV.getServer().getSessionService().fetchProfile(uuid, true);
+        *///?}
         if (profileResult != null) {
             gameProfile = profileResult.profile();
         }

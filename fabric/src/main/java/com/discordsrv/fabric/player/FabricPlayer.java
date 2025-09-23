@@ -69,8 +69,8 @@ public class FabricPlayer extends FabricCommandSender implements IPlayer {
         //? if minecraft: >=1.21.9 {
         return player.getEntityWorld().getRegistryKey().getValue().getPath();
         //?} else {
-        //return player.getWorld().getRegistryKey().getValue().getPath();
-        //?}
+        /*return player.getWorld().getRegistryKey().getValue().getPath();
+        *///?}
     }
 
     @Override
@@ -109,8 +109,8 @@ public class FabricPlayer extends FabricCommandSender implements IPlayer {
         //? if minecraft: >=1.21.9 {
         com.mojang.authlib.minecraft.MinecraftProfileTextures textures = discordSRV.getServer().getApiServices().sessionService().getTextures(player.getGameProfile());
         //?} else {
-        //com.mojang.authlib.minecraft.MinecraftProfileTextures textures = discordSRV.getServer().getSessionService().getTextures(player.getGameProfile());
-        //?}
+        /*com.mojang.authlib.minecraft.MinecraftProfileTextures textures = discordSRV.getServer().getSessionService().getTextures(player.getGameProfile());
+        *///?}
         if (!textures.equals(com.mojang.authlib.minecraft.MinecraftProfileTextures.EMPTY) && textures.skin() != null) {
             String model = textures.skin().getMetadata("model");
             if (model == null) model = "classic";

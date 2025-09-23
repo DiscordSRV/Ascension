@@ -38,10 +38,10 @@ public class BanCommandMixin {
     //? if minecraft: >= 1.21.9 {
     @Inject(method = "ban", at = @At(value = "INVOKE", target = "Lnet/minecraft/server/BannedPlayerList;add(Lnet/minecraft/server/BannedPlayerEntry;)Z", shift = At.Shift.AFTER))
     private static void ban(ServerCommandSource source, Collection<GameProfile> targets, Text reason, CallbackInfoReturnable<Integer> cir, @Local PlayerConfigEntry entry) {
-        //? } else {
+        //?} else {
     /*@Inject(method = "ban", at = @At(value = "INVOKE", target = "Lnet/minecraft/server/BannedPlayerList;add(Lnet/minecraft/server/ServerConfigEntry;)V", shift = At.Shift.AFTER))
     private static void ban(CallbackInfoReturnable<Integer> cir, @Local GameProfile gameProfile) {
-    *///? }
+    *///?}
         FabricBanModule.onBan(entry);
     }
 }

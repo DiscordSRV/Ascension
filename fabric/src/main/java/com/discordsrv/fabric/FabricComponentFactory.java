@@ -127,8 +127,8 @@ public class FabricComponentFactory extends ComponentFactory implements Identifi
     public CompletableFuture<Void> reload(Store store, Executor prepareExecutor, Synchronizer synchronizer, Executor applyExecutor) {
         ResourceManager manager = store.getResourceManager();
     //?} else if minecraft: >1.21.1 {
-    //public CompletableFuture<Void> reload(Synchronizer synchronizer, ResourceManager manager, Executor prepareExecutor, Executor applyExecutor) {
-    //?} else {
+    /*public CompletableFuture<Void> reload(Synchronizer synchronizer, ResourceManager manager, Executor prepareExecutor, Executor applyExecutor) {
+    *///?} else {
      /*public CompletableFuture<Void> reload(Synchronizer synchronizer, ResourceManager manager, Profiler prepareProfiler, Profiler applyProfiler, Executor prepareExecutor, Executor applyExecutor) {
     *///?}
         return discordSRV
