@@ -20,7 +20,6 @@ package com.discordsrv.fabric.mixin.requiredlinking;
 
 import com.discordsrv.fabric.requiredlinking.FabricRequiredLinkingModule;
 import com.mojang.authlib.GameProfile;
-import net.minecraft.server.PlayerConfigEntry;
 import net.minecraft.text.Text;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
@@ -34,7 +33,7 @@ public class PlayerManagerMixin {
 
     @Inject(method = "checkCanJoin", at = @At("TAIL"), cancellable = true)
     //? if minecraft: >= 1.21.9 {
-    public void checkCanJoin(SocketAddress address, PlayerConfigEntry entry, CallbackInfoReturnable<Text> cir) {
+    public void checkCanJoin(SocketAddress address, net.minecraft.server.PlayerConfigEntry entry, CallbackInfoReturnable<Text> cir) {
     //?} else {
     /*public void checkCanJoin(SocketAddress address, GameProfile entry, CallbackInfoReturnable<Text> cir) {
     *///?}

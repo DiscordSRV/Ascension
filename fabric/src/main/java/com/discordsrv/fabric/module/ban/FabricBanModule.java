@@ -33,7 +33,6 @@ import net.kyori.adventure.text.Component;
 import net.minecraft.server.BannedPlayerEntry;
 import net.minecraft.server.BannedPlayerList;
 import net.minecraft.server.MinecraftServer;
-import net.minecraft.server.PlayerConfigEntry;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.text.Text;
 import net.minecraft.util.UserCache;
@@ -57,7 +56,7 @@ public class FabricBanModule extends AbstractFabricModule implements PunishmentM
     }
 
     //? if minecraft: >=1.21.9 {
-    public static void onBan(PlayerConfigEntry playerConfigEntry) {
+    public static void onBan(net.minecraft.server.PlayerConfigEntry playerConfigEntry) {
         if (instance == null) return;
         FabricDiscordSRV discordSRV = instance.discordSRV;
         BanSyncModule module = discordSRV.getModule(BanSyncModule.class);
@@ -86,7 +85,7 @@ public class FabricBanModule extends AbstractFabricModule implements PunishmentM
     }
 
     //? if minecraft: >=1.21.9 {
-    public static void onPardon(PlayerConfigEntry entry) {
+    public static void onPardon(net.minecraft.server.PlayerConfigEntry entry) {
         if (instance == null) return;
         FabricDiscordSRV discordSRV = instance.discordSRV;
         BanSyncModule module = discordSRV.getModule(BanSyncModule.class);
@@ -111,7 +110,7 @@ public class FabricBanModule extends AbstractFabricModule implements PunishmentM
         BannedPlayerList banList = discordSRV.getServer().getPlayerManager().getUserBanList();
 
         //? if minecraft: >=1.21.9 {
-        Optional<PlayerConfigEntry> playerConfigEntry = discordSRV.getServer().getApiServices().nameToIdCache().getByUuid(playerUUID);
+        Optional<net.minecraft.server.PlayerConfigEntry> playerConfigEntry = discordSRV.getServer().getApiServices().nameToIdCache().getByUuid(playerUUID);
         if (playerConfigEntry.isEmpty()) {
             return Task.completed(null);
         }
@@ -121,14 +120,9 @@ public class FabricBanModule extends AbstractFabricModule implements PunishmentM
         if (gameProfile.isEmpty()) {
             return Task.completed(null);
         }
-
-        //? if minecraft: >=1.21.9 {
-        BannedPlayerEntry banEntry = banList.get(PlayerConfigEntry.fromNickname(gameProfile.get().name()));
-        //?} else {
-        /^BannedPlayerEntry banEntry = banList.get(gameProfile.get());
-        ^///?}
-
+        BannedPlayerEntry banEntry = banList.get(gameProfile.get());
         *///?}
+
         if (banEntry == null) {
             return Task.completed(null);
         }
@@ -151,8 +145,8 @@ public class FabricBanModule extends AbstractFabricModule implements PunishmentM
         try {
             MinecraftServer server = discordSRV.getServer();
             //? if minecraft: >=1.21.9 {
-            PlayerConfigEntry entry = null;
-            Optional<PlayerConfigEntry> entryOptional = discordSRV.getServer().getApiServices().nameToIdCache().getByUuid(playerUUID);
+            net.minecraft.server.PlayerConfigEntry entry = null;
+            Optional<net.minecraft.server.PlayerConfigEntry> entryOptional = discordSRV.getServer().getApiServices().nameToIdCache().getByUuid(playerUUID);
             if (entryOptional.isPresent()) {
                 entry = entryOptional.get();
             }

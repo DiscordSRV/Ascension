@@ -129,7 +129,7 @@ public class FabricComponentFactory extends ComponentFactory implements Identifi
     //?} else if minecraft: >1.21.1 {
     /*public CompletableFuture<Void> reload(Synchronizer synchronizer, ResourceManager manager, Executor prepareExecutor, Executor applyExecutor) {
     *///?} else {
-     /*public CompletableFuture<Void> reload(Synchronizer synchronizer, ResourceManager manager, Profiler prepareProfiler, Profiler applyProfiler, Executor prepareExecutor, Executor applyExecutor) {
+     /*public CompletableFuture<Void> reload(Synchronizer synchronizer, ResourceManager manager, net.minecraft.util.profiler.Profiler prepareProfiler, net.minecraft.util.profiler.Profiler applyProfiler, Executor prepareExecutor, Executor applyExecutor) {
     *///?}
         return discordSRV
                 .translationLoader()

@@ -22,7 +22,6 @@ import com.discordsrv.api.task.Task;
 import com.discordsrv.common.abstraction.player.IPlayer;
 import com.discordsrv.common.config.main.linking.ServerRequiredLinkingConfig;
 import com.discordsrv.common.feature.linking.requirelinking.ServerRequireLinkingModule;
-import com.discordsrv.fabric.FabricComponentFactory;
 import com.discordsrv.fabric.FabricDiscordSRV;
 import com.discordsrv.fabric.player.FabricPlayer;
 import com.mojang.authlib.GameProfile;
@@ -31,7 +30,6 @@ import net.fabricmc.fabric.api.networking.v1.ServerPlayConnectionEvents;
 import net.kyori.adventure.text.Component;
 import net.minecraft.network.packet.c2s.play.PlayerMoveC2SPacket;
 import net.minecraft.server.MinecraftServer;
-import net.minecraft.server.PlayerConfigEntry;
 import net.minecraft.server.command.ServerCommandSource;
 import net.minecraft.server.network.ServerPlayNetworkHandler;
 import net.minecraft.server.network.ServerPlayerEntity;
@@ -46,6 +44,10 @@ import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Consumer;
+
+//? if minecraft: >= 1.21.9 {
+import net.minecraft.server.PlayerConfigEntry;
+//?}
 
 public class FabricRequiredLinkingModule extends ServerRequireLinkingModule<FabricDiscordSRV> {
 
