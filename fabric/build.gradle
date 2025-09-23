@@ -165,11 +165,11 @@ dependencies {
             'fabric-lifecycle-events-v1',
             'fabric-entity-events-v1',
             'fabric-networking-api-v1',
-            'fabric-resource-loader-v0'
     ]
-    if (stonecutter.eval(stonecutter.current.version, ">=1.19.2")) {
-        apiModules.add('fabric-message-api-v1')
-    }
+    if (stonecutter.eval(stonecutter.current.version, ">=1.19.2")) apiModules.add('fabric-message-api-v1')
+    if (stonecutter.eval(stonecutter.current.version, "<1.21.9")) apiModules.add('fabric-resource-loader-v0')
+    else apiModules.add('fabric-resource-loader-v1')
+
     apiModules.forEach {
         modImplementation(fabricApi.module(it, project.property("deps.fabric_api")))
     }
