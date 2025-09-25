@@ -41,7 +41,6 @@ import com.discordsrv.fabric.player.FabricPlayerProvider;
 import com.discordsrv.fabric.plugin.FabricModManager;
 import com.discordsrv.fabric.requiredlinking.FabricRequiredLinkingModule;
 import com.mojang.authlib.GameProfile;
-import net.fabricmc.fabric.api.resource.v1.reloader.ResourceReloaderKeys;
 import net.minecraft.resource.ResourceType;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.util.Identifier;
@@ -115,7 +114,7 @@ public class FabricDiscordSRV extends AbstractDiscordSRV<DiscordSRVFabricBootstr
         this.translationLoader.reload();
         //? if minecraft: >=1.21.9 {
         net.fabricmc.fabric.api.resource.v1.ResourceLoader.get(ResourceType.SERVER_DATA).registerReloader(id("discordsrv", "component_factory"), componentFactory);
-        net.fabricmc.fabric.api.resource.v1.ResourceLoader.get(ResourceType.SERVER_DATA).addReloaderOrdering(ResourceReloaderKeys.AFTER_VANILLA, id("discordsrv", "component_factory"));
+        net.fabricmc.fabric.api.resource.v1.ResourceLoader.get(ResourceType.SERVER_DATA).addReloaderOrdering(net.fabricmc.fabric.api.resource.v1.reloader.ResourceReloaderKeys.AFTER_VANILLA, id("discordsrv", "component_factory"));
         //?} else {
         /*net.fabricmc.fabric.api.resource.ResourceManagerHelper.get(ResourceType.SERVER_DATA).registerReloadListener(componentFactory);
         *///?}
