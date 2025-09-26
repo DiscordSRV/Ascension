@@ -8,27 +8,6 @@ configurations.configureEach {
     resolutionStrategy {
         force "org.slf4j:slf4j-api:1.7.36" // Introduced by Minecraft itself
     }
-    resolutionStrategy.capabilitiesResolution.withCapability("net.kyori:adventure-key") {
-        select("io.papermc.adventure:adventure-key:mc1.21.9-dev-SNAPSHOT")
-    }
-    resolutionStrategy.capabilitiesResolution.withCapability("net.kyori:adventure-api") {
-        select("io.papermc.adventure:adventure-api:mc1.21.9-dev-SNAPSHOT")
-    }
-    resolutionStrategy.capabilitiesResolution.withCapability("net.kyori:adventure-bom") {
-        select("io.papermc.adventure:adventure-bom:mc1.21.9-dev-SNAPSHOT")
-    }
-    resolutionStrategy.capabilitiesResolution.withCapability("net.kyori:adventure-text-serializer-plain") {
-        select("io.papermc.adventure:adventure-text-serializer-plain:mc1.21.9-dev-SNAPSHOT")
-    }
-    resolutionStrategy.capabilitiesResolution.withCapability("net.kyori:adventure-text-serializer-ansi") {
-        select("io.papermc.adventure:adventure-text-serializer-ansi:mc1.21.9-dev-SNAPSHOT")
-    }
-    resolutionStrategy.capabilitiesResolution.withCapability("net.kyori:adventure-text-serializer-gson") {
-        select("io.papermc.adventure:adventure-text-serializer-gson:mc1.21.9-dev-SNAPSHOT")
-    }
-    resolutionStrategy.capabilitiesResolution.withCapability("net.kyori:adventure-text-serializer-json") {
-        select("io.papermc.adventure:adventure-text-serializer-json:mc1.21.9-dev-SNAPSHOT")
-    }
 }
 
 java {
@@ -147,9 +126,6 @@ repositories {
         filter {
             includeGroup 'eu.pb4'
         }
-    }
-    maven {
-        url = 'https://repo.papermc.io/repository/maven-public/'
     }
     mavenLocal()
 }
