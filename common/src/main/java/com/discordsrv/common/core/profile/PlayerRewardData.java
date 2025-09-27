@@ -22,33 +22,25 @@ import java.util.Objects;
 
 public class PlayerRewardData {
 
-    private final String name;
-    private int id;
+    private final Integer databaseId;
+    private final String id;
     private boolean pending;
 
-    public PlayerRewardData(String name, boolean pending) {
-        this(-1, name, pending);
-    }
-
-    public PlayerRewardData(int id, String name, boolean pending) {
+    public PlayerRewardData(Integer databaseId, String id, boolean pending) {
+        this.databaseId = databaseId;
         this.id = id;
-        this.name = name;
         this.pending = pending;
     }
 
-    public int getId() {
-        return id;
-    }
-
-    public void setId(int rewardId) {
-        if (id != -1) {
-            throw new IllegalStateException("Cannot change ID of an already initialized PlayerRewardData");
+    public Integer getDatabaseId() {
+        if (databaseId == null) {
+            throw new IllegalStateException("Querying id for a non-database reward");
         }
-        this.id = rewardId;
+        return databaseId;
     }
 
-    public String getName() {
-        return name;
+    public String getId() {
+        return id;
     }
 
     public boolean isPending() {
@@ -64,11 +56,11 @@ public class PlayerRewardData {
         if (this == o) return true;
         if (!(o instanceof PlayerRewardData)) return false;
         PlayerRewardData that = (PlayerRewardData) o;
-        return id == that.id;
+        return Objects.equals(databaseId, that.databaseId);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(id);
+        return Objects.hash(databaseId);
     }
 }
