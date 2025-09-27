@@ -294,7 +294,7 @@ public class MessagesConfig implements Config {
             MINECRAFT_NEUTRAL_COLOR,
             MINECRAFT_BLURPLE_COLOR,
             "[click:open_url:%discord_invite%]%discord_invite_simple%[click]",
-            "[click:copy_to_clipboard:%code%][hover:show_text:Click to copy linking code]/minecraft link %code%" // TODO
+            "[click:copy_to_clipboard:%code%][hover:show_text:Click to copy linking code]/%discordcommand_minecraft_alias% link %code%"
     })
     public MinecraftMessage storageLinking = minecraft(
             "%1Join our %2Discord %1server at %3 %1and link your account by running the &r%4"

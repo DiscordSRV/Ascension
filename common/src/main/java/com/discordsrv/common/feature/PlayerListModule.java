@@ -38,8 +38,16 @@ public class PlayerListModule extends AbstractModule<DiscordSRV> {
 
     public PlayerListModule(DiscordSRV discordSRV) {
         super(discordSRV, new NamedLogger(discordSRV, "PLAYER_LIST"));
+    }
 
+    @Override
+    public void enable() {
         discordSRV.placeholderService().addGlobalContext(this);
+    }
+
+    @Override
+    public void disable() {
+        discordSRV.placeholderService().removeGlobalContext(this);
     }
 
     private Stream<IPlayer> onlinePlayers() {

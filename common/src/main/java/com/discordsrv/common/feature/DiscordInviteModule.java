@@ -55,7 +55,16 @@ public class DiscordInviteModule extends AbstractModule<DiscordSRV> {
 
     public DiscordInviteModule(DiscordSRV discordSRV) {
         super(discordSRV, new NamedLogger(discordSRV, "INVITE"));
+    }
+
+    @Override
+    public void enable() {
         discordSRV.placeholderService().addGlobalContext(this);
+    }
+
+    @Override
+    public void disable() {
+        discordSRV.placeholderService().removeGlobalContext(this);
     }
 
     @Override

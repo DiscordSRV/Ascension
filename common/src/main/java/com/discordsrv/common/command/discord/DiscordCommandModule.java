@@ -18,22 +18,46 @@
 
 package com.discordsrv.common.command.discord;
 
+import com.discordsrv.api.discord.entity.interaction.command.DiscordCommand;
 import com.discordsrv.api.eventbus.Subscribe;
 import com.discordsrv.api.events.discord.interaction.command.CommandRegisterEvent;
+import com.discordsrv.api.placeholder.annotation.Placeholder;
+import com.discordsrv.api.placeholder.annotation.PlaceholderPrefix;
 import com.discordsrv.common.DiscordSRV;
 import com.discordsrv.common.command.discord.commands.DiscordSRVDiscordCommand;
 import com.discordsrv.common.command.discord.commands.MinecraftDiscordCommand;
 import com.discordsrv.common.core.module.type.AbstractModule;
 
+@PlaceholderPrefix("discordcommand_")
 public class DiscordCommandModule extends AbstractModule<DiscordSRV> {
+
+    private String minecraftCommandAlias;
 
     public DiscordCommandModule(DiscordSRV discordSRV) {
         super(discordSRV);
     }
 
+    @Override
+    public void enable() {
+        discordSRV.placeholderService().addGlobalContext(this);
+    }
+
+    @Override
+    public void disable() {
+        discordSRV.placeholderService().removeGlobalContext(this);
+    }
+
     @Subscribe
     public void onCommandRegister(CommandRegisterEvent event) {
         event.registerCommands(DiscordSRVDiscordCommand.get(discordSRV));
-        event.registerCommands(MinecraftDiscordCommand.get(discordSRV));
+
+        DiscordCommand minecraftCommand = MinecraftDiscordCommand.get(discordSRV);
+        event.registerCommands(minecraftCommand);
+        this.minecraftCommandAlias = minecraftCommand.getName();
+    }
+
+    @Placeholder("minecraft_alias")
+    public String minecraftCommandAlias() {
+        return minecraftCommandAlias;
     }
 }
