@@ -105,6 +105,7 @@ import com.discordsrv.common.helper.TemporaryLocalData;
 import com.discordsrv.common.helper.VanishStatusTrackingModule;
 import com.discordsrv.common.logging.adapter.DependencyLoggerAdapter;
 import com.discordsrv.common.util.ApiInstanceUtil;
+import com.discordsrv.common.util.GitIgnoreUtil;
 import com.discordsrv.common.util.UUIDUtil;
 import com.discordsrv.common.util.function.CheckedFunction;
 import com.fasterxml.jackson.databind.DeserializationFeature;
@@ -803,6 +804,12 @@ public abstract class AbstractDiscordSRV<
             logger().info("Reloading DiscordSRV...");
         }
 
+        try {
+            GitIgnoreUtil.createGitignore(dataDirectory());
+        } catch (IOException e) {
+            logger.warning("Failed to create .gitignore file", e);
+        }
+
         boolean configUpgrade = flags.contains(ReloadFlag.CONFIG_UPGRADE);
 
         if (flags.contains(ReloadFlag.CONFIG) || configUpgrade) {
@@ -1057,9 +1064,11 @@ public abstract class AbstractDiscordSRV<
         this.status.set(Status.SHUTDOWN);
     }
 
+    public static final String OLD_CONFIG_BACKUP_DIRECTORY = "old-config-backups";
+
     private Path generateBackupPath() throws IOException {
         String dateAndTime = DateTimeFormatter.ofPattern("yyyy-MM-dd_HH-mm-ss").format(LocalDateTime.now());
-        Path backupPath = dataDirectory().resolve("old-config-backups").resolve(dateAndTime);
+        Path backupPath = dataDirectory().resolve(OLD_CONFIG_BACKUP_DIRECTORY).resolve(dateAndTime);
         if (Files.notExists(backupPath)) {
             Files.createDirectories(backupPath);
         }

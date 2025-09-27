@@ -38,6 +38,8 @@ import java.util.concurrent.Executor;
 
 public class DependencyLoader {
 
+    public static final String DEPENDENCY_DIRECTORY_NAME = "cache";
+
     private static final List<Repository> REPOSITORIES = Arrays.asList(
             // TODO
             new MavenRepository("https://repo1.maven.org/maven2"),
@@ -46,7 +48,7 @@ public class DependencyLoader {
     );
 
     public static Path resolvePath(Path dataDirectory) {
-        return dataDirectory.resolve("cache");
+        return dataDirectory.resolve(DEPENDENCY_DIRECTORY_NAME);
     }
 
     public static DependencyDownloadResource loadResource(String resourceName) throws IOException {

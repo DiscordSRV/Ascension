@@ -49,6 +49,8 @@ import java.util.concurrent.Future;
 
 public class DiscordSRVLogger implements Logger {
 
+    public static final String LOGS_DIRECTORY_NAME = "logs";
+
     private static final DateFormat ROTATED_DATE_TIME_FORMATTER = new SimpleDateFormat("EEE HH:mm:ss z");
     private static final DateFormat DAY_DATE_TIME_FORMATTER = new SimpleDateFormat("HH:mm:ss z");
     private static final DateFormat DAY = new SimpleDateFormat("yyyy-MM-dd");
@@ -71,7 +73,7 @@ public class DiscordSRVLogger implements Logger {
 
     public DiscordSRVLogger(DiscordSRV discordSRV) {
         this.discordSRV = discordSRV;
-        this.logsDirectory = discordSRV.dataDirectory().resolve("logs");
+        this.logsDirectory = discordSRV.dataDirectory().resolve(LOGS_DIRECTORY_NAME);
         if (!Files.exists(logsDirectory)) {
             try {
                 Files.createDirectory(logsDirectory);
