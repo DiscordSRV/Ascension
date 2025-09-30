@@ -30,6 +30,7 @@ import net.fabricmc.loader.api.FabricLoader;
 import net.fabricmc.loader.api.ModContainer;
 import net.fabricmc.loader.impl.FabricLoaderImpl;
 import net.minecraft.MinecraftVersion;
+import net.minecraft.SharedConstants;
 import net.minecraft.server.MinecraftServer;
 import org.apache.logging.log4j.LogManager;
 
@@ -114,7 +115,7 @@ public class DiscordSRVFabricBootstrap implements DedicatedServerModInitializer,
     @Override
     public String platformVersion() {
         //? if minecraft: >=1.21.6 {
-        String minecraftVersion = MinecraftVersion.CURRENT.name();
+        String minecraftVersion = SharedConstants.getGameVersion().name();
          //?} else {
         /*String minecraftVersion = MinecraftVersion.CURRENT.getName();
          *///?}
