@@ -84,8 +84,8 @@ remapJar {
     archiveBaseName = "DiscordSRV-Fabric-${stonecutter.current.project}"
     if (stonecutter.current.version == "1.21.6") {
         archiveBaseName = "DiscordSRV-Fabric-${stonecutter.current.project}-1.21.8"
-    } else if (stonecutter.current.version == "1.21.10-rc1") {
-        archiveBaseName = "DiscordSRV-Fabric-1.21.9-${stonecutter.current.project}"
+    } else if (stonecutter.current.version == "1.21.9") {
+        archiveBaseName = "DiscordSRV-Fabric-${stonecutter.current.project}-1.21.10"
     }
     archiveClassifier = jar.archiveClassifier
 
@@ -129,7 +129,6 @@ repositories {
             includeGroup 'eu.pb4'
         }
     }
-    mavenLocal()
 }
 
 dependencies {
