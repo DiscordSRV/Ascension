@@ -50,6 +50,13 @@ public class MySQLStorage extends HikariStorage {
         }
     }
 
+    @Override
+    protected void beginTransaction(Connection connection) throws SQLException {
+        try (Statement statement = connection.createStatement()) {
+            statement.execute("START TRANSACTION;");
+        }
+    }
+
     public static void createTablesMySQL(Connection connection, String tablePrefix) throws SQLException {
         try (Statement statement = connection.createStatement()) {
             statement.execute(

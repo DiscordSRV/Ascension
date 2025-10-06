@@ -90,6 +90,13 @@ public class H2Storage extends SQLStorage {
     }
 
     @Override
+    protected void beginTransaction(Connection connection) throws SQLException {
+        try (Statement statement = connection.createStatement()) {
+            statement.execute("BEGIN TRANSACTION;");
+        }
+    }
+
+    @Override
     public synchronized Connection getConnection() {
         return connection;
     }

@@ -27,7 +27,7 @@ import java.io.IOException;
 import java.sql.Connection;
 import java.sql.SQLException;
 
-public class MariaDBStorage extends HikariStorage {
+public class MariaDBStorage extends MySQLStorage {
 
     public MariaDBStorage(DiscordSRV discordSRV) {
         super(discordSRV);
@@ -46,7 +46,7 @@ public class MariaDBStorage extends HikariStorage {
     @Override
     public void createTables(Connection connection, String tablePrefix) throws SQLException {
         // Same table creation language
-        MySQLStorage.createTablesMySQL(connection, tablePrefix);
+        createTablesMySQL(connection, tablePrefix);
     }
 
     @Override

@@ -336,12 +336,13 @@ public abstract class SQLStorage implements Storage {
         });
     }
 
+    protected abstract void beginTransaction(Connection connection) throws SQLException;
+
     private Map<String, Integer> getOrCreateRewards(Connection connection, Set<PlayerRewardData> rewards) throws SQLException {
         Map<String, Integer> rewardMap = new HashMap<>();
         connection.setTransactionIsolation(Connection.TRANSACTION_SERIALIZABLE);
-        try (Statement statement = connection.createStatement()) {
-            statement.execute("BEGIN TRANSACTION;");
-        }
+        beginTransaction(connection);
+
         try (PreparedStatement statement = connection.prepareStatement("select ID, REWARD from " + tablePrefix() + REWARD_TABLE_NAME + ";")) {
             try (ResultSet resultSet = statement.executeQuery()) {
                 while (resultSet.next()) {
