@@ -55,14 +55,24 @@ public class FabricBanModule extends AbstractFabricModule implements PunishmentM
         instance = this;
     }
 
-    public static void onBan(GameProfile gameProfile) {
+    //? if minecraft: >=1.21.9 {
+    public static void onBan(net.minecraft.server.PlayerConfigEntry playerConfigEntry) {
         if (instance == null) return;
         FabricDiscordSRV discordSRV = instance.discordSRV;
         BanSyncModule module = discordSRV.getModule(BanSyncModule.class);
         if (module == null) return;
 
-        UUID playerUUID = gameProfile.getId();
-        IPlayer player = discordSRV.playerProvider().player(gameProfile.getId());
+        UUID playerUUID = playerConfigEntry.id();
+    //?} else {
+    /*public static void onBan(GameProfile gameProfile) {
+        if (instance == null) return;
+        FabricDiscordSRV discordSRV = instance.discordSRV;
+        BanSyncModule module = discordSRV.getModule(BanSyncModule.class);
+        if (module == null) return;
+
+        UUID playerUUID = discordSRV.getIdFromGameProfile(gameProfile);
+    *///?}
+        IPlayer player = discordSRV.playerProvider().player(playerUUID);
         if (player == null) {
             throw new RuntimeException("Player " + playerUUID + " not present in player provider");
         }
@@ -74,12 +84,21 @@ public class FabricBanModule extends AbstractFabricModule implements PunishmentM
         });
     }
 
-    public static void onPardon(GameProfile gameProfile) {
+    //? if minecraft: >=1.21.9 {
+    public static void onPardon(net.minecraft.server.PlayerConfigEntry entry) {
         if (instance == null) return;
         FabricDiscordSRV discordSRV = instance.discordSRV;
         BanSyncModule module = discordSRV.getModule(BanSyncModule.class);
-        if (module != null) instance.removeBan(gameProfile.getId());
+        if (module != null) instance.removeBan(entry.id());
     }
+    //?} else {
+    /*public static void onPardon(GameProfile gameProfile) {
+        if (instance == null) return;
+        FabricDiscordSRV discordSRV = instance.discordSRV;
+        BanSyncModule module = discordSRV.getModule(BanSyncModule.class);
+        if (module != null) instance.removeBan(discordSRV.getIdFromGameProfile(gameProfile));
+    }
+    *///?}
 
     @Override
     public void enable() {
@@ -90,12 +109,20 @@ public class FabricBanModule extends AbstractFabricModule implements PunishmentM
     public Task<@Nullable Punishment> getBan(@NotNull UUID playerUUID) {
         BannedPlayerList banList = discordSRV.getServer().getPlayerManager().getUserBanList();
 
-        Optional<GameProfile> gameProfile = Objects.requireNonNull(discordSRV.getServer().getUserCache()).getByUuid(playerUUID);
+        //? if minecraft: >=1.21.9 {
+        Optional<net.minecraft.server.PlayerConfigEntry> playerConfigEntry = discordSRV.getServer().getApiServices().nameToIdCache().getByUuid(playerUUID);
+        if (playerConfigEntry.isEmpty()) {
+            return Task.completed(null);
+        }
+        BannedPlayerEntry banEntry = banList.get(playerConfigEntry.get());
+        //?} else {
+        /*Optional<GameProfile> gameProfile = Objects.requireNonNull(discordSRV.getServer().getUserCache()).getByUuid(playerUUID);
         if (gameProfile.isEmpty()) {
             return Task.completed(null);
         }
-
         BannedPlayerEntry banEntry = banList.get(gameProfile.get());
+        *///?}
+
         if (banEntry == null) {
             return Task.completed(null);
         }
@@ -117,17 +144,25 @@ public class FabricBanModule extends AbstractFabricModule implements PunishmentM
     ) {
         try {
             MinecraftServer server = discordSRV.getServer();
-            UserCache userCache = server.getUserCache();
-
-            GameProfile gameProfile = null;
-            if (userCache != null) {
-                gameProfile = userCache.getByUuid(playerUUID).orElse(null);
+            //? if minecraft: >=1.21.9 {
+            net.minecraft.server.PlayerConfigEntry entry = null;
+            Optional<net.minecraft.server.PlayerConfigEntry> entryOptional = discordSRV.getServer().getApiServices().nameToIdCache().getByUuid(playerUUID);
+            if (entryOptional.isPresent()) {
+                entry = entryOptional.get();
             }
+            //?} else {
+            /*UserCache userCache = server.getUserCache();
+
+            GameProfile entry = null;
+            if (userCache != null) {
+                entry = userCache.getByUuid(playerUUID).orElse(null);
+            }
+            *///?}
 
             String reasonProvided = reason != null ? reason.asPlainString() : null;
             Date expiration = until != null ? Date.from(until) : null;
 
-            BannedPlayerEntry banEntry = new BannedPlayerEntry(gameProfile, new Date(), reasonProvided, expiration, punisher.asPlainString());
+            BannedPlayerEntry banEntry = new BannedPlayerEntry(entry, new Date(), reasonProvided, expiration, punisher.asPlainString());
             server.getPlayerManager().getUserBanList().add(banEntry);
 
             ServerPlayerEntity serverPlayerEntity = server.getPlayerManager().getPlayer(playerUUID);
@@ -149,12 +184,18 @@ public class FabricBanModule extends AbstractFabricModule implements PunishmentM
     public Task<Void> removeBan(@NotNull UUID playerUUID) {
         BannedPlayerList banList = discordSRV.getServer().getPlayerManager().getUserBanList();
 
-        Optional<GameProfile> gameProfile = Objects.requireNonNull(discordSRV.getServer().getUserCache()).getByUuid(playerUUID);
+        //? if minecraft: >=1.21.9 {
+        discordSRV.getServer().getApiServices().nameToIdCache().getByUuid(playerUUID).ifPresent(name -> {
+            banList.remove(name);
+        });
+        //?} else {
+        /*Optional<GameProfile> gameProfile = Objects.requireNonNull(discordSRV.getServer().getUserCache()).getByUuid(playerUUID);
         if (gameProfile.isEmpty()) {
             return Task.completed(null);
         }
 
         banList.remove(gameProfile.get());
+        *///?}
         return Task.completed(null);
     }
 }

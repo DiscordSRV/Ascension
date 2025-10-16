@@ -45,6 +45,10 @@ import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Consumer;
 
+//? if minecraft: >= 1.21.9 {
+import net.minecraft.server.PlayerConfigEntry;
+//?}
+
 public class FabricRequiredLinkingModule extends ServerRequireLinkingModule<FabricDiscordSRV> {
 
     private static FabricRequiredLinkingModule INSTANCE;
@@ -55,13 +59,23 @@ public class FabricRequiredLinkingModule extends ServerRequireLinkingModule<Fabr
         }
     }
 
-    public static Text canJoin(GameProfile profile) {
+    //? if minecraft: >= 1.21.9 {
+    public static Text canJoin(PlayerConfigEntry configEntry) {
+        if (INSTANCE == null || INSTANCE.config() == null) {
+            return Text.of(NOT_READY_MESSAGE);
+        }
+
+        return INSTANCE.checkCanJoin(new GameProfile(configEntry.id(), configEntry.name()));
+    }
+    //?} else {
+    /*public static Text canJoin(GameProfile profile) {
         if (INSTANCE == null || INSTANCE.config() == null) {
             return Text.of(NOT_READY_MESSAGE);
         }
 
         return INSTANCE.checkCanJoin(profile);
     }
+    *///?}
 
     private final Map<UUID, Consumer<IPlayer>> loginsHandled = new ConcurrentHashMap<>();
     private boolean enabled = false;
@@ -107,12 +121,16 @@ public class FabricRequiredLinkingModule extends ServerRequireLinkingModule<Fabr
     }
 
     public Task<Component> getBlockReason(GameProfile gameProfile, boolean join) {
-        if (config().whitelistedPlayersCanBypass
-                && discordSRV.getServer().getPlayerManager().getWhitelist().isAllowed(gameProfile)) {
+        //? if minecraft: >=1.21.9 {
+        boolean allowed = config().whitelistedPlayersCanBypass && discordSRV.getServer().getPlayerManager().getWhitelist().isAllowed(PlayerConfigEntry.fromNickname(discordSRV.getNameFromGameProfile(gameProfile)));
+        //?} else {
+        /*boolean allowed = config().whitelistedPlayersCanBypass && discordSRV.getServer().getPlayerManager().getWhitelist().isAllowed(gameProfile);
+        *///?}
+        if (allowed) {
             return Task.completed(null);
         }
 
-        return getBlockReason(gameProfile.getId(), gameProfile.getName(), join);
+        return getBlockReason(discordSRV.getIdFromGameProfile(gameProfile), discordSRV.getNameFromGameProfile(gameProfile), join);
     }
 
     //
@@ -230,7 +248,7 @@ public class FabricRequiredLinkingModule extends ServerRequireLinkingModule<Fabr
         if (!enabled) return;
 
         GameProfile gameProfile = handler.getDebugProfile();
-        UUID playerUUID = handler.getDebugProfile().getId();
+        UUID playerUUID = discordSRV.getIdFromGameProfile(handler.getDebugProfile());
 
         loginsHandled.put(playerUUID, handleFreezeLogin(playerUUID, () -> getBlockReason(gameProfile, true).join()));
     }

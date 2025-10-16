@@ -32,8 +32,12 @@ import java.net.SocketAddress;
 public class PlayerManagerMixin {
 
     @Inject(method = "checkCanJoin", at = @At("TAIL"), cancellable = true)
-    public void checkCanJoin(SocketAddress address, GameProfile profile, CallbackInfoReturnable<Text> cir) {
-        Text kickReason = FabricRequiredLinkingModule.canJoin(profile);
+    //? if minecraft: >= 1.21.9 {
+    public void checkCanJoin(SocketAddress address, net.minecraft.server.PlayerConfigEntry entry, CallbackInfoReturnable<Text> cir) {
+    //?} else {
+    /*public void checkCanJoin(SocketAddress address, GameProfile entry, CallbackInfoReturnable<Text> cir) {
+    *///?}
+        Text kickReason = FabricRequiredLinkingModule.canJoin(entry);
 
         cir.setReturnValue(kickReason);
     }

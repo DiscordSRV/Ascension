@@ -27,6 +27,7 @@ import net.minecraft.text.Text;
 import net.minecraft.util.Formatting;
 import net.minecraft.util.math.Vec2f;
 import net.minecraft.util.math.Vec3d;
+import net.minecraft.util.math.Vec3i;
 
 import java.util.UUID;
 import java.util.function.Consumer;
@@ -48,8 +49,13 @@ public class FabricCommandFeedbackExecutor implements CommandOutput, Consumer<Co
         *///?} else {
         Text text = Text.literal("DiscordSRV");
          //?}
+        //? if minecraft: >=1.21.9 {
+        Vec3d spawnPos = serverWorld == null ? Vec3d.ZERO : serverWorld.getSpawnPoint().getPos().toCenterPos();
+        //?} else {
+        /*Vec3d spawnPos = serverWorld == null ? Vec3d.ZERO : Vec3d.of(serverWorld.getSpawnPos());
+        *///?}
         return new ServerCommandSource(
-                this, serverWorld == null ? Vec3d.ZERO : Vec3d.of(serverWorld.getSpawnPos()), Vec2f.ZERO, serverWorld, 4, "DiscordSRV", text, server, null
+                this, spawnPos, Vec2f.ZERO, serverWorld, 4, "DiscordSRV", text, server, null
         );
     }
     @Override

@@ -21,17 +21,26 @@ package com.discordsrv.fabric.mixin.ban;
 import com.discordsrv.fabric.module.ban.FabricBanModule;
 import com.llamalad7.mixinextras.sugar.Local;
 import com.mojang.authlib.GameProfile;
+import net.minecraft.server.command.ServerCommandSource;
 import net.minecraft.server.dedicated.command.BanCommand;
+import net.minecraft.text.Text;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
+import java.util.Collection;
+
 @Mixin(BanCommand.class)
 public class BanCommandMixin {
 
-    @Inject(method = "ban", at = @At(value = "INVOKE", target = "Lnet/minecraft/server/BannedPlayerList;add(Lnet/minecraft/server/ServerConfigEntry;)V", shift = At.Shift.AFTER))
-    private static void ban(CallbackInfoReturnable<Integer> cir, @Local GameProfile gameProfile) {
-        FabricBanModule.onBan(gameProfile);
+    //? if minecraft: >= 1.21.9 {
+    @Inject(method = "ban", at = @At(value = "INVOKE", target = "Lnet/minecraft/server/BannedPlayerList;add(Lnet/minecraft/server/BannedPlayerEntry;)Z", shift = At.Shift.AFTER))
+    private static void ban(ServerCommandSource source, Collection<net.minecraft.server.PlayerConfigEntry> targets, Text reason, CallbackInfoReturnable<Integer> cir, @Local net.minecraft.server.PlayerConfigEntry entry) {
+        //?} else {
+    /*@Inject(method = "ban", at = @At(value = "INVOKE", target = "Lnet/minecraft/server/BannedPlayerList;add(Lnet/minecraft/server/ServerConfigEntry;)V", shift = At.Shift.AFTER))
+    private static void ban(CallbackInfoReturnable<Integer> cir, @Local GameProfile entry) {
+    *///?}
+        FabricBanModule.onBan(entry);
     }
 }
