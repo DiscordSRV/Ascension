@@ -47,9 +47,11 @@ public class FabricComponentFactory extends ComponentFactory implements net.mine
 /*public class FabricComponentFactory extends ComponentFactory implements net.fabricmc.fabric.api.resource.IdentifiableResourceReloadListener {
     @Override
     public net.minecraft.util.Identifier getFabricId() {
-        return FabricDiscordSRV.id("discordsrv", "component_factory");
+        return IDENTIFIER;
     }
 *///?}
+
+    public static final net.minecraft.util.Identifier IDENTIFIER = FabricDiscordSRV.id("discordsrv", "component_factory");
 
     //? if adventure: <6 {
     /*private final FabricServerAudiences adventure;

@@ -113,8 +113,8 @@ public class FabricDiscordSRV extends AbstractDiscordSRV<DiscordSRVFabricBootstr
 
         this.translationLoader.reload();
         //? if minecraft: >=1.21.9 {
-        net.fabricmc.fabric.api.resource.v1.ResourceLoader.get(ResourceType.SERVER_DATA).registerReloader(id("discordsrv", "component_factory"), componentFactory);
-        net.fabricmc.fabric.api.resource.v1.ResourceLoader.get(ResourceType.SERVER_DATA).addReloaderOrdering(net.fabricmc.fabric.api.resource.v1.reloader.ResourceReloaderKeys.AFTER_VANILLA, id("discordsrv", "component_factory"));
+        net.fabricmc.fabric.api.resource.v1.ResourceLoader.get(ResourceType.SERVER_DATA).registerReloader(FabricComponentFactory.IDENTIFIER, componentFactory);
+        net.fabricmc.fabric.api.resource.v1.ResourceLoader.get(ResourceType.SERVER_DATA).addReloaderOrdering(net.fabricmc.fabric.api.resource.v1.reloader.ResourceReloaderKeys.AFTER_VANILLA, FabricComponentFactory.IDENTIFIER);
         //?} else {
         /*net.fabricmc.fabric.api.resource.ResourceManagerHelper.get(ResourceType.SERVER_DATA).registerReloadListener(componentFactory);
         *///?}
