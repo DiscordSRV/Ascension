@@ -87,6 +87,11 @@ public class VentureChatIntegration extends PluginIntegration<BukkitDiscordSRV> 
     public void onAsyncChatHook(VentureChatEvent event) {
         MineverseChatPlayer chatPlayer = event.getMineverseChatPlayer();
 
+        if (chatPlayer == null) {
+            logger().debug("MineverseChatPlayer chatPlayer == null for " + event.getUsername());
+            return;
+        }
+
         Player player = chatPlayer.getPlayer();
         if (player == null) {
             logger().debug("Bukkit player == null for " + chatPlayer.getName());
