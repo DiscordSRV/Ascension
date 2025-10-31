@@ -23,8 +23,8 @@ import com.discordsrv.fabric.FabricDiscordSRV;
 import net.fabricmc.fabric.api.networking.v1.PacketSender;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayConnectionEvents;
 import net.minecraft.server.MinecraftServer;
-import net.minecraft.server.network.ServerPlayNetworkHandler;
-import net.minecraft.server.network.ServerPlayerEntity;
+import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.server.network.ServerGamePacketListenerImpl;
 
 public class FabricPlayerProvider extends AbstractPlayerProvider<FabricPlayer, FabricDiscordSRV> {
 
@@ -40,12 +40,12 @@ public class FabricPlayerProvider extends AbstractPlayerProvider<FabricPlayer, F
     @Override
     public void subscribe() {
         enabled = true;
-        if (discordSRV.getServer() == null || discordSRV.getServer().getPlayerManager() == null) {
+        if (discordSRV.getServer() == null || discordSRV.getServer().getPlayerList() == null) {
             return; // Server not started yet, So there's no players to add
         }
 
         // Add players that are already connected
-        for (ServerPlayerEntity player : discordSRV.getServer().getPlayerManager().getPlayerList()) {
+        for (ServerPlayer player : discordSRV.getServer().getPlayerList().getPlayers()) {
             addPlayer(player, true);
         }
     }
@@ -55,26 +55,26 @@ public class FabricPlayerProvider extends AbstractPlayerProvider<FabricPlayer, F
         enabled = false;
     }
 
-    private void onConnection(ServerPlayNetworkHandler serverPlayNetworkHandler, PacketSender packetSender, MinecraftServer minecraftServer) {
+    private void onConnection(ServerGamePacketListenerImpl serverPlayNetworkHandler, PacketSender packetSender, MinecraftServer minecraftServer) {
         addPlayer(serverPlayNetworkHandler.player, false);
     }
 
-    private void onDisconnect(ServerPlayNetworkHandler serverPlayNetworkHandler, MinecraftServer minecraftServer) {
+    private void onDisconnect(ServerGamePacketListenerImpl serverPlayNetworkHandler, MinecraftServer minecraftServer) {
         removePlayer(serverPlayNetworkHandler.player);
     }
 
-    private void addPlayer(ServerPlayerEntity player, boolean initial) {
+    private void addPlayer(ServerPlayer player, boolean initial) {
         if (!enabled) return;
-        addPlayer(player.getUuid(), new FabricPlayer(discordSRV, player), initial);
+        addPlayer(player.getUUID(), new FabricPlayer(discordSRV, player), initial);
     }
 
-    private void removePlayer(ServerPlayerEntity player) {
+    private void removePlayer(ServerPlayer player) {
         if (!enabled) return;
-        removePlayer(player.getUuid());
+        removePlayer(player.getUUID());
     }
 
-    public FabricPlayer player(ServerPlayerEntity player) {
-        FabricPlayer srvPlayer = player(player.getUuid());
+    public FabricPlayer player(ServerPlayer player) {
+        FabricPlayer srvPlayer = player(player.getUUID());
         if (srvPlayer == null) {
             throw new IllegalStateException("Player not available");
         }

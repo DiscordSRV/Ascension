@@ -28,15 +28,14 @@ import com.mojang.authlib.GameProfile;
 import net.fabricmc.fabric.api.networking.v1.PacketSender;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayConnectionEvents;
 import net.kyori.adventure.text.Component;
-import net.minecraft.network.packet.c2s.play.PlayerMoveC2SPacket;
+import net.minecraft.commands.CommandSourceStack;
+import net.minecraft.core.BlockPos;
+import net.minecraft.network.protocol.game.ServerboundMovePlayerPacket;
 import net.minecraft.server.MinecraftServer;
-import net.minecraft.server.command.ServerCommandSource;
-import net.minecraft.server.network.ServerPlayNetworkHandler;
-import net.minecraft.server.network.ServerPlayerEntity;
-import net.minecraft.text.Text;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.math.MathHelper;
-import net.minecraft.world.GameMode;
+import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.server.network.ServerGamePacketListenerImpl;
+import net.minecraft.util.Mth;
+import net.minecraft.world.level.GameType;
 import org.jetbrains.annotations.Nullable;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
@@ -44,10 +43,6 @@ import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Consumer;
-
-//? if minecraft: >= 1.21.9 {
-import net.minecraft.server.PlayerConfigEntry;
-//?}
 
 public class FabricRequiredLinkingModule extends ServerRequireLinkingModule<FabricDiscordSRV> {
 
@@ -60,17 +55,17 @@ public class FabricRequiredLinkingModule extends ServerRequireLinkingModule<Fabr
     }
 
     //? if minecraft: >= 1.21.9 {
-    public static Text canJoin(PlayerConfigEntry configEntry) {
+    public static net.minecraft.network.chat.Component canJoin(net.minecraft.server.players.NameAndId configEntry) {
         if (INSTANCE == null || INSTANCE.config() == null) {
-            return Text.of(NOT_READY_MESSAGE);
+            return net.minecraft.network.chat.Component.nullToEmpty(NOT_READY_MESSAGE);
         }
 
         return INSTANCE.checkCanJoin(new GameProfile(configEntry.id(), configEntry.name()));
     }
     //?} else {
-    /*public static Text canJoin(GameProfile profile) {
+    /*public static net.minecraft.network.chat.Component canJoin(GameProfile profile) {
         if (INSTANCE == null || INSTANCE.config() == null) {
-            return Text.of(NOT_READY_MESSAGE);
+            return net.minecraft.network.chat.Component.nullToEmpty(NOT_READY_MESSAGE);
         }
 
         return INSTANCE.checkCanJoin(profile);
@@ -112,7 +107,7 @@ public class FabricRequiredLinkingModule extends ServerRequireLinkingModule<Fabr
     }
     @Override
     public void recheck(IPlayer player) {
-        ServerPlayerEntity playerEntity = discordSRV.getServer().getPlayerManager().getPlayer(player.uniqueId());
+        ServerPlayer playerEntity = discordSRV.getServer().getPlayerList().getPlayer(player.uniqueId());
         if (playerEntity == null) {
             return;
         }
@@ -122,9 +117,9 @@ public class FabricRequiredLinkingModule extends ServerRequireLinkingModule<Fabr
 
     public Task<Component> getBlockReason(GameProfile gameProfile, boolean join) {
         //? if minecraft: >=1.21.9 {
-        boolean allowed = config().whitelistedPlayersCanBypass && discordSRV.getServer().getPlayerManager().getWhitelist().isAllowed(PlayerConfigEntry.fromNickname(discordSRV.getNameFromGameProfile(gameProfile)));
+        boolean allowed = config().whitelistedPlayersCanBypass && discordSRV.getServer().getPlayerList().getWhiteList().isWhiteListed(net.minecraft.server.players.NameAndId.createOffline(discordSRV.getNameFromGameProfile(gameProfile)));
         //?} else {
-        /*boolean allowed = config().whitelistedPlayersCanBypass && discordSRV.getServer().getPlayerManager().getWhitelist().isAllowed(gameProfile);
+        /*boolean allowed = config().whitelistedPlayersCanBypass && discordSRV.getServer().getPlayerList().getWhiteList().isWhiteListed(gameProfile);
         *///?}
         if (allowed) {
             return Task.completed(null);
@@ -138,7 +133,7 @@ public class FabricRequiredLinkingModule extends ServerRequireLinkingModule<Fabr
     //
 
     @Nullable
-    public Text checkCanJoin(GameProfile profile) {
+    public net.minecraft.network.chat.Component checkCanJoin(GameProfile profile) {
         if (!enabled) return null;
 
         ServerRequiredLinkingConfig config = config();
@@ -158,35 +153,35 @@ public class FabricRequiredLinkingModule extends ServerRequireLinkingModule<Fabr
     // Freeze
     //
 
-    public void onPlayerMove(ServerPlayerEntity player, PlayerMoveC2SPacket packet, CallbackInfo ci) {
+    public void onPlayerMove(ServerPlayer player, ServerboundMovePlayerPacket packet, CallbackInfo ci) {
         if (!enabled) return;
 
-        Component freezeReason = frozen.get(player.getUuid());
+        Component freezeReason = frozen.get(player.getUUID());
         if (freezeReason == null || action() == ServerRequiredLinkingConfig.Action.SPECTATOR) {
             return;
         }
 
-        BlockPos from = player.getBlockPos();
+        BlockPos from = player.blockPosition();
         BlockPos to = new BlockPos(
-                MathHelper.floor(packet.getX(player.getX())),
-                MathHelper.floor(packet.getY(player.getY())),
-                MathHelper.floor(packet.getZ(player.getZ()))
+                Mth.floor(packet.getX(player.getX())),
+                Mth.floor(packet.getY(player.getY())),
+                Mth.floor(packet.getZ(player.getZ()))
         );
         if (from.getX() == to.getX() && from.getY() >= to.getY() && from.getZ() == to.getZ()) {
             return;
         }
 
-        player.requestTeleport(from.getX() + 0.5, from.getY(), from.getZ() + 0.5);
+        player.teleportTo(from.getX() + 0.5, from.getY(), from.getZ() + 0.5);
         IPlayer srvPlayer = discordSRV.playerProvider().player(player);
         srvPlayer.sendMessage(freezeReason);
 
         ci.cancel();
     }
 
-    public void onCommandExecute(com.mojang.brigadier.ParseResults<ServerCommandSource> parseResults, String command, CallbackInfo ci) {
+    public void onCommandExecute(com.mojang.brigadier.ParseResults<CommandSourceStack> parseResults, String command, CallbackInfo ci) {
         if (!enabled) return;
 
-        ServerPlayerEntity playerEntity = parseResults.getContext().getSource().getPlayer();
+        ServerPlayer playerEntity = parseResults.getContext().getSource().getPlayer();
         if (playerEntity == null || !isFrozen(playerEntity)) {
             return;
         }
@@ -201,22 +196,22 @@ public class FabricRequiredLinkingModule extends ServerRequireLinkingModule<Fabr
     // Freeze
     //
 
-    private boolean isFrozen(ServerPlayerEntity player) {
-        return frozen.get(player.getUuid()) != null;
+    private boolean isFrozen(ServerPlayer player) {
+        return frozen.get(player.getUUID()) != null;
     }
 
     @Override
     protected void changeToSpectator(IPlayer player) {
         if (player instanceof FabricPlayer) {
-            discordSRV.getServer().execute(() -> ((FabricPlayer) player).getPlayer().changeGameMode(GameMode.SPECTATOR));
+            discordSRV.getServer().execute(() -> ((FabricPlayer) player).getPlayer().setGameMode(GameType.SPECTATOR));
         }
     }
 
     @Override
     public void removeFromSpectator(IPlayer player) {
-        ServerPlayerEntity playerEntity = discordSRV.getServer().getPlayerManager().getPlayer(player.uniqueId());
+        ServerPlayer playerEntity = discordSRV.getServer().getPlayerList().getPlayer(player.uniqueId());
         if (playerEntity != null) {
-            discordSRV.getServer().execute(() -> playerEntity.changeGameMode(discordSRV.getServer().getDefaultGameMode()));
+            discordSRV.getServer().execute(() -> playerEntity.setGameMode(discordSRV.getServer().getDefaultGameType()));
         }
     }
 
@@ -235,30 +230,30 @@ public class FabricRequiredLinkingModule extends ServerRequireLinkingModule<Fabr
     }
 
     //? if minecraft: <1.20.2 {
-    /*private void onPlayerPreLogin(ServerPlayNetworkHandler handler, MinecraftServer minecraftServer) {
+    /*private void onPlayerPreLogin(ServerGamePacketListenerImpl handler, MinecraftServer minecraftServer) {
         if (!enabled) return;
 
-        UUID playerUUID = handler.getPlayer().getUuid();
+        UUID playerUUID = handler.getPlayer().getUUID();
         GameProfile gameProfile = handler.getPlayer().getGameProfile();
 
         loginsHandled.put(playerUUID, handleFreezeLogin(playerUUID, () -> getBlockReason(gameProfile, true).join()));
     }
     *///?} else {
-    private void onPlayerPreLogin(net.minecraft.server.network.ServerConfigurationNetworkHandler handler, MinecraftServer minecraftServer) {
+    private void onPlayerPreLogin(net.minecraft.server.network.ServerConfigurationPacketListenerImpl handler, MinecraftServer minecraftServer) {
         if (!enabled) return;
 
-        GameProfile gameProfile = handler.getDebugProfile();
-        UUID playerUUID = discordSRV.getIdFromGameProfile(handler.getDebugProfile());
+        GameProfile gameProfile = handler.getOwner();
+        UUID playerUUID = discordSRV.getIdFromGameProfile(handler.getOwner());
 
         loginsHandled.put(playerUUID, handleFreezeLogin(playerUUID, () -> getBlockReason(gameProfile, true).join()));
     }
     //?}
 
-    private void onPlayerJoin(ServerPlayNetworkHandler serverPlayNetworkHandler, PacketSender packetSender, MinecraftServer minecraftServer) {
+    private void onPlayerJoin(ServerGamePacketListenerImpl serverPlayNetworkHandler, PacketSender packetSender, MinecraftServer minecraftServer) {
         if (!enabled) return;
 
-        ServerPlayerEntity player = serverPlayNetworkHandler.player;
-        UUID playerUUID = player.getUuid();
+        ServerPlayer player = serverPlayNetworkHandler.player;
+        UUID playerUUID = player.getUUID();
 
         Consumer<IPlayer> callback = loginsHandled.remove(playerUUID);
         if (callback == null) {
@@ -271,10 +266,10 @@ public class FabricRequiredLinkingModule extends ServerRequireLinkingModule<Fabr
         handleBlock(srvPlayer, frozen.get(playerUUID));
     }
 
-    private void onPlayerQuit(ServerPlayNetworkHandler serverPlayNetworkHandler, MinecraftServer minecraftServer) {
+    private void onPlayerQuit(ServerGamePacketListenerImpl serverPlayNetworkHandler, MinecraftServer minecraftServer) {
         if (!enabled) return;
 
-        UUID playerUUID = serverPlayNetworkHandler.player.getUuid();
+        UUID playerUUID = serverPlayNetworkHandler.player.getUUID();
         loginsHandled.remove(playerUUID);
         frozen.remove(playerUUID);
     }

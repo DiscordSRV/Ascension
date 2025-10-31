@@ -24,11 +24,10 @@ import com.discordsrv.common.abstraction.player.IPlayer;
 import com.discordsrv.common.core.logging.NamedLogger;
 import com.discordsrv.fabric.FabricDiscordSRV;
 import com.discordsrv.fabric.module.AbstractFabricModule;
-import net.minecraft.advancement.Advancement;
-import net.minecraft.advancement.AdvancementDisplay;
-import net.minecraft.advancement.AdvancementFrame;
-import net.minecraft.text.Text;
-import net.minecraft.server.network.ServerPlayerEntity;
+import net.minecraft.advancements.Advancement;
+import net.minecraft.advancements.DisplayInfo;
+import net.minecraft.network.chat.Component;
+import net.minecraft.server.level.ServerPlayer;
 
 public class FabricAdvancementModule extends AbstractFabricModule {
 
@@ -42,32 +41,36 @@ public class FabricAdvancementModule extends AbstractFabricModule {
     }
 
     //? if minecraft: <1.20.2 {
-    /*public static void onGrant(Advancement advancement, ServerPlayerEntity owner) {
+    /*public static void onGrant(Advancement advancement, ServerPlayer owner) {
     *///?} else {
-    public static void onGrant(net.minecraft.advancement.AdvancementEntry advancementEntry, ServerPlayerEntity owner) {
+    public static void onGrant(net.minecraft.advancements.AdvancementHolder advancementEntry, ServerPlayer owner) {
     //?}
         if (instance == null || !instance.enabled) return;
 
         FabricDiscordSRV discordSRV = instance.discordSRV;
         //? if minecraft: <1.20.2 {
-        /*AdvancementDisplay display = advancement.getDisplay();
+        /*DisplayInfo display = advancement.getDisplay();
          *///?} else {
         Advancement advancement = advancementEntry.value();
-        AdvancementDisplay display = advancement.display().orElse(null);
+        DisplayInfo display = advancement.display().orElse(null);
         //?}
 
-        if (display == null || !display.shouldAnnounceToChat()) {
+        if (display == null || !display.shouldAnnounceChat()) {
             instance.logger().trace("Skipping advancement display of \"" + (advancement) + "\" for "
                     + owner + ": advancement display == null or does not broadcast to chat");
             return;
         }
 
-        AdvancementFrame frame = display.getFrame();
+        //? if minecraft: <=1.20.2 {
+        /*String frameName = display.getFrame().toString();
+        *///?} else {
+        String frameName = display != null ? display.getType().getSerializedName() : "";
+         //?}
 
         //? if minecraft: <1.20.3 {
-        /*Text rawChat = Text.translatable("chat.type.advancement." + frame.getId(), owner.getDisplayName(), display.getTitle());
+        /*Component rawChat = Component.translatable("chat.type.advancement." + frameName, owner.getDisplayName(), display.getTitle());
         *///?} else {
-        Text rawChat = frame.getChatAnnouncementText(advancementEntry, owner);
+        Component rawChat = display.getType().createAnnouncement(advancementEntry, owner);
         //?}
 
         MinecraftComponent message = discordSRV.componentFactory().toAPI(rawChat);
@@ -82,7 +85,7 @@ public class FabricAdvancementModule extends AbstractFabricModule {
                         message,
                         title,
                         description,
-                        AwardMessagePreProcessEvent.AdvancementFrame.valueOf(frame.toString()),
+                        AwardMessagePreProcessEvent.AdvancementFrame.valueOf(frameName),
                         null,
                         false
                 )

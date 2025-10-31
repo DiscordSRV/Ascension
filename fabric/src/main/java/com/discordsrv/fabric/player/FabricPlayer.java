@@ -27,8 +27,8 @@ import com.discordsrv.fabric.accessor.ServerPlayerEntityAccessor;
 import com.discordsrv.fabric.command.game.sender.FabricCommandSender;
 import net.kyori.adventure.identity.Identity;
 import net.kyori.adventure.text.Component;
-import net.minecraft.scoreboard.Team;
-import net.minecraft.server.network.ServerPlayerEntity;
+import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.scores.PlayerTeam;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -38,10 +38,10 @@ import java.util.Locale;
 
 public class FabricPlayer extends FabricCommandSender implements IPlayer {
 
-    private final ServerPlayerEntity player;
+    private final ServerPlayer player;
 
-    public FabricPlayer(FabricDiscordSRV discordSRV, ServerPlayerEntity player) {
-        super(discordSRV, player.getCommandSource());
+    public FabricPlayer(FabricDiscordSRV discordSRV, ServerPlayer player) {
+        super(discordSRV, player.createCommandSourceStack());
         this.player = player;
     }
 
@@ -50,7 +50,7 @@ public class FabricPlayer extends FabricCommandSender implements IPlayer {
         return discordSRV;
     }
 
-    public @NotNull ServerPlayerEntity getPlayer() {
+    public @NotNull ServerPlayer getPlayer() {
         return player;
     }
 
@@ -66,38 +66,38 @@ public class FabricPlayer extends FabricCommandSender implements IPlayer {
 
     @Override
     public @NotNull String world() {
-        //? if minecraft: >=1.21.9 {
-        return player.getEntityWorld().getRegistryKey().getValue().getPath();
+        //? if minecraft: >1.19.4 {
+        return player.level().dimension().location().getPath();
         //?} else {
-        /*return player.getWorld().getRegistryKey().getValue().getPath();
-        *///?}
+        /*return player.getLevel().dimension().location().getPath();
+         *///?}
     }
 
     @Override
     public Task<Void> kick(Component component) {
-        player.networkHandler.disconnect(discordSRV.componentFactory().toNative(component));
+        player.connection.disconnect(discordSRV.componentFactory().toNative(component));
         return Task.completed(null);
     }
 
     @Override
     public void addChatSuggestions(Collection<String> suggestions) {
         //? if minecraft: >1.19 {
-        net.minecraft.network.packet.s2c.play.ChatSuggestionsS2CPacket packet = new net.minecraft.network.packet.s2c.play.ChatSuggestionsS2CPacket(
-                net.minecraft.network.packet.s2c.play.ChatSuggestionsS2CPacket.Action.ADD,
+        net.minecraft.network.protocol.game.ClientboundCustomChatCompletionsPacket packet = new net.minecraft.network.protocol.game.ClientboundCustomChatCompletionsPacket(
+                net.minecraft.network.protocol.game.ClientboundCustomChatCompletionsPacket.Action.ADD,
                 new ArrayList<>(suggestions)
         );
-        player.networkHandler.sendPacket(packet);
+        player.connection.send(packet);
         //?}
     }
 
     @Override
     public void removeChatSuggestions(Collection<String> suggestions) {
         //? if minecraft: >1.19 {
-        net.minecraft.network.packet.s2c.play.ChatSuggestionsS2CPacket packet = new net.minecraft.network.packet.s2c.play.ChatSuggestionsS2CPacket(
-                net.minecraft.network.packet.s2c.play.ChatSuggestionsS2CPacket.Action.REMOVE,
+        net.minecraft.network.protocol.game.ClientboundCustomChatCompletionsPacket packet = new net.minecraft.network.protocol.game.ClientboundCustomChatCompletionsPacket(
+                net.minecraft.network.protocol.game.ClientboundCustomChatCompletionsPacket.Action.REMOVE,
                 new ArrayList<>(suggestions)
         );
-        player.networkHandler.sendPacket(packet);
+        player.connection.send(packet);
         //?}
     }
 
@@ -107,7 +107,7 @@ public class FabricPlayer extends FabricCommandSender implements IPlayer {
 
         //? if minecraft: >1.20.2 {
         //? if minecraft: >=1.21.9 {
-        com.mojang.authlib.minecraft.MinecraftProfileTextures textures = discordSRV.getServer().getApiServices().sessionService().getTextures(player.getGameProfile());
+        com.mojang.authlib.minecraft.MinecraftProfileTextures textures = discordSRV.getServer().services().sessionService().getTextures(player.getGameProfile());
         //?} else {
         /*com.mojang.authlib.minecraft.MinecraftProfileTextures textures = discordSRV.getServer().getSessionService().getTextures(player.getGameProfile());
         *///?}
@@ -136,7 +136,7 @@ public class FabricPlayer extends FabricCommandSender implements IPlayer {
         //? if adventure: >=5.11.0 {
         return player.identity();
         //?} else {
-        /*return Identity.identity(player.getUuid());
+        /*return Identity.identity(player.getUUID());
         *///?}
     }
 
@@ -154,24 +154,24 @@ public class FabricPlayer extends FabricCommandSender implements IPlayer {
 
     @Override
     public @NotNull Component teamDisplayName() {
-        Team team = (Team) player.getScoreboardTeam();
+        PlayerTeam team = (PlayerTeam) player.getTeam();
         if (team == null) {
             return IPlayer.super.teamDisplayName();
         }
 
-        return discordSRV.componentFactory().fromNative(team.decorateName(player.getName()));
+        return discordSRV.componentFactory().fromNative(team.getFormattedName(player.getName()));
     }
 
     @Override
     public boolean isChatVisible() {
         //? if minecraft: >1.20.1 {
-        net.minecraft.network.message.ChatVisibility chatVisibility = player.getClientOptions().chatVisibility();
-        return chatVisibility != net.minecraft.network.message.ChatVisibility.SYSTEM
-                && chatVisibility != net.minecraft.network.message.ChatVisibility.HIDDEN;
+        net.minecraft.world.entity.player.ChatVisiblity chatVisibility = player.clientInformation().chatVisibility();
+        return chatVisibility != net.minecraft.world.entity.player.ChatVisiblity.SYSTEM
+                && chatVisibility != net.minecraft.world.entity.player.ChatVisiblity.HIDDEN;
         //?} else {
-        /*net.minecraft.client.option.ChatVisibility chatVisibility = player.getClientChatVisibility();
-        return chatVisibility != net.minecraft.client.option.ChatVisibility.SYSTEM
-                && chatVisibility != net.minecraft.client.option.ChatVisibility.HIDDEN;
+        /*net.minecraft.world.entity.player.ChatVisiblity chatVisibility = player.getChatVisibility();
+        return chatVisibility != net.minecraft.world.entity.player.ChatVisiblity.SYSTEM
+                && chatVisibility != net.minecraft.world.entity.player.ChatVisiblity.HIDDEN;
         *///?}
     }
 

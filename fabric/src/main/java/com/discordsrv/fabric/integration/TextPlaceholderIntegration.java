@@ -32,17 +32,17 @@ import eu.pb4.placeholders.api.PlaceholderContext;
 import eu.pb4.placeholders.api.PlaceholderHandler;
 import eu.pb4.placeholders.api.PlaceholderResult;
 import eu.pb4.placeholders.api.Placeholders;
-import net.minecraft.server.network.ServerPlayerEntity;
-import net.minecraft.text.Text;
-import net.minecraft.util.Identifier;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
+import net.minecraft.network.chat.Component;
+import net.minecraft.resources.ResourceLocation;
+import net.minecraft.server.level.ServerPlayer;
 
 public class TextPlaceholderIntegration extends PluginIntegration<FabricDiscordSRV> implements PlaceholderHandler {
 
-    private static final Identifier IDENTIFIER = FabricDiscordSRV.id("discordsrv", "textplaceholder");
+    private static final ResourceLocation IDENTIFIER = FabricDiscordSRV.id("discordsrv", "textplaceholder");
     private static final String OPTIONAL_PREFIX = "textplaceholder_";
 
     public TextPlaceholderIntegration(FabricDiscordSRV discordSRV) {
@@ -84,9 +84,9 @@ public class TextPlaceholderIntegration extends PluginIntegration<FabricDiscordS
         placeholder = "%" + placeholder + "%";
 
         DiscordSRVPlayer srvPlayer = event.getContext(DiscordSRVPlayer.class);
-        ServerPlayerEntity player = srvPlayer != null ? discordSRV.getServer().getPlayerManager().getPlayer(srvPlayer.uniqueId()) : null;
+        ServerPlayer player = srvPlayer != null ? discordSRV.getServer().getPlayerList().getPlayer(srvPlayer.uniqueId()) : null;
         if (player != null) {
-            Text parsed = Placeholders.parseText(Text.of(placeholder), PlaceholderContext.of(player));
+            Component parsed = Placeholders.parseText(Component.nullToEmpty(placeholder), PlaceholderContext.of(player));
             setResult(event, placeholder, parsed.getString());
             return;
         }
@@ -100,13 +100,13 @@ public class TextPlaceholderIntegration extends PluginIntegration<FabricDiscordS
             }
         }
 
-        Text parsedUser = parseUserPlaceholder(placeholder, uuid);
+        Component parsedUser = parseUserPlaceholder(placeholder, uuid);
         if (parsedUser != null) {
             setResult(event, placeholder, parsedUser.getString());
             return;
         }
 
-        Text parsed = Placeholders.parseText(Text.of(placeholder), PlaceholderContext.of(discordSRV.getServer()));
+        Component parsed = Placeholders.parseText(Component.nullToEmpty(placeholder), PlaceholderContext.of(discordSRV.getServer()));
         setResult(event, placeholder, parsed.getString());
     }
 
@@ -125,10 +125,10 @@ public class TextPlaceholderIntegration extends PluginIntegration<FabricDiscordS
         if (placeholderContext.hasPlayer()) {
             context = new ArrayList<>(2);
 
-            ServerPlayerEntity player = placeholderContext.player();
+            ServerPlayer player = placeholderContext.player();
             assert player != null;
 
-            Profile profile = discordSRV.profileManager().getCachedProfile(player.getUuid());
+            Profile profile = discordSRV.profileManager().getCachedProfile(player.getUUID());
             if (profile != null) {
                 context.add(profile);
             }
@@ -146,7 +146,7 @@ public class TextPlaceholderIntegration extends PluginIntegration<FabricDiscordS
             }
 
             // Check if the player is online
-            ServerPlayerEntity player = discordSRV.getServer().getPlayerManager().getPlayer(discordSRV.getIdFromGameProfile(gameProfile));
+            ServerPlayer player = discordSRV.getServer().getPlayerList().getPlayer(discordSRV.getIdFromGameProfile(gameProfile));
             if (player != null) {
                 context.add(discordSRV.playerProvider().player(player));
             } else {
@@ -164,14 +164,14 @@ public class TextPlaceholderIntegration extends PluginIntegration<FabricDiscordS
         return placeholder.equals(result) ? PlaceholderResult.invalid() : PlaceholderResult.value(result);
     }
 
-    private Text parseUserPlaceholder(String placeholder, UUID uuid) {
+    private Component parseUserPlaceholder(String placeholder, UUID uuid) {
         GameProfile gameProfile = null;
 
         //? if minecraft: <=1.20.1 {
         /*gameProfile = discordSRV.getServer().getSessionService().fillProfileProperties(new GameProfile(uuid, null), true);
         *///?} else {
         //? if minecraft: >=1.21.9 {
-        com.mojang.authlib.yggdrasil.ProfileResult profileResult = discordSRV.getServer().getApiServices().sessionService().fetchProfile(uuid, true);
+        com.mojang.authlib.yggdrasil.ProfileResult profileResult = discordSRV.getServer().services().sessionService().fetchProfile(uuid, true);
         //?} else {
         /*com.mojang.authlib.yggdrasil.ProfileResult profileResult = discordSRV.getServer().getSessionService().fetchProfile(uuid, true);
         *///?}
@@ -181,7 +181,7 @@ public class TextPlaceholderIntegration extends PluginIntegration<FabricDiscordS
         //?}
 
         if (gameProfile != null) {
-            Text parsed = Placeholders.parseText(Text.of(placeholder), PlaceholderContext.of(gameProfile, discordSRV.getServer()));
+            Component parsed = Placeholders.parseText(Component.nullToEmpty(placeholder), PlaceholderContext.of(gameProfile, discordSRV.getServer()));
             return parsed;
         }
 

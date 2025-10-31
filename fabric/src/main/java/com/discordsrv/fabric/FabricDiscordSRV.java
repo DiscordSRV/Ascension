@@ -41,11 +41,12 @@ import com.discordsrv.fabric.player.FabricPlayerProvider;
 import com.discordsrv.fabric.plugin.FabricModManager;
 import com.discordsrv.fabric.requiredlinking.FabricRequiredLinkingModule;
 import com.mojang.authlib.GameProfile;
-import net.minecraft.resource.ResourceType;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.MinecraftServer;
-import net.minecraft.util.Identifier;
+import net.minecraft.server.packs.PackType;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+
 import java.net.MalformedURLException;
 import java.net.URI;
 import java.net.URL;
@@ -113,10 +114,10 @@ public class FabricDiscordSRV extends AbstractDiscordSRV<DiscordSRVFabricBootstr
 
         this.translationLoader.reload();
         //? if minecraft: >=1.21.9 {
-        net.fabricmc.fabric.api.resource.v1.ResourceLoader.get(ResourceType.SERVER_DATA).registerReloader(FabricComponentFactory.IDENTIFIER, componentFactory);
-        net.fabricmc.fabric.api.resource.v1.ResourceLoader.get(ResourceType.SERVER_DATA).addReloaderOrdering(net.fabricmc.fabric.api.resource.v1.reloader.ResourceReloaderKeys.AFTER_VANILLA, FabricComponentFactory.IDENTIFIER);
+        net.fabricmc.fabric.api.resource.v1.ResourceLoader.get(PackType.SERVER_DATA).registerReloader(FabricComponentFactory.IDENTIFIER, componentFactory);
+        net.fabricmc.fabric.api.resource.v1.ResourceLoader.get(PackType.SERVER_DATA).addReloaderOrdering(net.fabricmc.fabric.api.resource.v1.reloader.ResourceReloaderKeys.AFTER_VANILLA, FabricComponentFactory.IDENTIFIER);
         //?} else {
-        /*net.fabricmc.fabric.api.resource.ResourceManagerHelper.get(ResourceType.SERVER_DATA).registerReloadListener(componentFactory);
+        /*net.fabricmc.fabric.api.resource.ResourceManagerHelper.get(PackType.SERVER_DATA).registerReloadListener(componentFactory);
         *///?}
     }
 
@@ -163,7 +164,7 @@ public class FabricDiscordSRV extends AbstractDiscordSRV<DiscordSRVFabricBootstr
 
     @Override
     public OnlineMode onlineMode() {
-        return OnlineMode.of(getServer().isOnlineMode());
+        return OnlineMode.of(getServer().usesAuthentication());
     }
 
     @Override
@@ -201,13 +202,13 @@ public class FabricDiscordSRV extends AbstractDiscordSRV<DiscordSRVFabricBootstr
     }
 
     /**
-     * Adapts to the {@link Identifier} changes introduced in 1.21.
+     * Adapts to the {@link ResourceLocation} changes introduced in 1.21.
      */
-    public static Identifier id(String namespace, String path) {
+    public static ResourceLocation id(String namespace, String path) {
         //? if <1.21 {
-        /*return new Identifier(namespace, path);
+        /*return new ResourceLocation(namespace, path);
          *///?} else
-        return Identifier.of(namespace, path);
+        return ResourceLocation.fromNamespaceAndPath(namespace, path);
     }
 
     /**

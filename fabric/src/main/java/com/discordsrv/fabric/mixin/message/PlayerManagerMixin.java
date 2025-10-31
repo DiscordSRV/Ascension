@@ -20,9 +20,6 @@ package com.discordsrv.fabric.mixin.message;
 
 import com.discordsrv.fabric.module.chat.FabricChatModule;
 import com.discordsrv.fabric.requiredlinking.FabricRequiredLinkingModule;
-import net.minecraft.server.PlayerManager;
-import net.minecraft.server.network.ServerPlayerEntity;
-import net.minecraft.text.Text;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
@@ -30,8 +27,9 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 import java.util.UUID;
 import java.util.function.Function;
+import net.minecraft.server.players.PlayerList;
 
-@Mixin(PlayerManager.class)
+@Mixin(PlayerList.class)
 public class PlayerManagerMixin {
 
     //? if minecraft: <1.19 {
@@ -71,8 +69,8 @@ public class PlayerManagerMixin {
     *///?} else if minecraft: >=1.19.2 {
     // Use fabric message api
     static {
-        FabricRequiredLinkingModule.withInstance(module -> net.fabricmc.fabric.api.message.v1.ServerMessageEvents.ALLOW_CHAT_MESSAGE.register((message, player, type) -> module.allowChatMessage(player.getUuid())));
-        net.fabricmc.fabric.api.message.v1.ServerMessageEvents.CHAT_MESSAGE.register((message, player, type) -> FabricChatModule.onChatMessage(message.getContent(), player.getUuid()));
+        FabricRequiredLinkingModule.withInstance(module -> net.fabricmc.fabric.api.message.v1.ServerMessageEvents.ALLOW_CHAT_MESSAGE.register((message, player, type) -> module.allowChatMessage(player.getUUID())));
+        net.fabricmc.fabric.api.message.v1.ServerMessageEvents.CHAT_MESSAGE.register((message, player, type) -> FabricChatModule.onChatMessage(message.signedContent(), player.getUUID()));
     // use FabricRequiredLinkingModule.withInstance instead of static registration
     }
     //?}

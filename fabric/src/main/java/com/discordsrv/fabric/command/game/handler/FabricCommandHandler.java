@@ -24,10 +24,10 @@ import com.discordsrv.common.command.game.abstraction.handler.util.BrigadierUtil
 import com.discordsrv.common.command.game.abstraction.sender.ICommandSender;
 import com.discordsrv.fabric.FabricDiscordSRV;
 import com.mojang.brigadier.tree.LiteralCommandNode;
-import net.minecraft.command.CommandSource;
-import net.minecraft.entity.Entity;
-import net.minecraft.server.command.ServerCommandSource;
-import net.minecraft.server.network.ServerPlayerEntity;
+import net.minecraft.commands.CommandSourceStack;
+import net.minecraft.commands.SharedSuggestionProvider;
+import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.entity.Entity;
 
 public class FabricCommandHandler implements ICommandHandler {
 
@@ -37,10 +37,10 @@ public class FabricCommandHandler implements ICommandHandler {
         this.discordSRV = discordSRV;
     }
 
-    private ICommandSender getSender(CommandSource source) {
-        if (source instanceof ServerCommandSource) {
-            Entity playerEntity = ((ServerCommandSource) source).getEntity();
-            if (playerEntity != null && playerEntity instanceof ServerPlayerEntity player) {
+    private ICommandSender getSender(SharedSuggestionProvider source) {
+        if (source instanceof CommandSourceStack) {
+            Entity playerEntity = ((CommandSourceStack) source).getEntity();
+            if (playerEntity != null && playerEntity instanceof ServerPlayer player) {
                 return discordSRV.playerProvider().player(player);
             } else {
                 return discordSRV.console();
@@ -51,7 +51,7 @@ public class FabricCommandHandler implements ICommandHandler {
 
     @Override
     public void registerCommand(GameCommand command) {
-        LiteralCommandNode<ServerCommandSource> node = BrigadierUtil.convertToBrigadier(discordSRV, command, this::getSender);
-        discordSRV.getServer().getCommandManager().getDispatcher().getRoot().addChild(node);
+        LiteralCommandNode<CommandSourceStack> node = BrigadierUtil.convertToBrigadier(discordSRV, command, this::getSender);
+        discordSRV.getServer().getCommands().getDispatcher().getRoot().addChild(node);
     }
 }
