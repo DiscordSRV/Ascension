@@ -56,6 +56,9 @@ import java.util.regex.Pattern;
 
 public class PlaceholderServiceImpl implements PlaceholderService {
 
+    public static final String DATA_NOT_AVAILABLE_REPLACEMENT = "Unavailable";
+    public static final String ERROR_REPLACEMENT = "Error";
+    public static final String INFINITE_LOOP_REPLACEMENT = "Infinite Loop";
     private static final Pattern ADDITIONAL_CONTEXT_PATTERN = Pattern.compile("^\\[([^]]+)]");
 
     private final DiscordSRV discordSRV;
@@ -106,7 +109,7 @@ public class PlaceholderServiceImpl implements PlaceholderService {
     private static List<Object> getArrayAsList(Object[] array) {
         return array.length == 0
                ? Collections.emptyList()
-               : new ArrayList<>(Arrays.asList(array));
+               : Arrays.asList(array);
     }
 
     @Override
@@ -352,7 +355,7 @@ public class PlaceholderServiceImpl implements PlaceholderService {
                         }
                         break;
                     case DATA_NOT_AVAILABLE:
-                        replacement = "Unavailable";
+                        replacement = DATA_NOT_AVAILABLE_REPLACEMENT;
                         break;
                     case LOOKUP_FAILED:
                         if (errorLogTimeout.checkAndUpdate()) {
@@ -360,14 +363,14 @@ public class PlaceholderServiceImpl implements PlaceholderService {
                         } else {
                             logger.trace("Failed to resolve placeholder \"" + placeholder + "\"", result.getError());
                         }
-                        replacement = "Error";
+                        replacement = ERROR_REPLACEMENT;
                         break;
                     case NEW_LOOKUP:
                         String newPlaceholder = result.getPlaceholder();
 
                         AtomicInteger infiniteLoop = preventInfiniteLoop.computeIfAbsent(newPlaceholder, key -> new AtomicInteger(0));
                         if (infiniteLoop.incrementAndGet() > 10) {
-                            replacement = "Infinite Loop";
+                            replacement = INFINITE_LOOP_REPLACEMENT;
                             break;
                         }
 

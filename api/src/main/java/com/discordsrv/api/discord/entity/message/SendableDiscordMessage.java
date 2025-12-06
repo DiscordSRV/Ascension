@@ -23,10 +23,12 @@
 
 package com.discordsrv.api.discord.entity.message;
 
+import com.discordsrv.api.DiscordSRV;
 import com.discordsrv.api.component.GameTextBuilder;
 import com.discordsrv.api.discord.entity.interaction.component.component.ActionRowComponent;
 import com.discordsrv.api.discord.entity.interaction.component.component.MessageComponent;
 import com.discordsrv.api.discord.entity.message.impl.SendableDiscordMessageImpl;
+import com.discordsrv.api.placeholder.PlaceholderService;
 import com.discordsrv.api.placeholder.provider.SinglePlaceholder;
 import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
@@ -368,7 +370,13 @@ public interface SendableDiscordMessage {
         }
 
         @NotNull
-        Formatter applyPlaceholderService();
+        default Formatter applyPlaceholderService() {
+            DiscordSRV discordSRV = DiscordSRV.get();
+            return applyPlaceholderService(discordSRV.placeholderService());
+        }
+
+        @NotNull
+        Formatter applyPlaceholderService(PlaceholderService placeholderService);
 
         @NotNull
         default Formatter addReplacement(@NotNull String target, @Nullable Object replacement) {

@@ -357,15 +357,14 @@ public class SendableDiscordMessageImpl implements SendableDiscordMessage {
         }
 
         @Override
-        public @NotNull Formatter applyPlaceholderService() {
+        public @NotNull Formatter applyPlaceholderService(PlaceholderService placeholderService) {
             if (placeholderServiceApplied) {
                 return this;
             }
 
-            DiscordSRV discordSRV = DiscordSRV.get();
             this.replacements.put(
                     PlaceholderService.PATTERN,
-                    wrapFunction(matcher -> discordSRV.placeholderService().convertReplacementToCharSequence(matcher, context))
+                    wrapFunction(matcher -> placeholderService.convertReplacementToCharSequence(matcher, context))
             );
             this.placeholderServiceApplied = true;
             return this;
