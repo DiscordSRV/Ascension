@@ -23,15 +23,15 @@ import com.discordsrv.common.permission.game.Permission;
 import com.discordsrv.fabric.FabricDiscordSRV;
 import me.lucko.fabric.api.permissions.v0.Permissions;
 import net.kyori.adventure.audience.Audience;
-import net.minecraft.server.command.ServerCommandSource;
+import net.minecraft.commands.CommandSourceStack;
 import org.jetbrains.annotations.NotNull;
 
 public class FabricCommandSender implements ICommandSender {
 
     protected final FabricDiscordSRV discordSRV;
-    protected final ServerCommandSource commandSource;
+    protected final CommandSourceStack commandSource;
 
-    public FabricCommandSender(FabricDiscordSRV discordSRV, ServerCommandSource commandSource) {
+    public FabricCommandSender(FabricDiscordSRV discordSRV, CommandSourceStack commandSource) {
         this.discordSRV = discordSRV;
         this.commandSource = commandSource;
     }
@@ -47,7 +47,7 @@ public class FabricCommandSender implements ICommandSender {
         //? if minecraft: <1.19 {
         /*discordSRV.getServer().getCommandManager().execute(commandSource, command);
         *///?} else {
-        discordSRV.getServer().getCommandManager().executeWithPrefix(commandSource, command);
+        discordSRV.getServer().getCommands().performPrefixedCommand(commandSource, command);
         //?}
     }
 

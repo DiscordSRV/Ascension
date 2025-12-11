@@ -25,11 +25,10 @@ import com.discordsrv.fabric.module.AbstractFabricModule;
 import com.discordsrv.fabric.player.FabricPlayer;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayConnectionEvents;
 import net.kyori.adventure.text.Component;
+import net.minecraft.ChatFormatting;
 import net.minecraft.server.MinecraftServer;
-import net.minecraft.server.network.ServerPlayNetworkHandler;
-import net.minecraft.server.network.ServerPlayerEntity;
-import net.minecraft.text.Text;
-import net.minecraft.util.Formatting;
+import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.server.network.ServerGamePacketListenerImpl;
 
 public class FabricQuitModule extends AbstractFabricModule {
 
@@ -44,12 +43,12 @@ public class FabricQuitModule extends AbstractFabricModule {
         ServerPlayConnectionEvents.DISCONNECT.register(this::onDisconnect);
     }
 
-    private void onDisconnect(ServerPlayNetworkHandler serverPlayNetworkHandler, MinecraftServer minecraftServer) {
+    private void onDisconnect(ServerGamePacketListenerImpl serverPlayNetworkHandler, MinecraftServer minecraftServer) {
         if (!enabled) return;
 
-        ServerPlayerEntity player = serverPlayNetworkHandler.player;
+        ServerPlayer player = serverPlayNetworkHandler.player;
 
-        MinecraftComponent component = discordSRV.componentFactory().toAPI(Text.translatable("multiplayer.player.left", player.getDisplayName()).formatted(Formatting.YELLOW));
+        MinecraftComponent component = discordSRV.componentFactory().toAPI(net.minecraft.network.chat.Component.translatable("multiplayer.player.left", player.getDisplayName()).withStyle(ChatFormatting.YELLOW));
         discordSRV.eventBus().publish(
                 new LeaveMessagePreProcessEvent(
                         serverPlayNetworkHandler,

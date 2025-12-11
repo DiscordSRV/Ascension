@@ -27,8 +27,7 @@ import com.discordsrv.fabric.command.game.sender.FabricCommandSender;
 import com.discordsrv.fabric.console.executor.FabricCommandExecutor;
 import com.discordsrv.fabric.console.executor.FabricCommandFeedbackExecutor;
 import net.kyori.adventure.text.Component;
-import net.minecraft.server.command.ServerCommandSource;
-
+import net.minecraft.commands.CommandSourceStack;
 import java.util.function.Consumer;
 import java.util.function.Function;
 
@@ -38,10 +37,10 @@ public class FabricConsole extends FabricCommandSender implements Console {
     private final CommandExecutorProvider executorProvider;
 
     public FabricConsole(FabricDiscordSRV discordSRV) {
-        super(discordSRV, discordSRV.getServer().getCommandSource());
+        super(discordSRV, discordSRV.getServer().createCommandSourceStack());
         this.loggingBackend = Log4JLoggerImpl.getRoot();
 
-        Function<Consumer<Component>, ServerCommandSource> commandSenderProvider =
+        Function<Consumer<Component>, CommandSourceStack> commandSenderProvider =
                 consumer -> new FabricCommandFeedbackExecutor(discordSRV.getServer(), consumer).getCommandSource();
         this.executorProvider = consumer -> new FabricCommandExecutor(discordSRV, commandSenderProvider.apply(consumer));
     }

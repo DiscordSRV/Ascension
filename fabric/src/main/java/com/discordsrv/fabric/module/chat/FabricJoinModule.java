@@ -27,9 +27,9 @@ import net.fabricmc.fabric.api.networking.v1.PacketSender;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayConnectionEvents;
 import net.kyori.adventure.text.Component;
 import net.minecraft.server.MinecraftServer;
-import net.minecraft.server.network.ServerPlayNetworkHandler;
-import net.minecraft.server.network.ServerPlayerEntity;
-import net.minecraft.stat.Stats;
+import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.server.network.ServerGamePacketListenerImpl;
+import net.minecraft.stats.Stats;
 
 public class FabricJoinModule extends AbstractFabricModule {
 
@@ -44,11 +44,11 @@ public class FabricJoinModule extends AbstractFabricModule {
         ServerPlayConnectionEvents.JOIN.register(this::onJoin);
     }
 
-    private void onJoin(ServerPlayNetworkHandler serverPlayNetworkHandler, PacketSender packetSender, MinecraftServer minecraftServer) {
+    private void onJoin(ServerGamePacketListenerImpl serverPlayNetworkHandler, PacketSender packetSender, MinecraftServer minecraftServer) {
         if (!enabled) return;
 
-        ServerPlayerEntity playerEntity = serverPlayNetworkHandler.player;
-        boolean firstJoin = playerEntity.getStatHandler().getStat(Stats.CUSTOM.getOrCreateStat(Stats.LEAVE_GAME)) == 0;
+        ServerPlayer playerEntity = serverPlayNetworkHandler.player;
+        boolean firstJoin = playerEntity.getStats().getValue(Stats.CUSTOM.get(Stats.LEAVE_GAME)) == 0;
 
         MinecraftComponent component;
         if (discordSRV.getNameFromGameProfile(playerEntity.getGameProfile()).equalsIgnoreCase(playerEntity.getName().getString())) {

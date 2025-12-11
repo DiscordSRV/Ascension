@@ -20,24 +20,24 @@ package com.discordsrv.fabric.mixin.requiredlinking;
 
 import com.discordsrv.fabric.requiredlinking.FabricRequiredLinkingModule;
 import com.mojang.authlib.GameProfile;
-import net.minecraft.text.Text;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
 import java.net.SocketAddress;
+import net.minecraft.network.chat.Component;
 
-@Mixin(net.minecraft.server.PlayerManager.class)
+@Mixin(net.minecraft.server.players.PlayerList.class)
 public class PlayerManagerMixin {
 
-    @Inject(method = "checkCanJoin", at = @At("TAIL"), cancellable = true)
+    @Inject(method = "canPlayerLogin", at = @At("TAIL"), cancellable = true)
     //? if minecraft: >= 1.21.9 {
-    public void checkCanJoin(SocketAddress address, net.minecraft.server.PlayerConfigEntry entry, CallbackInfoReturnable<Text> cir) {
+    public void checkCanJoin(SocketAddress address, net.minecraft.server.players.NameAndId entry, CallbackInfoReturnable<Component> cir) {
     //?} else {
-    /*public void checkCanJoin(SocketAddress address, GameProfile entry, CallbackInfoReturnable<Text> cir) {
+    /*public void checkCanJoin(SocketAddress address, GameProfile entry, CallbackInfoReturnable<Component> cir) {
     *///?}
-        Text kickReason = FabricRequiredLinkingModule.canJoin(entry);
+        Component kickReason = FabricRequiredLinkingModule.canJoin(entry);
 
         cir.setReturnValue(kickReason);
     }

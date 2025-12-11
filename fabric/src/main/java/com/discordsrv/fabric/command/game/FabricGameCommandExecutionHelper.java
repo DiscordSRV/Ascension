@@ -27,22 +27,21 @@ import com.mojang.brigadier.context.ParsedCommandNode;
 import com.mojang.brigadier.suggestion.Suggestions;
 import com.mojang.brigadier.tree.CommandNode;
 import com.mojang.brigadier.tree.RootCommandNode;
-import net.minecraft.server.command.ServerCommandSource;
-
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.ExecutionException;
 import java.util.stream.Collectors;
+import net.minecraft.commands.CommandSourceStack;
 
 public class FabricGameCommandExecutionHelper implements GameCommandExecutionHelper {
 
     protected final FabricDiscordSRV discordSRV;
-    private final CommandDispatcher<ServerCommandSource> dispatcher;
+    private final CommandDispatcher<CommandSourceStack> dispatcher;
 
     public FabricGameCommandExecutionHelper(FabricDiscordSRV discordSRV) {
         this.discordSRV = discordSRV;
-        this.dispatcher = discordSRV.getServer().getCommandManager().getDispatcher();
+        this.dispatcher = discordSRV.getServer().getCommands().getDispatcher();
     }
 
     @Override
@@ -52,7 +51,7 @@ public class FabricGameCommandExecutionHelper implements GameCommandExecutionHel
             return getRootCommands();
         }
         try {
-            ParseResults<ServerCommandSource> parse = dispatcher.parse(fullCommand, discordSRV.getServer().getCommandSource());
+            ParseResults<CommandSourceStack> parse = dispatcher.parse(fullCommand, discordSRV.getServer().createCommandSourceStack());
             if (!parse.getExceptions().isEmpty()) {
                 // There's an error with the command syntax, return the full command and the error message for the user.
                 List<String> data = new ArrayList<>();
@@ -62,9 +61,9 @@ public class FabricGameCommandExecutionHelper implements GameCommandExecutionHel
                 return Task.completed(data);
             }
 
-            List<ParsedCommandNode<ServerCommandSource>> nodes = parse.getContext().getNodes();
+            List<ParsedCommandNode<CommandSourceStack>> nodes = parse.getContext().getNodes();
             if (!nodes.isEmpty()) {
-                CommandNode<ServerCommandSource> lastNode = nodes.getLast().getNode();
+                CommandNode<CommandSourceStack> lastNode = nodes.getLast().getNode();
                 if (lastNode.getChildren().isEmpty() && lastNode.getRedirect() == null) {
                     // We reached the end of the command tree. Suggest the full command as a valid command.
                     return Task.completed(Collections.singletonList(fullCommand));
@@ -78,9 +77,9 @@ public class FabricGameCommandExecutionHelper implements GameCommandExecutionHel
             if (data.isEmpty()) {
                 // Suggestions are empty, Likely the user is still typing an argument.
                 // If the context is empty, We search all commands from the root.
-                CommandNode<ServerCommandSource> lastNode = !nodes.isEmpty() ? nodes.getLast().getNode() : parse.getContext().getRootNode();
+                CommandNode<CommandSourceStack> lastNode = !nodes.isEmpty() ? nodes.getLast().getNode() : parse.getContext().getRootNode();
 
-                for (CommandNode<ServerCommandSource> child : lastNode.getChildren()) {
+                for (CommandNode<CommandSourceStack> child : lastNode.getChildren()) {
                     if (child.getName().toLowerCase().startsWith(parts.getLast().toLowerCase())) {
                         if (lastNode instanceof RootCommandNode) {
                             data.add(child.getName());
@@ -106,8 +105,8 @@ public class FabricGameCommandExecutionHelper implements GameCommandExecutionHel
 
     @Override
     public boolean isSameCommand(String command1, String command2) {
-        CommandNode<ServerCommandSource> commandNode1 = dispatcher.findNode(Collections.singleton(command1));
-        CommandNode<ServerCommandSource> commandNode2 = dispatcher.findNode(Collections.singleton(command2));
+        CommandNode<CommandSourceStack> commandNode1 = dispatcher.findNode(Collections.singleton(command1));
+        CommandNode<CommandSourceStack> commandNode2 = dispatcher.findNode(Collections.singleton(command2));
         if (commandNode1 != null && commandNode2 != null) {
             return commandNode1.equals(commandNode2);
         }

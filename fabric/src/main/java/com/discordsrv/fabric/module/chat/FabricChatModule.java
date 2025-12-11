@@ -24,7 +24,6 @@ import com.discordsrv.common.util.ComponentUtil;
 import com.discordsrv.fabric.FabricDiscordSRV;
 import com.discordsrv.fabric.module.AbstractFabricModule;
 import net.kyori.adventure.text.Component;
-import net.minecraft.text.Text;
 
 import java.util.UUID;
 
@@ -39,7 +38,17 @@ public class FabricChatModule extends AbstractFabricModule {
         instance = this;
     }
 
-    public static void onChatMessage(Text text, UUID uuid) {
+    //? if minecraft: <=1.19.2 {
+    /*public static void onChatMessage(net.minecraft.network.chat.ChatMessageContent content, UUID uuid) {
+        onChatMessage(content.decorated(), uuid);
+    }
+    *///?} else {
+    public static void onChatMessage(String message, UUID uuid) {
+        onChatMessage(net.minecraft.network.chat.Component.nullToEmpty(message), uuid);
+    }
+    //?}
+
+    public static void onChatMessage(net.minecraft.network.chat.Component text, UUID uuid) {
         if (instance == null || !instance.enabled) return;
         FabricDiscordSRV discordSRV = instance.discordSRV;
 

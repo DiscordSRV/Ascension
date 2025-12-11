@@ -23,11 +23,11 @@ import com.discordsrv.common.core.component.ComponentFactory;
 import com.discordsrv.common.util.ComponentUtil;
 import net.kyori.adventure.audience.Audience;
 import net.kyori.adventure.text.Component;
-import net.minecraft.resource.ResourceManager;
-import net.minecraft.server.command.CommandOutput;
-import net.minecraft.server.command.ServerCommandSource;
-import net.minecraft.server.network.ServerPlayerEntity;
-import net.minecraft.text.Text;
+import net.minecraft.commands.CommandSource;
+import net.minecraft.commands.CommandSourceStack;
+import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.server.packs.resources.ResourceManager;
+import net.minecraft.util.profiling.ProfilerFiller;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.concurrent.CompletableFuture;
@@ -42,16 +42,16 @@ import net.kyori.adventure.platform.modcommon.AdventureCommandSourceStack;
 //?}
 
 //? if minecraft: >=1.21.9 {
-public class FabricComponentFactory extends ComponentFactory implements net.minecraft.resource.ResourceReloader {
+public class FabricComponentFactory extends ComponentFactory implements net.minecraft.server.packs.resources.PreparableReloadListener {
 //?} else {
 /*public class FabricComponentFactory extends ComponentFactory implements net.fabricmc.fabric.api.resource.IdentifiableResourceReloadListener {
     @Override
-    public net.minecraft.util.Identifier getFabricId() {
+    public net.minecraft.resources.ResourceLocation getFabricId() {
         return IDENTIFIER;
     }
 *///?}
 
-    public static final net.minecraft.util.Identifier IDENTIFIER = FabricDiscordSRV.id("discordsrv", "component_factory");
+    public static final net.minecraft.resources.ResourceLocation IDENTIFIER = FabricDiscordSRV.id("discordsrv", "component_factory");
 
     //? if adventure: <6 {
     /*private final FabricServerAudiences adventure;
@@ -82,27 +82,27 @@ public class FabricComponentFactory extends ComponentFactory implements net.mine
 
     //? if adventure: <6 {
     /*@SuppressWarnings("removal")
-    public Component fromNative(Text text) {
+    public Component fromNative(net.minecraft.network.chat.Component text) {
         return adventure.toAdventure(text);
     *///?} else {
-    public Component fromNative(Text text) {
+    public Component fromNative(net.minecraft.network.chat.Component text) {
         return adventure.asAdventure(text);
     //?}
     }
 
-    public Component toAdventure(Text text) {
+    public Component toAdventure(net.minecraft.network.chat.Component text) {
         return fromNative(text);
     }
 
-    public Text toNative(Component component) {
+    public net.minecraft.network.chat.Component toNative(Component component) {
         //? if adventure: <6 {
-        // return adventure.toNative(component);
-        //?} else {
+         /*return adventure.toNative(component);
+        *///?} else {
         return adventure.asNative(component);
         //?}
     }
 
-    public Text fromAdventure(Component component) {
+    public net.minecraft.network.chat.Component fromAdventure(Component component) {
         return toNative(component);
     }
 
@@ -110,38 +110,39 @@ public class FabricComponentFactory extends ComponentFactory implements net.mine
         return ComponentUtil.toAPI(component);
     }
 
-    public MinecraftComponent toAPI(Text text) {
+    public MinecraftComponent toAPI(net.minecraft.network.chat.Component text) {
         return toAPI(fromNative(text));
     }
 
-    public AdventureCommandSourceStack audience(@NotNull ServerCommandSource source) {
+    public AdventureCommandSourceStack audience(@NotNull CommandSourceStack source) {
         return adventure.audience(source);
     }
 
-    public @NotNull Audience audience(@NotNull ServerPlayerEntity source) {
+    public @NotNull Audience audience(@NotNull ServerPlayer source) {
         return adventure.audience(source);
     }
 
-    public @NotNull Audience audience(@NotNull CommandOutput source) {
+    public @NotNull Audience audience(@NotNull CommandSource source) {
         return adventure.audience(source);
     }
 
-    public @NotNull Audience audience(@NotNull Iterable<ServerPlayerEntity> players) {
+    public @NotNull Audience audience(@NotNull Iterable<ServerPlayer> players) {
         return adventure.audience(players);
     }
 
     @Override
     //? if minecraft: >=1.21.9 {
-    public CompletableFuture<Void> reload(Store store, Executor prepareExecutor, Synchronizer synchronizer, Executor applyExecutor) {
-        ResourceManager manager = store.getResourceManager();
+    public CompletableFuture<Void> reload(SharedState store, Executor prepareExecutor, PreparationBarrier preparationBarrier, Executor applyExecutor) {
+        ResourceManager manager = store.resourceManager();
     //?} else if minecraft: >1.21.1 {
-    /*public CompletableFuture<Void> reload(Synchronizer synchronizer, ResourceManager manager, Executor prepareExecutor, Executor applyExecutor) {
-    *///?} else {
-     /*public CompletableFuture<Void> reload(Synchronizer synchronizer, ResourceManager manager, net.minecraft.util.profiler.Profiler prepareProfiler, net.minecraft.util.profiler.Profiler applyProfiler, Executor prepareExecutor, Executor applyExecutor) {
+    /*public CompletableFuture<Void> reload(PreparationBarrier preparationBarrier, ResourceManager manager, Executor prepareExecutor, Executor applyExecutor) {
+
+            *///?} else {
+     /*public CompletableFuture<Void> reload(PreparationBarrier preparationBarrier, ResourceManager manager, ProfilerFiller prepareProfiler, ProfilerFiller applyProfiler, Executor prepareExecutor, Executor applyExecutor) {
     *///?}
         return discordSRV
                 .translationLoader()
                 .reload(manager)
-                .thenCompose(synchronizer::whenPrepared);
+                .thenCompose(preparationBarrier::wait);
     }
 }

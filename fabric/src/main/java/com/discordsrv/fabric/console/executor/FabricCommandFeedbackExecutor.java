@@ -19,20 +19,17 @@
 package com.discordsrv.fabric.console.executor;
 
 import net.kyori.adventure.text.Component;
+import net.minecraft.ChatFormatting;
+import net.minecraft.commands.CommandSource;
+import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.server.MinecraftServer;
-import net.minecraft.server.command.CommandOutput;
-import net.minecraft.server.command.ServerCommandSource;
-import net.minecraft.server.world.ServerWorld;
-import net.minecraft.text.Text;
-import net.minecraft.util.Formatting;
-import net.minecraft.util.math.Vec2f;
-import net.minecraft.util.math.Vec3d;
-import net.minecraft.util.math.Vec3i;
-
+import net.minecraft.server.level.ServerLevel;
+import net.minecraft.world.phys.Vec2;
+import net.minecraft.world.phys.Vec3;
 import java.util.UUID;
 import java.util.function.Consumer;
 
-public class FabricCommandFeedbackExecutor implements CommandOutput, Consumer<Component> {
+public class FabricCommandFeedbackExecutor implements CommandSource, Consumer<Component> {
 
     private final MinecraftServer server;
     private final Consumer<Component> componentConsumer;
@@ -42,29 +39,29 @@ public class FabricCommandFeedbackExecutor implements CommandOutput, Consumer<Co
         this.componentConsumer = componentConsumer;
     }
 
-    public ServerCommandSource getCommandSource() {
-        ServerWorld serverWorld = server.getOverworld();
+    public CommandSourceStack getCommandSource() {
+        ServerLevel level = server.overworld();
         //? if minecraft: <1.19 {
         /*Text text = Text.of("DiscordSRV");
         *///?} else {
-        Text text = Text.literal("DiscordSRV");
+        net.minecraft.network.chat.Component text = net.minecraft.network.chat.Component.literal("DiscordSRV");
          //?}
         //? if minecraft: >=1.21.9 {
-        Vec3d spawnPos = serverWorld == null ? Vec3d.ZERO : serverWorld.getSpawnPoint().getPos().toCenterPos();
+        Vec3 spawnPos = level == null ? Vec3.ZERO : level.getRespawnData().pos().getCenter();
         //?} else {
-        /*Vec3d spawnPos = serverWorld == null ? Vec3d.ZERO : Vec3d.of(serverWorld.getSpawnPos());
+        /*Vec3 spawnPos = Vec3.atLowerCornerOf(level.getSharedSpawnPos());
         *///?}
-        return new ServerCommandSource(
-                this, spawnPos, Vec2f.ZERO, serverWorld, 4, "DiscordSRV", text, server, null
+        return new CommandSourceStack(
+                this, spawnPos, Vec2.ZERO, level, 4, "DiscordSRV", text, server, null
         );
     }
     @Override
     //? if minecraft: <1.19 {
     /*public void sendSystemMessage(Text message, UUID sender) {
     *///?} else {
-    public void sendMessage(Text message) {
+    public void sendSystemMessage(net.minecraft.network.chat.Component message) {
      //?}
-            accept(Component.text(Formatting.strip(message.getString())));
+            accept(Component.text(ChatFormatting.stripFormatting(message.getString())));
     }
 
     @Override
@@ -73,17 +70,17 @@ public class FabricCommandFeedbackExecutor implements CommandOutput, Consumer<Co
     }
 
     @Override
-    public boolean shouldReceiveFeedback() {
+    public boolean acceptsSuccess() {
         return true;
     }
 
     @Override
-    public boolean shouldTrackOutput() {
+    public boolean acceptsFailure() {
         return true;
     }
 
     @Override
-    public boolean shouldBroadcastConsoleToOps() {
+    public boolean shouldInformAdmins() {
         return true;
     }
 }

@@ -21,24 +21,24 @@ package com.discordsrv.fabric.mixin.ban;
 import com.discordsrv.fabric.module.ban.FabricBanModule;
 import com.llamalad7.mixinextras.sugar.Local;
 import com.mojang.authlib.GameProfile;
-import net.minecraft.server.command.ServerCommandSource;
-import net.minecraft.server.dedicated.command.PardonCommand;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
 import java.util.Collection;
+import net.minecraft.commands.CommandSourceStack;
+import net.minecraft.server.commands.PardonCommand;
 
 @Mixin(PardonCommand.class)
 public class PardonCommandMixin {
 
     //? if minecraft: >= 1.21.9 {
-    @Inject(method = "pardon", at = @At(value = "INVOKE", target = "Lnet/minecraft/server/BannedPlayerList;remove(Lnet/minecraft/server/PlayerConfigEntry;)Z"))
-    private static void pardon(ServerCommandSource source, Collection<net.minecraft.server.PlayerConfigEntry> targets, CallbackInfoReturnable<Integer> cir, @Local net.minecraft.server.PlayerConfigEntry entry) {
+    @Inject(method = "pardonPlayers", at = @At(value = "INVOKE", target = "Lnet/minecraft/server/players/UserBanList;remove(Lnet/minecraft/server/players/NameAndId;)Z"))
+    private static void pardon(CommandSourceStack source, Collection<net.minecraft.server.players.NameAndId> targets, CallbackInfoReturnable<Integer> cir, @Local net.minecraft.server.players.NameAndId entry) {
     //?} else {
-    /*@Inject(method = "pardon", at = @At(value = "INVOKE", target = "Lnet/minecraft/server/BannedPlayerList;remove(Ljava/lang/Object;)V"))
-    private static void pardon(ServerCommandSource source, Collection<GameProfile> targets, CallbackInfoReturnable<Integer> cir, @Local GameProfile entry) {
+    /*@Inject(method = "pardonPlayers", at = @At(value = "INVOKE", target = "Lnet/minecraft/server/players/UserBanList;remove(Lnet/minecraft/server/players/NameAndId;)Z"))
+    private static void pardon(CommandSourceStack source, Collection<GameProfile> targets, CallbackInfoReturnable<Integer> cir, @Local GameProfile entry) {
     *///?}
         FabricBanModule.onPardon(entry);
     }

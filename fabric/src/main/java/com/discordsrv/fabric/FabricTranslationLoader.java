@@ -23,10 +23,9 @@ import com.discordsrv.common.core.component.translation.TranslationLoader;
 import com.discordsrv.common.core.component.translation.TranslationRegistry;
 import net.fabricmc.loader.api.FabricLoader;
 import net.fabricmc.loader.api.ModContainer;
-import net.minecraft.resource.Resource;
-import net.minecraft.resource.ResourceManager;
-import net.minecraft.util.Identifier;
-
+import net.minecraft.resources.ResourceLocation;
+import net.minecraft.server.packs.resources.Resource;
+import net.minecraft.server.packs.resources.ResourceManager;
 import java.io.File;
 import java.io.IOException;
 import java.net.URI;
@@ -159,7 +158,7 @@ public class FabricTranslationLoader extends TranslationLoader {
                 logger.error("Failed to enumerate language resources", e);
             }
 
-            for (Identifier id : manager.findAllResources("lang", _id -> _id.getPath().endsWith(".json")).keySet()) {
+            for (ResourceLocation id : manager.listResourceStacks("lang", _id -> _id.getPath().endsWith(".json")).keySet()) {
                 Resource resource = manager.getResource(id).orElse(null);
 
                 if (resource == null) {
@@ -173,7 +172,7 @@ public class FabricTranslationLoader extends TranslationLoader {
                 Locale locale = Locale.forLanguageTag(langId.replace('_', '-'));
 
                 try {
-                    Map<String, Translation> translations = getFromJson(resource.getInputStream());
+                    Map<String, Translation> translations = getFromJson(resource.open());
                     discordSRV.componentFactory().translationRegistry().register(locale, translations);
 
                     any.set(true);

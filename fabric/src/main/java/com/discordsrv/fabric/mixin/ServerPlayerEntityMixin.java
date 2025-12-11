@@ -22,15 +22,15 @@ import com.discordsrv.fabric.accessor.ServerPlayerEntityAccessor;
 import com.discordsrv.fabric.module.chat.FabricDeathModule;
 import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
 import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
-import net.minecraft.entity.damage.DamageTracker;
-import net.minecraft.server.network.ServerPlayerEntity;
+import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.damagesource.CombatTracker;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
-@Mixin(ServerPlayerEntity.class)
+@Mixin(ServerPlayer.class)
 public class ServerPlayerEntityMixin implements ServerPlayerEntityAccessor {
     //? if minecraft: <1.20.2 {
     /*@Unique
@@ -49,26 +49,26 @@ public class ServerPlayerEntityMixin implements ServerPlayerEntityAccessor {
         return discordsrv$playerModelParts;
     }
 
-    @Inject(method = "setClientSettings", at = @At("TAIL"))
-    public void setClientSettings(net.minecraft.network.packet.c2s.play.ClientSettingsC2SPacket packet, CallbackInfo ci) {
+    @Inject(method = "updateOptions", at = @At("TAIL"))
+    public void setClientSettings(net.minecraft.network.protocol.game.ServerboundClientInformationPacket packet, CallbackInfo ci) {
         this.discordsrv$locale = packet.language();
-        this.discordsrv$playerModelParts = packet.playerModelBitMask();
+        this.discordsrv$playerModelParts = packet.modelCustomisation();
 
     }
     *///?} else {
     @Unique
     public String discordsrv$getLocale() {
-        return ((ServerPlayerEntity) (Object) this).getClientOptions().language();
+        return ((ServerPlayer) (Object) this).clientInformation().language();
     }
 
     @Unique
     public int discordsrv$getPlayerModelParts() {
-        return ((ServerPlayerEntity) (Object) this).getClientOptions().playerModelParts();
+        return ((ServerPlayer) (Object) this).clientInformation().modelCustomisation();
     }//?}
 
-    @WrapOperation(method = "onDeath", at = @At(value = "INVOKE", target = "Lnet/minecraft/entity/damage/DamageTracker;update()V"))
-    public void onDeath(DamageTracker instance, Operation<Void> original) {
-        FabricDeathModule.withInstance(module -> module.onDeath(((ServerPlayerEntity) (Object) this), instance));
+    @WrapOperation(method = "die", at = @At(value = "INVOKE", target = "Lnet/minecraft/world/damagesource/CombatTracker;recheckStatus()V"))
+    public void onDeath(CombatTracker instance, Operation<Void> original) {
+        FabricDeathModule.withInstance(module -> module.onDeath(((ServerPlayer) (Object) this), instance));
         original.call(instance);
     }
 }

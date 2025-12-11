@@ -20,14 +20,14 @@ package com.discordsrv.fabric.console.executor;
 
 import com.discordsrv.common.command.game.abstraction.executor.CommandExecutor;
 import com.discordsrv.fabric.FabricDiscordSRV;
-import net.minecraft.server.command.ServerCommandSource;
+import net.minecraft.commands.CommandSourceStack;
 
 public class FabricCommandExecutor implements CommandExecutor {
 
     private final FabricDiscordSRV discordSRV;
-    private final ServerCommandSource source;
+    private final CommandSourceStack source;
 
-    public FabricCommandExecutor(FabricDiscordSRV discordSRV, ServerCommandSource source) {
+    public FabricCommandExecutor(FabricDiscordSRV discordSRV, CommandSourceStack source) {
         this.discordSRV = discordSRV;
         this.source = source;
     }
@@ -37,7 +37,7 @@ public class FabricCommandExecutor implements CommandExecutor {
         //? if minecraft: <1.19 {
         /*discordSRV.getServer().getCommandManager().execute(source, command);
         *///?} else {
-        discordSRV.getServer().getCommandManager().executeWithPrefix(source, command);
+        discordSRV.getServer().getCommands().performPrefixedCommand(source, command);
          //?}
     }
 }
