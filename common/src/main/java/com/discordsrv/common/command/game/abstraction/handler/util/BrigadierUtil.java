@@ -34,6 +34,7 @@ import com.mojang.brigadier.builder.RequiredArgumentBuilder;
 import com.mojang.brigadier.context.CommandContext;
 import com.mojang.brigadier.tree.CommandNode;
 import com.mojang.brigadier.tree.LiteralCommandNode;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
 import java.util.Map;
@@ -50,12 +51,12 @@ public final class BrigadierUtil {
 
     private BrigadierUtil() {}
 
-    public static <S> LiteralCommandNode<S> convertToBrigadier(DiscordSRV discordSRV, GameCommand command, Function<S, ICommandSender> commandSenderMapper) {
+    public static <S> LiteralCommandNode<S> convertToBrigadier(DiscordSRV discordSRV, GameCommand command, @Nullable Function<S, ICommandSender> commandSenderMapper) {
         return (LiteralCommandNode<S>) convert(discordSRV, command, commandSenderMapper);
     }
 
     @SuppressWarnings("unchecked")
-    private static <S> CommandNode<S> convert(DiscordSRV discordSRV, GameCommand commandBuilder, Function<S, ICommandSender> commandSenderMapper) {
+    private static <S> CommandNode<S> convert(DiscordSRV discordSRV, GameCommand commandBuilder, @Nullable Function<S, ICommandSender> commandSenderMapper) {
         CommandNode<S> alreadyConverted = (CommandNode<S>) CACHE.get(commandBuilder);
         if (alreadyConverted != null) {
             return alreadyConverted;
@@ -82,38 +83,40 @@ public final class BrigadierUtil {
             argumentBuilder.redirect(convert(discordSRV, redirection, commandSenderMapper));
         }
 
-        if (requiredPermission != null) {
-            argumentBuilder.requires(sender -> {
-                ICommandSender commandSender = commandSenderMapper.apply(sender);
-                return commandSender.hasPermission(requiredPermission);
-            });
-        }
-        argumentBuilder.executes(context -> {
-            ICommandSender commandSender = commandSenderMapper.apply(context.getSource());
-            CommandUtil.basicStatusCheck(discordSRV, commandSender);
+        if (commandSenderMapper != null) {
+            if (requiredPermission != null) {
+                argumentBuilder.requires(sender -> {
+                    ICommandSender commandSender = commandSenderMapper.apply(sender);
+                    return commandSender.hasPermission(requiredPermission);
+                });
+            }
+            argumentBuilder.executes(context -> {
+                ICommandSender commandSender = commandSenderMapper.apply(context.getSource());
+                CommandUtil.basicStatusCheck(discordSRV, commandSender);
 
-            executor.execute(
-                    commandSender,
-                    getArgumentMapper(context),
-                    commandBuilder,
-                    context.getInput().split(" ", 2)[0]
-            );
-            return Command.SINGLE_SUCCESS;
-        });
-        if (argumentBuilder instanceof RequiredArgumentBuilder) {
-            ((RequiredArgumentBuilder<S, ?>) argumentBuilder).suggests((context, builder) -> {
-                try {
-                    List<?> suggestions = suggester.suggestValues(
-                            commandSenderMapper.apply(context.getSource()),
-                            getArgumentMapper(context),
-                            builder.getRemaining()
-                    );
-                    suggestions.forEach(suggestion -> builder.suggest(suggestion.toString()));
-                } catch (Throwable t) {
-                    t.printStackTrace();
-                }
-                return CompletableFuture.completedFuture(builder.build());
+                executor.execute(
+                        commandSender,
+                        getArgumentMapper(context),
+                        commandBuilder,
+                        context.getInput().split(" ", 2)[0]
+                );
+                return Command.SINGLE_SUCCESS;
             });
+            if (argumentBuilder instanceof RequiredArgumentBuilder) {
+                ((RequiredArgumentBuilder<S, ?>) argumentBuilder).suggests((context, builder) -> {
+                    try {
+                        List<?> suggestions = suggester.suggestValues(
+                                commandSenderMapper.apply(context.getSource()),
+                                getArgumentMapper(context),
+                                builder.getRemaining()
+                        );
+                        suggestions.forEach(suggestion -> builder.suggest(suggestion.toString()));
+                    } catch (Throwable t) {
+                        t.printStackTrace();
+                    }
+                    return CompletableFuture.completedFuture(builder.build());
+                });
+            }
         }
 
         CommandNode<S> node = argumentBuilder.build();
