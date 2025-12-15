@@ -83,7 +83,7 @@ public class PaperAdvancementListener extends AbstractBukkitListener<PlayerAdvan
                         message,
                         title,
                         description,
-                        AwardMessagePreProcessEvent.AdvancementFrame.valueOf(display.frame().toString()),
+                        AwardMessagePreProcessEvent.AdvancementFrame.fromId(display.frame().toString()),
                         null,
                         message == null
                 )

@@ -26,7 +26,6 @@ package com.discordsrv.api.events.message.preprocess.game;
 import com.discordsrv.api.channel.GameChannel;
 import com.discordsrv.api.color.Color;
 import com.discordsrv.api.component.MinecraftComponent;
-import com.discordsrv.api.events.PlayerEvent;
 import com.discordsrv.api.player.DiscordSRVPlayer;
 import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
@@ -132,6 +131,16 @@ public class AwardMessagePreProcessEvent extends AbstractGameMessagePreProcessEv
 
         public Color color() {
             return color;
+        }
+
+        public static AdvancementFrame fromId(String id) {
+            for (AdvancementFrame frame : values()) {
+                if (frame.id().equalsIgnoreCase(id)) {
+                    return frame;
+                }
+            }
+
+            throw new IllegalArgumentException("Unknown AdvancementFrame id: " + id);
         }
     }
 }
