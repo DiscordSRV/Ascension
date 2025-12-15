@@ -28,6 +28,7 @@ import com.discordsrv.fabric.command.game.sender.FabricCommandSender;
 import net.kyori.adventure.identity.Identity;
 import net.kyori.adventure.text.Component;
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.stats.Stats;
 import net.minecraft.world.scores.PlayerTeam;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -160,6 +161,11 @@ public class FabricPlayer extends FabricCommandSender implements IPlayer {
         }
 
         return discordSRV.componentFactory().fromNative(team.getFormattedName(player.getName()));
+    }
+
+    @Override
+    public boolean isFirstJoin() {
+        return player.getStats().getValue(Stats.CUSTOM.get(Stats.LEAVE_GAME)) == 0;
     }
 
     @Override
