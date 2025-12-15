@@ -124,6 +124,11 @@ public class VelocityPlayer extends VelocityCommandSender implements IPlayer {
     }
 
     @Override
+    public boolean isFirstJoin() {
+        return false;
+    }
+
+    @Override
     public String toString() {
         return "VelocityPlayer{" + username() + "}";
     }
