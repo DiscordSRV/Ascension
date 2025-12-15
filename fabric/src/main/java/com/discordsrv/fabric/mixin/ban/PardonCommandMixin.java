@@ -37,7 +37,7 @@ public class PardonCommandMixin {
     @Inject(method = "pardonPlayers", at = @At(value = "INVOKE", target = "Lnet/minecraft/server/players/UserBanList;remove(Lnet/minecraft/server/players/NameAndId;)Z"))
     private static void pardon(CommandSourceStack source, Collection<net.minecraft.server.players.NameAndId> targets, CallbackInfoReturnable<Integer> cir, @Local net.minecraft.server.players.NameAndId entry) {
     //?} else {
-    /*@Inject(method = "pardonPlayers", at = @At(value = "INVOKE", target = "Lnet/minecraft/server/players/UserBanList;remove(Lnet/minecraft/server/players/NameAndId;)Z"))
+    /*@Inject(method = "pardonPlayers", at = @At(value = "INVOKE", target = "Lnet/minecraft/server/players/UserBanList;remove(Ljava/lang/Object;)V"))
     private static void pardon(CommandSourceStack source, Collection<GameProfile> targets, CallbackInfoReturnable<Integer> cir, @Local GameProfile entry) {
     *///?}
         FabricBanModule.onPardon(entry);
