@@ -236,7 +236,14 @@ public class ChannelConfigHelper {
 
     @Nullable
     public BaseChannelConfig get(@NotNull GameChannel gameChannel) {
-        return resolve(gameChannel.getOwnerName(), gameChannel.getChannelName());
+        String owner = gameChannel.getOwnerName();
+        String channelName = gameChannel.getChannelName();
+        BaseChannelConfig config = findChannel(owner + ":" + channelName);
+        if (config != null) {
+            return config;
+        }
+
+        return findChannel(channelName);
     }
 
     @Nullable
@@ -255,25 +262,41 @@ public class ChannelConfigHelper {
             if (config != null) {
                 return config;
             }
+        }
+
+        // Otherwise, fall back to resolved GameChannel
+        GameChannel gameChannel = resolveChannel(ownerName, channelName);
+        return gameChannel != null ? get(gameChannel) : null;
+    }
+
+
+    @Nullable
+    public BaseChannelConfig resolveDefault() {
+        return resolve(null, GameChannel.DEFAULT_NAME);
+    }
+
+    @Nullable
+    public GameChannel resolveChannel(@NotNull String channelAtom) {
+        Pair<String, String> channelPair = parseOwnerAndChannel(channelAtom);
+        return resolveChannel(channelPair.getKey(), channelPair.getValue());
+    }
+
+    @Nullable
+    public GameChannel resolveChannel(@Nullable String ownerName, @NotNull String channelName) {
+        if (ownerName != null) {
+            ownerName = ownerName.toLowerCase(Locale.ROOT);
 
             // Check if this owner has the highest priority for this channel name
             // in case they are, we can also use "channel" config directly
             GameChannel gameChannel = nameToChannelCache.get(channelName);
             if (gameChannel != null && gameChannel.getOwnerName().equalsIgnoreCase(ownerName)) {
-                config = findChannel(channelName);
-                return config;
+                return gameChannel;
             }
+
             return null;
         }
 
-        // Get the highest priority owner for this channel name and relookup
-        GameChannel gameChannel = nameToChannelCache.get(channelName);
-        return gameChannel != null ? get(gameChannel) : null;
-    }
-
-    @Nullable
-    public BaseChannelConfig resolveDefault() {
-        return resolve(null, GameChannel.DEFAULT_NAME);
+        return nameToChannelCache.get(channelName);
     }
 
     @NotNull

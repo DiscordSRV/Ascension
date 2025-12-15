@@ -85,7 +85,10 @@ public abstract class MainConfig implements Config {
             + "The key of this option is the in-game channel name (the default keys are \"%1\" and \"%2\")\n"
             + "%3 and %4 can be configured for all channels except \"%2\"\n"
             + "\"%2\" is a special section which has the default values for all channels unless they are specified (overridden) under the channel's own section\n"
-            + "So if you don't specify a certain option under a channel's own section, the option will take its value from the \"%2\" section")
+            + "So if you don't specify a certain option under a channel's own section, the option will take its value from the \"%2\" section"
+            + "There are integrated world channels for all the worlds that are found on the server.\n"
+            + "If you add a channel with the same name as a world, all messages from that world will go to that channel instead of the global channel.\n"
+            + "If a message type is disabled for a world channel, messages of that type will be instead sent to the global channel.")
     @Constants.Comment({GameChannel.DEFAULT_NAME, ChannelConfig.DEFAULT_KEY, "channel-ids", "threads"})
     @Order(200)
     public Map<String, BaseChannelConfig> channels = new LinkedHashMap<String, BaseChannelConfig>() {{

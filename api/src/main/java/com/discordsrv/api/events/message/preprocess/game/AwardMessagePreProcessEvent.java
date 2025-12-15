@@ -43,14 +43,11 @@ import org.jetbrains.annotations.Nullable;
  * <li>{@link com.discordsrv.api.events.message.post.game.AwardMessagePostEvent}</li>
  * </ul>
  */
-public class AwardMessagePreProcessEvent extends AbstractGameMessagePreProcessEvent implements PlayerEvent {
+public class AwardMessagePreProcessEvent extends AbstractGameMessagePreProcessEvent {
 
-    private final DiscordSRVPlayer player;
-    private MinecraftComponent message;
     private MinecraftComponent title;
     private MinecraftComponent description;
     private AdvancementFrame frame;
-    private GameChannel gameChannel;
 
     public AwardMessagePreProcessEvent(
             @Nullable Object triggeringEvent,
@@ -75,28 +72,11 @@ public class AwardMessagePreProcessEvent extends AbstractGameMessagePreProcessEv
             @Nullable GameChannel gameChannel,
             boolean cancelled
     ) {
-        super(triggeringEvent, cancelled);
-        this.player = player;
-        this.title = title;
+        super(triggeringEvent, cancelled, player, gameChannel);
         this.message = message;
+        this.title = title;
         this.description = description;
         this.frame = frame;
-        this.gameChannel = gameChannel;
-    }
-
-    @Override
-    @NotNull
-    public DiscordSRVPlayer getPlayer() {
-        return player;
-    }
-
-    @Nullable
-    public MinecraftComponent getMessage() {
-        return message;
-    }
-
-    public void setMessage(@Nullable MinecraftComponent message) {
-        this.message = message;
     }
 
     @Nullable
@@ -123,14 +103,6 @@ public class AwardMessagePreProcessEvent extends AbstractGameMessagePreProcessEv
 
     public void setFrame(@Nullable AdvancementFrame frame) {
         this.frame = frame;
-    }
-
-    public GameChannel getGameChannel() {
-        return gameChannel;
-    }
-
-    public void setGameChannel(GameChannel gameChannel) {
-        this.gameChannel = gameChannel;
     }
 
     @Override

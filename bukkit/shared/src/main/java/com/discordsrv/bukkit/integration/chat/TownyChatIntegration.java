@@ -173,5 +173,10 @@ public class TownyChatIntegration extends PluginIntegration<BukkitDiscordSRV> im
             }
             return filteredPlayers;
         }
+
+        @Override
+        public String toString() {
+            return GameChannel.toString(this);
+        }
     }
 }

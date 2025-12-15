@@ -42,11 +42,8 @@ import org.jetbrains.annotations.Nullable;
  * <li>{@link com.discordsrv.api.events.message.post.game.JoinMessagePostEvent}</li>
  * </ul>
  */
-public class JoinMessagePreProcessEvent extends AbstractGameMessagePreProcessEvent implements PlayerEvent {
+public class JoinMessagePreProcessEvent extends AbstractGameMessagePreProcessEvent {
 
-    private final DiscordSRVPlayer player;
-    private MinecraftComponent message;
-    private GameChannel gameChannel;
     private final boolean fakeJoin;
     private final boolean firstJoin;
     private final boolean messageCancelled;
@@ -73,37 +70,11 @@ public class JoinMessagePreProcessEvent extends AbstractGameMessagePreProcessEve
             boolean messageCancelled,
             boolean cancelled
     ) {
-        super(triggeringEvent, cancelled);
-        this.player = player;
+        super(triggeringEvent, cancelled, player, gameChannel);
         this.message = message;
-        this.gameChannel = gameChannel;
         this.firstJoin = firstJoin;
         this.fakeJoin = fakeJoin;
         this.messageCancelled = messageCancelled;
-    }
-
-    @Override
-    @NotNull
-    public DiscordSRVPlayer getPlayer() {
-        return player;
-    }
-
-    @Nullable
-    public MinecraftComponent getMessage() {
-        return message;
-    }
-
-    public void setMessage(@Nullable MinecraftComponent message) {
-        this.message = message;
-    }
-
-    @Nullable
-    public GameChannel getGameChannel() {
-        return gameChannel;
-    }
-
-    public void setGameChannel(@Nullable GameChannel gameChannel) {
-        this.gameChannel = gameChannel;
     }
 
     public boolean isFakeJoin() {

@@ -16,7 +16,7 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package com.discordsrv.common.feature.channel.global;
+package com.discordsrv.common.feature.channel.world;
 
 import com.discordsrv.api.channel.GameChannel;
 import com.discordsrv.api.player.DiscordSRVPlayer;
@@ -25,12 +25,14 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.Collection;
 
-public class GlobalChannel implements GameChannel {
+public class WorldChannel implements GameChannel {
 
     private final DiscordSRV discordSRV;
+    private final String worldName;
 
-    public GlobalChannel(DiscordSRV discordSRV) {
+    public WorldChannel(DiscordSRV discordSRV, String worldName) {
         this.discordSRV = discordSRV;
+        this.worldName = worldName;
     }
 
     @Override
@@ -40,7 +42,7 @@ public class GlobalChannel implements GameChannel {
 
     @Override
     public @NotNull String getChannelName() {
-        return GameChannel.DEFAULT_NAME;
+        return worldName;
     }
 
     @Override

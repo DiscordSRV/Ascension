@@ -41,10 +41,7 @@ import org.jetbrains.annotations.Nullable;
  * <li>{@link com.discordsrv.api.events.message.post.game.ServerSwitchMessagePostEvent}</li>
  * </ul>
  */
-public class ServerSwitchMessagePreProcessEvent extends AbstractGameMessagePreProcessEvent implements PlayerEvent {
-
-    private final DiscordSRVPlayer player;
-    private MinecraftComponent message;
+public class ServerSwitchMessagePreProcessEvent extends AbstractGameMessagePreProcessEvent {
 
     public ServerSwitchMessagePreProcessEvent(
             @Nullable Object triggeringEvent,
@@ -61,23 +58,7 @@ public class ServerSwitchMessagePreProcessEvent extends AbstractGameMessagePrePr
             @Nullable MinecraftComponent message,
             boolean cancelled
     ) {
-        super(triggeringEvent, cancelled);
-        this.player = player;
-        this.message = message;
-    }
-
-    @Override
-    @NotNull
-    public DiscordSRVPlayer getPlayer() {
-        return player;
-    }
-
-    @Nullable
-    public MinecraftComponent getMessage() {
-        return message;
-    }
-
-    public void setMessage(@Nullable MinecraftComponent message) {
+        super(triggeringEvent, cancelled, player, null);
         this.message = message;
     }
 

@@ -23,8 +23,12 @@
 
 package com.discordsrv.api.events.message.preprocess.game;
 
+import com.discordsrv.api.channel.GameChannel;
+import com.discordsrv.api.component.MinecraftComponent;
 import com.discordsrv.api.events.Cancellable;
+import com.discordsrv.api.events.PlayerEvent;
 import com.discordsrv.api.events.Processable;
+import com.discordsrv.api.player.DiscordSRVPlayer;
 import org.apache.commons.collections4.list.SetUniqueList;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -32,16 +36,21 @@ import org.jetbrains.annotations.Unmodifiable;
 
 import java.util.*;
 
-public abstract class AbstractGameMessagePreProcessEvent implements Cancellable, Processable.NoArgument {
+public abstract class AbstractGameMessagePreProcessEvent implements Cancellable, Processable.NoArgument, PlayerEvent {
 
     private final Object triggeringEvent;
     private final List<Object> additionalContexts = SetUniqueList.setUniqueList(new ArrayList<>());
+    protected final DiscordSRVPlayer player;
+    protected GameChannel gameChannel;
+    protected MinecraftComponent message;
     private boolean cancelled;
     private boolean processed;
 
-    public AbstractGameMessagePreProcessEvent(@Nullable Object triggeringEvent, boolean cancelled) {
+    public AbstractGameMessagePreProcessEvent(@Nullable Object triggeringEvent, boolean cancelled, DiscordSRVPlayer player, @Nullable GameChannel gameChannel) {
         this.triggeringEvent = triggeringEvent;
         this.cancelled = cancelled;
+        this.player = player;
+        this.gameChannel = gameChannel;
     }
 
     /**
@@ -77,6 +86,30 @@ public abstract class AbstractGameMessagePreProcessEvent implements Cancellable,
      */
     public void removeAdditionalContext(@NotNull Object context) {
         this.additionalContexts.remove(context);
+    }
+
+    @Override
+    @NotNull
+    public DiscordSRVPlayer getPlayer() {
+        return player;
+    }
+
+    @Nullable
+    public MinecraftComponent getMessage() {
+        return message;
+    }
+
+    public void setMessage(@Nullable MinecraftComponent message) {
+        this.message = message;
+    }
+
+    @Nullable
+    public GameChannel getGameChannel() {
+        return gameChannel;
+    }
+
+    public void setGameChannel(@Nullable GameChannel gameChannel) {
+        this.gameChannel = gameChannel;
     }
 
     @Override

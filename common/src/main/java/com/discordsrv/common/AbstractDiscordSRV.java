@@ -74,6 +74,7 @@ import com.discordsrv.common.discord.connection.jda.JDAConnectionManager;
 import com.discordsrv.common.events.lifecycle.ServerStartedEvent;
 import com.discordsrv.common.exception.StorageException;
 import com.discordsrv.common.feature.DiscordInviteModule;
+import com.discordsrv.common.feature.WorldChannelModule;
 import com.discordsrv.common.feature.PlayerListModule;
 import com.discordsrv.common.feature.PresenceUpdaterModule;
 import com.discordsrv.common.feature.bansync.BanSyncModule;
@@ -744,6 +745,7 @@ public abstract class AbstractDiscordSRV<
         registerModule(JoinMessageModule::new);
         registerModule(LeaveMessageModule::new);
         registerModule(DiscordInviteModule::new);
+        registerModule(WorldChannelModule::new);
         registerModule(MentionCachingModule::new);
         registerModule(LinkingModule::new);
         registerModule(PresenceUpdaterModule::new);
