@@ -25,4 +25,3 @@ public class FabricWorldChannelLookupModule extends AbstractFabricModule {
         }
     }
 }
-
