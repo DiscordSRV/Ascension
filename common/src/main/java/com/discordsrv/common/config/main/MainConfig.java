@@ -88,8 +88,10 @@ public abstract class MainConfig implements Config {
             + "So if you don't specify a certain option under a channel's own section, the option will take its value from the \"%2\" section"
             + "There are integrated world channels for all the worlds that are found on the server.\n"
             + "If you add a channel with the same name as a world, all messages from that world will go to that channel instead of the global channel.\n"
-            + "If a message type is disabled for a world channel, messages of that type will be instead sent to the global channel.")
-    @Constants.Comment({GameChannel.DEFAULT_NAME, ChannelConfig.DEFAULT_KEY, "channel-ids", "threads"})
+            + "If a message type is disabled for a world channel, messages of that type will be instead sent to the global channel.\n"
+            + "Bukkit/Spigot/Paper default world channels are \"%5\", \"%6\" and \"%7\"\n"
+            + "Fabric default world channels are \"%8\", \"%9\" and \"%10\"")
+    @Constants.Comment({GameChannel.DEFAULT_NAME, ChannelConfig.DEFAULT_KEY, "channel-ids", "threads", "world", "world_the_nether", "world_the_end", "overworld", "the_nether", "the_end"})
     @Order(200)
     public Map<String, BaseChannelConfig> channels = new LinkedHashMap<String, BaseChannelConfig>() {{
         put(GameChannel.DEFAULT_NAME, createDefaultChannel());
