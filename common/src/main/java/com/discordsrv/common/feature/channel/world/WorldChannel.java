@@ -24,6 +24,7 @@ import com.discordsrv.common.DiscordSRV;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Collection;
+import java.util.stream.Collectors;
 
 public class WorldChannel implements GameChannel {
 
@@ -52,7 +53,7 @@ public class WorldChannel implements GameChannel {
 
     @Override
     public @NotNull Collection<? extends DiscordSRVPlayer> getRecipients() {
-        return discordSRV.playerProvider().allPlayers();
+        return discordSRV.playerProvider().allPlayers().stream().filter(player -> worldName.equals(player.world())).collect(Collectors.toList());
     }
 
     @Override
