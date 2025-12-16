@@ -26,6 +26,7 @@ package com.discordsrv.api.events.message.preprocess.game;
 import com.discordsrv.api.channel.GameChannel;
 import com.discordsrv.api.color.Color;
 import com.discordsrv.api.component.MinecraftComponent;
+import com.discordsrv.api.events.PlayerEvent;
 import com.discordsrv.api.player.DiscordSRVPlayer;
 import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
@@ -42,8 +43,9 @@ import org.jetbrains.annotations.Nullable;
  * <li>{@link com.discordsrv.api.events.message.post.game.AwardMessagePostEvent}</li>
  * </ul>
  */
-public class AwardMessagePreProcessEvent extends AbstractGameMessagePreProcessEvent {
+public class AwardMessagePreProcessEvent extends AbstractGameMessagePreProcessEvent implements PlayerEvent {
 
+    private final DiscordSRVPlayer player;
     private MinecraftComponent title;
     private MinecraftComponent description;
     private AdvancementFrame frame;
@@ -71,11 +73,17 @@ public class AwardMessagePreProcessEvent extends AbstractGameMessagePreProcessEv
             @Nullable GameChannel gameChannel,
             boolean cancelled
     ) {
-        super(triggeringEvent, cancelled, player, gameChannel);
-        this.message = message;
+        super(triggeringEvent, cancelled, gameChannel, message);
+        this.player = player;
         this.title = title;
         this.description = description;
         this.frame = frame;
+    }
+
+    @Override
+    @NotNull
+    public DiscordSRVPlayer getPlayer() {
+        return player;
     }
 
     @Nullable

@@ -42,7 +42,9 @@ import org.jetbrains.annotations.Nullable;
  * <li>{@link com.discordsrv.api.events.message.post.game.GameChatMessagePostEvent}</li>
  * </ul>
  */
-public class GameChatMessagePreProcessEvent extends AbstractGameMessagePreProcessEvent {
+public class GameChatMessagePreProcessEvent extends AbstractGameMessagePreProcessEvent implements PlayerEvent {
+
+    private final DiscordSRVPlayer player;
 
     public GameChatMessagePreProcessEvent(
             @Nullable Object triggeringEvent,
@@ -61,8 +63,14 @@ public class GameChatMessagePreProcessEvent extends AbstractGameMessagePreProces
             @NotNull GameChannel gameChannel,
             boolean cancelled
     ) {
-        super(triggeringEvent, cancelled, player, gameChannel);
-        this.message = message;
+        super(triggeringEvent, cancelled, gameChannel, message);
+        this.player = player;
+    }
+
+    @Override
+    @NotNull
+    public DiscordSRVPlayer getPlayer() {
+        return player;
     }
 
     @Override

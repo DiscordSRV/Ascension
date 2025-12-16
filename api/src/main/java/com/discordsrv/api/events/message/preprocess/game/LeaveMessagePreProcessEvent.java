@@ -42,8 +42,9 @@ import org.jetbrains.annotations.Nullable;
  * <li>{@link com.discordsrv.api.events.message.post.game.LeaveMessagePostEvent}</li>
  * </ul>
  */
-public class LeaveMessagePreProcessEvent extends AbstractGameMessagePreProcessEvent {
+public class LeaveMessagePreProcessEvent extends AbstractGameMessagePreProcessEvent implements PlayerEvent {
 
+     private final DiscordSRVPlayer player;
      private final boolean fakeLeave;
      private final boolean messageCancelled;
 
@@ -67,10 +68,16 @@ public class LeaveMessagePreProcessEvent extends AbstractGameMessagePreProcessEv
              boolean messageCancelled,
              boolean cancelled
      ) {
-         super(triggeringEvent, cancelled, player, gameChannel);
-         this.message = message;
+         super(triggeringEvent, cancelled, gameChannel, message);
+         this.player = player;
          this.fakeLeave = fakeLeave;
          this.messageCancelled = messageCancelled;
+     }
+
+     @Override
+     @NotNull
+     public DiscordSRVPlayer getPlayer() {
+         return player;
      }
 
      public boolean isFakeLeave() {

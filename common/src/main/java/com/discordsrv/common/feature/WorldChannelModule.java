@@ -21,7 +21,9 @@ package com.discordsrv.common.feature;
 import com.discordsrv.api.channel.GameChannel;
 import com.discordsrv.api.eventbus.EventPriorities;
 import com.discordsrv.api.eventbus.Subscribe;
+import com.discordsrv.api.events.PlayerEvent;
 import com.discordsrv.api.events.message.preprocess.game.*;
+import com.discordsrv.api.player.DiscordSRVPlayer;
 import com.discordsrv.common.DiscordSRV;
 import com.discordsrv.common.config.main.channels.base.server.ServerBaseChannelConfig;
 import com.discordsrv.common.config.main.generic.IMessageConfig;
@@ -37,12 +39,13 @@ public class WorldChannelModule extends AbstractModule<DiscordSRV> {
 
     @Subscribe(priority = EventPriorities.EARLIEST)
     public void onGameMessagePreProcess(AbstractGameMessagePreProcessEvent event) {
-        if (event.getGameChannel() != null && !event.getGameChannel().getChannelName().equals(GlobalChannel.DEFAULT_NAME)) {
+        if (!(event instanceof PlayerEvent) || event.getGameChannel() != null && !event.getGameChannel().getChannelName().equals(GlobalChannel.DEFAULT_NAME)) {
             return;
         }
 
-        String ownerName = event.getPlayer().world().namespace();
-        String worldName = event.getPlayer().world().value();
+        DiscordSRVPlayer player = ((PlayerEvent) event).getPlayer();
+        String ownerName = player.world().namespace();
+        String worldName = player.world().value();
 
         GameChannel worldChannel = discordSRV.channelConfig().resolveChannel(ownerName, worldName);
         if (worldChannel == null) return;
@@ -58,7 +61,7 @@ public class WorldChannelModule extends AbstractModule<DiscordSRV> {
 
         logger().debug("Routing " + event.getClass().getSimpleName() + " destined for channel "
                 + event.getGameChannel() + " to world-specific channel " + worldChannel
-                + " from player " + event.getPlayer() + " in world \"" + worldName + "\"");
+                + " from player " + player + " in world \"" + worldName + "\"");
         event.setGameChannel(worldChannel);
     }
 

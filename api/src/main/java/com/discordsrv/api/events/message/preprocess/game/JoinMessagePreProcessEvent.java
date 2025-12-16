@@ -42,8 +42,9 @@ import org.jetbrains.annotations.Nullable;
  * <li>{@link com.discordsrv.api.events.message.post.game.JoinMessagePostEvent}</li>
  * </ul>
  */
-public class JoinMessagePreProcessEvent extends AbstractGameMessagePreProcessEvent {
+public class JoinMessagePreProcessEvent extends AbstractGameMessagePreProcessEvent implements PlayerEvent {
 
+    private final DiscordSRVPlayer player;
     private final boolean fakeJoin;
     private final boolean firstJoin;
     private final boolean messageCancelled;
@@ -70,11 +71,17 @@ public class JoinMessagePreProcessEvent extends AbstractGameMessagePreProcessEve
             boolean messageCancelled,
             boolean cancelled
     ) {
-        super(triggeringEvent, cancelled, player, gameChannel);
-        this.message = message;
+        super(triggeringEvent, cancelled, gameChannel, message);
+        this.player = player;
         this.firstJoin = firstJoin;
         this.fakeJoin = fakeJoin;
         this.messageCancelled = messageCancelled;
+    }
+
+    @Override
+    @NotNull
+    public DiscordSRVPlayer getPlayer() {
+        return player;
     }
 
     public boolean isFakeJoin() {
