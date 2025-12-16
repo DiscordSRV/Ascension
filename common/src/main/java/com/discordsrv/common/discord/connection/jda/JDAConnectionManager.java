@@ -67,6 +67,7 @@ import net.dv8tion.jda.internal.entities.ReceivedMessage;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.jetbrains.annotations.NotNull;
+import org.jspecify.annotations.NonNull;
 
 import java.io.InterruptedIOException;
 import java.time.Duration;
@@ -333,6 +334,10 @@ public class JDAConnectionManager implements DiscordConnectionManager {
         int lruAmount = memberCachingConfig.lru;
         if (lruAmount > 0 && cacheAnyMembers) {
             memberCachingPolicy = memberCachingPolicy.and(MemberCachePolicy.lru(lruAmount));
+        }
+
+        if (!memberCachingConfig.roleIds.isEmpty()) {
+            memberCachingPolicy = memberCachingPolicy.or(member -> member.getRoles().stream().anyMatch(role -> memberCachingConfig.roleIds.contains(role.getIdLong())));
         }
 
         ChunkingFilter chunkingFilter;

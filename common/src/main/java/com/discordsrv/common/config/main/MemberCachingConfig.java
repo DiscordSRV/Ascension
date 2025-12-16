@@ -39,6 +39,9 @@ public class MemberCachingConfig {
             + "Set to 0 to disable (always keep all in cache)")
     public int lru = 5_000;
 
+    @Comment("Members with any of these roles will be kept in cache")
+    public List<Long> roleIds = new ArrayList<>();
+
     @Comment("Filter for which servers should be cached at startup")
     public GuildFilter chunkingServerFilter = new GuildFilter();
 
