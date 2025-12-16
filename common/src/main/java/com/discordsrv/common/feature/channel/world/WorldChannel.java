@@ -21,6 +21,7 @@ package com.discordsrv.common.feature.channel.world;
 import com.discordsrv.api.channel.GameChannel;
 import com.discordsrv.api.player.DiscordSRVPlayer;
 import com.discordsrv.common.DiscordSRV;
+import net.kyori.adventure.key.Key;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Collection;
@@ -29,16 +30,26 @@ import java.util.stream.Collectors;
 public class WorldChannel implements GameChannel {
 
     private final DiscordSRV discordSRV;
+    private final String ownerName;
     private final String worldName;
 
     public WorldChannel(DiscordSRV discordSRV, String worldName) {
+        this(discordSRV, "minecraft", worldName);
+    }
+
+    public WorldChannel(DiscordSRV discordSRV, Key world) {
+        this(discordSRV, world.namespace(), world.value());
+    }
+
+    public WorldChannel(DiscordSRV discordSRV, String ownerName, String worldName) {
         this.discordSRV = discordSRV;
+        this.ownerName = ownerName;
         this.worldName = worldName;
     }
 
     @Override
     public @NotNull String getOwnerName() {
-        return "DiscordSRV";
+        return ownerName;
     }
 
     @Override
@@ -53,7 +64,7 @@ public class WorldChannel implements GameChannel {
 
     @Override
     public @NotNull Collection<? extends DiscordSRVPlayer> getRecipients() {
-        return discordSRV.playerProvider().allPlayers().stream().filter(player -> worldName.equals(player.world())).collect(Collectors.toList());
+        return discordSRV.playerProvider().allPlayers().stream().filter(player -> worldName.equals(player.worldName())).collect(Collectors.toList());
     }
 
     @Override

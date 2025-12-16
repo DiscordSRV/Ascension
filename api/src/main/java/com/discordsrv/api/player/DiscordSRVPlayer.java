@@ -25,8 +25,8 @@ package com.discordsrv.api.player;
 
 import com.discordsrv.api.component.MinecraftComponent;
 import com.discordsrv.api.placeholder.annotation.Placeholder;
+import net.kyori.adventure.key.Key;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 import java.util.UUID;
 
@@ -53,10 +53,10 @@ public interface DiscordSRVPlayer {
 
     /**
      * The world the player is currently in.
-     * @return the player's world, or {@code null} if it isn't known
+     * @return the player's world key (namespace:value), or {@code null} if it isn't known
      */
-    @Nullable
-    String world();
+    @NotNull
+    Key world();
 
     /**
      * If the player is not visible to other players.

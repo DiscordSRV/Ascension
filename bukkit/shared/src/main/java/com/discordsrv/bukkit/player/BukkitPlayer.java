@@ -24,6 +24,7 @@ import com.discordsrv.bukkit.command.game.sender.BukkitCommandSender;
 import com.discordsrv.common.abstraction.player.IPlayer;
 import com.discordsrv.common.abstraction.player.provider.model.SkinInfo;
 import net.kyori.adventure.identity.Identity;
+import net.kyori.adventure.key.Key;
 import net.kyori.adventure.platform.bukkit.BukkitComponentSerializer;
 import net.kyori.adventure.text.Component;
 import org.bukkit.entity.Player;
@@ -78,8 +79,8 @@ public abstract class BukkitPlayer extends BukkitCommandSender implements IPlaye
     public abstract Locale locale();
 
     @Override
-    public @NotNull String world() {
-        return player.getWorld().getName();
+    public @NotNull Key world() {
+        return Key.key(player.getWorld().getName());
     }
 
     @Override

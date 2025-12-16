@@ -17,9 +17,8 @@ public class FabricWorldChannelLookupModule extends AbstractFabricModule {
     @Subscribe(priority = EventPriorities.LATE)
     public void onGameChannelLookup(GameChannelLookupEvent event) {
         for (ResourceKey<Level> levelKey : discordSRV.getServer().levelKeys()) {
-            String worldName = levelKey.location().getPath();
-            if (event.getChannelName().equalsIgnoreCase(worldName)) {
-                event.process(new WorldChannel(discordSRV, worldName));
+            if (event.getChannelName().equals(levelKey.location().getPath())) {
+                event.process(new WorldChannel(discordSRV, levelKey.location()));
                 return;
             }
         }
