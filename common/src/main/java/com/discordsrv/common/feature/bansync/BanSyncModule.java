@@ -171,12 +171,6 @@ public class BanSyncModule extends AbstractSyncModule<DiscordSRV, BanSyncConfig,
     }
 
     @Subscribe
-    @Override
-    public void onAccountLinked(AccountLinkedEvent event) {
-        resyncAll(GenericSyncCauses.LINK, Someone.of(discordSRV, event.getPlayerUUID()), config -> config.preferDiscordTieBreakerOnAccountLink ? SyncSide.DISCORD : config.tieBreakers.link);
-    }
-
-    @Subscribe
     public void onGuildBan(GuildBanEvent event) {
         handleDiscordBanChange(event.getGuild(), event.getUser(), true);
     }
