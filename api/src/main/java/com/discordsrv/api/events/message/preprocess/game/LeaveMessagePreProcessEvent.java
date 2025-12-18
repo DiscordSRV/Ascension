@@ -44,56 +44,56 @@ import org.jetbrains.annotations.Nullable;
  */
 public class LeaveMessagePreProcessEvent extends AbstractGameMessagePreProcessEvent implements PlayerEvent {
 
-     private final DiscordSRVPlayer player;
-     private final boolean fakeLeave;
-     private final boolean messageCancelled;
+    private final DiscordSRVPlayer player;
+    private final boolean fakeLeave;
+    private final boolean messageCancelled;
 
-     public LeaveMessagePreProcessEvent(
-             @Nullable Object triggeringEvent,
-             @NotNull DiscordSRVPlayer player,
-             @Nullable MinecraftComponent message,
-             @Nullable GameChannel gameChannel,
-             boolean fakeLeave
-     ) {
-         this(triggeringEvent, player, message, gameChannel, fakeLeave, false, false);
-     }
+    public LeaveMessagePreProcessEvent(
+            @Nullable Object triggeringEvent,
+            @NotNull DiscordSRVPlayer player,
+            @Nullable MinecraftComponent message,
+            @Nullable GameChannel gameChannel,
+            boolean fakeLeave
+    ) {
+        this(triggeringEvent, player, message, gameChannel, fakeLeave, false, false);
+    }
 
-     @ApiStatus.Experimental
-     public LeaveMessagePreProcessEvent(
-             @Nullable Object triggeringEvent,
-             @NotNull DiscordSRVPlayer player,
-             @Nullable MinecraftComponent message,
-             @Nullable GameChannel gameChannel,
-             boolean fakeLeave,
-             boolean messageCancelled,
-             boolean cancelled
-     ) {
-         super(triggeringEvent, cancelled, gameChannel, message);
-         this.player = player;
-         this.fakeLeave = fakeLeave;
-         this.messageCancelled = messageCancelled;
-     }
+    @ApiStatus.Experimental
+    public LeaveMessagePreProcessEvent(
+            @Nullable Object triggeringEvent,
+            @NotNull DiscordSRVPlayer player,
+            @Nullable MinecraftComponent message,
+            @Nullable GameChannel gameChannel,
+            boolean fakeLeave,
+            boolean messageCancelled,
+            boolean cancelled
+    ) {
+        super(triggeringEvent, cancelled, gameChannel, message);
+        this.player = player;
+        this.fakeLeave = fakeLeave;
+        this.messageCancelled = messageCancelled;
+    }
 
-     @Override
-     @NotNull
-     public DiscordSRVPlayer getPlayer() {
-         return player;
-     }
+    @Override
+    @NotNull
+    public DiscordSRVPlayer getPlayer() {
+        return player;
+    }
 
-     public boolean isFakeLeave() {
-         return fakeLeave;
-     }
+    public boolean isFakeLeave() {
+        return fakeLeave;
+    }
 
-     @ApiStatus.Experimental
-     public boolean isMessageCancelled() {
-         return messageCancelled;
-     }
+    @ApiStatus.Experimental
+    public boolean isMessageCancelled() {
+        return messageCancelled;
+    }
 
-     @Override
-     public String toString() {
-         return "LeaveMessageReceiveEvent{"
-                 + "player=" + player + ", "
-                 + "gameChannel=" + GameChannel.toString(gameChannel)
-                 + '}';
-     }
+    @Override
+    public String toString() {
+        return "LeaveMessageReceiveEvent{"
+                + "player=" + player + ", "
+                + "gameChannel=" + GameChannel.toString(gameChannel)
+                + '}';
+    }
 }
