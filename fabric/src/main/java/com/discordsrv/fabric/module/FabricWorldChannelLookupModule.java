@@ -21,10 +21,16 @@ package com.discordsrv.fabric.module;
 import com.discordsrv.api.eventbus.EventPriorities;
 import com.discordsrv.api.eventbus.Subscribe;
 import com.discordsrv.api.events.channel.GameChannelLookupEvent;
+import com.discordsrv.common.core.debug.DebugGenerateEvent;
+import com.discordsrv.common.core.debug.file.TextDebugFile;
 import com.discordsrv.common.feature.channel.world.WorldChannel;
 import com.discordsrv.fabric.FabricDiscordSRV;
+import net.kyori.adventure.key.Keyed;
 import net.minecraft.resources.ResourceKey;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.level.Level;
+
+import java.util.stream.Collectors;
 
 public class FabricWorldChannelLookupModule extends AbstractFabricModule {
 
@@ -40,5 +46,14 @@ public class FabricWorldChannelLookupModule extends AbstractFabricModule {
                 return;
             }
         }
+    }
+
+    @Subscribe
+    public void onDebugGenerateDebugInfo(DebugGenerateEvent event) {
+        StringBuilder worldList = new StringBuilder();
+        worldList.append(discordSRV.getServer().levelKeys().stream().map(ResourceKey::location)
+                .map(ResourceLocation::toString)
+                .collect(Collectors.joining("\n")));
+        event.addFile("integrated-worlds.txt", new TextDebugFile(worldList));
     }
 }

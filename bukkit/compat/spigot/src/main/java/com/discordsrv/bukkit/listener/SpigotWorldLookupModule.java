@@ -22,11 +22,15 @@ import com.discordsrv.api.eventbus.EventPriorities;
 import com.discordsrv.api.eventbus.Subscribe;
 import com.discordsrv.api.events.channel.GameChannelLookupEvent;
 import com.discordsrv.bukkit.BukkitDiscordSRV;
+import com.discordsrv.common.core.debug.DebugGenerateEvent;
+import com.discordsrv.common.core.debug.file.TextDebugFile;
 import com.discordsrv.common.core.module.type.AbstractModule;
 import com.discordsrv.common.feature.channel.world.WorldChannel;
-import net.kyori.adventure.key.Key;
+import org.bukkit.Keyed;
 import org.bukkit.NamespacedKey;
 import org.bukkit.World;
+
+import java.util.stream.Collectors;
 
 public class SpigotWorldLookupModule extends AbstractModule<BukkitDiscordSRV> {
 
@@ -43,5 +47,14 @@ public class SpigotWorldLookupModule extends AbstractModule<BukkitDiscordSRV> {
                 return;
             }
         }
+    }
+
+    @Subscribe
+    public void onDebugGenerateDebugInfo(DebugGenerateEvent event) {
+        StringBuilder worldList = new StringBuilder();
+        worldList.append(discordSRV.server().getWorlds().stream().map(Keyed::getKey)
+                .map(NamespacedKey::toString)
+                .collect(Collectors.joining("\n")));
+        event.addFile("integrated-worlds.txt", new TextDebugFile(worldList));
     }
 }

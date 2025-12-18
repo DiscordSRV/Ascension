@@ -22,9 +22,14 @@ import com.discordsrv.api.eventbus.EventPriorities;
 import com.discordsrv.api.eventbus.Subscribe;
 import com.discordsrv.api.events.channel.GameChannelLookupEvent;
 import com.discordsrv.bukkit.BukkitDiscordSRV;
+import com.discordsrv.common.core.debug.DebugGenerateEvent;
+import com.discordsrv.common.core.debug.file.TextDebugFile;
 import com.discordsrv.common.core.module.type.AbstractModule;
 import com.discordsrv.common.feature.channel.world.WorldChannel;
+import net.kyori.adventure.key.Keyed;
 import org.bukkit.World;
+
+import java.util.stream.Collectors;
 
 public class BukkitWorldLookupModule extends AbstractModule<BukkitDiscordSRV> {
 
@@ -41,5 +46,14 @@ public class BukkitWorldLookupModule extends AbstractModule<BukkitDiscordSRV> {
                 return;
             }
         }
+    }
+
+    @Subscribe
+    public void onDebugGenerateDebugInfo(DebugGenerateEvent event) {
+        StringBuilder worldList = new StringBuilder();
+        worldList.append(discordSRV.server().getWorlds().stream().map(World::getName)
+                .map(name -> WorldChannel.DEFAULT_OWNER_NAME + ":" + name)
+                .collect(Collectors.joining("\n")));
+        event.addFile("integrated-worlds.txt", new TextDebugFile(worldList));
     }
 }
