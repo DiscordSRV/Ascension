@@ -337,7 +337,7 @@ public class JDAConnectionManager implements DiscordConnectionManager {
         }
 
         if (!memberCachingConfig.roleIds.isEmpty()) {
-            memberCachingPolicy = memberCachingPolicy.or(member -> member.getRoles().stream().anyMatch(role -> memberCachingConfig.roleIds.contains(role.getIdLong())));
+            memberCachingPolicy = memberCachingPolicy.and(member -> member.getRoles().stream().anyMatch(role -> memberCachingConfig.roleIds.contains(role.getIdLong())));
         }
 
         ChunkingFilter chunkingFilter;
