@@ -26,9 +26,7 @@ import com.discordsrv.fabric.FabricDiscordSRV;
 import com.discordsrv.fabric.accessor.ServerPlayerEntityAccessor;
 import com.discordsrv.fabric.command.game.sender.FabricCommandSender;
 import net.kyori.adventure.identity.Identity;
-import net.kyori.adventure.key.Key;
 import net.kyori.adventure.text.Component;
-import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.scores.PlayerTeam;
 import org.jetbrains.annotations.NotNull;
@@ -67,13 +65,21 @@ public class FabricPlayer extends FabricCommandSender implements IPlayer {
     }
 
     @Override
-    public @NotNull Key world() {
+    public @NotNull String worldName() {
         //? if minecraft: >1.19.4 {
-        ResourceLocation location = player.level().dimension().location();
+        return player.level().dimension().location().getPath();
         //?} else {
-        /*ResourceLocation location = player.getLevel().dimension().location();
+        /*return player.getLevel().dimension().location().getPath();
          *///?}
-        return Key.key(location.getNamespace(), location.getPath());
+    }
+
+    @Override
+    public @NotNull String worldNamespace() {
+        //? if minecraft: >1.19.4 {
+        return player.level().dimension().location().getNamespace();
+        //?} else {
+        /*return player.getLevel().dimension().location().getNamespace();
+         *///?}
     }
 
     @Override

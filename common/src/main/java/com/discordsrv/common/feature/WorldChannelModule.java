@@ -44,8 +44,8 @@ public class WorldChannelModule extends AbstractModule<DiscordSRV> {
         }
 
         DiscordSRVPlayer player = ((PlayerEvent) event).getPlayer();
-        String ownerName = player.world().namespace();
-        String worldName = player.world().value();
+        String ownerName = player.worldNamespace();
+        String worldName = player.worldName();
 
         GameChannel worldChannel = discordSRV.channelConfig().resolveChannel(ownerName, worldName);
         if (worldChannel == null) return;

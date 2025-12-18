@@ -68,14 +68,14 @@ public interface IPlayer extends DiscordSRVPlayer, IOfflinePlayer, ICommandSende
     }
 
     @NotNull
-    default Key world() {
-        return Key.key("unknown", "unknown");
-    }
-
-    @NotNull
     @Placeholder("world_name")
     default String worldName() {
-        return world().value();
+        return "unknown";
+    }
+
+    @Nullable
+    default String worldNamespace() {
+        return "unknown";
     }
 
     @Override

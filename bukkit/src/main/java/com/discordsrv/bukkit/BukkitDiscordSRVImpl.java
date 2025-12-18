@@ -100,7 +100,13 @@ public class BukkitDiscordSRVImpl extends BukkitDiscordSRV {
         // Modules
         registerModule(MinecraftToDiscordChatModule::new);
         registerModule(BukkitRequiredLinkingModule::new);
-        registerModule(BukkitWorldLookupModule::new);
+
+        if (ReflectionUtil.classExists("org.bukkit.NamespacedKey")) {
+            // Spigot
+            registerModule(SpigotWorldLookupModule::new);
+        } else {
+            registerModule(BukkitWorldLookupModule::new);
+        }
 
         // Listeners
 

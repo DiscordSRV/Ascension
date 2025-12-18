@@ -16,27 +16,30 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package com.discordsrv.fabric.module;
+package com.discordsrv.bukkit.listener;
 
 import com.discordsrv.api.eventbus.EventPriorities;
 import com.discordsrv.api.eventbus.Subscribe;
 import com.discordsrv.api.events.channel.GameChannelLookupEvent;
+import com.discordsrv.bukkit.BukkitDiscordSRV;
+import com.discordsrv.common.core.module.type.AbstractModule;
 import com.discordsrv.common.feature.channel.world.WorldChannel;
-import com.discordsrv.fabric.FabricDiscordSRV;
-import net.minecraft.resources.ResourceKey;
-import net.minecraft.world.level.Level;
+import net.kyori.adventure.key.Key;
+import org.bukkit.NamespacedKey;
+import org.bukkit.World;
 
-public class FabricWorldChannelLookupModule extends AbstractFabricModule {
+public class SpigotWorldLookupModule extends AbstractModule<BukkitDiscordSRV> {
 
-    public FabricWorldChannelLookupModule(FabricDiscordSRV discordSRV) {
+    public SpigotWorldLookupModule(BukkitDiscordSRV discordSRV) {
         super(discordSRV);
     }
 
     @Subscribe(priority = EventPriorities.LATE)
     public void onGameChannelLookup(GameChannelLookupEvent event) {
-        for (ResourceKey<Level> levelKey : discordSRV.getServer().levelKeys()) {
-            if (event.getChannelName().equals(levelKey.location().getPath())) {
-                event.process(new WorldChannel(discordSRV, levelKey.location()));
+        for (World world : discordSRV.server().getWorlds()) {
+            NamespacedKey key = world.getKey();
+            if (event.getChannelName().equalsIgnoreCase(key.getKey())) {
+                event.process(new WorldChannel(discordSRV, key.getNamespace(), key.getKey()));
                 return;
             }
         }
