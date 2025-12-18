@@ -29,12 +29,14 @@ import java.util.stream.Collectors;
 
 public class WorldChannel implements GameChannel {
 
+    public static final String DEFAULT_OWNER_NAME = "minecraft";
+
     private final DiscordSRV discordSRV;
     private final String ownerName;
     private final String worldName;
 
     public WorldChannel(DiscordSRV discordSRV, String worldName) {
-        this(discordSRV, "minecraft", worldName);
+        this(discordSRV, DEFAULT_OWNER_NAME, worldName);
     }
 
     public WorldChannel(DiscordSRV discordSRV, Key world) {
