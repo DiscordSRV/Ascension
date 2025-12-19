@@ -213,7 +213,7 @@ public class MuteSyncModule extends AbstractPunishmentSyncModule<MuteSyncConfig>
 
                     throw t;
                 })
-                .then(f -> getMutedRole(guild, snowflake, config));
+                .whenFailed(f -> getMutedRole(guild, snowflake, config));
     }
 
     private Task<@Nullable Punishment> getMutedRole(Guild guild, UserSnowflake snowflake, MuteSyncConfig config) {
@@ -319,7 +319,7 @@ public class MuteSyncModule extends AbstractPunishmentSyncModule<MuteSyncConfig>
         // This does not catch all circumstances under which a role change could precipitate a change in game state
         if (newState != null && newState.punisher() == null && newState.until() == null && newState.reason() == null) {
             // This punishment is a role, not a mute
-            if (config.discordToMinecraft.trigger == MuteSyncDiscordTrigger.TIMEOUT) { // Role change should not cause game change
+            if (config.discordToMinecraft.trigger == MuteSyncDiscordTrigger.TIMEOUT && !config.minecraftToDiscord.fallbackToRoleIfTimeoutTooLong) { // Role change should not cause game change
                 return Task.completed(MuteSyncResult.ROLE_CHANGE_CANNOT_CHANGE_GAME);
             }
         }

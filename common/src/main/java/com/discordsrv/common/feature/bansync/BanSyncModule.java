@@ -205,7 +205,7 @@ public class BanSyncModule extends AbstractPunishmentSyncModule<BanSyncConfig> {
 
                     throw t;
                 })
-                .then(f -> getBanRole(guild, snowflake, config));
+                .whenFailed(f -> getBanRole(guild, snowflake, config));
     }
 
     private Task<@Nullable Punishment> getBanRole(Guild guild, UserSnowflake snowflake, BanSyncConfig config) {
