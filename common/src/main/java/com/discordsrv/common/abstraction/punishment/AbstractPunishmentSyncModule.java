@@ -23,6 +23,8 @@ import com.discordsrv.common.DiscordSRV;
 import com.discordsrv.common.abstraction.sync.AbstractSyncModule;
 import com.discordsrv.common.abstraction.sync.cause.ISyncCause;
 import com.discordsrv.common.abstraction.sync.result.GenericSyncResults;
+import com.discordsrv.common.abstraction.sync.result.ISyncResult;
+import com.discordsrv.common.config.main.generic.AbstractSyncConfig;
 import com.discordsrv.common.util.Game;
 import org.jetbrains.annotations.Nullable;
 
@@ -31,11 +33,7 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.Future;
 
-/**
- * Shared base for punishment-related sync modules (bans, mutes).
- * Consolidates duplicated event map + delayed audit fallback + common state matching.
- */
-public abstract class AbstractPunishmentSyncModule<C extends com.discordsrv.common.config.main.generic.AbstractSyncConfig<C, Game, Long>>
+public abstract class AbstractPunishmentSyncModule<C extends AbstractSyncConfig<C, Game, Long>>
         extends AbstractSyncModule<DiscordSRV, C, Game, Long, Punishment> {
 
     protected final Map<Long, PunishmentEvent> events = new ConcurrentHashMap<>();
@@ -45,10 +43,15 @@ public abstract class AbstractPunishmentSyncModule<C extends com.discordsrv.comm
     }
 
     @Override
-    protected @Nullable com.discordsrv.common.abstraction.sync.result.ISyncResult doesStateMatch(Punishment one, Punishment two) {
+    protected @Nullable ISyncResult doesStateMatch(Punishment one, Punishment two) {
         boolean oneActive = one != null;
         boolean twoActive = two != null;
-        return (oneActive == twoActive) ? GenericSyncResults.both(oneActive) : null;
+        if (oneActive != twoActive) return null;
+
+        if (!oneActive) return GenericSyncResults.both(false);
+        if (one.until() != null && one.until().equals(two.until())) return GenericSyncResults.both(true);
+
+        return null;
     }
 
     @Override
@@ -56,10 +59,6 @@ public abstract class AbstractPunishmentSyncModule<C extends com.discordsrv.comm
         return null;
     }
 
-    /**
-     * Creates or returns an existing pending punishment event. The provided fallback cause
-     * will be used if an audit log entry does not arrive within the timeout.
-     */
     protected PunishmentEvent upsertEvent(long guildId, long userId, boolean newState, ISyncCause fallbackCause) {
         return events.computeIfAbsent(userId, key -> new PunishmentEvent(guildId, userId, newState, fallbackCause));
     }
@@ -82,10 +81,6 @@ public abstract class AbstractPunishmentSyncModule<C extends com.discordsrv.comm
             );
         }
 
-        /**
-         * Cancel the scheduled fallback and immediately apply the punishment (or removal).
-         * If the scheduled fallback already ran, this becomes a no-op.
-         */
         public void applyPunishment(@Nullable Punishment punishment, ISyncCause cause) {
             if (!future.cancel(false)) {
                 return; // fallback already executed
@@ -105,7 +100,12 @@ public abstract class AbstractPunishmentSyncModule<C extends com.discordsrv.comm
             events.remove(userId);
         }
 
-        public long guildId() { return guildId; }
-        public long userId() { return userId; }
+        public long guildId() {
+            return guildId;
+        }
+
+        public long userId() {
+            return userId;
+        }
     }
 }
