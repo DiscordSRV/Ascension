@@ -133,6 +133,7 @@ dependencyResolutionManagement {
             library('griefprevention', 'me.ryanhamshire', 'GriefPrevention').version('16.18.1')
             library('essentialsx', 'net.essentialsx', 'EssentialsX').version('2.20.1')
             library('litebans-api', 'com.gitlab.ruany', 'LiteBansAPI').version("0.6.1")
+            library('libertybans', 'space.arim.libertybans', 'bans-api').version("1.1.2")
 
             // Logging
             library('slf4j-api', 'org.slf4j', 'slf4j-api').version {

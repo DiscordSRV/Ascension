@@ -69,6 +69,7 @@ public abstract class BukkitDiscordSRV extends AbstractDiscordSRV<IBukkitBootstr
 
         // Punishment Integrations
         registerIntegration("com.discordsrv.bukkit.integration.punishments.LiteBansIntegration");
+        registerIntegration("com.discordsrv.bukkit.integration.punishments.LibertyBansIntegration");
 
         // Chat Integrations
         registerIntegration("com.discordsrv.bukkit.integration.chat.ChattyChatIntegration");
