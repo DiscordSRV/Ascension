@@ -152,5 +152,10 @@ public class McMMOChatIntegration extends PluginIntegration<BukkitDiscordSRV> im
             String message = BukkitComponentSerializer.legacy().serialize(ComponentUtil.fromAPI(component));
             mcMMO.getChatManager().processConsoleMessage(message);
         }
+
+        @Override
+        public String toString() {
+            return GameChannel.toString(this);
+        }
     }
 }

@@ -85,7 +85,7 @@ public class FabricAdvancementModule extends AbstractFabricModule {
                         message,
                         title,
                         description,
-                        AwardMessagePreProcessEvent.AdvancementFrame.valueOf(frameName),
+                        AwardMessagePreProcessEvent.AdvancementFrame.fromId(frameName),
                         null,
                         false
                 )

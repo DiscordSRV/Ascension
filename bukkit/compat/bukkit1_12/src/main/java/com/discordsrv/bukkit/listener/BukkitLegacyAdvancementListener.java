@@ -112,7 +112,7 @@ public class BukkitLegacyAdvancementListener extends AbstractBukkitListener<Play
             MinecraftComponent description = MinecraftComponent.fromJson(data.descriptionJson);
             AwardMessagePreProcessEvent.AdvancementFrame frame =
                     data.frameId != null
-                    ? AwardMessagePreProcessEvent.AdvancementFrame.valueOf(data.frameId.toUpperCase(Locale.ROOT))
+                    ? AwardMessagePreProcessEvent.AdvancementFrame.fromId(data.frameId.toUpperCase(Locale.ROOT))
                     : null;
 
             IPlayer srvPlayer = discordSRV.playerProvider().player(event.getPlayer());

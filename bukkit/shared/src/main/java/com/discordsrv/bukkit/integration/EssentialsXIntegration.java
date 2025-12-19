@@ -151,6 +151,11 @@ public class EssentialsXIntegration
         public @NotNull Collection<? extends DiscordSRVPlayer> getRecipients() {
             return discordSRV.playerProvider().allPlayers();
         }
+
+        @Override
+        public String toString() {
+            return GameChannel.toString(this);
+        }
     }
 
     // Mute

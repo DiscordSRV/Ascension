@@ -74,7 +74,7 @@ public class SpigotAdvancementListener extends AbstractBukkitListener<PlayerAdva
                         null,
                         title,
                         description,
-                        AwardMessagePreProcessEvent.AdvancementFrame.valueOf(display.getType().toString()),
+                        AwardMessagePreProcessEvent.AdvancementFrame.fromId(display.getType().toString()),
                         null,
                         false
                 )

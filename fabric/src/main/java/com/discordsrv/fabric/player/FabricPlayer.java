@@ -65,11 +65,20 @@ public class FabricPlayer extends FabricCommandSender implements IPlayer {
     }
 
     @Override
-    public @NotNull String world() {
+    public @NotNull String worldName() {
         //? if minecraft: >1.19.4 {
         return player.level().dimension().location().getPath();
         //?} else {
         /*return player.getLevel().dimension().location().getPath();
+         *///?}
+    }
+
+    @Override
+    public @NotNull String worldNamespace() {
+        //? if minecraft: >1.19.4 {
+        return player.level().dimension().location().getNamespace();
+        //?} else {
+        /*return player.getLevel().dimension().location().getNamespace();
          *///?}
     }
 

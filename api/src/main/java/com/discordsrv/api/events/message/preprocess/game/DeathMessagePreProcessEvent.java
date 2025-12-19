@@ -25,8 +25,8 @@ package com.discordsrv.api.events.message.preprocess.game;
 
 import com.discordsrv.api.channel.GameChannel;
 import com.discordsrv.api.component.MinecraftComponent;
-import com.discordsrv.api.events.PlayerEvent;
 import com.discordsrv.api.player.DiscordSRVPlayer;
+import com.discordsrv.api.events.PlayerEvent;
 import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -45,8 +45,6 @@ import org.jetbrains.annotations.Nullable;
 public class DeathMessagePreProcessEvent extends AbstractGameMessagePreProcessEvent implements PlayerEvent {
 
     private final DiscordSRVPlayer player;
-    private MinecraftComponent message;
-    private GameChannel gameChannel;
 
     public DeathMessagePreProcessEvent(
             @Nullable Object triggeringEvent,
@@ -65,34 +63,14 @@ public class DeathMessagePreProcessEvent extends AbstractGameMessagePreProcessEv
             @Nullable GameChannel gameChannel,
             boolean cancelled
     ) {
-        super(triggeringEvent, cancelled);
+        super(triggeringEvent, cancelled, gameChannel, message);
         this.player = player;
-        this.message = message;
-        this.gameChannel = gameChannel;
     }
 
     @Override
     @NotNull
     public DiscordSRVPlayer getPlayer() {
         return player;
-    }
-
-    @Nullable
-    public MinecraftComponent getMessage() {
-        return message;
-    }
-
-    public void setMessage(@Nullable MinecraftComponent message) {
-        this.message = message;
-    }
-
-    @Nullable
-    public GameChannel getGameChannel() {
-        return gameChannel;
-    }
-
-    public void setGameChannel(@Nullable GameChannel gameChannel) {
-        this.gameChannel = gameChannel;
     }
 
     @Override

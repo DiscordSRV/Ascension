@@ -46,11 +46,9 @@ import org.jetbrains.annotations.Nullable;
 public class AwardMessagePreProcessEvent extends AbstractGameMessagePreProcessEvent implements PlayerEvent {
 
     private final DiscordSRVPlayer player;
-    private MinecraftComponent message;
     private MinecraftComponent title;
     private MinecraftComponent description;
     private AdvancementFrame frame;
-    private GameChannel gameChannel;
 
     public AwardMessagePreProcessEvent(
             @Nullable Object triggeringEvent,
@@ -75,28 +73,17 @@ public class AwardMessagePreProcessEvent extends AbstractGameMessagePreProcessEv
             @Nullable GameChannel gameChannel,
             boolean cancelled
     ) {
-        super(triggeringEvent, cancelled);
+        super(triggeringEvent, cancelled, gameChannel, message);
         this.player = player;
         this.title = title;
-        this.message = message;
         this.description = description;
         this.frame = frame;
-        this.gameChannel = gameChannel;
     }
 
     @Override
     @NotNull
     public DiscordSRVPlayer getPlayer() {
         return player;
-    }
-
-    @Nullable
-    public MinecraftComponent getMessage() {
-        return message;
-    }
-
-    public void setMessage(@Nullable MinecraftComponent message) {
-        this.message = message;
     }
 
     @Nullable
@@ -123,14 +110,6 @@ public class AwardMessagePreProcessEvent extends AbstractGameMessagePreProcessEv
 
     public void setFrame(@Nullable AdvancementFrame frame) {
         this.frame = frame;
-    }
-
-    public GameChannel getGameChannel() {
-        return gameChannel;
-    }
-
-    public void setGameChannel(GameChannel gameChannel) {
-        this.gameChannel = gameChannel;
     }
 
     @Override
@@ -160,6 +139,16 @@ public class AwardMessagePreProcessEvent extends AbstractGameMessagePreProcessEv
 
         public Color color() {
             return color;
+        }
+
+        public static AdvancementFrame fromId(String id) {
+            for (AdvancementFrame frame : values()) {
+                if (frame.id().equalsIgnoreCase(id)) {
+                    return frame;
+                }
+            }
+
+            throw new IllegalArgumentException("Unknown AdvancementFrame id: " + id);
         }
     }
 }

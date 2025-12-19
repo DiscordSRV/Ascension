@@ -218,5 +218,10 @@ public class VentureChatIntegration extends PluginIntegration<BukkitDiscordSRV> 
 
             player.sendMessageFromDiscord(component);
         }
+
+        @Override
+        public String toString() {
+            return GameChannel.toString(this);
+        }
     }
 }

@@ -23,6 +23,8 @@
 
 package com.discordsrv.api.events.message.preprocess.game;
 
+import com.discordsrv.api.channel.GameChannel;
+import com.discordsrv.api.component.MinecraftComponent;
 import com.discordsrv.api.events.Cancellable;
 import com.discordsrv.api.events.Processable;
 import org.apache.commons.collections4.list.SetUniqueList;
@@ -36,12 +38,16 @@ public abstract class AbstractGameMessagePreProcessEvent implements Cancellable,
 
     private final Object triggeringEvent;
     private final List<Object> additionalContexts = SetUniqueList.setUniqueList(new ArrayList<>());
+    protected GameChannel gameChannel;
+    protected MinecraftComponent message;
     private boolean cancelled;
     private boolean processed;
 
-    public AbstractGameMessagePreProcessEvent(@Nullable Object triggeringEvent, boolean cancelled) {
+    public AbstractGameMessagePreProcessEvent(@Nullable Object triggeringEvent, boolean cancelled, @Nullable GameChannel gameChannel, @Nullable MinecraftComponent message) {
         this.triggeringEvent = triggeringEvent;
         this.cancelled = cancelled;
+        this.gameChannel = gameChannel;
+        this.message = message;
     }
 
     /**
@@ -77,6 +83,24 @@ public abstract class AbstractGameMessagePreProcessEvent implements Cancellable,
      */
     public void removeAdditionalContext(@NotNull Object context) {
         this.additionalContexts.remove(context);
+    }
+
+    @Nullable
+    public MinecraftComponent getMessage() {
+        return message;
+    }
+
+    public void setMessage(@Nullable MinecraftComponent message) {
+        this.message = message;
+    }
+
+    @Nullable
+    public GameChannel getGameChannel() {
+        return gameChannel;
+    }
+
+    public void setGameChannel(@Nullable GameChannel gameChannel) {
+        this.gameChannel = gameChannel;
     }
 
     @Override

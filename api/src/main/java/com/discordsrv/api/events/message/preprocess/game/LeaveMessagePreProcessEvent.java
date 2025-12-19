@@ -45,8 +45,6 @@ import org.jetbrains.annotations.Nullable;
 public class LeaveMessagePreProcessEvent extends AbstractGameMessagePreProcessEvent implements PlayerEvent {
 
     private final DiscordSRVPlayer player;
-    private MinecraftComponent message;
-    private GameChannel gameChannel;
     private final boolean fakeLeave;
     private final boolean messageCancelled;
 
@@ -70,10 +68,8 @@ public class LeaveMessagePreProcessEvent extends AbstractGameMessagePreProcessEv
             boolean messageCancelled,
             boolean cancelled
     ) {
-        super(triggeringEvent, cancelled);
+        super(triggeringEvent, cancelled, gameChannel, message);
         this.player = player;
-        this.message = message;
-        this.gameChannel = gameChannel;
         this.fakeLeave = fakeLeave;
         this.messageCancelled = messageCancelled;
     }
@@ -82,24 +78,6 @@ public class LeaveMessagePreProcessEvent extends AbstractGameMessagePreProcessEv
     @NotNull
     public DiscordSRVPlayer getPlayer() {
         return player;
-    }
-
-    @Nullable
-    public MinecraftComponent getMessage() {
-        return message;
-    }
-
-    public void setMessage(@Nullable MinecraftComponent message) {
-        this.message = message;
-    }
-
-    @Nullable
-    public GameChannel getGameChannel() {
-        return gameChannel;
-    }
-
-    public void setGameChannel(@Nullable GameChannel gameChannel) {
-        this.gameChannel = gameChannel;
     }
 
     public boolean isFakeLeave() {

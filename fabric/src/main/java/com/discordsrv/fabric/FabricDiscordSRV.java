@@ -35,6 +35,7 @@ import com.discordsrv.fabric.command.game.FabricGameCommandExecutionHelper;
 import com.discordsrv.fabric.command.game.handler.FabricCommandHandler;
 import com.discordsrv.fabric.config.main.FabricConfig;
 import com.discordsrv.fabric.console.FabricConsole;
+import com.discordsrv.fabric.module.FabricWorldChannelLookupModule;
 import com.discordsrv.fabric.module.ban.FabricBanModule;
 import com.discordsrv.fabric.module.chat.*;
 import com.discordsrv.fabric.player.FabricPlayerProvider;
@@ -96,6 +97,7 @@ public class FabricDiscordSRV extends AbstractDiscordSRV<DiscordSRVFabricBootstr
 
         // Chat
         registerModule(MinecraftToDiscordChatModule::new);
+        registerModule(FabricWorldChannelLookupModule::new);
         registerModule(FabricChatModule::new);
         registerModule(FabricDeathModule::new);
         registerModule(FabricJoinModule::new);

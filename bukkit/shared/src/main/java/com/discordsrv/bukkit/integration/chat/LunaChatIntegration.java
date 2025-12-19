@@ -202,6 +202,11 @@ public class LunaChatIntegration extends PluginIntegration<BukkitDiscordSRV> imp
                 member.sendMessage(baseComponent);
             }
         }
+
+        @Override
+        public String toString() {
+            return GameChannel.toString(this);
+        }
     }
 
 }

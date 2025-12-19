@@ -45,8 +45,6 @@ import org.jetbrains.annotations.Nullable;
 public class GameChatMessagePreProcessEvent extends AbstractGameMessagePreProcessEvent implements PlayerEvent {
 
     private final DiscordSRVPlayer player;
-    private MinecraftComponent message;
-    private GameChannel gameChannel;
 
     public GameChatMessagePreProcessEvent(
             @Nullable Object triggeringEvent,
@@ -65,32 +63,13 @@ public class GameChatMessagePreProcessEvent extends AbstractGameMessagePreProces
             @NotNull GameChannel gameChannel,
             boolean cancelled
     ) {
-        super(triggeringEvent, cancelled);
+        super(triggeringEvent, cancelled, gameChannel, message);
         this.player = player;
-        this.message = message;
-        this.gameChannel = gameChannel;
-    }
-
-    @NotNull
-    public MinecraftComponent getMessage() {
-        return message;
-    }
-
-    public void setMessage(@NotNull MinecraftComponent message) {
-        this.message = message;
-    }
-
-    @NotNull
-    public GameChannel getGameChannel() {
-        return gameChannel;
-    }
-
-    public void setGameChannel(@NotNull GameChannel gameChannel) {
-        this.gameChannel = gameChannel;
     }
 
     @Override
-    public @NotNull DiscordSRVPlayer getPlayer() {
+    @NotNull
+    public DiscordSRVPlayer getPlayer() {
         return player;
     }
 

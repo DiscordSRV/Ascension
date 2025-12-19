@@ -85,8 +85,15 @@ public abstract class MainConfig implements Config {
             + "The key of this option is the in-game channel name (the default keys are \"%1\" and \"%2\")\n"
             + "%3 and %4 can be configured for all channels except \"%2\"\n"
             + "\"%2\" is a special section which has the default values for all channels unless they are specified (overridden) under the channel's own section\n"
-            + "So if you don't specify a certain option under a channel's own section, the option will take its value from the \"%2\" section")
-    @Constants.Comment({GameChannel.DEFAULT_NAME, ChannelConfig.DEFAULT_KEY, "channel-ids", "threads"})
+            + "So if you don't specify a certain option under a channel's own section, the option will take its value from the \"%2\" section\n"
+            + "\n"
+            + "There are integrated per-world channels for all the worlds that are found on the server.\n"
+            + "If a message is sent from Discord to a world channel, it will only be sent to players in that world.\n"
+            + "If you add a channel with the same name as a world, all messages from that world that would've gone into the \"%1\" channel will go to that channel instead.\n"
+            + "If a message type is disabled for a world channel, messages of that type not be sent.\n"
+            + "Bukkit/Spigot/Paper default world channels are \"%5\", \"%6\" and \"%7\"\n"
+            + "Fabric default world channels are \"%8\", \"%9\" and \"%10\". Fabric also supports custom dimensions from mods/datapacks.\n")
+    @Constants.Comment({GameChannel.DEFAULT_NAME, ChannelConfig.DEFAULT_KEY, "channel-ids", "threads", "world", "world_the_nether", "world_the_end", "overworld", "the_nether", "the_end"})
     @Order(200)
     public Map<String, BaseChannelConfig> channels = new LinkedHashMap<String, BaseChannelConfig>() {{
         put(GameChannel.DEFAULT_NAME, createDefaultChannel());

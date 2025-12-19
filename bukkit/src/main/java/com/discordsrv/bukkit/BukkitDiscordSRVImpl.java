@@ -28,6 +28,7 @@ import com.discordsrv.bukkit.component.PaperComponentHandle;
 import com.discordsrv.bukkit.config.main.BukkitConfig;
 import com.discordsrv.bukkit.console.BukkitConsole;
 import com.discordsrv.bukkit.listener.*;
+import com.discordsrv.bukkit.module.BukkitWorldLookupModule;
 import com.discordsrv.bukkit.player.BukkitOfflinePlayerImpl;
 import com.discordsrv.bukkit.player.BukkitPlayerImpl;
 import com.discordsrv.bukkit.player.BukkitPlayerProvider;
@@ -104,6 +105,13 @@ public class BukkitDiscordSRVImpl extends BukkitDiscordSRV {
         // Modules
         registerModule(MinecraftToDiscordChatModule::new);
         registerModule(BukkitRequiredLinkingModule::new);
+
+        if (ReflectionUtil.classExists("org.bukkit.NamespacedKey")) {
+            // Spigot
+            registerModule(SpigotWorldLookupModule::new);
+        } else {
+            registerModule(BukkitWorldLookupModule::new);
+        }
 
         // Listeners
 

@@ -23,10 +23,12 @@ import com.discordsrv.bukkit.BukkitDiscordSRV;
 import com.discordsrv.bukkit.component.PaperComponentHandle;
 import com.discordsrv.common.abstraction.player.provider.model.SkinInfo;
 import com.discordsrv.common.util.ComponentUtil;
+import net.kyori.adventure.key.Key;
 import net.kyori.adventure.text.Component;
 import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.jspecify.annotations.NonNull;
 
 import java.util.Collection;
 import java.util.Locale;
@@ -88,6 +90,20 @@ public class BukkitPlayerImpl extends BukkitPlayer {
         }
         if (SpigotPlayerUtil.LOCALE_AVAILABLE) {
             return Locale.forLanguageTag(SpigotPlayerUtil.getLocale(player));
+        }
+        return null;
+    }
+
+    @Override
+    public @NonNull String worldName() {
+        return player.getWorld().getName();
+    }
+
+    @Override
+    public @Nullable String worldNamespace() {
+        if (SpigotWorldUtil.WORLD_NAMESPACE_AVAILABLE) {
+            Key key = SpigotWorldUtil.getWorldKey(player.getWorld());
+            return key.namespace();
         }
         return null;
     }

@@ -30,6 +30,7 @@ import org.bukkit.entity.Player;
 import org.bukkit.metadata.MetadataValue;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.jspecify.annotations.NonNull;
 
 import java.util.Collection;
 import java.util.Locale;
@@ -78,9 +79,10 @@ public abstract class BukkitPlayer extends BukkitCommandSender implements IPlaye
     public abstract Locale locale();
 
     @Override
-    public @NotNull String world() {
-        return player.getWorld().getName();
-    }
+    public abstract @NonNull String worldName();
+
+    @Override
+    public abstract @Nullable String worldNamespace();
 
     @Override
     public boolean isVanished() {

@@ -133,5 +133,10 @@ public class ChattyChatIntegration extends PluginIntegration<BukkitDiscordSRV> i
             }
             return srvPlayers;
         }
+
+        @Override
+        public String toString() {
+            return GameChannel.toString(this);
+        }
     }
 }
