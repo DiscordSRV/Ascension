@@ -144,13 +144,13 @@ public class MuteSyncModule extends AbstractPunishmentSyncModule<MuteSyncConfig>
 
         // Apply punishments instantly when audit log events arrive.
         if (logChange.getNewValue() != null) {
-            upsertEvent(guildId, mutedUserId, true, MuteSyncCause.MUTED_ON_DISCORD).applyPunishment(new Punishment(
+            upsertEvent(guildId, mutedUserId, true, MuteSyncCause.TIMEDOUT).applyPunishment(new Punishment(
                      Instant.parse(logChange.getNewValue()),
                      ComponentUtil.fromPlain(entry.getReason()),
                      punisherName
-            ), MuteSyncCause.MUTED_ON_DISCORD);
+            ), MuteSyncCause.TIMEDOUT);
         } else {
-            upsertEvent(guildId, mutedUserId, false, MuteSyncCause.UNMUTED_ON_DISCORD).applyPunishment(null, MuteSyncCause.UNMUTED_ON_DISCORD);
+            upsertEvent(guildId, mutedUserId, false, MuteSyncCause.UNTIMEDOUT).applyPunishment(null, MuteSyncCause.UNTIMEDOUT);
         }
     }
 
@@ -196,7 +196,7 @@ public class MuteSyncModule extends AbstractPunishmentSyncModule<MuteSyncConfig>
             return;
         }
         
-        upsertEvent(guild.getIdLong(), user.getIdLong(), newState, MuteSyncCause.UNMUTED_ON_DISCORD);
+        upsertEvent(guild.getIdLong(), user.getIdLong(), newState, MuteSyncCause.UNTIMEDOUT);
     }
 
     private Task<@Nullable Punishment> getMuteOrMuteRole(Guild guild, long userId, MuteSyncConfig config) {
