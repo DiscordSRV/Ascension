@@ -49,6 +49,7 @@ dependencies {
     // Punishments Integrations
     compileOnly(libs.litebans.api)
     compileOnly(libs.libertybans)
+    compileOnly(libs.advancedban)
 
     // Chat Integrations
     compileOnly(libs.chatty)
