@@ -165,11 +165,21 @@ public abstract class MainConfig implements Config {
     @Order(630)
     public BanSyncConfig banSync = new BanSyncConfig();
 
+    @Comment("Configuration options for mute synchronization\n"
+            + "\n"
+            + PLAYERS_NEED_TO_BE_LINKED + "\n"
+            + "For Minecraft to Discord synchronization:\n"
+            + "- The bot needs a role above all users that you want to synchronize, the Discord server owner cannot be synchronized.\n"
+            + "- The bot needs the \"Manage Roles\" and \"Timeout Members\" permission")
+
+    @Order(640)
+    public MuteSyncConfig muteSync = new MuteSyncConfig();
+
     @Comment("Options for granting players roles for being linked\n"
             + "\n"
             + "The bot needs to have a role above the linked roles\n"
             + "The bot needs the \"Manage Roles\" permission")
-    @Order(640)
+    @Order(650)
     public LinkedRoleConfig linkedRole = new LinkedRoleConfig();
 
     @Comment("Options for granting players that are currently online a role in Discord\n"
@@ -177,7 +187,7 @@ public abstract class MainConfig implements Config {
             + PLAYERS_NEED_TO_BE_LINKED + "\n"
             + "The bot needs to have a role above the online role\n"
             + "The bot needs the \"Manage Roles\" permission")
-    @Order(650)
+    @Order(660)
     public OnlineRoleConfig onlineRole = new OnlineRoleConfig();
 
     // Commands
