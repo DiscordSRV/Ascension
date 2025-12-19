@@ -282,11 +282,14 @@ public class MuteSyncModule extends AbstractPunishmentSyncModule<MuteSyncConfig>
                 if (newState != null) {
                     if (newState.until() == null || newState.until().isAfter(Instant.now().plus(28, ChronoUnit.DAYS))) {
                         if (config.minecraftToDiscord.fallbackToRoleIfTimeoutTooLong) {
-                            logger().debug("Punishment until is longer than 28 days, falling back to applying muted role.");
+                            logger().debug(String.format(
+                                    "Punishment until is longer than 28 days for %s, falling back to applying muted role.",
+                                    someone
+                            ));
                             return RoleSyncModuleUtil.doRoleChange(discordSRV, someone, config.mutedRoleId, true);
                         }
 
-                        return Task.failed( new SyncFail(MuteSyncResult.PUNISHMENT_TOO_LONG));
+                        return Task.failed(new SyncFail(MuteSyncResult.PUNISHMENT_TOO_LONG));
                     }
 
                     return Task.of(guild.asJDA().timeoutUntil(snowflake, newState.until())
