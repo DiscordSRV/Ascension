@@ -168,8 +168,8 @@ public class EssentialsXIntegration
     @Override
     public Task<Punishment> getMute(@NotNull UUID playerUUID) {
         return getUser(playerUUID).thenApply(user -> new Punishment(
-                Instant.ofEpochMilli(user.getMuteTimeout()),
-                ComponentUtil.toAPI(BukkitComponentSerializer.legacy().deserialize(user.getMuteReason())),
+                user.getMuteTimeout() > 0 ? Instant.ofEpochMilli(user.getMuteTimeout()) : null,
+                ComponentUtil.toAPI(BukkitComponentSerializer.legacy().deserialize(user.getMuteReason() != null ? user.getMuteReason() : "")),
                 null
         ));
     }
