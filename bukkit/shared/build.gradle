@@ -3,6 +3,7 @@ import dev.vankka.dependencydownload.task.GenerateDependencyDownloadResourceTask
 repositories {
     maven { url = 'https://nexus.scarsz.me/content/groups/public/' }
     maven { url = 'https://repo.essentialsx.net/releases/' }
+    maven { url = 'https://jitpack.io' }
 }
 
 configurations {
@@ -42,6 +43,9 @@ dependencies {
     // Integrations
     compileOnly(libs.vaultapi)
     compileOnly(libs.placeholderapi.bukkit)
+
+    // Punishments Integrations
+    compileOnly(libs.litebans.api)
 
     // Chat Integrations
     compileOnly(libs.chatty)
