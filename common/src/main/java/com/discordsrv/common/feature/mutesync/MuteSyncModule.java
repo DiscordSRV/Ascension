@@ -349,7 +349,21 @@ public class MuteSyncModule extends AbstractPunishmentSyncModule<MuteSyncConfig>
                     })
                     .thenApply(v -> GenericSyncResults.ADD_GAME);
         } else {
-            return mutes.removeMute(playerUUID).thenApply(v -> GenericSyncResults.REMOVE_GAME);
+            return mutes.removeMute(playerUUID)
+                    .then(v -> {
+                        IPlayer player = discordSRV.playerProvider().player(playerUUID);
+                        if (player == null) {
+                            return Task.completed(null);
+                        }
+
+                        MinecraftComponent unmuteNotificationMessage = discordSRV.componentFactory()
+                                .textBuilder(config.discordToMinecraft.unmuteNotificationMessage)
+                                .build();
+
+                        player.sendMessage(ComponentUtil.fromAPI(unmuteNotificationMessage));
+                        return Task.completed(null);
+                    })
+                    .thenApply(v -> GenericSyncResults.REMOVE_GAME);
         }
     }
 
