@@ -4,6 +4,8 @@ repositories {
     maven { url = 'https://nexus.scarsz.me/content/groups/public/' }
     maven { url = 'https://repo.essentialsx.net/releases/' }
     maven { url = 'https://jitpack.io' }
+    maven { url = 'https://mvn-repo.arim.space/affero-gpl3/' }
+    maven { url = 'https://mvn-repo.arim.space/lesser-gpl3/' }
 }
 
 configurations {
@@ -46,6 +48,7 @@ dependencies {
 
     // Punishments Integrations
     compileOnly(libs.litebans.api)
+    compileOnly(libs.libertybans)
 
     // Chat Integrations
     compileOnly(libs.chatty)
