@@ -337,7 +337,7 @@ public class MuteSyncModule extends AbstractPunishmentSyncModule<MuteSyncConfig>
                         .addContext(newState)
                         .build();
 
-            return mutes.addMute(playerUUID, null, reason, punisher)
+            return mutes.addMute(playerUUID, newState.until(), reason, punisher)
                     .then(v -> {
                         IPlayer player = discordSRV.playerProvider().player(playerUUID);
                         if (player == null) {
