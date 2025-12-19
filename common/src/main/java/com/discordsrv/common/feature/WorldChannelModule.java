@@ -55,7 +55,7 @@ public class WorldChannelModule extends AbstractModule<DiscordSRV> {
 
         IMessageConfig messageConfig = messageConfigForEvent(channelConfig, event);
         if (messageConfig != null && !messageConfig.enabled()) {
-            logger().debug("Not routing " + event.getClass().getSimpleName() + " to world channel " + worldChannel + " because message config is missing or message type is disabled for world \"" + worldName + "\"");
+            logger().debug("Not routing " + event.getClass().getSimpleName() + " to world channel " + worldChannel + " because message type is disabled for world \"" + worldName + "\"");
             return;
         }
 
