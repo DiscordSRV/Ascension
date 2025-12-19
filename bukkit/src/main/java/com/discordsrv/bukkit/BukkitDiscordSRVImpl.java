@@ -89,9 +89,14 @@ public class BukkitDiscordSRVImpl extends BukkitDiscordSRV {
     @Override
     protected void enable() throws Throwable {
         // Commands
-        if (ReflectionUtil.classExists("me.lucko.commodore.Commodore")) {
-            this.commandHandler = new CommodoreHandler(this);
-        } else {
+        try {
+            if (ReflectionUtil.classExists("me.lucko.commodore.Commodore")) {
+                this.commandHandler = new CommodoreHandler(this);
+            }
+        } catch (UnsupportedOperationException e) {
+            logger().debug("Brigadier not supported, falling back to basic command handling", e);
+        }
+        if (this.commandHandler == null) {
             this.commandHandler = new BukkitBasicCommandHandler(this);
         }
 
