@@ -78,9 +78,9 @@ public class MuteSyncConfig extends AbstractSyncConfig<MuteSyncConfig, Game, Lon
     public static class DiscordToMinecraftConfig {
 
         @Comment("What action(s) on Discord should trigger a mute/unmute in Minecraft. Valid options:\n"
-                + "timeout:     A timeout/untimeout on the Discord Server\n"
-                + "role:    Addition/removal of the muted role (specified above) to the user on Discord\n"
-                + "either:  Either of the above\n"
+                + "timeout:  A timeout/untimeout on the Discord Server\n"
+                + "role:     Addition/removal of the muted role (specified above) to the user on Discord\n"
+                + "either:   Either of the above\n"
                 + "BEWARE: Settings of 'role' or 'either' can be exploited to remove mutes from players if %1 is set to 'discord'")
         @Constants.Comment("tie-breaker")
         public MuteSyncDiscordTrigger trigger = MuteSyncDiscordTrigger.TIMEOUT;
@@ -103,8 +103,8 @@ public class MuteSyncConfig extends AbstractSyncConfig<MuteSyncConfig, Game, Lon
 
         @Comment("What action(s) to perform on the linked Discord account when a player is muted in Minecraft. Can be configured in more detail below\n"
                 + "Valid options:\n"
-                + "timeout:     Apply a Discord timeout on the user. (Must be 28 days or less)\n"
-                + "role:    Add the muted role (specified above) to the user on Discord"
+                + "timeout:  Apply a Discord timeout on the user. (Must be 28 days or less)\n"
+                + "role:     Add the muted role (specified above) to the user on Discord"
         )
         public MuteSyncDiscordAction action = MuteSyncDiscordAction.TIMEOUT;
 
