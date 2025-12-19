@@ -59,6 +59,7 @@ import net.dv8tion.jda.api.entities.UserSnowflake;
 import net.dv8tion.jda.api.events.guild.GuildAuditLogEntryCreateEvent;
 import net.dv8tion.jda.api.events.guild.member.update.GuildMemberUpdateTimeOutEvent;
 import net.dv8tion.jda.api.requests.ErrorResponse;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.time.Instant;
@@ -69,6 +70,11 @@ public class MuteSyncModule extends AbstractPunishmentSyncModule<MuteSyncConfig>
 
     public MuteSyncModule(DiscordSRV discordSRV) {
         super(discordSRV, "MUTE_SYNC");
+    }
+
+    @Override
+    public @NotNull Collection<DiscordGatewayIntent> requiredIntents() {
+        return Arrays.asList(DiscordGatewayIntent.GUILD_MODERATION, DiscordGatewayIntent.GUILD_MEMBERS);
     }
 
     public void notifyMuted(IPlayer player, @Nullable Punishment punishment) {
@@ -110,14 +116,6 @@ public class MuteSyncModule extends AbstractPunishmentSyncModule<MuteSyncConfig>
     public void onGuildAuditLogEntryCreate(GuildAuditLogEntryCreateEvent event) {
         AuditLogEntry entry = event.getEntry();
         AuditLogChange logChange = entry.getChangeByKey(AuditLogKey.MEMBER_TIME_OUT);
-        //    /**
-        //     * Change of the {@link net.dv8tion.jda.api.entities.Member#getTimeOutEnd() Time out} of a Member.
-        //     * <br>Indicating that the {@link net.dv8tion.jda.api.entities.Member#getTimeOutEnd() Member.getTimeOutEnd()} value updated.
-        //     * <br>This is provided as an ISO8601 Date-Time string.
-        //     *
-        //     * <p>Expected type: <b>String</b>
-        //     */
-        //    MEMBER_TIME_OUT("communication_disabled_until"),
         if (logChange == null) {
             return;
         }
@@ -168,14 +166,22 @@ public class MuteSyncModule extends AbstractPunishmentSyncModule<MuteSyncConfig>
 
     private void handleRoleChanges(DiscordGuildMember member, List<DiscordRole> roles, boolean added) {
         MuteSyncConfig config = discordSRV.config().muteSync;
-        if (config.minecraftToDiscord.action == MuteSyncDiscordAction.ROLE && roles.stream().anyMatch(role -> config.mutedRoleId == role.getId())) {
+        if ((config.minecraftToDiscord.action == MuteSyncDiscordAction.ROLE || config.minecraftToDiscord.fallbackToRoleIfTimeoutTooLong) && roles.stream().anyMatch(role -> config.mutedRoleId == role.getId())) {
             if (config.discordToMinecraft.trigger != MuteSyncDiscordTrigger.TIMEOUT) {
                 upsertEvent(roles.getFirst().getGuild().getId(), member.getUser().getId(), added, MuteSyncCause.MUTED_ROLE_CHANGED).applyPunishment(added ? new Punishment(null, null, null) : null, MuteSyncCause.MUTED_ROLE_CHANGED);
             } else {
-                logger().debug(String.format(
-                    "Ignoring muted role change for %s because role changes are not configured to affect the game mute status.",
-                    member.getUser().getAsTag()
-                ));
+                if (config.minecraftToDiscord.fallbackToRoleIfTimeoutTooLong) {
+                    logger().debug(String.format(
+                            "Handling muted role change for %s as a fallback for timeout-based mute sync.",
+                            member.getUser().getAsTag()
+                    ));
+                    upsertEvent(roles.getFirst().getGuild().getId(), member.getUser().getId(), added, MuteSyncCause.MUTED_ROLE_CHANGED).applyPunishment(added ? new Punishment(null, null, null) : null, MuteSyncCause.MUTED_ROLE_CHANGED);
+                } else {
+                    logger().debug(String.format(
+                            "Ignoring muted role change for %s because role changes are not configured to affect the game mute status.",
+                            member.getUser().getAsTag()
+                    ));
+                }
             }
         }
     }
@@ -213,7 +219,7 @@ public class MuteSyncModule extends AbstractPunishmentSyncModule<MuteSyncConfig>
     private Task<@Nullable Punishment> getMutedRole(Guild guild, UserSnowflake snowflake, MuteSyncConfig config) {
         return discordSRV.discordAPI().toTask(guild.retrieveMember(snowflake))
                 .thenApply(member -> {
-                    if (config.minecraftToDiscord.action == MuteSyncDiscordAction.ROLE && member.getRoles().stream().anyMatch(role -> config.mutedRoleId == role.getIdLong())) {
+                    if ((config.minecraftToDiscord.action == MuteSyncDiscordAction.ROLE || config.minecraftToDiscord.fallbackToRoleIfTimeoutTooLong) && member.getRoles().stream().anyMatch(role -> config.mutedRoleId == role.getIdLong())) {
                         return new Punishment(null, null, null);
                     }
 
@@ -274,14 +280,13 @@ public class MuteSyncModule extends AbstractPunishmentSyncModule<MuteSyncConfig>
         switch (config.minecraftToDiscord.action) {
             case TIMEOUT:
                 if (newState != null) {
-                    // Fail if until is more than 28 days in the future, as Discord does not allow that.
-                    if (newState.until().isAfter(Instant.now().plus(28, ChronoUnit.DAYS))) {
+                    if (newState.until() == null || newState.until().isAfter(Instant.now().plus(28, ChronoUnit.DAYS))) {
                         if (config.minecraftToDiscord.fallbackToRoleIfTimeoutTooLong) {
                             logger().debug("Punishment until is longer than 28 days, falling back to applying muted role.");
                             return RoleSyncModuleUtil.doRoleChange(discordSRV, someone, config.mutedRoleId, true);
                         }
 
-                        return Task.completed(MuteSyncResult.PUNISHMENT_TOO_LONG);
+                        return Task.failed( new SyncFail(MuteSyncResult.PUNISHMENT_TOO_LONG));
                     }
 
                     return Task.of(guild.asJDA().timeoutUntil(snowflake, newState.until())
