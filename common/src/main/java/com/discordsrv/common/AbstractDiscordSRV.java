@@ -95,6 +95,7 @@ import com.discordsrv.common.feature.mention.MentionGameRenderingModule;
 import com.discordsrv.common.feature.messageforwarding.discord.DiscordToMinecraftChatModule;
 import com.discordsrv.common.feature.messageforwarding.discord.DiscordMessageMirroringModule;
 import com.discordsrv.common.feature.messageforwarding.game.*;
+import com.discordsrv.common.feature.mutesync.MuteSyncModule;
 import com.discordsrv.common.feature.nicknamesync.NicknameSyncModule;
 import com.discordsrv.common.core.profile.ProfileManagerImpl;
 import com.discordsrv.common.feature.onlinerole.OnlineRoleModule;
@@ -731,6 +732,7 @@ public abstract class AbstractDiscordSRV<
 
         // Modules
         registerModule(BanSyncModule::new);
+        registerModule(MuteSyncModule::new);
         registerModule(ConsoleModule::new);
         registerModule(ChannelLockingModule::new);
         registerModule(ChannelUpdaterModule::new);
