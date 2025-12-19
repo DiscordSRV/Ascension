@@ -34,6 +34,7 @@ import com.discordsrv.bukkit.BukkitDiscordSRV;
 import com.discordsrv.bukkit.player.BukkitPlayer;
 import com.discordsrv.common.core.logging.NamedLogger;
 import com.discordsrv.common.core.module.type.PluginIntegration;
+import com.discordsrv.common.feature.mutesync.MuteSyncModule;
 import com.discordsrv.common.feature.nicknamesync.NicknameSyncModule;
 import com.discordsrv.common.util.ComponentUtil;
 import com.earth2me.essentials.Essentials;
@@ -162,7 +163,14 @@ public class EssentialsXIntegration
 
     @EventHandler(ignoreCancelled = true)
     public void onMuteStatusChange(MuteStatusChangeEvent event) {
+        BukkitPlayer player = discordSRV.playerProvider().player(event.getAffected().getBase());
+        boolean isMuted = event.getValue();
 
+        MuteSyncModule module = discordSRV.getModule(MuteSyncModule.class);
+        if (module != null) {
+            Punishment punishment = isMuted ? getMute(event.getAffected().getUUID()).join() : null;
+            module.notifyMuted(player, punishment);
+        }
     }
 
     @Override
