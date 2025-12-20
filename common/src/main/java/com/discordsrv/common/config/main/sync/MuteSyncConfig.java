@@ -92,7 +92,7 @@ public class MuteSyncConfig extends AbstractSyncConfig<MuteSyncConfig, Game, Lon
         public String punisherFormat = "%user_color%@%user_name%";
 
         @Comment("The message sent to the online player when they are muted in Minecraft due to a Discord mute")
-        public String muteNotificationMessage = "&cYou have been muted on Discord for &f%punishment_reason|'Unknown'% &cby &f%punishment_punisher%";
+        public String muteNotificationMessage = "&cYou have been muted on Discord for &f%punishment_reason|text:'Unknown'% &cby &f%punishment_punisher%";
 
         @Comment("The message sent to the online player when they are unmuted in Minecraft due to a Discord unmute")
         public String unmuteNotificationMessage = "&aYou have been unmuted on Discord.";
@@ -114,7 +114,7 @@ public class MuteSyncConfig extends AbstractSyncConfig<MuteSyncConfig, Game, Lon
         public boolean fallbackToRoleIfTimeoutTooLong = true;
 
         @Comment("The reason used when creating new mutes in Discord or adding the muted role to users")
-        public String muteReasonFormat = "Muted by %punishment_punisher% in Minecraft for %punishment_reason|'Unknown'%, ends: %punishment_until:'YYYY-MM-dd HH:mm:ss zzz'|text:'Never'%";
+        public String muteReasonFormat = "Muted by %punishment_punisher% in Minecraft for %punishment_reason|text:'Unknown'%, ends: %punishment_until:'YYYY-MM-dd HH:mm:ss zzz'|text:'Never'%";
 
         @Comment("The reason used when removing mutes in Discord or removing the muted role from users")
         public String unmuteReasonFormat = "Unmuted in Minecraft";

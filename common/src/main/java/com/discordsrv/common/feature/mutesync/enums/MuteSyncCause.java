@@ -24,8 +24,8 @@ public enum MuteSyncCause implements ISyncCause {
 
     PLAYER_MUTED("Player muted"),
     MUTED_ROLE_CHANGED("Muted role changed"),
-    TIMEDOUT("Timed out on Discord"),
-    UNTIMEDOUT("Untimed out on Discord")
+    TIMEOUT_ADDED("Timed out on Discord"),
+    TIMEOUT_REMOVED("Untimed out on Discord")
     ;
 
     private final String prettyCause;

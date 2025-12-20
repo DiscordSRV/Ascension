@@ -25,6 +25,7 @@ import com.discordsrv.common.abstraction.sync.cause.ISyncCause;
 import com.discordsrv.common.abstraction.sync.result.GenericSyncResults;
 import com.discordsrv.common.abstraction.sync.result.ISyncResult;
 import com.discordsrv.common.config.main.generic.AbstractSyncConfig;
+import com.discordsrv.common.helper.Someone;
 import com.discordsrv.common.util.Game;
 import org.jetbrains.annotations.Nullable;
 
@@ -92,7 +93,7 @@ public abstract class AbstractPunishmentSyncModule<C extends AbstractSyncConfig<
 
             discordChanged(
                     cause,
-                    com.discordsrv.common.helper.Someone.of(discordSRV, userId),
+                    Someone.of(discordSRV, userId),
                     guildId,
                     punishment
             );
