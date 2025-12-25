@@ -31,6 +31,8 @@ import org.bukkit.event.EventPriority;
 import org.bukkit.event.entity.PlayerDeathEvent;
 import org.jetbrains.annotations.NotNull;
 
+import java.util.function.Consumer;
+
 public class BukkitDeathListener extends AbstractBukkitListener<PlayerDeathEvent> {
 
     public BukkitDeathListener(BukkitDiscordSRV discordSRV) {
@@ -70,5 +72,10 @@ public class BukkitDeathListener extends AbstractBukkitListener<PlayerDeathEvent
     @Override
     protected void observeEvents(boolean enable) {
         observer = observeEvent(observer, PlayerDeathEvent.class, event -> event.getDeathMessage() == null, enable);
+    }
+
+    @Override
+    protected void collectRelevantHandlerLists(Consumer<Class<?>> eventClassConsumer) {
+        eventClassConsumer.accept(PlayerDeathEvent.class);
     }
 }

@@ -31,6 +31,8 @@ import org.bukkit.event.EventPriority;
 import org.bukkit.event.player.PlayerQuitEvent;
 import org.jetbrains.annotations.NotNull;
 
+import java.util.function.Consumer;
+
 public class BukkitQuitListener extends AbstractBukkitListener<PlayerQuitEvent> {
 
     public BukkitQuitListener(BukkitDiscordSRV discordSRV) {
@@ -66,5 +68,10 @@ public class BukkitQuitListener extends AbstractBukkitListener<PlayerQuitEvent> 
     @Override
     protected void observeEvents(boolean enable) {
         observer = observeEvent(observer, PlayerQuitEvent.class, event -> event.getQuitMessage() == null, enable);
+    }
+
+    @Override
+    protected void collectRelevantHandlerLists(Consumer<Class<?>> eventClassConsumer) {
+        eventClassConsumer.accept(PlayerQuitEvent.class);
     }
 }

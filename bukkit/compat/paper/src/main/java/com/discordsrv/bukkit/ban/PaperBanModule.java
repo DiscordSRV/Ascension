@@ -40,10 +40,12 @@ import org.bukkit.event.player.PlayerKickEvent;
 import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.jspecify.annotations.NonNull;
 
 import java.time.Instant;
 import java.util.Date;
 import java.util.UUID;
+import java.util.function.Consumer;
 
 @ApiStatus.AvailableSince("Paper 1.21.1")
 public class PaperBanModule extends AbstractBukkitListener<PlayerKickEvent> implements PunishmentModule.Bans {
@@ -58,7 +60,7 @@ public class PaperBanModule extends AbstractBukkitListener<PlayerKickEvent> impl
     }
 
     @Override
-    protected void handleEvent(PlayerKickEvent event, Void __) {
+    protected void handleEvent(@NonNull PlayerKickEvent event, Void __) {
         switch (event.getCause()) {
             case BANNED:
             case IP_BANNED:
@@ -83,6 +85,11 @@ public class PaperBanModule extends AbstractBukkitListener<PlayerKickEvent> impl
     @Override
     protected void observeEvents(boolean enable) {
         observer = observeEvent(observer, PlayerKickEvent.class, PlayerKickEvent::isCancelled, enable);
+    }
+
+    @Override
+    protected void collectRelevantHandlerLists(Consumer<Class<?>> eventClassConsumer) {
+        eventClassConsumer.accept(PlayerKickEvent.class);
     }
 
     @Override

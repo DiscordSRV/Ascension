@@ -35,6 +35,7 @@ import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Objects;
+import java.util.function.Consumer;
 
 @ApiStatus.AvailableSince("Spigot 1.19")
 public class SpigotAdvancementListener extends AbstractBukkitListener<PlayerAdvancementDoneEvent> {
@@ -84,4 +85,9 @@ public class SpigotAdvancementListener extends AbstractBukkitListener<PlayerAdva
     // Event is not cancellable
     @Override
     protected void observeEvents(boolean enable) {}
+
+    @Override
+    protected void collectRelevantHandlerLists(Consumer<Class<?>> eventClassConsumer) {
+        eventClassConsumer.accept(PlayerAdvancementDoneEvent.class);
+    }
 }

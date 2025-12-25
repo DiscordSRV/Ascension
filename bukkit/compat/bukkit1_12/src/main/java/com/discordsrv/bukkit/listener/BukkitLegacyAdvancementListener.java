@@ -34,6 +34,7 @@ import org.jetbrains.annotations.NotNull;
 import java.lang.reflect.Method;
 import java.util.Arrays;
 import java.util.Locale;
+import java.util.function.Consumer;
 
 public class BukkitLegacyAdvancementListener extends AbstractBukkitListener<PlayerAdvancementDoneEvent> {
 
@@ -232,4 +233,9 @@ public class BukkitLegacyAdvancementListener extends AbstractBukkitListener<Play
     // Event is not cancellable
     @Override
     protected void observeEvents(boolean enable) {}
+
+    @Override
+    protected void collectRelevantHandlerLists(Consumer<Class<?>> eventClassConsumer) {
+        eventClassConsumer.accept(PlayerAdvancementDoneEvent.class);
+    }
 }

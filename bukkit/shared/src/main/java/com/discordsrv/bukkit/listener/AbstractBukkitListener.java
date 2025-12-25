@@ -20,10 +20,11 @@ package com.discordsrv.bukkit.listener;
 
 import com.discordsrv.api.eventbus.Subscribe;
 import com.discordsrv.bukkit.BukkitDiscordSRV;
+import com.discordsrv.bukkit.debug.BukkitListenerTrackingModule;
 import com.discordsrv.bukkit.debug.EventObserver;
+import com.discordsrv.common.core.debug.DebugObservabilityEvent;
 import com.discordsrv.common.core.logging.Logger;
 import com.discordsrv.common.core.module.type.AbstractModule;
-import com.discordsrv.common.core.debug.DebugObservabilityEvent;
 import org.bukkit.event.Event;
 import org.bukkit.event.HandlerList;
 import org.bukkit.event.Listener;
@@ -31,6 +32,7 @@ import org.bukkit.plugin.Plugin;
 import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
 
+import java.util.function.Consumer;
 import java.util.function.Function;
 
 public abstract class AbstractBukkitListener<E extends Event> extends AbstractModule<BukkitDiscordSRV> implements Listener {
@@ -109,4 +111,11 @@ public abstract class AbstractBukkitListener<E extends Event> extends AbstractMo
                 cancelProperty
         );
     }
+
+    @Subscribe
+    public void onCollectHandlerList(BukkitListenerTrackingModule.CollectHandlerListEvent event) {
+        collectRelevantHandlerLists(eventClass -> event.addHandlerList(this, eventClass));
+    }
+
+    protected abstract void collectRelevantHandlerLists(Consumer<Class<?>> eventClassConsumer);
 }

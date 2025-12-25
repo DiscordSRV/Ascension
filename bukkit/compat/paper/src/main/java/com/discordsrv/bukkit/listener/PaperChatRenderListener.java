@@ -33,6 +33,8 @@ import org.bukkit.event.EventPriority;
 import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
 
+import java.util.function.Consumer;
+
 @SuppressWarnings("UnstableApiUsage") // Understood
 @ApiStatus.AvailableSince("Paper 1.19.1")
 public class PaperChatRenderListener extends AbstractBukkitListener<AsyncChatDecorateEvent> {
@@ -81,5 +83,10 @@ public class PaperChatRenderListener extends AbstractBukkitListener<AsyncChatDec
     @Override
     protected void observeEvents(boolean enable) {
         observer = observeEvent(observer, AsyncChatDecorateEvent.class, AsyncChatDecorateEvent::isCancelled, enable);
+    }
+
+    @Override
+    protected void collectRelevantHandlerLists(Consumer<Class<?>> eventClassConsumer) {
+        eventClassConsumer.accept(AsyncChatDecorateEvent.class);
     }
 }

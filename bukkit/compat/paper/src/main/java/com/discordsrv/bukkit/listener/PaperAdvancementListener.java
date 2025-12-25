@@ -35,6 +35,7 @@ import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Objects;
+import java.util.function.Consumer;
 
 @ApiStatus.AvailableSince("Paper 1.17.1")
 public class PaperAdvancementListener extends AbstractBukkitListener<PlayerAdvancementDoneEvent> {
@@ -95,5 +96,10 @@ public class PaperAdvancementListener extends AbstractBukkitListener<PlayerAdvan
     @Override
     protected void observeEvents(boolean enable) {
         observer = observeEvent(observer, PlayerAdvancementDoneEvent.class, event -> MESSAGE_HANDLE.getRaw(event) == null, enable);
+    }
+
+    @Override
+    protected void collectRelevantHandlerLists(Consumer<Class<?>> eventClassConsumer) {
+        eventClassConsumer.accept(PlayerAdvancementDoneEvent.class);
     }
 }

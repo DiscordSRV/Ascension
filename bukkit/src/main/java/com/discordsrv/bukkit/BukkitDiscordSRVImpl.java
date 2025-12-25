@@ -27,6 +27,7 @@ import com.discordsrv.bukkit.command.game.handler.CommodoreHandler;
 import com.discordsrv.bukkit.component.PaperComponentHandle;
 import com.discordsrv.bukkit.config.main.BukkitConfig;
 import com.discordsrv.bukkit.console.BukkitConsole;
+import com.discordsrv.bukkit.debug.PaperLegacyChatDebugModule;
 import com.discordsrv.bukkit.listener.*;
 import com.discordsrv.bukkit.module.BukkitWorldLookupModule;
 import com.discordsrv.bukkit.player.BukkitOfflinePlayerImpl;
@@ -145,6 +146,13 @@ public class BukkitDiscordSRVImpl extends BukkitDiscordSRV {
                 registerModule(PaperChatRenderListener::new);
             } else {
                 registerModule(PaperLegacyChatRenderListener::new);
+            }
+
+            // Track deprecated chat events for debugging
+            try {
+                registerModule(PaperLegacyChatDebugModule::new);
+            } catch (Throwable e) {
+                logger().debug("Cannot track legacy chat events for debugging purposes", e);
             }
         } else {
             // Legacy

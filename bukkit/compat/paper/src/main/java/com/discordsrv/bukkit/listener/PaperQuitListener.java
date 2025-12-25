@@ -30,6 +30,8 @@ import org.bukkit.event.EventPriority;
 import org.bukkit.event.player.PlayerQuitEvent;
 import org.jetbrains.annotations.NotNull;
 
+import java.util.function.Consumer;
+
 public class PaperQuitListener extends AbstractBukkitListener<PlayerQuitEvent> {
 
     private static final PaperComponentHandle.Get<PlayerQuitEvent> MESSAGE_HANDLE
@@ -67,5 +69,10 @@ public class PaperQuitListener extends AbstractBukkitListener<PlayerQuitEvent> {
     @Override
     protected void observeEvents(boolean enable) {
         observer = observeEvent(observer, PlayerQuitEvent.class, event -> MESSAGE_HANDLE.getRaw(event) == null, enable);
+    }
+
+    @Override
+    protected void collectRelevantHandlerLists(Consumer<Class<?>> eventClassConsumer) {
+        eventClassConsumer.accept(PlayerQuitEvent.class);
     }
 }

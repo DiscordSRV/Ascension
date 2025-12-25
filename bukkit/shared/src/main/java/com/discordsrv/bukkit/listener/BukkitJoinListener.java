@@ -31,6 +31,8 @@ import org.bukkit.event.EventPriority;
 import org.bukkit.event.player.PlayerJoinEvent;
 import org.jetbrains.annotations.NotNull;
 
+import java.util.function.Consumer;
+
 public class BukkitJoinListener extends AbstractBukkitListener<PlayerJoinEvent> {
 
     public BukkitJoinListener(BukkitDiscordSRV discordSRV) {
@@ -72,5 +74,10 @@ public class BukkitJoinListener extends AbstractBukkitListener<PlayerJoinEvent> 
     @Override
     protected void observeEvents(boolean enable) {
         observer = observeEvent(observer, PlayerJoinEvent.class, event -> event.getJoinMessage() == null, enable);
+    }
+
+    @Override
+    protected void collectRelevantHandlerLists(Consumer<Class<?>> eventClassConsumer) {
+        eventClassConsumer.accept(PlayerJoinEvent.class);
     }
 }

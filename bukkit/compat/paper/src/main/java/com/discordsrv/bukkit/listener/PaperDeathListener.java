@@ -32,6 +32,7 @@ import org.bukkit.event.entity.PlayerDeathEvent;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Objects;
+import java.util.function.Consumer;
 
 public class PaperDeathListener extends AbstractBukkitListener<PlayerDeathEvent> {
 
@@ -74,5 +75,10 @@ public class PaperDeathListener extends AbstractBukkitListener<PlayerDeathEvent>
     @Override
     protected void observeEvents(boolean enable) {
         observer = observeEvent(observer, PlayerDeathEvent.class, event -> event.isCancelled() || MESSAGE_HANDLE.getRaw(event) == null, enable);
+    }
+
+    @Override
+    protected void collectRelevantHandlerLists(Consumer<Class<?>> eventClassConsumer) {
+        eventClassConsumer.accept(PlayerDeathEvent.class);
     }
 }

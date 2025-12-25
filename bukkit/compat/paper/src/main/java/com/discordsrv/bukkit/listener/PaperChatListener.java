@@ -32,6 +32,8 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.jetbrains.annotations.NotNull;
 
+import java.util.function.Consumer;
+
 public class PaperChatListener extends AbstractBukkitListener<AsyncChatEvent> {
 
     private static final PaperComponentHandle.Get<AsyncChatEvent> MESSAGE_HANDLE
@@ -62,35 +64,15 @@ public class PaperChatListener extends AbstractBukkitListener<AsyncChatEvent> {
         );
     }
 
-    private EventObserver<AsyncChatEvent, Boolean> modernAsyncObserver;
-    @SuppressWarnings("deprecation")
-    private EventObserver<io.papermc.paper.event.player.ChatEvent, Boolean> modernSyncObserver;
-    @SuppressWarnings("deprecation")
-    private EventObserver<org.bukkit.event.player.AsyncPlayerChatEvent, Boolean> legacyAsyncObserver;
-    @SuppressWarnings("deprecation")
-    private EventObserver<org.bukkit.event.player.PlayerChatEvent, Boolean> legacySyncObserver;
+    private EventObserver<AsyncChatEvent, Boolean> observer;
 
-    @SuppressWarnings("deprecation")
     @Override
     public void observeEvents(boolean enable) {
-        modernAsyncObserver = observeEvent(modernAsyncObserver, AsyncChatEvent.class, AbstractChatEvent::isCancelled, enable);
-        modernSyncObserver = observeEvent(
-                modernSyncObserver,
-                io.papermc.paper.event.player.ChatEvent.class,
-                AbstractChatEvent::isCancelled,
-                enable
-        );
-        legacyAsyncObserver = observeEvent(
-                legacyAsyncObserver,
-                org.bukkit.event.player.AsyncPlayerChatEvent.class,
-                org.bukkit.event.player.AsyncPlayerChatEvent::isCancelled,
-                enable
-        );
-        legacySyncObserver = observeEvent(
-                legacySyncObserver,
-                org.bukkit.event.player.PlayerChatEvent.class,
-                org.bukkit.event.player.PlayerChatEvent::isCancelled,
-                enable
-        );
+        observer = observeEvent(observer, AsyncChatEvent.class, AbstractChatEvent::isCancelled, enable);
+    }
+
+    @Override
+    protected void collectRelevantHandlerLists(Consumer<Class<?>> eventClassConsumer) {
+        eventClassConsumer.accept(AsyncChatEvent.class);
     }
 }

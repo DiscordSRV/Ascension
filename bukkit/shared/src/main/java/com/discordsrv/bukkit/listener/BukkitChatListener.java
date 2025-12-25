@@ -32,6 +32,8 @@ import org.bukkit.event.EventPriority;
 import org.bukkit.event.player.AsyncPlayerChatEvent;
 import org.jetbrains.annotations.NotNull;
 
+import java.util.function.Consumer;
+
 public class BukkitChatListener extends AbstractBukkitListener<AsyncPlayerChatEvent> {
 
     public BukkitChatListener(BukkitDiscordSRV discordSRV) {
@@ -73,5 +75,10 @@ public class BukkitChatListener extends AbstractBukkitListener<AsyncPlayerChatEv
                 org.bukkit.event.player.PlayerChatEvent::isCancelled,
                 enable
         );
+    }
+
+    @Override
+    protected void collectRelevantHandlerLists(Consumer<Class<?>> eventClassConsumer) {
+        eventClassConsumer.accept(AsyncPlayerChatEvent.class);
     }
 }

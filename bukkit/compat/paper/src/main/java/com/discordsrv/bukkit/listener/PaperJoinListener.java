@@ -30,6 +30,8 @@ import org.bukkit.event.EventPriority;
 import org.bukkit.event.player.PlayerJoinEvent;
 import org.jetbrains.annotations.NotNull;
 
+import java.util.function.Consumer;
+
 public class PaperJoinListener extends AbstractBukkitListener<PlayerJoinEvent> {
 
     private static final PaperComponentHandle.Get<PlayerJoinEvent> MESSAGE_HANDLE
@@ -73,5 +75,10 @@ public class PaperJoinListener extends AbstractBukkitListener<PlayerJoinEvent> {
     @Override
     protected void observeEvents(boolean enable) {
         observer = observeEvent(observer, PlayerJoinEvent.class, event -> MESSAGE_HANDLE.getRaw(event) == null, enable);
+    }
+
+    @Override
+    protected void collectRelevantHandlerLists(Consumer<Class<?>> eventClassConsumer) {
+        eventClassConsumer.accept(PlayerJoinEvent.class);
     }
 }

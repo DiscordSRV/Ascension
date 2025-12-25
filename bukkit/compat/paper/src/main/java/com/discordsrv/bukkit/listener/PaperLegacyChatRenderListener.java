@@ -31,6 +31,8 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.jetbrains.annotations.NotNull;
 
+import java.util.function.Consumer;
+
 public class PaperLegacyChatRenderListener extends AbstractBukkitListener<AsyncChatEvent> {
 
     private static final PaperComponentHandle.Get<AsyncChatEvent> GET_MESSAGE_HANDLE
@@ -72,4 +74,9 @@ public class PaperLegacyChatRenderListener extends AbstractBukkitListener<AsyncC
     // Already observed via normal chat listener
     @Override
     protected void observeEvents(boolean enable) {}
+
+    @Override
+    protected void collectRelevantHandlerLists(Consumer<Class<?>> eventClassConsumer) {
+        eventClassConsumer.accept(AsyncChatEvent.class);
+    }
 }

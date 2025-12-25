@@ -32,6 +32,8 @@ import org.bukkit.event.EventPriority;
 import org.bukkit.event.player.PlayerAchievementAwardedEvent;
 import org.jetbrains.annotations.NotNull;
 
+import java.util.function.Consumer;
+
 public class BukkitAchievementListener extends AbstractBukkitListener<PlayerAchievementAwardedEvent> {
 
     public BukkitAchievementListener(BukkitDiscordSRV discordSRV) {
@@ -68,5 +70,10 @@ public class BukkitAchievementListener extends AbstractBukkitListener<PlayerAchi
     @Override
     protected void observeEvents(boolean enable) {
         observer = observeEvent(observer, PlayerAchievementAwardedEvent.class, PlayerAchievementAwardedEvent::isCancelled, enable);
+    }
+
+    @Override
+    protected void collectRelevantHandlerLists(Consumer<Class<?>> eventClassConsumer) {
+        eventClassConsumer.accept(PlayerAchievementAwardedEvent.class);
     }
 }

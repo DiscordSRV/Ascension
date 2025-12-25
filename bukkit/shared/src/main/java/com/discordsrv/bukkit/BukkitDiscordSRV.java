@@ -20,6 +20,7 @@ package com.discordsrv.bukkit;
 
 import com.discordsrv.api.DiscordSRV;
 import com.discordsrv.bukkit.config.main.BukkitConfig;
+import com.discordsrv.bukkit.debug.BukkitListenerTrackingModule;
 import com.discordsrv.bukkit.player.BukkitPlayerProvider;
 import com.discordsrv.bukkit.plugin.BukkitPluginManager;
 import com.discordsrv.bukkit.scheduler.BukkitScheduler;
@@ -56,6 +57,9 @@ public abstract class BukkitDiscordSRV extends AbstractDiscordSRV<IBukkitBootstr
         this.audiences = BukkitAudiences.create(bootstrap.getPlugin());
 
         this.pluginManager = new BukkitPluginManager(this);
+
+        // Debug tracking
+        registerModule(BukkitListenerTrackingModule::new);
 
         // Integrations
         registerIntegration("com.discordsrv.bukkit.integration.BukkitLuckPermsIntegration");
