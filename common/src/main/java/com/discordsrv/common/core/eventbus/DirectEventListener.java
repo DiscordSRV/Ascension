@@ -28,6 +28,6 @@ public class DirectEventListener<E> extends AbstractEventListener<E> {
 
     @Override
     public String toString() {
-        return "DirectEventListener{eventClass=" + eventClass() + ",listener=" + listenerClassName() + "}";
+        return "DirectEventListener{listener=" + listenerClassName() + "}";
     }
 }

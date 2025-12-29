@@ -335,11 +335,13 @@ public class EventBusImpl implements EventBus {
     public void onDebugGenerate(DebugGenerateEvent event) {
         StringBuilder builder = new StringBuilder("Registered listeners\n");
         builder.append(" (").append(listeners.size()).append(" listeners classes)\n");
-        builder.append(" (for ").append(listenersByEvent.size()).append(" events)\n");
-        builder.append(" (for a total of ")
+        builder.append(" (")
                 .append(listeners.values().stream().mapToInt(List::size).sum())
                 .append(" individual listeners methods)\n");
+        builder.append(" (").append(directListeners.size()).append(" direct listeners)\n");
+        builder.append(" (for ").append(listenersByEvent.size()).append(" events)\n");
 
+        builder.append("\nListener classes:");
         for (Map.Entry<Object, List<AnnotationEventListener<?>>> entry : listeners.entrySet()) {
             Object listener = entry.getKey();
             List<AnnotationEventListener<?>> eventListeners = entry.getValue();
@@ -361,6 +363,16 @@ public class EventBusImpl implements EventBus {
                         .append(eventListener.priority())
                         .append('\n');
             }
+        }
+
+        builder.append("\nDirect listeners:");
+        for (DirectEventListener<?> directListener : directListeners) {
+            builder.append('\n')
+                    .append(directListener)
+                    .append(" (")
+                    .append(directListener.eventClass().getName())
+                    .append(") @ ")
+                    .append(directListener.priority());
         }
 
         event.addFile(0, "event-bus.txt", new TextDebugFile(builder));
