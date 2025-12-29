@@ -26,11 +26,11 @@ import com.discordsrv.api.events.Cancellable;
 import com.discordsrv.api.events.Event;
 import com.discordsrv.api.events.Processable;
 import com.discordsrv.common.DiscordSRV;
+import com.discordsrv.common.core.debug.DebugGenerateEvent;
+import com.discordsrv.common.core.debug.file.TextDebugFile;
 import com.discordsrv.common.core.logging.Logger;
 import com.discordsrv.common.core.logging.NamedLogger;
 import com.discordsrv.common.exception.InvalidListenerMethodException;
-import com.discordsrv.common.core.debug.DebugGenerateEvent;
-import com.discordsrv.common.core.debug.file.TextDebugFile;
 import com.discordsrv.common.helper.TestHelper;
 import net.dv8tion.jda.api.events.GenericEvent;
 import org.apache.commons.lang3.tuple.Pair;
@@ -44,6 +44,7 @@ import java.lang.reflect.Modifier;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArrayList;
+import java.util.function.Consumer;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
@@ -56,8 +57,9 @@ public class EventBusImpl implements EventBus {
             new State<>(Processable.class, Processable::isProcessed, EventStateHolder.PROCESSED)
     );
 
-    private final Map<Object, List<EventListenerImpl>> listeners = new ConcurrentHashMap<>();
-    private final Map<Class<?>, List<EventListenerImpl>> listenersByEvent = new ConcurrentHashMap<>();
+    private final List<DirectEventListener<?>> directListeners = new CopyOnWriteArrayList<>();
+    private final Map<Object, List<AnnotationEventListener<?>>> listeners = new ConcurrentHashMap<>();
+    private final Map<Class<?>, List<AbstractEventListener<?>>> listenersByEvent = new ConcurrentHashMap<>();
     private final Logger logger;
 
     public EventBusImpl(DiscordSRV discordSRV) {
@@ -78,9 +80,9 @@ public class EventBusImpl implements EventBus {
             throw new IllegalArgumentException("Listener is already registered");
         }
 
-        Pair<List<EventListenerImpl>, List<Throwable>> parsed = parseListeners(eventListener);
+        Pair<List<AnnotationEventListener<?>>, List<Throwable>> parsed = parseListeners(eventListener);
         List<Throwable> suppressedMethods = parsed.getValue();
-        List<EventListenerImpl> methods = parsed.getKey();
+        List<AnnotationEventListener<?>> methods = parsed.getKey();
 
         if (methods.isEmpty() || !suppressedMethods.isEmpty()) {
             IllegalArgumentException exception = new IllegalArgumentException(eventListener.getClass().getName()
@@ -90,7 +92,7 @@ public class EventBusImpl implements EventBus {
         }
 
         listeners.put(eventListener, methods);
-        for (EventListenerImpl method : methods) {
+        for (AnnotationEventListener<?> method : methods) {
             listenersByEvent.computeIfAbsent(method.eventClass(), key -> new CopyOnWriteArrayList<>())
                     .add(method);
         }
@@ -98,15 +100,31 @@ public class EventBusImpl implements EventBus {
     }
 
     @Override
-    public Collection<EventListenerImpl> getListeners(@NotNull Object eventListener) {
+    public <E> EventListener subscribe(
+            @NotNull Class<E> eventClass,
+            boolean ignoreCanceled,
+            boolean ignoreProcessed,
+            byte listenerPriority,
+            @NotNull Consumer<E> listener
+    ) {
+        DirectEventListener<E> directListener = new DirectEventListener<>(eventClass, ignoreCanceled, ignoreProcessed, listenerPriority, listener);
+        directListeners.add(directListener);
+        listenersByEvent.computeIfAbsent(eventClass, key -> new CopyOnWriteArrayList<>())
+                .add(directListener);
+        logger.debug("Direct Listener " + directListener + " subscribed");
+        return directListener;
+    }
+
+    @Override
+    public Collection<AnnotationEventListener<?>> getListeners(@NotNull Object eventListener) {
         return parseListeners(eventListener).getKey();
     }
 
-    private Pair<List<EventListenerImpl>, List<Throwable>> parseListeners(Object eventListener) {
+    private Pair<List<AnnotationEventListener<?>>, List<Throwable>> parseListeners(Object eventListener) {
         Class<?> listenerClass = eventListener.getClass();
 
         List<Throwable> suppressedMethods = new ArrayList<>();
-        List<EventListenerImpl> methods = new ArrayList<>();
+        List<AnnotationEventListener<?>> methods = new ArrayList<>();
 
         Class<?> currentClass = listenerClass;
         do {
@@ -119,7 +137,7 @@ public class EventBusImpl implements EventBus {
     }
 
     private void checkMethod(Object eventListener, Class<?> listenerClass, Method method,
-                             List<Throwable> suppressedMethods, List<EventListenerImpl> methods) {
+                             List<Throwable> suppressedMethods, List<AnnotationEventListener<?>> methods) {
         Subscribe annotation = method.getAnnotation(Subscribe.class);
         if (annotation == null) {
             return;
@@ -174,7 +192,7 @@ public class EventBusImpl implements EventBus {
             return;
         }
 
-        EventListenerImpl listener = new EventListenerImpl(eventListener, listenerClass, annotation, firstParameter, method, handle);
+        AnnotationEventListener<?> listener = new AnnotationEventListener<>(eventListener, listenerClass, annotation, firstParameter, method, handle);
         methods.add(listener);
     }
 
@@ -185,11 +203,30 @@ public class EventBusImpl implements EventBus {
 
     @Override
     public void unsubscribe(@NotNull Object eventListener) {
-        List<EventListenerImpl> removed = listeners.remove(eventListener);
+        if (eventListener instanceof DirectEventListener<?>) {
+            // Exception for "direct" subscriptions
+            if (!directListeners.remove(eventListener)) {
+                return;
+            }
+
+            DirectEventListener<?> directEventListener = (DirectEventListener<?>) eventListener;
+            Class<?> eventClass = directEventListener.eventClass();
+            List<AbstractEventListener<?>> listenersForEvent = listenersByEvent.get(eventClass);
+            if (listenersForEvent != null) {
+                listenersForEvent.remove(eventListener);
+                if (listenersForEvent.isEmpty()) {
+                    listenersByEvent.remove(eventClass);
+                }
+            }
+            logger.debug("Direct Listener " + directEventListener + " unsubscribed");
+            return;
+        }
+
+        List<AnnotationEventListener<?>> removed = listeners.remove(eventListener);
         if (removed != null) {
-            for (EventListenerImpl listener : removed) {
+            for (AnnotationEventListener<?> listener : removed) {
                 Class<?> eventClass = listener.eventClass();
-                List<EventListenerImpl> listeners = listenersByEvent.get(eventClass);
+                List<AbstractEventListener<?>> listeners = listenersByEvent.get(eventClass);
                 listeners.remove(listener);
                 if (listeners.isEmpty()) {
                     listenersByEvent.remove(eventClass);
@@ -209,15 +246,16 @@ public class EventBusImpl implements EventBus {
         publishEvent(event);
     }
 
-    private void gatherListeners(Class<?> eventClass, List<EventListenerImpl> listeners) {
-        List<EventListenerImpl> listenersForEvent = this.listenersByEvent.get(eventClass);
+    @SuppressWarnings({"unchecked", "RedundantCast"})
+    private <E> void gatherListeners(Class<?> eventClass, List<AbstractEventListener<E>> listeners) {
+        List<AbstractEventListener<?>> listenersForEvent = this.listenersByEvent.get(eventClass);
         if (listenersForEvent == null) {
             return;
         }
-        listeners.addAll(listenersForEvent);
+        listeners.addAll((Collection<? extends AbstractEventListener<E>>) (Object) listenersForEvent);
     }
 
-    private void publishEvent(Object event) {
+    private <E> void publishEvent(E event) {
         Class<?> checkClass = event.getClass();
 
         Map<State<?>, Boolean> states = new HashMap<>(STATES.size());
@@ -232,7 +270,7 @@ public class EventBusImpl implements EventBus {
             }
         }
 
-        List<EventListenerImpl> listeners = new ArrayList<>();
+        List<AbstractEventListener<E>> listeners = new ArrayList<>();
         while (!Object.class.equals(checkClass)) {
             gatherListeners(checkClass, listeners);
             for (Class<?> anInterface : checkClass.getInterfaces()) {
@@ -242,23 +280,22 @@ public class EventBusImpl implements EventBus {
             checkClass = checkClass.getSuperclass();
         }
 
-        listeners.sort(Comparator.comparingInt(EventListenerImpl::priority));
+        listeners.sort(Comparator.comparingInt(EventListener::priority));
 
-        for (EventListenerImpl eventListener : listeners) {
-            if (eventListener.isIgnoringCancelled() && event instanceof Cancellable && ((Cancellable) event).isCancelled()) {
+        for (AbstractEventListener<E> eventListener : listeners) {
+            if (eventListener.ignoringCanceled() && event instanceof Cancellable && ((Cancellable) event).isCancelled()) {
                 continue;
             }
-            if (eventListener.isIgnoringProcessed() && event instanceof Processable && ((Processable) event).isProcessed()) {
+            if (eventListener.ignoringProcessed() && event instanceof Processable && ((Processable) event).isProcessed()) {
                 continue;
             }
 
             long startTime = System.currentTimeMillis();
             try {
-                Object listener = eventListener.listener();
-                eventListener.handle().invoke(listener, event);
+                eventListener.invoke(event);
             } catch (Throwable e) {
                 String eventClassName = event.getClass().getName();
-                if (eventListener.className().startsWith("com.discordsrv")) {
+                if (eventListener instanceof AnnotationEventListener && ((AnnotationEventListener<?>) eventListener).listenerClassName().startsWith("com.discordsrv")) {
                     logger.error("Failed to pass " + eventClassName + " to " + eventListener, e);
                 } else {
                     // Print the listener failing without references to the DiscordSRV event bus
@@ -303,10 +340,10 @@ public class EventBusImpl implements EventBus {
                 .append(listeners.values().stream().mapToInt(List::size).sum())
                 .append(" individual listeners methods)\n");
 
-        for (Map.Entry<Object, List<EventListenerImpl>> entry : listeners.entrySet()) {
+        for (Map.Entry<Object, List<AnnotationEventListener<?>>> entry : listeners.entrySet()) {
             Object listener = entry.getKey();
-            List<EventListenerImpl> eventListeners = entry.getValue();
-            eventListeners.sort(Comparator.comparingInt(EventListenerImpl::priority));
+            List<AnnotationEventListener<?>> eventListeners = entry.getValue();
+            eventListeners.sort(Comparator.comparingInt(AnnotationEventListener::priority));
 
             builder.append('\n')
                     .append(listener)
@@ -315,11 +352,11 @@ public class EventBusImpl implements EventBus {
                     .append(") [")
                     .append(eventListeners.size())
                     .append("]\n");
-            for (EventListenerImpl eventListener : eventListeners) {
+            for (AnnotationEventListener<?> eventListener : eventListeners) {
                 builder.append(" - ")
                         .append(eventListener.eventClass().getName())
                         .append(": ")
-                        .append(eventListener.methodName())
+                        .append(eventListener.listenerMethodName())
                         .append(" @ ")
                         .append(eventListener.priority())
                         .append('\n');

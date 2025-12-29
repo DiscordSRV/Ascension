@@ -29,6 +29,7 @@ import org.jetbrains.annotations.Blocking;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Collection;
+import java.util.function.Consumer;
 
 /**
  * DiscordSRV's event bus, handling all events extending {@link Event}s and {@link GenericEvent}s.
@@ -44,10 +45,47 @@ public interface EventBus {
     void subscribe(@NotNull Object eventListener);
 
     /**
-     * Unsubscribes a listener that was registered before.
-     * @param eventListener an event listener that was subscribed with {@link #subscribe(Object)} before
+     * Unsubscribes a listener that was registered before. This may be used to unsubscribe non-annotation based listeners via their {@link EventListener} objects.
+     * @param eventListener an event listener that was subscribed with {@link #subscribe(Object)} before, or {@link EventListener} returned by one of the other subscribe methods
      */
     void unsubscribe(@NotNull Object eventListener);
+
+    /**
+     * Subscribes to the given event, the provided {@link Consumer} will receive the events.
+     * With {@link EventPriorities#DEFAULT} priority, ignoring canceled and processed events.
+     * @param eventClass the event class
+     * @param listener the listener which will receive events
+     * @param <E> type extending DiscordSRV {@link Event} or JDA {@link GenericEvent}.
+     * @return a new {@link EventListener} which can be unsubscribed via {@link #unsubscribe(Object)}
+     */
+    default <E> EventListener subscribe(@NotNull Class<E> eventClass, @NotNull Consumer<E> listener) {
+        return subscribe(eventClass, EventPriorities.DEFAULT, listener);
+    }
+
+    /**
+     * Subscribes to the given event, the provided {@link Consumer} will receive the events.
+     * Ignoring canceled and processed events.
+     * @param eventClass the event class
+     * @param listenerPriority priority of the listener
+     * @param listener the listener which will receive events
+     * @param <E> type extending DiscordSRV {@link Event} or JDA {@link GenericEvent}.
+     * @return a new {@link EventListener} which can be unsubscribed via {@link #unsubscribe(Object)}
+     */
+    default <E> EventListener subscribe(@NotNull Class<E> eventClass, byte listenerPriority, @NotNull Consumer<E> listener) {
+        return subscribe(eventClass, true, true, listenerPriority, listener);
+    }
+
+    /**
+     * Subscribes to the given event, the provided {@link Consumer} will receive the events.
+     * @param eventClass the event class
+     * @param ignoreCanceled if canceled events should be ignored
+     * @param ignoreProcessed if processed events should be ignored
+     * @param listenerPriority priority of the listener
+     * @param listener the listener which will receive events
+     * @param <E> type extending DiscordSRV {@link Event} or JDA {@link GenericEvent}.
+     * @return a new {@link EventListener} which can be unsubscribed via {@link #unsubscribe(Object)}
+     */
+    <E> EventListener subscribe(@NotNull Class<E> eventClass, boolean ignoreCanceled, boolean ignoreProcessed, byte listenerPriority, @NotNull Consumer<E> listener);
 
     /**
      * Gets the listeners for a given event listener.

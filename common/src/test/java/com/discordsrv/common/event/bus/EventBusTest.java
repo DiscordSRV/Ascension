@@ -19,6 +19,7 @@
 package com.discordsrv.common.event.bus;
 
 import com.discordsrv.api.eventbus.EventBus;
+import com.discordsrv.api.eventbus.EventListener;
 import com.discordsrv.api.eventbus.EventPriorities;
 import com.discordsrv.api.eventbus.Subscribe;
 import com.discordsrv.api.events.Event;
@@ -38,11 +39,12 @@ public class EventBusTest {
     private static final EventBus eventBus = MockDiscordSRV.getInstance().eventBus();
 
     @Test
-    public void publishTest() {
+    public void annotationPublishTest() {
         AtomicBoolean reached = new AtomicBoolean(false);
         ListenerEarly listener = new ListenerEarly(() -> reached.set(true));
 
         // Not subscribed, should not reach
+        eventBus.publish(new Event() {});
         assertFalse(reached.get());
 
         // Subscribe & publish, should reach
@@ -54,6 +56,27 @@ public class EventBusTest {
         eventBus.unsubscribe(listener);
         reached.set(false);
 
+        eventBus.publish(new Event() {});
+        assertFalse(reached.get());
+    }
+
+    @Test
+    public void directPublishTest() {
+        AtomicBoolean reached = new AtomicBoolean(false);
+
+        // Not subscribed, should not reach
+        eventBus.publish(new Event() {});
+        assertFalse(reached.get());
+
+        // Subscribe & publish, should reach
+        EventListener listener = eventBus.subscribe(Event.class, event -> reached.set(true));
+        eventBus.publish(new Event() {});
+        assertTrue(reached.get());
+
+        // Unsubscribe & publish, should not reach
+        eventBus.unsubscribe(listener);
+        reached.set(false);
+        
         eventBus.publish(new Event() {});
         assertFalse(reached.get());
     }

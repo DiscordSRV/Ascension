@@ -42,18 +42,23 @@ public final class EventStateHolder {
     private static class FakeListener implements EventListener {
 
         @Override
-        public @NotNull String className() {
-            return null;
-        }
-
-        @Override
-        public @NotNull String methodName() {
-            return null;
-        }
-
-        @Override
         public @NotNull Class<?> eventClass() {
             return null;
+        }
+
+        @Override
+        public boolean ignoringCanceled() {
+            return false;
+        }
+
+        @Override
+        public boolean ignoringProcessed() {
+            return false;
+        }
+
+        @Override
+        public byte priority() {
+            return 0;
         }
     }
 }

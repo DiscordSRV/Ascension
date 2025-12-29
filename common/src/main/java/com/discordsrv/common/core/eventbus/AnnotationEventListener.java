@@ -18,63 +18,52 @@
 
 package com.discordsrv.common.core.eventbus;
 
-import com.discordsrv.api.eventbus.EventListener;
 import com.discordsrv.api.eventbus.Subscribe;
-import org.jetbrains.annotations.NotNull;
 
 import java.lang.invoke.MethodHandle;
 import java.lang.reflect.Method;
 
-public class EventListenerImpl implements EventListener {
+public class AnnotationEventListener<E> extends AbstractEventListener<E> {
 
     private final Object listener;
     private final Class<?> listenerClass;
     private final Subscribe annotation;
-    private final Class<?> eventClass;
     private final Method method;
     private final MethodHandle handle;
 
-    public EventListenerImpl(Object listener, Class<?> listenerClass, Subscribe annotation, Class<?> eventClass, Method method, MethodHandle handle) {
+    public AnnotationEventListener(
+            Object listener,
+            Class<?> listenerClass,
+            Subscribe annotation,
+            Class<E> eventClass,
+            Method method,
+            MethodHandle handle
+    ) {
+        super(eventClass, annotation.ignoreCancelled(), annotation.ignoreProcessed(), annotation.priority());
         this.listener = listener;
         this.listenerClass = listenerClass;
         this.annotation = annotation;
-        this.eventClass = eventClass;
         this.method = method;
         this.handle = handle;
     }
 
-    public boolean isIgnoringCancelled() {
-        return annotation.ignoreCancelled();
+    public Subscribe annotation() {
+        return annotation;
     }
 
-    public boolean isIgnoringProcessed() {
-        return annotation.ignoreProcessed();
-    }
-
-    public byte priority() {
-        return annotation.priority();
-    }
-
-    public Object listener() {
+    public Object listenerObject() {
         return listener;
     }
 
-    @Override
-    public @NotNull Class<?> eventClass() {
-        return eventClass;
-    }
-
-    public Method method() {
+    public Method listenerMethod() {
         return method;
     }
 
-    @Override
-    public @NotNull String className() {
+    public String listenerClassName() {
         return listenerClass.getName();
     }
 
-    @Override
-    public @NotNull String methodName() {
+    public String listenerMethodName() {
         return method.getName();
     }
 
@@ -84,6 +73,12 @@ public class EventListenerImpl implements EventListener {
 
     @Override
     public String toString() {
-        return "EventListenerImpl{" + className() + "#" + methodName() + "}";
+        return "AnnotationEventListener{" + listenerClassName() + "#" + listenerMethodName() + "}";
+    }
+
+    @Override
+    public void invoke(E event) throws Throwable {
+        Object listener = listenerObject();
+        handle().invoke(listener, event);
     }
 }

@@ -26,28 +26,10 @@ package com.discordsrv.api.eventbus;
 import com.discordsrv.api.events.Event;
 import org.jetbrains.annotations.NotNull;
 
-import java.lang.reflect.Method;
-
 /**
  * An event listener.
  */
 public interface EventListener {
-
-    /**
-     * The full name of the class for this event listener.
-     * @return the event listener class name
-     * @see Class#getName()
-     */
-    @NotNull
-    String className();
-
-    /**
-     * The name of the method for this event listener.
-     * @return the method name for this event listener
-     * @see Method#getName()
-     */
-    @NotNull
-    String methodName();
 
     /**
      * The event this listener is listening to.
@@ -55,5 +37,9 @@ public interface EventListener {
      */
     @NotNull
     Class<?> eventClass();
+
+    boolean ignoringCanceled();
+    boolean ignoringProcessed();
+    byte priority();
 
 }
