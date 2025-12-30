@@ -21,7 +21,7 @@ package com.discordsrv.bukkit.listener;
 import com.discordsrv.api.component.MinecraftComponent;
 import com.discordsrv.api.events.message.preprocess.game.AwardMessagePreProcessEvent;
 import com.discordsrv.bukkit.BukkitDiscordSRV;
-import com.discordsrv.common.abstraction.player.IPlayer;
+import com.discordsrv.bukkit.player.BukkitPlayer;
 import com.discordsrv.common.core.logging.NamedLogger;
 import org.bukkit.Bukkit;
 import org.bukkit.Server;
@@ -34,6 +34,7 @@ import org.jetbrains.annotations.NotNull;
 import java.lang.reflect.Method;
 import java.util.Arrays;
 import java.util.Locale;
+import java.util.Objects;
 import java.util.function.Consumer;
 
 public class BukkitLegacyAdvancementListener extends AbstractBukkitListener<PlayerAdvancementDoneEvent> {
@@ -97,8 +98,10 @@ public class BukkitLegacyAdvancementListener extends AbstractBukkitListener<Play
             return;
         }
 
-        String gameRuleValue = event.getPlayer().getWorld().getGameRuleValue("announceAdvancements");
-        if ("false".equals(gameRuleValue)) {
+        BukkitPlayer player = discordSRV.playerProvider().player(event.getPlayer());
+
+        Boolean gameRuleValue = player.getGameRuleValueForCurrentWorld(com.discordsrv.bukkit.gamerule.GameRule.SHOW_ADVANCEMENT_MESSAGES);
+        if (Objects.equals(gameRuleValue, false)) {
             logger().trace("Skipping forwarding advancement, disabled by gamerule");
             return;
         }
@@ -116,11 +119,10 @@ public class BukkitLegacyAdvancementListener extends AbstractBukkitListener<Play
                     ? AwardMessagePreProcessEvent.AdvancementFrame.fromId(data.frameId.toUpperCase(Locale.ROOT))
                     : null;
 
-            IPlayer srvPlayer = discordSRV.playerProvider().player(event.getPlayer());
             discordSRV.eventBus().publish(
                     new AwardMessagePreProcessEvent(
                             event,
-                            srvPlayer,
+                            player,
                             null,
                             title,
                             description,

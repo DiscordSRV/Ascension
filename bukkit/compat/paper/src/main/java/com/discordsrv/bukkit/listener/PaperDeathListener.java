@@ -20,12 +20,11 @@ package com.discordsrv.bukkit.listener;
 
 import com.discordsrv.api.component.MinecraftComponent;
 import com.discordsrv.api.events.message.preprocess.game.DeathMessagePreProcessEvent;
-import com.discordsrv.api.player.DiscordSRVPlayer;
 import com.discordsrv.bukkit.BukkitDiscordSRV;
 import com.discordsrv.bukkit.component.PaperComponentHandle;
 import com.discordsrv.bukkit.debug.EventObserver;
+import com.discordsrv.bukkit.player.BukkitPlayer;
 import com.discordsrv.common.core.logging.NamedLogger;
-import org.bukkit.GameRule;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.entity.PlayerDeathEvent;
@@ -50,7 +49,9 @@ public class PaperDeathListener extends AbstractBukkitListener<PlayerDeathEvent>
 
     @Override
     protected void handleEvent(@NotNull PlayerDeathEvent event, Void __) {
-        Boolean gameRuleValue = event.getPlayer().getWorld().getGameRuleValue(GameRule.SHOW_DEATH_MESSAGES);
+        BukkitPlayer player = discordSRV.playerProvider().player(event.getEntity());
+
+        Boolean gameRuleValue = player.getGameRuleValueForCurrentWorld(com.discordsrv.bukkit.gamerule.GameRule.SHOW_DEATH_MESSAGES);
         if (Objects.equals(gameRuleValue, false)) {
             logger().debug("Skipping displaying death message, disabled by gamerule");
             return;
@@ -58,7 +59,6 @@ public class PaperDeathListener extends AbstractBukkitListener<PlayerDeathEvent>
 
         MinecraftComponent message = MESSAGE_HANDLE.getAPI(event);
 
-        DiscordSRVPlayer player = discordSRV.playerProvider().player(event.getEntity());
         discordSRV.eventBus().publish(
                 new DeathMessagePreProcessEvent(
                         event,

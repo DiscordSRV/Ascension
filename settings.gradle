@@ -39,12 +39,12 @@ dependencyResolutionManagement {
             // Bukkit
             library('bukkit-minimum', 'org.bukkit', 'bukkit').version('1.8.8-R0.1-SNAPSHOT')
             library('spigotapi-onetwelve', 'org.spigotmc', 'spigot-api').version('1.12.2-R0.1-SNAPSHOT')
-            library('spigotapi-latest', 'org.spigotmc', 'spigot-api').version('1.21.2-R0.1-SNAPSHOT')
+            library('spigotapi-latest', 'org.spigotmc', 'spigot-api').version('1.21.11-R0.1-SNAPSHOT')
 
             // Paper
             library('paperapi-minimum', 'com.destroystokyo.paper', 'paper-api').version('1.16.5-R0.1-SNAPSHOT')
-            library('paperapi-latest', 'io.papermc.paper', 'paper-api').version('1.21.4-R0.1-SNAPSHOT')
-            library('folia', 'dev.folia', 'folia-api').version('1.21.4-R0.1-SNAPSHOT')
+            library('paperapi-latest', 'io.papermc.paper', 'paper-api').version('1.21.11-R0.1-SNAPSHOT')
+            library('folia', 'dev.folia', 'folia-api').version('1.21.11-R0.1-SNAPSHOT')
 
             // Bungee
             library('bungee', 'net.md-5', 'bungeecord-api').version('1.21-R0.4-SNAPSHOT')

@@ -23,10 +23,9 @@ import com.discordsrv.api.events.message.preprocess.game.AwardMessagePreProcessE
 import com.discordsrv.bukkit.BukkitDiscordSRV;
 import com.discordsrv.bukkit.component.PaperComponentHandle;
 import com.discordsrv.bukkit.debug.EventObserver;
-import com.discordsrv.common.abstraction.player.IPlayer;
+import com.discordsrv.bukkit.player.BukkitPlayer;
 import com.discordsrv.common.core.logging.NamedLogger;
 import io.papermc.paper.advancement.AdvancementDisplay;
-import org.bukkit.GameRule;
 import org.bukkit.advancement.Advancement;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
@@ -58,7 +57,9 @@ public class PaperAdvancementListener extends AbstractBukkitListener<PlayerAdvan
 
     @Override
     protected void handleEvent(@NotNull PlayerAdvancementDoneEvent event, Void __) {
-        Boolean gameRuleValue = event.getPlayer().getWorld().getGameRuleValue(GameRule.ANNOUNCE_ADVANCEMENTS);
+        BukkitPlayer player = discordSRV.playerProvider().player(event.getPlayer());
+
+        Boolean gameRuleValue = player.getGameRuleValueForCurrentWorld(com.discordsrv.bukkit.gamerule.GameRule.SHOW_ADVANCEMENT_MESSAGES);
         if (Objects.equals(gameRuleValue, false)) {
             logger().trace("Skipping displaying advancement, disabled by gamerule");
             return;
@@ -76,7 +77,6 @@ public class PaperAdvancementListener extends AbstractBukkitListener<PlayerAdvan
         MinecraftComponent title = ADVANCEMENT_TITLE_HANDLE.getAPI(display);
         MinecraftComponent description = ADVANCEMENT_DESCRIPTION_HANDLE.getAPI(display);
 
-        IPlayer player = discordSRV.playerProvider().player(event.getPlayer());
         discordSRV.eventBus().publish(
                 new AwardMessagePreProcessEvent(
                         event,

@@ -21,10 +21,13 @@ package com.discordsrv.bukkit.player;
 import com.discordsrv.api.task.Task;
 import com.discordsrv.bukkit.BukkitDiscordSRV;
 import com.discordsrv.bukkit.component.PaperComponentHandle;
+import com.discordsrv.bukkit.gamerule.GameRule;
 import com.discordsrv.common.abstraction.player.provider.model.SkinInfo;
 import com.discordsrv.common.util.ComponentUtil;
+import com.discordsrv.common.util.ReflectionUtil;
 import net.kyori.adventure.key.Key;
 import net.kyori.adventure.text.Component;
+import org.bukkit.World;
 import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -105,6 +108,24 @@ public class BukkitPlayerImpl extends BukkitPlayer {
             Key key = SpigotWorldUtil.getWorldKey(player.getWorld());
             return key.namespace();
         }
+        return null;
+    }
+
+    @SuppressWarnings("unchecked")
+    @Override
+    public <T> T getGameRuleValueForCurrentWorld(GameRule<T> gameRule) {
+        World world = player.getWorld();
+        if (ReflectionUtil.classExists("org.bukkit.GameRule")) {
+            return PaperPlayerUtil.getGameRuleValue(world, gameRule);
+        }
+
+        for (String option : gameRule.getOptions()) {
+            String value = world.getGameRuleValue(option);
+            if (gameRule.getType().equals(Boolean.class)) {
+                return (T) Boolean.valueOf(value);
+            }
+        }
+
         return null;
     }
 

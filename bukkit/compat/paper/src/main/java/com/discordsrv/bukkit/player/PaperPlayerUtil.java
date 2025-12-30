@@ -23,14 +23,18 @@ import com.destroystokyo.paper.SkinParts;
 import com.destroystokyo.paper.profile.PlayerProfile;
 import com.discordsrv.api.component.MinecraftComponent;
 import com.discordsrv.bukkit.component.PaperComponentHandle;
+import com.discordsrv.bukkit.gamerule.GameRule;
 import com.discordsrv.common.abstraction.player.provider.model.SkinInfo;
 import com.discordsrv.common.util.ReflectionUtil;
 import org.bukkit.OfflinePlayer;
+import org.bukkit.World;
 import org.bukkit.entity.Player;
 import org.bukkit.profile.PlayerTextures;
 import org.jetbrains.annotations.ApiStatus;
 
+import java.lang.reflect.Field;
 import java.net.URL;
+import java.util.List;
 import java.util.Locale;
 
 public final class PaperPlayerUtil {
@@ -139,4 +143,30 @@ public final class PaperPlayerUtil {
         return new SkinInfo(skinURL, textures.getSkinModel().name(), parts);
     }
 
+    @SuppressWarnings({"unchecked", "rawtypes"})
+    public static <T> T getGameRuleValue(World world, GameRule<T> gameRule) {
+        org.bukkit.GameRule<T> bukkitGameRule = null;
+        List<String> options = gameRule.getOptions();
+        for (String option : options) {
+            try {
+                Class<?> gameRulesClass = Class.forName("org.bukkit.GameRules");
+                Field field = gameRulesClass.getDeclaredField(option);
+                bukkitGameRule = (org.bukkit.GameRule) field.get(null);
+                return null;
+            } catch (ReflectiveOperationException ignored) {}
+
+            try {
+                Class<?> gameRuleClass = Class.forName("org.bukkit.GameRule");
+                Field field = gameRuleClass.getDeclaredField(option);
+                bukkitGameRule = (org.bukkit.GameRule) field.get(null);
+                break;
+            } catch (ReflectiveOperationException ignored) {}
+        }
+
+        if (bukkitGameRule == null) {
+            return null;
+        }
+
+        return world.getGameRuleValue(bukkitGameRule);
+    }
 }

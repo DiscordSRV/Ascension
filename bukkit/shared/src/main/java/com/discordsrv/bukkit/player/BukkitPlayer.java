@@ -21,6 +21,7 @@ package com.discordsrv.bukkit.player;
 import com.discordsrv.api.task.Task;
 import com.discordsrv.bukkit.BukkitDiscordSRV;
 import com.discordsrv.bukkit.command.game.sender.BukkitCommandSender;
+import com.discordsrv.bukkit.gamerule.GameRule;
 import com.discordsrv.common.abstraction.player.IPlayer;
 import com.discordsrv.common.abstraction.player.provider.model.SkinInfo;
 import net.kyori.adventure.identity.Identity;
@@ -83,6 +84,8 @@ public abstract class BukkitPlayer extends BukkitCommandSender implements IPlaye
 
     @Override
     public abstract @Nullable String worldNamespace();
+
+    public abstract <T> T getGameRuleValueForCurrentWorld(GameRule<T> gameRule);
 
     @Override
     public boolean isVanished() {
