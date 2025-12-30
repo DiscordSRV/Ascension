@@ -19,7 +19,7 @@
 package com.discordsrv.bukkit.listener;
 
 import com.discordsrv.api.component.MinecraftComponent;
-import com.discordsrv.api.events.message.preprocess.game.AwardMessagePreProcessEvent;
+import com.discordsrv.api.events.message.preprocess.game.AdvancementMessagePreProcessEvent;
 import com.discordsrv.bukkit.BukkitDiscordSRV;
 import com.discordsrv.bukkit.gamerule.GameRule;
 import com.discordsrv.bukkit.player.BukkitPlayer;
@@ -71,13 +71,13 @@ public class SpigotAdvancementListener extends AbstractBukkitListener<PlayerAdva
         MinecraftComponent description = ComponentUtil.toAPI(BukkitComponentSerializer.legacy().deserialize(display.getDescription()));
 
         discordSRV.eventBus().publish(
-                new AwardMessagePreProcessEvent(
+                new AdvancementMessagePreProcessEvent(
                         event,
                         player,
                         null,
                         title,
                         description,
-                        AwardMessagePreProcessEvent.AdvancementFrame.fromId(display.getType().toString()),
+                        AdvancementMessagePreProcessEvent.AdvancementFrame.fromId(display.getType().toString()),
                         null,
                         false
                 )

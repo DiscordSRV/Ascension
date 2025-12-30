@@ -165,7 +165,7 @@ public class V1ConfigMigration {
             defaultChannel.leaveMessages.enabled = config.node("MinecraftPlayerLeaveMessage").node("Enabled").getBoolean(true);
             if (defaultChannel instanceof ServerBaseChannelConfig) {
                 ((ServerBaseChannelConfig)defaultChannel).deathMessages.enabled = config.node("MinecraftPlayerDeathMessage").node("Enabled").getBoolean(true);
-                ((ServerBaseChannelConfig)defaultChannel).awardMessages.enabled = config.node("MinecraftPlayerAchievementMessage").node("Enabled").getBoolean(true);
+                ((ServerBaseChannelConfig)defaultChannel).advancementMessages.enabled = config.node("MinecraftPlayerAchievementMessage").node("Enabled").getBoolean(true);
             }
 
             defaultChannel.startMessage.enabled = !config.node("DiscordChatChannelServerStartupMessage").getString("").isEmpty();

@@ -70,7 +70,7 @@ public class WorldChannelModule extends AbstractModule<DiscordSRV> {
         if (event instanceof JoinMessagePreProcessEvent) return channelConfig.joinMessages().getForEvent((JoinMessagePreProcessEvent) event);
         if (event instanceof LeaveMessagePreProcessEvent) return channelConfig.leaveMessages;
         if (event instanceof DeathMessagePreProcessEvent) return channelConfig.deathMessages;
-        if (event instanceof AwardMessagePreProcessEvent) return channelConfig.awardMessages;
+        if (event instanceof AdvancementMessagePreProcessEvent) return channelConfig.advancementMessages;
 
         return null;
     }

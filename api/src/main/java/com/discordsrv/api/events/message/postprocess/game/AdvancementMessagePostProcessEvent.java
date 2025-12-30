@@ -21,28 +21,34 @@
  * SOFTWARE.
  */
 
-package com.discordsrv.api.events.message.post.game;
+package com.discordsrv.api.events.message.postprocess.game;
 
-import com.discordsrv.api.discord.entity.message.ReceivedDiscordMessageCluster;
-import com.discordsrv.api.events.message.postprocess.game.AwardMessagePostProcessEvent;
+import com.discordsrv.api.discord.entity.channel.DiscordGuildMessageChannel;
+import com.discordsrv.api.discord.entity.message.SendableDiscordMessage;
+import com.discordsrv.api.events.message.preprocess.game.AdvancementMessagePreProcessEvent;
+import com.discordsrv.api.player.DiscordSRVPlayer;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+
+import java.util.List;
 
 /**
- * Indicates that an advancement or achievement message was forwarded to Discord.
+ * An advancement (or achievement) message was processed by DiscordSRV and is about to be forwarded.
  * <p>
  * Order of events:
  * <ul>
- * <li>{@link com.discordsrv.api.events.message.preprocess.game.AwardMessagePreProcessEvent}</li>
- * <li>{@link com.discordsrv.api.events.message.postprocess.game.AwardMessagePostProcessEvent}</li>
- * <li>{@link com.discordsrv.api.events.message.post.game.AwardMessagePostEvent} (this event)</li>
+ * <li>{@link com.discordsrv.api.events.message.preprocess.game.AdvancementMessagePreProcessEvent}</li>
+ * <li>{@link com.discordsrv.api.events.message.postprocess.game.AdvancementMessagePostProcessEvent} (this event)</li>
+ * <li>{@link com.discordsrv.api.events.message.post.game.AdvancementMessagePostEvent}</li>
  * </ul>
  */
-public class AwardMessagePostEvent extends AbstractGameMessagePostEvent<AwardMessagePostProcessEvent> {
+public class AdvancementMessagePostProcessEvent extends AbstractGameMessagePostProcessEvent<AdvancementMessagePreProcessEvent> {
 
-    public AwardMessagePostEvent(
-            @NotNull AwardMessagePostProcessEvent preEvent,
-            @NotNull ReceivedDiscordMessageCluster discordMessage
-    ) {
-        super(preEvent, discordMessage);
+    public AdvancementMessagePostProcessEvent(
+            @NotNull AdvancementMessagePreProcessEvent preEvent,
+            @Nullable DiscordSRVPlayer player,
+            @NotNull List<DiscordGuildMessageChannel> channels,
+            @NotNull SendableDiscordMessage message) {
+        super(preEvent, player, channels, message);
     }
 }

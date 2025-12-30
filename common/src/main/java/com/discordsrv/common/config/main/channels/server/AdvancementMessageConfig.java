@@ -26,9 +26,9 @@ import com.discordsrv.common.config.main.generic.IMessageConfig;
 import org.spongepowered.configurate.objectmapping.ConfigSerializable;
 
 @ConfigSerializable
-public class AwardMessageConfig implements IMessageConfig {
+public class AdvancementMessageConfig implements IMessageConfig {
 
-    public AwardMessageConfig() {
+    public AdvancementMessageConfig() {
         ConfigurateConfigManager.nullAllFields(this);
     }
 
@@ -39,12 +39,12 @@ public class AwardMessageConfig implements IMessageConfig {
             .addEmbed(
                     DiscordMessageEmbed.builder()
                             .setAuthor(
-                                    "%award_message|text:'{player_name} made the advancement {award_display_name}'%",
+                                    "%advancement_message|text:'{player_name} made the advancement {advancement_display_name}'%",
                                     null,
                                     "%player_avatar_url%"
                             )
-                            .setDescription("%award_description%")
-                            .setUnformattedColor("%award_color_hex%")
+                            .setDescription("%advancement_description%")
+                            .setUnformattedColor("%advancement_color_hex%")
                             .build()
             );
 

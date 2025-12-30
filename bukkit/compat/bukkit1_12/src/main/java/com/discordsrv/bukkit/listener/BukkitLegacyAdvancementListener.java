@@ -19,7 +19,7 @@
 package com.discordsrv.bukkit.listener;
 
 import com.discordsrv.api.component.MinecraftComponent;
-import com.discordsrv.api.events.message.preprocess.game.AwardMessagePreProcessEvent;
+import com.discordsrv.api.events.message.preprocess.game.AdvancementMessagePreProcessEvent;
 import com.discordsrv.bukkit.BukkitDiscordSRV;
 import com.discordsrv.bukkit.player.BukkitPlayer;
 import com.discordsrv.common.core.logging.NamedLogger;
@@ -114,13 +114,13 @@ public class BukkitLegacyAdvancementListener extends AbstractBukkitListener<Play
 
             MinecraftComponent title = MinecraftComponent.fromJson(data.titleJson);
             MinecraftComponent description = MinecraftComponent.fromJson(data.descriptionJson);
-            AwardMessagePreProcessEvent.AdvancementFrame frame =
+            AdvancementMessagePreProcessEvent.AdvancementFrame frame =
                     data.frameId != null
-                    ? AwardMessagePreProcessEvent.AdvancementFrame.fromId(data.frameId.toUpperCase(Locale.ROOT))
+                    ? AdvancementMessagePreProcessEvent.AdvancementFrame.fromId(data.frameId.toUpperCase(Locale.ROOT))
                     : null;
 
             discordSRV.eventBus().publish(
-                    new AwardMessagePreProcessEvent(
+                    new AdvancementMessagePreProcessEvent(
                             event,
                             player,
                             null,

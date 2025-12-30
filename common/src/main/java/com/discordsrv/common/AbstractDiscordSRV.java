@@ -760,7 +760,7 @@ public abstract class AbstractDiscordSRV<
             registerModule(ServerSwitchMessageModule::new);
         }
         if (serverType() == ServerType.SERVER) {
-            registerModule(AwardMessageModule::new);
+            registerModule(AdvancementMessageModule::new);
             registerModule(DeathMessageModule::new);
         }
 
