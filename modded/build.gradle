@@ -1,0 +1,8 @@
+dependencies {
+    // API
+    annotationProcessor project(':api')
+
+    // Common
+    api project(':common')
+    compileOnlyApi project(':common')
+}

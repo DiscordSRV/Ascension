@@ -3,6 +3,7 @@ pluginManagement {
         mavenLocal()
         maven { url = 'https://central.sonatype.com/repository/maven-snapshots/' }
         maven { url = 'https://maven.fabricmc.net/'}
+        maven { url = 'https://maven.neoforged.net/releases' }
         gradlePluginPortal()
     }
 }
@@ -14,7 +15,11 @@ plugins {
 stonecutter {
     kotlinController = false
     create("fabric") {
-        versions /*"1.16.4", "1.17.1", "1.18.1", "1.18.2", "1.19",*/ "1.19.2", "1.19.3", "1.19.4", "1.20.1", "1.20.2", "1.20.4", "1.20.6", "1.21.1", "1.21.4", "1.21.5", "1.21.6", "1.21.9", "1.21.11"
+        versions "1.19.2", "1.19.3", "1.19.4", "1.20.1", "1.20.2", "1.20.4", "1.20.6", "1.21.1", "1.21.4", "1.21.5", "1.21.6", "1.21.9", "1.21.11"
+        vcsVersion = "1.21.11"
+    }
+    create("neoforge") {
+        versions "1.21.1", "1.21.4", "1.21.5", "1.21.6", "1.21.9", "1.21.11"
         vcsVersion = "1.21.11"
     }
 }
@@ -56,6 +61,10 @@ dependencyResolutionManagement {
             version('fabric-loom', '1.13-SNAPSHOT')
             plugin('fabric-loom', 'fabric-loom').versionRef('fabric-loom')
 
+            //NeoForge
+            version('neogradle', '7.1.16')
+            plugin('neogradle', 'net.neoforged.gradle.userdev').versionRef('neogradle')
+
             // DependencyDownload
             version('dependencydownload', '2.0.0')
             plugin('dependencydownload-plugin', 'dev.vankka.dependencydownload.plugin').versionRef('dependencydownload')
@@ -71,6 +80,8 @@ dependencyResolutionManagement {
             library('mcdependencydownload-bungee-loader', 'dev.vankka', 'minecraftdependencydownload-bungee-loader').versionRef('mcdependencydownload')
             library('mcdependencydownload-velocity', 'dev.vankka', 'minecraftdependencydownload-velocity').versionRef('mcdependencydownload')
             library('mcdependencydownload-fabric', 'dev.vankka', 'minecraftdependencydownload-fabric').versionRef('mcdependencydownload')
+            library('mcdependencydownload-neoforge-bootstrap', 'dev.vankka', 'minecraftdependencydownload-bungee').versionRef('mcdependencydownload')
+            library('mcdependencydownload-neoforge-loader', 'dev.vankka', 'minecraftdependencydownload-bungee-loader').versionRef('mcdependencydownload')
 
             // Annotations
             library('jetbrains-annotations', 'org.jetbrains', 'annotations').version('24.1.0')
@@ -171,6 +182,7 @@ rootProject.name = 'DiscordSRV-Ascension'
 
 [
         'common', 'common:api', 'common:unrelocate',
+        'modded',
         'i18n',
         'api',
         // Bukkit

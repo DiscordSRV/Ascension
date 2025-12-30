@@ -1,0 +1,115 @@
+plugins {
+    id("dev.kikugie.stonecutter") version "0.7.4"
+    alias(libs.plugins.neogradle)
+}
+apply from: rootProject.file('buildscript/standalone.gradle')
+
+configurations.configureEach {
+    resolutionStrategy {
+        force "org.slf4j:slf4j-api:1.7.36" // Introduced by Minecraft itself
+    }
+}
+
+java {
+    toolchain {
+        languageVersion.set(JavaLanguageVersion.of(21))
+    }
+
+    targetCompatibility = JavaVersion.VERSION_21
+    sourceCompatibility = JavaVersion.VERSION_21
+}
+
+base {
+    archivesName = "DiscordSRV-NeoForge-${stonecutter.current.project}"
+
+    if (stonecutter.current.version == "1.21.6") {
+        archivesName = "DiscordSRV-NeoForge-${stonecutter.current.project}-1.21.8"
+    } else if (stonecutter.current.version == "1.21.9") {
+        archivesName = "DiscordSRV-NeoForge-${stonecutter.current.project}-1.21.10"
+    }
+}
+
+if(project.path.startsWith(":neoforge:")) {
+    var deleteMappedSrc = tasks.register('deleteMappedSrc', Delete) {
+        delete project.file("src")
+    }
+
+    clean.dependsOn deleteMappedSrc
+}
+
+sourceSets {
+    main {
+        java {
+            srcDirs("versions/${stonecutter.current.project}/src/main/java")
+        }
+        resources {
+            srcDirs("versions/${stonecutter.current.project}/src/main/resources")
+        }
+    }
+}
+
+tasks.withType(ProcessResources).configureEach {
+    var replaceProperties = [
+            minecraft_version      : stonecutter.current.project,
+            minecraft_version_range: project.property("minecraft.version_range"),
+            neo_version            : project.property("deps.neoforge_version"),
+            mod_id                 : "discordsrv",
+            mod_name               : "DiscordSRV",
+            mod_license            : "GPLv3",
+            mod_version            : version,
+    ]
+    inputs.properties replaceProperties
+
+    filesMatching(['META-INF/neoforge.mods.toml']) {
+        expand replaceProperties
+    }
+
+    dependsOn generateRuntimeDownloadResourceForRuntimeDownloadOnly
+}
+
+shadowJar {
+    configurations = [project.configurations.shadow]
+    mergeServiceFiles()
+}
+
+stonecutter {
+    def adventure = project.property("deps.adventure_platform_neoforge").replace("-SNAPSHOT", "")
+    dependency("adventure", adventure)
+
+    swap("dependencies_file", "\"dependencies/runtimeDownload-${stonecutter.current.version}.txt\";")
+}
+
+spotless {
+    java {
+        if (stonecutter.current.isActive)
+            target("src/main/java/")
+    }
+}
+
+subsystems {
+    parchment {
+        minecraftVersion = project.property("neogradle.subsystems.parchment.minecraftVersion")
+        mappingsVersion = project.property("neogradle.subsystems.parchment.mappingsVersion")
+    }
+}
+
+dependencies {
+//    implementation("net.neoforged:neoforge:${project.property("deps.neoforge_version")}")
+
+    // API
+    annotationProcessor project(':api')
+    shadow project(':common:common-api')
+
+    // Common
+    shadow project(':common')
+    implementation project(':modded')
+
+    // Adventure
+    implementation("net.kyori:adventure-platform-neoforge:${project.property("deps.adventure_platform_neoforge")}") {
+        exclude group: 'net.kyori', module: 'ansi'
+    }
+    implementation(libs.kyori.ansi)
+
+    // DependencyDownload
+    shadow(libs.mcdependencydownload.neoforge.bootstrap)
+}

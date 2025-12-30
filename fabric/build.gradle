@@ -166,6 +166,7 @@ dependencies {
 
     // Common
     shadow project(':common')
+    implementation project(':modded')
 
     // Adventure
     modImplementation("net.kyori:adventure-platform-fabric:${project.property("deps.adventure_platform_fabric")}") {

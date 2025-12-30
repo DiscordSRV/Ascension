@@ -9,6 +9,7 @@ plugins {
     alias(libs.plugins.run.waterfall) apply false
     alias(libs.plugins.run.velocity) apply false
     alias(libs.plugins.fabric.loom) apply false
+    alias(libs.plugins.neogradle) apply false
 }
 
 version = '3.0.0-SNAPSHOT'
@@ -30,11 +31,11 @@ subprojects {
         targetCompatibility = JavaVersion.VERSION_1_8
     }
 
-    if (project.path == ":fabric") {
+    if (project.path == ":fabric" || project.path == ":neoforge") {
         compileJava.configure {
             doFirst {
                 throw new StopExecutionException(
-                        "The 'compileJava' task is disabled in fabric root project."
+                        "The 'compileJava' task is disabled in ${project.path.substring(1)} root project."
                 )
             }
         }
