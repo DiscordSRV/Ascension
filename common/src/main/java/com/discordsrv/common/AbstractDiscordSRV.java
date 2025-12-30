@@ -51,6 +51,7 @@ import com.discordsrv.common.config.main.MainConfig;
 import com.discordsrv.common.config.main.linking.LinkedAccountConfig;
 import com.discordsrv.common.config.messages.MessagesConfig;
 import com.discordsrv.common.core.component.ComponentFactory;
+import com.discordsrv.common.core.component.translation.TranslationLoader;
 import com.discordsrv.common.core.debug.data.VersionInfo;
 import com.discordsrv.common.core.dependency.DiscordSRVDependencyManager;
 import com.discordsrv.common.core.eventbus.EventBusImpl;
@@ -178,6 +179,7 @@ public abstract class AbstractDiscordSRV<
     private ChannelConfigHelper channelConfig;
     private DestinationLookupHelper destinationLookupHelper;
     private TemporaryLocalData temporaryLocalData;
+    private TranslationLoader translationLoader;
 
     private Storage storage;
     private LinkProvider linkProvider;
@@ -221,6 +223,7 @@ public abstract class AbstractDiscordSRV<
         this.destinationLookupHelper = new DestinationLookupHelper(this);
         this.temporaryLocalData = new TemporaryLocalData(this);
         this.updateChecker = new UpdateChecker(this);
+        this.translationLoader = new TranslationLoader(this);
         readManifest();
 
         ///////////////////////////////////////////////////////////////
@@ -989,6 +992,10 @@ public abstract class AbstractDiscordSRV<
         // Modules are reloaded upon DiscordSRV being ready, thus not needed at initial
         if (!initial && flags.contains(ReloadFlag.CONFIG)) {
             results.addAll(moduleManager().reload());
+        }
+
+        if (flags.contains(ReloadFlag.TRANSLATION)) {
+            this.translationLoader.reload();
         }
 
         if (flags.contains(ReloadFlag.DISCORD_COMMANDS) && isReady()) {
