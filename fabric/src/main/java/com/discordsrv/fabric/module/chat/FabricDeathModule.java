@@ -29,7 +29,6 @@ import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.damagesource.CombatTracker;
 import net.minecraft.world.entity.LivingEntity;
-import net.minecraft.world.level.GameRules;
 import net.minecraft.world.level.Level;
 
 import java.util.function.Consumer;
@@ -65,7 +64,14 @@ public class FabricDeathModule extends AbstractFabricModule {
         *///?} else {
         /*ServerLevel level = (ServerLevel) serverPlayer.getLevel();
         *///?}
-        if (!level.getGameRules().getRule(GameRules.RULE_SHOWDEATHMESSAGES).get()) {
+
+        //? if minecraft: >=1.21.11 {
+        boolean showDeathMessages = level.getGameRules().get(net.minecraft.world.level.gamerules.GameRules.SHOW_DEATH_MESSAGES);
+        //?} else {
+        /*boolean showDeathMessages = level.getGameRules().get(net.minecraft.world.level.GameRules.RULE_SHOWDEATHMESSAGES).get();
+        *///?}
+
+        if (showDeathMessages) {
             logger().debug("Skipping displaying death message, disabled by gamerule");
             return;
         }
