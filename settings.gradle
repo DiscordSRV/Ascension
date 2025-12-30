@@ -141,7 +141,7 @@ dependencyResolutionManagement {
             library('log4j-core', 'org.apache.logging.log4j', 'log4j-core').version('2.0-beta9')
 
             // Adventure
-            version('adventure', '4.24.0')
+            version('adventure', '4.26.1')
             library('adventure-api', 'net.kyori', 'adventure-api').versionRef('adventure')
             library('adventure-serializer-plain', 'net.kyori', 'adventure-text-serializer-plain').versionRef('adventure')
             library('adventure-serializer-legacy', 'net.kyori', 'adventure-text-serializer-legacy').versionRef('adventure')

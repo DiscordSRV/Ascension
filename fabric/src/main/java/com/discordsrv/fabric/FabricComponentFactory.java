@@ -26,56 +26,33 @@ import net.kyori.adventure.text.Component;
 import net.minecraft.commands.CommandSource;
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.server.level.ServerPlayer;
-import net.minecraft.server.packs.resources.ResourceManager;
-import net.minecraft.util.profiling.ProfilerFiller;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.Executor;
-
-//? if adventure: <6 {
-/*import net.kyori.adventure.platform.fabric.FabricServerAudiences;
-import net.kyori.adventure.platform.fabric.AdventureCommandSourceStack;
- *///?} else {
-import net.kyori.adventure.platform.modcommon.MinecraftServerAudiences;
-import net.kyori.adventure.platform.modcommon.AdventureCommandSourceStack;
-//?}
-
-//? if minecraft: >=1.21.9 {
-public class FabricComponentFactory extends ComponentFactory implements net.minecraft.server.packs.resources.PreparableReloadListener {
-//?} else {
-/*public class FabricComponentFactory extends ComponentFactory implements net.fabricmc.fabric.api.resource.IdentifiableResourceReloadListener {
-    @Override
-    public net.minecraft.resources.ResourceLocation getFabricId() {
-        return IDENTIFIER;
-    }
-*///?}
-
-    public static final net.minecraft.resources.ResourceLocation IDENTIFIER = FabricDiscordSRV.id("discordsrv", "component_factory");
+public class FabricComponentFactory extends ComponentFactory {
 
     //? if adventure: <6 {
-    /*private final FabricServerAudiences adventure;
+    /*private final net.kyori.adventure.platform.fabric.FabricServerAudiences adventure;
      *///?} else {
-    private final MinecraftServerAudiences adventure;
+    private final net.kyori.adventure.platform.modcommon.MinecraftServerAudiences adventure;
     //?}
     private final FabricDiscordSRV discordSRV;
 
     public FabricComponentFactory(FabricDiscordSRV discordSRV) {
         super(discordSRV);
         //? if adventure: <6 {
-        /*this.adventure = FabricServerAudiences.of(discordSRV.getServer());
+        /*this.adventure = net.kyori.adventure.platform.fabric.FabricServerAudiences.of(discordSRV.getServer());
          *///?} else {
-        this.adventure = MinecraftServerAudiences.of(discordSRV.getServer());
+        this.adventure = net.kyori.adventure.platform.modcommon.MinecraftServerAudiences.of(discordSRV.getServer());
         //?}
         this.discordSRV = discordSRV;
     }
 
     //? if adventure: <6 {
-    /*public FabricServerAudiences getAdventure() {
+    /*public net.kyori.adventure.platform.fabric.FabricServerAudiences getAdventure() {
         return adventure;
     }
     *///?} else {
-    public MinecraftServerAudiences getAdventure() {
+    public net.kyori.adventure.platform.modcommon.MinecraftServerAudiences getAdventure() {
         return adventure;
     }
     //?}
@@ -114,7 +91,11 @@ public class FabricComponentFactory extends ComponentFactory implements net.mine
         return toAPI(fromNative(text));
     }
 
-    public AdventureCommandSourceStack audience(@NotNull CommandSourceStack source) {
+    //? if adventure: <6 {
+    /*public net.kyori.adventure.platform.fabric.AdventureCommandSourceStack audience(@NotNull CommandSourceStack source) {
+     *///?} else {
+    public net.kyori.adventure.platform.modcommon.AdventureCommandSourceStack audience(@NotNull CommandSourceStack source) {
+    //?}
         return adventure.audience(source);
     }
 
@@ -130,19 +111,4 @@ public class FabricComponentFactory extends ComponentFactory implements net.mine
         return adventure.audience(players);
     }
 
-    @Override
-    //? if minecraft: >=1.21.9 {
-    public CompletableFuture<Void> reload(SharedState store, Executor prepareExecutor, PreparationBarrier preparationBarrier, Executor applyExecutor) {
-        ResourceManager manager = store.resourceManager();
-    //?} else if minecraft: >1.21.1 {
-    /*public CompletableFuture<Void> reload(PreparationBarrier preparationBarrier, ResourceManager manager, Executor prepareExecutor, Executor applyExecutor) {
-
-            *///?} else {
-     /*public CompletableFuture<Void> reload(PreparationBarrier preparationBarrier, ResourceManager manager, ProfilerFiller prepareProfiler, ProfilerFiller applyProfiler, Executor prepareExecutor, Executor applyExecutor) {
-    *///?}
-        return discordSRV
-                .translationLoader()
-                .reload(manager)
-                .thenCompose(preparationBarrier::wait);
-    }
 }

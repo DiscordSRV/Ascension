@@ -34,8 +34,6 @@ import com.discordsrv.common.config.main.channels.DiscordToMinecraftChatConfig;
 import com.discordsrv.common.config.main.channels.base.BaseChannelConfig;
 import com.discordsrv.common.config.main.generic.MentionsConfig;
 import com.discordsrv.common.core.component.renderer.DiscordSRVMinecraftRenderer;
-import com.discordsrv.common.core.component.translation.Translation;
-import com.discordsrv.common.core.component.translation.TranslationRegistry;
 import com.discordsrv.common.core.logging.Logger;
 import com.discordsrv.common.core.logging.NamedLogger;
 import com.discordsrv.common.util.ComponentUtil;
@@ -47,24 +45,27 @@ import dev.vankka.mcdiscordreserializer.minecraft.MinecraftSerializerOptions;
 import net.dv8tion.jda.api.JDA;
 import net.dv8tion.jda.api.entities.Message;
 import net.dv8tion.jda.api.entities.channel.middleman.GuildChannel;
+import net.kyori.adventure.key.Key;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.TranslatableComponent;
 import net.kyori.adventure.text.flattener.ComponentFlattener;
+import net.kyori.adventure.text.renderer.TranslatableComponentRenderer;
 import net.kyori.adventure.text.serializer.ansi.ANSIComponentSerializer;
 import net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer;
 import net.kyori.adventure.text.serializer.plain.PlainTextComponentSerializer;
+import net.kyori.adventure.translation.Translator;
 import net.kyori.ansi.ColorLevel;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.HashSet;
+import java.text.MessageFormat;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Locale;
 import java.util.Set;
-import java.util.regex.Pattern;
 
 public class ComponentFactory implements MinecraftComponentFactory {
 
-    private static final String TRANSLATION_KEY_REGEX = ".+\\..+";
-    private static final Pattern TRANSLATION_KEY_PATTERN = Pattern.compile(TRANSLATION_KEY_REGEX);
     public static final Class<?> UNRELOCATED_ADVENTURE_COMPONENT;
 
     static {
@@ -83,8 +84,8 @@ public class ComponentFactory implements MinecraftComponentFactory {
     private final PlainTextComponentSerializer plainSerializer;
     private final ANSIComponentSerializer ansiSerializer;
 
-    // Not the same as Adventure's TranslationRegistry
-    private final TranslationRegistry translationRegistry = new TranslationRegistry();
+    private final Translators translators = new Translators();
+    private final TranslatableComponentRenderer<Locale> translatableComponentRenderer = TranslatableComponentRenderer.usingTranslationSource(translators);
 
     public ComponentFactory(DiscordSRV discordSRV) {
         this.discordSRV = discordSRV;
@@ -96,7 +97,11 @@ public class ComponentFactory implements MinecraftComponentFactory {
         );
 
         ComponentFlattener flattener = ComponentFlattener.basic().toBuilder()
-                .mapper(TranslatableComponent.class, this::provideTranslation)
+                .mapper(TranslatableComponent.class, translatableComponent -> {
+                    Component translated = translatableComponentRenderer.render(translatableComponent, Locale.US);
+                    // Avoid recursion, use plain text serializer without special flattener
+                    return PlainTextComponentSerializer.plainText().serialize(translated);
+                })
                 .build();
         this.discordSerializer = new DiscordSerializer(
                 DiscordSerializerOptions.defaults()
@@ -109,51 +114,6 @@ public class ComponentFactory implements MinecraftComponentFactory {
                 .colorLevel(ColorLevel.INDEXED_8)
                 .flattener(flattener)
                 .build();
-    }
-
-    private final ThreadLocal<Set<String>> translationHistory = new ThreadLocal<>();
-    @SuppressWarnings("deprecation")
-    private String provideTranslation(TranslatableComponent component) {
-        Set<String> history = translationHistory.get();
-        if (history == null) {
-            history = new HashSet<>();
-        }
-
-        String key = component.key();
-        if (history.contains(key)) {
-            // Prevent infinite loop here
-            logger.debug("Preventing recursive translation: " + key);
-            String fallback = component.fallback();
-            return fallback != null ? fallback : key;
-        }
-
-        Translation translation = translationRegistry.lookup(discordSRV.defaultLocale(), key);
-        if (translation == null) {
-            // To support datapacks and other mods that don't provide translations but for some reason use the translation component
-            // We check if the key is following the pattern of a translation key. Which is "key.subkey" or "key.subkey.subsubkey" etc.
-            if (!TRANSLATION_KEY_PATTERN.matcher(key).matches()) {
-                String fallback = component.fallback();
-                return fallback != null ? fallback : key;
-            }
-
-            return null;
-        }
-
-        try {
-            history.add(key);
-            translationHistory.set(history);
-
-            return translation.translate(
-                    component.args()
-                            .stream()
-                            .map(argument -> plainSerializer().serialize(argument.asComponent()))
-                            .toArray(Object[]::new)
-            );
-        } finally {
-            Set<String> newHistory = translationHistory.get();
-            newHistory.remove(key);
-            translationHistory.set(newHistory.isEmpty() ? null : newHistory);
-        }
     }
 
     @Override
@@ -324,8 +284,49 @@ public class ComponentFactory implements MinecraftComponentFactory {
         return ansiSerializer;
     }
 
-    public TranslationRegistry translationRegistry() {
-        return translationRegistry;
+    public List<Translator> translators() {
+        return translators.translators;
     }
 
+    private static class Translators implements Translator {
+
+        public final List<Translator> translators = new ArrayList<>();
+
+        @Override
+        public @NotNull Key name() {
+            return Key.key("discordsrv", "translators");
+        }
+
+        @Override
+        public boolean canTranslate(@NotNull String key, @NotNull Locale locale) {
+            for (Translator translator : translators) {
+                if (translator.canTranslate(key, locale)) {
+                    return true;
+                }
+            }
+            return false;
+        }
+
+        @Override
+        public @Nullable Component translate(@NotNull TranslatableComponent component, @NotNull Locale locale) {
+            for (Translator translator : translators) {
+                Component translation = translator.translate(component, locale);
+                if (translation != null) {
+                    return translation;
+                }
+            }
+            return null;
+        }
+
+        @Override
+        public @Nullable MessageFormat translate(@NotNull String key, @NotNull Locale locale) {
+            for (Translator translator : translators) {
+                MessageFormat translation = translator.translate(key, locale);
+                if (translation != null) {
+                    return translation;
+                }
+            }
+            return null;
+        }
+    }
 }

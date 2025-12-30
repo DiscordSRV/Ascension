@@ -16,18 +16,13 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package com.discordsrv.common.core.component.translation;
+package com.discordsrv.unrelocate.net.kyori.adventure.text.flattener;
 
-public class StringFormatTranslation implements Translation {
+import com.discordsrv.unrelocate.net.kyori.adventure.text.Component;
+import org.jetbrains.annotations.NotNull;
 
-    private final String format;
+public interface ComponentFlattener extends net.kyori.adventure.text.flattener.ComponentFlattener {
 
-    public StringFormatTranslation(String format) {
-        this.format = format;
-    }
+    void flatten(final @NotNull Component input, final @NotNull FlattenerListener listener);
 
-    @Override
-    public String translate(Object[] arguments) {
-        return String.format(format, arguments);
-    }
 }

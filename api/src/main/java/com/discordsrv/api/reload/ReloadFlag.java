@@ -39,7 +39,7 @@ public enum ReloadFlag {
     STORAGE(true),
     DISCORD_CONNECTION(DiscordSRV::isReady),
     DISCORD_COMMANDS(false),
-    TRANSLATIONS(false);
+    ;
 
     public static final Set<ReloadFlag> LOAD = Collections.unmodifiableSet(
             Arrays.stream(values()).filter(flag -> flag != ReloadFlag.CONFIG_UPGRADE).collect(Collectors.toSet()));

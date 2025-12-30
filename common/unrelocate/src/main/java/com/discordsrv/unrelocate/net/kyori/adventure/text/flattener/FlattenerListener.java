@@ -16,14 +16,7 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package com.discordsrv.common.core.component.translation;
+package com.discordsrv.unrelocate.net.kyori.adventure.text.flattener;
 
-@FunctionalInterface
-public interface Translation {
-
-    static Translation stringFormat(String format) {
-        return new StringFormatTranslation(format);
-    }
-
-    String translate(Object[] arguments);
+public interface FlattenerListener extends net.kyori.adventure.text.flattener.FlattenerListener {
 }

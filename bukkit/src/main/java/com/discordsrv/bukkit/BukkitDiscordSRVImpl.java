@@ -24,6 +24,7 @@ import com.discordsrv.bukkit.command.game.BukkitGameCommandExecutionHelper;
 import com.discordsrv.bukkit.command.game.PaperGameCommandExecutionHelper;
 import com.discordsrv.bukkit.command.game.handler.BukkitBasicCommandHandler;
 import com.discordsrv.bukkit.command.game.handler.CommodoreHandler;
+import com.discordsrv.bukkit.component.PaperComponentFlattener;
 import com.discordsrv.bukkit.component.PaperComponentHandle;
 import com.discordsrv.bukkit.config.main.BukkitConfig;
 import com.discordsrv.bukkit.console.BukkitConsole;
@@ -99,6 +100,10 @@ public class BukkitDiscordSRVImpl extends BukkitDiscordSRV {
         }
         if (this.commandHandler == null) {
             this.commandHandler = new BukkitBasicCommandHandler(this);
+        }
+
+        if (PaperComponentFlattener.IS_AVAILABLE) {
+            componentFactory().translators().add(new PaperComponentFlattener.Translator());
         }
 
         super.enable();
