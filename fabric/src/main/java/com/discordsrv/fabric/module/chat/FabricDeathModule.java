@@ -68,7 +68,7 @@ public class FabricDeathModule extends AbstractFabricModule {
         //? if minecraft: >=1.21.11 {
         boolean showDeathMessages = level.getGameRules().get(net.minecraft.world.level.gamerules.GameRules.SHOW_DEATH_MESSAGES);
         //?} else {
-        /*boolean showDeathMessages = level.getGameRules().get(net.minecraft.world.level.GameRules.RULE_SHOWDEATHMESSAGES).get();
+        /*boolean showDeathMessages = level.getGameRules().getRule(net.minecraft.world.level.GameRules.RULE_SHOWDEATHMESSAGES).get();
         *///?}
 
         if (showDeathMessages) {
