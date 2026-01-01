@@ -36,6 +36,7 @@ import com.discordsrv.common.command.game.abstraction.command.GameCommand;
 import com.discordsrv.common.feature.bansync.BanSyncModule;
 import com.discordsrv.common.feature.groupsync.GroupSyncModule;
 import com.discordsrv.common.feature.linking.LinkedRoleModule;
+import com.discordsrv.common.feature.mutesync.MuteSyncModule;
 import com.discordsrv.common.feature.nicknamesync.NicknameSyncModule;
 import com.discordsrv.common.feature.onlinerole.OnlineRoleModule;
 import com.discordsrv.common.helper.Someone;
@@ -88,6 +89,7 @@ public class ResyncCommand extends CombinedCommand {
                             CommandOption.builder(CommandOption.Type.STRING, TYPE_LABEL, "The type of sync to run")
                                     .addChoice("Group Sync", "group")
                                     .addChoice("Ban Sync", "ban")
+                                    .addChoice("Mute Sync", "mute")
                                     .addChoice("Nickname Sync", "nickname")
                                     .addChoice("Online Role", "onlinerole")
                                     .addChoice("Linked Role", "linkedrole")
@@ -106,7 +108,7 @@ public class ResyncCommand extends CombinedCommand {
 
     @Override
     public List<String> suggest(CommandExecution execution, @NotNull String input) {
-        return Stream.of("ban", "group", "nickname", "onlinerole")
+        return Stream.of("ban", "mute", "group", "nickname", "onlinerole", "linkedrole")
                 .filter(command -> command.toLowerCase(Locale.ROOT).startsWith(input.toLowerCase(Locale.ROOT)))
                 .collect(Collectors.toList());
     }
@@ -126,6 +128,9 @@ public class ResyncCommand extends CombinedCommand {
                 break;
             case "ban":
                 module = discordSRV.getModule(BanSyncModule.class);
+                break;
+            case "mute":
+                module = discordSRV.getModule(MuteSyncModule.class);
                 break;
             case "nickname":
                 module = discordSRV.getModule(NicknameSyncModule.class);
