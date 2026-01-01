@@ -80,6 +80,12 @@ public interface DiscordSRVPlayer {
     boolean isChatVisible();
 
     /**
+     * If this is the player's first time joining the server.
+     * @return {@code true} if this is the player's first join
+     */
+    boolean isFirstJoin();
+
+    /**
      * Sends the provided message to the player.
      * @param component the message
      */
