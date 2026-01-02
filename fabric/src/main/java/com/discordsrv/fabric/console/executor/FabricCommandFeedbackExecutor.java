@@ -51,8 +51,14 @@ public class FabricCommandFeedbackExecutor implements CommandSource, Consumer<Co
         //?} else {
         /*Vec3 spawnPos = Vec3.atLowerCornerOf(level.getSharedSpawnPos());
         *///?}
+        //? if minecraft: >=1.21.11 {
+        net.minecraft.server.permissions.PermissionSet permissionSet = net.minecraft.server.permissions.PermissionSet.ALL_PERMISSIONS;
+        //?} else {
+        /*int permissionSet = 4;
+        *///?}
+
         return new CommandSourceStack(
-                this, spawnPos, Vec2.ZERO, level, 4, "DiscordSRV", text, server, null
+                this, spawnPos, Vec2.ZERO, level, permissionSet, "DiscordSRV", text, server, null
         );
     }
     @Override

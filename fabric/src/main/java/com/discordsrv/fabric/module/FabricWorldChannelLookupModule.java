@@ -25,9 +25,8 @@ import com.discordsrv.common.core.debug.DebugGenerateEvent;
 import com.discordsrv.common.core.debug.file.TextDebugFile;
 import com.discordsrv.common.feature.channel.world.WorldChannel;
 import com.discordsrv.fabric.FabricDiscordSRV;
-import net.kyori.adventure.key.Keyed;
 import net.minecraft.resources.ResourceKey;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.level.Level;
 
 import java.util.stream.Collectors;
@@ -41,8 +40,8 @@ public class FabricWorldChannelLookupModule extends AbstractFabricModule {
     @Subscribe(priority = EventPriorities.LATE)
     public void onGameChannelLookup(GameChannelLookupEvent event) {
         for (ResourceKey<Level> levelKey : discordSRV.getServer().levelKeys()) {
-            if (event.getChannelName().equals(levelKey.location().getPath())) {
-                event.process(new WorldChannel(discordSRV, levelKey.location()));
+            if (event.getChannelName().equals(levelKey.identifier().getPath())) {
+                event.process(new WorldChannel(discordSRV, levelKey.identifier()));
                 return;
             }
         }
@@ -51,8 +50,8 @@ public class FabricWorldChannelLookupModule extends AbstractFabricModule {
     @Subscribe
     public void onDebugGenerateDebugInfo(DebugGenerateEvent event) {
         StringBuilder worldList = new StringBuilder();
-        worldList.append(discordSRV.getServer().levelKeys().stream().map(ResourceKey::location)
-                .map(ResourceLocation::toString)
+        worldList.append(discordSRV.getServer().levelKeys().stream().map(ResourceKey::identifier)
+                .map(Identifier::toString)
                 .collect(Collectors.joining("\n")));
         event.addFile("integrated-worlds.txt", new TextDebugFile(worldList));
     }

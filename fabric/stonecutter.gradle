@@ -1,3 +1,13 @@
 plugins.apply "dev.kikugie.stonecutter"
 
-stonecutter.active "1.21.11" /* [SC] DO NOT EDIT */
+stonecutter {
+    active "1.21.11" /* [SC] DO NOT EDIT */
+    parameters {
+        def adventure = node.project.property("deps.adventure_platform_fabric").replace("-SNAPSHOT", "")
+        dependencies["adventure"] = adventure
+        dependencies["java"] = node.project.property("deps.java")
+
+        swaps["dependencies_file"] = ("\"dependencies/runtimeDownload-${it.current.version}.txt\";").toString()
+    }
+
+}
