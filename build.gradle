@@ -17,7 +17,7 @@ subprojects {
     apply plugin: 'java'
     apply plugin: 'java-library'
     apply plugin: 'idea'
-    apply plugin: 'io.github.goooler.shadow'
+    apply plugin: 'com.gradleup.shadow'
     apply plugin: 'net.kyori.indra.git'
     apply plugin: 'net.kyori.indra.licenser.spotless'
     apply plugin: 'dev.vankka.dependencydownload.plugin'
