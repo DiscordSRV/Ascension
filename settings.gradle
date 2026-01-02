@@ -80,8 +80,8 @@ dependencyResolutionManagement {
             library('mcdependencydownload-bungee-loader', 'dev.vankka', 'minecraftdependencydownload-bungee-loader').versionRef('mcdependencydownload')
             library('mcdependencydownload-velocity', 'dev.vankka', 'minecraftdependencydownload-velocity').versionRef('mcdependencydownload')
             library('mcdependencydownload-fabric', 'dev.vankka', 'minecraftdependencydownload-fabric').versionRef('mcdependencydownload')
-            library('mcdependencydownload-neoforge-bootstrap', 'dev.vankka', 'minecraftdependencydownload-bungee').versionRef('mcdependencydownload')
-            library('mcdependencydownload-neoforge-loader', 'dev.vankka', 'minecraftdependencydownload-bungee-loader').versionRef('mcdependencydownload')
+            library('mcdependencydownload-neoforge-bootstrap', 'dev.vankka', 'minecraftdependencydownload-neoforge').version('1.0.1-SNAPSHOT')
+            library('mcdependencydownload-neoforge-loader', 'dev.vankka', 'minecraftdependencydownload-neoforge-loader').version('1.0.1-SNAPSHOT')
 
             // Annotations
             library('jetbrains-annotations', 'org.jetbrains', 'annotations').version('24.1.0')

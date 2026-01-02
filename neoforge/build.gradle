@@ -1,13 +1,21 @@
 plugins {
-    id("dev.kikugie.stonecutter") version "0.7.4"
+    id("dev.kikugie.stonecutter") version "0.8.2"
     alias(libs.plugins.neogradle)
 }
-apply from: rootProject.file('buildscript/standalone.gradle')
 
 configurations.configureEach {
     resolutionStrategy {
         force "org.slf4j:slf4j-api:1.7.36" // Introduced by Minecraft itself
     }
+}
+
+shadowJar {
+    archiveFileName = 'neoforge.jarinjar'
+}
+apply from: rootProject.file('buildscript/runtime.gradle')
+
+repositories {
+    mavenLocal()
 }
 
 java {
@@ -17,16 +25,6 @@ java {
 
     targetCompatibility = JavaVersion.VERSION_21
     sourceCompatibility = JavaVersion.VERSION_21
-}
-
-base {
-    archivesName = "DiscordSRV-NeoForge-${stonecutter.current.project}"
-
-    if (stonecutter.current.version == "1.21.6") {
-        archivesName = "DiscordSRV-NeoForge-${stonecutter.current.project}-1.21.8"
-    } else if (stonecutter.current.version == "1.21.9") {
-        archivesName = "DiscordSRV-NeoForge-${stonecutter.current.project}-1.21.10"
-    }
 }
 
 if(project.path.startsWith(":neoforge:")) {
@@ -48,37 +46,6 @@ sourceSets {
     }
 }
 
-tasks.withType(ProcessResources).configureEach {
-    var replaceProperties = [
-            minecraft_version      : stonecutter.current.project,
-            minecraft_version_range: project.property("minecraft.version_range"),
-            neo_version            : project.property("deps.neoforge_version"),
-            mod_id                 : "discordsrv",
-            mod_name               : "DiscordSRV",
-            mod_license            : "GPLv3",
-            mod_version            : version,
-    ]
-    inputs.properties replaceProperties
-
-    filesMatching(['META-INF/neoforge.mods.toml']) {
-        expand replaceProperties
-    }
-
-    dependsOn generateRuntimeDownloadResourceForRuntimeDownloadOnly
-}
-
-shadowJar {
-    configurations = [project.configurations.shadow]
-    mergeServiceFiles()
-}
-
-stonecutter {
-    def adventure = project.property("deps.adventure_platform_neoforge").replace("-SNAPSHOT", "")
-    dependency("adventure", adventure)
-
-    swap("dependencies_file", "\"dependencies/runtimeDownload-${stonecutter.current.version}.txt\";")
-}
-
 spotless {
     java {
         if (stonecutter.current.isActive)
@@ -94,7 +61,7 @@ subsystems {
 }
 
 dependencies {
-//    implementation("net.neoforged:neoforge:${project.property("deps.neoforge_version")}")
+    implementation("net.neoforged:neoforge:${project.property("deps.neoforge_version")}")
 
     // API
     annotationProcessor project(':api')

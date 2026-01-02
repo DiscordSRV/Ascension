@@ -1,3 +1,12 @@
 plugins.apply "dev.kikugie.stonecutter"
 
-stonecutter.active "1.21.9" /* [SC] DO NOT EDIT */
+stonecutter {
+    active "1.21.11" /* [SC] DO NOT EDIT */
+    parameters {
+        def adventure = node.project.property("deps.adventure_platform_neoforge").replace("-SNAPSHOT", "")
+        dependencies["adventure"] = adventure
+
+        swaps["dependencies_file"] = ("\"dependencies/runtimeDownload-${it.current.version}.txt\";").toString()
+    }
+
+}
