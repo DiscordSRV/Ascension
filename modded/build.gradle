@@ -96,11 +96,7 @@ artifacts {
 }
 
 loom {
-    serverOnlyMinecraftJar()
-    runConfigs.all {
-        ideConfigGenerated(true) // Run configurations are not created for subprojects by default
-        runDir = "../../run" // Use a shared run folder and create separate worlds
-    }
+//    serverOnlyMinecraftJar() // Broken in neoforge 21.10.57-beta and above - see https://github.com/architectury/architectury-loom/issues/312
     silentMojangMappingsLicense()
 }
 
@@ -132,6 +128,7 @@ architectury {
 
 dependencies {
     minecraft("com.mojang:minecraft:${sc.current.version.split("-")[0]}")
+    mappings(loom.officialMojangMappings())
 
     // API
     annotationProcessor project(':api')
@@ -150,7 +147,6 @@ dependencies {
     include(libs.kyori.ansi)
 
     if (loader == "fabric") {
-        mappings(loom.officialMojangMappings())
         compileOnly("net.fabricmc:fabric-loader:${project.property("deps.fabric_loader")}")
 
         // Fabric API
@@ -184,11 +180,6 @@ dependencies {
         }
     } else if (loader == "neoforge") {
         neoForge("net.neoforged:neoforge:${project.property("deps.neoforge_version")}")
-        mappings loom.layered() {
-            officialMojangMappings()
-            parchment("org.parchmentmc.data:parchment-${project.property("deps.parchment_minecraft_version")}:${project.property("deps.parchment_mappings_version")}")
-        }
-
         implementation("net.neoforged.fancymodloader:loader:${project.property("deps.neoforge_fml_version")}")
 
         // DependencyDownload

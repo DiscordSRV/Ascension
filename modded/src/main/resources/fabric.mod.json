@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
   "id": "discordsrv",
-  "version": "${VERSION}",
+  "version": "${mod_version}",
   "name": "DiscordSRV",
   "description": "",
   "authors": [],

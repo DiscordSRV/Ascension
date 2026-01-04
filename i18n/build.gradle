@@ -14,7 +14,7 @@ dependencies {
     implementation(project(':bungee')) { transitive = false }
     implementation(project(':velocity')) { transitive = false }
     implementation(project(':modded:1.21.11-fabric')) { transitive = false }
-    implementation(project(':modded:1.21.11-fabric')) { transitive = false }
+    implementation(project(':modded:1.21.11-neoforge')) { transitive = false }
 
     api(libs.configurate.yaml)
     api(libs.configurate.jackson)
