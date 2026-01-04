@@ -37,12 +37,12 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
 import net.minecraft.network.chat.Component;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.server.level.ServerPlayer;
 
 public class TextPlaceholderIntegration extends PluginIntegration<FabricDiscordSRV> implements PlaceholderHandler {
 
-    private static final ResourceLocation IDENTIFIER = FabricDiscordSRV.id("discordsrv", "textplaceholder");
+    private static final Identifier IDENTIFIER = FabricDiscordSRV.id("discordsrv", "textplaceholder");
     private static final String OPTIONAL_PREFIX = "textplaceholder_";
 
     public TextPlaceholderIntegration(FabricDiscordSRV discordSRV) {
