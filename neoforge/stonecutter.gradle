@@ -6,6 +6,9 @@ stonecutter {
         def adventure = node.project.property("deps.adventure_platform_neoforge").replace("-SNAPSHOT", "")
         dependencies["adventure"] = adventure
 
+        def fml = node.project.property("deps.neoforge_fml_version").replace("-SNAPSHOT", "")
+        dependencies["fml"] = fml
+
         swaps["dependencies_file"] = ("\"dependencies/runtimeDownload-${it.current.version}.txt\";").toString()
     }
 

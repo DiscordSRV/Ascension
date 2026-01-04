@@ -14,7 +14,7 @@ shadowJar {
         rename { fileName -> 'LICENSE.txt' }
     }
 
-    if (it.project.parent.name != "fabric") {
+    if (it.project.parent.name != "modded") {
         finalizedBy copyOutput
     }
 }
