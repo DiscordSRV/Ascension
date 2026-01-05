@@ -10,7 +10,7 @@
   "environment": "server",
   "entrypoints": {
     "server": [
-      "com.discordsrv.fabric.DiscordSRVFabricBootstrap"
+      "com.discordsrv.modded.DiscordSRVModdedBootstrap"
     ]
   },
   "mixins": [

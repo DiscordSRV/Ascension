@@ -1,0 +1,195 @@
+/*
+ * This file is part of DiscordSRV, licensed under the GPLv3 License
+ * Copyright (c) 2016-2026 Austin "Scarsz" Shapiro, Henri "Vankka" Schubin and DiscordSRV contributors
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <https://www.gnu.org/licenses/>.
+ */
+
+package com.discordsrv.modded.integration.fabric;
+
+//? if fabric {
+import com.discordsrv.api.eventbus.Subscribe;
+import com.discordsrv.api.events.placeholder.PlaceholderLookupEvent;
+import com.discordsrv.api.placeholder.PlaceholderLookupResult;
+import com.discordsrv.api.placeholder.format.PlainPlaceholderFormat;
+import com.discordsrv.api.player.DiscordSRVPlayer;
+import com.discordsrv.api.profile.Profile;
+import com.discordsrv.common.abstraction.player.IOfflinePlayer;
+import com.discordsrv.common.core.module.type.PluginIntegration;
+import com.discordsrv.modded.ModdedDiscordSRV;
+import com.mojang.authlib.GameProfile;
+import eu.pb4.placeholders.api.PlaceholderContext;
+import eu.pb4.placeholders.api.PlaceholderHandler;
+import eu.pb4.placeholders.api.PlaceholderResult;
+import eu.pb4.placeholders.api.Placeholders;
+import net.minecraft.network.chat.Component;
+import net.minecraft.resources.Identifier;
+import net.minecraft.server.level.ServerPlayer;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+import java.util.UUID;
+
+public class TextPlaceholderIntegration extends PluginIntegration<ModdedDiscordSRV> implements PlaceholderHandler {
+
+    private static final Identifier IDENTIFIER = ModdedDiscordSRV.id("discordsrv", "textplaceholder");
+    private static final String OPTIONAL_PREFIX = "textplaceholder_";
+
+    public TextPlaceholderIntegration(ModdedDiscordSRV discordSRV) {
+        super(discordSRV);
+    }
+
+    @Override
+    public @NotNull String getIntegrationId() {
+        return "placeholder-api";
+    }
+
+    @Override
+    public boolean isEnabled() {
+        try {
+            Class.forName("eu.pb4.placeholders.api.Placeholders");
+        } catch (ClassNotFoundException ignored) {
+            return false;
+        }
+
+        return super.isEnabled();
+    }
+
+    @Override
+    public void enable() {
+        Placeholders.register(IDENTIFIER, this);
+    }
+
+    @Override
+    public void disable() {
+        Placeholders.remove(IDENTIFIER);
+    }
+
+    @Subscribe
+    public void onPlaceholderLookup(PlaceholderLookupEvent event) {
+        String placeholder = event.getPlaceholder();
+        if (placeholder.startsWith(OPTIONAL_PREFIX)) {
+            placeholder = placeholder.substring(OPTIONAL_PREFIX.length());
+        }
+        placeholder = "%" + placeholder + "%";
+
+        DiscordSRVPlayer srvPlayer = event.getContext(DiscordSRVPlayer.class);
+        ServerPlayer player = srvPlayer != null ? discordSRV.getServer().getPlayerList().getPlayer(srvPlayer.uniqueId()) : null;
+        if (player != null) {
+            Component parsed = Placeholders.parseText(Component.nullToEmpty(placeholder), PlaceholderContext.of(player));
+            setResult(event, placeholder, parsed.getString());
+            return;
+        }
+
+        Profile profile = event.getContext(Profile.class);
+        UUID uuid = profile != null ? profile.playerUUID() : null;
+        if (uuid == null) {
+            IOfflinePlayer offlinePlayer = event.getContext(IOfflinePlayer.class);
+            if (offlinePlayer != null) {
+                uuid = offlinePlayer.uniqueId();
+            }
+        }
+
+        Component parsedUser = parseUserPlaceholder(placeholder, uuid);
+        if (parsedUser != null) {
+            setResult(event, placeholder, parsedUser.getString());
+            return;
+        }
+
+        Component parsed = Placeholders.parseText(Component.nullToEmpty(placeholder), PlaceholderContext.of(discordSRV.getServer()));
+        setResult(event, placeholder, parsed.getString());
+    }
+
+    private void setResult(PlaceholderLookupEvent event, String placeholder, String result) {
+        if (result.equals(placeholder)) {
+            // Didn't resolve
+            return;
+        }
+
+        event.process(PlaceholderLookupResult.success(result));
+    }
+
+    @Override
+    public PlaceholderResult onPlaceholderRequest(PlaceholderContext placeholderContext, @Nullable String s) {
+        List<Object> context;
+        if (placeholderContext.hasPlayer()) {
+            context = new ArrayList<>(2);
+
+            ServerPlayer player = placeholderContext.player();
+            assert player != null;
+
+            Profile profile = discordSRV.profileManager().getCachedProfile(player.getUUID());
+            if (profile != null) {
+                context.add(profile);
+            }
+
+            context.add(discordSRV.playerProvider().player(player));
+        } else if (placeholderContext.hasGameProfile()) {
+            context = new ArrayList<>(2);
+
+            GameProfile gameProfile = placeholderContext.gameProfile();
+            assert gameProfile != null;
+
+            Profile profile = discordSRV.profileManager().getCachedProfile(discordSRV.getIdFromGameProfile(gameProfile));
+            if (profile != null) {
+                context.add(profile);
+            }
+
+            // Check if the player is online
+            ServerPlayer player = discordSRV.getServer().getPlayerList().getPlayer(discordSRV.getIdFromGameProfile(gameProfile));
+            if (player != null) {
+                context.add(discordSRV.playerProvider().player(player));
+            } else {
+                discordSRV.playerProvider().lookupOfflinePlayer(discordSRV.getIdFromGameProfile(gameProfile)).thenApply(context::add);
+            }
+        } else {
+            context = Collections.emptyList();
+        }
+
+        String placeholder = "%" + s + "%";
+        String result = PlainPlaceholderFormat.supplyWith(
+                PlainPlaceholderFormat.Formatting.LEGACY,
+                () -> discordSRV.placeholderService().replacePlaceholders(placeholder, context)
+        );
+        return placeholder.equals(result) ? PlaceholderResult.invalid() : PlaceholderResult.value(result);
+    }
+
+    private Component parseUserPlaceholder(String placeholder, UUID uuid) {
+        GameProfile gameProfile = null;
+
+        //? if minecraft: <=1.20.1 {
+        /*gameProfile = discordSRV.getServer().getSessionService().fillProfileProperties(new GameProfile(uuid, null), true);
+        *///?} else {
+        //? if minecraft: >=1.21.9 {
+        com.mojang.authlib.yggdrasil.ProfileResult profileResult = discordSRV.getServer().services().sessionService().fetchProfile(uuid, true);
+        //?} else {
+        /*com.mojang.authlib.yggdrasil.ProfileResult profileResult = discordSRV.getServer().getSessionService().fetchProfile(uuid, true);
+        *///?}
+        if (profileResult != null) {
+            gameProfile = profileResult.profile();
+        }
+        //?}
+
+        if (gameProfile != null) {
+            Component parsed = Placeholders.parseText(Component.nullToEmpty(placeholder), PlaceholderContext.of(gameProfile, discordSRV.getServer()));
+            return parsed;
+        }
+
+        return null;
+    }
+}
+//? }

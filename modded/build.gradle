@@ -13,13 +13,14 @@ configurations.configureEach {
 }
 
 var loader = project.property("loom.platform")
+var minecraftVersion = sc.current.version.split("-")[0]
 
 architectury {
     common("fabric", "neoforge")
 }
 
 java {
-    var java = sc.current.parsed.matches(">=1.20.5") ? JavaVersion.VERSION_21 : JavaVersion.VERSION_17
+    var java = sc.eval(minecraftVersion, ">=1.20.5") ? JavaVersion.VERSION_21 : JavaVersion.VERSION_17
 
     targetCompatibility = java
     sourceCompatibility = java
@@ -43,7 +44,7 @@ processResources {
             mod_license:  "GPLv3",
             mod_version:  version,
 
-            minecraft_version: sc.current.version,
+            minecraft_version: minecraftVersion,
             minecraft_version_range: project.property("minecraft.version_range"),
 
             fabric_loader_version: project.property("deps.fabric_loader"),
@@ -67,10 +68,19 @@ shadowJar {
 }
 
 stonecutter {
-    replacements.string(sc.current.parsed.matches(">=1.21.11")) {
-        replace("ResourceLocation", "Identifier")
-        replace(".location()", ".identifier()")
-        replace("ResourceKey::location", "ResourceKey::identifier")
+    var is1_21_11 = sc.eval(minecraftVersion, ">=1.21.11")
+    if (loader == "fabric") {
+        replacements.string(is1_21_11) {
+            replace("ResourceLocation", "Identifier")
+            replace(".location()", ".identifier()")
+            replace("ResourceKey::location", "ResourceKey::identifier")
+        }
+    } else if (loader == "neoforge") {
+        replacements.string(is1_21_11) {
+            replace("Identifier", "ResourceLocation")
+            replace(".identifier()", ".location()")
+            replace("ResourceKey::identifier", "ResourceKey::location")
+        }
     }
 }
 
@@ -130,8 +140,11 @@ repositories {
 }
 
 dependencies {
-    minecraft("com.mojang:minecraft:${sc.current.version.split("-")[0]}")
+    minecraft("com.mojang:minecraft:${minecraftVersion}")
     mappings(loom.officialMojangMappings())
+
+    // Mixin Extras
+    compileOnly(annotationProcessor("io.github.llamalad7:mixinextras-common:0.5.2"))
 
     // API
     annotationProcessor project(':api')
@@ -140,37 +153,42 @@ dependencies {
     // Common
     shadow project(':common')
 
-    var adventure = sc.current.parsed >= "1.21" ? "adventure-platform-mod-shared" : "adventure-platform-fabric"
-    modImplementation("net.kyori:${adventure}:${project.property("deps.adventure_platform")}") {
+    var adventure = sc.eval(minecraftVersion, ">=1.21") ? "adventure-platform-mod-shared" : "adventure-platform-fabric"
+    include(modImplementation("net.kyori:${adventure}:${project.property("deps.adventure_platform")}") {
         exclude group: 'net.kyori', module: 'ansi'
-    }
-    include("net.kyori:${adventure}:${project.property("deps.adventure_platform")}")
+    })
 
     implementation(libs.kyori.ansi)
     include(libs.kyori.ansi)
 
     if (loader == "fabric") {
+        compileOnly("net.fabricmc:fabric-loader:${project.property("deps.fabric_loader")}")
+        include(implementation("io.github.llamalad7:mixinextras-fabric:0.5.2"))
+
         // Fabric API
         Set<String> apiModules = [
                 'fabric-api-base',
                 'fabric-lifecycle-events-v1',
                 'fabric-entity-events-v1',
                 'fabric-networking-api-v1',
+                'fabric-message-api-v1'
         ]
-        if (sc.current.parsed >= "1.19.2") apiModules.add('fabric-message-api-v1')
-        if (sc.current.parsed < "1.21.9") apiModules.add('fabric-resource-loader-v0')
-        else apiModules.add('fabric-resource-loader-v1')
+        if (sc.eval(minecraftVersion, "<1.21.9")) {
+            apiModules.add('fabric-resource-loader-v0')
+        } else {
+            apiModules.add('fabric-resource-loader-v1')
+        }
 
         apiModules.forEach {
             modImplementation(fabricApi.module(it, project.property("deps.fabric_api")))
         }
 
         // Minecraft versions under 1.21.6 should use 0.3.3, while 1.21.6 and above should use 0.4.1
-        modImplementation("me.lucko:fabric-permissions-api:${sc.current.parsed >= "1.21.6" ? '0.4.1' : '0.3.3'}") {
+        modImplementation("me.lucko:fabric-permissions-api:${sc.eval(minecraftVersion, ">= 1.21.6") ? '0.4.1' : '0.3.3'}") {
             exclude group: 'net.fabricmc.fabric-api', module: 'fabric-api-base'
             exclude group: 'net.fabricmc.fabric-api', module: 'fabric-api-bom'
         }
-        include ("me.lucko:fabric-permissions-api:${sc.current.parsed >= "1.21.6" ? '0.4.1' : '0.3.3'}")
+        include ("me.lucko:fabric-permissions-api:${sc.eval(minecraftVersion, ">= 1.21.6") ? '0.4.1' : '0.3.3'}")
 
         // Integrations
         modCompileOnly("eu.pb4:placeholder-api:${project.property("deps.text_placeholder_api")}")
@@ -181,6 +199,9 @@ dependencies {
         }
     } else if (loader == "neoforge") {
         neoForge("net.neoforged:neoforge:${project.property("deps.neoforge_version")}")
+        compileOnly(annotationProcessor("io.github.llamalad7:mixinextras-common:0.5.2"))
+        implementation(include("io.github.llamalad7:mixinextras-neoforge:0.5.2"))
+
         implementation("net.neoforged.fancymodloader:loader:${project.property("deps.neoforge_fml_version")}")
 
         // DependencyDownload

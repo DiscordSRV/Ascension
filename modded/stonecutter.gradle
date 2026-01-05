@@ -4,6 +4,12 @@ stonecutter {
     active "1.21.11-fabric" /* [SC] DO NOT EDIT */
 
     parameters {
+        def loader = node.project.name.split("-")[1]
+        constants.match(loader, "fabric", "neoforge")
+
+        def minecraft = node.project.property("minecraft.version_range_label").split("-")[0]
+        dependencies["minecraft"] = minecraft
+
         def adventure = node.project.property("deps.adventure_platform").replace("-SNAPSHOT", "")
         dependencies["adventure"] = adventure
 
