@@ -8,10 +8,15 @@ apply from: rootProject.file('buildscript/standalone.gradle')
 configurations.configureEach {
     resolutionStrategy {
         force "org.slf4j:slf4j-api:1.7.36" // Introduced by Minecraft itself
+        force("net.fabricmc:fabric-loader:0.14.0")
     }
 }
 
 var loader = project.property("loom.platform")
+
+architectury {
+    common("fabric", "neoforge")
+}
 
 java {
     var java = sc.current.parsed.matches(">=1.20.5") ? JavaVersion.VERSION_21 : JavaVersion.VERSION_17
@@ -56,6 +61,9 @@ processResources {
 shadowJar {
     configurations = [project.configurations.shadow]
     mergeServiceFiles()
+
+    archiveBaseName = "DiscordSRV-${loader}-${project.property("minecraft.version_range_label")}"
+    archiveClassifier = jar.archiveClassifier
 }
 
 stonecutter {
@@ -67,18 +75,17 @@ stonecutter {
 }
 
 tasks.register('copyRemappedJar', Copy) {
-    from this.shadowJar
+    from this.remapJar
     into rootProject.file("jars/${loader}")
 }
 
 remapJar {
     dependsOn processResources
+    dependsOn shadowJar
+    mustRunAfter shadowJar
 
-//    configurations = [project.configurations.shadow]
-//    mergeServiceFiles()
-
-    archiveBaseName = "DiscordSRV-${loader}-${project.property("minecraft.version_range_label")}"
-    archiveClassifier = jar.archiveClassifier
+    archiveBaseName = "DiscordSRV-${loader.capitalize()}-${project.property("minecraft.version_range_label")}"
+    archiveClassifier = project.parent.jar.archiveClassifier
 
     finalizedBy copyRemappedJar
 }
@@ -122,10 +129,6 @@ repositories {
     }
 }
 
-architectury {
-    common("fabric", "neoforge")
-}
-
 dependencies {
     minecraft("com.mojang:minecraft:${sc.current.version.split("-")[0]}")
     mappings(loom.officialMojangMappings())
@@ -147,8 +150,6 @@ dependencies {
     include(libs.kyori.ansi)
 
     if (loader == "fabric") {
-        compileOnly("net.fabricmc:fabric-loader:${project.property("deps.fabric_loader")}")
-
         // Fabric API
         Set<String> apiModules = [
                 'fabric-api-base',
