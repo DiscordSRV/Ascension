@@ -41,8 +41,14 @@ public class ModdedCommandSender implements ICommandSender {
 
         //? if fabric
         return me.lucko.fabric.api.permissions.v0.Permissions.check(commandSource, permission.permission(), defaultLevel);
-        //? if neoforge
-        //return commandSource.permissions().hasPermission(new net.minecraft.server.permissions.Permission.HasCommandLevel(net.minecraft.server.permissions.PermissionLevel.byId(defaultLevel)));
+
+        //? if neoforge {
+        /*//? if minecraft: >=1.21.11 {
+        return commandSource.permissions().hasPermission(new net.minecraft.server.permissions.Permission.HasCommandLevel(net.minecraft.server.permissions.PermissionLevel.byId(defaultLevel)));
+         //?} else {
+        /^return commandSource.hasPermission(4);
+        ^///?}
+        *///?}
     }
 
     @Override

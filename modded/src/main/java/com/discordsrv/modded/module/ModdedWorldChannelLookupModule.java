@@ -25,6 +25,7 @@ import com.discordsrv.common.core.debug.DebugGenerateEvent;
 import com.discordsrv.common.core.debug.file.TextDebugFile;
 import com.discordsrv.common.feature.channel.world.WorldChannel;
 import com.discordsrv.modded.ModdedDiscordSRV;
+import net.kyori.adventure.platform.modcommon.MinecraftAudiences;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.resources.Identifier;
 import net.minecraft.world.level.Level;
@@ -41,7 +42,11 @@ public class ModdedWorldChannelLookupModule extends AbstractModdedModule {
     public void onGameChannelLookup(GameChannelLookupEvent event) {
         for (ResourceKey<Level> levelKey : discordSRV.getServer().levelKeys()) {
             if (event.getChannelName().equals(levelKey.identifier().getPath())) {
-                event.process(new WorldChannel(discordSRV, levelKey.identifier()));
+                //? if adventure: >= 6 {
+                event.process(new WorldChannel(discordSRV, MinecraftAudiences.key(levelKey)));
+                //?} else {
+                // event.process(new WorldChannel(discordSRV, FabricAudiences.toAdventure(levelKey)));
+                //? }
                 return;
             }
         }

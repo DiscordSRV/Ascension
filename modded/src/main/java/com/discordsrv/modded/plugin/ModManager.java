@@ -57,8 +57,8 @@ public class ModManager implements PluginManager {
         //? if fml: > 5 {
         return net.neoforged.fml.loading.FMLLoader.getCurrent().getLoadingModList().getMods().stream().anyMatch(modInfo -> modInfo.getModId().equalsIgnoreCase(modIdentifier));
         //?} else {
-        //return net.neoforged.fml.ModList.get().getMods().stream().anyMatch(modInfo -> modInfo.getModId().equalsIgnoreCase(modIdentifier));
-        //?}
+        /^return net.neoforged.fml.ModList.get().getMods().stream().anyMatch(modInfo -> modInfo.getModId().equalsIgnoreCase(modIdentifier));
+        ^///?}
     }
 
     @Override
@@ -76,8 +76,8 @@ public class ModManager implements PluginManager {
                 })
                 .collect(Collectors.toList());
         //?} else {
-        /^
-        return net.neoforged.fml.ModList.get().getMods().stream()
+        
+        /^return net.neoforged.fml.ModList.get().getMods().stream()
                 .map(modInfo -> {
                     String id = modInfo.getModId();
                     return new Plugin(

@@ -34,7 +34,7 @@ public class PlayerManagerMixin {
     //? if minecraft: >= 1.21.9 {
     public void checkCanJoin(SocketAddress address, net.minecraft.server.players.NameAndId entry, CallbackInfoReturnable<Component> cir) {
     //?} else {
-    /*public void checkCanJoin(SocketAddress address, GameProfile entry, CallbackInfoReturnable<Component> cir) {
+    /*public void checkCanJoin(SocketAddress address, com.mojang.authlib.GameProfile entry, CallbackInfoReturnable<Component> cir) {
     *///?}
         Component kickReason = ModdedRequiredLinkingModule.canJoin(entry);
 

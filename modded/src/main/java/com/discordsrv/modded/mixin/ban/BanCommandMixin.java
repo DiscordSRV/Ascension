@@ -34,7 +34,7 @@ public class BanCommandMixin {
     private static void ban(CallbackInfoReturnable<Integer> cir, @Local net.minecraft.server.players.NameAndId entry) {
         //?} else {
     /*@Inject(method = "banPlayers", at = @At(value = "INVOKE", target = "Lnet/minecraft/server/players/UserBanList;add(Lnet/minecraft/server/players/StoredUserEntry;)V", shift = At.Shift.AFTER))
-    private static void ban(CallbackInfoReturnable<Integer> cir, @Local GameProfile entry) {
+    private static void ban(CallbackInfoReturnable<Integer> cir, @Local com.mojang.authlib.GameProfile entry) {
     *///?}
         ModdedBanModule.onBan(entry);
     }

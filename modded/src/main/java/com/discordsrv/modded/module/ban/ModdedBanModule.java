@@ -37,9 +37,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.time.Instant;
-import java.util.Date;
-import java.util.Optional;
-import java.util.UUID;
+import java.util.*;
 
 public class ModdedBanModule extends AbstractModdedModule implements PunishmentModule.Bans {
 
@@ -60,9 +58,9 @@ public class ModdedBanModule extends AbstractModdedModule implements PunishmentM
 
         UUID playerUUID = playerConfigEntry.id();
     //?} else {
-    /*public static void onBan(GameProfile gameProfile) {
+    /*public static void onBan(com.mojang.authlib.GameProfile gameProfile) {
         if (instance == null) return;
-        FabricDiscordSRV discordSRV = instance.discordSRV;
+        ModdedDiscordSRV discordSRV = instance.discordSRV;
         BanSyncModule module = discordSRV.getModule(BanSyncModule.class);
         if (module == null) return;
 
@@ -88,9 +86,9 @@ public class ModdedBanModule extends AbstractModdedModule implements PunishmentM
         if (module != null) instance.removeBan(entry.id());
     }
     //?} else {
-    /*public static void onPardon(GameProfile gameProfile) {
+    /*public static void onPardon(com.mojang.authlib.GameProfile gameProfile) {
         if (instance == null) return;
-        FabricDiscordSRV discordSRV = instance.discordSRV;
+        ModdedDiscordSRV discordSRV = instance.discordSRV;
         BanSyncModule module = discordSRV.getModule(BanSyncModule.class);
         if (module != null) instance.removeBan(discordSRV.getIdFromGameProfile(gameProfile));
     }
@@ -112,7 +110,7 @@ public class ModdedBanModule extends AbstractModdedModule implements PunishmentM
         }
         UserBanListEntry banEntry = banList.get(playerConfigEntry.get());
         //?} else {
-        /*Optional<GameProfile> gameProfile = Objects.requireNonNull(discordSRV.getServer().getProfileCache()).get(playerUUID);
+        /*Optional<com.mojang.authlib.GameProfile> gameProfile = Objects.requireNonNull(discordSRV.getServer().getProfileCache()).get(playerUUID);
         if (gameProfile.isEmpty()) {
             return Task.completed(null);
         }
@@ -149,7 +147,7 @@ public class ModdedBanModule extends AbstractModdedModule implements PunishmentM
             //?} else {
             /*net.minecraft.server.players.GameProfileCache userCache = server.getProfileCache();
 
-            GameProfile entry = null;
+            com.mojang.authlib.GameProfile entry = null;
             if (userCache != null) {
                 entry = userCache.get(playerUUID).orElse(null);
             }
@@ -185,7 +183,7 @@ public class ModdedBanModule extends AbstractModdedModule implements PunishmentM
             banList.remove(name);
         });
         //?} else {
-        /*Optional<GameProfile> gameProfile = Objects.requireNonNull(discordSRV.getServer().getProfileCache()).get(playerUUID);
+        /*Optional<com.mojang.authlib.GameProfile> gameProfile = Objects.requireNonNull(discordSRV.getServer().getProfileCache()).get(playerUUID);
         if (gameProfile.isEmpty()) {
             return Task.completed(null);
         }

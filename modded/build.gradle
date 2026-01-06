@@ -65,6 +65,8 @@ shadowJar {
 
     archiveBaseName = "DiscordSRV-${loader}-${project.property("minecraft.version_range_label")}"
     archiveClassifier = jar.archiveClassifier
+
+    relocate('com.discordsrv.unrelocate.', '')
 }
 
 stonecutter {
@@ -76,7 +78,7 @@ stonecutter {
             replace("ResourceKey::location", "ResourceKey::identifier")
         }
     } else if (loader == "neoforge") {
-        replacements.string(is1_21_11) {
+        replacements.string(!is1_21_11) {
             replace("Identifier", "ResourceLocation")
             replace(".identifier()", ".location()")
             replace("ResourceKey::identifier", "ResourceKey::location")
@@ -85,7 +87,7 @@ stonecutter {
 }
 
 tasks.register('copyRemappedJar', Copy) {
-    from this.remapJar
+    from this.transformProductionNeoForge
     into rootProject.file("jars/${loader}")
 }
 
@@ -93,6 +95,17 @@ remapJar {
     dependsOn processResources
     dependsOn shadowJar
     mustRunAfter shadowJar
+    inputFile = shadowJar.archiveFile
+}
+
+transformProductionFabric {
+    dependsOn remapJar
+    input = remapJar.archiveFile
+}
+
+transformProductionNeoForge {
+    dependsOn transformProductionFabric
+    input = transformProductionFabric.archiveFile
 
     archiveBaseName = "DiscordSRV-${loader.capitalize()}-${project.property("minecraft.version_range_label")}"
     archiveClassifier = project.parent.jar.archiveClassifier
@@ -153,7 +166,7 @@ dependencies {
     // Common
     shadow project(':common')
 
-    var adventure = sc.eval(minecraftVersion, ">=1.21") ? "adventure-platform-mod-shared" : "adventure-platform-fabric"
+    var adventure = "adventure-platform-${loader}"
     include(modImplementation("net.kyori:${adventure}:${project.property("deps.adventure_platform")}") {
         exclude group: 'net.kyori', module: 'ansi'
     })
@@ -171,14 +184,9 @@ dependencies {
                 'fabric-lifecycle-events-v1',
                 'fabric-entity-events-v1',
                 'fabric-networking-api-v1',
-                'fabric-message-api-v1'
+                'fabric-message-api-v1',
+                sc.eval(minecraftVersion, "<1.21.9") ? 'fabric-resource-loader-v0' : 'fabric-resource-loader-v1'
         ]
-        if (sc.eval(minecraftVersion, "<1.21.9")) {
-            apiModules.add('fabric-resource-loader-v0')
-        } else {
-            apiModules.add('fabric-resource-loader-v1')
-        }
-
         apiModules.forEach {
             modImplementation(fabricApi.module(it, project.property("deps.fabric_api")))
         }

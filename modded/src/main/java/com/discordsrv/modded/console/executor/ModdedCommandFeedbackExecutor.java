@@ -50,14 +50,14 @@ public class ModdedCommandFeedbackExecutor implements CommandSource, Consumer<Co
         //? if minecraft: >=1.21.9 {
         Vec3 spawnPos = level == null ? Vec3.ZERO : level.getRespawnData().pos().getCenter();
         //?} else {
-        //Vec3 spawnPos = Vec3.atLowerCornerOf(level.getSharedSpawnPos());
-        //?}
+        /*Vec3 spawnPos = Vec3.atLowerCornerOf(level.getSharedSpawnPos());
+        *///?}
 
         //? if minecraft: >=1.21.11 {
         net.minecraft.server.permissions.PermissionSet permissionSet = net.minecraft.server.permissions.PermissionSet.ALL_PERMISSIONS;
         //?} else {
-        //int permissionSet = 4;
-        //?}
+        /*int permissionSet = 4;
+        *///?}
 
         return new CommandSourceStack(
                 this, spawnPos, Vec2.ZERO, level, permissionSet, "DiscordSRV", text, server, null

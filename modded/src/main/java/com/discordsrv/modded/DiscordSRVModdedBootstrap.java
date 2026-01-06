@@ -76,7 +76,7 @@ public class DiscordSRVModdedBootstrap implements IBootstrap {
 
         //? if neoforge {
         /*this.classpathAppender = new dev.vankka.dependencydownload.classloader.IsolatedClassLoader();
-        this.dataDirectory = Path.of(FMLConfig.defaultConfigPath(), "discordsrv");
+        this.dataDirectory = Path.of(FMLConfig.defaultConfigPath(), "../config/discordsrv");
         *///?}
         try {
             this.lifecycleManager = new LifecycleManager(
@@ -104,7 +104,7 @@ public class DiscordSRVModdedBootstrap implements IBootstrap {
 
         ServerLifecycleEvents.SERVER_STARTED.register(minecraftServer -> {
             if (this.discordSRV == null) {
-                this.logger.error("Server started but FabricDiscordSRV hasn't initialized properly.\n" +
+                this.logger.error("Server started but ModdedDiscordSRV hasn't initialized properly.\n" +
                         "This is likely due to an error during the loading process. Please check the full logs for more details.");
                 return;
             }
@@ -127,7 +127,7 @@ public class DiscordSRVModdedBootstrap implements IBootstrap {
     @SubscribeEvent()
     public void onServerStarted(ServerStartedEvent event) {
         if (this.discordSRV == null) {
-            this.logger.error("Server started but FabricDiscordSRV hasn't initialized properly.\n" +
+            this.logger.error("Server started but ModdedDiscordSRV hasn't initialized properly.\n" +
                     "This is likely due to an error during the loading process. Please check the full logs for more details.");
             return;
         }
@@ -182,8 +182,8 @@ public class DiscordSRVModdedBootstrap implements IBootstrap {
         /*//? if fml: > 5 {
         VersionInfo versionInfo = FMLLoader.getCurrent().getVersionInfo();
         //?} else {
-        //VersionInfo versionInfo = FMLLoader.versionInfo();
-        //? }
+        /^VersionInfo versionInfo = FMLLoader.versionInfo();
+        ^///? }
 
         return "Minecraft " + versionInfo.mcVersion() + " with NeoForge " + versionInfo.neoForgeVersion();
         *///? }

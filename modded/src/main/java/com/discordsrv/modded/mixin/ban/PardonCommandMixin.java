@@ -22,7 +22,6 @@ import com.discordsrv.modded.module.ban.ModdedBanModule;
 import com.llamalad7.mixinextras.sugar.Local;
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.server.commands.PardonCommand;
-import net.minecraft.server.players.NameAndId;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
@@ -35,10 +34,10 @@ public class PardonCommandMixin {
 
     //? if minecraft: >= 1.21.9 {
     @Inject(method = "pardonPlayers", at = @At(value = "INVOKE", target = "Lnet/minecraft/server/players/UserBanList;remove(Lnet/minecraft/server/players/NameAndId;)Z"))
-    private static void pardon(CommandSourceStack source, Collection<NameAndId> targets, CallbackInfoReturnable<Integer> cir, @Local net.minecraft.server.players.NameAndId entry) {
+    private static void pardon(CommandSourceStack source, Collection<net.minecraft.server.players.NameAndId> targets, CallbackInfoReturnable<Integer> cir, @Local net.minecraft.server.players.NameAndId entry) {
     //?} else {
     /*@Inject(method = "pardonPlayers", at = @At(value = "INVOKE", target = "Lnet/minecraft/server/players/UserBanList;remove(Ljava/lang/Object;)V"))
-    private static void pardon(CommandSourceStack source, Collection<GameProfile> targets, CallbackInfoReturnable<Integer> cir, @Local GameProfile entry) {
+    private static void pardon(CommandSourceStack source, Collection<com.mojang.authlib.GameProfile> targets, CallbackInfoReturnable<Integer> cir, @Local com.mojang.authlib.GameProfile entry) {
     *///?}
         ModdedBanModule.onPardon(entry);
     }

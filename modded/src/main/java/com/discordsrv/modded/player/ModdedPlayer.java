@@ -142,36 +142,22 @@ public class ModdedPlayer extends ModdedCommandSender implements IPlayer {
 
     @Override
     public @NotNull Identity identity() {
-        //? if fabric {
         //? if adventure: >=5.11.0 {
-        return player.identity();
+        return net.kyori.adventure.platform.modcommon.MinecraftAudiences.identified(player).identity();
         //?} else {
         /*return Identity.identity(player.getUUID());
         *///?}
-        //?}
-
-        //? if neoforge
-        //return net.kyori.adventure.platform.modcommon.MinecraftAudiences.identified(player).identity();
     }
 
     @Override
     public @NotNull Component displayName() {
-        //? if fabric {
         //? if adventure: >=5.3.0 {
-        return player.getOrDefaultFrom(
+        return discordSRV.componentFactory().getAdventure().audience(player).getOrDefaultFrom(
                 Identity.DISPLAY_NAME,
                 () -> discordSRV.componentFactory().fromNative(player.getName())
         );
         //?} else {
         /*return Component.text(player.getName().getString());
-        *///?}
-        //?}
-
-        //? if neoforge {
-        /*return discordSRV.componentFactory().getAdventure().audience(player).getOrDefaultFrom(
-                Identity.DISPLAY_NAME,
-                () -> discordSRV.componentFactory().fromNative(player.getName())
-        );
         *///?}
     }
 
