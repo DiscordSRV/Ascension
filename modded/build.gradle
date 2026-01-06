@@ -131,7 +131,6 @@ loom {
 }
 
 repositories {
-    mavenLocal()
     maven { url = 'https://maven.neoforged.net/releases' }
     maven { url = "https://maven.parchmentmc.org" }
     exclusiveContent {
@@ -214,9 +213,5 @@ dependencies {
         implementation(include("io.github.llamalad7:mixinextras-neoforge:0.5.2"))
 
         implementation("net.neoforged.fancymodloader:loader:${project.property("deps.neoforge_fml_version")}")
-
-        // DependencyDownload
-        shadow(libs.mcdependencydownload.neoforge.loader)
-        shadow(libs.mcdependencydownload.neoforge.bootstrap)
     }
 }
