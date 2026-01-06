@@ -23,10 +23,15 @@ import com.discordsrv.api.module.type.PunishmentModule;
 import com.discordsrv.api.punishment.Punishment;
 import com.discordsrv.api.task.Task;
 import com.discordsrv.bukkit.BukkitDiscordSRV;
+import com.discordsrv.common.abstraction.player.IPlayer;
 import com.discordsrv.common.core.logging.NamedLogger;
 import com.discordsrv.common.core.module.type.PluginIntegration;
+import com.discordsrv.common.feature.bansync.BanSyncModule;
+import com.discordsrv.common.feature.mutesync.MuteSyncModule;
 import com.discordsrv.common.util.ComponentUtil;
 import me.leoko.advancedban.manager.PunishmentManager;
+import me.leoko.advancedban.bukkit.event.PunishmentEvent;
+import me.leoko.advancedban.bukkit.event.RevokePunishmentEvent;
 import org.bukkit.event.HandlerList;
 import org.bukkit.event.Listener;
 import org.jetbrains.annotations.NotNull;
@@ -70,7 +75,6 @@ public class AdvancedBanIntegration extends PluginIntegration<BukkitDiscordSRV>
         HandlerList.unregisterAll(this);
         this.punishmentManager = null;
     }
-
 
     @Override
     public Task<@Nullable Punishment> getBan(@NotNull UUID playerUUID) {
@@ -124,6 +128,59 @@ public class AdvancedBanIntegration extends PluginIntegration<BukkitDiscordSRV>
     public Task<Void> removeMute(@NotNull UUID playerUUID) {
         punishmentManager.getMute(playerUUID.toString()).delete();
         return null;
+    }
+
+    public void onPunishment(PunishmentEvent event) {
+        Punishment punishment = this.punishment(event.getPunishment());
+        BanSyncModule bans = discordSRV.getModule(BanSyncModule.class);
+        MuteSyncModule mutes = discordSRV.getModule(MuteSyncModule.class);
+
+        IPlayer player = discordSRV.playerProvider().player(event.getPunishment().getUuid());
+        if (player == null) {
+            return;
+        }
+
+        switch (event.getPunishment().getType()) {
+            case TEMP_BAN:
+            case TEMP_IP_BAN:
+            case BAN:
+                if (bans != null) {
+                    bans.notifyBanned(player, punishment);
+                }
+                break;
+            case TEMP_MUTE:
+            case MUTE:
+                if (mutes != null) {
+                    mutes.notifyMuted(player, punishment);
+                }
+                break;
+        }
+    }
+
+    public void onRevokePunishment(RevokePunishmentEvent event) {
+        BanSyncModule bans = discordSRV.getModule(BanSyncModule.class);
+        MuteSyncModule mutes = discordSRV.getModule(MuteSyncModule.class);
+
+        IPlayer player = discordSRV.playerProvider().player(event.getPunishment().getUuid());
+        if (player == null) {
+            return;
+        }
+
+        switch (event.getPunishment().getType()) {
+            case TEMP_BAN:
+            case TEMP_IP_BAN:
+            case BAN:
+                if (bans != null) {
+                    bans.notifyBanned(player, null);
+                }
+                break;
+            case TEMP_MUTE:
+            case MUTE:
+                if (mutes != null) {
+                    mutes.notifyMuted(player, null);
+                }
+                break;
+        }
     }
 
     private Punishment punishment(me.leoko.advancedban.utils.Punishment punishment) {
