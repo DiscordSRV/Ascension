@@ -179,7 +179,7 @@ public class DiscordSRVModdedBootstrap implements IBootstrap {
         return "Minecraft " + minecraftVersion + " with Fabric Loader " + loader_version + (fabricApi.map(modContainer -> " (Fabric API: " + modContainer.getMetadata().getVersion().getFriendlyString() + ")").orElse(""));
         //? }
         //? if neoforge {
-        /*//? if fml: > 5 {
+        /*//? if fml: >= 10 {
         VersionInfo versionInfo = FMLLoader.getCurrent().getVersionInfo();
         //?} else {
         /^VersionInfo versionInfo = FMLLoader.versionInfo();

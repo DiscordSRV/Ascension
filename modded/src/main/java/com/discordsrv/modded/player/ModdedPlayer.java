@@ -142,9 +142,11 @@ public class ModdedPlayer extends ModdedCommandSender implements IPlayer {
 
     @Override
     public @NotNull Identity identity() {
-        //? if adventure: >=5.11.0 {
+        //? if adventure: >=6 {
         return net.kyori.adventure.platform.modcommon.MinecraftAudiences.identified(player).identity();
-        //?} else {
+        //?} else if fabric {
+        /*return net.kyori.adventure.platform.fabric.FabricAudiences.identified(player).identity();
+        *///?} else {
         /*return Identity.identity(player.getUUID());
         *///?}
     }

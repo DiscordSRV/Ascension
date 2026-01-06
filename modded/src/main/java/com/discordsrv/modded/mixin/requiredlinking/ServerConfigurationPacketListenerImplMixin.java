@@ -19,19 +19,18 @@
 package com.discordsrv.modded.mixin.requiredlinking;
 
 import com.discordsrv.modded.requiredlinking.ModdedRequiredLinkingModule;
-import net.minecraft.server.network.ServerConfigurationPacketListenerImpl;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
-@Mixin(value = ServerConfigurationPacketListenerImpl.class, priority = 900)
+@Mixin(targets = "net.minecraft.server.network.ServerConfigurationPacketListenerImpl")
 public class ServerConfigurationPacketListenerImplMixin {
 
     //? if neoforge {
     /*@Inject(method = "startConfiguration", at = @At("HEAD"))
     private void onClientReady(CallbackInfo ci) {
-        ModdedRequiredLinkingModule.withInstance(module -> module.onPlayerPreLogin((ServerConfigurationPacketListenerImpl) (Object) this));
+        ModdedRequiredLinkingModule.withInstance(module -> module.onPlayerPreLogin((net.minecraft.server.network.ServerConfigurationPacketListenerImpl) (Object) this));
     }
     *///? }
 }

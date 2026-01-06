@@ -169,8 +169,11 @@ dependencies {
     var adventure = "adventure-platform-${loader}"
     include(modImplementation("net.kyori:${adventure}:${project.property("deps.adventure_platform")}") {
         exclude group: 'net.kyori', module: 'ansi'
+        exclude group: 'net.kyori', module: 'adventure-api'
     })
 
+    implementation(libs.adventure.api)
+    include(libs.adventure.api)
     implementation(libs.kyori.ansi)
     include(libs.kyori.ansi)
 
