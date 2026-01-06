@@ -27,7 +27,7 @@ import com.discordsrv.common.abstraction.player.IPlayer;
 import com.discordsrv.common.core.logging.NamedLogger;
 import com.discordsrv.common.core.module.type.PluginIntegration;
 import com.discordsrv.common.feature.bansync.BanSyncModule;
-import com.discordsrv.common.feature.mutesync.MuteSyncModule;
+//import com.discordsrv.common.feature.mutesync.MuteSyncModule;
 import com.discordsrv.common.util.ComponentUtil;
 import me.leoko.advancedban.manager.PunishmentManager;
 import me.leoko.advancedban.bukkit.event.PunishmentEvent;
@@ -133,7 +133,7 @@ public class AdvancedBanIntegration extends PluginIntegration<BukkitDiscordSRV>
     public void onPunishment(PunishmentEvent event) {
         Punishment punishment = this.punishment(event.getPunishment());
         BanSyncModule bans = discordSRV.getModule(BanSyncModule.class);
-        MuteSyncModule mutes = discordSRV.getModule(MuteSyncModule.class);
+//        MuteSyncModule mutes = discordSRV.getModule(MuteSyncModule.class);
 
         IPlayer player = discordSRV.playerProvider().player(event.getPunishment().getUuid());
         if (player == null) {
@@ -150,16 +150,16 @@ public class AdvancedBanIntegration extends PluginIntegration<BukkitDiscordSRV>
                 break;
             case TEMP_MUTE:
             case MUTE:
-                if (mutes != null) {
-                    mutes.notifyMuted(player, punishment);
-                }
+//                if (mutes != null) {
+//                    mutes.notifyMuted(player, punishment);
+//                }
                 break;
         }
     }
 
     public void onRevokePunishment(RevokePunishmentEvent event) {
         BanSyncModule bans = discordSRV.getModule(BanSyncModule.class);
-        MuteSyncModule mutes = discordSRV.getModule(MuteSyncModule.class);
+//        MuteSyncModule mutes = discordSRV.getModule(MuteSyncModule.class);
 
         IPlayer player = discordSRV.playerProvider().player(event.getPunishment().getUuid());
         if (player == null) {
@@ -176,9 +176,9 @@ public class AdvancedBanIntegration extends PluginIntegration<BukkitDiscordSRV>
                 break;
             case TEMP_MUTE:
             case MUTE:
-                if (mutes != null) {
-                    mutes.notifyMuted(player, null);
-                }
+//                if (mutes != null) {
+//                    mutes.notifyMuted(player, null);
+//                }
                 break;
         }
     }

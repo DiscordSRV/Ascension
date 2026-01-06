@@ -27,7 +27,7 @@ import com.discordsrv.common.abstraction.player.IPlayer;
 import com.discordsrv.common.core.logging.NamedLogger;
 import com.discordsrv.common.core.module.type.PluginIntegration;
 import com.discordsrv.common.feature.bansync.BanSyncModule;
-import com.discordsrv.common.feature.mutesync.MuteSyncModule;
+//import com.discordsrv.common.feature.mutesync.MuteSyncModule;
 import com.discordsrv.common.util.ComponentUtil;
 import litebans.api.Database;
 import litebans.api.Entry;
@@ -143,12 +143,12 @@ public class LiteBansIntegration extends PluginIntegration<BukkitDiscordSRV>
 
         private final BukkitDiscordSRV discordSRV;
         private final BanSyncModule bans;
-        private final MuteSyncModule mutes;
+//        private final MuteSyncModule mutes;
 
         private LiteBansEventListener(BukkitDiscordSRV discordSRV) {
             this.discordSRV = discordSRV;
             this.bans = discordSRV.getModule(BanSyncModule.class);
-            this.mutes = discordSRV.getModule(MuteSyncModule.class);
+//            this.mutes = discordSRV.getModule(MuteSyncModule.class);
         }
 
         public void onEntry(Entry entry, boolean added) {
@@ -164,7 +164,7 @@ public class LiteBansIntegration extends PluginIntegration<BukkitDiscordSRV>
                 case "ban":
                     bans.notifyBanned(player, added ? punishment(entry) : null);
                 case "mute":
-                    mutes.notifyMuted(player, added ? punishment(entry) : null);
+//                    mutes.notifyMuted(player, added ? punishment(entry) : null);
             }
         }
 

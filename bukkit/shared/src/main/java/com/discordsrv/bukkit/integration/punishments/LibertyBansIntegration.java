@@ -28,7 +28,7 @@ import com.discordsrv.common.abstraction.player.IPlayer;
 import com.discordsrv.common.core.logging.NamedLogger;
 import com.discordsrv.common.core.module.type.PluginIntegration;
 import com.discordsrv.common.feature.bansync.BanSyncModule;
-import com.discordsrv.common.feature.mutesync.MuteSyncModule;
+//import com.discordsrv.common.feature.mutesync.MuteSyncModule;
 import com.discordsrv.common.util.ComponentUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -175,7 +175,7 @@ public class LibertyBansIntegration extends PluginIntegration<BukkitDiscordSRV>
     @ListeningMethod()
     public void onPunishment(PostPunishEvent event) {
         BanSyncModule bans = discordSRV.getModule(BanSyncModule.class);
-        MuteSyncModule mutes = discordSRV.getModule(MuteSyncModule.class);
+//        MuteSyncModule mutes = discordSRV.getModule(MuteSyncModule.class);
         if (!(event.getPunishment().getVictim() instanceof PlayerVictim)) return;
         PlayerVictim victim = (PlayerVictim) event.getPunishment().getVictim();
 
@@ -191,21 +191,21 @@ public class LibertyBansIntegration extends PluginIntegration<BukkitDiscordSRV>
                 }
                 break;
             case MUTE:
-                if (mutes != null) {
-                    IPlayer player = discordSRV.playerProvider().player(victim.getUUID());
-                    if (player == null) {
-                        throw new RuntimeException("Player " + victim.getUUID() + " not present in player provider");
-                    }
-
-                    mutes.notifyMuted(player, punishment(event.getPunishment()));
-                }
+//                if (mutes != null) {
+//                    IPlayer player = discordSRV.playerProvider().player(victim.getUUID());
+//                    if (player == null) {
+//                        throw new RuntimeException("Player " + victim.getUUID() + " not present in player provider");
+//                    }
+//
+//                    mutes.notifyMuted(player, punishment(event.getPunishment()));
+//                }
         }
     }
 
     @ListeningMethod()
     public void onPardon(PostPardonEvent event) {
         BanSyncModule bans = discordSRV.getModule(BanSyncModule.class);
-        MuteSyncModule mutes = discordSRV.getModule(MuteSyncModule.class);
+//        MuteSyncModule mutes = discordSRV.getModule(MuteSyncModule.class);
         if (!(event.getPunishment().getVictim() instanceof PlayerVictim)) return;
         PlayerVictim victim = (PlayerVictim) event.getPunishment().getVictim();
 
@@ -220,16 +220,16 @@ public class LibertyBansIntegration extends PluginIntegration<BukkitDiscordSRV>
                     bans.notifyBanned(player, null);
                 }
                 break;
-            case MUTE:
-                if (mutes != null) {
-                    IPlayer player = discordSRV.playerProvider().player(victim.getUUID());
-                    if (player == null) {
-                        throw new RuntimeException("Player " + victim.getUUID() + " not present in player provider");
-                    }
-
-                    mutes.notifyMuted(player, null);
-                }
-                break;
+//            case MUTE:
+//                if (mutes != null) {
+//                    IPlayer player = discordSRV.playerProvider().player(victim.getUUID());
+//                    if (player == null) {
+//                        throw new RuntimeException("Player " + victim.getUUID() + " not present in player provider");
+//                    }
+//
+//                    mutes.notifyMuted(player, null);
+//                }
+//                break;
         }
     }
 }
