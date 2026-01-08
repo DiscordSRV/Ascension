@@ -307,7 +307,7 @@ public abstract class ConfigurateConfigManager<T, LT extends AbstractConfigurati
     }
 
     private static String doSubstitution(String input, String[] values) {
-        for (int i = 0; i < values.length; i++) {
+        for (int i = values.length - 1; i >= 0; i--) {
             input = input.replace("%" + (i + 1), values[i]);
         }
         return input;
