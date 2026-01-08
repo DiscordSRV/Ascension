@@ -172,7 +172,7 @@ public class DiscordToMinecraftChatModule extends AbstractModule<DiscordSRV> {
         GameChannel gameChannel = event.getGameChannel();
         ReceivedDiscordMessage discordMessage = event.getMessage();
 
-        BaseChannelConfig channelConfig = discordSRV.channelConfig().get(gameChannel);
+        BaseChannelConfig channelConfig = discordSRV.channelConfig().resolve(gameChannel);
         if (channelConfig == null) {
             logger().error("Cannot lookup config in receiving message (" + GameChannel.toString(gameChannel) + ")");
             return;

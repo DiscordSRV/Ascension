@@ -24,6 +24,7 @@ import com.discordsrv.common.config.configurate.annotation.Constants;
 import com.discordsrv.common.config.configurate.annotation.Untranslated;
 import com.discordsrv.common.config.configurate.manager.abstraction.ConfigurateConfigManager;
 import com.discordsrv.common.config.documentation.DocumentationURLs;
+import com.discordsrv.common.config.helper.SendableDiscordMessageTemplate;
 import com.discordsrv.common.config.main.generic.IMessageConfig;
 import org.spongepowered.configurate.objectmapping.ConfigSerializable;
 import org.spongepowered.configurate.objectmapping.meta.Comment;
@@ -50,13 +51,15 @@ public class LeaveMessageConfig implements IMessageConfig {
             + "More placeholders at %1 (Player)")
     @Constants.Comment(DocumentationURLs.PLACEHOLDERS)
     @Untranslated(Untranslated.Type.VALUE)
-    public SendableDiscordMessage.Builder format = SendableDiscordMessage.builder()
-            .addEmbed(
-                    DiscordMessageEmbed.builder()
-                            .setAuthor("%player_display_name% left", null, "%player_avatar_url%")
-                            .setColor(0xFF5555)
-                            .build()
-            );
+    public SendableDiscordMessageTemplate format = new SendableDiscordMessageTemplate(
+            SendableDiscordMessage.builder()
+                    .addEmbed(
+                            DiscordMessageEmbed.builder()
+                                    .setAuthor("%player_display_name% left", null, "%player_avatar_url%")
+                                    .setColor(0xFF5555)
+                                    .build()
+                    )
+    );
 
     @Comment("If the \"%1\" permission should determine whether leave messages are sent")
     @Constants.Comment("discordsrv.silentquit")
@@ -82,7 +85,7 @@ public class LeaveMessageConfig implements IMessageConfig {
     }
 
     @Override
-    public SendableDiscordMessage.Builder format() {
+    public SendableDiscordMessageTemplate format() {
         return format;
     }
 }

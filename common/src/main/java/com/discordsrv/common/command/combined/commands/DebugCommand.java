@@ -25,10 +25,13 @@ import com.discordsrv.api.eventbus.EventPriorities;
 import com.discordsrv.api.eventbus.Subscribe;
 import com.discordsrv.api.events.lifecycle.DiscordSRVShuttingDownEvent;
 import com.discordsrv.common.DiscordSRV;
+import com.discordsrv.common.abstraction.player.IPlayer;
 import com.discordsrv.common.command.combined.abstraction.CombinedCommand;
 import com.discordsrv.common.command.combined.abstraction.CommandExecution;
+import com.discordsrv.common.command.combined.abstraction.GameCommandExecution;
 import com.discordsrv.common.command.combined.abstraction.Text;
 import com.discordsrv.common.command.game.abstraction.command.GameCommand;
+import com.discordsrv.common.command.game.abstraction.sender.ICommandSender;
 import com.discordsrv.common.core.debug.DebugGenerateEvent;
 import com.discordsrv.common.core.debug.DebugObservabilityEvent;
 import com.discordsrv.common.core.debug.DebugReport;
@@ -41,6 +44,8 @@ import com.discordsrv.common.core.paste.service.AESEncryptedPasteService;
 import com.discordsrv.common.core.paste.service.BytebinPasteService;
 import com.discordsrv.common.permission.game.Permissions;
 import com.discordsrv.common.util.ExceptionUtil;
+import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.event.ClickEvent;
 import net.kyori.adventure.text.format.NamedTextColor;
 
 import java.nio.charset.StandardCharsets;
@@ -233,7 +238,20 @@ public class DebugCommand {
             String key = new String(KEY_ENCODER.encode(paste.decryptionKey()), StandardCharsets.UTF_8);
             String url = String.format(URL_FORMAT, paste.id(), key);
 
-            execution.send(new Text(url));
+            if (execution instanceof GameCommandExecution) {
+                ICommandSender sender = ((GameCommandExecution) execution).getSender();
+                sender.sendMessage(Component.text().content(url).clickEvent(ClickEvent.openUrl(url)));
+                if (sender instanceof IPlayer) {
+                    sender.sendMessage(
+                            Component.text()
+                                    .append(Component.text().content("(Open)").clickEvent(ClickEvent.openUrl(url)))
+                                    .append(Component.space())
+                                    .append(Component.text().content("(Copy)").clickEvent(ClickEvent.copyToClipboard(url)))
+                    );
+                }
+            } else {
+                execution.send(new Text(url));
+            }
             return null;
         } catch (Throwable e) {
             return e;

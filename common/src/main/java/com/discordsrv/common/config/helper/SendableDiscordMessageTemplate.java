@@ -16,12 +16,22 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package com.discordsrv.common.config.main.generic;
+package com.discordsrv.common.config.helper;
 
-import com.discordsrv.common.config.helper.SendableDiscordMessageTemplate;
+import com.discordsrv.api.discord.entity.message.SendableDiscordMessage;
 
-public interface IMessageConfig {
+/**
+ * Safer alternative to directly using {@link SendableDiscordMessage.Builder} in the config classes.
+ */
+public class SendableDiscordMessageTemplate {
 
-    boolean enabled();
-    SendableDiscordMessageTemplate format();
+    private final SendableDiscordMessage.Builder builder;
+
+    public SendableDiscordMessageTemplate(SendableDiscordMessage.Builder builder) {
+        this.builder = builder;
+    }
+
+    public SendableDiscordMessage.Builder use() {
+        return builder.clone();
+    }
 }

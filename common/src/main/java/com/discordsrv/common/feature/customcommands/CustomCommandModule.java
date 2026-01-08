@@ -218,7 +218,7 @@ public class CustomCommandModule extends AbstractModule<DiscordSRV> {
                 discordSRV.console().runCommandWithLogging(discordSRV, event.getUser(), command);
             }
 
-            SendableDiscordMessage.Formatter formatter = config.response.toFormatter();
+            SendableDiscordMessage.Formatter formatter = config.response.use().toFormatter();
             optionsToFormatter(event, formatter);
 
             SendableDiscordMessage message = formatter.applyPlaceholderService().build();

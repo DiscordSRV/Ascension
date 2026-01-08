@@ -167,7 +167,7 @@ public class MentionGameRenderingModule extends AbstractModule<DiscordSRV> {
 
         GameChannel gameChannel = event.getChannel();
         BaseChannelConfig config = gameChannel != null
-                                   ? discordSRV.channelConfig().get(gameChannel)
+                                   ? discordSRV.channelConfig().resolve(gameChannel)
                                    : discordSRV.channelConfig().resolveDefault();
         if (config == null || !config.minecraftToDiscord.mentions.renderMentionsInGame) {
             return;

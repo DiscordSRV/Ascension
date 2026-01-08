@@ -22,6 +22,7 @@ import com.discordsrv.api.discord.entity.interaction.command.CommandOption;
 import com.discordsrv.api.discord.entity.message.DiscordMessageEmbed;
 import com.discordsrv.api.discord.entity.message.SendableDiscordMessage;
 import com.discordsrv.common.config.configurate.annotation.Constants;
+import com.discordsrv.common.config.helper.SendableDiscordMessageTemplate;
 import org.spongepowered.configurate.objectmapping.ConfigSerializable;
 import org.spongepowered.configurate.objectmapping.meta.Comment;
 
@@ -37,7 +38,7 @@ public class CustomCommandConfig {
         config.command = "ip";
         config.description = "Get the Minecraft server ip";
         config.ephemeral = true;
-        config.response = SendableDiscordMessage.builder().setContent("`yourserveripchange.me`");
+        config.response = new SendableDiscordMessageTemplate(SendableDiscordMessage.builder().setContent("`yourserveripchange.me`"));
         return config;
     }
 
@@ -46,8 +47,10 @@ public class CustomCommandConfig {
         config.command = "hello";
         config.description = "Greet a user";
         config.options.add(new OptionConfig());
-        config.response = SendableDiscordMessage.builder()
-                .addEmbed(DiscordMessageEmbed.builder().setDescription("Hello %option_target_user_name%").build());
+        config.response = new SendableDiscordMessageTemplate(
+                SendableDiscordMessage.builder()
+                        .addEmbed(DiscordMessageEmbed.builder().setDescription("Hello %option_target_user_name%").build())
+        );
         return config;
     }
 
@@ -76,7 +79,7 @@ public class CustomCommandConfig {
     @Comment("A list of console commands to run upon this commands execution")
     public List<String> consoleCommandsToRun = new ArrayList<>();
 
-    public SendableDiscordMessage.Builder response = SendableDiscordMessage.builder().setContent("test");
+    public SendableDiscordMessageTemplate response = new SendableDiscordMessageTemplate(SendableDiscordMessage.builder().setContent("test"));
 
     @ConfigSerializable
     public static class OptionConfig {

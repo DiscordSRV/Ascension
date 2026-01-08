@@ -235,15 +235,8 @@ public class ChannelConfigHelper {
     }
 
     @Nullable
-    public BaseChannelConfig get(@NotNull GameChannel gameChannel) {
-        String owner = gameChannel.getOwnerName();
-        String channelName = gameChannel.getChannelName();
-        BaseChannelConfig config = findChannel(owner + ":" + channelName);
-        if (config != null) {
-            return config;
-        }
-
-        return findChannel(channelName);
+    public BaseChannelConfig resolve(@NotNull GameChannel gameChannel) {
+        return resolve(gameChannel.getOwnerName(), gameChannel.getChannelName());
     }
 
     @Nullable
@@ -262,13 +255,21 @@ public class ChannelConfigHelper {
             if (config != null) {
                 return config;
             }
+
+            // Check if this owner has the highest priority for this channel name
+            // in case they are, we can also use "channel" config directly
+            GameChannel gameChannel = nameToChannelCache.get(channelName);
+            if (gameChannel != null && gameChannel.getOwnerName().equalsIgnoreCase(ownerName)) {
+                config = findChannel(channelName);
+                return config;
+            }
+            return null;
         }
 
-        // Otherwise, fall back to resolved GameChannel
-        GameChannel gameChannel = resolveChannel(ownerName, channelName);
-        return gameChannel != null ? get(gameChannel) : null;
+        // Get the highest priority owner for this channel name and relookup
+        GameChannel gameChannel = nameToChannelCache.get(channelName);
+        return gameChannel != null ? resolve(gameChannel) : null;
     }
-
 
     @Nullable
     public BaseChannelConfig resolveDefault() {

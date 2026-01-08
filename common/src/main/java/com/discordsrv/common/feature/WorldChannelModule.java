@@ -50,7 +50,7 @@ public class WorldChannelModule extends AbstractModule<DiscordSRV> {
         GameChannel worldChannel = discordSRV.channelConfig().resolveChannel(ownerName, worldName);
         if (worldChannel == null) return;
 
-        ServerBaseChannelConfig channelConfig = (ServerBaseChannelConfig) discordSRV.channelConfig().get(worldChannel);
+        ServerBaseChannelConfig channelConfig = (ServerBaseChannelConfig) discordSRV.channelConfig().resolve(worldChannel);
         if (channelConfig == null) return;
 
         IMessageConfig messageConfig = messageConfigForEvent(channelConfig, event);

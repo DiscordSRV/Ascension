@@ -99,6 +99,10 @@ public class BukkitPlayerImpl extends BukkitPlayer {
 
     @Override
     public @NonNull String worldName() {
+        if (SpigotWorldUtil.WORLD_NAMESPACE_AVAILABLE) {
+            Key key = SpigotWorldUtil.getWorldKey(player.getWorld());
+            return key.value();
+        }
         return player.getWorld().getName();
     }
 
