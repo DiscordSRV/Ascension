@@ -120,6 +120,11 @@ public class MinecraftToDiscordChatMessageTest {
                                 }
 
                                 @Override
+                                public boolean isFirstJoin() {
+                                    return false;
+                                }
+
+                                @Override
                                 public boolean hasPermission(Permission permission) {
                                     return true;
                                 }
