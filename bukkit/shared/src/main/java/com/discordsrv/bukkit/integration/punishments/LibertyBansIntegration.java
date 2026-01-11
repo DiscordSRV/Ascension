@@ -109,14 +109,16 @@ public class LibertyBansIntegration extends PluginIntegration<BukkitDiscordSRV>
                 .reason(reason != null ? reason.asPlainString() : "Banned by DiscordSRV ban sync");
         draft = until != null ? draft.duration(Duration.between(Instant.now(), until)) : draft;
 
-        draft.build().enactPunishment();
-        return Task.completed(null);
+        return Task.of(draft.build().enactPunishment().toCompletableFuture().thenApply(__ -> null));
     }
 
     @Override
     public Task<Void> removeBan(@NotNull UUID playerUUID) {
-        libertyBans.getRevoker().revokeByTypeAndVictim(PunishmentType.BAN, PlayerVictim.of(playerUUID));
-        return Task.completed(null);
+        return Task.of(libertyBans.getRevoker()
+                .revokeByTypeAndVictim(PunishmentType.BAN, PlayerVictim.of(playerUUID))
+                .undoPunishment()
+                .toCompletableFuture()
+                .thenApply(__ -> null));
     }
 
     @Override
@@ -142,14 +144,16 @@ public class LibertyBansIntegration extends PluginIntegration<BukkitDiscordSRV>
                 .reason(reason != null ? reason.asPlainString() : "Muted by DiscordSRV mute sync");
         draft = until != null ? draft.duration(Duration.between(Instant.now(), until)) : draft;
 
-        draft.build().enactPunishment();
-        return Task.completed(null);
+        return Task.of(draft.build().enactPunishment().toCompletableFuture().thenApply(__ -> null));
     }
 
     @Override
     public Task<Void> removeMute(@NotNull UUID playerUUID) {
-        libertyBans.getRevoker().revokeByTypeAndVictim(PunishmentType.MUTE, PlayerVictim.of(playerUUID)).undoPunishment();
-        return Task.completed(null);
+        return Task.of(libertyBans.getRevoker()
+                .revokeByTypeAndVictim(PunishmentType.MUTE, PlayerVictim.of(playerUUID))
+                .undoPunishment()
+                .toCompletableFuture()
+                .thenApply(__ -> null));
     }
 
     private @Nullable Punishment punishment(space.arim.libertybans.api.punish.Punishment punishment) {
