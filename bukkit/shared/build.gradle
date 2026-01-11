@@ -47,7 +47,6 @@ dependencies {
     compileOnly(libs.placeholderapi.bukkit)
 
     // Punishments Integrations
-    compileOnly(libs.litebans.api)
     compileOnly(libs.libertybans)
     compileOnly(libs.advancedban)
 
