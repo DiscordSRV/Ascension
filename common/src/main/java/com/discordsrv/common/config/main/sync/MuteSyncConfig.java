@@ -36,11 +36,25 @@ public class MuteSyncConfig extends AbstractSyncConfig<MuteSyncConfig, Game, Lon
         unlinkBehaviour = UnlinkBehaviour.DO_NOTHING;
     }
 
-    @Comment("The id for the Discord server where the mutes should be synced from/to")
+    @Comment("The id for the Discord server where the mutes should be synced from/to\n"
+            + "This is only used for timeouts, which has the limitation of 28 days maximum duration.\n"
+            + "Mutes longer than that will be ignored, unless %1 and %2 are configured."
+    )
+    @Constants.Comment({"fallbackToRoleIfTimeoutTooLong", "mutedRoleId"})
     @Order(-10)
     public long serverId = 0L;
 
-    @Comment("Role id that will be used for role related actions, if they are configured below")
+    @Comment("Role id that will be used for role related actions, if they are configured below\n"
+            + "It will also be used as a fallback for timeouts longer than 28 days if %1 is enabled.\n"
+            + "The role should have permissions set to prevent sending messages in text channels and speaking in voice channels.\n"
+            + "Permissions that might need to be denied include:\n"
+            + "Send Messages\n"
+            + "Create Threads\n"
+            + "Join Voice\n"
+            + "Speak\n"
+            + "Add reactions"
+    )
+    @Constants.Comment("fallbackToRoleIfTimeoutTooLong")
     public Long mutedRoleId = 0L;
 
     @Comment("Options for syncing mutes from Minecraft to Discord")
@@ -91,8 +105,14 @@ public class MuteSyncConfig extends AbstractSyncConfig<MuteSyncConfig, Game, Lon
         @Comment("The punisher shown when creating new mutes in Minecraft")
         public String punisherFormat = "%user_color%@%user_name%";
 
+        @Comment("Notify the online player when they are muted in Minecraft due to a Discord mute. Useful for when 3rd party plugins send their own notifications.")
+        public boolean notifyPlayerOnMute = true;
+
         @Comment("The message sent to the online player when they are muted in Minecraft due to a Discord mute")
         public String muteNotificationMessage = "&cYou have been muted on Discord for &f%punishment_reason|text:'Unknown'% &cby &f%punishment_punisher%";
+
+        @Comment("Notify the online player when they are unmuted in Minecraft due to a Discord unmute. Useful for when 3rd party plugins send their own notifications.")
+        public boolean notifyPlayerOnUnmute = true;
 
         @Comment("The message sent to the online player when they are unmuted in Minecraft due to a Discord unmute")
         public String unmuteNotificationMessage = "&aYou have been unmuted on Discord.";

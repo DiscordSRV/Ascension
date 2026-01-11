@@ -26,6 +26,7 @@ public enum MuteSyncResult implements ISyncResult {
     NO_PUNISHMENT_INTEGRATION("No punishment integration"),
     NO_DISCORD_CONNECTION("No Discord connection"),
     GUILD_DOESNT_EXIST("Guild doesn't exist"),
+    ROLE_DOESNT_EXIST("Role doesn't exist"),
     INVALID_CONFIG("Invalid config"),
     NOT_A_GUILD_MEMBER("User is not part of the server the role is in"),
     ROLE_CHANGE_CANNOT_CHANGE_GAME("Mute sync is configured such that adding or removing the muted role in Discord does not affect game state"),

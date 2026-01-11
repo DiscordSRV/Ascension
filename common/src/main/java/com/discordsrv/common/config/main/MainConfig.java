@@ -171,7 +171,6 @@ public abstract class MainConfig implements Config {
             + "For Minecraft to Discord synchronization:\n"
             + "- The bot needs a role above all users that you want to synchronize, the Discord server owner cannot be synchronized.\n"
             + "- The bot needs the \"Manage Roles\" and \"Timeout Members\" permission")
-
     @Order(640)
     public MuteSyncConfig muteSync = new MuteSyncConfig();
 

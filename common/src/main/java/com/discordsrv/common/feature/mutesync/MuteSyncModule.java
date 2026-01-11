@@ -20,6 +20,7 @@ package com.discordsrv.common.feature.mutesync;
 
 import com.discordsrv.api.component.MinecraftComponent;
 import com.discordsrv.api.discord.connection.details.DiscordGatewayIntent;
+import com.discordsrv.api.discord.entity.Snowflake;
 import com.discordsrv.api.discord.entity.guild.DiscordGuild;
 import com.discordsrv.api.discord.entity.guild.DiscordGuildMember;
 import com.discordsrv.api.discord.entity.guild.DiscordRole;
@@ -52,10 +53,7 @@ import net.dv8tion.jda.api.Permission;
 import net.dv8tion.jda.api.audit.AuditLogChange;
 import net.dv8tion.jda.api.audit.AuditLogEntry;
 import net.dv8tion.jda.api.audit.AuditLogKey;
-import net.dv8tion.jda.api.entities.Guild;
-import net.dv8tion.jda.api.entities.Member;
-import net.dv8tion.jda.api.entities.User;
-import net.dv8tion.jda.api.entities.UserSnowflake;
+import net.dv8tion.jda.api.entities.*;
 import net.dv8tion.jda.api.events.guild.GuildAuditLogEntryCreateEvent;
 import net.dv8tion.jda.api.events.guild.member.update.GuildMemberUpdateTimeOutEvent;
 import net.dv8tion.jda.api.requests.ErrorResponse;
@@ -65,6 +63,7 @@ import org.jetbrains.annotations.Nullable;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.*;
+import java.util.stream.Stream;
 
 public class MuteSyncModule extends AbstractPunishmentSyncModule<MuteSyncConfig> {
 
@@ -164,25 +163,32 @@ public class MuteSyncModule extends AbstractPunishmentSyncModule<MuteSyncConfig>
         handleRoleChanges(event.getMember(), event.getRoles(), false);
     }
 
+    private boolean shouldHandleDiscordRoleChanges(Stream<Long> rolesIds) {
+        MuteSyncConfig config = discordSRV.config().muteSync;
+        return (config.minecraftToDiscord.action == MuteSyncDiscordAction.ROLE || config.minecraftToDiscord.fallbackToRoleIfTimeoutTooLong) && rolesIds.anyMatch(id -> id.equals(config.mutedRoleId));
+    }
+
     private void handleRoleChanges(DiscordGuildMember member, List<DiscordRole> roles, boolean added) {
         MuteSyncConfig config = discordSRV.config().muteSync;
-        if ((config.minecraftToDiscord.action == MuteSyncDiscordAction.ROLE || config.minecraftToDiscord.fallbackToRoleIfTimeoutTooLong) && roles.stream().anyMatch(role -> config.mutedRoleId == role.getId())) {
+        if (shouldHandleDiscordRoleChanges(roles.stream().map(Snowflake::getId))) {
             if (config.discordToMinecraft.trigger != MuteSyncDiscordTrigger.TIMEOUT) {
                 upsertEvent(roles.getFirst().getGuild().getId(), member.getUser().getId(), added, MuteSyncCause.MUTED_ROLE_CHANGED).applyPunishment(added ? new Punishment(null, null, null) : null, MuteSyncCause.MUTED_ROLE_CHANGED);
-            } else {
-                if (config.minecraftToDiscord.fallbackToRoleIfTimeoutTooLong) {
-                    logger().debug(String.format(
-                            "Handling muted role change for %s as a fallback for timeout-based mute sync.",
-                            member.getUser().getAsTag()
-                    ));
-                    upsertEvent(roles.getFirst().getGuild().getId(), member.getUser().getId(), added, MuteSyncCause.MUTED_ROLE_CHANGED).applyPunishment(added ? new Punishment(null, null, null) : null, MuteSyncCause.MUTED_ROLE_CHANGED);
-                } else {
-                    logger().debug(String.format(
-                            "Ignoring muted role change for %s because role changes are not configured to affect the game mute status.",
-                            member.getUser().getAsTag()
-                    ));
-                }
+                return;
             }
+
+            if (!config.minecraftToDiscord.fallbackToRoleIfTimeoutTooLong || config.mutedRoleId == 0L) {
+                logger().debug(String.format(
+                        "Ignoring muted role change for %s because role changes are not configured to affect the game mute status.",
+                        member.getUser().getAsTag()
+                ));
+                return;
+            }
+
+            logger().debug(String.format(
+                    "Handling muted role change for %s as a fallback for timeout-based mute sync.",
+                    member.getUser().getAsTag()
+            ));
+            upsertEvent(roles.getFirst().getGuild().getId(), member.getUser().getId(), added, MuteSyncCause.MUTED_ROLE_CHANGED).applyPunishment(added ? new Punishment(null, null, null) : null, MuteSyncCause.MUTED_ROLE_CHANGED);
         }
     }
 
@@ -219,7 +225,7 @@ public class MuteSyncModule extends AbstractPunishmentSyncModule<MuteSyncConfig>
     private Task<@Nullable Punishment> getMutedRole(Guild guild, UserSnowflake snowflake, MuteSyncConfig config) {
         return discordSRV.discordAPI().toTask(guild.retrieveMember(snowflake))
                 .thenApply(member -> {
-                    if ((config.minecraftToDiscord.action == MuteSyncDiscordAction.ROLE || config.minecraftToDiscord.fallbackToRoleIfTimeoutTooLong) && member.getRoles().stream().anyMatch(role -> config.mutedRoleId == role.getIdLong())) {
+                        if (shouldHandleDiscordRoleChanges(member.getRoles().stream().map(ISnowflake::getIdLong))){
                         return new Punishment(null, null, null);
                     }
 
@@ -246,7 +252,7 @@ public class MuteSyncModule extends AbstractPunishmentSyncModule<MuteSyncConfig>
     }
 
     private Punishment punishment(Member member) {
-        return member.getTimeOutEnd() != null ? new Punishment(member.getTimeOutEnd().toInstant(), ComponentUtil.fromPlain(""), null) : null;
+        return member.getTimeOutEnd() != null ? new Punishment(member.getTimeOutEnd().toInstant(), null, null) : null;
     }
 
     @Override
@@ -265,12 +271,21 @@ public class MuteSyncModule extends AbstractPunishmentSyncModule<MuteSyncConfig>
             return Task.completed(GenericSyncResults.WRONG_DIRECTION);
         }
 
-        DiscordGuild guild = discordSRV.discordAPI().getGuildById(config.serverId);
-        if (guild == null) {
-            return Task.completed(MuteSyncResult.GUILD_DOESNT_EXIST);
+        DiscordGuild guild;
+        if (config.minecraftToDiscord.action == MuteSyncDiscordAction.TIMEOUT) {
+            guild = discordSRV.discordAPI().getGuildById(config.serverId);
+            if (guild == null) {
+                return Task.completed(MuteSyncResult.GUILD_DOESNT_EXIST);
+            }
+        } else {
+            DiscordRole role = discordSRV.discordAPI().getRoleById(config.mutedRoleId);
+            if (role == null) {
+                return Task.completed(MuteSyncResult.ROLE_DOESNT_EXIST);
+            }
+            guild = role.getGuild();
         }
 
-        ISyncResult permissionFailResult = DiscordPermissionResult.check(guild.asJDA(), Collections.singleton(Permission.MODERATE_MEMBERS));
+        ISyncResult permissionFailResult = DiscordPermissionResult.check(guild.asJDA(), Collections.singleton(config.minecraftToDiscord.action == MuteSyncDiscordAction.TIMEOUT ? Permission.MODERATE_MEMBERS : Permission.MANAGE_ROLES));
         if (permissionFailResult != null) {
             return Task.completed(permissionFailResult);
         }
@@ -352,7 +367,7 @@ public class MuteSyncModule extends AbstractPunishmentSyncModule<MuteSyncConfig>
                                 .addContext(newState)
                                 .build();
 
-                        player.sendMessage(ComponentUtil.fromAPI(muteNotificationMessage));
+                        if (config.discordToMinecraft.notifyPlayerOnMute) player.sendMessage(ComponentUtil.fromAPI(muteNotificationMessage));
                         return Task.completed(null);
                     })
                     .thenApply(v -> GenericSyncResults.ADD_GAME);
@@ -368,11 +383,10 @@ public class MuteSyncModule extends AbstractPunishmentSyncModule<MuteSyncConfig>
                                 .textBuilder(config.discordToMinecraft.unmuteNotificationMessage)
                                 .build();
 
-                        player.sendMessage(ComponentUtil.fromAPI(unmuteNotificationMessage));
+                        if (config.discordToMinecraft.notifyPlayerOnUnmute) player.sendMessage(ComponentUtil.fromAPI(unmuteNotificationMessage));
                         return Task.completed(null);
                     })
                     .thenApply(v -> GenericSyncResults.REMOVE_GAME);
         }
     }
-
 }
