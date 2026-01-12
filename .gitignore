@@ -42,6 +42,7 @@ hs_err_pid*
 **/loader/run
 **/velocity/run
 **/fabric/run
+neoforge/versions/**/runs
 
 # Fabric mapping migration
 **/fabric/remappedSrc
