@@ -73,11 +73,10 @@ public class JoinMessageConfig implements IMessageConfig {
     @Comment("If fake join messages should be sent when players unvanish")
     public boolean sendFakeJoinMessages = true;
 
-    @Comment("Send message if player is vanished")
+    @Comment("Send message if player joins while being vanished")
     public boolean sendMessageForVanishedPlayers = false;
 
-    @Comment(
-            "Ignore if the player leaves or vanishes within the given number of milliseconds. This will delay sending the join message")
+    @Comment("Ignore if the player leaves or vanishes within the given number of milliseconds. This will delay sending the join message")
     @Setting("ignore-if-left-within-ms")
     public Long ignoreIfLeftWithinMS = 250L;
 

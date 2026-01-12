@@ -32,7 +32,9 @@ public class DebugConfig {
     @Comment("If debug messages should be logged into the console")
     public boolean logToConsole = false;
 
-    @Comment("Additional levels to log\nExample value: %1")
+    @Comment("Additional levels to log\n"
+            + "Use with caution, levels which need to be specified here are usually VERY spammy\n"
+            + "Example value: %1")
     @Constants.Comment("{\"LOGGER_NAME\":[\"TRACE\"]}")
     public Map<String, List<String>> additionalLevels = new HashMap<>();
 

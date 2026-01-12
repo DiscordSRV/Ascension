@@ -93,7 +93,12 @@ public abstract class MainConfig implements Config {
             + "If a message type is disabled for a world channel, messages of that type not be sent.\n"
             + "Bukkit/Spigot/Paper default world channels are \"%5\", \"%6\" and \"%7\"\n"
             + "Fabric default world channels are \"%8\", \"%9\" and \"%10\". Fabric also supports custom dimensions from mods/datapacks.\n")
-    @Constants.Comment({GameChannel.DEFAULT_NAME, ChannelConfig.DEFAULT_KEY, "channel-ids", "threads", "world", "world_the_nether", "world_the_end", "overworld", "the_nether", "the_end"})
+    @Constants.Comment({
+            GameChannel.DEFAULT_NAME, ChannelConfig.DEFAULT_KEY,
+            "channel-ids", "threads",
+            "world", "world_the_nether", "world_the_end",
+            "overworld", "the_nether", "the_end"
+    })
     @Order(200)
     public Map<String, BaseChannelConfig> channels = new LinkedHashMap<String, BaseChannelConfig>() {{
         put(GameChannel.DEFAULT_NAME, createDefaultChannel());
@@ -151,7 +156,7 @@ public abstract class MainConfig implements Config {
             + "\n"
             + PLAYERS_NEED_TO_BE_LINKED + "\n"
             + "For Minecraft to Discord synchronization:\n"
-            + "- The bot needs a role above all users that you want to synchronize, the Discord server owner cannot be synchronized. "
+            + "- The bot needs a role above all users that you want to synchronize, the Discord server owner cannot be synchronized.\n"
             + "- The bot needs the \"Manage Nicknames\" permission")
     @Order(620)
     public NicknameSyncConfig nicknameSync = new NicknameSyncConfig();

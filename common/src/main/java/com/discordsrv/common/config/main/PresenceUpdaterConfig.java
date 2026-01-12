@@ -20,6 +20,7 @@ package com.discordsrv.common.config.main;
 
 import com.discordsrv.common.DiscordSRV;
 import com.discordsrv.common.config.configurate.annotation.Constants;
+import com.discordsrv.common.config.documentation.DocumentationURLs;
 import com.discordsrv.common.core.logging.Logger;
 import net.dv8tion.jda.api.OnlineStatus;
 import net.dv8tion.jda.api.entities.Activity;
@@ -69,10 +70,14 @@ public class PresenceUpdaterConfig {
         public OnlineStatus status = OnlineStatus.ONLINE;
 
         @Comment("This may be prefixed by one of the following and a space to specify the activity type: %1\n"
-                + "You can use streaming by setting the value to: %2, a YouTube or Twitch link and the text all separated by a space")
+                + "You can use streaming by setting the value to: %2, a YouTube or Twitch link and the text all separated by a space\n"
+                + "Suggested placeholders:\n"
+                + "%playerlist_count% - The amount of players online\n"
+                + "More placeholders at %3 (Global only)")
         @Constants.Comment({
                 "\"playing\", \"listening\", \"watching\", \"competing in\"",
-                "\"streaming\""
+                "\"streaming\"",
+                DocumentationURLs.PLACEHOLDERS
         })
         public String activity = "playing Minecraft";
 

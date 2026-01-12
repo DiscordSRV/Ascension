@@ -68,7 +68,7 @@ public class LeaveMessageConfig implements IMessageConfig {
     @Comment("If fake leave messages should be sent when players vanish")
     public boolean sendFakeMessages = true;
 
-    @Comment("Send message if player is vanished")
+    @Comment("Send message if player leaves while vanished")
     public boolean sendMessageForVanishedPlayers = false;
 
     @Comment("Ignore if the player joined within the given number of milliseconds")
