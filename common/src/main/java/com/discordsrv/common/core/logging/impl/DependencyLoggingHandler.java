@@ -32,13 +32,14 @@ import java.util.concurrent.RejectedExecutionException;
 public class DependencyLoggingHandler implements LogAppender {
 
     private static final Map<String, List<String>> BLACKLISTED_MESSAGES = new HashMap<>();
-    private static final Map<String, String> LOGGER_MAPPINGS = new HashMap<>();
+    public static final Map<String, String> LOGGER_MAPPINGS = new HashMap<>();
     private static final Timeout RATELIMIT_TIMEOUT = new Timeout(Duration.ofSeconds(20));
 
     static {
         // Class names here will get relocated, which is fine
         LOGGER_MAPPINGS.put("net.dv8tion.jda", "JDA");
         LOGGER_MAPPINGS.put("com.zaxxer.hikari", "Hikari");
+        LOGGER_MAPPINGS.put("org.mariadb.jdbc.client.impl", "MariaDB");
 
         BLACKLISTED_MESSAGES.put("net.dv8tion.jda", Arrays.asList(
                 // We have our own more informative log messages for this

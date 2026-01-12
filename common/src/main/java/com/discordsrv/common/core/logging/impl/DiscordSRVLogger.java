@@ -58,7 +58,7 @@ public class DiscordSRVLogger implements Logger {
     private static final String DAY_LOG_LINE_FORMAT = "[%s] %s";
     private static final String LOG_FILE_NAME_FORMAT = "%s-%s.log";
 
-    private static final List<String> DISABLE_DEBUG_BY_DEFAULT = Collections.singletonList("Hikari");
+    private static final Set<String> DISABLE_DEBUG_BY_DEFAULT = new HashSet<>(DependencyLoggingHandler.LOGGER_MAPPINGS.values());
 
     private final DiscordSRV discordSRV;
 
