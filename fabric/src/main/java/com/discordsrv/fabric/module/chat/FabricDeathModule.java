@@ -23,13 +23,10 @@ import com.discordsrv.api.events.message.preprocess.game.DeathMessagePreProcessE
 import com.discordsrv.api.player.DiscordSRVPlayer;
 import com.discordsrv.fabric.FabricDiscordSRV;
 import com.discordsrv.fabric.module.AbstractFabricModule;
-import com.discordsrv.fabric.requiredlinking.FabricRequiredLinkingModule;
-import net.fabricmc.fabric.api.entity.event.v1.ServerLivingEntityEvents;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.damagesource.CombatTracker;
 import net.minecraft.world.entity.LivingEntity;
-import net.minecraft.world.level.Level;
 
 import java.util.function.Consumer;
 
@@ -71,7 +68,7 @@ public class FabricDeathModule extends AbstractFabricModule {
         /*boolean showDeathMessages = level.getGameRules().getRule(net.minecraft.world.level.GameRules.RULE_SHOWDEATHMESSAGES).get();
         *///?}
 
-        if (showDeathMessages) {
+        if (!showDeathMessages) {
             logger().debug("Skipping displaying death message, disabled by gamerule");
             return;
         }
