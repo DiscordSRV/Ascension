@@ -48,7 +48,6 @@ public class FabricJoinModule extends AbstractFabricModule {
         if (!enabled) return;
 
         ServerPlayer playerEntity = serverPlayNetworkHandler.player;
-        boolean firstJoin = playerEntity.getStats().getValue(Stats.CUSTOM.get(Stats.LEAVE_GAME)) == 0;
 
         MinecraftComponent component;
         if (discordSRV.getNameFromGameProfile(playerEntity.getGameProfile()).equalsIgnoreCase(playerEntity.getName().getString())) {
@@ -68,7 +67,7 @@ public class FabricJoinModule extends AbstractFabricModule {
                         player,
                         component,
                         null,
-                        firstJoin,
+                        player.isFirstJoin(),
                         false,
                         component == null,
                         false

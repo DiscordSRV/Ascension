@@ -93,6 +93,11 @@ public class BungeePlayer extends BungeeCommandSender implements IPlayer {
     }
 
     @Override
+    public boolean isFirstJoin() {
+        return false;
+    }
+
+    @Override
     public String toString() {
         return "BungeePlayer{" + username() + "}";
     }
