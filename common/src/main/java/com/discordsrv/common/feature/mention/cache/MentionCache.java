@@ -16,7 +16,7 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package com.discordsrv.common.feature.mention;
+package com.discordsrv.common.feature.mention.cache;
 
 import com.discordsrv.api.discord.entity.guild.DiscordGuild;
 import com.discordsrv.common.DiscordSRV;
@@ -24,6 +24,7 @@ import com.discordsrv.common.config.main.channels.MinecraftToDiscordChatConfig;
 import com.discordsrv.common.config.main.channels.base.BaseChannelConfig;
 import com.discordsrv.common.config.main.channels.base.IChannelConfig;
 import com.discordsrv.common.config.main.generic.DestinationConfig;
+import com.discordsrv.common.feature.mention.Mention;
 import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.entities.ISnowflake;
 
@@ -35,20 +36,20 @@ import java.util.function.Predicate;
 
 public class MentionCache<T extends ISnowflake> {
 
-    private final Map<Long, Map<Long, CachedMention>> cache = new ConcurrentHashMap<>();
+    private final Map<Long, Map<Long, Mention>> cache = new ConcurrentHashMap<>();
 
     private final DiscordSRV discordSRV;
     private final Predicate<MinecraftToDiscordChatConfig.Mentions> typeEnabledPredicate;
     private final Function<T, Guild> guildSupplier;
     private final Function<Guild, List<T>> loadCache;
-    private final Function<T, CachedMention> convert;
+    private final Function<T, Mention> convert;
 
     public MentionCache(
             DiscordSRV discordSRV,
             Predicate<MinecraftToDiscordChatConfig.Mentions> typeEnabledPredicate,
             Function<T, Guild> guildSupplier,
             Function<Guild, List<T>> loadCache,
-            Function<T, CachedMention> convert
+            Function<T, Mention> convert
     ) {
         this.discordSRV = discordSRV;
         this.typeEnabledPredicate = typeEnabledPredicate;
@@ -97,7 +98,7 @@ public class MentionCache<T extends ISnowflake> {
         return true;
     }
 
-    public CachedMention convert(T entity) {
+    public Mention convert(T entity) {
         return convert.apply(entity);
     }
 
@@ -105,17 +106,17 @@ public class MentionCache<T extends ISnowflake> {
         cache.remove(guildId);
     }
 
-    public Map<Long, CachedMention> getGuildCache(Guild guild) {
+    public Map<Long, Mention> getGuildCache(Guild guild) {
         return getOrCreateGuildCache(guild);
     }
 
-    public CachedMention get(Guild guild, long entityId) {
+    public Mention get(Guild guild, long entityId) {
         return getGuildCache(guild).get(entityId);
     }
 
-    private Map<Long, CachedMention> getOrCreateGuildCache(Guild guild) {
+    private Map<Long, Mention> getOrCreateGuildCache(Guild guild) {
         return cache.computeIfAbsent(guild.getIdLong(), key -> {
-            Map<Long, CachedMention> mentions = new LinkedHashMap<>();
+            Map<Long, Mention> mentions = new LinkedHashMap<>();
             for (T entity : loadCache.apply(guild)) {
                 mentions.put(entity.getIdLong(), convert(entity));
             }
@@ -123,7 +124,7 @@ public class MentionCache<T extends ISnowflake> {
         });
     }
 
-    private void alterCache(T entity, Consumer<Map<Long, CachedMention>> guildCacheAlterer) {
+    private void alterCache(T entity, Consumer<Map<Long, Mention>> guildCacheAlterer) {
         Guild guild = guildSupplier.apply(entity);
         if (shouldNotCache(guild.getIdLong())) {
             return;
@@ -137,7 +138,7 @@ public class MentionCache<T extends ISnowflake> {
     }
 
     public void remove(Guild guild, long entityId) {
-        Map<Long, CachedMention> guildCache = cache.get(guild.getIdLong());
+        Map<Long, Mention> guildCache = cache.get(guild.getIdLong());
         if (guildCache == null) {
             return;
         }

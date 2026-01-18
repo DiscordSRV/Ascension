@@ -100,9 +100,8 @@ public class MinecraftToDiscordChatConfig implements IMessageConfig {
         public boolean channels = true;
 
         @Comment("If user mentions should be rendered on Discord\n"
-                + "The player needs one of the following permissions to trigger notifications:\n"
-                + "- discordsrv.mention.user.<user id> (to mention a specific user)\n"
-                + "- discordsrv.mention.user.all (to mention ALL user)\n"
+                + "The player needs the following permissions to trigger notifications:\n"
+                + "- discordsrv.mention.user.all (to mention ALL users)\n"
                 + "Requires the \"Server Members Intent\"")
         public boolean users = true;
 

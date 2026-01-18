@@ -18,6 +18,7 @@
 
 package com.discordsrv.common.feature.linking.impl;
 
+import com.discordsrv.api.eventbus.EventPriorities;
 import com.discordsrv.api.eventbus.Subscribe;
 import com.discordsrv.api.task.Task;
 import com.discordsrv.common.DiscordSRV;
@@ -149,13 +150,12 @@ public abstract class CachedLinkProvider implements LinkProvider {
         return Optional.ofNullable(value == null || value == UNLINKED ? null : value);
     }
 
-    @Subscribe
+    @Subscribe(priority = EventPriorities.EARLIEST)
     public void onPlayerConnected(PlayerConnectedEvent event) {
         // Cache logged in players
         UUID uuid = event.player().uniqueId();
         linkingAllowed.add(uuid);
         playerToUser.get(uuid);
-        linkingAllowed.remove(uuid);
     }
 
     protected void addToCache(AccountLink link) {

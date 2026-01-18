@@ -43,6 +43,9 @@ public class MentionsConfig {
                     + "@%user_effective_name%"
     );
 
+    public String everyoneRoleFormat = "[color:#5865F2]@everyone";
+    public String hereRoleFormat = "[color:#5865F2]@everyone";
+
     public String messageUrl = "[hover:show_text:Click to go to message][click:open_url:%jump_url%][color:#5865F2]#%channel_name% > ...";
 
     @Comment("How should custom emoji be shown in-game:\n"
