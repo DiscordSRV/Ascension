@@ -103,6 +103,11 @@ public abstract class BukkitPlayer extends BukkitCommandSender implements IPlaye
     }
 
     @Override
+    public boolean isFirstJoin() {
+        return !player.hasPlayedBefore();
+    }
+
+    @Override
     public @NotNull Identity identity() {
         return identity;
     }

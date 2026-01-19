@@ -42,4 +42,8 @@ public class PlayerConnectedEvent implements Event {
     public boolean joinedBeforeInitialization() {
         return joinedBeforeInitialization;
     }
+
+    public boolean firstJoin() {
+        return player.isFirstJoin();
+    }
 }

@@ -39,6 +39,9 @@ public class BanSyncConfig extends AbstractSyncConfig<BanSyncConfig, Game, Long>
     @Order(-10)
     public long serverId = 0L;
 
+    @Comment("On a player's first join to the server, prefer the Discord side for tie-breaking")
+    public boolean preferDiscordTieBreakerOnFirstJoin = true;
+
     @Comment("Role id that will be used for role related actions, if they are configured below")
     public Long bannedRoleId = 0L;
 
@@ -80,8 +83,8 @@ public class BanSyncConfig extends AbstractSyncConfig<BanSyncConfig, Game, Long>
                 + "ban:     A ban/unban on the Discord Server\n"
                 + "role:    Addition/removal of the banned role (specified above) to the user on Discord\n"
                 + "either:  Either of the above\n"
-                + "BEWARE: Settings of 'role' or 'either' can be exploited to remove bans from players if %1 is set to 'discord'")
-        @Constants.Comment("tie-breaker")
+                + "BEWARE: Settings of 'role' or 'either' can be exploited to remove bans from players if %1 is set to 'discord', and %2 isn't set to `true`")
+        @Constants.Comment({"tie-breaker", "prefer-discord-on-first-join"})
         public BanSyncDiscordTrigger trigger = BanSyncDiscordTrigger.BAN;
 
         @Comment("The reason used when creating new bans in Minecraft")

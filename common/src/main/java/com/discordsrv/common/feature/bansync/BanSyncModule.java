@@ -65,6 +65,10 @@ import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
+import com.discordsrv.common.abstraction.sync.enums.SyncSide;
+import com.discordsrv.common.abstraction.sync.cause.GenericSyncCauses;
+import com.discordsrv.api.events.linking.AccountLinkedEvent;
+import com.discordsrv.common.events.player.PlayerConnectedEvent;
 
 public class BanSyncModule extends AbstractSyncModule<DiscordSRV, BanSyncConfig, Game, Long, Punishment> {
 
@@ -156,6 +160,14 @@ public class BanSyncModule extends AbstractSyncModule<DiscordSRV, BanSyncConfig,
             );
             events.remove(userId);
         }
+    }
+
+    // Make sure players can't bypass bans by joining the server while banned on Discord
+    @Subscribe
+    @Override
+    public void onPlayerConnected(PlayerConnectedEvent event) {
+        resyncAll(GenericSyncCauses.GAME_JOIN, Someone.of(discordSRV, event.player()), config -> config.preferDiscordTieBreakerOnFirstJoin && event.firstJoin() ? SyncSide.DISCORD : config.tieBreakers.join);
+
     }
 
     @Subscribe
