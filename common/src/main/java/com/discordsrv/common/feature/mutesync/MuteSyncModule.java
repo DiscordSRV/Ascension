@@ -225,7 +225,7 @@ public class MuteSyncModule extends AbstractPunishmentSyncModule<MuteSyncConfig>
     private Task<@Nullable Punishment> getMutedRole(Guild guild, UserSnowflake snowflake, MuteSyncConfig config) {
         return discordSRV.discordAPI().toTask(guild.retrieveMember(snowflake))
                 .thenApply(member -> {
-                        if (shouldHandleDiscordRoleChanges(member.getRoles().stream().map(ISnowflake::getIdLong))){
+                    if (shouldHandleDiscordRoleChanges(member.getRoles().stream().map(ISnowflake::getIdLong))){
                         return new Punishment(null, null, null);
                     }
 

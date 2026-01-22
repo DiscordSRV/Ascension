@@ -168,8 +168,8 @@ public class EssentialsXIntegration
 
         MuteSyncModule module = discordSRV.getModule(MuteSyncModule.class);
         if (module != null) {
-            Punishment punishment = isMuted ? getMute(event.getAffected().getUUID()).join() : null;
-            module.notifyMuted(player, punishment);
+            getMute(event.getAffected().getUUID())
+                    .whenComplete((mute, e) -> module.notifyMuted(player, isMuted ? mute : null));
         }
     }
 
