@@ -107,10 +107,14 @@ transformProductionNeoForge {
     dependsOn transformProductionFabric
     input = transformProductionFabric.archiveFile
 
-    archiveBaseName = "DiscordSRV-${loader.capitalize()}-${project.property("minecraft.version_range_label")}"
-    archiveClassifier = project.parent.jar.archiveClassifier
+    if (loader == "neoforge") {
+        archiveFileName = 'neoforge.jarinjar'
+    } else {
+        archiveBaseName = "DiscordSRV-${loader.capitalize()}-${project.property("minecraft.version_range_label")}"
+        archiveClassifier = project.parent.jar.archiveClassifier
 
-    finalizedBy copyRemappedJar
+        finalizedBy copyRemappedJar
+    }
 }
 
 spotless {

@@ -1,0 +1,74 @@
+import com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar
+
+plugins {
+    id 'net.neoforged.moddev' version '2.0.134'
+}
+
+apply from: rootProject.file('buildscript/relocations.gradle')
+apply from: rootProject.file('buildscript/final.gradle')
+
+configurations.configureEach {
+    resolutionStrategy {
+        force "org.slf4j:slf4j-api:1.7.36" // Introduced by Minecraft itself
+    }
+}
+
+java {
+    targetCompatibility = JavaVersion.VERSION_21
+    sourceCompatibility = JavaVersion.VERSION_21
+}
+
+repositories {
+    mavenLocal()
+}
+
+neoForge {
+    version = "21.11.17-beta"
+}
+
+shadowJar {
+    setProperty("zip64", true)
+}
+
+gradle.projectsEvaluated {
+    def modded = rootProject.findProject('modded')
+    if (!modded) {
+        logger.warn("':modded' project not found; skipping neoforge dynamic includes")
+        return
+    }
+
+    def matches = modded.subprojects.findAll { it.name?.endsWith('-neoforge') }
+    if (matches.isEmpty()) {
+        logger.lifecycle("No modded *-neoforge subprojects found; nothing to bundle into neoforge")
+        return
+    }
+
+    matches.each { neoforgeProject ->
+        def taskName = "shadowJar${neoforgeProject.name.replaceAll(/[^A-Za-z0-9_]/, '_')}"
+
+        def neoforgeVersionShadowJar = tasks.register(taskName, ShadowJar) { sj ->
+//            mergeServiceFiles()
+            apply from: rootProject.file('buildscript/relocations.gradle')
+
+            archiveBaseName = "DiscordSRV-${neoforgeProject.property('loom.platform').capitalize()}-${neoforgeProject.property('minecraft.version_range_label')}"
+            archiveClassifier = jar.archiveClassifier
+
+            dependsOn("${neoforgeProject.path}:transformProductionNeoForge")
+            from neoforgeProject.tasks.named("transformProductionNeoForge").get().archiveFile
+        }
+
+        tasks.named('assemble') { it.dependsOn(neoforgeVersionShadowJar) }
+    }
+}
+
+dependencies {
+    // API
+    annotationProcessor project(':api')
+    implementation project(':common:common-api')
+
+    // Common
+    implementation project(':common')
+
+    // DependencyDownload
+    shadow(libs.mcdependencydownload.neoforge.loader)
+}

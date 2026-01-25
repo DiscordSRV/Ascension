@@ -26,7 +26,12 @@ import dev.vankka.dependencydownload.classpath.ClasspathAppender;
 import net.minecraft.server.MinecraftServer;
 import org.apache.logging.log4j.LogManager;
 
+import java.io.IOException;
+import java.nio.file.Path;
+import java.util.Collections;
+
 //? if fabric {
+import dev.vankka.dependencydownload.classpath.ClasspathAppender;
 import net.fabricmc.api.DedicatedServerModInitializer;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents;
 import net.fabricmc.loader.api.FabricLoader;
@@ -35,7 +40,10 @@ import net.fabricmc.loader.impl.FabricLoaderImpl;
 //?}
 
 //? if neoforge {
-/*import net.neoforged.bus.api.SubscribeEvent;
+/*import dev.vankka.dependencydownload.jarinjar.classloader.JarInJarClassLoader;
+import dev.vankka.mcdependencydownload.neoforge.bootstrap.NeoforgeBootstrap;
+import net.neoforged.bus.api.SubscribeEvent;
+import net.neoforged.fml.ModContainer;
 import net.neoforged.fml.common.Mod;
 import net.neoforged.fml.loading.FMLConfig;
 import net.neoforged.fml.loading.FMLLoader;
@@ -53,31 +61,25 @@ import java.util.Optional;
 public class DiscordSRVModdedBootstrap implements DedicatedServerModInitializer, IBootstrap {
 //?}
 //? if neoforge {
-/*@Mod(value = "discordsrv")
-public class DiscordSRVModdedBootstrap implements IBootstrap {
+/*public class DiscordSRVModdedBootstrap extends NeoforgeBootstrap implements IBootstrap {
 *///?}
     private final static String DEPENDENCIES_RUNTIME = /*$ dependencies_file*/"dependencies/runtimeDownload-1.21.11-fabric.txt";
 
     private final Logger logger;
 
-    private final ClasspathAppender classpathAppender;
     private final LifecycleManager lifecycleManager;
     private final Path dataDirectory;
     private MinecraftServer minecraftServer;
     private ModdedDiscordSRV discordSRV;
 
+    //? if fabric {
+    private final ClasspathAppender classpathAppender;
     public DiscordSRVModdedBootstrap() {
         this.logger = new Log4JLoggerImpl(LogManager.getLogger("DiscordSRV"));
 
-        //? if fabric {
         this.classpathAppender = new dev.vankka.mcdependencydownload.fabric.classpath.FabricClasspathAppender();
         this.dataDirectory = FabricLoader.getInstance().getConfigDir().resolve("DiscordSRV");
-        //?}
 
-        //? if neoforge {
-        /*this.classpathAppender = new dev.vankka.dependencydownload.classloader.IsolatedClassLoader();
-        this.dataDirectory = Path.of(FMLConfig.defaultConfigPath(), "../config/discordsrv");
-        *///?}
         try {
             this.lifecycleManager = new LifecycleManager(
                     this.logger,
@@ -89,10 +91,31 @@ public class DiscordSRVModdedBootstrap implements IBootstrap {
             throw new RuntimeException(e);
         }
         this.minecraftServer = null;
-
-        //? if neoforge
-        //NeoForge.EVENT_BUS.register(this);
     }
+    //?}
+
+    //? if neoforge {
+    /*public DiscordSRVModdedBootstrap(JarInJarClassLoader classLoader, ModContainer container) {
+        super(classLoader, container);
+        this.logger = new Log4JLoggerImpl(LogManager.getLogger("DiscordSRV"));
+
+        this.dataDirectory = Path.of(FMLConfig.defaultConfigPath(), "../config/discordsrv");
+
+        try {
+            this.lifecycleManager = new LifecycleManager(
+                    this.logger,
+                    dataDirectory,
+                    Collections.singletonList(DEPENDENCIES_RUNTIME),
+                    getClasspathAppender()
+            );
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+        this.minecraftServer = null;
+
+        NeoForge.EVENT_BUS.register(this);
+    }
+    *///?}
 
     //? if fabric {
     @Override
@@ -147,7 +170,11 @@ public class DiscordSRVModdedBootstrap implements IBootstrap {
 
     @Override
     public ClasspathAppender classpathAppender() {
+        //? if fabric {
         return classpathAppender;
+        //? } else if neoforge {
+        /*return getClasspathAppender();
+        *///?}
     }
 
     @Override
