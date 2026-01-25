@@ -26,7 +26,7 @@ import org.jetbrains.annotations.NotNull;
 
 import java.net.URL;
 
-@Mod("DiscordSRV")
+@Mod("discordsrv")
 public class DiscordSRVNeoForgeLoader extends NeoforgeLoader {
 
     public DiscordSRVNeoForgeLoader(IEventBus eventBus, ModContainer modContainer) {

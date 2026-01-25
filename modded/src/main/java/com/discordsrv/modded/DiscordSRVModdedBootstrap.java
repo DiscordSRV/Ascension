@@ -95,8 +95,8 @@ public class DiscordSRVModdedBootstrap implements DedicatedServerModInitializer,
     //?}
 
     //? if neoforge {
-    /*public DiscordSRVModdedBootstrap(JarInJarClassLoader classLoader, ModContainer container) {
-        super(classLoader, container);
+    /*public DiscordSRVModdedBootstrap(JarInJarClassLoader classLoader) {
+        super(classLoader);
         this.logger = new Log4JLoggerImpl(LogManager.getLogger("DiscordSRV"));
 
         this.dataDirectory = Path.of(FMLConfig.defaultConfigPath(), "../config/discordsrv");

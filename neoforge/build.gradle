@@ -44,17 +44,41 @@ gradle.projectsEvaluated {
     }
 
     matches.each { neoforgeProject ->
-        def taskName = "shadowJar${neoforgeProject.name.replaceAll(/[^A-Za-z0-9_]/, '_')}"
+        def taskName = "${neoforgeProject.name.split("-")[0]}-shadowJar"
 
         def neoforgeVersionShadowJar = tasks.register(taskName, ShadowJar) { sj ->
-//            mergeServiceFiles()
-            apply from: rootProject.file('buildscript/relocations.gradle')
+            sj.setProperty("zip64", true)
+            sj.configurations = [project.configurations.shadow]
 
-            archiveBaseName = "DiscordSRV-${neoforgeProject.property('loom.platform').capitalize()}-${neoforgeProject.property('minecraft.version_range_label')}"
-            archiveClassifier = jar.archiveClassifier
+            sj.archiveBaseName = "DiscordSRV-${neoforgeProject.property('loom.platform').capitalize()}-${neoforgeProject.property('minecraft.version_range_label')}"
+            sj.archiveClassifier = jar.archiveClassifier
 
-            dependsOn("${neoforgeProject.path}:transformProductionNeoForge")
-            from neoforgeProject.tasks.named("transformProductionNeoForge").get().archiveFile
+            sj.from({
+                def nf = rootProject.findProject('neoforge')
+                if (nf != null && nf.hasProperty('sourceSets')) {
+                    return nf.sourceSets.main.output
+                }
+                return []
+            })
+
+            sj.from({
+                def processed = file("${neoforgeProject.buildDir}/resources/main")
+                if (processed.exists()) {
+                    return files(processed)
+                }
+            }) {
+                into ''
+            }
+
+            sj.dependsOn("${neoforgeProject.path}:transformProductionNeoForge")
+            sj.from({
+                def inFile = file("${neoforgeProject.projectDir}/build/libs/neoforge.jarinjar")
+                if (inFile.exists()) return files(inFile)
+                return []
+            }) {
+                into '/'
+                rename { 'neoforge.jarinjar' }
+            }
         }
 
         tasks.named('assemble') { it.dependsOn(neoforgeVersionShadowJar) }

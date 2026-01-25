@@ -1,5 +1,5 @@
 plugins {
-    id("dev.kikugie.stonecutter") version "0.8.2"
+    id("dev.kikugie.stonecutter") version "0.8.3"
     alias(libs.plugins.arch.loom)
     alias(libs.plugins.arch.plugin)
 }
