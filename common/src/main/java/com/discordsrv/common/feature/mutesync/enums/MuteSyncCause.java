@@ -16,10 +16,26 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package com.discordsrv.common.abstraction.sync.enums;
+package com.discordsrv.common.feature.mutesync.enums;
 
-public enum BanSyncDiscordTrigger {
-    BAN,
-    ROLE,
-    EITHER
+import com.discordsrv.common.abstraction.sync.cause.ISyncCause;
+
+public enum MuteSyncCause implements ISyncCause {
+
+    PLAYER_MUTED("Player muted"),
+    MUTED_ROLE_CHANGED("Muted role changed"),
+    TIMEOUT_ADDED("Timed out on Discord"),
+    TIMEOUT_REMOVED("Untimed out on Discord")
+    ;
+
+    private final String prettyCause;
+
+    MuteSyncCause(String prettyCause) {
+        this.prettyCause = prettyCause;
+    }
+
+    @Override
+    public String toString() {
+        return prettyCause;
+    }
 }

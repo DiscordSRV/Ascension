@@ -16,7 +16,7 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package com.discordsrv.common.abstraction.sync.enums;
+package com.discordsrv.common.abstraction.sync.enums.bans;
 
 public enum BanSyncDiscordAction {
     BAN,
