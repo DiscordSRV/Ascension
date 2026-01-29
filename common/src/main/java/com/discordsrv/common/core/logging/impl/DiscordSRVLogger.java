@@ -58,7 +58,7 @@ public class DiscordSRVLogger implements Logger {
     private static final String DAY_LOG_LINE_FORMAT = "[%s] %s";
     private static final String LOG_FILE_NAME_FORMAT = "%s-%s.log";
 
-    private static final Set<String> DISABLE_DEBUG_BY_DEFAULT = new HashSet<>(DependencyLoggingHandler.LOGGER_MAPPINGS.values());
+    private static final Set<String> DEPENDENCY_LOGGERS = new HashSet<>(DependencyLoggingHandler.LOGGER_MAPPINGS.values());
 
     private final DiscordSRV discordSRV;
 
@@ -172,7 +172,8 @@ public class DiscordSRVLogger implements Logger {
         MainConfig config = discordSRV.config();
         DebugConfig debugConfig = config != null ? config.debug : null;
 
-        if (logLevel == LogLevel.TRACE || (loggerName != null && logLevel == LogLevel.DEBUG && DISABLE_DEBUG_BY_DEFAULT.contains(loggerName))) {
+        boolean dependencyLogger = DEPENDENCY_LOGGERS.contains(loggerName);
+        if (logLevel == LogLevel.TRACE || (loggerName != null && logLevel == LogLevel.DEBUG && dependencyLogger)) {
             if (loggerName == null
                     || debugConfig == null
                     || debugConfig.additionalLevels == null
@@ -185,7 +186,7 @@ public class DiscordSRVLogger implements Logger {
         boolean logToConsole = debugConfig != null && debugConfig.logToConsole;
 
         if (!debugOrTrace || logToConsole) {
-            String consoleMessage = message;
+            String consoleMessage = (dependencyLogger ? "[" + loggerName + "] " : "") + message;
             LogLevel consoleLevel = logLevel;
             if (debugOrTrace) {
                 // Normally DEBUG/TRACE logging isn't enabled, so we convert it to INFO and add the level

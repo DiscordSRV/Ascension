@@ -122,6 +122,6 @@ public class DependencyLoggingHandler implements LogAppender {
             return;
         }
 
-        discordSRV.logger().log(null, logLevel, "[" + name + "]" + (message != null ? " " + message : ""), throwable);
+        discordSRV.logger().log(name, logLevel, message, throwable);
     }
 }
