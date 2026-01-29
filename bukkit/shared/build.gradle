@@ -3,6 +3,9 @@ import dev.vankka.dependencydownload.task.GenerateDependencyDownloadResourceTask
 repositories {
     maven { url = 'https://nexus.scarsz.me/content/groups/public/' }
     maven { url = 'https://repo.essentialsx.net/releases/' }
+    maven { url = 'https://jitpack.io' }
+    maven { url = 'https://mvn-repo.arim.space/affero-gpl3/' }
+    maven { url = 'https://mvn-repo.arim.space/lesser-gpl3/' }
 }
 
 configurations {
@@ -42,6 +45,10 @@ dependencies {
     // Integrations
     compileOnly(libs.vaultapi)
     compileOnly(libs.placeholderapi.bukkit)
+
+    // Punishments Integrations
+    compileOnly(libs.libertybans)
+    compileOnly(libs.advancedban)
 
     // Chat Integrations
     compileOnly(libs.chatty)

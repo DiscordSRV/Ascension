@@ -132,6 +132,8 @@ dependencyResolutionManagement {
             library('mcmmo', 'com.gmail.nossr50', 'mcmmo').version('2.1.220')
             library('griefprevention', 'me.ryanhamshire', 'GriefPrevention').version('16.18.1')
             library('essentialsx', 'net.essentialsx', 'EssentialsX').version('2.20.1')
+            library('libertybans', 'space.arim.libertybans', 'bans-api').version("1.1.2")
+            library('advancedban', 'com.github.DevLeoko', 'AdvancedBan').version("v2.3.0")
 
             // Logging
             library('slf4j-api', 'org.slf4j', 'slf4j-api').version {
