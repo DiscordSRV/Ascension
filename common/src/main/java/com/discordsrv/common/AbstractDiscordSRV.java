@@ -505,8 +505,8 @@ public abstract class AbstractDiscordSRV<
     // Module
 
     @Override
-    public <T extends Module> T getModule(Class<T> moduleType) {
-        return moduleManager.getModule(moduleType);
+    public @NotNull <T extends Module> List<T> getModules(Class<T> moduleType, boolean includeDisabled) {
+        return moduleManager.getModules(moduleType, includeDisabled);
     }
 
     @Override

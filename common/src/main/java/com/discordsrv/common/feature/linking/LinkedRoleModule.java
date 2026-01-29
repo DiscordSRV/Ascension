@@ -42,8 +42,13 @@ public class LinkedRoleModule extends AbstractSyncModule<DiscordSRV, LinkedRoleC
     }
 
     @Override
-    protected String syncName() {
+    public String syncName() {
         return "Linked Role";
+    }
+
+    @Override
+    public String syncCommand() {
+        return "linkedrole";
     }
 
     @Override

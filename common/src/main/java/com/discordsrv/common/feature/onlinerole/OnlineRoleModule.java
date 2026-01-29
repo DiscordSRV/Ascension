@@ -61,8 +61,13 @@ public class OnlineRoleModule extends AbstractSyncModule<DiscordSRV, OnlineRoleC
     }
 
     @Override
-    protected String syncName() {
+    public String syncName() {
         return "Online Role";
+    }
+
+    @Override
+    public String syncCommand() {
+        return "onlinerole";
     }
 
     @Override

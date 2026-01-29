@@ -83,6 +83,11 @@ public class BanSyncModule extends AbstractPunishmentSyncModule<BanSyncConfig> {
     }
 
     @Override
+    public String syncCommand() {
+        return "ban";
+    }
+
+    @Override
     public String logFileName() {
         return "bansync";
     }

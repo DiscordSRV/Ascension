@@ -33,12 +33,7 @@ import com.discordsrv.common.command.combined.abstraction.CommandExecution;
 import com.discordsrv.common.command.combined.abstraction.GameCommandExecution;
 import com.discordsrv.common.command.combined.abstraction.Text;
 import com.discordsrv.common.command.game.abstraction.command.GameCommand;
-import com.discordsrv.common.feature.bansync.BanSyncModule;
 import com.discordsrv.common.feature.groupsync.GroupSyncModule;
-import com.discordsrv.common.feature.linking.LinkedRoleModule;
-import com.discordsrv.common.feature.mutesync.MuteSyncModule;
-import com.discordsrv.common.feature.nicknamesync.NicknameSyncModule;
-import com.discordsrv.common.feature.onlinerole.OnlineRoleModule;
 import com.discordsrv.common.helper.Someone;
 import com.discordsrv.common.permission.game.Permissions;
 import net.kyori.adventure.text.format.NamedTextColor;
@@ -47,7 +42,6 @@ import org.jetbrains.annotations.NotNull;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 public class ResyncCommand extends CombinedCommand {
 
@@ -83,18 +77,16 @@ public class ResyncCommand extends CombinedCommand {
     public static DiscordCommand getDiscord(DiscordSRV discordSRV) {
         if (DISCORD == null) {
             ResyncCommand command = getInstance(discordSRV);
+
+            CommandOption.Builder optionBuilder = CommandOption.builder(CommandOption.Type.STRING, TYPE_LABEL, "")
+                    .addDescriptionTranslations(discordSRV.getAllTranslations(config -> config.resyncSyncParameterDescription.discord().content()));
+            for (Map.Entry<String, AbstractSyncModule<?, ?, ?, ?, ?>> sync : command.modulesByCommand.entrySet()) {
+                optionBuilder.addChoice(sync.getValue().syncName(), sync.getKey());
+            }
+
             DISCORD = DiscordCommand.chatInput(IDENTIFIER, LABEL, "")
                     .addDescriptionTranslations(discordSRV.getAllTranslations(config -> config.resyncCommandDescription.discord().content()))
-                    .addOption(
-                            CommandOption.builder(CommandOption.Type.STRING, TYPE_LABEL, "The type of sync to run")
-                                    .addChoice("Group Sync", "group")
-                                    .addChoice("Ban Sync", "ban")
-                                    .addChoice("Mute Sync", "mute")
-                                    .addChoice("Nickname Sync", "nickname")
-                                    .addChoice("Online Role", "onlinerole")
-                                    .addChoice("Linked Role", "linkedrole")
-                                    .build()
-                    )
+                    .addOption(optionBuilder.build())
                     .setEventHandler(command)
                     .build();
         }
@@ -102,51 +94,43 @@ public class ResyncCommand extends CombinedCommand {
         return DISCORD;
     }
 
+    private final Map<String, AbstractSyncModule<?, ?, ?, ?, ?>> modulesByCommand;
+
     public ResyncCommand(DiscordSRV discordSRV) {
         super(discordSRV);
+        this.modulesByCommand = getModulesByCommand(discordSRV);
+    }
+
+    private static Map<String, AbstractSyncModule<?, ?, ?, ?, ?>> getModulesByCommand(DiscordSRV discordSRV) {
+        Map<String, AbstractSyncModule<?, ?, ?, ?, ?>> modulesByCommand = new HashMap<>();
+        for (AbstractSyncModule<?, ?, ?, ?, ?> module : discordSRV.getModules(AbstractSyncModule.class, true)) {
+            String command = module.syncCommand();
+            modulesByCommand.put(command, module);
+        }
+        return modulesByCommand;
     }
 
     @Override
     public List<String> suggest(CommandExecution execution, @NotNull String input) {
-        return Stream.of("ban", "mute", "group", "nickname", "onlinerole", "linkedrole")
+        return modulesByCommand.keySet().stream()
                 .filter(command -> command.toLowerCase(Locale.ROOT).startsWith(input.toLowerCase(Locale.ROOT)))
                 .collect(Collectors.toList());
     }
 
     @Override
     public void execute(CommandExecution execution) {
-        AbstractSyncModule<?, ?, ?, ?, ?> module;
-        switch (execution.getString(TYPE_LABEL)) {
-            case "group":
-                GroupSyncModule groupSyncModule = discordSRV.getModule(GroupSyncModule.class);
-                if (groupSyncModule != null && groupSyncModule.noPermissionProvider()) {
-                    execution.send(new Text("No permission provider available.").withGameColor(NamedTextColor.RED));
-                    return;
-                }
-
-                module = groupSyncModule;
-                break;
-            case "ban":
-                module = discordSRV.getModule(BanSyncModule.class);
-                break;
-            case "mute":
-                module = discordSRV.getModule(MuteSyncModule.class);
-                break;
-            case "nickname":
-                module = discordSRV.getModule(NicknameSyncModule.class);
-                break;
-            case "onlinerole":
-                module = discordSRV.getModule(OnlineRoleModule.class);
-                break;
-            case "linkedrole":
-                module = discordSRV.getModule(LinkedRoleModule.class);
-                break;
-            default:
-                execution.send(new Text("Unexpected type"));
-                return;
-        }
+        String subCommand = execution.getString(TYPE_LABEL);
+        AbstractSyncModule<?, ?, ?, ?, ?> module = modulesByCommand.get(subCommand);
         if (module == null) {
-            execution.send(new Text("Module has not initialized correctly.").withGameColor(NamedTextColor.RED));
+            execution.send(new Text("Unknown sync"));
+            return;
+        }
+        if (module.isCurrentlyDisabled()) {
+            execution.send(new Text("Sync is disabled"));
+            return;
+        }
+        if (module instanceof GroupSyncModule && ((GroupSyncModule) module).noPermissionProvider()) {
+            execution.send(new Text("No permission provider available.").withGameColor(NamedTextColor.RED));
             return;
         }
 

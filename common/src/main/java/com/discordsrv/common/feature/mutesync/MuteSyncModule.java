@@ -86,6 +86,11 @@ public class MuteSyncModule extends AbstractPunishmentSyncModule<MuteSyncConfig>
     }
 
     @Override
+    public String syncCommand() {
+        return "mute";
+    }
+
+    @Override
     public String logFileName() {
         return "mutesync";
     }
