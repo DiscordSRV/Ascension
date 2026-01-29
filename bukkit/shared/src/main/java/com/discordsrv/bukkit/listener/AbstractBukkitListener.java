@@ -18,24 +18,19 @@
 
 package com.discordsrv.bukkit.listener;
 
-import com.discordsrv.api.eventbus.Subscribe;
 import com.discordsrv.bukkit.BukkitDiscordSRV;
-import com.discordsrv.bukkit.debug.BukkitListenerTrackingModule;
-import com.discordsrv.bukkit.debug.EventObserver;
-import com.discordsrv.common.core.debug.DebugObservabilityEvent;
 import com.discordsrv.common.core.logging.Logger;
-import com.discordsrv.common.core.module.type.AbstractModule;
 import org.bukkit.event.Event;
 import org.bukkit.event.HandlerList;
 import org.bukkit.event.Listener;
-import org.bukkit.plugin.Plugin;
 import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.function.Consumer;
-import java.util.function.Function;
-
-public abstract class AbstractBukkitListener<E extends Event> extends AbstractModule<BukkitDiscordSRV> implements Listener {
+/**
+ * Helper class to catch errors to our own event bus and debugging via {@link AbstractBukkitEventObserver}.
+ * @param <E> the event type
+ */
+public abstract class AbstractBukkitListener<E extends Event> extends AbstractBukkitEventObserver implements Listener {
 
     public AbstractBukkitListener(BukkitDiscordSRV discordSRV, Logger logger) {
         super(discordSRV, logger);
@@ -70,52 +65,4 @@ public abstract class AbstractBukkitListener<E extends Event> extends AbstractMo
      */
     @ApiStatus.OverrideOnly
     protected abstract void handleEvent(@NotNull E event, Void __);
-
-    @Subscribe
-    public void onDebugObservability(DebugObservabilityEvent event) {
-        observeEvents(event.isEnable());
-    }
-
-    protected abstract void observeEvents(boolean enable);
-
-    protected final <T extends Event> EventObserver<T, Boolean> observeEvent(
-            EventObserver<T, Boolean> observer,
-            Class<T> eventClass,
-            Function<T, Boolean> cancelProperty,
-            boolean enable
-    ) {
-        if (observer != null) {
-            observer.close();
-        }
-
-        if (!enable) {
-            return null;
-        }
-
-        return new EventObserver<>(
-                discordSRV.plugin(),
-                eventClass,
-                (registeredListener, event) -> {
-                    boolean cancelled = cancelProperty.apply(event);
-                    if (!cancelled) {
-                        return;
-                    }
-
-                    Listener listener = registeredListener.getListener();
-                    Plugin plugin = registeredListener.getPlugin();
-                    logger().debug(
-                            "Event \"" + event.getClass().getName() + "\" "
-                                    + "cancelled by \"" + listener.getClass().getName() + "\" "
-                                    + "of " + plugin.getName());
-                },
-                cancelProperty
-        );
-    }
-
-    @Subscribe
-    public void onCollectHandlerList(BukkitListenerTrackingModule.CollectHandlerListEvent event) {
-        collectRelevantHandlerLists(eventClass -> event.addHandlerList(this, eventClass));
-    }
-
-    protected abstract void collectRelevantHandlerLists(Consumer<Class<?>> eventClassConsumer);
 }
