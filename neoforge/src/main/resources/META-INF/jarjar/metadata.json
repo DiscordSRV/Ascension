@@ -1,0 +1,26 @@
+{
+  "jars": [
+    {
+      "identifier": {
+        "group": "net.kyori",
+        "artifact": "adventure-platform-neoforge"
+      },
+      "version": {
+        "range": "[${ADVENTURE_VERSION},)",
+        "artifactVersion": "${ADVENTURE_VERSION}"
+      },
+      "path": "META-INF/jars/adventure-platform-neoforge-${ADVENTURE_VERSION}.jar"
+    },
+    {
+      "identifier": {
+        "group": "io.github.llamalad7",
+        "artifact": "mixinextras-neoforge"
+      },
+      "version": {
+        "range": "[0.5.2,)",
+        "artifactVersion": "0.5.2"
+      },
+      "path": "META-INF/jars/mixinextras-neoforge-0.5.2.jar"
+    }
+  ]
+}

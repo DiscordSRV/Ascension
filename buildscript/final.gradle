@@ -14,7 +14,7 @@ shadowJar {
         rename { fileName -> 'LICENSE.txt' }
     }
 
-    if (it.project.parent.name != "modded" || it.project.name != "neoforge") {
+    if (it.project.parent.name != "modded" && it.project.name != "neoforge") {
         finalizedBy copyOutput
     }
 }

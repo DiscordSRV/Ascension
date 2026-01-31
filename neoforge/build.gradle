@@ -20,10 +20,11 @@ java {
 
 repositories {
     mavenLocal()
+    maven { url = "https://maven.neoforged.net/releases" }
 }
 
 neoForge {
-    version = "21.11.17-beta"
+    version = "21.1.217"
 }
 
 shadowJar {
@@ -46,12 +47,32 @@ gradle.projectsEvaluated {
     matches.each { neoforgeProject ->
         def taskName = "${neoforgeProject.name.split("-")[0]}-shadowJar"
 
-        def neoforgeVersionShadowJar = tasks.register(taskName, ShadowJar) { sj ->
+        def neoforgeCopyShadowJar = tasks.register("${neoforgeProject.name.split("-")[0]}-copyOutput", Copy) {
+            from tasks.named(taskName).get().archiveFile
+            into rootProject.file("jars/neoforge")
+        }
+
+        // metadata.json inside /META-INF/jarjar/
+        def neoforgeResources = tasks.register("${neoforgeProject.name.split("-")[0]}-processResources", Copy) {
+            from sourceSets.main.resources.srcDirs
+            into "${neoforgeProject.projectDir}/build/processIncludeJar"
+            filesMatching('metadata.json') {
+                expand(ADVENTURE_VERSION: neoforgeProject.property('deps.adventure_platform'))
+            }
+
+            include 'metadata.json'
+            dependsOn neoforgeProject.tasks.named('processResources')
+            mustRunAfter neoforgeProject.tasks.named('processResources')
+        }
+
+        def neoforgeShadowJar = tasks.register(taskName, ShadowJar) { sj ->
             sj.setProperty("zip64", true)
             sj.configurations = [project.configurations.shadow]
+            mergeServiceFiles()
 
             sj.archiveBaseName = "DiscordSRV-${neoforgeProject.property('loom.platform').capitalize()}-${neoforgeProject.property('minecraft.version_range_label')}"
             sj.archiveClassifier = jar.archiveClassifier
+            sj.manifest = neoforgeProject.tasks.named('shadowJar').get().manifest
 
             sj.from({
                 def nf = rootProject.findProject('neoforge')
@@ -61,16 +82,33 @@ gradle.projectsEvaluated {
                 return []
             })
 
+            sj.dependsOn(
+                    "${neoforgeProject.path}:remapJar"
+            )
             sj.from({
-                def processed = file("${neoforgeProject.buildDir}/resources/main")
-                if (processed.exists()) {
-                    return files(processed)
+                def inFile = file("${neoforgeProject.projectDir}/build/libs/neoforge.jarinjar")
+                if (!inFile.exists()) return []
+                return zipTree(inFile).matching {
+                    include 'dependencies/**'
+                    include 'META-INF/neoforge.mods.toml'
                 }
             }) {
-                into ''
+                into '/'
             }
 
-            sj.dependsOn("${neoforgeProject.path}:transformProductionNeoForge")
+            sj.from({
+                def includeJarDir = file("${neoforgeProject.projectDir}/build/processIncludeJar")
+                if (includeJarDir.exists()) return includeJarDir
+                return []
+            }) {
+                into '/META-INF/jars'
+            }
+
+            // META-INF/jarjar/metadata.json
+            sj.from(neoforgeResources) {
+                into '/META-INF/jarjar'
+            }
+
             sj.from({
                 def inFile = file("${neoforgeProject.projectDir}/build/libs/neoforge.jarinjar")
                 if (inFile.exists()) return files(inFile)
@@ -79,20 +117,28 @@ gradle.projectsEvaluated {
                 into '/'
                 rename { 'neoforge.jarinjar' }
             }
+
+            tasks.shadowJar.relocators.each { relocator -> {
+                sj.relocate(relocator)
+            }}
+
+            finalizedBy neoforgeCopyShadowJar
         }
 
-        tasks.named('assemble') { it.dependsOn(neoforgeVersionShadowJar) }
+        tasks.named('assemble') { it.dependsOn(neoforgeShadowJar) }
     }
 }
 
 dependencies {
     // API
     annotationProcessor project(':api')
-    implementation project(':common:common-api')
+    shadow project(':common:common-api')
 
     // Common
-    implementation project(':common')
+    compileOnly project(path: ':common', configuration: 'runtimeElements')
 
     // DependencyDownload
-    shadow(libs.mcdependencydownload.neoforge.loader)
+    shadow(libs.mcdependencydownload.neoforge.loader) {
+        exclude group: 'net.neoforged.accesstransformer', module: 'modlauncher'
+    }
 }
