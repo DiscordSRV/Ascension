@@ -31,6 +31,16 @@ shadowJar {
     setProperty("zip64", true)
 }
 
+Configuration shade = configurations.create('shade')
+configurations.compileOnly {
+    extendsFrom configurations.shade
+}
+
+dependencies {
+    // DependencyDownload
+    add('shade', libs.mcdependencydownload.neoforge.loader)
+}
+
 gradle.projectsEvaluated {
     def modded = rootProject.findProject('modded')
     if (!modded) {
@@ -67,7 +77,7 @@ gradle.projectsEvaluated {
 
         def neoforgeShadowJar = tasks.register(taskName, ShadowJar) { sj ->
             sj.setProperty("zip64", true)
-            sj.configurations = [project.configurations.shadow]
+            sj.configurations = [shade]
             mergeServiceFiles()
 
             sj.archiveBaseName = "DiscordSRV-${neoforgeProject.property('loom.platform').capitalize()}-${neoforgeProject.property('minecraft.version_range_label')}"
@@ -82,8 +92,21 @@ gradle.projectsEvaluated {
                 return []
             })
 
+            sj.dependencies {
+                include(dependency('me.lucko:jar-relocator:.*'))
+                include(dependency('org.ow2.asm:.*'))
+                include(dependency('dev.vankka:dependencydownload-common:2.0.0'))
+                include(dependency('dev.vankka:dependencydownload-jarinjar-bootstrap:2.0.0'))
+                include(dependency('dev.vankka:dependencydownload-jarinjar-common:2.0.0'))
+                include(dependency('dev.vankka:dependencydownload-jarinjar-loader:2.0.0'))
+                include(dependency('dev.vankka:dependencydownload-runtime:2.0.0'))
+                include(dependency('dev.vankka:minecraftdependencydownload-common:1.0.1-SNAPSHOT'))
+                include(dependency('dev.vankka:minecraftdependencydownload-neoforge:1.0.1-SNAPSHOT'))
+                include(dependency('dev.vankka:minecraftdependencydownload-neoforge-loader:1.0.1-SNAPSHOT'))
+            }
+
             sj.dependsOn(
-                    "${neoforgeProject.path}:remapJar"
+                    "${neoforgeProject.path}:shadowJar"
             )
             sj.from({
                 def inFile = file("${neoforgeProject.projectDir}/build/libs/neoforge.jarinjar")
@@ -95,19 +118,19 @@ gradle.projectsEvaluated {
             }) {
                 into '/'
             }
-
-            sj.from({
-                def includeJarDir = file("${neoforgeProject.projectDir}/build/processIncludeJar")
-                if (includeJarDir.exists()) return includeJarDir
-                return []
-            }) {
-                into '/META-INF/jars'
-            }
-
-            // META-INF/jarjar/metadata.json
-            sj.from(neoforgeResources) {
-                into '/META-INF/jarjar'
-            }
+//
+//            sj.from({
+//                def includeJarDir = file("${neoforgeProject.projectDir}/build/processIncludeJar")
+//                if (includeJarDir.exists()) return includeJarDir
+//                return []
+//            }) {
+//                into '/META-INF/jars'
+//            }
+//
+//            // META-INF/jarjar/metadata.json
+//            sj.from(neoforgeResources) {
+//                into '/META-INF/jarjar'
+//            }
 
             sj.from({
                 def inFile = file("${neoforgeProject.projectDir}/build/libs/neoforge.jarinjar")
@@ -126,19 +149,5 @@ gradle.projectsEvaluated {
         }
 
         tasks.named('assemble') { it.dependsOn(neoforgeShadowJar) }
-    }
-}
-
-dependencies {
-    // API
-    annotationProcessor project(':api')
-    shadow project(':common:common-api')
-
-    // Common
-    compileOnly project(path: ':common', configuration: 'runtimeElements')
-
-    // DependencyDownload
-    shadow(libs.mcdependencydownload.neoforge.loader) {
-        exclude group: 'net.neoforged.accesstransformer', module: 'modlauncher'
     }
 }
