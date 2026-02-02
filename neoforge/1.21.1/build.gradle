@@ -86,8 +86,8 @@ dependencies {
     include(modImplementation("io.github.llamalad7:mixinextras-neoforge:0.5.2"))
 
     // Adventure
-    include(modImplementation(libs.adventure.api))
-    include(modImplementation(libs.kyori.ansi))
+    include(libs.adventure.api)
+    include(libs.kyori.ansi)
 
     include(modImplementation("net.kyori:adventure-platform-neoforge:${stonecutterNode.property("deps.adventure_platform")}"){
         exclude group: 'net.kyori', module: 'ansi'
