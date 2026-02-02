@@ -16,9 +16,9 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package com.discordsrv.modded.mixin.requiredlinking;
+package com.discordsrv.neoforge.mixin.requiredlinking;
 
-import com.discordsrv.modded.requiredlinking.ModdedRequiredLinkingModule;
+import com.discordsrv.neoforge.util.MixinUtils;
 import net.minecraft.network.protocol.game.ServerboundMovePlayerPacket;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.server.network.ServerGamePacketListenerImpl;
@@ -34,16 +34,17 @@ public class ServerPlayNetworkHandlerMixin {
     @Shadow
     public ServerPlayer player;
 
-    //? if minecraft: >= 1.21.9 {
-    @Inject(method = "handleMovePlayer", at = @At(value = "INVOKE", target = "Lnet/minecraft/server/level/ServerPlayer;level()Lnet/minecraft/server/level/ServerLevel;"), cancellable = true)
-    //?} else if minecraft: >= 1.21.6 {
-    /*@Inject(method = "handleMovePlayer", at = @At(value = "INVOKE", target = "Lnet/minecraft/server/level/ServerPlayer;level()Lnet/minecraft/server/level/ServerLevel;", ordinal = 1), cancellable = true)
-    *///?} else if minecraft: >= 1.20 {
-    /*@Inject(method = "handleMovePlayer", at = @At(value = "INVOKE", target = "Lnet/minecraft/server/level/ServerPlayer;serverLevel()Lnet/minecraft/server/level/ServerLevel;"), cancellable = true)
-    *///?} else {
-    /*@Inject(method = "handleMovePlayer", at = @At(value = "INVOKE", target = "Lnet/minecraft/server/level/ServerPlayer;getLevel()Lnet/minecraft/server/level/ServerLevel;"), cancellable = true)
-    *///?}
+    //TODO: Use @Definition to represent the logical place to inject.
+//    //? if minecraft: >= 1.21.9 {
+//    @Inject(method = "handleMovePlayer", at = @At(value = "INVOKE", target = "Lnet/minecraft/server/level/ServerPlayer;level()Lnet/minecraft/server/level/ServerLevel;"), cancellable = true)
+//    //?} else if minecraft: >= 1.21.6 {
+//    /*@Inject(method = "handleMovePlayer", at = @At(value = "INVOKE", target = "Lnet/minecraft/server/level/ServerPlayer;level()Lnet/minecraft/server/level/ServerLevel;", ordinal = 1), cancellable = true)
+//    *///?
+    @Inject(method = "handleMovePlayer", at = @At(value = "INVOKE", target = "Lnet/minecraft/server/level/ServerPlayer;level()Lnet/minecraft/world/level/Level;"), cancellable = true)
     private void onPlayerMove(ServerboundMovePlayerPacket packet, CallbackInfo ci) {
-        ModdedRequiredLinkingModule.withInstance(module -> module.onPlayerMove(player, packet, ci));
+        MixinUtils.withClass("com.discordsrv.modded.requiredlinking.ModdedRequiredLinkingModule")
+                .withInstance()
+                .withMethod("onPlayerMove", player, packet, ci)
+                .execute();
     }
 }

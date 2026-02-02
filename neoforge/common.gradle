@@ -7,6 +7,7 @@ var stonecutterNode = rootProject.findProject("modded").subprojects.find { it.na
 configurations.configureEach {
     resolutionStrategy {
         force "org.slf4j:slf4j-api:1.7.36"
+        force "net.fabricmc:fabric-loader:0.14.0"
 
         force "dev.vankka:dependencydownload-runtime:2.0.0"
         force "dev.vankka:dependencydownload-jarinjar-bootstrap:2.0.0"

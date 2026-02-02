@@ -20,16 +20,28 @@ package com.discordsrv.modded.player;
 
 import com.discordsrv.common.abstraction.player.provider.AbstractPlayerProvider;
 import com.discordsrv.modded.ModdedDiscordSRV;
+import com.discordsrv.modded.module.chat.ModdedDeathModule;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.server.network.ServerGamePacketListenerImpl;
+import net.neoforged.neoforge.event.entity.player.PlayerEvent;
+
+import java.util.function.Consumer;
 
 public class ModdedPlayerProvider extends AbstractPlayerProvider<ModdedPlayer, ModdedDiscordSRV> {
 
     private boolean enabled = false;
+    private static ModdedPlayerProvider INSTANCE;
+
+    public static void withInstance(Consumer<ModdedPlayerProvider> consumer) {
+        if (INSTANCE != null && INSTANCE.enabled) {
+            consumer.accept(INSTANCE);
+        }
+    }
 
     public ModdedPlayerProvider(ModdedDiscordSRV discordSRV) {
         super(discordSRV);
+        INSTANCE = this;
 
         //? if fabric {
         // Register events here instead of in subscribe() to avoid duplicate registrations. Since there's no unregister method for events in Fabric, we need to make sure we only register once.
@@ -72,7 +84,11 @@ public class ModdedPlayerProvider extends AbstractPlayerProvider<ModdedPlayer, M
     //?}
 
     //? if neoforge {
-    /*private void onConnection(net.neoforged.neoforge.event.entity.player.PlayerEvent.PlayerLoggedInEvent event) {
+    /*private void onLoad(net.neoforged.neoforge.event.entity.player.PlayerEvent.LoadFromFile event) {
+        addPlayer((ServerPlayer) event.getEntity(), false);
+    }
+
+    private void onConnection(net.neoforged.neoforge.event.entity.player.PlayerEvent.PlayerLoggedInEvent event) {
         addPlayer((ServerPlayer) event.getEntity(), false);
     }
 

@@ -16,21 +16,28 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package com.discordsrv.modded.mixin.requiredlinking;
+package com.discordsrv.neoforge.mixin.ban;
 
-import com.discordsrv.modded.requiredlinking.ModdedRequiredLinkingModule;
+import com.discordsrv.neoforge.util.MixinUtils;
+import com.llamalad7.mixinextras.expression.Definition;
+import com.llamalad7.mixinextras.expression.Expression;
+import com.llamalad7.mixinextras.sugar.Local;
+import net.minecraft.server.commands.PardonCommand;
+import net.minecraft.server.players.UserBanList;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
-import org.spongepowered.asm.mixin.injection.Inject;
-import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
+import org.spongepowered.asm.mixin.injection.ModifyArg;
 
-@Mixin(targets = "net.minecraft.server.network.ServerConfigurationPacketListenerImpl")
-public class ServerConfigurationPacketListenerImplMixin {
+@Mixin(PardonCommand.class)
+public class PardonCommandMixin {
 
-    //? if neoforge {
-    /*@Inject(method = "startConfiguration", at = @At("HEAD"))
-    private void onClientReady(CallbackInfo ci) {
-        ModdedRequiredLinkingModule.withInstance(module -> module.onPlayerPreLogin((net.minecraft.server.network.ServerConfigurationPacketListenerImpl) (Object) this));
+    @Definition(id = "userBanList", local = @Local(type = UserBanList.class))
+    @Expression("userBanList.?(?)")
+    @ModifyArg(method = "pardonPlayers", at = @At(value = "MIXINEXTRAS:EXPRESSION", ordinal = 1))
+    private static Object pardon(Object o) {
+        MixinUtils.withClass("com.discordsrv.modded.module.ban.ModdedBanModule")
+                .withMethod("onPardon", o)
+                .execute();
+        return o;
     }
-    *///? }
 }

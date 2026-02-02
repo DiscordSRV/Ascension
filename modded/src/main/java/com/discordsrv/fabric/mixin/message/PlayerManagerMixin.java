@@ -16,7 +16,7 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package com.discordsrv.modded.mixin.message;
+package com.discordsrv.fabric.mixin.message;
 
 import com.discordsrv.modded.module.chat.ModdedChatModule;
 import com.discordsrv.modded.requiredlinking.ModdedRequiredLinkingModule;

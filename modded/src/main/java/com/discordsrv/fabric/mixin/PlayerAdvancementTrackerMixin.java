@@ -16,7 +16,7 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package com.discordsrv.modded.mixin;
+package com.discordsrv.fabric.mixin;
 
 import com.discordsrv.modded.module.chat.ModdedAdvancementModule;
 import net.minecraft.server.PlayerAdvancements;

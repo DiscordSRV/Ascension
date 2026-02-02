@@ -16,28 +16,27 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package com.discordsrv.modded.mixin.requiredlinking;
+package com.discordsrv.neoforge.mixin;
 
-import com.discordsrv.modded.requiredlinking.ModdedRequiredLinkingModule;
-import net.minecraft.network.chat.Component;
+import com.discordsrv.neoforge.util.MixinUtils;
+import net.minecraft.server.PlayerAdvancements;
+import net.minecraft.server.level.ServerPlayer;
 import org.spongepowered.asm.mixin.Mixin;
+import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
-import java.net.SocketAddress;
+@Mixin(PlayerAdvancements.class)
+public class PlayerAdvancementTrackerMixin {
 
-@Mixin(net.minecraft.server.players.PlayerList.class)
-public class PlayerManagerMixin {
+    @Shadow
+    private ServerPlayer player;
 
-    @Inject(method = "canPlayerLogin", at = @At("TAIL"), cancellable = true)
-    //? if minecraft: >= 1.21.9 {
-    public void checkCanJoin(SocketAddress address, net.minecraft.server.players.NameAndId entry, CallbackInfoReturnable<Component> cir) {
-    //?} else {
-    /*public void checkCanJoin(SocketAddress address, com.mojang.authlib.GameProfile entry, CallbackInfoReturnable<Component> cir) {
-    *///?}
-        Component kickReason = ModdedRequiredLinkingModule.canJoin(entry);
-
-        cir.setReturnValue(kickReason);
+    @Inject(method = "award", at = @At(value = "INVOKE", target = "Lnet/minecraft/server/PlayerAdvancements;markForVisibilityUpdate(Lnet/minecraft/advancements/AdvancementHolder;)V"))
+    public void onGrant(net.minecraft.advancements.AdvancementHolder advancementEntry, String criterionName, CallbackInfoReturnable<Boolean> cir) {
+        MixinUtils.withClass("com.discordsrv.modded.module.chat.ModdedAdvancementModule")
+                .withMethod("onGrant", advancementEntry, player)
+                .execute();
     }
 }

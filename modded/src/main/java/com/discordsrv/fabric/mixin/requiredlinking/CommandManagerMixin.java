@@ -16,7 +16,7 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package com.discordsrv.modded.mixin.requiredlinking;
+package com.discordsrv.fabric.mixin.requiredlinking;
 
 import com.discordsrv.modded.requiredlinking.ModdedRequiredLinkingModule;
 import net.minecraft.commands.CommandSourceStack;

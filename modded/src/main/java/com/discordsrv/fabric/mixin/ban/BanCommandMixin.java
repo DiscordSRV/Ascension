@@ -16,7 +16,7 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package com.discordsrv.modded.mixin.ban;
+package com.discordsrv.fabric.mixin.ban;
 
 import com.discordsrv.modded.module.ban.ModdedBanModule;
 import com.llamalad7.mixinextras.sugar.Local;

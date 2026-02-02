@@ -99,7 +99,6 @@ public class DiscordSRVModdedBootstrap implements DedicatedServerModInitializer,
     public DiscordSRVModdedBootstrap(JarInJarClassLoader classLoader) {
         super(classLoader);
         this.classLoader = classLoader;
-        Thread.currentThread().setContextClassLoader(classLoader);
 
         this.logger = new Log4JLoggerImpl(LogManager.getLogger("DiscordSRV"));
 

@@ -16,29 +16,28 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package com.discordsrv.modded.mixin.ban;
+package com.discordsrv.fabric.mixin.requiredlinking;
 
-import com.discordsrv.modded.module.ban.ModdedBanModule;
-import com.llamalad7.mixinextras.sugar.Local;
-import net.minecraft.commands.CommandSourceStack;
-import net.minecraft.server.commands.PardonCommand;
+import com.discordsrv.modded.requiredlinking.ModdedRequiredLinkingModule;
+import net.minecraft.network.chat.Component;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
-import java.util.Collection;
+import java.net.SocketAddress;
 
-@Mixin(PardonCommand.class)
-public class PardonCommandMixin {
+@Mixin(net.minecraft.server.players.PlayerList.class)
+public class PlayerManagerMixin {
 
+    @Inject(method = "canPlayerLogin", at = @At("TAIL"), cancellable = true)
     //? if minecraft: >= 1.21.9 {
-    @Inject(method = "pardonPlayers", at = @At(value = "INVOKE", target = "Lnet/minecraft/server/players/UserBanList;remove(Lnet/minecraft/server/players/NameAndId;)Z"))
-    private static void pardon(CommandSourceStack source, Collection<net.minecraft.server.players.NameAndId> targets, CallbackInfoReturnable<Integer> cir, @Local net.minecraft.server.players.NameAndId entry) {
+    public void checkCanJoin(SocketAddress address, net.minecraft.server.players.NameAndId entry, CallbackInfoReturnable<Component> cir) {
     //?} else {
-    /*@Inject(method = "pardonPlayers", at = @At(value = "INVOKE", target = "Lnet/minecraft/server/players/UserBanList;remove(Ljava/lang/Object;)V"))
-    private static void pardon(CommandSourceStack source, Collection<com.mojang.authlib.GameProfile> targets, CallbackInfoReturnable<Integer> cir, @Local com.mojang.authlib.GameProfile entry) {
+    /*public void checkCanJoin(SocketAddress address, com.mojang.authlib.GameProfile entry, CallbackInfoReturnable<Component> cir) {
     *///?}
-        ModdedBanModule.onPardon(entry);
+        Component kickReason = ModdedRequiredLinkingModule.canJoin(entry);
+
+        cir.setReturnValue(kickReason);
     }
 }
