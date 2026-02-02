@@ -65,11 +65,10 @@ processResources {
             minecraft_version_range: project.property("minecraft.version_range"),
 
             fabric_loader_version: project.property("deps.fabric_loader"),
-            neo_version: project.property("deps.neoforge_version")
     ]
     inputs.properties replaceProperties
 
-    filesMatching(['META-INF/neoforge.mods.toml', 'fabric.mod.json']) {
+    filesMatching(['fabric.mod.json']) {
         expand replaceProperties
     }
 
@@ -230,6 +229,6 @@ dependencies {
 
         // DependencyDownload
         compileOnly(libs.mcdependencydownload.neoforge.loader)
-        compileOnly(libs.mcdependencydownload.neoforge.bootstrap)
+        shadow(libs.mcdependencydownload.neoforge.bootstrap)
     }
 }
