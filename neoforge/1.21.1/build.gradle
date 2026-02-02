@@ -1,0 +1,96 @@
+plugins {
+    alias(libs.plugins.arch.loom)
+    alias(libs.plugins.arch.plugin)
+}
+
+apply from: rootProject.file('buildscript/relocations.gradle')
+apply from: rootProject.file('buildscript/final.gradle')
+var stonecutterNode = rootProject.findProject("modded").subprojects.find { it.name == "1.21.1-neoforge" }
+
+configurations.configureEach {
+    resolutionStrategy {
+        force "org.slf4j:slf4j-api:1.7.36" // Introduced by Minecraft itself
+        force "net.fabricmc:fabric-loader:0.14.0"
+    }
+}
+
+architectury {
+    common("neoforge", "fabric")
+}
+
+java {
+    targetCompatibility = JavaVersion.VERSION_21
+    sourceCompatibility = JavaVersion.VERSION_21
+}
+
+repositories {
+    mavenLocal()
+    maven { url = 'https://maven.neoforged.net/releases' }
+    maven { url = "https://maven.parchmentmc.org" }
+}
+
+loom {
+    silentMojangMappingsLicense()
+}
+
+tasks.register('copyNeoForge', Copy) {
+    from this.transformProductionNeoForge
+    into rootProject.file("jars/neoforge")
+}
+
+shadowJar {
+    dependsOn stonecutterNode.build
+
+    configurations = [project.configurations.shadow]
+    mergeServiceFiles()
+
+    archiveBaseName = "DiscordSRV-NeoForge-${stonecutterNode.property('minecraft.version_range_label')}"
+
+    relocate('com.discordsrv.unrelocate.', '')
+
+    from parent.sourceSets.main.output
+    from stonecutterNode.tasks.shadowJar.archiveFile
+}
+
+remapJar {
+    dependsOn shadowJar
+    inputFile = shadowJar.archiveFile
+}
+
+transformProductionFabric {
+    dependsOn remapJar
+    input = remapJar.archiveFile
+
+    archiveBaseName = "Fabric-DiscordSRV-NeoForge-${stonecutterNode.property("minecraft.version_range_label")}"
+    archiveClassifier = project.parent.jar.archiveClassifier
+}
+
+transformProductionNeoForge {
+    dependsOn remapJar
+    input = remapJar.archiveFile
+
+    archiveBaseName = "NeoForge-DiscordSRV-NeoForge-${stonecutterNode.property("minecraft.version_range_label")}"
+    archiveClassifier = project.parent.jar.archiveClassifier
+}
+
+dependencies {
+    minecraft("com.mojang:minecraft:${project.name.split("-")[1]}")
+    mappings(loom.officialMojangMappings())
+
+    // DependencyDownload
+    shadow(libs.mcdependencydownload.neoforge.loader)
+    shadow(libs.mcdependencydownload.neoforge.bootstrap)
+
+    // Mixin Extras
+    include(modImplementation(annotationProcessor("io.github.llamalad7:mixinextras-common:0.5.2")))
+    include(modImplementation("io.github.llamalad7:mixinextras-neoforge:0.5.2"))
+
+    // Adventure
+    include(modImplementation(libs.adventure.api))
+    include(modImplementation(libs.kyori.ansi))
+
+    include(modImplementation("net.kyori:adventure-platform-neoforge:${stonecutterNode.property("deps.adventure_platform")}"){
+        exclude group: 'net.kyori', module: 'ansi'
+        exclude group: 'net.kyori', module: 'adventure-api'
+    })
+}

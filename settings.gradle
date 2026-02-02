@@ -187,8 +187,10 @@ rootProject.name = 'DiscordSRV-Ascension'
         'bungee', 'bungee:loader',
         // Velocity
         'velocity',
-        // Fabric is included by stonecutter
+        // NeoForge
         'neoforge',
+        'neoforge:1.21.1', 'neoforge:1.21.4', 'neoforge:1.21.5', 'neoforge:1.21.6', 'neoforge:1.21.9', 'neoforge:1.21.11',
+        // Fabric is included by stonecutter
 ].each {
     include it
     findProject(':' + it).name = String.join('-', it.split(':'))

@@ -37,6 +37,23 @@ sourceSets {
     }
 }
 
+stonecutter {
+    var is1_21_11 = sc.eval(minecraftVersion, ">=1.21.11")
+    if (loader == "fabric") {
+        replacements.string(is1_21_11) {
+            replace("ResourceLocation", "Identifier")
+            replace(".location()", ".identifier()")
+            replace("ResourceKey::location", "ResourceKey::identifier")
+        }
+    } else if (loader == "neoforge") {
+        replacements.string(!is1_21_11) {
+            replace("Identifier", "ResourceLocation")
+            replace(".identifier()", ".location()")
+            replace("ResourceKey::identifier", "ResourceKey::location")
+        }
+    }
+}
+
 processResources {
     var replaceProperties = [
             mod_id:       "discordsrv",
@@ -63,28 +80,9 @@ shadowJar {
     configurations = [project.configurations.shadow]
     mergeServiceFiles()
 
-    if (loader == "neoforge") {
-        archiveFileName = "neoforge.jarinjar"
-    }
+    if (loader == "neoforge") archiveFileName = "neoforge.jarinjar"
 
     relocate('com.discordsrv.unrelocate.', '')
-}
-
-stonecutter {
-    var is1_21_11 = sc.eval(minecraftVersion, ">=1.21.11")
-    if (loader == "fabric") {
-        replacements.string(is1_21_11) {
-            replace("ResourceLocation", "Identifier")
-            replace(".location()", ".identifier()")
-            replace("ResourceKey::location", "ResourceKey::identifier")
-        }
-    } else if (loader == "neoforge") {
-        replacements.string(!is1_21_11) {
-            replace("Identifier", "ResourceLocation")
-            replace(".identifier()", ".location()")
-            replace("ResourceKey::identifier", "ResourceKey::location")
-        }
-    }
 }
 
 tasks.register('copyRemappedJar', Copy) {
@@ -111,6 +109,18 @@ transformProductionFabric {
     archiveClassifier = project.parent.jar.archiveClassifier
 
     finalizedBy copyRemappedJar
+}
+
+transformProductionNeoForge {
+    if (loader == "fabric") {
+        enabled = false
+        return
+    }
+
+    dependsOn remapJar
+    input = remapJar.archiveFile
+
+    archiveFileName = "neoforge.jarinjar"
 }
 
 spotless {
@@ -166,17 +176,17 @@ dependencies {
     // Common
     shadow project(':common')
 
-    include(modImplementation("net.kyori:adventure-platform-${loader}:${project.property("deps.adventure_platform")}"){
-        exclude group: 'net.kyori', module: 'ansi'
-        exclude group: 'net.kyori', module: 'adventure-api'
-    })
-
     implementation(libs.adventure.api)
-    include(libs.adventure.api)
     implementation(libs.kyori.ansi)
-    include(libs.kyori.ansi)
 
     if (loader == "fabric") {
+        include(modImplementation("net.kyori:adventure-platform-fabric:${project.property("deps.adventure_platform")}"){
+            exclude group: 'net.kyori', module: 'ansi'
+            exclude group: 'net.kyori', module: 'adventure-api'
+        })
+
+        include(libs.adventure.api)
+        include(libs.kyori.ansi)
 
         compileOnly("net.fabricmc:fabric-loader:${project.property("deps.fabric_loader")}")
         include(implementation("io.github.llamalad7:mixinextras-fabric:0.5.2"))
@@ -209,14 +219,17 @@ dependencies {
             exclude module: 'fabric-loader'
         }
     } else if (loader == "neoforge") {
+        modCompileOnly("net.kyori:adventure-platform-neoforge:${project.property("deps.adventure_platform")}"){
+            exclude group: 'net.kyori', module: 'ansi'
+            exclude group: 'net.kyori', module: 'adventure-api'
+        }
+
         neoForge("net.neoforged:neoforge:${project.property("deps.neoforge_version")}")
-        compileOnly(annotationProcessor("io.github.llamalad7:mixinextras-common:0.5.2"))
-        implementation(include("io.github.llamalad7:mixinextras-neoforge:0.5.2"))
 
         implementation("net.neoforged.fancymodloader:loader:${project.property("deps.neoforge_fml_version")}")
 
         // DependencyDownload
-        shadow(libs.mcdependencydownload.neoforge.loader)
-        shadow(libs.mcdependencydownload.neoforge.bootstrap)
+        compileOnly(libs.mcdependencydownload.neoforge.loader)
+        compileOnly(libs.mcdependencydownload.neoforge.bootstrap)
     }
 }
