@@ -18,7 +18,7 @@ configurations.configureEach {
     }
 }
 
-var minecraftVersion = sc.current.version.split("-")[0]
+var minecraftVersion = sc.current.version.toString().split("-")[0]
 var stonecutterNode = rootProject.findProject("modded").subprojects.find { it.name == project.name }
 
 architectury {
@@ -34,10 +34,6 @@ sourceSets {
     main {
         java {
             srcDirs("versions/${sc.current.version}/src/main/java", stonecutterNode.file("src/main/java").path)
-            exclude("com/discordsrv/modded/**")
-            include("com/discordsrv/modded/util/**")
-            include("com/discordsrv/modded/mixin/**")
-            include("com/discordsrv/modded/accessor/**")
         }
         resources {
             srcDirs("versions/${sc.current.version}/src/main/resources")
@@ -80,6 +76,12 @@ shadowJar {
     relocate('com.discordsrv.unrelocate.', '')
 
     from stonecutterNode.tasks.shadowJar.archiveFile
+    from(stonecutterNode.sourceSets.main.output) {
+        include("com/discordsrv/modded/util/**")
+        include("com/discordsrv/modded/mixin/**")
+        include("com/discordsrv/modded/accessor/**")
+        include("discordsrv.mixins.json")
+    }
 }
 
 remapJar {

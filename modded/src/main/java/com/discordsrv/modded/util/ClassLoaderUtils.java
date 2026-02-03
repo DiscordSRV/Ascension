@@ -50,8 +50,21 @@ public final class ClassLoaderUtils {
     public static void withClassWithInstance(String className, Consumer<Object> instanceConsumer) {
         withClass(className, cls -> {
             try {
-                Method m = cls.getMethod("withInstance", Consumer.class);
-                m.invoke(null, instanceConsumer);
+                // Try to find the method even if it's non-public. First check declared methods on the class
+                Method m = null;
+                try {
+                    m = cls.getDeclaredMethod("withInstance", Consumer.class);
+                } catch (NoSuchMethodException ignored) {
+                    try {
+                        m = cls.getMethod("withInstance", Consumer.class);
+                    } catch (NoSuchMethodException ignored2) {
+                        m = null;
+                    }
+                }
+                if (m != null) {
+                    m.setAccessible(true);
+                    m.invoke(null, instanceConsumer);
+                }
             } catch (Throwable ignored) {}
         });
     }
@@ -107,12 +120,31 @@ public final class ClassLoaderUtils {
          */
         public Optional<Method> findMethodExact(String name, Class<?>... paramTypes) {
             if (notPresent()) return Optional.empty();
-            try {
-                Method m = cls.getMethod(name, paramTypes);
-                return Optional.of(m);
-            } catch (Throwable t) {
-                return Optional.empty();
+            Class<?> current = cls;
+            while (current != null) {
+                try {
+                    Method m = current.getDeclaredMethod(name, paramTypes);
+                    return Optional.of(m);
+                } catch (NoSuchMethodException ignored) {
+                    // try a more lenient match (handle primitive vs wrapper mismatches)
+                    for (Method m : current.getDeclaredMethods()) {
+                        if (!m.getName().equals(name)) continue;
+                        Class<?>[] mParams = m.getParameterTypes();
+                        if (mParams.length != paramTypes.length) continue;
+                        boolean ok = true;
+                        for (int i = 0; i < mParams.length; i++) {
+                            Class<?> a = mParams[i];
+                            Class<?> b = paramTypes[i];
+                            if (a.isPrimitive()) a = PRIMITIVE_WRAPPERS.getOrDefault(a, a);
+                            if (b != null && b.isPrimitive()) b = PRIMITIVE_WRAPPERS.getOrDefault(b, b);
+                            if (b == null || !a.equals(b)) { ok = false; break; }
+                        }
+                        if (ok) return Optional.of(m);
+                    }
+                }
+                current = current.getSuperclass();
             }
+            return Optional.empty();
         }
 
         /**
@@ -120,22 +152,26 @@ public final class ClassLoaderUtils {
          */
         public Optional<Method> findMethodByArgs(String name, Object... args) {
             if (notPresent()) return Optional.empty();
-            Method[] methods = cls.getMethods();
-            outer: for (Method m : methods) {
-                if (!m.getName().equals(name)) continue;
-                Class<?>[] params = m.getParameterTypes();
-                if (params.length != args.length) continue;
-                for (int i = 0; i < params.length; i++) {
-                    Object arg = args[i];
-                    Class<?> paramType = params[i];
-                    if (arg == null) {
-                        if (paramType.isPrimitive()) continue outer; // cannot pass null to primitive
-                        else continue;
-                    }
-                    Class<?> argClass = arg.getClass();
-                    if (!isAssignable(paramType, argClass)) continue outer;
-                }
+            Class<?> current = cls;
+            outer: while (current != null) {
+                Method[] methods = current.getDeclaredMethods();
+                for (Method m : methods) {
+                 if (!m.getName().equals(name)) continue;
+                 Class<?>[] params = m.getParameterTypes();
+                 if (params.length != args.length) continue;
+                 for (int i = 0; i < params.length; i++) {
+                     Object arg = args[i];
+                     Class<?> paramType = params[i];
+                     if (arg == null) {
+                         if (paramType.isPrimitive()) continue outer; // cannot pass null to primitive
+                         else continue;
+                     }
+                     Class<?> argClass = arg.getClass();
+                     if (!isAssignable(paramType, argClass)) continue outer;
+                 }
                 return Optional.of(m);
+                }
+                current = current.getSuperclass();
             }
             return Optional.empty();
         }

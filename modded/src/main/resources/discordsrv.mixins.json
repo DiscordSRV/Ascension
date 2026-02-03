@@ -4,6 +4,7 @@
   "compatibilityLevel": "JAVA_17",
   "mixins": [
     "PlayerAdvancementTrackerMixin",
+    "PlayerManagerMixin",
     "ServerPlayerEntityMixin",
     "ban.BanCommandMixin",
     "ban.PardonCommandMixin",

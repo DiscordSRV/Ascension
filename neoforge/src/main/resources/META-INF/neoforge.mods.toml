@@ -47,7 +47,7 @@ Stuff
 '''
 
 # The [[mixins]] block allows you to declare your mixin config to FML so that it gets loaded.
-#[[mixins]]
+[[mixins]]
 config="discordsrv.mixins.json"
 
 # The [[accessTransformers]] block allows you to declare where your AT file is.

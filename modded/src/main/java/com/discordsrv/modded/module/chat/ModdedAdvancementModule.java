@@ -38,10 +38,6 @@ public class ModdedAdvancementModule extends AbstractModdedModule {
         super(discordSRV, new NamedLogger(discordSRV, "ADVANCEMENT_MODULE"));
         this.discordSRV = discordSRV;
         instance = this;
-
-        //? if neoforge {
-        /*net.neoforged.neoforge.common.NeoForge.EVENT_BUS.addListener((net.neoforged.neoforge.event.entity.player.AdvancementEvent event) -> onGrant(event.getAdvancement(), (ServerPlayer) event.getEntity()));
-        *///?}
     }
 
     //? if minecraft: <1.20.2 {

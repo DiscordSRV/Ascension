@@ -48,8 +48,7 @@ public class ModdedPlayerProvider extends AbstractPlayerProvider<ModdedPlayer, M
         //?}
 
         //? if neoforge {
-        /*net.neoforged.neoforge.common.NeoForge.EVENT_BUS.addListener(this::onConnection);
-        net.neoforged.neoforge.common.NeoForge.EVENT_BUS.addListener(this::onDisconnect);
+        /*net.neoforged.neoforge.common.NeoForge.EVENT_BUS.addListener(this::onDisconnect);
         *///?}
     }
 
@@ -82,25 +81,18 @@ public class ModdedPlayerProvider extends AbstractPlayerProvider<ModdedPlayer, M
     //?}
 
     //? if neoforge {
-    /*private void onLoad(net.neoforged.neoforge.event.entity.player.PlayerEvent.LoadFromFile event) {
-        addPlayer((ServerPlayer) event.getEntity(), false);
-    }
-
-    private void onConnection(net.neoforged.neoforge.event.entity.player.PlayerEvent.PlayerLoggedInEvent event) {
-        addPlayer((ServerPlayer) event.getEntity(), false);
-    }
-
-    private void onDisconnect(net.neoforged.neoforge.event.entity.player.PlayerEvent.PlayerLoggedOutEvent event) {
+    /*
+   private void onDisconnect(net.neoforged.neoforge.event.entity.player.PlayerEvent.PlayerLoggedOutEvent event) {
         removePlayer((ServerPlayer) event.getEntity());
     }
     *///?}
 
-    private void addPlayer(ServerPlayer player, boolean initial) {
+    public void addPlayer(ServerPlayer player, boolean initial) {
         if (!enabled) return;
         addPlayer(player.getUUID(), new ModdedPlayer(discordSRV, player), initial);
     }
 
-    private void removePlayer(ServerPlayer player) {
+    public void removePlayer(ServerPlayer player) {
         if (!enabled) return;
         removePlayer(player.getUUID());
     }

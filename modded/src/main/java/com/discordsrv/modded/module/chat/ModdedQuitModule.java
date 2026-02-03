@@ -41,7 +41,7 @@ public class ModdedQuitModule extends AbstractModdedModule {
         net.fabricmc.fabric.api.networking.v1.ServerPlayConnectionEvents.DISCONNECT.register(this::onDisconnect);
 
         //? if neoforge
-        //net.neoforged.neoforge.common.NeoForge.EVENT_BUS.addListener(this::onJoin);
+        //net.neoforged.neoforge.common.NeoForge.EVENT_BUS.addListener(this::onDisconnect);
     }
 
     //? if fabric {
@@ -50,7 +50,7 @@ public class ModdedQuitModule extends AbstractModdedModule {
         ServerPlayer player = trigger.player;
     //? }
     //? if neoforge {
-    /*private void onJoin(net.neoforged.neoforge.event.entity.player.PlayerEvent.PlayerLoggedInEvent trigger) {
+    /*private void onDisconnect(net.neoforged.neoforge.event.entity.player.PlayerEvent.PlayerLoggedOutEvent trigger) {
         if (!enabled) return;
 
         ServerPlayer player = (ServerPlayer) trigger.getEntity();
