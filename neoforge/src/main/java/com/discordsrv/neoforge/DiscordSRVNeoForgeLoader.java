@@ -19,7 +19,6 @@
 package com.discordsrv.neoforge;
 
 import dev.vankka.dependencydownload.jarinjar.classloader.JarInJarClassLoader;
-import dev.vankka.mcdependencydownload.neoforge.bootstrap.INeoforgeBootstrap;
 import dev.vankka.mcdependencydownload.neoforge.loader.NeoforgeLoader;
 import net.neoforged.bus.api.IEventBus;
 import net.neoforged.fml.ModContainer;
@@ -30,8 +29,6 @@ import java.net.URL;
 
 @Mod("discordsrv")
 public class DiscordSRVNeoForgeLoader extends NeoforgeLoader {
-
-    private static DiscordSRVNeoForgeLoader INSTANCE;
 
     public DiscordSRVNeoForgeLoader(IEventBus eventBus, ModContainer modContainer) {
         super(eventBus, modContainer);
@@ -55,13 +52,5 @@ public class DiscordSRVNeoForgeLoader extends NeoforgeLoader {
             throw new IllegalStateException("Jar does not contain jarinjar");
         }
         return resource;
-    }
-
-    public @NotNull JarInJarClassLoader getClassloader() {
-        return classLoader;
-    }
-
-    public static DiscordSRVNeoForgeLoader getInstance() {
-        return INSTANCE;
     }
 }

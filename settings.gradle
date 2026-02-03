@@ -15,10 +15,16 @@ plugins {
 
 stonecutter {
     kotlinController = false
+    // Common source code for both Fabric and NeoForge.
     create("modded") {
         versions "1.19.2-fabric", "1.19.3-fabric", "1.19.4-fabric", "1.20.1-fabric", "1.20.2-fabric", "1.20.4-fabric", "1.20.6-fabric", "1.21.1-fabric", "1.21.4-fabric", "1.21.5-fabric", "1.21.6-fabric", "1.21.9-fabric", "1.21.11-fabric",
                 "1.21.1-neoforge", "1.21.4-neoforge", "1.21.5-neoforge", "1.21.6-neoforge", "1.21.9-neoforge", "1.21.11-neoforge"
         vcsVersion = "1.21.11-fabric"
+    }
+    // For NeoForge Jar-in-Jar loader and mixin support
+    create("neoforge") {
+        versions "1.21.1-neoforge", "1.21.4-neoforge", "1.21.5-neoforge", "1.21.6-neoforge", "1.21.9-neoforge", "1.21.11-neoforge"
+        vcsVersion = "1.21.11-neoforge"
     }
 }
 
@@ -187,10 +193,7 @@ rootProject.name = 'DiscordSRV-Ascension'
         'bungee', 'bungee:loader',
         // Velocity
         'velocity',
-        // NeoForge
-        'neoforge',
-        'neoforge:1.21.1', 'neoforge:1.21.4', 'neoforge:1.21.5', 'neoforge:1.21.6', 'neoforge:1.21.9', 'neoforge:1.21.11',
-        // Fabric is included by stonecutter
+        // Fabric and NeoForge are included by stonecutter
 ].each {
     include it
     findProject(':' + it).name = String.join('-', it.split(':'))

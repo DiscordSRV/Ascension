@@ -1,7 +1,0 @@
-plugins {
-    alias(libs.plugins.arch.loom)
-    alias(libs.plugins.arch.plugin)
-}
-
-apply from: rootProject.file('neoforge/common.gradle')
-

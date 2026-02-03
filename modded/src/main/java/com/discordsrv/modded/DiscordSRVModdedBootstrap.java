@@ -22,6 +22,7 @@ import com.discordsrv.common.abstraction.bootstrap.IBootstrap;
 import com.discordsrv.common.abstraction.bootstrap.LifecycleManager;
 import com.discordsrv.common.core.logging.Logger;
 import com.discordsrv.common.core.logging.backend.impl.Log4JLoggerImpl;
+import com.discordsrv.modded.util.ClassLoaderUtils;
 import dev.vankka.dependencydownload.classpath.ClasspathAppender;
 import net.minecraft.server.MinecraftServer;
 import org.apache.logging.log4j.LogManager;
@@ -99,6 +100,7 @@ public class DiscordSRVModdedBootstrap implements DedicatedServerModInitializer,
     public DiscordSRVModdedBootstrap(JarInJarClassLoader classLoader) {
         super(classLoader);
         this.classLoader = classLoader;
+        ClassLoaderUtils.setClassLoader(classLoader);
 
         this.logger = new Log4JLoggerImpl(LogManager.getLogger("DiscordSRV"));
 

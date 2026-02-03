@@ -6,9 +6,114 @@ plugins {
 apply from: rootProject.file('buildscript/relocations.gradle')
 apply from: rootProject.file('buildscript/final.gradle')
 
+configurations.configureEach {
+    resolutionStrategy {
+        force "org.slf4j:slf4j-api:1.7.36"
+        force "net.fabricmc:fabric-loader:0.14.0"
+
+        force "dev.vankka:dependencydownload-runtime:2.0.0"
+        force "dev.vankka:dependencydownload-jarinjar-bootstrap:2.0.0"
+        force "dev.vankka:dependencydownload-jarinjar-loader:2.0.0"
+        force "dev.vankka:dependencydownload-jarinjar-common:2.0.0"
+    }
+}
+
+var minecraftVersion = sc.current.version.split("-")[0]
+var stonecutterNode = rootProject.findProject("modded").subprojects.find { it.name == project.name }
+
+architectury {
+    common("neoforge")
+}
+
 java {
     targetCompatibility = JavaVersion.VERSION_21
     sourceCompatibility = JavaVersion.VERSION_21
+}
+
+sourceSets {
+    main {
+        java {
+            srcDirs("versions/${sc.current.version}/src/main/java", stonecutterNode.file("src/main/java").path)
+            exclude("com/discordsrv/modded/**")
+            include("com/discordsrv/modded/util/**")
+            include("com/discordsrv/modded/mixin/**")
+            include("com/discordsrv/modded/accessor/**")
+        }
+        resources {
+            srcDirs("versions/${sc.current.version}/src/main/resources")
+        }
+    }
+}
+
+processResources {
+    var replaceProperties = [
+            mod_id:       "discordsrv",
+            mod_name:     "DiscordSRV",
+            mod_license:  "GPLv3",
+            mod_version:  version,
+
+            minecraft_version: minecraftVersion,
+            minecraft_version_range: stonecutterNode.property("minecraft.version_range"),
+
+            neo_version: stonecutterNode.property("deps.neoforge_version")
+    ]
+    inputs.properties replaceProperties
+
+    filesMatching(['META-INF/neoforge.mods.toml']) {
+        expand replaceProperties
+    }
+
+    from(rootProject.findProject("modded").file("src/main/resources")) {
+        include '*.mixins.json'
+    }
+
+    dependsOn generateRuntimeDownloadResourceForRuntimeDownloadOnly
+}
+
+tasks.register('copyNeoForge', Copy) {
+    from this.transformProductionNeoForge
+    into rootProject.file("jars/neoforge")
+}
+
+shadowJar {
+    dependsOn stonecutterNode.transformProductionNeoForge
+
+    configurations = [project.configurations.shadow]
+    mergeServiceFiles()
+
+    relocate('com.discordsrv.unrelocate.', '')
+
+    from stonecutterNode.tasks.shadowJar.archiveFile
+}
+
+remapJar {
+    dependsOn shadowJar
+    inputFile = shadowJar.archiveFile
+}
+
+transformProductionNeoForge {
+    dependsOn remapJar
+    input = remapJar.archiveFile
+
+    archiveBaseName = "DiscordSRV-NeoForge-${stonecutterNode.property('minecraft.version_range_label')}"
+    archiveClassifier = parent.jar.archiveClassifier
+
+    finalizedBy copyNeoForge
+}
+
+spotless {
+    java {
+        target("src/main/java")
+    }
+}
+
+artifacts {
+    archives remapJar
+    shadow shadowJar
+}
+
+loom {
+    silentMojangMappingsLicense()
 }
 
 repositories {
@@ -17,15 +122,24 @@ repositories {
     maven { url = "https://maven.parchmentmc.org" }
 }
 
-loom {
-    silentMojangMappingsLicense()
-}
-
 dependencies {
-    minecraft("com.mojang:minecraft:1.21.1")
+    minecraft("com.mojang:minecraft:${minecraftVersion}")
     mappings(loom.officialMojangMappings())
-    neoForge("net.neoforged:neoforge:21.1.217")
+    neoForge("net.neoforged:neoforge:${project.property("deps.neoforge_version")}")
+
+    // Mixin Extras
+    include(modImplementation("io.github.llamalad7:mixinextras-neoforge:0.5.2"))
+
+    // Adventure
+    include(libs.adventure.api)
+    include(libs.kyori.ansi)
+
+    include(modImplementation("net.kyori:adventure-platform-neoforge:${project.property("deps.adventure_platform")}"){
+        exclude group: 'net.kyori', module: 'ansi'
+        exclude group: 'net.kyori', module: 'adventure-api'
+    })
 
     // DependencyDownload
-    compileOnlyApi(libs.mcdependencydownload.neoforge.loader)
+    shadow(libs.mcdependencydownload.neoforge.loader)
+    shadow(libs.mcdependencydownload.neoforge.bootstrap)
 }
