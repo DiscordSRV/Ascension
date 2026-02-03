@@ -90,6 +90,11 @@ tasks.register('copyRemappedJar', Copy) {
 }
 
 remapJar {
+    if (loader == "neoforge") {
+        enabled = false
+        return
+    }
+
     dependsOn processResources
     dependsOn shadowJar
     inputFile = shadowJar.archiveFile
@@ -111,15 +116,8 @@ transformProductionFabric {
 }
 
 transformProductionNeoForge {
-    if (loader == "fabric") {
-        enabled = false
-        return
-    }
-
-    dependsOn remapJar
-    input = remapJar.archiveFile
-
-    archiveFileName = "neoforge.jarinjar"
+    enabled = false
+    return
 }
 
 spotless {

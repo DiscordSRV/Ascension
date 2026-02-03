@@ -8,6 +8,8 @@ stonecutter {
         constants.match(loader, "fabric", "neoforge")
 
         def minecraft = node.project.property("minecraft.version_range_label").split("-")[0]
-        dependencies["minecraft"] = minecraft
+        if (minecraft.matches(/[a-zA-Z0-9_]/)) {
+            dependencies["minecraft"] = minecraft
+        }
     }
 }

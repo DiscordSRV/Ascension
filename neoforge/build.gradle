@@ -1,4 +1,5 @@
 plugins {
+    id("dev.kikugie.stonecutter") version "0.8.3"
     alias(libs.plugins.arch.loom)
     alias(libs.plugins.arch.plugin)
 }
@@ -76,7 +77,7 @@ tasks.register('copyNeoForge', Copy) {
 }
 
 shadowJar {
-    dependsOn stonecutterNode.transformProductionNeoForge
+    dependsOn stonecutterNode.shadowJar
 
     configurations = [project.configurations.shadow]
     mergeServiceFiles()
