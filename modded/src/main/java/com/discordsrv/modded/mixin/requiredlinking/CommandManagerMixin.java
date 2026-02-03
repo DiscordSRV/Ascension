@@ -31,7 +31,10 @@ public class CommandManagerMixin {
     //? if minecraft: <1.20.3 && >=1.19.1 {
     /*@Inject(method = "performCommand", at = @At("HEAD"), cancellable = true)
     private void execute(com.mojang.brigadier.ParseResults<CommandSourceStack> parseResults, String command, org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable<Integer> cir) {
-        ModdedRequiredLinkingModule.withInstance(module -> module.onCommandExecute(parseResults, command, cir));
+        MixinUtils.withClass("com.discordsrv.modded.requiredlinking.ModdedRequiredLinkingModule")
+                .withInstance()
+                .withMethod("onCommandExecute", parseResults, command, cir)
+                .execute();
         if(cir.isCancelled()) cir.setReturnValue(0);
     }
     *///?} else {

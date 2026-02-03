@@ -22,7 +22,6 @@ import com.discordsrv.common.abstraction.bootstrap.IBootstrap;
 import com.discordsrv.common.abstraction.bootstrap.LifecycleManager;
 import com.discordsrv.common.core.logging.Logger;
 import com.discordsrv.common.core.logging.backend.impl.Log4JLoggerImpl;
-import com.discordsrv.modded.util.ClassLoaderUtils;
 import dev.vankka.dependencydownload.classpath.ClasspathAppender;
 import net.minecraft.server.MinecraftServer;
 import org.apache.logging.log4j.LogManager;
@@ -30,6 +29,7 @@ import org.apache.logging.log4j.LogManager;
 import java.io.IOException;
 import java.nio.file.Path;
 import java.util.Collections;
+import java.util.Optional;
 
 //? if fabric {
 import dev.vankka.dependencydownload.classpath.ClasspathAppender;
@@ -41,7 +41,8 @@ import net.fabricmc.loader.impl.FabricLoaderImpl;
 //?}
 
 //? if neoforge {
-/*import dev.vankka.dependencydownload.jarinjar.classloader.JarInJarClassLoader;
+/*import com.discordsrv.modded.util.ClassLoaderUtils;
+import dev.vankka.dependencydownload.jarinjar.classloader.JarInJarClassLoader;
 import dev.vankka.mcdependencydownload.neoforge.bootstrap.NeoForgeBootstrap;
 import net.neoforged.bus.api.IEventBus;
 import net.neoforged.bus.api.SubscribeEvent;
@@ -52,11 +53,6 @@ import net.neoforged.fml.loading.VersionInfo;
 import net.neoforged.neoforge.common.NeoForge;
 import net.neoforged.neoforge.event.server.*;
 *///?}
-
-import java.io.IOException;
-import java.nio.file.Path;
-import java.util.Collections;
-import java.util.Optional;
 
 //? if fabric {
 public class DiscordSRVModdedBootstrap implements DedicatedServerModInitializer, IBootstrap {
