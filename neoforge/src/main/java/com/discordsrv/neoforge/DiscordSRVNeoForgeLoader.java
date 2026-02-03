@@ -18,8 +18,7 @@
 
 package com.discordsrv.neoforge;
 
-import dev.vankka.dependencydownload.jarinjar.classloader.JarInJarClassLoader;
-import dev.vankka.mcdependencydownload.neoforge.loader.NeoforgeLoader;
+import dev.vankka.mcdependencydownload.neoforge.loader.NeoForgeLoader;
 import net.neoforged.bus.api.IEventBus;
 import net.neoforged.fml.ModContainer;
 import net.neoforged.fml.common.Mod;
@@ -28,11 +27,10 @@ import org.jetbrains.annotations.NotNull;
 import java.net.URL;
 
 @Mod("discordsrv")
-public class DiscordSRVNeoForgeLoader extends NeoforgeLoader {
+public class DiscordSRVNeoForgeLoader extends NeoForgeLoader {
 
     public DiscordSRVNeoForgeLoader(IEventBus eventBus, ModContainer modContainer) {
         super(eventBus, modContainer);
-        INSTANCE = this;
     }
 
     @Override

@@ -18,7 +18,6 @@
 
 package com.discordsrv.modded.mixin;
 
-import com.discordsrv.modded.module.chat.ModdedAdvancementModule;
 import com.discordsrv.modded.util.MixinUtils;
 import net.minecraft.server.PlayerAdvancements;
 import net.minecraft.server.level.ServerPlayer;
@@ -46,6 +45,7 @@ public class PlayerAdvancementTrackerMixin {
     //?}
         MixinUtils.withClass("com.discordsrv.modded.module.chat.ModdedAdvancementModule")
                 .withInstance()
-                .withMethod("onGrant", advancementEntry, player);
+                .withMethod("onGrant", advancementEntry, player)
+                .execute();
     }
 }

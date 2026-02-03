@@ -70,7 +70,8 @@ public class ServerPlayerEntityMixin implements ServerPlayerEntityAccessor {
     public void onDeath(CombatTracker instance, Operation<Void> original) {
         MixinUtils.withClass("com.discordsrv.modded.module.chat.ModdedDeathModule")
                 .withInstance()
-                .withMethod("onDeath", ((ServerPlayer) (Object) this), instance);
+                .withMethod("onDeath", ((ServerPlayer) (Object) this), instance)
+                .execute();
         original.call(instance);
     }
 }

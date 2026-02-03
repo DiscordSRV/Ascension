@@ -4,7 +4,7 @@ stonecutter {
     active "1.21.11-fabric" /* [SC] DO NOT EDIT */
 
     parameters {
-        def loader = node.project.name.split("-")[1]
+        def loader = node.project.property("loom.platform")
         constants.match(loader, "fabric", "neoforge")
 
         def minecraft = node.project.property("minecraft.version_range_label").split("-")[0]

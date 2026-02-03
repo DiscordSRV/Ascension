@@ -18,7 +18,6 @@
 
 package com.discordsrv.modded.mixin.requiredlinking;
 
-import com.discordsrv.modded.requiredlinking.ModdedRequiredLinkingModule;
 import com.discordsrv.modded.util.MixinUtils;
 import net.minecraft.network.chat.Component;
 import org.spongepowered.asm.mixin.Mixin;

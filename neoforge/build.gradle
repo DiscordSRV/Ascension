@@ -3,7 +3,6 @@ plugins {
     alias(libs.plugins.arch.loom)
     alias(libs.plugins.arch.plugin)
 }
-
 apply from: rootProject.file('buildscript/relocations.gradle')
 apply from: rootProject.file('buildscript/final.gradle')
 
@@ -62,10 +61,6 @@ processResources {
 
     filesMatching(['META-INF/neoforge.mods.toml']) {
         expand replaceProperties
-    }
-
-    from(rootProject.findProject("modded").file("src/main/resources")) {
-        include '*.mixins.json'
     }
 
     dependsOn generateRuntimeDownloadResourceForRuntimeDownloadOnly

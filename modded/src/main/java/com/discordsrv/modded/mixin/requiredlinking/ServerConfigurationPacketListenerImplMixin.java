@@ -32,7 +32,8 @@ public class ServerConfigurationPacketListenerImplMixin {
     private void onClientReady(CallbackInfo ci) {
         MixinUtils.withClass("com.discordsrv.modded.requiredlinking.ModdedRequiredLinkingModule")
                 .withInstance()
-                .withMethod("onPlayerPreLogin", (net.minecraft.server.network.ServerConfigurationPacketListenerImpl) (Object) this);
+                .withMethod("onPlayerPreLogin", (net.minecraft.server.network.ServerConfigurationPacketListenerImpl) (Object) this)
+                .execute();
     }
     *///? }
 }

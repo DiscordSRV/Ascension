@@ -18,16 +18,12 @@
 
 package com.discordsrv.modded.mixin.requiredlinking;
 
-import com.discordsrv.modded.requiredlinking.ModdedRequiredLinkingModule;
 import com.discordsrv.modded.util.MixinUtils;
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.commands.Commands;
-import net.minecraft.network.chat.Component;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
-
-import java.util.Optional;
 
 @Mixin(Commands.class)
 public class CommandManagerMixin {

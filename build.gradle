@@ -31,7 +31,7 @@ subprojects {
         targetCompatibility = JavaVersion.VERSION_1_8
     }
 
-    if (project.path == ":modded") {
+    if ([":modded", ":neoforge"].contains(project.path)) {
         compileJava.configure {
             doFirst {
                 throw new StopExecutionException(

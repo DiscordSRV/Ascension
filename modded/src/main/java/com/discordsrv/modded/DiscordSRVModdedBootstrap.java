@@ -42,10 +42,10 @@ import net.fabricmc.loader.impl.FabricLoaderImpl;
 
 //? if neoforge {
 /*import dev.vankka.dependencydownload.jarinjar.classloader.JarInJarClassLoader;
-import dev.vankka.mcdependencydownload.neoforge.bootstrap.NeoforgeBootstrap;
+import dev.vankka.mcdependencydownload.neoforge.bootstrap.NeoForgeBootstrap;
+import net.neoforged.bus.api.IEventBus;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.ModContainer;
-import net.neoforged.fml.common.Mod;
 import net.neoforged.fml.loading.FMLConfig;
 import net.neoforged.fml.loading.FMLLoader;
 import net.neoforged.fml.loading.VersionInfo;
@@ -62,7 +62,7 @@ import java.util.Optional;
 public class DiscordSRVModdedBootstrap implements DedicatedServerModInitializer, IBootstrap {
 //?}
 //? if neoforge {
-/*public class DiscordSRVModdedBootstrap extends NeoforgeBootstrap implements IBootstrap {
+/*public class DiscordSRVModdedBootstrap extends NeoForgeBootstrap implements IBootstrap {
 *///?}
     private final static String DEPENDENCIES_RUNTIME = /*$ dependencies_file*/"dependencies/runtimeDownload-1.21.11-fabric.txt";
 
@@ -97,8 +97,8 @@ public class DiscordSRVModdedBootstrap implements DedicatedServerModInitializer,
 
     //? if neoforge {
     /*private final JarInJarClassLoader classLoader;
-    public DiscordSRVModdedBootstrap(JarInJarClassLoader classLoader) {
-        super(classLoader);
+    public DiscordSRVModdedBootstrap(JarInJarClassLoader classLoader, ModContainer modContainer, IEventBus eventBus) {
+        super(classLoader, modContainer, eventBus);
         this.classLoader = classLoader;
         ClassLoaderUtils.setClassLoader(classLoader);
 

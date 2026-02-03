@@ -4,12 +4,10 @@ stonecutter {
     active "1.21.11-neoforge" /* [SC] DO NOT EDIT */
 
     parameters {
-        def loader = "neoforge"
+        def loader = node.project.property("loom.platform")
         constants.match(loader, "fabric", "neoforge")
 
         def minecraft = node.project.property("minecraft.version_range_label").split("-")[0]
-        if (minecraft.matches(/[a-zA-Z0-9_]/)) {
-            dependencies["minecraft"] = minecraft
-        }
+        dependencies["minecraft"] = minecraft
     }
 }

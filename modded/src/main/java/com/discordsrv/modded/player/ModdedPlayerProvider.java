@@ -20,11 +20,9 @@ package com.discordsrv.modded.player;
 
 import com.discordsrv.common.abstraction.player.provider.AbstractPlayerProvider;
 import com.discordsrv.modded.ModdedDiscordSRV;
-import com.discordsrv.modded.module.chat.ModdedDeathModule;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.server.network.ServerGamePacketListenerImpl;
-import net.neoforged.neoforge.event.entity.player.PlayerEvent;
 
 import java.util.function.Consumer;
 

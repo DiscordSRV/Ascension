@@ -18,7 +18,7 @@
 
 package com.discordsrv.modded.mixin.requiredlinking;
 
-import com.discordsrv.modded.requiredlinking.ModdedRequiredLinkingModule;
+import com.discordsrv.modded.util.MixinUtils;
 import net.minecraft.network.protocol.game.ServerboundMovePlayerPacket;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.server.network.ServerGamePacketListenerImpl;
@@ -44,6 +44,9 @@ public class ServerPlayNetworkHandlerMixin {
     /*@Inject(method = "handleMovePlayer", at = @At(value = "INVOKE", target = "Lnet/minecraft/server/level/ServerPlayer;getLevel()Lnet/minecraft/server/level/ServerLevel;"), cancellable = true)
     *///?}
     private void onPlayerMove(ServerboundMovePlayerPacket packet, CallbackInfo ci) {
-        ModdedRequiredLinkingModule.withInstance(module -> module.onPlayerMove(player, packet, ci));
+        MixinUtils.withClass("com.discordsrv.modded.requiredlinking.ModdedRequiredLinkingModule")
+                .withInstance()
+                .withMethod("onPlayerMove", player, packet, ci)
+                .execute();
     }
 }

@@ -85,7 +85,7 @@ shadowJar {
 }
 
 tasks.register('copyRemappedJar', Copy) {
-    from this.transformProductionNeoForge
+    from this.transformProductionFabric
     into rootProject.file("jars/${loader}")
 }
 
@@ -223,10 +223,8 @@ dependencies {
 
         neoForge("net.neoforged:neoforge:${project.property("deps.neoforge_version")}")
 
-        implementation("net.neoforged.fancymodloader:loader:${project.property("deps.neoforge_fml_version")}")
-
         // DependencyDownload
         compileOnly(libs.mcdependencydownload.neoforge.loader)
-        shadow(libs.mcdependencydownload.neoforge.bootstrap)
+        compileOnly(libs.mcdependencydownload.neoforge.bootstrap)
     }
 }

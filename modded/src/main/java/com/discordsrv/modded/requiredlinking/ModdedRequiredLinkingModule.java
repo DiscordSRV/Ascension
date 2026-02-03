@@ -34,7 +34,6 @@ import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.server.network.ServerGamePacketListenerImpl;
 import net.minecraft.util.Mth;
 import net.minecraft.world.level.GameType;
-import net.neoforged.neoforge.event.EventHooks;
 import org.jetbrains.annotations.Nullable;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
@@ -90,10 +89,10 @@ public class ModdedRequiredLinkingModule extends ServerRequireLinkingModule<Modd
         //? }
 
         //? if neoforge {
-        net.neoforged.neoforge.common.NeoForge.EVENT_BUS.addListener(this::onPlayerJoin);
+        /*net.neoforged.neoforge.common.NeoForge.EVENT_BUS.addListener(this::onPlayerJoin);
         net.neoforged.neoforge.common.NeoForge.EVENT_BUS.addListener(this::onPlayerQuit);
         net.neoforged.neoforge.common.NeoForge.EVENT_BUS.addListener(this::onCommand);
-        //?}
+        *///?}
     }
 
     @Override
@@ -195,7 +194,7 @@ public class ModdedRequiredLinkingModule extends ServerRequireLinkingModule<Modd
     }
 
     //? if neoforge {
-    private void onCommand(net.neoforged.neoforge.event.CommandEvent event) {
+    /*private void onCommand(net.neoforged.neoforge.event.CommandEvent event) {
         onCommandExecute(event.getParseResults(), event.getParseResults().getReader().getString(), new CallbackInfo("NeoForgeCommandEvent", true) {
             @Override
             public void cancel() {
@@ -203,7 +202,7 @@ public class ModdedRequiredLinkingModule extends ServerRequireLinkingModule<Modd
             }
         });
     }
-    //?}
+    *///?}
 
     public void onCommandExecute(com.mojang.brigadier.ParseResults<CommandSourceStack> parseResults, String command, CallbackInfo ci) {
         if (!enabled) return;
