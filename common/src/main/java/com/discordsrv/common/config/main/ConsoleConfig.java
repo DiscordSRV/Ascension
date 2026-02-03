@@ -21,6 +21,7 @@ package com.discordsrv.common.config.main;
 import com.discordsrv.common.config.configurate.annotation.Constants;
 import com.discordsrv.common.config.configurate.annotation.DefaultOnly;
 import com.discordsrv.common.config.configurate.annotation.Untranslated;
+import com.discordsrv.common.config.documentation.DocumentationURLs;
 import com.discordsrv.common.config.main.generic.DestinationConfig;
 import com.discordsrv.common.config.main.generic.DiscordOutputMode;
 import com.discordsrv.common.config.main.generic.GameCommandExecutionConditionConfig;
@@ -56,7 +57,14 @@ public class ConsoleConfig {
                 + "- plain: Plain text")
         public DiscordOutputMode outputMode = DiscordOutputMode.ANSI;
 
-        @Comment("How individual log lines will be formatted")
+        @Comment("How individual log lines will be formatted\n"
+                + "Suggested placeholders:\n"
+                + "%log_time:'ccc HH:mm:ss zzz% - The time when message was logged, read more about time formats on the placeholders documentation page\n"
+                + "%log_level% - The log level (for example INFO, WARN, ERROR)\n"
+                + "%logger_name:' [\\%s]'% - The logger name, which may not be present (with special formatting to display in brackets, and only if present)\n"
+                + "%message% - The log message, formatted according to the above output mode\n"
+                + "More placeholders at %1 (Global only)")
+        @Constants.Comment(DocumentationURLs.PLACEHOLDERS)
         public String lineFormat = "[%log_time:'ccc HH:mm:ss zzz'%] [%log_level%]%logger_name:' [\\%s]'% %message%";
 
         @Comment("In \"diff\" mode, should exception (stack trace) lines have the prefix character as well, as opposed to only the first line")

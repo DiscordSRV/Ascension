@@ -156,7 +156,13 @@ public interface DiscordSRV extends com.discordsrv.api.DiscordSRV {
 
     // Modules
     @Nullable
-    <T extends Module> T getModule(Class<T> moduleType);
+    default <T extends Module> T getModule(Class<T> moduleType) {
+        List<T> modules = getModules(moduleType, false);
+        return modules.isEmpty() ? null : modules.get(0);
+    }
+
+    @NotNull
+    <T extends Module> List<T> getModules(Class<T> moduleType, boolean includeDisabled);
 
     void registerModule(@NotNull Module module);
     void unregisterModule(@NotNull Module module);

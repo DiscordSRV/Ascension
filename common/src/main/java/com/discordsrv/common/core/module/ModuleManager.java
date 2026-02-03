@@ -50,7 +50,6 @@ import java.util.stream.Stream;
 public class ModuleManager {
 
     private final Set<Module> modules = new CopyOnWriteArraySet<>();
-    private final Map<String, Module> moduleLookupTable = new ConcurrentHashMap<>();
     private final Map<Module, AbstractModule<?>> delegates = new ConcurrentHashMap<>();
     private final DiscordSRV discordSRV;
     private final Logger logger;
@@ -127,27 +126,14 @@ public class ModuleManager {
     }
 
     @SuppressWarnings("unchecked")
-    public <T extends Module> T getModule(Class<T> moduleType) {
-        T resolvedModule = (T) moduleLookupTable.computeIfAbsent(moduleType.getName(), key -> {
-            Module bestCandidate = null;
-            int bestCandidatePriority = Integer.MIN_VALUE;
-            for (Module module : modules) {
-                if (getAbstract(module).isCurrentlyDisabled()) {
-                    continue;
-                }
-                int priority;
-                if (moduleType.isAssignableFrom(module.getClass()) && ((priority = module.priority(moduleType)) > bestCandidatePriority)) {
-                    bestCandidate = module;
-                    bestCandidatePriority = priority;
-                }
-            }
-            return bestCandidate;
-        });
-
-        if (resolvedModule == null || getAbstract(resolvedModule).isCurrentlyDisabled()) {
-            return null;
-        }
-        return resolvedModule;
+    public <T extends Module> List<T> getModules(Class<T> moduleType, boolean includeDisabled) {
+        return modules.stream()
+                .map(this::getAbstract)
+                .filter(module -> includeDisabled || !module.isCurrentlyDisabled())
+                .filter(module -> moduleType.isAssignableFrom(module.getClass()))
+                .sorted(Comparator.comparing(module -> module.priority(moduleType)))
+                .map(module -> (T) module)
+                .collect(Collectors.toList());
     }
 
     public <DT extends DiscordSRV> void registerModule(DT discordSRV, CheckedFunction<DT, AbstractModule<?>> function) {
@@ -164,7 +150,6 @@ public class ModuleManager {
         }
 
         this.modules.add(module);
-        this.moduleLookupTable.put(module.getClass().getName(), module);
 
         logger.debug(module.getClass().getName() + " registered");
 
@@ -181,7 +166,6 @@ public class ModuleManager {
         disable(getAbstract(module));
 
         this.modules.remove(module);
-        this.moduleLookupTable.values().removeIf(mod -> mod == module);
         this.delegates.remove(module);
 
         logger.debug(module.getClass().getName() + " unregistered");

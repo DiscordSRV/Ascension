@@ -19,6 +19,7 @@
 package com.discordsrv.common.config.main.command;
 
 import com.discordsrv.common.config.configurate.annotation.Constants;
+import com.discordsrv.common.config.documentation.DocumentationURLs;
 import org.spongepowered.configurate.objectmapping.ConfigSerializable;
 import org.spongepowered.configurate.objectmapping.meta.Comment;
 
@@ -33,7 +34,10 @@ public class GameCommandConfig {
     @Constants.Comment({"/link", "/discord link"})
     public boolean useLinkAlias = false;
 
-    @Comment("The Discord command response format (%1), player placeholders may be used")
-    @Constants.Comment("/discord")
+    @Comment("The Discord command response format (%1)\n"
+            + "Suggested placeholders:\n"
+            + "%discord_invite% - The Discord server invite, as configured in the \"%2\" section of the config\n"
+            + "More placeholders at %3 (Player)")
+    @Constants.Comment({"/discord", "invite", DocumentationURLs.PLACEHOLDERS})
     public String discordFormat = "[click:open_url:%discord_invite%][color:aqua][bold:on]Click here [color][bold][color:green]to join our Discord server!";
 }

@@ -68,7 +68,7 @@ public class ModdedDeathModule extends AbstractModdedModule {
         /*boolean showDeathMessages = level.getGameRules().getRule(net.minecraft.world.level.GameRules.RULE_SHOWDEATHMESSAGES).get();
         *///?}
 
-        if (showDeathMessages) {
+        if (!showDeathMessages) {
             logger().debug("Skipping displaying death message, disabled by gamerule");
             return;
         }

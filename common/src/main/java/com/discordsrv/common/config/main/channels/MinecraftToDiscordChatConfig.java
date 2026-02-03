@@ -24,6 +24,7 @@ import com.discordsrv.common.config.configurate.annotation.DefaultOnly;
 import com.discordsrv.common.config.configurate.annotation.Untranslated;
 import com.discordsrv.common.config.configurate.manager.abstraction.ConfigurateConfigManager;
 import com.discordsrv.common.config.documentation.DocumentationURLs;
+import com.discordsrv.common.config.helper.SendableDiscordMessageTemplate;
 import com.discordsrv.common.config.main.generic.IMessageConfig;
 import org.spongepowered.configurate.objectmapping.ConfigSerializable;
 import org.spongepowered.configurate.objectmapping.meta.Comment;
@@ -53,10 +54,12 @@ public class MinecraftToDiscordChatConfig implements IMessageConfig {
             + "More placeholders at %1 (Server, Player, GameChannel)")
     @Constants.Comment(DocumentationURLs.PLACEHOLDERS)
     @Untranslated(Untranslated.Type.VALUE)
-    public SendableDiscordMessage.Builder format = SendableDiscordMessage.builder()
-            .setWebhookUsername("%player_prefix%%player_display_name%%player_suffix%")
-            .setWebhookAvatarUrl("%player_avatar_url%")
-            .setContent("%message%");
+    public SendableDiscordMessageTemplate format = new SendableDiscordMessageTemplate(
+            SendableDiscordMessage.builder()
+                    .setWebhookUsername("%player_prefix%%player_display_name%%player_suffix%")
+                    .setWebhookAvatarUrl("%player_avatar_url%")
+                    .setContent("%message%")
+    );
 
     // TODO: more info on regex pairs (String#replaceAll)
     @Comment("Regex filters for Minecraft message contents (this is the %message% part of the \"format\" option)")
@@ -72,7 +75,7 @@ public class MinecraftToDiscordChatConfig implements IMessageConfig {
     }
 
     @Override
-    public SendableDiscordMessage.Builder format() {
+    public SendableDiscordMessageTemplate format() {
         return format;
     }
 
@@ -97,15 +100,15 @@ public class MinecraftToDiscordChatConfig implements IMessageConfig {
         public boolean channels = true;
 
         @Comment("If user mentions should be rendered on Discord\n"
-                + "The player needs one of the following permissions to trigger notifications:\n"
-                + "- discordsrv.mention.user.<user id> (to mention a specific user)\n"
-                + "- discordsrv.mention.user.all (to mention ALL user)\n"
+                + "The player needs the following permissions to trigger notifications:\n"
+                + "- discordsrv.mention.user.all (to mention ALL users)\n"
                 + "Requires the \"Server Members Intent\"")
         public boolean users = true;
 
-        @Comment("If uncached users should be looked up from the Discord API when a mention (\"@something\") occurs in chat.\n"
-                + "The player needs the discordsrv.mention.lookup.user permission for uncached members to be looked up\n"
-                + "This WILL cause sending messages to be delayed")
+        @Comment(
+                "If uncached users should be looked up from the Discord API when a mention (\"@something\") occurs in chat.\n"
+                        + "The player needs the discordsrv.mention.lookup.user permission for uncached members to be looked up\n"
+                        + "This WILL cause sending messages to be delayed")
         public boolean uncachedUsers = false;
 
         @Comment("If @everyone and @here mentions should be enabled\n"
@@ -117,5 +120,4 @@ public class MinecraftToDiscordChatConfig implements IMessageConfig {
             return roles || channels || users;
         }
     }
-    
 }

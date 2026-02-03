@@ -127,7 +127,7 @@ public abstract class AbstractGameMessageModule<
             return Task.allOf(futures);
         }
 
-        BaseChannelConfig channelConfig = discordSRV.channelConfig().get(channel);
+        BaseChannelConfig channelConfig = discordSRV.channelConfig().resolve(channel);
         if (channelConfig == null) {
             return Task.completed(null);
         }
@@ -152,7 +152,7 @@ public abstract class AbstractGameMessageModule<
             return null;
         }
 
-        SendableDiscordMessage.Builder format = moduleConfig.format();
+        SendableDiscordMessage.Builder format = moduleConfig.format().use();
         if (format == null || format.isEmpty()) {
             logger().debug("Message" + (channel != null ? " from " + GameChannel.toString(channel) : "") + " skipped, format is empty");
             return Task.completed(null);
@@ -266,7 +266,7 @@ public abstract class AbstractGameMessageModule<
         }).whenFailed(t -> {
             discordSRV.logger().error("Failed to publish to event bus", t);
             TestHelper.fail(t);
-        }).thenApply(v -> (Void) null);
+        }).thenApply(v -> null);
     }
 
     private String describeDestination(DiscordGuildChannel channel) {

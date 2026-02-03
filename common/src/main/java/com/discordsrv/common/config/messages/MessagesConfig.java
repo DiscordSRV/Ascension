@@ -412,10 +412,10 @@ public class MessagesConfig implements Config {
     public MinecraftMessage broadcastDiscordCommandDescription = minecraft(
             "Broadcast a plain message with Discord formatting to the specified Discord channel(s)"
     );
-    public MinecraftMessage broadcastChannelParameterCommandDescription = minecraft(
+    public MinecraftMessage broadcastChannelParameterDescription = minecraft(
             "The Discord channel id or in-game channel name to resolve Discord channels from the configuration"
     );
-    public MinecraftMessage broadcastMessageParameterCommandDescription = minecraft(
+    public MinecraftMessage broadcastMessageParameterDescription = minecraft(
             "The message to broadcast to Discord"
     );
 
@@ -461,13 +461,13 @@ public class MessagesConfig implements Config {
             "Show the version of DiscordSRV"
     );
 
-    // Resync command
+    // Reload command
 
     public MinecraftMessage reloadCommandDescription = minecraft(
             "Reloads the specified DiscordSRV functions"
     );
 
-    public MinecraftMessage reloadParameterCommandDescription = minecraft(
+    public MinecraftMessage reloadFunctionsParameterDescription = minecraft(
             "The functions to reload"
     );
 
@@ -476,6 +476,11 @@ public class MessagesConfig implements Config {
     public BothMessage resyncCommandDescription = both(
             "Resync online players",
             "Resync online players"
+    );
+
+    public BothMessage resyncSyncParameterDescription = both(
+            "The synchronization to resync",
+            "The synchronization to resync"
     );
 
     // Execute command
@@ -494,7 +499,7 @@ public class MessagesConfig implements Config {
             "Run Minecraft console commands"
     );
 
-    public DiscordMessage executeParameterCommandDescription = discord(
+    public DiscordMessage executeCommandParameterDescription = discord(
             "The command to run"
     );
 

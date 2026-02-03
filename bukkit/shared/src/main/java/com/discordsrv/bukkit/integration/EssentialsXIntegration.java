@@ -34,6 +34,7 @@ import com.discordsrv.bukkit.BukkitDiscordSRV;
 import com.discordsrv.bukkit.player.BukkitPlayer;
 import com.discordsrv.common.core.logging.NamedLogger;
 import com.discordsrv.common.core.module.type.PluginIntegration;
+import com.discordsrv.common.feature.mutesync.MuteSyncModule;
 import com.discordsrv.common.feature.nicknamesync.NicknameSyncModule;
 import com.discordsrv.common.util.ComponentUtil;
 import com.earth2me.essentials.Essentials;
@@ -162,14 +163,21 @@ public class EssentialsXIntegration
 
     @EventHandler(ignoreCancelled = true)
     public void onMuteStatusChange(MuteStatusChangeEvent event) {
+        BukkitPlayer player = discordSRV.playerProvider().player(event.getAffected().getBase());
+        boolean isMuted = event.getValue();
 
+        MuteSyncModule module = discordSRV.getModule(MuteSyncModule.class);
+        if (module != null) {
+            getMute(event.getAffected().getUUID())
+                    .whenComplete((mute, e) -> module.notifyMuted(player, isMuted ? mute : null));
+        }
     }
 
     @Override
     public Task<Punishment> getMute(@NotNull UUID playerUUID) {
         return getUser(playerUUID).thenApply(user -> new Punishment(
-                Instant.ofEpochMilli(user.getMuteTimeout()),
-                ComponentUtil.toAPI(BukkitComponentSerializer.legacy().deserialize(user.getMuteReason())),
+                user.getMuteTimeout() > 0 ? Instant.ofEpochMilli(user.getMuteTimeout()) : null,
+                user.getMuteReason() != null ? ComponentUtil.toAPI(BukkitComponentSerializer.legacy().deserialize(user.getMuteReason())) : null,
                 null
         ));
     }

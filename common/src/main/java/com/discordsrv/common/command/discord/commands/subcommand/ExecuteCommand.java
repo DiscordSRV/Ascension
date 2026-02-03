@@ -59,7 +59,7 @@ public class ExecuteCommand implements Consumer<DiscordChatInputInteractionEvent
                     .addDescriptionTranslations(discordSRV.getAllTranslations(config -> config.executeCommandDescription.content()))
                     .addOption(
                             CommandOption.builder(CommandOption.Type.STRING, COMMAND_LABEL, "")
-                                    .addDescriptionTranslations(discordSRV.getAllTranslations(config -> config.executeParameterCommandDescription.content()))
+                                    .addDescriptionTranslations(discordSRV.getAllTranslations(config -> config.executeCommandParameterDescription.content()))
                                     .setAutoCompleteHandler(executeConfig.suggest ? command : null)
                                     .setRequired(true)
                                     .build()

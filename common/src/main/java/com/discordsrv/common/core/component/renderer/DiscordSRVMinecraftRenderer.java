@@ -24,24 +24,17 @@ import com.discordsrv.api.discord.entity.guild.DiscordGuildMember;
 import com.discordsrv.common.DiscordSRV;
 import com.discordsrv.common.config.main.channels.base.BaseChannelConfig;
 import com.discordsrv.common.config.main.generic.MentionsConfig;
-import com.discordsrv.common.util.ComponentUtil;
 import dev.vankka.mcdiscordreserializer.renderer.implementation.DefaultMinecraftRenderer;
-import net.dv8tion.jda.api.JDA;
-import net.dv8tion.jda.api.entities.channel.middleman.GuildChannel;
 import net.dv8tion.jda.api.utils.MiscUtil;
 import net.kyori.adventure.text.Component;
-import net.kyori.adventure.text.event.ClickEvent;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.Set;
 import java.util.function.Supplier;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 public class DiscordSRVMinecraftRenderer extends DefaultMinecraftRenderer {
 
-    private static final Pattern MESSAGE_URL_PATTERN = Pattern.compile("https://(?:(?:ptb|canary)\\.)?discord\\.com/channels/[0-9]{16,20}/([0-9]{16,20})/[0-9]{16,20}");
     private static final ThreadLocal<Context> CONTEXT = new ThreadLocal<>();
     private final DiscordSRV discordSRV;
 
@@ -51,6 +44,7 @@ public class DiscordSRVMinecraftRenderer extends DefaultMinecraftRenderer {
 
     public static <T> T getWithContext(
             @Nullable DiscordGuild guild,
+            @Nullable DiscordUser author,
             @Nullable Set<DiscordUser> users,
             @Nullable Set<DiscordGuildMember> members,
             BaseChannelConfig config,
@@ -60,7 +54,7 @@ public class DiscordSRVMinecraftRenderer extends DefaultMinecraftRenderer {
         Context oldValue = CONTEXT.get();
         T output;
         try {
-            CONTEXT.set(new Context(guild, users, members, config, canUseFormatting));
+            CONTEXT.set(new Context(guild, author, users, members, config, canUseFormatting));
             output = supplier.get();
         } finally {
             CONTEXT.set(oldValue);
@@ -144,38 +138,13 @@ public class DiscordSRVMinecraftRenderer extends DefaultMinecraftRenderer {
     }
 
     public Component makeMessageLink(String link) {
-        JDA jda = discordSRV.jda();
-        if (jda == null) {
-            return null;
-        }
-
-        Matcher matcher = MESSAGE_URL_PATTERN.matcher(link);
-        if (!matcher.matches()) {
-            return null;
-        }
-
-        String channel = matcher.group(1);
-        GuildChannel guildChannel = jda.getGuildChannelById(channel);
-
-        Context context = CONTEXT.get();
+        DiscordSRVMinecraftRenderer.Context context = CONTEXT.get();
         BaseChannelConfig config = context != null ? context.config : null;
-        if (config == null || guildChannel == null) {
-            return null;
+        if (config == null) {
+            return Component.text(link);
         }
 
-        String format = config.mentions.messageUrl;
-        return Component.text()
-                .clickEvent(ClickEvent.openUrl(link))
-                .append(
-                        ComponentUtil.fromAPI(
-                                discordSRV.componentFactory()
-                                        .textBuilder(format)
-                                        .addContext(guildChannel)
-                                        .addPlaceholder("jump_url", link)
-                                        .build()
-                        )
-                )
-                .build();
+        return discordSRV.componentFactory().makeMessageLink(link, config, context.author);
     }
 
     @Override
@@ -186,7 +155,7 @@ public class DiscordSRVMinecraftRenderer extends DefaultMinecraftRenderer {
             return component.append(Component.text("<#" + id + ">"));
         }
 
-        return component.append(discordSRV.componentFactory().makeChannelMention(MiscUtil.parseLong(id), config));
+        return component.append(discordSRV.componentFactory().makeChannelMention(MiscUtil.parseLong(id), config, context.author));
     }
 
     @Override
@@ -242,6 +211,7 @@ public class DiscordSRVMinecraftRenderer extends DefaultMinecraftRenderer {
     private static class Context {
 
         private final DiscordGuild guild;
+        private final DiscordUser author;
         private final Set<DiscordUser> users;
         private final Set<DiscordGuildMember> members;
         private final BaseChannelConfig config;
@@ -249,12 +219,14 @@ public class DiscordSRVMinecraftRenderer extends DefaultMinecraftRenderer {
 
         public Context(
                 DiscordGuild guild,
+                DiscordUser author,
                 Set<DiscordUser> users,
                 Set<DiscordGuildMember> members,
                 BaseChannelConfig config,
                 boolean canUseFormatting
         ) {
             this.guild = guild;
+            this.author = author;
             this.users = users;
             this.members = members;
             this.config = config;

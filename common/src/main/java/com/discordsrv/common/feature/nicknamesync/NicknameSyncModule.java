@@ -57,8 +57,13 @@ public class NicknameSyncModule extends AbstractSyncModule<DiscordSRV, NicknameS
     }
 
     @Override
-    protected String syncName() {
+    public String syncName() {
         return "Nickname Sync";
+    }
+
+    @Override
+    public String syncCommand() {
+        return "nickname";
     }
 
     @Override

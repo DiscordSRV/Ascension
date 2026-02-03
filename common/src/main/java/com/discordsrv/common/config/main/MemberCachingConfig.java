@@ -18,6 +18,7 @@
 
 package com.discordsrv.common.config.main;
 
+import com.discordsrv.common.config.configurate.annotation.Constants;
 import org.spongepowered.configurate.objectmapping.ConfigSerializable;
 import org.spongepowered.configurate.objectmapping.meta.Comment;
 
@@ -39,10 +40,13 @@ public class MemberCachingConfig {
             + "Set to 0 to disable (always keep all in cache)")
     public int lru = 5_000;
 
-    @Comment("Only members with any of these roles will be kept cached. If none are specified, all members are cached")
+    @Comment("Only members with any of these roles will be kept cached. If none are specified, all members are cached\n"
+            + "Use this together with the \"%1\" to only cache linked users")
+    @Constants.Comment("linked-role")
     public List<Long> roleIds = new ArrayList<>();
 
-    @Comment("Filter for which servers should be cached at startup")
+    @Comment("Filter for which servers should be cached at startup.\n"
+            + "Servers that are not included with still be cached when updates happen")
     public GuildFilter chunkingServerFilter = new GuildFilter();
 
     @ConfigSerializable

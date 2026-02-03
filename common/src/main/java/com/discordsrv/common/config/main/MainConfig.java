@@ -93,7 +93,12 @@ public abstract class MainConfig implements Config {
             + "If a message type is disabled for a world channel, messages of that type not be sent.\n"
             + "Bukkit/Spigot/Paper default world channels are \"%5\", \"%6\" and \"%7\"\n"
             + "Fabric default world channels are \"%8\", \"%9\" and \"%10\". Fabric also supports custom dimensions from mods/datapacks.\n")
-    @Constants.Comment({GameChannel.DEFAULT_NAME, ChannelConfig.DEFAULT_KEY, "channel-ids", "threads", "world", "world_the_nether", "world_the_end", "overworld", "the_nether", "the_end"})
+    @Constants.Comment({
+            GameChannel.DEFAULT_NAME, ChannelConfig.DEFAULT_KEY,
+            "channel-ids", "threads",
+            "world", "world_the_nether", "world_the_end",
+            "overworld", "the_nether", "the_end"
+    })
     @Order(200)
     public Map<String, BaseChannelConfig> channels = new LinkedHashMap<String, BaseChannelConfig>() {{
         put(GameChannel.DEFAULT_NAME, createDefaultChannel());
@@ -151,7 +156,7 @@ public abstract class MainConfig implements Config {
             + "\n"
             + PLAYERS_NEED_TO_BE_LINKED + "\n"
             + "For Minecraft to Discord synchronization:\n"
-            + "- The bot needs a role above all users that you want to synchronize, the Discord server owner cannot be synchronized. "
+            + "- The bot needs a role above all users that you want to synchronize, the Discord server owner cannot be synchronized.\n"
             + "- The bot needs the \"Manage Nicknames\" permission")
     @Order(620)
     public NicknameSyncConfig nicknameSync = new NicknameSyncConfig();
@@ -165,11 +170,20 @@ public abstract class MainConfig implements Config {
     @Order(630)
     public BanSyncConfig banSync = new BanSyncConfig();
 
+    @Comment("Configuration options for mute synchronization\n"
+            + "\n"
+            + PLAYERS_NEED_TO_BE_LINKED + "\n"
+            + "For Minecraft to Discord synchronization:\n"
+            + "- The bot needs a role above all users that you want to synchronize, the Discord server owner cannot be synchronized.\n"
+            + "- The bot needs the \"Manage Roles\" and \"Timeout Members\" permission")
+    @Order(640)
+    public MuteSyncConfig muteSync = new MuteSyncConfig();
+
     @Comment("Options for granting players roles for being linked\n"
             + "\n"
             + "The bot needs to have a role above the linked roles\n"
             + "The bot needs the \"Manage Roles\" permission")
-    @Order(640)
+    @Order(650)
     public LinkedRoleConfig linkedRole = new LinkedRoleConfig();
 
     @Comment("Options for granting players that are currently online a role in Discord\n"
@@ -177,7 +191,7 @@ public abstract class MainConfig implements Config {
             + PLAYERS_NEED_TO_BE_LINKED + "\n"
             + "The bot needs to have a role above the online role\n"
             + "The bot needs the \"Manage Roles\" permission")
-    @Order(650)
+    @Order(660)
     public OnlineRoleConfig onlineRole = new OnlineRoleConfig();
 
     // Commands

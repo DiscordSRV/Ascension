@@ -68,6 +68,11 @@ public class GroupSyncModule extends AbstractSyncModule<DiscordSRV, GroupSyncCon
     }
 
     @Override
+    public String syncCommand() {
+        return "group";
+    }
+
+    @Override
     public String logFileName() {
         return "groupsync";
     }

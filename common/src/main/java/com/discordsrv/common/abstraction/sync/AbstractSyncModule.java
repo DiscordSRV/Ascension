@@ -37,6 +37,7 @@ import com.discordsrv.common.core.logging.NamedLogger;
 import com.discordsrv.common.core.module.type.AbstractModule;
 import com.discordsrv.common.events.player.PlayerConnectedEvent;
 import com.discordsrv.common.helper.Someone;
+import org.intellij.lang.annotations.Pattern;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -73,7 +74,9 @@ public abstract class AbstractSyncModule<
         super(discordSRV, new NamedLogger(discordSRV, loggerName));
     }
 
-    protected abstract String syncName();
+    public abstract String syncName();
+    @Pattern("[a-z]+")
+    public abstract String syncCommand();
 
     @Nullable
     protected abstract String logFileName();

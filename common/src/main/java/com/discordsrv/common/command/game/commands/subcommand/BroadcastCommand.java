@@ -84,11 +84,11 @@ public abstract class BroadcastCommand implements GameCommandExecutor, GameComma
                             .requiredPermission(Permissions.COMMAND_BROADCAST)
                             .then(
                                     GameCommand.string("channel")
-                                            .addDescriptionTranslations(discordSRV.getAllTranslations(config -> config.broadcastChannelParameterCommandDescription))
+                                            .addDescriptionTranslations(discordSRV.getAllTranslations(config -> config.broadcastChannelParameterDescription))
                                             .suggester(command)
                                             .then(
                                                     GameCommand.stringGreedy("content")
-                                                            .addDescriptionTranslations(discordSRV.getAllTranslations(config -> config.broadcastMessageParameterCommandDescription))
+                                                            .addDescriptionTranslations(discordSRV.getAllTranslations(config -> config.broadcastMessageParameterDescription))
                                                             .suggester((__, ___, ____) -> Collections.emptyList())
                                                             .executor(command)
                                             )

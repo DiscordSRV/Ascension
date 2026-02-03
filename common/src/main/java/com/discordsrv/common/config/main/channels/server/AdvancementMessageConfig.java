@@ -22,6 +22,7 @@ import com.discordsrv.api.discord.entity.message.DiscordMessageEmbed;
 import com.discordsrv.api.discord.entity.message.SendableDiscordMessage;
 import com.discordsrv.common.config.configurate.annotation.Untranslated;
 import com.discordsrv.common.config.configurate.manager.abstraction.ConfigurateConfigManager;
+import com.discordsrv.common.config.helper.SendableDiscordMessageTemplate;
 import com.discordsrv.common.config.main.generic.IMessageConfig;
 import org.spongepowered.configurate.objectmapping.ConfigSerializable;
 
@@ -35,18 +36,20 @@ public class AdvancementMessageConfig implements IMessageConfig {
     public Boolean enabled = true;
 
     @Untranslated(Untranslated.Type.VALUE)
-    public SendableDiscordMessage.Builder format = SendableDiscordMessage.builder()
-            .addEmbed(
-                    DiscordMessageEmbed.builder()
-                            .setAuthor(
-                                    "%advancement_message|text:'{player_name} made the advancement {advancement_display_name}'%",
-                                    null,
-                                    "%player_avatar_url%"
-                            )
-                            .setDescription("%advancement_description%")
-                            .setUnformattedColor("%advancement_color_hex%")
-                            .build()
-            );
+    public SendableDiscordMessageTemplate format = new SendableDiscordMessageTemplate(
+            SendableDiscordMessage.builder()
+                    .addEmbed(
+                            DiscordMessageEmbed.builder()
+                                    .setAuthor(
+                                            "%advancement_message|text:'{player_name} made the advancement {advancement_display_name}'%",
+                                            null,
+                                            "%player_avatar_url%"
+                                    )
+                                    .setDescription("%advancement_description%")
+                                    .setUnformattedColor("%advancement_color_hex%")
+                                    .build()
+                    )
+    );
 
     @Override
     public boolean enabled() {
@@ -54,7 +57,7 @@ public class AdvancementMessageConfig implements IMessageConfig {
     }
 
     @Override
-    public SendableDiscordMessage.Builder format() {
+    public SendableDiscordMessageTemplate format() {
         return format;
     }
 }

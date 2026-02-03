@@ -19,6 +19,8 @@
 package com.discordsrv.common.config.main;
 
 import com.discordsrv.api.placeholder.annotation.Placeholder;
+import com.discordsrv.common.config.configurate.annotation.Constants;
+import com.discordsrv.common.config.documentation.DocumentationURLs;
 import org.spongepowered.configurate.objectmapping.meta.Comment;
 
 import java.util.ArrayList;
@@ -49,7 +51,15 @@ public class RewardsConfig {
         @Comment("If true, the reward will only be granted if the player is online. Otherwise, postpone till they're online.")
         public boolean needsOnline = false;
 
-        @Comment("Profile placeholders can be used")
+        @Comment("Commands to run in the command when this reward is granted.\n"
+                + "Suggested placeholders:\n"
+                + "%profile_player_uuid% - The Minecraft player UUID\n"
+                + "%profile_offline_player_name% - The name of the Minecraft player\n"
+                + "%profile_user_id% - The Discord user id\n"
+                + "%profile_user_name% - The Discord user's username\n"
+                + "%profile_user_effective_name% - The Discord user's display name\n"
+                + "More placeholders at %1 (Profile)")
+        @Constants.Comment(DocumentationURLs.PLACEHOLDERS)
         public List<String> consoleCommandsToRun = new ArrayList<>();
     }
 

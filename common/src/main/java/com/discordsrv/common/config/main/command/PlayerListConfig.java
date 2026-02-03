@@ -55,7 +55,7 @@ public class PlayerListConfig {
             + "\n"
             + "Suggested placeholders:\n"
             + "%group% - The group (determined by the above option)\n"
-            + "More placeholders at %1 (only global placeholders may be used)")
+            + "More placeholders at %1 (Global only)")
     @Constants.Comment(DocumentationURLs.PLACEHOLDERS)
     @Untranslated(value = Untranslated.Type.VALUE)
     public String groupingHeader = "%group%\n";
@@ -99,7 +99,7 @@ public class PlayerListConfig {
                 + "\n"
                 + "Suggested placeholders:\n"
                 + "%playerlist_count% - The amount of players on the server\n"
-                + "More placeholders at %1 (only global placeholders may be used)")
+                + "More placeholders at %1 (Global only)")
         @Constants.Comment(DocumentationURLs.PLACEHOLDERS)
         @Untranslated(value = Untranslated.Type.VALUE)
         public String header = "%playerlist_count% players online";

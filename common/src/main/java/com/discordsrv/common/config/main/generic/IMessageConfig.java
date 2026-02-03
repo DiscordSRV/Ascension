@@ -18,10 +18,10 @@
 
 package com.discordsrv.common.config.main.generic;
 
-import com.discordsrv.api.discord.entity.message.SendableDiscordMessage;
+import com.discordsrv.common.config.helper.SendableDiscordMessageTemplate;
 
 public interface IMessageConfig {
 
     boolean enabled();
-    SendableDiscordMessage.Builder format();
+    SendableDiscordMessageTemplate format();
 }

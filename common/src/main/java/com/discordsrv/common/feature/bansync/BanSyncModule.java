@@ -33,12 +33,11 @@ import com.discordsrv.api.punishment.Punishment;
 import com.discordsrv.api.task.Task;
 import com.discordsrv.common.DiscordSRV;
 import com.discordsrv.common.abstraction.player.IPlayer;
-import com.discordsrv.common.abstraction.sync.AbstractSyncModule;
+import com.discordsrv.common.abstraction.punishment.AbstractPunishmentSyncModule;
 import com.discordsrv.common.abstraction.sync.RoleSyncModuleUtil;
 import com.discordsrv.common.abstraction.sync.SyncFail;
-import com.discordsrv.common.abstraction.sync.cause.ISyncCause;
-import com.discordsrv.common.abstraction.sync.enums.BanSyncDiscordAction;
-import com.discordsrv.common.abstraction.sync.enums.BanSyncDiscordTrigger;
+import com.discordsrv.common.abstraction.sync.enums.bans.BanSyncDiscordAction;
+import com.discordsrv.common.abstraction.sync.enums.bans.BanSyncDiscordTrigger;
 import com.discordsrv.common.abstraction.sync.enums.SyncDirection;
 import com.discordsrv.common.abstraction.sync.result.DiscordPermissionResult;
 import com.discordsrv.common.abstraction.sync.result.GenericSyncResults;
@@ -60,15 +59,10 @@ import net.dv8tion.jda.api.requests.ErrorResponse;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.time.Duration;
 import java.util.*;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 
-public class BanSyncModule extends AbstractSyncModule<DiscordSRV, BanSyncConfig, Game, Long, Punishment> {
-
-    private final Map<Long, PunishmentEvent> events = new ConcurrentHashMap<>();
+public class BanSyncModule extends AbstractPunishmentSyncModule<BanSyncConfig> {
 
     public BanSyncModule(DiscordSRV discordSRV) {
         super(discordSRV, "BAN_SYNC");
@@ -89,6 +83,11 @@ public class BanSyncModule extends AbstractSyncModule<DiscordSRV, BanSyncConfig,
     }
 
     @Override
+    public String syncCommand() {
+        return "ban";
+    }
+
+    @Override
     public String logFileName() {
         return "bansync";
     }
@@ -106,56 +105,6 @@ public class BanSyncModule extends AbstractSyncModule<DiscordSRV, BanSyncConfig,
     @Override
     public List<BanSyncConfig> configs() {
         return Collections.singletonList(discordSRV.config().banSync);
-    }
-
-    @Override
-    protected @Nullable ISyncResult doesStateMatch(Punishment one, Punishment two) {
-        boolean oneActive = one != null;
-        boolean twoActive = two != null;
-        return (oneActive == twoActive) ? GenericSyncResults.both(oneActive) : null;
-    }
-
-    @Override
-    public Punishment getRemovedState() {
-        return null;
-    }
-
-    private PunishmentEvent upsertEvent(long guildId, long userId, boolean newState) {
-        return events.computeIfAbsent(userId, key -> new PunishmentEvent(guildId, userId, newState));
-    }
-
-    private class PunishmentEvent {
-
-        private final long guildId;
-        private final long userId;
-        private final boolean newState;
-        private final Future<?> future;
-
-        public PunishmentEvent(long guildId, long userId, boolean newState) {
-            this.guildId = guildId;
-            this.userId = userId;
-            this.newState = newState;
-
-            // Run in 5s if an audit log event doesn't arrive
-            this.future = discordSRV.scheduler().runLater(() -> applyPunishment(null, BanSyncCause.UNBANNED_ON_DISCORD), Duration.ofSeconds(5));
-        }
-
-        public void applyPunishment(@Nullable Punishment punishment, ISyncCause cause) {
-            if (!future.cancel(false)) {
-                return;
-            }
-
-            if (newState && punishment == null) {
-                punishment = Punishment.UNKNOWN;
-            }
-            discordChanged(
-                    cause,
-                    Someone.of(discordSRV, userId),
-                    guildId,
-                    punishment
-            );
-            events.remove(userId);
-        }
     }
 
     @Subscribe
@@ -200,13 +149,13 @@ public class BanSyncModule extends AbstractSyncModule<DiscordSRV, BanSyncConfig,
 
         // Apply punishments instantly when audit log events arrive.
         if (actionType == ActionType.BAN) {
-            upsertEvent(guildId, bannedUserId, true).applyPunishment(new Punishment(
+            upsertEvent(guildId, bannedUserId, true, BanSyncCause.BANNED_ON_DISCORD).applyPunishment(new Punishment(
                     null,
                     ComponentUtil.fromPlain(entry.getReason()),
                     punisherName
             ), BanSyncCause.BANNED_ON_DISCORD);
         } else {
-            upsertEvent(guildId, bannedUserId, false).applyPunishment(null, BanSyncCause.UNBANNED_ON_DISCORD);
+            upsertEvent(guildId, bannedUserId, false, BanSyncCause.UNBANNED_ON_DISCORD).applyPunishment(null, BanSyncCause.UNBANNED_ON_DISCORD);
         }
     }
 
@@ -224,7 +173,7 @@ public class BanSyncModule extends AbstractSyncModule<DiscordSRV, BanSyncConfig,
         BanSyncConfig config = discordSRV.config().banSync;
         if (config.minecraftToDiscord.action == BanSyncDiscordAction.ROLE && roles.stream().anyMatch(role -> config.bannedRoleId == role.getId())) {
             if (config.discordToMinecraft.trigger != BanSyncDiscordTrigger.BAN) {
-                upsertEvent(roles.getFirst().getGuild().getId(), member.getUser().getId(), added).applyPunishment(added ? new Punishment(null, null, null) : null, BanSyncCause.BANNED_ROLE_CHANGED);
+                upsertEvent(roles.getFirst().getGuild().getId(), member.getUser().getId(), added, BanSyncCause.BANNED_ROLE_CHANGED).applyPunishment(added ? new Punishment(null, null, null) : null, BanSyncCause.BANNED_ROLE_CHANGED);
             } else {
                 logger().debug(String.format(
                     "Ignoring banned role change for %s because role changes are not configured to affect the game ban status.",
@@ -244,13 +193,13 @@ public class BanSyncModule extends AbstractSyncModule<DiscordSRV, BanSyncConfig,
             return;
         }
         
-        upsertEvent(guild.getIdLong(), user.getIdLong(), newState);
+        upsertEvent(guild.getIdLong(), user.getIdLong(), newState, BanSyncCause.UNBANNED_ON_DISCORD);
     }
 
-    private Task<@Nullable Punishment> getBanOrBanRoled(Guild guild, long userId, BanSyncConfig config) {
+    private Task<@Nullable Punishment> getBanOrBanRole(Guild guild, long userId, BanSyncConfig config) {
         UserSnowflake snowflake = UserSnowflake.fromId(userId);
 
-        if (!shouldHandleDiscordBanChanges()) return getBanRoled(guild, snowflake, config); // Ignoring bans entirely
+        if (!shouldHandleDiscordBanChanges()) return getBanRole(guild, snowflake, config); // Ignoring bans entirely
 
         return discordSRV.discordAPI().toTask(guild.retrieveBan(snowflake))
                 .thenApply(this::punishment)
@@ -261,10 +210,10 @@ public class BanSyncModule extends AbstractSyncModule<DiscordSRV, BanSyncConfig,
 
                     throw t;
                 })
-                .then(f -> getBanRoled(guild, snowflake, config));
+                .whenFailed(f -> getBanRole(guild, snowflake, config));
     }
 
-    private Task<@Nullable Punishment> getBanRoled(Guild guild, UserSnowflake snowflake, BanSyncConfig config) {
+    private Task<@Nullable Punishment> getBanRole(Guild guild, UserSnowflake snowflake, BanSyncConfig config) {
         return discordSRV.discordAPI().toTask(guild.retrieveMember(snowflake))
                 .thenApply(member -> {
                     if (config.minecraftToDiscord.action == BanSyncDiscordAction.ROLE && member.getRoles().stream().anyMatch(role -> config.bannedRoleId == role.getIdLong())) {
@@ -290,7 +239,7 @@ public class BanSyncModule extends AbstractSyncModule<DiscordSRV, BanSyncConfig,
             return Task.failed(new SyncFail(BanSyncResult.GUILD_DOESNT_EXIST));
         }
 
-        return getBanOrBanRoled(guild.asJDA(), someone.userId(), config);
+        return getBanOrBanRole(guild.asJDA(), someone.userId(), config);
     }
 
     private Punishment punishment(Guild.Ban ban) {

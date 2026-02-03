@@ -16,9 +16,10 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package com.discordsrv.common.feature.mention;
+package com.discordsrv.common.feature.mention.game.render;
 
 import com.discordsrv.api.channel.GameChannel;
+import com.discordsrv.api.discord.entity.DiscordUser;
 import com.discordsrv.api.discord.entity.channel.DiscordGuildMessageChannel;
 import com.discordsrv.api.discord.entity.guild.DiscordGuild;
 import com.discordsrv.api.discord.entity.guild.DiscordGuildMember;
@@ -33,13 +34,16 @@ import com.discordsrv.common.config.main.channels.base.IChannelConfig;
 import com.discordsrv.common.core.logging.NamedLogger;
 import com.discordsrv.common.core.module.type.AbstractModule;
 import com.discordsrv.common.events.player.PlayerConnectedEvent;
+import com.discordsrv.common.events.player.PlayerDisconnectedEvent;
+import com.discordsrv.common.feature.linking.LinkProvider;
+import com.discordsrv.common.feature.mention.Mention;
+import com.discordsrv.common.feature.mention.cache.MentionCachingModule;
 import com.discordsrv.common.helper.DestinationLookupHelper;
 import com.discordsrv.common.util.ComponentUtil;
 import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.entities.Member;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.TextReplacementConfig;
-import org.apache.commons.collections4.ListUtils;
 import org.apache.commons.collections4.list.SetUniqueList;
 
 import java.time.Duration;
@@ -48,11 +52,11 @@ import java.util.concurrent.CopyOnWriteArraySet;
 import java.util.concurrent.Future;
 import java.util.function.Consumer;
 import java.util.function.Predicate;
-import java.util.stream.Collectors;
 
 public class MentionGameRenderingModule extends AbstractModule<DiscordSRV> {
 
-    private final List<String> mentionSuggestions = new ArrayList<>();
+    private final List<Mention> allMentionSuggestions = new ArrayList<>();
+    private final Map<UUID, PlayerMentionSuggestions> currentSuggestions = new HashMap<>();
     private Future<?> updateSuggestionsFuture = null;
 
     public MentionGameRenderingModule(DiscordSRV discordSRV) {
@@ -95,10 +99,56 @@ public class MentionGameRenderingModule extends AbstractModule<DiscordSRV> {
             updateSuggestionsFuture.cancel(false);
             updateSuggestionsFuture = null;
         }
-        for (IPlayer player : discordSRV.playerProvider().allPlayers()) {
-            player.removeChatSuggestions(mentionSuggestions);
+
+        synchronized (currentSuggestions) {
+            for (IPlayer player : discordSRV.playerProvider().allPlayers()) {
+                PlayerMentionSuggestions suggestions = currentSuggestions.remove(player.uniqueId());
+                if (suggestions == null) {
+                    continue;
+                }
+
+                suggestions.removeSuggestions(player);
+            }
         }
-        mentionSuggestions.clear();
+    }
+
+    @Subscribe
+    public void onPlayerConnected(PlayerConnectedEvent event) {
+        if (!isChatSuggestionsEnabledInAny()) {
+            return;
+        }
+
+        updateMentionSuggestions(event.player());
+    }
+
+    @Subscribe
+    public void onPlayerDisconnected(PlayerDisconnectedEvent event) {
+        synchronized (currentSuggestions) {
+            currentSuggestions.remove(event.player().uniqueId());
+        }
+    }
+
+    private void updateMentionSuggestions(IPlayer player) {
+        BaseChannelConfig config = discordSRV.channelConfig().resolveDefault();
+        if (config == null) {
+            return;
+        }
+
+        LinkProvider linkProvider = discordSRV.linkProvider();
+        DiscordUser playerLinkedUser =
+                linkProvider != null
+                ? linkProvider.getCached(player.uniqueId())
+                        .map(link -> discordSRV.discordAPI().getUserById(link.userId()))
+                        .orElse(null)
+                : null;
+
+        synchronized (currentSuggestions) {
+            PlayerMentionSuggestions suggestions = currentSuggestions.computeIfAbsent(player.uniqueId(), key -> new PlayerMentionSuggestions());
+            synchronized (allMentionSuggestions) {
+                suggestions.updateSuggestions(discordSRV, player, playerLinkedUser, allMentionSuggestions, config.minecraftToDiscord.mentions);
+            }
+            currentSuggestions.put(player.uniqueId(), suggestions);
+        }
     }
 
     private void updateMentionSuggestions() {
@@ -110,37 +160,27 @@ public class MentionGameRenderingModule extends AbstractModule<DiscordSRV> {
         BaseChannelConfig config = discordSRV.channelConfig().resolveDefault();
         List<DiscordGuild> guilds = getGuilds(config);
 
-        List<CachedMention> mentions = new ArrayList<>(512);
+        List<Mention> mentions = new ArrayList<>(512);
         for (DiscordGuild discordGuild : guilds) {
             Guild guild = discordGuild.asJDA();
             if (guilds.size() == 1) {
                 mentions.addAll(module.getMemberCache().getGuildCache(guild).values());
             }
-            mentions.addAll(module.getRoleCache().getGuildCache(guild).values());
             mentions.addAll(module.getChannelCache().getGuildCache(guild).values());
+
+            mentions.addAll(module.getRoleCache().getGuildCache(guild).values());
+            // Special roles
+            mentions.add(module.getEveryoneRole(guild));
+            mentions.add(module.getHereRole(guild));
         }
 
-        List<String> newMentionSuggestions = mentions.stream()
-                .map(CachedMention::plain)
-                .sorted()
-                .distinct()
-                .limit(Short.MAX_VALUE)
-                .collect(Collectors.toList());
-
-        List<String> newSuggestions = ListUtils.removeAll(newMentionSuggestions, mentionSuggestions);
-        List<String> removedSuggestions = ListUtils.removeAll(mentionSuggestions, newMentionSuggestions);
+        synchronized (allMentionSuggestions) {
+            allMentionSuggestions.clear();
+            allMentionSuggestions.addAll(mentions);
+        }
 
         for (IPlayer player : discordSRV.playerProvider().allPlayers()) {
-            if (!newSuggestions.isEmpty()) {
-                player.addChatSuggestions(newSuggestions);
-            }
-            if (!removedSuggestions.isEmpty()) {
-                player.removeChatSuggestions(removedSuggestions);
-            }
-        }
-        synchronized (mentionSuggestions) {
-            mentionSuggestions.clear();
-            mentionSuggestions.addAll(newMentionSuggestions);
+            updateMentionSuggestions(player);
         }
     }
 
@@ -165,9 +205,10 @@ public class MentionGameRenderingModule extends AbstractModule<DiscordSRV> {
             return;
         }
 
+        IPlayer player = (IPlayer) event.getPlayer();
         GameChannel gameChannel = event.getChannel();
         BaseChannelConfig config = gameChannel != null
-                                   ? discordSRV.channelConfig().get(gameChannel)
+                                   ? discordSRV.channelConfig().resolve(gameChannel)
                                    : discordSRV.channelConfig().resolveDefault();
         if (config == null || !config.minecraftToDiscord.mentions.renderMentionsInGame) {
             return;
@@ -184,18 +225,30 @@ public class MentionGameRenderingModule extends AbstractModule<DiscordSRV> {
         }
 
         DiscordGuild singleGuild = guilds.size() == 1 ? guilds.get(0) : null;
-        Set<Member> lookedUpMembers = singleGuild != null ? null : new CopyOnWriteArraySet<>();
+
+        LinkProvider linkProvider = discordSRV.linkProvider();
+        DiscordUser playerLinkedUser =
+                linkProvider != null && singleGuild != null
+                ? linkProvider.getCached(player.uniqueId())
+                        .map(link -> discordSRV.discordAPI().getUserById(link.userId()))
+                        .orElse(null)
+                : null;
 
         Component message = ComponentUtil.fromAPI(event.getMessage());
         String messageContent = discordSRV.componentFactory().plainSerializer().serialize(message);
 
-        List<CachedMention> cachedMentions = new ArrayList<>();
+        Set<Member> lookedUpMembers = singleGuild != null ? null : new CopyOnWriteArraySet<>();
+        List<Mention> mentions = new ArrayList<>();
         for (DiscordGuild guild : guilds) {
-            cachedMentions.addAll(
+            Guild jdaGuild = guild.asJDA();
+            Member playerLinkedMember = playerLinkedUser != null ? jdaGuild.getMemberById(playerLinkedUser.getId()) : null;
+
+            mentions.addAll(
                     module.lookup(
                             config.minecraftToDiscord.mentions,
-                            guild.asJDA(),
-                            (IPlayer) event.getPlayer(),
+                            jdaGuild,
+                            player,
+                            playerLinkedMember,
                             messageContent,
                             lookedUpMembers
                     ).join()
@@ -212,34 +265,29 @@ public class MentionGameRenderingModule extends AbstractModule<DiscordSRV> {
             members = Collections.emptySet();
         }
 
-        for (CachedMention cachedMention : cachedMentions) {
+        for (Mention mention : mentions) {
             message = message.replaceText(
-                    TextReplacementConfig.builder().match(cachedMention.search())
-                            .replacement((builder) -> replacement(cachedMention, config, singleGuild, members))
+                    TextReplacementConfig.builder().match(mention.search())
+                            .replacement((builder) -> replacement(mention, config, singleGuild, playerLinkedUser, members))
                             .build()
             );
         }
         event.process(ComponentUtil.toAPI(message));
     }
 
-    private Component replacement(CachedMention mention, BaseChannelConfig config, DiscordGuild guild, Set<DiscordGuildMember> members) {
+    private Component replacement(Mention mention, BaseChannelConfig config, DiscordGuild guild, DiscordUser requester, Set<DiscordGuildMember> members) {
         switch (mention.type()) {
             case ROLE:
                 return discordSRV.componentFactory().makeRoleMention(mention.id(), config);
             case USER:
                 return discordSRV.componentFactory().makeUserMention(mention.id(), config, guild, null, members);
             case CHANNEL:
-                return discordSRV.componentFactory().makeChannelMention(mention.id(), config);
+                return discordSRV.componentFactory().makeChannelMention(mention.id(), config, requester);
+            case EVERYONE:
+                return discordSRV.componentFactory().makeEveryoneRoleMention(mention.id(), config);
+            case HERE:
+                return discordSRV.componentFactory().makeHereRoleMention(mention.id(), config);
         }
         return Component.text(mention.plain());
-    }
-
-    @Subscribe
-    public void onPlayerConnected(PlayerConnectedEvent event) {
-        if (!isChatSuggestionsEnabledInAny()) {
-            return;
-        }
-
-        event.player().addChatSuggestions(mentionSuggestions);
     }
 }

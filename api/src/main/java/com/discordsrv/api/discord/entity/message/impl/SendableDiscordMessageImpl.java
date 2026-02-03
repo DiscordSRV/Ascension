@@ -319,7 +319,7 @@ public class SendableDiscordMessageImpl implements SendableDiscordMessage {
         public Builder clone() {
             BuilderImpl clone = new BuilderImpl();
             clone.setContent(content);
-            embeds.forEach(clone::addEmbed);
+            embeds.forEach(embed -> clone.addEmbed(embed.toBuilder().build()));
             allowedMentions.forEach(clone::addAllowedMention);
             clone.setWebhookUsername(webhookUsername);
             clone.setWebhookAvatarUrl(webhookAvatarUrl);

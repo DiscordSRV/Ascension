@@ -32,9 +32,11 @@ import com.discordsrv.common.config.configurate.serializer.*;
 import com.discordsrv.common.config.configurate.serializer.helper.BothMessageSerializer;
 import com.discordsrv.common.config.configurate.serializer.helper.DiscordMessageSerializer;
 import com.discordsrv.common.config.configurate.serializer.helper.MinecraftMessageSerializer;
+import com.discordsrv.common.config.configurate.serializer.helper.SendableDiscordMessageTemplateSerializer;
 import com.discordsrv.common.config.helper.BothMessage;
 import com.discordsrv.common.config.helper.DiscordMessage;
 import com.discordsrv.common.config.helper.MinecraftMessage;
+import com.discordsrv.common.config.helper.SendableDiscordMessageTemplate;
 import com.discordsrv.common.config.main.channels.base.BaseChannelConfig;
 import com.discordsrv.common.config.main.channels.base.ChannelConfig;
 import com.discordsrv.common.config.main.channels.base.IChannelConfig;
@@ -216,6 +218,7 @@ public abstract class ConfigurateConfigManager<T, LT extends AbstractConfigurati
                     builder.register(DiscordMessageEmbed.Builder.class, new DiscordMessageEmbedSerializer(NAMING_SCHEME));
                     builder.register(DiscordMessageEmbed.Field.class, new DiscordMessageEmbedSerializer.FieldSerializer(NAMING_SCHEME));
                     builder.register(SendableDiscordMessage.Builder.class, new SendableDiscordMessageSerializer(NAMING_SCHEME, false));
+                    builder.register(SendableDiscordMessageTemplate.class, new SendableDiscordMessageTemplateSerializer(NAMING_SCHEME));
                     builder.register(MinecraftMessage.class, new MinecraftMessageSerializer(NAMING_SCHEME));
                     builder.register(DiscordMessage.class, new DiscordMessageSerializer(NAMING_SCHEME));
                     builder.register(BothMessage.class, new BothMessageSerializer(NAMING_SCHEME));
@@ -304,7 +307,7 @@ public abstract class ConfigurateConfigManager<T, LT extends AbstractConfigurati
     }
 
     private static String doSubstitution(String input, String[] values) {
-        for (int i = 0; i < values.length; i++) {
+        for (int i = values.length - 1; i >= 0; i--) {
             input = input.replace("%" + (i + 1), values[i]);
         }
         return input;

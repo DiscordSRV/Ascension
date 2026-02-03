@@ -58,7 +58,7 @@ public class DestinationConfig {
     @ConfigSerializable
     public static class Single {
         @Setting("channel-id")
-        @Comment("The text, announcement, voice or stage channel id (or text, announcement, forum or stage channel id if using a thread)\n"
+        @Comment("The text, announcement, voice or stage channel id (or text, announcement, forum or media channel id if using a thread)\n"
                 + "The bot needs to have the following permissions in these channels:\n"
                 + "- \"View Channel\"\n"
                 + "- \"Manage Webhooks\" to send webhook messages\n"

@@ -18,8 +18,8 @@
 
 package com.discordsrv.common.config.main.sync;
 
-import com.discordsrv.common.abstraction.sync.enums.BanSyncDiscordAction;
-import com.discordsrv.common.abstraction.sync.enums.BanSyncDiscordTrigger;
+import com.discordsrv.common.abstraction.sync.enums.bans.BanSyncDiscordAction;
+import com.discordsrv.common.abstraction.sync.enums.bans.BanSyncDiscordTrigger;
 import com.discordsrv.common.config.configurate.annotation.Constants;
 import com.discordsrv.common.config.configurate.annotation.Order;
 import com.discordsrv.common.config.main.generic.AbstractSyncConfig;

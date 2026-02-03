@@ -26,6 +26,7 @@ import com.discordsrv.common.config.configurate.annotation.Order;
 import com.discordsrv.common.config.configurate.annotation.Untranslated;
 import com.discordsrv.common.config.configurate.manager.abstraction.ConfigurateConfigManager;
 import com.discordsrv.common.config.documentation.DocumentationURLs;
+import com.discordsrv.common.config.helper.SendableDiscordMessageTemplate;
 import com.discordsrv.common.config.main.generic.IMessageConfig;
 import org.jetbrains.annotations.Nullable;
 import org.spongepowered.configurate.objectmapping.ConfigSerializable;
@@ -55,13 +56,15 @@ public class JoinMessageConfig implements IMessageConfig {
     @Constants.Comment(DocumentationURLs.PLACEHOLDERS)
     @Untranslated(Untranslated.Type.VALUE)
     @Order(-2) // Above first-join
-    public SendableDiscordMessage.Builder format = SendableDiscordMessage.builder()
-            .addEmbed(
-                    DiscordMessageEmbed.builder()
-                            .setAuthor("%player_display_name% joined", null, "%player_avatar_url%")
-                            .setColor(0x55FF55)
-                            .build()
-            );
+    public SendableDiscordMessageTemplate format = new SendableDiscordMessageTemplate(
+            SendableDiscordMessage.builder()
+                    .addEmbed(
+                            DiscordMessageEmbed.builder()
+                                    .setAuthor("%player_display_name% joined", null, "%player_avatar_url%")
+                                    .setColor(0x55FF55)
+                                    .build()
+                    )
+    );
 
     @Comment("If the \"%1\" permission should determine whether join messages are sent")
     @Constants.Comment("discordsrv.silentjoin")
@@ -70,7 +73,7 @@ public class JoinMessageConfig implements IMessageConfig {
     @Comment("If fake join messages should be sent when players unvanish")
     public boolean sendFakeJoinMessages = true;
 
-    @Comment("Send message if player is vanished")
+    @Comment("Send message if player joins while being vanished")
     public boolean sendMessageForVanishedPlayers = false;
 
     @Comment("Ignore if the player leaves or vanishes within the given number of milliseconds. This will delay sending the join message")
@@ -87,7 +90,7 @@ public class JoinMessageConfig implements IMessageConfig {
     }
 
     @Override
-    public SendableDiscordMessage.Builder format() {
+    public SendableDiscordMessageTemplate format() {
         return format;
     }
 
@@ -108,13 +111,15 @@ public class JoinMessageConfig implements IMessageConfig {
         public boolean enabled = true;
 
         @Untranslated(Untranslated.Type.VALUE)
-        public SendableDiscordMessage.Builder format = SendableDiscordMessage.builder()
-                .addEmbed(
-                        DiscordMessageEmbed.builder()
-                                .setAuthor("%player_display_name% joined for the first time", null, "%player_avatar_url%")
-                                .setColor(0xFFAA00)
-                                .build()
-                );
+        public SendableDiscordMessageTemplate format = new SendableDiscordMessageTemplate(
+                SendableDiscordMessage.builder()
+                        .addEmbed(
+                                DiscordMessageEmbed.builder()
+                                        .setAuthor("%player_display_name% joined for the first time", null, "%player_avatar_url%")
+                                        .setColor(0xFFAA00)
+                                        .build()
+                        )
+        );
 
         @Override
         public boolean enabled() {
@@ -122,7 +127,7 @@ public class JoinMessageConfig implements IMessageConfig {
         }
 
         @Override
-        public SendableDiscordMessage.Builder format() {
+        public SendableDiscordMessageTemplate format() {
             return format;
         }
     }

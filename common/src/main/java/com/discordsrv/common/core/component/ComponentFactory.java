@@ -36,6 +36,7 @@ import com.discordsrv.common.config.main.generic.MentionsConfig;
 import com.discordsrv.common.core.component.renderer.DiscordSRVMinecraftRenderer;
 import com.discordsrv.common.core.logging.Logger;
 import com.discordsrv.common.core.logging.NamedLogger;
+import com.discordsrv.common.feature.mention.MentionUtil;
 import com.discordsrv.common.util.ComponentUtil;
 import dev.vankka.enhancedlegacytext.EnhancedLegacyText;
 import dev.vankka.mcdiscordreserializer.discord.DiscordSerializer;
@@ -48,6 +49,7 @@ import net.dv8tion.jda.api.entities.channel.middleman.GuildChannel;
 import net.kyori.adventure.key.Key;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.TranslatableComponent;
+import net.kyori.adventure.text.event.ClickEvent;
 import net.kyori.adventure.text.flattener.ComponentFlattener;
 import net.kyori.adventure.text.renderer.TranslatableComponentRenderer;
 import net.kyori.adventure.text.serializer.ansi.ANSIComponentSerializer;
@@ -63,9 +65,12 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 import java.util.Set;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 public class ComponentFactory implements MinecraftComponentFactory {
 
+    private static final Pattern MESSAGE_URL_PATTERN = Pattern.compile("https://(?:(?:ptb|canary)\\.)?discord\\.com/channels/[0-9]{16,20}/([0-9]{16,20})/[0-9]{16,20}");
     public static final Class<?> UNRELOCATED_ADVENTURE_COMPONENT;
 
     static {
@@ -142,11 +147,14 @@ public class ComponentFactory implements MinecraftComponentFactory {
     // Mentions
 
     @NotNull
-    public Component makeChannelMention(long id, BaseChannelConfig config) {
+    public Component makeChannelMention(long id, BaseChannelConfig config, @Nullable DiscordUser requester) {
         MentionsConfig.Format format = config.mentions.channel;
 
         JDA jda = discordSRV.jda();
         GuildChannel guildChannel = jda != null ? jda.getGuildChannelById(id) : null;
+        if (guildChannel != null && !MentionUtil.canMentionChannel(guildChannel, requester)) {
+            guildChannel = null;
+        }
 
         return DiscordMentionComponent.of(Message.MentionType.CHANNEL, Long.toUnsignedString(id), ComponentUtil.fromAPI(
                 discordSRV.componentFactory()
@@ -154,6 +162,36 @@ public class ComponentFactory implements MinecraftComponentFactory {
                         .addContext(guildChannel, config)
                         .build()
         ));
+    }
+
+    @Nullable
+    public Component makeMessageLink(String link, BaseChannelConfig config, @Nullable DiscordUser requester) {
+        Matcher matcher = MESSAGE_URL_PATTERN.matcher(link);
+        if (!matcher.matches()) {
+            return null;
+        }
+
+        String channelId = matcher.group(1);
+
+        JDA jda = discordSRV.jda();
+        GuildChannel guildChannel = jda != null ? jda.getGuildChannelById(channelId) : null;
+        if (config == null || guildChannel == null || !MentionUtil.canMentionChannel(guildChannel, requester)) {
+            return null;
+        }
+
+        String format = config.mentions.messageUrl;
+        return Component.text()
+                .clickEvent(ClickEvent.openUrl(link))
+                .append(
+                        ComponentUtil.fromAPI(
+                                discordSRV.componentFactory()
+                                        .textBuilder(format)
+                                        .addContext(guildChannel)
+                                        .addPlaceholder("jump_url", link)
+                                        .build()
+                        )
+                )
+                .build();
     }
 
     @NotNull
@@ -212,6 +250,28 @@ public class ComponentFactory implements MinecraftComponentFactory {
         ));
     }
 
+    public Component makeEveryoneRoleMention(long roleId, BaseChannelConfig config) {
+        DiscordRole role = discordSRV.discordAPI().getRoleById(roleId);
+
+        return DiscordMentionComponent.of(Message.MentionType.EVERYONE, "@everyone", ComponentUtil.fromAPI(
+                discordSRV.componentFactory()
+                        .textBuilder(config.mentions.everyoneRoleFormat)
+                        .addContext(role, config)
+                        .build()
+        ));
+    }
+
+    public Component makeHereRoleMention(long roleId, BaseChannelConfig config) {
+        DiscordRole role = discordSRV.discordAPI().getRoleById(roleId);
+
+        return DiscordMentionComponent.of(Message.MentionType.EVERYONE, "@here", ComponentUtil.fromAPI(
+                discordSRV.componentFactory()
+                        .textBuilder(config.mentions.hereRoleFormat)
+                        .addContext(role, config)
+                        .build()
+        ));
+    }
+
     public Component makeEmoteMention(long id, MentionsConfig.EmoteBehaviour behaviour) {
         DiscordCustomEmoji emoji = discordSRV.discordAPI().getEmojiById(id);
         if (emoji == null) {
@@ -255,6 +315,7 @@ public class ComponentFactory implements MinecraftComponentFactory {
 
         return DiscordSRVMinecraftRenderer.getWithContext(
                 message.getGuild(),
+                message.getAuthor(),
                 message.getMentionedUsers(),
                 message.getMentionedMembers(),
                 config,

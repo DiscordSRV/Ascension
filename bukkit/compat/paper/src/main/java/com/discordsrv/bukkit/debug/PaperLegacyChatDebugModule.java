@@ -19,33 +19,18 @@
 package com.discordsrv.bukkit.debug;
 
 import com.discordsrv.bukkit.BukkitDiscordSRV;
-import com.discordsrv.bukkit.listener.AbstractBukkitListener;
+import com.discordsrv.bukkit.listener.AbstractBukkitEventObserver;
 import com.discordsrv.common.core.logging.NamedLogger;
 import io.papermc.paper.event.player.AbstractChatEvent;
-import io.papermc.paper.event.player.ChatEvent;
-import org.bukkit.event.Event;
-import org.bukkit.event.player.AsyncPlayerChatEvent;
-import org.bukkit.event.player.PlayerChatEvent;
-import org.jspecify.annotations.NonNull;
 
 import java.util.function.Consumer;
 
 @SuppressWarnings("deprecation")
-public class PaperLegacyChatDebugModule extends AbstractBukkitListener<Event> {
+public class PaperLegacyChatDebugModule extends AbstractBukkitEventObserver {
 
     public PaperLegacyChatDebugModule(BukkitDiscordSRV discordSRV) {
         super(discordSRV, new NamedLogger(discordSRV, "PAPER_LEGACY_CHAT_EVENT_OBSERVATION"));
     }
-
-    // Dummy "listener", not actually listening to anything
-    @Override
-    public void enable() {}
-
-    @Override
-    public void disable() {}
-
-    @Override
-    protected void handleEvent(@NonNull Event event, Void __) {}
 
     private EventObserver<io.papermc.paper.event.player.ChatEvent, Boolean> modernSyncObserver;
     private EventObserver<org.bukkit.event.player.AsyncPlayerChatEvent, Boolean> legacyAsyncObserver;
@@ -75,8 +60,8 @@ public class PaperLegacyChatDebugModule extends AbstractBukkitListener<Event> {
 
     @Override
     protected void collectRelevantHandlerLists(Consumer<Class<?>> eventClassConsumer) {
-        eventClassConsumer.accept(ChatEvent.class);
-        eventClassConsumer.accept(AsyncPlayerChatEvent.class);
-        eventClassConsumer.accept(PlayerChatEvent.class);
+        eventClassConsumer.accept(io.papermc.paper.event.player.ChatEvent.class);
+        eventClassConsumer.accept(org.bukkit.event.player.AsyncPlayerChatEvent.class);
+        eventClassConsumer.accept(org.bukkit.event.player.PlayerChatEvent.class);
     }
 }
