@@ -26,32 +26,31 @@ import com.discordsrv.modded.module.AbstractModdedModule;
 import net.kyori.adventure.text.Component;
 
 import java.util.UUID;
+import java.util.function.Consumer;
 
 public class ModdedChatModule extends AbstractModdedModule {
 
-    private static ModdedChatModule instance;
     private final ModdedDiscordSRV discordSRV;
+    private static ModdedChatModule INSTANCE;
 
+    public static void withInstance(Consumer<ModdedChatModule> consumer) {
+        if (INSTANCE != null && INSTANCE.enabled) {
+            consumer.accept(INSTANCE);
+        }
+    }
     public ModdedChatModule(ModdedDiscordSRV discordSRV) {
         super(discordSRV);
         this.discordSRV = discordSRV;
-        instance = this;
-
+        INSTANCE = this;
     }
 
-    //? if minecraft: <=1.19.2 {
-    /*public static void onChatMessage(net.minecraft.network.chat.ChatMessageContent content, UUID uuid) {
-        onChatMessage(content.decorated(), uuid);
-    }
-    *///?} else {
-    public static void onChatMessage(String message, UUID uuid) {
+    public void onChatMessage(String message, UUID uuid) {
         onChatMessage(net.minecraft.network.chat.Component.nullToEmpty(message), uuid);
     }
-    //?}
 
-    public static void onChatMessage(net.minecraft.network.chat.Component text, UUID uuid) {
-        if (instance == null || !instance.enabled) return;
-        ModdedDiscordSRV discordSRV = instance.discordSRV;
+    public void onChatMessage(net.minecraft.network.chat.Component text, UUID uuid) {
+        if (!enabled) return;
+        ModdedDiscordSRV discordSRV = INSTANCE.discordSRV;
 
         Component component = discordSRV.componentFactory().fromNative(text);
         discordSRV.eventBus().publish(new GameChatMessagePreProcessEvent(

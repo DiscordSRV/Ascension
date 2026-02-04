@@ -23,6 +23,9 @@ import com.discordsrv.modded.requiredlinking.ModdedRequiredLinkingModule;
 import com.discordsrv.modded.util.MixinUtils;
 import net.minecraft.server.players.PlayerList;
 import org.spongepowered.asm.mixin.Mixin;
+import org.spongepowered.asm.mixin.injection.At;
+import org.spongepowered.asm.mixin.injection.Inject;
+import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 @Mixin(PlayerList.class)
 public class PlayerMessageMixin {
@@ -38,51 +41,49 @@ public class PlayerMessageMixin {
             cancellable = true
     )
     private void onSendChatMessage(Text message, net.minecraft.network.MessageType type, UUID senderUuid, CallbackInfo ci) {
-        ModdedRequiredLinkingModule.withInstance(module -> {
-            if (!module.allowChatMessage(senderUuid)) {
+        ModdedRequiredLinkingModule.withInstance(linkingModule -> {
+            if (!linkingModule.allowChatMessage(senderUuid)) {
                 ci.cancel();
             } else {
-//                ModdedChatModule.onChatMessage(message, senderUuid);
+                ModdedChatModule.withInstance(chatModule -> module.onChatMessage(message, senderUuid));
             }
         });
     }
-    */
-    //?} else if minecraft: <1.19.2 {
+    *///?} else if minecraft: <1.19.2 {
     /*@Inject(
             method = {"broadcast(Lnet/minecraft/network/message/SignedMessage;Ljava/util/function/Function;Lnet/minecraft/network/message/MessageSender;Lnet/minecraft/util/registry/RegistryKey;)V"},
             at = {@At("HEAD")},
             cancellable = true
     )
     private void onSendChatMessage(net.minecraft.network.message.SignedMessage message, Function<ServerPlayerEntity, net.minecraft.network.message.SignedMessage> playerMessageFactory, net.minecraft.network.message.MessageSender sender, net.minecraft.util.registry.RegistryKey<net.minecraft.network.message.MessageType> typeKey, CallbackInfo ci) {
-        ModdedRequiredLinkingModule.withInstance(module -> {
-            if (!module.allowChatMessage(sender.uuid())) {
+        ModdedRequiredLinkingModule.withInstance(linkingModule -> {
+            if (!linkingModule.allowChatMessage(sender.uuid())) {
                 ci.cancel();
             } else {
-                ModdedChatModule.onChatMessage(message.getContent(), sender.uuid());
+                ModdedChatModule.withInstance(chatModule -> module.onChatMessage(message.getContent().decorated(), sender.uuid()));
             }
         });
     }
-    */
-    //?} else if minecraft: >=1.19.2 {
+    *///?} else if minecraft: >=1.19.2 {
     static {
         //? if fabric {
         ModdedRequiredLinkingModule.withInstance(module -> net.fabricmc.fabric.api.message.v1.ServerMessageEvents.ALLOW_CHAT_MESSAGE.register((message, player, type) -> module.allowChatMessage(player.getUUID())));
-        net.fabricmc.fabric.api.message.v1.ServerMessageEvents.CHAT_MESSAGE.register((message, player, type) -> ModdedChatModule.onChatMessage(message.signedContent(), player.getUUID()));
+        ModdedChatModule.withInstance(module -> net.fabricmc.fabric.api.message.v1.ServerMessageEvents.CHAT_MESSAGE.register((message, player, type) -> module.onChatMessage(message.signedContent(), player.getUUID())));
         //?}
 
         //? if neoforge {
-        net.neoforged.neoforge.common.NeoForge.EVENT_BUS.addListener((net.neoforged.neoforge.event.ServerChatEvent event) -> {
+        /*net.neoforged.neoforge.common.NeoForge.EVENT_BUS.addListener((net.neoforged.neoforge.event.ServerChatEvent event) -> {
             boolean allowMessage = MixinUtils.withClass("com.discordsrv.modded.requiredlinking.ModdedRequiredLinkingModule", Boolean.class)
                     .withInstance()
                     .withMethod("allowChatMessage", event.getPlayer().getUUID())
                     .execute().orElse(false);
             if (!allowMessage || event.isCanceled()) event.setCanceled(true);
             else MixinUtils.withClass("com.discordsrv.modded.module.chat.ModdedChatModule")
-                        .withInstance()
-                        .withMethod("onChatMessage", event.getMessage(), event.getPlayer().getUUID())
-                        .execute();
+                    .withInstance()
+                    .withMethod("onChatMessage", event.getMessage(), event.getPlayer().getUUID())
+                    .execute();
         });
-        //?}
+        *///?}
     }
     //?}
 }
