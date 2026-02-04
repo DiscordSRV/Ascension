@@ -26,7 +26,7 @@ import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 
 @Mixin(Commands.class)
-public class CommandManagerMixin {
+public class CommandExecuteMixin {
 
     //? if minecraft: <1.20.3 && >=1.19.1 {
     /*@Inject(method = "performCommand", at = @At("HEAD"), cancellable = true)

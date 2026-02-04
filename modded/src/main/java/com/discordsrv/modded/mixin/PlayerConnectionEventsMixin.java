@@ -16,31 +16,33 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package com.discordsrv.modded.mixin.requiredlinking;
+package com.discordsrv.modded.mixin;
 
 import com.discordsrv.modded.util.MixinUtils;
-import net.minecraft.network.chat.Component;
+import net.minecraft.network.Connection;
+import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.server.network.CommonListenerCookie;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
-import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
-
-import java.net.SocketAddress;
-import java.util.Optional;
+import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 @Mixin(net.minecraft.server.players.PlayerList.class)
-public class PlayerManagerMixin {
+public class PlayerConnectionEventsMixin {
 
-    @Inject(method = "canPlayerLogin", at = @At("TAIL"), cancellable = true)
-    //? if minecraft: >= 1.21.9 {
-    public void checkCanJoin(SocketAddress address, net.minecraft.server.players.NameAndId entry, CallbackInfoReturnable<Component> cir) {
-    //?} else {
-    /*public void checkCanJoin(SocketAddress address, com.mojang.authlib.GameProfile entry, CallbackInfoReturnable<Component> cir) {
-    *///?}
-        Optional<Component> kickReason = MixinUtils.withClass("com.discordsrv.modded.requiredlinking.ModdedRequiredLinkingModule", Component.class)
-                .withMethod("canJoin", entry)
+    @Inject(method = "placeNewPlayer", at = @At("HEAD"))
+    private void handlePlayerJoin(Connection connection, ServerPlayer player, CommonListenerCookie clientData, CallbackInfo ci) {
+        MixinUtils.withClass("com.discordsrv.modded.player.ModdedPlayerProvider")
+                .withInstance()
+                .withMethod("addPlayer", player, false)
                 .execute();
+    }
 
-        cir.setReturnValue(kickReason.orElse(null));
+    @Inject(method = "remove", at = @At("HEAD"))
+    private void handlePlayerLeave(ServerPlayer player, CallbackInfo ci) {
+        MixinUtils.withClass("com.discordsrv.modded.player.ModdedPlayerProvider")
+                .withInstance()
+                .withMethod("removePlayer", player, false)
+                .execute();
     }
 }

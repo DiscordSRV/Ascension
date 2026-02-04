@@ -16,21 +16,16 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package com.discordsrv.modded.mixin.message;
+package com.discordsrv.modded.mixin;
 
 import com.discordsrv.modded.module.chat.ModdedChatModule;
 import com.discordsrv.modded.requiredlinking.ModdedRequiredLinkingModule;
 import com.discordsrv.modded.util.MixinUtils;
 import net.minecraft.server.players.PlayerList;
 import org.spongepowered.asm.mixin.Mixin;
-import org.spongepowered.asm.mixin.injection.At;
-import org.spongepowered.asm.mixin.injection.Inject;
-import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
-
-import java.util.UUID;
 
 @Mixin(PlayerList.class)
-public class PlayerManagerMixin {
+public class PlayerMessageMixin {
 
     //? if minecraft: <1.19 {
     /*@Inject(

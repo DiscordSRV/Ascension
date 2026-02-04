@@ -28,7 +28,7 @@ import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
 @Mixin(PlayerAdvancements.class)
-public class PlayerAdvancementTrackerMixin {
+public class PlayerAdvancementMixin {
 
     @Shadow
     private ServerPlayer player;

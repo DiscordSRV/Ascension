@@ -40,29 +40,11 @@ public class ModdedPlayerProvider extends AbstractPlayerProvider<ModdedPlayer, M
     public ModdedPlayerProvider(ModdedDiscordSRV discordSRV) {
         super(discordSRV);
         INSTANCE = this;
-
-        //? if fabric {
-        // Register events here instead of in subscribe() to avoid duplicate registrations. Since there's no unregister method for events in Fabric, we need to make sure we only register once.
-        net.fabricmc.fabric.api.networking.v1.ServerPlayConnectionEvents.JOIN.register(this::onConnection);
-        net.fabricmc.fabric.api.networking.v1.ServerPlayConnectionEvents.DISCONNECT.register(this::onDisconnect);
-        //?}
-
-        //? if neoforge {
-        /*net.neoforged.neoforge.common.NeoForge.EVENT_BUS.addListener(this::onDisconnect);
-        *///?}
     }
 
     @Override
     public void subscribe() {
         enabled = true;
-        if (discordSRV.getServer() == null || discordSRV.getServer().getPlayerList() == null) {
-            return; // Server not started yet, So there's no players to add
-        }
-
-        // Add players that are already connected
-        for (ServerPlayer player : discordSRV.getServer().getPlayerList().getPlayers()) {
-            addPlayer(player, true);
-        }
     }
 
     @Override
@@ -70,28 +52,12 @@ public class ModdedPlayerProvider extends AbstractPlayerProvider<ModdedPlayer, M
         enabled = false;
     }
 
-    //? if fabric {
-    private void onConnection(ServerGamePacketListenerImpl serverPlayNetworkHandler, net.fabricmc.fabric.api.networking.v1.PacketSender packetSender, MinecraftServer minecraftServer) {
-        addPlayer(serverPlayNetworkHandler.player, false);
-    }
-
-    private void onDisconnect(ServerGamePacketListenerImpl serverPlayNetworkHandler, MinecraftServer minecraftServer) {
-        removePlayer(serverPlayNetworkHandler.player);
-    }
-    //?}
-
-    //? if neoforge {
-    /*
-   private void onDisconnect(net.neoforged.neoforge.event.entity.player.PlayerEvent.PlayerLoggedOutEvent event) {
-        removePlayer((ServerPlayer) event.getEntity());
-    }
-    *///?}
-
     public void addPlayer(ServerPlayer player, boolean initial) {
         if (!enabled) return;
         addPlayer(player.getUUID(), new ModdedPlayer(discordSRV, player), initial);
     }
 
+    @SuppressWarnings("unused") // Used by Mixin
     public void removePlayer(ServerPlayer player) {
         if (!enabled) return;
         removePlayer(player.getUUID());

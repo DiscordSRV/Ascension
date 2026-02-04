@@ -16,16 +16,12 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package com.discordsrv.modded.mixin.requiredlinking;
+package com.discordsrv.modded.mixin.requiredlinking.neoforge;
 
-import com.discordsrv.modded.util.MixinUtils;
 import org.spongepowered.asm.mixin.Mixin;
-import org.spongepowered.asm.mixin.injection.At;
-import org.spongepowered.asm.mixin.injection.Inject;
-import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 @Mixin(targets = "net.minecraft.server.network.ServerConfigurationPacketListenerImpl")
-public class ServerConfigurationPacketListenerImplMixin {
+public class PlayerPreLoginMixin {
 
     //? if neoforge {
     /*@Inject(method = "startConfiguration", at = @At("HEAD"))
