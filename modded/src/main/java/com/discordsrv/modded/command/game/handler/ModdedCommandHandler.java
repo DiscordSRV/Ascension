@@ -23,24 +23,34 @@ import com.discordsrv.common.command.game.abstraction.handler.ICommandHandler;
 import com.discordsrv.common.command.game.abstraction.handler.util.BrigadierUtil;
 import com.discordsrv.common.command.game.abstraction.sender.ICommandSender;
 import com.discordsrv.modded.ModdedDiscordSRV;
+import com.mojang.brigadier.CommandDispatcher;
 import com.mojang.brigadier.tree.LiteralCommandNode;
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.commands.SharedSuggestionProvider;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.Entity;
 
+import java.util.HashSet;
+import java.util.Set;
+
 public class ModdedCommandHandler implements ICommandHandler {
 
     private final ModdedDiscordSRV discordSRV;
+    private final Set<GameCommand> commands = new HashSet<>();
 
     public ModdedCommandHandler(ModdedDiscordSRV discordSRV) {
         this.discordSRV = discordSRV;
+
+        //? if fabric
+        net.fabricmc.fabric.api.command.v2.CommandRegistrationCallback.EVENT.register((dispatcher, registryAccess, environment) -> registerAll(dispatcher));
+        //? if neoforge
+        //net.neoforged.neoforge.common.NeoForge.EVENT_BUS.addListener((net.neoforged.neoforge.event.RegisterCommandsEvent event) -> registerAll(event.getDispatcher()));
     }
 
     private ICommandSender getSender(SharedSuggestionProvider source) {
         if (source instanceof CommandSourceStack) {
             Entity playerEntity = ((CommandSourceStack) source).getEntity();
-            if (playerEntity != null && playerEntity instanceof ServerPlayer player) {
+            if (playerEntity instanceof ServerPlayer player) {
                 return discordSRV.playerProvider().player(player);
             } else {
                 return discordSRV.console();
@@ -51,7 +61,15 @@ public class ModdedCommandHandler implements ICommandHandler {
 
     @Override
     public void registerCommand(GameCommand command) {
+        commands.add(command);
         LiteralCommandNode<CommandSourceStack> node = BrigadierUtil.convertToBrigadier(discordSRV, command, this::getSender);
         discordSRV.getServer().getCommands().getDispatcher().getRoot().addChild(node);
+    }
+
+    private void registerAll(CommandDispatcher<CommandSourceStack> dispatcher) {
+        for (GameCommand command : commands) {
+            LiteralCommandNode<CommandSourceStack> node = BrigadierUtil.convertToBrigadier(discordSRV, command, this::getSender);
+            dispatcher.getRoot().addChild(node);
+        }
     }
 }
