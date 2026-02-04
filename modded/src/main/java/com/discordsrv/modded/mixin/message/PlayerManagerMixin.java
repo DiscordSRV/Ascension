@@ -20,6 +20,7 @@ package com.discordsrv.modded.mixin.message;
 
 import com.discordsrv.modded.module.chat.ModdedChatModule;
 import com.discordsrv.modded.requiredlinking.ModdedRequiredLinkingModule;
+import com.discordsrv.modded.util.MixinUtils;
 import net.minecraft.server.players.PlayerList;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
@@ -30,8 +31,6 @@ import java.util.UUID;
 
 @Mixin(PlayerList.class)
 public class PlayerManagerMixin {
-
-    //? if fabric {
 
     //? if minecraft: <1.19 {
     /*@Inject(
@@ -70,13 +69,25 @@ public class PlayerManagerMixin {
     }
     */
     //?} else if minecraft: >=1.19.2 {
-    // Use fabric message api
     static {
+        //? if fabric {
         ModdedRequiredLinkingModule.withInstance(module -> net.fabricmc.fabric.api.message.v1.ServerMessageEvents.ALLOW_CHAT_MESSAGE.register((message, player, type) -> module.allowChatMessage(player.getUUID())));
         net.fabricmc.fabric.api.message.v1.ServerMessageEvents.CHAT_MESSAGE.register((message, player, type) -> ModdedChatModule.onChatMessage(message.signedContent(), player.getUUID()));
-    // use ModdedRequiredLinkingModule.withInstance instead of static registration
-    }
-    //?}
+        //?}
 
+        //? if neoforge {
+        net.neoforged.neoforge.common.NeoForge.EVENT_BUS.addListener((net.neoforged.neoforge.event.ServerChatEvent event) -> {
+            boolean allowMessage = MixinUtils.withClass("com.discordsrv.modded.requiredlinking.ModdedRequiredLinkingModule", Boolean.class)
+                    .withInstance()
+                    .withMethod("allowChatMessage", event.getPlayer().getUUID())
+                    .execute().orElse(false);
+            if (!allowMessage || event.isCanceled()) event.setCanceled(true);
+            else MixinUtils.withClass("com.discordsrv.modded.module.chat.ModdedChatModule")
+                        .withInstance()
+                        .withMethod("onChatMessage", event.getMessage(), event.getPlayer().getUUID())
+                        .execute();
+        });
+        //?}
+    }
     //?}
 }

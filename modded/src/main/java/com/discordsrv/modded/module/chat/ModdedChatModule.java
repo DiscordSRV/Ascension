@@ -37,17 +37,7 @@ public class ModdedChatModule extends AbstractModdedModule {
         this.discordSRV = discordSRV;
         instance = this;
 
-        //? if neoforge {
-        //net.neoforged.neoforge.common.NeoForge.EVENT_BUS.addListener(this::onChat);
-        //?}
     }
-
-    //? if neoforge {
-    /*private void onChat(net.neoforged.neoforge.event.ServerChatEvent event) {
-        if (!enabled) return;
-        onChatMessage(event.getMessage(), event.getPlayer().getUUID());
-    }
-    *///?}
 
     //? if minecraft: <=1.19.2 {
     /*public static void onChatMessage(net.minecraft.network.chat.ChatMessageContent content, UUID uuid) {
