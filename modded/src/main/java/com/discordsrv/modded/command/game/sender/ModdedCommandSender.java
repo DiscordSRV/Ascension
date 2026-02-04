@@ -21,18 +21,32 @@ package com.discordsrv.modded.command.game.sender;
 import com.discordsrv.common.command.game.abstraction.sender.ICommandSender;
 import com.discordsrv.common.permission.game.Permission;
 import com.discordsrv.modded.ModdedDiscordSRV;
+import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents;
 import net.kyori.adventure.audience.Audience;
+import net.minecraft.commands.CommandSource;
 import net.minecraft.commands.CommandSourceStack;
+import net.minecraft.server.MinecraftServer;
+import net.minecraft.server.level.ServerLevel;
+import net.minecraft.world.phys.Vec2;
+import net.minecraft.world.phys.Vec3;
 import org.jetbrains.annotations.NotNull;
 
 public class ModdedCommandSender implements ICommandSender {
 
     protected final ModdedDiscordSRV discordSRV;
-    protected final CommandSourceStack commandSource;
+    protected CommandSourceStack commandSource;
 
     public ModdedCommandSender(ModdedDiscordSRV discordSRV, CommandSourceStack commandSource) {
         this.discordSRV = discordSRV;
         this.commandSource = commandSource;
+
+        if (commandSource == null) { // Register for when the server fully starts up
+            //? if fabric
+            ServerLifecycleEvents.SERVER_STARTED.register(server -> this.commandSource = getCommandSource(server, "DiscordSRV"));
+
+            //? if neoforge
+            //net.neoforged.neoforge.common.NeoForge.EVENT_BUS.addListener((net.neoforged.neoforge.event.server.ServerStartedEvent event) -> this.commandSource = getCommandSource(event.getServer(), "DiscordSRV"));
+        }
     }
 
     @Override
@@ -63,5 +77,34 @@ public class ModdedCommandSender implements ICommandSender {
     @Override
     public @NotNull Audience audience() {
         return discordSRV.componentFactory().audience(commandSource);
+    }
+
+    public static CommandSourceStack getCommandSource(MinecraftServer server, String name) {
+        return getCommandSource(server, server, name);
+    }
+
+    public static CommandSourceStack getCommandSource(MinecraftServer server, CommandSource source, String name) {
+        ServerLevel level = server.overworld();
+        //? if minecraft: <1.19 {
+        //Text text = Text.of(name);
+        //?} else {
+        net.minecraft.network.chat.Component text = net.minecraft.network.chat.Component.literal(name);
+        //?}
+
+        //? if minecraft: >=1.21.9 {
+        Vec3 spawnPos = level == null ? Vec3.ZERO : level.getRespawnData().pos().getCenter();
+        //?} else {
+        /*Vec3 spawnPos = Vec3.atLowerCornerOf(level.getSharedSpawnPos());
+         *///?}
+
+        //? if minecraft: >=1.21.11 {
+        net.minecraft.server.permissions.PermissionSet permissionSet = net.minecraft.server.permissions.PermissionSet.ALL_PERMISSIONS;
+        //?} else {
+        /*int permissionSet = 4;
+         *///?}
+
+        return new CommandSourceStack(
+                source, spawnPos, Vec2.ZERO, level, permissionSet, name, text, server, null
+        );
     }
 }

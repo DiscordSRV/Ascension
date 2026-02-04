@@ -46,7 +46,7 @@ public class ModdedGameCommandExecutionHelper implements GameCommandExecutionHel
 
     @Override
     public Task<List<String>> suggestCommands(List<String> parts) {
-        String fullCommand = String.join(" ", parts);
+        String fullCommand = parts.stream().filter(x-> !x.isBlank()).collect(Collectors.joining(" "));
         if (parts.isEmpty() || fullCommand.isBlank()) {
             return getRootCommands();
         }

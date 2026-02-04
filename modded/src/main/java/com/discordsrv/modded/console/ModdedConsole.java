@@ -38,11 +38,11 @@ public class ModdedConsole extends ModdedCommandSender implements Console {
     private final CommandExecutorProvider executorProvider;
 
     public ModdedConsole(ModdedDiscordSRV discordSRV) {
-        super(discordSRV, discordSRV.getServer().createCommandSourceStack());
+        super(discordSRV, null);
         this.loggingBackend = Log4JLoggerImpl.getRoot();
 
         Function<Consumer<Component>, CommandSourceStack> commandSenderProvider =
-                consumer -> new ModdedCommandFeedbackExecutor(discordSRV.getServer(), consumer).getCommandSource();
+                consumer -> getCommandSource(discordSRV.getServer(), new ModdedCommandFeedbackExecutor(discordSRV.getServer(), consumer), "DiscordSRVFeedback");
         this.executorProvider = consumer -> new ModdedCommandExecutor(discordSRV, commandSenderProvider.apply(consumer));
     }
 
