@@ -1,0 +1,13 @@
+plugins.apply "dev.kikugie.stonecutter"
+
+stonecutter {
+    active "1.21.11-neoforge" /* [SC] DO NOT EDIT */
+
+    parameters {
+        def loader = node.project.property("loom.platform")
+        constants.match(loader, "fabric", "neoforge")
+
+        def minecraft = node.project.property("minecraft.version_range_label").split("-")[0]
+        dependencies["minecraft"] = minecraft
+    }
+}
