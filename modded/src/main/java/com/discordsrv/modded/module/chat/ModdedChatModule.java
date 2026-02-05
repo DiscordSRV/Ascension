@@ -44,6 +44,11 @@ public class ModdedChatModule extends AbstractModdedModule {
         INSTANCE = this;
     }
 
+    //? if minecraft: <=1.19.2 {
+    /*public void onChatMessage(net.minecraft.network.chat.ChatMessageContent content, UUID uuid) {
+        onChatMessage(content.decorated(), uuid);
+    }*///?}
+
     public void onChatMessage(String message, UUID uuid) {
         onChatMessage(net.minecraft.network.chat.Component.nullToEmpty(message), uuid);
     }
