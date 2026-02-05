@@ -21,10 +21,10 @@ package com.discordsrv.modded.command.game.sender;
 import com.discordsrv.common.command.game.abstraction.sender.ICommandSender;
 import com.discordsrv.common.permission.game.Permission;
 import com.discordsrv.modded.ModdedDiscordSRV;
-import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents;
 import net.kyori.adventure.audience.Audience;
 import net.minecraft.commands.CommandSource;
 import net.minecraft.commands.CommandSourceStack;
+import net.minecraft.network.chat.Component;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.phys.Vec2;
@@ -42,7 +42,7 @@ public class ModdedCommandSender implements ICommandSender {
 
         if (commandSource == null) { // Register for when the server fully starts up
             //? if fabric
-            ServerLifecycleEvents.SERVER_STARTED.register(server -> this.commandSource = getCommandSource(server, "DiscordSRV"));
+            net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents.SERVER_STARTED.register(server -> this.commandSource = getCommandSource(server, "DiscordSRV"));
 
             //? if neoforge
             //net.neoforged.neoforge.common.NeoForge.EVENT_BUS.addListener((net.neoforged.neoforge.event.server.ServerStartedEvent event) -> this.commandSource = getCommandSource(event.getServer(), "DiscordSRV"));
@@ -60,18 +60,14 @@ public class ModdedCommandSender implements ICommandSender {
         /*//? if minecraft: >=1.21.11 {
         return commandSource.permissions().hasPermission(new net.minecraft.server.permissions.Permission.HasCommandLevel(net.minecraft.server.permissions.PermissionLevel.byId(defaultLevel)));
          //?} else {
-        /^return commandSource.hasPermission(4);
+        /^return commandSource.hasPermission(defaultLevel);
         ^///?}
         *///?}
     }
 
     @Override
     public void runCommand(String command) {
-        //? if minecraft: <1.19 {
-        /*discordSRV.getServer().getCommandManager().execute(commandSource, command);
-        *///?} else {
-        discordSRV.getServer().getCommands().performPrefixedCommand(commandSource, command);
-        //?}
+        discordSRV.getServer().executeIfPossible(() -> discordSRV.getServer().getCommands().performPrefixedCommand(commandSource, command));
     }
 
     @Override
@@ -85,11 +81,6 @@ public class ModdedCommandSender implements ICommandSender {
 
     public static CommandSourceStack getCommandSource(MinecraftServer server, CommandSource source, String name) {
         ServerLevel level = server.overworld();
-        //? if minecraft: <1.19 {
-        //Text text = Text.of(name);
-        //?} else {
-        net.minecraft.network.chat.Component text = net.minecraft.network.chat.Component.literal(name);
-        //?}
 
         //? if minecraft: >=1.21.9 {
         Vec3 spawnPos = level == null ? Vec3.ZERO : level.getRespawnData().pos().getCenter();
@@ -104,7 +95,7 @@ public class ModdedCommandSender implements ICommandSender {
          *///?}
 
         return new CommandSourceStack(
-                source, spawnPos, Vec2.ZERO, level, permissionSet, name, text, server, null
+                source, spawnPos, Vec2.ZERO, level, permissionSet, name, Component.literal(name), server, null
         );
     }
 }
