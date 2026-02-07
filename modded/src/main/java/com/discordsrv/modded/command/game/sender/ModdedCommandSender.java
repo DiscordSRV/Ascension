@@ -39,14 +39,6 @@ public class ModdedCommandSender implements ICommandSender {
     public ModdedCommandSender(ModdedDiscordSRV discordSRV, CommandSourceStack commandSource) {
         this.discordSRV = discordSRV;
         this.commandSource = commandSource;
-
-        if (commandSource == null) { // Register for when the server fully starts up
-            //? if fabric
-            net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents.SERVER_STARTED.register(server -> this.commandSource = getCommandSource(server, "DiscordSRV"));
-
-            //? if neoforge
-            //net.neoforged.neoforge.common.NeoForge.EVENT_BUS.addListener((net.neoforged.neoforge.event.server.ServerStartedEvent event) -> this.commandSource = getCommandSource(event.getServer(), "DiscordSRV"));
-        }
     }
 
     @Override

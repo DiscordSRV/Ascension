@@ -44,6 +44,14 @@ public class ModdedConsole extends ModdedCommandSender implements Console {
         Function<Consumer<Component>, CommandSourceStack> commandSenderProvider =
                 consumer -> getCommandSource(discordSRV.getServer(), new ModdedCommandFeedbackExecutor(discordSRV.getServer(), consumer), "DiscordSRVFeedback");
         this.executorProvider = consumer -> new ModdedCommandExecutor(discordSRV, commandSenderProvider.apply(consumer));
+
+        if (commandSource == null) { // Register for when the server fully starts up
+            //? if fabric
+            net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents.SERVER_STARTED.register(server -> this.commandSource = getCommandSource(server, "DiscordSRV"));
+
+            //? if neoforge
+            //net.neoforged.neoforge.common.NeoForge.EVENT_BUS.addListener((net.neoforged.neoforge.event.server.ServerStartedEvent event) -> this.commandSource = getCommandSource(event.getServer(), "DiscordSRV"));
+        }
     }
 
     @Override
