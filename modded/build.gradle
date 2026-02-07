@@ -29,10 +29,11 @@ java {
 sourceSets {
     main {
         java {
-            srcDirs("versions/${sc.current.version}/src/main/java")
-        }
-        resources {
-            srcDirs("versions/${sc.current.version}/src/main/resources")
+            if (loader == "fabric") {
+                exclude "com/discordsrv/neoforge/**"
+            } else if (loader == "neoforge") {
+                exclude "com/discordsrv/fabric/**"
+            }
         }
     }
 }

@@ -55,8 +55,13 @@ import java.security.CodeSource;
 import java.util.UUID;
 import java.util.jar.JarFile;
 
-public class ModdedDiscordSRV extends AbstractDiscordSRV<DiscordSRVModdedBootstrap, ModdedConfig, ConnectionConfig, MessagesConfig> {
-
+//? if fabric {
+import com.discordsrv.fabric.DiscordSRVFabricBootstrap;
+public class ModdedDiscordSRV extends AbstractDiscordSRV<DiscordSRVFabricBootstrap, ModdedConfig, ConnectionConfig, MessagesConfig> {
+//? } else if neoforge {
+/*import com.discordsrv.neoforge.DiscordSRVNeoForgeBootstrap;
+public class ModdedDiscordSRV extends AbstractDiscordSRV<DiscordSRVNeoForgeBootstrap, ModdedConfig, ConnectionConfig, MessagesConfig> {
+*///? }
     private final StandardScheduler scheduler;
     private final ModdedConsole console;
     private final ModdedPlayerProvider playerProvider;
@@ -70,7 +75,11 @@ public class ModdedDiscordSRV extends AbstractDiscordSRV<DiscordSRVModdedBootstr
 
     private final ModdedGameCommandExecutionHelper executionHelper;
 
-    public ModdedDiscordSRV(DiscordSRVModdedBootstrap bootstrap) {
+    //? if fabric {
+    public ModdedDiscordSRV(DiscordSRVFabricBootstrap bootstrap) {
+    //? } else if neoforge {
+    /*public ModdedDiscordSRV(DiscordSRVNeoForgeBootstrap bootstrap) {
+    *///?}
         super(bootstrap);
 
         this.scheduler = new StandardScheduler(this);
@@ -115,7 +124,7 @@ public class ModdedDiscordSRV extends AbstractDiscordSRV<DiscordSRVModdedBootstr
 
         // Fabric Integrations
         //? if fabric
-        registerIntegration("com.discordsrv.modded.integration.fabric.TextPlaceholderIntegration");
+        registerIntegration("com.discordsrv.fabric.integration.TextPlaceholderIntegration");
     }
 
     @Override

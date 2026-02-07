@@ -16,14 +16,20 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package com.discordsrv.modded;
+package com.discordsrv.fabric;
 
 import com.discordsrv.common.abstraction.bootstrap.IBootstrap;
 import com.discordsrv.common.abstraction.bootstrap.LifecycleManager;
 import com.discordsrv.common.core.logging.Logger;
 import com.discordsrv.common.core.logging.backend.impl.Log4JLoggerImpl;
+import com.discordsrv.modded.ModdedDiscordSRV;
 import dev.vankka.dependencydownload.classpath.ClasspathAppender;
 import net.minecraft.server.MinecraftServer;
+import net.fabricmc.api.DedicatedServerModInitializer;
+import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents;
+import net.fabricmc.loader.api.FabricLoader;
+import net.fabricmc.loader.api.ModContainer;
+import net.fabricmc.loader.impl.FabricLoaderImpl;
 import org.apache.logging.log4j.LogManager;
 
 import java.io.IOException;
@@ -31,35 +37,7 @@ import java.nio.file.Path;
 import java.util.Collections;
 import java.util.Optional;
 
-//? if fabric {
-import dev.vankka.dependencydownload.classpath.ClasspathAppender;
-import net.fabricmc.api.DedicatedServerModInitializer;
-import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents;
-import net.fabricmc.loader.api.FabricLoader;
-import net.fabricmc.loader.api.ModContainer;
-import net.fabricmc.loader.impl.FabricLoaderImpl;
-//?}
-
-//? if neoforge {
-/*import com.discordsrv.modded.util.ClassLoaderUtils;
-import dev.vankka.dependencydownload.jarinjar.classloader.JarInJarClassLoader;
-import dev.vankka.mcdependencydownload.neoforge.bootstrap.NeoForgeBootstrap;
-import net.neoforged.bus.api.IEventBus;
-import net.neoforged.bus.api.SubscribeEvent;
-import net.neoforged.fml.ModContainer;
-import net.neoforged.fml.loading.FMLConfig;
-import net.neoforged.fml.loading.FMLLoader;
-import net.neoforged.fml.loading.VersionInfo;
-import net.neoforged.neoforge.common.NeoForge;
-import net.neoforged.neoforge.event.server.*;
-*///?}
-
-//? if fabric {
-public class DiscordSRVModdedBootstrap implements DedicatedServerModInitializer, IBootstrap {
-//?}
-//? if neoforge {
-/*public class DiscordSRVModdedBootstrap extends NeoForgeBootstrap implements IBootstrap {
-*///?}
+public class DiscordSRVFabricBootstrap implements DedicatedServerModInitializer, IBootstrap {
     private final static String DEPENDENCIES_RUNTIME = /*$ dependencies_file*/"dependencies/runtimeDownload-1.21.11-fabric.txt";
 
     private final Logger logger;
@@ -69,9 +47,8 @@ public class DiscordSRVModdedBootstrap implements DedicatedServerModInitializer,
     private MinecraftServer minecraftServer;
     private ModdedDiscordSRV discordSRV;
 
-    //? if fabric {
     private final ClasspathAppender classpathAppender;
-    public DiscordSRVModdedBootstrap() {
+    public DiscordSRVFabricBootstrap() {
         this.logger = new Log4JLoggerImpl(LogManager.getLogger("DiscordSRV"));
 
         this.classpathAppender = new dev.vankka.mcdependencydownload.fabric.classpath.FabricClasspathAppender();
@@ -89,36 +66,7 @@ public class DiscordSRVModdedBootstrap implements DedicatedServerModInitializer,
         }
         this.minecraftServer = null;
     }
-    //?}
 
-    //? if neoforge {
-    /*private final JarInJarClassLoader classLoader;
-    public DiscordSRVModdedBootstrap(JarInJarClassLoader classLoader, ModContainer modContainer, IEventBus eventBus) {
-        super(classLoader, modContainer, eventBus);
-        this.classLoader = classLoader;
-        ClassLoaderUtils.setClassLoader(classLoader);
-
-        this.logger = new Log4JLoggerImpl(LogManager.getLogger("DiscordSRV"));
-
-        this.dataDirectory = Path.of(FMLConfig.defaultConfigPath(), "../config/discordsrv");
-
-        try {
-            this.lifecycleManager = new LifecycleManager(
-                    this.logger,
-                    dataDirectory,
-                    Collections.singletonList(DEPENDENCIES_RUNTIME),
-                    getClasspathAppender()
-            );
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
-        this.minecraftServer = null;
-
-        NeoForge.EVENT_BUS.register(this);
-    }
-    *///?}
-
-    //? if fabric {
     @Override
     public void onInitializeServer() {
         ServerLifecycleEvents.SERVER_STARTING.register(minecraftServer -> {
@@ -139,30 +87,6 @@ public class DiscordSRVModdedBootstrap implements DedicatedServerModInitializer,
             if (this.discordSRV != null) this.discordSRV.runDisable();
         });
     }
-    //?}
-
-    //? if neoforge {
-    /*@SubscribeEvent()
-    public void onServerStarting(ServerStartingEvent event) {
-        this.minecraftServer = event.getServer();
-        this.lifecycleManager.loadAndEnable(() -> this.discordSRV = new ModdedDiscordSRV(this));
-    }
-
-    @SubscribeEvent()
-    public void onServerStarted(ServerStartedEvent event) {
-        if (this.discordSRV == null) {
-            this.logger.error("Server started but ModdedDiscordSRV hasn't initialized properly.\n" +
-                    "This is likely due to an error during the loading process. Please check the full logs for more details.");
-            return;
-        }
-        this.discordSRV.runServerStarted();
-    }
-
-    @SubscribeEvent()
-    public void onServerStopping(ServerStoppingEvent event) {
-        if (this.discordSRV != null) this.discordSRV.runDisable();
-    }
-    *///?}
 
     @Override
     public Logger logger() {
@@ -171,20 +95,12 @@ public class DiscordSRVModdedBootstrap implements DedicatedServerModInitializer,
 
     @Override
     public ClasspathAppender classpathAppender() {
-        //? if fabric {
         return classpathAppender;
-        //? } else if neoforge {
-        /*return getClasspathAppender();
-        *///?}
     }
 
     @Override
     public ClassLoader classLoader() {
-        //? if fabric {
         return getClass().getClassLoader();
-        //? } else if neoforge {
-        /*return classLoader;
-        *///?}
     }
 
     @Override
@@ -199,26 +115,15 @@ public class DiscordSRVModdedBootstrap implements DedicatedServerModInitializer,
 
     @Override
     public String platformVersion() {
-        //? if fabric {
         //? if minecraft: >=1.21.6 {
         String minecraftVersion = net.minecraft.SharedConstants.getCurrentVersion().name();
-         //?} else {
+        //?} else {
         /*String minecraftVersion = net.minecraft.DetectedVersion.BUILT_IN.getName();
          *///?}
 
         String loader_version = FabricLoaderImpl.VERSION;
         Optional<ModContainer> fabricApi = FabricLoader.getInstance().getModContainer("fabric-api");
         return "Minecraft " + minecraftVersion + " with Fabric Loader " + loader_version + (fabricApi.map(modContainer -> " (Fabric API: " + modContainer.getMetadata().getVersion().getFriendlyString() + ")").orElse(""));
-        //? }
-        //? if neoforge {
-        /*//? if fml: >= 10 {
-        VersionInfo versionInfo = FMLLoader.getCurrent().getVersionInfo();
-        //?} else {
-        /^VersionInfo versionInfo = FMLLoader.versionInfo();
-        ^///? }
-
-        return "Minecraft " + versionInfo.mcVersion() + " with NeoForge " + versionInfo.neoForgeVersion();
-        *///? }
     }
 
     public MinecraftServer getServer() {

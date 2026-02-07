@@ -35,7 +35,7 @@ public class DiscordSRVNeoForgeLoader extends NeoForgeLoader {
 
     @Override
     public @NotNull String getBootstrapClassName() {
-        return "com.discordsrv.modded.DiscordSRVModdedBootstrap";
+        return "com.discordsrv.neoforge.DiscordSRVNeoForgeBootstrap";
     }
 
     @Override

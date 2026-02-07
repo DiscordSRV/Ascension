@@ -16,9 +16,8 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package com.discordsrv.modded.integration.fabric;
+package com.discordsrv.fabric.integration;
 
-//? if fabric {
 import com.discordsrv.api.eventbus.Subscribe;
 import com.discordsrv.api.events.placeholder.PlaceholderLookupEvent;
 import com.discordsrv.api.placeholder.PlaceholderLookupResult;
@@ -192,4 +191,3 @@ public class TextPlaceholderIntegration extends PluginIntegration<ModdedDiscordS
         return null;
     }
 }
-//? }
