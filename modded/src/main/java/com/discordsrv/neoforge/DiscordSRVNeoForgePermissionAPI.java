@@ -21,8 +21,8 @@ public class DiscordSRVNeoForgePermissionAPI {
     }
 
     private void collectPermissions() {
-        // Trigger the static initializer of Permissions to ensure all permissions are registered before we collect them.
-        Permissions ignored = Permissions.COMMAND_BROADCAST;
+        // Trigger the static initializer of Permission and Permissions to ensure all permissions are registered before we collect them.
+        Permission ignored = Permissions.COMMAND_BROADCAST;
 
         for (Permission permission : Permissions.allPermissions) {
             PermissionNode<Boolean> node = new PermissionNode<>(

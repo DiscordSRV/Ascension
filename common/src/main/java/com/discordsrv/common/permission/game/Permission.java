@@ -60,11 +60,6 @@ public interface Permission {
 
     class Dynamic implements Permission {
 
-        // Register dynamic permissions with any node for NeoForge support.
-        static {
-            Permission.of("mention.role", "id");
-        }
-
         private final String permission;
         private final String node;
         private final boolean requiresOpByDefault;

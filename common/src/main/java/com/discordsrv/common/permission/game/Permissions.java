@@ -53,6 +53,11 @@ public enum Permissions implements Permission {
     SILENT_QUIT("silentquit", true),
     ;
 
+    // Register dynamic permissions here, with any node for NeoForge support.
+    static {
+        Permission.of("mention.role", "id");
+    }
+
     private final String permission;
     private final String node;
     private final boolean requiresOpByDefault;
