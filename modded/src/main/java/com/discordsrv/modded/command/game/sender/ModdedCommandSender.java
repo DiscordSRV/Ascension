@@ -51,8 +51,12 @@ public class ModdedCommandSender implements ICommandSender {
 
         //? if neoforge {
         if (commandSource.getPlayer() != null) {
-            PermissionDynamicContext<String> context = com.discordsrv.neoforge.DiscordSRVNeoForgePermissionAPI.STRING_ID.createContext(permission.node());
-            return net.neoforged.neoforge.server.permission.PermissionAPI.getPermission(commandSource.getPlayer(), com.discordsrv.neoforge.DiscordSRVNeoForgePermissionAPI.permissionNodes.get(permission), context);
+            if (permission.node() != null) {
+                PermissionDynamicContext<String> context = com.discordsrv.neoforge.DiscordSRVNeoForgePermissionAPI.STRING_ID.createContext(permission.node());
+                return net.neoforged.neoforge.server.permission.PermissionAPI.getPermission(commandSource.getPlayer(), com.discordsrv.neoforge.DiscordSRVNeoForgePermissionAPI.permissionNodes.get(permission), context);
+            } else {
+                return net.neoforged.neoforge.server.permission.PermissionAPI.getPermission(commandSource.getPlayer(), com.discordsrv.neoforge.DiscordSRVNeoForgePermissionAPI.permissionNodes.get(permission));
+            }
         } else {
             //? if minecraft: >=1.21.11 {
             return commandSource.permissions().hasPermission(new net.minecraft.server.permissions.Permission.HasCommandLevel(net.minecraft.server.permissions.PermissionLevel.byId(defaultLevel)));
