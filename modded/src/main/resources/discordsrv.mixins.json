@@ -5,16 +5,19 @@
   "mixins": [
     "PlayerAdvancementMixin",
     "PlayerConnectionEventsMixin",
+    "PlayerMessageMixin",
     "ServerPlayerMixin",
     "ban.BanCommandMixin",
     "ban.PardonCommandMixin",
-    "PlayerMessageMixin",
     "requiredlinking.CommandExecuteMixin",
     "requiredlinking.PlayerJoinCheckMixin",
-    "requiredlinking.neoforge.PlayerPreLoginMixin",
-    "requiredlinking.PlayerMovementMixin"
+    "requiredlinking.PlayerMovementMixin",
+    "requiredlinking.neoforge.PlayerPreLoginMixin"
   ],
   "injectors": {
     "defaultRequire": 1
+  },
+  "mixinextras": {
+    "minVersion": "0.5.2"
   }
 }
