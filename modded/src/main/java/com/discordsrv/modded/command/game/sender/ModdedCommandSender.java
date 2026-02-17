@@ -29,6 +29,7 @@ import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.phys.Vec2;
 import net.minecraft.world.phys.Vec3;
+import net.neoforged.neoforge.server.permission.nodes.PermissionDynamicContext;
 import org.jetbrains.annotations.NotNull;
 
 public class ModdedCommandSender implements ICommandSender {
@@ -46,15 +47,20 @@ public class ModdedCommandSender implements ICommandSender {
         int defaultLevel = permission.requiresOpByDefault() ? 4 : 0;
 
         //? if fabric
-        return me.lucko.fabric.api.permissions.v0.Permissions.check(commandSource, permission.permission(), defaultLevel);
+        //return me.lucko.fabric.api.permissions.v0.Permissions.check(commandSource, permission.permission(), defaultLevel);
 
         //? if neoforge {
-        /*//? if minecraft: >=1.21.11 {
-        return commandSource.permissions().hasPermission(new net.minecraft.server.permissions.Permission.HasCommandLevel(net.minecraft.server.permissions.PermissionLevel.byId(defaultLevel)));
-         //?} else {
-        /^return commandSource.hasPermission(defaultLevel);
-        ^///?}
-        *///?}
+        if (commandSource.getPlayer() != null) {
+            PermissionDynamicContext<String> context = com.discordsrv.neoforge.DiscordSRVNeoForgePermissionAPI.STRING_ID.createContext(permission.node());
+            return net.neoforged.neoforge.server.permission.PermissionAPI.getPermission(commandSource.getPlayer(), com.discordsrv.neoforge.DiscordSRVNeoForgePermissionAPI.permissionNodes.get(permission), context);
+        } else {
+            //? if minecraft: >=1.21.11 {
+            return commandSource.permissions().hasPermission(new net.minecraft.server.permissions.Permission.HasCommandLevel(net.minecraft.server.permissions.PermissionLevel.byId(defaultLevel)));
+             //?} else {
+            /*return commandSource.hasPermission(defaultLevel);
+            *///?}
+        }
+        //?}
     }
 
     @Override

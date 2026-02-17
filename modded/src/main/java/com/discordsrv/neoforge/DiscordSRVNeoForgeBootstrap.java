@@ -74,6 +74,7 @@ public class DiscordSRVNeoForgeBootstrap extends NeoForgeBootstrap implements IB
         this.minecraftServer = null;
 
         NeoForge.EVENT_BUS.register(this);
+        NeoForge.EVENT_BUS.register(new DiscordSRVNeoForgePermissionAPI());
     }
 
     @SubscribeEvent()

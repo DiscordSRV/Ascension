@@ -47,7 +47,7 @@ public class Mention {
                 role.getIdLong(),
                 role.isMentionable(),
                 AllowedMention.role(role.getIdLong()),
-                Permission.of("mention.role." + Long.toUnsignedString(role.getIdLong()))
+                Permission.of("mention.role", Long.toUnsignedString(role.getIdLong()))
         );
     }
 

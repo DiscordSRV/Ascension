@@ -10,11 +10,7 @@ configurations.configureEach {
     resolutionStrategy {
         force "org.slf4j:slf4j-api:1.7.36"
         force "net.fabricmc:fabric-loader:0.14.0"
-
         force "dev.vankka:dependencydownload-runtime:2.0.0"
-        force "dev.vankka:dependencydownload-jarinjar-bootstrap:2.0.0"
-        force "dev.vankka:dependencydownload-jarinjar-loader:2.0.0"
-        force "dev.vankka:dependencydownload-jarinjar-common:2.0.0"
     }
 }
 
@@ -76,12 +72,16 @@ shadowJar {
     relocate('com.discordsrv.unrelocate.', '')
 
     from stonecutterNode.tasks.shadowJar.archiveFile
-    from(stonecutterNode.sourceSets.main.output) {
-        include("com/discordsrv/modded/util/**")
-        include("com/discordsrv/modded/mixin/**")
-        include("com/discordsrv/modded/accessor/**")
-        include("discordsrv.mixins.json")
+    from(rootProject.project("common").sourceSets.main.output) {
+        include "com/discordsrv/common/permission/game/**"
     }
+    from(stonecutterNode.sourceSets.main.output) {
+        include "com/discordsrv/modded/util/**"
+        include "com/discordsrv/modded/mixin/**"
+        include "com/discordsrv/modded/accessor/**"
+        include "discordsrv.mixins.json"
+    }
+
 }
 
 remapJar {
