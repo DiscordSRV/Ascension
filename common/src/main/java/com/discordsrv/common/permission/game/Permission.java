@@ -30,7 +30,7 @@ public interface Permission {
 
     String permission();
     String strippedPermission();
-    String node();
+    @Nullable String node();
 
     /**
      * If a given permission's default should be OP, rather than being granted by default.
