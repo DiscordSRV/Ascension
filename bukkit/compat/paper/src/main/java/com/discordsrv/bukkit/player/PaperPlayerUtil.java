@@ -45,7 +45,7 @@ public final class PaperPlayerUtil {
             PaperComponentHandle.setOrNull(Player.class, "kick");
 
     /**
-     * @see com.discordsrv.bukkit.component.PaperComponentHandle#IS_AVAILABLE
+     * @see com.discordsrv.bukkit.component.PaperComponentCheck#IS_AVAILABLE
      */
     public static void kick(Player player, MinecraftComponent component) {
         if (KICK_HANDLE == null) {
@@ -58,7 +58,7 @@ public final class PaperPlayerUtil {
             PaperComponentHandle.getOrNull(Player.class, "displayName");
 
     /**
-     * @see com.discordsrv.bukkit.component.PaperComponentHandle#IS_AVAILABLE
+     * @see com.discordsrv.bukkit.component.PaperComponentCheck#IS_AVAILABLE
      */
     public static MinecraftComponent displayName(Player player) {
         if (DISPLAY_NAME_HANDLE == null) {

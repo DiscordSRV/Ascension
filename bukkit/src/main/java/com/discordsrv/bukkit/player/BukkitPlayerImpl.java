@@ -21,6 +21,7 @@ package com.discordsrv.bukkit.player;
 import com.discordsrv.api.task.Task;
 import com.discordsrv.bukkit.BukkitDiscordSRV;
 import com.discordsrv.bukkit.component.PaperComponentHandle;
+import com.discordsrv.bukkit.component.PaperComponentCheck;
 import com.discordsrv.bukkit.gamerule.GameRule;
 import com.discordsrv.common.abstraction.player.provider.model.SkinInfo;
 import com.discordsrv.common.util.ComponentUtil;
@@ -55,7 +56,7 @@ public class BukkitPlayerImpl extends BukkitPlayer {
 
     @Override
     public Task<Void> kick(Component component) {
-        if (PaperComponentHandle.IS_AVAILABLE) {
+        if (PaperComponentCheck.IS_AVAILABLE) {
             return discordSRV.scheduler().executeOnMainThread(player, () -> PaperPlayerUtil.kick(player, ComponentUtil.toAPI(component)));
         }
         return super.kick(component);
@@ -135,7 +136,7 @@ public class BukkitPlayerImpl extends BukkitPlayer {
 
     @Override
     public @NotNull Component displayName() {
-        if (PaperComponentHandle.IS_AVAILABLE) {
+        if (PaperComponentCheck.IS_AVAILABLE) {
             return ComponentUtil.fromAPI(PaperPlayerUtil.displayName(player));
         }
         return super.displayName();

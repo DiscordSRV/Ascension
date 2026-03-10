@@ -25,7 +25,7 @@ import com.discordsrv.bukkit.command.game.PaperGameCommandExecutionHelper;
 import com.discordsrv.bukkit.command.game.handler.BukkitBasicCommandHandler;
 import com.discordsrv.bukkit.command.game.handler.CommodoreHandler;
 import com.discordsrv.bukkit.component.PaperComponentFlattener;
-import com.discordsrv.bukkit.component.PaperComponentHandle;
+import com.discordsrv.bukkit.component.PaperComponentCheck;
 import com.discordsrv.bukkit.config.main.BukkitConfig;
 import com.discordsrv.bukkit.console.BukkitConsole;
 import com.discordsrv.bukkit.debug.PaperLegacyChatDebugModule;
@@ -102,7 +102,7 @@ public class BukkitDiscordSRVImpl extends BukkitDiscordSRV {
             this.commandHandler = new BukkitBasicCommandHandler(this);
         }
 
-        if (PaperComponentFlattener.IS_AVAILABLE) {
+        if (PaperComponentCheck.IS_AVAILABLE) {
             componentFactory().translators().add(new PaperComponentFlattener.Translator());
         }
 
@@ -138,7 +138,7 @@ public class BukkitDiscordSRVImpl extends BukkitDiscordSRV {
             registerModule(BukkitAchievementListener::new);
         }
 
-        if (PaperComponentHandle.IS_AVAILABLE) {
+        if (PaperComponentCheck.IS_AVAILABLE) {
             // Paper (Since 1.16)
             registerModule(PaperChatListener::new);
             registerModule(PaperDeathListener::new);

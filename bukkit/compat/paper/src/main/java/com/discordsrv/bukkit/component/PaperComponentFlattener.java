@@ -31,10 +31,13 @@ import java.lang.reflect.Method;
 import java.text.MessageFormat;
 import java.util.Locale;
 
+/**
+ * Helper class to translate components via Paper's PaperComponents class, which has language data for Minecraft and data packs.
+ * @see PaperComponentCheck#IS_AVAILABLE
+ */
 public final class PaperComponentFlattener {
 
     private static final ComponentFlattener FLATTENER = get();
-    public static boolean IS_AVAILABLE = FLATTENER != null;
 
     private static ComponentFlattener get() {
         try {

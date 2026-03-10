@@ -19,31 +19,22 @@
 package com.discordsrv.bukkit.component;
 
 import com.discordsrv.api.component.MinecraftComponent;
-import com.discordsrv.common.util.ReflectionUtil;
 import com.discordsrv.unrelocate.net.kyori.adventure.text.Component;
-import org.bukkit.Server;
-import org.jetbrains.annotations.ApiStatus;
 
 import java.lang.invoke.MethodHandle;
 import java.lang.invoke.MethodHandles;
 import java.lang.invoke.MethodType;
 
+import static com.discordsrv.bukkit.component.PaperComponentCheck.UNRELOCATED_COMPONENT_CLASS;
+import static com.discordsrv.bukkit.component.PaperComponentCheck.IS_AVAILABLE;
+
+/**
+ * Helper class for using unrelocated Adventure Components in a relocated environment.
+ * @param <T> the type the method is on
+ *
+ * @see PaperComponentCheck#IS_AVAILABLE
+ */
 public class PaperComponentHandle<T> {
-
-    private static final Class<?> COMPONENT_CLASS = componentClass();
-
-    private static Class<?> componentClass() {
-        try {
-            return Class.forName(String.join(".", "net", "kyori", "adventure", "text", "Component"));
-        } catch (ClassNotFoundException e) {
-            return null;
-        }
-    }
-
-    @ApiStatus.AvailableSince("Paper 1.16")
-    public static boolean IS_AVAILABLE = COMPONENT_CLASS != null
-            && (ReflectionUtil.methodExists(Server.class, "broadcast", COMPONENT_CLASS)
-            || ReflectionUtil.classExists("io.papermc.paper.adventure.PaperAdventure"));
 
     public static <T> PaperComponentHandle.Get<T> getOrNull(Class<T> targetClass, String methodName) {
         if (!IS_AVAILABLE) {
@@ -93,8 +84,8 @@ public class PaperComponentHandle<T> {
 
     private PaperComponentHandle(Class<T> targetClass, String methodName, boolean set) throws ReflectiveOperationException {
         MethodType methodType = set
-                ? MethodType.methodType(void.class, COMPONENT_CLASS)
-                : MethodType.methodType(COMPONENT_CLASS);
+                ? MethodType.methodType(void.class, UNRELOCATED_COMPONENT_CLASS)
+                : MethodType.methodType(UNRELOCATED_COMPONENT_CLASS);
 
         this.methodHandle = MethodHandles.lookup().findVirtual(targetClass, methodName, methodType);
     }
