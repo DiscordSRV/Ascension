@@ -18,11 +18,19 @@
 
 package com.discordsrv.common.permission.game;
 
+import org.jetbrains.annotations.Nullable;
+
+import java.util.HashSet;
+
 public interface Permission {
 
     String PERMISSION_PREFIX = "discordsrv.";
 
+    HashSet<Permission> allPermissions = new HashSet<>();
+
     String permission();
+    String strippedPermission();
+    @Nullable String node();
 
     /**
      * If a given permission's default should be OP, rather than being granted by default.
@@ -31,34 +39,51 @@ public interface Permission {
     boolean requiresOpByDefault();
 
     static Permission of(String permission) {
-        return of(permission, true);
+        return of(permission, null);
     }
 
-    static Permission of(String permission, boolean requiresOpByDefault) {
-        return ofGeneric(PERMISSION_PREFIX + permission, requiresOpByDefault);
+    static Permission of(String permission, String node) {
+        return of(permission, node, true);
+    }
+
+    static Permission of(String permission, String node, boolean requiresOpByDefault) {
+        return ofGeneric(permission, node, requiresOpByDefault);
     }
 
     static Permission ofGeneric(String permission) {
-        return ofGeneric(permission, true);
+        return ofGeneric(permission, null, true);
     }
 
-    static Permission ofGeneric(String permission, boolean requiresOpByDefault) {
-        return new Dynamic(permission, requiresOpByDefault);
+    static Permission ofGeneric(String permission, String node, boolean requiresOpByDefault) {
+        return new Dynamic(permission, node, requiresOpByDefault);
     }
 
     class Dynamic implements Permission {
 
         private final String permission;
+        private final String node;
         private final boolean requiresOpByDefault;
 
-        public Dynamic(String permission, boolean requiresOpByDefault) {
+        public Dynamic(String permission, String node, boolean requiresOpByDefault) {
             this.permission = permission;
+            this.node = node;
             this.requiresOpByDefault = requiresOpByDefault;
+
+            allPermissions.add(this);
         }
 
         @Override
         public String permission() {
+            return PERMISSION_PREFIX + permission + (node != null ? "." + node : "");
+        }
+
+        public String strippedPermission() {
             return permission;
+        }
+
+        @Override
+        public @Nullable String node() {
+            return node;
         }
 
         @Override

@@ -1,0 +1,153 @@
+/*
+ * This file is part of DiscordSRV, licensed under the GPLv3 License
+ * Copyright (c) 2016-2026 Austin "Scarsz" Shapiro, Henri "Vankka" Schubin and DiscordSRV contributors
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <https://www.gnu.org/licenses/>.
+ */
+
+package com.discordsrv.modded.command.game;
+
+import com.discordsrv.api.task.Task;
+import com.discordsrv.common.command.game.abstraction.GameCommandExecutionHelper;
+import com.discordsrv.modded.ModdedDiscordSRV;
+import com.mojang.brigadier.CommandDispatcher;
+import com.mojang.brigadier.ParseResults;
+import com.mojang.brigadier.context.ParsedCommandNode;
+import com.mojang.brigadier.suggestion.Suggestions;
+import com.mojang.brigadier.tree.CommandNode;
+import com.mojang.brigadier.tree.RootCommandNode;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+import java.util.concurrent.ExecutionException;
+import java.util.stream.Collectors;
+import net.minecraft.commands.CommandSourceStack;
+
+public class ModdedGameCommandExecutionHelper implements GameCommandExecutionHelper {
+
+    protected final ModdedDiscordSRV discordSRV;
+    private final CommandDispatcher<CommandSourceStack> dispatcher;
+
+    public ModdedGameCommandExecutionHelper(ModdedDiscordSRV discordSRV) {
+        this.discordSRV = discordSRV;
+        this.dispatcher = discordSRV.getServer().getCommands().getDispatcher();
+    }
+
+    @Override
+    public Task<List<String>> suggestCommands(List<String> parts) {
+        String fullCommand = parts.stream().filter(x-> !x.isBlank()).collect(Collectors.joining(" "));
+        if (parts.isEmpty() || fullCommand.isBlank()) {
+            return getRootCommands();
+        }
+        try {
+            ParseResults<CommandSourceStack> parse = dispatcher.parse(fullCommand, discordSRV.getServer().createCommandSourceStack());
+            if (!parse.getExceptions().isEmpty()) {
+                // There's an error with the command syntax, return the full command and the error message for the user.
+                List<String> data = new ArrayList<>();
+                data.add(fullCommand);
+                parse.getExceptions().values().stream().map(Exception::getMessage).map(this::splitErrorMessage).forEach(data::addAll);
+
+                return Task.completed(data);
+            }
+
+            List<ParsedCommandNode<CommandSourceStack>> nodes = parse.getContext().getNodes();
+            if (!nodes.isEmpty()) {
+                CommandNode<CommandSourceStack> lastNode = nodes.getLast().getNode();
+                if (lastNode.getChildren().isEmpty() && lastNode.getRedirect() == null) {
+                    // We reached the end of the command tree. Suggest the full command as a valid command.
+                    return Task.completed(Collections.singletonList(fullCommand));
+                }
+            }
+
+            Suggestions suggestions = dispatcher.getCompletionSuggestions(parse).get();
+            List<String> data = suggestions.getList().stream()
+                    .map(suggestion -> fullCommand.substring(0, suggestion.getRange().getStart()) + suggestion.getText())
+                    .collect(Collectors.toList());
+            if (data.isEmpty()) {
+                // Suggestions are empty, Likely the user is still typing an argument.
+                // If the context is empty, We search all commands from the root.
+                CommandNode<CommandSourceStack> lastNode = !nodes.isEmpty() ? nodes.getLast().getNode() : parse.getContext().getRootNode();
+
+                for (CommandNode<CommandSourceStack> child : lastNode.getChildren()) {
+                    if (child.getName().toLowerCase().startsWith(parts.getLast().toLowerCase())) {
+                        if (lastNode instanceof RootCommandNode) {
+                            data.add(child.getName());
+                            continue;
+                        }
+
+                        String commandWithoutLastPart = fullCommand.substring(0, fullCommand.length() - parts.getLast().length());
+                        data.add(commandWithoutLastPart + child.getName());
+                    }
+                }
+            }
+            data = data.stream().map(String::trim).distinct().collect(Collectors.toList());
+            return Task.completed(data);
+        } catch (InterruptedException | ExecutionException e) {
+            return Task.completed(Collections.emptyList());
+        }
+    }
+
+    @Override
+    public List<String> getAliases(String command) {
+        return Collections.emptyList();
+    }
+
+    @Override
+    public boolean isSameCommand(String command1, String command2) {
+        CommandNode<CommandSourceStack> commandNode1 = dispatcher.findNode(Collections.singleton(command1));
+        CommandNode<CommandSourceStack> commandNode2 = dispatcher.findNode(Collections.singleton(command2));
+        if (commandNode1 != null && commandNode2 != null) {
+            return commandNode1.equals(commandNode2);
+        }
+        return false;
+    }
+
+    private Task<List<String>> getRootCommands() {
+        return Task.completed(
+                dispatcher.getRoot().getChildren()
+                        .stream()
+                        .map(CommandNode::getName)
+                        .collect(Collectors.toList())
+        );
+    }
+
+    // Split the error message if it's too long on a period or a comma. If the message reached 97 characters, split at that point and continue.
+    private List<String> splitErrorMessage(String message) {
+        List<String> parts = new ArrayList<>();
+        int start = 0;
+
+        while (start < message.length()) {
+            // Maximum line length (100 - 7 for "Error: " = 93)
+            int end = Math.min(start + 93, message.length());
+            String chunk = message.substring(start, end);
+
+            int splitIndex = Math.max(chunk.lastIndexOf('.'), chunk.lastIndexOf(','));
+            if (splitIndex != -1 && start + splitIndex < end) {
+                parts.add("Error: " + message.substring(start, start + splitIndex + 1));
+                start += splitIndex + 1;
+            } else {
+                // Split at 90 characters (leaving room for "Error: " and "...")
+                if (end < message.length()) {
+                    parts.add("Error: " + message.substring(start, start + 90) + "...");
+                    start += 90;
+                } else {
+                    parts.add("Error: " + message.substring(start));
+                    break;
+                }
+            }
+        }
+
+        return parts;
+    }
+}

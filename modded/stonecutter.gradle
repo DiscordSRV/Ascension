@@ -1,0 +1,24 @@
+plugins.apply "dev.kikugie.stonecutter"
+
+stonecutter {
+    active "1.21.11-fabric" /* [SC] DO NOT EDIT */
+
+    parameters {
+        def loader = node.project.property("loom.platform")
+        constants.match(loader, "fabric", "neoforge")
+
+        def minecraft = node.project.property("minecraft.version_range_label").split("-")[0]
+        dependencies["minecraft"] = minecraft
+
+        def adventure = node.project.property("deps.adventure_platform").replace("-SNAPSHOT", "")
+        dependencies["adventure"] = adventure
+
+        def fml = node.project.property("deps.neoforge_fml_version").replace("-SNAPSHOT", "")
+        if (fml != "[VERSIONED]") {
+            dependencies["fml"] = fml
+        }
+
+        swaps["dependencies_file"] = ("\"dependencies/runtimeDownload-${it.current.version}.txt\";").toString()
+    }
+
+}

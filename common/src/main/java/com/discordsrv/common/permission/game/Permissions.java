@@ -32,6 +32,7 @@ public enum Permissions implements Permission {
     COMMAND_LINK_OTHER("command.link.other", true),
     COMMAND_LINKED_OTHER("command.linked.other", true),
     COMMAND_UNLINK_OTHER("command.unlink.other", true),
+
     // Player
     COMMAND_ROOT("command.root", false),
     COMMAND_HELP("command.help", false),
@@ -52,17 +53,40 @@ public enum Permissions implements Permission {
     SILENT_QUIT("silentquit", true),
     ;
 
+    // Register dynamic permissions here, with any node for NeoForge support.
+    static {
+        Permission.of("mention.role", "id");
+    }
+
     private final String permission;
+    private final String node;
     private final boolean requiresOpByDefault;
 
     Permissions(String permission, boolean requiresOpByDefault) {
+        this(permission, null, requiresOpByDefault);
+    }
+
+    Permissions(String permission, String node, boolean requiresOpByDefault) {
         this.permission = permission;
+        this.node = node;
         this.requiresOpByDefault = requiresOpByDefault;
+
+        allPermissions.add(this);
     }
 
     @Override
     public String permission() {
         return PERMISSION_PREFIX + permission;
+    }
+
+    @Override
+    public String strippedPermission() {
+        return permission;
+    }
+
+    @Override
+    public String node() {
+        return node;
     }
 
     /**

@@ -1,0 +1,23 @@
+{
+  "required": true,
+  "package": "com.discordsrv.modded.mixin",
+  "compatibilityLevel": "JAVA_17",
+  "mixins": [
+    "PlayerAdvancementMixin",
+    "PlayerConnectionEventsMixin",
+    "PlayerMessageMixin",
+    "ServerPlayerMixin",
+    "ban.BanCommandMixin",
+    "ban.PardonCommandMixin",
+    "requiredlinking.CommandExecuteMixin",
+    "requiredlinking.PlayerJoinCheckMixin",
+    "requiredlinking.PlayerMovementMixin",
+    "requiredlinking.neoforge.PlayerPreLoginMixin"
+  ],
+  "injectors": {
+    "defaultRequire": 1
+  },
+  "mixinextras": {
+    "minVersion": "0.5.2"
+  }
+}
