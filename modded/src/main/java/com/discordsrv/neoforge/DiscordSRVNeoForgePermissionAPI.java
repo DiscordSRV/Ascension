@@ -31,10 +31,13 @@ import java.util.HashMap;
 
 public class DiscordSRVNeoForgePermissionAPI {
 
-    public static final PermissionDynamicContextKey<String> STRING_ID = new PermissionDynamicContextKey<>(String.class, "ID", String::toString);
-    public static final HashMap<Permission, PermissionNode<Boolean>> permissionNodes = new HashMap<>();
+    @SuppressWarnings({"unused", "FieldCanBeLocal"})
+    private final DiscordSRVNeoForgeBootstrap bootstrap;
+    public static final PermissionDynamicContextKey<String> STRING_ID = new PermissionDynamicContextKey<>(String.class, "id", String::toString);
+    public static final HashMap<String, PermissionNode<Boolean>> permissionNodes = new HashMap<>();
 
-    public DiscordSRVNeoForgePermissionAPI() {
+    public DiscordSRVNeoForgePermissionAPI(DiscordSRVNeoForgeBootstrap bootstrap) {
+        this.bootstrap = bootstrap;
         collectPermissions();
     }
 
@@ -48,14 +51,16 @@ public class DiscordSRVNeoForgePermissionAPI {
                     permission.strippedPermission(),
                     PermissionTypes.BOOLEAN,
                     //? if minecraft: >=1.21.11 {
-                    (player, uuid, permissionDynamicContexts) -> !permission.requiresOpByDefault() || (player != null && player.hasPermission(new net.minecraft.server.permissions.Permission.HasCommandLevel(net.minecraft.server.permissions.PermissionLevel.byId(4)))),
-                    //?} else {
-                    /*(player, uuid, permissionDynamicContexts) -> !permission.requiresOpByDefault() || (player != null && player.server.getProfilePermissions(player.getGameProfile()) >= 4),
+                    (player, uuid, permissionDynamicContexts) -> !permission.requiresOpByDefault() || (player != null && player.permissions().hasPermission(new net.minecraft.server.permissions.Permission.HasCommandLevel(net.minecraft.server.permissions.PermissionLevel.byId(4)))),
+                    //?} else if minecraft: >=1.21.9 {
+                    /*(player, uuid, permissionDynamicContexts) -> !permission.requiresOpByDefault() || (player != null && bootstrap.getServer().getProfilePermissions(new net.minecraft.server.players.NameAndId(player.getGameProfile())) >= 4),
+                    *///?} else {
+                    /*(player, uuid, permissionDynamicContexts) -> !permission.requiresOpByDefault() || (player != null && bootstrap.getServer().getProfilePermissions(player.getGameProfile()) >= 4),
                     *///?}
                     STRING_ID
             );
 
-            permissionNodes.put(permission, node);
+            permissionNodes.put(permission.strippedPermission(), node);
         }
     }
 

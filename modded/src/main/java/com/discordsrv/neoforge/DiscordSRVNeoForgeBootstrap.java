@@ -87,7 +87,7 @@ public class DiscordSRVNeoForgeBootstrap extends AbstractBootstrap implements IB
     }
 
     @SubscribeEvent()
-    public void onServerStarting(ServerStartingEvent event) {
+    public void onServerStarting(ServerAboutToStartEvent event) {
         this.minecraftServer = event.getServer();
         this.lifecycleManager.loadAndEnable(() -> this.discordSRV = new ModdedDiscordSRV(this));
     }
