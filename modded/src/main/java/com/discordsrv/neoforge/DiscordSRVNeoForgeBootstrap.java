@@ -25,8 +25,9 @@ import com.discordsrv.common.core.logging.backend.impl.Log4JLoggerImpl;
 import com.discordsrv.modded.ModdedDiscordSRV;
 import com.discordsrv.modded.util.ClassLoaderUtils;
 import dev.vankka.dependencydownload.classpath.ClasspathAppender;
+import dev.vankka.dependencydownload.jarinjar.bootstrap.AbstractBootstrap;
+import dev.vankka.dependencydownload.jarinjar.bootstrap.classpath.JarInJarClasspathAppender;
 import dev.vankka.dependencydownload.jarinjar.classloader.JarInJarClassLoader;
-import dev.vankka.mcdependencydownload.neoforge.bootstrap.NeoForgeBootstrap;
 import net.minecraft.server.MinecraftServer;
 import net.neoforged.bus.api.IEventBus;
 import net.neoforged.bus.api.SubscribeEvent;
@@ -42,19 +43,27 @@ import java.io.IOException;
 import java.nio.file.Path;
 import java.util.Collections;
 
-public class DiscordSRVNeoForgeBootstrap extends NeoForgeBootstrap implements IBootstrap {
+public class DiscordSRVNeoForgeBootstrap extends AbstractBootstrap implements IBootstrap {
     private final static String DEPENDENCIES_RUNTIME = /*$ dependencies_file*/"dependencies/runtimeDownload-1.21.11-fabric.txt";
 
     private final Logger logger;
-
     private final LifecycleManager lifecycleManager;
     private final Path dataDirectory;
+
+    private JarInJarClasspathAppender classpathAppender;
+    private ModContainer modContainer;
+    private IEventBus eventBus;
     private MinecraftServer minecraftServer;
     private ModdedDiscordSRV discordSRV;
 
     private final JarInJarClassLoader classLoader;
     public DiscordSRVNeoForgeBootstrap(JarInJarClassLoader classLoader, ModContainer modContainer, IEventBus eventBus) {
-        super(classLoader, modContainer, eventBus);
+        super(classLoader);
+
+        this.classpathAppender = new JarInJarClasspathAppender(classLoader);
+        this.modContainer = modContainer;
+        this.eventBus = eventBus;
+        this.classpathAppender = new JarInJarClasspathAppender(classLoader);
 
         this.logger = new Log4JLoggerImpl(LogManager.getLogger("DiscordSRV"));
         this.dataDirectory = FMLPaths.CONFIGDIR.get().resolve("discordsrv");
@@ -66,7 +75,7 @@ public class DiscordSRVNeoForgeBootstrap extends NeoForgeBootstrap implements IB
                     this.logger,
                     dataDirectory,
                     Collections.singletonList(DEPENDENCIES_RUNTIME),
-                    getClasspathAppender()
+                    classpathAppender
             );
         } catch (IOException e) {
             throw new RuntimeException(e);
@@ -74,7 +83,7 @@ public class DiscordSRVNeoForgeBootstrap extends NeoForgeBootstrap implements IB
         this.minecraftServer = null;
 
         NeoForge.EVENT_BUS.register(this);
-        NeoForge.EVENT_BUS.register(new DiscordSRVNeoForgePermissionAPI());
+        NeoForge.EVENT_BUS.register(new DiscordSRVNeoForgePermissionAPI(this));
     }
 
     @SubscribeEvent()
@@ -105,7 +114,7 @@ public class DiscordSRVNeoForgeBootstrap extends NeoForgeBootstrap implements IB
 
     @Override
     public ClasspathAppender classpathAppender() {
-        return getClasspathAppender();
+        return classpathAppender;
     }
 
     @Override

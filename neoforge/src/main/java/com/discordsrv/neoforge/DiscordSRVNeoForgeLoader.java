@@ -18,19 +18,34 @@
 
 package com.discordsrv.neoforge;
 
-import dev.vankka.mcdependencydownload.neoforge.loader.NeoForgeLoader;
+import dev.vankka.dependencydownload.jarinjar.classloader.JarInJarClassLoader;
+import dev.vankka.dependencydownload.jarinjar.loader.ILoader;
 import net.neoforged.bus.api.IEventBus;
 import net.neoforged.fml.ModContainer;
 import net.neoforged.fml.common.Mod;
 import org.jetbrains.annotations.NotNull;
 
+import java.lang.reflect.Constructor;
 import java.net.URL;
 
 @Mod("discordsrv")
-public class DiscordSRVNeoForgeLoader extends NeoForgeLoader {
+public class DiscordSRVNeoForgeLoader implements ILoader {
+
+    protected final JarInJarClassLoader classLoader;
+    private final ModContainer modContainer;
+    private final IEventBus eventBus;
 
     public DiscordSRVNeoForgeLoader(IEventBus eventBus, ModContainer modContainer) {
-        super(eventBus, modContainer);
+        super();
+        this.modContainer = modContainer;
+        this.eventBus = eventBus;
+        this.classLoader = initialize();
+    }
+
+    @Override
+    public final void initiateBootstrap(Class<?> bootstrapClass, @NotNull JarInJarClassLoader classLoader) throws ReflectiveOperationException {
+        Constructor<?> constructor = bootstrapClass.getConstructor(JarInJarClassLoader.class, ModContainer.class, IEventBus.class);
+        constructor.newInstance(classLoader, modContainer, eventBus);
     }
 
     @Override

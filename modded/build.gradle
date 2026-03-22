@@ -226,7 +226,7 @@ dependencies {
         neoForge("net.neoforged:neoforge:${project.property("deps.neoforge_version")}")
 
         // DependencyDownload
-        compileOnly(libs.mcdependencydownload.neoforge.loader)
-        compileOnly(libs.mcdependencydownload.neoforge.bootstrap)
+        compileOnly(libs.dependencydownload.jarinjar.loader)
+        compileOnly(libs.dependencydownload.jarinjar.bootstrap)
     }
 }

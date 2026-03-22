@@ -138,6 +138,6 @@ dependencies {
     })
 
     // DependencyDownload
-    shadow(libs.mcdependencydownload.neoforge.loader)
-    shadow(libs.mcdependencydownload.neoforge.bootstrap)
+    shadow(libs.dependencydownload.jarinjar.loader)
+    shadow(libs.dependencydownload.jarinjar.bootstrap)
 }
