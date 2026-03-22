@@ -56,19 +56,16 @@ public class DiscordSRVNeoForgeBootstrap extends AbstractBootstrap implements IB
     private MinecraftServer minecraftServer;
     private ModdedDiscordSRV discordSRV;
 
-    private final JarInJarClassLoader classLoader;
     public DiscordSRVNeoForgeBootstrap(JarInJarClassLoader classLoader, ModContainer modContainer, IEventBus eventBus) {
         super(classLoader);
+        ClassLoaderUtils.setClassLoader(classLoader);
 
         this.classpathAppender = new JarInJarClasspathAppender(classLoader);
         this.modContainer = modContainer;
         this.eventBus = eventBus;
-        this.classpathAppender = new JarInJarClasspathAppender(classLoader);
 
         this.logger = new Log4JLoggerImpl(LogManager.getLogger("DiscordSRV"));
         this.dataDirectory = FMLPaths.CONFIGDIR.get().resolve("discordsrv");
-        this.classLoader = classLoader;
-        ClassLoaderUtils.setClassLoader(classLoader);
 
         try {
             this.lifecycleManager = new LifecycleManager(
@@ -119,7 +116,7 @@ public class DiscordSRVNeoForgeBootstrap extends AbstractBootstrap implements IB
 
     @Override
     public ClassLoader classLoader() {
-        return classLoader;
+        return getClassLoader();
     }
 
     @Override
