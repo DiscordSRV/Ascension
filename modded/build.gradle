@@ -1,5 +1,5 @@
 plugins {
-    id("dev.kikugie.stonecutter") version "0.8.3"
+    id("dev.kikugie.stonecutter") version "0.9"
     alias(libs.plugins.arch.loom)
     alias(libs.plugins.arch.plugin)
 }
@@ -12,8 +12,7 @@ configurations.configureEach {
     }
 }
 
-var loader = project.property("loom.platform")
-var minecraftVersion = sc.current.version.split("-")[0]
+def (minecraftVersion, loader) = project.name.split('-', 2)
 
 architectury {
     common("fabric", "neoforge")
