@@ -123,7 +123,7 @@ repositories {
 dependencies {
     minecraft("com.mojang:minecraft:${minecraftVersion}")
     mappings(loom.officialMojangMappings())
-    neoForge("net.neoforged:neoforge:${project.property("deps.neoforge_version")}")
+    neoForge("net.neoforged:neoforge:${stonecutterNode.property("deps.neoforge_version")}")
 
     // Mixin Extras
     include(modImplementation("io.github.llamalad7:mixinextras-neoforge:0.5.2"))
@@ -132,7 +132,7 @@ dependencies {
     include(libs.adventure.api)
     include(libs.kyori.ansi)
 
-    include(modImplementation("net.kyori:adventure-platform-neoforge:${project.property("deps.adventure_platform")}"){
+    include(modImplementation("net.kyori:adventure-platform-neoforge:${stonecutterNode.property("deps.adventure_platform")}"){
         exclude group: 'net.kyori', module: 'ansi'
         exclude group: 'net.kyori', module: 'adventure-api'
     })
