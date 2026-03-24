@@ -16,14 +16,25 @@ configurations.configureEach {
 
 var minecraftVersion = sc.current.version.toString().split("-")[0]
 var stonecutterNode = rootProject.findProject("modded").subprojects.find { it.name == project.name }
+def isObfuscated = sc.eval(minecraftVersion, "<26.0")
+
+if (!isObfuscated) {
+    // Dummy task for 26.1+ since architectury plugin expect it to exist, but loom doesn't create it for non-obfuscated versions.
+    tasks.register('remapJar', net.fabricmc.loom.task.RemapJarTask) {
+        enabled = false
+        return;
+    }
+}
 
 architectury {
     common("neoforge")
 }
 
 java {
-    targetCompatibility = JavaVersion.VERSION_21
-    sourceCompatibility = JavaVersion.VERSION_21
+    var java = stonecutterNode.java.targetCompatibility
+
+    targetCompatibility = java
+    sourceCompatibility = java
 }
 
 sourceSets {
@@ -84,14 +95,22 @@ shadowJar {
 
 }
 
-remapJar {
-    dependsOn shadowJar
-    inputFile = shadowJar.archiveFile
+if (isObfuscated) {
+    remapJar {
+        dependsOn processResources
+        dependsOn shadowJar
+        inputFile = shadowJar.archiveFile
+    }
 }
 
 transformProductionNeoForge {
-    dependsOn remapJar
-    input = remapJar.archiveFile
+    if (isObfuscated) {
+        dependsOn remapJar
+        input = remapJar.archiveFile
+    } else {
+        dependsOn shadowJar
+        input = shadowJar.archiveFile
+    }
 
     archiveBaseName = "DiscordSRV-NeoForge-${stonecutterNode.property('minecraft.version_range_label')}"
     archiveClassifier = parent.jar.archiveClassifier
@@ -106,7 +125,8 @@ spotless {
 }
 
 artifacts {
-    archives remapJar
+    if (isObfuscated) archives remapJar
+    else archives jar
     shadow shadowJar
 }
 
@@ -122,17 +142,22 @@ repositories {
 
 dependencies {
     minecraft("com.mojang:minecraft:${minecraftVersion}")
-    mappings(loom.officialMojangMappings())
+    if (isObfuscated) mappings(loom.officialMojangMappings())
     neoForge("net.neoforged:neoforge:${stonecutterNode.property("deps.neoforge_version")}")
 
     // Mixin Extras
-    include(modImplementation("io.github.llamalad7:mixinextras-neoforge:0.5.2"))
+    if (isObfuscated) include(modImplementation("io.github.llamalad7:mixinextras-neoforge:0.5.2"))
+    else include(implementation("io.github.llamalad7:mixinextras-neoforge:0.5.2"))
 
     // Adventure
     include(libs.adventure.api)
     include(libs.kyori.ansi)
 
-    include(modImplementation("net.kyori:adventure-platform-neoforge:${stonecutterNode.property("deps.adventure_platform")}"){
+    if (isObfuscated) include(modImplementation("net.kyori:adventure-platform-neoforge:${stonecutterNode.property("deps.adventure_platform")}"){
+        exclude group: 'net.kyori', module: 'ansi'
+        exclude group: 'net.kyori', module: 'adventure-api'
+    })
+    else include(implementation("net.kyori:adventure-platform-neoforge:${stonecutterNode.property("deps.adventure_platform")}"){
         exclude group: 'net.kyori', module: 'ansi'
         exclude group: 'net.kyori', module: 'adventure-api'
     })

@@ -17,13 +17,13 @@ stonecutter {
     kotlinController = false
     // Common source code for both Fabric and NeoForge.
     create("modded") {
-        versions "1.19.2-fabric", "1.19.3-fabric", "1.19.4-fabric", "1.20.1-fabric", "1.20.2-fabric", "1.20.4-fabric", "1.20.6-fabric", "1.21.1-fabric", "1.21.4-fabric", "1.21.5-fabric", "1.21.6-fabric", "1.21.9-fabric", "1.21.11-fabric",
-                "1.21.1-neoforge", "1.21.4-neoforge", "1.21.5-neoforge", "1.21.6-neoforge", "1.21.9-neoforge", "1.21.11-neoforge"
+        versions "1.19.2-fabric", "1.19.3-fabric", "1.19.4-fabric", "1.20.1-fabric", "1.20.2-fabric", "1.20.4-fabric", "1.20.6-fabric", "1.21.1-fabric", "1.21.4-fabric", "1.21.5-fabric", "1.21.6-fabric", "1.21.9-fabric", "1.21.11-fabric", "26.1-fabric",
+                "1.21.1-neoforge", "1.21.4-neoforge", "1.21.5-neoforge", "1.21.6-neoforge", "1.21.9-neoforge", "1.21.11-neoforge", "26.1-neoforge"
         vcsVersion = "1.21.11-fabric"
     }
     // For NeoForge Jar-in-Jar loader and mixin support
     create("neoforge") {
-        versions "1.21.1-neoforge", "1.21.4-neoforge", "1.21.5-neoforge", "1.21.6-neoforge", "1.21.9-neoforge", "1.21.11-neoforge"
+        versions "1.21.1-neoforge", "1.21.4-neoforge", "1.21.5-neoforge", "1.21.6-neoforge", "1.21.9-neoforge", "1.21.11-neoforge", "26.1-neoforge"
         vcsVersion = "1.21.11-neoforge"
     }
 }
@@ -62,7 +62,7 @@ dependencyResolutionManagement {
             library('velocity', 'com.velocitypowered', 'velocity-api').version('3.4.0-SNAPSHOT')
 
             // Modded
-            version('arch-loom', '1.13-SNAPSHOT')
+            version('arch-loom', '1.14-SNAPSHOT')
             version('arch-plugin', '3.4-SNAPSHOT')
             plugin('arch-loom', 'dev.architectury.loom').versionRef('arch-loom')
             plugin('arch-plugin', 'architectury-plugin').versionRef('arch-plugin')
