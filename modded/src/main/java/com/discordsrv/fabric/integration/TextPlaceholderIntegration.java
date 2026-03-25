@@ -59,7 +59,7 @@ public class TextPlaceholderIntegration extends PluginIntegration<ModdedDiscordS
     @Override
     public boolean isEnabled() {
         try {
-            Class.forName("eu.pb4.placeholders.api.Placeholders");
+            Class.forName("eu.pb4.placeholders.api.PlaceholderHandlers");
         } catch (ClassNotFoundException ignored) {
             return false;
         }
@@ -68,13 +68,13 @@ public class TextPlaceholderIntegration extends PluginIntegration<ModdedDiscordS
     }
 
     //? if minecraft: >=26.1 {
-    private boolean registered = false;
+    /*private boolean registered = false;
     @Override
     public void enable() {
         if (!registered) Placeholders.registerServer(IDENTIFIER, this);
         registered = true;
     }
-    //?} else {
+    *///?} else {
     @Override
     public void enable() {
         Placeholders.register(IDENTIFIER, this);
@@ -133,7 +133,7 @@ public class TextPlaceholderIntegration extends PluginIntegration<ModdedDiscordS
     @Override
     public PlaceholderResult onPlaceholderRequest(PlaceholderContext ctx, @Nullable String argument) {
         //? if minecraft: >=26.1
-        if (isCurrentlyDisabled()) return null;
+        //if (isCurrentlyDisabled()) return null;
 
         List<Object> context;
         if (ctx.hasPlayer()) {
@@ -204,8 +204,8 @@ public class TextPlaceholderIntegration extends PluginIntegration<ModdedDiscordS
 
     private Component parseTextPlaceholder(String input, PlaceholderContext ctx) {
         //? if minecraft: >=26.1{
-        return TagParser.DEFAULT.parseComponent(input, ctx.asParserContext());
-        //? } else {
+        /*return TagParser.DEFAULT.parseComponent(input, ctx.asParserContext());
+        *///? } else {
         return Placeholders.parseText(Component.nullToEmpty(input), ctx);
         //?}
     }

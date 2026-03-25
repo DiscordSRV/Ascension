@@ -13,9 +13,10 @@ configurations.configureEach {
 }
 
 def (minecraftVersion, loader) = project.name.split('-', 2)
-def isObfuscated = sc.eval(minecraftVersion, "<26.0")
+var is1_21_11 = sc.eval(minecraftVersion, ">=1.21.11")
+var is26_1 = sc.eval(minecraftVersion, ">=26.1")
 
-if (!isObfuscated) {
+if (is26_1) {
     // Dummy task for 26.1+ since architectury plugins expect it to exist, but loom doesn't create it for non-obfuscated versions.
     tasks.register('remapJar', net.fabricmc.loom.task.RemapJarTask) {
         enabled = false
@@ -47,7 +48,6 @@ sourceSets {
 }
 
 stonecutter {
-    var is1_21_11 = sc.eval(minecraftVersion, ">=1.21.11")
     if (loader == "fabric") {
         replacements.string(is1_21_11) {
             replace("ResourceLocation", "Identifier")
@@ -61,8 +61,6 @@ stonecutter {
             replace("ResourceKey::identifier", "ResourceKey::location")
         }
     }
-
-    var is26_1 = sc.eval(minecraftVersion, ">=26.1")
     replacements.string(is26_1, "textplaceholder") {
         replace("eu.pb4.placeholders.api.PlaceholderHandler", "eu.pb4.placeholders.api.Placeholder")
         replace("eu.pb4.placeholders.api.PlaceholderContext", "eu.pb4.placeholders.api.ServerPlaceholderContext")
@@ -108,7 +106,7 @@ tasks.register('copyRemappedJar', Copy) {
     into rootProject.file("jars/${loader}")
 }
 
-if (isObfuscated) {
+if (!is26_1) {
     remapJar {
         if (loader == "neoforge") {
             enabled = false
@@ -122,12 +120,12 @@ if (isObfuscated) {
 }
 
 transformProductionFabric {
-    if (isObfuscated) {
-        dependsOn remapJar
-        input = remapJar.archiveFile
-    } else {
+    if (is26_1) {
         dependsOn shadowJar
         input = shadowJar.archiveFile
+    } else {
+        dependsOn remapJar
+        input = remapJar.archiveFile
     }
 
     archiveBaseName = "DiscordSRV-${loader.capitalize()}-${project.property("minecraft.version_range_label")}"
@@ -149,8 +147,8 @@ spotless {
 }
 
 artifacts {
-    if (isObfuscated) archives remapJar
-    else archives jar
+    if (is26_1) archives jar
+    else archives remapJar
     shadow shadowJar
 }
 
@@ -183,7 +181,7 @@ repositories {
 
 dependencies {
     minecraft("com.mojang:minecraft:${minecraftVersion}")
-    if (isObfuscated) mappings(loom.officialMojangMappings())
+    if (!is26_1) mappings(loom.officialMojangMappings())
 
     // Mixin Extras
     compileOnly(annotationProcessor("io.github.llamalad7:mixinextras-common:0.5.2"))
@@ -199,7 +197,7 @@ dependencies {
     implementation(libs.kyori.ansi)
 
     if (loader == "fabric") {
-        if (isObfuscated) {
+        if (!is26_1) {
             include(modImplementation("net.kyori:adventure-platform-fabric:${project.property("deps.adventure_platform")}"){
                 exclude group: 'net.kyori', module: 'ansi'
                 exclude group: 'net.kyori', module: 'adventure-api'
@@ -228,12 +226,12 @@ dependencies {
                 sc.eval(minecraftVersion, "<1.21.9") ? 'fabric-resource-loader-v0' : 'fabric-resource-loader-v1'
         ]
         apiModules.forEach {
-            if (isObfuscated) modImplementation(fabricApi.module(it, project.property("deps.fabric_api")))
+            if (!is26_1) modImplementation(fabricApi.module(it, project.property("deps.fabric_api")))
             else implementation(fabricApi.module(it, project.property("deps.fabric_api")))
         }
 
         // Minecraft versions under 1.21.6 should use 0.3.3, while 1.21.6 and above should use 0.4.1
-        if (isObfuscated) modImplementation("me.lucko:fabric-permissions-api:${project.property("deps.fabric_permission_api")}") {
+        if (!is26_1) modImplementation("me.lucko:fabric-permissions-api:${project.property("deps.fabric_permission_api")}") {
             exclude group: 'net.fabricmc.fabric-api', module: 'fabric-api-base'
             exclude group: 'net.fabricmc.fabric-api', module: 'fabric-api-bom'
         }
@@ -244,7 +242,7 @@ dependencies {
         include ("me.lucko:fabric-permissions-api:${project.property("deps.fabric_permission_api")}")
 
         // Integrations
-        if (isObfuscated) modCompileOnly("eu.pb4:placeholder-api:${project.property("deps.text_placeholder_api")}")
+        if (!is26_1) modCompileOnly("eu.pb4:placeholder-api:${project.property("deps.text_placeholder_api")}")
         else compileOnly("eu.pb4:placeholder-api:${project.property("deps.text_placeholder_api")}")
 
         // DependencyDownload
@@ -252,7 +250,7 @@ dependencies {
             exclude module: 'fabric-loader'
         }
     } else if (loader == "neoforge") {
-        if (isObfuscated) modCompileOnly("net.kyori:adventure-platform-neoforge:${project.property("deps.adventure_platform")}"){
+        if (!is26_1) modCompileOnly("net.kyori:adventure-platform-neoforge:${project.property("deps.adventure_platform")}"){
             exclude group: 'net.kyori', module: 'ansi'
             exclude group: 'net.kyori', module: 'adventure-api'
         }

@@ -62,8 +62,8 @@ dependencyResolutionManagement {
             library('velocity', 'com.velocitypowered', 'velocity-api').version('3.4.0-SNAPSHOT')
 
             // Modded
-            version('arch-loom', '1.14-SNAPSHOT')
-            version('arch-plugin', '3.4-SNAPSHOT')
+            version('arch-loom', '1.14.9999')
+            version('arch-plugin', '3.4.9999')
             plugin('arch-loom', 'dev.architectury.loom').versionRef('arch-loom')
             plugin('arch-plugin', 'architectury-plugin').versionRef('arch-plugin')
 
