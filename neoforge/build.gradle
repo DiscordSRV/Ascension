@@ -16,13 +16,13 @@ configurations.configureEach {
 
 var minecraftVersion = sc.current.version.toString().split("-")[0]
 var stonecutterNode = rootProject.findProject("modded").subprojects.find { it.name == project.name }
-def isObfuscated = sc.eval(minecraftVersion, "<26.0")
+var is26_1 = sc.eval(minecraftVersion, ">=26.1")
 
-if (!isObfuscated) {
+if (is26_1) {
     // Dummy task for 26.1+ since architectury plugin expect it to exist, but loom doesn't create it for non-obfuscated versions.
     tasks.register('remapJar', net.fabricmc.loom.task.RemapJarTask) {
         enabled = false
-        return;
+        return
     }
 }
 
@@ -69,11 +69,6 @@ processResources {
     dependsOn generateRuntimeDownloadResourceForRuntimeDownloadOnly
 }
 
-tasks.register('copyNeoForge', Copy) {
-    from this.transformProductionNeoForge
-    into rootProject.file("jars/neoforge")
-}
-
 shadowJar {
     dependsOn stonecutterNode.shadowJar
 
@@ -95,7 +90,12 @@ shadowJar {
 
 }
 
-if (isObfuscated) {
+tasks.register('copyNeoForge', Copy) {
+    from this.transformProductionNeoForge
+    into rootProject.file("jars/neoforge")
+}
+
+if (!is26_1) {
     remapJar {
         dependsOn processResources
         dependsOn shadowJar
@@ -104,12 +104,12 @@ if (isObfuscated) {
 }
 
 transformProductionNeoForge {
-    if (isObfuscated) {
-        dependsOn remapJar
-        input = remapJar.archiveFile
-    } else {
+    if (is26_1) {
         dependsOn shadowJar
         input = shadowJar.archiveFile
+    } else {
+        dependsOn remapJar
+        input = remapJar.archiveFile
     }
 
     archiveBaseName = "DiscordSRV-NeoForge-${stonecutterNode.property('minecraft.version_range_label')}"
@@ -125,8 +125,8 @@ spotless {
 }
 
 artifacts {
-    if (isObfuscated) archives remapJar
-    else archives jar
+    if (is26_1) archives jar
+    else archives remapJar
     shadow shadowJar
 }
 
@@ -142,18 +142,18 @@ repositories {
 
 dependencies {
     minecraft("com.mojang:minecraft:${minecraftVersion}")
-    if (isObfuscated) mappings(loom.officialMojangMappings())
+    if (!is26_1) mappings(loom.officialMojangMappings())
     neoForge("net.neoforged:neoforge:${stonecutterNode.property("deps.neoforge_version")}")
 
     // Mixin Extras
-    if (isObfuscated) include(modImplementation("io.github.llamalad7:mixinextras-neoforge:0.5.2"))
+    if (!is26_1) include(modImplementation("io.github.llamalad7:mixinextras-neoforge:0.5.2"))
     else include(implementation("io.github.llamalad7:mixinextras-neoforge:0.5.2"))
 
     // Adventure
     include(libs.adventure.api)
     include(libs.kyori.ansi)
 
-    if (isObfuscated) include(modImplementation("net.kyori:adventure-platform-neoforge:${stonecutterNode.property("deps.adventure_platform")}"){
+    if (!is26_1) include(modImplementation("net.kyori:adventure-platform-neoforge:${stonecutterNode.property("deps.adventure_platform")}"){
         exclude group: 'net.kyori', module: 'ansi'
         exclude group: 'net.kyori', module: 'adventure-api'
     })
