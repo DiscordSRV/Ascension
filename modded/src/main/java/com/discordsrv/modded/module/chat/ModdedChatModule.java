@@ -46,7 +46,7 @@ public class ModdedChatModule extends AbstractModdedModule {
         net.fabricmc.fabric.api.message.v1.ServerMessageEvents.CHAT_MESSAGE.register((message, player, type) -> onChatMessage(message.signedContent(), player.getUUID()));
 
         //? if neoforge
-        //net.neoforged.neoforge.common.NeoForge.EVENT_BUS.addListener(net.neoforged.bus.api.EventPriority.LOW, true, (net.neoforged.neoforge.event.ServerChatEvent event) -> onChatMessage(event.getMessage(), event.getPlayer().getUUID(), event.isCanceled()));
+        //net.neoforged.neoforge.common.NeoForge.EVENT_BUS.addListener(net.neoforged.bus.api.EventPriority.LOWEST, true, (net.neoforged.neoforge.event.ServerChatEvent event) -> onChatMessage(event.getMessage(), event.getPlayer().getUUID(), event.isCanceled()));
     }
 
     //? if minecraft: <=1.19.2 {
