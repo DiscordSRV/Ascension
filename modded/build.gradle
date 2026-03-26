@@ -62,9 +62,7 @@ stonecutter {
         }
     }
     replacements.string(is26_1, "textplaceholder") {
-        replace("eu.pb4.placeholders.api.PlaceholderHandler", "eu.pb4.placeholders.api.Placeholder")
-        replace("eu.pb4.placeholders.api.PlaceholderContext", "eu.pb4.placeholders.api.ServerPlaceholderContext")
-        replace("PlaceholderHandler", "Placeholder.Handler<ServerPlaceholderContext, String>")
+        replace("PlaceholderHandler", "eu.pb4.placeholders.api.Placeholder.Handler<ServerPlaceholderContext, String>")
         replace("PlaceholderContext", "ServerPlaceholderContext")
         replace("@Nullable String argument", "String argument")
         replace("ctx.player()", "ctx.serverPlayer()")

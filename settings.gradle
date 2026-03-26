@@ -19,12 +19,12 @@ stonecutter {
     create("modded") {
         versions "1.19.2-fabric", "1.19.3-fabric", "1.19.4-fabric", "1.20.1-fabric", "1.20.2-fabric", "1.20.4-fabric", "1.20.6-fabric", "1.21.1-fabric", "1.21.4-fabric", "1.21.5-fabric", "1.21.6-fabric", "1.21.9-fabric", "1.21.11-fabric", "26.1-fabric",
                 "1.21.1-neoforge", "1.21.4-neoforge", "1.21.5-neoforge", "1.21.6-neoforge", "1.21.9-neoforge", "1.21.11-neoforge", "26.1-neoforge"
-        vcsVersion = "1.21.11-fabric"
+        vcsVersion = "26.1-fabric"
     }
     // For NeoForge Jar-in-Jar loader and mixin support
     create("neoforge") {
         versions "1.21.1-neoforge", "1.21.4-neoforge", "1.21.5-neoforge", "1.21.6-neoforge", "1.21.9-neoforge", "1.21.11-neoforge", "26.1-neoforge"
-        vcsVersion = "1.21.11-neoforge"
+        vcsVersion = "26.1-neoforge"
     }
 }
 
