@@ -16,14 +16,6 @@ def (minecraftVersion, loader) = project.name.split('-', 2)
 var is1_21_11 = sc.eval(minecraftVersion, ">=1.21.11")
 var is26_1 = sc.eval(minecraftVersion, ">=26.1")
 
-if (is26_1) {
-    // Dummy task for 26.1+ since architectury plugins expect it to exist, but loom doesn't create it for non-obfuscated versions.
-    tasks.register('remapJar', net.fabricmc.loom.task.RemapJarTask) {
-        enabled = false
-        return;
-    }
-}
-
 architectury {
     common("fabric", "neoforge")
 }

@@ -18,14 +18,6 @@ var minecraftVersion = sc.current.version.toString().split("-")[0]
 var stonecutterNode = rootProject.findProject("modded").subprojects.find { it.name == project.name }
 var is26_1 = sc.eval(minecraftVersion, ">=26.1")
 
-if (is26_1) {
-    // Dummy task for 26.1+ since architectury plugin expect it to exist, but loom doesn't create it for non-obfuscated versions.
-    tasks.register('remapJar', net.fabricmc.loom.task.RemapJarTask) {
-        enabled = false
-        return
-    }
-}
-
 architectury {
     common("neoforge")
 }
