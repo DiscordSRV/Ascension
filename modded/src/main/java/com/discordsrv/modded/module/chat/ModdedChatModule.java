@@ -58,6 +58,10 @@ public class ModdedChatModule extends AbstractModdedModule {
         onChatMessage(net.minecraft.network.chat.Component.nullToEmpty(message), uuid, false);
     }
 
+    public void onChatMessage(net.minecraft.network.chat.Component text, UUID uuid) {
+        onChatMessage(text, uuid, false);
+    }
+
     public void onChatMessage(net.minecraft.network.chat.Component text, UUID uuid, boolean isCancelled) {
         if (!enabled) return;
         ModdedDiscordSRV discordSRV = INSTANCE.discordSRV;
