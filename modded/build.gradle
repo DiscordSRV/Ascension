@@ -110,6 +110,11 @@ if (!is26_1) {
 }
 
 transformProductionFabric {
+    if (loader == "neoforge") {
+        enabled = false
+        return
+    }
+
     if (is26_1) {
         dependsOn shadowJar
         input = shadowJar.archiveFile
