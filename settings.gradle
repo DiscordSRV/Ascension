@@ -64,7 +64,7 @@ dependencyResolutionManagement {
             // Modded
             version('arch-loom', '1.14-SNAPSHOT')
             version('arch-plugin', '3.5-SNAPSHOT')
-            plugin('arch-loom', 'dev.architectury.loom').versionRef('arch-loom')
+            plugin('arch-loom', 'dev.architectury.loom-remap').versionRef('arch-loom')
             plugin('arch-plugin', 'architectury-plugin').versionRef('arch-plugin')
 
             // DependencyDownload
