@@ -22,6 +22,8 @@ import com.discordsrv.common.abstraction.bootstrap.IBootstrap;
 import com.discordsrv.common.abstraction.bootstrap.LifecycleManager;
 import com.discordsrv.common.core.logging.Logger;
 import com.discordsrv.common.core.logging.backend.impl.Log4JLoggerImpl;
+import com.discordsrv.common.events.lifecycle.ServerStartedEvent;
+import com.discordsrv.modded.DiscordSRVModdedBootstrap;
 import com.discordsrv.modded.ModdedDiscordSRV;
 import com.discordsrv.modded.util.ClassLoaderUtils;
 import dev.vankka.dependencydownload.classpath.ClasspathAppender;
@@ -43,7 +45,7 @@ import java.io.IOException;
 import java.nio.file.Path;
 import java.util.Collections;
 
-public class DiscordSRVNeoForgeBootstrap extends AbstractBootstrap implements IBootstrap {
+public class DiscordSRVNeoForgeBootstrap extends AbstractBootstrap implements DiscordSRVModdedBootstrap {
     private final static String DEPENDENCIES_RUNTIME = /*$ dependencies_file*/"dependencies/runtimeDownload-26.1-fabric.txt";
 
     private final Logger logger;

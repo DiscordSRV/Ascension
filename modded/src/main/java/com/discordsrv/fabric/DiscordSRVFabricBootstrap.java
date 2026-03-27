@@ -18,10 +18,10 @@
 
 package com.discordsrv.fabric;
 
-import com.discordsrv.common.abstraction.bootstrap.IBootstrap;
 import com.discordsrv.common.abstraction.bootstrap.LifecycleManager;
 import com.discordsrv.common.core.logging.Logger;
 import com.discordsrv.common.core.logging.backend.impl.Log4JLoggerImpl;
+import com.discordsrv.modded.DiscordSRVModdedBootstrap;
 import com.discordsrv.modded.ModdedDiscordSRV;
 import dev.vankka.dependencydownload.classpath.ClasspathAppender;
 import net.minecraft.server.MinecraftServer;
@@ -37,7 +37,7 @@ import java.nio.file.Path;
 import java.util.Collections;
 import java.util.Optional;
 
-public class DiscordSRVFabricBootstrap implements DedicatedServerModInitializer, IBootstrap {
+public class DiscordSRVFabricBootstrap implements DedicatedServerModInitializer, DiscordSRVModdedBootstrap {
     private final static String DEPENDENCIES_RUNTIME = /*$ dependencies_file*/"dependencies/runtimeDownload-26.1-fabric.txt";
 
     private final Logger logger;

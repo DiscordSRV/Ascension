@@ -55,13 +55,7 @@ import java.security.CodeSource;
 import java.util.UUID;
 import java.util.jar.JarFile;
 
-//? if fabric {
-import com.discordsrv.fabric.DiscordSRVFabricBootstrap;
-public class ModdedDiscordSRV extends AbstractDiscordSRV<DiscordSRVFabricBootstrap, ModdedConfig, ConnectionConfig, MessagesConfig> {
-//? } else if neoforge {
-/*import com.discordsrv.neoforge.DiscordSRVNeoForgeBootstrap;
-public class ModdedDiscordSRV extends AbstractDiscordSRV<DiscordSRVNeoForgeBootstrap, ModdedConfig, ConnectionConfig, MessagesConfig> {
-*///? }
+public class ModdedDiscordSRV extends AbstractDiscordSRV<DiscordSRVModdedBootstrap, ModdedConfig, ConnectionConfig, MessagesConfig> {
     private final StandardScheduler scheduler;
     private final ModdedConsole console;
     private final ModdedPlayerProvider playerProvider;
@@ -75,11 +69,7 @@ public class ModdedDiscordSRV extends AbstractDiscordSRV<DiscordSRVNeoForgeBoots
 
     private final ModdedGameCommandExecutionHelper executionHelper;
 
-    //? if fabric {
-    public ModdedDiscordSRV(DiscordSRVFabricBootstrap bootstrap) {
-    //? } else if neoforge {
-    /*public ModdedDiscordSRV(DiscordSRVNeoForgeBootstrap bootstrap) {
-    *///?}
+    public ModdedDiscordSRV(DiscordSRVModdedBootstrap bootstrap) {
         super(bootstrap);
 
         this.scheduler = new StandardScheduler(this);
