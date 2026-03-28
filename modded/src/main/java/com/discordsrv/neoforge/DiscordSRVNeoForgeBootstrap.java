@@ -22,7 +22,6 @@ import com.discordsrv.common.abstraction.bootstrap.IBootstrap;
 import com.discordsrv.common.abstraction.bootstrap.LifecycleManager;
 import com.discordsrv.common.core.logging.Logger;
 import com.discordsrv.common.core.logging.backend.impl.Log4JLoggerImpl;
-import com.discordsrv.common.events.lifecycle.ServerStartedEvent;
 import com.discordsrv.modded.DiscordSRVModdedBootstrap;
 import com.discordsrv.modded.ModdedDiscordSRV;
 import com.discordsrv.modded.util.ClassLoaderUtils;
