@@ -22,8 +22,8 @@ import com.discordsrv.common.abstraction.bootstrap.LifecycleManager;
 import com.discordsrv.common.core.logging.Logger;
 import com.discordsrv.common.core.logging.backend.impl.Log4JLoggerImpl;
 import com.discordsrv.modded.DiscordSRVModdedBootstrap;
-import com.discordsrv.modded.ModdedDiscordSRV;
 import dev.vankka.dependencydownload.classpath.ClasspathAppender;
+import dev.vankka.mcdependencydownload.fabric.classpath.FabricClasspathAppender;
 import net.minecraft.server.MinecraftServer;
 import net.fabricmc.api.DedicatedServerModInitializer;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents;
@@ -45,13 +45,13 @@ public class DiscordSRVFabricBootstrap implements DedicatedServerModInitializer,
     private final LifecycleManager lifecycleManager;
     private final Path dataDirectory;
     private MinecraftServer minecraftServer;
-    private ModdedDiscordSRV discordSRV;
+    private FabricDiscordSRV discordSRV;
 
     private final ClasspathAppender classpathAppender;
     public DiscordSRVFabricBootstrap() {
         this.logger = new Log4JLoggerImpl(LogManager.getLogger("DiscordSRV"));
 
-        this.classpathAppender = new dev.vankka.mcdependencydownload.fabric.classpath.FabricClasspathAppender();
+        this.classpathAppender = new FabricClasspathAppender();
         this.dataDirectory = FabricLoader.getInstance().getConfigDir().resolve("DiscordSRV");
 
         try {
@@ -71,7 +71,7 @@ public class DiscordSRVFabricBootstrap implements DedicatedServerModInitializer,
     public void onInitializeServer() {
         ServerLifecycleEvents.SERVER_STARTING.register(minecraftServer -> {
             this.minecraftServer = minecraftServer;
-            lifecycleManager.loadAndEnable(() -> this.discordSRV = new ModdedDiscordSRV(this));
+            lifecycleManager.loadAndEnable(() -> this.discordSRV = new FabricDiscordSRV(this));
         });
 
         ServerLifecycleEvents.SERVER_STARTED.register(minecraftServer -> {
@@ -130,7 +130,7 @@ public class DiscordSRVFabricBootstrap implements DedicatedServerModInitializer,
         return minecraftServer;
     }
 
-    public ModdedDiscordSRV getDiscordSRV() {
+    public FabricDiscordSRV getDiscordSRV() {
         return discordSRV;
     }
 }

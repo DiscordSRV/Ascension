@@ -113,6 +113,7 @@ public class ModdedRequiredLinkingModule extends ServerRequireLinkingModule<Modd
     public ServerRequiredLinkingConfig config() {
         return discordSRV.config().requiredLinking;
     }
+
     @Override
     public void recheck(IPlayer player) {
         ServerPlayer playerEntity = discordSRV.getServer().getPlayerList().getPlayer(player.uniqueId());
