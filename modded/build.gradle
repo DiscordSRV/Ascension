@@ -14,7 +14,7 @@ configurations.configureEach {
 
 def (minecraftVersion, loader) = project.name.split('-', 2)
 var is1_21_11 = sc.eval(minecraftVersion, ">=1.21.11")
-var is26_1 = sc.eval(minecraftVersion, ">=26.1")
+var is26_1 = sc.eval(minecraftVersion, ">=26.1") // Obfuscated vs Unobfuscated versions.
 
 architectury {
     common("fabric", "neoforge")
@@ -82,6 +82,8 @@ processResources {
     dependsOn generateRuntimeDownloadResourceForRuntimeDownloadOnly
 }
 
+if (is26_1) jar.archiveClassifier = "raw"
+
 shadowJar {
     configurations = [project.configurations.shadow]
     mergeServiceFiles()
@@ -89,6 +91,10 @@ shadowJar {
     if (loader == "neoforge") archiveFileName = "neoforge.jarinjar"
 
     relocate('com.discordsrv.unrelocate.', '')
+    if (is26_1) {
+        archiveClassifier = null
+        from(zipTree(jar.archiveFile))
+    }
 }
 
 tasks.register('copyRemappedJar', Copy) {

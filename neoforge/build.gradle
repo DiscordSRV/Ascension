@@ -16,7 +16,7 @@ configurations.configureEach {
 
 var minecraftVersion = sc.current.version.toString().split("-")[0]
 var stonecutterNode = rootProject.findProject("modded").subprojects.find { it.name == project.name }
-var is26_1 = sc.eval(minecraftVersion, ">=26.1")
+var is26_1 = sc.eval(minecraftVersion, ">=26.1") // Obfuscated vs Unobfuscated versions.
 
 architectury {
     common("neoforge")
@@ -61,6 +61,8 @@ processResources {
     dependsOn generateRuntimeDownloadResourceForRuntimeDownloadOnly
 }
 
+if (is26_1) jar.archiveClassifier = "raw"
+
 shadowJar {
     dependsOn stonecutterNode.shadowJar
 
@@ -80,6 +82,10 @@ shadowJar {
         include "discordsrv.mixins.json"
     }
 
+    if (is26_1) {
+        archiveClassifier = null
+        from(zipTree(jar.archiveFile))
+    }
 }
 
 tasks.register('copyNeoForge', Copy) {
@@ -105,7 +111,7 @@ transformProductionNeoForge {
     }
 
     archiveBaseName = "DiscordSRV-NeoForge-${stonecutterNode.property('minecraft.version_range_label')}"
-    archiveClassifier = parent.jar.archiveClassifier
+    archiveClassifier = project.parent.jar.archiveClassifier
 
     finalizedBy copyNeoForge
 }
