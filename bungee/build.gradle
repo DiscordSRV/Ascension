@@ -1,6 +1,8 @@
+import com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar
+
 // TODO: not yet functional, so jar artifact disabled
 allprojects {
-    tasks.withType(Jar).configureEach {
+    tasks.withType(ShadowJar).configureEach {
         enabled = false
     }
 }
