@@ -92,6 +92,8 @@ shadowJar {
 
     relocate('com.discordsrv.unrelocate.', '')
     if (is26_1) {
+        // Loom modifies "fabric.mod.json" from jar task with additional data. We want those changes to be present in the final shadow jar as well.
+        duplicatesStrategy = DuplicatesStrategy.INCLUDE
         archiveClassifier = null
         from(zipTree(jar.archiveFile))
     }
