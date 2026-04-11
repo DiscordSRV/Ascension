@@ -40,12 +40,16 @@ public class BungeeServerSwitchModule extends AbstractBungeeListener<ServerSwitc
 
     @Override
     protected void handleEvent(@NonNull ServerSwitchEvent event, Void __) {
+        if (event.getFrom() == null) return; // Initial login
+
         IPlayer player = discordSRV.playerProvider().player(event.getPlayer());
         discordSRV.eventBus().publish(
                 new ServerSwitchMessagePreProcessEvent(
                         event,
                         player,
                         null,
+                        event.getFrom().getName(),
+                        event.getPlayer().getServer().getInfo().getName(),
                         false
                 )
         );

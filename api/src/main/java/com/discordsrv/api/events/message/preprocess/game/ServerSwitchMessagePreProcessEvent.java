@@ -44,13 +44,17 @@ import org.jetbrains.annotations.Nullable;
 public class ServerSwitchMessagePreProcessEvent extends AbstractGameMessagePreProcessEvent implements PlayerEvent {
 
     private final DiscordSRVPlayer player;
+    private final String from;
+    private final String to;
 
     public ServerSwitchMessagePreProcessEvent(
             @Nullable Object triggeringEvent,
             @NotNull DiscordSRVPlayer player,
-            @Nullable MinecraftComponent message
+            @Nullable MinecraftComponent message,
+            @Nullable String from,
+            @Nullable String to
     ) {
-        this(triggeringEvent, player, message, false);
+        this(triggeringEvent, player, message, from, to, false);
     }
 
     @ApiStatus.Experimental
@@ -58,10 +62,14 @@ public class ServerSwitchMessagePreProcessEvent extends AbstractGameMessagePrePr
             @Nullable Object triggeringEvent,
             @NotNull DiscordSRVPlayer player,
             @Nullable MinecraftComponent message,
+            @Nullable String from,
+            @Nullable String to,
             boolean cancelled
     ) {
         super(triggeringEvent, cancelled, null, message);
         this.player = player;
+        this.from = from;
+        this.to = to;
     }
 
     @Override
@@ -70,10 +78,22 @@ public class ServerSwitchMessagePreProcessEvent extends AbstractGameMessagePrePr
         return player;
     }
 
+    @Nullable
+    public String getFrom() {
+        return from;
+    }
+
+    @Nullable
+    public String getTo() {
+        return to;
+    }
+
     @Override
     public String toString() {
         return "ServerSwitchMessageReceiveEvent{"
-                + "player=" + player
+                + "player=" + player + ", "
+                + "from=" + from + ", "
+                + "to=" + to
                 + "}";
     }
 }
