@@ -20,6 +20,7 @@ package com.discordsrv.bungee.player;
 
 import com.discordsrv.bungee.BungeeDiscordSRV;
 import com.discordsrv.common.abstraction.player.provider.AbstractPlayerProvider;
+import net.md_5.bungee.api.connection.Connection;
 import net.md_5.bungee.api.connection.ProxiedPlayer;
 import net.md_5.bungee.api.event.PlayerDisconnectEvent;
 import net.md_5.bungee.api.event.PostLoginEvent;
@@ -59,6 +60,19 @@ public class BungeePlayerProvider extends AbstractPlayerProvider<BungeePlayer, B
     @EventHandler(priority = Byte.MAX_VALUE) // Runs last
     public void onDisconnect(PlayerDisconnectEvent event) {
         removePlayer(event.getPlayer().getUniqueId());
+    }
+
+    public BungeePlayer player(Connection connection) {
+        ProxiedPlayer player = null;
+        for (ProxiedPlayer _player : discordSRV.proxy().getPlayers()) {
+            if (_player.getSocketAddress().equals(connection.getSocketAddress())) {
+                player = _player;
+            }
+        }
+        if (player == null) {
+            throw new IllegalStateException("Player not available");
+        }
+        return player(player);
     }
 
     public BungeePlayer player(ProxiedPlayer player) {

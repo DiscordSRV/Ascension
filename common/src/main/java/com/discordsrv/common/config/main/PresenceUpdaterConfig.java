@@ -56,6 +56,19 @@ public class PresenceUpdaterConfig {
     }
 
     @ConfigSerializable
+    public static class Proxy extends PresenceUpdaterConfig {
+
+        @Comment("The presence to use while the proxy is starting")
+        public boolean useStartingPresence = true;
+        public Presence startingPresence = new Presence(OnlineStatus.DO_NOT_DISTURB, "Starting...");
+
+        @Comment("The presence to use while the proxy is stopping")
+        public boolean useStoppingPresence = true;
+        public Presence stoppingPresence = new Presence(OnlineStatus.IDLE, "Stopping...");
+
+    }
+
+    @ConfigSerializable
     public static class Presence {
 
         public Presence() {}

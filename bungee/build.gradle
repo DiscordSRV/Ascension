@@ -1,12 +1,3 @@
-import com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar
-
-// TODO: not yet functional, so jar artifact disabled
-allprojects {
-    tasks.withType(ShadowJar).configureEach {
-        enabled = false
-    }
-}
-
 shadowJar {
     archiveFileName = 'bungee.jarinjar'
 

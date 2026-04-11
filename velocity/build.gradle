@@ -1,14 +1,7 @@
-import com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar
-
 apply from: rootProject.file('buildscript/standalone.gradle')
 apply plugin: 'net.kyori.blossom'
 apply plugin: 'org.jetbrains.gradle.plugin.idea-ext'
 apply plugin: 'xyz.jpenilla.run-velocity'
-
-// TODO: not yet functional, so jar artifact disabled
-tasks.withType(ShadowJar).configureEach {
-    enabled = false
-}
 
 java {
     disableAutoTargetJvm() // Requires Java 17, we target 8
