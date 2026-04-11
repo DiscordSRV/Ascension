@@ -18,10 +18,10 @@
 
 package com.discordsrv.velocity.module;
 
-import com.discordsrv.api.eventbus.Subscribe;
 import com.discordsrv.api.events.message.preprocess.game.JoinMessagePreProcessEvent;
 import com.discordsrv.common.core.logging.NamedLogger;
 import com.discordsrv.velocity.VelocityDiscordSRV;
+import com.velocitypowered.api.event.Subscribe;
 import com.velocitypowered.api.event.player.PlayerChooseInitialServerEvent;
 
 public class VelocityJoinModule extends AbstractVelocityModule {
