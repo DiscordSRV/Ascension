@@ -29,6 +29,7 @@ import com.discordsrv.common.config.connection.ConnectionConfig;
 import com.discordsrv.common.config.messages.MessagesConfig;
 import com.discordsrv.common.core.scheduler.StandardScheduler;
 import com.discordsrv.common.core.debug.data.OnlineMode;
+import com.discordsrv.common.feature.messageforwarding.game.MinecraftToDiscordChatModule;
 import com.discordsrv.velocity.command.game.handler.VelocityCommandHandler;
 import com.discordsrv.velocity.config.main.VelocityConfig;
 import com.discordsrv.velocity.console.VelocityConsole;
@@ -80,6 +81,7 @@ public class VelocityDiscordSRV extends AbstractDiscordSRV<DiscordSRVVelocityBoo
         super.enable();
 
         // Chat
+        registerModule(MinecraftToDiscordChatModule::new);
         registerModule(VelocityChatModule::new);
         registerModule(VelocityJoinModule::new);
         registerModule(VelocityQuitModule::new);
