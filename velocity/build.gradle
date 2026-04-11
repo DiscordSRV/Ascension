@@ -46,11 +46,15 @@ dependencies {
     annotationProcessor(libs.velocity) {
         // v2
         exclude module: 'slf4j-api'
+        exclude module: 'configurate-hocon'
+        exclude module: 'configurate-gson'
     }
     compileOnly(libs.velocity) {
         exclude module: 'caffeine'
         // v2
         exclude module: 'slf4j-api'
+        exclude module: 'configurate-hocon'
+        exclude module: 'configurate-gson'
     }
 
     // DependencyDownload
