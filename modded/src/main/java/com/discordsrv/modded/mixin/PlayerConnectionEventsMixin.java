@@ -47,7 +47,7 @@ public class PlayerConnectionEventsMixin {
     private void handlePlayerLeave(ServerPlayer player, CallbackInfo ci) {
         MixinUtils.withClass("com.discordsrv.modded.player.ModdedPlayerProvider")
                 .withInstance()
-                .withMethod("removePlayer", player, false)
+                .withMethod("removePlayer", player)
                 .execute();
     }
 }
