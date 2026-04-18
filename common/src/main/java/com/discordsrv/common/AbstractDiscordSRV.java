@@ -89,6 +89,7 @@ import com.discordsrv.common.feature.customcommands.CustomCommandModule;
 import com.discordsrv.common.feature.groupsync.GroupSyncModule;
 import com.discordsrv.common.feature.linking.LinkProvider;
 import com.discordsrv.common.feature.linking.LinkedRoleModule;
+import com.discordsrv.common.feature.linking.LinkPesteringModule;
 import com.discordsrv.common.feature.linking.LinkingModule;
 import com.discordsrv.common.feature.linking.LinkingRewardsModule;
 import com.discordsrv.common.feature.linking.impl.MinecraftAuthenticationLinker;
@@ -749,6 +750,7 @@ public abstract class AbstractDiscordSRV<
         registerModule(WorldChannelModule::new);
         registerModule(MentionCachingModule::new);
         registerModule(LinkingModule::new);
+        registerModule(LinkPesteringModule::new);
         registerModule(PresenceUpdaterModule::new);
         registerModule(MentionGameRenderingModule::new);
         registerModule(CustomCommandModule::new);
