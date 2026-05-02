@@ -84,7 +84,7 @@ public class AdvancedBanIntegration extends PluginIntegration<BukkitDiscordSRV>
     @Override
     public Task<Void> addBan(@NotNull UUID playerUUID, @Nullable Instant until, @Nullable MinecraftComponent reason, @NotNull MinecraftComponent punisher) {
         String name = discordSRV.server().getOfflinePlayer(playerUUID).getName();
-        me.leoko.advancedban.utils.Punishment.create(
+        return discordSRV.scheduler().execute(() -> me.leoko.advancedban.utils.Punishment.create(
                 name,
                 playerUUID.toString(),
                 reason != null ? reason.asPlainString() : "Banned by an operator",
@@ -93,14 +93,12 @@ public class AdvancedBanIntegration extends PluginIntegration<BukkitDiscordSRV>
                 until != null ? until.toEpochMilli() : -1L,
                 "",
                 false
-        );
-        return null;
+        ));
     }
 
     @Override
     public Task<Void> removeBan(@NotNull UUID playerUUID) {
-        punishmentManager.getBan(playerUUID.toString()).delete();
-        return null;
+        return discordSRV.scheduler().execute(() -> punishmentManager.getBan(playerUUID.toString()).delete());
     }
 
     @Override
@@ -111,7 +109,7 @@ public class AdvancedBanIntegration extends PluginIntegration<BukkitDiscordSRV>
     @Override
     public Task<Void> addMute(@NotNull UUID playerUUID, @Nullable Instant until, @Nullable MinecraftComponent reason, @NotNull MinecraftComponent punisher) {
         String name = discordSRV.server().getOfflinePlayer(playerUUID).getName();
-        me.leoko.advancedban.utils.Punishment.create(
+        return discordSRV.scheduler().execute(() -> me.leoko.advancedban.utils.Punishment.create(
                 name,
                 playerUUID.toString(),
                 reason != null ? reason.asPlainString() : "Muted by an operator",
@@ -120,8 +118,7 @@ public class AdvancedBanIntegration extends PluginIntegration<BukkitDiscordSRV>
                 until != null ? until.toEpochMilli() : -1L,
                 "",
                 false
-        );
-        return null;
+        ));
     }
 
     @Override
