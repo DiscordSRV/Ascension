@@ -18,19 +18,29 @@
 
 package com.discordsrv.common.integration.chat;
 
-import com.discordsrv.api.component.MinecraftComponent;
-import com.discordsrv.unrelocate.net.kyori.adventure.key.Key;
-import net.draycia.carbon.api.channels.ChatChannel;
-import net.draycia.carbon.api.event.events.CarbonChatEvent;
+import java.lang.invoke.MethodHandle;
+import java.lang.invoke.MethodHandles;
+import java.lang.invoke.MethodType;
+
 import org.jetbrains.annotations.Nullable;
 
+import com.discordsrv.api.component.MinecraftComponent;
+import com.discordsrv.unrelocate.net.draycia.carbon.api.channels.ChannelRegistry;
+import com.discordsrv.unrelocate.net.kyori.adventure.key.Key;
+import com.discordsrv.unrelocate.net.kyori.adventure.text.Component;
+
+import net.draycia.carbon.api.channels.ChatChannel;
+import net.draycia.carbon.api.event.events.CarbonChatEvent;
+
 final class CarbonChatKeyHelper {
+    private static final MessageAccessor MESSAGE_ACCESSOR = messageAccessor();
+
     private CarbonChatKeyHelper() {
     }
 
     static @Nullable ChatChannel findChannel(net.draycia.carbon.api.channels.ChannelRegistry registry,
             String channelName) {
-        com.discordsrv.unrelocate.net.draycia.carbon.api.channels.ChannelRegistry unrelocatedRegistry = (com.discordsrv.unrelocate.net.draycia.carbon.api.channels.ChannelRegistry) (Object) registry;
+        ChannelRegistry unrelocatedRegistry = (ChannelRegistry) (Object) registry;
 
         for (Key key : unrelocatedRegistry.keys()) {
             ChatChannel channel = (ChatChannel) (Object) unrelocatedRegistry.channel(key);
@@ -73,8 +83,61 @@ final class CarbonChatKeyHelper {
     }
 
     static MinecraftComponent message(CarbonChatEvent event) {
-        return MinecraftComponent.fromAdventure(
-                ((com.discordsrv.unrelocate.net.draycia.carbon.api.event.events.CarbonChatEvent) (Object) event)
-                        .message());
+        return MESSAGE_ACCESSOR.get(event);
+    }
+
+    private static MessageAccessor messageAccessor() {
+        MessageAccessor paperComponentAccessor = paperComponentAccessor();
+        if (paperComponentAccessor != null) {
+            return paperComponentAccessor;
+        }
+
+        return minecraftComponentAccessor();
+    }
+
+    private static @Nullable MessageAccessor paperComponentAccessor() {
+        try {
+            Class<?> handleClass = Class.forName("com.discordsrv.bukkit.component.PaperComponentHandle");
+            Object handle = handleClass
+                    .getMethod("get", Class.class, String.class)
+                    .invoke(null, CarbonChatEvent.class, "message");
+
+            MethodHandle getAPI = MethodHandles.publicLookup()
+                    .findVirtual(handle.getClass(), "getAPI", MethodType.methodType(MinecraftComponent.class, Object.class))
+                    .bindTo(handle);
+
+            return event -> {
+                try {
+                    return (MinecraftComponent) getAPI.invoke(event);
+                } catch (Throwable e) {
+                    throw new RuntimeException("Failed to call component method", e);
+                }
+            };
+        } catch (Throwable ignored) {
+            return null;
+        }
+    }
+
+    private static MessageAccessor minecraftComponentAccessor() {
+        try {
+            MethodHandle message = MethodHandles.lookup().findVirtual(
+                    CarbonChatEvent.class,
+                    "message",
+                    MethodType.methodType(Component.class));
+
+            return event -> {
+                try {
+                    return MinecraftComponent.fromAdventure((Component) message.invoke(event));
+                } catch (Throwable e) {
+                    throw new RuntimeException("Failed to call component method", e);
+                }
+            };
+        } catch (ReflectiveOperationException e) {
+            throw new RuntimeException("Failed to get component handle", e);
+        }
+    }
+
+    private interface MessageAccessor {
+        MinecraftComponent get(CarbonChatEvent event);
     }
 }
