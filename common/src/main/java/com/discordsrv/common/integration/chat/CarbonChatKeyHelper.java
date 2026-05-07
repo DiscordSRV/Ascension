@@ -38,7 +38,29 @@ final class CarbonChatKeyHelper {
                 continue;
             }
 
-            if (key.value().equalsIgnoreCase(channelName) || channel.commandName().equalsIgnoreCase(channelName)) {
+            if (key.asString().equalsIgnoreCase(channelName)) {
+                return channel;
+            }
+        }
+
+        for (Key key : unrelocatedRegistry.keys()) {
+            ChatChannel channel = (ChatChannel) (Object) unrelocatedRegistry.channel(key);
+            if (channel == null) {
+                continue;
+            }
+
+            if (key.value().equalsIgnoreCase(channelName)) {
+                return channel;
+            }
+        }
+
+        for (Key key : unrelocatedRegistry.keys()) {
+            ChatChannel channel = (ChatChannel) (Object) unrelocatedRegistry.channel(key);
+            if (channel == null || channel.commandName() == null) {
+                continue;
+            }
+
+            if (channel.commandName().equalsIgnoreCase(channelName)) {
                 return channel;
             }
         }
