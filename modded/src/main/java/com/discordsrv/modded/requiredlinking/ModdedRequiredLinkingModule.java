@@ -80,6 +80,7 @@ public class ModdedRequiredLinkingModule extends ServerRequireLinkingModule<Modd
         //? if fabric {
         net.fabricmc.fabric.api.networking.v1.ServerPlayConnectionEvents.JOIN.register(this::onPlayerJoin);
         net.fabricmc.fabric.api.networking.v1.ServerPlayConnectionEvents.DISCONNECT.register(this::onPlayerQuit);
+        net.fabricmc.fabric.api.message.v1.ServerMessageEvents.ALLOW_CHAT_MESSAGE.register((message, player, type) -> allowChatMessage(player.getUUID()));
 
         //? if minecraft: >=1.20.2 {
         net.fabricmc.fabric.api.networking.v1.ServerConfigurationConnectionEvents.CONFIGURE.register(this::onPlayerPreLogin);
@@ -92,6 +93,7 @@ public class ModdedRequiredLinkingModule extends ServerRequireLinkingModule<Modd
         /*net.neoforged.neoforge.common.NeoForge.EVENT_BUS.addListener(this::onPlayerJoin);
         net.neoforged.neoforge.common.NeoForge.EVENT_BUS.addListener(this::onPlayerQuit);
         net.neoforged.neoforge.common.NeoForge.EVENT_BUS.addListener(this::onCommand);
+        net.neoforged.neoforge.common.NeoForge.EVENT_BUS.addListener(net.neoforged.bus.api.EventPriority.HIGHEST, (net.neoforged.neoforge.event.ServerChatEvent event) -> event.setCanceled(event.isCanceled() || !allowChatMessage(event.getPlayer().getUUID())));
         *///?}
     }
 
@@ -111,6 +113,7 @@ public class ModdedRequiredLinkingModule extends ServerRequireLinkingModule<Modd
     public ServerRequiredLinkingConfig config() {
         return discordSRV.config().requiredLinking;
     }
+
     @Override
     public void recheck(IPlayer player) {
         ServerPlayer playerEntity = discordSRV.getServer().getPlayerList().getPlayer(player.uniqueId());

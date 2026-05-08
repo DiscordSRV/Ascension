@@ -13,8 +13,7 @@ dependencies {
     implementation(project(':bukkit:bukkit-shared')) { transitive = false }
     implementation(project(':bungee')) { transitive = false }
     implementation(project(':velocity')) { transitive = false }
-    implementation(project(':modded:1.21.11-fabric')) { transitive = false }
-    implementation(project(':modded:1.21.11-neoforge')) { transitive = false }
+    implementation(project(path: ':modded:1.21.11-fabric', configuration: "shadow")) { transitive = false }
 
     api(libs.configurate.yaml)
     api(libs.configurate.jackson)

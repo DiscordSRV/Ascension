@@ -5,7 +5,6 @@
   "mixins": [
     "PlayerAdvancementMixin",
     "PlayerConnectionEventsMixin",
-    "PlayerMessageMixin",
     "ServerPlayerMixin",
     "ban.BanCommandMixin",
     "ban.PardonCommandMixin",

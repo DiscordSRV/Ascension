@@ -18,6 +18,7 @@
 
 package com.discordsrv.fabric.integration;
 
+//~ textplaceholder
 import com.discordsrv.api.eventbus.Subscribe;
 import com.discordsrv.api.events.placeholder.PlaceholderLookupEvent;
 import com.discordsrv.api.placeholder.PlaceholderLookupResult;
@@ -28,10 +29,7 @@ import com.discordsrv.common.abstraction.player.IOfflinePlayer;
 import com.discordsrv.common.core.module.type.PluginIntegration;
 import com.discordsrv.modded.ModdedDiscordSRV;
 import com.mojang.authlib.GameProfile;
-import eu.pb4.placeholders.api.PlaceholderContext;
-import eu.pb4.placeholders.api.PlaceholderHandler;
-import eu.pb4.placeholders.api.PlaceholderResult;
-import eu.pb4.placeholders.api.Placeholders;
+import eu.pb4.placeholders.api.*;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.Identifier;
 import net.minecraft.server.level.ServerPlayer;
@@ -43,7 +41,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.UUID;
 
-public class TextPlaceholderIntegration extends PluginIntegration<ModdedDiscordSRV> implements PlaceholderHandler {
+public class TextPlaceholderIntegration extends PluginIntegration<ModdedDiscordSRV> implements eu.pb4.placeholders.api.Placeholder.Handler<ServerPlaceholderContext, String> {
 
     private static final Identifier IDENTIFIER = ModdedDiscordSRV.id("discordsrv", "textplaceholder");
     private static final String OPTIONAL_PREFIX = "textplaceholder_";
@@ -68,7 +66,15 @@ public class TextPlaceholderIntegration extends PluginIntegration<ModdedDiscordS
         return super.isEnabled();
     }
 
+    //? if minecraft: >=26.1 {
+    private boolean registered = false;
     @Override
+    public void enable() {
+        if (!registered) Placeholders.registerServer(IDENTIFIER, this);
+        registered = true;
+    }
+    //?} else {
+    /*@Override
     public void enable() {
         Placeholders.register(IDENTIFIER, this);
     }
@@ -77,6 +83,7 @@ public class TextPlaceholderIntegration extends PluginIntegration<ModdedDiscordS
     public void disable() {
         Placeholders.remove(IDENTIFIER);
     }
+    *///?}
 
     @Subscribe
     public void onPlaceholderLookup(PlaceholderLookupEvent event) {
@@ -89,7 +96,7 @@ public class TextPlaceholderIntegration extends PluginIntegration<ModdedDiscordS
         DiscordSRVPlayer srvPlayer = event.getContext(DiscordSRVPlayer.class);
         ServerPlayer player = srvPlayer != null ? discordSRV.getServer().getPlayerList().getPlayer(srvPlayer.uniqueId()) : null;
         if (player != null) {
-            Component parsed = Placeholders.parseText(Component.nullToEmpty(placeholder), PlaceholderContext.of(player));
+            Component parsed = parseTextPlaceholder(placeholder, ServerPlaceholderContext.of(player));
             setResult(event, placeholder, parsed.getString());
             return;
         }
@@ -109,7 +116,7 @@ public class TextPlaceholderIntegration extends PluginIntegration<ModdedDiscordS
             return;
         }
 
-        Component parsed = Placeholders.parseText(Component.nullToEmpty(placeholder), PlaceholderContext.of(discordSRV.getServer()));
+        Component parsed = parseTextPlaceholder(placeholder, ServerPlaceholderContext.of(discordSRV.getServer()));
         setResult(event, placeholder, parsed.getString());
     }
 
@@ -123,12 +130,15 @@ public class TextPlaceholderIntegration extends PluginIntegration<ModdedDiscordS
     }
 
     @Override
-    public PlaceholderResult onPlaceholderRequest(PlaceholderContext placeholderContext, @Nullable String s) {
+    public PlaceholderResult onPlaceholderRequest(ServerPlaceholderContext ctx, String argument) {
+        //? if minecraft: >=26.1
+        if (isCurrentlyDisabled()) return null;
+
         List<Object> context;
-        if (placeholderContext.hasPlayer()) {
+        if (ctx.hasPlayer()) {
             context = new ArrayList<>(2);
 
-            ServerPlayer player = placeholderContext.player();
+            ServerPlayer player = ctx.serverPlayer();
             assert player != null;
 
             Profile profile = discordSRV.profileManager().getCachedProfile(player.getUUID());
@@ -137,10 +147,10 @@ public class TextPlaceholderIntegration extends PluginIntegration<ModdedDiscordS
             }
 
             context.add(discordSRV.playerProvider().player(player));
-        } else if (placeholderContext.hasGameProfile()) {
+        } else if (ctx.hasGameProfile()) {
             context = new ArrayList<>(2);
 
-            GameProfile gameProfile = placeholderContext.gameProfile();
+            GameProfile gameProfile = ctx.gameProfile();
             assert gameProfile != null;
 
             Profile profile = discordSRV.profileManager().getCachedProfile(discordSRV.getIdFromGameProfile(gameProfile));
@@ -159,7 +169,7 @@ public class TextPlaceholderIntegration extends PluginIntegration<ModdedDiscordS
             context = Collections.emptyList();
         }
 
-        String placeholder = "%" + s + "%";
+        String placeholder = "%" + argument + "%";
         String result = PlainPlaceholderFormat.supplyWith(
                 PlainPlaceholderFormat.Formatting.LEGACY,
                 () -> discordSRV.placeholderService().replacePlaceholders(placeholder, context)
@@ -184,10 +194,18 @@ public class TextPlaceholderIntegration extends PluginIntegration<ModdedDiscordS
         //?}
 
         if (gameProfile != null) {
-            Component parsed = Placeholders.parseText(Component.nullToEmpty(placeholder), PlaceholderContext.of(gameProfile, discordSRV.getServer()));
+            Component parsed = parseTextPlaceholder(placeholder, ServerPlaceholderContext.of(gameProfile, discordSRV.getServer()));
             return parsed;
         }
 
         return null;
+    }
+
+    private Component parseTextPlaceholder(String input, ServerPlaceholderContext ctx) {
+        //? if minecraft: >=26.1{
+        return eu.pb4.placeholders.api.parsers.TagParser.DEFAULT.parseComponent(input, ctx.asParserContext());
+        //? } else {
+        /*return Placeholders.parseText(Component.nullToEmpty(input), ctx);
+        *///?}
     }
 }

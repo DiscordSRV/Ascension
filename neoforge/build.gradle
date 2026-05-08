@@ -1,7 +1,6 @@
 plugins {
     id("dev.kikugie.stonecutter") version "0.9"
-    alias(libs.plugins.arch.loom)
-    alias(libs.plugins.arch.plugin)
+    alias(libs.plugins.neoforge.moddev)
 }
 apply from: rootProject.file('buildscript/relocations.gradle')
 apply from: rootProject.file('buildscript/final.gradle')
@@ -9,21 +8,19 @@ apply from: rootProject.file('buildscript/final.gradle')
 configurations.configureEach {
     resolutionStrategy {
         force "org.slf4j:slf4j-api:1.7.36"
-        force "net.fabricmc:fabric-loader:0.14.0"
         force "dev.vankka:dependencydownload-runtime:2.0.0"
     }
 }
 
 var minecraftVersion = sc.current.version.toString().split("-")[0]
 var stonecutterNode = rootProject.findProject("modded").subprojects.find { it.name == project.name }
-
-architectury {
-    common("neoforge")
-}
+var is26_1 = sc.eval(minecraftVersion, ">=26.1") // Obfuscated vs Unobfuscated versions.
 
 java {
-    targetCompatibility = JavaVersion.VERSION_21
-    sourceCompatibility = JavaVersion.VERSION_21
+    var java = stonecutterNode.java.targetCompatibility
+
+    targetCompatibility = java
+    sourceCompatibility = java
 }
 
 sourceSets {
@@ -59,7 +56,7 @@ processResources {
 }
 
 tasks.register('copyNeoForge', Copy) {
-    from this.transformProductionNeoForge
+    from this.shadowJar
     into rootProject.file("jars/neoforge")
 }
 
@@ -82,19 +79,12 @@ shadowJar {
         include "discordsrv.mixins.json"
     }
 
-}
-
-remapJar {
-    dependsOn shadowJar
-    inputFile = shadowJar.archiveFile
-}
-
-transformProductionNeoForge {
-    dependsOn remapJar
-    input = remapJar.archiveFile
+    if (is26_1) {
+        from(zipTree(jar.archiveFile))
+    }
 
     archiveBaseName = "DiscordSRV-NeoForge-${stonecutterNode.property('minecraft.version_range_label')}"
-    archiveClassifier = parent.jar.archiveClassifier
+    archiveClassifier = project.parent.jar.archiveClassifier
 
     finalizedBy copyNeoForge
 }
@@ -106,12 +96,8 @@ spotless {
 }
 
 artifacts {
-    archives remapJar
+    archives jar
     shadow shadowJar
-}
-
-loom {
-    silentMojangMappingsLicense()
 }
 
 repositories {
@@ -120,19 +106,19 @@ repositories {
     maven { url = "https://maven.parchmentmc.org" }
 }
 
-dependencies {
-    minecraft("com.mojang:minecraft:${minecraftVersion}")
-    mappings(loom.officialMojangMappings())
-    neoForge("net.neoforged:neoforge:${stonecutterNode.property("deps.neoforge_version")}")
+neoForge {
+    version = stonecutterNode.property("deps.neoforge_version")
+}
 
+dependencies {
     // Mixin Extras
-    include(modImplementation("io.github.llamalad7:mixinextras-neoforge:0.5.2"))
+    jarJar(implementation("io.github.llamalad7:mixinextras-neoforge:0.5.2"))
 
     // Adventure
-    include(libs.adventure.api)
-    include(libs.kyori.ansi)
+    jarJar(libs.adventure.api)
+    jarJar(libs.kyori.ansi)
 
-    include(modImplementation("net.kyori:adventure-platform-neoforge:${stonecutterNode.property("deps.adventure_platform")}"){
+    jarJar(implementation("net.kyori:adventure-platform-neoforge:${stonecutterNode.property("deps.adventure_platform")}"){
         exclude group: 'net.kyori', module: 'ansi'
         exclude group: 'net.kyori', module: 'adventure-api'
     })
