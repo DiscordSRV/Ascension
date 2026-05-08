@@ -16,10 +16,9 @@
   "mixins": [
     "discordsrv.mixins.json"
   ],
-  "accessWidener": "discordsrv.accesswidener",
   "depends": {
     "fabricloader": "*",
-    "fabric": "*",
+    "fabric-api": "*",
     "minecraft": "*",
     "fabric-permissions-api-v0": "*"
   }
