@@ -29,6 +29,6 @@ public class BungeeConfig extends MainConfig {
 
     @Override
     public PresenceUpdaterConfig defaultPresenceUpdater() {
-        return new PresenceUpdaterConfig.Proxy();
+        return new PresenceUpdaterConfig();
     }
 }
