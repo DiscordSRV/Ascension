@@ -1,8 +1,12 @@
-shadowJar {
-    archiveFileName = 'bungee.jarinjar'
-
-    // Relocations in buildscript/relocations.gradle
+[
+        'net.kyori',
+        'net.kyori.adventure.platform',
+        'net.kyori.adventure.text.serializer',
+].each {
+    tasks.shadowJar.relocate it, 'com.discordsrv.dependencies.' + it
+    tasks.generateRuntimeDownloadResourceForRuntimeDownloadOnly.relocate it, 'com.discordsrv.dependencies.' + it
 }
+// More relocations in buildscript/relocations.gradle
 
 apply from: rootProject.file('buildscript/runtime.gradle')
 
@@ -24,10 +28,15 @@ allprojects {
     }
 }
 
+shadowJar {
+    archiveFileName = 'bungee.jarinjar'
+
+    dependsOn generateRuntimeDownloadResourceForRuntimeDownloadOnly
+}
+
 dependencies {
     // API
     annotationProcessor project(':api')
-    implementation project(':common:common-api')
 
     // Common
     implementation project(':common')
