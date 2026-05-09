@@ -33,6 +33,7 @@ import com.discordsrv.api.placeholder.PlaceholderService;
 import com.discordsrv.api.punishment.Punishment;
 import com.discordsrv.api.task.Task;
 import com.discordsrv.common.DiscordSRV;
+import com.discordsrv.common.abstraction.player.IOfflinePlayer;
 import com.discordsrv.common.abstraction.player.IPlayer;
 import com.discordsrv.common.abstraction.punishment.AbstractPunishmentSyncModule;
 import com.discordsrv.common.abstraction.sync.RoleSyncModuleUtil;
@@ -76,7 +77,7 @@ public class MuteSyncModule extends AbstractPunishmentSyncModule<MuteSyncConfig>
         return Arrays.asList(DiscordGatewayIntent.GUILD_MODERATION, DiscordGatewayIntent.GUILD_MEMBERS);
     }
 
-    public void notifyMuted(IPlayer player, @Nullable Punishment punishment) {
+    public void notifyMuted(IOfflinePlayer player, @Nullable Punishment punishment) {
         gameChanged(MuteSyncCause.PLAYER_MUTED, Someone.of(discordSRV, player.uniqueId()), Game.INSTANCE, punishment);
     }
 
