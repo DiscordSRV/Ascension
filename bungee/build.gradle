@@ -36,6 +36,7 @@ allprojects {
 dependencies {
     // API
     annotationProcessor project(':api')
+    implementation project(':common:common-api')
 
     // Common
     implementation project(':common')
@@ -44,6 +45,7 @@ dependencies {
     implementation(libs.mcdependencydownload.bungee.bootstrap)
 
     // Adventure
+    implementation(libs.adventure.api)
     runtimeDownloadApi(libs.adventure.platform.bungee)
     runtimeDownloadApi(libs.adventure.serializer.bungee)
 }
