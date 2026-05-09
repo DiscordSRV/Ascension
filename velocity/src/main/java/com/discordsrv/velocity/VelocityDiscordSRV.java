@@ -33,7 +33,6 @@ import com.discordsrv.common.feature.messageforwarding.game.MinecraftToDiscordCh
 import com.discordsrv.velocity.command.game.handler.VelocityCommandHandler;
 import com.discordsrv.velocity.config.main.VelocityConfig;
 import com.discordsrv.velocity.console.VelocityConsole;
-import com.discordsrv.velocity.module.VelocityChatModule;
 import com.discordsrv.velocity.module.VelocityJoinModule;
 import com.discordsrv.velocity.module.VelocityQuitModule;
 import com.discordsrv.velocity.module.VelocityServerSwitchModule;
@@ -82,7 +81,6 @@ public class VelocityDiscordSRV extends AbstractDiscordSRV<DiscordSRVVelocityBoo
 
         // Chat
         registerModule(MinecraftToDiscordChatModule::new);
-        registerModule(VelocityChatModule::new);
         registerModule(VelocityJoinModule::new);
         registerModule(VelocityQuitModule::new);
         registerModule(VelocityServerSwitchModule::new);

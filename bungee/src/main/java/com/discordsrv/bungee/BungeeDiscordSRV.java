@@ -21,7 +21,6 @@ package com.discordsrv.bungee;
 import com.discordsrv.bungee.command.game.handler.BungeeCommandHandler;
 import com.discordsrv.bungee.config.main.BungeeConfig;
 import com.discordsrv.bungee.console.BungeeConsole;
-import com.discordsrv.bungee.module.BungeeChatModule;
 import com.discordsrv.bungee.module.BungeeJoinModule;
 import com.discordsrv.bungee.module.BungeeQuitModule;
 import com.discordsrv.bungee.module.BungeeServerSwitchModule;
@@ -85,7 +84,6 @@ public class BungeeDiscordSRV extends AbstractDiscordSRV<DiscordSRVBungeeBootstr
 
         // Chat
         registerModule(MinecraftToDiscordChatModule::new);
-        registerModule(BungeeChatModule::new);
         registerModule(BungeeJoinModule::new);
         registerModule(BungeeQuitModule::new);
         registerModule(BungeeServerSwitchModule::new);

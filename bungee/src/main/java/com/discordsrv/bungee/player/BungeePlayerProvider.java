@@ -62,19 +62,6 @@ public class BungeePlayerProvider extends AbstractPlayerProvider<BungeePlayer, B
         removePlayer(event.getPlayer().getUniqueId());
     }
 
-    public BungeePlayer player(Connection connection) {
-        ProxiedPlayer player = null;
-        for (ProxiedPlayer _player : discordSRV.proxy().getPlayers()) {
-            if (_player.getSocketAddress().equals(connection.getSocketAddress())) {
-                player = _player;
-            }
-        }
-        if (player == null) {
-            throw new IllegalStateException("Player not available");
-        }
-        return player(player);
-    }
-
     public BungeePlayer player(ProxiedPlayer player) {
         BungeePlayer srvPlayer = player(player.getUniqueId());
         if (srvPlayer == null) {
