@@ -1,3 +1,5 @@
+import com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar
+
 apply from: rootProject.file('buildscript/standalone.gradle')
 apply plugin: 'net.kyori.blossom'
 apply plugin: 'org.jetbrains.gradle.plugin.idea-ext'
