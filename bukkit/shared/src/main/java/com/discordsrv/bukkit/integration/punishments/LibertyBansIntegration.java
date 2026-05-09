@@ -183,27 +183,10 @@ public class LibertyBansIntegration extends PluginIntegration<BukkitDiscordSRV>
         if (!(event.getPunishment().getVictim() instanceof PlayerVictim)) return;
         PlayerVictim victim = (PlayerVictim) event.getPunishment().getVictim();
 
-        switch (event.getPunishment().getType()) {
-            case BAN:
-                if (bans != null) {
-                    IPlayer player = discordSRV.playerProvider().player(victim.getUUID());
-                    if (player == null) {
-                        throw new RuntimeException("Player " + victim.getUUID() + " not present in player provider");
-                    }
-
-                    bans.notifyBanned(player, punishment(event.getPunishment()));
-                }
-                break;
-            case MUTE:
-                if (mutes != null) {
-                    IPlayer player = discordSRV.playerProvider().player(victim.getUUID());
-                    if (player == null) {
-                        throw new RuntimeException("Player " + victim.getUUID() + " not present in player provider");
-                    }
-
-                    mutes.notifyMuted(player, punishment(event.getPunishment()));
-                }
-        }
+        discordSRV.playerProvider().lookupOfflinePlayer(victim.getUUID()).whenSuccessful(player -> {
+            if (event.getPunishment().getType() == PunishmentType.BAN && bans != null) bans.notifyBanned(player, punishment(event.getPunishment()));
+            else if (event.getPunishment().getType() == PunishmentType.MUTE && mutes != null) mutes.notifyMuted(player, punishment(event.getPunishment()));
+        });
     }
 
     @ListeningMethod()
@@ -213,27 +196,9 @@ public class LibertyBansIntegration extends PluginIntegration<BukkitDiscordSRV>
         if (!(event.getPunishment().getVictim() instanceof PlayerVictim)) return;
         PlayerVictim victim = (PlayerVictim) event.getPunishment().getVictim();
 
-        switch (event.getPunishment().getType()) {
-            case BAN:
-                if (bans != null) {
-                    IPlayer player = discordSRV.playerProvider().player(victim.getUUID());
-                    if (player == null) {
-                        throw new RuntimeException("Player " + victim.getUUID() + " not present in player provider");
-                    }
-
-                    bans.notifyBanned(player, null);
-                }
-                break;
-            case MUTE:
-                if (mutes != null) {
-                    IPlayer player = discordSRV.playerProvider().player(victim.getUUID());
-                    if (player == null) {
-                        throw new RuntimeException("Player " + victim.getUUID() + " not present in player provider");
-                    }
-
-                    mutes.notifyMuted(player, null);
-                }
-                break;
-        }
+        discordSRV.playerProvider().lookupOfflinePlayer(victim.getUUID()).whenSuccessful(player -> {
+            if (event.getPunishment().getType() == PunishmentType.BAN && bans != null) bans.notifyBanned(player, null);
+            else if (event.getPunishment().getType() == PunishmentType.MUTE && mutes != null) mutes.notifyMuted(player, null);
+        });
     }
 }

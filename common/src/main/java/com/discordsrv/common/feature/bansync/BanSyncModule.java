@@ -32,6 +32,7 @@ import com.discordsrv.api.placeholder.PlaceholderService;
 import com.discordsrv.api.punishment.Punishment;
 import com.discordsrv.api.task.Task;
 import com.discordsrv.common.DiscordSRV;
+import com.discordsrv.common.abstraction.player.IOfflinePlayer;
 import com.discordsrv.common.abstraction.player.IPlayer;
 import com.discordsrv.common.abstraction.punishment.AbstractPunishmentSyncModule;
 import com.discordsrv.common.abstraction.sync.RoleSyncModuleUtil;
@@ -73,7 +74,7 @@ public class BanSyncModule extends AbstractPunishmentSyncModule<BanSyncConfig> {
         return Collections.singleton(DiscordGatewayIntent.GUILD_MODERATION);
     }
 
-    public void notifyBanned(IPlayer player, @Nullable Punishment punishment) {
+    public void notifyBanned(IOfflinePlayer player, @Nullable Punishment punishment) {
         gameChanged(BanSyncCause.PLAYER_BANNED, Someone.of(discordSRV, player.uniqueId()), Game.INSTANCE, punishment);
     }
 

@@ -132,52 +132,46 @@ public class AdvancedBanIntegration extends PluginIntegration<BukkitDiscordSRV>
         BanSyncModule bans = discordSRV.getModule(BanSyncModule.class);
         MuteSyncModule mutes = discordSRV.getModule(MuteSyncModule.class);
 
-        IPlayer player = discordSRV.playerProvider().player(event.getPunishment().getUuid());
-        if (player == null) {
-            return;
-        }
-
-        switch (event.getPunishment().getType()) {
-            case TEMP_BAN:
-            case TEMP_IP_BAN:
-            case BAN:
-                if (bans != null) {
-                    bans.notifyBanned(player, punishment);
-                }
-                break;
-            case TEMP_MUTE:
-            case MUTE:
-                if (mutes != null) {
-                    mutes.notifyMuted(player, punishment);
-                }
-                break;
-        }
+        discordSRV.playerProvider().lookupOfflinePlayer(event.getPunishment().getUuid()).whenSuccessful((player) -> {
+            switch (event.getPunishment().getType()) {
+                case TEMP_BAN:
+                case TEMP_IP_BAN:
+                case BAN:
+                    if (bans != null) {
+                        bans.notifyBanned(player, punishment);
+                    }
+                    break;
+                case TEMP_MUTE:
+                case MUTE:
+                    if (mutes != null) {
+                        mutes.notifyMuted(player, punishment);
+                    }
+                    break;
+            }
+        });
     }
 
     public void onRevokePunishment(RevokePunishmentEvent event) {
         BanSyncModule bans = discordSRV.getModule(BanSyncModule.class);
         MuteSyncModule mutes = discordSRV.getModule(MuteSyncModule.class);
 
-        IPlayer player = discordSRV.playerProvider().player(event.getPunishment().getUuid());
-        if (player == null) {
-            return;
-        }
-
-        switch (event.getPunishment().getType()) {
-            case TEMP_BAN:
-            case TEMP_IP_BAN:
-            case BAN:
-                if (bans != null) {
-                    bans.notifyBanned(player, null);
-                }
-                break;
-            case TEMP_MUTE:
-            case MUTE:
-                if (mutes != null) {
-                    mutes.notifyMuted(player, null);
-                }
-                break;
-        }
+        discordSRV.playerProvider().lookupOfflinePlayer(event.getPunishment().getUuid()).whenSuccessful((player) -> {
+            switch (event.getPunishment().getType()) {
+                case TEMP_BAN:
+                case TEMP_IP_BAN:
+                case BAN:
+                    if (bans != null) {
+                        bans.notifyBanned(player, null);
+                    }
+                    break;
+                case TEMP_MUTE:
+                case MUTE:
+                    if (mutes != null) {
+                        mutes.notifyMuted(player, null);
+                    }
+                    break;
+            }
+        });
     }
 
     private Punishment punishment(me.leoko.advancedban.utils.Punishment punishment) {
