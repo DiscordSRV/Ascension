@@ -1,16 +1,7 @@
 shadowJar {
     archiveFileName = 'bungee.jarinjar'
 
-    configure {
-        [
-                'net.kyori',
-                'net.kyori.adventure.platform',
-                'net.kyori.adventure.text.serializer'
-        ].each {
-            relocate it, 'com.discordsrv.dependencies.' + it
-        }
-    }
-    // More relocations in buildscript/relocations.gradle
+    // Relocations in buildscript/relocations.gradle
 }
 
 apply from: rootProject.file('buildscript/runtime.gradle')
@@ -45,7 +36,6 @@ dependencies {
     implementation(libs.mcdependencydownload.bungee.bootstrap)
 
     // Adventure
-    implementation(libs.adventure.api)
     runtimeDownloadApi(libs.adventure.platform.bungee)
     runtimeDownloadApi(libs.adventure.serializer.bungee)
 }
