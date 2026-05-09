@@ -74,7 +74,6 @@ public abstract class BukkitDiscordSRV extends AbstractDiscordSRV<IBukkitBootstr
         registerIntegration("com.discordsrv.bukkit.integration.chat.McMMOChatIntegration");
         registerIntegration("com.discordsrv.bukkit.integration.chat.TownyChatIntegration");
         registerIntegration("com.discordsrv.bukkit.integration.chat.VentureChatIntegration");
-        registerIntegration("com.discordsrv.common.integration.chat.CarbonChatIntegration");
 
         super.enable();
     }
