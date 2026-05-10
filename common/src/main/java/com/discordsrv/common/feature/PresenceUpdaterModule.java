@@ -51,6 +51,16 @@ public class PresenceUpdaterModule extends AbstractModule<DiscordSRV> {
     }
 
     @Override
+    public boolean isEnabled() {
+        return discordSRV.config() != null && discordSRV.config().presenceUpdater.enabled;
+    }
+
+    @Override
+    public void disable() {
+        cancelFuture();
+    }
+
+    @Override
     public void serverStarted() {
         logger().debug("Server started");
         serverState.set(ServerState.STARTED);
@@ -97,11 +107,16 @@ public class PresenceUpdaterModule extends AbstractModule<DiscordSRV> {
         jda.getPresence().setPresence(config.status, newActivity);
     }
 
-    private void setPresenceOrSchedule() {
-        boolean alreadyScheduled = future != null;
+    private void cancelFuture() {
         if (future != null) {
             future.cancel(true);
+            future = null;
         }
+    }
+
+    private void setPresenceOrSchedule() {
+        boolean alreadyScheduled = future != null;
+        cancelFuture();
 
         if (discordSRV.isServerStarted() && serverState.get() == ServerState.PRE_START) {
             logger().debug("Server is started, changing to STARTED state");
