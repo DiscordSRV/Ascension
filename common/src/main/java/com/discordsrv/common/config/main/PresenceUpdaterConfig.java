@@ -35,6 +35,9 @@ import java.util.Locale;
 @ConfigSerializable
 public class PresenceUpdaterConfig {
 
+    @Comment("If the bot's Discord presence should be updated")
+    public boolean enabled = true;
+
     @Comment("The number of seconds between presence updates\n"
             + "Minimum value: %1")
     @Constants.Comment("30")
