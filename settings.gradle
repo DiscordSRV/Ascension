@@ -60,7 +60,7 @@ dependencyResolutionManagement {
             library('bungee', 'net.md-5', 'bungeecord-api').version('1.21-R0.4-SNAPSHOT')
 
             // Velocity
-            library('velocity', 'com.velocitypowered', 'velocity-api').version('3.4.0-SNAPSHOT')
+            library('velocity', 'com.velocitypowered', 'velocity-api').version('3.5.0-SNAPSHOT')
 
             // Modded
             version('fabric.loom', '1.16-SNAPSHOT')
@@ -144,6 +144,7 @@ dependencyResolutionManagement {
             library('mcmmo', 'com.gmail.nossr50', 'mcmmo').version('2.1.220')
             library('griefprevention', 'me.ryanhamshire', 'GriefPrevention').version('16.18.1')
             library('essentialsx', 'net.essentialsx', 'EssentialsX').version('2.20.1')
+            library('carbonchat', 'de.hexaoxi', 'carbonchat-api').version('3.0.0-beta.36')
 
             // Logging
             library('slf4j-api', 'org.slf4j', 'slf4j-api').version {

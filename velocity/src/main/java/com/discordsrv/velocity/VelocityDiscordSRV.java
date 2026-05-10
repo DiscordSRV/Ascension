@@ -24,13 +24,18 @@ import com.discordsrv.common.command.game.abstraction.handler.ICommandHandler;
 import com.discordsrv.common.config.configurate.manager.ConnectionConfigManager;
 import com.discordsrv.common.config.configurate.manager.MainConfigManager;
 import com.discordsrv.common.config.configurate.manager.MessagesConfigManager;
+import com.discordsrv.common.config.configurate.manager.abstraction.ProxyConfigManager;
 import com.discordsrv.common.config.connection.ConnectionConfig;
-import com.discordsrv.common.config.main.MainConfig;
 import com.discordsrv.common.config.messages.MessagesConfig;
 import com.discordsrv.common.core.scheduler.StandardScheduler;
 import com.discordsrv.common.core.debug.data.OnlineMode;
+import com.discordsrv.common.feature.messageforwarding.game.MinecraftToDiscordChatModule;
 import com.discordsrv.velocity.command.game.handler.VelocityCommandHandler;
+import com.discordsrv.velocity.config.main.VelocityConfig;
 import com.discordsrv.velocity.console.VelocityConsole;
+import com.discordsrv.velocity.module.VelocityJoinModule;
+import com.discordsrv.velocity.module.VelocityQuitModule;
+import com.discordsrv.velocity.module.VelocityServerSwitchModule;
 import com.discordsrv.velocity.player.VelocityPlayerProvider;
 import com.discordsrv.velocity.plugin.VelocityPluginManager;
 import com.velocitypowered.api.plugin.PluginContainer;
@@ -41,13 +46,17 @@ import java.net.URL;
 import java.net.URLClassLoader;
 import java.util.jar.JarFile;
 
-public class VelocityDiscordSRV extends AbstractDiscordSRV<DiscordSRVVelocityBootstrap, MainConfig, ConnectionConfig, MessagesConfig> {
+public class VelocityDiscordSRV extends AbstractDiscordSRV<DiscordSRVVelocityBootstrap, VelocityConfig, ConnectionConfig, MessagesConfig> {
 
     private final StandardScheduler scheduler;
     private final VelocityConsole console;
     private final VelocityPlayerProvider playerProvider;
     private final VelocityPluginManager pluginManager;
     private final VelocityCommandHandler commandHandler;
+
+    private final ConnectionConfigManager<ConnectionConfig> connectionConfigManager;
+    private final MainConfigManager<VelocityConfig> configManager;
+    private final MessagesConfigManager<MessagesConfig> messagesConfigManager;
 
     public VelocityDiscordSRV(DiscordSRVVelocityBootstrap bootstrap) {
         super(bootstrap);
@@ -58,10 +67,26 @@ public class VelocityDiscordSRV extends AbstractDiscordSRV<DiscordSRVVelocityBoo
         this.pluginManager = new VelocityPluginManager(this);
         this.commandHandler = new VelocityCommandHandler(this);
 
-        // Integrations
-        registerIntegration("com.discordsrv.velocity.integration.VelocityLuckPermsIntegration");
+        // Config
+        this.connectionConfigManager = new ConnectionConfigManager<>(this, ConnectionConfig::new);
+        this.configManager = new ProxyConfigManager<>(this, VelocityConfig::new);
+        this.messagesConfigManager = new MessagesConfigManager<>(this, MessagesConfig::new);
 
         load();
+    }
+
+    @Override
+    protected void enable() throws Throwable {
+        super.enable();
+
+        // Chat
+        registerModule(MinecraftToDiscordChatModule::new);
+        registerModule(VelocityJoinModule::new);
+        registerModule(VelocityQuitModule::new);
+        registerModule(VelocityServerSwitchModule::new);
+
+        // Integrations
+        registerIntegration("com.discordsrv.velocity.integration.VelocityLuckPermsIntegration");
     }
 
     @Override
@@ -123,21 +148,16 @@ public class VelocityDiscordSRV extends AbstractDiscordSRV<DiscordSRVVelocityBoo
 
     @Override
     public ConnectionConfigManager<ConnectionConfig> connectionConfigManager() {
-        return null;
+        return connectionConfigManager;
     }
 
     @Override
-    public MainConfigManager<MainConfig> configManager() {
-        return null;
+    public MainConfigManager<VelocityConfig> configManager() {
+        return configManager;
     }
 
     @Override
     public MessagesConfigManager<MessagesConfig> messagesConfigManager() {
-        return null;
-    }
-
-    @Override
-    protected void enable() throws Throwable {
-        super.enable();
+        return messagesConfigManager;
     }
 }

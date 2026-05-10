@@ -19,6 +19,7 @@
 package com.discordsrv.config;
 
 import com.discordsrv.bukkit.config.main.BukkitConfig;
+import com.discordsrv.bungee.config.main.BungeeConfig;
 import com.discordsrv.common.config.Config;
 import com.discordsrv.common.config.configurate.annotation.Untranslated;
 import com.discordsrv.common.config.configurate.fielddiscoverer.FieldValueDiscovererProxy;
@@ -27,6 +28,7 @@ import com.discordsrv.common.config.connection.ConnectionConfig;
 import com.discordsrv.common.config.messages.MessagesConfig;
 import com.discordsrv.common.core.logging.backend.impl.JavaLoggerImpl;
 import com.discordsrv.modded.config.main.ModdedConfig;
+import com.discordsrv.velocity.config.main.VelocityConfig;
 import org.spongepowered.configurate.CommentedConfigurationNode;
 import org.spongepowered.configurate.ConfigurateException;
 import org.spongepowered.configurate.ConfigurationNode;
@@ -56,6 +58,8 @@ public final class DiscordSRVTranslation {
     private static final List<Config> CONFIGS = Arrays.asList(
             new BukkitConfig(),
             new ModdedConfig(),
+            new BungeeConfig(),
+            new VelocityConfig(),
             new ConnectionConfig(),
             new MessagesConfig()
     );
