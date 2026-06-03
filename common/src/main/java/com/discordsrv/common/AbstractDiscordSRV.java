@@ -769,6 +769,9 @@ public abstract class AbstractDiscordSRV<
             registerModule(DeathMessageModule::new);
         }
 
+        // Chat Integrations
+        registerIntegration("com.discordsrv.common.integration.chat.CarbonChatIntegration");
+
         // Check if the system has working DNS
         try {
             String discordDomain = "discord.com";
