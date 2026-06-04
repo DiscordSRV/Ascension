@@ -1,0 +1,138 @@
+plugins {
+    id("dev.kikugie.stonecutter") version "0.9"
+    alias(libs.plugins.neoforge.moddev)
+}
+apply from: rootProject.file('buildscript/standalone.gradle')
+
+def minecraftVersion = project.name.split('-', 2)[0]
+var is1_21_11 = sc.eval(minecraftVersion, ">=1.21.11")
+var is26_1 = sc.eval(minecraftVersion, ">=26.1") // Obfuscated vs Unobfuscated versions.
+
+configurations.configureEach {
+    resolutionStrategy {
+        force "org.slf4j:slf4j-api:1.7.36" // Introduced by Minecraft itself
+        if (sc.eval(minecraftVersion, ">=1.21.4 <1.21.11")) { // Introduced by NeoForge in 1.21.4
+            force 'com.fasterxml.jackson.core:jackson-databind:2.13.4.2'
+            force 'com.fasterxml.jackson.core:jackson-annotations:2.13.4'
+            force 'com.fasterxml.jackson.core:jackson-core:2.13.4'
+        }
+    }
+}
+
+java {
+    var java = sc.eval(minecraftVersion, ">=26.1") ? JavaVersion.VERSION_25 : sc.eval(minecraftVersion, ">=1.20.5") ? JavaVersion.VERSION_21 : JavaVersion.VERSION_17
+
+    targetCompatibility = java
+    sourceCompatibility = java
+}
+
+sourceSets {
+    main {
+        java {
+            exclude "com/discordsrv/fabric/**"
+        }
+    }
+}
+
+stonecutter {
+    replacements.string(!is1_21_11) {
+        replace("Identifier", "ResourceLocation")
+        replace(".identifier()", ".location()")
+        replace("ResourceKey::identifier", "ResourceKey::location")
+    }
+    replacements.string(is26_1, "textplaceholder") {
+        replace("PlaceholderHandler", "eu.pb4.placeholders.api.Placeholder.Handler<ServerPlaceholderContext, String>")
+        replace("PlaceholderContext", "ServerPlaceholderContext")
+        replace("@Nullable String argument", "String argument")
+        replace("ctx.player()", "ctx.serverPlayer()")
+    }
+}
+
+processResources {
+    var replaceProperties = [
+            mod_id:       "discordsrv",
+            mod_name:     "DiscordSRV",
+            mod_license:  "GPLv3",
+            mod_version:  version,
+
+            minecraft_version: minecraftVersion,
+            minecraft_version_range: project.property("minecraft.version_range"),
+
+            fabric_loader_version: project.property("deps.fabric_loader"),
+    ]
+    inputs.properties replaceProperties
+
+    filesMatching(['fabric.mod.json']) {
+        expand replaceProperties
+    }
+
+    dependsOn generateRuntimeDownloadResourceForRuntimeDownloadOnly
+}
+
+shadowJar {
+    configurations = [project.configurations.shadow]
+    mergeServiceFiles()
+
+    archiveFileName = "neoforge.jarinjar"
+}
+
+spotless {
+    java {
+        if (sc.current.isActive)
+            target("src/main/java/")
+    }
+}
+
+artifacts {
+    shadow shadowJar
+}
+
+repositories {
+    mavenLocal()
+    maven { url = 'https://maven.neoforged.net/releases' }
+    maven { url = "https://maven.parchmentmc.org" }
+    exclusiveContent {
+        forRepository {
+            maven { url = 'https://maven.fabricmc.net/' }
+        }
+        filter {
+            includeGroup 'net.fabricmc'
+        }
+    }
+    exclusiveContent {
+        forRepository {
+            maven { url = 'https://maven.nucleoid.xyz/' }
+        }
+        filter {
+            includeGroup 'eu.pb4'
+        }
+    }
+}
+
+neoForge {
+    version = project.property("deps.neoforge_version")
+}
+
+dependencies {
+    // Mixin Extras
+    compileOnly(annotationProcessor("io.github.llamalad7:mixinextras-common:0.5.2"))
+
+    // API
+    annotationProcessor project(':api')
+    shadow project(':common:common-api')
+
+    // Common
+    shadow project(':common')
+
+    implementation(libs.adventure.api)
+    implementation(libs.kyori.ansi)
+
+    compileOnly("net.kyori:adventure-platform-neoforge:${project.property("deps.adventure_platform")}"){
+        exclude group: 'net.kyori', module: 'ansi'
+        exclude group: 'net.kyori', module: 'adventure-api'
+    }
+
+    // DependencyDownload
+    compileOnly(libs.dependencydownload.jarinjar.loader)
+    compileOnly(libs.dependencydownload.jarinjar.bootstrap)
+}

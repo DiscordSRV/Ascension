@@ -42,6 +42,11 @@ public class ModdedChatModule extends AbstractModdedModule {
         super(discordSRV);
         this.discordSRV = discordSRV;
         INSTANCE = this;
+        //? if fabric
+        net.fabricmc.fabric.api.message.v1.ServerMessageEvents.CHAT_MESSAGE.register((message, player, type) -> onChatMessage(message.signedContent(), player.getUUID()));
+
+        //? if neoforge
+        //net.neoforged.neoforge.common.NeoForge.EVENT_BUS.addListener(net.neoforged.bus.api.EventPriority.LOWEST, true, (net.neoforged.neoforge.event.ServerChatEvent event) -> onChatMessage(event.getMessage(), event.getPlayer().getUUID(), event.isCanceled()));
     }
 
     //? if minecraft: <=1.19.2 {
@@ -50,10 +55,14 @@ public class ModdedChatModule extends AbstractModdedModule {
     }*///?}
 
     public void onChatMessage(String message, UUID uuid) {
-        onChatMessage(net.minecraft.network.chat.Component.nullToEmpty(message), uuid);
+        onChatMessage(net.minecraft.network.chat.Component.nullToEmpty(message), uuid, false);
     }
 
     public void onChatMessage(net.minecraft.network.chat.Component text, UUID uuid) {
+        onChatMessage(text, uuid, false);
+    }
+
+    public void onChatMessage(net.minecraft.network.chat.Component text, UUID uuid, boolean isCancelled) {
         if (!enabled) return;
         ModdedDiscordSRV discordSRV = INSTANCE.discordSRV;
 
@@ -63,7 +72,7 @@ public class ModdedChatModule extends AbstractModdedModule {
                 discordSRV.playerProvider().player(uuid),
                 ComponentUtil.toAPI(component),
                 new GlobalChannel(discordSRV),
-                false
+                isCancelled
         ));
     }
 }

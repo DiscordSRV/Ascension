@@ -84,7 +84,7 @@ public class ModdedPlayer extends ModdedCommandSender implements IPlayer {
 
     @Override
     public Task<Void> kick(Component component) {
-        player.connection.disconnect(discordSRV.componentFactory().toNative(component));
+        if (player.connection != null) player.connection.disconnect(discordSRV.componentFactory().toNative(component));
         return Task.completed(null);
     }
 
@@ -95,7 +95,7 @@ public class ModdedPlayer extends ModdedCommandSender implements IPlayer {
                 net.minecraft.network.protocol.game.ClientboundCustomChatCompletionsPacket.Action.ADD,
                 new ArrayList<>(suggestions)
         );
-        player.connection.send(packet);
+        if (player.connection != null) player.connection.send(packet);
         //?}
     }
 
@@ -106,7 +106,7 @@ public class ModdedPlayer extends ModdedCommandSender implements IPlayer {
                 net.minecraft.network.protocol.game.ClientboundCustomChatCompletionsPacket.Action.REMOVE,
                 new ArrayList<>(suggestions)
         );
-        player.connection.send(packet);
+        if (player.connection != null) player.connection.send(packet);
         //?}
     }
 

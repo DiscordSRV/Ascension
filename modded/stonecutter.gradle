@@ -1,7 +1,7 @@
 plugins.apply "dev.kikugie.stonecutter"
 
 stonecutter {
-    active "1.21.11-fabric" /* [SC] DO NOT EDIT */
+    active file("active-version")
 
     parameters {
         def (version, loader) = current.project.split('-', 2)

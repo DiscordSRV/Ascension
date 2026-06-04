@@ -18,12 +18,12 @@
 
 package com.discordsrv.fabric;
 
-import com.discordsrv.common.abstraction.bootstrap.IBootstrap;
 import com.discordsrv.common.abstraction.bootstrap.LifecycleManager;
 import com.discordsrv.common.core.logging.Logger;
 import com.discordsrv.common.core.logging.backend.impl.Log4JLoggerImpl;
-import com.discordsrv.modded.ModdedDiscordSRV;
+import com.discordsrv.modded.DiscordSRVModdedBootstrap;
 import dev.vankka.dependencydownload.classpath.ClasspathAppender;
+import dev.vankka.mcdependencydownload.fabric.classpath.FabricClasspathAppender;
 import net.minecraft.server.MinecraftServer;
 import net.fabricmc.api.DedicatedServerModInitializer;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents;
@@ -37,21 +37,21 @@ import java.nio.file.Path;
 import java.util.Collections;
 import java.util.Optional;
 
-public class DiscordSRVFabricBootstrap implements DedicatedServerModInitializer, IBootstrap {
-    private final static String DEPENDENCIES_RUNTIME = /*$ dependencies_file*/"dependencies/runtimeDownload-1.21.11-fabric.txt";
+public class DiscordSRVFabricBootstrap implements DedicatedServerModInitializer, DiscordSRVModdedBootstrap {
+    private final static String DEPENDENCIES_RUNTIME = /*$ dependencies_file*/"dependencies/runtimeDownload-26.1-fabric.txt";
 
     private final Logger logger;
 
     private final LifecycleManager lifecycleManager;
     private final Path dataDirectory;
     private MinecraftServer minecraftServer;
-    private ModdedDiscordSRV discordSRV;
+    private FabricDiscordSRV discordSRV;
 
     private final ClasspathAppender classpathAppender;
     public DiscordSRVFabricBootstrap() {
         this.logger = new Log4JLoggerImpl(LogManager.getLogger("DiscordSRV"));
 
-        this.classpathAppender = new dev.vankka.mcdependencydownload.fabric.classpath.FabricClasspathAppender();
+        this.classpathAppender = new FabricClasspathAppender();
         this.dataDirectory = FabricLoader.getInstance().getConfigDir().resolve("DiscordSRV");
 
         try {
@@ -71,7 +71,7 @@ public class DiscordSRVFabricBootstrap implements DedicatedServerModInitializer,
     public void onInitializeServer() {
         ServerLifecycleEvents.SERVER_STARTING.register(minecraftServer -> {
             this.minecraftServer = minecraftServer;
-            lifecycleManager.loadAndEnable(() -> this.discordSRV = new ModdedDiscordSRV(this));
+            lifecycleManager.loadAndEnable(() -> this.discordSRV = new FabricDiscordSRV(this));
         });
 
         ServerLifecycleEvents.SERVER_STARTED.register(minecraftServer -> {
@@ -130,7 +130,7 @@ public class DiscordSRVFabricBootstrap implements DedicatedServerModInitializer,
         return minecraftServer;
     }
 
-    public ModdedDiscordSRV getDiscordSRV() {
+    public FabricDiscordSRV getDiscordSRV() {
         return discordSRV;
     }
 }

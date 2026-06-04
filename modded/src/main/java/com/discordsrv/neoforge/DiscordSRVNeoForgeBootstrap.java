@@ -18,11 +18,10 @@
 
 package com.discordsrv.neoforge;
 
-import com.discordsrv.common.abstraction.bootstrap.IBootstrap;
 import com.discordsrv.common.abstraction.bootstrap.LifecycleManager;
 import com.discordsrv.common.core.logging.Logger;
 import com.discordsrv.common.core.logging.backend.impl.Log4JLoggerImpl;
-import com.discordsrv.modded.ModdedDiscordSRV;
+import com.discordsrv.modded.DiscordSRVModdedBootstrap;
 import com.discordsrv.modded.util.ClassLoaderUtils;
 import dev.vankka.dependencydownload.classpath.ClasspathAppender;
 import dev.vankka.dependencydownload.jarinjar.bootstrap.AbstractBootstrap;
@@ -43,8 +42,8 @@ import java.io.IOException;
 import java.nio.file.Path;
 import java.util.Collections;
 
-public class DiscordSRVNeoForgeBootstrap extends AbstractBootstrap implements IBootstrap {
-    private final static String DEPENDENCIES_RUNTIME = /*$ dependencies_file*/"dependencies/runtimeDownload-1.21.11-fabric.txt";
+public class DiscordSRVNeoForgeBootstrap extends AbstractBootstrap implements DiscordSRVModdedBootstrap {
+    private final static String DEPENDENCIES_RUNTIME = /*$ dependencies_file*/"dependencies/runtimeDownload-26.1-fabric.txt";
 
     private final Logger logger;
     private final LifecycleManager lifecycleManager;
@@ -54,7 +53,7 @@ public class DiscordSRVNeoForgeBootstrap extends AbstractBootstrap implements IB
     private ModContainer modContainer;
     private IEventBus eventBus;
     private MinecraftServer minecraftServer;
-    private ModdedDiscordSRV discordSRV;
+    private NeoForgeDiscordSRV discordSRV;
 
     public DiscordSRVNeoForgeBootstrap(JarInJarClassLoader classLoader, ModContainer modContainer, IEventBus eventBus) {
         super(classLoader);
@@ -86,13 +85,13 @@ public class DiscordSRVNeoForgeBootstrap extends AbstractBootstrap implements IB
     @SubscribeEvent()
     public void onServerStarting(ServerAboutToStartEvent event) {
         this.minecraftServer = event.getServer();
-        this.lifecycleManager.loadAndEnable(() -> this.discordSRV = new ModdedDiscordSRV(this));
+        this.lifecycleManager.loadAndEnable(() -> this.discordSRV = new NeoForgeDiscordSRV(this));
     }
 
     @SubscribeEvent()
     public void onServerStarted(ServerStartedEvent event) {
         if (this.discordSRV == null) {
-            this.logger.error("Server started but ModdedDiscordSRV hasn't initialized properly.\n" +
+            this.logger.error("Server started but NeoForgeDiscordSRV hasn't initialized properly.\n" +
                     "This is likely due to an error during the loading process. Please check the full logs for more details.");
             return;
         }
@@ -144,7 +143,7 @@ public class DiscordSRVNeoForgeBootstrap extends AbstractBootstrap implements IB
         return minecraftServer;
     }
 
-    public ModdedDiscordSRV getDiscordSRV() {
+    public NeoForgeDiscordSRV getDiscordSRV() {
         return discordSRV;
     }
 }
