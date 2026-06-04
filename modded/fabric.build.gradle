@@ -106,8 +106,11 @@ spotless {
     }
 }
 
+tasks.named("assemble") {
+    dependsOn(loomx.modJar)
+}
+
 artifacts {
-    archives loomx.modJar
     shadow shadowJar
 }
 

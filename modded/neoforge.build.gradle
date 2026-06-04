@@ -84,7 +84,6 @@ spotless {
 }
 
 artifacts {
-    archives jar
     shadow shadowJar
 }
 
