@@ -41,10 +41,6 @@ public class BungeeConfig extends MainConfig {
         return new ProxyChannelConfig();
     }
 
-    @Comment("Options for requiring players to link (and optionally meet other requirements) before being able to play")
-    @Order(410)
-    public ProxyRequiredLinkingConfig requiredLinking = new ProxyRequiredLinkingConfig();
-
     @Override
     public PresenceUpdaterConfig defaultPresenceUpdater() {
         return new PresenceUpdaterConfig();
