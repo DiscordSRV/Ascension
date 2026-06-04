@@ -53,6 +53,11 @@ public class LinkPesteringModule extends AbstractTimedTrackingModule {
     }
 
     @Override
+    protected Duration getMinimalInterval() {
+        return Duration.ofSeconds(10);
+    }
+
+    @Override
     protected Duration timedTaskInterval() {
         int intervalSeconds = Math.max(discordSRV.config().linkedAccounts.pesteringConfig.timer, 10);
         return Duration.ofSeconds(intervalSeconds);

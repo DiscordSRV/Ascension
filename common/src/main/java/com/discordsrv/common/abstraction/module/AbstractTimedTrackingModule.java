@@ -22,6 +22,7 @@ import com.discordsrv.api.reload.ReloadResult;
 import com.discordsrv.common.DiscordSRV;
 import com.discordsrv.common.core.logging.NamedLogger;
 import com.discordsrv.common.core.module.type.AbstractModule;
+import org.jetbrains.annotations.ApiStatus;
 
 import java.time.Duration;
 import java.util.concurrent.Future;
@@ -71,9 +72,21 @@ public abstract class AbstractTimedTrackingModule extends AbstractModule<Discord
             return;
         }
 
+        if (getMaximumInterval() != null && getMaximumInterval().compareTo(getMinimalInterval()) < 0) {
+            throw new IllegalStateException("Maximum timed task interval must be greater than or equal to the minimum interval, got: " + getMaximumInterval() + " < " + getMinimalInterval());
+        }
+
+        if (getMinimalInterval().isNegative() || getMinimalInterval().isZero()) {
+            throw new IllegalStateException("Minimum timed task interval must be positive, got: " + getMinimalInterval());
+        }
+
         Duration interval = timedTaskInterval();
-        if (interval.isNegative() || interval.isZero()) {
-            interval = Duration.ofSeconds(1);
+        if (getMinimalInterval().compareTo(interval) < 0) {
+            interval = getMinimalInterval();
+            discordSRV.logger().trace("Timed task interval is below the minimum, adjusting to minimum: " + getMinimalInterval());
+        } else if (getMaximumInterval() != null && getMaximumInterval().compareTo(interval) < 0) {
+            interval = getMaximumInterval();
+            discordSRV.logger().trace("Timed task interval is above the maximum, adjusting to maximum: " + getMaximumInterval());
         }
 
         // Schedules fixed-rate execution with initial delay equal to the configured interval.
@@ -98,6 +111,29 @@ public abstract class AbstractTimedTrackingModule extends AbstractModule<Discord
      */
     protected abstract boolean shouldRunTimedTask();
 
+    /**
+     * Gets the minimum allowed interval for the timed task.
+     * This will be used as a lower bound for timedTaskInterval().
+     *
+     * @throws IllegalStateException if the returned interval is not positive or if it's higher than getMaximumInterval().
+     */
+    protected abstract Duration getMinimalInterval();
+
+    /**
+     * Gets the maximal allowed interval for the timer task.
+     * This will be used as an upper bound for timedTaskInterval().
+     * If it returns null it will be treated as if there's no upper bound.
+     *
+     * @throws IllegalStateException if the returned interval is not positive (unless it's null) or if it's lower than getMinimalInterval().
+     */
+    protected Duration getMaximumInterval() {
+        return null;
+    }
+
+    /**
+     * Gets the user defined interval for the timed task.
+     * If the interval is out of bounds with regard to getMinimalInterval() and getMaximumInterval(), it will be adjusted to fit within those bounds.
+     */
     protected abstract Duration timedTaskInterval();
 
     /**

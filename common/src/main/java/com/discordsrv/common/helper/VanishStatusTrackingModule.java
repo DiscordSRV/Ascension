@@ -107,6 +107,11 @@ public class VanishStatusTrackingModule extends AbstractTimedTrackingModule {
     }
 
     @Override
+    protected Duration getMinimalInterval() {
+        return Duration.ofSeconds(1);
+    }
+
+    @Override
     protected Duration timedTaskInterval() {
         int seconds = discordSRV.config().integrations.vanishTrackingTimerSeconds;
         return Duration.ofSeconds(seconds);
