@@ -169,7 +169,7 @@ public class EssentialsXIntegration
         MuteSyncModule module = discordSRV.getModule(MuteSyncModule.class);
         if (module != null) {
             getMute(event.getAffected().getUUID())
-                    .whenComplete((mute, e) -> module.notifyMuted(player, isMuted ? mute : null));
+                    .whenComplete((mute, e) -> module.notifyMuted(player.uniqueId(), isMuted ? mute : null));
         }
     }
 

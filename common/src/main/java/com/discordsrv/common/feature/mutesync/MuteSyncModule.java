@@ -77,8 +77,8 @@ public class MuteSyncModule extends AbstractPunishmentSyncModule<MuteSyncConfig>
         return Arrays.asList(DiscordGatewayIntent.GUILD_MODERATION, DiscordGatewayIntent.GUILD_MEMBERS);
     }
 
-    public void notifyMuted(IOfflinePlayer player, @Nullable Punishment punishment) {
-        gameChanged(MuteSyncCause.PLAYER_MUTED, Someone.of(discordSRV, player.uniqueId()), Game.INSTANCE, punishment);
+    public void notifyMuted(UUID uuid, @Nullable Punishment punishment) {
+        gameChanged(MuteSyncCause.PLAYER_MUTED, Someone.of(discordSRV, uuid), Game.INSTANCE, punishment);
     }
 
     @Override

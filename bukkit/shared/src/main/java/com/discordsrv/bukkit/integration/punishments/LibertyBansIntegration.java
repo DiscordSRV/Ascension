@@ -184,8 +184,8 @@ public class LibertyBansIntegration extends PluginIntegration<BukkitDiscordSRV>
         PlayerVictim victim = (PlayerVictim) event.getPunishment().getVictim();
 
         discordSRV.playerProvider().lookupOfflinePlayer(victim.getUUID()).whenSuccessful(player -> {
-            if (event.getPunishment().getType() == PunishmentType.BAN && bans != null) bans.notifyBanned(player, punishment(event.getPunishment()));
-            else if (event.getPunishment().getType() == PunishmentType.MUTE && mutes != null) mutes.notifyMuted(player, punishment(event.getPunishment()));
+            if (event.getPunishment().getType() == PunishmentType.BAN && bans != null) bans.notifyBanned(player.uniqueId(), punishment(event.getPunishment()));
+            else if (event.getPunishment().getType() == PunishmentType.MUTE && mutes != null) mutes.notifyMuted(player.uniqueId(), punishment(event.getPunishment()));
         });
     }
 
@@ -197,8 +197,8 @@ public class LibertyBansIntegration extends PluginIntegration<BukkitDiscordSRV>
         PlayerVictim victim = (PlayerVictim) event.getPunishment().getVictim();
 
         discordSRV.playerProvider().lookupOfflinePlayer(victim.getUUID()).whenSuccessful(player -> {
-            if (event.getPunishment().getType() == PunishmentType.BAN && bans != null) bans.notifyBanned(player, null);
-            else if (event.getPunishment().getType() == PunishmentType.MUTE && mutes != null) mutes.notifyMuted(player, null);
+            if (event.getPunishment().getType() == PunishmentType.BAN && bans != null) bans.notifyBanned(player.uniqueId(), null);
+            else if (event.getPunishment().getType() == PunishmentType.MUTE && mutes != null) mutes.notifyMuted(player.uniqueId(), null);
         });
     }
 }

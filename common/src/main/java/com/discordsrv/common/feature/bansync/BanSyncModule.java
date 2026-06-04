@@ -74,8 +74,8 @@ public class BanSyncModule extends AbstractPunishmentSyncModule<BanSyncConfig> {
         return Collections.singleton(DiscordGatewayIntent.GUILD_MODERATION);
     }
 
-    public void notifyBanned(IOfflinePlayer player, @Nullable Punishment punishment) {
-        gameChanged(BanSyncCause.PLAYER_BANNED, Someone.of(discordSRV, player.uniqueId()), Game.INSTANCE, punishment);
+    public void notifyBanned(UUID uuid, @Nullable Punishment punishment) {
+        gameChanged(BanSyncCause.PLAYER_BANNED, Someone.of(discordSRV, uuid), Game.INSTANCE, punishment);
     }
 
     @Override

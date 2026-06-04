@@ -138,13 +138,13 @@ public class AdvancedBanIntegration extends PluginIntegration<BukkitDiscordSRV>
                 case TEMP_IP_BAN:
                 case BAN:
                     if (bans != null) {
-                        bans.notifyBanned(player, punishment);
+                        bans.notifyBanned(player.uniqueId(), punishment);
                     }
                     break;
                 case TEMP_MUTE:
                 case MUTE:
                     if (mutes != null) {
-                        mutes.notifyMuted(player, punishment);
+                        mutes.notifyMuted(player.uniqueId(), punishment);
                     }
                     break;
             }
@@ -161,13 +161,13 @@ public class AdvancedBanIntegration extends PluginIntegration<BukkitDiscordSRV>
                 case TEMP_IP_BAN:
                 case BAN:
                     if (bans != null) {
-                        bans.notifyBanned(player, null);
+                        bans.notifyBanned(player.uniqueId(), null);
                     }
                     break;
                 case TEMP_MUTE:
                 case MUTE:
                     if (mutes != null) {
-                        mutes.notifyMuted(player, null);
+                        mutes.notifyMuted(player.uniqueId(), null);
                     }
                     break;
             }
