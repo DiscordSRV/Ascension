@@ -25,6 +25,7 @@ import com.discordsrv.common.config.main.linking.LinkedAccountConfig;
 import com.discordsrv.common.core.logging.NamedLogger;
 import com.discordsrv.common.events.player.PlayerConnectedEvent;
 import com.discordsrv.common.abstraction.module.AbstractTimedTrackingModule;
+import org.jspecify.annotations.NonNull;
 
 import java.time.Duration;
 import java.util.UUID;
@@ -59,7 +60,7 @@ public class LinkPesteringModule extends AbstractTimedTrackingModule {
     }
 
     @Override
-    protected Duration timedTaskInterval() {
+    protected @NonNull Duration timedTaskInterval() {
         return Duration.ofMinutes(discordSRV.config().linkedAccounts.pesteringConfig.timer);
     }
 

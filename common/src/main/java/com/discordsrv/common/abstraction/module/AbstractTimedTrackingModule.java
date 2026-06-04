@@ -22,6 +22,7 @@ import com.discordsrv.api.reload.ReloadResult;
 import com.discordsrv.common.DiscordSRV;
 import com.discordsrv.common.core.logging.NamedLogger;
 import com.discordsrv.common.core.module.type.AbstractModule;
+import org.jetbrains.annotations.NotNull;
 
 import java.time.Duration;
 import java.util.concurrent.Future;
@@ -71,19 +72,19 @@ public abstract class AbstractTimedTrackingModule extends AbstractModule<Discord
             return;
         }
 
-        if (getMaximumInterval() != null && getMaximumInterval().compareTo(getMinimumInterval()) < 0) {
+        if (getMaximumInterval() != null && getMaximumInterval().minus(getMinimumInterval()).toMillis() < 0) {
             throw new IllegalStateException("Maximum timed task interval must be greater than or equal to the minimum interval, got: " + getMaximumInterval() + " < " + getMinimumInterval());
         }
 
-        if (getMinimumInterval().isNegative() || getMinimumInterval().isZero()) {
+        if (getMinimumInterval().toMillis() <= 0) {
             throw new IllegalStateException("Minimum timed task interval must be positive, got: " + getMinimumInterval());
         }
 
         Duration interval = timedTaskInterval();
-        if (getMinimumInterval().compareTo(interval) < 0) {
+        if (interval.minus(getMinimumInterval()).toMillis() < 0) {
             interval = getMinimumInterval();
             discordSRV.logger().debug("Timed task interval is below the minimum, adjusting to minimum: " + getMinimumInterval());
-        } else if (getMaximumInterval() != null && getMaximumInterval().compareTo(interval) < 0) {
+        } else if (getMaximumInterval() != null && interval.minus(getMaximumInterval()).toMillis() > 0) {
             interval = getMaximumInterval();
             discordSRV.logger().debug("Timed task interval is above the maximum, adjusting to maximum: " + getMaximumInterval());
         }
@@ -133,6 +134,7 @@ public abstract class AbstractTimedTrackingModule extends AbstractModule<Discord
      * Gets the user defined interval for the timed task.
      * If the interval is out of bounds with regard to {@link #getMinimumInterval()} and {@link #getMaximumInterval()}, it will be adjusted to fit within those bounds.
      */
+    @NotNull
     protected abstract Duration timedTaskInterval();
 
     /**

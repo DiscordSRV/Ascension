@@ -27,6 +27,7 @@ import com.discordsrv.common.config.main.PluginIntegrationConfig;
 import com.discordsrv.common.core.logging.NamedLogger;
 import com.discordsrv.common.events.player.PlayerConnectedEvent;
 import com.discordsrv.common.events.player.PlayerDisconnectedEvent;
+import org.jspecify.annotations.NonNull;
 
 import java.time.Duration;
 import java.util.HashSet;
@@ -113,7 +114,7 @@ public class VanishStatusTrackingModule extends AbstractTimedTrackingModule {
     }
 
     @Override
-    protected Duration timedTaskInterval() {
+    protected @NonNull Duration timedTaskInterval() {
         int seconds = discordSRV.config().integrations.vanishTrackingTimerSeconds;
         return Duration.ofSeconds(seconds);
     }
