@@ -22,6 +22,7 @@ import com.discordsrv.api.eventbus.Subscribe;
 import com.discordsrv.common.DiscordSRV;
 import com.discordsrv.common.abstraction.player.IPlayer;
 import com.discordsrv.common.config.main.linking.LinkedAccountConfig;
+import com.discordsrv.common.core.logging.NamedLogger;
 import com.discordsrv.common.events.player.PlayerConnectedEvent;
 import com.discordsrv.common.abstraction.module.AbstractTimedTrackingModule;
 
@@ -31,12 +32,12 @@ import java.util.UUID;
 public class LinkPesteringModule extends AbstractTimedTrackingModule {
 
     public LinkPesteringModule(DiscordSRV discordSRV) {
-        super(discordSRV, "LINK_PESTER");
+        super(discordSRV, new NamedLogger(discordSRV, "LINK_PESTER"));
     }
 
     @Override
     public boolean isEnabled() {
-        return discordSRV.config().linkedAccounts.pesteringConfig.enabled;
+        return discordSRV.config().linkedAccounts.enabled && discordSRV.config().linkedAccounts.pesteringConfig.enabled;
     }
 
     @Subscribe
@@ -53,14 +54,13 @@ public class LinkPesteringModule extends AbstractTimedTrackingModule {
     }
 
     @Override
-    protected Duration getMinimalInterval() {
-        return Duration.ofSeconds(10);
+    protected Duration getMinimumInterval() {
+        return Duration.ofMinutes(1);
     }
 
     @Override
     protected Duration timedTaskInterval() {
-        int intervalSeconds = Math.max(discordSRV.config().linkedAccounts.pesteringConfig.timer, 10);
-        return Duration.ofSeconds(intervalSeconds);
+        return Duration.ofMinutes(discordSRV.config().linkedAccounts.pesteringConfig.timer);
     }
 
     @Override

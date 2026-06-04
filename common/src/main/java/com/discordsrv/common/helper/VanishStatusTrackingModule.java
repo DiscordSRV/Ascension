@@ -24,6 +24,7 @@ import com.discordsrv.common.DiscordSRV;
 import com.discordsrv.common.abstraction.module.AbstractTimedTrackingModule;
 import com.discordsrv.common.abstraction.player.IPlayer;
 import com.discordsrv.common.config.main.PluginIntegrationConfig;
+import com.discordsrv.common.core.logging.NamedLogger;
 import com.discordsrv.common.events.player.PlayerConnectedEvent;
 import com.discordsrv.common.events.player.PlayerDisconnectedEvent;
 
@@ -42,7 +43,7 @@ public class VanishStatusTrackingModule extends AbstractTimedTrackingModule {
     private final Map<UUID, Boolean> vanishStatuses = new ConcurrentHashMap<>();
 
     public VanishStatusTrackingModule(DiscordSRV discordSRV) {
-        super(discordSRV, "VANISH_TRACKER");
+        super(discordSRV, new NamedLogger(discordSRV,"VANISH_TRACKER"));
     }
 
     @Override
@@ -107,7 +108,7 @@ public class VanishStatusTrackingModule extends AbstractTimedTrackingModule {
     }
 
     @Override
-    protected Duration getMinimalInterval() {
+    protected Duration getMinimumInterval() {
         return Duration.ofSeconds(1);
     }
 

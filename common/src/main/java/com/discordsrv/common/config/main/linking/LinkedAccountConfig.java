@@ -58,8 +58,8 @@ public class LinkedAccountConfig {
         @Constants.Comment({"join", "timer", "both"})
         public PesteringMode mode = PesteringMode.JOIN;
 
-        @Comment("How often (in seconds) should we send the timed pestering message to users who have not linked their accounts. Minimum of 10 seconds")
-        public int timer = 300;
+        @Comment("How often (in minutes) should we send the timed pestering message to users who have not linked their accounts. Minimum of 1 minute")
+        public int timer = 1;
 
         public enum PesteringMode {
             JOIN,
