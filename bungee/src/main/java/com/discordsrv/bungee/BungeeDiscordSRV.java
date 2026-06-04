@@ -19,7 +19,11 @@
 package com.discordsrv.bungee;
 
 import com.discordsrv.bungee.command.game.handler.BungeeCommandHandler;
+import com.discordsrv.bungee.config.main.BungeeConfig;
 import com.discordsrv.bungee.console.BungeeConsole;
+import com.discordsrv.bungee.module.BungeeJoinModule;
+import com.discordsrv.bungee.module.BungeeQuitModule;
+import com.discordsrv.bungee.module.BungeeServerSwitchModule;
 import com.discordsrv.bungee.player.BungeePlayerProvider;
 import com.discordsrv.bungee.plugin.BungeePluginManager;
 import com.discordsrv.common.AbstractDiscordSRV;
@@ -28,17 +32,18 @@ import com.discordsrv.common.command.game.abstraction.handler.ICommandHandler;
 import com.discordsrv.common.config.configurate.manager.ConnectionConfigManager;
 import com.discordsrv.common.config.configurate.manager.MainConfigManager;
 import com.discordsrv.common.config.configurate.manager.MessagesConfigManager;
+import com.discordsrv.common.config.configurate.manager.abstraction.ProxyConfigManager;
 import com.discordsrv.common.config.connection.ConnectionConfig;
-import com.discordsrv.common.config.main.MainConfig;
 import com.discordsrv.common.config.messages.MessagesConfig;
 import com.discordsrv.common.core.scheduler.StandardScheduler;
 import com.discordsrv.common.core.debug.data.OnlineMode;
+import com.discordsrv.common.feature.messageforwarding.game.MinecraftToDiscordChatModule;
 import net.kyori.adventure.platform.bungeecord.BungeeAudiences;
 import net.md_5.bungee.api.ProxyServer;
 import net.md_5.bungee.api.plugin.Plugin;
 import org.jetbrains.annotations.NotNull;
 
-public class BungeeDiscordSRV extends AbstractDiscordSRV<DiscordSRVBungeeBootstrap, MainConfig, ConnectionConfig, MessagesConfig> {
+public class BungeeDiscordSRV extends AbstractDiscordSRV<DiscordSRVBungeeBootstrap, BungeeConfig, ConnectionConfig, MessagesConfig> {
 
     private BungeeAudiences audiences;
 
@@ -48,6 +53,10 @@ public class BungeeDiscordSRV extends AbstractDiscordSRV<DiscordSRVBungeeBootstr
     private final BungeePluginManager pluginManager;
     private BungeeCommandHandler commandHandler;
 
+    private final ConnectionConfigManager<ConnectionConfig> connectionConfigManager;
+    private final MainConfigManager<BungeeConfig> configManager;
+    private final MessagesConfigManager<MessagesConfig> messagesConfigManager;
+
     public BungeeDiscordSRV(DiscordSRVBungeeBootstrap bootstrap) {
         super(bootstrap);
 
@@ -56,10 +65,31 @@ public class BungeeDiscordSRV extends AbstractDiscordSRV<DiscordSRVBungeeBootstr
         this.playerProvider = new BungeePlayerProvider(this);
         this.pluginManager = new BungeePluginManager(this);
 
-        // Integrations
-        registerIntegration("com.discordsrv.bungee.integration.BungeeLuckPermsIntegration");
+        // Config
+        this.connectionConfigManager = new ConnectionConfigManager<>(this, ConnectionConfig::new);
+        this.configManager = new ProxyConfigManager<>(this, BungeeConfig::new);
+        this.messagesConfigManager = new MessagesConfigManager<>(this, MessagesConfig::new);
 
         load();
+    }
+
+    @Override
+    protected void enable() throws Throwable {
+        // Player related
+        this.audiences = BungeeAudiences.create(bootstrap.getPlugin());
+
+        this.commandHandler = new BungeeCommandHandler(this);
+
+        super.enable();
+
+        // Chat
+        registerModule(MinecraftToDiscordChatModule::new);
+        registerModule(BungeeJoinModule::new);
+        registerModule(BungeeQuitModule::new);
+        registerModule(BungeeServerSwitchModule::new);
+
+        // Integrations
+        registerIntegration("com.discordsrv.bungee.integration.BungeeLuckPermsIntegration");
     }
 
     public Plugin plugin() {
@@ -111,26 +141,16 @@ public class BungeeDiscordSRV extends AbstractDiscordSRV<DiscordSRVBungeeBootstr
 
     @Override
     public ConnectionConfigManager<ConnectionConfig> connectionConfigManager() {
-        return null;
+        return connectionConfigManager;
     }
 
     @Override
-    public MainConfigManager<MainConfig> configManager() {
-        return null;
+    public MainConfigManager<BungeeConfig> configManager() {
+        return configManager;
     }
 
     @Override
     public MessagesConfigManager<MessagesConfig> messagesConfigManager() {
-        return null;
-    }
-
-    @Override
-    protected void enable() throws Throwable {
-        // Player related
-        this.audiences = BungeeAudiences.create(bootstrap.getPlugin());
-
-        this.commandHandler = new BungeeCommandHandler(this);
-
-        super.enable();
+        return messagesConfigManager;
     }
 }

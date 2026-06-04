@@ -79,5 +79,7 @@ public class ServerSwitchMessageModule extends AbstractGameMessageModule<ServerS
             SendableDiscordMessage.Formatter formatter
     ) {
         formatter.addPlaceholder("message", event.getMessage());
+        formatter.addPlaceholder("from_server", event.getFrom());
+        formatter.addPlaceholder("to_server", event.getTo());
     }
 }
