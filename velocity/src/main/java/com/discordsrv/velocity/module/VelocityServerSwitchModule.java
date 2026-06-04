@@ -39,7 +39,7 @@ public class VelocityServerSwitchModule extends AbstractVelocityModule {
                         event,
                         discordSRV.playerProvider().player(event.getPlayer()),
                         null,
-                        event.getPreviousServer().isPresent() ? event.getPreviousServer().get().getServerInfo().getName() : null,
+                        event.getPreviousServer().get().getServerInfo().getName(),
                         event.getServer().getServerInfo().getName(),
                         false
                 )
