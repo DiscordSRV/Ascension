@@ -41,7 +41,7 @@ public class LinkPesteringModule extends AbstractTimedTrackingModule {
 
     @Subscribe
     public void onPlayerConnected(PlayerConnectedEvent event) {
-        if (discordSRV.config().linkedAccounts.pesteringConfig.mode == LinkedAccountConfig.LinkPesteringConfig.PesteringMode.Timer) {
+        if (discordSRV.config().linkedAccounts.pesteringConfig.mode == LinkedAccountConfig.LinkPesteringConfig.PesteringMode.TIMER) {
             return;
         }
         pesterIfUnlinked(event.player());
@@ -49,7 +49,7 @@ public class LinkPesteringModule extends AbstractTimedTrackingModule {
 
     @Override
     protected boolean shouldRunTimedTask() {
-        return discordSRV.config().linkedAccounts.pesteringConfig.mode != LinkedAccountConfig.LinkPesteringConfig.PesteringMode.Join;
+        return discordSRV.config().linkedAccounts.pesteringConfig.mode != LinkedAccountConfig.LinkPesteringConfig.PesteringMode.JOIN;
     }
 
     @Override
