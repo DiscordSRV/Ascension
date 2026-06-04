@@ -22,7 +22,6 @@ import com.discordsrv.api.component.MinecraftComponent;
 import com.discordsrv.api.module.type.PunishmentModule;
 import com.discordsrv.api.punishment.Punishment;
 import com.discordsrv.api.task.Task;
-import com.discordsrv.common.abstraction.player.IPlayer;
 import com.discordsrv.common.core.logging.NamedLogger;
 import com.discordsrv.common.feature.bansync.BanSyncModule;
 import com.discordsrv.common.util.ComponentUtil;
@@ -66,14 +65,9 @@ public class ModdedBanModule extends AbstractModdedModule implements PunishmentM
 
         UUID playerUUID = discordSRV.getIdFromGameProfile(gameProfile);
     *///?}
-        IPlayer player = discordSRV.playerProvider().player(playerUUID);
-        if (player == null) {
-            throw new RuntimeException("Player " + playerUUID + " not present in player provider");
-        }
-
         instance.getBan(playerUUID).whenComplete((punishment, t) -> {
             if (punishment != null) {
-                module.notifyBanned(player, punishment);
+                module.notifyBanned(playerUUID, punishment);
             }
         });
     }

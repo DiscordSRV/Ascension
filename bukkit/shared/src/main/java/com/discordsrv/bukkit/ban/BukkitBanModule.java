@@ -67,7 +67,7 @@ public class BukkitBanModule extends AbstractModule<BukkitDiscordSRV> implements
         BanSyncModule module = discordSRV.getModule(BanSyncModule.class);
         if (module != null) {
             getBan(player.getUniqueId())
-                    .whenComplete((punishment, t) -> module.notifyBanned(discordSRV.playerProvider().player(player), punishment));
+                    .whenComplete((punishment, t) -> module.notifyBanned(player.getUniqueId(), punishment));
         }
     }
 
