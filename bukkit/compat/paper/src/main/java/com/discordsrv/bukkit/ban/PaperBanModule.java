@@ -75,7 +75,7 @@ public class PaperBanModule extends AbstractBukkitListener<PlayerKickEvent> impl
         if (module != null) {
             getBan(player.getUniqueId())
                     .whenComplete((punishment, t) -> {
-                        if (punishment != null) module.notifyBanned(discordSRV.playerProvider().player(player), punishment);
+                        if (punishment != null) module.notifyBanned(player.getUniqueId(), punishment);
                     });
         }
     }

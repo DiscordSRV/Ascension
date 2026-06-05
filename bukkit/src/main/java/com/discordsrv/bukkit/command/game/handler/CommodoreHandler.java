@@ -22,10 +22,14 @@ import com.discordsrv.bukkit.BukkitDiscordSRV;
 import com.discordsrv.common.command.game.abstraction.command.GameCommand;
 import com.discordsrv.common.command.game.abstraction.handler.ICommandHandler;
 import com.discordsrv.common.command.game.abstraction.handler.util.BrigadierUtil;
+import com.discordsrv.common.command.game.abstraction.sender.ICommandSender;
 import com.mojang.brigadier.tree.LiteralCommandNode;
 import me.lucko.commodore.Commodore;
 import me.lucko.commodore.CommodoreProvider;
 import org.bukkit.command.Command;
+import org.bukkit.command.CommandSender;
+import org.bukkit.command.ConsoleCommandSender;
+import org.bukkit.entity.Player;
 
 public class CommodoreHandler extends BukkitBasicCommandHandler implements ICommandHandler {
 
@@ -40,7 +44,7 @@ public class CommodoreHandler extends BukkitBasicCommandHandler implements IComm
     protected void registerPluginCommand(Command command, GameCommand gameCommand) {
         super.registerPluginCommand(command, gameCommand);
 
-        LiteralCommandNode<?> commandNode = BrigadierUtil.convertToBrigadier(discordSRV, gameCommand, null);
+        LiteralCommandNode<?> commandNode = BrigadierUtil.convertToBrigadier(discordSRV, gameCommand, this::sender);
         commodore.register(command, commandNode, sender -> gameCommand.hasPermission(discordSRV.playerProvider().player(sender)));
         logger.debug(command.getName() + " registered to Commodore");
     }
