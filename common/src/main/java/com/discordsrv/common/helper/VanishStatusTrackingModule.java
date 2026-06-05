@@ -20,14 +20,14 @@ package com.discordsrv.common.helper;
 
 import com.discordsrv.api.eventbus.Subscribe;
 import com.discordsrv.api.events.vanish.PlayerVanishStatusChangeEvent;
-import com.discordsrv.api.reload.ReloadResult;
 import com.discordsrv.common.DiscordSRV;
+import com.discordsrv.common.abstraction.module.AbstractTimedTrackingModule;
 import com.discordsrv.common.abstraction.player.IPlayer;
 import com.discordsrv.common.config.main.PluginIntegrationConfig;
 import com.discordsrv.common.core.logging.NamedLogger;
-import com.discordsrv.common.core.module.type.AbstractModule;
 import com.discordsrv.common.events.player.PlayerConnectedEvent;
 import com.discordsrv.common.events.player.PlayerDisconnectedEvent;
+import org.jspecify.annotations.NonNull;
 
 import java.time.Duration;
 import java.util.HashSet;
@@ -35,19 +35,16 @@ import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.Future;
 import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.function.Consumer;
 
-public class VanishStatusTrackingModule extends AbstractModule<DiscordSRV> {
+public class VanishStatusTrackingModule extends AbstractTimedTrackingModule {
 
     private final ThreadLocal<Boolean> localUpdate = ThreadLocal.withInitial(() -> false);
     private final AtomicBoolean receivingVanishEvents = new AtomicBoolean(false);
     private final Map<UUID, Boolean> vanishStatuses = new ConcurrentHashMap<>();
-    private Future<?> vanishUpdateFuture;
 
     public VanishStatusTrackingModule(DiscordSRV discordSRV) {
-        super(discordSRV, new NamedLogger(discordSRV, "VANISH_TRACKER"));
+        super(discordSRV, new NamedLogger(discordSRV,"VANISH_TRACKER"));
     }
 
     @Override
@@ -57,18 +54,14 @@ public class VanishStatusTrackingModule extends AbstractModule<DiscordSRV> {
 
     @Override
     public void enable() {
+        super.enable();
         receivingVanishEvents.set(false);
         updateVanishStatuses();
     }
 
     @Override
-    public void reload(Consumer<ReloadResult> resultConsumer) {
-        startTimedTracking();
-    }
-
-    @Override
     public void disable() {
-        stopTimedTracking();
+        super.disable();
         vanishStatuses.clear();
     }
 
@@ -110,20 +103,25 @@ public class VanishStatusTrackingModule extends AbstractModule<DiscordSRV> {
         }
     }
 
-    private void startTimedTracking() {
-        stopTimedTracking();
-
-        if (useTimedUpdates()) {
-            int seconds = discordSRV.config().integrations.vanishTrackingTimerSeconds;
-            vanishUpdateFuture = discordSRV.scheduler().runAtFixedRate(this::updateVanishStatuses, Duration.ofSeconds(seconds));
-        }
+    @Override
+    protected boolean shouldRunTimedTask() {
+        return useTimedUpdates();
     }
 
-    private void stopTimedTracking() {
-        if (vanishUpdateFuture != null) {
-            vanishUpdateFuture.cancel(true);
-            vanishUpdateFuture = null;
-        }
+    @Override
+    protected Duration getMinimumInterval() {
+        return Duration.ofSeconds(1);
+    }
+
+    @Override
+    protected @NonNull Duration timedTaskInterval() {
+        int seconds = discordSRV.config().integrations.vanishTrackingTimerSeconds;
+        return Duration.ofSeconds(seconds);
+    }
+
+    @Override
+    protected void runTimedTask() {
+        updateVanishStatuses();
     }
 
     private void updateVanishStatuses() {

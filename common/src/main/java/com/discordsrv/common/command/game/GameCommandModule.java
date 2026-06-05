@@ -18,6 +18,8 @@
 
 package com.discordsrv.common.command.game;
 
+import com.discordsrv.api.placeholder.annotation.Placeholder;
+import com.discordsrv.api.placeholder.annotation.PlaceholderPrefix;
 import com.discordsrv.api.reload.ReloadResult;
 import com.discordsrv.common.DiscordSRV;
 import com.discordsrv.common.command.combined.commands.LinkOtherCommand;
@@ -31,12 +33,23 @@ import java.util.HashSet;
 import java.util.Set;
 import java.util.function.Consumer;
 
+@PlaceholderPrefix("gamecommand_")
 public class GameCommandModule extends AbstractModule<com.discordsrv.common.DiscordSRV> {
 
     private final Set<GameCommand> commands = new HashSet<>();
 
     public GameCommandModule(DiscordSRV discordSRV) {
         super(discordSRV);
+    }
+
+    @Override
+    public void enable() {
+        discordSRV.placeholderService().addGlobalContext(this);
+    }
+
+    @Override
+    public void disable() {
+        discordSRV.placeholderService().removeGlobalContext(this);
     }
 
     @Override
@@ -79,5 +92,18 @@ public class GameCommandModule extends AbstractModule<com.discordsrv.common.Disc
         }
 
         handler.registerCommand(command);
+    }
+
+    @Placeholder("discord_link_alias")
+    public String discordLinkAlias() {
+        GameCommandConfig config = discordSRV.config() != null ? discordSRV.config().gameCommand : null;
+        if (config == null) {
+            return "";
+        }
+
+        if (config.useLinkAlias) return "link";
+        if (config.useDiscordCommand) return "discord link";
+
+        return "discordsrv link";
     }
 }

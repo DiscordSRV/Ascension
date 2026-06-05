@@ -142,6 +142,11 @@ public class MessagesConfig implements Config {
             "Discord user"
     );
 
+    // Pester to players who haven't linked their accounts yet.
+    public MinecraftMessage playerLinkPestering = minecraft(
+            "You have not linked your Discord account yet. Please run /%gamecommand_discord_link_alias% to get started."
+    );
+
     // DiscordSRV command
 
     public DiscordMessage discordsrvCommandDescription = discord(
