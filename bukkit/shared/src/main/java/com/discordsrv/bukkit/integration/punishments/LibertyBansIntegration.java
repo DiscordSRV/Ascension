@@ -107,7 +107,9 @@ public class LibertyBansIntegration extends PluginIntegration<BukkitDiscordSRV>
                 .type(PunishmentType.BAN)
                 .victim(PlayerVictim.of(playerUUID))
                 .reason(reason != null ? reason.asPlainString() : "Banned by DiscordSRV ban sync");
-        draft = until != null ? draft.duration(Duration.between(Instant.now(), until)) : draft;
+        if (until != null) {
+            draft = draft.duration(Duration.between(Instant.now(), until));
+        }
 
         return Task.of(draft.build().enactPunishment().toCompletableFuture().thenApply(__ -> null));
     }
@@ -142,7 +144,9 @@ public class LibertyBansIntegration extends PluginIntegration<BukkitDiscordSRV>
                 .type(PunishmentType.MUTE)
                 .victim(PlayerVictim.of(playerUUID))
                 .reason(reason != null ? reason.asPlainString() : "Muted by DiscordSRV mute sync");
-        draft = until != null ? draft.duration(Duration.between(Instant.now(), until)) : draft;
+        if (until != null) {
+            draft = draft.duration(Duration.between(Instant.now(), until));
+        }
 
         return Task.of(draft.build().enactPunishment().toCompletableFuture().thenApply(__ -> null));
     }
@@ -162,7 +166,7 @@ public class LibertyBansIntegration extends PluginIntegration<BukkitDiscordSRV>
         String operatorName = null;
         if (punishment.getOperator() instanceof PlayerOperator) {
             IOfflinePlayer player = discordSRV.playerProvider().lookupOfflinePlayer(((PlayerOperator) punishment.getOperator()).getUUID()).join();
-            if  (player != null) {
+            if (player != null) {
                 operatorName = player.username();
             }
         } else if (punishment.getOperator() instanceof ConsoleOperator) {
