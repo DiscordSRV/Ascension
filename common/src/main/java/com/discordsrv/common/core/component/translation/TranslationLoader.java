@@ -21,6 +21,7 @@ package com.discordsrv.common.core.component.translation;
 import com.discordsrv.common.DiscordSRV;
 import com.discordsrv.common.core.component.ComponentFactory;
 import com.discordsrv.common.core.logging.NamedLogger;
+import com.discordsrv.common.util.ComponentUtil;
 import com.fasterxml.jackson.databind.JsonNode;
 import net.kyori.adventure.key.Key;
 import net.kyori.adventure.translation.TranslationStore;
@@ -86,7 +87,7 @@ public class TranslationLoader {
                 try {
                     // Grab locale from file name to pass to MessageFormat
                     String language = fileName.substring(0, lastDot);
-                    Locale locale = Locale.forLanguageTag(language);
+                    Locale locale = ComponentUtil.extractLocale(language);
 
                     URL url = path.toUri().toURL();
 

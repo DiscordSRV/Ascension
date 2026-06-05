@@ -22,6 +22,7 @@ import com.discordsrv.api.task.Task;
 import com.discordsrv.common.DiscordSRV;
 import com.discordsrv.common.abstraction.player.IPlayer;
 import com.discordsrv.common.abstraction.player.provider.model.SkinInfo;
+import com.discordsrv.common.util.ComponentUtil;
 import com.discordsrv.modded.ModdedDiscordSRV;
 import com.discordsrv.modded.accessor.ServerPlayerEntityAccessor;
 import com.discordsrv.modded.command.game.sender.ModdedCommandSender;
@@ -61,7 +62,7 @@ public class ModdedPlayer extends ModdedCommandSender implements IPlayer {
 
     @Override
     public @Nullable Locale locale() {
-        return Locale.forLanguageTag(((ServerPlayerEntityAccessor) player).discordsrv$getLocale());
+        return ComponentUtil.extractLocale(((ServerPlayerEntityAccessor) player).discordsrv$getLocale());
     }
 
     @Override
