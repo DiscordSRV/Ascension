@@ -69,7 +69,7 @@ import java.util.regex.Pattern;
 
 public class ComponentFactory implements MinecraftComponentFactory {
 
-    public static final Locale TRANSLATION_LOCALE = Locale.ROOT;
+    public static Locale TRANSLATION_LOCALE = Locale.ROOT;
     private static final Pattern MESSAGE_URL_PATTERN = Pattern.compile("https://(?:(?:ptb|canary)\\.)?discord\\.com/channels/[0-9]{16,20}/([0-9]{16,20})/[0-9]{16,20}");
     public static final Class<?> UNRELOCATED_ADVENTURE_COMPONENT;
 
@@ -122,6 +122,10 @@ public class ComponentFactory implements MinecraftComponentFactory {
                 .colorLevel(ColorLevel.INDEXED_8)
                 .flattener(flattener)
                 .build();
+    }
+
+    public void updateDefaultLocate() {
+        TRANSLATION_LOCALE = discordSRV.defaultLocale();
     }
 
     @Override

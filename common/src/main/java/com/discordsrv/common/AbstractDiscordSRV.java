@@ -1002,6 +1002,7 @@ public abstract class AbstractDiscordSRV<
             results.addAll(moduleManager().reload());
         }
 
+        componentFactory().updateDefaultLocate(); // Update the default language everytime
         if (flags.contains(ReloadFlag.TRANSLATION)) {
             this.translationLoader.reload();
         }
