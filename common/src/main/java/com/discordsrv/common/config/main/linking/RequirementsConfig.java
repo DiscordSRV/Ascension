@@ -21,6 +21,7 @@ package com.discordsrv.common.config.main.linking;
 import com.discordsrv.common.config.configurate.annotation.Constants;
 import com.discordsrv.common.config.configurate.annotation.DefaultOnly;
 import com.discordsrv.common.config.connection.ConnectionConfig;
+import com.discordsrv.common.feature.linking.impl.MinecraftAuthenticationLinker;
 import org.spongepowered.configurate.objectmapping.ConfigSerializable;
 import org.spongepowered.configurate.objectmapping.meta.Comment;
 import org.spongepowered.configurate.objectmapping.meta.Setting;
@@ -46,7 +47,7 @@ public class RequirementsConfig {
             + "DiscordBoosting(Server ID)\n"
             + "DiscordRole(Role ID)\n"
             + "\n"
-            + "The following are available if you're using MinecraftAuth.me for linked accounts and a MinecraftAuth.me token is specified in the %1:\n"
+            + "The following are available if you're using %2 for linked accounts and a %2 token is specified in the %1:\n"
             + "PatreonSubscriber() or PatreonSubscriber(Tier Title)\n"
             + "GlimpseSubscriber() or GlimpseSubscriber(Level Name)\n"
             + "TwitchFollower()\n"
@@ -59,6 +60,6 @@ public class RequirementsConfig {
             + "|| = or, for example \"DiscordBoosting(...) || YouTubeMember()\"\n"
             + "You can also use brackets () to clear ambiguity, for example: \"DiscordServer(...) && (TwitchSubscriber() || PatreonSubscriber())\"\n"
             + "allows a member of the specified Discord server that is also a twitch or patreon subscriber to join the server")
-    @Constants.Comment({ConnectionConfig.FILE_NAME})
+    @Constants.Comment({ConnectionConfig.FILE_NAME, MinecraftAuthenticationLinker.DOMAIN})
     public List<String> additionalRequirements = new ArrayList<>();
 }

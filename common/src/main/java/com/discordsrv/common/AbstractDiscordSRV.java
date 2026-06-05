@@ -952,14 +952,14 @@ public abstract class AbstractDiscordSRV<
                     case MINECRAFTAUTH:
                         if (!permitMinecraftAuth) {
                             linkProvider = null;
-                            logger().error("minecraftauth.me is disabled in the " + ConnectionConfig.FILE_NAME + ", "
+                            logger().error(MinecraftAuthenticationLinker.DOMAIN + " is disabled in the " + ConnectionConfig.FILE_NAME + ", "
                                                    + "but linked-accounts.provider is set to \"minecraftauth\". Linked accounts will be disabled");
                             break;
                         }
                         logger().info("Loading MinecraftAuth library");
                         dependencyManager.mcAuthLib().downloadRelocateAndLoad().get();
                         linkProvider = new MinecraftAuthenticationLinker(this);
-                        logger().info("Using minecraftauth.me for linked accounts");
+                        logger().info("Using " + MinecraftAuthenticationLinker.DOMAIN + " for linked accounts");
                         break;
                     case STORAGE:
                         linkProvider = new StorageLinker(this);

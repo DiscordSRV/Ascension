@@ -20,6 +20,7 @@ package com.discordsrv.common.config.main.linking;
 
 import com.discordsrv.common.config.configurate.annotation.Constants;
 import com.discordsrv.common.config.connection.ConnectionConfig;
+import com.discordsrv.common.feature.linking.impl.MinecraftAuthenticationLinker;
 import org.spongepowered.configurate.objectmapping.ConfigSerializable;
 import org.spongepowered.configurate.objectmapping.meta.Comment;
 
@@ -37,7 +38,7 @@ public class LinkedAccountConfig {
             + " - auto: Uses \"minecraftauth\" if the %1 permits it and the server is in online mode or using ip forwarding, otherwise \"%3\"\n"
             + " - minecraftauth: Uses %2 as the linked account provider (offline and (non-linked) bedrock players cannot link using this method)\n"
             + " - storage: Use the configured database for linked accounts")
-    @Constants.Comment({ConnectionConfig.FILE_NAME, "minecraftauth.me", "storage"})
+    @Constants.Comment({ConnectionConfig.FILE_NAME, MinecraftAuthenticationLinker.DOMAIN, "storage"})
     public Provider provider = Provider.AUTO;
 
     public enum Provider {

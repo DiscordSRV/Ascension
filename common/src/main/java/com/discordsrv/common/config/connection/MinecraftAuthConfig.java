@@ -18,19 +18,23 @@
 
 package com.discordsrv.common.config.connection;
 
+import com.discordsrv.common.config.configurate.annotation.Constants;
+import com.discordsrv.common.feature.linking.impl.MinecraftAuthenticationLinker;
 import org.spongepowered.configurate.objectmapping.ConfigSerializable;
 import org.spongepowered.configurate.objectmapping.meta.Comment;
 
 @ConfigSerializable
 public class MinecraftAuthConfig {
 
-    @Comment("If minecraftauth.me connections are allowed for Discord linking (when linked-accounts.provider is \"auto\" or \"minecraftauth\").\n"
-            + "Requires a connection to: minecraftauth.me\n"
-            + "Privacy Policy: https://minecraftauth.me/privacy")
+    @Comment("If %1 connections are allowed for Discord linking (when linked-accounts.provider is \"auto\" or \"minecraftauth\").\n"
+            + "Requires a connection to: %1\n"
+            + "Privacy Policy: %2")
+    @Constants.Comment({MinecraftAuthenticationLinker.DOMAIN, "https://" + MinecraftAuthenticationLinker.DOMAIN + "/privacy"})
     public boolean allow = true;
 
-    @Comment("minecraftauth.me token for checking subscription, following and membership statuses for required linking\n"
-            + "You can get the token from https://minecraftauth.me/api/token whilst logged in (please keep in mind that the token resets every time you visit that page)")
+    @Comment("%1 token for checking subscription, following and membership statuses for required linking\n"
+            + "You can get the token from %2 whilst logged in (please keep in mind that the token resets every time you visit that page)")
+    @Constants.Comment({MinecraftAuthenticationLinker.DOMAIN, "https://" + MinecraftAuthenticationLinker.DOMAIN + "/api/token"})
     public String token = "";
 
 }

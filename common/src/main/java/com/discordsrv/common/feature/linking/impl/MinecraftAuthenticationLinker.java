@@ -45,6 +45,7 @@ import java.util.function.Supplier;
 
 public class MinecraftAuthenticationLinker extends CachedLinkProvider {
 
+    public static final String DOMAIN = "minecraftauth.me";
     public static final String BASE_LINK_URL = DiscordSRV.WEBSITE + "/link";
 
     private final Logger logger;
