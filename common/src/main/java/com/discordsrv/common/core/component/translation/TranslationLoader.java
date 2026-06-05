@@ -98,7 +98,7 @@ public class TranslationLoader {
                         translations = getFromProperties(url);
                     }
                     if (translations != null && !translations.isEmpty()) {
-                        translations.forEach((key, value) -> translationStore.register(key, ComponentFactory.TRANSLATION_LOCALE, messageFormat(value, locale)));
+                        translations.forEach((key, value) -> translationStore.register(key, locale, messageFormat(value, locale)));
                         logger.debug("Loaded " + translations.size() + " translations from " + fileName + " (in " + locale + ")");
                     }
                 } catch (Throwable t) {
