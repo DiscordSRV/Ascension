@@ -135,6 +135,7 @@ public class TranslationLoader {
         // Adventure wants a MessageFormat while Minecraft language files are not that
         // https://minecraft.wiki/w/Resource_pack#Language
 
+        if (value == null) return new MessageFormat("", locale);
         Matcher matcher = PACK_PLACEHOLDER_PATTERN.matcher(value);
         StringBuffer replacement = new StringBuffer(value.length());
         int lastEnd = -1;
