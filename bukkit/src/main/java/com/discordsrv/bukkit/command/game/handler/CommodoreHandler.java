@@ -22,15 +22,12 @@ import com.discordsrv.bukkit.BukkitDiscordSRV;
 import com.discordsrv.common.command.game.abstraction.command.GameCommand;
 import com.discordsrv.common.command.game.abstraction.handler.ICommandHandler;
 import com.discordsrv.common.command.game.abstraction.handler.util.BrigadierUtil;
-import com.discordsrv.common.command.game.abstraction.sender.ICommandSender;
 import com.mojang.brigadier.tree.LiteralCommandNode;
 import me.lucko.commodore.Commodore;
 import me.lucko.commodore.CommodoreProvider;
 import org.bukkit.command.Command;
-import org.bukkit.command.CommandSender;
-import org.bukkit.command.ConsoleCommandSender;
-import org.bukkit.entity.Player;
 
+// Commodore doesn't make full use of Brigadier, command executions will still use the "legacy" way via the superclass
 public class CommodoreHandler extends BukkitBasicCommandHandler implements ICommandHandler {
 
     private final Commodore commodore;
@@ -44,7 +41,8 @@ public class CommodoreHandler extends BukkitBasicCommandHandler implements IComm
     protected void registerPluginCommand(Command command, GameCommand gameCommand) {
         super.registerPluginCommand(command, gameCommand);
 
-        LiteralCommandNode<?> commandNode = BrigadierUtil.convertToBrigadier(discordSRV, gameCommand, this::sender);
+        // The sender (last parameter) cannot be mapped here, as Commodore doesn't map the sender to a Bukkit one.
+        LiteralCommandNode<?> commandNode = BrigadierUtil.convertToBrigadier(discordSRV, gameCommand, null);
         commodore.register(command, commandNode, sender -> gameCommand.hasPermission(discordSRV.playerProvider().player(sender)));
         logger.debug(command.getName() + " registered to Commodore");
     }
