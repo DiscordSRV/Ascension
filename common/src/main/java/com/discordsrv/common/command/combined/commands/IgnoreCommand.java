@@ -18,6 +18,7 @@
 
 package com.discordsrv.common.command.combined.commands;
 
+import com.discordsrv.api.discord.entity.DiscordUser;
 import com.discordsrv.api.discord.entity.interaction.command.DiscordCommand;
 import com.discordsrv.api.discord.entity.interaction.command.SubCommandGroup;
 import com.discordsrv.api.discord.entity.interaction.component.ComponentIdentifier;
@@ -26,6 +27,7 @@ import com.discordsrv.common.DiscordSRV;
 import com.discordsrv.common.abstraction.player.IOfflinePlayer;
 import com.discordsrv.common.command.combined.abstraction.CombinedCommand;
 import com.discordsrv.common.command.combined.abstraction.CommandExecution;
+import com.discordsrv.common.command.combined.abstraction.DiscordCommandExecution;
 import com.discordsrv.common.command.combined.abstraction.Text;
 import com.discordsrv.common.command.discord.DiscordCommandOptions;
 import com.discordsrv.common.command.game.abstraction.command.GameCommand;
@@ -126,8 +128,12 @@ public class IgnoreCommand {
         this.list = new ListCommand(discordSRV);
     }
 
+    private static IgnoreModule module(DiscordSRV discordSRV) {
+        return discordSRV.getModule(IgnoreModule.class);
+    }
+
     private IgnoreModule module(CommandExecution execution) {
-        IgnoreModule module = discordSRV.getModule(IgnoreModule.class);
+        IgnoreModule module = module(discordSRV);
         if (module == null) {
             execution.send(new Text("Ignore module is not enabled").withGameColor(NamedTextColor.RED));
         }
@@ -156,15 +162,15 @@ public class IgnoreCommand {
                                 execution.messages().alreadyIgnoring.sendTo(execution);
                                 return;
                             }
+                            execution.messages().playerIgnoreAdded.sendTo(execution, discordSRV, null, playerUUID, null);
                             module.getIgnoredPlayers().add(playerUUID);
-                            execution.messages().ignoreAdded.sendTo(execution, discordSRV, null, playerUUID, null);
                         } else {
                             if (!wasIgnored) {
                                 execution.messages().notIgnoring.sendTo(execution);
                                 return;
                             }
+                            execution.messages().playerIgnoreRemoved.sendTo(execution, discordSRV, null, playerUUID, null);
                             module.getIgnoredPlayers().remove(playerUUID);
-                            execution.messages().ignoreRemoved.sendTo(execution, discordSRV, null, playerUUID, null);
                         }
                     } else if (lookupResult.isUser()){
                         long userId = lookupResult.getUserId();
@@ -175,15 +181,15 @@ public class IgnoreCommand {
                                 execution.messages().alreadyIgnoring.sendTo(execution);
                                 return;
                             }
+                            execution.messages().userIgnoreAdded.sendTo(execution, discordSRV, userId, null, null);
                             module.getIgnoredDiscordUsers().add(userId);
-                            execution.messages().ignoreAdded.sendTo(execution, discordSRV, userId, null, null);
                         } else {
                             if (!wasIgnored) {
                                 execution.messages().notIgnoring.sendTo(execution);
                                 return;
                             }
+                            execution.messages().userIgnoreRemoved.sendTo(execution, discordSRV, userId, null, null);
                             module.getIgnoredDiscordUsers().remove(userId);
-                            execution.messages().ignoreRemoved.sendTo(execution, discordSRV, userId, null, null);
                         }
                     } else if (lookupResult.isIntegration()) {
                         String integrationId = lookupResult.getIntegrationId();
@@ -194,15 +200,15 @@ public class IgnoreCommand {
                                 execution.messages().alreadyIgnoring.sendTo(execution);
                                 return;
                             }
+                            execution.messages().integrationIgnoreAdded.sendTo(execution, discordSRV, null, null, integrationId);
                             module.getIgnoredIntegrations().add(integrationId);
-                            execution.messages().ignoreAdded.sendTo(execution, discordSRV, null, null, integrationId);
                         }  else {
                             if (!wasIgnored) {
                                 execution.messages().notIgnoring.sendTo(execution);
                                 return;
                             }
+                            execution.messages().integrationIgnoreRemoved.sendTo(execution, discordSRV, null, null, integrationId);
                             module.getIgnoredIntegrations().remove(integrationId);
-                            execution.messages().ignoreRemoved.sendTo(execution, discordSRV, null, null, integrationId);
                         }
                     }
                 });
@@ -245,8 +251,12 @@ public class IgnoreCommand {
                 return;
             }
 
-            List<String> ignoredItems = new ArrayList<>();
+            if (module.getIgnoredPlayers().isEmpty() && module.getIgnoredDiscordUsers().isEmpty() && module.getIgnoredIntegrations().isEmpty()) {
+                execution.send(new Text("Ignore list is empty").withGameColor(NamedTextColor.YELLOW));
+                return;
+            }
 
+            List<String> ignoredItems = new ArrayList<>();
             Set<UUID> playerUuids = module.getIgnoredPlayers();
             List<Task<String>> playerTasks = new ArrayList<>();
             for (UUID playerUUID : playerUuids) {
@@ -257,17 +267,24 @@ public class IgnoreCommand {
                 );
             }
 
-            if (playerTasks.isEmpty() && module.getIgnoredDiscordUsers().isEmpty() && module.getIgnoredIntegrations().isEmpty()) {
-                execution.send(new Text("Ignore list is empty").withGameColor(NamedTextColor.YELLOW));
-                return;
-            }
-
             Task.allOf(playerTasks).whenComplete((playerNames, __) -> {
-                if (playerNames != null && !playerNames.isEmpty()) ignoredItems.add("Minecraft players:\n" + String.join(",", playerNames));
-                if (!module.getIgnoredDiscordUsers().isEmpty()) ignoredItems.add("Discord users:\n" + String.join(",", module.getIgnoredDiscordUsers().stream().map(id -> "<@" + id + ">").collect(Collectors.joining())));
+                if (playerNames != null && !playerNames.isEmpty()) {
+                    ignoredItems.add("Minecraft players:\n" + String.join("\n", playerNames));
+                }
+                if (!module.getIgnoredDiscordUsers().isEmpty()) {
+                    ignoredItems.add("Discord users:\n" + module.getIgnoredDiscordUsers().stream()
+                            .map(id -> {
+                                if (execution instanceof DiscordCommandExecution) {
+                                    DiscordUser user = discordSRV.discordAPI().getUserById(id);
+                                    return (user != null ? user.getAsTag() + " - " : "") + id;
+                                } else {
+                                    return id.toString();
+                                }
+                            }).collect(Collectors.joining("\n")));
+                }
                 if (!module.getIgnoredIntegrations().isEmpty()) ignoredItems.add("Plugin Integrations:\n" + String.join("\n", module.getIgnoredIntegrations()));
 
-                execution.send(new Text(String.join("\n", ignoredItems)));
+                execution.send(new Text(String.join("\n\n", ignoredItems)));
             });
         }
     }
