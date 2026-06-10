@@ -43,6 +43,7 @@ public class MessagesConfig implements Config {
     private static final String DISCORD_USER = "**%user_name%** (<@%user_id%>)";
     private static final String DISCORD_PLAYER = "**%player_name|text:'<Unknown>'%** (%player_uuid%)";
     private static final String DISCORD_PLAYER_SIMPLE = "**%player_name|player_uuid|text:'<Unknown>'%**";
+    private static final String DISCORD_INTEGRATION = "%integration_ignored:'" + DISCORD_SUCCESS_PREFIX + ";" + DISCORD_ERROR_PREFIX + "'%%integration_id%";
 
     private static final String MINECRAFT_ERROR_COLOR = "&c";
     private static final String MINECRAFT_SUCCESS_COLOR = "&a";
@@ -51,6 +52,7 @@ public class MessagesConfig implements Config {
 
     private static final String MINECRAFT_USER = MINECRAFT_BLURPLE_COLOR + "[hover:show_text:%user_id%][click:copy_to_clipboard:%user_id%]@%user_name%[click][hover]";
     private static final String MINECRAFT_PLAYER = "&f[hover:show_text:%player_uuid%][click:copy_to_clipboard:%player_uuid%]%player_name|text:'<Unknown>'%[click][hover]";
+    private static final String MINECRAFT_INTEGRATION = "%integration_ignored:'" + MINECRAFT_SUCCESS_COLOR + ";" + MINECRAFT_ERROR_COLOR + "'%%integration_id%";
 
     private static BothMessage both(String minecraftRawFormat, String discordRawFormat) {
         return new BothMessage(minecraft(minecraftRawFormat), discord(discordRawFormat));
@@ -430,12 +432,6 @@ public class MessagesConfig implements Config {
             "List players, Discord users, or integrations from which events are ignored"
     );
 
-    @Constants({MINECRAFT_SUCCESS_COLOR, DISCORD_SUCCESS_PREFIX})
-    public BothMessage cannotAlterDisabledIntegrations = both(
-            "%1That integration is disabled via the configuration file",
-            "%2That integration is disabled via the configuration file"
-    );
-
     @Constants({MINECRAFT_ERROR_COLOR, DISCORD_ERROR_PREFIX})
     public BothMessage alreadyIgnoring = both(
             "%1Already ignoring",
@@ -452,7 +448,7 @@ public class MessagesConfig implements Config {
             MINECRAFT_PLAYER + MINECRAFT_NEUTRAL_COLOR,
             DISCORD_PLAYER
     })
-    public BothMessage ignoreAdded = both(
+    public BothMessage playerIgnoreAdded = both(
             "%1 has been added to the ignore list",
             "%2 has been added to the ignore list"
     );
@@ -461,7 +457,43 @@ public class MessagesConfig implements Config {
             MINECRAFT_PLAYER + MINECRAFT_NEUTRAL_COLOR,
             DISCORD_PLAYER
     })
-    public BothMessage ignoreRemoved = both(
+    public BothMessage playerIgnoreRemoved = both(
+            "%1 has been removed from the ignore list",
+            "%2 has been removed from the ignore list"
+    );
+
+    @Constants({
+            MINECRAFT_USER + MINECRAFT_NEUTRAL_COLOR,
+            DISCORD_USER
+    })
+    public BothMessage userIgnoreAdded = both(
+            "%1 has been added to the ignore list",
+            "%2 has been added to the ignore list"
+    );
+
+    @Constants({
+            MINECRAFT_USER + MINECRAFT_NEUTRAL_COLOR,
+            DISCORD_USER
+    })
+    public BothMessage userIgnoreRemoved = both(
+            "%1 has been removed from the ignore list",
+            "%2 has been removed from the ignore list"
+    );
+
+    @Constants({
+            MINECRAFT_INTEGRATION + MINECRAFT_NEUTRAL_COLOR,
+            DISCORD_INTEGRATION
+    })
+    public BothMessage integrationIgnoreAdded = both(
+            "%1 has been added to the ignore list",
+            "%2 has been added to the ignore list"
+    );
+
+    @Constants({
+            MINECRAFT_INTEGRATION + MINECRAFT_NEUTRAL_COLOR,
+            DISCORD_INTEGRATION
+    })
+    public BothMessage integrationIgnoreRemoved = both(
             "%1 has been removed from the ignore list",
             "%2 has been removed from the ignore list"
     );
