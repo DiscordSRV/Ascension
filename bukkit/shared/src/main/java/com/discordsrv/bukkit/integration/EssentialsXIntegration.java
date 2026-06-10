@@ -230,7 +230,8 @@ public class EssentialsXIntegration
 
     @EventHandler(priority = EventPriority.MONITOR)
     public void onVanishStatusChange(VanishStatusChangeEvent event) {
-        IUser user = event.getAffected();
+        // Essentials has these reversed, see https://github.com/EssentialsX/Essentials/blob/26a54475ad74bbf9b400e55bc8083202f540192c/Essentials/src/main/java/net/ess3/api/events/VanishStatusChangeEvent.java#L12-L14
+        IUser user = event.getController();
         DiscordSRVPlayer player = discordSRV.playerProvider().player(user.getBase());
 
         discordSRV.eventBus().publish(new PlayerVanishStatusChangeEvent(player, event.getValue(), false, null));
