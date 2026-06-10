@@ -48,14 +48,14 @@ public final class DiscordCommandOptions {
                 .addDescriptionTranslations(translations(discordSRV, config -> config.playerCommandArgumentDescription.discord()));
     }
 
-    public static CommandOption.Builder integration(DiscordSRV discordSRV) {
+    public static CommandOption.Builder integration(DiscordSRV discordSRV, Predicate<PluginIntegration<?>> integrationPredicate) {
         return CommandOption.builder(CommandOption.Type.STRING, "integration", "")
                 .addDescriptionTranslations(translations(discordSRV, config -> config.integrationCommandArgumentDescription.discord()))
                 .setAutoCompleteHandler(event -> {
                     String input = event.getOption("integration").toUpperCase(Locale.ROOT);
 
                     for (PluginIntegration<?> integration : discordSRV.moduleManager().getModules(PluginIntegration.class, false)) {
-                        if (!integration.getIntegrationId().toUpperCase(Locale.ROOT).startsWith(input.toUpperCase(Locale.ROOT))) {
+                        if (!integration.getIntegrationId().toUpperCase(Locale.ROOT).startsWith(input.toUpperCase(Locale.ROOT)) || !integrationPredicate.test(integration)) {
                             continue;
                         }
 

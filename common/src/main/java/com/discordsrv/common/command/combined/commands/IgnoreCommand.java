@@ -31,6 +31,7 @@ import com.discordsrv.common.command.discord.DiscordCommandOptions;
 import com.discordsrv.common.command.game.abstraction.command.GameCommand;
 import com.discordsrv.common.core.logging.Logger;
 import com.discordsrv.common.core.logging.NamedLogger;
+import com.discordsrv.common.core.module.type.PluginIntegration;
 import com.discordsrv.common.feature.ignore.IgnoreModule;
 import com.discordsrv.common.permission.game.Permissions;
 import com.discordsrv.common.util.CommandUtil;
@@ -88,15 +89,15 @@ public class IgnoreCommand {
                     .addCommand(DiscordCommand.chatInput(IDENTIFIER_ADD, ADD_LABEL, "")
                                         .addDescriptionTranslations(discordSRV.getAllTranslations(config -> config.ignoreAddCommandDescription.discord().content()))
                                         .addOption(DiscordCommandOptions.user(discordSRV).setRequired(false).build())
-                                        .addOption(DiscordCommandOptions.player(discordSRV, player -> true).setRequired(false).build())
-                                        .addOption(DiscordCommandOptions.integration(discordSRV).setRequired(false).build())
+                                        .addOption(DiscordCommandOptions.player(discordSRV, player -> !module(discordSRV).getIgnoredPlayers().contains(player.uniqueId())).setRequired(false).build())
+                                        .addOption(DiscordCommandOptions.integration(discordSRV, integration -> !integration.isIgnored()).setRequired(false).build())
                                         .setEventHandler(command.add)
                                         .build())
                     .addCommand(DiscordCommand.chatInput(IDENTIFIER_REMOVE, REMOVE_LABEL, "")
                                         .addDescriptionTranslations(discordSRV.getAllTranslations(config -> config.ignoreRemoveCommandDescription.discord().content()))
                                         .addOption(DiscordCommandOptions.user(discordSRV).setRequired(false).build())
-                                        .addOption(DiscordCommandOptions.player(discordSRV, player -> true).setRequired(false).build())
-                                        .addOption(DiscordCommandOptions.integration(discordSRV).setRequired(false).build())
+                                        .addOption(DiscordCommandOptions.player(discordSRV, player -> module(discordSRV).getIgnoredPlayers().contains(player.uniqueId())).setRequired(false).build())
+                                        .addOption(DiscordCommandOptions.integration(discordSRV, PluginIntegration::isIgnored).setRequired(false).build())
                                         .setEventHandler(command.remove)
                                         .build())
                     .addCommand(DiscordCommand.chatInput(IDENTIFIER_LIST, LIST_LABEL, "")
