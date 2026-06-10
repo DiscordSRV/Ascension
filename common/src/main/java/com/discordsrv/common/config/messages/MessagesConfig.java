@@ -117,9 +117,15 @@ public class MessagesConfig implements Config {
     );
 
     @Constants({MINECRAFT_ERROR_COLOR, DISCORD_INPUT_ERROR_PREFIX})
-    public BothMessage pleaseSpecifyPlayerOrUser = both(
-            "%1Please specify the Minecraft player or Discord user",
-            "%2Please specify the Minecraft player or Discord user"
+    public BothMessage pleaseSpecifyIntegration = both(
+            "%1Please specify the integration",
+            "%2Please specify the integration"
+    );
+
+    @Constants({MINECRAFT_ERROR_COLOR, DISCORD_INPUT_ERROR_PREFIX})
+    public BothMessage pleaseSpecifyPlayerOrUserOrIntegration = both(
+            "%1Please specify the Minecraft player, Discord user or integration",
+            "%2Please specify the Minecraft player, Discord user or integration"
     );
 
     @Constants({MINECRAFT_ERROR_COLOR, DISCORD_INPUT_ERROR_PREFIX})
@@ -138,6 +144,11 @@ public class MessagesConfig implements Config {
     );
 
     public BothMessage discordUserCommandArgumentDescription = both(
+            "Discord user username or user id",
+            "Discord user"
+    );
+
+    public BothMessage integrationCommandArgumentDescription = both(
             "Discord user username or user id",
             "Discord user"
     );
@@ -398,6 +409,61 @@ public class MessagesConfig implements Config {
     public BothMessage bypassRemoved = both(
             "%1 has been removed from the bypass list",
             "%2 has been removed from the bypass list"
+    );
+
+    // Ignore command
+
+    public BothMessage ignoreCommandDescription = both(
+            "Ignore events from players, discord users or integrations",
+            "Ignore events from players, discord users or integrations"
+    );
+    public BothMessage ignoreAddCommandDescription = both(
+            "Add a player, Discord user, or integration to the ignore list",
+            "Add a player, Discord user, or integration to the ignore list"
+    );
+    public BothMessage ignoreRemoveCommandDescription = both(
+            "Remove a player, Discord user, or integration from the ignore list",
+            "Remove a player, Discord user, or integration from the ignore list"
+    );
+    public BothMessage ignoreListCommandDescription = both(
+            "List players, Discord users, or integrations from which events are ignored",
+            "List players, Discord users, or integrations from which events are ignored"
+    );
+
+    @Constants({MINECRAFT_SUCCESS_COLOR, DISCORD_SUCCESS_PREFIX})
+    public BothMessage cannotAlterDisabledIntegrations = both(
+            "%1That integration is disabled via the configuration file",
+            "%2That integration is disabled via the configuration file"
+    );
+
+    @Constants({MINECRAFT_ERROR_COLOR, DISCORD_ERROR_PREFIX})
+    public BothMessage alreadyIgnoring = both(
+            "%1Already ignoring",
+            "%2Already ignoring"
+    );
+
+    @Constants({MINECRAFT_ERROR_COLOR, DISCORD_ERROR_PREFIX})
+    public BothMessage notIgnoring = both(
+            "%1Not ignoring",
+            "%2Not ignoring"
+    );
+
+    @Constants({
+            MINECRAFT_PLAYER + MINECRAFT_NEUTRAL_COLOR,
+            DISCORD_PLAYER
+    })
+    public BothMessage ignoreAdded = both(
+            "%1 has been added to the ignore list",
+            "%2 has been added to the ignore list"
+    );
+
+    @Constants({
+            MINECRAFT_PLAYER + MINECRAFT_NEUTRAL_COLOR,
+            DISCORD_PLAYER
+    })
+    public BothMessage ignoreRemoved = both(
+            "%1 has been removed from the ignore list",
+            "%2 has been removed from the ignore list"
     );
 
     // Broadcast command

@@ -172,10 +172,10 @@ public class BypassCommand {
 
                     if (add) {
                         module.addLinkingBypass(uuid);
-                        execution.messages().bypassAdded.sendTo(execution, discordSRV, null, uuid);
+                        execution.messages().bypassAdded.sendTo(execution, discordSRV, null, uuid, null);
                     } else {
                         module.removeLinkingBypass(uuid);
-                        execution.messages().bypassRemoved.sendTo(execution, discordSRV, null, uuid);
+                        execution.messages().bypassRemoved.sendTo(execution, discordSRV, null, uuid, null);
                     }
 
                     IPlayer player = discordSRV.playerProvider().player(uuid);

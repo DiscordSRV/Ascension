@@ -87,6 +87,7 @@ import com.discordsrv.common.feature.channel.global.GlobalChannelLookupModule;
 import com.discordsrv.common.feature.console.ConsoleModule;
 import com.discordsrv.common.feature.customcommands.CustomCommandModule;
 import com.discordsrv.common.feature.groupsync.GroupSyncModule;
+import com.discordsrv.common.feature.ignore.IgnoreModule;
 import com.discordsrv.common.feature.linking.LinkProvider;
 import com.discordsrv.common.feature.linking.LinkedRoleModule;
 import com.discordsrv.common.feature.linking.LinkPesteringModule;
@@ -762,6 +763,7 @@ public abstract class AbstractDiscordSRV<
         registerModule(StopMessageModule::new);
         registerModule(VanishStatusTrackingModule::new);
         registerModule(LinkedRoleModule::new);
+        registerModule(IgnoreModule::new);
 
         if (serverType() == ServerType.PROXY) {
             registerModule(ServerSwitchMessageModule::new);

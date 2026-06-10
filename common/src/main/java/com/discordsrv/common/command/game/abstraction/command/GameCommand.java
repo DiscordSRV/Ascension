@@ -21,6 +21,7 @@ package com.discordsrv.common.command.game.abstraction.command;
 import com.discordsrv.common.DiscordSRV;
 import com.discordsrv.common.command.game.abstraction.sender.ICommandSender;
 import com.discordsrv.common.config.helper.MinecraftMessage;
+import com.discordsrv.common.core.module.type.PluginIntegration;
 import com.discordsrv.common.permission.game.Permission;
 import com.discordsrv.common.util.CommandUtil;
 import com.discordsrv.common.util.function.CheckedFunction;
@@ -89,19 +90,25 @@ public class GameCommand {
     public static GameCommand player(DiscordSRV discordSRV, @Nullable GameCommandSuggester suggester) {
         return GameCommand.stringWord("player")
                 .addDescriptionTranslations(discordSRV.getAllTranslations(config -> config.playerCommandArgumentDescription.minecraft()))
-                .suggester(suggester != null ? suggester : CommandUtil.targetSuggestions(discordSRV, null, player -> true, false));
+                .suggester(suggester != null ? suggester : CommandUtil.targetSuggestions(discordSRV, null, player -> true, null, false));
     }
 
     public static GameCommand user(DiscordSRV discordSRV, @Nullable GameCommandSuggester suggester) {
         return GameCommand.stringWord("user")
                 .addDescriptionTranslations(discordSRV.getAllTranslations(config -> config.discordUserCommandArgumentDescription.minecraft()))
-                .suggester(suggester != null ? suggester : CommandUtil.targetSuggestions(discordSRV, user -> true, null, false));
+                .suggester(suggester != null ? suggester : CommandUtil.targetSuggestions(discordSRV, user -> true, null, null, false));
+    }
+
+    public static GameCommand integration(DiscordSRV discordSRV, @Nullable GameCommandSuggester suggester) {
+        return GameCommand.stringWord("integration")
+                .addDescriptionTranslations(discordSRV.getAllTranslations(config -> config.integrationCommandArgumentDescription.minecraft()))
+                .suggester(suggester != null ? suggester : CommandUtil.targetSuggestions(discordSRV, null, null, PluginIntegration::isEnabled, false));
     }
 
     public static GameCommand target(DiscordSRV discordSRV, @Nullable GameCommandSuggester suggester) {
         return GameCommand.stringWord("target")
                 .addDescriptionTranslations(discordSRV.getAllTranslations(config -> config.targetCommandArgumentDescription))
-                .suggester(suggester != null ? suggester : CommandUtil.targetSuggestions(discordSRV, user -> true, player -> true, false));
+                .suggester(suggester != null ? suggester : CommandUtil.targetSuggestions(discordSRV, user -> true, player -> true, PluginIntegration::isEnabled, false));
     }
 
     private final ExecutorProxy executorProxy = new ExecutorProxy();

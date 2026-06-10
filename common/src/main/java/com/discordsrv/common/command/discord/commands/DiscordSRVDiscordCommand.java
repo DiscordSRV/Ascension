@@ -40,6 +40,7 @@ public class DiscordSRVDiscordCommand {
             DiscordCommand.ChatInputBuilder builder = DiscordCommand.chatInput(IDENTIFIER, LABEL, "")
                     .addDescriptionTranslations(discordSRV.getAllTranslations(config -> config.discordsrvCommandDescription.content()))
                     .addSubCommandGroup(DebugCommand.getDiscord(discordSRV))
+                    .addSubCommandGroup(IgnoreCommand.getDiscord(discordSRV))
                     .addSubCommand(ParseCommand.getDiscord(discordSRV))
                     .addSubCommand(VersionCommand.getDiscord(discordSRV))
                     .addSubCommand(ResyncCommand.getDiscord(discordSRV));

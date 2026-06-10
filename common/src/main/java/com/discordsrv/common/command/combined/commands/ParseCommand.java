@@ -54,7 +54,7 @@ public class ParseCommand extends CombinedCommand {
             GAME = GameCommand.literal(LABEL)
                     .addDescriptionTranslations(discordSRV.getAllTranslations(config -> config.parseCommandDescription.minecraft()))
                     .requiredPermission(Permissions.COMMAND_PARSE)
-                    .then(GameCommand.target(discordSRV, CommandUtil.targetSuggestions(discordSRV, user -> true, player -> true, true))
+                    .then(GameCommand.target(discordSRV, CommandUtil.targetSuggestions(discordSRV, user -> true, player -> true, null, true))
                                   .then(GameCommand.stringGreedy(INPUT_LABEL)
                                                 .addDescriptionTranslations(discordSRV.getAllTranslations(config -> config.parseInputCommandDescription.minecraft()))
                                                 .executor(command))

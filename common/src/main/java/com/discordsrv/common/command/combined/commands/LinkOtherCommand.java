@@ -67,9 +67,9 @@ public class LinkOtherCommand extends CombinedCommand {
 
             if (linkProvider != null && linkProvider.usesLocalLinking()) {
                 GAME = GAME.then(
-                        GameCommand.player(discordSRV, CommandUtil.targetSuggestions(discordSRV, false, true, false))
+                        GameCommand.player(discordSRV, CommandUtil.targetSuggestions(discordSRV, false, true, false, false))
                                 .then(
-                                        GameCommand.user(discordSRV, CommandUtil.targetSuggestions(discordSRV, true, false, false))
+                                        GameCommand.user(discordSRV, CommandUtil.targetSuggestions(discordSRV, true, false, false, false))
                                                 .requiredPermission(Permissions.COMMAND_LINK_OTHER)
                                                 .executor(getInstance(discordSRV))
                                 )
@@ -171,7 +171,7 @@ public class LinkOtherCommand extends CombinedCommand {
                             return;
                         }
 
-                        execution.messages().nowLinked3rd.sendTo(execution, discordSRV, userId, playerUUID);
+                        execution.messages().nowLinked3rd.sendTo(execution, discordSRV, userId, playerUUID, null);
                     });
                 });
             });

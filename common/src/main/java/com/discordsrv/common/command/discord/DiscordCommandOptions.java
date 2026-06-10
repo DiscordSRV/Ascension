@@ -23,6 +23,7 @@ import com.discordsrv.api.player.DiscordSRVPlayer;
 import com.discordsrv.common.DiscordSRV;
 import com.discordsrv.common.config.helper.DiscordMessage;
 import com.discordsrv.common.config.messages.MessagesConfig;
+import com.discordsrv.common.core.module.type.PluginIntegration;
 
 import java.util.Locale;
 import java.util.Map;
@@ -45,5 +46,22 @@ public final class DiscordCommandOptions {
     public static CommandOption.Builder player(DiscordSRV discordSRV, Predicate<DiscordSRVPlayer> playerPredicate) {
         return CommandOption.player(playerPredicate)
                 .addDescriptionTranslations(translations(discordSRV, config -> config.playerCommandArgumentDescription.discord()));
+    }
+
+    public static CommandOption.Builder integration(DiscordSRV discordSRV) {
+        return CommandOption.builder(CommandOption.Type.STRING, "integration", "")
+                .addDescriptionTranslations(translations(discordSRV, config -> config.integrationCommandArgumentDescription.discord()))
+                .setAutoCompleteHandler(event -> {
+                    String input = event.getOption("integration").toUpperCase(Locale.ROOT);
+
+                    for (PluginIntegration<?> integration : discordSRV.moduleManager().getModules(PluginIntegration.class, false)) {
+                        if (!integration.getIntegrationId().toUpperCase(Locale.ROOT).startsWith(input.toUpperCase(Locale.ROOT))) {
+                            continue;
+                        }
+
+                        event.addChoice(integration.getIntegrationId(), integration.getIntegrationId());
+                    }
+
+                });
     }
 }

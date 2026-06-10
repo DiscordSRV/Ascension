@@ -24,6 +24,7 @@ import com.discordsrv.api.task.Task;
 import com.discordsrv.common.DiscordSRV;
 import com.discordsrv.common.abstraction.player.IOfflinePlayer;
 import com.discordsrv.common.command.combined.abstraction.CommandExecution;
+import com.discordsrv.common.core.module.type.PluginIntegration;
 import com.discordsrv.common.util.TaskUtil;
 import org.jetbrains.annotations.Nullable;
 
@@ -33,15 +34,16 @@ import java.util.UUID;
 public abstract class ConfigMessage {
 
     public void sendTo(CommandExecution execution) {
-        sendTo(execution, null, null, null);
+        sendTo(execution, null, null, null, null);
     }
 
-    public void sendTo(CommandExecution execution, @Nullable DiscordSRV discordSRV, @Nullable Long userId, @Nullable UUID playerUUID) {
+    public void sendTo(CommandExecution execution, @Nullable DiscordSRV discordSRV, @Nullable Long userId, @Nullable UUID playerUUID, @Nullable String integrationId) {
         if (discordSRV == null) {
             sendTo(
                     execution,
                     new SinglePlaceholder("user_id", userId),
-                    new SinglePlaceholder("player_uuid", playerUUID)
+                    new SinglePlaceholder("player_uuid", playerUUID),
+                    new SinglePlaceholder("integration_id", integrationId)
             );
             return;
         }
@@ -56,14 +58,21 @@ public abstract class ConfigMessage {
                 discordSRV.discordAPI().retrieveUserById(userId),
                 Duration.ofSeconds(5)
         );
+        Task<PluginIntegration<?>> integrationFuture =
+                integrationId == null ? Task.completed(null) :
+                    Task.completed(discordSRV.moduleManager().getModules(PluginIntegration.class, true)
+                    .stream().filter(integration -> integration.getIntegrationId().equalsIgnoreCase(integrationId))
+                    .findFirst().orElse(null));
 
-        playerFuture.whenComplete((player, __) -> userFuture.whenComplete((user, ___) -> sendTo(
+        playerFuture.whenComplete((player, __) -> userFuture.whenComplete((user, ___) -> integrationFuture.whenComplete((integration, _____) -> sendTo(
                 execution,
                 new SinglePlaceholder("user_id", userId),
                 new SinglePlaceholder("player_uuid", playerUUID),
+                new SinglePlaceholder("integration_id", integrationId),
                 user,
-                player
-        )));
+                player,
+                integration
+        ))));
     }
 
     protected abstract void sendTo(CommandExecution execution, Object... context);
