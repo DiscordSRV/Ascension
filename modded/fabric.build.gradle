@@ -141,7 +141,9 @@ repositories {
 }
 
 dependencies {
-    minecraft("com.mojang:minecraft:${minecraftVersion}")
+    //TODO: Remove this when 26.2 is released.
+    if (minecraftVersion == "26.2") minecraft("com.mojang:minecraft:26.2-rc-2")
+    else minecraft("com.mojang:minecraft:${minecraftVersion}")
     loomx.applyMojangMappings()
 
     // Mixin Extras
