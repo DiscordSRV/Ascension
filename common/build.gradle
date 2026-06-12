@@ -1,7 +1,7 @@
 import dev.vankka.dependencydownload.task.GenerateDependencyDownloadResourceTask
 
 java {
-    disableAutoTargetJvm() // CarbonChat requires Java 21, we target 8
+    disableAutoTargetJvm() // SkinsRestorer requires Java 25 and CarbonChat requires Java 21, we target 8
 }
 
 configurations {
@@ -118,6 +118,7 @@ dependencies {
 
     // Integrations
     compileOnlyApi(libs.luckperms)
+    compileOnly(libs.skinsrestorer.api)
 
     // Chat Integrations
     compileOnly(libs.carbonchat)

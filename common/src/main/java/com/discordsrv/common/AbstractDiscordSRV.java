@@ -771,6 +771,9 @@ public abstract class AbstractDiscordSRV<
             registerModule(DeathMessageModule::new);
         }
 
+        // Integrations
+        registerIntegration("com.discordsrv.common.integration.SkinsRestorerIntegration");
+
         // Chat Integrations
         registerIntegration("com.discordsrv.common.integration.chat.CarbonChatIntegration");
 
