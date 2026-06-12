@@ -37,6 +37,7 @@ import com.discordsrv.velocity.module.VelocityJoinModule;
 import com.discordsrv.velocity.module.VelocityQuitModule;
 import com.discordsrv.velocity.module.VelocityServerSwitchModule;
 import com.discordsrv.velocity.player.VelocityPlayerProvider;
+import com.discordsrv.velocity.player.VelocitySkinProvider;
 import com.discordsrv.velocity.plugin.VelocityPluginManager;
 import com.velocitypowered.api.plugin.PluginContainer;
 import com.velocitypowered.api.proxy.ProxyServer;
@@ -84,6 +85,7 @@ public class VelocityDiscordSRV extends AbstractDiscordSRV<DiscordSRVVelocityBoo
         registerModule(VelocityJoinModule::new);
         registerModule(VelocityQuitModule::new);
         registerModule(VelocityServerSwitchModule::new);
+        registerModule(new VelocitySkinProvider(this, logger()));
 
         // Integrations
         registerIntegration("com.discordsrv.velocity.integration.VelocityLuckPermsIntegration");
