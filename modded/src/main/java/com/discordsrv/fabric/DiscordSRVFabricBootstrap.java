@@ -38,7 +38,7 @@ import java.util.Collections;
 import java.util.Optional;
 
 public class DiscordSRVFabricBootstrap implements DedicatedServerModInitializer, DiscordSRVModdedBootstrap {
-    private final static String DEPENDENCIES_RUNTIME = /*$ dependencies_file*/"dependencies/runtimeDownload-26.1-fabric.txt";
+    private final static String DEPENDENCIES_RUNTIME = /*$ dependencies_file*/"dependencies/runtimeDownload-26.2-fabric.txt";
 
     private final Logger logger;
 
