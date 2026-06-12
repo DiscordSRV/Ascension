@@ -33,7 +33,6 @@ import com.discordsrv.common.command.discord.DiscordCommandOptions;
 import com.discordsrv.common.command.game.abstraction.command.GameCommand;
 import com.discordsrv.common.core.logging.Logger;
 import com.discordsrv.common.core.logging.NamedLogger;
-import com.discordsrv.common.core.module.type.PluginIntegration;
 import com.discordsrv.common.feature.ignore.IgnoreModule;
 import com.discordsrv.common.permission.game.Permissions;
 import com.discordsrv.common.util.CommandUtil;
@@ -92,14 +91,12 @@ public class IgnoreCommand {
                                         .addDescriptionTranslations(discordSRV.getAllTranslations(config -> config.ignoreAddCommandDescription.discord().content()))
                                         .addOption(DiscordCommandOptions.user(discordSRV).setRequired(false).build())
                                         .addOption(DiscordCommandOptions.player(discordSRV, player -> !module(discordSRV).getIgnoredPlayers().contains(player.uniqueId())).setRequired(false).build())
-                                        .addOption(DiscordCommandOptions.integration(discordSRV, integration -> !integration.isIgnored()).setRequired(false).build())
                                         .setEventHandler(command.add)
                                         .build())
                     .addCommand(DiscordCommand.chatInput(IDENTIFIER_REMOVE, REMOVE_LABEL, "")
                                         .addDescriptionTranslations(discordSRV.getAllTranslations(config -> config.ignoreRemoveCommandDescription.discord().content()))
                                         .addOption(DiscordCommandOptions.user(discordSRV).setRequired(false).build())
                                         .addOption(DiscordCommandOptions.player(discordSRV, player -> module(discordSRV).getIgnoredPlayers().contains(player.uniqueId())).setRequired(false).build())
-                                        .addOption(DiscordCommandOptions.integration(discordSRV, PluginIntegration::isIgnored).setRequired(false).build())
                                         .setEventHandler(command.remove)
                                         .build())
                     .addCommand(DiscordCommand.chatInput(IDENTIFIER_LIST, LIST_LABEL, "")
@@ -162,17 +159,17 @@ public class IgnoreCommand {
                                 execution.messages().alreadyIgnoring.sendTo(execution);
                                 return;
                             }
-                            execution.messages().playerIgnoreAdded.sendTo(execution, discordSRV, null, playerUUID, null);
+                            execution.messages().playerIgnoreAdded.sendTo(execution, discordSRV, null, playerUUID);
                             module.getIgnoredPlayers().add(playerUUID);
                         } else {
                             if (!wasIgnored) {
                                 execution.messages().notIgnoring.sendTo(execution);
                                 return;
                             }
-                            execution.messages().playerIgnoreRemoved.sendTo(execution, discordSRV, null, playerUUID, null);
+                            execution.messages().playerIgnoreRemoved.sendTo(execution, discordSRV, null, playerUUID);
                             module.getIgnoredPlayers().remove(playerUUID);
                         }
-                    } else if (lookupResult.isUser()){
+                    } else if (lookupResult.isUser()) {
                         long userId = lookupResult.getUserId();
                         boolean wasIgnored = module.getIgnoredDiscordUsers().contains(userId);
 
@@ -181,34 +178,15 @@ public class IgnoreCommand {
                                 execution.messages().alreadyIgnoring.sendTo(execution);
                                 return;
                             }
-                            execution.messages().userIgnoreAdded.sendTo(execution, discordSRV, userId, null, null);
+                            execution.messages().userIgnoreAdded.sendTo(execution, discordSRV, userId, null);
                             module.getIgnoredDiscordUsers().add(userId);
                         } else {
                             if (!wasIgnored) {
                                 execution.messages().notIgnoring.sendTo(execution);
                                 return;
                             }
-                            execution.messages().userIgnoreRemoved.sendTo(execution, discordSRV, userId, null, null);
+                            execution.messages().userIgnoreRemoved.sendTo(execution, discordSRV, userId, null);
                             module.getIgnoredDiscordUsers().remove(userId);
-                        }
-                    } else if (lookupResult.isIntegration()) {
-                        String integrationId = lookupResult.getIntegrationId();
-                        boolean wasIgnored = module.getIgnoredIntegrations().contains(integrationId);
-
-                        if (add) {
-                            if (wasIgnored) {
-                                execution.messages().alreadyIgnoring.sendTo(execution);
-                                return;
-                            }
-                            execution.messages().integrationIgnoreAdded.sendTo(execution, discordSRV, null, null, integrationId);
-                            module.getIgnoredIntegrations().add(integrationId);
-                        }  else {
-                            if (!wasIgnored) {
-                                execution.messages().notIgnoring.sendTo(execution);
-                                return;
-                            }
-                            execution.messages().integrationIgnoreRemoved.sendTo(execution, discordSRV, null, null, integrationId);
-                            module.getIgnoredIntegrations().remove(integrationId);
                         }
                     }
                 });
@@ -251,7 +229,7 @@ public class IgnoreCommand {
                 return;
             }
 
-            if (module.getIgnoredPlayers().isEmpty() && module.getIgnoredDiscordUsers().isEmpty() && module.getIgnoredIntegrations().isEmpty()) {
+            if (module.getIgnoredPlayers().isEmpty() && module.getIgnoredDiscordUsers().isEmpty()) {
                 execution.send(new Text("Ignore list is empty").withGameColor(NamedTextColor.YELLOW));
                 return;
             }
@@ -282,7 +260,6 @@ public class IgnoreCommand {
                                 }
                             }).collect(Collectors.joining("\n")));
                 }
-                if (!module.getIgnoredIntegrations().isEmpty()) ignoredItems.add("Plugin Integrations:\n" + String.join("\n", module.getIgnoredIntegrations()));
 
                 execution.send(new Text(String.join("\n\n", ignoredItems)));
             });

@@ -40,7 +40,6 @@ public class IgnoreModule extends AbstractModule<DiscordSRV> {
 
     private final Set<UUID> ignoredPlayerUUIDs = ConcurrentHashMap.newKeySet();
     private final Set<Long> ignoredDiscordUserIds = ConcurrentHashMap.newKeySet();
-    private final Set<String> ignoredIntegrations = ConcurrentHashMap.newKeySet();
 
     public IgnoreModule(DiscordSRV discordSRV) {
         super(discordSRV, new NamedLogger(discordSRV, "IGNORE_MODULE"));
@@ -52,10 +51,6 @@ public class IgnoreModule extends AbstractModule<DiscordSRV> {
 
     public Set<Long> getIgnoredDiscordUsers() {
         return ignoredDiscordUserIds;
-    }
-
-    public Set<String> getIgnoredIntegrations() {
-        return ignoredIntegrations;
     }
 
     @Subscribe
@@ -77,14 +72,6 @@ public class IgnoreModule extends AbstractModule<DiscordSRV> {
             for (long discordUserId : ignoredDiscordUserIds) {
                 DiscordUser user = discordSRV.discordAPI().getUserById(discordUserId);
                 builder.append("\n\t").append(user != null ? user.getAsTag() + " - " + user.getId() : discordUserId);
-            }
-            builder.append("\n");
-        }
-
-        if (!ignoredIntegrations.isEmpty()) {
-            builder.append("Ignored Integrations:");
-            for (String integration : ignoredIntegrations) {
-                builder.append("\n\t").append(integration);
             }
             builder.append("\n");
         }

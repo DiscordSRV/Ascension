@@ -43,7 +43,6 @@ public class MessagesConfig implements Config {
     private static final String DISCORD_USER = "**%user_name%** (<@%user_id%>)";
     private static final String DISCORD_PLAYER = "**%player_name|text:'<Unknown>'%** (%player_uuid%)";
     private static final String DISCORD_PLAYER_SIMPLE = "**%player_name|player_uuid|text:'<Unknown>'%**";
-    private static final String DISCORD_INTEGRATION = "%integration_ignored:'" + DISCORD_SUCCESS_PREFIX + ";" + DISCORD_ERROR_PREFIX + "'%%integration_id%";
 
     private static final String MINECRAFT_ERROR_COLOR = "&c";
     private static final String MINECRAFT_SUCCESS_COLOR = "&a";
@@ -52,7 +51,6 @@ public class MessagesConfig implements Config {
 
     private static final String MINECRAFT_USER = MINECRAFT_BLURPLE_COLOR + "[hover:show_text:%user_id%][click:copy_to_clipboard:%user_id%]@%user_name%[click][hover]";
     private static final String MINECRAFT_PLAYER = "&f[hover:show_text:%player_uuid%][click:copy_to_clipboard:%player_uuid%]%player_name|text:'<Unknown>'%[click][hover]";
-    private static final String MINECRAFT_INTEGRATION = "%integration_ignored:'" + MINECRAFT_SUCCESS_COLOR + ";" + MINECRAFT_ERROR_COLOR + "'%%integration_id%";
 
     private static BothMessage both(String minecraftRawFormat, String discordRawFormat) {
         return new BothMessage(minecraft(minecraftRawFormat), discord(discordRawFormat));
@@ -119,15 +117,9 @@ public class MessagesConfig implements Config {
     );
 
     @Constants({MINECRAFT_ERROR_COLOR, DISCORD_INPUT_ERROR_PREFIX})
-    public BothMessage pleaseSpecifyIntegration = both(
-            "%1Please specify the integration",
-            "%2Please specify the integration"
-    );
-
-    @Constants({MINECRAFT_ERROR_COLOR, DISCORD_INPUT_ERROR_PREFIX})
-    public BothMessage pleaseSpecifyPlayerOrUserOrIntegration = both(
-            "%1Please specify the Minecraft player, Discord user or integration",
-            "%2Please specify the Minecraft player, Discord user or integration"
+    public BothMessage pleaseSpecifyPlayerOrUser = both(
+            "%1Please specify the Minecraft player or Discord user",
+            "%2Please specify the Minecraft player or Discord user"
     );
 
     @Constants({MINECRAFT_ERROR_COLOR, DISCORD_INPUT_ERROR_PREFIX})
@@ -146,11 +138,6 @@ public class MessagesConfig implements Config {
     );
 
     public BothMessage discordUserCommandArgumentDescription = both(
-            "Discord user username or user id",
-            "Discord user"
-    );
-
-    public BothMessage integrationCommandArgumentDescription = both(
             "Discord user username or user id",
             "Discord user"
     );
@@ -416,20 +403,23 @@ public class MessagesConfig implements Config {
     // Ignore command
 
     public BothMessage ignoreCommandDescription = both(
-            "Ignore events from players, discord users or integrations",
-            "Ignore events from players, discord users or integrations"
+            "Ignore events from Minecraft players or Discord users",
+            "Ignore events from Minecraft players or Discord users"
     );
+
     public BothMessage ignoreAddCommandDescription = both(
-            "Add a player, Discord user, or integration to the ignore list",
-            "Add a player, Discord user, or integration to the ignore list"
+            "Add a Minecraft player or Discord user to the ignore list",
+            "Add a Minecraft player or Discord user to the ignore list"
     );
+
     public BothMessage ignoreRemoveCommandDescription = both(
-            "Remove a player, Discord user, or integration from the ignore list",
-            "Remove a player, Discord user, or integration from the ignore list"
+            "Remove a Minecraft player or Discord user from the ignore list",
+            "Remove a Minecraft player or Discord user from the ignore list"
     );
+
     public BothMessage ignoreListCommandDescription = both(
-            "List players, Discord users, or integrations from which events are ignored",
-            "List players, Discord users, or integrations from which events are ignored"
+            "List Minecraft players or Discord users from which events are ignored",
+            "List Minecraft players or Discord users from which events are ignored"
     );
 
     @Constants({MINECRAFT_ERROR_COLOR, DISCORD_ERROR_PREFIX})
@@ -476,24 +466,6 @@ public class MessagesConfig implements Config {
             DISCORD_USER
     })
     public BothMessage userIgnoreRemoved = both(
-            "%1 has been removed from the ignore list",
-            "%2 has been removed from the ignore list"
-    );
-
-    @Constants({
-            MINECRAFT_INTEGRATION + MINECRAFT_NEUTRAL_COLOR,
-            DISCORD_INTEGRATION
-    })
-    public BothMessage integrationIgnoreAdded = both(
-            "%1 has been added to the ignore list",
-            "%2 has been added to the ignore list"
-    );
-
-    @Constants({
-            MINECRAFT_INTEGRATION + MINECRAFT_NEUTRAL_COLOR,
-            DISCORD_INTEGRATION
-    })
-    public BothMessage integrationIgnoreRemoved = both(
             "%1 has been removed from the ignore list",
             "%2 has been removed from the ignore list"
     );

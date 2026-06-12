@@ -18,15 +18,11 @@
 
 package com.discordsrv.common.core.module.type;
 
-import com.discordsrv.api.placeholder.annotation.Placeholder;
-import com.discordsrv.api.placeholder.annotation.PlaceholderPrefix;
 import com.discordsrv.common.DiscordSRV;
 import com.discordsrv.common.core.logging.Logger;
-import com.discordsrv.common.feature.ignore.IgnoreModule;
 import org.jetbrains.annotations.MustBeInvokedByOverriders;
 import org.jetbrains.annotations.NotNull;
 
-@PlaceholderPrefix("integration_")
 public abstract class PluginIntegration<DT extends DiscordSRV> extends AbstractModule<DT> {
 
     public PluginIntegration(DT discordSRV) {
@@ -42,12 +38,10 @@ public abstract class PluginIntegration<DT extends DiscordSRV> extends AbstractM
      * @return the id (when available) or name of the plugin or mod
      */
     @NotNull
-    @Placeholder("id")
     public abstract String getIntegrationId();
 
     @Override
     @MustBeInvokedByOverriders
-    @Placeholder("enabled")
     public boolean isEnabled() {
         String integrationId = getIntegrationId();
         if (discordSRV.config().integrations.disabledIntegrations.contains(integrationId)) {
@@ -57,14 +51,5 @@ public abstract class PluginIntegration<DT extends DiscordSRV> extends AbstractM
             return false;
         }
         return super.isEnabled();
-    }
-
-    @MustBeInvokedByOverriders
-    @Placeholder("ignored")
-    public boolean isIgnored() {
-        IgnoreModule module = discordSRV.getModule(IgnoreModule.class);
-        if (module == null) return false;
-
-        return module.getIgnoredIntegrations().contains(getIntegrationId());
     }
 }

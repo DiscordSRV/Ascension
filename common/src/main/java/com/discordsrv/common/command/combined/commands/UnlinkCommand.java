@@ -57,7 +57,7 @@ public class UnlinkCommand extends CombinedCommand {
             GAME = GameCommand.literal(LABEL)
                     .addDescriptionTranslations(discordSRV.getAllTranslations(config -> config.unlinkCommandDescription.minecraft()))
                     .then(
-                            GameCommand.target(discordSRV, CommandUtil.targetSuggestions(discordSRV, true, true, false, true))
+                            GameCommand.target(discordSRV, CommandUtil.targetSuggestions(discordSRV, true, true, true))
                                     .requiredPermission(Permissions.COMMAND_UNLINK_OTHER)
                                     .executor(command)
                     )
@@ -161,7 +161,7 @@ public class UnlinkCommand extends CombinedCommand {
                             (result.isSelf()
                              ? execution.messages().alreadyUnlinked1st
                              : execution.messages().minecraftPlayerUnlinked3rd
-                            ).sendTo(execution, discordSRV, null, playerUUID, null);
+                            ).sendTo(execution, discordSRV, null, playerUUID);
                             return;
                         }
 
@@ -180,7 +180,7 @@ public class UnlinkCommand extends CombinedCommand {
                             (result.isSelf()
                              ? execution.messages().alreadyUnlinked1st
                              : execution.messages().discordUserUnlinked3rd
-                            ).sendTo(execution, discordSRV, userId, null, null);
+                            ).sendTo(execution, discordSRV, userId, null);
                             return;
                         }
 

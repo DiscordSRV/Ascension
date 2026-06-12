@@ -54,7 +54,7 @@ public class LinkedCommand extends CombinedCommand {
             LinkedCommand command = getInstance(discordSRV);
             GAME = GameCommand.literal(LABEL)
                     .addDescriptionTranslations(discordSRV.getAllTranslations(config -> config.linkedCommandDescription.minecraft()))
-                    .then(GameCommand.target(discordSRV, CommandUtil.targetSuggestions(discordSRV, true, true, false, true))
+                    .then(GameCommand.target(discordSRV, CommandUtil.targetSuggestions(discordSRV, true, true, true))
                                   .requiredPermission(Permissions.COMMAND_LINKED_OTHER)
                                   .executor(command))
                     .requiredPermission(Permissions.COMMAND_LINKED)
@@ -129,14 +129,14 @@ public class LinkedCommand extends CombinedCommand {
                     (result.isSelf()
                      ? execution.messages().alreadyUnlinked1st
                      : execution.messages().minecraftPlayerUnlinked3rd
-                    ).sendTo(execution, discordSRV, null, playerUUID, null);
+                    ).sendTo(execution, discordSRV, null, playerUUID);
                     return;
                 }
 
                 (result.isSelf()
                  ? execution.messages().linkedTo1st
                  : execution.messages().minecraftPlayerLinkedTo3rd
-                ).sendTo(execution, discordSRV, link.get().userId(), playerUUID, null);
+                ).sendTo(execution, discordSRV, link.get().userId(), playerUUID);
             });
         } else {
             long userId = result.getUserId();
@@ -151,14 +151,14 @@ public class LinkedCommand extends CombinedCommand {
                     (result.isSelf()
                      ? execution.messages().alreadyUnlinked1st
                      : execution.messages().discordUserUnlinked3rd
-                    ).sendTo(execution, discordSRV, userId, null, null);
+                    ).sendTo(execution, discordSRV, userId, null);
                     return;
                 }
 
                 (result.isSelf()
                  ? execution.messages().linkedTo1st
                  : execution.messages().discordUserLinkedTo3rd
-                ).sendTo(execution, discordSRV, userId, link.get().playerUUID(), null);
+                ).sendTo(execution, discordSRV, userId, link.get().playerUUID());
             });
         }
     }

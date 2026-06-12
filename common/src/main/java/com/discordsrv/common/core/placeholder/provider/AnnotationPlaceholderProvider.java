@@ -199,14 +199,4 @@ public class AnnotationPlaceholderProvider implements PlaceholderProvider {
             parameterProcessor.accept(parameter, i);
         }
     }
-
-    @Override
-    public boolean equals(Object obj) {
-        if (obj == this) return true;
-        if (!(obj instanceof AnnotationPlaceholderProvider)) return false;
-        AnnotationPlaceholderProvider other = (AnnotationPlaceholderProvider) obj;
-        if (this.method != null && this.method.equals(other.method)) return true;
-        if (this.field != null && this.field.equals(other.field)) return true;
-        return false;
-    }
 }

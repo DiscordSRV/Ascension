@@ -28,7 +28,6 @@ import com.discordsrv.common.command.game.abstraction.command.GameCommandSuggest
 import com.discordsrv.common.command.game.abstraction.sender.ICommandSender;
 import com.discordsrv.common.config.messages.MessagesConfig;
 import com.discordsrv.common.core.logging.Logger;
-import com.discordsrv.common.core.module.type.PluginIntegration;
 import com.discordsrv.common.core.profile.ProfileImpl;
 import com.discordsrv.common.permission.game.Permission;
 import com.discordsrv.common.permission.game.Permissions;
@@ -49,21 +48,20 @@ public final class CommandUtil {
 
     private CommandUtil() {}
 
-    public static GameCommandSuggester targetSuggestions(DiscordSRV discordSRV, boolean users, boolean players, boolean integration, boolean linked) {
+    public static GameCommandSuggester targetSuggestions(DiscordSRV discordSRV, boolean users, boolean players, boolean linked) {
         return CommandUtil.targetSuggestions(discordSRV,  users ? user -> {
             ProfileImpl profile = discordSRV.profileManager().getCachedProfile(user.getIdLong());
             return profile == null || profile.isLinked() == linked;
         } : null, players ? player -> {
             ProfileImpl profile = discordSRV.profileManager().getCachedProfile(player.uniqueId());
             return profile == null || profile.isLinked() == linked;
-        } : null, integration ? _integration -> true : null, false);
+        } : null, false);
     }
 
     public static GameCommandSuggester targetSuggestions(
             DiscordSRV discordSRV,
             @Nullable Predicate<User> userPredicate,
             @Nullable Predicate<IPlayer> playerPredicate,
-            @Nullable Predicate<PluginIntegration<?>> integrationPredicate,
             boolean includeNoneSuggestion) {
         return (sender, previousArguments, input) -> {
             List<String> suggestions = new ArrayList<>();
@@ -100,36 +98,6 @@ public final class CommandUtil {
                     }
                 }
             }
-            if (integrationPredicate != null) {
-                for (PluginIntegration<?> integration : discordSRV.moduleManager().getModules(PluginIntegration.class, true)) {
-                    if (!integrationPredicate.test(integration)) {
-                        continue;
-                    }
-
-                    String integrationId = integration.getIntegrationId();
-                    if (integrationId.toLowerCase(Locale.ROOT).startsWith(input)) {
-                        suggestions.add(integrationId);
-                    }
-                }
-            }
-            return suggestions;
-        };
-    }
-
-    public static GameCommandSuggester integrationSuggestions(
-            DiscordSRV discordSRV,
-            boolean includeDisabled) {
-        return  (sender, previousArguments, input) -> {
-            List<String> suggestions = new ArrayList<>();
-            input = input.toLowerCase(Locale.ROOT);
-
-            String finalInput = input;
-            discordSRV.moduleManager().getModules(PluginIntegration.class, includeDisabled).stream()
-                    .map(PluginIntegration::getIntegrationId)
-                    .filter(id -> id.toLowerCase(Locale.ROOT).startsWith(finalInput))
-                    .limit(100)
-                    .forEach(suggestions::add);
-
             return suggestions;
         };
     }
@@ -159,7 +127,7 @@ public final class CommandUtil {
             @Nullable Permission otherPermission,
             boolean optional
     ) {
-        return lookupTarget(discordSRV, logger, execution, target, selfPermitted, true, false, false, otherPermission, optional)
+        return lookupTarget(discordSRV, logger, execution, target, selfPermitted, true, false, otherPermission, optional)
                 .thenApply((result) -> {
                     if (result != null && result.isValid()) {
                         return result.getPlayerUUID();
@@ -177,28 +145,10 @@ public final class CommandUtil {
             @Nullable Permission otherPermission,
             boolean optional
     ) {
-        return lookupTarget(discordSRV, logger, execution, target, selfPermitted, false, true, false, otherPermission, optional)
+        return lookupTarget(discordSRV, logger, execution, target, selfPermitted, false, true, otherPermission, optional)
                 .thenApply(result -> {
                     if (result != null && result.isValid()) {
                         return result.getUserId();
-                    }
-                    return null;
-                });
-    }
-
-    public static Task<String> lookupIntegration(
-            DiscordSRV discordSRV,
-            Logger logger,
-            CommandExecution execution,
-            boolean selfPermitted,
-            String target,
-            @Nullable Permission otherPermission,
-            boolean optional
-    ) {
-        return lookupTarget(discordSRV, logger, execution, target, selfPermitted, false, false, true, otherPermission, optional)
-                .thenApply(result -> {
-                    if (result != null && result.isValid()) {
-                        return result.getIntegrationId();
                     }
                     return null;
                 });
@@ -219,13 +169,10 @@ public final class CommandUtil {
         if (target == null) {
             target = execution.getString("player");
         }
-        if (target == null) {
-            target = execution.getString("integration");
-        }
         if (target != null && target.equals(NONE)) {
             target = null;
         }
-        return lookupTarget(discordSRV, logger, execution, target, selfPermitted, true, true, true, otherPermission, optional);
+        return lookupTarget(discordSRV, logger, execution, target, selfPermitted, true, true, otherPermission, optional);
     }
 
     private static Task<TargetLookupResult> lookupTarget(
@@ -236,7 +183,6 @@ public final class CommandUtil {
             boolean selfPermitted,
             boolean lookupPlayer,
             boolean lookupUser,
-            boolean lookupIntegration,
             @Nullable Permission otherPermission,
             boolean optional
     ) {
@@ -271,7 +217,7 @@ public final class CommandUtil {
         }
 
         if (target == null) {
-            return Task.completed(requireTarget(execution, lookupUser, lookupPlayer, lookupIntegration, messages, optional));
+            return Task.completed(requireTarget(execution, lookupUser, lookupPlayer, messages, optional));
         }
 
         boolean isSelf = self;
@@ -286,7 +232,7 @@ public final class CommandUtil {
                     return Task.completed(TargetLookupResult.INVALID);
                 }
 
-                return Task.completed(new TargetLookupResult(isSelf, null, id, null));
+                return Task.completed(new TargetLookupResult(isSelf, null, id));
             } else if (target.startsWith("@")) {
                 // Discord username
                 String username = target.substring(1);
@@ -306,19 +252,8 @@ public final class CommandUtil {
                         }
                     }
                     if (matchingUser != null) {
-                        return Task.completed(new TargetLookupResult(isSelf, null, users.get(0).getIdLong(), null));
+                        return Task.completed(new TargetLookupResult(isSelf, null, users.get(0).getIdLong()));
                     }
-                }
-            }
-        }
-
-        // Has to be before player name lookup since some integrations does have their names taken as Minecraft usernames
-        if (lookupIntegration) {
-            String integrationId;
-            for (PluginIntegration<?> module : discordSRV.moduleManager().getModules(PluginIntegration.class, false)) {
-                if (module.getIntegrationId().equalsIgnoreCase(target)) {
-                    integrationId = module.getIntegrationId();
-                    return Task.completed(new TargetLookupResult(isSelf, null, 0L, integrationId));
                 }
             }
         }
@@ -338,7 +273,7 @@ public final class CommandUtil {
                     messages.playerNotFound.sendTo(execution);
                     return Task.completed(TargetLookupResult.INVALID);
                 }
-                return Task.completed(new TargetLookupResult(isSelf, uuid, 0L, null));
+                return Task.completed(new TargetLookupResult(isSelf, uuid, 0L));
             } else if (target.matches("[a-zA-Z0-9_]{1,16}")) {
                 // Player name
                 IPlayer playerByName = discordSRV.playerProvider().player(target);
@@ -346,32 +281,30 @@ public final class CommandUtil {
                     uuid = playerByName.uniqueId();
                 } else {
                     return discordSRV.playerProvider().lookupOfflinePlayer(target)
-                            .thenApply(offlinePlayer -> new TargetLookupResult(isSelf, offlinePlayer.uniqueId(), 0L, null))
+                            .thenApply(offlinePlayer -> new TargetLookupResult(isSelf, offlinePlayer.uniqueId(), 0L))
                             .mapException(t -> {
                                 logger.error("Failed to lookup offline player by username", t);
                                 messages.playerLookupFailed.sendTo(execution);
                                 return TargetLookupResult.INVALID;
                             });
                 }
-                return Task.completed(new TargetLookupResult(isSelf, uuid, 0L, null));
+                return Task.completed(new TargetLookupResult(isSelf, uuid, 0L));
             }
         }
 
-        return Task.completed(requireTarget(execution, lookupUser, lookupPlayer, lookupIntegration, messages, optional));
+        return Task.completed(requireTarget(execution, lookupUser, lookupPlayer, messages, optional));
     }
 
-    private static TargetLookupResult requireTarget(CommandExecution execution, boolean lookupUser, boolean lookupPlayer, boolean lookupIntegration, MessagesConfig messages, boolean optional) {
+    private static TargetLookupResult requireTarget(CommandExecution execution, boolean lookupUser, boolean lookupPlayer, MessagesConfig messages, boolean optional) {
         if (optional) {
             return TargetLookupResult.INVALID;
         }
 
-        if (lookupPlayer && lookupUser &&  lookupIntegration) {
-            messages.pleaseSpecifyPlayerOrUserOrIntegration.sendTo(execution);
+        if (lookupPlayer && lookupUser) {
+            messages.pleaseSpecifyPlayerOrUser.sendTo(execution);
         } else if (lookupPlayer) {
             messages.pleaseSpecifyPlayer.sendTo(execution);
         } else if (lookupUser) {
-            messages.pleaseSpecifyUser.sendTo(execution);
-        } else if (lookupIntegration) {
             messages.pleaseSpecifyUser.sendTo(execution);
         } else {
             throw new IllegalStateException("lookupPlayer & lookupUser are false");
@@ -387,22 +320,20 @@ public final class CommandUtil {
         private final boolean self;
         private final UUID playerUUID;
         private final long userId;
-        private final String integrationId;
 
         private TargetLookupResult(boolean valid) {
-            this(valid, false, null, 0L, null);
+            this(valid, false, null, 0L);
         }
 
-        public TargetLookupResult(boolean self, UUID playerUUID, long userId, String integrationId) {
-            this(true, self, playerUUID, userId, integrationId);
+        public TargetLookupResult(boolean self, UUID playerUUID, long userId) {
+            this(true, self, playerUUID, userId);
         }
 
-        private TargetLookupResult(boolean valid, boolean self, UUID playerUUID, long userId, String integrationId) {
+        private TargetLookupResult(boolean valid, boolean self, UUID playerUUID, long userId) {
             this.valid = valid;
             this.self = self;
             this.playerUUID = playerUUID;
             this.userId = userId;
-            this.integrationId = integrationId;
         }
 
         public boolean isValid() {
@@ -421,20 +352,12 @@ public final class CommandUtil {
             return userId != 0L;
         }
 
-        public boolean isIntegration() {
-            return integrationId != null;
-        }
-
         public UUID getPlayerUUID() {
             return playerUUID;
         }
 
         public long getUserId() {
             return userId;
-        }
-
-        public String getIntegrationId() {
-            return integrationId;
         }
     }
 }

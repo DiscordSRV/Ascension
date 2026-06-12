@@ -53,7 +53,6 @@ import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-import java.util.stream.Collectors;
 
 public class PlaceholderServiceImpl implements PlaceholderService {
 
@@ -150,13 +149,12 @@ public class PlaceholderServiceImpl implements PlaceholderService {
                 }
             }
 
-            List<AnnotationPlaceholderProvider> providers = new ArrayList<>();
-            Class<?> currentClass = context instanceof Class ? (Class<?>) context : context.getClass();
-            while (currentClass != null && currentClass != Object.class) {
-                List<AnnotationPlaceholderProvider> currentProviders = classProviders.get(currentClass);
-                if (currentProviders != null) providers.addAll(currentProviders.stream().filter(provider -> !providers.contains(provider)).collect(Collectors.toList()));
-
-                currentClass = currentClass.getSuperclass();
+            List<AnnotationPlaceholderProvider> providers = classProviders
+                    .get(context instanceof Class
+                         ? (Class<?>) context
+                         : context.getClass());
+            if (providers == null) {
+                continue;
             }
 
             for (PlaceholderProvider provider : providers) {

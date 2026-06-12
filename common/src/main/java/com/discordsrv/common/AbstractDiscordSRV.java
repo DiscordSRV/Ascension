@@ -60,7 +60,6 @@ import com.discordsrv.common.core.logging.impl.DependencyLoggingHandler;
 import com.discordsrv.common.core.logging.impl.DiscordSRVLogger;
 import com.discordsrv.common.core.module.ModuleManager;
 import com.discordsrv.common.core.module.type.AbstractModule;
-import com.discordsrv.common.core.module.type.PluginIntegration;
 import com.discordsrv.common.core.placeholder.PlaceholderServiceImpl;
 import com.discordsrv.common.core.placeholder.context.*;
 import com.discordsrv.common.core.placeholder.format.DiscordMarkdownFormatImpl;
@@ -717,7 +716,6 @@ public abstract class AbstractDiscordSRV<
         placeholderService().addReLookup(DiscordGuild.class, "server");
         placeholderService().addReLookup(DiscordRole.class, "role");
         placeholderService().addReLookup(DiscordGuildMember.class, "user");
-        placeholderService().addReLookup(PluginIntegration.class, "integration");
 
         placeholderService().addGlobalContext(new TextHandlingContext(this));
         placeholderService().addGlobalContext(new DateFormattingContext(this));
@@ -728,7 +726,6 @@ public abstract class AbstractDiscordSRV<
         placeholderService().addGlobalContext(new DiscordEntityContext(this));
         placeholderService().addGlobalContext(new DiscordGuildMemberContext());
         placeholderService().addGlobalContext(new DebugContext(this));
-        placeholderService().addGlobalContext(new PluginIntegrationContext(this));
         placeholderService().addGlobalContext(DurationFormattingContext.class);
         placeholderService().addGlobalContext(BooleanFormattingContext.class);
         placeholderService().addGlobalContext(StringFormattingContext.class);
