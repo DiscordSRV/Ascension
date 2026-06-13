@@ -59,7 +59,7 @@ public class PlaceholderServiceImpl implements PlaceholderService {
     public static final String DATA_NOT_AVAILABLE_REPLACEMENT = "Unavailable";
     public static final String ERROR_REPLACEMENT = "Error";
     public static final String INFINITE_LOOP_REPLACEMENT = "Infinite Loop";
-    private static final Pattern ADDITIONAL_CONTEXT_PATTERN = Pattern.compile("^\\[([^]]+)]");
+    private static final Pattern ADDITIONAL_CONTEXT_PATTERN = Pattern.compile("^\\[((?:\\\\[\\[\\]]|[^\\[\\]])+)]");
 
     private final DiscordSRV discordSRV;
     private final Logger logger;
@@ -128,7 +128,9 @@ public class PlaceholderServiceImpl implements PlaceholderService {
 
         Matcher additionaContextMatcher = ADDITIONAL_CONTEXT_PATTERN.matcher(placeholder);
         while (additionaContextMatcher.find()) {
-            String contextPlaceholder = additionaContextMatcher.group(1);
+            String contextPlaceholder = additionaContextMatcher.group(1)
+                    .replace("\\[", "[")
+                    .replace("\\]", "]");
             PlaceholderLookupResult result = lookupPlaceholder(contextPlaceholder, contexts);
             if (result.getResult() != null) {
                 contexts.add(result.getResult());
