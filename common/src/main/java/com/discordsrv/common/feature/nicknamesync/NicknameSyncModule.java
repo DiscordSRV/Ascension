@@ -23,8 +23,10 @@ import com.discordsrv.api.discord.entity.guild.DiscordGuild;
 import com.discordsrv.api.discord.entity.guild.DiscordGuildMember;
 import com.discordsrv.api.eventbus.Subscribe;
 import com.discordsrv.api.module.type.NicknameModule;
+import com.discordsrv.api.placeholder.provider.SinglePlaceholder;
 import com.discordsrv.api.task.Task;
 import com.discordsrv.common.DiscordSRV;
+import com.discordsrv.common.abstraction.player.IOfflinePlayer;
 import com.discordsrv.common.abstraction.sync.AbstractSyncModule;
 import com.discordsrv.common.abstraction.sync.SyncFail;
 import com.discordsrv.common.abstraction.sync.result.DiscordPermissionResult;
@@ -44,6 +46,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
+import java.util.Objects;
 import java.util.regex.Pattern;
 
 /**
@@ -96,6 +99,10 @@ public class NicknameSyncModule extends AbstractSyncModule<DiscordSRV, NicknameS
         return null;
     }
 
+    private NicknameSyncConfig config() {
+        return configs().getFirst();
+    }
+
     @Subscribe
     public void onGuildMemberUpdateNickname(GuildMemberUpdateNicknameEvent event) {
         DiscordUser user = discordSRV.discordAPI().getUser(event.getUser());
@@ -121,14 +128,27 @@ public class NicknameSyncModule extends AbstractSyncModule<DiscordSRV, NicknameS
     }
 
     @Nullable
-    protected String cleanNickname(NicknameSyncConfig config, @Nullable String nickname) {
+    protected String cleanNickname(@Nullable String nickname) {
         if (nickname == null) {
             return nickname;
         }
-        for (Map.Entry<Pattern, String> filter : config.nicknameRegexFilters.entrySet()) {
+        for (Map.Entry<Pattern, String> filter : config().nicknameRegexFilters.entrySet()) {
             nickname = filter.getKey().matcher(nickname).replaceAll(filter.getValue());
         }
         return nickname;
+    }
+
+    protected String formatNickname(Someone.Resolved someone, @Nullable String nickname) {
+        DiscordUser user = someone.user().join();
+        IOfflinePlayer offlinePlayer = discordSRV.playerProvider().lookupOfflinePlayer(someone.playerUUID()).join();
+
+        DiscordGuild guild = discordSRV.discordAPI().getGuildById(configs().getFirst().serverId);
+        DiscordGuildMember member = null;
+        if (guild != null) {
+            member = someone.guildMember(guild).join();
+        }
+
+        return cleanNickname(discordSRV.placeholderService().replacePlaceholders(config().format, new SinglePlaceholder("nickname", nickname), user, offlinePlayer, guild, member))
     }
 
     @Override
@@ -140,7 +160,8 @@ public class NicknameSyncModule extends AbstractSyncModule<DiscordSRV, NicknameS
 
         return someone.guildMember(guild)
                 .thenApply(DiscordGuildMember::getNickname)
-                .thenApply(nickname -> cleanNickname(config, nickname));
+                .thenApply(this::cleanNickname)
+                .thenApply(nickname -> formatNickname(someone, nickname));
     }
 
     @Override
@@ -151,7 +172,8 @@ public class NicknameSyncModule extends AbstractSyncModule<DiscordSRV, NicknameS
         }
 
         return module.getNickname(someone.playerUUID())
-                .thenApply(nickname -> cleanNickname(config, nickname));
+                .thenApply(this::cleanNickname)
+                .thenApply(nickname -> formatNickname(someone, nickname));
     }
 
     @Override
@@ -177,7 +199,7 @@ public class NicknameSyncModule extends AbstractSyncModule<DiscordSRV, NicknameS
                     }
                     return member;
                 })
-                .thenCompose(member -> member.asJDA().modifyNickname(newNickname).submit())
+                .thenCompose(member -> member.asJDA().modifyNickname(formatNickname(someone, newNickname)).submit())
                 .thenApply(v -> NicknameSyncResult.SET_DISCORD);
     }
 
@@ -192,6 +214,6 @@ public class NicknameSyncModule extends AbstractSyncModule<DiscordSRV, NicknameS
             return Task.failed(new SyncFail(GenericSyncResults.MODULE_NOT_FOUND));
         }
 
-        return module.setNickname(someone.playerUUID(), newNickname).thenApply(v -> NicknameSyncResult.SET_GAME);
+        return module.setNickname(someone.playerUUID(), formatNickname(someone, newNickname)).thenApply(v -> NicknameSyncResult.SET_GAME);
     }
 }
