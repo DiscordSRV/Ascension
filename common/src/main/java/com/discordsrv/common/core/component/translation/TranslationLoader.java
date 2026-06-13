@@ -21,6 +21,7 @@ package com.discordsrv.common.core.component.translation;
 import com.discordsrv.common.DiscordSRV;
 import com.discordsrv.common.core.component.ComponentFactory;
 import com.discordsrv.common.core.logging.NamedLogger;
+import com.discordsrv.common.util.ComponentUtil;
 import com.fasterxml.jackson.databind.JsonNode;
 import net.kyori.adventure.key.Key;
 import net.kyori.adventure.translation.TranslationStore;
@@ -86,7 +87,7 @@ public class TranslationLoader {
                 try {
                     // Grab locale from file name to pass to MessageFormat
                     String language = fileName.substring(0, lastDot);
-                    Locale locale = Locale.forLanguageTag(language);
+                    Locale locale = ComponentUtil.extractLocale(language);
 
                     URL url = path.toUri().toURL();
 
@@ -97,7 +98,7 @@ public class TranslationLoader {
                         translations = getFromProperties(url);
                     }
                     if (translations != null && !translations.isEmpty()) {
-                        translations.forEach((key, value) -> translationStore.register(key, ComponentFactory.TRANSLATION_LOCALE, messageFormat(value, locale)));
+                        translations.forEach((key, value) -> translationStore.register(key, locale, messageFormat(value, locale)));
                         logger.debug("Loaded " + translations.size() + " translations from " + fileName + " (in " + locale + ")");
                     }
                 } catch (Throwable t) {
@@ -134,6 +135,7 @@ public class TranslationLoader {
         // Adventure wants a MessageFormat while Minecraft language files are not that
         // https://minecraft.wiki/w/Resource_pack#Language
 
+        if (value == null) return new MessageFormat("", locale);
         Matcher matcher = PACK_PLACEHOLDER_PATTERN.matcher(value);
         StringBuffer replacement = new StringBuffer(value.length());
         int lastEnd = -1;

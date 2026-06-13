@@ -93,7 +93,7 @@ public class BukkitPlayerImpl extends BukkitPlayer {
             return PaperPlayerUtil.locale(player);
         }
         if (SpigotPlayerUtil.LOCALE_AVAILABLE) {
-            return Locale.forLanguageTag(SpigotPlayerUtil.getLocale(player));
+            return ComponentUtil.extractLocale(SpigotPlayerUtil.getLocale(player));
         }
         return null;
     }

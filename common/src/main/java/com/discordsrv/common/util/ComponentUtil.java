@@ -34,6 +34,7 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
 
 /**
  * A util class for {@link Component}s and {@link MinecraftComponent}s.
@@ -100,5 +101,13 @@ public final class ComponentUtil {
             }
         });
         return colors;
+    }
+
+    public static Locale extractLocale(String locale) {
+        try {
+            return Locale.forLanguageTag(locale.replace('_', '-'));
+        } catch (Exception e) {
+            return null;
+        }
     }
 }
