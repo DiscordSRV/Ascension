@@ -18,6 +18,9 @@
 
 package com.discordsrv.bukkit.player;
 
+import com.discordsrv.api.eventbus.EventPriorities;
+import com.discordsrv.api.eventbus.Subscribe;
+import com.discordsrv.api.events.placeholder.PlaceholderContextMappingEvent;
 import com.discordsrv.api.task.Task;
 import com.discordsrv.bukkit.BukkitDiscordSRV;
 import com.discordsrv.common.abstraction.player.IOfflinePlayer;
@@ -51,10 +54,15 @@ public class BukkitPlayerProvider extends ServerPlayerProvider<BukkitPlayer, Buk
         this.offlinePlayerConstructor = offlinePlayerConstructor;
     }
 
-    // IPlayer
+    @Subscribe(priority = EventPriorities.EARLIEST)
+    public void onPlaceholderContextMapping(PlaceholderContextMappingEvent event) {
+        event.map(Player.class, this::player);
+        event.map(OfflinePlayer.class, this::offlinePlayer);
+    }
 
     @Override
     public void subscribe() {
+        discordSRV.eventBus().subscribe(this);
         discordSRV.server().getPluginManager().registerEvents(this, discordSRV.plugin());
 
         // Add players that are already connected
@@ -65,8 +73,11 @@ public class BukkitPlayerProvider extends ServerPlayerProvider<BukkitPlayer, Buk
 
     @Override
     public void unsubscribe() {
+        discordSRV.eventBus().unsubscribe(this);
         HandlerList.unregisterAll(this);
     }
+
+    // IPlayer
 
     @EventHandler(priority = EventPriority.LOWEST)
     public void onPlayerJoin(PlayerJoinEvent event) {

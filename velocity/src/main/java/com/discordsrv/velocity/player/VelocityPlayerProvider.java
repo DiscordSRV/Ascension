@@ -18,6 +18,8 @@
 
 package com.discordsrv.velocity.player;
 
+import com.discordsrv.api.eventbus.EventPriorities;
+import com.discordsrv.api.events.placeholder.PlaceholderContextMappingEvent;
 import com.discordsrv.common.abstraction.player.provider.AbstractPlayerProvider;
 import com.discordsrv.velocity.VelocityDiscordSRV;
 import com.velocitypowered.api.event.Subscribe;
@@ -31,8 +33,14 @@ public class VelocityPlayerProvider extends AbstractPlayerProvider<VelocityPlaye
         super(discordSRV);
     }
 
+    @com.discordsrv.api.eventbus.Subscribe(priority = EventPriorities.EARLIEST)
+    public void onPlaceholderContextMapping(PlaceholderContextMappingEvent event) {
+        event.map(Player.class, this::player);
+    }
+
     @Override
     public void subscribe() {
+        discordSRV.eventBus().subscribe(this);
         discordSRV.proxy().getEventManager().register(discordSRV.plugin(), this);
 
         // Add players that are already connected
@@ -43,6 +51,7 @@ public class VelocityPlayerProvider extends AbstractPlayerProvider<VelocityPlaye
 
     @Override
     public void unsubscribe() {
+        discordSRV.eventBus().unsubscribe(this);
         discordSRV.proxy().getEventManager().unregisterListener(discordSRV.plugin(), this);
     }
 

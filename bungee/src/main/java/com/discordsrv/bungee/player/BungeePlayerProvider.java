@@ -18,9 +18,11 @@
 
 package com.discordsrv.bungee.player;
 
+import com.discordsrv.api.eventbus.EventPriorities;
+import com.discordsrv.api.eventbus.Subscribe;
+import com.discordsrv.api.events.placeholder.PlaceholderContextMappingEvent;
 import com.discordsrv.bungee.BungeeDiscordSRV;
 import com.discordsrv.common.abstraction.player.provider.AbstractPlayerProvider;
-import net.md_5.bungee.api.connection.Connection;
 import net.md_5.bungee.api.connection.ProxiedPlayer;
 import net.md_5.bungee.api.event.PlayerDisconnectEvent;
 import net.md_5.bungee.api.event.PostLoginEvent;
@@ -33,8 +35,14 @@ public class BungeePlayerProvider extends AbstractPlayerProvider<BungeePlayer, B
         super(discordSRV);
     }
 
+    @Subscribe(priority = EventPriorities.EARLIEST)
+    public void onPlaceholderContextMapping(PlaceholderContextMappingEvent event) {
+        event.map(ProxiedPlayer.class, this::player);
+    }
+
     @Override
     public void subscribe() {
+        discordSRV.eventBus().subscribe(this);
         discordSRV.proxy().getPluginManager().registerListener(discordSRV.plugin(), this);
 
         // Add players that are already connected
@@ -45,6 +53,7 @@ public class BungeePlayerProvider extends AbstractPlayerProvider<BungeePlayer, B
 
     @Override
     public void unsubscribe() {
+        discordSRV.eventBus().unsubscribe(this);
         discordSRV.proxy().getPluginManager().unregisterListener(this);
     }
 
