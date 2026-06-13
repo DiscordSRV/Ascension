@@ -2,6 +2,8 @@ plugins {
     id 'application'
 }
 
+apply from: rootProject.file('buildscript/relocations.gradle')
+
 // Don't need to be versioned, so we remove the version here to reduce the complexity of the CI
 version = null
 
