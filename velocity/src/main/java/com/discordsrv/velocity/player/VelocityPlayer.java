@@ -46,6 +46,10 @@ public class VelocityPlayer extends VelocityCommandSender implements IPlayer {
         this.player = player;
     }
 
+    public Player getProxyPlayer() {
+        return player;
+    }
+
     @Override
     public DiscordSRV discordSRV() {
         return discordSRV;
@@ -70,31 +74,6 @@ public class VelocityPlayer extends VelocityCommandSender implements IPlayer {
     @Override
     public void removeChatSuggestions(Collection<String> suggestions) {
         player.removeCustomChatCompletions(suggestions);
-    }
-
-    @Override
-    public @Nullable SkinInfo skinInfo() {
-        Textures textures;
-        for (GameProfile.Property property : player.getGameProfile().getProperties()) {
-            if (!Textures.KEY.equals(property.getName())) {
-                continue;
-            }
-
-            SkinParts skinParts = player.getPlayerSettings().getSkinParts();
-            SkinInfo.Parts parts = new SkinInfo.Parts(
-                    skinParts.hasCape(),
-                    skinParts.hasJacket(),
-                    skinParts.hasLeftSleeve(),
-                    skinParts.hasRightSleeve(),
-                    skinParts.hasLeftPants(),
-                    skinParts.hasRightPants(),
-                    skinParts.hasHat()
-            );
-
-            textures = Textures.getFromBase64(discordSRV, property.getValue());
-            return textures.getSkinInfo(parts);
-        }
-        return null;
     }
 
     @Override

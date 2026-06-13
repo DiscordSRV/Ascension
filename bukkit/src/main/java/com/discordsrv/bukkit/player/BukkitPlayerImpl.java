@@ -23,7 +23,6 @@ import com.discordsrv.bukkit.BukkitDiscordSRV;
 import com.discordsrv.bukkit.component.PaperComponentHandle;
 import com.discordsrv.bukkit.component.PaperComponentCheck;
 import com.discordsrv.bukkit.gamerule.GameRule;
-import com.discordsrv.common.abstraction.player.provider.model.SkinInfo;
 import com.discordsrv.common.util.ComponentUtil;
 import com.discordsrv.common.util.ReflectionUtil;
 import net.kyori.adventure.key.Key;
@@ -74,17 +73,6 @@ public class BukkitPlayerImpl extends BukkitPlayer {
         if (SpigotPlayerUtil.CHAT_SUGGESTIONS_AVAILABLE) {
             SpigotPlayerUtil.removeChatSuggestions(player, suggestions);
         }
-    }
-
-    @Override
-    public @Nullable SkinInfo skinInfo() {
-        if (PaperPlayerUtil.SKIN_AVAILABLE_ONLINE) {
-            return PaperPlayerUtil.getSkinInfo(player);
-        }
-        if (SpigotPlayerUtil.SKIN_AVAILABLE) {
-            return SpigotPlayerUtil.getSkinInfo(player);
-        }
-        return null;
     }
 
     @Override

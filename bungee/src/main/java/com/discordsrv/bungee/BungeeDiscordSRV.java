@@ -25,6 +25,7 @@ import com.discordsrv.bungee.module.BungeeJoinModule;
 import com.discordsrv.bungee.module.BungeeQuitModule;
 import com.discordsrv.bungee.module.BungeeServerSwitchModule;
 import com.discordsrv.bungee.player.BungeePlayerProvider;
+import com.discordsrv.bungee.player.BungeeSkinProvider;
 import com.discordsrv.bungee.plugin.BungeePluginManager;
 import com.discordsrv.common.AbstractDiscordSRV;
 import com.discordsrv.common.abstraction.plugin.PluginManager;
@@ -87,6 +88,7 @@ public class BungeeDiscordSRV extends AbstractDiscordSRV<DiscordSRVBungeeBootstr
         registerModule(BungeeJoinModule::new);
         registerModule(BungeeQuitModule::new);
         registerModule(BungeeServerSwitchModule::new);
+        registerModule(BungeeSkinProvider::new);
 
         // Integrations
         registerIntegration("com.discordsrv.bungee.integration.BungeeLuckPermsIntegration");

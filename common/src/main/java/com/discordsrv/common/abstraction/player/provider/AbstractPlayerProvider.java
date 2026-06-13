@@ -151,4 +151,13 @@ public abstract class AbstractPlayerProvider<T extends IPlayer, DT extends Disco
             return new OfflinePlayer(discordSRV, response.name, uuid, skinInfo);
         });
     }
+
+    /**
+     * Returns the platform's skin provider. Platform implementations should override
+     * this to return their platform-specific provider.
+     * Skin integrations can use this as a default if they haven't found any custom skins.
+     */
+    public PlayerSkinProvider skinProvider() {
+        return null;
+    }
 }
