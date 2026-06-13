@@ -28,6 +28,7 @@ import com.discordsrv.common.config.main.linking.ServerRequiredLinkingConfig;
 import com.discordsrv.common.feature.linking.LinkingModule;
 import com.discordsrv.common.feature.linking.requirelinking.requirement.parser.ParsedRequirements;
 import net.kyori.adventure.text.Component;
+import org.jetbrains.annotations.MustBeInvokedByOverriders;
 
 import java.util.List;
 import java.util.Map;
@@ -51,6 +52,7 @@ public abstract class ServerRequireLinkingModule<T extends DiscordSRV> extends R
         return additionalRequirements;
     }
 
+    @MustBeInvokedByOverriders
     @Override
     public void reload() {
         synchronized (additionalRequirements) {

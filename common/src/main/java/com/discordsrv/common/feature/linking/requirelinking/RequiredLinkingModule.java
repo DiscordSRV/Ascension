@@ -100,6 +100,7 @@ public abstract class RequiredLinkingModule<T extends DiscordSRV> extends Abstra
         }
     }
 
+    @MustBeInvokedByOverriders
     @Override
     public final void reload(Consumer<ReloadResult> resultConsumer) {
         List<RequirementType<?>> requirementTypes = new ArrayList<>();

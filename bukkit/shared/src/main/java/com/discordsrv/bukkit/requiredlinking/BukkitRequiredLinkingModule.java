@@ -72,6 +72,8 @@ public class BukkitRequiredLinkingModule extends ServerRequireLinkingModule<Bukk
 
     @Override
     public void reload() {
+        super.reload();
+
         boolean useKick = false;
         String kickEvent = null;
         EventPriority eventPriority = EventPriority.HIGHEST;
