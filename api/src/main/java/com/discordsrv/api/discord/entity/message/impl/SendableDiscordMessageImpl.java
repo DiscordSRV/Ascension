@@ -373,7 +373,9 @@ public class SendableDiscordMessageImpl implements SendableDiscordMessage {
         private Function<Matcher, Object> wrapFunction(Function<Matcher, Object> function) {
             return matcher -> {
                 Object result = function.apply(matcher);
-                if (result instanceof FormattedText || PlainPlaceholderFormat.FORMATTING.get() != PlainPlaceholderFormat.Formatting.DISCORD_MARKDOWN) {
+                if (result == null) {
+                    return null;
+                } else if (result instanceof FormattedText || PlainPlaceholderFormat.FORMATTING.get() != PlainPlaceholderFormat.Formatting.DISCORD_MARKDOWN) {
                     // Process as regular text
                     return result.toString();
                 } else if (result instanceof CharSequence) {

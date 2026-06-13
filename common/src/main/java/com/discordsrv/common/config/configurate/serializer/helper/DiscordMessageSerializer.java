@@ -18,33 +18,31 @@
 
 package com.discordsrv.common.config.configurate.serializer.helper;
 
-import com.discordsrv.common.config.configurate.serializer.SendableDiscordMessageSerializer;
+import com.discordsrv.api.configurate.DiscordSRVConfigurate;
+import com.discordsrv.api.configurate.serializer.SendableDiscordMessageSerializer;
 import com.discordsrv.common.config.helper.DiscordMessage;
 import org.jetbrains.annotations.Nullable;
 import org.spongepowered.configurate.ConfigurationNode;
 import org.spongepowered.configurate.serialize.SerializationException;
 import org.spongepowered.configurate.serialize.TypeSerializer;
-import org.spongepowered.configurate.util.NamingScheme;
 
 import java.lang.reflect.Type;
 
 public class DiscordMessageSerializer implements TypeSerializer<DiscordMessage> {
 
     private final SendableDiscordMessageSerializer serializer;
-    private final NamingScheme namingScheme;
 
-    public DiscordMessageSerializer(NamingScheme namingScheme) {
-        this.serializer = new SendableDiscordMessageSerializer(namingScheme, true);
-        this.namingScheme = namingScheme;
+    public DiscordMessageSerializer() {
+        this.serializer = new SendableDiscordMessageSerializer(true);
     }
 
     @Override
     public DiscordMessage deserialize(Type type, ConfigurationNode node) throws SerializationException {
-        return new DiscordMessage(serializer.deserialize(type, node.node(namingScheme.coerce("discord"))));
+        return new DiscordMessage(serializer.deserialize(type, node.node(DiscordSRVConfigurate.NAMING_SCHEME.coerce("discord"))));
     }
 
     @Override
     public void serialize(Type type, @Nullable DiscordMessage obj, ConfigurationNode node) throws SerializationException {
-        serializer.serialize(type, obj != null ? obj.builder() : null, node.node(namingScheme.coerce("discord")));
+        serializer.serialize(type, obj != null ? obj.builder() : null, node.node(DiscordSRVConfigurate.NAMING_SCHEME.coerce("discord")));
     }
 }

@@ -24,7 +24,7 @@ import com.discordsrv.common.config.configurate.annotation.Constants;
 import com.discordsrv.common.config.configurate.annotation.Untranslated;
 import com.discordsrv.common.config.configurate.manager.abstraction.ConfigurateConfigManager;
 import com.discordsrv.common.config.documentation.DocumentationURLs;
-import com.discordsrv.common.config.helper.SendableDiscordMessageTemplate;
+import com.discordsrv.api.discord.entity.message.SendableDiscordMessageTemplate;
 import com.discordsrv.common.config.main.generic.IMessageConfig;
 import org.spongepowered.configurate.objectmapping.ConfigSerializable;
 import org.spongepowered.configurate.objectmapping.meta.Comment;

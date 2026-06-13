@@ -1,0 +1,9 @@
+dependencies {
+    compileOnlyApi(libs.configurate.yaml)
+    compileOnlyApi(project(':api'))
+}
+
+shadowJar {
+    // This module should be included & relocated by end users, avoid runtime conflicts
+    relocate 'com.discordsrv.api.configurate', 'com.discordsrv.configurate'
+}

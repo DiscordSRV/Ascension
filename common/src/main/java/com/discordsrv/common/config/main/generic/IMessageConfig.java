@@ -18,7 +18,7 @@
 
 package com.discordsrv.common.config.main.generic;
 
-import com.discordsrv.common.config.helper.SendableDiscordMessageTemplate;
+import com.discordsrv.api.discord.entity.message.SendableDiscordMessageTemplate;
 
 public interface IMessageConfig {
 

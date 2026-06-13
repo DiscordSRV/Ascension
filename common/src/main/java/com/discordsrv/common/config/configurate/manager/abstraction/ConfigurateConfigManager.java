@@ -18,9 +18,7 @@
 
 package com.discordsrv.common.config.configurate.manager.abstraction;
 
-import com.discordsrv.api.color.Color;
-import com.discordsrv.api.discord.entity.message.DiscordMessageEmbed;
-import com.discordsrv.api.discord.entity.message.SendableDiscordMessage;
+import com.discordsrv.api.configurate.DiscordSRVConfigurate;
 import com.discordsrv.common.DiscordSRV;
 import com.discordsrv.common.config.configurate.annotation.Constants;
 import com.discordsrv.common.config.configurate.annotation.DefaultOnly;
@@ -28,15 +26,14 @@ import com.discordsrv.common.config.configurate.annotation.Order;
 import com.discordsrv.common.config.configurate.fielddiscoverer.FieldValueDiscovererProxy;
 import com.discordsrv.common.config.configurate.fielddiscoverer.OrderedFieldDiscovererProxy;
 import com.discordsrv.common.config.configurate.manager.loader.ConfigLoaderProvider;
-import com.discordsrv.common.config.configurate.serializer.*;
+import com.discordsrv.common.config.configurate.serializer.EnumSerializer;
+import com.discordsrv.common.config.configurate.serializer.PatternSerializer;
 import com.discordsrv.common.config.configurate.serializer.helper.BothMessageSerializer;
 import com.discordsrv.common.config.configurate.serializer.helper.DiscordMessageSerializer;
 import com.discordsrv.common.config.configurate.serializer.helper.MinecraftMessageSerializer;
-import com.discordsrv.common.config.configurate.serializer.helper.SendableDiscordMessageTemplateSerializer;
 import com.discordsrv.common.config.helper.BothMessage;
 import com.discordsrv.common.config.helper.DiscordMessage;
 import com.discordsrv.common.config.helper.MinecraftMessage;
-import com.discordsrv.common.config.helper.SendableDiscordMessageTemplate;
 import com.discordsrv.common.config.main.channels.base.BaseChannelConfig;
 import com.discordsrv.common.config.main.channels.base.ChannelConfig;
 import com.discordsrv.common.config.main.channels.base.IChannelConfig;
@@ -54,8 +51,6 @@ import org.spongepowered.configurate.objectmapping.meta.Comment;
 import org.spongepowered.configurate.objectmapping.meta.Processor;
 import org.spongepowered.configurate.serialize.SerializationException;
 import org.spongepowered.configurate.serialize.TypeSerializer;
-import org.spongepowered.configurate.util.NamingScheme;
-import org.spongepowered.configurate.util.NamingSchemes;
 import org.spongepowered.configurate.yaml.ScalarStyle;
 import org.spongepowered.configurate.yaml.YamlConfigurationLoader;
 
@@ -73,14 +68,7 @@ import java.util.stream.Collectors;
 public abstract class ConfigurateConfigManager<T, LT extends AbstractConfigurationLoader<CommentedConfigurationNode>>
         implements ConfigManager<T>, ConfigLoaderProvider<LT> {
 
-    public static final ThreadLocal<Boolean> DEFAULT_CONFIG = ThreadLocal.withInitial(() -> false);
     private static final ThreadLocal<Boolean> SAVE_OR_LOAD = ThreadLocal.withInitial(() -> false);
-
-    public static NamingScheme NAMING_SCHEME = in -> {
-        in = Character.toLowerCase(in.charAt(0)) + in.substring(1);
-        in = NamingSchemes.LOWER_CASE_DASHED.coerce(in);
-        return in;
-    };
 
     private final Path filePath;
     private final Logger logger;
@@ -213,15 +201,12 @@ public abstract class ConfigurateConfigManager<T, LT extends AbstractConfigurati
                     builder.register(BaseChannelConfig.class, getChannelConfigSerializer(objectMapper));
                     //noinspection unchecked
                     builder.register((Class<Enum<?>>) (Object) Enum.class, new EnumSerializer(logger));
-                    builder.register(Color.class, new ColorSerializer());
                     builder.register(Pattern.class, new PatternSerializer());
-                    builder.register(DiscordMessageEmbed.Builder.class, new DiscordMessageEmbedSerializer(NAMING_SCHEME));
-                    builder.register(DiscordMessageEmbed.Field.class, new DiscordMessageEmbedSerializer.FieldSerializer(NAMING_SCHEME));
-                    builder.register(SendableDiscordMessage.Builder.class, new SendableDiscordMessageSerializer(NAMING_SCHEME, false));
-                    builder.register(SendableDiscordMessageTemplate.class, new SendableDiscordMessageTemplateSerializer(NAMING_SCHEME));
-                    builder.register(MinecraftMessage.class, new MinecraftMessageSerializer(NAMING_SCHEME));
-                    builder.register(DiscordMessage.class, new DiscordMessageSerializer(NAMING_SCHEME));
-                    builder.register(BothMessage.class, new BothMessageSerializer(NAMING_SCHEME));
+
+                    builder.registerAll(DiscordSRVConfigurate.SERIALIZERS);
+                    builder.register(MinecraftMessage.class, new MinecraftMessageSerializer());
+                    builder.register(DiscordMessage.class, new DiscordMessageSerializer());
+                    builder.register(BothMessage.class, new BothMessageSerializer());
 
                     // give Configurate' serializers the ObjectMapper mapper
                     builder.register(type -> {
@@ -249,7 +234,7 @@ public abstract class ConfigurateConfigManager<T, LT extends AbstractConfigurati
         });
 
         return ObjectMapper.factoryBuilder()
-                .defaultNamingScheme(NAMING_SCHEME)
+                .defaultNamingScheme(DiscordSRVConfigurate.NAMING_SCHEME)
                 .addDiscoverer(new OrderedFieldDiscovererProxy<>((FieldDiscoverer<Object>) (Object) FieldValueDiscovererProxy.EMPTY_CONSTRUCTOR_INSTANCE, fieldOrder))
                 .addDiscoverer(new OrderedFieldDiscovererProxy<>((FieldDiscoverer<Object>) FieldDiscoverer.record(), fieldOrder))
                 .addProcessor(Constants.Comment.class, (data, fieldType) -> (value, destination) -> {
@@ -378,19 +363,19 @@ public abstract class ConfigurateConfigManager<T, LT extends AbstractConfigurati
     /**
      * Gets the default config given the default object from {@link #createConfiguration()}
      * @param defaultConfig the object
-     * @param cleanMapper if options that are marked with {@link DefaultOnly} or serializers that make use of {@link #DEFAULT_CONFIG} should be excluded from the node
+     * @param cleanMapper if options that are marked with {@link DefaultOnly} or serializers that make use of {@link DiscordSRVConfigurate#GENERATING_DEFAULT_CONFIG} should be excluded from the node
      * @return the node with the values from the object
      * @throws SerializationException if serialization fails
      */
     private CommentedConfigurationNode getDefault(T defaultConfig, boolean cleanMapper) throws SerializationException {
         try {
             if (cleanMapper) {
-                DEFAULT_CONFIG.set(true);
+                DiscordSRVConfigurate.GENERATING_DEFAULT_CONFIG.set(true);
             }
             return getDefault(defaultConfig, cleanMapper ? cleanObjectMapper() : objectMapper());
         } finally {
             if (cleanMapper) {
-                DEFAULT_CONFIG.set(false);
+                DiscordSRVConfigurate.GENERATING_DEFAULT_CONFIG.set(false);
             }
         }
     }

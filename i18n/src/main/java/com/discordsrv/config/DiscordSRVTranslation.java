@@ -18,6 +18,7 @@
 
 package com.discordsrv.config;
 
+import com.discordsrv.api.configurate.DiscordSRVConfigurate;
 import com.discordsrv.bukkit.config.main.BukkitConfig;
 import com.discordsrv.bungee.config.main.BungeeConfig;
 import com.discordsrv.common.config.Config;
@@ -45,8 +46,6 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
-
-import static com.discordsrv.common.config.configurate.manager.abstraction.ConfigurateConfigManager.NAMING_SCHEME;
 
 /**
  * A java application to generate a translation file that has comments as options.
@@ -93,7 +92,7 @@ public final class DiscordSRVTranslation {
         CommentedConfigurationNode node = CommentedConfigurationNode.root();
         for (Config config : CONFIGS) {
             ObjectMapper.Factory mapperFactory = ObjectMapper.factoryBuilder()
-                    .defaultNamingScheme(NAMING_SCHEME)
+                    .defaultNamingScheme(DiscordSRVConfigurate.NAMING_SCHEME)
                     .addDiscoverer((FieldDiscoverer<Object>) (Object) FieldValueDiscovererProxy.EMPTY_CONSTRUCTOR_INSTANCE)
                     .addDiscoverer(FieldDiscoverer.record())
                     .addProcessor(Untranslated.class, untranslatedProcessorFactory)

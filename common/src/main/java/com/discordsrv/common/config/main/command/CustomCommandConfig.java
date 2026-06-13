@@ -22,7 +22,7 @@ import com.discordsrv.api.discord.entity.interaction.command.CommandOption;
 import com.discordsrv.api.discord.entity.message.DiscordMessageEmbed;
 import com.discordsrv.api.discord.entity.message.SendableDiscordMessage;
 import com.discordsrv.common.config.configurate.annotation.Constants;
-import com.discordsrv.common.config.helper.SendableDiscordMessageTemplate;
+import com.discordsrv.api.discord.entity.message.SendableDiscordMessageTemplate;
 import org.spongepowered.configurate.objectmapping.ConfigSerializable;
 import org.spongepowered.configurate.objectmapping.meta.Comment;
 

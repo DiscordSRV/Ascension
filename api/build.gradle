@@ -1,5 +1,4 @@
 apply from: rootProject.file('buildscript/relocations.gradle')
-apply plugin: 'maven-publish'
 
 dependencies {
     // Annotations
@@ -20,7 +19,7 @@ dependencies {
     api(libs.slf4j.api)
 }
 
-// Relocations are in buildscript/api.gradle
+// Relocations are in buildscript/relocations.gradle
 
 sourceSets {
     // Annotation Processor
@@ -31,35 +30,41 @@ sourceSets {
     }
 }
 
-java {
-    withSourcesJar()
-    withJavadocJar()
-}
-
 jar {
     from sourceSets.ap.output.classesDirs
     from sourceSets.ap.output.resourcesDir
 }
 
-indraSpotlessLicenser {
-    // Overwrite the default
-    licenseHeaderFile(rootProject.file('buildscript/license/API_LICENSE_HEADER'))
-}
+allprojects {
+    apply plugin: 'maven-publish'
 
-publishing {
-    publications {
-        maven(MavenPublication) {
-            // Shaded & relocated jar...
-            artifact source: shadowJar, classifier: null
-            artifact sourcesJar
-            artifact javadocJar
+    java {
+        withSourcesJar()
+        withJavadocJar()
+    }
 
-            // ...and a pom with no dependencies
-            pom {
-                licenses {
-                    license {
-                        name = 'The MIT License'
-                        url = 'https://opensource.org/licenses/MIT'
+    indraSpotlessLicenser {
+        // Overwrite the default
+        licenseHeaderFile(rootProject.file('buildscript/license/API_LICENSE_HEADER'))
+    }
+
+    publishing {
+        publications {
+            maven(MavenPublication) {
+                // Shaded & relocated jar...
+                artifact source: shadowJar, classifier: null
+                artifact sourcesJar
+                artifact javadocJar
+
+                artifactId = 'discordsrv-' + project.name
+
+                // ...and a pom with no dependencies
+                pom {
+                    licenses {
+                        license {
+                            name = 'The MIT License'
+                            url = 'https://opensource.org/licenses/MIT'
+                        }
                     }
                 }
             }

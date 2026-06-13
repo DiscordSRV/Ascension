@@ -82,6 +82,7 @@ dependencies {
     compileOnlyApi(libs.jackson.databind)
 
     // Config
+    api(project(':api:api-configurate'))
     runtimeDownloadApi(libs.configurate.yaml)
     runtimeDownloadApi(libs.configurate.jackson)
 
