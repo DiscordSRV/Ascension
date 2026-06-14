@@ -63,7 +63,7 @@ public class CommandOption implements JDAEntity<OptionData> {
 
                     for (DiscordSRVPlayer player : discordSRV.playerProvider().allPlayers()) {
                         String username = player.username();
-                        if (!username.toUpperCase(Locale.ROOT).startsWith(input) || !playerPredicate.test(player)) {
+                        if (!username.toLowerCase(Locale.ROOT).startsWith(input) || !playerPredicate.test(player)) {
                             continue;
                         }
 

@@ -348,6 +348,10 @@ public final class CommandUtil {
             return playerUUID != null;
         }
 
+        public boolean isUser() {
+            return userId != 0L;
+        }
+
         public UUID getPlayerUUID() {
             return playerUUID;
         }

@@ -400,6 +400,76 @@ public class MessagesConfig implements Config {
             "%2 has been removed from the bypass list"
     );
 
+    // Ignore command
+
+    public BothMessage ignoreCommandDescription = both(
+            "Ignore events from Minecraft players or Discord users",
+            "Ignore events from Minecraft players or Discord users"
+    );
+
+    public BothMessage ignoreAddCommandDescription = both(
+            "Add a Minecraft player or Discord user to the ignore list",
+            "Add a Minecraft player or Discord user to the ignore list"
+    );
+
+    public BothMessage ignoreRemoveCommandDescription = both(
+            "Remove a Minecraft player or Discord user from the ignore list",
+            "Remove a Minecraft player or Discord user from the ignore list"
+    );
+
+    public BothMessage ignoreListCommandDescription = both(
+            "List Minecraft players or Discord users from which events are ignored",
+            "List Minecraft players or Discord users from which events are ignored"
+    );
+
+    @Constants({MINECRAFT_ERROR_COLOR, DISCORD_ERROR_PREFIX})
+    public BothMessage alreadyIgnoring = both(
+            "%1Already ignoring",
+            "%2Already ignoring"
+    );
+
+    @Constants({MINECRAFT_ERROR_COLOR, DISCORD_ERROR_PREFIX})
+    public BothMessage notIgnoring = both(
+            "%1Not ignoring",
+            "%2Not ignoring"
+    );
+
+    @Constants({
+            MINECRAFT_PLAYER + MINECRAFT_NEUTRAL_COLOR,
+            DISCORD_PLAYER
+    })
+    public BothMessage playerIgnoreAdded = both(
+            "%1 has been added to the ignore list",
+            "%2 has been added to the ignore list"
+    );
+
+    @Constants({
+            MINECRAFT_PLAYER + MINECRAFT_NEUTRAL_COLOR,
+            DISCORD_PLAYER
+    })
+    public BothMessage playerIgnoreRemoved = both(
+            "%1 has been removed from the ignore list",
+            "%2 has been removed from the ignore list"
+    );
+
+    @Constants({
+            MINECRAFT_USER + MINECRAFT_NEUTRAL_COLOR,
+            DISCORD_USER
+    })
+    public BothMessage userIgnoreAdded = both(
+            "%1 has been added to the ignore list",
+            "%2 has been added to the ignore list"
+    );
+
+    @Constants({
+            MINECRAFT_USER + MINECRAFT_NEUTRAL_COLOR,
+            DISCORD_USER
+    })
+    public BothMessage userIgnoreRemoved = both(
+            "%1 has been removed from the ignore list",
+            "%2 has been removed from the ignore list"
+    );
+
     // Broadcast command
 
     @Constants({MINECRAFT_ERROR_COLOR, MINECRAFT_NEUTRAL_COLOR, MINECRAFT_ERROR_COLOR})
