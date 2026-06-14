@@ -400,6 +400,12 @@ public class MessagesConfig implements Config {
             "%2 has been removed from the bypass list"
     );
 
+    // Failed additional linked requirements message
+
+    public MinecraftMessage failedRequirements = minecraft(
+      "You did not pass the additional requirements"
+    );
+
     // Broadcast command
 
     @Constants({MINECRAFT_ERROR_COLOR, MINECRAFT_NEUTRAL_COLOR, MINECRAFT_ERROR_COLOR})
