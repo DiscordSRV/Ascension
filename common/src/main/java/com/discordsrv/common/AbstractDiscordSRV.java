@@ -108,6 +108,7 @@ import com.discordsrv.common.helper.TemporaryLocalData;
 import com.discordsrv.common.helper.VanishStatusTrackingModule;
 import com.discordsrv.common.logging.adapter.DependencyLoggerAdapter;
 import com.discordsrv.common.util.ApiInstanceUtil;
+import com.discordsrv.common.util.ComponentUtil;
 import com.discordsrv.common.util.GitIgnoreUtil;
 import com.discordsrv.common.util.UUIDUtil;
 import com.discordsrv.common.util.function.CheckedFunction;
@@ -558,7 +559,7 @@ public abstract class AbstractDiscordSRV<
         if (config != null) {
             String defaultLanguage = config.messages.defaultLanguage;
             if (StringUtils.isNotBlank(defaultLanguage)) {
-                return Locale.forLanguageTag(defaultLanguage);
+                return ComponentUtil.extractLocale(defaultLanguage);
             }
         }
 
@@ -1001,6 +1002,7 @@ public abstract class AbstractDiscordSRV<
             results.addAll(moduleManager().reload());
         }
 
+        componentFactory().updateDefaultLocate(); // Update the default language everytime
         if (flags.contains(ReloadFlag.TRANSLATION)) {
             this.translationLoader.reload();
         }

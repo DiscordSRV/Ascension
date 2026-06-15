@@ -24,6 +24,7 @@ import com.discordsrv.common.config.messages.MessagesConfig;
 import com.discordsrv.common.core.logging.Logger;
 import com.discordsrv.common.core.logging.NamedLogger;
 import com.discordsrv.common.exception.ConfigException;
+import com.discordsrv.common.util.ComponentUtil;
 import org.jetbrains.annotations.Nullable;
 
 import java.nio.file.Files;
@@ -90,7 +91,7 @@ public class MessagesConfigManager<C extends MessagesConfig> {
                                 return;
                             }
 
-                            Locale locale = Locale.forLanguageTag(parts[0]);
+                            Locale locale = ComponentUtil.extractLocale(parts[0]);
                             if (locale == null) {
                                 logger.warning("Unexpected messages file: " + fileName + " (unknown locale)");
                                 return;
