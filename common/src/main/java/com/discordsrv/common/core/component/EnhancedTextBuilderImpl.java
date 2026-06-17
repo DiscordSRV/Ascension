@@ -22,11 +22,13 @@ import com.discordsrv.api.color.Color;
 import com.discordsrv.api.component.GameTextBuilder;
 import com.discordsrv.api.component.MinecraftComponent;
 import com.discordsrv.api.placeholder.PlaceholderService;
+import com.discordsrv.api.placeholder.format.FormattedText;
 import com.discordsrv.common.DiscordSRV;
 import com.discordsrv.common.core.placeholder.PlaceholderServiceImpl;
 import com.discordsrv.common.util.ComponentUtil;
 import dev.vankka.enhancedlegacytext.EnhancedComponentBuilder;
 import dev.vankka.enhancedlegacytext.EnhancedLegacyText;
+import dev.vankka.enhancedlegacytext.EnhancedLegacyTextSafeInput;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.TextColor;
 import org.jetbrains.annotations.NotNull;
@@ -88,7 +90,9 @@ public class EnhancedTextBuilderImpl implements GameTextBuilder {
     private Function<Matcher, Object> wrapFunction(Function<Matcher, Object> function) {
         return matcher -> {
             Object result = function.apply(matcher);
-            if (result instanceof Color) {
+            if (result instanceof FormattedText) {
+                return EnhancedLegacyTextSafeInput.of((FormattedText) result);
+            } else if (result instanceof Color) {
                 // Convert Color to something it'll understand
                 return TextColor.color(((Color) result).rgb());
             } else if (result instanceof MinecraftComponent) {
