@@ -18,7 +18,7 @@
 
 package com.discordsrv.neoforge;
 
-import com.discordsrv.common.permission.game.Permission;
+import com.discordsrv.common.permission.game.PermissionTemplate;
 import com.discordsrv.common.permission.game.Permissions;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.neoforge.server.permission.events.PermissionGatherEvent;
@@ -28,13 +28,14 @@ import net.neoforged.neoforge.server.permission.nodes.PermissionTypes;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
+import java.util.LinkedHashMap;
 
 public class DiscordSRVNeoForgePermissionAPI {
 
     @SuppressWarnings({"unused", "FieldCanBeLocal"})
     private final DiscordSRVNeoForgeBootstrap bootstrap;
-    public static final PermissionDynamicContextKey<String> STRING_ID = new PermissionDynamicContextKey<>(String.class, "id", String::toString);
-    public static final HashMap<String, PermissionNode<Boolean>> permissionNodes = new HashMap<>();
+    public static final HashMap<PermissionTemplate, NeoForgePermission> permissionNodes = new LinkedHashMap<>();
 
     public DiscordSRVNeoForgePermissionAPI(DiscordSRVNeoForgeBootstrap bootstrap) {
         this.bootstrap = bootstrap;
@@ -42,30 +43,38 @@ public class DiscordSRVNeoForgePermissionAPI {
     }
 
     private void collectPermissions() {
-        // Trigger the static initializer of Permission and Permissions to ensure all permissions are registered before we collect them.
-        Permission ignored = Permissions.COMMAND_BROADCAST;
+        for (PermissionTemplate permissionTemplate : Permissions.getAllTemplates()) {
+            PermissionDynamicContextKey<String> dynamicContextKey = null;
+            if (permissionTemplate instanceof PermissionTemplate.Parameterized parameterizedTemplate) {
+                dynamicContextKey = new PermissionDynamicContextKey<>(String.class, parameterizedTemplate.parameterName(), String::toString);
+            }
 
-        for (Permission permission : Permissions.allPermissions) {
             PermissionNode<Boolean> node = new PermissionNode<>(
                     "discordsrv",
-                    permission.strippedPermission(),
+                    permissionTemplate.permissionNode(),
                     PermissionTypes.BOOLEAN,
                     //? if minecraft: >=1.21.11 {
-                    (player, uuid, permissionDynamicContexts) -> !permission.requiresOpByDefault() || (player != null && player.permissions().hasPermission(new net.minecraft.server.permissions.Permission.HasCommandLevel(net.minecraft.server.permissions.PermissionLevel.byId(4)))),
+                    (player, uuid, permissionDynamicContexts) -> !permissionTemplate.requiresOpByDefault() || (player != null && player.permissions().hasPermission(new net.minecraft.server.permissions.Permission.HasCommandLevel(net.minecraft.server.permissions.PermissionLevel.byId(4)))),
                     //?} else if minecraft: >=1.21.9 {
-                    /*(player, uuid, permissionDynamicContexts) -> !permission.requiresOpByDefault() || (player != null && bootstrap.getServer().getProfilePermissions(new net.minecraft.server.players.NameAndId(player.getGameProfile())) >= 4),
+                    /*(player, uuid, permissionDynamicContexts) -> !permissionTemplate.requiresOpByDefault() || (player != null && bootstrap.getServer().getProfilePermissions(new net.minecraft.server.players.NameAndId(player.getGameProfile())) >= 4),
                     *///?} else {
-                    /*(player, uuid, permissionDynamicContexts) -> !permission.requiresOpByDefault() || (player != null && bootstrap.getServer().getProfilePermissions(player.getGameProfile()) >= 4),
+                    /*(player, uuid, permissionDynamicContexts) -> !permissionTemplate.requiresOpByDefault() || (player != null && bootstrap.getServer().getProfilePermissions(player.getGameProfile()) >= 4),
                     *///?}
-                    STRING_ID
+                    dynamicContextKey != null ? new PermissionDynamicContextKey[]{ dynamicContextKey } : new PermissionDynamicContextKey[0]
             );
 
-            permissionNodes.put(permission.strippedPermission(), node);
+            permissionNodes.put(permissionTemplate, new NeoForgePermission(node, dynamicContextKey));
         }
     }
 
     @SubscribeEvent
     public void onPermissionGather(PermissionGatherEvent.Nodes event) {
-        event.addNodes(new ArrayList<>(permissionNodes.values()));
+        List<PermissionNode<?>> allPermissions = new ArrayList<>(permissionNodes.size());
+        for (NeoForgePermission neoForgePermission : permissionNodes.values()) {
+            allPermissions.add(neoForgePermission.node());
+        }
+        event.addNodes(allPermissions);
     }
+
+    public record NeoForgePermission(PermissionNode<Boolean> node, PermissionDynamicContextKey<String> dynamicContextKey) {}
 }

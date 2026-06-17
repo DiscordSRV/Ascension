@@ -51,6 +51,10 @@ public abstract class BukkitPlayer extends BukkitCommandSender implements IPlaye
         this.player = player;
     }
 
+    public Player getPlayer() {
+        return player;
+    }
+
     @Override
     public BukkitDiscordSRV discordSRV() {
         return discordSRV;

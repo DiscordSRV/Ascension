@@ -46,15 +46,16 @@ public class ModdedCommandSender implements ICommandSender {
         int defaultLevel = permission.requiresOpByDefault() ? 4 : 0;
 
         //? if fabric
-        return me.lucko.fabric.api.permissions.v0.Permissions.check(commandSource, permission.permission(), defaultLevel);
+        return me.lucko.fabric.api.permissions.v0.Permissions.check(commandSource, permission.fullPermission(), defaultLevel);
 
         //? if neoforge {
         /*if (commandSource.getPlayer() != null) {
-            if (permission.node() != null) {
-                net.neoforged.neoforge.server.permission.nodes.PermissionDynamicContext<String> context = com.discordsrv.neoforge.DiscordSRVNeoForgePermissionAPI.STRING_ID.createContext(permission.node());
-                return net.neoforged.neoforge.server.permission.PermissionAPI.getPermission(commandSource.getPlayer(), com.discordsrv.neoforge.DiscordSRVNeoForgePermissionAPI.permissionNodes.get(permission.strippedPermission()), context);
+            com.discordsrv.neoforge.DiscordSRVNeoForgePermissionAPI.NeoForgePermission neoforgePermission = com.discordsrv.neoforge.DiscordSRVNeoForgePermissionAPI.permissionNodes.get(permission.template());
+            if (permission instanceof Permission.Parameterized parameterizedPermission) {
+                net.neoforged.neoforge.server.permission.nodes.PermissionDynamicContext<String> context = neoforgePermission.dynamicContextKey().createContext(parameterizedPermission.parameter());
+                return net.neoforged.neoforge.server.permission.PermissionAPI.getPermission(commandSource.getPlayer(), neoforgePermission.node(), context);
             } else {
-                return net.neoforged.neoforge.server.permission.PermissionAPI.getPermission(commandSource.getPlayer(), com.discordsrv.neoforge.DiscordSRVNeoForgePermissionAPI.permissionNodes.get(permission.strippedPermission()));
+                return net.neoforged.neoforge.server.permission.PermissionAPI.getPermission(commandSource.getPlayer(), neoforgePermission.node());
             }
         } else {
             //? if minecraft: >=1.21.11 {

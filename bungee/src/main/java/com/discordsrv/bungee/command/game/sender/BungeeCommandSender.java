@@ -41,7 +41,7 @@ public class BungeeCommandSender implements ICommandSender {
 
     @Override
     public boolean hasPermission(Permission permission) {
-        return commandSender.hasPermission(permission.permission());
+        return commandSender.hasPermission(permission.fullPermission());
     }
 
     @Override

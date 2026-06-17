@@ -18,83 +18,148 @@
 
 package com.discordsrv.common.permission.game;
 
-public enum Permissions implements Permission {
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+
+public final class Permissions {
+
+    private Permissions() {}
+
+    private static final List<PermissionTemplate> ALL_PERMISSION_TEMPLATES = new ArrayList<>();
+
+    public static List<PermissionTemplate> getAllTemplates() {
+        return Collections.unmodifiableList(ALL_PERMISSION_TEMPLATES);
+    }
 
     // Commands
     // Admin
-    COMMAND_BYPASS("command.bypass", true),
-    COMMAND_DEBUG("command.debug", true),
-    COMMAND_PARSE("command.parse", true),
-    COMMAND_RELOAD("command.reload", true),
-    COMMAND_BROADCAST("command.broadcast", true),
-    COMMAND_RESYNC("command.resync", true),
-    COMMAND_VERSION("command.version", true),
-    COMMAND_LINK_OTHER("command.link.other", true),
-    COMMAND_LINKED_OTHER("command.linked.other", true),
-    COMMAND_UNLINK_OTHER("command.unlink.other", true),
+    public static final Static COMMAND_BYPASS = new Static("command.bypass", true);
+    public static final Static COMMAND_DEBUG = new Static("command.debug", true);
+    public static final Static COMMAND_PARSE = new Static("command.parse", true);
+    public static final Static COMMAND_RELOAD = new Static("command.reload", true);
+    public static final Static COMMAND_BROADCAST = new Static("command.broadcast", true);
+    public static final Static COMMAND_RESYNC = new Static("command.resync", true);
+    public static final Static COMMAND_VERSION = new Static("command.version", true);
+    public static final Static COMMAND_LINK_OTHER = new Static("command.link.other", true);
+    public static final Static COMMAND_LINKED_OTHER = new Static("command.linked.other", true);
+    public static final Static COMMAND_UNLINK_OTHER = new Static("command.unlink.other", true);
 
     // Player
-    COMMAND_ROOT("command.root", false),
-    COMMAND_HELP("command.help", false),
-    COMMAND_LINK("command.link.self", false),
-    COMMAND_LINKED("command.linked.self", false),
-    COMMAND_UNLINK("command.unlink.self", false),
+    public static final Static COMMAND_ROOT = new Static("command.root", false);
+    public static final Static COMMAND_HELP = new Static("command.help", false);
+    public static final Static COMMAND_LINK = new Static("command.link.self", false);
+    public static final Static COMMAND_LINKED = new Static("command.linked.self", false);
+    public static final Static COMMAND_UNLINK = new Static("command.unlink.self", false);
 
     // Mentions
-    MENTION_USER_ALL("mention.user.all", true),
-    MENTION_USER_LOOKUP("mention.user.lookup", true),
-    MENTION_ROLE_MENTIONABLE("mention.role.mentionable", true),
-    MENTION_ROLE_ALL("mention.role.all", true),
-    MENTION_EVERYONE("mention.everyone", true),
+    public static final Static MENTION_USER_ALL = new Static("mention.user.all", true);
+    public static final Static MENTION_USER_LOOKUP = new Static("mention.user.lookup", true);
+    public static final Static MENTION_ROLE_MENTIONABLE = new Static("mention.role.mentionable", true);
+    public static final Static MENTION_ROLE_ALL = new Static("mention.role.all", true);
+    public static final Static MENTION_EVERYONE = new Static("mention.everyone", true);
+    public static final DynamicPattern MENTION_ROLE = new DynamicPattern("mention.role", "id", true);
 
     // Misc
-    UPDATE_NOTIFICATION("updatenotification", true),
-    SILENT_JOIN("silentjoin", true),
-    SILENT_QUIT("silentquit", true),
-    ;
+    public static final Static UPDATE_NOTIFICATION = new Static("updatenotification", true);
+    public static final Static SILENT_JOIN = new Static("silentjoin", true);
+    public static final Static SILENT_QUIT = new Static("silentquit", true);
 
-    // Register dynamic permissions here, with any node for NeoForge support.
-    static {
-        Permission.of("mention.role", "id");
+    public static class Static implements Permission {
+
+        private final String permission;
+        private final boolean requiresOpByDefault;
+
+        protected Static(String permission, boolean requiresOpByDefault) {
+            this.permission = permission;
+            this.requiresOpByDefault = requiresOpByDefault;
+
+            ALL_PERMISSION_TEMPLATES.add(this);
+        }
+
+        @Override
+        public String permissionNode() {
+            return permission;
+        }
+
+        @Override
+        public boolean requiresOpByDefault() {
+            return requiresOpByDefault;
+        }
+
+        @Override
+        public PermissionTemplate template() {
+            return this;
+        }
     }
 
-    private final String permission;
-    private final String node;
-    private final boolean requiresOpByDefault;
+    public static class DynamicPattern implements PermissionTemplate.Parameterized {
 
-    Permissions(String permission, boolean requiresOpByDefault) {
-        this(permission, null, requiresOpByDefault);
+        private final String permissionPrefix;
+        private final String parameterName;
+        private final boolean requiresOpByDefault;
+
+        protected DynamicPattern(String permissionPrefix, String parameterName, boolean requiresOpByDefault) {
+            this.permissionPrefix = permissionPrefix;
+            this.parameterName = parameterName;
+            this.requiresOpByDefault = requiresOpByDefault;
+
+            ALL_PERMISSION_TEMPLATES.add(this);
+        }
+
+        public Dynamic with(String parameter) {
+            return new Dynamic(this, parameter);
+        }
+
+        @Override
+        public String permissionNode() {
+            return permissionPrefix;
+        }
+
+        @Override
+        public String parameterName() {
+            return parameterName;
+        }
+
+        @Override
+        public boolean requiresOpByDefault() {
+            return requiresOpByDefault;
+        }
     }
 
-    Permissions(String permission, String node, boolean requiresOpByDefault) {
-        this.permission = permission;
-        this.node = node;
-        this.requiresOpByDefault = requiresOpByDefault;
+    public static class Dynamic implements Permission.Parameterized {
 
-        allPermissions.add(this);
-    }
+        private final DynamicPattern pattern;
+        private final String parameter;
 
-    @Override
-    public String permission() {
-        return PERMISSION_PREFIX + permission;
-    }
+        protected Dynamic(DynamicPattern pattern, String parameter) {
+            this.pattern = pattern;
+            this.parameter = parameter;
+        }
 
-    @Override
-    public String strippedPermission() {
-        return permission;
-    }
+        @Override
+        public String permissionNodePrefix() {
+            return pattern.permissionPrefix;
+        }
 
-    @Override
-    public String node() {
-        return node;
-    }
+        @Override
+        public String parameterName() {
+            return pattern.parameterName;
+        }
 
-    /**
-     * If a given permission's default should be OP, rather than being granted by default.
-     * @return {@code true} if the permission should be restricted to, at least OPs
-     */
-    @Override
-    public boolean requiresOpByDefault() {
-        return requiresOpByDefault;
+        @Override
+        public String parameter() {
+            return parameter;
+        }
+
+        @Override
+        public boolean requiresOpByDefault() {
+            return pattern.requiresOpByDefault;
+        }
+
+        @Override
+        public PermissionTemplate.Parameterized template() {
+            return pattern;
+        }
     }
 }

@@ -38,7 +38,7 @@ public class VelocityCommandSender implements ICommandSender {
 
     @Override
     public boolean hasPermission(Permission permission) {
-        Tristate tristate = commandSource.getPermissionValue(permission.permission());
+        Tristate tristate = commandSource.getPermissionValue(permission.fullPermission());
         return tristate == Tristate.UNDEFINED
                ? !permission.requiresOpByDefault()
                : tristate.asBoolean();

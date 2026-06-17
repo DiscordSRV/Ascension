@@ -64,7 +64,7 @@ public class BungeeCommandHandler extends BasicCommandHandler {
         private final GameCommand command;
 
         public BungeeCommand(GameCommand command) {
-            super(command.getLabel(), command.getRequiredPermission().permission());
+            super(command.getLabel(), command.getRequiredPermission().fullPermission());
             this.command = command;
         }
 

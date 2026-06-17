@@ -18,29 +18,17 @@
 
 package com.discordsrv.common.permission.game;
 
-public interface Permission extends PermissionTemplate {
+public interface PermissionTemplate {
 
-    String PERMISSION_PREFIX = "discordsrv.";
+    String permissionNode();
 
-    default String fullPermission() {
-        return PERMISSION_PREFIX + permissionNode();
-    }
+    /**
+     * If a given permission's default should be OP, rather than being granted by default.
+     * @return {@code true} if the permission should be restricted to, at least OPs
+     */
+    boolean requiresOpByDefault();
 
-    PermissionTemplate template();
-
-    interface Parameterized extends Permission {
-
-        String permissionNodePrefix();
-
+    interface Parameterized extends PermissionTemplate {
         String parameterName();
-        String parameter();
-
-        @Override
-        default String permissionNode() {
-            return permissionNodePrefix() + "." + parameter();
-        }
-
-        @Override
-        PermissionTemplate.Parameterized template();
     }
 }
