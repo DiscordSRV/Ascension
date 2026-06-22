@@ -45,7 +45,8 @@ public class GroupSyncConfig {
                         set.includeInherited,
                         set.direction,
                         set.timer,
-                        set.tieBreakers
+                        set.tieBreakers,
+                        set.unlinkBehaviour
                 ));
             }
         }
@@ -90,15 +91,14 @@ public class GroupSyncConfig {
                 boolean includeInherited,
                 SyncDirection direction,
                 TimerConfig timer,
-                TieBreakers tieBreakers
+                TieBreakers tieBreakers,
+                UnlinkBehaviour unlinkBehaviour
         ) {
+            super(direction, timer, tieBreakers, unlinkBehaviour);
             this.groupName = groupName;
             this.roleId = roleId;
             this.contexts = contexts;
             this.includeInherited = includeInherited;
-            this.direction = direction;
-            this.timer = timer;
-            this.tieBreakers = tieBreakers;
         }
 
         public boolean isSet() {

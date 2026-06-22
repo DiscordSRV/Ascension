@@ -43,15 +43,15 @@ public class LinkedRoleConfig {
         public final long roleId;
 
         public SyncConfig(long roleId) {
-            this.roleId = roleId;
+            // Forced values (Minecraft -> Discord only)
+            super(
+                    SyncDirection.MINECRAFT_TO_DISCORD,
+                    new TimerConfig(SyncSide.DISABLED, 0),
+                    new TieBreakers(SyncSide.MINECRAFT, SyncSide.MINECRAFT, SyncSide.MINECRAFT),
+                    UnlinkBehaviour.REMOVE_DISCORD
+            );
 
-            // Forced values
-            this.timer.side = SyncSide.DISABLED;
-            this.direction = SyncDirection.MINECRAFT_TO_DISCORD;
-            this.tieBreakers.link = SyncSide.MINECRAFT;
-            this.tieBreakers.join = SyncSide.MINECRAFT;
-            this.tieBreakers.resyncCommand = SyncSide.MINECRAFT;
-            this.unlinkBehaviour = UnlinkBehaviour.REMOVE_DISCORD;
+            this.roleId = roleId;
         }
 
         @Override

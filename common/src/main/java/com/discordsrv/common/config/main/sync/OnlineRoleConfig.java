@@ -44,17 +44,15 @@ public class OnlineRoleConfig {
         public final long roleId;
 
         public SyncConfig(long roleId) {
+            // Forced values (Minecraft -> Discord only)
+            super(
+                    SyncDirection.MINECRAFT_TO_DISCORD,
+                    new TimerConfig(SyncSide.DISABLED, 0),
+                    new TieBreakers(SyncSide.DISABLED /* Handled separately */, SyncSide.MINECRAFT, SyncSide.MINECRAFT),
+                    UnlinkBehaviour.REMOVE_DISCORD
+            );
+
             this.roleId = roleId;
-
-            // Forced values
-            timer.side = SyncSide.DISABLED;
-            tieBreakers.join = SyncSide.DISABLED; // Handled separately
-
-            direction = SyncDirection.MINECRAFT_TO_DISCORD;
-            tieBreakers.link = SyncSide.MINECRAFT;
-            tieBreakers.resyncCommand = SyncSide.MINECRAFT;
-
-            unlinkBehaviour = UnlinkBehaviour.REMOVE_DISCORD;
         }
 
         @Override

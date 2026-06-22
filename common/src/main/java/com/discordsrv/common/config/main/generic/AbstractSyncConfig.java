@@ -34,6 +34,17 @@ import java.util.Arrays;
 @ConfigSerializable
 public abstract class AbstractSyncConfig<C extends AbstractSyncConfig<C, G, D>, G, D> extends SyncConfig {
 
+    public AbstractSyncConfig() {}
+
+    public AbstractSyncConfig(
+            SyncDirection direction,
+            TimerConfig timer,
+            TieBreakers tieBreakers,
+            UnlinkBehaviour unlinkBehaviour
+    ) {
+        super(direction, timer, tieBreakers, unlinkBehaviour);
+    }
+
     public abstract boolean isSet();
 
     public abstract G gameId();

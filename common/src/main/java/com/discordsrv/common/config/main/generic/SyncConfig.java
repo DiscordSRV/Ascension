@@ -31,6 +31,20 @@ import java.util.List;
 @ConfigSerializable
 public abstract class SyncConfig {
 
+    public SyncConfig() {}
+
+    public SyncConfig(
+            SyncDirection direction,
+            TimerConfig timer,
+            TieBreakers tieBreakers,
+            UnlinkBehaviour unlinkBehaviour
+    ) {
+        this.direction = direction;
+        this.timer = timer;
+        this.tieBreakers = tieBreakers;
+        this.unlinkBehaviour = unlinkBehaviour;
+    }
+
     @Comment("The direction to synchronize in.\n"
             + "Valid options: %1, %2, %3")
     @Constants.Comment({"bidirectional", "minecraft_to_discord", "discord_to_minecraft"})
@@ -42,6 +56,13 @@ public abstract class SyncConfig {
 
     @ConfigSerializable
     public static class TimerConfig {
+
+        public TimerConfig() {}
+
+        public TimerConfig(SyncSide side, int cycleTimeMinutes) {
+            this.side = side;
+            this.cycleTime = cycleTimeMinutes;
+        }
 
         @Comment("The direction which takes priority for determining for synchronization\n"
                 + "Valid options: %1, %2, %3")
@@ -66,6 +87,14 @@ public abstract class SyncConfig {
     public TieBreakers tieBreakers = new TieBreakers();
 
     public static class TieBreakers {
+
+        public TieBreakers() {}
+
+        public TieBreakers(SyncSide join, SyncSide link, SyncSide resyncCommand) {
+            this.join = join;
+            this.link = link;
+            this.resyncCommand = resyncCommand;
+        }
 
         public SyncSide join = SyncSide.MINECRAFT;
         public SyncSide link = SyncSide.MINECRAFT;
@@ -111,5 +140,15 @@ public abstract class SyncConfig {
         public boolean isDiscord() {
             return discord;
         }
+    }
+
+    @Override
+    public String toString() {
+        return "SyncConfig{" +
+                "direction=" + direction +
+                ", timer=" + timer +
+                ", tieBreakers=" + tieBreakers +
+                ", unlinkBehaviour=" + unlinkBehaviour +
+                '}';
     }
 }

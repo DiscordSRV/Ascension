@@ -186,7 +186,7 @@ public abstract class MainConfig implements Config {
     @Order(650)
     public LinkedRoleConfig linkedRole = new LinkedRoleConfig();
 
-    @Comment("Options for granting players that are currently online a role in Discord\n"
+    @Comment("Options for granting players that are currently online in-game, a role in Discord\n"
             + "\n"
             + PLAYERS_NEED_TO_BE_LINKED + "\n"
             + "The bot needs to have a role above the online role\n"
