@@ -26,7 +26,6 @@ import com.discordsrv.api.discord.entity.DiscordUser;
 import com.discordsrv.api.discord.entity.channel.DiscordMessageChannel;
 import com.discordsrv.api.discord.entity.guild.DiscordGuild;
 import com.discordsrv.api.discord.entity.guild.DiscordGuildMember;
-import com.discordsrv.api.discord.entity.guild.DiscordRole;
 import com.discordsrv.api.discord.entity.message.ReceivedDiscordMessage;
 import com.discordsrv.api.eventbus.Subscribe;
 import com.discordsrv.api.events.discord.message.DiscordMessageDeleteEvent;
@@ -41,7 +40,7 @@ import com.discordsrv.common.DiscordSRV;
 import com.discordsrv.common.abstraction.player.IPlayer;
 import com.discordsrv.common.config.main.channels.DiscordToMinecraftChatConfig;
 import com.discordsrv.common.config.main.channels.base.BaseChannelConfig;
-import com.discordsrv.common.config.main.generic.DiscordIgnoresConfig;
+import com.discordsrv.common.config.main.generic.DiscordUserFilterConfig;
 import com.discordsrv.common.core.component.renderer.DiscordSRVMinecraftRenderer;
 import com.discordsrv.common.core.logging.NamedLogger;
 import com.discordsrv.common.core.module.type.AbstractModule;
@@ -170,23 +169,8 @@ public class DiscordToMinecraftChatModule extends AbstractModule<DiscordSRV> {
             return Component.empty();
         }
 
-        DiscordToMinecraftChatConfig.FormattingLimitConfig formattingLimit = discordConfig.formattingLimit;
-        DiscordUser user = message.getAuthor();
-        DiscordGuildMember member = message.getMember();
-        boolean allowed = formattingLimit.roleWebhookAndUserIds.stream().anyMatch(id -> {
-            if (id == user.getId()) {
-                return true;
-            }
-            if (member == null) {
-                return false;
-            }
-            for (DiscordRole role : member.getRoles()) {
-                if (role.getId() == id) {
-                    return true;
-                }
-            }
-            return false;
-        }) != formattingLimit.blacklist;
+        DiscordUserFilterConfig formattingLimit = discordConfig.formattingLimit;
+        boolean allowed = formattingLimit.included(message);
 
         return DiscordSRVMinecraftRenderer.getWithContext(
                 message.getGuild(),
@@ -225,8 +209,8 @@ public class DiscordToMinecraftChatModule extends AbstractModule<DiscordSRV> {
         DiscordGuild guild = discordMessage.getGuild();
         boolean webhookMessage = discordMessage.isWebhookMessage();
 
-        DiscordIgnoresConfig ignores = chatConfig.ignores;
-        if (ignores != null && ignores.shouldBeIgnored(webhookMessage, author, member)) {
+        DiscordUserFilterConfig ignores = chatConfig.ignores;
+        if (ignores != null && ignores.included(webhookMessage, author, member)) {
             if (!author.isBot()) {
                 logger().debug("Message from " + author + " in " + describeChannel(gameChannel) + " is being ignored");
                 // TODO: response for humans

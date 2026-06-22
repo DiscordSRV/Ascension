@@ -21,7 +21,7 @@ package com.discordsrv.common.config.main.channels;
 import com.discordsrv.common.config.configurate.annotation.Constants;
 import com.discordsrv.common.config.configurate.manager.abstraction.ConfigurateConfigManager;
 import com.discordsrv.common.config.documentation.DocumentationURLs;
-import com.discordsrv.common.config.main.generic.DiscordIgnoresConfig;
+import com.discordsrv.common.config.main.generic.DiscordUserFilterConfig;
 import org.spongepowered.configurate.objectmapping.ConfigSerializable;
 import org.spongepowered.configurate.objectmapping.meta.Comment;
 
@@ -36,7 +36,7 @@ public class MirroringConfig {
     public Boolean enabled = true;
 
     @Comment("Users to not mirror")
-    public DiscordIgnoresConfig ignores = new DiscordIgnoresConfig();
+    public DiscordUserFilterConfig.WithBots ignores = new DiscordUserFilterConfig.WithBots();
 
     @Comment("The format of the username of mirrored messages\n"
             + "It's recommended to include some special character if in-game messages use webhooks,\n"

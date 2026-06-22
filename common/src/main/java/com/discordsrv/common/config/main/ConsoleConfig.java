@@ -24,6 +24,7 @@ import com.discordsrv.common.config.configurate.annotation.Untranslated;
 import com.discordsrv.common.config.documentation.DocumentationURLs;
 import com.discordsrv.common.config.main.generic.DestinationConfig;
 import com.discordsrv.common.config.main.generic.DiscordOutputMode;
+import com.discordsrv.common.config.main.generic.FilterMode;
 import com.discordsrv.common.config.main.generic.GameCommandExecutionConditionConfig;
 import org.spongepowered.configurate.objectmapping.ConfigSerializable;
 import org.spongepowered.configurate.objectmapping.meta.Comment;
@@ -131,14 +132,14 @@ public class ConsoleConfig {
             executionConditions.add(
                     new GameCommandExecutionConditionConfig(
                             new ArrayList<>(),
-                            false,
+                            FilterMode.WHITELIST,
                             new ArrayList<>(Arrays.asList("list", "whitelist"))
                     )
             );
             executionConditions.add(
                     new GameCommandExecutionConditionConfig(
                             new ArrayList<>(),
-                            true,
+                            FilterMode.BLACKLIST,
                             new ArrayList<>(Arrays.asList(
                                     "?",
                                     "op",

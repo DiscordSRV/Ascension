@@ -23,11 +23,12 @@ import com.discordsrv.common.config.configurate.annotation.DefaultOnly;
 import com.discordsrv.common.config.configurate.annotation.Untranslated;
 import com.discordsrv.common.config.configurate.manager.abstraction.ConfigurateConfigManager;
 import com.discordsrv.common.config.documentation.DocumentationURLs;
-import com.discordsrv.common.config.main.generic.DiscordIgnoresConfig;
+import com.discordsrv.common.config.main.generic.DiscordUserFilterConfig;
 import org.spongepowered.configurate.objectmapping.ConfigSerializable;
 import org.spongepowered.configurate.objectmapping.meta.Comment;
 
-import java.util.*;
+import java.util.LinkedHashMap;
+import java.util.Map;
 import java.util.regex.Pattern;
 
 @ConfigSerializable
@@ -89,8 +90,8 @@ public class DiscordToMinecraftChatConfig {
         put(Pattern.compile("\\n{2,}"), "\n");
     }};
 
-    @Comment("Users, bots, roles and webhooks to ignore")
-    public DiscordIgnoresConfig ignores = new DiscordIgnoresConfig();
+    @Comment("Filter users whose messages will not be forwarded to Minecraft")
+    public DiscordUserFilterConfig.WithBots ignores = new DiscordUserFilterConfig.WithBots();
 
     @Comment("How should unicode emoji be shown in-game:\n"
             + "- hide: hides emojis in-game\n"
@@ -103,17 +104,8 @@ public class DiscordToMinecraftChatConfig {
         SHOW
     }
 
-    public FormattingLimitConfig formattingLimit = new FormattingLimitConfig();
-
-    @ConfigSerializable
-    public static class FormattingLimitConfig {
-
-        @Comment("The role, webhook and user ids that should/should not have their markdown formatting converted in Minecraft")
-        public List<Long> roleWebhookAndUserIds = new ArrayList<>();
-
-        @Comment("true for blacklisting the specified roles and users, false for whitelisting")
-        public boolean blacklist = true;
-    }
+    @Comment("Users whose formatting (markdown, etc.) will be preserved when forwarded to Minecraft")
+    public DiscordUserFilterConfig formattingLimit = new DiscordUserFilterConfig();
 
     @Comment("The number of milliseconds by which to delay processing Discord messages, if the message is deleted in that time it will not be processed.\n"
             + "This can be used together with Discord moderation bots, to filter forwarded messages")

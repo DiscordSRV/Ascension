@@ -41,7 +41,7 @@ import com.discordsrv.common.DiscordSRV;
 import com.discordsrv.common.config.main.channels.MirroringConfig;
 import com.discordsrv.common.config.main.channels.base.BaseChannelConfig;
 import com.discordsrv.common.config.main.channels.base.IChannelConfig;
-import com.discordsrv.common.config.main.generic.DiscordIgnoresConfig;
+import com.discordsrv.common.config.main.generic.DiscordUserFilterConfig;
 import com.discordsrv.common.core.logging.NamedLogger;
 import com.discordsrv.common.core.module.type.AbstractModule;
 import com.discordsrv.common.util.DiscordPermissionUtil;
@@ -113,8 +113,8 @@ public class DiscordMessageMirroringModule extends AbstractModule<DiscordSRV> {
                 continue;
             }
 
-            DiscordIgnoresConfig ignores = config.ignores;
-            if (ignores != null && ignores.shouldBeIgnored(message.isWebhookMessage(), message.getAuthor(), message.getMember())) {
+            DiscordUserFilterConfig ignores = config.ignores;
+            if (ignores != null && ignores.included(message)) {
                 continue;
             }
 

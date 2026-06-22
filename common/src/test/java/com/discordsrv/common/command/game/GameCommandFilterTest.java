@@ -20,6 +20,7 @@ package com.discordsrv.common.command.game;
 
 import com.discordsrv.api.task.Task;
 import com.discordsrv.common.command.game.abstraction.GameCommandExecutionHelper;
+import com.discordsrv.common.config.main.generic.FilterMode;
 import com.discordsrv.common.config.main.generic.GameCommandExecutionConditionConfig;
 import org.junit.jupiter.api.Test;
 
@@ -148,7 +149,7 @@ public class GameCommandFilterTest {
     @Test
     public void configEmptyBlacklist() {
         GameCommandExecutionConditionConfig config = new GameCommandExecutionConditionConfig();
-        config.blacklist = true;
+        config.filterMode = FilterMode.BLACKLIST;
         config.commands.clear();
         config.roleAndUserIds.add(USER_ID);
 
@@ -158,7 +159,7 @@ public class GameCommandFilterTest {
     @Test
     public void configBlacklistFail() {
         GameCommandExecutionConditionConfig config = new GameCommandExecutionConditionConfig();
-        config.blacklist = true;
+        config.filterMode = FilterMode.BLACKLIST;
         config.commands.add("test");
         config.roleAndUserIds.add(USER_ID);
 
@@ -168,7 +169,7 @@ public class GameCommandFilterTest {
     @Test
     public void configBlacklistPass() {
         GameCommandExecutionConditionConfig config = new GameCommandExecutionConditionConfig();
-        config.blacklist = true;
+        config.filterMode = FilterMode.BLACKLIST;
         config.commands.add("tester");
         config.roleAndUserIds.add(USER_ID);
 
@@ -178,7 +179,7 @@ public class GameCommandFilterTest {
     @Test
     public void configEmptyWhitelist() {
         GameCommandExecutionConditionConfig config = new GameCommandExecutionConditionConfig();
-        config.blacklist = false;
+        config.filterMode = FilterMode.WHITELIST;
         config.commands.clear();
         config.roleAndUserIds.add(USER_ID);
 
@@ -188,7 +189,7 @@ public class GameCommandFilterTest {
     @Test
     public void configWhitelistFail() {
         GameCommandExecutionConditionConfig config = new GameCommandExecutionConditionConfig();
-        config.blacklist = false;
+        config.filterMode = FilterMode.WHITELIST;
         config.commands.add("tester");
         config.roleAndUserIds.add(USER_ID);
 
@@ -198,7 +199,7 @@ public class GameCommandFilterTest {
     @Test
     public void configWhitelistPass() {
         GameCommandExecutionConditionConfig config = new GameCommandExecutionConditionConfig();
-        config.blacklist = false;
+        config.filterMode = FilterMode.WHITELIST;
         config.commands.add("test");
         config.roleAndUserIds.add(USER_ID);
 
@@ -208,7 +209,7 @@ public class GameCommandFilterTest {
     @Test
     public void configWhitelistPassRoleId() {
         GameCommandExecutionConditionConfig config = new GameCommandExecutionConditionConfig();
-        config.blacklist = false;
+        config.filterMode = FilterMode.WHITELIST;
         config.commands.add("test");
         config.roleAndUserIds.add(USER_ID);
 
@@ -218,7 +219,7 @@ public class GameCommandFilterTest {
     @Test
     public void configMiss() {
         GameCommandExecutionConditionConfig config = new GameCommandExecutionConditionConfig();
-        config.blacklist = true;
+        config.filterMode = FilterMode.BLACKLIST;
         config.commands.clear();
         config.roleAndUserIds.clear();
 
@@ -228,7 +229,7 @@ public class GameCommandFilterTest {
     @Test
     public void configMiss2() {
         GameCommandExecutionConditionConfig config = new GameCommandExecutionConditionConfig();
-        config.blacklist = true;
+        config.filterMode = FilterMode.BLACKLIST;
         config.commands.clear();
         config.roleAndUserIds.clear();
         config.roleAndUserIds.add(USER_ID2);

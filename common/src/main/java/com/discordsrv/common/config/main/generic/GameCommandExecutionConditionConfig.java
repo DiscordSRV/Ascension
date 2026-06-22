@@ -35,17 +35,17 @@ public class GameCommandExecutionConditionConfig {
     @SuppressWarnings("unused") // Configurate
     public GameCommandExecutionConditionConfig() {}
 
-    public GameCommandExecutionConditionConfig(List<Long> roleAndUserIds, boolean blacklist, List<String> commands) {
+    public GameCommandExecutionConditionConfig(List<Long> roleAndUserIds, FilterMode filterMode, List<String> commands) {
         this.roleAndUserIds = roleAndUserIds;
-        this.blacklist = blacklist;
+        this.filterMode = filterMode;
         this.commands = commands;
     }
 
     @Comment("The role and user ids that should be allowed to run the commands specified in this condition")
     public List<Long> roleAndUserIds = new ArrayList<>();
 
-    @Comment("true for blacklist (blocking commands), false for whitelist (allowing commands)")
-    public boolean blacklist = true;
+    @Comment("\"blacklist\" to allow only commands not listed (blacklisting), \"whitelist\" to only allow listed commands (whitelisting)")
+    public FilterMode filterMode = FilterMode.BLACKLIST;
 
     @Comment("The commands and/or patterns that are allowed/blocked.\n" +
             "The command needs to start with input, this will attempt to normalize command aliases where possible (for the main command)\n" +
@@ -153,11 +153,11 @@ public class GameCommandExecutionConditionConfig {
         for (String configCommand : commands) {
             boolean anyMatch = isCommandMatch(configCommand, command, suggestions, helper);
             if (anyMatch) {
-                return !blacklist;
+                return filterMode.isWhitelist();
             }
         }
 
         // none match
-        return blacklist;
+        return !filterMode.isWhitelist();
     }
 }
