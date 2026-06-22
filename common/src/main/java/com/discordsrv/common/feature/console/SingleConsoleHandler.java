@@ -179,9 +179,6 @@ public class SingleConsoleHandler {
 
     private void splitIfEditing() {
         splitMessage.set(true);
-        synchronized (mostRecentMessageId) {
-            mostRecentMessageId.set(0);
-        }
     }
 
     public void queue(LogEntry entry) {
