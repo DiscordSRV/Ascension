@@ -25,11 +25,12 @@ package com.discordsrv.api.discord.entity.interaction.component.impl;
 
 import com.discordsrv.api.discord.entity.JDAEntity;
 import com.discordsrv.api.discord.entity.interaction.component.component.LabelComponent;
+import com.discordsrv.api.discord.entity.interaction.component.component.ModalComponent;
 import net.dv8tion.jda.api.components.label.Label;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-public class DiscordLabel implements JDAEntity<Label> {
+public class DiscordLabel implements JDAEntity<Label>, ModalComponent<Label> {
 
     @NotNull
     public static DiscordLabel of(@NotNull String label, @Nullable String description, @NotNull LabelComponent<?> child) {
