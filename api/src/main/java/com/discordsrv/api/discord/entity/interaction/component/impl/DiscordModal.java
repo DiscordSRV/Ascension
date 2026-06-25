@@ -34,6 +34,7 @@ import org.jetbrains.annotations.NotNull;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
 /**
@@ -52,18 +53,29 @@ public class DiscordModal implements JDAEntity<Modal> {
      */
     @NotNull
     public static Builder builder(@NotNull ComponentIdentifier id, @NotNull String title) {
-        return new Builder(id.getDiscordIdentifier(), title);
+        return new Builder(id, title);
     }
 
-    private final String id;
+    private final ComponentIdentifier id;
     private final String title;
     private final List<ModalComponent<?>> components;
+    private final Consumer<DiscordModalInteractionEvent> eventHandler;
 
-    private DiscordModal(String id, String title, List<ModalComponent<?>> components) {
+    private DiscordModal(ComponentIdentifier id, String title, List<ModalComponent<?>> components, Consumer<DiscordModalInteractionEvent> eventHandler) {
         this.id = id;
         this.title = title;
         this.components = components;
+        this.eventHandler = eventHandler;
     }
+
+    /**
+     * The internal discord identifier used when creating the JDA Modal.
+     */
+    public ComponentIdentifier getId() {
+        return id;
+    }
+
+    // registry moved to DiscordAPIImpl
 
     public String getTitle() {
         return title;
@@ -73,20 +85,25 @@ public class DiscordModal implements JDAEntity<Modal> {
         return components;
     }
 
+    public Consumer<DiscordModalInteractionEvent> getEventHandler() {
+        return eventHandler;
+    }
+
     @Override
     public Modal asJDA() {
-        return Modal.create(id, title)
+        return Modal.create(id.getDiscordIdentifier(), title)
                 .addComponents(components.stream().map(JDAEntity::asJDA).map(entity -> (ModalTopLevelComponent) entity).collect(Collectors.toList()))
                 .build();
     }
 
     public static class Builder {
 
-        private final String id;
+        private final ComponentIdentifier id;
         private final String title;
         private final List<ModalComponent<?>> components = new ArrayList<>();
+        private Consumer<DiscordModalInteractionEvent> eventHandler;
 
-        public Builder(String id, String title) {
+        public Builder(ComponentIdentifier id, String title) {
             this.id = id;
             this.title = title;
         }
@@ -99,6 +116,17 @@ public class DiscordModal implements JDAEntity<Modal> {
         @NotNull
         public Builder addComponent(ModalComponent<?> component) {
             return addComponents(component);
+        }
+
+        /**
+         * Sets the event handler for this modal. This can be used instead of listening to the specific interaction event.
+         * @param eventHandler the event handler, only receives events for this modal
+         * @return this builder, useful for chaining
+         */
+        @NotNull
+        public Builder setEventHandler(Consumer<DiscordModalInteractionEvent> eventHandler) {
+            this.eventHandler = eventHandler;
+            return this;
         }
 
         /**
@@ -117,7 +145,7 @@ public class DiscordModal implements JDAEntity<Modal> {
          * @return a new modal
          */
         public DiscordModal build() {
-            return new DiscordModal(id, title, components);
+            return new DiscordModal(id, title, components, eventHandler);
         }
     }
 }
