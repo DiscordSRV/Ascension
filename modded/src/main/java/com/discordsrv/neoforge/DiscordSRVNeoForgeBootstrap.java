@@ -43,7 +43,7 @@ import java.nio.file.Path;
 import java.util.Collections;
 
 public class DiscordSRVNeoForgeBootstrap extends AbstractBootstrap implements DiscordSRVModdedBootstrap {
-    private final static String DEPENDENCIES_RUNTIME = /*$ dependencies_file*/"dependencies/runtimeDownload-26.1-fabric.txt";
+    private final static String DEPENDENCIES_RUNTIME = /*$ dependencies_file*/"dependencies/runtimeDownload-26.2-fabric.txt";
 
     private final Logger logger;
     private final LifecycleManager lifecycleManager;
