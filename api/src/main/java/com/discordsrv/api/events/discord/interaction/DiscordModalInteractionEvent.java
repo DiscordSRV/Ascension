@@ -28,9 +28,11 @@ import com.discordsrv.api.discord.entity.channel.DiscordMessageChannel;
 import com.discordsrv.api.discord.entity.guild.DiscordGuildMember;
 import com.discordsrv.api.discord.entity.interaction.DiscordInteractionHook;
 import com.discordsrv.api.discord.entity.interaction.component.ComponentIdentifier;
+import com.discordsrv.api.discord.entity.message.SendableDiscordMessage;
+import com.discordsrv.api.task.Task;
 import net.dv8tion.jda.api.events.interaction.ModalInteractionEvent;
 
-public class DiscordModalInteractionEvent extends AbstractInteractionWithHookEvent<ModalInteractionEvent> {
+public abstract class DiscordModalInteractionEvent extends AbstractInteractionWithHookEvent<ModalInteractionEvent> {
 
     public DiscordModalInteractionEvent(
             ModalInteractionEvent jdaEvent,
@@ -42,4 +44,13 @@ public class DiscordModalInteractionEvent extends AbstractInteractionWithHookEve
     ) {
         super(jdaEvent, identifier, user, member, channel, hook);
     }
+
+    public abstract Task<DiscordInteractionHook> reply(SendableDiscordMessage message, boolean ephemeral);
+
+    public Task<DiscordInteractionHook> reply(SendableDiscordMessage message) {
+        return reply(message, false);
+    }
+
+    public abstract Task<DiscordInteractionHook> deferReply(boolean ephemeral);
+
 }

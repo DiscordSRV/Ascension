@@ -47,12 +47,14 @@ import com.discordsrv.common.events.discord.interaction.command.DiscordChatInput
 import com.discordsrv.common.events.discord.interaction.command.DiscordMessageContextInteractionEventImpl;
 import com.discordsrv.common.events.discord.interaction.command.DiscordUserContextInteractionEventImpl;
 import com.discordsrv.common.events.discord.interaction.component.DiscordButtonInteractionEventImpl;
+import com.discordsrv.common.events.discord.interaction.modal.DiscordModalInteractionEventImpl;
 import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.entities.Member;
 import net.dv8tion.jda.api.events.guild.member.GuildMemberRoleAddEvent;
 import net.dv8tion.jda.api.events.guild.member.GuildMemberRoleRemoveEvent;
 import net.dv8tion.jda.api.events.interaction.GenericInteractionCreateEvent;
 import net.dv8tion.jda.api.events.interaction.ModalInteractionEvent;
+import com.discordsrv.api.discord.entity.interaction.component.impl.DiscordModal;
 import net.dv8tion.jda.api.events.interaction.command.*;
 import net.dv8tion.jda.api.events.interaction.component.ButtonInteractionEvent;
 import net.dv8tion.jda.api.events.interaction.component.GenericComponentInteractionCreateEvent;
@@ -293,7 +295,12 @@ public class DiscordAPIEventModule extends AbstractModule<DiscordSRV> {
                 return;
             }
 
-            newEvent = new DiscordModalInteractionEvent((ModalInteractionEvent) event, identifier, user, guildMember, channel, hook);
+            newEvent = new DiscordModalInteractionEventImpl(discordSRV, (ModalInteractionEvent) event, identifier, user, guildMember, channel, hook);
+
+            DiscordModal modal = api().getModalById(identifier);
+            if (modal != null) {
+                modal.getEventHandler().accept((DiscordModalInteractionEvent) newEvent);
+            }
         }
         if (newEvent != null) {
             discordSRV.eventBus().publish(newEvent);

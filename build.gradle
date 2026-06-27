@@ -180,7 +180,7 @@ subprojects {
     }
 
     gradle.projectsEvaluated {
-        tasks.withType(JavaCompile) {
+        tasks.withType(JavaCompile).configureEach {
             // Enable compiler warnings for unchecked & deprecation
             // Disable compiler warning for source/target 8
             options.compilerArgs << '-Xlint:unchecked' << '-Xlint:deprecation' << '-Xlint:-options'
@@ -188,6 +188,7 @@ subprojects {
     }
 
     processResources {
+        dependsOn generateRuntimeDownloadResourceForRuntimeDownloadOnly
         duplicatesStrategy = DuplicatesStrategy.EXCLUDE
     }
 
