@@ -67,7 +67,6 @@ import net.dv8tion.jda.internal.entities.ReceivedMessage;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.jetbrains.annotations.NotNull;
-import org.jspecify.annotations.NonNull;
 
 import java.io.InterruptedIOException;
 import java.time.Duration;
@@ -78,6 +77,9 @@ import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
 public class JDAConnectionManager implements DiscordConnectionManager {
+
+    private static final int SHUTDOWN_TIMEOUT_SECONDS = 10;
+    private static final int FORCE_SHUTDOWN_TIMEOUT_SECONDS = 5;
 
     private final DiscordSRV discordSRV;
     private final FailureCallback failureCallback;
@@ -379,7 +381,7 @@ public class JDAConnectionManager implements DiscordConnectionManager {
         jdaBuilder.setCallbackPool(discordSRV.scheduler().forkJoinPool());
         jdaBuilder.setGatewayPool(gatewayPool);
         jdaBuilder.setRateLimitScheduler(rateLimitSchedulerPool);
-        jdaBuilder.setRateLimitElastic(rateLimitElasticPool, true);
+        jdaBuilder.setRateLimitElastic(rateLimitElasticPool);
         jdaBuilder.setEventPool(discordSRV.scheduler().forkJoinPool());
         jdaBuilder.setHttpClient(discordSRV.httpClient());
 
@@ -410,55 +412,35 @@ public class JDAConnectionManager implements DiscordConnectionManager {
 
     @Subscribe(priority = EventPriorities.LATE)
     public void onDSRVShuttingDown(DiscordSRVShuttingDownEvent event) {
-        shutdown(DEFAULT_SHUTDOWN_TIMEOUT);
+        shutdown();
     }
 
-    @SuppressWarnings("BusyWait") // Known
-    public void shutdown(int timeoutSeconds) {
+    public void shutdown() {
         if (instance == null) {
             shutdownExecutors();
             return;
         }
 
+        // First try to gracefully shutdown
         instance.shutdown();
 
         try {
-            discordSRV.logger().info("Waiting up to " + timeoutSeconds + " seconds for JDA to shutdown...");
-            discordSRV.scheduler().run(() -> {
-                try {
-                    while (instance != null && instance.getStatus() != JDA.Status.SHUTDOWN && !rateLimitElasticPool.isShutdown()) {
-                        Thread.sleep(50);
-                    }
-                } catch (InterruptedException ignored) {
-                    Thread.currentThread().interrupt();
+            discordSRV.logger().info("Waiting up to " + SHUTDOWN_TIMEOUT_SECONDS + " seconds for JDA to shutdown...");
+            if (!instance.awaitShutdown(SHUTDOWN_TIMEOUT_SECONDS, TimeUnit.SECONDS)) {
+                instance.shutdownNow();
+                if (!instance.awaitShutdown(FORCE_SHUTDOWN_TIMEOUT_SECONDS, TimeUnit.SECONDS)) {
+                    discordSRV.logger().error("JDA force shutdown still unsuccessful after " + FORCE_SHUTDOWN_TIMEOUT_SECONDS + " additional seconds");
                 }
-            }).get(timeoutSeconds, TimeUnit.SECONDS);
-            instance = null;
-            shutdownExecutors();
-            discordSRV.logger().info("JDA shutdown completed.");
-        } catch (TimeoutException | ExecutionException e) {
-            try {
-                discordSRV.logger().info("JDA failed to shutdown within the timeout, cancelling any remaining requests");
-                shutdownNow();
-            } catch (Throwable t) {
-                if (e instanceof ExecutionException) {
-                    t.addSuppressed(e.getCause());
-                }
-                discordSRV.logger().error("Failed to shutdown JDA", t);
             }
         } catch (InterruptedException ignored) {
             Thread.currentThread().interrupt();
-        }
-    }
-
-    @Override
-    public void shutdownNow() {
-        if (instance != null) {
-            instance.shutdownNow();
+        } finally {
             instance = null;
+            shutdownExecutors();
         }
-        shutdownExecutors();
-        discordSRV.logger().info("JDA shutdown completed.");
+
+        // If succeeded
+        discordSRV.logger().info("JDA shutdown completed successfully");
     }
 
     private void shutdownExecutors() {
@@ -468,7 +450,7 @@ public class JDAConnectionManager implements DiscordConnectionManager {
         if (rateLimitSchedulerPool != null) {
             rateLimitSchedulerPool.shutdownNow();
         }
-        if (rateLimitElasticPool != null && !rateLimitElasticPool.isShutdown()) {
+        if (rateLimitElasticPool != null) {
             rateLimitElasticPool.shutdownNow();
         }
         if (failureCallbackFuture != null) {
