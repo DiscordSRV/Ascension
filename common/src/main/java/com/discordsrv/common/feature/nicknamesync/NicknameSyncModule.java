@@ -46,7 +46,6 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
-import java.util.Objects;
 import java.util.regex.Pattern;
 
 /**
@@ -100,7 +99,7 @@ public class NicknameSyncModule extends AbstractSyncModule<DiscordSRV, NicknameS
     }
 
     private NicknameSyncConfig config() {
-        return configs().getFirst();
+        return configs().get(0);
     }
 
     @Subscribe
@@ -138,17 +137,17 @@ public class NicknameSyncModule extends AbstractSyncModule<DiscordSRV, NicknameS
         return nickname;
     }
 
-    protected String formatNickname(Someone.Resolved someone, @Nullable String nickname) {
-        DiscordUser user = someone.user().join();
+    protected Task<String> formatNickname(Someone.Resolved someone, @Nullable String nickname) {
         IOfflinePlayer offlinePlayer = discordSRV.playerProvider().lookupOfflinePlayer(someone.playerUUID()).join();
-
         DiscordGuild guild = discordSRV.discordAPI().getGuildById(configs().getFirst().serverId);
-        DiscordGuildMember member = null;
-        if (guild != null) {
-            member = someone.guildMember(guild).join();
-        }
 
-        return cleanNickname(discordSRV.placeholderService().replacePlaceholders(config().format, new SinglePlaceholder("nickname", nickname), user, offlinePlayer, guild, member))
+        return Task.allOf(
+                someone.user(),
+                guild != null ? someone.guildMember(guild) : Task.completed(null),
+                Task.completed(new SinglePlaceholder("nickname", nickname)),
+                Task.completed(offlinePlayer),
+                Task.completed(guild)
+        ).thenApply(results -> cleanNickname(discordSRV.placeholderService().replacePlaceholders(config().format, results)));
     }
 
     @Override
@@ -161,7 +160,7 @@ public class NicknameSyncModule extends AbstractSyncModule<DiscordSRV, NicknameS
         return someone.guildMember(guild)
                 .thenApply(DiscordGuildMember::getNickname)
                 .thenApply(this::cleanNickname)
-                .thenApply(nickname -> formatNickname(someone, nickname));
+                .then(nickname -> formatNickname(someone, nickname));
     }
 
     @Override
@@ -173,10 +172,9 @@ public class NicknameSyncModule extends AbstractSyncModule<DiscordSRV, NicknameS
 
         return module.getNickname(someone.playerUUID())
                 .thenApply(this::cleanNickname)
-                .thenApply(nickname -> formatNickname(someone, nickname));
+                .then(nickname -> formatNickname(someone, nickname));
     }
 
-    @Override
     protected Task<ISyncResult> applyDiscord(
             NicknameSyncConfig config,
             Someone.Resolved someone,
@@ -199,7 +197,8 @@ public class NicknameSyncModule extends AbstractSyncModule<DiscordSRV, NicknameS
                     }
                     return member;
                 })
-                .thenCompose(member -> member.asJDA().modifyNickname(formatNickname(someone, newNickname)).submit())
+                .then(member -> formatNickname(someone, newNickname)
+                    .thenCompose(formattedName -> member.asJDA().modifyNickname(formattedName).submit()))
                 .thenApply(v -> NicknameSyncResult.SET_DISCORD);
     }
 
@@ -214,6 +213,8 @@ public class NicknameSyncModule extends AbstractSyncModule<DiscordSRV, NicknameS
             return Task.failed(new SyncFail(GenericSyncResults.MODULE_NOT_FOUND));
         }
 
-        return module.setNickname(someone.playerUUID(), formatNickname(someone, newNickname)).thenApply(v -> NicknameSyncResult.SET_GAME);
+        return formatNickname(someone, newNickname)
+                .thenApply(formattedNickname -> module.setNickname(someone.playerUUID(), formattedNickname))
+                .thenApply(v -> NicknameSyncResult.SET_GAME);
     }
 }

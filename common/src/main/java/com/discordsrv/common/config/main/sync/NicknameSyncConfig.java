@@ -27,6 +27,7 @@ import com.discordsrv.common.config.main.generic.AbstractSyncConfig;
 import com.discordsrv.common.util.Game;
 import org.spongepowered.configurate.objectmapping.meta.Comment;
 
+import java.util.Arrays;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.regex.Pattern;
@@ -43,7 +44,7 @@ public class NicknameSyncConfig extends AbstractSyncConfig<NicknameSyncConfig, G
     public long serverId = 0L;
 
     @Comment("Suggested placeholders:\n"
-            + "%nickname% - The new nickname after filters\n"
+            + "%nickname% - The nickname being synced after filters\n"
             + "%player_name% - The player's username\n"
             + "%player_linked_user% - The player's linked Discord user\n"
             + "%player_linked_server_member% - The player's linked Discord server member\n"

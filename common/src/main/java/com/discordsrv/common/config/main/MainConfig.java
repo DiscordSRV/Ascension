@@ -157,7 +157,14 @@ public abstract class MainConfig implements Config {
             + PLAYERS_NEED_TO_BE_LINKED + "\n"
             + "For Minecraft to Discord synchronization:\n"
             + "- The bot needs a role above all users that you want to synchronize, the Discord server owner cannot be synchronized.\n"
-            + "- The bot needs the \"Manage Nicknames\" permission")
+            + "- The bot needs the \"Manage Nicknames\" permission\n"
+            + "\n"
+            + "Disclaimer: Nickname sync can modify the placeholder you are trying to use depending on the direction of the sync\n"
+            + "The following placeholders could be useless and can result in unexpected behavior:\n"
+            + "- %player_name%\n"
+            + "- %user_name%\n"
+            + "- %user_effective_name%"
+    )
     @Order(620)
     public NicknameSyncConfig nicknameSync = new NicknameSyncConfig();
 
