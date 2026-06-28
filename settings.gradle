@@ -34,7 +34,7 @@ stonecutter {
     }
     // For NeoForge Jar-in-Jar loader and mixin support
     create("neoforge") {
-        versions(asVersionsMap(neoforgeVersions)).buildscript("neoforge.build.gradle")
+        versions(asVersionsMap(neoforgeVersions))
         vcsVersion = neoforgeVersions.last
     }
 }
