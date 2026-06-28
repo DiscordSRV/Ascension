@@ -16,16 +16,26 @@ plugins {
 
 stonecutter {
     kotlinController = false
+
+    var fabricVersions = ["1.19.2-fabric", "1.19.3-fabric", "1.19.4-fabric", "1.20.1-fabric", "1.20.2-fabric", "1.20.4-fabric", "1.20.6-fabric", "1.21.1-fabric", "1.21.4-fabric", "1.21.5-fabric", "1.21.6-fabric", "1.21.9-fabric", "1.21.11-fabric", "26.1-fabric", "26.2-fabric"]
+    var neoforgeVersions = ["1.21.1-neoforge", "1.21.4-neoforge", "1.21.5-neoforge", "1.21.6-neoforge", "1.21.9-neoforge", "1.21.11-neoforge", "26.1-neoforge", "26.2-neoforge"]
+    if (System.getenv("CI") != "true") {
+        // In CI, we build everything, but locally we only build the latest versions to save time.
+        fabricVersions = [fabricVersions.last]
+        neoforgeVersions = [neoforgeVersions.last]
+    }
+    def asVersionsMap = { list -> list.collectEntries { [it, it] } }
+
     // Common source code for both Fabric and NeoForge.
     create("modded") {
-        versions("1.19.2-fabric", "1.19.3-fabric", "1.19.4-fabric", "1.20.1-fabric", "1.20.2-fabric", "1.20.4-fabric", "1.20.6-fabric", "1.21.1-fabric", "1.21.4-fabric", "1.21.5-fabric", "1.21.6-fabric", "1.21.9-fabric", "1.21.11-fabric", "26.1-fabric", "26.2-fabric").buildscript("fabric.build.gradle")
-        versions("1.21.1-neoforge", "1.21.4-neoforge", "1.21.5-neoforge", "1.21.6-neoforge", "1.21.9-neoforge", "1.21.11-neoforge", "26.1-neoforge", "26.2-neoforge").buildscript("neoforge.build.gradle")
-        vcsVersion = "26.2-fabric"
+        versions(asVersionsMap(fabricVersions)).buildscript("fabric.build.gradle")
+        versions(asVersionsMap(neoforgeVersions)).buildscript("neoforge.build.gradle")
+        vcsVersion = fabricVersions.last
     }
     // For NeoForge Jar-in-Jar loader and mixin support
     create("neoforge") {
-        versions "1.21.1-neoforge", "1.21.4-neoforge", "1.21.5-neoforge", "1.21.6-neoforge", "1.21.9-neoforge", "1.21.11-neoforge", "26.1-neoforge", "26.2-neoforge"
-        vcsVersion = "26.2-neoforge"
+        versions(asVersionsMap(neoforgeVersions)).buildscript("neoforge.build.gradle")
+        vcsVersion = neoforgeVersions.last
     }
 }
 

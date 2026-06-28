@@ -15,7 +15,7 @@ dependencies {
     implementation(project(':bukkit:bukkit-shared')) { transitive = false }
     implementation(project(':bungee')) { transitive = false }
     implementation(project(':velocity')) { transitive = false }
-    implementation(project(path: ':modded:1.21.11-fabric', configuration: "shadow")) { transitive = false }
+    implementation(project(path: ':modded:26.2-fabric', configuration: "shadow")) { transitive = false } // This should always match the vcsVersion in settings.gradle
 
     api(libs.configurate.yaml)
     api(libs.configurate.jackson)
