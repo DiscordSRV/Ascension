@@ -16,8 +16,9 @@ public class PlayerCollectSkinEvent implements Event, Processable.Argument<SkinI
 
     private final IOfflinePlayer player;
 
-    private boolean processed;
-    private SkinInfo skinInfo = null;
+    private String textureId;
+    private String model;
+    private SkinInfo.Parts parts;
 
     public PlayerCollectSkinEvent(IOfflinePlayer player) {
         this.player = player;
@@ -29,27 +30,32 @@ public class PlayerCollectSkinEvent implements Event, Processable.Argument<SkinI
 
     @Override
     public boolean isProcessed() {
-        return processed;
+        return textureId != null && model != null && parts != null;
     }
 
     /**
-     * Returns the skin info from a {@link #process(SkinInfo)}.
      * @return the skin info for the player
      * @throws IllegalStateException if {@link #isProcessed()} doesn't return true
      */
     @Nullable
     public SkinInfo getSkinInfoFromProcessing() {
-        if (!processed) {
+        if (!isProcessed()) {
             throw new IllegalStateException("This event has not been successfully processed yet, no skin is available");
         }
-        return skinInfo;
+        return new SkinInfo(textureId, model, parts);
+    }
+
+    public void process(String textureId, String model, SkinInfo.Parts parts) {
+        if (textureId != null) this.textureId = textureId;
+        if (model != null) this.model = model;
+        if (parts != null) this.parts = parts;
     }
 
     @Override
-    public void process(SkinInfo skinInfo) {
-        Processable.Argument.super.process(skinInfo);
-
-        this.skinInfo = skinInfo;
-        this.processed = true;
+    public void process(SkinInfo input) {
+        Processable.Argument.super.process(input);
+        if (input != null) {
+            process(input.textureId(), input.model(), input.getParts());
+        }
     }
 }
