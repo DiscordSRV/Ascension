@@ -18,19 +18,19 @@
 
 package com.discordsrv.common.integration;
 
+import com.discordsrv.api.eventbus.EventPriorities;
+import com.discordsrv.api.eventbus.Subscribe;
 import com.discordsrv.common.DiscordSRV;
-import com.discordsrv.common.abstraction.player.IOfflinePlayer;
-import com.discordsrv.common.abstraction.player.provider.PlayerSkinProvider;
 import com.discordsrv.common.abstraction.player.provider.model.SkinInfo;
 import com.discordsrv.common.core.module.type.PluginIntegration;
+import com.discordsrv.common.events.player.PlayerCollectSkinEvent;
 import net.skinsrestorer.api.PropertyUtils;
 import net.skinsrestorer.api.SkinsRestorerProvider;
 import net.skinsrestorer.api.property.SkinVariant;
 import net.skinsrestorer.api.storage.PlayerStorage;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
-public class SkinsRestorerIntegration extends PluginIntegration<DiscordSRV> implements PlayerSkinProvider.Integration {
+public class SkinsRestorerIntegration extends PluginIntegration<DiscordSRV> {
 
     private final PlayerStorage playerStorage;
 
@@ -44,11 +44,11 @@ public class SkinsRestorerIntegration extends PluginIntegration<DiscordSRV> impl
         return "SkinsRestorer";
     }
 
-    @Override
-    public @Nullable SkinInfo getSkinForPlayer(@NotNull IOfflinePlayer player) {
-        return playerStorage.getSkinOfPlayer(player.uniqueId()).map(skinProperty -> {
+    @Subscribe(priority = EventPriorities.EARLIEST)
+    public void getSkinForPlayer(PlayerCollectSkinEvent event) {
+        playerStorage.getSkinOfPlayer(event.player().uniqueId()).map(skinProperty -> {
             SkinVariant variant = PropertyUtils.getSkinVariant(skinProperty);
             return new SkinInfo(PropertyUtils.getSkinTextureHash(skinProperty), variant != null ? variant.name() : null, null);
-        }).orElse(null);
+        }).ifPresent(event::process);
     }
 }

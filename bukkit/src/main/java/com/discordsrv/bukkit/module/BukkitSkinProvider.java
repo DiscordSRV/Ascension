@@ -18,29 +18,29 @@
 
 package com.discordsrv.bukkit.module;
 
+import com.discordsrv.api.eventbus.Subscribe;
 import com.discordsrv.bukkit.BukkitDiscordSRV;
 import com.discordsrv.bukkit.player.PaperPlayerUtil;
 import com.discordsrv.bukkit.player.SpigotPlayerUtil;
-import com.discordsrv.common.abstraction.player.IOfflinePlayer;
-import com.discordsrv.common.abstraction.player.provider.PlayerSkinProvider;
-import com.discordsrv.common.abstraction.player.provider.model.SkinInfo;
 import com.discordsrv.common.core.module.type.AbstractModule;
+import com.discordsrv.common.events.player.PlayerCollectSkinEvent;
 import org.bukkit.OfflinePlayer;
 
-public class BukkitSkinProvider extends AbstractModule<BukkitDiscordSRV> implements PlayerSkinProvider.Platform {
+public class BukkitSkinProvider extends AbstractModule<BukkitDiscordSRV> {
 
     public BukkitSkinProvider(BukkitDiscordSRV discordSRV) {
         super(discordSRV);
     }
 
-    @Override
-    public SkinInfo getSkinForPlayer(IOfflinePlayer player) {
+    @Subscribe
+    public void onSkinCollect(PlayerCollectSkinEvent event) {
+        OfflinePlayer offlinePlayer = discordSRV.server().getOfflinePlayer(event.player().uniqueId());
         if (PaperPlayerUtil.SKIN_AVAILABLE_ONLINE) {
-            return PaperPlayerUtil.getSkinInfo((OfflinePlayer) player);
+            event.process(PaperPlayerUtil.getSkinInfo((offlinePlayer)));
+            return;
         }
         if (SpigotPlayerUtil.SKIN_AVAILABLE) {
-            return SpigotPlayerUtil.getSkinInfo((OfflinePlayer) player);
+            event.process(SpigotPlayerUtil.getSkinInfo(offlinePlayer));
         }
-        return null;
     }
 }

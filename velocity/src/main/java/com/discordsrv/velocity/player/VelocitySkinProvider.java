@@ -18,30 +18,30 @@
 
 package com.discordsrv.velocity.player;
 
-import com.discordsrv.common.abstraction.player.IOfflinePlayer;
-import com.discordsrv.common.abstraction.player.provider.PlayerSkinProvider;
+import com.discordsrv.api.eventbus.Subscribe;
 import com.discordsrv.common.abstraction.player.provider.model.SkinInfo;
 import com.discordsrv.common.abstraction.player.provider.model.Textures;
 import com.discordsrv.common.core.logging.Logger;
 import com.discordsrv.common.core.module.type.AbstractModule;
+import com.discordsrv.common.events.player.PlayerCollectSkinEvent;
 import com.discordsrv.velocity.VelocityDiscordSRV;
 import com.velocitypowered.api.proxy.Player;
 import com.velocitypowered.api.proxy.player.SkinParts;
 import com.velocitypowered.api.util.GameProfile;
 
-public class VelocitySkinProvider extends AbstractModule<VelocityDiscordSRV> implements PlayerSkinProvider.Platform {
+public class VelocitySkinProvider extends AbstractModule<VelocityDiscordSRV> {
 
     public VelocitySkinProvider(VelocityDiscordSRV discordSRV, Logger logger) {
         super(discordSRV, logger);
     }
 
-    @Override
-    public SkinInfo getSkinForPlayer(IOfflinePlayer player) {
-        if (!(player instanceof VelocityPlayer)) {
-            return null;
+    @Subscribe
+    public void onSkinCollect(PlayerCollectSkinEvent event) {
+        if (!(event.player() instanceof VelocityPlayer)) {
+            return;
         }
 
-        Player proxy = ((VelocityPlayer) player).getProxyPlayer();
+        Player proxy = ((VelocityPlayer) event.player()).getProxyPlayer();
         for (GameProfile.Property property : proxy.getGameProfile().getProperties()) {
             if (!Textures.KEY.equals(property.getName())) {
                 continue;
@@ -58,11 +58,9 @@ public class VelocitySkinProvider extends AbstractModule<VelocityDiscordSRV> imp
                     skinParts.hasHat()
             );
 
-            Textures textures = Textures.getFromBase64(player.discordSRV(), property.getValue());
-            return textures.getSkinInfo(parts);
+            Textures textures = Textures.getFromBase64(discordSRV, property.getValue());
+            event.process(textures.getSkinInfo(parts));
         }
-
-        return null;
     }
 }
 
