@@ -37,7 +37,7 @@ public enum GenericSyncResults implements ISyncResult {
     NOT_A_GUILD_MEMBER("User is not part of the server the role is in", true),
 
     // Error
-    MODULE_NOT_FOUND("Game data not available", false, false),
+    MODULE_NOT_FOUND("Game data provider/integration not available", false, false),
     GUILD_NOT_FOUND("Discord server not found", false, false),
     MEMBER_CANNOT_INTERACT("Cannot interact with the member", false, false),
     ROLE_DOESNT_EXIST("Role doesn't exist", false, false),

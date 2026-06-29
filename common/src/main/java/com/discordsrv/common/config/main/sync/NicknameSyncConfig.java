@@ -20,10 +20,14 @@ package com.discordsrv.common.config.main.sync;
 
 import com.discordsrv.common.abstraction.sync.enums.SyncDirection;
 import com.discordsrv.common.abstraction.sync.enums.SyncSide;
+import com.discordsrv.common.config.configurate.annotation.Constants;
+import com.discordsrv.common.config.configurate.annotation.Untranslated;
+import com.discordsrv.common.config.documentation.DocumentationURLs;
 import com.discordsrv.common.config.main.generic.AbstractSyncConfig;
 import com.discordsrv.common.util.Game;
 import org.spongepowered.configurate.objectmapping.meta.Comment;
 
+import java.util.Arrays;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.regex.Pattern;
@@ -38,6 +42,24 @@ public class NicknameSyncConfig extends AbstractSyncConfig<NicknameSyncConfig, G
 
     @Comment("The id for the Discord server where the nicknames should be synced from/to")
     public long serverId = 0L;
+
+    @Comment("Suggested placeholders:\n"
+            + "%nickname% - The nickname being synced after filters\n"
+            + "%player_linked_user% - The player's linked Discord user\n"
+            + "%player_linked_server_member% - The player's linked Discord server member\n"
+            + "%user_tag% - The Discord user's username\n"
+            + "%user_color% - The Discord user's color in the Discord server (if any)\n"
+            + "\n"
+            + "Disclaimer: Nickname sync can modify the placeholder you are trying to use depending on the direction of the sync\n"
+            + "The following placeholders could be useless and can result in unexpected behavior:\n"
+            + "%player_name% - The player's username\n"
+            + "%user_name% - The Discord user's username\n"
+            + "%user_effective_name% - The Discord user's username\n"
+            + "\n"
+            + "More placeholders at %1 (Player, User, Server Member, Guild)")
+    @Constants.Comment(DocumentationURLs.PLACEHOLDERS)
+    @Untranslated(Untranslated.Type.VALUE)
+    public String format = "%nickname%";
 
     // TODO: more info on regex pairs (String#replaceAll)
     @Comment("Regex filters for nicknames")
