@@ -28,7 +28,7 @@ import java.util.function.Consumer;
 
 public class LinkInitDiscordCommand implements Consumer<DiscordChatInputInteractionEvent> {
 
-    private static final String LABEL = "link2";
+    private static final String LABEL = "link";
     private static final ComponentIdentifier IDENTIFIER = ComponentIdentifier.of("DiscordSRV", "link-init");
 
     private static DiscordCommand INSTANCE;
