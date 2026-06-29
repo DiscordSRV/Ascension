@@ -1,3 +1,21 @@
+/*
+ * This file is part of DiscordSRV, licensed under the GPLv3 License
+ * Copyright (c) 2016-2026 Austin "Scarsz" Shapiro, Henri "Vankka" Schubin and DiscordSRV contributors
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <https://www.gnu.org/licenses/>.
+ */
+
 package com.discordsrv.common.events.player;
 
 import com.discordsrv.api.eventbus.EventPriorities;
@@ -12,7 +30,7 @@ import org.jetbrains.annotations.Nullable;
  * This event is used by DiscordSRV to lookup {@link SkinInfo} for players from platform methods (and optionally integrations).
  * This is also used to determine which skin provider should take priority when there are multiple providers ({@link EventPriorities}).
  */
-public class PlayerCollectSkinEvent implements Event, Processable.Argument<SkinInfo> {
+public class PlayerCollectSkinEvent implements Event {
 
     private final IOfflinePlayer player;
 
@@ -28,7 +46,6 @@ public class PlayerCollectSkinEvent implements Event, Processable.Argument<SkinI
         return player;
     }
 
-    @Override
     public boolean isProcessed() {
         return textureId != null && model != null && parts != null;
     }
@@ -51,9 +68,7 @@ public class PlayerCollectSkinEvent implements Event, Processable.Argument<SkinI
         if (parts != null) this.parts = parts;
     }
 
-    @Override
     public void process(SkinInfo input) {
-        Processable.Argument.super.process(input);
         if (input != null) {
             process(input.textureId(), input.model(), input.getParts());
         }
