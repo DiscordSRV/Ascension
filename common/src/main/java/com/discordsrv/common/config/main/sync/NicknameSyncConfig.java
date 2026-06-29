@@ -45,13 +45,17 @@ public class NicknameSyncConfig extends AbstractSyncConfig<NicknameSyncConfig, G
 
     @Comment("Suggested placeholders:\n"
             + "%nickname% - The nickname being synced after filters\n"
-            + "%player_name% - The player's username\n"
             + "%player_linked_user% - The player's linked Discord user\n"
             + "%player_linked_server_member% - The player's linked Discord server member\n"
-            + "%user_name% - The Discord user's username\n"
-            + "%user_effective_name% - The Discord user's username\n"
             + "%user_tag% - The Discord user's username\n"
             + "%user_color% - The Discord user's color in the Discord server (if any)\n"
+            + "\n"
+            + "Disclaimer: Nickname sync can modify the placeholder you are trying to use depending on the direction of the sync\n"
+            + "The following placeholders could be useless and can result in unexpected behavior:\n"
+            + "%player_name% - The player's username\n"
+            + "%user_name% - The Discord user's username\n"
+            + "%user_effective_name% - The Discord user's username\n"
+            + "\n"
             + "More placeholders at %1 (Player, User, Server Member, Guild)")
     @Constants.Comment(DocumentationURLs.PLACEHOLDERS)
     @Untranslated(Untranslated.Type.VALUE)

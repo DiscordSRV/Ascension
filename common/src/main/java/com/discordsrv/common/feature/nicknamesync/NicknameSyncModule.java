@@ -27,6 +27,7 @@ import com.discordsrv.api.placeholder.provider.SinglePlaceholder;
 import com.discordsrv.api.task.Task;
 import com.discordsrv.common.DiscordSRV;
 import com.discordsrv.common.abstraction.player.IOfflinePlayer;
+import com.discordsrv.common.abstraction.player.IPlayer;
 import com.discordsrv.common.abstraction.sync.AbstractSyncModule;
 import com.discordsrv.common.abstraction.sync.SyncFail;
 import com.discordsrv.common.abstraction.sync.result.DiscordPermissionResult;
@@ -138,14 +139,14 @@ public class NicknameSyncModule extends AbstractSyncModule<DiscordSRV, NicknameS
     }
 
     protected Task<String> formatNickname(Someone.Resolved someone, @Nullable String nickname) {
-        IOfflinePlayer offlinePlayer = discordSRV.playerProvider().lookupOfflinePlayer(someone.playerUUID()).join();
         DiscordGuild guild = discordSRV.discordAPI().getGuildById(configs().getFirst().serverId);
+        IPlayer player = discordSRV.playerProvider().player(someone.playerUUID());
 
         return Task.allOf(
                 someone.user(),
                 guild != null ? someone.guildMember(guild) : Task.completed(null),
+                player == null ? discordSRV.playerProvider().lookupOfflinePlayer(someone.playerUUID()) : Task.completed(player),
                 Task.completed(new SinglePlaceholder("nickname", nickname)),
-                Task.completed(offlinePlayer),
                 Task.completed(guild)
         ).thenApply(results -> cleanNickname(discordSRV.placeholderService().replacePlaceholders(config().format, results)));
     }
