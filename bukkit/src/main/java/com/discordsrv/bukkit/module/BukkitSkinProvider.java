@@ -36,11 +36,11 @@ public class BukkitSkinProvider extends AbstractModule<BukkitDiscordSRV> {
     public void onSkinCollect(PlayerCollectSkinEvent event) {
         OfflinePlayer offlinePlayer = discordSRV.server().getOfflinePlayer(event.player().uniqueId());
         if (PaperPlayerUtil.SKIN_AVAILABLE_ONLINE) {
-            event.process(PaperPlayerUtil.getSkinInfo((offlinePlayer)));
+            event.update(PaperPlayerUtil.getSkinInfo((offlinePlayer)));
             return;
         }
         if (SpigotPlayerUtil.SKIN_AVAILABLE) {
-            event.process(SpigotPlayerUtil.getSkinInfo(offlinePlayer));
+            event.update(SpigotPlayerUtil.getSkinInfo(offlinePlayer));
         }
     }
 }

@@ -49,7 +49,7 @@ public class ModdedSkinProvider extends AbstractModdedModule {
             String model = textures.skin().getMetadata("model");
             if (model == null) model = "classic";
 
-            event.process(new SkinInfo(textures.skin().getHash(), model, new SkinInfo.Parts(playerModelParts)));
+            event.update(new SkinInfo(textures.skin().getHash(), model, new SkinInfo.Parts(playerModelParts)));
         }
         //?} else {
         /*java.util.Map<com.mojang.authlib.minecraft.MinecraftProfileTexture.Type, com.mojang.authlib.minecraft.MinecraftProfileTexture> texturesMap = discordSRV.getServer().getSessionService().getTextures(((ModdedPlayer) player).getPlayer().getGameProfile(), false);
@@ -59,7 +59,7 @@ public class ModdedSkinProvider extends AbstractModdedModule {
             model = skinTexture.getMetadata("model");
             if (model == null) model = "classic";
 
-            event.process(new SkinInfo(skinTexture.getHash(), model, new SkinInfo.Parts(playerModelParts)));
+            event.update(new SkinInfo(skinTexture.getHash(), model, new SkinInfo.Parts(playerModelParts)));
         }
         *///?}
     }

@@ -20,7 +20,6 @@ package com.discordsrv.common.events.player;
 
 import com.discordsrv.api.eventbus.EventPriorities;
 import com.discordsrv.api.events.Event;
-import com.discordsrv.api.events.Processable;
 import com.discordsrv.common.abstraction.player.IOfflinePlayer;
 import com.discordsrv.common.abstraction.player.provider.model.SkinInfo;
 import org.jetbrains.annotations.Nullable;
@@ -46,31 +45,31 @@ public class PlayerCollectSkinEvent implements Event {
         return player;
     }
 
-    public boolean isProcessed() {
+    public boolean hasBeenModified() {
         return textureId != null && model != null && parts != null;
     }
 
     /**
      * @return the skin info for the player
-     * @throws IllegalStateException if {@link #isProcessed()} doesn't return true
+     * @throws IllegalStateException if {@link #hasBeenModified()} doesn't return true
      */
     @Nullable
-    public SkinInfo getSkinInfoFromProcessing() {
-        if (!isProcessed()) {
-            throw new IllegalStateException("This event has not been successfully processed yet, no skin is available");
+    public SkinInfo getSkinInfo() {
+        if (!hasBeenModified()) {
+            throw new IllegalStateException("This event has not been successfully modified yet, no skin is available");
         }
         return new SkinInfo(textureId, model, parts);
     }
 
-    public void process(String textureId, String model, SkinInfo.Parts parts) {
+    public void update(String textureId, String model, SkinInfo.Parts parts) {
         if (textureId != null) this.textureId = textureId;
         if (model != null) this.model = model;
         if (parts != null) this.parts = parts;
     }
 
-    public void process(SkinInfo input) {
+    public void update(SkinInfo input) {
         if (input != null) {
-            process(input.textureId(), input.model(), input.getParts());
+            update(input.textureId(), input.model(), input.getParts());
         }
     }
 }

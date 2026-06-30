@@ -74,6 +74,6 @@ public interface IOfflinePlayer extends Identified {
         PlayerCollectSkinEvent event = new PlayerCollectSkinEvent(this);
         discordSRV().eventBus().publish(event);
 
-        return event.isProcessed() ? event.getSkinInfoFromProcessing() : null;
+        return event.hasBeenModified() ? event.getSkinInfo() : null;
     }
 }

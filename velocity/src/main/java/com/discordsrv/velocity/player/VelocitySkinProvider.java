@@ -59,7 +59,7 @@ public class VelocitySkinProvider extends AbstractModule<VelocityDiscordSRV> {
             );
 
             Textures textures = Textures.getFromBase64(discordSRV, property.getValue());
-            event.process(textures.getSkinInfo(parts));
+            event.update(textures.getSkinInfo(parts));
         }
     }
 }

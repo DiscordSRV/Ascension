@@ -49,6 +49,6 @@ public class SkinsRestorerIntegration extends PluginIntegration<DiscordSRV> {
         playerStorage.getSkinOfPlayer(event.player().uniqueId()).map(skinProperty -> {
             SkinVariant variant = PropertyUtils.getSkinVariant(skinProperty);
             return new SkinInfo(PropertyUtils.getSkinTextureHash(skinProperty), variant.name(), null);
-        }).ifPresent(event::process);
+        }).ifPresent(event::update);
     }
 }
