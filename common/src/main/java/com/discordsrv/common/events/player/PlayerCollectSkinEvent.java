@@ -46,7 +46,7 @@ public class PlayerCollectSkinEvent implements Event {
     }
 
     public boolean hasBeenModified() {
-        return textureId != null && model != null && parts != null;
+        return textureId != null;
     }
 
     /**
