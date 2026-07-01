@@ -1,7 +1,6 @@
 import dev.vankka.dependencydownload.task.GenerateDependencyDownloadResourceTask
 
 repositories {
-    maven { url = 'https://nexus.scarsz.me/content/groups/public/' }
     exclusiveContent {
         forRepository {
             maven { url = 'https://repo.essentialsx.net/releases/' }
@@ -10,32 +9,7 @@ repositories {
             includeGroup 'net.essentialsx'
         }
     }
-    exclusiveContent {
-        forRepository {
-            maven { url = 'https://jitpack.io' }
-        }
-        filter {
-            includeGroup 'com.github.DevLeoko'
-            includeGroup 'com.github.DevLeoko.AdvancedBan'
-        }
-    }
-    exclusiveContent {
-        forRepository {
-            maven { url = 'https://mvn-repo.arim.space/affero-gpl3/' }
-        }
-        filter {
-            includeGroup 'space.arim.libertybans'
-        }
-    }
-    exclusiveContent {
-        forRepository {
-            maven { url = 'https://mvn-repo.arim.space/lesser-gpl3/' }
-        }
-        filter {
-            includeGroup 'space.arim.omnibus'
-            includeGroup 'space.arim.parent'
-        }
-    }
+    maven { url = 'https://nexus.scarsz.me/content/groups/public/' }
 }
 
 configurations {
