@@ -52,7 +52,7 @@ dependencies {
 
     // Punishments Integrations
     compileOnly(libs.libertybans)
-    compileOnly(libs.advancedban)
+    compileOnly(variantOf(libs.advancedban) { classifier('RELEASE') })
 
     // Chat Integrations
     compileOnly(libs.chatty)
