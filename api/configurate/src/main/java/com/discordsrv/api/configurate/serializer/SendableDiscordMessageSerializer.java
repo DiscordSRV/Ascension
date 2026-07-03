@@ -23,6 +23,7 @@
 
 package com.discordsrv.api.configurate.serializer;
 
+import com.discordsrv.api.discord.entity.message.AllowedMention;
 import com.discordsrv.api.discord.entity.message.DiscordMessageEmbed;
 import com.discordsrv.api.discord.entity.message.SendableDiscordMessage;
 import org.jetbrains.annotations.Nullable;
@@ -34,6 +35,8 @@ import java.lang.reflect.Type;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 import static com.discordsrv.api.configurate.DiscordSRVConfigurate.GENERATING_DEFAULT_CONFIG;
 import static com.discordsrv.api.configurate.serializer.SerializerUtil.resolveNode;
@@ -69,6 +72,8 @@ public class SendableDiscordMessageSerializer implements TypeSerializer<Sendable
             builder.setWebhookAvatarUrl(resolveNode(webhook, "avatar-url", "AvatarUrl").getString());
         }
 
+        builder.setContent(resolveNode(node, "content", "Content").getString());
+
         // v1 compat
         DiscordMessageEmbed.Builder singleEmbed = resolveNode(node, "embed", "Embed").get(DiscordMessageEmbed.Builder.class);
         List<DiscordMessageEmbed.Builder> embedList = singleEmbed != null ? Collections.singletonList(singleEmbed) : Collections.emptyList();
@@ -77,7 +82,31 @@ public class SendableDiscordMessageSerializer implements TypeSerializer<Sendable
             builder.addEmbed(embed.build());
         }
 
-        builder.setContent(resolveNode(node, "content", "Content").getString());
+        List<AllowedMention> allowedMentions = new ArrayList<>();
+        ConfigurationNode allowedMentionsNode = resolveNode(node, "allowed-mentions");
+        if (resolveNode(allowedMentionsNode, "everyone").getBoolean(false)) {
+            allowedMentions.add(AllowedMention.EVERYONE);
+        }
+
+        ConfigurationNode roleMentionNode = resolveNode(allowedMentionsNode, "roles");
+        if (roleMentionNode.getBoolean()) {
+            allowedMentions.add(AllowedMention.ALL_ROLES);
+        } else {
+            for (Long roleId : roleMentionNode.getList(Long.class, Collections.emptyList())) {
+                allowedMentions.add(AllowedMention.role(roleId));
+            }
+        }
+
+        ConfigurationNode userMentionNode = resolveNode(allowedMentionsNode, "users");
+        if (userMentionNode.getBoolean()) {
+            allowedMentions.add(AllowedMention.ALL_USERS);
+        } else {
+            for (Long userId : userMentionNode.getList(Long.class, Collections.emptyList())) {
+                allowedMentions.add(AllowedMention.user(userId));
+            }
+        }
+        builder.setAllowedMentions(allowedMentions);
+
         return builder;
     }
 
@@ -105,12 +134,55 @@ public class SendableDiscordMessageSerializer implements TypeSerializer<Sendable
             resolveNode(webhook, "avatar-url").set(obj.getWebhookAvatarUrl());
         }
 
+        resolveNode(node, "content").set(obj.getContent());
+
         List<DiscordMessageEmbed.Builder> embedBuilders = new ArrayList<>();
         obj.getEmbeds().forEach(embed -> embedBuilders.add(embed.toBuilder()));
         if (!embedBuilders.isEmpty()) {
             resolveNode(node, "embeds").setList(DiscordMessageEmbed.Builder.class, embedBuilders);
         }
 
-        resolveNode(node, "content").set(obj.getContent());
+        Set<AllowedMention> allowedMentions = obj.getAllowedMentions();
+
+        ConfigurationNode allowedMentionsNode = resolveNode(node, "allowed-mentions");
+        if (allowedMentions.contains(AllowedMention.EVERYONE)) {
+            resolveNode(allowedMentionsNode, "everyone").set(true);
+        }
+
+        serializeSnowflakeMentions(
+                allowedMentions,
+                resolveNode(allowedMentionsNode, "roles"),
+                AllowedMention.ALL_ROLES,
+                false
+        );
+        serializeSnowflakeMentions(
+                allowedMentions,
+                resolveNode(allowedMentionsNode, "users"),
+                AllowedMention.ALL_USERS,
+                true
+        );
+    }
+
+    private void serializeSnowflakeMentions(
+            Set<AllowedMention> allowedMentions,
+            ConfigurationNode configurationNode,
+            AllowedMention all,
+            boolean user
+    ) throws SerializationException {
+        if (allowedMentions.contains(all)) {
+            configurationNode.set(true);
+            return;
+        }
+
+        List<Long> ids = allowedMentions.stream()
+                .filter(mention -> mention instanceof AllowedMention.Snowflake)
+                .map(mention -> (AllowedMention.Snowflake) mention)
+                .filter(mention -> mention.isUser() == user)
+                .map(AllowedMention.Snowflake::getId)
+                .collect(Collectors.toList());
+
+        if (!ids.isEmpty()) {
+            configurationNode.setList(Long.class, ids);
+        }
     }
 }
