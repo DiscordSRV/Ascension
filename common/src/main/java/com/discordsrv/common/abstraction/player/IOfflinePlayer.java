@@ -27,6 +27,7 @@ import com.discordsrv.api.profile.Profile;
 import com.discordsrv.api.task.Task;
 import com.discordsrv.common.DiscordSRV;
 import com.discordsrv.common.abstraction.player.provider.model.SkinInfo;
+import com.discordsrv.common.events.player.PlayerCollectSkinEvent;
 import net.kyori.adventure.identity.Identified;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -69,5 +70,10 @@ public interface IOfflinePlayer extends Identified {
 
     @Nullable
     @Placeholder("skin")
-    SkinInfo skinInfo();
+    default SkinInfo skinInfo() {
+        PlayerCollectSkinEvent event = new PlayerCollectSkinEvent(this);
+        discordSRV().eventBus().publish(event);
+
+        return event.hasBeenModified() ? event.getSkinInfo() : null;
+    }
 }

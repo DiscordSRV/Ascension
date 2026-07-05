@@ -40,6 +40,7 @@ import com.discordsrv.modded.module.ModdedWorldChannelLookupModule;
 import com.discordsrv.modded.module.ban.ModdedBanModule;
 import com.discordsrv.modded.module.chat.*;
 import com.discordsrv.modded.player.ModdedPlayerProvider;
+import com.discordsrv.modded.player.ModdedSkinProvider;
 import com.discordsrv.modded.plugin.ModManager;
 import com.discordsrv.modded.requiredlinking.ModdedRequiredLinkingModule;
 import com.mojang.authlib.GameProfile;
@@ -102,6 +103,7 @@ public class ModdedDiscordSRV extends AbstractDiscordSRV<DiscordSRVModdedBootstr
         registerModule(ModdedJoinModule::new);
         registerModule(ModdedQuitModule::new);
         registerModule(ModdedAdvancementModule::new);
+        registerModule(ModdedSkinProvider::new);
 
         // Required linking
         registerModule(ModdedRequiredLinkingModule::new);

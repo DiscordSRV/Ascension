@@ -78,9 +78,6 @@ public abstract class BukkitPlayer extends BukkitCommandSender implements IPlaye
     public abstract void removeChatSuggestions(Collection<String> suggestions);
 
     @Override
-    public abstract @Nullable SkinInfo skinInfo();
-
-    @Override
     public abstract Locale locale();
 
     @Override
