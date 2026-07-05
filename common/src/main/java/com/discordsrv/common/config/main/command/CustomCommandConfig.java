@@ -21,13 +21,13 @@ package com.discordsrv.common.config.main.command;
 import com.discordsrv.api.discord.entity.interaction.command.CommandOption;
 import com.discordsrv.api.discord.entity.message.DiscordMessageEmbed;
 import com.discordsrv.api.discord.entity.message.SendableDiscordMessage;
-import com.discordsrv.common.config.configurate.annotation.Constants;
 import com.discordsrv.api.discord.entity.message.SendableDiscordMessageTemplate;
+import com.discordsrv.common.config.configurate.annotation.Constants;
+import com.discordsrv.common.config.main.generic.DiscordUserFilterConfig;
 import org.spongepowered.configurate.objectmapping.ConfigSerializable;
 import org.spongepowered.configurate.objectmapping.meta.Comment;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 
 @ConfigSerializable
@@ -73,8 +73,8 @@ public class CustomCommandConfig {
             + "Use 0 for all Discord servers, or -1 to make the command global")
     public long serverId = 0;
 
-    @Comment("Only one of the constraints has to be true to allow execution")
-    public List<ConstraintConfig> constraints = new ArrayList<>(Collections.singletonList(new ConstraintConfig()));
+    @Comment("Users allowed to run this command")
+    public DiscordUserFilterConfig userFilter = new DiscordUserFilterConfig();
 
     @Comment("A list of console commands to run upon this commands execution")
     public List<String> consoleCommandsToRun = new ArrayList<>();
@@ -97,15 +97,5 @@ public class CustomCommandConfig {
         @Comment("If this option is required to run the command")
         public boolean required = true;
 
-    }
-
-    @ConfigSerializable
-    public static class ConstraintConfig {
-
-        @Comment("The role and user ids that should/should not be allowed to run this custom command")
-        public List<Long> roleAndUserIds = new ArrayList<>();
-
-        @Comment("true for blacklisting the specified roles and users, false for whitelisting")
-        public boolean blacklist = true;
     }
 }

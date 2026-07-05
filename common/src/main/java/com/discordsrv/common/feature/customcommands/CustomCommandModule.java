@@ -191,24 +191,7 @@ public class CustomCommandModule extends AbstractModule<DiscordSRV> {
                 return;
             }
 
-            boolean anyAllowingConstraint = config.constraints.isEmpty();
-            for (CustomCommandConfig.ConstraintConfig constraint : config.constraints) {
-                boolean included = constraint.roleAndUserIds.contains(member.getUser().getId());
-                if (!included) {
-                    for (DiscordRole role : member.getRoles()) {
-                        if (constraint.roleAndUserIds.contains(role.getId())) {
-                            included = true;
-                            break;
-                        }
-                    }
-                }
-
-                if (included != constraint.blacklist) {
-                    anyAllowingConstraint = true;
-                    break;
-                }
-            }
-            if (!anyAllowingConstraint) {
+            if (!config.userFilter.included(false, member.getUser(), member)) {
                 event.reply(SendableDiscordMessage.builder().setContent("You do not have permission to run that command").build(), true); // TODO: translation
                 return;
             }

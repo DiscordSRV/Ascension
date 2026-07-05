@@ -31,6 +31,7 @@ import com.discordsrv.api.discord.entity.message.SendableDiscordMessage;
 import com.discordsrv.api.task.Task;
 import com.discordsrv.common.MockDiscordSRV;
 import com.discordsrv.common.config.main.channels.base.BaseChannelConfig;
+import com.discordsrv.common.config.main.generic.DiscordUserFilterConfig;
 import com.discordsrv.common.config.main.generic.FilterMode;
 import com.discordsrv.common.feature.messageforwarding.discord.DiscordToMinecraftChatModule;
 import net.dv8tion.jda.api.entities.User;
@@ -74,8 +75,7 @@ public class DiscordToMinecraftModuleTest {
         long userIdAllowed = 1;
 
         BaseChannelConfig config = new BaseChannelConfig();
-        config.discordToMinecraft.formattingLimit.users.ids.add(userIdAllowed);
-        config.discordToMinecraft.formattingLimit.users.filterMode = FilterMode.WHITELIST;
+        config.discordToMinecraft.formattingLimit.filters.add(new DiscordUserFilterConfig.SingleFilter(userIdAllowed, FilterMode.WHITELIST));
 
         Map<String, TextDecoration> formats = new LinkedHashMap<>();
         formats.put("**text**", TextDecoration.BOLD);

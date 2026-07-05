@@ -35,14 +35,12 @@ public class GameCommandExecutionConditionConfig {
     @SuppressWarnings("unused") // Configurate
     public GameCommandExecutionConditionConfig() {}
 
-    public GameCommandExecutionConditionConfig(List<Long> roleAndUserIds, FilterMode filterMode, List<String> commands) {
-        this.roleAndUserIds = roleAndUserIds;
-        this.filterMode = filterMode;
+    public GameCommandExecutionConditionConfig(List<String> commands) {
         this.commands = commands;
     }
 
-    @Comment("The role and user ids that should be allowed to run the commands specified in this condition")
-    public List<Long> roleAndUserIds = new ArrayList<>();
+    @Comment("Which users are allowed to run the commands filtered by this condition. At least one whitelist condition must be specified")
+    public DiscordUserFilterConfig.Strict userFilter = new DiscordUserFilterConfig.Strict();
 
     @Comment("\"blacklist\" to allow only commands not listed (blacklisting), \"whitelist\" to only allow listed commands (whitelisting)")
     public FilterMode filterMode = FilterMode.BLACKLIST;
@@ -139,14 +137,7 @@ public class GameCommandExecutionConditionConfig {
             boolean suggestions,
             GameCommandExecutionHelper helper
     ) {
-        boolean match = false;
-        for (Long id : roleAndUserIds) {
-            if (id == userId || roleIds.contains(id)) {
-                match = true;
-                break;
-            }
-        }
-        if (!match) {
+        if (!userFilter.included(false, false, userId, roleIds)) {
             return false;
         }
 

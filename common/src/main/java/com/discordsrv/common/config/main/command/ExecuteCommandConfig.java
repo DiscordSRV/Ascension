@@ -20,7 +20,6 @@ package com.discordsrv.common.config.main.command;
 
 import com.discordsrv.common.config.configurate.annotation.Constants;
 import com.discordsrv.common.config.main.generic.DiscordOutputMode;
-import com.discordsrv.common.config.main.generic.FilterMode;
 import com.discordsrv.common.config.main.generic.GameCommandExecutionConditionConfig;
 import org.spongepowered.configurate.objectmapping.meta.Comment;
 
@@ -33,8 +32,6 @@ public class ExecuteCommandConfig {
     public ExecuteCommandConfig() {
         executionConditions.add(
                 new GameCommandExecutionConditionConfig(
-                        new ArrayList<>(),
-                        FilterMode.WHITELIST,
                         new ArrayList<>(Arrays.asList("say", "/gamemode(?: (?:survival|spectator)(?: .+)?)?/"))
                 )
         );

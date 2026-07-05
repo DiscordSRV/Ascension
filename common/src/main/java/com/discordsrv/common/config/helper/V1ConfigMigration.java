@@ -29,6 +29,7 @@ import com.discordsrv.common.config.main.channels.base.BaseChannelConfig;
 import com.discordsrv.common.config.main.channels.base.ChannelConfig;
 import com.discordsrv.common.config.main.channels.base.server.ServerBaseChannelConfig;
 import com.discordsrv.common.config.main.generic.DiscordOutputMode;
+import com.discordsrv.common.config.main.generic.DiscordUserFilterConfig;
 import com.discordsrv.common.config.main.generic.FilterMode;
 import com.discordsrv.common.config.main.generic.GameCommandExecutionConditionConfig;
 import com.discordsrv.common.config.main.sync.GroupSyncConfig;
@@ -135,13 +136,20 @@ public class V1ConfigMigration {
 
             // Missing: DiscordChatChannelRequireLinkedAccount
 
-            defaultChannel.discordToMinecraft.ignores.bots = config.node("DiscordChatChannelBlockBots").getBoolean(false);
-            defaultChannel.discordToMinecraft.ignores.webhooks = config.node("DiscordChatChannelWebhooks").getBoolean(true);
-            defaultChannel.discordToMinecraft.ignores.users.filterMode = FilterMode.BLACKLIST;
-            defaultChannel.discordToMinecraft.ignores.users.ids = config.node("DiscordChatChannelBlockedIds").getList(Long.class);
-            defaultChannel.discordToMinecraft.ignores.roles.filterMode = config.node("DiscordChatChannelBlockedRolesAsWhitelist").getBoolean(false)
-                                                                           ? FilterMode.WHITELIST : FilterMode.BLACKLIST;
-            defaultChannel.discordToMinecraft.ignores.roles.ids = config.node("DiscordChatChannelBlockedRolesIds").getList(Long.class);
+            defaultChannel.discordToMinecraft.ignores.bots = config.node("DiscordChatChannelBlockBots").getBoolean(false)
+                                                             ? FilterMode.BLACKLIST : FilterMode.WHITELIST;
+            defaultChannel.discordToMinecraft.ignores.webhooks = config.node("DiscordChatChannelWebhooks").getBoolean(true)
+                                                                 ? FilterMode.BLACKLIST : FilterMode.WHITELIST;
+            for (Long blockedId : config.node("DiscordChatChannelBlockedIds").getList(Long.class, Collections.emptyList())) {
+                defaultChannel.discordToMinecraft.ignores.filters
+                        .add(new DiscordUserFilterConfig.SingleFilter(blockedId, FilterMode.BLACKLIST));
+            }
+            FilterMode discordToMinecraftIgnoreRoleFilterMode = config.node("DiscordChatChannelBlockedRolesAsWhitelist").getBoolean(false)
+                                                                ? FilterMode.WHITELIST : FilterMode.BLACKLIST;
+            for (Long roleId : config.node("DiscordChatChannelBlockedRolesIds").getList(Long.class, Collections.emptyList())) {
+                defaultChannel.discordToMinecraft.ignores.filters
+                        .add(new DiscordUserFilterConfig.SingleFilter(roleId, discordToMinecraftIgnoreRoleFilterMode));
+            }
 
             defaultChannel.roleSelection.blacklist = !config.node("DiscordChatChannelRolesSelectionAsWhitelist").getBoolean(false);
             defaultChannel.roleSelection.ids = config.node("DiscordChatChannelRolesSelection").getList(String.class, Collections.emptyList())

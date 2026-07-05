@@ -20,6 +20,7 @@ package com.discordsrv.common.command.game;
 
 import com.discordsrv.api.task.Task;
 import com.discordsrv.common.command.game.abstraction.GameCommandExecutionHelper;
+import com.discordsrv.common.config.main.generic.DiscordUserFilterConfig;
 import com.discordsrv.common.config.main.generic.FilterMode;
 import com.discordsrv.common.config.main.generic.GameCommandExecutionConditionConfig;
 import org.junit.jupiter.api.Test;
@@ -35,6 +36,8 @@ public class GameCommandFilterTest {
 
     private static final long USER_ID = 1337L;
     private static final long USER_ID2 = 1234L;
+    private static final long ROLE_ID1 = 9999L;
+    private static final long ROLE_ID2 = 8888L;
     private final ExecutionHelper helper = new ExecutionHelper();
 
     @Test
@@ -151,7 +154,7 @@ public class GameCommandFilterTest {
         GameCommandExecutionConditionConfig config = new GameCommandExecutionConditionConfig();
         config.filterMode = FilterMode.BLACKLIST;
         config.commands.clear();
-        config.roleAndUserIds.add(USER_ID);
+        config.userFilter.filters.add(new DiscordUserFilterConfig.SingleFilter(USER_ID, FilterMode.WHITELIST));
 
         assertTrue(config.isAcceptableCommand(Collections.emptyList(), USER_ID, "test", false, helper));
     }
@@ -161,7 +164,7 @@ public class GameCommandFilterTest {
         GameCommandExecutionConditionConfig config = new GameCommandExecutionConditionConfig();
         config.filterMode = FilterMode.BLACKLIST;
         config.commands.add("test");
-        config.roleAndUserIds.add(USER_ID);
+        config.userFilter.filters.add(new DiscordUserFilterConfig.SingleFilter(USER_ID, FilterMode.BLACKLIST));
 
         assertFalse(config.isAcceptableCommand(Collections.emptyList(), USER_ID, "test", false, helper));
     }
@@ -171,7 +174,7 @@ public class GameCommandFilterTest {
         GameCommandExecutionConditionConfig config = new GameCommandExecutionConditionConfig();
         config.filterMode = FilterMode.BLACKLIST;
         config.commands.add("tester");
-        config.roleAndUserIds.add(USER_ID);
+        config.userFilter.filters.add(new DiscordUserFilterConfig.SingleFilter(USER_ID, FilterMode.WHITELIST));
 
         assertTrue(config.isAcceptableCommand(Collections.emptyList(), USER_ID, "test", false, helper));
     }
@@ -181,7 +184,7 @@ public class GameCommandFilterTest {
         GameCommandExecutionConditionConfig config = new GameCommandExecutionConditionConfig();
         config.filterMode = FilterMode.WHITELIST;
         config.commands.clear();
-        config.roleAndUserIds.add(USER_ID);
+        config.userFilter.filters.add(new DiscordUserFilterConfig.SingleFilter(USER_ID, FilterMode.WHITELIST));
 
         assertFalse(config.isAcceptableCommand(Collections.emptyList(), USER_ID, "test", false, helper));
     }
@@ -191,7 +194,7 @@ public class GameCommandFilterTest {
         GameCommandExecutionConditionConfig config = new GameCommandExecutionConditionConfig();
         config.filterMode = FilterMode.WHITELIST;
         config.commands.add("tester");
-        config.roleAndUserIds.add(USER_ID);
+        config.userFilter.filters.add(new DiscordUserFilterConfig.SingleFilter(USER_ID, FilterMode.WHITELIST));
 
         assertFalse(config.isAcceptableCommand(Collections.emptyList(), USER_ID, "test", false, helper));
     }
@@ -201,7 +204,7 @@ public class GameCommandFilterTest {
         GameCommandExecutionConditionConfig config = new GameCommandExecutionConditionConfig();
         config.filterMode = FilterMode.WHITELIST;
         config.commands.add("test");
-        config.roleAndUserIds.add(USER_ID);
+        config.userFilter.filters.add(new DiscordUserFilterConfig.SingleFilter(USER_ID, FilterMode.WHITELIST));
 
         assertTrue(config.isAcceptableCommand(Collections.emptyList(), USER_ID, "test", false, helper));
     }
@@ -211,7 +214,7 @@ public class GameCommandFilterTest {
         GameCommandExecutionConditionConfig config = new GameCommandExecutionConditionConfig();
         config.filterMode = FilterMode.WHITELIST;
         config.commands.add("test");
-        config.roleAndUserIds.add(USER_ID);
+        config.userFilter.filters.add(new DiscordUserFilterConfig.SingleFilter(USER_ID, FilterMode.WHITELIST));
 
         assertTrue(config.isAcceptableCommand(Collections.singletonList(USER_ID), USER_ID2, "test", false, helper));
     }
@@ -221,7 +224,7 @@ public class GameCommandFilterTest {
         GameCommandExecutionConditionConfig config = new GameCommandExecutionConditionConfig();
         config.filterMode = FilterMode.BLACKLIST;
         config.commands.clear();
-        config.roleAndUserIds.clear();
+        config.userFilter.filters.clear();
 
         assertFalse(config.isAcceptableCommand(Collections.emptyList(), USER_ID, "test", false, helper));
     }
@@ -231,10 +234,36 @@ public class GameCommandFilterTest {
         GameCommandExecutionConditionConfig config = new GameCommandExecutionConditionConfig();
         config.filterMode = FilterMode.BLACKLIST;
         config.commands.clear();
-        config.roleAndUserIds.clear();
-        config.roleAndUserIds.add(USER_ID2);
+        config.userFilter.filters.add(new DiscordUserFilterConfig.SingleFilter(USER_ID2, FilterMode.WHITELIST));
 
         assertFalse(config.isAcceptableCommand(Collections.emptyList(), USER_ID, "test", false, helper));
+    }
+
+    @Test
+    public void configMultiFilter1() {
+        GameCommandExecutionConditionConfig config = new GameCommandExecutionConditionConfig();
+        config.filterMode = FilterMode.BLACKLIST;
+        config.commands.clear();
+        config.userFilter.filters.add(new DiscordUserFilterConfig.SingleFilter(USER_ID, FilterMode.WHITELIST));
+        config.userFilter.filters.add(new DiscordUserFilterConfig.SingleFilter(ROLE_ID1, FilterMode.BLACKLIST));
+
+        assertTrue(config.isAcceptableCommand(Collections.emptyList(), USER_ID, "test", false, helper));
+        assertFalse(config.isAcceptableCommand(Collections.singletonList(ROLE_ID1), USER_ID, "test", false, helper));
+        assertTrue(config.isAcceptableCommand(Collections.singletonList(ROLE_ID2), USER_ID, "test", false, helper));
+    }
+
+    @Test
+    public void configMultiFilter2() {
+        GameCommandExecutionConditionConfig config = new GameCommandExecutionConditionConfig();
+        config.filterMode = FilterMode.BLACKLIST;
+        config.commands.clear();
+        config.userFilter.filters.add(new DiscordUserFilterConfig.SingleFilter(USER_ID, FilterMode.WHITELIST));
+        config.userFilter.filters.add(new DiscordUserFilterConfig.SingleFilter(Arrays.asList(ROLE_ID1, ROLE_ID2), FilterMode.BLACKLIST));
+
+        assertTrue(config.isAcceptableCommand(Collections.emptyList(), USER_ID, "test", false, helper));
+        assertTrue(config.isAcceptableCommand(Collections.singletonList(ROLE_ID1), USER_ID, "test", false, helper));
+        assertTrue(config.isAcceptableCommand(Collections.singletonList(ROLE_ID2), USER_ID, "test", false, helper));
+        assertFalse(config.isAcceptableCommand(Arrays.asList(ROLE_ID1, ROLE_ID2), USER_ID, "test", false, helper));
     }
 
     public static class ExecutionHelper implements GameCommandExecutionHelper {
