@@ -16,16 +16,44 @@ plugins {
 
 stonecutter {
     kotlinController = false
+
+    def allFabric = ["1.19.2-fabric", "1.19.3-fabric", "1.19.4-fabric", "1.20.1-fabric", "1.20.2-fabric", "1.20.4-fabric", "1.20.6-fabric", "1.21.1-fabric", "1.21.4-fabric", "1.21.5-fabric", "1.21.6-fabric", "1.21.9-fabric", "1.21.11-fabric", "26.1-fabric", "26.2-fabric"]
+    def allNeoForge = ["1.21.1-neoforge", "1.21.4-neoforge", "1.21.5-neoforge", "1.21.6-neoforge", "1.21.9-neoforge", "1.21.11-neoforge", "26.1-neoforge", "26.2-neoforge"]
+    def activeFabric = allFabric
+    def activeNeoForge = allNeoForge
+
+    // To enable building for specific versions, pass the `moddedDevVersions` property to Gradle with a comma-separated list of versions.
+    // Can be done using gradle.properties or command line arguments.
+    // CLI Examples:
+    // - `./gradlew build -PmoddedDevVersions=1.21.11-fabric,1.21.11-neoforge`
+    // - `./gradlew build -PmoddedDevVersions=1.21.11` to build both 1.21.11-fabric and 1.21.11-neoforge.
+    // - `./gradlew build -PmoddedDevVersions=all` to build all versions.
+    def devVersionsProvider = providers.gradleProperty("moddedDevVersions")
+    if (System.getenv("CI") != "true" && devVersionsProvider.get() != "all") {
+        activeFabric = [allFabric.last()]
+        activeNeoForge = [allNeoForge.last()]
+
+        if (devVersionsProvider.isPresent()) {
+            def rawInputs = devVersionsProvider.get().split(',')*.trim()
+            def expandedRequested = rawInputs.collectMany { input -> input.endsWith("-fabric") || input.endsWith("-neoforge") ? [input] : ["${input}-fabric", "${input}-neoforge"]}
+
+            activeFabric += allFabric.intersect(expandedRequested)
+            activeNeoForge += allNeoForge.intersect(expandedRequested)
+        }
+    }
+    def asVersionsMap = { list -> list.collectEntries { [it, it] } }
+
     // Common source code for both Fabric and NeoForge.
     create("modded") {
-        versions("1.19.2-fabric", "1.19.3-fabric", "1.19.4-fabric", "1.20.1-fabric", "1.20.2-fabric", "1.20.4-fabric", "1.20.6-fabric", "1.21.1-fabric", "1.21.4-fabric", "1.21.5-fabric", "1.21.6-fabric", "1.21.9-fabric", "1.21.11-fabric", "26.1-fabric").buildscript("fabric.build.gradle")
-        versions("1.21.1-neoforge", "1.21.4-neoforge", "1.21.5-neoforge", "1.21.6-neoforge", "1.21.9-neoforge", "1.21.11-neoforge", "26.1-neoforge").buildscript("neoforge.build.gradle")
-        vcsVersion = "26.1-fabric"
+        versions(asVersionsMap(activeFabric)).buildscript("fabric.build.gradle")
+        versions(asVersionsMap(activeNeoForge)).buildscript("neoforge.build.gradle")
+        vcsVersion = allFabric.last()
     }
+
     // For NeoForge Jar-in-Jar loader and mixin support
     create("neoforge") {
-        versions "1.21.1-neoforge", "1.21.4-neoforge", "1.21.5-neoforge", "1.21.6-neoforge", "1.21.9-neoforge", "1.21.11-neoforge", "26.1-neoforge"
-        vcsVersion = "26.1-neoforge"
+        versions(asVersionsMap(activeNeoForge))
+        vcsVersion = allNeoForge.last()
     }
 }
 

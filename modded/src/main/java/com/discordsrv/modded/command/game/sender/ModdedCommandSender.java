@@ -84,9 +84,11 @@ public class ModdedCommandSender implements ICommandSender {
     public static CommandSourceStack getCommandSource(MinecraftServer server, CommandSource source, String name) {
         ServerLevel level = server.overworld();
 
-        //? if minecraft: >=1.21.9 {
-        Vec3 spawnPos = level == null ? Vec3.ZERO : level.getRespawnData().pos().getCenter();
-        //?} else {
+        //? if minecraft: >=26.2 {
+        Vec3 spawnPos = level == null ? Vec3.ZERO : Vec3.atCenterOf(level.getRespawnData().pos());
+        //?} else if minecraft: >=1.21.9 {
+        /*Vec3 spawnPos = level == null ? Vec3.ZERO : level.getRespawnData().pos().getCenter();
+         *///?} else {
         /*Vec3 spawnPos = Vec3.atLowerCornerOf(level.getSharedSpawnPos());
          *///?}
 

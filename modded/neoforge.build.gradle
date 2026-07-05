@@ -93,14 +93,6 @@ repositories {
     maven { url = "https://maven.parchmentmc.org" }
     exclusiveContent {
         forRepository {
-            maven { url = 'https://maven.fabricmc.net/' }
-        }
-        filter {
-            includeGroup 'net.fabricmc'
-        }
-    }
-    exclusiveContent {
-        forRepository {
             maven { url = 'https://maven.nucleoid.xyz/' }
         }
         filter {

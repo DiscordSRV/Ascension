@@ -1,7 +1,7 @@
 plugins.apply "dev.kikugie.stonecutter"
 
 stonecutter {
-    active "1.21.11-neoforge" /* [SC] DO NOT EDIT */
+    active file("active-version")
 
     parameters {
         def (version, loader) = sc.current.project.split('-', 2)
