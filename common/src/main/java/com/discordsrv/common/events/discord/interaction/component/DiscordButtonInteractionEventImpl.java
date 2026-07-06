@@ -23,6 +23,7 @@ import com.discordsrv.api.discord.entity.channel.DiscordMessageChannel;
 import com.discordsrv.api.discord.entity.guild.DiscordGuildMember;
 import com.discordsrv.api.discord.entity.interaction.DiscordInteractionHook;
 import com.discordsrv.api.discord.entity.interaction.component.ComponentIdentifier;
+import com.discordsrv.api.discord.entity.interaction.component.impl.DiscordModal;
 import com.discordsrv.api.discord.entity.message.SendableDiscordMessage;
 import com.discordsrv.api.events.discord.interaction.component.DiscordButtonInteractionEvent;
 import com.discordsrv.api.task.Task;
@@ -70,5 +71,11 @@ public class DiscordButtonInteractionEventImpl extends DiscordButtonInteractionE
     public Task<DiscordInteractionHook> deferEdit() {
         return discordSRV.discordAPI().toTask(jdaEvent::deferEdit)
                 .thenApply(interactionHook -> new DiscordInteractionHookImpl(discordSRV, interactionHook));
+    }
+
+    @Override
+    public Task<Void> replyModal(DiscordModal modal) {
+        return discordSRV.discordAPI().toTask(() -> jdaEvent.replyModal(modal.asJDA()))
+                .thenApply(interactionHook -> null);
     }
 }

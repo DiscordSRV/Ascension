@@ -27,6 +27,8 @@ import com.discordsrv.api.discord.entity.guild.DiscordGuild;
 import com.discordsrv.api.discord.entity.guild.DiscordRole;
 import com.discordsrv.api.discord.entity.interaction.command.CommandType;
 import com.discordsrv.api.discord.entity.interaction.command.DiscordCommand;
+import com.discordsrv.api.discord.entity.interaction.component.ComponentIdentifier;
+import com.discordsrv.api.discord.entity.interaction.component.impl.DiscordModal;
 import com.discordsrv.api.discord.exception.NotReadyException;
 import com.discordsrv.api.discord.exception.RestErrorResponseException;
 import com.discordsrv.api.eventbus.Subscribe;
@@ -63,6 +65,8 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.Objects;
 import java.util.Optional;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Executor;
 import java.util.concurrent.TimeUnit;
@@ -74,6 +78,7 @@ public class DiscordAPIImpl implements DiscordAPI {
     private final DiscordSRV discordSRV;
     private final DiscordCommandRegistry commandRegistry;
     private final AsyncLoadingCache<Long, WebhookClient<Message>> cachedClients;
+    private final ConcurrentMap<ComponentIdentifier, DiscordModal> modalRegistry = new ConcurrentHashMap<>();
 
     public DiscordAPIImpl(DiscordSRV discordSRV) {
         this.discordSRV = discordSRV;
@@ -83,6 +88,25 @@ public class DiscordAPIImpl implements DiscordAPI {
                 .buildAsync(new WebhookCacheLoader());
 
         discordSRV.eventBus().subscribe(this);
+    }
+
+    @Override
+    public void registerModal(DiscordModal modal) {
+        if (modal == null) return;
+        ComponentIdentifier id = modal.getId();
+        if (id != null) {
+            modalRegistry.put(id, modal);
+        }
+    }
+
+    @Override
+    public DiscordModal getModalById(ComponentIdentifier id) {
+        return id == null ? null : modalRegistry.get(id);
+    }
+
+    @Override
+    public void unregisterModal(DiscordModal modal) {
+        modalRegistry.remove(modal.getId());
     }
 
     public Task<WebhookClient<Message>> queryWebhookClient(long channelId) {

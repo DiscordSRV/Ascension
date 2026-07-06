@@ -25,6 +25,7 @@ package com.discordsrv.api.discord.entity.interaction.component.impl;
 
 import com.discordsrv.api.discord.entity.JDAEntity;
 import com.discordsrv.api.discord.entity.interaction.component.ComponentIdentifier;
+import com.discordsrv.api.discord.entity.interaction.component.component.LabelComponent;
 import net.dv8tion.jda.api.components.textinput.TextInput;
 import net.dv8tion.jda.api.components.textinput.TextInputStyle;
 import org.jetbrains.annotations.NotNull;
@@ -33,7 +34,7 @@ import org.jetbrains.annotations.NotNull;
  * A Discord text input, a modal component.
  * @see #builder(ComponentIdentifier, String, Style)
  */
-public class DiscordTextInput implements JDAEntity<TextInput> {
+public class DiscordTextInput implements JDAEntity<TextInput>, LabelComponent<TextInput> {
 
     /**
      * Creates a new text input builder with the given label and style.

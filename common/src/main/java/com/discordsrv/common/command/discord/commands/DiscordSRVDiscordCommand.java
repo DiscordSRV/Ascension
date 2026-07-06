@@ -23,6 +23,7 @@ import com.discordsrv.api.discord.entity.interaction.component.ComponentIdentifi
 import com.discordsrv.common.DiscordSRV;
 import com.discordsrv.common.command.combined.commands.*;
 import com.discordsrv.common.command.discord.commands.subcommand.ExecuteCommand;
+import com.discordsrv.common.command.discord.commands.subcommand.LinkMessageDiscordCommand;
 import com.discordsrv.common.config.main.command.DiscordCommandConfig;
 import com.discordsrv.common.feature.linking.LinkProvider;
 import com.discordsrv.common.feature.linking.requirelinking.RequiredLinkingModule;
@@ -42,7 +43,8 @@ public class DiscordSRVDiscordCommand {
                     .addSubCommandGroup(DebugCommand.getDiscord(discordSRV))
                     .addSubCommand(ParseCommand.getDiscord(discordSRV))
                     .addSubCommand(VersionCommand.getDiscord(discordSRV))
-                    .addSubCommand(ResyncCommand.getDiscord(discordSRV));
+                    .addSubCommand(ResyncCommand.getDiscord(discordSRV))
+                    .addSubCommand(LinkMessageDiscordCommand.getInstance(discordSRV));
 
             if (discordSRV.config().executeCommand.enabled) {
                 builder = builder.addSubCommand(ExecuteCommand.get(discordSRV));

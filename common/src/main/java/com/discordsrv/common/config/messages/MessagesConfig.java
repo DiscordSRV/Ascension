@@ -345,6 +345,22 @@ public class MessagesConfig implements Config {
             "Manually link accounts"
     );
 
+    // Link mesasge command
+
+    public DiscordMessage linkMessageCommandDescription = discord(
+            "Sends a message with a link button"
+    );
+
+    public DiscordMessage linkMessage = discord(
+            "Click on the button below to link your Minecraft account"
+    );
+
+    public DiscordMessage linkMessageSuccess = discord(
+            "Successfully sent a link message in this channel"
+    );
+
+    public String linkMessageButtonLabel = "Link Account";
+
     // Bypass command
 
     public BothMessage bypassCommandDescription = both(

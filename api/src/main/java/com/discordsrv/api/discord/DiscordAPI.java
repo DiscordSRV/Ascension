@@ -23,6 +23,8 @@
 
 package com.discordsrv.api.discord;
 
+import com.discordsrv.api.discord.entity.interaction.component.ComponentIdentifier;
+import com.discordsrv.api.discord.entity.interaction.component.impl.DiscordModal;
 import com.discordsrv.api.discord.entity.DiscordUser;
 import com.discordsrv.api.discord.entity.channel.*;
 import com.discordsrv.api.discord.entity.guild.DiscordCustomEmoji;
@@ -190,4 +192,23 @@ public interface DiscordAPI {
      * @param command the command to unregister
      */
     void unregisterCommand(DiscordCommand command);
+
+    /**
+     * Register a modal built via the API so it can be looked up by interaction handlers.
+     * @param modal the modal to register
+     */
+    void registerModal(DiscordModal modal);
+
+    /**
+     * Get a previously registered modal by its discord identifier string.
+     * @param id the discord modal id
+     * @return the modal or null if none registered
+     */
+    DiscordModal getModalById(ComponentIdentifier id);
+
+    /**
+     * Unregister a previously registered modal.
+     * @param modal the discord modal
+     */
+    void unregisterModal(DiscordModal modal);
 }

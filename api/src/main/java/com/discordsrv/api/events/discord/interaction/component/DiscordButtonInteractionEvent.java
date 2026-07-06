@@ -28,6 +28,7 @@ import com.discordsrv.api.discord.entity.channel.DiscordMessageChannel;
 import com.discordsrv.api.discord.entity.guild.DiscordGuildMember;
 import com.discordsrv.api.discord.entity.interaction.DiscordInteractionHook;
 import com.discordsrv.api.discord.entity.interaction.component.ComponentIdentifier;
+import com.discordsrv.api.discord.entity.interaction.component.impl.DiscordModal;
 import com.discordsrv.api.discord.entity.message.SendableDiscordMessage;
 import com.discordsrv.api.events.discord.interaction.AbstractInteractionWithHookEvent;
 import com.discordsrv.api.task.Task;
@@ -55,4 +56,5 @@ public abstract class DiscordButtonInteractionEvent extends AbstractInteractionW
 
     public abstract Task<DiscordInteractionHook> deferReply();
     public abstract Task<DiscordInteractionHook> deferEdit();
+    public abstract Task<Void> replyModal(DiscordModal modal);
 }

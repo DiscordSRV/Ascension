@@ -16,34 +16,33 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package com.discordsrv.common.events.discord.interaction.command;
+package com.discordsrv.common.events.discord.interaction.modal;
 
 import com.discordsrv.api.discord.entity.DiscordUser;
 import com.discordsrv.api.discord.entity.channel.DiscordMessageChannel;
 import com.discordsrv.api.discord.entity.guild.DiscordGuildMember;
 import com.discordsrv.api.discord.entity.interaction.DiscordInteractionHook;
 import com.discordsrv.api.discord.entity.interaction.component.ComponentIdentifier;
-import com.discordsrv.api.discord.entity.interaction.component.impl.DiscordModal;
 import com.discordsrv.api.discord.entity.message.SendableDiscordMessage;
-import com.discordsrv.api.events.discord.interaction.command.DiscordUserContextInteractionEvent;
+import com.discordsrv.api.events.discord.interaction.DiscordModalInteractionEvent;
 import com.discordsrv.api.task.Task;
 import com.discordsrv.common.DiscordSRV;
 import com.discordsrv.common.discord.api.entity.component.DiscordInteractionHookImpl;
 import com.discordsrv.common.discord.api.entity.message.util.SendableDiscordMessageUtil;
-import net.dv8tion.jda.api.events.interaction.command.UserContextInteractionEvent;
+import net.dv8tion.jda.api.events.interaction.ModalInteractionEvent;
 
-public class DiscordUserContextInteractionEventImpl extends DiscordUserContextInteractionEvent {
+public class DiscordModalInteractionEventImpl extends DiscordModalInteractionEvent {
 
     private final DiscordSRV discordSRV;
 
-    public DiscordUserContextInteractionEventImpl(
+    public DiscordModalInteractionEventImpl(
             DiscordSRV discordSRV,
-            UserContextInteractionEvent jdaEvent,
+            ModalInteractionEvent jdaEvent,
             ComponentIdentifier identifier,
             DiscordUser user,
             DiscordGuildMember member,
             DiscordMessageChannel channel, DiscordInteractionHook interaction) {
-        super(discordSRV, jdaEvent, identifier, user, member, channel, interaction);
+        super(jdaEvent, identifier, user, member, channel, interaction);
         this.discordSRV = discordSRV;
     }
 
@@ -57,10 +56,5 @@ public class DiscordUserContextInteractionEventImpl extends DiscordUserContextIn
     public Task<DiscordInteractionHook> deferReply(boolean ephemeral) {
         return discordSRV.discordAPI().toTask(() -> jdaEvent.deferReply(ephemeral))
                 .thenApply(ih -> new DiscordInteractionHookImpl(discordSRV, ih));
-    }
-
-    @Override
-    public Task<Void> replyModal(DiscordModal modal) {
-        return discordSRV.discordAPI().toTask(() -> jdaEvent.replyModal(modal.asJDA()));
     }
 }
