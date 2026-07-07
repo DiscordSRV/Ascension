@@ -143,8 +143,8 @@ public class MinecraftAuthenticationLinker extends CachedLinkProvider {
         String simple = url.substring(url.indexOf("://") + 3); // Remove protocol & don't include method query parameter
         MinecraftComponent component = discordSRV.messagesConfig(locale).minecraftAuthLinking.textBuilder()
                 .addContext(additionalContext)
-                .addPlaceholder("minecraftauth_link", url + (method != null ? "?command=" + method : null))
                 .addPlaceholder("minecraftauth_link_simple", simple)
+                .addPlaceholder("minecraftauth_link", url + (method != null ? "?command=" + method : null))
                 .addPlaceholder("player_name", playerName)
                 .addPlaceholder("player_uuid", playerUUID)
                 .build();

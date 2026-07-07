@@ -150,7 +150,7 @@ public abstract class CachedLinkProvider implements LinkProvider {
         return Optional.ofNullable(value == null || value == UNLINKED ? null : value);
     }
 
-    @Subscribe(priority = EventPriorities.EARLIEST)
+    @Subscribe(priority = EventPriorities.PRE + 1)
     public void onPlayerConnected(PlayerConnectedEvent event) {
         // Cache logged in players
         UUID uuid = event.player().uniqueId();
