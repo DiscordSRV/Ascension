@@ -298,11 +298,12 @@ public class MessagesConfig implements Config {
     @Constants({
             MINECRAFT_NEUTRAL_COLOR,
             MINECRAFT_BLURPLE_COLOR,
-            "[click:open_url:%discord_invite%]%discord_invite_simple%[click]",
-            "[click:copy_to_clipboard:%code%][hover:show_text:Click to copy linking code]/%discordcommand_minecraft_alias% link %code%"
+            "[color][click:open_url:%discord_invite%]%discord_invite_simple%[click]",
+            "[color]/%discordcommand_minecraft_alias% link",
+            "[color][click:copy_to_clipboard:%code%][hover:show_text:Click to copy linking code]%code%[click][hover]"
     })
     public MinecraftMessage storageLinking = minecraft(
-            "%1Join our %2Discord %1server at %3 %1and link your account by running the &r%4"
+            "%1Join our %2Discord %1server at %3 %1and link your account by running the %4 %1and entering the code %5"
     );
 
     @Constants(DISCORD_ERROR_PREFIX)
