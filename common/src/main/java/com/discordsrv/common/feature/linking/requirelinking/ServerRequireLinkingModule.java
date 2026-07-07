@@ -122,7 +122,7 @@ public abstract class ServerRequireLinkingModule<T extends DiscordSRV> extends R
             return;
         }
 
-        unfreeze(player);
+        recheck(player);
     }
 
     protected void freeze(IPlayer player, Component blockReason) {
