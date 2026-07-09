@@ -21,7 +21,7 @@ package com.discordsrv.bukkit;
 import com.discordsrv.api.DiscordSRV;
 import com.discordsrv.bukkit.config.main.BukkitConfig;
 import com.discordsrv.bukkit.debug.BukkitListenerTrackingModule;
-import com.discordsrv.bukkit.player.BukkitPlayerProvider;
+import com.discordsrv.bukkit.player.AbstractBukkitPlayerProvider;
 import com.discordsrv.bukkit.plugin.BukkitPluginManager;
 import com.discordsrv.bukkit.scheduler.BukkitScheduler;
 import com.discordsrv.common.AbstractDiscordSRV;
@@ -29,7 +29,6 @@ import com.discordsrv.common.command.game.abstraction.GameCommandExecutionHelper
 import com.discordsrv.common.config.connection.ConnectionConfig;
 import com.discordsrv.common.config.messages.MessagesConfig;
 import com.discordsrv.common.core.debug.data.OnlineMode;
-import net.kyori.adventure.platform.bukkit.BukkitAudiences;
 import org.bukkit.Server;
 import org.bukkit.plugin.ServicePriority;
 import org.bukkit.plugin.java.JavaPlugin;
@@ -39,8 +38,6 @@ import org.jetbrains.annotations.Nullable;
 import java.lang.reflect.Field;
 
 public abstract class BukkitDiscordSRV extends AbstractDiscordSRV<IBukkitBootstrap, BukkitConfig, ConnectionConfig, MessagesConfig> {
-
-    private BukkitAudiences audiences;
 
     private BukkitPluginManager pluginManager;
 
@@ -52,9 +49,6 @@ public abstract class BukkitDiscordSRV extends AbstractDiscordSRV<IBukkitBootstr
     protected void enable() throws Throwable {
         // Service provider
         server().getServicesManager().register(DiscordSRV.class, this, plugin(), ServicePriority.Normal);
-
-        // Adventure related stuff
-        this.audiences = BukkitAudiences.create(bootstrap.getPlugin());
 
         this.pluginManager = new BukkitPluginManager(this);
 
@@ -85,6 +79,8 @@ public abstract class BukkitDiscordSRV extends AbstractDiscordSRV<IBukkitBootstr
     @Override
     protected void disable() {
         super.disable();
+
+        playerProvider().close();
 
         if (pluginManager != null) {
             pluginManager.disable();
@@ -123,7 +119,7 @@ public abstract class BukkitDiscordSRV extends AbstractDiscordSRV<IBukkitBootstr
     public abstract @Nullable GameCommandExecutionHelper executeHelper();
 
     @Override
-    public abstract @NotNull BukkitPlayerProvider playerProvider();
+    public abstract @NotNull AbstractBukkitPlayerProvider playerProvider();
 
     @Override
     public ServerType serverType() {
@@ -136,10 +132,6 @@ public abstract class BukkitDiscordSRV extends AbstractDiscordSRV<IBukkitBootstr
 
     public Server server() {
         return bootstrap().getPlugin().getServer();
-    }
-
-    public BukkitAudiences audiences() {
-        return audiences;
     }
 
     @Override

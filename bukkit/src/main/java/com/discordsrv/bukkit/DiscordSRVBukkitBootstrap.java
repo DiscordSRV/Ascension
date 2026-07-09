@@ -29,6 +29,7 @@ import org.bukkit.plugin.java.JavaPlugin;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 @SuppressWarnings("unused") // Used in BukkitLoader via reflection
@@ -46,14 +47,22 @@ public class DiscordSRVBukkitBootstrap extends BukkitBootstrap implements IBukki
         this.lifecycleManager = new LifecycleManager(
                 logger,
                 plugin.getDataFolder().toPath(),
-                getDependencyResources(),
+                getDependencyResources(plugin),
                 getClasspathAppender()
         );
     }
 
-    private static List<String> getDependencyResources() {
+    private static List<String> getDependencyResources(JavaPlugin plugin) {
         List<String> resources = new ArrayList<>();
-        resources.add("dependencies/runtimeDownload-bukkit.txt");
+        if (plugin.getClass().getName().contains("Paper")) {
+            resources.add("dependencies/runtimeDownload-paper.txt");
+        } else {
+            resources.addAll(Arrays.asList(
+                    "dependencies/runtimeDownload-bukkit.txt",
+                    "dependencies/runtimeDownload-adventureApi.txt"
+            ));
+        }
+
         if (ReflectionUtil.classExists("com.mojang.brigadier.CommandDispatcher")) {
             resources.add("dependencies/commodore.txt");
         }

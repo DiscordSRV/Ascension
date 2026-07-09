@@ -1,7 +1,7 @@
 import dev.vankka.dependencydownload.task.GenerateDependencyDownloadResourceTask
 
 java {
-    disableAutoTargetJvm() // SkinsRestorer requires Java 25 and CarbonChat requires Java 21, we target 8
+    disableAutoTargetJvm() // SkinsRestorer requires Java 25, we target 21
 }
 
 configurations {
@@ -9,6 +9,9 @@ configurations {
     runtimeDownloadExclude {
         extendsFrom runtimeExclude
     }
+
+    adventureApiOnly
+    adventureApi.extendsFrom adventureApiOnly, runtimeDownloadExclude
 
     hikariOnly
     hikari.extendsFrom hikariOnly, runtimeDownloadExclude
@@ -25,10 +28,15 @@ configurations {
     mcAuthLibOnly
     mcAuthLib.extendsFrom mcAuthLibOnly, runtimeDownloadExclude
 
-    compileOnly.extendsFrom hikariOnly, h2DriverOnly, mysqlDriverOnly, mariadbDriverOnly, mcAuthLibOnly
+    compileOnly.extendsFrom adventureApiOnly, hikariOnly, h2DriverOnly, mysqlDriverOnly, mariadbDriverOnly, mcAuthLibOnly
     testRuntimeOnly.extendsFrom runtimeDownloadOnly
 }
 
+tasks.register('generateResourceForAdventure', GenerateDependencyDownloadResourceTask) {
+    var conf = configurations.adventureApi
+    configuration = conf
+    file = 'dependencies/' + conf.name + '.txt'
+}
 tasks.register('generateResourceForHikari', GenerateDependencyDownloadResourceTask) {
     var conf = configurations.hikari
     configuration = conf
@@ -90,7 +98,7 @@ dependencies {
     compileOnly(libs.log4j.core)
 
     // Adventure, ANSI (version upgrade for serializer), MCDiscordReserializer, EnhancedLegacyText
-    runtimeDownloadApi(libs.adventure.api)
+    adventureApiOnly(libs.adventure.api)
     runtimeDownloadApi(libs.adventure.serializer.plain)
     runtimeDownloadApi(libs.adventure.serializer.legacy)
     runtimeDownloadApi(libs.adventure.serializer.gson)
@@ -103,7 +111,10 @@ dependencies {
     runtimeDownloadApi(libs.enhancedlegacytext)
 
     // Database
-    hikariOnly(libs.hikaricp)
+    hikariOnly(libs.hikaricp) {
+        // v2 uses ServiceLocator
+        exclude module: 'slf4j-api'
+    }
     h2DriverOnly(libs.h2)
     mysqlDriverOnly(libs.mysql)
     mariadbDriverOnly(libs.mariadb)
@@ -127,6 +138,7 @@ dependencies {
 
 processResources {
     dependsOn(
+            generateResourceForAdventure,
             generateRuntimeDownloadResourceForRuntimeDownloadOnly,
             generateResourceForHikari,
             generateResourceForH2Driver,

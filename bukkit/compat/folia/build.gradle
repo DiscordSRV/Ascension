@@ -1,12 +1,12 @@
 java {
-    disableAutoTargetJvm() // Requires Java 21, we target 8
+    disableAutoTargetJvm() // Requires Java 25, we target 21
 }
 
 dependencies {
     api(project(':bukkit:bukkit-shared'))
 
     compileOnly(libs.folia) {
-        // v2
+        // v2 uses ServiceLocator
         exclude module: 'slf4j-api'
     }
 }

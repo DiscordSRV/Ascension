@@ -25,6 +25,7 @@ package com.discordsrv.api.eventbus;
 
 import com.discordsrv.api.events.Event;
 import net.dv8tion.jda.api.events.GenericEvent;
+import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.Blocking;
 import org.jetbrains.annotations.NotNull;
 
@@ -34,6 +35,7 @@ import java.util.function.Consumer;
 /**
  * DiscordSRV's event bus, handling all events extending {@link Event}s and {@link GenericEvent}s.
  */
+@ApiStatus.NonExtendable
 public interface EventBus {
 
     /**

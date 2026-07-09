@@ -23,6 +23,7 @@
 
 package com.discordsrv.api.player;
 
+import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -32,6 +33,7 @@ import java.util.UUID;
 /**
  * A provider for {@link DiscordSRVPlayer} instances.
  */
+@ApiStatus.NonExtendable
 public interface PlayerProvider {
 
     /**

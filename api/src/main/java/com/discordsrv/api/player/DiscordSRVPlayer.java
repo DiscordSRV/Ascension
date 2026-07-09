@@ -25,7 +25,7 @@ package com.discordsrv.api.player;
 
 import com.discordsrv.api.component.MinecraftComponent;
 import com.discordsrv.api.placeholder.annotation.Placeholder;
-import net.kyori.adventure.key.Key;
+import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -34,6 +34,7 @@ import java.util.UUID;
 /**
  * A DiscordSRV player.
  */
+@ApiStatus.NonExtendable
 public interface DiscordSRVPlayer {
 
     /**

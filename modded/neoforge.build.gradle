@@ -20,7 +20,9 @@ configurations.configureEach {
 }
 
 java {
-    var java = sc.eval(minecraftVersion, ">=26.1") ? JavaVersion.VERSION_25 : sc.eval(minecraftVersion, ">=1.20.5") ? JavaVersion.VERSION_21 : JavaVersion.VERSION_17
+    var java = sc.eval(minecraftVersion, ">=26.1")
+            ? JavaVersion.VERSION_25
+            : JavaVersion.VERSION_21
 
     targetCompatibility = java
     sourceCompatibility = java

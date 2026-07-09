@@ -44,7 +44,7 @@ public class BukkitConsole extends BukkitCommandSender implements Console {
     private final CommandExecutorProvider executorProvider;
 
     public BukkitConsole(BukkitDiscordSRV discordSRV) {
-        super(discordSRV, discordSRV.server().getConsoleSender(), () -> discordSRV.audiences().console());
+        super(discordSRV, discordSRV.server().getConsoleSender(), () -> discordSRV.playerProvider().toAudience(discordSRV.server().getConsoleSender()));
 
         LoggingBackend logging;
         try {

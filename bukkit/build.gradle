@@ -5,8 +5,7 @@ allprojects {
 }
 
 [
-        'net.kyori',
-        'me.lucko.commodore'
+        'net.kyori'
 ].each {
     tasks.shadowJar.relocate it, 'com.discordsrv.dependencies.' + it
     tasks.generateRuntimeDownloadResourceForRuntimeDownloadOnly.relocate it, 'com.discordsrv.dependencies.' + it
@@ -27,20 +26,21 @@ dependencies {
     compileOnly project(':common')
     implementation project(path: ':common', configuration: 'runtimeElements')
 
-    // Platform
-    compileOnly(libs.bukkit.minimum)
-
     // Compatability with newer versions and Folia
     api project(':bukkit:bukkit-shared')
-    implementation(project(':bukkit:compat:bukkit-compat-paper'))
-    implementation(project(':bukkit:compat:bukkit-compat-folia'))
-    implementation(project(':bukkit:compat:bukkit-compat-spigot'))
-    implementation(project(':bukkit:compat:bukkit-compat-bukkit1_12'))
-
-    // Adventure
-    runtimeDownloadApi(libs.adventure.api)
-    runtimeDownloadApi(libs.adventure.platform.bukkit)
+    api(project(':bukkit:compat:bukkit-compat-paper'))
+    api(project(':bukkit:compat:bukkit-compat-folia'))
+    api(project(':bukkit:compat:bukkit-compat-spigot'))
+    api(project(':bukkit:compat:bukkit-compat-bukkit1_12'))
 
     // DependencyDownload
     api(libs.mcdependencydownload.bukkit.bootstrap)
+
+    // Not included as API (only for Bukkit)
+    // Adventure
+    runtimeDownload(libs.adventure.api)
+    runtimeDownload(libs.adventure.platform.bukkit)
+
+    // Platform
+    compileOnly(libs.bukkit.minimum)
 }
