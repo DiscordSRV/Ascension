@@ -24,7 +24,7 @@ import com.discordsrv.api.placeholder.annotation.PlaceholderPrefix;
 import com.discordsrv.api.placeholder.annotation.PlaceholderRemainder;
 import com.discordsrv.api.placeholder.provider.PlaceholderProvider;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
+import org.jspecify.annotations.Nullable;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
@@ -100,6 +100,9 @@ public class AnnotationPlaceholderProvider implements PlaceholderProvider {
         }
 
         String remainder = placeholder.substring(this.annotationPlaceholder.length());
+        String[] remainderParsed = remainderConsumedByProvider
+                                   ? parseRemainder(remainder)
+                                   : new @Nullable String[] { remainder, null };
 
         Object result;
         try {
@@ -107,7 +110,7 @@ public class AnnotationPlaceholderProvider implements PlaceholderProvider {
                 result = field.get(instance);
             } else {
                 assert method != null;
-                result = lookupUsingMethod(method, instance, context, remainder);
+                result = lookupUsingMethod(method, instance, context, remainderParsed.length != 0 ? remainderParsed[1] : null);
             }
         } catch (Throwable t) {
             return PlaceholderLookupResult.lookupFailed(t);
@@ -115,14 +118,17 @@ public class AnnotationPlaceholderProvider implements PlaceholderProvider {
 
         if (result instanceof PlaceholderLookupResult) {
             return (PlaceholderLookupResult) result;
-        } else if (remainderConsumedByProvider || perfectMatch) {
+        } else if (perfectMatch || remainderConsumedByProvider && remainderParsed.length != 3) {
             return PlaceholderLookupResult.success(result);
         }
 
-        return PlaceholderLookupResult.reLookup(remainder, result);
+        return PlaceholderLookupResult.reLookup(
+                remainderParsed.length == 3 ? remainderParsed[2] : remainderParsed[0],
+                result
+        );
     }
 
-    private Object lookupUsingMethod(Method method, Object instance, List<Object> context, String remainder)
+    private Object lookupUsingMethod(Method method, Object instance, List<Object> context, String firstParameter)
             throws InvocationTargetException, IllegalAccessException {
         Parameter[] parameters = method.getParameters();
         Object[] parameterValues = new Object[parameters.length];
@@ -137,7 +143,7 @@ public class AnnotationPlaceholderProvider implements PlaceholderProvider {
                 parameters[i] = null;
 
                 if (parameter.getType().isAssignableFrom(String.class)) {
-                    String parameterValue = getParameterValueFromRemainder(remainder);
+                    String parameterValue = firstParameter;
                     if (parameterValue == null) {
                         if (!remainderAnnotation.supportsNoValue()) {
                             failed.set(true);
@@ -177,17 +183,52 @@ public class AnnotationPlaceholderProvider implements PlaceholderProvider {
         return method.invoke(instance, parameterValues);
     }
 
-    private @Nullable String getParameterValueFromRemainder(String remainder) {
-        if (!remainder.startsWith(":")) {
+    private @NotNull String[] parseRemainder(String remainder) {
+        if (remainder.length() <= 2 || remainder.charAt(0) != ':' || remainder.charAt(1) != '\'') {
             // Missing semicolon, empty value
-            return null;
+            return new String[0];
         }
 
-        String parameterValue = remainder.substring(1);
-        if (parameterValue.length() > 1 && parameterValue.startsWith("'") && parameterValue.endsWith("'")) {
-            parameterValue = parameterValue.substring(1, parameterValue.length() - 1);
+        boolean escape = false;
+        StringBuilder firstParameter = new StringBuilder(remainder.length());
+        String prefix = null;
+        String suffix = null;
+
+        char[] characters = remainder.toCharArray();
+        for (int i = 2; i < characters.length; i++) {
+            char character = characters[i];
+            if (character == '\\') {
+                escape = true;
+                continue;
+            }
+
+            boolean inEscape = escape;
+            escape = false;
+
+            if (character == '\'' && !inEscape) {
+                prefix = remainder.substring(0, i + 1);
+                suffix = remainder.substring(i + 1);
+                break;
+            }
+
+            firstParameter.append(character);
         }
-        return parameterValue;
+
+        if (prefix == null) {
+            // No ending quote -> not a valid remainder
+            return new String[0];
+        } else if (suffix.isEmpty()) {
+            return new String[] {
+                    prefix,
+                    firstParameter.toString()
+            };
+        } else {
+            return new String[] {
+                    prefix,
+                    firstParameter.toString(),
+                    suffix
+            };
+        }
     }
 
     private void apply(Parameter[] parameters, BiConsumer<Parameter, Integer> parameterProcessor) {

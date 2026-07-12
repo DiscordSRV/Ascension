@@ -28,6 +28,7 @@ import java.time.*;
 import java.time.format.DateTimeFormatter;
 import java.time.temporal.ChronoField;
 import java.time.temporal.TemporalAccessor;
+import java.util.TimeZone;
 import java.util.concurrent.TimeUnit;
 
 public class DateFormattingContext {
@@ -77,8 +78,32 @@ public class DateFormattingContext {
         return ZonedDateTime.now();
     }
 
+    @Placeholder("date_at_zone")
+    public ZonedDateTime atZone(TemporalAccessor time, @PlaceholderRemainder String timeZoneId) {
+        TimeZone timeZone = TimeZone.getTimeZone(timeZoneId);
+        return Instant.from(time).atZone(timeZone.toZoneId());
+    }
+
     @Placeholder("date_offset")
     public OffsetDateTime toOffset(ZonedDateTime date) {
         return date.toOffsetDateTime();
+    }
+
+    @Placeholder("date_to_epoch_seconds")
+    public Long getEpochSeconds(TemporalAccessor time) {
+        if (!time.isSupported(ChronoField.INSTANT_SECONDS)) {
+            return null;
+        }
+
+        return time.getLong(ChronoField.INSTANT_SECONDS);
+    }
+
+    @Placeholder("date_to_epoch_milliseconds")
+    public Long getEpochMilliseconds(TemporalAccessor time) {
+        if (!time.isSupported(ChronoField.INSTANT_SECONDS) && !time.isSupported(ChronoField.MILLI_OF_SECOND)) {
+            return null;
+        }
+
+        return (time.getLong(ChronoField.INSTANT_SECONDS) * 1000L) + time.getLong(ChronoField.MILLI_OF_SECOND);
     }
 }

@@ -22,6 +22,7 @@ import com.discordsrv.api.placeholder.PlaceholderLookupResult;
 import com.discordsrv.api.placeholder.PlaceholderService;
 import com.discordsrv.api.placeholder.annotation.Placeholder;
 import com.discordsrv.api.placeholder.annotation.PlaceholderPrefix;
+import com.discordsrv.api.placeholder.annotation.PlaceholderRemainder;
 import com.discordsrv.api.task.Task;
 import com.discordsrv.common.MockDiscordSRV;
 import com.discordsrv.common.core.placeholder.PlaceholderServiceImpl;
@@ -29,6 +30,9 @@ import org.junit.jupiter.api.Test;
 
 import java.text.DecimalFormat;
 import java.text.NumberFormat;
+import java.time.LocalDateTime;
+import java.time.OffsetDateTime;
+import java.time.ZoneOffset;
 import java.util.Collections;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -157,6 +161,15 @@ public class PlaceholderServiceTest {
         assertEquals("value", service.replacePlaceholders("%noprefix%", PrefixInheritanceContext.class));
     }
 
+    @Test
+    public void doubleRemainderReLookupTest() {
+        PlaceholderServiceImpl placeholderService = new PlaceholderServiceImpl(MockDiscordSRV.getInstance());
+        placeholderService.addReLookup(OffsetDateTime.class, "date");
+
+        String result = placeholderService.replacePlaceholders("%create_date_at_zone:'Z':'test'%", new DateContext());
+        assertEquals("testZ", result);
+    }
+
     public static class BasicContext {
 
         @Placeholder("static_field")
@@ -231,5 +244,23 @@ public class PlaceholderServiceTest {
 
         @Placeholder("name")
         public String name = "UserName";
+    }
+
+    public static class DateContext {
+
+        @Placeholder("create_date")
+        public OffsetDateTime date() {
+            return OffsetDateTime.of(LocalDateTime.of(2016, 1, 10, 5, 38), ZoneOffset.of("+2"));
+        }
+
+        @Placeholder("date")
+        public String format(OffsetDateTime offsetDateTime, @PlaceholderRemainder String remainder) {
+            return remainder + offsetDateTime.getOffset().getId();
+        }
+
+        @Placeholder("date_at_zone")
+        public OffsetDateTime atOffset(OffsetDateTime date, @PlaceholderRemainder String zoneOffset) {
+            return date.toLocalDateTime().atOffset(ZoneOffset.of(zoneOffset));
+        }
     }
 }

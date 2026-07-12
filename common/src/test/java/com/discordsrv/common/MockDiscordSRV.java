@@ -45,6 +45,7 @@ import com.discordsrv.common.core.logging.backend.LoggingBackend;
 import com.discordsrv.common.core.logging.backend.impl.JavaLoggerImpl;
 import com.discordsrv.common.core.scheduler.Scheduler;
 import com.discordsrv.common.core.scheduler.StandardScheduler;
+import com.discordsrv.common.core.storage.StorageType;
 import com.discordsrv.common.core.storage.impl.MemoryStorage;
 import com.discordsrv.common.feature.console.Console;
 import com.discordsrv.common.feature.messageforwarding.game.MinecraftToDiscordChatModule;
@@ -235,7 +236,8 @@ public class MockDiscordSRV extends AbstractDiscordSRV<IBootstrap, MainConfig, C
     public ConnectionConfig connectionConfig() {
         ConnectionConfig config = new ConnectionConfig();
         config.bot.token = FullBootExtension.BOT_TOKEN;
-        config.storage.backend = MemoryStorage.IDENTIFIER;
+        MemoryStorage.ENABLED = true;
+        config.storage.backend = StorageType.MEMORY;
         config.minecraftAuth.allow = false;
         config.update.firstPartyNotification = false;
         config.update.security.enabled = false;

@@ -909,7 +909,10 @@ public abstract class AbstractDiscordSRV<
 
             try {
                 try {
-                    StorageType storageType = getStorageType();
+                    StorageType storageType = connectionConfig().storage.backend;
+                    if (storageType == StorageType.MEMORY && !MemoryStorage.ENABLED) {
+                        storageType = StorageType.H2;
+                    }
                     logger().info("Using " + storageType.prettyName() + " as storage, loading drivers...");
                     if (storageType == StorageType.MEMORY) {
                         logger().warning("Using memory as storage backend.");
@@ -1015,19 +1018,6 @@ public abstract class AbstractDiscordSRV<
         }
 
         return results;
-    }
-
-    private StorageType getStorageType() {
-        String backend = connectionConfig().storage.backend;
-        switch (backend.toLowerCase(Locale.ROOT)) {
-            case "h2": return StorageType.H2;
-            case "mysql": return StorageType.MYSQL;
-            case "mariadb": return StorageType.MARIADB;
-        }
-        if (backend.equals(MemoryStorage.IDENTIFIER)) {
-            return StorageType.MEMORY;
-        }
-        throw new StorageException("Unknown storage backend \"" + backend + "\"");
     }
 
     @SuppressWarnings("resource") // Closed instantly

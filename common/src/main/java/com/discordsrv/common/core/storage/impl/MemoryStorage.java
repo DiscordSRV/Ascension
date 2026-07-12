@@ -34,7 +34,7 @@ import java.util.concurrent.ConcurrentHashMap;
 
 public class MemoryStorage implements Storage {
 
-    public static String IDENTIFIER = UUID.randomUUID().toString();
+    public static boolean ENABLED = false;
 
     private final Map<UUID, AccountLink> gameLinks = new ConcurrentHashMap<>();
     private final Map<Long, AccountLink> discordLinks = new ConcurrentHashMap<>();

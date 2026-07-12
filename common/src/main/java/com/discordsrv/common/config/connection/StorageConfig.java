@@ -18,6 +18,7 @@
 
 package com.discordsrv.common.config.connection;
 
+import com.discordsrv.common.core.storage.StorageType;
 import org.spongepowered.configurate.objectmapping.ConfigSerializable;
 import org.spongepowered.configurate.objectmapping.meta.Comment;
 
@@ -32,7 +33,7 @@ public class StorageConfig {
             + "- H2\n"
             + "- MySQL\n"
             + "- MariaDB")
-    public String backend = "H2";
+    public StorageType backend = StorageType.H2;
 
     @Comment("SQL table prefix")
     public String sqlTablePrefix = "discordsrv_";
