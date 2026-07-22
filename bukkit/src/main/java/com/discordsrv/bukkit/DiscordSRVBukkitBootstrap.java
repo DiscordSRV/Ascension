@@ -59,7 +59,7 @@ public class DiscordSRVBukkitBootstrap extends BukkitBootstrap implements IBukki
         } else {
             resources.addAll(Arrays.asList(
                     "dependencies/runtimeDownload-bukkit.txt",
-                    "dependencies/runtimeDownload-adventureApi.txt"
+                    "dependencies/adventureApi.txt"
             ));
         }
 

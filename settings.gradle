@@ -103,6 +103,11 @@ dependencyResolutionManagement {
             library('dependencydownload-jarinjar-bootstrap', 'dev.vankka', 'dependencydownload-jarinjar-bootstrap').versionRef('dependencydownload')
             library('dependencydownload-jarinjar-loader', 'dev.vankka', 'dependencydownload-jarinjar-loader').versionRef('dependencydownload')
 
+            // asm (dependency of jar-relocator which is a dependency of DependencyDownload)
+            version('asm', '9.10.1')
+            library('asm', 'org.ow2.asm', 'asm').versionRef('asm')
+            library('asm-commons', 'org.ow2.asm', 'asm-commons').versionRef('asm')
+
             // MinecraftDependencyDownload
             version('mcdependencydownload', '1.0.0')
             library('mcdependencydownload-bukkit-bootstrap', 'dev.vankka', 'minecraftdependencydownload-bukkit').versionRef('mcdependencydownload')
@@ -173,7 +178,7 @@ dependencyResolutionManagement {
 
             // Logging
             library('slf4j-api', 'org.slf4j', 'slf4j-api').version {
-                prefer '1.7.36'
+                require '1.7.36'
                 reject '[2,)' // Uses ServiceLoader
             }
             library('log4j-core', 'org.apache.logging.log4j', 'log4j-core').version('2.0-beta9')
@@ -193,9 +198,6 @@ dependencyResolutionManagement {
             library('adventure-platform-bukkit', 'net.kyori', 'adventure-platform-bukkit').versionRef('adventure-platform')
             library('adventure-platform-bungee', 'net.kyori', 'adventure-platform-bungeecord').versionRef('adventure-platform')
             library('adventure-serializer-bungee', 'net.kyori', 'adventure-text-serializer-bungeecord').versionRef('adventure-platform')
-
-            // Downgrade ansi (jar-relocator incompatibility)
-            library('kyori-ansi', 'net.kyori', 'ansi').version('1.1.0')
 
             // MCDiscordReserializer & EnhancedLegacyText
             library('mcdiscordreserializer', 'dev.vankka', 'mcdiscordreserializer').version('5.0.0-SNAPSHOT')

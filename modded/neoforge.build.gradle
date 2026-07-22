@@ -119,7 +119,6 @@ dependencies {
     shadow project(':common')
 
     implementation(libs.adventure.api)
-    implementation(libs.kyori.ansi)
 
     compileOnly("net.kyori:adventure-platform-neoforge:${project.property("deps.adventure_platform")}"){
         exclude group: 'net.kyori', module: 'ansi'

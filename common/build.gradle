@@ -74,6 +74,9 @@ dependencies {
 
     // DependencyDownload
     api(libs.dependencydownload.runtime)
+    // Upgrade asm (for new Java feature support in relocating dependencies at runtime)
+    api(libs.asm)
+    api(libs.asm.commons)
 
     // Apache Commons
     runtimeDownloadApi(libs.commons.lang)
@@ -102,11 +105,7 @@ dependencies {
     runtimeDownloadApi(libs.adventure.serializer.plain)
     runtimeDownloadApi(libs.adventure.serializer.legacy)
     runtimeDownloadApi(libs.adventure.serializer.gson)
-    runtimeDownloadApi(libs.adventure.serializer.ansi) {
-        // Downgrade due to jar-relocator incompatibility
-        exclude module: 'ansi'
-    }
-    runtimeDownloadApi(libs.kyori.ansi)
+    runtimeDownloadApi(libs.adventure.serializer.ansi)
     runtimeDownloadApi(libs.mcdiscordreserializer)
     runtimeDownloadApi(libs.enhancedlegacytext)
 

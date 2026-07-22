@@ -115,7 +115,6 @@ dependencies {
 
     // Adventure
     jarJar(libs.adventure.api)
-    jarJar(libs.kyori.ansi)
 
     jarJar(implementation("net.kyori:adventure-platform-neoforge:${stonecutterNode.property("deps.adventure_platform")}"){
         exclude group: 'net.kyori', module: 'ansi'

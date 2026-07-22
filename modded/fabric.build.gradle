@@ -157,9 +157,7 @@ dependencies {
     shadow project(':common')
 
     implementation(libs.adventure.api)
-    implementation(libs.kyori.ansi)
     include(libs.adventure.api)
-    include(libs.kyori.ansi)
 
     include(modImplementation("net.kyori:adventure-platform-fabric:${project.property("deps.adventure_platform")}"){
         exclude group: 'net.kyori', module: 'ansi'
