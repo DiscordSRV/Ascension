@@ -135,7 +135,7 @@ public class ComponentFactory implements MinecraftComponentFactory {
 
     @Override
     public <T> @NotNull MinecraftComponentAdapter<T> makeAdapter(Class<?> gsonSerializerClass, @Nullable Class<T> componentClass) {
-        return new MinecraftComponentAdapterImpl<>(gsonSerializerClass, componentClass);
+        return MinecraftComponentAdapterImpl.get(gsonSerializerClass, componentClass);
     }
 
     @Override

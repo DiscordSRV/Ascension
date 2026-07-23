@@ -1,7 +1,7 @@
 import dev.vankka.dependencydownload.task.GenerateDependencyDownloadResourceTask
 
 java {
-    disableAutoTargetJvm() // SkinsRestorer requires Java 25 and CarbonChat requires Java 21, we target 8
+    disableAutoTargetJvm() // SkinsRestorer requires Java 25, we target 21
 }
 
 configurations {
@@ -25,7 +25,7 @@ configurations {
     mcAuthLibOnly
     mcAuthLib.extendsFrom mcAuthLibOnly, runtimeDownloadExclude
 
-    compileOnly.extendsFrom hikariOnly, h2DriverOnly, mysqlDriverOnly, mariadbDriverOnly, mcAuthLibOnly
+    compileOnly.extendsFrom adventureApiOnly, hikariOnly, h2DriverOnly, mysqlDriverOnly, mariadbDriverOnly, mcAuthLibOnly
     testRuntimeOnly.extendsFrom runtimeDownloadOnly
 }
 
@@ -66,6 +66,9 @@ dependencies {
 
     // DependencyDownload
     api(libs.dependencydownload.runtime)
+    // Upgrade asm (for new Java feature support in relocating dependencies at runtime)
+    api(libs.asm)
+    api(libs.asm.commons)
 
     // Apache Commons
     runtimeDownloadApi(libs.commons.lang)
@@ -89,21 +92,22 @@ dependencies {
     // Logging
     compileOnly(libs.log4j.core)
 
-    // Adventure, ANSI (version upgrade for serializer), MCDiscordReserializer, EnhancedLegacyText
-    runtimeDownloadApi(libs.adventure.api)
-    runtimeDownloadApi(libs.adventure.serializer.plain)
-    runtimeDownloadApi(libs.adventure.serializer.legacy)
-    runtimeDownloadApi(libs.adventure.serializer.gson)
-    runtimeDownloadApi(libs.adventure.serializer.ansi) {
-        // Downgrade due to jar-relocator incompatibility
-        exclude module: 'ansi'
-    }
-    runtimeDownloadApi(libs.kyori.ansi)
-    runtimeDownloadApi(libs.mcdiscordreserializer)
-    runtimeDownloadApi(libs.enhancedlegacytext)
+    // Adventure, MCDiscordReserializer, EnhancedLegacyText
+    // adventure-api is provided by some platforms, serializer availability varies.
+    compileOnlyApi(libs.adventure.api)
+    testImplementation(libs.adventure.api)
+    runtimeDownloadApi(libs.adventure.serializer.plain) { exclude module: 'adventure-api' }
+    runtimeDownloadApi(libs.adventure.serializer.legacy) { exclude module: 'adventure-api' }
+    runtimeDownloadApi(libs.adventure.serializer.gson) { exclude module: 'adventure-api' }
+    runtimeDownloadApi(libs.adventure.serializer.ansi) { exclude module: 'adventure-api' }
+    runtimeDownloadApi(libs.mcdiscordreserializer) { exclude module: 'adventure-api' }
+    runtimeDownloadApi(libs.enhancedlegacytext) { exclude module: 'adventure-api' }
 
     // Database
-    hikariOnly(libs.hikaricp)
+    hikariOnly(libs.hikaricp) {
+        // v2 uses ServiceLocator
+        exclude module: 'slf4j-api'
+    }
     h2DriverOnly(libs.h2)
     mysqlDriverOnly(libs.mysql)
     mariadbDriverOnly(libs.mariadb)

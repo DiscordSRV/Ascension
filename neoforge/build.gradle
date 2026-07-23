@@ -2,19 +2,21 @@ plugins {
     id("dev.kikugie.stonecutter") version "0.9"
     alias(libs.plugins.neoforge.moddev)
 }
-apply from: rootProject.file('buildscript/relocations.gradle')
-apply from: rootProject.file('buildscript/final.gradle')
-
-configurations.configureEach {
-    resolutionStrategy {
-        force "org.slf4j:slf4j-api:1.7.36"
-        force "dev.vankka:dependencydownload-runtime:2.0.0"
-    }
-}
+apply from: rootProject.file('buildscript/loader.gradle')
 
 var minecraftVersion = sc.current.version.toString().split("-")[0]
 var stonecutterNode = rootProject.findProject("modded").subprojects.find { it.name == project.name }
 var is26_1 = sc.eval(minecraftVersion, ">=26.1") // Obfuscated vs Unobfuscated versions.
+
+configurations.configureEach {
+    resolutionStrategy {
+        force "org.slf4j:slf4j-api:1.7.36"
+        if (sc.eval(minecraftVersion, ">=1.21.1 <=1.21.9")) { // Introduced by NeoForge in 1.21.1
+            force "com.google.code.gson:gson:2.11.0"
+        }
+        force "org.ow2.asm:asm:9.8"
+    }
+}
 
 java {
     var java = stonecutterNode.java.targetCompatibility
@@ -51,8 +53,6 @@ processResources {
     filesMatching(['META-INF/neoforge.mods.toml']) {
         expand replaceProperties
     }
-
-    dependsOn generateRuntimeDownloadResourceForRuntimeDownloadOnly
 }
 
 tasks.register('copyNeoForge', Copy) {
@@ -115,7 +115,6 @@ dependencies {
 
     // Adventure
     jarJar(libs.adventure.api)
-    jarJar(libs.kyori.ansi)
 
     jarJar(implementation("net.kyori:adventure-platform-neoforge:${stonecutterNode.property("deps.adventure_platform")}"){
         exclude group: 'net.kyori', module: 'ansi'

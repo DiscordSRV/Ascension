@@ -52,7 +52,7 @@ public class BukkitBasicCommandHandler extends BasicCommandHandler implements IC
         } else if (commandSender instanceof ConsoleCommandSender) {
             return discordSRV.console();
         } else {
-            return new BukkitCommandSender(discordSRV, commandSender, () -> discordSRV.audiences().sender(commandSender));
+            return new BukkitCommandSender(discordSRV, commandSender, () -> discordSRV.playerProvider().toAudience(commandSender));
         }
     }
 

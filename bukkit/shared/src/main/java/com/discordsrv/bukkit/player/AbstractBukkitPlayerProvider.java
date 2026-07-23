@@ -26,7 +26,9 @@ import com.discordsrv.bukkit.BukkitDiscordSRV;
 import com.discordsrv.common.abstraction.player.IOfflinePlayer;
 import com.discordsrv.common.abstraction.player.IPlayer;
 import com.discordsrv.common.abstraction.player.provider.ServerPlayerProvider;
+import net.kyori.adventure.audience.Audience;
 import org.bukkit.OfflinePlayer;
+import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
@@ -36,23 +38,19 @@ import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
 
 import java.util.UUID;
-import java.util.function.Function;
 import java.util.function.Supplier;
 
-public class BukkitPlayerProvider extends ServerPlayerProvider<BukkitPlayer, BukkitDiscordSRV> implements Listener {
+public abstract class AbstractBukkitPlayerProvider extends ServerPlayerProvider<BukkitPlayer, BukkitDiscordSRV> implements Listener {
 
-    private final Function<Player, BukkitPlayer> playerConstructor;
-    private final Function<OfflinePlayer, BukkitOfflinePlayer> offlinePlayerConstructor;
-
-    public BukkitPlayerProvider(
-            BukkitDiscordSRV discordSRV,
-            Function<Player, BukkitPlayer> playerConstructor,
-            Function<OfflinePlayer, BukkitOfflinePlayer> offlinePlayerConstructor
-    ) {
+    public AbstractBukkitPlayerProvider(BukkitDiscordSRV discordSRV) {
         super(discordSRV);
-        this.playerConstructor = playerConstructor;
-        this.offlinePlayerConstructor = offlinePlayerConstructor;
     }
+
+    protected abstract BukkitPlayer makePlayer(Player player);
+    protected abstract BukkitOfflinePlayer makeOfflinePlayer(OfflinePlayer offlinePlayer);
+    public abstract Audience toAudience(CommandSender commandSender);
+
+    public void close() {}
 
     @Subscribe(priority = EventPriorities.EARLIEST)
     public void onPlaceholderContextMapping(PlaceholderContextMappingEvent event) {
@@ -86,7 +84,7 @@ public class BukkitPlayerProvider extends ServerPlayerProvider<BukkitPlayer, Buk
     }
 
     private BukkitPlayer addPlayer(Player player, boolean initial) {
-        BukkitPlayer srvPlayer = addPlayer(player.getUniqueId(), playerConstructor.apply(player), initial);
+        BukkitPlayer srvPlayer = addPlayer(player.getUniqueId(), makePlayer(player), initial);
         if (srvPlayer != null) {
             // Replace Player instance we're keeping
             srvPlayer.setPlayer(player);
@@ -146,6 +144,6 @@ public class BukkitPlayerProvider extends ServerPlayerProvider<BukkitPlayer, Buk
     }
 
     public IOfflinePlayer offlinePlayer(OfflinePlayer offlinePlayer) {
-        return offlinePlayerConstructor.apply(offlinePlayer);
+        return makeOfflinePlayer(offlinePlayer);
     }
 }

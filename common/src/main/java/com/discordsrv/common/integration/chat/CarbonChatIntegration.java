@@ -29,14 +29,16 @@ import com.discordsrv.common.DiscordSRV;
 import com.discordsrv.common.abstraction.player.IPlayer;
 import com.discordsrv.common.core.logging.NamedLogger;
 import com.discordsrv.common.core.module.type.PluginIntegration;
+import com.discordsrv.common.util.ComponentUtil;
 import net.draycia.carbon.api.CarbonChat;
 import net.draycia.carbon.api.CarbonChatProvider;
 import net.draycia.carbon.api.CarbonServer;
-import net.draycia.carbon.api.channels.ChatChannel;
 import net.draycia.carbon.api.channels.ChannelRegistry;
+import net.draycia.carbon.api.channels.ChatChannel;
 import net.draycia.carbon.api.event.CarbonEventSubscription;
 import net.draycia.carbon.api.event.events.CarbonChatEvent;
 import net.draycia.carbon.api.users.CarbonPlayer;
+import net.kyori.adventure.key.Key;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -61,6 +63,11 @@ public class CarbonChatIntegration extends PluginIntegration<DiscordSRV> {
         try {
             Class.forName("net.draycia.carbon.api.CarbonChatProvider");
         } catch (ClassNotFoundException ignored) {
+            return false;
+        }
+
+        if (!ComponentUtil.IS_RELOCATED) {
+            logger().debug("CarbonChat integration cannot be used on a platform with Adventure relocation");
             return false;
         }
 
@@ -91,7 +98,7 @@ public class CarbonChatIntegration extends PluginIntegration<DiscordSRV> {
                 return;
             }
 
-            MinecraftComponent component = CarbonChatKeyHelper.message(event);
+            MinecraftComponent component = ComponentUtil.toAPI(event.message());
             discordSRV.scheduler().run(() -> discordSRV.eventBus().publish(
                     new GameChatMessagePreProcessEvent(event, srvPlayer, component, new CarbonGameChannel(chatChannel), event.cancelled())
             ));
@@ -124,7 +131,40 @@ public class CarbonChatIntegration extends PluginIntegration<DiscordSRV> {
     }
 
     private @Nullable ChatChannel findChannel(ChannelRegistry registry, String channelName) {
-        return CarbonChatKeyHelper.findChannel(registry, channelName);
+        for (Key key : registry.keys()) {
+            ChatChannel channel = registry.channel(key);
+            if (channel == null) {
+                continue;
+            }
+
+            if (key.asString().equalsIgnoreCase(channelName)) {
+                return channel;
+            }
+        }
+
+        for (Key key : registry.keys()) {
+            ChatChannel channel = registry.channel(key);
+            if (channel == null) {
+                continue;
+            }
+
+            if (key.value().equalsIgnoreCase(channelName)) {
+                return channel;
+            }
+        }
+
+        for (Key key : registry.keys()) {
+            ChatChannel channel = registry.channel(key);
+            if (channel == null || channel.commandName() == null) {
+                continue;
+            }
+
+            if (channel.commandName().equalsIgnoreCase(channelName)) {
+                return channel;
+            }
+        }
+
+        return null;
     }
 
     private class CarbonGameChannel implements GameChannel {
@@ -151,7 +191,7 @@ public class CarbonChatIntegration extends PluginIntegration<DiscordSRV> {
 
         @Override
         public @NotNull String getChannelName() {
-            return CarbonChatKeyHelper.channelName(channel);
+            return channel.key().value();
         }
 
         @Override

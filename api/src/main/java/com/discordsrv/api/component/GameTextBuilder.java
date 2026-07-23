@@ -24,6 +24,7 @@
 package com.discordsrv.api.component;
 
 import com.discordsrv.api.placeholder.provider.SinglePlaceholder;
+import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -37,6 +38,7 @@ import java.util.regex.Pattern;
 /**
  * Minecraft equivalent for {@link com.discordsrv.api.discord.entity.message.SendableDiscordMessage.Formatter}.
  */
+@ApiStatus.NonExtendable
 public interface GameTextBuilder {
 
     @NotNull

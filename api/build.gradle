@@ -1,5 +1,10 @@
 apply from: rootProject.file('buildscript/relocations.gradle')
 
+java {
+    sourceCompatibility = JavaVersion.VERSION_1_8
+    targetCompatibility = JavaVersion.VERSION_1_8
+}
+
 dependencies {
     // Annotations
     compileOnlyApi(libs.jetbrains.annotations)
@@ -12,7 +17,7 @@ dependencies {
         // We don't use audio
         exclude module: 'opus-java'
         exclude module: 'tink'
-        // v2
+        // v2 uses ServiceLocator
         exclude module: 'slf4j-api'
     }
     api(libs.okhttp)

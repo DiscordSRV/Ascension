@@ -1,0 +1,7 @@
+dependencies {
+    api(project(':bukkit:bukkit-shared'))
+
+    compileOnly(libs.bukkit.minimum) {
+        exclude group: 'commons-lang', module: 'commons-lang'
+    }
+}

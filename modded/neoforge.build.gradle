@@ -2,7 +2,7 @@ plugins {
     id("dev.kikugie.stonecutter") version "0.9"
     alias(libs.plugins.neoforge.moddev)
 }
-apply from: rootProject.file('buildscript/standalone.gradle')
+apply from: rootProject.file('buildscript/runtime.gradle')
 
 def minecraftVersion = project.name.split('-', 2)[0]
 var is1_21_11 = sc.eval(minecraftVersion, ">=1.21.11")
@@ -16,11 +16,18 @@ configurations.configureEach {
             force 'com.fasterxml.jackson.core:jackson-annotations:2.13.4'
             force 'com.fasterxml.jackson.core:jackson-core:2.13.4'
         }
+        if (sc.eval(minecraftVersion, ">=1.21.1 <=1.21.9")) { // Introduced by NeoForge in 1.21.1
+            force "com.google.code.gson:gson:2.11.0"
+        }
+        force "org.ow2.asm:asm:9.8"
+        force "org.ow2.asm:asm-commons:9.8"
     }
 }
 
 java {
-    var java = sc.eval(minecraftVersion, ">=26.1") ? JavaVersion.VERSION_25 : sc.eval(minecraftVersion, ">=1.20.5") ? JavaVersion.VERSION_21 : JavaVersion.VERSION_17
+    var java = sc.eval(minecraftVersion, ">=26.1")
+            ? JavaVersion.VERSION_25
+            : JavaVersion.VERSION_21
 
     targetCompatibility = java
     sourceCompatibility = java
@@ -65,8 +72,6 @@ processResources {
     filesMatching(['fabric.mod.json']) {
         expand replaceProperties
     }
-
-    dependsOn generateRuntimeDownloadResourceForRuntimeDownloadOnly
 }
 
 shadowJar {
@@ -117,7 +122,6 @@ dependencies {
     shadow project(':common')
 
     implementation(libs.adventure.api)
-    implementation(libs.kyori.ansi)
 
     compileOnly("net.kyori:adventure-platform-neoforge:${project.property("deps.adventure_platform")}"){
         exclude group: 'net.kyori', module: 'ansi'

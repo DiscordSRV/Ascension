@@ -20,11 +20,11 @@ package com.discordsrv.bukkit.player;
 
 import com.discordsrv.api.task.Task;
 import com.discordsrv.bukkit.BukkitDiscordSRV;
-import com.discordsrv.bukkit.component.PaperComponentHandle;
 import com.discordsrv.bukkit.component.PaperComponentCheck;
 import com.discordsrv.bukkit.gamerule.GameRule;
 import com.discordsrv.common.util.ComponentUtil;
 import com.discordsrv.common.util.ReflectionUtil;
+import net.kyori.adventure.audience.Audience;
 import net.kyori.adventure.key.Key;
 import net.kyori.adventure.text.Component;
 import org.bukkit.World;
@@ -35,22 +35,12 @@ import org.jspecify.annotations.NonNull;
 
 import java.util.Collection;
 import java.util.Locale;
+import java.util.function.Supplier;
 
 public class BukkitPlayerImpl extends BukkitPlayer {
 
-    private final PaperComponentHandle.Set<Player> SEND_MESSAGE_HANDLE = PaperComponentHandle.setOrNull(Player.class, "sendMessage");
-
-    public BukkitPlayerImpl(BukkitDiscordSRV discordSRV, Player player) {
-        super(discordSRV, player);
-    }
-
-    @Override
-    public void sendMessage(@NotNull Component message) {
-        if (SEND_MESSAGE_HANDLE != null) {
-            SEND_MESSAGE_HANDLE.call(player, ComponentUtil.toAPI(message));
-            return;
-        }
-        super.sendMessage(message);
+    protected BukkitPlayerImpl(BukkitDiscordSRV discordSRV, Player player, Supplier<Audience> audienceSupplier) {
+        super(discordSRV, player, audienceSupplier);
     }
 
     @Override

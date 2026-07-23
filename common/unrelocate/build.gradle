@@ -1,4 +1,9 @@
+java {
+    sourceCompatibility = JavaVersion.VERSION_1_8
+    targetCompatibility = JavaVersion.VERSION_1_8
+}
+
 dependencies {
     compileOnlyApi(libs.slf4j.api)
-    compileOnlyApi(libs.adventure.api)
+    compileOnlyApi(libs.adventure.api.v4)
 }
