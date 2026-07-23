@@ -10,9 +10,6 @@ configurations {
         extendsFrom runtimeExclude
     }
 
-    adventureApiOnly
-    adventureApi.extendsFrom adventureApiOnly, runtimeDownloadExclude
-
     hikariOnly
     hikari.extendsFrom hikariOnly, runtimeDownloadExclude
 
@@ -32,11 +29,6 @@ configurations {
     testRuntimeOnly.extendsFrom runtimeDownloadOnly
 }
 
-tasks.register('generateResourceForAdventure', GenerateDependencyDownloadResourceTask) {
-    var conf = configurations.adventureApi
-    configuration = conf
-    file = 'dependencies/' + conf.name + '.txt'
-}
 tasks.register('generateResourceForHikari', GenerateDependencyDownloadResourceTask) {
     var conf = configurations.hikari
     configuration = conf
@@ -100,14 +92,16 @@ dependencies {
     // Logging
     compileOnly(libs.log4j.core)
 
-    // Adventure, ANSI (version upgrade for serializer), MCDiscordReserializer, EnhancedLegacyText
-    adventureApiOnly(libs.adventure.api)
-    runtimeDownloadApi(libs.adventure.serializer.plain)
-    runtimeDownloadApi(libs.adventure.serializer.legacy)
-    runtimeDownloadApi(libs.adventure.serializer.gson)
-    runtimeDownloadApi(libs.adventure.serializer.ansi)
-    runtimeDownloadApi(libs.mcdiscordreserializer)
-    runtimeDownloadApi(libs.enhancedlegacytext)
+    // Adventure, MCDiscordReserializer, EnhancedLegacyText
+    // adventure-api is provided by some platforms, serializer availability varies.
+    compileOnlyApi(libs.adventure.api)
+    testImplementation(libs.adventure.api)
+    runtimeDownloadApi(libs.adventure.serializer.plain) { exclude module: 'adventure-api' }
+    runtimeDownloadApi(libs.adventure.serializer.legacy) { exclude module: 'adventure-api' }
+    runtimeDownloadApi(libs.adventure.serializer.gson) { exclude module: 'adventure-api' }
+    runtimeDownloadApi(libs.adventure.serializer.ansi) { exclude module: 'adventure-api' }
+    runtimeDownloadApi(libs.mcdiscordreserializer) { exclude module: 'adventure-api' }
+    runtimeDownloadApi(libs.enhancedlegacytext) { exclude module: 'adventure-api' }
 
     // Database
     hikariOnly(libs.hikaricp) {
@@ -137,7 +131,6 @@ dependencies {
 
 processResources {
     dependsOn(
-            generateResourceForAdventure,
             generateRuntimeDownloadResourceForRuntimeDownloadOnly,
             generateResourceForHikari,
             generateResourceForH2Driver,
