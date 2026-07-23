@@ -217,7 +217,7 @@ rootProject.name = 'DiscordSRV-Ascension'
         'api', 'api:configurate',
         // Bukkit
         'bukkit', 'bukkit:shared', 'bukkit:loader',
-        'bukkit:compat:bukkit1_12', 'bukkit:compat:spigot', 'bukkit:compat:paper', 'bukkit:compat:folia',
+        'bukkit:compat:bukkit1_8', 'bukkit:compat:bukkit1_12', 'bukkit:compat:spigot', 'bukkit:compat:paper', 'bukkit:compat:folia',
         // Paper (Bukkit)
         'paper', 'paper:loader',
         // Bungee

@@ -26,13 +26,15 @@ import com.discordsrv.common.abstraction.player.IPlayer;
 import com.discordsrv.common.core.logging.NamedLogger;
 import com.discordsrv.common.util.ComponentUtil;
 import net.kyori.adventure.text.Component;
-import org.apache.commons.lang.WordUtils;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.player.PlayerAchievementAwardedEvent;
 import org.jetbrains.annotations.NotNull;
 
+import java.util.Arrays;
+import java.util.Locale;
 import java.util.function.Consumer;
+import java.util.stream.Collectors;
 
 public class BukkitAchievementListener extends AbstractBukkitListener<PlayerAchievementAwardedEvent> {
 
@@ -47,7 +49,9 @@ public class BukkitAchievementListener extends AbstractBukkitListener<PlayerAchi
 
     @Override
     protected void handleEvent(@NotNull PlayerAchievementAwardedEvent event, Void __) {
-        String achievement = WordUtils.capitalizeFully(event.getAchievement().name().replace('_', ' '));
+        String achievement = Arrays.stream(event.getAchievement().name().split("_"))
+                .map(word -> word.charAt(0) + word.substring(1).toLowerCase(Locale.ROOT))
+                .collect(Collectors.joining(" "));
         MinecraftComponent achievementName = ComponentUtil.toAPI(Component.text(achievement));
 
         IPlayer player = discordSRV.playerProvider().player(event.getPlayer());

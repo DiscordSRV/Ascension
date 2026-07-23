@@ -37,7 +37,7 @@ public class BukkitPlayerProvider extends AbstractBukkitPlayerProvider {
 
     @Override
     protected BukkitPlayer makePlayer(Player player) {
-        return new BukkitPlayerImpl(discordSRV, player, () -> (Audience) player);
+        return new BukkitPlayerImpl(discordSRV, player, () -> audiences.player(player));
     }
 
     @Override

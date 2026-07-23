@@ -18,6 +18,13 @@ shadowJar {
 
 apply from: rootProject.file('buildscript/runtime.gradle')
 
+def verifyLatestBukkit = System.getenv("verify-latest-bukkit") == "true" || providers.gradleProperty("verify-latest-bukkit").get() == "true"
+java {
+    if (verifyLatestBukkit) {
+        disableAutoTargetJvm() // Requires Java 25, we target 21
+    }
+}
+
 dependencies {
     // API
     annotationProcessor project(':api')
@@ -32,6 +39,7 @@ dependencies {
     api(project(':bukkit:compat:bukkit-compat-folia'))
     api(project(':bukkit:compat:bukkit-compat-spigot'))
     api(project(':bukkit:compat:bukkit-compat-bukkit1_12'))
+    api(project(':bukkit:compat:bukkit-compat-bukkit1_8'))
 
     // DependencyDownload
     api(libs.mcdependencydownload.bukkit.bootstrap)
@@ -42,5 +50,11 @@ dependencies {
     runtimeDownload(libs.adventure.platform.bukkit)
 
     // Platform
-    compileOnly(libs.bukkit.minimum)
+    if (verifyLatestBukkit) {
+        compileOnly(libs.paperapi.latest) {
+            exclude module: 'slf4j-api'
+        }
+    } else {
+        compileOnly(libs.bukkit.minimum)
+    }
 }
