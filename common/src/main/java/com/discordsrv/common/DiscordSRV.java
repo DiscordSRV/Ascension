@@ -191,6 +191,7 @@ public interface DiscordSRV extends com.discordsrv.api.DiscordSRV {
     List<ReloadResult> runReload(Set<ReloadFlag> flags);
     Task<Void> runDisable();
     boolean isServerStarted();
+    ZonedDateTime getStartTime();
     ZonedDateTime getInitializeTime();
 
     @Nullable

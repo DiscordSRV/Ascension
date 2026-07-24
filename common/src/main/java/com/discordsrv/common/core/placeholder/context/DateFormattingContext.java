@@ -70,6 +70,11 @@ public class DateFormattingContext {
 
     @Placeholder("start_date")
     public ZonedDateTime getStartDate() {
+        return discordSRV.getStartTime();
+    }
+
+    @Placeholder("initialize_date")
+    public ZonedDateTime getInitializeDate() {
         return discordSRV.getInitializeTime();
     }
 

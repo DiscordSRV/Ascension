@@ -312,8 +312,38 @@ public class V1ConfigMigration {
         }
     }
 
-    private List<Pair<String, String>> makePlaceholderMapping(PlaceholderField placeholderField) {
-        Map<String, String> placeholderMapping = new LinkedHashMap<>();
+    private static class PlaceholderAPIReplacement {
+
+        private final String placeholderAPIPlaceholder;
+        private final String expansion;
+        private final boolean integratedExpansion;
+
+        public PlaceholderAPIReplacement(String placeholderAPIPlaceholder, String expansion, boolean integratedExpansion) {
+            this.placeholderAPIPlaceholder = placeholderAPIPlaceholder;
+            this.expansion = expansion;
+            this.integratedExpansion = integratedExpansion;
+        }
+
+        public String getPlaceholderAPIPlaceholder() {
+            return placeholderAPIPlaceholder;
+        }
+
+        public String getExpansion() {
+            return expansion;
+        }
+
+        public boolean isIntegratedExpansion() {
+            return integratedExpansion;
+        }
+
+        @Override
+        public String toString() {
+            return getPlaceholderAPIPlaceholder();
+        }
+    }
+
+    private List<Pair<Pattern, String>> makePlaceholderMapping(PlaceholderField placeholderField) {
+        Map<Object, Object> placeholderMapping = new LinkedHashMap<>();
 
         String timestampFormat = config.node("TimestampFormat").getString();
         String rawTimezone = config.node("Timezone").getString("default");
@@ -327,31 +357,41 @@ public class V1ConfigMigration {
                 + ":'" + timestampFormat + "'"
                 + "%";
 
-        String $PlayerUtil_getOnlinePlayers = "%playerlist_count%";
+        String $PlayerUtil_getOnlinePlayers_size = "%playerlist_count%";
+
+        PlaceholderAPIReplacement $MultiverseCore_worldAlias = new PlaceholderAPIReplacement("%multiverse-core_alias%", "Multiverse-Core", true);
+        PlaceholderAPIReplacement $Server_version = new PlaceholderAPIReplacement("%server_version%", "Server", false);
+        PlaceholderAPIReplacement $Server_maxPlayers = new PlaceholderAPIReplacement("%server_max_players%", "Server", false);
+        PlaceholderAPIReplacement $Server_uniqueJoins = new PlaceholderAPIReplacement("%server_unique_joins%", "Server", false);
+        PlaceholderAPIReplacement $Spark_tps10s = new PlaceholderAPIReplacement("%spark_tps_10s%", "spark", true);
 
         if (placeholderField == PlaceholderField.DISCORD_GAME_STATUS) {
-            placeholderMapping.put("%online%", $PlayerUtil_getOnlinePlayers);
+            placeholderMapping.put("%online%", $PlayerUtil_getOnlinePlayers_size);
         }
 
         if (placeholderField == PlaceholderField.CHANNEL_UPDATER || placeholderField == PlaceholderField.TOPIC_FORMAT) {
-            placeholderMapping.put("%playercount%", $PlayerUtil_getOnlinePlayers);
-            placeholderMapping.put("%playermax%", ""); // TODO
-            placeholderMapping.put("%date%", $TimeUtil_timeStamp);
-            placeholderMapping.put("%totalplayers%", ""); // TODO
+            placeholderMapping.put("%playercount%", $PlayerUtil_getOnlinePlayers_size);
+            placeholderMapping.put("%playermax%", $Server_maxPlayers);
+            placeholderMapping.put("%totalplayers%", $Server_uniqueJoins);
             placeholderMapping.put("%uptimemins%", "%start_date_relative_to_now:'m'%");
             placeholderMapping.put("%uptimehours%", "%start_date_relative_to_now:'h'%");
             placeholderMapping.put("%motd%", ""); // TODO
-            placeholderMapping.put("%serverversion%", ""); // TODO
-            placeholderMapping.put("%freememory%", ""); // TODO
-            placeholderMapping.put("%usedmemory%", ""); // TODO
-            placeholderMapping.put("%totalmemory%", ""); // TODO
-            placeholderMapping.put("%maxmemory%", ""); // TODO
-            placeholderMapping.put("%freememorygb%", ""); // TODO
-            placeholderMapping.put("%usedmemorygb%", ""); // TODO
-            placeholderMapping.put("%totalmemorygb%", ""); // TODO
-            placeholderMapping.put("%maxmemorygb%", ""); // TODO
-            placeholderMapping.put("%tps%", ""); // TODO
-            placeholderMapping.put("%time%", $TimeUtil_timeStamp);
+            placeholderMapping.put("%serverversion%", $Server_version);
+            if (recommendedUpgrades) {
+                placeholderMapping.put("%usedmemorygb%GB used/%freememorygb%GB free/%maxmemorygb%GB max", "%memory_used%/%memory_available%");
+            }
+            placeholderMapping.put("%freememory%", "%memory_free_megabytes%");
+            placeholderMapping.put("%usedmemory%", "%memory_used_megabytes%");
+            placeholderMapping.put("%totalmemory%", "%memory_total_megabytes%");
+            placeholderMapping.put("%maxmemory%", "%memory_max_megabytes%");
+            placeholderMapping.put("%freememorygb%", "%memory_free_gigabytes%");
+            placeholderMapping.put("%usedmemorygb%", "%memory_used_gigabytes%");
+            placeholderMapping.put("%totalmemorygb%", "%memory_total_gigabytes%");
+            placeholderMapping.put("%maxmemorygb%", "%memory_max_gigabytes%");
+            placeholderMapping.put("%tps%", $Spark_tps10s);
+            placeholderMapping.put(Pattern.compile("%date%|%time%"), $TimeUtil_timeStamp);
+
+            placeholderMapping.put(Pattern.compile("<t:%timestamp%(:[tTdDfFsSR])?>"), "%now_date:'timestamp$1'%");
             placeholderMapping.put("%timestamp%", "%now_date_to_epoch_seconds%");
         }
 
@@ -387,26 +427,23 @@ public class V1ConfigMigration {
         }
 
         if (placeholderField == PlaceholderField.MINECRAFT_TO_DISCORD_MESSAGE_FORMAT) {
-            placeholderMapping.put("%username%", "%player_name%");
-            placeholderMapping.put("%displayname%", "%player_display_name%");
             // Escaping is handled without a need for another placeholder
-            placeholderMapping.put("%usernamenoescapes%", "%player_name%");
-            placeholderMapping.put("%displaynamenoescapes%", "%player_display_name%");
+            placeholderMapping.put(Pattern.compile("%username%|%usernamenoescapes%"), "%player_name%");
+            placeholderMapping.put(Pattern.compile("%displayname%|%displaynamenoescapes%"), "%player_display_name%");
 
             // %message% stays the same
-            placeholderMapping.put("%primarygroup%", ""); // TODO
+            placeholderMapping.put("%primarygroup%", "%player_primary_group%");
             placeholderMapping.put("%world%", "%player_world_name%");
-            placeholderMapping.put("%worldalias%", ""); // TODO
-            placeholderMapping.put("%date%", $TimeUtil_timeStamp);
-            placeholderMapping.put("%time%", $TimeUtil_timeStamp);
+            placeholderMapping.put("%worldalias%", $MultiverseCore_worldAlias);
+            placeholderMapping.put(Pattern.compile("%date%|%time%"), $TimeUtil_timeStamp);
             placeholderMapping.put("%channelname%", "%channel_name%"); // TODO: first letter upper-case
         }
 
         // TODO: figure out how to determine if should be used
         if (placeholderField == PlaceholderField.CHAT_CHANNEL_HOOK_MESSAGE_FORMAT) {
-            placeholderMapping.put("%channelcolor%", ""); // TODO
-            placeholderMapping.put("%channelname%", ""); // TODO
-            placeholderMapping.put("%channelnickname%", ""); // TODO
+            placeholderMapping.put("%channelcolor%", "%gamechannel_color%"); // TODO: not always
+            placeholderMapping.put("%channelname%", "%gamechannel_name%");
+            placeholderMapping.put("%channelnickname%", "%gamechannel_alias%"); // TODO: not always
             placeholderMapping.put("%message%", ""); // TODO
         }
 
@@ -431,20 +468,17 @@ public class V1ConfigMigration {
         if (placeholderField == PlaceholderField.PLAYERLIST_COMMAND_FORMAT) {
             placeholderMapping.put("%username%", "%player_name%");
             placeholderMapping.put("%displayname%", "%player_display_name%");
-            placeholderMapping.put("%primarygroup%", ""); // TODO
+            placeholderMapping.put("%primarygroup%", "%player_primary_group%");
             placeholderMapping.put("%world%", "%player_world_name%");
-            placeholderMapping.put("%worldalias%", ""); // TODO
+            placeholderMapping.put("%worldalias%", $MultiverseCore_worldAlias);
         }
 
         if (placeholderField.isEmbedMessageFormat()) {
-            placeholderMapping.put("%displayname%", "%player_display_name%");
-            placeholderMapping.put("%username%", "%player_name%");
             // Escaping is handled without a need for another placeholder
-            placeholderMapping.put("%displaynamenoescapes%", "%player_display_name%");
-            placeholderMapping.put("%usernamenoescapes%", "%player_name%");
+            placeholderMapping.put(Pattern.compile("%username%|%usernamenoescapes%"), "%player_name%");
+            placeholderMapping.put(Pattern.compile("%displayname%|%displaynamenoescapes%"), "%player_display_name%");
 
-            placeholderMapping.put("%date%", $TimeUtil_timeStamp);
-            placeholderMapping.put("%time%", $TimeUtil_timeStamp);
+            placeholderMapping.put(Pattern.compile("%date%|%time%"), $TimeUtil_timeStamp);
             placeholderMapping.put("%embedavatarurl%", "%player_avatar_url%");
             placeholderMapping.put("%botavatarurl%", "%bot_user_effective_avatar_url%");
             placeholderMapping.put("%botname%", "%bot_user_effective_name%");
@@ -461,10 +495,9 @@ public class V1ConfigMigration {
         }
 
         if (placeholderField == PlaceholderField.TOPIC_SHUTDOWN_FORMAT) {
-            placeholderMapping.put("%totalplayers%", ""); // TODO
-            placeholderMapping.put("%serverversion%", ""); // TODO
-            placeholderMapping.put("%date%", $TimeUtil_timeStamp);
-            placeholderMapping.put("%time%", $TimeUtil_timeStamp);
+            placeholderMapping.put("%totalplayers%", $Server_uniqueJoins);
+            placeholderMapping.put("%serverversion%", $Server_version);
+            placeholderMapping.put(Pattern.compile("%date%|%time%"), $TimeUtil_timeStamp);
         }
 
         if (placeholderField == PlaceholderField.DISCORD_COMMAND_FORMAT) {
@@ -474,7 +507,13 @@ public class V1ConfigMigration {
         return placeholderMapping
                 .entrySet()
                 .stream()
-                .map(entry -> Pair.of(entry.getKey(), entry.getValue()))
+                .map(entry -> {
+                    Object key = entry.getKey();
+                    if (key instanceof String) {
+                        key = Pattern.compile((String) key, Pattern.LITERAL);
+                    }
+                    return Pair.of((Pattern) key, entry.getValue().toString());
+                })
                 .collect(Collectors.toList());
     }
 
@@ -582,11 +621,12 @@ public class V1ConfigMigration {
 
                     if ("**%primarygroup%** %displayname% » %message%".equals(format)
                             && "%displayname% » %message%".equals(noPrimaryGroupFormat)) {
-                        // TODO: primary group?
+                        // If both the formats are at their default values, we can do a compromise
                         defaultChannel.minecraftToDiscord.format = new SendableDiscordMessageTemplate(
-                                SendableDiscordMessage.builder().setContent("%player_display_name% » %message%")
+                                SendableDiscordMessage.builder().setContent("%player_primary_group:'**%s** '%%player_display_name% » %message%")
                         );
                     } else {
+                        // but otherwise we'll just have to use the no primary group format
                         defaultChannel.minecraftToDiscord.format = new SendableDiscordMessageTemplate(
                                 SendableDiscordMessage.builder().setContent(noPrimaryGroupFormat) // TODO: placeholders
                         );

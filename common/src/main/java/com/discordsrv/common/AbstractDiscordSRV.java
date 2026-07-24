@@ -187,6 +187,7 @@ public abstract class AbstractDiscordSRV<
     protected VersionInfo versionInfo;
 
     private final ZonedDateTime initializeTime = ZonedDateTime.now();
+    private ZonedDateTime startTime;
 
     private OkHttpClient httpClient;
     private final ObjectMapper objectMapper = new ObjectMapper()
@@ -616,6 +617,10 @@ public abstract class AbstractDiscordSRV<
         return serverStarted;
     }
 
+    public ZonedDateTime getStartTime() {
+        return startTime;
+    }
+
     public ZonedDateTime getInitializeTime() {
         return initializeTime;
     }
@@ -700,6 +705,7 @@ public abstract class AbstractDiscordSRV<
         placeholderService().addReLookup(Number.class, "numberformat");
         placeholderService().addReLookup(TemporalAccessor.class, "date");
         placeholderService().addReLookup(Duration.class, "duration");
+        placeholderService().addReLookup(MemoryContext.Bytes.class, "bytes");
         placeholderService().addReLookup(Color.class, "color");
         placeholderService().addReLookup(Profile.class, "profile");
         placeholderService().addReLookup(IPlayer.class, "player");
@@ -715,6 +721,7 @@ public abstract class AbstractDiscordSRV<
         placeholderService().addGlobalContext(new TextHandlingContext(this));
         placeholderService().addGlobalContext(new DateFormattingContext(this));
         placeholderService().addGlobalContext(new NumberFormattingContext(this));
+        placeholderService().addGlobalContext(new MemoryContext(this));
         placeholderService().addGlobalContext(new GamePermissionContext(this));
         placeholderService().addGlobalContext(new ReceivedDiscordMessageContext(this));
         placeholderService().addGlobalContext(new AvatarProviderContext(this));
@@ -801,6 +808,7 @@ public abstract class AbstractDiscordSRV<
     @MustBeInvokedByOverriders
     protected void serverStarted() {
         serverStarted = true;
+        startTime = ZonedDateTime.now();
         eventBus().publish(new ServerStartedEvent());
         logger().debug("Server started");
     }
