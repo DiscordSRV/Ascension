@@ -36,7 +36,7 @@ import java.util.UUID;
 
 public abstract class BukkitRequiredLinkingListener<E extends Event> implements Listener {
 
-    private final BukkitRequiredLinkingModule module;
+    protected final BukkitRequiredLinkingModule module;
     private final String eventType;
 
     @SuppressWarnings("unchecked")

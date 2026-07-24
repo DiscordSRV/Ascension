@@ -19,25 +19,30 @@
 package com.discordsrv.bukkit.player;
 
 import com.discordsrv.bukkit.BukkitDiscordSRV;
+import com.discordsrv.bukkit.component.PaperComponentCheck;
+import com.discordsrv.common.util.ComponentUtil;
+import com.discordsrv.common.util.ReflectionUtil;
 import net.kyori.adventure.audience.Audience;
-import net.kyori.adventure.platform.bukkit.BukkitAudiences;
 import org.bukkit.OfflinePlayer;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 
 public class BukkitPlayerProvider extends AbstractBukkitPlayerProvider {
 
-    private final BukkitAudiences audiences;
+    private static final boolean IS_PAPER = PaperComponentCheck.IS_AVAILABLE && !ComponentUtil.IS_RELOCATED;
+    private static final boolean IS_SPIGOT = ReflectionUtil.methodExists(
+            "org.bukkit.entity.Player$Spigot",
+            "sendMessage",
+            "net.md_5.bungee.api.chat.BaseComponent"
+    );
 
     public BukkitPlayerProvider(BukkitDiscordSRV discordSRV) {
         super(discordSRV);
-
-        this.audiences = BukkitAudiences.create(discordSRV.bootstrap().getPlugin());
     }
 
     @Override
     protected BukkitPlayer makePlayer(Player player) {
-        return new BukkitPlayerImpl(discordSRV, player, () -> audiences.player(player));
+        return new BukkitPlayerImpl(discordSRV, player, toAudience(player));
     }
 
     @Override
@@ -47,12 +52,12 @@ public class BukkitPlayerProvider extends AbstractBukkitPlayerProvider {
 
     @Override
     public Audience toAudience(CommandSender commandSender) {
-        return audiences.sender(commandSender);
-    }
-
-    @Override
-    public void close() {
-        super.close();
-        audiences.close();
+        if (IS_PAPER) {
+            return (Audience) commandSender;
+        } else if (IS_SPIGOT) {
+            return new SpigotAudience(discordSRV, commandSender);
+        } else {
+            return new BukkitAudience(discordSRV, commandSender);
+        }
     }
 }

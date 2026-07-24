@@ -84,6 +84,7 @@ public class ComponentFactory implements MinecraftComponentFactory {
     protected final DiscordSRV discordSRV;
     protected final Logger logger;
 
+    protected final ComponentFlattener flattener;
     private final MinecraftSerializer minecraftSerializer;
     private final DiscordSerializer discordSerializer;
     private final PlainTextComponentSerializer plainSerializer;
@@ -101,7 +102,7 @@ public class ComponentFactory implements MinecraftComponentFactory {
                         .addRenderer(new DiscordSRVMinecraftRenderer(discordSRV))
         );
 
-        ComponentFlattener flattener = ComponentFlattener.basic().toBuilder()
+        this.flattener = ComponentFlattener.basic().toBuilder()
                 .mapper(TranslatableComponent.class, translatableComponent -> {
                     Component translated = translatableComponentRenderer.render(translatableComponent, TRANSLATION_LOCALE);
                     // Avoid recursion, use plain text serializer without special flattener

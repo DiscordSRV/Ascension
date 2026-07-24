@@ -50,8 +50,6 @@ public abstract class AbstractBukkitPlayerProvider extends ServerPlayerProvider<
     protected abstract BukkitOfflinePlayer makeOfflinePlayer(OfflinePlayer offlinePlayer);
     public abstract Audience toAudience(CommandSender commandSender);
 
-    public void close() {}
-
     @Subscribe(priority = EventPriorities.EARLIEST)
     public void onPlaceholderContextMapping(PlaceholderContextMappingEvent event) {
         event.map(Player.class, this::player);

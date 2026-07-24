@@ -26,7 +26,6 @@ import com.discordsrv.bukkit.BukkitDiscordSRV;
 import com.discordsrv.common.core.module.type.AbstractModule;
 import com.discordsrv.common.feature.bansync.BanSyncModule;
 import com.discordsrv.common.util.ComponentUtil;
-import net.kyori.adventure.platform.bukkit.BukkitComponentSerializer;
 import org.bukkit.BanList;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
@@ -83,8 +82,8 @@ public class BukkitBanModule extends AbstractModule<BukkitDiscordSRV> implements
                     Date expiration = ban.getExpiration();
                     return new Punishment(
                             expiration != null ? expiration.toInstant() : null,
-                            ComponentUtil.toAPI(BukkitComponentSerializer.legacy().deserialize(ban.getReason())),
-                            ComponentUtil.toAPI(BukkitComponentSerializer.legacy().deserialize(ban.getSource()))
+                            ComponentUtil.toAPI(discordSRV.componentFactory().legacySerializer().deserialize(ban.getReason())),
+                            ComponentUtil.toAPI(discordSRV.componentFactory().legacySerializer().deserialize(ban.getSource()))
                     );
                 });
     }
@@ -96,8 +95,8 @@ public class BukkitBanModule extends AbstractModule<BukkitDiscordSRV> implements
             @Nullable MinecraftComponent reason,
             @NotNull MinecraftComponent punisher
     ) {
-        String reasonLegacy = reason != null ? BukkitComponentSerializer.legacy().serialize(ComponentUtil.fromAPI(reason)) : null;
-        String punisherLegacy = BukkitComponentSerializer.legacy().serialize(ComponentUtil.fromAPI(punisher));
+        String reasonLegacy = reason != null ? discordSRV.componentFactory().legacySerializer().serialize(ComponentUtil.fromAPI(reason)) : null;
+        String punisherLegacy = discordSRV.componentFactory().legacySerializer().serialize(ComponentUtil.fromAPI(punisher));
 
         BanList banList = discordSRV.server().getBanList(BanList.Type.NAME);
         return discordSRV.playerProvider().lookupOfflinePlayer(playerUUID).thenApply(offlinePlayer -> {

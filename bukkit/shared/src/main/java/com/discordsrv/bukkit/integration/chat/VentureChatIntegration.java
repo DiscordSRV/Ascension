@@ -35,7 +35,6 @@ import mineverse.Aust1n46.chat.api.MineverseChatPlayer;
 import mineverse.Aust1n46.chat.api.events.VentureChatEvent;
 import mineverse.Aust1n46.chat.channel.ChatChannel;
 import mineverse.Aust1n46.chat.utilities.Format;
-import net.kyori.adventure.platform.bukkit.BukkitComponentSerializer;
 import net.kyori.adventure.text.TextComponent;
 import net.kyori.adventure.text.TextReplacementConfig;
 import net.kyori.adventure.text.format.TextColor;
@@ -100,7 +99,7 @@ public class VentureChatIntegration extends PluginIntegration<BukkitDiscordSRV> 
 
         ChatChannel channel = event.getChannel();
         MinecraftComponent component = ComponentUtil.toAPI(
-                BukkitComponentSerializer.legacy().deserialize(event.getChat())
+                discordSRV.componentFactory().legacySerializer().deserialize(event.getChat())
         );
 
         BukkitPlayer srvPlayer = discordSRV.playerProvider().player(player);
@@ -132,11 +131,11 @@ public class VentureChatIntegration extends PluginIntegration<BukkitDiscordSRV> 
         public VentureChatChannel(ChatChannel channel) {
             this.channel = channel;
 
-            TextComponent colorComponent = BukkitComponentSerializer.legacy().deserialize(channel.getColor() + "a");
+            TextComponent colorComponent = discordSRV.componentFactory().legacySerializer().deserialize(channel.getColor() + "a");
             List<TextColor> colors = ComponentUtil.extractColors(colorComponent);
             this.color = colors.isEmpty() ? null : colors.get(0);
 
-            TextComponent chatColorComponent = BukkitComponentSerializer.legacy().deserialize(channel.getChatColor() + "a");
+            TextComponent chatColorComponent = discordSRV.componentFactory().legacySerializer().deserialize(channel.getChatColor() + "a");
             List<TextColor> chatColors = ComponentUtil.extractColors(chatColorComponent);
             this.chatColor = chatColors.isEmpty() ? null : chatColors.get(0);
         }

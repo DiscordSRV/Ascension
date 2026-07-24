@@ -42,6 +42,4 @@ dependencies {
 
     // Adventure
     runtimeDownloadApi(libs.adventure.api)
-    runtimeDownloadApi(libs.adventure.platform.bungee)
-    runtimeDownloadApi(libs.adventure.serializer.bungee)
 }

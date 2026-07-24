@@ -24,9 +24,10 @@ import com.discordsrv.velocity.VelocityDiscordSRV;
 import com.velocitypowered.api.command.CommandSource;
 import com.velocitypowered.api.permission.Tristate;
 import net.kyori.adventure.audience.Audience;
+import net.kyori.adventure.audience.ForwardingAudience;
 import org.jetbrains.annotations.NotNull;
 
-public class VelocityCommandSender implements ICommandSender {
+public class VelocityCommandSender implements ICommandSender, ForwardingAudience.Single {
 
     protected final VelocityDiscordSRV discordSRV;
     protected final CommandSource commandSource;

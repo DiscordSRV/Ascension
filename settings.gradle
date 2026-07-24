@@ -190,14 +190,8 @@ dependencyResolutionManagement {
             library('adventure-serializer-legacy', 'net.kyori', 'adventure-text-serializer-legacy').versionRef('adventure')
             library('adventure-serializer-gson', 'net.kyori', 'adventure-text-serializer-gson').versionRef('adventure')
             library('adventure-serializer-ansi', 'net.kyori', 'adventure-text-serializer-ansi').versionRef('adventure')
-
+            // not included at runtime (only used in compile time only :unrelocate)
             library('adventure-api-v4', 'net.kyori', 'adventure-api').version('4.26.1')
-
-            // Adventure Platform
-            version('adventure-platform', '4.4.1')
-            library('adventure-platform-bukkit', 'net.kyori', 'adventure-platform-bukkit').versionRef('adventure-platform')
-            library('adventure-platform-bungee', 'net.kyori', 'adventure-platform-bungeecord').versionRef('adventure-platform')
-            library('adventure-serializer-bungee', 'net.kyori', 'adventure-text-serializer-bungeecord').versionRef('adventure-platform')
 
             // MCDiscordReserializer & EnhancedLegacyText
             library('mcdiscordreserializer', 'dev.vankka', 'mcdiscordreserializer').version('5.0.0-SNAPSHOT')

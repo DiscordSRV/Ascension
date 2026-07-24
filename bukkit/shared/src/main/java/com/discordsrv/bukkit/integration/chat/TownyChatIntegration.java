@@ -33,7 +33,6 @@ import com.discordsrv.common.util.ComponentUtil;
 import com.palmergames.bukkit.TownyChat.Chat;
 import com.palmergames.bukkit.TownyChat.channels.Channel;
 import com.palmergames.bukkit.TownyChat.events.AsyncChatHookEvent;
-import net.kyori.adventure.platform.bukkit.BukkitComponentSerializer;
 import net.kyori.adventure.text.TextComponent;
 import net.kyori.adventure.text.format.TextColor;
 import org.bukkit.Bukkit;
@@ -85,7 +84,7 @@ public class TownyChatIntegration extends PluginIntegration<BukkitDiscordSRV> im
         Player player = event.getPlayer();
         Channel channel = event.getChannel();
         MinecraftComponent component = ComponentUtil.toAPI(
-                BukkitComponentSerializer.legacy().deserialize(event.getMessage())
+                discordSRV.componentFactory().legacySerializer().deserialize(event.getMessage())
         );
 
         BukkitPlayer srvPlayer = discordSRV.playerProvider().player(player);
@@ -123,7 +122,7 @@ public class TownyChatIntegration extends PluginIntegration<BukkitDiscordSRV> im
         public TownyChatChannel(Channel channel) {
             this.channel = channel;
 
-            TextComponent component = BukkitComponentSerializer.legacy().deserialize(channel.getMessageColour() + "a");
+            TextComponent component = discordSRV.componentFactory().legacySerializer().deserialize(channel.getMessageColour() + "a");
             List<TextColor> colors = ComponentUtil.extractColors(component);
             this.messageColor = colors.isEmpty() ? null : colors.get(0);
         }

@@ -30,7 +30,6 @@ import com.discordsrv.common.core.logging.NamedLogger;
 import com.discordsrv.common.feature.bansync.BanSyncModule;
 import com.discordsrv.common.util.ComponentUtil;
 import io.papermc.paper.ban.BanListType;
-import net.kyori.adventure.platform.bukkit.BukkitComponentSerializer;
 import org.bukkit.BanEntry;
 import org.bukkit.ban.ProfileBanList;
 import org.bukkit.entity.Player;
@@ -106,8 +105,8 @@ public class PaperBanModule extends AbstractBukkitListener<PlayerKickEvent> impl
 
         return Task.completed(new Punishment(
                 expiration != null ? expiration.toInstant() : null,
-                reason != null ? ComponentUtil.toAPI(BukkitComponentSerializer.legacy().deserialize(reason)) : null,
-                ComponentUtil.toAPI(BukkitComponentSerializer.legacy().deserialize(ban.getSource()))
+                reason != null ? ComponentUtil.toAPI(discordSRV.componentFactory().legacySerializer().deserialize(reason)) : null,
+                ComponentUtil.toAPI(discordSRV.componentFactory().legacySerializer().deserialize(ban.getSource()))
         )) ;
     }
 
@@ -121,8 +120,8 @@ public class PaperBanModule extends AbstractBukkitListener<PlayerKickEvent> impl
         ProfileBanList banList = discordSRV.server().getBanList(BanListType.PROFILE);
         PlayerProfile profile = discordSRV.server().createProfile(playerUUID);
 
-        String reasonLegacy = reason != null ? BukkitComponentSerializer.legacy().serialize(ComponentUtil.fromAPI(reason)) : null;
-        String punisherLegacy = BukkitComponentSerializer.legacy().serialize(ComponentUtil.fromAPI(punisher));
+        String reasonLegacy = reason != null ? discordSRV.componentFactory().legacySerializer().serialize(ComponentUtil.fromAPI(reason)) : null;
+        String punisherLegacy = discordSRV.componentFactory().legacySerializer().serialize(ComponentUtil.fromAPI(punisher));
         banList.addBan(profile, reasonLegacy, until != null ? Date.from(until) : null, punisherLegacy);
         return Task.completed(null);
     }

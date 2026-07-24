@@ -20,28 +20,25 @@ package com.discordsrv.bukkit.player;
 
 import com.discordsrv.bukkit.BukkitDiscordSRV;
 import net.kyori.adventure.audience.Audience;
-import org.bukkit.OfflinePlayer;
+import net.kyori.adventure.text.Component;
 import org.bukkit.command.CommandSender;
-import org.bukkit.entity.Player;
+import org.jspecify.annotations.NonNull;
 
-public class PaperPlayerProvider extends AbstractBukkitPlayerProvider {
+/**
+ * Super-duper legacy audience with only sending messages in legacy supported.
+ */
+public class BukkitAudience implements Audience {
 
-    public PaperPlayerProvider(BukkitDiscordSRV discordSRV) {
-        super(discordSRV);
+    private final BukkitDiscordSRV discordSRV;
+    private final CommandSender commandSender;
+
+    public BukkitAudience(BukkitDiscordSRV discordSRV, CommandSender commandSender) {
+        this.discordSRV = discordSRV;
+        this.commandSender = commandSender;
     }
 
     @Override
-    protected BukkitPlayer makePlayer(Player player) {
-        return new BukkitPlayerImpl(discordSRV, player, () -> (Audience) player);
-    }
-
-    @Override
-    protected BukkitOfflinePlayer makeOfflinePlayer(OfflinePlayer offlinePlayer) {
-        return new BukkitOfflinePlayerImpl(discordSRV, offlinePlayer);
-    }
-
-    @Override
-    public Audience toAudience(CommandSender commandSender) {
-        return (Audience) commandSender;
+    public void sendMessage(@NonNull Component message) {
+        commandSender.sendMessage(discordSRV.componentFactory().legacySerializer().serialize(message));
     }
 }

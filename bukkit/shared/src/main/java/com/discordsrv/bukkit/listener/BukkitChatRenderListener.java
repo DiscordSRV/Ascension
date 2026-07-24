@@ -25,7 +25,6 @@ import com.discordsrv.common.abstraction.player.IPlayer;
 import com.discordsrv.common.core.logging.NamedLogger;
 import com.discordsrv.common.feature.channel.global.GlobalChannel;
 import com.discordsrv.common.util.ComponentUtil;
-import net.kyori.adventure.platform.bukkit.BukkitComponentSerializer;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.player.AsyncPlayerChatEvent;
@@ -47,7 +46,7 @@ public class BukkitChatRenderListener extends AbstractBukkitListener<AsyncPlayer
     @Override
     protected void handleEvent(@NotNull AsyncPlayerChatEvent event, Void __) {
         IPlayer player = discordSRV.playerProvider().player(event.getPlayer());
-        MinecraftComponent component = ComponentUtil.toAPI(BukkitComponentSerializer.legacy().deserialize(event.getMessage()));
+        MinecraftComponent component = ComponentUtil.toAPI(discordSRV.componentFactory().legacySerializer().deserialize(event.getMessage()));
 
         GameChatRenderEvent annotateEvent = new GameChatRenderEvent(
                 event,
@@ -59,7 +58,7 @@ public class BukkitChatRenderListener extends AbstractBukkitListener<AsyncPlayer
         discordSRV.eventBus().publish(annotateEvent);
         MinecraftComponent message = annotateEvent.getAnnotatedMessage();
         if (message != null) {
-            event.setMessage(BukkitComponentSerializer.legacy().serialize(ComponentUtil.fromAPI(message)));
+            event.setMessage(discordSRV.componentFactory().legacySerializer().serialize(ComponentUtil.fromAPI(message)));
         }
     }
 

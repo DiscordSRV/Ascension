@@ -34,7 +34,6 @@ import com.discordsrv.bukkit.module.BukkitSkinProvider;
 import com.discordsrv.bukkit.module.BukkitWorldLookupModule;
 import com.discordsrv.bukkit.player.AbstractBukkitPlayerProvider;
 import com.discordsrv.bukkit.player.BukkitPlayerProvider;
-import com.discordsrv.bukkit.player.PaperPlayerProvider;
 import com.discordsrv.bukkit.requiredlinking.BukkitRequiredLinkingModule;
 import com.discordsrv.bukkit.scheduler.BukkitScheduler;
 import com.discordsrv.bukkit.scheduler.FoliaScheduler;
@@ -47,7 +46,6 @@ import com.discordsrv.common.config.configurate.manager.abstraction.ServerConfig
 import com.discordsrv.common.config.connection.ConnectionConfig;
 import com.discordsrv.common.config.messages.MessagesConfig;
 import com.discordsrv.common.feature.messageforwarding.game.MinecraftToDiscordChatModule;
-import com.discordsrv.common.util.ComponentUtil;
 import com.discordsrv.common.util.ReflectionUtil;
 import org.bukkit.command.CommandMap;
 import org.jetbrains.annotations.NotNull;
@@ -75,9 +73,7 @@ public class BukkitDiscordSRVImpl extends BukkitDiscordSRV {
         this.executionHelper = ReflectionUtil.methodExists(CommandMap.class, "getKnownCommands", new Class[0])
                                ? new PaperGameCommandExecutionHelper(this)
                                : new BukkitGameCommandExecutionHelper(this);
-        this.playerProvider = ComponentUtil.IS_RELOCATED
-                              ? new BukkitPlayerProvider(this)
-                              : new PaperPlayerProvider(this);
+        this.playerProvider = new BukkitPlayerProvider(this);
         this.console = new BukkitConsole(this);
 
         // Config

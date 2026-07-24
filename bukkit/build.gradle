@@ -47,7 +47,6 @@ dependencies {
     // Not included as API (only for Bukkit)
     // Adventure
     runtimeDownload(libs.adventure.api)
-    runtimeDownload(libs.adventure.platform.bukkit)
 
     // Platform
     if (verifyLatestBukkit) {

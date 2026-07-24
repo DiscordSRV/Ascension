@@ -45,10 +45,6 @@ dependencies {
         }
     }
 
-    // Adventure
-    runtimeDownloadApi(libs.adventure.api)
-    runtimeDownloadApi(libs.adventure.platform.bukkit)
-
     // Commodore
     commodore(libs.commodore) {
         // We only use commodore when it's included in the server, so we don't want to download it

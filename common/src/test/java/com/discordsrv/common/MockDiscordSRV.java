@@ -50,7 +50,6 @@ import com.discordsrv.common.feature.console.Console;
 import com.discordsrv.common.feature.messageforwarding.game.MinecraftToDiscordChatModule;
 import com.discordsrv.common.permission.game.Permission;
 import dev.vankka.dependencydownload.classpath.ClasspathAppender;
-import net.kyori.adventure.audience.Audience;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.IOException;
@@ -177,11 +176,6 @@ public class MockDiscordSRV extends AbstractDiscordSRV<IBootstrap, MainConfig, C
             @Override
             public void runCommand(String command) {
 
-            }
-
-            @Override
-            public @NotNull Audience audience() {
-                return null;
             }
         };
     }

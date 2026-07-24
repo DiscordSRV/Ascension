@@ -44,7 +44,7 @@ public class BukkitConsole extends BukkitCommandSender implements Console {
     private final CommandExecutorProvider executorProvider;
 
     public BukkitConsole(BukkitDiscordSRV discordSRV) {
-        super(discordSRV, discordSRV.server().getConsoleSender(), () -> discordSRV.playerProvider().toAudience(discordSRV.server().getConsoleSender()));
+        super(discordSRV, discordSRV.server().getConsoleSender(), discordSRV.playerProvider().toAudience(discordSRV.server().getConsoleSender()));
 
         LoggingBackend logging;
         try {
@@ -63,9 +63,9 @@ public class BukkitConsole extends BukkitCommandSender implements Console {
         if (ReflectionUtil.methodExists(Server.class, "createCommandSender", Consumer.class)) {
             commandSenderProvider = consumer -> new PaperCommandFeedbackExecutor(discordSRV, consumer).sender();
         } else if (ReflectionUtil.classExists("org.bukkit.command.CommandSender$Spigot")) {
-            commandSenderProvider = consumer -> new SpigotCommandFeedbackExecutorProxy(discordSRV.server().getConsoleSender(), consumer).getProxy();
+            commandSenderProvider = consumer -> new SpigotCommandFeedbackExecutorProxy(discordSRV.server().getConsoleSender(), discordSRV, consumer).getProxy();
         } else {
-            commandSenderProvider = consumer -> new BukkitCommandFeedbackExecutorProxy(discordSRV.server().getConsoleSender(), consumer).getProxy();
+            commandSenderProvider = consumer -> new BukkitCommandFeedbackExecutorProxy(discordSRV.server().getConsoleSender(), discordSRV, consumer).getProxy();
         }
         this.executorProvider = consumer -> new BukkitCommandExecutor(discordSRV, commandSenderProvider.apply(consumer));
     }

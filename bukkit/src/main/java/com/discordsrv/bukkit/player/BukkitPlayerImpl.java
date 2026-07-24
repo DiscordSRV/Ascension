@@ -35,12 +35,11 @@ import org.jspecify.annotations.NonNull;
 
 import java.util.Collection;
 import java.util.Locale;
-import java.util.function.Supplier;
 
 public class BukkitPlayerImpl extends BukkitPlayer {
 
-    protected BukkitPlayerImpl(BukkitDiscordSRV discordSRV, Player player, Supplier<Audience> audienceSupplier) {
-        super(discordSRV, player, audienceSupplier);
+    protected BukkitPlayerImpl(BukkitDiscordSRV discordSRV, Player player, Audience audience) {
+        super(discordSRV, player, audience);
     }
 
     @Override

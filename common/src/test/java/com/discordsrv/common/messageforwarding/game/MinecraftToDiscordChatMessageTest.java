@@ -34,7 +34,6 @@ import com.discordsrv.common.feature.channel.global.GlobalChannel;
 import com.discordsrv.common.helper.TestHelper;
 import com.discordsrv.common.permission.game.Permission;
 import com.discordsrv.common.util.ComponentUtil;
-import net.kyori.adventure.audience.Audience;
 import net.kyori.adventure.identity.Identity;
 import net.kyori.adventure.text.Component;
 import org.jetbrains.annotations.NotNull;
@@ -76,11 +75,6 @@ public class MinecraftToDiscordChatMessageTest {
                                 @Override
                                 public @NotNull Identity identity() {
                                     return Identity.identity(UUID.fromString("6c983d46-0631-48b8-9baf-5e33eb5ffec4"));
-                                }
-
-                                @Override
-                                public @NotNull Audience audience() {
-                                    return Audience.empty();
                                 }
 
                                 @Override

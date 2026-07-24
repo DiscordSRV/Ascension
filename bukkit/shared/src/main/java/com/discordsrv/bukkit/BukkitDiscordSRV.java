@@ -19,6 +19,7 @@
 package com.discordsrv.bukkit;
 
 import com.discordsrv.api.DiscordSRV;
+import com.discordsrv.bukkit.component.BukkitComponentFactory;
 import com.discordsrv.bukkit.config.main.BukkitConfig;
 import com.discordsrv.bukkit.debug.BukkitListenerTrackingModule;
 import com.discordsrv.bukkit.player.AbstractBukkitPlayerProvider;
@@ -39,10 +40,12 @@ import java.lang.reflect.Field;
 
 public abstract class BukkitDiscordSRV extends AbstractDiscordSRV<IBukkitBootstrap, BukkitConfig, ConnectionConfig, MessagesConfig> {
 
+    private final BukkitComponentFactory componentFactory;
     private BukkitPluginManager pluginManager;
 
     public BukkitDiscordSRV(IBukkitBootstrap bootstrap) {
         super(bootstrap);
+        this.componentFactory = new BukkitComponentFactory(this);
     }
 
     @Override
@@ -79,8 +82,6 @@ public abstract class BukkitDiscordSRV extends AbstractDiscordSRV<IBukkitBootstr
     @Override
     protected void disable() {
         super.disable();
-
-        playerProvider().close();
 
         if (pluginManager != null) {
             pluginManager.disable();
@@ -137,5 +138,10 @@ public abstract class BukkitDiscordSRV extends AbstractDiscordSRV<IBukkitBootstr
     @Override
     public BukkitPluginManager pluginManager() {
         return pluginManager;
+    }
+
+    @Override
+    public @NotNull BukkitComponentFactory componentFactory() {
+        return componentFactory;
     }
 }

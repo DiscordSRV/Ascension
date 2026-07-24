@@ -20,12 +20,12 @@ package com.discordsrv.common.command.game.abstraction.sender;
 
 import com.discordsrv.common.command.game.abstraction.executor.CommandExecutor;
 import com.discordsrv.common.permission.game.Permission;
-import net.kyori.adventure.audience.ForwardingAudience;
+import net.kyori.adventure.audience.Audience;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.Locale;
 
-public interface ICommandSender extends ForwardingAudience.Single, CommandExecutor {
+public interface ICommandSender extends Audience, CommandExecutor {
 
     boolean hasPermission(Permission permission);
 

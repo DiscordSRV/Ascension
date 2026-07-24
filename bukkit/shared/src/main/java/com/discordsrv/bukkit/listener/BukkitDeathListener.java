@@ -25,7 +25,6 @@ import com.discordsrv.bukkit.debug.EventObserver;
 import com.discordsrv.bukkit.player.BukkitPlayer;
 import com.discordsrv.common.core.logging.NamedLogger;
 import com.discordsrv.common.util.ComponentUtil;
-import net.kyori.adventure.platform.bukkit.BukkitComponentSerializer;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.entity.PlayerDeathEvent;
@@ -56,7 +55,7 @@ public class BukkitDeathListener extends AbstractBukkitListener<PlayerDeathEvent
         }
 
         String message = event.getDeathMessage();
-        MinecraftComponent component = message == null ? null : ComponentUtil.toAPI(BukkitComponentSerializer.legacy().deserialize(message));
+        MinecraftComponent component = message == null ? null : ComponentUtil.toAPI(discordSRV.componentFactory().legacySerializer().deserialize(message));
 
         discordSRV.eventBus().publish(
                 new DeathMessagePreProcessEvent(
