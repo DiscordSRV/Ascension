@@ -34,7 +34,7 @@ import com.discordsrv.api.events.discord.message.DiscordMessageUpdateEvent;
 import com.discordsrv.api.events.message.post.discord.DiscordChatMessagePostEvent;
 import com.discordsrv.api.events.message.postprocess.discord.DiscordChatMessagePostProcessEvent;
 import com.discordsrv.api.events.message.preprocess.discord.DiscordChatMessagePreProcessEvent;
-import com.discordsrv.api.placeholder.util.Placeholders;
+import com.discordsrv.api.placeholder.util.PlaceholderReplacer;
 import com.discordsrv.api.player.DiscordSRVPlayer;
 import com.discordsrv.common.DiscordSRV;
 import com.discordsrv.common.abstraction.player.IPlayer;
@@ -157,14 +157,14 @@ public class DiscordToMinecraftChatModule extends AbstractModule<DiscordSRV> {
     public static Component convertToComponent(DiscordSRV discordSRV, ReceivedDiscordMessage message, BaseChannelConfig config) {
         DiscordToMinecraftChatConfig discordConfig = config.discordToMinecraft;
 
-        Placeholders placeholders = new Placeholders(message.getContent());
-        placeholders.replaceAll(ASCII_CONTROL_FILTER, "");
+        PlaceholderReplacer placeholderReplacer = new PlaceholderReplacer(message.getContent());
+        placeholderReplacer.replaceAll(ASCII_CONTROL_FILTER, "");
         if (discordConfig.unicodeEmojiBehaviour == DiscordToMinecraftChatConfig.EmojiBehaviour.HIDE) {
-            placeholders.replaceAll(EMOJI_FILTER, "");
+            placeholderReplacer.replaceAll(EMOJI_FILTER, "");
         }
-        discordConfig.contentRegexFilters.forEach(placeholders::replaceAll);
+        discordConfig.contentRegexFilters.forEach(placeholderReplacer::replaceAll);
 
-        String discordMessage = placeholders.toString();
+        String discordMessage = placeholderReplacer.toString();
         if (discordMessage.trim().isEmpty()) {
             return Component.empty();
         }

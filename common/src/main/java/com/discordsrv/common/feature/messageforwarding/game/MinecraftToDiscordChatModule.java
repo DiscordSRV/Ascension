@@ -33,7 +33,7 @@ import com.discordsrv.api.events.message.postprocess.game.GameChatMessagePostPro
 import com.discordsrv.api.events.message.preprocess.game.GameChatMessagePreProcessEvent;
 import com.discordsrv.api.placeholder.format.FormattedText;
 import com.discordsrv.api.placeholder.format.PlainPlaceholderFormat;
-import com.discordsrv.api.placeholder.util.Placeholders;
+import com.discordsrv.api.placeholder.util.PlaceholderReplacer;
 import com.discordsrv.api.task.Task;
 import com.discordsrv.common.DiscordSRV;
 import com.discordsrv.common.abstraction.player.IPlayer;
@@ -204,14 +204,14 @@ public class MinecraftToDiscordChatModule extends AbstractGameMessageModule<Mine
                             PlainPlaceholderFormat.Formatting.DISCORD_MARKDOWN,
                             () -> discordSRV.placeholderService().convertReplacementToCharSequence(message).toString()
                     );
-                    Placeholders messagePlaceholders = new Placeholders(content);
-                    config.contentRegexFilters.forEach(messagePlaceholders::replaceAll);
+                    PlaceholderReplacer messagePlaceholderReplacer = new PlaceholderReplacer(content);
+                    config.contentRegexFilters.forEach(messagePlaceholderReplacer::replaceAll);
 
                     if (mentions != null) {
-                        mentions.forEach(mention -> messagePlaceholders.replaceAll(mention.search(), mention.discordMention()));
+                        mentions.forEach(mention -> messagePlaceholderReplacer.replaceAll(mention.search(), mention.discordMention()));
                     }
 
-                    String finalMessage = messagePlaceholders.toString();
+                    String finalMessage = messagePlaceholderReplacer.toString();
                     return FormattedText.of(preventEveryoneMentions(everyoneMentionAllowed, finalMessage));
                 })
                 .build();

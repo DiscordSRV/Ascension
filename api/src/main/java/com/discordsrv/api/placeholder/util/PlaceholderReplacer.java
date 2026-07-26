@@ -32,48 +32,48 @@ import java.util.function.Supplier;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-public class Placeholders {
+public class PlaceholderReplacer {
 
     private final String inputText;
     private final Map<Pattern, Function<Matcher, Object>> replacements = new LinkedHashMap<>();
 
-    public Placeholders(String inputText) {
+    public PlaceholderReplacer(String inputText) {
         this.inputText = inputText;
     }
 
     @NotNull
-    public Placeholders addAll(Map<Pattern, Function<Matcher, Object>> replacements) {
+    public PlaceholderReplacer addAll(Map<Pattern, Function<Matcher, Object>> replacements) {
         this.replacements.putAll(replacements);
         return this;
     }
 
     @NotNull
-    public Placeholders replace(String target, Object replacement) {
+    public PlaceholderReplacer replace(String target, Object replacement) {
         return replace(target, matcher -> replacement);
     }
 
     @NotNull
-    public Placeholders replaceAll(Pattern pattern, Object replacement) {
+    public PlaceholderReplacer replaceAll(Pattern pattern, Object replacement) {
         return replaceAll(pattern, matcher -> replacement);
     }
 
     @NotNull
-    public Placeholders replace(String target, Supplier<Object> replacement) {
+    public PlaceholderReplacer replace(String target, Supplier<Object> replacement) {
         return replaceAll(Pattern.compile(target, Pattern.LITERAL), matcher -> replacement);
     }
 
     @NotNull
-    public Placeholders replaceAll(Pattern pattern, Supplier<Object> replacement) {
+    public PlaceholderReplacer replaceAll(Pattern pattern, Supplier<Object> replacement) {
         return replaceAll(pattern, matcher -> replacement);
     }
 
     @NotNull
-    public Placeholders replace(String target, Function<Matcher, Object> replacement) {
+    public PlaceholderReplacer replace(String target, Function<Matcher, Object> replacement) {
         return replaceAll(Pattern.compile(target, Pattern.LITERAL), replacement);
     }
 
     @NotNull
-    public Placeholders replaceAll(Pattern pattern, Function<Matcher, Object> replacement) {
+    public PlaceholderReplacer replaceAll(Pattern pattern, Function<Matcher, Object> replacement) {
         this.replacements.put(pattern, replacement);
         return this;
     }

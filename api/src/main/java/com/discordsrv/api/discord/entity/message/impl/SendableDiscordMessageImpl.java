@@ -35,7 +35,7 @@ import com.discordsrv.api.discord.util.DiscordFormattingUtil;
 import com.discordsrv.api.placeholder.PlaceholderService;
 import com.discordsrv.api.placeholder.format.FormattedText;
 import com.discordsrv.api.placeholder.format.PlainPlaceholderFormat;
-import com.discordsrv.api.placeholder.util.Placeholders;
+import com.discordsrv.api.placeholder.util.PlaceholderReplacer;
 import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.components.actionrow.ActionRow;
 import net.dv8tion.jda.api.components.actionrow.ActionRowChildComponent;
@@ -397,7 +397,7 @@ public class SendableDiscordMessageImpl implements SendableDiscordMessage {
                     return null;
                 }
 
-                Placeholders placeholderUtil = new Placeholders(input)
+                PlaceholderReplacer placeholderUtil = new PlaceholderReplacer(input)
                         .addAll(replacements);
 
                 // Empty string -> null (so we don't provide empty strings to random fields)

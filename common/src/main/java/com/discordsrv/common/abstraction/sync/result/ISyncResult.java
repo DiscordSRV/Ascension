@@ -18,7 +18,7 @@
 
 package com.discordsrv.common.abstraction.sync.result;
 
-import com.discordsrv.api.placeholder.util.Placeholders;
+import com.discordsrv.api.placeholder.util.PlaceholderReplacer;
 
 public interface ISyncResult {
 
@@ -27,7 +27,7 @@ public interface ISyncResult {
     String getFormat();
 
     default String format(String gameTerm, String discordTerm) {
-        return new Placeholders(getFormat())
+        return new PlaceholderReplacer(getFormat())
                 .replace("%g", gameTerm)
                 .replace("%d", discordTerm)
                 .toString();

@@ -29,43 +29,43 @@ import java.util.concurrent.atomic.AtomicBoolean;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
-public class PlaceholdersTest {
+public class PlaceholderReplacerTest {
 
     @Test
     public void orderTest() {
-        Placeholders placeholders = new Placeholders("a");
+        PlaceholderReplacer placeholderReplacer = new PlaceholderReplacer("a");
 
-        placeholders.replace("b", "c");
-        placeholders.replace("a", "b");
+        placeholderReplacer.replace("b", "c");
+        placeholderReplacer.replace("a", "b");
 
-        assertEquals("b", placeholders.toString());
+        assertEquals("b", placeholderReplacer.toString());
     }
 
     @Test
     public void uselessContentTest() {
-        Placeholders placeholders = new Placeholders("stuff a stuff");
+        PlaceholderReplacer placeholderReplacer = new PlaceholderReplacer("stuff a stuff");
 
-        placeholders.replace("a", "b");
+        placeholderReplacer.replace("a", "b");
 
-        assertEquals("stuff b stuff", placeholders.toString());
+        assertEquals("stuff b stuff", placeholderReplacer.toString());
     }
 
     @Test
     public void multipleTest() {
-        Placeholders placeholders = new Placeholders("a b");
+        PlaceholderReplacer placeholderReplacer = new PlaceholderReplacer("a b");
 
-        placeholders.replace("a", "c");
-        placeholders.replace("b", "d");
+        placeholderReplacer.replace("a", "c");
+        placeholderReplacer.replace("b", "d");
 
-        assertEquals("c d", placeholders.toString());
+        assertEquals("c d", placeholderReplacer.toString());
     }
 
     @Test
     public void multipleSamePatternTest() {
-        Placeholders placeholders = new Placeholders("a a");
+        PlaceholderReplacer placeholderReplacer = new PlaceholderReplacer("a a");
 
         AtomicBoolean used = new AtomicBoolean(false);
-        placeholders.replace("a", matcher -> {
+        placeholderReplacer.replace("a", matcher -> {
             if (used.get()) {
                 return "c";
             } else {
@@ -74,6 +74,6 @@ public class PlaceholdersTest {
             }
         });
 
-        assertEquals("b c", placeholders.toString());
+        assertEquals("b c", placeholderReplacer.toString());
     }
 }

@@ -78,7 +78,7 @@ public class PresenceUpdaterConfig {
                 + "%playerlist_count% - The amount of players online\n"
                 + "More placeholders at %3 (Global only)")
         @Constants.Comment({
-                "\"playing\", \"listening\", \"watching\", \"competing in\"",
+                "\"playing\", \"listening to\", \"watching\", \"competing in\"",
                 "\"streaming\"",
                 DocumentationURLs.PLACEHOLDERS
         })
@@ -93,6 +93,9 @@ public class PresenceUpdaterConfig {
                 String name = type.name().toLowerCase(Locale.ROOT);
                 if (type == Activity.ActivityType.COMPETING) {
                     name = "competing in";
+                }
+                if (type == Activity.ActivityType.LISTENING) {
+                    name = "listening to";
                 }
                 name += " ";
 
