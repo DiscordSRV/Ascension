@@ -16,7 +16,19 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package com.discordsrv.unrelocate.com.google.gson;
+package com.discordsrv.modded.mixin.component;
 
-public abstract class JsonElement extends com.google.gson.JsonElement {
+import com.discordsrv.unrelocate.com.google.gson.Gson;
+import org.spongepowered.asm.mixin.Mixin;
+import org.spongepowered.asm.mixin.gen.Accessor;
+
+// This file is excluded from relocations because it needs to access the original Gson instance used by Minecraft's Component serializer.
+@Mixin(targets = "net.minecraft.network.chat.Component$Serializer")
+public interface ComponentSerializerAccess {
+
+    //? if minecraft: <= 1.20.4 {
+    /*@Accessor static Gson getGSON() {
+        throw new AssertionError();
+    }
+    *///?}
 }

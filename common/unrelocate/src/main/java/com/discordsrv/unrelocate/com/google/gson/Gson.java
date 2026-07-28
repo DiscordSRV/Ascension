@@ -18,5 +18,17 @@
 
 package com.discordsrv.unrelocate.com.google.gson;
 
-public abstract class JsonElement extends com.google.gson.JsonElement {
+import java.lang.reflect.Type;
+
+public abstract class Gson {
+
+    public abstract <T> T fromJson(String json, Class<T> classOfT);
+
+    public abstract <T> T fromJson(JsonElement json, Class<T> classOfT);
+
+    public abstract String toJson(Object src);
+
+    public abstract JsonElement toJsonTree(Object src);
+
+    public abstract JsonElement toJsonTree(Object src, Type typeOfSrc);
 }

@@ -22,6 +22,7 @@ import com.discordsrv.api.component.MinecraftComponent;
 import com.discordsrv.common.core.component.ComponentFactory;
 import com.discordsrv.common.util.ComponentUtil;
 import com.google.common.base.Suppliers;
+import com.discordsrv.unrelocate.com.google.gson.Gson;
 import com.discordsrv.unrelocate.com.google.gson.JsonElement;
 import com.google.gson.JsonParseException;
 import com.mojang.serialization.JsonOps;
@@ -31,8 +32,6 @@ import net.kyori.adventure.text.serializer.gson.GsonComponentSerializer;
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.core.RegistryAccess;
-import net.minecraft.core.registries.BuiltInRegistries;
-import net.minecraft.network.chat.ComponentSerialization;
 import org.jetbrains.annotations.NotNull;
 
 import java.lang.reflect.Method;
@@ -40,20 +39,24 @@ import java.util.function.Supplier;
 
 public class ModdedComponentFactory extends ComponentFactory {
 
+    //? if minecraft: > 1.20.4
     private final Supplier<HolderLookup.Provider> holderProvider;
     private Method parseMethod;
 
     public ModdedComponentFactory(ModdedDiscordSRV discordSRV) {
         super(discordSRV);
-        this.holderProvider = Suppliers.ofInstance(RegistryAccess.fromRegistryOfRegistries(BuiltInRegistries.REGISTRY));
+
+        //? if minecraft: > 1.20.4 {
+        this.holderProvider = Suppliers.ofInstance(RegistryAccess.fromRegistryOfRegistries(net.minecraft.core.registries.BuiltInRegistries.REGISTRY));
 
         try {
             // Load the same classes as the Minecraft Server.
-            Class<?> parserClass = ComponentSerialization.class.getClassLoader().loadClass("com.google.gs".concat("on.JsonParser"));
+            Class<?> parserClass = net.minecraft.network.chat.ComponentSerialization.class.getClassLoader().loadClass("com.google.gs".concat("on.JsonParser"));
             this.parseMethod = parserClass.getMethod("parseString", String.class);
         } catch (ClassNotFoundException | NoSuchMethodException e) {
             logger.error("Failed to find JsonParser class or parse method. This will cause issues with component serialization.", e);
         }
+        //?}
     }
 
 
@@ -90,9 +93,10 @@ public class ModdedComponentFactory extends ComponentFactory {
         };
     }
 
+    //? if minecraft: > 1.20.4 {
     // From the internals of adventure platform modcommon.
     private Component deserialize(final net.minecraft.network.chat.Component input) {
-        JsonElement vanillaJson = (JsonElement) ComponentSerialization.CODEC
+        JsonElement vanillaJson = (JsonElement) net.minecraft.network.chat.ComponentSerialization.CODEC
                 .encodeStart(this.holderProvider.get().createSerializationContext(JsonOps.INSTANCE), input)
                 .getOrThrow(JsonParseException::new);
         return GsonComponentSerializer.gson().deserialize(vanillaJson.toString());
@@ -100,11 +104,23 @@ public class ModdedComponentFactory extends ComponentFactory {
 
     private net.minecraft.network.chat.Component serialize(final Component component) {
         String jsonString = GsonComponentSerializer.gson().serialize(component);
-        return ComponentSerialization.CODEC
+        return net.minecraft.network.chat.ComponentSerialization.CODEC
                 .decode(this.holderProvider.get().createSerializationContext(JsonOps.INSTANCE), parseFromString(jsonString))
                 .getOrThrow(JsonParseException::new)
                 .getFirst();
     }
+
+    //? } else {
+    /*private Component deserialize(final net.minecraft.network.chat.Component input) {
+        String jsonString = com.discordsrv.modded.mixin.component.ComponentSerializerAccess.getGSON().toJson(input);
+        return GsonComponentSerializer.gson().deserialize(jsonString);
+    }
+
+    private net.minecraft.network.chat.Component serialize(final Component component) {
+        String jsonString = GsonComponentSerializer.gson().serialize(component);
+        return com.discordsrv.modded.mixin.component.ComponentSerializerAccess.getGSON().fromJson(jsonString, net.minecraft.network.chat.Component.class);
+    }
+    *///? }
 
     private JsonElement parseFromString(String jsonString) {
         try {
