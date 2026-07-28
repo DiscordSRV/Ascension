@@ -11,9 +11,6 @@ stonecutter {
         def minecraft = node.project.property("minecraft.version_range_label").split("-")[0]
         dependencies["minecraft"] = minecraft
 
-        def adventure = node.project.property("deps.adventure_platform").replace("-SNAPSHOT", "")
-        dependencies["adventure"] = adventure
-
         def fml = node.project.property("deps.neoforge_fml_version").replace("-SNAPSHOT", "")
         if (fml != "[VERSIONED]") {
             dependencies["fml"] = fml

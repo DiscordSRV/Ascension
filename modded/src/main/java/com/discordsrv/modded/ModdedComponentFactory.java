@@ -21,50 +21,44 @@ package com.discordsrv.modded;
 import com.discordsrv.api.component.MinecraftComponent;
 import com.discordsrv.common.core.component.ComponentFactory;
 import com.discordsrv.common.util.ComponentUtil;
+import com.google.common.base.Suppliers;
+import com.discordsrv.unrelocate.com.google.gson.JsonElement;
+import com.google.gson.JsonParseException;
+import com.mojang.serialization.JsonOps;
 import net.kyori.adventure.audience.Audience;
 import net.kyori.adventure.text.Component;
-import net.minecraft.commands.CommandSource;
+import net.kyori.adventure.text.serializer.gson.GsonComponentSerializer;
 import net.minecraft.commands.CommandSourceStack;
-import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.core.HolderLookup;
+import net.minecraft.core.RegistryAccess;
+import net.minecraft.core.registries.BuiltInRegistries;
+import net.minecraft.network.chat.ComponentSerialization;
 import org.jetbrains.annotations.NotNull;
+
+import java.lang.reflect.Method;
+import java.util.function.Supplier;
 
 public class ModdedComponentFactory extends ComponentFactory {
 
-    //? if adventure: <6 {
-    /*private final net.kyori.adventure.platform.fabric.FabricServerAudiences adventure;
-     *///?} else {
-    private final net.kyori.adventure.platform.modcommon.MinecraftServerAudiences adventure;
-    //?}
-    private final ModdedDiscordSRV discordSRV;
+    private final Supplier<HolderLookup.Provider> holderProvider;
+    private Method parseMethod;
 
     public ModdedComponentFactory(ModdedDiscordSRV discordSRV) {
         super(discordSRV);
-        //? if adventure: <6 {
-        /*this.adventure = net.kyori.adventure.platform.fabric.FabricServerAudiences.of(discordSRV.getServer());
-         *///?} else {
-        this.adventure = net.kyori.adventure.platform.modcommon.MinecraftServerAudiences.of(discordSRV.getServer());
-        //?}
-        this.discordSRV = discordSRV;
+        this.holderProvider = Suppliers.ofInstance(RegistryAccess.fromRegistryOfRegistries(BuiltInRegistries.REGISTRY));
+
+        try {
+            // Load the same classes as the Minecraft Server.
+            Class<?> parserClass = ComponentSerialization.class.getClassLoader().loadClass("com.google.gs".concat("on.JsonParser"));
+            this.parseMethod = parserClass.getMethod("parseString", String.class);
+        } catch (ClassNotFoundException | NoSuchMethodException e) {
+            logger.error("Failed to find JsonParser class or parse method. This will cause issues with component serialization.", e);
+        }
     }
 
-    //? if adventure: <6 {
-    /*public net.kyori.adventure.platform.fabric.FabricServerAudiences getAdventure() {
-        return adventure;
-    }
-    *///?} else {
-    public net.kyori.adventure.platform.modcommon.MinecraftServerAudiences getAdventure() {
-        return adventure;
-    }
-    //?}
 
-    //? if adventure: <6 {
-    /*@SuppressWarnings("removal")
     public Component fromNative(net.minecraft.network.chat.Component text) {
-        return adventure.toAdventure(text);
-    *///?} else {
-    public Component fromNative(net.minecraft.network.chat.Component text) {
-        return adventure.asAdventure(text);
-    //?}
+        return deserialize(text);
     }
 
     public Component toAdventure(net.minecraft.network.chat.Component text) {
@@ -72,11 +66,7 @@ public class ModdedComponentFactory extends ComponentFactory {
     }
 
     public net.minecraft.network.chat.Component toNative(Component component) {
-        //? if adventure: <6 {
-         /*return adventure.toNative(component);
-        *///?} else {
-        return adventure.asNative(component);
-        //?}
+        return serialize(component);
     }
 
     public net.minecraft.network.chat.Component fromAdventure(Component component) {
@@ -91,24 +81,37 @@ public class ModdedComponentFactory extends ComponentFactory {
         return toAPI(fromNative(text));
     }
 
-    //? if adventure: <6 {
-    /*public net.kyori.adventure.platform.fabric.AdventureCommandSourceStack audience(@NotNull CommandSourceStack source) {
-     *///?} else {
-    public net.kyori.adventure.platform.modcommon.AdventureCommandSourceStack audience(@NotNull CommandSourceStack source) {
-    //?}
-        return adventure.audience(source);
+    public Audience audience(@NotNull CommandSourceStack source) {
+        return new Audience() {
+            @Override
+            public void sendMessage(@NotNull Component message) {
+                source.sendSystemMessage(serialize(message));
+            }
+        };
     }
 
-    public @NotNull Audience audience(@NotNull ServerPlayer source) {
-        return adventure.audience(source);
+    // From the internals of adventure platform modcommon.
+    private Component deserialize(final net.minecraft.network.chat.Component input) {
+        JsonElement vanillaJson = (JsonElement) ComponentSerialization.CODEC
+                .encodeStart(this.holderProvider.get().createSerializationContext(JsonOps.INSTANCE), input)
+                .getOrThrow(JsonParseException::new);
+        return GsonComponentSerializer.gson().deserialize(vanillaJson.toString());
     }
 
-    public @NotNull Audience audience(@NotNull CommandSource source) {
-        return adventure.audience(source);
+    private net.minecraft.network.chat.Component serialize(final Component component) {
+        String jsonString = GsonComponentSerializer.gson().serialize(component);
+        return ComponentSerialization.CODEC
+                .decode(this.holderProvider.get().createSerializationContext(JsonOps.INSTANCE), parseFromString(jsonString))
+                .getOrThrow(JsonParseException::new)
+                .getFirst();
     }
 
-    public @NotNull Audience audience(@NotNull Iterable<ServerPlayer> players) {
-        return adventure.audience(players);
+    private JsonElement parseFromString(String jsonString) {
+        try {
+            return (JsonElement) parseMethod.invoke(null, jsonString);
+        } catch (Exception e) {
+            logger.error("Failed to parse JSON string: " + jsonString, e);
+            return null;
+        }
     }
-
 }
