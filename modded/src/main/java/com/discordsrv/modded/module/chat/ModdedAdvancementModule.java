@@ -68,7 +68,7 @@ public class ModdedAdvancementModule extends AbstractModdedModule {
          //?}
 
         //? if minecraft: <1.20.3 {
-        /*Component rawChat = Component.translatable("chat.type.advancement." + frameName, owner.getDisplayName(), display.getTitle());
+        /*Component rawChat = Component.translatable("chat.type.advancement." + frameName.toLowerCase(Locale.ROOT), owner.getDisplayName(), display.getTitle());
         *///?} else {
         Component rawChat = display.getType().createAnnouncement(advancementEntry, owner);
         //?}
