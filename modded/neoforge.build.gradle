@@ -121,7 +121,7 @@ dependencies {
     // Common
     shadow project(':common')
 
-    implementation(libs.adventure.api)
+    runtimeDownload(libs.adventure.api)
 
     // DependencyDownload
     compileOnly(libs.dependencydownload.jarinjar.loader)
