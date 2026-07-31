@@ -21,7 +21,6 @@ package com.discordsrv.modded.player;
 import com.discordsrv.api.task.Task;
 import com.discordsrv.common.DiscordSRV;
 import com.discordsrv.common.abstraction.player.IPlayer;
-import com.discordsrv.common.abstraction.player.provider.model.SkinInfo;
 import com.discordsrv.common.util.ComponentUtil;
 import com.discordsrv.modded.ModdedDiscordSRV;
 import com.discordsrv.modded.accessor.ServerPlayerEntityAccessor;
@@ -113,25 +112,12 @@ public class ModdedPlayer extends ModdedCommandSender implements IPlayer {
 
     @Override
     public @NotNull Identity identity() {
-        //? if adventure: >=6 {
-        return net.kyori.adventure.platform.modcommon.MinecraftAudiences.identified(player).identity();
-        //?} else if fabric {
-        /*return net.kyori.adventure.platform.fabric.FabricAudiences.identified(player).identity();
-        *///?} else {
-        /*return Identity.identity(player.getUUID());
-        *///?}
+        return Identity.identity(player.getUUID());
     }
 
     @Override
     public @NotNull Component displayName() {
-        //? if adventure: >=5.3.0 {
-        return discordSRV.componentFactory().getAdventure().audience(player).getOrDefaultFrom(
-                Identity.DISPLAY_NAME,
-                () -> discordSRV.componentFactory().fromNative(player.getName())
-        );
-        //?} else {
-        /*return Component.text(player.getName().getString());
-        *///?}
+        return Component.text(player.getName().getString());
     }
 
     @Override

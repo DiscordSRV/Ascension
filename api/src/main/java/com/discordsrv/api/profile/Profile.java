@@ -23,6 +23,7 @@
 
 package com.discordsrv.api.profile;
 
+import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.UUID;
@@ -30,6 +31,7 @@ import java.util.UUID;
 /**
  * A profile for a Minecraft player, Discord user or linked pair.
  */
+@ApiStatus.NonExtendable
 public interface Profile {
 
     @Nullable

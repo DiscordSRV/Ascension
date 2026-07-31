@@ -24,6 +24,7 @@
 package com.discordsrv.api.component;
 
 import com.discordsrv.api.DiscordSRV;
+import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -32,6 +33,7 @@ import org.jetbrains.annotations.Nullable;
  * @see MinecraftComponent#asAdventure(MinecraftComponentAdapter)
  * @param <Component> the Adventure Component type, unrelocated or relocated
  */
+@ApiStatus.NonExtendable
 public interface MinecraftComponentAdapter<Component> {
 
     /**

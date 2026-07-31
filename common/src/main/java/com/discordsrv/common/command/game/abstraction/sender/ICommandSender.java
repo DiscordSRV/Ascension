@@ -20,12 +20,16 @@ package com.discordsrv.common.command.game.abstraction.sender;
 
 import com.discordsrv.common.command.game.abstraction.executor.CommandExecutor;
 import com.discordsrv.common.permission.game.Permission;
-import net.kyori.adventure.audience.ForwardingAudience;
+import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.ComponentLike;
+import org.jetbrains.annotations.ApiStatus;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.jspecify.annotations.NonNull;
 
 import java.util.Locale;
 
-public interface ICommandSender extends ForwardingAudience.Single, CommandExecutor {
+public interface ICommandSender extends CommandExecutor {
 
     boolean hasPermission(Permission permission);
 
@@ -34,4 +38,10 @@ public interface ICommandSender extends ForwardingAudience.Single, CommandExecut
         return null;
     }
 
+    void sendMessage(@NonNull Component message);
+
+    @ApiStatus.NonExtendable
+    default void sendMessage(@NotNull ComponentLike message) {
+        sendMessage(message.asComponent());
+    }
 }

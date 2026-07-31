@@ -1,0 +1,45 @@
+import org.apache.tools.ant.filters.ReplaceTokens
+
+apply plugin: 'xyz.jpenilla.run-paper'
+apply from: rootProject.file('buildscript/loader.gradle')
+
+java {
+    disableAutoTargetJvm() // Requires Java 25, we target 21
+}
+
+dependencies {
+    // API
+    api project(':common:common-api')
+
+    // DependencyDownload
+    api(libs.mcdependencydownload.bukkit.loader)
+
+    // Platform
+    compileOnly(libs.paperapi.latest) {
+        // v2 uses ServiceLocator
+        exclude module: 'slf4j-api'
+    }
+}
+
+processResources {
+    filter(ReplaceTokens, tokens: ['VERSION': project.version])
+}
+
+jar {
+    manifest {
+        // Skip remapping on Paper 1.20.5+
+        attributes(["paperweight-mappings-namespace": "mojang"])
+    }
+}
+
+shadowJar {
+    archiveBaseName = 'DiscordSRV-Paper'
+}
+
+tasks {
+    runServer {
+        minecraftVersion("26.2")
+    }
+}
+
+// buildscript/loader.gradle includes the jarinjar in the jar

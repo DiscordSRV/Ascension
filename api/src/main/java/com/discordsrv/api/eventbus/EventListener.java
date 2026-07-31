@@ -24,11 +24,13 @@
 package com.discordsrv.api.eventbus;
 
 import com.discordsrv.api.events.Event;
+import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
 
 /**
  * An event listener.
  */
+@ApiStatus.NonExtendable
 public interface EventListener {
 
     /**

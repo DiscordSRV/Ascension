@@ -20,25 +20,29 @@ package com.discordsrv.common.core.component;
 
 import com.discordsrv.api.component.MinecraftComponent;
 import com.discordsrv.api.component.MinecraftComponentAdapter;
+import net.kyori.adventure.text.Component;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 
 public class MinecraftComponentAdapterImpl<T> implements MinecraftComponentAdapter<T> {
 
-    private final Class<?> gsonSerializerClass;
-    private final Object instance;
-    private final Method deserialize;
-    private final Method serialize;
+    private static final Native NATIVE = new Native();
 
-    public MinecraftComponentAdapterImpl(Class<?> gsonSerializerClass, Class<T> providedComponentClass) {
+    @SuppressWarnings("unchecked") // Checked
+    public static <T> MinecraftComponentAdapter<T> get(Class<?> gsonSerializerClass, Class<T> providedComponentClass) {
         try {
-            this.gsonSerializerClass = gsonSerializerClass;
-            this.instance = gsonSerializerClass.getDeclaredMethod("gson").invoke(null);
-            this.deserialize = gsonSerializerClass.getMethod("deserialize", Object.class);
+            Object instance = gsonSerializerClass.getDeclaredMethod("gson").invoke(null);
+            Method deserialize = gsonSerializerClass.getMethod("deserialize", Object.class);
             Class<?> componentClass = deserialize.getReturnType();
             checkComponentClass(providedComponentClass, componentClass);
-            this.serialize = gsonSerializerClass.getMethod("serialize", componentClass);
+            if (Component.class.isAssignableFrom(componentClass)) {
+                return (MinecraftComponentAdapter<T>) NATIVE;
+            }
+
+            Method serialize = gsonSerializerClass.getMethod("serialize", componentClass);
+
+            return new MinecraftComponentAdapterImpl<>(gsonSerializerClass, instance, deserialize, serialize);
         } catch (InvocationTargetException | IllegalAccessException | NoSuchMethodException e) {
             throw new IllegalArgumentException("The provided class is not a GsonComponentSerializer", e);
         }
@@ -58,6 +62,23 @@ public class MinecraftComponentAdapterImpl<T> implements MinecraftComponentAdapt
                             + ") does not match the one returned by the serializer: " + actualName
             );
         }
+    }
+
+    private final Class<?> gsonSerializerClass;
+    private final Object instance;
+    private final Method deserialize;
+    private final Method serialize;
+
+    public MinecraftComponentAdapterImpl(
+            Class<?> gsonSerializerClass,
+            Object instance,
+            Method deserialize,
+            Method serialize
+    ) {
+        this.gsonSerializerClass = gsonSerializerClass;
+        this.instance = instance;
+        this.deserialize = deserialize;
+        this.serialize = serialize;
     }
 
     @SuppressWarnings("unchecked")
@@ -81,5 +102,18 @@ public class MinecraftComponentAdapterImpl<T> implements MinecraftComponentAdapt
     public MinecraftComponent toDiscordSRV(T o) {
         String json = execute(serialize, o);
         return MinecraftComponent.fromJson(json);
+    }
+
+    public static class Native implements MinecraftComponentAdapter<Component> {
+
+        @Override
+        public Component toAdventure(MinecraftComponent component) {
+            return ((MinecraftComponentImpl) component).getComponent();
+        }
+
+        @Override
+        public MinecraftComponent toDiscordSRV(Component component) {
+            return new MinecraftComponentImpl(component);
+        }
     }
 }

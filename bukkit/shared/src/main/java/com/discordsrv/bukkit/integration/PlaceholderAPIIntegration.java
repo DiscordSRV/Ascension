@@ -29,13 +29,15 @@ import com.discordsrv.common.abstraction.player.IOfflinePlayer;
 import com.discordsrv.common.core.module.type.PluginIntegration;
 import me.clip.placeholderapi.PlaceholderAPI;
 import me.clip.placeholderapi.expansion.PlaceholderExpansion;
-import net.kyori.adventure.platform.bukkit.BukkitComponentSerializer;
 import org.bukkit.OfflinePlayer;
 import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+import java.util.UUID;
 
 public class PlaceholderAPIIntegration extends PluginIntegration<BukkitDiscordSRV> {
 
@@ -115,7 +117,7 @@ public class PlaceholderAPIIntegration extends PluginIntegration<BukkitDiscordSR
             return;
         }
 
-        event.process(PlaceholderLookupResult.success(BukkitComponentSerializer.legacy().deserialize(result)));
+        event.process(PlaceholderLookupResult.success(discordSRV.componentFactory().legacySerializer().deserialize(result)));
     }
 
     public class Expansion extends PlaceholderExpansion {

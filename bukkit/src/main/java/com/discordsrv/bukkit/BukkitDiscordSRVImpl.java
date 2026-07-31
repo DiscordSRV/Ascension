@@ -24,16 +24,15 @@ import com.discordsrv.bukkit.command.game.BukkitGameCommandExecutionHelper;
 import com.discordsrv.bukkit.command.game.PaperGameCommandExecutionHelper;
 import com.discordsrv.bukkit.command.game.handler.BukkitBasicCommandHandler;
 import com.discordsrv.bukkit.command.game.handler.CommodoreHandler;
-import com.discordsrv.bukkit.component.PaperComponentFlattener;
 import com.discordsrv.bukkit.component.PaperComponentCheck;
+import com.discordsrv.bukkit.component.PaperComponentFlattener;
 import com.discordsrv.bukkit.config.main.BukkitConfig;
 import com.discordsrv.bukkit.console.BukkitConsole;
 import com.discordsrv.bukkit.debug.PaperLegacyChatDebugModule;
 import com.discordsrv.bukkit.listener.*;
 import com.discordsrv.bukkit.module.BukkitSkinProvider;
 import com.discordsrv.bukkit.module.BukkitWorldLookupModule;
-import com.discordsrv.bukkit.player.BukkitOfflinePlayerImpl;
-import com.discordsrv.bukkit.player.BukkitPlayerImpl;
+import com.discordsrv.bukkit.player.AbstractBukkitPlayerProvider;
 import com.discordsrv.bukkit.player.BukkitPlayerProvider;
 import com.discordsrv.bukkit.requiredlinking.BukkitRequiredLinkingModule;
 import com.discordsrv.bukkit.scheduler.BukkitScheduler;
@@ -56,7 +55,7 @@ public class BukkitDiscordSRVImpl extends BukkitDiscordSRV {
 
     private final BukkitScheduler scheduler;
     private final GameCommandExecutionHelper executionHelper;
-    private final BukkitPlayerProvider playerProvider;
+    private final AbstractBukkitPlayerProvider playerProvider;
     private final BukkitConsole console;
 
     private final ConnectionConfigManager<ConnectionConfig> connectionConfigManager;
@@ -74,11 +73,7 @@ public class BukkitDiscordSRVImpl extends BukkitDiscordSRV {
         this.executionHelper = ReflectionUtil.methodExists(CommandMap.class, "getKnownCommands", new Class[0])
                                ? new PaperGameCommandExecutionHelper(this)
                                : new BukkitGameCommandExecutionHelper(this);
-        this.playerProvider = new BukkitPlayerProvider(
-                this,
-                player -> new BukkitPlayerImpl(this, player),
-                offlinePlayer -> new BukkitOfflinePlayerImpl(this, offlinePlayer)
-        );
+        this.playerProvider = new BukkitPlayerProvider(this);
         this.console = new BukkitConsole(this);
 
         // Config
@@ -183,7 +178,7 @@ public class BukkitDiscordSRVImpl extends BukkitDiscordSRV {
     }
 
     @Override
-    public @NotNull BukkitPlayerProvider playerProvider() {
+    public @NotNull AbstractBukkitPlayerProvider playerProvider() {
         return playerProvider;
     }
 

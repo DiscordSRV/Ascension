@@ -16,13 +16,7 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package com.discordsrv.unrelocate.net.draycia.carbon.api.channels;
+package com.discordsrv.unrelocate.com.google.gson;
 
-import com.discordsrv.unrelocate.net.kyori.adventure.key.Key;
-
-@SuppressWarnings("NonExtendableApiUsage") // Not present at runtime
-public interface ChatChannel {
-    Key key();
-
-    String commandName();
+public abstract class JsonElement extends com.google.gson.JsonElement {
 }

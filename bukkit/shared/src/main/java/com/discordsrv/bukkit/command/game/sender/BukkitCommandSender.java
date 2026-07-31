@@ -22,21 +22,20 @@ import com.discordsrv.bukkit.BukkitDiscordSRV;
 import com.discordsrv.common.command.game.abstraction.sender.ICommandSender;
 import com.discordsrv.common.permission.game.Permission;
 import net.kyori.adventure.audience.Audience;
+import net.kyori.adventure.text.Component;
 import org.bukkit.command.CommandSender;
-import org.jetbrains.annotations.NotNull;
-
-import java.util.function.Supplier;
+import org.jspecify.annotations.NonNull;
 
 public class BukkitCommandSender implements ICommandSender {
 
     protected final BukkitDiscordSRV discordSRV;
     protected final CommandSender commandSender;
-    protected final Supplier<Audience> audienceSupplier;
+    protected final Audience audience;
 
-    public BukkitCommandSender(BukkitDiscordSRV discordSRV, CommandSender commandSender, Supplier<Audience> audienceSupplier) {
+    public BukkitCommandSender(BukkitDiscordSRV discordSRV, CommandSender commandSender, Audience audience) {
         this.discordSRV = discordSRV;
         this.commandSender = commandSender;
-        this.audienceSupplier = audienceSupplier;
+        this.audience = audience;
     }
 
     @Override
@@ -50,7 +49,7 @@ public class BukkitCommandSender implements ICommandSender {
     }
 
     @Override
-    public @NotNull Audience audience() {
-        return audienceSupplier.get();
+    public void sendMessage(@NonNull Component message) {
+        audience.sendMessage(message);
     }
 }

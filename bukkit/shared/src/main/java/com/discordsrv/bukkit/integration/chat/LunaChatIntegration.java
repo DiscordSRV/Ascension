@@ -36,11 +36,10 @@ import com.github.ucchyocean.lc3.bukkit.event.LunaChatBukkitChannelChatEvent;
 import com.github.ucchyocean.lc3.channel.Channel;
 import com.github.ucchyocean.lc3.member.ChannelMember;
 import com.github.ucchyocean.lc3.member.ChannelMemberPlayer;
-import net.kyori.adventure.platform.bukkit.BukkitComponentSerializer;
 import net.kyori.adventure.text.TextComponent;
 import net.kyori.adventure.text.format.TextColor;
-import net.kyori.adventure.text.serializer.bungeecord.BungeeComponentSerializer;
 import net.md_5.bungee.api.chat.BaseComponent;
+import net.md_5.bungee.chat.ComponentSerializer;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.HandlerList;
@@ -93,7 +92,7 @@ public class LunaChatIntegration extends PluginIntegration<BukkitDiscordSRV> imp
         Player player = ((ChannelMemberPlayer) member).getPlayer();
         Channel channel = event.getChannel();
         MinecraftComponent component = ComponentUtil.toAPI(
-                BukkitComponentSerializer.legacy().deserialize(event.getNgMaskedMessage())
+                discordSRV.componentFactory().legacySerializer().deserialize(event.getNgMaskedMessage())
         );
 
         BukkitPlayer srvPlayer = discordSRV.playerProvider().player(player);
@@ -131,7 +130,7 @@ public class LunaChatIntegration extends PluginIntegration<BukkitDiscordSRV> imp
         public LunaChatChannel(Channel channel) {
             this.channel = channel;
 
-            TextComponent component = BukkitComponentSerializer.legacy().deserialize(channel.getColorCode() + "a");
+            TextComponent component = discordSRV.componentFactory().legacySerializer().deserialize(channel.getColorCode() + "a");
             List<TextColor> colors = ComponentUtil.extractColors(component);
             this.color = colors.isEmpty() ? null : colors.get(0);
         }
@@ -193,7 +192,8 @@ public class LunaChatIntegration extends PluginIntegration<BukkitDiscordSRV> imp
 
         @Override
         public void sendMessage(@NotNull MinecraftComponent component) {
-            BaseComponent[] baseComponent = BungeeComponentSerializer.get().serialize(ComponentUtil.fromAPI(component));
+            String json = discordSRV.componentFactory().gsonSerializer().serialize(ComponentUtil.fromAPI(component));
+            BaseComponent[] baseComponent = ComponentSerializer.parse(json);
             for (ChannelMember member : channel.getMembers()) {
                 if (member instanceof ChannelMemberPlayer) {
                     continue;

@@ -23,16 +23,27 @@ tasks.register('generateResourceForCommodore', GenerateDependencyDownloadResourc
     file = 'dependencies/' + conf.name + '.txt'
 }
 
+def verifyLatestBukkit = System.getenv("verify-latest-bukkit") == "true" || providers.gradleProperty("verify-latest-bukkit").get() == "true"
+java {
+    if (verifyLatestBukkit) {
+        disableAutoTargetJvm() // Requires Java 25, we target 21
+    }
+}
+
 dependencies {
     // API
     annotationProcessor project(':api')
 
     // Platform
-    compileOnly(libs.bukkit.minimum)
-
-    // Adventure
-    runtimeDownloadApi(libs.adventure.api)
-    runtimeDownloadApi(libs.adventure.platform.bukkit)
+    if (verifyLatestBukkit) {
+        compileOnly(libs.paperapi.latest) {
+            exclude module: 'slf4j-api'
+        }
+    } else {
+        compileOnly(libs.bukkit.minimum) {
+            exclude group: 'commons-lang', module: 'commons-lang'
+        }
+    }
 
     // Commodore
     commodore(libs.commodore) {
@@ -62,7 +73,10 @@ dependencies {
     compileOnly(libs.mcmmo)
     compileOnly(libs.townychat)
     compileOnly(libs.venturechat)
-    compileOnly(libs.essentialsx)
+    compileOnly(libs.essentialsx) {
+        exclude module: 'spigot-api'
+        exclude module: 'paper-api'
+    }
 }
 
 processResources {

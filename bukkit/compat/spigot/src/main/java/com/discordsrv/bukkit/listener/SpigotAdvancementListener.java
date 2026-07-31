@@ -25,7 +25,6 @@ import com.discordsrv.bukkit.gamerule.GameRule;
 import com.discordsrv.bukkit.player.BukkitPlayer;
 import com.discordsrv.common.core.logging.NamedLogger;
 import com.discordsrv.common.util.ComponentUtil;
-import net.kyori.adventure.platform.bukkit.BukkitComponentSerializer;
 import org.bukkit.advancement.Advancement;
 import org.bukkit.advancement.AdvancementDisplay;
 import org.bukkit.event.EventHandler;
@@ -67,8 +66,8 @@ public class SpigotAdvancementListener extends AbstractBukkitListener<PlayerAdva
             return;
         }
 
-        MinecraftComponent title = ComponentUtil.toAPI(BukkitComponentSerializer.legacy().deserialize(display.getTitle()));
-        MinecraftComponent description = ComponentUtil.toAPI(BukkitComponentSerializer.legacy().deserialize(display.getDescription()));
+        MinecraftComponent title = ComponentUtil.toAPI(discordSRV.componentFactory().legacySerializer().deserialize(display.getTitle()));
+        MinecraftComponent description = ComponentUtil.toAPI(discordSRV.componentFactory().legacySerializer().deserialize(display.getDescription()));
 
         discordSRV.eventBus().publish(
                 new AdvancementMessagePreProcessEvent(

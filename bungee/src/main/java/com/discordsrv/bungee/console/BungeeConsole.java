@@ -32,7 +32,7 @@ public class BungeeConsole extends BungeeCommandSender implements Console {
     private final BungeeCommandExecutorProvider executorProvider;
 
     public BungeeConsole(BungeeDiscordSRV discordSRV) {
-        super(discordSRV, discordSRV.proxy().getConsole(), () -> discordSRV.audiences().console());
+        super(discordSRV, discordSRV.proxy().getConsole());
         this.loggingBackend = JavaLoggerImpl.getRoot();
         this.executorProvider = new BungeeCommandExecutorProvider(discordSRV);
     }

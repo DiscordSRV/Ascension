@@ -32,12 +32,14 @@ import com.discordsrv.api.discord.entity.guild.DiscordGuild;
 import com.discordsrv.api.discord.entity.guild.DiscordRole;
 import com.discordsrv.api.discord.entity.interaction.command.DiscordCommand;
 import com.discordsrv.api.task.Task;
+import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 /**
  * A basic Discord API wrapper for a limited amount of functions, with a minimal amount of breaking changes.
  */
+@ApiStatus.NonExtendable
 public interface DiscordAPI {
 
     /**

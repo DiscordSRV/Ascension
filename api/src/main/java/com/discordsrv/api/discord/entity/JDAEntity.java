@@ -30,6 +30,7 @@ import org.jetbrains.annotations.ApiStatus;
  * An entity that wraps a JDA entity.
  * @param <T> the JDA type
  */
+@ApiStatus.NonExtendable
 public interface JDAEntity<T> {
 
     /**

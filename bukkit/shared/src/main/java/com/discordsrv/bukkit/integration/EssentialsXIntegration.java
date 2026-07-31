@@ -45,7 +45,6 @@ import net.ess3.api.events.MuteStatusChangeEvent;
 import net.ess3.api.events.NickChangeEvent;
 import net.ess3.api.events.VanishStatusChangeEvent;
 import net.essentialsx.api.v2.events.chat.GlobalChatEvent;
-import net.kyori.adventure.platform.bukkit.BukkitComponentSerializer;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
@@ -110,7 +109,7 @@ public class EssentialsXIntegration
     public void onGlobalChat(GlobalChatEvent event) {
         Player player = event.getPlayer();
         MinecraftComponent component = ComponentUtil.toAPI(
-                BukkitComponentSerializer.legacy().deserialize(event.getMessage())
+                discordSRV.componentFactory().legacySerializer().deserialize(event.getMessage())
         );
 
         BukkitPlayer srvPlayer = discordSRV.playerProvider().player(player);
@@ -177,14 +176,14 @@ public class EssentialsXIntegration
     public Task<Punishment> getMute(@NotNull UUID playerUUID) {
         return getUser(playerUUID).thenApply(user -> new Punishment(
                 user.getMuteTimeout() > 0 ? Instant.ofEpochMilli(user.getMuteTimeout()) : null,
-                user.getMuteReason() != null ? ComponentUtil.toAPI(BukkitComponentSerializer.legacy().deserialize(user.getMuteReason())) : null,
+                user.getMuteReason() != null ? ComponentUtil.toAPI(discordSRV.componentFactory().legacySerializer().deserialize(user.getMuteReason())) : null,
                 null
         ));
     }
 
     @Override
     public Task<Void> addMute(@NotNull UUID playerUUID, @Nullable Instant until, @Nullable MinecraftComponent reason, @NotNull MinecraftComponent punisher) {
-        String reasonLegacy = reason != null ? BukkitComponentSerializer.legacy().serialize(ComponentUtil.fromAPI(reason)) : null;
+        String reasonLegacy = reason != null ? discordSRV.componentFactory().legacySerializer().serialize(ComponentUtil.fromAPI(reason)) : null;
         return getUser(playerUUID).thenApply(user -> {
             user.setMuted(true);
             user.setMuteTimeout(until != null ? until.toEpochMilli() : 0);

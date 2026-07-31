@@ -16,8 +16,19 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package com.discordsrv.unrelocate.net.kyori.adventure.key;
+package com.discordsrv.unrelocate.com.google.gson;
 
-@SuppressWarnings("NonExtendableApiUsage") // Not present at runtime
-public interface Key extends net.kyori.adventure.key.Key {
+import java.lang.reflect.Type;
+
+public abstract class Gson {
+
+    public abstract <T> T fromJson(String json, Class<T> classOfT);
+
+    public abstract <T> T fromJson(JsonElement json, Class<T> classOfT);
+
+    public abstract String toJson(Object src);
+
+    public abstract JsonElement toJsonTree(Object src);
+
+    public abstract JsonElement toJsonTree(Object src, Type typeOfSrc);
 }

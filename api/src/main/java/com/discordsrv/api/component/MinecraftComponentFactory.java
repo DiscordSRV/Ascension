@@ -24,6 +24,7 @@
 package com.discordsrv.api.component;
 
 import com.discordsrv.api.DiscordSRV;
+import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -31,6 +32,7 @@ import org.jetbrains.annotations.Nullable;
  * A factory for creating {@link MinecraftComponent}s.
  * @see DiscordSRV#componentFactory()
  */
+@ApiStatus.NonExtendable
 public interface MinecraftComponentFactory {
 
     /**

@@ -1,7 +1,7 @@
 // Common build script for bootstraps & standalone platforms
 apply from: rootProject.file('buildscript/relocations.gradle')
 
-jar {
+processResources {
     dependsOn generateRuntimeDownloadResourceForRuntimeDownloadOnly
 }
 

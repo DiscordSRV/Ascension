@@ -19,17 +19,35 @@
 package com.discordsrv.bungee.component.util;
 
 import net.kyori.adventure.text.Component;
-import net.kyori.adventure.text.serializer.bungeecord.BungeeComponentSerializer;
+import net.kyori.adventure.text.serializer.gson.GsonComponentSerializer;
 import net.md_5.bungee.api.chat.BaseComponent;
 import net.md_5.bungee.api.chat.TextComponent;
+import net.md_5.bungee.chat.ComponentSerializer;
 
 public final class BungeeComponentUtil {
 
     private BungeeComponentUtil() {}
 
-    @SuppressWarnings("deprecation") // Array method
     public static Component fromLegacy(String legacy) {
-        BaseComponent[] components = TextComponent.fromLegacyText(legacy);
-        return BungeeComponentSerializer.get().deserialize(components);
+        BaseComponent component = TextComponent.fromLegacy(legacy);
+        return toAdventure(component);
+    }
+
+    public static BaseComponent toBungee(Component component) {
+        String json = GsonComponentSerializer.gson().serialize(component);
+        return ComponentSerializer.deserialize(json);
+    }
+
+    public static Component toAdventure(BaseComponent[] components) {
+        TextComponent parentComponent = new TextComponent();
+        for (BaseComponent baseComponent : components) {
+            parentComponent.addExtra(baseComponent);
+        }
+        return toAdventure(parentComponent);
+    }
+
+    public static Component toAdventure(BaseComponent baseComponent) {
+        String json = ComponentSerializer.toString(baseComponent);
+        return GsonComponentSerializer.gson().deserialize(json);
     }
 }

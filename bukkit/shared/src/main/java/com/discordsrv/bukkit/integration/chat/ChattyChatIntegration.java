@@ -29,7 +29,6 @@ import com.discordsrv.bukkit.player.BukkitPlayer;
 import com.discordsrv.common.core.logging.NamedLogger;
 import com.discordsrv.common.core.module.type.PluginIntegration;
 import com.discordsrv.common.util.ComponentUtil;
-import net.kyori.adventure.platform.bukkit.BukkitComponentSerializer;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.HandlerList;
@@ -80,7 +79,7 @@ public class ChattyChatIntegration extends PluginIntegration<BukkitDiscordSRV> i
         Player player = event.getPlayer();
         Chat chat = event.getChat();
         MinecraftComponent component = ComponentUtil.toAPI(
-                BukkitComponentSerializer.legacy().deserialize(event.getMessage())
+                discordSRV.componentFactory().legacySerializer().deserialize(event.getMessage())
         );
 
         BukkitPlayer srvPlayer = discordSRV.playerProvider().player(player);

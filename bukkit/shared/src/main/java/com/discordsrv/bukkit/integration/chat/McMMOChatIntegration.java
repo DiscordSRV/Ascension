@@ -36,7 +36,6 @@ import com.gmail.nossr50.chat.author.PlayerAuthor;
 import com.gmail.nossr50.events.chat.McMMOAdminChatEvent;
 import com.gmail.nossr50.mcMMO;
 import com.gmail.nossr50.mcmmo.kyori.adventure.text.serializer.gson.GsonComponentSerializer;
-import net.kyori.adventure.platform.bukkit.BukkitComponentSerializer;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.HandlerList;
@@ -103,9 +102,10 @@ public class McMMOChatIntegration extends PluginIntegration<BukkitDiscordSRV> im
 
         Player player = ((PlayerAuthor) author).getPlayer();
 
+        // Uses mcMMO's relocated GsonComponentSerializer and Component
         String json = GsonComponentSerializer.gson().serialize(event.getChatMessage().getChatMessage());
         MinecraftComponent component = ComponentUtil.toAPI(
-                BukkitComponentSerializer.gson().deserialize(json)
+                discordSRV.componentFactory().gsonSerializer().deserialize(json)
         );
 
         BukkitPlayer srvPlayer = discordSRV.playerProvider().player(player);
@@ -149,7 +149,7 @@ public class McMMOChatIntegration extends PluginIntegration<BukkitDiscordSRV> im
             mcMMO mcMMO = (mcMMO) discordSRV.server().getPluginManager().getPlugin("mcMMO");
             if (mcMMO == null) return;
 
-            String message = BukkitComponentSerializer.legacy().serialize(ComponentUtil.fromAPI(component));
+            String message = discordSRV.componentFactory().legacySerializer().serialize(ComponentUtil.fromAPI(component));
             mcMMO.getChatManager().processConsoleMessage(message);
         }
 

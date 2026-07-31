@@ -1,5 +1,8 @@
 // Relocations
 [
+        // Adventure API isn't relocated (other than on platforms which don't include adventure natively)
+        // Relocating Adventure serializers without relocating the API causes errors
+
         // JDA, WS
         'net.dv8tion.jda',
         'com.iwebpp',
@@ -38,11 +41,6 @@
         'org.json.simple',
         'alexh',
 
-        // Adventure (API isn't relocated always)
-        'net.kyori.adventure.ansi',
-        'net.kyori.adventure.examination',
-        'net.kyori.adventure.option',
-
         // EnhancedLegacyText, MCDiscordReserializer
         'dev.vankka.enhancedlegacytext',
         'dev.vankka.mcdiscordreserializer',
@@ -64,14 +62,12 @@
         'com.google.gson',
         'com.google.errorprone.annotations',
 
-        // Webhooks
-        'club.minnced',
-        'org.json',
+        // Commodore
+        'me.lucko.commodore'
 ].each {
     tasks.shadowJar.relocate it, 'com.discordsrv.dependencies.' + it
     tasks.generateRuntimeDownloadResourceForRuntimeDownloadOnly.relocate it, 'com.discordsrv.dependencies.' + it
 }
-
 shadowJar {
     // Unrelocate package, in case a platform uses something we normally relocate
     relocate('com.discordsrv.unrelocate.', '')

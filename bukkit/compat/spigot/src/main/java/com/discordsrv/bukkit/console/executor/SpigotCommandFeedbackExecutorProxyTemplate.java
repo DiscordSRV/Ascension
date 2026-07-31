@@ -18,12 +18,12 @@
 
 package com.discordsrv.bukkit.console.executor;
 
+import com.discordsrv.bukkit.BukkitDiscordSRV;
 import dev.vankka.dynamicproxy.processor.Original;
 import dev.vankka.dynamicproxy.processor.Proxy;
-import net.kyori.adventure.platform.bukkit.BukkitComponentSerializer;
 import net.kyori.adventure.text.Component;
-import net.kyori.adventure.text.serializer.bungeecord.BungeeComponentSerializer;
 import net.md_5.bungee.api.chat.BaseComponent;
+import net.md_5.bungee.chat.ComponentSerializer;
 import org.bukkit.command.CommandSender;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -36,11 +36,13 @@ public abstract class SpigotCommandFeedbackExecutorProxyTemplate implements Comm
 
     @Original
     private final CommandSender commandSender;
+    private final BukkitDiscordSRV discordSRV;
     private final Consumer<Component> componentConsumer;
     private final Spigot spigot;
 
-    public SpigotCommandFeedbackExecutorProxyTemplate(CommandSender commandSender, Consumer<Component> componentConsumer) {
+    public SpigotCommandFeedbackExecutorProxyTemplate(CommandSender commandSender, BukkitDiscordSRV discordSRV, Consumer<Component> componentConsumer) {
         this.commandSender = commandSender;
+        this.discordSRV = discordSRV;
         this.componentConsumer = componentConsumer;
         spigot = new Spigot(commandSender.spigot());
     }
@@ -74,7 +76,7 @@ public abstract class SpigotCommandFeedbackExecutorProxyTemplate implements Comm
     }
 
     private void forwardLegacy(String legacy) {
-        componentConsumer.accept(BukkitComponentSerializer.legacy().deserialize(legacy));
+        componentConsumer.accept(discordSRV.componentFactory().legacySerializer().deserialize(legacy));
     }
 
     @Override
@@ -115,7 +117,8 @@ public abstract class SpigotCommandFeedbackExecutorProxyTemplate implements Comm
         }
 
         private void forwardBungee(net.md_5.bungee.api.chat.BaseComponent[] components) {
-            componentConsumer.accept(BungeeComponentSerializer.get().deserialize(components));
+            String json = ComponentSerializer.toString(components);
+            componentConsumer.accept(discordSRV.componentFactory().gsonSerializer().deserialize(json));
         }
     }
 }

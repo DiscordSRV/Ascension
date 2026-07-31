@@ -19,24 +19,21 @@
 package com.discordsrv.bungee.command.game.sender;
 
 import com.discordsrv.bungee.BungeeDiscordSRV;
+import com.discordsrv.bungee.component.util.BungeeComponentUtil;
 import com.discordsrv.common.command.game.abstraction.sender.ICommandSender;
 import com.discordsrv.common.permission.game.Permission;
-import net.kyori.adventure.audience.Audience;
+import net.kyori.adventure.text.Component;
 import net.md_5.bungee.api.CommandSender;
-import org.jetbrains.annotations.NotNull;
-
-import java.util.function.Supplier;
+import org.jspecify.annotations.NonNull;
 
 public class BungeeCommandSender implements ICommandSender {
 
     protected final BungeeDiscordSRV discordSRV;
     protected final CommandSender commandSender;
-    protected final Supplier<Audience> audience;
 
-    public BungeeCommandSender(BungeeDiscordSRV discordSRV, CommandSender commandSender, Supplier<Audience> audience) {
+    public BungeeCommandSender(BungeeDiscordSRV discordSRV, CommandSender commandSender) {
         this.discordSRV = discordSRV;
         this.commandSender = commandSender;
-        this.audience = audience;
     }
 
     @Override
@@ -50,7 +47,7 @@ public class BungeeCommandSender implements ICommandSender {
     }
 
     @Override
-    public @NotNull Audience audience() {
-        return audience.get();
+    public void sendMessage(@NonNull Component message) {
+        commandSender.sendMessage(BungeeComponentUtil.toBungee(message));
     }
 }

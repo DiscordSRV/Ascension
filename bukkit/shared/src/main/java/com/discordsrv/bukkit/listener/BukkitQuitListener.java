@@ -25,7 +25,6 @@ import com.discordsrv.bukkit.BukkitDiscordSRV;
 import com.discordsrv.bukkit.debug.EventObserver;
 import com.discordsrv.common.core.logging.NamedLogger;
 import com.discordsrv.common.util.ComponentUtil;
-import net.kyori.adventure.platform.bukkit.BukkitComponentSerializer;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.player.PlayerQuitEvent;
@@ -47,7 +46,7 @@ public class BukkitQuitListener extends AbstractBukkitListener<PlayerQuitEvent> 
     @Override
     protected void handleEvent(@NotNull PlayerQuitEvent event, Void __) {
         String message = event.getQuitMessage();
-        MinecraftComponent component = message == null ? null : ComponentUtil.toAPI(BukkitComponentSerializer.legacy().deserialize(message));
+        MinecraftComponent component = message == null ? null : ComponentUtil.toAPI(discordSRV.componentFactory().legacySerializer().deserialize(message));
 
         DiscordSRVPlayer player = discordSRV.playerProvider().player(event.getPlayer());
         discordSRV.eventBus().publish(

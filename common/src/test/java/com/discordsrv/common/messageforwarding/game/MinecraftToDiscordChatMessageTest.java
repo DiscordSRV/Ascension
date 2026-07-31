@@ -34,11 +34,11 @@ import com.discordsrv.common.feature.channel.global.GlobalChannel;
 import com.discordsrv.common.helper.TestHelper;
 import com.discordsrv.common.permission.game.Permission;
 import com.discordsrv.common.util.ComponentUtil;
-import net.kyori.adventure.audience.Audience;
 import net.kyori.adventure.identity.Identity;
 import net.kyori.adventure.text.Component;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.jspecify.annotations.NonNull;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -79,11 +79,6 @@ public class MinecraftToDiscordChatMessageTest {
                                 }
 
                                 @Override
-                                public @NotNull Audience audience() {
-                                    return Audience.empty();
-                                }
-
-                                @Override
                                 public DiscordSRV discordSRV() {
                                     return discordSRV;
                                 }
@@ -113,6 +108,9 @@ public class MinecraftToDiscordChatMessageTest {
                                 public @Nullable Locale locale() {
                                     return Locale.getDefault();
                                 }
+
+                                @Override
+                                public void sendMessage(@NonNull Component message) {}
 
                                 @Override
                                 public @NotNull Component displayName() {

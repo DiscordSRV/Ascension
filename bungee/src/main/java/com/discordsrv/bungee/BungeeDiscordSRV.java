@@ -38,14 +38,11 @@ import com.discordsrv.common.config.messages.MessagesConfig;
 import com.discordsrv.common.core.scheduler.StandardScheduler;
 import com.discordsrv.common.core.debug.data.OnlineMode;
 import com.discordsrv.common.feature.messageforwarding.game.MinecraftToDiscordChatModule;
-import net.kyori.adventure.platform.bungeecord.BungeeAudiences;
 import net.md_5.bungee.api.ProxyServer;
 import net.md_5.bungee.api.plugin.Plugin;
 import org.jetbrains.annotations.NotNull;
 
 public class BungeeDiscordSRV extends AbstractDiscordSRV<DiscordSRVBungeeBootstrap, BungeeConfig, ConnectionConfig, MessagesConfig> {
-
-    private BungeeAudiences audiences;
 
     private final StandardScheduler scheduler;
     private final BungeeConsole console;
@@ -75,9 +72,6 @@ public class BungeeDiscordSRV extends AbstractDiscordSRV<DiscordSRVBungeeBootstr
 
     @Override
     protected void enable() throws Throwable {
-        // Player related
-        this.audiences = BungeeAudiences.create(bootstrap.getPlugin());
-
         this.commandHandler = new BungeeCommandHandler(this);
 
         super.enable();
@@ -98,10 +92,6 @@ public class BungeeDiscordSRV extends AbstractDiscordSRV<DiscordSRVBungeeBootstr
 
     public ProxyServer proxy() {
         return plugin().getProxy();
-    }
-
-    public BungeeAudiences audiences() {
-        return audiences;
     }
 
     @Override

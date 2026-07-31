@@ -41,6 +41,9 @@ import java.util.Locale;
  */
 public final class ComponentUtil {
 
+    @SuppressWarnings("ConstantValue") // Reflection check
+    public static final boolean IS_RELOCATED = Component.class.getName().startsWith("com.discordsrv");
+
     private ComponentUtil() {}
 
     private static MinecraftComponentAdapter<Component> ADAPTER;

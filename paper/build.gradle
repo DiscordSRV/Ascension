@@ -1,0 +1,34 @@
+allprojects {
+    repositories {
+        maven { url = 'https://repo.papermc.io/repository/maven-public/' }
+    }
+}
+
+java {
+    disableAutoTargetJvm() // Requires Java 25, we target 21
+}
+
+// Relocations in buildscript/relocations.gradle
+
+shadowJar {
+    archiveFileName = 'paper.jarinjar'
+}
+
+apply from: rootProject.file('buildscript/runtime.gradle')
+
+dependencies {
+    // API
+    annotationProcessor project(':api')
+
+    // Common
+    compileOnly project(':common')
+    implementation project(path: ':common', configuration: 'runtimeElements')
+
+    implementation project(':bukkit')
+
+    // Platform
+    compileOnly(libs.paperapi.latest) {
+        // v2 uses ServiceLocator
+        exclude module: 'slf4j-api'
+    }
+}

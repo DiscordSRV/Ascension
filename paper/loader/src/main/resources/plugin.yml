@@ -1,0 +1,15 @@
+name: DiscordSRV-Ascension
+main: com.discordsrv.paper.loader.DiscordSRVPaperLoader
+version: @VERSION@
+description: ""
+authors: [Scarsz, Vankka]
+load: STARTUP
+
+# Marks the plugin non-legacy in versions 1.16 and above
+# This does not mean that the plugin only supports 1.16
+api-version: 1.16
+
+commands:
+  discordsrv:
+    aliases: [dsrv]
+    description: "DiscordSRV's primary command"

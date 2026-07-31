@@ -20,7 +20,6 @@ package com.discordsrv.bukkit.requiredlinking.listener;
 
 import com.discordsrv.bukkit.requiredlinking.BukkitRequiredLinkingModule;
 import net.dv8tion.jda.internal.utils.tuple.Pair;
-import net.kyori.adventure.platform.bukkit.BukkitComponentSerializer;
 import net.kyori.adventure.text.Component;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventPriority;
@@ -52,6 +51,6 @@ public class BukkitRequiredLinkingLoginListener extends BukkitRequiredLinkingLis
 
     @Override
     public void blockLogin(PlayerLoginEvent event, Component reason) {
-        event.disallow(PlayerLoginEvent.Result.KICK_OTHER, BukkitComponentSerializer.legacy().serialize(reason));
+        event.disallow(PlayerLoginEvent.Result.KICK_OTHER, module.discordSRV().componentFactory().legacySerializer().serialize(reason));
     }
 }

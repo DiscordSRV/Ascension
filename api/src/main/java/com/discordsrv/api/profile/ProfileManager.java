@@ -24,11 +24,13 @@
 package com.discordsrv.api.profile;
 
 import com.discordsrv.api.task.Task;
+import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.UUID;
 
+@ApiStatus.NonExtendable
 public interface ProfileManager {
 
     @NotNull

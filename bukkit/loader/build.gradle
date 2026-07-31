@@ -1,6 +1,5 @@
 import org.apache.tools.ant.filters.ReplaceTokens
 
-apply plugin: 'xyz.jpenilla.run-paper'
 apply from: rootProject.file('buildscript/loader.gradle')
 
 dependencies {
@@ -27,12 +26,6 @@ jar {
 
 shadowJar {
     archiveBaseName = 'DiscordSRV-Bukkit'
-}
-
-tasks {
-    runServer {
-        minecraftVersion("1.21.4")
-    }
 }
 
 // buildscript/loader.gradle includes the jarinjar in the jar

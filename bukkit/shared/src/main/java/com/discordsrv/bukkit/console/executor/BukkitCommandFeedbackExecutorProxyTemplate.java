@@ -18,9 +18,9 @@
 
 package com.discordsrv.bukkit.console.executor;
 
+import com.discordsrv.bukkit.BukkitDiscordSRV;
 import dev.vankka.dynamicproxy.processor.Original;
 import dev.vankka.dynamicproxy.processor.Proxy;
-import net.kyori.adventure.platform.bukkit.BukkitComponentSerializer;
 import net.kyori.adventure.text.Component;
 import org.bukkit.command.CommandSender;
 
@@ -31,15 +31,17 @@ public abstract class BukkitCommandFeedbackExecutorProxyTemplate implements Comm
 
     @Original
     private final CommandSender commandSender;
+    private final BukkitDiscordSRV discordSRV;
     private final Consumer<Component> componentConsumer;
 
-    public BukkitCommandFeedbackExecutorProxyTemplate(CommandSender commandSender, Consumer<Component> componentConsumer) {
+    public BukkitCommandFeedbackExecutorProxyTemplate(CommandSender commandSender, BukkitDiscordSRV discordSRV, Consumer<Component> componentConsumer) {
         this.commandSender = commandSender;
+        this.discordSRV = discordSRV;
         this.componentConsumer = componentConsumer;
     }
 
     private void forwardLegacy(String legacy) {
-        componentConsumer.accept(BukkitComponentSerializer.legacy().deserialize(legacy));
+        componentConsumer.accept(discordSRV.componentFactory().legacySerializer().deserialize(legacy));
     }
 
     @Override

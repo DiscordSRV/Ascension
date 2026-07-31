@@ -46,14 +46,19 @@ public class DiscordSRVBukkitBootstrap extends BukkitBootstrap implements IBukki
         this.lifecycleManager = new LifecycleManager(
                 logger,
                 plugin.getDataFolder().toPath(),
-                getDependencyResources(),
+                getDependencyResources(plugin),
                 getClasspathAppender()
         );
     }
 
-    private static List<String> getDependencyResources() {
+    private static List<String> getDependencyResources(JavaPlugin plugin) {
         List<String> resources = new ArrayList<>();
-        resources.add("dependencies/runtimeDownload-bukkit.txt");
+        if (plugin.getClass().getName().contains("Paper")) {
+            resources.add("dependencies/runtimeDownload-paper.txt");
+        } else {
+            resources.add("dependencies/runtimeDownload-bukkit.txt");
+        }
+
         if (ReflectionUtil.classExists("com.mojang.brigadier.CommandDispatcher")) {
             resources.add("dependencies/commodore.txt");
         }
