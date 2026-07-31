@@ -38,6 +38,7 @@ import net.kyori.adventure.identity.Identity;
 import net.kyori.adventure.text.Component;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.jspecify.annotations.NonNull;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -107,6 +108,9 @@ public class MinecraftToDiscordChatMessageTest {
                                 public @Nullable Locale locale() {
                                     return Locale.getDefault();
                                 }
+
+                                @Override
+                                public void sendMessage(@NonNull Component message) {}
 
                                 @Override
                                 public @NotNull Component displayName() {

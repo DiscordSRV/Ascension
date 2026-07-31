@@ -50,7 +50,9 @@ import com.discordsrv.common.feature.console.Console;
 import com.discordsrv.common.feature.messageforwarding.game.MinecraftToDiscordChatModule;
 import com.discordsrv.common.permission.game.Permission;
 import dev.vankka.dependencydownload.classpath.ClasspathAppender;
+import net.kyori.adventure.text.Component;
 import org.jetbrains.annotations.NotNull;
+import org.jspecify.annotations.NonNull;
 
 import java.io.IOException;
 import java.nio.file.Files;
@@ -174,9 +176,10 @@ public class MockDiscordSRV extends AbstractDiscordSRV<IBootstrap, MainConfig, C
             }
 
             @Override
-            public void runCommand(String command) {
+            public void runCommand(String command) {}
 
-            }
+            @Override
+            public void sendMessage(@NonNull Component message) {}
         };
     }
 

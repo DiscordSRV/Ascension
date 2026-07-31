@@ -23,11 +23,10 @@ import com.discordsrv.common.permission.game.Permission;
 import com.discordsrv.velocity.VelocityDiscordSRV;
 import com.velocitypowered.api.command.CommandSource;
 import com.velocitypowered.api.permission.Tristate;
-import net.kyori.adventure.audience.Audience;
-import net.kyori.adventure.audience.ForwardingAudience;
-import org.jetbrains.annotations.NotNull;
+import net.kyori.adventure.text.Component;
+import org.jspecify.annotations.NonNull;
 
-public class VelocityCommandSender implements ICommandSender, ForwardingAudience.Single {
+public class VelocityCommandSender implements ICommandSender {
 
     protected final VelocityDiscordSRV discordSRV;
     protected final CommandSource commandSource;
@@ -46,12 +45,12 @@ public class VelocityCommandSender implements ICommandSender, ForwardingAudience
     }
 
     @Override
-    public void runCommand(String command) {
-        discordSRV.proxy().getCommandManager().executeAsync(commandSource, command);
+    public void sendMessage(@NonNull Component message) {
+        commandSource.sendMessage(message);
     }
 
     @Override
-    public @NotNull Audience audience() {
-        return commandSource;
+    public void runCommand(String command) {
+        discordSRV.proxy().getCommandManager().executeAsync(commandSource, command);
     }
 }

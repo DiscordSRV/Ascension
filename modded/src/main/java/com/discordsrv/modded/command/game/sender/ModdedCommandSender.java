@@ -22,7 +22,6 @@ import com.discordsrv.common.command.game.abstraction.sender.ICommandSender;
 import com.discordsrv.common.permission.game.Permission;
 import com.discordsrv.modded.ModdedDiscordSRV;
 import net.kyori.adventure.audience.Audience;
-import net.kyori.adventure.audience.ForwardingAudience;
 import net.minecraft.commands.CommandSource;
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.network.chat.Component;
@@ -32,14 +31,16 @@ import net.minecraft.world.phys.Vec2;
 import net.minecraft.world.phys.Vec3;
 import org.jetbrains.annotations.NotNull;
 
-public class ModdedCommandSender implements ICommandSender, ForwardingAudience.Single {
+public class ModdedCommandSender implements ICommandSender {
 
     protected final ModdedDiscordSRV discordSRV;
     protected CommandSourceStack commandSource;
+    protected Audience audience;
 
     public ModdedCommandSender(ModdedDiscordSRV discordSRV, CommandSourceStack commandSource) {
         this.discordSRV = discordSRV;
         this.commandSource = commandSource;
+        this.audience = discordSRV.componentFactory().audience(commandSource);
     }
 
     @Override
@@ -74,8 +75,8 @@ public class ModdedCommandSender implements ICommandSender, ForwardingAudience.S
     }
 
     @Override
-    public @NotNull Audience audience() {
-        return discordSRV.componentFactory().audience(commandSource);
+    public void sendMessage(@NotNull net.kyori.adventure.text.Component message) {
+        audience.sendMessage(message);
     }
 
     public static CommandSourceStack getCommandSource(MinecraftServer server, String name) {

@@ -22,11 +22,11 @@ import com.discordsrv.bukkit.BukkitDiscordSRV;
 import com.discordsrv.common.command.game.abstraction.sender.ICommandSender;
 import com.discordsrv.common.permission.game.Permission;
 import net.kyori.adventure.audience.Audience;
-import net.kyori.adventure.audience.ForwardingAudience;
+import net.kyori.adventure.text.Component;
 import org.bukkit.command.CommandSender;
-import org.jetbrains.annotations.NotNull;
+import org.jspecify.annotations.NonNull;
 
-public class BukkitCommandSender implements ICommandSender, ForwardingAudience.Single {
+public class BukkitCommandSender implements ICommandSender {
 
     protected final BukkitDiscordSRV discordSRV;
     protected final CommandSender commandSender;
@@ -49,7 +49,7 @@ public class BukkitCommandSender implements ICommandSender, ForwardingAudience.S
     }
 
     @Override
-    public @NotNull Audience audience() {
-        return audience;
+    public void sendMessage(@NonNull Component message) {
+        audience.sendMessage(message);
     }
 }
