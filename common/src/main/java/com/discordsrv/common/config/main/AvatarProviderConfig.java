@@ -20,34 +20,42 @@ package com.discordsrv.common.config.main;
 
 import com.discordsrv.common.config.configurate.annotation.Constants;
 import com.discordsrv.common.config.documentation.DocumentationURLs;
+import com.discordsrv.common.feature.AvatarProviderModule;
 import org.spongepowered.configurate.objectmapping.ConfigSerializable;
 import org.spongepowered.configurate.objectmapping.meta.Comment;
 
 @ConfigSerializable
 public class AvatarProviderConfig {
 
-    @Comment("How the %1 placeholder provider\n"
-            + "Available values:\n"
-            + "off - Always use the default url\n"
-            + "url - Use the url from the template in Discord directly")
-    @Constants.Comment("%player_avatar_url%")
-    public Provider provider = Provider.OFF;
+    @Comment("""
+            How DiscordSRV's recommended avatar service(s) should be used.
+            You may review and disable the service(s) being used in the %1
+            
+            - auto: Uses recommended services, with scaled avatars, for URLs that aren't provided below
+            - auto_unscaled: Uses recommended services, with unscaled avatars, for URLs that aren't provided below
+            - config_only: Only uses the services provided below""")
+    @Constants.Comment({AvatarProviderModule.HEADS_DOMAIN})
+    public AvatarServiceMode avatarServiceMode = AvatarServiceMode.AUTO;
 
-    public enum Provider {
-        OFF,
-        URL
+    public enum AvatarServiceMode {
+        AUTO,
+        AUTO_UNSCALED,
+        CONFIG_ONLY
     }
 
-    @Comment("Bring your own avatar url templates, empty templates will be skipped\n"
-            + "\n"
-            + "Suggested Placeholders:\n"
-            + "%player_skin_texture_id% - The texture ID for the player\n"
-            + "%player_skin_model% - The skin model (classic, slim) for the player\n"
-            + "%player_uuid% - Full UUID for the player\n"
-            + "%player_uuid_short% - The UUID for the player without dashes\n"
-            + "%player_name% - The player's username\n"
-            + "\n"
-            + "More placeholders at %1")
+    @Comment("""
+            Bring your own avatar url templates, empty templates will be skipped
+            Each of the below options will be tried in order, allowing you to specify different URLs for different scenarios (using the same URL in each option makes no sense)
+            
+            Suggested Placeholders:
+            %player_skin_texture_id% - The texture ID for the player
+            %player_skin_model% - The skin model (classic, slim) for the player
+            %player_uuid% - Full UUID for the player
+            %player_uuid_short% - The UUID for the player without dashes
+            %player_name% - The player's username
+            %player_skin_parts_hat:'helm;head''% - Use to change the url when the player has their hat turned off in their settings
+            
+            More placeholders at %1""")
     @Constants.Comment(DocumentationURLs.PLACEHOLDERS)
     public Services services = new Services();
 
@@ -65,8 +73,24 @@ public class AvatarProviderConfig {
         @Comment("The url template, when the player has a offline mode UUID")
         public String offlineTemplate = "";
 
+        @Comment("Default avatar URL if none of the other options apply")
+        public String defaultUrl = "%bot_user_avatar_url%";
+
+        public Services() {}
+
+        private Services(Services other) {
+            this.textureTemplate = other.textureTemplate;
+            this.onlineUuidTemplate = other.onlineUuidTemplate;
+            this.floodgateTemplate = other.floodgateTemplate;
+            this.offlineTemplate = other.offlineTemplate;
+            this.defaultUrl = other.defaultUrl;
+        }
+
+        @SuppressWarnings("MethodDoesntCallSuperMethod") // Don't care
+        @Override
+        public Services clone() {
+            return new Services(this);
+        }
     }
 
-    @Comment("Default avatar URL")
-    public String defaultUrl = "%bot_user_avatar_url%";
 }

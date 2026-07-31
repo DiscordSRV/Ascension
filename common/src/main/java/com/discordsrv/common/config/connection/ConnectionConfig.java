@@ -49,6 +49,8 @@ public class ConnectionConfig implements Config {
 
     public MinecraftAuthConfig minecraftAuth = new MinecraftAuthConfig();
 
+    public AvatarServiceConfig avatarService = new AvatarServiceConfig();
+
     public UpdateConfig update = new UpdateConfig();
 
     @Comment("Configuration options for the http proxy to use for all HTTP and WS connections. SOCKS is not supported")
