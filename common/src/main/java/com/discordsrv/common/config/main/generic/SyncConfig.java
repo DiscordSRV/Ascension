@@ -45,8 +45,9 @@ public abstract class SyncConfig {
         this.unlinkBehaviour = unlinkBehaviour;
     }
 
-    @Comment("The direction to synchronize in.\n"
-            + "Valid options: %1, %2, %3")
+    @Comment("""
+            The direction to synchronize in.
+            Valid options: %1, %2, %3""")
     @Constants.Comment({"bidirectional", "minecraft_to_discord", "discord_to_minecraft"})
     @Order(-5)
     public SyncDirection direction = SyncDirection.BIDIRECTIONAL;
@@ -64,8 +65,9 @@ public abstract class SyncConfig {
             this.cycleTime = cycleTimeMinutes;
         }
 
-        @Comment("The direction which takes priority for determining for synchronization\n"
-                + "Valid options: %1, %2, %3")
+        @Comment("""
+                The direction which takes priority for determining for synchronization
+                Valid options: %1, %2, %3""")
         @Constants.Comment({"minecraft", "discord", "disabled"})
         public SyncSide side = SyncSide.MINECRAFT;
 
@@ -81,8 +83,9 @@ public abstract class SyncConfig {
         }
     }
 
-    @Comment("Decides which side takes priority when synchronizing and there are differences. Also allows disabling synchronization on these events\n"
-            + "Valid options: %1, %2, %3")
+    @Comment("""
+            Decides which side takes priority when synchronizing and there are differences. Also allows disabling synchronization on these events
+            Valid options: %1, %2, %3""")
     @Constants.Comment({"minecraft", "discord", "disabled"})
     public TieBreakers tieBreakers = new TieBreakers();
 
@@ -114,8 +117,9 @@ public abstract class SyncConfig {
         }
     }
 
-    @Comment("Behaviour when account is unlinked\n"
-            + "Valid options: %1, %2, %3, %4")
+    @Comment("""
+            Behaviour when account is unlinked
+            Valid options: %1, %2, %3, %4""")
     @Constants.Comment({"do_nothing", "remove_discord", "remove_game", "remove_both"})
     public UnlinkBehaviour unlinkBehaviour = UnlinkBehaviour.REMOVE_DISCORD;
 

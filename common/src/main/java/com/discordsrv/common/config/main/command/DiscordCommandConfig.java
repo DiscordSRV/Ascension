@@ -24,19 +24,22 @@ import org.spongepowered.configurate.objectmapping.meta.Comment;
 @ConfigSerializable
 public class DiscordCommandConfig {
 
-    @Comment("The Discord server id to limit the /discordsrv command to, disables the use of the command in DMs regardless of the below option\n"
-            + "Set to 0 to disable, enabling the command in all servers the bot is in")
+    @Comment("""
+            The Discord server id to limit the /discordsrv command to, disables the use of the command in DMs regardless of the below option
+            Set to 0 to disable, enabling the command in all servers the bot is in""")
     public long managementCommandServerId = 0L;
 
     @Comment("If the /discordsrv command should be usable in the bot's direct messages")
     public boolean enableManagementCommandGlobally = false;
 
-    @Comment("The alias of the command for users.\n"
-            + "1-32 characters of letters, numbers and dashes")
+    @Comment("""
+            The alias of the command for users.
+            1-32 characters of letters, numbers and dashes""")
     public String userCommandAlias = "minecraft";
 
-    @Comment("The Discord server id to limit the user command to, disables the use of the command in DMs regardless of the below option\n"
-            + "Set to 0 to disable, enabling the command in all servers the bot is in")
+    @Comment("""
+            The Discord server id to limit the user command to, disables the use of the command in DMs regardless of the below option
+            Set to 0 to disable, enabling the command in all servers the bot is in""")
     public long userCommandServerId = 0L;
 
     @Comment("If the user command should be enabled in the bot's direct messages")

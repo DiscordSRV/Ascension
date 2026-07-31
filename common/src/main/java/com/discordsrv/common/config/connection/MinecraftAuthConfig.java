@@ -26,14 +26,16 @@ import org.spongepowered.configurate.objectmapping.meta.Comment;
 @ConfigSerializable
 public class MinecraftAuthConfig {
 
-    @Comment("If %1 connections are allowed for Discord linking (when linked-accounts.provider is \"auto\" or \"minecraftauth\").\n"
-            + "Requires a connection to: %1\n"
-            + "Privacy Policy: %2")
+    @Comment("""
+            If %1 connections are allowed for Discord linking (when linked-accounts.provider is "auto" or "minecraftauth").
+            Requires a connection to: %1
+            Privacy Policy: %2""")
     @Constants.Comment({MinecraftAuthenticationLinker.DOMAIN, "https://" + MinecraftAuthenticationLinker.DOMAIN + "/privacy"})
     public boolean allow = true;
 
-    @Comment("%1 token for checking subscription, following and membership statuses for required linking\n"
-            + "You can get the token from %2 whilst logged in (please keep in mind that the token resets every time you visit that page)")
+    @Comment("""
+            %1 token for checking subscription, following and membership statuses for required linking
+            You can get the token from %2 whilst logged in (please keep in mind that the token resets every time you visit that page)""")
     @Constants.Comment({MinecraftAuthenticationLinker.DOMAIN, "https://" + MinecraftAuthenticationLinker.DOMAIN + "/api/token"})
     public String token = "";
 

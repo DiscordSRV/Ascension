@@ -39,10 +39,11 @@ import java.util.stream.Collectors;
 @ConfigSerializable
 public class DiscordUserFilterConfig {
 
-    @Comment("Filters to pick users. For ids you can use user ids (including bots), role ids or webhook ids.\n"
-            + "If multiple ids are specified for given a filter, all ids must be met. At least one id must be provided for the filter to be active\n"
-            + "Users are selected so that at least one of the \"whitelist\" filters matches (if any)\n"
-            + "and none of the \"blacklist\" filters match any given user")
+    @Comment("""
+            Filters to pick users. For ids you can use user ids (including bots), role ids or webhook ids.
+            If multiple ids are specified for given a filter, all ids must be met. At least one id must be provided for the filter to be active
+            Users are selected so that at least one of the "whitelist" filters matches (if any)
+            and none of the "blacklist" filters match any given user""")
     public List<SingleFilter> filters = new ArrayList<>(Collections.singletonList(new SingleFilter(FilterMode.WHITELIST)));
 
     public DiscordUserFilterConfig() {}

@@ -45,23 +45,25 @@ public class ConsoleConfig {
     @ConfigSerializable
     public static class Appender {
 
-        @Comment("The mode for the console output, available options are:\n"
-                + "- off: Turn off console appending\n"
-                + "- ansi: A colored ansi code block\n"
-                + "- log: An \"accesslog\" code block\n"
-                + "- diff: A \"diff\" code block highlighting warnings and errors with different colors\n"
-                + "- markdown: Plain text with bold, italics, strikethrough and underlining\n"
-                + "- code_block: Plain text code block\n"
-                + "- plain: Plain text")
+        @Comment("""
+                The mode for the console output, available options are:
+                - off: Turn off console appending
+                - ansi: A colored ansi code block
+                - log: An "accesslog" code block
+                - diff: A "diff" code block highlighting warnings and errors with different colors
+                - markdown: Plain text with bold, italics, strikethrough and underlining
+                - code_block: Plain text code block
+                - plain: Plain text""")
         public DiscordOutputMode outputMode = DiscordOutputMode.ANSI;
 
-        @Comment("How individual log lines will be formatted\n"
-                + "Suggested placeholders:\n"
-                + "%log_time:'ccc HH:mm:ss zzz% - The time when message was logged, read more about time formats on the placeholders documentation page\n"
-                + "%log_level% - The log level (for example INFO, WARN, ERROR)\n"
-                + "%logger_name:' [\\%s]'% - The logger name, which may not be present (with special formatting to display in brackets, and only if present)\n"
-                + "%message% - The log message, formatted according to the above output mode\n"
-                + "More placeholders at %1 (Global only)")
+        @Comment("""
+                How individual log lines will be formatted
+                Suggested placeholders:
+                %log_time:'ccc HH:mm:ss zzz% - The time when message was logged, read more about time formats on the placeholders documentation page
+                %log_level% - The log level (for example INFO, WARN, ERROR)
+                %logger_name:' [\\%s]'% - The logger name, which may not be present (with special formatting to display in brackets, and only if present)
+                %message% - The log message, formatted according to the above output mode
+                More placeholders at %1 (Global only)""")
         @Constants.Comment(DocumentationURLs.PLACEHOLDERS)
         public String lineFormat = "[%log_time:'ccc HH:mm:ss zzz'%] [%log_level%]%logger_name:' [\\%s]'% %message%";
 
@@ -78,14 +80,16 @@ public class ConsoleConfig {
         public boolean silentMessages = true;
 
         // TODO: more info on regex pairs (String#replaceAll)
-        @Comment("Regex filters to apply to the console message (%1) and stacktrace (applied separately), applied before DiscordSRV touches them.\n"
-                + "Please keep in mind they may contain color codes.\n\n"
-                + "If the entire message is filtered out by these filters the log message (and it's exception stacktrace) will be ignored.\n"
-                + "The plain version of the log message will also be checked for ignoring the entire log message")
+        @Comment("""
+                Regex filters to apply to the console message (%1) and stacktrace (applied separately), applied before DiscordSRV touches them.
+                Please keep in mind they may contain color codes.
+                
+                If the entire message is filtered out by these filters the log message (and it's exception stacktrace) will be ignored.
+                The plain version of the log message will also be checked for ignoring the entire log message""")
         @Constants.Comment("%message%")
         @Untranslated(Untranslated.Type.VALUE)
         @DefaultOnly
-        public Map<Pattern, String> contentRegexFilters = new LinkedHashMap<Pattern, String>() {{
+        public Map<Pattern, String> contentRegexFilters = new LinkedHashMap<>() {{
             // Multicraft panel's automated crash detection (https://www.multicraft.org/site/docs/settings#crash_detection)
             // with the vanilla and default Essentials text
             put(Pattern.compile("There are \\d+ (?:of a max of|out of maximum) \\d+ players online.*"), "");
@@ -112,8 +116,9 @@ public class ConsoleConfig {
 
         public static class Exceptions {
 
-            @Comment("The time after which the exact same exception will not be forwarded to the console channel, in minutes\n"
-                    + "0 to not filter out duplicate exceptions, -1 to always filter out duplicate exceptions")
+            @Comment("""
+                    The time after which the exact same exception will not be forwarded to the console channel, in minutes
+                    0 to not filter out duplicate exceptions, -1 to always filter out duplicate exceptions""")
             public int filterOutDuplicatesMinutes = 5;
 
             @Comment("If the message alongside an exception should also be ignored when ignoring duplicate exceptions")

@@ -31,10 +31,11 @@ public class PluginIntegrationConfig {
     @Comment("Plugin/mod integrations that should be disabled. Specify the names or ids of plugins/mods to disable integrations for")
     public List<String> disabledIntegrations = new ArrayList<>();
 
-    @Comment("Specify how vanish should be tracked for players.\n"
-            + "\"%1\" to automatically determine if timed tracking should be used\n"
-            + "\"%2\" to always use timed checking for vanish status\n"
-            + "\"%3\" to only use events for vanish status tracking (only works with supported vanish plugins)")
+    @Comment("""
+            Specify how vanish should be tracked for players.
+            "%1" to automatically determine if timed tracking should be used
+            "%2" to always use timed checking for vanish status
+            "%3" to only use events for vanish status tracking (only works with supported vanish plugins)""")
     @Constants.Comment({"auto", "timer", "event_only"})
     public VanishTracking vanishTracking = VanishTracking.AUTO;
     public int vanishTrackingTimerSeconds = 15;

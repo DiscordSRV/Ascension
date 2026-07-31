@@ -29,11 +29,12 @@ public class PlayerListConfig {
     @Comment("The complete output of the playerlist command/placeholder when no (visible) players are online on the server")
     public String noPlayersFormat = "No players online";
 
-    @Comment("The order in which players should be sorted, in ascending order\n"
-            + "\n"
-            + "Suggested placeholders:\n"
-            + "%player_name%\n"
-            + "More placeholders at %1 (Player)")
+    @Comment("""
+            The order in which players should be sorted, in ascending order
+            
+            Suggested placeholders:
+            %player_name%
+            More placeholders at %1 (Player)""")
     @Constants.Comment(DocumentationURLs.PLACEHOLDERS)
     @Untranslated(value = Untranslated.Type.VALUE)
     public String sortBy = "%player_name%";
@@ -41,21 +42,23 @@ public class PlayerListConfig {
     @Comment("If players should be grouped")
     public boolean groupPlayers = false;
 
-    @Comment("The criteria by which players should be grouped\n"
-            + "All players which have the same value in this option will belong to the same group\n"
-            + "\n"
-            + "Suggested placeholders:\n"
-            + "%player_primary_group%\n"
-            + "More placeholders at %1 (Player)")
+    @Comment("""
+            The criteria by which players should be grouped
+            All players which have the same value in this option will belong to the same group
+            
+            Suggested placeholders:
+            %player_primary_group%
+            More placeholders at %1 (Player)""")
     @Constants.Comment(DocumentationURLs.PLACEHOLDERS)
     @Untranslated(value = Untranslated.Type.VALUE)
     public String groupBy = "%player_primary_group%";
 
-    @Comment("The header before listing all players in a given group\n"
-            + "\n"
-            + "Suggested placeholders:\n"
-            + "%group% - The group (determined by the above option)\n"
-            + "More placeholders at %1 (Global only)")
+    @Comment("""
+            The header before listing all players in a given group
+            
+            Suggested placeholders:
+            %group% - The group (determined by the above option)
+            More placeholders at %1 (Global only)""")
     @Constants.Comment(DocumentationURLs.PLACEHOLDERS)
     @Untranslated(value = Untranslated.Type.VALUE)
     public String groupingHeader = "%group%\n";
@@ -64,17 +67,18 @@ public class PlayerListConfig {
     @Untranslated(value = Untranslated.Type.VALUE)
     public String groupSeparator = "\n\n";
 
-    @Comment("The format for a single player\n"
-            + "\n"
-            + "Suggested placeholders:\n"
-            + "%player_team_display_name% - Displays the player's display name formatted with (vanilla) team options\n"
-            + "%player_display_name% - The player's display name\n"
-            + "%player_name% - The player's username\n"
-            + "%player_prefix% - The player's prefix (LuckPerms meta \"discordsrv_prefix\", otherwise their in-game prefix)\n"
-            + "%player_meta_prefix% - The player's prefix from the LuckPerms meta \"discordsrv_prefix\" only\n"
-            + "%player_suffix% - The player's suffix (LuckPerms meta \"discordsrv_suffix\", otherwise their in-game suffix)\n"
-            + "%player_meta_suffix% - The player's suffix from the LuckPerms meta \"discordsrv_suffix\" only\n"
-            + "More placeholders at %1 (Player)")
+    @Comment("""
+            The format for a single player
+            
+            Suggested placeholders:
+            %player_team_display_name% - Displays the player's display name formatted with (vanilla) team options
+            %player_display_name% - The player's display name
+            %player_name% - The player's username
+            %player_prefix% - The player's prefix (LuckPerms meta "discordsrv_prefix", otherwise their in-game prefix)
+            %player_meta_prefix% - The player's prefix from the LuckPerms meta "discordsrv_prefix" only
+            %player_suffix% - The player's suffix (LuckPerms meta "discordsrv_suffix", otherwise their in-game suffix)
+            %player_meta_suffix% - The player's suffix from the LuckPerms meta "discordsrv_suffix" only
+            More placeholders at %1 (Player)""")
     @Constants.Comment(DocumentationURLs.PLACEHOLDERS)
     @Untranslated(value = Untranslated.Type.VALUE)
     public String playerFormat = "%player_team_display_name%";
@@ -88,18 +92,20 @@ public class PlayerListConfig {
 
     public static class Command {
 
-        @Comment("The output mode for the message\n"
-                + "- ansi: A colored ansi code block\n"
-                + "- markdown: Plain text with bold, italics, strikethrough and underlining\n"
-                + "- code_block: Plain text code block\n"
-                + "- plain: Plain text")
+        @Comment("""
+                The output mode for the message
+                - ansi: A colored ansi code block
+                - markdown: Plain text with bold, italics, strikethrough and underlining
+                - code_block: Plain text code block
+                - plain: Plain text""")
         public DiscordOutputMode outputMode = DiscordOutputMode.ANSI;
 
-        @Comment("The text shown at the top and bottom of the message\n"
-                + "\n"
-                + "Suggested placeholders:\n"
-                + "%playerlist_count% - The amount of players on the server\n"
-                + "More placeholders at %1 (Global only)")
+        @Comment("""
+                The text shown at the top and bottom of the message
+                
+                Suggested placeholders:
+                %playerlist_count% - The amount of players on the server
+                More placeholders at %1 (Global only)""")
         @Constants.Comment(DocumentationURLs.PLACEHOLDERS)
         @Untranslated(value = Untranslated.Type.VALUE)
         public String header = "%playerlist_count% players online";

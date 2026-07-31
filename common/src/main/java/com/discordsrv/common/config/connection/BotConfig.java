@@ -18,6 +18,7 @@
 
 package com.discordsrv.common.config.connection;
 
+import com.discordsrv.common.config.configurate.annotation.Constants;
 import org.spongepowered.configurate.objectmapping.ConfigSerializable;
 import org.spongepowered.configurate.objectmapping.meta.Comment;
 
@@ -26,9 +27,16 @@ public class BotConfig {
 
     public static final String DEFAULT_TOKEN = "Token here";
 
-    @Comment("The Discord bot token from https://discord.com/developers/applications\n"
-            + "Requires a connection to: discord.com, gateway.discord.gg, cdn.discordapp.com\n"
-            + "Privacy Policy: https://discord.com/privacy Terms: https://discord.com/developers/docs/policies-and-agreements/developer-terms-of-service")
+    @Comment("""
+            The Discord bot token from %1
+            Requires a connection to: %2
+            Privacy Policy: %3 Terms: %4""")
+    @Constants.Comment({
+            "https://discord.com/developers/applications",
+            "discord.com, gateway.discord.gg, cdn.discordapp.com",
+            "https://discord.com/privacy",
+            "https://discord.com/developers/docs/policies-and-agreements/developer-terms-of-service"
+    })
     public String token = DEFAULT_TOKEN;
 
 }

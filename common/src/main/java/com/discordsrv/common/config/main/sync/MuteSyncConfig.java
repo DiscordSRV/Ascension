@@ -45,23 +45,25 @@ public class MuteSyncConfig extends AbstractSyncConfig<MuteSyncConfig, Game, Lon
     private static final String MUTE_NOTIFICATION_PUNISHER_COLOR = "&f";
     private static final String UNMUTE_NOTIFICATION_MESSAGE_COLOR = "&a";
 
-    @Comment("The id for the Discord server where the mutes should be synced from/to\n"
-            + "This is only used for timeouts, which has the limitation of 28 days maximum duration.\n"
-            + "Mutes longer than that will be ignored, unless %1 and %2 are configured."
+    @Comment("""
+            The id for the Discord server where the mutes should be synced from/to
+            This is only used for timeouts, which has the limitation of 28 days maximum duration.
+            Mutes longer than that will be ignored, unless %1 and %2 are configured."""
     )
     @Constants.Comment({"fallback-to-role-if-timeout-too-long", "muted-role-id"})
     @Order(-10)
     public long serverId = 0L;
 
-    @Comment("Role id that will be used for role related actions, if they are configured below\n"
-            + "It will also be used as a fallback for timeouts longer than 28 days if %1 is enabled.\n"
-            + "The role should have permissions set to prevent sending messages in text channels and speaking in voice channels. These need to be blocked manually.\n"
-            + "Permissions that might need to be denied include:\n"
-            + "Send Messages\n"
-            + "Create Threads\n"
-            + "Join Voice\n"
-            + "Speak\n"
-            + "Add reactions"
+    @Comment("""
+            Role id that will be used for role related actions, if they are configured below
+            It will also be used as a fallback for timeouts longer than 28 days if %1 is enabled.
+            The role should have permissions set to prevent sending messages in text channels and speaking in voice channels. These need to be blocked manually.
+            Permissions that might need to be denied include:
+            Send Messages
+            Create Threads
+            Join Voice
+            Speak
+            Add reactions"""
     )
     @Constants.Comment("fallback-to-role-if-timeout-too-long")
     public Long mutedRoleId = 0L;
@@ -100,11 +102,12 @@ public class MuteSyncConfig extends AbstractSyncConfig<MuteSyncConfig, Game, Lon
     @ConfigSerializable
     public static class DiscordToMinecraftConfig {
 
-        @Comment("What action(s) on Discord should trigger a mute/unmute in Minecraft. Valid options:\n"
-                + "timeout:  A timeout/untimeout on the Discord Server\n"
-                + "role:     Addition/removal of the muted role (specified above) to the user on Discord\n"
-                + "either:   Either of the above\n"
-                + "BEWARE: Settings of 'role' or 'either' can be exploited to remove mutes from players if %1 is set to 'discord'")
+        @Comment("""
+                What action(s) on Discord should trigger a mute/unmute in Minecraft. Valid options:
+                timeout:  A timeout/untimeout on the Discord Server
+                role:     Addition/removal of the muted role (specified above) to the user on Discord
+                either:   Either of the above
+                BEWARE: Settings of 'role' or 'either' can be exploited to remove mutes from players if %1 is set to 'discord'""")
         @Constants.Comment("tie-breaker")
         public MuteSyncDiscordTrigger trigger = MuteSyncDiscordTrigger.TIMEOUT;
 
@@ -132,16 +135,17 @@ public class MuteSyncConfig extends AbstractSyncConfig<MuteSyncConfig, Game, Lon
     @ConfigSerializable
     public static class MinecraftToDiscordConfig {
 
-        @Comment("What action(s) to perform on the linked Discord account when a player is muted in Minecraft. Can be configured in more detail below\n"
-                + "Valid options:\n"
-                + "timeout:  Apply a Discord timeout on the user. (Must be 28 days or less)\n"
-                + "role:     Add the muted role (specified above) to the user on Discord"
+        @Comment("""
+                What action(s) to perform on the linked Discord account when a player is muted in Minecraft. Can be configured in more detail below
+                Valid options:
+                timeout:  Apply a Discord timeout on the user. (Must be 28 days or less)
+                role:     Add the muted role (specified above) to the user on Discord"""
         )
         public MuteSyncDiscordAction action = MuteSyncDiscordAction.TIMEOUT;
 
-        @Comment("When a mute duration is longer than 28 days (the maximum allowed in Discord), the muted role will be assigned instead of a timeout in such cases.\n"
-                + "Otherwise, no action will be taken on Discord for mutes longer than 28 days."
-        )
+        @Comment("""
+                When a mute duration is longer than 28 days (the maximum allowed in Discord), the muted role will be assigned instead of a timeout in such cases.
+                Otherwise, no action will be taken on Discord for mutes longer than 28 days.""")
         public boolean fallbackToRoleIfTimeoutTooLong = true;
 
         @Comment("The reason used when creating new mutes in Discord or adding the muted role to users")

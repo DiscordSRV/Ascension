@@ -43,16 +43,17 @@ public class JoinMessageConfig implements IMessageConfig {
     @Order(-3)
     public Boolean enabled = true;
 
-    @Comment("Suggested placeholders:\n"
-            + "%message% - The join message (this may not always be available)\n"
-            + "%player_prefix% - The player's prefix (LuckPerms meta \"discordsrv_prefix\", otherwise their in-game prefix)\n"
-            + "%player_meta_prefix% - The player's prefix from the LuckPerms meta \"discordsrv_prefix\" only\n"
-            + "%player_suffix% - The player's suffix (LuckPerms meta \"discordsrv_suffix\", otherwise their in-game suffix)\n"
-            + "%player_meta_suffix% - The player's suffix from the LuckPerms meta \"discordsrv_suffix\" only\n"
-            + "%player_display_name% - The player's display name\n"
-            + "%player_name% - The player's username\n"
-            + "%player_avatar_url% - The player's avatar url based on the \"avatar-provider\" configuration\n"
-            + "More placeholders at %1 (Player)")
+    @Comment("""
+            Suggested placeholders:
+            %message% - The join message (this may not always be available)
+            %player_prefix% - The player's prefix (LuckPerms meta "discordsrv_prefix", otherwise their in-game prefix)
+            %player_meta_prefix% - The player's prefix from the LuckPerms meta "discordsrv_prefix" only
+            %player_suffix% - The player's suffix (LuckPerms meta "discordsrv_suffix", otherwise their in-game suffix)
+            %player_meta_suffix% - The player's suffix from the LuckPerms meta "discordsrv_suffix" only
+            %player_display_name% - The player's display name
+            %player_name% - The player's username
+            %player_avatar_url% - The player's avatar url based on the "avatar-provider" configuration
+            More placeholders at %1 (Player)""")
     @Constants.Comment(DocumentationURLs.PLACEHOLDERS)
     @Untranslated(Untranslated.Type.VALUE)
     @Order(-2) // Above first-join

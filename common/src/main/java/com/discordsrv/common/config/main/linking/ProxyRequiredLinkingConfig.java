@@ -28,7 +28,7 @@ public class ProxyRequiredLinkingConfig extends RequiredLinkingConfig {
 
     public TargetRequirementConfig proxyRequirements = new TargetRequirementConfig();
 
-    public Map<String, TargetRequirementConfig> serverRequirements = new HashMap<String, TargetRequirementConfig>() {{
+    public Map<String, TargetRequirementConfig> serverRequirements = new HashMap<>() {{
         put("example", new TargetRequirementConfig());
     }};
 

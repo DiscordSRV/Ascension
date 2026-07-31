@@ -41,19 +41,20 @@ public class DiscordToMinecraftChatConfig {
     @Comment("Requires the \"Message Content Intent\"")
     public Boolean enabled = true;
 
-    @Comment("The Discord to Minecraft message format for regular users and bots\n"
-            + "\n"
-            + "Suggested placeholders:\n"
-            + "%message% - The content of the Discord message after %4 are applied\n"
-            + "%user_effective_name% - The Discord user's display name\n"
-            + "%user_name% - The Discord user's username (the one below their display name when you click in their profile)\n"
-            + "%user_tag% - The Discord user's username and possible discriminator (mostly useful with bots)\n"
-            + "%user_selected_roles% - The Discord user's roles\n"
-            + "%message_reply% - The value from %2 if the Discord message is in reply to another message\n"
-            + "%message_attachments% - The value from %3 for each attachment the Discord message\n"
-            + "%gamechannel_name% - The name of the in-game chat channel the message was sent to\n"
-            + "\n"
-            + "More placeholders at %1 (User, User (Server Member), Server, Channel, GameChannel)")
+    @Comment("""
+            The Discord to Minecraft message format for regular users and bots
+            
+            Suggested placeholders:
+            %message% - The content of the Discord message after %4 are applied
+            %user_effective_name% - The Discord user's display name
+            %user_name% - The Discord user's username (the one below their display name when you click in their profile)
+            %user_tag% - The Discord user's username and possible discriminator (mostly useful with bots)
+            %user_selected_roles% - The Discord user's roles
+            %message_reply% - The value from %2 if the Discord message is in reply to another message
+            %message_attachments% - The value from %3 for each attachment the Discord message
+            %gamechannel_name% - The name of the in-game chat channel the message was sent to
+            
+            More placeholders at %1 (User, User (Server Member), Server, Channel, GameChannel)""")
     @Constants.Comment({
             DocumentationURLs.PLACEHOLDERS,
             "reply-format",
@@ -70,12 +71,13 @@ public class DiscordToMinecraftChatConfig {
     @Constants.Comment("format")
     public String webhookFormat = "[[color:#5865F2]Discord[color]] [hover:show_text:Bot message]%user_effective_name%[hover] » %message%%message_attachments%";
 
-    @Comment("Format for a single attachment in the %message_attachments% placeholder\n"
-            + "Placeholders:\n"
-            + "%file_name% - The name of the attachment file\n"
-            + "%file_url% - The link to the attachment file\n"
-            + "\n"
-            + "More placeholders at %1 (User, User (Server Member), Server, Channel, GameChannel)")
+    @Comment("""
+            Format for a single attachment in the %message_attachments% placeholder
+            Placeholders:
+            %file_name% - The name of the attachment file
+            %file_url% - The link to the attachment file
+            
+            More placeholders at %1 (User, User (Server Member), Server, Channel, GameChannel)""")
     @Constants.Comment(DocumentationURLs.PLACEHOLDERS)
     public String attachmentFormat = " [hover:show_text:Open %file_name% in browser][click:open_url:%file_url%][color:green][[color:white]%file_name%[color:green]][color][click][hover]";
 
@@ -86,16 +88,17 @@ public class DiscordToMinecraftChatConfig {
     @Comment("Regex filters for Discord message contents (this is the %message% part of the \"format\" option)")
     @Untranslated(Untranslated.Type.VALUE)
     @DefaultOnly
-    public Map<Pattern, String> contentRegexFilters = new LinkedHashMap<Pattern, String>() {{
+    public Map<Pattern, String> contentRegexFilters = new LinkedHashMap<>() {{
         put(Pattern.compile("\\n{2,}"), "\n");
     }};
 
     @Comment("Filter users whose messages will not be forwarded to Minecraft")
     public DiscordUserFilterConfig.WithBots ignores = new DiscordUserFilterConfig.WithBots();
 
-    @Comment("How should unicode emoji be shown in-game:\n"
-            + "- hide: hides emojis in-game\n"
-            + "- show: shows emojis in-game as is (emojis may not be visible without resource packs)"
+    @Comment("""
+            How should unicode emoji be shown in-game:
+            - hide: hides emojis in-game
+            - show: shows emojis in-game as is (emojis may not be visible without resource packs)"""
     )
     public EmojiBehaviour unicodeEmojiBehaviour = EmojiBehaviour.SHOW;
 
@@ -111,14 +114,15 @@ public class DiscordToMinecraftChatConfig {
             + "This can be used together with Discord moderation bots, to filter forwarded messages")
     public Long delayMillis = 0L;
 
-    @Comment("If messages from Discord should be logged to the console\n"
-            + "\n"
-            + "Suggested placeholders:\n"
-            + "%formatted_message% - The entire message sent in-game as configured above\n"
-            + "%message% - The content of the Discord message\n"
-            + "%user_name% - The username of the Discord user\n"
-            + "%gamechannel_name% - The name of the in-game chat channel the message was sent to\n"
-            + "More placeholders at %1 (User, User (Server Member), Server, Channel, GameChannel)")
+    @Comment("""
+            If messages from Discord should be logged to the console
+            
+            Suggested placeholders:
+            %formatted_message% - The entire message sent in-game as configured above
+            %message% - The content of the Discord message
+            %user_name% - The username of the Discord user
+            %gamechannel_name% - The name of the in-game chat channel the message was sent to
+            More placeholders at %1 (User, User (Server Member), Server, Channel, GameChannel)""")
     @Constants.Comment(DocumentationURLs.PLACEHOLDERS)
     public boolean logToConsole = true;
     public String consoleFormat = "[%gamechannel_name%] %formatted_message%";

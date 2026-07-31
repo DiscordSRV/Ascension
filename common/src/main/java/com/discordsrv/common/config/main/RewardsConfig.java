@@ -40,35 +40,39 @@ public class RewardsConfig {
 
     public static class Reward {
 
-        @Comment("The reward id determines if the player and/or user has already been granted the reward.\n"
-                + "It should be unique for each reward. Please do not use the same reward ids on multiple servers at once")
+        @Comment("""
+                The reward id determines if the player and/or user has already been granted the reward.
+                It should be unique for each reward. Please do not use the same reward ids on multiple servers at once""")
         public String rewardId = "";
 
-        @Comment("Determines on when the reward can be granted.\n"
-                + "Valid values are: once_per_player, once_per_user, once_per_both, always")
+        @Comment("""
+                Determines on when the reward can be granted.
+                Valid values are: once_per_player, once_per_user, once_per_both, always""")
         public GrantType grantType = GrantType.ONCE_PER_BOTH;
 
         @Comment("If true, the reward will only be granted if the player is online. Otherwise, postpone till they're online.")
         public boolean needsOnline = false;
 
-        @Comment("Commands to run in the command when this reward is granted.\n"
-                + "Suggested placeholders:\n"
-                + "%profile_player_uuid% - The Minecraft player UUID\n"
-                + "%profile_offline_player_name% - The name of the Minecraft player\n"
-                + "%profile_user_id% - The Discord user id\n"
-                + "%profile_user_name% - The Discord user's username\n"
-                + "%profile_user_effective_name% - The Discord user's display name\n"
-                + "More placeholders at %1 (Profile)")
+        @Comment("""
+                Commands to run in the command when this reward is granted.
+                Suggested placeholders:
+                %profile_player_uuid% - The Minecraft player UUID
+                %profile_offline_player_name% - The name of the Minecraft player
+                %profile_user_id% - The Discord user id
+                %profile_user_name% - The Discord user's username
+                %profile_user_effective_name% - The Discord user's display name
+                More placeholders at %1 (Profile)""")
         @Constants.Comment(DocumentationURLs.PLACEHOLDERS)
         public List<String> consoleCommandsToRun = new ArrayList<>();
     }
 
     public static class LinkingReward extends Reward {
 
-        @Comment("When the linking reward will trigger, valid values are:\n"
-                + "- is_linked: the reward will be granted to any linked player at any time\n"
-                + "- linked: the reward will be granted when the player and user become linked\n"
-                + "- unlinked: the reward will be granted when the player and user become unlinked")
+        @Comment("""
+                When the linking reward will trigger, valid values are:
+                - is_linked: the reward will be granted to any linked player at any time
+                - linked: the reward will be granted when the player and user become linked
+                - unlinked: the reward will be granted when the player and user become unlinked""")
         public Type type = Type.IS_LINKED;
 
         public enum Type {
@@ -80,11 +84,12 @@ public class RewardsConfig {
 
     public static class BoostingReward extends Reward {
 
-        @Comment("When the boosting reward will trigger, valid values are:\n"
-                + "- is_boosting: the reward will be granted to any boosting player at any time\n"
-                + "- boosted: the reward will be granted when a user starts boosting\n"
-                + "- unboosted: the reward will be granted when a user stops boosting\n"
-                + "This latter two options will not work if the user is not cached")
+        @Comment("""
+                When the boosting reward will trigger, valid values are:
+                - is_boosting: the reward will be granted to any boosting player at any time
+                - boosted: the reward will be granted when a user starts boosting
+                - unboosted: the reward will be granted when a user stops boosting
+                This latter two options will not work if the user is not cached""")
         public Type type = Type.IS_BOOSTING;
         public long serverId = 0L;
 

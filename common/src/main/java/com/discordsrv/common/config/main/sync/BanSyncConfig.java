@@ -76,11 +76,12 @@ public class BanSyncConfig extends AbstractSyncConfig<BanSyncConfig, Game, Long>
     @ConfigSerializable
     public static class DiscordToMinecraftConfig {
 
-        @Comment("What action(s) on Discord should trigger a ban/unban in Minecraft. Valid options:\n"
-                + "ban:     A ban/unban on the Discord Server\n"
-                + "role:    Addition/removal of the banned role (specified above) to the user on Discord\n"
-                + "either:  Either of the above\n"
-                + "BEWARE: Settings of 'role' or 'either' can be exploited to remove bans from players if %1 is set to 'discord'")
+        @Comment("""
+                What action(s) on Discord should trigger a ban/unban in Minecraft. Valid options:
+                ban:     A ban/unban on the Discord Server
+                role:    Addition/removal of the banned role (specified above) to the user on Discord
+                either:  Either of the above
+                BEWARE: Settings of 'role' or 'either' can be exploited to remove bans from players if %1 is set to 'discord'""")
         @Constants.Comment("tie-breaker")
         public BanSyncDiscordTrigger trigger = BanSyncDiscordTrigger.BAN;
 
@@ -97,8 +98,9 @@ public class BanSyncConfig extends AbstractSyncConfig<BanSyncConfig, Game, Long>
     @ConfigSerializable
     public static class MinecraftToDiscordConfig {
 
-        @Comment("What action(s) to perform on the linked Discord account when a player is banned in Minecraft. Can be configured in more detail below\n"
-                + "Valid options: %1, %2")
+        @Comment("""
+                What action(s) to perform on the linked Discord account when a player is banned in Minecraft. Can be configured in more detail below
+                Valid options: %1, %2""")
         @Constants.Comment({"ban", "role"})
         public BanSyncDiscordAction action = BanSyncDiscordAction.BAN;
 

@@ -45,8 +45,6 @@ public abstract class MainConfig implements Config {
         return FILE_NAME;
     }
 
-    private static final String PLAYERS_NEED_TO_BE_LINKED = "Requires players to be linked";
-
     // File header
 
     @Constants({
@@ -55,14 +53,13 @@ public abstract class MainConfig implements Config {
             DocumentationURLs.DISCORD_MARKDOWN,
             DocumentationURLs.PLACEHOLDERS
     })
-    public static final String HEADER = String.join("\n", Arrays.asList(
-            "Welcome to the DiscordSRV configuration file",
-            "",
-            "Looking for the \"BotToken\" option? It has been moved into the %1 file",
-            "Need help with the format for Minecraft messages? %2",
-            "Need help with Discord markdown? %3",
-            "List of placeholders %4"
-    ));
+    public static final String HEADER = """
+            Welcome to the DiscordSRV configuration file
+            
+            Looking for the "BotToken" option? It has been moved into the %1 file
+            Need help with the format for Minecraft messages? %2
+            Need help with Discord markdown? %3
+            List of placeholders %4""";
 
     // Automatic migration toggle
 
@@ -80,19 +77,22 @@ public abstract class MainConfig implements Config {
     }
 
     @DefaultOnly(ChannelConfig.DEFAULT_KEY)
-    @Comment("Channels configuration\n\n"
-            + "This is where everything related to in-game chat channel synchronization to Discord is configured.\n"
-            + "The key of this option is the in-game channel name (the default keys are \"%1\" and \"%2\")\n"
-            + "%3 and %4 can be configured for all channels except \"%2\"\n"
-            + "\"%2\" is a special section which has the default values for all channels unless they are specified (overridden) under the channel's own section\n"
-            + "So if you don't specify a certain option under a channel's own section, the option will take its value from the \"%2\" section\n"
-            + "\n"
-            + "There are integrated per-world channels for all the worlds that are found on the server.\n"
-            + "If a message is sent from Discord to a world channel, it will only be sent to players in that world.\n"
-            + "If you add a channel with the same name as a world, all messages from that world that would've gone into the \"%1\" channel will go to that channel instead.\n"
-            + "If a message type is disabled for a world channel, messages of that type not be sent.\n"
-            + "Bukkit/Spigot/Paper default world channels are \"%5\", \"%6\" and \"%7\"\n"
-            + "Fabric default world channels are \"%8\", \"%9\" and \"%10\". Fabric also supports custom dimensions from mods/datapacks.\n")
+    @Comment("""
+            Channels configuration
+            
+            This is where everything related to in-game chat channel synchronization to Discord is configured.
+            The key of this option is the in-game channel name (the default keys are "%1" and "%2")
+            %3 and %4 can be configured for all channels except "%2"
+            "%2" is a special section which has the default values for all channels unless they are specified (overridden) under the channel's own section
+            So if you don't specify a certain option under a channel's own section, the option will take its value from the "%2" section
+            
+            There are integrated per-world channels for all the worlds that are found on the server.
+            If a message is sent from Discord to a world channel, it will only be sent to players in that world.
+            If you add a channel with the same name as a world, all messages from that world that would've gone into the "%1" channel will go to that channel instead.
+            If a message type is disabled for a world channel, messages of that type not be sent.
+            Bukkit/Spigot/Paper default world channels are "%5", "%6" and "%7"
+            Fabric default world channels are "%8", "%9" and "%10". Fabric also supports custom dimensions from mods/datapacks.
+            """)
     @Constants.Comment({
             GameChannel.DEFAULT_NAME, ChannelConfig.DEFAULT_KEY,
             "channel-ids", "threads",
@@ -129,68 +129,75 @@ public abstract class MainConfig implements Config {
     public RewardsConfig rewards = new RewardsConfig();
 
     // Console
-    @Comment("Allows for creating channels and/or threads that act like the Minecraft server console\n"
-            + "Multiple configurations are allowed for forwarding different portions of logs into different places,\n"
-            + "configuring the entire console output to be forwarded to multiple places is discouraged.\n"
-            + "\n"
-            + "Using this feature as your primary way to view log history is not recommended.\n"
-            + "The default configuration uses thread rotation, where a new thread will be created every week, and only 3 weeks are kept.\n"
-            + "\n"
-            + "Be careful of who you let view and run commands in your console channels!\n"
-            + "Configuring this incorrectly can lead to sensitive information being exposed and your server being hacked!")
+    @Comment("""
+            Allows for creating channels and/or threads that act like the Minecraft server console
+            Multiple configurations are allowed for forwarding different portions of logs into different places,
+            configuring the entire console output to be forwarded to multiple places is discouraged.
+            
+            Using this feature as your primary way to view log history is not recommended.
+            The default configuration uses thread rotation, where a new thread will be created every week, and only 3 weeks are kept.
+            
+            Be careful of who you let view and run commands in your console channels!
+            Configuring this incorrectly can lead to sensitive information being exposed and your server being hacked!""")
     @Order(500)
     public List<ConsoleConfig> console = new ArrayList<>(Collections.singleton(new ConsoleConfig()));
 
     // "Sync" features
 
-    @Comment("Configuration options for Minecraft group and Discord role synchronization\n"
-            + "\n"
-            + PLAYERS_NEED_TO_BE_LINKED + "\n"
-            + "For Minecraft to Discord synchronization:\n"
-            + "- The bot needs a role above all roles that are synchronized\n"
-            + "- The bot needs the \"Manage Roles\" permission")
+    @Comment("""
+            Configuration options for Minecraft group and Discord role synchronization
+            
+            Requires players to be linked
+            For Minecraft to Discord synchronization:
+            - The bot needs a role above all roles that are synchronized
+            - The bot needs the "Manage Roles" permission""")
     @Order(610)
     public GroupSyncConfig groupSync = new GroupSyncConfig();
 
-    @Comment("Configuration options for nickname synchronization\n"
-            + "\n"
-            + PLAYERS_NEED_TO_BE_LINKED + "\n"
-            + "For Minecraft to Discord synchronization:\n"
-            + "- The bot needs a role above all users that you want to synchronize, the Discord server owner cannot be synchronized.\n"
-            + "- The bot needs the \"Manage Nicknames\" permission")
+    @Comment("""
+            Configuration options for nickname synchronization
+            
+            Requires players to be linked
+            For Minecraft to Discord synchronization:
+            - The bot needs a role above all users that you want to synchronize, the Discord server owner cannot be synchronized.
+            - The bot needs the "Manage Nicknames" permission""")
     @Order(620)
     public NicknameSyncConfig nicknameSync = new NicknameSyncConfig();
 
-    @Comment("Configuration options for ban synchronization\n"
-            + "\n"
-            + PLAYERS_NEED_TO_BE_LINKED + "\n"
-            + "For Minecraft to Discord synchronization:\n"
-            + "- The bot needs a role above all users that you want to synchronize, the Discord server owner cannot be synchronized.\n"
-            + "- The bot needs the \"Ban Members\" permission")
+    @Comment("""
+            Configuration options for ban synchronization
+            
+            Requires players to be linked
+            For Minecraft to Discord synchronization:
+            - The bot needs a role above all users that you want to synchronize, the Discord server owner cannot be synchronized.
+            - The bot needs the "Ban Members" permission""")
     @Order(630)
     public BanSyncConfig banSync = new BanSyncConfig();
 
-    @Comment("Configuration options for mute synchronization\n"
-            + "\n"
-            + PLAYERS_NEED_TO_BE_LINKED + "\n"
-            + "For Minecraft to Discord synchronization:\n"
-            + "- The bot needs a role above all users that you want to synchronize, the Discord server owner cannot be synchronized.\n"
-            + "- The bot needs the \"Manage Roles\" and \"Timeout Members\" permission")
+    @Comment("""
+            Configuration options for mute synchronization
+            
+            Requires players to be linked
+            For Minecraft to Discord synchronization:
+            - The bot needs a role above all users that you want to synchronize, the Discord server owner cannot be synchronized.
+            - The bot needs the "Manage Roles" and "Timeout Members" permission""")
     @Order(640)
     public MuteSyncConfig muteSync = new MuteSyncConfig();
 
-    @Comment("Options for granting players roles for being linked\n"
-            + "\n"
-            + "The bot needs to have a role above the linked roles\n"
-            + "The bot needs the \"Manage Roles\" permission")
+    @Comment("""
+            Options for granting players roles for being linked
+            
+            The bot needs to have a role above the linked roles
+            The bot needs the "Manage Roles" permission""")
     @Order(650)
     public LinkedRoleConfig linkedRole = new LinkedRoleConfig();
 
-    @Comment("Options for granting players that are currently online in-game, a role in Discord\n"
-            + "\n"
-            + PLAYERS_NEED_TO_BE_LINKED + "\n"
-            + "The bot needs to have a role above the online role\n"
-            + "The bot needs the \"Manage Roles\" permission")
+    @Comment("""
+            Options for granting players that are currently online in-game, a role in Discord
+            
+            Requires players to be linked
+            The bot needs to have a role above the online role
+            The bot needs the "Manage Roles" permission""")
     @Order(660)
     public OnlineRoleConfig onlineRole = new OnlineRoleConfig();
 

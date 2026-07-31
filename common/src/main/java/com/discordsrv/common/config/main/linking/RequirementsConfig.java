@@ -38,28 +38,29 @@ public class RequirementsConfig {
     @DefaultOnly
     public List<String> bypassUUIDs = new ArrayList<>(Collections.singletonList("6c983d46-0631-48b8-9baf-5e33eb5ffec4"));
 
-    @Comment("Requirements players must meet to be pass requirements\n"
-            + "Only one option has to pass, for example [\"TwitchSubscriber()\", \"DiscordRole(...)\"] allows twitch subscribers and users with the specified role to play\n"
-            + "while [\"TwitchSubscriber() && DiscordRole(...)\"] only allows twitch subscribers with the specified role to play\n"
-            + "\n"
-            + "Valid values are:\n"
-            + "DiscordServer(Server ID)\n"
-            + "DiscordBoosting(Server ID)\n"
-            + "DiscordRole(Role ID)\n"
-            + "\n"
-            + "The following are available if you're using %2 for linked accounts and a %2 token is specified in the %1:\n"
-            + "PatreonSubscriber() or PatreonSubscriber(Tier Title)\n"
-            + "GlimpseSubscriber() or GlimpseSubscriber(Level Name)\n"
-            + "TwitchFollower()\n"
-            + "TwitchSubscriber() or TwitchSubscriber(Tier)\n"
-            + "YouTubeSubscriber()\n"
-            + "YouTubeMember() or YouTubeMember(Tier)\n"
-            + "\n"
-            + "The following operators are available:\n"
-            + "&& = and, for example: \"DiscordServer(...) && TwitchFollower()\"\n"
-            + "|| = or, for example \"DiscordBoosting(...) || YouTubeMember()\"\n"
-            + "You can also use brackets () to clear ambiguity, for example: \"DiscordServer(...) && (TwitchSubscriber() || PatreonSubscriber())\"\n"
-            + "allows a member of the specified Discord server that is also a twitch or patreon subscriber to join the server")
+    @Comment("""
+            Requirements players must meet to be pass requirements
+            Only one option has to pass, for example ["TwitchSubscriber()", "DiscordRole(...)"] allows twitch subscribers and users with the specified role to play
+            while ["TwitchSubscriber() && DiscordRole(...)"] only allows twitch subscribers with the specified role to play
+            
+            Valid values are:
+            DiscordServer(Server ID)
+            DiscordBoosting(Server ID)
+            DiscordRole(Role ID)
+            
+            The following are available if you're using %2 for linked accounts and a %2 token is specified in the %1:
+            PatreonSubscriber() or PatreonSubscriber(Tier Title)
+            GlimpseSubscriber() or GlimpseSubscriber(Level Name)
+            TwitchFollower()
+            TwitchSubscriber() or TwitchSubscriber(Tier)
+            YouTubeSubscriber()
+            YouTubeMember() or YouTubeMember(Tier)
+            
+            The following operators are available:
+            && = and, for example: "DiscordServer(...) && TwitchFollower()"
+            || = or, for example "DiscordBoosting(...) || YouTubeMember()"
+            You can also use brackets () to clear ambiguity, for example: "DiscordServer(...) && (TwitchSubscriber() || PatreonSubscriber())"
+            allows a member of the specified Discord server that is also a twitch or patreon subscriber to join the server""")
     @Constants.Comment({ConnectionConfig.FILE_NAME, MinecraftAuthenticationLinker.DOMAIN})
     public List<String> additionalRequirements = new ArrayList<>();
 }

@@ -45,9 +45,10 @@ public class GameCommandExecutionConditionConfig {
     @Comment("\"blacklist\" to allow only commands not listed (blacklisting), \"whitelist\" to only allow listed commands (whitelisting)")
     public FilterMode filterMode = FilterMode.BLACKLIST;
 
-    @Comment("The commands and/or patterns that are allowed/blocked.\n" +
-            "The command needs to start with input, this will attempt to normalize command aliases where possible (for the main command)\n" +
-            "If the command starts and ends with /, the input will be treated as a regular expression (regex) and it will pass if it matches the entire command")
+    @Comment("""
+            The commands and/or patterns that are allowed/blocked.
+            The command needs to start with input, this will attempt to normalize command aliases where possible (for the main command)
+            If the command starts and ends with /, the input will be treated as a regular expression (regex) and it will pass if it matches the entire command""")
     public List<String> commands = new ArrayList<>();
 
     /**
@@ -73,7 +74,7 @@ public class GameCommandExecutionConditionConfig {
         command = command.toLowerCase(Locale.ROOT);
 
         List<String> parts = new ArrayList<>(Arrays.asList(configCommand.split(" ")));
-        String rootCommand = parts.remove(0);
+        String rootCommand = parts.removeFirst();
 
         Set<String> rootCommands = new LinkedHashSet<>();
         rootCommands.add(rootCommand);

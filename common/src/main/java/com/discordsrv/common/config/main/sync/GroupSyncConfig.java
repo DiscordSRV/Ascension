@@ -56,8 +56,9 @@ public class GroupSyncConfig {
     @ConfigSerializable
     public static class SetConfig extends SyncConfig {
 
-        @Comment("LuckPerms context values, used when adding, removing and checking the groups of players.\n"
-                + "The format is: {\"context\": [\"value\"]}")
+        @Comment("""
+                LuckPerms context values, used when adding, removing and checking the groups of players.
+                The format is: {"context": ["value"]}""")
         public Map<String, List<String>> contexts = new LinkedHashMap<>();
 
         @Comment("If inherited groups should be included when checking if the Player has a group. Only works with LuckPerms")

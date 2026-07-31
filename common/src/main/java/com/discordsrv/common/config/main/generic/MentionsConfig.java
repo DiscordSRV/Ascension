@@ -48,10 +48,11 @@ public class MentionsConfig {
 
     public String messageUrl = "[hover:show_text:Click to go to message][click:open_url:%jump_url%][color:#5865F2]#%channel_name% > ...";
 
-    @Comment("How should custom emoji be shown in-game:\n"
-            + "- hide: custom emoji will not be shown in-game\n"
-            + "- blank: custom emoji will only be shown in-game if it is rendered by a 3rd party plugin\n"
-            + "- name: shows the name of the custom emoji in-game (for example :discordsrv:), unless rendered by a 3rd party plugin")
+    @Comment("""
+            How should custom emoji be shown in-game:
+            - hide: custom emoji will not be shown in-game
+            - blank: custom emoji will only be shown in-game if it is rendered by a 3rd party plugin
+            - name: shows the name of the custom emoji in-game (for example :discordsrv:), unless rendered by a 3rd party plugin""")
     public EmoteBehaviour customEmojiBehaviour = EmoteBehaviour.BLANK;
 
     public enum EmoteBehaviour {

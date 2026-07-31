@@ -33,11 +33,12 @@ public class LinkedAccountConfig {
     @Comment("Should users who have not linked their accounts be sent a message encouraging them to link their accounts every time they join the server")
     public LinkPesteringConfig pesteringConfig = new LinkPesteringConfig();
 
-    @Comment("The linked account provider\n"
-            + "\n"
-            + " - auto: Uses \"minecraftauth\" if the %1 permits it and the server is in online mode or using ip forwarding, otherwise \"%3\"\n"
-            + " - minecraftauth: Uses %2 as the linked account provider (offline and (non-linked) bedrock players cannot link using this method)\n"
-            + " - storage: Use the configured database for linked accounts")
+    @Comment("""
+            The linked account provider
+            
+             - auto: Uses "minecraftauth" if the %1 permits it and the server is in online mode or using ip forwarding, otherwise "%3"
+             - minecraftauth: Uses %2 as the linked account provider (offline and (non-linked) bedrock players cannot link using this method)
+             - storage: Use the configured database for linked accounts""")
     @Constants.Comment({ConnectionConfig.FILE_NAME, MinecraftAuthenticationLinker.DOMAIN, "storage"})
     public Provider provider = Provider.AUTO;
 
@@ -51,11 +52,12 @@ public class LinkedAccountConfig {
         @Comment("Should link pestering be enabled")
         public boolean enabled = true;
 
-        @Comment("How should we pester users to link their accounts\n"
-                + "\n"
-                + " \"%1\" to send a message when they connect to the server\n"
-                + " \"%2\" to send a timed message \n"
-                + " \"%3\" to do both of the above")
+        @Comment("""
+                How should we pester users to link their accounts
+                
+                 "%1" to send a message when they connect to the server
+                 "%2" to send a timed message\s
+                 "%3" to do both of the above""")
         @Constants.Comment({"join", "timer", "both"})
         public PesteringMode mode = PesteringMode.JOIN;
 

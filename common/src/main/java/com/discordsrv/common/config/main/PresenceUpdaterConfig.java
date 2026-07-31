@@ -72,11 +72,12 @@ public class PresenceUpdaterConfig {
         @Constants.Comment({"online, idle, do_not_disturb, invisible"})
         public OnlineStatus status = OnlineStatus.ONLINE;
 
-        @Comment("This may be prefixed by one of the following and a space to specify the activity type: %1\n"
-                + "You can use streaming by setting the value to: %2, a YouTube or Twitch link and the text all separated by a space\n"
-                + "Suggested placeholders:\n"
-                + "%playerlist_count% - The amount of players online\n"
-                + "More placeholders at %3 (Global only)")
+        @Comment("""
+                This may be prefixed by one of the following and a space to specify the activity type: %1
+                You can use streaming by setting the value to: %2, a YouTube or Twitch link and the text all separated by a space
+                Suggested placeholders:
+                %playerlist_count% - The amount of players online
+                More placeholders at %3 (Global only)""")
         @Constants.Comment({
                 "\"playing\", \"listening to\", \"watching\", \"competing in\"",
                 "\"streaming\"",

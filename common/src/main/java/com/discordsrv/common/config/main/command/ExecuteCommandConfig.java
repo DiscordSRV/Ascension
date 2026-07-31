@@ -42,21 +42,23 @@ public class ExecuteCommandConfig {
     @Comment("If the command output should only be visible to the user who ran the command")
     public boolean ephemeral = true;
 
-    @Comment("The mode for the command output, available options are:\n"
-            + "- markdown: Regular Discord markdown\n"
-            + "- ansi: A colored ansi code block\n"
-            + "- plain: Plain text\n"
-            + "- code_block: Plain code block\n"
-            + "- off: No command output\n"
-            + "\n"
-            + "Please note that some commands may not be work with output forwarding")
+    @Comment("""
+            The mode for the command output, available options are:
+            - markdown: Regular Discord markdown
+            - ansi: A colored ansi code block
+            - plain: Plain text
+            - code_block: Plain code block
+            - off: No command output
+            
+            Please note that some commands may not be work with output forwarding""")
     public DiscordOutputMode outputMode = DiscordOutputMode.MARKDOWN;
 
     @Comment("At least one condition has to match to allow execution")
     public List<GameCommandExecutionConditionConfig> executionConditions = new ArrayList<>();
 
-    @Comment("If commands should be suggested while typing\n" +
-            "Suggestions go through the server's main thread (on servers with a main thread) to ensure compatibility.")
+    @Comment("""
+            If commands should be suggested while typing
+            Suggestions go through the server's main thread (on servers with a main thread) to ensure compatibility.""")
     public boolean suggest = true;
 
     @Comment("If suggestions should be filtered based on the \"%1\" option")

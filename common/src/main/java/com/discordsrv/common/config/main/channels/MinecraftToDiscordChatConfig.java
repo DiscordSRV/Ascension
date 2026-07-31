@@ -42,16 +42,17 @@ public class MinecraftToDiscordChatConfig implements IMessageConfig {
 
     public Boolean enabled = true;
 
-    @Comment("Suggested placeholders:\n"
-            + "%message% - The formatted message content\n"
-            + "%player_prefix% - The player's prefix (LuckPerms meta \"discordsrv_prefix\", otherwise their in-game prefix)\n"
-            + "%player_meta_prefix% - The player's prefix from the LuckPerms meta \"discordsrv_prefix\" only\n"
-            + "%player_suffix% - The player's suffix (LuckPerms meta \"discordsrv_suffix\", otherwise their in-game suffix)\n"
-            + "%player_meta_suffix% - The player's suffix from the LuckPerms meta \"discordsrv_suffix\" only\n"
-            + "%player_display_name% - The player's display name\n"
-            + "%player_name% - The player's username\n"
-            + "%player_avatar_url% - The player's avatar url based on the \"avatar-provider\" configuration\n"
-            + "More placeholders at %1 (Server, Player, GameChannel)")
+    @Comment("""
+            Suggested placeholders:
+            %message% - The formatted message content
+            %player_prefix% - The player's prefix (LuckPerms meta "discordsrv_prefix", otherwise their in-game prefix)
+            %player_meta_prefix% - The player's prefix from the LuckPerms meta "discordsrv_prefix" only
+            %player_suffix% - The player's suffix (LuckPerms meta "discordsrv_suffix", otherwise their in-game suffix)
+            %player_meta_suffix% - The player's suffix from the LuckPerms meta "discordsrv_suffix" only
+            %player_display_name% - The player's display name
+            %player_name% - The player's username
+            %player_avatar_url% - The player's avatar url based on the "avatar-provider" configuration
+            More placeholders at %1 (Server, Player, GameChannel)""")
     @Constants.Comment(DocumentationURLs.PLACEHOLDERS)
     @Untranslated(Untranslated.Type.VALUE)
     public SendableDiscordMessageTemplate format = new SendableDiscordMessageTemplate(
@@ -88,32 +89,36 @@ public class MinecraftToDiscordChatConfig implements IMessageConfig {
         @Comment("Suggest mentions as chat completions in-game")
         public boolean suggestMentionsCompletionsInGame = true;
 
-        @Comment("If role mentions should be rendered on Discord\n\n"
-                + "The player needs one of the below permission to trigger notifications:\n"
-                + "- discordsrv.mention.role.<role id> (to mention a specific role)\n"
-                + "- discordsrv.mention.role.mentionable (for roles which have \"Allow anyone to @mention this role\" enabled)\n"
-                + "- discordsrv.mention.role.all (to mention ALL roles except @everyone)\n"
-                + "The roles need to have \"Allow anyone to @mention this role\" enabled or the bot needs to have the \"Mention @everyone, @here and All Roles\" permission for notifications to be triggered")
+        @Comment("""
+                If role mentions should be rendered on Discord
+                
+                The player needs one of the below permission to trigger notifications:
+                - discordsrv.mention.role.<role id> (to mention a specific role)
+                - discordsrv.mention.role.mentionable (for roles which have "Allow anyone to @mention this role" enabled)
+                - discordsrv.mention.role.all (to mention ALL roles except @everyone)
+                The roles need to have "Allow anyone to @mention this role" enabled or the bot needs to have the "Mention @everyone, @here and All Roles" permission for notifications to be triggered""")
         public boolean roles = true;
 
         @Comment("If channel mentions should be rendered on Discord")
         public boolean channels = true;
 
-        @Comment("If user mentions should be rendered on Discord\n"
-                + "The player needs the following permissions to trigger notifications:\n"
-                + "- discordsrv.mention.user.all (to mention ALL users)\n"
-                + "Requires the \"Server Members Intent\"")
+        @Comment("""
+                If user mentions should be rendered on Discord
+                The player needs the following permissions to trigger notifications:
+                - discordsrv.mention.user.all (to mention ALL users)
+                Requires the "Server Members Intent\"""")
         public boolean users = true;
 
-        @Comment(
-                "If uncached users should be looked up from the Discord API when a mention (\"@something\") occurs in chat.\n"
-                        + "The player needs the discordsrv.mention.lookup.user permission for uncached members to be looked up\n"
-                        + "This WILL cause sending messages to be delayed")
+        @Comment("""
+                If uncached users should be looked up from the Discord API when a mention ("@something") occurs in chat.
+                The player needs the discordsrv.mention.lookup.user permission for uncached members to be looked up
+                This WILL cause sending messages to be delayed""")
         public boolean uncachedUsers = false;
 
-        @Comment("If @everyone and @here mentions should be enabled\n"
-                + "The player needs the discordsrv.mention.everyone permission to render the mention and trigger a notification\n"
-                + "The bot needs to have the \"Mention @everyone, @here and All Roles\" permission to trigger a notification")
+        @Comment("""
+                If @everyone and @here mentions should be enabled
+                The player needs the discordsrv.mention.everyone permission to render the mention and trigger a notification
+                The bot needs to have the "Mention @everyone, @here and All Roles" permission to trigger a notification""")
         public boolean everyone = false;
 
         public boolean any() {

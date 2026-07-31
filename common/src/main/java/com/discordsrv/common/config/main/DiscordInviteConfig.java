@@ -34,9 +34,10 @@ public class DiscordInviteConfig {
     @Comment("If the bot should automatically use the vanity invite url from the automatically determined server, if one is set")
     public boolean attemptToUseVanityUrl = true;
 
-    @Comment("If the bot should automatically create an invite to the automatically determined server\n"
-            + "The bot will only attempt to do so if it has permission to \"Create Invite\"\n"
-            + "The server must also have a rules channel (available for community servers) or default channel (automatically determined by Discord)")
+    @Comment("""
+            If the bot should automatically create an invite to the automatically determined server
+            The bot will only attempt to do so if it has permission to "Create Invite"
+            The server must also have a rules channel (available for community servers) or default channel (automatically determined by Discord)""")
     public boolean autoCreateInvite = false;
 
 }
