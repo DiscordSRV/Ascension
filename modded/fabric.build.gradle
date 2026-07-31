@@ -156,13 +156,7 @@ dependencies {
     // Common
     shadow project(':common')
 
-    implementation(libs.adventure.api)
-    include(libs.adventure.api)
-
-    include(modImplementation("net.kyori:adventure-platform-fabric:${project.property("deps.adventure_platform")}"){
-        exclude group: 'net.kyori', module: 'ansi'
-        exclude group: 'net.kyori', module: 'adventure-api'
-    })
+    runtimeDownload(libs.adventure.api)
 
     compileOnly("net.fabricmc:fabric-loader:${project.property("deps.fabric_loader")}")
     include(implementation("io.github.llamalad7:mixinextras-fabric:0.5.2"))

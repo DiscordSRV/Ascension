@@ -121,12 +121,7 @@ dependencies {
     // Common
     shadow project(':common')
 
-    implementation(libs.adventure.api)
-
-    compileOnly("net.kyori:adventure-platform-neoforge:${project.property("deps.adventure_platform")}"){
-        exclude group: 'net.kyori', module: 'ansi'
-        exclude group: 'net.kyori', module: 'adventure-api'
-    }
+    runtimeDownload(libs.adventure.api)
 
     // DependencyDownload
     compileOnly(libs.dependencydownload.jarinjar.loader)

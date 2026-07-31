@@ -41,11 +41,7 @@ public class ModdedWorldChannelLookupModule extends AbstractModdedModule {
     public void onGameChannelLookup(GameChannelLookupEvent event) {
         for (ResourceKey<Level> levelKey : discordSRV.getServer().levelKeys()) {
             if (event.getChannelName().equals(levelKey.identifier().getPath())) {
-                //? if adventure: >= 6 {
-                event.process(new WorldChannel(discordSRV, net.kyori.adventure.platform.modcommon.MinecraftAudiences.key(levelKey)));
-                //?} else {
-                // event.process(new WorldChannel(discordSRV, net.kyori.adventure.platform.fabric.FabricAudiences.toAdventure(levelKey.identifier())));
-                //? }
+                event.process(new WorldChannel(discordSRV, levelKey.identifier().getNamespace(), levelKey.identifier().getPath()));
                 return;
             }
         }

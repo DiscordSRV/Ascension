@@ -38,7 +38,7 @@ public class ModdedSkinProvider extends AbstractModdedModule {
         }
         ModdedPlayer player = (ModdedPlayer) event.player();
 
-        int playerModelParts = ((ServerPlayerEntityAccessor) player).discordsrv$getPlayerModelParts();
+        int playerModelParts = ((ServerPlayerEntityAccessor) player.getPlayer()).discordsrv$getPlayerModelParts();
         //? if minecraft: >1.20.2 {
         //? if minecraft: >=1.21.9 {
         com.mojang.authlib.minecraft.MinecraftProfileTextures textures = discordSRV.getServer().services().sessionService().getTextures(player.getPlayer().getGameProfile());

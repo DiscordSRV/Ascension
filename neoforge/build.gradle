@@ -113,14 +113,6 @@ dependencies {
     // Mixin Extras
     jarJar(implementation("io.github.llamalad7:mixinextras-neoforge:0.5.2"))
 
-    // Adventure
-    jarJar(libs.adventure.api)
-
-    jarJar(implementation("net.kyori:adventure-platform-neoforge:${stonecutterNode.property("deps.adventure_platform")}"){
-        exclude group: 'net.kyori', module: 'ansi'
-        exclude group: 'net.kyori', module: 'adventure-api'
-    })
-
     // DependencyDownload
     shadow(libs.dependencydownload.jarinjar.loader)
     shadow(libs.dependencydownload.jarinjar.bootstrap)
