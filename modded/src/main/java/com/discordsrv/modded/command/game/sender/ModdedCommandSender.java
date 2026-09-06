@@ -101,8 +101,13 @@ public class ModdedCommandSender implements ICommandSender {
         /*int permissionSet = 4;
          *///?}
 
+        //? if minecraft: >=26.3 {
         return new CommandSourceStack(
-                source, spawnPos, Vec2.ZERO, level, permissionSet, name, Component.literal(name), server, null
+                source, spawnPos, Vec2.ZERO, level, permissionSet, Component.literal(name), server
         );
+        //? } else {
+        /*return new CommandSourceStack(
+                source, spawnPos, Vec2.ZERO, level, permissionSet, name, Component.literal(name), server, null
+        );*///? }
     }
 }

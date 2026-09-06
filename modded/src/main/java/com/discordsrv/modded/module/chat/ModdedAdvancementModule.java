@@ -29,6 +29,7 @@ import net.minecraft.advancements.DisplayInfo;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerPlayer;
 
+//~ advancement_26_3
 public class ModdedAdvancementModule extends AbstractModdedModule {
 
     private static ModdedAdvancementModule instance;
@@ -55,7 +56,7 @@ public class ModdedAdvancementModule extends AbstractModdedModule {
         DisplayInfo display = advancement.display().orElse(null);
         //?}
 
-        if (display == null || !display.shouldAnnounceChat()) {
+        if (display == null || !display.announceToChat()) {
             instance.logger().trace("Skipping advancement display of \"" + (advancement) + "\" for "
                     + owner + ": advancement display == null or does not broadcast to chat");
             return;
@@ -64,18 +65,18 @@ public class ModdedAdvancementModule extends AbstractModdedModule {
         //? if minecraft: <=1.20.2 {
         /*String frameName = display.getFrame().toString();
         *///?} else {
-        String frameName = display != null ? display.getType().getSerializedName() : "";
+        String frameName = display != null ? display.type().getSerializedName() : "";
          //?}
 
         //? if minecraft: <1.20.3 {
-        /*Component rawChat = Component.translatable("chat.type.advancement." + frameName.toLowerCase(java.util.Locale.ROOT), owner.getDisplayName(), display.getTitle());
+        /*Component rawChat = Component.translatable("chat.type.advancement." + frameName.toLowerCase(java.util.Locale.ROOT), owner.getDisplayName(), display.title());
         *///?} else {
-        Component rawChat = display.getType().createAnnouncement(advancementEntry, owner);
+        Component rawChat = display.type().createAnnouncement(advancementEntry, owner);
         //?}
 
         MinecraftComponent message = discordSRV.componentFactory().toAPI(rawChat);
-        MinecraftComponent title = discordSRV.componentFactory().toAPI(display.getTitle());
-        MinecraftComponent description = discordSRV.componentFactory().toAPI(display.getDescription());
+        MinecraftComponent title = discordSRV.componentFactory().toAPI(display.title());
+        MinecraftComponent description = discordSRV.componentFactory().toAPI(display.description());
 
         IPlayer player = discordSRV.playerProvider().player(owner);
         discordSRV.eventBus().publish(
