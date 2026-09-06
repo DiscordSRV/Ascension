@@ -21,6 +21,7 @@ package com.discordsrv.modded;
 import com.discordsrv.api.component.MinecraftComponent;
 import com.discordsrv.common.core.component.ComponentFactory;
 import com.discordsrv.common.util.ComponentUtil;
+import com.discordsrv.modded.command.game.sender.ModdedCommandSender;
 import com.google.common.base.Suppliers;
 import com.discordsrv.unrelocate.com.google.gson.Gson;
 import com.discordsrv.unrelocate.com.google.gson.JsonElement;
@@ -29,7 +30,6 @@ import com.mojang.serialization.JsonOps;
 import net.kyori.adventure.audience.Audience;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.serializer.gson.GsonComponentSerializer;
-import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.core.RegistryAccess;
 import org.jetbrains.annotations.NotNull;
@@ -84,11 +84,11 @@ public class ModdedComponentFactory extends ComponentFactory {
         return toAPI(fromNative(text));
     }
 
-    public Audience audience(@NotNull CommandSourceStack source) {
+    public Audience audience(@NotNull ModdedCommandSender sender) {
         return new Audience() {
             @Override
             public void sendMessage(@NotNull Component message) {
-                source.sendSystemMessage(serialize(message));
+                sender.commandSource.sendSystemMessage(serialize(message));
             }
         };
     }
