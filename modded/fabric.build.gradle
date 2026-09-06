@@ -16,7 +16,7 @@ var is1_21_11 = sc.eval(minecraftVersion, ">=1.21.11")
 var is26_1 = sc.eval(minecraftVersion, ">=26.1")
 
 java {
-    var java = sc.eval(minecraftVersion, ">=26.1")
+    var java = is26_1
             ? JavaVersion.VERSION_25
             : JavaVersion.VERSION_21
 
@@ -33,16 +33,30 @@ sourceSets {
 }
 
 stonecutter {
+    // Yarn and Parchment mappings
     replacements.string(is1_21_11) {
         replace("ResourceLocation", "Identifier")
         replace(".location()", ".identifier()")
         replace("ResourceKey::location", "ResourceKey::identifier")
     }
+
+    // Minecraft
+    replacements.string(sc.eval(minecraftVersion, ">=26.3"), "advancement_26_3") {
+        replace("shouldAnnounceChat()", "announceToChat()")
+        replace("display.getType()", "display.type()")
+        replace("display.getTitle()", "display.title()")
+        replace("display.getDescription()", "display.description()")
+    }
+
+    // Text Placeholder API
     replacements.string(is26_1, "textplaceholder") {
         replace("PlaceholderHandler", "eu.pb4.placeholders.api.Placeholder.Handler<ServerPlaceholderContext, String>")
         replace("PlaceholderContext", "ServerPlaceholderContext")
         replace("@Nullable String argument", "String argument")
         replace("ctx.player()", "ctx.serverPlayer()")
+    }
+    replacements.string(sc.eval(minecraftVersion, ">=26.3")) {
+        replace("com.mojang.authlib.yggdrasil.ProfileResult", "com.mojang.authlib.services.ProfileResult")
     }
 }
 
@@ -143,7 +157,7 @@ repositories {
 }
 
 dependencies {
-    minecraft("com.mojang:minecraft:${minecraftVersion}")
+    minecraft("com.mojang:minecraft:${minecraftVersion == "26.3" ? "26.3-pre-2" : minecraftVersion}")
     loomx.applyMojangMappings()
 
     // Mixin Extras

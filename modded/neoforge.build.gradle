@@ -25,7 +25,7 @@ configurations.configureEach {
 }
 
 java {
-    var java = sc.eval(minecraftVersion, ">=26.1")
+    var java = is26_1
             ? JavaVersion.VERSION_25
             : JavaVersion.VERSION_21
 
@@ -42,16 +42,30 @@ sourceSets {
 }
 
 stonecutter {
+    // Yarn and Parchment mappings
     replacements.string(!is1_21_11) {
         replace("Identifier", "ResourceLocation")
         replace(".identifier()", ".location()")
         replace("ResourceKey::identifier", "ResourceKey::location")
     }
+
+    // Minecraft
+    replacements.string(sc.eval(minecraftVersion, ">=26.3"), "advancement_26_3") {
+        replace("shouldAnnounceChat()", "announceToChat()")
+        replace("display.getType()", "display.type()")
+        replace("display.getTitle()", "display.title()")
+        replace("display.getDescription()", "display.description()")
+    }
+
+    // Text Placeholder API
     replacements.string(is26_1, "textplaceholder") {
         replace("PlaceholderHandler", "eu.pb4.placeholders.api.Placeholder.Handler<ServerPlaceholderContext, String>")
         replace("PlaceholderContext", "ServerPlaceholderContext")
         replace("@Nullable String argument", "String argument")
         replace("ctx.player()", "ctx.serverPlayer()")
+    }
+    replacements.string(sc.eval(minecraftVersion, ">=26.3"), "textplaceholder") {
+        replace("com.mojang.authlib.yggdrasil.ProfileResult", "com.mojang.authlib.services.ProfileResult")
     }
 }
 
