@@ -34,13 +34,14 @@ import org.jetbrains.annotations.NotNull;
 public class ModdedCommandSender implements ICommandSender {
 
     protected final ModdedDiscordSRV discordSRV;
-    protected CommandSourceStack commandSource;
     protected Audience audience;
+
+    public CommandSourceStack commandSource;
 
     public ModdedCommandSender(ModdedDiscordSRV discordSRV, CommandSourceStack commandSource) {
         this.discordSRV = discordSRV;
         this.commandSource = commandSource;
-        this.audience = discordSRV.componentFactory().audience(commandSource);
+        this.audience = discordSRV.componentFactory().audience(this);
     }
 
     @Override
