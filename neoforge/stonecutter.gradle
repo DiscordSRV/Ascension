@@ -5,12 +5,12 @@ stonecutter {
 
     parameters {
         def (version, loader) = sc.current.project.split('-', 2)
-        //properties.tags(version, loader)
+        sc.properties.tags(version, loader)
         constants.match(loader, "fabric", "neoforge")
 
-        def minecraft = node.project.property("minecraft.version_range_label").split("-")[0]
+        def minecraft = sc.properties.get("minecraft.version_range_label").split("-")[0]
         if (minecraft != "[VERSIONED]") {
-            dependencies["minecraft"] = minecraft
+            targets["minecraft"] = minecraft
         }
     }
 }

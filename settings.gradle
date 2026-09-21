@@ -3,6 +3,7 @@ pluginManagement {
         mavenLocal()
         maven { url = 'https://central.sonatype.com/repository/maven-snapshots/' }
         maven { url = 'https://maven.kikugie.dev/releases' }
+        maven { url = 'https://maven.kikugie.dev/snapshots' }
         maven { url = 'https://maven.fabricmc.net/' }
         maven { url = 'https://maven.neoforged.net/releases' }
         gradlePluginPortal()
@@ -10,8 +11,8 @@ pluginManagement {
 }
 
 plugins {
-    id("dev.kikugie.stonecutter") version "0.9"
-    id("dev.kikugie.loom-back-compat") version "0.2.1"
+    id("dev.kikugie.stonecutter") version "0.10-alpha.10"
+    id("dev.kikugie.loom-back-compat") version "0.4.2"
 }
 
 stonecutter {
@@ -91,7 +92,7 @@ dependencyResolutionManagement {
             library('velocity', 'com.velocitypowered', 'velocity-api').version('3.5.0-SNAPSHOT')
 
             // Modded
-            version('fabric.loom', '1.16-SNAPSHOT')
+            version('fabric.loom', '1.18-SNAPSHOT')
             version('neoforge.moddev', '2.0.147')
             plugin('fabric-loom', 'fabric-loom').versionRef('fabric.loom')
             plugin('neoforge-moddev', 'net.neoforged.moddev').versionRef('neoforge.moddev')

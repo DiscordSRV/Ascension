@@ -5,15 +5,15 @@ stonecutter {
 
     parameters {
         def (version, loader) = current.project.split('-', 2)
-        //properties.tags(version, loader)
+        sc.properties.tags(version, loader)
         constants.match(loader, "fabric", "neoforge")
 
-        def minecraft = node.project.property("minecraft.version_range_label").split("-")[0]
-        dependencies["minecraft"] = minecraft
+        def minecraft = sc.properties.get("minecraft.version_range_label").split("-")[0]
+        targets["minecraft"] = minecraft
 
-        def fml = node.project.property("deps.neoforge_fml_version").replace("-SNAPSHOT", "")
-        if (fml != "[VERSIONED]") {
-            dependencies["fml"] = fml
+        def fml = sc.properties.getOrNull("deps.neoforge_fml_version")
+        if (fml != "[VERSIONED]" && fml != null) {
+            targets["fml"] = fml.replace("-SNAPSHOT", "")
         }
 
         swaps["dependencies_file"] = ("\"dependencies/runtimeDownload-${it.current.version}.txt\";").toString()
