@@ -1,6 +1,7 @@
 plugins {
     id("dev.kikugie.stonecutter") version "0.10-alpha.10"
     id("dev.kikugie.loom-back-compat") version "0.4.2"
+    id("dev.kikugie.fletching-table") version "0.2.0-alpha.9"
 }
 apply from: rootProject.file('buildscript/standalone.gradle')
 
@@ -132,30 +133,41 @@ artifacts {
     shadow shadowJar
 }
 
+tasks.register("prodServer", net.fabricmc.loom.task.prod.ServerProductionRunTask) {
+    installerVersion = "1.1.2"
+    loaderVersion = "0.19.5"
+    minecraftVersion = project.name.split('-', 2)[0]
+    runDir = "../../run"
+
+    mods.setFrom is26_1 ? shadowJar.archiveFile : remapJar.archiveFile
+    mods.from configurations.modCompileOnly // Include integration mods
+    mods.from configurations.modRuntimeOnly // Include integration mods
+
+    javaLauncher = javaToolchains.launcherFor {
+        languageVersion = JavaLanguageVersion.of(java.targetCompatibility.getMajorVersion())
+    }
+}
+
 loom {
     serverOnlyMinecraftJar()
+
+    runs {
+        remove server
+    }
 }
 
 repositories {
     mavenLocal()
-    maven { url = 'https://maven.neoforged.net/releases' }
-    maven { url = "https://maven.parchmentmc.org" }
-    exclusiveContent {
-        forRepository {
-            maven { url = 'https://maven.fabricmc.net/' }
-        }
-        filter {
-            includeGroup 'net.fabricmc'
+    def strictMaven = { String url, String alias, String... groups ->
+        exclusiveContent {
+            forRepository { maven { it.url = url; it.name = alias } }
+            filter { groups.each { includeGroup it } }
         }
     }
-    exclusiveContent {
-        forRepository {
-            maven { url = 'https://maven.nucleoid.xyz/' }
-        }
-        filter {
-            includeGroup 'eu.pb4'
-        }
-    }
+    strictMaven('https://maven.nucleoid.xyz', 'Nucleoid', 'eu.pb4')
+    strictMaven('https://maven.fabricmc.net/', 'FabricMC', 'net.fabricmc')
+    strictMaven('https://www.cursemaven.com', 'Curseforge', 'curse.maven')
+    strictMaven('https://api.modrinth.com/maven', 'Modrinth', 'maven.modrinth')
 }
 
 dependencies {
@@ -198,6 +210,11 @@ dependencies {
 
     // Integrations
     modCompileOnly("eu.pb4:placeholder-api:${sc.properties.getOrNull("deps.text_placeholder_api")}")
+
+    // Used to run the production server
+    modRuntimeOnly fletchingTable.modrinthBundle('fabric-api') // Included by modImplementation
+    modRuntimeOnly fletchingTable.modrinthBundle('carbon') // Included by :common
+    modRuntimeOnly fletchingTable.modrinthBundle('luckperms') // Included by :common
 
     // DependencyDownload
     shadow(libs.mcdependencydownload.fabric) {
