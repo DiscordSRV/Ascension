@@ -59,6 +59,7 @@ import net.kyori.ansi.ColorLevel;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.lang.reflect.Method;
 import java.text.MessageFormat;
 import java.util.ArrayList;
 import java.util.List;
@@ -102,7 +103,7 @@ public class ComponentFactory implements MinecraftComponentFactory {
                         .addRenderer(new DiscordSRVMinecraftRenderer(discordSRV))
         );
 
-        this.flattener = ComponentFlattener.basic().toBuilder()
+        this.flattener = flattenerToBuilder(ComponentFlattener.basic())
                 .mapper(TranslatableComponent.class, translatableComponent -> {
                     Component translated = translatableComponentRenderer.render(translatableComponent, TRANSLATION_LOCALE);
                     // Avoid recursion, use plain text serializer without special flattener
@@ -127,6 +128,31 @@ public class ComponentFactory implements MinecraftComponentFactory {
 
     public void updateDefaultLocate() {
         TRANSLATION_LOCALE = discordSRV.defaultLocale();
+    }
+
+    private static ComponentFlattener.Builder flattenerToBuilder(ComponentFlattener flattener) {
+        try {
+            Method toBuilder = null;
+            try {
+                Class<?> buildableClass = Class.forName("net.kyori.adventure.util.Buildable");
+                if (buildableClass.isInstance(flattener)) {
+                    toBuilder = buildableClass.getMethod("toBuilder");
+                }
+            } catch (ClassNotFoundException ignored) {}
+
+            if (toBuilder == null) {
+                toBuilder = ComponentFlattener.class.getMethod("toBuilder");
+            }
+            return (ComponentFlattener.Builder) toBuilder.invoke(flattener);
+        } catch (Throwable t) {
+            try {
+                Method fallback = flattener.getClass().getMethod("toBuilder");
+                fallback.setAccessible(true);
+                return (ComponentFlattener.Builder) fallback.invoke(flattener);
+            } catch (Throwable t2) {
+                throw new RuntimeException("Failed to get ComponentFlattener.Builder from " + flattener, t);
+            }
+        }
     }
 
     @Override
