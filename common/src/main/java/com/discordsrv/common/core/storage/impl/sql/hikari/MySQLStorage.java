@@ -79,8 +79,6 @@ public class MySQLStorage extends HikariStorage {
                             + "constraint LINKING_CODES_UQ unique (CODE)"
                             + ");");
         }
-        // NOTE: the explicit "add column if not exists PLAYERUSERNAME" statement that used to live here
-        // was MariaDB-only syntax (MySQL 8 rejects it) and duplicated the addColumnIfMissing call below.
         addColumnIfMissing(connection, tablePrefix + LINKING_CODES_TABLE_NAME, "PLAYERUSERNAME", "varchar(32)");
         addColumnIfMissing(connection, tablePrefix + LINKED_ACCOUNTS_TABLE_NAME, "CREATED", "datetime");
         addColumnIfMissing(connection, tablePrefix + LINKED_ACCOUNTS_TABLE_NAME, "LASTSEEN", "datetime");
