@@ -139,9 +139,32 @@ public abstract class SQLStorage implements Storage {
     }
 
     protected static void addColumnIfMissing(Connection connection, String tableName, String columnName, String columnDefinition) throws SQLException {
-        connection.createStatement().execute(
-                "alter table " + tableName + " add column if not exists " + columnName + " " + columnDefinition
-        );
+        if (columnExists(connection, tableName, columnName)) {
+            return;
+        }
+        // NOTE: "add column if not exists" is MariaDB-only syntax and is rejected by MySQL 8,
+        // so the existence check above has to happen before issuing the ALTER.
+        try (Statement statement = connection.createStatement()) {
+            statement.execute(
+                    "alter table " + tableName + " add column " + columnName + " " + columnDefinition
+            );
+        }
+    }
+
+    private static boolean columnExists(Connection connection, String tableName, String columnName) throws SQLException {
+        String bareTable = tableName;
+        int lastDot = bareTable.lastIndexOf('.');
+        if (lastDot != -1) {
+            bareTable = bareTable.substring(lastDot + 1);
+        }
+        try (ResultSet resultSet = connection.getMetaData().getColumns(connection.getCatalog(), null, bareTable, null)) {
+            while (resultSet.next()) {
+                if (columnName.equalsIgnoreCase(resultSet.getString("COLUMN_NAME"))) {
+                    return true;
+                }
+            }
+        }
+        return false;
     }
     private void useConnection(CheckedConsumer<Connection> connectionConsumer) throws StorageException {
         useConnection(connection -> {
