@@ -18,25 +18,31 @@
 
 package com.discordsrv.common.core.logging.impl;
 
+import com.discordsrv.api.discord.exception.RestErrorResponseException;
 import com.discordsrv.common.DiscordSRV;
 import com.discordsrv.common.config.main.DebugConfig;
 import com.discordsrv.common.config.main.MainConfig;
 import com.discordsrv.common.core.logging.Logger;
 import com.discordsrv.common.exception.MessageException;
+import com.discordsrv.common.helper.Timeout;
 import com.discordsrv.common.logging.LogLevel;
 import com.discordsrv.common.util.DiscordPermissionUtil;
 import net.dv8tion.jda.api.JDA;
 import net.dv8tion.jda.api.Permission;
 import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.entities.channel.middleman.GuildChannel;
+import net.dv8tion.jda.api.exceptions.ErrorResponseException;
 import net.dv8tion.jda.api.exceptions.InsufficientPermissionException;
+import net.dv8tion.jda.api.exceptions.RateLimitedException;
+import net.dv8tion.jda.api.requests.ErrorResponse;
+import net.dv8tion.jda.api.requests.Response;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.io.IOException;
+import java.io.InterruptedIOException;
 import java.io.UncheckedIOException;
-import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardOpenOption;
@@ -44,8 +50,10 @@ import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.time.Duration;
 import java.util.*;
+import java.util.concurrent.CancellationException;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.Future;
+import java.util.concurrent.TimeoutException;
 
 public class DiscordSRVLogger implements Logger {
 
@@ -70,6 +78,10 @@ public class DiscordSRVLogger implements Logger {
     private final Queue<LogEntry> linesToWrite = new ConcurrentLinkedQueue<>();
     private final Object lineProcessingLock = new Object();
     private Future<?> lineProcessingFuture;
+
+    // Logging timeouts
+    private final Timeout mfaTimeout = new Timeout(Duration.ofSeconds(30));
+    private final Timeout serverErrorTimeout = new Timeout(Duration.ofSeconds(20));
 
     public DiscordSRVLogger(DiscordSRV discordSRV) {
         this.discordSRV = discordSRV;
@@ -105,7 +117,7 @@ public class DiscordSRVLogger implements Logger {
             List<Path> logs = new ArrayList<>(amount);
             for (int i = amount; i > 0; i--) {
                 Path log = logsDirectory.resolve(String.format(LOG_FILE_NAME_FORMAT, label, i));
-                logs.add(0, log);
+                logs.addFirst(log);
                 if (!Files.exists(log)) {
                     continue;
                 }
@@ -126,12 +138,102 @@ public class DiscordSRVLogger implements Logger {
     }
 
     @Override
-    public void log(@Nullable String loggerName, @NotNull LogLevel logLevel, @Nullable String message, @Nullable Throwable throwable) {
+    public void log(@Nullable String loggerName, final @NotNull LogLevel logLevel, @Nullable String message, @Nullable Throwable throwable) {
         StringBuilder stringBuilder = new StringBuilder(message != null ? message : "");
+
+        // Unwrap API exception
+        if (throwable instanceof RestErrorResponseException) {
+            throwable = throwable.getCause();
+        }
+
+        if (discordSRV.status().isShutdown() && throwable != null) {
+            Throwable currentThrowable = throwable;
+            while (currentThrowable != null) {
+                if (throwable instanceof InterruptedIOException || throwable instanceof InterruptedException) {
+                    // Ignore interrupted exceptions when DiscordSRV is shutting down or shutdown
+                    return;
+                }
+                currentThrowable = currentThrowable.getCause();
+            }
+        }
+
+        boolean cancelled;
+        if ((cancelled = throwable instanceof CancellationException) || throwable instanceof TimeoutException) {
+            // Cancelling/timing out requests is always intentional => always log to debug
+            if (!stringBuilder.isEmpty()) {
+                stringBuilder.append(": ");
+            }
+            stringBuilder.append("Request ").append(cancelled ? "was cancelled" : "timed out");
+            doLog(loggerName, LogLevel.DEBUG, stringBuilder.toString(), throwable.getCause());
+            return;
+        } else if (throwable instanceof RateLimitedException exception) {
+            // Log route & retry after on warn & context on debug
+            doLog(loggerName, LogLevel.WARNING, "Request on route " + exception.getRateLimitedRoute() + " was rate-limited for " + exception.getRetryAfter() + "ms", null);
+            doLog(loggerName, LogLevel.DEBUG, null, exception.getCause());
+            return;
+        } else if (throwable instanceof ErrorResponseException exception) {
+            ErrorResponse response = exception.getErrorResponse();
+            switch (response) {
+                case MFA_NOT_ENABLED: {
+                    if (!mfaTimeout.checkAndUpdate()) {
+                        return;
+                    }
+                    discordSRV.discordConnectionManager().withBotOwner(user -> {
+                        doLog(loggerName, logLevel, "+----------------------------------------------->", null);
+                        doLog(loggerName, logLevel, "| Failed to complete a request:", null);
+                        doLog(loggerName, logLevel, "|", null);
+                        doLog(loggerName, logLevel, "| The Discord bot's owner needs to enable 2FA", null);
+                        doLog(loggerName, logLevel, "| on their Discord account due to a Discord", null);
+                        doLog(loggerName, logLevel, "| server requiring 2FA for moderation actions", null);
+                        if (user != null) {
+                            doLog(loggerName, logLevel, "|", null);
+                            doLog(loggerName, logLevel, "| The Discord bot's owner is " + user.getUsername() + " (" + user.getId() + ")", null);
+                        }
+                        doLog(loggerName, logLevel, "|", null);
+                        doLog(loggerName, logLevel, "| You can view instructions for enabling 2FA here:", null);
+                        doLog(loggerName, logLevel, "| https://support.discord.com/hc/en-us/articles/219576828-Setting-up-Two-Factor-Authentication", null);
+                        doLog(loggerName, logLevel, "+----------------------------------------------->", null);
+                    });
+                    return;
+                }
+                case SERVER_ERROR: {
+                    if (serverErrorTimeout.checkAndUpdate()) {
+                        doLog(loggerName, logLevel, "+--------------------------------------------------------------->", null);
+                        doLog(loggerName, logLevel, "| Failed to complete a request:", null);
+                        doLog(loggerName, logLevel, "|", null);
+                        doLog(loggerName, logLevel, "| Discord sent a server error (HTTP 500) as a response.", null);
+                        doLog(loggerName, logLevel, "| This is usually caused by a outage (https://discordstatus.com)", null);
+                        doLog(loggerName, logLevel, "| and will stop happening once Discord stabilizes", null);
+                        doLog(loggerName, logLevel, "+--------------------------------------------------------------->", null);
+                        return;
+                    } else {
+                        // Log as debug as to not spam out the server console/log
+                        doLog(loggerName, LogLevel.DEBUG, "Failed to complete a request, Discord returned a server error (HTTP 500)", null);
+                    }
+                    // Log context to find what made the request
+                    doLog(loggerName, LogLevel.DEBUG, null, exception.getCause());
+                    return;
+                }
+                default: break;
+            }
+
+            if (!stringBuilder.isEmpty()) {
+                stringBuilder.append(": ");
+            }
+
+            stringBuilder.append("Failed to complete a request");
+            if (exception.getErrorCode() != Response.ERROR_CODE) {
+                stringBuilder.append(": ").append(response.getMeaning());
+            }
+
+            doLog(loggerName, logLevel, stringBuilder.toString(), null);
+            doLog(loggerName, LogLevel.DEBUG, null, exception);
+            return;
+        }
 
         if (throwable != null && throwable.getMessage() != null && throwable instanceof MessageException) {
             // Empty stack trace
-            if (stringBuilder.length() > 0) {
+            if (!stringBuilder.isEmpty()) {
                 stringBuilder.append(": ");
             }
             stringBuilder.append(throwable.getMessage());
@@ -145,8 +247,7 @@ public class DiscordSRVLogger implements Logger {
             }
             throwable = null;
         }
-        if (throwable instanceof InsufficientPermissionException) {
-            InsufficientPermissionException exception = (InsufficientPermissionException) throwable;
+        if (throwable instanceof InsufficientPermissionException exception) {
             Permission permission = exception.getPermission();
 
             JDA jda = discordSRV.jda();
@@ -154,7 +255,7 @@ public class DiscordSRVLogger implements Logger {
             Guild guild = jda != null ? exception.getGuild(jda) : null;
 
             String msg = DiscordPermissionUtil.createErrorMessage(guildChannel, guild, EnumSet.of(permission));
-            if (stringBuilder.length() > 0) {
+            if (!stringBuilder.isEmpty()) {
                 stringBuilder.append(": ");
             }
             stringBuilder.append(msg);
@@ -196,7 +297,7 @@ public class DiscordSRVLogger implements Logger {
             discordSRV.platformLogger().log(null, consoleLevel, consoleMessage, throwable);
         }
 
-        Path debugLog = debugLogs.isEmpty() ? null : debugLogs.get(0);
+        Path debugLog = debugLogs.isEmpty() ? null : debugLogs.getFirst();
         if (debugLog == null) {
             return;
         }
@@ -255,7 +356,7 @@ public class DiscordSRVLogger implements Logger {
                 Files.createFile(path);
             }
 
-            Files.write(path, line.getBytes(StandardCharsets.UTF_8), StandardOpenOption.APPEND);
+            Files.writeString(path, line, StandardOpenOption.APPEND);
         } catch (Throwable e) {
             try {
                 // Prevent infinite loop
@@ -267,46 +368,5 @@ public class DiscordSRVLogger implements Logger {
         }
     }
 
-    private static class LogEntry {
-
-        private final Path log;
-        private final String loggerName;
-        private final long time;
-        private final LogLevel logLevel;
-        private final String message;
-        private final Throwable throwable;
-
-        public LogEntry(Path log, String loggerName, long time, LogLevel logLevel, String message, Throwable throwable) {
-            this.log = log;
-            this.loggerName = loggerName;
-            this.time = time;
-            this.logLevel = logLevel;
-            this.message = message;
-            this.throwable = throwable;
-        }
-
-        public Path log() {
-            return log;
-        }
-
-        public String loggerName() {
-            return loggerName;
-        }
-
-        public long time() {
-            return time;
-        }
-
-        public LogLevel logLevel() {
-            return logLevel;
-        }
-
-        public String message() {
-            return message;
-        }
-
-        public Throwable throwable() {
-            return throwable;
-        }
-    }
+    private record LogEntry(Path log, String loggerName, long time, LogLevel logLevel, String message, Throwable throwable) {}
 }

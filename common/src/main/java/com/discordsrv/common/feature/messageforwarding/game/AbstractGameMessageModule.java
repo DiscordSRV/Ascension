@@ -19,7 +19,6 @@
 package com.discordsrv.common.feature.messageforwarding.game;
 
 import com.discordsrv.api.channel.GameChannel;
-import com.discordsrv.api.discord.connection.jda.errorresponse.ErrorCallbackContext;
 import com.discordsrv.api.discord.entity.channel.DiscordGuildChannel;
 import com.discordsrv.api.discord.entity.channel.DiscordGuildMessageChannel;
 import com.discordsrv.api.discord.entity.message.ReceivedDiscordMessage;
@@ -241,7 +240,7 @@ public abstract class AbstractGameMessageModule<
         }
 
         return channel.sendMessage(message).whenFailed(t -> {
-            ErrorCallbackContext.context("Failed to deliver a message to " + describeDestination(channel)).accept(t);
+            logger().error("Failed to deliver a message to " + describeDestination(channel), t);
             TestHelper.fail(t);
         });
     }

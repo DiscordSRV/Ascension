@@ -18,7 +18,6 @@
 
 package com.discordsrv.common.feature.channel;
 
-import com.discordsrv.api.discord.connection.jda.errorresponse.ErrorCallbackContext;
 import com.discordsrv.api.reload.ReloadResult;
 import com.discordsrv.common.DiscordSRV;
 import com.discordsrv.common.config.main.ChannelUpdaterConfig;
@@ -108,16 +107,14 @@ public class ChannelUpdaterModule extends AbstractModule<DiscordSRV> {
             return;
         }
 
-        if (config instanceof ChannelUpdaterConfig.VoiceChannelConfig) {
-            ChannelUpdaterConfig.VoiceChannelConfig voiceConfig = (ChannelUpdaterConfig.VoiceChannelConfig) config;
+        if (config instanceof ChannelUpdaterConfig.VoiceChannelConfig voiceConfig) {
             updateChannel(
                     jda,
                     voiceConfig.channelIds,
                     shutdown ? voiceConfig.shutdownNameFormat : voiceConfig.nameFormat,
                     null
             );
-        } else if (config instanceof ChannelUpdaterConfig.TextChannelConfig) {
-            ChannelUpdaterConfig.TextChannelConfig textConfig = (ChannelUpdaterConfig.TextChannelConfig) config;
+        } else if (config instanceof ChannelUpdaterConfig.TextChannelConfig textConfig) {
             updateChannel(
                     jda,
                     textConfig.channelIds,
@@ -162,10 +159,10 @@ public class ChannelUpdaterModule extends AbstractModule<DiscordSRV> {
 
                 manager.timeout(30, TimeUnit.SECONDS).queue(
                         null,
-                        ErrorCallbackContext.context("Failed to update channel " + channel)
+                        exception -> logger().error("Failed to update channel " + channel, exception)
                 );
             } catch (Throwable t) {
-                discordSRV.logger().error("Failed to update channel " + channel, t);
+                logger().error("Failed to update channel " + channel, t);
             }
         }
     }

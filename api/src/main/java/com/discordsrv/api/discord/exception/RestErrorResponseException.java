@@ -30,7 +30,7 @@ public class RestErrorResponseException extends RuntimeException {
     private final int errorCode;
 
     public RestErrorResponseException(ErrorResponse response) {
-        this(response.getCode(), response.getMeaning(), new EntityNoLongerAvailableException());
+        this(response.getCode(), response.getMeaning(), null);
     }
 
     public RestErrorResponseException(int errorCode, String message, Throwable cause) {

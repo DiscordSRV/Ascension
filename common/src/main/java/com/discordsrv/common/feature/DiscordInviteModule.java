@@ -19,7 +19,6 @@
 package com.discordsrv.common.feature;
 
 import com.discordsrv.api.discord.connection.details.DiscordGatewayIntent;
-import com.discordsrv.api.discord.connection.jda.errorresponse.ErrorCallbackContext;
 import com.discordsrv.api.eventbus.Subscribe;
 import com.discordsrv.api.placeholder.annotation.Placeholder;
 import com.discordsrv.api.placeholder.format.FormattedText;
@@ -140,14 +139,14 @@ public class DiscordInviteModule extends AbstractModule<DiscordSRV> {
                     botPublic = appInfo.isBotPublic();
                     logger().debug("The bot is " + (botPublic ? "public" : "private"));
                     appInfoFuture = null;
-                    consumeGuild(guilds.get(0), config);
+                    consumeGuild(guilds.getFirst(), config);
                 });
             }
             return;
         }
 
         if (!botPublic) {
-            consumeGuild(guilds.get(0), config);
+            consumeGuild(guilds.getFirst(), config);
         }
     }
 
@@ -214,9 +213,9 @@ public class DiscordInviteModule extends AbstractModule<DiscordSRV> {
 
                 channel.createInvite().setMaxAge(0).setUnique(true).queue(
                         inv -> this.invite = inv.getUrl(),
-                        ErrorCallbackContext.context("Failed to auto create invite")
+                        exception -> logger().error("Failed to auto create invite", exception)
                 );
-            }, ErrorCallbackContext.context("Failed to get invites for automatic invite creation"));
+            }, exception -> logger().error("Failed to get invites for automatic invite creation", exception));
         }
     }
 

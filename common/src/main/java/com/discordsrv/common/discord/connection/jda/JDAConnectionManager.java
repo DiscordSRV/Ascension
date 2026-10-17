@@ -20,7 +20,6 @@ package com.discordsrv.common.discord.connection.jda;
 
 import com.discordsrv.api.discord.connection.details.DiscordCacheFlag;
 import com.discordsrv.api.discord.connection.details.DiscordGatewayIntent;
-import com.discordsrv.api.discord.connection.jda.errorresponse.ErrorCallbackContext;
 import com.discordsrv.api.discord.entity.DiscordUser;
 import com.discordsrv.api.discord.entity.guild.DiscordGuildMember;
 import com.discordsrv.api.eventbus.EventPriorities;
@@ -55,10 +54,10 @@ import net.dv8tion.jda.api.entities.channel.Channel;
 import net.dv8tion.jda.api.events.StatusChangeEvent;
 import net.dv8tion.jda.api.events.session.SessionDisconnectEvent;
 import net.dv8tion.jda.api.events.session.ShutdownEvent;
-import net.dv8tion.jda.api.exceptions.ErrorResponseException;
 import net.dv8tion.jda.api.exceptions.InvalidTokenException;
-import net.dv8tion.jda.api.exceptions.RateLimitedException;
-import net.dv8tion.jda.api.requests.*;
+import net.dv8tion.jda.api.requests.CloseCode;
+import net.dv8tion.jda.api.requests.GatewayIntent;
+import net.dv8tion.jda.api.requests.RestAction;
 import net.dv8tion.jda.api.utils.ChunkingFilter;
 import net.dv8tion.jda.api.utils.MemberCachePolicy;
 import net.dv8tion.jda.api.utils.cache.CacheFlag;
@@ -68,7 +67,6 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.jetbrains.annotations.NotNull;
 
-import java.io.InterruptedIOException;
 import java.time.Duration;
 import java.util.*;
 import java.util.concurrent.*;
@@ -98,13 +96,9 @@ public class JDAConnectionManager implements DiscordConnectionManager {
     private final Timeout botOwnerTimeout = new Timeout(Duration.ofMinutes(5));
     private final AtomicReference<Task<DiscordUser>> botOwnerRequest = new AtomicReference<>();
 
-    // Logging timeouts
-    private final Timeout mfaTimeout = new Timeout(Duration.ofSeconds(30));
-    private final Timeout serverErrorTimeout = new Timeout(Duration.ofSeconds(20));
-
     public JDAConnectionManager(DiscordSRV discordSRV) {
         this.discordSRV = discordSRV;
-        this.failureCallback = new FailureCallback(new NamedLogger(discordSRV, "DISCORD_REQUESTS"));
+        this.failureCallback = new FailureCallback(discordSRV);
 
         // Default failure callback
         RestAction.setDefaultFailure(failureCallback);
@@ -171,7 +165,7 @@ public class JDAConnectionManager implements DiscordConnectionManager {
      * The owner will be cached for 5 minutes, if available it will be passed to the consumer instantly.
      * @param botOwnerConsumer the consumer that will be passed the bot owner or {@code null}
      */
-    private void withBotOwner(@NotNull Consumer<DiscordUser> botOwnerConsumer) {
+    public void withBotOwner(@NotNull Consumer<DiscordUser> botOwnerConsumer) {
         Task<DiscordUser> request = botOwnerRequest.get();
         if (request != null && !botOwnerTimeout.checkAndUpdate()) {
             request.whenComplete((user, t) -> botOwnerConsumer.accept(t != null ? null : user));
@@ -258,7 +252,7 @@ public class JDAConnectionManager implements DiscordConnectionManager {
         List<DiscordGuildMember> members = event.getContexts().stream()
                 .filter(context -> context instanceof DiscordGuildMember)
                 .map(context -> (DiscordGuildMember) context)
-                .collect(Collectors.toList());
+                .toList();
         for (DiscordGuildMember member : members) {
             DiscordUser user = member.getUser();
             boolean userMissing = event.getContexts().stream()
@@ -569,103 +563,17 @@ public class JDAConnectionManager implements DiscordConnectionManager {
         discordSRV.setStatus(DiscordSRV.Status.INVALID_TOKEN);
     }
 
-    private class FailureCallback implements Consumer<Throwable> {
+    private static class FailureCallback implements Consumer<Throwable> {
 
         private final Logger logger;
 
-        protected FailureCallback(Logger logger) {
-            this.logger = logger;
+        protected FailureCallback(DiscordSRV discordSRV) {
+            this.logger = new NamedLogger(discordSRV, "DISCORD_REQUESTS");
         }
 
         @Override
         public void accept(Throwable t) {
-            if (t instanceof ErrorCallbackContext.Exception) {
-                accept(t.getMessage(), t.getCause());
-            } else {
-                accept(null, t);
-            }
-        }
-
-        public void accept(String context, Throwable t) {
-            if ((t instanceof InterruptedIOException || t instanceof InterruptedException)
-                    && discordSRV.status().isShutdown()) {
-                // Ignore interrupted exceptions when DiscordSRV is shutting down or shutdown
-                return;
-            }
-
-            boolean cancelled;
-            if ((cancelled = t instanceof CancellationException) || t instanceof TimeoutException) {
-                // Cancelling/timing out requests is always intentional
-                logger.debug("A request " + (cancelled ? "was cancelled" : "timed out"), t.getCause());
-            } else if (t instanceof RateLimitedException) {
-                // Log route & retry after on warn & context on debug
-                RateLimitedException exception = ((RateLimitedException) t);
-                discordSRV.logger().warning("A request on route " + exception.getRateLimitedRoute()
-                                                    + " was rate-limited for " + exception.getRetryAfter() + "ms");
-                logger.debug(exception.getCause());
-            } else if (t instanceof ErrorResponseException) {
-                ErrorResponseException exception = (ErrorResponseException) t;
-                if (exception.getErrorCode() == Response.ERROR_CODE) {
-                    // There is no response due to a client error
-                    Throwable cause = exception.getCause();
-                    if (cause != null) {
-                        // Run the cause through this method again
-                        accept(context, cause);
-                    } else {
-                        logger.error((context != null ? context + ": " : "") + "Failed to complete request for a unknown reason", exception);
-                    }
-                    return;
-                }
-
-                ErrorResponse response = exception.getErrorResponse();
-                switch (response) {
-                    case MFA_NOT_ENABLED: {
-                        if (!mfaTimeout.checkAndUpdate()) {
-                            return;
-                        }
-                        withBotOwner(user -> {
-                            discordSRV.logger().error("+----------------------------------------------->");
-                            discordSRV.logger().error("| Failed to complete a request:");
-                            discordSRV.logger().error("|");
-                            discordSRV.logger().error("| The Discord bot's owner needs to enable 2FA");
-                            discordSRV.logger().error("| on their Discord account due to a Discord");
-                            discordSRV.logger().error("| server requiring 2FA for moderation actions");
-                            if (user != null) {
-                                discordSRV.logger().error("|");
-                                discordSRV.logger().error("| The Discord bot's owner is " + user.getUsername() + " (" + user.getId() + ")");
-                            }
-                            discordSRV.logger().error("|");
-                            discordSRV.logger().error("| You can view instructions for enabling 2FA here:");
-                            discordSRV.logger().error("| https://support.discord.com/hc/en-us/articles/219576828-Setting-up-Two-Factor-Authentication");
-                            discordSRV.logger().error("+----------------------------------------------->");
-                        });
-                        return;
-                    }
-                    case SERVER_ERROR: {
-                        if (serverErrorTimeout.checkAndUpdate()) {
-                            discordSRV.logger().error("+--------------------------------------------------------------->");
-                            discordSRV.logger().error("| Failed to complete a request:");
-                            discordSRV.logger().error("|");
-                            discordSRV.logger().error("| Discord sent a server error (HTTP 500) as a response.");
-                            discordSRV.logger().error("| This is usually caused by a outage (https://discordstatus.com)");
-                            discordSRV.logger().error("| and will stop happening once Discord stabilizes");
-                            discordSRV.logger().error("+--------------------------------------------------------------->");
-                        } else {
-                            // Log as debug as to not spam out the server console/log
-                            logger.debug("Failed to complete a request, Discord returned a server error (HTTP 500)");
-                        }
-                        // Log context to find what made the request
-                        logger.debug(exception.getCause());
-                        return;
-                    }
-                    default: break;
-                }
-
-                logger.error((context != null ? context : "Failed to complete a request") + ": " + response.getMeaning());
-                logger.debug(exception);
-            } else {
-                logger.error(context != null ? context : "Failed to complete a request due to unknown error", t);
-            }
+            logger.error(t);
         }
     }
 }

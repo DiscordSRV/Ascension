@@ -41,9 +41,11 @@ import java.lang.invoke.MethodHandles;
 import java.lang.invoke.MethodType;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
+import java.time.Duration;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArrayList;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Consumer;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
@@ -60,6 +62,8 @@ public class EventBusImpl implements EventBus {
     private final List<DirectEventListener<?>> directListeners = new CopyOnWriteArrayList<>();
     private final Map<Object, List<AnnotationEventListener<?>>> listeners = new ConcurrentHashMap<>();
     private final Map<Class<?>, List<AbstractEventListener<?>>> listenersByEvent = new ConcurrentHashMap<>();
+    private boolean shutdown = false;
+    private final AtomicInteger eventsPublishing = new AtomicInteger(0);
     private final Logger logger;
 
     public EventBusImpl(DiscordSRV discordSRV) {
@@ -70,6 +74,31 @@ public class EventBusImpl implements EventBus {
     }
 
     public void shutdown() {
+        shutdown = true;
+
+        // Wait up to 3 seconds for event publishing to end
+        long start = System.currentTimeMillis();
+        try {
+            long deadline = start + Duration.ofSeconds(3).toMillis();
+            do {
+                if (eventsPublishing.get() == 0) {
+                    break;
+                }
+
+                synchronized (eventsPublishing) {
+                    long remainingTime = deadline - System.currentTimeMillis();
+                    if (remainingTime <= 0) {
+                        break;
+                    }
+
+                    eventsPublishing.wait(remainingTime);
+                }
+            } while (true);
+        } catch (InterruptedException ignored) {
+            Thread.currentThread().interrupt();
+        }
+        logger.debug((System.currentTimeMillis() - start) + "ms waiting for publishing to end");
+
         listeners.clear();
         listenersByEvent.clear();
     }
@@ -203,13 +232,12 @@ public class EventBusImpl implements EventBus {
 
     @Override
     public void unsubscribe(@NotNull Object eventListener) {
-        if (eventListener instanceof DirectEventListener<?>) {
+        if (eventListener instanceof DirectEventListener<?> directEventListener) {
             // Exception for "direct" subscriptions
             if (!directListeners.remove(eventListener)) {
                 return;
             }
 
-            DirectEventListener<?> directEventListener = (DirectEventListener<?>) eventListener;
             Class<?> eventClass = directEventListener.eventClass();
             List<AbstractEventListener<?>> listenersForEvent = listenersByEvent.get(eventClass);
             if (listenersForEvent != null) {
@@ -238,12 +266,12 @@ public class EventBusImpl implements EventBus {
 
     @Override
     public void publish(@NotNull Event event) {
-        publishEvent(event);
+        guardPublishEvent(event);
     }
 
     @Override
     public void publish(@NotNull GenericEvent event) {
-        publishEvent(event);
+        guardPublishEvent(event);
     }
 
     @SuppressWarnings({"unchecked", "RedundantCast"})
@@ -253,6 +281,24 @@ public class EventBusImpl implements EventBus {
             return;
         }
         listeners.addAll((Collection<? extends AbstractEventListener<E>>) (Object) listenersForEvent);
+    }
+
+    private <E> void guardPublishEvent(E event) {
+        if (shutdown) {
+            throw new IllegalStateException("EventBus is shutdown");
+        }
+
+        eventsPublishing.incrementAndGet();
+        try {
+            publishEvent(event);
+        } finally {
+            eventsPublishing.decrementAndGet();
+            if (shutdown) {
+                synchronized (eventsPublishing) {
+                    eventsPublishing.notifyAll();
+                }
+            }
+        }
     }
 
     private <E> void publishEvent(E event) {

@@ -83,13 +83,20 @@ public class ChannelLockingModule extends AbstractModule<DiscordSRV> {
                         for (DiscordGuildMessageChannel destination : result.channels()) {
                             if (isThreads && destination instanceof DiscordThreadChannel) {
                                 ThreadChannelManager manager = ((DiscordThreadChannel) destination).asJDA().getManager();
+
+                                List<String> actionsTaken = new ArrayList<>();
                                 if (threads.archive) {
                                     manager = manager.setArchived(!unlocked);
+                                    actionsTaken.add((unlocked ? "un" : "") + "archive");
                                 }
                                 if (threads.lock) {
                                     manager = manager.setLocked(!unlocked);
+                                    actionsTaken.add((unlocked ? "un" : "") + "lock");
                                 }
-                                manager.reason("DiscordSRV channel locking").queue();
+                                manager.reason("DiscordSRV channel locking").queue(
+                                        null,
+                                        exception -> logger().error("Failed to " + String.join(" and ", actionsTaken) + " thread " + destination, exception)
+                                );
                             }
                             if (isChannels) {
                                 channelPermissions(channels, destination, unlocked);
@@ -158,6 +165,9 @@ public class ChannelLockingModule extends AbstractModule<DiscordSRV> {
         } else {
             action = action.deny(permissions);
         }
-        action.reason("DiscordSRV channel locking").queue();
+        action.reason("DiscordSRV channel locking").queue(
+                null,
+                exception -> logger().error("Failed to " + (state ? "" : "un") + "lock channel " + channel, exception)
+        );
     }
 }
