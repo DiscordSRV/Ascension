@@ -428,6 +428,9 @@ public class MessagesConfig implements Config {
     @Constants({MINECRAFT_ERROR_COLOR, MINECRAFT_NEUTRAL_COLOR, MINECRAFT_ERROR_COLOR})
     public MinecraftMessage channelNotFound = minecraft("%1Channel %2%channel% %3not found");
 
+    @Constants({MINECRAFT_ERROR_COLOR, MINECRAFT_NEUTRAL_COLOR + "%error%"})
+    public MinecraftMessage broadcastFailed = minecraft("%1Broadcast failed %2");
+
     @Constants(MINECRAFT_SUCCESS_COLOR)
     public MinecraftMessage broadcasted = minecraft("%1Broadcasted");
 

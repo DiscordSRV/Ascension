@@ -33,10 +33,13 @@ import com.discordsrv.common.config.helper.MinecraftMessage;
 import com.discordsrv.common.config.main.channels.base.BaseChannelConfig;
 import com.discordsrv.common.config.main.channels.base.IChannelConfig;
 import com.discordsrv.common.config.messages.MessagesConfig;
+import com.discordsrv.common.core.logging.Logger;
+import com.discordsrv.common.core.logging.NamedLogger;
 import com.discordsrv.common.helper.DestinationLookupHelper;
 import com.discordsrv.common.permission.game.Permissions;
 import com.discordsrv.common.util.ComponentUtil;
 import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.event.HoverEvent;
 import net.kyori.adventure.text.serializer.gson.GsonComponentSerializer;
 
 import java.util.Collections;
@@ -100,9 +103,11 @@ public abstract class BroadcastCommand implements GameCommandExecutor, GameComma
     }
 
     protected final DiscordSRV discordSRV;
+    protected final Logger logger;
 
     private BroadcastCommand(DiscordSRV discordSRV) {
         this.discordSRV = discordSRV;
+        this.logger = new NamedLogger(discordSRV, "BROADCAST_COMMAND");
     }
 
     @Override
@@ -139,7 +144,24 @@ public abstract class BroadcastCommand implements GameCommandExecutor, GameComma
             future = Task.completed(null);
         }
 
-        future.whenComplete((pair, t) -> doBroadcast(sender, content, channel, pair.channels(), pair.errors()));
+        future.thenApply(pair -> {
+            doBroadcast(sender, content, channel, pair != null ? pair.channels() : null, pair != null ? pair.errors() : Collections.emptyList());
+            return null;
+        }).mapException(e -> {
+            logger.debug("Failed to broadcast message", e);
+
+            Component exceptionComponent = Component.text()
+                    .content(e.getMessage())
+                    .hoverEvent(HoverEvent.showText(Component.text(e.toString())))
+                    .build();
+
+            MinecraftComponent message = discordSRV.messagesConfig(sender).broadcastFailed
+                    .textBuilder()
+                    .addPlaceholder("error", exceptionComponent)
+                    .build();
+            sender.sendMessage(ComponentUtil.fromAPI(message));
+            return null;
+        });
     }
 
     @Override

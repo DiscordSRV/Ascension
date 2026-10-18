@@ -131,14 +131,15 @@ public interface MinecraftComponent {
     /**
      * Creates an Adventure adapter for the unrelocated adventure.
      *
-     * @return the <b>unrelocated</b> Adventure Component, {@code null} if not available
+     * @return the <b>unrelocated</b> Adventure Component
+     * @throws IllegalStateException if unrelocated Adventure is unavailable
      */
-    @Nullable
+    @NotNull
     @ApiStatus.NonExtendable
     default Component asAdventure() {
         MinecraftComponentAdapter<Component> adapter = MinecraftComponentAdapter.unrelocated();
         if (adapter == null) {
-            return null;
+            throw new IllegalStateException("Unrelocated Adventure unavailable");
         }
         return asAdventure(adapter);
     }
