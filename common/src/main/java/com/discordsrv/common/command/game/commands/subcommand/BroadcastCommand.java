@@ -41,6 +41,8 @@ import com.discordsrv.common.util.ComponentUtil;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.event.HoverEvent;
 import net.kyori.adventure.text.serializer.gson.GsonComponentSerializer;
+import org.spongepowered.configurate.ConfigurationNode;
+import org.spongepowered.configurate.jackson.JacksonConfigurationLoader;
 
 import java.util.Collections;
 import java.util.List;
@@ -54,7 +56,8 @@ public abstract class BroadcastCommand implements GameCommandExecutor, GameComma
 
     private static GameCommand DISCORD;
     private static GameCommand MINECRAFT;
-    private static GameCommand JSON;
+    private static GameCommand DISCORD_JSON;
+    private static GameCommand MINECRAFT_JSON;
 
     public static GameCommand discord(DiscordSRV discordSRV) {
         return make(discordSRV, config -> config.broadcastDiscordCommandDescription, "broadcastd",
@@ -66,9 +69,14 @@ public abstract class BroadcastCommand implements GameCommandExecutor, GameComma
                     () -> new Minecraft(discordSRV), () -> MINECRAFT, cmd -> MINECRAFT = cmd);
     }
 
-    public static GameCommand json(DiscordSRV discordSRV) {
-        return make(discordSRV, config -> config.broadcastRawCommandDescription, "broadcastraw",
-                    () -> new Json(discordSRV), () -> JSON, cmd -> JSON = cmd);
+    public static GameCommand discordJson(DiscordSRV discordSRV) {
+        return make(discordSRV, config -> config.broadcastDiscordRawCommandDescription, "broadcastdraw",
+                () -> new DiscordJson(discordSRV), () -> DISCORD_JSON, cmd -> DISCORD_JSON = cmd);
+    }
+
+    public static GameCommand gameJson(DiscordSRV discordSRV) {
+        return make(discordSRV, config -> config.broadcastMinecraftRawCommandDescription, "broadcastraw",
+                    () -> new GameJson(discordSRV), () -> MINECRAFT_JSON, cmd -> MINECRAFT_JSON = cmd);
     }
 
     private static GameCommand make(
@@ -176,7 +184,7 @@ public abstract class BroadcastCommand implements GameCommandExecutor, GameComma
                 .collect(Collectors.toList());
     }
 
-    private void doBroadcast(ICommandSender sender, String content, String channel, List<DiscordGuildMessageChannel> channels, List<Throwable> errors) {
+    private void doBroadcast(ICommandSender sender, String input, String channel, List<DiscordGuildMessageChannel> channels, List<Throwable> errors) {
         boolean noChannels = channels == null || channels.isEmpty();
         if (noChannels || !errors.isEmpty()) {
             sender.sendMessage(ComponentUtil.fromAPI(
@@ -190,9 +198,7 @@ public abstract class BroadcastCommand implements GameCommandExecutor, GameComma
             return;
         }
 
-        content = getContent(content);
-        SendableDiscordMessage message = SendableDiscordMessage.builder()
-                .setContent(content)
+        SendableDiscordMessage message = getMessage(input)
                 .toFormatter()
                 .applyPlaceholderService()
                 .build();
@@ -202,7 +208,7 @@ public abstract class BroadcastCommand implements GameCommandExecutor, GameComma
         sender.sendMessage(discordSRV.messagesConfig(sender).broadcasted.asComponent());
     }
 
-    public abstract String getContent(String content);
+    public abstract SendableDiscordMessage.Builder getMessage(String content);
 
     public static class Discord extends BroadcastCommand {
 
@@ -211,8 +217,9 @@ public abstract class BroadcastCommand implements GameCommandExecutor, GameComma
         }
 
         @Override
-        public String getContent(String content) {
-            return content.replace("\\n", "\n");
+        public SendableDiscordMessage.Builder getMessage(String content) {
+            return SendableDiscordMessage.builder()
+                .setContent(content.replace("\\n", "\n"));
         }
     }
 
@@ -223,26 +230,48 @@ public abstract class BroadcastCommand implements GameCommandExecutor, GameComma
         }
 
         @Override
-        public String getContent(String content) {
+        public SendableDiscordMessage.Builder getMessage(String jsonContent) {
             MinecraftComponent component = discordSRV.componentFactory()
-                    .textBuilder(content)
+                    .textBuilder(jsonContent)
                     .applyPlaceholderService()
                     .build();
 
-            return discordSRV.componentFactory().discordSerialize(ComponentUtil.fromAPI(component));
+            return SendableDiscordMessage.builder()
+                    .setContent(discordSRV.componentFactory().discordSerialize(ComponentUtil.fromAPI(component)));
         }
     }
 
-    public static class Json extends BroadcastCommand {
+    public static class DiscordJson extends BroadcastCommand {
 
-        public Json(DiscordSRV discordSRV) {
+        public DiscordJson(DiscordSRV discordSRV) {
             super(discordSRV);
         }
 
         @Override
-        public String getContent(String content) {
+        public SendableDiscordMessage.Builder getMessage(String jsonContent) {
+            try {
+                ConfigurationNode node = JacksonConfigurationLoader.builder()
+                        .defaultOptions(discordSRV.configManager().cleanNodeOptions())
+                        .buildAndLoadString(jsonContent);
+
+                return node.get(SendableDiscordMessage.Builder.class);
+            } catch (Exception e) {
+                throw new IllegalArgumentException("Invalid Discord message JSON", e);
+            }
+        }
+    }
+
+    public static class GameJson extends BroadcastCommand {
+
+        public GameJson(DiscordSRV discordSRV) {
+            super(discordSRV);
+        }
+
+        @Override
+        public SendableDiscordMessage.Builder getMessage(String content) {
             Component component = GsonComponentSerializer.gson().deserialize(content);
-            return discordSRV.componentFactory().discordSerialize(component);
+            return SendableDiscordMessage.builder()
+                    .setContent(discordSRV.componentFactory().discordSerialize(component));
         }
     }
 }
