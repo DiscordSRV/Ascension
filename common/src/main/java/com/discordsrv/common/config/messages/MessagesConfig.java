@@ -437,8 +437,11 @@ public class MessagesConfig implements Config {
     public MinecraftMessage broadcastMinecraftCommandDescription = minecraft(
             "Broadcast a Minecraft formatted message to the specified Discord channel(s)"
     );
-    public MinecraftMessage broadcastRawCommandDescription = minecraft(
-            "Broadcast a raw json message to the specified Discord channel(s)"
+    public MinecraftMessage broadcastMinecraftRawCommandDescription = minecraft(
+            "Broadcast a raw json Minecraft message to the specified Discord channel(s)"
+    );
+    public MinecraftMessage broadcastDiscordRawCommandDescription = minecraft(
+            "Broadcast a raw json Discord message to the specified Discord channel(s)"
     );
     public MinecraftMessage broadcastDiscordCommandDescription = minecraft(
             "Broadcast a plain message with Discord formatting to the specified Discord channel(s)"
