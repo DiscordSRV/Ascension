@@ -53,6 +53,8 @@ import org.spongepowered.configurate.yaml.YamlConfigurationLoader;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.*;
+import java.util.function.BiFunction;
+import java.util.function.Function;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
@@ -87,7 +89,7 @@ public class V1ConfigMigration {
     ///     Experiment_WebhookChatMessageAvatarFromDiscord
     /// Missing: Experiment_WebhookChatMessageUsernameFilters
     ///
-    /// Missing: AvatarUrl
+    ///     AvatarUrl
     ///
     /// Removed: Experiment_MCDiscordReserializer_ToDiscord (default behaviour)
     /// Removed: Experiment_MCDiscordReserializer_ToMinecraft (default behaviour)
@@ -98,8 +100,8 @@ public class V1ConfigMigration {
     /// Removed with no replacement: ForceTLSv12
     /// Removed with no replacement: NoopHostnameVerifier
     /// Removed with no replacement: MaximumAttemptsForSystemDNSBeforeUsingFallbackDNS
-    ///     TimestampFormat
-    /// Migrated into placeholder: DateFormat
+    /// Migrated into placeholder: TimestampFormat
+    /// Removed with no replacement: DateFormat (the only usage of this was in file rotation which now uses a fixed file name format)
     /// Migrated into placeholder: Timezone
     /// Missing: MinecraftMentionSound
     ///
@@ -140,7 +142,7 @@ public class V1ConfigMigration {
     ///     DiscordConsoleChannelFilters
     ///     DiscordConsoleChannelLevels
     ///     DiscordConsoleChannelUseCodeBlocks
-    ///     DiscordConsoleChannelBlockBots
+    /// Removed with no replacement: DiscordConsoleChannelBlockBots (Users/roles need to be specifically whitelisted)
     ///
     ///     DiscordChatChannelConsoleCommandEnabled
     /// Removed with no replacement: DiscordChatChannelConsoleCommandNotifyErrors
@@ -152,10 +154,10 @@ public class V1ConfigMigration {
     /// Migrated to ephemeral option: DiscordChatChannelConsoleCommandExpiration
     /// Migrated to ephemeral option: DiscordChatChannelConsoleCommandExpirationDeleteRequest
     ///
-    /// Missing: DiscordChatChannelListCommandEnabled
-    /// Missing: DiscordChatChannelListCommandMessage
-    /// Missing: DiscordChatChannelListCommandExpiration
-    /// Missing: DiscordChatChannelListCommandExpirationDeleteRequest
+    ///     DiscordChatChannelListCommandEnabled
+    /// Removed with no replacement: DiscordChatChannelListCommandMessage
+    /// Removed with no replacement: DiscordChatChannelListCommandExpiration (command is ephemeral, only visible to the requester)
+    /// Removed with no replacement: DiscordChatChannelListCommandExpirationDeleteRequest
     ///
     ///     DiscordChatChannelGameFilters
     ///     DiscordChatChannelDiscordFilters
@@ -237,9 +239,9 @@ public class V1ConfigMigration {
     /// Missing: DynmapDiscordFormat
     ///
     /// Migrated into placeholder: DiscordConsoleChannelTimestampFormat
-    /// Missing: DiscordConsoleChannelPrefix
-    /// Missing: DiscordConsoleChannelSuffix
-    ///     DiscordConsoleChannelPadding
+    ///     DiscordConsoleChannelPrefix
+    ///     DiscordConsoleChannelSuffix
+    /// Migrated into placeholder: DiscordConsoleChannelPadding
     ///
     /// * skip DiscordChatChannelConsoleCommandNotifyErrorsFormat *
     ///
@@ -248,24 +250,24 @@ public class V1ConfigMigration {
     /// Missing: DiscordChatChannelListCommandPlayerFormat
     /// Missing: DiscordChatChannelListCommandAllPlayersSeparator
     ///
-    /// Missing: MinecraftPlayerJoinMessage
-    /// Missing: MinecraftPlayerFirstJoinMessage
-    /// Missing: MinecraftPlayerLeaveMessage
-    /// Missing: MinecraftPlayerDeathMessage
-    /// Missing: MinecraftPlayerAchievementMessage
+    ///     MinecraftPlayerJoinMessage
+    ///     MinecraftPlayerFirstJoinMessage
+    ///     MinecraftPlayerLeaveMessage
+    ///     MinecraftPlayerDeathMessage
+    ///     MinecraftPlayerAchievementMessage
     ///
     ///     ChannelTopicUpdaterChatChannelTopicFormat
     ///     ChannelTopicUpdaterConsoleChannelTopicFormat
     ///     ChannelTopicUpdaterChatChannelTopicAtServerShutdownFormat
     ///     ChannelTopicUpdaterConsoleChannelTopicAtServerShutdownFormat
     ///
-    /// Missing: DiscordCommandFormat
+    ///     DiscordCommandFormat
     ///
     /// * skip NoPermissionMessage *
     /// * skip UnknownCommandMessage *
     ///
-    /// Missing: DiscordChatChannelServerStartupMessage
-    /// Missing: DiscordChatChannelServerShutdownMessage
+    ///     DiscordChatChannelServerStartupMessage
+    ///     DiscordChatChannelServerShutdownMessage
     ///
     /// * skip ServerWatchdogMessage *
 
@@ -543,10 +545,16 @@ public class V1ConfigMigration {
 
         if (placeholderField == PlaceholderField.DISCORD_CONSOLE_CHANNEL_AFFIX) {
             int padding = Math.max(config.node("DiscordConsoleChannelPadding").getInt(0), 0);
-            String consoleTimestampFormat = config.node("DiscordConsoleChannelTimestampFormat").getString();
-            String timestamp = "%log_time"
-                    + (timeZone != null ? "_at_zone:'" + timeZone.getID() + "'" : "")
-                    + ":'" + consoleTimestampFormat + "'%";
+
+            String timestamp;
+            if (recommendedUpgrades) {
+                timestamp = ConsoleConfig.Appender.defaultTimestampPlaceholder;
+            } else {
+                String consoleTimestampFormat = config.node("DiscordConsoleChannelTimestampFormat").getString();
+                timestamp = "%log_time"
+                        + (timeZone != null ? "_at_zone:'" + timeZone.getID() + "'" : "")
+                        + ":'" + consoleTimestampFormat + "'%";
+            }
 
             placeholderMapping.put("{level}", "%log_level%");
             placeholderMapping.put("{name}", "%logger_name:' \\%" + (padding > 0 ? "-" + padding : "") + "s'%");
@@ -621,12 +629,27 @@ public class V1ConfigMigration {
             return format;
         }
 
+        PlaceholderReplacer replacer = new PlaceholderReplacer(format);
+        convertPlaceholders(field, replacer::replaceAll);
+        return replacer.toString();
+    }
+
+    private SendableDiscordMessage.Builder convertPlaceholders(PlaceholderField field, SendableDiscordMessage.Builder builder) {
+        if (builder == null) {
+            return null;
+        }
+
+        SendableDiscordMessage.Formatter formatter = builder.toFormatter();
+        convertPlaceholders(field, formatter::addReplacement);
+        return formatter.format();
+    }
+
+    private <T> void convertPlaceholders(PlaceholderField field, BiFunction<Pattern, Function<Matcher, String>, T> replacer) {
         List<Pair<Pattern, Object>> placeholders = makePlaceholderMapping(field);
 
-        PlaceholderReplacer replacer = new PlaceholderReplacer(format);
         for (Pair<Pattern, Object> pair : placeholders) {
             Object replacement = pair.getValue();
-            replacer.replaceAll(pair.getKey(), matcher -> {
+            replacer.apply(pair.getKey(), matcher -> {
                 if (replacement instanceof PlaceholderAPIReplacement) {
                     if (placeholderAPISuggestionsDone.add("the plugin itself")) {
                         if (!isIntegrationEnabled("PlaceholderAPI")) {
@@ -644,7 +667,6 @@ public class V1ConfigMigration {
                 return replacement.toString();
             });
         }
-        return replacer.toString();
     }
 
     @Nullable
@@ -866,19 +888,49 @@ public class V1ConfigMigration {
             // Misc. messages
             //
             defaultChannel.joinMessages().enabled = config.node("MinecraftPlayerJoinMessage").node("Enabled").getBoolean(true);
+            defaultChannel.joinMessages().format = new SendableDiscordMessageTemplate(
+                    convertPlaceholders(PlaceholderField.JOIN_MESSAGE_FORMAT, config.node("MinecraftPlayerJoinMessage").get(SendableDiscordMessage.Builder.class))
+            );
             JoinMessageConfig.FirstJoin firstJoinMessages = defaultChannel.joinMessages().firstJoin();
             if (firstJoinMessages != null) {
                 firstJoinMessages.enabled = config.node("MinecraftPlayerFirstJoinMessage").node("Enabled").getBoolean(true);
+                firstJoinMessages.format = new SendableDiscordMessageTemplate(
+                        convertPlaceholders(PlaceholderField.JOIN_MESSAGE_FORMAT, config.node("MinecraftPlayerJoinMessage").get(SendableDiscordMessage.Builder.class))
+                );
             }
 
             defaultChannel.leaveMessages.enabled = config.node("MinecraftPlayerLeaveMessage").node("Enabled").getBoolean(true);
-            if (defaultChannel instanceof ServerBaseChannelConfig) {
-                ((ServerBaseChannelConfig)defaultChannel).deathMessages.enabled = config.node("MinecraftPlayerDeathMessage").node("Enabled").getBoolean(true);
-                ((ServerBaseChannelConfig)defaultChannel).advancementMessages.enabled = config.node("MinecraftPlayerAchievementMessage").node("Enabled").getBoolean(true);
+            defaultChannel.leaveMessages.format = new SendableDiscordMessageTemplate(
+                    convertPlaceholders(PlaceholderField.LEAVE_MESSAGE_FORMAT, config.node("MinecraftPlayerLeaveMessage").get(SendableDiscordMessage.Builder.class))
+            );
+
+            if (defaultChannel instanceof ServerBaseChannelConfig serverChannelConfig) {
+                serverChannelConfig.deathMessages.enabled = config.node("MinecraftPlayerDeathMessage").node("Enabled").getBoolean(true);
+                serverChannelConfig.deathMessages.format = new SendableDiscordMessageTemplate(
+                        convertPlaceholders(PlaceholderField.DEATH_MESSAGE_FORMAT, config.node("MinecraftPlayerDeathMessage").get(SendableDiscordMessage.Builder.class))
+                );
+
+                serverChannelConfig.advancementMessages.enabled = config.node("MinecraftPlayerAchievementMessage").node("Enabled").getBoolean(true);
+                serverChannelConfig.advancementMessages.format = new SendableDiscordMessageTemplate(
+                        convertPlaceholders(PlaceholderField.ACHIEVEMENT_MESSAGE_FORMAT, config.node("MinecraftPlayerAchievementMessage").get(SendableDiscordMessage.Builder.class))
+                );
             }
 
             defaultChannel.startMessage.enabled = !config.node("DiscordChatChannelServerStartupMessage").getString("").isEmpty();
+            String startupMessage = config.node("DiscordChatChannelServerStartupMessage").getString();
+            if (!recommendedUpgrades || !":white_check_mark: **Server has started**".equals(startupMessage)) {
+                defaultChannel.startMessage.format = new SendableDiscordMessageTemplate(
+                        SendableDiscordMessage.builder().setContent(startupMessage)
+                );
+            }
+
             defaultChannel.stopMessage.enabled = !config.node("DiscordChatChannelServerShutdownMessage").getString("").isEmpty();
+            String shutdownMessage = config.node("DiscordChatChannelServerShutdownMessage").getString();
+            if (!recommendedUpgrades || !":octagonal_sign: **Server has stopped**".equals(shutdownMessage)) {
+                defaultChannel.startMessage.format = new SendableDiscordMessageTemplate(
+                        SendableDiscordMessage.builder().setContent(shutdownMessage)
+                );
+            }
 
             //
             // Role selection
@@ -968,11 +1020,27 @@ public class V1ConfigMigration {
             consoleConfig.channel.channelId = MiscUtil.parseLong(consoleChannelId);
             consoleChannelIds.add(consoleConfig.channel.channelId);
 
+            // Execution
             GameCommandExecutionConditionConfig condition = new GameCommandExecutionConditionConfig();
             consoleConfig.commandExecution.executionConditions.clear();
             condition.commands.addAll(config.node("DiscordConsoleChannelBlacklistedCommands").getList(String.class, Collections.emptyList()));
             condition.filterMode = config.node("DiscordConsoleChannelBlacklistActsAsWhitelist").getBoolean(true)
                                    ? FilterMode.WHITELIST : FilterMode.BLACKLIST;
+
+            // Appender
+            if (!recommendedUpgrades) {
+                consoleConfig.appender.outputMode = config.node("DiscordConsoleChannelUseCodeBlocks").getBoolean()
+                                                    ? DiscordOutputMode.DIFF : DiscordOutputMode.PLAIN;
+            }
+
+            String originalPrefix = messages.node("DiscordConsoleChannelPrefix").getString();
+            String originalSuffix = messages.node("DiscordConsoleChannelSuffix").getString();
+            if (!"[{date} {level}{name}] ".equals(originalPrefix) || !"".equals(originalSuffix)) {
+                consoleConfig.appender.lineFormat =
+                        convertPlaceholders(PlaceholderField.DISCORD_CONSOLE_CHANNEL_AFFIX, originalPrefix) +
+                        "%message%" +
+                        convertPlaceholders(PlaceholderField.DISCORD_CONSOLE_CHANNEL_AFFIX, originalSuffix);
+            }
 
             Map<Pattern, String> oldConsoleFilters = convertToRegexReplacements(config.node("DiscordConsoleChannelFilters"));
             if (recommendedUpgrades) {
@@ -984,13 +1052,6 @@ public class V1ConfigMigration {
             consoleConfig.appender.levels.levels = config.node("DiscordConsoleChannelLevels").getList(String.class, Collections.emptyList())
                     .stream().map(level -> level.toUpperCase(Locale.ROOT)).collect(Collectors.toList());
             consoleConfig.appender.levels.blacklist = false;
-
-            if (!recommendedUpgrades) {
-                consoleConfig.appender.outputMode = config.node("DiscordConsoleChannelUseCodeBlocks").getBoolean()
-                                                    ? DiscordOutputMode.DIFF : DiscordOutputMode.PLAIN;
-            }
-
-            // Removed with no replacement: DiscordConsoleChannelBlockBots (Users/roles need to be specifically whitelisted)
 
             mainConfig.console.clear();
             mainConfig.console.add(consoleConfig);
@@ -1065,6 +1126,13 @@ public class V1ConfigMigration {
         }
 
         //
+        // Game Command
+        //
+        if (!recommendedUpgrades) {
+            mainConfig.gameCommand.discordFormat = convertPlaceholders(PlaceholderField.DISCORD_COMMAND_FORMAT, config.node("DiscordCommandFormat").getString());
+        }
+
+        //
         // Execute Command
         //
         mainConfig.executeCommand.enabled = recommendedUpgrades || config.node("DiscordChatChannelConsoleCommandEnabled").getBoolean();
@@ -1090,6 +1158,16 @@ public class V1ConfigMigration {
         executeCommandFullCondition.filterMode = FilterMode.BLACKLIST;
         executeCommandFullCondition.commands.clear();
         mainConfig.executeCommand.executionConditions.add(executeCommandFullCondition);
+
+        //
+        // PlayerList Command
+        //
+
+        if (config.node("DiscordChatChannelListCommandEnabled").getBoolean()) {
+            mainConfig.playerList.command.outputMode = DiscordOutputMode.OFF;
+        } else if (!recommendedUpgrades) {
+            mainConfig.playerList.command.outputMode = DiscordOutputMode.CODE_BLOCK;
+        }
 
         //
         // Custom Commands
@@ -1179,6 +1257,46 @@ public class V1ConfigMigration {
         if (!channelUpdaters.isEmpty() || !recommendedUpgrades) {
             mainConfig.channelUpdater.voiceChannels.clear();
             mainConfig.channelUpdater.voiceChannels.addAll(channelUpdaters);
+        }
+
+        //
+        // Avatar Provider
+        //
+
+        String avatarUrl = config.node("AvatarUrl").getString();
+        boolean avatarUrlIsDefault = avatarUrl == null || avatarUrl.isEmpty()
+                || "https://crafthead.net/helm/{uuid-nodashes}/{size}#{texture}".equals(avatarUrl)
+                || "https://crafthead.net/avatar/{uuid-nodashes}/{size}#{texture}".equals(avatarUrl)
+                || "https://crafatar.com/avatars/{uuid-nodashes}.png?size={size}&overlay#{texture}".equals(avatarUrl)
+                || "https://crafatar.com/avatars/{uuid-nodashes}?size={size}&overlay#{texture}".equals(avatarUrl);
+
+        if (avatarUrlIsDefault) {
+            mainConfig.avatarProvider.avatarServiceMode =
+                    recommendedUpgrades
+                    ? AvatarProviderConfig.AvatarServiceMode.AUTO
+                    : AvatarProviderConfig.AvatarServiceMode.AUTO_UNSCALED;
+        } else if (!recommendedUpgrades) {
+            String serviceUrl = avatarUrl.split("#", 2)[0];
+
+            String newUrl = avatarUrl
+                    .replace("{texture}", "%player_skin_texture_id%")
+                    .replace("{uuid}", "%player_uuid%")
+                    .replace("{uuid-nodashes}", "%player_uuid_short%")
+                    .replace("{username}", "%player_name%")
+                    .replace("{size}", "128");
+
+            mainConfig.avatarProvider.avatarServiceMode = AvatarProviderConfig.AvatarServiceMode.CONFIG_ONLY;
+            if (serviceUrl.contains("{texture}")) {
+                mainConfig.avatarProvider.services.textureTemplate = newUrl;
+            } else if (serviceUrl.contains("{uuid}") || serviceUrl.contains("{uuid-nodashes}")) {
+                mainConfig.avatarProvider.services.onlineUuidTemplate = newUrl;
+                mainConfig.avatarProvider.services.floodgateTemplate = newUrl;
+            } else if (serviceUrl.contains("{username}")) {
+                mainConfig.avatarProvider.services.offlineTemplate = newUrl;
+            } else {
+                mainConfig.avatarProvider.services.onlineUuidTemplate = newUrl;
+                mainConfig.avatarProvider.services.floodgateTemplate = newUrl;
+            }
         }
 
         //

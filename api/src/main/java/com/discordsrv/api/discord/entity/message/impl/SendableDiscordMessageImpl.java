@@ -389,9 +389,8 @@ public class SendableDiscordMessageImpl implements SendableDiscordMessage {
         }
 
         @Override
-        public @NotNull SendableDiscordMessage build() {
+        public @NotNull SendableDiscordMessage.Builder format() {
             DiscordSRV discordSRV = DiscordSRV.get();
-
             Function<String, String> placeholders = input -> {
                 if (input == null) {
                     return null;
@@ -505,7 +504,12 @@ public class SendableDiscordMessageImpl implements SendableDiscordMessage {
             builder.setWebhookUsername(placeholders.apply(builder.getWebhookUsername()));
             builder.setWebhookAvatarUrl(url(placeholders.apply(builder.getWebhookAvatarUrl())));
 
-            return builder.build();
+            return builder;
+        }
+
+        @Override
+        public @NotNull SendableDiscordMessage build() {
+            return format().build();
         }
 
         private String url(String url) {

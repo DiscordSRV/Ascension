@@ -22,7 +22,9 @@ import com.discordsrv.common.config.configurate.annotation.Constants;
 import com.discordsrv.common.config.configurate.annotation.DefaultOnly;
 import com.discordsrv.common.config.configurate.annotation.Untranslated;
 import com.discordsrv.common.config.documentation.DocumentationURLs;
-import com.discordsrv.common.config.main.generic.*;
+import com.discordsrv.common.config.main.generic.DestinationConfig;
+import com.discordsrv.common.config.main.generic.DiscordOutputMode;
+import com.discordsrv.common.config.main.generic.GameCommandExecutionConditionConfig;
 import org.spongepowered.configurate.objectmapping.ConfigSerializable;
 import org.spongepowered.configurate.objectmapping.meta.Comment;
 
@@ -56,16 +58,19 @@ public class ConsoleConfig {
                 - plain: Plain text""")
         public DiscordOutputMode outputMode = DiscordOutputMode.ANSI;
 
+        public static final String defaultTimestampPlaceholder = "%log_time:'ccc HH:mm:ss zzz'%";
+        public static final String defaultLoggerNamePlaceholder = "%logger_name:' [\\%s]'%";
+
         @Comment("""
                 How individual log lines will be formatted
                 Suggested placeholders:
-                %log_time:'ccc HH:mm:ss zzz% - The time when message was logged, read more about time formats on the placeholders documentation page
+                %1 - The time when message was logged, read more about time formats on the placeholders documentation page
                 %log_level% - The log level (for example INFO, WARN, ERROR)
-                %logger_name:' [\\%s]'% - The logger name, which may not be present (with special formatting to display in brackets, and only if present)
+                %2 - The logger name, which may not be present (with special formatting to display in brackets, and only if present)
                 %message% - The log message, formatted according to the above output mode
-                More placeholders at %1 (Global only)""")
-        @Constants.Comment(DocumentationURLs.PLACEHOLDERS)
-        public String lineFormat = "[%log_time:'ccc HH:mm:ss zzz'%] [%log_level%]%logger_name:' [\\%s]'% %message%";
+                More placeholders at %3 (Global only)""")
+        @Constants.Comment({defaultTimestampPlaceholder, defaultLoggerNamePlaceholder, DocumentationURLs.PLACEHOLDERS})
+        public String lineFormat = "[" + defaultTimestampPlaceholder + "] [%log_level%]" + defaultLoggerNamePlaceholder + " %message%";
 
         @Comment("In \"diff\" mode, should exception (stack trace) lines have the prefix character as well, as opposed to only the first line")
         public boolean diffExceptions = true;

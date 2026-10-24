@@ -81,10 +81,13 @@ public class AvatarProviderModule extends AbstractModule<DiscordSRV> {
                 active.textureTemplate = String.format(HEADS_URL_FORMAT, "%player_skin_texture_id%", resource);
             }
             if (StringUtils.isEmpty(active.onlineUuidTemplate)) {
-                active.textureTemplate = String.format(HEADS_URL_FORMAT, "%player_uuid_short%", resource);
+                active.onlineUuidTemplate = String.format(HEADS_URL_FORMAT, "%player_uuid_short%", resource);
+            }
+            if (StringUtils.isEmpty(active.floodgateTemplate)) {
+                active.floodgateTemplate = String.format(HEADS_URL_FORMAT, "%player_uuid_short%", resource);
             }
             if (StringUtils.isEmpty(active.offlineTemplate)) {
-                active.textureTemplate = String.format(HEADS_URL_FORMAT, "%player_name%", resource);
+                active.offlineTemplate = String.format(HEADS_URL_FORMAT, "%player_name%", resource);
             }
         }
         return active;

@@ -407,6 +407,9 @@ public interface SendableDiscordMessage {
         Formatter addReplacement(@NotNull Pattern target, @NotNull Function<@NotNull Matcher, @Nullable Object> replacement);
 
         @NotNull
+        SendableDiscordMessage.Builder format();
+
+        @NotNull
         SendableDiscordMessage build();
     }
 

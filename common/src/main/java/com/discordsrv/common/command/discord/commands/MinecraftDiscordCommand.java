@@ -25,6 +25,7 @@ import com.discordsrv.common.command.combined.commands.UnlinkCommand;
 import com.discordsrv.common.command.discord.commands.subcommand.LinkInitDiscordCommand;
 import com.discordsrv.common.command.discord.commands.subcommand.PlayerListCommand;
 import com.discordsrv.common.config.main.command.DiscordCommandConfig;
+import com.discordsrv.common.config.main.generic.DiscordOutputMode;
 import com.discordsrv.common.feature.linking.LinkProvider;
 import org.intellij.lang.annotations.Subst;
 
@@ -40,8 +41,12 @@ public class MinecraftDiscordCommand {
             @Subst("minecraft") String alias = commandConfig.userCommandAlias;
 
             DiscordCommand.ChatInputBuilder builder = DiscordCommand.chatInput(identifier, alias, "")
-                    .addDescriptionTranslations(discordSRV.getAllTranslations(config -> config.minecraftCommandDescription.content()))
-                    .addSubCommand(PlayerListCommand.get(discordSRV));
+                    .addDescriptionTranslations(discordSRV.getAllTranslations(config -> config.minecraftCommandDescription.content()));
+
+            if (discordSRV.config().playerList.command.outputMode != DiscordOutputMode.OFF) {
+                builder = builder
+                        .addSubCommand(PlayerListCommand.get(discordSRV));
+            }
 
             LinkProvider linkProvider = discordSRV.linkProvider();
             if (linkProvider != null) {

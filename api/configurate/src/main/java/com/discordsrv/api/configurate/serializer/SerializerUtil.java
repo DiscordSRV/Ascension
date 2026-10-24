@@ -28,6 +28,13 @@ import org.spongepowered.configurate.ConfigurationNode;
 
 public class SerializerUtil {
 
+    /**
+     * Resolves a node from the primary name that will be coerced using {@link DiscordSRVConfigurate#NAMING_SCHEME} or directly using the alternative name.
+     * @param node the node to resolve from
+     * @param name the primary name that will be processed through the naming scheme
+     * @param alternativeNames names that will be tried after, without going through the naming scheme
+     * @return non-virtual alternative if the primary is virtual, otherwise the primary node
+     */
     public static ConfigurationNode resolveNode(ConfigurationNode node, String name, String... alternativeNames) {
         ConfigurationNode resolvedNode = node.node(DiscordSRVConfigurate.NAMING_SCHEME.coerce(name));
         if (!resolvedNode.virtual()) {

@@ -38,6 +38,9 @@ import java.util.List;
 import static com.discordsrv.api.configurate.DiscordSRVConfigurate.GENERATING_DEFAULT_CONFIG;
 import static com.discordsrv.api.configurate.serializer.SerializerUtil.resolveNode;
 
+/**
+ * Serializer for Discord message embeds, also supporting v1 (yaml) and Discord API (json) formats.
+ */
 public class DiscordMessageEmbedSerializer implements TypeSerializer<DiscordMessageEmbed.Builder> {
 
     @Override
@@ -46,13 +49,18 @@ public class DiscordMessageEmbedSerializer implements TypeSerializer<DiscordMess
         if (raw instanceof DiscordMessageEmbed.Builder) {
             return (DiscordMessageEmbed.Builder) raw;
         }
-        if (!resolveNode(node, "enabled", "Enabled", "Enable").getBoolean(true)) {
+        if (!resolveNode(node, "enabled", /* v1 */ "Enabled", "Enable").getBoolean(true)) {
             return null;
         }
 
         DiscordMessageEmbed.Builder builder = DiscordMessageEmbed.builder();
 
-        ConfigurationNode colorNode = resolveNode(node, "color", "Color");
+        ConfigurationNode colorNode = resolveNode(
+                node,
+                "color",
+                /* v1 */ "Color",
+                /* Discord API */ "color"
+        );
         Color color = colorNode.get(Color.class);
         if (color == null) {
             String unformattedColor = colorNode.getString();
@@ -61,28 +69,84 @@ public class DiscordMessageEmbedSerializer implements TypeSerializer<DiscordMess
             builder.setColor(color);
         }
 
-        ConfigurationNode author = resolveNode(node, "author", "Author");
+        ConfigurationNode author = resolveNode(
+                node,
+                "author",
+                /* v1 */ "Author",
+                /* Discord API */ "author"
+        );
         builder.setAuthor(
-                resolveNode(author, "name", "Name").getString(),
-                resolveNode(author, "url", "Url").getString(),
-                resolveNode(author, "image-url", "ImageUrl").getString()
+                resolveNode(
+                        author,
+                        "name",
+                        /* v1 */ "Name",
+                        /* Discord API */ "name"
+                ).getString(),
+                resolveNode(
+                        author,
+                        "url",
+                        /* v1 */ "Url",
+                        /* Discord API */ "url"
+                ).getString(),
+                resolveNode(
+                        author,
+                        "image-url",
+                        /* v1 */ "ImageUrl",
+                        /* Discord API */ "icon_url"
+                ).getString()
         );
 
-        ConfigurationNode title = resolveNode(node, "title", "Title");
-        builder.setTitle(
-                resolveNode(title, "text", "Text").getString(),
-                resolveNode(title, "url", "Url").getString()
-        );
+        ConfigurationNode title = resolveNode(node, "title", /* v1 */ "Title");
+        if (!title.virtual()) {
+            builder.setTitle(
+                    resolveNode(title, "text", /* v1 */ "Text").getString(),
+                    resolveNode(title, "url", /* v1 */ "Url").getString()
+            );
+        } else {
+            // Discord API
+            builder.setTitle(
+                    node.node("title").getString(),
+                    node.node("url").getString()
+            );
+        }
 
-        builder.setDescription(resolveNode(node, "description", "Description").getString());
-        for (DiscordMessageEmbed.Field field : resolveNode(node, "fields", "Fields").getList(DiscordMessageEmbed.Field.class, Collections.emptyList())) {
+        builder.setDescription(resolveNode(
+                node,
+                "description",
+                /* v1 */ "Description",
+                /* Discord API */ "description"
+        ).getString());
+
+        ConfigurationNode fieldsNode = resolveNode(
+                node,
+                "fields",
+                /* v1 */ "Fields",
+                /* Discord API */ "fields"
+        );
+        for (DiscordMessageEmbed.Field field : fieldsNode.getList(DiscordMessageEmbed.Field.class, Collections.emptyList())) {
             builder.addField(field);
         }
 
-        builder.setThumbnailUrl(resolveNode(node, "thumbnail-url", "ThumbnailUrl").getString());
-        builder.setImageUrl(resolveNode(node, "image-url", "ImageUrl").getString());
+        ConfigurationNode thumbnailUrl = resolveNode(node, "thumbnail-url", /* v1 */ "ThumbnailUrl");
+        if (thumbnailUrl.virtual()) {
+            // Discord API
+            thumbnailUrl = node.node("thumbnail", "url");
+        }
+        builder.setThumbnailUrl(thumbnailUrl.getString());
 
-        ConfigurationNode timestampNode = resolveNode(node, "timestamp", "Timestamp");
+        ConfigurationNode imageUrl = resolveNode(node, "image-url", /* v1 */ "ImageUrl");
+        if (imageUrl.virtual()) {
+            // Discord API
+            imageUrl = node.node("image", "url");
+        }
+        builder.setImageUrl(imageUrl.getString());
+
+        ConfigurationNode timestampNode = resolveNode(
+                node,
+                "timestamp",
+                /* v1 */ "Timestamp",
+                /* Discord API */ "timestamp"
+        );
         OffsetDateTime timestamp = timestampNode.get(OffsetDateTime.class);
         if (timestamp == null) {
             String unformattedTimestamp = timestampNode.getString();
@@ -91,10 +155,25 @@ public class DiscordMessageEmbedSerializer implements TypeSerializer<DiscordMess
             builder.setTimestamp(timestamp);
         }
 
-        ConfigurationNode footer = resolveNode(node, "footer", "Footer");
+        ConfigurationNode footer = resolveNode(
+                node,
+                "footer",
+                /* v1 */ "Footer",
+                /* Discord API */ "footer"
+        );
         builder.setFooter(
-                resolveNode(footer, "text", "Text").getString(),
-                resolveNode(footer, "image-url", "ImageUrl", "IconUrl").getString("")
+                resolveNode(
+                        footer,
+                        "text",
+                        /* v1 */ "Text",
+                        /* Discord API */ "text"
+                ).getString(),
+                resolveNode(
+                        footer,
+                        "image-url",
+                        /* v1 */ "IconUrl",
+                        /* Discord API */ "icon_url"
+                ).getString("")
         );
 
         return builder;
@@ -158,7 +237,7 @@ public class DiscordMessageEmbedSerializer implements TypeSerializer<DiscordMess
                 return (DiscordMessageEmbed.Field) raw;
             }
 
-            // v1 compat
+            // v1
             String footerString = node.getString();
             if (footerString != null) {
                 if (footerString.contains(";")) {
@@ -176,9 +255,9 @@ public class DiscordMessageEmbedSerializer implements TypeSerializer<DiscordMess
             }
 
             return new DiscordMessageEmbed.Field(
-                    resolveNode(node, "title", "Title").getString(),
-                    resolveNode(node, "value", "Value").getString(),
-                    resolveNode(node, "inline", "Inline").getBoolean()
+                    resolveNode(node, "title", /* Discord API */ "name").getString(),
+                    resolveNode(node, "value", /* Discord API */ "value").getString(),
+                    resolveNode(node, "inline", /* Discord API */ "inline").getBoolean()
             );
         }
 

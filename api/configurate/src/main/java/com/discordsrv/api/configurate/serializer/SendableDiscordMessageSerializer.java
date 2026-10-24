@@ -41,6 +41,9 @@ import java.util.stream.Collectors;
 import static com.discordsrv.api.configurate.DiscordSRVConfigurate.GENERATING_DEFAULT_CONFIG;
 import static com.discordsrv.api.configurate.serializer.SerializerUtil.resolveNode;
 
+/**
+ * Serializer for Discord messages, also supporting v1 (yaml) and Discord API (json) formats.
+ */
 public class SendableDiscordMessageSerializer implements TypeSerializer<SendableDiscordMessage.Builder> {
 
     private final boolean preferContentOnly;
@@ -65,46 +68,86 @@ public class SendableDiscordMessageSerializer implements TypeSerializer<Sendable
 
         SendableDiscordMessage.Builder builder = SendableDiscordMessage.builder();
 
-        ConfigurationNode webhook = resolveNode(node, "webhook", "Webhook");
-        String webhookUsername = resolveNode(webhook, "username", "Username").getString();
-        if (resolveNode(webhook, "enabled", "Enabled", "Enable").getBoolean(webhookUsername != null)) {
+        ConfigurationNode webhook = resolveNode(node, "webhook", /* v1 */ "Webhook");
+        String webhookUsername = resolveNode(webhook, "username", /* v1 */ "Username").getString();
+        if (resolveNode(webhook, "enabled", /* v1 */ "Enabled", "Enable").getBoolean(webhookUsername != null)) {
             builder.setWebhookUsername(webhookUsername);
-            builder.setWebhookAvatarUrl(resolveNode(webhook, "avatar-url", "AvatarUrl").getString());
+            builder.setWebhookAvatarUrl(resolveNode(webhook, "avatar-url", /* v1 */ "AvatarUrl").getString());
         }
 
-        builder.setContent(resolveNode(node, "content", "Content").getString());
+        builder.setContent(resolveNode(
+                node,
+                "content",
+                /* v1 */ "Content",
+                /* Discord API */ "content"
+        ).getString());
 
-        // v1 compat
-        DiscordMessageEmbed.Builder singleEmbed = resolveNode(node, "embed", "Embed").get(DiscordMessageEmbed.Builder.class);
+        DiscordMessageEmbed.Builder singleEmbed = resolveNode(node, "embed", /* v1 */ "Embed").get(DiscordMessageEmbed.Builder.class);
         List<DiscordMessageEmbed.Builder> embedList = singleEmbed != null ? Collections.singletonList(singleEmbed) : Collections.emptyList();
 
-        for (DiscordMessageEmbed.Builder embed : resolveNode(node, "embeds", "Embeds").getList(DiscordMessageEmbed.Builder.class, embedList)) {
+        for (DiscordMessageEmbed.Builder embed : resolveNode(node, "embeds", /* Discord API */ "embeds").getList(DiscordMessageEmbed.Builder.class, embedList)) {
             builder.addEmbed(embed.build());
         }
 
         List<AllowedMention> allowedMentions = new ArrayList<>();
         ConfigurationNode allowedMentionsNode = resolveNode(node, "allowed-mentions");
-        if (resolveNode(allowedMentionsNode, "everyone").getBoolean(false)) {
-            allowedMentions.add(AllowedMention.EVERYONE);
+
+        // Discord API
+        ConfigurationNode parseNode = node.node("parse");
+        List<String> parse = parseNode.virtual() || parseNode.isNull() ? null : parseNode.getList(String.class);
+
+        ConfigurationNode mentionEveryone = resolveNode(allowedMentionsNode, "everyone");
+        if (!mentionEveryone.virtual()) {
+            if (mentionEveryone.getBoolean(false)) {
+                allowedMentions.add(AllowedMention.EVERYONE);
+            }
+        } else if (!parseNode.virtual()) {
+            // Discord API
+            if (parse == null || parse.contains("everyone")) {
+                allowedMentions.add(AllowedMention.EVERYONE);
+            }
         }
 
         ConfigurationNode roleMentionNode = resolveNode(allowedMentionsNode, "roles");
-        if (roleMentionNode.getBoolean()) {
-            allowedMentions.add(AllowedMention.ALL_ROLES);
-        } else {
-            for (Long roleId : roleMentionNode.getList(Long.class, Collections.emptyList())) {
-                allowedMentions.add(AllowedMention.role(roleId));
+        if (!roleMentionNode.virtual()) {
+            if (roleMentionNode.getBoolean()) {
+                allowedMentions.add(AllowedMention.ALL_ROLES);
+            } else {
+                for (Long roleId : roleMentionNode.getList(Long.class, Collections.emptyList())) {
+                    allowedMentions.add(AllowedMention.role(roleId));
+                }
+            }
+        } else if (!parseNode.virtual()) {
+            // Discord API
+            if (parse == null || parse.contains("roles")) {
+                allowedMentions.add(AllowedMention.ALL_ROLES);
+            } else {
+                for (Long roleId : node.node("roles").getList(Long.class, Collections.emptyList())) {
+                    allowedMentions.add(AllowedMention.role(roleId));
+                }
             }
         }
 
         ConfigurationNode userMentionNode = resolveNode(allowedMentionsNode, "users");
-        if (userMentionNode.getBoolean()) {
-            allowedMentions.add(AllowedMention.ALL_USERS);
-        } else {
-            for (Long userId : userMentionNode.getList(Long.class, Collections.emptyList())) {
-                allowedMentions.add(AllowedMention.user(userId));
+        if (!userMentionNode.virtual()) {
+            if (userMentionNode.getBoolean()) {
+                allowedMentions.add(AllowedMention.ALL_USERS);
+            } else {
+                for (Long userId : userMentionNode.getList(Long.class, Collections.emptyList())) {
+                    allowedMentions.add(AllowedMention.user(userId));
+                }
+            }
+        } else if (!parseNode.virtual()) {
+            // Discord API
+            if (parse == null || parse.contains("users")) {
+                allowedMentions.add(AllowedMention.ALL_USERS);
+            } else {
+                for (Long roleId : node.node("users").getList(Long.class, Collections.emptyList())) {
+                    allowedMentions.add(AllowedMention.role(roleId));
+                }
             }
         }
+
         builder.setAllowedMentions(allowedMentions);
 
         return builder;
