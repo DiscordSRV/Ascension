@@ -23,8 +23,14 @@ import com.discordsrv.bungee.config.main.BungeeConfig;
 import com.discordsrv.common.config.Config;
 import com.discordsrv.common.config.configurate.manager.abstraction.ConfigurateConfigManager;
 import com.discordsrv.common.config.connection.ConnectionConfig;
+import com.discordsrv.common.config.main.channels.base.IChannelConfig;
+import com.discordsrv.common.config.main.channels.base.proxy.ProxyBaseChannelConfig;
+import com.discordsrv.common.config.main.channels.base.proxy.ProxyChannelConfig;
+import com.discordsrv.common.config.main.channels.base.server.ServerBaseChannelConfig;
+import com.discordsrv.common.config.main.channels.base.server.ServerChannelConfig;
 import com.discordsrv.common.config.messages.MessagesConfig;
 import com.discordsrv.common.core.logging.backend.impl.JavaLoggerImpl;
+import com.discordsrv.dependencies.net.dv8tion.jda.internal.utils.tuple.Pair;
 import com.discordsrv.modded.config.main.ModdedConfig;
 import com.discordsrv.velocity.config.main.VelocityConfig;
 import org.spongepowered.configurate.CommentedConfigurationNode;
@@ -32,16 +38,14 @@ import org.spongepowered.configurate.ConfigurateException;
 import org.spongepowered.configurate.ConfigurationNode;
 import org.spongepowered.configurate.jackson.JacksonConfigurationLoader;
 import org.spongepowered.configurate.loader.AbstractConfigurationLoader;
+import org.spongepowered.configurate.objectmapping.ObjectMapper;
 import org.spongepowered.configurate.serialize.SerializationException;
 import org.spongepowered.configurate.yaml.YamlConfigurationLoader;
 
 import java.lang.reflect.Field;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 /**
  * A java application to generate a default config file and a translation file that has comments as options.
@@ -50,13 +54,16 @@ public final class DiscordSRVConfigTool {
 
     private static final Path DATA_DIRECTORY = Paths.get(".");
 
-    private static final List<Config> CONFIGS = Arrays.asList(
-            new BukkitConfig(),
-            new ModdedConfig(),
-            new BungeeConfig(),
-            new VelocityConfig(),
-            new ConnectionConfig(),
-            new MessagesConfig()
+    private static final IChannelConfig.Serializer SERVER_CHANNEL_SERIALIZER = new IChannelConfig.Serializer(ObjectMapper.factoryBuilder().build(), ServerBaseChannelConfig.class, ServerChannelConfig.class);
+    private static final IChannelConfig.Serializer PROXY_CHANNEL_SERIALIZER = new IChannelConfig.Serializer(ObjectMapper.factoryBuilder().build(), ProxyBaseChannelConfig.class, ProxyChannelConfig.class);
+
+    private static final List<Pair<Config, IChannelConfig.Serializer>> CONFIGS = Arrays.asList(
+            Pair.of(new BukkitConfig(), SERVER_CHANNEL_SERIALIZER),
+            Pair.of(new ModdedConfig(), SERVER_CHANNEL_SERIALIZER),
+            Pair.of(new BungeeConfig(), PROXY_CHANNEL_SERIALIZER),
+            Pair.of(new VelocityConfig(), PROXY_CHANNEL_SERIALIZER),
+            Pair.of(new ConnectionConfig(), null),
+            Pair.of(new MessagesConfig(), null)
     );
 
     public static void main(String[] args) throws ConfigurateException {
@@ -82,7 +89,8 @@ public final class DiscordSRVConfigTool {
     @SuppressWarnings({"rawtypes", "unchecked"})
     public void run(boolean i18n, boolean defaultConfigs) throws ConfigurateException {
         CommentedConfigurationNode translationNode = CommentedConfigurationNode.root();
-        for (Config config : CONFIGS) {
+        for (Pair<Config, IChannelConfig.Serializer> configSerializerPair : CONFIGS) {
+            Config config = configSerializerPair.getLeft();
             ConfigurateConfigManager configManager = new ConfigurateConfigManager(DATA_DIRECTORY, null) {
                 @Override
                 public String fileName() {
@@ -103,29 +111,36 @@ public final class DiscordSRVConfigTool {
                 protected Field headerField() throws ReflectiveOperationException {
                     return config.getClass().getField("HEADER");
                 }
+
+                @Override
+                public IChannelConfig.Serializer getChannelConfigSerializer(ObjectMapper.Factory mapperFactory) {
+                    return configSerializerPair.getRight() != null ? configSerializerPair.getRight() : super.getChannelConfigSerializer(mapperFactory);
+                }
             };
             String fileIdentifier = config.getClass().getSimpleName() + "_" + config.getFileName();
 
-            ConfigManagerProxy<?> configManagerProxy = new ConfigManagerProxy<>(DATA_DIRECTORY, JavaLoggerImpl.getRoot(), configManager.objectMapper(), configManager);
-            CommentedConfigurationNode configurationNode = (CommentedConfigurationNode) configManagerProxy.getDefaultNode(configManager.objectMapper(), configManager.nodeOptions(true));
+            ConfigManagerProxy<Config> configManagerProxy = new ConfigManagerProxy<>(DATA_DIRECTORY, JavaLoggerImpl.getRoot(), configManager);
+            ObjectMapper.Factory mapperFactory = configManager.objectMapperBuilder(true).build();
+            CommentedConfigurationNode configurationNode = (CommentedConfigurationNode) configManagerProxy.getDefaultNode(mapperFactory, configManager.configurationOptions(mapperFactory, true));
 
             // A default configuration file is generated for each config class, which contains the default configuration values and comments for each config class.
             // This file can be used as a reference for users to understand the configuration options available in the plugin.
             if (defaultConfigs) {
-                YamlConfigurationLoader loader = YamlConfigurationLoader.builder()
+                // Use the same loader builder as the plugin/mod, so the output is formatted identically (e.g. no line splitting)
+                YamlConfigurationLoader loader = configManagerProxy.createBuilder()
                         .path(Paths.get("build", "config", fileIdentifier))
-                        .commentsEnabled(true)
                         .defaultOptions(configManagerProxy.nodeOptions(true))
                         .build();
 
                 loader.save(configurationNode);
+                System.out.println("Default configuration file generated: " + Paths.get("build", "config", fileIdentifier).toAbsolutePath());
             }
 
             if (!i18n) continue;
             // Here we are generating a JSON file that contains the default configuration values and comments for each config class, which can be used for translation purposes.
             ConfigurationNode commentSection = translationNode.node(fileIdentifier + "_comments");
 
-            String header = configManager.nodeOptions(false).header();
+            String header = configManagerProxy.nodeOptions(true).header();
             if (header != null) {
                 commentSection.node("$header").set(header);
             }
@@ -138,10 +153,13 @@ public final class DiscordSRVConfigTool {
             section.set(configSection);
         }
 
-        if(i18n) JacksonConfigurationLoader.builder()
-                .path(Paths.get("build", "i18n", "source.json"))
-                .build()
-                .save(translationNode);
+        if(i18n) {
+            JacksonConfigurationLoader.builder()
+                    .path(Paths.get("build", "i18n", "source.json"))
+                    .build()
+                    .save(translationNode);
+            System.out.println("Translation source file generated: " + Paths.get("build", "i18n", "source.json").toAbsolutePath());
+        }
     }
 
     public void processUnwantedValues(ConfigurationNode node) throws SerializationException {
