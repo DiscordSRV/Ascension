@@ -25,10 +25,8 @@ jobs:
         uses: gradle/actions/setup-gradle@v6
         with:
           cache-provider: basic
-      - name: Build config tools
-        run: "./gradlew config:build --no-daemon"
       - name: Generate translation source
-        run: "java -jar config/build/libs/config-all.jar --i18n"
+        run: "./gradlew config:runShadow --no-daemon"
       - name: Download translations from Crowdin
         uses: crowdin/github-action@v2
         with:
