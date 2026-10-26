@@ -8,8 +8,7 @@ stonecutter {
         sc.properties.tags(version, loader)
         constants.match(loader, "fabric", "neoforge")
 
-        def minecraft = sc.properties.get("minecraft.version_range_label").split("-")[0]
-        targets["minecraft"] = minecraft
+        targets["minecraft"] = version
 
         def fml = sc.properties.getOrNull("deps.neoforge_fml_version")
         if (fml != "[VERSIONED]" && fml != null) {
