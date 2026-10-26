@@ -133,11 +133,12 @@ artifacts {
     shadow shadowJar
 }
 
-tasks.register("prodServer", net.fabricmc.loom.task.prod.ServerProductionRunTask) {
+tasks.register("runFabric" + minecraftVersion, net.fabricmc.loom.task.prod.ServerProductionRunTask) {
+    group = "run fabric"
+
     installerVersion = "1.1.2"
     loaderVersion = "0.19.5"
     minecraftVersion = project.name.split('-', 2)[0]
-    runDir = "../../run"
 
     mods.setFrom is26_1 ? shadowJar.archiveFile : remapJar.archiveFile
     mods.from configurations.modCompileOnly // Include integration mods
