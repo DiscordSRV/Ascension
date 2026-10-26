@@ -21,19 +21,25 @@ package com.discordsrv.config;
 import com.discordsrv.common.config.configurate.manager.abstraction.ConfigurateConfigManager;
 import com.discordsrv.common.config.configurate.manager.loader.YamlConfigLoaderProvider;
 import com.discordsrv.common.core.logging.Logger;
+import com.discordsrv.common.exception.ConfigException;
+import org.spongepowered.configurate.CommentedConfigurationNode;
+import org.spongepowered.configurate.ConfigurateException;
+import org.spongepowered.configurate.ConfigurationOptions;
+import org.spongepowered.configurate.loader.AbstractConfigurationLoader;
 import org.spongepowered.configurate.objectmapping.ObjectMapper;
 import org.spongepowered.configurate.yaml.YamlConfigurationLoader;
 
 import java.nio.file.Path;
 
-public class TranslationConfigManagerProxy<C>
+@SuppressWarnings("unchecked")
+public class ConfigManagerProxy<C>
         extends ConfigurateConfigManager<C, YamlConfigurationLoader>
         implements YamlConfigLoaderProvider {
 
     private final ObjectMapper.Factory objectMapper;
     private final ConfigurateConfigManager<C, ?> configManager;
 
-    public TranslationConfigManagerProxy(Path dataDirectory, Logger logger, ObjectMapper.Factory objectMapper, ConfigurateConfigManager<C, ?> configManager) {
+    public ConfigManagerProxy(Path dataDirectory, Logger logger, ObjectMapper.Factory objectMapper, ConfigurateConfigManager<C, ?> configManager) {
         super(dataDirectory, logger);
         this.objectMapper = objectMapper;
         this.configManager = configManager;
@@ -57,5 +63,19 @@ public class TranslationConfigManagerProxy<C>
     @Override
     public C createConfiguration() {
         return configManager.createConfiguration();
+    }
+
+    public C getDefaultNode(ObjectMapper.Factory mapperFactory, ConfigurationOptions options)
+            throws ConfigurateException {
+        configuration = getDefaultNodeWithOptions(mapperFactory, options);
+        return configuration;
+    }
+
+    private C getDefaultNodeWithOptions(ObjectMapper.Factory mapperFactory, ConfigurationOptions options)
+            throws ConfigurateException {
+        configuration = createConfiguration();
+        CommentedConfigurationNode node = CommentedConfigurationNode.root(options);
+        mapperFactory.get((Class<C>) configuration.getClass()).save(configuration, node);
+        return (C) node;
     }
 }

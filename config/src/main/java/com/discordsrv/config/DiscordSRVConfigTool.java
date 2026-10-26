@@ -18,12 +18,9 @@
 
 package com.discordsrv.config;
 
-import com.discordsrv.api.configurate.DiscordSRVConfigurate;
 import com.discordsrv.bukkit.config.main.BukkitConfig;
 import com.discordsrv.bungee.config.main.BungeeConfig;
 import com.discordsrv.common.config.Config;
-import com.discordsrv.common.config.configurate.annotation.Untranslated;
-import com.discordsrv.common.config.configurate.fielddiscoverer.FieldValueDiscovererProxy;
 import com.discordsrv.common.config.configurate.manager.abstraction.ConfigurateConfigManager;
 import com.discordsrv.common.config.connection.ConnectionConfig;
 import com.discordsrv.common.config.messages.MessagesConfig;
@@ -35,11 +32,10 @@ import org.spongepowered.configurate.ConfigurateException;
 import org.spongepowered.configurate.ConfigurationNode;
 import org.spongepowered.configurate.jackson.JacksonConfigurationLoader;
 import org.spongepowered.configurate.loader.AbstractConfigurationLoader;
-import org.spongepowered.configurate.objectmapping.FieldDiscoverer;
-import org.spongepowered.configurate.objectmapping.ObjectMapper;
-import org.spongepowered.configurate.objectmapping.meta.Processor;
 import org.spongepowered.configurate.serialize.SerializationException;
+import org.spongepowered.configurate.yaml.YamlConfigurationLoader;
 
+import java.lang.reflect.Field;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
@@ -48,9 +44,9 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * A java application to generate a translation file that has comments as options.
+ * A java application to generate a default config file and a translation file that has comments as options.
  */
-public final class DiscordSRVTranslation {
+public final class DiscordSRVConfigTool {
 
     private static final Path DATA_DIRECTORY = Paths.get(".");
 
@@ -64,40 +60,29 @@ public final class DiscordSRVTranslation {
     );
 
     public static void main(String[] args) throws ConfigurateException {
-        new DiscordSRVTranslation().run();
+        boolean i18n = false, defaultConfigs = false;
+
+        for (String arg : args) {
+            if (arg.equalsIgnoreCase("--i18n")) i18n = true;
+            if (arg.equalsIgnoreCase("--defaults")) defaultConfigs = true;
+        }
+
+        if (!i18n && !defaultConfigs) {
+            System.out.println("Usage: java -jar DiscordSRVConfigTool.jar [--i18n] [--defaults]");
+            System.out.println("  --i18n: Generate a translation file with comments as options.");
+            System.out.println("  --defaults: Generate default commented configuration files for each config class.");
+            System.exit(0);
+        }
+
+        new DiscordSRVConfigTool().run(i18n, defaultConfigs);
     }
 
-    private DiscordSRVTranslation() {}
+    private DiscordSRVConfigTool() {}
 
     @SuppressWarnings({"rawtypes", "unchecked"})
-    public void run() throws ConfigurateException {
-        Processor.Factory<Untranslated, Object> untranslatedProcessorFactory = (data, v1) -> (v2, destination) -> {
-            try {
-                Untranslated.Type type = data.value();
-                if (type.isValue()) {
-                    if (type.isComment()) {
-                        destination.set(null);
-                    } else {
-                        destination.set("");
-                    }
-                } else if (type.isComment() && destination instanceof CommentedConfigurationNode) {
-                    ((CommentedConfigurationNode) destination).comment(null);
-                }
-            } catch (SerializationException e) {
-                e.printStackTrace();
-                System.exit(1);
-            }
-        };
-
-        CommentedConfigurationNode node = CommentedConfigurationNode.root();
+    public void run(boolean i18n, boolean defaultConfigs) throws ConfigurateException {
+        CommentedConfigurationNode translationNode = CommentedConfigurationNode.root();
         for (Config config : CONFIGS) {
-            ObjectMapper.Factory mapperFactory = ObjectMapper.factoryBuilder()
-                    .defaultNamingScheme(DiscordSRVConfigurate.NAMING_SCHEME)
-                    .addDiscoverer((FieldDiscoverer<Object>) (Object) FieldValueDiscovererProxy.EMPTY_CONSTRUCTOR_INSTANCE)
-                    .addDiscoverer(FieldDiscoverer.record())
-                    .addProcessor(Untranslated.class, untranslatedProcessorFactory)
-                    .build();
-
             ConfigurateConfigManager configManager = new ConfigurateConfigManager(DATA_DIRECTORY, null) {
                 @Override
                 public String fileName() {
@@ -115,34 +100,48 @@ public final class DiscordSRVTranslation {
                 }
 
                 @Override
-                public ObjectMapper.Factory objectMapper() {
-                    return mapperFactory;
+                protected Field headerField() throws ReflectiveOperationException {
+                    return config.getClass().getField("HEADER");
                 }
             };
-
             String fileIdentifier = config.getClass().getSimpleName() + "_" + config.getFileName();
-            ConfigurationNode commentSection = node.node(fileIdentifier + "_comments");
-            
+
+            ConfigManagerProxy<?> configManagerProxy = new ConfigManagerProxy<>(DATA_DIRECTORY, JavaLoggerImpl.getRoot(), configManager.objectMapper(), configManager);
+            CommentedConfigurationNode configurationNode = (CommentedConfigurationNode) configManagerProxy.getDefaultNode(configManager.objectMapper(), configManager.nodeOptions(true));
+
+            // A default configuration file is generated for each config class, which contains the default configuration values and comments for each config class.
+            // This file can be used as a reference for users to understand the configuration options available in the plugin.
+            if (defaultConfigs) {
+                YamlConfigurationLoader loader = YamlConfigurationLoader.builder()
+                        .path(Paths.get("build", "config", fileIdentifier))
+                        .commentsEnabled(true)
+                        .defaultOptions(configManagerProxy.nodeOptions(true))
+                        .build();
+
+                loader.save(configurationNode);
+            }
+
+            if (!i18n) continue;
+            // Here we are generating a JSON file that contains the default configuration values and comments for each config class, which can be used for translation purposes.
+            ConfigurationNode commentSection = translationNode.node(fileIdentifier + "_comments");
+
             String header = configManager.nodeOptions(false).header();
             if (header != null) {
                 commentSection.node("$header").set(header);
             }
 
-            TranslationConfigManagerProxy<?> configManagerProxy = new TranslationConfigManagerProxy<>(DATA_DIRECTORY, JavaLoggerImpl.getRoot(), mapperFactory, configManager);
-            CommentedConfigurationNode configurationNode = configManagerProxy.getDefaultNode(mapperFactory);
-
             convertCommentsToOptions(configurationNode, commentSection);
-
             processUnwantedValues(configurationNode);
-            ConfigurationNode section = node.node(fileIdentifier);
+
+            ConfigurationNode section = translationNode.node(fileIdentifier);
             ConfigurationNode configSection = section.set(configurationNode);
             section.set(configSection);
         }
 
-        JacksonConfigurationLoader.builder()
-                .path(Paths.get("i18n", "build", "source.json"))
+        if(i18n) JacksonConfigurationLoader.builder()
+                .path(Paths.get("build", "i18n", "source.json"))
                 .build()
-                .save(node);
+                .save(translationNode);
     }
 
     public void processUnwantedValues(ConfigurationNode node) throws SerializationException {
@@ -168,8 +167,7 @@ public final class DiscordSRVTranslation {
     }
 
     public void convertCommentsToOptions(ConfigurationNode node, ConfigurationNode commentParent) throws SerializationException {
-        if (node instanceof CommentedConfigurationNode) {
-            CommentedConfigurationNode commentedNode = (CommentedConfigurationNode) node;
+        if (node instanceof CommentedConfigurationNode commentedNode) {
             String comment = commentedNode.comment();
             if (comment != null) {
                 List<Object> path = new ArrayList<>(Arrays.asList(commentedNode.path().array()));
