@@ -29,4 +29,5 @@ application {
 
 runShadow {
     args("--i18n", "--defaults")
+    workingDir = rootDir
 }

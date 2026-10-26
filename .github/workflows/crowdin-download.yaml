@@ -44,7 +44,7 @@ jobs:
 
           project_id: ${{ secrets.CROWDIN_PROJECT_ID }}
           token: ${{ secrets.CROWDIN_PERSONAL_TOKEN }}
-          source: "config/build/i18n/source.json"
+          source: "build/i18n/source.json"
           translation: "/config/src/main/resources/translations/%two_letters_code%.%file_extension%"
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
