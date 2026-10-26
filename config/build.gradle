@@ -15,12 +15,18 @@ dependencies {
     implementation(project(':bukkit:bukkit-shared')) { transitive = false }
     implementation(project(':bungee')) { transitive = false }
     implementation(project(':velocity')) { transitive = false }
-    implementation(project(path: ':modded:26.2-fabric', configuration: "shadow")) { transitive = false } // This should always match the vcsVersion in settings.gradle
+    implementation(project(path: ':modded:26.3-fabric', configuration: 'shadow')) { transitive = false }
 
     api(libs.configurate.yaml)
     api(libs.configurate.jackson)
+    api(libs.commons.lang)
+    api(libs.commons.io)
 }
 
 application {
-    mainClass = 'com.discordsrv.config.DiscordSRVTranslation'
+    mainClass = 'com.discordsrv.config.DiscordSRVConfigTool'
+}
+
+runShadow {
+    args("--i18n", "--defaults")
 }

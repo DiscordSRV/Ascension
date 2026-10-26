@@ -209,7 +209,7 @@ rootProject.name = 'DiscordSRV-Ascension'
 
 [
         'common', 'common:api', 'common:unrelocate',
-        'i18n',
+        'config',
         'api', 'api:configurate',
         // Bukkit
         'bukkit', 'bukkit:shared', 'bukkit:loader',

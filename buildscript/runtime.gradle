@@ -8,6 +8,6 @@ processResources {
 shadowJar {
     from {
         // Include translations
-        findProject(':i18n').sourceSets.main.resources
+        findProject(':config').sourceSets.main.resources
     }
 }
