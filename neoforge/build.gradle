@@ -1,5 +1,5 @@
 plugins {
-    id("dev.kikugie.stonecutter") version "0.10-alpha.10"
+    id("dev.kikugie.stonecutter") version "0.10-beta.2"
     alias(libs.plugins.neoforge.moddev)
 }
 apply from: rootProject.file('buildscript/loader.gradle')

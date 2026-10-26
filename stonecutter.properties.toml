@@ -177,7 +177,7 @@ deps.fabric_permission_api="0.7.0"
 deps.text_placeholder_api="3.1.0-beta.1+26.2"
 
 [neoforge."26.2"]
-deps.neoforge_version="26.2.0.7-beta"
+deps.neoforge_version="26.2.0.93"
 deps.neoforge_fml_version="11.0.13"
 
 ["26.3"]
@@ -190,5 +190,5 @@ deps.fabric_permission_api="0.7.0"
 deps.text_placeholder_api="3.2.0+26.3"
 
 [neoforge."26.3"]
-deps.neoforge_version="26.3.0.0-beta"
+deps.neoforge_version="26.3.0.99"
 deps.neoforge_fml_version="11.0.13"
