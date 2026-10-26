@@ -130,7 +130,8 @@ public class DiscordSRVNeoForgeBootstrap extends AbstractBootstrap implements Di
 
     @Override
     public String platformVersion() {
-        //? if fml: >= 10 {
+        // This should be FML, but it's currently bugged with stonecutter.
+        //? if minecraft: >= 1.21.9 {
         VersionInfo versionInfo = FMLLoader.getCurrent().getVersionInfo();
         //?} else {
         /*VersionInfo versionInfo = FMLLoader.versionInfo();
