@@ -41,11 +41,6 @@ hs_err_pid*
 # run-* Gradle tasks
 **/loader/run
 **/velocity/run
-**/fabric/run
-neoforge/versions/**/runs
-
-# Fabric mapping migration
-**/fabric/remappedSrc
-
-# Fabric src links
-/fabric/versions/*/src
+**/modded/run
+**/neoforge/run
+**/versions/**/run

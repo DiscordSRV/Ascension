@@ -54,7 +54,8 @@ public class ModManager implements PluginManager {
     //? if neoforge {
     /*@Override
     public boolean isPluginEnabled(String modIdentifier) {
-        //? if fml: >= 10 {
+        // This should be FML, but it's currently bugged with stonecutter.
+        //? if minecraft: >= 1.21.9 {
         return net.neoforged.fml.loading.FMLLoader.getCurrent().getLoadingModList().getMods().stream().anyMatch(modInfo -> modInfo.getModId().equalsIgnoreCase(modIdentifier));
         //?} else {
         /^return net.neoforged.fml.ModList.get().getMods().stream().anyMatch(modInfo -> modInfo.getModId().equalsIgnoreCase(modIdentifier));
@@ -63,7 +64,8 @@ public class ModManager implements PluginManager {
 
     @Override
     public List<Plugin> getPlugins() {
-        //? if fml: >= 10 {
+        // This should be FML, but it's currently bugged with stonecutter.
+        //? if minecraft: >= 1.21.9 {
         return net.neoforged.fml.loading.FMLLoader.getCurrent().getLoadingModList().getMods().stream()
                 .map(modInfo -> {
                     String id = modInfo.getModId();
