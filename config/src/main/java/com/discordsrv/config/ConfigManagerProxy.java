@@ -21,11 +21,9 @@ package com.discordsrv.config;
 import com.discordsrv.common.config.configurate.manager.abstraction.ConfigurateConfigManager;
 import com.discordsrv.common.config.configurate.manager.loader.YamlConfigLoaderProvider;
 import com.discordsrv.common.core.logging.Logger;
-import com.discordsrv.common.exception.ConfigException;
 import org.spongepowered.configurate.CommentedConfigurationNode;
 import org.spongepowered.configurate.ConfigurateException;
 import org.spongepowered.configurate.ConfigurationOptions;
-import org.spongepowered.configurate.loader.AbstractConfigurationLoader;
 import org.spongepowered.configurate.objectmapping.ObjectMapper;
 import org.spongepowered.configurate.yaml.YamlConfigurationLoader;
 
@@ -36,23 +34,21 @@ public class ConfigManagerProxy<C>
         extends ConfigurateConfigManager<C, YamlConfigurationLoader>
         implements YamlConfigLoaderProvider {
 
-    private final ObjectMapper.Factory objectMapper;
     private final ConfigurateConfigManager<C, ?> configManager;
 
-    public ConfigManagerProxy(Path dataDirectory, Logger logger, ObjectMapper.Factory objectMapper, ConfigurateConfigManager<C, ?> configManager) {
+    public ConfigManagerProxy(Path dataDirectory, Logger logger, ConfigurateConfigManager<C, ?> configManager) {
         super(dataDirectory, logger);
-        this.objectMapper = objectMapper;
         this.configManager = configManager;
     }
 
     @Override
     public ObjectMapper.Factory objectMapper() {
-        return objectMapper != null ? objectMapper : super.objectMapper();
+        return configManager.objectMapper() != null ? configManager.objectMapper() : super.objectMapper();
     }
 
     @Override
     public ObjectMapper.Factory cleanObjectMapper() {
-        return objectMapper != null ? objectMapper : super.cleanObjectMapper();
+        return configManager.cleanObjectMapper() != null ? configManager.cleanObjectMapper() : super.cleanObjectMapper();
     }
 
     @Override

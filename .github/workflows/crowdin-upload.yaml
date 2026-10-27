@@ -24,10 +24,8 @@ jobs:
         uses: gradle/actions/setup-gradle@v6
         with:
           cache-provider: basic
-      - name: Build config tools
-        run: "./gradlew config:build --no-daemon"
       - name: Generate translation source
-        run: "java -jar config/build/libs/config-all.jar --i18n"
+        run: "./gradlew config:runShadow --no-daemon"
       - name: Upload source to Crowdin
         uses: crowdin/github-action@v2
         with:
@@ -38,7 +36,7 @@ jobs:
 
           project_id: ${{ secrets.CROWDIN_PROJECT_ID }}
           token: ${{ secrets.CROWDIN_PERSONAL_TOKEN }}
-          source: "config/build/i18n/source.json"
+          source: "build/i18n/source.json"
           translation: "/config/src/main/resources/translations/%two_letters_code%.%file_extension%"
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
