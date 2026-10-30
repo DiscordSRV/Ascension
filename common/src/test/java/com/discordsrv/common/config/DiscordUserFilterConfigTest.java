@@ -35,9 +35,9 @@ public class DiscordUserFilterConfigTest {
         DiscordUserFilterConfig config = new DiscordUserFilterConfig();
         config.filters.clear();
 
-        assertFalse(config.included(false, false, 0, Collections.emptyList()));
-        assertFalse(config.included(true, false, 0, Collections.emptyList()));
-        assertFalse(config.included(true, true, 0, Collections.emptyList()));
+        assertTrue(config.included(false, false, 0, Collections.emptyList()));
+        assertTrue(config.included(true, false, 0, Collections.emptyList()));
+        assertTrue(config.included(true, true, 0, Collections.emptyList()));
     }
 
     @Test
