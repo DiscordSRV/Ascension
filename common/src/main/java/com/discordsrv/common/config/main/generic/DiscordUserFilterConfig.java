@@ -89,8 +89,8 @@ public class DiscordUserFilterConfig {
 
         List<SingleFilter> validFilters = getValidFilters();
         if (validFilters.isEmpty()) {
-            // Must have a filter
-            return false;
+            // (non-strict) Can be unfiltered to allow everything
+            return true;
         }
 
         for (SingleFilter filter : validFilters) {
