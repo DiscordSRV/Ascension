@@ -36,6 +36,7 @@ import com.discordsrv.common.config.main.channels.base.ChannelConfig;
 import com.discordsrv.common.config.main.channels.base.server.ServerBaseChannelConfig;
 import com.discordsrv.common.config.main.command.CustomCommandConfig;
 import com.discordsrv.common.config.main.generic.*;
+import com.discordsrv.common.config.main.linking.ServerRequiredLinkingConfig;
 import com.discordsrv.common.config.main.sync.GroupSyncConfig;
 import com.discordsrv.common.core.logging.Logger;
 import com.discordsrv.common.core.logging.NamedLogger;
@@ -190,19 +191,18 @@ public class V1ConfigMigration {
     /// Removed: Debug (partially handled in the background by default, partially replaced by debug.log-to-console and debug.additional-levels)
     ///
     /// ** linking.yml **
-    /// Missing: Require linked account to play.Enabled
-    /// Missing: Require linked account to play.Listener priority
-    /// Missing: Require linked account to play.Listener event
+    ///     Require linked account to play.Enabled
+    ///     Require linked account to play.Listener priority
+    ///     Require linked account to play.Listener event
     /// Missing: Require linked account to play.Bypass names
-    /// Missing: Require linked account to play.Whitelisted players bypass check
-    /// Missing: Require linked account to play.Check banned players
-    /// Missing: Require linked account to play.Only check banned players
-    /// Missing: Require linked account to play.Not linked message
-    /// Missing: Require linked account to play.Must be in Discord server
-    /// Missing: Require linked account to play.Subscriber role.Require subscriber role to join
-    /// Missing: Require linked account to play.Subscriber role.Subscriber roles
-    /// Missing: Require linked account to play.Subscriber role.Require all of the listed roles
-    /// Missing: Require linked account to play.Subscriber role.Kick message
+    ///     Require linked account to play.Whitelisted players bypass check
+    /// Removed with no replacement: Require linked account to play.Check banned players
+    /// Removed with no replacement: Require linked account to play.Only check banned players
+    /// Removed: Require linked account to play.Not linked message (linked message is configured by linker type in messages config)
+    /// *Partial: Require linked account to play.Must be in Discord server
+    ///     Require linked account to play.Subscriber role.Require subscriber role to join
+    ///     Require linked account to play.Subscriber role.Subscriber roles
+    ///     Require linked account to play.Subscriber role.Require all of the listed roles
     ///
     /// ** synchronization.yml **
     /// Missing: NicknameSynchronizationEnabled
@@ -291,6 +291,7 @@ public class V1ConfigMigration {
     private final ConfigurationNode config;
     private final ConfigurationNode messages;
     private final ConfigurationNode linking;
+    private final ConfigurationNode requiredLinking;
     private final ConfigurationNode synchronization;
 
     private final List<String> disabledIntegrations;
@@ -307,6 +308,7 @@ public class V1ConfigMigration {
         this.config = loadNode(discordSRV, "config.yml");
         this.messages = loadNode(discordSRV, "messages.yml");
         this.linking = loadNode(discordSRV, "linking.yml");
+        this.requiredLinking = linking.node("Require linked account to play");
         this.synchronization = loadNode(discordSRV, "synchronization.yml");
 
         List<String> disabledIntegrations;
@@ -980,6 +982,80 @@ public class V1ConfigMigration {
         String inviteLink = config.node("DiscordInviteLink").getString();
         if (!StringUtils.isEmpty(inviteLink) && !inviteLink.contains("/changethisin")) {
             mainConfig.invite.inviteUrl = inviteLink;
+        }
+
+        //
+        // Required Linking
+        //
+        ServerRequiredLinkingConfig requiredLinkingConfig = null;
+        try {
+            requiredLinkingConfig = (ServerRequiredLinkingConfig) mainConfig.getClass().getField("requiredLinking").get(mainConfig);
+        } catch (ReflectiveOperationException e) {
+            logger.warning("Cannot migrate Required Linking options", e);
+        }
+        if (requiredLinkingConfig != null) {
+            requiredLinkingConfig.enabled = requiredLinking.node("Enabled").getBoolean();
+            requiredLinkingConfig.action = ServerRequiredLinkingConfig.Action.KICK;
+
+            requiredLinkingConfig.whitelistedPlayersCanBypass = requiredLinking.node("Whitelisted players bypass check").getBoolean();
+
+            //requiredLinkingConfig.requirements.bypassUUIDs.add(); // TODO: Bypass names
+
+            List<String> collectiveRequirement = new ArrayList<>();
+
+            ConfigurationNode mustBeInDiscordServer = requiredLinking.node("Must be in Discord server");
+            List<Long> serversTheUserCanBeIn = mustBeInDiscordServer.getList(Long.class, Collections.emptyList());
+            if (serversTheUserCanBeIn.isEmpty()) {
+                long serverId = mustBeInDiscordServer.getLong();
+                if (serverId != ConfigurationNode.NUMBER_DEF) {
+                    serversTheUserCanBeIn = Collections.singletonList(serverId);
+                }
+            }
+            if (serversTheUserCanBeIn.isEmpty() && mustBeInDiscordServer.getBoolean(false)) {
+                // TODO: any server the bot is in
+            }
+            if (!serversTheUserCanBeIn.isEmpty()) {
+                collectiveRequirement.add("(" + String.join(
+                        " && ",
+                        serversTheUserCanBeIn.stream().map(Long::toUnsignedString).toList()
+                ) + ")");
+            }
+
+            ConfigurationNode subscriberRoleNode = requiredLinking.node("Subscriber role");
+            if (subscriberRoleNode.node("Require subscriber role to join").getBoolean()) {
+                ConfigurationNode subscribeRoleIdsNode = subscriberRoleNode.node("Subscriber roles");
+                List<Long> roleIds = subscribeRoleIdsNode.getList(Long.class, Collections.emptyList());
+                if (roleIds.isEmpty()) {
+                    roleIds = subscribeRoleIdsNode.node("Subscriber roles")
+                            .getList(String.class, Collections.emptyList())
+                            .stream()
+                            .map(MiscUtil::parseLong)
+                            .toList();
+                }
+                roleIds = roleIds.stream().filter(roleId -> roleId != 0).toList();
+
+                boolean requireAll = subscriberRoleNode.node("Require all of the listed roles").getBoolean();
+                collectiveRequirement.add("(" + String.join(
+                        requireAll ? " && " : " || ",
+                        roleIds.stream().map(Long::toUnsignedString).toList()
+                ) + ")");
+            }
+
+            List<String> additionalRequirements = new ArrayList<>();
+            if (!collectiveRequirement.isEmpty()) {
+                additionalRequirements.add(String.join(" && "));
+            }
+            requiredLinkingConfig.requirements.additionalRequirements = additionalRequirements;
+
+            try {
+                Class<?> requiredLinkingConfigClass = requiredLinkingConfig.getClass();
+                Object kickOptions = requiredLinkingConfigClass.getField("kick").get(requiredLinkingConfig);
+                Class<?> kickOptionsClass = kickOptions.getClass();
+                kickOptionsClass.getField("event").set(kickOptions, requiredLinking.node("Listener event").getString()); // TODO
+                kickOptionsClass.getField("priority").set(kickOptions, requiredLinking.node("Listener priority").getString()); // TODO
+            } catch (ReflectiveOperationException e) {
+                logger.warning("Cannot migrate Required Linking kick options", e);
+            }
         }
 
         //
