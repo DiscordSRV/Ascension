@@ -41,11 +41,15 @@ import com.discordsrv.common.config.main.sync.GroupSyncConfig;
 import com.discordsrv.common.core.logging.Logger;
 import com.discordsrv.common.core.logging.NamedLogger;
 import com.discordsrv.common.core.storage.StorageType;
+import net.dv8tion.jda.api.JDA;
+import net.dv8tion.jda.api.JDABuilder;
 import net.dv8tion.jda.api.OnlineStatus;
+import net.dv8tion.jda.api.entities.Guild;
+import net.dv8tion.jda.api.entities.Role;
+import net.dv8tion.jda.api.entities.channel.concrete.TextChannel;
 import net.dv8tion.jda.api.utils.MiscUtil;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.Pair;
-import org.jspecify.annotations.Nullable;
 import org.spongepowered.configurate.ConfigurateException;
 import org.spongepowered.configurate.ConfigurationNode;
 import org.spongepowered.configurate.serialize.SerializationException;
@@ -120,7 +124,7 @@ public class V1ConfigMigration {
     ///     DiscordChatChannelTruncateLength
     ///     DiscordChatChannelTranslateMentions
     ///     DiscordChatChannelAllowedMentions
-    /// Partial: DiscordChatChannelEmojiBehavior ("name" missing)
+    /// *Partial: DiscordChatChannelEmojiBehavior ("name" missing)
     ///     DiscordChatChannelEmoteBehavior
     ///     DiscordChatChannelPrefixRequiredToProcessMessage
     ///     DiscordChatChannelPrefixActsAsBlacklist
@@ -199,13 +203,13 @@ public class V1ConfigMigration {
     /// Removed with no replacement: Require linked account to play.Check banned players
     /// Removed with no replacement: Require linked account to play.Only check banned players
     /// Removed: Require linked account to play.Not linked message (linked message is configured by linker type in messages config)
-    /// *Partial: Require linked account to play.Must be in Discord server
+    ///     Require linked account to play.Must be in Discord server
     ///     Require linked account to play.Subscriber role.Require subscriber role to join
     ///     Require linked account to play.Subscriber role.Subscriber roles
     ///     Require linked account to play.Subscriber role.Require all of the listed roles
     ///
     /// ** synchronization.yml **
-    /// Missing: NicknameSynchronizationEnabled
+    ///     NicknameSynchronizationEnabled
     ///     NicknameSynchronizationCycleTime
     ///     NicknameSynchronizationFormat
     ///
@@ -296,6 +300,12 @@ public class V1ConfigMigration {
 
     private final List<String> disabledIntegrations;
 
+    private final Set<Long> activeGuildIds = new LinkedHashSet<>();
+
+    private Long mainGuildId;
+    private final Map<Long, Long> textChannelIdToGuildId = new HashMap<>();
+    private final Map<Long, Map<String, List<Long>>> guildToLowerCasedRoleNameToIds = new LinkedHashMap<>();
+
     /**
      * If some options shouldn't be carried over in favour of better defaults.
      * {@code false} will attempt to migrate everything as closely as possible.
@@ -327,6 +337,54 @@ public class V1ConfigMigration {
     private boolean isIntegrationEnabled(String pluginName) {
         return disabledIntegrations.stream().noneMatch(pluginName::equalsIgnoreCase)
                 && discordSRV.pluginManager().isPluginEnabled(pluginName);
+    }
+
+    private void loginToDiscord() throws InterruptedException {
+        JDA jda = JDABuilder.createLight(config.node("BotToken").getString())
+                .setEnabledIntents(Collections.emptyList())
+                .setEnableShutdownHook(false)
+                .build();
+        try {
+            jda.awaitReady();
+
+            String firstChannel = config.node("Channels").childrenMap().values().iterator().next().getString();
+            TextChannel mainTextChannel = StringUtils.isBlank(firstChannel) ? null : jda.getTextChannelById(firstChannel);
+
+            String consoleChannelId = config.node("DiscordConsoleChannelId").getString();
+            TextChannel consoleChannel = StringUtils.isNotBlank(consoleChannelId) && StringUtils.isNumeric(consoleChannelId)
+                                         ? jda.getTextChannelById(consoleChannelId)
+                                         : null;
+
+            List<Guild> guilds = jda.getGuilds();
+
+            Guild mainGuild = mainTextChannel != null
+                              ? mainTextChannel.getGuild()
+                              : consoleChannel != null
+                                ? consoleChannel.getGuild()
+                                : !guilds.isEmpty()
+                                  ? guilds.getFirst()
+                                  : null;
+            
+            mainGuildId = mainGuild != null ? mainGuild.getIdLong() : null;
+
+            jda.getTextChannels().forEach(channel -> textChannelIdToGuildId.put(channel.getIdLong(), channel.getGuild().getIdLong()));
+
+            for (Guild guild : guilds) {
+                Map<String, List<Long>> lowerCasedRoleNameToIds = guildToLowerCasedRoleNameToIds.computeIfAbsent(
+                        guild.getIdLong(),
+                        id -> new LinkedHashMap<>()
+                );
+
+                for (Role role : guild.getRoles()) {
+                    String roleName = role.getName().toLowerCase(Locale.ROOT);
+                    lowerCasedRoleNameToIds
+                            .computeIfAbsent(roleName, name -> new ArrayList<>())
+                            .add(role.getIdLong());
+                }
+            }
+        } finally {
+            jda.shutdownNow();
+        }
     }
 
     private enum PlaceholderField {
@@ -599,6 +657,7 @@ public class V1ConfigMigration {
             placeholderMapping.put(Pattern.compile("%date%|%time%"), $TimeUtil_timeStamp);
         }
         if (placeholderField == PlaceholderField.CHANNEL_UPDATER_SHUTDOWN_FORMAT) {
+            placeholderMapping.put(Pattern.compile("<t:%timestamp%(:[tTdDfFsSR])?>"), "%now_date:'timestamp$1'%");
             placeholderMapping.put("%timestamp%", "%now_date_to_epoch_seconds%");
         }
 
@@ -671,31 +730,44 @@ public class V1ConfigMigration {
         }
     }
 
-    @Nullable
-    private Long convertRoleNameToId(String roleName) {
+    private List<Long> convertRoleNameToIds(String roleName) {
         try {
-            return MiscUtil.parseLong(roleName);
+            return Collections.singletonList(MiscUtil.parseLong(roleName));
         } catch (NumberFormatException ignored) {
-            return null;
+            roleName = roleName.toLowerCase(Locale.ROOT);
+
+            List<Long> roleIds = new ArrayList<>();
+            for (Long guildId : activeGuildIds) {
+                roleIds.addAll(guildToLowerCasedRoleNameToIds.getOrDefault(guildId, Collections.emptyMap())
+                        .getOrDefault(roleName, Collections.emptyList()));
+            }
+
+            return roleIds;
         }
     }
 
-    private Long convertRoleNameToId(ConfigurationNode node) {
+    private List<Long> convertRoleNameToIds(ConfigurationNode node) {
         String roleName = node.getString();
         if (roleName == null) {
             return null;
         }
 
-        return convertRoleNameToId(roleName);
+        return convertRoleNameToIds(roleName);
     }
 
     private List<Long> convertRoleNameListToIds(ConfigurationNode node) throws SerializationException {
-        return node
-                .getList(String.class, Collections.emptyList())
+        List<String> roles = node.getList(String.class, Collections.emptyList());
+        if (roles.contains("@everyone")) {
+            return Collections.emptyList();
+        }
+
+        return roles
                 .stream()
-                .map(this::convertRoleNameToId)
-                .filter(Objects::nonNull)
-                .collect(Collectors.toList());
+                .map(this::convertRoleNameToIds)
+                .reduce(new ArrayList<>(), (list, listToGetRidOf) -> {
+                    list.addAll(listToGetRidOf);
+                    return list;
+                });
     }
 
     private Map<Pattern, String> convertToRegexReplacements(ConfigurationNode node) throws SerializationException {
@@ -733,13 +805,17 @@ public class V1ConfigMigration {
         List<Long> channelIds = new ArrayList<>();
         config.node("Channels").childrenMap().forEach((key, value) -> {
             String channelId = value.getString();
-            if (!(key instanceof String) || channelId == null) {
+            if (!(key instanceof String channelName) || channelId == null) {
                 return;
             }
 
-            String channelName = (String) key;
             long id = MiscUtil.parseLong(channelId);
             channelIds.add(id);
+
+            Long guildId = textChannelIdToGuildId.get(id);
+            if (guildId != null) {
+                activeGuildIds.add(guildId);
+            }
 
             ChannelConfig channelConfig = new ChannelConfig();
             channelConfig.destination.channelIds = Collections.singletonList(id);
@@ -872,11 +948,20 @@ public class V1ConfigMigration {
                 defaultChannel.discordToMinecraft.ignores.filters
                         .add(new DiscordUserFilterConfig.SingleFilter(blockedId, FilterMode.BLACKLIST));
             }
+
             FilterMode discordToMinecraftIgnoreRoleFilterMode = config.node("DiscordChatChannelBlockedRolesAsWhitelist").getBoolean(false)
                                                                 ? FilterMode.WHITELIST : FilterMode.BLACKLIST;
             for (Long roleId : config.node("DiscordChatChannelBlockedRolesIds").getList(Long.class, Collections.emptyList())) {
                 defaultChannel.discordToMinecraft.ignores.filters
                         .add(new DiscordUserFilterConfig.SingleFilter(roleId, discordToMinecraftIgnoreRoleFilterMode));
+            }
+            if (defaultChannel.discordToMinecraft.ignores.filters.isEmpty() && discordToMinecraftIgnoreRoleFilterMode == FilterMode.WHITELIST) {
+                // Empty whitelist filter = nobody allowed (except webhooks)
+                if (recommendedUpgrades) {
+                    defaultChannel.discordToMinecraft.enabled = false;
+                } else {
+                    defaultChannel.discordToMinecraft.ignores.filters.add(new DiscordUserFilterConfig.SingleFilter());
+                }
             }
 
             defaultChannel.discordToMinecraft.formattingLimit.filters = convertRoleNameListToIds(config.node("DiscordChatChannelRolesAllowedToUseColorCodesInChat"))
@@ -1012,7 +1097,7 @@ public class V1ConfigMigration {
                 }
             }
             if (serversTheUserCanBeIn.isEmpty() && mustBeInDiscordServer.getBoolean(false)) {
-                // TODO: any server the bot is in
+                serversTheUserCanBeIn.addAll(activeGuildIds);
             }
             if (!serversTheUserCanBeIn.isEmpty()) {
                 collectiveRequirement.add("(" + String.join(
@@ -1051,8 +1136,8 @@ public class V1ConfigMigration {
                 Class<?> requiredLinkingConfigClass = requiredLinkingConfig.getClass();
                 Object kickOptions = requiredLinkingConfigClass.getField("kick").get(requiredLinkingConfig);
                 Class<?> kickOptionsClass = kickOptions.getClass();
-                kickOptionsClass.getField("event").set(kickOptions, requiredLinking.node("Listener event").getString()); // TODO
-                kickOptionsClass.getField("priority").set(kickOptions, requiredLinking.node("Listener priority").getString()); // TODO
+                kickOptionsClass.getField("event").set(kickOptions, requiredLinking.node("Listener event").getString());
+                kickOptionsClass.getField("priority").set(kickOptions, requiredLinking.node("Listener priority").getString());
             } catch (ReflectiveOperationException e) {
                 logger.warning("Cannot migrate Required Linking kick options", e);
             }
@@ -1170,8 +1255,11 @@ public class V1ConfigMigration {
         //
         // Nickname Sync
         //
-        // TODO: determine server id
-        if (synchronization.node("NicknameSynchronizationEnabled").getBoolean(false) && !recommendedUpgrades) {
+        boolean nicknameSyncEnabled = synchronization.node("NicknameSynchronizationEnabled").getBoolean(false);
+        if (nicknameSyncEnabled) {
+            mainConfig.nicknameSync.serverId = mainGuildId;
+        }
+        if (nicknameSyncEnabled && !recommendedUpgrades) {
             mainConfig.nicknameSync.direction = SyncDirection.MINECRAFT_TO_DISCORD;
         }
         mainConfig.nicknameSync.timer.cycleTime = synchronization.node("NicknameSynchronizationCycleTime").getInt(3);
@@ -1180,9 +1268,12 @@ public class V1ConfigMigration {
         //
         // Ban Sync
         //
-        // TODO: determine server id
         boolean bansToMinecraft = synchronization.node("BanSynchronizationDiscordToMinecraft").getBoolean(true);
         boolean bansToDiscord = synchronization.node("BanSynchronizationMinecraftToDiscord").getBoolean(true);
+        if (bansToMinecraft || bansToDiscord) {
+            mainConfig.banSync.serverId = mainGuildId;
+        }
+
         SyncDirection banSyncDirection = SyncDirection.BIDIRECTIONAL;
         if (bansToMinecraft && !bansToDiscord) {
             banSyncDirection = SyncDirection.DISCORD_TO_MINECRAFT;
@@ -1195,10 +1286,10 @@ public class V1ConfigMigration {
         //
         // Linked Role
         //
-        Long linkedRoleId = convertRoleNameToId(config.node("MinecraftDiscordAccountLinkedRoleNameToAddUserTo"));
-        if (linkedRoleId != null) {
+        List<Long> linkedRoleIds = convertRoleNameToIds(config.node("MinecraftDiscordAccountLinkedRoleNameToAddUserTo"));
+        if (linkedRoleIds != null) {
             mainConfig.linkedRole.roleIds.clear();
-            mainConfig.linkedRole.roleIds.add(linkedRoleId); // TODO: role name => role id
+            mainConfig.linkedRole.roleIds.addAll(linkedRoleIds);
         }
 
         //
@@ -1329,7 +1420,7 @@ public class V1ConfigMigration {
             updaterConfig.shutdownNameFormat = convertPlaceholders(PlaceholderField.CHANNEL_UPDATER_SHUTDOWN_FORMAT, channelUpdater.node("ShutdownFormat").getString());
             updaterConfig.timeMinutes = channelUpdater.node("UpdateInterval").getInt();
             return updaterConfig;
-        }).filter(Objects::nonNull).collect(Collectors.toList());
+        }).filter(Objects::nonNull).toList();
         if (!channelUpdaters.isEmpty() || !recommendedUpgrades) {
             mainConfig.channelUpdater.voiceChannels.clear();
             mainConfig.channelUpdater.voiceChannels.addAll(channelUpdaters);
