@@ -89,8 +89,8 @@ public class DiscordUserFilterConfig {
 
         List<SingleFilter> validFilters = getValidFilters();
         if (validFilters.isEmpty()) {
-            // (non-strict) Can be unfiltered to allow everything
-            return true;
+            // (non-strict) Can be unfiltered to allow everything (if there is just an empty blacklist filter)
+            return !filters.isEmpty() && filters.stream().noneMatch(filter -> filter.mode == FilterMode.WHITELIST);
         }
 
         for (SingleFilter filter : validFilters) {
