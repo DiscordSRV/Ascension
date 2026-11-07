@@ -346,7 +346,7 @@ public class MessagesConfig implements Config {
             "Manually link accounts"
     );
 
-    // Link mesasge command
+    // Link message command
 
     public DiscordMessage linkMessageCommandDescription = discord(
             "Sends a message with a link button"

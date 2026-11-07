@@ -23,6 +23,7 @@ import com.discordsrv.api.discord.entity.interaction.command.DiscordCommand;
 import com.discordsrv.api.discord.entity.message.SendableDiscordMessage;
 import com.discordsrv.api.discord.entity.message.SendableDiscordMessageTemplate;
 import com.discordsrv.api.placeholder.util.PlaceholderReplacer;
+import com.discordsrv.api.task.Task;
 import com.discordsrv.common.DiscordSRV;
 import com.discordsrv.common.abstraction.sync.enums.SyncDirection;
 import com.discordsrv.common.abstraction.sync.enums.SyncSide;
@@ -38,6 +39,7 @@ import com.discordsrv.common.config.main.command.CustomCommandConfig;
 import com.discordsrv.common.config.main.generic.*;
 import com.discordsrv.common.config.main.linking.ServerRequiredLinkingConfig;
 import com.discordsrv.common.config.main.sync.GroupSyncConfig;
+import com.discordsrv.common.config.messages.MessagesConfig;
 import com.discordsrv.common.core.logging.Logger;
 import com.discordsrv.common.core.logging.NamedLogger;
 import com.discordsrv.common.core.storage.StorageType;
@@ -65,215 +67,240 @@ import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+/// Migration is split by Ascension configuration object, and ordered roughly in order (of the Ascension configs, not v1's).
+/// v1 options and their status are listed here.
+/// Most "messages" are skipped, other than some of the more prominent ones that are very often customized.
+/// voice, alerts and watchdog options are also skipped
+///
+/// ** config.yml **
+/// Removed: ConfigVersion (replaced by automatic-configuration-upgrade and /discordsrv reload config_upgrade)
+///
+///     BotToken (Connections)
+///
+///     Channels
+///
+///     DiscordConsoleChannelId
+///
+///     DiscordInviteLink
+///
+///     Experiment_JdbcAccountLinkBackend (Connections)
+///     Experiment_JdbcTablePrefix (Connections)
+///     Experiment_JdbcUsername (Connections)
+///     Experiment_JdbcPassword (Connections)
+///
+///     Experiment_WebhookChatMessageDelivery
+///     Experiment_WebhookChatMessageUsernameFormat
+///     Experiment_WebhookChatMessageFormat
+///     Experiment_WebhookChatMessageUsernameFromDiscord
+///     Experiment_WebhookChatMessageAvatarFromDiscord
+/// Missing: Experiment_WebhookChatMessageUsernameFilters
+///
+///     AvatarUrl
+///
+/// Removed: Experiment_MCDiscordReserializer_ToDiscord (default behaviour)
+/// Removed: Experiment_MCDiscordReserializer_ToMinecraft (default behaviour)
+/// Removed: Experiment_MCDiscordReserializer_InBroadcast (Replaced by dedicated command, /discordsrv broadcastd)
+///
+/// Removed with no replacement: CancelConsoleCommandIfLoggingFailed
+///     ForcedLanguage
+/// Removed with no replacement: ForceTLSv12
+/// Removed with no replacement: NoopHostnameVerifier
+/// Removed with no replacement: MaximumAttemptsForSystemDNSBeforeUsingFallbackDNS
+/// Migrated into placeholder: TimestampFormat
+/// Removed with no replacement: DateFormat (the only usage of this was in file rotation which now uses a fixed file name format)
+/// Migrated into placeholder: Timezone
+/// Missing: MinecraftMentionSound
+///
+///     DisabledPluginHooks
+/// Removed with no replacement: VentureChatBungee
+/// Removed with no replacement: EnablePresenceInformation
+/// Removed: UseModernPaperChatEvent (default behaviour)
+///
+///     DiscordGameStatus
+///     DiscordOnlineStatus
+///     StatusUpdateRateInMinutes
+///
+///     DiscordChatChannelDiscordToMinecraft
+///     DiscordChatChannelMinecraftToDiscord
+///     DiscordChatChannelTruncateLength
+///     DiscordChatChannelTranslateMentions
+///     DiscordChatChannelAllowedMentions
+/// *Partial: DiscordChatChannelEmojiBehavior ("name" missing)
+///     DiscordChatChannelEmoteBehavior
+///     DiscordChatChannelPrefixRequiredToProcessMessage
+///     DiscordChatChannelPrefixActsAsBlacklist
+///     DiscordChatChannelRolesAllowedToUseColorCodesInChat
+///     DiscordChatChannelBroadcastDiscordMessagesToConsole
+/// Missing: DiscordChatChannelRequireLinkedAccount
+///     DiscordChatChannelBlockBots
+///     DiscordChatChannelBlockWebhooks
+///     DiscordChatChannelBlockedIds
+///     DiscordChatChannelBlockedRolesAsWhitelist
+///     DiscordChatChannelBlockedRolesIds
+///     DiscordChatChannelRolesSelectionAsWhitelist
+///     DiscordChatChannelRolesSelection
+/// Missing: DiscordChatChannelRoleAliases
+///
+/// Removed: DiscordConsoleChannelLogRefreshRateInSeconds (changed to fixed save interval)
+/// Removed: DiscordConsoleChannelUsageLog (changed to fixed file name format)
+///     DiscordConsoleChannelBlacklistActsAsWhitelist
+///     DiscordConsoleChannelBlacklistedCommands
+///     DiscordConsoleChannelFilters
+///     DiscordConsoleChannelLevels
+///     DiscordConsoleChannelUseCodeBlocks
+/// Removed: DiscordConsoleChannelBlockBots (Users/roles need to be specifically whitelisted)
+///
+///     DiscordChatChannelConsoleCommandEnabled
+/// Removed with no replacement: DiscordChatChannelConsoleCommandNotifyErrors (users are always notified)
+/// Removed with no replacement: DiscordChatChannelConsoleCommandPrefix (always /discordsrv execute)
+///     DiscordChatChannelConsoleCommandRolesAllowed
+///     DiscordChatChannelConsoleCommandWhitelist
+///     DiscordChatChannelConsoleCommandWhitelistBypassRoles
+///     DiscordChatChannelConsoleCommandWhitelistActsAsBlacklist
+/// Migrated to ephemeral option: DiscordChatChannelConsoleCommandExpiration
+/// Migrated to ephemeral option: DiscordChatChannelConsoleCommandExpirationDeleteRequest
+///
+///     DiscordChatChannelListCommandEnabled
+/// Removed with no replacement: DiscordChatChannelListCommandMessage (only the main command can be customized, the sub-command is always playerlist)
+/// Removed: DiscordChatChannelListCommandExpiration (command is ephemeral, only visible to the requester)
+/// Removed: DiscordChatChannelListCommandExpirationDeleteRequest (command is ephemeral, only visible to the requester)
+///
+///     DiscordChatChannelGameFilters
+///     DiscordChatChannelDiscordFilters
+///
+///     ChannelTopicUpdaterChannelTopicsAtShutdownEnabled
+///     ChannelTopicUpdaterRateInMinutes
+///
+///     ChannelUpdater
+///     - ChannelId
+///       Format
+///       ShutdownFormat
+///       UpdateInterval
+///
+///     DiscordCannedResponses
+///
+///     MinecraftDiscordAccountLinkedConsoleCommands
+///     MinecraftDiscordAccountUnlinkedConsoleCommands
+///     MinecraftDiscordAccountLinkedRoleNameToAddUserTo
+/// Removed with no replacement: MinecraftDiscordAccountLinkedAllowRelinkBySendingANewCode (not allowed, must unlink first)
+/// Removed with no replacement: MinecraftDiscordAccountLinkedUsePM (replaced by slash command)
+/// Removed with no replacement: MinecraftDiscordAccountLinkedMessageDeleteSeconds (responses are ephemeral, only visible to the requester)
+///
+/// * watchdog options skipped *
+///
+///     ProxyHost (Connections)
+///     ProxyPort (Connections)
+///     ProxyUser (Connections)
+///     ProxyPassword (Connections)
+///
+/// Removed: Debug (partially handled in the background by default, partially replaced by debug.log-to-console and debug.additional-levels)
+///
+/// ** linking.yml **
+///     Require linked account to play.Enabled
+///     Require linked account to play.Listener priority
+///     Require linked account to play.Listener event
+///     Require linked account to play.Bypass names
+///     Require linked account to play.Whitelisted players bypass check
+/// Removed with no replacement: Require linked account to play.Check banned players
+/// Removed with no replacement: Require linked account to play.Only check banned players
+/// Removed: Require linked account to play.Not linked message (linked message is configured by linker type in messages config)
+///     Require linked account to play.Must be in Discord server
+///     Require linked account to play.Subscriber role.Require subscriber role to join
+///     Require linked account to play.Subscriber role.Subscriber roles
+///     Require linked account to play.Subscriber role.Require all of the listed roles
+/// Removed: Require linked account to play.Subscriber role.Kick message (replaced by failed-requirements message)
+///
+/// Missing: Require linked account to play.Messages.DiscordSRV still starting
+/// Removed: Require linked account to play.Messages.Not in server (replaced by failed-requirements message)
+/// Removed: Require linked account to play.Messages.Failed to find subscriber role (the requirement will simply fail, and give the failed-requirements message)
+/// Missing: Require linked account to play.Messages.Failed for unknown reason
+/// Removed: Require linked account to play.Messages.Kicked for unlinking (kicks with linked message, which is configured by linker type in messages config)
+///
+/// ** synchronization.yml **
+///     NicknameSynchronizationEnabled
+///     NicknameSynchronizationCycleTime
+///     NicknameSynchronizationFormat
+///
+///     GroupRoleSynchronizationGroupsAndRolesToSync
+///     GroupRoleSynchronizationMinecraftIsAuthoritative
+///     GroupRoleSynchronizationOneWay
+/// Removed with no replacement: GroupRoleSynchronizationEnableDenyPermission
+/// Removed with no replacement: GroupRoleSynchronizationPrimaryGroupOnly (partially handled by include-inherited, on supported permission plugins)
+///     GroupRoleSynchronizationOnLink
+///     GroupRoleSynchronizationCycleTime
+/// Removed with no replacement: GroupRoleSynchronizationCycleCompletely
+///
+///     BanSynchronizationDiscordToMinecraft
+/// Missing: BanSynchronizationDiscordToMinecraftReason
+///     BanSynchronizationMinecraftToDiscord
+///
+/// ** messages.yml **
+///     DiscordToMinecraftChatMessageFormat_<channel>
+/// Removed with no replacement: DiscordToMinecraftChatMessageFormatNoRole_<channel>
+///     DiscordToMinecraftChatMessageFormat
+/// Removed with no replacement: DiscordToMinecraftChatMessageFormatNoRole
+/// Migrated into placeholder: DiscordToMinecraftAllRolesSeparator
+///     DiscordToMinecraftMessageReplyFormat
+///
+///     MinecraftChatToDiscordMessageFormat
+///     MinecraftChatToDiscordMessageFormatNoPrimaryGroup
+///
+///     ChatChannelHookMessageFormat
+///
+/// Missing: DynmapNameFormat
+/// Missing: DynmapChatFormat
+/// Missing: DynmapDiscordFormat
+///
+/// Migrated into placeholder: DiscordConsoleChannelTimestampFormat
+///     DiscordConsoleChannelPrefix
+///     DiscordConsoleChannelSuffix
+/// Migrated into placeholder: DiscordConsoleChannelPadding
+///
+/// Skip: DiscordChatChannelConsoleCommandNotifyErrorsFormat
+///
+///     DiscordChatChannelListCommandFormatOnlinePlayers
+///     DiscordChatChannelListCommandFormatNoOnlinePlayers
+///     DiscordChatChannelListCommandPlayerFormat
+///     DiscordChatChannelListCommandAllPlayersSeparator
+///
+///     MinecraftPlayerJoinMessage
+///     MinecraftPlayerFirstJoinMessage
+///     MinecraftPlayerLeaveMessage
+///     MinecraftPlayerDeathMessage
+///     MinecraftPlayerAchievementMessage
+///
+///     ChannelTopicUpdaterChatChannelTopicFormat
+///     ChannelTopicUpdaterConsoleChannelTopicFormat
+///     ChannelTopicUpdaterChatChannelTopicAtServerShutdownFormat
+///     ChannelTopicUpdaterConsoleChannelTopicAtServerShutdownFormat
+///
+///     DiscordCommandFormat
+///
+///     NoPermissionMessage
+/// Removed: UnknownCommandMessage (gives a Brigadier style error)
+///
+///     DiscordChatChannelServerStartupMessage
+///     DiscordChatChannelServerShutdownMessage
+///
+/// Skip: ServerWatchdogMessage
+///
+/// Missing: UnknownCode
+/// Missing: InvalidCode
+///     DiscordAccountLinked
+/// Missing: DiscordAccountAlreadyLinked
+/// Missing: DiscordLinkedAccountRequired
+/// Missing: DiscordLinkedAccountCheckFailed
+///
+/// Missing: CodeGenerated
+/// Missing: ClickToCopyCode
+///     MinecraftAccountLinked
+/// Missing: MinecraftAccountAlreadyLinked
+/// Missing: LinkedCommandSuccess
+/// Missing: UnlinkCommandSuccess
+/// Missing: MinecraftNoLinkedAccount
+/// Missing: LinkingError
+/// Missing: MinecraftNobodyFound
 public class V1ConfigMigration {
-
-    /// Migration is split by Ascension configuration object, and ordered roughly in order (of the Ascension configs, not v1's).
-    /// v1 options and their status are listed here.
-    /// Most "messages" are skipped, other than some of the more prominent ones that are very often customized.
-    /// voice, alerts and watchdog options are also skipped
-    ///
-    /// ** config.yml **
-    /// Removed: ConfigVersion (replaced by automatic-configuration-upgrade and /discordsrv reload config_upgrade)
-    ///
-    ///     BotToken (Connections)
-    ///
-    ///     Channels
-    ///
-    ///     DiscordConsoleChannelId
-    ///
-    ///     DiscordInviteLink
-    ///
-    ///     Experiment_JdbcAccountLinkBackend (Connections)
-    ///     Experiment_JdbcTablePrefix (Connections)
-    ///     Experiment_JdbcUsername (Connections)
-    ///     Experiment_JdbcPassword (Connections)
-    ///
-    ///     Experiment_WebhookChatMessageDelivery
-    ///     Experiment_WebhookChatMessageFormat
-    ///     Experiment_WebhookChatMessageUsernameFromDiscord
-    ///     Experiment_WebhookChatMessageAvatarFromDiscord
-    /// Missing: Experiment_WebhookChatMessageUsernameFilters
-    ///
-    ///     AvatarUrl
-    ///
-    /// Removed: Experiment_MCDiscordReserializer_ToDiscord (default behaviour)
-    /// Removed: Experiment_MCDiscordReserializer_ToMinecraft (default behaviour)
-    /// Removed: Experiment_MCDiscordReserializer_InBroadcast (Replaced by dedicated command, /discordsrv broadcastd)
-    ///
-    /// Removed with no replacement: CancelConsoleCommandIfLoggingFailed
-    ///     ForcedLanguage
-    /// Removed with no replacement: ForceTLSv12
-    /// Removed with no replacement: NoopHostnameVerifier
-    /// Removed with no replacement: MaximumAttemptsForSystemDNSBeforeUsingFallbackDNS
-    /// Migrated into placeholder: TimestampFormat
-    /// Removed with no replacement: DateFormat (the only usage of this was in file rotation which now uses a fixed file name format)
-    /// Migrated into placeholder: Timezone
-    /// Missing: MinecraftMentionSound
-    ///
-    ///     DisabledPluginHooks
-    /// Removed with no replacement: VentureChatBungee
-    /// Removed with no replacement: EnablePresenceInformation
-    /// Removed with no replacement: UseModernPaperChatEvent (default behaviour)
-    ///
-    ///     DiscordGameStatus
-    ///     DiscordOnlineStatus
-    ///     StatusUpdateRateInMinutes
-    ///
-    ///     DiscordChatChannelDiscordToMinecraft
-    ///     DiscordChatChannelMinecraftToDiscord
-    ///     DiscordChatChannelTruncateLength
-    ///     DiscordChatChannelTranslateMentions
-    ///     DiscordChatChannelAllowedMentions
-    /// *Partial: DiscordChatChannelEmojiBehavior ("name" missing)
-    ///     DiscordChatChannelEmoteBehavior
-    ///     DiscordChatChannelPrefixRequiredToProcessMessage
-    ///     DiscordChatChannelPrefixActsAsBlacklist
-    ///     DiscordChatChannelRolesAllowedToUseColorCodesInChat
-    ///     DiscordChatChannelBroadcastDiscordMessagesToConsole
-    /// Missing: DiscordChatChannelRequireLinkedAccount
-    ///     DiscordChatChannelBlockBots
-    ///     DiscordChatChannelBlockWebhooks
-    ///     DiscordChatChannelBlockedIds
-    ///     DiscordChatChannelBlockedRolesAsWhitelist
-    ///     DiscordChatChannelBlockedRolesIds
-    ///     DiscordChatChannelRolesSelectionAsWhitelist
-    ///     DiscordChatChannelRolesSelection
-    /// Missing: DiscordChatChannelRoleAliases
-    ///
-    /// Removed with no replacement: DiscordConsoleChannelLogRefreshRateInSeconds
-    /// Removed with no replacement: DiscordConsoleChannelUsageLog
-    ///     DiscordConsoleChannelBlacklistActsAsWhitelist
-    ///     DiscordConsoleChannelBlacklistedCommands
-    ///     DiscordConsoleChannelFilters
-    ///     DiscordConsoleChannelLevels
-    ///     DiscordConsoleChannelUseCodeBlocks
-    /// Removed with no replacement: DiscordConsoleChannelBlockBots (Users/roles need to be specifically whitelisted)
-    ///
-    ///     DiscordChatChannelConsoleCommandEnabled
-    /// Removed with no replacement: DiscordChatChannelConsoleCommandNotifyErrors
-    /// Removed with no replacement: DiscordChatChannelConsoleCommandPrefix
-    ///     DiscordChatChannelConsoleCommandRolesAllowed
-    ///     DiscordChatChannelConsoleCommandWhitelist
-    ///     DiscordChatChannelConsoleCommandWhitelistBypassRoles
-    ///     DiscordChatChannelConsoleCommandWhitelistActsAsBlacklist
-    /// Migrated to ephemeral option: DiscordChatChannelConsoleCommandExpiration
-    /// Migrated to ephemeral option: DiscordChatChannelConsoleCommandExpirationDeleteRequest
-    ///
-    ///     DiscordChatChannelListCommandEnabled
-    /// Removed with no replacement: DiscordChatChannelListCommandMessage
-    /// Removed with no replacement: DiscordChatChannelListCommandExpiration (command is ephemeral, only visible to the requester)
-    /// Removed with no replacement: DiscordChatChannelListCommandExpirationDeleteRequest
-    ///
-    ///     DiscordChatChannelGameFilters
-    ///     DiscordChatChannelDiscordFilters
-    ///
-    ///     ChannelTopicUpdaterChannelTopicsAtShutdownEnabled
-    ///     ChannelTopicUpdaterRateInMinutes
-    ///
-    ///     ChannelUpdater
-    ///     - ChannelId
-    ///       Format
-    ///       ShutdownFormat
-    ///       UpdateInterval
-    ///
-    ///     DiscordCannedResponses
-    ///
-    ///     MinecraftDiscordAccountLinkedConsoleCommands
-    ///     MinecraftDiscordAccountUnlinkedConsoleCommands
-    ///     MinecraftDiscordAccountLinkedRoleNameToAddUserTo
-    /// Removed with no replacement: MinecraftDiscordAccountLinkedAllowRelinkBySendingANewCode
-    /// Removed with no replacement: MinecraftDiscordAccountLinkedUsePM
-    /// Removed with no replacement: MinecraftDiscordAccountLinkedMessageDeleteSeconds
-    ///
-    /// * watchdog options skipped *
-    ///
-    ///     ProxyHost (Connections)
-    ///     ProxyPort (Connections)
-    ///     ProxyUser (Connections)
-    ///     ProxyPassword (Connections)
-    ///
-    /// Removed: Debug (partially handled in the background by default, partially replaced by debug.log-to-console and debug.additional-levels)
-    ///
-    /// ** linking.yml **
-    ///     Require linked account to play.Enabled
-    ///     Require linked account to play.Listener priority
-    ///     Require linked account to play.Listener event
-    /// Missing: Require linked account to play.Bypass names
-    ///     Require linked account to play.Whitelisted players bypass check
-    /// Removed with no replacement: Require linked account to play.Check banned players
-    /// Removed with no replacement: Require linked account to play.Only check banned players
-    /// Removed: Require linked account to play.Not linked message (linked message is configured by linker type in messages config)
-    ///     Require linked account to play.Must be in Discord server
-    ///     Require linked account to play.Subscriber role.Require subscriber role to join
-    ///     Require linked account to play.Subscriber role.Subscriber roles
-    ///     Require linked account to play.Subscriber role.Require all of the listed roles
-    ///
-    /// ** synchronization.yml **
-    ///     NicknameSynchronizationEnabled
-    ///     NicknameSynchronizationCycleTime
-    ///     NicknameSynchronizationFormat
-    ///
-    ///     GroupRoleSynchronizationGroupsAndRolesToSync
-    ///     GroupRoleSynchronizationMinecraftIsAuthoritative
-    ///     GroupRoleSynchronizationOneWay
-    /// Removed with no replacement: GroupRoleSynchronizationEnableDenyPermission
-    /// Removed with no replacement: GroupRoleSynchronizationPrimaryGroupOnly
-    ///     GroupRoleSynchronizationOnLink
-    /// Removed with no replacement: GroupRoleSynchronizationCycleCompletely
-    ///
-    ///     BanSynchronizationDiscordToMinecraft
-    /// Missing: BanSynchronizationDiscordToMinecraftReason
-    ///     BanSynchronizationMinecraftToDiscord
-    ///
-    /// ** messages.yml **
-    ///     DiscordToMinecraftChatMessageFormat_<channel>
-    /// Removed with no replacement: DiscordToMinecraftChatMessageFormatNoRole_<channel>
-    ///     DiscordToMinecraftChatMessageFormat
-    /// Removed with no replacement: DiscordToMinecraftChatMessageFormatNoRole
-    /// Migrated into placeholder: DiscordToMinecraftAllRolesSeparator
-    ///     DiscordToMinecraftMessageReplyFormat
-    ///
-    ///     MinecraftChatToDiscordMessageFormat
-    ///     MinecraftChatToDiscordMessageFormatNoPrimaryGroup
-    ///
-    ///     ChatChannelHookMessageFormat
-    ///
-    /// Missing: DynmapNameFormat
-    /// Missing: DynmapChatFormat
-    /// Missing: DynmapDiscordFormat
-    ///
-    /// Migrated into placeholder: DiscordConsoleChannelTimestampFormat
-    ///     DiscordConsoleChannelPrefix
-    ///     DiscordConsoleChannelSuffix
-    /// Migrated into placeholder: DiscordConsoleChannelPadding
-    ///
-    /// * skip DiscordChatChannelConsoleCommandNotifyErrorsFormat *
-    ///
-    /// Missing: DiscordChatChannelListCommandFormatOnlinePlayers
-    /// Missing: DiscordChatChannelListCommandFormatNoOnlinePlayers
-    /// Missing: DiscordChatChannelListCommandPlayerFormat
-    /// Missing: DiscordChatChannelListCommandAllPlayersSeparator
-    ///
-    ///     MinecraftPlayerJoinMessage
-    ///     MinecraftPlayerFirstJoinMessage
-    ///     MinecraftPlayerLeaveMessage
-    ///     MinecraftPlayerDeathMessage
-    ///     MinecraftPlayerAchievementMessage
-    ///
-    ///     ChannelTopicUpdaterChatChannelTopicFormat
-    ///     ChannelTopicUpdaterConsoleChannelTopicFormat
-    ///     ChannelTopicUpdaterChatChannelTopicAtServerShutdownFormat
-    ///     ChannelTopicUpdaterConsoleChannelTopicAtServerShutdownFormat
-    ///
-    ///     DiscordCommandFormat
-    ///
-    /// * skip NoPermissionMessage *
-    /// * skip UnknownCommandMessage *
-    ///
-    ///     DiscordChatChannelServerStartupMessage
-    ///     DiscordChatChannelServerShutdownMessage
-    ///
-    /// * skip ServerWatchdogMessage *
 
     private static ConfigurationNode loadNode(DiscordSRV discordSRV, String fileName) {
         try {
@@ -410,6 +437,8 @@ public class V1ConfigMigration {
         CHAT_CHANNEL_HOOK_MESSAGE_FORMAT,
         /// DiscordConsoleChannelPrefix / DiscordConsoleChannelSuffix
         DISCORD_CONSOLE_CHANNEL_AFFIX,
+        /// DiscordChatChannelListCommandFormatOnlinePlayers
+        PLAYERLIST_COMMAND_HEADER,
         /// DiscordChatChannelListCommandPlayerFormat
         PLAYERLIST_COMMAND_FORMAT,
         /// MinecraftPlayerJoinMessage / MinecraftPlayerFirstJoinMessage
@@ -428,6 +457,10 @@ public class V1ConfigMigration {
         DISCORD_COMMAND_FORMAT,
         /// NicknameSynchronizationFormat
         NICKNAME_FORMAT,
+        /// DiscordAccountLinked
+        DISCORD_ACCOUNT_LINKED_MESSAGE,
+        /// MinecraftAccountLinked
+        MINECRAFT_ACCOUNT_LINKED_MESSAGE
         ;
 
         boolean isEmbedMessageFormat() {
@@ -466,6 +499,10 @@ public class V1ConfigMigration {
         public String toString() {
             return getPlaceholderAPIPlaceholder();
         }
+    }
+
+    private enum RemovedReplacement {
+        INSTANCE
     }
 
     private List<Pair<Pattern, Object>> makePlaceholderMapping(PlaceholderField placeholderField) {
@@ -507,7 +544,7 @@ public class V1ConfigMigration {
             placeholderMapping.put("%totalplayers%", $Server_uniqueJoins);
             placeholderMapping.put("%uptimemins%", "%start_date_relative_to_now:'m'%");
             placeholderMapping.put("%uptimehours%", "%start_date_relative_to_now:'h'%");
-            placeholderMapping.put("%motd%", ""); // TODO
+            placeholderMapping.put("%motd%", RemovedReplacement.INSTANCE); // No PlaceholderAPI placeholder seemingly - removed
             placeholderMapping.put("%serverversion%", $Server_version);
             if (recommendedUpgrades) {
                 placeholderMapping.put("%usedmemorygb%GB used/%freememorygb%GB free/%maxmemorygb%GB max", "%memory_used%/%memory_available%");
@@ -622,6 +659,16 @@ public class V1ConfigMigration {
             placeholderMapping.put("{date}", timestamp);
         }
 
+        if (placeholderField == PlaceholderField.PLAYERLIST_COMMAND_HEADER) {
+            String playerCount = "!!PLAYERCOUNT!!";
+            String playerMax = "!!PLAYERMAX!!";
+
+            placeholderMapping.put("%playercount%", recommendedUpgrades ? $PlayerUtil_getOnlinePlayers_size : playerCount + "/" + playerMax);
+
+            placeholderMapping.put(playerCount, $PlayerUtil_getOnlinePlayers_size);
+            placeholderMapping.put(playerMax, $Server_maxPlayers);
+        }
+
         if (placeholderField == PlaceholderField.PLAYERLIST_COMMAND_FORMAT) {
             placeholderMapping.put("%username%", "%player_name%");
             placeholderMapping.put("%displayname%", "%player_display_name%");
@@ -670,6 +717,18 @@ public class V1ConfigMigration {
             placeholderMapping.put("%username%", "%player_name%");
             placeholderMapping.put("%discord_name%", recommendedUpgrades ? "%user_effective_name%" : "%user_name%");
             placeholderMapping.put("%discord_discriminator%", "%user_discriminator%");
+        }
+
+        if (placeholderField == PlaceholderField.DISCORD_ACCOUNT_LINKED_MESSAGE) {
+            placeholderMapping.put("%name%", "%player_name%");
+            placeholderMapping.put("%displayname%", "%player_display_name%");
+            placeholderMapping.put("%uuid%", "%player_uuid%");
+            placeholderMapping.put("%mention%", "%user_mention%");
+        }
+
+        if (placeholderField == PlaceholderField.MINECRAFT_ACCOUNT_LINKED_MESSAGE) {
+            placeholderMapping.put("%id%", "%user_id%");
+            placeholderMapping.put("%username%", "%user_name%");
         }
 
         return placeholderMapping
@@ -723,6 +782,11 @@ public class V1ConfigMigration {
                             logger.info("Some placeholders require the " + expansion + " PlaceholderAPI expansion, make sure it is installed to use the replacement placeholders");
                         }
                     }
+                }
+                if (replacement == RemovedReplacement.INSTANCE) {
+                    String match = matcher.group();
+                    logger.info(match + " placeholder has been removed, it has been left as is."); // TODO: verify that it doesn't cause infinite recursion
+                    return match;
                 }
 
                 return replacement.toString();
@@ -1084,7 +1148,15 @@ public class V1ConfigMigration {
 
             requiredLinkingConfig.whitelistedPlayersCanBypass = requiredLinking.node("Whitelisted players bypass check").getBoolean();
 
-            //requiredLinkingConfig.requirements.bypassUUIDs.add(); // TODO: Bypass names
+            requiredLinkingConfig.requirements.bypassUUIDs.clear();
+            requiredLinkingConfig.requirements.bypassUUIDs.addAll(
+                    Task.allOf(requiredLinking.node("Bypass names")
+                            .getList(String.class, Collections.emptyList())
+                            .stream()
+                            .map(bypassName -> discordSRV.playerProvider().lookupUUIDForUsername(bypassName))
+                            .toList()
+                    ).join().stream().map(UUID::toString).toList()
+            );
 
             List<String> collectiveRequirement = new ArrayList<>();
 
@@ -1330,11 +1402,17 @@ public class V1ConfigMigration {
         // PlayerList Command
         //
 
+        mainConfig.playerList.noPlayersFormat = messages.node("DiscordChatChannelListCommandFormatNoOnlinePlayers").getString();
+        mainConfig.playerList.playerFormat = convertPlaceholders(PlaceholderField.PLAYERLIST_COMMAND_FORMAT, messages.node("DiscordChatChannelListCommandPlayerFormat").getString());
+        mainConfig.playerList.playerSeparator = messages.node("DiscordChatChannelListCommandAllPlayersSeparator").getString();
+
         if (config.node("DiscordChatChannelListCommandEnabled").getBoolean()) {
             mainConfig.playerList.command.outputMode = DiscordOutputMode.OFF;
         } else if (!recommendedUpgrades) {
             mainConfig.playerList.command.outputMode = DiscordOutputMode.CODE_BLOCK;
         }
+
+        mainConfig.playerList.command.header = convertPlaceholders(PlaceholderField.PLAYERLIST_COMMAND_HEADER, messages.node("DiscordChatChannelListCommandFormatOnlinePlayers").getString());
 
         //
         // Custom Commands
@@ -1550,5 +1628,17 @@ public class V1ConfigMigration {
         }
 
         storageConfig.sqlTablePrefix = config.node("Experiment_JdbcTablePrefix").getString();
+    }
+
+    public void migrate(MessagesConfig messagesConfig) {
+        messagesConfig.noPermission = new BothMessage(
+                new MinecraftMessage(messages.node("NoPermissionMessage").getString()),
+                messagesConfig.noPermission.discord()
+        );
+
+        messagesConfig.linkedTo1st = new BothMessage(
+                new MinecraftMessage(convertPlaceholders(PlaceholderField.MINECRAFT_ACCOUNT_LINKED_MESSAGE, messages.node("MinecraftAccountLinked").getString())),
+                new DiscordMessage(SendableDiscordMessage.builder().setContent(convertPlaceholders(PlaceholderField.DISCORD_ACCOUNT_LINKED_MESSAGE, messages.node("DiscordAccountLinked").getString())))
+        );
     }
 }
