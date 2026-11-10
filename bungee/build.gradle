@@ -23,6 +23,9 @@ allprojects {
     dependencies {
         // Platform
         compileOnly(libs.bungee)
+
+        // FastStats Metrics
+        implementation(libs.faststats.bungeecord)
     }
 }
 
