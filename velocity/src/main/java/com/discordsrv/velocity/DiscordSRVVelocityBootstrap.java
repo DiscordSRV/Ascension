@@ -57,11 +57,11 @@ public class DiscordSRVVelocityBootstrap implements IBootstrap {
     private final ProxyServer proxyServer;
     private final PluginContainer pluginContainer;
     private final Path dataDirectory;
-    private final VelocityContext.Builder metricsFactory;
+    private final VelocityContext.Factory metricsFactory;
     private VelocityDiscordSRV discordSRV;
 
     @Inject
-    public DiscordSRVVelocityBootstrap(com.discordsrv.unrelocate.org.slf4j.Logger logger, ProxyServer proxyServer, PluginContainer pluginContainer, @DataDirectory Path dataDirectory, VelocityContext.Builder contextBuilder) throws IOException {
+    public DiscordSRVVelocityBootstrap(com.discordsrv.unrelocate.org.slf4j.Logger logger, ProxyServer proxyServer, PluginContainer pluginContainer, @DataDirectory Path dataDirectory) throws IOException {
         this.logger = new SLF4JLoggerImpl(logger);
         this.classpathAppender = new VelocityClasspathAppender(this, proxyServer);
         this.lifecycleManager = new LifecycleManager(
@@ -73,7 +73,7 @@ public class DiscordSRVVelocityBootstrap implements IBootstrap {
         this.proxyServer = proxyServer;
         this.pluginContainer = pluginContainer;
         this.dataDirectory = dataDirectory;
-        this.metricsFactory = contextBuilder;
+        this.metricsFactory = new VelocityContext.Factory(pluginContainer, proxyServer, (org.slf4j.Logger) logger, dataDirectory);
     }
 
     @Subscribe
