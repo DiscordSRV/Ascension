@@ -1,3 +1,21 @@
+/*
+ * This file is part of DiscordSRV, licensed under the GPLv3 License
+ * Copyright (c) 2016-2026 Austin "Scarsz" Shapiro, Henri "Vankka" Schubin and DiscordSRV contributors
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <https://www.gnu.org/licenses/>.
+ */
+
 package com.discordsrv.common.metrics;
 
 import com.discordsrv.common.DiscordSRV;
@@ -23,7 +41,7 @@ public class FastStatsMetrics {
             .noneMatch(e -> e.getClassName().startsWith("com.discordsrv")));
 
     @Token
-    public static final String TOKEN = "replace_with_discordsrv_token";
+    public static final String TOKEN = "49de091d39064cdba8d756cd958ca2fd";
     private final DiscordSRV discordSRV;
 
     public FastStatsMetrics(DiscordSRV discordSRV) {
@@ -36,9 +54,7 @@ public class FastStatsMetrics {
                 .metrics(factory -> {
                     factory.addMetric(Metric.string("version", () -> discordSRV.versionInfo().version()));
                     factory.addMetric(Metric.string("git_revision", () -> discordSRV.versionInfo().gitRevision()));
-                    factory.addMetric(Metric.string("online_mode", () -> discordSRV.onlineMode().name().toLowerCase(Locale.ROOT)));
                     factory.addMetric(Metric.string("server_language", () -> discordSRV.defaultLocale().toLanguageTag()));
-                    factory.addMetric(Metric.number("players_online", () -> discordSRV.playerProvider().allPlayers().size()));
                     factory.addMetric(Metric.string("storage_backend", () -> discordSRV.connectionConfig().storage.backend.prettyName()));
                     factory.addMetric(Metric.string("avatar_service_mode", () -> discordSRV.config().avatarProvider.avatarServiceMode.name()));
                     factory.addMetric(Metric.number("platform_plugins_count", () -> discordSRV.pluginManager().getPlugins().size()));
