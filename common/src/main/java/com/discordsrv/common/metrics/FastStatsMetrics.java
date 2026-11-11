@@ -58,6 +58,7 @@ public class FastStatsMetrics {
                     factory.addMetric(Metric.string("storage_backend", () -> discordSRV.connectionConfig().storage.backend.prettyName()));
                     factory.addMetric(Metric.string("avatar_service_mode", () -> discordSRV.config().avatarProvider.avatarServiceMode.name()));
                     factory.addMetric(Metric.number("platform_plugins_count", () -> discordSRV.pluginManager().getPlugins().size()));
+                    factory.addMetric(Metric.string("platform_type", () -> discordSRV.serverType().name()));
 
                     factory.addMetric(Metric.number("configured_channels", () -> discordSRV.channelConfig().getKeys().size()));
                     factory.addMetric(Metric.number("configured_destinations", () -> discordSRV.channelConfig().getAllChannels().stream()
