@@ -41,7 +41,7 @@ import com.discordsrv.common.core.logging.NamedLogger;
 import com.discordsrv.common.core.paste.Paste;
 import com.discordsrv.common.core.paste.PasteService;
 import com.discordsrv.common.core.paste.service.AESEncryptedPasteService;
-import com.discordsrv.common.core.paste.service.BytebinPasteService;
+import com.discordsrv.common.core.paste.service.PastesDevPasteService;
 import com.discordsrv.common.permission.game.Permissions;
 import com.discordsrv.common.util.ExceptionUtil;
 import net.kyori.adventure.text.Component;
@@ -147,7 +147,7 @@ public class DebugCommand {
     public DebugCommand(DiscordSRV discordSRV) {
         this.discordSRV = discordSRV;
         this.logger = new NamedLogger(discordSRV, "DEBUG_COMMAND");
-        this.pasteService = new AESEncryptedPasteService(new BytebinPasteService(discordSRV, "https://bytebin.lucko.me") /* TODO: final store tbd */, 128);
+        this.pasteService = new AESEncryptedPasteService(new PastesDevPasteService(discordSRV, "https://api.pastes.dev") /* TODO: final store tbd */, 128);
 
         this.base = new BaseCommand(this);
         this.start = new StartCommand(this);

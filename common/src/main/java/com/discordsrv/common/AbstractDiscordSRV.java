@@ -250,10 +250,13 @@ public abstract class AbstractDiscordSRV<
                     String host = original.url().host();
                     boolean isDiscord = host.matches("(.*\\.|^)(?:discord\\.(?:com|gg)|(discordapp\\.com))");
 
+                    String fullVersion = versionInfo().version();
+                    if (versionInfo.isSnapshot() && versionInfo().gitRevision() != null) fullVersion += "+" + versionInfo().gitRevision().substring(0, 7);
+
                     String userAgent = isDiscord
-                                       ? "DiscordBot (https://github.com/DiscordSRV/DiscordSRV, " + versionInfo().version() + ")"
+                                       ? "DiscordBot (https://github.com/" + UpdateChecker.GITHUB_REPOSITORY + ", " + fullVersion + ")"
                                                + " (" + JDAInfo.GITHUB + ", " + JDAInfo.VERSION + ")"
-                                       : "DiscordSRV/" + versionInfo().version();
+                                       : "DiscordSRV (https://github.com/" + UpdateChecker.GITHUB_REPOSITORY + ", " + fullVersion + ")";
 
                     return chain.proceed(
                             original.newBuilder()

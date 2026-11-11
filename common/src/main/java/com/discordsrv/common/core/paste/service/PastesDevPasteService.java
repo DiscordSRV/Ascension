@@ -25,20 +25,20 @@ import com.discordsrv.common.util.HttpUtil;
 import com.fasterxml.jackson.databind.JsonNode;
 import okhttp3.*;
 
-public class BytebinPasteService implements PasteService {
+public class PastesDevPasteService implements PasteService {
 
     private final DiscordSRV discordSRV;
-    private final String bytebinUrl;
+    private final String pastesUrl;
 
-    public BytebinPasteService(DiscordSRV discordSRV, String bytebinUrl) {
+    public PastesDevPasteService(DiscordSRV discordSRV, String pastesUrl) {
         this.discordSRV = discordSRV;
-        this.bytebinUrl = bytebinUrl;
+        this.pastesUrl = pastesUrl;
     }
 
     @Override
     public Paste uploadFile(byte[] fileContent) throws Throwable {
         Request request = new Request.Builder()
-                .url(bytebinUrl + "/post")
+                .url(pastesUrl + "/post")
                 //.header("Content-Encoding", "gzip")
                 .post(RequestBody.create(fileContent, MediaType.get("application/octet-stream")))
                 .build();
@@ -48,7 +48,7 @@ public class BytebinPasteService implements PasteService {
 
             JsonNode responseNode = discordSRV.json().readTree(responseBody.string());
             String key = responseNode.get("key").asText();
-            return new Paste(key, bytebinUrl + "/" + key, null);
+            return new Paste(key, pastesUrl + "/" + key, null);
         }
     }
 }
