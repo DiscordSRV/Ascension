@@ -94,6 +94,7 @@ dependencies {
 
     // FastStats Metrics
     compileOnly(libs.faststats.core)
+    testCompileOnly(libs.faststats.core)
 
     // Adventure, MCDiscordReserializer, EnhancedLegacyText
     // adventure-api is provided by some platforms, serializer availability varies.
