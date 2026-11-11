@@ -70,7 +70,7 @@ dependencyResolutionManagement {
             plugin('idea-ext', 'org.jetbrains.gradle.plugin.idea-ext').version('1.1.7')
 
             // Run platforms
-            version('runtask', '2.3.1')
+            version('runtask', '3.1.0')
             plugin('run-paper', 'xyz.jpenilla.run-paper').versionRef('runtask')
             plugin('run-velocity', 'xyz.jpenilla.run-velocity').versionRef('runtask')
             plugin('run-waterfall', 'xyz.jpenilla.run-waterfall').versionRef('runtask')
@@ -89,7 +89,7 @@ dependencyResolutionManagement {
             library('bungee', 'net.md-5', 'bungeecord-api').version('1.21-R0.4-SNAPSHOT')
 
             // Velocity
-            library('velocity', 'com.velocitypowered', 'velocity-api').version('3.5.0-SNAPSHOT')
+            library('velocity', 'com.velocitypowered', 'velocity-api').version('3.6.0-SNAPSHOT')
 
             // Modded
             version('fabric.loom', '1.18-SNAPSHOT')
@@ -178,7 +178,7 @@ dependencyResolutionManagement {
             library('skinsrestorer-api', 'net.skinsrestorer', 'skinsrestorer-api').version('15.12.2')
 
             // Metrics
-            version('faststats', '0.31.0')
+            version('faststats', '0.31.1')
             library('faststats-core', 'dev.faststats.metrics', 'core').versionRef('faststats')
             library('faststats-bukkit', 'dev.faststats.metrics', 'bukkit').versionRef('faststats')
             library('faststats-bungeecord', 'dev.faststats.metrics', 'bungeecord').versionRef('faststats')
